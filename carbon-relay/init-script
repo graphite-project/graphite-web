@@ -1,0 +1,40 @@
+#!/bin/bash
+# chkconfig:   - 25 75
+# description: carbon-relay
+# processname: carbon-relay
+
+export GRAPHITE_DIR="/usr/local/graphite"
+export CARBON_DIR="${GRAPHITE_DIR}/carbon/carbon-relay"
+pidfile="${CARBON_DIR}/twistd.pid"
+
+function die {
+  echo $1
+  exit 1
+}
+
+case "$1" in
+  start)
+  	echo "Starting carbon-relay"
+	cd $CARBON_DIR
+	test -f $pidfile && echo "WARNING: pidfile $pidfile already exists!"
+	./carbon-relay -r epoll
+	;;
+  stop)
+	if [ ! -f $pidfile ]
+	then
+		echo "No PID file $pidfile, cannot stop carbon-relay"
+		exit 1
+	fi
+	echo "Stopping carbon-relay"
+	kill `cat $pidfile`
+	rm -f $pidfile
+	;;
+  restart|reload)
+	stop
+	sleep 3
+	start
+	;;
+  *)
+	echo $"Usage: $0 {start|stop|restart}"
+	exit 1
+esac

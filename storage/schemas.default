@@ -1,0 +1,6 @@
+#[my_schema]
+#priority = 42 #used to determine the order in which schemas are tested to create a new file
+               # matching is done highest to lowest.
+#pattern = "^some.*regex$" #if this pattern matches a given metric name, this schema will be used
+                           #to create the whisper file for that metric.
+#retentions = secondsPerDataPoint:numberOfDataPointsToStore, ... #ex: 60:120 is minutely data kept for two hours

@@ -1,0 +1,50 @@
+<!-- Copyright 2008 Orbitz WorldWide
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License. -->
+<html>
+  <head>
+    <title>Graphite Composer</title>
+    <link rel="stylesheet" type="text/css"  href="/content/js/extJS/resources/css/ext-all.css" />
+    <script type="text/javascript"  src="/content/js/extJS/adapter/prototype/prototype150_min.js"></script>
+    <script type="text/javascript" src="/content/js/extJS/adapter/ext/ext-base.js"></script>
+    <script type="text/javascript" src="/content/js/extJS/ext-all-debug.js"></script>
+    <script type="text/javascript" src="/content/js/graphComposer_min.js"></script>
+    <script type="text/javascript" src="/content/js/navigationPanel_min.js"></script>
+    <script type="text/javascript">
+      Ext.onReady(function(){
+        var base = window.location.protocol+"//"+window.location.host+"/render/?";
+        var mgr = new urlManager(base,"url");
+        var canvas = new canvasControl(mgr);
+        var targets = new targetControl(mgr);
+	var saver = new saveGraphControl(mgr);
+        var dateTime = new timeControl(mgr);
+	var updater = new autoUpdaterControl(mgr);
+	var composerPanel = new Ext.Panel({id:"composerPanel",region:'center'})
+        var gc = new graphComposer({
+	  urlMgr:mgr,
+          height: 400,
+          width:575,
+          composerControls:[canvas,targets,saver,dateTime,updater],
+	  containingElement:"composerPanel"
+        });
+	var navPanel = NavigationPanel();
+        var view = new Ext.Viewport({layout:'border', items:[navPanel,composerPanel]});
+	gc.render();
+	top.gc = gc;
+      });
+</script> 
+
+  </head>
+  <body>
+  </body>
+</html>

@@ -1,0 +1,29 @@
+#!/bin/bash
+
+#cd /usr/local/graphite/carbon/carbon-relay
+export PYTHONPATH=.:$PYTHONPATH
+
+set -- `getopt dr: "$@"`
+DEBUG="false"
+REACTOR="default"
+
+while [ ! -z "$1" ]
+do
+	case "$1" in
+		-r) REACTOR="$2";;
+		-d) DEBUG="true";;
+		*) break;;
+	esac
+	shift
+done
+
+echo " carbon-relay starting reactor=$REACTOR debug=$DEBUG"
+
+OPTS="-oqy"
+if [ "$DEBUG" = "true" ]
+then
+	OPTS="-noqy"
+fi
+
+twistd $OPTS main.tac -l carbon-relay.log -r $REACTOR
+exit $?

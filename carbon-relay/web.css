@@ -1,0 +1,53 @@
+body {
+  background-color: black;
+  color: #cceedd;
+  font-family: monospace;
+}
+
+.mainInfo {
+  border: 1px solid #cceedd;
+  margin-bottom: 5px;
+}
+
+.pypeInfo {
+  border: 1px solid #cceedd;
+  margin: 5px;
+  font-family: monospace;
+}
+
+.rateInfo {
+  border: 1px solid #cceedd;
+  margin-bottom: 30px;
+  font-family: monospace;
+  border-spacing: 5px;
+}
+
+.rateInfo td {
+  padding 4px;
+}
+
+.pypeLink {
+  font-weight: bold;
+  text-decoration: none;
+  color: #cceedd;
+}
+
+.connectionTable {
+  color: #cceedd;
+  border: 1px solid #cceedd;
+  border-spacing: 0px;
+  border-collapse: collapse;
+}
+
+.connectionTable th {
+  border-width: 1px 0px 1px 0px;
+  border-style: inset;
+  border-color: #cceedd;
+  padding: 7px;
+}
+
+.connectionTable td {
+  padding: 3px;
+  border-style: inset;
+  border-width: 0px 1px 0px 1px;
+}

@@ -1,0 +1,25 @@
+Summary: Graphite carbon-relay
+Name: graphite-carbon-relay
+Version: 1.0
+Release: @REV@
+Source0: graphite-carbon.tgz
+License: GPL
+BuildRoot: /usr/src/rpm/BUILD
+Group: Applications/System
+Requires: python
+AutoReqProv: no
+
+%description
+Graphite is a network graphing application, see the Orbitz wiki for more information
+
+%install
+mkdir -p ${RPM_BUILD_ROOT}
+tar -C ${RPM_BUILD_ROOT} -zxf %{SOURCE0}
+
+%post
+ln -nsf /etc/rc.d/init.d/carbon-relay /etc/rc.d/rc3.d/S99carbon-relay
+
+%files
+%defattr(-,apache,apache)
+/usr/local/graphite/carbon/carbon-relay
+%(0755,root,root)/etc/rc.d/init.d/carbon-relay

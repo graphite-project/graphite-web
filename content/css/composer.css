@@ -1,0 +1,95 @@
+body {
+  background-color:	white;
+  color:		#999;
+  font-family:		monospace;
+}
+
+select {
+  border:		thin solid;
+  background-color:	#ddd;
+}
+
+.entryBox {
+  border-top:		none;
+  border-left:		none;
+  border-right:		none;
+  border-bottom:	thin solid;
+  background-color:	#ddd;
+}
+
+.applyButton {
+  font-size:		10;
+  border:		thin solid;
+  padding:		1px;
+  background-color:	#ddd;
+}
+
+.controlBar {
+  background-color:	#ddd;
+  color:		#06c;
+}
+
+.controlBar td {
+  border:		thin solid black;
+}
+
+.title {
+  text-align:		right;
+}
+
+.plain td {
+  color:		#06c;
+  border:		none;
+  margin-right:		5px;
+}
+
+.urlbox {
+  font-size:		smaller;
+  border:		none;
+}
+
+.optionBox {
+  background-color:	#cccccc;
+  color:		#0066cc;
+}
+
+.optionTitle {
+  background-color:	#ddddff;
+  color:		#6666aa;
+  font-family:		sans;
+  font-weight:		bold;
+}
+
+.cButton {
+  background-color:	#cccccc;
+  color:		#3366cc;
+}
+
+.cSelect {
+  background-color:	#cccccc;
+  color:		#3366cc;
+  border:		thin solid black;
+}
+
+
+div.autocomplete {
+  position:absolute;
+  width:		250px;
+  background-color:	black;
+  margin:		0px;
+  padding:		0px;
+}
+div.autocomplete ul {
+  list-style-type:	none;
+  margin:		0px;
+  padding:		0px;
+}
+div.autocomplete ul li.selected { background-color: #666666;}
+div.autocomplete ul li {
+  list-style-type:	none;
+  display:		block;
+  margin:		0;
+  padding:		2px;
+  height:		16px;
+  cursor:		pointer;
+}

@@ -1,0 +1,129 @@
+body {
+	font-family: Verdana;
+	margin: 0px !important;
+	padding: 0px !important;
+	font-size: 8pt;
+	background-color: white;
+	white-space: nowrap;
+}
+
+.tab {
+	display: none !important;
+}
+
+.activeTab {
+	padding-top: 35px;
+	padding-left: 10px;
+	padding-right: 10px;
+	display: block !important;
+}
+
+input[type=text] {
+	border: 1px solid #B1A598;
+	padding: 2px;
+}
+
+input[type=text]:focus {
+}
+
+.error {
+	color: red;
+	font-weight: bold;
+}
+
+ul#indexList {
+	padding: 0px;
+	margin-left: 0px;
+	margin-right: 0px;
+	margin-bottom: 0px;
+	margin-top: 10px;
+}
+
+ul#indexList li {
+	list-style: none;
+	padding-left: 13px;
+	padding-top: 2px;
+	padding-bottom: 2px;
+	background: url('/images/treenodedot.gif') no-repeat center left;
+}
+
+#contentsList ul {
+	padding: 0px;
+	margin-left: 0px;
+	margin-top: 0px;
+}
+
+#contentsList ul ul{
+	padding-left: 15px;
+	margin: 0px !important;
+}
+
+#contentsList ul li {
+	list-style: none;
+	padding-bottom: 3px;
+}
+
+#contentsList ul li a {
+	text-decoration: none;
+	color: black;
+}
+
+#contentsList ul li img {
+	border: 0px;
+	vertical-align: middle;
+}
+
+#tabs {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+}
+
+#tabs ul {
+	margin-left: 0px;
+	padding-left: 5px;
+	border-bottom: 1px solid #B1A598;
+	padding-bottom: 3px;
+	background-color: #EFEBE7;
+	padding-top: 10px;
+	margin-top: 0px !important;
+	margin-bottom: 0px !important;
+}	
+#tabs {
+	border-bottom: 2px solid white;
+}
+
+
+#tabs ul li {
+	display: inline;
+	border-top: 1px solid #B1A598;
+	border-left: 1px solid #B1A598;
+	border-right: 1px solid #B1A598;
+	padding-top: 3px;
+	padding-bottom: 3px;
+	padding-left: 5px;
+	padding-right: 5px;
+}
+
+#tabs ul li.selected, ul#tabs li:hover {
+	background-color: white;
+}
+#tabs ul li.selected {
+	border-bottom: 1px solid white;
+}
+#tabs ul li a {
+	color: black;
+	text-decoration: none;
+}
+
+a.selected {
+	/*font-weight: bold;*/
+	background: #eee;
+	border: 1px solid #ccc;
+	padding: 1px;
+}
+
+#errorText {
+	margin-top: 10px;
+}
