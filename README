@@ -31,9 +31,8 @@ Use the instructions in the INSTALL file.
 -------------------------------------------------------------------------------
 Decide what user you want to run carbon-agent.py as, for this example I'll use 'nobody'.
 
-# First we must make sure that carbon-agent's user owns the storage/whisper/ directory.
-cd /usr/local/graphite/storage/
-sudo chown -R nobody whisper
+# First we must make sure that carbon-agent's user owns the storage directory.
+sudo chown -R nobody /usr/local/graphite/storage/
 
 # Now you just start carbon-agent
 sudo /etc/init.d/carbon-agent start
