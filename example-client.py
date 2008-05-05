@@ -31,9 +31,9 @@ while True:
   lines = []
   #We're gonna report all three loadavg values
   (loadavg_1, loadavg_5, loadavg_15) = get_loadavg()
-  lines.append("system.loadavg_1min %f %d" % (loadavg_1,now))
-  lines.append("system.loadavg_5min %f %d" % (loadavg_5,now))
-  lines.append("system.loadavg_15min %f %d" % (loadavg_15,now))
+  lines.append("system.loadavg_1min %s %d" % (loadavg_1,now))
+  lines.append("system.loadavg_5min %s %d" % (loadavg_5,now))
+  lines.append("system.loadavg_15min %s %d" % (loadavg_15,now))
   message = '\n'.join(lines)
   print "sending message\n"
   print '-' * 80
