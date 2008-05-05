@@ -33,7 +33,7 @@ def composer(request):
   context = dict(request.GET.items())
   context['user'] = request.user
   context['profile'] = getProfile(request)
-  return render_to_response("composer_advanced.html",context)
+  return render_to_response("composer.html",context)
 
 def mygraph(request):
   profile = getProfile(request,allowDefault=False)
