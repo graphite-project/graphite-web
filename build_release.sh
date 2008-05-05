@@ -28,6 +28,7 @@ cp -r carbon-agent/ $app_dir
 cp whisper/whisper.py $app_dir
 cp carbon-agent/init-script $rc_dir/carbon-agent
 cp template-vhost.conf $tmp_dir
+cp -r examples/ $base_dir
 cp INSTALL LICENSE README install.py $base_dir
 
 echo "Compressing"

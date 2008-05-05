@@ -1,5 +1,5 @@
-Overview
----------------------------------------------
+ Overview
+-------------------------------------------------------------------------------
 Graphite consists of two major components
 
  1) the frontend Django webapp that runs under mod_python Apache
@@ -22,54 +22,33 @@ Once you've got some clients sending data to carbon-agent, you can view
 graphs of that data in the frontend webapp.
 
 
-Installation
----------------------------------------------
-Download the graphite-0.1.tgz file.
-Extract it like so "sudo tar xvf graphite-0.1.tgz -C /".
-This will create a /usr/local/graphite/ directory, as well as put an init script
-in /etc/init.d/.
+ Installation
+-------------------------------------------------------------------------------
+Use the instructions in the INSTALL file.
 
 
-Setting up the graphite webapp
----------------------------------------------
-Once you've installed graphite the first thing to do is to configure an apache vhost.
-A sample configuration is provided in example-apache-vhost.conf.
-Once you're apache vhost is setup, you must create a database for the webapp to use.
-By default graphite is configured to use a sqlite database located at:
-
-/usr/local/graphite/storage/graphite.db
-
-To use this default setting, simply create an empty database file like so:
-
-touch /usr/local/graphite/storage/graphite.db
-
-Don't forget to chown it to be owned by the user that apache runs as!
-Apache needs write access to this database.
-
-If you wish to use mysql or some other database, change the DB_* settings in the webapp
-configuration file like so:
-
-cd /usr/local/graphite/web/
-(look at settings.py for settings you may want to change)
-(create a new local_settings.py that overrides the settings you wish to change)
-
-Once your database is configured, Django needs to initialize it, do this like so:
-
-cd /usr/local/graphite/web/
-python manage.py syncdb
-
-This will create all the tables the webapp needs. Now you're finally ready to run the webapp
-
-However keep in mind there will not be any data there until you send some to carbon-agent.py!
-
-Setting up carbon-agent.py
---------------------------------------------
+ Running carbon-agent.py
+-------------------------------------------------------------------------------
 Decide what user you want to run carbon-agent.py as, for this example I'll use 'nobody'.
 
+# First we must make sure that carbon-agent's user owns the storage/whisper/ directory.
 cd /usr/local/graphite/storage/
-chown -R nobody whisper
-cd ../carbon-agent/
-./carbon-agent.py -u nobody
-tail -f log/*.log #watch the carbon logs to verify that everything is running without errors
+sudo chown -R nobody whisper
 
-Now that carbon-agent.py is running you just need to send it data! Check out the example-client.py
+# Now you just start carbon-agent
+sudo /etc/init.d/carbon-agent start
+
+# Now watch the logs to verify that everything is running without errors
+cd /usr/local/graphite/carbon-agent/
+tail -f log/*.log
+
+
+ Writing a client
+-------------------------------------------------------------------------------
+First you obviously need to decide what data it is you want to graph with
+graphite. The script examples/example-client.py demonstrates a simple client
+that sends loadavg data for your local machine to carbon on a minutely basis.
+
+The default storage schema stores data in one-minute intervals for 2 hours.
+This is probably not what you want so you should create a custom storage schema
+according to the docs on the graphite wiki (http://graphite.wikidot.com)

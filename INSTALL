@@ -47,11 +47,49 @@ Include /usr/local/apache2/conf/vhosts.d/*.conf
 
 Then simply drop the graphite-vhost.conf file that install.py created
 into the vhosts.d/ directory (or whatever directory your system uses) and
-you're all set.
+apache is ready.
 
 The second approach is to copy the contents of the graphite-vhost.conf file
 and insert it down at the end of your httpd.conf.
 
+
+ Initial Database Creation
+-------------------------------------------------------------------------------
+You must tell Django to create the database tables used by the graphite webapp.
+This is very straight forward, especially if you are using the default sqlite
+setup.
+
+NOTE: If you are using a custom database backend (other than sqlite) you must
+first create a $GRAPHITE_ROOT/web/local_settings.py file that overrides the
+database related settings from settings.py.
+
+Assuming you are using the default setup, the database is initialized like so:
+
+cd /usr/local/graphite/web/
+python manage.py syncdb
+# you will be prompted to create an admin user, this is a good idea
+
+# now you must change ownership of the database file to the user apache runs as
+cd /usr/local/graphite/storage/
+sudo chown apache:apache graphite.db
+
+Similarly if you use a backend such as mysql or postgres, the DATABASE_USER
+you create in your local_settings.py must have permission to create
+tables under the database named by DATABASE_NAME.
+
 Restart apache and you should see the graphite webapp on the main page.
 If you encounter problems, you can increase the verbosity of error output
 by adding a "DEBUG = True" line to /usr/local/graphite/web/local_settings.py
+
+Also remember that the apache logs for the graphite webapp are in
+/usr/local/graphite/storage/logs/
+
+
+ Next Steps
+-------------------------------------------------------------------------------
+Now you have finished installing graphite, the next thing to do is put some
+real data into it. This is accomplished by running the carbon-agent.py daemon
+and send it some data as demonstrated in the included
+./examples/example-client.py
+
+Read more about doing this in the README file.
