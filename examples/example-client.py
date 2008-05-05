@@ -24,7 +24,11 @@ def get_loadavg():
   return open('/proc/loadavg').read().strip().split()[:3]
 
 sock = socket()
-sock.connect( (CARBON_SERVER,CARBON_PORT) )
+try:
+  sock.connect( (CARBON_SERVER,CARBON_PORT) )
+except:
+  print "Couldn't connect to localhost on port %d, is carbon-agent.py running?" % CARBON_PORT
+  sys.exit(1)
 
 while True:
   now = int( time.time() )
