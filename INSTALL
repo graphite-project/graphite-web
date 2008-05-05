@@ -1,0 +1,57 @@
+ Get ExtJS
+-------------------------------------------------------------------------------
+To install graphite, you will first need to download the ExtJS SDK from
+http://www.extjs.com/. Extract it somewhere and it will create an ext-VERSION/
+subdir.
+
+
+ Run install.py
+-------------------------------------------------------------------------------
+Run the install script like so:
+
+python install.py --extjs=/path/to/ext-VERSION
+
+This will check for graphite's runtime dependencies and let
+you know which you are missing. Download and install these modules and re-run
+install.py until it detects all the required modules.
+
+Graphite requires:
+ python2.4 or greater
+ pycairo (with PNG backend support)
+ mod_python
+ django
+ python-ldap (optional - needed for ldap-based webapp authentication)
+ python-memcached (optional - needed for webapp caching, big performance boost)
+ python-sqlite2 (optional - a django-supported database module is required)
+
+Once install.py has completed, graphite will be installed in
+/usr/local/graphite (unless you specified --install-root). It will also
+create a "graphite-vhost.conf" file in the current directory. You can use
+this to configure apache.
+
+
+ Apache Configuration
+-------------------------------------------------------------------------------
+First off, Apache has to have mod_python configured, this is usually done
+by including a line like the following in your httpd.conf:
+
+LoadModule python_module    modules/mod_python.so
+
+Second you should configure a vhost for graphite (technically it doesn't have
+to be a vhost but its good practice). This can be done one of two ways.
+
+The first way (highly preferred) is to include independent vhost configs.
+
+# This goes in httpd.conf
+Include /usr/local/apache2/conf/vhosts.d/*.conf
+
+Then simply drop the graphite-vhost.conf file that install.py created
+into the vhosts.d/ directory (or whatever directory your system uses) and
+you're all set.
+
+The second approach is to copy the contents of the graphite-vhost.conf file
+and insert it down at the end of your httpd.conf.
+
+Restart apache and you should see the graphite webapp on the main page.
+If you encounter problems, you can increase the verbosity of error output
+by adding a "DEBUG = True" line to /usr/local/graphite/web/local_settings.py
