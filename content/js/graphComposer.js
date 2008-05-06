@@ -1,16 +1,3 @@
-/* Copyright 2008 Orbitz WorldWide
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-   http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License. */
 var urlManager = Class.create();
 urlManager.prototype = {
   initialize: function(baseUrl,initialConfig){
@@ -39,7 +26,7 @@ urlManager.prototype = {
       hrefHash = $H();
       href.split("&").each(function(item){
         item = item.split("=");
-	hrefHash[item[0]] = item[1];
+	hrefHash.set(item[0],item[1]);
       });
       href = hrefHash;
     }
@@ -49,8 +36,8 @@ urlManager.prototype = {
     var mgr = this;
     config.keys().each(function(key){
       mgr.del(key); //avoid duplicates with default entries.
-      if(!config[key].each){mgr.set(key,config[key]);return;}
-      config[key].each(function(item){mgr.set(key,item);});
+      if(!config.get(key).each){mgr.set(key,config.get(key));return;}
+      config.get(key).each(function(item){mgr.set(key,item);});
     });
     var url = this.url();
     this.fireEvent("urlexpanded",url);
@@ -60,24 +47,24 @@ urlManager.prototype = {
     //same as others, if !index, del all of type propertyName;
     var _this = this;
     if(index == null || index < 0){
-      var retVal = this.urlArgs.remove(propertyName);
+      var retVal = this.urlArgs.unset(propertyName);
       if(!retVal){return;}
       return retVal;
     }
-    var val = this.urlArgs[propertyName][index];
-    this.urlArgs[propertyName].splice(index,1);
+    var val = this.urlArgs.get(propertyName)[index];
+    this.urlArgs.get(propertyName).splice(index,1);
     return val;
   },
   get: function(propertyName,index){
     //same general symantics as setUrlProperty
-    if(index && this.urlArgs[propertyName]){return this.urlArgs[propertyName][index];}
-    if(!this.urlArgs[propertyName]){return null;}
-    return this.urlArgs[propertyName]
+    if(index && this.urlArgs.get(propertyName)){return this.urlArgs.get(propertyName)[index];}
+    if(!this.urlArgs.get(propertyName)){return null;}
+    return this.urlArgs.get(propertyName)
   },
   getIndex: function(propertyName,value){
     if(!propertyName){if(!value){return -1;}}
-    if(this.urlArgs[propertyName]){
-      return this.urlArgs[propertyName].indexOf(value);
+    if(this.urlArgs.get(propertyName)){
+      return this.urlArgs.get(propertyName).indexOf(value);
     }
     return -1;
   },
@@ -85,18 +72,18 @@ urlManager.prototype = {
     //if index, insert propertyName as index N, else append or create new.
     var pn = propertyName; //short hand
     if(index ==null || index < 0){
-      if(!this.urlArgs[pn]){
-        this.urlArgs[pn] = [value];
+      if(!this.urlArgs.get(pn)){
+        this.urlArgs.set(pn,[value]);
         return;
       }
       else{
-        this.urlArgs[pn].push(value);
+        this.urlArgs.get(pn).push(value);
         return;
       }
     }
     else{
-      if(!this.urlArgs[pn]){this.urlsArgs[pn] = [];}
-      this.urlArgs[pn][index] = value;
+      if(!this.urlArgs.get(pn)){this.urlsArgs.set(pn,[]);}
+      this.urlArgs.get(pn)[index] = value;
     }
   },
   reset: function(propertyName,value){
@@ -108,25 +95,25 @@ urlManager.prototype = {
     //they can be used to store extra information about a target needed for logic purposes
     //but not directly for rendering purposes.
     var attribClass = propertyName+":"+propertyValue;
-    if(this.urlAttributes[attribClass]){this.urlAttributes[attribClass][attributeName] = attributeValue;}
+    if(this.urlAttributes.get(attribClass)){this.urlAttributes.get(attribClass).set(attributeName,attributeValue);}
     else{
-      this.urlAttributes[attribClass] = $H();
-      this.urlAttributes[attribClass][attributeName] = attributeValue;
+      this.urlAttributes.set(attribClass,$H());
+      this.urlAttributes.get(attribClass).set(attributeName,attributeValue);
     }
   },
   delAttribute: function(propertyName,propertyValue,attributeName){
     //attributeName optional. !attributeName == del all for propertyName+propertyValue
     var attribClass = propertyName+":"+propertyValue;
-    var attribClassInst = this.urlAttributes[attribClass];
+    var attribClassInst = this.urlAttributes.get(attribClass);
     if(!attribClassInst){return null;}
-    if(attributeName != null){return attribClassInst.remove(attributeName);}
-    else{return this.urlAttributes.remove(attribClass);}
+    if(attributeName != null){return attribClassInst.unset(attributeName);}
+    else{return this.urlAttributes.unset(attribClass);}
   },
   getAttribute: function(propertyName,propertyValue,attributeName){
     var attribClass = propertyName+":"+propertyValue;
-    if(!this.urlAttributes[attribClass]){return null;}
-    if(attributeName == null){return this.urlAttributes[attribClass];}
-    else{return this.urlAttributes[attribClass][attributeName];}
+    if(!this.urlAttributes.get(attribClass)){return null;}
+    if(attributeName == null){return this.urlAttributes.get(attribClass);}
+    else{return this.urlAttributes.get(attribClass).get(attributeName);}
   },
   url: function(){
      //return string reprsenation of this object.
@@ -1011,9 +998,9 @@ timeControl.prototype = Object.extend(new composerControl(),{
 	tf.calControl = this;
 	tf.on("render",function(tf){tf.el.on("blur",this.onBlurRelTF,tf);},this);
 	combo.on("select",this.relDateSelect,this);
-	tf.getDate = this.tf_getDateLookup[groupName];
-        tf.setDate = this.tf_setDateLookup[groupName];
-        tf.updateEvent = this.tf_updateEventLookup[groupName];
+	tf.getDate = this.tf_getDateLookup.get(groupName);
+        tf.setDate = this.tf_setDateLookup.get(groupName);
+        tf.updateEvent = this.tf_updateEventLookup.get(groupName);
 	return [tf,this.renderSpacer(),combo];
       },
       relDateSelect:function(cb,rec,index){
@@ -1045,7 +1032,7 @@ timeControl.prototype = Object.extend(new composerControl(),{
 	el.container = this;
 	dom.container = this;
 
-	tf.getDate = this.tf_getDateLookup[groupName];
+	tf.getDate = this.tf_getDateLookup.get(groupName);
 	el.getDate = tf.getDate;
 	dom.getDate = tf.getDate;
 
@@ -1053,23 +1040,23 @@ timeControl.prototype = Object.extend(new composerControl(),{
 	el.setDate = tf.setDate;
 	dom.setDate = tf.setDate;
 
-	tf.scrollRangeMax = this.tf_scrollRangeMaxLookup[emptyText];
+	tf.scrollRangeMax = this.tf_scrollRangeMaxLookup.get(emptyText);
 	el.scrollRangeMax = tf.scrollRangeMax;
 	dom.scrollRangeMax = tf.scrollRangeMax;
 
-        tf.scrollRangeMin = this.tf_scrollRangeMinLookup[emptyText];
+        tf.scrollRangeMin = this.tf_scrollRangeMinLookup.get(emptyText);
 	el.scrollRangeMin = tf.scrollRangeMin;
 	dom.scrollRangeMin = tf.scrollRangeMin;
 
-	tf.setField = this.tf_setFieldLookup[emptyText];
+	tf.setField = this.tf_setFieldLookup.get(emptyText);
 	el.setField = tf.setField;
 	dom.setField = tf.setField;
 
-	tf.getField = this.tf_getFieldLookup[emptyText];
+	tf.getField = this.tf_getFieldLookup.get(emptyText);
 	el.getField = tf.getField;
 	dom.getField = tf.getFIeld;
 
-	tf.updateEvent = this.tf_updateEventLookup[groupName];
+	tf.updateEvent = this.tf_updateEventLookup.get(groupName);
 	el.updateEvent = tf.updateEvent;
 	dom.updateEvent = tf.updateEvent;
 
@@ -1248,7 +1235,7 @@ timeControl.prototype = Object.extend(new composerControl(),{
     var regType = /(min)$|(h)$|(y)$|(mon)$|(d)$|(w)$/;
     var regInt = /^-\d+/;
     var lookup = $H({min:Date.MINUTE,h:Date.HOUR,d:Date.DAY,w:Date.DAY,mon:Date.MONTH,y:Date.YEAR});
-    return ref.add(lookup[relStr.match(regType)[0]],parseInt(relStr.match(regInt)[0])*scale);  
+    return ref.add(lookup.get(relStr.match(regType)[0]),parseInt(relStr.match(regInt)[0])*scale);  
   },
   gt: function(ldate,rdate){
     //use in the form ldate > rdate -> return bool
