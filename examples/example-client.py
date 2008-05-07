@@ -38,7 +38,7 @@ while True:
   lines.append("system.loadavg_1min %s %d" % (loadavg_1,now))
   lines.append("system.loadavg_5min %s %d" % (loadavg_5,now))
   lines.append("system.loadavg_15min %s %d" % (loadavg_15,now))
-  message = '\n'.join(lines)
+  message = '\n'.join(lines) + '\n' #all lines must end in a newline
   print "sending message\n"
   print '-' * 80
   print message
