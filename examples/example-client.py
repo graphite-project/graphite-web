@@ -17,7 +17,7 @@ import time
 from socket import socket
 
 CARBON_SERVER = '127.0.0.1'
-CARBON_PORT = 7002
+CARBON_PORT = 2003
 
 def get_loadavg():
   # For more details, "man proc"

@@ -117,7 +117,7 @@ class ConsumerProtocol(Protocol):
         (name,value,timestamp) = line.split()
         value = float(value)
         timestamp = int(float(timestamp)) # int("1.0") raises a TypeError
-        pointStr = "%d:%f" % (timestamp,value)
+        pointStr = "%f %d" % (value,timestamp)
         #Try to put it in the cache, if we get back a deferred, we add a callback to resume processing later
         deferred = agentCloud.input(name,pointStr)
         if deferred:
