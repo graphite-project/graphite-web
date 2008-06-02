@@ -15,7 +15,6 @@ limitations under the License."""
 import os, logging
 from logging.handlers import TimedRotatingFileHandler as Rotater
 from django.conf import settings
-from django.core.exceptions import ObjectDoesNotExist
 from web.account.models import Profile
 
 logging.addLevelName(30,"rendering")
@@ -78,14 +77,14 @@ def getProfile(request,allowDefault=True):
 def getProfileByUsername(username):
   try:
     return Profile.objects.get(username=username)
-  except ObjectDoesNotExist:
+  except Profile.DoesNotExist:
     return None
 
 log = GraphiteLogger()
 
 try:
   defaultProfile = Profile.objects.get(username='default')
-except ObjectDoesNotExist:
+except Profile.DoesNotExist:
   log.info("Default profile does not exist, creating it...")
   defaultProfile = Profile(username='default')
   defaultProfile.save()
