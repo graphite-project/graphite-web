@@ -17,7 +17,8 @@ from cPickle import load,dump
 from itertools import chain
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
-from web.util import getProfile, log
+from web.util import getProfile
+from web.logging import log
 from web.account.models import Profile, MyGraph, Variable, View, Window
 
 #Utility functions

@@ -15,7 +15,7 @@ limitations under the License."""
 from django.conf.urls.defaults import *
 
 urlpatterns = patterns('web.composer.views',
-  ('email','email'),
+  ('send_email','send_email'),
   ('mygraph', 'mygraph'),
   ('', 'composer'),
 )

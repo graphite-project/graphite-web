@@ -21,7 +21,8 @@ from httplib import HTTPConnection
 from urlparse import urlsplit
 from time import ctime, strftime
 from traceback import format_exc
-from web.util import log, getProfile
+from web.util import getProfile
+from web.logging import log
 from web.account.models import MyGraph
 
 from django.shortcuts import render_to_response
@@ -33,7 +34,7 @@ def composer(request):
   context = dict(request.GET.items())
   context['user'] = request.user
   context['profile'] = getProfile(request)
-  return render_to_response("composer_advanced.html",context)
+  return render_to_response("composer.html",context)
 
 def mygraph(request):
   profile = getProfile(request,allowDefault=False)
@@ -66,7 +67,7 @@ def mygraph(request):
   else:
     return HttpResponse("Invalid operation '%s'" % action)
 
-def email(request):
+def send_email(request):
   try:
     recipients = request.GET['to'].split(',')
     url = request.GET['url']

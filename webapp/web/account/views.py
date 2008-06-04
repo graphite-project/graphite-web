@@ -15,8 +15,9 @@ limitations under the License."""
 from django.shortcuts import render_to_response
 from django.http import HttpResponseRedirect
 from django.contrib.auth import authenticate, login, logout
+from web.util import getProfile
+from web.logging import log
 from web.account.models import Profile
-from web.util import log, getProfile
 
 
 def loginView(request):

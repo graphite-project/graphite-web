@@ -12,114 +12,129 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
-import os, re
-from glob import glob
-from urllib import urlencode
-from itertools import chain
 from django.shortcuts import render_to_response
-from django.http import HttpResponse, HttpResponseServerError
+from django.http import HttpResponse
 from django.conf import settings
-from xml.dom import getDOMImplementation
 from web.account.models import Profile
-from web.util import log, getProfile, getProfileByUsername
+from web.util import getProfile, getProfileByUsername
+from web.logging import log
 
-try:
-  import rrdtool
-except:
-  rrdtool = False
-
-domImpl = getDOMImplementation()
-J = os.path.join
-
-def routeLookup(request):
-  lookup = {"hierarchyLookup":hierarchyLookup,"userLookup":userLookup,"myLookup":myLookup}
-  return lookup[request.GET['lookupRoute']](request)
 
 def header(request):
+  "View for the header frame of the browser UI"
   context = {}
   context['user'] = request.user
   context['profile'] = getProfile(request)
   return render_to_response("browserHeader.html", context)
 
+def sidebar(request):
+  "View for the sidebar frame of the browser UI"
+  context = dict( request.GET.items() )
+  context['user'] = request.user
+  context['profile'] = getProfile(request)
+  return render_to_response("browserSidebar.html", context)
+
 def browser(request):
-  context = {'queryString':'','target':request.GET.get('target',None)} # you updated this dummy!
+  "View for the top-level frame of the browser UI"
+  context = {
+    'queryString' : '',
+    'target' : request.GET.get('target')
+  }
   for key in request.GET.keys():
     itemList = request.GET.getlist(key)
     for item in itemList:
       context['queryString'] += key+'='+item+'&'
   return render_to_response("browser.html", context) 
 
-def sidebar(request):
-  context = dict( request.GET.items() )
-  context['user'] = request.user
-  context['profile'] = getProfile(request)
-  return render_to_response("browserSidebar.html", context)
+def lookup(request):
+  "View that delegates to specialized lookup handlers"
+  type = request.GET['lookupType']
+  if type == 'tree':
+    return treeLookup(request)
+  elif type == 'mygraph':
+    return myGraphLookup(request)
+  elif type == 'usergraph':
+    return userGraphLookup(request)
+  else:
+    raise ValueError("Invalid lookupType '%s'" % type)
 
-
-def hierarchyLookup(request):
+def treeLookup(request):
+  "Specialized lookup handler for metric tree navigation"
   profile = getProfile(request)
-  path = request.GET['nodeName']
-  fullPath = J(settings.DATA_DIR,*path.split('.')[1:]) #strip initial "Graphite"
-  fullPathExpr = fullPath + '/*'
-  jsonData = []
-  defaultDirNode = {'allowDrag': 0,
-                    'allowChildren': 1,
-		    'expandable': 1,
-		    'leaf': 0,
-		    'lookupRoute':'hierarchyLookup'}
-  defaultFileNode = {'allowDrag': 0,
-                     'allowChildren': 0,
-		     'expandable': 0,
-		     'leaf': 1,
-		     'lookupRoute':'hierarchyLookup'}
+  nodes = []
+  branchNode = {
+    'allowDrag': 0,
+    'allowChildren': 1,
+    'expandable': 1,
+    'leaf': 0,
+    'lookupType': 'tree'
+  }
+  leafNode = {
+    'allowDrag': 0,
+    'allowChildren': 0,
+    'expandable': 0,
+    'leaf': 1,
+    'lookupType': 'tree'
+  }
   try:
-    matches = glob(fullPathExpr)
-    matches.sort(key=os.path.basename)
-    if len(matches) > 2 and profile.advancedUI: #Wildcard when at least 2 options available
-      starNode = {'text':'*', 'id':'*'}
-      if filter(os.path.isdir,matches): starNode.update(defaultDirNode) #had 1+ dirs
-      else: starNode.update(defaultFileNode) #had only files
-      jsonData.append(starNode)
+    path = request.GET['nodeName']
+    path = path[ path.find('.') + 1 :] #strip the initial "Graphite" node
+    pattern = path + '.*' #we're interested in child nodes
 
-    alreadyInserted = set()
-    for match in matches: #Now let's add the real options
-      if os.path.isfile(match) and match.endswith('.wsp'): match = match[:-4]
-      metricName = os.path.basename(match)
-      if metricName in alreadyInserted: continue
-      alreadyInserted.add(metricName)
-      metricPath = J( fullPath[len(settings.DATA_DIR):],metricName ).replace("/",".")
-      jsonNode = {'text':metricName,'id':metricName}
-      if os.path.isdir(match): jsonNode.update(defaultDirNode)
-      else: jsonNode.update(defaultFileNode)
-      jsonData.append(jsonNode)
+    finder = settings.FINDER
+    matches = list( finder.find(pattern) )
+    matches.sort(key=lambda node: node.name)
 
-    response = HttpResponse(str(jsonData),mimetype="text")
-    response['Pragma'] = 'no-cache'
-    response['Cache-Control'] = 'no-cache'
-    return response
+    #Add a wildcard node if appropriate
+    if len(matches) > 2 and profile.advancedUI:
+      wildcardNode = {'text' : '*', 'id' : '*'}
+      if any(not m.isLeaf() for m in matches):
+        wildcardNode.update(branchNode)
+      else:
+        wildcardNode.update(leafNode)
+      nodes.append(wildcardNode)
+
+    inserted = set()
+    for child in matches: #Now let's add the matching children
+      if child.name in inserted: continue
+      inserted.add(child.name)
+      node = {'text' : child.name, 'id' : child.name}
+      if node.isLeaf():
+        node.update(leafNode)
+      else node.isLeaf():
+        node.update(branchNode)
+      nodes.append(node)
   except:
-    log.exception("browser.views.heirarchLookup(): could not complete request for %s" % fullPath)
-    return HttpResponse("[]",mimetype="text")
+    log.exception("browser.views.treeLookup(): could not complete request for %s" % fullPath)
 
-def myLookup(request):
+  return json_response(nodes)
+
+
+def myGraphLookup(request):
+  "Specialized lookup handler for My Graphs"
   profile = getProfile(request,allowDefault=False)
   assert profile
-  jsonData = []
-  defaultFileNode = {'allowDrag':0,'allowChildren':0,'expandable':0,'leaf':1,'lookupRoute':'myLookup'}
+
+  nodes = []
+  leafNode = {
+    'allowDrag' : 0,
+    'allowChildren' : 0,
+    'expandable' : 0,
+    'leaf' : 1,
+    'lookupType' : 'mygraph'
+  }
   try:
     for graph in profile.mygraph_set.all().order_by('name'):
-      jsonNode = {'text':graph.name,'id':graph.name,'graphUrl':graph.url}
-      jsonNode.update(defaultFileNode)
-      jsonData.append(jsonNode)
-    response = HttpResponse(str(jsonData),mimetype="text")
-    response['Pragma'] = 'no-cache'
-    response['Cache-Control'] = 'no-cache'
-    return response
+      node = {'text' : graph.name, 'id' : graph.name, 'graphUrl' : graph.url}
+      node.update(leafNode)
+      nodes.append(node)
   except:
-    log.exception("browser.views.myLookup(): could not complete request.")
-    return HttpResponse("[]",mimetype="text")
+    log.exception("browser.views.myGraphLookup(): could not complete request.")
 
-def userLookup(request):
+  return json_response(nodes)
+
+def userGraphLookup(request): #XXX
+  "Specialized lookup handler for User Graphs"
   username = '/'.join( request.GET['nodeName'].split('.')[1:] ) #strip initial UserLookup/
   jsonData = []
   defaultDirNode = {'allowDrag':0,'allowChildren':1,'expandable':1,'leaf':0,'lookupRoute':'userLookup'}
@@ -146,31 +161,15 @@ def userLookup(request):
         jsonNode = {'text':graph.name,'id':graph.name,'graphUrl':graph.url}
 	jsonNode.update(defaultFileNode)
 	jsonData.append(jsonNode)
-    response = HttpResponse(str(jsonData),mimetype="text")
-    response['Pragma'] = 'no-cache'
-    response['Cache-Control'] = 'no-cache'
-    return response
+    #nodes !
   except:
     log.exception("browser.views.userLookup(): could not complete request for %s" % username)
-    return HttpResponse("[]",mimetype="text")
-    
+ 
+  return json_response(nodes)
 
-def search(request):
-  queries = request.POST['query'].split()
-  if not queries: return HttpResponseServerError("No query input given")
-  regexList = [re.compile(query,re.I) for query in queries]
-  def matches(s):
-    for regex in regexList:
-      if not regex.search(s): return False
-    return True
-  results = []
-  wspIndex = open(settings.STORAGE_DIR + '/wsp_index')
-  rrdIndex = open(settings.STORAGE_DIR + '/rrd_index')
-  for line in chain(wspIndex,rrdIndex):
-    line = line.strip()
-    if not line: continue
-    if not matches(line): continue
-    results.append(line)
-    if len(results) >= 100: break
-  resultList = ','.join(results)
-  return HttpResponse(resultList,mimetype="text/plain")
+def json_response(obj):
+  json = str(obj) #poor man's json encoder for simple types
+  response = HttpResponse(json,mimetype="application/json")
+  response['Pragma'] = 'no-cache'
+  response['Cache-Control'] = 'no-cache'
+  return response

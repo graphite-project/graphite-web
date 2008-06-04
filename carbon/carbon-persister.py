@@ -15,7 +15,7 @@ limitations under the License."""
 
 import sys, os, time, struct, socket, traceback
 from select import select
-import whisper
+from graphite import whisper
 from schemalib import loadStorageSchemas
 from utils import logify
 

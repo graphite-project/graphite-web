@@ -16,9 +16,8 @@ from completer import historyComplete, drawComplete, searchComplete
 from codemaker import handleCommand
 from cPickle import load
 from web.util import getProfile
-from django.http import *
+from django.http import HttpResponse
 from django.shortcuts import render_to_response
-from django.conf import settings
 
 def index(request):
   return render_to_response("cli.html", dict(request.GET.items()) )

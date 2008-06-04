@@ -14,8 +14,8 @@
 # limitations under the License.
 #
 #
-# This module is an implementation of the Whisper database
-# Here is the basic layout of a .wsp file
+# This module is an implementation of the Whisper database API
+# Here is the basic layout of a whisper data file
 #
 # File = Header,Data
 #	Header = Metadata,ArchiveInfo+
@@ -25,7 +25,16 @@
 #		Archive = Point+
 #			Point = timestamp,value
 
-import os, struct, time, fcntl
+import os, struct, time
+try:
+  import fcntl
+  CAN_LOCK = True
+except ImportError:
+  CAN_LOCK = False
+
+LOCK = False
+CACHE_HEADERS = False
+__headerCache = {}
 
 longFormat = "!L"
 longSize = struct.calcsize(longFormat)
@@ -41,11 +50,6 @@ metadataFormat = "!2LfL"
 metadataSize = struct.calcsize(metadataFormat)
 archiveInfoFormat = "!3L"
 archiveInfoSize = struct.calcsize(archiveInfoFormat)
-
-LOCK = False
-CACHE_HEADERS = False
-
-__headerCache = {}
 
 debug = startBlock = endBlock = lambda *a,**k: None
 

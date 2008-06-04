@@ -11,30 +11,31 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. */
-function NavigationPanel(){
+
+function NavigationPanel() {
   var tree = createTreePanel();
   var search = createSearchPanel();
   var completer = createAutoCompletePanel();
-  var navPanel = new Ext.TabPanel({
-    region:'west',
-    items:[tree,search,completer],
-    width:230,
-    split:true,
-    collapsible:true,
-    collapseMode:'mini',
-    activeTab:0,
-    tabWidth:100
+  return new Ext.TabPanel({
+    region: 'west',
+    items: [createTreePanel(), createSearchPanel(), createCompleterPanel()],
+    width: 230,
+    split: true,
+    collapsible: true,
+    collapseMode: 'mini',
+    activeTab: 0,
+    tabWidth: 100
   });
-  return navPanel
 }
 
-//********TREE BROWSER STUFF
+//Tree Navigation
 function _beforeTreeLoad(treeloader,node){
   //this hackishness removes three ... from start of full path
   //using nodeName instead of node to avoid issues upon return.
   treeloader.baseParams.nodeName = node.getPath().substr(3);
   treeloader.baseParams.lookupRoute = node.attributes.lookupRoute;
 }
+
 function _treeOnClick(node,evt){
   if(node.attributes.graphUrl){
     window.setURL(node.attributes.graphUrl);
@@ -45,6 +46,7 @@ function _treeOnClick(node,evt){
   target.reverse(); //revert back to original config
   window.toggleTarget(target.join(".")); //return to string foo.bar.baz
 }
+
 function createTreePanel(){
   var rootNode = new Ext.tree.TreeNode({text:"root",id:"."});
   var graphiteNode = new Ext.tree.AsyncTreeNode({
@@ -78,15 +80,14 @@ function createTreePanel(){
   treeLoader = new Ext.tree.TreeLoader({url:"/browser/routeLookup/",requestMethod:"GET"})
   treeLoader.on("beforeload",_beforeTreeLoad)
   var tree = new Ext.tree.TreePanel({
-    title:"browse",
-    root:rootNode,
-    containerScroll:true,
-    pathSeparator:".",
-    rootVisible:false,
-    singleExpand:false,
-    trackMouseOver:true,
+    root: rootNode,
+    containerScroll: true,
+    pathSeparator: ".",
+    rootVisible: false,
+    singleExpand: false,
+    trackMouseOver: true,
     loader: treeLoader,
-    useArrows:true // maybe turn this off not sure what it does exactly
+    useArrows: true // maybe turn this off not sure what it does exactly
   });
   tree.on("click",_treeOnClick);
   return tree;
@@ -203,7 +204,7 @@ function handleFieldEnter(field,evt){
   if(evt.getKey() != Ext.EventObject.RETURN){return;}
   window.toggleTarget(field.getValue());
 }
-function createAutoCompletePanel(){
+function createCompleterPanel(){
  var completerField = new Ext.form.TextField({
     emptyText:"type a term",
     width:150,

@@ -13,16 +13,10 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 import sys, os, re
-import whisper
-from fnmatch import fnmatch
-from glob import glob
 from django.conf import settings
-from web.util import log, getProfile
+from web.util import getProfile
+from web.logging import log
 
-try:
-  import rrdtool
-except:
-  rrdtool = False
 
 def historyComplete(request,path):
   profile = getProfile(request)
@@ -61,25 +55,6 @@ def drawComplete(request,path,short=False):
     if os.path.isdir(match):
       graphitePath += '.'
     matchList.append( graphitePath )
-
-  #Match rrd files
-  ''' This needs to be re-thought... probly do two globs, one normal and one with a pop()'d ds component
-  parts = path.split('.')
-  datasourcePattern = parts.pop()
-  filePath = '.'.join(parts) + '*' #corrects for pre-datasource matching
-  expr = os.path.join(settings.RRD_DIR,filePath)
-  log.info("rrd globbing expression: %s" % expr)
-  for match in glob(expr):
-    log.info("matched: %s" % match)
-    if os.path.isfile(match):
-      (match,ext) = os.path.splitext(match) #strip file extension
-    graphitePath = match.replace(settings.DATA_DIR,'').replace('/','.')
-    if short:
-      graphitePath = graphitePath.split('.')[-1]
-    if os.path.isdir(match):
-      graphitePath += '.'
-    matchList.append( graphitePath )
-  '''
 
   #Finally, generate our html response
   html += "<ul>\n"
