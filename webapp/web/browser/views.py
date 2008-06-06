@@ -17,7 +17,7 @@ from django.http import HttpResponse
 from django.conf import settings
 from web.account.models import Profile
 from web.util import getProfile, getProfileByUsername
-from web.logging import log
+from web.logger import log
 
 
 def header(request):
@@ -26,13 +26,6 @@ def header(request):
   context['user'] = request.user
   context['profile'] = getProfile(request)
   return render_to_response("browserHeader.html", context)
-
-def sidebar(request):
-  "View for the sidebar frame of the browser UI"
-  context = dict( request.GET.items() )
-  context['user'] = request.user
-  context['profile'] = getProfile(request)
-  return render_to_response("browserSidebar.html", context)
 
 def browser(request):
   "View for the top-level frame of the browser UI"
@@ -46,40 +39,28 @@ def browser(request):
       context['queryString'] += key+'='+item+'&'
   return render_to_response("browser.html", context) 
 
-def lookup(request):
-  "View that delegates to specialized lookup handlers"
-  type = request.GET['lookupType']
-  if type == 'tree':
-    return treeLookup(request)
-  elif type == 'mygraph':
-    return myGraphLookup(request)
-  elif type == 'usergraph':
-    return userGraphLookup(request)
-  else:
-    raise ValueError("Invalid lookupType '%s'" % type)
-
 def treeLookup(request):
-  "Specialized lookup handler for metric tree navigation"
+  "View for Graphite tree navigation"
   profile = getProfile(request)
   nodes = []
   branchNode = {
-    'allowDrag': 0,
     'allowChildren': 1,
     'expandable': 1,
     'leaf': 0,
-    'lookupType': 'tree'
   }
   leafNode = {
-    'allowDrag': 0,
     'allowChildren': 0,
     'expandable': 0,
     'leaf': 1,
-    'lookupType': 'tree'
   }
   try:
-    path = request.GET['nodeName']
-    path = path[ path.find('.') + 1 :] #strip the initial "Graphite" node
-    pattern = path + '.*' #we're interested in child nodes
+    path = request.GET['path']
+    if path:
+      pattern = path + '.*' #we're interested in child nodes
+    else:
+      pattern = '*'
+
+    log.info('path=%s pattern=%s' % (path,pattern))
 
     finder = settings.FINDER
     matches = list( finder.find(pattern) )
@@ -98,30 +79,28 @@ def treeLookup(request):
     for child in matches: #Now let's add the matching children
       if child.name in inserted: continue
       inserted.add(child.name)
-      node = {'text' : child.name, 'id' : child.name}
-      if node.isLeaf():
+      node = {'text' : child.name, 'id' : child.name }
+      if child.isLeaf():
         node.update(leafNode)
-      else node.isLeaf():
+      else:
         node.update(branchNode)
       nodes.append(node)
   except:
-    log.exception("browser.views.treeLookup(): could not complete request for %s" % fullPath)
+    log.exception("browser.views.treeLookup(): could not complete request %s" % str(request.GET))
 
   return json_response(nodes)
 
 
 def myGraphLookup(request):
-  "Specialized lookup handler for My Graphs"
+  "View for My Graphs navigation"
   profile = getProfile(request,allowDefault=False)
   assert profile
 
   nodes = []
   leafNode = {
-    'allowDrag' : 0,
     'allowChildren' : 0,
     'expandable' : 0,
     'leaf' : 1,
-    'lookupType' : 'mygraph'
   }
   try:
     for graph in profile.mygraph_set.all().order_by('name'):
@@ -131,40 +110,51 @@ def myGraphLookup(request):
   except:
     log.exception("browser.views.myGraphLookup(): could not complete request.")
 
+  if not nodes:
+    no_graphs = { 'text' : "No saved graphs" }
+    no_graphs.update(leafNode)
+    nodes.append(no_graphs)
+
   return json_response(nodes)
 
-def userGraphLookup(request): #XXX
-  "Specialized lookup handler for User Graphs"
-  username = '/'.join( request.GET['nodeName'].split('.')[1:] ) #strip initial UserLookup/
-  jsonData = []
-  defaultDirNode = {'allowDrag':0,'allowChildren':1,'expandable':1,'leaf':0,'lookupRoute':'userLookup'}
-  defaultFileNode = {'allowDrag':0,'allowChildren':0,'expandable':0,'leaf':1,'lookupRoute':'userLookup'}
+def userGraphLookup(request):
+  "View for User Graphs navigation"
+  username = request.GET['path']
+  nodes = []
+  branchNode = {
+    'allowChildren' : 1,
+    'expandable' : 1,
+    'leaf' : 0,
+  }
+  leafNode = {
+    'allowChildren' : 0,
+    'expandable' : 0,
+    'leaf' : 1,
+  }
   try:
     if not username:
-      try:
-        profiles = Profile.objects.exclude(username='default')
-      except ObjectDoesNotExist:
-        profiles = []
+      profiles = Profile.objects.exclude(username='default')
       for profile in profiles:
         if profile.mygraph_set.count():
-	  jsonNode = {'text':profile.username,'id':profile.username}
-	  jsonNode.update(defaultDirNode)
-	  jsonData.append(jsonNode)
+          node = {'text' : profile.username, 'id' : profile.username}
+          node.update(branchNode)
+          nodes.append(node)
     else:
       profile = getProfileByUsername(username)
-      try:
-        assert profile
-      except:
-        log.exception("No profile for username '%s'" % username)
-        raise
+      assert profile, "No profile for username '%s'" % username
+
       for graph in profile.mygraph_set.all().order_by('name'):
-        jsonNode = {'text':graph.name,'id':graph.name,'graphUrl':graph.url}
-	jsonNode.update(defaultFileNode)
-	jsonData.append(jsonNode)
-    #nodes !
+        node = { 'text' : graph.name, 'id' : graph.name, 'graphUrl' : graph.url }
+        node.update(leafNode)
+        nodes.append(node)
   except:
     log.exception("browser.views.userLookup(): could not complete request for %s" % username)
- 
+
+  if not nodes:
+    no_graphs = { 'text' : "No saved graphs" }
+    no_graphs.update(leafNode)
+    nodes.append(no_graphs)
+
   return json_response(nodes)
 
 def json_response(obj):

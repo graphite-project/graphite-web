@@ -13,6 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 from web.account.models import Profile
+from web.logger import log
 
 
 def getProfile(request,allowDefault=True):

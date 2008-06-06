@@ -14,6 +14,7 @@ limitations under the License."""
 # Django settings for graphite project.
 # DO NOT MODIFY THIS FILE DIRECTLY - INSTEAD CREATE A local_settings.py FILE!
 import sys, os
+from graphite.tree import Finder
 
 DEBUG = False
 
@@ -26,6 +27,7 @@ RRD_DIR = STORAGE_DIR + 'rrd/'
 LOG_DIR = STORAGE_DIR + 'log/'
 SMTP_SERVER = "localhost"
 CRAPPY_HARDWARE = False #if True, rendering is delegated to RENDERING_HOSTS
+FINDER = Finder([DATA_DIR, RRD_DIR])
 
 #Default settings, override these in web.local_settings
 LOG_CACHE_PERFORMANCE = False

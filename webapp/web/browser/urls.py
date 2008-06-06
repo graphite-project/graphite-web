@@ -16,7 +16,8 @@ from django.conf.urls.defaults import *
 
 urlpatterns = patterns('web.browser.views',
   ('^header/?$', 'header'),
-  ('^sidebar/?$','sidebar'),
-  ('^lookup/?$', 'lookup'),
+  ('^tree/?$', 'treeLookup'),
+  ('^mygraph/?$', 'myGraphLookup'),
+  ('^usergraph/?$', 'userGraphLookup'),
   ('', 'browser'),
 )

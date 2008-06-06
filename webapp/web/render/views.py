@@ -21,7 +21,7 @@ from cStringIO import StringIO
 from cPickle import dumps, loads
 
 from web.util import getProfileByUsername
-from web.logging import log
+from web.logger import log
 from attime import parseATTime
 from glyph import GraphTypes
 from access import retrieve

@@ -12,13 +12,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. */
 
-function NavigationPanel() {
-  var tree = createTreePanel();
-  var search = createSearchPanel();
-  var completer = createAutoCompletePanel();
+function createNavigationPanel(options) {
   return new Ext.TabPanel({
     region: 'west',
-    items: [createTreePanel(), createSearchPanel(), createCompleterPanel()],
+    items: [createTreePanel(options), createSearchPanel(options), createCompleterPanel(options)],
     width: 230,
     split: true,
     collapsible: true,
@@ -29,68 +26,82 @@ function NavigationPanel() {
 }
 
 //Tree Navigation
-function _beforeTreeLoad(treeloader,node){
-  //this hackishness removes three ... from start of full path
-  //using nodeName instead of node to avoid issues upon return.
-  treeloader.baseParams.nodeName = node.getPath().substr(3);
-  treeloader.baseParams.lookupRoute = node.attributes.lookupRoute;
+function stripPathPrefix(path) {
+  return path.replace(/^\.root\.[^\.]+\.?/,"");
 }
 
-function _treeOnClick(node,evt){
-  if(node.attributes.graphUrl){
-    window.setURL(node.attributes.graphUrl);
-    return;
+function createTreePanel(options){
+  var rootNode = new Ext.tree.TreeNode({id: 'root'});
+
+  function setPath(loader,node) {
+    var path = node.getPath();
+    loader.baseParams.path = stripPathPrefix(path);
   }
-  var target = node.getPath().substr(3).split(".").reverse(); //make graphite last element
-  target.pop(); //pop it off
-  target.reverse(); //revert back to original config
-  window.toggleTarget(target.join(".")); //return to string foo.bar.baz
-}
 
-function createTreePanel(){
-  var rootNode = new Ext.tree.TreeNode({text:"root",id:"."});
   var graphiteNode = new Ext.tree.AsyncTreeNode({
-    id:"graphite",
-    text:"graphite",
-    allowChildren:true,
-    allowDrag:false,
-    expandable:true,
-    leaf:false,
-    lookupRoute:"hierarchyLookup"
+    id: 'Graphite',
+    text: "Graphite",
+    loader: new Ext.tree.TreeLoader({
+      url: "/browser/tree/",
+      requestMethod: "GET",
+      listeners: {beforeload: setPath}
+    })
   });
-  var myGraphsNode = new Ext.tree.AsyncTreeNode({
-    id:"myGraphs",
-    text:"My Graphs",
-    allowChildren:true,
-    allowDrag:false,
-    expandable:true,
-    leaf:false,
-    lookupRoute:"myLookup"
-  });
+  rootNode.appendChild(graphiteNode);
+
+  if (options.showMyGraphs) {
+    var myGraphsNode = new Ext.tree.AsyncTreeNode({
+      id: 'MyGraphs',
+      text: "My Graphs",
+      leaf: false,
+      allowChildren: true,
+      expandable: true,
+      allowDrag: false,
+      loader: new Ext.tree.TreeLoader({
+        url: "/browser/mygraph/",
+        requestMethod: "GET",
+        listeners: {beforeload: setPath}
+      })
+    });
+    rootNode.appendChild(myGraphsNode);
+  }
+
   var userGraphsNode = new Ext.tree.AsyncTreeNode({
-    id:"userGraphs",
-    text:"User Graphs",
-    allowChildren:true,
-    allowDrag:false,
-    expandable:true,
-    leaf:false,
-    lookupRoute:"userLookup"
+    id: 'UserGraphs',
+    text: "User Graphs",
+    loader: new Ext.tree.TreeLoader({
+      url: "/browser/usergraph/",
+      requestMethod: "GET",
+      listeners: {beforeload: setPath}
+    })
   });
-  rootNode.appendChild([graphiteNode,myGraphsNode,userGraphsNode]);
-  treeLoader = new Ext.tree.TreeLoader({url:"/browser/routeLookup/",requestMethod:"GET"})
-  treeLoader.on("beforeload",_beforeTreeLoad)
-  var tree = new Ext.tree.TreePanel({
+  rootNode.appendChild(userGraphsNode);
+
+  var treePanel = new Ext.tree.TreePanel({
+    title: "Tree",
     root: rootNode,
     containerScroll: true,
     pathSeparator: ".",
     rootVisible: false,
     singleExpand: false,
     trackMouseOver: true,
-    loader: treeLoader,
-    useArrows: true // maybe turn this off not sure what it does exactly
   });
-  tree.on("click",_treeOnClick);
-  return tree;
+
+  treePanel.on("click", function (node,evt) {
+    if (!node.leaf) {
+      node.toggle();
+      return;
+    }
+    //XXX click on a My Graph or User Graph
+    //if (node.attributes.graphUrl){
+    //  Composer.loadURL(node.attributes.graphUrl);
+    //  return;
+    //}
+    var path = stripPathPrefix( node.getPath() );
+    Composer.toggleTarget(path);
+  });
+
+  return treePanel;
 }
 
 //*************SEARCH STUFF

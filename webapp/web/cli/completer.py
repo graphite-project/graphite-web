@@ -15,7 +15,7 @@ limitations under the License."""
 import sys, os, re
 from django.conf import settings
 from web.util import getProfile
-from web.logging import log
+from web.logger import log
 
 
 def historyComplete(request,path):

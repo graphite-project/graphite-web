@@ -22,7 +22,7 @@ from urlparse import urlsplit
 from time import ctime, strftime
 from traceback import format_exc
 from web.util import getProfile
-from web.logging import log
+from web.logger import log
 from web.account.models import MyGraph
 
 from django.shortcuts import render_to_response
@@ -34,6 +34,7 @@ def composer(request):
   context = dict(request.GET.items())
   context['user'] = request.user
   context['profile'] = getProfile(request)
+  context['showMyGraphs'] = int(context['profile'].username != 'default')
   return render_to_response("composer.html",context)
 
 def mygraph(request):

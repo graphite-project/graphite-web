@@ -16,7 +16,7 @@ from django.conf.urls.defaults import *
 
 urlpatterns = patterns('web.cli.views',
      (r'^completer/?$', 'completer'),
-     (r'^codemaker/?$', 'codemaker'),
+     (r'^eval/?$', 'codemaker'),
      (r'^getViews', 'getViews'),
      (r'', 'index'),
 )

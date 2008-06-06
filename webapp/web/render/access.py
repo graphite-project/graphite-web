@@ -24,7 +24,7 @@ from django.core.cache import cache
 
 import computation
 from datatypes import TimeSeries
-from web.logging import log
+from web.logger import log
 from hashing import pathHash
 from grammar import buildGrammar
 
