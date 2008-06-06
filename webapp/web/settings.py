@@ -22,12 +22,19 @@ DEBUG = False
 GRAPHITE_ROOT = "/usr/local/graphite/"
 WEB_DIR = GRAPHITE_ROOT + 'web/'
 STORAGE_DIR = GRAPHITE_ROOT + 'storage/'
-DATA_DIR = STORAGE_DIR + 'whisper/'
+WHISPER_DIR = STORAGE_DIR + 'whisper/'
 RRD_DIR = STORAGE_DIR + 'rrd/'
 LOG_DIR = STORAGE_DIR + 'log/'
 SMTP_SERVER = "localhost"
 CRAPPY_HARDWARE = False #if True, rendering is delegated to RENDERING_HOSTS
-FINDER = Finder([DATA_DIR, RRD_DIR])
+
+try:
+  import rrdtool
+  DATA_DIRS = [WHISPER_DIR, RRD_DIR]
+except:
+  DATA_DIRS = [WHISPER_DIR]
+
+FINDER = Finder(DATA_DIRS)
 
 #Default settings, override these in web.local_settings
 LOG_CACHE_PERFORMANCE = False

@@ -57,8 +57,10 @@ def treeLookup(request):
     path = request.GET['path']
     if path:
       pattern = path + '.*' #we're interested in child nodes
+      path_prefix = path + '.'
     else:
       pattern = '*'
+      path_prefix = ''
 
     log.info('path=%s pattern=%s' % (path,pattern))
 
@@ -68,7 +70,7 @@ def treeLookup(request):
 
     #Add a wildcard node if appropriate
     if len(matches) > 2 and profile.advancedUI:
-      wildcardNode = {'text' : '*', 'id' : '*'}
+      wildcardNode = {'text' : '*', 'id' : path_prefix + '*'}
       if any(not m.isLeaf() for m in matches):
         wildcardNode.update(branchNode)
       else:
@@ -79,7 +81,7 @@ def treeLookup(request):
     for child in matches: #Now let's add the matching children
       if child.name in inserted: continue
       inserted.add(child.name)
-      node = {'text' : child.name, 'id' : child.name }
+      node = {'text' : child.name, 'id' : path_prefix + child.name }
       if child.isLeaf():
         node.update(leafNode)
       else:

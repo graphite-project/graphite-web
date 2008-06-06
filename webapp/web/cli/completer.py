@@ -43,13 +43,13 @@ def drawComplete(request,path,short=False):
   matchList = []
 
   #Match whisper files
-  expr = os.path.join(settings.DATA_DIR,path)
+  expr = os.path.join(settings.WHISPER_DIR,path)
   log.info("wsp globbing expression: %s" % expr)
   for match in glob(expr):
     log.info("matched: %s" % match)
     if os.path.isfile(match):
       (match,ext) = os.path.splitext(match) #strip file extension
-    graphitePath = match.replace(settings.DATA_DIR,'').replace('/','.')
+    graphitePath = match.replace(settings.WHISPER_DIR,'').replace('/','.')
     if short:
       graphitePath = graphitePath.split('.')[-1]
     if os.path.isdir(match):

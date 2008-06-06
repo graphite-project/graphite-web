@@ -4,10 +4,10 @@ var Composer = {
   },
 
   toggleTarget: function (target) {
-    //XXX
+    alert('toggleTarget(' + target + ')');
   },
 
   loadURL: function (url) {
-    //xXX
+    alert('loadURL(' + url + ')');
   }
 };

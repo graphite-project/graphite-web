@@ -31,15 +31,14 @@ function stripPathPrefix(path) {
 }
 
 function createTreePanel(options){
-  var rootNode = new Ext.tree.TreeNode({id: 'root'});
+  var rootNode = new Ext.tree.TreeNode({});
 
   function setPath(loader,node) {
-    var path = node.getPath();
-    loader.baseParams.path = stripPathPrefix(path);
+    loader.baseParams.path = node.id.replace(/^[A-Za-z]+Tree\.?/,"");
   }
 
   var graphiteNode = new Ext.tree.AsyncTreeNode({
-    id: 'Graphite',
+    id: 'GraphiteTree',
     text: "Graphite",
     loader: new Ext.tree.TreeLoader({
       url: "/browser/tree/",
@@ -51,7 +50,7 @@ function createTreePanel(options){
 
   if (options.showMyGraphs) {
     var myGraphsNode = new Ext.tree.AsyncTreeNode({
-      id: 'MyGraphs',
+      id: 'MyGraphsTree',
       text: "My Graphs",
       leaf: false,
       allowChildren: true,
@@ -67,7 +66,7 @@ function createTreePanel(options){
   }
 
   var userGraphsNode = new Ext.tree.AsyncTreeNode({
-    id: 'UserGraphs',
+    id: 'UserGraphsTree',
     text: "User Graphs",
     loader: new Ext.tree.TreeLoader({
       url: "/browser/usergraph/",
@@ -81,6 +80,7 @@ function createTreePanel(options){
     title: "Tree",
     root: rootNode,
     containerScroll: true,
+    autoScroll: true,
     pathSeparator: ".",
     rootVisible: false,
     singleExpand: false,
@@ -97,8 +97,7 @@ function createTreePanel(options){
     //  Composer.loadURL(node.attributes.graphUrl);
     //  return;
     //}
-    var path = stripPathPrefix( node.getPath() );
-    Composer.toggleTarget(path);
+    Composer.toggleTarget(node.id);
   });
 
   return treePanel;

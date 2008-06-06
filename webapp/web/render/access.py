@@ -119,9 +119,9 @@ def resolvePaths(pathExpression):
   matches = []
   fsPathExpression = pathExpression.replace('.','/')
 
-  whisperExpr = os.path.join(settings.DATA_DIR, fsPathExpression) + '.wsp'
+  whisperExpr = os.path.join(settings.WHISPER_DIR, fsPathExpression) + '.wsp'
   for fsPath in glob(whisperExpr):
-    graphitePath = fsPath.replace(settings.DATA_DIR,'').replace('/','.')[:-4]
+    graphitePath = fsPath.replace(settings.WHISPER_DIR,'').replace('/','.')[:-4]
     dbURL = 'whisper://' + fsPath
     matches.append( (graphitePath,dbURL) )
 
