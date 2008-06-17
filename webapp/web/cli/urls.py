@@ -15,8 +15,7 @@ limitations under the License."""
 from django.conf.urls.defaults import *
 
 urlpatterns = patterns('web.cli.views',
-     (r'^completer/?$', 'completer'),
-     (r'^eval/?$', 'codemaker'),
-     (r'^getViews', 'getViews'),
-     (r'', 'index'),
+     (r'^autocomplete/?$', 'autocomplete'),
+     (r'^eval/?$', 'evaluate'),
+     (r'', 'cli'),
 )

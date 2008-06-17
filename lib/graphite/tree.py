@@ -1,5 +1,5 @@
 import os, time, fnmatch
-from os.path import isdir, isfile, join, splitext
+from os.path import isdir, isfile, join, splitext, basename
 from graphite import whisper
 
 try:
@@ -22,28 +22,31 @@ class Finder:
 def find(root_dir, pattern):
   "Generates nodes beneath root_dir matching the given pattern"
   pattern_parts = pattern.split('.')
+
   for absolute_path in _find(root_dir, pattern_parts):
-    if '::' in absolute_path:
+
+    if '::' in basename(absolute_path):
       (absolute_path,datasource_pattern) = absolute_path.rsplit('::',1)
     else:
       datasource_pattern = None
 
     relative_path = absolute_path[ len(root_dir): ].lstrip('/')
     graphite_path = relative_path.replace('/','.')
-    if isfile(absolute_path):
+
+    if isdir(absolute_path):
+      yield Branch(absolute_path, graphite_path)
+    elif isfile(absolute_path):
       (graphite_path,extension) = splitext(graphite_path)
       if extension == '.wsp':
         yield WhisperFile(absolute_path, graphite_path)
       elif rrdtool and extension == '.rrd':
         rrd = RRDFile(absolute_path, graphite_path)
-        if datasource_pattern:
+        if datasource_pattern is None:
+          yield rrd
+        else:
           for source in rrd.getDataSources():
             if fnmatch.fnmatch(source.name, datasource_pattern):
               yield source
-        else:
-          yield rrd
-    elif isdir(absolute_path):
-      yield Branch(absolute_path, graphite_path)
 
 def _find(current_dir, patterns):
   """Recursively generates absolute paths whose components underneath current_dir

@@ -12,30 +12,78 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
-from completer import historyComplete, drawComplete, searchComplete
-from codemaker import handleCommand
-from cPickle import load
-from web.util import getProfile
+from string import letters
 from django.http import HttpResponse
 from django.shortcuts import render_to_response
+from web.util import getProfile
+from web.cli import completer, commands, parser
 
-def index(request):
+def cli(request):
   return render_to_response("cli.html", dict(request.GET.items()) )
 
-def completer(request):
+def autocomplete(request):
   assert 'path' in request.GET, "Invalid request, no 'path' parameter!"
-  if request.GET.has_key('short'):
-    html = searchComplete( request, request.GET['path'] )
-  elif request.GET['path'][:1] == '!':
-    html = historyComplete( request, request.GET['path'] )
+  path = request.GET['path']
+  shortnames = bool( request.GET.get('short') )
+
+  if request.GET['path'][:1] == '!':
+    profile = getProfile(request)
+    html = completer.completeHistory(path, profile)
   else:
-    html = drawComplete( request, request.GET['path'] )
+    html = completer.completePath(path, shortnames=shortnames)
+
   return HttpResponse( html )
 
-def codemaker(request):
-  return HttpResponse( handleCommand( request ), mimetype='text/plain' )
+def evaluate(request):
+  if 'commandInput' not in request.GET:
+    output = commands.stderr("No commandInput parameter!")
+    return HttpResponse(output, mimetype='text/plain')
 
-def getViews(request):
+  #Variable substitution
   profile = getProfile(request)
-  viewList = ','.join([view.name for vew in profile.view_set.all()])
-  return HttpResponse(viewList, mimetype='text/plain')
+  my_vars = {}
+  for variable in profile.variable_set.all():
+    my_vars[variable.name] = variable.value
+  cmd = request.GET['commandInput']
+  while '$' in cmd and not cmd.startswith('code'):
+    i = cmd.find('$')
+    j = i+1
+    for char in cmd[i+1:]:
+      if char not in letters: break
+      j += 1
+    var = cmd[i+1:j]
+    if var in my_vars:
+      cmd = cmd[:i] + my_vars[var] + cmd[j:]
+    else:
+      output = commands.stderr("Unknown variable %s" % var)
+      return HttpResponse(output, mimetype='text/plain')
+
+  if cmd == '?': cmd = 'help'
+
+  try:
+    tokens = parser.parseInput(cmd)
+
+    if not tokens.command:
+      output = commands.stderr("Invalid syntax")
+      return HttpResponse(output, mimetype='text/plain')
+
+    handler_name = '_' + tokens.command
+    handler = vars(commands).get(handler_name)
+    if handler is None:
+      output = commands.stderr("Unknown command")
+      return HttpResponse(output, mimetype='text/plain')
+
+    args = dict( tokens.items() )
+    del args['command']
+    output = handler(request, **args)
+  except:
+    output = commands.printException()
+
+  #Save command to history
+  history = profile.history.split('\n')
+  history.insert(0,cmd)
+  while len(history) > 30: history.pop()
+  profile.history = '\n'.join(history)
+  profile.save()
+
+  return HttpResponse(output, mimetype='text/plain')

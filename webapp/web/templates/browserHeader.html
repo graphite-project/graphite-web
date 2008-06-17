@@ -92,7 +92,9 @@ img.toolbar:active {
   {% endif %}
  </td></tr>
  <tr><td style='font-size: smaller;'>
-  <!-- <a href="http://wiki.orbitz.net/display/so/Graphite+Documentation" target="_newWindow">Documentation</a> -->
+  {% if documentation_url %}
+   <a href="{{documentation_url}}" target="_newWindow">Documentation</a>
+  {% endif %}
  </td></tr>
 </table>
 

@@ -24,9 +24,11 @@ WEB_DIR = GRAPHITE_ROOT + 'web/'
 STORAGE_DIR = GRAPHITE_ROOT + 'storage/'
 WHISPER_DIR = STORAGE_DIR + 'whisper/'
 RRD_DIR = STORAGE_DIR + 'rrd/'
+INDEX_FILE = STORAGE_DIR + 'index'
 LOG_DIR = STORAGE_DIR + 'log/'
 SMTP_SERVER = "localhost"
 CRAPPY_HARDWARE = False #if True, rendering is delegated to RENDERING_HOSTS
+DOCUMENTATION_URL = "http://graphite.wikidot.com/documentation"
 
 try:
   import rrdtool

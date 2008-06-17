@@ -18,8 +18,7 @@ from web.util import getProfile
 from web.logger import log
 
 
-def historyComplete(request,path):
-  profile = getProfile(request)
+def completeHistory(path, profile):
   html = ''
   if path[:1] == '!': path = path[1:]
   html += "<ul>"
@@ -32,7 +31,28 @@ def historyComplete(request,path):
   html += "</ul>"
   return html
 
-def drawComplete(request,path,short=False):
+def completePath(path, shortnames=False):
+  finder = settings.FINDER
+  # Have to extract the path expression from the command
+  for prefix in ('draw ','add ','remove '):
+    if path.startswith(prefix):
+      path = path[len(prefix):]
+      break
+  pattern = re.sub('\w+\(','',path).replace(')','') + '*'
+
+  results = []
+  
+  for match in finder.find(pattern):
+    if shortnames:
+      results.append(match.name)
+    else:
+      results.append(match.graphite_path)
+
+  list_items = ["<li>%s</li>" % r for r in results]
+  list_element = "<ul>" + '\n'.join(list_items) + "</ul>"
+  return list_element
+
+def ompletePath(path, shortnames=False):
   html = ''
   path = re.sub('\w+\(','',path).replace(')','').replace('.','/') + '*'
   strippablePrefixes = ('draw ','add ','remove ')
@@ -50,7 +70,7 @@ def drawComplete(request,path,short=False):
     if os.path.isfile(match):
       (match,ext) = os.path.splitext(match) #strip file extension
     graphitePath = match.replace(settings.WHISPER_DIR,'').replace('/','.')
-    if short:
+    if shortnames:
       graphitePath = graphitePath.split('.')[-1]
     if os.path.isdir(match):
       graphitePath += '.'
@@ -62,9 +82,6 @@ def drawComplete(request,path,short=False):
     html += ' <li>' + match + '</li>\n'
   html += "</ul>\n"
   return html
-
-def searchComplete(request,path):
-  return drawComplete(request,path,short=True)
 
 def match(path,file):
   pathParts = path.split('.')

@@ -12,6 +12,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
+import re
 from django.shortcuts import render_to_response
 from django.http import HttpResponse
 from django.conf import settings
@@ -25,7 +26,34 @@ def header(request):
   context = {}
   context['user'] = request.user
   context['profile'] = getProfile(request)
+  context['documentation_url'] = settings.DOCUMENTATION_URL
   return render_to_response("browserHeader.html", context)
+
+def search(request):
+  query = request.POST['query']
+  if not query:
+    return HttpResponse("")
+
+  patterns = query.split()
+  regexes = [re.compile(p,re.I) for p in patterns]
+  def matches(s):
+    for regex in regexes:
+      if regex.search(s):
+        return True
+    return False
+
+  results = []
+
+  index_file = open(settings.INDEX_FILE)
+  for line in index_file:
+    if matches(line):
+      results.append( line.strip() )
+    if len(results) >= 100:
+      break
+
+  index_file.close()
+  result_string = ','.join(results)
+  return HttpResponse(result_string, mimetype='text/plain')
 
 def browser(request):
   "View for the top-level frame of the browser UI"
@@ -113,7 +141,7 @@ def myGraphLookup(request):
     log.exception("browser.views.myGraphLookup(): could not complete request.")
 
   if not nodes:
-    no_graphs = { 'text' : "No saved graphs" }
+    no_graphs = { 'text' : "No saved graphs", 'id' : 'no-click' }
     no_graphs.update(leafNode)
     nodes.append(no_graphs)
 
@@ -153,7 +181,7 @@ def userGraphLookup(request):
     log.exception("browser.views.userLookup(): could not complete request for %s" % username)
 
   if not nodes:
-    no_graphs = { 'text' : "No saved graphs" }
+    no_graphs = { 'text' : "No saved graphs", 'id' : 'no-click' }
     no_graphs.update(leafNode)
     nodes.append(no_graphs)
 

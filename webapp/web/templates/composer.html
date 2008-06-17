@@ -23,7 +23,7 @@ limitations under the License. -->
 
     <script type="text/javascript" src="/content/js/graphComposer.js"></script>
 
-    <script type="text/javascript" src="/content/js/navigation_panel.js"></script>
+    <script type="text/javascript" src="/content/js/nav_panel.js"></script>
     <script type="text/javascript" src="/content/js/composer.js"></script>
 
     <script type="text/javascript">
@@ -45,7 +45,6 @@ limitations under the License. -->
           composerControls:[canvas,targets,saver,dateTime,updater],
 	  containingElement:"composerPanel"
         });
-	//var navPanel = NavigationPanel();
         var view = new Ext.Viewport({layout:'border', items:[navPanel,composerPanel]});
 	gc.render();
 	top.gc = gc;

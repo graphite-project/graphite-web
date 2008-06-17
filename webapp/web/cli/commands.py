@@ -209,7 +209,7 @@ def _url(request,window):
   return out
 
 def _help(request):
-  return "alert('Sorry, help is not currently available');"
+  return "window.open('%s','doc');" % settings.DOCUMENTATION_URL
 
 def _change(request,window,var,value):
   out = ''

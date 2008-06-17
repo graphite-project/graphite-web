@@ -18,7 +18,8 @@ limitations under the License. -->
 
 <script src="/content/js/extJS/adapter/prototype/prototype.js" type="text/javascript"></script>
 <script src="/content/js/extJS/adapter/prototype/scriptaculous.js" type="text/javascript"></script>
-<script src="/content/js/window.js" type="text/javascript"></script>
+<script src="/content/js/prototype-window.js" type="text/javascript"></script>
+<script src="/content/js/scriptaculous-controls.js"></script>
 <script src="/content/js/cli_completer.js" type="text/javascript"></script>
 
 <script language="javascript">
@@ -111,7 +112,7 @@ Windows.addObserver(resizeObserver);
     }
     window.completer = new GraphiteCompleter( 'commandInput',
     					      'completerDiv',
-					      '/cli/completer',
+					      '/cli/autocomplete/',
 					      {
 					        method: 'get',
 					      	paramName: 'path',
