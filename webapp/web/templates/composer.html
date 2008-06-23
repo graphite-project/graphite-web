@@ -21,15 +21,24 @@ limitations under the License. -->
     <script type="text/javascript"  src="/content/js/extJS/adapter/prototype/ext-prototype-adapter.js"></script>
     <script type="text/javascript" src="/content/js/extJS/ext-all-debug.js"></script>
 
-    <script type="text/javascript" src="/content/js/graphComposer.js"></script>
-
-    <script type="text/javascript" src="/content/js/nav_panel.js"></script>
+    <script type="text/javascript" src="/content/js/browser.js"></script>
+    <script type="text/javascript" src="/content/js/composer_widgets.js"></script>
     <script type="text/javascript" src="/content/js/composer.js"></script>
 
     <script type="text/javascript">
+      var Browser;
+      var Composer;
+
       Ext.onReady(function () {
-        Composer.initialize();
-        var navPanel = createNavigationPanel({ showMyGraphs: {{showMyGraphs}} });
+        Browser = new GraphiteBrowser({ showMyGraphs: {{showMyGraphs}} });
+        Composer = new GraphiteComposer();
+
+	return new Ext.Viewport({
+	  layout: 'border',
+	  items: [Browser.panel, Composer.panel]
+	});
+
+        /*
         var base = window.location.protocol+"//"+window.location.host+"/render/?";
         var mgr = new urlManager(base,"url");
         var canvas = new canvasControl(mgr);
@@ -48,6 +57,7 @@ limitations under the License. -->
         var view = new Ext.Viewport({layout:'border', items:[navPanel,composerPanel]});
 	gc.render();
 	top.gc = gc;
+	*/
       });
 </script> 
 

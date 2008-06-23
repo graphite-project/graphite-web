@@ -12,17 +12,20 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. */
 
-function createNavigationPanel(options) {
-  return new Ext.TabPanel({
-    region: 'west',
-    items: [createTreePanel(options), createSearchPanel(options), createCompleterPanel(options)],
-    width: 230,
-    split: true,
-    collapsible: true,
-    collapseMode: 'mini',
-    activeTab: 0,
-    tabWidth: 100
-  });
+var GraphiteBrowser = Class.create();
+GraphiteBrowser.prototype = {
+  initialize: function (options) {
+    this.panel = new Ext.TabPanel({
+      region: 'west',
+      items: [createTreePanel(options), createSearchPanel(options), createCompleterPanel(options)],
+      width: 230,
+      split: true,
+      collapsible: true,
+      collapseMode: 'mini',
+      activeTab: 0,
+      tabWidth: 100
+    });
+  }
 }
 
 //Tree Tab
@@ -80,7 +83,7 @@ function createTreePanel(options){
     pathSeparator: ".",
     rootVisible: false,
     singleExpand: false,
-    trackMouseOver: true,
+    trackMouseOver: true
   });
 
   treePanel.on("click", function (node,evt) {
@@ -120,8 +123,8 @@ function createSearchPanel() {
 }
 
 function setupSearchForm(formEl) {
-  html = '<a id="searchHelpLink" > Help </a> <p id="searchError"/> <ul id="searchResults />';
-  Ext.DomHelper.append("searchForm",html);
+  var html = '<a id="searchHelpLink" > Help </a> <p id="searchError"></p> <ul id="searchResults"></ul>';
+  Ext.DomHelper.append("searchForm", html);
   var helpAction = 'javascript: void window.open';
   var helpPage = '"/content/html/searchHelp.html"';
   var helpTitle = '"Searching Graphite"';
@@ -136,7 +139,7 @@ function showSearchError(message) {
 }
 
 function sendSearchRequest (searchField, evt) {
-  if (evt.getKey() != Ext.EventObject.RETURN) {
+  if (evt.getCharCode() != Ext.EventObject.RETURN) {
     return;
   }
   //Clear any previous errors
