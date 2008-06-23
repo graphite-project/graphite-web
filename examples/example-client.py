@@ -17,14 +17,18 @@ import time
 from socket import socket
 
 CARBON_SERVER = '127.0.0.1'
-CARBON_PORT = 7002
+CARBON_PORT = 2003
 
 def get_loadavg():
   # For more details, "man proc"
   return open('/proc/loadavg').read().strip().split()[:3]
 
 sock = socket()
-sock.connect( (CARBON_SERVER,CARBON_PORT) )
+try:
+  sock.connect( (CARBON_SERVER,CARBON_PORT) )
+except:
+  print "Couldn't connect to localhost on port %d, is carbon-agent.py running?" % CARBON_PORT
+  sys.exit(1)
 
 while True:
   now = int( time.time() )
@@ -34,7 +38,7 @@ while True:
   lines.append("system.loadavg_1min %s %d" % (loadavg_1,now))
   lines.append("system.loadavg_5min %s %d" % (loadavg_5,now))
   lines.append("system.loadavg_15min %s %d" % (loadavg_15,now))
-  message = '\n'.join(lines)
+  message = '\n'.join(lines) + '\n' #all lines must end in a newline
   print "sending message\n"
   print '-' * 80
   print message

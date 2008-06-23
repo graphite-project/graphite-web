@@ -124,7 +124,7 @@ while True: #Handle the incoming data
   for line in lines:
     try:
       name,pointStrings = line.strip().split(' ',1)
-      points = [ p.split(':',1) for p in pointStrings.split(',') ]
+      points = [ tuple(reversed( p.split(' ',1) )) for p in pointStrings.split(',') ]
     except:
       print 'Ignoring malformed line...'
       continue

@@ -4,8 +4,10 @@
 # processname: carbon-agent
 
 export GRAPHITE_DIR="/usr/local/graphite"
-export CARBON_DIR="${GRAPHITE_DIR}/carbon"
+export PYTHONPATH="$GRAPHITE_DIR:$PYTHONPATH"
+export CARBON_DIR="${GRAPHITE_DIR}/carbon-agent"
 pidfile="${CARBON_DIR}/pid/agent.pid"
+userfile="${CARBON_DIR}/run_as_user"
 
 function die {
   echo $1
@@ -17,7 +19,11 @@ case "$1" in
   	echo "Starting carbon-agent"
 	cd $CARBON_DIR
 	test -f $pidfile && die "Pidfile $pidfile already exists!"
-	./carbon-agent.py
+	if [ -f $userfile ]
+	then
+		args="$args -u `cat $userfile`"
+	fi
+	./carbon-agent.py $args
 	;;
   stop)
 	if [ ! -f $pidfile ]

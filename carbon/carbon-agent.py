@@ -56,14 +56,20 @@ print 'carbon-agent started (pid=%d)' % os.getpid()
 
 def handleDeath(signum,frame):
   print 'Received SIGTERM, killing children'
-  os.kill( cacheProcess.pid, SIGTERM )
-  print 'Sent SIGTERM to carbon-cache'
-  os.wait()
-  print 'wait() complete'
-  os.kill( persisterProcess.pid, SIGTERM )
-  print 'Sent SIGTERM to carbon-persister'
-  os.wait()
-  print 'wait() complete, exitting'
+  try:
+    os.kill( cacheProcess.pid, SIGTERM )
+    print 'Sent SIGTERM to carbon-cache'
+    os.wait()
+    print 'wait() complete'
+  except OSError:
+    print 'carbon-cache appears to already be dead'
+  try:
+    os.kill( persisterProcess.pid, SIGTERM )
+    print 'Sent SIGTERM to carbon-persister'
+    os.wait()
+    print 'wait() complete, exitting'
+  except OSError:
+    print 'carbon-persister appears to already be dead'
   sys.exit(0)
 
 signal(SIGTERM,handleDeath)

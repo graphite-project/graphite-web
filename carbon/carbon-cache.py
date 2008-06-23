@@ -93,7 +93,7 @@ def doCheckpoint():
   nextCheckpoint += 60
   print 'doCheckpoint() now=%d stats=%s' % (now,stats)
   #Write our performance statistics
-  point = "%d:%%f" % now
+  point = "%%f %d" % now
   cache.enqueue(prefix+'queries', point % stats['cacheQueries'] )
   cache.enqueue(prefix+'queues', point % len(cache) )
   cache.enqueue(prefix+'size', point % cache.cacheSize )

@@ -66,12 +66,11 @@ database related settings from settings.py.
 Assuming you are using the default setup, the database is initialized like so:
 
 cd /usr/local/graphite/web/
-python manage.py syncdb
+sudo python manage.py syncdb
 # you will be prompted to create an admin user, this is a good idea
 
 # now you must change ownership of the database file to the user apache runs as
-cd /usr/local/graphite/storage/
-sudo chown apache:apache graphite.db
+sudo chown -R nobody:nobody /usr/local/graphite/storage/ #assuming apache runs as 'nobody'
 
 Similarly if you use a backend such as mysql or postgres, the DATABASE_USER
 you create in your local_settings.py must have permission to create
