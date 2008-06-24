@@ -4,18 +4,15 @@
 //   2) set the appropriate composer options / fields in the UI
 //   3) expand the tree using something like the old showTarget logic
 
-var RENDER_BASE_URL = window.location.protocol + "://" + window.location.host + "/render/?";
+var RENDER_BASE_URL = window.location.protocol + "//" + window.location.host + "/render/?";
 
 var GraphiteComposer = Class.create();
 /* GraphiteComposer encapsulates a set of Ext UI Panels,
  * as well as a ParameterizedURL for the displayed graph. */
 GraphiteComposer.prototype = {
-  initialize: function () {
+  initialize: function (options) {
     this.url = new ParameterizedURL(RENDER_BASE_URL);
-    this.panel = new Ext.Panel({region: 'center'});
-    this.win = createComposerWindow();
-    this.panel.add(this.win);
-    this.panel.doLayout();
+    this.window = createComposerWindow(options);
   },
 
   toggleTarget: function (target) {
@@ -36,10 +33,20 @@ GraphiteComposer.prototype = {
     this.updateGraphImage();
   },
 
+  setParam: function (key, value) {
+    /* Modify the URL parameter and update the image */
+    this.url.setParam(key, value);
+    this.updateGraphImage();
+  },
+
   updateGraphImage: function () {
     /* Set the image's url to reflect this.url's current params */
-    this.url.getURL();
-    //XXX
+    this.window.getImage().src = this.url.getURL();
+  },
+
+  updateTimeDisplay: function (text) {
+    /* Change the text describing the time displayed */
+    this.window.updateTimeDisplay(text);
   }
 };
 
@@ -76,7 +83,14 @@ ParameterizedURL.prototype = {
   },
 
   /*   Parameter modification methods   */
+  setParam: function (key, value) {
+    /* Give the param only the given value */
+    this.params.set(key, [value]);
+    this.syncQueryString();
+  },
+
   addParam: function (key, value) {
+    /* Add a parameter value */
     var values = this.getParamList(key);
     values.push(value);
     this.params.set(key, values);
@@ -84,6 +98,7 @@ ParameterizedURL.prototype = {
   },
 
   removeParam: function (key, value) {
+    /* Remove one or all values for a given parameter */
     if (value == null) { //Remove all values
       this.params.unset(key);
     } else { //Remove a specific value

@@ -18,12 +18,11 @@ GraphiteBrowser.prototype = {
     this.panel = new Ext.TabPanel({
       region: 'west',
       items: [createTreePanel(options), createSearchPanel(options), createCompleterPanel(options)],
-      width: 230,
       split: true,
+      width: 220,
       collapsible: true,
       collapseMode: 'mini',
       activeTab: 0,
-      tabWidth: 100
     });
   }
 }
