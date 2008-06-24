@@ -24,22 +24,16 @@ GraphiteComposer.prototype = {
     } else {
       this.url.addParam("target", target);
     }
-    this.updateGraphImage();
+    this.updateImage();
   },
 
   loadURL: function (url) {
     /* Apply the query string from the given url to our graph image */
     this.url.copyQueryStringFromURL(url);
-    this.updateGraphImage();
+    this.updateImage();
   },
 
-  setParam: function (key, value) {
-    /* Modify the URL parameter and update the image */
-    this.url.setParam(key, value);
-    this.updateGraphImage();
-  },
-
-  updateGraphImage: function () {
+  updateImage: function () {
     /* Set the image's url to reflect this.url's current params */
     this.window.getImage().src = this.url.getURL();
   },

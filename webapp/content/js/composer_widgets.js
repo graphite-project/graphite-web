@@ -112,8 +112,9 @@ function toggleCalendar(button, evt) {
 function calendarSelectionMade(datePicker, selectedDate) {
   var startDate = Ext.getCmp('start-date').getValue();
   var endDate = Ext.getCmp('end-date').getValue();
-  Composer.setParam('from', asDateString(startDate) );
-  Composer.setParam('until', asDateString(endDate) );
+  Composer.url.setParam('from', asDateString(startDate) );
+  Composer.url.setParam('until', asDateString(endDate) );
+  Composer.updateImage();
   Composer.updateTimeDisplay("<b>From</b> " + startDate.toLocaleString() +
                              " <b>Until</b> " + endDate.toLocaleString() );
 }
@@ -129,33 +130,44 @@ function toggleRecentDialog(button, evt) {
   if (!button.window) { //First click, create the window
     var quantityField = new Ext.form.NumberField({
       id: 'time-quantity',
-      width: 16,
       grow: true,
       value: 24,
     });
     var unitSelector = new Ext.form.ComboBox({
       id: 'time-units',
       editable: false,
+      triggerAction: 'all',
       mode: 'local',
       store: ['minutes', 'hours', 'days', 'weeks', 'months', 'years'],
+      width: 75,
       value: 'hours'
     });
-    quantityField.on('select', recentSelectionMade);
+    quantityField.on('change', recentSelectionMade);
+    quantityField.on('specialkey',
+      function (combo, evt) {
+        if (evt.getCharCode() == Ext.EventObject.RETURN) {
+          recentSelectionMade(combo);
+        }
+      }
+    );
     unitSelector.on('select', recentSelectionMade);
 
     button.window = new Ext.Window({
       title: "Select a Recent Time Range",
       layout: 'table',
-      height: 250,
-      width: 400,
-      layoutConfig: { columns: 2 },
+      height: 60, //there's gotta be a way to auto-size these windows!
+      width: 235,
+      layoutConfig: { columns: 3 },
       closeAction: 'hide',
       items: [
-        {html: "Select data for the past "},
+        {
+	  html: "<div style=\"border: none; background-color: rgb(223,232,246)\">View the past</div>",
+          style: "border: none; background-color: rgb(223,232,246)"
+	},
         quantityField,
-	unitSelector,
+        unitSelector
       ],
-      onEsc: function () { toggleRecentDialog(button, evt); return false; }
+      onEsc: function () { toggleRecentDialog(button, evt); return false; },
     });
   }
   if (button.window.isVisible()) {
@@ -167,7 +179,12 @@ function toggleRecentDialog(button, evt) {
 }
 
 function recentSelectionMade(combo, record, index) {
-  alert('combo=' + combo + ' record=' + record + ' index=' + index);
+  var quantity = Ext.getCmp('time-quantity').getValue();
+  var units = Ext.getCmp('time-units').getValue();
+  var fromString = '-' + quantity + units;
+  Composer.url.setParam('from', fromString);
+  Composer.url.removeParam('until');
+  Composer.updateTimeDisplay("Now showing the past " + quantity + " " + units);
 }
 
 /* "Save to MyGraphs" */
