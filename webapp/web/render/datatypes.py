@@ -55,3 +55,7 @@ class TimeSeries(list):
     if self.consolidationFunc == 'average':
       return float(sum(usable)) / len(usable)
     raise Exception, "Invalid consolidation function!"
+    
+  def __str__(self):
+    return 'TimeSeries(name=%s,start=%s,end=%s,step=%s)' % (self.name, self.start, self.end, self.step)
+  __repr__ = __str__

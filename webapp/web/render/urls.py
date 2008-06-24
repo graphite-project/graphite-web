@@ -15,7 +15,7 @@ limitations under the License."""
 from django.conf.urls.defaults import *
 
 urlpatterns = patterns('web.render.views',
-  ('raw/?$','rawrender'),
-  ('~(?P<username>[^/]+)/(?P<graphName>[^/]+)/?','renderMyGraph'),
-  ('', 'render'),
+  ('local/?$','renderLocalView'),
+  ('~(?P<username>[^/]+)/(?P<graphName>[^/]+)/?','renderMyGraphView'),
+  ('', 'renderView'),
 )

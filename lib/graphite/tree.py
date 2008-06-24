@@ -100,10 +100,9 @@ class Leaf(Node):
 
 # Database File classes
 class WhisperFile(Leaf):
-  def fetch(self, fromTime, untilTime):
-    (timeInfo,values) = whisper.fetch(self.fs_path, fromTime, untilTime)
-    (start,end,step) = timeInfo
-    return TimeSeries(timeInfo,values)
+  def fetch(self, startTime, endTime):
+    (timeInfo,values) = whisper.fetch(self.fs_path, startTime, endTime)
+    return (timeInfo,values)
 
 
 class RRDFile(Branch):
@@ -123,11 +122,11 @@ class RRDDataSource(Leaf):
     self.fs_path = rrd_file.fs_path
     self.graphite_path = rrd_file.graphite_path + '.' + name
 
-  def fetch(self, fromTime, untilTime):
-    startString = time.strftime("%H:%M_%Y%m%d", time.localtime(fromTime))
-    endString = time.strftime("%H:%M_%Y%m%d", time.localtime(untilTime))
+  def fetch(self, startTime, endTime):
+    startString = time.strftime("%H:%M_%Y%m%d", time.localtime(startTime))
+    endString = time.strftime("%H:%M_%Y%m%d", time.localtime(endTime))
     (timeInfo,columns,rows) = rrdtool.fetch(self.fs_path,'AVERAGE','-s' + startString,'-e' + endString)
     colIndex = list(columns).index(self.name)
     rows.pop() #chop off the last row because RRD sucks
     values = (row[colIndex] for row in rows)
-    return TimeSeries(timeInfo,values)
+    return (timeInfo,values)

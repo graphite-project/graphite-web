@@ -46,9 +46,9 @@ class Graph:
                  'fontName','fontSize','fontBold','fontItalic', \
                  'colorList','template')
 
-  def __init__(self,**params):
+  def __init__(self,data,**params):
+    self.data = data
     self.params = params
-    self.data = params['data']
     self.width = int( params.get('width',200) )
     self.height = int( params.get('height',200) )
     self.margin = int( params.get('margin',10) )

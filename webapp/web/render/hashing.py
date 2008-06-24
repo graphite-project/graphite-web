@@ -14,31 +14,29 @@ limitations under the License."""
 
 import md5, time
 
-def imageHash(targetList,options):
-  if not targetList: return ''
-  optList = []
-  for key in sorted( options.keys() ):
-    key = ''.join([c for c in str(key) if ord(c) >= 33]) #strip control characters for memcached
-    value = ''.join([c for c in str(options[key]) if ord(c) >= 33])
-    optList.append( key + '=' + value )
-  hash = '&'.join(targetList + optList)
-  if len(hash) > 249: return shortHash(hash)
-  return hash
+def hashRequest(request):
+  # Normalize the request parameters so ensure we're deterministic
+  myHash = ','.join( sorted(["%s=%s" % item for item in request.GET.items()]) )
+  myHash = stripControlChars(myHash) #memcached limitation
+  if len(myHash) > 249: #memcached limitation
+    return compactHash(myHash)
+  else:
+    return myHash
 
-def pathHash(name):
-  now = time.time()
-  minute = int(now - (now % 60))
-  name = ''.join([c for c in name if ord(c) >= 33]) + '|' + str(minute)
-  if len(name) > 249: return shortHash(name)
-  return name
+def hashData(targets, startTime, endTime):
+  targetsString = ','.join(targets)
+  startTimeString = startTime.strftime("%Y%m%d_%H%M%S")
+  endTimeString = endTime.strftime("%Y%m%d_%H%M%S")
+  myHash = targetsString + '@' + startTimeString + ':' + endTimeString
+  if len(myHash) > 249:
+    return compactHash(myHash)
+  else:
+    return myHash
 
-def rawDataHash(seriesList):
-  seriesList.sort(key=lambda s: s.name)
-  hash = ','.join(["%s:%d:%d:%d" % (s.name,s.start,s.end,s.step) for s in seriesList])
-  if len(hash) > 249: return shortHash(hash)
-  return hash
+def stripControlChars(string):
+  return filter(lambda char: ord(char) >= 33, string)
 
-def shortHash(string):
+def compactHash(string):
   hash = md5.md5()
   hash.update(string)
   return hash.hexdigest()

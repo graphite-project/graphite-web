@@ -12,12 +12,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
-from datatypes import TimeSeries
+from web.render.datatypes import TimeSeries
 from itertools import izip
-
-#The entry point
-def dispatch(func,args):
-  return funcDict['__'+func](*args)
 
 #Utility functions
 def safeSum(values):
@@ -56,14 +52,14 @@ def normalize(seriesLists):
   end -= (end - start) % step
   return (seriesList,start,end,step)
 
-#Computation function implementations
+# Series Functions
 
 #NOTE: Some of the functions below use izip, which may be problematic.
 #izip stops when it hits the end of the shortest series
 #in practice this *shouldn't* matter because all series will cover
 #the same interval, despite having possibly different steps...
 
-def __sumSeries(*seriesLists):
+def sumSeries(*seriesLists):
   (seriesList,start,end,step) = normalize(seriesLists)
   #name = "sumSeries(%s)" % ','.join((s.name for s in seriesList))
   name = "sumSeries(%s)" % ','.join(set([s.pathExpression for s in seriesList]))
@@ -71,9 +67,8 @@ def __sumSeries(*seriesLists):
   series = TimeSeries(name,start,end,step,values)
   series.pathExpression = name
   return [series]
-__sum = __sumSeries
 
-def __averageSeries(*seriesLists):
+def averageSeries(*seriesLists):
   (seriesList,start,end,step) = normalize(seriesLists)
   #name = "averageSeries(%s)" % ','.join((s.name for s in seriesList))
   name = "averageSeries(%s)" % ','.join(set([s.pathExpression for s in seriesList]))
@@ -81,9 +76,8 @@ def __averageSeries(*seriesLists):
   series = TimeSeries(name,start,end,step,values)
   series.pathExpression = name
   return [series]
-__avg = __averageSeries
 
-def __asPercent(seriesList1,seriesList2orNumber):
+def asPercent(seriesList1,seriesList2orNumber):
   assert len(seriesList1) == 1, "asPercent series arguments must reference *exactly* 1 series"
   series1 = seriesList1[0]
   if type(seriesList2orNumber) is list:
@@ -108,22 +102,21 @@ def __asPercent(seriesList1,seriesList2orNumber):
   series = TimeSeries(name,start,end,step,values)
   series.pathExpression = name
   return [series]
-__pct = __asPercent
 
-def __scale(seriesList,factor):
+def scale(seriesList,factor):
   for series in seriesList:
     series.name = "scale(%s,%.1f)" % (series.name,float(factor))
     for i,value in enumerate(series):
       series[i] = safeMul(value,factor)
   return seriesList
 
-def __cumulative(seriesList):
+def cumulative(seriesList):
   for series in seriesList:
     series.consolidationFunc = 'sum'
     series.name = 'cumulative(%s)' % series.name
   return seriesList
 
-def __derivative(seriesList):
+def derivative(seriesList):
   results = []
   for series in seriesList:
     newValues = []
@@ -141,7 +134,7 @@ def __derivative(seriesList):
     results.append(newSeries)
   return results
 
-def __integral(seriesList):
+def integral(seriesList):
   results = []
   for series in seriesList:
     newValues = []
@@ -158,13 +151,22 @@ def __integral(seriesList):
     results.append(newSeries)
   return results
 
-def __alias(seriesList,newName):
+def alias(seriesList,newName):
   for series in seriesList:
     series.name = newName
   return seriesList
 
 
-funcDict = {}
-for name,obj in globals().items():
-  if name.startswith('__') and callable(obj):
-    funcDict[name] = obj
+SeriesFunctions = {
+  'sumSeries', sumSeries,
+  'sum' : sumSeries,
+  'averageSeries', averageSeries,
+  'avg' : averageSeries,
+  'asPercent' : asPercent,
+  'pct' : asPercent,
+  'scale' : scale,
+  'cumulative' : cumulative,
+  'derivative' : derivative,
+  'integral' : integral,
+  'alias' : alias,
+}

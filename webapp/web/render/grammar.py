@@ -39,12 +39,10 @@ expression << Group(call | pathExpression).setResultsName('expression')
 
 grammar << expression
 
-def buildGrammar(debug=False):
-  if debug:
-    for name,obj in globals().items():
-      try:
-        obj.setName(name)
-        obj.setDebug(True)
-      except:
-        pass
-  return grammar
+def enableDebug():
+  for name,obj in globals().items():
+    try:
+      obj.setName(name)
+      obj.setDebug(True)
+    except:
+      pass
