@@ -158,9 +158,9 @@ def alias(seriesList,newName):
 
 
 SeriesFunctions = {
-  'sumSeries', sumSeries,
+  'sumSeries' : sumSeries,
   'sum' : sumSeries,
-  'averageSeries', averageSeries,
+  'averageSeries' : averageSeries,
   'avg' : averageSeries,
   'asPercent' : asPercent,
   'pct' : asPercent,

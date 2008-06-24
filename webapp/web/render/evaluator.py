@@ -4,6 +4,7 @@ from web.render.grammar import grammar
 from web.render.functions import SeriesFunctions
 from web.render.datatypes import TimeSeries
 
+Finder = settings.FINDER
 
 def evaluateTarget(target, timeInterval):
   tokens = grammar.parseString(target)
@@ -30,8 +31,8 @@ def evaluateTokens(tokens, timeInterval):
     return seriesList
   elif tokens.call:
     func = SeriesFunctions[tokens.call.func]
-    args = [evaluate(arg) for arg in tokens.call.args]
-    return func(args)
+    args = [evaluateTokens(arg, timeInterval) for arg in tokens.call.args]
+    return func(*args)
   elif tokens.number:
     if tokens.number.integer:
       return int(tokens.number.integer)
