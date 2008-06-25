@@ -32,7 +32,8 @@ function createComposerWindow(options) {
         region: "center",
 	html: "<img id='imageviewer' src='/render'/>",
       }
-    ]
+    ],
+    listeners: {show: fitImageToWindow, resize: fitImageToWindow}
   });
   // Tack on some convenience closures
   win.updateTimeDisplay = function (text) {
@@ -43,6 +44,17 @@ function createComposerWindow(options) {
   };
 
   return win;
+}
+
+function fitImageToWindow(win) {
+  Composer.url.setParam('width', win.getInnerWidth());
+  Composer.url.setParam('height', win.getInnerHeight());
+  try {
+    Composer.updateImage();
+  } catch (err) {
+    //This happens when an initial resize event
+    //occurs prior to rendering the image viewer
+  }
 }
 
 /* Toolbar stuff */
@@ -121,8 +133,8 @@ function calendarSelectionMade(datePicker, selectedDate) {
 
 function asDateString(dateObj) {
   return dateObj.getFullYear().toString() +
-         (dateObj.getMonth() + 1).toString() +
-         dateObj.getDate().toString();
+         (dateObj.getMonth() + 1).toPaddedString(2) +
+         dateObj.getDate().toPaddedString(2);
 }
 
 /* "Recent Data" dialog */

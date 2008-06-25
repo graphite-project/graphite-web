@@ -151,12 +151,12 @@ def parseOptions(request):
 
   # Get the time interval for time-oriented graph types
   if graphType == 'line':
-    if 'until' in request.GET:
-      endTime = parseATTime( request.GET['until'] )
+    if 'until' in queryParams:
+      endTime = parseATTime( queryParams['until'] )
     else:
       endTime = datetime.now()
-    if 'from' in request.GET:
-      startTime = parseATTime( request.GET['from'] )
+    if 'from' in queryParams:
+      startTime = parseATTime( queryParams['from'] )
     else:
       startTime = endTime - timedelta(days=1)
     assert startTime < endTime, "Invalid time range!"

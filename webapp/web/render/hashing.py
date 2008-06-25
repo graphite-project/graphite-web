@@ -16,7 +16,10 @@ import md5, time
 
 def hashRequest(request):
   # Normalize the request parameters so ensure we're deterministic
-  myHash = ','.join( sorted(["%s=%s" % item for item in request.GET.items()]) )
+  queryParams = ["%s=%s" % (key,val)
+                 for (key,val) in request.GET.items()
+                 if not key.startswith('_')]
+  myHash = ','.join( sorted(queryParams) )
   myHash = stripControlChars(myHash) #memcached limitation
   if len(myHash) > 249: #memcached limitation
     return compactHash(myHash)

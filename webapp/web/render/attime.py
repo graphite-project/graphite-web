@@ -19,7 +19,11 @@ weekdays = ['sun','mon','tue','wed','thu','fri','sat']
 
 def parseATTime(s):
   s = s.strip().lower().replace('_','').replace(',','').replace(' ','')
-  if s.isdigit(): return datetime.fromtimestamp( int(s) )
+  if s.isdigit():
+    if len(s) == 8 and int(s[:4]) > 1900 and int(s[4:6]) < 13 and int(s[6:]) < 32:
+      pass #Fall back because its not a timestamp, its YYYYMMDD form
+    else:
+      return datetime.fromtimestamp( int(s) )
   if '+' in s:
     ref,offset = s.split('+',1)
     offset = '+' + offset

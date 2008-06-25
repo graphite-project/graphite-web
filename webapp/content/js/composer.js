@@ -35,6 +35,9 @@ GraphiteComposer.prototype = {
 
   updateImage: function () {
     /* Set the image's url to reflect this.url's current params */
+    var now = new Date();
+    var unixTime = now.valueOf() / 1000;
+    this.url.setParam('_salt', unixTime.toString() );
     this.window.getImage().src = this.url.getURL();
   },
 
