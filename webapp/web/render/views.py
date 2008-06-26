@@ -141,7 +141,7 @@ def parseOptions(request):
       val = queryParams[opt]
       if val.isdigit() and opt not in ('fgcolor','bgcolor','fontColor'):
         val = int(val)
-      elif val.replace('.','',1).isdigit():
+      elif '.' in val and val.replace('.','',1).isdigit():
         val = float(val)
       elif val.lower() in ('true','false'):
         val = eval( val.lower().capitalize() )
@@ -159,8 +159,9 @@ def parseOptions(request):
       startTime = parseATTime( queryParams['from'] )
     else:
       startTime = endTime - timedelta(days=1)
+    if endTime > datetime.now():
+      endTime = datetime.now()
     assert startTime < endTime, "Invalid time range!"
-    assert endTime <= datetime.now(), "Can't request data from the future!"
     
     requestOptions['startTime'] = startTime
     requestOptions['endTime'] = endTime

@@ -28,9 +28,12 @@ limitations under the License. -->
     <script type="text/javascript">
       var Browser;
       var Composer;
+      var GraphiteConfig = {
+        showMyGraphs: {{showMyGraphs}}
+      };
 
       Ext.onReady(function () {
-        Browser = new GraphiteBrowser({ showMyGraphs: {{showMyGraphs}} });
+        Browser = new GraphiteBrowser();
         Composer = new GraphiteComposer();
 
 	new Ext.Viewport({

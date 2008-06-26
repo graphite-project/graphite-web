@@ -31,6 +31,7 @@ def hashData(targets, startTime, endTime):
   startTimeString = startTime.strftime("%Y%m%d_%H%M%S")
   endTimeString = endTime.strftime("%Y%m%d_%H%M%S")
   myHash = targetsString + '@' + startTimeString + ':' + endTimeString
+  myHash = stripControlChars(myHash)
   if len(myHash) > 249:
     return compactHash(myHash)
   else:

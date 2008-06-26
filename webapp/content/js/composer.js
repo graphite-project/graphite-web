@@ -1,8 +1,11 @@
+// TODO: Targets control/dialog
+// TODO? Composer.graphOptions for sticky option values
 // TODO: Implement landing-pages
 // http://graphite.prod.o.com/?target=foo.bar.baz&width=420&fgColor=red&...
 //   1) set the appropriate image in the composer
 //   2) set the appropriate composer options / fields in the UI
 //   3) expand the tree using something like the old showTarget logic
+// TODO: Auto-fill options when loading a My Graph or landing page
 
 var RENDER_BASE_URL = window.location.protocol + "//" + window.location.host + "/render/?";
 
@@ -10,9 +13,12 @@ var GraphiteComposer = Class.create();
 /* GraphiteComposer encapsulates a set of Ext UI Panels,
  * as well as a ParameterizedURL for the displayed graph. */
 GraphiteComposer.prototype = {
-  initialize: function (options) {
+  initialize: function () {
     this.url = new ParameterizedURL(RENDER_BASE_URL);
-    this.window = createComposerWindow(options);
+    this.window = createComposerWindow();
+    //These are some state vars used by the composer widgets
+    this.myGraphName = null;
+    this.selectedTargets = [];
   },
 
   toggleTarget: function (target) {
@@ -27,9 +33,34 @@ GraphiteComposer.prototype = {
     this.updateImage();
   },
 
-  loadURL: function (url) {
+  loadMyGraph: function (name, url) {
     /* Apply the query string from the given url to our graph image */
+    this.myGraphName = name;
     this.url.copyQueryStringFromURL(url);
+    // Preseve the window/image size
+    this.url.setParam('width', this.window.getInnerWidth());
+    this.url.setParam('height', this.window.getInnerHeight());
+    // And don't forget to update the time display widget
+    var from = this.url.getParam('from');
+    var until = this.url.getParam('until');
+    var timeInfo = {};
+    if (!from) { // No time interval specified, use the default
+      timeInfo.mode = 'recent';
+      timeInfo.quantity = '24';
+      timeInfo.units = 'hours';
+    } else {
+      var match = from.match(/^-(\d+)(\w+)/);
+      if (match) { // Relative time
+        timeInfo.mode = 'recent';
+	timeInfo.quantity = match[1];
+	timeInfo.units = match[2];
+      } else { // Absolute time
+        timeInfo.mode = 'date-range';
+	timeInfo.startDate = this.parseDate(from);
+	timeInfo.endDate = this.parseDate(until);
+      }
+    }
+    this.window.updateTimeDisplay(timeInfo);
     this.updateImage();
   },
 
@@ -41,9 +72,14 @@ GraphiteComposer.prototype = {
     this.window.getImage().src = this.url.getURL();
   },
 
-  updateTimeDisplay: function (text) {
-    /* Change the text describing the time displayed */
-    this.window.updateTimeDisplay(text);
+  parseDate: function(dateString) { // Format is HH:MM_YYYYMMDD
+    var hour = dateString.substr(0,2);
+    var minute = dateString.substr(3,2);
+    var year = dateString.substr(6,4);
+    var month = dateString.substr(10,2);
+    var day = dateString.substr(12,14);
+    month = parseInt(month) - 1; // Date assumes months are zero-indexed
+    return new Date(year, month, day, hour, minute, 0, 0);
   }
 };
 
@@ -80,12 +116,6 @@ ParameterizedURL.prototype = {
   },
 
   /*   Parameter modification methods   */
-  setParam: function (key, value) {
-    /* Give the param only the given value */
-    this.params.set(key, [value]);
-    this.syncQueryString();
-  },
-
   addParam: function (key, value) {
     /* Add a parameter value */
     var values = this.getParamList(key);
@@ -109,7 +139,19 @@ ParameterizedURL.prototype = {
     this.syncQueryString();
   },
 
-  setParams: function (params) {
+  setParam: function (key, value) {
+    /* Give the param only the given value */
+    this.params.set(key, [value]);
+    this.syncQueryString();
+  },
+
+  setParamList: function (key, values) {
+    /* Give the param a given list of values */
+    this.params.set(key, values);
+    this.syncQueryString();
+  },
+
+  setParamHash: function (params) {
     /* Use the given params Hash (and update this.queryString to match) */
     this.params = params;
     this.syncQueryString();
@@ -118,7 +160,13 @@ ParameterizedURL.prototype = {
   syncParams: function () {
     /* Set the value of this.params to reflect the parameters in this.queryString
      * Call this whenever you modify this.queryString */
-    this.params = this.queryString.toQueryParams();
+    var params = $H( this.queryString.toQueryParams() );
+    params.each( function(item) { //We want all of our param values to be arrays
+      if (typeof(item.value) == 'string') {
+        params.set(item.key, [item.value]);
+      }
+    });
+    this.params = params;
   },
 
   setQueryString: function (qs) {
@@ -135,9 +183,9 @@ ParameterizedURL.prototype = {
 
   copyQueryStringFromURL: function (url) {
     /* Make this object reflect the parameters of the given url */
-    var i = url.indexOf("/");
-    if (i == -1) { // No slash means no params
-      this.setParams( $H() );
+    var i = url.indexOf("?");
+    if (i == -1) { // No query string
+      this.setParamHash( $H() );
       return;
     }
     var queryString = url.substr(i+1);

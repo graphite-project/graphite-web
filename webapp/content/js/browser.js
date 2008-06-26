@@ -14,10 +14,10 @@ limitations under the License. */
 
 var GraphiteBrowser = Class.create();
 GraphiteBrowser.prototype = {
-  initialize: function (options) {
+  initialize: function () {
     this.panel = new Ext.TabPanel({
       region: 'west',
-      items: [createTreePanel(options), createSearchPanel(options), createCompleterPanel(options)],
+      items: [createTreePanel(), createSearchPanel(), createCompleterPanel()],
       split: true,
       width: 220,
       collapsible: true,
@@ -28,7 +28,7 @@ GraphiteBrowser.prototype = {
 }
 
 //Tree Tab
-function createTreePanel(options){
+function createTreePanel(){
   var rootNode = new Ext.tree.TreeNode({});
 
   function setPath(loader,node) {
@@ -46,7 +46,7 @@ function createTreePanel(options){
   });
   rootNode.appendChild(graphiteNode);
 
-  if (options.showMyGraphs) {
+  if (GraphiteConfig.showMyGraphs) {
     var myGraphsNode = new Ext.tree.AsyncTreeNode({
       id: 'MyGraphsTree',
       text: "My Graphs",
@@ -94,7 +94,7 @@ function createTreePanel(options){
       return;
     }
     if (node.attributes.graphUrl) {
-      Composer.loadURL(node.attributes.graphUrl);
+      Composer.loadMyGraph(node.id, node.attributes.graphUrl);
       return;
     }
     Composer.toggleTarget(node.id);
