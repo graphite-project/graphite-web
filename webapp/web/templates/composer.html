@@ -48,6 +48,30 @@ limitations under the License. -->
 	});
 
 	Composer.window.show();
+
+        /* Direct graph loading */
+	if ("{{queryString}}") {
+	  Composer.loadURL("?{{queryString}}");
+	}
+        /* Automatic tree expansion */
+	var showTarget = "{{showTarget}}";
+	if (showTarget) {
+	  var parts = showTarget.split('.');
+
+	  function expandNext(node) {
+	    var nextPart = parts.shift();
+	    if (!nextPart) {
+	      return;
+	    }
+	    var nextNode = node.findChild('text', nextPart);
+	    if (!nextNode) {
+	      return;
+	    }
+	    nextNode.expand(false, false, expandNext);
+	  }
+
+          Browser.trees.graphite.expand(false, false, expandNext);
+	}
       });
 </script> 
 

@@ -29,6 +29,14 @@ def header(request):
   context['documentation_url'] = settings.DOCUMENTATION_URL
   return render_to_response("browserHeader.html", context)
 
+def browser(request):
+  "View for the top-level frame of the browser UI"
+  context = {
+    'queryString' : request._req.args, #django *should* provide this cleanly...
+    'target' : request.GET.get('target')
+  }
+  return render_to_response("browser.html", context) 
+
 def search(request):
   query = request.POST['query']
   if not query:
@@ -54,18 +62,6 @@ def search(request):
   index_file.close()
   result_string = ','.join(results)
   return HttpResponse(result_string, mimetype='text/plain')
-
-def browser(request):
-  "View for the top-level frame of the browser UI"
-  context = {
-    'queryString' : '',
-    'target' : request.GET.get('target')
-  }
-  for key in request.GET.keys():
-    itemList = request.GET.getlist(key)
-    for item in itemList:
-      context['queryString'] += key+'='+item+'&'
-  return render_to_response("browser.html", context) 
 
 def treeLookup(request):
   "View for Graphite tree navigation"

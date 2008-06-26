@@ -1,11 +1,4 @@
-// TODO: Targets control/dialog
-// TODO? Composer.graphOptions for sticky option values
-// TODO: Implement landing-pages
-// http://graphite.prod.o.com/?target=foo.bar.baz&width=420&fgColor=red&...
-//   1) set the appropriate image in the composer
-//   2) set the appropriate composer options / fields in the UI
-//   3) expand the tree using something like the old showTarget logic
-// TODO: Auto-fill options when loading a My Graph or landing page
+// TODO: auto-fill options when loading a My Graph or landing page
 
 var RENDER_BASE_URL = window.location.protocol + "//" + window.location.host + "/render/?";
 
@@ -18,7 +11,6 @@ GraphiteComposer.prototype = {
     this.window = createComposerWindow();
     //These are some state vars used by the composer widgets
     this.myGraphName = null;
-    this.selectedTargets = [];
   },
 
   toggleTarget: function (target) {
@@ -34,10 +26,14 @@ GraphiteComposer.prototype = {
   },
 
   loadMyGraph: function (name, url) {
-    /* Apply the query string from the given url to our graph image */
     this.myGraphName = name;
+    this.loadURL(url);
+  },
+
+  loadURL: function (url) {
+    /* Apply the query string from the given url to our graph image */
     this.url.copyQueryStringFromURL(url);
-    // Preseve the window/image size
+    // Fit the image into the window
     this.url.setParam('width', this.window.getInnerWidth());
     this.url.setParam('height', this.window.getInnerHeight());
     // And don't forget to update the time display widget

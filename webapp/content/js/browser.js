@@ -15,9 +15,18 @@ limitations under the License. */
 var GraphiteBrowser = Class.create();
 GraphiteBrowser.prototype = {
   initialize: function () {
+    var treePanel = createTreePanel();
+    var searchPanel = createSearchPanel();
+    var completerPanel = createCompleterPanel();
+    var treeRoot = treePanel.getRootNode();
+    this.trees = {
+      graphite: treeRoot.findChild('id', 'GraphiteTree'),
+      mygraphs: treeRoot.findChild('id', 'MyGraphsTree'),
+      usergraphs: treeRoot.findChild('id', 'UserGraphsTree')
+    };
     this.panel = new Ext.TabPanel({
       region: 'west',
-      items: [createTreePanel(), createSearchPanel(), createCompleterPanel()],
+      items: [treePanel, searchPanel, completerPanel],
       split: true,
       width: 220,
       collapsible: true,

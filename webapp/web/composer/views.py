@@ -31,10 +31,14 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 
 def composer(request):
-  context = dict(request.GET.items())
-  context['user'] = request.user
-  context['profile'] = getProfile(request)
-  context['showMyGraphs'] = int(context['profile'].username != 'default')
+  profile = getProfile(request)
+  context = {
+    'queryString' : request._req.args, #django *should* provide this cleanly...
+    'showTarget' : request.GET.get('showTarget'),
+    'user' : request.user,
+    'profile' : profile,
+    'showMyGraphs' : int(profile.username != 'default')
+  }
   return render_to_response("composer.html",context)
 
 def mygraph(request):
