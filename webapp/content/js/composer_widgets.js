@@ -38,7 +38,7 @@ function createComposerWindow(options) {
 
   var bottomToolbar = [
     { text: "Options", menu: createOptionsMenu() },
-    { text: "Functions", handler: toggleWindow(FunctionsWindow.create.createDelegate(FunctionsWindow)) },
+    { text: "Targets", handler: toggleWindow(TargetsWindow.create.createDelegate(TargetsWindow)) },
     { text: "Auto-Refresh", enableToggle: true, toggleHandler: toggleAutoRefresh }
   ];
 
@@ -327,8 +327,8 @@ function handleSaveMyGraphResponse(options, success, response) {
   });
 }
 
-/* Functions dialog  */
-var FunctionsWindow = { //This widget has a lot of state, so an object is appropriate
+/* Targets dialog  */
+var TargetsWindow = { //This widget has a lot of state, so an object is appropriate
   create: function () {
     this.targetsStore = new Ext.data.SimpleStore({
       fields: ["target"],
@@ -443,11 +443,17 @@ var FunctionsWindow = { //This widget has a lot of state, so an object is approp
     return applyFunc;
   },
 
-  applyFuncToAll: function (funcName) { //XXX
+  applyFuncToAll: function (funcName) {
     function applyFunc() {
-      var targetList = this.getSelectedTargets
-      var newTarget = funcName + '(' + targetList + ')';
-      Composer.url.setParam('target', newTarget);
+      var args = this.getSelectedTargets().join(',');
+      var newTarget = funcName + '(' + args + ')';
+
+      this.getSelectedTargets().each(
+        function (target) {
+	  Composer.url.removeParam('target', target);
+        }
+      );
+      Composer.url.addParam('target', newTarget);
       Composer.updateImage();
       this.refreshList();
     }
