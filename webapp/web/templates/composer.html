@@ -19,7 +19,11 @@ limitations under the License. -->
     <script type="text/javascript"  src="/content/js/extJS/adapter/prototype/scriptaculous.js"></script>
     <script type="text/javascript"  src="/content/js/extJS/adapter/prototype/effects.js"></script>
     <script type="text/javascript"  src="/content/js/extJS/adapter/prototype/ext-prototype-adapter.js"></script>
+    {% if debug %}
     <script type="text/javascript" src="/content/js/extJS/ext-all-debug.js"></script>
+    {% else %}
+    <script type="text/javascript" src="/content/js/extJS/ext-all-debug.js"></script>
+    {% endif %}
 
     <script type="text/javascript" src="/content/js/browser.js"></script>
     <script type="text/javascript" src="/content/js/composer_widgets.js"></script>
