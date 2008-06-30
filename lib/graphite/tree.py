@@ -88,6 +88,10 @@ class Node:
 
 class Branch(Node):
   "Node with children"
+  def fetch(self, startTime, endTime):
+    "No-op to make all Node's fetch-able"
+    return []
+
   def isLeaf(self):
     return False
 
