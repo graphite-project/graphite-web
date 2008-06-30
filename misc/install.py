@@ -125,6 +125,7 @@ extjs_dir = os.path.join(install_root,'webapp','content','js','extJS')
 os.system("cp -rvf webapp/ %s" % install_root)
 os.system("cp -rvf storage/ %s" % install_root)
 os.system("cp -rvf carbon/ %s" % install_root)
+os.system("cp -rvf lib/ %s" % install_root)
 print '\nCreating a symlink to %s\n' % options.extjs
 os.system("ln -s %s %s" % (options.extjs, extjs_dir))
 
