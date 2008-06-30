@@ -33,8 +33,8 @@ from django.core.exceptions import ObjectDoesNotExist
 def composer(request):
   profile = getProfile(request)
   context = {
-    'queryString' : request._req.args, #django *should* provide this cleanly...
-    'showTarget' : request.GET.get('showTarget'),
+    'queryString' : request._req.args or '', #django *should* provide this cleanly...
+    'showTarget' : request.GET.get('showTarget',''),
     'user' : request.user,
     'profile' : profile,
     'showMyGraphs' : int(profile.username != 'default'),

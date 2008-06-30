@@ -98,7 +98,7 @@ except:
 # Prompt before installing
 print "Required dependencies are met, graphite will be installed into:"
 print "  %s" % install_root
-print "\nAnd will copy your ExtJS installation from:"
+print "\nAnd will symlink your ExtJS installation from:"
 print "  %s" % options.extjs
 while True:
   answer = raw_input("\nOk to continue [y/n]?").lower().strip()

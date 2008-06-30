@@ -32,7 +32,7 @@ def header(request):
 def browser(request):
   "View for the top-level frame of the browser UI"
   context = {
-    'queryString' : request._req.args, #django *should* provide this cleanly...
+    'queryString' : request._req.args or '', #django *should* provide this cleanly...
     'target' : request.GET.get('target')
   }
   return render_to_response("browser.html", context) 
