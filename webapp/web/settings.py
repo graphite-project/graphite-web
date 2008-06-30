@@ -72,7 +72,10 @@ except ImportError:
 #Django settings below, do not touch!
 APPEND_SLASH = False
 TEMPLATE_DEBUG = DEBUG
-CACHE_BACKEND = 'memcached://' + ';'.join(MEMCACHE_HOSTS) + '/?timeout=60'
+if MEMCACHE_HOSTS:
+  CACHE_BACKEND = 'memcached://' + ';'.join(MEMCACHE_HOSTS) + '/?timeout=60'
+else:
+  CACHE_BACKEND = "dummy:///"
 
 ADMINS = ()
 MANAGERS = ADMINS

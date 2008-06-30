@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.4
+#!/usr/bin/env python
 """Copyright 2008 Orbitz WorldWide
 
 Licensed under the Apache License, Version 2.0 (the "License");

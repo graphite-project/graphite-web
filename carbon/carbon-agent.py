@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.4
+#!/usr/bin/env python
 """Copyright 2008 Orbitz WorldWide
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +13,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
-import sys, os, socket, time, traceback
+import sys
+if sys.version_info[0] != 2 or sys.version_info[1] < 4:
+  print 'Python version >= 2.4 and < 3.0 is required'
+  sys.exit(1)
+
+import os, socket, time, traceback
 from getopt import getopt
 from signal import signal, SIGTERM
 from subprocess import *

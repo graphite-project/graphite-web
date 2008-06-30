@@ -22,7 +22,7 @@ if not install_root.endswith('/'):
 
 # Test for ExtJS
 if not options.extjs:
-  print "Please provide the path to your ExtJS installation (the directory that contains \"ext-all.js\""
+  print "Please provide the full path to your ExtJS installation (the directory that contains \"ext-all.js\""
   print "If you do not have ExtJS installed, go to http://www.extjs.com and download the 2.x SDK"
   print "\nFor example: ./install.py --extjs=/usr/local/extjs\n"
   raise SystemExit(1)
@@ -119,9 +119,9 @@ else:
     raise SystemExit(1)
 
 # Perform the installation
-extjs_dir = os.path.join(install_root,'content','js','extJS')
-os.system("cp -rvf app/* %s" % install_root)
-os.system("cp -rvf %s %s" % (options.extjs, extjs_dir))
+extjs_dir = os.path.join(install_root,'webapp','content','js','extJS')
+os.system("cp -rvf webapp/* %s" % install_root)
+os.system("ln -s %s %s" % (options.extjs, extjs_dir))
 
 inits_installed = False
 for init_dir in ('/etc/init.d/','/etc/rc.d/init.d/'):

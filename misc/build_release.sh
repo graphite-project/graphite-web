@@ -7,29 +7,35 @@ then
 	echo "You must specify a version"
 	exit 1
 fi
+if [ ! -f LICENSE ]
+then
+	echo "You must run this script from the top-level directory that contains the LICENSE file."
+	echo "For example: misc/build_release.sh \$version"
+	exit 1
+fi
+
 echo "Building Graphite release $version"
 
 echo "Creating directory structure"
+
 build_dir="build"
 base_dir="$build_dir/graphite-$version"
-app_dir="$base_dir/app"
+webapp_dir="$base_dir/webapp"
 rc_dir="$base_dir/rc"
 tmp_dir="$base_dir/tmp"
 rm -fr $build_dir
-mkdir -p $app_dir
+mkdir -p $webapp_dir
 mkdir -p $rc_dir
 mkdir -p $tmp_dir
 
 echo "Copying source"
-cp -r web/ $app_dir
-cp -r content/ $app_dir
-cp -r storage/ $app_dir
-cp -r carbon-agent/ $app_dir
-cp whisper/whisper.py $app_dir
-cp carbon-agent/init-script $rc_dir/carbon-agent
+cp -r webapp/ $webapp_dir
+cp -r storage/ $webapp_dir
+cp -r carbon/ $webapp_dir
+mv $webapp_dir/carbon/init-script.sh $rc_dir/carbon-agent.sh
 cp template-vhost.conf $tmp_dir
 cp -r examples/ $base_dir
-cp INSTALL LICENSE README install.py $base_dir
+cp INSTALL LICENSE README misc/install.py $base_dir
 
 echo "Compressing"
 cd build
