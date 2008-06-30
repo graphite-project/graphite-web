@@ -129,6 +129,16 @@ os.system("cp -rvf lib/ %s" % install_root)
 print '\nCreating a symlink to %s\n' % options.extjs
 os.system("ln -s %s %s" % (options.extjs, extjs_dir))
 
+#Create a blank local_settings.py if it doesn't already exist
+try:
+  local_settings_py = os.path.join(install_root, 'webapp', 'web', 'local_settings.py')
+  if not os.path.isfile(local_settings_py):
+    fh = open(local_settings_py, 'w')
+    fh.write('# Use this file to override settings defined in settings.py\n')
+    fh.close()
+except:
+  pass
+
 inits_installed = False
 for init_dir in ('/etc/init.d/','/etc/rc.d/init.d/'):
   if os.path.isdir(init_dir):
