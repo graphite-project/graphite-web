@@ -26,7 +26,6 @@ bzr checkout lp:graphite $base_dir
 mv $base_dir/misc/install.py $base_dir
 
 echo "Compressing"
-cd build
 tar czf ../graphite-${version}.tgz *
 cd ..
 
