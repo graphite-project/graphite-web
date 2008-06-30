@@ -20,6 +20,7 @@ Graphite requires:
  pycairo (with PNG backend support)
  mod_python
  django
+ python-pyparsing
  python-ldap (optional - needed for ldap-based webapp authentication)
  python-memcached (optional - needed for webapp caching, big performance boost)
  python-sqlite2 (optional - a django-supported database module is required)
@@ -60,12 +61,12 @@ This is very straight forward, especially if you are using the default sqlite
 setup.
 
 NOTE: If you are using a custom database backend (other than sqlite) you must
-first create a $GRAPHITE_ROOT/web/local_settings.py file that overrides the
+first create a $GRAPHITE_ROOT/webapp/web/local_settings.py file that overrides the
 database related settings from settings.py.
 
 Assuming you are using the default setup, the database is initialized like so:
 
-cd /usr/local/graphite/web/
+cd /usr/local/graphite/webapp/web/
 sudo python manage.py syncdb
 # you will be prompted to create an admin user, this is a good idea
 
@@ -78,7 +79,7 @@ tables under the database named by DATABASE_NAME.
 
 Restart apache and you should see the graphite webapp on the main page.
 If you encounter problems, you can increase the verbosity of error output
-by adding a "DEBUG = True" line to /usr/local/graphite/web/local_settings.py
+by adding a "DEBUG = True" line to /usr/local/graphite/webapp/web/local_settings.py
 
 Also remember that the apache logs for the graphite webapp are in
 /usr/local/graphite/storage/logs/
