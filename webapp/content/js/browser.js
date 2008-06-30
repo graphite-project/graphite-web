@@ -31,10 +31,10 @@ GraphiteBrowser.prototype = {
       width: 220,
       collapsible: true,
       collapseMode: 'mini',
-      activeTab: 0,
+      activeTab: 0
     });
   }
-}
+};
 
 //Tree Tab
 function createTreePanel(){

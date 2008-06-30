@@ -118,6 +118,7 @@ function createToolbarButton(tip, icon, handler) {
     style: "padding-left:10pt; background:transparent url(/content/img/" + icon + ") no-repeat scroll 0% 50%",
     handler: handler,
     handleMouseEvents: false,
+    text: "&nbsp; &nbsp; &nbsp; &nbsp;",
     listeners: {
       render: function (button) {
         button.el.toolTip = new Ext.ToolTip({
@@ -136,10 +137,10 @@ function createCalendarWindow() {
   // Start/End labels
   var style = "font-family: tahoma,arial,verdana,sans-serif; font-size:11px;";
   var startDateHeader = {
-    html: "<center><span id='startDate' style=\"" + style + "\">Start Date</span></center>",
+    html: "<center><span id='startDate' style=\"" + style + "\">Start Date</span></center>"
   };
   var endDateHeader = {
-    html: "<center><span id='endDate' style=\"" + style + "\">End Date</span></center>",
+    html: "<center><span id='endDate' style=\"" + style + "\">End Date</span></center>"
   };
   // Date controls
   var startDateControl = new Ext.DatePicker({
