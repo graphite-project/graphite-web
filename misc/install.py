@@ -142,6 +142,6 @@ if not inits_installed:
 # Create the vhost config
 os.system("sed -e 's!@INSTALL_ROOT@!%s!' misc/template-vhost.conf > graphite-vhost.conf" % install_root)
 
-print "The installation process is complete, you may now configure apache"
+print "\nThe installation process is almost complete, you may now configure apache"
 print "using the instructions included in the INSTALL file. This script has"
-print "created a \"graphite-vhost.conf\" file to help you configure apache."
+print "created a \"graphite-vhost.conf\" file to help you configure apache.\n"

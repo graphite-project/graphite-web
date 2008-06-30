@@ -20,7 +20,7 @@ DEBUG = False
 
 #Graphite config vars (note relative directores END in a /)
 GRAPHITE_ROOT = "/usr/local/graphite/"
-WEB_DIR = GRAPHITE_ROOT + 'web/'
+WEB_DIR = GRAPHITE_ROOT + 'webapp/web/'
 STORAGE_DIR = GRAPHITE_ROOT + 'storage/'
 WHISPER_DIR = STORAGE_DIR + 'whisper/'
 RRD_DIR = STORAGE_DIR + 'rrd/'
