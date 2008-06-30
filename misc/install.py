@@ -35,7 +35,9 @@ if not os.path.isfile(ext_all):
 major,minor = sys.version_info[:2]
 py_version = sys.version.split()[0]
 if major < 2 or (major == 2 and minor < 4):
-  die( "You are using python %s, but version 2.4 or greater is required" % py_version )
+  die("You are using python %s, but version 2.4 or greater is required" % py_version)
+if major > 2:
+  die("Python 3.x is not supported yet")
 
 # Test for pycairo
 try:
@@ -120,7 +122,10 @@ else:
 
 # Perform the installation
 extjs_dir = os.path.join(install_root,'webapp','content','js','extJS')
-os.system("cp -rvf webapp/* %s" % install_root)
+os.system("cp -rvf webapp/ %s" % install_root)
+os.system("cp -rvf storage/ %s" % install_root)
+os.system("cp -rvf carbon/ %s" % install_root)
+print '\nCreating a symlink to %s\n' % options.extjs
 os.system("ln -s %s %s" % (options.extjs, extjs_dir))
 
 inits_installed = False
@@ -128,14 +133,14 @@ for init_dir in ('/etc/init.d/','/etc/rc.d/init.d/'):
   if os.path.isdir(init_dir):
     print "Installing init scripts into %s" % init_dir
     inits_installed = True
-    os.system("cp -f rc/* %s" % init_dir)
+    os.system("cp -f carbon/init-script.sh %s/carbon-agent.sh" % init_dir)
     break
 
 if not inits_installed:
-  print "[Warning] Could not find a suitable system init-script directory, init scripts are in ./rc. Install them yourself."
+  print "[Warning] Could not find a suitable system init-script directory, please install \"carbon/init-script.sh\" manually."
 
 # Create the vhost config
-os.system("sed -e 's!@INSTALL_ROOT@!%s!' tmp/template-vhost.conf > graphite-vhost.conf" % install_root)
+os.system("sed -e 's!@INSTALL_ROOT@!%s!' misc/template-vhost.conf > graphite-vhost.conf" % install_root)
 
 print "The installation process is complete, you may now configure apache"
 print "using the instructions included in the INSTALL file. This script has"
