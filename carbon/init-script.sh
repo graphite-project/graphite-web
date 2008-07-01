@@ -5,7 +5,7 @@
 
 export GRAPHITE_DIR="/usr/local/graphite"
 export PYTHONPATH="$GRAPHITE_DIR:$PYTHONPATH"
-export CARBON_DIR="${GRAPHITE_DIR}/carbon-agent"
+export CARBON_DIR="${GRAPHITE_DIR}/carbon"
 pidfile="${CARBON_DIR}/pid/agent.pid"
 userfile="${CARBON_DIR}/run_as_user"
 

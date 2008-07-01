@@ -38,7 +38,7 @@ except:
 
 FINDER = Finder(DATA_DIRS)
 
-#Default settings, override these in web.local_settings
+#Default settings, override these in local_settings.py
 LOG_CACHE_PERFORMANCE = False
 LOG_RENDERING_PERFORMANCE = False
 MEMCACHE_HOSTS = ['127.0.0.1:11211']
@@ -47,7 +47,7 @@ CARBONLINK_HOSTS = ["127.0.0.1:7002"]
 CARBONLINK_TIMEOUT = 1.0
 REMOTE_RENDER_CONNECT_TIMEOUT = 1.0
 
-#Default authentication settings, override these in web.local_settings
+#Default authentication settings, override these in local_settings.py
 USE_LDAP_AUTH = False
 LDAP_SERVER = "" # "ldapserver.mydomain.com"
 LDAP_SEARCH_BASE = "" # "OU=users,DC=mydomain,DC=com"
@@ -55,7 +55,7 @@ LDAP_BASE_USER = "" # "CN=some_readonly_account,DC=mydomain,DC=com"
 LDAP_BASE_PASS = "" # "my_password"
 LDAP_USER_QUERY = "" # "(username=%s)"  For Active Directory use "(sAMAccountName=%s)"
 
-#Default database settings, sqlite is intended for single-server setups, override these in web.local_settings
+#Default database settings, sqlite is intended for single-server setups, override these in local_settings.py
 DATABASE_ENGINE = 'sqlite3'			# 'postgresql', 'mysql', 'sqlite3' or 'ado_mssql'.
 DATABASE_NAME = STORAGE_DIR + 'graphite.db'	# Or path to database file if using sqlite3.
 DATABASE_USER = ''				# Not used with sqlite3.

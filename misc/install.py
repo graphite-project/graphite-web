@@ -151,7 +151,7 @@ if not inits_installed:
   print "[Warning] Could not find a suitable system init-script directory, please install \"carbon/init-script.sh\" manually."
 
 # Create the vhost config
-os.system("sed -e 's!@INSTALL_ROOT@!%s!' misc/template-vhost.conf > graphite-vhost.conf" % install_root)
+os.system("sed -e 's!@INSTALL_ROOT@!%s!g' misc/template-vhost.conf > graphite-vhost.conf" % install_root)
 
 print "\nThe installation process is almost complete, you may now configure apache"
 print "using the instructions included in the INSTALL file. This script has"
