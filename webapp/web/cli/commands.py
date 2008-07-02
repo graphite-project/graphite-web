@@ -157,7 +157,7 @@ def _email(request,window,addressList):
   out += "} else {\n"
   out += "  url = img.src;\n"
   out += "  params = '%s' + '&url=' + escape(url);\n" % paramStr
-  out += "  emailreq = new Ajax.Request('/cli/codemaker', {method: 'get', parameters: params, onException: handleException, onComplete: handleResponse});\n"
+  out += "  emailreq = new Ajax.Request('/cli/eval', {method: 'get', parameters: params, onException: handleException, onComplete: handleResponse});\n"
   out += "}\n"
   return out
 
@@ -313,7 +313,7 @@ def _save(request,view):
   out += "});\n"
   out += "if (allParams) {\n"
   out += "  queryString = 'commandInput=dosave+%s&' + $H(allParams).toQueryString();\n" % view
-  out += "  savereq = new Ajax.Request('/cli/codemaker', {method: 'get', parameters: queryString, onException: handleException, onComplete: handleResponse});\n"
+  out += "  savereq = new Ajax.Request('/cli/eval', {method: 'get', parameters: queryString, onException: handleException, onComplete: handleResponse});\n"
   out += "}\n"
   return out
 
@@ -380,7 +380,7 @@ def _gsave(request,graphName):
   out += "  alert('No such window');\n"
   out += "} else {\n"
   out += "  queryString = 'commandInput=dogsave+%s&url=' + escape(img.src);\n" % graphName
-  out += "  savereq = new Ajax.Request('/cli/codemaker', {method: 'get', parameters: queryString, onException: handleException, onComplete: handleResponse});\n"
+  out += "  savereq = new Ajax.Request('/cli/eval', {method: 'get', parameters: queryString, onException: handleException, onComplete: handleResponse});\n"
   out += "}\n"
   return out
 

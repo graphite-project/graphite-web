@@ -18,8 +18,13 @@ limitations under the License. -->
 <link rel='stylesheet' type='text/css' href='/content/css/default.css'>
 <link rel='stylesheet' type='text/css' href='/content/css/darkX.css'>
 
+<!-- Fix for bug #244085: prototype.js and scriptaculous.js/effects.js must be compatible
+     so I just use the ones that come with Ext. However the CLI needs controls.js
+     and builder.js too, but since those don't come with Ext we go out on a limb
+     by using a bundled version.
+-->
 <script src="/content/js/extJS/adapter/prototype/prototype.js" type="text/javascript"></script>
-<script src="/content/js/extJS/adapter/prototype/scriptaculous.js" type="text/javascript"></script>
+<script src="/content/js/extJS/adapter/prototype/scriptaculous.js?load=effects" type="text/javascript"></script>
 <script src="/content/js/prototype-window.js" type="text/javascript"></script>
 <script src="/content/js/scriptaculous/controls.js"></script>
 <script src="/content/js/scriptaculous/builder.js"></script>
