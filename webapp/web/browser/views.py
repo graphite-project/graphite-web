@@ -78,7 +78,7 @@ def treeLookup(request):
     'leaf': 1,
   }
   try:
-    path = request.GET['path']
+    path = str( request.GET['path'] )
     if path:
       pattern = path + '.*' #we're interested in child nodes
       path_prefix = path + '.'
@@ -105,7 +105,7 @@ def treeLookup(request):
     for child in matches: #Now let's add the matching children
       if child.name in inserted: continue
       inserted.add(child.name)
-      node = {'text' : child.name, 'id' : path_prefix + child.name }
+      node = {'text' : child.name, 'id' : path_prefix + str(child.name) }
       if child.isLeaf():
         node.update(leafNode)
       else:
@@ -130,7 +130,7 @@ def myGraphLookup(request):
   }
   try:
     for graph in profile.mygraph_set.all().order_by('name'):
-      node = {'text' : graph.name, 'id' : graph.name, 'graphUrl' : graph.url}
+      node = {'text' : graph.name, 'id' : str(graph.name), 'graphUrl' : str(graph.url)}
       node.update(leafNode)
       nodes.append(node)
   except:
@@ -162,7 +162,7 @@ def userGraphLookup(request):
       profiles = Profile.objects.exclude(username='default')
       for profile in profiles:
         if profile.mygraph_set.count():
-          node = {'text' : profile.username, 'id' : profile.username}
+          node = {'text' : profile.username, 'id' : str(profile.username)}
           node.update(branchNode)
           nodes.append(node)
     else:
@@ -170,7 +170,7 @@ def userGraphLookup(request):
       assert profile, "No profile for username '%s'" % username
 
       for graph in profile.mygraph_set.all().order_by('name'):
-        node = { 'text' : graph.name, 'id' : graph.name, 'graphUrl' : graph.url }
+        node = { 'text' : graph.name, 'id' : str(graph.name), 'graphUrl' : graph.url }
         node.update(leafNode)
         nodes.append(node)
   except:
