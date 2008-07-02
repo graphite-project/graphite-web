@@ -14,6 +14,7 @@ limitations under the License."""
 # Django settings for graphite project.
 # DO NOT MODIFY THIS FILE DIRECTLY - INSTEAD CREATE A local_settings.py FILE!
 import sys, os
+sys.path.append("/usr/local/graphite/lib/") #This is really annoying and will go away very soon!
 from graphite.tree import Finder
 
 DEBUG = False
