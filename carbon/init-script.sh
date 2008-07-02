@@ -4,7 +4,7 @@
 # processname: carbon-agent
 
 export GRAPHITE_DIR="/usr/local/graphite"
-export PYTHONPATH="$GRAPHITE_DIR:$PYTHONPATH"
+export PYTHONPATH="$GRAPHITE_DIR/lib:$PYTHONPATH"
 export CARBON_DIR="${GRAPHITE_DIR}/carbon"
 pidfile="${CARBON_DIR}/pid/agent.pid"
 userfile="${CARBON_DIR}/run_as_user"

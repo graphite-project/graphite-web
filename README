@@ -22,7 +22,7 @@ Once you've got some clients sending data to carbon-agent, you can view
 graphs of that data in the frontend webapp.
 
 
- Installation
+ Webapp Installation
 -------------------------------------------------------------------------------
 Use the instructions in the INSTALL file.
 
@@ -33,21 +33,21 @@ Decide what user you want to run carbon-agent.py as, for this example I'll use '
 
 # First we tell carbon-agent what user it should run as
 # This should be the same user that apache runs as
-cd /usr/local/graphite/carbon-agent/
+cd /usr/local/graphite/carbon/
 sudo bash -c "echo -n nobody > run_as_user"
 
 # Next we must make sure that the carbon-agent/apache user owns the storage directory.
 sudo chown -R nobody /usr/local/graphite/storage/
 
 # Also need to chown the log and pid directories for carbon-agent
-sudo chown -R nobody /usr/local/graphite/carbon-agent/log
-sudo chown -R nobody /usr/local/graphite/carbon-agent/pid
+sudo chown -R nobody /usr/local/graphite/carbon/log
+sudo chown -R nobody /usr/local/graphite/carbon/pid
 
 # Now you just start carbon-agent
-sudo /etc/init.d/carbon-agent start
+sudo /etc/init.d/carbon-agent.sh start
 
 # Now watch the logs to verify that everything is running without errors
-cd /usr/local/graphite/carbon-agent/
+cd /usr/local/graphite/carbon/
 tail -f log/*.log
 
 

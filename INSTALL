@@ -85,11 +85,11 @@ Also remember that the apache logs for the graphite webapp are in
 /usr/local/graphite/storage/logs/
 
 
- Next Steps
+ Next Steps - setup the backend (carbon)
 -------------------------------------------------------------------------------
-Now you have finished installing graphite, the next thing to do is put some
+Now you have finished installing the graphite webapp, the next thing to do is put some
 real data into it. This is accomplished by running the carbon-agent.py daemon
 and send it some data as demonstrated in the included
 ./examples/example-client.py
 
-Read more about doing this in the README file.
+Instructions for doing this in the README file.
