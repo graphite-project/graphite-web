@@ -312,7 +312,7 @@ def _save(request,view):
   out += "  allParams[name] = escape(myParams);\n"
   out += "});\n"
   out += "if (allParams) {\n"
-  out += "  queryString = 'commandInput=dosave+%s&' + $H(allParams).toQueryString();\n" % view
+  out += "  queryString = 'commandInput=dosave%%20%s&' + $H(allParams).toQueryString();\n" % view
   out += "  savereq = new Ajax.Request('/cli/eval', {method: 'get', parameters: queryString, onException: handleException, onComplete: handleResponse});\n"
   out += "}\n"
   return out
@@ -379,7 +379,7 @@ def _gsave(request,graphName):
   out += "if (!img) {\n"
   out += "  alert('No such window');\n"
   out += "} else {\n"
-  out += "  queryString = 'commandInput=dogsave+%s&url=' + escape(img.src);\n" % graphName
+  out += "  queryString = 'commandInput=dogsave%%20%s&url=' + escape(img.src);\n" % graphName
   out += "  savereq = new Ajax.Request('/cli/eval', {method: 'get', parameters: queryString, onException: handleException, onComplete: handleResponse});\n"
   out += "}\n"
   return out
