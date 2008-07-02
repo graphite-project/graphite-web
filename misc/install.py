@@ -69,6 +69,12 @@ try:
 except:
   die("Unable to import the 'mod_python' module, do you have mod_python installed for python %s?" % py_version)
 
+# Test for pyparsing
+try:
+  import pyparsing
+except:
+  die("Unable to import the 'pyparsing' module, do you have pyparsing installed for python %s?" % py_version)
+
 # Test for python-memcached
 try:
   import memcache
