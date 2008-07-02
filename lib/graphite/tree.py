@@ -7,6 +7,8 @@ try:
 except ImportError:
   rrdtool = False
 
+DATASOURCE_DELIMETER = '::RRD_DATASOURCE::'
+
 # Exposed API
 class Finder:
   "Encapsulate find() functionality for one or more directory trees"
@@ -25,8 +27,8 @@ def find(root_dir, pattern):
 
   for absolute_path in _find(root_dir, pattern_parts):
 
-    if '::' in basename(absolute_path):
-      (absolute_path,datasource_pattern) = absolute_path.rsplit('::',1)
+    if DATASOURCE_DELIMETER in basename(absolute_path):
+      (absolute_path,datasource_pattern) = absolute_path.rsplit(DATASOURCE_DELIMETER,1)
     else:
       datasource_pattern = None
 
@@ -64,7 +66,7 @@ def _find(current_dir, patterns):
       datasource_pattern = patterns[0]
       for rrd_file in rrd_files:
         absolute_path = join(current_dir, rrd_file)
-        yield absolute_path + '::' + datasource_pattern
+        yield absolute_path + DATASOURCE_DELIMETER + datasource_pattern
 
   if patterns: #we've still got more directories to traverse
     for subdir in matching_subdirs:
