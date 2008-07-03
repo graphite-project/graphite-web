@@ -33,6 +33,11 @@ def getProfileByUsername(username):
   except Profile.DoesNotExist:
     return None
 
+def getQueryString(request):
+  try:
+    return request._req.args
+  except:
+    return ""
 
 try:
   defaultProfile = Profile.objects.get(username='default')

@@ -17,7 +17,7 @@ from django.shortcuts import render_to_response
 from django.http import HttpResponse
 from django.conf import settings
 from web.account.models import Profile
-from web.util import getProfile, getProfileByUsername
+from web.util import getProfile, getProfileByUsername, getQueryString
 from web.logger import log
 
 
@@ -32,7 +32,7 @@ def header(request):
 def browser(request):
   "View for the top-level frame of the browser UI"
   context = {
-    'queryString' : request._req.args or '', #django *should* provide this cleanly...
+    'queryString' : getQueryString(request),
     'target' : request.GET.get('target')
   }
   return render_to_response("browser.html", context) 
@@ -105,7 +105,7 @@ def treeLookup(request):
     for child in matches: #Now let's add the matching children
       if child.name in inserted: continue
       inserted.add(child.name)
-      node = {'text' : child.name, 'id' : path_prefix + str(child.name) }
+      node = {'text' : str(child.name), 'id' : path_prefix + str(child.name) }
       if child.isLeaf():
         node.update(leafNode)
       else:
@@ -130,7 +130,7 @@ def myGraphLookup(request):
   }
   try:
     for graph in profile.mygraph_set.all().order_by('name'):
-      node = {'text' : graph.name, 'id' : str(graph.name), 'graphUrl' : str(graph.url)}
+      node = {'text' : str(graph.name), 'id' : str(graph.name), 'graphUrl' : str(graph.url)}
       node.update(leafNode)
       nodes.append(node)
   except:
@@ -162,7 +162,7 @@ def userGraphLookup(request):
       profiles = Profile.objects.exclude(username='default')
       for profile in profiles:
         if profile.mygraph_set.count():
-          node = {'text' : profile.username, 'id' : str(profile.username)}
+          node = {'text' : str(profile.username), 'id' : str(profile.username)}
           node.update(branchNode)
           nodes.append(node)
     else:
@@ -170,7 +170,7 @@ def userGraphLookup(request):
       assert profile, "No profile for username '%s'" % username
 
       for graph in profile.mygraph_set.all().order_by('name'):
-        node = { 'text' : graph.name, 'id' : str(graph.name), 'graphUrl' : graph.url }
+        node = { 'text' : str(graph.name), 'id' : str(graph.name), 'graphUrl' : graph.url }
         node.update(leafNode)
         nodes.append(node)
   except:

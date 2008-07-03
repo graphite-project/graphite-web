@@ -21,7 +21,7 @@ from httplib import HTTPConnection
 from urlparse import urlsplit
 from time import ctime, strftime
 from traceback import format_exc
-from web.util import getProfile
+from web.util import getProfile, getQueryString
 from web.logger import log
 from web.account.models import MyGraph
 
@@ -33,7 +33,7 @@ from django.core.exceptions import ObjectDoesNotExist
 def composer(request):
   profile = getProfile(request)
   context = {
-    'queryString' : request._req.args or '', #django *should* provide this cleanly...
+    'queryString' : getQueryString(request),
     'showTarget' : request.GET.get('showTarget',''),
     'user' : request.user,
     'profile' : profile,
