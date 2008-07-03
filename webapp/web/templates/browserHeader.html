@@ -85,7 +85,7 @@ img.toolbar:active {
  </td></tr>
  <tr><td style='font-size: smaller;'>
   {% if user.is_authenticated %}
-   Logged in as {{ profile.username }}, <a href="/account/logout/" target="_top">logout</a> &nbsp;
+   Logged in as {{ profile.user.username }}, <a href="/account/logout/" target="_top">logout</a> &nbsp;
    (<a href="/account/edit/" target="_top">edit profile</a>)
   {% else %}
    <a href="/account/login/" target="_top">Login</a>

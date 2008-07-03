@@ -13,11 +13,12 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 from django.db import models
+from django.contrib.auth import models as auth_models
 
 
 class Profile(models.Model):
   class Admin: pass
-  username = models.CharField(maxlength=64)
+  user = models.OneToOneField(auth_models.User,null=True)
   history = models.TextField(default="")
   advancedUI = models.BooleanField(default=False)
   __str__ = lambda self: self.username

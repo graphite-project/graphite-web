@@ -12,6 +12,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
+from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth.models import User
 from web.account.models import Profile
 from web.logger import log
 
@@ -19,9 +21,9 @@ from web.logger import log
 def getProfile(request,allowDefault=True):
   if request.user.is_authenticated():
     try:
-      return Profile.objects.get(username=request.user.username)
-    except Profile.DoesNotExist:
-      profile = Profile(username=request.user.username) #history/vars/views autocreate empty?
+      return request.user.profile
+    except ObjectDoesNotExist:
+      profile = Profile(user=request.user)
       profile.save()
       return profile
   elif allowDefault:
@@ -29,19 +31,20 @@ def getProfile(request,allowDefault=True):
 
 def getProfileByUsername(username):
   try:
-    return Profile.objects.get(username=username)
-  except Profile.DoesNotExist:
+    user = User.objects.get(username=username)
+    return Profile.objects.get(user=user)
+  except ObjectDoesNotExist:
     return None
 
 def getQueryString(request):
   try:
-    return request._req.args
+    return request._req.args #django needs to provide a better way of doing this...
   except:
     return ""
 
 try:
-  defaultProfile = Profile.objects.get(username='default')
+  defaultProfile = Profile.objects.get(user=None)
 except Profile.DoesNotExist:
   log.info("Default profile does not exist, creating it...")
-  defaultProfile = Profile(username='default')
+  defaultProfile = Profile(user=None)
   defaultProfile.save()

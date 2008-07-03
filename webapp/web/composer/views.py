@@ -37,7 +37,7 @@ def composer(request):
     'showTarget' : request.GET.get('showTarget',''),
     'user' : request.user,
     'profile' : profile,
-    'showMyGraphs' : int(profile.username != 'default'),
+    'showMyGraphs' : int( bool(profile.user) ),
     'debug' : settings.DEBUG
   }
   return render_to_response("composer.html",context)

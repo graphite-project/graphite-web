@@ -159,10 +159,10 @@ def userGraphLookup(request):
   }
   try:
     if not username:
-      profiles = Profile.objects.exclude(username='default')
+      profiles = Profile.objects.exclude(user=None)
       for profile in profiles:
         if profile.mygraph_set.count():
-          node = {'text' : str(profile.username), 'id' : str(profile.username)}
+          node = {'text' : str(profile.user.username), 'id' : str(profile.user.username)}
           node.update(branchNode)
           nodes.append(node)
     else:

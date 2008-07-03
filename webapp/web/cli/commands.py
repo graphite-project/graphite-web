@@ -17,7 +17,7 @@ from cPickle import load,dump
 from itertools import chain
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
-from web.util import getProfile
+from web.util import getProfile, getProfileByUsername
 from web.logger import log
 from web.account.models import Profile, MyGraph, Variable, View, Window
 
@@ -320,7 +320,7 @@ def _save(request,view):
 def _dosave(request,viewName):
   profile = getProfile(request)
   #First find our View
-  log.info("Saving view '%s' under profile '%s'" % (viewName,profile.username))
+  log.info("Saving view '%s' under profile '%s'" % (viewName,profile.user.username))
   try:
     view = profile.view_set.get(name=viewName)
   except ObjectDoesNotExist:
@@ -408,7 +408,7 @@ def _gload(request,user=None,graphName=None):
     if not profile: return stderr("You are not logged in so you must specify a username")
   else:
     try:
-      profile = Profile.objects.get(username=user)
+      profile = getProfileByUsername(user)
     except ObjectDoesNotExist:
       return stderr("User does not exist")
   try:
@@ -425,7 +425,7 @@ def _graphs(request,user=None):
     if not profile: return stderr("You are not logged in so you must specify a username")
   else:
     try:
-      profile = Profile.objects.get(username=user)
+      profile = getProfileByUsername(user)
     except ObjectDoesNotExist:
       return stderr("User does not exist")
   out = ""
