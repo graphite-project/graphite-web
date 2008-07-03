@@ -18,10 +18,10 @@ from django.contrib.auth import models as auth_models
 
 class Profile(models.Model):
   class Admin: pass
-  user = models.OneToOneField(auth_models.User,null=True)
+  user = models.OneToOneField(auth_models.User)
   history = models.TextField(default="")
   advancedUI = models.BooleanField(default=False)
-  __str__ = lambda self: self.username
+  __str__ = lambda self: "Profile for %s" % self.user
 
 class Variable(models.Model):
   class Admin: pass

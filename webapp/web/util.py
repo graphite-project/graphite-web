@@ -43,8 +43,16 @@ def getQueryString(request):
     return ""
 
 try:
-  defaultProfile = Profile.objects.get(user=None)
+  defaultUser = User.objects.get(username='default')
+except User.DoesNotExist:
+  log.info("Default user does not exist, creating it...")
+  randomPasswd = User.objects.make_random_password(length=16)
+  defaultUser = User.objects.create_user('default','default@localhost.localdomain',randomPassword)
+  defaultUser.save()
+
+try:
+  defaultProfile = Profile.objects.get(user=defaultUser)
 except Profile.DoesNotExist:
   log.info("Default profile does not exist, creating it...")
-  defaultProfile = Profile(user=None)
+  defaultProfile = Profile(user=defaultUser)
   defaultProfile.save()
