@@ -19,7 +19,10 @@ from web.util import getProfile
 from web.cli import completer, commands, parser
 
 def cli(request):
-  return render_to_response("cli.html", dict(request.GET.items()) )
+  context = dict( request.GET.items() )
+  context['user'] = request.user
+  context['profile'] = getProfile(request)
+  return render_to_response("cli.html", context)
 
 def autocomplete(request):
   assert 'path' in request.GET, "Invalid request, no 'path' parameter!"

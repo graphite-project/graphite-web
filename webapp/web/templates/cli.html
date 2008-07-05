@@ -32,12 +32,17 @@ limitations under the License. -->
 
 <script language="javascript">
 var URL = "/cli/eval";
+{% if user.is_authenticated %}
+var graphitePrompt = "{{user.username}}@graphite>";
+{% else %}
+var graphitePrompt = "graphite>";
+{% endif %}
 
 function sendCommand () {
   params = Form.serialize('inputForm');
   cmd = $('commandInput').value;
   $('commandInput').value = ""
-  $('output').innerHTML += "graphite>" + cmd + "<br/>";
+  $('output').innerHTML += graphitePrompt + cmd + "<br/>";
   if (cmd == '') { return false; }
   $('commandInput').disabled = true;
   $('input').style.visibility = 'hidden';
@@ -106,7 +111,12 @@ Windows.addObserver(resizeObserver);
 <div id="output"></div>
 <div id="input">
  <form id='inputForm' action='null' method='get' onsubmit="sendCommand(); return false">
-  graphite&gt;<input type='text' id='commandInput' name='commandInput' class='commandEntry' size='130' autocomplete='off'>
+  {% if user.is_authenticated %}
+  {{user.username}}@graphite&gt;
+  {% else %}
+  graphite&gt;
+  {% endif %}
+  <input type='text' id='commandInput' name='commandInput' class='commandEntry' size='130' autocomplete='off'>
   <div id='completerDiv' class='autocomplete'></div>
   <script type="text/javascript">
     function chooseTarget(element) {

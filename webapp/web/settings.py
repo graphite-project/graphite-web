@@ -30,6 +30,7 @@ LOG_DIR = STORAGE_DIR + 'log/'
 SMTP_SERVER = "localhost"
 CRAPPY_HARDWARE = False #if True, rendering is delegated to RENDERING_HOSTS
 DOCUMENTATION_URL = "http://graphite.wikidot.com/documentation"
+ALLOW_ANONYMOUS_CLI = True
 
 try:
   import rrdtool

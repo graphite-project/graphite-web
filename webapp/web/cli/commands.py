@@ -294,6 +294,8 @@ def _find(request,pattern):
   return stdout(out)
 
 def _save(request,view):
+  if not settings.ALLOW_ANONYMOUS_CLI and not request.user.is_authenticated():
+    return stderr("You must be logged in to use this functionality.")
   out = ''
   out += "allParams = {};\n"
   out += "Windows.windows.each( function(winObject) {\n"
