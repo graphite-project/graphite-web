@@ -46,7 +46,7 @@ try:
   defaultUser = User.objects.get(username='default')
 except User.DoesNotExist:
   log.info("Default user does not exist, creating it...")
-  randomPasswd = User.objects.make_random_password(length=16)
+  randomPassword = User.objects.make_random_password(length=16)
   defaultUser = User.objects.create_user('default','default@localhost.localdomain',randomPassword)
   defaultUser.save()
 

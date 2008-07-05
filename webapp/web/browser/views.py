@@ -17,7 +17,7 @@ from django.shortcuts import render_to_response
 from django.http import HttpResponse
 from django.conf import settings
 from web.account.models import Profile
-from web.util import getProfile, getProfileByUsername, getQueryString
+from web.util import getProfile, getProfileByUsername, getQueryString, defaultUser
 from web.logger import log
 
 
@@ -159,7 +159,7 @@ def userGraphLookup(request):
   }
   try:
     if not username:
-      profiles = Profile.objects.exclude(user=None)
+      profiles = Profile.objects.exclude(user=defaultUser)
       for profile in profiles:
         if profile.mygraph_set.count():
           node = {'text' : str(profile.user.username), 'id' : str(profile.user.username)}
