@@ -25,6 +25,11 @@
 #		Archive = Point+
 #			Point = timestamp,value
 
+"""
+NOTE: This is a modified version of whisper.py
+For details on the modification, read https://bugs.launchpad.net/graphite/+bug/245835
+"""
+
 import os, struct, time
 try:
   import fcntl
