@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import sys, os
+import sys, os, traceback
 from optparse import OptionParser
 
 def die(msg):
@@ -83,15 +83,18 @@ except:
   print "Unable to import the 'memcache' module, do you have python-memcached installed for python %s?" % py_version
   print "This feature is not required but greatly improves performance.\n"
 
-# Test for sqlite3
+# Test for sqlite
 try:
-  import sqlite3
+  try:
+    import sqlite3 #python 2.5+
+  except:
+    from pysqlite2 import dbapi2 #python 2.4
 except:
   print "[WARNING]"
-  print "Unable to import the 'sqlite3' module, do you have python-sqlite2 installed for python %s?" % py_version
+  print "Unable to import the sqlite module, do you have python-sqlite2 installed for python %s?" % py_version
   print "If you plan on using another database backend that Django supports (such as mysql or postgres)"
   print "then don't worry about this. However if you do not want to setup the database yourself, you will"
-  print "need to install sqlite2 and python-sqlite2 (which provides the 'sqlite3' module).\n"
+  print "need to install sqlite2 and python-sqlite2.\n"
 
 # Test for python-ldap
 try:
@@ -127,24 +130,41 @@ else:
     raise SystemExit(1)
 
 # Perform the installation
-extjs_dir = os.path.join(install_root,'webapp','content','js','extJS')
+print 'Installing graphite library package'
+dir = os.getcwd()
+os.chdir('lib/')
+os.system("%s setup.py install" % sys.executable)
+os.chdir(dir)
+try:
+  import graphite
+except ImportError:
+  die("Installation of graphite library package failed")
+
+print 'Copying files...'
 os.system("cp -rvf webapp/ %s" % install_root)
 os.system("cp -rvf storage/ %s" % install_root)
 os.system("cp -rvf carbon/ %s" % install_root)
-os.system("cp -rvf lib/ %s" % install_root)
+
 print '\nCreating a symlink to %s\n' % options.extjs
+extjs_dir = os.path.join(install_root,'webapp','content','js','extJS')
 os.system("ln -s %s %s" % (options.extjs, extjs_dir))
 
-#Create a blank local_settings.py if it doesn't already exist
+#Setup local_settings.py
 try:
   local_settings_py = os.path.join(install_root, 'webapp', 'web', 'local_settings.py')
+  local_settings_example = os.path.join(install_root, 'webapp', 'web', 'local_settings.py.example')
   if not os.path.isfile(local_settings_py):
-    fh = open(local_settings_py, 'w')
-    fh.write('# Use this file to override settings defined in settings.py\n')
-    fh.close()
+    print "Creating an example local_settings.py"
+    os.system("mv %s %s" % (local_settings_example, local_settings_py))
+  else:
+    print "local_settings.py exists, leaving untouched"
+    os.system("rm -f %s" % local_settings_example)
 except:
-  pass
+  print "Error while inspecting local_settings.py (please report this as a bug!)"
+  traceback.print_exc()
+  print
 
+#Install the carbon init script
 inits_installed = False
 for init_dir in ('/etc/init.d/','/etc/rc.d/init.d/'):
   if os.path.isdir(init_dir):
@@ -156,9 +176,6 @@ for init_dir in ('/etc/init.d/','/etc/rc.d/init.d/'):
 if not inits_installed:
   print "[Warning] Could not find a suitable system init-script directory, please install \"carbon/init-script.sh\" manually."
 
-# Create the vhost config
-os.system("sed -e 's!@INSTALL_ROOT@!%s!g' misc/template-vhost.conf > graphite-vhost.conf" % install_root)
-
-print "\nThe installation process is almost complete, you may now configure apache"
-print "using the instructions included in the INSTALL file. This script has"
-print "created a \"graphite-vhost.conf\" file to help you configure apache.\n"
+print "The install process is complete, if this is a first-time installation"
+print "you should run the following command to complete the remaining setup steps:\n"
+print "%s post-install.py --install-root=%s" % (sys.executable, install_root)

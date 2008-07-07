@@ -24,6 +24,8 @@ base_dir="graphite-$version"
 echo "Checking out a pristine copy of trunk"
 bzr checkout lp:graphite $base_dir
 mv $base_dir/misc/install.py $base_dir
+mv $base_dir/misc/post-install.py $base_dir
+mv $base_dir/misc/generate-apache-config.py $base_dir
 
 echo "Compressing"
 tar czf ../graphite-${version}.tgz *
