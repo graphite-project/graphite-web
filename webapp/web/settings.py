@@ -13,6 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 # Django settings for graphite-web project.
 # DO NOT MODIFY THIS FILE DIRECTLY - use local_settings.py instead
+import sys
 from os.path import join, dirname, abspath
 from graphite.tree import Finder
 

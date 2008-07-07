@@ -20,6 +20,8 @@ if not install_root.endswith('/'):
 if not os.path.isdir(install_root):
   die("Graphite does not appear to be installed at %s, do you need to specify a different --install-root?" % install_root)
 
+print 'Using graphite install root: %s' % install_root
+
 #Find out what user the webapp & carbon will run as
 while True:
   username = raw_input("What user does Apache run as?").strip()
@@ -60,4 +62,4 @@ command = "./generate-apache-config.py --install-root=%s" % install_root
 print "Running command: %s" % command
 os.system(command)
 
-print "Post-installation script complete, now install the generated apache config file and restart apache."
+print "Post-installation script complete, now modify the generated apache config to your needs then install it and restart apache."
