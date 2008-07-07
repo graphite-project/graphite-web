@@ -111,12 +111,10 @@ Windows.addObserver(resizeObserver);
 <div id="output"></div>
 <div id="input">
  <form id='inputForm' action='null' method='get' onsubmit="sendCommand(); return false">
-  {% if user.is_authenticated %}
-  {{user.username}}@graphite&gt;
-  {% else %}
-  graphite&gt;
-  {% endif %}
-  <input type='text' id='commandInput' name='commandInput' class='commandEntry' size='130' autocomplete='off'>
+  {% comment %}
+   The line below is ugly as hell but it makes the prompt look better to not have a space after it.
+  {% endcomment %}
+  {% if user.is_authenticated %}{{user.username}}@graphite&gt;{% else %}graphite&gt;{% endif %}<input type='text' id='commandInput' name='commandInput' class='commandEntry' size='130' autocomplete='off'>
   <div id='completerDiv' class='autocomplete'></div>
   <script type="text/javascript">
     function chooseTarget(element) {
