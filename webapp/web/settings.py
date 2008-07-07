@@ -21,7 +21,7 @@ DEBUG = False
 
 #Filesystem layout (all directores should end in a /)
 WEB_DIR = dirname( abspath(__file__) ) + '/'
-GRAPHITE_ROOT = dirname( dirname(WEB_DIR) ) + '/'
+GRAPHITE_ROOT = dirname( dirname( dirname(WEB_DIR) ) ) + '/'
 STORAGE_DIR = GRAPHITE_ROOT + 'storage/'
 WHISPER_DIR = STORAGE_DIR + 'whisper/'
 RRD_DIR = STORAGE_DIR + 'rrd/'
