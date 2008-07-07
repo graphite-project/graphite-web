@@ -13,13 +13,13 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 # Django settings for graphite-web project.
 # DO NOT MODIFY THIS FILE DIRECTLY - use local_settings.py instead
-from os.path import join, dirname
+from os.path import join, dirname, abspath
 from graphite.tree import Finder
 
 DEBUG = False
 
 #Filesystem layout (all directores should end in a /)
-WEB_DIR = dirname(__file__) + '/'
+WEB_DIR = dirname( abspath(__file__) ) + '/'
 GRAPHITE_ROOT = dirname( dirname(WEB_DIR) ) + '/'
 STORAGE_DIR = GRAPHITE_ROOT + 'storage/'
 WHISPER_DIR = STORAGE_DIR + 'whisper/'
