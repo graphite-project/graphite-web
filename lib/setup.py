@@ -1,3 +1,10 @@
 #!/usr/bin/env python
 
-#TODO distutils installation
+from distutils.core import setup
+
+#TODO add whisper scripts
+
+setup(
+  name='graphite',
+  packages=['graphite']
+)

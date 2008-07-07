@@ -11,26 +11,21 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
-# Django settings for graphite project.
-# DO NOT MODIFY THIS FILE DIRECTLY - INSTEAD CREATE A local_settings.py FILE!
-import sys, os
-sys.path.append("/usr/local/graphite/lib/") #This is really annoying and will go away very soon!
+# Django settings for graphite-web project.
+# DO NOT MODIFY THIS FILE DIRECTLY - use local_settings.py instead
+from os.path import join, dirname
 from graphite.tree import Finder
 
 DEBUG = False
 
-#Graphite config vars (note relative directores END in a /)
-GRAPHITE_ROOT = "/usr/local/graphite/"
-WEB_DIR = GRAPHITE_ROOT + 'webapp/web/'
+#Filesystem layout (all directores should end in a /)
+WEB_DIR = dirname(__file__) + '/'
+GRAPHITE_ROOT = dirname( dirname(WEB_DIR) ) + '/'
 STORAGE_DIR = GRAPHITE_ROOT + 'storage/'
 WHISPER_DIR = STORAGE_DIR + 'whisper/'
 RRD_DIR = STORAGE_DIR + 'rrd/'
 INDEX_FILE = STORAGE_DIR + 'index'
 LOG_DIR = STORAGE_DIR + 'log/'
-SMTP_SERVER = "localhost"
-CRAPPY_HARDWARE = False #if True, rendering is delegated to RENDERING_HOSTS
-DOCUMENTATION_URL = "http://graphite.wikidot.com/documentation"
-ALLOW_ANONYMOUS_CLI = True
 
 try:
   import rrdtool
@@ -40,16 +35,25 @@ except:
 
 FINDER = Finder(DATA_DIRS)
 
-#Default settings, override these in local_settings.py
-LOG_CACHE_PERFORMANCE = False
-LOG_RENDERING_PERFORMANCE = False
+#Memcache settings
 MEMCACHE_HOSTS = ['127.0.0.1:11211']
+MEMCACHE_DURATION = 60 #all data is cached for one minute by default
+LOG_CACHE_PERFORMANCE = False
+
+#Remote rendering settings
+REMOTE_RENDERING = False #if True, rendering is delegated to RENDERING_HOSTS
 RENDERING_HOSTS = []
+REMOTE_RENDER_CONNECT_TIMEOUT = 1.0
+LOG_RENDERING_PERFORMANCE = False
+
+#Miscellaneous settings
 CARBONLINK_HOSTS = ["127.0.0.1:7002"]
 CARBONLINK_TIMEOUT = 1.0
-REMOTE_RENDER_CONNECT_TIMEOUT = 1.0
+SMTP_SERVER = "localhost"
+DOCUMENTATION_URL = "http://graphite.wikidot.com/documentation"
+ALLOW_ANONYMOUS_CLI = True
 
-#Default authentication settings, override these in local_settings.py
+#Authentication settings
 USE_LDAP_AUTH = False
 LDAP_SERVER = "" # "ldapserver.mydomain.com"
 LDAP_SEARCH_BASE = "" # "OU=users,DC=mydomain,DC=com"
@@ -57,7 +61,7 @@ LDAP_BASE_USER = "" # "CN=some_readonly_account,DC=mydomain,DC=com"
 LDAP_BASE_PASS = "" # "my_password"
 LDAP_USER_QUERY = "" # "(username=%s)"  For Active Directory use "(sAMAccountName=%s)"
 
-#Default database settings, sqlite is intended for single-server setups, override these in local_settings.py
+#Database settings, sqlite is intended for single-server setups
 DATABASE_ENGINE = 'sqlite3'			# 'postgresql', 'mysql', 'sqlite3' or 'ado_mssql'.
 DATABASE_NAME = STORAGE_DIR + 'graphite.db'	# Or path to database file if using sqlite3.
 DATABASE_USER = ''				# Not used with sqlite3.
@@ -65,6 +69,7 @@ DATABASE_PASSWORD = ''				# Not used with sqlite3.
 DATABASE_HOST = ''				# Set to empty string for localhost. Not used with sqlite3.
 DATABASE_PORT = ''				# Set to empty string for default. Not used with sqlite3.
 
+#Pull in overrides from local_settings.py
 try:
   from web.local_settings import *
 except ImportError:
@@ -75,7 +80,7 @@ except ImportError:
 APPEND_SLASH = False
 TEMPLATE_DEBUG = DEBUG
 if MEMCACHE_HOSTS:
-  CACHE_BACKEND = 'memcached://' + ';'.join(MEMCACHE_HOSTS) + '/?timeout=60'
+  CACHE_BACKEND = 'memcached://' + ';'.join(MEMCACHE_HOSTS) + ('/?timeout=%d' % MEMCACHE_DURATION)
 else:
   CACHE_BACKEND = "dummy:///"
 
@@ -125,7 +130,7 @@ MIDDLEWARE_CLASSES = (
 ROOT_URLCONF = 'web.urls'
 
 TEMPLATE_DIRS = (
-  os.path.join( os.path.dirname(__file__),'templates' ),
+  join(WEB_DIR, 'templates'),
 )
 
 INSTALLED_APPS = (

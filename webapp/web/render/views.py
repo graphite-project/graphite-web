@@ -101,7 +101,7 @@ def renderView(request):
       return response
 
   # We've got the data, now to render it
-  if settings.CRAPPY_HARDWARE: # Rendering on other machines is faster
+  if settings.REMOTE_RENDERING: # Rendering on other machines is faster in some situations
     image = delegateRendering(requestOptions, graphOptions)
   else:
     image = doImageRender(requestOptions['graphClass'], data, graphOptions)
