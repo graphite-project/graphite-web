@@ -13,6 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 from django.conf.urls.defaults import *
+from django.conf import settings
 
 urlpatterns = patterns('',
   ('^admin/', include('django.contrib.admin.urls')),
@@ -21,5 +22,6 @@ urlpatterns = patterns('',
   ('^composer/?', include('web.composer.urls')),
   ('^browser/?', include('web.browser.urls')),
   ('^account/?', include('web.account.urls')),
+  ('^content/(?P<path>.*)$', 'django.views.static.serve', {'document_root' : settings.CONTENT_DIR}),
   ('', include('web.browser.urls')),
 )
