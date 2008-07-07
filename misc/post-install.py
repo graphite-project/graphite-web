@@ -35,11 +35,20 @@ while True:
 
 uid, gid = userinfo.pw_uid, userinfo.pw_gid
 
+#Setup django db
+print "Synchronizing Django database models"
+web_dir = os.path.join(install_root, 'webapp', 'web')
+cwd = os.getcwd()
+os.chdir(web_dir)
+os.system("%s manage.py syncdb" % sys.executable)
+os.chdir(cwd)
+
 #Set filesystem ownerships
-for path in ('storage/whisper', 'carbon/log', 'carbon/pid'):
+for path in ('storage/whisper', 'storage/graphite.db', 'storage/log', 'carbon/log', 'carbon/pid'):
   fullpath = os.path.join(install_root, path)
-  print "Changing ownership of %s to uid=%d gid=%d" % (fullpath,uid,gid)
-  os.chown(fullpath,uid,gid)
+  if os.path.exists(fullpath):
+    print "Changing ownership of %s to uid=%d gid=%d" % (fullpath,uid,gid)
+    os.chown(fullpath,uid,gid)
 
 #Setup carbon user
 run_as_user = os.path.join(install_root, 'carbon', 'run_as_user')
@@ -48,14 +57,6 @@ print 'Carbon will run as %s' % username
 fh = open(run_as_user,'w')
 fh.write(username)
 fh.close()
-
-#Setup django db
-print "Synchronizing Django database models"
-web_dir = os.path.join(install_root, 'webapp', 'web')
-cwd = os.getcwd()
-os.chdir(web_dir)
-os.system("%s manage.py syncdb" % sys.executable)
-os.chdir(cwd)
 
 #Generate apache config
 command = "./generate-apache-config.py --install-root=%s" % install_root
