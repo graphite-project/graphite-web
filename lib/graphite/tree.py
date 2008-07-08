@@ -53,8 +53,9 @@ def find(root_dir, pattern):
 def _find(current_dir, patterns):
   """Recursively generates absolute paths whose components underneath current_dir
   match the corresponding pattern in patterns"""
+  pattern = patterns[0]
+  patterns = patterns[1:]
   entries = os.listdir(current_dir)
-  pattern = patterns.pop(0)
 
   subdirs = [e for e in entries if isdir( join(current_dir,e) )]
   matching_subdirs = fnmatch.filter(subdirs, pattern)

@@ -6,7 +6,7 @@
 }
 
 .overlay___invisible__ {
-  background-color: #666666;
+        background-color: #666666;
 	filter:alpha(opacity=0);
 	-moz-opacity: 0;
 	opacity: 0;
@@ -99,6 +99,7 @@
 .dialog_title {
 	float:left;
 	height:14px;
+	font-family: Tahoma, Arial, sans-serif;
 	font-size:12px;
 	text-align:center;
 	width:100%;
@@ -110,7 +111,8 @@
 	color: #DDD;
 	font-family: Tahoma, Arial, sans-serif;
 	font-size: 10px;
-	background-color:#123;
+	/* background-color:#123; */
+	background:#5E5148;
 }
 
 .top_draggable, .bottom_draggable {
@@ -123,6 +125,13 @@
 .status_bar input{
   font-size:12px;
 }
+
+.wired_frame {
+	display: block;
+  position: absolute;
+  border: 1px #000 dashed;
+}
+
 /* DO NOT CHANGE THESE VALUES*/
 .dialog {
 	display: block;
@@ -143,4 +152,5 @@
 
 .dialog .title_window {
   -moz-user-select:none;
-}
+}                                                    
+

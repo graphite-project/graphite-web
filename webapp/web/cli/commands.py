@@ -76,7 +76,7 @@ def _create(requst,window):
   out = ''
   w = window
   #Basic window creation
-  out += "%s_win = new Window('%s_win', {className: 'darkX', title: '%s',width: 350, height: 225, maximizable: false});\n" % (w,w,w)
+  out += "%s_win = new Window('%s_win', {title: '%s',width: 350, height: 225, maximizable: false});\n" % (w,w,w)
   out += "center = Builder.node( 'center', [Builder.node('img', {id: '%s_img',src: '/content/img/graphite.png'} )] );\n" % w
   out += "%s_win.getContent().appendChild( center );\n" % w
   out += "%s_win.setDestroyOnClose();\n" % w
@@ -304,12 +304,12 @@ def _save(request,view):
   out += "  img_id = name + '_img';\n"
   out += "  img = $(img_id);\n"
   out += "  url = img.src;\n"
-  out += "  top = winElement.style.top\n"
+  out += "  _top = winElement.style.top\n"
   out += "  left = winElement.style.left\n"
   out += "  size = winObject.getSize();\n"
   out += "  width = size.width;\n"
   out += "  height = size.height;\n"
-  out += "  myParams = 'top=' + top + '&left=' + left + '&width=' + width + '&height=' + height + '&url=' + escape(url);\n"
+  out += "  myParams = 'top=' + _top + '&left=' + left + '&width=' + width + '&height=' + height + '&url=' + escape(url);\n"
   out += "  if (window[name+'_interval']) { myParams += '&interval=' + window[name+'_interval']; }\n"
   out += "  allParams[name] = escape(myParams);\n"
   out += "});\n"
@@ -471,16 +471,15 @@ def _compose(request,window):
   out += "if ( url.match(re) == null ) {\n"
   out += "  alert('Image has no targets!');\n"
   out += "} else {\n"
-  out += "  if (!window.composerWindow) {\n"
-  out += "    window.composerWindow = window.open('/composer','Composer Window');\n"
+  out += "  composerURL = '/?' + url.substr(url.indexOf('?') + 1);\n";
+  out += "  composerWin = window.open(composerURL, 'GraphiteComposer');\n"
   out += stdout('A new composer window has been opened.')
-  out += "  }\n"
-  out += "  var i = 0;"
-  out += "  var m = true;\n"
-  out += "  while ( m = url.substr(i).match(re) ) {\n"
-  out += "    setTimeout(\"window.composerWindow.toggleTarget('\" + m[1] + \"')\",2500);\n"
-  out += "    i += m.index + m[1].length;\n"
-  out += "  }\n"
+  #out += "  var i = 0;"
+  #out += "  var m = true;\n"
+  #out += "  while ( m = url.substr(i).match(re) ) {\n"
+  #out += "    setTimeout(\"composerWin.Composer.toggleTarget('\" + m[1] + \"')\",2500);\n"
+  #out += "    i += m.index + m[1].length;\n"
+  #out += "  }\n"
   out += "}\n"
   return out
 
