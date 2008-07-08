@@ -57,5 +57,5 @@ def loadStorageSchemas():
   schemaList.append( defaultSchema )
   return schemaList
 
-defaultArchive = Archive(60,120) #2 hours retention for unclassified data
+defaultArchive = Archive(60, 60 * 48) #default retention for unclassified data (48 hours of minutely data)
 defaultSchema = Schema('default', -1, '.*', [defaultArchive])
