@@ -38,7 +38,7 @@ def getProfileByUsername(username):
 
 def getQueryString(request):
   try:
-    return request._req.args #django needs to provide a better way of doing this...
+    return request._req.args or "" #django needs to provide a better way of doing this...
   except:
     return ""
 
