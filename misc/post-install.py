@@ -44,7 +44,7 @@ os.system("%s manage.py syncdb" % sys.executable)
 os.chdir(cwd)
 
 #Set filesystem ownerships
-for path in ('storage/whisper', 'storage/graphite.db', 'storage/log', 'carbon/log', 'carbon/pid'):
+for path in ('storage', 'storage/graphite.db', 'storage/whisper', 'storage/log', 'carbon/log', 'carbon/pid'):
   fullpath = os.path.join(install_root, path)
   if os.path.exists(fullpath):
     print "Changing ownership of %s to uid=%d gid=%d" % (fullpath,uid,gid)
