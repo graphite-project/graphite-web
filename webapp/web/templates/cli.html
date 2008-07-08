@@ -52,12 +52,7 @@ function restorePrompt() {
 }
 
 function handleResponse (req) {
-  $('output').innerHTML += "<pre>" + req.responseText + "</pre><br>";
-  try {
-    eval(req.responseText);
-  } catch (exc) {
-    return handleException(req, exc);
-  }
+  eval(req.responseText);
   restorePrompt();
 }
 
