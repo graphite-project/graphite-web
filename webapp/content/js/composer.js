@@ -20,9 +20,8 @@ var GraphiteComposer = Class.create();
 GraphiteComposer.prototype = {
   initialize: function () {
     this.url = new ParameterizedURL(RENDER_BASE_URL);
-    this.window = createComposerWindow();
-    //These are some state vars used by the composer widgets
-    this.myGraphName = null;
+    this.state = {}; // For storing non-querystring state information
+    this.window = createComposerWindow(this);
   },
 
   toggleTarget: function (target) {
@@ -38,7 +37,7 @@ GraphiteComposer.prototype = {
   },
 
   loadMyGraph: function (name, url) {
-    this.myGraphName = name;
+    this.state.myGraphName = name;
     this.loadURL(url);
   },
 
@@ -69,6 +68,7 @@ GraphiteComposer.prototype = {
       }
     }
     this.window.updateTimeDisplay(timeInfo);
+    this.window.updateUI();
     this.updateImage();
   },
 

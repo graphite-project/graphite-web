@@ -14,12 +14,13 @@
 
 var DEFAULT_WINDOW_WIDTH = 600;
 var DEFAULT_WINDOW_HEIGHT = 400;
+var Composer;
 
-function createComposerWindow(options) {
-  if (!options) {
-    options = {};
-  }
-  
+function createComposerWindow(myComposer) {
+  //This global is an ugly hack, probly need to make these widgets into more formal objects
+  //and keep their associated Composer object as an attribute.
+  Composer = myComposer;
+
   //Can't define this inline because I need a reference in a closure below
   var timeDisplay = new Ext.Toolbar.TextItem({text: "Now showing the past 24 hours"});
 
@@ -39,12 +40,12 @@ function createComposerWindow(options) {
   var bottomToolbar = [
     { text: "Options", menu: createOptionsMenu() },
     { text: "Targets", handler: toggleWindow(TargetsWindow.create.createDelegate(TargetsWindow)) },
-    { text: "Auto-Refresh", enableToggle: true, toggleHandler: toggleAutoRefresh }
+    { text: "Auto-Refresh", id: 'autorefresh_button', enableToggle: true, toggleHandler: toggleAutoRefresh }
   ];
 
   var win = new Ext.Window({
-    width: options.width ? options.width : DEFAULT_WINDOW_WIDTH,
-    height: options.height ? options.height : DEFAULT_WINDOW_HEIGHT,
+    width: DEFAULT_WINDOW_WIDTH,
+    height: DEFAULT_WINDOW_HEIGHT,
     title: "Graphite Composer",
     layout: "border",
     region: "center",
@@ -67,6 +68,11 @@ function createComposerWindow(options) {
       text = "Now showing the past " + time.quantity + " " + time.units;
     }
     timeDisplay.getEl().innerHTML = text;
+  };
+  win.updateUI = function () {
+    var toggled = Composer.url.getParam('autorefresh') ? true : false;
+    Ext.getCmp('autorefresh_button').toggle(toggled);
+    updateCheckItems();
   };
   win.getImage = function () {
     return $('image-viewer');
@@ -299,7 +305,7 @@ function saveMyGraph(button, evt) {
 	return;
       }
       //Save the name for future use
-      Composer.myGraphName = text;
+      Composer.state.myGraphName = text;
       //Send the request
       Ext.Ajax.request({
         method: 'GET',
@@ -310,7 +316,7 @@ function saveMyGraph(button, evt) {
     },
     this,   //scope
     false,  //multiline
-    Composer.myGraphName ? Composer.myGraphName : "" //default value
+    Composer.state.myGraphName ? Composer.state.myGraphName : "" //default value
   );
 }
 
@@ -567,11 +573,13 @@ function toggleAutoRefresh(button, pressed) {
 
   if (button.timer) { // AutoRefresh is on
     if (!pressed) { // The button was untoggled, turn off AutoRefresh
+      Composer.url.removeParam('autorefresh');
       clearTimeout(button.timer);
       button.timer = null;
     }
   } else { // AutoRefresh is off
     if (pressed) { // The button was toggled, turn on AutoRefresh
+      Composer.url.setParam('autorefresh', 'true');
       doRefresh();
     }
   }
@@ -652,13 +660,18 @@ function paramPrompt(question, param) {
       function (button, value) {
         Composer.url.setParam(param, value);
         Composer.updateImage();
-      }
+      },
+      this, //scope
+      false, //multiline
+      Composer.url.getParam(param) || "" //default value
     );
   };
 }
 
+var checkItems = [];
 function menuCheckItem(name, param, paramValue) {
-  var checkItem = new Ext.menu.CheckItem({text: name, hideOnClick: false});
+  var checkItem = new Ext.menu.CheckItem({text: name, param: param, hideOnClick: false});
+  checkItems.push(checkItem); //keep a list of each check item we create so we can update them later
   checkItem.on('checkchange',
     function (item, checked) {
       if (paramValue) { // Set param to a specific value
@@ -674,4 +687,13 @@ function menuCheckItem(name, param, paramValue) {
     }
   );
   return checkItem;
+}
+
+function updateCheckItems() {
+  checkItems.each(
+    function (item) {
+      var param = item.initialConfig.param;
+      item.setChecked( Composer.url.getParam(param) ? true : false );
+    }
+  );
 }
