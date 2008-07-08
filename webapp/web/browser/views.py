@@ -130,7 +130,11 @@ def myGraphLookup(request):
   }
   try:
     for graph in profile.mygraph_set.all().order_by('name'):
-      node = {'text' : str(graph.name), 'id' : str(graph.name), 'graphUrl' : str(graph.url)}
+      node = {
+        'text' : str(graph.name),
+        'id' : str(graph.name),
+        'graphUrl' : str(graph.url)
+      }
       node.update(leafNode)
       nodes.append(node)
   except:
@@ -162,7 +166,10 @@ def userGraphLookup(request):
       profiles = Profile.objects.exclude(user=defaultUser)
       for profile in profiles:
         if profile.mygraph_set.count():
-          node = {'text' : str(profile.user.username), 'id' : str(profile.user.username)}
+          node = {
+            'text' : str(profile.user.username),
+            'id' : str(profile.user.username)
+          }
           node.update(branchNode)
           nodes.append(node)
     else:
@@ -170,7 +177,11 @@ def userGraphLookup(request):
       assert profile, "No profile for username '%s'" % username
 
       for graph in profile.mygraph_set.all().order_by('name'):
-        node = { 'text' : str(graph.name), 'id' : str(graph.name), 'graphUrl' : graph.url }
+        node = {
+          'text' : str(graph.name),
+          'id' : str(graph.name),
+          'graphUrl' : graph.url
+        }
         node.update(leafNode)
         nodes.append(node)
   except:

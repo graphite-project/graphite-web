@@ -304,8 +304,9 @@ function saveMyGraph(button, evt) {
         alert("You must enter a graph name!");
 	return;
       }
-      //Save the name for future use
+      //Save the name for future use and re-load the "My Graphs" tree
       Composer.state.myGraphName = text;
+      Browser.trees.mygraphs.reload();
       //Send the request
       Ext.Ajax.request({
         method: 'GET',
