@@ -25,8 +25,8 @@ if len(args) != 1:
 
 path = args[0]
 
-from_time = options._from
-until_time = options.until
+from_time = int( options._from )
+until_time = int( options.until )
 
 
 (timeInfo, values) = whisper.fetch(path, from_time, until_time)

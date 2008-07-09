@@ -211,6 +211,8 @@ def __propagate(fh,timestamp,xff,higher,lower):
     currentInterval += step
   #Propagate aggregateValue to propagate from neighborValues if we have enough known points
   knownValues = [v for v in neighborValues if v is not None]
+  if not knownValues:
+    return False
   knownPercent = float(len(knownValues)) / float(len(neighborValues))
   if knownPercent >= xff: #we have enough data to propagate a value!
     aggregateValue = float(sum(knownValues)) / float(len(knownValues)) #TODO another CF besides average?
@@ -434,15 +436,19 @@ untilTime is also an epoch time, but defaults to now
   fh = open(path,'rb')
   header = __readHeader(fh)
   now = int( time.time() )
-  if untilTime is None or untilTime > now:
+  if untilTime is None:
+    untilTime = now
+  fromTime = int(fromTime)
+  untilTime = int(untilTime)
+  if untilTime > now:
     untilTime = now
   if fromTime < (now - header['maxRetention']):
     fromTime = now - header['maxRetention']
   assert fromTime < untilTime, "Invalid time interval"
   diff = now - fromTime
   for archive in header['archives']:
-    if archive['retention'] > diff: break
-  fromInterval = int( fromTime - (fromTime % archive['secondsPerPoint']) )
+    if archive['retention'] >= diff: break
+  fromInterval = int( fromTime - (fromTime % archive['secondsPerPoint']) ) + archive['secondsPerPoint']
   untilInterval = int( untilTime - (untilTime % archive['secondsPerPoint']) ) + archive['secondsPerPoint']
   fh.seek(archive['offset'])
   packedPoint = fh.read(pointSize)
