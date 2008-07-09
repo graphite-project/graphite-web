@@ -153,7 +153,7 @@ xFilesFactor specifies the fraction of data points in a propagation interval tha
   assert not os.path.exists(path), "File %s already exists!" % path
   fh = open(path,'wb')
   if LOCK: fcntl.flock( fh.fileno(), fcntl.LOCK_EX )
-  lastUpdate = struct.pack( timestampFormat, time.time() )
+  lastUpdate = struct.pack( timestampFormat, int(time.time()) )
   oldest = sorted([secondsPerPoint * points for secondsPerPoint,points in archiveList])[-1]
   maxRetention = struct.pack( longFormat, oldest )
   xFilesFactor = struct.pack( floatFormat, float(xFilesFactor) )
@@ -443,7 +443,7 @@ untilTime is also an epoch time, but defaults to now
   for archive in header['archives']:
     if archive['retention'] > diff: break
   fromInterval = int( fromTime - (fromTime % archive['secondsPerPoint']) )
-  untilInterval = int( untilTime - (untilTime % archive['secondsPerPoint']) )
+  untilInterval = int( untilTime - (untilTime % archive['secondsPerPoint']) ) + archive['secondsPerPoint']
   fh.seek(archive['offset'])
   packedPoint = fh.read(pointSize)
   (baseInterval,baseValue) = struct.unpack(pointFormat,packedPoint)
