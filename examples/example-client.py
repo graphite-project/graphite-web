@@ -13,11 +13,16 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
+import sys
 import time
 from socket import socket
 
 CARBON_SERVER = '127.0.0.1'
 CARBON_PORT = 2003
+
+delay = 60
+if len(sys.argv) > 1:
+  delay = int( sys.argv[1] )
 
 def get_loadavg():
   # For more details, "man proc"
@@ -44,4 +49,4 @@ while True:
   print message
   print
   sock.sendall(message)
-  time.sleep(2)
+  time.sleep(delay)
