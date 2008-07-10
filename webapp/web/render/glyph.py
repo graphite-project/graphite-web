@@ -41,6 +41,39 @@ colorAliases = {
   'darkgrey' : (111,111,111),
 }
 
+#X-axis configurations (copied from rrdtool, this technique is evil & ugly but effective)
+SEC = 1
+MIN = 60
+HOUR = MIN * 60
+DAY = HOUR * 24
+WEEK = DAY * 7
+MONTH = DAY * 30
+YEAR = DAY * 365
+xAxisConfigs = (
+  dict(seconds=0.00,  minorGridUnit=SEC,  minorGridStep=10, majorGridUnit=MIN,  majorGridStep=1,  labelUnit=SEC,  labelStep=10, format="%H:%M:%S"),
+  dict(seconds=0.04,  minorGridUnit=SEC,  minorGridStep=5,  majorGridUnit=MIN,  majorGridStep=1,  labelUnit=SEC,  labelStep=5,  format="%H:%M:%S"),
+  dict(seconds=0.07,  minorGridUnit=SEC,  minorGridStep=15, majorGridUnit=MIN,  majorGridStep=1,  labelUnit=SEC,  labelStep=15, format="%H:%M:%S"),
+  dict(seconds=0.27,  minorGridUnit=SEC,  minorGridStep=30, majorGridUnit=MIN,  majorGridStep=2,  labelUnit=MIN,  labelStep=1,  format="%H:%M"),
+  dict(seconds=0.5,   minorGridUnit=MIN,  minorGridStep=1,  majorGridUnit=MIN,  majorGridStep=2,  labelUnit=MIN,  labelStep=1,  format="%H:%M"),
+  dict(seconds=1.0,   minorGridUnit=MIN,  minorGridStep=1,  majorGridUnit=MIN,  majorGridStep=4,  labelUnit=MIN,  labelStep=2,  format="%H:%M"),
+  dict(seconds=2,     minorGridUnit=MIN,  minorGridStep=1,  majorGridUnit=MIN,  majorGridStep=10, labelUnit=MIN,  labelStep=5,  format="%H:%M"),
+  dict(seconds=5,     minorGridUnit=MIN,  minorGridStep=2,  majorGridUnit=MIN,  majorGridStep=10, labelUnit=MIN,  labelStep=10, format="%H:%M"),
+  dict(seconds=10,    minorGridUnit=MIN,  minorGridStep=5,  majorGridUnit=MIN,  majorGridStep=20, labelUnit=MIN,  labelStep=20, format="%H:%M"),
+  dict(seconds=30,    minorGridUnit=MIN,  minorGridStep=10, majorGridUnit=HOUR, majorGridStep=1,  labelUnit=HOUR, labelStep=1,  format="%H:%M"),
+  dict(seconds=60,    minorGridUnit=MIN,  minorGridStep=30, majorGridUnit=HOUR, majorGridStep=2,  labelUnit=HOUR, labelStep=2,  format="%H:%M"),
+  dict(seconds=180,   minorGridUnit=HOUR, minorGridStep=1,  majorGridUnit=HOUR, majorGridStep=6,  labelUnit=HOUR, labelStep=6,  format="%H:%M"),
+  dict(seconds=600,   minorGridUnit=HOUR, minorGridStep=6,  majorGridUnit=DAY,  majorGridStep=1,  labelUnit=DAY,  labelStep=1,  format="%a"),
+  dict(seconds=1200,  minorGridUnit=HOUR, minorGridStep=6,  majorGridUnit=DAY,  majorGridStep=1,  labelUnit=DAY,  labelStep=1,  format="%d"),
+  dict(seconds=1800,  minorGridUnit=HOUR, minorGridStep=12, majorGridUnit=DAY,  majorGridStep=1,  labelUnit=DAY,  labelStep=2,  format="%a %d"),
+  dict(seconds=2400,  minorGridUnit=HOUR, minorGridStep=12, majorGridUnit=DAY,  majorGridStep=1,  labelUnit=DAY,  labelStep=2,  format="%a"),
+  dict(seconds=3600,  minorGridUnit=DAY,  minorGridStep=1,  majorGridUnit=WEEK, majorGridStep=1,  labelUnit=WEEK, labelStep=1,  format="Week %V"),
+  dict(seconds=10800, minorGridUnit=WEEK, minorGridStep=1,  majorGridUnit=MONTH,majorGridStep=1,  labelUnit=WEEK, labelStep=2,  format="Week %V"),
+  dict(seconds=21600, minorGridUnit=MONTH,minorGridStep=1,  majorGridUnit=MONTH,majorGridStep=1,  labelUnit=MONTH,labelStep=1,  format="%b"),
+  dict(seconds=172800,minorGridUnit=MONTH,minorGridStep=1,  majorGridUnit=MONTH,majorGridStep=3,  labelUnit=MONTH,labelStep=3,  format="%b"),
+  dict(seconds=864000,minorGridUnit=YEAR, minorGridStep=1,  majorGridUnit=YEAR, majorGridStep=1,  labelUnit=YEAR, labelStep=1,  format="%y"),
+)
+
+
 class Graph:
   customizable = ('width','height','margin','bgcolor','fgcolor', \
                  'fontName','fontSize','fontBold','fontItalic', \
@@ -470,35 +503,7 @@ class LineGraph(Graph):
     self.endTime = max([series.end for series in self.data])
     timeRange = self.endTime - self.startTime
 
-    #Determine X-axis scale (copied from rrdtool, this technique is evil & ugly but effective)
-    SEC = 1
-    MIN = 60
-    HOUR = MIN * 60
-    DAY = HOUR * 24
-    WEEK = DAY * 7
-    MONTH = DAY * 30
-    YEAR = DAY * 365
-    xAxisConfigs = ( \
-      dict(seconds=0,     minorGridUnit=SEC,  minorGridStep=30, majorGridUnit=MIN,  majorGridStep=5,  labelUnit=MIN,  labelStep=5,  format="%H:%M"), \
-      dict(seconds=2,     minorGridUnit=MIN,  minorGridStep=1,  majorGridUnit=MIN,  majorGridStep=10, labelUnit=MIN,  labelStep=5,  format="%H:%M"), \
-      dict(seconds=5,     minorGridUnit=MIN,  minorGridStep=2,  majorGridUnit=MIN,  majorGridStep=10, labelUnit=MIN,  labelStep=10, format="%H:%M"), \
-      dict(seconds=10,    minorGridUnit=MIN,  minorGridStep=5,  majorGridUnit=MIN,  majorGridStep=20, labelUnit=MIN,  labelStep=20, format="%H:%M"), \
-      dict(seconds=30,    minorGridUnit=MIN,  minorGridStep=10, majorGridUnit=HOUR, majorGridStep=1,  labelUnit=HOUR, labelStep=1,  format="%H:%M"), \
-      dict(seconds=60,    minorGridUnit=MIN,  minorGridStep=30, majorGridUnit=HOUR, majorGridStep=2,  labelUnit=HOUR, labelStep=2,  format="%H:%M"), \
-#     dict(seconds=60,    minorGridUnit=MIN,  minorGridStep=30, majorGridUnit=HOUR, majorGridStep=2,  labelUnit=HOUR, labelStep=4,  format="%a %H:%M"), \
-      dict(seconds=180,   minorGridUnit=HOUR, minorGridStep=1,  majorGridUnit=HOUR, majorGridStep=6,  labelUnit=HOUR, labelStep=6,  format="%H:%M"), \
-#     dict(seconds=180,   minorGridUnit=HOUR, minorGridStep=1,  majorGridUnit=HOUR, majorGridStep=6,  labelUnit=HOUR, labelStep=12, format="%a %H:%M"), \
-      dict(seconds=600,   minorGridUnit=HOUR, minorGridStep=6,  majorGridUnit=DAY,  majorGridStep=1,  labelUnit=DAY,  labelStep=1,  format="%a"), \
-      dict(seconds=1200,  minorGridUnit=HOUR, minorGridStep=6,  majorGridUnit=DAY,  majorGridStep=1,  labelUnit=DAY,  labelStep=1,  format="%d"), \
-      dict(seconds=1800,  minorGridUnit=HOUR, minorGridStep=12, majorGridUnit=DAY,  majorGridStep=1,  labelUnit=DAY,  labelStep=2,  format="%a %d"), \
-      dict(seconds=2400,  minorGridUnit=HOUR, minorGridStep=12, majorGridUnit=DAY,  majorGridStep=1,  labelUnit=DAY,  labelStep=2,  format="%a"), \
-      dict(seconds=3600,  minorGridUnit=DAY,  minorGridStep=1,  majorGridUnit=WEEK, majorGridStep=1,  labelUnit=WEEK, labelStep=1,  format="Week %V"), \
-      dict(seconds=10800, minorGridUnit=WEEK, minorGridStep=1,  majorGridUnit=MONTH,majorGridStep=1,  labelUnit=WEEK, labelStep=2,  format="Week %V"), \
-      dict(seconds=21600, minorGridUnit=MONTH,minorGridStep=1,  majorGridUnit=MONTH,majorGridStep=1,  labelUnit=MONTH,labelStep=1,  format="%b"), \
-      dict(seconds=172800,minorGridUnit=MONTH,minorGridStep=1,  majorGridUnit=MONTH,majorGridStep=3,  labelUnit=MONTH,labelStep=3,  format="%b"), \
-      dict(seconds=864000,minorGridUnit=YEAR, minorGridStep=1,  majorGridUnit=YEAR, majorGridStep=1,  labelUnit=YEAR, labelStep=1,  format="%y"), \
-    )
-    secondsPerPixel = int( timeRange / self.graphWidth )
+    secondsPerPixel = float(timeRange) / float(self.graphWidth)
     self.xScaleFactor = float(self.graphWidth) / float(timeRange) #pixels per second
 
     potential = [c for c in xAxisConfigs if c['seconds'] <= secondsPerPixel]
@@ -506,6 +511,7 @@ class LineGraph(Graph):
       self.xConf = potential[-1]
     else:
       self.xConf = xAxisConfigs[-1]
+
     self.xLabelStep = self.xConf['labelUnit'] * self.xConf['labelStep']
     self.xMinorGridStep = self.xConf['minorGridUnit'] * self.xConf['minorGridStep']
     self.xMajorGridStep = self.xConf['majorGridUnit'] * self.xConf['majorGridStep']

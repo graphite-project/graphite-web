@@ -44,4 +44,4 @@ while True:
   print message
   print
   sock.sendall(message)
-  time.sleep(60)
+  time.sleep(2)
