@@ -18,6 +18,16 @@ if sys.version_info[0] != 2 or sys.version_info[1] < 4:
   print 'Python version >= 2.4 and < 3.0 is required'
   sys.exit(1)
 
+try:
+  import graphite
+except:
+  print "Failed to import the graphite package. Please verify that this package"
+  print "was properly installed and that your PYTHONPATH environment variable"
+  print "includes the directory in which it is installed."
+  print "\nFor example, you may need to run the following command:\n"
+  print "export PYTHONPATH=\"/home/myusername/lib/:$PYTHONPATH\"\n"
+  sys.exit(1)
+
 import os, socket, time, traceback
 from getopt import getopt
 from signal import signal, SIGTERM
