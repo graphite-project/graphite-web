@@ -144,10 +144,10 @@ try:
   local_settings_py = os.path.join(install_root, 'webapp', 'web', 'local_settings.py')
   local_settings_example = os.path.join(install_root, 'webapp', 'web', 'local_settings.py.example')
   if not os.path.isfile(local_settings_py):
-    print "Creating an example local_settings.py"
+    print "Creating an example local_settings.py\n"
     os.system("mv %s %s" % (local_settings_example, local_settings_py))
   else:
-    print "local_settings.py exists, leaving untouched"
+    print "local_settings.py exists, leaving untouched\n"
     os.system("rm -f %s" % local_settings_example)
 except:
   print "Error while inspecting local_settings.py (please report this as a bug!)"
@@ -157,20 +157,20 @@ except:
 #Install the carbon init script
 inits_installed = False
 for init_dir in ('/etc/init.d/','/etc/rc.d/init.d/'):
-  if os.path.isdir(init_dir) and os.access(init_dir, os.R_OK|os.W_OK,os.X_OK):
-    print "Installing init scripts into %s" % init_dir
+  if os.path.isdir(init_dir) and os.access(init_dir, os.R_OK|os.W_OK|os.X_OK):
+    print "Installing init scripts into %s\n" % init_dir
     inits_installed = True
     os.system("cp -f carbon/init-script.sh %s/carbon-agent.sh" % init_dir)
     break
 
 if not inits_installed:
-  print "[Warning] Could not install carbon-agent init script, please install \"carbon/init-script.sh\" manually."
+  print "[Warning] Could not install carbon-agent init script, please install \"carbon/init-script.sh\" manually.\n"
 
 #Install the graphite package
 libs_option = ""
 
 if os.geteuid() == 0: #running as root, install to site-packages
-  print 'Installing graphite library package to site-packages'
+  print 'Installing graphite library package to site-packages\n'
   dir = os.getcwd()
   os.chdir('lib/')
   os.system("%s setup.py install" % sys.executable)
@@ -181,15 +181,17 @@ if os.geteuid() == 0: #running as root, install to site-packages
     traceback.print_exc()
     die("Installation of graphite library package failed")
 else: #non-root installation, prompt for where to install this package
-  print 'You are not running the installer as root, so python modules cannot be installed in site-packages'
+  print 'You are not running the installer as root, so python modules cannot be installed in site-packages\n'
   username = pwd.getpwuid( os.geteuid() ).pw_name
   default_location = os.environ.get('HOME', "/home/%s" % username)
   while True:
     location = raw_input('Where would you like to install the graphite modules and scripts [%s]?' % default_location).strip()
+    if not location:
+      location = default_location
     libdir = os.path.join(location,'lib')
     bindir = os.path.join(location,'bin')
-    print "Graphite modules will be installed to: %s" % libdir
-    print "Graphite scripts will be installed to: %s" % bindir
+    print "Graphite modules will be installed in: %s" % libdir
+    print "Graphite scripts will be installed in: %s" % bindir
     confirmation = raw_input("Is this ok [y/n]?").strip().lower()
     if confirmation == 'y':
       break
@@ -207,7 +209,7 @@ else: #non-root installation, prompt for where to install this package
       die("Installation of graphite library package failed")
   finally:
     sys.path.pop(0)
-  print "Successfully installed graphite package under %s" % location
+  print "Successfully installed graphite package under %s\n" % location
   libs_option = "--libs=%s" % libdir
 
 print "The install process is complete, if this is a first-time installation"
