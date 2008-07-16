@@ -29,7 +29,7 @@
 #LDAP_USER_QUERY = "(username=%s)"  #For Active Directory use "(sAMAccountName=%s)"
 
 # If sqlite won't cut it, configure your real database here (don't forget to run manage.py syncdb!)
-#DATABASE_ENGINE = 'mysql'
+#DATABASE_ENGINE = 'mysql' # or 'postgres'
 #DATABASE_NAME = 'graphite'
 #DATABASE_USER = 'graphite'
 #DATABASE_PASSWORD = 'graphite-is-awesome'

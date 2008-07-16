@@ -26,10 +26,21 @@ Graphite requires:
  python-sqlite2 (optional - a django-supported database module is required)
 
 Once install.py has completed, graphite will be installed in
-/usr/local/graphite (unless you specified --install-root). It will also
-create a "graphite-vhost.conf" file in the current directory. You can use
-this to configure apache.
+/usr/local/graphite (unless you specified --install-root). It will
+also tell you a particular post-install command to run if this is your
+first installation.
 
+If you are merely upgrading, you are already done. Do not run post-install.py.
+
+ Running post-install.py (first-time installations only)
+-------------------------------------------------------------------------------
+At the end of install.py it will tell you to run post-install.py with some
+particular command line options. Run this command exactly, in the same directory
+you ran install.py in, and as the same user. Basically you should just
+run this immediately after running install.py.
+
+This script will create a graphite-vhost.conf file in the current directory.
+You can use this file to configure apache.
 
  Apache Configuration
 -------------------------------------------------------------------------------
@@ -54,35 +65,33 @@ The second approach is to copy the contents of the graphite-vhost.conf file
 and insert it down at the end of your httpd.conf.
 
 
- Initial Database Creation
+ Custom Database Configuration
 -------------------------------------------------------------------------------
-You must tell Django to create the database tables used by the graphite webapp.
-This is very straight forward, especially if you are using the default sqlite
-setup.
+By default, the graphite webapp uses a sqlite database. As long as you have the
+appropriate sqlite module installed, you should not need to do any additional
+database configuration. But if you wish to use a different database such as
+MySQL or Postgres, read on.
 
-NOTE: If you are using a custom database backend (other than sqlite) you must
-first create a $GRAPHITE_ROOT/webapp/web/local_settings.py file that overrides the
-database related settings from settings.py.
+After you setup your database server, create a database and a user with full
+privileges on that database. Now we put that information into the graphite
+webapp local_settings.py file.
 
-Assuming you are using the default setup, the database is initialized like so:
+Edit the $GRAPHITE_ROOT/webapp/web/local_settings.py 
 
-cd /usr/local/graphite/webapp/web/
+In particular you will need to uncomment and modify all of the settings
+that begin with "DATABASE_". Once you have done this, we need to tell
+Django to create our tables.
+
+cd $GRAPHITE_ROOT/webapp/web/
 sudo python manage.py syncdb
 # you will be prompted to create an admin user, this is a good idea
 
-# now you must change ownership of the database file to the user apache runs as
-sudo chown -R nobody:nobody /usr/local/graphite/storage/ #assuming apache runs as 'nobody'
-
-Similarly if you use a backend such as mysql or postgres, the DATABASE_USER
-you create in your local_settings.py must have permission to create
-tables under the database named by DATABASE_NAME.
-
 Restart apache and you should see the graphite webapp on the main page.
 If you encounter problems, you can increase the verbosity of error output
-by adding a "DEBUG = True" line to /usr/local/graphite/webapp/web/local_settings.py
+by adding a "DEBUG = True" line to local_settings.py
 
-Also remember that the apache logs for the graphite webapp are in
-/usr/local/graphite/storage/logs/
+Also remember that by default the apache logs for the graphite webapp are in
+$GRAPHITE_ROOT/storage/logs/
 
 
  Next Steps - setup the backend (carbon)
