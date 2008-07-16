@@ -188,7 +188,7 @@ else: #non-root installation, prompt for where to install this package
     location = raw_input('Where would you like to install the graphite modules and scripts [%s]?' % default_location).strip()
     if not location:
       location = default_location
-    libdir = os.path.join(location,'lib')
+    libdir = os.path.join(location,'lib','python')
     bindir = os.path.join(location,'bin')
     print "Graphite modules will be installed in: %s" % libdir
     print "Graphite scripts will be installed in: %s" % bindir
