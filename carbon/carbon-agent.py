@@ -25,7 +25,7 @@ except:
   print "was properly installed and that your PYTHONPATH environment variable"
   print "includes the directory in which it is installed."
   print "\nFor example, you may need to run the following command:\n"
-  print "export PYTHONPATH=\"/home/myusername/lib/:$PYTHONPATH\"\n"
+  print "export PYTHONPATH=\"/home/myusername/lib/python/:$PYTHONPATH\"\n"
   sys.exit(1)
 
 import os, socket, time, traceback
