@@ -135,9 +135,15 @@ os.system("cp -rvf webapp/ %s" % install_root)
 os.system("cp -rvf storage/ %s" % install_root)
 os.system("cp -rvf carbon/ %s" % install_root)
 
-print '\nCreating a symlink to %s\n' % options.extjs
-extjs_dir = os.path.join(install_root,'webapp','content','js','extJS')
-os.system("ln -s %s %s" % (options.extjs, extjs_dir))
+extjs_link = os.path.join(install_root,'webapp','content','js','extJS')
+if not os.path.exists(extjs_link):
+  if os.path.lexists(extjs_link):
+    print "\nRemoving broken symlink %s\n" % extjs_link
+    os.unlink(extjs_link)
+  print '\nCreating a symlink %s -> %s\n' % (extjs_link, options.extjs)
+  os.symlink(options.extjs, extjs_link)
+else:
+  print "\nExtJS symlink already exists, leaving untouched\n"
 
 #Setup local_settings.py
 try:
