@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import sys, os, traceback
+import sys, os, pwd, traceback
 from optparse import OptionParser
 
 def die(msg):
@@ -130,16 +130,6 @@ else:
     raise SystemExit(1)
 
 # Perform the installation
-print 'Installing graphite library package'
-dir = os.getcwd()
-os.chdir('lib/')
-os.system("%s setup.py install" % sys.executable)
-os.chdir(dir)
-try:
-  import graphite
-except ImportError:
-  die("Installation of graphite library package failed")
-
 print 'Copying files...'
 os.system("cp -rvf webapp/ %s" % install_root)
 os.system("cp -rvf storage/ %s" % install_root)
@@ -176,6 +166,50 @@ for init_dir in ('/etc/init.d/','/etc/rc.d/init.d/'):
 if not inits_installed:
   print "[Warning] Could not find a suitable system init-script directory, please install \"carbon/init-script.sh\" manually."
 
+#Install the graphite package
+libs_option = ""
+
+if os.geteuid() == 0: #running as root, install to site-packages
+  print 'Installing graphite library package to site-packages'
+  dir = os.getcwd()
+  os.chdir('lib/')
+  os.system("%s setup.py install" % sys.executable)
+  os.chdir(dir)
+  try:
+    import graphite
+  except ImportError:
+    traceback.print_exc()
+    die("Installation of graphite library package failed")
+else: #non-root installation, prompt for where to install this package
+  print 'You are not running the installer as root, so python modules cannot be installed in site-packages'
+  username = pwd.pwgetuid( os.geteuid() ).pw_name
+  default_location = os.environ.get('HOME', "/home/%s" % username)
+  while True:
+    location = raw_input('Where would you like to install the graphite modules and scripts [%s]?' % default_location).strip()
+    libdir = os.path.join(location,'lib')
+    bindir = os.path.join(location,'bin')
+    print "Graphite modules will be installed to: %s" % libdir
+    print "Graphite scripts will be installed to: %s" % bindir
+    confirmation = raw_input("Is this ok [y/n]?").strip().lower()
+    if confirmation == 'y':
+      break
+
+  dir = os.getcwd()
+  os.chdir('lib/')
+  os.system("%s setup.py install --home=%s" % (sys.executable, location))
+  os.chdir(dir)
+  try:
+    sys.path.insert(0, libdir)
+    try:
+      import graphite
+    except:
+      traceback.print_exc()
+      die("Installation of graphite library package failed")
+  finally:
+    sys.path.pop(0)
+  print "Successfully installed graphite package under %s" % location
+  libs_option = "--libs=%s" % libdir
+
 print "The install process is complete, if this is a first-time installation"
 print "you should run the following command to complete the remaining setup steps:\n"
-print "%s post-install.py --install-root=%s" % (sys.executable, install_root)
+print "%s post-install.py --install-root=%s %s" % (sys.executable, install_root, libs_option)

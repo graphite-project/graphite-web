@@ -9,7 +9,9 @@ def die(msg):
 
 option_parser = OptionParser()
 option_parser.add_option('--install-root',default='/usr/local/graphite/',
-  help="The base directory of the graphite installation, default: /usr/local/graphite/")
+  help="The base directory of the graphite installation")
+option_parser.add_option('--libs',default=None,
+  help="The directory where the graphite python package is installed (default is system site-packages)")
 
 (options,args) = option_parser.parse_args()
 
@@ -59,7 +61,12 @@ fh.write(username)
 fh.close()
 
 #Generate apache config
-command = "./generate-apache-config.py --install-root=%s" % install_root
+if options.libs:
+  libs_option = "--libs=%s" % options.libs
+else:
+  libs_option = ""
+
+command = "./generate-apache-config.py --install-root=%s %s" % (install_root, libs_option)
 print "Running command: %s" % command
 os.system(command)
 
