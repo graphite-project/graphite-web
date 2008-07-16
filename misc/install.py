@@ -157,14 +157,14 @@ except:
 #Install the carbon init script
 inits_installed = False
 for init_dir in ('/etc/init.d/','/etc/rc.d/init.d/'):
-  if os.path.isdir(init_dir):
+  if os.path.isdir(init_dir) and os.access(init_dir, os.R_OK|os.W_OK,os.X_OK):
     print "Installing init scripts into %s" % init_dir
     inits_installed = True
     os.system("cp -f carbon/init-script.sh %s/carbon-agent.sh" % init_dir)
     break
 
 if not inits_installed:
-  print "[Warning] Could not find a suitable system init-script directory, please install \"carbon/init-script.sh\" manually."
+  print "[Warning] Could not install carbon-agent init script, please install \"carbon/init-script.sh\" manually."
 
 #Install the graphite package
 libs_option = ""
@@ -182,7 +182,7 @@ if os.geteuid() == 0: #running as root, install to site-packages
     die("Installation of graphite library package failed")
 else: #non-root installation, prompt for where to install this package
   print 'You are not running the installer as root, so python modules cannot be installed in site-packages'
-  username = pwd.pwgetuid( os.geteuid() ).pw_name
+  username = pwd.getpwuid( os.geteuid() ).pw_name
   default_location = os.environ.get('HOME', "/home/%s" % username)
   while True:
     location = raw_input('Where would you like to install the graphite modules and scripts [%s]?' % default_location).strip()
