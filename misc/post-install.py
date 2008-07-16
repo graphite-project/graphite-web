@@ -24,6 +24,14 @@ if not os.path.isdir(install_root):
 
 print '\nUsing graphite install root: %s\n' % install_root
 
+if options.libs:
+  libdir = os.path.expanduser(options.libs)
+  print 'Adding %s to your PYTHONPATH\n' % libdir
+  os.environ['PYTHONPATH'] = libdir + ':' + os.environ.get('PYTHONPATH','')
+  libs_option = "--libs=%s" % libdir
+else:
+  libs_option = ""
+
 #Find out what user the webapp & carbon will run as
 print "Permissions must be setup such that apache can write to certain files and directories."
 print "If you do not know what user Apache runs as, you can hit Ctrl-C and re-run this script later.\n"
@@ -69,11 +77,6 @@ fh.write(username)
 fh.close()
 
 #Generate apache config
-if options.libs:
-  libs_option = "--libs=%s" % options.libs
-else:
-  libs_option = ""
-
 command = "./generate-apache-config.py --install-root=%s %s" % (install_root, libs_option)
 print "Running command: %s\n" % command
 os.system(command)

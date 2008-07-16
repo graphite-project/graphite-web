@@ -26,8 +26,9 @@ if not django_admin:
 python_path = os.path.join(graphite_root, 'webapp')
 
 if options.libs:
-  print 'Adding %s to your PYTHONPATH' % options.libs
-  os.environ['PYTHONPATH'] = options.libs + ':' + os.environ.get('PYTHONPATH','')
+  libdir = os.path.expanduser(options.libs)
+  print 'Adding %s to your PYTHONPATH' % libdir
+  os.environ['PYTHONPATH'] = libdir + ':' + os.environ.get('PYTHONPATH','')
 
 print "Running Graphite from %s under django development server\n" % graphite_root
 
