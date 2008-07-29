@@ -447,7 +447,7 @@ class LineGraph(Graph):
   def setupYAxis(self):
     yMinValue = safeMin( [safeMin([v for v in series if v is not None]) for series in self.data] )
     yMaxValue = safeMax( [safeMax([v for v in series if v is not None]) for series in self.data] )
-    yMaxValue += float(yMaxValue) / 50.0 # add 2% for some headroom at the top of the graph
+    #yMaxValue += float(yMaxValue) / 50.0 # add 2% for some headroom at the top of the graph
     if yMaxValue - yMinValue < 1:
       yMaxValue = yMinValue + 1
     yVariance = yMaxValue - yMinValue
