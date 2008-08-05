@@ -21,6 +21,13 @@ def safeSum(values):
   if not safeValues: return None
   return sum(safeValues)
 
+def safeDiff(values):
+  safeValues = [v for v in values if v is not None]
+  if not safeValues: return None
+  values = map(lambda x: x*-1, safeValues[1:])
+  values.insert(0, safeValues[0])
+  return sum(values)
+
 def safeLen(values):
   return len([v for v in values if v is not None])
 
@@ -64,6 +71,14 @@ def sumSeries(*seriesLists):
   #name = "sumSeries(%s)" % ','.join((s.name for s in seriesList))
   name = "sumSeries(%s)" % ','.join(set([s.pathExpression for s in seriesList]))
   values = ( safeSum(row) for row in izip(*seriesList) ) #XXX izip
+  series = TimeSeries(name,start,end,step,values)
+  series.pathExpression = name
+  return [series]
+
+def diffSeries(*seriesLists):
+  (seriesList,start,end,step) = normalize(seriesLists)
+  name = "diffSeries(%s)" % ','.join(set([s.pathExpression for s in seriesList]))
+  values = ( safeDiff(row) for row in izip(*seriesList) ) #XXX izip
   series = TimeSeries(name,start,end,step,values)
   series.pathExpression = name
   return [series]
@@ -159,6 +174,7 @@ def alias(seriesList,newName):
 
 SeriesFunctions = {
   'sumSeries' : sumSeries,
+  'diffSeries' : diffSeries,
   'sum' : sumSeries,
   'averageSeries' : averageSeries,
   'avg' : averageSeries,
