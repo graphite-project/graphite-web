@@ -380,6 +380,7 @@ var TargetsWindow = { //This widget has a lot of state, so an object is appropri
     var functionsMenu = new Ext.menu.Menu({
       items: [
         {text: 'Sum Series', handler: this.applyFuncToAll('sumSeries')},
+        {text: 'Difference Series', handler: this.applyFuncToAll('diffSeries')},
         {text: 'Average Series', handler: this.applyFuncToAll('averageSeries')},
         {text: 'As Percent', handler: this.applyFuncToEachWithInput('asPercent')},
         {text: 'Scale', handler: this.applyFuncToEachWithInput('scale')},
