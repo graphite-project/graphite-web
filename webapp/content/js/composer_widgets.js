@@ -382,6 +382,7 @@ var TargetsWindow = { //This widget has a lot of state, so an object is appropri
         {text: 'Sum Series', handler: this.applyFuncToAll('sumSeries')},
         {text: 'Difference Series', handler: this.applyFuncToAll('diffSeries')},
         {text: 'Average Series', handler: this.applyFuncToAll('averageSeries')},
+        {text: 'Moving Average Series', handler: this.applyFuncToEachWithInput('movingAverage')},
         {text: 'As Percent', handler: this.applyFuncToEachWithInput('asPercent')},
         {text: 'Scale', handler: this.applyFuncToEachWithInput('scale')},
         {text: 'Cumulative', handler: this.applyFuncToEach('cumulative')},
