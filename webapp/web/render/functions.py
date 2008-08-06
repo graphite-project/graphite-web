@@ -125,6 +125,25 @@ def scale(seriesList,factor):
       series[i] = safeMul(value,factor)
   return seriesList
 
+def movingAverage(seriesList,time):
+  count = 0
+  for series in seriesList:
+    movAvg = TimeSeries("movingAverage(%s,%.1f)" % (series.name,float(time)),series.start,series.end,series.step,[])
+    avg = safeDiv(safeSum(series[:time]), time)
+    movAvg.append(avg)
+    for (index, el) in enumerate(series[time:]):
+      toDrop = series[index]
+      if toDrop is None:
+	toDrop = 0
+      s = safeSum([safeMul(time, avg), el, -toDrop])
+      avg = safeDiv(s, time)
+      movAvg.append(avg)
+    for i in range(0, time-1):
+      movAvg.insert(0, None)
+    seriesList[count] = movAvg
+    count = count + 1
+  return seriesList
+
 def cumulative(seriesList):
   for series in seriesList:
     series.consolidationFunc = 'sum'
@@ -178,6 +197,7 @@ SeriesFunctions = {
   'sum' : sumSeries,
   'averageSeries' : averageSeries,
   'avg' : averageSeries,
+  'movingAverage' : movingAverage,
   'asPercent' : asPercent,
   'pct' : asPercent,
   'scale' : scale,
