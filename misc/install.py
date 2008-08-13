@@ -63,17 +63,19 @@ if django.VERSION[0] == 0 and django.VERSION[1] < 95:
   version = '.'.join([str(v) for v in django.VERSION if v is not None])
   die("You have django version %s installed, but version 0.95 or greater is required" % version)
 
-# Test for mod_python
-try:
-  import mod_python
-except:
-  die("Unable to import the 'mod_python' module, do you have mod_python installed for python %s?" % py_version)
-
 # Test for pyparsing
 try:
   import pyparsing
 except:
   die("Unable to import the 'pyparsing' module, do you have pyparsing installed for python %s?" % py_version)
+
+# Test for mod_python
+try:
+  import mod_python
+except:
+  print "[WARNING] Unable to import the 'mod_python' module, do you have mod_python installed for python %s?" % py_version
+  print "This means you will only be able to run graphite in the development server mode, which is not"
+  print "recommended for production use."
 
 # Test for python-memcached
 try:
