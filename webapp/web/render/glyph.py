@@ -278,7 +278,7 @@ class LineGraph(Graph):
                  ('title','vtitle','lineMode','lineWidth','hideLegend', \
                   'hideAxes','minXStep','hideGrid','majorGridLineColor', \
                   'minorGridLineColor','thickness','min','max', \
-                  'graphOnly','yMin','yMax','areaMode')
+                  'graphOnly','yMin','yMax','areaMode','drawNullAsZero')
   validLineModes = ('staircase','slope')
   validAreaModes = ('none','first','all')
 
@@ -391,6 +391,8 @@ class LineGraph(Graph):
       self.setColor( series.color )
       fromNone = True
       for value in series:
+        if self.params.get('drawNullAsZero') and value is None:
+          value = 0.0
         if value is None:
           if not fromNone and self.areaMode != 'none': #Close off and fill area before unknown interval
             self.ctx.line_to(x, self.area['ymax'])
