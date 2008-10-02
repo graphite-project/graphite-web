@@ -45,7 +45,10 @@ create_cmd = Keyword('create').setResultsName('command') + window
 draw = Keyword('draw').setResultsName('command')
 
 gpath = Word(alphanums + '._-+*?[]#')
-fcall = Combine( Word(alphas) + Literal('(') + Word(printables.replace(')','')) + Literal(')') )
+fcall = Forward()
+expr = Word( printables.replace('(','').replace(')','').replace(',','') )
+arg = fcall | expr
+fcall << Combine( Word(alphas) + Literal('(') + arg + ZeroOrMore(',' + arg) + Literal(')') )
 target = fcall | gpath
 targetList = delimitedList(target).setResultsName('targets')
 _from = Literal('from') + Word(printables).setResultsName('_from')
