@@ -162,11 +162,11 @@ while True:
       readBuffers[sock] = completeLines.pop() #Leaving the final partial line as our buffer
       if completeLines:
         #print 'Buffering %d complete lines' % len(completeLines)
-	if len(writeBuffer) < writeBufferMax:
+        if len(writeBuffer) < writeBufferMax:
           writeBuffer += '\n'.join(completeLines) + '\n'
           toWrite.add(writeFD) #When we know we have data, we must select writeFD
-	else:
-	  print '%d lines were dropped due to buffer exhaustion' % len(completeLines)
+        else:
+          print '%d lines were dropped due to buffer exhaustion' % len(completeLines)
 
     if writable and not writeBuffer: #Can't write if there's no data
       toWrite.remove(writeFD) #Stop selecting writeFD to prevent busy looping
