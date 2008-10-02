@@ -386,13 +386,14 @@ var TargetsWindow = { //This widget has a lot of state, so an object is appropri
         {text: 'Difference Series', handler: this.applyFuncToAll('diffSeries')},
         {text: 'Average Series', handler: this.applyFuncToAll('averageSeries')},
         {text: 'Moving Average Series', handler: this.applyFuncToEachWithInput('movingAverage')},
-        {text: 'As Percent', handler: this.applyFuncToEachWithInput('asPercent')},
-        {text: 'Scale', handler: this.applyFuncToEachWithInput('scale')},
+        {text: 'As Percent', handler: this.applyFuncToEachWithInput('asPercent', "Please enter the value that corresponds to 100%")},
+        {text: 'Scale', handler: this.applyFuncToEachWithInput('scale', "Please enter a scale factor")},
         {text: 'Cumulative', handler: this.applyFuncToEach('cumulative')},
         {text: 'Derivative', handler: this.applyFuncToEach('derivative')},
         {text: 'Integral', handler: this.applyFuncToEach('integral')},
-        {text: 'Alias', handler: this.applyFuncToEachWithInput('alias')},
-        {text: 'Remove Outer Call', handler: this.removeOuterCall.createDelegate(this)}
+        {text: 'Alias', handler: this.applyFuncToEachWithInput('alias', "What should this graph element be labeled as?")},
+        {text: 'Remove Outer Call', handler: this.removeOuterCall.createDelegate(this)},
+        {text: 'Most Deviant', handler: this.applyFuncToEachWithInput('mostDeviant', "Draw the ___ metrics with the highest standard deviation")}
       ]
     });
 
@@ -420,7 +421,11 @@ var TargetsWindow = { //This widget has a lot of state, so an object is appropri
           var newTarget;
           Composer.url.removeParam('target', target);
           if (extraArg) {
-            newTarget = funcName + '(' + target + ',' + extraArg + ')';
+            if (funcName == 'mostDeviant') { //SPECIAL CASE HACK
+              newTarget = funcName + '(' + extraArg + ',' + target + ')';
+            } else {
+              newTarget = funcName + '(' + target + ',' + extraArg + ')';
+            }
           } else {
             newTarget = funcName + '(' + target + ')';
           }

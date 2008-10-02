@@ -192,6 +192,18 @@ def alias(seriesList,newName):
     series.name = newName
   return seriesList
 
+def mostDeviant(n, seriesList):
+  deviants = []
+  for series in seriesList:
+    mean = safeDiv( safeSum(series), safeLen(series) )
+    if mean is None: continue
+    square_sum = sum([ (value - mean) ** 2 for value in series if value is not None ])
+    sigma = safeDiv(square_sum, safeLen(series))
+    if sigma is None: continue
+    deviants.append( (sigma, series) )
+  deviants.sort(key=lambda i: i[0], reverse=True) #sort by sigma
+  return [ series for (sigma,series) in deviants ][:n] #return the n most deviant series
+
 
 SeriesFunctions = {
   'sumSeries' : sumSeries,
@@ -207,4 +219,5 @@ SeriesFunctions = {
   'derivative' : derivative,
   'integral' : integral,
   'alias' : alias,
+  'mostDeviant' : mostDeviant,
 }
