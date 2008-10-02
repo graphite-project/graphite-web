@@ -211,7 +211,10 @@ function getCalendarSelection(which) {
   var myTime = Ext.getCmp(which + '-time').getValue();
   var myHour = myTime.match(/(\d+):/)[1];
   var myMinute = myTime.match(/:(\d+)/)[1];
-  if (myTime.endsWith('PM') && myHour != '12') {
+  if (myTime.match(/\bAM\b/i) && myHour == '12') {
+    myHour = 0;
+  }
+  if (myTime.match(/\bPM\b/i) && myHour != '12') {
     myHour = parseInt(myHour) + 12;
   }
   myDate.setHours(myHour, myMinute);
