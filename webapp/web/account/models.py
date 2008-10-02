@@ -26,18 +26,18 @@ class Profile(models.Model):
 class Variable(models.Model):
   class Admin: pass
   profile = models.ForeignKey(Profile)
-  name = models.CharField(maxlength=64)
-  value = models.CharField(maxlength=64)
+  name = models.CharField(max_length=64)
+  value = models.CharField(max_length=64)
 
 class View(models.Model):
   class Admin: pass
   profile = models.ForeignKey(Profile)
-  name = models.CharField(maxlength=64)
+  name = models.CharField(max_length=64)
   
 class Window(models.Model):
   class Admin: pass
   view = models.ForeignKey(View)
-  name = models.CharField(maxlength=64)
+  name = models.CharField(max_length=64)
   top = models.IntegerField()
   left = models.IntegerField()
   width = models.IntegerField()
@@ -48,5 +48,5 @@ class Window(models.Model):
 class MyGraph(models.Model):
   class Admin: pass
   profile = models.ForeignKey(Profile)
-  name = models.CharField(maxlength=64)
+  name = models.CharField(max_length=64)
   url = models.TextField()
