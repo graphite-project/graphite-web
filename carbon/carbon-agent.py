@@ -145,6 +145,7 @@ while True:
 
       try:
         pkt = sock.recv(65536) #Read what we can
+        print "DEBUG: carbon-agent received pkt=\"%s\"" % pkt
         #print 'Received %d bytes from %s' % (len(pkt),clientAddrs[sock])
       except:
         pkt = None
@@ -162,6 +163,7 @@ while True:
       readBuffers[sock] = completeLines.pop() #Leaving the final partial line as our buffer
       if completeLines:
         #print 'Buffering %d complete lines' % len(completeLines)
+        print "DEBUG: completeLines -> writeBuffer, %s" % str(completeLines)
         if len(writeBuffer) < writeBufferMax:
           writeBuffer += '\n'.join(completeLines) + '\n'
           toWrite.add(writeFD) #When we know we have data, we must select writeFD
@@ -174,6 +176,7 @@ while True:
 
     if writable:
       try:
+        print "DEBUG: writing to carbon-cache, writeBuffer=\"%s\"" % writeBuffer
         written = os.write(writeFD,writeBuffer)
         #print 'Wrote %d bytes to cache pipe' % written
       except:
