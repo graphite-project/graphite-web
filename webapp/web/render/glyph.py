@@ -273,12 +273,11 @@ class Graph:
 
 
 class LineGraph(Graph):
-  #TODO add bulletSize=3 bulletType=(None,square,circle)
   customizable = Graph.customizable + \
                  ('title','vtitle','lineMode','lineWidth','hideLegend', \
                   'hideAxes','minXStep','hideGrid','majorGridLineColor', \
                   'minorGridLineColor','thickness','min','max', \
-                  'graphOnly','yMin','yMax','areaMode','drawNullAsZero')
+                  'graphOnly','yMin','yMax','yStep','areaMode','drawNullAsZero')
   validLineModes = ('staircase','slope')
   validAreaModes = ('none','first','all')
 
@@ -467,6 +466,9 @@ class LineGraph(Graph):
     divisorInfo.sort(key=lambda i: i[1]) #sort our pretty values by "closeness to a factor"
     prettyValue = divisorInfo[0][0] #our winner! Y-axis will have labels placed at multiples of our prettyValue
     self.yStep = prettyValue * orderFactor #scale it back up to the order of yVariance
+
+    if 'yStep' in self.params:
+      self.yStep = self.params['yStep']
 
     self.yBottom = self.yStep * math.floor( yMinValue / self.yStep ) #start labels at the greatest multiple of yStep <= yMinValue
     self.yTop = self.yStep * math.ceil( yMaxValue / self.yStep ) #Extend the top of our graph to the lowest yStep multiple >= yMaxValue
