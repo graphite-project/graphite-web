@@ -13,16 +13,9 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 from django.conf.urls.defaults import *
-from django.conf import settings
 
-urlpatterns = patterns('',
-  ('^admin/', include('django.contrib.admin.urls')),
-  ('^render/?', include('web.render.urls')),
-  ('^cli/?', include('web.cli.urls')),
-  ('^composer/?', include('web.composer.urls')),
-  ('^browser/?', include('web.browser.urls')),
-  ('^account/?', include('web.account.urls')),
-  ('^whitelist/?', include('web.whitelist.urls')),
-  ('^content/(?P<path>.*)$', 'django.views.static.serve', {'document_root' : settings.CONTENT_DIR}),
-  ('', include('web.browser.urls')),
+urlpatterns = patterns('web.whitelist.views',
+  ('add','add'),
+  ('remove','remove'),
+  ('', 'show'),
 )
