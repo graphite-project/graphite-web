@@ -28,6 +28,7 @@ STORAGE_DIR = GRAPHITE_ROOT + 'storage/'
 WHISPER_DIR = STORAGE_DIR + 'whisper/'
 RRD_DIR = STORAGE_DIR + 'rrd/'
 INDEX_FILE = STORAGE_DIR + 'index'
+WHITELIST_FILE = STORAGE_DIR + 'whitelist.pickle'
 LOG_DIR = STORAGE_DIR + 'log/'
 
 try:

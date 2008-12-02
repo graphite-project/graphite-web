@@ -3,7 +3,9 @@
 import sys, os
 from optparse import OptionParser
 
-option_parser = OptionParser()
+option_parser = OptionParser(usage='''
+%prog [options] GRAPHITE_ROOT
+''')
 option_parser.add_option('--port', default=8080, action='store', type=int, help='Port to listen on')
 option_parser.add_option('--libs', default=None, help='Path to the directory containing the graphite python package')
 

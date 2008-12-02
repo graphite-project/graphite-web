@@ -135,14 +135,12 @@ while True:
     if inPipe in readable and not cache.isFull():
       readable.remove(inPipe) #so we can assume remaining readables are CQ clients
       pipeReadBuffer += os.read(inPipeFD,65536)
-      print "DEBUG: read from pipe, pipeReadBuffer = \"%s\"" % pipeReadBuffer
       lines = pipeReadBuffer.split('\n')
       pipeReadBuffer = lines.pop()
       #print 'Read %d lines from input pipe' % len(lines)
       for line in lines:
         try:
           name,point = line.strip().split(' ',1)
-          print "DEBUG: parsed data point, name=\"%s\" point=\"%s\"" % (name, point)
         except:
           print 'Ignoring malformed line: %s' % line
           traceback.print_exc()
@@ -158,7 +156,6 @@ while True:
       name,pointList = cache.popQueue()
       points = ','.join(pointList)
       pipeWriteBuffer += "%s %s\n" % (name,points)
-      print "DEBUG: writing to persister pipe, pipeWriteBuffer = \"%s\"" % pipeWriteBuffer
       written = os.write(outPipeFD,pipeWriteBuffer)
       #print 'Wrote %d bytes to persister pipe' % written
       pipeWriteBuffer = pipeWriteBuffer[written:]
