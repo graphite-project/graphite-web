@@ -132,21 +132,22 @@ while True:
       continue
 
     #Handle pipe I/O
-    if inPipe in readable and not cache.isFull():
+    if inPipe in readable:
       readable.remove(inPipe) #so we can assume remaining readables are CQ clients
-      pipeReadBuffer += os.read(inPipeFD,65536)
-      lines = pipeReadBuffer.split('\n')
-      pipeReadBuffer = lines.pop()
-      #print 'Read %d lines from input pipe' % len(lines)
-      for line in lines:
-        try:
-          name,point = line.strip().split(' ',1)
-        except:
-          print 'Ignoring malformed line: %s' % line
-          traceback.print_exc()
-          continue
-        cache.enqueue(name,point)
-        toWrite.add(outPipe) #Select for writability when we know we have data
+      if not cache.isFull():
+        pipeReadBuffer += os.read(inPipeFD,65536)
+        lines = pipeReadBuffer.split('\n')
+        pipeReadBuffer = lines.pop()
+        #print 'Read %d lines from input pipe' % len(lines)
+        for line in lines:
+          try:
+            name,point = line.strip().split(' ',1)
+          except:
+            print 'Ignoring malformed line: %s' % line
+            traceback.print_exc()
+            continue
+          cache.enqueue(name,point)
+          toWrite.add(outPipe) #Select for writability when we know we have data
 
     if outPipe in writable and cache.isEmpty(): #Ready to write but we have no data
       toWrite.remove(outPipe) #Stop selecting it to prevent a busyloop
