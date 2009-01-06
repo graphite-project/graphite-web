@@ -129,7 +129,12 @@ def parseOptions(request):
   # Fill in the requestOptions
   requestOptions['graphType'] = graphType
   requestOptions['graphClass'] = graphClass
-  requestOptions['targets'] = queryParams.getlist('target')
+  requestOptions['targets'] = []
+  for target in queryParams.getlist('target'):
+    if target.lower().startswith('graphite.'): #Strip leading "Graphite." as a convenience
+      target = target[9:]
+    requestOptions['targets'].append(target)
+
   if 'rawData' in queryParams:
     requestOptions['rawData'] = True
   if 'noCache' in queryParams:
