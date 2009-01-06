@@ -18,15 +18,18 @@ def evaluateTokens(tokens, timeInterval):
   if tokens.expression:
     return evaluateTokens(tokens.expression, timeInterval)
   elif tokens.pathExpression:
+    pathExpr = tokens.pathExpression
+    if pathExpr.lower().startswith('graphite.'):
+      pathExpr = pathExpr[9:]
     seriesList = []
     (startTime,endTime) = timeInterval
-    for dbFile in Finder.find(tokens.pathExpression):
+    for dbFile in Finder.find(pathExpr):
       results = dbFile.fetch( timestamp(startTime), timestamp(endTime) )
       if not results: continue
       (timeInfo,values) = results
       (start,end,step) = timeInfo
       series = TimeSeries(dbFile.graphite_path, start, end, step, values)
-      series.pathExpression = tokens.pathExpression #hack to pass expressions through to render functions
+      series.pathExpression = pathExpr #hack to pass expressions through to render functions
       seriesList.append(series)
     return seriesList
   elif tokens.call:
