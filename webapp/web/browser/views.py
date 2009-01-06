@@ -200,3 +200,9 @@ def json_response(obj):
   response['Pragma'] = 'no-cache'
   response['Cache-Control'] = 'no-cache'
   return response
+
+def any(iterable): #python2.4 compatibility
+  for i in iterable:
+    if i:
+      return True
+  return False
