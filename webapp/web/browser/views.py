@@ -180,7 +180,7 @@ def userGraphLookup(request):
         node = {
           'text' : str(graph.name),
           'id' : str(graph.name),
-          'graphUrl' : graph.url
+          'graphUrl' : str(graph.url)
         }
         node.update(leafNode)
         nodes.append(node)
