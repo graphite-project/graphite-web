@@ -56,11 +56,16 @@ limitations under the License. -->
         Composer.window.show();
 
         /* Direct graph loading */
+        var s = new String("{{queryString}}");
+        if (s.include("debug=1")) {
+          alert("queryString = " + s);
+          alert("showTarget = {{showTarget}}");
+        }
         if ("{{queryString}}") {
           Composer.loadURL("?{{queryString}}");
         }
         /* Automatic tree expansion */
-        var showTarget = "{{showTarget}}";
+        var showTarget = decodeURIComponent("{{showTarget}}");
         if (showTarget) {
           var parts = showTarget.split('.');
 

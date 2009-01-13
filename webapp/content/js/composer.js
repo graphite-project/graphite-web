@@ -59,12 +59,12 @@ GraphiteComposer.prototype = {
       var match = from.match(/^-(\d+)(\w+)/);
       if (match) { // Relative time
         timeInfo.mode = 'recent';
-	timeInfo.quantity = match[1];
-	timeInfo.units = match[2];
+        timeInfo.quantity = match[1];
+        timeInfo.units = match[2];
       } else { // Absolute time
         timeInfo.mode = 'date-range';
-	timeInfo.startDate = this.parseDate(from);
-	timeInfo.endDate = this.parseDate(until);
+        timeInfo.startDate = this.parseDate(from);
+        timeInfo.endDate = this.parseDate(until);
       }
     }
     this.window.updateTimeDisplay(timeInfo);
@@ -182,7 +182,7 @@ ParameterizedURL.prototype = {
 
   setQueryString: function (qs) {
     /* Use the given query string (and update this.params to match) */
-    this.queryString = qs;
+    this.queryString = qs.gsub(/#/,"%23"); //for prototype's quirky toQueryString() method
     this.syncParams();
     this.syncQueryString();
   },
@@ -190,7 +190,7 @@ ParameterizedURL.prototype = {
   syncQueryString: function () {
     /* Set the value of this.queryString to reflect the parameters in this.params
      * Call this whenever you modify this.params */
-    this.queryString = this.params.toQueryString();
+    this.queryString = this.params.toQueryString().gsub(/#/,"%23");
   },
 
   copyQueryStringFromURL: function (url) {
