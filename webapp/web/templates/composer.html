@@ -38,51 +38,55 @@ limitations under the License. -->
         showMyGraphs: {{showMyGraphs}}
       };
 
-      Ext.onReady(function () {
+      function init() {
         Browser = new GraphiteBrowser();
         Composer = new GraphiteComposer();
 
-	new Ext.Viewport({
-	  layout: 'border',
-	  items: [
-	    Browser.panel,
-	    { //Panel that holds the composer window
-	      region: 'center',
-	      items: [Composer.window]
-	    }
-	  ]
-	});
+        new Ext.Viewport({
+          layout: 'border',
+          items: [
+            Browser.panel,
+            { //Panel that holds the composer window
+              region: 'center',
+              items: [Composer.window]
+            }
+          ]
+        });
 
-	Composer.window.show();
+        Composer.window.show();
 
         /* Direct graph loading */
-	if ("{{queryString}}") {
-	  Composer.loadURL("?{{queryString}}");
-	}
+        if ("{{queryString}}") {
+          Composer.loadURL("?{{queryString}}");
+        }
         /* Automatic tree expansion */
-	var showTarget = "{{showTarget}}";
-	if (showTarget) {
-	  var parts = showTarget.split('.');
+        var showTarget = "{{showTarget}}";
+        if (showTarget) {
+          var parts = showTarget.split('.');
 
-	  function expandNext(node) {
-	    var nextPart = parts.shift();
-	    if (!nextPart) {
-	      return;
-	    }
-	    var nextNode = node.findChild('text', nextPart);
-	    if (!nextNode) {
-	      return;
-	    }
-	    nextNode.expand(false, false, expandNext);
-	  }
+          if (parts[0] == "Graphite") {
+            parts.shift();
+          }
+
+          function expandNext(node) {
+            var nextPart = parts.shift();
+            if (!nextPart) {
+              return;
+            }
+            var nextNode = node.findChild('text', nextPart);
+            if (!nextNode) {
+              return;
+            }
+            nextNode.expand(false, false, expandNext);
+          }
 
           Browser.trees.graphite.expand(false, false, expandNext);
-	}
-      });
+        }
+      }
 </script> 
 
   </head>
-  <body>
+  <body onload="init();">
   </body>
 </html>
 

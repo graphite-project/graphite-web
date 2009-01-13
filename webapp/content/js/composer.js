@@ -173,6 +173,9 @@ ParameterizedURL.prototype = {
       if (typeof(item.value) == 'string') {
         params.set(item.key, [item.value]);
       }
+      if (item.value == "undefined" || item.value == undefined) {
+        params.unset(item.key);
+      }
     });
     this.params = params;
   },
@@ -181,6 +184,7 @@ ParameterizedURL.prototype = {
     /* Use the given query string (and update this.params to match) */
     this.queryString = qs;
     this.syncParams();
+    this.syncQueryString();
   },
 
   syncQueryString: function () {
