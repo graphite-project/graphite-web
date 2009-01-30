@@ -57,6 +57,7 @@ def timestamp(datetime):
 
 
 def mergeResults(dbResults, cacheResults):
+  cacheResults = list(cacheResults)
   if not dbResults:
     return cacheResults
   if not cacheResults:
