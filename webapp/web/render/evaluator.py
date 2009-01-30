@@ -3,8 +3,11 @@ from django.conf import settings
 from web.render.grammar import grammar
 from web.render.functions import SeriesFunctions
 from web.render.datatypes import TimeSeries
+from web.render.carbonlink import CarbonLink
+
 
 Finder = settings.FINDER
+
 
 def evaluateTarget(target, timeInterval):
   tokens = grammar.parseString(target)
@@ -13,6 +16,7 @@ def evaluateTarget(target, timeInterval):
     return [result] #we have to return a list of TimeSeries objects
   else:
     return result
+
 
 def evaluateTokens(tokens, timeInterval):
   if tokens.expression:
@@ -24,7 +28,9 @@ def evaluateTokens(tokens, timeInterval):
     seriesList = []
     (startTime,endTime) = timeInterval
     for dbFile in Finder.find(pathExpr):
-      results = dbFile.fetch( timestamp(startTime), timestamp(endTime) )
+      getCacheResults = CarbonLink.sendRequest(dbFile.graphite_path)
+      dbResults = dbFile.fetch( timestamp(startTime), timestamp(endTime) )
+      results = mergeResults(dbResults, getCacheResults())
       if not results: continue
       (timeInfo,values) = results
       (start,end,step) = timeInfo
@@ -44,6 +50,27 @@ def evaluateTokens(tokens, timeInterval):
   elif tokens.string:
     return str(tokens.string)[1:-1]
 
+
 def timestamp(datetime):
   "Convert a datetime object into epoch time"
   return time.mktime( datetime.timetuple() )
+
+
+def mergeResults(dbResults, cacheResults):
+  if not dbResults:
+    return cacheResults
+  if not cacheResults:
+    return dbResults
+
+  (timeInfo,values) = dbResults
+  (start,end,step) = timeInfo
+
+  for (timestamp,value) in cacheResults:
+    interval = timestamp - (timestamp % step)
+    try:
+      i = int(interval - start) / int(step)
+      values[i] = value
+    except:
+      pass
+
+  return (timeInfo,values)

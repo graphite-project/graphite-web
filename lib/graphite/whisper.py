@@ -440,11 +440,13 @@ untilTime is also an epoch time, but defaults to now
     untilTime = now
   fromTime = int(fromTime)
   untilTime = int(untilTime)
+  assert fromTime < untilTime, "Invalid time interval"
   if untilTime > now:
     untilTime = now
   if fromTime < (now - header['maxRetention']):
     fromTime = now - header['maxRetention']
-  assert fromTime < untilTime, "Invalid time interval"
+  if untilTime < fromTime:
+    untilTime = now
   diff = now - fromTime
   for archive in header['archives']:
     if archive['retention'] >= diff: break
