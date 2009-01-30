@@ -136,7 +136,7 @@ def movingAverage(seriesList,time):
         continue
       toDrop = series[index]
       if toDrop is None:
-	toDrop = 0
+        toDrop = 0
       s = safeSum([safeMul(time, avg), el, -toDrop])
       avg = safeDiv(s, time)
       movAvg.append(avg)
