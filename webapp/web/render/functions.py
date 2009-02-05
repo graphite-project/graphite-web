@@ -14,6 +14,7 @@ limitations under the License."""
 
 from web.render.datatypes import TimeSeries
 from itertools import izip
+import math
 
 #Utility functions
 def safeSum(values):
@@ -125,15 +126,23 @@ def scale(seriesList,factor):
       series[i] = safeMul(value,factor)
   return seriesList
 
+def offset(seriesList,factor):
+  for series in seriesList:
+    series.name = "offset(%s,%.1f)" % (series.name,float(factor))
+    for i,value in enumerate(series):
+      series[i] = value + factor
+  return seriesList
+
 def movingAverage(seriesList,time):
   count = 0
   for series in seriesList:
     movAvg = TimeSeries("movingAverage(%s,%.1f)" % (series.name,float(time)),series.start,series.end,series.step,[])
+    movAvg.pathExpression = "movingAverage(%s,%.1f)" % (series.name,float(time))
     avg = safeDiv(safeSum(series[:time]), time)
     movAvg.append(avg)
     for (index, el) in enumerate(series[time:]):
       if el is None:
-        continue
+	continue
       toDrop = series[index]
       if toDrop is None:
 	toDrop = 0
@@ -204,6 +213,39 @@ def mostDeviant(n, seriesList):
   deviants.sort(key=lambda i: i[0], reverse=True) #sort by sigma
   return [ series for (sigma,series) in deviants ][:n] #return the n most deviant series
 
+# returns a two-element tuple
+# the first element is the std dev, the second is the new sum of squares
+def doStdDev(sumOfSquares, first, new, n, avg):
+   newSumOfSquares = sumOfSquares - (first * first) + (new * new)
+   return (math.sqrt((newSumOfSquares / float(n)) - (avg * avg)), newSumOfSquares)
+
+def stdev(seriesList,time):
+  count = 0
+  for series in seriesList:
+    stddevs = TimeSeries("stddev(%s,%.1f)" % (series.name,float(time)),series.start,series.end,series.step,[])
+    stddevs.pathExpression = "stddev(%s,%.1f)" % (series.name,float(time))
+    avg = safeDiv(safeSum(series[:time]), time)
+
+    sumOfSquares = sum(map(lambda(x): x * x, series[:time]))
+    (sd, sumOfSquares) = doStdDev(sumOfSquares, 0, 0, time, avg)
+    stddevs.append(sd)
+
+    for (index, el) in enumerate(series[time:]):
+      if el is None:
+        continue
+      toDrop = series[index]
+      if toDrop is None:
+        toDrop = 0
+      s = safeSum([safeMul(time, avg), el, -toDrop])
+      avg = safeDiv(s, time)
+
+      (sd, sumOfSquares) = doStdDev(sumOfSquares, toDrop, series[index+time], time, avg)
+      stddevs.append(sd)
+    for i in range(0, time-1):
+      stddevs.insert(0, None)
+    seriesList[count] = stddevs
+    count = count + 1
+  return seriesList
 
 SeriesFunctions = {
   'sumSeries' : sumSeries,
@@ -220,4 +262,6 @@ SeriesFunctions = {
   'integral' : integral,
   'alias' : alias,
   'mostDeviant' : mostDeviant,
+  'stdev' : stdev,
+  'offset' : offset,
 }
