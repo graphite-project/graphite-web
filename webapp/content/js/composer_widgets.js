@@ -385,15 +385,17 @@ var TargetsWindow = { //This widget has a lot of state, so an object is appropri
         {text: 'Sum Series', handler: this.applyFuncToAll('sumSeries')},
         {text: 'Difference Series', handler: this.applyFuncToAll('diffSeries')},
         {text: 'Average Series', handler: this.applyFuncToAll('averageSeries')},
-        {text: 'Moving Average Series', handler: this.applyFuncToEachWithInput('movingAverage')},
+        {text: 'Moving Average Series', handler: this.applyFuncToEachWithInput('movingAverage', "Draw the moving average for the last _ data points")},
         {text: 'As Percent', handler: this.applyFuncToEachWithInput('asPercent', "Please enter the value that corresponds to 100%")},
         {text: 'Scale', handler: this.applyFuncToEachWithInput('scale', "Please enter a scale factor")},
         {text: 'Cumulative', handler: this.applyFuncToEach('cumulative')},
         {text: 'Derivative', handler: this.applyFuncToEach('derivative')},
         {text: 'Integral', handler: this.applyFuncToEach('integral')},
         {text: 'Alias', handler: this.applyFuncToEachWithInput('alias', "What should this graph element be labeled as?")},
-        {text: 'Remove Outer Call', handler: this.removeOuterCall.createDelegate(this)},
-        {text: 'Most Deviant', handler: this.applyFuncToEachWithInput('mostDeviant', "Draw the ___ metrics with the highest standard deviation")}
+        {text: 'Most Deviant', handler: this.applyFuncToEachWithInput('mostDeviant', "Draw the ___ metrics with the highest standard deviation")},
+        {text: 'Standard Deviation', handler: this.applyFuncToEachWithInput('stdev', "Draw the standard deviation for the last _ data points")},
+        {text: 'Offset', handler: this.applyFuncToEachWithInput('offset', "Draw the graph with an offset of _")},
+        {text: 'Remove Outer Call', handler: this.removeOuterCall.createDelegate(this)}
       ]
     });
 
