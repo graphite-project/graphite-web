@@ -27,7 +27,9 @@ CONTENT_DIR = WEBAPP_DIR + 'content/'
 STORAGE_DIR = GRAPHITE_ROOT + 'storage/'
 WHISPER_DIR = STORAGE_DIR + 'whisper/'
 RRD_DIR = STORAGE_DIR + 'rrd/'
+LISTS_DIR = STORAGE_DIR + 'lists/'
 INDEX_FILE = STORAGE_DIR + 'index'
+WHITELIST_FILE = LISTS_DIR + 'whitelist'
 LOG_DIR = STORAGE_DIR + 'log/'
 
 try:
@@ -142,6 +144,7 @@ INSTALLED_APPS = (
   'web.browser',
   'web.composer',
   'web.account',
+  'web.whitelist',
   'django.contrib.auth',
   'django.contrib.sessions',
   'django.contrib.admin',

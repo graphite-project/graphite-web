@@ -67,7 +67,6 @@ def performUpdate(name,points):
       print "whisper.create exception. Creation parameters: path=%s archives=%s" % (path,archives)
       raise
   t = time.time()
-  print "DEBUG: calling whisper.update_many() path=%s points=%s" % (path, points)
   whisper.update_many(path, points)
   elapsed = time.time() - t
   print 'update_many: %s %d data points took %.6f seconds' % (path,len(points),elapsed)
@@ -119,16 +118,13 @@ while True: #Handle the incoming data
     continue
 
   readBuffer += os.read(inPipeFD,65536)
-  print "DEBUG: read from pipe, readBuffer = \"%s\"" % readBuffer
   lines = readBuffer.split('\n')
   readBuffer = lines.pop()
   #print 'Read %d lines from cache pipe' % len(lines)
   for line in lines:
     try:
       name,pointStrings = line.strip().split(' ',1)
-      print "DEBUG: parsed line. name=%s pointStrings=%s" % (name, pointStrings)
       points = [ tuple(reversed( p.split(' ',1) )) for p in pointStrings.split(',') ]
-      print "DEBUG: transformed points = %s" % str(points)
     except:
       print 'Ignoring malformed line...'
       continue

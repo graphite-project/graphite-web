@@ -58,7 +58,6 @@ def renderView(request):
       except:
         raise ValueError, "Invalid target '%s'" % target
       data.append( (name,value) )
-    return data
 
   elif requestOptions['graphType'] == 'line':
     # Let's see if at least our data is cached
@@ -101,10 +100,11 @@ def renderView(request):
       return response
 
   # We've got the data, now to render it
+  graphOptions['data'] = data
   if settings.REMOTE_RENDERING: # Rendering on other machines is faster in some situations
-    image = delegateRendering(requestOptions, graphOptions)
+    image = delegateRendering(requestOptions['graphType'], graphOptions)
   else:
-    image = doImageRender(requestOptions['graphClass'], data, graphOptions)
+    image = doImageRender(requestOptions['graphClass'], graphOptions)
 
   response = buildResponse(image)
 
@@ -129,7 +129,12 @@ def parseOptions(request):
   # Fill in the requestOptions
   requestOptions['graphType'] = graphType
   requestOptions['graphClass'] = graphClass
-  requestOptions['targets'] = queryParams.getlist('target')
+  requestOptions['targets'] = []
+  for target in queryParams.getlist('target'):
+    if target.lower().startswith('graphite.'): #Strip leading "Graphite." as a convenience
+      target = target[9:]
+    requestOptions['targets'].append(target)
+
   if 'rawData' in queryParams:
     requestOptions['rawData'] = True
   if 'noCache' in queryParams:
@@ -171,9 +176,9 @@ def parseOptions(request):
 
 connectionPools = {}
 
-def delegateRendering(requestOptions, graphOptions):
+def delegateRendering(graphType, graphOptions):
   start = time()
-  postData = requestOptions['graphType'] + '\n' + dumps(graphOptions)
+  postData = graphType + '\n' + dumps(graphOptions)
   servers = settings.RENDERING_HOSTS[:] #make a copy so we can shuffle it safely
   shuffle(servers)
   for server in servers:
@@ -246,10 +251,10 @@ def renderMyGraphView(request,username,graphName):
   return buildResponse(imageData)
 
 
-def doImageRender(graphClass, graphData, graphOptions):
+def doImageRender(graphClass, graphOptions):
   pngData = StringIO()
   t = time()
-  img = graphClass(graphData, **graphOptions)
+  img = graphClass(**graphOptions)
   img.output(pngData)
   log.rendering('Rendered PNG in %.6f seconds' % (time() - t))
   imageData = pngData.getvalue()

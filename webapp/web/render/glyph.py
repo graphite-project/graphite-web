@@ -79,9 +79,9 @@ class Graph:
                  'fontName','fontSize','fontBold','fontItalic', \
                  'colorList','template')
 
-  def __init__(self,data,**params):
-    self.data = data
+  def __init__(self,**params):
     self.params = params
+    self.data = params['data']
     self.width = int( params.get('width',200) )
     self.height = int( params.get('height',200) )
     self.margin = int( params.get('margin',10) )
@@ -390,7 +390,7 @@ class LineGraph(Graph):
       self.setColor( series.color )
       fromNone = True
       for value in series:
-        if self.params.get('drawNullAsZero') and value is None:
+        if value is None and self.params.get('drawNullAsZero'):
           value = 0.0
         if value is None:
           if not fromNone and self.areaMode != 'none': #Close off and fill area before unknown interval
@@ -449,6 +449,8 @@ class LineGraph(Graph):
     yMinValue = safeMin( [safeMin([v for v in series if v is not None]) for series in self.data] )
     yMaxValue = safeMax( [safeMax([v for v in series if v is not None]) for series in self.data] )
     #yMaxValue += float(yMaxValue) / 50.0 # add 2% for some headroom at the top of the graph
+    if self.params.get('drawNullAsZero') and any([[v for v in series if v is None] for series in self.data]):
+      yMinValue = 0.0
     if yMaxValue - yMinValue < 1:
       yMaxValue = yMinValue + 1
     yVariance = yMaxValue - yMinValue
@@ -701,3 +703,9 @@ def safeMin(args):
 def safeMax(args):
   if args: return max(args)
   return 1.0
+
+def any(args):
+  for arg in args:
+    if arg:
+      return True
+  return False

@@ -28,7 +28,7 @@ class CarbonLinkPool:
 
   def selectHost(self, metric):
     "Returns the carbon host that has data for the given metric"
-    return self.hosts[ hash(key) % len(self.hosts) ]
+    return self.hosts[ hash(metric) % len(self.hosts) ]
 
   def getConnection(self, host):
     # First try to take one out of the pool for this host
@@ -74,13 +74,13 @@ class CarbonLinkPool:
             if buf.endswith('\x00'): break
 
           # We're done with the connection for this request, put it in the pool
-          self.putInConnectionPool(host, connection)
+          self.putConnectionInPool(host, connection)
 
           # Now parse the response
           pointStrings = cPickle.loads(buf[:-1])
-          log.cache("CarbonLink to %s, retrieved %d points for %s" % (host,len(pointStrings),name))
+          log.cache("CarbonLink to %s, retrieved %d points for %s" % (host,len(pointStrings),metric))
           for point in pointStrings:
-            (timestamp, value) = point.split(':',1)
+            (value, timestamp) = point.split(' ',1)
             yield ( int(timestamp), float(value) )
         except:
           self.connections[host] = None

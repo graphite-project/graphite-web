@@ -3,8 +3,11 @@ from django.conf import settings
 from web.render.grammar import grammar
 from web.render.functions import SeriesFunctions
 from web.render.datatypes import TimeSeries
+from web.render.carbonlink import CarbonLink
+
 
 Finder = settings.FINDER
+
 
 def evaluateTarget(target, timeInterval):
   tokens = grammar.parseString(target)
@@ -14,19 +17,25 @@ def evaluateTarget(target, timeInterval):
   else:
     return result
 
+
 def evaluateTokens(tokens, timeInterval):
   if tokens.expression:
     return evaluateTokens(tokens.expression, timeInterval)
   elif tokens.pathExpression:
+    pathExpr = tokens.pathExpression
+    if pathExpr.lower().startswith('graphite.'):
+      pathExpr = pathExpr[9:]
     seriesList = []
     (startTime,endTime) = timeInterval
-    for dbFile in Finder.find(tokens.pathExpression):
-      results = dbFile.fetch( timestamp(startTime), timestamp(endTime) )
+    for dbFile in Finder.find(pathExpr):
+      getCacheResults = CarbonLink.sendRequest(dbFile.graphite_path)
+      dbResults = dbFile.fetch( timestamp(startTime), timestamp(endTime) )
+      results = mergeResults(dbResults, getCacheResults())
       if not results: continue
       (timeInfo,values) = results
       (start,end,step) = timeInfo
       series = TimeSeries(dbFile.graphite_path, start, end, step, values)
-      series.pathExpression = tokens.pathExpression #hack to pass expressions through to render functions
+      series.pathExpression = pathExpr #hack to pass expressions through to render functions
       seriesList.append(series)
     return seriesList
   elif tokens.call:
@@ -41,6 +50,28 @@ def evaluateTokens(tokens, timeInterval):
   elif tokens.string:
     return str(tokens.string)[1:-1]
 
+
 def timestamp(datetime):
   "Convert a datetime object into epoch time"
   return time.mktime( datetime.timetuple() )
+
+
+def mergeResults(dbResults, cacheResults):
+  cacheResults = list(cacheResults)
+  if not dbResults:
+    return cacheResults
+  if not cacheResults:
+    return dbResults
+
+  (timeInfo,values) = dbResults
+  (start,end,step) = timeInfo
+
+  for (timestamp,value) in cacheResults:
+    interval = timestamp - (timestamp % step)
+    try:
+      i = int(interval - start) / int(step)
+      values[i] = value
+    except:
+      pass
+
+  return (timeInfo,values)

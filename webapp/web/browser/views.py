@@ -35,6 +35,10 @@ def browser(request):
     'queryString' : getQueryString(request),
     'target' : request.GET.get('target')
   }
+  if context['queryString']:
+    context['queryString'] = context['queryString'].replace('#','%23')
+  if context['target']:
+    context['target'] = context['target'].replace('#','%23') #js libs terminate a querystring on #
   return render_to_response("browser.html", context) 
 
 def search(request):
@@ -180,7 +184,7 @@ def userGraphLookup(request):
         node = {
           'text' : str(graph.name),
           'id' : str(graph.name),
-          'graphUrl' : graph.url
+          'graphUrl' : str(graph.url)
         }
         node.update(leafNode)
         nodes.append(node)
@@ -200,3 +204,9 @@ def json_response(obj):
   response['Pragma'] = 'no-cache'
   response['Cache-Control'] = 'no-cache'
   return response
+
+def any(iterable): #python2.4 compatibility
+  for i in iterable:
+    if i:
+      return True
+  return False

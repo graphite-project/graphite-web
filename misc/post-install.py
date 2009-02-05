@@ -61,7 +61,7 @@ os.chdir(cwd)
 
 #Set filesystem ownerships
 print
-for path in ('storage', 'storage/graphite.db', 'storage/whisper', 'storage/log', 'carbon/log', 'carbon/pid'):
+for path in ('storage', 'storage/graphite.db', 'storage/whisper', 'storage/log', 'storage/lists', 'carbon/log', 'carbon/pid'):
   fullpath = os.path.join(install_root, path)
   if os.path.exists(fullpath):
     print "Changing ownership of %s to uid=%d gid=%d" % (fullpath,uid,gid)

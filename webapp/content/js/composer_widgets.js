@@ -169,13 +169,20 @@ function createCalendarWindow() {
   });
   endTimeControl = new Ext.form.TimeField({
     id: 'end-time',
-    increment: 30,
     allowBlank: false,
     value: "11:59 PM",
     listeners: {select: calendarSelectionMade, specialkey: ifEnter(calendarSelectionMade)}
   });
 
-  return new Ext.Window({
+  var myWindow;
+  var resizeStuff = function () {
+    startTimeControl.setWidth( startDateControl.el.getWidth() );
+    endTimeControl.setWidth( endDateControl.el.getWidth() );
+    myWindow.setWidth( startDateControl.el.getWidth() + endDateControl.el.getWidth() + myWindow.getFrameWidth() );
+    //myWindow.setHeight( startDateControl.el.getHeight() + startTimeControl.el.getHeight() + myWindow.getFrameHeight() );
+  };
+
+  myWindow = new Ext.Window({
     title: "Select Date Range",
     layout: 'table',
     height: 300,
@@ -189,8 +196,10 @@ function createCalendarWindow() {
       endDateControl,
       startTimeControl,
       endTimeControl
-    ]
+    ],
+    listeners: {show: resizeStuff}
   });
+  return myWindow;
 }
 
 function calendarSelectionMade(datePicker, selectedDate) {
@@ -403,14 +412,18 @@ var TargetsWindow = { //This widget has a lot of state, so an object is appropri
     var editItem = {text: "Edit", handler: this.editSelected.createDelegate(this)};
     var applyItem = {text: "Apply Function", menu: functionsMenu};
     var refreshItem = {text: "Refresh List", handler: this.refreshList.createDelegate(this)};
+    var addWlItem = {text: "Add to Whitelist", handler: this.addWlSelected.createDelegate(this)};
+    var removeWlItem = {text: "Remove from Whitelist", handler: this.removeWlSelected.createDelegate(this)};
 
     if (this.getSelectedTargets().length == 0) {
       removeItem.disabled = true;
       editItem.disabled = true;
       applyItem.disabled = true;
+      addWlItem.disabled = true;
+      removeWlItem.disabled = true;
     }
 
-    var contextMenu = new Ext.menu.Menu({ items: [removeItem, editItem, applyItem, refreshItem] });
+    var contextMenu = new Ext.menu.Menu({ items: [removeItem, editItem, applyItem, addWlItem, removeWlItem, refreshItem] });
     contextMenu.showAt( evt.getXY() );
 
     evt.stopEvent();
@@ -560,6 +573,26 @@ var TargetsWindow = { //This widget has a lot of state, so an object is appropri
       false, //multiline
       selected //initial value
     );
+  },
+
+  addWlSelected: function (item, evt) {
+    Ext.Ajax.request({
+      url: "/whitelist/add",
+      method: "POST",
+      success: function () { Ext.Msg.alert("Result", "Successfully added metrics to whitelist."); },
+      failure: function () { Ext.Msg.alert("Result", "Failed to add metrics to whitelist.");   },
+      params: {metrics: this.getSelectedTargets().join("\n") }
+    });
+  },
+
+  removeWlSelected: function (item, evt) {
+    Ext.Ajax.request({
+      url: "/whitelist/remove",
+      method: "POST",
+      success: function () { Ext.Msg.alert("Result", "Successfully removed metrics from whitelist."); },
+      failure: function () { Ext.Msg.alert("Result", "Failed to remove metrics from whitelist.");   },
+      params: {metrics: this.getSelectedTargets().join("\n") }
+    });
   },
 
   getSelectedTargets: function () {
