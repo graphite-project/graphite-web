@@ -334,17 +334,19 @@ def _dosave(request,viewName):
     try:
       if windowName in ('_','commandInput'): continue
       paramString = urllib.unquote_plus(encodedString)
-      params = cgi.parse_qs(paramString)
-      for key,value in params.items(): #Clean up the window params
-        value = value[0]
+      queryParams = cgi.parse_qs(paramString)
+      modelParams = {}
+      for key,value in queryParams.items(): #Clean up the window params
+        key = str(key)
+        value = str(value[0])
         if key in ('top','left'):
           value = int(float( value.replace('px','') ))
         if key in ('width','height','interval'):
           value = int(float(value))
-        params[key] = value
-      if 'interval' not in params:
-        params['interval'] = None
-      win = Window(view=view,name=windowName,**params)
+        modelParams[key] = value
+      if 'interval' not in modelParams:
+        modelParams['interval'] = None
+      win = Window(view=view,name=windowName,**modelParams)
       win.save()
     except:
       log.exception("Failed to process parameters for window '%s'" % windowName)
