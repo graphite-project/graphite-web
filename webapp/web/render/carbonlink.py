@@ -83,8 +83,8 @@ class CarbonLinkPool:
             (value, timestamp) = point.split(' ',1)
             yield ( int(timestamp), float(value) )
         except:
-          self.connections[host] = None
           log.exception("CarbonLink to %s, exception while getting response" % str(host))
+          self.removeConnectionFromPool(host, connection)
 
       return receiveResponse
     except:
