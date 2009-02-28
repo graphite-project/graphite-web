@@ -24,7 +24,7 @@ intNumber = Word(nums).setResultsName('integer')
 floatNumber = Combine(Word(nums) + Literal('.') + Word(nums)).setResultsName('float')
 number = Group(floatNumber | intNumber).setResultsName('number')
 
-goodchars = printables.replace('(','').replace(')','').replace(',','') + ' '
+goodchars = printables.replace('(','').replace(')','').replace(',','').replace('"','') + ' '
 pathExpression = Word(goodchars).setResultsName('pathExpression')
 
 arg = Group(number | expression | quotedString.setResultsName('string'))
