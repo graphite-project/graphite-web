@@ -44,7 +44,7 @@ create_cmd = Keyword('create').setResultsName('command') + window
 #draw
 draw = Keyword('draw').setResultsName('command')
 
-gpath = Word(alphanums + '._-+*?[]#')
+gpath = Word(alphanums + '._-+*?[]#:')
 fcall = Forward()
 expr = Word( printables.replace('(','').replace(')','').replace(',','') )
 arg = fcall | expr
