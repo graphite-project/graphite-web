@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import sys, os, pwd, traceback
+import sys, os, pwd, traceback, shutil
 from optparse import OptionParser
 
 def die(msg):
@@ -133,9 +133,9 @@ else:
 
 # Perform the installation
 print 'Copying files...'
-os.system("cp -rvf webapp/ %s" % install_root)
-os.system("cp -rvf storage/ %s" % install_root)
-os.system("cp -rvf carbon/ %s" % install_root)
+shutil.copytree("webapp", "%s/webapp" % install_root)
+shutil.copytree("storage", "%s/storage" % install_root)
+shutil.copytree("carbon", "%s/carbon" % install_root)
 
 extjs_link = os.path.join(install_root,'webapp','content','js','extJS')
 if not os.path.exists(extjs_link):
