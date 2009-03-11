@@ -14,9 +14,10 @@ limitations under the License."""
 
 from django.conf.urls.defaults import *
 from django.conf import settings
+from django.contrib import admin
 
 urlpatterns = patterns('',
-  ('^admin/', include('django.contrib.admin.urls')),
+  ('^admin/(.*)', admin.site.root),
   ('^render/?', include('web.render.urls')),
   ('^cli/?', include('web.cli.urls')),
   ('^composer/?', include('web.composer.urls')),

@@ -59,9 +59,9 @@ except:
   die("Unable to import the 'django' module, do you have Django installed for python %s?" % py_version)
 
 # Verify django version
-if django.VERSION[0] == 0 and django.VERSION[1] < 95:
+if django.VERSION[0] < 1:
   version = '.'.join([str(v) for v in django.VERSION if v is not None])
-  die("You have django version %s installed, but version 0.95 or greater is required" % version)
+  die("You have django version %s installed, but version 1.0 or greater is required" % version)
 
 # Test for pyparsing
 try:
