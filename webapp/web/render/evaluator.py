@@ -4,6 +4,7 @@ from web.render.grammar import grammar
 from web.render.functions import SeriesFunctions
 from web.render.datatypes import TimeSeries
 from web.render.carbonlink import CarbonLink
+from web.logger import log
 
 
 Finder = settings.FINDER
@@ -28,6 +29,7 @@ def evaluateTokens(tokens, timeInterval):
     seriesList = []
     (startTime,endTime) = timeInterval
     for dbFile in Finder.find(pathExpr):
+      log.metric_access(dbFile.graphite_path)
       getCacheResults = CarbonLink.sendRequest(dbFile.graphite_path)
       dbResults = dbFile.fetch( timestamp(startTime), timestamp(endTime) )
       results = mergeResults(dbResults, getCacheResults())

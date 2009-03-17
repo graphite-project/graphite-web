@@ -18,6 +18,7 @@ from django.conf import settings
 
 logging.addLevelName(30,"rendering")
 logging.addLevelName(30,"cache")
+logging.addLevelName(30,"metric_access")
 
 class GraphiteLogger:
   def __init__(self):
@@ -26,12 +27,14 @@ class GraphiteLogger:
     self.exceptionLogFile = os.path.join(settings.LOG_DIR,"exception.log")
     self.cacheLogFile = os.path.join(settings.LOG_DIR,"cache.log")
     self.renderingLogFile = os.path.join(settings.LOG_DIR,"rendering.log")
+    self.metricAccessLogFile = os.path.join(setting.LOG_DIR,"metricaccess.log")
     #Setup loggers
     self.infoLogger = logging.getLogger("info")
     self.infoLogger.setLevel(logging.INFO)
     self.exceptionLogger = logging.getLogger("exception")
     self.cacheLogger = logging.getLogger("cache")
     self.renderingLogger = logging.getLogger("rendering")
+    self.metricAccessLogger = logging.getLogger("metric_access")
     #Setup formatter & handlers
     self.formatter = logging.Formatter("%(asctime)s :: %(message)s","%a %b %d %H:%M:%S %Y")
     self.infoHandler = Rotater(self.infoLogFile,when="midnight",backupCount=1)
@@ -48,6 +51,10 @@ class GraphiteLogger:
       self.renderingHandler = Rotater(self.renderingLogFile,when="midnight",backupCount=1)
       self.renderingHandler.setFormatter(self.formatter)
       self.renderingLogger.addHandler(self.renderingHandler)
+    if settings.LOG_METRIC_ACCESS:
+      self.metricAccessHandler = Rotater(self.metricAccessLogFile,when="midnight",backupCount=10)
+      self.metricAccessHandler.setFormatter(self.formatter)
+      self.metricAccessLogger.addHandler(self.metricAccessHandler)
 
   def info(self,msg,*args,**kwargs):
     return self.infoLogger.info(msg,*args,**kwargs)
@@ -60,6 +67,9 @@ class GraphiteLogger:
 
   def rendering(self,msg,*args,**kwargs):
     return self.renderingLogger.log(30,msg,*args,**kwargs)
+
+  def metric_access(self,msg,*args,**kwargs):
+    return self.metricAccessLogger.log(30,msg,*args,**kwargs)
 
 
 log = GraphiteLogger() # import-shared logger instance

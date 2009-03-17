@@ -57,6 +57,7 @@ CARBONLINK_TIMEOUT = 1.0
 SMTP_SERVER = "localhost"
 DOCUMENTATION_URL = "http://graphite.wikidot.com/documentation"
 ALLOW_ANONYMOUS_CLI = True
+LOG_METRIC_ACCESS = False
 
 #Authentication settings
 USE_LDAP_AUTH = False
