@@ -27,7 +27,7 @@ class GraphiteLogger:
     self.exceptionLogFile = os.path.join(settings.LOG_DIR,"exception.log")
     self.cacheLogFile = os.path.join(settings.LOG_DIR,"cache.log")
     self.renderingLogFile = os.path.join(settings.LOG_DIR,"rendering.log")
-    self.metricAccessLogFile = os.path.join(setting.LOG_DIR,"metricaccess.log")
+    self.metricAccessLogFile = os.path.join(settings.LOG_DIR,"metricaccess.log")
     #Setup loggers
     self.infoLogger = logging.getLogger("info")
     self.infoLogger.setLevel(logging.INFO)
