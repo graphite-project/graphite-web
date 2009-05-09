@@ -29,7 +29,7 @@ django_root = django.__path__[0]
 vhost = open('misc/template-vhost.conf').read()
 vhost = vhost.replace('@INSTALL_ROOT@', install_root)
 vhost = vhost.replace('@PYTHON_PATH@', str(python_path))
-vhost = vhost.replcae('@DJANGO_ROOT@', django_root)
+vhost = vhost.replace('@DJANGO_ROOT@', django_root)
 
 fh = open('graphite-vhost.conf','w')
 fh.write(vhost)
