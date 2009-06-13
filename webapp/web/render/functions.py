@@ -93,6 +93,15 @@ def averageSeries(*seriesLists):
   series.pathExpression = name
   return [series]
 
+def keepLastValue(seriesList):
+  for series in seriesList:
+    series.name = "keepLastValue(%s)" % (series.name)
+    for i,value in enumerate(series):
+      if value is None:
+        value = series[i-1]
+      series[i] = value
+  return seriesList
+
 def asPercent(seriesList1,seriesList2orNumber):
   assert len(seriesList1) == 1, "asPercent series arguments must reference *exactly* 1 series"
   series1 = seriesList1[0]
@@ -264,4 +273,5 @@ SeriesFunctions = {
   'mostDeviant' : mostDeviant,
   'stdev' : stdev,
   'offset' : offset,
+  'keepLastValue' : keepLastValue,
 }

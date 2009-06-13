@@ -404,6 +404,7 @@ var TargetsWindow = { //This widget has a lot of state, so an object is appropri
         {text: 'Most Deviant', handler: this.applyFuncToEachWithInput('mostDeviant', "Draw the ___ metrics with the highest standard deviation")},
         {text: 'Standard Deviation', handler: this.applyFuncToEachWithInput('stdev', "Draw the standard deviation for the last _ data points")},
         {text: 'Offset', handler: this.applyFuncToEachWithInput('offset', "Draw the graph with an offset of _")},
+        {text: 'Keep Last Value', handler: this.applyFuncToEach('keepLastValue')},
         {text: 'Remove Outer Call', handler: this.removeOuterCall.createDelegate(this)}
       ]
     });
