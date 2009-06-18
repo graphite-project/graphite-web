@@ -21,6 +21,7 @@ class TimeSeries(list):
     list.__init__(self,values)
     self.consolidationFunc = consolidate
     self.valuesPerPoint = 1
+    self.options = {}
 
   def __iter__(self):
     if self.valuesPerPoint > 1:

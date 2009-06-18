@@ -385,6 +385,10 @@ class LineGraph(Graph):
     }[linejoin])
 
     for series in self.data:
+      if series.options.has_key('lineWidth'): # adjusts the lineWidth of this line if option is set on the series
+        self.ctx.set_line_width(series.options['lineWidth'])
+      if series.options.has_key('dashed'): # turn on dashing if dashed option set
+        self.ctx.set_dash([ series.options['dashed'] ],1)
       x = float(self.area['xmin']) + (self.lineWidth / 2.0)
       y = float(self.area['ymin'])
       self.setColor( series.color )
@@ -401,6 +405,11 @@ class LineGraph(Graph):
           fromNone = True
         else:
           y = self.area['ymax'] - ((float(value) - self.yBottom) * self.yScaleFactor)
+          if series.options.has_key('drawAsInfinite') and value > 0:
+            self.ctx.move_to(x, self.area['ymax'])
+            self.ctx.line_to(x, self.area['ymin'])
+            self.ctx.stroke()
+            continue
           if self.lineMode == 'staircase':
             if fromNone:
               if self.areaMode != 'none':
@@ -430,6 +439,13 @@ class LineGraph(Graph):
           self.areaMode = 'none' #This ensures only the first line is drawn as area
       else:
         self.ctx.stroke()
+
+      self.ctx.set_line_width(width) # return to the original line width
+      if series.options.has_key('dash'): # if we changed the dash setting before, change it back now
+        if dash:
+          self.ctx.set_dash(dash,1)
+        else:
+          self.ctx.set_dash([],0)
 
   def consolidateDataPoints(self):
     numberOfPixels = self.graphWidth = self.area['xmax'] - self.area['xmin'] - (self.lineWidth + 1)

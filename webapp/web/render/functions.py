@@ -256,6 +256,27 @@ def stdev(seriesList,time):
     count = count + 1
   return seriesList
 
+def drawAsInfinite(seriesList):
+  for series in seriesList:
+    series.options['drawAsInfinite'] = True
+    series.name = 'drawAsInfinite(%s)' % series.name
+  return seriesList
+
+def lineWidth(seriesList, width):
+  for series in seriesList:
+    series.options['lineWidth'] = width
+  return seriesList
+
+def dashed(*seriesList):
+  if len(seriesList) == 2:
+    dashLength = seriesList[1]
+  else:
+    dashLength = 5
+  for series in seriesList[0]:
+    series.name = 'dashed(%s, %d)' % (series.name, dashLength)
+    series.options['dashed'] = dashLength
+  return seriesList[0]
+
 SeriesFunctions = {
   'sumSeries' : sumSeries,
   'diffSeries' : diffSeries,
@@ -274,4 +295,7 @@ SeriesFunctions = {
   'stdev' : stdev,
   'offset' : offset,
   'keepLastValue' : keepLastValue,
+  'drawAsInfinite' : drawAsInfinite,
+  'lineWidth' : lineWidth,
+  'dashed' : dashed,
 }
