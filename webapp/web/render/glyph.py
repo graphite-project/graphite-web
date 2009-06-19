@@ -368,6 +368,7 @@ class LineGraph(Graph):
   def drawLines(self, width=None, dash=None, linecap='butt', linejoin='miter'):
     if not width: width = self.lineWidth
     self.ctx.set_line_width(width)
+    originalWidth = width
     width = float(int(width) % 2) / 2
     if dash:
       self.ctx.set_dash(dash,1)
@@ -440,7 +441,7 @@ class LineGraph(Graph):
       else:
         self.ctx.stroke()
 
-      self.ctx.set_line_width(width) # return to the original line width
+      self.ctx.set_line_width(originalWidth) # return to the original line width
       if series.options.has_key('dash'): # if we changed the dash setting before, change it back now
         if dash:
           self.ctx.set_dash(dash,1)
