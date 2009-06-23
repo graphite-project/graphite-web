@@ -28,8 +28,8 @@ def hashRequest(request):
 
 def hashData(targets, startTime, endTime):
   targetsString = ','.join(targets)
-  startTimeString = startTime.strftime("%Y%m%d_%H%M%S")
-  endTimeString = endTime.strftime("%Y%m%d_%H%M%S")
+  startTimeString = startTime.strftime("%Y%m%d_%H%M")
+  endTimeString = endTime.strftime("%Y%m%d_%H%M")
   myHash = targetsString + '@' + startTimeString + ':' + endTimeString
   myHash = stripControlChars(myHash)
   if len(myHash) > 249:
