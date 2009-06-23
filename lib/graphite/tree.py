@@ -21,14 +21,37 @@ class MetricFinder:
   def configureClusterServers(self, hosts):
     self.cluster = [ clustering.ClusterMember(host) for host in hosts if not is_local_interface(host) ]
 
-  def find(self, path_pattern):
+  def find(self, pattern):
+    if '*' in pattern or '?' in pattern:
+      for match in self.find_parallel(pattern):
+        yield match
+    else:
+      match = self.find_first(pattern)
+
+      if match is not None:
+        yield match
+
+  def find_first(self, pattern):
+    # Search locally first
+    for dir in self.dirs:
+      for match in find(dir, pattern):
+        return match
+
+    # If nothing found earch remotely
+    remote_requests = [ member.find(pattern) for member in self.cluster ]
+
+    for request in remote_requests:
+      for match in request.get_results():
+        return match
+
+  def find_parallel(self, pattern):
     # Start remote searches
     found = set()
-    remote_requests = [ member.find(path_pattern) for member in self.cluster ]
+    remote_requests = [ member.find(pattern) for member in self.cluster ]
 
     # Search locally
     for dir in self.dirs:
-      for match in find(dir, path_pattern):
+      for match in find(dir, pattern):
         if match.graphite_path not in found:
           yield match
           found.add(match.graphite_path)
@@ -38,7 +61,7 @@ class MetricFinder:
       for match in remote_request.get_results():
         if match.graphite_path not in found:
           yield match
-          found.add(graphite_path)
+          found.add(match.graphite_path)
 
 
 def is_local_interface(host):

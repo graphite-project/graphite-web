@@ -49,7 +49,8 @@ class RemoteNode:
   def __init__(self, server, graphite_path, isLeaf):
     self.server = server
     self.fs_path = None
-    self.graphite_path
+    self.graphite_path = graphite_path
+    self.name = graphite_path.split('.')[-1]
     self.__isLeaf = isLeaf
 
   def fetch(self, startTime, endTime):
