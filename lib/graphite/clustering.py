@@ -1,3 +1,4 @@
+import socket, time
 from httplib import HTTPConnection
 from urllib import urlencode
 try:
@@ -6,18 +7,27 @@ except ImportError:
   import pickle
 
 
-class ClusterMember:
-  def __init__(self, host, timeout=15):
+class ClusterMember(object):
+  timeout = 5
+  lastFailure = 0.0
+  retryDelay = 10
+  available = property(lambda self: time.time() - self.lastFailure > self.retryDelay)
+
+  def __init__(self, host):
     self.host = host
-    self.timeout = timeout
 
   def find(self, pattern):
     request = FindRequest(self, pattern)
     request.send()
     return request
 
+  def fail(self):
+    self.lastFailure = time.time()
+
 
 class FindRequest:
+  suppressErrors = True
+
   def __init__(self, server, pattern):
     self.server = server
     self.pattern = pattern
@@ -25,9 +35,14 @@ class FindRequest:
 
   def send(self):
     self.connection = HTTPConnection(self.server.host, timeout=self.server.timeout)
-    self.connection.request('GET', '/browser/local/?pattern=' + self.pattern)
+    try:
+      self.connection.request('GET', '/browser/local/?pattern=' + self.pattern)
+    except:
+      self.server.fail()
+      if not self.suppressErrors:
+        raise
 
-  def get_results(self, suppressErrors=True):
+  def get_results(self):
     if not self.connection:
       self.send()
 
@@ -37,7 +52,8 @@ class FindRequest:
       result_data = response.read()
       results = pickle.loads(result_data)
     except:
-      if not suppressErrors:
+      self.server.fail()
+      if not self.suppressErrors:
         raise
       else:
         results = []

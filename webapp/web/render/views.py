@@ -94,7 +94,8 @@ def renderView(request):
     # If data is all we needed, we're done
     if 'pickle' in requestOptions:
       response = HttpResponse(mimetype='application/pickle')
-      pickle.dump(data, response, protocol=-1)
+      seriesInfo = [series.getInfo() for series in data]
+      pickle.dump(seriesInfo, response, protocol=-1)
 
       log.rendering('Total pickle rendering time %.6f' % (time() - start))
       return response

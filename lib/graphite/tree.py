@@ -38,7 +38,7 @@ class MetricFinder:
         return match
 
     # If nothing found earch remotely
-    remote_requests = [ member.find(pattern) for member in self.cluster ]
+    remote_requests = [ member.find(pattern) for member in self.cluster if member.available ]
 
     for request in remote_requests:
       for match in request.get_results():
@@ -47,7 +47,7 @@ class MetricFinder:
   def find_parallel(self, pattern):
     # Start remote searches
     found = set()
-    remote_requests = [ member.find(pattern) for member in self.cluster ]
+    remote_requests = [ member.find(pattern) for member in self.cluster if member.available ]
 
     # Search locally
     for dir in self.dirs:

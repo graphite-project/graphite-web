@@ -63,18 +63,12 @@ class TimeSeries(list):
     return 'TimeSeries(name=%s,start=%s,end=%s,step=%s)' % (self.name, self.start, self.end, self.step)
   __repr__ = __str__
 
-  @staticmethod
-  def __pickle__(self):
-    info = {
+  def getInfo(self):
+    'Pickle-friendly representation of the series'
+    return {
       'name' : self.name,
       'start' : self.start,
       'end' : self.end,
       'step' : self.step,
       'values' : list(self),
     }
-    type = dict
-    constructorArgs = (info,)
-    return (type, constructorArgs)
-
-
-copy_reg.pickle(TimeSeries, TimeSeries.__pickle__)
