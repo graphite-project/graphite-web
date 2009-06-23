@@ -45,11 +45,11 @@ def renderView(request):
     requestKey = hashRequest(request)
     cachedResponse = cache.get(requestKey)
     if cachedResponse:
-      log.cache('Request-Cache hit')
+      log.cache('Request-Cache hit [%s]' % requestKey)
       log.rendering('Returned cached response in %.6f' % (time() - start))
       return cachedResponse
     else:
-      log.cache('Request-Cache miss')
+      log.cache('Request-Cache miss [%s]' % requestKey)
 
   # Now we prepare the requested data
   if requestOptions['graphType'] == 'pie':
@@ -71,9 +71,9 @@ def renderView(request):
       dataKey = hashData(targets, startTime, endTime)
       cachedData = cache.get(dataKey)
       if cachedData:
-        log.cache("Data-Cache hit")
+        log.cache("Data-Cache hit [%s]" % dataKey)
       else:
-        log.cache("Data-Cache miss")
+        log.cache("Data-Cache miss [%s]" % dataKey)
     else:
       cachedData = None
 
