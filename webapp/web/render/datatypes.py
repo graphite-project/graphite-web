@@ -11,6 +11,8 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
+import copy_reg
+
 
 class TimeSeries(list):
   def __init__(self,name,start,end,step,values,consolidate='average'):
@@ -60,3 +62,19 @@ class TimeSeries(list):
   def __str__(self):
     return 'TimeSeries(name=%s,start=%s,end=%s,step=%s)' % (self.name, self.start, self.end, self.step)
   __repr__ = __str__
+
+  @staticmethod
+  def __pickle__(self):
+    info = {
+      'name' : self.name,
+      'start' : self.start,
+      'end' : self.end,
+      'step' : self.step,
+      'values' : list(self),
+    }
+    type = dict
+    constructorArgs = (info,)
+    return (type, constructorArgs)
+
+
+copy_reg.pickle(TimeSeries, TimeSeries.__pickle__)

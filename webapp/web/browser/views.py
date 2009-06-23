@@ -19,6 +19,10 @@ from django.conf import settings
 from web.account.models import Profile
 from web.util import getProfile, getProfileByUsername, getQueryString, defaultUser
 from web.logger import log
+try:
+  import cPickle as pickle
+except ImportError:
+  import pickle
 
 
 def header(request):
@@ -119,6 +123,18 @@ def treeLookup(request):
     log.exception("browser.views.treeLookup(): could not complete request %s" % str(request.GET))
 
   return json_response(nodes)
+
+
+def localLookup(request):
+  "View used for graphite.tree clustering"
+  pattern = str( request.GET['pattern'] )
+
+  matches = list( settings.LOCAL_FINDER.find(pattern) )
+  matches.sort(key=lambda node: node.name)
+
+  results = [ (node.graphite_path, node.isLeaf()) for node in matches ]
+  result_data = pickle.dumps(results, protocol=-1)
+  return HttpResponse(result_data, mimetype='application/pickle')
 
 
 def myGraphLookup(request):

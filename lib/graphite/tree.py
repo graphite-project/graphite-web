@@ -1,6 +1,7 @@
-import os, time, fnmatch
+import os, time, fnmatch, socket, errno
 from os.path import isdir, isfile, join, splitext, basename
 from graphite import whisper
+from graphite import clustering
 
 try:
   import rrdtool
@@ -9,16 +10,50 @@ except ImportError:
 
 DATASOURCE_DELIMETER = '::RRD_DATASOURCE::'
 
-# Exposed API
-class Finder:
-  "Encapsulate find() functionality for one or more directory trees"
+
+class MetricFinder:
+  "Encapsulate find() functionality for one or more data stores"
+
   def __init__(self, dirs):
     self.dirs = dirs
+    self.cluster = []
+
+  def configureClusterServers(self, hosts):
+    self.cluster = [ clustering.ClusterMember(host) for host in hosts if not is_local_interface(host) ]
 
   def find(self, path_pattern):
+    # Start remote searches
+    found = set()
+    remote_requests = [ member.find(path_pattern) for member in self.cluster ]
+
+    # Search locally
     for dir in self.dirs:
       for match in find(dir, path_pattern):
-        yield match
+        if match.graphite_path not in found:
+          yield match
+          found.add(match.graphite_path)
+
+    # Gather remote search results
+    for remote_request in remote_requests:
+      for match in remote_request.get_results():
+        if match.graphite_path not in found:
+          yield match
+          found.add(graphite_path)
+
+
+def is_local_interface(host):
+  if ':' in host:
+    host = host.split(':',1)[0]
+
+  try:
+    sock = socket.socket()
+    sock.bind( (host,42) ) #port doesn't matter
+    sock.close()
+  except Exception, e:
+    if hasattr(e,'errno') and e.errno == errno.EADDRNOTAVAIL:
+      return False
+
+  return True
 
 
 def find(root_dir, pattern):

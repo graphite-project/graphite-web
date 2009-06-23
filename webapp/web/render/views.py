@@ -17,7 +17,10 @@ from random import shuffle
 from httplib import HTTPConnection, CannotSendRequest
 from urlparse import urlsplit
 from cStringIO import StringIO
-from cPickle import dumps, loads
+try:
+  import cPickle as pickle
+except ImportError:
+  import pickle
 
 from web.util import getProfileByUsername
 from web.logger import log
@@ -85,16 +88,23 @@ def renderView(request):
         data.extend(seriesList)
         log.rendering('Retrieval of %s took %.6f' % (target,time() - t))
 
+    if useCache:
+      cache.set(dataKey, data)
+
     # If data is all we needed, we're done
+    if 'pickle' in requestOptions:
+      response = HttpResponse(mimetype='application/pickle')
+      pickle.dump(data, response, protocol=-1)
+
+      log.rendering('Total pickle rendering time %.6f' % (time() - start))
+      return response
+
     if 'rawData' in requestOptions:
       response = HttpResponse(mimetype='text/plain')
       for series in data:
         response.write( "%s,%d,%d,%d|" % (series.name, series.start, series.end, series.step) )
         response.write( ','.join(map(str,series)) )
         response.write('\n')
-
-      if useCache:
-        cache.set(dataKey, data)
 
       log.rendering('Total rawData rendering time %.6f' % (time() - start))
       return response
@@ -135,6 +145,8 @@ def parseOptions(request):
       target = target[9:]
     requestOptions['targets'].append(target)
 
+  if 'pickle' in queryParams:
+    requestOptions['pickle'] = True
   if 'rawData' in queryParams:
     requestOptions['rawData'] = True
   if 'noCache' in queryParams:
@@ -178,7 +190,7 @@ connectionPools = {}
 
 def delegateRendering(graphType, graphOptions):
   start = time()
-  postData = graphType + '\n' + dumps(graphOptions)
+  postData = graphType + '\n' + pickle.dumps(graphOptions)
   servers = settings.RENDERING_HOSTS[:] #make a copy so we can shuffle it safely
   shuffle(servers)
   for server in servers:
@@ -225,7 +237,7 @@ def renderLocalView(request):
     optionsPickle = reqParams.read()
     reqParams.close()
     graphClass = GraphTypes[graphType]
-    options = loads(optionsPickle)
+    options = pickle.loads(optionsPickle)
     image = doImageRender(graphClass, options)
     log.rendering("Delegated rendering request took %.6f seconds" % (time() -  start))
     return buildResponse(image)

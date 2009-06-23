@@ -15,7 +15,7 @@ limitations under the License."""
 # DO NOT MODIFY THIS FILE DIRECTLY - use local_settings.py instead
 import sys
 from os.path import join, dirname, abspath
-from graphite.tree import Finder
+from graphite.tree import MetricFinder
 
 DEBUG = False
 
@@ -31,6 +31,7 @@ LISTS_DIR = STORAGE_DIR + 'lists/'
 INDEX_FILE = STORAGE_DIR + 'index'
 WHITELIST_FILE = LISTS_DIR + 'whitelist'
 LOG_DIR = STORAGE_DIR + 'log/'
+CLUSTER_SERVERS = []
 
 try:
   import rrdtool
@@ -38,7 +39,6 @@ try:
 except:
   DATA_DIRS = [WHISPER_DIR]
 
-FINDER = Finder(DATA_DIRS)
 
 #Memcache settings
 MEMCACHE_HOSTS = ['127.0.0.1:11211']
@@ -80,6 +80,13 @@ try:
   from web.local_settings import *
 except ImportError:
   print >> sys.stderr, "Could not import web.local_settings, using defaults!"
+
+
+LOCAL_FINDER = MetricFinder(DATA_DIRS)
+FINDER = MetricFinder(DATA_DIRS)
+
+if CLUSTER_SERVERS:
+  FINDER.configureClusterServers(CLUSTER_SERVERS)
 
 
 #Django settings below, do not touch!

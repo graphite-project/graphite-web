@@ -7,8 +7,6 @@ from web.render.carbonlink import CarbonLink
 from web.logger import log
 
 
-Finder = settings.FINDER
-
 
 def evaluateTarget(target, timeInterval):
   tokens = grammar.parseString(target)
@@ -28,7 +26,7 @@ def evaluateTokens(tokens, timeInterval):
       pathExpr = pathExpr[9:]
     seriesList = []
     (startTime,endTime) = timeInterval
-    for dbFile in Finder.find(pathExpr):
+    for dbFile in settings.FINDER.find(pathExpr):
       log.metric_access(dbFile.graphite_path)
       getCacheResults = CarbonLink.sendRequest(dbFile.graphite_path)
       dbResults = dbFile.fetch( timestamp(startTime), timestamp(endTime) )
