@@ -42,7 +42,7 @@ class FindRequest:
       else:
         results = []
 
-    return [ RemoteNode(self,graphite_path,isLeaf) for (graphite_path,isLeaf) in results ]
+    return [ RemoteNode(self.server,graphite_path,isLeaf) for (graphite_path,isLeaf) in results ]
 
 
 class RemoteNode:
@@ -54,20 +54,21 @@ class RemoteNode:
     self.__isLeaf = isLeaf
 
   def fetch(self, startTime, endTime):
-    if self.__isLeaf:
+    if not self.__isLeaf:
       return []
 
     query_params = [
       ('target', self.graphite_path),
       ('pickle', 'true'),
-      ('from', str(startTime)),
-      ('until', str(endTime))
+      ('from', str( int(startTime) )),
+      ('until', str( int(endTime) ))
     ]
     query_string = urlencode(query_params)
 
     connection = HTTPConnection(self.server.host, timeout=self.server.timeout)
     connection.request('GET', '/render/?' + query_string)
     response = connection.getresponse()
+    assert response.status == 200, "Failed to retrieve remote data: %d %s" % (response.status, response.reason)
     rawData = response.read()
 
     seriesList = pickle.loads(rawData)
