@@ -410,6 +410,7 @@ class LineGraph(Graph):
             self.ctx.move_to(x, self.area['ymax'])
             self.ctx.line_to(x, self.area['ymin'])
             self.ctx.stroke()
+            x += series.xStep
             continue
           if self.lineMode == 'staircase':
             if fromNone:
