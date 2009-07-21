@@ -279,7 +279,7 @@ class LineGraph(Graph):
                   'minorGridLineColor','thickness','min','max', \
                   'graphOnly','yMin','yMax','yStep','areaMode','drawNullAsZero')
   validLineModes = ('staircase','slope')
-  validAreaModes = ('none','first','all')
+  validAreaModes = ('none','first','all','stacked')
 
   def drawGraph(self,**params):
     #API compatibilty hacks first
@@ -385,6 +385,20 @@ class LineGraph(Graph):
       'bevel' : cairo.LINE_JOIN_BEVEL,
     }[linejoin])
 
+    # stack the values
+    if self.areaMode == 'stacked':
+      total = []
+      for series in self.data:
+        for i in range(len(series)):
+          if len(total) <= i: total.append(0)
+
+          if series[i] is not None:
+            original = series[i]
+            series[i] += total[i]
+            total[i] += original
+
+      self.data = reverse_sort(self.data)
+
     for series in self.data:
       if series.options.has_key('lineWidth'): # adjusts the lineWidth of this line if option is set on the series
         self.ctx.set_line_width(series.options['lineWidth'])
@@ -466,6 +480,7 @@ class LineGraph(Graph):
   def setupYAxis(self):
     yMinValue = safeMin( [safeMin([v for v in series if v is not None]) for series in self.data] )
     yMaxValue = safeMax( [safeMax([v for v in series if v is not None]) for series in self.data] )
+    if self.areaMode == 'stacked': yMaxValue = sum( [safeMax([v for v in series if v is not None]) for series in self.data] )
     #yMaxValue += float(yMaxValue) / 50.0 # add 2% for some headroom at the top of the graph
     if self.params.get('drawNullAsZero') and any([[v for v in series if v is None] for series in self.data]):
       yMinValue = 0.0
@@ -727,3 +742,8 @@ def any(args):
     if arg:
       return True
   return False
+
+def reverse_sort(args):
+  aux_list = [arg for arg in args]
+  aux_list.reverse()
+  return aux_list
