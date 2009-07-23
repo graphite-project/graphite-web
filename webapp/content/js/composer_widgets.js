@@ -643,6 +643,15 @@ function createOptionsMenu() {
       menuCheckItem("Bold", "fontBold")
     ]
   });
+
+  var areaMenu = new Ext.menu.Menu({
+    items: [
+      menuRadioItem("area","None", "areaMode", ""),
+      menuRadioItem("area","First Only", "areaMode", "first"),
+      menuRadioItem("area", "Stacked", "areaMode", "stacked"),
+      menuRadioItem("area", "All", "areaMode", "all")
+    ]
+  });
   
   var displayMenu = new Ext.menu.Menu({
     items: [
@@ -658,7 +667,7 @@ function createOptionsMenu() {
       menuInputItem("Graph Title", "title"),
       menuInputItem("Y Axis Label", "vtitle"),
       menuInputItem("Line Thickness", "lineWidth"),
-      menuCheckItem("Area Mode", "areaMode", "all"),
+      {text: "Area Mode", menu: areaMenu},
       menuCheckItem("Alpha Masking", "template", "alphas"),
       menuCheckItem("Staircase Line", "lineMode", "staircase"),
       {text: "Canvas Color", menu: createColorMenu('bgcolor')},
@@ -734,6 +743,21 @@ function menuCheckItem(name, param, paramValue) {
     }
   );
   return checkItem;
+}
+
+function menuRadioItem(groupName, name, param, paramValue ) {
+  var selectItem = new Ext.menu.CheckItem({text: name, param: param, hideOnClick: false, group: groupName, checked: (paramValue ? false : true)});
+  selectItem.on('checkchange', 
+    function( item, clicked ) {
+      if( paramValue ) {
+        Composer.url.setParam(param, paramValue);
+      } else {
+        Composer.url.removeParam(param);
+      }
+      Composer.updateImage();
+    }
+  );
+  return selectItem;
 }
 
 function updateCheckItems() {
