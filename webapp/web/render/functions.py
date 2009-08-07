@@ -41,6 +41,10 @@ def safeMul(a,b):
   if a is None or b is None: return None
   return float(a) * float(b)
 
+def safeLast(values):
+  for v in reversed(values):
+    if v is not None: return v
+
 def lcm(a,b):
   'least common multiple'
   if a == b: return a
@@ -210,6 +214,18 @@ def alias(seriesList,newName):
     series.name = newName
   return seriesList
 
+def meanAbove(n, seriesList):
+  return [ series for series in seriesList if safeDiv(safeSum(series),safeLen(series)) > n ]
+
+def lastAbove(n, seriesList):
+  return [ series for series in seriesList if safeLast(series) > n ]
+
+def highestMean(n, seriesList):
+  return sorted( seriesList, key=lambda s: safeDiv(safeSum(s),safeLen(s)) )[-n:]
+
+def highestLast(n, seriesList):
+  return sorted( seriesList, key=safeLast )[-n:]
+
 def mostDeviant(n, seriesList):
   deviants = []
   for series in seriesList:
@@ -298,4 +314,8 @@ SeriesFunctions = {
   'drawAsInfinite' : drawAsInfinite,
   'lineWidth' : lineWidth,
   'dashed' : dashed,
+  'meanAbove' : meanAbove,
+  'lastAbove' : lastAbove,
+  'highestMean' : highestMean,
+  'highestLast' : highestLast,
 }
