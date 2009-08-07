@@ -1,16 +1,13 @@
- Get ExtJS
+ ExtJS
 -------------------------------------------------------------------------------
-To install graphite, you will first need to download the ExtJS SDK from
-http://www.extjs.com/. Extract it somewhere and it will create an ext-VERSION/
-subdir.
+Graphite used to require an external Ext installation but now Ext is bundled
+with Graphite as allowed by the Ext FLOSS license exemption described here:
+
+http://extjs.com/products/floss-exception.php
 
 
  Run install.py
 -------------------------------------------------------------------------------
-Run the install script like so:
-
-python install.py --extjs=/path/to/ext-VERSION
-
 This will check for graphite's runtime dependencies and let
 you know which you are missing. Download and install these modules and re-run
 install.py until it detects all the required modules.

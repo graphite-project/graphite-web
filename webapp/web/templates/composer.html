@@ -17,14 +17,14 @@ limitations under the License. -->
 <html>
   <head>
     <title>Graphite Composer</title>
-    <link rel="stylesheet" type="text/css"  href="/content/js/extJS/resources/css/ext-all.css" />
-    <script type="text/javascript"  src="/content/js/extJS/adapter/prototype/prototype.js"></script>
-    <script type="text/javascript"  src="/content/js/extJS/adapter/prototype/scriptaculous.js?load=effects"></script>
-    <script type="text/javascript"  src="/content/js/extJS/adapter/prototype/ext-prototype-adapter.js"></script>
-    {% if debug %}
-    <script type="text/javascript" src="/content/js/extJS/ext-all-debug.js"></script>
+    <link rel="stylesheet" type="text/css"  href="/content/js/ext/resources/css/ext-all.css" />
+
+    {% if jsdebug %}
+    <script type="text/javascript" src="/content/js/ext/adapter/ext/ext-base-debug.js"></script>
+    <script type="text/javascript" src="/content/js/ext/ext-all-debug.js"></script>
     {% else %}
-    <script type="text/javascript" src="/content/js/extJS/ext-all.js"></script>
+    <script type="text/javascript" src="/content/js/ext/adapter/ext/ext-base.js"></script>
+    <script type="text/javascript" src="/content/js/ext/ext-all.js"></script>
     {% endif %}
 
     <script type="text/javascript" src="/content/js/browser.js"></script>

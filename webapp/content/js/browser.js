@@ -12,29 +12,28 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. */
 
-var GraphiteBrowser = Class.create();
-GraphiteBrowser.prototype = {
-  initialize: function () {
-    var treePanel = createTreePanel();
-    var searchPanel = createSearchPanel();
-    var completerPanel = createCompleterPanel();
-    var treeRoot = treePanel.getRootNode();
-    this.trees = {
-      graphite: treeRoot.findChild('id', 'GraphiteTree'),
-      mygraphs: treeRoot.findChild('id', 'MyGraphsTree'),
-      usergraphs: treeRoot.findChild('id', 'UserGraphsTree')
-    };
-    this.panel = new Ext.TabPanel({
-      region: 'west',
-      items: [treePanel, searchPanel, completerPanel],
-      split: true,
-      width: 220,
-      collapsible: true,
-      collapseMode: 'mini',
-      activeTab: 0
-    });
-  }
-};
+function GraphiteBrowser () {
+  var treePanel = createTreePanel();
+  var searchPanel = createSearchPanel();
+  var completerPanel = createCompleterPanel();
+  var treeRoot = treePanel.getRootNode();
+
+  this.trees = {
+    graphite: treeRoot.findChild('id', 'GraphiteTree'),
+    mygraphs: treeRoot.findChild('id', 'MyGraphsTree'),
+    usergraphs: treeRoot.findChild('id', 'UserGraphsTree')
+  };
+
+  this.panel = new Ext.TabPanel({
+    region: 'west',
+    items: [treePanel, searchPanel, completerPanel],
+    split: true,
+    width: 220,
+    collapsible: true,
+    collapseMode: 'mini',
+    activeTab: 0
+  });
+}
 
 //Tree Tab
 function createTreePanel(){
@@ -146,13 +145,13 @@ function setupSearchForm(formEl) {
   var helpPage = '"/content/html/searchHelp.html"';
   var helpTitle = '"Searching Graphite"';
   var helpOptions = '"width=500,height=400,toolbar=no,location=no,directories=no,status=no,menubar=no"';
-  $('searchHelpLink').href = helpAction+"("+helpPage+","+helpTitle+","+helpOptions+");";
+  Ext.getDom('searchHelpLink').href = helpAction+"("+helpPage+","+helpTitle+","+helpOptions+");";
   var formPanel = Ext.get("searchForm");
   formPanel.un("render",setupSearchForm); 
 }
 
 function showSearchError(message) {
-  $('searchError').innerHTML = '<font color="red">' + message + '</font><br/>';
+  Ext.getDom('searchError').innerHTML = '<font color="red">' + message + '</font><br/>';
 }
 
 function sendSearchRequest (searchField, evt) {
@@ -162,7 +161,7 @@ function sendSearchRequest (searchField, evt) {
   //Clear any previous errors
   showSearchError("");
   //Clear the result list
-  var resultList = $('searchResults');
+  var resultList = Ext.getDom('searchResults');
   while (resultList.childNodes[0]) {
     resultList.removeChild( resultList.childNodes[0] );
   }
@@ -181,7 +180,7 @@ function handleSearchResponse (response, options) {
     showSearchError("Nothing matched your query");
     return;
   }
-  var resultList = $('searchResults');
+  var resultList = Ext.getDom('searchResults');
   var results = text.split(',');
   results.each(function (item) {
     var li = document.createElement('li');
@@ -221,7 +220,7 @@ function setupCompleterForm(formEl) {
   var helpPage= '"/content/html/completerHelp.html"';
   var helpTitle = '"Using the Auto-Completer"';
   var helpOptions = '"width=500,height=400,toolbar=no,location=no,directories=no,status=no,menubar=no"';
-  $('completerHelpLink').href = helpAction+"("+helpPage+","+helpTitle+","+helpOptions+");";
+  Ext.getDom('completerHelpLink').href = helpAction+"("+helpPage+","+helpTitle+","+helpOptions+");";
   completer = Ext.get("completerForm");
   completer.un("render", setupCompleterForm);
 }
@@ -251,7 +250,7 @@ function sendCompleterRequest(evt, el) {
 }
 
 function handleCompleterResponse(response, options) {
-  var resultList = $('completerResults');
+  var resultList = Ext.getDom('completerResults');
   while (resultList.childNodes[0]) {
     resultList.removeChild( resultList.childNodes[0] );
   }
@@ -259,7 +258,7 @@ function handleCompleterResponse(response, options) {
 }
 
 function handleCompleterFailure(response, options) {
-  var resultList = $('completerResults');
+  var resultList = Ext.getDom('completerResults');
   while (resultList.childNodes[0]) {
     resultList.removeChild( resultList.childNodes[0] );
   }

@@ -14,16 +14,15 @@
 
 var RENDER_BASE_URL = window.location.protocol + "//" + window.location.host + "/render/?";
 
-var GraphiteComposer = Class.create();
 /* GraphiteComposer encapsulates a set of Ext UI Panels,
  * as well as a ParameterizedURL for the displayed graph. */
-GraphiteComposer.prototype = {
-  initialize: function () {
-    this.url = new ParameterizedURL(RENDER_BASE_URL);
-    this.state = {}; // For storing non-querystring state information
-    this.window = createComposerWindow(this);
-  },
+function GraphiteComposer () {
+  this.url = new ParameterizedURL(RENDER_BASE_URL);
+  this.state = {}; // For storing non-querystring state information
+  this.window = createComposerWindow(this);
+}
 
+GraphiteComposer.prototype = {
   toggleTarget: function (target) {
     /* Add the given target to the graph if it does not exist,
      * otherwise remove it. */
@@ -95,29 +94,28 @@ GraphiteComposer.prototype = {
 };
 
 
-var ParameterizedURL = Class.create();
 /* ParameterizedURL encapsulates a URL and
  * provides methods to access and modify the
  * query string parameters in a structured fashion.
  * This code should not be specific to Graphite or
  * the Composer in any way. */
-ParameterizedURL.prototype = {
-  initialize: function (baseURL) {
-    this.baseURL = baseURL ? baseURL : "";
-    this.params = $H();
-    this.queryString = "";
-  },
+function ParameterizedURL (baseURL) {
+  this.baseURL = baseURL ? baseURL : "";
+  this.params = {};
+  this.queryString = "";
+}
 
+ParameterizedURL.prototype = {
   /*   Parameter access methods   */
   getParam: function (key) {
     /* Return the first value of this parameter */
-    var values = this.params.get(key);
+    var values = this.params[key];
     return values ? values[0] : null;
   },
 
   getParamList: function (key) {
     /* Return an array of all values for this parameter */
-    var values = this.params.get(key);
+    var values = this.params[key];
     return values ? values : new Array();
   },
 
@@ -131,20 +129,22 @@ ParameterizedURL.prototype = {
     /* Add a parameter value */
     var values = this.getParamList(key);
     values.push(value);
-    this.params.set(key, values);
+    this.params[key] = values;
     this.syncQueryString();
   },
 
   removeParam: function (key, value) {
     /* Remove one or all values for a given parameter */
     if (value == null) { //Remove all values
-      this.params.unset(key);
+      this.params[key] = null; // in case it didn't exist, delete won't break now
+      delete this.params[key];
     } else { //Remove a specific value
       var newValues = this.getParamList(key).without(value);
       if (newValues.length) {
-        this.params.set(key, newValues);
+        this.params[key] = newValues;
       } else {
-        this.params.unset(key);
+        this.params[key] = null;
+        delete this.params[key];
       }
     }
     this.syncQueryString();
@@ -152,13 +152,13 @@ ParameterizedURL.prototype = {
 
   setParam: function (key, value) {
     /* Give the param only the given value */
-    this.params.set(key, [value]);
+    this.params[key] = [value];
     this.syncQueryString();
   },
 
   setParamList: function (key, values) {
     /* Give the param a given list of values */
-    this.params.set(key, values);
+    this.params[key] = values;
     this.syncQueryString();
   },
 
@@ -171,13 +171,15 @@ ParameterizedURL.prototype = {
   syncParams: function () {
     /* Set the value of this.params to reflect the parameters in this.queryString
      * Call this whenever you modify this.queryString */
-    var params = $H( this.queryString.toQueryParams() );
-    params.each( function(item) { //We want all of our param values to be arrays
-      if (typeof(item.value) == 'string') {
-        params.set(item.key, [item.value]);
+    var params = Ext.urlDecode( this.queryString );
+
+    Ext.iterate(params, function(key, value) { //We want all of our param values to be arrays
+      if ( Ext.isString(value) ) {
+        params[key] = [value];
       }
-      if (item.value == "undefined" || item.value == undefined) {
-        params.unset(item.key);
+      if (value == "undefined" || value == undefined) {
+        params[key] = null;
+        delete params[key];
       }
     });
     this.params = params;
@@ -185,7 +187,7 @@ ParameterizedURL.prototype = {
 
   setQueryString: function (qs) {
     /* Use the given query string (and update this.params to match) */
-    this.queryString = qs.gsub(/#/,"%23"); //for prototype's quirky toQueryString() method
+    this.queryString = qs.replace(/#/,"%23");
     this.syncParams();
     this.syncQueryString();
   },
@@ -193,14 +195,14 @@ ParameterizedURL.prototype = {
   syncQueryString: function () {
     /* Set the value of this.queryString to reflect the parameters in this.params
      * Call this whenever you modify this.params */
-    this.queryString = this.params.toQueryString().gsub(/#/,"%23");
+    this.queryString = Ext.urlEncode(this.params).replace(/#/,"%23");
   },
 
   copyQueryStringFromURL: function (url) {
     /* Make this object reflect the parameters of the given url */
     var i = url.indexOf("?");
     if (i == -1) { // No query string
-      this.setParamHash( $H() );
+      this.setParamHash({});
       return;
     }
     var queryString = url.substr(i+1);

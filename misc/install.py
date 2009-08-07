@@ -10,8 +10,6 @@ def die(msg):
 option_parser = OptionParser()
 option_parser.add_option('--install-root',default='/usr/local/graphite/',
   help="The base directory of the graphite installation, default: /usr/local/graphite/")
-option_parser.add_option('--extjs',default='',
-  help="Path to an ExtJS (http://www.extjs.com) installation, specifically the directory containing \"ext-all.js\"")
 
 (options,args) = option_parser.parse_args()
 
@@ -19,17 +17,6 @@ install_root = options.install_root
 if not install_root.endswith('/'):
   install_root += '/'
 
-
-# Test for ExtJS
-if not options.extjs:
-  print "Please provide the full path to your ExtJS installation (the directory that contains \"ext-all.js\""
-  print "If you do not have ExtJS installed, go to http://www.extjs.com and download the 2.x SDK"
-  print "\nFor example: ./install.py --extjs=/usr/local/extjs\n"
-  raise SystemExit(1)
-
-ext_all = os.path.join(options.extjs,'ext-all.js')
-if not os.path.isfile(ext_all):
-  die("The path \"%s\" does not appear to contain the ExtJS SDK. The path you give should be the directory containing ext-all.js" % options.extjs)
 
 # Simple python version test
 major,minor = sys.version_info[:2]
@@ -109,8 +96,7 @@ except:
 # Prompt before installing
 print "Required dependencies are met, graphite will be installed into:"
 print "  %s" % install_root
-print "\nAnd will symlink your ExtJS installation from:"
-print "  %s" % options.extjs
+
 while True:
   answer = raw_input("\nOk to continue [y/n]?").lower().strip()
   if answer == 'y':
@@ -137,15 +123,8 @@ os.system("cp -rvf webapp/ %s" % install_root)
 os.system("cp -rvf storage/ %s" % install_root)
 os.system("cp -rvf carbon/ %s" % install_root)
 
-extjs_link = os.path.join(install_root,'webapp','content','js','extJS')
-if not os.path.exists(extjs_link):
-  if os.path.lexists(extjs_link):
-    print "\nRemoving broken symlink %s\n" % extjs_link
-    os.unlink(extjs_link)
-  print '\nCreating a symlink %s -> %s\n' % (extjs_link, options.extjs)
-  os.symlink(options.extjs, extjs_link)
-else:
-  print "\nExtJS symlink already exists, leaving untouched\n"
+js_dir = os.path.join(install_root,'webapp','content','js')
+os.system("cp -rvf ext %s" % js_dir)
 
 #Setup local_settings.py
 try:

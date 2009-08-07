@@ -75,7 +75,7 @@ function createComposerWindow(myComposer) {
     updateCheckItems();
   };
   win.getImage = function () {
-    return $('image-viewer');
+    return Ext.getDom('image-viewer');
   };
 
   return win;
@@ -694,9 +694,9 @@ function createFontFacesMenu() {
 }
 
 function createColorMenu(param) {
-  var colorPicker = new Ext.menu.ColorItem({hideOnClick: false});
+  var colorPicker = new Ext.menu.ColorMenu({hideOnClick: false});
   colorPicker.on('select',
-    function (picker, color) {
+    function (palette, color) {
       Composer.url.setParam(param, color);
       Composer.updateImage();
     }
