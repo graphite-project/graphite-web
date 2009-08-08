@@ -27,7 +27,7 @@ GraphiteComposer.prototype = {
     /* Add the given target to the graph if it does not exist,
      * otherwise remove it. */
     var targets = this.url.getParamList("target");
-    if (targets.include(target)) {
+    if (targets.indexOf(target) != -1) {
       this.url.removeParam("target", target);
     } else {
       this.url.addParam("target", target);
