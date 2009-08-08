@@ -142,9 +142,9 @@ def _find(current_dir, patterns):
 # Node classes
 class Node:
   def __init__(self, fs_path, graphite_path):
-    self.fs_path = fs_path
-    self.graphite_path = graphite_path
-    self.name = graphite_path.split('.')[-1]
+    self.fs_path = str(fs_path)
+    self.graphite_path = str(graphite_path)
+    self.name = self.graphite_path.split('.')[-1]
 
 
 class Branch(Node):
@@ -192,6 +192,6 @@ class RRDDataSource(Leaf):
     endString = time.strftime("%H:%M_%Y%m%d", time.localtime(endTime))
     (timeInfo,columns,rows) = rrdtool.fetch(self.fs_path,'AVERAGE','-s' + startString,'-e' + endString)
     colIndex = list(columns).index(self.name)
-    rows.pop() #chop off the last row because RRD sucks
+    rows.pop() #chop off the latest value because RRD returns crazy last values sometimes
     values = (row[colIndex] for row in rows)
     return (timeInfo,values)
