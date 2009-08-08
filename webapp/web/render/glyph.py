@@ -304,7 +304,7 @@ class LineGraph(Graph):
     self.params = params
 
     #Now to setup our LineGraph specific options
-    self.lineWidth = float( params.get('lineWidth',1.0) )
+    self.lineWidth = float( params.get('lineWidth', 2.0) )
     self.lineMode = params.get('lineMode','slope').lower()
     assert self.lineMode in self.validLineModes, "Invalid line mode!"
     self.areaMode = params.get('areaMode','none').lower()
