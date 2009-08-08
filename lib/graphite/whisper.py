@@ -443,8 +443,6 @@ untilTime is also an epoch time, but defaults to now
   assert fromTime < untilTime, "Invalid time interval"
   if untilTime > now:
     untilTime = now
-  if fromTime < (now - header['maxRetention']):
-    fromTime = now - header['maxRetention']
   if untilTime < fromTime:
     untilTime = now
   diff = now - fromTime
