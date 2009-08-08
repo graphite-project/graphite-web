@@ -312,10 +312,17 @@ function saveMyGraph(button, evt) {
       if (button != 'ok') {
         return;
       }
+
       if (!text) {
-        alert("You must enter a graph name!");
+        Ext.Msg.alert("You must enter a graph name!");
 	return;
       }
+
+      if (text.search(/[^A-Za-z0-9_.]/) != -1) {
+        Ext.Msg.alert("Graph names can only contain letters, numbers, underscores, or periods.");
+        return;
+      }
+
       //Save the name for future use and re-load the "My Graphs" tree
       Composer.state.myGraphName = text;
       Browser.trees.mygraphs.reload();
@@ -514,7 +521,7 @@ var TargetsWindow = { //This widget has a lot of state, so an object is appropri
             case ')': depth -= 1; break;
             case ',':
               if (depth > 0) { continue; }
-              if (depth < 0) { alert("Malformed target, cannot remove outer call."); return; }
+              if (depth < 0) { Ext.Msg.alert("Malformed target, cannot remove outer call."); return; }
               args.push( argString.substring(lastArg, i).strip() );
               lastArg = i + 1;
               break;
