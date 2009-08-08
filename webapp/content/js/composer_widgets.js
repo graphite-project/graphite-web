@@ -323,6 +323,11 @@ function saveMyGraph(button, evt) {
         return;
       }
 
+      if (text.charAt(text.length - 1) == '.') {
+        Ext.Msg.alert("Graph names cannot end in a period.");
+        return;
+      }
+
       //Save the name for future use and re-load the "My Graphs" tree
       Composer.state.myGraphName = text;
       Browser.trees.mygraphs.reload();
