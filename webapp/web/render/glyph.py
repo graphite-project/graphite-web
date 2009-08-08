@@ -478,26 +478,39 @@ class LineGraph(Graph):
         series.xStep = bestXStep
 
   def setupYAxis(self):
-    yMinValue = safeMin( [safeMin([v for v in series if v is not None]) for series in self.data] )
-    yMaxValue = safeMax( [safeMax([v for v in series if v is not None]) for series in self.data] )
-    if self.areaMode == 'stacked': yMaxValue = sum( [safeMax([v for v in series if v is not None]) for series in self.data] )
-    #yMaxValue += float(yMaxValue) / 50.0 # add 2% for some headroom at the top of the graph
-    if self.params.get('drawNullAsZero') and any([[v for v in series if v is None] for series in self.data]):
+    seriesWithMissingValues = [ series for series in self.data if None in series ]
+
+    if self.params.get('drawNullAsZero') and seriesWithMissingValues:
       yMinValue = 0.0
-    if yMaxValue - yMinValue < 1:
-      yMaxValue = yMinValue + 1
+    else:
+      yMinValue = safeMin( [safeMin(series) for series in self.data] )
+
+    if self.areaMode == 'stacked':
+      yMaxValue = sum( [safeMax(series) for series in self.data] )
+    else:
+      yMaxValue = safeMax( [safeMax(series) for series in self.data] )
+
+    if yMinValue is None:
+      yMinValue = 0.0
+
+    if yMaxValue is None:
+      yMaxValue = 1.0
+
     yVariance = yMaxValue - yMinValue
 
     order = math.log10(yVariance)
     orderFactor = 10 ** math.floor(order)
     v = yVariance / orderFactor #we work with a scaled down yVariance for simplicity
+
     divisors = (4,5,6) #different ways to divide-up the y-axis with labels
     prettyValues = (0.1,0.2,0.25,0.5,1.0,1.2,1.25,1.5,2.0,2.25,2.5)
     divisorInfo = []
+
     for d in divisors:
       q = v / d #our scaled down quotient, must be in the open interval (0,10)
       p = closest(q, prettyValues) #the prettyValue our quotient is closest to
       divisorInfo.append( ( p,abs(q-p)) ) #make a list so we can find the prettiest of the pretty
+
     divisorInfo.sort(key=lambda i: i[1]) #sort our pretty values by "closeness to a factor"
     prettyValue = divisorInfo[0][0] #our winner! Y-axis will have labels placed at multiples of our prettyValue
     self.yStep = prettyValue * orderFactor #scale it back up to the order of yVariance
@@ -730,12 +743,12 @@ def toSeconds(t):
   return (t.days * 86400) + t.seconds
 
 def safeMin(args):
-  if args: return min(args)
-  return 0.0
+  if args:
+    return min([arg for arg in args if arg is not None])
 
 def safeMax(args):
-  if args: return max(args)
-  return 1.0
+  if args:
+    return max([arg for arg in args if arg is not None])
 
 def any(args):
   for arg in args:

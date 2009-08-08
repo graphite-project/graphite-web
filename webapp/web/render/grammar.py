@@ -20,8 +20,8 @@ grammar = Forward()
 #expression operations
 expression = Forward()
 
-intNumber = Word(nums).setResultsName('integer')
-floatNumber = Combine(Word(nums) + Literal('.') + Word(nums)).setResultsName('float')
+intNumber = Word(nums+'-',nums).setResultsName('integer')
+floatNumber = Combine(Word(nums+'-',nums) + Literal('.') + Word(nums)).setResultsName('float')
 number = Group(floatNumber | intNumber).setResultsName('number')
 
 goodchars = printables.replace('(','').replace(')','').replace(',','').replace('"','') + ' '
