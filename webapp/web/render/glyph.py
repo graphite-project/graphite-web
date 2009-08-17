@@ -743,12 +743,14 @@ def toSeconds(t):
   return (t.days * 86400) + t.seconds
 
 def safeMin(args):
+  args = [arg for arg in args if arg is not None]
   if args:
-    return min([arg for arg in args if arg is not None])
+    return min(args)
 
 def safeMax(args):
+  args = [arg for arg in args if arg is not None]
   if args:
-    return max([arg for arg in args if arg is not None])
+    return max(args)
 
 def any(args):
   for arg in args:
