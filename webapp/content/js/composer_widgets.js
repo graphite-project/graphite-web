@@ -547,9 +547,9 @@ var TargetsWindow = { //This widget has a lot of state, so an object is appropri
   },
 
   removeSelected: function (item, evt) {
-    var current = Composer.url.getParamList('target');
-    var remaining = current.without.apply(current, this.getSelectedTargets()); //*args would be nice...
-    Composer.url.setParamList('target', remaining);
+    var targets = Composer.url.getParamList('target');
+    Ext.each(this.getSelectedTargets(), function (target) { targets.remove(target) });
+    Composer.url.setParamList('target', targets);
     Composer.updateImage();
     this.refreshList();
   },

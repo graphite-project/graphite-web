@@ -139,7 +139,8 @@ ParameterizedURL.prototype = {
       this.params[key] = null; // in case it didn't exist, delete won't break now
       delete this.params[key];
     } else { //Remove a specific value
-      var newValues = this.getParamList(key).without(value);
+      var newValues = this.getParamList(key);
+      newValues.remove(value);
       if (newValues.length) {
         this.params[key] = newValues;
       } else {
