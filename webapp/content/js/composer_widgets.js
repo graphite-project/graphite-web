@@ -444,7 +444,7 @@ var TargetsWindow = { //This widget has a lot of state, so an object is appropri
 
   applyFuncToEach: function (funcName, extraArg) {
     function applyFunc() {
-      this.getSelectedTargets().each(
+      Ext.each(this.getSelectedTargets(),
         function (target) {
           var newTarget;
           Composer.url.removeParam('target', target);
@@ -494,7 +494,7 @@ var TargetsWindow = { //This widget has a lot of state, so an object is appropri
       var args = this.getSelectedTargets().join(',');
       var newTarget = funcName + '(' + args + ')';
 
-      this.getSelectedTargets().each(
+      Ext.each(this.getSelectedTargets(),
         function (target) {
 	  Composer.url.removeParam('target', target);
         }
@@ -512,7 +512,7 @@ var TargetsWindow = { //This widget has a lot of state, so an object is appropri
      * The following code is *almost* correct. It will fail if there is
      * an argument with a quoted parenthesis in it. Who cares... */
     var _this = this;
-    this.getSelectedTargets().each(
+    Ext.each(this.getSelectedTargets(),
       function (target) {
 	var args = [];
         var i, c;
@@ -713,7 +713,7 @@ function createColorMenu(param) {
       Composer.updateImage();
     }
   );
-  return new Ext.menu.Menu({items: [colorPicker]});
+  return colorPicker;
 }
 
 function menuInputItem(name, param) {
@@ -773,7 +773,7 @@ function menuRadioItem(groupName, name, param, paramValue ) {
 }
 
 function updateCheckItems() {
-  checkItems.each(
+  Ext.each(checkItems,
     function (item) {
       var param = item.initialConfig.param;
       item.setChecked( Composer.url.getParam(param) ? true : false );
