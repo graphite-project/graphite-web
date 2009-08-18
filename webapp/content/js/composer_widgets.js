@@ -67,7 +67,7 @@ function createComposerWindow(myComposer) {
     } else if (time.mode == 'recent') {
       text = "Now showing the past " + time.quantity + " " + time.units;
     }
-    timeDisplay.getEl().innerHTML = text;
+    timeDisplay.getEl().dom.innerHTML = text;
   };
   win.updateUI = function () {
     var toggled = Composer.url.getParam('autorefresh') ? true : false;
