@@ -498,6 +498,10 @@ class LineGraph(Graph):
 
     yVariance = yMaxValue - yMinValue
 
+    if yVariance == 0:
+      yVariance = 1
+      yMaxValue = yMinValue + 1
+
     order = math.log10(yVariance)
     orderFactor = 10 ** math.floor(order)
     v = yVariance / orderFactor #we work with a scaled down yVariance for simplicity
