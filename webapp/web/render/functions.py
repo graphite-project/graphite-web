@@ -143,7 +143,8 @@ def offset(seriesList,factor):
   for series in seriesList:
     series.name = "offset(%s,%.1f)" % (series.name,float(factor))
     for i,value in enumerate(series):
-      series[i] = value + factor
+      if value is not None:
+        series[i] = value + factor
   return seriesList
 
 def movingAverage(seriesList,time):
