@@ -535,7 +535,7 @@ var TargetsWindow = { //This widget has a lot of state, so an object is appropri
         args.push( argString.substring(lastArg, i) );
 
         Composer.url.removeParam('target', target);
-        args.each(function (arg) {
+        Ext.each(args, function (arg) {
           if (!arg.match(/^([0123456789\.]+|".+")$/)) { //Skip string and number literals
             Composer.url.addParam('target', arg);
           }
