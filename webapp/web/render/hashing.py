@@ -16,15 +16,18 @@ import md5, time
 
 def hashRequest(request):
   # Normalize the request parameters so ensure we're deterministic
-  queryParams = ["%s=%s" % (key,val)
-                 for (key,val) in request.GET.items()
+  queryParams = ["%s=%s" % (key, '&'.join(values))
+                 for (key,values) in request.GET.list()
                  if not key.startswith('_')]
-  myHash = ','.join( sorted(queryParams) )
-  myHash = stripControlChars(myHash) #memcached limitation
-  if len(myHash) > 249: #memcached limitation
+
+  normalizedParams = ','.join( sorted(queryParams) )
+  myHash = stripControlChars(normalizedParams) #memcached doesn't like unprintable characters in its keys
+
+  if len(myHash) > 249: #memcached key size limitation
     return compactHash(myHash)
   else:
     return myHash
+
 
 def hashData(targets, startTime, endTime):
   targetsString = ','.join(targets)
@@ -37,8 +40,10 @@ def hashData(targets, startTime, endTime):
   else:
     return myHash
 
+
 def stripControlChars(string):
   return filter(lambda char: ord(char) >= 33, string)
+
 
 def compactHash(string):
   hash = md5.md5()
