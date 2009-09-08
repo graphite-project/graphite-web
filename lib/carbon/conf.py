@@ -12,6 +12,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
+from ConfigParser import ConfigParser
+
 
 class Settings(dict):
   __getattr__ = dict.__getitem__
@@ -22,7 +24,7 @@ class Settings(dict):
     parser = ConfigParser()
     assert parser.read(path), "Failed to read config file %s" % path
 
-    for key,value in parser.items(''):
+    for key,value in parser.items('carbon-data-server'):
       try:
         value = int(value)
       except:

@@ -17,6 +17,9 @@ class MetricCache(dict):
   def __init__(self):
     self.size = 0
 
+  def __setitem__(self, key, value):
+    raise TypeError("Use store() method instead!")
+
   def store(self, metric, datapoint):
     try: # This is a hackish but very efficient technique for concurrent dict access without locking (the GIL does it for me)
       datapoints = dict.pop(self, metric)
@@ -24,7 +27,7 @@ class MetricCache(dict):
       datapoints = []
 
     datapoints.append(datapoint)
-    self[metric] = datapoints
+    dict.__setitem__(self, metric, datapoints)
     self.size += 1
 
   def pop(self, metric): # This raises a KeyError if a metric is concurrently having store() called on it, simply ignore and pop another

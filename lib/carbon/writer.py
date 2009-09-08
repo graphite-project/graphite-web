@@ -16,11 +16,13 @@ limitations under the License."""
 from os.path import exists
 from time import sleep
 from threading import Thread
-from twisted.python.log import log
 from twisted.internet import reactor
+from twisted.internet.task import LoopingCall
 from carbon.cache import MetricCache
 from carbon.storage import getFilesystemPath, loadStorageSchemas
 from carbon.conf import settings
+from carbon import log
+from graphite import whisper
 
 
 def optimalWriteOrder():
@@ -45,17 +47,17 @@ def optimalWriteOrder():
         continue
 
     try: # metrics can momentarily disappear from the MetricCache due to the implementation of MetricCache.store()
-      datapoints = MetricCache.popMetric(metric)
+      datapoints = MetricCache.pop(metric)
     except KeyError:
       continue # we simply move on to the next metric when this race condition occurs
 
-    yield (dbFilePath, datapoints, dbFileExists)
+    yield (metric, datapoints, dbFilePath, dbFileExists)
 
 
 def writeCachedDataPoints():
   "Write datapoints until the MetricCache is completely empty"
   while MetricCache:
-    for (dbFilePath, datapoints, dbFileExists) in optimalWriteOrder():
+    for (metric, datapoints, dbFilePath, dbFileExists) in optimalWriteOrder():
 
       if not dbFileExists:
         for schema in schemas:
@@ -64,7 +66,7 @@ def writeCachedDataPoints():
             archiveConfig = [archive.getTuple() for archive in schema.archives]
             break
 
-        whisper.create(dbFilepath, archiveConfig)
+        whisper.create(dbFilePath, archiveConfig)
 
       whisper.update_many(dbFilePath, datapoints)
 

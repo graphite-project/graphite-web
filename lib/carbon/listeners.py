@@ -1,7 +1,9 @@
+from twisted.internet import reactor
 from twisted.internet.protocol import Factory
+from twisted.internet.error import ConnectionDone
 from twisted.protocols.basic import LineOnlyReceiver, Int32StringReceiver
-from twisted.python.log import log
 from carbon.cache import MetricCache
+from carbon import log
 
 try:
   import cPickle as pickle
@@ -9,30 +11,36 @@ except ImportError:
   import pickle
 
 
-class MetricLineReceiver(LineOnlyReceiver):
+class LoggingMixin:
   def connectionMade(self):
     self.peer = self.transport.getPeer()
-    self.peerAddr = "%s:%d" % (self.peer.host, self.peer.addr)
-    log.msg("connection made by %s" % self.peerAddr)
+    self.peerAddr = "%s:%d" % (self.peer.host, self.peer.port)
+    log.listener("%s connection with %s established" % (self.__class__.__name__, self.peerAddr))
+
+  def connectionLost(self, reason):
+    if reason.check(ConnectionDone):
+      log.listener("%s connection with %s closed cleanly" % (self.__class__.__name__, self.peerAddr))
+    else:
+      log.listener("%s connection with %s lost: %s" % (self.__class__.__name__, self.peerAddr, reason.value))
+
+
+class MetricLineReceiver(LoggingMixin, LineOnlyReceiver):
+  delimiter = '\n'
 
   def lineReceived(self, line):
+    print line
     try:
       metric, value, timestamp = line.strip().split()
       datapoint = ( float(timestamp), float(value) )
     except:
-      log.err('invalid line received from client %s, disconnecting' % self.peerAddr)
+      log.listener('invalid line received from client %s, disconnecting' % self.peerAddr)
       self.transport.loseConnection()
       return
 
     MetricCache.store(metric, datapoint)
 
 
-class CacheQueryHandler(Int32StringReceiver):
-  def connectionMade(self):
-    self.peer = self.transport.getPeer()
-    self.peerAddr = "%s:%d" % (self.peer.host, self.peer.addr)
-    log.msg("connection made by %s" % self.peerAddr)
-
+class CacheQueryHandler(LoggingMixin, Int32StringReceiver):
   def stringReceived(self, metric):
     values = MetricCache.get(metric, [])
     log.msg('cache query for %s returned %d values' % (metric, len(values)))

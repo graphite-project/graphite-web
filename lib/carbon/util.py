@@ -1,3 +1,6 @@
+import sys
+import os
+import pwd
 
 
 def daemonize():

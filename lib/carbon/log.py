@@ -1,4 +1,7 @@
-from twisted.python.log import startLoggingWithObserver, DailyLogFile, textFromEventDict, msg
+import time
+from sys import stdout, stderr
+from twisted.python.log import startLoggingWithObserver, textFromEventDict, msg, err
+from twisted.python.logfile import DailyLogFile
 
 
 customLogs = ('cache', 'writer', 'listener')
@@ -20,9 +23,10 @@ def formatEvent(event, includeType=False):
 def logToStdout():
 
   def observer(event):
-    print formatEvent(event, includeType=True)
+    stdout.write( formatEvent(event, includeType=True) + '\n' )
+    stdout.flush()
 
-  startLoggingWithObserver(logEvent)
+  startLoggingWithObserver(observer)
 
 
 def logToDir(logDir):
@@ -38,7 +42,7 @@ def logToDir(logDir):
     logfile = customLogFiles.get(type, consoleLogFile)
     logfile.write(message + '\n')
 
-  startLoggingWithObserver(logEvent)
+  startLoggingWithObserver(observer)
 
 
 def cache(message, **context):

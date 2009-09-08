@@ -16,6 +16,7 @@ limitations under the License."""
 import sys
 import os
 import optparse
+import atexit
 from os.path import basename, dirname, exists, join
 
 program = basename(sys.argv[0])
@@ -27,8 +28,11 @@ if major != 2 or minor < 6:
 
 
 # Initialize twisted
-from twisted.internet import epollreactor
-epollreactor.install()
+try:
+  from twisted.internet import epollreactor
+  epollreactor.install()
+except: 
+  pass
 from twisted.internet import reactor
 
 
@@ -51,19 +55,22 @@ from carbon.writer import startWriter
 
 
 # Parse command line options
-parser = optparse.OptionParser()
+parser = optparse.OptionParser(usage='%prog [options] <start|stop|status>')
 parser.add_option('--debug', action='store_true', help='Run in the foreground, log to stdout')
 parser.add_option('--profile', help='Record performance profile data to the given file')
-parser.add_option('--kill', action='store_true', help='Kill the running %s' % program)
 parser.add_option('--pidfile', default=join(STORAGE_DIR, '%s.pid' % program), help='Write pid to the given file')
-parser.add_option('--config', default=join(CONF_DIR, 'carbon-data-server.conf', help='Use the given config file')
+parser.add_option('--config', default=join(CONF_DIR, 'carbon-data-server.conf'), help='Use the given config file')
 parser.add_option('--logdir', default=LOG_DIR, help="Write logs in the given directory")
 
 (options, args) = parser.parse_args()
 
+if not args:
+  parser.print_usage()
+  raise SystemExit(1)
 
-# --kill
-if options.kill:
+action = args[0]
+
+if action == 'stop':
   if not exists(options.pidfile):
     print 'Pidfile %s does not exist' % options.pidfile
     raise SystemExit(0)
@@ -83,6 +90,26 @@ if options.kill:
   raise SystemExit(0)
 
 
+elif action == 'status':
+  if not exists(options.pidfile):
+    print '%s is not running' % program
+    raise SystemExit(0)
+
+  pidfile = open(options.pidfile, 'r')
+  try:
+    pid = int( pidfile.read().strip() )
+  except:
+    print 'Failed to read pid from %s' % options.pidfile
+    raise SystemExit(1)
+
+  if exists('/proc/%d' % pid):
+    print "%s is running with pid %d" % (program, pid)
+    raise SystemExit(0)
+  else:
+    print "%s is not running" % program
+    raise SystemExit(0)
+
+
 # Read config (we want failures to occur before daemonizing)
 settings.readFrom(options.config)
 
@@ -95,21 +122,15 @@ else:
   daemonize()
   logToDir(options.logdir)
 
+  pidfile = open(options.pidfile, 'w')
+  pidfile.write( str(os.getpid()) )
+  pidfile.close()
 
-# Normal invocation
-if os.path.exists(options.pidfile):
-  print 'Pidfile %s already exists, remove or kill the running %s' % (options.pidfile, program)
-  raise SystemExit(1)
+  def shutdown():
+    if os.path.exists(options.pidfile):
+      os.unlink(options.pidfile)
 
-pidfile = open(options.pidfile, 'w')
-pidfile.write( str(os.getpid()) )
-pidfile.close()
-
-def shutdown():
-  if os.path.exists(options.pidfile):
-    os.unlink(options.pidfile)
-
-atexit.register(shutdown)
+  atexit.register(shutdown)
 
 
 # Configure application components
