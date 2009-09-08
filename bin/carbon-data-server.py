@@ -52,6 +52,7 @@ from carbon.conf import settings
 from carbon.log import logToStdout, logToDir
 from carbon.listeners import MetricLineReceiver, CacheQueryHandler, startListener
 from carbon.writer import startWriter
+from carbon.instrumentation import recorder
 
 
 # Parse command line options
@@ -137,6 +138,7 @@ else:
 startListener(settings.METRIC_RECEIVER_INTERFACE, settings.METRIC_RECEIVER_PORT, MetricLineReceiver)
 startListener(settings.CACHE_QUERY_INTERFACE, settings.CACHE_QUERY_PORT, CacheQueryHandler)
 startWriter()
+recorder.start(60)
 
 
 # Run the twisted reactor

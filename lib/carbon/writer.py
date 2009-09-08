@@ -13,7 +13,9 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 
-from os.path import exists
+import os
+import time
+from os.path import exists, dirname
 from time import sleep
 from threading import Thread
 from twisted.internet import reactor
@@ -21,6 +23,7 @@ from twisted.internet.task import LoopingCall
 from carbon.cache import MetricCache
 from carbon.storage import getFilesystemPath, loadStorageSchemas
 from carbon.conf import settings
+from carbon.instrumentation import increment, append
 from carbon import log
 from graphite import whisper
 
@@ -49,6 +52,7 @@ def optimalWriteOrder():
     try: # metrics can momentarily disappear from the MetricCache due to the implementation of MetricCache.store()
       datapoints = MetricCache.pop(metric)
     except KeyError:
+      log.writer("MetricCache contention, skipping %s update for now" % metric)
       continue # we simply move on to the next metric when this race condition occurs
 
     yield (metric, datapoints, dbFilePath, dbFileExists)
@@ -62,13 +66,31 @@ def writeCachedDataPoints():
       if not dbFileExists:
         for schema in schemas:
           if schema.matches(metric):
-            log.msg('new metric %s matched schema %s' % (metric, schema.name))
+            log.writer('new metric %s matched schema %s' % (metric, schema.name))
             archiveConfig = [archive.getTuple() for archive in schema.archives]
             break
 
-        whisper.create(dbFilePath, archiveConfig)
+        dbDir = dirname(dbFilePath)
+        os.system("mkdir -p %s" % dbDir)
 
-      whisper.update_many(dbFilePath, datapoints)
+        log.writer("creating new database file %s" % dbFilePath)
+        whisper.create(dbFilePath, archiveConfig)
+        increment('creates')
+
+      pointCount = len(datapoints)
+      log.writer("writing %d datapoints for %s" % (pointCount, metric))
+
+      try:
+        t1 = time.time()
+        log.msg('datapoints=%s' % str(datapoints))
+        whisper.update_many(dbFilePath, datapoints)
+        updateTime = time.time() - t1
+      except:
+        log.err()
+        increment('errors')
+      else:
+        increment('committedPoints', pointCount)
+        append('updateTimes', updateTime)
 
 
 def writeForever():

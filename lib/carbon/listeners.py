@@ -3,6 +3,7 @@ from twisted.internet.protocol import Factory
 from twisted.internet.error import ConnectionDone
 from twisted.protocols.basic import LineOnlyReceiver, Int32StringReceiver
 from carbon.cache import MetricCache
+from carbon.instrumentation import increment
 from carbon import log
 
 try:
@@ -28,7 +29,6 @@ class MetricLineReceiver(LoggingMixin, LineOnlyReceiver):
   delimiter = '\n'
 
   def lineReceived(self, line):
-    print line
     try:
       metric, value, timestamp = line.strip().split()
       datapoint = ( float(timestamp), float(value) )
@@ -46,6 +46,7 @@ class CacheQueryHandler(LoggingMixin, Int32StringReceiver):
     log.msg('cache query for %s returned %d values' % (metric, len(values)))
     response = pickle.dumps(values, protocol=-1)
     self.sendString(response)
+    increment('cacheQueries')
 
 
 def startListener(interface, port, protocol):
