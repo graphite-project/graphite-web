@@ -60,7 +60,7 @@ parser = optparse.OptionParser(usage='%prog [options] <start|stop|status>')
 parser.add_option('--debug', action='store_true', help='Run in the foreground, log to stdout')
 parser.add_option('--profile', help='Record performance profile data to the given file')
 parser.add_option('--pidfile', default=join(STORAGE_DIR, '%s.pid' % program), help='Write pid to the given file')
-parser.add_option('--config', default=join(CONF_DIR, 'carbon-data-server.conf'), help='Use the given config file')
+parser.add_option('--config', default=join(CONF_DIR, 'carbon.conf'), help='Use the given config file')
 parser.add_option('--logdir', default=LOG_DIR, help="Write logs in the given directory")
 
 (options, args) = parser.parse_args()
