@@ -50,9 +50,8 @@ sys.path.insert(0, LIB_DIR)
 # Import application components
 from carbon.conf import settings
 from carbon.log import logToStdout, logToDir
-from carbon.listeners import MetricLineReceiver, MetricPickleReceiver, CacheQueryHandler, startListener
-from carbon.writer import startWriter
-from carbon.instrumentation import recorder
+from carbon.listeners import MetricLineReceiver, MetricPickleReceiver, startListener
+from carbon.relay import startRelaying
 
 
 # Parse command line options
@@ -112,7 +111,7 @@ elif action == 'status':
 
 
 # Read config (we want failures to occur before daemonizing)
-settings.readFrom(options.config, 'cache')
+settings.readFrom(options.config, 'relay')
 
 
 # --debug
@@ -141,9 +140,9 @@ else:
 # Configure application components
 startListener(settings.LINE_RECEIVER_INTERFACE, settings.LINE_RECEIVER_PORT, MetricLineReceiver)
 startListener(settings.PICKLE_RECEIVER_INTERFACE, settings.PICKLE_RECEIVER_PORT, MetricPickleReceiver)
-startListener(settings.CACHE_QUERY_INTERFACE, settings.CACHE_QUERY_PORT, CacheQueryHandler)
-startWriter()
-recorder.start(60)
+
+cacheServers = [ server.strip() for server in settings.CACHE_SERVERS.split(',') ]
+startRelaying(cacheServers)
 
 
 # Run the twisted reactor

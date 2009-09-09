@@ -18,13 +18,13 @@ from ConfigParser import ConfigParser
 class Settings(dict):
   __getattr__ = dict.__getitem__
 
-  def readFrom(self, path):
+  def readFrom(self, path, section):
     self.clear()
 
     parser = ConfigParser()
     assert parser.read(path), "Failed to read config file %s" % path
 
-    for key,value in parser.items('carbon-data-server'):
+    for key,value in parser.items(section):
       try:
         value = int(value)
       except:

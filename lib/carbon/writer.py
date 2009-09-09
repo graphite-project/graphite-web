@@ -82,7 +82,6 @@ def writeCachedDataPoints():
 
       try:
         t1 = time.time()
-        log.msg('datapoints=%s' % str(datapoints))
         whisper.update_many(dbFilePath, datapoints)
         updateTime = time.time() - t1
       except:
@@ -108,13 +107,13 @@ def reloadStorageSchemas():
   try:
     schemas = loadStorageSchemas()
   except:
-    log.err("Failed to reload storage schemas")
+    log.writer("Failed to reload storage schemas")
+    log.err()
 
 
-writerThread = Thread(target=writeForever)
 schemaReloadTask = LoopingCall(reloadStorageSchemas)
 
 
 def startWriter():
   schemaReloadTask.start(60)
-  reactor.callWhenRunning(writerThread.start)
+  reactor.callInThread(writeForever)

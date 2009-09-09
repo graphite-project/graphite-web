@@ -3,6 +3,7 @@ from twisted.internet.protocol import Factory
 from twisted.internet.error import ConnectionDone
 from twisted.protocols.basic import LineOnlyReceiver, Int32StringReceiver
 from carbon.cache import MetricCache
+from carbon.relay import relay
 from carbon.instrumentation import increment
 from carbon import log
 
@@ -38,6 +39,18 @@ class MetricLineReceiver(LoggingMixin, LineOnlyReceiver):
       return
 
     MetricCache.store(metric, datapoint)
+
+
+class MetricPickleReceiver(LoggingMixin, Int32StringReceiver):
+  def stringReceived(self, data):
+    try:
+      (metric, datapoint) = pickle.loads(data)
+    except:
+      log.listener('invalid pickle received from client %s, disconnecting' % self.peerAddr)
+      self.transport.loseConnection()
+      return
+
+    relay(metric, data) # faster to re-send the pickled data, routed based on metric
 
 
 class CacheQueryHandler(LoggingMixin, Int32StringReceiver):

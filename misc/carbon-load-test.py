@@ -31,3 +31,8 @@ while True:
   print 'sent %d metrics in %.3f seconds' % (count, time.time() - start)
 
   now += 60
+
+  diff = now - time.time()
+  if diff > 0:
+    print "sleeping for %d seconds" % diff
+    time.sleep(diff)

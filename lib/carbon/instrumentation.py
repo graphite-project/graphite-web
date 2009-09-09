@@ -1,9 +1,11 @@
-import time
+import time, socket
 from twisted.internet.task import LoopingCall
 from carbon.cache import MetricCache
 
 
 stats = {}
+HOSTNAME = socket.gethostname().replace('.','_')
+
 
 def increment(stat, increase=1):
   try:
@@ -22,7 +24,6 @@ def append(stat, value):
 def record():
   myStats = stats.copy()
   stats.clear()
-  timestamp = time.time()
 
   updateTimes = myStats.get('updateTimes', [])
   committedPoints = myStats.get('committedPoints', 0)
@@ -32,20 +33,26 @@ def record():
 
   if updateTimes:
     avgUpdateTime = sum(updateTimes) / len(updateTimes)
-    MetricCache.store('avgUpdateTime', (timestamp, avgUpdateTime))
+    store('avgUpdateTime', avgUpdateTime)
 
   if committedPoints:
     pointsPerUpdate = len(updateTimes) / committedPoints
-    MetricCache.store('pointsPerUpdate', (timestamp, pointsPerUpdate))
+    store('pointsPerUpdate', pointsPerUpdate)
   
-  MetricCache.store('updateOperations', (timestamp, len(updateTimes)))
-  MetricCache.store('committedPoints', (timestamp, committedPoints))
-  MetricCache.store('creates', (timestamp, creates))
-  MetricCache.store('errors', (timestamp, errors))
+  store('updateOperations', len(updateTimes))
+  store('committedPoints', committedPoints)
+  store('creates', creates)
+  store('errors', errors)
 
-  MetricCache.store('cache.queries', (timestamp, cacheQueries))
-  MetricCache.store('cache.queues', (timestamp, len(MetricCache)))
-  MetricCache.store('cache.size', (timestamp, MetricCache.size))
+  store('cache.queries', cacheQueries)
+  store('cache.queues', len(MetricCache))
+  store('cache.size', MetricCache.size)
+
+
+def store(metric, value):
+  fullMetric = 'carbon.agents.%s.%s' % (HOSTNAME, metric)
+  datapoint = (time.time(), value)
+  MetricCache.store(fullMetric, datapoint)
 
 
 recorder = LoopingCall(record)
