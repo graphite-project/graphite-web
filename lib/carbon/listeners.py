@@ -39,6 +39,7 @@ class MetricLineReceiver(LoggingMixin, LineOnlyReceiver):
       self.transport.loseConnection()
       return
 
+    increment('metricsReceived')
     metricReceived(metric, datapoint)
 
 
@@ -51,6 +52,7 @@ class MetricPickleReceiver(LoggingMixin, Int32StringReceiver):
       self.transport.loseConnection()
       return
 
+    increment('metricsReceived')
     metricReceived(metric, datapoint)
 
 

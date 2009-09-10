@@ -53,6 +53,7 @@ from carbon.log import logToStdout, logToDir
 from carbon.listeners import MetricLineReceiver, MetricPickleReceiver, startListener
 from carbon.relay import startRelaying, relay
 from carbon.events import metricReceived
+from carbon.instrumentation import startRecordingRelayMetrics
 
 
 # Parse command line options
@@ -146,6 +147,7 @@ startListener(settings.PICKLE_RECEIVER_INTERFACE, settings.PICKLE_RECEIVER_PORT,
 
 cacheServers = [ server.strip() for server in settings.CACHE_SERVERS.split(',') ]
 startRelaying(cacheServers, options.rules)
+startRecordingRelayMetrics()
 
 
 # Run the twisted reactor

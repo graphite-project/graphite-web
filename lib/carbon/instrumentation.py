@@ -1,10 +1,12 @@
 import time, socket
 from twisted.internet.task import LoopingCall
 from carbon.cache import MetricCache
+from carbon.relay import relay, RelayServers
 
 
 stats = {}
 HOSTNAME = socket.gethostname().replace('.','_')
+recordTask = None
 
 
 def increment(stat, increase=1):
@@ -21,10 +23,19 @@ def append(stat, value):
     stats[stat] = [value]
 
 
-def record():
+# Cache metrics
+def startRecordingCacheMetrics():
+  global recordTask
+  assert not recordTask, "Already recording metrics"
+  recordTask = LoopingCall(recordCacheMetrics)
+  recordTask.start(60, now=False)
+
+
+def recordCacheMetrics():
   myStats = stats.copy()
   stats.clear()
 
+  metricsReceived = myStats.get('metricsReceived', 0)
   updateTimes = myStats.get('updateTimes', [])
   committedPoints = myStats.get('committedPoints', 0)
   creates = myStats.get('creates', 0)
@@ -38,7 +49,8 @@ def record():
   if committedPoints:
     pointsPerUpdate = len(updateTimes) / committedPoints
     store('pointsPerUpdate', pointsPerUpdate)
-  
+
+  store('metricsReceived', metricsReceived)
   store('updateOperations', len(updateTimes))
   store('committedPoints', committedPoints)
   store('creates', creates)
@@ -55,4 +67,33 @@ def store(metric, value):
   MetricCache.store(fullMetric, datapoint)
 
 
-recorder = LoopingCall(record)
+# Relay metrics
+def startRecordingRelayMetrics():
+  global recordTask
+  assert not recordTask, "Already recording metrics"
+  recordTask = LoopingCall(recordRelayMetrics)
+  recordTask.start(60, now=False)
+
+
+def recordRelayMetrics():
+  myStats = stats.copy()
+  stats.clear()
+
+  # global metrics
+  send('metricsReceived', myStats.get('metricsReceived', 0))
+
+  # per-destination metrics
+  for server in RelayServers:
+    prefix = 'destinations.%s.' % server.destinationName
+
+    for metric in ('attemptedRelays', 'sent', 'queuedUntilReady', 'queuedUntilConnected', 'fullQueueDrops'):
+      metric = prefix + metric
+      send(metric, myStats.get(metric, 0))
+
+    send(prefix + 'queueSize', len(server.queue))
+
+
+def send(metric, value):
+  fullMetric = 'carbon.relays.%s.%s' % (HOSTNAME, metric)
+  datapoint = (time.time(), value)
+  relay(fullMetric, datapoint)
