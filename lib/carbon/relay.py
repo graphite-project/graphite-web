@@ -2,7 +2,8 @@ from collections import deque
 from twisted.internet import reactor
 from twisted.internet.protocol import ReconnectingClientFactory
 from twisted.protocols.basic import Int32StringReceiver
-from carbon.rules import getDestinations
+from carbon.instrumentation import increment #XXX distinguish relay vs. cache instrumentation. then instrument the relay appropriately. what metrics?
+from carbon.rules import getDestinations, loadRules
 from carbon.conf import settings
 from carbon import log
 
@@ -15,9 +16,13 @@ except ImportError:
 RelayServers = []
 
 
-def relay(metric, data):
+def relay(metric, datapoint):
+  log.relay('relay(metric=%s)' % metric)
+  packet = pickle.dumps( (metric,datapoint) )
+
   for server in getServers(metric):
-    server.send(data)
+    log.relay('-> %s' % server.host)
+    server.send(packet)
 
 
 def getServers(metric):
@@ -42,7 +47,6 @@ class MetricPickleSender(Int32StringReceiver):
     self.flushQueue()
 
   def stopProducing(self):
-    log.relay('%s.stopProducing()' % self)
     self.transport.loseConnection()
 
   def flushQueue(self):
@@ -64,8 +68,6 @@ class MetricSenderFactory(ReconnectingClientFactory):
     self.host = host
     self.port = port
     self.remoteAddr = "%s:%d" % (host, port)
-
-  def startFactory(self):
     self.queue = deque()
 
   def startedConnecting(self, connector):
@@ -76,7 +78,7 @@ class MetricSenderFactory(ReconnectingClientFactory):
     self.connectedProtocol = MetricPickleSender()
     self.connectedProtocol.factory = self
     self.connectedProtocol.queue = self.queue
-    return protocol
+    return self.connectedProtocol
 
   def send(self, data):
     if len(self.queue) >= settings.MAX_QUEUE_SIZE:
@@ -87,15 +89,18 @@ class MetricSenderFactory(ReconnectingClientFactory):
       self.queue.append(data)
 
   def clientConnectionLost(self, connector, reason):
+    ReconnectingClientFactory.clientConnectionLost(self, connector, reason)
     self.connectedProtocol = None
     log.relay("connection to %s lost: %s" % (self.remoteAddr, reason.value))
 
   def clientConnectionFailed(self, connector, reason):
+    ReconnectingClientFactory.clientConnectionFailed(self, connector, reason)
     log.relay("connection attempt to %s failed: %s" % (self.remoteAddr, reason.value))
 
 
-def startRelaying(servers):
+def startRelaying(servers, rulesFile):
   assert not RelayServers, "Relaying already started"
+  loadRules(rulesFile)
 
   for server in servers:
     if ':' in server:

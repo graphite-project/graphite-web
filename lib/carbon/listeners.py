@@ -5,6 +5,7 @@ from twisted.protocols.basic import LineOnlyReceiver, Int32StringReceiver
 from carbon.cache import MetricCache
 from carbon.relay import relay
 from carbon.instrumentation import increment
+from carbon.events import metricReceived
 from carbon import log
 
 try:
@@ -38,7 +39,7 @@ class MetricLineReceiver(LoggingMixin, LineOnlyReceiver):
       self.transport.loseConnection()
       return
 
-    MetricCache.store(metric, datapoint)
+    metricReceived(metric, datapoint)
 
 
 class MetricPickleReceiver(LoggingMixin, Int32StringReceiver):
@@ -50,7 +51,7 @@ class MetricPickleReceiver(LoggingMixin, Int32StringReceiver):
       self.transport.loseConnection()
       return
 
-    relay(metric, data) # faster to re-send the pickled data, routed based on metric
+    metricReceived(metric, datapoint)
 
 
 class CacheQueryHandler(LoggingMixin, Int32StringReceiver):

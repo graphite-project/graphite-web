@@ -40,7 +40,7 @@ from twisted.internet import reactor
 BIN_DIR = dirname(__file__)
 ROOT_DIR = dirname(BIN_DIR)
 STORAGE_DIR = join(ROOT_DIR, 'storage')
-LOG_DIR = join(STORAGE_DIR, 'log')
+LOG_DIR = join(STORAGE_DIR, 'log', 'carbon-relay')
 CONF_DIR = join(ROOT_DIR, 'conf')
 LIB_DIR = join(ROOT_DIR, 'lib')
 
@@ -51,7 +51,8 @@ sys.path.insert(0, LIB_DIR)
 from carbon.conf import settings
 from carbon.log import logToStdout, logToDir
 from carbon.listeners import MetricLineReceiver, MetricPickleReceiver, startListener
-from carbon.relay import startRelaying
+from carbon.relay import startRelaying, relay
+from carbon.events import metricReceived
 
 
 # Parse command line options
@@ -60,6 +61,7 @@ parser.add_option('--debug', action='store_true', help='Run in the foreground, l
 parser.add_option('--profile', help='Record performance profile data to the given file')
 parser.add_option('--pidfile', default=join(STORAGE_DIR, '%s.pid' % program.split('.')[0]), help='Write pid to the given file')
 parser.add_option('--config', default=join(CONF_DIR, 'carbon.conf'), help='Use the given config file')
+parser.add_option('--rules', default=join(CONF_DIR, 'relay-rules.conf'), help='Use the give relay rules file')
 parser.add_option('--logdir', default=LOG_DIR, help="Write logs in the given directory")
 
 (options, args) = parser.parse_args()
@@ -138,11 +140,12 @@ else:
 
 
 # Configure application components
+metricReceived.installHandler(relay)
 startListener(settings.LINE_RECEIVER_INTERFACE, settings.LINE_RECEIVER_PORT, MetricLineReceiver)
 startListener(settings.PICKLE_RECEIVER_INTERFACE, settings.PICKLE_RECEIVER_PORT, MetricPickleReceiver)
 
 cacheServers = [ server.strip() for server in settings.CACHE_SERVERS.split(',') ]
-startRelaying(cacheServers)
+startRelaying(cacheServers, options.rules)
 
 
 # Run the twisted reactor

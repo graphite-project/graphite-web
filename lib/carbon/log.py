@@ -4,9 +4,6 @@ from twisted.python.log import startLoggingWithObserver, textFromEventDict, msg,
 from twisted.python.logfile import DailyLogFile
 
 
-customLogs = ('cache', 'writer', 'listener', 'relay')
-
-
 def formatEvent(event, includeType=False):
   message = textFromEventDict(event)
 
@@ -31,15 +28,16 @@ def logToStdout():
 
 def logToDir(logDir):
   consoleLogFile = DailyLogFile('console.log', logDir)
-  customLogFiles = {}
-
-  for name in customLogs:
-    customLogFiles[name] = DailyLogFile('%s.log' % name, logDir)
+  customLogs = {}
 
   def observer(event):
     message = formatEvent(event)
-    type = event.get('type')
-    logfile = customLogFiles.get(type, consoleLogFile)
+    logType = event.get('type')
+
+    if logType is not None and logType not in customLogs:
+      customLogs[logType] = DailyLogFile(logType + '.log', logDir)
+
+    logfile = customLogFiles.get(logType, consoleLogFile)
     logfile.write(message + '\n')
     logfile.flush()
 
@@ -50,12 +48,14 @@ def cache(message, **context):
   context['type'] = 'cache'
   msg(message, **context)
 
-
 def writer(message, **context):
   context['type'] = 'writer'
   msg(message, **context)
 
-
 def listener(message, **context):
   context['type'] = 'listener'
+  msg(message, **context)
+
+def relay(message, **context):
+  context['type'] = 'relay'
   msg(message, **context)

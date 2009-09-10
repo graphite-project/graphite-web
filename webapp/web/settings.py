@@ -30,7 +30,7 @@ RRD_DIR = STORAGE_DIR + 'rrd/'
 LISTS_DIR = STORAGE_DIR + 'lists/'
 INDEX_FILE = STORAGE_DIR + 'index'
 WHITELIST_FILE = LISTS_DIR + 'whitelist'
-LOG_DIR = STORAGE_DIR + 'log/'
+LOG_DIR = STORAGE_DIR + 'log/webapp/'
 CLUSTER_SERVERS = []
 
 try:

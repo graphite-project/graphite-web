@@ -40,7 +40,7 @@ from twisted.internet import reactor
 BIN_DIR = dirname(__file__)
 ROOT_DIR = dirname(BIN_DIR)
 STORAGE_DIR = join(ROOT_DIR, 'storage')
-LOG_DIR = join(STORAGE_DIR, 'log')
+LOG_DIR = join(STORAGE_DIR, 'log', 'carbon-cache')
 CONF_DIR = join(ROOT_DIR, 'conf')
 LIB_DIR = join(ROOT_DIR, 'lib')
 
@@ -51,8 +51,10 @@ sys.path.insert(0, LIB_DIR)
 from carbon.conf import settings
 from carbon.log import logToStdout, logToDir
 from carbon.listeners import MetricLineReceiver, MetricPickleReceiver, CacheQueryHandler, startListener
+from carbon.cache import MetricCache
 from carbon.writer import startWriter
 from carbon.instrumentation import recorder
+from carbon.events import metricReceived
 
 
 # Parse command line options
@@ -139,11 +141,12 @@ else:
 
 
 # Configure application components
+metricReceived.installHandler(MetricCache.store)
 startListener(settings.LINE_RECEIVER_INTERFACE, settings.LINE_RECEIVER_PORT, MetricLineReceiver)
 startListener(settings.PICKLE_RECEIVER_INTERFACE, settings.PICKLE_RECEIVER_PORT, MetricPickleReceiver)
 startListener(settings.CACHE_QUERY_INTERFACE, settings.CACHE_QUERY_PORT, CacheQueryHandler)
 startWriter()
-recorder.start(60)
+recorder.start(60, now=False)
 
 
 # Run the twisted reactor

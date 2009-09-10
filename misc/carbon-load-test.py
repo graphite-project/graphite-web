@@ -2,7 +2,7 @@
 
 import sys, os, time
 from socket import socket
-from random import random
+from random import random, choice
 
 
 try:
@@ -23,7 +23,8 @@ while True:
   start = time.time()
   count = 0
   for i in xrange(0, mpm):
-    metric = 'TEST.%d' % i
+    r = choice( (42,43) )
+    metric = 'TEST%d.%d' % (r,i)
     value = random()
     s.sendall('%s %s %s\n' % (metric, value, now))
     count += 1

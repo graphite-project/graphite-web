@@ -32,7 +32,7 @@ class OrderedDict(dict):
       oldValue = self[key]
       self._items.remove( (key,oldValue) )
 
-    dict.__setitem__(key, value)
+    dict.__setitem__(self, key, value)
     self._items.append( (key,value) )
 
   def items(self):
