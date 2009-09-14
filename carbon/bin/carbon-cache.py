@@ -125,7 +125,7 @@ else:
     print "Invalid logging directory: %s" % options.logdir
     raise SystemExit(1)
 
-  from carbon.util import daemonize
+  from carbon.util import daemonize, dropprivs
   daemonize()
   logToDir(options.logdir)
 
@@ -138,6 +138,11 @@ else:
       os.unlink(options.pidfile)
 
   atexit.register(shutdown)
+
+  if settings.USER:
+    os.chown(options.pidfile, settings.USER)
+    print "Dropping privileges to become the user %s" % user
+    dropprivs(user)
 
 
 # Configure application components

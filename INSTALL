@@ -6,7 +6,7 @@ with Graphite as allowed by the Ext FLOSS license exemption described here:
 http://extjs.com/products/floss-exception.php
 
 
- Run install.py
+ Run check-dependencies.py
 -------------------------------------------------------------------------------
 This will check for graphite's runtime dependencies and let
 you know which you are missing. Download and install these modules and re-run
@@ -14,6 +14,7 @@ install.py until it detects all the required modules.
 
 Graphite requires:
  python2.4 or greater
+ whisper (available for download on the graphite project page)
  pycairo (with PNG backend support)
  mod_python
  django
@@ -22,22 +23,16 @@ Graphite requires:
  python-memcached (optional - needed for webapp caching, big performance boost)
  python-sqlite2 (optional - a django-supported database module is required)
 
-Once install.py has completed, graphite will be installed in
-/usr/local/graphite (unless you specified --install-root). It will
-also tell you a particular post-install command to run if this is your
-first installation.
 
-If you are merely upgrading, you are already done. Do not run post-install.py.
-
- Running post-install.py (first-time installations only)
+ Run setup.py
 -------------------------------------------------------------------------------
-At the end of install.py it will tell you to run post-install.py with some
-particular command line options. Run this command exactly, in the same directory
-you ran install.py in, and as the same user. Basically you should just
-run this immediately after running install.py.
+First take a look at the 'prefix' option in the setup.cfg file. This specifies
+where the graphite application will be installed. Note that if you plan on
+installing carbon on the same server you should use the same prefix for it.
 
-This script will create a graphite-vhost.conf file in the current directory.
-You can use this file to configure apache.
+Also, do NOT change the 'install-lib' option unless you really know what
+you are doing.
+
 
  Apache Configuration
 -------------------------------------------------------------------------------
@@ -54,11 +49,10 @@ The first way (highly preferred) is to include independent vhost configs.
 # This goes in httpd.conf
 Include /usr/local/apache2/conf/vhosts.d/*.conf
 
-Then simply drop the graphite-vhost.conf file that install.py created
-into the vhosts.d/ directory (or whatever directory your system uses) and
-apache is ready.
+Then simply drop your graphite vhost conf file into the vhosts.d/ directory
+(or whatever directory your system uses) and apache is ready.
 
-The second approach is to copy the contents of the graphite-vhost.conf file
+The second approach is to copy the contents of the graphite vhost conf file
 and insert it down at the end of your httpd.conf.
 
 
@@ -94,7 +88,7 @@ $GRAPHITE_ROOT/storage/logs/
  Next Steps - setup the backend (carbon)
 -------------------------------------------------------------------------------
 Now you have finished installing the graphite webapp, the next thing to do is put some
-real data into it. This is accomplished by running the carbon-agent.py daemon
+real data into it. This is accomplished by running the carbon-cache.py daemon
 and send it some data as demonstrated in the included
 ./examples/example-client.py
 

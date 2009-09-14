@@ -3,9 +3,9 @@
 Graphite consists of two major components
 
  1) the frontend Django webapp that runs under mod_python Apache
- 2) the backend carbon-agent.py daemon
+ 2) the backend carbon-cache.py daemon
 
-Client applications connect to the running carbon-agent.py daemon on port 2003 and send it
+Client applications connect to the running carbon-cache.py daemon on port 2003 and send it
 lines of text of the following format:
 
 "my.metric.name value unix_timestamp", for example:
@@ -18,7 +18,7 @@ The unix_timestamp is unix epoch time, as an integer
 
 Each line like this corresponds to one data point for one metric.
 
-Once you've got some clients sending data to carbon-agent, you can view
+Once you've got some clients sending data to carbon-cache, you can view
 graphs of that data in the frontend webapp.
 
 
@@ -27,32 +27,14 @@ graphs of that data in the frontend webapp.
 Use the instructions in the INSTALL file.
 
 
- Running carbon-agent.py
+ Running carbon-cache.py
 -------------------------------------------------------------------------------
-NOTE: This section is no longer necessary to perform manually. It is now taken
-      care of by the post-install.py script. Only use this as a reference if you
-      are troubleshooting a problem or trying to do something fancy.
+First you must tell carbon-cache what user it should run as.
+This must be a user with write privileges to $GRAPHITE_ROOT/storage/whisper
+Specify the user account in $GRAPHITE_ROOT/carbon/conf/carbon.conf
 
-Decide what user you want to run carbon-agent.py as, for this example I'll use 'nobody'.
-
-# First we tell carbon-agent what user it should run as
-# This should be the same user that apache runs as
-cd /usr/local/graphite/carbon/
-sudo bash -c "echo -n nobody > run_as_user"
-
-# Next we must make sure that the carbon-agent/apache user owns the storage directory.
-sudo chown -R nobody /usr/local/graphite/storage/
-
-# Also need to chown the log and pid directories for carbon-agent
-sudo chown -R nobody /usr/local/graphite/carbon/log
-sudo chown -R nobody /usr/local/graphite/carbon/pid
-
-# Now you just start carbon-agent
-sudo /etc/init.d/carbon-agent.sh start
-
-# Now watch the logs to verify that everything is running without errors
-cd /usr/local/graphite/carbon/
-tail -f log/*.log
+# Next we must make sure that the carbon-cache/apache user owns the storage directory.
+sudo chown -R $CARBON_USER $GRAPHITE_ROOT/storage/
 
 
  Writing a client
