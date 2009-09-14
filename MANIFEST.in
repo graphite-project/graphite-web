@@ -1,0 +1,4 @@
+include INSTALL
+include LICENSE
+recursive-include webapp/graphite/ *.html
+recursive-include webapp/content/ *
