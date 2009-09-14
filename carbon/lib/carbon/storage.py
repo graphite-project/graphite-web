@@ -16,6 +16,7 @@ import os, re
 from os.path import join, exists
 from ConfigParser import ConfigParser
 from carbon.conf import Settings, settings
+from carbon.util import OrderedDict
 
 try:
   import cPickle as pickle
@@ -23,14 +24,17 @@ except ImportError:
   import pickle
 
 
+STORAGE_SCHEMAS_CONFIG = 'conf/storage-schemas.conf'
+STORAGE_LISTS_DIR = 'storage/lists'
+
+
 def getFilesystemPath(metric):
   return join(settings.LOCAL_DATA_DIR, metric.replace('.','/')) + '.wsp'
 
 
 class Schema:
-  def __init__(self, name, priority, test, archives):
+  def __init__(self, name, test, archives):
     self.name = name
-    self.priority = int(priority)
     self.test = test
     self.archives = archives
 
@@ -54,12 +58,11 @@ class Archive:
 
 def loadStorageSchemas():
   schemaList = []
-  config = ConfigParser()
-  config.read('../storage/schemas')
+  config = ConfigParser(dict_type=OrderedDict)
+  config.read(STORAGE_SCHEMAS_CONFIG)
 
   for section in config.sections():
     options = dict( config.items(section) )
-    priority = int( options['priority'] )
     pattern = options.get('pattern')
     listName = options.get('list')
 
@@ -75,16 +78,15 @@ def loadStorageSchemas():
 
     retentions = options['retentions'].split(',')
     archives = [ Archive.fromString(s) for s in retentions ]
-    mySchema = Schema(section, priority, test, archives)
+    mySchema = Schema(section, test, archives)
     schemaList.append( mySchema )
 
-  schemaList.sort(key=lambda s: s.priority,reverse=True)
   schemaList.append( defaultSchema )
   return schemaList
 
 
 def listTest(name):
-  path = '../storage/lists/%s' % name
+  path = join(WHITELISTS_DIR, name)
   state = {}
 
   if exists(path):
@@ -112,4 +114,4 @@ def listTest(name):
 
 
 defaultArchive = Archive(60, 60 * 24 * 7) #default retention for unclassified data (7 days of minutely data)
-defaultSchema = Schema(name='default', priority=-1, test=lambda m: True, archives=[defaultArchive])
+defaultSchema = Schema(name='default', test=lambda m: True, archives=[defaultArchive])
