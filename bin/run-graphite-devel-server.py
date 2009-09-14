@@ -34,7 +34,7 @@ if options.libs:
 
 print "Running Graphite from %s under django development server\n" % graphite_root
 
-command = "%s runserver --pythonpath=%s --settings=web.settings 0.0.0.0:%d" % (django_admin, python_path, options.port)
+command = "%s runserver --pythonpath=%s --settings=graphite.settings 0.0.0.0:%d" % (django_admin, python_path, options.port)
 
 print command
 sys.exit( os.system(command) >> 8 )

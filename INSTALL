@@ -16,9 +16,8 @@ Graphite requires:
  python2.4 or greater
  whisper (available for download on the graphite project page)
  pycairo (with PNG backend support)
- mod_python
  django
- python-pyparsing
+ mod_python (optional - but highly recommended)
  python-ldap (optional - needed for ldap-based webapp authentication)
  python-memcached (optional - needed for webapp caching, big performance boost)
  python-sqlite2 (optional - a django-supported database module is required)
@@ -30,8 +29,37 @@ First take a look at the 'prefix' option in the setup.cfg file. This specifies
 where the graphite application will be installed. Note that if you plan on
 installing carbon on the same server you should use the same prefix for it.
 
+The prefix where graphite is installed under where be referred to as
+$GRAPHITE_ROOT from here on.
+
 Also, do NOT change the 'install-lib' option unless you really know what
 you are doing.
+
+
+ Initialize the Database
+------------------------------------------------------------------------------
+Once you have installed graphite you must initialize its database like so:
+
+cd $GRAPHITE_ROOT/webapp/graphite/
+sudo python manage.py syncdb
+
+Note that if you wish to use a custom database setup (like MySQL or Postgres)
+you will need to make those configuration changes first. See the "Custom
+Database Configuration" section below for details.
+
+
+ Setup Filesystem Ownership
+------------------------------------------------------------------------------
+The user that apache runs as will need write access to the following directories:
+
+$GRAPHITE_ROOT/storage/
+$GRAPHITE_ROOT/storage/log/webapp/
+
+As well as write access to the following files:
+
+$GRAPHITE_ROOT/storage/graphite.db
+
+The apache user must also have read access to $GRAPHITE_ROOT/storage/whisper/
 
 
  Apache Configuration
@@ -67,22 +95,19 @@ After you setup your database server, create a database and a user with full
 privileges on that database. Now we put that information into the graphite
 webapp local_settings.py file.
 
-Edit the $GRAPHITE_ROOT/webapp/web/local_settings.py 
+Edit the $GRAPHITE_ROOT/webapp/graphite/local_settings.py 
 
 In particular you will need to uncomment and modify all of the settings
 that begin with "DATABASE_". Once you have done this, we need to tell
 Django to create our tables.
 
-cd $GRAPHITE_ROOT/webapp/web/
+cd $GRAPHITE_ROOT/webapp/graphite/
 sudo python manage.py syncdb
 # you will be prompted to create an admin user, this is a good idea
 
 Restart apache and you should see the graphite webapp on the main page.
 If you encounter problems, you can increase the verbosity of error output
 by adding a "DEBUG = True" line to local_settings.py
-
-Also remember that by default the apache logs for the graphite webapp are in
-$GRAPHITE_ROOT/storage/logs/
 
 
  Next Steps - setup the backend (carbon)

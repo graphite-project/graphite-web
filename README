@@ -30,11 +30,10 @@ Use the instructions in the INSTALL file.
  Running carbon-cache.py
 -------------------------------------------------------------------------------
 First you must tell carbon-cache what user it should run as.
-This must be a user with write privileges to $GRAPHITE_ROOT/storage/whisper
+This must be a user with write privileges to $GRAPHITE_ROOT/storage/whisper/
 Specify the user account in $GRAPHITE_ROOT/carbon/conf/carbon.conf
 
-# Next we must make sure that the carbon-cache/apache user owns the storage directory.
-sudo chown -R $CARBON_USER $GRAPHITE_ROOT/storage/
+This user must also have write privileges to $GRAPHITE_ROOT/storage/log/carbon-cache/
 
 
  Writing a client

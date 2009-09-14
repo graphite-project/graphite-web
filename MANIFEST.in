@@ -1,4 +1,6 @@
 include INSTALL
 include LICENSE
+include example-graphite-vhost.conf
+include webapp/graphite/local_settings.py.example
 recursive-include webapp/graphite/ *.html
 recursive-include webapp/content/ *

@@ -29,7 +29,7 @@ setup(
   description='Enterprise scalable realtime graphing',
   package_dir={'' : 'webapp'},
   packages=['graphite', 'graphite.account', 'graphite.browser', 'graphite.cli', 'graphite.composer', 'graphite.render', 'graphite.whitelist'],
-  package_data={'graphite' : ['templates/*']},
+  package_data={'graphite' : ['templates/*', 'local_settings.py.example']},
   scripts=glob('bin/*'),
   data_files=webapp_content.items() + storage_dirs,
 )
