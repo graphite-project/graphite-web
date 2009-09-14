@@ -40,6 +40,7 @@ you are doing.
 ------------------------------------------------------------------------------
 Once you have installed graphite you must initialize its database like so:
 
+export PYTHONPATH=$PYTHONPATH:$GRAPHITE_ROOT/webapp
 cd $GRAPHITE_ROOT/webapp/graphite/
 sudo python manage.py syncdb
 

@@ -12,9 +12,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
-import socket, cPickle
+import socket
+import struct
 from django.conf import settings
 from graphite.logger import log
+
+try:
+  import cPickle as pickle
+except ImportError:
+  import pickle
 
 
 class CarbonLinkPool:
@@ -56,7 +62,7 @@ class CarbonLinkPool:
   def sendRequest(self, metric):
     "Sends a request and returns a completion callback"
     host = self.selectHost(metric)
-    query = metric + '\x00'
+    query = struct.pack("!L", len(metric)) + metric # 32-bit length prefix string
     connection = None
 
     try:
@@ -67,21 +73,33 @@ class CarbonLinkPool:
       def receiveResponse():
         try:
           buf = ''
-          while True:
-            pkt = connection.recv(65536)
-            assert pkt, "CarbonLink lost connection to %s:%d" % host
-            buf += pkt
-            if buf.endswith('\x00'): break
+          remaining = 4
+          message_size = None
+
+          while remaining:
+            packet = connection.recv(remaining)
+            assert packet, "CarbonLink lost connection to %s:%d" % host
+
+            buf += packet
+
+            if message_size is None:
+              if len(buf) == 4:
+                remaining = message_size = struct.unpack("!L", buf)[0]
+                buf = ''
+                continue
+
+            remaining -= len(packet)
 
           # We're done with the connection for this request, put it in the pool
           self.putConnectionInPool(host, connection)
 
           # Now parse the response
-          pointStrings = cPickle.loads(buf[:-1])
-          log.cache("CarbonLink to %s, retrieved %d points for %s" % (host,len(pointStrings),metric))
-          for point in pointStrings:
-            (value, timestamp) = point.split(' ',1)
-            yield ( int(timestamp), float(value) )
+          points = pickle.loads(buf)
+          log.cache("CarbonLink to %s, retrieved %d points for %s" % (host,len(points),metric))
+
+          for point in points:
+            yield point
+
         except:
           log.exception("CarbonLink to %s, exception while getting response" % str(host))
           self.removeConnectionFromPool(host, connection)

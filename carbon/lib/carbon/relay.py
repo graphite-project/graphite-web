@@ -2,7 +2,6 @@ from collections import deque
 from twisted.internet import reactor
 from twisted.internet.protocol import ReconnectingClientFactory
 from twisted.protocols.basic import Int32StringReceiver
-from carbon.instrumentation import increment
 from carbon.rules import getDestinations, loadRules
 from carbon.conf import settings
 from carbon import log
@@ -131,3 +130,7 @@ def startRelaying(servers, rulesFile):
     reactor.connectTCP(host, port, factory)
 
   RelayServers.sort(key=lambda f: f.remoteAddr) # normalize the order
+
+
+# Avoid import circularities
+from carbon.instrumentation import increment
