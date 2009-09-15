@@ -370,7 +370,7 @@ var TargetsWindow = { //This widget has a lot of state, so an object is appropri
     this.grid = new Ext.grid.GridPanel({
       store: this.targetsStore,
       columns: [ {header: "Targets", width: 500, sortable: true, dataIndex: "target"} ],
-      listeners: {contextmenu: this.showContextMenu, scope: this}
+      listeners: {rowcontextmenu: this.showContextMenu, scope: this}
     });
 
     this.window = new Ext.Window({
@@ -400,7 +400,14 @@ var TargetsWindow = { //This widget has a lot of state, so an object is appropri
     this.window.setSize(size);
   },
 
-  showContextMenu: function (evt) {
+  showContextMenu: function (grid, index, evt) {
+    /* Select the right-clicked row unless it is already selected */
+    var selModel = grid.getSelectionModel();
+
+    if (! selModel.isSelected(index) ) {
+      selModel.selectRow(index);
+    }
+
     var functionsMenu = new Ext.menu.Menu({
       items: [
         {text: 'Sum Series', handler: this.applyFuncToAll('sumSeries')},
