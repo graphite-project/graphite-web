@@ -37,7 +37,7 @@ def logToDir(logDir):
     if logType is not None and logType not in customLogs:
       customLogs[logType] = DailyLogFile(logType + '.log', logDir)
 
-    logfile = customLogFiles.get(logType, consoleLogFile)
+    logfile = customLogs.get(logType, consoleLogFile)
     logfile.write(message + '\n')
     logfile.flush()
 
