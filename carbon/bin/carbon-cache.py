@@ -122,8 +122,7 @@ if options.debug:
   logToStdout()
 else:
   if not isdir(options.logdir):
-    print "Invalid logging directory: %s" % options.logdir
-    raise SystemExit(1)
+    os.makedirs(options.logdir)
 
   from carbon.util import daemonize, dropprivs
   daemonize()
