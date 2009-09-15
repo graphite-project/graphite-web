@@ -53,7 +53,8 @@ class MetricPickleReceiver(LoggingMixin, Int32StringReceiver):
       return
 
     for (metric, datapoint) in datapoints:
-      metricReceived(metric, datapoint)
+      if datapoint[1] == datapoint[1]: # filter out NaN values
+        metricReceived(metric, datapoint)
 
     increment('metricsReceived', len(datapoints))
 

@@ -41,7 +41,7 @@ except:
 
 
 #Memcache settings
-MEMCACHE_HOSTS = ['127.0.0.1:11211']
+MEMCACHE_HOSTS = []
 MEMCACHE_DURATION = 60 #all data is cached for one minute by default
 LOG_CACHE_PERFORMANCE = False
 
