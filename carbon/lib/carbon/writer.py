@@ -52,7 +52,7 @@ def optimalWriteOrder():
     try: # metrics can momentarily disappear from the MetricCache due to the implementation of MetricCache.store()
       datapoints = MetricCache.pop(metric)
     except KeyError:
-      log.writer("MetricCache contention, skipping %s update for now" % metric)
+      log.msg("MetricCache contention, skipping %s update for now" % metric)
       continue # we simply move on to the next metric when this race condition occurs
 
     yield (metric, datapoints, dbFilePath, dbFileExists)
@@ -66,19 +66,18 @@ def writeCachedDataPoints():
       if not dbFileExists:
         for schema in schemas:
           if schema.matches(metric):
-            log.writer('new metric %s matched schema %s' % (metric, schema.name))
+            log.creates('new metric %s matched schema %s' % (metric, schema.name))
             archiveConfig = [archive.getTuple() for archive in schema.archives]
             break
 
         dbDir = dirname(dbFilePath)
         os.system("mkdir -p '%s'" % dbDir)
 
-        log.writer("creating new database file %s" % dbFilePath)
+        log.creates("creating database file %s" % dbFilePath)
         whisper.create(dbFilePath, archiveConfig)
         increment('creates')
 
       pointCount = len(datapoints)
-      log.writer("writing %d datapoints for %s" % (pointCount, metric))
 
       try:
         t1 = time.time()
@@ -88,6 +87,7 @@ def writeCachedDataPoints():
         log.err()
         increment('errors')
       else:
+        log.updates("wrote %d datapoints for %s in %.5f seconds" % (pointCount, metric, updateTime))
         increment('committedPoints', pointCount)
         append('updateTimes', updateTime)
 
@@ -107,7 +107,7 @@ def reloadStorageSchemas():
   try:
     schemas = loadStorageSchemas()
   except:
-    log.writer("Failed to reload storage schemas")
+    log.msg("Failed to reload storage schemas")
     log.err()
 
 

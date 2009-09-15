@@ -48,8 +48,12 @@ def cache(message, **context):
   context['type'] = 'cache'
   msg(message, **context)
 
-def writer(message, **context):
-  context['type'] = 'writer'
+def creates(message, **context):
+  context['type'] = 'creates'
+  msg(message, **context)
+
+def updates(message, **context):
+  context['type'] = 'updates'
   msg(message, **context)
 
 def listener(message, **context):
