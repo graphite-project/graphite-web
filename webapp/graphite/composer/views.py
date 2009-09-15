@@ -21,7 +21,7 @@ from httplib import HTTPConnection
 from urlparse import urlsplit
 from time import ctime, strftime
 from traceback import format_exc
-from graphite.util import getProfile, getQueryString
+from graphite.util import getProfile
 from graphite.logger import log
 from graphite.account.models import MyGraph
 
@@ -33,7 +33,7 @@ from django.core.exceptions import ObjectDoesNotExist
 def composer(request):
   profile = getProfile(request)
   context = {
-    'queryString' : getQueryString(request),
+    'queryString' : request.GET.urlencode(),
     'showTarget' : request.GET.get('showTarget',''),
     'user' : request.user,
     'profile' : profile,

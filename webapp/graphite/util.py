@@ -36,11 +36,6 @@ def getProfileByUsername(username):
   except ObjectDoesNotExist:
     return None
 
-def getQueryString(request):
-  try:
-    return request._req.args or "" #django needs to provide a better way of doing this...
-  except:
-    return ""
 
 try:
   defaultUser = User.objects.get(username='default')

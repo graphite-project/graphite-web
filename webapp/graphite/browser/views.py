@@ -17,7 +17,7 @@ from django.shortcuts import render_to_response
 from django.http import HttpResponse
 from django.conf import settings
 from graphite.account.models import Profile
-from graphite.util import getProfile, getProfileByUsername, getQueryString, defaultUser
+from graphite.util import getProfile, getProfileByUsername, defaultUser
 from graphite.logger import log
 try:
   import cPickle as pickle
@@ -36,7 +36,7 @@ def header(request):
 def browser(request):
   "View for the top-level frame of the browser UI"
   context = {
-    'queryString' : getQueryString(request),
+    'queryString' : request.GET.urlencode(),
     'target' : request.GET.get('target')
   }
   if context['queryString']:
