@@ -79,7 +79,9 @@ The first way (highly preferred) is to include independent vhost configs.
 Include /usr/local/apache2/conf/vhosts.d/*.conf
 
 Then simply drop your graphite vhost conf file into the vhosts.d/ directory
-(or whatever directory your system uses) and apache is ready.
+(or whatever directory your system uses) and apache is ready. You can use
+the examples/example-graphite-vhost.conf file included in this package as a
+starting point.
 
 The second approach is to copy the contents of the graphite vhost conf file
 and insert it down at the end of your httpd.conf.
