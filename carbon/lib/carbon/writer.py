@@ -71,7 +71,7 @@ def writeCachedDataPoints():
             break
 
         dbDir = dirname(dbFilePath)
-        os.system("mkdir -p %s" % dbDir)
+        os.system("mkdir -p '%s'" % dbDir)
 
         log.writer("creating new database file %s" % dbFilePath)
         whisper.create(dbFilePath, archiveConfig)

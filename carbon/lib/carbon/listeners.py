@@ -46,20 +46,22 @@ class MetricLineReceiver(LoggingMixin, LineOnlyReceiver):
 class MetricPickleReceiver(LoggingMixin, Int32StringReceiver):
   def stringReceived(self, data):
     try:
-      (metric, datapoint) = pickle.loads(data)
+      datapoints = pickle.loads(data)
     except:
       log.listener('invalid pickle received from client %s, disconnecting' % self.peerAddr)
       self.transport.loseConnection()
       return
 
-    increment('metricsReceived')
-    metricReceived(metric, datapoint)
+    for (metric, datapoint) in datapoints:
+      metricReceived(metric, datapoint)
+
+    increment('metricsReceived', len(datapoints))
 
 
 class CacheQueryHandler(LoggingMixin, Int32StringReceiver):
   def stringReceived(self, metric):
     values = MetricCache.get(metric, [])
-    log.cache('cache query for %s returned %d values' % (metric, len(values)))
+    log.msg('cache query for %s returned %d values' % (metric, len(values)))
     response = pickle.dumps(values, protocol=-1)
     self.sendString(response)
     increment('cacheQueries')

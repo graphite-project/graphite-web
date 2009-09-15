@@ -154,6 +154,8 @@ startRecordingCacheMetrics()
 
 
 # Run the twisted reactor
+print "%s running" % program
+
 if options.profile:
   import cProfile
 

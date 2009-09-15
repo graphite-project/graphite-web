@@ -1,4 +1,6 @@
-import time, socket
+import time
+import socket
+from resource import getrusage, RUSAGE_SELF
 from twisted.internet.task import LoopingCall
 from carbon.cache import MetricCache
 from carbon.relay import relay, RelayServers
@@ -7,6 +9,8 @@ from carbon.relay import relay, RelayServers
 stats = {}
 HOSTNAME = socket.gethostname().replace('.','_')
 recordTask = None
+lastUsage = getrusage(RUSAGE_SELF)
+lastUsageTime = time.time()
 
 
 def increment(stat, increase=1):
@@ -23,6 +27,27 @@ def append(stat, value):
     stats[stat] = [value]
 
 
+def getCpuUsage():
+  global lastUsage, lastUsageTime
+
+  rusage = getrusage(RUSAGE_SELF)
+  currentUsage = rusage.ru_utime + rusage.ru_stime
+  currentTime = time.time()
+
+  usageDiff = currentUsage - lastUsage
+  timeDiff = currentTime - lastUsageTime
+
+  if timeDiff == 0: #shouldn't be possible
+    timeDiff = 0.000001
+
+  cpuUsagePercent = (usageDiff / timeDiff) * 100.0
+
+  lastUsage = currentUsage
+  lastUsageTime = currentTime
+
+  return cpuUsagePercent
+
+
 # Cache metrics
 def startRecordingCacheMetrics():
   global recordTask
@@ -32,6 +57,7 @@ def startRecordingCacheMetrics():
 
 
 def recordCacheMetrics():
+  global lastUsage
   myStats = stats.copy()
   stats.clear()
 
@@ -60,6 +86,8 @@ def recordCacheMetrics():
   store('cache.queues', len(MetricCache))
   store('cache.size', MetricCache.size)
 
+  store('cpuUsage', getCpuUsage())
+
 
 def store(metric, value):
   fullMetric = 'carbon.agents.%s.%s' % (HOSTNAME, metric)
@@ -81,6 +109,7 @@ def recordRelayMetrics():
 
   # global metrics
   send('metricsReceived', myStats.get('metricsReceived', 0))
+  send('cpuUsage', getCpuUsage())
 
   # per-destination metrics
   for server in RelayServers:
