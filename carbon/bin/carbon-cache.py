@@ -15,6 +15,7 @@ limitations under the License."""
 
 import sys
 import os
+import pwd
 import optparse
 import atexit
 from os.path import basename, dirname, exists, join, isdir
@@ -139,9 +140,10 @@ else:
   atexit.register(shutdown)
 
   if settings.USER:
-    os.chown(options.pidfile, settings.USER)
-    print "Dropping privileges to become the user %s" % user
-    dropprivs(user)
+    pwent = pwd.getpwnam(settings.USER)
+    os.chown(options.pidfile, pwent.pw_uid, pwent.pw_gid)
+    print "Dropping privileges to become the user %s" % settings.USER
+    dropprivs(settings.USER)
 
 
 # Configure application components
