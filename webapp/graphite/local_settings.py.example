@@ -13,9 +13,11 @@
 #REMOTE_RENDERING = True
 #RENDERING_HOSTS = ['fastserver01','fastserver02']
 #LOG_RENDERING_PERFORMANCE = True
+#LOG_CACHE_PERFORMANCE = True
 
 # If you've got more than one backend server they should all be listed here
-#CARBONLINK_HOSTS = ["127.0.0.1:7002","10.0.0.50:7002"]
+#CARBONLINK_HOSTS = ["127.0.0.1:7002"]
+#CLUSTER_SERVERS = []
 
 # Override this if you need to provide documentation specific to your graphite deployment
 #DOCUMENTATION_URL = "http://wiki.mycompany.com/graphite"

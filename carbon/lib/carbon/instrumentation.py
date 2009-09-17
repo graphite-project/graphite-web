@@ -9,7 +9,8 @@ from carbon.relay import relay, RelayServers
 stats = {}
 HOSTNAME = socket.gethostname().replace('.','_')
 recordTask = None
-lastUsage = getrusage(RUSAGE_SELF)
+rusage = getrusage(RUSAGE_SELF)
+lastUsage = rusage.ru_utime + rusage.ru_stime
 lastUsageTime = time.time()
 
 
