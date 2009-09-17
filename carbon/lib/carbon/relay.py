@@ -1,4 +1,3 @@
-from collections import deque
 from twisted.internet import reactor
 from twisted.internet.protocol import ReconnectingClientFactory
 from twisted.protocols.basic import Int32StringReceiver
@@ -12,15 +11,15 @@ except ImportError:
   import pickle
 
 
+MAX_DATAPOINTS_PER_MESSAGE = 500
 RelayServers = []
 
 
 def relay(metric, datapoint):
   increment('metricsReceived')
-  packet = pickle.dumps( (metric,datapoint) )
 
   for server in getServers(metric):
-    server.send(packet)
+    server.send(metric, datapoint)
 
 
 def getServers(metric):
@@ -52,15 +51,23 @@ class MetricPickleSender(Int32StringReceiver):
 
   def flushQueue(self):
     while (not self.paused) and self.queue:
-      self.sendString( self.queue.popleft() )
+      datapoints = self.queue[:MAX_DATAPOINTS_PER_MESSAGE]
+      self.queue = self.queue[MAX_DATAPOINTS_PER_MESSAGE:]
+      self.sendString( pickle.dumps(datapoints) )
+      increment(self.sent, len(datapoints))
 
-  def send(self, data):
+  def send(self, metric, datapoint):
     if self.paused:
-      self.queue.append(data)
+      self.queue.append( (metric, datapoint) )
       increment(self.queuedUntilReady)
 
+    elif self.queue:
+      self.queue.append( (metric, datapoint) )
+      self.flushQueue()
+
     else:
-      self.sendString(data)
+      datapoints = [ (metric, datapoint) ]
+      self.sendString( pickle.dumps(datapoints) )
       increment(self.sent)
 
 
@@ -72,7 +79,7 @@ class MetricSenderFactory(ReconnectingClientFactory):
     self.host = host
     self.port = port
     self.remoteAddr = "%s:%d" % (host, port)
-    self.queue = deque()
+    self.queue = []
     # Define internal metric names
     self.destinationName = host.replace('.','_')
     self.attemptedRelays = 'destinations.%s.attemptedRelays' % self.destinationName
@@ -89,7 +96,7 @@ class MetricSenderFactory(ReconnectingClientFactory):
     self.connectedProtocol.queue = self.queue
     return self.connectedProtocol
 
-  def send(self, data):
+  def send(self, metric, datapoint):
     increment(self.attemptedRelays)
 
     if len(self.queue) >= settings.MAX_QUEUE_SIZE:
@@ -97,10 +104,10 @@ class MetricSenderFactory(ReconnectingClientFactory):
       increment(self.fullQueueDrops)
 
     elif self.connectedProtocol:
-      self.connectedProtocol.send(data)
+      self.connectedProtocol.send(metric, datapoint)
 
     else:
-      self.queue.append(data)
+      self.queue.append( (metric, datapoint) )
       increment(self.queuedUntilConnected)
 
   def clientConnectionLost(self, connector, reason):
