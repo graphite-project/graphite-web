@@ -1,5 +1,5 @@
 import socket, time
-from httplib import HTTPConnection
+from graphite.util import HTTPConnectionWithTimeout
 from urllib import urlencode
 try:
   import cPickle as pickle
@@ -34,7 +34,8 @@ class FindRequest:
     self.connection = None
 
   def send(self):
-    self.connection = HTTPConnection(self.server.host, timeout=self.server.timeout)
+    self.connection = HTTPConnectionWithTimeout(self.server.host)
+    self.connection.timeout = self.server.timeout
     try:
       self.connection.request('GET', '/browser/local/?pattern=' + self.pattern)
     except:
@@ -81,7 +82,8 @@ class RemoteNode:
     ]
     query_string = urlencode(query_params)
 
-    connection = HTTPConnection(self.server.host, timeout=self.server.timeout)
+    connection = HTTPConnectionWithTimeout(self.server.host)
+    connection.timeout = self.server.timeout
     connection.request('GET', '/render/?' + query_string)
     response = connection.getresponse()
     assert response.status == 200, "Failed to retrieve remote data: %d %s" % (response.status, response.reason)

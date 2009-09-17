@@ -14,7 +14,7 @@ limitations under the License."""
 from time import time
 from datetime import datetime, timedelta
 from random import shuffle
-from httplib import HTTPConnection, CannotSendRequest
+from httplib import CannotSendRequest
 from urlparse import urlsplit
 from cStringIO import StringIO
 try:
@@ -22,7 +22,7 @@ try:
 except ImportError:
   import pickle
 
-from graphite.util import getProfileByUsername
+from graphite.util import getProfileByUsername, HTTPConnectionWithTimeout
 from graphite.logger import log
 from graphite.render.evaluator import evaluateTarget
 from graphite.render.attime import parseATTime
@@ -205,12 +205,14 @@ def delegateRendering(graphType, graphOptions):
       try:
         connection = pool.pop()
       except KeyError: #No available connections, have to make a new one
-        connection = HTTPQuickConnection(server)
+        connection = HTTPConnectionWithTimeout(server)
+        connection.timeout = settings.REMOTE_RENDER_CONNECT_TIMEOUT
       # Send the request
       try:
         connection.request('POST','/render/local/', postData)
       except CannotSendRequest:
-        connection = HTTPQuickConnection(server) #retry once
+        connection = HTTPConnectionWithTimeout(server) #retry once
+        connection.timeout = settings.REMOTE_RENDER_CONNECT_TIMEOUT
         conn.request('POST', '/render/local/', postData)
       # Read the response
       response = conn.getresponse()
@@ -256,7 +258,7 @@ def renderMyGraphView(request,username,graphName):
     assert False, "User %s doesn't have a MyGraph named '%s'" % (username,graphName)
   (proto,host,path,query,frag) = urlsplit( graph.url )
   if query: path += '?' + query
-  conn = HTTPConnection( host )
+  conn = HTTPConnectionWithTimeout( host )
   conn.request('GET', path)
   resp = conn.getresponse()
   assert resp.status == 200, "Failed to retrieve image from URL %s" % graph.url
@@ -280,30 +282,3 @@ def buildResponse(imageData):
   response['Cache-Control'] = 'no-cache'
   response['Pragma'] = 'no-cache'
   return response
-
-
-# Below is a hack to put a timeout in the connect() of an HTTP request
-import socket
-
-class HTTPQuickConnection(HTTPConnection):
-  def connect():
-    msg = "getaddrinfo returns an empty list"
-    for res in socket.getaddrinfo(self.host, self.port, 0, socket.SOCK_STREAM):
-      af, socktype, proto, canonname, sa = res
-      try:
-        self.sock = socket.socket(af, socktype, proto)
-        self.sock.settimeout( settings.REMOTE_RENDER_CONNECT_TIMEOUT )
-        if self.debuglevel > 0:
-          print "connect: (%s, %s)" % (self.host, self.port)
-        self.sock.connect(sa)
-        self.sock.settimeout(None)
-      except socket.error, msg:
-        if self.debuglevel > 0:
-          print 'connect fail:', (self.host, self.port)
-        if self.sock:
-          self.sock.close()
-          self.sock = None
-          continue
-      break
-    if not self.sock:
-      raise socket.error, msg

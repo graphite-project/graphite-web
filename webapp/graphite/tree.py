@@ -68,15 +68,22 @@ def is_local_interface(host):
   if ':' in host:
     host = host.split(':',1)[0]
 
-  try:
-    sock = socket.socket()
-    sock.bind( (host,42) ) #port doesn't matter
-    sock.close()
-  except Exception, e:
-    if hasattr(e,'errno') and e.errno == errno.EADDRNOTAVAIL:
-      return False
+  for port in xrange(1025, 65535):
+    try:
+      sock = socket.socket()
+      sock.bind( (host,port) )
+      sock.close()
 
-  return True
+    except socket.error, e:
+      if e.args[0] == errno.EADDRNOTAVAIL:
+        return False
+      else:
+        continue
+
+    else:
+      return True
+
+  raise Exception("Failed all attempts at binding to interface %s, last exception was %s" % (host, e))
 
 
 def find(root_dir, pattern):
