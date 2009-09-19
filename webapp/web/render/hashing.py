@@ -17,7 +17,7 @@ import md5, time
 def hashRequest(request):
   # Normalize the request parameters so ensure we're deterministic
   queryParams = ["%s=%s" % (key, '&'.join(values))
-                 for (key,values) in request.GET.list()
+                 for (key,values) in request.GET.lists()
                  if not key.startswith('_')]
 
   normalizedParams = ','.join( sorted(queryParams) )
