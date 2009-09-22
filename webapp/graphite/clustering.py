@@ -1,5 +1,6 @@
-import socket, time
-from graphite.util import HTTPConnectionWithTimeout
+import socket
+import time
+import httplib
 from urllib import urlencode
 try:
   import cPickle as pickle
@@ -98,3 +99,29 @@ class RemoteNode:
 
   def isLeaf(self):
     return self.__isLeaf
+
+
+# This is a hack to put a timeout in the connect() of an HTTP request
+# Python 2.6 supports this already, but many Graphite installations
+# are not on 2.6 yet.
+
+class HTTPConnectionWithTimeout(httplib.HTTPConnection):
+  timeout = 30
+
+  def connect(self):
+    msg = "getaddrinfo returns an empty list"
+    for res in socket.getaddrinfo(self.host, self.port, 0, socket.SOCK_STREAM):
+      af, socktype, proto, canonname, sa = res
+      try:
+        self.sock = socket.socket(af, socktype, proto)
+        self.sock.settimeout(self.timeout)
+        self.sock.connect(sa)
+        self.sock.settimeout(None)
+      except socket.error, msg:
+        if self.sock:
+          self.sock.close()
+          self.sock = None
+          continue
+      break
+    if not self.sock:
+      raise socket.error, msg

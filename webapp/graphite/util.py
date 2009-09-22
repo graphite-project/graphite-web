@@ -12,8 +12,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
-import socket
-from httplib import HTTPConnection
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import User
 from graphite.account.models import Profile
@@ -53,30 +51,3 @@ except Profile.DoesNotExist:
   log.info("Default profile does not exist, creating it...")
   defaultProfile = Profile(user=defaultUser)
   defaultProfile.save()
-
-
-
-# This is a hack to put a timeout in the connect() of an HTTP request
-# Python 2.6 supports this already, but many Graphite installations
-# are not on 2.6 yet.
-
-class HTTPConnectionWithTimeout(HTTPConnection):
-  timeout = 30
-
-  def connect(self):
-    msg = "getaddrinfo returns an empty list"
-    for res in socket.getaddrinfo(self.host, self.port, 0, socket.SOCK_STREAM):
-      af, socktype, proto, canonname, sa = res
-      try:
-        self.sock = socket.socket(af, socktype, proto)
-        self.sock.settimeout(self.timeout)
-        self.sock.connect(sa)
-        self.sock.settimeout(None)
-      except socket.error, msg:
-        if self.sock:
-          self.sock.close()
-          self.sock = None
-          continue
-      break
-    if not self.sock:
-      raise socket.error, msg

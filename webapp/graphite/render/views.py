@@ -22,7 +22,8 @@ try:
 except ImportError:
   import pickle
 
-from graphite.util import getProfileByUsername, HTTPConnectionWithTimeout
+from graphite.util import getProfileByUsername
+from graphite.clustering import HTTPConnectionWithTimeout
 from graphite.logger import log
 from graphite.render.evaluator import evaluateTarget
 from graphite.render.attime import parseATTime
