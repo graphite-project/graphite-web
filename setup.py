@@ -5,7 +5,10 @@ from glob import glob
 from distutils.core import setup
 
 
-storage_dirs = [ ('storage/whisper',[]), ('storage/lists',[]), ('storage/log',[]), ('storage/rrd',[]) ]
+storage_dirs = []
+
+for subdir in ('whisper', 'lists', 'rrd', 'log', 'log/webapp'):
+  storage_dirs.append( ('storage/%s' % subdir, []) )
 
 webapp_content = {}
 
