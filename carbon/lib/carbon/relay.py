@@ -16,8 +16,6 @@ RelayServers = []
 
 
 def relay(metric, datapoint):
-  increment('metricsReceived')
-
   for server in getServers(metric):
     server.send(metric, datapoint)
 
