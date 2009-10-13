@@ -210,6 +210,24 @@ def integral(seriesList):
     results.append(newSeries)
   return results
 
+def increaseRate(seriesList): # strictly non-negative version of derivative()
+  results = []
+  for series in seriesList:
+    newValues = []
+    prev = None
+    for val in series:
+      if None in (prev,val):
+        newValues.append(None)
+        prev = val
+        continue
+      newValues.append( max(val - prev, 0) )
+      prev = val
+    newName = "increaseRate(%s)" % series.name
+    newSeries = TimeSeries(newName, series.start, series.end, series.step, newValues)
+    newSeries.pathExpression = newName
+    results.append(newSeries)
+  return results
+
 def alias(seriesList,newName):
   for series in seriesList:
     series.name = newName
@@ -319,4 +337,5 @@ SeriesFunctions = {
   'lastAbove' : lastAbove,
   'highestMean' : highestMean,
   'highestLast' : highestLast,
+  'increaseRate' : increaseRate,
 }

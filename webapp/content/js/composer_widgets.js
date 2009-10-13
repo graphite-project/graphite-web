@@ -419,6 +419,7 @@ var TargetsWindow = { //This widget has a lot of state, so an object is appropri
         {text: 'Cumulative', handler: this.applyFuncToEach('cumulative')},
         {text: 'Derivative', handler: this.applyFuncToEach('derivative')},
         {text: 'Integral', handler: this.applyFuncToEach('integral')},
+        {text: 'Rate of Increase', handler: this.applyFuncToEach('increaseRate')},
         {text: 'Alias', handler: this.applyFuncToEachWithInput('alias', "What should this graph element be labeled as?")},
         {text: 'Most Deviant', handler: this.applyFuncToEachWithInput('mostDeviant', "Draw the ___ metrics with the highest standard deviation")},
         {text: 'Standard Deviation', handler: this.applyFuncToEachWithInput('stdev', "Draw the standard deviation for the last _ data points")},
