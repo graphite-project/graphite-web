@@ -32,10 +32,11 @@ class MetricPickleSender(Int32StringReceiver):
   def connectionMade(self):
     self.paused = False
     self.transport.registerProducer(self, streaming=True)
-    self.flushQueue()
     # Define internal metric names
     self.queuedUntilReady = 'destinations.%s.queuedUntilReady' % self.factory.destinationName
     self.sent = 'destinations.%s.sent' % self.factory.destinationName
+
+    self.flushQueue()
 
   def pauseProducing(self):
     self.paused = True
