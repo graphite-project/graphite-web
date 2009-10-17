@@ -60,6 +60,9 @@ def optimalWriteOrder():
 
 def writeCachedDataPoints():
   "Write datapoints until the MetricCache is completely empty"
+  updates = 0
+  lastSecond = 0
+
   while MetricCache:
     for (metric, datapoints, dbFilePath, dbFileExists) in optimalWriteOrder():
 
@@ -82,7 +85,8 @@ def writeCachedDataPoints():
       try:
         t1 = time.time()
         whisper.update_many(dbFilePath, datapoints)
-        updateTime = time.time() - t1
+        t2 = time.time()
+        updateTime = t2 - t1
       except:
         log.err()
         increment('errors')
@@ -90,6 +94,17 @@ def writeCachedDataPoints():
         log.updates("wrote %d datapoints for %s in %.5f seconds" % (pointCount, metric, updateTime))
         increment('committedPoints', pointCount)
         append('updateTimes', updateTime)
+
+        # Rate limit update operations
+        thisSecond = int(t2)
+
+        if thisSecond != lastSecond:
+          lastSecond = thisSecond
+          updates = 0
+        else:
+          updates += 1
+          if updates >= settings.MAX_UPDATES_PER_SECOND:
+            time.sleep( int(t2 + 1) - t2 )
 
 
 def writeForever():

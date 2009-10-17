@@ -16,6 +16,13 @@ USER =
 # that occur when a flood of new metrics are received.
 METRIC_CREATION_RATE = 0.1
 
+# Limits the number of whisper update_many() calls per second, which effectively
+# means the number of write requests sent to the disk. This is intended to
+# prevent over-utilizing the disk and thus starving the rest of the system.
+# When the rate of required updates exceeds this, then carbon's caching will
+# take effect and increase the overall throughput accordingly.
+MAX_UPDATES_PER_SECOND = 1000
+
 LINE_RECEIVER_INTERFACE = 0.0.0.0
 LINE_RECEIVER_PORT = 2003
 
