@@ -217,7 +217,8 @@ function calendarSelectionMade(datePicker, selectedDate) {
 
 function getCalendarSelection(which) {
   var myDate = Ext.getCmp(which + '-date').getValue();
-  var myTime = Ext.getCmp(which + '-time').getValue();
+  var myTime = Ext.getCmp(which + '-time').getEl().dom.value; // Need to grab the raw textfield value, which may not be selected
+
   var myHour = myTime.match(/(\d+):/)[1];
   var myMinute = myTime.match(/:(\d+)/)[1];
   if (myTime.match(/\bAM\b/i) && myHour == '12') {
@@ -226,16 +227,11 @@ function getCalendarSelection(which) {
   if (myTime.match(/\bPM\b/i) && myHour != '12') {
     myHour = parseInt(myHour) + 12;
   }
-  myDate.setHours(myHour, myMinute);
-  return myDate;
+  return myDate.add(Date.HOUR, myHour).add(Date.MINUTE, myMinute);
 }
 
 function asDateString(dateObj) {
-  return dateObj.getHours().toPaddedString(2) + ':' +
-         dateObj.getMinutes().toPaddedString(2) + '_' +
-         dateObj.getFullYear().toString() +
-         (dateObj.getMonth() + 1).toPaddedString(2) +
-         dateObj.getDate().toPaddedString(2);
+  return dateObj.format('H:i_Ymd');
 }
 
 /* "Recent Data" dialog */
