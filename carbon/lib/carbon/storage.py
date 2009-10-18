@@ -33,13 +33,52 @@ def getFilesystemPath(metric):
 
 
 class Schema:
-  def __init__(self, name, test, archives):
+  matches = property(lambda self, metric: bool( self.test(metric) ))
+
+  def test(self, metric):
+    raise NotImplementedError()
+
+
+class PatternSchema(Schema):
+  def __init__(self, name, pattern, archives):
     self.name = name
-    self.test = test
+    self.pattern = pattern
+    self.regex = re.compile(pattern)
     self.archives = archives
 
-  def matches(self, metric):
-    return bool( self.test(metric) )
+  def test(self, metric):
+    return self.regex.search(metric)
+
+
+class ListSchema(Schema):
+  def __init__(self, name, listName, archives):
+    self.name = name
+    self.listName = listName
+    self.archives = archives
+    self.path = join(WHITELISTS_DIR, listName)
+
+    if exists(self.path):
+      self.mtime = os.stat(self.path).st_mtime
+      fh = open(self.path, 'rb')
+      self.members = pickle.load(fh)
+      fh.close()
+
+    else:
+      self.mtime = 0
+      self.members = frozenset()
+
+  def test(self, metric):
+    if exists(self.path):
+      current_mtime = os.stat(self.path).st_mtime
+
+      if current_mtime > self.mtime:
+        self.mtime = current_mtime
+        fh = open(self.path, 'rb')
+        self.members = pickle.load(fh)
+        fh.close()
+
+    return metric in self.members
+
 
 
 class Archive:
@@ -66,51 +105,22 @@ def loadStorageSchemas():
     pattern = options.get('pattern')
     listName = options.get('list')
 
+    retentions = options['retentions'].split(',')
+    archives = [ Archive.fromString(s) for s in retentions ]
+
     if pattern:
-      regex = re.compile(pattern)
-      test = lambda metric, regex=regex: regex.search(metric)
+      mySchema = PatternSchema(section, pattern, archives)
 
     elif listName:
-      test = listTest(listName)
+      mySchema = ListSchema(section, listName, archives)
 
     else:
       raise ValueError('schema "%s" has no pattern or list parameter configured' % section)
 
-    retentions = options['retentions'].split(',')
-    archives = [ Archive.fromString(s) for s in retentions ]
-    mySchema = Schema(section, test, archives)
     schemaList.append( mySchema )
 
   schemaList.append( defaultSchema )
   return schemaList
-
-
-def listTest(name):
-  path = join(WHITELISTS_DIR, name)
-  state = {}
-
-  if exists(path):
-    state['mtime'] = os.stat(path).st_mtime
-    fh = open(path, 'rb')
-    state['members'] = pickle.load(fh)
-    fh.close()
-
-  else:
-    state['mtime'] = 0
-    state['members'] = frozenset()
-
-  def test(metric):
-    if exists(path):
-      mtime = os.stat(path).st_mtime
-      if mtime > state['mtime']:
-        state['mtime'] = mtime
-        fh = open(path, 'rb')
-        state['members'] = pickle.load(fh)
-        fh.close()
-
-    return metric in state['members']
-
-  return test
 
 
 defaultArchive = Archive(60, 60 * 24 * 7) #default retention for unclassified data (7 days of minutely data)

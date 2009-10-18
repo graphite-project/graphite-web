@@ -15,7 +15,7 @@ limitations under the License."""
 
 import os
 import time
-from os.path import exists, dirname
+from os.path import join, exists, dirname, basename
 from time import sleep
 from threading import Thread
 from twisted.internet import reactor
@@ -80,7 +80,10 @@ def writeCachedDataPoints():
         whisper.create(dbFilePath, archiveConfig)
         increment('creates')
 
-      pointCount = len(datapoints)
+        # Create metadata file
+        dbFileName = basename(dbFilePath)
+        metaFilePath = join(dbDir, '.%s.meta' % dbFileName)
+        createMetaFile(metric, schema, metaFilePath)
 
       try:
         t1 = time.time()
@@ -91,6 +94,7 @@ def writeCachedDataPoints():
         log.err()
         increment('errors')
       else:
+        pointCount = len(datapoints)
         log.updates("wrote %d datapoints for %s in %.5f seconds" % (pointCount, metric, updateTime))
         increment('committedPoints', pointCount)
         append('updateTimes', updateTime)
@@ -105,6 +109,16 @@ def writeCachedDataPoints():
           updates += 1
           if updates >= settings.MAX_UPDATES_PER_SECOND:
             time.sleep( int(t2 + 1) - t2 )
+
+
+def createMetaFile(metric, schema, path):
+  metadata = {
+    'interval' : min( [a.secondsPerPoint for a in archives] ),
+  }
+
+  fh = open(path, 'wb')
+  dumps(metadata, fh, protocol=-1)
+  fh.close()
 
 
 def writeForever():
