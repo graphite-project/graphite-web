@@ -92,8 +92,10 @@ def myGraphLookup(request):
         'id' : str(graph.name),
         'graphUrl' : str(graph.url)
       }
+
       node.update(leafNode)
       nodes.append(node)
+
   except:
     log.exception("browser.views.myGraphLookup(): could not complete request.")
 
@@ -102,12 +104,13 @@ def myGraphLookup(request):
     no_graphs.update(leafNode)
     nodes.append(no_graphs)
 
-  return tree_json(nodes)
+  return json_response(nodes)
 
 def userGraphLookup(request):
   "View for User Graphs navigation"
   username = request.GET['query']
   nodes = []
+
   branchNode = {
     'allowChildren' : 1,
     'expandable' : 1,
@@ -118,17 +121,22 @@ def userGraphLookup(request):
     'expandable' : 0,
     'leaf' : 1,
   }
+
   try:
+
     if not username:
       profiles = Profile.objects.exclude(user=defaultUser)
+
       for profile in profiles:
         if profile.mygraph_set.count():
           node = {
             'text' : str(profile.user.username),
             'id' : str(profile.user.username)
           }
+
           node.update(branchNode)
           nodes.append(node)
+
     else:
       profile = getProfileByUsername(username)
       assert profile, "No profile for username '%s'" % username
@@ -141,6 +149,7 @@ def userGraphLookup(request):
         }
         node.update(leafNode)
         nodes.append(node)
+
   except:
     log.exception("browser.views.userLookup(): could not complete request for %s" % username)
 
@@ -149,10 +158,10 @@ def userGraphLookup(request):
     no_graphs.update(leafNode)
     nodes.append(no_graphs)
 
-  return tree_json(nodes)
+  return json_response(nodes)
 
 
-def tree_json(nodes):
+def json_response(nodes):
   json = str(nodes) #poor man's json encoder for simple types
   response = HttpResponse(json,mimetype="application/json")
   response['Pragma'] = 'no-cache'

@@ -40,7 +40,8 @@ function createTreePanel(){
   var rootNode = new Ext.tree.TreeNode({});
 
   function setParams(loader,node) {
-    loader.baseParams.query = node.id.replace(/^[A-Za-z]+Tree\.?/,"");
+    var node_id = node.id.replace(/^[A-Za-z]+Tree\.?/,"");
+    loader.baseParams.query = (node_id == "") ? "*" : (node_id + ".*");
     loader.baseParams.format = 'treejson';
   }
 
