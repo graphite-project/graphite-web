@@ -17,8 +17,8 @@ class RemoteStore(object):
   def __init__(self, host):
     self.host = host
 
-  def find(self, pattern):
-    request = FindRequest(self, pattern)
+  def find(self, query):
+    request = FindRequest(self, query)
     request.send()
     return request
 
@@ -29,16 +29,16 @@ class RemoteStore(object):
 class FindRequest:
   suppressErrors = True
 
-  def __init__(self, server, pattern):
-    self.server = server
-    self.pattern = pattern
+  def __init__(self, store, query):
+    self.store = store
+    self.query = query
     self.connection = None
 
   def send(self):
-    self.connection = HTTPConnectionWithTimeout(self.server.host)
+    self.connection = HTTPConnectionWithTimeout(self.store.host)
     self.connection.timeout = self.server.timeout
     try:
-      self.connection.request('GET', '/browser/local/?pattern=' + self.pattern)
+      self.connection.request('GET', '/browser/local/?query=' + self.query)
     except:
       self.server.fail()
       if not self.suppressErrors:
