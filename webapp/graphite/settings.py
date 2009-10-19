@@ -145,6 +145,7 @@ TEMPLATE_DIRS = (
 )
 
 INSTALLED_APPS = (
+  'graphite.metrics',
   'graphite.render',
   'graphite.cli',
   'graphite.browser',

@@ -71,17 +71,17 @@ class Store:
     # Search locally
     for directory in self.directories:
       for match in find(directory, query):
-        if match.graphite_path not in found:
+        if match.metric_path not in found:
           yield match
-          found.add(match.graphite_path)
+          found.add(match.metric_path)
 
     # Gather remote search results
     for request in remote_requests:
       for match in request.get_results():
 
-        if match.graphite_path not in found:
+        if match.metric_path not in found:
           yield match
-          found.add(match.graphite_path)
+          found.add(match.metric_path)
 
 
 def is_local_interface(host):
@@ -122,22 +122,28 @@ def find(root_dir, pattern):
       datasource_pattern = None
 
     relative_path = absolute_path[ len(root_dir): ].lstrip('/')
-    graphite_path = relative_path.replace('/','.')
+    metric_path = relative_path.replace('/','.')
 
     if isdir(absolute_path):
-      yield Branch(absolute_path, graphite_path)
+      yield Branch(absolute_path, metric_path)
+
     elif isfile(absolute_path):
-      (graphite_path,extension) = splitext(graphite_path)
+      (metric_path,extension) = splitext(metric_path)
+
       if extension == '.wsp':
-        yield WhisperFile(absolute_path, graphite_path)
+        yield WhisperFile(absolute_path, metric_path)
+
       elif rrdtool and extension == '.rrd':
-        rrd = RRDFile(absolute_path, graphite_path)
+        rrd = RRDFile(absolute_path, metric_path)
+
         if datasource_pattern is None:
           yield rrd
+
         else:
           for source in rrd.getDataSources():
             if fnmatch.fnmatch(source.name, datasource_pattern):
               yield source
+
 
 def _find(current_dir, patterns):
   """Recursively generates absolute paths whose components underneath current_dir
@@ -152,20 +158,25 @@ def _find(current_dir, patterns):
   if len(patterns) == 1 and rrdtool: #the last pattern may apply to RRD data sources
     files = [e for e in entries if isfile( join(current_dir,e) )]
     rrd_files = fnmatch.filter(files, pattern + ".rrd")
+
     if rrd_files: #let's assume it does
       datasource_pattern = patterns[0]
+
       for rrd_file in rrd_files:
         absolute_path = join(current_dir, rrd_file)
         yield absolute_path + DATASOURCE_DELIMETER + datasource_pattern
 
   if patterns: #we've still got more directories to traverse
     for subdir in matching_subdirs:
+
       absolute_path = join(current_dir, subdir)
       for match in _find(absolute_path, patterns):
         yield match
+
   else: #we've got the last pattern
     files = [e for e in entries if isfile( join(current_dir,e) )]
     matching_files = fnmatch.filter(files, pattern + '.*')
+
     for basename in matching_subdirs + matching_files:
       yield join(current_dir, basename)
 
@@ -174,10 +185,10 @@ def _find(current_dir, patterns):
 class Node:
   meta = {}
 
-  def __init__(self, fs_path, graphite_path):
+  def __init__(self, fs_path, metric_path):
     self.fs_path = str(fs_path)
-    self.graphite_path = str(graphite_path)
-    self.name = self.graphite_path.split('.')[-1]
+    self.metric_path = str(metric_path)
+    self.name = self.metric_path.split('.')[-1]
 
 
 class Branch(Node):
@@ -237,13 +248,15 @@ class RRDDataSource(Leaf):
     self.rrd_file = rrd_file
     self.name = name
     self.fs_path = rrd_file.fs_path
-    self.graphite_path = rrd_file.graphite_path + '.' + name
+    self.metric_path = rrd_file.metric_path + '.' + name
 
   def fetch(self, startTime, endTime):
     startString = time.strftime("%H:%M_%Y%m%d", time.localtime(startTime))
     endString = time.strftime("%H:%M_%Y%m%d", time.localtime(endTime))
+
     (timeInfo,columns,rows) = rrdtool.fetch(self.fs_path,'AVERAGE','-s' + startString,'-e' + endString)
     colIndex = list(columns).index(self.name)
     rows.pop() #chop off the latest value because RRD returns crazy last values sometimes
     values = (row[colIndex] for row in rows)
+
     return (timeInfo,values)

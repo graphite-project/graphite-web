@@ -11,8 +11,10 @@ from graphite.logger import log
 def evaluateTarget(target, timeInterval):
   tokens = grammar.parseString(target)
   result = evaluateTokens(tokens, timeInterval)
+
   if type(result) is TimeSeries:
     return [result] #we have to return a list of TimeSeries objects
+
   else:
     return result
 
@@ -20,33 +22,45 @@ def evaluateTarget(target, timeInterval):
 def evaluateTokens(tokens, timeInterval):
   if tokens.expression:
     return evaluateTokens(tokens.expression, timeInterval)
+
   elif tokens.pathExpression:
     pathExpr = tokens.pathExpression
+
     if pathExpr.lower().startswith('graphite.'):
       pathExpr = pathExpr[9:]
+
     seriesList = []
     (startTime,endTime) = timeInterval
-    for dbFile in settings.FINDER.find(pathExpr):
-      log.metric_access(dbFile.graphite_path)
-      getCacheResults = CarbonLink.sendRequest(dbFile.graphite_path)
+
+    for dbFile in settings.STORE.find(pathExpr):
+      log.metric_access(dbFile.metric_path)
+      getCacheResults = CarbonLink.sendRequest(dbFile.metric_path)
       dbResults = dbFile.fetch( timestamp(startTime), timestamp(endTime) )
       results = mergeResults(dbResults, getCacheResults())
-      if not results: continue
+
+      if not results:
+        continue
+
       (timeInfo,values) = results
       (start,end,step) = timeInfo
-      series = TimeSeries(dbFile.graphite_path, start, end, step, values)
+      series = TimeSeries(dbFile.metric_path, start, end, step, values)
       series.pathExpression = pathExpr #hack to pass expressions through to render functions
       seriesList.append(series)
+
     return seriesList
+
   elif tokens.call:
     func = SeriesFunctions[tokens.call.func]
     args = [evaluateTokens(arg, timeInterval) for arg in tokens.call.args]
     return func(*args)
+
   elif tokens.number:
     if tokens.number.integer:
       return int(tokens.number.integer)
+
     elif tokens.number.float:
       return float(tokens.number.float)
+
   elif tokens.string:
     return str(tokens.string)[1:-1]
 
@@ -58,9 +72,10 @@ def timestamp(datetime):
 
 def mergeResults(dbResults, cacheResults):
   cacheResults = list(cacheResults)
+
   if not dbResults:
     return cacheResults
-  if not cacheResults:
+  elif not cacheResults:
     return dbResults
 
   (timeInfo,values) = dbResults
@@ -68,8 +83,9 @@ def mergeResults(dbResults, cacheResults):
 
   for (timestamp,value) in cacheResults:
     interval = timestamp - (timestamp % step)
+
     try:
-      i = int(interval - start) / int(step)
+      i = int(interval - start) / step
       values[i] = value
     except:
       pass

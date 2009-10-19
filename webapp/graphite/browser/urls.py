@@ -17,8 +17,6 @@ from django.conf.urls.defaults import *
 urlpatterns = patterns('graphite.browser.views',
   ('^header/?$', 'header'),
   ('^search/?$', 'search'),
-  ('^tree/?$', 'treeLookup'),
-  ('^local/?$', 'localLookup'),
   ('^mygraph/?$', 'myGraphLookup'),
   ('^usergraph/?$', 'userGraphLookup'),
   ('', 'browser'),

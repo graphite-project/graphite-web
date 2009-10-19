@@ -36,11 +36,11 @@ class FindRequest:
 
   def send(self):
     self.connection = HTTPConnectionWithTimeout(self.store.host)
-    self.connection.timeout = self.server.timeout
+    self.connection.timeout = self.store.timeout
     try:
-      self.connection.request('GET', '/browser/local/?query=' + self.query)
+      self.connection.request('GET', '/metrics/find_local/?query=' + self.query)
     except:
-      self.server.fail()
+      self.store.fail()
       if not self.suppressErrors:
         raise
 
@@ -54,21 +54,21 @@ class FindRequest:
       result_data = response.read()
       results = pickle.loads(result_data)
     except:
-      self.server.fail()
+      self.store.fail()
       if not self.suppressErrors:
         raise
       else:
         results = []
 
-    return [ RemoteNode(self.server,graphite_path,isLeaf) for (graphite_path,isLeaf) in results ]
+    return [ RemoteNode(self.store, metric_path, isLeaf) for (metric_path,isLeaf) in results ]
 
 
 class RemoteNode:
-  def __init__(self, server, graphite_path, isLeaf):
-    self.server = server
+  def __init__(self, store, metric_path, isLeaf):
+    self.store = store
     self.fs_path = None
-    self.graphite_path = graphite_path
-    self.name = graphite_path.split('.')[-1]
+    self.metric_path = metric_path
+    self.name = metric_path.split('.')[-1]
     self.__isLeaf = isLeaf
 
   def fetch(self, startTime, endTime):
@@ -76,15 +76,15 @@ class RemoteNode:
       return []
 
     query_params = [
-      ('target', self.graphite_path),
+      ('target', self.metric_path),
       ('pickle', 'true'),
       ('from', str( int(startTime) )),
       ('until', str( int(endTime) ))
     ]
     query_string = urlencode(query_params)
 
-    connection = HTTPConnectionWithTimeout(self.server.host)
-    connection.timeout = self.server.timeout
+    connection = HTTPConnectionWithTimeout(self.store.host)
+    connection.timeout = self.store.timeout
     connection.request('GET', '/render/?' + query_string)
     response = connection.getresponse()
     assert response.status == 200, "Failed to retrieve remote data: %d %s" % (response.status, response.reason)
@@ -101,7 +101,7 @@ class RemoteNode:
     return self.__isLeaf
 
 
-# This is a hack to put a timeout in the connect() of an HTTP request
+# This is a hack to put a timeout in the connect() of an HTTP request.
 # Python 2.6 supports this already, but many Graphite installations
 # are not on 2.6 yet.
 

@@ -46,7 +46,7 @@ def completePath(path, shortnames=False):
     if shortnames:
       results.append(match.name)
     else:
-      results.append(match.graphite_path)
+      results.append(match.metric_path)
 
   list_items = ["<li>%s</li>" % r for r in results]
   list_element = "<ul>" + '\n'.join(list_items) + "</ul>"

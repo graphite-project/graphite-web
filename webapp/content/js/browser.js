@@ -39,17 +39,18 @@ function GraphiteBrowser () {
 function createTreePanel(){
   var rootNode = new Ext.tree.TreeNode({});
 
-  function setPath(loader,node) {
-    loader.baseParams.path = node.id.replace(/^[A-Za-z]+Tree\.?/,"");
+  function setParams(loader,node) {
+    loader.baseParams.query = node.id.replace(/^[A-Za-z]+Tree\.?/,"");
+    loader.baseParams.format = 'treejson';
   }
 
   var graphiteNode = new Ext.tree.AsyncTreeNode({
     id: 'GraphiteTree',
     text: "Graphite",
     loader: new Ext.tree.TreeLoader({
-      url: "/browser/tree/",
+      url: "/metrics/find/",
       requestMethod: "GET",
-      listeners: {beforeload: setPath}
+      listeners: {beforeload: setParams}
     })
   });
   rootNode.appendChild(graphiteNode);
@@ -72,7 +73,7 @@ function createTreePanel(){
       loader: new Ext.tree.TreeLoader({
         url: "/browser/mygraph/",
         requestMethod: "GET",
-        listeners: {beforeload: setPath}
+        listeners: {beforeload: setParams}
       })
     });
     rootNode.appendChild(myGraphsNode);
@@ -85,7 +86,7 @@ function createTreePanel(){
     loader: new Ext.tree.TreeLoader({
       url: "/browser/usergraph/",
       requestMethod: "GET",
-      listeners: {beforeload: setPath}
+      listeners: {beforeload: setParams}
     })
   });
   rootNode.appendChild(userGraphsNode);

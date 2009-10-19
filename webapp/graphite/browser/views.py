@@ -24,8 +24,6 @@ try:
 except ImportError:
   import pickle
 
-#XXX settings.STORE instead of settings.FINDER/LOCAL_FINDER
-
 
 def header(request):
   "View for the header frame of the browser UI"
@@ -34,6 +32,7 @@ def header(request):
   context['profile'] = getProfile(request)
   context['documentation_url'] = settings.DOCUMENTATION_URL
   return render_to_response("browserHeader.html", context)
+
 
 def browser(request):
   "View for the top-level frame of the browser UI"
@@ -46,6 +45,7 @@ def browser(request):
   if context['target']:
     context['target'] = context['target'].replace('#','%23') #js libs terminate a querystring on #
   return render_to_response("browser.html", context) 
+
 
 def search(request):
   query = request.POST['query']
@@ -72,75 +72,6 @@ def search(request):
   index_file.close()
   result_string = ','.join(results)
   return HttpResponse(result_string, mimetype='text/plain')
-
-def treeLookup(request):
-  "View for Graphite tree navigation"
-  profile = getProfile(request)
-  nodes = []
-  branchNode = {
-    'allowChildren': 1,
-    'expandable': 1,
-    'leaf': 0,
-  }
-  leafNode = {
-    'allowChildren': 0,
-    'expandable': 0,
-    'leaf': 1,
-  }
-  try:
-    path = str( request.GET['path'] )
-    if path:
-      pattern = path + '.*' #we're interested in child nodes
-      path_prefix = path + '.'
-    else:
-      pattern = '*'
-      path_prefix = ''
-
-    log.info('path=%s pattern=%s' % (path,pattern))
-
-    store = settings.STORE
-    matches = list( store.find(pattern) )
-    matches.sort(key=lambda node: node.name)
-
-    #Add a wildcard node if appropriate
-    if len(matches) > 2 and profile.advancedUI:
-      wildcardNode = {'text' : '*', 'id' : path_prefix + '*'}
-      if any(not m.isLeaf() for m in matches):
-        wildcardNode.update(branchNode)
-      else:
-        wildcardNode.update(leafNode)
-      nodes.append(wildcardNode)
-
-    inserted = set()
-    for child in matches: #Now let's add the matching children
-      if child.name in inserted: continue
-      inserted.add(child.name)
-      node = {'text' : str(child.name), 'id' : path_prefix + str(child.name) }
-      if child.isLeaf():
-        node.update(leafNode)
-      else:
-        node.update(branchNode)
-      nodes.append(node)
-  except:
-    log.exception("browser.views.treeLookup(): could not complete request %s" % str(request.GET))
-
-  #Fetch contexts
-  for node in nodes:
-    node['context'] = getMetricContext[ node['id'] ]
-
-  return json_response(nodes)
-
-
-def localLookup(request):
-  "View for retrieving only data local to this server"
-  query = str( request.GET['query'] )
-
-  matches = list( settings.LOCAL_STORE.find(query) )
-  matches.sort(key=lambda node: node.name)
-
-  results = [ (node.graphite_path, node.isLeaf()) for node in matches ]
-  result_data = pickle.dumps(results, protocol=-1)
-  return HttpResponse(result_data, mimetype='application/pickle')
 
 
 def myGraphLookup(request):
@@ -171,11 +102,11 @@ def myGraphLookup(request):
     no_graphs.update(leafNode)
     nodes.append(no_graphs)
 
-  return json_response(nodes)
+  return tree_json(nodes)
 
 def userGraphLookup(request):
   "View for User Graphs navigation"
-  username = request.GET['path']
+  username = request.GET['query']
   nodes = []
   branchNode = {
     'allowChildren' : 1,
@@ -218,14 +149,16 @@ def userGraphLookup(request):
     no_graphs.update(leafNode)
     nodes.append(no_graphs)
 
-  return json_response(nodes)
+  return tree_json(nodes)
 
-def json_response(obj):
-  json = str(obj) #poor man's json encoder for simple types
+
+def tree_json(nodes):
+  json = str(nodes) #poor man's json encoder for simple types
   response = HttpResponse(json,mimetype="application/json")
   response['Pragma'] = 'no-cache'
   response['Cache-Control'] = 'no-cache'
   return response
+
 
 def any(iterable): #python2.4 compatibility
   for i in iterable:
