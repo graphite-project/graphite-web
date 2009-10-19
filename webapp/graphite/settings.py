@@ -81,13 +81,10 @@ except ImportError:
   print >> sys.stderr, "Could not import graphite.local_settings, using defaults!"
 
 
-from graphite.tree import MetricFinder
+from graphite.storage import Store
 
-LOCAL_FINDER = MetricFinder(DATA_DIRS)
-FINDER = MetricFinder(DATA_DIRS)
-
-if CLUSTER_SERVERS:
-  FINDER.configureClusterServers(CLUSTER_SERVERS)
+LOCAL_STORE = Store(DATA_DIRS)
+STORE = Store(DATA_DIRS, remote_hosts=CLUSTER_SERVERS)
 
 
 #Django settings below, do not touch!

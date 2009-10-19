@@ -38,8 +38,8 @@ function createComposerWindow(myComposer) {
   }
 
   var bottomToolbar = [
-    { text: "Options", menu: createOptionsMenu() },
-    { text: "Targets", handler: toggleWindow(TargetsWindow.create.createDelegate(TargetsWindow)) },
+    { text: "Display Options", menu: createDisplayOptionsMenu() },
+    { text: "Data", handler: toggleWindow(TargetsWindow.create.createDelegate(TargetsWindow)) },
     { text: "Auto-Refresh", id: 'autorefresh_button', enableToggle: true, toggleHandler: toggleAutoRefresh }
   ];
 
@@ -631,25 +631,25 @@ function toggleAutoRefresh(button, pressed) {
   //A closure makes this really simple
   var doRefresh = function () {
     Composer.updateImage();
-    button.timer = setTimeout(doRefresh, 60000);
+
+    var interval = Math.min.apply(null, [context['interval'] for each (context in MetricContexts)]) || 60;
+    button.timer = setTimeout(doRefresh, interval * 1000)
   }
 
   if (button.timer) { // AutoRefresh is on
     if (!pressed) { // The button was untoggled, turn off AutoRefresh
-      Composer.url.removeParam('autorefresh');
       clearTimeout(button.timer);
       button.timer = null;
     }
   } else { // AutoRefresh is off
     if (pressed) { // The button was toggled, turn on AutoRefresh
-      Composer.url.setParam('autorefresh', 'true');
       doRefresh();
     }
   }
 }
 
-/* Options Menu */
-function createOptionsMenu() {
+/* Display Options Menu */
+function createDisplayOptionsMenu() {
   var fontMenu = new Ext.menu.Menu({
     items: [
       {text: "Color", menu: createColorMenu('fgcolor')},

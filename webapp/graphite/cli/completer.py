@@ -32,17 +32,17 @@ def completeHistory(path, profile):
   return html
 
 def completePath(path, shortnames=False):
-  finder = settings.FINDER
   # Have to extract the path expression from the command
   for prefix in ('draw ','add ','remove '):
     if path.startswith(prefix):
       path = path[len(prefix):]
       break
+
   pattern = re.sub('\w+\(','',path).replace(')','') + '*'
 
   results = []
   
-  for match in finder.find(pattern):
+  for match in settings.STORE.find(pattern):
     if shortnames:
       results.append(match.name)
     else:

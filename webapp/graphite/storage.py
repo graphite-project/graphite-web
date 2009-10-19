@@ -1,64 +1,84 @@
 import os, time, fnmatch, socket, errno
-from os.path import isdir, isfile, join, splitext, basename
+from os.path import isdir, isfile, join, exists, splitext, basename
 import whisper
-from graphite import clustering
+from graphite.remote_storage import RemoteStore
 
 try:
   import rrdtool
 except ImportError:
   rrdtool = False
 
+try:
+  import cPickle as pickle
+except ImportError:
+  import pickle
+
+
 DATASOURCE_DELIMETER = '::RRD_DATASOURCE::'
 
 
-class MetricFinder:
-  "Encapsulate find() functionality for one or more data stores"
+class Store:
+  def __init__(self, directories=[], remote_hosts=[]):
+    self.directories = directories
+    self.remote_hosts = remote_hosts
+    self.remote_stores = [ RemoteStore(host) for host in remote_hosts ]
 
-  def __init__(self, dirs):
-    self.dirs = dirs
-    self.cluster = []
+    if not (directories or remote_hosts):
+      raise valueError("directories and remote_hosts cannot both be empty")
 
-  def configureClusterServers(self, hosts):
-    self.cluster = [ clustering.ClusterMember(host) for host in hosts if not is_local_interface(host) ]
 
-  def find(self, pattern):
-    if '*' in pattern or '?' in pattern:
-      for match in self.find_parallel(pattern):
+  def get(self, metric_path):
+    for directory in self.directories:
+      relative_fs_path = metric_path.replace('.', '/') + '.wsp'
+      absolute_fs_path = join(directory, relative_fs_path)
+
+      if exists(absolute_fs_path):
+        return WhisperFile(absolute_fs_path, metric_path)
+
+
+  def find(self, query):
+    if is_pattern(query):
+
+      for match in self.find_all(query):
         yield match
+
     else:
-      match = self.find_first(pattern)
+      match = self.find_first(query)
 
       if match is not None:
         yield match
 
-  def find_first(self, pattern):
+
+  def find_first(self, query):
     # Search locally first
-    for dir in self.dirs:
-      for match in find(dir, pattern):
+    for directory in self.directories:
+      for match in find(directory, query):
         return match
 
     # If nothing found earch remotely
-    remote_requests = [ member.find(pattern) for member in self.cluster if member.available ]
+    remote_requests = [ r.find(query) for r in self.remote_stores if r.available ]
 
     for request in remote_requests:
       for match in request.get_results():
         return match
 
-  def find_parallel(self, pattern):
+
+  def find_all(self, query):
     # Start remote searches
     found = set()
-    remote_requests = [ member.find(pattern) for member in self.cluster if member.available ]
+    remote_requests = [ r.find(query) for r in self.remote_stores if r.available ]
 
     # Search locally
-    for dir in self.dirs:
-      for match in find(dir, pattern):
+    for directory in self.directories:
+      for match in find(directory, query):
         if match.graphite_path not in found:
           yield match
           found.add(match.graphite_path)
 
     # Gather remote search results
-    for remote_request in remote_requests:
-      for match in remote_request.get_results():
+    for request in remote_requests:
+      for match in request.get_results():
+
         if match.graphite_path not in found:
           yield match
           found.add(match.graphite_path)
@@ -84,6 +104,10 @@ def is_local_interface(host):
       return True
 
   raise Exception("Failed all attempts at binding to interface %s, last exception was %s" % (host, e))
+
+
+def is_pattern(s):
+  return '*' in s or '?' in s
 
 
 def find(root_dir, pattern):
@@ -148,6 +172,8 @@ def _find(current_dir, patterns):
 
 # Node classes
 class Node:
+  meta = {}
+
   def __init__(self, fs_path, graphite_path):
     self.fs_path = str(fs_path)
     self.graphite_path = str(graphite_path)
@@ -172,9 +198,28 @@ class Leaf(Node):
 
 # Database File classes
 class WhisperFile(Leaf):
+  cached_meta_data = None
+
   def fetch(self, startTime, endTime):
     (timeInfo,values) = whisper.fetch(self.fs_path, startTime, endTime)
     return (timeInfo,values)
+
+  @property
+  def meta(self):
+    if self.cached_meta_data is not None:
+      return self.cached_meta_data
+
+    meta_path = self.fs_path[ :-len('.wsp') ] + '.context.pickle'
+
+    if exists(meta_path):
+      fh = open(meta_path, 'rb')
+      meta_data = pickle.load(fh)
+      fh.close()
+    else:
+      meta_data = {}
+
+    self.cached_meta_data = meta_data
+    return meta_data
 
 
 class RRDFile(Branch):

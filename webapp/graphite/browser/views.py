@@ -24,6 +24,8 @@ try:
 except ImportError:
   import pickle
 
+#XXX settings.STORE instead of settings.FINDER/LOCAL_FINDER
+
 
 def header(request):
   "View for the header frame of the browser UI"
@@ -96,8 +98,8 @@ def treeLookup(request):
 
     log.info('path=%s pattern=%s' % (path,pattern))
 
-    finder = settings.FINDER
-    matches = list( finder.find(pattern) )
+    store = settings.STORE
+    matches = list( store.find(pattern) )
     matches.sort(key=lambda node: node.name)
 
     #Add a wildcard node if appropriate
@@ -122,14 +124,18 @@ def treeLookup(request):
   except:
     log.exception("browser.views.treeLookup(): could not complete request %s" % str(request.GET))
 
+  #Fetch contexts
+  for node in nodes:
+    node['context'] = getMetricContext[ node['id'] ]
+
   return json_response(nodes)
 
 
 def localLookup(request):
-  "View used for graphite.tree clustering"
-  pattern = str( request.GET['pattern'] )
+  "View for retrieving only data local to this server"
+  query = str( request.GET['query'] )
 
-  matches = list( settings.LOCAL_FINDER.find(pattern) )
+  matches = list( settings.LOCAL_STORE.find(query) )
   matches.sort(key=lambda node: node.name)
 
   results = [ (node.graphite_path, node.isLeaf()) for node in matches ]

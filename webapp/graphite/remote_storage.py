@@ -8,7 +8,7 @@ except ImportError:
   import pickle
 
 
-class ClusterMember(object):
+class RemoteStore(object):
   timeout = 5
   lastFailure = 0.0
   retryDelay = 10

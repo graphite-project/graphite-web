@@ -82,7 +82,7 @@ def writeCachedDataPoints():
 
         # Create metadata file
         dbFileName = basename(dbFilePath)
-        metaFilePath = join(dbDir, '.%s.meta' % dbFileName)
+        metaFilePath = join(dbDir, dbFileName[ :-len('.wsp') ] + '.context.pickle')
         createMetaFile(metric, schema, metaFilePath)
 
       try:
