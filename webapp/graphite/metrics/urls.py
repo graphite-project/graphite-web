@@ -15,5 +15,5 @@ You may obtain a copy of the License at
 from django.conf.urls.defaults import *
 
 urlpatterns = patterns('graphite.browser.views',
-  ('^find(?P<local_only>_local)?/?$', 'find'),
+  ('^find/?$', 'find'),
 )

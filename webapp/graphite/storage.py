@@ -183,7 +183,7 @@ def _find(current_dir, patterns):
 
 # Node classes
 class Node:
-  meta = {}
+  context = {}
 
   def __init__(self, fs_path, metric_path):
     self.fs_path = str(fs_path)
@@ -209,28 +209,28 @@ class Leaf(Node):
 
 # Database File classes
 class WhisperFile(Leaf):
-  cached_meta_data = None
+  cached_context_data = None
 
   def fetch(self, startTime, endTime):
     (timeInfo,values) = whisper.fetch(self.fs_path, startTime, endTime)
     return (timeInfo,values)
 
   @property
-  def meta(self):
-    if self.cached_meta_data is not None:
-      return self.cached_meta_data
+  def context(self):
+    if self.cached_context_data is not None:
+      return self.cached_context_data
 
-    meta_path = self.fs_path[ :-len('.wsp') ] + '.context.pickle'
+    context_path = self.fs_path[ :-len('.wsp') ] + '.context.pickle'
 
-    if exists(meta_path):
-      fh = open(meta_path, 'rb')
-      meta_data = pickle.load(fh)
+    if exists(context_path):
+      fh = open(context_path, 'rb')
+      context_data = pickle.load(fh)
       fh.close()
     else:
-      meta_data = {}
+      context_data = {}
 
-    self.cached_meta_data = meta_data
-    return meta_data
+    self.cached_context_data = context_data
+    return context_data
 
 
 class RRDFile(Branch):

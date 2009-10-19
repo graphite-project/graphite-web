@@ -23,10 +23,12 @@ except ImportError:
   import pickle
 
 
-def find(request, local_only=False):
+def find(request):
   "View for finding metrics matching a given pattern"
   profile = getProfile(request)
   format = request.REQUEST.get('format', 'treejson')
+  local_only = int( request.REQUEST('local', 0) )
+  contexts = int( request.REQUEST('contexts', 0) )
 
   try:
     query = str( request.GET['query'] )
@@ -38,14 +40,16 @@ def find(request, local_only=False):
   else:
     matches = list( settings.STORE.find(query) )
 
-  log.info('find() query=%s local_only=%s matches=%d' % (query, bool(local_only), len(matches)))
+  log.info('find() query=%s local_only=%s matches=%d' % (query, local_only, len(matches)))
   matches.sort(key=lambda node: node.name)
 
   if format == 'treejson':
-    response = HttpResponse(content=tree_json(matches, profile.advancedUI), mimetype='text/json')
+    content = tree_json(matches, wildcards=profile.advancedUI, contexts=contexts)
+    response = HttpResponse(content, mimetype='text/json')
 
   elif format == 'pickle':
-    response = HttpResponse(content=pickle_nodes(matches), mimetype='application/pickle')
+    content = pickle_nodes(matches, contexts=contexts)
+    response = HttpResponse(content, mimetype='application/pickle')
 
   else:
     return HttpResponseBadRequest(content="Invalid value for 'format' parameter", mimetype="text/plain")
@@ -55,7 +59,7 @@ def find(request, local_only=False):
   return response
 
 
-def tree_json(nodes, include_wildcards=False):
+def tree_json(nodes, wildcards=False, contexts=False):
   results = []
 
   branchNode = {
@@ -76,7 +80,7 @@ def tree_json(nodes, include_wildcards=False):
     path_prefix = ''
 
   #Add a wildcard node if appropriate
-  if len(nodes) > 2 and include_wildcards:
+  if len(nodes) > 2 and wildcards:
     wildcardNode = {'text' : '*', 'id' : path_prefix + '*'}
 
     if any(not n.isLeaf() for n in nodes):
@@ -87,32 +91,35 @@ def tree_json(nodes, include_wildcards=False):
 
     results.append(wildcardNode)
 
-  try:
-    inserted = set()
+  found = set()
 
-    for child in matches: #Now let's add the matching children
-      if child.name in inserted:
-        continue
+  for node in nodes: #Now let's add the matching children
+    if node.name in found:
+      continue
 
-      inserted.add(child.name)
-      node = {'text' : str(child.name), 'id' : path_prefix + str(child.name) }
+    found.add(node.name)
+    resultNode = {
+      'text' : str(node.name),
+      'id' : path_prefix + str(node.name),
+      'context' : node.context if contexts else {},
+    }
 
-      if child.isLeaf():
-        node.update(leafNode)
+    if node.isLeaf():
+      resultNode.update(leafNode)
+    else:
+      resultNode.update(branchNode)
 
-      else:
-        node.update(branchNode)
+    results.append(resultNode)
 
-      nodes.append(node)
+  return json.dumps(results)
 
-  except:
-    log.exception("browser.views.treeLookup(): could not complete request %s" % str(request.GET))
 
-  #Fetch contexts
-  for node in nodes:
-    node['context'] = getMetricContext[ node['id'] ]
+def pickle_nodes(nodes, contexts=False):
+  if contexts:
+    return pickle.dumps([ { 'metric_path' : n.metric_path, 'context' : n.context } for n in nodes ])
 
-  return 'json encoded nodes object' #XXX
+  else:
+    return pickle.dumps([ { 'metric_path' : n.metric_path } for n in nodes ])
 
 
 def any(iterable): #python2.4 compatibility
