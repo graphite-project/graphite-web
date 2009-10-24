@@ -39,17 +39,20 @@ function GraphiteBrowser () {
 function createTreePanel(){
   var rootNode = new Ext.tree.TreeNode({});
 
-  function setPath(loader,node) {
-    loader.baseParams.path = node.id.replace(/^[A-Za-z]+Tree\.?/,"");
+  function setParams(loader,node) {
+    var node_id = node.id.replace(/^[A-Za-z]+Tree\.?/,"");
+    loader.baseParams.query = (node_id == "") ? "*" : (node_id + ".*");
+    loader.baseParams.format = 'treejson';
+    loader.baseParams.contexts = '1';
   }
 
   var graphiteNode = new Ext.tree.AsyncTreeNode({
     id: 'GraphiteTree',
     text: "Graphite",
     loader: new Ext.tree.TreeLoader({
-      url: "/browser/tree/",
+      url: "/metrics/find/",
       requestMethod: "GET",
-      listeners: {beforeload: setPath}
+      listeners: {beforeload: setParams}
     })
   });
   rootNode.appendChild(graphiteNode);
@@ -72,7 +75,7 @@ function createTreePanel(){
       loader: new Ext.tree.TreeLoader({
         url: "/browser/mygraph/",
         requestMethod: "GET",
-        listeners: {beforeload: setPath}
+        listeners: {beforeload: setParams}
       })
     });
     rootNode.appendChild(myGraphsNode);
@@ -85,7 +88,7 @@ function createTreePanel(){
     loader: new Ext.tree.TreeLoader({
       url: "/browser/usergraph/",
       requestMethod: "GET",
-      listeners: {beforeload: setPath}
+      listeners: {beforeload: setParams}
     })
   });
   rootNode.appendChild(userGraphsNode);
@@ -105,15 +108,18 @@ function createTreePanel(){
     if (node.id == 'no-click') {
       return;
     }
+
     if (!node.leaf) {
       node.toggle();
       return;
     }
+
     if (node.attributes.graphUrl) {
       var url = decodeURIComponent(node.attributes.graphUrl).gsub(/#/,'%23');
       Composer.loadMyGraph(node.id, url);
       return;
     }
+
     Composer.toggleTarget(node.id);
   });
 
@@ -233,6 +239,7 @@ function completerToggle(field, evt) {
   if (evt.getKey() != Ext.EventObject.RETURN) {
     return;
   }
+
   Composer.toggleTarget( field.getValue() );
 }
 

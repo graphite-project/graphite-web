@@ -1,0 +1,4 @@
+[everything_1min_1day]
+priority = 100
+pattern = .*
+retentions = 60:1440
