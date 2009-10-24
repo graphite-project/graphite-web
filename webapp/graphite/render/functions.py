@@ -210,7 +210,7 @@ def integral(seriesList):
     results.append(newSeries)
   return results
 
-def increaseRate(seriesList): # strictly non-negative version of derivative()
+def nonNegativeDerivative(seriesList): # useful for watching counter metrics that occasionally wrap
   results = []
   for series in seriesList:
     newValues = []
@@ -222,28 +222,43 @@ def increaseRate(seriesList): # strictly non-negative version of derivative()
         continue
       newValues.append( max(val - prev, 0) )
       prev = val
-    newName = "increaseRate(%s)" % series.name
+    newName = "nonNegativeDerivative(%s)" % series.name
     newSeries = TimeSeries(newName, series.start, series.end, series.step, newValues)
     newSeries.pathExpression = newName
     results.append(newSeries)
   return results
+
 
 def alias(seriesList,newName):
   for series in seriesList:
     series.name = newName
   return seriesList
 
-def meanAbove(n, seriesList):
-  return [ series for series in seriesList if safeDiv(safeSum(series),safeLen(series)) > n ]
 
-def lastAbove(n, seriesList):
-  return [ series for series in seriesList if safeLast(series) > n ]
+def highestCurrent(n, seriesList):
+  return sorted( seriesList, key=safeLast )[-n:]
 
-def highestMean(n, seriesList):
+def lowestCurrent(n, seriesList):
+  return sorted( seriesList, key=safeLast )[:n]
+
+def currentAbove(n, seriesList):
+  return [ series for series in seriesList if safeLast(series) >= n ]
+
+def currentBelow(n, seriesList):
+  return [ series for series in seriesList if safeLast(series) <= n ]
+
+def highestAverage(n, seriesList):
   return sorted( seriesList, key=lambda s: safeDiv(safeSum(s),safeLen(s)) )[-n:]
 
-def highestLast(n, seriesList):
-  return sorted( seriesList, key=safeLast )[-n:]
+def lowestAverage(n, seriesList):
+  return sorted( seriesList, key=lambda s: safeDiv(safeSum(s),safeLen(s)) )[:n]
+
+def averageAbove(n, seriesList):
+  return [ series for series in seriesList if safeDiv(safeSum(series),safeLen(series)) >= n ]
+
+def averageBelow(n, seriesList):
+  return [ series for series in seriesList if safeDiv(safeSum(series),safeLen(series)) <= n ]
+
 
 def mostDeviant(n, seriesList):
   deviants = []
@@ -312,30 +327,44 @@ def dashed(*seriesList):
     series.options['dashed'] = dashLength
   return seriesList[0]
 
+
 SeriesFunctions = {
+  # Combine functions
   'sumSeries' : sumSeries,
-  'diffSeries' : diffSeries,
   'sum' : sumSeries,
+  'diffSeries' : diffSeries,
   'averageSeries' : averageSeries,
   'avg' : averageSeries,
-  'movingAverage' : movingAverage,
-  'asPercent' : asPercent,
-  'pct' : asPercent,
+
+  # Transform functions
   'scale' : scale,
-  'cumulative' : cumulative,
+  'offset' : offset,
   'derivative' : derivative,
   'integral' : integral,
-  'alias' : alias,
-  'mostDeviant' : mostDeviant,
+  'nonNegativeDerivative' : nonNegativeDerivative,
+
+  # Calculate functions
+  'movingAverage' : movingAverage,
   'stdev' : stdev,
-  'offset' : offset,
+  'asPercent' : asPercent,
+  'pct' : asPercent,
+
+  # Filter functions
+  'mostDeviant' : mostDeviant,
+  'highestCurrent' : highestCurrent,
+  'lowestCurrent' : lowestCurrent,
+  'currentAbove' : currentAbove,
+  'currentBelow' : currentBelow,
+  'highestAverage' : highestAverage,
+  'lowestAverage' : lowestAverage,
+  'averageAbove' : averageAbove,
+  'averageBelow' : averageBelow,
+
+  # Special functions
+  'alias' : alias,
+  'cumulative' : cumulative,
   'keepLastValue' : keepLastValue,
   'drawAsInfinite' : drawAsInfinite,
   'lineWidth' : lineWidth,
   'dashed' : dashed,
-  'meanAbove' : meanAbove,
-  'lastAbove' : lastAbove,
-  'highestMean' : highestMean,
-  'highestLast' : highestLast,
-  'increaseRate' : increaseRate,
 }

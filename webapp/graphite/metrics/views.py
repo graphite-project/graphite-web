@@ -12,35 +12,77 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
+import traceback
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.conf import settings
 from graphite.account.models import Profile
 from graphite.util import getProfile, getProfileByUsername, defaultUser
 from graphite.logger import log
 try:
+  import json
+except ImportError:
+  import simplejson as json
+
+try:
   import cPickle as pickle
 except ImportError:
   import pickle
 
 
-def find(request):
+def context_view(request):
+  if request.method == 'GET':
+    contexts = []
+
+    if not 'metric' not in request.GET:
+      return HttpResponse('{ "error" : "missing required parameter \"metric\"" }', mimetype='text/json')
+
+    for metric in request.GET.getlist('metric'):
+      try:
+        context = settings.STORE.get(metric).context
+      except:
+        contexts.append({ 'metric' : metric, 'error' : 'failed to retrieve context', 'traceback' : traceback.format_exc() })
+      else:
+        contexts.append({ 'metric' : metric, 'context' : context })
+
+    content = json.dumps( { 'contexts' : contexts } )
+    return HttpResponse(content, mimetype='text/json')
+
+  elif request.method == 'POST':
+
+    if 'metric' not in request.POST:
+      return HttpResponse('{ "error" : "missing required parameter \"metric\"" }', mimetype='text/json')
+
+    newContext = dict( item for item in request.POST.items() if item[0] != 'metric' )
+
+    for metric in request.POST.getlist('metric'):
+      settings.STORE.get(metric).updateContext(newContext)
+
+    return HttpResponse('{ "success" : true }', mimetype='text/json')
+
+  else:
+    return HttpResponseBadRequest("invalid method, must be GET or POST")
+
+
+def find_view(request):
   "View for finding metrics matching a given pattern"
   profile = getProfile(request)
   format = request.REQUEST.get('format', 'treejson')
-  local_only = int( request.REQUEST('local', 0) )
-  contexts = int( request.REQUEST('contexts', 0) )
+  local_only = int( request.REQUEST.get('local', 0) )
+  contexts = int( request.REQUEST.get('contexts', 0) )
 
   try:
-    query = str( request.GET['query'] )
+    query = str( request.REQUEST['query'] )
   except:
     return HttpResponseBadRequest(content="Missing required parameter 'query'", mimetype="text/plain")
 
   if local_only:
-    matches = list( settings.LOCAL_STORE.find(query) )
+    store = settings.LOCAL_STORE
   else:
-    matches = list( settings.STORE.find(query) )
+    store = settings.STORE
 
-  log.info('find() query=%s local_only=%s matches=%d' % (query, local_only, len(matches)))
+  matches = list( store.find(query) )
+
+  log.info('find_view query=%s local_only=%s matches=%d' % (query, local_only, len(matches)))
   matches.sort(key=lambda node: node.name)
 
   if format == 'treejson':
@@ -50,6 +92,13 @@ def find(request):
   elif format == 'pickle':
     content = pickle_nodes(matches, contexts=contexts)
     response = HttpResponse(content, mimetype='application/pickle')
+
+  elif format == 'completer':
+    if len(matches) == 1 and (not matches[0].isLeaf()) and query == matches[0].metric_path + '*': # auto-complete children
+      matches = list( store.find(query + '.*') )
+
+    content = json.dumps({ 'metrics' : [ dict(path=node.metric_path, name=node.name) for node in matches ] })
+    response = HttpResponse(content, mimetype='text/json')
 
   else:
     return HttpResponseBadRequest(content="Invalid value for 'format' parameter", mimetype="text/plain")
@@ -73,7 +122,7 @@ def tree_json(nodes, wildcards=False, contexts=False):
     'leaf': 1,
   }
 
-  if nodes:
+  if nodes and '.' in nodes[0].metric_path: # check for a '.' to see if these are top-level nodes or not
     path_prefix = nodes[0].metric_path.rsplit('.', 1)[0] + '.'
 
   else:

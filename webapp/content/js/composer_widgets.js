@@ -38,8 +38,8 @@ function createComposerWindow(myComposer) {
   }
 
   var bottomToolbar = [
-    { text: "Display Options", menu: createDisplayOptionsMenu() },
-    { text: "Data", handler: toggleWindow(TargetsWindow.create.createDelegate(TargetsWindow)) },
+    { text: "Graph Options", menu: createOptionsMenu() },
+    { text: "Graph Data", handler: toggleWindow(GraphDataWindow.create.createDelegate(GraphDataWindow)) },
     { text: "Auto-Refresh", id: 'autorefresh_button', enableToggle: true, toggleHandler: toggleAutoRefresh }
   ];
 
@@ -54,9 +54,13 @@ function createComposerWindow(myComposer) {
     tbar: topToolbar,
     buttons: bottomToolbar,
     buttonAlign: 'left',
-    items: {html: "<img id='image-viewer' src='/render'/>", region: "center" },
-    listeners: {show: fitImageToWindow, resize: fitImageToWindow}
+    items: { html: "<img id='image-viewer' src='/render'/>", region: "center" },
+    listeners: {
+      show: fitImageToWindow,
+      resize: fitImageToWindow
+    }
   });
+
   // Tack on some convenience closures
   win.updateTimeDisplay = function (time) {
     var text;
@@ -69,11 +73,13 @@ function createComposerWindow(myComposer) {
     }
     timeDisplay.getEl().dom.innerHTML = text;
   };
+
   win.updateUI = function () {
     var toggled = Composer.url.getParam('autorefresh') ? true : false;
     Ext.getCmp('autorefresh_button').toggle(toggled);
     updateCheckItems();
   };
+
   win.getImage = function () {
     return Ext.getDom('image-viewer');
   };
@@ -82,7 +88,7 @@ function createComposerWindow(myComposer) {
 }
 
 function toggleWindow(createFunc) { // Convenience for lazily creating toggled dialogs
-  function toggler (button, evt) {
+  function toggler (button, e) {
     if (!button.window) { //First click, create the window
       button.window = createFunc();
     }
@@ -96,8 +102,8 @@ function toggleWindow(createFunc) { // Convenience for lazily creating toggled d
 }
 
 function ifEnter(func) { // Convenience decorator for specialkey listener definitions
-  return function (widget, evt) {
-    if (evt.getCharCode() == Ext.EventObject.RETURN) {
+  return function (widget, e) {
+    if (e.getCharCode() == Ext.EventObject.RETURN) {
       func(widget);
     }
   }
@@ -236,7 +242,7 @@ function asDateString(dateObj) {
 
 /* "Recent Data" dialog */
 function toggleWindow(createFunc) {
-  function toggler (button, evt) {
+  function toggler (button, e) {
     if (!button.window) { //First click, create the window
       button.window = createFunc();
     }
@@ -300,7 +306,7 @@ function recentSelectionMade(combo, record, index) {
 }
 
 /* "Save to MyGraphs" */
-function saveMyGraph(button, evt) {
+function saveMyGraph(button, e) {
   Ext.MessageBox.prompt(
     "Save to My Graphs", //title
     "Please enter a name for your Graph", //prompt message
@@ -355,103 +361,200 @@ function handleSaveMyGraphResponse(options, success, response) {
   });
 }
 
-/* Targets dialog  */
-var TargetsWindow = { //This widget has a lot of state, so an object is appropriate
+/* Graph Data dialog  */
+var GraphDataWindow = {
   create: function () {
-    this.targetsStore = new Ext.data.SimpleStore({
-      fields: ["target"],
-      data: Composer.url.getParamList('target').map(function (t) { return [t]; })
+    var _this = this;
+
+    this.targetList = new Ext.ListView({
+      store: TargetStore,
+      multiSelect: true,
+      emptyText: "No graph targets",
+      reserveScrollOffset: true,
+      columnSort: false,
+      hideHeaders: true,
+      width: 385,
+      columns: [ {header: "Graph Targets", width: 400, sortable: true, dataIndex: "value"} ],
+      listeners: {
+        contextmenu: this.targetContextMenu,
+        afterrender: this.targetChanged,
+        selectionchange: this.targetChanged,
+        dblclick: function (targetList, index, node, e) {
+                    targetList.select(index);
+                    this.editTarget();
+                  },
+        scope: this
+      }
     });
 
-    this.grid = new Ext.grid.GridPanel({
-      store: this.targetsStore,
-      columns: [ {header: "Targets", width: 500, sortable: true, dataIndex: "target"} ],
-      listeners: {rowcontextmenu: this.showContextMenu, scope: this}
+    var targetSidePanel = new Ext.Panel({
+      width: 100,
+      layout: {
+        type: 'vbox',
+        align: 'stretch'
+      },
+      items: [
+        {
+          xtype: 'button',
+          text: 'Add',
+          handler: this.addTarget.createDelegate(this)
+        }, {
+          xtype: 'button',
+          text: 'Edit',
+          id: 'editTargetButton',
+          handler: this.editTarget.createDelegate(this)
+        }, {
+          xtype: 'button',
+          text: 'Remove',
+          id: 'removeTargetButton',
+          handler: this.removeTarget.createDelegate(this)
+        }, {
+          xtype: 'button',
+          text: 'Apply Function',
+          id: 'applyFunctionButton',
+          menuAlign: 'tr-tl',
+          menu: {
+            subMenuAlign: 'tr-tl',
+            defaults: {
+              defaultAlign: 'tr-tl'
+            },
+            items: [
+              {
+                text: 'Combine',
+                id: 'combineMenu',
+                menu: [
+                  {text: 'Sum', handler: this.applyFuncToAll('sumSeries')},
+                  {text: 'Difference', handler: this.applyFuncToAll('diffSeries')},
+                  {text: 'Average', handler: this.applyFuncToAll('averageSeries')}
+                ]
+              }, {
+                text: 'Transform',
+                menu: [
+                  {text: 'Scale', handler: this.applyFuncToEachWithInput('scale', 'Please enter a scale factor')},
+                  {text: 'Offset', handler: this.applyFuncToEachWithInput('offset', 'Please enter the value to offset Y-values by')},
+                  {text: 'Derivative', handler: this.applyFuncToEach('derivative')},
+                  {text: 'Integral', handler: this.applyFuncToEach('integeral')},
+                  {text: 'Non-negative Derivative', handler: this.applyFuncToEach('nonNegativeDerivative')}
+                ]
+              }, {
+                text: 'Calculate',
+                menu: [
+                  {text: 'Moving Average', handler: this.applyFuncToEachWithInput('movingAverage', 'Moving average for the last ___ data points')},
+                  {text: 'Moving Standard Deviation', handler: this.applyFuncToEachWithInput('stdev', 'Moving standard deviation for the last ___ data points')},
+                  {text: 'As Percent', handler: this.applyFuncToEachWithInput('asPercent', 'Please enter the value that corresponds to 100%')}
+                ]
+              }, {
+                text: 'Filter',
+                menu: [
+                  {text: 'Most Deviant', handler: this.applyFuncToEachWithInput('mostDeviant', 'Draw the ___ metrics with the highest standard deviation')},
+                  {text: 'Highest Current Value', handler: this.applyFuncToEachWithInput('highestCurrent', 'Draw the ___ metrics with the highest current value')},
+                  {text: 'Lowest Current Value', handler: this.applyFuncToEachWithInput('lowestCurrent', 'Draw the ___ metrics with the lowest current value')},
+                  {text: 'Current Value Above', handler: this.applyFuncToEachWithInput('currentAbove', 'Draw all metrics whose current value is above ___')},
+                  {text: 'Current Value Below', handler: this.applyFuncToEachWithInput('currentBelow', 'Draw all metrics whose current value is below ___')},
+                  {text: 'Highest Average Value', handler: this.applyFuncToEachWithInput('highestAverage', 'Draw the ___ metrics with the highest average value')},
+                  {text: 'Lowest Average Value', handler: this.applyFuncToEachWithInput('lowestAverage', 'Draw the ___ metrics with the lowest average value')},
+                  {text: 'Average Value Above', handler: this.applyFuncToEachWithInput('averageAbove', 'Draw all metrics whose average value is above ___')},
+                  {text: 'Average Value Above', handler: this.applyFuncToEachWithInput('averageBelow', 'Draw all metrics whose average value is below ___')}
+                ]
+              }, {
+                text: 'Special',
+                menu: [
+                  {text: 'Set Legend Name', handler: this.applyFuncToEachWithInput('alias', 'Enter a legend label for this graph target')},
+                  {text: 'Aggregate By Sum', handler: this.applyFuncToEach('cumulative')},
+                  {text: 'Draw non-zero As Infinite', handler: this.applyFuncToEach('drawAsInfinite')},
+                  {text: 'Line Width', handler: this.applyFuncToEach('lineWidth', 'Please enter a line width for this graph target')},
+                  {text: 'Dashed Line', handler: this.applyFuncToEach('dashed')},
+                  {text: 'Keep Last Value', handler: this.applyFuncToEach('keepLastValue')}
+                ]
+              }
+            ]
+          }
+        }, {
+          xtype: 'button',
+          text: 'Undo Function',
+          handler: this.removeOuterCall.createDelegate(this),
+          id: 'undoFunctionButton',
+        }
+      ]
+    });
+
+    this.targetsPanel = new Ext.Panel({
+      region: 'center',
+      layout: {
+        type: 'hbox',
+        align: 'stretch'
+      },
+      items: [ this.targetList, targetSidePanel ]
     });
 
     this.window = new Ext.Window({
-      title: "Numeric Series Operations   (select targets and right-click)",
-      height: 200,
+      title: "Graph Data",
+      height: 300,
       width: 500,
       closeAction: 'hide',
-      items: [ this.grid ],
-      listeners: {resize: this.fitGridToWindow, show: this.update, scope: this}
+      layout: 'border',
+      items: [ this.targetsPanel ],
+      listeners: {
+        afterrender: function () {
+                       if (_this.targetList.getNodes().length > 0) {
+                         _this.targetList.select(0);
+                       }
+                     }
+      }
     });
     return this.window;
   },
 
-  update: function (win) {
-    this.refreshList();
-    this.fitWindowToGrid();
+  targetChanged: function () {
+    if (!this.targetList) { return; } // Ignore initial call
+
+    if (this.getSelectedTargets().length == 0) {
+      Ext.getCmp('editTargetButton').disable();
+      Ext.getCmp('removeTargetButton').disable();
+      Ext.getCmp('combineMenu').disable();
+      Ext.getCmp('applyFunctionButton').disable();
+      Ext.getCmp('undoFunctionButton').disable();
+    } else {
+      Ext.getCmp('editTargetButton').enable();
+      Ext.getCmp('removeTargetButton').enable();
+      Ext.getCmp('combineMenu').enable();
+      Ext.getCmp('applyFunctionButton').enable();
+      Ext.getCmp('undoFunctionButton').enable();
+    }
   },
 
-  fitGridToWindow: function (widget, width, height) {
-    this.grid.setSize( this.window.getInnerWidth(), this.window.getInnerHeight() );
-  },
-
-  fitWindowToGrid: function () {
-    var size = this.grid.getSize();
-    size.width += this.window.getFrameWidth();
-    size.height += this.window.getFrameHeight();
-    this.window.setSize(size);
-  },
-
-  showContextMenu: function (grid, index, evt) {
+  targetContextMenu: function (targetList, index, node, e) {
     /* Select the right-clicked row unless it is already selected */
-    var selModel = grid.getSelectionModel();
-
-    if (! selModel.isSelected(index) ) {
-      selModel.selectRow(index);
+    if (! targetList.isSelected(index) ) {
+      targetList.select(index);
     }
 
-    var functionsMenu = new Ext.menu.Menu({
-      items: [
-        {text: 'Sum Series', handler: this.applyFuncToAll('sumSeries')},
-        {text: 'Difference Series', handler: this.applyFuncToAll('diffSeries')},
-        {text: 'Average Series', handler: this.applyFuncToAll('averageSeries')},
-        {text: 'Moving Average Series', handler: this.applyFuncToEachWithInput('movingAverage', "Draw the moving average for the last _ data points")},
-        {text: 'As Percent', handler: this.applyFuncToEachWithInput('asPercent', "Please enter the value that corresponds to 100%")},
-        {text: 'Scale', handler: this.applyFuncToEachWithInput('scale', "Please enter a scale factor")},
-        {text: 'Cumulative', handler: this.applyFuncToEach('cumulative')},
-        {text: 'Derivative', handler: this.applyFuncToEach('derivative')},
-        {text: 'Integral', handler: this.applyFuncToEach('integral')},
-        {text: 'Rate of Increase', handler: this.applyFuncToEach('increaseRate')},
-        {text: 'Alias', handler: this.applyFuncToEachWithInput('alias', "What should this graph element be labeled as?")},
-        {text: 'Most Deviant', handler: this.applyFuncToEachWithInput('mostDeviant', "Draw the ___ metrics with the highest standard deviation")},
-        {text: 'Standard Deviation', handler: this.applyFuncToEachWithInput('stdev', "Draw the standard deviation for the last _ data points")},
-        {text: 'Offset', handler: this.applyFuncToEachWithInput('offset', "Draw the graph with an offset of _")},
-        {text: 'Keep Last Value', handler: this.applyFuncToEach('keepLastValue')},
-        {text: 'Remove Outer Call', handler: this.removeOuterCall.createDelegate(this)}
-      ]
-    });
-
-    var removeItem = {text: "Remove", handler: this.removeSelected.createDelegate(this)};
-    var editItem = {text: "Edit", handler: this.editSelected.createDelegate(this)};
-    var applyItem = {text: "Apply Function", menu: functionsMenu};
-    var refreshItem = {text: "Refresh List", handler: this.refreshList.createDelegate(this)};
-    var addWlItem = {text: "Add to Whitelist", handler: this.addWlSelected.createDelegate(this)};
-    var removeWlItem = {text: "Remove from Whitelist", handler: this.removeWlSelected.createDelegate(this)};
+    var removeItem = {text: "Remove", handler: this.removeTarget.createDelegate(this)};
+    var editItem = {text: "Edit", handler: this.editTarget.createDelegate(this)};
 
     if (this.getSelectedTargets().length == 0) {
       removeItem.disabled = true;
       editItem.disabled = true;
-      applyItem.disabled = true;
-      addWlItem.disabled = true;
-      removeWlItem.disabled = true;
     }
 
-    var contextMenu = new Ext.menu.Menu({ items: [removeItem, editItem, applyItem, addWlItem, removeWlItem, refreshItem] });
-    contextMenu.showAt( evt.getXY() );
+    var contextMenu = new Ext.menu.Menu({ items: [removeItem, editItem] });
+    contextMenu.showAt( e.getXY() );
 
-    evt.stopEvent();
+    e.stopEvent();
   },
 
   applyFuncToEach: function (funcName, extraArg) {
+    var _this = this;
+
     function applyFunc() {
-      Ext.each(this.getSelectedTargets(),
+
+      Ext.each(_this.getSelectedTargets(),
         function (target) {
           var newTarget;
+
           Composer.url.removeParam('target', target);
+          removeTarget(target);
+
           if (extraArg) {
             if (funcName == 'mostDeviant') { //SPECIAL CASE HACK
               newTarget = funcName + '(' + extraArg + ',' + target + ')';
@@ -461,13 +564,14 @@ var TargetsWindow = { //This widget has a lot of state, so an object is appropri
           } else {
             newTarget = funcName + '(' + target + ')';
           }
+
           Composer.url.addParam('target', newTarget);
+          addTarget(newTarget);
+          _this.targetList.select( TargetStore.findExact('value', newTarget), true);
         }
       );
       Composer.updateImage();
-      this.refreshList();
     }
-    applyFunc = applyFunc.createDelegate(this);
     return applyFunc;
   },
 
@@ -501,11 +605,14 @@ var TargetsWindow = { //This widget has a lot of state, so an object is appropri
       Ext.each(this.getSelectedTargets(),
         function (target) {
 	  Composer.url.removeParam('target', target);
+          removeTarget(target);
         }
       );
       Composer.url.addParam('target', newTarget);
       Composer.updateImage();
-      this.refreshList();
+
+      addTarget(newTarget);
+      this.targetList.select( TargetStore.findExact('value', newTarget), true);
     }
     applyFunc = applyFunc.createDelegate(this);
     return applyFunc;
@@ -516,6 +623,7 @@ var TargetsWindow = { //This widget has a lot of state, so an object is appropri
      * The following code is *almost* correct. It will fail if there is
      * an argument with a quoted parenthesis in it. Who cares... */
     var _this = this;
+
     Ext.each(this.getSelectedTargets(),
       function (target) {
 	var args = [];
@@ -531,7 +639,7 @@ var TargetsWindow = { //This widget has a lot of state, so an object is appropri
             case ',':
               if (depth > 0) { continue; }
               if (depth < 0) { Ext.Msg.alert("Malformed target, cannot remove outer call."); return; }
-              args.push( argString.substring(lastArg, i).strip() );
+              args.push( argString.substring(lastArg, i).replace(/^\s+/, '').replace(/\s+$/, '') );
               lastArg = i + 1;
               break;
           }
@@ -539,29 +647,98 @@ var TargetsWindow = { //This widget has a lot of state, so an object is appropri
         args.push( argString.substring(lastArg, i) );
 
         Composer.url.removeParam('target', target);
+        removeTarget(target);
+
         Ext.each(args, function (arg) {
           if (!arg.match(/^([0123456789\.]+|".+")$/)) { //Skip string and number literals
             Composer.url.addParam('target', arg);
+            addTarget(arg);
+            _this.targetList.select( TargetStore.findExact('value', arg), true);
           }
         });
         Composer.updateImage();
-        _this.refreshList();
       }
     );
   },
 
-  removeSelected: function (item, evt) {
-    var targets = Composer.url.getParamList('target');
-    Ext.each(this.getSelectedTargets(), function (target) { targets.remove(target) });
-    Composer.url.setParamList('target', targets);
-    Composer.updateImage();
-    this.refreshList();
+
+  addTarget: function (target) {
+    var metricCompleter;
+    var win;
+
+    metricCompleter = new MetricCompleter({
+      listeners: {
+        specialkey: function (field, e) {
+                      if (e.getKey() == e.ENTER) {
+                        var target = metricCompleter.getValue();
+                        Composer.url.addParam('target', target);
+                        Composer.updateImage();
+                        addTarget(target);
+                        win.close();
+                        e.stopEvent();
+                        return false;
+                      }
+                    },
+        afterrender: function (field) {
+                       metricCompleter.focus('', 500);
+                     }
+      }
+    });
+
+    win = new Ext.Window({
+      title: "Add a new Graph Target",
+      id: 'addTargetWindow',
+      modal: true,
+      width: 400,
+      height: 115,
+      layout: {
+        type: 'vbox',
+        align:'stretch',
+        pack: 'center'
+      },
+      items: [
+        {xtype: 'label', text: "Type the path of your new Graph Target."},
+        metricCompleter
+      ],
+      buttonAlign: 'center',
+      buttons: [
+        {
+          xtype: 'button',
+          text: 'OK',
+          handler: function () {
+                     var target = metricCompleter.getValue();
+                     Composer.url.addParam('target', target);
+                     Composer.updateImage();
+                     addTarget(target);
+                     win.close();
+                   }
+        }, {
+          xtype: 'button',
+          text: 'Cancel',
+          handler: function () {
+                     Ext.getCmp('addTargetWindow').close();
+                   }
+        }
+      ]
+    });
+
+    win.show();
   },
 
-  editSelected: function (item, evt) {
-    var selectedTargets = this.getSelectedTargets();
+  removeTarget: function (item, e) {
+    var targets = Composer.url.getParamList('target');
+    Ext.each(this.getSelectedTargets(), function (target) {
+      targets.remove(target);
+      removeTarget(target);
+    });
+    Composer.url.setParamList('target', targets);
+    Composer.updateImage();
+  },
 
-    if (selectedTargets.length != 1) {
+  editTarget: function (item, e) {
+    var selected = this.targetList.getSelectedRecords();
+
+    if (selected.length != 1) {
       Ext.MessageBox.show({
         title: "Error",
         msg: "You must select exactly one target to edit.",
@@ -570,29 +747,97 @@ var TargetsWindow = { //This widget has a lot of state, so an object is appropri
       });
       return;
     }
-    var selected = selectedTargets[0];
 
-    function editHandler (button, newValue) {
-      if (button == 'ok' && newValue != '') {
-        Composer.url.removeParam('target', selected);
+    var record = selected[0];
+    var metricCompleter;
+    var win;
+
+    metricCompleter = new MetricCompleter({
+      value: record.get('value'),
+      listeners: {
+        specialkey: function (field, e) {
+                      if (e.getKey() == e.ENTER) {
+                        var target = metricCompleter.getValue();
+
+                        Composer.url.removeParam('target', record.get('value'));
+                        Composer.url.addParam('target', target);
+                        Composer.updateImage();
+                        record.set('value', target);
+
+                        win.close();
+                        e.stopEvent();
+                        return false;
+                      }
+                    },
+        afterrender: function (field) {
+                       metricCompleter.focus('', 500);
+                     }
+      }
+    });
+
+    function editHandler () {
+      var newValue = metricCompleter.getValue();
+
+      if (newValue != '') {
+
+        if (TargetStore.findExact('value', newValue) != -1) {
+          Ext.Msg.show({
+            title: "Target Already Exists",
+            msg: "This target expression is already present in your graph.",
+            icon: Ext.Msg.ERROR,
+            buttons: Ext.Msg.OK
+          });
+
+          return;
+        }
+
+        Composer.url.removeParam('target', record.get('value'));
         Composer.url.addParam('target', newValue);
         Composer.updateImage();
-        this.refreshList();
+
+        record.set('value', newValue);
+        record.commit();
       }
+
+      win.close();
     }
     editHandler = editHandler.createDelegate(this); //dynamic scoping can really be a bitch
 
-    Ext.MessageBox.prompt(
-      "Advanced Target Edit", //title
-      "Warning: You are directly editing a target. This could break your graph.", //message
-      editHandler, //handler
-      null, //scope
-      false, //multiline
-      selected //initial value
-    );
+    win = new Ext.Window({
+      title: "Edit Graph Target",
+      id: 'editTargetWindow',
+      modal: true,
+      width: 400,
+      height: 115,
+      layout: {
+        type: 'vbox',
+        align:'stretch',
+        pack: 'center'
+      },
+      items: [
+        {xtype: 'label', text: "Edit the path of your Graph Target."},
+        metricCompleter
+      ],
+      buttonAlign: 'center',
+      buttons: [
+        {
+          xtype: 'button',
+          text: 'OK',
+          handler: editHandler
+        }, {
+          xtype: 'button',
+          text: 'Cancel',
+          handler: function () {
+                     win.close();
+                   }
+        }
+      ]
+    });
+
+    win.show();
   },
 
-  addWlSelected: function (item, evt) {
+  addWlSelected: function (item, e) {
     Ext.Ajax.request({
       url: "/whitelist/add",
       method: "POST",
@@ -602,7 +847,7 @@ var TargetsWindow = { //This widget has a lot of state, so an object is appropri
     });
   },
 
-  removeWlSelected: function (item, evt) {
+  removeWlSelected: function (item, e) {
     Ext.Ajax.request({
       url: "/whitelist/remove",
       method: "POST",
@@ -613,16 +858,13 @@ var TargetsWindow = { //This widget has a lot of state, so an object is appropri
   },
 
   getSelectedTargets: function () {
-    var rowSelectionModel = this.grid.getSelectionModel();
-    var selectedRecords = rowSelectionModel.getSelections();
-    var selectedTargets = selectedRecords.map(function (rec) { return rec.get('target'); });
-    return selectedTargets;
-  },
+    var targets = [];
 
-  refreshList: function () {
-    var targets = Composer.url.getParamList('target');
-    var dataArrays = targets.map(function (t) { return [t]; });
-    this.targetsStore.loadData(dataArrays);
+    Ext.each(this.targetList.getSelectedRecords(), function (record) {
+      targets.push( record.get('value') );
+    });
+
+    return targets;
   }
 };
 
@@ -632,7 +874,8 @@ function toggleAutoRefresh(button, pressed) {
   var doRefresh = function () {
     Composer.updateImage();
 
-    var interval = Math.min.apply(null, [context['interval'] for each (context in MetricContexts)]) || 60;
+    //var interval = Math.min.apply(null, [context['interval'] for each (context in MetricContexts)] || [0]) || 60;
+    var interval = 60;
     button.timer = setTimeout(doRefresh, interval * 1000)
   }
 
@@ -649,7 +892,7 @@ function toggleAutoRefresh(button, pressed) {
 }
 
 /* Display Options Menu */
-function createDisplayOptionsMenu() {
+function createOptionsMenu() {
   var fontMenu = new Ext.menu.Menu({
     items: [
       {text: "Color", menu: createColorMenu('fgcolor')},
@@ -699,7 +942,7 @@ function createFontFacesMenu() {
     function (face) {
       return {
         text: face,
-        handler: function (menuItem, evt) {
+        handler: function (menuItem, e) {
                    Composer.url.setParam("fontName", face);
                    Composer.updateImage();
                  }
@@ -725,7 +968,7 @@ function menuInputItem(name, param) {
 }
 
 function paramPrompt(question, param) {
-  return function (menuItem, evt) {
+  return function (menuItem, e) {
     Ext.MessageBox.prompt(
       "Input Required",
       question,

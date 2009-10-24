@@ -38,7 +38,8 @@ def composer(request):
     'user' : request.user,
     'profile' : profile,
     'showMyGraphs' : int( profile.user.username != 'default' ),
-    'debug' : settings.DEBUG
+    'debug' : settings.DEBUG,
+    'jsdebug' : settings.DEBUG
   }
   return render_to_response("composer.html",context)
 

@@ -17,7 +17,7 @@ limitations under the License. -->
 <html>
   <head>
     <title>Graphite Composer</title>
-    <link rel="stylesheet" type="text/css"  href="/content/js/ext/resources/css/ext-all.css" />
+    <link rel="stylesheet" type="text/css" href="/content/js/ext/resources/css/ext-all.css"/>
 
     {% if jsdebug %}
     <script type="text/javascript" src="/content/js/ext/adapter/ext/ext-base-debug.js"></script>
@@ -28,12 +28,47 @@ limitations under the License. -->
     {% endif %}
 
     <script type="text/javascript">
-      var MetricContexts = {};
+      /* A global cache of current metadata about metrics the user selects */
+      var TargetRecord = new Ext.data.Record.create(['value']);
+
+      var TargetStore = new Ext.data.ArrayStore({
+        fields: TargetRecord.fields
+      });
+
+      function getTargetRecord(target) {
+        var index = TargetStore.findExact('value', target);
+        return (index == -1) ? null : TargetStore.getAt(index);
+      }
+
+      function addTarget(target) {
+        if (! getTargetRecord(target)) {
+          TargetStore.add([ new TargetRecord({value: target}) ]);
+        }
+      }
+
+      function removeTarget(target) {
+        var record = getTargetRecord(target);
+
+        if (record) {
+          TargetStore.remove(record);
+        }
+      }
+
+      function replaceTarget(oldTarget, newTarget) {
+        var oldrecord = getTargetRecord(oldTarget);
+        var newRecord = getTargetRecord(newRecord);
+
+        if (oldRecord && (!newRecord)) {
+          oldRecord.set('value', newTarget);
+          TargetStore.commitChanges();
+        }
+      }
     </script>
 
     <script type="text/javascript" src="/content/js/browser.js"></script>
     <script type="text/javascript" src="/content/js/composer_widgets.js"></script>
     <script type="text/javascript" src="/content/js/composer.js"></script>
+    <script type="text/javascript" src="/content/js/completer.js"/></script>
 
     <script type="text/javascript">
       Ext.BLANK_IMAGE_URL = '/content/js/ext/resources/images/default/s.gif';

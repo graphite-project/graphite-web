@@ -108,15 +108,18 @@ function createTreePanel(){
     if (node.id == 'no-click') {
       return;
     }
+
     if (!node.leaf) {
       node.toggle();
       return;
     }
+
     if (node.attributes.graphUrl) {
       var url = decodeURIComponent(node.attributes.graphUrl).gsub(/#/,'%23');
       Composer.loadMyGraph(node.id, url);
       return;
     }
+
     Composer.toggleTarget(node.id);
   });
 
@@ -236,6 +239,7 @@ function completerToggle(field, evt) {
   if (evt.getKey() != Ext.EventObject.RETURN) {
     return;
   }
+
   Composer.toggleTarget( field.getValue() );
 }
 

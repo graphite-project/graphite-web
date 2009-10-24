@@ -23,7 +23,7 @@ except ImportError:
   import pickle
 
 from graphite.util import getProfileByUsername
-from graphite.clustering import HTTPConnectionWithTimeout
+from graphite.remote_storage import HTTPConnectionWithTimeout
 from graphite.logger import log
 from graphite.render.evaluator import evaluateTarget
 from graphite.render.attime import parseATTime
@@ -164,7 +164,7 @@ def parseOptions(request):
         val = float(val)
       elif val.lower() in ('true','false'):
         val = eval( val.lower().capitalize() )
-      elif val.lower() == 'default':
+      elif val.lower() == 'default' or val == '':
         continue
       graphOptions[opt] = val
 

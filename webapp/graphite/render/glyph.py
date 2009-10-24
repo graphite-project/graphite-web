@@ -400,59 +400,81 @@ class LineGraph(Graph):
       self.data = reverse_sort(self.data)
 
     for series in self.data:
+
       if series.options.has_key('lineWidth'): # adjusts the lineWidth of this line if option is set on the series
         self.ctx.set_line_width(series.options['lineWidth'])
+
       if series.options.has_key('dashed'): # turn on dashing if dashed option set
         self.ctx.set_dash([ series.options['dashed'] ],1)
+      else:
+        self.ctx.set_dash([], 0)
+
       x = float(self.area['xmin']) + (self.lineWidth / 2.0)
       y = float(self.area['ymin'])
       self.setColor( series.color )
+
       fromNone = True
+
       for value in series:
         if value is None and self.params.get('drawNullAsZero'):
           value = 0.0
+
         if value is None:
+
           if not fromNone and self.areaMode != 'none': #Close off and fill area before unknown interval
             self.ctx.line_to(x, self.area['ymax'])
             self.ctx.close_path()
             self.ctx.fill()
           x += series.xStep
           fromNone = True
+
         else:
           y = self.area['ymax'] - ((float(value) - self.yBottom) * self.yScaleFactor)
+
           if series.options.has_key('drawAsInfinite') and value > 0:
             self.ctx.move_to(x, self.area['ymax'])
             self.ctx.line_to(x, self.area['ymin'])
             self.ctx.stroke()
             x += series.xStep
             continue
+
           if self.lineMode == 'staircase':
             if fromNone:
+
               if self.areaMode != 'none':
                 self.ctx.move_to(x,self.area['ymax'])
                 self.ctx.line_to(x,y)
               else:
                 self.ctx.move_to(x,y)
+
             else:
               self.ctx.line_to(x,y)
             x += series.xStep
             self.ctx.line_to(x,y)
+
           elif self.lineMode == 'slope':
             if fromNone:
+
               if self.areaMode != 'none':
                 self.ctx.move_to(x,self.area['ymax'])
                 self.ctx.line_to(x,y)
+
               else:
                 self.ctx.move_to(x,y)
+
             x += series.xStep
             self.ctx.line_to(x,y)
+
           fromNone = False
+
       if self.areaMode != 'none':
         self.ctx.line_to(x, self.area['ymax'])
         self.ctx.close_path()
         self.ctx.fill()
+
         if self.areaMode == 'first':
           self.areaMode = 'none' #This ensures only the first line is drawn as area
+
       else:
         self.ctx.stroke()
 

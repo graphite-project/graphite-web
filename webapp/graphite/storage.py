@@ -190,6 +190,9 @@ class Node:
     self.metric_path = str(metric_path)
     self.name = self.metric_path.split('.')[-1]
 
+  def updateContext(self, newContext):
+    raise NotImplementedError()
+
 
 class Branch(Node):
   "Node with children"
@@ -231,6 +234,14 @@ class WhisperFile(Leaf):
 
     self.cached_context_data = context_data
     return context_data
+
+  def updateContext(self, newContext):
+    self.context.update(newContext)
+    context_path = self.fs_path[ :-len('.wsp') ] + '.context.pickle'
+
+    fh = open(context_path, 'wb')
+    pickle.dump(self.context, fh)
+    fh.close()
 
 
 class RRDFile(Branch):

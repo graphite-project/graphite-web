@@ -14,6 +14,7 @@
 
 var RENDER_BASE_URL = window.location.protocol + "//" + window.location.host + "/render/?";
 
+
 /* GraphiteComposer encapsulates a set of Ext UI Panels,
  * as well as a ParameterizedURL for the displayed graph. */
 function GraphiteComposer () {
@@ -27,18 +28,23 @@ GraphiteComposer.prototype = {
     /* Add the given target to the graph if it does not exist,
      * otherwise remove it. */
     var targets = this.url.getParamList("target");
+    var record = getTargetRecord(target);
 
-    if (targets.indexOf(target) != -1) {
+    if (targets.indexOf(target) != -1) { // toggle it off
       this.url.removeParam("target", target);
-    } else {
+
+      if (record) {
+        TargetStore.remove(record);
+      }
+
+    } else { // toggle it on
       this.url.addParam("target", target);
+
+      if (!record) {
+        var newRecord = new TargetRecord({value: target});
+        TargetStore.add( [newRecord] );
+      }
     }
-
-    //XXX to call GET /metrics/foo.bar.baz/metadata OR include it in the node info from /browse/
-    //GET /metrics/foo.bar.baz/data?format=pickle,csv,raw,json,xml
-    //POST /metrics/foo.bar.baz/metadata (body is key=value&prop=value&attr=value to update() on the meta dict, empty string == del)
-
-    // Both. Optimize and generalize. There are different use cases for each.
 
     this.updateImage();
   },

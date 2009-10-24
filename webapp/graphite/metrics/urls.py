@@ -14,6 +14,7 @@ You may obtain a copy of the License at
 
 from django.conf.urls.defaults import *
 
-urlpatterns = patterns('graphite.browser.views',
-  ('^find/?$', 'find'),
+urlpatterns = patterns('graphite.metrics.views',
+  ('^find/?$', 'find_view'),
+  ('^context/?$', 'context_view'),
 )
