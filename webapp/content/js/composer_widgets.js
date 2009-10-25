@@ -788,18 +788,6 @@ var GraphDataWindow = {
       var newValue = metricCompleter.getValue();
 
       if (newValue != '') {
-
-        if (TargetStore.findExact('value', newValue) != -1) {
-          Ext.Msg.show({
-            title: "Target Already Exists",
-            msg: "This target expression is already present in your graph.",
-            icon: Ext.Msg.ERROR,
-            buttons: Ext.Msg.OK
-          });
-
-          return;
-        }
-
         Composer.url.removeParam('target', record.get('value'));
         Composer.url.addParam('target', newValue);
         Composer.updateImage();
