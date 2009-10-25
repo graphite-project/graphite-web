@@ -471,7 +471,7 @@ var GraphDataWindow = {
                   {text: 'Set Legend Name', handler: this.applyFuncToEachWithInput('alias', 'Enter a legend label for this graph target')},
                   {text: 'Aggregate By Sum', handler: this.applyFuncToEach('cumulative')},
                   {text: 'Draw non-zero As Infinite', handler: this.applyFuncToEach('drawAsInfinite')},
-                  {text: 'Line Width', handler: this.applyFuncToEach('lineWidth', 'Please enter a line width for this graph target')},
+                  {text: 'Line Width', handler: this.applyFuncToEachWithInput('lineWidth', 'Please enter a line width for this graph target')},
                   {text: 'Dashed Line', handler: this.applyFuncToEach('dashed')},
                   {text: 'Keep Last Value', handler: this.applyFuncToEach('keepLastValue')}
                 ]
