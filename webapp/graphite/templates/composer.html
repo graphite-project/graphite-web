@@ -70,6 +70,20 @@ limitations under the License. -->
     <script type="text/javascript" src="/content/js/composer.js"></script>
     <script type="text/javascript" src="/content/js/completer.js"/></script>
 
+    <style type="text/css">
+    /* Hack to fix this bug http://extjs.net/forum/showthread.php?s=a570aba1bf2fc67a2287684c5d91c662&t=74230 */
+    .x-list-body {
+      height: 100%;
+      position: absolute;
+    }
+
+    /* More readable style for search results */
+    #searchResults a {
+      font-size: 8pt;
+      font-family: monospace;
+    }
+    </style>
+
     <script type="text/javascript">
       Ext.BLANK_IMAGE_URL = '/content/js/ext/resources/images/default/s.gif';
 
