@@ -188,7 +188,7 @@ function handleSearchResponse (response, options) {
   }
   var resultList = Ext.getDom('searchResults');
   var results = text.split(',');
-  results.each(function (item) {
+  Ext.each(results, function (item) {
     var li = document.createElement('li');
     li.innerHTML = "<a href=\"javascript: Composer.toggleTarget('" + item + "');\">" + item + "</a>";
     resultList.appendChild(li);
@@ -202,6 +202,28 @@ function handleSearchFailure (response, options)
 
 //Auto-Completer Tab
 function createCompleterPanel() {
+  var metricCompleter = new MetricCompleter({emptyText: "Start typing a metric name..."});
+
+  metricCompleter.on('specialkey', function (field, e) {
+    if (e.getKey() == e.ENTER) {
+      var target = metricCompleter.getValue();
+      Composer.toggleTarget(target);
+    }
+  });
+
+  return new Ext.Panel({
+    title: "Auto-Completer",
+    layout: {
+      type: 'vbox',
+      align: 'stretch'
+    },
+    items: [
+      metricCompleter,
+      new Ext.form.Label({html: '<a id="completerHelpLink" href="/content/html/completerHelp.html", target="_new"> Help </a>'})
+    ]
+  });
+
+  /*
   return new Ext.form.FormPanel({
     formId: "completerForm",
     title: "Auto-Completer",
@@ -217,6 +239,7 @@ function createCompleterPanel() {
     ],
     listeners: {render: setupCompleterForm}
   });
+  */
 }
 
 function setupCompleterForm(formEl) {

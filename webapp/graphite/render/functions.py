@@ -235,28 +235,28 @@ def alias(seriesList,newName):
   return seriesList
 
 
-def highestCurrent(n, seriesList):
+def highestCurrent(seriesList, n):
   return sorted( seriesList, key=safeLast )[-n:]
 
-def lowestCurrent(n, seriesList):
+def lowestCurrent(seriesList, n):
   return sorted( seriesList, key=safeLast )[:n]
 
-def currentAbove(n, seriesList):
+def currentAbove(seriesList, n):
   return [ series for series in seriesList if safeLast(series) >= n ]
 
-def currentBelow(n, seriesList):
+def currentBelow(seriesList, n):
   return [ series for series in seriesList if safeLast(series) <= n ]
 
-def highestAverage(n, seriesList):
+def highestAverage(seriesList, n):
   return sorted( seriesList, key=lambda s: safeDiv(safeSum(s),safeLen(s)) )[-n:]
 
-def lowestAverage(n, seriesList):
+def lowestAverage(seriesList, n):
   return sorted( seriesList, key=lambda s: safeDiv(safeSum(s),safeLen(s)) )[:n]
 
-def averageAbove(n, seriesList):
+def averageAbove(seriesList, n):
   return [ series for series in seriesList if safeDiv(safeSum(series),safeLen(series)) >= n ]
 
-def averageBelow(n, seriesList):
+def averageBelow(seriesList, n):
   return [ series for series in seriesList if safeDiv(safeSum(series),safeLen(series)) <= n ]
 
 

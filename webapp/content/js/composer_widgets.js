@@ -56,6 +56,7 @@ function createComposerWindow(myComposer) {
     buttonAlign: 'left',
     items: { html: "<img id='image-viewer' src='/render'/>", region: "center" },
     listeners: {
+      activate: keepDataWindowOnTop,
       show: fitImageToWindow,
       resize: fitImageToWindow
     }
@@ -106,6 +107,12 @@ function ifEnter(func) { // Convenience decorator for specialkey listener defini
     if (e.getCharCode() == Ext.EventObject.RETURN) {
       func(widget);
     }
+  }
+}
+
+function keepDataWindowOnTop () {
+  if (GraphDataWindow.window && GraphDataWindow.window.isVisible()) {
+    GraphDataWindow.window.toFront();
   }
 }
 
@@ -374,7 +381,8 @@ var GraphDataWindow = {
       columnSort: false,
       hideHeaders: true,
       width: 385,
-      columns: [ {header: "Graph Targets", width: 400, sortable: true, dataIndex: "value"} ],
+      height: 140,
+      columns: [ {header: "Graph Targets", width: 1.0, dataIndex: "value"} ],
       listeners: {
         contextmenu: this.targetContextMenu,
         afterrender: this.targetChanged,
@@ -389,6 +397,7 @@ var GraphDataWindow = {
 
     var targetSidePanel = new Ext.Panel({
       width: 100,
+      baseCls: 'x-window-mc',
       layout: {
         type: 'vbox',
         align: 'stretch'
@@ -433,7 +442,7 @@ var GraphDataWindow = {
                   {text: 'Scale', handler: this.applyFuncToEachWithInput('scale', 'Please enter a scale factor')},
                   {text: 'Offset', handler: this.applyFuncToEachWithInput('offset', 'Please enter the value to offset Y-values by')},
                   {text: 'Derivative', handler: this.applyFuncToEach('derivative')},
-                  {text: 'Integral', handler: this.applyFuncToEach('integeral')},
+                  {text: 'Integral', handler: this.applyFuncToEach('integral')},
                   {text: 'Non-negative Derivative', handler: this.applyFuncToEach('nonNegativeDerivative')}
                 ]
               }, {
@@ -462,7 +471,7 @@ var GraphDataWindow = {
                   {text: 'Set Legend Name', handler: this.applyFuncToEachWithInput('alias', 'Enter a legend label for this graph target')},
                   {text: 'Aggregate By Sum', handler: this.applyFuncToEach('cumulative')},
                   {text: 'Draw non-zero As Infinite', handler: this.applyFuncToEach('drawAsInfinite')},
-                  {text: 'Line Width', handler: this.applyFuncToEach('lineWidth', 'Please enter a line width for this graph target')},
+                  {text: 'Line Width', handler: this.applyFuncToEachWithInput('lineWidth', 'Please enter a line width for this graph target')},
                   {text: 'Dashed Line', handler: this.applyFuncToEach('dashed')},
                   {text: 'Keep Last Value', handler: this.applyFuncToEach('keepLastValue')}
                 ]
@@ -489,7 +498,7 @@ var GraphDataWindow = {
 
     this.window = new Ext.Window({
       title: "Graph Data",
-      height: 300,
+      height: 200,
       width: 500,
       closeAction: 'hide',
       layout: 'border',
@@ -779,18 +788,6 @@ var GraphDataWindow = {
       var newValue = metricCompleter.getValue();
 
       if (newValue != '') {
-
-        if (TargetStore.findExact('value', newValue) != -1) {
-          Ext.Msg.show({
-            title: "Target Already Exists",
-            msg: "This target expression is already present in your graph.",
-            icon: Ext.Msg.ERROR,
-            buttons: Ext.Msg.OK
-          });
-
-          return;
-        }
-
         Composer.url.removeParam('target', record.get('value'));
         Composer.url.addParam('target', newValue);
         Composer.updateImage();
