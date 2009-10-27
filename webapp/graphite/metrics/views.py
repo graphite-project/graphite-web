@@ -75,6 +75,11 @@ def find_view(request):
   except:
     return HttpResponseBadRequest(content="Missing required parameter 'query'", mimetype="text/plain")
 
+  if '.' in query:
+    base_path = query.rsplit('.', 1)[0] + '.'
+  else:
+    base_path = ''
+
   if local_only:
     store = settings.LOCAL_STORE
   else:
@@ -86,7 +91,7 @@ def find_view(request):
   matches.sort(key=lambda node: node.name)
 
   if format == 'treejson':
-    content = tree_json(matches, wildcards=profile.advancedUI, contexts=contexts)
+    content = tree_json(matches, base_path, wildcards=profile.advancedUI, contexts=contexts)
     response = HttpResponse(content, mimetype='text/json')
 
   elif format == 'pickle':
@@ -108,7 +113,7 @@ def find_view(request):
   return response
 
 
-def tree_json(nodes, wildcards=False, contexts=False):
+def tree_json(nodes, base_path, wildcards=False, contexts=False):
   results = []
 
   branchNode = {
@@ -122,15 +127,9 @@ def tree_json(nodes, wildcards=False, contexts=False):
     'leaf': 1,
   }
 
-  if nodes and '.' in nodes[0].metric_path: # check for a '.' to see if these are top-level nodes or not
-    path_prefix = nodes[0].metric_path.rsplit('.', 1)[0] + '.'
-
-  else:
-    path_prefix = ''
-
   #Add a wildcard node if appropriate
   if len(nodes) > 2 and wildcards:
-    wildcardNode = {'text' : '*', 'id' : path_prefix + '*'}
+    wildcardNode = {'text' : '*', 'id' : base_path + '*'}
 
     if any(not n.isLeaf() for n in nodes):
       wildcardNode.update(branchNode)
@@ -149,7 +148,7 @@ def tree_json(nodes, wildcards=False, contexts=False):
     found.add(node.name)
     resultNode = {
       'text' : str(node.name),
-      'id' : path_prefix + str(node.name),
+      'id' : base_path + str(node.name),
       'context' : node.context if contexts else {},
     }
 
