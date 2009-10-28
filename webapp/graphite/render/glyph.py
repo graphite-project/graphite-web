@@ -60,8 +60,8 @@ xAxisConfigs = (
   dict(seconds=5,     minorGridUnit=MIN,  minorGridStep=2,  majorGridUnit=MIN,  majorGridStep=10, labelUnit=MIN,  labelStep=10, format="%H:%M"),
   dict(seconds=10,    minorGridUnit=MIN,  minorGridStep=5,  majorGridUnit=MIN,  majorGridStep=20, labelUnit=MIN,  labelStep=20, format="%H:%M"),
   dict(seconds=30,    minorGridUnit=MIN,  minorGridStep=10, majorGridUnit=HOUR, majorGridStep=1,  labelUnit=HOUR, labelStep=1,  format="%H:%M"),
-  dict(seconds=60,    minorGridUnit=MIN,  minorGridStep=30, majorGridUnit=HOUR, majorGridStep=2,  labelUnit=HOUR, labelStep=2,  format="%H:%M"),
-  dict(seconds=180,   minorGridUnit=HOUR, minorGridStep=1,  majorGridUnit=HOUR, majorGridStep=6,  labelUnit=HOUR, labelStep=6,  format="%H:%M"),
+  dict(seconds=60,    minorGridUnit=MIN,  minorGridStep=30, majorGridUnit=HOUR, majorGridStep=2,  labelUnit=HOUR, labelStep=2,  format="%H:%M", maxInterval=2*DAY),
+  dict(seconds=180,   minorGridUnit=HOUR, minorGridStep=1,  majorGridUnit=HOUR, majorGridStep=6,  labelUnit=HOUR, labelStep=12,  format="%a %l%P"),
   dict(seconds=600,   minorGridUnit=HOUR, minorGridStep=6,  majorGridUnit=DAY,  majorGridStep=1,  labelUnit=DAY,  labelStep=1,  format="%a"),
   dict(seconds=1200,  minorGridUnit=HOUR, minorGridStep=6,  majorGridUnit=DAY,  majorGridStep=1,  labelUnit=DAY,  labelStep=1,  format="%d"),
   dict(seconds=1800,  minorGridUnit=HOUR, minorGridStep=12, majorGridUnit=DAY,  majorGridStep=1,  labelUnit=DAY,  labelStep=2,  format="%a %d"),
@@ -584,7 +584,7 @@ class LineGraph(Graph):
     secondsPerPixel = float(timeRange) / float(self.graphWidth)
     self.xScaleFactor = float(self.graphWidth) / float(timeRange) #pixels per second
 
-    potential = [c for c in xAxisConfigs if c['seconds'] <= secondsPerPixel]
+    potential = [c for c in xAxisConfigs if c['seconds'] <= secondsPerPixel and c.get('maxInterval',timeRange+1) > timeRange]
     if potential:
       self.xConf = potential[-1]
     else:
