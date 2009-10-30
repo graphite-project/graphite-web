@@ -20,13 +20,8 @@ import optparse
 import atexit
 from os.path import basename, dirname, exists, join, isdir
 
-program = basename(sys.argv[0])
-major, minor = sys.version_info[:2]
 
-if major != 2 or minor < 6:
-  print "%s requires python 2.6 or greater and is not compatible with the python 3.x series yet." % program
-  raise SystemExit(1)
-
+program = basename( sys.argv[0] )
 
 # Initialize twisted
 try:
