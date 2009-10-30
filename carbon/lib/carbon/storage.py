@@ -124,4 +124,4 @@ def loadStorageSchemas():
 
 
 defaultArchive = Archive(60, 60 * 24 * 7) #default retention for unclassified data (7 days of minutely data)
-defaultSchema = PatternSchema(name='default', '.*', archives=[defaultArchive])
+defaultSchema = PatternSchema(name='default', pattern='.*', archives=[defaultArchive])

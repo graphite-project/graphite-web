@@ -20,6 +20,8 @@ import atexit
 from os.path import basename, dirname, exists, join, isdir
 
 
+program = basename( sys.argv[0] )
+
 # Initialize twisted
 try:
   from twisted.internet import epollreactor
