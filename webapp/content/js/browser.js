@@ -115,7 +115,7 @@ function createTreePanel(){
     }
 
     if (node.attributes.graphUrl) {
-      var url = decodeURIComponent(node.attributes.graphUrl).gsub(/#/,'%23');
+      var url = decodeURIComponent(node.attributes.graphUrl).replace(/#/,'%23');
       Composer.loadMyGraph(node.id, url);
       return;
     }
