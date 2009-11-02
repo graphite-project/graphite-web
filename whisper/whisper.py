@@ -440,6 +440,11 @@ untilTime is also an epoch time, but defaults to now
     untilTime = now
   fromTime = int(fromTime)
   untilTime = int(untilTime)
+
+  oldestTime = now - header['maxRetention']
+  if fromTime < oldestTime:
+    fromTime = oldestTime
+
   assert fromTime < untilTime, "Invalid time interval"
   if untilTime > now:
     untilTime = now
