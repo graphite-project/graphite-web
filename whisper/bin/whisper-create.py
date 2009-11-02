@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import sys, os
-from graphite import whisper
+import whisper
 from optparse import OptionParser
 
 option_parser = OptionParser(usage='''%prog path secondsPerPoint:pointsToStore [secondsPerPoint:pointsToStore]* ''')

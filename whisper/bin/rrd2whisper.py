@@ -2,7 +2,7 @@
 
 import sys, os, time
 import rrdtool
-from graphite import whisper
+import whisper
 from optparse import OptionParser
 
 now = int( time.time() )

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import sys, os, time, traceback
-from graphite import whisper
+import whisper
 from optparse import OptionParser
 
 now = int( time.time() )
