@@ -33,10 +33,20 @@ def getFilesystemPath(metric):
 
 
 class Schema:
-  matches = property(lambda self, metric: bool( self.test(metric) ))
-
   def test(self, metric):
     raise NotImplementedError()
+
+  def matches(self, metric):
+    return bool( self.test(metric) )
+
+
+class DefaultSchema(Schema):
+  def __init__(self, name, archives):
+    self.name = name
+    self.archives = archives
+
+  def test(self, metric):
+    return True
 
 
 class PatternSchema(Schema):
@@ -102,13 +112,17 @@ def loadStorageSchemas():
 
   for section in config.sections():
     options = dict( config.items(section) )
+    matchAll = options.get('match-all')
     pattern = options.get('pattern')
     listName = options.get('list')
 
     retentions = options['retentions'].split(',')
     archives = [ Archive.fromString(s) for s in retentions ]
 
-    if pattern:
+    if matchAll:
+      mySchema = DefaultSchema(section, archives)
+
+    elif pattern:
       mySchema = PatternSchema(section, pattern, archives)
 
     elif listName:
@@ -124,4 +138,4 @@ def loadStorageSchemas():
 
 
 defaultArchive = Archive(60, 60 * 24 * 7) #default retention for unclassified data (7 days of minutely data)
-defaultSchema = PatternSchema(name='default', pattern='.*', archives=[defaultArchive])
+defaultSchema = DefaultSchema('default', [defaultArchive])
