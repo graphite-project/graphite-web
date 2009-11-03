@@ -63,7 +63,7 @@ class MetricPickleReceiver(LoggingMixin, Int32StringReceiver):
 class CacheQueryHandler(LoggingMixin, Int32StringReceiver):
   def stringReceived(self, metric):
     values = MetricCache.get(metric, [])
-    log.msg('cache query for %s returned %d values' % (metric, len(values)))
+    log.query('cache query for %s returned %d values' % (metric, len(values)))
     response = pickle.dumps(values, protocol=-1)
     self.sendString(response)
     increment('cacheQueries')
