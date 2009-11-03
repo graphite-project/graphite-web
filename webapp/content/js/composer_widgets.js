@@ -482,7 +482,7 @@ var GraphDataWindow = {
           xtype: 'button',
           text: 'Undo Function',
           handler: this.removeOuterCall.createDelegate(this),
-          id: 'undoFunctionButton',
+          id: 'undoFunctionButton'
         }
       ]
     });
