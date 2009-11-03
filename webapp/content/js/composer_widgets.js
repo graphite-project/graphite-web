@@ -482,7 +482,7 @@ var GraphDataWindow = {
           xtype: 'button',
           text: 'Undo Function',
           handler: this.removeOuterCall.createDelegate(this),
-          id: 'undoFunctionButton',
+          id: 'undoFunctionButton'
         }
       ]
     });
@@ -935,15 +935,17 @@ function createOptionsMenu() {
 
 function createFontFacesMenu() {
   var faces = ["Times", "Courier", "Sans", "Helvetica"];
-  var menuItems = faces.map(
+  var menuItems = [];
+
+  Ext.each(faces,
     function (face) {
-      return {
+      menuItems.push({
         text: face,
         handler: function (menuItem, e) {
                    Composer.url.setParam("fontName", face);
                    Composer.updateImage();
                  }
-      };
+      });
     }
   );
   return new Ext.menu.Menu({items: menuItems});

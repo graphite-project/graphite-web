@@ -26,6 +26,10 @@ from carbon.storage import getFilesystemPath, loadStorageSchemas
 from carbon.conf import settings
 from carbon.instrumentation import increment, append
 from carbon import log
+try:
+  import cPickle as pickle
+except ImportError:
+  import pickle
 
 
 def optimalWriteOrder():
@@ -117,7 +121,7 @@ def createMetaFile(metric, schema, path):
   }
 
   fh = open(path, 'wb')
-  dumps(metadata, fh, protocol=-1)
+  pickle.dump(metadata, fh, protocol=-1)
   fh.close()
 
 
