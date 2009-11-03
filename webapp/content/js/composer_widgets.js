@@ -935,7 +935,7 @@ function createOptionsMenu() {
 
 function createFontFacesMenu() {
   var faces = ["Times", "Courier", "Sans", "Helvetica"];
-  var menuItems = faces.map(
+  var menuItems = Ext.map(faces,
     function (face) {
       return {
         text: face,
