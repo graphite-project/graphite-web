@@ -30,16 +30,9 @@ class Store:
   def get(self, metric_path):
     for directory in self.directories:
       relative_fs_path = metric_path.replace('.', '/') + '.wsp'
-      absolute_fs_path = join(directory, relative_fs_path)
+      absolute_fs_path = real_path( join(directory, relative_fs_path) )
 
       if exists(absolute_fs_path):
-        symlink_count = 0
-
-        while islink(absolute_fs_path) and symlink_count < 10:
-          absolute_fs_path = realpath(absolute_fs_path)
-          metric_path = fs_to_metric(absolute_fs_path)
-          symlink_count += 1
-
         return WhisperFile(absolute_fs_path, metric_path)
 
 
