@@ -117,7 +117,7 @@ def writeCachedDataPoints():
 
 def createMetaFile(metric, schema, path):
   metadata = {
-    'interval' : min( [a.secondsPerPoint for a in archives] ),
+    'interval' : min( [a.secondsPerPoint for a in schema.archives] ),
   }
 
   fh = open(path, 'wb')
