@@ -96,9 +96,19 @@ except:
 try:
   import ldap
 except:
-  print "[wARNING]"
+  print "[WARNING]"
   print "Unable to import the 'ldap' module, do you have python-ldap installed for python %s?" % py_version
   print "Without python-ldap, you will not be able to use LDAP authentication in the graphite webapp.\n"
+  warning += 1
+
+
+# Test for Twisted python
+try:
+  import twisted
+except:
+  print "[WARNING]"
+  print "Unable to import the 'twisted' package, do you have Twisted installed for python %s?" % py_version
+  print "Without Twisted, you cannot run carbon on this server."
   warning += 1
 
 
