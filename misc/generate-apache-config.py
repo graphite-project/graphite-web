@@ -4,7 +4,7 @@ import sys, os
 from optparse import OptionParser
 
 option_parser = OptionParser()
-option_parser.add_option('--install-root',default='/usr/local/graphite/',
+option_parser.add_option('--install-root',default='/opt/graphite/',
   help="The base directory of the graphite installation")
 option_parser.add_option('--libs',default=None,
   help="The directory where the graphite python package is installed (default is system site-packages)")
