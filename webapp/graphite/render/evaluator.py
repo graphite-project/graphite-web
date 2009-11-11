@@ -34,7 +34,7 @@ def evaluateTokens(tokens, timeInterval):
 
     for dbFile in settings.STORE.find(pathExpr):
       log.metric_access(dbFile.metric_path)
-      getCacheResults = CarbonLink.sendRequest(dbFile.metric_path)
+      getCacheResults = CarbonLink.sendRequest(dbFile.real_metric)
       dbResults = dbFile.fetch( timestamp(startTime), timestamp(endTime) )
       results = mergeResults(dbResults, getCacheResults())
 
