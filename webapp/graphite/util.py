@@ -21,7 +21,7 @@ from graphite.logger import log
 def getProfile(request,allowDefault=True):
   if request.user.is_authenticated():
     try:
-      return request.user.profile
+      return Profile.objects.get(user=request.user)
     except ObjectDoesNotExist:
       profile = Profile(user=request.user)
       profile.save()

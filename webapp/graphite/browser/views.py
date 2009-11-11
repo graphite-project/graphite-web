@@ -85,15 +85,53 @@ def myGraphLookup(request):
     'expandable' : 0,
     'leaf' : 1,
   }
-  try:
-    for graph in profile.mygraph_set.all().order_by('name'):
-      node = {
-        'text' : str(graph.name),
-        'id' : str(graph.name),
-        'graphUrl' : str(graph.url)
-      }
+  branchNode = {
+    'allowChildren' : 1,
+    'expandable' : 1,
+    'leaf' : 0,
+  }
 
-      node.update(leafNode)
+  try:
+    path = str( request.GET['path'] )
+
+    if path:
+      if path.endswith('.'):
+        userpath_prefix = path
+
+      else:
+        userpath_prefix = path + '.'
+
+      matches = [ graph for graph in profile.mygraph_set.all().order_by('name') if graph.name.startswith(userpath_prefix) ]
+
+    log.info( "myGraphLookup: username=%s, path=%s, userpath_prefix=%s, %ld graph to process" % (profile.user.username, path, userpath_prefix, len(matches)) )
+    branch_inserted = set()
+    leaf_inserted = set()
+
+    for graph in matches: #Now let's add the matching graph
+      isBranch = False
+      dotPos = graph.name.find( '.', len(userpath_prefix) )
+
+      if dotPos >= 0:
+        isBranch = True
+        name = graph.name[ len(userpath_prefix) : dotPos ]
+        if name in branch_inserted: continue
+        branch_inserted.add(name)
+
+      else:
+         name = graph.name[ len(userpath_prefix): ]
+         if name in leaf_inserted: continue
+         leaf_inserted.add(name)
+
+      node = {'text' : str(name) }
+
+      if isBranch:
+        node.update( { 'id' : str(userpath_prefix + name + '.') } )
+        node.update(branchNode)
+
+      else:
+        node.update( { 'id' : str(userpath_prefix + name), 'graphUrl' : str(graph.url) } )
+        node.update(leafNode)
+
       nodes.append(node)
 
   except:
