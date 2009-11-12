@@ -30,3 +30,5 @@ urlpatterns = patterns('',
   ('^content/(?P<path>.*)$', 'django.views.static.serve', {'document_root' : settings.CONTENT_DIR}),
   ('', include('graphite.browser.urls')),
 )
+
+handler500 = 'graphite.views.server_error'

@@ -10,7 +10,7 @@ http://extjs.com/products/floss-exception.php
 -------------------------------------------------------------------------------
 This will check for graphite's runtime dependencies and let
 you know which you are missing. Download and install these modules and re-run
-install.py until it detects all the required modules.
+check-dependencies.py until it detects all the required modules.
 
 Graphite requires:
  python2.4 or greater
