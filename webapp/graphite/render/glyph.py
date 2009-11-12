@@ -325,7 +325,7 @@ class LineGraph(Graph):
       self.drawVTitle( str(params['vtitle']) )
     self.setFont()
 
-    if not params.get('hideLegend',False):
+    if not params.get('hideLegend', len(self.data) > 10):
       elements = [ (series.name,series.color) for series in self.data ]
       self.drawLegend(elements)
 
