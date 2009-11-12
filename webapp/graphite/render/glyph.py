@@ -13,7 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 import os, cairo, math, itertools
-from time import strftime, localtime, timezone, altzone, daylight
+from time import strftime, localtime, timezone, altzone, daylight, tzset, mktime
+from calendar import timegm
 from urllib import unquote_plus
 from ConfigParser import SafeConfigParser
 from django.conf import settings
@@ -85,6 +86,7 @@ class Graph:
     self.width = int( params.get('width',200) )
     self.height = int( params.get('height',200) )
     self.margin = int( params.get('margin',10) )
+    self.userTimeZoneOffset = tz_difference( params.get('tz','') )
 
     self.area = {
       'xmin' : self.margin,
@@ -277,7 +279,7 @@ class LineGraph(Graph):
                  ('title','vtitle','lineMode','lineWidth','hideLegend', \
                   'hideAxes','minXStep','hideGrid','majorGridLineColor', \
                   'minorGridLineColor','thickness','min','max', \
-                  'graphOnly','yMin','yMax','yStep','areaMode','drawNullAsZero')
+                  'graphOnly','yMin','yMax','yStep','areaMode','drawNullAsZero','tz')
   validLineModes = ('staircase','slope')
   validAreaModes = ('none','first','all','stacked')
 
@@ -290,6 +292,7 @@ class LineGraph(Graph):
       params['title'] = ''
       params['vtitle'] = ''
       params['margin'] = 0
+      params['tz'] = ''
       self.margin = 0
       self.area['xmin'] = 0
       self.area['xmax'] = self.width
@@ -608,10 +611,10 @@ class LineGraph(Graph):
       y = self.area['ymax'] - ((value - self.yBottom) * self.yScaleFactor)
       self.drawText(label,x,y,align='right',valign='middle')
     t = self.xLabelStep * math.ceil( float(self.startTime) / self.xLabelStep )
-    
+
     #Draw the X-labels
     while t < self.endTime:
-      label = strftime(self.xConf['format'], localtime(t + self.utcAdjustment))
+      label = strftime(self.xConf['format'], localtime(t + self.utcAdjustment + self.userTimeZoneOffset ))
       x = self.area['xmin'] + ((t - self.startTime) * self.xScaleFactor)
       y = self.area['ymax'] + self.getExtents()['maxAscent']
       self.drawText(label,x,y,align='center',valign='top')
@@ -791,3 +794,15 @@ def reverse_sort(args):
   aux_list = [arg for arg in args]
   aux_list.reverse()
   return aux_list
+ 
+def tz_difference(tz):
+  os.environ['TZ'] = tz
+  tzset()
+  captured_time = localtime()
+  tz_delta = int(timegm(captured_time) - mktime(captured_time))
+
+  try:
+    os.environ['TZ'] = local_settings.TIME_ZONE
+  except:
+    os.environ['TZ'] = settings.TIME_ZONE
+  return tz_delta
