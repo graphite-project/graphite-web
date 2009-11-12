@@ -131,6 +131,7 @@ function createSearchPanel() {
   return new Ext.form.FormPanel({
     formId: 'searchForm',
     title: 'Search',
+    disabled: (!GraphiteConfig.searchEnabled),
     width: 200,
     items: [
       new Ext.form.TextField({

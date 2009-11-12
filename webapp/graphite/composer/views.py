@@ -12,6 +12,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
+import os
 from smtplib import SMTP
 from socket import gethostname
 from email.MIMEMultipart import MIMEMultipart
@@ -38,8 +39,9 @@ def composer(request):
     'user' : request.user,
     'profile' : profile,
     'showMyGraphs' : int( profile.user.username != 'default' ),
+    'searchEnabled' : int( os.access(settings.INDEX_FILE, os.R_OK) ),
     'debug' : settings.DEBUG,
-    'jsdebug' : settings.DEBUG
+    'jsdebug' : settings.DEBUG,
   }
   return render_to_response("composer.html",context)
 
