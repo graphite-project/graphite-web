@@ -31,11 +31,6 @@ class Store:
     for directory in self.directories:
       relative_fs_path = metric_path.replace('.', '/') + '.wsp'
       absolute_fs_path = join(directory, relative_fs_path)
-      real_fs_path = realpath(absolute_fs_path)
-
-      if absolute_fs_path != real_path:
-        absolute_fs_path = real_path
-        metric_path = real_path[ len(directory):-len('.wsp') ].lstrip('/').replace('/','.')
 
       if exists(absolute_fs_path):
         return WhisperFile(absolute_fs_path, metric_path)
@@ -168,7 +163,7 @@ def _find(current_dir, patterns):
       datasource_pattern = patterns[0]
 
       for rrd_file in rrd_files:
-        absolute_path = realpath( join(current_dir, rrd_file) )
+        absolute_path = join(current_dir, rrd_file)
         yield absolute_path + DATASOURCE_DELIMETER + datasource_pattern
 
   if patterns: #we've still got more directories to traverse
@@ -183,7 +178,7 @@ def _find(current_dir, patterns):
     matching_files = fnmatch.filter(files, pattern + '.*')
 
     for basename in matching_subdirs + matching_files:
-      yield realpath( join(current_dir, basename) )
+      yield join(current_dir, basename)
 
 
 # Node classes
@@ -193,6 +188,7 @@ class Node:
   def __init__(self, fs_path, metric_path):
     self.fs_path = str(fs_path)
     self.metric_path = str(metric_path)
+    self.real_metric = str(metric_path)
     self.name = self.metric_path.split('.')[-1]
 
   def updateContext(self, newContext):
@@ -218,6 +214,16 @@ class Leaf(Node):
 # Database File classes
 class WhisperFile(Leaf):
   cached_context_data = None
+
+  def __init__(self, *args, **kwargs):
+    Leaf.__init__(self, *args, **kwargs)
+    real_fs_path = realpath(self.fs_path)
+
+    if real_fs_path != self.fs_path:
+      relative_fs_path = self.metric_path.replace('.', '/') + '.wsp'
+      base_fs_path = self.fs_path[ :-len(relative_fs_path) ]
+      relative_real_fs_path = real_fs_path[ len(base_fs_path): ]
+      self.real_metric = relative_real_fs_path[ :-len('.wsp') ].replace('/', '.')
 
   def fetch(self, startTime, endTime):
     (timeInfo,values) = whisper.fetch(self.fs_path, startTime, endTime)

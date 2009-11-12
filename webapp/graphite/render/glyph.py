@@ -508,7 +508,7 @@ class LineGraph(Graph):
       yMinValue = safeMin( [safeMin(series) for series in self.data] )
 
     if self.areaMode == 'stacked':
-      yMaxValue = sum( [safeMax(series) for series in self.data] )
+      yMaxValue = safeSum( [safeMax(series) for series in self.data] )
     else:
       yMaxValue = safeMax( [safeMax(series) for series in self.data] )
 
@@ -777,6 +777,9 @@ def safeMax(args):
   args = [arg for arg in args if arg is not None]
   if args:
     return max(args)
+
+def safeSum(values):
+  return sum([v for v in values if v is not None])
 
 def any(args):
   for arg in args:
