@@ -149,8 +149,12 @@ def tree_json(nodes, base_path, wildcards=False, contexts=False):
     resultNode = {
       'text' : str(node.name),
       'id' : base_path + str(node.name),
-      'context' : node.context if contexts else {},
     }
+
+    if contexts:
+      resultNode['context'] = node.context
+    else:
+      resultNode['context'] = {}
 
     if node.isLeaf():
       resultNode.update(leafNode)
