@@ -154,10 +154,12 @@ def _find(current_dir, patterns):
 
   subdirs = [e for e in entries if isdir( join(current_dir,e) )]
   matching_subdirs = fnmatch.filter(subdirs, pattern)
+  matching_subdirs.sort()
 
   if len(patterns) == 1 and rrdtool: #the last pattern may apply to RRD data sources
     files = [e for e in entries if isfile( join(current_dir,e) )]
     rrd_files = fnmatch.filter(files, pattern + ".rrd")
+    rrd_files.sort()
 
     if rrd_files: #let's assume it does
       datasource_pattern = patterns[0]
@@ -176,6 +178,7 @@ def _find(current_dir, patterns):
   else: #we've got the last pattern
     files = [e for e in entries if isfile( join(current_dir,e) )]
     matching_files = fnmatch.filter(files, pattern + '.*')
+    matching_files.sort()
 
     for basename in matching_subdirs + matching_files:
       yield join(current_dir, basename)
