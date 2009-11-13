@@ -107,7 +107,7 @@ def is_local_interface(host):
 
 
 def is_pattern(s):
-  return '*' in s or '?' in s
+  return '*' in s or '?' in s or '[' in s
 
 
 def find(root_dir, pattern):
