@@ -66,7 +66,10 @@ def writeCachedDataPoints():
   lastSecond = 0
 
   while MetricCache:
+    dataWritten = False
+
     for (metric, datapoints, dbFilePath, dbFileExists) in optimalWriteOrder():
+      dataWritten = True
 
       if not dbFileExists:
         for schema in schemas:
@@ -111,6 +114,12 @@ def writeCachedDataPoints():
           updates += 1
           if updates >= settings.MAX_UPDATES_PER_SECOND:
             time.sleep( int(t2 + 1) - t2 )
+
+    # Avoid churning CPU when only new metrics are in the cache
+    if not dataWritten:
+      delay = settings.CREATION_DELAY - (time.time() - lastCreate)
+      if delay > 0:
+        time.sleep(delay)
 
 
 def createMetaFile(metric, schema, path):
