@@ -6,15 +6,15 @@ LOCAL_DATA_DIR = /opt/graphite/storage/whisper/
 # This user must have write access to the local data directory
 USER = 
 
-#   Limits the number of new metrics the writer will create whisper files
-# for on each iteration of the cache. This factor is multiplied by
-# the total cache size to determine the limit on each iteration.
-# The default (0.1) means at most 10% of the cache can be new metrics
-# on each iteration. Anything beyond 10% will be ignored and handled
-# on subsequent iterations. Note that this *only* applies to new metrics.
-#   This feature is intended to mitigate "file creation storms"
-# that occur when a flood of new metrics are received.
-METRIC_CREATION_RATE = 0.1
+# Require at least this many seconds to pass after creating a new database file
+# before creating another. This is intended to help avoid the performance impact
+# caused by a flood of new metrics.
+CREATION_DELAY = 1.0
+
+# Limit the size of the cache to avoid swapping or becoming CPU bound.
+# Sorts and serving cache queries gets more expensive as the cache grows.
+# Use the value "inf" (infinity) for an unlimited cache size.
+MAX_CACHE_SIZE = inf
 
 # Limits the number of whisper update_many() calls per second, which effectively
 # means the number of write requests sent to the disk. This is intended to

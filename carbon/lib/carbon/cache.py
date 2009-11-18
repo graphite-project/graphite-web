@@ -12,6 +12,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
+from carbon.conf import settings
+from carbon import log
+
 
 class MetricCache(dict):
   def __init__(self):
@@ -21,6 +24,9 @@ class MetricCache(dict):
     raise TypeError("Use store() method instead!")
 
   def store(self, metric, datapoint):
+    if self.size >= settings.MAX_CACHE_SIZE:
+      return
+
     try: # This is a hackish but very efficient technique for concurrent dict access without locking (the GIL does it for me)
       datapoints = dict.pop(self, metric)
     except KeyError:
