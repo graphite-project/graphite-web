@@ -114,7 +114,10 @@ class HTTPConnectionWithTimeout(httplib.HTTPConnection):
       af, socktype, proto, canonname, sa = res
       try:
         self.sock = socket.socket(af, socktype, proto)
-        self.sock.settimeout(self.timeout)
+        try:
+          self.sock.settimeout( float(self.timeout) ) # default self.timeout is an object() in 2.6
+        except:
+          pass
         self.sock.connect(sa)
         self.sock.settimeout(None)
       except socket.error, msg:
