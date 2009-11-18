@@ -101,7 +101,10 @@ def myGraphLookup(request):
       else:
         userpath_prefix = path + '.'
 
-      matches = [ graph for graph in profile.mygraph_set.all().order_by('name') if graph.name.startswith(userpath_prefix) ]
+    else:
+      userpath_prefix = ""
+
+    matches = [ graph for graph in profile.mygraph_set.all().order_by('name') if graph.name.startswith(userpath_prefix) ]
 
     log.info( "myGraphLookup: username=%s, path=%s, userpath_prefix=%s, %ld graph to process" % (profile.user.username, path, userpath_prefix, len(matches)) )
     branch_inserted = set()
@@ -146,7 +149,7 @@ def myGraphLookup(request):
 
 def userGraphLookup(request):
   "View for User Graphs navigation"
-  username = request.GET['query']
+  username = request.GET['path']
   nodes = []
 
   branchNode = {

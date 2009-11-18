@@ -44,6 +44,7 @@ function createTreePanel(){
     loader.baseParams.query = (node_id == "") ? "*" : (node_id + ".*");
     loader.baseParams.format = 'treejson';
     loader.baseParams.contexts = '1';
+    loader.baseParams.path = node_id;
   }
 
   var graphiteNode = new Ext.tree.AsyncTreeNode({
