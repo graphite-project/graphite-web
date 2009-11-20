@@ -307,7 +307,7 @@ class LineGraph(Graph):
     self.params = params
 
     #Now to setup our LineGraph specific options
-    self.lineWidth = float( params.get('lineWidth', 2.0) )
+    self.lineWidth = float( params.get('lineWidth', 1.2) )
     self.lineMode = params.get('lineMode','slope').lower()
     assert self.lineMode in self.validLineModes, "Invalid line mode!"
     self.areaMode = params.get('areaMode','none').lower()
@@ -402,6 +402,12 @@ class LineGraph(Graph):
 
       self.data = reverse_sort(self.data)
 
+    # setup the clip region
+    self.ctx.set_line_width(1.0)
+    self.ctx.rectangle(self.area['xmin'], self.area['ymin'], self.area['xmax'] - self.area['xmin'], self.area['ymax'] - self.area['ymin'])
+    self.ctx.clip()
+    self.ctx.set_line_width(width)
+
     for series in self.data:
 
       if series.options.has_key('lineWidth'): # adjusts the lineWidth of this line if option is set on the series
@@ -452,6 +458,7 @@ class LineGraph(Graph):
 
             else:
               self.ctx.line_to(x,y)
+
             x += series.xStep
             self.ctx.line_to(x,y)
 
@@ -461,7 +468,6 @@ class LineGraph(Graph):
               if self.areaMode != 'none':
                 self.ctx.move_to(x,self.area['ymax'])
                 self.ctx.line_to(x,y)
-
               else:
                 self.ctx.move_to(x,y)
 
@@ -521,6 +527,12 @@ class LineGraph(Graph):
     if yMaxValue is None:
       yMaxValue = 1.0
 
+    if 'yMax' in self.params:
+      yMaxValue = self.params['yMax']
+
+    if 'yMin' in self.params:
+      yMinvalue = self.params['yMin']
+
     yVariance = yMaxValue - yMinValue
 
     if yVariance == 0:
@@ -550,11 +562,16 @@ class LineGraph(Graph):
     self.yBottom = self.yStep * math.floor( yMinValue / self.yStep ) #start labels at the greatest multiple of yStep <= yMinValue
     self.yTop = self.yStep * math.ceil( yMaxValue / self.yStep ) #Extend the top of our graph to the lowest yStep multiple >= yMaxValue
 
-    if 'yMin' in self.params and self.params['yMin'] < self.yBottom:
-      self.yBottom = self.params['yMin']
-    if 'yMax' in self.params and self.params['yMax'] > self.yTop:
+    if 'yMax' in self.params:
       self.yTop = self.params['yMax']
+    if 'yMin' in self.params:
+      self.yBottom = self.params['yMin']
+
     self.ySpan = self.yTop - self.yBottom
+
+    if self.ySpan == 0:
+      self.yTop += 1
+      self.ySpan += 1
 
     self.graphHeight = self.area['ymax'] - self.area['ymin']
     self.yScaleFactor = float(self.graphHeight) / float(self.ySpan)
