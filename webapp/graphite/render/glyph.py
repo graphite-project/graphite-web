@@ -406,7 +406,7 @@ class LineGraph(Graph):
     self.ctx.set_line_width(1.0)
     self.ctx.rectangle(self.area['xmin'], self.area['ymin'], self.area['xmax'] - self.area['xmin'], self.area['ymax'] - self.area['ymin'])
     self.ctx.clip()
-    self.ctx.set_line_width(width)
+    self.ctx.set_line_width(originalWidth)
 
     for series in self.data:
 
