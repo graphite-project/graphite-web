@@ -32,23 +32,32 @@ except ImportError:
   import pickle
 
 
-lastCreate = 0
+lastCreateInterval = 0
+createCount = 0
 
 def optimalWriteOrder():
   "Generates metrics with the most cached values first and applies a soft rate limit on new metrics"
-  global lastCreate
+  global lastCreateInterval
+  global createCount
   metrics = [ (metric, len(datapoints)) for metric,datapoints in MetricCache.items() ]
+
+  t = time.time()
   metrics.sort(key=lambda item: item[1], reverse=True) # by queue size, descending
+  log.msg("Sorted %d cache queues in %.6f seconds" % (len(metrics), time.time() - t))
 
   for metric, queueSize in metrics:
     dbFilePath = getFilesystemPath(metric)
     dbFileExists = exists(dbFilePath)
 
     if not dbFileExists:
+      createCount += 1
       now = time.time()
-      if now - lastCreate > settings.CREATION_DELAY:
-        lastCreate = now
-      else:
+
+      if now - lastCreateInterval >= 60:
+        lastCreateInterval = now
+        createCount = 1
+
+      elif createCount >= settings.MAX_CREATES_PER_MINUTE:
         continue
 
     try: # metrics can momentarily disappear from the MetricCache due to the implementation of MetricCache.store()

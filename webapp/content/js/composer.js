@@ -55,6 +55,15 @@ GraphiteComposer.prototype = {
   },
 
   loadURL: function (url) {
+    /* Take the targets out of the URL and add them to the store properly */
+    TargetStore.removeAll();
+    var tempUrl = new ParameterizedURL(RENDER_BASE_URL);
+    tempUrl.copyQueryStringFromURL(url);
+    var targets = tempUrl.getParamList('target');
+    tempUrl.removeParam('target');
+    this.url.copyQueryStringFromURL(tempUrl.queryString);
+    Ext.each(targets, this.toggleTarget, this);
+
     /* Apply the query string from the given url to our graph image */
     this.url.copyQueryStringFromURL(url);
     // Fit the image into the window
