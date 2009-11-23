@@ -124,12 +124,6 @@ def writeCachedDataPoints():
           if updates >= settings.MAX_UPDATES_PER_SECOND:
             time.sleep( int(t2 + 1) - t2 )
 
-    # Avoid churning CPU when only new metrics are in the cache
-    if not dataWritten:
-      delay = settings.CREATION_DELAY - (time.time() - lastCreate)
-      if delay > 0:
-        time.sleep(delay)
-
 
 def createMetaFile(metric, schema, path):
   metadata = {
