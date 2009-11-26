@@ -72,7 +72,10 @@ def normalize(seriesLists):
 #the same interval, despite having possibly different steps...
 
 def sumSeries(*seriesLists):
-  (seriesList,start,end,step) = normalize(seriesLists)
+  try:
+    (seriesList,start,end,step) = normalize(seriesLists)
+  except:
+    return []
   #name = "sumSeries(%s)" % ','.join((s.name for s in seriesList))
   name = "sumSeries(%s)" % ','.join(set([s.pathExpression for s in seriesList]))
   values = ( safeSum(row) for row in izip(*seriesList) ) #XXX izip
