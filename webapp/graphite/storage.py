@@ -21,7 +21,7 @@ class Store:
   def __init__(self, directories=[], remote_hosts=[]):
     self.directories = directories
     self.remote_hosts = remote_hosts
-    self.remote_stores = [ RemoteStore(host) for host in remote_hosts ]
+    self.remote_stores = [ RemoteStore(host) for host in remote_hosts if not is_local_interface(host) ]
 
     if not (directories or remote_hosts):
       raise valueError("directories and remote_hosts cannot both be empty")
