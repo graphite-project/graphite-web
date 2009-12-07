@@ -38,7 +38,7 @@ class FindRequest:
     self.connection = HTTPConnectionWithTimeout(self.store.host)
     self.connection.timeout = self.store.timeout
     try:
-      self.connection.request('GET', '/metrics/find/?local=1&query=' + self.query)
+      self.connection.request('GET', '/metrics/find/?local=1&pickle=1&query=' + self.query)
     except:
       self.store.fail()
       if not self.suppressErrors:
