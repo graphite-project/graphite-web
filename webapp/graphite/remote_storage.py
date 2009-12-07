@@ -64,6 +64,8 @@ class FindRequest:
 
 
 class RemoteNode:
+  context = {}
+
   def __init__(self, store, metric_path, isLeaf):
     self.store = store
     self.fs_path = None
