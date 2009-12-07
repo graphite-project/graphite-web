@@ -68,6 +68,7 @@ class RemoteNode:
     self.store = store
     self.fs_path = None
     self.metric_path = metric_path
+    self.real_metric = metric_path
     self.name = metric_path.split('.')[-1]
     self.__isLeaf = isLeaf
 
