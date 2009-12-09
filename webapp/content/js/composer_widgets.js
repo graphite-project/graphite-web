@@ -517,7 +517,15 @@ var GraphDataWindow = {
   targetChanged: function () {
     if (!this.targetList) { return; } // Ignore initial call
 
-    if (this.getSelectedTargets().length == 0) {
+    var selected;
+
+    try {
+      selected = this.getSelectedTargets().length;
+    } catch (e) {
+      return;
+    }
+
+    if (selected == 0) {
       Ext.getCmp('editTargetButton').disable();
       Ext.getCmp('removeTargetButton').disable();
       Ext.getCmp('combineMenu').disable();
@@ -736,10 +744,12 @@ var GraphDataWindow = {
 
   removeTarget: function (item, e) {
     var targets = Composer.url.getParamList('target');
+
     Ext.each(this.getSelectedTargets(), function (target) {
       targets.remove(target);
       removeTarget(target);
     });
+
     Composer.url.setParamList('target', targets);
     Composer.updateImage();
   },
