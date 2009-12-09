@@ -395,30 +395,38 @@ var GraphDataWindow = {
       }
     });
 
-    var targetSidePanel = new Ext.Panel({
+    var targetsPanel = new Ext.Panel({
+      region: 'center',
+      width: 400,
+      height: 300,
+      layout: 'fit',
+      items: this.targetList
+    });
+
+
+    var buttonPanel = new Ext.Panel({
+      region: 'east',
       width: 100,
       baseCls: 'x-window-mc',
       layout: {
         type: 'vbox',
         align: 'stretch'
       },
+      defaults: { xtype: 'button', disabled: true },
       items: [
         {
-          xtype: 'button',
           text: 'Add',
-          handler: this.addTarget.createDelegate(this)
+          handler: this.addTarget.createDelegate(this),
+          disabled: false
         }, {
-          xtype: 'button',
           text: 'Edit',
           id: 'editTargetButton',
           handler: this.editTarget.createDelegate(this)
         }, {
-          xtype: 'button',
           text: 'Remove',
           id: 'removeTargetButton',
           handler: this.removeTarget.createDelegate(this)
         }, {
-          xtype: 'button',
           text: 'Apply Function',
           id: 'applyFunctionButton',
           menuAlign: 'tr-tl',
@@ -479,7 +487,6 @@ var GraphDataWindow = {
             ]
           }
         }, {
-          xtype: 'button',
           text: 'Undo Function',
           handler: this.removeOuterCall.createDelegate(this),
           id: 'undoFunctionButton'
@@ -487,22 +494,16 @@ var GraphDataWindow = {
       ]
     });
 
-    this.targetsPanel = new Ext.Panel({
-      region: 'center',
-      layout: {
-        type: 'hbox',
-        align: 'stretch'
-      },
-      items: [ this.targetList, targetSidePanel ]
-    });
-
     this.window = new Ext.Window({
       title: "Graph Data",
-      height: 200,
-      width: 500,
+      height: 300,
+      width: 600,
       closeAction: 'hide',
       layout: 'border',
-      items: [ this.targetsPanel ],
+      items: [
+        targetsPanel,
+        buttonPanel
+      ],
       listeners: {
         afterrender: function () {
                        if (_this.targetList.getNodes().length > 0) {
