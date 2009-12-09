@@ -134,6 +134,8 @@ function createSearchPanel() {
     title: 'Search',
     disabled: (!GraphiteConfig.searchEnabled),
     width: 200,
+    containerScroll: true,
+    autoScroll: true,
     items: [
       new Ext.form.TextField({
         emptyText: "search for metrics",
