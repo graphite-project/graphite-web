@@ -15,11 +15,27 @@ limitations under the License."""
 from ConfigParser import ConfigParser
 
 
+defaults = dict(
+  LOCAL_DATA_DIR="/opt/graphite/storage/whisper/",
+  USER="",
+  CREATION_DELAY=1.0,
+  MAX_CACHE_SIZE='inf',
+  MAX_UPDATES_PER_SECOND=1000,
+  LINE_RECEIVER_INTERFACE='0.0.0.0',
+  LINE_RECEIVER_PORT=2003,
+  PICKLE_RECEIVER_INTERFACE='0.0.0.0',
+  PICKLE_RECEIVER_PORT=2004,
+  CACHE_QUERY_INTERFACE='0.0.0.0',
+  CACHE_QUERY_PORT=7002,
+
+)
+
 class Settings(dict):
   __getattr__ = dict.__getitem__
 
   def readFrom(self, path, section):
     self.clear()
+    self.update(defaults)
 
     parser = ConfigParser()
     assert parser.read(path), "Failed to read config file %s" % path
@@ -37,3 +53,4 @@ class Settings(dict):
 
 
 settings = Settings()
+settings.update(defaults)
