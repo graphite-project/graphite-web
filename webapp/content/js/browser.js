@@ -51,7 +51,7 @@ function createTreePanel(){
     id: 'GraphiteTree',
     text: "Graphite",
     loader: new Ext.tree.TreeLoader({
-      url: "/metrics/find/",
+      url: "../metrics/find/",
       requestMethod: "GET",
       listeners: {beforeload: setParams}
     })
@@ -74,7 +74,7 @@ function createTreePanel(){
       allowDrag: false,
       listeners: {beforeexpand: reloadOnce},
       loader: new Ext.tree.TreeLoader({
-        url: "/browser/mygraph/",
+        url: "../browser/mygraph/",
         requestMethod: "GET",
         listeners: {beforeload: setParams}
       })
@@ -87,7 +87,7 @@ function createTreePanel(){
     text: "User Graphs",
     listeners: {beforeexpand: reloadOnce},
     loader: new Ext.tree.TreeLoader({
-      url: "/browser/usergraph/",
+      url: "../browser/usergraph/",
       requestMethod: "GET",
       listeners: {beforeload: setParams}
     })
@@ -152,7 +152,7 @@ function setupSearchForm(formEl) {
   var html = '<a id="searchHelpLink" > Help </a> <p id="searchError"></p> <ul id="searchResults"></ul>';
   Ext.DomHelper.append("searchForm", html);
   var helpAction = 'javascript: void window.open';
-  var helpPage = '"/content/html/searchHelp.html"';
+  var helpPage = '"../content/html/searchHelp.html"';
   var helpTitle = '"Searching Graphite"';
   var helpOptions = '"width=500,height=400,toolbar=no,location=no,directories=no,status=no,menubar=no"';
   Ext.getDom('searchHelpLink').href = helpAction+"("+helpPage+","+helpTitle+","+helpOptions+");";
@@ -176,7 +176,7 @@ function sendSearchRequest (searchField, evt) {
     resultList.removeChild( resultList.childNodes[0] );
   }
   Ext.Ajax.request({
-    url: '/browser/search/',
+    url: '../browser/search/',
     method: 'POST',
     success: handleSearchResponse,
     failure: handleSearchFailure,
@@ -223,7 +223,7 @@ function createCompleterPanel() {
     },
     items: [
       metricCompleter,
-      new Ext.form.Label({html: '<a id="completerHelpLink" href="/content/html/completerHelp.html", target="_new"> Help </a>'})
+      new Ext.form.Label({html: '<a id="completerHelpLink" href="../content/html/completerHelp.html", target="_new"> Help </a>'})
     ]
   });
 
@@ -250,7 +250,7 @@ function setupCompleterForm(formEl) {
   html = '<a id="completerHelpLink" > Help </a> <div id="completerResults"/>';
   Ext.DomHelper.append("completerForm",html);
   var helpAction = 'javascript: void window.open';
-  var helpPage= '"/content/html/completerHelp.html"';
+  var helpPage= '"../content/html/completerHelp.html"';
   var helpTitle = '"Using the Auto-Completer"';
   var helpOptions = '"width=500,height=400,toolbar=no,location=no,directories=no,status=no,menubar=no"';
   Ext.getDom('completerHelpLink').href = helpAction+"("+helpPage+","+helpTitle+","+helpOptions+");";
@@ -275,7 +275,7 @@ function sendCompleterRequest(evt, el) {
     return;
   }
   Ext.Ajax.request({
-    url: '/cli/autocomplete/',
+    url: '../cli/autocomplete/',
     method: 'GET',
     success: handleCompleterResponse,
     failure: handleCompleterFailure,
