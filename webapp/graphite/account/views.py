@@ -24,9 +24,9 @@ def loginView(request):
   username = request.POST.get('username')
   password = request.POST.get('password')
   if request.method == 'GET':
-    nextPage = request.GET.get('nextPage','/')
+    nextPage = request.GET.get('nextPage','../..')
   else:
-    nextPage = request.POST.get('nextPage','/')
+    nextPage = request.POST.get('nextPage','../..')
   if username and password:
     user = authenticate(username=username,password=password)
     if user is None:
@@ -40,13 +40,13 @@ def loginView(request):
     return render_to_response("login.html",{'nextPage' : nextPage})
 
 def logoutView(request):
-  nextPage = request.GET.get('nextPage','/')
+  nextPage = request.GET.get('nextPage','../..')
   logout(request)
   return HttpResponseRedirect(nextPage)
 
 def editProfile(request):
   if not request.user.is_authenticated():
-    return HttpResponseRedirect('/')
+    return HttpResponseRedirect('../..')
   context = { 'profile' : getProfile(request) }
   return render_to_response("editProfile.html",context)
 
@@ -55,5 +55,5 @@ def updateProfile(request):
   if profile:
     profile.advancedUI = request.POST.get('advancedUI','off') == 'on'
     profile.save()
-  nextPage = request.POST.get('nextPage','/')
+  nextPage = request.POST.get('nextPage','../..')
   return HttpResponseRedirect(nextPage)
