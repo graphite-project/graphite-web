@@ -68,7 +68,7 @@ img.toolbar:active {
 
 <body bgcolor="white">
 
-<img  src="/content/img/graphite_short.png" alt="Graphite" style="border: 0px solid" align='top'/>
+<img  src="../../content/img/graphite_short.png" alt="Graphite" style="border: 0px solid" align='top'/>
 
 <!-- Right side (only works in firefox for some reason) -->
 <!--
@@ -81,14 +81,14 @@ img.toolbar:active {
 <!-- Left side -->
 <table style='display: inline' cellpadding=0 cellspacing=0>
  <tr><td style='font-size: smaller;'>
-  <a href="/cli/" target="_top">Command-Line Interface</a>
+  <a href="../../cli/" target="_top">Command-Line Interface</a>
  </td></tr>
  <tr><td style='font-size: smaller;'>
   {% if user.is_authenticated %}
-   Logged in as {{ user.username }}, <a href="/account/logout/" target="_top">logout</a> &nbsp;
-   (<a href="/account/edit/" target="_top">edit profile</a>)
+   Logged in as {{ user.username }}, <a href="../../account/logout/" target="_top">logout</a> &nbsp;
+   (<a href="../../account/edit/" target="_top">edit profile</a>)
   {% else %}
-   <a href="/account/login/" target="_top">Login</a>
+   <a href="../../account/login/" target="_top">Login</a>
   {% endif %}
  </td></tr>
  <tr><td style='font-size: smaller;'>
