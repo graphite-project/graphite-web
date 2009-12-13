@@ -28,8 +28,33 @@ defaults = dict(
   PICKLE_RECEIVER_PORT=2004,
   CACHE_QUERY_INTERFACE='0.0.0.0',
   CACHE_QUERY_PORT=7002,
-
 )
+
+
+class OrderedConfigParser(ConfigParser):
+  """Hacky workaround to ensure sections are always returned in the order
+   they are defined in. Note that this does *not* make any guarantees about
+   the order of options within a section or the order in which sections get
+   written back to disk on write()."""
+  _ordered_sections = []
+
+  def read(self, path):
+    result = ConfigParser.read(self, path)
+
+    sections = []
+    for line in open(path):
+      line = line.strip()
+
+      if line.startswith('[') and line.endswith(']'):
+        sections.append( line[1:-1] )
+
+    self._ordered_sections = sections
+
+    return result
+
+  def sections(self):
+    return list( self._ordered_sections ) # return a copy for safety
+
 
 class Settings(dict):
   __getattr__ = dict.__getitem__

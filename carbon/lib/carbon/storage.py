@@ -14,9 +14,7 @@ limitations under the License."""
 
 import os, re
 from os.path import join, exists
-from ConfigParser import ConfigParser
-from carbon.conf import Settings, settings
-from carbon.util import OrderedDict
+from carbon.conf import OrderedConfigParser, Settings, settings
 
 try:
   import cPickle as pickle
@@ -107,7 +105,7 @@ class Archive:
 
 def loadStorageSchemas():
   schemaList = []
-  config = ConfigParser(dict_type=OrderedDict)
+  config = OrderedConfigParser()
   config.read(STORAGE_SCHEMAS_CONFIG)
 
   for section in config.sections():

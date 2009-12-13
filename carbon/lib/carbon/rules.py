@@ -1,6 +1,5 @@
 import re
-from ConfigParser import ConfigParser
-from carbon.util import OrderedDict
+from carbon.conf import OrderedConfigParser
 
 
 rules = []
@@ -20,7 +19,7 @@ def loadRules(path):
   global defaultRule
 
   assert not rules, "rules already loaded"
-  parser = ConfigParser(dict_type=OrderedDict)
+  parser = OrderedConfigParser()
 
   if not parser.read(path):
     raise ValueError("Could not read rules file %s" % path)
