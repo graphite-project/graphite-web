@@ -18,6 +18,20 @@ from graphite.account.models import Profile
 from graphite.logger import log
 
 
+# There are a couple different json modules floating around out there with
+# different APIs. Hide the ugliness here.
+try:
+  import json
+except ImportError:
+  import simplejson as json
+
+if hasattr(json, 'read') and not hasattr(json, 'loads'):
+  json.loads = json.read
+  json.dumps = json.write
+  json.load = lambda file: json.read( file.read() )
+  json.dump = lambda obj, file: file.write( json.write(obj) )
+
+
 def getProfile(request,allowDefault=True):
   if request.user.is_authenticated():
     try:

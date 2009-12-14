@@ -16,12 +16,8 @@ import traceback
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.conf import settings
 from graphite.account.models import Profile
-from graphite.util import getProfile, getProfileByUsername, defaultUser
+from graphite.util import getProfile, getProfileByUsername, defaultUser, json
 from graphite.logger import log
-try:
-  import json
-except ImportError:
-  import simplejson as json
 
 try:
   import cPickle as pickle

@@ -203,8 +203,9 @@ def userGraphLookup(request):
 
 
 def json_response(nodes):
-  json = str(nodes) #poor man's json encoder for simple types
-  response = HttpResponse(json,mimetype="application/json")
+  #json = str(nodes) #poor man's json encoder for simple types
+  json_data = json.dumps(nodes)
+  response = HttpResponse(json_data,mimetype="application/json")
   response['Pragma'] = 'no-cache'
   response['Cache-Control'] = 'no-cache'
   return response
