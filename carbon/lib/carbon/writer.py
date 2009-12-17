@@ -16,7 +16,6 @@ limitations under the License."""
 import os
 import time
 from os.path import join, exists, dirname, basename
-from time import sleep
 from threading import Thread
 from twisted.internet import reactor
 from twisted.internet.task import LoopingCall
@@ -124,6 +123,10 @@ def writeCachedDataPoints():
           if updates >= settings.MAX_UPDATES_PER_SECOND:
             time.sleep( int(t2 + 1) - t2 )
 
+    # Avoid churning CPU when only new metrics are in the cache
+    if not dataWritten:
+      time.sleep(0.1)
+
 
 def createMetaFile(metric, schema, path):
   metadata = {
@@ -142,7 +145,7 @@ def writeForever():
     except:
       log.err()
 
-    sleep(1) # The writer thread only sleeps when the cache is empty or an error occurs
+    time.sleep(1) # The writer thread only sleeps when the cache is empty or an error occurs
 
 
 def reloadStorageSchemas():
