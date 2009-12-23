@@ -27,7 +27,7 @@ program = basename( sys.argv[0] )
 try:
   from twisted.internet import epollreactor
   epollreactor.install()
-except: 
+except:
   pass
 from twisted.internet import reactor
 
@@ -112,6 +112,14 @@ elif action == 'status':
 # Read config (we want failures to occur before daemonizing)
 settings.readFrom(options.config, 'cache')
 
+use_amqp = settings.get("ENABLE_AMQP", False)
+if use_amqp:
+  from carbon import amqp_listener
+  amqp_host = settings.get("AMQP_HOST", "localhost")
+  amqp_port = settings.get("AMQP_PORT", 5672)
+  amqp_user = settings.get("AMQP_USER", "guest")
+  amqp_password = settings.get("AMQP_PASSWORD", "guest")
+  amqp_verbose = settings.get("AMQP_VERBOSE", False)
 
 # --debug
 if options.debug:
@@ -146,6 +154,11 @@ metricReceived.installHandler(MetricCache.store)
 startListener(settings.LINE_RECEIVER_INTERFACE, settings.LINE_RECEIVER_PORT, MetricLineReceiver)
 startListener(settings.PICKLE_RECEIVER_INTERFACE, settings.PICKLE_RECEIVER_PORT, MetricPickleReceiver)
 startListener(settings.CACHE_QUERY_INTERFACE, settings.CACHE_QUERY_PORT, CacheQueryHandler)
+
+if use_amqp:
+  amqp_listener.startReceiver(amqp_host, amqp_port,
+                              amqp_user, amqp_password, verbose=amqp_verbose)
+#
 startWriter()
 startRecordingCacheMetrics()
 
