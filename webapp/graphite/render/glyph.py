@@ -535,7 +535,7 @@ class LineGraph(Graph):
 
     yVariance = yMaxValue - yMinValue
 
-    if yVariance == 0:
+    if math.floor(yVariance) == 0:
       yVariance = 1
       yMaxValue = yMinValue + 1
 
