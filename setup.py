@@ -23,7 +23,7 @@ for root, dirs, files in os.walk('webapp/content'):
 
 
 setup(
-  name='graphite',
+  name='graphite-web',
   version='0.9.5',
   url='https://launchpad.net/graphite',
   author='Chris Davis',
