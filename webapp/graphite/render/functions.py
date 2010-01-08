@@ -78,7 +78,7 @@ def sumSeries(*seriesLists):
     return []
   #name = "sumSeries(%s)" % ','.join((s.name for s in seriesList))
   name = "sumSeries(%s)" % ','.join(set([s.pathExpression for s in seriesList]))
-  values = ( safeSum(row) for row in izip(*seriesList) ) #XXX izip
+  values = ( safeSum(row) for row in izip(*seriesList) )
   series = TimeSeries(name,start,end,step,values)
   series.pathExpression = name
   return [series]
@@ -86,7 +86,7 @@ def sumSeries(*seriesLists):
 def diffSeries(*seriesLists):
   (seriesList,start,end,step) = normalize(seriesLists)
   name = "diffSeries(%s)" % ','.join(set([s.pathExpression for s in seriesList]))
-  values = ( safeDiff(row) for row in izip(*seriesList) ) #XXX izip
+  values = ( safeDiff(row) for row in izip(*seriesList) )
   series = TimeSeries(name,start,end,step,values)
   series.pathExpression = name
   return [series]
@@ -95,7 +95,7 @@ def averageSeries(*seriesLists):
   (seriesList,start,end,step) = normalize(seriesLists)
   #name = "averageSeries(%s)" % ','.join((s.name for s in seriesList))
   name = "averageSeries(%s)" % ','.join(set([s.pathExpression for s in seriesList]))
-  values = ( safeDiv(safeSum(row),safeLen(row)) for row in izip(*seriesList) ) #XXX izip
+  values = ( safeDiv(safeSum(row),safeLen(row)) for row in izip(*seriesList) )
   series = TimeSeries(name,start,end,step,values)
   series.pathExpression = name
   return [series]
@@ -104,7 +104,7 @@ def keepLastValue(seriesList):
   for series in seriesList:
     series.name = "keepLastValue(%s)" % (series.name)
     for i,value in enumerate(series):
-      if value is None:
+      if value is None and i != 0:
         value = series[i-1]
       series[i] = value
   return seriesList
@@ -123,7 +123,7 @@ def asPercent(seriesList1,seriesList2orNumber):
     start = min([s.start for s in series])
     end = max([s.end for s in series])
     end -= (end - start) % step
-    values = ( safeMul( safeDiv(v1,v2), 100.0 ) for v1,v2 in izip(*series) ) #XXX izip
+    values = ( safeMul( safeDiv(v1,v2), 100.0 ) for v1,v2 in izip(*series) )
   else:
     number = float(seriesList2orNumber)
     name = "asPercent(%s,%.1f)" % (series1.name,number)
@@ -159,7 +159,7 @@ def movingAverage(seriesList,time):
     movAvg.append(avg)
     for (index, el) in enumerate(series[time:]):
       if el is None:
-	continue
+        continue
       toDrop = series[index]
       if toDrop is None:
         toDrop = 0
