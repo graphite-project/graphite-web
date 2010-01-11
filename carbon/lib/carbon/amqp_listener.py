@@ -88,6 +88,7 @@ class AMQPGraphiteProtocol(AMQClient):
                 datapoint = ( float(timestamp), float(value) )
             except ValueError:
                 log.listener("wrong value in line: %s" % (line,))
+                continue
 
             increment('metricsReceived')
             metricReceived(metric, datapoint)
