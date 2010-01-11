@@ -1,1 +1,2 @@
 recursive-include conf *
+include LICENSE

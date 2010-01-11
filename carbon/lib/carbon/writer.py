@@ -80,11 +80,16 @@ def writeCachedDataPoints():
       dataWritten = True
 
       if not dbFileExists:
+        archiveConfig = None
+
         for schema in schemas:
           if schema.matches(metric):
             log.creates('new metric %s matched schema %s' % (metric, schema.name))
             archiveConfig = [archive.getTuple() for archive in schema.archives]
             break
+
+        if not archiveConfig:
+          raise Exception("No storage schema matched the metric '%s', check your storage-schemas.conf file.")
 
         dbDir = dirname(dbFilePath)
         os.system("mkdir -p '%s'" % dbDir)
@@ -158,6 +163,7 @@ def reloadStorageSchemas():
 
 
 schemaReloadTask = LoopingCall(reloadStorageSchemas)
+schemas = []
 
 
 def startWriter():

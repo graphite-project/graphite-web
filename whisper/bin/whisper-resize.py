@@ -10,6 +10,7 @@ option_parser = OptionParser(usage='''%prog path secondsPerPoint:pointsToStore [
 option_parser.add_option('--xFilesFactor', default=None, type='float', help="Change the xFilesFactor")
 option_parser.add_option('--force', default=False, action='store_true', help="Perform a destructive change")
 option_parser.add_option('--newfile', default=None, action='store', help="Create a new database file without removing the existing one")
+option_parser.add_option('--nobackup', action='store_true', help='Delete the .bak file after successful execution')
 
 (options, args) = option_parser.parse_args()
 
@@ -63,6 +64,7 @@ if options.newfile is not None:
 backup = path + '.bak'
 print 'Renaming old database to: %s' % backup
 os.rename(path, backup)
+
 try:
   print 'Renaming new database to: %s' % path
   os.rename(tmpfile, path)
@@ -71,3 +73,7 @@ except:
   print '\nOperation failed, restoring backup'
   os.rename(backup, path)
   sys.exit(1)
+
+if options.nobackup:
+  print "Unlinking backup: %s" % backup
+  os.unlink(backup)

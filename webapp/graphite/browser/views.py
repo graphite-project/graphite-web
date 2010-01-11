@@ -17,7 +17,7 @@ from django.shortcuts import render_to_response
 from django.http import HttpResponse
 from django.conf import settings
 from graphite.account.models import Profile
-from graphite.util import getProfile, getProfileByUsername, defaultUser
+from graphite.util import getProfile, getProfileByUsername, defaultUser, json
 from graphite.logger import log
 try:
   import cPickle as pickle
