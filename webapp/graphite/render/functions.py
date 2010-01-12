@@ -238,6 +238,15 @@ def alias(seriesList,newName):
   return seriesList
 
 
+def substr(seriesList, start=0, stop=0):
+  for series in seriesList:
+    if int(stop) == 0:
+      series.name = '.'.join(series.name.split('.')[int(start)::]).strip(')')
+    else:
+      series.name = '.'.join(series.name.split('.')[int(start):int(stop):]).strip(')')
+  return seriesList
+
+
 def highestCurrent(seriesList, n):
   return sorted( seriesList, key=safeLast )[-n:]
 
@@ -370,4 +379,5 @@ SeriesFunctions = {
   'drawAsInfinite' : drawAsInfinite,
   'lineWidth' : lineWidth,
   'dashed' : dashed,
+  'substr' : substr,
 }
