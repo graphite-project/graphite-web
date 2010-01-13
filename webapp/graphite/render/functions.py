@@ -83,6 +83,21 @@ def sumSeries(*seriesLists):
   series.pathExpression = name
   return [series]
 
+def sumSeriesWithWildcards(seriesList, *position):
+  if type(position) is int:
+    positions = [position]
+  else:
+    positions = position #map(lambda i: int(str.strip(i)), position.split(','))
+  newSeries = {}
+  for series in seriesList:
+    newname = '.'.join(map(lambda x: x[1], filter(lambda i: i[0] not in positions, enumerate(series.name.split('.')))))
+    if newname in newSeries.keys():
+      newSeries[newname] = sumSeries((series, newSeries[newname]))[0]
+    else:
+      newSeries[newname] = series
+    newSeries[newname].name = newname
+  return newSeries.values()
+
 def diffSeries(*seriesLists):
   (seriesList,start,end,step) = normalize(seriesLists)
   name = "diffSeries(%s)" % ','.join(set([s.pathExpression for s in seriesList]))
@@ -369,6 +384,7 @@ SeriesFunctions = {
   'diffSeries' : diffSeries,
   'averageSeries' : averageSeries,
   'avg' : averageSeries,
+  'sumSeriesWithWildcards': sumSeriesWithWildcards,
 
   # Transform functions
   'scale' : scale,
