@@ -246,6 +246,28 @@ def substr(seriesList, start=0, stop=0):
       series.name = '.'.join(series.name.split('.')[int(start):int(stop):]).strip(')')
   return seriesList
 
+def log(seriesList, base=10):
+  results = []
+  for series in seriesList:
+    newValues = []
+    for val in series:
+      if val is None:
+        newValues.append(None)
+      else:
+        newValues.append(math.log(val, base))
+    newName = "log(%s, %s)" % (series.name, base)
+    newSeries = TimeSeries(newName, series.start, series.end, series.step, newValues)
+    newSeries.pathExpression = newName
+    results.append(newSeries)
+  return results
+
+def maximumAbove(seriesList, n):
+  results = []
+  for series in seriesList:
+    for val in series:
+      if val is not None and val >= n and series not in results:
+        results.append(series)
+  return results
 
 def highestCurrent(seriesList, n):
   return sorted( seriesList, key=safeLast )[-n:]
@@ -354,6 +376,7 @@ SeriesFunctions = {
   'derivative' : derivative,
   'integral' : integral,
   'nonNegativeDerivative' : nonNegativeDerivative,
+  'log' : log,
 
   # Calculate functions
   'movingAverage' : movingAverage,
@@ -371,6 +394,7 @@ SeriesFunctions = {
   'lowestAverage' : lowestAverage,
   'averageAbove' : averageAbove,
   'averageBelow' : averageBelow,
+  'maximumAbove' : maximumAbove,
 
   # Special functions
   'alias' : alias,

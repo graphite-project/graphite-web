@@ -451,7 +451,8 @@ var GraphDataWindow = {
                   {text: 'Offset', handler: this.applyFuncToEachWithInput('offset', 'Please enter the value to offset Y-values by')},
                   {text: 'Derivative', handler: this.applyFuncToEach('derivative')},
                   {text: 'Integral', handler: this.applyFuncToEach('integral')},
-                  {text: 'Non-negative Derivative', handler: this.applyFuncToEach('nonNegativeDerivative')}
+                  {text: 'Non-negative Derivative', handler: this.applyFuncToEach('nonNegativeDerivative')},
+                  {text: 'Log', handler: this.applyFuncToEachWithInput('log', 'Please enter a base')}
                 ]
               }, {
                 text: 'Calculate',
@@ -471,7 +472,8 @@ var GraphDataWindow = {
                   {text: 'Highest Average Value', handler: this.applyFuncToEachWithInput('highestAverage', 'Draw the ___ metrics with the highest average value')},
                   {text: 'Lowest Average Value', handler: this.applyFuncToEachWithInput('lowestAverage', 'Draw the ___ metrics with the lowest average value')},
                   {text: 'Average Value Above', handler: this.applyFuncToEachWithInput('averageAbove', 'Draw all metrics whose average value is above ___')},
-                  {text: 'Average Value Above', handler: this.applyFuncToEachWithInput('averageBelow', 'Draw all metrics whose average value is below ___')}
+                  {text: 'Average Value Below', handler: this.applyFuncToEachWithInput('averageBelow', 'Draw all metrics whose average value is below ___')},
+                  {text: 'Maximum Value Above', handler: this.applyFuncToEachWithInput('maximumAbove', 'Draw all metrics whose maximum value is above ___')}
                 ]
               }, {
                 text: 'Special',
@@ -481,7 +483,8 @@ var GraphDataWindow = {
                   {text: 'Draw non-zero As Infinite', handler: this.applyFuncToEach('drawAsInfinite')},
                   {text: 'Line Width', handler: this.applyFuncToEachWithInput('lineWidth', 'Please enter a line width for this graph target')},
                   {text: 'Dashed Line', handler: this.applyFuncToEach('dashed')},
-                  {text: 'Keep Last Value', handler: this.applyFuncToEach('keepLastValue')}
+                  {text: 'Keep Last Value', handler: this.applyFuncToEach('keepLastValue')},
+                  {text: 'Substring', handler: this.applyFuncToEachWithInput('substr', 'Enter a starting position')}
                 ]
               }
             ]
