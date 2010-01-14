@@ -443,7 +443,8 @@ var GraphDataWindow = {
                   {text: 'Sum', handler: this.applyFuncToAll('sumSeries')},
                   {text: 'Difference', handler: this.applyFuncToAll('diffSeries')},
                   {text: 'Average', handler: this.applyFuncToAll('averageSeries')},
-                  {text: 'Sum using wildcards', handler: this.applyFuncToEachWithInput('sumSeriesWithWildcards', 'Please enter a comma separated list of numbers specifying the locations in the name to place wildcards')}
+                  {text: 'Sum using wildcards', handler: this.applyFuncToEachWithInput('sumSeriesWithWildcards', 'Please enter a comma separated list of numbers specifying the locations in the name to place wildcards')},
+                  {text: 'Average using wildcards', handler: this.applyFuncToEachWithInput('averageSeriesWithWildcards', 'Please enter a comma separated list of numbers specifying the locations in the name to place wildcards')}
                 ]
               }, {
                 text: 'Transform',

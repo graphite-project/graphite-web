@@ -87,7 +87,7 @@ def sumSeriesWithWildcards(seriesList, *position):
   if type(position) is int:
     positions = [position]
   else:
-    positions = position #map(lambda i: int(str.strip(i)), position.split(','))
+    positions = position
   newSeries = {}
   for series in seriesList:
     newname = '.'.join(map(lambda x: x[1], filter(lambda i: i[0] not in positions, enumerate(series.name.split('.')))))
@@ -97,6 +97,23 @@ def sumSeriesWithWildcards(seriesList, *position):
       newSeries[newname] = series
     newSeries[newname].name = newname
   return newSeries.values()
+
+def averageSeriesWithWildcards(seriesList, *position):
+  if type(position) is int:
+    positions = [position]
+  else:
+    positions = position
+  result = []
+  matchedList = {}
+  for series in seriesList:
+    newname = '.'.join(map(lambda x: x[1], filter(lambda i: i[0] not in positions, enumerate(series.name.split('.')))))
+    if not matchedList.has_key(newname):
+      matchedList[newname] = []
+    matchedList[newname].append(series)
+  for name in matchedList.keys():
+    result.append(averageSeries((matchedList[name]))[0])
+    result[-1].name = name
+  return result
 
 def diffSeries(*seriesLists):
   (seriesList,start,end,step) = normalize(seriesLists)
@@ -385,6 +402,7 @@ SeriesFunctions = {
   'averageSeries' : averageSeries,
   'avg' : averageSeries,
   'sumSeriesWithWildcards': sumSeriesWithWildcards,
+  'averageSeriesWithWildcards': averageSeriesWithWildcards,
 
   # Transform functions
   'scale' : scale,
