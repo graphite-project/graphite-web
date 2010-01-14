@@ -17,6 +17,7 @@ from random import shuffle
 from httplib import CannotSendRequest
 from urlparse import urlsplit
 from cStringIO import StringIO
+import threading
 try:
   import cPickle as pickle
 except ImportError:
@@ -82,12 +83,14 @@ def renderView(request):
       data = cachedData
     else: # Have to actually retrieve the data now
       data = []
-      timeInterval = (requestOptions['startTime'], requestOptions['endTime'])
+      threads = []
       for target in requestOptions['targets']:
-        t = time()
-        seriesList = evaluateTarget(target, timeInterval)
-        data.extend(seriesList)
-        log.rendering('Retrieval of %s took %.6f' % (target,time() - t))
+        timeInterval = (requestOptions['startTime'], requestOptions['endTime'])
+        threads.append(getTarget(target, timeInterval))
+        threads[-1].start()
+      for thread in threads:
+        thread.join()
+        data.extend(thread.seriesList)
 
     if useCache:
       cache.set(dataKey, data)
@@ -283,3 +286,13 @@ def buildResponse(imageData):
   response['Cache-Control'] = 'no-cache'
   response['Pragma'] = 'no-cache'
   return response
+
+class getTarget(threading.Thread):
+  def __init__ (self,target,timeInterval):
+    threading.Thread.__init__(self)
+    self.target = target
+    self.timeInterval = timeInterval
+  def run(self):
+    t = time()
+    self.seriesList = evaluateTarget(self.target, self.timeInterval)
+#    log.info("Retrieval of %s took %.6f" % (self.target,time() - t))
