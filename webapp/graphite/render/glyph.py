@@ -279,7 +279,7 @@ class LineGraph(Graph):
                  ('title','vtitle','lineMode','lineWidth','hideLegend', \
                   'hideAxes','minXStep','hideGrid','majorGridLineColor', \
                   'minorGridLineColor','thickness','min','max', \
-                  'graphOnly','yMin','yMax','yStep','areaMode','drawNullAsZero','tz')
+                  'graphOnly','yMin','yMax','yLimit','yStep','areaMode','drawNullAsZero','tz')
   validLineModes = ('staircase','slope')
   validAreaModes = ('none','first','all','stacked')
 
@@ -325,7 +325,7 @@ class LineGraph(Graph):
       self.drawVTitle( str(params['vtitle']) )
     self.setFont()
 
-    if not params.get('hideLegend', len(self.data) > 10):
+    if not params.get('hideLegend', len(self.data) > settings.LEGEND_MAX_ITEMS):
       elements = [ (series.name,series.color) for series in self.data ]
       self.drawLegend(elements)
 
@@ -529,6 +529,9 @@ class LineGraph(Graph):
 
     if 'yMax' in self.params:
       yMaxValue = self.params['yMax']
+
+    if 'yLimit' in self.params and self.params['yLimit'] < yMaxValue:
+      yMaxValue = self.params['yLimit']
 
     if 'yMin' in self.params:
       yMinvalue = self.params['yMin']

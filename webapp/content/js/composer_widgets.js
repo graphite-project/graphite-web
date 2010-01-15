@@ -443,8 +443,7 @@ var GraphDataWindow = {
                   {text: 'Sum', handler: this.applyFuncToAll('sumSeries')},
                   {text: 'Difference', handler: this.applyFuncToAll('diffSeries')},
                   {text: 'Average', handler: this.applyFuncToAll('averageSeries')},
-                  {text: 'Sum using wildcards', handler: this.applyFuncToEachWithInput('sumSeriesWithWildcards', 'Please enter a comma separated list of numbers specifying the locations in the name to place wildcards')},
-                  {text: 'Average using wildcards', handler: this.applyFuncToEachWithInput('averageSeriesWithWildcards', 'Please enter a comma separated list of numbers specifying the locations in the name to place wildcards')}
+                  {text: 'Sum using wildcards', handler: this.applyFuncToEachWithInput('sumSeriesWithWildcards', 'Please enter a comma separated list of numbers specifying the locations in the name to place wildcards')}
                 ]
               }, {
                 text: 'Transform',
@@ -476,6 +475,7 @@ var GraphDataWindow = {
                   {text: 'Average Value Above', handler: this.applyFuncToEachWithInput('averageAbove', 'Draw all metrics whose average value is above ___')},
                   {text: 'Average Value Below', handler: this.applyFuncToEachWithInput('averageBelow', 'Draw all metrics whose average value is below ___')},
                   {text: 'Maximum Value Above', handler: this.applyFuncToEachWithInput('maximumAbove', 'Draw all metrics whose maximum value is above ___')}
+                  {text: 'Maximum Value Below', handler: this.applyFuncToEachWithInput('maximumBelow', 'Draw all metrics whose maximum value is below ___')}
                 ]
               }, {
                 text: 'Special',

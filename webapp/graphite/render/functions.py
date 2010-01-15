@@ -296,10 +296,16 @@ def log(seriesList, base=10):
 def maximumAbove(seriesList, n):
   results = []
   for series in seriesList:
-    for val in series:
-      if val is not None and val >= n and series not in results:
-        results.append(series)
+    if max(series) >= n:
+      results.append(series)
   return results
+
+def maximumBelow(seriesList, n):
+  result = []
+  for series in seriesList:
+    if max(series) <= n:
+      result.append(series)
+  return result
 
 def highestCurrent(seriesList, n):
   return sorted( seriesList, key=safeLast )[-n:]
@@ -429,6 +435,7 @@ SeriesFunctions = {
   'averageAbove' : averageAbove,
   'averageBelow' : averageBelow,
   'maximumAbove' : maximumAbove,
+  'maximumBelow' : maximumBelow,
 
   # Special functions
   'alias' : alias,
