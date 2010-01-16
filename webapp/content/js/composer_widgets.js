@@ -474,8 +474,11 @@ var GraphDataWindow = {
                   {text: 'Lowest Average Value', handler: this.applyFuncToEachWithInput('lowestAverage', 'Draw the ___ metrics with the lowest average value')},
                   {text: 'Average Value Above', handler: this.applyFuncToEachWithInput('averageAbove', 'Draw all metrics whose average value is above ___')},
                   {text: 'Average Value Below', handler: this.applyFuncToEachWithInput('averageBelow', 'Draw all metrics whose average value is below ___')},
-                  {text: 'Maximum Value Above', handler: this.applyFuncToEachWithInput('maximumAbove', 'Draw all metrics whose maximum value is above ___')}
-                  {text: 'Maximum Value Below', handler: this.applyFuncToEachWithInput('maximumBelow', 'Draw all metrics whose maximum value is below ___')}
+                  {text: 'Maximum Value Above', handler: this.applyFuncToEachWithInput('maximumAbove', 'Draw all metrics whose maximum value is above ___')},
+                  {text: 'Maximum Value Below', handler: this.applyFuncToEachWithInput('maximumBelow', 'Draw all metrics whose maximum value is below ___')},
+                  {text: 'sortByMaxima', handler: this.applyFuncToEach('sortByMaxima')},
+                  {text: 'sortByMinima', handler: this.applyFuncToEach('sortByMinima')},
+                  {text: 'limit', handler: this.applyFuncToEachWithInput('limit', 'Limit to first ___ of a list of metrics')}
                 ]
               }, {
                 text: 'Special',

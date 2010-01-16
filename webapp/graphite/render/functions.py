@@ -331,6 +331,21 @@ def averageAbove(seriesList, n):
 def averageBelow(seriesList, n):
   return [ series for series in seriesList if safeDiv(safeSum(series),safeLen(series)) <= n ]
 
+def limit(seriesList, n):
+  return seriesList[0:n]
+
+def sortByMaxima(seriesList):
+  def compare(x,y):
+    return cmp(max(y), max(x))
+  seriesList.sort(compare)
+  return seriesList
+
+def sortByMinima(seriesList):
+  def compare(x,y):
+    return cmp(min(x), min(y))
+  newSeries = [series for series in seriesList if max(series) > 0]
+  newSeries.sort(compare)
+  return newSeries
 
 def mostDeviant(n, seriesList):
   deviants = []
@@ -436,6 +451,9 @@ SeriesFunctions = {
   'averageBelow' : averageBelow,
   'maximumAbove' : maximumAbove,
   'maximumBelow' : maximumBelow,
+  'limit' : limit,
+  'sortByMaxima' : sortByMaxima,
+  'sortByMinima' : sortByMinima,
 
   # Special functions
   'alias' : alias,
