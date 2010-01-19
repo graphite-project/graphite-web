@@ -221,7 +221,7 @@ class Graph:
   def drawLegend(self,elements): #elements is [ (name,color), (name,color), ... ]
     longestName = sorted([e[0] for e in elements],key=len)[-1]
     extents = self.getExtents(longestName)
-    padding = 4
+    padding = 5
     boxSize = extents['maxHeight'] - 1
     lineHeight = extents['maxHeight'] + 1
     labelWidth = extents['width'] + 2 * (boxSize + padding)
