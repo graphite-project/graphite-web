@@ -90,6 +90,8 @@ def renderView(request):
         threads[-1].start()
       for thread in threads:
         thread.join()
+        if thread.seriesList is None:
+          continue
         data.extend(thread.seriesList)
 
     if useCache:
@@ -288,6 +290,7 @@ def buildResponse(imageData):
   return response
 
 class getTarget(threading.Thread):
+  seriesList = None
   def __init__ (self,target,timeInterval):
     threading.Thread.__init__(self)
     self.target = target

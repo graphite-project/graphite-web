@@ -1,12 +1,13 @@
+import datetime
 import time
 import threading
 from django.conf import settings
+from graphite.render.attime import parseATTime
 from graphite.render.grammar import grammar
 from graphite.render.functions import SeriesFunctions
 from graphite.render.datatypes import TimeSeries
 from graphite.render.carbonlink import CarbonLink
 from graphite.logger import log
-
 
 
 def evaluateTarget(target, timeInterval):
@@ -33,19 +34,22 @@ class fetchData(threading.Thread):
     self.results = mergeResults(dbResults, getCacheResults())
 #    log.info("Retrieval of %s took %.6f" % (self.dbFile.metric_path,time.time() - t))
 
-
-def evaluateTokens(tokens, timeInterval):
+def evaluateTokens(tokens, timeInterval, originalTime = None):
   if tokens.expression:
-    return evaluateTokens(tokens.expression, timeInterval)
+    if tokens[0][0][0] == "timeShift":
+      delta = timeInterval[0] - parseATTime(tokens[0][0][1][1]['string'].strip('"'))
+      delta += timeInterval[1] - timeInterval[0]
+      originalTime = timeInterval
+      timeInterval = (timeInterval[0] - delta, timeInterval[1] - delta)
+    return evaluateTokens(tokens.expression, timeInterval, originalTime)
 
   elif tokens.pathExpression:
     pathExpr = tokens.pathExpression
-
     if pathExpr.lower().startswith('graphite.'):
       pathExpr = pathExpr[9:]
 
     seriesList = []
-    (startTime,endTime) = timeInterval
+    (startTime,endTime) = originalTime or timeInterval
 
     threads = []
     for dbFile in settings.STORE.find(pathExpr):
@@ -63,13 +67,15 @@ def evaluateTokens(tokens, timeInterval):
       (start,end,step) = timeInfo
       series = TimeSeries(dbFile.metric_path, start, end, step, values)
       series.pathExpression = pathExpr #hack to pass expressions through to render functions
+      series.start = time.mktime(startTime.timetuple())
+      series.end = time.mktime(endTime.timetuple())
       seriesList.append(series)
 
     return seriesList
 
   elif tokens.call:
     func = SeriesFunctions[tokens.call.func]
-    args = [evaluateTokens(arg, timeInterval) for arg in tokens.call.args]
+    args = [evaluateTokens(arg, timeInterval, originalTime) for arg in tokens.call.args]
     return func(*args)
 
   elif tokens.number:

@@ -453,7 +453,8 @@ var GraphDataWindow = {
                   {text: 'Derivative', handler: this.applyFuncToEach('derivative')},
                   {text: 'Integral', handler: this.applyFuncToEach('integral')},
                   {text: 'Non-negative Derivative', handler: this.applyFuncToEach('nonNegativeDerivative')},
-                  {text: 'Log', handler: this.applyFuncToEachWithInput('log', 'Please enter a base')}
+                  {text: 'Log', handler: this.applyFuncToEachWithInput('log', 'Please enter a base')},
+                  {text: 'timeShift', handler: this.applyFuncToEachWithInput('timeShift', 'Shift this metric ___ back in time')}
                 ]
               }, {
                 text: 'Calculate',

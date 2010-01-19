@@ -414,6 +414,11 @@ def dashed(*seriesList):
     series.options['dashed'] = dashLength
   return seriesList[0]
 
+def timeShift(seriesList, timeShift):
+  for series in seriesList:
+    series.name = 'timeShift(%s, %s)' % (series.name, timeShift)
+  return seriesList
+
 
 SeriesFunctions = {
   # Combine functions
@@ -432,6 +437,7 @@ SeriesFunctions = {
   'integral' : integral,
   'nonNegativeDerivative' : nonNegativeDerivative,
   'log' : log,
+  'timeShift': timeShift,
 
   # Calculate functions
   'movingAverage' : movingAverage,
