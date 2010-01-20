@@ -18,6 +18,7 @@ from calendar import timegm
 from urllib import unquote_plus
 from ConfigParser import SafeConfigParser
 from django.conf import settings
+from graphite.render.datatypes import TimeSeries
 
 colorAliases = {
   'black' : (0,0,0),
@@ -279,7 +280,7 @@ class LineGraph(Graph):
                  ('title','vtitle','lineMode','lineWidth','hideLegend', \
                   'hideAxes','minXStep','hideGrid','majorGridLineColor', \
                   'minorGridLineColor','thickness','min','max', \
-                  'graphOnly','yMin','yMax','yLimit','yStep','areaMode','drawNullAsZero','tz')
+                  'graphOnly','yMin','yMax','yLimit','yStep','areaMode','areaAlpha','drawNullAsZero','tz')
   validLineModes = ('staircase','slope')
   validAreaModes = ('none','first','all','stacked')
 
@@ -408,6 +409,16 @@ class LineGraph(Graph):
     self.ctx.clip()
     self.ctx.set_line_width(originalWidth)
 
+    if self.params.get('areaAlpha') and self.areaMode == 'first':
+      alphaSeries = TimeSeries(None, self.data[0].start, self.data[0].end, self.data[0].step, [x for x in self.data[0]])
+      alphaSeries.xStep = self.data[0].xStep
+      alphaSeries.color = self.data[0].color
+      try:
+        alphaSeries.options['alpha'] = float(self.params['areaAlpha'])
+      except ValueError:
+        pass
+      self.data.insert(0, alphaSeries)
+
     for series in self.data:
 
       if series.options.has_key('lineWidth'): # adjusts the lineWidth of this line if option is set on the series
@@ -420,7 +431,7 @@ class LineGraph(Graph):
 
       x = float(self.area['xmin']) + (self.lineWidth / 2.0)
       y = float(self.area['ymin'])
-      self.setColor( series.color )
+      self.setColor( series.color, series.options.get('alpha') or 1.0)
 
       fromNone = True
 
