@@ -280,9 +280,11 @@ class LineGraph(Graph):
                  ('title','vtitle','lineMode','lineWidth','hideLegend', \
                   'hideAxes','minXStep','hideGrid','majorGridLineColor', \
                   'minorGridLineColor','thickness','min','max', \
-                  'graphOnly','yMin','yMax','yLimit','yStep','areaMode','areaAlpha','drawNullAsZero','tz')
+                  'graphOnly','yMin','yMax','yLimit','yStep','areaMode','areaAlpha','drawNullAsZero','tz' \
+                  'pieMode')
   validLineModes = ('staircase','slope')
   validAreaModes = ('none','first','all','stacked')
+  validPieModes = ('maximum', 'minimum', 'average')
 
   def drawGraph(self,**params):
     #API compatibilty hacks first
@@ -313,6 +315,8 @@ class LineGraph(Graph):
     assert self.lineMode in self.validLineModes, "Invalid line mode!"
     self.areaMode = params.get('areaMode','none').lower()
     assert self.areaMode in self.validAreaModes, "Invalid area mode!"
+    self.pieMode = params.get('pieMode', 'maximum').lower()
+    assert self.pieMode in self.validPieModes, "Invalid pie mode!"
 
     for series in self.data:
       series.color = self.colors.next()

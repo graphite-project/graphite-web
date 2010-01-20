@@ -28,6 +28,7 @@ from graphite.remote_storage import HTTPConnectionWithTimeout
 from graphite.logger import log
 from graphite.render.evaluator import evaluateTarget
 from graphite.render.attime import parseATTime
+from graphite.render.functions import PieFunctions
 from graphite.render.glyph import GraphTypes
 from graphite.render.hashing import hashRequest, hashData
 
@@ -56,13 +57,27 @@ def renderView(request):
   # Now we prepare the requested data
   if requestOptions['graphType'] == 'pie':
     data = []
+    threads = []
     for target in requestOptions['targets']:
-      try:
-        name,value = target.split(':',1)
-        value = float(value)
-      except:
-        raise ValueError, "Invalid target '%s'" % target
-      data.append( (name,value) )
+      if target.find(':') >= 0:
+        try:
+          name,value = target.split(':',1)
+          value = float(value)
+        except:
+          raise ValueError, "Invalid target '%s'" % target
+        data.append( (name,value) )
+      else:
+        timeInterval = (requestOptions['startTime'], requestOptions['endTime'])
+        threads.append(getTarget(target, timeInterval))
+        threads[-1].start()
+
+    for thread in threads:
+      thread.join()
+      if thread.seriesList is None:
+        continue
+      for series in thread.seriesList:
+        func = PieFunctions[requestOptions['pieMode']]
+        data.append( (series.name, func(series) or 0 ))
 
   elif requestOptions['graphType'] == 'line':
     # Let's see if at least our data is cached
@@ -146,6 +161,7 @@ def parseOptions(request):
   # Fill in the requestOptions
   requestOptions['graphType'] = graphType
   requestOptions['graphClass'] = graphClass
+  requestOptions['pieMode'] = queryParams.get('pieMode', 'average')
   requestOptions['targets'] = []
   for target in queryParams.getlist('target'):
     if target.lower().startswith('graphite.'): #Strip leading "Graphite." as a convenience
@@ -174,7 +190,7 @@ def parseOptions(request):
       graphOptions[opt] = val
 
   # Get the time interval for time-oriented graph types
-  if graphType == 'line':
+  if graphType == 'line' or graphType == 'pie':
     if 'until' in queryParams:
       endTime = parseATTime( queryParams['until'] )
     else:

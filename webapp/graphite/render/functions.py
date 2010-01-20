@@ -419,6 +419,20 @@ def timeShift(seriesList, timeShift):
     series.name = 'timeShift(%s, %s)' % (series.name, timeShift)
   return seriesList
 
+def pieAverage(series):
+  return safeDiv(safeSum(series),safeLen(series))
+
+def pieMaximum(series):
+  return max(series)
+
+def pieMinimum(series):
+  return min(series)
+
+PieFunctions = {
+  'average' : pieAverage,
+  'maximum' : pieMaximum,
+  'minimum' : pieMinimum,
+}
 
 SeriesFunctions = {
   # Combine functions
