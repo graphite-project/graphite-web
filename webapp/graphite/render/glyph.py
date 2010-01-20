@@ -545,7 +545,7 @@ class LineGraph(Graph):
       yMaxValue = self.params['yLimit']
 
     if 'yMin' in self.params:
-      yMinvalue = self.params['yMin']
+      yMinValue = self.params['yMin']
 
     yVariance = yMaxValue - yMinValue
 
