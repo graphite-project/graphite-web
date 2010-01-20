@@ -65,6 +65,7 @@ def find_view(request):
   format = request.REQUEST.get('format', 'treejson')
   local_only = int( request.REQUEST.get('local', 0) )
   contexts = int( request.REQUEST.get('contexts', 0) )
+  wildcards = int( request.REQUEST.get('wildcards', 0) )
 
   try:
     query = str( request.REQUEST['query'] )
@@ -87,7 +88,7 @@ def find_view(request):
   matches.sort(key=lambda node: node.name)
 
   if format == 'treejson':
-    content = tree_json(matches, base_path, wildcards=profile.advancedUI, contexts=contexts)
+    content = tree_json(matches, base_path, wildcards=profile.advancedUI or wildcards, contexts=contexts)
     response = HttpResponse(content, mimetype='text/json')
 
   elif format == 'pickle':
