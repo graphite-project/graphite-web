@@ -125,7 +125,7 @@ def tree_json(nodes, base_path, wildcards=False, contexts=False):
   }
 
   #Add a wildcard node if appropriate
-  if len(nodes) > 2 and wildcards:
+  if len(nodes) > 1 and wildcards:
     wildcardNode = {'text' : '*', 'id' : base_path + '*'}
 
     if any(not n.isLeaf() for n in nodes):
