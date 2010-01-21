@@ -761,7 +761,7 @@ class PieGraph(Graph):
 
   def drawLabels(self):
     self.setFont()
-    self.setColor( self.foregroundColor )
+    self.setColor( 'black' )
     for slice in self.slices:
       if self.valueLabels == 'percent':
         if (slice['percent'] * 100.0) < self.valueLabelsMin: continue
@@ -778,7 +778,7 @@ class PieGraph(Graph):
       y = self.y0 + (self.radius / 2.0 * math.sin(theta))
       if theta > (math.pi / 2.0) and theta <= (3.0 * math.pi / 2.0):
         theta -= math.pi
-      self.drawText( label, x, y, align='center', valign='middle', rotate=math.degrees(theta) )
+      self.drawText( label, x, y, align='center', valign='middle')#, rotate=math.degrees(theta) )
 
 
 GraphTypes = {
