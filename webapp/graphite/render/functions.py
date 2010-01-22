@@ -272,10 +272,11 @@ def alias(seriesList,newName):
 
 def substr(seriesList, start=0, stop=0):
   for series in seriesList:
+    cleanName = series.name[series.name.rfind('(')+1:series.name.find(')'):]
     if int(stop) == 0:
-      series.name = '.'.join(series.name.split('.')[int(start)::]).strip(')')
+      series.name = '.'.join(cleanName.split('.')[int(start)::])
     else:
-      series.name = '.'.join(series.name.split('.')[int(start):int(stop):]).strip(')')
+      series.name = '.'.join(cleanName.split('.')[int(start):int(stop):])
   return seriesList
 
 def log(seriesList, base=10):
