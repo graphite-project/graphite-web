@@ -272,7 +272,11 @@ def alias(seriesList,newName):
 
 def substr(seriesList, start=0, stop=0):
   for series in seriesList:
-    cleanName = series.name[series.name.rfind('(')+1:series.name.find(')'):]
+    left = series.name.rfind('(') + 1
+    right = series.name.find(')')
+    if right < 0:
+      right = len(series.name)+1
+    cleanName = series.name[left:right:]
     if int(stop) == 0:
       series.name = '.'.join(cleanName.split('.')[int(start)::])
     else:
