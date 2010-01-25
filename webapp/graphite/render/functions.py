@@ -245,7 +245,7 @@ def integral(seriesList):
     results.append(newSeries)
   return results
 
-def nonNegativeDerivative(seriesList): # useful for watching counter metrics that occasionally wrap
+def nonNegativeDerivative(seriesList, maxValue=None): # useful for watching counter metrics that occasionally wrap
   results = []
   for series in seriesList:
     newValues = []
@@ -255,7 +255,13 @@ def nonNegativeDerivative(seriesList): # useful for watching counter metrics tha
         newValues.append(None)
         prev = val
         continue
-      newValues.append( max(val - prev, 0) )
+      diff = val - prev
+      if diff >= 0:
+        newValues.append(diff)
+      elif maxValue is not None and maxValue >= val:
+        newValues.append( prev + (maxValue - val) )
+      else:
+        newValues.append(None)
       prev = val
     newName = "nonNegativeDerivative(%s)" % series.name
     newSeries = TimeSeries(newName, series.start, series.end, series.step, newValues)
