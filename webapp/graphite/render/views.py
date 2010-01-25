@@ -17,7 +17,6 @@ from random import shuffle
 from httplib import CannotSendRequest
 from urlparse import urlsplit
 from cStringIO import StringIO
-import threading
 try:
   import cPickle as pickle
 except ImportError:
@@ -57,7 +56,6 @@ def renderView(request):
   # Now we prepare the requested data
   if requestOptions['graphType'] == 'pie':
     data = []
-    threads = []
     for target in requestOptions['targets']:
       if target.find(':') >= 0:
         try:
@@ -68,16 +66,11 @@ def renderView(request):
         data.append( (name,value) )
       else:
         timeInterval = (requestOptions['startTime'], requestOptions['endTime'])
-        threads.append(getTarget(target, timeInterval))
-        threads[-1].start()
+        seriesList = evaluateTarget(target, timeInterval)
 
-    for thread in threads:
-      thread.join()
-      if thread.seriesList is None:
-        continue
-      for series in thread.seriesList:
-        func = PieFunctions[requestOptions['pieMode']]
-        data.append( (series.name, func(series) or 0 ))
+        for series in seriesList:
+          func = PieFunctions[requestOptions['pieMode']]
+          data.append( (series.name, func(series) or 0 ))
 
   elif requestOptions['graphType'] == 'line':
     # Let's see if at least our data is cached
@@ -98,16 +91,11 @@ def renderView(request):
       data = cachedData
     else: # Have to actually retrieve the data now
       data = []
-      threads = []
+      timeInterval = (requestOptions['startTime'], requestOptions['endTime'])
       for target in requestOptions['targets']:
-        timeInterval = (requestOptions['startTime'], requestOptions['endTime'])
-        threads.append(getTarget(target, timeInterval))
-        threads[-1].start()
-      for thread in threads:
-        thread.join()
-        if thread.seriesList is None:
-          continue
-        data.extend(thread.seriesList)
+        t = time.time()
+        seriesList = evaluateTarget(target, timeInterval)
+        log.rendering("Retrieval of %s took %.6f" % (target, time.time() - t))
 
     if useCache:
       cache.set(dataKey, data)
@@ -304,14 +292,3 @@ def buildResponse(imageData):
   response['Cache-Control'] = 'no-cache'
   response['Pragma'] = 'no-cache'
   return response
-
-class getTarget(threading.Thread):
-  seriesList = None
-  def __init__ (self,target,timeInterval):
-    threading.Thread.__init__(self)
-    self.target = target
-    self.timeInterval = timeInterval
-  def run(self):
-    t = time()
-    self.seriesList = evaluateTarget(self.target, self.timeInterval)
-#    log.info("Retrieval of %s took %.6f" % (self.target,time() - t))

@@ -1,6 +1,5 @@
 import datetime
 import time
-import threading
 from django.conf import settings
 from graphite.render.attime import parseATTime
 from graphite.render.grammar import grammar
@@ -21,19 +20,6 @@ def evaluateTarget(target, timeInterval):
     return result
 
 
-class fetchData(threading.Thread):
-  def __init__ (self,timeInterval, dbFile):
-    threading.Thread.__init__(self)
-    self.timeInterval = timeInterval
-    self.dbFile = dbFile
-  def run(self):
-    t = time.time()
-    (startTime,endTime) = self.timeInterval
-    getCacheResults = CarbonLink.sendRequest(self.dbFile.real_metric)
-    dbResults = self.dbFile.fetch( timestamp(startTime), timestamp(endTime) )
-    self.results = mergeResults(dbResults, getCacheResults())
-#    log.info("Retrieval of %s took %.6f" % (self.dbFile.metric_path,time.time() - t))
-
 def evaluateTokens(tokens, timeInterval, originalTime = None):
   if tokens.expression:
     if tokens[0][0][0] == "timeShift":
@@ -51,15 +37,12 @@ def evaluateTokens(tokens, timeInterval, originalTime = None):
     seriesList = []
     (startTime,endTime) = originalTime or timeInterval
 
-    threads = []
     for dbFile in settings.STORE.find(pathExpr):
-      threads.append(fetchData(timeInterval, dbFile))
-      threads[-1].start()
+      log.metric_access(dbFile.metric_path)
+      getCacheResults = CarbonLink.sendRequest(dbFile.real_metric)
+      dbResults = dbFile.fetch( timestamp(startTime), timestamp(endTime) )
+      results = mergeResults(dbResults, getCacheResults())
 
-    for thread in threads:
-      thread.join()
-      results = thread.results
-      dbFile = thread.dbFile
       if not results:
         continue
 
