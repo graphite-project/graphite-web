@@ -307,8 +307,6 @@ class LineGraph(Graph):
       params['yMax'] = params['max']
     if 'lineWidth' not in params and 'thickness' in params:
       params['lineWidth'] = params['thickness']
-    if 'yLimit' in params and 'yMax' not in params:
-      params['yMax'] = params['yLimit']
     self.params = params
 
     #Now to setup our LineGraph specific options
@@ -546,6 +544,9 @@ class LineGraph(Graph):
 
     if 'yMax' in self.params:
       yMaxValue = self.params['yMax']
+
+    if 'yLimit' in self.params and self.params['yLimit'] < yMaxValue:
+      yMaxValue = self.params['yLimit']
 
     if 'yMin' in self.params:
       yMinValue = self.params['yMin']
