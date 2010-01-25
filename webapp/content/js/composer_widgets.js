@@ -452,7 +452,7 @@ var GraphDataWindow = {
                   {text: 'Offset', handler: this.applyFuncToEachWithInput('offset', 'Please enter the value to offset Y-values by')},
                   {text: 'Derivative', handler: this.applyFuncToEach('derivative')},
                   {text: 'Integral', handler: this.applyFuncToEach('integral')},
-                  {text: 'Non-negative Derivative', handler: this.applyFuncToEach('nonNegativeDerivative')},
+                  {text: 'Non-negative Derivative', handler: this.applyFuncToEachWithInput('nonNegativeDerivative', "Please enter a maximum value if this metric is a wrapping counter (or just leave this blank)",true)},
                   {text: 'Log', handler: this.applyFuncToEachWithInput('log', 'Please enter a base')},
                   {text: 'timeShift', handler: this.applyFuncToEachWithInput('timeShift', 'Shift this metric ___ back in time')}
                 ]
@@ -602,14 +602,14 @@ var GraphDataWindow = {
     return applyFunc;
   },
 
-  applyFuncToEachWithInput: function (funcName, question) {
+  applyFuncToEachWithInput: function (funcName, question, allowBlank) {
     function applyFunc() {
       Ext.MessageBox.prompt(
         "Input Required", //title
         question, //message
         function (button, inputValue) { //handler
-          if (button == 'ok' && inputValue != '') {
-            if (funcName == 'alias') { //SPECIAL CASE HACK
+          if (button == 'ok' && (allowBlank || inputValue != '')) {
+            if (funcName == 'alias' && inputValue != '') { //SPECIAL CASE HACK
               inputValue = '"' + inputValue + '"';
             }
             this.applyFuncToEach(funcName, inputValue)();
