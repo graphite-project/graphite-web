@@ -706,10 +706,11 @@ class LineGraph(Graph):
 
 class PieGraph(Graph):
   customizable = Graph.customizable + \
-                 ('title','valueLabels','valueLabelsMin','hideLegend')
+                 ('title','valueLabels','valueLabelsMin','hideLegend','pieLabels')
   validValueLabels = ('none','number','percent')
 
   def drawGraph(self,**params):
+    self.pieLabels = params.get('pieLabels', 'horizontal')
     self.total = sum( [t[1] for t in self.data] )
 
     self.slices = []
@@ -776,9 +777,13 @@ class PieGraph(Graph):
       theta = slice['midAngle']
       x = self.x0 + (self.radius / 2.0 * math.cos(theta))
       y = self.y0 + (self.radius / 2.0 * math.sin(theta))
-      if theta > (math.pi / 2.0) and theta <= (3.0 * math.pi / 2.0):
-        theta -= math.pi
-      self.drawText( label, x, y, align='center', valign='middle')#, rotate=math.degrees(theta) )
+
+      if self.pieLabels == 'rotated':
+        if theta > (math.pi / 2.0) and theta <= (3.0 * math.pi / 2.0):
+          theta -= math.pi
+        self.drawText( label, x, y, align='center', valign='middle', rotate=math.degrees(theta) )
+      else:
+        self.drawText( label, x, y, align='center', valign='middle')
 
 
 GraphTypes = {
@@ -786,7 +791,8 @@ GraphTypes = {
   'pie' : PieGraph,
 }
 
-#Convience functions ... put these in milton?
+
+#Convience functions
 def closest(number,neighbors):
   distance = None
   closestNeighbor = None
