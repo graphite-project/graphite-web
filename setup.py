@@ -2,7 +2,10 @@
 
 import os
 from glob import glob
-from distutils.core import setup
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
 
 
 storage_dirs = []
@@ -35,4 +38,5 @@ setup(
   package_data={'graphite' : ['templates/*', 'local_settings.py.example', 'render/graphTemplates.conf']},
   scripts=glob('bin/*'),
   data_files=webapp_content.items() + storage_dirs,
+  zip_safe=0,
 )
