@@ -119,7 +119,12 @@ if use_amqp:
   amqp_port = settings.get("AMQP_PORT", 5672)
   amqp_user = settings.get("AMQP_USER", "guest")
   amqp_password = settings.get("AMQP_PASSWORD", "guest")
-  amqp_verbose = settings.get("AMQP_VERBOSE", False)
+  amqp_verbose  = settings.get("AMQP_VERBOSE", False)
+  amqp_vhost    = settings.get("AMQP_VHOST", "/")
+  amqp_spec     = settings.get("AMQP_SPEC", None)
+  amqp_exchange_name = settings.get("AMQP_EXCHANGE", "graphite_exchange")
+  amqp_queue_name    = settings.get("AMQP_QUEUE_NAME", "graphite_queue")
+
 
 # --debug
 if options.debug:
@@ -156,7 +161,11 @@ startListener(settings.PICKLE_RECEIVER_INTERFACE, settings.PICKLE_RECEIVER_PORT,
 startListener(settings.CACHE_QUERY_INTERFACE, settings.CACHE_QUERY_PORT, CacheQueryHandler)
 
 if use_amqp:
-  amqp_listener.startReceiver(amqp_host, amqp_port, amqp_user, amqp_password, verbose=amqp_verbose)
+  amqp_listener.startReceiver(amqp_host, amqp_port, amqp_user, amqp_password,
+                              vhost=amqp_vhost, spec=amqp_spec,
+                              exchange_name=amqp_exchange_name,
+                              queue_name=amqp_queue_name,
+                              verbose=amqp_verbose)
 
 startWriter()
 startRecordingCacheMetrics()
