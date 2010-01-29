@@ -2,10 +2,14 @@
 
 import os
 from glob import glob
-from distutils.core import setup
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
 
 
-storage_dirs = [ ('storage/whisper',[]), ('storage/lists',[]), ('storage/log',[]), ('storage/rrd',[]) ]
+storage_dirs = [ ('storage/whisper',[]), ('storage/lists',[]),
+                 ('storage/log',[]), ('storage/rrd',[]) ]
 conf_files = [ ('conf', glob('conf/*')) ]
 
 setup(
@@ -20,4 +24,6 @@ setup(
   packages=['carbon'],
   scripts=glob('bin/*'),
   data_files=storage_dirs + conf_files,
+  install_requires=['twisted', 'txamqp'],
+  zip_safe=0,
 )
