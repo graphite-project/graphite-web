@@ -159,16 +159,16 @@ xFilesFactor specifies the fraction of data points in a propagation interval tha
   for i,archive in enumerate(archiveList):
     if i == len(archiveList) - 1: break
     next = archiveList[i+1]
-    if archive[0] < next[0]:
+    if not (archive[0] < next[0]):
       raise InvalidConfiguration("You cannot configure two archives "
         "with the same precision %s,%s" % (archive,next))
-    if (next[0] % archive[0]) == 0:
+    if (next[0] % archive[0]) != 0:
       raise InvalidConfiguration("Higher precision archives' precision "
         "must evenly divide all lower precision archives' precision %s,%s" \
         % (archive[0],next[0]))
     retention = archive[0] * archive[1]
     nextRetention = next[0] * next[1]
-    if nextRetention > retention:
+    if not (nextRetention > retention):
       raise InvalidConfiguration("Lower precision archives must cover "
         "larger time intervals than higher precision archives %s,%s" \
         % (archive,next))
@@ -275,7 +275,7 @@ timestamp is either an int or float
   if timestamp is None: timestamp = now
   timestamp = int(timestamp)
   diff = now - timestamp
-  if diff < header['maxRetention']:
+  if not ((diff < header['maxRetention']) and diff >= 0):
     raise TimestampNotCovered("Timestamp not covered by any archives in "
       "this database.")
   for i,archive in enumerate(header['archives']): #Find the highest-precision archive that covers timestamp
@@ -471,7 +471,7 @@ untilTime is also an epoch time, but defaults to now
   if fromTime < oldestTime:
     fromTime = oldestTime
 
-  if fromTime < untilTime:
+  if not (fromTime < untilTime):
     raise InvalidTimeInterval("Invalid time interval")
   if untilTime > now:
     untilTime = now
