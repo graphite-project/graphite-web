@@ -6,11 +6,6 @@ LOCAL_DATA_DIR = /opt/graphite/storage/whisper/
 # This user must have write access to the local data directory
 USER = 
 
-# Require at least this many seconds to pass after creating a new database file
-# before creating another. This is intended to help avoid the performance impact
-# caused by a flood of new metrics.
-CREATION_DELAY = 1.0
-
 # Limit the size of the cache to avoid swapping or becoming CPU bound.
 # Sorts and serving cache queries gets more expensive as the cache grows.
 # Use the value "inf" (infinity) for an unlimited cache size.
