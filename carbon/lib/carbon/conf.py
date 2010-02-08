@@ -18,7 +18,6 @@ from ConfigParser import ConfigParser
 defaults = dict(
   LOCAL_DATA_DIR="/opt/graphite/storage/whisper/",
   USER="",
-  CREATION_DELAY=1.0,
   MAX_CACHE_SIZE='inf',
   MAX_UPDATES_PER_SECOND=1000,
   MAX_CREATES_PER_MINUTE='inf',
@@ -64,7 +63,8 @@ class Settings(dict):
     self.update(defaults)
 
     parser = ConfigParser()
-    assert parser.read(path), "Failed to read config file %s" % path
+    if not parser.read(path):
+      raise Exception("Failed to read config file %s" % path)
 
     for key,value in parser.items(section):
       try:
