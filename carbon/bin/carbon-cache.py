@@ -33,7 +33,7 @@ from twisted.internet import reactor
 
 
 # Figure out where we're installed
-BIN_DIR = dirname(__file__)
+BIN_DIR = dirname( os.path.abspath(__file__) )
 ROOT_DIR = dirname(BIN_DIR)
 STORAGE_DIR = join(ROOT_DIR, 'storage')
 LOG_DIR = join(STORAGE_DIR, 'log', 'carbon-cache')
