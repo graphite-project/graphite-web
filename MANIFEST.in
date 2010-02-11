@@ -6,3 +6,4 @@ include webapp/graphite/local_settings.py.example
 include webapp/graphite/render/graphTemplates.conf
 recursive-include webapp/graphite/ *.html
 recursive-include webapp/content/ *
+exclude webapp/graphite/local_settings.py
