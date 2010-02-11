@@ -2,10 +2,11 @@
 
 import os
 from glob import glob
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+
+if os.environ.get('USE_SETUPTOOLS'):
+  from setuptools import setup
+else:
+  from distutils.core import setup
 
 
 storage_dirs = [ ('storage/whisper',[]), ('storage/lists',[]),
