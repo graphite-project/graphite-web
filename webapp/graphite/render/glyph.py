@@ -460,6 +460,7 @@ class LineGraph(Graph):
 
         else:
           y = self.area['ymax'] - ((float(value) - self.yBottom) * self.yScaleFactor)
+          if y < 0: y = 0 
 
           if series.options.has_key('drawAsInfinite') and value > 0:
             self.ctx.move_to(x, self.area['ymax'])
