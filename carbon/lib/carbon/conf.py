@@ -27,6 +27,8 @@ defaults = dict(
   PICKLE_RECEIVER_PORT=2004,
   CACHE_QUERY_INTERFACE='0.0.0.0',
   CACHE_QUERY_PORT=7002,
+  ENABLE_AMQP=False,
+  BIND_PATTERNS=['#'],
 )
 
 
@@ -67,6 +69,9 @@ class Settings(dict):
       raise Exception("Failed to read config file %s" % path)
 
     for key,value in parser.items(section):
+      if key.upper() == 'BIND_PATTERNS':
+        value = [ v.strip() for v in value.split(',') ]
+
       try:
         value = int(value)
       except:

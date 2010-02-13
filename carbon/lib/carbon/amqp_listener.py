@@ -36,6 +36,7 @@ except:
 import carbon.listeners #satisfy import order requirements
 from carbon.instrumentation import increment
 from carbon.events import metricReceived
+from carbon.conf import settings
 from carbon import log
 
 
@@ -56,21 +57,33 @@ class AMQPGraphiteProtocol(AMQClient):
 
     @inlineCallbacks
     def setup(self):
+        exchange = self.factory.exchange_name
+        queue = self.factory.queue_name
+
         yield self.authenticate(self.factory.username, self.factory.password)
         chan = yield self.channel(1)
         yield chan.channel_open()
 
-        yield chan.queue_declare(queue=self.factory.queue_name, durable=True,
-                                 exclusive=False, auto_delete=False)
-        yield chan.exchange_declare(
-            exchange=self.factory.exchange_name, type="topic", durable=True,
-            auto_delete=False)
+        # declare the exchange and queue
+        yield chan.exchange_declare(exchange=exchange, type="topic",
+                                    durable=True, auto_delete=False)
 
-        #XXX bind each configured metric pattern
-        yield chan.queue_bind(queue=self.factory.queue_name,
-                              exchange=self.factory.exchange_name) #XXX add routing_key
+        yield chan.queue_declare(queue=queue, durable=True, exclusive=False,
+                                 auto_delete=False)
 
-        yield chan.basic_consume(queue=self.factory.queue_name, no_ack=True,
+        # TODO clear any existing bindings
+        #for bind_pattern in ...: # is it possible to list current bindings?
+        #    yield chan.queue_unbind(exchange=exchange, queue=queue,
+        #                            routing_key=bind_pattern)
+
+        # bind each configured metric pattern
+        for bind_pattern in settings.BIND_PATTERNS:
+            log.listener("binding exchange '%s' to queue '%s' with pattern %s" \
+                         % (exchange, queue, bind_pattern))
+            yield chan.queue_bind(exchange=exchange, queue=queue,
+                                  routing_key=bind_pattern)
+
+        yield chan.basic_consume(queue=queue, no_ack=True,
                                  consumer_tag=self.consumer_tag)
     @inlineCallbacks
     def receive_loop(self):

@@ -54,6 +54,14 @@ CACHE_QUERY_PORT = 7002
 # Leave this commented out unless you really know what you're doing
 # AMQP_QUEUE_NAME = carbon.your-hostname
 
+# Patterns for all of the metrics this machine will store. Read more at
+# http://en.wikipedia.org/wiki/Advanced_Message_Queuing_Protocol#Bindings
+#
+# Example: store all sales, linux servers, and utilization metrics
+# BIND_PATTERNS = sales.#, servers.linux.#, #.utilization
+#
+# Example: store everything
+# BIND_PATTERNS = #
 
 # NOTE: you cannot run both a cache and a relay on the same server
 # with the default configuration, you have to specify a distinict
