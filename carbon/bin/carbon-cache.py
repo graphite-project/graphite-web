@@ -15,6 +15,7 @@ limitations under the License."""
 
 import sys
 import os
+import socket
 import pwd
 import optparse
 import atexit
@@ -22,6 +23,7 @@ from os.path import basename, dirname, exists, join, isdir
 
 
 program = basename( sys.argv[0] )
+hostname = socket.gethostname().split('.')[0]
 
 # Initialize twisted
 try:
@@ -122,13 +124,14 @@ if use_amqp:
   amqp_verbose  = settings.get("AMQP_VERBOSE", False)
   amqp_vhost    = settings.get("AMQP_VHOST", "/")
   amqp_spec     = settings.get("AMQP_SPEC", None)
-  amqp_exchange_name = settings.get("AMQP_EXCHANGE", "graphite_exchange")
-  amqp_queue_name    = settings.get("AMQP_QUEUE_NAME", "graphite_queue")
+  amqp_exchange_name = settings.get("AMQP_EXCHANGE", "graphite")
+  amqp_queue_name    = settings.get("AMQP_QUEUE_NAME", "carbon." + hostname)
 
 
 # --debug
 if options.debug:
   logToStdout()
+
 else:
   if not isdir(options.logdir):
     os.makedirs(options.logdir)

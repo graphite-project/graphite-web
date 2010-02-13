@@ -15,6 +15,7 @@ config file provided)
 """
 import sys
 import os
+import socket
 from optparse import OptionParser
 
 from twisted.internet.defer import inlineCallbacks
@@ -38,6 +39,8 @@ from carbon.events import metricReceived
 from carbon import log
 
 
+HOSTNAME = socket.gethostname().split('.')[0]
+
 
 class AMQPGraphiteProtocol(AMQClient):
     """This is the protocol instance that will receive and post metrics."""
@@ -57,14 +60,15 @@ class AMQPGraphiteProtocol(AMQClient):
         chan = yield self.channel(1)
         yield chan.channel_open()
 
-        yield chan.queue_declare(queue=self.factory.queue_name, durable=False,
-                                 exclusive=False, auto_delete=True)
+        yield chan.queue_declare(queue=self.factory.queue_name, durable=True,
+                                 exclusive=False, auto_delete=False)
         yield chan.exchange_declare(
-            exchange=self.factory.exchange_name, type="fanout", durable=False,
-            auto_delete=True)
+            exchange=self.factory.exchange_name, type="topic", durable=True,
+            auto_delete=False)
 
+        #XXX bind each configured metric pattern
         yield chan.queue_bind(queue=self.factory.queue_name,
-                              exchange=self.factory.exchange_name)
+                              exchange=self.factory.exchange_name) #XXX add routing_key
 
         yield chan.basic_consume(queue=self.factory.queue_name, no_ack=True,
                                  consumer_tag=self.consumer_tag)
@@ -82,12 +86,14 @@ class AMQPGraphiteProtocol(AMQClient):
         if self.factory.verbose:
             log.listener("Message received: %s" % (message,))
 
+        metric = message.routing_key
+
         for line in message.content.body.split("\n"):
             try:
-                metric, value, timestamp = line.strip().split()
+                value, timestamp = line.strip().split()
                 datapoint = ( float(timestamp), float(value) )
             except ValueError:
-                log.listener("wrong value in line: %s" % (line,))
+                log.listener("invalid message line: %s" % (line,))
                 continue
 
             increment('metricsReceived')
@@ -122,9 +128,8 @@ class AMQPReconnectingFactory(ReconnectingClientFactory):
         p.factory = self
         return p
 
-def startReceiver(host, port, username, password, vhost="/", spec=None,
-                  channel=1, exchange_name="graphite_exchange",
-                  queue_name="graphite_queue", verbose=False):
+def startReceiver(host, port, username, password, vhost, exchange_name,
+                  queue_name, spec=None, channel=1, verbose=False):
     """Starts a twisted process that will read messages on the amqp broker
     and post them as metrics."""
 
@@ -161,6 +166,14 @@ def main():
                       help="vhost", metavar="VHOST",
                       default="/")
 
+    parser.add_option("-e", "--exchange", dest="exchange",
+                      help="exchange", metavar="EXCHANGE",
+                      default="graphite")
+
+    parser.add_option("-q", "--queue", dest="queue",
+                      help="queue", metavar="QUEUE",
+                      default='carbon.' + HOSTNAME)
+
     parser.add_option("-v", "--verbose", dest="verbose",
                       help="verbose",
                       default=False, action="store_true")
@@ -171,6 +184,7 @@ def main():
     log.logToStdout()
     startReceiver(options.host, options.port, options.username,
                   options.password, vhost=options.vhost,
+                  exchange_name=options.exchange, queue_name=options.queue,
                   verbose=options.verbose)
     reactor.run()
 

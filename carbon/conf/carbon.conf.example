@@ -37,6 +37,24 @@ CACHE_QUERY_INTERFACE = 0.0.0.0
 CACHE_QUERY_PORT = 7002
 
 
+# Enable AMQP if you want to receve metrics using an amqp broker
+# ENABLE_AMQP = False
+
+# Verbose means a line will be logged for every metric received
+# useful for testing
+# AMQP_VERBOSE = False
+
+# AMQP_HOST = localhost
+# AMQP_PORT = 5672
+# AMQP_VHOST = /
+# AMQP_USER = guest
+# AMQP_PASSWORD = guest
+# AMQP_EXCHANGE = graphite
+
+# Leave this commented out unless you really know what you're doing
+# AMQP_QUEUE_NAME = carbon.your-hostname
+
+
 # NOTE: you cannot run both a cache and a relay on the same server
 # with the default configuration, you have to specify a distinict
 # interfaces and ports for the listeners.

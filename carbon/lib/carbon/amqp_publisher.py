@@ -4,8 +4,8 @@ Copyright 2009 Lucio Torre <lucio.torre@canonical.com>
 
 Will publish metrics over AMQP
 """
-
 import os
+import time
 from optparse import OptionParser
 
 from twisted.internet.defer import inlineCallbacks
@@ -16,20 +16,10 @@ from txamqp.client import TwistedDelegate
 from txamqp.content import Content
 import txamqp.spec
 
+
 @inlineCallbacks
-def gotConnection(conn, message, username, password,
-                  channel_number, exchange_name):
-    yield conn.authenticate(username, password)
-    channel = yield conn.channel(channel_number)
-    yield channel.channel_open()
-
-    msg = Content(message)
-    msg["delivery mode"] = 2
-    channel.basic_publish(exchange=exchange_name, content=msg)
-    yield channel.channel_close()
-
-def writeMetric(message, host, port, username, password, vhost,
-                spec= None, channel=1, exchange_name="graphite_exchange"):
+def writeMetric(metric_path, value, timestamp, host, port, username, password,
+                vhost, exchange, spec=None, channel_number=1):
 
     if not spec:
         spec = txamqp.spec.load(os.path.normpath(
@@ -37,17 +27,26 @@ def writeMetric(message, host, port, username, password, vhost,
 
     delegate = TwistedDelegate()
 
-    d = ClientCreator(reactor, AMQClient, delegate=delegate, vhost=vhost,
-        spec=spec).connectTCP(host, port)
+    connector = ClientCreator(reactor, AMQClient, delegate=delegate,
+                              vhost=vhost, spec=spec)
+    conn = yield connector.connectTCP(host, port)
 
-    d.addCallback(gotConnection, message, username, password,
-                  channel, exchange_name)
+    yield conn.authenticate(username, password)
+    channel = yield conn.channel(channel_number)
+    yield channel.channel_open()
 
-    return d
+    yield channel.exchange_declare(exchange=exchange, type="topic",
+                                   durable=True, auto_delete=False)
+
+    message = Content( "%f %d" % (value, timestamp) )
+    message["delivery mode"] = 2
+
+    channel.basic_publish(exchange=exchange, content=message, routing_key=metric_path)
+    yield channel.channel_close()
 
 
 def main():
-    parser = OptionParser()
+    parser = OptionParser(usage="%prog [options] <metric> <value> [timestamp]")
     parser.add_option("-t", "--host", dest="host",
                       help="host name", metavar="HOST", default="localhost")
 
@@ -67,12 +66,28 @@ def main():
                       help="vhost", metavar="VHOST",
                       default="/")
 
+    parser.add_option("-e", "--exchange", dest="exchange",
+                      help="exchange", metavar="EXCHANGE",
+                      default="graphite")
+
     (options, args) = parser.parse_args()
 
+    try:
+      metric_path = args[0]
+      value = float(args[1])
 
-    message = " ".join(args)
-    d = writeMetric(message, options.host, options.port, options.username,
-                  options.password, vhost=options.vhost)
+      if len(args) > 2:
+        timestamp = int(args[2])
+      else:
+        timestamp = time.time()
+
+    except:
+      parser.print_usage()
+      raise SystemExit(1)
+
+    d = writeMetric(metric_path, value, timestamp, options.host, options.port,
+                    options.username, options.password, vhost=options.vhost,
+                    exchange=options.exchange)
     d.addErrback(lambda f: f.printTraceback())
     d.addBoth(lambda _: reactor.stop())
     reactor.run()
