@@ -15,7 +15,7 @@ conf_files = [ ('conf', glob('conf/*')) ]
 
 setup(
   name='carbon',
-  version='0.9.5',
+  version='0.9.6',
   url='https://launchpad.net/graphite',
   author='Chris Davis',
   author_email='chrismd@gmail.com',
