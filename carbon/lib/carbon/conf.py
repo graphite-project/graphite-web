@@ -70,6 +70,8 @@ class Settings(dict):
       raise Exception("Failed to read config file %s" % path)
 
     for key,value in parser.items(section):
+      key = key.upper()
+
       # Detect type from defaults dict
       if key in defaults:
         valueType = type( defaults[key] )
@@ -92,7 +94,7 @@ class Settings(dict):
           except:
             pass
 
-      self[ key.upper() ] = value
+      self[key] = value
 
 
 settings = Settings()
