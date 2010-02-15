@@ -5,13 +5,18 @@ Copyright 2009 Lucio Torre <lucio.torre@canonical.com>
 This is an AMQP client that will connect to the specified broker and read
 messages, parse them, and post them as metrics.
 
-The message format is the same as in the TCP line protocol
-(METRIC, VALUE, TIMESTAMP) with the added possibility of putting multiple "\n"
-separated lines in one message.
+Each message's routing key should be a metric name.
+The message body should be one or more lines of the form:
 
-Can be started standalone for testing or using carbon-cache.py (see example
-config file provided)
+<value> <timestamp>\n
+<value> <timestamp>\n
+...
 
+Where each <value> is a real number and <timestamp> is a UNIX epoch time.
+
+
+This program can be started standalone for testing or using carbon-cache.py
+(see example config file provided)
 """
 import sys
 import os
