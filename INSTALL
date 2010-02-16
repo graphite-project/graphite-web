@@ -17,6 +17,7 @@ Graphite requires:
  whisper (available for download on the graphite project page)
  pycairo (with PNG backend support)
  django
+ json (standard in python2.6) or simplejson
  mod_python (optional - but highly recommended)
  python-ldap (optional - needed for ldap-based webapp authentication)
  python-memcached (optional - needed for webapp caching, big performance boost)
