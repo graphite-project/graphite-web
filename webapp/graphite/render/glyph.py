@@ -624,9 +624,11 @@ class LineGraph(Graph):
       def makeLabel(yValue): #TODO beautify this!
         yValue, prefix = format_units(yValue,
                 system=self.params.get('yUnitSystem'))
-        if self.ySpan > 10:
+        ySpan, spanPrefix = format_units(self.ySpan, 
+                system=self.params.get('yUnitSystem'))
+        if ySpan > 10 or spanPrefix != prefix:
           return "%d %s " % (int(yValue), prefix)
-        elif self.ySpan > 3:
+        elif ySpan > 3:
           return "%.1f %s " % (float(yValue), prefix)
         else:
           return "%.2f %s " % (float(yValue), prefix)
