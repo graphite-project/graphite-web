@@ -75,6 +75,21 @@ xAxisConfigs = (
   dict(seconds=864000,minorGridUnit=YEAR, minorGridStep=1,  majorGridUnit=YEAR, majorGridStep=1,  labelUnit=YEAR, labelStep=1,  format="%y"),
 )
 
+UNITTAB = {
+        'binary': (
+            ('Pi', 1024.0**5),
+            ('Ti', 1024.0**4),
+            ('Gi', 1024.0**3),
+            ('Mi', 1024.0**2),
+            ('Ki', 1024.0   )),
+        'si': (
+            ('P', 1000.0**5),
+            ('T', 1000.0**4),
+            ('G', 1000.0**3),
+            ('M', 1000.0**2),
+            ('K', 1000.0   ))
+        }
+
 
 class Graph:
   customizable = ('width','height','margin','bgcolor','fgcolor', \
@@ -280,8 +295,9 @@ class LineGraph(Graph):
                  ('title','vtitle','lineMode','lineWidth','hideLegend', \
                   'hideAxes','minXStep','hideGrid','majorGridLineColor', \
                   'minorGridLineColor','thickness','min','max', \
-                  'graphOnly','yMin','yMax','yLimit','yStep','areaMode','areaAlpha','drawNullAsZero','tz','YAxis' \
-                  'pieMode')
+                  'graphOnly','yMin','yMax','yLimit','yStep','areaMode', \
+                  'areaAlpha','drawNullAsZero','tz', 'YAxis','pieMode', \
+                  'yUnitSystem')
   validLineModes = ('staircase','slope')
   validAreaModes = ('none','first','all','stacked')
   validPieModes = ('maximum', 'minimum', 'average')
@@ -310,6 +326,8 @@ class LineGraph(Graph):
       params['lineWidth'] = params['thickness']
     if 'YAxis' not in params:
       params['YAxis'] = 'left'
+    if 'yUnitSystem' not in params:
+      params['yUnitSystem'] = 'si'
     self.params = params
     # When Y Axis is labeled on the right, we subtract x-axis positions from the max, 
     # instead of adding to the minimum
@@ -604,12 +622,14 @@ class LineGraph(Graph):
     if not self.params.get('hideAxes',False):
       #Create and measure the Y-labels
       def makeLabel(yValue): #TODO beautify this!
+        yValue, prefix = format_units(yValue,
+                system=self.params.get('yUnitSystem'))
         if self.ySpan > 10:
-          return "%d " % int(yValue)
+          return "%d %s " % (int(yValue), prefix)
         elif self.ySpan > 3:
-          return "%.1f " % float(yValue)
+          return "%.1f %s " % (float(yValue), prefix)
         else:
-          return "%.2f " % float(yValue)
+          return "%.2f %s " % (float(yValue), prefix)
       self.yLabelValues = list( frange(self.yBottom,self.yTop,self.yStep) )
       self.yLabels = map(makeLabel,self.yLabelValues)
       self.yLabelWidth = max([self.getExtents(label)['width'] for label in self.yLabels])
@@ -868,3 +888,20 @@ def tz_difference(tz):
   except:
     os.environ['TZ'] = settings.TIME_ZONE
   return tz_delta
+
+def format_units(v, system="si"):
+  """Format the given value in standardized units.
+
+  ``system`` is either 'binary' or 'si'
+  
+  For more info, see:
+    http://en.wikipedia.org/wiki/SI_prefix
+    http://en.wikipedia.org/wiki/Binary_prefix
+  """
+
+  for prefix, size in UNITTAB[system]:
+    if v >= size:
+      v /= size
+      return v, prefix
+
+  return v, ""
