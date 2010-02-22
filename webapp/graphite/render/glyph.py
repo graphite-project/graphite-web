@@ -902,7 +902,7 @@ def format_units(v, system="si"):
   """
 
   for prefix, size in UNITTAB[system]:
-    if v >= size:
+    if abs(v) >= size:
       v /= size
       return v, prefix
 
