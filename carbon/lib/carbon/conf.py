@@ -27,6 +27,9 @@ defaults = dict(
   PICKLE_RECEIVER_PORT=2004,
   CACHE_QUERY_INTERFACE='0.0.0.0',
   CACHE_QUERY_PORT=7002,
+  ENABLE_AMQP=False,
+  AMQP_VERBOSE=False,
+  BIND_PATTERNS=['#'],
 )
 
 
@@ -67,15 +70,31 @@ class Settings(dict):
       raise Exception("Failed to read config file %s" % path)
 
     for key,value in parser.items(section):
-      try:
-        value = int(value)
-      except:
-        try:
-          value = float(value)
-        except:
-          pass
+      key = key.upper()
 
-      self[ key.upper() ] = value
+      # Detect type from defaults dict
+      if key in defaults:
+        valueType = type( defaults[key] )
+      else:
+        valueType = str
+
+      if valueType is list:
+        value = [ v.strip() for v in value.split(',') ]
+
+      elif valueType is bool:
+        value = parser.getboolean(section, key)
+
+      else:
+        # Attempt to figure out numeric types automatically
+        try:
+          value = int(value)
+        except:
+          try:
+            value = float(value)
+          except:
+            pass
+
+      self[key] = value
 
 
 settings = Settings()

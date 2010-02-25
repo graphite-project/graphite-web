@@ -1,2 +1,3 @@
 recursive-include conf *
 include LICENSE
+include lib/carbon/amqp0-8.xml

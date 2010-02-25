@@ -5,16 +5,22 @@ Copyright 2009 Lucio Torre <lucio.torre@canonical.com>
 This is an AMQP client that will connect to the specified broker and read
 messages, parse them, and post them as metrics.
 
-The message format is the same as in the TCP line protocol
-(METRIC, VALUE, TIMESTAMP) with the added possibility of putting multiple "\n"
-separated lines in one message.
+Each message's routing key should be a metric name.
+The message body should be one or more lines of the form:
 
-Can be started standalone for testing or using carbon-cache.py (see example
-config file provided)
+<value> <timestamp>\n
+<value> <timestamp>\n
+...
 
+Where each <value> is a real number and <timestamp> is a UNIX epoch time.
+
+
+This program can be started standalone for testing or using carbon-cache.py
+(see example config file provided)
 """
 import sys
 import os
+import socket
 from optparse import OptionParser
 
 from twisted.internet.defer import inlineCallbacks
@@ -35,8 +41,11 @@ except:
 import carbon.listeners #satisfy import order requirements
 from carbon.instrumentation import increment
 from carbon.events import metricReceived
+from carbon.conf import settings
 from carbon import log
 
+
+HOSTNAME = socket.gethostname().split('.')[0]
 
 
 class AMQPGraphiteProtocol(AMQClient):
@@ -53,20 +62,28 @@ class AMQPGraphiteProtocol(AMQClient):
 
     @inlineCallbacks
     def setup(self):
+        exchange = self.factory.exchange_name
+
         yield self.authenticate(self.factory.username, self.factory.password)
         chan = yield self.channel(1)
         yield chan.channel_open()
 
-        yield chan.queue_declare(queue=self.factory.queue_name, durable=False,
-                                 exclusive=False, auto_delete=True)
-        yield chan.exchange_declare(
-            exchange=self.factory.exchange_name, type="fanout", durable=False,
-            auto_delete=True)
+        # declare the exchange and queue
+        yield chan.exchange_declare(exchange=exchange, type="topic",
+                                    durable=True, auto_delete=False)
 
-        yield chan.queue_bind(queue=self.factory.queue_name,
-                              exchange=self.factory.exchange_name)
+        # we use a private queue to avoid conflicting with existing bindings
+        reply = yield chan.queue_declare(exclusive=True)
+        my_queue = reply.queue
 
-        yield chan.basic_consume(queue=self.factory.queue_name, no_ack=True,
+        # bind each configured metric pattern
+        for bind_pattern in settings.BIND_PATTERNS:
+            log.listener("binding exchange '%s' to queue '%s' with pattern %s" \
+                         % (exchange, my_queue, bind_pattern))
+            yield chan.queue_bind(exchange=exchange, queue=my_queue,
+                                  routing_key=bind_pattern)
+
+        yield chan.basic_consume(queue=my_queue, no_ack=True,
                                  consumer_tag=self.consumer_tag)
     @inlineCallbacks
     def receive_loop(self):
@@ -82,16 +99,19 @@ class AMQPGraphiteProtocol(AMQClient):
         if self.factory.verbose:
             log.listener("Message received: %s" % (message,))
 
+        metric = message.routing_key
+
         for line in message.content.body.split("\n"):
             try:
-                metric, value, timestamp = line.strip().split()
+                value, timestamp = line.strip().split()
                 datapoint = ( float(timestamp), float(value) )
             except ValueError:
-                log.listener("wrong value in line: %s" % (line,))
+                log.listener("invalid message line: %s" % (line,))
                 continue
 
             increment('metricsReceived')
             metricReceived(metric, datapoint)
+
             if self.factory.verbose:
                 log.listener("Metric posted: %s %s %s" %
                              (metric, value, timestamp,))
@@ -106,7 +126,7 @@ class AMQPReconnectingFactory(ReconnectingClientFactory):
     protocol = AMQPGraphiteProtocol
 
     def __init__(self, username, password, delegate, vhost, spec, channel,
-                 exchange_name, queue_name, verbose):
+                 exchange_name, verbose):
         self.username = username
         self.password = password
         self.delegate = delegate
@@ -114,7 +134,6 @@ class AMQPReconnectingFactory(ReconnectingClientFactory):
         self.spec = spec
         self.channel = channel
         self.exchange_name = exchange_name
-        self.queue_name = queue_name
         self.verbose = verbose
 
     def buildProtocol(self, addr):
@@ -122,9 +141,8 @@ class AMQPReconnectingFactory(ReconnectingClientFactory):
         p.factory = self
         return p
 
-def startReceiver(host, port, username, password, vhost="/", spec=None,
-                  channel=1, exchange_name="graphite_exchange",
-                  queue_name="graphite_queue", verbose=False):
+def startReceiver(host, port, username, password, vhost, exchange_name,
+                  spec=None, channel=1, verbose=False):
     """Starts a twisted process that will read messages on the amqp broker
     and post them as metrics."""
 
@@ -135,7 +153,7 @@ def startReceiver(host, port, username, password, vhost="/", spec=None,
 
     delegate = TwistedDelegate()
     factory = AMQPReconnectingFactory(username, password, delegate, vhost,
-                                      spec, channel, exchange_name, queue_name,
+                                      spec, channel, exchange_name,
                                       verbose=verbose)
     reactor.connectTCP(host, port, factory)
 
@@ -161,6 +179,10 @@ def main():
                       help="vhost", metavar="VHOST",
                       default="/")
 
+    parser.add_option("-e", "--exchange", dest="exchange",
+                      help="exchange", metavar="EXCHANGE",
+                      default="graphite")
+
     parser.add_option("-v", "--verbose", dest="verbose",
                       help="verbose",
                       default=False, action="store_true")
@@ -171,7 +193,7 @@ def main():
     log.logToStdout()
     startReceiver(options.host, options.port, options.username,
                   options.password, vhost=options.vhost,
-                  verbose=options.verbose)
+                  exchange_name=options.exchange, verbose=options.verbose)
     reactor.run()
 
 if __name__ == "__main__":
