@@ -125,7 +125,6 @@ if use_amqp:
   amqp_vhost    = settings.get("AMQP_VHOST", "/")
   amqp_spec     = settings.get("AMQP_SPEC", None)
   amqp_exchange_name = settings.get("AMQP_EXCHANGE", "graphite")
-  amqp_queue_name    = settings.get("AMQP_QUEUE_NAME", "carbon." + hostname)
 
 
 # --debug
@@ -167,7 +166,6 @@ if use_amqp:
   amqp_listener.startReceiver(amqp_host, amqp_port, amqp_user, amqp_password,
                               vhost=amqp_vhost, spec=amqp_spec,
                               exchange_name=amqp_exchange_name,
-                              queue_name=amqp_queue_name,
                               verbose=amqp_verbose)
 
 startWriter()

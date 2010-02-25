@@ -51,9 +51,6 @@ CACHE_QUERY_PORT = 7002
 # AMQP_PASSWORD = guest
 # AMQP_EXCHANGE = graphite
 
-# Leave this commented out unless you really know what you're doing
-# AMQP_QUEUE_NAME = carbon.your-hostname
-
 # Patterns for all of the metrics this machine will store. Read more at
 # http://en.wikipedia.org/wiki/Advanced_Message_Queuing_Protocol#Bindings
 #

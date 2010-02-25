@@ -63,7 +63,6 @@ class AMQPGraphiteProtocol(AMQClient):
     @inlineCallbacks
     def setup(self):
         exchange = self.factory.exchange_name
-        queue = self.factory.queue_name
 
         yield self.authenticate(self.factory.username, self.factory.password)
         chan = yield self.channel(1)
@@ -73,22 +72,18 @@ class AMQPGraphiteProtocol(AMQClient):
         yield chan.exchange_declare(exchange=exchange, type="topic",
                                     durable=True, auto_delete=False)
 
-        yield chan.queue_declare(queue=queue, durable=True, exclusive=False,
-                                 auto_delete=False)
-
-        # TODO clear any existing bindings
-        #for bind_pattern in ...: # is it possible to list current bindings?
-        #    yield chan.queue_unbind(exchange=exchange, queue=queue,
-        #                            routing_key=bind_pattern)
+        # we use a private queue to avoid conflicting with existing bindings
+        reply = yield chan.queue_declare(exclusive=True)
+        my_queue = reply.queue
 
         # bind each configured metric pattern
         for bind_pattern in settings.BIND_PATTERNS:
             log.listener("binding exchange '%s' to queue '%s' with pattern %s" \
-                         % (exchange, queue, bind_pattern))
-            yield chan.queue_bind(exchange=exchange, queue=queue,
+                         % (exchange, my_queue, bind_pattern))
+            yield chan.queue_bind(exchange=exchange, queue=my_queue,
                                   routing_key=bind_pattern)
 
-        yield chan.basic_consume(queue=queue, no_ack=True,
+        yield chan.basic_consume(queue=my_queue, no_ack=True,
                                  consumer_tag=self.consumer_tag)
     @inlineCallbacks
     def receive_loop(self):
@@ -116,6 +111,7 @@ class AMQPGraphiteProtocol(AMQClient):
 
             increment('metricsReceived')
             metricReceived(metric, datapoint)
+
             if self.factory.verbose:
                 log.listener("Metric posted: %s %s %s" %
                              (metric, value, timestamp,))
@@ -130,7 +126,7 @@ class AMQPReconnectingFactory(ReconnectingClientFactory):
     protocol = AMQPGraphiteProtocol
 
     def __init__(self, username, password, delegate, vhost, spec, channel,
-                 exchange_name, queue_name, verbose):
+                 exchange_name, verbose):
         self.username = username
         self.password = password
         self.delegate = delegate
@@ -138,7 +134,6 @@ class AMQPReconnectingFactory(ReconnectingClientFactory):
         self.spec = spec
         self.channel = channel
         self.exchange_name = exchange_name
-        self.queue_name = queue_name
         self.verbose = verbose
 
     def buildProtocol(self, addr):
@@ -147,7 +142,7 @@ class AMQPReconnectingFactory(ReconnectingClientFactory):
         return p
 
 def startReceiver(host, port, username, password, vhost, exchange_name,
-                  queue_name, spec=None, channel=1, verbose=False):
+                  spec=None, channel=1, verbose=False):
     """Starts a twisted process that will read messages on the amqp broker
     and post them as metrics."""
 
@@ -158,7 +153,7 @@ def startReceiver(host, port, username, password, vhost, exchange_name,
 
     delegate = TwistedDelegate()
     factory = AMQPReconnectingFactory(username, password, delegate, vhost,
-                                      spec, channel, exchange_name, queue_name,
+                                      spec, channel, exchange_name,
                                       verbose=verbose)
     reactor.connectTCP(host, port, factory)
 
@@ -188,10 +183,6 @@ def main():
                       help="exchange", metavar="EXCHANGE",
                       default="graphite")
 
-    parser.add_option("-q", "--queue", dest="queue",
-                      help="queue", metavar="QUEUE",
-                      default='carbon.' + HOSTNAME)
-
     parser.add_option("-v", "--verbose", dest="verbose",
                       help="verbose",
                       default=False, action="store_true")
@@ -202,8 +193,7 @@ def main():
     log.logToStdout()
     startReceiver(options.host, options.port, options.username,
                   options.password, vhost=options.vhost,
-                  exchange_name=options.exchange, queue_name=options.queue,
-                  verbose=options.verbose)
+                  exchange_name=options.exchange, verbose=options.verbose)
     reactor.run()
 
 if __name__ == "__main__":
