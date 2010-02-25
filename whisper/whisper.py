@@ -53,6 +53,23 @@ archiveInfoSize = struct.calcsize(archiveInfoFormat)
 
 debug = startBlock = endBlock = lambda *a,**k: None
 
+
+class WhisperException(Exception):
+    """Base class for whisper exceptions."""
+
+
+class InvalidConfiguration(WhisperException):
+    """Invalid configuration."""
+
+
+class InvalidTimeInterval(WhisperException):
+    """Invalid time interval."""
+
+
+class TimestampNotCovered(WhisperException):
+    """Timestamp not covered by any archives in this database."""
+
+
 def enableDebug():
   global open, debug, startBlock, endBlock
   class open(file):
@@ -136,21 +153,28 @@ archiveList is a list of archives, each of which is of the form (secondsPerPoint
 xFilesFactor specifies the fraction of data points in a propagation interval that must have known values for a propagation to occur
 """
   #Validate archive configurations...
-  assert archiveList, "You must specify at least one archive configuration!"
+  if not archiveList:
+    raise InvalidConfiguration("You must specify at least one archive configuration!")
   archiveList.sort(key=lambda a: a[0]) #sort by precision (secondsPerPoint)
   for i,archive in enumerate(archiveList):
     if i == len(archiveList) - 1: break
     next = archiveList[i+1]
-    assert archive[0] < next[0],\
-    "You cannot configure two archives with the same precision %s,%s" % (archive,next)
-    assert (next[0] % archive[0]) == 0,\
-    "Higher precision archives' precision must evenly divide all lower precision archives' precision %s,%s" % (archive[0],next[0])
+    if not (archive[0] < next[0]):
+      raise InvalidConfiguration("You cannot configure two archives "
+        "with the same precision %s,%s" % (archive,next))
+    if (next[0] % archive[0]) != 0:
+      raise InvalidConfiguration("Higher precision archives' precision "
+        "must evenly divide all lower precision archives' precision %s,%s" \
+        % (archive[0],next[0]))
     retention = archive[0] * archive[1]
     nextRetention = next[0] * next[1]
-    assert nextRetention > retention,\
-    "Lower precision archives must cover larger time intervals than higher precision archives %s,%s" % (archive,next)
+    if not (nextRetention > retention):
+      raise InvalidConfiguration("Lower precision archives must cover "
+        "larger time intervals than higher precision archives %s,%s" \
+        % (archive,next))
   #Looks good, now we create the file and write the header
-  assert not os.path.exists(path), "File %s already exists!" % path
+  if os.path.exists(path):
+    raise InvalidConfiguration("File %s already exists!" % path)
   fh = open(path,'wb')
   if LOCK: fcntl.flock( fh.fileno(), fcntl.LOCK_EX )
   lastUpdate = struct.pack( timestampFormat, int(time.time()) )
@@ -251,7 +275,9 @@ timestamp is either an int or float
   if timestamp is None: timestamp = now
   timestamp = int(timestamp)
   diff = now - timestamp
-  assert diff < header['maxRetention'] and diff >= 0, "Timestamp not covered by any archives in this database"
+  if not ((diff < header['maxRetention']) and diff >= 0):
+    raise TimestampNotCovered("Timestamp not covered by any archives in "
+      "this database.")
   for i,archive in enumerate(header['archives']): #Find the highest-precision archive that covers timestamp
     if archive['retention'] < diff: continue
     lowerArchives = header['archives'][i+1:] #We'll pass on the update to these lower precision archives later
@@ -445,7 +471,8 @@ untilTime is also an epoch time, but defaults to now
   if fromTime < oldestTime:
     fromTime = oldestTime
 
-  assert fromTime < untilTime, "Invalid time interval"
+  if not (fromTime < untilTime):
+    raise InvalidTimeInterval("Invalid time interval")
   if untilTime > now:
     untilTime = now
   if untilTime < fromTime:

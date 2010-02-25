@@ -57,6 +57,17 @@ if django and django.VERSION[0] < 1:
   fatal += 1
 
 
+# Test for a json module
+try:
+  import json
+except ImportError:
+  try:
+    import simplejson
+  except ImportError:
+    print "[FATAL] Unable to import either the 'json' or 'simplejson' module, at least one is required."
+    fatal += 1
+
+
 # Test for mod_python
 try:
   import mod_python
