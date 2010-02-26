@@ -34,7 +34,8 @@ function createComposerWindow(myComposer) {
   ];
   if (GraphiteConfig.showMyGraphs) {
     var saveButton = createToolbarButton('Save to My Graphs', 'save.gif', saveMyGraph);
-    topToolbar.splice(0, 0, saveButton);
+    var deleteButton = createToolbarButton('Delete from My Graphs', 'delete.gif', deleteMyGraph);
+    topToolbar.splice(0, 0, saveButton, deleteButton);
   }
 
   var bottomToolbar = [
@@ -137,7 +138,7 @@ function createToolbarButton(tip, icon, handler) {
     style: "padding-left:10pt; background:transparent url(../content/img/" + icon + ") no-repeat scroll 0% 50%",
     handler: handler,
     handleMouseEvents: false,
-    text: "&nbsp; &nbsp; &nbsp; &nbsp;",
+    text: "&nbsp; &nbsp;",
     listeners: {
       render: function (button) {
         button.el.toolTip = new Ext.ToolTip({
@@ -366,6 +367,46 @@ function handleSaveMyGraphResponse(options, success, response) {
     msg: message,
     buttons: Ext.MessageBox.OK
   });
+}
+
+
+function deleteMyGraph() {
+
+  Ext.MessageBox.prompt(
+    "Delete a saved My Graph", //title
+    "Please enter the name of the My Graph you wish to delete", //prompt message
+    function (button, text) { //handler
+      if (button != 'ok') {
+        return;
+      }
+
+      if (!text) {
+        Ext.Msg.alert("Invalid My Graph name!");
+	return;
+      }
+
+      Browser.trees.mygraphs.reload();
+      //Send the request
+      Ext.Ajax.request({
+        method: 'GET',
+        url: '../composer/mygraph/',
+        params: {action: 'delete', graphName: text},
+        callback: function (options, success, response) {
+          var message = success ? "Graph deleted successfully" : "There was an error performing the operation.";
+
+          Ext.Msg.show({
+            title: 'Delete My Graph',
+            msg: message,
+            buttons: Ext.Msg.OK
+          });
+        }
+      });
+    },
+    this,   //scope
+    false,  //multiline
+    Composer.state.myGraphName ? Composer.state.myGraphName : "" //default value
+  );
+
 }
 
 /* Graph Data dialog  */

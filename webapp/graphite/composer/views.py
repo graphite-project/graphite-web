@@ -45,36 +45,51 @@ def composer(request):
   }
   return render_to_response("composer.html",context)
 
+
 def mygraph(request):
-  profile = getProfile(request,allowDefault=False)
-  if not profile: return HttpResponse( "You are not logged in!" )
+  profile = getProfile(request, allowDefault=False)
+
+  if not profile:
+    return HttpResponse( "You are not logged in!" )
+
+  action = request.GET['action']
   graphName = request.GET['graphName']
+
   if not graphName:
     return HttpResponse("You must type in a graph name.")
-  action = request.GET['action']
-  url = request.GET['url']
+
   if action == 'save':
+    url = request.GET['url']
+
     try:
       existingGraph = profile.mygraph_set.get(name=graphName)
       existingGraph.url = url
       existingGraph.save()
+
     except ObjectDoesNotExist:
       try:
         newGraph = MyGraph(profile=profile,name=graphName,url=url)
         newGraph.save()
+
       except:
         log.exception("Failed to create new MyGraph in /composer/mygraph/, graphName=%s" % graphName)
         return HttpResponse("Failed to save graph %s" % graphName)
+
     return HttpResponse("SAVED")
+
   elif action == 'delete':
     try:
       existingGraph = profile.mygraph_set.get(name=graphName)
       existingGraph.delete()
+
     except ObjectDoesNotExist:
       return HttpResponse("No such graph '%s'" % graphName)
+
     return HttpResponse("DELETED")
+
   else:
     return HttpResponse("Invalid operation '%s'" % action)
+
 
 def send_email(request):
   try:
