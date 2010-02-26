@@ -5,8 +5,11 @@ from glob import glob
 
 if os.environ.get('USE_SETUPTOOLS'):
   from setuptools import setup
+  setup_kwargs = dict(zip_safe=0)
+
 else:
   from distutils.core import setup
+  setup_kwargs = dict()
 
 
 storage_dirs = []
@@ -39,5 +42,5 @@ setup(
   package_data={'graphite' : ['templates/*', 'local_settings.py.example', 'render/graphTemplates.conf']},
   scripts=glob('bin/*'),
   data_files=webapp_content.items() + storage_dirs,
-  zip_safe=0,
+  **setup_kwargs
 )
