@@ -75,20 +75,21 @@ xAxisConfigs = (
   dict(seconds=864000,minorGridUnit=YEAR, minorGridStep=1,  majorGridUnit=YEAR, majorGridStep=1,  labelUnit=YEAR, labelStep=1,  format="%y"),
 )
 
-UNITTAB = {
-        'binary': (
-            ('Pi', 1024.0**5),
-            ('Ti', 1024.0**4),
-            ('Gi', 1024.0**3),
-            ('Mi', 1024.0**2),
-            ('Ki', 1024.0   )),
-        'si': (
-            ('P', 1000.0**5),
-            ('T', 1000.0**4),
-            ('G', 1000.0**3),
-            ('M', 1000.0**2),
-            ('K', 1000.0   ))
-        }
+UnitSystems = {
+  'binary': (
+    ('Pi', 1024.0**5),
+    ('Ti', 1024.0**4),
+    ('Gi', 1024.0**3),
+    ('Mi', 1024.0**2),
+    ('Ki', 1024.0   )),
+  'si': (
+    ('P', 1000.0**5),
+    ('T', 1000.0**4),
+    ('G', 1000.0**3),
+    ('M', 1000.0**2),
+    ('K', 1000.0   )),
+  'none' : [],
+}
 
 
 class Graph:
@@ -621,20 +622,27 @@ class LineGraph(Graph):
 
     if not self.params.get('hideAxes',False):
       #Create and measure the Y-labels
-      def makeLabel(yValue): #TODO beautify this!
+
+      def makeLabel(yValue):
         yValue, prefix = format_units(yValue,
                 system=self.params.get('yUnitSystem'))
+
         ySpan, spanPrefix = format_units(self.ySpan, 
                 system=self.params.get('yUnitSystem'))
+
         if ySpan > 10 or spanPrefix != prefix:
           return "%d %s " % (int(yValue), prefix)
+
         elif ySpan > 3:
           return "%.1f %s " % (float(yValue), prefix)
+
         else:
           return "%.2f %s " % (float(yValue), prefix)
+
       self.yLabelValues = list( frange(self.yBottom,self.yTop,self.yStep) )
       self.yLabels = map(makeLabel,self.yLabelValues)
       self.yLabelWidth = max([self.getExtents(label)['width'] for label in self.yLabels])
+
       if self.params.get('YAxis') == 'left': #scoot the graph over to the left just enough to fit the y-labels
         xMin = self.margin + (self.yLabelWidth * 1.02)
         if self.area['xmin'] < xMin:
@@ -901,7 +909,7 @@ def format_units(v, system="si"):
     http://en.wikipedia.org/wiki/Binary_prefix
   """
 
-  for prefix, size in UNITTAB[system]:
+  for prefix, size in UnitSystems[system]:
     if abs(v) >= size:
       v /= size
       return v, prefix
