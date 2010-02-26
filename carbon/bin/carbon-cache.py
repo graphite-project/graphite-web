@@ -44,6 +44,16 @@ LIB_DIR = join(ROOT_DIR, 'lib')
 
 sys.path.insert(0, LIB_DIR)
 
+# Capture useful debug info for this commonly reported problem
+try:
+  import carbon
+except ImportError:
+  print 'Failed to import carbon, debug information follows.'
+  print 'pwd=%s' % os.getcwd()
+  print 'sys.path=%s' % sys.path
+  print '__file__=%s' % __file__
+  sys.exit(1)
+
 
 # Import application components
 from carbon.conf import settings
