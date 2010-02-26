@@ -13,12 +13,12 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 # Django settings for graphite project.
 # DO NOT MODIFY THIS FILE DIRECTLY - use local_settings.py instead
-import sys
+import sys, os
 from os.path import join, dirname, abspath
 
 DEBUG = False
 
-#Filesystem layout (all directores should end in a /)
+# Filesystem layout (all directores should end in a /)
 WEB_DIR = dirname( abspath(__file__) ) + '/'
 WEBAPP_DIR = dirname( dirname(WEB_DIR) ) + '/'
 GRAPHITE_ROOT = dirname( dirname(WEBAPP_DIR) ) + '/'
@@ -31,6 +31,8 @@ INDEX_FILE = STORAGE_DIR + 'index'
 WHITELIST_FILE = LISTS_DIR + 'whitelist'
 LOG_DIR = STORAGE_DIR + 'log/webapp/'
 CLUSTER_SERVERS = []
+
+sys.path.insert(0, WEBAPP_DIR)
 
 try:
   import rrdtool
@@ -76,7 +78,14 @@ DATABASE_HOST = ''				# Set to empty string for localhost. Not used with sqlite3
 DATABASE_PORT = ''				# Set to empty string for default. Not used with sqlite3.
 
 #Default Store configuration and templates
-from graphite.storage import Store
+try:
+  from graphite.storage import Store
+except ImportError:
+  print 'Failed to import graphite.storage module, debug information follows.'
+  print '__file__ = %s' % __file__
+  print 'sys.path = %s' % sys.path
+  print 'pwd = %s' % os.getcwd()
+  raise SystemExit(1)
 
 LOCAL_STORE = Store(DATA_DIRS)
 STORE = Store(DATA_DIRS, remote_hosts=CLUSTER_SERVERS)
