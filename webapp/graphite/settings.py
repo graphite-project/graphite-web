@@ -77,7 +77,15 @@ DATABASE_PASSWORD = ''				# Not used with sqlite3.
 DATABASE_HOST = ''				# Set to empty string for localhost. Not used with sqlite3.
 DATABASE_PORT = ''				# Set to empty string for default. Not used with sqlite3.
 
-#Default Store configuration and templates
+
+#Pull in overrides from local_settings.py
+try:
+  from graphite.local_settings import *
+except ImportError:
+  print >> sys.stderr, "Could not import graphite.local_settings, using defaults!"
+
+
+#Configure our Store and templates
 try:
   from graphite.storage import Store
 except ImportError:
@@ -93,13 +101,6 @@ STORE = Store(DATA_DIRS, remote_hosts=CLUSTER_SERVERS)
 TEMPLATE_DIRS = (
   join(WEB_DIR, 'templates'),
 )
-
-
-#Pull in overrides from local_settings.py
-try:
-  from graphite.local_settings import *
-except ImportError:
-  print >> sys.stderr, "Could not import graphite.local_settings, using defaults!"
 
 
 #Django settings below, do not touch!
