@@ -35,7 +35,7 @@ def evaluateTokens(tokens, timeInterval, originalTime = None):
       pathExpr = pathExpr[9:]
 
     seriesList = []
-    (startTime,endTime) = originalTime or timeInterval
+    (startTime,endTime) = timeInterval
 
     for dbFile in settings.STORE.find(pathExpr):
       log.metric_access(dbFile.metric_path)
@@ -50,6 +50,8 @@ def evaluateTokens(tokens, timeInterval, originalTime = None):
       (start,end,step) = timeInfo
       series = TimeSeries(dbFile.metric_path, start, end, step, values)
       series.pathExpression = pathExpr #hack to pass expressions through to render functions
+      if originalTime is not None:
+         (startTime,endTime) = originalTime
       series.start = time.mktime(startTime.timetuple())
       series.end = time.mktime(endTime.timetuple())
       seriesList.append(series)
