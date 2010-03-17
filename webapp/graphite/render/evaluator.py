@@ -27,6 +27,8 @@ def evaluateTokens(tokens, timeInterval, originalTime = None):
       delta += timeInterval[1] - timeInterval[0]
       originalTime = timeInterval
       timeInterval = (timeInterval[0] - delta, timeInterval[1] - delta)
+    else:
+      originalTime = None
     return evaluateTokens(tokens.expression, timeInterval, originalTime)
 
   elif tokens.pathExpression:
