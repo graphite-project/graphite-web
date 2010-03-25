@@ -35,7 +35,7 @@ def get_loadavg():
     command = "uptime"
     process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
     os.waitpid(process.pid, 0)
-    output = process.stdout.read().strip().split()
+    output = process.stdout.read().replace(',', ' ').strip().split()
     length = len(output)
     return output[length - 3:length]
 
