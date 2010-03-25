@@ -13,7 +13,7 @@ you know which you are missing. Download and install these modules and re-run
 check-dependencies.py until it detects all the required modules.
 
 Graphite requires:
- python2.4 or greater
+ python2.4 or greater (python 2.5 or greater is required for AMQP support)
  whisper (available for download on the graphite project page)
  pycairo (with PNG backend support)
  django

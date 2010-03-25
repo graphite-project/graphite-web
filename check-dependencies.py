@@ -123,6 +123,16 @@ except:
   warning += 1
 
 
+# Test for txamqp
+try:
+  import txamqp
+except:
+  print "[WARNING]"
+  print "Unable to import the 'txamqp' module, this is required if you want to use AMQP."
+  print "Note that txamqp requires python 2.5 or greater."
+  warning += 1
+
+
 if fatal:
   print "%d necessary dependencies not met. Graphite will not function until these dependencies are fulfilled." % fatal
 
