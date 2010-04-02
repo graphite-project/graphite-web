@@ -624,10 +624,10 @@ class LineGraph(Graph):
       #Create and measure the Y-labels
 
       def makeLabel(yValue):
-        yValue, prefix = format_units(yValue,
+        yValue, prefix = format_units(yValue, self.yStep,
                 system=self.params.get('yUnitSystem'))
 
-        ySpan, spanPrefix = format_units(self.ySpan, 
+        ySpan, spanPrefix = format_units(self.ySpan, self.yStep,
                 system=self.params.get('yUnitSystem'))
 
         if ySpan > 10 or spanPrefix != prefix:
@@ -899,7 +899,7 @@ def tz_difference(tz):
     os.environ['TZ'] = settings.TIME_ZONE
   return tz_delta
 
-def format_units(v, system="si"):
+def format_units(v, step, system="si"):
   """Format the given value in standardized units.
 
   ``system`` is either 'binary' or 'si'
@@ -910,7 +910,7 @@ def format_units(v, system="si"):
   """
 
   for prefix, size in UnitSystems[system]:
-    if abs(v) >= size:
+    if abs(v) >= size and step >= size:
       v /= size
       return v, prefix
 
