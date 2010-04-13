@@ -27,6 +27,8 @@ class MetricCache(dict):
     if self.size >= settings.MAX_CACHE_SIZE:
       return
 
+    metric = '.'join( metric.split('.') ) # normalize the path
+
     try: # This is a hackish but very efficient technique for concurrent dict access without locking (the GIL does it for me)
       datapoints = dict.pop(self, metric)
     except KeyError:
