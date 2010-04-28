@@ -24,6 +24,7 @@ from os.path import basename, dirname, exists, join, isdir
 
 program = basename( sys.argv[0] )
 hostname = socket.gethostname().split('.')[0]
+os.umask(022)
 
 # Initialize twisted
 try:
