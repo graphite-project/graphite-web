@@ -94,6 +94,8 @@ def mergeResults(dbResults, cacheResults):
 
   for (timestamp,value) in cacheResults:
     interval = timestamp - (timestamp % step)
+    if interval < start:
+      continue
 
     try:
       i = int(interval - start) / step
