@@ -107,6 +107,15 @@ elif action == 'status':
     print "%s is not running" % program
     raise SystemExit(0)
 
+elif action != 'start':
+  parser.print_usage()
+  raise SystemExit(1)
+
+
+if exists(options.pidfile):
+  print "Pidfile %s already exists, is %s already running?" % (options.pidfile, program)
+  raise SystemExit(1)
+
 
 # Read config (we want failures to occur before daemonizing)
 settings.readFrom(options.config, 'relay')
