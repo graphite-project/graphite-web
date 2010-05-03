@@ -182,26 +182,24 @@ def offset(seriesList,factor):
         series[i] = value + factor
   return seriesList
 
-def movingAverage(seriesList,time):
-  count = 0
-  for series in seriesList:
-    movAvg = TimeSeries("movingAverage(%s,%.1f)" % (series.name,float(time)),series.start,series.end,series.step,[])
-    movAvg.pathExpression = "movingAverage(%s,%.1f)" % (series.name,float(time))
-    avg = safeDiv(safeSum(series[:time]), time)
-    movAvg.append(avg)
-    for (index, el) in enumerate(series[time:]):
-      if el is None:
-        continue
-      toDrop = series[index]
-      if toDrop is None:
-        toDrop = 0
-      s = safeSum([safeMul(time, avg), el, -toDrop])
-      avg = safeDiv(s, time)
-      movAvg.append(avg)
-    for i in range(0, time-1):
-      movAvg.insert(0, None)
-    seriesList[count] = movAvg
-    count = count + 1
+def movingAverage(seriesList, windowSize):
+  for seriesIndex, series in enumerate(seriesList):
+    newName = "movingAverage(%s,%.1f)" % (series.name, float(windowSize))
+    newSeries = TimeSeries(newName, series.start, series.end, series.step, [])
+    newSeries.pathExpression = newName
+
+    windowIndex = windowSize - 1
+
+    for i in range( len(series) ):
+      if i < windowIndex: # Pad the beginning with None's since we don't have enough data
+        newSeries.append( None )
+
+      else:
+        window = series[i - windowIndex : i + 1]
+        newSeries.append( safeDiv(safeSum(window), windowSize) )
+
+    seriesList[ seriesIndex ] = newSeries
+
   return seriesList
 
 def cumulative(seriesList):
