@@ -51,7 +51,7 @@ class MetricPickleSender(Int32StringReceiver):
   def flushQueue(self):
     while (not self.paused) and self.queue:
       datapoints = self.queue[:MAX_DATAPOINTS_PER_MESSAGE]
-      self.queue = self.queue[MAX_DATAPOINTS_PER_MESSAGE:]
+      self.queue = self.factory.queue = self.queue[MAX_DATAPOINTS_PER_MESSAGE:]
       self.sendString( pickle.dumps(datapoints) )
       increment(self.sent, len(datapoints))
 
