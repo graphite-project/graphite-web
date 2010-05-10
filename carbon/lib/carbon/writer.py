@@ -92,7 +92,7 @@ def writeCachedDataPoints():
           raise Exception("No storage schema matched the metric '%s', check your storage-schemas.conf file.")
 
         dbDir = dirname(dbFilePath)
-        os.system("mkdir -p '%s'" % dbDir)
+        os.system("mkdir -p -m 755 '%s'" % dbDir)
 
         log.creates("creating database file %s" % dbFilePath)
         whisper.create(dbFilePath, archiveConfig)
