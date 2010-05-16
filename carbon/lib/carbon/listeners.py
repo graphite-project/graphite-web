@@ -44,6 +44,8 @@ class MetricLineReceiver(LoggingMixin, LineOnlyReceiver):
 
 
 class MetricPickleReceiver(LoggingMixin, Int32StringReceiver):
+  MAX_LENGTH = 2 ** 20
+
   def stringReceived(self, data):
     try:
       datapoints = pickle.loads(data)
