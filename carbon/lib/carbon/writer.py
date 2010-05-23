@@ -130,7 +130,7 @@ def writeCachedDataPoints():
 
     # Avoid churning CPU when only new metrics are in the cache
     if not dataWritten:
-      time.sleep(0.1)
+      time.sleep(1)
 
 
 def createMetaFile(metric, schema, path):
