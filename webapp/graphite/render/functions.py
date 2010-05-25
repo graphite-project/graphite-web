@@ -196,7 +196,11 @@ def movingAverage(seriesList, windowSize):
 
       else:
         window = series[i - windowIndex : i + 1]
-        newSeries.append( safeDiv(safeSum(window), windowSize) )
+        nonNull = [ v for v in window if v is not None ]
+        if nonNull:
+          newSeries.append( sum(nonNull) / len(nonNull) )
+        else:
+          newSeries.append(None)
 
     seriesList[ seriesIndex ] = newSeries
 
