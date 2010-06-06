@@ -35,8 +35,7 @@ class MetricLineReceiver(LoggingMixin, LineOnlyReceiver):
       metric, value, timestamp = line.strip().split()
       datapoint = ( float(timestamp), float(value) )
     except:
-      log.listener('invalid line received from client %s, disconnecting' % self.peerAddr)
-      self.transport.loseConnection()
+      log.listener('invalid line received from client %s, ignoring' % self.peerAddr)
       return
 
     increment('metricsReceived')
@@ -50,8 +49,7 @@ class MetricPickleReceiver(LoggingMixin, Int32StringReceiver):
     try:
       datapoints = pickle.loads(data)
     except:
-      log.listener('invalid pickle received from client %s, disconnecting' % self.peerAddr)
-      self.transport.loseConnection()
+      log.listener('invalid pickle received from client %s, ignoring' % self.peerAddr)
       return
 
     for (metric, datapoint) in datapoints:
