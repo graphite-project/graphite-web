@@ -52,10 +52,6 @@ def evaluateTokens(tokens, timeInterval, originalTime = None):
       (start,end,step) = timeInfo
       series = TimeSeries(dbFile.metric_path, start, end, step, values)
       series.pathExpression = pathExpr #hack to pass expressions through to render functions
-      if originalTime is not None:
-         (startTime,endTime) = originalTime
-      series.start = time.mktime(startTime.timetuple())
-      series.end = time.mktime(endTime.timetuple())
       seriesList.append(series)
 
     return seriesList
@@ -94,8 +90,6 @@ def mergeResults(dbResults, cacheResults):
 
   for (timestamp,value) in cacheResults:
     interval = timestamp - (timestamp % step)
-    if interval < start:
-      continue
 
     try:
       i = int(interval - start) / step
