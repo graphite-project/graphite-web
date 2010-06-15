@@ -979,10 +979,18 @@ function createOptionsMenu() {
     ]
   });
 
+  var yAxisMenu = new Ext.menu.Menu({
+    items: [
+      menuInputItem("Label", "vtitle"),
+      menuInputItem("Minimum", "yMin"),
+      menuInputItem("Maximum", "yMax")
+    ]
+  });
+
   return new Ext.menu.Menu({
     items: [
       menuInputItem("Graph Title", "title"),
-      menuInputItem("Y Axis Label", "vtitle"),
+      {text: "Y Axis", menu: yAxisMenu},
       menuInputItem("Line Thickness", "lineWidth"),
       {text: "Area Mode", menu: areaMenu},
       menuCheckItem("Alpha Masking", "template", "alphas"),
