@@ -15,6 +15,7 @@ limitations under the License."""
 from graphite.render.datatypes import TimeSeries
 from itertools import izip
 import math
+import re
 
 #Utility functions
 def safeSum(values):
@@ -432,6 +433,17 @@ def timeShift(seriesList, timeShift):
     series.name = 'timeShift(%s, %s)' % (series.name, timeShift)
   return seriesList
 
+def group(*seriesLists):
+  seriesGroup = []
+  for s in seriesLists:
+    seriesGroup.extend(s)
+
+  return seriesGroup
+
+def exclude(seriesList, pattern):
+  regex = re.compile(pattern)
+  return [s for s in seriesList if not regex.search(s.name)]
+
 def pieAverage(series):
   return safeDiv(safeSum(series),safeLen(series))
 
@@ -496,4 +508,6 @@ SeriesFunctions = {
   'lineWidth' : lineWidth,
   'dashed' : dashed,
   'substr' : substr,
+  'group' : group,
+  'exclude' : exclude,
 }
