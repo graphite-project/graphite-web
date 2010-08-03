@@ -18,7 +18,7 @@ from calendar import timegm
 from urllib import unquote_plus
 from ConfigParser import SafeConfigParser
 from django.conf import settings
-from graphite.render.datatypes import TimeSeries
+from graphite.render.datalib import TimeSeries
 
 colorAliases = {
   'black' : (0,0,0),

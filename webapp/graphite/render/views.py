@@ -41,6 +41,12 @@ def renderView(request):
   start = time()
   (graphOptions, requestOptions) = parseOptions(request)
   useCache = 'noCache' not in requestOptions
+  requestContext = {
+    'startTime' : requestOptions['startTime'],
+    'endTime' : requestOptions['endTime'],
+    'data' : []
+  }
+  data = requestContext['data']
 
   # First we check the request cache
   if useCache:
@@ -55,7 +61,6 @@ def renderView(request):
 
   # Now we prepare the requested data
   if requestOptions['graphType'] == 'pie':
-    data = []
     for target in requestOptions['targets']:
       if target.find(':') >= 0:
         try:
@@ -65,12 +70,11 @@ def renderView(request):
           raise ValueError, "Invalid target '%s'" % target
         data.append( (name,value) )
       else:
-        timeInterval = (requestOptions['startTime'], requestOptions['endTime'])
-        seriesList = evaluateTarget(target, timeInterval)
+        seriesList = evaluateTarget(requestContext, target)
 
         for series in seriesList:
           func = PieFunctions[requestOptions['pieMode']]
-          data.append( (series.name, func(series) or 0 ))
+          data.append( (series.name, func(requestContext, series) or 0 ))
 
   elif requestOptions['graphType'] == 'line':
     # Let's see if at least our data is cached
@@ -88,13 +92,11 @@ def renderView(request):
       cachedData = None
 
     if cachedData is not None:
-      data = cachedData
+      requestContext['data'] = data = cachedData
     else: # Have to actually retrieve the data now
-      data = []
-      timeInterval = (requestOptions['startTime'], requestOptions['endTime'])
       for target in requestOptions['targets']:
         t = time()
-        seriesList = evaluateTarget(target, timeInterval)
+        seriesList = evaluateTarget(requestContext, target)
         log.rendering("Retrieval of %s took %.6f" % (target, time() - t))
         data.extend(seriesList)
 
@@ -173,7 +175,7 @@ def parseOptions(request):
       elif '.' in val and (val.replace('.','',1).isdigit() or (val.startswith('-') and val[1:].replace('.','',1).isdigit())):
         val = float(val)
       elif val.lower() in ('true','false'):
-        val = eval( val.lower().capitalize() )
+        val = val.lower() == 'true'
       elif val.lower() == 'default' or val == '':
         continue
       graphOptions[opt] = val

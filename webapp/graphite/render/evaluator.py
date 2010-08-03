@@ -1,17 +1,14 @@
 import datetime
 import time
 from django.conf import settings
-from graphite.render.attime import parseATTime
 from graphite.render.grammar import grammar
 from graphite.render.functions import SeriesFunctions
-from graphite.render.datatypes import TimeSeries
-from graphite.render.carbonlink import CarbonLink
-from graphite.logger import log
+from graphite.render.datalib import fetchData, TimeSeries
 
 
-def evaluateTarget(target, timeInterval):
+def evaluateTarget(requestContext, target):
   tokens = grammar.parseString(target)
-  result = evaluateTokens(tokens, timeInterval)
+  result = evaluateTokens(requestContext, tokens)
 
   if type(result) is TimeSeries:
     return [result] #we have to return a list of TimeSeries objects
@@ -20,46 +17,17 @@ def evaluateTarget(target, timeInterval):
     return result
 
 
-def evaluateTokens(tokens, timeInterval, originalTime = None):
+def evaluateTokens(requestContext, tokens):
   if tokens.expression:
-    if tokens[0][0][0] == "timeShift":
-      delta = timeInterval[0] - parseATTime(tokens[0][0][1][1]['string'].strip('"'))
-      delta += timeInterval[1] - timeInterval[0]
-      originalTime = timeInterval
-      timeInterval = (timeInterval[0] - delta, timeInterval[1] - delta)
-    else:
-      originalTime = None
-    return evaluateTokens(tokens.expression, timeInterval, originalTime)
+    return evaluateTokens(requestContext, tokens.expression)
 
   elif tokens.pathExpression:
-    pathExpr = tokens.pathExpression
-    if pathExpr.lower().startswith('graphite.'):
-      pathExpr = pathExpr[9:]
-
-    seriesList = []
-    (startTime,endTime) = timeInterval
-
-    for dbFile in settings.STORE.find(pathExpr):
-      log.metric_access(dbFile.metric_path)
-      getCacheResults = CarbonLink.sendRequest(dbFile.real_metric)
-      dbResults = dbFile.fetch( timestamp(startTime), timestamp(endTime) )
-      results = mergeResults(dbResults, getCacheResults())
-
-      if not results:
-        continue
-
-      (timeInfo,values) = results
-      (start,end,step) = timeInfo
-      series = TimeSeries(dbFile.metric_path, start, end, step, values)
-      series.pathExpression = pathExpr #hack to pass expressions through to render functions
-      seriesList.append(series)
-
-    return seriesList
+    return fetchData(requestContext, tokens.pathExpression)
 
   elif tokens.call:
     func = SeriesFunctions[tokens.call.func]
-    args = [evaluateTokens(arg, timeInterval, originalTime) for arg in tokens.call.args]
-    return func(*args)
+    args = [evaluateTokens(requestContext, arg) for arg in tokens.call.args]
+    return func(requestContext, *args)
 
   elif tokens.number:
     if tokens.number.integer:
@@ -70,31 +38,3 @@ def evaluateTokens(tokens, timeInterval, originalTime = None):
 
   elif tokens.string:
     return str(tokens.string)[1:-1]
-
-
-def timestamp(datetime):
-  "Convert a datetime object into epoch time"
-  return time.mktime( datetime.timetuple() )
-
-
-def mergeResults(dbResults, cacheResults):
-  cacheResults = list(cacheResults)
-
-  if not dbResults:
-    return cacheResults
-  elif not cacheResults:
-    return dbResults
-
-  (timeInfo,values) = dbResults
-  (start,end,step) = timeInfo
-
-  for (timestamp,value) in cacheResults:
-    interval = timestamp - (timestamp % step)
-
-    try:
-      i = int(interval - start) / step
-      values[i] = value
-    except:
-      pass
-
-  return (timeInfo,values)

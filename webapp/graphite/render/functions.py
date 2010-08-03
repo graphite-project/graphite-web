@@ -12,7 +12,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
-from graphite.render.datatypes import TimeSeries
+from graphite.render.datalib import fetchData, TimeSeries
+from graphite.render.attime import parseATTime
 from itertools import izip
 import math
 import re
@@ -72,7 +73,7 @@ def normalize(seriesLists):
 #in practice this *shouldn't* matter because all series will cover
 #the same interval, despite having possibly different steps...
 
-def sumSeries(*seriesLists):
+def sumSeries(requestContext, *seriesLists):
   try:
     (seriesList,start,end,step) = normalize(seriesLists)
   except:
@@ -84,7 +85,7 @@ def sumSeries(*seriesLists):
   series.pathExpression = name
   return [series]
 
-def sumSeriesWithWildcards(seriesList, *position):
+def sumSeriesWithWildcards(requestContext, seriesList, *position): #XXX
   if type(position) is int:
     positions = [position]
   else:
@@ -99,7 +100,7 @@ def sumSeriesWithWildcards(seriesList, *position):
     newSeries[newname].name = newname
   return newSeries.values()
 
-def averageSeriesWithWildcards(seriesList, *position):
+def averageSeriesWithWildcards(requestContext, seriesList, *position): #XXX
   if type(position) is int:
     positions = [position]
   else:
@@ -116,7 +117,7 @@ def averageSeriesWithWildcards(seriesList, *position):
     result[-1].name = name
   return result
 
-def diffSeries(*seriesLists):
+def diffSeries(requestContext, *seriesLists):
   (seriesList,start,end,step) = normalize(seriesLists)
   name = "diffSeries(%s)" % ','.join(set([s.pathExpression for s in seriesList]))
   values = ( safeDiff(row) for row in izip(*seriesList) )
@@ -124,7 +125,7 @@ def diffSeries(*seriesLists):
   series.pathExpression = name
   return [series]
 
-def averageSeries(*seriesLists):
+def averageSeries(requestContext, *seriesLists):
   (seriesList,start,end,step) = normalize(seriesLists)
   #name = "averageSeries(%s)" % ','.join((s.name for s in seriesList))
   name = "averageSeries(%s)" % ','.join(set([s.pathExpression for s in seriesList]))
@@ -133,7 +134,7 @@ def averageSeries(*seriesLists):
   series.pathExpression = name
   return [series]
 
-def keepLastValue(seriesList):
+def keepLastValue(requestContext, seriesList):
   for series in seriesList:
     series.name = "keepLastValue(%s)" % (series.name)
     for i,value in enumerate(series):
@@ -142,7 +143,7 @@ def keepLastValue(seriesList):
       series[i] = value
   return seriesList
 
-def asPercent(seriesList1,seriesList2orNumber):
+def asPercent(requestContext, seriesList1, seriesList2orNumber):
   assert len(seriesList1) == 1, "asPercent series arguments must reference *exactly* 1 series"
   series1 = seriesList1[0]
   if type(seriesList2orNumber) is list:
@@ -168,14 +169,14 @@ def asPercent(seriesList1,seriesList2orNumber):
   series.pathExpression = name
   return [series]
 
-def scale(seriesList,factor):
+def scale(requestContext, seriesList, factor):
   for series in seriesList:
     series.name = "scale(%s,%.1f)" % (series.name,float(factor))
     for i,value in enumerate(series):
       series[i] = safeMul(value,factor)
   return seriesList
 
-def offset(seriesList,factor):
+def offset(requestContext, seriesList, factor):
   for series in seriesList:
     series.name = "offset(%s,%.1f)" % (series.name,float(factor))
     for i,value in enumerate(series):
@@ -183,7 +184,7 @@ def offset(seriesList,factor):
         series[i] = value + factor
   return seriesList
 
-def movingAverage(seriesList, windowSize):
+def movingAverage(requestContext, seriesList, windowSize):
   for seriesIndex, series in enumerate(seriesList):
     newName = "movingAverage(%s,%.1f)" % (series.name, float(windowSize))
     newSeries = TimeSeries(newName, series.start, series.end, series.step, [])
@@ -207,13 +208,13 @@ def movingAverage(seriesList, windowSize):
 
   return seriesList
 
-def cumulative(seriesList):
+def cumulative(requestContext, seriesList):
   for series in seriesList:
     series.consolidationFunc = 'sum'
     series.name = 'cumulative(%s)' % series.name
   return seriesList
 
-def derivative(seriesList):
+def derivative(requestContext, seriesList):
   results = []
   for series in seriesList:
     newValues = []
@@ -231,7 +232,7 @@ def derivative(seriesList):
     results.append(newSeries)
   return results
 
-def integral(seriesList):
+def integral(requestContext, seriesList):
   results = []
   for series in seriesList:
     newValues = []
@@ -248,7 +249,7 @@ def integral(seriesList):
     results.append(newSeries)
   return results
 
-def nonNegativeDerivative(seriesList, maxValue=None): # useful for watching counter metrics that occasionally wrap
+def nonNegativeDerivative(requestContext, seriesList, maxValue=None): # useful for watching counter metrics that occasionally wrap
   results = []
   for series in seriesList:
     newValues = []
@@ -273,13 +274,13 @@ def nonNegativeDerivative(seriesList, maxValue=None): # useful for watching coun
   return results
 
 
-def alias(seriesList,newName):
+def alias(requestContext, seriesList, newName):
   for series in seriesList:
     series.name = newName
   return seriesList
 
 
-def substr(seriesList, start=0, stop=0):
+def substr(requestContext, seriesList, start=0, stop=0):
   for series in seriesList:
     left = series.name.rfind('(') + 1
     right = series.name.find(')')
@@ -292,7 +293,8 @@ def substr(seriesList, start=0, stop=0):
       series.name = '.'.join(cleanName.split('.')[int(start):int(stop):])
   return seriesList
 
-def log(seriesList, base=10):
+
+def log(requestContext, seriesList, base=10):
   results = []
   for series in seriesList:
     newValues = []
@@ -307,61 +309,64 @@ def log(seriesList, base=10):
     results.append(newSeries)
   return results
 
-def maximumAbove(seriesList, n):
+
+def maximumAbove(requestContext, seriesList, n):
   results = []
   for series in seriesList:
     if max(series) >= n:
       results.append(series)
   return results
 
-def maximumBelow(seriesList, n):
+
+def maximumBelow(requestContext, seriesList, n):
   result = []
   for series in seriesList:
     if max(series) <= n:
       result.append(series)
   return result
 
-def highestCurrent(seriesList, n):
+
+def highestCurrent(requestContext, seriesList, n):
   return sorted( seriesList, key=safeLast )[-n:]
 
-def lowestCurrent(seriesList, n):
+def lowestCurrent(requestContext, seriesList, n):
   return sorted( seriesList, key=safeLast )[:n]
 
-def currentAbove(seriesList, n):
+def currentAbove(requestContext, seriesList, n):
   return [ series for series in seriesList if safeLast(series) >= n ]
 
-def currentBelow(seriesList, n):
+def currentBelow(requestContext, seriesList, n):
   return [ series for series in seriesList if safeLast(series) <= n ]
 
-def highestAverage(seriesList, n):
+def highestAverage(requestContext, seriesList, n):
   return sorted( seriesList, key=lambda s: safeDiv(safeSum(s),safeLen(s)) )[-n:]
 
-def lowestAverage(seriesList, n):
+def lowestAverage(requestContext, seriesList, n):
   return sorted( seriesList, key=lambda s: safeDiv(safeSum(s),safeLen(s)) )[:n]
 
-def averageAbove(seriesList, n):
+def averageAbove(requestContext, seriesList, n):
   return [ series for series in seriesList if safeDiv(safeSum(series),safeLen(series)) >= n ]
 
-def averageBelow(seriesList, n):
+def averageBelow(requestContext, seriesList, n):
   return [ series for series in seriesList if safeDiv(safeSum(series),safeLen(series)) <= n ]
 
-def limit(seriesList, n):
+def limit(requestContext, seriesList, n):
   return seriesList[0:n]
 
-def sortByMaxima(seriesList):
+def sortByMaxima(requestContext, seriesList):
   def compare(x,y):
     return cmp(max(y), max(x))
   seriesList.sort(compare)
   return seriesList
 
-def sortByMinima(seriesList):
+def sortByMinima(requestContext, seriesList):
   def compare(x,y):
     return cmp(min(x), min(y))
   newSeries = [series for series in seriesList if max(series) > 0]
   newSeries.sort(compare)
   return newSeries
 
-def mostDeviant(n, seriesList):
+def mostDeviant(requestContext, n, seriesList):
   deviants = []
   for series in seriesList:
     mean = safeDiv( safeSum(series), safeLen(series) )
@@ -379,7 +384,7 @@ def doStdDev(sumOfSquares, first, new, n, avg):
    newSumOfSquares = sumOfSquares - (first * first) + (new * new)
    return (math.sqrt((newSumOfSquares / float(n)) - (avg * avg)), newSumOfSquares)
 
-def stdev(seriesList,time):
+def stdev(requestContext, seriesList,time):
   count = 0
   for series in seriesList:
     stddevs = TimeSeries("stddev(%s,%.1f)" % (series.name,float(time)),series.start,series.end,series.step,[])
@@ -407,18 +412,18 @@ def stdev(seriesList,time):
     count = count + 1
   return seriesList
 
-def drawAsInfinite(seriesList):
+def drawAsInfinite(requestContext, seriesList):
   for series in seriesList:
     series.options['drawAsInfinite'] = True
     series.name = 'drawAsInfinite(%s)' % series.name
   return seriesList
 
-def lineWidth(seriesList, width):
+def lineWidth(requestContext, seriesList, width):
   for series in seriesList:
     series.options['lineWidth'] = width
   return seriesList
 
-def dashed(*seriesList):
+def dashed(requestContext, *seriesList):
   if len(seriesList) == 2:
     dashLength = seriesList[1]
   else:
@@ -428,29 +433,35 @@ def dashed(*seriesList):
     series.options['dashed'] = dashLength
   return seriesList[0]
 
-def timeShift(seriesList, timeShift):
+
+def timeShift(requestContext, seriesList, timeShift):
+  delta = parseATTime(timeShift)
+  shiftedStart = requestContext['startTime'] - delta
+  shiftedEnd = requestContext['endTime'] - delta
+
   for series in seriesList:
     series.name = 'timeShift(%s, %s)' % (series.name, timeShift)
   return seriesList
 
-def group(*seriesLists):
+
+def group(requestContext, *seriesLists):
   seriesGroup = []
   for s in seriesLists:
     seriesGroup.extend(s)
 
   return seriesGroup
 
-def exclude(seriesList, pattern):
+def exclude(requestContext, seriesList, pattern):
   regex = re.compile(pattern)
   return [s for s in seriesList if not regex.search(s.name)]
 
-def pieAverage(series):
+def pieAverage(requestContext, series):
   return safeDiv(safeSum(series),safeLen(series))
 
-def pieMaximum(series):
+def pieMaximum(requestContext, series):
   return max(series)
 
-def pieMinimum(series):
+def pieMinimum(requestContext, series):
   return min(series)
 
 PieFunctions = {
