@@ -12,7 +12,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
-from graphite.render.datalib import fetchData, TimeSeries
+from graphite.render.datalib import fetchData, TimeSeries, timestamp
 from graphite.render.attime import parseATTime
 from itertools import izip
 import math
@@ -444,6 +444,14 @@ def timeShift(requestContext, seriesList, timeShift):
   return seriesList
 
 
+def constantLine(requestContext, value):
+  start = timestamp( requestContext['startTime'] )
+  end = timestamp( requestContext['endTime'] )
+  step = end - start
+  series = TimeSeries(str(value), start, end, step, [value])
+  return [series]
+
+
 def group(requestContext, *seriesLists):
   seriesGroup = []
   for s in seriesLists:
@@ -521,4 +529,5 @@ SeriesFunctions = {
   'substr' : substr,
   'group' : group,
   'exclude' : exclude,
+  'constantLine' : constantLine,
 }
