@@ -27,6 +27,7 @@ colorAliases = {
   'green' : (0,200,0),
   'red' : (200,00,50),
   'yellow' : (255,255,0),
+  'orange' : (255, 165, 0),
   'purple' : (200,100,255),
   'brown' : (150,100,50),
   'aqua' : (0,150,150),
@@ -344,7 +345,8 @@ class LineGraph(Graph):
     assert self.pieMode in self.validPieModes, "Invalid pie mode!"
 
     for series in self.data:
-      series.color = self.colors.next()
+      if not hasattr(series, 'color'):
+        series.color = self.colors.next()
 
     titleSize = self.defaultFontParams['size'] + math.floor( math.log(self.defaultFontParams['size']) )
     self.setFont( size=titleSize )

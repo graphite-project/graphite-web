@@ -452,6 +452,15 @@ def constantLine(requestContext, value):
   return [series]
 
 
+def threshold(requestContext, value, color, label=None):
+  series = constantLine(requestContext, value)[0]
+  series.color = color
+  if label:
+    series.name = label
+
+  return [series]
+
+
 def group(requestContext, *seriesLists):
   seriesGroup = []
   for s in seriesLists:
@@ -530,4 +539,5 @@ SeriesFunctions = {
   'group' : group,
   'exclude' : exclude,
   'constantLine' : constantLine,
+  'threshold' : threshold,
 }
