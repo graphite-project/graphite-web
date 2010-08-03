@@ -452,11 +452,12 @@ def constantLine(requestContext, value):
   return [series]
 
 
-def threshold(requestContext, value, color, label=None):
+def threshold(requestContext, value, label=None, color=None):
   series = constantLine(requestContext, value)[0]
-  series.color = color
   if label:
     series.name = label
+  if color:
+    series.color = color
 
   return [series]
 
