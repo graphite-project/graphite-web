@@ -11,7 +11,8 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
-from time import time
+import csv
+from time import time, strftime, localtime
 from datetime import datetime, timedelta
 from random import shuffle
 from httplib import CannotSendRequest
@@ -112,6 +113,17 @@ def renderView(request):
       log.rendering('Total pickle rendering time %.6f' % (time() - start))
       return response
 
+    if requestOptions.get('format') == 'csv':
+      response = HttpResponse(mimetype='text/csv')
+      writer = csv.writer(response, dialect='excel')
+
+      for series in data:
+        for i, value in enumerate(series):
+          timestamp = localtime( series.start + (i * series.step) )
+          writer.writerow( (series.name, strftime("%Y-%m-%d %H:%M:%S", timestamp), value) )
+
+      return response
+
     if 'rawData' in requestOptions:
       response = HttpResponse(mimetype='text/plain')
       for series in data:
@@ -163,6 +175,8 @@ def parseOptions(request):
     requestOptions['pickle'] = True
   if 'rawData' in queryParams:
     requestOptions['rawData'] = True
+  if 'format' in queryParams:
+    requestOptions['format'] = queryParams['format']
   if 'noCache' in queryParams:
     requestOptions['noCache'] = True
 
