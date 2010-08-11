@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 from graphite.render.datalib import fetchData, TimeSeries, timestamp
-from graphite.render.attime import parseATTime
+from graphite.render.attime import parseTimeOffset
 from itertools import izip
 import math
 import re
@@ -435,12 +435,16 @@ def dashed(requestContext, *seriesList):
 
 
 def timeShift(requestContext, seriesList, timeShift):
-  delta = parseATTime(timeShift)
-  shiftedStart = requestContext['startTime'] - delta
-  shiftedEnd = requestContext['endTime'] - delta
+  delta = abs( parseTimeOffset(timeShift) )
+  myContext = requestContext.copy()
+  myContext['startTime'] = requestContext['startTime'] - delta
+  myContext['endTime'] = requestContext['endTime'] - delta
 
-  for series in seriesList:
-    series.name = 'timeShift(%s, %s)' % (series.name, timeShift)
+  for i,series in enumerate(seriesList):
+    shiftedSeries = fetchData(myContext, series.pathExpression)[0]
+    shiftedSeries.name = 'timeShift(%s, %s)' % (series.name, timeShift)
+    seriesList[i] = shiftedSeries
+
   return seriesList
 
 
