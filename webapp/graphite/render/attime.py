@@ -97,11 +97,19 @@ def parseTimeReference(ref):
     raise Exception, "Unknown day reference"
   return refDate
 
+
 def parseTimeOffset(offset):
-  if not offset: return timedelta()
+  if not offset:
+    return timedelta()
+
   t = timedelta()
-  sign = { '+' : 1, '-' : -1 }[offset[0]]
-  offset = offset[1:]
+
+  if offset[0].isdigit():
+    sign = 1
+  else:
+    sign = { '+' : 1, '-' : -1 }[offset[0]]
+    offset = offset[1:]
+
   while offset:
     i = 1
     while offset[:i].isdigit() and i <= len(offset): i += 1
@@ -119,7 +127,9 @@ def parseTimeOffset(offset):
       unitString = 'days'
       num = num * 365
     t += timedelta(**{ unitString : sign * num})
+
   return t
+
 
 def getUnitString(s):
   if s.startswith('s'): return 'seconds'
