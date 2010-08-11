@@ -493,9 +493,9 @@ var GraphDataWindow = {
                   {text: 'Offset', handler: this.applyFuncToEachWithInput('offset', 'Please enter the value to offset Y-values by')},
                   {text: 'Derivative', handler: this.applyFuncToEach('derivative')},
                   {text: 'Integral', handler: this.applyFuncToEach('integral')},
-                  {text: 'Non-negative Derivative', handler: this.applyFuncToEachWithInput('nonNegativeDerivative', "Please enter a maximum value if this metric is a wrapping counter (or just leave this blank)",true)},
+                  {text: 'Non-negative Derivative', handler: this.applyFuncToEachWithInput('nonNegativeDerivative', "Please enter a maximum value if this metric is a wrapping counter (or just leave this blank)", {allowBlank: true})},
                   {text: 'Log', handler: this.applyFuncToEachWithInput('log', 'Please enter a base')},
-                  {text: 'timeShift', handler: this.applyFuncToEachWithInput('timeShift', 'Shift this metric ___ back in time')}
+                  {text: 'timeShift', handler: this.applyFuncToEachWithInput('timeShift', 'Shift this metric ___ back in time (examples: 10min, 7d, 2w)', {quote: true})}
                 ]
               }, {
                 text: 'Calculate',
@@ -525,7 +525,7 @@ var GraphDataWindow = {
               }, {
                 text: 'Special',
                 menu: [
-                  {text: 'Set Legend Name', handler: this.applyFuncToEachWithInput('alias', 'Enter a legend label for this graph target')},
+                  {text: 'Set Legend Name', handler: this.applyFuncToEachWithInput('alias', 'Enter a legend label for this graph target', {quote: true})},
                   {text: 'Aggregate By Sum', handler: this.applyFuncToEach('cumulative')},
                   {text: 'Draw non-zero As Infinite', handler: this.applyFuncToEach('drawAsInfinite')},
                   {text: 'Line Width', handler: this.applyFuncToEachWithInput('lineWidth', 'Please enter a line width for this graph target')},
@@ -643,14 +643,18 @@ var GraphDataWindow = {
     return applyFunc;
   },
 
-  applyFuncToEachWithInput: function (funcName, question, allowBlank) {
+  applyFuncToEachWithInput: function (funcName, question, options) {
+    if (options == null) {
+      options = {};
+    }
+
     function applyFunc() {
       Ext.MessageBox.prompt(
         "Input Required", //title
         question, //message
         function (button, inputValue) { //handler
-          if (button == 'ok' && (allowBlank || inputValue != '')) {
-            if (funcName == 'alias' && inputValue != '') { //SPECIAL CASE HACK
+          if (button == 'ok' && (options.allowBlank || inputValue != '')) {
+            if (options.quote) {
               inputValue = '"' + inputValue + '"';
             }
             this.applyFuncToEach(funcName, inputValue)();
