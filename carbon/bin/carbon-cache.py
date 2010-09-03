@@ -155,9 +155,11 @@ else:
   if not isdir(options.logdir):
     os.makedirs(options.logdir)
 
+  if settings.USER:
+    print "Dropping privileges to become the user %s" % settings.USER
+
   from carbon.util import daemonize, dropprivs
   daemonize()
-  logToDir(options.logdir)
 
   pidfile = open(options.pidfile, 'w')
   pidfile.write( str(os.getpid()) )
@@ -172,9 +174,9 @@ else:
   if settings.USER:
     pwent = pwd.getpwnam(settings.USER)
     os.chown(options.pidfile, pwent.pw_uid, pwent.pw_gid)
-    print "Dropping privileges to become the user %s" % settings.USER
     dropprivs(settings.USER)
 
+  logToDir(options.logdir)
 
 # Configure application components
 metricReceived.installHandler(MetricCache.store)
