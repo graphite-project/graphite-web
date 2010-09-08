@@ -169,6 +169,35 @@ def asPercent(requestContext, seriesList1, seriesList2orNumber):
   series.pathExpression = name
   return [series]
 
+
+def divideSeries(requestContext, dividendSeriesList, divisorSeriesList):
+  if len(divisorSeriesList) != 1:
+    raise ValueError("divideSeries second argument must reference exactly 1 series")
+
+  divisorSeries = divisorSeriesList[0]
+  results = []
+
+  for dividendSeries in dividendSeriesList:
+    name = "divideSeries(%s,%s)" % (dividendSeries.name, divisorSeries.name)
+    bothSeries = (dividendSeries, divisorSeries)
+    step = reduce(lcm,[s.step for s in bothSeries])
+
+    for s in bothSeries:
+      s.consolidate( step / s.step )
+
+    start = min([s.start for s in bothSeries])
+    end = max([s.end for s in bothSeries])
+    end -= (end - start) % step
+
+    values = ( safeDiv(v1,v2) for v1,v2 in izip(*bothSeries) )
+
+    quotientSeries = TimeSeries(name, start, end, step, values)
+    quotientSeries.pathExpression = name
+    results.append(quotientSeries)
+
+  return results
+
+
 def scale(requestContext, seriesList, factor):
   for series in seriesList:
     series.name = "scale(%s,%.1f)" % (series.name,float(factor))
@@ -497,6 +526,7 @@ SeriesFunctions = {
   'sumSeries' : sumSeries,
   'sum' : sumSeries,
   'diffSeries' : diffSeries,
+  'divideSeries' : divideSeries,
   'averageSeries' : averageSeries,
   'avg' : averageSeries,
   'sumSeriesWithWildcards': sumSeriesWithWildcards,
