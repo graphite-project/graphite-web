@@ -24,7 +24,7 @@ def getServers(metric):
   destinations = getDestinations(metric)
 
   for server in RelayServers:
-    if server.host in destinations:
+    if server.remoteAddr in destinations:
       yield server
 
 

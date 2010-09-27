@@ -4,6 +4,7 @@ from carbon.conf import OrderedConfigParser
 
 rules = []
 defaultRule = None
+DEFAULT_CARBON_PORT = 2004
 
 
 class Rule:
@@ -28,7 +29,15 @@ def loadRules(path):
     if not parser.has_option(section, 'servers'):
       raise ValueError("Rules file %s section %s does not define a 'servers' list" % (path, section))
 
-    servers = [s.strip() for s in parser.get(section, 'servers').split(',')]
+    servers = []
+    for s in parser.get(section, 'servers').split(','):
+      s = s.strip()
+
+      if ':' in s:
+        servers.append(s)
+      else:
+        servers.append('%s:%d' % (s, DEFAULT_CARBON_PORT))
+
 
     if parser.has_option(section, 'pattern'):
       assert not parser.has_option(section, 'default'), "Section %s contains both 'pattern' and 'default'. You must use one or the other." % section
