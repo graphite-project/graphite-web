@@ -502,9 +502,51 @@ def group(requestContext, *seriesLists):
 
   return seriesGroup
 
+
 def exclude(requestContext, seriesList, pattern):
   regex = re.compile(pattern)
   return [s for s in seriesList if not regex.search(s.name)]
+
+
+def summarize(requestContext, seriesList, intervalString):
+  results = []
+  delta = parseTimeOffset(intervalString)
+  interval = delta.seconds + (delta.days * 86400)
+
+  for series in seriesList:
+    buckets = {}
+
+    timestamps = range( int(series.start), int(series.end), int(series.step) )
+    datapoints = zip(timestamps, series)
+
+    for (timestamp, value) in datapoints:
+      bucketInterval = timestamp - (timestamp % interval)
+
+      if bucketInterval not in buckets:
+        buckets[bucketInterval] = []
+
+      if value is not None:
+        buckets[bucketInterval].append(value)
+
+    newStart = series.start - (series.start % interval)
+    newEnd = series.end - (series.end % interval) + interval
+    newValues = []
+    for timestamp in range(newStart, newEnd, interval):
+      bucket = buckets.get(timestamp, [])
+
+      if bucket:
+        newValues.append( sum(bucket) )
+      else:
+        newValues.append( None )
+
+    newName = "summarize(%s, \"%s\")" % (series.name, intervalString)
+    newSeries = TimeSeries(newName, newStart, newEnd, interval, newValues)
+    newSeries.pathExpression = newName
+    results.append(newSeries)
+
+
+  return results
+
 
 def pieAverage(requestContext, series):
   return safeDiv(safeSum(series),safeLen(series))
@@ -546,6 +588,7 @@ SeriesFunctions = {
   'stdev' : stdev,
   'asPercent' : asPercent,
   'pct' : asPercent,
+  'summarize' : summarize,
 
   # Filter functions
   'mostDeviant' : mostDeviant,
