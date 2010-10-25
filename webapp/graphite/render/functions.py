@@ -470,9 +470,10 @@ def timeShift(requestContext, seriesList, timeShift):
   myContext['endTime'] = requestContext['endTime'] - delta
 
   for i,series in enumerate(seriesList):
-    #shiftedSeries = fetchData(myContext, series.pathExpression)[0]
     shiftedSeries = evaluateTarget(myContext, series.pathExpression)[0]
     shiftedSeries.name = 'timeShift(%s, %s)' % (series.name, timeShift)
+    shiftedSeries.start = series.start
+    shiftedSeries.end = series.end
     seriesList[i] = shiftedSeries
 
   return seriesList
