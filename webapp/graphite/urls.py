@@ -28,6 +28,7 @@ urlpatterns = patterns('',
   ('^account/?', include('graphite.account.urls')),
   ('^whitelist/?', include('graphite.whitelist.urls')),
   ('^content/(?P<path>.*)$', 'django.views.static.serve', {'document_root' : settings.CONTENT_DIR}),
+  ('', include('graphite.graphlot.urls')),
   ('', include('graphite.browser.urls')),
 )
 
