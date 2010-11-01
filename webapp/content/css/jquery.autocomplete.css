@@ -35,7 +35,7 @@
 }
 
 .ac_loading {
-	background: white url('indicator.gif') right center no-repeat;
+	background: white url('../img/indicator.png') right center no-repeat;
 }
 
 .ac_odd {
