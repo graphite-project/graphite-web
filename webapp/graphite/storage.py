@@ -9,6 +9,11 @@ except ImportError:
   rrdtool = False
 
 try:
+  import gzip
+except ImportError:
+  gzip = False
+
+try:
   import cPickle as pickle
 except ImportError:
   import pickle
@@ -27,7 +32,7 @@ class Store:
       raise valueError("directories and remote_hosts cannot both be empty")
 
 
-  def get(self, metric_path):
+  def get(self, metric_path): #Deprecated
     for directory in self.directories:
       relative_fs_path = metric_path.replace('.', '/') + '.wsp'
       absolute_fs_path = join(directory, relative_fs_path)
@@ -133,6 +138,10 @@ def find(root_dir, pattern):
       if extension == '.wsp':
         yield WhisperFile(absolute_path, metric_path)
 
+      elif extension == '.gz' and metric_path.endswith('.wsp'):
+        metric_path = splitext(metric_path)[0]
+        yield GzippedWhisperFile(absolute_path, metric_path)
+
       elif rrdtool and extension == '.rrd':
         rrd = RRDFile(absolute_path, metric_path)
 
@@ -217,16 +226,17 @@ class Leaf(Node):
 # Database File classes
 class WhisperFile(Leaf):
   cached_context_data = None
+  extension = '.wsp'
 
   def __init__(self, *args, **kwargs):
     Leaf.__init__(self, *args, **kwargs)
     real_fs_path = realpath(self.fs_path)
 
     if real_fs_path != self.fs_path:
-      relative_fs_path = self.metric_path.replace('.', '/') + '.wsp'
+      relative_fs_path = self.metric_path.replace('.', '/') + self.extension
       base_fs_path = self.fs_path[ :-len(relative_fs_path) ]
       relative_real_fs_path = real_fs_path[ len(base_fs_path): ]
-      self.real_metric = relative_real_fs_path[ :-len('.wsp') ].replace('/', '.')
+      self.real_metric = relative_real_fs_path[ :-len(self.extension) ].replace('/', '.')
 
   def fetch(self, startTime, endTime):
     (timeInfo,values) = whisper.fetch(self.fs_path, startTime, endTime)
@@ -237,7 +247,7 @@ class WhisperFile(Leaf):
     if self.cached_context_data is not None:
       return self.cached_context_data
 
-    context_path = self.fs_path[ :-len('.wsp') ] + '.context.pickle'
+    context_path = self.fs_path[ :-len(self.extension) ] + '.context.pickle'
 
     if exists(context_path):
       fh = open(context_path, 'rb')
@@ -251,11 +261,25 @@ class WhisperFile(Leaf):
 
   def updateContext(self, newContext):
     self.context.update(newContext)
-    context_path = self.fs_path[ :-len('.wsp') ] + '.context.pickle'
+    context_path = self.fs_path[ :-len(self.extension) ] + '.context.pickle'
 
     fh = open(context_path, 'wb')
     pickle.dump(self.context, fh)
     fh.close()
+
+
+class GzippedWhisperFile(WhisperFile):
+  extension = '.wsp.gz'
+
+  def fetch(self, startTime, endTime):
+    if not gzip:
+      raise Exception("gzip module not available, GzippedWhisperFile not supported")
+
+    fh = gzip.GzipFile(self.fs_path, 'rb')
+    try:
+      return whisper.file_fetch(fh, startTime, endTime)
+    finally:
+      fh.close()
 
 
 class RRDFile(Branch):

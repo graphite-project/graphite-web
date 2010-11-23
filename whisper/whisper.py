@@ -266,9 +266,12 @@ path is a string
 value is a float
 timestamp is either an int or float
 """
-  #startBlock('complete update')
   value = float(value)
   fh = open(path,'r+b')
+  return file_update(fh, value, timestamp)
+
+
+def file_update(fh, value, timestamp):
   if LOCK: fcntl.flock( fh.fileno(), fcntl.LOCK_EX )
   header = __readHeader(fh)
   now = int( time.time() )
@@ -308,7 +311,6 @@ timestamp is either an int or float
   #endBlock('update propagation')
   __changeLastUpdate(fh)
   fh.close()
-  #endBlock('complete update')
 
 
 def update_many(path,points):
@@ -317,11 +319,14 @@ def update_many(path,points):
 path is a string
 points is a list of (timestamp,value) points
 """
-  #startBlock('complete update_many path=%s points=%d' % (path,len(points)))
   if not points: return
   points = [ (int(t),float(v)) for (t,v) in points]
   points.sort(key=lambda p: p[0],reverse=True) #order points by timestamp, newest first
   fh = open(path,'r+b')
+  return file_update_many(fh, points)
+
+
+def file_update_many(fh, points):
   if LOCK: fcntl.flock( fh.fileno(), fcntl.LOCK_EX )
   header = __readHeader(fh)
   now = int( time.time() )
@@ -354,7 +359,6 @@ points is a list of (timestamp,value) points
     __archive_update_many(fh,header,currentArchive,currentPoints)
   __changeLastUpdate(fh)
   fh.close()
-  #endBlock('complete update_many path=%s points=%d' % (path,len(points)))
 
 
 def __archive_update_many(fh,header,archive,points):
@@ -460,6 +464,10 @@ fromTime is an epoch time
 untilTime is also an epoch time, but defaults to now
 """
   fh = open(path,'rb')
+  return file_fetch(fh, fromTime, untilTime)
+
+
+def file_fetch(fh, fromTime, untilTime):
   header = __readHeader(fh)
   now = int( time.time() )
   if untilTime is None:
