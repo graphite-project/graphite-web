@@ -72,12 +72,24 @@ def parseTimeReference(ref):
     if y < 1900: y += 1900
     if y < 1970: y += 100
     refDate = refDate.replace(year=y)
-    refDate = refDate.replace(month=m)
-    refDate = refDate.replace(day=d)
+
+    try: # Fix for Bug #551771
+      refDate = refDate.replace(month=m)
+      refDate = refDate.replace(day=d)
+    except:
+      refDate = refDate.replace(day=d)
+      refDate = refDate.replace(month=m)
+
   elif len(ref) == 8 and ref.isdigit(): #YYYYMMDD
     refDate = refDate.replace(year= int(ref[:4]))
-    refDate = refDate.replace(month= int(ref[4:6]))
-    refDate = refDate.replace(day= int(ref[6:8]))
+
+    try: # Fix for Bug #551771
+      refDate = refDate.replace(month= int(ref[4:6]))
+      refDate = refDate.replace(day= int(ref[6:8]))
+    except:
+      refDate = refDate.replace(day= int(ref[6:8]))
+      refDate = refDate.replace(month= int(ref[4:6]))
+
   elif ref[:3] in months: #MonthName DayOfMonth
     refDate = refDate.replace(month= months.index(ref[:3]) + 1)
     if ref[-2:].isdigit():
