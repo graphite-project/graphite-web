@@ -149,7 +149,13 @@ def myGraphLookup(request):
 
 def userGraphLookup(request):
   "View for User Graphs navigation"
-  username = request.GET['path']
+  path = request.GET['path']
+
+  if '.' in path:
+    username, graphPath = path.split('.', 1)
+  else:
+    username, graphPath = path, None
+
   nodes = []
 
   branchNode = {
@@ -182,13 +188,36 @@ def userGraphLookup(request):
       profile = getProfileByUsername(username)
       assert profile, "No profile for username '%s'" % username
 
-      for graph in profile.mygraph_set.all().order_by('name'):
-        node = {
-          'text' : str(graph.name),
-          'id' : str(graph.name),
-          'graphUrl' : str(graph.url)
-        }
-        node.update(leafNode)
+      if graphPath:
+        prefix = graphPath.rstrip('.') + '.'
+      else:
+        prefix = ''
+
+      matches = [ graph for graph in profile.mygraph_set.all().order_by('name') if graph.name.startswith(prefix) ]
+      inserted = set()
+
+      for graph in matches:
+        relativePath = graph.name[ len(prefix): ]
+        nodeName = relativePath.split('.')[0]
+
+        if nodeName in inserted:
+          continue
+        inserted.add(nodeName)
+
+        if '.' in relativePath: # branch
+          node = {
+            'text' : str(nodeName),
+            'id' : str(username + '.' + prefix + nodeName + '.'),
+          }
+          node.update(branchNode)
+        else: # leaf
+          node = {
+            'text' : str(nodeName),
+            'id' : str(username + '.' + prefix + nodeName),
+            'graphUrl' : str(graph.url),
+          }
+          node.update(leafNode)
+
         nodes.append(node)
 
   except:
