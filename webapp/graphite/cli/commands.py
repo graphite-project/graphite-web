@@ -72,9 +72,9 @@ def _vars(request):
 def _clear(request):
   return "$('output').innerHTML = '';\n"
 
-def _create(requst,window):
+def _create(request,window):
   out = ''
-  w = window
+  w = window.replace('.', '_')
   #Basic window creation
   out += "%s_win = new Window('%s_win', {title: '%s',width: 350, height: 225, maximizable: false});\n" % (w,w,w)
   out += "center = Builder.node( 'center', [Builder.node('img', {id: '%s_img',src: '/content/img/graphite.png'} )] );\n" % w
@@ -420,7 +420,7 @@ def _gload(request,user=None,graphName=None):
   except ObjectDoesNotExist:
     return stderr("Graph does not exist")
   out = _create(request,myGraph.name)
-  out += "changeImage(%s_win,'%s');\n" % (myGraph.name,myGraph.url)
+  out += "changeImage(%s_win,'%s');\n" % (myGraph.name.replace('.', '_'), myGraph.url)
   return out
 
 def _graphs(request,user=None):
