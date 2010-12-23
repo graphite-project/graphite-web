@@ -94,7 +94,7 @@ def sumSeriesWithWildcards(requestContext, seriesList, *position): #XXX
   for series in seriesList:
     newname = '.'.join(map(lambda x: x[1], filter(lambda i: i[0] not in positions, enumerate(series.name.split('.')))))
     if newname in newSeries.keys():
-      newSeries[newname] = sumSeries((series, newSeries[newname]))[0]
+      newSeries[newname] = sumSeries(requestContext, (series, newSeries[newname]))[0]
     else:
       newSeries[newname] = series
     newSeries[newname].name = newname
@@ -113,7 +113,7 @@ def averageSeriesWithWildcards(requestContext, seriesList, *position): #XXX
       matchedList[newname] = []
     matchedList[newname].append(series)
   for name in matchedList.keys():
-    result.append(averageSeries((matchedList[name]))[0])
+    result.append( averageSeries(requestContext, (matchedList[name]))[0] )
     result[-1].name = name
   return result
 
