@@ -20,7 +20,7 @@ def hashRequest(request):
                  for (key,values) in request.GET.lists()
                  if not key.startswith('_')]
 
-  normalizedParams = ','.join( sorted(queryParams) )
+  normalizedParams = ','.join( sorted(queryParams) ) or 'noParam'
   myHash = stripControlChars(normalizedParams) #memcached doesn't like unprintable characters in its keys
 
   if len(myHash) > 249: #memcached key size limitation
