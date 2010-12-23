@@ -298,6 +298,7 @@ class RRDDataSource(Leaf):
     self.name = name
     self.fs_path = rrd_file.fs_path
     self.metric_path = rrd_file.metric_path + '.' + name
+    self.real_metric = metric_path
 
   def fetch(self, startTime, endTime):
     startString = time.strftime("%H:%M_%Y%m%d", time.localtime(startTime))
