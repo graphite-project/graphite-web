@@ -984,11 +984,19 @@ function createOptionsMenu() {
     ]
   });
 
+  var yAxusUnitMenu = new Ext.menu.Menu({
+    items: [
+      menuRadioItem("yUnit", "Standard", "yUnitSystem", ""),
+      menuRadioItem("yUnit", "Binary", "yUnitSystem", "binary")
+    ]
+  });
+
   var yAxisMenu = new Ext.menu.Menu({
     items: [
       menuInputItem("Label", "vtitle"),
       menuInputItem("Minimum", "yMin"),
-      menuInputItem("Maximum", "yMax")
+      menuInputItem("Maximum", "yMax"),
+      {text: "Unit", menu: yAxisUnitMenu}
     ]
   });
 
