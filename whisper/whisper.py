@@ -24,6 +24,8 @@
 #	Data = Archive+
 #		Archive = Point+
 #			Point = timestamp,value
+#
+# NOTE: the lastUpdate field is deprecated, do not use it!
 
 import os, struct, time
 try:
@@ -122,7 +124,7 @@ def __readHeader(fh):
     archives.append(archiveInfo)
   fh.seek(originalOffset)
   info = {
-    'lastUpdate' : lastUpdate,
+    #'lastUpdate' : lastUpdate, # Deprecated
     'maxRetention' : maxRetention,
     'xFilesFactor' : xff,
     'archives' : archives,
