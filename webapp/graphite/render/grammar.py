@@ -22,7 +22,8 @@ expression = Forward()
 
 intNumber = Word(nums+'-',nums).setResultsName('integer')
 floatNumber = Combine(Word(nums+'-',nums) + Literal('.') + Word(nums)).setResultsName('float')
-number = Group(floatNumber | intNumber).setResultsName('number')
+numberFollow = FollowedBy(",") ^ FollowedBy(")") ^ FollowedBy(LineEnd())
+number = Group(floatNumber + numberFollow | intNumber + numberFollow).setResultsName('number')
 
 goodchars = printables.replace('(','').replace(')','').replace(',','').replace('"','').replace("'","") + ' '
 pathExpression = Word(goodchars).setResultsName('pathExpression')
