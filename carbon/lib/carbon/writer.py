@@ -57,6 +57,13 @@ def optimalWriteOrder():
         createCount = 1
 
       elif createCount >= settings.MAX_CREATES_PER_MINUTE:
+        # dropping queued up datapoints for new metrics prevents filling up the entire cache
+        # when a bunch of new metrics are received.
+        try:
+          MetricCache.pop(metric)
+        except KeyError:
+          pass
+
         continue
 
     try: # metrics can momentarily disappear from the MetricCache due to the implementation of MetricCache.store()
@@ -96,6 +103,7 @@ def writeCachedDataPoints():
 
         log.creates("creating database file %s" % dbFilePath)
         whisper.create(dbFilePath, archiveConfig)
+        os.chmod(dbFilePath, 0755)
         increment('creates')
 
         # Create metadata file
@@ -130,10 +138,12 @@ def writeCachedDataPoints():
 
     # Avoid churning CPU when only new metrics are in the cache
     if not dataWritten:
-      time.sleep(1)
+      time.sleep(0.1)
 
 
 def createMetaFile(metric, schema, path):
+  return #XXX disabled for now.
+
   metadata = {
     'interval' : min( [a.secondsPerPoint for a in schema.archives] ),
   }
