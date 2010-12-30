@@ -330,6 +330,8 @@ def log(requestContext, seriesList, base=10):
     for val in series:
       if val is None:
         newValues.append(None)
+      elif val <= 0:
+        newValues.append(None)
       else:
         newValues.append(math.log(val, base))
     newName = "log(%s, %s)" % (series.name, base)
