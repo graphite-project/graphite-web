@@ -121,9 +121,11 @@ def writeCachedDataPoints():
         increment('errors')
       else:
         pointCount = len(datapoints)
-        log.updates("wrote %d datapoints for %s in %.5f seconds" % (pointCount, metric, updateTime))
         increment('committedPoints', pointCount)
         append('updateTimes', updateTime)
+
+        if settings.LOG_UPDATES:
+          log.updates("wrote %d datapoints for %s in %.5f seconds" % (pointCount, metric, updateTime))
 
         # Rate limit update operations
         thisSecond = int(t2)

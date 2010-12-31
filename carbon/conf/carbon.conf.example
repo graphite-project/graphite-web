@@ -36,6 +36,10 @@ PICKLE_RECEIVER_PORT = 2004
 CACHE_QUERY_INTERFACE = 0.0.0.0
 CACHE_QUERY_PORT = 7002
 
+# By default, carbon-cache will log every whisper update. This can be excessive and
+# degrade performance if logging on the same volume as the whisper data is stored.
+LOG_UPDATES = True
+
 
 # Enable AMQP if you want to receve metrics using an amqp broker
 # ENABLE_AMQP = False
