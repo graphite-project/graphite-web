@@ -20,11 +20,13 @@ class MetricCache(dict):
   def __init__(self):
     self.size = 0
 
+
   def __setitem__(self, key, value):
     raise TypeError("Use store() method instead!")
 
+
   def store(self, metric, datapoint):
-    if self.size >= settings.MAX_CACHE_SIZE:
+    if self.isFull():
       return
 
     metric = '.'.join(part for part in metric.split('.') if part) # normalize the path
@@ -38,13 +40,20 @@ class MetricCache(dict):
     dict.__setitem__(self, metric, datapoints)
     self.size += 1
 
+
+  def isFull(self):
+    return self.size >= settings.MAX_CACHE_SIZE
+
+
   def pop(self, metric): # This raises a KeyError if a metric is concurrently having store() called on it, simply ignore and pop another
     datapoints = dict.pop(self, metric)
     self.size -= len(datapoints)
     return datapoints
 
+
   def counts(self):
     return [ (metric, len(datapoints)) for (metric, datapoints) in self.items() ]
 
   
+
 MetricCache = MetricCache()

@@ -28,7 +28,7 @@ function GraphiteBrowser () {
     region: 'west',
     items: [treePanel, searchPanel, completerPanel],
     split: true,
-    width: 220,
+    width: 300,
     collapsible: true,
     collapseMode: 'mini',
     activeTab: 0
