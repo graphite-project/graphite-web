@@ -64,6 +64,7 @@ LEGEND_MAX_ITEMS = 10
 #Authentication settings
 USE_LDAP_AUTH = False
 LDAP_SERVER = "" # "ldapserver.mydomain.com"
+LDAP_PORT = 389
 LDAP_SEARCH_BASE = "" # "OU=users,DC=mydomain,DC=com"
 LDAP_BASE_USER = "" # "CN=some_readonly_account,DC=mydomain,DC=com"
 LDAP_BASE_PASS = "" # "my_password"
