@@ -482,10 +482,10 @@ var GraphDataWindow = {
                 id: 'combineMenu',
                 menu: [
                   {text: 'Sum', handler: this.applyFuncToAll('sumSeries')},
-                  {text: 'Difference', handler: this.applyFuncToAll('diffSeries')},
-                  {text: 'Ratio', handler: this.applyFuncToAll('divideSeries')},
                   {text: 'Average', handler: this.applyFuncToAll('averageSeries')},
                   {text: 'Sum using wildcards', handler: this.applyFuncToEachWithInput('sumSeriesWithWildcards', 'Please enter a comma separated list of numbers specifying the locations in the name to place wildcards')}
+                  {text: 'Average using wildcards', handler: this.applyFuncToEachWithInput('averageSeriesWithWildcards', 'Please enter a comma separated list of numbers specifying the locations in the name to place wildcards')},
+                  {text: 'Group', handler: this.applyFuncToAll('group')}
                 ]
               }, {
                 text: 'Transform',
@@ -496,14 +496,17 @@ var GraphDataWindow = {
                   {text: 'Integral', handler: this.applyFuncToEach('integral')},
                   {text: 'Non-negative Derivative', handler: this.applyFuncToEachWithInput('nonNegativeDerivative', "Please enter a maximum value if this metric is a wrapping counter (or just leave this blank)", {allowBlank: true})},
                   {text: 'Log', handler: this.applyFuncToEachWithInput('log', 'Please enter a base')},
-                  {text: 'timeShift', handler: this.applyFuncToEachWithInput('timeShift', 'Shift this metric ___ back in time (examples: 10min, 7d, 2w)', {quote: true})}
+                  {text: 'timeShift', handler: this.applyFuncToEachWithInput('timeShift', 'Shift this metric ___ back in time (examples: 10min, 7d, 2w)', {quote: true})},
+                  {text: 'Summarize', handler: this.applyFuncToEachWithInput('summarize', 'Please enter a summary interval (examples: 10min, 1h, 7d)', {quote: true})}
                 ]
               }, {
                 text: 'Calculate',
                 menu: [
                   {text: 'Moving Average', handler: this.applyFuncToEachWithInput('movingAverage', 'Moving average for the last ___ data points')},
                   {text: 'Moving Standard Deviation', handler: this.applyFuncToEachWithInput('stdev', 'Moving standard deviation for the last ___ data points')},
-                  {text: 'As Percent', handler: this.applyFuncToEachWithInput('asPercent', 'Please enter the value that corresponds to 100%')}
+                  {text: 'As Percent', handler: this.applyFuncToEachWithInput('asPercent', 'Please enter the value that corresponds to 100%')},
+                  {text: 'Difference (of 2 series)', handler: this.applyFuncToAll('diffSeries')},
+                  {text: 'Ratio (of 2 series)', handler: this.applyFuncToAll('divideSeries')}
                 ]
               }, {
                 text: 'Filter',
@@ -521,7 +524,8 @@ var GraphDataWindow = {
                   {text: 'Maximum Value Below', handler: this.applyFuncToEachWithInput('maximumBelow', 'Draw all metrics whose maximum value is below ___')},
                   {text: 'sortByMaxima', handler: this.applyFuncToEach('sortByMaxima')},
                   {text: 'sortByMinima', handler: this.applyFuncToEach('sortByMinima')},
-                  {text: 'limit', handler: this.applyFuncToEachWithInput('limit', 'Limit to first ___ of a list of metrics')}
+                  {text: 'limit', handler: this.applyFuncToEachWithInput('limit', 'Limit to first ___ of a list of metrics')},
+                  {text: 'Exclude', handler: this.applyFuncToEachWithInput('exclude', 'Exclude metrics that match a regular expression')}
                 ]
               }, {
                 text: 'Special',
@@ -532,7 +536,8 @@ var GraphDataWindow = {
                   {text: 'Line Width', handler: this.applyFuncToEachWithInput('lineWidth', 'Please enter a line width for this graph target')},
                   {text: 'Dashed Line', handler: this.applyFuncToEach('dashed')},
                   {text: 'Keep Last Value', handler: this.applyFuncToEach('keepLastValue')},
-                  {text: 'Substring', handler: this.applyFuncToEachWithInput('substr', 'Enter a starting position')}
+                  {text: 'Substring', handler: this.applyFuncToEachWithInput('substr', 'Enter a starting position')},
+                  {text: 'Add Threshold Line', handler: this.applyFuncToEachWithInput('threshold', 'Enter a threshold value')}
                 ]
               }
             ]
