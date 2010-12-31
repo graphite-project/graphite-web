@@ -22,8 +22,8 @@ except ImportError:
   import pickle
 
 
-STORAGE_SCHEMAS_CONFIG = 'conf/storage-schemas.conf'
-STORAGE_LISTS_DIR = 'storage/lists'
+STORAGE_SCHEMAS_CONFIG = join(CONF_DIR, 'storage-schemas.conf')
+STORAGE_LISTS_DIR = join(CONF_DIR, 'lists')
 
 
 def getFilesystemPath(metric):
