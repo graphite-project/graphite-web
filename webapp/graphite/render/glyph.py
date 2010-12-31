@@ -13,12 +13,13 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 import os, cairo, math, itertools
-from time import strftime, localtime, timezone, altzone, daylight, tzset, mktime
-from calendar import timegm
+from pytz import timezone
+from datetime import datetime, timedelta
 from urllib import unquote_plus
 from ConfigParser import SafeConfigParser
 from django.conf import settings
 from graphite.render.datalib import TimeSeries
+
 
 colorAliases = {
   'black' : (0,0,0),
@@ -50,30 +51,30 @@ MIN = 60
 HOUR = MIN * 60
 DAY = HOUR * 24
 WEEK = DAY * 7
-MONTH = DAY * 30
+MONTH = DAY * 31
 YEAR = DAY * 365
 xAxisConfigs = (
-  dict(seconds=0.00,  minorGridUnit=SEC,  minorGridStep=10, majorGridUnit=MIN,  majorGridStep=1,  labelUnit=SEC,  labelStep=10, format="%H:%M:%S"),
-  dict(seconds=0.04,  minorGridUnit=SEC,  minorGridStep=5,  majorGridUnit=MIN,  majorGridStep=1,  labelUnit=SEC,  labelStep=5,  format="%H:%M:%S"),
-  dict(seconds=0.07,  minorGridUnit=SEC,  minorGridStep=15, majorGridUnit=MIN,  majorGridStep=1,  labelUnit=SEC,  labelStep=15, format="%H:%M:%S"),
-  dict(seconds=0.27,  minorGridUnit=SEC,  minorGridStep=30, majorGridUnit=MIN,  majorGridStep=2,  labelUnit=MIN,  labelStep=1,  format="%H:%M"),
-  dict(seconds=0.5,   minorGridUnit=MIN,  minorGridStep=1,  majorGridUnit=MIN,  majorGridStep=2,  labelUnit=MIN,  labelStep=1,  format="%H:%M"),
-  dict(seconds=1.0,   minorGridUnit=MIN,  minorGridStep=1,  majorGridUnit=MIN,  majorGridStep=4,  labelUnit=MIN,  labelStep=2,  format="%H:%M"),
-  dict(seconds=2,     minorGridUnit=MIN,  minorGridStep=1,  majorGridUnit=MIN,  majorGridStep=10, labelUnit=MIN,  labelStep=5,  format="%H:%M"),
-  dict(seconds=5,     minorGridUnit=MIN,  minorGridStep=2,  majorGridUnit=MIN,  majorGridStep=10, labelUnit=MIN,  labelStep=10, format="%H:%M"),
-  dict(seconds=10,    minorGridUnit=MIN,  minorGridStep=5,  majorGridUnit=MIN,  majorGridStep=20, labelUnit=MIN,  labelStep=20, format="%H:%M"),
-  dict(seconds=30,    minorGridUnit=MIN,  minorGridStep=10, majorGridUnit=HOUR, majorGridStep=1,  labelUnit=HOUR, labelStep=1,  format="%H:%M"),
+  dict(seconds=0.00,  minorGridUnit=SEC,  minorGridStep=5,  majorGridUnit=MIN,  majorGridStep=1,  labelUnit=SEC,  labelStep=5,  format="%H:%M:%S", maxInterval=10*MIN),
+  dict(seconds=0.07,  minorGridUnit=SEC,  minorGridStep=10, majorGridUnit=MIN,  majorGridStep=1,  labelUnit=SEC,  labelStep=10, format="%H:%M:%S", maxInterval=20*MIN),
+  dict(seconds=0.14,  minorGridUnit=SEC,  minorGridStep=15, majorGridUnit=MIN,  majorGridStep=1,  labelUnit=SEC,  labelStep=15, format="%H:%M:%S", maxInterval=30*MIN),
+  dict(seconds=0.27,  minorGridUnit=SEC,  minorGridStep=30, majorGridUnit=MIN,  majorGridStep=2,  labelUnit=MIN,  labelStep=1,  format="%H:%M", maxInterval=2*HOUR),
+  dict(seconds=0.5,   minorGridUnit=MIN,  minorGridStep=1,  majorGridUnit=MIN,  majorGridStep=2,  labelUnit=MIN,  labelStep=1,  format="%H:%M", maxInterval=2*HOUR),
+  dict(seconds=1.2,   minorGridUnit=MIN,  minorGridStep=1,  majorGridUnit=MIN,  majorGridStep=4,  labelUnit=MIN,  labelStep=2,  format="%H:%M", maxInterval=3*HOUR),
+  dict(seconds=2,     minorGridUnit=MIN,  minorGridStep=1,  majorGridUnit=MIN,  majorGridStep=10, labelUnit=MIN,  labelStep=5,  format="%H:%M", maxInterval=6*HOUR),
+  dict(seconds=5,     minorGridUnit=MIN,  minorGridStep=2,  majorGridUnit=MIN,  majorGridStep=10, labelUnit=MIN,  labelStep=10, format="%H:%M", maxInterval=12*HOUR),
+  dict(seconds=10,    minorGridUnit=MIN,  minorGridStep=5,  majorGridUnit=MIN,  majorGridStep=20, labelUnit=MIN,  labelStep=20, format="%H:%M", maxInterval=1*DAY),
+  dict(seconds=30,    minorGridUnit=MIN,  minorGridStep=10, majorGridUnit=HOUR, majorGridStep=1,  labelUnit=HOUR, labelStep=1,  format="%H:%M", maxInterval=2*DAY),
   dict(seconds=60,    minorGridUnit=MIN,  minorGridStep=30, majorGridUnit=HOUR, majorGridStep=2,  labelUnit=HOUR, labelStep=2,  format="%H:%M", maxInterval=2*DAY),
-  dict(seconds=180,   minorGridUnit=HOUR, minorGridStep=3,  majorGridUnit=HOUR, majorGridStep=6,  labelUnit=HOUR, labelStep=12,  format="%a %l%P"),
-  dict(seconds=600,   minorGridUnit=HOUR, minorGridStep=6,  majorGridUnit=DAY,  majorGridStep=1,  labelUnit=DAY,  labelStep=1,  format="%a %l%P"),
-  dict(seconds=1200,  minorGridUnit=HOUR, minorGridStep=6,  majorGridUnit=DAY,  majorGridStep=1,  labelUnit=DAY,  labelStep=1,  format="%m/%d"),
-  dict(seconds=1800,  minorGridUnit=HOUR, minorGridStep=12, majorGridUnit=DAY,  majorGridStep=1,  labelUnit=DAY,  labelStep=2,  format="%a %d"),
-  dict(seconds=2400,  minorGridUnit=HOUR, minorGridStep=12, majorGridUnit=DAY,  majorGridStep=1,  labelUnit=DAY,  labelStep=2,  format="%a"),
-  dict(seconds=3600,  minorGridUnit=DAY,  minorGridStep=1,  majorGridUnit=WEEK, majorGridStep=1,  labelUnit=WEEK, labelStep=1,  format="Week %V"),
-  dict(seconds=10800, minorGridUnit=WEEK, minorGridStep=1,  majorGridUnit=MONTH,majorGridStep=1,  labelUnit=WEEK, labelStep=2,  format="Week %V"),
-  dict(seconds=21600, minorGridUnit=MONTH,minorGridStep=1,  majorGridUnit=MONTH,majorGridStep=1,  labelUnit=MONTH,labelStep=1,  format="%b"),
-  dict(seconds=172800,minorGridUnit=MONTH,minorGridStep=1,  majorGridUnit=MONTH,majorGridStep=3,  labelUnit=MONTH,labelStep=3,  format="%b"),
-  dict(seconds=864000,minorGridUnit=YEAR, minorGridStep=1,  majorGridUnit=YEAR, majorGridStep=1,  labelUnit=YEAR, labelStep=1,  format="%y"),
+  dict(seconds=180,   minorGridUnit=HOUR, minorGridStep=2,  majorGridUnit=HOUR, majorGridStep=4,  labelUnit=HOUR, labelStep=4,  format="%a %l%P", maxInterval=6*DAY),
+  dict(seconds=255,   minorGridUnit=HOUR, minorGridStep=6,  majorGridUnit=HOUR, majorGridStep=12, labelUnit=HOUR, labelStep=12, format="%m/%d %l%P"),
+  dict(seconds=600,   minorGridUnit=HOUR, minorGridStep=6,  majorGridUnit=DAY,  majorGridStep=1,  labelUnit=DAY,  labelStep=1,  format="%m/%d", maxInterval=14*DAY),
+  dict(seconds=600,   minorGridUnit=HOUR, minorGridStep=12, majorGridUnit=DAY,  majorGridStep=1,  labelUnit=DAY,  labelStep=1,  format="%m/%d", maxInterval=365*DAY),
+  dict(seconds=2000,  minorGridUnit=DAY,  minorGridStep=1,  majorGridUnit=DAY,  majorGridStep=2,  labelUnit=DAY,  labelStep=2,  format="%m/%d", maxInterval=365*DAY),
+  dict(seconds=4000,  minorGridUnit=DAY,  minorGridStep=2,  majorGridUnit=DAY,  majorGridStep=4,  labelUnit=DAY,  labelStep=4,  format="%m/%d", maxInterval=365*DAY),
+  dict(seconds=8000,  minorGridUnit=DAY,  minorGridStep=3.5,majorGridUnit=DAY,  majorGridStep=7,  labelUnit=DAY,  labelStep=7,  format="%m/%d", maxInterval=365*DAY),
+  dict(seconds=16000, minorGridUnit=DAY,  minorGridStep=7,  majorGridUnit=DAY,  majorGridStep=14, labelUnit=DAY,  labelStep=14, format="%m/%d", maxInterval=365*DAY),
+  dict(seconds=32000, minorGridUnit=DAY,  minorGridStep=15, majorGridUnit=DAY,  majorGridStep=30, labelUnit=DAY,  labelStep=30, format="%m/%d", maxInterval=365*DAY),
+  dict(seconds=64000, minorGridUnit=DAY,  minorGridStep=30, majorGridUnit=DAY,  majorGridStep=60, labelUnit=DAY,  labelStep=60, format="%m/%d %Y"),
 )
 
 UnitSystems = {
@@ -104,7 +105,7 @@ class Graph:
     self.width = int( params.get('width',200) )
     self.height = int( params.get('height',200) )
     self.margin = int( params.get('margin',10) )
-    self.userTimeZoneOffset = tz_difference( params.get('tz','') )
+    self.userTimeZone = params.get('tz')
 
     self.area = {
       'xmin' : self.margin + 10, # Need extra room when the time is near the left edge
@@ -667,7 +668,7 @@ class LineGraph(Graph):
     secondsPerPixel = float(timeRange) / float(self.graphWidth)
     self.xScaleFactor = float(self.graphWidth) / float(timeRange) #pixels per second
 
-    potential = [c for c in xAxisConfigs if c['seconds'] <= secondsPerPixel and c.get('maxInterval',timeRange+1) > timeRange]
+    potential = [c for c in xAxisConfigs if c['seconds'] <= secondsPerPixel and c.get('maxInterval',timeRange+1) >= timeRange]
     if potential:
       self.xConf = potential[-1]
     else:
@@ -676,13 +677,6 @@ class LineGraph(Graph):
     self.xLabelStep = self.xConf['labelUnit'] * self.xConf['labelStep']
     self.xMinorGridStep = self.xConf['minorGridUnit'] * self.xConf['minorGridStep']
     self.xMajorGridStep = self.xConf['majorGridUnit'] * self.xConf['majorGridStep']
-    if self.xConf['labelUnit'] >= DAY: #JIRA SOS-80
-      if daylight:
-        self.utcAdjustment = altzone
-      else:
-        self.utcAdjustment = timezone
-    else:
-      self.utcAdjustment = 0
 
   def drawLabels(self):
     #Draw the Y-labels
@@ -691,20 +685,34 @@ class LineGraph(Graph):
         x = self.area['xmin'] - (self.yLabelWidth * 0.02)
       else:
         x = self.area['xmax'] + (self.yLabelWidth * 0.02) #Inverted for right side Y Axis
+
       y = self.area['ymax'] - ((value - self.yBottom) * self.yScaleFactor)
+
       if self.params.get('YAxis') == 'left':
-        self.drawText(label,x,y,align='right',valign='middle')
+        self.drawText(label, x, y, align='right', valign='middle')
       else:
-        self.drawText(label,x,y,align='left',valign='middle') #Inverted for right side Y Axis
+        self.drawText(label, x, y, align='left', valign='middle') #Inverted for right side Y Axis
+
+    # Round our starting time, t, to be a multiple of the x label steps
     t = self.xLabelStep * math.ceil( float(self.startTime) / self.xLabelStep )
 
+    if self.userTimeZone:
+      tzinfo = timezone(self.userTimeZone)
+    else:
+      tzinfo = timezone(settings.TIME_ZONE)
+
+    start_dt = datetime.fromtimestamp(self.startTime, tzinfo)
+    end_dt = datetime.fromtimestamp(self.endTime, tzinfo)
+    dt = datetime.fromtimestamp(t, tzinfo)
+    x_label_delta = timedelta(seconds=self.xLabelStep)
+
     #Draw the X-labels
-    while t < self.endTime:
-      label = strftime(self.xConf['format'], localtime(t + self.utcAdjustment + self.userTimeZoneOffset ))
-      x = self.area['xmin'] + ((t - self.startTime) * self.xScaleFactor)
+    while dt < end_dt:
+      label = dt.strftime( self.xConf['format'] )
+      x = self.area['xmin'] + (toSeconds(dt - start_dt) * self.xScaleFactor)
       y = self.area['ymax'] + self.getExtents()['maxAscent']
-      self.drawText(label,x,y,align='center',valign='top')
-      t += self.xLabelStep
+      self.drawText(label, x, y, align='center', valign='top')
+      dt += x_label_delta
 
   def drawGridLines(self):
     #Horizontal grid lines
@@ -856,27 +864,33 @@ def closest(number,neighbors):
       closestNeighbor = neighbor
   return closestNeighbor
 
+
 def frange(start,end,step):
   f = start
   while f <= end:
     yield f
     f += step
 
+
 def toSeconds(t):
   return (t.days * 86400) + t.seconds
+
 
 def safeMin(args):
   args = [arg for arg in args if arg is not None]
   if args:
     return min(args)
 
+
 def safeMax(args):
   args = [arg for arg in args if arg is not None]
   if args:
     return max(args)
 
+
 def safeSum(values):
   return sum([v for v in values if v is not None])
+
 
 def any(args):
   for arg in args:
@@ -884,22 +898,25 @@ def any(args):
       return True
   return False
 
+
 def reverse_sort(args):
   aux_list = [arg for arg in args]
   aux_list.reverse()
   return aux_list
  
-def tz_difference(tz):
-  os.environ['TZ'] = tz
-  tzset()
-  captured_time = localtime()
-  tz_delta = int(timegm(captured_time) - mktime(captured_time))
 
-  try:
-    os.environ['TZ'] = local_settings.TIME_ZONE
-  except:
-    os.environ['TZ'] = settings.TIME_ZONE
-  return tz_delta
+#def tz_difference(tz):
+#  os.environ['TZ'] = tz
+#  tzset()
+#  captured_time = localtime()
+#  tz_delta = int(timegm(captured_time) - mktime(captured_time))
+#
+#  try:
+#    os.environ['TZ'] = local_settings.TIME_ZONE
+#  except:
+#    os.environ['TZ'] = settings.TIME_ZONE
+#  return tz_delta
+
 
 def format_units(v, step, system="si"):
   """Format the given value in standardized units.
