@@ -255,6 +255,9 @@ def _add(request,target,window):
   out += "if (!img) {\n"
   out += "  alert('No such window %s');\n" % window
   out += "} else {\n"
+  out += "  if (img.src.indexOf('/render') == -1) {\n"
+  out += "    img.src = '/render?';\n"
+  out += "  }\n"
   out += "  img.src = img.src + '&target=' + encodeURIComponent('%s');\n" % target
   out += "}\n"
   return out
