@@ -65,7 +65,7 @@ xAxisConfigs = (
   dict(seconds=10,    minorGridUnit=MIN,  minorGridStep=5,  majorGridUnit=MIN,  majorGridStep=20, labelUnit=MIN,  labelStep=20, format="%H:%M", maxInterval=1*DAY),
   dict(seconds=30,    minorGridUnit=MIN,  minorGridStep=10, majorGridUnit=HOUR, majorGridStep=1,  labelUnit=HOUR, labelStep=1,  format="%H:%M", maxInterval=2*DAY),
   dict(seconds=60,    minorGridUnit=MIN,  minorGridStep=30, majorGridUnit=HOUR, majorGridStep=2,  labelUnit=HOUR, labelStep=2,  format="%H:%M", maxInterval=2*DAY),
-  dict(seconds=180,   minorGridUnit=HOUR, minorGridStep=2,  majorGridUnit=HOUR, majorGridStep=4,  labelUnit=HOUR, labelStep=4,  format="%a %l%P", maxInterval=6*DAY),
+  dict(seconds=100,   minorGridUnit=HOUR, minorGridStep=2,  majorGridUnit=HOUR, majorGridStep=4,  labelUnit=HOUR, labelStep=4,  format="%a %l%P", maxInterval=6*DAY),
   dict(seconds=255,   minorGridUnit=HOUR, minorGridStep=6,  majorGridUnit=HOUR, majorGridStep=12, labelUnit=HOUR, labelStep=12, format="%m/%d %l%P"),
   dict(seconds=600,   minorGridUnit=HOUR, minorGridStep=6,  majorGridUnit=DAY,  majorGridStep=1,  labelUnit=DAY,  labelStep=1,  format="%m/%d", maxInterval=14*DAY),
   dict(seconds=600,   minorGridUnit=HOUR, minorGridStep=12, majorGridUnit=DAY,  majorGridStep=1,  labelUnit=DAY,  labelStep=1,  format="%m/%d", maxInterval=365*DAY),
@@ -665,10 +665,18 @@ class LineGraph(Graph):
     self.endTime = max([series.end for series in self.data])
     timeRange = self.endTime - self.startTime
 
+    if self.userTimeZone:
+      tzinfo = timezone(self.userTimeZone)
+    else:
+      tzinfo = timezone(settings.TIME_ZONE)
+
+    self.start_dt = datetime.fromtimestamp(self.startTime, tzinfo)
+    self.end_dt = datetime.fromtimestamp(self.endTime, tzinfo)
+
     secondsPerPixel = float(timeRange) / float(self.graphWidth)
     self.xScaleFactor = float(self.graphWidth) / float(timeRange) #pixels per second
 
-    potential = [c for c in xAxisConfigs if c['seconds'] <= secondsPerPixel and c.get('maxInterval',timeRange+1) >= timeRange]
+    potential = [c for c in xAxisConfigs if c['seconds'] <= secondsPerPixel and c.get('maxInterval', timeRange + 1) >= timeRange]
     if potential:
       self.xConf = potential[-1]
     else:
@@ -677,6 +685,7 @@ class LineGraph(Graph):
     self.xLabelStep = self.xConf['labelUnit'] * self.xConf['labelStep']
     self.xMinorGridStep = self.xConf['minorGridUnit'] * self.xConf['minorGridStep']
     self.xMajorGridStep = self.xConf['majorGridUnit'] * self.xConf['majorGridStep']
+
 
   def drawLabels(self):
     #Draw the Y-labels
@@ -693,69 +702,76 @@ class LineGraph(Graph):
       else:
         self.drawText(label, x, y, align='left', valign='middle') #Inverted for right side Y Axis
 
-    # Round our starting time, t, to be a multiple of the x label steps
-    t = self.xLabelStep * math.ceil( float(self.startTime) / self.xLabelStep )
-
-    if self.userTimeZone:
-      tzinfo = timezone(self.userTimeZone)
-    else:
-      tzinfo = timezone(settings.TIME_ZONE)
-
-    start_dt = datetime.fromtimestamp(self.startTime, tzinfo)
-    end_dt = datetime.fromtimestamp(self.endTime, tzinfo)
-    dt = datetime.fromtimestamp(t, tzinfo)
-    x_label_delta = timedelta(seconds=self.xLabelStep)
+    (dt, x_label_delta) = find_x_times(self.start_dt, self.xConf['labelUnit'], self.xConf['labelStep'])
 
     #Draw the X-labels
-    while dt < end_dt:
+    while dt < self.end_dt:
       label = dt.strftime( self.xConf['format'] )
-      x = self.area['xmin'] + (toSeconds(dt - start_dt) * self.xScaleFactor)
+      x = self.area['xmin'] + (toSeconds(dt - self.start_dt) * self.xScaleFactor)
       y = self.area['ymax'] + self.getExtents()['maxAscent']
       self.drawText(label, x, y, align='center', valign='top')
       dt += x_label_delta
+
 
   def drawGridLines(self):
     #Horizontal grid lines
     leftSide = self.area['xmin']
     rightSide = self.area['xmax']
+
     for value in self.yLabelValues:
       self.ctx.set_line_width(0.4)
       self.setColor( self.params.get('majorGridLineColor',self.defaultMajorGridLineColor) )
+
       y = self.area['ymax'] - ((value - self.yBottom) * self.yScaleFactor)
       self.ctx.move_to(leftSide, y)
       self.ctx.line_to(rightSide, y)
       self.ctx.stroke()
       self.ctx.set_line_width(0.3)
       self.setColor( self.params.get('minorGridLineColor',self.defaultMinorGridLineColor) )
+
       value += (self.yStep / 2.0)
-      if value >= self.yTop: continue
+      if value >= self.yTop:
+        continue
+
       y = self.area['ymax'] - ((value - self.yBottom) * self.yScaleFactor)
       self.ctx.move_to(leftSide, y)
       self.ctx.line_to(rightSide, y)
       self.ctx.stroke()
+
     #Vertical grid lines
     top = self.area['ymin']
     bottom = self.area['ymax']
-    self.ctx.set_line_width(0.25) #First we do minor lines (major's should paint over them)
+
+    # First we do the minor grid lines (majors will paint over them)
+    self.ctx.set_line_width(0.25)
     self.setColor( self.params.get('minorGridLineColor',self.defaultMinorGridLineColor) )
-    t = self.xMinorGridStep * math.ceil( float(self.startTime) / self.xMinorGridStep )
-    while t < self.endTime:
-      x = self.area['xmin'] + ((t - self.startTime) * self.xScaleFactor)
+    (dt, x_minor_delta) = find_x_times(self.start_dt, self.xConf['minorGridUnit'], self.xConf['minorGridStep'])
+
+    while dt < self.end_dt:
+      x = self.area['xmin'] + (toSeconds(dt - self.start_dt) * self.xScaleFactor)
+
       if x < self.area['xmax']: 
         self.ctx.move_to(x, bottom)
         self.ctx.line_to(x, top)
         self.ctx.stroke()
-      t += self.xMinorGridStep
-    self.ctx.set_line_width(0.33) #Now for the major grid lines
+
+      dt += x_minor_delta
+
+    # Now we do the major grid lines
+    self.ctx.set_line_width(0.33)
     self.setColor( self.params.get('majorGridLineColor',self.defaultMajorGridLineColor) )
-    t = self.xMajorGridStep * math.ceil( float(self.startTime) / self.xMajorGridStep )
-    while t < self.endTime:
-      x = self.area['xmin'] + ((t - self.startTime) * self.xScaleFactor)
+    (dt, x_major_delta) = find_x_times(self.start_dt, self.xConf['majorGridUnit'], self.xConf['majorGridStep'])
+
+    while dt < self.end_dt:
+      x = self.area['xmin'] + (toSeconds(dt - self.start_dt) * self.xScaleFactor)
+
       if x < self.area['xmax']: 
         self.ctx.move_to(x, bottom)
         self.ctx.line_to(x, top)
         self.ctx.stroke()
-      t += self.xMajorGridStep
+
+      dt += x_major_delta
+
     #Draw side borders for our graph area
     self.ctx.set_line_width(0.5)
     self.ctx.move_to(self.area['xmax'], bottom)
@@ -763,6 +779,7 @@ class LineGraph(Graph):
     self.ctx.move_to(self.area['xmin'], bottom)
     self.ctx.line_to(self.area['xmin'], top)
     self.ctx.stroke()
+
 
 
 class PieGraph(Graph):
@@ -905,19 +922,6 @@ def reverse_sort(args):
   return aux_list
  
 
-#def tz_difference(tz):
-#  os.environ['TZ'] = tz
-#  tzset()
-#  captured_time = localtime()
-#  tz_delta = int(timegm(captured_time) - mktime(captured_time))
-#
-#  try:
-#    os.environ['TZ'] = local_settings.TIME_ZONE
-#  except:
-#    os.environ['TZ'] = settings.TIME_ZONE
-#  return tz_delta
-
-
 def format_units(v, step, system="si"):
   """Format the given value in standardized units.
 
@@ -934,3 +938,29 @@ def format_units(v, step, system="si"):
       return v, prefix
 
   return v, ""
+
+
+def find_x_times(start_dt, unit, step):
+  if unit == SEC:
+    dt = start_dt.replace(second=start_dt.second - (start_dt.second % step))
+    x_delta = timedelta(seconds=step)
+
+  elif unit == MIN:
+    dt = start_dt.replace(second=0, minute=start_dt.minute - (start_dt.minute % step))
+    x_delta = timedelta(minutes=step)
+
+  elif unit == HOUR:
+    dt = start_dt.replace(second=0, minute=0, hour=start_dt.hour - (start_dt.hour % step))
+    x_delta = timedelta(hours=step)
+
+  elif unit == DAY:
+    dt = start_dt.replace(second=0, minute=0, hour=0)
+    x_delta = timedelta(days=step)
+
+  else:
+    raise ValueError("Invalid unit: %s" % unit)
+
+  while dt < start_dt:
+    dt += x_delta
+
+  return (dt, x_delta)
