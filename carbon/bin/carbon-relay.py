@@ -36,8 +36,9 @@ BIN_DIR = dirname(__file__)
 ROOT_DIR = dirname(BIN_DIR)
 STORAGE_DIR = join(ROOT_DIR, 'storage')
 LOG_DIR = join(STORAGE_DIR, 'log', 'carbon-relay')
-CONF_DIR = join(ROOT_DIR, 'conf')
 LIB_DIR = join(ROOT_DIR, 'lib')
+CONF_DIR = join(ROOT_DIR, 'conf')
+__builtins__.CONF_DIR = CONF_DIR
 
 sys.path.insert(0, LIB_DIR)
 
