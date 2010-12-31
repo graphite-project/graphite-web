@@ -470,15 +470,16 @@ def timeShift(requestContext, seriesList, timeShift):
   myContext = requestContext.copy()
   myContext['startTime'] = requestContext['startTime'] - delta
   myContext['endTime'] = requestContext['endTime'] - delta
+  series = seriesList[0] # if len(seriesList) > 1, they will all have the same pathExpression, which is all we care about.
+  results = []
 
-  for i,series in enumerate(seriesList):
-    shiftedSeries = evaluateTarget(myContext, series.pathExpression)[0]
-    shiftedSeries.name = 'timeShift(%s, %s)' % (series.name, timeShift)
+  for shiftedSeries in evaluateTarget(myContext, series.pathExpression):
+    shiftedSeries.name = 'timeShift(%s, %s)' % (shiftedSeries.name, timeShift)
     shiftedSeries.start = series.start
     shiftedSeries.end = series.end
-    seriesList[i] = shiftedSeries
+    results.append(shiftedSeries)
 
-  return seriesList
+  return results
 
 
 def constantLine(requestContext, value):
@@ -586,13 +587,13 @@ SeriesFunctions = {
   'nonNegativeDerivative' : nonNegativeDerivative,
   'log' : log,
   'timeShift': timeShift,
+  'summarize' : summarize,
 
   # Calculate functions
   'movingAverage' : movingAverage,
   'stdev' : stdev,
   'asPercent' : asPercent,
   'pct' : asPercent,
-  'summarize' : summarize,
 
   # Filter functions
   'mostDeviant' : mostDeviant,
