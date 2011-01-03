@@ -37,8 +37,16 @@ class FindRequest:
   def send(self):
     self.connection = HTTPConnectionWithTimeout(self.store.host)
     self.connection.timeout = self.store.timeout
+
+    query_params = [
+      ('local', '1'),
+      ('format', 'pickle'),
+      ('query', self.query),
+    ]
+    query_string = urlencode(query_params)
+
     try:
-      self.connection.request('GET', '/metrics/find/?local=1&format=pickle&query=' + self.query)
+      self.connection.request('GET', '/metrics/find/?' + query_string)
     except:
       self.store.fail()
       if not self.suppressErrors:
