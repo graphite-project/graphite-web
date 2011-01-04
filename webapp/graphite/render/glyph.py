@@ -107,6 +107,9 @@ class Graph:
     self.margin = int( params.get('margin',10) )
     self.userTimeZone = params.get('tz')
 
+    if self.margin < 0:
+      self.margin = 10
+
     self.area = {
       'xmin' : self.margin + 10, # Need extra room when the time is near the left edge
       'xmax' : self.width - self.margin,
