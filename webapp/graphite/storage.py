@@ -2,6 +2,7 @@ import os, time, fnmatch, socket, errno
 from os.path import isdir, isfile, join, exists, splitext, basename, realpath
 import whisper
 from graphite.remote_storage import RemoteStore
+from django.conf import settings
 
 try:
   import rrdtool
@@ -20,6 +21,7 @@ except ImportError:
 
 
 DATASOURCE_DELIMETER = '::RRD_DATASOURCE::'
+
 
 
 class Store:
@@ -310,3 +312,9 @@ class RRDDataSource(Leaf):
     values = (row[colIndex] for row in rows)
 
     return (timeInfo,values)
+
+
+
+# Exposed Storage API
+LOCAL_STORE = Store(settings.DATA_DIRS)
+STORE = Store(settings.DATA_DIRS, remote_hosts=settings.CLUSTER_SERVERS)

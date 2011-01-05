@@ -2,10 +2,15 @@ import socket
 import time
 import httplib
 from urllib import urlencode
+from django.core.cache import cache
+from django.conf import settings
+from graphite.render.hashing import compactHash
+
 try:
   import cPickle as pickle
 except ImportError:
   import pickle
+
 
 
 class RemoteStore(object):
@@ -17,13 +22,16 @@ class RemoteStore(object):
   def __init__(self, host):
     self.host = host
 
+
   def find(self, query):
     request = FindRequest(self, query)
     request.send()
     return request
 
+
   def fail(self):
     self.lastFailure = time.time()
+
 
 
 class FindRequest:
@@ -33,8 +41,16 @@ class FindRequest:
     self.store = store
     self.query = query
     self.connection = None
+    self.cacheKey = compactHash("find:" + query)
+    self.cachedResults = None
+
 
   def send(self):
+    self.cachedResults = cache.get(self.cacheKey)
+
+    if self.cachedResults:
+      return
+
     self.connection = HTTPConnectionWithTimeout(self.store.host)
     self.connection.timeout = self.store.timeout
 
@@ -52,7 +68,11 @@ class FindRequest:
       if not self.suppressErrors:
         raise
 
+
   def get_results(self):
+    if self.cachedResults:
+      return self.cachedResults
+
     if not self.connection:
       self.send()
 
@@ -61,6 +81,7 @@ class FindRequest:
       assert response.status == 200, "received error response %s - %s" % (response.status, response.reason)
       result_data = response.read()
       results = pickle.loads(result_data)
+
     except:
       self.store.fail()
       if not self.suppressErrors:
@@ -68,7 +89,11 @@ class FindRequest:
       else:
         results = []
 
-    return [ RemoteNode(self.store, node['metric_path'], node['isLeaf']) for node in results ]
+    resultNodes = [ RemoteNode(self.store, node['metric_path'], node['isLeaf']) for node in results ]
+    cache.set(self.cacheKey, resultNodes, settings.REMOTE_FIND_CACHE_DURATION)
+    self.cachedResults = resultNodes
+    return resultNodes
+
 
 
 class RemoteNode:
@@ -81,6 +106,7 @@ class RemoteNode:
     self.real_metric = metric_path
     self.name = metric_path.split('.')[-1]
     self.__isLeaf = isLeaf
+
 
   def fetch(self, startTime, endTime):
     if not self.__isLeaf:
@@ -108,8 +134,10 @@ class RemoteNode:
     timeInfo = (series['start'], series['end'], series['step'])
     return (timeInfo, series['values'])
 
+
   def isLeaf(self):
     return self.__isLeaf
+
 
 
 # This is a hack to put a timeout in the connect() of an HTTP request.

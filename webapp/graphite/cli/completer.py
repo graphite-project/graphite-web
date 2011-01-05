@@ -16,6 +16,7 @@ import sys, os, re
 from django.conf import settings
 from graphite.util import getProfile
 from graphite.logger import log
+from graphite.storage import STORE
 
 
 def completeHistory(path, profile):
@@ -42,7 +43,7 @@ def completePath(path, shortnames=False):
 
   results = []
   
-  for match in settings.STORE.find(pattern):
+  for match in STORE.find(pattern):
     if shortnames:
       results.append(match.name)
     else:

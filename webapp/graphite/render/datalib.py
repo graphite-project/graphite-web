@@ -17,6 +17,7 @@ import struct
 import time
 from django.conf import settings
 from graphite.logger import log
+from graphite.storage import STORE
 
 try:
   import cPickle as pickle
@@ -200,7 +201,7 @@ def fetchData(requestContext, pathExpr):
   startTime = requestContext['startTime']
   endTime = requestContext['endTime']
 
-  for dbFile in settings.STORE.find(pathExpr):
+  for dbFile in STORE.find(pathExpr):
     log.metric_access(dbFile.metric_path)
     getCacheResults = CarbonLink.sendRequest(dbFile.real_metric)
     dbResults = dbFile.fetch( timestamp(startTime), timestamp(endTime) )

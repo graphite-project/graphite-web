@@ -18,6 +18,7 @@ from django.conf import settings
 from graphite.account.models import Profile
 from graphite.util import getProfile, getProfileByUsername, defaultUser, json
 from graphite.logger import log
+from graphite.storage import STORE, LOCAL_STORE
 
 try:
   import cPickle as pickle
@@ -34,7 +35,7 @@ def context_view(request):
 
     for metric in request.GET.getlist('metric'):
       try:
-        context = settings.STORE.get(metric).context
+        context = STORE.get(metric).context
       except:
         contexts.append({ 'metric' : metric, 'error' : 'failed to retrieve context', 'traceback' : traceback.format_exc() })
       else:
@@ -51,7 +52,7 @@ def context_view(request):
     newContext = dict( item for item in request.POST.items() if item[0] != 'metric' )
 
     for metric in request.POST.getlist('metric'):
-      settings.STORE.get(metric).updateContext(newContext)
+      STORE.get(metric).updateContext(newContext)
 
     return HttpResponse('{ "success" : true }', mimetype='text/json')
 
@@ -78,9 +79,9 @@ def find_view(request):
     base_path = ''
 
   if local_only:
-    store = settings.LOCAL_STORE
+    store = LOCAL_STORE
   else:
-    store = settings.STORE
+    store = STORE
 
   matches = list( store.find(query) )
 

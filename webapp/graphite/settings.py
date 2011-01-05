@@ -43,7 +43,8 @@ except:
 
 #Memcache settings
 MEMCACHE_HOSTS = []
-MEMCACHE_DURATION = 60 #all data is cached for one minute by default
+MEMCACHE_DURATION = 60 #metric data and graphs are cached for one minute by default
+REMOTE_FIND_CACHE_DURATION = 300
 LOG_CACHE_PERFORMANCE = False
 
 #Remote rendering settings
@@ -85,19 +86,6 @@ try:
 except ImportError:
   print >> sys.stderr, "Could not import graphite.local_settings, using defaults!"
 
-
-#Configure our Store and templates
-try:
-  from graphite.storage import Store
-except ImportError:
-  print 'Failed to import graphite.storage module, debug information follows.'
-  print '__file__ = %s' % __file__
-  print 'sys.path = %s' % sys.path
-  print 'pwd = %s' % os.getcwd()
-  raise SystemExit(1)
-
-LOCAL_STORE = Store(DATA_DIRS)
-STORE = Store(DATA_DIRS, remote_hosts=CLUSTER_SERVERS)
 
 TEMPLATE_DIRS = (
   join(WEB_DIR, 'templates'),
