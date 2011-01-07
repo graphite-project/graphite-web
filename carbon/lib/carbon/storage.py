@@ -30,6 +30,44 @@ def getFilesystemPath(metric):
   return join(settings.LOCAL_DATA_DIR, metric.replace('.','/')) + '.wsp'
 
 
+UnitMultipliers = {
+  's' : 1,
+  'm' : 60,
+  'h' : 60 * 60,
+  'd' : 60 * 60 * 24,
+  'y' : 60 * 60 * 24 * 365,
+}
+
+def parseRetentionDefinition(retentionDef):
+  (precision, points) = retentionDef.strip().split(':')
+
+  if precision.isdigit():
+    precisionUnit = 's'
+    precision = int(precision)
+  else:
+    precisionUnit = precision[-1]
+    precision = int( precision[:-1] )
+
+  if points.isdigit():
+    pointsUnit = 's'
+    points = int(points)
+  else:
+    pointsUnit = points[-1]
+    points = int( points[:-1] )
+
+  if precisionUnit not in UnitMultipliers:
+    raise ValueError("Invalid unit: '%s'" % precisionUnit)
+
+  if pointsUnit not in UnitMultipliers:
+    raise ValueError("Invalid unit: '%s'" % pointsUnit)
+
+  precision = precision * UnitMultipliers[precisionUnit]
+  points = points * UnitMultipliers[pointsUnit] / precision
+
+  return (precision, points)
+
+
+
 class Schema:
   def test(self, metric):
     raise NotImplementedError()
@@ -94,13 +132,16 @@ class Archive:
     self.secondsPerPoint = int( secondsPerPoint )
     self.points = int( points )
 
+
   def getTuple(self):
     return (self.secondsPerPoint,self.points)
 
+
   @staticmethod
-  def fromString(string):
-    secondsPerPoint,points = string.strip().split(':',1)
-    return Archive(secondsPerPoint,points)
+  def fromString(retentionDef):
+    (secondsPerPoint, points) = parseRetentionDefinition(retentionDef)
+    return Archive(secondsPerPoint, points)
+
 
 
 def loadStorageSchemas():

@@ -6,7 +6,53 @@ from optparse import OptionParser
 
 now = int( time.time() )
 
-option_parser = OptionParser(usage='''%prog path secondsPerPoint:pointsToStore [secondsPerPoint:pointsToStore]* ''')
+UnitMultipliers = {
+  's' : 1,
+  'm' : 60,
+  'h' : 60 * 60,
+  'd' : 60 * 60 * 24,
+  'y' : 60 * 60 * 24 * 365,
+}
+
+
+def parseRetentionDefinition(retentionDef):
+  (precision, points) = retentionDef.strip().split(':')
+
+  if precision.isdigit():
+    precisionUnit = 's'
+    precision = int(precision)
+  else:
+    precisionUnit = precision[-1]
+    precision = int( precision[:-1] )
+
+  if points.isdigit():
+    pointsUnit = 's'
+    points = int(points)
+  else:
+    pointsUnit = points[-1]
+    points = int( points[:-1] )
+
+  if precisionUnit not in UnitMultipliers:
+    raise ValueError("Invalid unit: '%s'" % precisionUnit)
+
+  if pointsUnit not in UnitMultipliers:
+    raise ValueError("Invalid unit: '%s'" % pointsUnit)
+
+  precision = precision * UnitMultipliers[precisionUnit]
+  points = points * UnitMultipliers[pointsUnit] / precision
+
+  return (precision, points)
+
+
+option_parser = OptionParser(usage='''%prog path precision:retention [precision:retention]*
+
+precision and retention specify lengths of time, for example:
+
+60:1440      60 seconds per datapoint, 1440 datapoints = 1 day of retention
+15m:8        15 minutes per datapoint, 8 datapoints = 2 hours of retention
+1h:7d        1 hour per datapoint, 7 days of retention
+12h:2y       12 hours per datapoint, 2 years of retention
+''')
 option_parser.add_option('--xFilesFactor', default=None, type='float', help="Change the xFilesFactor")
 option_parser.add_option('--force', default=False, action='store_true', help="Perform a destructive change")
 option_parser.add_option('--newfile', default=None, action='store', help="Create a new database file without removing the existing one")
@@ -19,7 +65,7 @@ if len(args) < 2:
   sys.exit(1)
 
 path = args[0]
-new_archives = [ tuple( map(int,archive_str.split(':')) ) for archive_str in args[1:] ]
+new_archives = [ parseRetentionDef(retentionDef) for retentionDef in args[1:] ]
 
 info = whisper.info(path)
 old_archives = info['archives']
