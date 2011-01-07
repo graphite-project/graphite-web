@@ -13,12 +13,16 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 import os, cairo, math, itertools
-from pytz import timezone
 from datetime import datetime, timedelta
 from urllib import unquote_plus
 from ConfigParser import SafeConfigParser
 from django.conf import settings
 from graphite.render.datalib import TimeSeries
+
+try: # See if there is a system installation of pytz first
+  import pytz
+except ImportError: # Otherwise we fall back to Graphite's bundled version
+  from graphite.thirdparty import pytz
 
 
 colorAliases = {
@@ -669,9 +673,9 @@ class LineGraph(Graph):
     timeRange = self.endTime - self.startTime
 
     if self.userTimeZone:
-      tzinfo = timezone(self.userTimeZone)
+      tzinfo = pytz.timezone(self.userTimeZone)
     else:
-      tzinfo = timezone(settings.TIME_ZONE)
+      tzinfo = pytz.timezone(settings.TIME_ZONE)
 
     self.start_dt = datetime.fromtimestamp(self.startTime, tzinfo)
     self.end_dt = datetime.fromtimestamp(self.endTime, tzinfo)
