@@ -31,7 +31,7 @@ for root, dirs, files in os.walk('webapp/content'):
 
 setup(
   name='graphite-web',
-  version='0.9.6',
+  version='0.9.7',
   url='https://launchpad.net/graphite',
   author='Chris Davis',
   author_email='chrismd@gmail.com',
