@@ -38,7 +38,7 @@ setup(
   license='Apache Software License 2.0',
   description='Enterprise scalable realtime graphing',
   package_dir={'' : 'webapp'},
-  packages=['graphite', 'graphite.account', 'graphite.browser', 'graphite.cli', 'graphite.composer', 'graphite.render', 'graphite.whitelist', 'graphite.metrics'],
+  packages=['graphite', 'graphite.account', 'graphite.browser', 'graphite.cli', 'graphite.composer', 'graphite.render', 'graphite.whitelist', 'graphite.metrics', 'graphite.thirdparty'],
   package_data={'graphite' : ['templates/*', 'local_settings.py.example', 'render/graphTemplates.conf']},
   scripts=glob('bin/*'),
   data_files=webapp_content.items() + storage_dirs,
