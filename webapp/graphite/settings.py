@@ -30,8 +30,10 @@ LISTS_DIR = STORAGE_DIR + 'lists/'
 INDEX_FILE = STORAGE_DIR + 'index'
 WHITELIST_FILE = LISTS_DIR + 'whitelist'
 LOG_DIR = STORAGE_DIR + 'log/webapp/'
+THIRDPARTY_DIR = WEB_DIR + 'thirdparty/'
 CLUSTER_SERVERS = []
 
+sys.path.insert(0, THIRDPARTY_DIR)
 sys.path.insert(0, WEBAPP_DIR)
 
 try:
