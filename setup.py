@@ -14,7 +14,7 @@ else:
 
 storage_dirs = []
 
-for subdir in ('whisper', 'lists', 'rrd', 'log', 'log/webapp', 'ceres', 'ceres/.ceres-tree'):
+for subdir in ('whisper', 'lists', 'rrd', 'log', 'log/webapp'):
   storage_dirs.append( ('storage/%s' % subdir, []) )
 
 webapp_content = {}
