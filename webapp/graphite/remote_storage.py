@@ -41,7 +41,7 @@ class FindRequest:
     self.store = store
     self.query = query
     self.connection = None
-    self.cacheKey = compactHash("find:" + query)
+    self.cacheKey = compactHash('find:%s:%s' % (self.store.host, query))
     self.cachedResults = None
 
 
