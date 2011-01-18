@@ -565,7 +565,7 @@ class LineGraph(Graph):
     if self.params.get('drawNullAsZero') and seriesWithMissingValues:
       yMinValue = 0.0
     else:
-      yMinValue = safeMin( [safeMin(series) for series in self.data] )
+      yMinValue = safeMin( [safeMin(series) for series in self.data if not series.options.get('drawAsInfinite')] )
 
     if self.areaMode == 'stacked':
       yMaxValue = safeSum( [safeMax(series) for series in self.data] )
