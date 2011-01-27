@@ -369,7 +369,7 @@ def highestCurrent(requestContext, seriesList, n):
 
 def highestMax(requestContext, seriesList, n):
   """Returns upto n seriesList members where the respective series has a max member is in the top-n."""
-  result_list = sorted( sortByMaxima(requestContext, seriesList), key=lambda s: max(s) )[-n:]
+  result_list = sorted( seriesList, key=lambda s: max(s) )[-n:]
 
   return sorted(result_list, key=lambda s: max(s), reverse=True)
 
