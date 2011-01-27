@@ -513,6 +513,7 @@ var GraphDataWindow = {
                 menu: [
                   {text: 'Most Deviant', handler: this.applyFuncToEachWithInput('mostDeviant', 'Draw the ___ metrics with the highest standard deviation')},
                   {text: 'Highest Current Value', handler: this.applyFuncToEachWithInput('highestCurrent', 'Draw the ___ metrics with the highest current value')},
+                  {text: 'Highest Maximum Value', handler: this.applyFuncToEachWithInput('highestMax', 'Draw the ___ metrics with the highest maximum value')},
                   {text: 'Lowest Current Value', handler: this.applyFuncToEachWithInput('lowestCurrent', 'Draw the ___ metrics with the lowest current value')},
                   {text: 'Current Value Above', handler: this.applyFuncToEachWithInput('currentAbove', 'Draw all metrics whose current value is above ___')},
                   {text: 'Current Value Below', handler: this.applyFuncToEachWithInput('currentBelow', 'Draw all metrics whose current value is below ___')},

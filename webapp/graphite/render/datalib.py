@@ -15,14 +15,47 @@ limitations under the License."""
 import socket
 import struct
 import time
-from django.conf import settings
-from graphite.logger import log
-from graphite.storage import STORE
 
 try:
   import cPickle as pickle
 except ImportError:
   import pickle
+
+# Private Globals that are initialized when InitializeOnce has been called
+_LOG = None
+_DATASTORE = None
+_IS_INITIALIZED = False
+
+_CARBONLINK = None
+
+
+def InitializeOnce(logmod=None, settingsmod=None, storemod=None):
+  global _IS_INITIALIZED, _LOG, _DATASTORE, _CARBONLINK
+  if _IS_INITIALIZED:
+    return False
+
+  _LOG = logmod
+  if _LOG is None:
+    from graphite.logger import log
+    _LOG = log
+
+  if settingsmod is None:
+    from django.conf import settings
+    settingsmod = settings
+
+  if storemod is None:
+    from graphite.storage import STORE
+    _DATASTORE = STORE
+  #parse hosts from local_settings.py
+  hosts = []
+  for host in settingsmod.CARBONLINK_HOSTS:
+    server,port = host.split(':',1)
+    hosts.append( (server,int(port)) )
+  #A shared importable singleton
+  _CARBONLINK = CarbonLinkPool(hosts, settingsmod.CARBONLINK_TIMEOUT)
+
+  _IS_INITIALIZED = True
+  _LOG.info("Initialized %s" % __file__)
 
 
 class TimeSeries(list):
@@ -73,7 +106,7 @@ class TimeSeries(list):
     if self.consolidationFunc == 'average':
       return float(sum(usable)) / len(usable)
     raise Exception, "Invalid consolidation function!"
-    
+
 
   def __repr__(self):
     return 'TimeSeries(name=%s, start=%s, end=%s, step=%s)' % (self.name, self.start, self.end, self.step)
@@ -112,7 +145,7 @@ class CarbonLinkPool:
     except KeyError:
       pass #nothing left in the pool, gotta make a new connection
 
-    log.cache("CarbonLink creating a new socket for %s:%d" % host)
+    _LOG.cache("CarbonLink creating a new socket for %s:%d" % host)
     connection = socket.socket()
     connection.settimeout(self.timeout)
     connection.connect(host)
@@ -163,33 +196,22 @@ class CarbonLinkPool:
 
           # Now parse the response
           points = pickle.loads(buf)
-          log.cache("CarbonLink to %s, retrieved %d points for %s" % (host,len(points),metric))
+          _LOG.cache("CarbonLink to %s, retrieved %d points for %s" % (host,len(points),metric))
 
           for point in points:
             yield point
 
         except:
-          log.exception("CarbonLink to %s, exception while getting response" % str(host))
+          _LOG.exception("CarbonLink to %s, exception while getting response" % str(host))
           self.removeConnectionFromPool(host, connection)
 
       return receiveResponse
     except:
-      log.exception("CarbonLink to %s, exception while sending request" % str(host))
+      _LOG.exception("CarbonLink to %s, exception while sending request" % str(host))
       if connection:
         self.removeConnectionFromPool(host, connection)
       noResults = lambda: []
       return noResults
-
-
-#parse hosts from local_settings.py
-hosts = []
-for host in settings.CARBONLINK_HOSTS:
-  server,port = host.split(':',1)
-  hosts.append( (server,int(port)) )
-
-
-#A shared importable singleton
-CarbonLink = CarbonLinkPool(hosts, settings.CARBONLINK_TIMEOUT)
 
 
 # Data retrieval API
@@ -201,9 +223,9 @@ def fetchData(requestContext, pathExpr):
   startTime = requestContext['startTime']
   endTime = requestContext['endTime']
 
-  for dbFile in STORE.find(pathExpr):
-    log.metric_access(dbFile.metric_path)
-    getCacheResults = CarbonLink.sendRequest(dbFile.real_metric)
+  for dbFile in _DATASTORE.find(pathExpr):
+    _LOG.metric_access(dbFile.metric_path)
+    getCacheResults = _CARBONLINK.sendRequest(dbFile.real_metric)
     dbResults = dbFile.fetch( timestamp(startTime), timestamp(endTime) )
     results = mergeResults(dbResults, getCacheResults())
 
@@ -245,3 +267,11 @@ def mergeResults(dbResults, cacheResults):
 def timestamp(datetime):
   "Convert a datetime object into epoch time"
   return time.mktime( datetime.timetuple() )
+
+
+# Do not initialize the module for tests.  Allow tests to provide dependencies via injection.
+# This block will execute for whenever the import occurs in a stack trace where the uppermost
+# module's name does not match the pattern'[FILE_PREFIX]_test.py'.
+import inspect
+if '_test.py' not in inspect.stack()[-1][1]:
+  InitializeOnce()

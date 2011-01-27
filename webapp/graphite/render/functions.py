@@ -367,6 +367,12 @@ def maximumBelow(requestContext, seriesList, n):
 def highestCurrent(requestContext, seriesList, n):
   return sorted( seriesList, key=safeLast )[-n:]
 
+def highestMax(requestContext, seriesList, n):
+  """Returns upto n seriesList members where the respective series has a max member is in the top-n."""
+  result_list = sorted( sortByMaxima(requestContext, seriesList), key=lambda s: max(s) )[-n:]
+
+  return sorted(result_list, key=lambda s: max(s), reverse=True)
+
 def lowestCurrent(requestContext, seriesList, n):
   return sorted( seriesList, key=safeLast )[:n]
 
@@ -613,6 +619,7 @@ SeriesFunctions = {
   # Filter functions
   'mostDeviant' : mostDeviant,
   'highestCurrent' : highestCurrent,
+  'highestMax' : highestMax,
   'lowestCurrent' : lowestCurrent,
   'currentAbove' : currentAbove,
   'currentBelow' : currentBelow,
