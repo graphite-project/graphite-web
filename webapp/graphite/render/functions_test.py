@@ -1,5 +1,18 @@
 import unittest
 
+from django.conf import settings
+
+# This line has to occur before importing functions.
+settings.configure(
+    LOG_DIR='.',
+    LOG_CACHE_PERFORMANCE='',
+    LOG_RENDERING_PERFORMANCE='',
+    LOG_METRIC_ACCESS='',
+    DATA_DIRS='.',
+    CLUSTER_SERVERS='',
+    CARBONLINK_HOSTS='',
+    CARBONLINK_TIMEOUT=0)
+
 import graphite.render.functions as functions
 
 
