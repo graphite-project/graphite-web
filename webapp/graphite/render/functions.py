@@ -394,6 +394,28 @@ def averageAbove(requestContext, seriesList, n):
 def averageBelow(requestContext, seriesList, n):
   return [ series for series in seriesList if safeDiv(safeSum(series),safeLen(series)) <= n ]
 
+def percentileOrdinal(n, series):
+  result = int( safeDiv(n * len(series), 100) + 0.5 )
+  return result
+
+def nPercentile(requestContext, seriesList, n):
+  """Returns n-percent of each series in the seriesList."""
+  assert n, 'The requested percent is required to be greater than 0'
+
+  results = []
+  for s in seriesList:
+    # Create a sorted copy of the TimeSeries excluding None values in the values list.
+    s_copy = TimeSeries( s.name, s.start, s.end, s.step, sorted( [item for item in s if item is not None] ) )
+    if not s_copy:
+      continue  # Skip this series because it is empty.
+
+    pord = percentileOrdinal( n, s_copy )
+    perc_val = s_copy[ pord - 1 if pord > 0 else pord ]
+    if perc_val:
+      results.append( TimeSeries( '%dth Percentile(%s, %.1f)' % ( n, s_copy.name, perc_val ),
+                                  s_copy.start, s_copy.end, s_copy.step, [perc_val] ) )
+  return results
+
 def limit(requestContext, seriesList, n):
   return seriesList[0:n]
 
@@ -619,8 +641,8 @@ SeriesFunctions = {
   # Filter functions
   'mostDeviant' : mostDeviant,
   'highestCurrent' : highestCurrent,
-  'highestMax' : highestMax,
   'lowestCurrent' : lowestCurrent,
+  'highestMax' : highestMax,
   'currentAbove' : currentAbove,
   'currentBelow' : currentBelow,
   'highestAverage' : highestAverage,
@@ -629,6 +651,7 @@ SeriesFunctions = {
   'averageBelow' : averageBelow,
   'maximumAbove' : maximumAbove,
   'maximumBelow' : maximumBelow,
+  'nPercentile' : nPercentile,
   'limit' : limit,
   'sortByMaxima' : sortByMaxima,
   'sortByMinima' : sortByMinima,
