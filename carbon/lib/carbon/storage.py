@@ -49,7 +49,7 @@ def parseRetentionDefinition(retentionDef):
     precision = int( precision[:-1] )
 
   if points.isdigit():
-    pointsUnit = 's'
+    pointsUnit = None
     points = int(points)
   else:
     pointsUnit = points[-1]
@@ -58,11 +58,13 @@ def parseRetentionDefinition(retentionDef):
   if precisionUnit not in UnitMultipliers:
     raise ValueError("Invalid unit: '%s'" % precisionUnit)
 
-  if pointsUnit not in UnitMultipliers:
+  if pointsUnit not in UnitMultipliers and pointsUnit is not None:
     raise ValueError("Invalid unit: '%s'" % pointsUnit)
 
   precision = precision * UnitMultipliers[precisionUnit]
-  points = points * UnitMultipliers[pointsUnit] / precision
+
+  if pointsUnit:
+    points = points * UnitMultipliers[pointsUnit] / precision
 
   return (precision, points)
 
