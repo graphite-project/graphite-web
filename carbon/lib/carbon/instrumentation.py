@@ -1,3 +1,4 @@
+import os
 import time
 import socket
 from resource import getrusage, RUSAGE_SELF
@@ -8,6 +9,7 @@ from carbon.relay import relay, RelayServers
 
 stats = {}
 HOSTNAME = socket.gethostname().replace('.','_')
+PAGESIZE = os.sysconf('SC_PAGESIZE')
 recordTask = None
 rusage = getrusage(RUSAGE_SELF)
 lastUsage = rusage.ru_utime + rusage.ru_stime
@@ -47,6 +49,11 @@ def getCpuUsage():
   lastUsageTime = currentTime
 
   return cpuUsagePercent
+
+
+def getMemUsage():
+  rss_pages = int( open('/proc/self/statm').read().split()[1] )
+  return rss_pages * PAGESIZE
 
 
 # Cache metrics
@@ -127,3 +134,30 @@ def send(metric, value):
   fullMetric = 'carbon.relays.%s.%s' % (HOSTNAME, metric)
   datapoint = (time.time(), value)
   relay(fullMetric, datapoint)
+
+
+def startRecordingAggregatorMetrics():
+  global recordTask
+  assert not recordTask, "Already recording metrics"
+  recordTask = LoopingCall(recordAggregatorMetrics)
+  recordTask.start(60, now=False)
+
+
+def recordAggregatorMetrics():
+  myStats = stats.copy()
+  stats.clear()
+  prefix = 'carbon.aggregator.%s.' % HOSTNAME
+  #XXX Yes, this is horribly redundant with the relay's send(), the two will be merged soon.
+  send = lambda metric, value: send_metric(prefix + metric, (time.time(), value))
+
+  send('allocatedBuffers', len(BufferManager.buffers))
+  send('bufferedDatapoints', sum([b.size for b in BufferManager.buffers.values()]))
+  send('memUsage', getMemUsage())
+  send('cpuUsage', getCpuUsage())
+  send('datapointsReceived', myStats.get('datapointsReceived', 0))
+  send('aggregateDatapointsSent', myStats.get('aggregateDatapointsSent', 0))
+
+
+# Avoid import circularity
+from carbon.aggregator.buffers import BufferManager
+from carbon.aggregator.client import send_metric
