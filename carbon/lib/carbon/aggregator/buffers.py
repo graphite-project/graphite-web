@@ -27,21 +27,24 @@ class AggregationBuffer:
     self.values = []
     self.compute_task = None
     self.configured = False
-    self.aggregate_func = None
+    self.aggregation_frequency = None
+    self.aggregation_func = None
 
   def input(self, datapoint):
     (timestamp, value) = datapoint
     self.values.append(value)
 
-  def configure_aggregation(self, frequency, aggregate_func):
-    self.aggregate_func = aggregate_func
+  def configure_aggregation(self, frequency, func):
+    self.aggregation_frequency = int(frequency)
+    self.aggregation_func = func
     self.compute_task = LoopingCall(self.compute_value)
     self.compute_task.start(frequency, now=False)
     self.configured = True
 
   def compute_value(self):
-    value = self.aggregate_func(self.values)
-    datapoint = (time.time(), value)
+    value = self.aggregation_func(self.values)
+    timestamp = time.time() - self.aggregation_frequency
+    datapoint = (timestamp, value)
     self.values = []
     send_metric(self.metric_path, datapoint)
     increment('aggregateDatapointsSent')

@@ -68,7 +68,7 @@ class AggregationRule:
     if method not in AGGREGATION_METHODS:
       raise ValueError("Invalid aggregation method '%s'" % method)
 
-    self.aggregate_func = AGGREGATION_METHODS[method]
+    self.aggregation_func = AGGREGATION_METHODS[method]
     self.build_regex()
     self.build_template()
     self.cache = {}

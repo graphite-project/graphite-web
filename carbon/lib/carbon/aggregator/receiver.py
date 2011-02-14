@@ -16,7 +16,7 @@ def process(metric, datapoint):
     buffer = BufferManager.get_buffer(aggregate_metric)
 
     if not buffer.configured:
-      buffer.configure_aggregation(rule.frequency, rule.aggregate_func)
+      buffer.configure_aggregation(rule.frequency, rule.aggregation_func)
 
     buffer.input(datapoint)
 
