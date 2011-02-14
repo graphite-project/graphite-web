@@ -152,10 +152,13 @@ def recordAggregatorMetrics():
 
   send('allocatedBuffers', len(BufferManager.buffers))
   send('bufferedDatapoints', sum([b.size for b in BufferManager.buffers.values()]))
-  send('memUsage', getMemUsage())
-  send('cpuUsage', getCpuUsage())
   send('datapointsReceived', myStats.get('datapointsReceived', 0))
   send('aggregateDatapointsSent', myStats.get('aggregateDatapointsSent', 0))
+  send('cpuUsage', getCpuUsage())
+  try: # This only works on Linux
+    send('memUsage', getMemUsage())
+  except:
+    pass
 
 
 # Avoid import circularity
