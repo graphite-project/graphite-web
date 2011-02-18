@@ -44,7 +44,6 @@ class MetricPickleSender(Int32StringReceiver):
       datapoints = self.queue[:MAX_DATAPOINTS_PER_MESSAGE]
       self.queue = self.factory.queue = self.queue[MAX_DATAPOINTS_PER_MESSAGE:]
       self.sendString( pickle.dumps(datapoints) )
-      increment(self.sent, len(datapoints))
 
   def send(self, metric, datapoint):
     if self.paused:
@@ -88,7 +87,6 @@ class MetricSenderFactory(ReconnectingClientFactory):
 
     else:
       self.queue.append( (metric, datapoint) )
-      increment(self.queuedUntilConnected)
 
   def clientConnectionLost(self, connector, reason):
     ReconnectingClientFactory.clientConnectionLost(self, connector, reason)
@@ -98,7 +96,3 @@ class MetricSenderFactory(ReconnectingClientFactory):
   def clientConnectionFailed(self, connector, reason):
     ReconnectingClientFactory.clientConnectionFailed(self, connector, reason)
     log.aggregator("connection attempt to %s failed: %s" % (self.remoteAddr, reason.value))
-
-
-# Avoid import circularities
-from carbon.instrumentation import increment
