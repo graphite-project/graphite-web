@@ -60,3 +60,7 @@ def getDestinations(metric):
       return rule.destinations
 
   return defaultRule.destinations
+
+
+def allDestinationServers():
+  return set([server for server in rule.destinations for rule in rules])

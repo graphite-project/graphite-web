@@ -1,7 +1,7 @@
 from twisted.internet import reactor
 from twisted.internet.protocol import ReconnectingClientFactory
 from twisted.protocols.basic import Int32StringReceiver
-from carbon.rules import getDestinations, loadRules
+from carbon.rules import loadRules, getDestinations, allDestinationServers
 from carbon.conf import settings
 from carbon import log
 
@@ -119,16 +119,13 @@ class MetricSenderFactory(ReconnectingClientFactory):
     log.relay("connection attempt to %s failed: %s" % (self.remoteAddr, reason.value))
 
 
-def startRelaying(servers, rulesFile):
+def startRelaying(rulesFile):
   assert not RelayServers, "Relaying already started"
   loadRules(rulesFile)
 
-  for server in servers:
-    if ':' in server:
-      host, port = server.split(':', 1)
-      port = int(port)
-    else:
-      host, port = server, 2004 # default cache pickle listener port
+  for server in allDestinationServers():
+    host, port = server.split(':', 1)
+    port = int(port)
 
     factory = MetricSenderFactory(host, port)
     RelayServers.append(factory) # each factory represents a cache server
