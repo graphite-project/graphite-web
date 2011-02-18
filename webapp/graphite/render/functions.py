@@ -438,7 +438,12 @@ def nPercentile(requestContext, seriesList, n):
       continue  # Skip this series because it is empty.
 
     pord = percentileOrdinal( n, s_copy )
-    perc_val = s_copy[ pord - 1 if pord > 0 else pord ]
+    if pord > 0:
+      i = pord - 1
+    else:
+      i = pord
+
+    perc_val = s_copy[i]
     if perc_val:
       results.append( TimeSeries( '%dth Percentile(%s, %.1f)' % ( n, s_copy.name, perc_val ),
                                   s_copy.start, s_copy.end, s_copy.step, [perc_val] ) )
