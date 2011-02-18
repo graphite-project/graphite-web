@@ -112,11 +112,11 @@ class MetricSenderFactory(ReconnectingClientFactory):
   def clientConnectionLost(self, connector, reason):
     ReconnectingClientFactory.clientConnectionLost(self, connector, reason)
     self.connectedProtocol = None
-    log.relay("connection to %s lost: %s:%d" % (self.remoteAddr, reason.value))
+    log.relay("connection to %s lost: %s" % (self.remoteAddr, reason.value))
 
   def clientConnectionFailed(self, connector, reason):
     ReconnectingClientFactory.clientConnectionFailed(self, connector, reason)
-    log.relay("connection attempt to %s:%d failed: %s" % (self.remoteAddr, reason.value))
+    log.relay("connection attempt to %s failed: %s" % (self.remoteAddr, reason.value))
 
 
 def startRelaying(rulesFile):
