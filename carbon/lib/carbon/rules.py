@@ -34,10 +34,11 @@ def loadRules(path):
       s = s.strip()
 
       if ':' in s:
-        servers.append(s)
+        host, port = s.split(':')
       else:
-        servers.append('%s:%d' % (s, DEFAULT_CARBON_PORT))
+        host, port = s, DEFAULT_CARBON_PORT
 
+      servers.append( (host, int(port)) )
 
     if parser.has_option(section, 'pattern'):
       assert not parser.has_option(section, 'default'), "Section %s contains both 'pattern' and 'default'. You must use one or the other." % section
@@ -52,14 +53,13 @@ def loadRules(path):
       defaultRule = Rule(condition=lambda metric: True, destinations=servers)
 
   assert defaultRule, "No default rule defined. You must specify exactly one rule with 'default = true' instead of a pattern."
+  rules.append(defaultRule)
 
 
 def getDestinations(metric):
   for rule in rules:
     if rule.matches(metric):
       return rule.destinations
-
-  return defaultRule.destinations
 
 
 def allDestinationServers():
