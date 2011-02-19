@@ -149,8 +149,7 @@ metricReceived.installHandler(relay)
 startListener(settings.LINE_RECEIVER_INTERFACE, settings.LINE_RECEIVER_PORT, MetricLineReceiver)
 startListener(settings.PICKLE_RECEIVER_INTERFACE, settings.PICKLE_RECEIVER_PORT, MetricPickleReceiver)
 
-cacheServers = [ server.strip() for server in settings.CACHE_SERVERS.split(',') ]
-startRelaying(cacheServers, options.rules)
+startRelaying(options.rules)
 startRecordingRelayMetrics()
 
 

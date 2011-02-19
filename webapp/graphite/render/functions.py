@@ -47,6 +47,16 @@ def safeLast(values):
   for v in reversed(values):
     if v is not None: return v
 
+def safeMin(values):
+  safeValues = [v for v in values if v is not None]
+  if safeValues:
+    return min(safeValues)
+
+def safeMax(values):
+  safeValues = [v for v in values if v is not None]
+  if safeValues:
+    return max(safeValues)
+
 def lcm(a,b):
   'least common multiple'
   if a == b: return a
@@ -131,6 +141,24 @@ def averageSeries(requestContext, *seriesLists):
   name = "averageSeries(%s)" % ','.join(set([s.pathExpression for s in seriesList]))
   values = ( safeDiv(safeSum(row),safeLen(row)) for row in izip(*seriesList) )
   series = TimeSeries(name,start,end,step,values)
+  series.pathExpression = name
+  return [series]
+
+def minSeries(requestContext, *seriesLists):
+  (seriesList, start, end, step) = normalize(seriesLists)
+  pathExprs = list( set([s.pathExpression for s in seriesList]) )
+  name = "minSeries(%s)" % ','.join(pathExprs)
+  values = ( safeMin(row) for row in izip(*seriesList) )
+  series = TimeSeries(name, start, end, step, values)
+  series.pathExpression = name
+  return [series]
+
+def maxSeries(requestContext, *seriesLists):
+  (seriesList, start, end, step) = normalize(seriesLists)
+  pathExprs = list( set([s.pathExpression for s in seriesList]) )
+  name = "maxSeries(%s)" % ','.join(pathExprs)
+  values = ( safeMax(row) for row in izip(*seriesList) )
+  series = TimeSeries(name, start, end, step, values)
   series.pathExpression = name
   return [series]
 
@@ -410,7 +438,12 @@ def nPercentile(requestContext, seriesList, n):
       continue  # Skip this series because it is empty.
 
     pord = percentileOrdinal( n, s_copy )
-    perc_val = s_copy[ pord - 1 if pord > 0 else pord ]
+    if pord > 0:
+      i = pord - 1
+    else:
+      i = pord
+
+    perc_val = s_copy[i]
     if perc_val:
       results.append( TimeSeries( '%dth Percentile(%s, %.1f)' % ( n, s_copy.name, perc_val ),
                                   s_copy.start, s_copy.end, s_copy.step, [perc_val] ) )
@@ -621,6 +654,8 @@ SeriesFunctions = {
   'avg' : averageSeries,
   'sumSeriesWithWildcards': sumSeriesWithWildcards,
   'averageSeriesWithWildcards': averageSeriesWithWildcards,
+  'minSeries' : minSeries,
+  'maxSeries' : maxSeries,
 
   # Transform functions
   'scale' : scale,

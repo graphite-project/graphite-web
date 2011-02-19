@@ -135,6 +135,11 @@ if exists(options.pidfile):
 # Read config (we want failures to occur before daemonizing)
 settings.readFrom(options.config, 'cache')
 
+storage_schemas = join(CONF_DIR, 'storage-schemas.conf')
+if not exists(storage_schemas):
+  print "Error: missing required config %s" % storage_schemas
+  sys.exit(1)
+
 use_amqp = settings.get("ENABLE_AMQP", False)
 if use_amqp:
   from carbon import amqp_listener
