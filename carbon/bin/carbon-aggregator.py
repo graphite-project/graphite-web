@@ -101,12 +101,12 @@ settings.readFrom(options.config, 'aggregator')
 
 # Import application components
 from carbon.log import logToStdout, logToDir
+from carbon.instrumentation import startRecordingAggregatorMetrics
 from carbon.listeners import MetricLineReceiver, MetricPickleReceiver, startListener
+from carbon.aggregator.rules import RuleManager
 from carbon.aggregator import receiver
 from carbon.aggregator import client
-from carbon.aggregator.rules import RuleManager
 from carbon.events import metricReceived
-from carbon.instrumentation import startRecordingAggregatorMetrics
 from carbon.util import daemonize
 
 RuleManager.read_from(options.rules)

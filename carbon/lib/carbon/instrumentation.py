@@ -3,8 +3,6 @@ import time
 import socket
 from resource import getrusage, RUSAGE_SELF
 from twisted.internet.task import LoopingCall
-from carbon.cache import MetricCache
-from carbon.relay import relay, RelayServers
 
 
 stats = {}
@@ -164,3 +162,5 @@ def recordAggregatorMetrics():
 # Avoid import circularity
 from carbon.aggregator.buffers import BufferManager
 from carbon.aggregator.client import send_metric
+from carbon.relay import relay, RelayServers
+from carbon.cache import MetricCache
