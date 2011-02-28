@@ -95,17 +95,26 @@ class AggregationRule:
     regex_pattern_parts = []
 
     for input_part in input_pattern_parts:
-      i = input_part.find('<')
-      j = input_part.find('>')
-      if i > -1 and j > i:
+      if '<<' in input_part and '>>' in input_part:
+        i = input_part.find('<<')
+        j = input_part.find('>>')
         pre = input_part[:i]
-        post = input_part[j+1:]
-        field_name = input_part[i+1:j]
-        regex_part = '%s(?P<%s>[^.]+)%s' % (pre, field_name, post)
-      elif input_part == '*':
-        regex_part = '[^.]+'
+        post = input_part[j+2:]
+        field_name = input_part[i+2:j]
+        regex_part = '%s(?P<%s>.+)%s' % (pre, field_name, post)
+
       else:
-        regex_part = input_part.replace('*', '[^.]*')
+        i = input_part.find('<')
+        j = input_part.find('>')
+        if i > -1 and j > i:
+          pre = input_part[:i]
+          post = input_part[j+1:]
+          field_name = input_part[i+1:j]
+          regex_part = '%s(?P<%s>[^.]+)%s' % (pre, field_name, post)
+        elif input_part == '*':
+          regex_part = '[^.]+'
+        else:
+          regex_part = input_part.replace('*', '[^.]*')
 
       regex_pattern_parts.append(regex_part)
 
