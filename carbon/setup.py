@@ -14,7 +14,7 @@ else:
 
 storage_dirs = [ ('storage/whisper',[]), ('storage/lists',[]),
                  ('storage/log',[]), ('storage/rrd',[]) ]
-conf_files = [ ('conf', glob('conf/*')) ]
+conf_files = [ ('conf', glob('conf/*.example')) ]
 
 setup(
   name='carbon',

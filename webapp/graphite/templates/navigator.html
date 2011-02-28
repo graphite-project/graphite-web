@@ -1,0 +1,32 @@
+{% autoescape off %}
+
+<html>
+  <head>
+    <title>Graphite Navigator</title>
+    <link rel="stylesheet" type="text/css" href="/content/js/ext/resources/css/ext-all.css"/>
+
+    {% if jsdebug %}
+    <script type="text/javascript" src="/content/js/ext/adapter/ext/ext-base-debug.js"></script>
+    <script type="text/javascript" src="/content/js/ext/ext-all-debug.js"></script>
+    <script type="text/javascript" src="/content/js/navigator.js"></script>
+    {% else %}
+    <script type="text/javascript" src="/content/js/ext/adapter/ext/ext-base.js"></script>
+    <script type="text/javascript" src="/content/js/ext/ext-all.js"></script>
+    <script type="text/javascript" src="/content/js/navigator.js"></script>
+    {% endif %}
+
+    <script type="text/javascript">
+    Ext.BLANK_IMAGE_URL = '/content/js/ext/resources/images/default/s.gif';
+
+    var schemes = {{schemes_json|safe}};
+    var CONTEXT_FIELD_WIDTH = 150;
+
+    Ext.onReady(initNavigator);
+    </script> 
+
+  </head>
+  <body>
+  </body>
+</html>
+
+{% endautoescape %}

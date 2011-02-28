@@ -97,8 +97,8 @@ def find_view(request):
     response = HttpResponse(content, mimetype='application/pickle')
 
   elif format == 'completer':
-    if len(matches) == 1 and (not matches[0].isLeaf()) and query == matches[0].metric_path + '*': # auto-complete children
-      matches = list( store.find(query + '.*') )
+    #if len(matches) == 1 and (not matches[0].isLeaf()) and query == matches[0].metric_path + '*': # auto-complete children
+    #  matches = list( store.find(query + '.*') )
 
     content = json.dumps({ 'metrics' : [ dict(path=node.metric_path, name=node.name) for node in matches ] })
     response = HttpResponse(content, mimetype='text/json')
