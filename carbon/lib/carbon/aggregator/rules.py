@@ -85,7 +85,7 @@ class AggregationRule:
       try:
         result = self.output_template % extracted_fields
       except:
-        log("Failed to interpolate template %s with fields %s" % (self.output_template, extracted_fields))
+        log.err("Failed to interpolate template %s with fields %s" % (self.output_template, extracted_fields))
 
     self.cache[metric_path] = result
     return result
