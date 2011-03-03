@@ -6,7 +6,7 @@ var selectedScheme = null;
 var metricSelector;
 var graphsArea;
 var topBar;
-var spacer; //XXX
+var spacer; //XXX Debug
 
 // Record types and stores
 var SchemeRecord = Ext.data.Record.create([
@@ -30,6 +30,7 @@ var ContextFieldValueRecord = Ext.data.Record.create([
 var contextFieldStore = new Ext.data.JsonStore({
   url: '/metrics/find/',
   root: 'metrics',
+  idProperty: 'name',
   fields: ContextFieldValueRecord,
   baseParams: {format: 'completer'}
 });
@@ -60,7 +61,11 @@ function initNavigator () {
         typeAhead: false,
         listeners: {
           beforequery: buildQuery,
-          select: contextFieldSelected,
+          select: function (combo) {
+            setTimeout(combo.blur.createDelegate(combo), 200);
+            combo.fireEvent('change');
+          },
+          change: contextFieldChanged,
           afterrender: function (thisField) { thisField.hide(); },
           hide: function (thisField) { thisField.getEl().up('.x-form-item').setDisplayed(false); },
           show: function (thisField) { thisField.getEl().up('.x-form-item').setDisplayed(true); }
@@ -73,7 +78,7 @@ function initNavigator () {
   schemesStore.add(schemeRecords);
 
   spacer = new Ext.form.TextField({
-    hidden: false, //XXX
+    hidden: false, //XXX Debug
     hideMode: 'visibility'
   });
 
@@ -100,9 +105,15 @@ function initNavigator () {
     ].concat(contextSelectorFields)
   });
 
-  metricSelector = new Ext.Panel({
-    flex: 1,
-    html: 'metric selector'
+  metricSelector = new Ext.tree.TreePanel({
+    root: new Ext.tree.TreeNode({}),
+    containerScroll: true,
+    autoScroll: true,
+    flex: 1.5,
+    pathSeparator: '.',
+    rootVisible: false,
+    singleExpand: false,
+    trackMouseOver: true
   });
 
   graphsArea = new Ext.Panel({
@@ -170,7 +181,6 @@ function buildQuery (queryEvent) {
 
     if (combo === queryEvent.combo) {
       queryEvent.query = queryString + queryEvent.query + '*';
-      spacer.setValue(queryEvent.query);
       return;
     } else {
       if (value) {
@@ -188,11 +198,62 @@ function buildQuery (queryEvent) {
 }
 
 
-function contextFieldSelected (combo, record, index) {
-  //NEXT determine the /metrics/find/ query based on:
-  // current scheme
-  // selected field
-  // form values (if all are present, we can do a query, otherwise we just return)
-  // the query's results will populate the metricSelector tree, booya.
-  //Ext.Msg.alert('NEXT', Ext.encode(record.data));
+function contextFieldChanged (combo, oldValue, newValue) {
+  var schemeName = selectedScheme.get('name');
+  var pattern = selectedScheme.get('pattern');
+  var fields = selectedScheme.get('fields');
+  var missing_fields = false;
+
+  Ext.each(fields, function (field) {
+    var id = schemeName + '-' + field.name;
+    var value = Ext.getCmp(id).getValue();
+    if (value.trim() == "") {
+      missing_fields = true;
+    } else {
+      pattern = pattern.replace('<' + field.name + '>', value);
+    }
+  });
+
+  if (missing_fields) {
+    return;
+  }
+
+  metricSelectorShow(pattern);
+  spacer.setValue(pattern);
+}
+
+function metricSelectorShow(pattern) {
+  var base_parts = pattern.split('.');
+
+  function setParams (loader, node, callback) {
+    loader.baseParams.format = 'treejson';
+
+    if (node.id == 'rootMetricSelectorNode') {
+      loader.baseParams.query = pattern + '.*';
+    } else {
+      var id_parts = node.id.split('.');
+      id_parts.splice(0, base_parts.length); //make it relative
+      var relative_id = id_parts.join('.');
+      loader.baseParams.query = pattern + '.' + relative_id + '.*';
+    }
+  }
+
+  var loader = new Ext.tree.TreeLoader({
+    url: '/metrics/find/',
+    requestMethod: 'GET',
+    listeners: {beforeload: setParams}
+  });
+
+  try {
+    var oldRoot = Ext.getCmp('rootMetricSelectorNode')
+    oldRoot.destroy();
+  } catch (err) { }
+
+  var root = new Ext.tree.AsyncTreeNode({
+    id: 'rootMetricSelectorNode',
+    loader: loader
+  });
+
+  metricSelector.setRootNode(root);
+  root.expand();
 }

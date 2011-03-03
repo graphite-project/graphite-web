@@ -55,5 +55,6 @@ def navigator(request):
   config.check()
   context = {
     'schemes_json' : json.dumps(config.schemes),
+    'jsdebug' : settings.JAVASCRIPT_DEBUG,
   }
   return render_to_response("navigator.html", context)
