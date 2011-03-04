@@ -4,7 +4,9 @@ var contextSelector;
 var contextSelectorFields = [];
 var selectedScheme = null;
 var metricSelector;
-var graphsArea;
+var graphArea;
+var graphStore;
+var graphView;
 var topBar;
 var spacer; //XXX Debug
 
@@ -32,7 +34,18 @@ var contextFieldStore = new Ext.data.JsonStore({
   root: 'metrics',
   idProperty: 'name',
   fields: ContextFieldValueRecord,
-  baseParams: {format: 'completer'}
+  baseParams: {format: 'completer', wildcards: '1'}
+});
+
+var GraphRecord = new Ext.data.Record.create([
+  {name: 'id'},
+  {name: 'targets', type: 'auto'},
+  {name: 'params', type: 'auto'},
+  {name: 'url'}
+]);
+
+var graphStore = new Ext.data.ArrayStore({
+  fields: GraphRecord
 });
 
 
@@ -61,11 +74,8 @@ function initNavigator () {
         typeAhead: false,
         listeners: {
           beforequery: buildQuery,
-          select: function (combo) {
-            setTimeout(combo.blur.createDelegate(combo), 200);
-            combo.fireEvent('change');
-          },
           change: contextFieldChanged,
+          select: function (thisField) { thisField.triggerBlur(); },
           afterrender: function (thisField) { thisField.hide(); },
           hide: function (thisField) { thisField.getEl().up('.x-form-item').setDisplayed(false); },
           show: function (thisField) { thisField.getEl().up('.x-form-item').setDisplayed(true); }
@@ -113,12 +123,33 @@ function initNavigator () {
     pathSeparator: '.',
     rootVisible: false,
     singleExpand: false,
-    trackMouseOver: true
+    trackMouseOver: true,
+    listeners: {click: metricSelectorNodeClicked}
   });
 
-  graphsArea = new Ext.Panel({
+  var graphTemplate = new Ext.XTemplate(
+    '<tpl for=".">',
+      '<div class="graph-wrap">',
+        '<img class="graph-img" src="{url}">',
+      '</div>',
+    '</tpl>',
+    '<div class="x-clear"></div>'
+  );
+
+  graphView = new Ext.DataView({
+    store: graphStore,
+    tpl: graphTemplate,
+    overClass: 'graph-over',
+    itemSelector: 'div.graph-wrap',
+    emptyText: "Configure your context above, and then select some metrics."
+  });
+
+  graphArea = new Ext.Panel({
     region: 'center',
-    html: 'graphs here' // graphsView: DataView... template, record type...
+    layout: 'fit',
+    autoScroll: true,
+    bodyStyle: 'background-color: black;',
+    items: [graphView]
   });
 
   topBar = new Ext.Panel({
@@ -136,7 +167,7 @@ function initNavigator () {
     layout: 'border',
     items: [
       topBar,
-      graphsArea
+      graphArea
     ]
   });
 
@@ -203,6 +234,7 @@ function contextFieldChanged (combo, oldValue, newValue) {
   var pattern = selectedScheme.get('pattern');
   var fields = selectedScheme.get('fields');
   var missing_fields = false;
+  spacer.setValue("contextFieldChanged() !!!");
 
   Ext.each(fields, function (field) {
     var id = schemeName + '-' + field.name;
@@ -256,4 +288,33 @@ function metricSelectorShow(pattern) {
 
   metricSelector.setRootNode(root);
   root.expand();
+}
+
+
+function metricSelectorNodeClicked (node, e) {
+  if (!node.leaf) {
+    node.toggle();
+    return;
+  }
+
+  graphAreaToggle(node.id);
+}
+
+
+function graphAreaToggle(target) {
+  //check to see if the graph exists already
+  if (false) {
+    // Remove it
+  } else {
+    // Add it
+    var record = new GraphRecord({
+      id: target,
+      targets: [target],
+      params: DEFAULT_PARAMS,
+      url: '/render?target=' + target
+    });
+    graphStore.add([record]);
+  }
+
+  graphView.refresh();
 }

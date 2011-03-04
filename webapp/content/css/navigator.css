@@ -1,0 +1,18 @@
+
+div.graph-wrap {
+  display: inline;
+}
+
+img.graph-img {
+  margin: 7px;
+  padding: 3px;
+  background-color: rgb(160, 160, 160);
+  border-radius:         5px;
+  -moz-border-radius:    5px;
+  -webkit-border-radius: 5px;
+  -khtml-border-radius:  5px;
+}
+
+.graph-over img {
+  background-color: rgb(140, 140, 255);
+}
