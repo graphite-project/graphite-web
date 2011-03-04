@@ -303,8 +303,10 @@ function metricSelectorNodeClicked (node, e) {
 
 function graphAreaToggle(target) {
   //check to see if the graph exists already
-  if (false) {
-    // Remove it
+  var existingIndex = graphStore.find('id', target);
+
+  if (existingIndex > -1) {
+    graphStore.removeAt(existingIndex);
   } else {
     // Add it
     var record = new GraphRecord({
