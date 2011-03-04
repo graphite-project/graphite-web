@@ -99,8 +99,13 @@ def find_view(request):
   elif format == 'completer':
     #if len(matches) == 1 and (not matches[0].isLeaf()) and query == matches[0].metric_path + '*': # auto-complete children
     #  matches = list( store.find(query + '.*') )
+    results = [ dict(path=node.metric_path, name=node.name) for node in matches ]
 
-    content = json.dumps({ 'metrics' : [ dict(path=node.metric_path, name=node.name) for node in matches ] })
+    if len(results) > 1 and wildcards:
+      wildcardNode = {'name' : '*'}
+      results.append(wildcardNode)
+
+    content = json.dumps({ 'metrics' : results })
     response = HttpResponse(content, mimetype='text/json')
 
   else:

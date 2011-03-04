@@ -4,6 +4,7 @@
   <head>
     <title>Graphite Navigator</title>
     <link rel="stylesheet" type="text/css" href="/content/js/ext/resources/css/ext-all.css"/>
+    <link rel="stylesheet" type="text/css" href="/content/css/navigator.css"/>
 
     {% if jsdebug %}
     <script type="text/javascript" src="/content/js/ext/adapter/ext/ext-base-debug.js"></script>
@@ -20,6 +21,7 @@
 
     var schemes = {{schemes_json|safe}};
     var CONTEXT_FIELD_WIDTH = 250;
+    var DEFAULT_PARAMS = {{default_params_json|safe}};
 
     Ext.onReady(initNavigator);
     </script> 
