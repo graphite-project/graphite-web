@@ -1,0 +1,52 @@
+<html>
+<head>
+	<title>Buffer Grid Example</title>
+	<link rel="stylesheet" type="text/css" href="../../resources/css/ext-all.css" />
+	<!-- GC -->
+ 	<!-- LIBS -->
+ 	<script type="text/javascript" src="../../adapter/ext/ext-base.js"></script>
+ 	<!-- ENDLIBS -->
+
+	<script type="text/javascript" src="../../ext-all.js"></script>
+
+	<script type="text/javascript" src="../ux/BufferView.js"></script>
+	<script type="text/javascript" src="buffer.js"></script>
+	<link rel="stylesheet" type="text/css" href="grid-examples.css" />
+	
+	<!-- Common Styles for the examples -->
+	<link rel="stylesheet" type="text/css" href="../shared/examples.css" />
+	<style type="text/css">
+	.x-grid3-td-topic b {
+	    font-family:tahoma, verdana;
+	    display:block;
+		overflow:hidden;
+		width:98%;
+		text-overflow:ellipsis;
+	}
+	.x-grid3-td-topic b i {
+	    font-weight:normal;
+	    font-style: normal;
+	    color:#000;
+		overflow:hidden;
+		text-overflow:ellipsis;
+	}
+	.x-grid3-td-topic .x-grid3-cell-inner {
+	    white-space: nowrap;
+	}
+	</style>
+</head>
+<body>
+<script type="text/javascript" src="../shared/examples.js"></script><!-- EXAMPLES -->
+<h1>Buffer Grid Example</h1>
+<p>This example customizes the grid view to do bufferred rendering of the cells of just the visible rows in the grid. 
+This results in a much smaller DOM structure and substantially improves performance of resizing, forceFit, autoExpandColumn and other layout and DOM manipulation features in a large grid. The smaller DOM structure 
+can also help to improve the overall performance of your Ext application.<br/><br/>
+<b>While this example works perfectly, this is completely experimental and only a subset of standard grid features are available. It might need slight customizing for your application needs.</b></p>
+<p>To use this example, be sure to add the following JS file: 	<a href="../ux/BufferView.js">BufferView.js</a></p>
+<p>This grid uses a ScriptTagProxy to fetch cross-domain remote data (from the Ext forums).</p>
+<p>Note that the js is not minified so it is readable. See <a href="buffer.js">buffer.js</a>.</p>
+
+<div id="topic-grid"></div>
+
+</body>
+</html>

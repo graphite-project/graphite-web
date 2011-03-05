@@ -1,0 +1,91 @@
+<div class="body-wrap" xmlns:ext="http://www.extjs.com"><div class="top-tools"><a class="inner-link" href="#Ext.data.DataWriter-props"><img src="resources/images/default/s.gif" class="item-icon icon-prop">Properties</a>&#13;<a class="inner-link" href="#Ext.data.DataWriter-methods"><img src="resources/images/default/s.gif" class="item-icon icon-method">Methods</a>&#13;<a class="inner-link" href="#Ext.data.DataWriter-events"><img src="resources/images/default/s.gif" class="item-icon icon-event">Events</a>&#13;<a class="inner-link" href="#Ext.data.DataWriter-configs"><img src="resources/images/default/s.gif" class="item-icon icon-config">Config Options</a>&#13;<a class="bookmark" href="../docs/?class=Ext.data.DataWriter"><img src="resources/images/default/s.gif" class="item-icon icon-fav">Direct Link</a>&#13;</div><h1>Class <a href="source/DataWriter.html#cls-Ext.data.DataWriter">Ext.data.DataWriter</a></h1><table cellspacing="0"><tr><td class="label">Package:</td><td class="hd-info">Ext.data</td></tr><tr><td class="label">Defined In:</td><td class="hd-info"><a href="source/DataWriter.html#cls-Ext.data.DataWriter">DataWriter.js</a></td></tr><tr><td class="label">Class:</td><td class="hd-info"><a href="source/DataWriter.html#cls-Ext.data.DataWriter">DataWriter</a></td></tr><tr><td class="label">Subclasses:</td><td class="hd-info"><a href="output/Ext.data.JsonWriter.html" ext:cls="Ext.data.JsonWriter">JsonWriter</a>,&#13;<a href="output/Ext.data.XmlWriter.html" ext:cls="Ext.data.XmlWriter">XmlWriter</a></td></tr><tr><td class="label">Extends:</td><td class="hd-info">Object</td></tr></table><div class="description"><p>Ext.data.DataWriter facilitates create, update, and destroy actions between
+an Ext.data.Store and a server-side framework. A Writer enabled Store will
+automatically manage the Ajax requests to perform CRUD actions on a Store.</p>
+<p>Ext.data.DataWriter is an abstract base class which is intended to be extended
+and should not be created directly. For existing implementations, see
+<a href="output/Ext.data.JsonWriter.html" ext:cls="Ext.data.JsonWriter">Ext.data.JsonWriter</a>.</p>
+<p>Creating a writer is simple:</p>
+<pre><code><b>var</b> writer = <b>new</b> Ext.data.JsonWriter({
+    encode: false   <i>// &lt;--- false causes data to be printed to jsonData config-property of Ext.Ajax#reqeust</i>
+});</code></pre>
+<p>Same old JsonReader as Ext-2.x:</p>
+<pre><code><b>var</b> reader = <b>new</b> Ext.data.JsonReader({idProperty: <em>'id'</em>}, [{name: <em>'first'</em>}, {name: <em>'last'</em>}, {name: <em>'email'</em>}]);</code></pre>
+<p>The proxy for a writer enabled store can be configured with a simple <code>url</code>:</p>
+<pre><code><i>// Create a standard HttpProxy instance.</i>
+<b>var</b> proxy = <b>new</b> Ext.data.HttpProxy({
+    url: <em>'app.php/users'</em>    <i>// &lt;--- Supports <em>"provides"</em>-type urls, such as <em>'/users.json'</em>, <em>'/products.xml'</em> (Hello Rails/Merb)</i>
+});</code></pre>
+<p>For finer grained control, the proxy may also be configured with an <code>API</code>:</p>
+<pre><code><i>// Maximum flexibility <b>with</b> the API-configuration</i>
+<b>var</b> proxy = <b>new</b> Ext.data.HttpProxy({
+    api: {
+        read    : <em>'app.php/users/read'</em>,
+        create  : <em>'app.php/users/create'</em>,
+        update  : <em>'app.php/users/update'</em>,
+        destroy : {  <i>// &lt;--- Supports object-syntax as well</i>
+            url: <em>'app.php/users/destroy'</em>,
+            method: <em>"DELETE"</em>
+        }
+    }
+});</code></pre>
+<p>Pulling it all together into a Writer-enabled Store:</p>
+<pre><code><b>var</b> store = <b>new</b> Ext.data.Store({
+    proxy: proxy,
+    reader: reader,
+    writer: writer,
+    autoLoad: true,
+    autoSave: true  <i>// -- Cell-level updates.</i>
+});</code></pre>
+<p>Initiating write-actions <b>automatically</b>, using the existing Ext2.0 Store/Record API:</p>
+<pre><code><b>var</b> rec = store.getAt(0);
+rec.set(<em>'email'</em>, <em>'foo@bar.com'</em>);  <i>// &lt;--- Immediately initiates an UPDATE action through configured proxy.</i>
+
+store.remove(rec);  <i>// &lt;---- Immediately initiates a DESTROY action through configured proxy.</i></code></pre>
+<p>For <b>record/batch</b> updates, use the Store-configuration <a href="output/Ext.data.Store.html#Ext.data.Store-autoSave" ext:member="autoSave" ext:cls="Ext.data.Store">autoSave:false</a></p>
+<pre><code><b>var</b> store = <b>new</b> Ext.data.Store({
+    proxy: proxy,
+    reader: reader,
+    writer: writer,
+    autoLoad: true,
+    autoSave: false  <i>// -- disable cell-updates</i>
+});
+
+<b>var</b> urec = store.getAt(0);
+urec.set(<em>'email'</em>, <em>'foo@bar.com'</em>);
+
+<b>var</b> drec = store.getAt(1);
+store.remove(drec);
+
+<i>// Push the button!</i>
+store.save();</code></pre></div><div class="hr"></div><a id="Ext.data.DataWriter-configs"></a><h2>Config Options</h2><table cellspacing="0" class="member-table"><tbody><tr><th colspan="2" class="sig-header">Config Options</th><th class="msource-header">Defined By</th></tr><tr class="config-row  "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.data.DataWriter-createRecord"></a><b><a href="source/DataWriter.html#cfg-Ext.data.DataWriter-createRecord">createRecord</a></b> : Function<div class="mdesc">Abstract method that should be implemented in all subclasses
+(e.g.: <a href="output/Ext.data.JsonWriter.html#Ext.data.JsonWriter-createRecord" ext:member="createRecord" ext:cls="Ext.data.JsonWriter">JsonWriter.createRecord</a>)</div></td><td class="msource">DataWriter</td></tr><tr class="config-row  "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.data.DataWriter-destroyRecord"></a><b><a href="source/DataWriter.html#cfg-Ext.data.DataWriter-destroyRecord">destroyRecord</a></b> : Function<div class="mdesc">Abstract method that should be implemented in all subclasses
+(e.g.: <a href="output/Ext.data.JsonWriter.html#Ext.data.JsonWriter-destroyRecord" ext:member="destroyRecord" ext:cls="Ext.data.JsonWriter">JsonWriter.destroyRecord</a>)</div></td><td class="msource">DataWriter</td></tr><tr class="config-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.data.DataWriter-listful"></a><b><a href="source/DataWriter.html#cfg-Ext.data.DataWriter-listful">listful</a></b> : Boolean<div class="mdesc"><div class="short">false by default.  Set true to have the DataWriter always write HTTP params as a list,
+even when acting upon a single...</div><div class="long"><tt>false</tt> by default.  Set <tt>true</tt> to have the DataWriter <b>always</b> write HTTP params as a list,
+even when acting upon a single record.</div></div></td><td class="msource">DataWriter</td></tr><tr class="config-row  "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.data.DataWriter-updateRecord"></a><b><a href="source/DataWriter.html#cfg-Ext.data.DataWriter-updateRecord">updateRecord</a></b> : Function<div class="mdesc">Abstract method that should be implemented in all subclasses
+(e.g.: <a href="output/Ext.data.JsonWriter.html#Ext.data.JsonWriter-updateRecord" ext:member="updateRecord" ext:cls="Ext.data.JsonWriter">JsonWriter.updateRecord</a></div></td><td class="msource">DataWriter</td></tr><tr class="config-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.data.DataWriter-writeAllFields"></a><b><a href="source/DataWriter.html#cfg-Ext.data.DataWriter-writeAllFields">writeAllFields</a></b> : Boolean<div class="mdesc"><div class="short">false by default.  Set true to have DataWriter return ALL fields of a modified
+record -- not just those that changed....</div><div class="long"><tt>false</tt> by default.  Set <tt>true</tt> to have DataWriter return ALL fields of a modified
+record -- not just those that changed.
+<tt>false</tt> to have DataWriter only request modified fields from a record.</div></div></td><td class="msource">DataWriter</td></tr></tbody></table><a id="Ext.data.DataWriter-props"></a><h2>Public Properties</h2><div class="no-members">This class has no public properties.</div><a id="Ext.data.DataWriter-methods"></a><h2>Public Methods</h2><table cellspacing="0" class="member-table"><tbody><tr><th colspan="2" class="sig-header">Method</th><th class="msource-header">Defined By</th></tr><tr class="method-row expandable"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.data.DataWriter-DataWriter"></a><b><a href="source/DataWriter.html#cls-Ext.data.DataWriter">DataWriter</a></b>(&nbsp;<code>Object&nbsp;meta</code>,&nbsp;<code>Object&nbsp;recordType</code>&nbsp;)
+    <div class="mdesc"><div class="short">Create a new DataWriter</div><div class="long">Create a new DataWriter<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>meta</code> : Object<div class="sub-desc">Metadata configuration options (implementation-specific)</div></li><li><code>recordType</code> : Object<div class="sub-desc">Either an Array of field definition objects as specified
+in <a href="output/Ext.data.Record.html#Ext.data.Record-create" ext:member="create" ext:cls="Ext.data.Record">Ext.data.Record.create</a>, or an <a href="output/Ext.data.Record.html" ext:cls="Ext.data.Record">Ext.data.Record</a> object created
+using <a href="output/Ext.data.Record.html#Ext.data.Record-create" ext:member="create" ext:cls="Ext.data.Record">Ext.data.Record.create</a>.</div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource">DataWriter</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.data.DataWriter-apply"></a><b><a href="source/DataWriter.html#method-Ext.data.DataWriter-apply">apply</a></b>(&nbsp;<code>Object&nbsp;params</code>,&nbsp;<code>Object&nbsp;baseParams</code>,&nbsp;<code>String&nbsp;action</code>,&nbsp;<code>Record/Record[]&nbsp;rs</code>&nbsp;)
+    :
+                                        void<div class="mdesc"><div class="short">Compiles a Store recordset into a data-format defined by an extension such as Ext.data.JsonWriter or Ext.data.XmlWrit...</div><div class="long">Compiles a Store recordset into a data-format defined by an extension such as <a href="output/Ext.data.JsonWriter.html" ext:cls="Ext.data.JsonWriter">Ext.data.JsonWriter</a> or <a href="output/Ext.data.XmlWriter.html" ext:cls="Ext.data.XmlWriter">Ext.data.XmlWriter</a> in preparation for a <a href="output/Ext.data.Api.html#Ext.data.Api-actions" ext:member="actions" ext:cls="Ext.data.Api">server-write action</a>.  The first two params are similar similar in nature to <a href="output/Ext.html#Ext-apply" ext:member="apply" ext:cls="Ext">Ext.apply</a>,
+Where the first parameter is the <i>receiver</i> of paramaters and the second, baseParams, <i>the source</i>.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>params</code> : Object<div class="sub-desc">The request-params receiver.</div></li><li><code>baseParams</code> : Object<div class="sub-desc">as defined by <a href="output/Ext.data.Store.html#Ext.data.Store-baseParams" ext:member="baseParams" ext:cls="Ext.data.Store">Ext.data.Store.baseParams</a>.  The baseParms must be encoded by the extending class, eg: <a href="output/Ext.data.JsonWriter.html" ext:cls="Ext.data.JsonWriter">Ext.data.JsonWriter</a>, <a href="output/Ext.data.XmlWriter.html" ext:cls="Ext.data.XmlWriter">Ext.data.XmlWriter</a>.</div></li><li><code>action</code> : String<div class="sub-desc">[<a href="output/Ext.data.Api.html#Ext.data.Api-actions" ext:member="actions" ext:cls="Ext.data.Api">create|update|destroy</a>]</div></li><li><code>rs</code> : Record/Record[]<div class="sub-desc">The recordset to write, the subject(s) of the write action.</div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource">DataWriter</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.data.DataWriter-render"></a><b><a href="source/DataWriter.html#method-Ext.data.DataWriter-render">render</a></b>(&nbsp;<code>String&nbsp;action</code>,&nbsp;<code>Record[]&nbsp;rs</code>,&nbsp;<code>Object&nbsp;params</code>,&nbsp;<code>Object&nbsp;data</code>&nbsp;)
+    :
+                                        void<div class="mdesc"><div class="short">abstract method meant to be overridden by all DataWriter extensions.  It's the extension's job to apply the "data" to...</div><div class="long">abstract method meant to be overridden by all DataWriter extensions.  It's the extension's job to apply the "data" to the "params".
+The data-object provided to render is populated with data according to the meta-info defined in the user's DataReader config,<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>action</code> : String<div class="sub-desc">[Ext.data.Api.actions.create|read|update|destroy]</div></li><li><code>rs</code> : Record[]<div class="sub-desc">Store recordset</div></li><li><code>params</code> : Object<div class="sub-desc">Http params to be sent to server.</div></li><li><code>data</code> : Object<div class="sub-desc">object populated according to DataReader meta-data.</div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource">DataWriter</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.data.DataWriter-toArray"></a><b><a href="source/DataWriter.html#method-Ext.data.DataWriter-toArray">toArray</a></b>(&nbsp;<code>Hash&nbsp;data</code>&nbsp;)
+    :
+                                        [Object]<div class="mdesc"><div class="short">Converts a Hashed Ext.data.Record to fields-array array suitable
+for encoding to xml via XTemplate, eg:
+&amp;lt;tpl for="...</div><div class="long">Converts a <a href="output/Ext.data.DataWriter.html#Ext.data.DataWriter-toHash" ext:member="toHash" ext:cls="Ext.data.DataWriter">Hashed</a> <a href="output/Ext.data.Record.html" ext:cls="Ext.data.Record">Ext.data.Record</a> to fields-array array suitable
+for encoding to xml via XTemplate, eg:
+<code><pre>&lt;tpl <b>for</b>=<em>"."</em>>&lt;{name}>{value}&lt;/{name}&lt;/tpl></pre></code>
+eg, <b>non-phantom</b>:
+<code><pre>{id: 1, first: <em>'foo'</em>, last: <em>'bar'</em>} --> [{name: <em>'id'</em>, value: 1}, {name: <em>'first'</em>, value: <em>'foo'</em>}, {name: <em>'last'</em>, value: <em>'bar'</em>}]</pre></code>
+<a href="output/Ext.data.Record.html#Ext.data.Record-phantom" ext:member="phantom" ext:cls="Ext.data.Record">Phantom</a> records will have had their idProperty omitted in <a href="output/Ext.data.DataWriter.html#Ext.data.DataWriter-toHash" ext:member="toHash" ext:cls="Ext.data.DataWriter">toHash</a> if determined to be auto-generated.
+Non AUTOINCREMENT pks should have been protected.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>data</code> : Hash<div class="sub-desc">Hashed by Ext.data.DataWriter#toHash</div></li></ul><strong>Returns:</strong><ul><li><code>[Object]</code><div class="sub-desc">Array of attribute-objects.</div></li></ul></div></div></div></td><td class="msource">DataWriter</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.data.DataWriter-toHash"></a><b><a href="source/DataWriter.html#method-Ext.data.DataWriter-toHash">toHash</a></b>(&nbsp;<code>Ext.data.Record&nbsp;rec</code>,&nbsp;<code>Object&nbsp;config</code>&nbsp;)
+    :
+                                        Object<div class="mdesc"><div class="short">Converts a Record to a hash, taking into account the state of the Ext.data.Record along with configuration properties...</div><div class="long">Converts a Record to a hash, taking into account the state of the Ext.data.Record along with configuration properties
+related to its rendering, such as <a href="output/Ext.data.DataWriter.html#Ext.data.DataWriter-writeAllFields" ext:member="writeAllFields" ext:cls="Ext.data.DataWriter">writeAllFields</a>, <a href="output/Ext.data.Record.html#Ext.data.Record-phantom" ext:member="phantom" ext:cls="Ext.data.Record">phantom</a>, <a href="output/Ext.data.Record.html#Ext.data.Record-getChanges" ext:member="getChanges" ext:cls="Ext.data.Record">getChanges</a> and
+<a href="output/Ext.data.DataReader.html#Ext.data.DataReader-idProperty" ext:member="idProperty" ext:cls="Ext.data.DataReader">idProperty</a><div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>rec</code> : Ext.data.Record<div class="sub-desc">The Record from which to create a hash.</div></li><li><code>config</code> : Object<div class="sub-desc"><b>NOT YET IMPLEMENTED</b>.  Will implement an exlude/only configuration for fine-control over which fields do/don't get rendered.</div></li></ul><strong>Returns:</strong><ul><li><code>Object</code><div class="sub-desc"></div></li></ul></div></div></div></td><td class="msource">DataWriter</td></tr></tbody></table><a id="Ext.data.DataWriter-events"></a><h2>Public Events</h2><div class="no-members">This class has no public events.</div></div>

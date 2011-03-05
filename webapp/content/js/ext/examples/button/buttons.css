@@ -1,0 +1,31 @@
+/*!
+ * Ext JS Library 3.3.1
+ * Copyright(c) 2006-2010 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
+ */
+.add {
+    background-image: url(images/add.gif) !important;
+}
+.add16 {
+    background-image: url(images/add16.gif) !important;
+}
+.add24 {
+    background-image: url(images/add24.gif) !important;
+}
+
+.btn-panel td {
+    padding-left:5px;
+}
+
+h2 {
+    color:#083772 !important;
+    margin: 20px 0 0 !important;
+    padding: 5px;
+    background:#eee;
+    width:400px;
+}
+
+h3 {
+    font-weight:normal !important;
+}

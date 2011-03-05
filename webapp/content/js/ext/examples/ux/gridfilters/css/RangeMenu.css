@@ -1,0 +1,20 @@
+/*!
+ * Ext JS Library 3.3.1
+ * Copyright(c) 2006-2010 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
+ */
+/**
+ * RangeMenu Styles
+ **/
+.ux-rangemenu-gt {
+	background-image: url(../images/greater_than.png) !important;
+}
+
+.ux-rangemenu-lt {
+	background-image: url(../images/less_than.png) !important;
+}
+
+.ux-rangemenu-eq {
+	background-image: url(../images/equals.png) !important;
+}

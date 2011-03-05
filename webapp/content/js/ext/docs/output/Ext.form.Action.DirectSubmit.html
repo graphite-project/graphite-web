@@ -1,0 +1,179 @@
+<div class="body-wrap" xmlns:ext="http://www.extjs.com"><div class="top-tools"><a class="inner-link" href="#Ext.form.Action.DirectSubmit-props"><img src="resources/images/default/s.gif" class="item-icon icon-prop">Properties</a>&#13;<a class="inner-link" href="#Ext.form.Action.DirectSubmit-methods"><img src="resources/images/default/s.gif" class="item-icon icon-method">Methods</a>&#13;<a class="inner-link" href="#Ext.form.Action.DirectSubmit-events"><img src="resources/images/default/s.gif" class="item-icon icon-event">Events</a>&#13;<a class="inner-link" href="#Ext.form.Action.DirectSubmit-configs"><img src="resources/images/default/s.gif" class="item-icon icon-config">Config Options</a>&#13;<a class="bookmark" href="../docs/?class=Ext.form.Action.DirectSubmit"><img src="resources/images/default/s.gif" class="item-icon icon-fav">Direct Link</a>&#13;</div><div class="inheritance res-block"><pre class="res-block-inner"><a href="output/Ext.form.Action.html" ext:member="" ext:cls="Ext.form.Action">Action</a>
+  <img src="resources/elbow-end.gif"><a href="output/Ext.form.Action.Submit.html" ext:member="" ext:cls="Ext.form.Action.Submit">Action.Submit</a>
+    <img src="resources/elbow-end.gif">Action.DirectSubmit</pre></div><h1>Class <a href="source/Action.html#cls-Ext.form.Action.DirectSubmit">Ext.form.Action.DirectSubmit</a></h1><table cellspacing="0"><tr><td class="label">Package:</td><td class="hd-info">Ext.form</td></tr><tr><td class="label">Defined In:</td><td class="hd-info"><a href="source/Action.html#cls-Ext.form.Action.DirectSubmit">Action.js</a></td></tr><tr><td class="label">Class:</td><td class="hd-info"><a href="source/Action.html#cls-Ext.form.Action.DirectSubmit">Action.DirectSubmit</a></td></tr><tr><td class="label">Extends:</td><td class="hd-info"><a href="output/Ext.form.Action.Submit.html" ext:cls="Ext.form.Action.Submit" ext:member="">Action.Submit</a></td></tr></table><div class="description"><p>Provides Ext.direct support for submitting form data.</p>
+<p>This example illustrates usage of Ext.Direct to <b>submit</b> a form through Ext.Direct.</p>
+<pre><code><b>var</b> myFormPanel = <b>new</b> Ext.form.FormPanel({
+    <i>// configs <b>for</b> FormPanel</i>
+    title: <em>'Basic Information'</em>,
+    renderTo: document.body,
+    width: 300, height: 160,
+    padding: 10,
+    buttons:[{
+        text: <em>'Submit'</em>,
+        handler: <b>function</b>(){
+            myFormPanel.getForm().submit({
+                params: {
+                    foo: <em>'bar'</em>,
+                    uid: 34
+                }
+            });
+        }
+    }],
+
+    <i>// configs apply to child items</i>
+    defaults: {anchor: <em>'100%'</em>},
+    defaultType: <em>'textfield'</em>,
+    items: [{
+        fieldLabel: <em>'Name'</em>,
+        name: <em>'name'</em>
+    },{
+        fieldLabel: <em>'Email'</em>,
+        name: <em>'email'</em>
+    },{
+        fieldLabel: <em>'Company'</em>,
+        name: <em>'company'</em>
+    }],
+
+    <i>// configs <b>for</b> BasicForm</i>
+    api: {
+        <i>// The server-side method to call <b>for</b> load() requests</i>
+        load: Profile.getBasicInfo,
+        <i>// The server-side must mark the submit handler as a <em>'formHandler'</em></i>
+        submit: Profile.updateBasicInfo
+    },
+    <i>// specify the order <b>for</b> the passed params</i>
+    paramOrder: [<em>'uid'</em>, <em>'foo'</em>]
+});</code></pre>
+The data packet sent to the server will resemble something like:
+<pre><code>{
+    <em>"action"</em>:<em>"Profile"</em>,<em>"method"</em>:<em>"updateBasicInfo"</em>,<em>"type"</em>:<em>"rpc"</em>,<em>"tid"</em>:<em>"6"</em>,
+    <em>"result"</em>:{
+        <em>"success"</em>:true,
+        <em>"id"</em>:{
+            <em>"extAction"</em>:<em>"Profile"</em>,<em>"extMethod"</em>:<em>"updateBasicInfo"</em>,
+            <em>"extType"</em>:<em>"rpc"</em>,<em>"extTID"</em>:<em>"6"</em>,<em>"extUpload"</em>:<em>"false"</em>,
+            <em>"name"</em>:<em>"Aaron Conran"</em>,<em>"email"</em>:<em>"aaron@extjs.com"</em>,<em>"company"</em>:<em>"Ext JS, LLC"</em>
+        }
+    }
+}</code></pre>
+The form will process a data packet returned by the server that is similar
+to the following:
+<pre><code><i>// sample success packet (batched requests)</i>
+[
+    {
+        <em>"action"</em>:<em>"Profile"</em>,<em>"method"</em>:<em>"updateBasicInfo"</em>,<em>"type"</em>:<em>"rpc"</em>,<em>"tid"</em>:3,
+        <em>"result"</em>:{
+            <em>"success"</em>:true
+        }
+    }
+]
+
+<i>// sample failure packet (one request)</i>
+{
+        <em>"action"</em>:<em>"Profile"</em>,<em>"method"</em>:<em>"updateBasicInfo"</em>,<em>"type"</em>:<em>"rpc"</em>,<em>"tid"</em>:<em>"6"</em>,
+        <em>"result"</em>:{
+            <em>"errors"</em>:{
+                <em>"email"</em>:<em>"already taken"</em>
+            },
+            <em>"success"</em>:false,
+            <em>"foo"</em>:<em>"bar"</em>
+        }
+}</code></pre>
+Also see the discussion in <a href="output/Ext.form.Action.DirectLoad.html" ext:cls="Ext.form.Action.DirectLoad">Ext.form.Action.DirectLoad</a>.</div><div class="hr"></div><a id="Ext.form.Action.DirectSubmit-configs"></a><h2>Config Options</h2><table cellspacing="0" class="member-table"><tbody><tr><th colspan="2" class="sig-header">Config Options</th><th class="msource-header">Defined By</th></tr><tr class="config-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.Action.Submit-clientValidation"></a><b><a href="source/Action.html#cfg-Ext.form.Action.Submit-clientValidation">clientValidation</a></b> : boolean<div class="mdesc"><div class="short">Determines whether a Form's fields are validated
+in a final call to isValid prior to submission.
+Pass false in the Fo...</div><div class="long">Determines whether a Form's fields are validated
+in a final call to <a href="output/Ext.form.BasicForm.html#Ext.form.BasicForm-isValid" ext:member="isValid" ext:cls="Ext.form.BasicForm">isValid</a> prior to submission.
+Pass <tt>false</tt> in the Form's submit options to prevent this. If not defined, pre-submission field validation
+is performed.</div></div></td><td class="msource"><a href="output/Ext.form.Action.Submit.html#clientValidation" ext:member="#clientValidation" ext:cls="Ext.form.Action.Submit">Action.Submit</a></td></tr><tr class="config-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.Action.Submit-errorReader"></a><b><a href="source/Action.html#cfg-Ext.form.Action.Submit-errorReader">errorReader</a></b> : Ext.data.DataReader<div class="mdesc"><div class="short">Optional. JSON is interpreted with
+no need for an errorReader.
+A Reader which reads a single record from the returned...</div><div class="long"><p><b>Optional. JSON is interpreted with
+no need for an errorReader.</b></p>
+<p>A Reader which reads a single record from the returned data. The DataReader's
+<b>success</b> property specifies how submission success is determined. The Record's
+data provides the error messages to apply to any invalid form Fields.</p></div></div></td><td class="msource"><a href="output/Ext.form.Action.Submit.html#errorReader" ext:member="#errorReader" ext:cls="Ext.form.Action.Submit">Action.Submit</a></td></tr><tr class="config-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.Action-failure"></a><b><a href="source/Action.html#cfg-Ext.form.Action-failure">failure</a></b> : Function<div class="mdesc"><div class="short">The function to call when a failure packet was recieved, or when an
+error ocurred in the Ajax communication.
+The func...</div><div class="long">The function to call when a failure packet was recieved, or when an
+error ocurred in the Ajax communication.
+The function is passed the following parameters:<ul class="mdetail-params">
+<li><b>form</b> : Ext.form.BasicForm<div class="sub-desc">The form that requested the action</div></li>
+<li><b>action</b> : Ext.form.Action<div class="sub-desc">The Action class. If an Ajax
+error ocurred, the failure type will be in <a href="output/Ext.form.Action.html#Ext.form.Action-failureType" ext:member="failureType" ext:cls="Ext.form.Action">failureType</a>. The <a href="output/Ext.form.Action.html#Ext.form.Action-result" ext:member="result" ext:cls="Ext.form.Action">result</a>
+property of this object may be examined to perform custom postprocessing.</div></li>
+</ul></div></div></td><td class="msource"><a href="output/Ext.form.Action.html#failure" ext:member="#failure" ext:cls="Ext.form.Action">Action</a></td></tr><tr class="config-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.Action-method"></a><b><a href="source/Action.html#cfg-Ext.form.Action-method">method</a></b> : String<div class="mdesc"><div class="short">The HTTP method to use to access the requested URL. Defaults to the
+Ext.form.BasicForm's method, or if that is not sp...</div><div class="long">The HTTP method to use to access the requested URL. Defaults to the
+<a href="output/Ext.form.BasicForm.html" ext:cls="Ext.form.BasicForm">Ext.form.BasicForm</a>'s method, or if that is not specified, the underlying DOM form's method.</div></div></td><td class="msource"><a href="output/Ext.form.Action.html#method" ext:member="#method" ext:cls="Ext.form.Action">Action</a></td></tr><tr class="config-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.Action-params"></a><b><a href="source/Action.html#cfg-Ext.form.Action-params">params</a></b> : Mixed<div class="mdesc"><div class="short">Extra parameter values to pass. These are added to the Form's
+Ext.form.BasicForm.baseParams and passed to the specifi...</div><div class="long"><p>Extra parameter values to pass. These are added to the Form's
+<a href="output/Ext.form.BasicForm.html#Ext.form.BasicForm-baseParams" ext:member="baseParams" ext:cls="Ext.form.BasicForm">Ext.form.BasicForm.baseParams</a> and passed to the specified URL along with the Form's
+input fields.</p>
+<p>Parameters are encoded as standard HTTP parameters using <a href="output/Ext.html#Ext-urlEncode" ext:member="urlEncode" ext:cls="Ext">Ext.urlEncode</a>.</p></div></div></td><td class="msource"><a href="output/Ext.form.Action.html#params" ext:member="#params" ext:cls="Ext.form.Action">Action</a></td></tr><tr class="config-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.Action-reset"></a><b><a href="source/Action.html#cfg-Ext.form.Action-reset">reset</a></b> : Boolean<div class="mdesc"><div class="short">When set to true, causes the Form to be
+reset on Action success. If specified, this happens
+before the success callba...</div><div class="long">When set to <tt><b>true</b></tt>, causes the Form to be
+<a href="output/Ext.form.BasicForm.reset.html" ext:cls="Ext.form.BasicForm.reset">reset</a> on Action success. If specified, this happens
+<b>before</b> the <a href="output/Ext.form.Action.html#Ext.form.Action-success" ext:member="success" ext:cls="Ext.form.Action">success</a> callback is called and before the Form's
+<a href="output/Ext.form.BasicForm.actioncomplete.html" ext:cls="Ext.form.BasicForm.actioncomplete">actioncomplete</a> event fires.</div></div></td><td class="msource"><a href="output/Ext.form.Action.html#reset" ext:member="#reset" ext:cls="Ext.form.Action">Action</a></td></tr><tr class="config-row  inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.Action-scope"></a><b><a href="source/Action.html#cfg-Ext.form.Action-scope">scope</a></b> : Object<div class="mdesc">The scope in which to call the callback functions (The <tt>this</tt> reference
+for the callback functions).</div></td><td class="msource"><a href="output/Ext.form.Action.html#scope" ext:member="#scope" ext:cls="Ext.form.Action">Action</a></td></tr><tr class="config-row  inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.Action-submitEmptyText"></a><b><a href="source/Action.html#cfg-Ext.form.Action-submitEmptyText">submitEmptyText</a></b> : Boolean<div class="mdesc">If set to <tt>true</tt>, the emptyText value will be sent with the form
+when it is submitted.  Defaults to <tt>true</tt>.</div></td><td class="msource"><a href="output/Ext.form.Action.html#submitEmptyText" ext:member="#submitEmptyText" ext:cls="Ext.form.Action">Action</a></td></tr><tr class="config-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.Action-success"></a><b><a href="source/Action.html#cfg-Ext.form.Action-success">success</a></b> : Function<div class="mdesc"><div class="short">The function to call when a valid success return packet is recieved.
+The function is passed the following parameters:...</div><div class="long">The function to call when a valid success return packet is recieved.
+The function is passed the following parameters:<ul class="mdetail-params">
+<li><b>form</b> : Ext.form.BasicForm<div class="sub-desc">The form that requested the action</div></li>
+<li><b>action</b> : Ext.form.Action<div class="sub-desc">The Action class. The <a href="output/Ext.form.Action.html#Ext.form.Action-result" ext:member="result" ext:cls="Ext.form.Action">result</a>
+property of this object may be examined to perform custom postprocessing.</div></li>
+</ul></div></div></td><td class="msource"><a href="output/Ext.form.Action.html#success" ext:member="#success" ext:cls="Ext.form.Action">Action</a></td></tr><tr class="config-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.Action-timeout"></a><b><a href="source/Action.html#cfg-Ext.form.Action-timeout">timeout</a></b> : Number<div class="mdesc"><div class="short">The number of seconds to wait for a server response before
+failing with the failureType as Action.CONNECT_FAILURE. If...</div><div class="long">The number of seconds to wait for a server response before
+failing with the <a href="output/Ext.form.Action.html#Ext.form.Action-failureType" ext:member="failureType" ext:cls="Ext.form.Action">failureType</a> as <a href="output/Ext.form.Action.html#Ext.form.Action-Action.CONNECT_FAILURE" ext:member="Action.CONNECT_FAILURE" ext:cls="Ext.form.Action">Action.CONNECT_FAILURE</a>. If not specified,
+defaults to the configured <tt><a href="output/Ext.form.BasicForm.html#Ext.form.BasicForm-timeout" ext:member="timeout" ext:cls="Ext.form.BasicForm">timeout</a></tt> of the
+<a href="output/Ext.form.BasicForm.html" ext:cls="Ext.form.BasicForm">form</a>.</div></div></td><td class="msource"><a href="output/Ext.form.Action.html#timeout" ext:member="#timeout" ext:cls="Ext.form.Action">Action</a></td></tr><tr class="config-row  inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.Action-url"></a><b><a href="source/Action.html#cfg-Ext.form.Action-url">url</a></b> : String<div class="mdesc">The URL that the Action is to invoke.</div></td><td class="msource"><a href="output/Ext.form.Action.html#url" ext:member="#url" ext:cls="Ext.form.Action">Action</a></td></tr><tr class="config-row  inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.Action-waitMsg"></a><b><a href="source/Action.html#cfg-Ext.form.Action-waitMsg">waitMsg</a></b> : String<div class="mdesc">The message to be displayed by a call to <a href="output/Ext.MessageBox.html#Ext.MessageBox-wait" ext:member="wait" ext:cls="Ext.MessageBox">Ext.MessageBox.wait</a>
+during the time the action is being processed.</div></td><td class="msource"><a href="output/Ext.form.Action.html#waitMsg" ext:member="#waitMsg" ext:cls="Ext.form.Action">Action</a></td></tr><tr class="config-row  inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.Action-waitTitle"></a><b><a href="source/Action.html#cfg-Ext.form.Action-waitTitle">waitTitle</a></b> : String<div class="mdesc">The title to be displayed by a call to <a href="output/Ext.MessageBox.html#Ext.MessageBox-wait" ext:member="wait" ext:cls="Ext.MessageBox">Ext.MessageBox.wait</a>
+during the time the action is being processed.</div></td><td class="msource"><a href="output/Ext.form.Action.html#waitTitle" ext:member="#waitTitle" ext:cls="Ext.form.Action">Action</a></td></tr></tbody></table><a id="Ext.form.Action.DirectSubmit-props"></a><h2>Public Properties</h2><table cellspacing="0" class="member-table"><tbody><tr><th colspan="2" class="sig-header">Property</th><th class="msource-header">Defined By</th></tr><tr class="property-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.Action-CLIENT_INVALID"></a><b><a href="source/Action.html#prop-Ext.form.Action-CLIENT_INVALID">CLIENT_INVALID</a></b> : String<div class="mdesc"><div class="short">Failure type returned when client side validation of the Form fails
+thus aborting a submit action. Client side valida...</div><div class="long">Failure type returned when client side validation of the Form fails
+thus aborting a submit action. Client side validation is performed unless
+<a href="output/Ext.form.Action.html#Ext.form.Action-clientValidation" ext:member="clientValidation" ext:cls="Ext.form.Action">clientValidation</a> is explicitly set to <tt>false</tt>.</div></div></td><td class="msource"><a href="output/Ext.form.Action.html#CLIENT_INVALID" ext:member="#CLIENT_INVALID" ext:cls="Ext.form.Action">Action</a></td></tr><tr class="property-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.Action-CONNECT_FAILURE"></a><b><a href="source/Action.html#prop-Ext.form.Action-CONNECT_FAILURE">CONNECT_FAILURE</a></b> : String<div class="mdesc"><div class="short">Failure type returned when a communication error happens when attempting
+to send a request to the remote server. The ...</div><div class="long">Failure type returned when a communication error happens when attempting
+to send a request to the remote server. The <a href="output/Ext.form.Action.html#Ext.form.Action-response" ext:member="response" ext:cls="Ext.form.Action">response</a> may be examined to
+provide further information.</div></div></td><td class="msource"><a href="output/Ext.form.Action.html#CONNECT_FAILURE" ext:member="#CONNECT_FAILURE" ext:cls="Ext.form.Action">Action</a></td></tr><tr class="property-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.Action-LOAD_FAILURE"></a><b><a href="source/Action.html#prop-Ext.form.Action-LOAD_FAILURE">LOAD_FAILURE</a></b> : String<div class="mdesc"><div class="short">Failure type returned when the response's &lt;tt style="font-weight:bold"&gt;success
+property is set to false, or no field ...</div><div class="long">Failure type returned when the response's <tt style="font-weight:bold">success</tt>
+property is set to <tt>false</tt>, or no field values are returned in the response's
+<tt style="font-weight:bold">data</tt> property.</div></div></td><td class="msource"><a href="output/Ext.form.Action.html#LOAD_FAILURE" ext:member="#LOAD_FAILURE" ext:cls="Ext.form.Action">Action</a></td></tr><tr class="property-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.Action-SERVER_INVALID"></a><b><a href="source/Action.html#prop-Ext.form.Action-SERVER_INVALID">SERVER_INVALID</a></b> : String<div class="mdesc"><div class="short">Failure type returned when server side processing fails and the result's
+&lt;tt style="font-weight:bold"&gt;success propert...</div><div class="long"><p>Failure type returned when server side processing fails and the <a href="output/Ext.form.Action.html#Ext.form.Action-result" ext:member="result" ext:cls="Ext.form.Action">result</a>'s
+<tt style="font-weight:bold">success</tt> property is set to <tt>false</tt>.</p>
+<p>In the case of a form submission, field-specific error messages may be returned in the
+<a href="output/Ext.form.Action.html#Ext.form.Action-result" ext:member="result" ext:cls="Ext.form.Action">result</a>'s <tt style="font-weight:bold">errors</tt> property.</p></div></div></td><td class="msource"><a href="output/Ext.form.Action.html#SERVER_INVALID" ext:member="#SERVER_INVALID" ext:cls="Ext.form.Action">Action</a></td></tr><tr class="property-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.Action-failureType"></a><b><a href="source/Action.html#prop-Ext.form.Action-failureType">failureType</a></b> : String<div class="mdesc"><div class="short">The type of failure detected will be one of these: CLIENT_INVALID,
+SERVER_INVALID, CONNECT_FAILURE, or LOAD_FAILURE. ...</div><div class="long">The type of failure detected will be one of these: <a href="output/Ext.form.Action.html#Ext.form.Action-CLIENT_INVALID" ext:member="CLIENT_INVALID" ext:cls="Ext.form.Action">CLIENT_INVALID</a>,
+<a href="output/Ext.form.Action.html#Ext.form.Action-SERVER_INVALID" ext:member="SERVER_INVALID" ext:cls="Ext.form.Action">SERVER_INVALID</a>, <a href="output/Ext.form.Action.html#Ext.form.Action-CONNECT_FAILURE" ext:member="CONNECT_FAILURE" ext:cls="Ext.form.Action">CONNECT_FAILURE</a>, or <a href="output/Ext.form.Action.html#Ext.form.Action-LOAD_FAILURE" ext:member="LOAD_FAILURE" ext:cls="Ext.form.Action">LOAD_FAILURE</a>.  Usage:
+<pre><code><b>var</b> fp = <b>new</b> Ext.form.FormPanel({
+...
+buttons: [{
+    text: <em>'Save'</em>,
+    formBind: true,
+    handler: <b>function</b>(){
+        <b>if</b>(fp.getForm().isValid()){
+            fp.getForm().submit({
+                url: <em>'form-submit.php'</em>,
+                waitMsg: <em>'Submitting your data...'</em>,
+                success: <b>function</b>(form, action){
+                    <i>// server responded <b>with</b> success = true</i>
+                    <b>var</b> result = action.<a href="output/Ext.form.Action.html#Ext.form.Action-result" ext:member="result" ext:cls="Ext.form.Action">result</a>;
+                },
+                failure: <b>function</b>(form, action){
+                    <b>if</b> (action.<a href="output/Ext.form.Action.html#Ext.form.Action-failureType" ext:member="failureType" ext:cls="Ext.form.Action">failureType</a> === Ext.form.Action.<a href="output/Ext.form.Action.html#Ext.form.Action-CONNECT_FAILURE" ext:member="CONNECT_FAILURE" ext:cls="Ext.form.Action">CONNECT_FAILURE</a>) {
+                        Ext.Msg.alert(<em>'Error'</em>,
+                            <em>'Status:'</em>+action.<a href="output/Ext.form.Action.html#Ext.form.Action-response" ext:member="response" ext:cls="Ext.form.Action">response</a>.status+<em>': '</em>+
+                            action.<a href="output/Ext.form.Action.html#Ext.form.Action-response" ext:member="response" ext:cls="Ext.form.Action">response</a>.statusText);
+                    }
+                    <b>if</b> (action.failureType === Ext.form.Action.<a href="output/Ext.form.Action.html#Ext.form.Action-SERVER_INVALID" ext:member="SERVER_INVALID" ext:cls="Ext.form.Action">SERVER_INVALID</a>){
+                        <i>// server responded <b>with</b> success = false</i>
+                        Ext.Msg.alert(<em>'Invalid'</em>, action.<a href="output/Ext.form.Action.html#Ext.form.Action-result" ext:member="result" ext:cls="Ext.form.Action">result</a>.errormsg);
+                    }
+                }
+            });
+        }
+    }
+},{
+    text: <em>'Reset'</em>,
+    handler: <b>function</b>(){
+        fp.getForm().reset();
+    }
+}]</code></pre></div></div></td><td class="msource"><a href="output/Ext.form.Action.html#failureType" ext:member="#failureType" ext:cls="Ext.form.Action">Action</a></td></tr><tr class="property-row  inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.Action-response"></a><b><a href="source/Action.html#prop-Ext.form.Action-response">response</a></b> : Object<div class="mdesc">The XMLHttpRequest object used to perform the action.</div></td><td class="msource"><a href="output/Ext.form.Action.html#response" ext:member="#response" ext:cls="Ext.form.Action">Action</a></td></tr><tr class="property-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.Action-result"></a><b><a href="source/Action.html#prop-Ext.form.Action-result">result</a></b> : Object<div class="mdesc"><div class="short">The decoded response object containing a boolean &lt;tt style="font-weight:bold"&gt;success property and
+other, action-spec...</div><div class="long">The decoded response object containing a boolean <tt style="font-weight:bold">success</tt> property and
+other, action-specific properties.</div></div></td><td class="msource"><a href="output/Ext.form.Action.html#result" ext:member="#result" ext:cls="Ext.form.Action">Action</a></td></tr><tr class="property-row  inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.Action-type"></a><b><a href="source/Action.html#prop-Ext.form.Action-type">type</a></b> : String<div class="mdesc">The type of action this Action instance performs.
+Currently only "submit" and "load" are supported.</div></td><td class="msource"><a href="output/Ext.form.Action.html#type" ext:member="#type" ext:cls="Ext.form.Action">Action</a></td></tr></tbody></table><a id="Ext.form.Action.DirectSubmit-methods"></a><h2>Public Methods</h2><div class="no-members">This class has no public methods.</div><a id="Ext.form.Action.DirectSubmit-events"></a><h2>Public Events</h2><div class="no-members">This class has no public events.</div></div>

@@ -1,0 +1,68 @@
+<div class="body-wrap" xmlns:ext="http://www.extjs.com"><div class="top-tools"><a class="inner-link" href="#Ext.ux.grid.HybridSummary-props"><img src="resources/images/default/s.gif" class="item-icon icon-prop">Properties</a>&#13;<a class="inner-link" href="#Ext.ux.grid.HybridSummary-methods"><img src="resources/images/default/s.gif" class="item-icon icon-method">Methods</a>&#13;<a class="inner-link" href="#Ext.ux.grid.HybridSummary-events"><img src="resources/images/default/s.gif" class="item-icon icon-event">Events</a>&#13;<a class="inner-link" href="#Ext.ux.grid.HybridSummary-configs"><img src="resources/images/default/s.gif" class="item-icon icon-config">Config Options</a>&#13;<a class="bookmark" href="../docs/?class=Ext.ux.grid.HybridSummary"><img src="resources/images/default/s.gif" class="item-icon icon-fav">Direct Link</a>&#13;</div><div class="inheritance res-block"><pre class="res-block-inner"><a href="output/Ext.ux.grid.GroupSummary.html" ext:member="" ext:cls="Ext.ux.grid.GroupSummary">GroupSummary</a>
+  <img src="resources/elbow-end.gif">HybridSummary</pre></div><h1>Class <a href="source/GroupSummary.html#cls-Ext.ux.grid.HybridSummary">Ext.ux.grid.HybridSummary</a></h1><table cellspacing="0"><tr><td class="label">Package:</td><td class="hd-info">Ext.ux.grid</td></tr><tr><td class="label">Defined In:</td><td class="hd-info"><a href="source/GroupSummary.html#cls-Ext.ux.grid.HybridSummary">GroupSummary.js</a></td></tr><tr><td class="label">Class:</td><td class="hd-info"><a href="source/GroupSummary.html#cls-Ext.ux.grid.HybridSummary">HybridSummary</a></td></tr><tr><td class="label">Extends:</td><td class="hd-info"><a href="output/Ext.ux.grid.GroupSummary.html" ext:cls="Ext.ux.grid.GroupSummary" ext:member="">GroupSummary</a></td></tr></table><div class="description">Adds capability to specify the summary data for the group via json as illustrated here:
+<pre><code>{
+    data: [
+        {
+            projectId: 100,     project: <em>'House'</em>,
+            taskId:    112, description: <em>'Paint'</em>,
+            estimate:    6,        rate:     150,
+            due:<em>'06/24/2007'</em>
+        },
+        ...
+    ],
+
+    summaryData: {
+        <em>'House'</em>: {
+            description: 14, estimate: 9,
+                   rate: 99, due: <b>new</b> Date(2009, 6, 29),
+                   cost: 999
+        }
+    }
+}</code></pre></div><div class="hr"></div><a id="Ext.ux.grid.HybridSummary-configs"></a><h2>Config Options</h2><table cellspacing="0" class="member-table"><tbody><tr><th colspan="2" class="sig-header">Config Options</th><th class="msource-header">Defined By</th></tr><tr class="config-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.ux.grid.GroupSummary-summaryRenderer"></a><b><a href="source/GroupSummary.html#cfg-Ext.ux.grid.GroupSummary-summaryRenderer">summaryRenderer</a></b> : Function<div class="mdesc"><div class="short">Renderer example:summaryRenderer: function(v, params, data){
+    return ((v === 0 || v &gt; 1) ? '(' + v +' Tasks)' : '(...</div><div class="long">Renderer example:<pre><code>summaryRenderer: <b>function</b>(v, params, data){
+    <b>return</b> ((v === 0 || v > 1) ? <em>'('</em> + v +<em>' Tasks)'</em> : <em>'(1 Task)'</em>);
+},</code></pre></div></div></td><td class="msource"><a href="output/Ext.ux.grid.GroupSummary.html#summaryRenderer" ext:member="#summaryRenderer" ext:cls="Ext.ux.grid.GroupSummary">GroupSummary</a></td></tr><tr class="config-row  inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.ux.grid.GroupSummary-summaryType"></a><b><a href="source/GroupSummary.html#cfg-Ext.ux.grid.GroupSummary-summaryType">summaryType</a></b> : String<div class="mdesc">The type of
+calculation to be used for the column.  For options available see
+<a href="output/Ext.ux.grid.GroupSummary.html#Ext.ux.grid.GroupSummary-Calculations" ext:member="Calculations" ext:cls="Ext.ux.grid.GroupSummary">Calculations</a>.</div></td><td class="msource"><a href="output/Ext.ux.grid.GroupSummary.html#summaryType" ext:member="#summaryType" ext:cls="Ext.ux.grid.GroupSummary">GroupSummary</a></td></tr></tbody></table><a id="Ext.ux.grid.HybridSummary-props"></a><h2>Public Properties</h2><table cellspacing="0" class="member-table"><tbody><tr><th colspan="2" class="sig-header">Property</th><th class="msource-header">Defined By</th></tr><tr class="property-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.ux.grid.GroupSummary-Calculations"></a><b><a href="source/GroupSummary.html#prop-Ext.ux.grid.GroupSummary-Calculations">Calculations</a></b> : Object<div class="mdesc"><div class="short">Calculation types for summary row:&lt;div class="mdetail-params"&gt;
+sum : &lt;div class="sub-desc"&gt;
+count : &lt;div class="sub-d...</div><div class="long">Calculation types for summary row:</p><div class="mdetail-params"><ul>
+<li><b><tt>sum</tt></b> : <div class="sub-desc"></div></li>
+<li><b><tt>count</tt></b> : <div class="sub-desc"></div></li>
+<li><b><tt>max</tt></b> : <div class="sub-desc"></div></li>
+<li><b><tt>min</tt></b> : <div class="sub-desc"></div></li>
+<li><b><tt>average</tt></b> : <div class="sub-desc"></div></li>
+</ul></div>
+<p>Custom calculations may be implemented.  An example of
+custom <code>summaryType=totalCost</code>:</p><pre><code><i>// define a custom summary <b>function</b></i>
+Ext.ux.grid.GroupSummary.Calculations[<em>'totalCost'</em>] = <b>function</b>(v, record, field){
+    <b>return</b> v + (record.data.estimate * record.data.rate);
+};</code></pre></div></div></td><td class="msource"><a href="output/Ext.ux.grid.GroupSummary.html#Calculations" ext:member="#Calculations" ext:cls="Ext.ux.grid.GroupSummary">GroupSummary</a></td></tr></tbody></table><a id="Ext.ux.grid.HybridSummary-methods"></a><h2>Public Methods</h2><table cellspacing="0" class="member-table"><tbody><tr><th colspan="2" class="sig-header">Method</th><th class="msource-header">Defined By</th></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.ux.grid.HybridSummary-getSummaryData"></a><b><a href="source/ux-all-debug.html#method-Ext.ux.grid.HybridSummary-getSummaryData">getSummaryData</a></b>(&nbsp;<code>String&nbsp;groupValue</code>&nbsp;)
+    :
+                                        Object<div class="mdesc"><div class="short">Returns the summaryData for the specified groupValue or null.</div><div class="long">Returns the summaryData for the specified groupValue or null.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>groupValue</code> : String<div class="sub-desc"></div></li></ul><strong>Returns:</strong><ul><li><code>Object</code><div class="sub-desc">summaryData</div></li></ul></div></div></div></td><td class="msource">HybridSummary</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.ux.grid.HybridSummary-setActiveTab"></a><b><a href="source/ux-all-debug.html#method-Ext.ux.grid.HybridSummary-setActiveTab">setActiveTab</a></b>(&nbsp;<code>String/Panel&nbsp;tab</code>&nbsp;)
+    :
+                                        void<div class="mdesc"><div class="short">Sets the specified tab as the active tab. This method fires the beforetabchange event which
+can return false to cance...</div><div class="long">Sets the specified tab as the active tab. This method fires the <a href="output/Ext.ux.grid.HybridSummary.html#Ext.ux.grid.HybridSummary-beforetabchange" ext:member="beforetabchange" ext:cls="Ext.ux.grid.HybridSummary">beforetabchange</a> event which
+can return false to cancel the tab change.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>tab</code> : String/Panel<div class="sub-desc">The id or tab Panel to activate</div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource">HybridSummary</td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.ux.grid.GroupSummary-showSummaryMsg"></a><b><a href="source/ux-all-debug.html#method-Ext.ux.grid.GroupSummary-showSummaryMsg">showSummaryMsg</a></b>(&nbsp;<code>String&nbsp;groupValue</code>,&nbsp;<code>String&nbsp;msg</code>&nbsp;)
+    :
+                                        void<div class="mdesc"><div class="short">Show a message in the summary row.
+grid.on('afteredit', function(){
+    var groupValue = 'Ext Forms: Field Anchoring'...</div><div class="long">Show a message in the summary row.
+<pre><code>grid.on(<em>'afteredit'</em>, <b>function</b>(){
+    <b>var</b> groupValue = <em>'Ext Forms: Field Anchoring'</em>;
+    summary.showSummaryMsg(groupValue, <em>'Updating Summary...'</em>);
+});</code></pre><div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>groupValue</code> : String<div class="sub-desc"></div></li><li><code>msg</code> : String<div class="sub-desc">Text to use as innerHTML for the summary row.</div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource"><a href="output/Ext.ux.grid.GroupSummary.html#showSummaryMsg" ext:member="#showSummaryMsg" ext:cls="Ext.ux.grid.GroupSummary">GroupSummary</a></td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.ux.grid.GroupSummary-toggleSummaries"></a><b><a href="source/ux-all-debug.html#method-Ext.ux.grid.GroupSummary-toggleSummaries">toggleSummaries</a></b>(&nbsp;<code>Boolean&nbsp;visible</code>&nbsp;)
+    :
+                                        void<div class="mdesc"><div class="short">Toggle the display of the summary row on/off</div><div class="long">Toggle the display of the summary row on/off<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>visible</code> : Boolean<div class="sub-desc"><tt>true</tt> to show the summary, <tt>false</tt> to hide the summary.</div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource"><a href="output/Ext.ux.grid.GroupSummary.html#toggleSummaries" ext:member="#toggleSummaries" ext:cls="Ext.ux.grid.GroupSummary">GroupSummary</a></td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.ux.grid.HybridSummary-updateSummaryData"></a><b><a href="source/ux-all-debug.html#method-Ext.ux.grid.HybridSummary-updateSummaryData">updateSummaryData</a></b>(&nbsp;<code>String&nbsp;groupValue</code>,&nbsp;<code>Object&nbsp;data</code>,&nbsp;<span title="Optional" class="optional">[<code>Boolean&nbsp;skipRefresh</code>]</span>&nbsp;)
+    :
+                                        void<div class="mdesc"><div class="short">grid.on('afteredit', function(){
+    var groupValue = 'Ext Forms: Field Anchoring';
+    summary.showSummaryMsg(groupV...</div><div class="long"><pre><code>grid.on(<em>'afteredit'</em>, <b>function</b>(){
+    <b>var</b> groupValue = <em>'Ext Forms: Field Anchoring'</em>;
+    summary.showSummaryMsg(groupValue, <em>'Updating Summary...'</em>);
+    setTimeout(<b>function</b>(){ <i>// simulate server call</i>
+        <i>// HybridSummary class implements updateSummaryData</i>
+        summary.updateSummaryData(groupValue,
+            <i>// create data object based on configured dataIndex</i>
+            {description: 22, estimate: 888, rate: 888, due: <b>new</b> Date(), cost: 8});
+    }, 2000);
+});</code></pre><div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>groupValue</code> : String<div class="sub-desc"></div></li><li><code>data</code> : Object<div class="sub-desc">data object</div></li><li><code>skipRefresh</code> : Boolean<div class="sub-desc">(Optional) Defaults to false</div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource">HybridSummary</td></tr></tbody></table><a id="Ext.ux.grid.HybridSummary-events"></a><h2>Public Events</h2><div class="no-members">This class has no public events.</div></div>

@@ -1,0 +1,117 @@
+<div class="body-wrap" xmlns:ext="http://www.extjs.com"><div class="top-tools"><a class="inner-link" href="#Ext.data.Field-props"><img src="resources/images/default/s.gif" class="item-icon icon-prop">Properties</a>&#13;<a class="inner-link" href="#Ext.data.Field-methods"><img src="resources/images/default/s.gif" class="item-icon icon-method">Methods</a>&#13;<a class="inner-link" href="#Ext.data.Field-events"><img src="resources/images/default/s.gif" class="item-icon icon-event">Events</a>&#13;<a class="inner-link" href="#Ext.data.Field-configs"><img src="resources/images/default/s.gif" class="item-icon icon-config">Config Options</a>&#13;<a class="bookmark" href="../docs/?class=Ext.data.Field"><img src="resources/images/default/s.gif" class="item-icon icon-fav">Direct Link</a>&#13;</div><h1>Class <a href="source/DataField.html#cls-Ext.data.Field">Ext.data.Field</a></h1><table cellspacing="0"><tr><td class="label">Package:</td><td class="hd-info">Ext.data</td></tr><tr><td class="label">Defined In:</td><td class="hd-info"><a href="source/DataField.html#cls-Ext.data.Field">DataField.js</a></td></tr><tr><td class="label">Class:</td><td class="hd-info"><a href="source/DataField.html#cls-Ext.data.Field">Field</a></td></tr><tr><td class="label">Extends:</td><td class="hd-info">Object</td></tr></table><div class="description"><p>This class encapsulates the field definition information specified in the field definition objects
+passed to <a href="output/Ext.data.Record.html#Ext.data.Record-create" ext:member="create" ext:cls="Ext.data.Record">Ext.data.Record.create</a>.</p>
+<p>Developers do not need to instantiate this class. Instances are created by <a href="output/Ext.data.Record.create.html" ext:cls="Ext.data.Record.create">Ext.data.Record.create</a>
+and cached in the <a href="output/Ext.data.Record.html#Ext.data.Record-fields" ext:member="fields" ext:cls="Ext.data.Record">fields</a> property of the created Record constructor's <b>prototype.</b></p></div><div class="hr"></div><a id="Ext.data.Field-configs"></a><h2>Config Options</h2><table cellspacing="0" class="member-table"><tbody><tr><th colspan="2" class="sig-header">Config Options</th><th class="msource-header">Defined By</th></tr><tr class="config-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.data.Field-allowBlank"></a><b><a href="source/DataField.html#cfg-Ext.data.Field-allowBlank">allowBlank</a></b> : Boolean<div class="mdesc"><div class="short">Used for validating a record, defaults to true.
+An empty value here will cause Ext.data.Record.isValid
+to evaluate to...</div><div class="long">Used for validating a <a href="output/Ext.data.Record.html" ext:cls="Ext.data.Record">record</a>, defaults to <code>true</code>.
+An empty value here will cause <a href="output/Ext.data.Record.html" ext:cls="Ext.data.Record">Ext.data.Record</a>.<a href="output/Ext.data.Record.html#Ext.data.Record-isValid" ext:member="isValid" ext:cls="Ext.data.Record">isValid</a>
+to evaluate to <code>false</code>.</div></div></td><td class="msource">Field</td></tr><tr class="config-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.data.Field-convert"></a><b><a href="source/DataField.html#cfg-Ext.data.Field-convert">convert</a></b> : Function<div class="mdesc"><div class="short">A function which converts the value provided by the Reader into an object that will be stored
+in the Record. It is pa...</div><div class="long">A function which converts the value provided by the Reader into an object that will be stored
+in the Record. It is passed the following parameters:<div class="mdetail-params"><ul>
+<li><b>v</b> : Mixed<div class="sub-desc">The data value as read by the Reader, if undefined will use
+the configured <code><a href="output/Ext.data.Field.html#Ext.data.Field-defaultValue" ext:member="defaultValue" ext:cls="Ext.data.Field">defaultValue</a></code>.</div></li>
+<li><b>rec</b> : Mixed<div class="sub-desc">The data object containing the row as read by the Reader.
+Depending on the Reader type, this could be an Array (<a href="output/Ext.data.ArrayReader.html" ext:cls="Ext.data.ArrayReader">ArrayReader</a>), an object
+(<a href="output/Ext.data.JsonReader.html" ext:cls="Ext.data.JsonReader">JsonReader</a>), or an XML element (<a href="output/Ext.data.XMLReader.html" ext:cls="Ext.data.XMLReader">XMLReader</a>).</div></li>
+</ul></div>
+<pre><code><i>// example of convert <b>function</b></i>
+<b>function</b> fullName(v, record){
+    <b>return</b> record.name.last + <em>', '</em> + record.name.first;
+}
+
+<b>function</b> location(v, record){
+    <b>return</b> !record.city ? <em>''</em> : (record.city + <em>', '</em> + record.state);
+}
+
+<b>var</b> Dude = Ext.data.Record.create([
+    {name: <em>'fullname'</em>,  convert: fullName},
+    {name: <em>'firstname'</em>, mapping: <em>'name.first'</em>},
+    {name: <em>'lastname'</em>,  mapping: <em>'name.last'</em>},
+    {name: <em>'city'</em>, defaultValue: <em>'homeless'</em>},
+    <em>'state'</em>,
+    {name: <em>'location'</em>,  convert: location}
+]);
+
+<i>// create the data store</i>
+<b>var</b> store = <b>new</b> Ext.data.Store({
+    reader: <b>new</b> Ext.data.JsonReader(
+        {
+            idProperty: <em>'key'</em>,
+            root: <em>'daRoot'</em>,
+            totalProperty: <em>'total'</em>
+        },
+        Dude  <i>// recordType</i>
+    )
+});
+
+<b>var</b> myData = [
+    { key: 1,
+      name: { first: <em>'Fat'</em>,    last:  <em>'Albert'</em> }
+      <i>// notice no city, state provided <b>in</b> data object</i>
+    },
+    { key: 2,
+      name: { first: <em>'Barney'</em>, last:  <em>'Rubble'</em> },
+      city: <em>'Bedrock'</em>, state: <em>'Stoneridge'</em>
+    },
+    { key: 3,
+      name: { first: <em>'Cliff'</em>,  last:  <em>'Claven'</em> },
+      city: <em>'Boston'</em>,  state: <em>'MA'</em>
+    }
+];</code></pre></div></div></td><td class="msource">Field</td></tr><tr class="config-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.data.Field-dateFormat"></a><b><a href="source/DataField.html#cfg-Ext.data.Field-dateFormat">dateFormat</a></b> : String<div class="mdesc"><div class="short">(Optional) Used when converting received data into a Date when the type is specified as "date".
+A format string for t...</div><div class="long"><p>(Optional) Used when converting received data into a Date when the <a href="output/Ext.data.Field.html#Ext.data.Field-type" ext:member="type" ext:cls="Ext.data.Field">type</a> is specified as <code><em>"date"</em></code>.</p>
+<p>A format string for the <a href="output/Date.html#Date-parseDate" ext:member="parseDate" ext:cls="Date">Date.parseDate</a> function, or "timestamp" if the
+value provided by the Reader is a UNIX timestamp, or "time" if the value provided by the Reader is a
+javascript millisecond timestamp. See <a href="output/Date.html" ext:cls="Date">Date</a></p></div></div></td><td class="msource">Field</td></tr><tr class="config-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.data.Field-defaultValue"></a><b><a href="source/DataField.html#cfg-Ext.data.Field-defaultValue">defaultValue</a></b> : Mixed<div class="mdesc"><div class="short">The default value used when a Record is being created by a Reader
+when the item referenced by the mapping does not ex...</div><div class="long">The default value used <b>when a Record is being created by a <a href="output/Ext.data.Reader.html" ext:cls="Ext.data.Reader">Reader</a></b>
+when the item referenced by the <code><a href="output/Ext.data.Field.html#Ext.data.Field-mapping" ext:member="mapping" ext:cls="Ext.data.Field">mapping</a></code> does not exist in the data
+object (i.e. undefined). (defaults to "")</div></div></td><td class="msource">Field</td></tr><tr class="config-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.data.Field-mapping"></a><b><a href="source/DataField.html#cfg-Ext.data.Field-mapping">mapping</a></b> : String/Number<div class="mdesc"><div class="short">(Optional) A path expression for use by the Ext.data.DataReader implementation
+that is creating the Record to extract...</div><div class="long"><p>(Optional) A path expression for use by the <a href="output/Ext.data.DataReader.html" ext:cls="Ext.data.DataReader">Ext.data.DataReader</a> implementation
+that is creating the <a href="output/Ext.data.Record.html" ext:cls="Ext.data.Record">Record</a> to extract the Field value from the data object.
+If the path expression is the same as the field name, the mapping may be omitted.</p>
+<p>The form of the mapping expression depends on the Reader being used.</p>
+<div class="mdetail-params"><ul>
+<li><a href="output/Ext.data.JsonReader.html" ext:cls="Ext.data.JsonReader">Ext.data.JsonReader</a><div class="sub-desc">The mapping is a string containing the javascript
+expression to reference the data from an element of the data item's <a href="output/Ext.data.JsonReader.html#Ext.data.JsonReader-root" ext:member="root" ext:cls="Ext.data.JsonReader">root</a> Array. Defaults to the field name.</div></li>
+<li><a href="output/Ext.data.XmlReader.html" ext:cls="Ext.data.XmlReader">Ext.data.XmlReader</a><div class="sub-desc">The mapping is an <a href="output/Ext.DomQuery.html" ext:cls="Ext.DomQuery">Ext.DomQuery</a> path to the data
+item relative to the DOM element that represents the <a href="output/Ext.data.XmlReader.html#Ext.data.XmlReader-record" ext:member="record" ext:cls="Ext.data.XmlReader">record</a>. Defaults to the field name.</div></li>
+<li><a href="output/Ext.data.ArrayReader.html" ext:cls="Ext.data.ArrayReader">Ext.data.ArrayReader</a><div class="sub-desc">The mapping is a number indicating the Array index
+of the field's value. Defaults to the field specification's Array position.</div></li>
+</ul></div>
+<p>If a more complex value extraction strategy is required, then configure the Field with a <a href="output/Ext.data.Field.html#Ext.data.Field-convert" ext:member="convert" ext:cls="Ext.data.Field">convert</a>
+function. This is passed the whole row object, and may interrogate it in whatever way is necessary in order to
+return the desired data.</p></div></div></td><td class="msource">Field</td></tr><tr class="config-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.data.Field-name"></a><b><a href="source/DataField.html#cfg-Ext.data.Field-name">name</a></b> : String<div class="mdesc"><div class="short">The name by which the field is referenced within the Record. This is referenced by, for example,
+the dataIndex proper...</div><div class="long">The name by which the field is referenced within the Record. This is referenced by, for example,
+the <code>dataIndex</code> property in column definition objects passed to <a href="output/Ext.grid.ColumnModel.html" ext:cls="Ext.grid.ColumnModel">Ext.grid.ColumnModel</a>.
+<p>Note: In the simplest case, if no properties other than <code>name</code> are required, a field
+definition may consist of just a String for the field name.</p></div></div></td><td class="msource">Field</td></tr><tr class="config-row  "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.data.Field-sortDir"></a><b><a href="source/DataField.html#cfg-Ext.data.Field-sortDir">sortDir</a></b> : String<div class="mdesc">Initial direction to sort (<code><em>"ASC"</em></code> or  <code><em>"DESC"</em></code>).  Defaults to
+<code><em>"ASC"</em></code>.</div></td><td class="msource">Field</td></tr><tr class="config-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.data.Field-sortType"></a><b><a href="source/DataField.html#cfg-Ext.data.Field-sortType">sortType</a></b> : Function<div class="mdesc"><div class="short">A function which converts a Field's value to a comparable value in order to ensure
+correct sort ordering. Predefined ...</div><div class="long">A function which converts a Field's value to a comparable value in order to ensure
+correct sort ordering. Predefined functions are provided in <a href="output/Ext.data.SortTypes.html" ext:cls="Ext.data.SortTypes">Ext.data.SortTypes</a>. A custom
+sort example:<pre><code><i>// current sort     after sort we want</i>
+<i>// +-+------+          +-+------+</i>
+<i>// |1|First |          |1|First |</i>
+<i>// |2|Last  |          |3|Second|</i>
+<i>// |3|Second|          |2|Last  |</i>
+<i>// +-+------+          +-+------+</i>
+
+sortType: <b>function</b>(value) {
+   <b>switch</b> (value.toLowerCase()) <i>// native toLowerCase():</i>
+   {
+      <b>case</b> <em>'first'</em>: <b>return</b> 1;
+      <b>case</b> <em>'second'</em>: <b>return</b> 2;
+      <b>default</b>: <b>return</b> 3;
+   }
+}</code></pre></div></div></td><td class="msource">Field</td></tr><tr class="config-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.data.Field-type"></a><b><a href="source/DataField.html#cfg-Ext.data.Field-type">type</a></b> : Mixed<div class="mdesc"><div class="short">The data type for automatic conversion from received data to the stored value if convert
+has not been specified. This...</div><div class="long">The data type for automatic conversion from received data to the <i>stored</i> value if <code><a href="output/Ext.data.Field.html#Ext.data.Field-convert" ext:member="convert" ext:cls="Ext.data.Field">convert</a></code>
+has not been specified. This may be specified as a string value. Possible values are
+<div class="mdetail-params"><ul>
+<li>auto (Default, implies no conversion)</li>
+<li>string</li>
+<li>int</li>
+<li>float</li>
+<li>boolean</li>
+<li>date</li></ul></div>
+<p>This may also be specified by referencing a member of the <a href="output/Ext.data.Types.html" ext:cls="Ext.data.Types">Ext.data.Types</a> class.</p>
+<p>Developers may create their own application-specific data types by defining new members of the
+<a href="output/Ext.data.Types.html" ext:cls="Ext.data.Types">Ext.data.Types</a> class.</p></div></div></td><td class="msource">Field</td></tr><tr class="config-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.data.Field-useNull"></a><b><a href="source/DataField.html#cfg-Ext.data.Field-useNull">useNull</a></b> : Boolean<div class="mdesc"><div class="short">(Optional) Use when converting received data into a Number type (either int or float). If the value cannot be parsed,...</div><div class="long"><p>(Optional) Use when converting received data into a Number type (either int or float). If the value cannot be parsed,
+null will be used if useNull is true, otherwise the value will be 0. Defaults to <tt>false</tt></div></div></td><td class="msource">Field</td></tr></tbody></table><a id="Ext.data.Field-props"></a><h2>Public Properties</h2><div class="no-members">This class has no public properties.</div><a id="Ext.data.Field-methods"></a><h2>Public Methods</h2><div class="no-members">This class has no public methods.</div><a id="Ext.data.Field-events"></a><h2>Public Events</h2><div class="no-members">This class has no public events.</div></div>

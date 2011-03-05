@@ -1,0 +1,268 @@
+<div class="body-wrap" xmlns:ext="http://www.extjs.com"><div class="top-tools"><a class="inner-link" href="#Ext.Resizable-props"><img src="resources/images/default/s.gif" class="item-icon icon-prop">Properties</a>&#13;<a class="inner-link" href="#Ext.Resizable-methods"><img src="resources/images/default/s.gif" class="item-icon icon-method">Methods</a>&#13;<a class="inner-link" href="#Ext.Resizable-events"><img src="resources/images/default/s.gif" class="item-icon icon-event">Events</a>&#13;<a class="inner-link" href="#Ext.Resizable-configs"><img src="resources/images/default/s.gif" class="item-icon icon-config">Config Options</a>&#13;<a class="bookmark" href="../docs/?class=Ext.Resizable"><img src="resources/images/default/s.gif" class="item-icon icon-fav">Direct Link</a>&#13;</div><div class="inheritance res-block"><pre class="res-block-inner"><a href="output/Ext.util.Observable.html" ext:member="" ext:cls="Ext.util.Observable">Observable</a>
+  <img src="resources/elbow-end.gif">Resizable</pre></div><h1>Class <a href="source/Resizable.html#cls-Ext.Resizable">Ext.Resizable</a></h1><table cellspacing="0"><tr><td class="label">Package:</td><td class="hd-info">Ext</td></tr><tr><td class="label">Defined In:</td><td class="hd-info"><a href="source/Resizable.html#cls-Ext.Resizable">Resizable.js</a></td></tr><tr><td class="label">Class:</td><td class="hd-info"><a href="source/Resizable.html#cls-Ext.Resizable">Resizable</a></td></tr><tr><td class="label">Extends:</td><td class="hd-info"><a href="output/Ext.util.Observable.html" ext:cls="Ext.util.Observable" ext:member="">Observable</a></td></tr></table><div class="description"><p>Applies drag handles to an element to make it resizable. The drag handles are inserted into the element
+and positioned absolute. Some elements, such as a textarea or image, don't support this. To overcome that, you can wrap
+the textarea in a div and set 'resizeChild' to true (or to the id of the element), <b>or</b> set wrap:true in your config and
+the element will be wrapped for you automatically.</p>
+<p>Here is the list of valid resize handles:</p>
+<pre>
+Value   Description
+------  -------------------
+ 'n'     north
+ 's'     south
+ 'e'     east
+ 'w'     west
+ 'nw'    northwest
+ 'sw'    southwest
+ 'se'    southeast
+ 'ne'    northeast
+ 'all'   all
+</pre>
+<p>Here's an example showing the creation of a typical Resizable:</p>
+<pre><code><b>var</b> resizer = <b>new</b> Ext.Resizable(<em>'element-id'</em>, {
+    handles: <em>'all'</em>,
+    minWidth: 200,
+    minHeight: 100,
+    maxWidth: 500,
+    maxHeight: 400,
+    pinned: true
+});
+resizer.on(<em>'resize'</em>, myHandler);</code></pre>
+<p>To hide a particular handle, set its display to none in CSS, or through script:<br>
+resizer.east.setDisplayed(false);</p></div><div class="hr"></div><a id="Ext.Resizable-configs"></a><h2>Config Options</h2><table cellspacing="0" class="member-table"><tbody><tr><th colspan="2" class="sig-header">Config Options</th><th class="msource-header">Defined By</th></tr><tr class="config-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Resizable-adjustments"></a><b><a href="source/Resizable.html#cfg-Ext.Resizable-adjustments">adjustments</a></b> : Array/String<div class="mdesc"><div class="short">String 'auto' or an array [width, height] with values to be added to the
+resize operation's new size (defaults to [0,...</div><div class="long">String 'auto' or an array [width, height] with values to be <b>added</b> to the
+resize operation's new size (defaults to <tt>[0, 0]</tt>)</div></div></td><td class="msource">Resizable</td></tr><tr class="config-row  "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Resizable-animate"></a><b><a href="source/Resizable.html#cfg-Ext.Resizable-animate">animate</a></b> : Boolean<div class="mdesc">True to animate the resize (not compatible with dynamic sizing, defaults to false)</div></td><td class="msource">Resizable</td></tr><tr class="config-row  "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Resizable-constrainTo"></a><b><a href="source/Resizable.html#cfg-Ext.Resizable-constrainTo">constrainTo</a></b> : Mixed<div class="mdesc">Constrain the resize to a particular element</div></td><td class="msource">Resizable</td></tr><tr class="config-row  "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Resizable-disableTrackOver"></a><b><a href="source/Resizable.html#cfg-Ext.Resizable-disableTrackOver">disableTrackOver</a></b> : Boolean<div class="mdesc">True to disable mouse tracking. This is only applied at config time. (defaults to false)</div></td><td class="msource">Resizable</td></tr><tr class="config-row  "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Resizable-draggable"></a><b><a href="source/Resizable.html#cfg-Ext.Resizable-draggable">draggable</a></b> : Boolean<div class="mdesc">Convenience to initialize drag drop (defaults to false)</div></td><td class="msource">Resizable</td></tr><tr class="config-row  "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Resizable-duration"></a><b><a href="source/Resizable.html#cfg-Ext.Resizable-duration">duration</a></b> : Number<div class="mdesc">Animation duration if animate = true (defaults to 0.35)</div></td><td class="msource">Resizable</td></tr><tr class="config-row  "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Resizable-dynamic"></a><b><a href="source/Resizable.html#cfg-Ext.Resizable-dynamic">dynamic</a></b> : Boolean<div class="mdesc">True to resize the element while dragging instead of using a proxy (defaults to false)</div></td><td class="msource">Resizable</td></tr><tr class="config-row  "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Resizable-easing"></a><b><a href="source/Resizable.html#cfg-Ext.Resizable-easing">easing</a></b> : String<div class="mdesc">Animation easing if animate = true (defaults to <tt>'easingOutStrong'</tt>)</div></td><td class="msource">Resizable</td></tr><tr class="config-row  "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Resizable-enabled"></a><b><a href="source/Resizable.html#cfg-Ext.Resizable-enabled">enabled</a></b> : Boolean<div class="mdesc">False to disable resizing (defaults to true)</div></td><td class="msource">Resizable</td></tr><tr class="config-row  "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Resizable-handleCls"></a><b><a href="source/Resizable.html#cfg-Ext.Resizable-handleCls">handleCls</a></b> : String<div class="mdesc">A css class to add to each handle. Defaults to <tt>''</tt>.</div></td><td class="msource">Resizable</td></tr><tr class="config-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Resizable-handles"></a><b><a href="source/Resizable.html#cfg-Ext.Resizable-handles">handles</a></b> : String<div class="mdesc"><div class="short">String consisting of the resize handles to display (defaults to undefined).
+Specify either 'all' or any of 'n s e w n...</div><div class="long">String consisting of the resize handles to display (defaults to undefined).
+Specify either <tt>'all'</tt> or any of <tt>'n s e w ne nw se sw'</tt>.</div></div></td><td class="msource">Resizable</td></tr><tr class="config-row  "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Resizable-height"></a><b><a href="source/Resizable.html#cfg-Ext.Resizable-height">height</a></b> : Number<div class="mdesc">The height of the element in pixels (defaults to null)</div></td><td class="msource">Resizable</td></tr><tr class="config-row  "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Resizable-heightIncrement"></a><b><a href="source/Resizable.html#cfg-Ext.Resizable-heightIncrement">heightIncrement</a></b> : Number<div class="mdesc">The increment to snap the height resize in pixels
+(only applies if <code><a href="output/Ext.Resizable.html#Ext.Resizable-dynamic" ext:member="dynamic" ext:cls="Ext.Resizable">dynamic</a>==true</code>). Defaults to <tt>0</tt>.</div></td><td class="msource">Resizable</td></tr><tr class="config-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Observable-listeners"></a><b><a href="source/Observable.html#cfg-Ext.util.Observable-listeners">listeners</a></b> : Object<div class="mdesc"><div class="short">A config object containing one or more event handlers to be added to this
+object during initialization.  This should ...</div><div class="long"><p>A config object containing one or more event handlers to be added to this
+object during initialization.  This should be a valid listeners config object as specified in the
+<a href="output/Ext.util.Observable.html#Ext.util.Observable-addListener" ext:member="addListener" ext:cls="Ext.util.Observable">addListener</a> example for attaching multiple handlers at once.</p>
+<br><p><b><u>DOM events from ExtJs <a href="output/Ext.Component.html" ext:cls="Ext.Component">Components</a></u></b></p>
+<br><p>While <i>some</i> ExtJs Component classes export selected DOM events (e.g. "click", "mouseover" etc), this
+is usually only done when extra value can be added. For example the <a href="output/Ext.DataView.html" ext:cls="Ext.DataView">DataView</a>'s
+<b><code><a href="output/Ext.DataView.html#Ext.DataView-click" ext:member="click" ext:cls="Ext.DataView">click</a></code></b> event passing the node clicked on. To access DOM
+events directly from a Component's HTMLElement, listeners must be added to the <i><a href="output/Ext.Component.html#Ext.Component-getEl" ext:member="getEl" ext:cls="Ext.Component">Element</a></i> after the Component
+has been rendered. A plugin can simplify this step:<pre><code><i>// Plugin is configured <b>with</b> a listeners config object.</i>
+<i>// The Component is appended to the argument list of all handler functions.</i>
+Ext.DomObserver = Ext.extend(Object, {
+    constructor: <b>function</b>(config) {
+        this.listeners = config.listeners ? config.listeners : config;
+    },
+
+    <i>// Component passes itself into plugin&#39;s init method</i>
+    init: <b>function</b>(c) {
+        <b>var</b> p, l = this.listeners;
+        <b>for</b> (p <b>in</b> l) {
+            <b>if</b> (Ext.isFunction(l[p])) {
+                l[p] = this.createHandler(l[p], c);
+            } <b>else</b> {
+                l[p].fn = this.createHandler(l[p].fn, c);
+            }
+        }
+
+        <i>// Add the listeners to the Element immediately following the render call</i>
+        c.render = c.render.<a href="output/Function.html#Function-createSequence" ext:member="createSequence" ext:cls="Function">createSequence</a>(<b>function</b>() {
+            <b>var</b> e = c.getEl();
+            <b>if</b> (e) {
+                e.on(l);
+            }
+        });
+    },
+
+    createHandler: <b>function</b>(fn, c) {
+        <b>return</b> <b>function</b>(e) {
+            fn.call(this, e, c);
+        };
+    }
+});
+
+<b>var</b> combo = <b>new</b> Ext.form.ComboBox({
+
+    <i>// Collapse combo when its element is clicked on</i>
+    plugins: [ <b>new</b> Ext.DomObserver({
+        click: <b>function</b>(evt, comp) {
+            comp.collapse();
+        }
+    })],
+    store: myStore,
+    typeAhead: true,
+    mode: <em>'local'</em>,
+    triggerAction: <em>'all'</em>
+});</code></pre></p></div></div></td><td class="msource"><a href="output/Ext.util.Observable.html#listeners" ext:member="#listeners" ext:cls="Ext.util.Observable">Observable</a></td></tr><tr class="config-row  "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Resizable-maxHeight"></a><b><a href="source/Resizable.html#cfg-Ext.Resizable-maxHeight">maxHeight</a></b> : Number<div class="mdesc">The maximum height for the element (defaults to 10000)</div></td><td class="msource">Resizable</td></tr><tr class="config-row  "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Resizable-maxWidth"></a><b><a href="source/Resizable.html#cfg-Ext.Resizable-maxWidth">maxWidth</a></b> : Number<div class="mdesc">The maximum width for the element (defaults to 10000)</div></td><td class="msource">Resizable</td></tr><tr class="config-row  "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Resizable-minHeight"></a><b><a href="source/Resizable.html#cfg-Ext.Resizable-minHeight">minHeight</a></b> : Number<div class="mdesc">The minimum height for the element (defaults to 5)</div></td><td class="msource">Resizable</td></tr><tr class="config-row  "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Resizable-minWidth"></a><b><a href="source/Resizable.html#cfg-Ext.Resizable-minWidth">minWidth</a></b> : Number<div class="mdesc">The minimum width for the element (defaults to 5)</div></td><td class="msource">Resizable</td></tr><tr class="config-row  "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Resizable-minX"></a><b><a href="source/Resizable.html#cfg-Ext.Resizable-minX">minX</a></b> : Number<div class="mdesc">The minimum x for the element (defaults to 0)</div></td><td class="msource">Resizable</td></tr><tr class="config-row  "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Resizable-minY"></a><b><a href="source/Resizable.html#cfg-Ext.Resizable-minY">minY</a></b> : Number<div class="mdesc">The minimum x for the element (defaults to 0)</div></td><td class="msource">Resizable</td></tr><tr class="config-row  "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Resizable-multiDirectional"></a><b><a href="source/Resizable.html#cfg-Ext.Resizable-multiDirectional">multiDirectional</a></b> : Boolean<div class="mdesc"><b>Deprecated</b>.  Deprecated style of adding multi-direction resize handles.</div></td><td class="msource">Resizable</td></tr><tr class="config-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Resizable-pinned"></a><b><a href="source/Resizable.html#cfg-Ext.Resizable-pinned">pinned</a></b> : Boolean<div class="mdesc"><div class="short">True to ensure that the resize handles are always visible, false to display them only when the
+user mouses over the r...</div><div class="long">True to ensure that the resize handles are always visible, false to display them only when the
+user mouses over the resizable borders. This is only applied at config time. (defaults to false)</div></div></td><td class="msource">Resizable</td></tr><tr class="config-row  "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Resizable-preserveRatio"></a><b><a href="source/Resizable.html#cfg-Ext.Resizable-preserveRatio">preserveRatio</a></b> : Boolean<div class="mdesc">True to preserve the original ratio between height
+and width during resize (defaults to false)</div></td><td class="msource">Resizable</td></tr><tr class="config-row  "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Resizable-resizeChild"></a><b><a href="source/Resizable.html#cfg-Ext.Resizable-resizeChild">resizeChild</a></b> : Boolean/String/Element<div class="mdesc">True to resize the first child, or id/element to resize (defaults to false)</div></td><td class="msource">Resizable</td></tr><tr class="config-row  "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Resizable-resizeRegion"></a><b><a href="source/Resizable.html#cfg-Ext.Resizable-resizeRegion">resizeRegion</a></b> : Ext.lib.Region<div class="mdesc">Constrain the resize to a particular region</div></td><td class="msource">Resizable</td></tr><tr class="config-row  "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Resizable-transparent"></a><b><a href="source/Resizable.html#cfg-Ext.Resizable-transparent">transparent</a></b> : Boolean<div class="mdesc">True for transparent handles. This is only applied at config time. (defaults to false)</div></td><td class="msource">Resizable</td></tr><tr class="config-row  "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Resizable-width"></a><b><a href="source/Resizable.html#cfg-Ext.Resizable-width">width</a></b> : Number<div class="mdesc">The width of the element in pixels (defaults to null)</div></td><td class="msource">Resizable</td></tr><tr class="config-row  "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Resizable-widthIncrement"></a><b><a href="source/Resizable.html#cfg-Ext.Resizable-widthIncrement">widthIncrement</a></b> : Number<div class="mdesc">The increment to snap the width resize in pixels
+(only applies if <code><a href="output/Ext.Resizable.html#Ext.Resizable-dynamic" ext:member="dynamic" ext:cls="Ext.Resizable">dynamic</a>==true</code>). Defaults to <tt>0</tt>.</div></td><td class="msource">Resizable</td></tr><tr class="config-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Resizable-wrap"></a><b><a href="source/Resizable.html#cfg-Ext.Resizable-wrap">wrap</a></b> : Boolean<div class="mdesc"><div class="short">True to wrap an element with a div if needed (required for textareas and images, defaults to false)
+in favor of the h...</div><div class="long">True to wrap an element with a div if needed (required for textareas and images, defaults to false)
+in favor of the handles config option (defaults to false)</div></div></td><td class="msource">Resizable</td></tr></tbody></table><a id="Ext.Resizable-props"></a><h2>Public Properties</h2><table cellspacing="0" class="member-table"><tbody><tr><th colspan="2" class="sig-header">Property</th><th class="msource-header">Defined By</th></tr><tr class="property-row  "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Resizable-enabled"></a><b><a href="source/Resizable.html#prop-Ext.Resizable-enabled">enabled</a></b> : Boolean<div class="mdesc">Writable. False if resizing is disabled.</div></td><td class="msource">Resizable</td></tr><tr class="property-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Resizable-proxy"></a><b><a href="source/Resizable.html#prop-Ext.Resizable-proxy">proxy</a></b> : Ext.Element.<div class="mdesc"><div class="short">The proxy Element that is resized in place of the real Element during the resize operation.
+This may be queried using...</div><div class="long">The proxy Element that is resized in place of the real Element during the resize operation.
+This may be queried using <a href="output/Ext.Element.html#Ext.Element-getBox" ext:member="getBox" ext:cls="Ext.Element">Ext.Element.getBox</a> to provide the new area to resize to.
+Read only.</div></div></td><td class="msource">Resizable</td></tr></tbody></table><a id="Ext.Resizable-methods"></a><h2>Public Methods</h2><table cellspacing="0" class="member-table"><tbody><tr><th colspan="2" class="sig-header">Method</th><th class="msource-header">Defined By</th></tr><tr class="method-row expandable"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Resizable-Resizable"></a><b><a href="source/Resizable.html#cls-Ext.Resizable">Resizable</a></b>(&nbsp;<code>Mixed&nbsp;el</code>,&nbsp;<code>Object&nbsp;config</code>&nbsp;)
+    <div class="mdesc"><div class="short">Create a new resizable component</div><div class="long">Create a new resizable component<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>el</code> : Mixed<div class="sub-desc">The id or element to resize</div></li><li><code>config</code> : Object<div class="sub-desc">configuration options</div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource">Resizable</td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Observable-addEvents"></a><b><a href="source/Observable.html#method-Ext.util.Observable-addEvents">addEvents</a></b>(&nbsp;<code>Object|String&nbsp;o</code>,&nbsp;<code>string&nbsp;Optional.</code>&nbsp;)
+    :
+                                        void<div class="mdesc"><div class="short">Adds the specified events to the list of events which this Observable may fire.</div><div class="long">Adds the specified events to the list of events which this Observable may fire.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>o</code> : Object|String<div class="sub-desc">Either an object with event names as properties with a value of <code>true</code>
+or the first event name string if multiple event names are being passed as separate parameters.</div></li><li><code>Optional.</code> : string<div class="sub-desc">Event name if multiple event names are being passed as separate parameters.
+Usage:<pre><code>this.addEvents(<em>'storeloaded'</em>, <em>'storecleared'</em>);</code></pre></div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource"><a href="output/Ext.util.Observable.html#addEvents" ext:member="#addEvents" ext:cls="Ext.util.Observable">Observable</a></td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Observable-addListener"></a><b><a href="source/Observable.html#method-Ext.util.Observable-addListener">addListener</a></b>(&nbsp;<code>String&nbsp;eventName</code>,&nbsp;<code>Function&nbsp;handler</code>,&nbsp;<span title="Optional" class="optional">[<code>Object&nbsp;scope</code>]</span>,&nbsp;<span title="Optional" class="optional">[<code>Object&nbsp;options</code>]</span>&nbsp;)
+    :
+                                        void<div class="mdesc"><div class="short">Appends an event handler to this object.</div><div class="long">Appends an event handler to this object.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>eventName</code> : String<div class="sub-desc">The name of the event to listen for.</div></li><li><code>handler</code> : Function<div class="sub-desc">The method the event invokes.</div></li><li><code>scope</code> : Object<div class="sub-desc">(optional) The scope (<code><b>this</b></code> reference) in which the handler function is executed.
+<b>If omitted, defaults to the object which fired the event.</b></div></li><li><code>options</code> : Object<div class="sub-desc">(optional) An object containing handler configuration.
+properties. This may contain any of the following properties:<ul>
+<li><b>scope</b> : Object<div class="sub-desc">The scope (<code><b>this</b></code> reference) in which the handler function is executed.
+<b>If omitted, defaults to the object which fired the event.</b></div></li>
+<li><b>delay</b> : Number<div class="sub-desc">The number of milliseconds to delay the invocation of the handler after the event fires.</div></li>
+<li><b>single</b> : Boolean<div class="sub-desc">True to add a handler to handle just the next firing of the event, and then remove itself.</div></li>
+<li><b>buffer</b> : Number<div class="sub-desc">Causes the handler to be scheduled to run in an <a href="output/Ext.util.DelayedTask.html" ext:cls="Ext.util.DelayedTask">Ext.util.DelayedTask</a> delayed
+by the specified number of milliseconds. If the event fires again within that time, the original
+handler is <em>not</em> invoked, but the new handler is scheduled in its place.</div></li>
+<li><b>target</b> : Observable<div class="sub-desc">Only call the handler if the event was fired on the target Observable, <i>not</i>
+if the event was bubbled up from a child Observable.</div></li>
+</ul><br>
+<p>
+<b>Combining Options</b><br>
+Using the options argument, it is possible to combine different types of listeners:<br>
+<br>
+A delayed, one-time listener.
+<pre><code>myDataView.on(<em>'click'</em>, this.onClick, this, {
+single: true,
+delay: 100
+});</code></pre>
+<p>
+<b>Attaching multiple handlers in 1 call</b><br>
+The method also allows for a single argument to be passed which is a config object containing properties
+which specify multiple handlers.
+<p>
+<pre><code>myGridPanel.on({
+<em>'click'</em> : {
+    fn: this.onClick,
+    scope: this,
+    delay: 100
+},
+<em>'mouseover'</em> : {
+    fn: this.onMouseOver,
+    scope: this
+},
+<em>'mouseout'</em> : {
+    fn: this.onMouseOut,
+    scope: this
+}
+});</code></pre>
+<p>
+Or a shorthand syntax:<br>
+<pre><code>myGridPanel.on({
+<em>'click'</em> : this.onClick,
+<em>'mouseover'</em> : this.onMouseOver,
+<em>'mouseout'</em> : this.onMouseOut,
+ scope: this
+});</code></pre></div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource"><a href="output/Ext.util.Observable.html#addListener" ext:member="#addListener" ext:cls="Ext.util.Observable">Observable</a></td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Resizable-destroy"></a><b><a href="source/Resizable.html#method-Ext.Resizable-destroy">destroy</a></b>(&nbsp;<span title="Optional" class="optional">[<code>Boolean&nbsp;removeEl</code>]</span>&nbsp;)
+    :
+                                        void<div class="mdesc"><div class="short">Destroys this resizable. If the element was wrapped and
+removeEl is not true then the element remains.</div><div class="long">Destroys this resizable. If the element was wrapped and
+removeEl is not true then the element remains.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>removeEl</code> : Boolean<div class="sub-desc">(optional) true to remove the element from the DOM</div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource">Resizable</td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Observable-enableBubble"></a><b><a href="source/Observable-more.html#method-Ext.util.Observable-enableBubble">enableBubble</a></b>(&nbsp;<code>String/Array&nbsp;events</code>&nbsp;)
+    :
+                                        void<div class="mdesc"><div class="short">Enables events fired by this Observable to bubble up an owner hierarchy by calling
+this.getBubbleTarget() if present....</div><div class="long"><p>Enables events fired by this Observable to bubble up an owner hierarchy by calling
+<code>this.getBubbleTarget()</code> if present. There is no implementation in the Observable base class.</p>
+<p>This is commonly used by Ext.Components to bubble events to owner Containers. See <a href="output/Ext.Component.getBubbleTarget.html" ext:cls="Ext.Component.getBubbleTarget">Ext.Component.getBubbleTarget</a>. The default
+implementation in Ext.Component returns the Component's immediate owner. But if a known target is required, this can be overridden to
+access the required target more quickly.</p>
+<p>Example:</p><pre><code>Ext.override(Ext.form.Field, {
+    <i>//  Add functionality to Field&#39;s initComponent to enable the change event to bubble</i>
+    initComponent : Ext.form.Field.prototype.initComponent.createSequence(<b>function</b>() {
+        this.enableBubble(<em>'change'</em>);
+    }),
+
+    <i>//  We know that we want Field&#39;s events to bubble directly to the FormPanel.</i>
+    getBubbleTarget : <b>function</b>() {
+        <b>if</b> (!this.formPanel) {
+            this.formPanel = this.findParentByType(<em>'form'</em>);
+        }
+        <b>return</b> this.formPanel;
+    }
+});
+
+<b>var</b> myForm = <b>new</b> Ext.formPanel({
+    title: <em>'User Details'</em>,
+    items: [{
+        ...
+    }],
+    listeners: {
+        change: <b>function</b>() {
+            <i>// Title goes red <b>if</b> form has been modified.</i>
+            myForm.header.setStyle(<em>'color'</em>, <em>'red'</em>);
+        }
+    }
+});</code></pre><div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>events</code> : String/Array<div class="sub-desc">The event name to bubble, or an Array of event names.</div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource"><a href="output/Ext.util.Observable.html#enableBubble" ext:member="#enableBubble" ext:cls="Ext.util.Observable">Observable</a></td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Observable-fireEvent"></a><b><a href="source/Observable.html#method-Ext.util.Observable-fireEvent">fireEvent</a></b>(&nbsp;<code>String&nbsp;eventName</code>,&nbsp;<code>Object...&nbsp;args</code>&nbsp;)
+    :
+                                        Boolean<div class="mdesc"><div class="short">Fires the specified event with the passed parameters (minus the event name).
+An event may be set to bubble up an Obse...</div><div class="long"><p>Fires the specified event with the passed parameters (minus the event name).</p>
+<p>An event may be set to bubble up an Observable parent hierarchy (See <a href="output/Ext.Component.html#Ext.Component-getBubbleTarget" ext:member="getBubbleTarget" ext:cls="Ext.Component">Ext.Component.getBubbleTarget</a>)
+by calling <a href="output/Ext.util.Observable.html#Ext.util.Observable-enableBubble" ext:member="enableBubble" ext:cls="Ext.util.Observable">enableBubble</a>.</p><div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>eventName</code> : String<div class="sub-desc">The name of the event to fire.</div></li><li><code>args</code> : Object...<div class="sub-desc">Variable number of parameters are passed to handlers.</div></li></ul><strong>Returns:</strong><ul><li><code>Boolean</code><div class="sub-desc">returns false if any of the handlers return false otherwise it returns true.</div></li></ul></div></div></div></td><td class="msource"><a href="output/Ext.util.Observable.html#fireEvent" ext:member="#fireEvent" ext:cls="Ext.util.Observable">Observable</a></td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Resizable-getEl"></a><b><a href="source/Resizable.html#method-Ext.Resizable-getEl">getEl</a></b>()
+    :
+                                        Ext.Element<div class="mdesc"><div class="short">Returns the element this component is bound to.</div><div class="long">Returns the element this component is bound to.<div class="mdetail-params"><strong>Parameters:</strong><ul><li>None.</li></ul><strong>Returns:</strong><ul><li><code>Ext.Element</code><div class="sub-desc"></div></li></ul></div></div></div></td><td class="msource">Resizable</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Resizable-getResizeChild"></a><b><a href="source/Resizable.html#method-Ext.Resizable-getResizeChild">getResizeChild</a></b>()
+    :
+                                        Ext.Element<div class="mdesc"><div class="short">Returns the resizeChild element (or null).</div><div class="long">Returns the resizeChild element (or null).<div class="mdetail-params"><strong>Parameters:</strong><ul><li>None.</li></ul><strong>Returns:</strong><ul><li><code>Ext.Element</code><div class="sub-desc"></div></li></ul></div></div></div></td><td class="msource">Resizable</td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Observable-hasListener"></a><b><a href="source/Observable.html#method-Ext.util.Observable-hasListener">hasListener</a></b>(&nbsp;<code>String&nbsp;eventName</code>&nbsp;)
+    :
+                                        Boolean<div class="mdesc"><div class="short">Checks to see if this object has any listeners for a specified event</div><div class="long">Checks to see if this object has any listeners for a specified event<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>eventName</code> : String<div class="sub-desc">The name of the event to check for</div></li></ul><strong>Returns:</strong><ul><li><code>Boolean</code><div class="sub-desc">True if the event is being listened for, else false</div></li></ul></div></div></div></td><td class="msource"><a href="output/Ext.util.Observable.html#hasListener" ext:member="#hasListener" ext:cls="Ext.util.Observable">Observable</a></td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Observable-on"></a><b><a href="source/Observable.html#method-Ext.util.Observable-on">on</a></b>(&nbsp;<code>String&nbsp;eventName</code>,&nbsp;<code>Function&nbsp;handler</code>,&nbsp;<span title="Optional" class="optional">[<code>Object&nbsp;scope</code>]</span>,&nbsp;<span title="Optional" class="optional">[<code>Object&nbsp;options</code>]</span>&nbsp;)
+    :
+                                        void<div class="mdesc"><div class="short">Appends an event handler to this object (shorthand for addListener.)</div><div class="long">Appends an event handler to this object (shorthand for <a href="output/Ext.util.Observable.html#Ext.util.Observable-addListener" ext:member="addListener" ext:cls="Ext.util.Observable">addListener</a>.)<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>eventName</code> : String<div class="sub-desc">The type of event to listen for</div></li><li><code>handler</code> : Function<div class="sub-desc">The method the event invokes</div></li><li><code>scope</code> : Object<div class="sub-desc">(optional) The scope (<code><b>this</b></code> reference) in which the handler function is executed.
+<b>If omitted, defaults to the object which fired the event.</b></div></li><li><code>options</code> : Object<div class="sub-desc">(optional) An object containing handler configuration.</div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource"><a href="output/Ext.util.Observable.html#on" ext:member="#on" ext:cls="Ext.util.Observable">Observable</a></td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Observable-purgeListeners"></a><b><a href="source/Observable.html#method-Ext.util.Observable-purgeListeners">purgeListeners</a></b>()
+    :
+                                        void<div class="mdesc"><div class="short">Removes all listeners for this object</div><div class="long">Removes all listeners for this object<div class="mdetail-params"><strong>Parameters:</strong><ul><li>None.</li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource"><a href="output/Ext.util.Observable.html#purgeListeners" ext:member="#purgeListeners" ext:cls="Ext.util.Observable">Observable</a></td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Observable-relayEvents"></a><b><a href="source/Observable-more.html#method-Ext.util.Observable-relayEvents">relayEvents</a></b>(&nbsp;<code>Object&nbsp;o</code>,&nbsp;<code>Array&nbsp;events</code>&nbsp;)
+    :
+                                        void<div class="mdesc"><div class="short">Relays selected events from the specified Observable as if the events were fired by this.</div><div class="long">Relays selected events from the specified Observable as if the events were fired by <tt><b>this</b></tt>.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>o</code> : Object<div class="sub-desc">The Observable whose events this object is to relay.</div></li><li><code>events</code> : Array<div class="sub-desc">Array of event names to relay.</div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource"><a href="output/Ext.util.Observable.html#relayEvents" ext:member="#relayEvents" ext:cls="Ext.util.Observable">Observable</a></td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Observable-removeListener"></a><b><a href="source/Observable.html#method-Ext.util.Observable-removeListener">removeListener</a></b>(&nbsp;<code>String&nbsp;eventName</code>,&nbsp;<code>Function&nbsp;handler</code>,&nbsp;<span title="Optional" class="optional">[<code>Object&nbsp;scope</code>]</span>&nbsp;)
+    :
+                                        void<div class="mdesc"><div class="short">Removes an event handler.</div><div class="long">Removes an event handler.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>eventName</code> : String<div class="sub-desc">The type of event the handler was associated with.</div></li><li><code>handler</code> : Function<div class="sub-desc">The handler to remove. <b>This must be a reference to the function passed into the <a href="output/Ext.util.Observable.html#Ext.util.Observable-addListener" ext:member="addListener" ext:cls="Ext.util.Observable">addListener</a> call.</b></div></li><li><code>scope</code> : Object<div class="sub-desc">(optional) The scope originally specified for the handler.</div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource"><a href="output/Ext.util.Observable.html#removeListener" ext:member="#removeListener" ext:cls="Ext.util.Observable">Observable</a></td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Resizable-resizeElement"></a><b><a href="source/Resizable.html#method-Ext.Resizable-resizeElement">resizeElement</a></b>()
+    :
+                                        void<div class="mdesc"><div class="short">Performs resizing of the associated Element. This method is called internally by this
+class, and should not be called...</div><div class="long"><p>Performs resizing of the associated Element. This method is called internally by this
+class, and should not be called by user code.</p>
+<p>If a Resizable is being used to resize an Element which encapsulates a more complex UI
+component such as a Panel, this method may be overridden by specifying an implementation
+as a config option to provide appropriate behaviour at the end of the resize operation on
+mouseup, for example resizing the Panel, and relaying the Panel's content.</p>
+<p>The new area to be resized to is available by examining the state of the <a href="output/Ext.Resizable.html#Ext.Resizable-proxy" ext:member="proxy" ext:cls="Ext.Resizable">proxy</a>
+Element. Example:
+<pre><code><b>new</b> Ext.Panel({
+    title: <em>'Resize me'</em>,
+    x: 100,
+    y: 100,
+    renderTo: Ext.getBody(),
+    floating: true,
+    frame: true,
+    width: 400,
+    height: 200,
+    listeners: {
+        render: <b>function</b>(p) {
+            <b>new</b> Ext.Resizable(p.getEl(), {
+                handles: <em>'all'</em>,
+                pinned: true,
+                transparent: true,
+                resizeElement: <b>function</b>() {
+                    <b>var</b> box = this.proxy.getBox();
+                    p.updateBox(box);
+                    <b>if</b> (p.layout) {
+                        p.doLayout();
+                    }
+                    <b>return</b> box;
+                }
+           });
+       }
+    }
+}).show();</code></pre><div class="mdetail-params"><strong>Parameters:</strong><ul><li>None.</li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource">Resizable</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Resizable-resizeTo"></a><b><a href="source/Resizable.html#method-Ext.Resizable-resizeTo">resizeTo</a></b>(&nbsp;<code>Number&nbsp;width</code>,&nbsp;<code>Number&nbsp;height</code>&nbsp;)
+    :
+                                        void<div class="mdesc"><div class="short">Perform a manual resize and fires the 'resize' event.</div><div class="long">Perform a manual resize and fires the 'resize' event.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>width</code> : Number<div class="sub-desc"></div></li><li><code>height</code> : Number<div class="sub-desc"></div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource">Resizable</td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Observable-resumeEvents"></a><b><a href="source/Observable.html#method-Ext.util.Observable-resumeEvents">resumeEvents</a></b>()
+    :
+                                        void<div class="mdesc"><div class="short">Resume firing events. (see suspendEvents)
+If events were suspended using the queueSuspended parameter, then all
+event...</div><div class="long">Resume firing events. (see <a href="output/Ext.util.Observable.html#Ext.util.Observable-suspendEvents" ext:member="suspendEvents" ext:cls="Ext.util.Observable">suspendEvents</a>)
+If events were suspended using the <tt><b>queueSuspended</b></tt> parameter, then all
+events fired during event suspension will be sent to any listeners now.<div class="mdetail-params"><strong>Parameters:</strong><ul><li>None.</li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource"><a href="output/Ext.util.Observable.html#resumeEvents" ext:member="#resumeEvents" ext:cls="Ext.util.Observable">Observable</a></td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Observable-suspendEvents"></a><b><a href="source/Observable.html#method-Ext.util.Observable-suspendEvents">suspendEvents</a></b>(&nbsp;<code>Boolean&nbsp;queueSuspended</code>&nbsp;)
+    :
+                                        void<div class="mdesc"><div class="short">Suspend the firing of all events. (see resumeEvents)</div><div class="long">Suspend the firing of all events. (see <a href="output/Ext.util.Observable.html#Ext.util.Observable-resumeEvents" ext:member="resumeEvents" ext:cls="Ext.util.Observable">resumeEvents</a>)<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>queueSuspended</code> : Boolean<div class="sub-desc">Pass as true to queue up suspended events to be fired
+after the <a href="output/Ext.util.Observable.html#Ext.util.Observable-resumeEvents" ext:member="resumeEvents" ext:cls="Ext.util.Observable">resumeEvents</a> call instead of discarding all suspended events;</div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource"><a href="output/Ext.util.Observable.html#suspendEvents" ext:member="#suspendEvents" ext:cls="Ext.util.Observable">Observable</a></td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Observable-un"></a><b><a href="source/Observable.html#method-Ext.util.Observable-un">un</a></b>(&nbsp;<code>String&nbsp;eventName</code>,&nbsp;<code>Function&nbsp;handler</code>,&nbsp;<span title="Optional" class="optional">[<code>Object&nbsp;scope</code>]</span>&nbsp;)
+    :
+                                        void<div class="mdesc"><div class="short">Removes an event handler (shorthand for removeListener.)</div><div class="long">Removes an event handler (shorthand for <a href="output/Ext.util.Observable.html#Ext.util.Observable-removeListener" ext:member="removeListener" ext:cls="Ext.util.Observable">removeListener</a>.)<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>eventName</code> : String<div class="sub-desc">The type of event the handler was associated with.</div></li><li><code>handler</code> : Function<div class="sub-desc">The handler to remove. <b>This must be a reference to the function passed into the <a href="output/Ext.util.Observable.html#Ext.util.Observable-addListener" ext:member="addListener" ext:cls="Ext.util.Observable">addListener</a> call.</b></div></li><li><code>scope</code> : Object<div class="sub-desc">(optional) The scope originally specified for the handler.</div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource"><a href="output/Ext.util.Observable.html#un" ext:member="#un" ext:cls="Ext.util.Observable">Observable</a></td></tr></tbody></table><a id="Ext.Resizable-events"></a><h2>Public Events</h2><table cellspacing="0" class="member-table"><tbody><tr><th colspan="2" class="sig-header">Event</th><th class="msource-header">Defined By</th></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Resizable-beforeresize"></a><b><a href="source/Resizable.html#event-Ext.Resizable-beforeresize">beforeresize</a></b> :
+                                      (&nbsp;<code>Ext.Resizable&nbsp;this</code>,&nbsp;<code>Ext.EventObject&nbsp;e</code>&nbsp;)
+    <div class="mdesc"><div class="short">Fired before resize is allowed. Set enabled to false to cancel resize.</div><div class="long">Fired before resize is allowed. Set <a href="output/Ext.Resizable.html#Ext.Resizable-enabled" ext:member="enabled" ext:cls="Ext.Resizable">enabled</a> to false to cancel resize.<div class="mdetail-params"><strong style="font-weight: normal;">Listeners will be called with the following arguments:</strong><ul><li><code>this</code> : Ext.Resizable<div class="sub-desc"></div></li><li><code>e</code> : Ext.EventObject<div class="sub-desc">The mousedown event</div></li></ul></div></div></div></td><td class="msource">Resizable</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Resizable-resize"></a><b><a href="source/Resizable.html#event-Ext.Resizable-resize">resize</a></b> :
+                                      (&nbsp;<code>Ext.Resizable&nbsp;this</code>,&nbsp;<code>Number&nbsp;width</code>,&nbsp;<code>Number&nbsp;height</code>,&nbsp;<code>Ext.EventObject&nbsp;e</code>&nbsp;)
+    <div class="mdesc"><div class="short">Fired after a resize.</div><div class="long">Fired after a resize.<div class="mdetail-params"><strong style="font-weight: normal;">Listeners will be called with the following arguments:</strong><ul><li><code>this</code> : Ext.Resizable<div class="sub-desc"></div></li><li><code>width</code> : Number<div class="sub-desc">The new width</div></li><li><code>height</code> : Number<div class="sub-desc">The new height</div></li><li><code>e</code> : Ext.EventObject<div class="sub-desc">The mouseup event</div></li></ul></div></div></div></td><td class="msource">Resizable</td></tr></tbody></table></div>

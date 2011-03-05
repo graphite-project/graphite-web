@@ -1,0 +1,31 @@
+/*!
+ * Ext JS Library 3.3.1
+ * Copyright(c) 2006-2010 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
+ */
+#details-panel .x-panel-body {
+    padding: 10px;
+    background: #eee;
+    color: #555;
+}
+#details-panel a:link, #details-panel a:visited {
+    color: #369;
+}
+#details-panel h2 {
+    color: #369;
+    font-size: 15px;
+}
+#details-panel p {
+    margin-bottom: 5px;
+}
+
+.author-m {
+    background-image: url(../shared/icons/fam/user.gif) !important;
+}
+.author-f {
+    background-image: url(../shared/icons/fam/user_female.gif) !important;
+}
+.book {
+    background-image: url(../shared/icons/fam/book.png) !important;
+}

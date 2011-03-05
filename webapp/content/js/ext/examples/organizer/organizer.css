@@ -1,0 +1,82 @@
+/*!
+ * Ext JS Library 3.3.1
+ * Copyright(c) 2006-2010 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
+ */
+select{
+	font-size:11px;
+}
+.image-tip{
+	padding:4px;
+	height:98px;
+	white-space:nowrap;
+}
+.image-tip img {
+	margin-right:10px;
+	border:2px solid #083772;
+}
+.image-tip b{
+	color: #083772;
+	display: block;
+	margin-bottom: 4px;
+}
+.image-tip span{
+	display: block;
+	margin-bottom: 5px;
+	margin-left: 5px;
+}
+#images{
+	background: #fff url( ../tree/center-bg.gif ) repeat-x top left;
+	font: 11px Arial, Helvetica, sans-serif;
+}
+#images .thumb{
+	background: #dddddd;
+	padding:3px;
+}
+#images .thumb img{
+	border:1px solid white;
+	height: 60px;
+	width: 80px;
+}
+#images .thumb-wrap{
+	float: left;
+	margin: 4px;
+	margin-right: 0;
+	padding: 5px;
+}
+#images .thumb-wrap span{
+	display: block;
+	overflow: hidden;
+	text-align: center;
+}
+#images .x-view-selected .thumb{
+	background:#8db2e3;
+}
+#images .loading-indicator {
+	font-size:8pt;
+	background-image:url(../../resources/images/default/grid/loading.gif);
+	background-repeat: no-repeat;
+	background-position: left;
+	padding-left:20px;
+	margin:10px;
+}
+.x-dd-drag-proxy .multi-proxy .thumb-img{
+	height: 20px;
+	width: 30px;
+	margin:1px;
+}
+.x-dd-drag-proxy .thumb-img{
+	height: 60px;
+	width: 80px;
+}
+.image-node .x-tree-node-icon{
+    margin-bottom:1px;
+    height:15px;
+}
+.album-node .x-tree-node-icon, .album-btn{
+    background-image:url( ../tree/album.gif ) !important;
+}
+#folders{
+	position:relative;
+}

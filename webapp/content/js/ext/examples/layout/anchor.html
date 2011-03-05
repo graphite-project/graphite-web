@@ -1,0 +1,51 @@
+<html>
+<head>
+    <title>Anchor Layout</title>
+    <link rel="stylesheet" type="text/css" href="../../resources/css/ext-all.css"/>
+
+    <!-- GC -->
+    <!-- LIBS -->
+    <script type="text/javascript" src="../../adapter/ext/ext-base.js"></script>
+    <!-- ENDLIBS -->
+
+    <script type="text/javascript" src="../../ext-all.js"></script>
+
+    <style type="text/css">
+        html, body {
+            font: normal 12px verdana;
+            margin: 0;
+            padding: 0;
+            border: 0 none;
+            overflow: hidden;
+            height: 100%;
+        }
+    </style>
+    <script type="text/javascript">
+        Ext.onReady(function() {
+            var viewport = new Ext.Viewport({
+                layout:'anchor',
+                anchorSize: {width:800, height:600},
+                items:[{
+                    title:'Item 1',
+                    html:'Content 1',
+                    width:800,
+                    anchor:'right 20%'
+                },{
+                    title:'Item 2',
+                    html:'Content 2',
+                    width:300,
+                    anchor:'50% 30%'
+                },{
+                    title:'Item 3',
+                    html:'Content 3',
+                    width:600,
+                    anchor:'-100 50%'
+                }]
+            });
+        });
+    </script>
+</head>
+<body>
+<script type="text/javascript" src="../shared/examples.js"></script><!-- EXAMPLES -->
+</body>
+</html>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<authors>
+    <author first="Fyodor" last="Dostoevsky" gender="m">
+        <book title="Crime and Punishment" published="1866" url="http://www.amazon.com/Crime-Punishment-Fyodor-Dostoevsky/dp/0679734503/">
+            Raskolnikov, a destitute and desperate former student, commits a random murder without remorse or regret, imagining himself to be a great man far above moral law. But as he embarks on a dangerous cat-and-mouse game with a suspicious police investigator, his own conscience begins to torment him. 
+        </book>
+        <book title="The Brothers Karamazov" published="1879" url="http://www.amazon.com/Brothers-Karamazov-Fyodor-Dostoevsky/dp/0374528373/">
+            Driven by intense, uncontrollable emotions of rage and revenge, the Karamozov brothers become involved in the brutal murder of their despicable father. It is a love-hate struggle with profound psychological and spiritual implications.
+        </book>
+    </author>
+    <author first="Stephen" last="King" gender="m">
+        <book title="The Shining" published="1977" url="http://www.amazon.com/Shining-Stephen-King/dp/0743424425/">
+            An alcoholic man, his wife, and his psychic son go to a large haunted hotel for the winter, where the child is threatened by supernatural and family dangers.
+        </book>
+        <book title="Cujo" published="1981" url="http://www.amazon.com/Cujo-Signet-Stephen-King/dp/0451161351/">
+            A big, friendly dog chases a rabbit into a hidden underground cave and stirs a sleeping evil crueler than death itself. The little Maine town of Castle Rock is about to be invaded by the most hideous menace ever to savage the flesh and devour the mind.
+        </book>
+        <book title="IT" published="1986" url="http://www.amazon.com/Signet-Books-Stephen-King/dp/0451169514/">
+            They were seven teenagers when they first stumbled upon the horror. Now they were grown-up men and women who had gone out into the big world to gain success and happiness. But none of them could withstand the force that drew them back to Derry, Maine to face the nightmare without an end, and the evil without a name.
+        </book>
+    </author>
+    <author first="J.K." last="Rowling" gender="f">
+        <book title="Harry Potter and the Sorcerer's Stone" published="1997" url="http://www.amazon.com/Harry-Potter-Sorcerers-Stone-Book/dp/043936213X/">
+            All Harry Potter knows is a miserable life with the Dursleys, his horrible aunt and uncle, and their abominable son, Dudley. But all that is about to change when a mysterious letter arrives by owl messenger: a letter with an invitation to a wonderful place he never dreamed existed.
+        </book>
+        <book title="Harry Potter and the Chamber of Secrets" published="1998" url="http://www.amazon.com/Harry-Potter-Chamber-Secrets-Book/dp/0439064864/">
+            Someone - or something - starts turning Hogwarts students to stone. Could it be Draco Malfoy, a more poisonous rival than ever? Could it possibly be Hagrid, whose mysterious past is finally told? Or could it be the one everyone at Hogwarts most suspects... Harry Potter himself!
+        </book>
+        <book title="Harry Potter and the Prisoner of Azkaban" published="1999" url="http://www.amazon.com/Harry-Potter-Prisoner-Azkaban-Book/dp/043965548X/">
+            For Twelve long years, the dread fortress of Azkaban held an infamous prisoner named Sirius Black. Now he has escaped, and the Azkaban guards heard Black muttering in his sleep, "He's at Hogwarts..." Harry Potter isn't safe, not even within the walls of his magical school. Because on top of it all, there may well be a traitor in their midst.
+        </book>
+    </author>
+</authors>

@@ -1,0 +1,109 @@
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <title>The source code</title>
+    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+</head>
+<body  onload="prettyPrint();">
+    <pre class="prettyprint lang-js">/*!
+ * Ext JS Library 3.3.1
+ * Copyright(c) 2006-2010 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
+ */
+<div id="cls-Ext.form.DisplayField"></div>/**
+ * @class Ext.form.DisplayField
+ * @extends Ext.form.Field
+ * A display-only text field which is not validated and not submitted.
+ * @constructor
+ * Creates a new DisplayField.
+ * @param {Object} config Configuration options
+ * @xtype displayfield
+ */
+Ext.form.DisplayField = Ext.extend(Ext.form.Field,  {
+    validationEvent : false,
+    validateOnBlur : false,
+    defaultAutoCreate : {tag: "div"},
+    <div id="cfg-Ext.form.DisplayField-fieldClass"></div>/**
+     * @cfg {String} fieldClass The default CSS class for the field (defaults to <tt>"x-form-display-field"</tt>)
+     */
+    fieldClass : "x-form-display-field",
+    <div id="cfg-Ext.form.DisplayField-htmlEncode"></div>/**
+     * @cfg {Boolean} htmlEncode <tt>false</tt> to skip HTML-encoding the text when rendering it (defaults to
+     * <tt>false</tt>). This might be useful if you want to include tags in the field's innerHTML rather than
+     * rendering them as string literals per the default logic.
+     */
+    htmlEncode: false,
+
+    // private
+    initEvents : Ext.emptyFn,
+
+    isValid : function(){
+        return true;
+    },
+
+    validate : function(){
+        return true;
+    },
+
+    getRawValue : function(){
+        var v = this.rendered ? this.el.dom.innerHTML : Ext.value(this.value, '');
+        if(v === this.emptyText){
+            v = '';
+        }
+        if(this.htmlEncode){
+            v = Ext.util.Format.htmlDecode(v);
+        }
+        return v;
+    },
+
+    getValue : function(){
+        return this.getRawValue();
+    },
+    
+    getName: function() {
+        return this.name;
+    },
+
+    setRawValue : function(v){
+        if(this.htmlEncode){
+            v = Ext.util.Format.htmlEncode(v);
+        }
+        return this.rendered ? (this.el.dom.innerHTML = (Ext.isEmpty(v) ? '' : v)) : (this.value = v);
+    },
+
+    setValue : function(v){
+        this.setRawValue(v);
+        return this;
+    }
+    <div id="cfg-Ext.form.DisplayField-inputType"></div>/** 
+     * @cfg {String} inputType 
+     * @hide
+     */
+    <div id="cfg-Ext.form.DisplayField-disabled"></div>/** 
+     * @cfg {Boolean} disabled 
+     * @hide
+     */
+    <div id="cfg-Ext.form.DisplayField-readOnly"></div>/** 
+     * @cfg {Boolean} readOnly 
+     * @hide
+     */
+    <div id="cfg-Ext.form.DisplayField-validateOnBlur"></div>/** 
+     * @cfg {Boolean} validateOnBlur 
+     * @hide
+     */
+    <div id="cfg-Ext.form.DisplayField-validationDelay"></div>/** 
+     * @cfg {Number} validationDelay 
+     * @hide
+     */
+    <div id="cfg-Ext.form.DisplayField-validationEvent"></div>/** 
+     * @cfg {String/Boolean} validationEvent 
+     * @hide
+     */
+});
+
+Ext.reg('displayfield', Ext.form.DisplayField);
+</pre>    
+</body>
+</html>

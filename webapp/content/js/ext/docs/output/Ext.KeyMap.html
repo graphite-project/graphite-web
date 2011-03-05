@@ -1,0 +1,83 @@
+<div class="body-wrap" xmlns:ext="http://www.extjs.com"><div class="top-tools"><a class="inner-link" href="#Ext.KeyMap-props"><img src="resources/images/default/s.gif" class="item-icon icon-prop">Properties</a>&#13;<a class="inner-link" href="#Ext.KeyMap-methods"><img src="resources/images/default/s.gif" class="item-icon icon-method">Methods</a>&#13;<a class="inner-link" href="#Ext.KeyMap-events"><img src="resources/images/default/s.gif" class="item-icon icon-event">Events</a>&#13;<a class="bookmark" href="../docs/?class=Ext.KeyMap"><img src="resources/images/default/s.gif" class="item-icon icon-fav">Direct Link</a>&#13;</div><h1>Class <a href="source/KeyMap.html#cls-Ext.KeyMap">Ext.KeyMap</a></h1><table cellspacing="0"><tr><td class="label">Package:</td><td class="hd-info">Ext</td></tr><tr><td class="label">Defined In:</td><td class="hd-info"><a href="source/KeyMap.html#cls-Ext.KeyMap">KeyMap.js</a></td></tr><tr><td class="label">Class:</td><td class="hd-info"><a href="source/KeyMap.html#cls-Ext.KeyMap">KeyMap</a></td></tr><tr><td class="label">Extends:</td><td class="hd-info">Object</td></tr></table><div class="description">Handles mapping keys to actions for an element. One key map can be used for multiple actions.
+The constructor accepts the same config object as defined by <a href="output/Ext.KeyMap.html#Ext.KeyMap-addBinding" ext:member="addBinding" ext:cls="Ext.KeyMap">addBinding</a>.
+If you bind a callback function to a KeyMap, anytime the KeyMap handles an expected key
+combination it will call the function with this signature (if the match is a multi-key
+combination the callback will still be called only once): (String key, Ext.EventObject e)
+A KeyMap can also handle a string representation of keys.<br />
+Usage:
+ <pre><code><i>// map one key by key code</i>
+<b>var</b> map = <b>new</b> Ext.KeyMap(<em>"my-element"</em>, {
+    key: 13, <i>// or Ext.EventObject.ENTER</i>
+    fn: myHandler,
+    scope: myObject
+});
+
+<i>// map multiple keys to one action by string</i>
+<b>var</b> map = <b>new</b> Ext.KeyMap(<em>"my-element"</em>, {
+    key: <em>"a\r\n\t"</em>,
+    fn: myHandler,
+    scope: myObject
+});
+
+<i>// map multiple keys to multiple actions by strings and array of codes</i>
+<b>var</b> map = <b>new</b> Ext.KeyMap(<em>"my-element"</em>, [
+    {
+        key: [10,13],
+        fn: <b>function</b>(){ alert(<em>"Return was pressed"</em>); }
+    }, {
+        key: <em>"abc"</em>,
+        fn: <b>function</b>(){ alert(<em>'a, b or c was pressed'</em>); }
+    }, {
+        key: <em>"\t"</em>,
+        ctrl:true,
+        shift:true,
+        fn: <b>function</b>(){ alert(<em>'Control + shift + tab was pressed.'</em>); }
+    }
+]);</code></pre>
+<b>Note: A KeyMap starts enabled</b></div><div class="hr"></div><a id="Ext.KeyMap-props"></a><h2>Public Properties</h2><table cellspacing="0" class="member-table"><tbody><tr><th colspan="2" class="sig-header">Property</th><th class="msource-header">Defined By</th></tr><tr class="property-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.KeyMap-stopEvent"></a><b><a href="source/KeyMap.html#prop-Ext.KeyMap-stopEvent">stopEvent</a></b> : Boolean<div class="mdesc"><div class="short">True to stop the event from bubbling and prevent the default browser action if the
+key was handled by the KeyMap (def...</div><div class="long">True to stop the event from bubbling and prevent the default browser action if the
+key was handled by the KeyMap (defaults to false)</div></div></td><td class="msource">KeyMap</td></tr></tbody></table><a id="Ext.KeyMap-methods"></a><h2>Public Methods</h2><table cellspacing="0" class="member-table"><tbody><tr><th colspan="2" class="sig-header">Method</th><th class="msource-header">Defined By</th></tr><tr class="method-row expandable"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.KeyMap-KeyMap"></a><b><a href="source/KeyMap.html#cls-Ext.KeyMap">KeyMap</a></b>(&nbsp;<code>Mixed&nbsp;el</code>,&nbsp;<code>Object&nbsp;config</code>,&nbsp;<span title="Optional" class="optional">[<code>String&nbsp;eventName</code>]</span>&nbsp;)
+    <div class="mdesc"><div class="short"></div><div class="long"><div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>el</code> : Mixed<div class="sub-desc">The element to bind to</div></li><li><code>config</code> : Object<div class="sub-desc">The config (see <a href="output/Ext.KeyMap.html#Ext.KeyMap-addBinding" ext:member="addBinding" ext:cls="Ext.KeyMap">addBinding</a>)</div></li><li><code>eventName</code> : String<div class="sub-desc">(optional) The event to bind to (defaults to "keydown")</div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource">KeyMap</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.KeyMap-addBinding"></a><b><a href="source/KeyMap.html#method-Ext.KeyMap-addBinding">addBinding</a></b>(&nbsp;<code>Object/Array&nbsp;config</code>&nbsp;)
+    :
+                                        void<div class="mdesc"><div class="short">Add a new binding to this KeyMap. The following config object properties are supported:
+
+Property    Type            ...</div><div class="long">Add a new binding to this KeyMap. The following config object properties are supported:
+<pre>
+Property    Type             Description
+----------  ---------------  ----------------------------------------------------------------------
+key         String/Array     A single keycode or an array of keycodes to handle
+shift       Boolean          True to handle key only when shift is pressed, False to handle the key only when shift is not pressed (defaults to undefined)
+ctrl        Boolean          True to handle key only when ctrl is pressed, False to handle the key only when ctrl is not pressed (defaults to undefined)
+alt         Boolean          True to handle key only when alt is pressed, False to handle the key only when alt is not pressed (defaults to undefined)
+handler     Function         The function to call when KeyMap finds the expected key combination
+fn          Function         Alias of handler (for backwards-compatibility)
+scope       Object           The scope of the callback function
+stopEvent   Boolean          True to stop the event from bubbling and prevent the default browser action if the key was handled by the KeyMap (defaults to false)
+</pre>
+Usage:
+<pre><code><i>// Create a KeyMap</i>
+<b>var</b> map = <b>new</b> Ext.KeyMap(document, {
+    key: Ext.EventObject.ENTER,
+    fn: handleKey,
+    scope: this
+});
+
+<i>//Add a <b>new</b> binding to the existing KeyMap later</i>
+map.addBinding({
+    key: <em>'abc'</em>,
+    shift: true,
+    fn: handleKey,
+    scope: this
+});</code></pre><div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>config</code> : Object/Array<div class="sub-desc">A single KeyMap config or an array of configs</div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource">KeyMap</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.KeyMap-disable"></a><b><a href="source/KeyMap.html#method-Ext.KeyMap-disable">disable</a></b>()
+    :
+                                        void<div class="mdesc"><div class="short">Disable this KeyMap</div><div class="long">Disable this KeyMap<div class="mdetail-params"><strong>Parameters:</strong><ul><li>None.</li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource">KeyMap</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.KeyMap-enable"></a><b><a href="source/KeyMap.html#method-Ext.KeyMap-enable">enable</a></b>()
+    :
+                                        void<div class="mdesc"><div class="short">Enables this KeyMap</div><div class="long">Enables this KeyMap<div class="mdetail-params"><strong>Parameters:</strong><ul><li>None.</li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource">KeyMap</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.KeyMap-isEnabled"></a><b><a href="source/KeyMap.html#method-Ext.KeyMap-isEnabled">isEnabled</a></b>()
+    :
+                                        Boolean<div class="mdesc"><div class="short">Returns true if this KeyMap is enabled</div><div class="long">Returns true if this KeyMap is enabled<div class="mdetail-params"><strong>Parameters:</strong><ul><li>None.</li></ul><strong>Returns:</strong><ul><li><code>Boolean</code><div class="sub-desc"></div></li></ul></div></div></div></td><td class="msource">KeyMap</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.KeyMap-on"></a><b><a href="source/KeyMap.html#method-Ext.KeyMap-on">on</a></b>(&nbsp;<code>Number/Array/Object&nbsp;key</code>,&nbsp;<code>Function&nbsp;fn</code>,&nbsp;<span title="Optional" class="optional">[<code>Object&nbsp;scope</code>]</span>&nbsp;)
+    :
+                                        void<div class="mdesc"><div class="short">Shorthand for adding a single key listener</div><div class="long">Shorthand for adding a single key listener<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>key</code> : Number/Array/Object<div class="sub-desc">Either the numeric key code, array of key codes or an object with the
+following options:
+{key: (number or array), shift: (true/false), ctrl: (true/false), alt: (true/false)}</div></li><li><code>fn</code> : Function<div class="sub-desc">The function to call</div></li><li><code>scope</code> : Object<div class="sub-desc">(optional) The scope (<code>this</code> reference) in which the function is executed. Defaults to the browser window.</div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource">KeyMap</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.KeyMap-setDisabled"></a><b><a href="source/KeyMap.html#method-Ext.KeyMap-setDisabled">setDisabled</a></b>(&nbsp;<code>Boolean&nbsp;disabled</code>&nbsp;)
+    :
+                                        void<div class="mdesc"><div class="short">Convenience function for setting disabled/enabled by boolean.</div><div class="long">Convenience function for setting disabled/enabled by boolean.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>disabled</code> : Boolean<div class="sub-desc"></div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource">KeyMap</td></tr></tbody></table><a id="Ext.KeyMap-events"></a><h2>Public Events</h2><div class="no-members">This class has no public events.</div></div>

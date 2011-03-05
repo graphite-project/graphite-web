@@ -1,0 +1,69 @@
+/*!
+ * Ext JS Library 3.3.1
+ * Copyright(c) 2006-2010 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
+ */
+
+.x-bubble-ml {
+    padding-left:4px;
+	background:transparent url(../images/bubble-lr.gif) repeat-y 0 0;
+	zoom:1;
+}
+
+.x-bubble-mr {
+    padding-right:4px;
+	background:transparent url(../images/bubble-lr.gif) repeat-y right 0;
+	zoom:1;
+}
+.x-bubble-mc {
+	background:#fff;
+	overflow:hidden;
+}
+
+.x-bubble-tl {
+    
+    background: #fff url(../images/bubble-cs.gif) no-repeat 0 0;
+    padding-left:11px;
+    zoom:1;
+}
+.x-bubble-tr {
+    background: transparent url(../images/bubble-cs.gif) no-repeat right top;
+    padding-right:11px;
+    zoom:1;
+}
+.x-bubble-tc {
+    height: 9px;
+    overflow: hidden;
+    padding-top: 4px;
+    background: #fff url(../images/bubble-tb.gif) repeat-x 0 0;
+}
+
+.x-bubble-bl {
+	background: #fff url(../images/bubble-cs.gif) no-repeat 0 bottom;
+	padding-left:11px;
+    zoom:1;
+}
+.x-bubble-br {
+	background: transparent url(../images/bubble-cs.gif) no-repeat right bottom;
+	padding-right:11px;
+    zoom:1;
+}
+.x-bubble-bc {
+	height:11px;
+	font-size:1px;
+	line-height:1px;
+	overflow:hidden;
+	background: #fff url(../images/bubble-tb.gif) repeat-x 0 bottom;
+}
+.x-bubble-bwrap {	
+	background: #fff url(../images/bubble-tb.gif) repeat-x 0 0;
+	overflow:hidden;
+	zoom:1;
+
+}
+.x-bubble-body {
+	background: #fff;
+	overflow:hidden;
+}
+

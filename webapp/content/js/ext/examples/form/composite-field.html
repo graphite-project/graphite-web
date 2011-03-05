@@ -1,0 +1,35 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+    <title>Composite Fields</title>
+    <link rel="stylesheet" type="text/css" href="../../resources/css/ext-all.css"/>
+
+    <!-- GC -->
+    <!-- LIBS -->
+    <script type="text/javascript" src="../../adapter/ext/ext-base.js"></script>
+    <!-- ENDLIBS -->
+
+    <script type="text/javascript" src="../../ext-all-debug.js"></script>
+    <script type="text/javascript" src="composite-field.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="forms.css"/>
+
+    <!-- Common Styles for the examples -->
+    <link rel="stylesheet" type="text/css" href="../shared/examples.css"/>
+</head>
+<body id="docbody">
+  <script type="text/javascript" src="../shared/examples.js"></script>
+  <!-- EXAMPLES -->
+  <h1>Composite Form Fields</h1>
+
+  <p>Several form fields can be placed onto the same row with a composite field.</p>
+  
+  <p>Internally, a CompositeField uses an HBox Layout to set the width of each field - <a href="http://www.extjs.com/deploy/dev/docs/?class=Ext.layout.HBoxLayout">see the HBox docs for details</a> or the <a href="../layout/hbox.html">HBox layout example</a>.</p>
+  
+  <p>Composite Fields can be configured with the combineErrors option, which combines errors from the Composite's sub fields and present them at the composite level.</p>
+  <p>In this example the Date Range, Phone and Full Name Composites have this option enabled, and the Time worked Composite does not. The <a href="http://www.extjs.com/deploy/dev/docs/?class=Ext.form.Field&member=msgTarget">msgTarget</a> config option is fully supported, so errors can be rendered to any of the supported locations </p>
+
+  <p>The js is not minified so it is readable. See <a href="composite-field.js">composite-field.js</a>.</p>
+</body>
+</html>

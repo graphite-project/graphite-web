@@ -1,0 +1,150 @@
+/*!
+ * Ext JS Library 3.3.1
+ * Copyright(c) 2006-2010 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
+ */
+#tasks-grid .x-grid3-header {
+    background: #f9f9f9 url(images/hrow.gif) repeat-x left top;
+}
+#tasks-grid .new-task-row {
+    height:24px;
+}
+#tasks-grid .new-task-row .x-small-editor {
+    overflow:hidden;
+    width:100%;
+}
+#tasks-grid .new-task-row .x-small-editor input {
+    font-size:11px;
+}
+#new-task-icon {
+    width:16px;
+    height:16px;
+    margin-left:3px;
+    background: transparent url(images/edit.gif) no-repeat;
+}
+.x-grid3-body .x-grid3-td-task-col .x-grid3-cell-inner {
+    padding: 1px 0 0 0 !important;
+}
+
+.task-check {
+    width:98%;
+    height:16px;
+    background: transparent url(images/check.gif) no-repeat center 0;
+    cursor:pointer;
+}
+
+.task-completed .task-check {
+    background: transparent url(images/check.gif) no-repeat center -16px;
+}
+
+.task-check-over {
+    background: transparent url(images/check.gif) no-repeat center -32px;
+}
+
+
+.task-overdue .x-grid3-cell-inner {
+    color:#fb223a;
+}
+
+.task-completed .x-grid3-cell-inner {
+    text-decoration:line-through;
+    color:gray;
+}
+
+.task-col-hd {
+    width:98%;
+    height:12px;
+    background: transparent url(images/hd-check.gif) no-repeat center center;
+    cursor:default;
+}
+
+.x-grid3-td-task-title .x-grid3-cell-inner {
+    white-space:normal;
+}
+
+
+.icon-show-active {
+    background-image:url(images/icon-show-active.gif) !important;
+}
+.icon-show-complete {
+    background-image:url(images/icon-show-complete.gif) !important;
+}
+.icon-show-all {
+    background-image:url(images/icon-show-all.gif) !important;
+}
+.x-grid3-dirty-cell {
+    background:transparent;
+}
+
+.icon-active {
+    background-image:url(images/icon-active.gif) !important;
+}
+.icon-complete {
+    background-image:url(images/icon-complete.gif) !important;
+}
+.icon-delete {
+    background-image:url(images/delete.gif) !important;
+}
+.icon-edit {
+	background-image:url(images/edit.gif) !important;
+}
+
+
+.icon-by-date {
+    background-image:url(images/icon-by-date.gif) !important;
+}
+.icon-by-category {
+    background-image:url(images/icon-by-category.gif) !important;
+}
+.icon-no-group {
+    background-image:url(images/icon-no-group.gif) !important;
+}
+
+#action-panel .x-panel {
+	margin-bottom:3px;
+	margin-right:0;
+}
+#action-panel .x-panel-body {
+	border:0 none;
+}
+#action-panel .x-panel-body li {
+	margin:3px;
+}
+#action-panel .x-panel-body li img {
+	width:16px;
+	height:16px;
+	vertical-align:middle;
+	margin-right:2px;
+	margin-bottom:2px;
+}
+#action-panel .x-panel-body li a {
+	text-decoration:none;
+	color:#3764A0;
+}
+#action-panel .x-plain-body {
+	background-color:#cad9ec;
+    padding:3px 0 0 5px;
+}
+.x-air #action-panel .x-plain-body {
+	padding-left:3px;
+}
+#action-panel .x-panel-body li a:hover {
+	text-decoration:underline;
+	color:#15428b;
+}
+
+.x-panel-trans {
+	background:transparent;
+}
+
+.x-layout-split-west {
+	cursor:move;
+    background-color:#cad9ec;
+}
+.x-panel-header-text {
+	color:#3764A0;
+}
+#tasks-grid {
+	border-left:1px solid #99bbe8;
+}

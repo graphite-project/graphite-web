@@ -1,0 +1,85 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<title>MessageBox</title>
+
+    <link rel="stylesheet" type="text/css" href="../../resources/css/ext-all.css" />
+    <!-- GC -->
+        <!-- LIBS -->
+        <script type="text/javascript" src="../../adapter/ext/ext-base.js"></script>
+        <!-- ENDLIBS -->
+
+    <script type="text/javascript" src="../../ext-all.js"></script>
+    <script type="text/javascript" src="msg-box.js"></script>
+
+    <!-- Common Styles for the examples -->
+    <link rel="stylesheet" type="text/css" href="../shared/examples.css" />
+
+    <style type="text/css">
+        .x-window-dlg .ext-mb-download {
+            background:transparent url(images/download.gif) no-repeat top left;
+            height:46px;
+        }
+    </style>
+</head>
+<body>
+<script type="text/javascript" src="../shared/examples.js"></script><!-- EXAMPLES -->
+<h1>MessageBox Dialogs</h1>
+<p>The example shows how to use the MessageBox class. Some of the buttons have animations, some are normal.</p>
+<p>The js is not minified so it is readable. See <a href="msg-box.js">msg-box.js</a>.</p>
+
+<p>
+    <b>Confirm</b><br />
+    Standard Yes/No dialog.
+    <button id="mb1">Show</button>
+</p>
+
+<p>
+    <b>Prompt</b><br />
+    Standard prompt dialog.
+    <button id="mb2">Show</button>
+</p>
+
+<p>
+    <b>Multi-line Prompt</b><br />
+    A multi-line prompt dialog.
+    <button id="mb3">Show</button>
+</p>
+
+<p>
+    <b>Yes/No/Cancel</b><br />
+    Standard Yes/No/Cancel dialog.
+    <button id="mb4">Show</button>
+</p>
+
+<p>
+    <b>Progress Dialog</b><br />
+    Dialog with measured progress bar.
+    <button id="mb6">Show</button>
+</p>
+
+<p>
+    <b>Wait Dialog</b><br />
+    Dialog with indefinite progress bar and custom icon (will close after 8 sec).
+    <button id="mb7">Show</button>
+</p>
+
+<p>
+    <b>Alert</b><br />
+    Standard alert message dialog.
+    <button id="mb8">Show</button>
+</p>
+
+<p>
+    <b>Icons</b><br />
+    Standard alert with optional icon.
+    <select id="icons">
+        <option id="error" selected="selected">Error</option>
+        <option id="info">Informational</option>
+        <option id="question">Question</option>
+        <option id="warning">Warning</option>
+    </select>
+    <button id="mb9">Show</button>
+</p>
+</body>
+</html>

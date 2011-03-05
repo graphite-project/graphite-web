@@ -1,0 +1,54 @@
+/*!
+ * Ext JS Library 3.3.1
+ * Copyright(c) 2006-2010 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
+ */
+/**
+ * GridFilters Styles
+ **/
+/*
+.x-grid3-hd-row .ux-filtered-column {
+	border-left:  1px solid #C7E3B4;
+	border-right: 1px solid #C7E3B4;
+}
+
+.x-grid3-hd-row .ux-filtered-column .x-grid3-hd-inner {
+	background-image: url(../images/header_bg.gif);
+}
+
+.ux-filtered-column .x-grid3-hd-btn {
+	background-image: url(../images/hd-btn.gif);
+}
+*/
+.x-grid3-hd-row td.ux-filtered-column {   
+    font-style: italic;  
+    font-weight: bold;
+}		
+
+.ux-filtered-column.sort-asc .x-grid3-sort-icon {
+	background-image: url(../images/sort_filtered_asc.gif) !important;
+}
+
+.ux-filtered-column.sort-desc .x-grid3-sort-icon {
+	background-image: url(../images/sort_filtered_desc.gif) !important;
+}
+
+.ux-gridfilter-text-icon {
+	background-image: url(../images/find.png) !important;
+}
+
+/* Temporary Patch for Bug ??? */
+.x-menu-list-item-indent .x-menu-item-icon {
+	position: relative;
+    top: 3px;
+    left: 3px;
+	margin-right: 10px;
+}
+li.x-menu-list-item-indent {
+	padding-left:0px;
+}
+li.x-menu-list-item div {
+	display: block;
+}
+

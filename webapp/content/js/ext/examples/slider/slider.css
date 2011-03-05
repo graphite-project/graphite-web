@@ -1,0 +1,18 @@
+/*!
+ * Ext JS Library 3.3.1
+ * Copyright(c) 2006-2010 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
+ */
+#custom-slider {
+    width:214px;
+    padding-top:6px;
+    background-image:url(images/ticks.gif);
+}
+#custom-slider .x-slider-thumb {
+    background-image:url(images/slider-thumb.png);
+}
+
+h3 {
+    padding:15px 0 5px;
+}

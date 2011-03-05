@@ -1,0 +1,52 @@
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <title>The source code</title>
+    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+</head>
+<body  onload="prettyPrint();">
+    <pre class="prettyprint lang-js">/*!
+ * Ext JS Library 3.3.1
+ * Copyright(c) 2006-2010 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
+ */
+<div id="cls-Ext.data.Request"></div>/**
+ * @class Ext.data.Request
+ * A simple Request class used internally to the data package to provide more generalized remote-requests
+ * to a DataProxy.
+ * TODO Not yet implemented.  Implement in Ext.data.Store#execute
+ */
+Ext.data.Request = function(params) {
+    Ext.apply(this, params);
+};
+Ext.data.Request.prototype = {
+    <div id="cfg-Ext.data.Request-action"></div>/**
+     * @cfg {String} action
+     */
+    action : undefined,
+    <div id="cfg-Ext.data.Request-rs"></div>/**
+     * @cfg {Ext.data.Record[]/Ext.data.Record} rs The Store recordset associated with the request.
+     */
+    rs : undefined,
+    <div id="cfg-Ext.data.Request-params"></div>/**
+     * @cfg {Object} params HTTP request params
+     */
+    params: undefined,
+    <div id="cfg-Ext.data.Request-callback"></div>/**
+     * @cfg {Function} callback The function to call when request is complete
+     */
+    callback : Ext.emptyFn,
+    <div id="cfg-Ext.data.Request-scope"></div>/**
+     * @cfg {Object} scope The scope of the callback funtion
+     */
+    scope : undefined,
+    <div id="cfg-Ext.data.Request-reader"></div>/**
+     * @cfg {Ext.data.DataReader} reader The DataReader instance which will parse the received response
+     */
+    reader : undefined
+};
+</pre>    
+</body>
+</html>

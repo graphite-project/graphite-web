@@ -1,0 +1,139 @@
+/*!
+ * Ext JS Library 3.3.1
+ * Copyright(c) 2006-2010 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
+ */
+.x-grid3-td-topic b {
+    font-family:tahoma, verdana;
+    display:block;
+    color:#333;
+}
+.x-grid3-td-topic b i {
+    font-weight:normal;
+    font-style: normal;
+    color:#000;
+}
+.x-grid3-td-topic .topic {
+    padding-left:20px;
+    background:transparent url(message.png) no-repeat 0 2px;
+}
+.x-grid3-td-topic .x-grid3-cell-inner {
+    white-space:normal;
+}
+.x-grid3-td-topic a {
+    color: #385F95;
+    text-decoration:none;
+}
+.x-grid3-td-topic a:hover {
+    text-decoration:underline;
+}
+.details .x-btn-text {
+    background-image: url(details.gif);
+}
+.msg-view {
+    background-image: url(../shared/icons/fam/application_view_list.png) !important;
+}
+.preview {
+    background-image: url(preview.png) !important;
+}
+.new-topic {
+    background-image: url(message_edit.png) !important;
+}
+.summary {
+    background-image: url(details.gif) !important;
+}
+.x-grid3-row-body p {
+    margin:5px 20px 10px 25px !important;
+    color:#555;
+}
+
+.post-date {
+    font-weight:bold;
+    color:#333;
+}
+
+.author {
+    color:#333;
+}
+
+.x-tree {
+    background:#fff !important;
+}
+.x-border-layout-ct {
+    background:transparent;
+}
+body.x-border-layout-ct {
+    background:#c3d5ed url(bg.gif) repeat-x left top !important;
+}
+.x-layout-split {
+    background-color:transparent !important;
+}
+
+.x-tree-node div.forum-ct{
+    background:#eee url(cmp-bg.gif) repeat-x;
+    margin-top:1px;
+    border-top:1px solid #ddd;
+    border-bottom:1px solid #ccc;
+    padding-top:2px;
+    padding-bottom:1px;
+}
+.forum-ct .x-tree-node-icon {
+    display:none;
+}
+.forum-ct a span {
+    font-weight:bold;
+    color:#222;
+}
+.forum {
+    border:1px solid #fff;
+}
+.forum .x-tree-ec-icon {
+    display:none;
+}
+.icon-forum {
+    background-image:url(forum.gif) !important;
+}
+.x-tree-selected {
+    border:1px dotted #a3bae9;
+    background:#DFE8F6;
+}
+.x-tree-node .x-tree-selected a span{
+	background:transparent;
+	color:#15428b;
+    font-weight:bold;
+}
+
+#main-tabs .x-tab-panel-body {
+    background:transparent;
+    border:0 none;
+}
+
+#topic-grid .x-panel-tbar .x-toolbar {
+    border-top:0 none;
+}
+
+
+.search-item {
+    font:normal 11px tahoma, arial, helvetica, sans-serif;
+    padding:3px 10px 3px 10px;
+    border:1px solid #fff;
+    border-bottom:1px solid #eeeeee;
+    white-space:normal;
+    color:#555;
+}
+.search-item h3 {
+    display:block;
+    font:inherit;
+    font-weight:bold;
+    color:#222;
+}
+
+.search-item h3 span {
+    float: right;
+    font-weight:normal;
+    margin:0 0 5px 5px;
+    width:100px;
+    display:block;
+    clear:none;
+}

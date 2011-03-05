@@ -1,0 +1,50 @@
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <title>The source code</title>
+    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+</head>
+<body  onload="prettyPrint();">
+    <pre class="prettyprint lang-js">/*!
+ * Ext JS Library 3.3.1
+ * Copyright(c) 2006-2010 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
+ */
+<div id="cls-Ext.data.Response"></div>/**
+ * @class Ext.data.Response
+ * A generic response class to normalize response-handling internally to the framework.
+ */
+Ext.data.Response = function(params) {
+    Ext.apply(this, params);
+};
+Ext.data.Response.prototype = {
+    <div id="cfg-Ext.data.Response-action"></div>/**
+     * @cfg {String} action {@link Ext.data.Api#actions}
+     */
+    action: undefined,
+    <div id="cfg-Ext.data.Response-success"></div>/**
+     * @cfg {Boolean} success
+     */
+    success : undefined,
+    <div id="cfg-Ext.data.Response-message"></div>/**
+     * @cfg {String} message
+     */
+    message : undefined,
+    <div id="cfg-Ext.data.Response-data"></div>/**
+     * @cfg {Array/Object} data
+     */
+    data: undefined,
+    <div id="cfg-Ext.data.Response-raw"></div>/**
+     * @cfg {Object} raw The raw response returned from server-code
+     */
+    raw: undefined,
+    <div id="cfg-Ext.data.Response-records"></div>/**
+     * @cfg {Ext.data.Record/Ext.data.Record[]} records related to the Request action
+     */
+    records: undefined
+};
+</pre>    
+</body>
+</html>

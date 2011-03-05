@@ -1,0 +1,226 @@
+/*!
+ * Ext JS Library 3.3.1
+ * Copyright(c) 2006-2010 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
+ */
+.x-grouptabs-panel {
+    background-color: #4E78B1;
+    border: solid 15px #4E78B1;
+}
+.x-tab-panel-left .x-grouptabs-panel-header,
+.x-tab-panel-right .x-grouptabs-panel-header {
+    float: left;
+    border: 0;
+    background: transparent;
+}
+.x-tab-panel-right .x-grouptabs-panel-header {
+    float:right;
+}
+.x-tab-panel-left .x-grouptabs-bwrap {
+    float: right;
+    position: relative;
+}
+.x-tab-panel-right .x-grouptabs-bwrap {
+    float: left;
+    position: relative;
+}
+.x-tab-panel-left ul.x-grouptabs-strip,
+.x-tab-panel-right ul.x-grouptabs-strip {
+    width: auto;
+	display: block;
+}
+.x-tab-panel-left ul.x-grouptabs-strip li,
+.x-tab-panel-right ul.x-grouptabs-strip li {
+    padding: 6px 0 2px 6px;
+    float: none;
+    margin: 0;
+    position: relative;
+    clear: both;
+}
+.x-tab-panel-left .x-tab-panel-header ul.x-grouptabs-strip a.x-grouptabs-text,
+.x-tab-panel-right .x-tab-panel-header ul.x-grouptabs-strip a.x-grouptabs-text{
+	font-size: 13px;
+	line-height: 18px;
+	cursor: pointer;
+}
+
+.x-tab-panel-left .x-tab-panel-header ul.x-grouptabs-strip a.x-grouptabs-text{
+    padding-left: 18px;
+}
+.x-tab-panel-right .x-tab-panel-header ul.x-grouptabs-strip a.x-grouptabs-text{
+    padding-right: 18px;
+}
+
+.x-tab-panel-left .x-tab-panel-header ul.x-grouptabs-sub a.x-grouptabs-text,
+.x-tab-panel-right .x-tab-panel-header ul.x-grouptabs-sub a.x-grouptabs-text{
+	font-size: 12px;
+    padding: 0;  
+}
+
+.x-tab-panel-left .x-tab-panel-header ul.x-grouptabs-sub a.x-grouptabs-text{
+	margin-left: 4px;
+}
+.x-tab-panel-right .x-tab-panel-header ul.x-grouptabs-sub a.x-grouptabs-text{
+	margin-right: 4px;
+}
+
+.x-grouptabs-panel .x-grouptabs-strip a.x-grouptabs-text{
+    overflow: hidden;
+    white-space: nowrap;
+	display: block;
+    color: #DFE8F6;
+    font-family: tahoma, arial, sans-serif;
+    font-weight: bold;
+    text-decoration: none;
+}
+.x-tab-panel-right .x-grouptabs-strip a.x-grouptabs-text {
+    text-align: right;
+}
+
+.x-grouptabs-panel .x-grouptabs-strip-active a.x-grouptabs-text {
+    color: #395B8E;
+}
+
+.x-grouptabs-panel ul.x-grouptabs-sub a.x-grouptabs-text {
+	font-weight: normal;
+}
+.x-tab-joint {
+    position: absolute;
+    width: 3px;
+    top: 1px;
+    background: #fff;
+    z-index: 8999;
+}
+
+.x-grouptabs-panel .x-grouptabs-panel-body {
+    border: 1px solid #999;
+}
+
+.x-grouptabs-panel ul.x-grouptabs-strip li {
+    border-top: 1px solid transparent;
+    border-bottom: 1px solid transparent;
+	border-left: 1px solid transparent;
+}
+
+.x-grouptabs-panel ul.x-grouptabs-strip li.x-grouptabs-strip-active {
+    border: 0;
+    background: #fff;
+    border-top: 1px solid #999;
+    border-bottom: 1px solid #999;
+}
+
+.x-tab-panel-left ul.x-grouptabs-strip li.x-grouptabs-strip-active {
+    border-left: 1px solid #999;
+}
+.x-tab-panel-right ul.x-grouptabs-strip li.x-grouptabs-strip-active {
+    border-right: 1px solid #999;
+}
+
+.x-grouptabs-panel li.x-grouptabs-strip-active ul.x-grouptabs-sub li.x-grouptabs-strip-active{
+    background-color: #EDEEF0;
+}
+
+.x-grouptabs-panel li.x-grouptabs-strip-active ul.x-grouptabs-sub {
+    background-color: transparent;
+}
+
+.x-grouptabs-panel li.x-grouptabs-strip-active ul.x-grouptabs-sub li {
+    border-color: transparent;
+}
+
+/* Tab corners */
+.x-grouptabs-panel .x-grouptabs-corner {
+    background-image: url('../images/x-grouptabs-corners.gif');
+    display: none;
+    width: 11px;
+    height: 11px;
+    position: absolute;
+    font-size: 1px;
+    line-height: 6px;
+    overflow: hidden;
+    zoom:1;
+}
+.x-grouptabs-panel .x-grouptabs-strip-active .x-grouptabs-corner {
+    display: block;
+}
+.x-grouptabs-panel .x-grouptabs-main.x-grouptabs-strip-active ul.x-grouptabs-sub .x-grouptabs-corner {
+	display: none;
+}
+
+.x-grouptabs-panel .x-grouptabs-corner-top-left {
+    background-position: top left;
+    left: 0; top: 0;
+}
+.x-grouptabs-panel .x-grouptabs-corner-bottom-left {
+    background-position: bottom left;
+    left: 0; bottom: 0;
+}
+.x-grouptabs-panel .x-grouptabs-corner-top-right {
+    background-position: top right;
+    right: 0; top: 0;
+}
+.x-grouptabs-panel .x-grouptabs-corner-bottom-right {
+    background-position: bottom right;
+    right: 0; bottom: 0;
+}
+.x-grouptabs-panel li.x-grouptabs-strip-active .x-grouptabs-corner-bottom-left{
+    bottom: -4px; left: -4px;
+}
+.x-grouptabs-panel li.x-grouptabs-strip-active .x-grouptabs-corner-bottom-right{
+    bottom: -4px; right: -4px;
+}
+.x-grouptabs-panel li.x-grouptabs-strip-active .x-grouptabs-corner-top-left{
+    top: -4px; left: -4px;
+}
+.x-grouptabs-panel li.x-grouptabs-strip-active .x-grouptabs-corner-top-right{
+    top: -4px; right: -4px;
+}
+
+.x-grouptabs-panel ul.x-grouptabs-sub li.x-tab-with-icon a.x-grouptabs-text {
+    background-repeat: no-repeat;
+    padding-left: 20px;
+}
+
+/* General tab styling */
+.x-grouptabs-panel .x-grouptabs-expand {
+	background: transparent url('../images/elbow-plus-nl.gif') no-repeat;
+	width: 16px;
+	height: 16px;
+	position: absolute;
+	left: 7px;
+	top: 6px;
+}
+
+.ext-ie6 .x-grouptabs-panel .x-grouptabs-expand,
+.ext-border-box .x-grouptabs-panel .x-grouptabs-expand {
+	left: 0;
+}
+
+.x-grouptabs-expanded .x-grouptabs-expand {
+	background-image: url('../images/elbow-minus-nl.gif');
+}
+
+/* GroupTabs sub group styling */
+.x-grouptabs-sub {
+	display: none;
+	margin-top: 4px;
+}
+
+.x-grouptabs-expanded .x-grouptabs-sub {
+	display: block;
+}
+
+.x-grouptabs-panel ul.x-grouptabs-sub li {
+	height: 18px;
+	margin: 0 0 2px;
+    padding: 0;
+}
+
+.x-grouptabs-panel ul.x-grouptabs-sub .x-grouptabs-main-item {
+	display: none;
+}
+
+.x-tab-with-icon{
+   border-style:none !important;
+}

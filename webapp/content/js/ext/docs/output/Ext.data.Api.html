@@ -1,0 +1,70 @@
+<div class="body-wrap" xmlns:ext="http://www.extjs.com"><div class="top-tools"><a class="inner-link" href="#Ext.data.Api-props"><img src="resources/images/default/s.gif" class="item-icon icon-prop">Properties</a>&#13;<a class="inner-link" href="#Ext.data.Api-methods"><img src="resources/images/default/s.gif" class="item-icon icon-method">Methods</a>&#13;<a class="inner-link" href="#Ext.data.Api-events"><img src="resources/images/default/s.gif" class="item-icon icon-event">Events</a>&#13;<a class="bookmark" href="../docs/?class=Ext.data.Api"><img src="resources/images/default/s.gif" class="item-icon icon-fav">Direct Link</a>&#13;</div><h1>Class <a href="source/Api.html#cls-Ext.data.Api">Ext.data.Api</a></h1><table cellspacing="0"><tr><td class="label">Package:</td><td class="hd-info">Ext.data</td></tr><tr><td class="label">Defined In:</td><td class="hd-info"><a href="source/Api.html#cls-Ext.data.Api">Api.js</a></td></tr><tr><td class="label">Class:</td><td class="hd-info"><a href="source/Api.html#cls-Ext.data.Api">Api</a></td></tr><tr><td class="label">Extends:</td><td class="hd-info">Object</td></tr></table><div class="description">Ext.data.Api is a singleton designed to manage the data API including methods
+for validating a developer's DataProxy API.  Defines variables for CRUD actions
+create, read, update and destroy in addition to a mapping of RESTful HTTP methods
+GET, POST, PUT and DELETE to CRUD actions.<br><br><i>This class is a singleton and cannot be created directly.</i></div><div class="hr"></div><a id="Ext.data.Api-props"></a><h2>Public Properties</h2><table cellspacing="0" class="member-table"><tbody><tr><th colspan="2" class="sig-header">Property</th><th class="msource-header">Defined By</th></tr><tr class="property-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.data.Api-actions"></a><b><a href="source/Api.html#prop-Ext.data.Api-actions">actions</a></b> : Object<div class="mdesc"><div class="short">Defined actions corresponding to remote actions:
+actions: {
+    create  : 'create',  // Text representing the remote-...</div><div class="long">Defined actions corresponding to remote actions:
+<pre><code>actions: {
+    create  : <em>'create'</em>,  <i>// Text representing the remote-action to create records on server.</i>
+    read    : <em>'read'</em>,    <i>// Text representing the remote-action to read/load data from server.</i>
+    update  : <em>'update'</em>,  <i>// Text representing the remote-action to update records on server.</i>
+    destroy : <em>'destroy'</em>  <i>// Text representing the remote-action to destroy records on server.</i>
+}</code></pre></div></div></td><td class="msource">Api</td></tr><tr class="property-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.data.Api-restActions"></a><b><a href="source/Api.html#prop-Ext.data.Api-restActions">restActions</a></b> : Object<div class="mdesc"><div class="short">Defined {CRUD action}:{HTTP method} pairs to associate HTTP methods with the
+corresponding actions for RESTful proxie...</div><div class="long">Defined {CRUD action}:{HTTP method} pairs to associate HTTP methods with the
+corresponding actions for <a href="output/Ext.data.DataProxy.html#Ext.data.DataProxy-restful" ext:member="restful" ext:cls="Ext.data.DataProxy">RESTful proxies</a>.
+Defaults to:
+<pre><code>restActions : {
+    create  : <em>'POST'</em>,
+    read    : <em>'GET'</em>,
+    update  : <em>'PUT'</em>,
+    destroy : <em>'DELETE'</em>
+},</code></pre></div></div></td><td class="msource">Api</td></tr></tbody></table><a id="Ext.data.Api-methods"></a><h2>Public Methods</h2><table cellspacing="0" class="member-table"><tbody><tr><th colspan="2" class="sig-header">Method</th><th class="msource-header">Defined By</th></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.data.Api-Response"></a><b><a href="source/Api.html#method-Ext.data.Api-Response">Response</a></b>()
+    :
+                                        void<div class="mdesc"><div class="short">Ext.data.Response
+Experimental.  Do not use directly.</div><div class="long">Ext.data.Response
+Experimental.  Do not use directly.<div class="mdetail-params"><strong>Parameters:</strong><ul><li>None.</li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource">Api</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.data.Api-getVerb"></a><b><a href="source/Api.html#method-Ext.data.Api-getVerb">getVerb</a></b>(&nbsp;<code>String&nbsp;name</code>&nbsp;)
+    :
+                                        String||null<div class="mdesc"><div class="short">Returns the actual CRUD action KEY "create", "read", "update" or "destroy" from the supplied action-name.  This metho...</div><div class="long">Returns the actual CRUD action KEY "create", "read", "update" or "destroy" from the supplied action-name.  This method is used internally and shouldn't generally
+need to be used directly.  The key/value pair of Ext.data.Api.actions will often be identical but this is not necessarily true.  A developer can override this naming
+convention if desired.  However, the framework internally calls methods based upon the KEY so a way of retreiving the the words "create", "read", "update" and "destroy" is
+required.  This method will cache discovered KEYS into the private validActions hash.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>name</code> : String<div class="sub-desc">The runtime name of the action.</div></li></ul><strong>Returns:</strong><ul><li><code>String||null</code><div class="sub-desc">returns the action-key, or verb of the user-action or null if invalid.</div></li></ul></div></div></div></td><td class="msource">Api</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.data.Api-hasUniqueUrl"></a><b><a href="source/Api.html#method-Ext.data.Api-hasUniqueUrl">hasUniqueUrl</a></b>(&nbsp;<code>Ext.data.DataProxy&nbsp;proxy</code>,&nbsp;<code>String&nbsp;verb</code>&nbsp;)
+    :
+                                        Boolean<div class="mdesc"><div class="short">Returns true if the supplied verb upon the supplied proxy points to a unique url in that none of the other api-action...</div><div class="long">Returns true if the supplied verb upon the supplied proxy points to a unique url in that none of the other api-actions
+point to the same url.  The question is important for deciding whether to insert the "xaction" HTTP parameter within an
+Ajax request.  This method is used internally and shouldn't generally need to be called directly.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>proxy</code> : Ext.data.DataProxy<div class="sub-desc"></div></li><li><code>verb</code> : String<div class="sub-desc"></div></li></ul><strong>Returns:</strong><ul><li><code>Boolean</code><div class="sub-desc"></div></li></ul></div></div></div></td><td class="msource">Api</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.data.Api-isAction"></a><b><a href="source/Api.html#method-Ext.data.Api-isAction">isAction</a></b>(&nbsp;<code>String&nbsp;action</code>&nbsp;)
+    :
+                                        Boolean<div class="mdesc"><div class="short">Returns true if supplied action-name is a valid API action defined in actions constants</div><div class="long">Returns true if supplied action-name is a valid API action defined in <code><a href="output/Ext.data.Api.html#Ext.data.Api-actions" ext:member="actions" ext:cls="Ext.data.Api">actions</a></code> constants<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>action</code> : String<div class="sub-desc">Action to test for availability.</div></li></ul><strong>Returns:</strong><ul><li><code>Boolean</code><div class="sub-desc"></div></li></ul></div></div></div></td><td class="msource">Api</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.data.Api-isValid"></a><b><a href="source/Api.html#method-Ext.data.Api-isValid">isValid</a></b>()
+    :
+                                        String[]|true<div class="mdesc"><div class="short">Returns true if the supplied API is valid; that is, check that all keys match defined actions
+otherwise returns an ar...</div><div class="long">Returns true if the supplied API is valid; that is, check that all keys match defined actions
+otherwise returns an array of mistakes.<div class="mdetail-params"><strong>Parameters:</strong><ul><li>None.</li></ul><strong>Returns:</strong><ul><li><code>String[]|true</code><div class="sub-desc"></div></li></ul></div></div></div></td><td class="msource">Api</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.data.Api-prepare"></a><b><a href="source/Api.html#method-Ext.data.Api-prepare">prepare</a></b>(&nbsp;<code>Ext.data.DataProxy&nbsp;proxy</code>&nbsp;)
+    :
+                                        void<div class="mdesc"><div class="short">This method is used internally by DataProxy and should not generally need to be used directly.
+Each action of a DataP...</div><div class="long">This method is used internally by <tt><a href="output/Ext.data.DataProxy.html" ext:cls="Ext.data.DataProxy">DataProxy</a></tt> and should not generally need to be used directly.
+Each action of a DataProxy api can be initially defined as either a String or an Object.  When specified as an object,
+one can explicitly define the HTTP method (GET|POST) to use for each CRUD action.  This method will prepare the supplied API, setting
+each action to the Object form.  If your API-actions do not explicitly define the HTTP method, the "method" configuration-parameter will
+be used.  If the method configuration parameter is not specified, POST will be used.
+         <pre><code><b>new</b> Ext.data.HttpProxy({
+    method: <em>"POST"</em>,     <i>// <-- <b>default</b> HTTP method when not specified.</i>
+    api: {
+        create: <em>'create.php'</em>,
+        load: <em>'read.php'</em>,
+        save: <em>'save.php'</em>,
+        destroy: <em>'destroy.php'</em>
+    }
+});
+
+<i>// Alternatively, one can use the object-form to specify the API</i>
+<b>new</b> Ext.data.HttpProxy({
+    api: {
+        load: {url: <em>'read.php'</em>, method: <em>'GET'</em>},
+        create: <em>'create.php'</em>,
+        destroy: <em>'destroy.php'</em>,
+        save: <em>'update.php'</em>
+    }
+});</code></pre><div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>proxy</code> : Ext.data.DataProxy<div class="sub-desc"></div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource">Api</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.data.Api-restify"></a><b><a href="source/Api.html#method-Ext.data.Api-restify">restify</a></b>(&nbsp;<code>Ext.data.DataProxy&nbsp;proxy</code>&nbsp;)
+    :
+                                        void<div class="mdesc"><div class="short">Prepares a supplied Proxy to be RESTful.  Sets the HTTP method for each api-action to be one of
+GET, POST, PUT, DELET...</div><div class="long">Prepares a supplied Proxy to be RESTful.  Sets the HTTP method for each api-action to be one of
+GET, POST, PUT, DELETE according to the defined <a href="output/Ext.data.Api.html#Ext.data.Api-restActions" ext:member="restActions" ext:cls="Ext.data.Api">restActions</a>.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>proxy</code> : Ext.data.DataProxy<div class="sub-desc"></div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource">Api</td></tr></tbody></table><a id="Ext.data.Api-events"></a><h2>Public Events</h2><div class="no-members">This class has no public events.</div></div>

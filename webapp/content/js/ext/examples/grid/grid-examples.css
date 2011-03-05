@@ -1,0 +1,59 @@
+/*!
+ * Ext JS Library 3.3.1
+ * Copyright(c) 2006-2010 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
+ */
+#grid-example .x-grid-col-1 {
+	text-align: right;
+}
+#grid-example .x-grid-col-2{
+	text-align: right;
+}
+#grid-example .x-grid-col-3 {
+	text-align: right;
+}
+#grid-example .x-grid-col-4 {
+	text-align: right;
+}
+#grid-example.x-grid-mso{
+	border: 1px solid #6593cf;
+}
+#grid-example.x-grid-vista{
+	border: 1px solid #b3bcc0;
+}
+#xml-grid-example{
+	border: 1px solid #cbc7b8;
+	left: 0;
+	position: relative;
+	top: 0;
+}
+#editor-grid .x-grid-col-2{
+    text-align:right;
+}
+.x-grid3-td-topic b {
+    font-family:tahoma, verdana;
+    display:block;
+}
+.x-grid3-td-topic b i {
+    font-weight:normal;
+    font-style: normal;
+    color:#000;
+}
+.x-grid3-td-topic .x-grid3-cell-inner {
+    white-space:normal;
+}
+.x-grid3-td-topic a {
+    color: #385F95;
+    text-decoration:none;
+}
+.x-grid3-td-topic a:hover {
+    text-decoration:underline;
+}
+.details .x-btn-text {
+    background-image: url(details.gif);
+}
+.x-resizable-pinned .x-resizable-handle-south{
+    background:url(../../resources/images/default/sizer/s-handle-dark.gif);
+    background-position: top;
+}

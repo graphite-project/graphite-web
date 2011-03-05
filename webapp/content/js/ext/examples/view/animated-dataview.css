@@ -1,0 +1,65 @@
+/*!
+ * Ext JS Library 3.3.1
+ * Copyright(c) 2006-2010 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
+ */
+#phones {
+    background-color: #fff;
+    text-shadow: #fff 0 1px 0;
+}
+
+#phones ul {
+    position: relative;
+    display: block;
+    height: auto;
+    font-size: 85%;
+}
+
+#phones ul li img {
+    margin-bottom: 1px;
+}
+
+#phones ul li {
+    float: left;
+    padding: 8px 17px;
+    margin: 5px;
+/*    margin: 10px 0 0 25px;*/
+    text-align: center;
+    line-height: 1.25em;
+    color: #333;
+    font-family: "Helvetica Neue",sans-serif;
+    height: 113px;
+    width: 112px;
+    overflow: hidden;
+    border-top: 1px solid transparent;
+    cursor: pointer;
+}
+
+/*#phones ul li.phone-hover {
+    background-color: #eee;
+}*/
+
+#phones ul li.x-view-selected {
+    background-color: rgba(100, 100, 100, .15);
+    -moz-border-radius: 8px;
+    -webkit-border-radius: 8px;
+    border-top: 1px solid rgba(0, 0, 0, .15);
+}
+
+#phones ul li img {
+/*    display: block;*/
+}
+
+#phones li strong {
+    color: #000;
+    display: block;
+}
+
+#phones li span {
+    color: #999;
+}
+
+.x-slider-horz .x-slider-thumb {
+    background-image: url(images/slider-thumb.png);
+}

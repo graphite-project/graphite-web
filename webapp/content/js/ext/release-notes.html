@@ -1,0 +1,139 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>
+            Release Notes for Ext JS 3.3.1
+        </title>
+        <style type="text/css">
+
+        * { margin: 0; padding: 0; }
+        body { 
+        color: #333; 
+        font-family: Helvetica, Arial, sans-serif; 
+        font-size: 12px;
+        padding: 0 40px 40px; 
+        width: 800px;
+        margin: 0 auto;
+        }
+        h1, h2, h3 { 
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; 
+        font-weight: 600; 
+        margin: 1em 0;
+        }
+        h1 { font-size: 23px; }
+        h2 { font-size: 16px; margin-top: 1em; }
+        h3 { font-size: 14px; }
+        ul li { padding: 2px 0; font-size: 13px; }
+        ul ul li { font-size: 12px; font-weight: normal; }
+        .doc { color: blue; }
+        .change { color: #196cb4; }
+        .new { color: #6e7a32; }
+        ul { padding: .1em 1.5em; }
+        .notes { color: #777; }
+        a { color: rgb(4, 100, 187); }
+        a:hover { color: rgb(28, 65, 124); }
+        </style>
+    </head>
+    <body>
+        <p>
+            <a href="http://www.sencha.com/" id="logo" name="logo"><img src="http://www.sencha.com/assets/images/logo-sencha-sm.png" alt=""></a>
+        </p>
+        <h1>
+            Release Notes for <a href="http://www.sencha.com/products/js/">Ext JS</a> 3.3.1
+        </h1>
+        <p class="notes">
+            Release Date: November 30, 2010<br>
+            Current Version: 3.3.1 (rev 7296/265)<br>
+            Previous Version: 3.3.0 (rev 7233/263)
+        </p>
+        <h2 class="new">
+            Changes
+        </h2>
+        <h3>
+            Forms
+        </h3>
+        <ul>
+            <li>Added a null check before trying to access getGroupValue.
+            </li>
+            <li>Ext.form.updateRecord() now checks for null value from getValue().
+            </li>
+                <li>Ext.form.updateRecord() now checks for null value from getValue().
+                </li>Combobox now returns correct value when non-unique display fields are used.
+        </ul>
+        <h3>
+            CSS
+        </h3>
+        <ul>
+            <li>Remove :hover pseudo on color-palette.
+            </li>
+            <li>Update CSS to fix tab panel under IE8.
+            </li>
+            <li>Fix TwinTriggerField rendering in WebKit browsers.
+            </li>
+            <li>Add missing sort indicator image for the gray theme (for listview).
+            </li>
+            <li>Fix border layout collapsed icon position for IE in quirks mode.
+            </li>
+            <li>Pivot panel now works with the gray theme.
+            </li>
+        </ul>
+        <h3>
+            Data
+        </h3>
+        <ul>
+            <li>For XmlReader, added the ability to use a function for a mapping, same as JsonReader.
+            </li>
+            <li>Cleanup variables in store.
+            </li>
+        </ul>
+        <h3>
+            Date
+        </h3>
+        <ul>
+            <li>Fix a that causes date parsing to fail when AM/PM is included before the time part.
+            </li>
+        </ul>
+        <h3>
+            Grid
+        </h3>
+        <ul>
+            <li>Fix issues relating to correctly restoring grid state.
+            </li>
+            <li>For GridView, update the event to ensure it passes the grid, not the view.
+            </li>
+                <li>rowsinserted event now properly fires after the insert is complete.
+                </li>
+        </ul>
+        <h3>
+            Misc
+        </h3>
+        <ul>
+            <li>Added changelog.html to distribution.
+            </li>
+            <li>Removed redundant field labels from CompositeField example.
+            </li>
+            <li>In case of an action, defaults are now applied to the initialConfig and not to the action itself.
+            </li>
+            <li>Container's resizeEvent event is now removed on destroy.
+            </li>
+            <li>Fix an issue where rows would be selected by the editor even if checkOnly was set to true.
+            </li>
+            <li>A disabled spinner will no longer spin.
+            </li>
+            <li>Added missing panel tools: x-tool-(prev|next|expand|collapse).
+            </li>
+        </ul>
+        <h3>
+            Locale
+        </h3>
+        <ul>
+            <li>For French, Ext.util.Format.plural now considers 0 to be singular.
+            </li>
+            <li>Adds startDay to DateField.prototype for locale files having startDay already defined for DatePicker.prototype.
+            </li>
+            <li>Added Amharic (Ethopian) language support ext-lang-am.js.
+            </li>
+        </ul>
+    </body>
+</html>

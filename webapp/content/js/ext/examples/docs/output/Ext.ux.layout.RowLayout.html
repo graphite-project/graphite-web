@@ -1,0 +1,55 @@
+<div class="body-wrap" xmlns:ext="http://www.extjs.com"><div class="top-tools"><a class="inner-link" href="#Ext.ux.layout.RowLayout-props"><img src="resources/images/default/s.gif" class="item-icon icon-prop">Properties</a>&#13;<a class="inner-link" href="#Ext.ux.layout.RowLayout-methods"><img src="resources/images/default/s.gif" class="item-icon icon-method">Methods</a>&#13;<a class="inner-link" href="#Ext.ux.layout.RowLayout-events"><img src="resources/images/default/s.gif" class="item-icon icon-event">Events</a>&#13;<a class="bookmark" href="../docs/?class=Ext.ux.layout.RowLayout"><img src="resources/images/default/s.gif" class="item-icon icon-fav">Direct Link</a>&#13;</div><h1>Class <a href="source/ux-all-debug.html#cls-Ext.ux.layout.RowLayout">Ext.ux.layout.RowLayout</a></h1><table cellspacing="0"><tr><td class="label">Package:</td><td class="hd-info">Ext.ux.layout</td></tr><tr><td class="label">Defined In:</td><td class="hd-info"><a href="source/ux-all-debug.html#cls-Ext.ux.layout.RowLayout">ux-all-debug.js</a></td></tr><tr><td class="label">Class:</td><td class="hd-info"><a href="source/ux-all-debug.html#cls-Ext.ux.layout.RowLayout">RowLayout</a></td></tr><tr><td class="label">Extends:</td><td class="hd-info">Object</td></tr></table><div class="description"><p>This is the layout style of choice for creating structural layouts in a multi-row format where the height of
+each row can be specified as a percentage or fixed height.  Row widths can also be fixed, percentage or auto.
+This class is intended to be extended or created via the layout:'ux.row' <a href="output/Ext.Container.html#Ext.Container-layout" ext:member="layout" ext:cls="Ext.Container">Ext.Container.layout</a> config,
+and should generally not need to be created directly via the new keyword.</p>
+<p>RowLayout does not have any direct config options (other than inherited ones), but it does support a
+specific config property of <b><tt>rowHeight</tt></b> that can be included in the config of any panel added to it.  The
+layout will use the rowHeight (if present) or height of each panel during layout to determine how to size each panel.
+If height or rowHeight is not specified for a given panel, its height will default to the panel's height (or auto).</p>
+<p>The height property is always evaluated as pixels, and must be a number greater than or equal to 1.
+The rowHeight property is always evaluated as a percentage, and must be a decimal value greater than 0 and
+less than 1 (e.g., .25).</p>
+<p>The basic rules for specifying row heights are pretty simple.  The logic makes two passes through the
+set of contained panels.  During the first layout pass, all panels that either have a fixed height or none
+specified (auto) are skipped, but their heights are subtracted from the overall container height.  During the second
+pass, all panels with rowHeights are assigned pixel heights in proportion to their percentages based on
+the total <b>remaining</b> container height.  In other words, percentage height panels are designed to fill the space
+left over by all the fixed-height and/or auto-height panels.  Because of this, while you can specify any number of rows
+with different percentages, the rowHeights must always add up to 1 (or 100%) when added together, otherwise your
+layout may not render as expected.  Example usage:</p>
+<pre><code><i>// All rows are percentages -- they must add up to 1</i>
+<b>var</b> p = <b>new</b> Ext.Panel({
+    title: <em>'Row Layout - Percentage Only'</em>,
+    layout:<em>'ux.row'</em>,
+    items: [{
+        title: <em>'Row 1'</em>,
+        rowHeight: .25
+    },{
+        title: <em>'Row 2'</em>,
+        rowHeight: .6
+    },{
+        title: <em>'Row 3'</em>,
+        rowHeight: .15
+    }]
+});
+
+<i>// Mix of height and rowHeight -- all rowHeight values must add</i>
+<i>// up to 1. The first row will take up exactly 120px, and the last two</i>
+<i>// rows will fill the remaining container height.</i>
+<b>var</b> p = <b>new</b> Ext.Panel({
+    title: <em>'Row Layout - Mixed'</em>,
+    layout:<em>'ux.row'</em>,
+    items: [{
+        title: <em>'Row 1'</em>,
+        height: 120,
+        <i>// standard panel widths are still supported too:</i>
+        width: <em>'50%'</em> <i>// or 200</i>
+    },{
+        title: <em>'Row 2'</em>,
+        rowHeight: .8,
+        width: 300
+    },{
+        title: <em>'Row 3'</em>,
+        rowHeight: .2
+    }]
+});</code></pre></div><div class="hr"></div><a id="Ext.ux.layout.RowLayout-props"></a><h2>Public Properties</h2><div class="no-members">This class has no public properties.</div><a id="Ext.ux.layout.RowLayout-methods"></a><h2>Public Methods</h2><div class="no-members">This class has no public methods.</div><a id="Ext.ux.layout.RowLayout-events"></a><h2>Public Events</h2><div class="no-members">This class has no public events.</div></div>

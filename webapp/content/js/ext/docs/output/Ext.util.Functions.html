@@ -1,0 +1,83 @@
+<div class="body-wrap" xmlns:ext="http://www.extjs.com"><div class="top-tools"><a class="inner-link" href="#Ext.util.Functions-props"><img src="resources/images/default/s.gif" class="item-icon icon-prop">Properties</a>&#13;<a class="inner-link" href="#Ext.util.Functions-methods"><img src="resources/images/default/s.gif" class="item-icon icon-method">Methods</a>&#13;<a class="inner-link" href="#Ext.util.Functions-events"><img src="resources/images/default/s.gif" class="item-icon icon-event">Events</a>&#13;<a class="bookmark" href="../docs/?class=Ext.util.Functions"><img src="resources/images/default/s.gif" class="item-icon icon-fav">Direct Link</a>&#13;</div><h1>Class <a href="source/Function.html#cls-Ext.util.Functions">Ext.util.Functions</a></h1><table cellspacing="0"><tr><td class="label">Package:</td><td class="hd-info">Ext.util</td></tr><tr><td class="label">Defined In:</td><td class="hd-info"><a href="source/Function.html#cls-Ext.util.Functions">Function.js</a></td></tr><tr><td class="label">Class:</td><td class="hd-info"><a href="source/Function.html#cls-Ext.util.Functions">Functions</a></td></tr><tr><td class="label">Extends:</td><td class="hd-info">Object</td></tr></table><div class="description"><br><br><i>This class is a singleton and cannot be created directly.</i></div><div class="hr"></div><a id="Ext.util.Functions-props"></a><h2>Public Properties</h2><div class="no-members">This class has no public properties.</div><a id="Ext.util.Functions-methods"></a><h2>Public Methods</h2><table cellspacing="0" class="member-table"><tbody><tr><th colspan="2" class="sig-header">Method</th><th class="msource-header">Defined By</th></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Functions-createDelegate"></a><b><a href="source/Function.html#method-Ext.util.Functions-createDelegate">createDelegate</a></b>(&nbsp;<code>Function&nbsp;fn</code>,&nbsp;<span title="Optional" class="optional">[<code>Object&nbsp;scope</code>]</span>,&nbsp;<span title="Optional" class="optional">[<code>Array&nbsp;args</code>]</span>,&nbsp;<span title="Optional" class="optional">[<code>Boolean/Number&nbsp;appendArgs</code>]</span>&nbsp;)
+    :
+                                        Function<div class="mdesc"><div class="short">Creates a delegate (callback) that sets the scope to obj.
+Call directly on any function. Example: Ext.createDelegate(...</div><div class="long">Creates a delegate (callback) that sets the scope to obj.
+Call directly on any function. Example: <code>Ext.createDelegate(this.myFunction, this, [arg1, arg2])</code>
+Will create a function that is automatically scoped to obj so that the <tt>this</tt> variable inside the
+callback points to obj. Example usage:
+<pre><code><b>var</b> sayHi = <b>function</b>(name){
+    <i>// Note this use of <em>"this.text"</em> here.  This <b>function</b> expects to</i>
+    <i>// execute within a scope that contains a text property.  In this</i>
+    <i>// example, the <em>"this"</em> variable is pointing to the btn object that</i>
+    <i>// was passed <b>in</b> createDelegate below.</i>
+    alert(<em>'Hi, '</em> + name + <em>'. You clicked the <em>"'</em> + this.text + <em>'"</em> button.'</em>);
+}
+
+<b>var</b> btn = <b>new</b> Ext.Button({
+    text: <em>'Say Hi'</em>,
+    renderTo: Ext.getBody()
+});
+
+<i>// This callback will execute <b>in</b> the scope of the</i>
+<i>// button instance. Clicking the button alerts</i>
+<i>// <em>"Hi, Fred. You clicked the "</em>Say Hi<em>" button."</em></i>
+btn.on(<em>'click'</em>, Ext.createDelegate(sayHi, btn, [<em>'Fred'</em>]));</code></pre><div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>fn</code> : Function<div class="sub-desc">The function to delegate.</div></li><li><code>scope</code> : Object<div class="sub-desc">(optional) The scope (<code><b>this</b></code> reference) in which the function is executed.
+<b>If omitted, defaults to the browser window.</b></div></li><li><code>args</code> : Array<div class="sub-desc">(optional) Overrides arguments for the call. (Defaults to the arguments passed by the caller)</div></li><li><code>appendArgs</code> : Boolean/Number<div class="sub-desc">(optional) if True args are appended to call args instead of overriding,
+if a number the args are inserted at the specified position</div></li></ul><strong>Returns:</strong><ul><li><code>Function</code><div class="sub-desc">The new function</div></li></ul></div></div></div></td><td class="msource">Functions</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Functions-createInterceptor"></a><b><a href="source/Function.html#method-Ext.util.Functions-createInterceptor">createInterceptor</a></b>(&nbsp;<code>Function&nbsp;origFn</code>,&nbsp;<code>Function&nbsp;newFn</code>,&nbsp;<span title="Optional" class="optional">[<code>Object&nbsp;scope</code>]</span>&nbsp;)
+    :
+                                        Function<div class="mdesc"><div class="short">Creates an interceptor function. The passed function is called before the original one. If it returns false,
+the orig...</div><div class="long">Creates an interceptor function. The passed function is called before the original one. If it returns false,
+the original one is not called. The resulting function returns the results of the original function.
+The passed function is called with the parameters of the original function. Example usage:
+<pre><code><b>var</b> sayHi = <b>function</b>(name){
+    alert(<em>'Hi, '</em> + name);
+}
+
+sayHi(<em>'Fred'</em>); <i>// alerts <em>"Hi, Fred"</em></i>
+
+<i>// create a <b>new</b> <b>function</b> that validates input without</i>
+<i>// directly modifying the original <b>function</b>:</i>
+<b>var</b> sayHiToFriend = Ext.createInterceptor(sayHi, <b>function</b>(name){
+    <b>return</b> name == <em>'Brian'</em>;
+});
+
+sayHiToFriend(<em>'Fred'</em>);  <i>// no alert</i>
+sayHiToFriend(<em>'Brian'</em>); <i>// alerts <em>"Hi, Brian"</em></i></code></pre><div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>origFn</code> : Function<div class="sub-desc">The original function.</div></li><li><code>newFn</code> : Function<div class="sub-desc">The function to call before the original</div></li><li><code>scope</code> : Object<div class="sub-desc">(optional) The scope (<code><b>this</b></code> reference) in which the passed function is executed.
+<b>If omitted, defaults to the scope in which the original function is called or the browser window.</b></div></li></ul><strong>Returns:</strong><ul><li><code>Function</code><div class="sub-desc">The new function</div></li></ul></div></div></div></td><td class="msource">Functions</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Functions-createSequence"></a><b><a href="source/Function.html#method-Ext.util.Functions-createSequence">createSequence</a></b>(&nbsp;<code>Function&nbsp;origFn</code>,&nbsp;<code>Function&nbsp;newFn</code>,&nbsp;<span title="Optional" class="optional">[<code>Object&nbsp;scope</code>]</span>&nbsp;)
+    :
+                                        Function<div class="mdesc"><div class="short">Create a combined function call sequence of the original function + the passed function.
+The resulting function retur...</div><div class="long">Create a combined function call sequence of the original function + the passed function.
+The resulting function returns the results of the original function.
+The passed fcn is called with the parameters of the original function. Example usage:
+var sayHi = function(name){
+    alert('Hi, ' + name);
+}
+
+sayHi('Fred'); // alerts "Hi, Fred"
+
+var sayGoodbye = Ext.createSequence(sayHi, function(name){
+    alert('Bye, ' + name);
+});
+
+sayGoodbye('Fred'); // both alerts show<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>origFn</code> : Function<div class="sub-desc">The original function.</div></li><li><code>newFn</code> : Function<div class="sub-desc">The function to sequence</div></li><li><code>scope</code> : Object<div class="sub-desc">(optional) The scope (this reference) in which the passed function is executed.
+If omitted, defaults to the scope in which the original function is called or the browser window.</div></li></ul><strong>Returns:</strong><ul><li><code>Function</code><div class="sub-desc">The new function</div></li></ul></div></div></div></td><td class="msource">Functions</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Functions-defer"></a><b><a href="source/Function.html#method-Ext.util.Functions-defer">defer</a></b>(&nbsp;<code>Function&nbsp;fn</code>,&nbsp;<code>Number&nbsp;millis</code>,&nbsp;<span title="Optional" class="optional">[<code>Object&nbsp;scope</code>]</span>,&nbsp;<span title="Optional" class="optional">[<code>Array&nbsp;args</code>]</span>,&nbsp;<span title="Optional" class="optional">[<code>Boolean/Number&nbsp;appendArgs</code>]</span>&nbsp;)
+    :
+                                        Number<div class="mdesc"><div class="short">Calls this function after the number of millseconds specified, optionally in a specific scope. Example usage:
+var say...</div><div class="long">Calls this function after the number of millseconds specified, optionally in a specific scope. Example usage:
+<pre><code><b>var</b> sayHi = <b>function</b>(name){
+    alert(<em>'Hi, '</em> + name);
+}
+
+<i>// executes immediately:</i>
+sayHi(<em>'Fred'</em>);
+
+<i>// executes after 2 seconds:</i>
+Ext.defer(sayHi, 2000, this, [<em>'Fred'</em>]);
+
+<i>// this syntax is sometimes useful <b>for</b> deferring</i>
+<i>// execution of an anonymous <b>function</b>:</i>
+Ext.defer(<b>function</b>(){
+    alert(<em>'Anonymous'</em>);
+}, 100);</code></pre><div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>fn</code> : Function<div class="sub-desc">The function to defer.</div></li><li><code>millis</code> : Number<div class="sub-desc">The number of milliseconds for the setTimeout call (if less than or equal to 0 the function is executed immediately)</div></li><li><code>scope</code> : Object<div class="sub-desc">(optional) The scope (<code><b>this</b></code> reference) in which the function is executed.
+<b>If omitted, defaults to the browser window.</b></div></li><li><code>args</code> : Array<div class="sub-desc">(optional) Overrides arguments for the call. (Defaults to the arguments passed by the caller)</div></li><li><code>appendArgs</code> : Boolean/Number<div class="sub-desc">(optional) if True args are appended to call args instead of overriding,
+if a number the args are inserted at the specified position</div></li></ul><strong>Returns:</strong><ul><li><code>Number</code><div class="sub-desc">The timeout id that can be used with clearTimeout</div></li></ul></div></div></div></td><td class="msource">Functions</td></tr></tbody></table><a id="Ext.util.Functions-events"></a><h2>Public Events</h2><div class="no-members">This class has no public events.</div></div>

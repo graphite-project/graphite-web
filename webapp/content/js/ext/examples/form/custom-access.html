@@ -1,0 +1,101 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+    <title>Custom Fields</title>
+    <link rel="stylesheet" type="text/css" href="../../resources/css/ext-all.css" />
+    <link rel="stylesheet" type="text/css" href="../../resources/css/xtheme-access.css" />
+
+    <!-- GC -->
+ 	<!-- LIBS -->
+ 	<script type="text/javascript" src="../../adapter/ext/ext-base.js"></script>
+ 	<!-- ENDLIBS -->
+
+    <script type="text/javascript" src="../../ext-all.js"></script>
+
+    <script type="text/javascript" src="../ux/SearchField.js"></script>
+    <script type="text/javascript" src="custom-access.js"></script>
+    <link rel="stylesheet" type="text/css" href="combos.css" />
+
+    <style type="text/css">
+    
+        body > p {
+            color: black;
+        }
+        
+        .search-item {
+            border-color: none #1A1A1C #111111 none;
+            border-style: none solid solid none;
+            border-width: 0 0 1px 0;
+            color: #fff;
+            font: normal 14px tahoma, arial, helvetica, sans-serif;
+        }
+        
+        .search-item {
+
+        }
+
+        .search-item h3 a {
+            color: #fff;
+            font: bold 15px tahoma, arial, helvetica, sans-serif;
+            /* text-decoration:none; */
+        }
+        
+        .search-item h3 a:hover {
+            color: #ddd;
+        }
+        
+        .search-item h3 span {
+            color: #fff;
+            margin: 0 0 5px 15px;
+            width: 110px;
+        }
+        
+        .x-small-editor .x-form-text {
+            height: 26px;
+        }
+        .x-small-editor .x-form-field-wrap .x-form-trigger {
+            height: 24px;
+        }
+        
+        .x-toolbar td, .x-toolbar span, .x-toolbar input, .x-toolbar div, .x-toolbar select, .x-toolbar label {
+            font-size: 15px;
+        }
+        
+        #search-results a:hover {
+            text-decoration:underline;
+        }
+        #search-results .search-item {
+            padding:5px;
+        }
+        #search-results p {
+            margin:3px !important;
+        }
+        #search-results {
+            border-bottom:1px solid #ddd;
+            margin: 0 1px;
+            height:600px;
+            overflow:auto;
+        }
+        #search-results .x-toolbar {
+            border:0 none;
+        }
+    </style>
+
+    <!-- Common Styles for the examples -->
+    <link rel="stylesheet" type="text/css" href="../shared/examples.css" />
+</head>
+<body>
+<script type="text/javascript" src="../shared/examples.js"></script><!-- EXAMPLES -->
+<p>
+    <b>Custom Form Fields</b><br />
+    Ext provides many types of form fields to build interactive and rich forms. However, it also
+    provides a complete framework for building new types of fields quickly. The search field below
+    is an example.
+</p>
+<p>The js is not minified so it is readable. See <a href="custom.js">custom.js</a>.</p>
+
+<div style="width:600px;" id="search-panel">
+</div>
+
+</body>
+</html>

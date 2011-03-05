@@ -1,0 +1,49 @@
+<div class="body-wrap" xmlns:ext="http://www.extjs.com"><div class="top-tools"><a class="inner-link" href="#Ext.util.TaskRunner-props"><img src="resources/images/default/s.gif" class="item-icon icon-prop">Properties</a>&#13;<a class="inner-link" href="#Ext.util.TaskRunner-methods"><img src="resources/images/default/s.gif" class="item-icon icon-method">Methods</a>&#13;<a class="inner-link" href="#Ext.util.TaskRunner-events"><img src="resources/images/default/s.gif" class="item-icon icon-event">Events</a>&#13;<a class="bookmark" href="../docs/?class=Ext.util.TaskRunner"><img src="resources/images/default/s.gif" class="item-icon icon-fav">Direct Link</a>&#13;</div><h1>Class <a href="source/TaskMgr.html#cls-Ext.util.TaskRunner">Ext.util.TaskRunner</a></h1><table cellspacing="0"><tr><td class="label">Package:</td><td class="hd-info">Ext.util</td></tr><tr><td class="label">Defined In:</td><td class="hd-info"><a href="source/TaskMgr.html#cls-Ext.util.TaskRunner">TaskMgr.js</a></td></tr><tr><td class="label">Class:</td><td class="hd-info"><a href="source/TaskMgr.html#cls-Ext.util.TaskRunner">TaskRunner</a></td></tr><tr><td class="label">Subclasses:</td><td class="hd-info"><a href="output/Ext.TaskMgr.html" ext:cls="Ext.TaskMgr">TaskMgr</a></td></tr><tr><td class="label">Extends:</td><td class="hd-info">Object</td></tr></table><div class="description">Provides the ability to execute one or more arbitrary tasks in a multithreaded
+manner.  Generally, you can use the singleton <a href="output/Ext.TaskMgr.html" ext:cls="Ext.TaskMgr">Ext.TaskMgr</a> instead, but
+if needed, you can create separate instances of TaskRunner.  Any number of
+separate tasks can be started at any time and will run independently of each
+other. Example usage:
+<pre><code><i>// Start a simple clock task that updates a div once per second</i>
+<b>var</b> updateClock = <b>function</b>(){
+    Ext.fly(<em>'clock'</em>).update(<b>new</b> Date().format(<em>'g:i:s A'</em>));
+} 
+<b>var</b> task = {
+    run: updateClock,
+    interval: 1000 <i>//1 second</i>
+}
+<b>var</b> runner = <b>new</b> Ext.util.TaskRunner();
+runner.start(task);
+
+<i>// equivalent using TaskMgr</i>
+Ext.TaskMgr.start({
+    run: updateClock,
+    interval: 1000
+});</code></pre>
+<p>See the <a href="output/Ext.util.TaskRunner.html#Ext.util.TaskRunner-start" ext:member="start" ext:cls="Ext.util.TaskRunner">start</a> method for details about how to configure a task object.</p>
+Also see <a href="output/Ext.util.DelayedTask.html" ext:cls="Ext.util.DelayedTask">Ext.util.DelayedTask</a>.</div><div class="hr"></div><a id="Ext.util.TaskRunner-props"></a><h2>Public Properties</h2><div class="no-members">This class has no public properties.</div><a id="Ext.util.TaskRunner-methods"></a><h2>Public Methods</h2><table cellspacing="0" class="member-table"><tbody><tr><th colspan="2" class="sig-header">Method</th><th class="msource-header">Defined By</th></tr><tr class="method-row expandable"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.TaskRunner-TaskRunner"></a><b><a href="source/TaskMgr.html#cls-Ext.util.TaskRunner">TaskRunner</a></b>(&nbsp;<span title="Optional" class="optional">[<code>Number&nbsp;interval</code>]</span>&nbsp;)
+    <div class="mdesc"><div class="short"></div><div class="long"><div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>interval</code> : Number<div class="sub-desc">(optional) The minimum precision in milliseconds supported by this TaskRunner instance
+(defaults to 10)</div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource">TaskRunner</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.TaskRunner-start"></a><b><a href="source/TaskMgr.html#method-Ext.util.TaskRunner-start">start</a></b>(&nbsp;<code>Object&nbsp;task</code>&nbsp;)
+    :
+                                        Object<div class="mdesc"><div class="short">Starts a new task.</div><div class="long">Starts a new task.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>task</code> : Object<div class="sub-desc"><p>A config object that supports the following properties:<ul>
+<li><code>run</code> : Function<div class="sub-desc"><p>The function to execute each time the task is invoked. The
+function will be called at each interval and passed the <code>args</code> argument if specified, and the
+current invocation count if not.</p>
+<p>If a particular scope (<code>this</code> reference) is required, be sure to specify it using the <code>scope</code> argument.</p>
+<p>Return <code>false</code> from this function to terminate the task.</p></div></li>
+<li><code>interval</code> : Number<div class="sub-desc">The frequency in milliseconds with which the task
+should be invoked.</div></li>
+<li><code>args</code> : Array<div class="sub-desc">(optional) An array of arguments to be passed to the function
+specified by <code>run</code>. If not specified, the current invocation count is passed.</div></li>
+<li><code>scope</code> : Object<div class="sub-desc">(optional) The scope (<tt>this</tt> reference) in which to execute the
+<code>run</code> function. Defaults to the task config object.</div></li>
+<li><code>duration</code> : Number<div class="sub-desc">(optional) The length of time in milliseconds to invoke
+the task before stopping automatically (defaults to indefinite).</div></li>
+<li><code>repeat</code> : Number<div class="sub-desc">(optional) The number of times to invoke the task before
+stopping automatically (defaults to indefinite).</div></li>
+</ul></p>
+<p>Before each invocation, Ext injects the property <code>taskRunCount</code> into the task object so
+that calculations based on the repeat count can be performed.</p></div></li></ul><strong>Returns:</strong><ul><li><code>Object</code><div class="sub-desc">The task</div></li></ul></div></div></div></td><td class="msource">TaskRunner</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.TaskRunner-stop"></a><b><a href="source/TaskMgr.html#method-Ext.util.TaskRunner-stop">stop</a></b>(&nbsp;<code>Object&nbsp;task</code>&nbsp;)
+    :
+                                        Object<div class="mdesc"><div class="short">Stops an existing running task.</div><div class="long">Stops an existing running task.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>task</code> : Object<div class="sub-desc">The task to stop</div></li></ul><strong>Returns:</strong><ul><li><code>Object</code><div class="sub-desc">The task</div></li></ul></div></div></div></td><td class="msource">TaskRunner</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.TaskRunner-stopAll"></a><b><a href="source/TaskMgr.html#method-Ext.util.TaskRunner-stopAll">stopAll</a></b>()
+    :
+                                        void<div class="mdesc"><div class="short">Stops all tasks that are currently running.</div><div class="long">Stops all tasks that are currently running.<div class="mdetail-params"><strong>Parameters:</strong><ul><li>None.</li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource">TaskRunner</td></tr></tbody></table><a id="Ext.util.TaskRunner-events"></a><h2>Public Events</h2><div class="no-members">This class has no public events.</div></div>

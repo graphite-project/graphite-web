@@ -1,0 +1,71 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<title>Grid with DataWriter Example</title>
+
+<link rel="stylesheet" type="text/css" href="../../resources/css/ext-all.css" />
+
+    <!-- GC -->
+     <!-- LIBS -->
+     <script type="text/javascript" src="../../adapter/ext/ext-base.js"></script>
+     <!-- ENDLIBS -->
+
+    <script type="text/javascript" src="../../ext-all.js"></script>
+    <script type="text/javascript" src="../shared/extjs/App.js"></script>
+    <script type="text/javascript" src="writer.js"></script>
+    <script type="text/javascript" src="UserForm.js"></script>
+    <script type="text/javascript" src="UserGrid.js"></script>
+
+    <!-- Common Styles for the examples -->
+    <link rel="stylesheet" type="text/css" href="../shared/examples.css" />
+    <link rel="stylesheet" type="text/css" href="../shared/icons/silk.css" />
+</head>
+<body>
+<script type="text/javascript" src="../shared/examples.js"></script><!-- EXAMPLES -->
+<h1>Ext.data.DataWriter Example</h1>
+<p>This example shows how to implement a Writer for your Store.  A Writer-enabled Store frees you from having to manually compose Ajax requests
+to perform CRUD actions on a Store.</p>
+<p>Note that the js is not minified so it is readable. See <a href="writer.js">writer.js</a>, <a href="UserForm.js">UserForm.js</a> and
+<a href="UserGrid.js">UserGrid.js</a>.</p>
+
+<p>The HttpProxy plugged into the store in this example uses the new <em>api</em> configuration instead of an <em>url</em>.
+A simple MVC-like php backend has been created for this example which simulates a database by storing records in $_SESSION.  See the file /remote/app/controllers/users.php.  You may have to configure
+your web-server to allow scripts to be executed in the /examples directory.</p>
+
+<code><pre>
+var proxy = new Ext.data.HttpProxy({
+    api: {
+        read    : 'app.php/users/read',
+        create  : 'app.php/users/create',
+        update  : 'app.php/users/update',
+        destroy : 'app.php/users/destroy'
+    }
+});
+</pre></code>
+
+<p>Take note of the requests being generated in Firebug as you interact with the Grid and Form.</p>
+
+<p>An <b>Error has been simulated</b> on the server-side:  Attempting to update a record having ODD-numbered id will generate this errror.
+Responses from the update action will have successProperty === false along with a message.  This error can be handled by
+listening to the <b>"exception"</b> event upon your Store.</p>
+
+<code><pre>
+exception : function(proxy, type, action, options, res, arg) {
+    if (type === 'remote') {
+        Ext.Msg.show({
+            title: 'REMOTE EXCEPTION',
+            msg: res.message,
+            icon: Ext.MessageBox.ERROR
+        });
+    }
+}
+</pre></code>
+<p><b>Note: This new "exception" event supercedes the old loadexception event which is now deprecated.</b></p>
+
+<div class="container" style="width:500px">
+    <div id="user-form"></div>
+    <div id="user-grid"></div>
+</div>
+
+</body>
+</html>

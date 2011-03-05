@@ -1,0 +1,31 @@
+<div class="body-wrap" xmlns:ext="http://www.extjs.com"><div class="top-tools"><a class="inner-link" href="#Ext.Error-props"><img src="resources/images/default/s.gif" class="item-icon icon-prop">Properties</a>&#13;<a class="inner-link" href="#Ext.Error-methods"><img src="resources/images/default/s.gif" class="item-icon icon-method">Methods</a>&#13;<a class="inner-link" href="#Ext.Error-events"><img src="resources/images/default/s.gif" class="item-icon icon-event">Events</a>&#13;<a class="bookmark" href="../docs/?class=Ext.Error"><img src="resources/images/default/s.gif" class="item-icon icon-fav">Direct Link</a>&#13;</div><h1>Class <a href="source/Error.html#cls-Ext.Error">Ext.Error</a></h1><table cellspacing="0"><tr><td class="label">Package:</td><td class="hd-info">Ext</td></tr><tr><td class="label">Defined In:</td><td class="hd-info"><a href="source/Error.html#cls-Ext.Error">Error.js</a></td></tr><tr><td class="label">Class:</td><td class="hd-info"><a href="source/Error.html#cls-Ext.Error">Error</a></td></tr><tr><td class="label">Subclasses:</td><td class="hd-info"><a href="output/Ext.data.Api.Error.html" ext:cls="Ext.data.Api.Error">Api.Error</a>,&#13;<a href="output/Ext.data.DataProxy.Error.html" ext:cls="Ext.data.DataProxy.Error">DataProxy.Error</a>,&#13;<a href="output/Ext.data.DataReader.Error.html" ext:cls="Ext.data.DataReader.Error">DataReader.Error</a>,&#13;<a href="output/Ext.data.Store.Error.html" ext:cls="Ext.data.Store.Error">Store.Error</a></td></tr><tr><td class="label">Extends:</td><td class="hd-info">Object</td></tr></table><div class="description"><p>A base error class. Future implementations are intended to provide more
+robust error handling throughout the framework (<b>in the debug build only</b>)
+to check for common errors and problems. The messages issued by this class
+will aid error checking. Error checks will be automatically removed in the
+production build so that performance is not negatively impacted.</p>
+<p>Some sample messages currently implemented:</p><pre>
+"DataProxy attempted to execute an API-action but found an undefined
+url / function. Please review your Proxy url/api-configuration."
+</pre><pre>
+"Could not locate your "root" property in your server response.
+Please review your JsonReader config to ensure the config-property
+"root" matches the property your server-response.  See the JsonReader
+docs for additional assistance."
+</pre>
+<p>An example of the code used for generating error messages:</p><pre><code>try {
+    generateError({
+        foo: <em>'bar'</em>
+    });
+}
+catch (e) {
+    console.error(e);
+}
+<b>function</b> generateError(data) {
+    throw <b>new</b> Ext.Error(<em>'foo-error'</em>, data);
+}</code></pre></div><div class="hr"></div><a id="Ext.Error-props"></a><h2>Public Properties</h2><div class="no-members">This class has no public properties.</div><a id="Ext.Error-methods"></a><h2>Public Methods</h2><table cellspacing="0" class="member-table"><tbody><tr><th colspan="2" class="sig-header">Method</th><th class="msource-header">Defined By</th></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Error-getMessage"></a><b><a href="source/Error.html#method-Ext.Error-getMessage">getMessage</a></b>()
+    :
+                                        String<div class="mdesc"><div class="short">getMessage</div><div class="long">getMessage<div class="mdetail-params"><strong>Parameters:</strong><ul><li>None.</li></ul><strong>Returns:</strong><ul><li><code>String</code><div class="sub-desc"></div></li></ul></div></div></div></td><td class="msource">Error</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Error-getName"></a><b><a href="source/Error.html#method-Ext.Error-getName">getName</a></b>()
+    :
+                                        String<div class="mdesc"><div class="short">getName</div><div class="long">getName<div class="mdetail-params"><strong>Parameters:</strong><ul><li>None.</li></ul><strong>Returns:</strong><ul><li><code>String</code><div class="sub-desc"></div></li></ul></div></div></div></td><td class="msource">Error</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Error-toJson"></a><b><a href="source/Error.html#method-Ext.Error-toJson">toJson</a></b>()
+    :
+                                        String<div class="mdesc"><div class="short">toJson</div><div class="long">toJson<div class="mdetail-params"><strong>Parameters:</strong><ul><li>None.</li></ul><strong>Returns:</strong><ul><li><code>String</code><div class="sub-desc"></div></li></ul></div></div></div></td><td class="msource">Error</td></tr></tbody></table><a id="Ext.Error-events"></a><h2>Public Events</h2><div class="no-members">This class has no public events.</div></div>

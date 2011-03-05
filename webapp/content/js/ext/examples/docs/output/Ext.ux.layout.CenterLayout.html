@@ -1,0 +1,31 @@
+<div class="body-wrap" xmlns:ext="http://www.extjs.com"><div class="top-tools"><a class="inner-link" href="#Ext.ux.layout.CenterLayout-props"><img src="resources/images/default/s.gif" class="item-icon icon-prop">Properties</a>&#13;<a class="inner-link" href="#Ext.ux.layout.CenterLayout-methods"><img src="resources/images/default/s.gif" class="item-icon icon-method">Methods</a>&#13;<a class="inner-link" href="#Ext.ux.layout.CenterLayout-events"><img src="resources/images/default/s.gif" class="item-icon icon-event">Events</a>&#13;<a class="bookmark" href="../docs/?class=Ext.ux.layout.CenterLayout"><img src="resources/images/default/s.gif" class="item-icon icon-fav">Direct Link</a>&#13;</div><h1>Class <a href="source/ux-all-debug.html#cls-Ext.ux.layout.CenterLayout">Ext.ux.layout.CenterLayout</a></h1><table cellspacing="0"><tr><td class="label">Package:</td><td class="hd-info">Ext.ux.layout</td></tr><tr><td class="label">Defined In:</td><td class="hd-info"><a href="source/ux-all-debug.html#cls-Ext.ux.layout.CenterLayout">ux-all-debug.js</a></td></tr><tr><td class="label">Class:</td><td class="hd-info"><a href="source/ux-all-debug.html#cls-Ext.ux.layout.CenterLayout">CenterLayout</a></td></tr><tr><td class="label">Extends:</td><td class="hd-info">Object</td></tr></table><div class="description"><p>This is a very simple layout style used to center contents within a container.  This layout works within
+nested containers and can also be used as expected as a Viewport layout to center the page layout.</p>
+<p>As a subclass of FitLayout, CenterLayout expects to have a single child panel of the container that uses
+the layout.  The layout does not require any config options, although the child panel contained within the
+layout must provide a fixed or percentage width.  The child panel's height will fit to the container by
+default, but you can specify <tt>autoHeight:true</tt> to allow it to autosize based on its content height.
+Example usage:</p>
+<pre><code><i>// The content panel is centered <b>in</b> the container</i>
+<b>var</b> p = <b>new</b> Ext.Panel({
+    title: <em>'Center Layout'</em>,
+    layout: <em>'ux.center'</em>,
+    items: [{
+        title: <em>'Centered Content'</em>,
+        width: <em>'75%'</em>,
+        html: <em>'Some content'</em>
+    }]
+});
+
+<i>// If you leave the title blank and specify no border</i>
+<i>// you<em>'ll create a non-visual, structural panel just</i>
+<i>// <b>for</b> centering the contents <b>in</b> the main container.</i>
+<b>var</b> p = <b>new</b> Ext.Panel({
+    layout: '</em>ux.center<em>',
+    border: false,
+    items: [{
+        title: '</em>Centered Content<em>',
+        width: 300,
+        autoHeight: true,
+        html: '</em>Some content<em>'
+    }]
+});</code></pre></div><div class="hr"></div><a id="Ext.ux.layout.CenterLayout-props"></a><h2>Public Properties</h2><div class="no-members">This class has no public properties.</div><a id="Ext.ux.layout.CenterLayout-methods"></a><h2>Public Methods</h2><div class="no-members">This class has no public methods.</div><a id="Ext.ux.layout.CenterLayout-events"></a><h2>Public Events</h2><div class="no-members">This class has no public events.</div></div>

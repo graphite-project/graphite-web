@@ -1,0 +1,73 @@
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <title>The source code</title>
+    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+</head>
+<body  onload="prettyPrint();">
+    <pre class="prettyprint lang-js">/*!
+ * Ext JS Library 3.3.1
+ * Copyright(c) 2006-2010 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
+ */
+// private
+// This is a support class used internally by the Grid components
+Ext.grid.SplitDragZone = Ext.extend(Ext.dd.DDProxy, {
+    fly: Ext.Element.fly,
+    
+    constructor : function(grid, hd, hd2){
+        this.grid = grid;
+        this.view = grid.getView();
+        this.proxy = this.view.resizeProxy;
+        Ext.grid.SplitDragZone.superclass.constructor.call(this, hd,
+            "gridSplitters" + this.grid.getGridEl().id, {
+            dragElId : Ext.id(this.proxy.dom), resizeFrame:false
+        });
+        this.setHandleElId(Ext.id(hd));
+        this.setOuterHandleElId(Ext.id(hd2));
+        this.scroll = false;
+    },
+
+    b4StartDrag : function(x, y){
+        this.view.headersDisabled = true;
+        this.proxy.setHeight(this.view.mainWrap.getHeight());
+        var w = this.cm.getColumnWidth(this.cellIndex);
+        var minw = Math.max(w-this.grid.minColumnWidth, 0);
+        this.resetConstraints();
+        this.setXConstraint(minw, 1000);
+        this.setYConstraint(0, 0);
+        this.minX = x - minw;
+        this.maxX = x + 1000;
+        this.startPos = x;
+        Ext.dd.DDProxy.prototype.b4StartDrag.call(this, x, y);
+    },
+
+
+    handleMouseDown : function(e){
+        var ev = Ext.EventObject.setEvent(e);
+        var t = this.fly(ev.getTarget());
+        if(t.hasClass("x-grid-split")){
+            this.cellIndex = this.view.getCellIndex(t.dom);
+            this.split = t.dom;
+            this.cm = this.grid.colModel;
+            if(this.cm.isResizable(this.cellIndex) && !this.cm.isFixed(this.cellIndex)){
+                Ext.grid.SplitDragZone.superclass.handleMouseDown.apply(this, arguments);
+            }
+        }
+    },
+
+    endDrag : function(e){
+        this.view.headersDisabled = false;
+        var endX = Math.max(this.minX, Ext.lib.Event.getPageX(e));
+        var diff = endX - this.startPos;
+        this.view.onColumnSplitterMoved(this.cellIndex, this.cm.getColumnWidth(this.cellIndex)+diff);
+    },
+
+    autoOffset : function(){
+        this.setDelta(0,0);
+    }
+});</pre>    
+</body>
+</html>

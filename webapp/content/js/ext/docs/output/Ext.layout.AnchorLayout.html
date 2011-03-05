@@ -1,0 +1,89 @@
+<div class="body-wrap" xmlns:ext="http://www.extjs.com"><div class="top-tools"><a class="inner-link" href="#Ext.layout.AnchorLayout-props"><img src="resources/images/default/s.gif" class="item-icon icon-prop">Properties</a>&#13;<a class="inner-link" href="#Ext.layout.AnchorLayout-methods"><img src="resources/images/default/s.gif" class="item-icon icon-method">Methods</a>&#13;<a class="inner-link" href="#Ext.layout.AnchorLayout-events"><img src="resources/images/default/s.gif" class="item-icon icon-event">Events</a>&#13;<a class="inner-link" href="#Ext.layout.AnchorLayout-configs"><img src="resources/images/default/s.gif" class="item-icon icon-config">Config Options</a>&#13;<a class="bookmark" href="../docs/?class=Ext.layout.AnchorLayout"><img src="resources/images/default/s.gif" class="item-icon icon-fav">Direct Link</a>&#13;</div><div class="inheritance res-block"><pre class="res-block-inner"><a href="output/Ext.layout.ContainerLayout.html" ext:member="" ext:cls="Ext.layout.ContainerLayout">ContainerLayout</a>
+  <img src="resources/elbow-end.gif">AnchorLayout</pre></div><h1>Class <a href="source/AnchorLayout.html#cls-Ext.layout.AnchorLayout">Ext.layout.AnchorLayout</a></h1><table cellspacing="0"><tr><td class="label">Package:</td><td class="hd-info">Ext.layout</td></tr><tr><td class="label">Defined In:</td><td class="hd-info"><a href="source/AnchorLayout.html#cls-Ext.layout.AnchorLayout">AnchorLayout.js</a></td></tr><tr><td class="label">Class:</td><td class="hd-info"><a href="source/AnchorLayout.html#cls-Ext.layout.AnchorLayout">AnchorLayout</a></td></tr><tr><td class="label">Subclasses:</td><td class="hd-info"><a href="output/Ext.layout.AbsoluteLayout.html" ext:cls="Ext.layout.AbsoluteLayout">AbsoluteLayout</a>,&#13;<a href="output/Ext.layout.FormLayout.html" ext:cls="Ext.layout.FormLayout">FormLayout</a></td></tr><tr><td class="label">Extends:</td><td class="hd-info"><a href="output/Ext.layout.ContainerLayout.html" ext:cls="Ext.layout.ContainerLayout" ext:member="">ContainerLayout</a></td></tr></table><div class="description"><p>This is a layout that enables anchoring of contained elements relative to the container's dimensions.
+If the container is resized, all anchored items are automatically rerendered according to their
+<b><tt><a href="output/Ext.layout.AnchorLayout.html#Ext.layout.AnchorLayout-anchor" ext:member="anchor" ext:cls="Ext.layout.AnchorLayout">anchor</a></tt></b> rules.</p>
+<p>This class is intended to be extended or created via the layout:'anchor' <a href="output/Ext.Container.html#Ext.Container-layout" ext:member="layout" ext:cls="Ext.Container">Ext.Container.layout</a>
+config, and should generally not need to be created directly via the new keyword.</p>
+<p>AnchorLayout does not have any direct config options (other than inherited ones). By default,
+AnchorLayout will calculate anchor measurements based on the size of the container itself. However, the
+container using the AnchorLayout can supply an anchoring-specific config property of <b>anchorSize</b>.
+If anchorSize is specifed, the layout will use it as a virtual container for the purposes of calculating
+anchor measurements based on it instead, allowing the container to be sized independently of the anchoring
+logic if necessary.  For example:</p>
+<pre><code><b>var</b> viewport = <b>new</b> Ext.Viewport({
+    layout:<em>'anchor'</em>,
+    anchorSize: {width:800, height:600},
+    items:[{
+        title:<em>'Item 1'</em>,
+        html:<em>'Content 1'</em>,
+        width:800,
+        anchor:<em>'right 20%'</em>
+    },{
+        title:<em>'Item 2'</em>,
+        html:<em>'Content 2'</em>,
+        width:300,
+        anchor:<em>'50% 30%'</em>
+    },{
+        title:<em>'Item 3'</em>,
+        html:<em>'Content 3'</em>,
+        width:600,
+        anchor:<em>'-100 50%'</em>
+    }]
+});</code></pre></div><div class="hr"></div><a id="Ext.layout.AnchorLayout-configs"></a><h2>Config Options</h2><table cellspacing="0" class="member-table"><tbody><tr><th colspan="2" class="sig-header">Config Options</th><th class="msource-header">Defined By</th></tr><tr class="config-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.layout.AnchorLayout-anchor"></a><b><a href="source/AnchorLayout.html#cfg-Ext.layout.AnchorLayout-anchor">anchor</a></b> : String<div class="mdesc"><div class="short">This configuation option is to be applied to child items of a container managed by
+this layout (ie. configured with l...</div><div class="long"><p>This configuation option is to be applied to <b>child <tt>items</tt></b> of a container managed by
+this layout (ie. configured with <tt>layout:'anchor'</tt>).</p><br/>
+<p>This value is what tells the layout how an item should be anchored to the container. <tt>items</tt>
+added to an AnchorLayout accept an anchoring-specific config property of <b>anchor</b> which is a string
+containing two values: the horizontal anchor value and the vertical anchor value (for example, '100% 50%').
+The following types of anchor values are supported:<div class="mdetail-params"><ul>
+<li><b>Percentage</b> : Any value between 1 and 100, expressed as a percentage.<div class="sub-desc">
+The first anchor is the percentage width that the item should take up within the container, and the
+second is the percentage height.  For example:<pre><code><i>// two values specified</i>
+anchor: <em>'100% 50%'</em> <i>// render item complete width of the container and</i>
+                   <i>// 1/2 height of the container</i>
+<i>// one value specified</i>
+anchor: <em>'100%'</em>     <i>// the width value; the height will <b>default</b> to auto</i></code></pre></div></li>
+<li><b>Offsets</b> : Any positive or negative integer value.<div class="sub-desc">
+This is a raw adjustment where the first anchor is the offset from the right edge of the container,
+and the second is the offset from the bottom edge. For example:<pre><code><i>// two values specified</i>
+anchor: <em>'-50 -100'</em> <i>// render item the complete width of the container</i>
+                   <i>// minus 50 pixels and</i>
+                   <i>// the complete height minus 100 pixels.</i>
+<i>// one value specified</i>
+anchor: <em>'-50'</em>      <i>// anchor value is assumed to be the right offset value</i>
+                   <i>// bottom offset will <b>default</b> to 0</i></code></pre></div></li>
+<li><b>Sides</b> : Valid values are <tt>'right'</tt> (or <tt>'r'</tt>) and <tt>'bottom'</tt>
+(or <tt>'b'</tt>).<div class="sub-desc">
+Either the container must have a fixed size or an anchorSize config value defined at render time in
+order for these to have any effect.</div></li>
+<li><b>Mixed</b> : <div class="sub-desc">
+Anchor values can also be mixed as needed.  For example, to render the width offset from the container
+right edge by 50 pixels and 75% of the container's height use:
+<pre><code>anchor: <em>'-50 75%'</em></code></pre></div></li>
+</ul></div></div></div></td><td class="msource">AnchorLayout</td></tr><tr class="config-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.layout.AnchorLayout-defaultAnchor"></a><b><a href="source/AnchorLayout.html#cfg-Ext.layout.AnchorLayout-defaultAnchor">defaultAnchor</a></b> : String<div class="mdesc"><div class="short">default anchor for all child container items applied if no anchor or specific width is set on the child item.  Defaul...</div><div class="long">default anchor for all child container items applied if no anchor or specific width is set on the child item.  Defaults to '100%'.</div></div></td><td class="msource">AnchorLayout</td></tr><tr class="config-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.layout.ContainerLayout-extraCls"></a><b><a href="source/ContainerLayout.html#cfg-Ext.layout.ContainerLayout-extraCls">extraCls</a></b> : String<div class="mdesc"><div class="short">An optional extra CSS class that will be added to the container. This can be useful for adding
+customized styles to t...</div><div class="long"><p>An optional extra CSS class that will be added to the container. This can be useful for adding
+customized styles to the container or any of its children using standard CSS rules. See
+<a href="output/Ext.Component.html" ext:cls="Ext.Component">Ext.Component</a>.<a href="output/Ext.Component.html#Ext.Component-ctCls" ext:member="ctCls" ext:cls="Ext.Component">ctCls</a> also.</p>
+<p><b>Note</b>: <tt>extraCls</tt> defaults to <tt>''</tt> except for the following classes
+which assign a value by default:
+<div class="mdetail-params"><ul>
+<li><a href="output/Ext.layout.AbsoluteLayout.html" ext:cls="Ext.layout.AbsoluteLayout">Absolute Layout</a> : <tt>'x-abs-layout-item'</tt></li>
+<li><a href="output/Ext.layout.Box.html" ext:cls="Ext.layout.Box">Box Layout</a> : <tt>'x-box-item'</tt></li>
+<li><a href="output/Ext.layout.ColumnLayout.html" ext:cls="Ext.layout.ColumnLayout">Column Layout</a> : <tt>'x-column'</tt></li>
+</ul></div>
+To configure the above Classes with an extra CSS class append to the default.  For example,
+for ColumnLayout:<pre><code>extraCls: <em>'x-column custom-class'</em></code></pre>
+</p></div></div></td><td class="msource"><a href="output/Ext.layout.ContainerLayout.html#extraCls" ext:member="#extraCls" ext:cls="Ext.layout.ContainerLayout">ContainerLayout</a></td></tr><tr class="config-row  inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.layout.ContainerLayout-renderHidden"></a><b><a href="source/ContainerLayout.html#cfg-Ext.layout.ContainerLayout-renderHidden">renderHidden</a></b> : Boolean<div class="mdesc">True to hide each contained item on render (defaults to false).</div></td><td class="msource"><a href="output/Ext.layout.ContainerLayout.html#renderHidden" ext:member="#renderHidden" ext:cls="Ext.layout.ContainerLayout">ContainerLayout</a></td></tr></tbody></table><a id="Ext.layout.AnchorLayout-props"></a><h2>Public Properties</h2><table cellspacing="0" class="member-table"><tbody><tr><th colspan="2" class="sig-header">Property</th><th class="msource-header">Defined By</th></tr><tr class="property-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.layout.ContainerLayout-fieldTpl"></a><b><a href="source/ContainerLayout.html#prop-Ext.layout.ContainerLayout-fieldTpl">fieldTpl</a></b> : Ext.Template<div class="mdesc"><div class="short">The Ext.Template used by Field rendering layout classes (such as
+Ext.layout.FormLayout) to create the DOM structure o...</div><div class="long">The <a href="output/Ext.Template.html" ext:cls="Ext.Template">Ext.Template</a> used by Field rendering layout classes (such as
+<a href="output/Ext.layout.FormLayout.html" ext:cls="Ext.layout.FormLayout">Ext.layout.FormLayout</a>) to create the DOM structure of a fully wrapped,
+labeled and styled form Field. A default Template is supplied, but this may be
+overriden to create custom field structures. The template processes values returned from
+<a href="output/Ext.layout.FormLayout.html#Ext.layout.FormLayout-getTemplateArgs" ext:member="getTemplateArgs" ext:cls="Ext.layout.FormLayout">Ext.layout.FormLayout.getTemplateArgs</a>.</div></div></td><td class="msource"><a href="output/Ext.layout.ContainerLayout.html#fieldTpl" ext:member="#fieldTpl" ext:cls="Ext.layout.ContainerLayout">ContainerLayout</a></td></tr><tr class="property-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.layout.ContainerLayout-if"></a><b><a href="source/ContainerLayout.html#prop-Ext.layout.ContainerLayout-if">if</a></b> : Object<div class="mdesc"><div class="short">This monitorResize flag will be renamed soon as to avoid confusion
+with the Container version which hooks onWindowRes...</div><div class="long">This monitorResize flag will be renamed soon as to avoid confusion
+with the Container version which hooks onWindowResize to doLayout
+monitorResize flag in this context attaches the resize event between
+a container and it's layout</div></div></td><td class="msource"><a href="output/Ext.layout.ContainerLayout.html#if" ext:member="#if" ext:cls="Ext.layout.ContainerLayout">ContainerLayout</a></td></tr></tbody></table><a id="Ext.layout.AnchorLayout-methods"></a><h2>Public Methods</h2><table cellspacing="0" class="member-table"><tbody><tr><th colspan="2" class="sig-header">Method</th><th class="msource-header">Defined By</th></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.layout.ContainerLayout-parseMargins"></a><b><a href="source/ContainerLayout.html#method-Ext.layout.ContainerLayout-parseMargins">parseMargins</a></b>(&nbsp;<code>Number|String&nbsp;v</code>&nbsp;)
+    :
+                                        Object<div class="mdesc"><div class="short">Parses a number or string representing margin sizes into an object. Supports CSS-style margin declarations
+(e.g. 10, ...</div><div class="long">Parses a number or string representing margin sizes into an object. Supports CSS-style margin declarations
+(e.g. 10, "10", "10 10", "10 10 10" and "10 10 10 10" are all valid options and would return the same result)<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>v</code> : Number|String<div class="sub-desc">The encoded margins</div></li></ul><strong>Returns:</strong><ul><li><code>Object</code><div class="sub-desc">An object with margin sizes for top, right, bottom and left</div></li></ul></div></div></div></td><td class="msource"><a href="output/Ext.layout.ContainerLayout.html#parseMargins" ext:member="#parseMargins" ext:cls="Ext.layout.ContainerLayout">ContainerLayout</a></td></tr></tbody></table><a id="Ext.layout.AnchorLayout-events"></a><h2>Public Events</h2><div class="no-members">This class has no public events.</div></div>

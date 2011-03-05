@@ -1,0 +1,120 @@
+<div class="body-wrap" xmlns:ext="http://www.extjs.com"><div class="top-tools"><a class="inner-link" href="#Ext.DomHelper-props"><img src="resources/images/default/s.gif" class="item-icon icon-prop">Properties</a>&#13;<a class="inner-link" href="#Ext.DomHelper-methods"><img src="resources/images/default/s.gif" class="item-icon icon-method">Methods</a>&#13;<a class="inner-link" href="#Ext.DomHelper-events"><img src="resources/images/default/s.gif" class="item-icon icon-event">Events</a>&#13;<a class="bookmark" href="../docs/?class=Ext.DomHelper"><img src="resources/images/default/s.gif" class="item-icon icon-fav">Direct Link</a>&#13;</div><h1>Class <a href="source/DomHelper.html#cls-Ext.DomHelper">Ext.DomHelper</a></h1><table cellspacing="0"><tr><td class="label">Package:</td><td class="hd-info">Ext</td></tr><tr><td class="label">Defined In:</td><td class="hd-info"><a href="source/DomHelper.html#cls-Ext.DomHelper">DomHelper.js</a></td></tr><tr><td class="label">Class:</td><td class="hd-info"><a href="source/DomHelper.html#cls-Ext.DomHelper">DomHelper</a></td></tr><tr><td class="label">Extends:</td><td class="hd-info">Object</td></tr></table><div class="description"><p>The DomHelper class provides a layer of abstraction from DOM and transparently supports creating
+elements via DOM or using HTML fragments. It also has the ability to create HTML fragment templates
+from your DOM building code.</p>
+<p><b><u>DomHelper element specification object</u></b></p>
+<p>A specification object is used when creating elements. Attributes of this object
+are assumed to be element attributes, except for 4 special attributes:
+<div class="mdetail-params"><ul>
+<li><b><tt>tag</tt></b> : <div class="sub-desc">The tag name of the element</div></li>
+<li><b><tt>children</tt></b> : or <tt>cn</tt><div class="sub-desc">An array of the
+same kind of element definition objects to be created and appended. These can be nested
+as deep as you want.</div></li>
+<li><b><tt>cls</tt></b> : <div class="sub-desc">The class attribute of the element.
+This will end up being either the "class" attribute on a HTML fragment or className
+for a DOM node, depending on whether DomHelper is using fragments or DOM.</div></li>
+<li><b><tt>html</tt></b> : <div class="sub-desc">The innerHTML for the element</div></li>
+</ul></div></p>
+<p><b><u>Insertion methods</u></b></p>
+<p>Commonly used insertion methods:
+<div class="mdetail-params"><ul>
+<li><b><tt><a href="output/Ext.DomHelper.html#Ext.DomHelper-append" ext:member="append" ext:cls="Ext.DomHelper">append</a></tt></b> : <div class="sub-desc"></div></li>
+<li><b><tt><a href="output/Ext.DomHelper.html#Ext.DomHelper-insertBefore" ext:member="insertBefore" ext:cls="Ext.DomHelper">insertBefore</a></tt></b> : <div class="sub-desc"></div></li>
+<li><b><tt><a href="output/Ext.DomHelper.html#Ext.DomHelper-insertAfter" ext:member="insertAfter" ext:cls="Ext.DomHelper">insertAfter</a></tt></b> : <div class="sub-desc"></div></li>
+<li><b><tt><a href="output/Ext.DomHelper.html#Ext.DomHelper-overwrite" ext:member="overwrite" ext:cls="Ext.DomHelper">overwrite</a></tt></b> : <div class="sub-desc"></div></li>
+<li><b><tt><a href="output/Ext.DomHelper.html#Ext.DomHelper-createTemplate" ext:member="createTemplate" ext:cls="Ext.DomHelper">createTemplate</a></tt></b> : <div class="sub-desc"></div></li>
+<li><b><tt><a href="output/Ext.DomHelper.html#Ext.DomHelper-insertHtml" ext:member="insertHtml" ext:cls="Ext.DomHelper">insertHtml</a></tt></b> : <div class="sub-desc"></div></li>
+</ul></div></p>
+<p><b><u>Example</u></b></p>
+<p>This is an example, where an unordered list with 3 children items is appended to an existing
+element with id <tt>'my-div'</tt>:<br>
+ <pre><code><b>var</b> dh = Ext.DomHelper; <i>// create shorthand alias</i>
+<i>// specification object</i>
+<b>var</b> spec = {
+    id: <em>'my-ul'</em>,
+    tag: <em>'ul'</em>,
+    cls: <em>'my-list'</em>,
+    <i>// append children after creating</i>
+    children: [     <i>// may also specify <em>'cn'</em> instead of <em>'children'</em></i>
+        {tag: <em>'li'</em>, id: <em>'item0'</em>, html: <em>'List Item 0'</em>},
+        {tag: <em>'li'</em>, id: <em>'item1'</em>, html: <em>'List Item 1'</em>},
+        {tag: <em>'li'</em>, id: <em>'item2'</em>, html: <em>'List Item 2'</em>}
+    ]
+};
+<b>var</b> list = dh.append(
+    <em>'my-div'</em>, <i>// the context element <em>'my-div'</em> can either be the id or the actual node</i>
+    spec      <i>// the specification object</i>
+);</code></pre></p>
+<p>Element creation specification parameters in this class may also be passed as an Array of
+specification objects. This can be used to insert multiple sibling nodes into an existing
+container very efficiently. For example, to add more list items to the example above:<pre><code>dh.append(<em>'my-ul'</em>, [
+    {tag: <em>'li'</em>, id: <em>'item3'</em>, html: <em>'List Item 3'</em>},
+    {tag: <em>'li'</em>, id: <em>'item4'</em>, html: <em>'List Item 4'</em>}
+]);</code></pre></p>
+<p><b><u>Templating</u></b></p>
+<p>The real power is in the built-in templating. Instead of creating or appending any elements,
+<tt><a href="output/Ext.DomHelper.html#Ext.DomHelper-createTemplate" ext:member="createTemplate" ext:cls="Ext.DomHelper">createTemplate</a></tt> returns a Template object which can be used over and over to
+insert new elements. Revisiting the example above, we could utilize templating this time:
+<pre><code><i>// create the node</i>
+<b>var</b> list = dh.append(<em>'my-div'</em>, {tag: <em>'ul'</em>, cls: <em>'my-list'</em>});
+<i>// get template</i>
+<b>var</b> tpl = dh.createTemplate({tag: <em>'li'</em>, id: <em>'item{0}'</em>, html: <em>'List Item {0}'</em>});
+
+<b>for</b>(<b>var</b> i = 0; i < 5, i++){
+    tpl.append(list, [i]); <i>// use template to append to the actual node</i>
+}</code></pre></p>
+<p>An example using a template:<pre><code><b>var</b> html = <em>'<a id=<em>"{0}"</em> href=<em>"{1}"</em> class=<em>"nav"</em>>{2}</a>'</em>;
+
+<b>var</b> tpl = <b>new</b> Ext.DomHelper.createTemplate(html);
+tpl.append(<em>'blog-roll'</em>, [<em>'link1'</em>, <em>'http:<i>//www.jackslocum.com/'</em>, <em>"Jack&#39;s Site"</em>]);</i>
+tpl.append(<em>'blog-roll'</em>, [<em>'link2'</em>, <em>'http:<i>//www.dustindiaz.com/'</em>, <em>"Dustin&#39;s Site"</em>]);</i></code></pre></p>
+<p>The same example using named parameters:<pre><code><b>var</b> html = <em>'<a id=<em>"{id}"</em> href=<em>"{url}"</em> class=<em>"nav"</em>>{text}</a>'</em>;
+
+<b>var</b> tpl = <b>new</b> Ext.DomHelper.createTemplate(html);
+tpl.append(<em>'blog-roll'</em>, {
+    id: <em>'link1'</em>,
+    url: <em>'http:<i>//www.jackslocum.com/'</em>,</i>
+    text: <em>"Jack&#39;s Site"</em>
+});
+tpl.append(<em>'blog-roll'</em>, {
+    id: <em>'link2'</em>,
+    url: <em>'http:<i>//www.dustindiaz.com/'</em>,</i>
+    text: <em>"Dustin&#39;s Site"</em>
+});</code></pre></p>
+<p><b><u>Compiling Templates</u></b></p>
+<p>Templates are applied using regular expressions. The performance is great, but if
+you are adding a bunch of DOM elements using the same template, you can increase
+performance even further by <a href="output/Ext.Template.html#Ext.Template-compile" ext:member="compile" ext:cls="Ext.Template">"compiling"</a> the template.
+The way "<a href="output/Ext.Template.html#Ext.Template-compile" ext:member="compile" ext:cls="Ext.Template">compile()</a>" works is the template is parsed and
+broken up at the different variable points and a dynamic function is created and eval'ed.
+The generated function performs string concatenation of these parts and the passed
+variables instead of using regular expressions.
+<pre><code><b>var</b> html = <em>'<a id=<em>"{id}"</em> href=<em>"{url}"</em> class=<em>"nav"</em>>{text}</a>'</em>;
+
+<b>var</b> tpl = <b>new</b> Ext.DomHelper.createTemplate(html);
+tpl.compile();
+
+<i>//... use template like normal</i></code></pre></p>
+<p><b><u>Performance Boost</u></b></p>
+<p>DomHelper will transparently create HTML fragments when it can. Using HTML fragments instead
+of DOM can significantly boost performance.</p>
+<p>Element creation specification parameters may also be strings. If <a href="output/Ext.DomHelper.html#Ext.DomHelper-useDom" ext:member="useDom" ext:cls="Ext.DomHelper">useDom</a> is <tt>false</tt>,
+then the string is used as innerHTML. If <a href="output/Ext.DomHelper.html#Ext.DomHelper-useDom" ext:member="useDom" ext:cls="Ext.DomHelper">useDom</a> is <tt>true</tt>, a string specification
+results in the creation of a text node. Usage:</p>
+<pre><code>Ext.DomHelper.useDom = true; <i>// force it to use DOM; reduces performance</i></code></pre><br><br><i>This class is a singleton and cannot be created directly.</i></div><div class="hr"></div><a id="Ext.DomHelper-props"></a><h2>Public Properties</h2><table cellspacing="0" class="member-table"><tbody><tr><th colspan="2" class="sig-header">Property</th><th class="msource-header">Defined By</th></tr><tr class="property-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.DomHelper-lastIndex"></a><b><a href="source/DomHelper.html#prop-Ext.DomHelper-lastIndex">lastIndex</a></b> : Object<div class="mdesc"><div class="short">Since we're using the g flag on the regex, we need to set the lastIndex.
+This automatically happens on some implement...</div><div class="long">Since we're using the g flag on the regex, we need to set the lastIndex.
+This automatically happens on some implementations, but not others, see:
+http://stackoverflow.com/questions/2645273/javascript-regular-expression-literal-persists-between-function-calls
+http://blog.stevenlevithan.com/archives/fixing-javascript-regexp</div></div></td><td class="msource">DomHelper</td></tr><tr class="property-row  "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.DomHelper-useDom"></a><b><a href="source/DomHelper-more.html#prop-Ext.DomHelper-useDom">useDom</a></b> : Boolean<div class="mdesc">True to force the use of DOM instead of html fragments</div></td><td class="msource">DomHelper</td></tr></tbody></table><a id="Ext.DomHelper-methods"></a><h2>Public Methods</h2><table cellspacing="0" class="member-table"><tbody><tr><th colspan="2" class="sig-header">Method</th><th class="msource-header">Defined By</th></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.DomHelper-applyStyles"></a><b><a href="source/DomHelper.html#method-Ext.DomHelper-applyStyles">applyStyles</a></b>(&nbsp;<code>String/HTMLElement&nbsp;el</code>,&nbsp;<code>String/Object/Function&nbsp;styles</code>&nbsp;)
+    :
+                                        void<div class="mdesc"><div class="short">Applies a style specification to an element.</div><div class="long">Applies a style specification to an element.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>el</code> : String/HTMLElement<div class="sub-desc">The element to apply styles to</div></li><li><code>styles</code> : String/Object/Function<div class="sub-desc">A style specification string e.g. 'width:100px', or object in the form {width:'100px'}, or
+a function which returns such a specification.</div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource">DomHelper</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.DomHelper-createDom"></a><b><a href="source/DomHelper-more.html#method-Ext.DomHelper-createDom">createDom</a></b>(&nbsp;<code>Object/String&nbsp;o</code>&nbsp;)
+    :
+                                        HTMLElement<div class="mdesc"><div class="short">Creates new DOM element(s) without inserting them to the document.</div><div class="long">Creates new DOM element(s) without inserting them to the document.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>o</code> : Object/String<div class="sub-desc">The DOM object spec (and children) or raw HTML blob</div></li></ul><strong>Returns:</strong><ul><li><code>HTMLElement</code><div class="sub-desc">The new uninserted node</div></li></ul></div></div></div></td><td class="msource">DomHelper</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.DomHelper-createTemplate"></a><b><a href="source/DomHelper-more.html#method-Ext.DomHelper-createTemplate">createTemplate</a></b>(&nbsp;<code>Object&nbsp;o</code>&nbsp;)
+    :
+                                        Ext.Template<div class="mdesc"><div class="short">Creates a new Ext.Template from the DOM object spec.</div><div class="long">Creates a new Ext.Template from the DOM object spec.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>o</code> : Object<div class="sub-desc">The DOM object spec (and children)</div></li></ul><strong>Returns:</strong><ul><li><code>Ext.Template</code><div class="sub-desc">The new template</div></li></ul></div></div></div></td><td class="msource">DomHelper</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.DomHelper-insertHtml"></a><b><a href="source/DomHelper.html#method-Ext.DomHelper-insertHtml">insertHtml</a></b>(&nbsp;<code>String&nbsp;where</code>,&nbsp;<code>HTMLElement&nbsp;el</code>,&nbsp;<code>String&nbsp;html</code>&nbsp;)
+    :
+                                        HTMLElement<div class="mdesc"><div class="short">Inserts an HTML fragment into the DOM.</div><div class="long">Inserts an HTML fragment into the DOM.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>where</code> : String<div class="sub-desc">Where to insert the html in relation to el - beforeBegin, afterBegin, beforeEnd, afterEnd.</div></li><li><code>el</code> : HTMLElement<div class="sub-desc">The context element</div></li><li><code>html</code> : String<div class="sub-desc">The HTML fragment</div></li></ul><strong>Returns:</strong><ul><li><code>HTMLElement</code><div class="sub-desc">The new node</div></li></ul></div></div></div></td><td class="msource">DomHelper</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.DomHelper-markup"></a><b><a href="source/DomHelper.html#method-Ext.DomHelper-markup">markup</a></b>(&nbsp;<code>Object&nbsp;o</code>&nbsp;)
+    :
+                                        String<div class="mdesc"><div class="short">Returns the markup for the passed Element(s) config.</div><div class="long">Returns the markup for the passed Element(s) config.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>o</code> : Object<div class="sub-desc">The DOM object spec (and children)</div></li></ul><strong>Returns:</strong><ul><li><code>String</code><div class="sub-desc"></div></li></ul></div></div></div></td><td class="msource">DomHelper</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.DomHelper-overwrite"></a><b><a href="source/DomHelper.html#method-Ext.DomHelper-overwrite">overwrite</a></b>(&nbsp;<code>Mixed&nbsp;el</code>,&nbsp;<code>Object/String&nbsp;o</code>,&nbsp;<span title="Optional" class="optional">[<code>Boolean&nbsp;returnElement</code>]</span>&nbsp;)
+    :
+                                        HTMLElement/Ext.Element<div class="mdesc"><div class="short">Creates new DOM element(s) and overwrites the contents of el with them.</div><div class="long">Creates new DOM element(s) and overwrites the contents of el with them.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>el</code> : Mixed<div class="sub-desc">The context element</div></li><li><code>o</code> : Object/String<div class="sub-desc">The DOM object spec (and children) or raw HTML blob</div></li><li><code>returnElement</code> : Boolean<div class="sub-desc">(optional) true to return a Ext.Element</div></li></ul><strong>Returns:</strong><ul><li><code>HTMLElement/Ext.Element</code><div class="sub-desc">The new node</div></li></ul></div></div></div></td><td class="msource">DomHelper</td></tr></tbody></table><a id="Ext.DomHelper-events"></a><h2>Public Events</h2><div class="no-members">This class has no public events.</div></div>

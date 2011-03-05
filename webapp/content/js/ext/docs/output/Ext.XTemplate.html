@@ -1,0 +1,277 @@
+<div class="body-wrap" xmlns:ext="http://www.extjs.com"><div class="top-tools"><a class="inner-link" href="#Ext.XTemplate-props"><img src="resources/images/default/s.gif" class="item-icon icon-prop">Properties</a>&#13;<a class="inner-link" href="#Ext.XTemplate-methods"><img src="resources/images/default/s.gif" class="item-icon icon-method">Methods</a>&#13;<a class="inner-link" href="#Ext.XTemplate-events"><img src="resources/images/default/s.gif" class="item-icon icon-event">Events</a>&#13;<a class="inner-link" href="#Ext.XTemplate-configs"><img src="resources/images/default/s.gif" class="item-icon icon-config">Config Options</a>&#13;<a class="bookmark" href="../docs/?class=Ext.XTemplate"><img src="resources/images/default/s.gif" class="item-icon icon-fav">Direct Link</a>&#13;</div><div class="inheritance res-block"><pre class="res-block-inner"><a href="output/Ext.Template.html" ext:member="" ext:cls="Ext.Template">Template</a>
+  <img src="resources/elbow-end.gif">XTemplate</pre></div><h1>Class <a href="source/XTemplate.html#cls-Ext.XTemplate">Ext.XTemplate</a></h1><table cellspacing="0"><tr><td class="label">Package:</td><td class="hd-info">Ext</td></tr><tr><td class="label">Defined In:</td><td class="hd-info"><a href="source/XTemplate.html#cls-Ext.XTemplate">XTemplate.js</a></td></tr><tr><td class="label">Class:</td><td class="hd-info"><a href="source/XTemplate.html#cls-Ext.XTemplate">XTemplate</a></td></tr><tr><td class="label">Extends:</td><td class="hd-info"><a href="output/Ext.Template.html" ext:cls="Ext.Template" ext:member="">Template</a></td></tr></table><div class="description"><p>A template class that supports advanced functionality like:<div class="mdetail-params"><ul>
+<li>Autofilling arrays using templates and sub-templates</li>
+<li>Conditional processing with basic comparison operators</li>
+<li>Basic math function support</li>
+<li>Execute arbitrary inline code with special built-in template variables</li>
+<li>Custom member functions</li>
+<li>Many special tags and built-in operators that aren't defined as part of
+the API, but are supported in the templates that can be created</li>
+</ul></div></p>
+<p>XTemplate provides the templating mechanism built into:<div class="mdetail-params"><ul>
+<li><a href="output/Ext.DataView.html" ext:cls="Ext.DataView">Ext.DataView</a></li>
+<li><a href="output/Ext.ListView.html" ext:cls="Ext.ListView">Ext.ListView</a></li>
+<li><a href="output/Ext.form.ComboBox.html" ext:cls="Ext.form.ComboBox">Ext.form.ComboBox</a></li>
+<li><a href="output/Ext.grid.TemplateColumn.html" ext:cls="Ext.grid.TemplateColumn">Ext.grid.TemplateColumn</a></li>
+<li><a href="output/Ext.grid.GroupingView.html" ext:cls="Ext.grid.GroupingView">Ext.grid.GroupingView</a></li>
+<li><a href="output/Ext.menu.Item.html" ext:cls="Ext.menu.Item">Ext.menu.Item</a></li>
+<li><a href="output/Ext.layout.MenuLayout.html" ext:cls="Ext.layout.MenuLayout">Ext.layout.MenuLayout</a></li>
+<li><a href="output/Ext.ColorPalette.html" ext:cls="Ext.ColorPalette">Ext.ColorPalette</a></li>
+</ul></div></p>
+<p>For example usage <a href="output/Ext.XTemplate.html#Ext.XTemplate-XTemplate" ext:member="XTemplate" ext:cls="Ext.XTemplate">see the constructor</a>.</p></div><div class="hr"></div><a id="Ext.XTemplate-configs"></a><h2>Config Options</h2><table cellspacing="0" class="member-table"><tbody><tr><th colspan="2" class="sig-header">Config Options</th><th class="msource-header">Defined By</th></tr><tr class="config-row  inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Template-compiled"></a><b><a href="source/Template.html#cfg-Ext.Template-compiled">compiled</a></b> : Boolean<div class="mdesc">Specify <tt>true</tt> to compile the template
+immediately (see <code><a href="output/Ext.Template.html#Ext.Template-compile" ext:member="compile" ext:cls="Ext.Template">compile</a></code>).
+Defaults to <tt>false</tt>.</div></td><td class="msource"><a href="output/Ext.Template.html#compiled" ext:member="#compiled" ext:cls="Ext.Template">Template</a></td></tr><tr class="config-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Template-disableFormats"></a><b><a href="source/Template-more.html#cfg-Ext.Template-disableFormats">disableFormats</a></b> : Boolean<div class="mdesc"><div class="short">Specify true to disable format
+functions in the template. If the template does not contain
+format functions, setting ...</div><div class="long">Specify <tt>true</tt> to disable format
+functions in the template. If the template does not contain
+<a href="output/Ext.util.Format.html" ext:cls="Ext.util.Format">format functions</a>, setting <code>disableFormats</code>
+to true will reduce <code><a href="output/Ext.Template.html#Ext.Template-apply" ext:member="apply" ext:cls="Ext.Template">apply</a></code> time. Defaults to <tt>false</tt>.
+<pre><code><b>var</b> t = <b>new</b> Ext.Template(
+    <em>'&lt;div name=<em>"{id}"</em>&gt;'</em>,
+        <em>'&lt;span class=<em>"{cls}"</em>&gt;{name} {value}&lt;/span&gt;'</em>,
+    <em>'&lt;/div&gt;'</em>,
+    {
+        compiled: true,      <i>// <a href="output/Ext.Template.html#Ext.Template-compile" ext:member="compile" ext:cls="Ext.Template">compile</a> immediately</i>
+        disableFormats: true <i>// reduce <code><a href="output/Ext.Template.html#Ext.Template-apply" ext:member="apply" ext:cls="Ext.Template">apply</a></i></code> time since no formatting
+    }
+);
+</code></pre>
+For a list of available format functions, see <a href="output/Ext.util.Format.html" ext:cls="Ext.util.Format">Ext.util.Format</a>.</div></div></td><td class="msource"><a href="output/Ext.Template.html#disableFormats" ext:member="#disableFormats" ext:cls="Ext.Template">Template</a></td></tr><tr class="config-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Template-re"></a><b><a href="source/Template.html#cfg-Ext.Template-re">re</a></b> : RegExp<div class="mdesc"><div class="short">The regular expression used to match template variables.
+Defaults to:re : /\{([\w-]+)\}/g                            ...</div><div class="long">The regular expression used to match template variables.
+Defaults to:<pre><code>re : /\{([\w-]+)\}/g                                     <i>// <b>for</b> Ext Core</i>
+re : /\{([\w-]+)(?:\:([\w\.]*)(?:\((.*?)?\))?)?\}/g      <i>// <b>for</b> Ext JS</i></code></pre></div></div></td><td class="msource"><a href="output/Ext.Template.html#re" ext:member="#re" ext:cls="Ext.Template">Template</a></td></tr></tbody></table><a id="Ext.XTemplate-props"></a><h2>Public Properties</h2><div class="no-members">This class has no public properties.</div><a id="Ext.XTemplate-methods"></a><h2>Public Methods</h2><table cellspacing="0" class="member-table"><tbody><tr><th colspan="2" class="sig-header">Method</th><th class="msource-header">Defined By</th></tr><tr class="method-row expandable"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.XTemplate-XTemplate"></a><b><a href="source/XTemplate.html#cls-Ext.XTemplate">XTemplate</a></b>(&nbsp;<code>Mixed&nbsp;config</code>&nbsp;)
+    <div class="mdesc"><div class="short">The Ext.Template constructor describes
+the acceptable parameters to pass to the constructor. The following
+examples d...</div><div class="long">The <a href="output/Ext.Template.html#Ext.Template-Template" ext:member="Template" ext:cls="Ext.Template">Ext.Template constructor</a> describes
+the acceptable parameters to pass to the constructor. The following
+examples demonstrate all of the supported features.</p>
+<div class="mdetail-params"><ul>
+<li><b><u>Sample Data</u></b>
+<div class="sub-desc">
+<p>This is the data object used for reference in each code example:</p>
+<pre><code><b>var</b> data = {
+    name: <em>'Jack Slocum'</em>,
+    title: <em>'Lead Developer'</em>,
+    company: <em>'Ext JS, LLC'</em>,
+    email: <em>'jack@extjs.com'</em>,
+    address: <em>'4 Red Bulls Drive'</em>,
+    city: <em>'Cleveland'</em>,
+    state: <em>'Ohio'</em>,
+    zip: <em>'44102'</em>,
+    drinks: [<em>'Red Bull'</em>, <em>'Coffee'</em>, <em>'Water'</em>],
+    kids: [{
+        name: <em>'Sara Grace'</em>,
+        age:3
+    },{
+        name: <em>'Zachary'</em>,
+        age:2
+    },{
+        name: <em>'John James'</em>,
+        age:0
+    }]
+};</code></pre>
+</div>
+</li>
+<li><b><u>Auto filling of arrays</u></b>
+<div class="sub-desc">
+<p>The <b><tt>tpl</tt></b> tag and the <b><tt>for</tt></b> operator are used
+to process the provided data object:
+<ul>
+<li>If the value specified in <tt>for</tt> is an array, it will auto-fill,
+repeating the template block inside the <tt>tpl</tt> tag for each item in the
+array.</li>
+<li>If <tt>for="."</tt> is specified, the data object provided is examined.</li>
+<li>While processing an array, the special variable <tt>{#}</tt>
+will provide the current array index + 1 (starts at 1, not 0).</li>
+</ul>
+</p>
+<pre><code>&lt;tpl <b><b>for</b></b>=<em>"."</em>>...&lt;/tpl>       <i>// loop through array at root node</i>
+&lt;tpl <b><b>for</b></b>=<em>"foo"</em>>...&lt;/tpl>     <i>// loop through array at foo node</i>
+&lt;tpl <b><b>for</b></b>=<em>"foo.bar"</em>>...&lt;/tpl> <i>// loop through array at foo.bar node</i></code></pre>
+Using the sample data above:
+<pre><code><b>var</b> tpl = <b>new</b> Ext.XTemplate(
+    <em>'&lt;p>Kids: '</em>,
+    <em>'&lt;tpl <b><b>for</b></b>=<em>"."</em>>'</em>,       <i>// process the data.kids node</i>
+        <em>'&lt;p>{#}. {name}&lt;/p>'</em>,  <i>// use current array index to autonumber</i>
+    <em>'&lt;/tpl>&lt;/p>'</em>
+);
+tpl.overwrite(panel.body, data.kids); <i>// pass the kids property of the data object</i></code></pre>
+<p>An example illustrating how the <b><tt>for</tt></b> property can be leveraged
+to access specified members of the provided data object to populate the template:</p>
+<pre><code><b>var</b> tpl = <b>new</b> Ext.XTemplate(
+    <em>'&lt;p>Name: {name}&lt;/p>'</em>,
+    <em>'&lt;p>Title: {title}&lt;/p>'</em>,
+    <em>'&lt;p>Company: {company}&lt;/p>'</em>,
+    <em>'&lt;p>Kids: '</em>,
+    <em>'&lt;tpl <b><b>for</b>=<em>"kids"</em></b>>'</em>,     <i>// interrogate the kids property within the data</i>
+        <em>'&lt;p>{name}&lt;/p>'</em>,
+    <em>'&lt;/tpl>&lt;/p>'</em>
+);
+tpl.overwrite(panel.body, data);  <i>// pass the root node of the data object</i></code></pre>
+<p>Flat arrays that contain values (and not objects) can be auto-rendered
+using the special <b><tt>{.}</tt></b> variable inside a loop.  This variable
+will represent the value of the array at the current index:</p>
+<pre><code><b>var</b> tpl = <b>new</b> Ext.XTemplate(
+    <em>'&lt;p>{name}\&#39;s favorite beverages:&lt;/p>'</em>,
+    <em>'&lt;tpl <b>for</b>=<em>"drinks"</em>>'</em>,
+       <em>'&lt;div> - {.}&lt;/div>'</em>,
+    <em>'&lt;/tpl>'</em>
+);
+tpl.overwrite(panel.body, data);</code></pre>
+<p>When processing a sub-template, for example while looping through a child array,
+you can access the parent object's members via the <b><tt>parent</tt></b> object:</p>
+<pre><code><b>var</b> tpl = <b>new</b> Ext.XTemplate(
+    <em>'&lt;p>Name: {name}&lt;/p>'</em>,
+    <em>'&lt;p>Kids: '</em>,
+    <em>'&lt;tpl <b>for</b>=<em>"kids"</em>>'</em>,
+        <em>'&lt;tpl <b>if</b>=<em>"age > 1"</em>>'</em>,
+            <em>'&lt;p>{name}&lt;/p>'</em>,
+            <em>'&lt;p>Dad: {<b>parent</b>.name}&lt;/p>'</em>,
+        <em>'&lt;/tpl>'</em>,
+    <em>'&lt;/tpl>&lt;/p>'</em>
+);
+tpl.overwrite(panel.body, data);</code></pre>
+</div>
+</li>
+<li><b><u>Conditional processing with basic comparison operators</u></b>
+<div class="sub-desc">
+<p>The <b><tt>tpl</tt></b> tag and the <b><tt>if</tt></b> operator are used
+to provide conditional checks for deciding whether or not to render specific
+parts of the template. Notes:<div class="sub-desc"><ul>
+<li>Double quotes must be encoded if used within the conditional</li>
+<li>There is no <tt>else</tt> operator &mdash; if needed, two opposite
+<tt>if</tt> statements should be used.</li>
+</ul></div>
+<pre><code>&lt;tpl <b>if</b>=<em>"age &gt; 1 &amp;&amp; age &lt; 10"</em>>Child&lt;/tpl>
+&lt;tpl <b>if</b>=<em>"age >= 10 && age < 18"</em>>Teenager&lt;/tpl>
+&lt;tpl <b><b>if</b></b>=<em>"this.isGirl(name)"</em>>...&lt;/tpl>
+&lt;tpl <b><b>if</b></b>=<em>"id==\<em>'download\'</em>"</em>>...&lt;/tpl>
+&lt;tpl <b><b>if</b></b>=<em>"needsIcon"</em>>&lt;img src=<em>"{icon}"</em> class=<em>"{iconCls}"</em>/>&lt;/tpl>
+<i>// no good:</i>
+&lt;tpl <b>if</b>=<em>"name == "</em>Jack<em>""</em>>Hello&lt;/tpl>
+<i>// encode &#34; <b>if</b> it is part of the condition, e.g.</i>
+&lt;tpl <b>if</b>=<em>"name == &#38;quot;Jack&#38;quot;"</em>>Hello&lt;/tpl></code></pre>
+Using the sample data above:
+<pre><code><b>var</b> tpl = <b>new</b> Ext.XTemplate(
+    <em>'&lt;p>Name: {name}&lt;/p>'</em>,
+    <em>'&lt;p>Kids: '</em>,
+    <em>'&lt;tpl <b>for</b>=<em>"kids"</em>>'</em>,
+        <em>'&lt;tpl <b>if</b>=<em>"age > 1"</em>>'</em>,
+            <em>'&lt;p>{name}&lt;/p>'</em>,
+        <em>'&lt;/tpl>'</em>,
+    <em>'&lt;/tpl>&lt;/p>'</em>
+);
+tpl.overwrite(panel.body, data);</code></pre>
+</div>
+</li>
+<li><b><u>Basic math support</u></b>
+<div class="sub-desc">
+<p>The following basic math operators may be applied directly on numeric
+data values:</p><pre>
++ - * /
+</pre>
+For example:
+<pre><code><b>var</b> tpl = <b>new</b> Ext.XTemplate(
+    <em>'&lt;p>Name: {name}&lt;/p>'</em>,
+    <em>'&lt;p>Kids: '</em>,
+    <em>'&lt;tpl <b>for</b>=<em>"kids"</em>>'</em>,
+        <em>'&lt;tpl <b>if</b>=<em>"age &amp;gt; 1"</em>>'</em>,  <i>// <-- Note that the &gt; is encoded</i>
+            <em>'&lt;p>{#}: {name}&lt;/p>'</em>,  <i>// <-- Auto-number each item</i>
+            <em>'&lt;p>In 5 Years: {age+5}&lt;/p>'</em>,  <i>// <-- Basic math</i>
+            <em>'&lt;p>Dad: {parent.name}&lt;/p>'</em>,
+        <em>'&lt;/tpl>'</em>,
+    <em>'&lt;/tpl>&lt;/p>'</em>
+);
+tpl.overwrite(panel.body, data);</code></pre>
+</div>
+</li>
+<li><b><u>Execute arbitrary inline code with special built-in template variables</u></b>
+<div class="sub-desc">
+<p>Anything between <code>{[ ... ]}</code> is considered code to be executed
+in the scope of the template. There are some special variables available in that code:
+<ul>
+<li><b><tt>values</tt></b>: The values in the current scope. If you are using
+scope changing sub-templates, you can change what <tt>values</tt> is.</li>
+<li><b><tt>parent</tt></b>: The scope (values) of the ancestor template.</li>
+<li><b><tt>xindex</tt></b>: If you are in a looping template, the index of the
+loop you are in (1-based).</li>
+<li><b><tt>xcount</tt></b>: If you are in a looping template, the total length
+of the array you are looping.</li>
+<li><b><tt>fm</tt></b>: An alias for <tt>Ext.util.Format</tt>.</li>
+</ul>
+This example demonstrates basic row striping using an inline code block and the
+<tt>xindex</tt> variable:</p>
+<pre><code><b>var</b> tpl = <b>new</b> Ext.XTemplate(
+    <em>'&lt;p>Name: {name}&lt;/p>'</em>,
+    <em>'&lt;p>Company: {[values.company.toUpperCase() + <em>", "</em> + values.title]}&lt;/p>'</em>,
+    <em>'&lt;p>Kids: '</em>,
+    <em>'&lt;tpl <b>for</b>=<em>"kids"</em>>'</em>,
+       <em>'&lt;div class=<em>"{[xindex % 2 === 0 ? "</em>even<em>" : "</em>odd<em>"]}"</em>>'</em>,
+        <em>'{name}'</em>,
+        <em>'&lt;/div>'</em>,
+    <em>'&lt;/tpl>&lt;/p>'</em>
+);
+tpl.overwrite(panel.body, data);</code></pre>
+</div>
+</li>
+<li><b><u>Template member functions</u></b>
+<div class="sub-desc">
+<p>One or more member functions can be specified in a configuration
+object passed into the XTemplate constructor for more complex processing:</p>
+<pre><code><b>var</b> tpl = <b>new</b> Ext.XTemplate(
+    <em>'&lt;p>Name: {name}&lt;/p>'</em>,
+    <em>'&lt;p>Kids: '</em>,
+    <em>'&lt;tpl <b>for</b>=<em>"kids"</em>>'</em>,
+        <em>'&lt;tpl <b>if</b>=<em>"this.isGirl(name)"</em>>'</em>,
+            <em>'&lt;p>Girl: {name} - {age}&lt;/p>'</em>,
+        <em>'&lt;/tpl>'</em>,
+        <i>// use opposite <b>if</b> statement to simulate <em>'<b>else</b>'</em> processing:</i>
+        <em>'&lt;tpl <b>if</b>=<em>"this.isGirl(name) == false"</em>>'</em>,
+            <em>'&lt;p>Boy: {name} - {age}&lt;/p>'</em>,
+        <em>'&lt;/tpl>'</em>,
+        <em>'&lt;tpl <b>if</b>=<em>"this.isBaby(age)"</em>>'</em>,
+            <em>'&lt;p>{name} is a baby!&lt;/p>'</em>,
+        <em>'&lt;/tpl>'</em>,
+    <em>'&lt;/tpl>&lt;/p>'</em>,
+    {
+        <i>// XTemplate configuration:</i>
+        compiled: true,
+        disableFormats: true,
+        <i>// member functions:</i>
+        isGirl: <b>function</b>(name){
+            <b>return</b> name == <em>'Sara Grace'</em>;
+        },
+        isBaby: <b>function</b>(age){
+            <b>return</b> age < 1;
+        }
+    }
+);
+tpl.overwrite(panel.body, data);</code></pre>
+</div>
+</li>
+</ul></div><div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>config</code> : Mixed<div class="sub-desc"></div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource">XTemplate</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.XTemplate-XTemplate.from"></a><b><a href="source/XTemplate.html#method-Ext.XTemplate-XTemplate.from">XTemplate.from</a></b>(&nbsp;<code>String/HTMLElement&nbsp;el</code>&nbsp;)
+    :
+                                        Ext.Template<div class="mdesc"><div class="short">&lt;static&gt;&nbsp;Creates a template from the passed element's value (display:none textarea, preferred) or innerHTML.</div><div class="long">&lt;static&gt;&nbsp;Creates a template from the passed element's value (<i>display:none</i> textarea, preferred) or innerHTML.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>el</code> : String/HTMLElement<div class="sub-desc">A DOM element or its id</div></li></ul><strong>Returns:</strong><ul><li><code>Ext.Template</code><div class="sub-desc">The created template</div></li></ul></div></div></div></td><td class="msource">XTemplate</td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Template-append"></a><b><a href="source/Template.html#method-Ext.Template-append">append</a></b>(&nbsp;<code>Mixed&nbsp;el</code>,&nbsp;<code>Object/Array&nbsp;values</code>,&nbsp;<span title="Optional" class="optional">[<code>Boolean&nbsp;returnElement</code>]</span>&nbsp;)
+    :
+                                        HTMLElement/Ext.Element<div class="mdesc"><div class="short">Applies the supplied values to the template and appends
+the new node(s) to the specified el.
+For example usage see th...</div><div class="long">Applies the supplied <code>values</code> to the template and appends
+the new node(s) to the specified <code>el</code>.
+<p>For example usage <a href="output/Ext.Template.html#Ext.Template-Template" ext:member="Template" ext:cls="Ext.Template">see the constructor</a>.</p><div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>el</code> : Mixed<div class="sub-desc">The context element</div></li><li><code>values</code> : Object/Array<div class="sub-desc">The template values. Can be an array if the params are numeric (i.e. <code>{0}</code>)
+or an object (i.e. <code>{foo: <em>'bar'</em>}</code>).</div></li><li><code>returnElement</code> : Boolean<div class="sub-desc">(optional) true to return an Ext.Element (defaults to undefined)</div></li></ul><strong>Returns:</strong><ul><li><code>HTMLElement/Ext.Element</code><div class="sub-desc">The new node or Element</div></li></ul></div></div></div></td><td class="msource"><a href="output/Ext.Template.html#append" ext:member="#append" ext:cls="Ext.Template">Template</a></td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.XTemplate-apply"></a><b><a href="source/XTemplate.html#method-Ext.XTemplate-apply">apply</a></b>(&nbsp;<code>Object/Array&nbsp;values</code>&nbsp;)
+    :
+                                        String<div class="mdesc"><div class="short">Alias for applyTemplate
+Returns an HTML fragment of this template with the specified values applied.</div><div class="long">Alias for <a href="output/Ext.XTemplate.html#Ext.XTemplate-applyTemplate" ext:member="applyTemplate" ext:cls="Ext.XTemplate">applyTemplate</a>
+Returns an HTML fragment of this template with the specified values applied.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>values</code> : Object/Array<div class="sub-desc">The template values. Can be an array if your params are numeric (i.e. {0}) or an object (i.e. {foo: 'bar'})</div></li></ul><strong>Returns:</strong><ul><li><code>String</code><div class="sub-desc">The HTML fragment</div></li></ul></div></div></div></td><td class="msource">XTemplate</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.XTemplate-applyTemplate"></a><b><a href="source/XTemplate.html#method-Ext.XTemplate-applyTemplate">applyTemplate</a></b>(&nbsp;<code>Object&nbsp;values</code>&nbsp;)
+    :
+                                        String<div class="mdesc"><div class="short">Returns an HTML fragment of this template with the specified values applied.</div><div class="long">Returns an HTML fragment of this template with the specified values applied.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>values</code> : Object<div class="sub-desc">The template values. Can be an array if your params are numeric (i.e. {0}) or an object (i.e. {foo: 'bar'})</div></li></ul><strong>Returns:</strong><ul><li><code>String</code><div class="sub-desc">The HTML fragment</div></li></ul></div></div></div></td><td class="msource">XTemplate</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.XTemplate-compile"></a><b><a href="source/XTemplate.html#method-Ext.XTemplate-compile">compile</a></b>()
+    :
+                                        Function<div class="mdesc"><div class="short">Compile the template to a function for optimized performance.  Recommended if the template will be used frequently.</div><div class="long">Compile the template to a function for optimized performance.  Recommended if the template will be used frequently.<div class="mdetail-params"><strong>Parameters:</strong><ul><li>None.</li></ul><strong>Returns:</strong><ul><li><code>Function</code><div class="sub-desc">The compiled function</div></li></ul></div></div></div></td><td class="msource">XTemplate</td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Template-insertAfter"></a><b><a href="source/Template.html#method-Ext.Template-insertAfter">insertAfter</a></b>(&nbsp;<code>Mixed&nbsp;el</code>,&nbsp;<code>Object/Array&nbsp;values</code>,&nbsp;<span title="Optional" class="optional">[<code>Boolean&nbsp;returnElement</code>]</span>&nbsp;)
+    :
+                                        HTMLElement/Ext.Element<div class="mdesc"><div class="short">Applies the supplied values to the template and inserts the new node(s) after el.</div><div class="long">Applies the supplied values to the template and inserts the new node(s) after el.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>el</code> : Mixed<div class="sub-desc">The context element</div></li><li><code>values</code> : Object/Array<div class="sub-desc">The template values. Can be an array if your params are numeric (i.e. {0}) or an object (i.e. {foo: 'bar'})</div></li><li><code>returnElement</code> : Boolean<div class="sub-desc">(optional) true to return a Ext.Element (defaults to undefined)</div></li></ul><strong>Returns:</strong><ul><li><code>HTMLElement/Ext.Element</code><div class="sub-desc">The new node or Element</div></li></ul></div></div></div></td><td class="msource"><a href="output/Ext.Template.html#insertAfter" ext:member="#insertAfter" ext:cls="Ext.Template">Template</a></td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Template-insertBefore"></a><b><a href="source/Template.html#method-Ext.Template-insertBefore">insertBefore</a></b>(&nbsp;<code>Mixed&nbsp;el</code>,&nbsp;<code>Object/Array&nbsp;values</code>,&nbsp;<span title="Optional" class="optional">[<code>Boolean&nbsp;returnElement</code>]</span>&nbsp;)
+    :
+                                        HTMLElement/Ext.Element<div class="mdesc"><div class="short">Applies the supplied values to the template and inserts the new node(s) before el.</div><div class="long">Applies the supplied values to the template and inserts the new node(s) before el.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>el</code> : Mixed<div class="sub-desc">The context element</div></li><li><code>values</code> : Object/Array<div class="sub-desc">The template values. Can be an array if your params are numeric (i.e. {0}) or an object (i.e. {foo: 'bar'})</div></li><li><code>returnElement</code> : Boolean<div class="sub-desc">(optional) true to return a Ext.Element (defaults to undefined)</div></li></ul><strong>Returns:</strong><ul><li><code>HTMLElement/Ext.Element</code><div class="sub-desc">The new node or Element</div></li></ul></div></div></div></td><td class="msource"><a href="output/Ext.Template.html#insertBefore" ext:member="#insertBefore" ext:cls="Ext.Template">Template</a></td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Template-insertFirst"></a><b><a href="source/Template.html#method-Ext.Template-insertFirst">insertFirst</a></b>(&nbsp;<code>Mixed&nbsp;el</code>,&nbsp;<code>Object/Array&nbsp;values</code>,&nbsp;<span title="Optional" class="optional">[<code>Boolean&nbsp;returnElement</code>]</span>&nbsp;)
+    :
+                                        HTMLElement/Ext.Element<div class="mdesc"><div class="short">Applies the supplied values to the template and inserts the new node(s) as the first child of el.</div><div class="long">Applies the supplied values to the template and inserts the new node(s) as the first child of el.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>el</code> : Mixed<div class="sub-desc">The context element</div></li><li><code>values</code> : Object/Array<div class="sub-desc">The template values. Can be an array if your params are numeric (i.e. {0}) or an object (i.e. {foo: 'bar'})</div></li><li><code>returnElement</code> : Boolean<div class="sub-desc">(optional) true to return a Ext.Element (defaults to undefined)</div></li></ul><strong>Returns:</strong><ul><li><code>HTMLElement/Ext.Element</code><div class="sub-desc">The new node or Element</div></li></ul></div></div></div></td><td class="msource"><a href="output/Ext.Template.html#insertFirst" ext:member="#insertFirst" ext:cls="Ext.Template">Template</a></td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Template-overwrite"></a><b><a href="source/Template.html#method-Ext.Template-overwrite">overwrite</a></b>(&nbsp;<code>Mixed&nbsp;el</code>,&nbsp;<code>Object/Array&nbsp;values</code>,&nbsp;<span title="Optional" class="optional">[<code>Boolean&nbsp;returnElement</code>]</span>&nbsp;)
+    :
+                                        HTMLElement/Ext.Element<div class="mdesc"><div class="short">Applies the supplied values to the template and overwrites the content of el with the new node(s).</div><div class="long">Applies the supplied values to the template and overwrites the content of el with the new node(s).<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>el</code> : Mixed<div class="sub-desc">The context element</div></li><li><code>values</code> : Object/Array<div class="sub-desc">The template values. Can be an array if your params are numeric (i.e. {0}) or an object (i.e. {foo: 'bar'})</div></li><li><code>returnElement</code> : Boolean<div class="sub-desc">(optional) true to return a Ext.Element (defaults to undefined)</div></li></ul><strong>Returns:</strong><ul><li><code>HTMLElement/Ext.Element</code><div class="sub-desc">The new node or Element</div></li></ul></div></div></div></td><td class="msource"><a href="output/Ext.Template.html#overwrite" ext:member="#overwrite" ext:cls="Ext.Template">Template</a></td></tr></tbody></table><a id="Ext.XTemplate-events"></a><h2>Public Events</h2><div class="no-members">This class has no public events.</div></div>

@@ -1,0 +1,102 @@
+/*!
+ * Ext JS Library 3.3.1
+ * Copyright(c) 2006-2010 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
+ */
+.x-dd-drag-proxy .multi-proxy .thumb-img{
+    height: auto;
+	width: 40px;
+	margin:1px;
+}
+.x-dd-drag-proxy .thumb-img{
+	height: 60px;
+	width: 80px;
+}
+
+.images-view .x-panel-body {
+    font: 11px Arial, Helvetica, sans-serif;
+}
+.images-view .thumb img {
+    height: 60px;
+    width: auto;
+}
+.images-view .thumb-wrap {
+    float: left;
+    margin: 5px 0 5px 5px;
+    background: #EFF5FB;
+    border: 1px solid #99BBE8;
+    padding: 15px;
+}
+.images-view .thumb-wrap span {
+    display: block;
+    overflow: hidden;
+    text-align: center;
+}
+
+.images-view div.x-view-selected {
+    background-color: #99BBE8;
+}
+
+.album-node .x-tree-node-icon, .album-btn{
+    background-image:url( ../tree/album.gif ) !important;
+}
+div.upload-file {
+    border-bottom: 1px solid #99BBE8;
+    padding: 10px;
+}
+div.upload-file-selected {
+    background:#EFF5FB url(../view/images/selected.gif) repeat-x;
+}
+div.upload-name {
+    width: 300px;
+    float: left;
+}
+div.upload-pb {
+    width: 300px;
+    float: left;
+}
+div.upload-info, div.album-details {
+    color: gray;
+    font-size: smaller;
+}
+
+.image-prop-header {
+    padding-left: 10px;
+    padding-top: 10px;
+    border-bottom: 1px solid #99BBE8;
+}
+
+.image-prop {
+    padding-left: 20px;
+    padding-top: 3px;
+}
+
+div.album-wrap {
+    background-color: #EFF5FB;
+    padding: 1em;
+    text-align: center;
+    margin:3px;
+    border: 1px solid #99BBE8;
+    height: 150px;
+}
+
+/* Toolbar Icons */
+.upload {
+    background-image: url(images/icons/box_upload.png) !important;
+}
+.add {
+    background-image: url(images/icons/folder_add.png) !important;
+}
+.start-upload {
+    background-image: url(images/icons/arrow_up.png) !important;
+}
+.cancel {
+    background-image: url(images/icons/cancel.png) !important;
+}
+.album-add {
+    background-image: url(images/icons/folder_add_sm.png) !important;
+}
+.tag {
+    background-image: url(images/icons/tag_blue_add.png) !important;
+}

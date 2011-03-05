@@ -1,0 +1,52 @@
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <title>The source code</title>
+    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+</head>
+<body  onload="prettyPrint();">
+    <pre class="prettyprint lang-js">/*!
+ * Ext JS Library 3.3.1
+ * Copyright(c) 2006-2010 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
+ */
+<div id="cls-Ext.menu.Separator"></div>/**
+ * @class Ext.menu.Separator
+ * @extends Ext.menu.BaseItem
+ * Adds a separator bar to a menu, used to divide logical groups of menu items. Generally you will
+ * add one of these by using "-" in you call to add() or in your items config rather than creating one directly.
+ * @constructor
+ * @param {Object} config Configuration options
+ * @xtype menuseparator
+ */
+Ext.menu.Separator = Ext.extend(Ext.menu.BaseItem, {
+    <div id="cfg-Ext.menu.Separator-itemCls"></div>/**
+     * @cfg {String} itemCls The default CSS class to use for separators (defaults to "x-menu-sep")
+     */
+    itemCls : "x-menu-sep",
+    <div id="cfg-Ext.menu.Separator-hideOnClick"></div>/**
+     * @cfg {Boolean} hideOnClick True to hide the containing menu after this item is clicked (defaults to false)
+     */
+    hideOnClick : false,
+    
+    <div id="cfg-Ext.menu.Separator-activeClass"></div>/** 
+     * @cfg {String} activeClass
+     * @hide 
+     */
+    activeClass: '',
+
+    // private
+    onRender : function(li){
+        var s = document.createElement("span");
+        s.className = this.itemCls;
+        s.innerHTML = "&#160;";
+        this.el = s;
+        li.addClass("x-menu-sep-li");
+        Ext.menu.Separator.superclass.onRender.apply(this, arguments);
+    }
+});
+Ext.reg('menuseparator', Ext.menu.Separator);</pre>    
+</body>
+</html>

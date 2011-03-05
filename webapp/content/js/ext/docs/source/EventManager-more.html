@@ -1,0 +1,345 @@
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <title>The source code</title>
+    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+</head>
+<body  onload="prettyPrint();">
+    <pre class="prettyprint lang-js">/*!
+ * Ext JS Library 3.3.1
+ * Copyright(c) 2006-2010 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
+ */
+/**
+* @class Ext.EventManager
+*/
+Ext.apply(Ext.EventManager, function(){
+   var resizeEvent,
+       resizeTask,
+       textEvent,
+       textSize,
+       D = Ext.lib.Dom,
+       propRe = /^(?:scope|delay|buffer|single|stopEvent|preventDefault|stopPropagation|normalized|args|delegate)$/,
+       curWidth = 0,
+       curHeight = 0,
+       // note 1: IE fires ONLY the keydown event on specialkey autorepeat
+       // note 2: Safari < 3.1, Gecko (Mac/Linux) & Opera fire only the keypress event on specialkey autorepeat
+       // (research done by @Jan Wolter at http://unixpapa.com/js/key.html)
+       useKeydown = Ext.isWebKit ?
+                   Ext.num(navigator.userAgent.match(/AppleWebKit\/(\d+)/)[1]) >= 525 :
+                   !((Ext.isGecko && !Ext.isWindows) || Ext.isOpera);
+
+   return {
+       // private
+       doResizeEvent: function(){
+           var h = D.getViewHeight(),
+               w = D.getViewWidth();
+
+            //whacky problem in IE where the resize event will fire even though the w/h are the same.
+            if(curHeight != h || curWidth != w){
+               resizeEvent.fire(curWidth = w, curHeight = h);
+            }
+       },
+
+       <div id="method-Ext.EventManager-onWindowResize"></div>/**
+        * Adds a listener to be notified when the browser window is resized and provides resize event buffering (100 milliseconds),
+        * passes new viewport width and height to handlers.
+        * @param {Function} fn      The handler function the window resize event invokes.
+        * @param {Object}   scope   The scope (<code>this</code> reference) in which the handler function executes. Defaults to the browser window.
+        * @param {boolean}  options Options object as passed to {@link Ext.Element#addListener}
+        */
+       onWindowResize : function(fn, scope, options){
+           if(!resizeEvent){
+               resizeEvent = new Ext.util.Event();
+               resizeTask = new Ext.util.DelayedTask(this.doResizeEvent);
+               Ext.EventManager.on(window, "resize", this.fireWindowResize, this);
+           }
+           resizeEvent.addListener(fn, scope, options);
+       },
+
+       // exposed only to allow manual firing
+       fireWindowResize : function(){
+           if(resizeEvent){
+               resizeTask.delay(100);
+           }
+       },
+
+       <div id="method-Ext.EventManager-onTextResize"></div>/**
+        * Adds a listener to be notified when the user changes the active text size. Handler gets called with 2 params, the old size and the new size.
+        * @param {Function} fn      The function the event invokes.
+        * @param {Object}   scope   The scope (<code>this</code> reference) in which the handler function executes. Defaults to the browser window.
+        * @param {boolean}  options Options object as passed to {@link Ext.Element#addListener}
+        */
+       onTextResize : function(fn, scope, options){
+           if(!textEvent){
+               textEvent = new Ext.util.Event();
+               var textEl = new Ext.Element(document.createElement('div'));
+               textEl.dom.className = 'x-text-resize';
+               textEl.dom.innerHTML = 'X';
+               textEl.appendTo(document.body);
+               textSize = textEl.dom.offsetHeight;
+               setInterval(function(){
+                   if(textEl.dom.offsetHeight != textSize){
+                       textEvent.fire(textSize, textSize = textEl.dom.offsetHeight);
+                   }
+               }, this.textResizeInterval);
+           }
+           textEvent.addListener(fn, scope, options);
+       },
+
+       <div id="method-Ext.EventManager-removeResizeListener"></div>/**
+        * Removes the passed window resize listener.
+        * @param {Function} fn        The method the event invokes
+        * @param {Object}   scope    The scope of handler
+        */
+       removeResizeListener : function(fn, scope){
+           if(resizeEvent){
+               resizeEvent.removeListener(fn, scope);
+           }
+       },
+
+       // private
+       fireResize : function(){
+           if(resizeEvent){
+               resizeEvent.fire(D.getViewWidth(), D.getViewHeight());
+           }
+       },
+
+        <div id="prop-Ext.EventManager-textResizeInterval"></div>/**
+        * The frequency, in milliseconds, to check for text resize events (defaults to 50)
+        */
+       textResizeInterval : 50,
+
+       <div id="prop-Ext.EventManager-ieDeferSrc"></div>/**
+        * Url used for onDocumentReady with using SSL (defaults to Ext.SSL_SECURE_URL)
+        */
+       ieDeferSrc : false,
+       
+       // protected, short accessor for useKeydown
+       getKeyEvent : function(){
+           return useKeydown ? 'keydown' : 'keypress';
+       },
+
+       // protected for use inside the framework
+       // detects whether we should use keydown or keypress based on the browser.
+       useKeydown: useKeydown
+   };
+}());
+
+Ext.EventManager.on = Ext.EventManager.addListener;
+
+
+Ext.apply(Ext.EventObjectImpl.prototype, {
+   <div id="prop-Ext.EventManager-BACKSPACE"></div>/** Key constant @type Number */
+   BACKSPACE: 8,
+   <div id="prop-Ext.EventManager-TAB"></div>/** Key constant @type Number */
+   TAB: 9,
+   <div id="prop-Ext.EventManager-NUM_CENTER"></div>/** Key constant @type Number */
+   NUM_CENTER: 12,
+   <div id="prop-Ext.EventManager-ENTER"></div>/** Key constant @type Number */
+   ENTER: 13,
+   <div id="prop-Ext.EventManager-RETURN"></div>/** Key constant @type Number */
+   RETURN: 13,
+   <div id="prop-Ext.EventManager-SHIFT"></div>/** Key constant @type Number */
+   SHIFT: 16,
+   <div id="prop-Ext.EventManager-CTRL"></div>/** Key constant @type Number */
+   CTRL: 17,
+   CONTROL : 17, // legacy
+   <div id="prop-Ext.EventManager-ALT"></div>/** Key constant @type Number */
+   ALT: 18,
+   <div id="prop-Ext.EventManager-PAUSE"></div>/** Key constant @type Number */
+   PAUSE: 19,
+   <div id="prop-Ext.EventManager-CAPS_LOCK"></div>/** Key constant @type Number */
+   CAPS_LOCK: 20,
+   <div id="prop-Ext.EventManager-ESC"></div>/** Key constant @type Number */
+   ESC: 27,
+   <div id="prop-Ext.EventManager-SPACE"></div>/** Key constant @type Number */
+   SPACE: 32,
+   <div id="prop-Ext.EventManager-PAGE_UP"></div>/** Key constant @type Number */
+   PAGE_UP: 33,
+   PAGEUP : 33, // legacy
+   <div id="prop-Ext.EventManager-PAGE_DOWN"></div>/** Key constant @type Number */
+   PAGE_DOWN: 34,
+   PAGEDOWN : 34, // legacy
+   <div id="prop-Ext.EventManager-END"></div>/** Key constant @type Number */
+   END: 35,
+   <div id="prop-Ext.EventManager-HOME"></div>/** Key constant @type Number */
+   HOME: 36,
+   <div id="prop-Ext.EventManager-LEFT"></div>/** Key constant @type Number */
+   LEFT: 37,
+   <div id="prop-Ext.EventManager-UP"></div>/** Key constant @type Number */
+   UP: 38,
+   <div id="prop-Ext.EventManager-RIGHT"></div>/** Key constant @type Number */
+   RIGHT: 39,
+   <div id="prop-Ext.EventManager-DOWN"></div>/** Key constant @type Number */
+   DOWN: 40,
+   <div id="prop-Ext.EventManager-PRINT_SCREEN"></div>/** Key constant @type Number */
+   PRINT_SCREEN: 44,
+   <div id="prop-Ext.EventManager-INSERT"></div>/** Key constant @type Number */
+   INSERT: 45,
+   <div id="prop-Ext.EventManager-DELETE"></div>/** Key constant @type Number */
+   DELETE: 46,
+   <div id="prop-Ext.EventManager-ZERO"></div>/** Key constant @type Number */
+   ZERO: 48,
+   <div id="prop-Ext.EventManager-ONE"></div>/** Key constant @type Number */
+   ONE: 49,
+   <div id="prop-Ext.EventManager-TWO"></div>/** Key constant @type Number */
+   TWO: 50,
+   <div id="prop-Ext.EventManager-THREE"></div>/** Key constant @type Number */
+   THREE: 51,
+   <div id="prop-Ext.EventManager-FOUR"></div>/** Key constant @type Number */
+   FOUR: 52,
+   <div id="prop-Ext.EventManager-FIVE"></div>/** Key constant @type Number */
+   FIVE: 53,
+   <div id="prop-Ext.EventManager-SIX"></div>/** Key constant @type Number */
+   SIX: 54,
+   <div id="prop-Ext.EventManager-SEVEN"></div>/** Key constant @type Number */
+   SEVEN: 55,
+   <div id="prop-Ext.EventManager-EIGHT"></div>/** Key constant @type Number */
+   EIGHT: 56,
+   <div id="prop-Ext.EventManager-NINE"></div>/** Key constant @type Number */
+   NINE: 57,
+   <div id="prop-Ext.EventManager-A"></div>/** Key constant @type Number */
+   A: 65,
+   <div id="prop-Ext.EventManager-B"></div>/** Key constant @type Number */
+   B: 66,
+   <div id="prop-Ext.EventManager-C"></div>/** Key constant @type Number */
+   C: 67,
+   <div id="prop-Ext.EventManager-D"></div>/** Key constant @type Number */
+   D: 68,
+   <div id="prop-Ext.EventManager-E"></div>/** Key constant @type Number */
+   E: 69,
+   <div id="prop-Ext.EventManager-F"></div>/** Key constant @type Number */
+   F: 70,
+   <div id="prop-Ext.EventManager-G"></div>/** Key constant @type Number */
+   G: 71,
+   <div id="prop-Ext.EventManager-H"></div>/** Key constant @type Number */
+   H: 72,
+   <div id="prop-Ext.EventManager-I"></div>/** Key constant @type Number */
+   I: 73,
+   <div id="prop-Ext.EventManager-J"></div>/** Key constant @type Number */
+   J: 74,
+   <div id="prop-Ext.EventManager-K"></div>/** Key constant @type Number */
+   K: 75,
+   <div id="prop-Ext.EventManager-L"></div>/** Key constant @type Number */
+   L: 76,
+   <div id="prop-Ext.EventManager-M"></div>/** Key constant @type Number */
+   M: 77,
+   <div id="prop-Ext.EventManager-N"></div>/** Key constant @type Number */
+   N: 78,
+   <div id="prop-Ext.EventManager-O"></div>/** Key constant @type Number */
+   O: 79,
+   <div id="prop-Ext.EventManager-P"></div>/** Key constant @type Number */
+   P: 80,
+   <div id="prop-Ext.EventManager-Q"></div>/** Key constant @type Number */
+   Q: 81,
+   <div id="prop-Ext.EventManager-R"></div>/** Key constant @type Number */
+   R: 82,
+   <div id="prop-Ext.EventManager-S"></div>/** Key constant @type Number */
+   S: 83,
+   <div id="prop-Ext.EventManager-T"></div>/** Key constant @type Number */
+   T: 84,
+   <div id="prop-Ext.EventManager-U"></div>/** Key constant @type Number */
+   U: 85,
+   <div id="prop-Ext.EventManager-V"></div>/** Key constant @type Number */
+   V: 86,
+   <div id="prop-Ext.EventManager-W"></div>/** Key constant @type Number */
+   W: 87,
+   <div id="prop-Ext.EventManager-X"></div>/** Key constant @type Number */
+   X: 88,
+   <div id="prop-Ext.EventManager-Y"></div>/** Key constant @type Number */
+   Y: 89,
+   <div id="prop-Ext.EventManager-Z"></div>/** Key constant @type Number */
+   Z: 90,
+   <div id="prop-Ext.EventManager-CONTEXT_MENU"></div>/** Key constant @type Number */
+   CONTEXT_MENU: 93,
+   <div id="prop-Ext.EventManager-NUM_ZERO"></div>/** Key constant @type Number */
+   NUM_ZERO: 96,
+   <div id="prop-Ext.EventManager-NUM_ONE"></div>/** Key constant @type Number */
+   NUM_ONE: 97,
+   <div id="prop-Ext.EventManager-NUM_TWO"></div>/** Key constant @type Number */
+   NUM_TWO: 98,
+   <div id="prop-Ext.EventManager-NUM_THREE"></div>/** Key constant @type Number */
+   NUM_THREE: 99,
+   <div id="prop-Ext.EventManager-NUM_FOUR"></div>/** Key constant @type Number */
+   NUM_FOUR: 100,
+   <div id="prop-Ext.EventManager-NUM_FIVE"></div>/** Key constant @type Number */
+   NUM_FIVE: 101,
+   <div id="prop-Ext.EventManager-NUM_SIX"></div>/** Key constant @type Number */
+   NUM_SIX: 102,
+   <div id="prop-Ext.EventManager-NUM_SEVEN"></div>/** Key constant @type Number */
+   NUM_SEVEN: 103,
+   <div id="prop-Ext.EventManager-NUM_EIGHT"></div>/** Key constant @type Number */
+   NUM_EIGHT: 104,
+   <div id="prop-Ext.EventManager-NUM_NINE"></div>/** Key constant @type Number */
+   NUM_NINE: 105,
+   <div id="prop-Ext.EventManager-NUM_MULTIPLY"></div>/** Key constant @type Number */
+   NUM_MULTIPLY: 106,
+   <div id="prop-Ext.EventManager-NUM_PLUS"></div>/** Key constant @type Number */
+   NUM_PLUS: 107,
+   <div id="prop-Ext.EventManager-NUM_MINUS"></div>/** Key constant @type Number */
+   NUM_MINUS: 109,
+   <div id="prop-Ext.EventManager-NUM_PERIOD"></div>/** Key constant @type Number */
+   NUM_PERIOD: 110,
+   <div id="prop-Ext.EventManager-NUM_DIVISION"></div>/** Key constant @type Number */
+   NUM_DIVISION: 111,
+   <div id="prop-Ext.EventManager-F1"></div>/** Key constant @type Number */
+   F1: 112,
+   <div id="prop-Ext.EventManager-F2"></div>/** Key constant @type Number */
+   F2: 113,
+   <div id="prop-Ext.EventManager-F3"></div>/** Key constant @type Number */
+   F3: 114,
+   <div id="prop-Ext.EventManager-F4"></div>/** Key constant @type Number */
+   F4: 115,
+   <div id="prop-Ext.EventManager-F5"></div>/** Key constant @type Number */
+   F5: 116,
+   <div id="prop-Ext.EventManager-F6"></div>/** Key constant @type Number */
+   F6: 117,
+   <div id="prop-Ext.EventManager-F7"></div>/** Key constant @type Number */
+   F7: 118,
+   <div id="prop-Ext.EventManager-F8"></div>/** Key constant @type Number */
+   F8: 119,
+   <div id="prop-Ext.EventManager-F9"></div>/** Key constant @type Number */
+   F9: 120,
+   <div id="prop-Ext.EventManager-F10"></div>/** Key constant @type Number */
+   F10: 121,
+   <div id="prop-Ext.EventManager-F11"></div>/** Key constant @type Number */
+   F11: 122,
+   <div id="prop-Ext.EventManager-F12"></div>/** Key constant @type Number */
+   F12: 123,
+
+   /** @private */
+   isNavKeyPress : function(){
+       var me = this,
+           k = this.normalizeKey(me.keyCode);
+       return (k >= 33 && k <= 40) ||  // Page Up/Down, End, Home, Left, Up, Right, Down
+       k == me.RETURN ||
+       k == me.TAB ||
+       k == me.ESC;
+   },
+
+   isSpecialKey : function(){
+       var k = this.normalizeKey(this.keyCode);
+       return (this.type == 'keypress' && this.ctrlKey) ||
+       this.isNavKeyPress() ||
+       (k == this.BACKSPACE) || // Backspace
+       (k >= 16 && k <= 20) || // Shift, Ctrl, Alt, Pause, Caps Lock
+       (k >= 44 && k <= 46);   // Print Screen, Insert, Delete
+   },
+
+   getPoint : function(){
+       return new Ext.lib.Point(this.xy[0], this.xy[1]);
+   },
+
+   <div id="method-Ext.EventManager-hasModifier"></div>/**
+    * Returns true if the control, meta, shift or alt key was pressed during this event.
+    * @return {Boolean}
+    */
+   hasModifier : function(){
+       return ((this.ctrlKey || this.altKey) || this.shiftKey);
+   }
+});</pre>    
+</body>
+</html>

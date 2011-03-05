@@ -1,0 +1,104 @@
+<div class="body-wrap" xmlns:ext="http://www.extjs.com"><div class="top-tools"><a class="inner-link" href="#Ext.layout.HBoxLayout-props"><img src="resources/images/default/s.gif" class="item-icon icon-prop">Properties</a>&#13;<a class="inner-link" href="#Ext.layout.HBoxLayout-methods"><img src="resources/images/default/s.gif" class="item-icon icon-method">Methods</a>&#13;<a class="inner-link" href="#Ext.layout.HBoxLayout-events"><img src="resources/images/default/s.gif" class="item-icon icon-event">Events</a>&#13;<a class="inner-link" href="#Ext.layout.HBoxLayout-configs"><img src="resources/images/default/s.gif" class="item-icon icon-config">Config Options</a>&#13;<a class="bookmark" href="../docs/?class=Ext.layout.HBoxLayout"><img src="resources/images/default/s.gif" class="item-icon icon-fav">Direct Link</a>&#13;</div><div class="inheritance res-block"><pre class="res-block-inner"><a href="output/Ext.layout.ContainerLayout.html" ext:member="" ext:cls="Ext.layout.ContainerLayout">ContainerLayout</a>
+  <img src="resources/elbow-end.gif"><a href="output/Ext.layout.BoxLayout.html" ext:member="" ext:cls="Ext.layout.BoxLayout">BoxLayout</a>
+    <img src="resources/elbow-end.gif">HBoxLayout</pre></div><h1>Class <a href="source/HBoxLayout.html#cls-Ext.layout.HBoxLayout">Ext.layout.HBoxLayout</a></h1><table cellspacing="0"><tr><td class="label">Package:</td><td class="hd-info">Ext.layout</td></tr><tr><td class="label">Defined In:</td><td class="hd-info"><a href="source/HBoxLayout.html#cls-Ext.layout.HBoxLayout">HBoxLayout.js</a></td></tr><tr><td class="label">Class:</td><td class="hd-info"><a href="source/HBoxLayout.html#cls-Ext.layout.HBoxLayout">HBoxLayout</a></td></tr><tr><td class="label">Extends:</td><td class="hd-info"><a href="output/Ext.layout.BoxLayout.html" ext:cls="Ext.layout.BoxLayout" ext:member="">BoxLayout</a></td></tr></table><div class="description"><p>A layout that arranges items horizontally across a Container. This layout optionally divides available horizontal
+space between child items containing a numeric <code>flex</code> configuration.</p>
+This layout may also be used to set the heights of child items by configuring it with the <a href="output/Ext.layout.HBoxLayout.html#Ext.layout.HBoxLayout-align" ext:member="align" ext:cls="Ext.layout.HBoxLayout">align</a> option.</div><div class="hr"></div><a id="Ext.layout.HBoxLayout-configs"></a><h2>Config Options</h2><table cellspacing="0" class="member-table"><tbody><tr><th colspan="2" class="sig-header">Config Options</th><th class="msource-header">Defined By</th></tr><tr class="config-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.layout.HBoxLayout-align"></a><b><a href="source/HBoxLayout.html#cfg-Ext.layout.HBoxLayout-align">align</a></b> : String<div class="mdesc"><div class="short">Controls how the child items of the container are aligned. Acceptable configuration values for this
+property are:
+&lt;di...</div><div class="long">Controls how the child items of the container are aligned. Acceptable configuration values for this
+property are:
+<div class="mdetail-params"><ul>
+<li><b><tt>top</tt></b> : <b>Default</b><div class="sub-desc">child items are aligned vertically
+at the <b>top</b> of the container</div></li>
+<li><b><tt>middle</tt></b> : <div class="sub-desc">child items are aligned vertically in the
+<b>middle</b> of the container</div></li>
+<li><b><tt>stretch</tt></b> : <div class="sub-desc">child items are stretched vertically to fill
+the height of the container</div></li>
+<li><b><tt>stretchmax</tt></b> : <div class="sub-desc">child items are stretched vertically to
+the height of the largest item.</div></li></div></div></td><td class="msource">HBoxLayout</td></tr><tr class="config-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.layout.BoxLayout-defaultMargins"></a><b><a href="source/BoxLayout.html#cfg-Ext.layout.BoxLayout-defaultMargins">defaultMargins</a></b> : Object<div class="mdesc"><div class="short">If the individual contained items do not have a margins
+property specified, the default margins from this property wi...</div><div class="long"><p>If the individual contained items do not have a <tt>margins</tt>
+property specified, the default margins from this property will be
+applied to each item.</p>
+<br><p>This property may be specified as an object containing margins
+to apply in the format:</p><pre><code>{
+    top: (top margin),
+    right: (right margin),
+    bottom: (bottom margin),
+    left: (left margin)
+}</code></pre>
+<p>This property may also be specified as a string containing
+space-separated, numeric margin values. The order of the sides associated
+with each value matches the way CSS processes margin values:</p>
+<div class="mdetail-params"><ul>
+<li>If there is only one value, it applies to all sides.</li>
+<li>If there are two values, the top and bottom borders are set to the
+first value and the right and left are set to the second.</li>
+<li>If there are three values, the top is set to the first value, the left
+and right are set to the second, and the bottom is set to the third.</li>
+<li>If there are four values, they apply to the top, right, bottom, and
+left, respectively.</li>
+</ul></div>
+<p>Defaults to:</p><pre><code>{top:0, right:0, bottom:0, left:0}</code></pre></div></div></td><td class="msource"><a href="output/Ext.layout.BoxLayout.html#defaultMargins" ext:member="#defaultMargins" ext:cls="Ext.layout.BoxLayout">BoxLayout</a></td></tr><tr class="config-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.layout.ContainerLayout-extraCls"></a><b><a href="source/ContainerLayout.html#cfg-Ext.layout.ContainerLayout-extraCls">extraCls</a></b> : String<div class="mdesc"><div class="short">An optional extra CSS class that will be added to the container. This can be useful for adding
+customized styles to t...</div><div class="long"><p>An optional extra CSS class that will be added to the container. This can be useful for adding
+customized styles to the container or any of its children using standard CSS rules. See
+<a href="output/Ext.Component.html" ext:cls="Ext.Component">Ext.Component</a>.<a href="output/Ext.Component.html#Ext.Component-ctCls" ext:member="ctCls" ext:cls="Ext.Component">ctCls</a> also.</p>
+<p><b>Note</b>: <tt>extraCls</tt> defaults to <tt>''</tt> except for the following classes
+which assign a value by default:
+<div class="mdetail-params"><ul>
+<li><a href="output/Ext.layout.AbsoluteLayout.html" ext:cls="Ext.layout.AbsoluteLayout">Absolute Layout</a> : <tt>'x-abs-layout-item'</tt></li>
+<li><a href="output/Ext.layout.Box.html" ext:cls="Ext.layout.Box">Box Layout</a> : <tt>'x-box-item'</tt></li>
+<li><a href="output/Ext.layout.ColumnLayout.html" ext:cls="Ext.layout.ColumnLayout">Column Layout</a> : <tt>'x-column'</tt></li>
+</ul></div>
+To configure the above Classes with an extra CSS class append to the default.  For example,
+for ColumnLayout:<pre><code>extraCls: <em>'x-column custom-class'</em></code></pre>
+</p></div></div></td><td class="msource"><a href="output/Ext.layout.ContainerLayout.html#extraCls" ext:member="#extraCls" ext:cls="Ext.layout.ContainerLayout">ContainerLayout</a></td></tr><tr class="config-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.layout.HBoxLayout-flex"></a><b><a href="source/HBoxLayout.html#cfg-Ext.layout.HBoxLayout-flex">flex</a></b> : Number<div class="mdesc"><div class="short">This configuation option is to be applied to child items of the container managed
+by this layout. Each child item wit...</div><div class="long">This configuation option is to be applied to <b>child <tt>items</tt></b> of the container managed
+by this layout. Each child item with a <tt>flex</tt> property will be flexed <b>horizontally</b>
+according to each item's <b>relative</b> <tt>flex</tt> value compared to the sum of all items with
+a <tt>flex</tt> value specified.  Any child items that have either a <tt>flex = 0</tt> or
+<tt>flex = undefined</tt> will not be 'flexed' (the initial size will not be changed).</div></div></td><td class="msource">HBoxLayout</td></tr><tr class="config-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.layout.HBoxLayout-pack"></a><b><a href="source/HBoxLayout.html#cfg-Ext.layout.HBoxLayout-pack">pack</a></b> : String<div class="mdesc"><div class="short">Controls how the child items of the container are packed together. Acceptable configuration values
+for this property ...</div><div class="long">Controls how the child items of the container are packed together. Acceptable configuration values
+for this property are:
+<div class="mdetail-params"><ul>
+<li><b><tt>start</tt></b> : <b>Default</b><div class="sub-desc">child items are packed together at
+<b>left</b> side of container</div></li>
+<li><b><tt>center</tt></b> : <div class="sub-desc">child items are packed together at
+<b>mid-width</b> of container</div></li>
+<li><b><tt>end</tt></b> : <div class="sub-desc">child items are packed together at <b>right</b>
+side of container</div></li>
+</ul></div></div></div></td><td class="msource">HBoxLayout</td></tr><tr class="config-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.layout.BoxLayout-padding"></a><b><a href="source/BoxLayout.html#cfg-Ext.layout.BoxLayout-padding">padding</a></b> : String<div class="mdesc"><div class="short">Sets the padding to be applied to all child items managed by this layout.
+This property must be specified as a string...</div><div class="long"><p>Sets the padding to be applied to all child items managed by this layout.</p>
+<p>This property must be specified as a string containing
+space-separated, numeric padding values. The order of the sides associated
+with each value matches the way CSS processes padding values:</p>
+<div class="mdetail-params"><ul>
+<li>If there is only one value, it applies to all sides.</li>
+<li>If there are two values, the top and bottom borders are set to the
+first value and the right and left are set to the second.</li>
+<li>If there are three values, the top is set to the first value, the left
+and right are set to the second, and the bottom is set to the third.</li>
+<li>If there are four values, they apply to the top, right, bottom, and
+left, respectively.</li>
+</ul></div>
+<p>Defaults to: <code><em>"0"</em></code></p></div></div></td><td class="msource"><a href="output/Ext.layout.BoxLayout.html#padding" ext:member="#padding" ext:cls="Ext.layout.BoxLayout">BoxLayout</a></td></tr><tr class="config-row  inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.layout.ContainerLayout-renderHidden"></a><b><a href="source/ContainerLayout.html#cfg-Ext.layout.ContainerLayout-renderHidden">renderHidden</a></b> : Boolean<div class="mdesc">True to hide each contained item on render (defaults to false).</div></td><td class="msource"><a href="output/Ext.layout.ContainerLayout.html#renderHidden" ext:member="#renderHidden" ext:cls="Ext.layout.ContainerLayout">ContainerLayout</a></td></tr></tbody></table><a id="Ext.layout.HBoxLayout-props"></a><h2>Public Properties</h2><table cellspacing="0" class="member-table"><tbody><tr><th colspan="2" class="sig-header">Property</th><th class="msource-header">Defined By</th></tr><tr class="property-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.layout.ContainerLayout-activeItem"></a><b><a href="source/ContainerLayout.html#prop-Ext.layout.ContainerLayout-activeItem">activeItem</a></b> : Ext.Component<div class="mdesc"><div class="short">A reference to the Ext.Component that is active.  For example, if(myPanel.layout.activeItem.id == 'item-1') { ... }
+a...</div><div class="long">A reference to the <a href="output/Ext.Component.html" ext:cls="Ext.Component">Ext.Component</a> that is active.  For example, <pre><code><b>if</b>(myPanel.layout.activeItem.id == <em>'item-1'</em>) { ... }</code></pre>
+<tt>activeItem</tt> only applies to layout styles that can display items one at a time
+(like <a href="output/Ext.layout.AccordionLayout.html" ext:cls="Ext.layout.AccordionLayout">Ext.layout.AccordionLayout</a>, <a href="output/Ext.layout.CardLayout.html" ext:cls="Ext.layout.CardLayout">Ext.layout.CardLayout</a>
+and <a href="output/Ext.layout.FitLayout.html" ext:cls="Ext.layout.FitLayout">Ext.layout.FitLayout</a>).  Read-only.  Related to <a href="output/Ext.Container.html#Ext.Container-activeItem" ext:member="activeItem" ext:cls="Ext.Container">Ext.Container.activeItem</a>.</div></div></td><td class="msource"><a href="output/Ext.layout.ContainerLayout.html#activeItem" ext:member="#activeItem" ext:cls="Ext.layout.ContainerLayout">ContainerLayout</a></td></tr><tr class="property-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.layout.ContainerLayout-fieldTpl"></a><b><a href="source/ContainerLayout.html#prop-Ext.layout.ContainerLayout-fieldTpl">fieldTpl</a></b> : Ext.Template<div class="mdesc"><div class="short">The Ext.Template used by Field rendering layout classes (such as
+Ext.layout.FormLayout) to create the DOM structure o...</div><div class="long">The <a href="output/Ext.Template.html" ext:cls="Ext.Template">Ext.Template</a> used by Field rendering layout classes (such as
+<a href="output/Ext.layout.FormLayout.html" ext:cls="Ext.layout.FormLayout">Ext.layout.FormLayout</a>) to create the DOM structure of a fully wrapped,
+labeled and styled form Field. A default Template is supplied, but this may be
+overriden to create custom field structures. The template processes values returned from
+<a href="output/Ext.layout.FormLayout.html#Ext.layout.FormLayout-getTemplateArgs" ext:member="getTemplateArgs" ext:cls="Ext.layout.FormLayout">Ext.layout.FormLayout.getTemplateArgs</a>.</div></div></td><td class="msource"><a href="output/Ext.layout.ContainerLayout.html#fieldTpl" ext:member="#fieldTpl" ext:cls="Ext.layout.ContainerLayout">ContainerLayout</a></td></tr><tr class="property-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.layout.HBoxLayout-for"></a><b><a href="source/HBoxLayout.html#prop-Ext.layout.HBoxLayout-for">for</a></b> : Object<div class="mdesc"><div class="short">When we have a shortfall but are not tooNarrow, we need to shrink the width of each non-flexed item.
+Flexed items are...</div><div class="long">When we have a shortfall but are not tooNarrow, we need to shrink the width of each non-flexed item.
+Flexed items are immediately reduced to their minWidth and anything already at minWidth is ignored.
+The remaining items are collected into the minWidths array, which is later used to distribute the shortfall.</div></div></td><td class="msource">HBoxLayout</td></tr><tr class="property-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.layout.ContainerLayout-if"></a><b><a href="source/ContainerLayout.html#prop-Ext.layout.ContainerLayout-if">if</a></b> : Object<div class="mdesc"><div class="short">This monitorResize flag will be renamed soon as to avoid confusion
+with the Container version which hooks onWindowRes...</div><div class="long">This monitorResize flag will be renamed soon as to avoid confusion
+with the Container version which hooks onWindowResize to doLayout
+monitorResize flag in this context attaches the resize event between
+a container and it's layout</div></div></td><td class="msource"><a href="output/Ext.layout.ContainerLayout.html#if" ext:member="#if" ext:cls="Ext.layout.ContainerLayout">ContainerLayout</a></td></tr></tbody></table><a id="Ext.layout.HBoxLayout-methods"></a><h2>Public Methods</h2><table cellspacing="0" class="member-table"><tbody><tr><th colspan="2" class="sig-header">Method</th><th class="msource-header">Defined By</th></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.layout.ContainerLayout-parseMargins"></a><b><a href="source/ContainerLayout.html#method-Ext.layout.ContainerLayout-parseMargins">parseMargins</a></b>(&nbsp;<code>Number|String&nbsp;v</code>&nbsp;)
+    :
+                                        Object<div class="mdesc"><div class="short">Parses a number or string representing margin sizes into an object. Supports CSS-style margin declarations
+(e.g. 10, ...</div><div class="long">Parses a number or string representing margin sizes into an object. Supports CSS-style margin declarations
+(e.g. 10, "10", "10 10", "10 10 10" and "10 10 10 10" are all valid options and would return the same result)<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>v</code> : Number|String<div class="sub-desc">The encoded margins</div></li></ul><strong>Returns:</strong><ul><li><code>Object</code><div class="sub-desc">An object with margin sizes for top, right, bottom and left</div></li></ul></div></div></div></td><td class="msource"><a href="output/Ext.layout.ContainerLayout.html#parseMargins" ext:member="#parseMargins" ext:cls="Ext.layout.ContainerLayout">ContainerLayout</a></td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.layout.BoxLayout-updateChildBoxes"></a><b><a href="source/BoxLayout.html#method-Ext.layout.BoxLayout-updateChildBoxes">updateChildBoxes</a></b>(&nbsp;<code>Array&nbsp;boxes</code>&nbsp;)
+    :
+                                        void<div class="mdesc"><div class="short">Resizes and repositions each child component</div><div class="long">Resizes and repositions each child component<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>boxes</code> : Array<div class="sub-desc">The box measurements</div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource"><a href="output/Ext.layout.BoxLayout.html#updateChildBoxes" ext:member="#updateChildBoxes" ext:cls="Ext.layout.BoxLayout">BoxLayout</a></td></tr></tbody></table><a id="Ext.layout.HBoxLayout-events"></a><h2>Public Events</h2><div class="no-members">This class has no public events.</div></div>

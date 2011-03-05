@@ -1,0 +1,19 @@
+/*!
+ * Ext JS Library 3.3.1
+ * Copyright(c) 2006-2010 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
+ */
+.x-panel-resize {
+        height:5px;
+        background:transparent url(../images/panel-handle.gif) no-repeat center bottom;
+        position:relative;
+        left:0;
+        top:2px;
+        cursor:n-resize;
+        cursor:row-resize;
+        /* for IE */
+        font-size:1px;
+        line-height:1px;
+        overflow:hidden;
+}

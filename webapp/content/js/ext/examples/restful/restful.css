@@ -1,0 +1,97 @@
+/*!
+ * Ext JS Library 3.3.1
+ * Copyright(c) 2006-2010 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
+ */
+strong {
+    font-weight: bold;
+}
+.x-grid3 .x-window-ml{
+    padding-left: 0;
+}
+.x-grid3 .x-window-mr {
+    padding-right: 0;
+}
+.x-grid3 .x-window-tl {
+    padding-left: 0;
+}
+.x-grid3 .x-window-tr {
+    padding-right: 0;
+}
+.x-grid3 .x-window-tc .x-window-header {
+    height: 3px;
+    padding:0;
+    overflow:hidden;
+}
+.x-grid3 .x-window-mc {
+    border-width: 0;
+    background: #cdd9e8;
+}
+.x-grid3 .x-window-bl {
+    padding-left: 0;
+}
+.x-grid3 .x-window-br {
+    padding-right: 0;
+}
+.x-grid3 .x-panel-btns {
+    padding:0;
+}
+.x-grid3 .x-panel-btns td.x-toolbar-cell {
+    padding:3px 3px 0;
+}
+.x-box-inner {
+    zoom:1;
+}
+.ext-ie .x-row-editor .x-form-text {
+    margin:0 !important;
+}
+.x-row-editor-header {
+    height:2px;
+    overflow:hidden;
+    background: transparent url(images/row-editor-bg.gif) repeat-x 0 0;
+}
+.x-row-editor-footer {
+    height:2px;
+    overflow:hidden;
+    background: transparent url(images/row-editor-bg.gif) repeat-x 0 -2px;
+}
+.ext-ie .x-row-editor-footer {
+    margin-top:-1px;
+}
+
+.x-row-editor-body {
+    overflow:hidden;
+    zoom:1;
+    background: #ebf2fb;
+    padding-top:2px;
+}
+.x-row-editor .x-btns {
+    position:absolute;
+    top:28px;
+    left:20px;
+    padding-left:5px;
+    background: transparent url(images/row-editor-btns.gif) no-repeat 0 0;
+}
+.x-row-editor .x-btns .x-plain-bwrap {
+    padding-right:5px;
+    background: transparent url(images/row-editor-btns.gif) no-repeat right -31px;
+}
+.x-row-editor .x-btns .x-plain-body {
+    background: transparent url(images/row-editor-btns.gif) repeat-x 0 -62px;
+    height:31px;
+}
+.x-row-editor .x-btns .x-table-layout-cell {
+    padding:3px;
+}
+.icon-user-add {
+    background-image: url(../shared/icons/fam/user_add.gif) !important;
+}
+.icon-user-delete {
+    background-image: url(../shared/icons/fam/user_delete.gif) !important;
+}
+
+.errorTip .x-tip-body ul{
+    list-style-type:disc;
+    margin-left:15px;
+}

@@ -1,0 +1,466 @@
+<div class="body-wrap" xmlns:ext="http://www.extjs.com"><div class="top-tools"><a class="inner-link" href="#Ext.form.BasicForm-props"><img src="resources/images/default/s.gif" class="item-icon icon-prop">Properties</a>&#13;<a class="inner-link" href="#Ext.form.BasicForm-methods"><img src="resources/images/default/s.gif" class="item-icon icon-method">Methods</a>&#13;<a class="inner-link" href="#Ext.form.BasicForm-events"><img src="resources/images/default/s.gif" class="item-icon icon-event">Events</a>&#13;<a class="inner-link" href="#Ext.form.BasicForm-configs"><img src="resources/images/default/s.gif" class="item-icon icon-config">Config Options</a>&#13;<a class="bookmark" href="../docs/?class=Ext.form.BasicForm"><img src="resources/images/default/s.gif" class="item-icon icon-fav">Direct Link</a>&#13;</div><div class="inheritance res-block"><pre class="res-block-inner"><a href="output/Ext.util.Observable.html" ext:member="" ext:cls="Ext.util.Observable">Observable</a>
+  <img src="resources/elbow-end.gif">BasicForm</pre></div><h1>Class <a href="source/BasicForm.html#cls-Ext.form.BasicForm">Ext.form.BasicForm</a></h1><table cellspacing="0"><tr><td class="label">Package:</td><td class="hd-info">Ext.form</td></tr><tr><td class="label">Defined In:</td><td class="hd-info"><a href="source/BasicForm.html#cls-Ext.form.BasicForm">BasicForm.js</a></td></tr><tr><td class="label">Class:</td><td class="hd-info"><a href="source/BasicForm.html#cls-Ext.form.BasicForm">BasicForm</a></td></tr><tr><td class="label">Extends:</td><td class="hd-info"><a href="output/Ext.util.Observable.html" ext:cls="Ext.util.Observable" ext:member="">Observable</a></td></tr></table><div class="description"><p>Encapsulates the DOM &lt;form> element at the heart of the <a href="output/Ext.form.FormPanel.html" ext:cls="Ext.form.FormPanel">FormPanel</a> class, and provides
+input field management, validation, submission, and form loading services.</p>
+<p>By default, Ext Forms are submitted through Ajax, using an instance of <a href="output/Ext.form.Action.Submit.html" ext:cls="Ext.form.Action.Submit">Ext.form.Action.Submit</a>.
+To enable normal browser submission of an Ext Form, use the <a href="output/Ext.form.BasicForm.html#Ext.form.BasicForm-standardSubmit" ext:member="standardSubmit" ext:cls="Ext.form.BasicForm">standardSubmit</a> config option.</p>
+<p><b><u>File Uploads</u></b></p>
+<p><a href="output/Ext.form.BasicForm.html#Ext.form.BasicForm-fileUpload" ext:member="fileUpload" ext:cls="Ext.form.BasicForm">File uploads</a> are not performed using Ajax submission, that
+is they are <b>not</b> performed using XMLHttpRequests. Instead the form is submitted in the standard
+manner with the DOM <tt>&lt;form></tt> element temporarily modified to have its
+<a href="http://www.w3.org/TR/REC-html40/present/frames.html#adef-target">target</a> set to refer
+to a dynamically generated, hidden <tt>&lt;iframe></tt> which is inserted into the document
+but removed after the return data has been gathered.</p>
+<p>The server response is parsed by the browser to create the document for the IFRAME. If the
+server is using JSON to send the return object, then the
+<a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.17">Content-Type</a> header
+must be set to "text/html" in order to tell the browser to insert the text unchanged into the document body.</p>
+<p>Characters which are significant to an HTML parser must be sent as HTML entities, so encode
+"&lt;" as "&amp;lt;", "&amp;" as "&amp;amp;" etc.</p>
+<p>The response text is retrieved from the document, and a fake XMLHttpRequest object
+is created containing a <tt>responseText</tt> property in order to conform to the
+requirements of event handlers and callbacks.</p>
+<p>Be aware that file upload packets are sent with the content type <a href="http://www.faqs.org/rfcs/rfc2388.html">multipart/form</a>
+and some server technologies (notably JEE) may require some custom processing in order to
+retrieve parameter names and parameter values from the packet content.</p></div><div class="hr"></div><a id="Ext.form.BasicForm-configs"></a><h2>Config Options</h2><table cellspacing="0" class="member-table"><tbody><tr><th colspan="2" class="sig-header">Config Options</th><th class="msource-header">Defined By</th></tr><tr class="config-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.BasicForm-api"></a><b><a href="source/BasicForm.html#cfg-Ext.form.BasicForm-api">api</a></b> : Object<div class="mdesc"><div class="short">If specified load and submit actions will be handled
+with Ext.form.Action.DirectLoad and Ext.form.Action.DirectSubmit...</div><div class="long">If specified load and submit actions will be handled
+with <a href="output/Ext.form.Action.DirectLoad.html" ext:cls="Ext.form.Action.DirectLoad">Ext.form.Action.DirectLoad</a> and <a href="output/Ext.form.Action.DirectSubmit.html" ext:cls="Ext.form.Action.DirectSubmit">Ext.form.Action.DirectSubmit</a>.
+Methods which have been imported by Ext.Direct can be specified here to load and submit
+forms.
+Such as the following:<pre><code>api: {
+    load: App.ss.MyProfile.load,
+    submit: App.ss.MyProfile.submit
+}</code></pre>
+<p>Load actions can use <code><a href="output/Ext.form.BasicForm.html#Ext.form.BasicForm-paramOrder" ext:member="paramOrder" ext:cls="Ext.form.BasicForm">paramOrder</a></code> or <code><a href="output/Ext.form.BasicForm.html#Ext.form.BasicForm-paramsAsHash" ext:member="paramsAsHash" ext:cls="Ext.form.BasicForm">paramsAsHash</a></code>
+to customize how the load method is invoked.
+Submit actions will always use a standard form submit. The formHandler configuration must
+be set on the associated server-side method which has been imported by Ext.Direct</p></div></div></td><td class="msource">BasicForm</td></tr><tr class="config-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.BasicForm-baseParams"></a><b><a href="source/BasicForm.html#cfg-Ext.form.BasicForm-baseParams">baseParams</a></b> : Object<div class="mdesc"><div class="short">Parameters to pass with all requests. e.g. baseParams: {id: '123', foo: 'bar'}.
+Parameters are encoded as standard HT...</div><div class="long"><p>Parameters to pass with all requests. e.g. baseParams: {id: '123', foo: 'bar'}.</p>
+<p>Parameters are encoded as standard HTTP parameters using <a href="output/Ext.html#Ext-urlEncode" ext:member="urlEncode" ext:cls="Ext">Ext.urlEncode</a>.</p></div></div></td><td class="msource">BasicForm</td></tr><tr class="config-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.BasicForm-errorReader"></a><b><a href="source/BasicForm.html#cfg-Ext.form.BasicForm-errorReader">errorReader</a></b> : DataReader<div class="mdesc"><div class="short">An Ext.data.DataReader (e.g. Ext.data.XmlReader) to be used to
+read field error messages returned from 'submit' actio...</div><div class="long"><p>An Ext.data.DataReader (e.g. <a href="output/Ext.data.XmlReader.html" ext:cls="Ext.data.XmlReader">Ext.data.XmlReader</a>) to be used to
+read field error messages returned from 'submit' actions. This is optional
+as there is built-in support for processing JSON.</p>
+<p>The Records which provide messages for the invalid Fields must use the
+Field name (or id) as the Record ID, and must contain a field called 'msg'
+which contains the error message.</p>
+<p>The errorReader does not have to be a full-blown implementation of a
+DataReader. It simply needs to implement a <tt>read(xhr)</tt> function
+which returns an Array of Records in an object with the following
+structure:</p><pre><code>{
+    records: recordArray
+}</code></pre></div></div></td><td class="msource">BasicForm</td></tr><tr class="config-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.BasicForm-fileUpload"></a><b><a href="source/BasicForm.html#cfg-Ext.form.BasicForm-fileUpload">fileUpload</a></b> : Boolean<div class="mdesc"><div class="short">Set to true if this form is a file upload.
+File uploads are not performed using normal 'Ajax' techniques, that is the...</div><div class="long">Set to true if this form is a file upload.
+<p>File uploads are not performed using normal 'Ajax' techniques, that is they are <b>not</b>
+performed using XMLHttpRequests. Instead the form is submitted in the standard manner with the
+DOM <tt>&lt;form></tt> element temporarily modified to have its
+<a href="http://www.w3.org/TR/REC-html40/present/frames.html#adef-target">target</a> set to refer
+to a dynamically generated, hidden <tt>&lt;iframe></tt> which is inserted into the document
+but removed after the return data has been gathered.</p>
+<p>The server response is parsed by the browser to create the document for the IFRAME. If the
+server is using JSON to send the return object, then the
+<a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.17">Content-Type</a> header
+must be set to "text/html" in order to tell the browser to insert the text unchanged into the document body.</p>
+<p>Characters which are significant to an HTML parser must be sent as HTML entities, so encode
+"&lt;" as "&amp;lt;", "&amp;" as "&amp;amp;" etc.</p>
+<p>The response text is retrieved from the document, and a fake XMLHttpRequest object
+is created containing a <tt>responseText</tt> property in order to conform to the
+requirements of event handlers and callbacks.</p>
+<p>Be aware that file upload packets are sent with the content type <a href="http://www.faqs.org/rfcs/rfc2388.html">multipart/form</a>
+and some server technologies (notably JEE) may require some custom processing in order to
+retrieve parameter names and parameter values from the packet content.</p></div></div></td><td class="msource">BasicForm</td></tr><tr class="config-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Observable-listeners"></a><b><a href="source/Observable.html#cfg-Ext.util.Observable-listeners">listeners</a></b> : Object<div class="mdesc"><div class="short">A config object containing one or more event handlers to be added to this
+object during initialization.  This should ...</div><div class="long"><p>A config object containing one or more event handlers to be added to this
+object during initialization.  This should be a valid listeners config object as specified in the
+<a href="output/Ext.util.Observable.html#Ext.util.Observable-addListener" ext:member="addListener" ext:cls="Ext.util.Observable">addListener</a> example for attaching multiple handlers at once.</p>
+<br><p><b><u>DOM events from ExtJs <a href="output/Ext.Component.html" ext:cls="Ext.Component">Components</a></u></b></p>
+<br><p>While <i>some</i> ExtJs Component classes export selected DOM events (e.g. "click", "mouseover" etc), this
+is usually only done when extra value can be added. For example the <a href="output/Ext.DataView.html" ext:cls="Ext.DataView">DataView</a>'s
+<b><code><a href="output/Ext.DataView.html#Ext.DataView-click" ext:member="click" ext:cls="Ext.DataView">click</a></code></b> event passing the node clicked on. To access DOM
+events directly from a Component's HTMLElement, listeners must be added to the <i><a href="output/Ext.Component.html#Ext.Component-getEl" ext:member="getEl" ext:cls="Ext.Component">Element</a></i> after the Component
+has been rendered. A plugin can simplify this step:<pre><code><i>// Plugin is configured <b>with</b> a listeners config object.</i>
+<i>// The Component is appended to the argument list of all handler functions.</i>
+Ext.DomObserver = Ext.extend(Object, {
+    constructor: <b>function</b>(config) {
+        this.listeners = config.listeners ? config.listeners : config;
+    },
+
+    <i>// Component passes itself into plugin&#39;s init method</i>
+    init: <b>function</b>(c) {
+        <b>var</b> p, l = this.listeners;
+        <b>for</b> (p <b>in</b> l) {
+            <b>if</b> (Ext.isFunction(l[p])) {
+                l[p] = this.createHandler(l[p], c);
+            } <b>else</b> {
+                l[p].fn = this.createHandler(l[p].fn, c);
+            }
+        }
+
+        <i>// Add the listeners to the Element immediately following the render call</i>
+        c.render = c.render.<a href="output/Function.html#Function-createSequence" ext:member="createSequence" ext:cls="Function">createSequence</a>(<b>function</b>() {
+            <b>var</b> e = c.getEl();
+            <b>if</b> (e) {
+                e.on(l);
+            }
+        });
+    },
+
+    createHandler: <b>function</b>(fn, c) {
+        <b>return</b> <b>function</b>(e) {
+            fn.call(this, e, c);
+        };
+    }
+});
+
+<b>var</b> combo = <b>new</b> Ext.form.ComboBox({
+
+    <i>// Collapse combo when its element is clicked on</i>
+    plugins: [ <b>new</b> Ext.DomObserver({
+        click: <b>function</b>(evt, comp) {
+            comp.collapse();
+        }
+    })],
+    store: myStore,
+    typeAhead: true,
+    mode: <em>'local'</em>,
+    triggerAction: <em>'all'</em>
+});</code></pre></p></div></div></td><td class="msource"><a href="output/Ext.util.Observable.html#listeners" ext:member="#listeners" ext:cls="Ext.util.Observable">Observable</a></td></tr><tr class="config-row  "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.BasicForm-method"></a><b><a href="source/BasicForm.html#cfg-Ext.form.BasicForm-method">method</a></b> : String<div class="mdesc">The request method to use (GET or POST) for form actions if one isn't supplied in the action options.</div></td><td class="msource">BasicForm</td></tr><tr class="config-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.BasicForm-paramOrder"></a><b><a href="source/BasicForm.html#cfg-Ext.form.BasicForm-paramOrder">paramOrder</a></b> : Array/String<div class="mdesc"><div class="short">A list of params to be executed server side.
+Defaults to undefined. Only used for the api
+load configuration.
+Specify...</div><div class="long"><p>A list of params to be executed server side.
+Defaults to <tt>undefined</tt>. Only used for the <code><a href="output/Ext.form.BasicForm.html#Ext.form.BasicForm-api" ext:member="api" ext:cls="Ext.form.BasicForm">api</a></code>
+<code>load</code> configuration.</p>
+<br><p>Specify the params in the order in which they must be executed on the
+server-side as either (1) an Array of String values, or (2) a String of params
+delimited by either whitespace, comma, or pipe. For example,
+any of the following would be acceptable:</p><pre><code>paramOrder: [<em>'param1'</em>,<em>'param2'</em>,<em>'param3'</em>]
+paramOrder: <em>'param1 param2 param3'</em>
+paramOrder: <em>'param1,param2,param3'</em>
+paramOrder: <em>'param1|param2|param'</em></code></pre></div></div></td><td class="msource">BasicForm</td></tr><tr class="config-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.BasicForm-paramsAsHash"></a><b><a href="source/BasicForm.html#cfg-Ext.form.BasicForm-paramsAsHash">paramsAsHash</a></b> : Boolean<div class="mdesc"><div class="short">Only used for the api
+load configuration. Send parameters as a collection of named
+arguments (defaults to false). Pro...</div><div class="long">Only used for the <code><a href="output/Ext.form.BasicForm.html#Ext.form.BasicForm-api" ext:member="api" ext:cls="Ext.form.BasicForm">api</a></code>
+<code>load</code> configuration. Send parameters as a collection of named
+arguments (defaults to <tt>false</tt>). Providing a
+<tt><a href="output/Ext.form.BasicForm.html#Ext.form.BasicForm-paramOrder" ext:member="paramOrder" ext:cls="Ext.form.BasicForm">paramOrder</a></tt> nullifies this configuration.</div></div></td><td class="msource">BasicForm</td></tr><tr class="config-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.BasicForm-reader"></a><b><a href="source/BasicForm.html#cfg-Ext.form.BasicForm-reader">reader</a></b> : DataReader<div class="mdesc"><div class="short">An Ext.data.DataReader (e.g. Ext.data.XmlReader) to be used to read
+data when executing 'load' actions. This is optio...</div><div class="long">An Ext.data.DataReader (e.g. <a href="output/Ext.data.XmlReader.html" ext:cls="Ext.data.XmlReader">Ext.data.XmlReader</a>) to be used to read
+data when executing 'load' actions. This is optional as there is built-in
+support for processing JSON.  For additional information on using an XMLReader
+see the example provided in examples/form/xml-form.html.</div></div></td><td class="msource">BasicForm</td></tr><tr class="config-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.BasicForm-standardSubmit"></a><b><a href="source/BasicForm.html#cfg-Ext.form.BasicForm-standardSubmit">standardSubmit</a></b> : Boolean<div class="mdesc"><div class="short">If set to true, standard HTML form submits are used instead
+of XHR (Ajax) style form submissions. Defaults to false.
+...</div><div class="long"><p>If set to <tt>true</tt>, standard HTML form submits are used instead
+of XHR (Ajax) style form submissions. Defaults to <tt>false</tt>.</p>
+<br><p><b>Note:</b> When using <code>standardSubmit</code>, the
+<code>options</code> to <code><a href="output/Ext.form.BasicForm.html#Ext.form.BasicForm-submit" ext:member="submit" ext:cls="Ext.form.BasicForm">submit</a></code> are ignored because
+Ext's Ajax infrastracture is bypassed. To pass extra parameters (e.g.
+<code>baseParams</code> and <code>params</code>), utilize hidden fields
+to submit extra data, for example:</p>
+<pre><code><b>new</b> Ext.FormPanel({
+    standardSubmit: true,
+    baseParams: {
+        foo: <em>'bar'</em>
+    },
+    <a href="output/url.html" ext:cls="url">url</a>: <em>'myProcess.php'</em>,
+    items: [{
+        xtype: <em>'textfield'</em>,
+        name: <em>'userName'</em>
+    }],
+    buttons: [{
+        text: <em>'Save'</em>,
+        handler: <b>function</b>(){
+            <b>var</b> fp = this.ownerCt.ownerCt,
+                form = fp.getForm();
+            <b>if</b> (form.isValid()) {
+                <i>// check <b>if</b> there are baseParams and <b>if</b></i>
+                <i>// hiddent items have been added already</i>
+                <b>if</b> (fp.baseParams && !fp.paramsAdded) {
+                    <i>// add hidden items <b>for</b> all baseParams</i>
+                    <b>for</b> (i <b>in</b> fp.baseParams) {
+                        fp.add({
+                            xtype: <em>'hidden'</em>,
+                            name: i,
+                            value: fp.baseParams[i]
+                        });
+                    }
+                    fp.doLayout();
+                    <i>// set a custom flag to prevent re-adding</i>
+                    fp.paramsAdded = true;
+                }
+                form.<a href="output/Ext.form.BasicForm.html#Ext.form.BasicForm-submit" ext:member="submit" ext:cls="Ext.form.BasicForm">submit</a>();
+            }
+        }
+    }]
+});</code></pre></div></div></td><td class="msource">BasicForm</td></tr><tr class="config-row  "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.BasicForm-timeout"></a><b><a href="source/BasicForm.html#cfg-Ext.form.BasicForm-timeout">timeout</a></b> : Number<div class="mdesc">Timeout for form actions in seconds (default is 30 seconds).</div></td><td class="msource">BasicForm</td></tr><tr class="config-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.BasicForm-trackResetOnLoad"></a><b><a href="source/BasicForm.html#cfg-Ext.form.BasicForm-trackResetOnLoad">trackResetOnLoad</a></b> : Boolean<div class="mdesc"><div class="short">If set to true, reset() resets to the last loaded
+or setValues() data instead of when the form was first created.  De...</div><div class="long">If set to <tt>true</tt>, <a href="output/Ext.form.BasicForm.html#Ext.form.BasicForm-reset" ext:member="reset" ext:cls="Ext.form.BasicForm">reset</a>() resets to the last loaded
+or <a href="output/Ext.form.BasicForm.html#Ext.form.BasicForm-setValues" ext:member="setValues" ext:cls="Ext.form.BasicForm">setValues</a>() data instead of when the form was first created.  Defaults to <tt>false</tt>.</div></div></td><td class="msource">BasicForm</td></tr><tr class="config-row  "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.BasicForm-url"></a><b><a href="source/BasicForm.html#cfg-Ext.form.BasicForm-url">url</a></b> : String<div class="mdesc">The URL to use for form actions if one isn't supplied in the
+<code><a href="output/Ext.form.BasicForm.html#Ext.form.BasicForm-doAction" ext:member="doAction" ext:cls="Ext.form.BasicForm">doAction</a> options</code>.</div></td><td class="msource">BasicForm</td></tr><tr class="config-row  "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.BasicForm-waitTitle"></a><b><a href="source/BasicForm.html#cfg-Ext.form.BasicForm-waitTitle">waitTitle</a></b> : String<div class="mdesc">The default title to show for the waiting message box (defaults to <tt>'Please Wait...'</tt>)</div></td><td class="msource">BasicForm</td></tr></tbody></table><a id="Ext.form.BasicForm-props"></a><h2>Public Properties</h2><table cellspacing="0" class="member-table"><tbody><tr><th colspan="2" class="sig-header">Property</th><th class="msource-header">Defined By</th></tr><tr class="property-row  "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.BasicForm-items"></a><b><a href="source/BasicForm.html#prop-Ext.form.BasicForm-items">items</a></b> : MixedCollection<div class="mdesc">A <a href="output/Ext.util.MixedCollection.html" ext:cls="Ext.util.MixedCollection">MixedCollection</a> containing all the Ext.form.Fields in this form.</div></td><td class="msource">BasicForm</td></tr><tr class="property-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.BasicForm-waitMsgTarget"></a><b><a href="source/BasicForm.html#prop-Ext.form.BasicForm-waitMsgTarget">waitMsgTarget</a></b> : Mixed<div class="mdesc"><div class="short">By default wait messages are displayed with Ext.MessageBox.wait. You can target a specific
+element by passing it or i...</div><div class="long">By default wait messages are displayed with Ext.MessageBox.wait. You can target a specific
+element by passing it or its id or mask the form itself by passing in true.</div></div></td><td class="msource">BasicForm</td></tr></tbody></table><a id="Ext.form.BasicForm-methods"></a><h2>Public Methods</h2><table cellspacing="0" class="member-table"><tbody><tr><th colspan="2" class="sig-header">Method</th><th class="msource-header">Defined By</th></tr><tr class="method-row expandable"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.BasicForm-BasicForm"></a><b><a href="source/BasicForm.html#cls-Ext.form.BasicForm">BasicForm</a></b>(&nbsp;<code>Mixed&nbsp;el</code>,&nbsp;<code>Object&nbsp;config</code>&nbsp;)
+    <div class="mdesc"><div class="short"></div><div class="long"><div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>el</code> : Mixed<div class="sub-desc">The form element or its id</div></li><li><code>config</code> : Object<div class="sub-desc">Configuration options</div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource">BasicForm</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.BasicForm-add"></a><b><a href="source/BasicForm.html#method-Ext.form.BasicForm-add">add</a></b>(&nbsp;<code>Field&nbsp;field1</code>,&nbsp;<span title="Optional" class="optional">[<code>Field&nbsp;field2</code>]</span>,&nbsp;<span title="Optional" class="optional">[<code>Field&nbsp;etc</code>]</span>&nbsp;)
+    :
+                                        BasicForm<div class="mdesc"><div class="short">Add Ext.form Components to this form's Collection. This does not result in rendering of
+the passed Component, it just...</div><div class="long">Add Ext.form Components to this form's Collection. This does not result in rendering of
+the passed Component, it just enables the form to validate Fields, and distribute values to
+Fields.
+<p><b>You will not usually call this function. In order to be rendered, a Field must be added
+to a <a href="output/Ext.Container.html" ext:cls="Ext.Container">Container</a>, usually an <a href="output/Ext.form.FormPanel.html" ext:cls="Ext.form.FormPanel">FormPanel</a>.
+The FormPanel to which the field is added takes care of adding the Field to the BasicForm's
+collection.</b></p><div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>field1</code> : Field<div class="sub-desc"></div></li><li><code>field2</code> : Field<div class="sub-desc">(optional)</div></li><li><code>etc</code> : Field<div class="sub-desc">(optional)</div></li></ul><strong>Returns:</strong><ul><li><code>BasicForm</code><div class="sub-desc">this</div></li></ul></div></div></div></td><td class="msource">BasicForm</td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Observable-addEvents"></a><b><a href="source/Observable.html#method-Ext.util.Observable-addEvents">addEvents</a></b>(&nbsp;<code>Object|String&nbsp;o</code>,&nbsp;<code>string&nbsp;Optional.</code>&nbsp;)
+    :
+                                        void<div class="mdesc"><div class="short">Adds the specified events to the list of events which this Observable may fire.</div><div class="long">Adds the specified events to the list of events which this Observable may fire.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>o</code> : Object|String<div class="sub-desc">Either an object with event names as properties with a value of <code>true</code>
+or the first event name string if multiple event names are being passed as separate parameters.</div></li><li><code>Optional.</code> : string<div class="sub-desc">Event name if multiple event names are being passed as separate parameters.
+Usage:<pre><code>this.addEvents(<em>'storeloaded'</em>, <em>'storecleared'</em>);</code></pre></div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource"><a href="output/Ext.util.Observable.html#addEvents" ext:member="#addEvents" ext:cls="Ext.util.Observable">Observable</a></td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Observable-addListener"></a><b><a href="source/Observable.html#method-Ext.util.Observable-addListener">addListener</a></b>(&nbsp;<code>String&nbsp;eventName</code>,&nbsp;<code>Function&nbsp;handler</code>,&nbsp;<span title="Optional" class="optional">[<code>Object&nbsp;scope</code>]</span>,&nbsp;<span title="Optional" class="optional">[<code>Object&nbsp;options</code>]</span>&nbsp;)
+    :
+                                        void<div class="mdesc"><div class="short">Appends an event handler to this object.</div><div class="long">Appends an event handler to this object.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>eventName</code> : String<div class="sub-desc">The name of the event to listen for.</div></li><li><code>handler</code> : Function<div class="sub-desc">The method the event invokes.</div></li><li><code>scope</code> : Object<div class="sub-desc">(optional) The scope (<code><b>this</b></code> reference) in which the handler function is executed.
+<b>If omitted, defaults to the object which fired the event.</b></div></li><li><code>options</code> : Object<div class="sub-desc">(optional) An object containing handler configuration.
+properties. This may contain any of the following properties:<ul>
+<li><b>scope</b> : Object<div class="sub-desc">The scope (<code><b>this</b></code> reference) in which the handler function is executed.
+<b>If omitted, defaults to the object which fired the event.</b></div></li>
+<li><b>delay</b> : Number<div class="sub-desc">The number of milliseconds to delay the invocation of the handler after the event fires.</div></li>
+<li><b>single</b> : Boolean<div class="sub-desc">True to add a handler to handle just the next firing of the event, and then remove itself.</div></li>
+<li><b>buffer</b> : Number<div class="sub-desc">Causes the handler to be scheduled to run in an <a href="output/Ext.util.DelayedTask.html" ext:cls="Ext.util.DelayedTask">Ext.util.DelayedTask</a> delayed
+by the specified number of milliseconds. If the event fires again within that time, the original
+handler is <em>not</em> invoked, but the new handler is scheduled in its place.</div></li>
+<li><b>target</b> : Observable<div class="sub-desc">Only call the handler if the event was fired on the target Observable, <i>not</i>
+if the event was bubbled up from a child Observable.</div></li>
+</ul><br>
+<p>
+<b>Combining Options</b><br>
+Using the options argument, it is possible to combine different types of listeners:<br>
+<br>
+A delayed, one-time listener.
+<pre><code>myDataView.on(<em>'click'</em>, this.onClick, this, {
+single: true,
+delay: 100
+});</code></pre>
+<p>
+<b>Attaching multiple handlers in 1 call</b><br>
+The method also allows for a single argument to be passed which is a config object containing properties
+which specify multiple handlers.
+<p>
+<pre><code>myGridPanel.on({
+<em>'click'</em> : {
+    fn: this.onClick,
+    scope: this,
+    delay: 100
+},
+<em>'mouseover'</em> : {
+    fn: this.onMouseOver,
+    scope: this
+},
+<em>'mouseout'</em> : {
+    fn: this.onMouseOut,
+    scope: this
+}
+});</code></pre>
+<p>
+Or a shorthand syntax:<br>
+<pre><code>myGridPanel.on({
+<em>'click'</em> : this.onClick,
+<em>'mouseover'</em> : this.onMouseOver,
+<em>'mouseout'</em> : this.onMouseOut,
+ scope: this
+});</code></pre></div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource"><a href="output/Ext.util.Observable.html#addListener" ext:member="#addListener" ext:cls="Ext.util.Observable">Observable</a></td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.BasicForm-applyIfToFields"></a><b><a href="source/BasicForm.html#method-Ext.form.BasicForm-applyIfToFields">applyIfToFields</a></b>(&nbsp;<code>Object&nbsp;values</code>&nbsp;)
+    :
+                                        BasicForm<div class="mdesc"><div class="short">Calls Ext.applyIf for all field in this form with the passed object.</div><div class="long">Calls <a href="output/Ext.html#Ext-applyIf" ext:member="applyIf" ext:cls="Ext">Ext.applyIf</a> for all field in this form with the passed object.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>values</code> : Object<div class="sub-desc"></div></li></ul><strong>Returns:</strong><ul><li><code>BasicForm</code><div class="sub-desc">this</div></li></ul></div></div></div></td><td class="msource">BasicForm</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.BasicForm-applyToFields"></a><b><a href="source/BasicForm.html#method-Ext.form.BasicForm-applyToFields">applyToFields</a></b>(&nbsp;<code>Object&nbsp;values</code>&nbsp;)
+    :
+                                        BasicForm<div class="mdesc"><div class="short">Calls Ext.apply for all fields in this form with the passed object.</div><div class="long">Calls <a href="output/Ext.html#Ext-apply" ext:member="apply" ext:cls="Ext">Ext.apply</a> for all fields in this form with the passed object.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>values</code> : Object<div class="sub-desc"></div></li></ul><strong>Returns:</strong><ul><li><code>BasicForm</code><div class="sub-desc">this</div></li></ul></div></div></div></td><td class="msource">BasicForm</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.BasicForm-cleanDestroyed"></a><b><a href="source/BasicForm.html#method-Ext.form.BasicForm-cleanDestroyed">cleanDestroyed</a></b>()
+    :
+                                        void<div class="mdesc"><div class="short">Removes all fields from the collection that have been destroyed.</div><div class="long">Removes all fields from the collection that have been destroyed.<div class="mdetail-params"><strong>Parameters:</strong><ul><li>None.</li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource">BasicForm</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.BasicForm-clearInvalid"></a><b><a href="source/BasicForm.html#method-Ext.form.BasicForm-clearInvalid">clearInvalid</a></b>()
+    :
+                                        BasicForm<div class="mdesc"><div class="short">Clears all invalid messages in this form.</div><div class="long">Clears all invalid messages in this form.<div class="mdetail-params"><strong>Parameters:</strong><ul><li>None.</li></ul><strong>Returns:</strong><ul><li><code>BasicForm</code><div class="sub-desc">this</div></li></ul></div></div></div></td><td class="msource">BasicForm</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.BasicForm-doAction"></a><b><a href="source/BasicForm.html#method-Ext.form.BasicForm-doAction">doAction</a></b>(&nbsp;<code>String/Object&nbsp;actionName</code>,&nbsp;<span title="Optional" class="optional">[<code>Object&nbsp;options</code>]</span>&nbsp;)
+    :
+                                        BasicForm<div class="mdesc"><div class="short">Performs a predefined action (Ext.form.Action.Submit or
+Ext.form.Action.Load) or a custom extension of Ext.form.Actio...</div><div class="long">Performs a predefined action (<a href="output/Ext.form.Action.Submit.html" ext:cls="Ext.form.Action.Submit">Ext.form.Action.Submit</a> or
+<a href="output/Ext.form.Action.Load.html" ext:cls="Ext.form.Action.Load">Ext.form.Action.Load</a>) or a custom extension of <a href="output/Ext.form.Action.html" ext:cls="Ext.form.Action">Ext.form.Action</a>
+to perform application-specific processing.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>actionName</code> : String/Object<div class="sub-desc">The name of the predefined action type,
+or instance of <a href="output/Ext.form.Action.html" ext:cls="Ext.form.Action">Ext.form.Action</a> to perform.</div></li><li><code>options</code> : Object<div class="sub-desc">(optional) The options to pass to the <a href="output/Ext.form.Action.html" ext:cls="Ext.form.Action">Ext.form.Action</a>.
+All of the config options listed below are supported by both the
+<a href="output/Ext.form.Action.Submit.html" ext:cls="Ext.form.Action.Submit">submit</a> and <a href="output/Ext.form.Action.Load.html" ext:cls="Ext.form.Action.Load">load</a>
+actions unless otherwise noted (custom actions could also accept
+other config options):<ul>
+<li><b>url</b> : String<div class="sub-desc">The url for the action (defaults
+to the form's <a href="output/Ext.form.BasicForm.html#Ext.form.BasicForm-url" ext:member="url" ext:cls="Ext.form.BasicForm">url</a>.)</div></li>
+<li><b>method</b> : String<div class="sub-desc">The form method to use (defaults
+to the form's method, or POST if not defined)</div></li>
+<li><b>params</b> : String/Object<div class="sub-desc"><p>The params to pass
+(defaults to the form's baseParams, or none if not defined)</p>
+<p>Parameters are encoded as standard HTTP parameters using <a href="output/Ext.html#Ext-urlEncode" ext:member="urlEncode" ext:cls="Ext">Ext.urlEncode</a>.</p></div></li>
+<li><b>headers</b> : Object<div class="sub-desc">Request headers to set for the action
+(defaults to the form's default headers)</div></li>
+<li><b>success</b> : Function<div class="sub-desc">The callback that will
+be invoked after a successful response (see top of
+<a href="output/Ext.form.Action.Submit.html" ext:cls="Ext.form.Action.Submit">submit</a> and <a href="output/Ext.form.Action.Load.html" ext:cls="Ext.form.Action.Load">load</a>
+for a description of what constitutes a successful response).
+The function is passed the following parameters:<ul>
+<li><tt>form</tt> : Ext.form.BasicForm<div class="sub-desc">The form that requested the action</div></li>
+<li><tt>action</tt> : The <a href="output/Ext.form.Action.html" ext:cls="Ext.form.Action">Action</a> object which performed the operation.
+<div class="sub-desc">The action object contains these properties of interest:<ul>
+<li><tt><a href="output/Ext.form.Action.html#Ext.form.Action-response" ext:member="response" ext:cls="Ext.form.Action">response</a></tt></li>
+<li><tt><a href="output/Ext.form.Action.html#Ext.form.Action-result" ext:member="result" ext:cls="Ext.form.Action">result</a></tt> : interrogate for custom postprocessing</li>
+<li><tt><a href="output/Ext.form.Action.html#Ext.form.Action-type" ext:member="type" ext:cls="Ext.form.Action">type</a></tt></li>
+</ul></div></li></ul></div></li>
+<li><b>failure</b> : Function<div class="sub-desc">The callback that will be invoked after a
+failed transaction attempt. The function is passed the following parameters:<ul>
+<li><tt>form</tt> : The <a href="output/Ext.form.BasicForm.html" ext:cls="Ext.form.BasicForm">Ext.form.BasicForm</a> that requested the action.</li>
+<li><tt>action</tt> : The <a href="output/Ext.form.Action.html" ext:cls="Ext.form.Action">Action</a> object which performed the operation.
+<div class="sub-desc">The action object contains these properties of interest:<ul>
+<li><tt><a href="output/Ext.form.Action.html#Ext.form.Action-failureType" ext:member="failureType" ext:cls="Ext.form.Action">failureType</a></tt></li>
+<li><tt><a href="output/Ext.form.Action.html#Ext.form.Action-response" ext:member="response" ext:cls="Ext.form.Action">response</a></tt></li>
+<li><tt><a href="output/Ext.form.Action.html#Ext.form.Action-result" ext:member="result" ext:cls="Ext.form.Action">result</a></tt> : interrogate for custom postprocessing</li>
+<li><tt><a href="output/Ext.form.Action.html#Ext.form.Action-type" ext:member="type" ext:cls="Ext.form.Action">type</a></tt></li>
+</ul></div></li></ul></div></li>
+<li><b>scope</b> : Object<div class="sub-desc">The scope in which to call the
+callback functions (The <tt>this</tt> reference for the callback functions).</div></li>
+<li><b>clientValidation</b> : Boolean<div class="sub-desc">Submit Action only.
+Determines whether a Form's fields are validated in a final call to
+<a href="output/Ext.form.BasicForm.html#Ext.form.BasicForm-isValid" ext:member="isValid" ext:cls="Ext.form.BasicForm">isValid</a> prior to submission. Set to <tt>false</tt>
+to prevent this. If undefined, pre-submission field validation is performed.</div></li></ul></div></li></ul><strong>Returns:</strong><ul><li><code>BasicForm</code><div class="sub-desc">this</div></li></ul></div></div></div></td><td class="msource">BasicForm</td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Observable-enableBubble"></a><b><a href="source/Observable-more.html#method-Ext.util.Observable-enableBubble">enableBubble</a></b>(&nbsp;<code>String/Array&nbsp;events</code>&nbsp;)
+    :
+                                        void<div class="mdesc"><div class="short">Enables events fired by this Observable to bubble up an owner hierarchy by calling
+this.getBubbleTarget() if present....</div><div class="long"><p>Enables events fired by this Observable to bubble up an owner hierarchy by calling
+<code>this.getBubbleTarget()</code> if present. There is no implementation in the Observable base class.</p>
+<p>This is commonly used by Ext.Components to bubble events to owner Containers. See <a href="output/Ext.Component.getBubbleTarget.html" ext:cls="Ext.Component.getBubbleTarget">Ext.Component.getBubbleTarget</a>. The default
+implementation in Ext.Component returns the Component's immediate owner. But if a known target is required, this can be overridden to
+access the required target more quickly.</p>
+<p>Example:</p><pre><code>Ext.override(Ext.form.Field, {
+    <i>//  Add functionality to Field&#39;s initComponent to enable the change event to bubble</i>
+    initComponent : Ext.form.Field.prototype.initComponent.createSequence(<b>function</b>() {
+        this.enableBubble(<em>'change'</em>);
+    }),
+
+    <i>//  We know that we want Field&#39;s events to bubble directly to the FormPanel.</i>
+    getBubbleTarget : <b>function</b>() {
+        <b>if</b> (!this.formPanel) {
+            this.formPanel = this.findParentByType(<em>'form'</em>);
+        }
+        <b>return</b> this.formPanel;
+    }
+});
+
+<b>var</b> myForm = <b>new</b> Ext.formPanel({
+    title: <em>'User Details'</em>,
+    items: [{
+        ...
+    }],
+    listeners: {
+        change: <b>function</b>() {
+            <i>// Title goes red <b>if</b> form has been modified.</i>
+            myForm.header.setStyle(<em>'color'</em>, <em>'red'</em>);
+        }
+    }
+});</code></pre><div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>events</code> : String/Array<div class="sub-desc">The event name to bubble, or an Array of event names.</div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource"><a href="output/Ext.util.Observable.html#enableBubble" ext:member="#enableBubble" ext:cls="Ext.util.Observable">Observable</a></td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.BasicForm-findField"></a><b><a href="source/BasicForm.html#method-Ext.form.BasicForm-findField">findField</a></b>(&nbsp;<code>String&nbsp;id</code>&nbsp;)
+    :
+                                        Field<div class="mdesc"><div class="short">Find a Ext.form.Field in this form.</div><div class="long">Find a <a href="output/Ext.form.Field.html" ext:cls="Ext.form.Field">Ext.form.Field</a> in this form.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>id</code> : String<div class="sub-desc">The value to search for (specify either a <a href="output/Ext.Component.html#Ext.Component-id" ext:member="id" ext:cls="Ext.Component">id</a>,
+<a href="output/Ext.grid.Column.html#Ext.grid.Column-dataIndex" ext:member="dataIndex" ext:cls="Ext.grid.Column">dataIndex</a>, <a href="output/Ext.form.Field.html#Ext.form.Field-getName" ext:member="getName" ext:cls="Ext.form.Field">name or hiddenName</a>).</div></li></ul><strong>Returns:</strong><ul><li><code>Field</code><div class="sub-desc"></div></li></ul></div></div></div></td><td class="msource">BasicForm</td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Observable-fireEvent"></a><b><a href="source/Observable.html#method-Ext.util.Observable-fireEvent">fireEvent</a></b>(&nbsp;<code>String&nbsp;eventName</code>,&nbsp;<code>Object...&nbsp;args</code>&nbsp;)
+    :
+                                        Boolean<div class="mdesc"><div class="short">Fires the specified event with the passed parameters (minus the event name).
+An event may be set to bubble up an Obse...</div><div class="long"><p>Fires the specified event with the passed parameters (minus the event name).</p>
+<p>An event may be set to bubble up an Observable parent hierarchy (See <a href="output/Ext.Component.html#Ext.Component-getBubbleTarget" ext:member="getBubbleTarget" ext:cls="Ext.Component">Ext.Component.getBubbleTarget</a>)
+by calling <a href="output/Ext.util.Observable.html#Ext.util.Observable-enableBubble" ext:member="enableBubble" ext:cls="Ext.util.Observable">enableBubble</a>.</p><div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>eventName</code> : String<div class="sub-desc">The name of the event to fire.</div></li><li><code>args</code> : Object...<div class="sub-desc">Variable number of parameters are passed to handlers.</div></li></ul><strong>Returns:</strong><ul><li><code>Boolean</code><div class="sub-desc">returns false if any of the handlers return false otherwise it returns true.</div></li></ul></div></div></div></td><td class="msource"><a href="output/Ext.util.Observable.html#fireEvent" ext:member="#fireEvent" ext:cls="Ext.util.Observable">Observable</a></td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.BasicForm-getEl"></a><b><a href="source/BasicForm.html#method-Ext.form.BasicForm-getEl">getEl</a></b>()
+    :
+                                        Ext.Element<div class="mdesc"><div class="short">Get the HTML form Element</div><div class="long">Get the HTML form Element<div class="mdetail-params"><strong>Parameters:</strong><ul><li>None.</li></ul><strong>Returns:</strong><ul><li><code>Ext.Element</code><div class="sub-desc"></div></li></ul></div></div></div></td><td class="msource">BasicForm</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.BasicForm-getFieldValues"></a><b><a href="source/BasicForm.html#method-Ext.form.BasicForm-getFieldValues">getFieldValues</a></b>(&nbsp;<span title="Optional" class="optional">[<code>Boolean&nbsp;dirtyOnly</code>]</span>&nbsp;)
+    :
+                                        Object<div class="mdesc"><div class="short">Retrieves the fields in the form as a set of key/value pairs, using the getValue() method.
+If multiple fields exist w...</div><div class="long">Retrieves the fields in the form as a set of key/value pairs, using the <a href="output/Ext.form.Field.html#Ext.form.Field-getValue" ext:member="getValue" ext:cls="Ext.form.Field">getValue()</a> method.
+If multiple fields exist with the same name they are returned as an array.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>dirtyOnly</code> : Boolean<div class="sub-desc">(optional) True to return only fields that are dirty.</div></li></ul><strong>Returns:</strong><ul><li><code>Object</code><div class="sub-desc">The values in the form</div></li></ul></div></div></div></td><td class="msource">BasicForm</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.BasicForm-getValues"></a><b><a href="source/BasicForm.html#method-Ext.form.BasicForm-getValues">getValues</a></b>(&nbsp;<span title="Optional" class="optional">[<code>Boolean&nbsp;asString</code>]</span>&nbsp;)
+    :
+                                        String/Object<div class="mdesc"><div class="short">Returns the fields in this form as an object with key/value pairs as they would be submitted using a standard form su...</div><div class="long"><p>Returns the fields in this form as an object with key/value pairs as they would be submitted using a standard form submit.
+If multiple fields exist with the same name they are returned as an array.</p>
+<p><b>Note:</b> The values are collected from all enabled HTML input elements within the form, <u>not</u> from
+the Ext Field objects. This means that all returned values are Strings (or Arrays of Strings) and that the
+value can potentially be the emptyText of a field.</p><div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>asString</code> : Boolean<div class="sub-desc">(optional) Pass true to return the values as a string. (defaults to false, returning an Object)</div></li></ul><strong>Returns:</strong><ul><li><code>String/Object</code><div class="sub-desc"></div></li></ul></div></div></div></td><td class="msource">BasicForm</td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Observable-hasListener"></a><b><a href="source/Observable.html#method-Ext.util.Observable-hasListener">hasListener</a></b>(&nbsp;<code>String&nbsp;eventName</code>&nbsp;)
+    :
+                                        Boolean<div class="mdesc"><div class="short">Checks to see if this object has any listeners for a specified event</div><div class="long">Checks to see if this object has any listeners for a specified event<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>eventName</code> : String<div class="sub-desc">The name of the event to check for</div></li></ul><strong>Returns:</strong><ul><li><code>Boolean</code><div class="sub-desc">True if the event is being listened for, else false</div></li></ul></div></div></div></td><td class="msource"><a href="output/Ext.util.Observable.html#hasListener" ext:member="#hasListener" ext:cls="Ext.util.Observable">Observable</a></td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.BasicForm-isDirty"></a><b><a href="source/BasicForm.html#method-Ext.form.BasicForm-isDirty">isDirty</a></b>()
+    :
+                                        Boolean<div class="mdesc"><div class="short">Returns true if any fields in this form have changed from their original values.
+Note that if this BasicForm was conf...</div><div class="long"><p>Returns true if any fields in this form have changed from their original values.</p>
+<p>Note that if this BasicForm was configured with <a href="output/Ext.form.BasicForm.html#Ext.form.BasicForm-trackResetOnLoad" ext:member="trackResetOnLoad" ext:cls="Ext.form.BasicForm">trackResetOnLoad</a> then the
+Fields' <i>original values</i> are updated when the values are loaded by <a href="output/Ext.form.BasicForm.html#Ext.form.BasicForm-setValues" ext:member="setValues" ext:cls="Ext.form.BasicForm">setValues</a>
+or <a href="output/Ext.form.BasicForm.html#Ext.form.BasicForm-loadRecord" ext:member="loadRecord" ext:cls="Ext.form.BasicForm">loadRecord</a>.</p><div class="mdetail-params"><strong>Parameters:</strong><ul><li>None.</li></ul><strong>Returns:</strong><ul><li><code>Boolean</code><div class="sub-desc"></div></li></ul></div></div></div></td><td class="msource">BasicForm</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.BasicForm-isValid"></a><b><a href="source/BasicForm.html#method-Ext.form.BasicForm-isValid">isValid</a></b>()
+    :
+                                        Boolean<div class="mdesc"><div class="short">Returns true if client-side validation on the form is successful.</div><div class="long">Returns true if client-side validation on the form is successful.<div class="mdetail-params"><strong>Parameters:</strong><ul><li>None.</li></ul><strong>Returns:</strong><ul><li><code>Boolean</code><div class="sub-desc"></div></li></ul></div></div></div></td><td class="msource">BasicForm</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.BasicForm-load"></a><b><a href="source/BasicForm.html#method-Ext.form.BasicForm-load">load</a></b>(&nbsp;<code>Object&nbsp;options</code>&nbsp;)
+    :
+                                        BasicForm<div class="mdesc"><div class="short">Shortcut to do a load action.</div><div class="long">Shortcut to <a href="output/Ext.form.BasicForm.html#Ext.form.BasicForm-doAction" ext:member="doAction" ext:cls="Ext.form.BasicForm">do</a> a <a href="output/Ext.form.Action.Load.html" ext:cls="Ext.form.Action.Load">load action</a>.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>options</code> : Object<div class="sub-desc">The options to pass to the action (see <a href="output/Ext.form.BasicForm.html#Ext.form.BasicForm-doAction" ext:member="doAction" ext:cls="Ext.form.BasicForm">doAction</a> for details)</div></li></ul><strong>Returns:</strong><ul><li><code>BasicForm</code><div class="sub-desc">this</div></li></ul></div></div></div></td><td class="msource">BasicForm</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.BasicForm-loadRecord"></a><b><a href="source/BasicForm.html#method-Ext.form.BasicForm-loadRecord">loadRecord</a></b>(&nbsp;<code>Record&nbsp;record</code>&nbsp;)
+    :
+                                        BasicForm<div class="mdesc"><div class="short">Loads an Ext.data.Record into this form by calling setValues with the
+record data.
+See also trackResetOnLoad.</div><div class="long">Loads an <a href="output/Ext.data.Record.html" ext:cls="Ext.data.Record">Ext.data.Record</a> into this form by calling <a href="output/Ext.form.BasicForm.html#Ext.form.BasicForm-setValues" ext:member="setValues" ext:cls="Ext.form.BasicForm">setValues</a> with the
+<a href="output/Ext.data.Record.html#Ext.data.Record-data" ext:member="data" ext:cls="Ext.data.Record">record data</a>.
+See also <a href="output/Ext.form.BasicForm.html#Ext.form.BasicForm-trackResetOnLoad" ext:member="trackResetOnLoad" ext:cls="Ext.form.BasicForm">trackResetOnLoad</a>.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>record</code> : Record<div class="sub-desc">The record to load</div></li></ul><strong>Returns:</strong><ul><li><code>BasicForm</code><div class="sub-desc">this</div></li></ul></div></div></div></td><td class="msource">BasicForm</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.BasicForm-markInvalid"></a><b><a href="source/BasicForm.html#method-Ext.form.BasicForm-markInvalid">markInvalid</a></b>(&nbsp;<code>Array/Object&nbsp;errors</code>&nbsp;)
+    :
+                                        BasicForm<div class="mdesc"><div class="short">Mark fields in this form invalid in bulk.</div><div class="long">Mark fields in this form invalid in bulk.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>errors</code> : Array/Object<div class="sub-desc">Either an array in the form [{id:'fieldId', msg:'The message'},...] or an object hash of {id: msg, id2: msg2}</div></li></ul><strong>Returns:</strong><ul><li><code>BasicForm</code><div class="sub-desc">this</div></li></ul></div></div></div></td><td class="msource">BasicForm</td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Observable-on"></a><b><a href="source/Observable.html#method-Ext.util.Observable-on">on</a></b>(&nbsp;<code>String&nbsp;eventName</code>,&nbsp;<code>Function&nbsp;handler</code>,&nbsp;<span title="Optional" class="optional">[<code>Object&nbsp;scope</code>]</span>,&nbsp;<span title="Optional" class="optional">[<code>Object&nbsp;options</code>]</span>&nbsp;)
+    :
+                                        void<div class="mdesc"><div class="short">Appends an event handler to this object (shorthand for addListener.)</div><div class="long">Appends an event handler to this object (shorthand for <a href="output/Ext.util.Observable.html#Ext.util.Observable-addListener" ext:member="addListener" ext:cls="Ext.util.Observable">addListener</a>.)<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>eventName</code> : String<div class="sub-desc">The type of event to listen for</div></li><li><code>handler</code> : Function<div class="sub-desc">The method the event invokes</div></li><li><code>scope</code> : Object<div class="sub-desc">(optional) The scope (<code><b>this</b></code> reference) in which the handler function is executed.
+<b>If omitted, defaults to the object which fired the event.</b></div></li><li><code>options</code> : Object<div class="sub-desc">(optional) An object containing handler configuration.</div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource"><a href="output/Ext.util.Observable.html#on" ext:member="#on" ext:cls="Ext.util.Observable">Observable</a></td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Observable-purgeListeners"></a><b><a href="source/Observable.html#method-Ext.util.Observable-purgeListeners">purgeListeners</a></b>()
+    :
+                                        void<div class="mdesc"><div class="short">Removes all listeners for this object</div><div class="long">Removes all listeners for this object<div class="mdetail-params"><strong>Parameters:</strong><ul><li>None.</li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource"><a href="output/Ext.util.Observable.html#purgeListeners" ext:member="#purgeListeners" ext:cls="Ext.util.Observable">Observable</a></td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Observable-relayEvents"></a><b><a href="source/Observable-more.html#method-Ext.util.Observable-relayEvents">relayEvents</a></b>(&nbsp;<code>Object&nbsp;o</code>,&nbsp;<code>Array&nbsp;events</code>&nbsp;)
+    :
+                                        void<div class="mdesc"><div class="short">Relays selected events from the specified Observable as if the events were fired by this.</div><div class="long">Relays selected events from the specified Observable as if the events were fired by <tt><b>this</b></tt>.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>o</code> : Object<div class="sub-desc">The Observable whose events this object is to relay.</div></li><li><code>events</code> : Array<div class="sub-desc">Array of event names to relay.</div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource"><a href="output/Ext.util.Observable.html#relayEvents" ext:member="#relayEvents" ext:cls="Ext.util.Observable">Observable</a></td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.BasicForm-remove"></a><b><a href="source/BasicForm.html#method-Ext.form.BasicForm-remove">remove</a></b>(&nbsp;<code>Field&nbsp;field</code>&nbsp;)
+    :
+                                        BasicForm<div class="mdesc"><div class="short">Removes a field from the items collection (does NOT remove its markup).</div><div class="long">Removes a field from the items collection (does NOT remove its markup).<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>field</code> : Field<div class="sub-desc"></div></li></ul><strong>Returns:</strong><ul><li><code>BasicForm</code><div class="sub-desc">this</div></li></ul></div></div></div></td><td class="msource">BasicForm</td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Observable-removeListener"></a><b><a href="source/Observable.html#method-Ext.util.Observable-removeListener">removeListener</a></b>(&nbsp;<code>String&nbsp;eventName</code>,&nbsp;<code>Function&nbsp;handler</code>,&nbsp;<span title="Optional" class="optional">[<code>Object&nbsp;scope</code>]</span>&nbsp;)
+    :
+                                        void<div class="mdesc"><div class="short">Removes an event handler.</div><div class="long">Removes an event handler.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>eventName</code> : String<div class="sub-desc">The type of event the handler was associated with.</div></li><li><code>handler</code> : Function<div class="sub-desc">The handler to remove. <b>This must be a reference to the function passed into the <a href="output/Ext.util.Observable.html#Ext.util.Observable-addListener" ext:member="addListener" ext:cls="Ext.util.Observable">addListener</a> call.</b></div></li><li><code>scope</code> : Object<div class="sub-desc">(optional) The scope originally specified for the handler.</div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource"><a href="output/Ext.util.Observable.html#removeListener" ext:member="#removeListener" ext:cls="Ext.util.Observable">Observable</a></td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.BasicForm-render"></a><b><a href="source/BasicForm.html#method-Ext.form.BasicForm-render">render</a></b>()
+    :
+                                        BasicForm<div class="mdesc"><div class="short">Iterates through the Fields which have been added to this BasicForm,
+checks them for an id attribute, and calls Ext.f...</div><div class="long">Iterates through the <a href="output/Ext.form.Field.html" ext:cls="Ext.form.Field">Field</a>s which have been <a href="output/Ext.form.BasicForm.html#Ext.form.BasicForm-add" ext:member="add" ext:cls="Ext.form.BasicForm">add</a>ed to this BasicForm,
+checks them for an id attribute, and calls <a href="output/Ext.form.Field.html#Ext.form.Field-applyToMarkup" ext:member="applyToMarkup" ext:cls="Ext.form.Field">Ext.form.Field.applyToMarkup</a> on the existing dom element with that id.<div class="mdetail-params"><strong>Parameters:</strong><ul><li>None.</li></ul><strong>Returns:</strong><ul><li><code>BasicForm</code><div class="sub-desc">this</div></li></ul></div></div></div></td><td class="msource">BasicForm</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.BasicForm-reset"></a><b><a href="source/BasicForm.html#method-Ext.form.BasicForm-reset">reset</a></b>()
+    :
+                                        BasicForm<div class="mdesc"><div class="short">Resets this form.</div><div class="long">Resets this form.<div class="mdetail-params"><strong>Parameters:</strong><ul><li>None.</li></ul><strong>Returns:</strong><ul><li><code>BasicForm</code><div class="sub-desc">this</div></li></ul></div></div></div></td><td class="msource">BasicForm</td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Observable-resumeEvents"></a><b><a href="source/Observable.html#method-Ext.util.Observable-resumeEvents">resumeEvents</a></b>()
+    :
+                                        void<div class="mdesc"><div class="short">Resume firing events. (see suspendEvents)
+If events were suspended using the queueSuspended parameter, then all
+event...</div><div class="long">Resume firing events. (see <a href="output/Ext.util.Observable.html#Ext.util.Observable-suspendEvents" ext:member="suspendEvents" ext:cls="Ext.util.Observable">suspendEvents</a>)
+If events were suspended using the <tt><b>queueSuspended</b></tt> parameter, then all
+events fired during event suspension will be sent to any listeners now.<div class="mdetail-params"><strong>Parameters:</strong><ul><li>None.</li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource"><a href="output/Ext.util.Observable.html#resumeEvents" ext:member="#resumeEvents" ext:cls="Ext.util.Observable">Observable</a></td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.BasicForm-setValues"></a><b><a href="source/BasicForm.html#method-Ext.form.BasicForm-setValues">setValues</a></b>(&nbsp;<code>Array/Object&nbsp;values</code>&nbsp;)
+    :
+                                        BasicForm<div class="mdesc"><div class="short">Set values for fields in this form in bulk.</div><div class="long">Set values for fields in this form in bulk.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>values</code> : Array/Object<div class="sub-desc">Either an array in the form:<pre><code>[{id:<em>'clientName'</em>, value:<em>'Fred. Olsen Lines'</em>},
+ {id:<em>'portOfLoading'</em>, value:<em>'FXT'</em>},
+ {id:<em>'portOfDischarge'</em>, value:<em>'OSL'</em>} ]</code></pre>
+or an object hash of the form:<pre><code>{
+    clientName: <em>'Fred. Olsen Lines'</em>,
+    portOfLoading: <em>'FXT'</em>,
+    portOfDischarge: <em>'OSL'</em>
+}</code></pre></div></li></ul><strong>Returns:</strong><ul><li><code>BasicForm</code><div class="sub-desc">this</div></li></ul></div></div></div></td><td class="msource">BasicForm</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.BasicForm-submit"></a><b><a href="source/BasicForm.html#method-Ext.form.BasicForm-submit">submit</a></b>(&nbsp;<code>Object&nbsp;options</code>&nbsp;)
+    :
+                                        BasicForm<div class="mdesc"><div class="short">Shortcut to do a submit action.</div><div class="long">Shortcut to <a href="output/Ext.form.BasicForm.html#Ext.form.BasicForm-doAction" ext:member="doAction" ext:cls="Ext.form.BasicForm">do</a> a <a href="output/Ext.form.Action.Submit.html" ext:cls="Ext.form.Action.Submit">submit action</a>.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>options</code> : Object<div class="sub-desc">The options to pass to the action (see <a href="output/Ext.form.BasicForm.html#Ext.form.BasicForm-doAction" ext:member="doAction" ext:cls="Ext.form.BasicForm">doAction</a> for details).<br>
+<p><b>Note:</b> this is ignored when using the <a href="output/Ext.form.BasicForm.html#Ext.form.BasicForm-standardSubmit" ext:member="standardSubmit" ext:cls="Ext.form.BasicForm">standardSubmit</a> option.</p>
+<p>The following code:</p><pre><code>myFormPanel.getForm().submit({
+    clientValidation: true,
+    url: <em>'updateConsignment.php'</em>,
+    params: {
+        newStatus: <em>'delivered'</em>
+    },
+    success: <b>function</b>(form, action) {
+       Ext.Msg.alert(<em>'Success'</em>, action.result.msg);
+    },
+    failure: <b>function</b>(form, action) {
+        <b>switch</b> (action.failureType) {
+            <b>case</b> Ext.form.Action.CLIENT_INVALID:
+                Ext.Msg.alert(<em>'Failure'</em>, <em>'Form fields may not be submitted <b>with</b> invalid values'</em>);
+                <b>break</b>;
+            <b>case</b> Ext.form.Action.CONNECT_FAILURE:
+                Ext.Msg.alert(<em>'Failure'</em>, <em>'Ajax communication failed'</em>);
+                <b>break</b>;
+            <b>case</b> Ext.form.Action.SERVER_INVALID:
+               Ext.Msg.alert(<em>'Failure'</em>, action.result.msg);
+       }
+    }
+});</code></pre>
+would process the following server response for a successful submission:<pre><code>{
+    <em>"success"</em>:true, <i>// note this is Boolean, not string</i>
+    <em>"msg"</em>:<em>"Consignment updated"</em>
+}</code></pre>
+and the following server response for a failed submission:<pre><code>{
+    <em>"success"</em>:false, <i>// note this is Boolean, not string</i>
+    <em>"msg"</em>:<em>"You <b>do</b> not have permission to perform this operation"</em>
+}</code></pre></div></li></ul><strong>Returns:</strong><ul><li><code>BasicForm</code><div class="sub-desc">this</div></li></ul></div></div></div></td><td class="msource">BasicForm</td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Observable-suspendEvents"></a><b><a href="source/Observable.html#method-Ext.util.Observable-suspendEvents">suspendEvents</a></b>(&nbsp;<code>Boolean&nbsp;queueSuspended</code>&nbsp;)
+    :
+                                        void<div class="mdesc"><div class="short">Suspend the firing of all events. (see resumeEvents)</div><div class="long">Suspend the firing of all events. (see <a href="output/Ext.util.Observable.html#Ext.util.Observable-resumeEvents" ext:member="resumeEvents" ext:cls="Ext.util.Observable">resumeEvents</a>)<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>queueSuspended</code> : Boolean<div class="sub-desc">Pass as true to queue up suspended events to be fired
+after the <a href="output/Ext.util.Observable.html#Ext.util.Observable-resumeEvents" ext:member="resumeEvents" ext:cls="Ext.util.Observable">resumeEvents</a> call instead of discarding all suspended events;</div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource"><a href="output/Ext.util.Observable.html#suspendEvents" ext:member="#suspendEvents" ext:cls="Ext.util.Observable">Observable</a></td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Observable-un"></a><b><a href="source/Observable.html#method-Ext.util.Observable-un">un</a></b>(&nbsp;<code>String&nbsp;eventName</code>,&nbsp;<code>Function&nbsp;handler</code>,&nbsp;<span title="Optional" class="optional">[<code>Object&nbsp;scope</code>]</span>&nbsp;)
+    :
+                                        void<div class="mdesc"><div class="short">Removes an event handler (shorthand for removeListener.)</div><div class="long">Removes an event handler (shorthand for <a href="output/Ext.util.Observable.html#Ext.util.Observable-removeListener" ext:member="removeListener" ext:cls="Ext.util.Observable">removeListener</a>.)<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>eventName</code> : String<div class="sub-desc">The type of event the handler was associated with.</div></li><li><code>handler</code> : Function<div class="sub-desc">The handler to remove. <b>This must be a reference to the function passed into the <a href="output/Ext.util.Observable.html#Ext.util.Observable-addListener" ext:member="addListener" ext:cls="Ext.util.Observable">addListener</a> call.</b></div></li><li><code>scope</code> : Object<div class="sub-desc">(optional) The scope originally specified for the handler.</div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource"><a href="output/Ext.util.Observable.html#un" ext:member="#un" ext:cls="Ext.util.Observable">Observable</a></td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.BasicForm-updateRecord"></a><b><a href="source/BasicForm.html#method-Ext.form.BasicForm-updateRecord">updateRecord</a></b>(&nbsp;<code>Record&nbsp;record</code>&nbsp;)
+    :
+                                        BasicForm<div class="mdesc"><div class="short">Persists the values in this form into the passed Ext.data.Record object in a beginEdit/endEdit block.</div><div class="long">Persists the values in this form into the passed <a href="output/Ext.data.Record.html" ext:cls="Ext.data.Record">Ext.data.Record</a> object in a beginEdit/endEdit block.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>record</code> : Record<div class="sub-desc">The record to edit</div></li></ul><strong>Returns:</strong><ul><li><code>BasicForm</code><div class="sub-desc">this</div></li></ul></div></div></div></td><td class="msource">BasicForm</td></tr></tbody></table><a id="Ext.form.BasicForm-events"></a><h2>Public Events</h2><table cellspacing="0" class="member-table"><tbody><tr><th colspan="2" class="sig-header">Event</th><th class="msource-header">Defined By</th></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.BasicForm-actioncomplete"></a><b><a href="source/BasicForm.html#event-Ext.form.BasicForm-actioncomplete">actioncomplete</a></b> :
+                                      (&nbsp;<code>Form&nbsp;this</code>,&nbsp;<code>Action&nbsp;action</code>&nbsp;)
+    <div class="mdesc"><div class="short">Fires when an action is completed.</div><div class="long">Fires when an action is completed.<div class="mdetail-params"><strong style="font-weight: normal;">Listeners will be called with the following arguments:</strong><ul><li><code>this</code> : Form<div class="sub-desc"></div></li><li><code>action</code> : Action<div class="sub-desc">The <a href="output/Ext.form.Action.html" ext:cls="Ext.form.Action">Ext.form.Action</a> that completed</div></li></ul></div></div></div></td><td class="msource">BasicForm</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.BasicForm-actionfailed"></a><b><a href="source/BasicForm.html#event-Ext.form.BasicForm-actionfailed">actionfailed</a></b> :
+                                      (&nbsp;<code>Form&nbsp;this</code>,&nbsp;<code>Action&nbsp;action</code>&nbsp;)
+    <div class="mdesc"><div class="short">Fires when an action fails.</div><div class="long">Fires when an action fails.<div class="mdetail-params"><strong style="font-weight: normal;">Listeners will be called with the following arguments:</strong><ul><li><code>this</code> : Form<div class="sub-desc"></div></li><li><code>action</code> : Action<div class="sub-desc">The <a href="output/Ext.form.Action.html" ext:cls="Ext.form.Action">Ext.form.Action</a> that failed</div></li></ul></div></div></div></td><td class="msource">BasicForm</td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.form.BasicForm-beforeaction"></a><b><a href="source/BasicForm.html#event-Ext.form.BasicForm-beforeaction">beforeaction</a></b> :
+                                      (&nbsp;<code>Form&nbsp;this</code>,&nbsp;<code>Action&nbsp;action</code>&nbsp;)
+    <div class="mdesc"><div class="short">Fires before any action is performed. Return false to cancel the action.</div><div class="long">Fires before any action is performed. Return false to cancel the action.<div class="mdetail-params"><strong style="font-weight: normal;">Listeners will be called with the following arguments:</strong><ul><li><code>this</code> : Form<div class="sub-desc"></div></li><li><code>action</code> : Action<div class="sub-desc">The <a href="output/Ext.form.Action.html" ext:cls="Ext.form.Action">Ext.form.Action</a> to be performed</div></li></ul></div></div></div></td><td class="msource">BasicForm</td></tr></tbody></table></div>

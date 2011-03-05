@@ -1,0 +1,89 @@
+<html>
+<head>
+    <title>Accordion Layout</title>
+    <link rel="stylesheet" type="text/css" href="../../resources/css/ext-all.css"/>
+
+    <!-- GC -->
+    <!-- LIBS -->
+    <script type="text/javascript" src="../../adapter/ext/ext-base.js"></script>
+    <!-- ENDLIBS -->
+
+    <script type="text/javascript" src="../../ext-all.js"></script>
+
+    <style type="text/css">
+        html, body {
+            font: normal 12px verdana;
+            margin: 0;
+            padding: 0;
+            border: 0 none;
+            overflow: hidden;
+            height: 100%;
+        }
+        .empty .x-panel-body {
+            padding-top:20px;
+            text-align:center;
+            font-style:italic;
+            color: gray;
+            font-size:11px;
+        }
+    </style>
+    <script type="text/javascript">
+        Ext.onReady(function() {
+
+            var item1 = new Ext.Panel({
+                title: 'Accordion Item 1',
+                html: '&lt;empty panel&gt;',
+                cls:'empty'
+            });
+
+            var item2 = new Ext.Panel({
+                title: 'Accordion Item 2',
+                html: '&lt;empty panel&gt;',
+                cls:'empty'
+            });
+
+            var item3 = new Ext.Panel({
+                title: 'Accordion Item 3',
+                html: '&lt;empty panel&gt;',
+                cls:'empty'
+            });
+
+            var item4 = new Ext.Panel({
+                title: 'Accordion Item 4',
+                html: '&lt;empty panel&gt;',
+                cls:'empty'
+            });
+
+            var item5 = new Ext.Panel({
+                title: 'Accordion Item 5',
+                html: '&lt;empty panel&gt;',
+                cls:'empty'
+            });
+
+            var accordion = new Ext.Panel({
+                region:'west',
+                margins:'5 0 5 5',
+                split:true,
+                width: 210,
+                layout:'accordion',
+                items: [item1, item2, item3, item4, item5]
+            });
+
+            var viewport = new Ext.Viewport({
+                layout:'border',
+                items:[
+                    accordion, {
+                    region:'center',
+                    margins:'5 5 5 0',
+                    cls:'empty',
+                    bodyStyle:'background:#f1f1f1',
+                    html:'<br/><br/>&lt;empty center panel&gt;'
+                }]
+            });
+        });
+    </script>
+</head>
+<body>
+<script type="text/javascript" src="../shared/examples.js"></script><!-- EXAMPLES -->
+</body>
+</html>

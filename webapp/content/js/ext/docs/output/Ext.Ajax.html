@@ -1,0 +1,339 @@
+<div class="body-wrap" xmlns:ext="http://www.extjs.com"><div class="top-tools"><a class="inner-link" href="#Ext.Ajax-props"><img src="resources/images/default/s.gif" class="item-icon icon-prop">Properties</a>&#13;<a class="inner-link" href="#Ext.Ajax-methods"><img src="resources/images/default/s.gif" class="item-icon icon-method">Methods</a>&#13;<a class="inner-link" href="#Ext.Ajax-events"><img src="resources/images/default/s.gif" class="item-icon icon-event">Events</a>&#13;<a class="inner-link" href="#Ext.Ajax-configs"><img src="resources/images/default/s.gif" class="item-icon icon-config">Config Options</a>&#13;<a class="bookmark" href="../docs/?class=Ext.Ajax"><img src="resources/images/default/s.gif" class="item-icon icon-fav">Direct Link</a>&#13;</div><div class="inheritance res-block"><pre class="res-block-inner"><a href="output/Ext.util.Observable.html" ext:member="" ext:cls="Ext.util.Observable">Observable</a>
+  <img src="resources/elbow-end.gif"><a href="output/Ext.data.Connection.html" ext:member="" ext:cls="Ext.data.Connection">Connection</a>
+    <img src="resources/elbow-end.gif">Ajax</pre></div><h1>Class <a href="source/Connection.html#cls-Ext.Ajax">Ext.Ajax</a></h1><table cellspacing="0"><tr><td class="label">Package:</td><td class="hd-info">Ext</td></tr><tr><td class="label">Defined In:</td><td class="hd-info"><a href="source/Connection.html#cls-Ext.Ajax">Connection.js</a></td></tr><tr><td class="label">Class:</td><td class="hd-info"><a href="source/Connection.html#cls-Ext.Ajax">Ajax</a></td></tr><tr><td class="label">Extends:</td><td class="hd-info"><a href="output/Ext.data.Connection.html" ext:cls="Ext.data.Connection" ext:member="">Connection</a></td></tr></table><div class="description"><p>The global Ajax request class that provides a simple way to make Ajax requests
+with maximum flexibility.</p>
+<p>Since Ext.Ajax is a singleton, you can set common properties/events for it once
+and override them at the request function level only if necessary.</p>
+<p>Common <b>Properties</b> you may want to set are:<div class="mdetail-params"><ul>
+<li><b><tt><a href="output/Ext.Ajax.html#Ext.Ajax-method" ext:member="method" ext:cls="Ext.Ajax">method</a></tt></b><p class="sub-desc"></p></li>
+<li><b><tt><a href="output/Ext.Ajax.html#Ext.Ajax-extraParams" ext:member="extraParams" ext:cls="Ext.Ajax">extraParams</a></tt></b><p class="sub-desc"></p></li>
+<li><b><tt><a href="output/Ext.Ajax.html#Ext.Ajax-url" ext:member="url" ext:cls="Ext.Ajax">url</a></tt></b><p class="sub-desc"></p></li>
+</ul></div>
+<pre><code><i>// Default headers to pass <b>in</b> every request</i>
+Ext.Ajax.defaultHeaders = {
+    <em>'Powered-By'</em>: <em>'Ext'</em>
+};</code></pre>
+</p>
+<p>Common <b>Events</b> you may want to set are:<div class="mdetail-params"><ul>
+<li><b><tt><a href="output/Ext.data.Connection.html#Ext.data.Connection-beforerequest" ext:member="beforerequest" ext:cls="Ext.data.Connection">beforerequest</a></tt></b><p class="sub-desc"></p></li>
+<li><b><tt><a href="output/Ext.data.Connection.html#Ext.data.Connection-requestcomplete" ext:member="requestcomplete" ext:cls="Ext.data.Connection">requestcomplete</a></tt></b><p class="sub-desc"></p></li>
+<li><b><tt><a href="output/Ext.data.Connection.html#Ext.data.Connection-requestexception" ext:member="requestexception" ext:cls="Ext.data.Connection">requestexception</a></tt></b><p class="sub-desc"></p></li>
+</ul></div>
+<pre><code><i>// Example: show a spinner during all Ajax requests</i>
+Ext.Ajax.on(<em>'beforerequest'</em>, this.showSpinner, this);
+Ext.Ajax.on(<em>'requestcomplete'</em>, this.hideSpinner, this);
+Ext.Ajax.on(<em>'requestexception'</em>, this.hideSpinner, this);</code></pre>
+</p>
+<p>An example request:</p>
+<pre><code><i>// Basic request</i>
+Ext.Ajax.<a href="output/Ext.data.Connection.html#Ext.data.Connection-request" ext:member="request" ext:cls="Ext.data.Connection">request</a>({
+   url: <em>'foo.php'</em>,
+   success: someFn,
+   failure: otherFn,
+   headers: {
+       <em>'my-header'</em>: <em>'foo'</em>
+   },
+   params: { foo: <em>'bar'</em> }
+});
+
+<i>// Simple ajax form submission</i>
+Ext.Ajax.<a href="output/Ext.data.Connection.html#Ext.data.Connection-request" ext:member="request" ext:cls="Ext.data.Connection">request</a>({
+    form: <em>'some-form'</em>,
+    params: <em>'foo=bar'</em>
+});</code></pre>
+</p><br><br><i>This class is a singleton and cannot be created directly.</i></div><div class="hr"></div><a id="Ext.Ajax-configs"></a><h2>Config Options</h2><table cellspacing="0" class="member-table"><tbody><tr><th colspan="2" class="sig-header">Config Options</th><th class="msource-header">Defined By</th></tr><tr class="config-row  inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.data.Connection-disableCachingParam"></a><b><a href="source/Connection.html#cfg-Ext.data.Connection-disableCachingParam">disableCachingParam</a></b> : String<div class="mdesc">Change the parameter which is sent went disabling caching
+through a cache buster. Defaults to '_dc'</div></td><td class="msource"><a href="output/Ext.data.Connection.html#disableCachingParam" ext:member="#disableCachingParam" ext:cls="Ext.data.Connection">Connection</a></td></tr><tr class="config-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Observable-listeners"></a><b><a href="source/Observable.html#cfg-Ext.util.Observable-listeners">listeners</a></b> : Object<div class="mdesc"><div class="short">A config object containing one or more event handlers to be added to this
+object during initialization.  This should ...</div><div class="long"><p>A config object containing one or more event handlers to be added to this
+object during initialization.  This should be a valid listeners config object as specified in the
+<a href="output/Ext.util.Observable.html#Ext.util.Observable-addListener" ext:member="addListener" ext:cls="Ext.util.Observable">addListener</a> example for attaching multiple handlers at once.</p>
+<br><p><b><u>DOM events from ExtJs <a href="output/Ext.Component.html" ext:cls="Ext.Component">Components</a></u></b></p>
+<br><p>While <i>some</i> ExtJs Component classes export selected DOM events (e.g. "click", "mouseover" etc), this
+is usually only done when extra value can be added. For example the <a href="output/Ext.DataView.html" ext:cls="Ext.DataView">DataView</a>'s
+<b><code><a href="output/Ext.DataView.html#Ext.DataView-click" ext:member="click" ext:cls="Ext.DataView">click</a></code></b> event passing the node clicked on. To access DOM
+events directly from a Component's HTMLElement, listeners must be added to the <i><a href="output/Ext.Component.html#Ext.Component-getEl" ext:member="getEl" ext:cls="Ext.Component">Element</a></i> after the Component
+has been rendered. A plugin can simplify this step:<pre><code><i>// Plugin is configured <b>with</b> a listeners config object.</i>
+<i>// The Component is appended to the argument list of all handler functions.</i>
+Ext.DomObserver = Ext.extend(Object, {
+    constructor: <b>function</b>(config) {
+        this.listeners = config.listeners ? config.listeners : config;
+    },
+
+    <i>// Component passes itself into plugin&#39;s init method</i>
+    init: <b>function</b>(c) {
+        <b>var</b> p, l = this.listeners;
+        <b>for</b> (p <b>in</b> l) {
+            <b>if</b> (Ext.isFunction(l[p])) {
+                l[p] = this.createHandler(l[p], c);
+            } <b>else</b> {
+                l[p].fn = this.createHandler(l[p].fn, c);
+            }
+        }
+
+        <i>// Add the listeners to the Element immediately following the render call</i>
+        c.render = c.render.<a href="output/Function.html#Function-createSequence" ext:member="createSequence" ext:cls="Function">createSequence</a>(<b>function</b>() {
+            <b>var</b> e = c.getEl();
+            <b>if</b> (e) {
+                e.on(l);
+            }
+        });
+    },
+
+    createHandler: <b>function</b>(fn, c) {
+        <b>return</b> <b>function</b>(e) {
+            fn.call(this, e, c);
+        };
+    }
+});
+
+<b>var</b> combo = <b>new</b> Ext.form.ComboBox({
+
+    <i>// Collapse combo when its element is clicked on</i>
+    plugins: [ <b>new</b> Ext.DomObserver({
+        click: <b>function</b>(evt, comp) {
+            comp.collapse();
+        }
+    })],
+    store: myStore,
+    typeAhead: true,
+    mode: <em>'local'</em>,
+    triggerAction: <em>'all'</em>
+});</code></pre></p></div></div></td><td class="msource"><a href="output/Ext.util.Observable.html#listeners" ext:member="#listeners" ext:cls="Ext.util.Observable">Observable</a></td></tr></tbody></table><a id="Ext.Ajax-props"></a><h2>Public Properties</h2><table cellspacing="0" class="member-table"><tbody><tr><th colspan="2" class="sig-header">Property</th><th class="msource-header">Defined By</th></tr><tr class="property-row  "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Ajax-autoAbort"></a><b><a href="source/Connection.html#prop-Ext.Ajax-autoAbort">autoAbort</a></b> : Boolean<div class="mdesc">Whether a new request should abort any pending requests. (defaults to false)</div></td><td class="msource">Ajax</td></tr><tr class="property-row  "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Ajax-defaultHeaders"></a><b><a href="source/Connection.html#prop-Ext.Ajax-defaultHeaders">defaultHeaders</a></b> : Object<div class="mdesc">An object containing request headers which are added to each request made by this object
+(defaults to undefined).</div></td><td class="msource">Ajax</td></tr><tr class="property-row  "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Ajax-disableCaching"></a><b><a href="source/Connection.html#prop-Ext.Ajax-disableCaching">disableCaching</a></b> : Boolean<div class="mdesc">True to add a unique cache-buster param to GET requests. (defaults to true)</div></td><td class="msource">Ajax</td></tr><tr class="property-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Ajax-extraParams"></a><b><a href="source/Connection.html#prop-Ext.Ajax-extraParams">extraParams</a></b> : Object<div class="mdesc"><div class="short">An object containing properties which are used as extra parameters to each request made
+by this object (defaults to u...</div><div class="long">An object containing properties which are used as extra parameters to each request made
+by this object (defaults to undefined). Session information and other data that you need
+to pass with each request are commonly put here.</div></div></td><td class="msource">Ajax</td></tr><tr class="property-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Ajax-method"></a><b><a href="source/Connection.html#prop-Ext.Ajax-method">method</a></b> : String<div class="mdesc"><div class="short">The default HTTP method to be used for requests. Note that this is case-sensitive and
+should be all caps (defaults to...</div><div class="long">The default HTTP method to be used for requests. Note that this is case-sensitive and
+should be all caps (defaults to undefined; if not set but params are present will use
+<tt>"POST"</tt>, otherwise will use <tt>"GET"</tt>.)</div></div></td><td class="msource">Ajax</td></tr><tr class="property-row  "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Ajax-timeout"></a><b><a href="source/Connection.html#prop-Ext.Ajax-timeout">timeout</a></b> : Number<div class="mdesc">The timeout in milliseconds to be used for requests. (defaults to 30000)</div></td><td class="msource">Ajax</td></tr><tr class="property-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Ajax-url"></a><b><a href="source/Connection.html#prop-Ext.Ajax-url">url</a></b> : String<div class="mdesc"><div class="short">The default URL to be used for requests to the server. (defaults to undefined)
+If the server receives all requests th...</div><div class="long">The default URL to be used for requests to the server. (defaults to undefined)
+If the server receives all requests through one URL, setting this once is easier than
+entering it on every request.</div></div></td><td class="msource">Ajax</td></tr></tbody></table><a id="Ext.Ajax-methods"></a><h2>Public Methods</h2><table cellspacing="0" class="member-table"><tbody><tr><th colspan="2" class="sig-header">Method</th><th class="msource-header">Defined By</th></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.data.Connection-abort"></a><b><a href="source/Connection.html#method-Ext.data.Connection-abort">abort</a></b>(&nbsp;<span title="Optional" class="optional">[<code>Number&nbsp;transactionId</code>]</span>&nbsp;)
+    :
+                                        void<div class="mdesc"><div class="short">Aborts any outstanding request.</div><div class="long">Aborts any outstanding request.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>transactionId</code> : Number<div class="sub-desc">(Optional) defaults to the last transaction</div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource"><a href="output/Ext.data.Connection.html#abort" ext:member="#abort" ext:cls="Ext.data.Connection">Connection</a></td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Observable-addEvents"></a><b><a href="source/Observable.html#method-Ext.util.Observable-addEvents">addEvents</a></b>(&nbsp;<code>Object|String&nbsp;o</code>,&nbsp;<code>string&nbsp;Optional.</code>&nbsp;)
+    :
+                                        void<div class="mdesc"><div class="short">Adds the specified events to the list of events which this Observable may fire.</div><div class="long">Adds the specified events to the list of events which this Observable may fire.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>o</code> : Object|String<div class="sub-desc">Either an object with event names as properties with a value of <code>true</code>
+or the first event name string if multiple event names are being passed as separate parameters.</div></li><li><code>Optional.</code> : string<div class="sub-desc">Event name if multiple event names are being passed as separate parameters.
+Usage:<pre><code>this.addEvents(<em>'storeloaded'</em>, <em>'storecleared'</em>);</code></pre></div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource"><a href="output/Ext.util.Observable.html#addEvents" ext:member="#addEvents" ext:cls="Ext.util.Observable">Observable</a></td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Observable-addListener"></a><b><a href="source/Observable.html#method-Ext.util.Observable-addListener">addListener</a></b>(&nbsp;<code>String&nbsp;eventName</code>,&nbsp;<code>Function&nbsp;handler</code>,&nbsp;<span title="Optional" class="optional">[<code>Object&nbsp;scope</code>]</span>,&nbsp;<span title="Optional" class="optional">[<code>Object&nbsp;options</code>]</span>&nbsp;)
+    :
+                                        void<div class="mdesc"><div class="short">Appends an event handler to this object.</div><div class="long">Appends an event handler to this object.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>eventName</code> : String<div class="sub-desc">The name of the event to listen for.</div></li><li><code>handler</code> : Function<div class="sub-desc">The method the event invokes.</div></li><li><code>scope</code> : Object<div class="sub-desc">(optional) The scope (<code><b>this</b></code> reference) in which the handler function is executed.
+<b>If omitted, defaults to the object which fired the event.</b></div></li><li><code>options</code> : Object<div class="sub-desc">(optional) An object containing handler configuration.
+properties. This may contain any of the following properties:<ul>
+<li><b>scope</b> : Object<div class="sub-desc">The scope (<code><b>this</b></code> reference) in which the handler function is executed.
+<b>If omitted, defaults to the object which fired the event.</b></div></li>
+<li><b>delay</b> : Number<div class="sub-desc">The number of milliseconds to delay the invocation of the handler after the event fires.</div></li>
+<li><b>single</b> : Boolean<div class="sub-desc">True to add a handler to handle just the next firing of the event, and then remove itself.</div></li>
+<li><b>buffer</b> : Number<div class="sub-desc">Causes the handler to be scheduled to run in an <a href="output/Ext.util.DelayedTask.html" ext:cls="Ext.util.DelayedTask">Ext.util.DelayedTask</a> delayed
+by the specified number of milliseconds. If the event fires again within that time, the original
+handler is <em>not</em> invoked, but the new handler is scheduled in its place.</div></li>
+<li><b>target</b> : Observable<div class="sub-desc">Only call the handler if the event was fired on the target Observable, <i>not</i>
+if the event was bubbled up from a child Observable.</div></li>
+</ul><br>
+<p>
+<b>Combining Options</b><br>
+Using the options argument, it is possible to combine different types of listeners:<br>
+<br>
+A delayed, one-time listener.
+<pre><code>myDataView.on(<em>'click'</em>, this.onClick, this, {
+single: true,
+delay: 100
+});</code></pre>
+<p>
+<b>Attaching multiple handlers in 1 call</b><br>
+The method also allows for a single argument to be passed which is a config object containing properties
+which specify multiple handlers.
+<p>
+<pre><code>myGridPanel.on({
+<em>'click'</em> : {
+    fn: this.onClick,
+    scope: this,
+    delay: 100
+},
+<em>'mouseover'</em> : {
+    fn: this.onMouseOver,
+    scope: this
+},
+<em>'mouseout'</em> : {
+    fn: this.onMouseOut,
+    scope: this
+}
+});</code></pre>
+<p>
+Or a shorthand syntax:<br>
+<pre><code>myGridPanel.on({
+<em>'click'</em> : this.onClick,
+<em>'mouseover'</em> : this.onMouseOver,
+<em>'mouseout'</em> : this.onMouseOut,
+ scope: this
+});</code></pre></div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource"><a href="output/Ext.util.Observable.html#addListener" ext:member="#addListener" ext:cls="Ext.util.Observable">Observable</a></td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Observable-enableBubble"></a><b><a href="source/Observable-more.html#method-Ext.util.Observable-enableBubble">enableBubble</a></b>(&nbsp;<code>String/Array&nbsp;events</code>&nbsp;)
+    :
+                                        void<div class="mdesc"><div class="short">Enables events fired by this Observable to bubble up an owner hierarchy by calling
+this.getBubbleTarget() if present....</div><div class="long"><p>Enables events fired by this Observable to bubble up an owner hierarchy by calling
+<code>this.getBubbleTarget()</code> if present. There is no implementation in the Observable base class.</p>
+<p>This is commonly used by Ext.Components to bubble events to owner Containers. See <a href="output/Ext.Component.getBubbleTarget.html" ext:cls="Ext.Component.getBubbleTarget">Ext.Component.getBubbleTarget</a>. The default
+implementation in Ext.Component returns the Component's immediate owner. But if a known target is required, this can be overridden to
+access the required target more quickly.</p>
+<p>Example:</p><pre><code>Ext.override(Ext.form.Field, {
+    <i>//  Add functionality to Field&#39;s initComponent to enable the change event to bubble</i>
+    initComponent : Ext.form.Field.prototype.initComponent.createSequence(<b>function</b>() {
+        this.enableBubble(<em>'change'</em>);
+    }),
+
+    <i>//  We know that we want Field&#39;s events to bubble directly to the FormPanel.</i>
+    getBubbleTarget : <b>function</b>() {
+        <b>if</b> (!this.formPanel) {
+            this.formPanel = this.findParentByType(<em>'form'</em>);
+        }
+        <b>return</b> this.formPanel;
+    }
+});
+
+<b>var</b> myForm = <b>new</b> Ext.formPanel({
+    title: <em>'User Details'</em>,
+    items: [{
+        ...
+    }],
+    listeners: {
+        change: <b>function</b>() {
+            <i>// Title goes red <b>if</b> form has been modified.</i>
+            myForm.header.setStyle(<em>'color'</em>, <em>'red'</em>);
+        }
+    }
+});</code></pre><div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>events</code> : String/Array<div class="sub-desc">The event name to bubble, or an Array of event names.</div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource"><a href="output/Ext.util.Observable.html#enableBubble" ext:member="#enableBubble" ext:cls="Ext.util.Observable">Observable</a></td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Observable-fireEvent"></a><b><a href="source/Observable.html#method-Ext.util.Observable-fireEvent">fireEvent</a></b>(&nbsp;<code>String&nbsp;eventName</code>,&nbsp;<code>Object...&nbsp;args</code>&nbsp;)
+    :
+                                        Boolean<div class="mdesc"><div class="short">Fires the specified event with the passed parameters (minus the event name).
+An event may be set to bubble up an Obse...</div><div class="long"><p>Fires the specified event with the passed parameters (minus the event name).</p>
+<p>An event may be set to bubble up an Observable parent hierarchy (See <a href="output/Ext.Component.html#Ext.Component-getBubbleTarget" ext:member="getBubbleTarget" ext:cls="Ext.Component">Ext.Component.getBubbleTarget</a>)
+by calling <a href="output/Ext.util.Observable.html#Ext.util.Observable-enableBubble" ext:member="enableBubble" ext:cls="Ext.util.Observable">enableBubble</a>.</p><div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>eventName</code> : String<div class="sub-desc">The name of the event to fire.</div></li><li><code>args</code> : Object...<div class="sub-desc">Variable number of parameters are passed to handlers.</div></li></ul><strong>Returns:</strong><ul><li><code>Boolean</code><div class="sub-desc">returns false if any of the handlers return false otherwise it returns true.</div></li></ul></div></div></div></td><td class="msource"><a href="output/Ext.util.Observable.html#fireEvent" ext:member="#fireEvent" ext:cls="Ext.util.Observable">Observable</a></td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Observable-hasListener"></a><b><a href="source/Observable.html#method-Ext.util.Observable-hasListener">hasListener</a></b>(&nbsp;<code>String&nbsp;eventName</code>&nbsp;)
+    :
+                                        Boolean<div class="mdesc"><div class="short">Checks to see if this object has any listeners for a specified event</div><div class="long">Checks to see if this object has any listeners for a specified event<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>eventName</code> : String<div class="sub-desc">The name of the event to check for</div></li></ul><strong>Returns:</strong><ul><li><code>Boolean</code><div class="sub-desc">True if the event is being listened for, else false</div></li></ul></div></div></div></td><td class="msource"><a href="output/Ext.util.Observable.html#hasListener" ext:member="#hasListener" ext:cls="Ext.util.Observable">Observable</a></td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.data.Connection-isLoading"></a><b><a href="source/Connection.html#method-Ext.data.Connection-isLoading">isLoading</a></b>(&nbsp;<span title="Optional" class="optional">[<code>Number&nbsp;transactionId</code>]</span>&nbsp;)
+    :
+                                        Boolean<div class="mdesc"><div class="short">Determine whether this object has a request outstanding.</div><div class="long">Determine whether this object has a request outstanding.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>transactionId</code> : Number<div class="sub-desc">(Optional) defaults to the last transaction</div></li></ul><strong>Returns:</strong><ul><li><code>Boolean</code><div class="sub-desc">True if there is an outstanding request.</div></li></ul></div></div></div></td><td class="msource"><a href="output/Ext.data.Connection.html#isLoading" ext:member="#isLoading" ext:cls="Ext.data.Connection">Connection</a></td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Observable-on"></a><b><a href="source/Observable.html#method-Ext.util.Observable-on">on</a></b>(&nbsp;<code>String&nbsp;eventName</code>,&nbsp;<code>Function&nbsp;handler</code>,&nbsp;<span title="Optional" class="optional">[<code>Object&nbsp;scope</code>]</span>,&nbsp;<span title="Optional" class="optional">[<code>Object&nbsp;options</code>]</span>&nbsp;)
+    :
+                                        void<div class="mdesc"><div class="short">Appends an event handler to this object (shorthand for addListener.)</div><div class="long">Appends an event handler to this object (shorthand for <a href="output/Ext.util.Observable.html#Ext.util.Observable-addListener" ext:member="addListener" ext:cls="Ext.util.Observable">addListener</a>.)<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>eventName</code> : String<div class="sub-desc">The type of event to listen for</div></li><li><code>handler</code> : Function<div class="sub-desc">The method the event invokes</div></li><li><code>scope</code> : Object<div class="sub-desc">(optional) The scope (<code><b>this</b></code> reference) in which the handler function is executed.
+<b>If omitted, defaults to the object which fired the event.</b></div></li><li><code>options</code> : Object<div class="sub-desc">(optional) An object containing handler configuration.</div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource"><a href="output/Ext.util.Observable.html#on" ext:member="#on" ext:cls="Ext.util.Observable">Observable</a></td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Observable-purgeListeners"></a><b><a href="source/Observable.html#method-Ext.util.Observable-purgeListeners">purgeListeners</a></b>()
+    :
+                                        void<div class="mdesc"><div class="short">Removes all listeners for this object</div><div class="long">Removes all listeners for this object<div class="mdetail-params"><strong>Parameters:</strong><ul><li>None.</li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource"><a href="output/Ext.util.Observable.html#purgeListeners" ext:member="#purgeListeners" ext:cls="Ext.util.Observable">Observable</a></td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Observable-relayEvents"></a><b><a href="source/Observable-more.html#method-Ext.util.Observable-relayEvents">relayEvents</a></b>(&nbsp;<code>Object&nbsp;o</code>,&nbsp;<code>Array&nbsp;events</code>&nbsp;)
+    :
+                                        void<div class="mdesc"><div class="short">Relays selected events from the specified Observable as if the events were fired by this.</div><div class="long">Relays selected events from the specified Observable as if the events were fired by <tt><b>this</b></tt>.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>o</code> : Object<div class="sub-desc">The Observable whose events this object is to relay.</div></li><li><code>events</code> : Array<div class="sub-desc">Array of event names to relay.</div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource"><a href="output/Ext.util.Observable.html#relayEvents" ext:member="#relayEvents" ext:cls="Ext.util.Observable">Observable</a></td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Observable-removeListener"></a><b><a href="source/Observable.html#method-Ext.util.Observable-removeListener">removeListener</a></b>(&nbsp;<code>String&nbsp;eventName</code>,&nbsp;<code>Function&nbsp;handler</code>,&nbsp;<span title="Optional" class="optional">[<code>Object&nbsp;scope</code>]</span>&nbsp;)
+    :
+                                        void<div class="mdesc"><div class="short">Removes an event handler.</div><div class="long">Removes an event handler.<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>eventName</code> : String<div class="sub-desc">The type of event the handler was associated with.</div></li><li><code>handler</code> : Function<div class="sub-desc">The handler to remove. <b>This must be a reference to the function passed into the <a href="output/Ext.util.Observable.html#Ext.util.Observable-addListener" ext:member="addListener" ext:cls="Ext.util.Observable">addListener</a> call.</b></div></li><li><code>scope</code> : Object<div class="sub-desc">(optional) The scope originally specified for the handler.</div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource"><a href="output/Ext.util.Observable.html#removeListener" ext:member="#removeListener" ext:cls="Ext.util.Observable">Observable</a></td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.data.Connection-request"></a><b><a href="source/Connection.html#method-Ext.data.Connection-request">request</a></b>(&nbsp;<code>Object&nbsp;options</code>&nbsp;)
+    :
+                                        Number<div class="mdesc"><div class="short">Sends an HTTP request to a remote server.
+Important: Ajax server requests are asynchronous, and this call will
+return...</div><div class="long"><p>Sends an HTTP request to a remote server.</p>
+<p><b>Important:</b> Ajax server requests are asynchronous, and this call will
+return before the response has been received. Process any returned data
+in a callback function.</p>
+<pre><code>Ext.Ajax.request({
+   url: <em>'ajax_demo/sample.json'</em>,
+   success: <b>function</b>(response, opts) {
+      <b>var</b> obj = Ext.decode(response.responseText);
+      console.dir(obj);
+   },
+   failure: <b>function</b>(response, opts) {
+      console.log(<em>'server-side failure <b>with</b> status code '</em> + response.status);
+   }
+});</code></pre>
+<p>To execute a callback function in the correct scope, use the <tt>scope</tt> option.</p><div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>options</code> : Object<div class="sub-desc">An object which may contain the following properties:<ul>
+<li><b>url</b> : String/Function (Optional)<div class="sub-desc">The URL to
+which to send the request, or a function to call which returns a URL string. The scope of the
+function is specified by the <tt>scope</tt> option. Defaults to the configured
+<tt><a href="output/Ext.data.Connection.html#Ext.data.Connection-url" ext:member="url" ext:cls="Ext.data.Connection">url</a></tt>.</div></li>
+<li><b>params</b> : Object/String/Function (Optional)<div class="sub-desc">
+An object containing properties which are used as parameters to the
+request, a url encoded string or a function to call to get either. The scope of the function
+is specified by the <tt>scope</tt> option.</div></li>
+<li><b>method</b> : String (Optional)<div class="sub-desc">The HTTP method to use
+for the request. Defaults to the configured method, or if no method was configured,
+"GET" if no parameters are being sent, and "POST" if parameters are being sent.  Note that
+the method name is case-sensitive and should be all caps.</div></li>
+<li><b>callback</b> : Function (Optional)<div class="sub-desc">The
+function to be called upon receipt of the HTTP response. The callback is
+called regardless of success or failure and is passed the following
+parameters:<ul>
+<li><b>options</b> : Object<div class="sub-desc">The parameter to the request call.</div></li>
+<li><b>success</b> : Boolean<div class="sub-desc">True if the request succeeded.</div></li>
+<li><b>response</b> : Object<div class="sub-desc">The XMLHttpRequest object containing the response data.
+See <a href="http://www.w3.org/TR/XMLHttpRequest/">http://www.w3.org/TR/XMLHttpRequest/</a> for details about
+accessing elements of the response.</div></li>
+</ul></div></li>
+<li><a id="request-option-success"></a><b>success</b> : Function (Optional)<div class="sub-desc">The function
+to be called upon success of the request. The callback is passed the following
+parameters:<ul>
+<li><b>response</b> : Object<div class="sub-desc">The XMLHttpRequest object containing the response data.</div></li>
+<li><b>options</b> : Object<div class="sub-desc">The parameter to the request call.</div></li>
+</ul></div></li>
+<li><b>failure</b> : Function (Optional)<div class="sub-desc">The function
+to be called upon failure of the request. The callback is passed the
+following parameters:<ul>
+<li><b>response</b> : Object<div class="sub-desc">The XMLHttpRequest object containing the response data.</div></li>
+<li><b>options</b> : Object<div class="sub-desc">The parameter to the request call.</div></li>
+</ul></div></li>
+<li><b>scope</b> : Object (Optional)<div class="sub-desc">The scope in
+which to execute the callbacks: The "this" object for the callback function. If the <tt>url</tt>, or <tt>params</tt> options were
+specified as functions from which to draw values, then this also serves as the scope for those function calls.
+Defaults to the browser window.</div></li>
+<li><b>timeout</b> : Number (Optional)<div class="sub-desc">The timeout in milliseconds to be used for this request. Defaults to 30 seconds.</div></li>
+<li><b>form</b> : Element/HTMLElement/String (Optional)<div class="sub-desc">The <tt>&lt;form&gt;</tt>
+Element or the id of the <tt>&lt;form&gt;</tt> to pull parameters from.</div></li>
+<li><a id="request-option-isUpload"></a><b>isUpload</b> : Boolean (Optional)<div class="sub-desc"><b>Only meaningful when used
+with the <tt>form</tt> option</b>.
+<p>True if the form object is a file upload (will be set automatically if the form was
+configured with <b><tt>enctype</tt></b> "multipart/form-data").</p>
+<p>File uploads are not performed using normal "Ajax" techniques, that is they are <b>not</b>
+performed using XMLHttpRequests. Instead the form is submitted in the standard manner with the
+DOM <tt>&lt;form></tt> element temporarily modified to have its
+<a href="http://www.w3.org/TR/REC-html40/present/frames.html#adef-target">target</a> set to refer
+to a dynamically generated, hidden <tt>&lt;iframe></tt> which is inserted into the document
+but removed after the return data has been gathered.</p>
+<p>The server response is parsed by the browser to create the document for the IFRAME. If the
+server is using JSON to send the return object, then the
+<a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.17">Content-Type</a> header
+must be set to "text/html" in order to tell the browser to insert the text unchanged into the document body.</p>
+<p>The response text is retrieved from the document, and a fake XMLHttpRequest object
+is created containing a <tt>responseText</tt> property in order to conform to the
+requirements of event handlers and callbacks.</p>
+<p>Be aware that file upload packets are sent with the content type <a href="http://www.faqs.org/rfcs/rfc2388.html">multipart/form</a>
+and some server technologies (notably JEE) may require some custom processing in order to
+retrieve parameter names and parameter values from the packet content.</p>
+</div></li>
+<li><b>headers</b> : Object (Optional)<div class="sub-desc">Request
+headers to set for the request.</div></li>
+<li><b>xmlData</b> : Object (Optional)<div class="sub-desc">XML document
+to use for the post. Note: This will be used instead of params for the post
+data. Any params will be appended to the URL.</div></li>
+<li><b>jsonData</b> : Object/String (Optional)<div class="sub-desc">JSON
+data to use as the post. Note: This will be used instead of params for the post
+data. Any params will be appended to the URL.</div></li>
+<li><b>disableCaching</b> : Boolean (Optional)<div class="sub-desc">True
+to add a unique cache-buster param to GET requests.</div></li>
+</ul></p>
+<p>The options object may also contain any other property which might be needed to perform
+postprocessing in a callback because it is passed to callback functions.</p></div></li></ul><strong>Returns:</strong><ul><li><code>Number</code><div class="sub-desc">transactionId The id of the server transaction. This may be used
+to cancel the request.</div></li></ul></div></div></div></td><td class="msource"><a href="output/Ext.data.Connection.html#request" ext:member="#request" ext:cls="Ext.data.Connection">Connection</a></td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Observable-resumeEvents"></a><b><a href="source/Observable.html#method-Ext.util.Observable-resumeEvents">resumeEvents</a></b>()
+    :
+                                        void<div class="mdesc"><div class="short">Resume firing events. (see suspendEvents)
+If events were suspended using the queueSuspended parameter, then all
+event...</div><div class="long">Resume firing events. (see <a href="output/Ext.util.Observable.html#Ext.util.Observable-suspendEvents" ext:member="suspendEvents" ext:cls="Ext.util.Observable">suspendEvents</a>)
+If events were suspended using the <tt><b>queueSuspended</b></tt> parameter, then all
+events fired during event suspension will be sent to any listeners now.<div class="mdetail-params"><strong>Parameters:</strong><ul><li>None.</li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource"><a href="output/Ext.util.Observable.html#resumeEvents" ext:member="#resumeEvents" ext:cls="Ext.util.Observable">Observable</a></td></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Ajax-serializeForm"></a><b><a href="source/Connection.html#method-Ext.Ajax-serializeForm">serializeForm</a></b>(&nbsp;<code>String/HTMLElement&nbsp;form</code>&nbsp;)
+    :
+                                        String<div class="mdesc"><div class="short">Serialize the passed form into a url encoded string</div><div class="long">Serialize the passed form into a url encoded string<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>form</code> : String/HTMLElement<div class="sub-desc"></div></li></ul><strong>Returns:</strong><ul><li><code>String</code><div class="sub-desc"></div></li></ul></div></div></div></td><td class="msource">Ajax</td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Observable-suspendEvents"></a><b><a href="source/Observable.html#method-Ext.util.Observable-suspendEvents">suspendEvents</a></b>(&nbsp;<code>Boolean&nbsp;queueSuspended</code>&nbsp;)
+    :
+                                        void<div class="mdesc"><div class="short">Suspend the firing of all events. (see resumeEvents)</div><div class="long">Suspend the firing of all events. (see <a href="output/Ext.util.Observable.html#Ext.util.Observable-resumeEvents" ext:member="resumeEvents" ext:cls="Ext.util.Observable">resumeEvents</a>)<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>queueSuspended</code> : Boolean<div class="sub-desc">Pass as true to queue up suspended events to be fired
+after the <a href="output/Ext.util.Observable.html#Ext.util.Observable-resumeEvents" ext:member="resumeEvents" ext:cls="Ext.util.Observable">resumeEvents</a> call instead of discarding all suspended events;</div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource"><a href="output/Ext.util.Observable.html#suspendEvents" ext:member="#suspendEvents" ext:cls="Ext.util.Observable">Observable</a></td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.util.Observable-un"></a><b><a href="source/Observable.html#method-Ext.util.Observable-un">un</a></b>(&nbsp;<code>String&nbsp;eventName</code>,&nbsp;<code>Function&nbsp;handler</code>,&nbsp;<span title="Optional" class="optional">[<code>Object&nbsp;scope</code>]</span>&nbsp;)
+    :
+                                        void<div class="mdesc"><div class="short">Removes an event handler (shorthand for removeListener.)</div><div class="long">Removes an event handler (shorthand for <a href="output/Ext.util.Observable.html#Ext.util.Observable-removeListener" ext:member="removeListener" ext:cls="Ext.util.Observable">removeListener</a>.)<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>eventName</code> : String<div class="sub-desc">The type of event the handler was associated with.</div></li><li><code>handler</code> : Function<div class="sub-desc">The handler to remove. <b>This must be a reference to the function passed into the <a href="output/Ext.util.Observable.html#Ext.util.Observable-addListener" ext:member="addListener" ext:cls="Ext.util.Observable">addListener</a> call.</b></div></li><li><code>scope</code> : Object<div class="sub-desc">(optional) The scope originally specified for the handler.</div></li></ul><strong>Returns:</strong><ul><li>void</li></ul></div></div></div></td><td class="msource"><a href="output/Ext.util.Observable.html#un" ext:member="#un" ext:cls="Ext.util.Observable">Observable</a></td></tr></tbody></table><a id="Ext.Ajax-events"></a><h2>Public Events</h2><table cellspacing="0" class="member-table"><tbody><tr><th colspan="2" class="sig-header">Event</th><th class="msource-header">Defined By</th></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.data.Connection-beforerequest"></a><b><a href="source/Connection.html#event-Ext.data.Connection-beforerequest">beforerequest</a></b> :
+                                      (&nbsp;<code>Connection&nbsp;conn</code>,&nbsp;<code>Object&nbsp;options</code>&nbsp;)
+    <div class="mdesc"><div class="short">Fires before a network request is made to retrieve a data object.</div><div class="long">Fires before a network request is made to retrieve a data object.<div class="mdetail-params"><strong style="font-weight: normal;">Listeners will be called with the following arguments:</strong><ul><li><code>conn</code> : Connection<div class="sub-desc">This Connection object.</div></li><li><code>options</code> : Object<div class="sub-desc">The options config object passed to the <a href="output/Ext.data.Connection.html#Ext.data.Connection-request" ext:member="request" ext:cls="Ext.data.Connection">request</a> method.</div></li></ul></div></div></div></td><td class="msource"><a href="output/Ext.data.Connection.html#beforerequest" ext:member="#beforerequest" ext:cls="Ext.data.Connection">Connection</a></td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.data.Connection-requestcomplete"></a><b><a href="source/Connection.html#event-Ext.data.Connection-requestcomplete">requestcomplete</a></b> :
+                                      (&nbsp;<code>Connection&nbsp;conn</code>,&nbsp;<code>Object&nbsp;response</code>,&nbsp;<code>Object&nbsp;options</code>&nbsp;)
+    <div class="mdesc"><div class="short">Fires if the request was successfully completed.</div><div class="long">Fires if the request was successfully completed.<div class="mdetail-params"><strong style="font-weight: normal;">Listeners will be called with the following arguments:</strong><ul><li><code>conn</code> : Connection<div class="sub-desc">This Connection object.</div></li><li><code>response</code> : Object<div class="sub-desc">The XHR object containing the response data.
+See <a href="http://www.w3.org/TR/XMLHttpRequest/">The XMLHttpRequest Object</a>
+for details.</div></li><li><code>options</code> : Object<div class="sub-desc">The options config object passed to the <a href="output/Ext.data.Connection.html#Ext.data.Connection-request" ext:member="request" ext:cls="Ext.data.Connection">request</a> method.</div></li></ul></div></div></div></td><td class="msource"><a href="output/Ext.data.Connection.html#requestcomplete" ext:member="#requestcomplete" ext:cls="Ext.data.Connection">Connection</a></td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.data.Connection-requestexception"></a><b><a href="source/Connection.html#event-Ext.data.Connection-requestexception">requestexception</a></b> :
+                                      (&nbsp;<code>Connection&nbsp;conn</code>,&nbsp;<code>Object&nbsp;response</code>,&nbsp;<code>Object&nbsp;options</code>&nbsp;)
+    <div class="mdesc"><div class="short">Fires if an error HTTP status was returned from the server.
+See &lt;a href="http://www.w3.org/Protocols/rfc2616/rfc2616-...</div><div class="long">Fires if an error HTTP status was returned from the server.
+See <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html">HTTP Status Code Definitions</a>
+for details of HTTP status codes.<div class="mdetail-params"><strong style="font-weight: normal;">Listeners will be called with the following arguments:</strong><ul><li><code>conn</code> : Connection<div class="sub-desc">This Connection object.</div></li><li><code>response</code> : Object<div class="sub-desc">The XHR object containing the response data.
+See <a href="http://www.w3.org/TR/XMLHttpRequest/">The XMLHttpRequest Object</a>
+for details.</div></li><li><code>options</code> : Object<div class="sub-desc">The options config object passed to the <a href="output/Ext.data.Connection.html#Ext.data.Connection-request" ext:member="request" ext:cls="Ext.data.Connection">request</a> method.</div></li></ul></div></div></div></td><td class="msource"><a href="output/Ext.data.Connection.html#requestexception" ext:member="#requestexception" ext:cls="Ext.data.Connection">Connection</a></td></tr></tbody></table></div>

@@ -1,0 +1,136 @@
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <title>The source code</title>
+    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+</head>
+<body  onload="prettyPrint();">
+    <pre class="prettyprint lang-js">/*!
+ * Ext JS Library 3.3.1
+ * Copyright(c) 2006-2010 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
+ */
+<div id="cls-Ext.Viewport"></div>/**
+ * @class Ext.Viewport
+ * @extends Ext.Container
+ * <p>A specialized container representing the viewable application area (the browser viewport).</p>
+ * <p>The Viewport renders itself to the document body, and automatically sizes itself to the size of
+ * the browser viewport and manages window resizing. There may only be one Viewport created
+ * in a page. Inner layouts are available by virtue of the fact that all {@link Ext.Panel Panel}s
+ * added to the Viewport, either through its {@link #items}, or through the items, or the {@link #add}
+ * method of any of its child Panels may themselves have a layout.</p>
+ * <p>The Viewport does not provide scrolling, so child Panels within the Viewport should provide
+ * for scrolling if needed using the {@link #autoScroll} config.</p>
+ * <p>An example showing a classic application border layout:</p><pre><code>
+new Ext.Viewport({
+    layout: 'border',
+    items: [{
+        region: 'north',
+        html: '&lt;h1 class="x-panel-header">Page Title&lt;/h1>',
+        autoHeight: true,
+        border: false,
+        margins: '0 0 5 0'
+    }, {
+        region: 'west',
+        collapsible: true,
+        title: 'Navigation',
+        width: 200
+        // the west region might typically utilize a {@link Ext.tree.TreePanel TreePanel} or a Panel with {@link Ext.layout.AccordionLayout Accordion layout}
+    }, {
+        region: 'south',
+        title: 'Title for Panel',
+        collapsible: true,
+        html: 'Information goes here',
+        split: true,
+        height: 100,
+        minHeight: 100
+    }, {
+        region: 'east',
+        title: 'Title for the Grid Panel',
+        collapsible: true,
+        split: true,
+        width: 200,
+        xtype: 'grid',
+        // remaining grid configuration not shown ...
+        // notice that the GridPanel is added directly as the region
+        // it is not "overnested" inside another Panel
+    }, {
+        region: 'center',
+        xtype: 'tabpanel', // TabPanel itself has no title
+        items: {
+            title: 'Default Tab',
+            html: 'The first tab\'s content. Others may be added dynamically'
+        }
+    }]
+});
+</code></pre>
+ * @constructor
+ * Create a new Viewport
+ * @param {Object} config The config object
+ * @xtype viewport
+ */
+Ext.Viewport = Ext.extend(Ext.Container, {
+    /*
+     * Privatize config options which, if used, would interfere with the
+     * correct operation of the Viewport as the sole manager of the
+     * layout of the document body.
+     */
+    <div id="cfg-Ext.Viewport-applyTo"></div>/**
+     * @cfg {Mixed} applyTo @hide
+     */
+    <div id="cfg-Ext.Viewport-allowDomMove"></div>/**
+     * @cfg {Boolean} allowDomMove @hide
+     */
+    <div id="cfg-Ext.Viewport-hideParent"></div>/**
+     * @cfg {Boolean} hideParent @hide
+     */
+    <div id="cfg-Ext.Viewport-renderTo"></div>/**
+     * @cfg {Mixed} renderTo @hide
+     */
+    <div id="cfg-Ext.Viewport-hideParent"></div>/**
+     * @cfg {Boolean} hideParent @hide
+     */
+    <div id="cfg-Ext.Viewport-height"></div>/**
+     * @cfg {Number} height @hide
+     */
+    <div id="cfg-Ext.Viewport-width"></div>/**
+     * @cfg {Number} width @hide
+     */
+    <div id="cfg-Ext.Viewport-autoHeight"></div>/**
+     * @cfg {Boolean} autoHeight @hide
+     */
+    <div id="cfg-Ext.Viewport-autoWidth"></div>/**
+     * @cfg {Boolean} autoWidth @hide
+     */
+    <div id="cfg-Ext.Viewport-deferHeight"></div>/**
+     * @cfg {Boolean} deferHeight @hide
+     */
+    <div id="cfg-Ext.Viewport-monitorResize"></div>/**
+     * @cfg {Boolean} monitorResize @hide
+     */
+
+    initComponent : function() {
+        Ext.Viewport.superclass.initComponent.call(this);
+        document.getElementsByTagName('html')[0].className += ' x-viewport';
+        this.el = Ext.getBody();
+        this.el.setHeight = Ext.emptyFn;
+        this.el.setWidth = Ext.emptyFn;
+        this.el.setSize = Ext.emptyFn;
+        this.el.dom.scroll = 'no';
+        this.allowDomMove = false;
+        this.autoWidth = true;
+        this.autoHeight = true;
+        Ext.EventManager.onWindowResize(this.fireResize, this);
+        this.renderTo = this.el;
+    },
+
+    fireResize : function(w, h){
+        this.fireEvent('resize', this, w, h, w, h);
+    }
+});
+Ext.reg('viewport', Ext.Viewport);
+</pre>    
+</body>
+</html>

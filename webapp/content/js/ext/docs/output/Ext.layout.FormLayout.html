@@ -1,0 +1,196 @@
+<div class="body-wrap" xmlns:ext="http://www.extjs.com"><div class="top-tools"><a class="inner-link" href="#Ext.layout.FormLayout-props"><img src="resources/images/default/s.gif" class="item-icon icon-prop">Properties</a>&#13;<a class="inner-link" href="#Ext.layout.FormLayout-methods"><img src="resources/images/default/s.gif" class="item-icon icon-method">Methods</a>&#13;<a class="inner-link" href="#Ext.layout.FormLayout-events"><img src="resources/images/default/s.gif" class="item-icon icon-event">Events</a>&#13;<a class="inner-link" href="#Ext.layout.FormLayout-configs"><img src="resources/images/default/s.gif" class="item-icon icon-config">Config Options</a>&#13;<a class="bookmark" href="../docs/?class=Ext.layout.FormLayout"><img src="resources/images/default/s.gif" class="item-icon icon-fav">Direct Link</a>&#13;</div><div class="inheritance res-block"><pre class="res-block-inner"><a href="output/Ext.layout.ContainerLayout.html" ext:member="" ext:cls="Ext.layout.ContainerLayout">ContainerLayout</a>
+  <img src="resources/elbow-end.gif"><a href="output/Ext.layout.AnchorLayout.html" ext:member="" ext:cls="Ext.layout.AnchorLayout">AnchorLayout</a>
+    <img src="resources/elbow-end.gif">FormLayout</pre></div><h1>Class <a href="source/FormLayout.html#cls-Ext.layout.FormLayout">Ext.layout.FormLayout</a></h1><table cellspacing="0"><tr><td class="label">Package:</td><td class="hd-info">Ext.layout</td></tr><tr><td class="label">Defined In:</td><td class="hd-info"><a href="source/FormLayout.html#cls-Ext.layout.FormLayout">FormLayout.js</a></td></tr><tr><td class="label">Class:</td><td class="hd-info"><a href="source/FormLayout.html#cls-Ext.layout.FormLayout">FormLayout</a></td></tr><tr><td class="label">Extends:</td><td class="hd-info"><a href="output/Ext.layout.AnchorLayout.html" ext:cls="Ext.layout.AnchorLayout" ext:member="">AnchorLayout</a></td></tr></table><div class="description"><p>This layout manager is specifically designed for rendering and managing child Components of
+<a href="output/Ext.form.FormPanel.html" ext:cls="Ext.form.FormPanel">forms</a>. It is responsible for rendering the labels of
+<a href="output/Ext.form.Field.html" ext:cls="Ext.form.Field">Field</a>s.</p>
+<p>This layout manager is used when a Container is configured with the <tt>layout:'form'</tt>
+<a href="output/Ext.Container.html#Ext.Container-layout" ext:member="layout" ext:cls="Ext.Container">layout</a> config option, and should generally not need to be created directly
+via the new keyword. See <tt><b><a href="output/Ext.Container.html#Ext.Container-layout" ext:member="layout" ext:cls="Ext.Container">Ext.Container.layout</a></b></tt> for additional details.</p>
+<p>In an application, it will usually be preferrable to use a <a href="output/Ext.form.FormPanel.html" ext:cls="Ext.form.FormPanel">FormPanel</a>
+(which is configured with FormLayout as its layout class by default) since it also provides built-in
+functionality for <a href="output/Ext.form.BasicForm.html#Ext.form.BasicForm-doAction" ext:member="doAction" ext:cls="Ext.form.BasicForm">loading, validating and submitting</a> the form.</p>
+<p>A <a href="output/Ext.Container.html" ext:cls="Ext.Container">Container</a> <i>using</i> the FormLayout layout manager (e.g.
+<a href="output/Ext.form.FormPanel.html" ext:cls="Ext.form.FormPanel">Ext.form.FormPanel</a> or specifying <tt>layout:'form'</tt>) can also accept the following
+layout-specific config properties:<div class="mdetail-params"><ul>
+<li><b><tt><a href="output/Ext.form.FormPanel.html#Ext.form.FormPanel-hideLabels" ext:member="hideLabels" ext:cls="Ext.form.FormPanel">hideLabels</a></tt></b></li>
+<li><b><tt><a href="output/Ext.form.FormPanel.html#Ext.form.FormPanel-labelAlign" ext:member="labelAlign" ext:cls="Ext.form.FormPanel">labelAlign</a></tt></b></li>
+<li><b><tt><a href="output/Ext.form.FormPanel.html#Ext.form.FormPanel-labelPad" ext:member="labelPad" ext:cls="Ext.form.FormPanel">labelPad</a></tt></b></li>
+<li><b><tt><a href="output/Ext.form.FormPanel.html#Ext.form.FormPanel-labelSeparator" ext:member="labelSeparator" ext:cls="Ext.form.FormPanel">labelSeparator</a></tt></b></li>
+<li><b><tt><a href="output/Ext.form.FormPanel.html#Ext.form.FormPanel-labelWidth" ext:member="labelWidth" ext:cls="Ext.form.FormPanel">labelWidth</a></tt></b></li>
+</ul></div></p>
+<p>Any Component (including Fields) managed by FormLayout accepts the following as a config option:
+<div class="mdetail-params"><ul>
+<li><b><tt><a href="output/Ext.Component.html#Ext.Component-anchor" ext:member="anchor" ext:cls="Ext.Component">anchor</a></tt></b></li>
+</ul></div></p>
+<p>Any Component managed by FormLayout may be rendered as a form field (with an associated label) by
+configuring it with a non-null <b><tt><a href="output/Ext.Component.html#Ext.Component-fieldLabel" ext:member="fieldLabel" ext:cls="Ext.Component">fieldLabel</a></tt></b>. Components configured
+in this way may be configured with the following options which affect the way the FormLayout renders them:
+<div class="mdetail-params"><ul>
+<li><b><tt><a href="output/Ext.Component.html#Ext.Component-clearCls" ext:member="clearCls" ext:cls="Ext.Component">clearCls</a></tt></b></li>
+<li><b><tt><a href="output/Ext.Component.html#Ext.Component-fieldLabel" ext:member="fieldLabel" ext:cls="Ext.Component">fieldLabel</a></tt></b></li>
+<li><b><tt><a href="output/Ext.Component.html#Ext.Component-hideLabel" ext:member="hideLabel" ext:cls="Ext.Component">hideLabel</a></tt></b></li>
+<li><b><tt><a href="output/Ext.Component.html#Ext.Component-itemCls" ext:member="itemCls" ext:cls="Ext.Component">itemCls</a></tt></b></li>
+<li><b><tt><a href="output/Ext.Component.html#Ext.Component-labelSeparator" ext:member="labelSeparator" ext:cls="Ext.Component">labelSeparator</a></tt></b></li>
+<li><b><tt><a href="output/Ext.Component.html#Ext.Component-labelStyle" ext:member="labelStyle" ext:cls="Ext.Component">labelStyle</a></tt></b></li>
+</ul></div></p>
+<p>Example usage:</p>
+<pre><code><i>// Required <b>if</b> showing validation messages</i>
+Ext.QuickTips.init();
+
+<i>// While you can create a basic Panel <b>with</b> layout:<em>'form'</em>, practically</i>
+<i>// you should usually use a FormPanel to also get its form functionality</i>
+<i>// since it already creates a FormLayout internally.</i>
+<b>var</b> form = <b>new</b> Ext.form.FormPanel({
+    title: <em>'Form Layout'</em>,
+    bodyStyle: <em>'padding:15px'</em>,
+    width: 350,
+    defaultType: <em>'textfield'</em>,
+    defaults: {
+        <i>// applied to each contained item</i>
+        width: 230,
+        msgTarget: <em>'side'</em>
+    },
+    items: [{
+            fieldLabel: <em>'First Name'</em>,
+            name: <em>'first'</em>,
+            allowBlank: false,
+            <a href="output/Ext.Component.html#Ext.Component-labelSeparator" ext:member="labelSeparator" ext:cls="Ext.Component">labelSeparator</a>: <em>':'</em> <i>// override labelSeparator layout config</i>
+        },{
+            fieldLabel: <em>'Last Name'</em>,
+            name: <em>'last'</em>
+        },{
+            fieldLabel: <em>'Email'</em>,
+            name: <em>'email'</em>,
+            vtype:<em>'email'</em>
+        }, {
+            xtype: <em>'textarea'</em>,
+            hideLabel: true,     <i>// override hideLabels layout config</i>
+            name: <em>'msg'</em>,
+            anchor: <em>'100% -53'</em>
+        }
+    ],
+    buttons: [
+        {text: <em>'Save'</em>},
+        {text: <em>'Cancel'</em>}
+    ],
+    layoutConfig: {
+        <a href="output/Ext.layout.FormLayout.html#Ext.layout.FormLayout-labelSeparator" ext:member="labelSeparator" ext:cls="Ext.layout.FormLayout">labelSeparator</a>: <em>'~'</em> <i>// superseded by assignment below</i>
+    },
+    <i>// config options applicable to container when layout=<em>'form'</em>:</i>
+    hideLabels: false,
+    labelAlign: <em>'left'</em>,   <i>// or <em>'right'</em> or <em>'top'</em></i>
+    <a href="output/Ext.form.FormPanel.html#Ext.form.FormPanel-labelSeparator" ext:member="labelSeparator" ext:cls="Ext.form.FormPanel">labelSeparator</a>: <em>'>>'</em>, <i>// takes precedence over layoutConfig value</i>
+    labelWidth: 65,       <i>// defaults to 100</i>
+    labelPad: 8           <i>// defaults to 5, must specify labelWidth to be honored</i>
+});</code></pre></div><div class="hr"></div><a id="Ext.layout.FormLayout-configs"></a><h2>Config Options</h2><table cellspacing="0" class="member-table"><tbody><tr><th colspan="2" class="sig-header">Config Options</th><th class="msource-header">Defined By</th></tr><tr class="config-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.layout.AnchorLayout-anchor"></a><b><a href="source/AnchorLayout.html#cfg-Ext.layout.AnchorLayout-anchor">anchor</a></b> : String<div class="mdesc"><div class="short">This configuation option is to be applied to child items of a container managed by
+this layout (ie. configured with l...</div><div class="long"><p>This configuation option is to be applied to <b>child <tt>items</tt></b> of a container managed by
+this layout (ie. configured with <tt>layout:'anchor'</tt>).</p><br/>
+<p>This value is what tells the layout how an item should be anchored to the container. <tt>items</tt>
+added to an AnchorLayout accept an anchoring-specific config property of <b>anchor</b> which is a string
+containing two values: the horizontal anchor value and the vertical anchor value (for example, '100% 50%').
+The following types of anchor values are supported:<div class="mdetail-params"><ul>
+<li><b>Percentage</b> : Any value between 1 and 100, expressed as a percentage.<div class="sub-desc">
+The first anchor is the percentage width that the item should take up within the container, and the
+second is the percentage height.  For example:<pre><code><i>// two values specified</i>
+anchor: <em>'100% 50%'</em> <i>// render item complete width of the container and</i>
+                   <i>// 1/2 height of the container</i>
+<i>// one value specified</i>
+anchor: <em>'100%'</em>     <i>// the width value; the height will <b>default</b> to auto</i></code></pre></div></li>
+<li><b>Offsets</b> : Any positive or negative integer value.<div class="sub-desc">
+This is a raw adjustment where the first anchor is the offset from the right edge of the container,
+and the second is the offset from the bottom edge. For example:<pre><code><i>// two values specified</i>
+anchor: <em>'-50 -100'</em> <i>// render item the complete width of the container</i>
+                   <i>// minus 50 pixels and</i>
+                   <i>// the complete height minus 100 pixels.</i>
+<i>// one value specified</i>
+anchor: <em>'-50'</em>      <i>// anchor value is assumed to be the right offset value</i>
+                   <i>// bottom offset will <b>default</b> to 0</i></code></pre></div></li>
+<li><b>Sides</b> : Valid values are <tt>'right'</tt> (or <tt>'r'</tt>) and <tt>'bottom'</tt>
+(or <tt>'b'</tt>).<div class="sub-desc">
+Either the container must have a fixed size or an anchorSize config value defined at render time in
+order for these to have any effect.</div></li>
+<li><b>Mixed</b> : <div class="sub-desc">
+Anchor values can also be mixed as needed.  For example, to render the width offset from the container
+right edge by 50 pixels and 75% of the container's height use:
+<pre><code>anchor: <em>'-50 75%'</em></code></pre></div></li>
+</ul></div></div></div></td><td class="msource"><a href="output/Ext.layout.AnchorLayout.html#anchor" ext:member="#anchor" ext:cls="Ext.layout.AnchorLayout">AnchorLayout</a></td></tr><tr class="config-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.layout.AnchorLayout-defaultAnchor"></a><b><a href="source/AnchorLayout.html#cfg-Ext.layout.AnchorLayout-defaultAnchor">defaultAnchor</a></b> : String<div class="mdesc"><div class="short">default anchor for all child container items applied if no anchor or specific width is set on the child item.  Defaul...</div><div class="long">default anchor for all child container items applied if no anchor or specific width is set on the child item.  Defaults to '100%'.</div></div></td><td class="msource"><a href="output/Ext.layout.AnchorLayout.html#defaultAnchor" ext:member="#defaultAnchor" ext:cls="Ext.layout.AnchorLayout">AnchorLayout</a></td></tr><tr class="config-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.layout.ContainerLayout-extraCls"></a><b><a href="source/ContainerLayout.html#cfg-Ext.layout.ContainerLayout-extraCls">extraCls</a></b> : String<div class="mdesc"><div class="short">An optional extra CSS class that will be added to the container. This can be useful for adding
+customized styles to t...</div><div class="long"><p>An optional extra CSS class that will be added to the container. This can be useful for adding
+customized styles to the container or any of its children using standard CSS rules. See
+<a href="output/Ext.Component.html" ext:cls="Ext.Component">Ext.Component</a>.<a href="output/Ext.Component.html#Ext.Component-ctCls" ext:member="ctCls" ext:cls="Ext.Component">ctCls</a> also.</p>
+<p><b>Note</b>: <tt>extraCls</tt> defaults to <tt>''</tt> except for the following classes
+which assign a value by default:
+<div class="mdetail-params"><ul>
+<li><a href="output/Ext.layout.AbsoluteLayout.html" ext:cls="Ext.layout.AbsoluteLayout">Absolute Layout</a> : <tt>'x-abs-layout-item'</tt></li>
+<li><a href="output/Ext.layout.Box.html" ext:cls="Ext.layout.Box">Box Layout</a> : <tt>'x-box-item'</tt></li>
+<li><a href="output/Ext.layout.ColumnLayout.html" ext:cls="Ext.layout.ColumnLayout">Column Layout</a> : <tt>'x-column'</tt></li>
+</ul></div>
+To configure the above Classes with an extra CSS class append to the default.  For example,
+for ColumnLayout:<pre><code>extraCls: <em>'x-column custom-class'</em></code></pre>
+</p></div></div></td><td class="msource"><a href="output/Ext.layout.ContainerLayout.html#extraCls" ext:member="#extraCls" ext:cls="Ext.layout.ContainerLayout">ContainerLayout</a></td></tr><tr class="config-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.layout.FormLayout-fieldTpl"></a><b><a href="source/FormLayout.html#cfg-Ext.layout.FormLayout-fieldTpl">fieldTpl</a></b> : Ext.Template<div class="mdesc"><div class="short">A compiled Ext.Template for rendering
+the fully wrapped, labeled and styled form Field. Defaults to:new Ext.Template(...</div><div class="long">A <a href="output/Ext.Template.html#Ext.Template-compile" ext:member="compile" ext:cls="Ext.Template">compile</a>d <a href="output/Ext.Template.html" ext:cls="Ext.Template">Ext.Template</a> for rendering
+the fully wrapped, labeled and styled form Field. Defaults to:</p><pre><code><b>new</b> Ext.Template(
+    &#39;&lt;div class=<em>"x-form-item {itemCls}"</em> tabIndex=<em>"-1"</em>>&#39;,
+        &#39;&lt;&#108;abel <b>for</b>=<em>"{id}"</em> style=<em>"{labelStyle}"</em> class=<em>"x-form-item-&#108;abel"</em>>{&#108;abel}{labelSeparator}&lt;/&#108;abel>&#39;,
+        &#39;&lt;div class=<em>"x-form-element"</em> id=<em>"x-form-el-{id}"</em> style=<em>"{elementStyle}"</em>>&#39;,
+        &#39;&lt;/div>&lt;div class=<em>"{clearCls}"</em>>&lt;/div>&#39;,
+    <em>'&lt;/div>'</em>
+);</code></pre>
+<p>This may be specified to produce a different DOM structure when rendering form Fields.</p>
+<p>A description of the properties within the template follows:</p><div class="mdetail-params"><ul>
+<li><b><tt>itemCls</tt></b> : String<div class="sub-desc">The CSS class applied to the outermost div wrapper
+that contains this field label and field element (the default class is <tt>'x-form-item'</tt> and <tt>itemCls</tt>
+will be added to that). If supplied, <tt>itemCls</tt> at the field level will override the default <tt>itemCls</tt>
+supplied at the container level.</div></li>
+<li><b><tt>id</tt></b> : String<div class="sub-desc">The id of the Field</div></li>
+<li><b><tt><a href="output/Ext.layout.FormLayout.html#Ext.layout.FormLayout-labelStyle" ext:member="labelStyle" ext:cls="Ext.layout.FormLayout">labelStyle</a></tt></b> : String<div class="sub-desc">
+A CSS style specification string to add to the field label for this field (defaults to <tt>''</tt> or the
+<a href="output/Ext.layout.FormLayout.html#Ext.layout.FormLayout-labelStyle" ext:member="labelStyle" ext:cls="Ext.layout.FormLayout">layout's value for <tt>labelStyle</tt></a>).</div></li>
+<li><b><tt>label</tt></b> : String<div class="sub-desc">The text to display as the label for this
+field (defaults to <tt>''</tt>)</div></li>
+<li><b><tt><a href="output/Ext.layout.FormLayout.html#Ext.layout.FormLayout-labelSeparator" ext:member="labelSeparator" ext:cls="Ext.layout.FormLayout">labelSeparator</a></tt></b> : String<div class="sub-desc">The separator to display after
+the text of the label for this field (defaults to a colon <tt>':'</tt> or the
+<a href="output/Ext.layout.FormLayout.html#Ext.layout.FormLayout-labelSeparator" ext:member="labelSeparator" ext:cls="Ext.layout.FormLayout">layout's value for labelSeparator</a>). To hide the separator use empty string ''.</div></li>
+<li><b><tt>elementStyle</tt></b> : String<div class="sub-desc">The styles text for the input element's wrapper.</div></li>
+<li><b><tt>clearCls</tt></b> : String<div class="sub-desc">The CSS class to apply to the special clearing div
+rendered directly after each form field wrapper (defaults to <tt>'x-form-clear-left'</tt>)</div></li>
+</ul></div>
+<p>Also see <tt><a href="output/Ext.layout.FormLayout.html#Ext.layout.FormLayout-getTemplateArgs" ext:member="getTemplateArgs" ext:cls="Ext.layout.FormLayout">getTemplateArgs</a></tt></p></div></div></td><td class="msource">FormLayout</td></tr><tr class="config-row  "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.layout.FormLayout-labelSeparator"></a><b><a href="source/FormLayout.html#cfg-Ext.layout.FormLayout-labelSeparator">labelSeparator</a></b> : String<div class="mdesc">See <a href="output/Ext.form.FormPanel.html" ext:cls="Ext.form.FormPanel">Ext.form.FormPanel</a>.<a href="output/Ext.form.FormPanel.html#Ext.form.FormPanel-labelSeparator" ext:member="labelSeparator" ext:cls="Ext.form.FormPanel">labelSeparator</a>.  Configuration
+of this property at the <b>container</b> level takes precedence.</div></td><td class="msource">FormLayout</td></tr><tr class="config-row  inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.layout.ContainerLayout-renderHidden"></a><b><a href="source/ContainerLayout.html#cfg-Ext.layout.ContainerLayout-renderHidden">renderHidden</a></b> : Boolean<div class="mdesc">True to hide each contained item on render (defaults to false).</div></td><td class="msource"><a href="output/Ext.layout.ContainerLayout.html#renderHidden" ext:member="#renderHidden" ext:cls="Ext.layout.ContainerLayout">ContainerLayout</a></td></tr><tr class="config-row  "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.layout.FormLayout-trackLabels"></a><b><a href="source/FormLayout.html#cfg-Ext.layout.FormLayout-trackLabels">trackLabels</a></b> : Boolean<div class="mdesc">True to show/hide the field label when the field is hidden. Defaults to <tt>true</tt>.</div></td><td class="msource">FormLayout</td></tr></tbody></table><a id="Ext.layout.FormLayout-props"></a><h2>Public Properties</h2><table cellspacing="0" class="member-table"><tbody><tr><th colspan="2" class="sig-header">Property</th><th class="msource-header">Defined By</th></tr><tr class="property-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.layout.ContainerLayout-fieldTpl"></a><b><a href="source/ContainerLayout.html#prop-Ext.layout.ContainerLayout-fieldTpl">fieldTpl</a></b> : Ext.Template<div class="mdesc"><div class="short">The Ext.Template used by Field rendering layout classes (such as
+Ext.layout.FormLayout) to create the DOM structure o...</div><div class="long">The <a href="output/Ext.Template.html" ext:cls="Ext.Template">Ext.Template</a> used by Field rendering layout classes (such as
+<a href="output/Ext.layout.FormLayout.html" ext:cls="Ext.layout.FormLayout">Ext.layout.FormLayout</a>) to create the DOM structure of a fully wrapped,
+labeled and styled form Field. A default Template is supplied, but this may be
+overriden to create custom field structures. The template processes values returned from
+<a href="output/Ext.layout.FormLayout.html#Ext.layout.FormLayout-getTemplateArgs" ext:member="getTemplateArgs" ext:cls="Ext.layout.FormLayout">Ext.layout.FormLayout.getTemplateArgs</a>.</div></div></td><td class="msource"><a href="output/Ext.layout.ContainerLayout.html#fieldTpl" ext:member="#fieldTpl" ext:cls="Ext.layout.ContainerLayout">ContainerLayout</a></td></tr><tr class="property-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.layout.ContainerLayout-if"></a><b><a href="source/ContainerLayout.html#prop-Ext.layout.ContainerLayout-if">if</a></b> : Object<div class="mdesc"><div class="short">This monitorResize flag will be renamed soon as to avoid confusion
+with the Container version which hooks onWindowRes...</div><div class="long">This monitorResize flag will be renamed soon as to avoid confusion
+with the Container version which hooks onWindowResize to doLayout
+monitorResize flag in this context attaches the resize event between
+a container and it's layout</div></div></td><td class="msource"><a href="output/Ext.layout.ContainerLayout.html#if" ext:member="#if" ext:cls="Ext.layout.ContainerLayout">ContainerLayout</a></td></tr><tr class="property-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.layout.FormLayout-labelStyle"></a><b><a href="source/FormLayout.html#prop-Ext.layout.FormLayout-labelStyle">labelStyle</a></b> : String<div class="mdesc"><div class="short">Read only. The CSS style specification string added to field labels in this layout if not
+otherwise specified by each...</div><div class="long">Read only. The CSS style specification string added to field labels in this layout if not
+otherwise <a href="output/Ext.Component.html#Ext.Component-labelStyle" ext:member="labelStyle" ext:cls="Ext.Component">specified by each contained field</a>.</div></div></td><td class="msource">FormLayout</td></tr></tbody></table><a id="Ext.layout.FormLayout-methods"></a><h2>Public Methods</h2><table cellspacing="0" class="member-table"><tbody><tr><th colspan="2" class="sig-header">Method</th><th class="msource-header">Defined By</th></tr><tr class="method-row expandable "><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.layout.FormLayout-getTemplateArgs"></a><b><a href="source/FormLayout.html#method-Ext.layout.FormLayout-getTemplateArgs">getTemplateArgs</a></b>(&nbsp;<code>(Ext.form.Field&nbsp;field</code>&nbsp;)
+    :
+                                        Object<div class="mdesc"><div class="short">Provides template arguments for rendering the fully wrapped, labeled and styled form Field.
+This method returns an ob...</div><div class="long"><p>Provides template arguments for rendering the fully wrapped, labeled and styled form Field.</p>
+<p>This method returns an object hash containing properties used by the layout's <a href="output/Ext.layout.FormLayout.html#Ext.layout.FormLayout-fieldTpl" ext:member="fieldTpl" ext:cls="Ext.layout.FormLayout">fieldTpl</a>
+to create a correctly wrapped, labeled and styled form Field. This may be overriden to
+create custom layouts. The properties which must be returned are:</p><div class="mdetail-params"><ul>
+<li><b><tt>itemCls</tt></b> : String<div class="sub-desc">The CSS class applied to the outermost div wrapper
+that contains this field label and field element (the default class is <tt>'x-form-item'</tt> and <tt>itemCls</tt>
+will be added to that). If supplied, <tt>itemCls</tt> at the field level will override the default <tt>itemCls</tt>
+supplied at the container level.</div></li>
+<li><b><tt>id</tt></b> : String<div class="sub-desc">The id of the Field</div></li>
+<li><b><tt><a href="output/Ext.layout.FormLayout.html#Ext.layout.FormLayout-labelStyle" ext:member="labelStyle" ext:cls="Ext.layout.FormLayout">labelStyle</a></tt></b> : String<div class="sub-desc">
+A CSS style specification string to add to the field label for this field (defaults to <tt>''</tt> or the
+<a href="output/Ext.layout.FormLayout.html#Ext.layout.FormLayout-labelStyle" ext:member="labelStyle" ext:cls="Ext.layout.FormLayout">layout's value for <tt>labelStyle</tt></a>).</div></li>
+<li><b><tt>label</tt></b> : String<div class="sub-desc">The text to display as the label for this
+field (defaults to the field's configured fieldLabel property)</div></li>
+<li><b><tt><a href="output/Ext.layout.FormLayout.html#Ext.layout.FormLayout-labelSeparator" ext:member="labelSeparator" ext:cls="Ext.layout.FormLayout">labelSeparator</a></tt></b> : String<div class="sub-desc">The separator to display after
+the text of the label for this field (defaults to a colon <tt>':'</tt> or the
+<a href="output/Ext.layout.FormLayout.html#Ext.layout.FormLayout-labelSeparator" ext:member="labelSeparator" ext:cls="Ext.layout.FormLayout">layout's value for labelSeparator</a>). To hide the separator use empty string ''.</div></li>
+<li><b><tt>elementStyle</tt></b> : String<div class="sub-desc">The styles text for the input element's wrapper.</div></li>
+<li><b><tt>clearCls</tt></b> : String<div class="sub-desc">The CSS class to apply to the special clearing div
+rendered directly after each form field wrapper (defaults to <tt>'x-form-clear-left'</tt>)</div></li>
+</ul></div><div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>field</code> : (Ext.form.Field<div class="sub-desc">The <a href="output/Ext.form.Field.html" ext:cls="Ext.form.Field">Field</a> being rendered.</div></li></ul><strong>Returns:</strong><ul><li><code>Object</code><div class="sub-desc">An object hash containing the properties required to render the Field.</div></li></ul></div></div></div></td><td class="msource">FormLayout</td></tr><tr class="method-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.layout.ContainerLayout-parseMargins"></a><b><a href="source/ContainerLayout.html#method-Ext.layout.ContainerLayout-parseMargins">parseMargins</a></b>(&nbsp;<code>Number|String&nbsp;v</code>&nbsp;)
+    :
+                                        Object<div class="mdesc"><div class="short">Parses a number or string representing margin sizes into an object. Supports CSS-style margin declarations
+(e.g. 10, ...</div><div class="long">Parses a number or string representing margin sizes into an object. Supports CSS-style margin declarations
+(e.g. 10, "10", "10 10", "10 10 10" and "10 10 10 10" are all valid options and would return the same result)<div class="mdetail-params"><strong>Parameters:</strong><ul><li><code>v</code> : Number|String<div class="sub-desc">The encoded margins</div></li></ul><strong>Returns:</strong><ul><li><code>Object</code><div class="sub-desc">An object with margin sizes for top, right, bottom and left</div></li></ul></div></div></div></td><td class="msource"><a href="output/Ext.layout.ContainerLayout.html#parseMargins" ext:member="#parseMargins" ext:cls="Ext.layout.ContainerLayout">ContainerLayout</a></td></tr></tbody></table><a id="Ext.layout.FormLayout-events"></a><h2>Public Events</h2><div class="no-members">This class has no public events.</div></div>

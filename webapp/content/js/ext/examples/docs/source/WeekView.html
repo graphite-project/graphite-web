@@ -1,0 +1,34 @@
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <title>The source code</title>
+    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+</head>
+<body  onload="prettyPrint();">
+    <pre class="prettyprint lang-js">/*!
+ * Ext JS Library 3.3.1
+ * Copyright(c) 2006-2010 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
+ */
+<div id="cls-Ext.calendar.WeekView"></div>/**
+ * @class Ext.calendar.WeekView
+ * @extends Ext.calendar.DayView
+ * <p>Displays a calendar view by week. This class does not usually need ot be used directly as you can
+ * use a {@link Ext.calendar.CalendarPanel CalendarPanel} to manage multiple calendar views at once including
+ * the week view.</p>
+ * @constructor
+ * @param {Object} config The config object
+ */
+Ext.calendar.WeekView = Ext.extend(Ext.calendar.DayView, {
+    <div id="cfg-Ext.calendar.WeekView-dayCount"></div>/**
+     * @cfg {Number} dayCount
+     * The number of days to display in the view (defaults to 7)
+     */
+    dayCount: 7
+});
+
+Ext.reg('weekview', Ext.calendar.WeekView);</pre>    
+</body>
+</html>
