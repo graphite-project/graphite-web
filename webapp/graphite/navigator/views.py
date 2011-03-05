@@ -13,7 +13,7 @@ class NavigatorConfig:
   def __init__(self):
     self.last_read = 0
     self.schemes = []
-    self.default_params = {}
+    self.ui_config = {}
 
   def check(self):
     if getmtime(settings.NAVIGATOR_CONF) > self.last_read:
@@ -24,7 +24,10 @@ class NavigatorConfig:
     parser = ConfigParser()
     parser.read(settings.NAVIGATOR_CONF)
 
-    #XXX parse [ui] section
+    self.ui_config['default_graph_width'] = parser.getint('ui', 'default_graph_width')
+    self.ui_config['default_graph_height'] = parser.getint('ui', 'default_graph_height')
+    self.ui_config['automatic_variants'] = parser.getboolean('ui', 'automatic_variants')
+    self.ui_config['refresh_interval'] = parser.getint('ui', 'refresh_interval')
 
     for section in parser.sections():
       if section == 'ui':
@@ -61,7 +64,7 @@ def navigator(request):
   config.check()
   context = {
     'schemes_json' : json.dumps(config.schemes),
-    'default_params_json' : json.dumps(config.default_params),
+    'ui_config_json' : json.dumps(config.ui_config),
     'jsdebug' : settings.JAVASCRIPT_DEBUG,
   }
   return render_to_response("navigator.html", context)

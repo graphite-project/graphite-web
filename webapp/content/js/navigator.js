@@ -8,6 +8,7 @@ var graphArea;
 var graphStore;
 var graphView;
 var topBar;
+var refreshTask;
 var spacer; //XXX Debug
 
 // Record types and stores
@@ -37,6 +38,7 @@ var contextFieldStore = new Ext.data.JsonStore({
   baseParams: {format: 'completer', wildcards: '1'}
 });
 
+
 var GraphRecord = new Ext.data.Record.create([
   {name: 'id'},
   {name: 'targets', type: 'auto'},
@@ -47,6 +49,14 @@ var GraphRecord = new Ext.data.Record.create([
 var graphStore = new Ext.data.ArrayStore({
   fields: GraphRecord
 });
+
+
+var defaultGraphParams = {
+  from: '-2hours',
+  until: 'now',
+  width: UI_CONFIG.default_graph_width,
+  height: UI_CONFIG.default_graph_height
+};
 
 
 function initNavigator () {
@@ -148,8 +158,38 @@ function initNavigator () {
     region: 'center',
     layout: 'fit',
     autoScroll: true,
-    bodyStyle: 'background-color: black;',
-    items: [graphView]
+    bodyCssClass: 'graphAreaBody',
+    items: [graphView],
+    tbar: new Ext.Toolbar({
+      items: [
+        {
+          icon: REFRESH_ICON,
+          tooltop: 'Refresh Graphs',
+          handler: refreshGraphs
+        }, {
+          icon: CLOCK_ICON,
+          tooltip: 'View Recent Data',
+          handler: selectRelativeTime,
+          scope: this
+        }, {
+          icon: CALENDAR_ICON,
+          tooltip: 'View Time Range',
+          handler: selectAbsoluteTime,
+          scope: this
+        }, '-', {
+          id: 'time-range-text',
+          xtype: 'tbtext',
+          text: getTimeText()
+        }, '->', {
+          xtype: 'tbtext',
+          text: 'Last Refreshed: '
+        }, {
+          id: 'last-refreshed-text',
+          xtype: 'tbtext',
+          text: ( new Date() ).format('g:i:s A')
+        }
+      ]
+    })
   });
 
   topBar = new Ext.Panel({
@@ -159,6 +199,7 @@ function initNavigator () {
     collapsible: true,
     collapseMode: 'mini',
     split: true,
+    header: false,
     height: 220,
     items: [contextSelector, metricSelector]
   });
@@ -171,6 +212,11 @@ function initNavigator () {
     ]
   });
 
+  refreshTask = {
+    run: refreshGraphs,
+    interval: UI_CONFIG.refresh_interval * 1000
+  };
+  Ext.TaskMgr.start(refreshTask);
 }
 
 
@@ -210,6 +256,12 @@ function buildQuery (queryEvent) {
     var combo = Ext.getCmp(schemeName + '-' + field);
     var value = combo.getValue();
 
+    if (UI_CONFIG.automatic_variants) {
+      if (value.indexOf(',') > -1 && value.search(/[{}]/) == -1) {
+        value = '{' + value + '}';
+      }
+    }
+
     if (combo === queryEvent.combo) {
       queryEvent.query = queryString + queryEvent.query + '*';
       return;
@@ -234,11 +286,17 @@ function contextFieldChanged (combo, oldValue, newValue) {
   var pattern = selectedScheme.get('pattern');
   var fields = selectedScheme.get('fields');
   var missing_fields = false;
-  spacer.setValue("contextFieldChanged() !!!");
 
   Ext.each(fields, function (field) {
     var id = schemeName + '-' + field.name;
     var value = Ext.getCmp(id).getValue();
+
+    if (UI_CONFIG.automatic_variants) {
+      if (value.indexOf(',') > -1 && value.search(/[{}]/) == -1) {
+        value = '{' + value + '}';
+      }
+    }
+
     if (value.trim() == "") {
       missing_fields = true;
     } else {
@@ -302,21 +360,183 @@ function metricSelectorNodeClicked (node, e) {
 
 
 function graphAreaToggle(target) {
-  //check to see if the graph exists already
   var existingIndex = graphStore.find('id', target);
 
   if (existingIndex > -1) {
     graphStore.removeAt(existingIndex);
   } else {
     // Add it
+    var params = Ext.apply({target: [target]}, defaultGraphParams);
     var record = new GraphRecord({
       id: target,
-      targets: [target],
-      params: DEFAULT_PARAMS,
-      url: '/render?target=' + target
+      params: params,
+      url: '/render?' + Ext.urlEncode(params)
     });
     graphStore.add([record]);
   }
 
+}
+
+function refreshGraphs() {
+  graphStore.each(function () {
+    this.data.params.uniq = Math.random();
+    this.set('url', '/render?' + Ext.urlEncode(this.get('params')));
+  });
   graphView.refresh();
+  graphArea.getTopToolbar().get('last-refreshed-text').setText( (new Date()).format('g:i:s A') );
+}
+
+
+/* Time Range management */
+var TimeRange = {
+  // Default to a relative time range
+  type: 'relative',
+  quantity: '2',
+  units: 'hours',
+  // Absolute time range
+  startDate: new Date(),
+  startTime: "9:00 AM",
+  endDate: new Date(),
+  endTime: "5:00 PM"
+}
+
+function getTimeText() {
+  if (TimeRange.type == 'relative') {
+    return "Now showing the past " + TimeRange.quantity + ' ' + TimeRange.units;
+  } else {
+    var fmt = 'g:ia F jS Y';
+    return "Now Showing " + TimeRange.startDate.format(fmt) + ' through ' + TimeRange.endDate.format(fmt);
+  }
+}
+
+function timeRangeUpdated() {
+  if (TimeRange.type == 'relative') {
+    var fromParam = '-' + TimeRange.quantity + TimeRange.units;
+    var untilParam = 'now';
+  } else {
+    var fromParam = TimeRange.startDate.format('H:i_Ymd');
+    var untilParam = TimeRange.endDate.format('H:i_Ymd');
+  }
+  spacer.setValue("from=" + fromParam + "&until=" + untilParam);
+  graphArea.getTopToolbar().get('time-range-text').setText( getTimeText() );
+
+  defaultGraphParams.from = fromParam;
+  defaultGraphParams.until = untilParam;
+
+  graphStore.each(function () {
+    this.data.params.from = fromParam;
+    this.data.params.until = untilParam;
+  });
+
+  refreshGraphs();
+}
+
+
+function selectRelativeTime() {
+  var quantityField = new Ext.form.TextField({
+    fieldLabel: "Show the past",
+    width: 90,
+    allowBlank: false,
+    regex: /\d+/,
+    regexText: "Please enter a number",
+    value: TimeRange.quantity
+  });
+
+  var unitField = new Ext.form.ComboBox({
+    fieldLabel: "",
+    width: 90,
+    mode: 'local',
+    editable: false,
+    triggerAction: 'all',
+    allowBlank: false,
+    forceSelection: true,
+    store: ['minutes', 'hours', 'days', 'weeks', 'months'],
+    value: TimeRange.units
+  });
+
+  var win;
+
+  function updateTimeRange() {
+    TimeRange.type = 'relative';
+    TimeRange.quantity = quantityField.getValue();
+    TimeRange.units = unitField.getValue();
+    win.close();
+    timeRangeUpdated();
+  }
+
+  win = new Ext.Window({
+    title: "Select Relative Time Range",
+    width: 205,
+    height: 130,
+    resizable: false,
+    layout: 'form',
+    labelAlign: 'right',
+    labelWidth: 90,
+    items: [quantityField, unitField],
+    buttonAlign: 'center',
+    buttons: [
+      {text: 'Ok', handler: updateTimeRange},
+      {text: 'Cancel', handler: function () { win.close(); } }
+    ]
+  });
+  win.show();
+}
+
+function selectAbsoluteTime() {
+  var startDateField = new Ext.form.DateField({
+    fieldLabel: 'Start Date',
+    width: 125,
+    value: TimeRange.startDate || ''
+  });
+
+  var startTimeField = new Ext.form.TimeField({
+    fieldLabel: 'Start Time',
+    width: 125,
+    allowBlank: false,
+    increment: 30,
+    value: TimeRange.startTime || ''
+  });
+
+  var endDateField = new Ext.form.DateField({
+    fieldLabel: 'End Date',
+    width: 125,
+    value: TimeRange.endDate || ''
+  });
+
+  var endTimeField = new Ext.form.TimeField({
+    fieldLabel: 'End Time',
+    width: 125,
+    allowBlank: false,
+    increment: 30,
+    value: TimeRange.endTime || ''
+  });
+
+  var win;
+
+  function updateTimeRange() {
+    TimeRange.type = 'absolute';
+    TimeRange.startDate = new Date(startDateField.getValue().format('Y/m/d ') + startTimeField.getValue());
+    TimeRange.startTime = startTimeField.getValue();
+    TimeRange.endDate = new Date(endDateField.getValue().format('Y/m/d ') + endTimeField.getValue());
+    TimeRange.endTime = endTimeField.getValue();
+    win.close();
+    timeRangeUpdated();
+  }
+
+  win = new Ext.Window({
+    title: "Select Absolute Time Range",
+    width: 225,
+    height: 180,
+    resizable: false,
+    layout: 'form',
+    labelAlign: 'right',
+    labelWidth: 70,
+    items: [startDateField, startTimeField, endDateField, endTimeField],
+    buttonAlign: 'center',
+    buttons: [
+      {text: 'Ok', handler: updateTimeRange},
+      {text: 'Cancel', handler: function () { win.close(); } }
+    ]
+  });
+  win.show();
 }

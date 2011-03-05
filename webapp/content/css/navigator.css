@@ -1,4 +1,8 @@
 
+.graphAreaBody {
+  background-color: black;
+}
+
 div.graph-wrap {
   display: inline;
 }
