@@ -9,7 +9,9 @@ var graphStore;
 var graphView;
 var topBar;
 var refreshTask;
-var spacer; //XXX Debug
+var spacer;
+var justClosedGraph = false;
+var NOT_EDITABLE = ['from', 'until', 'width', 'height', 'target', 'uniq'];
 
 // Record types and stores
 var SchemeRecord = Ext.data.Record.create([
@@ -41,7 +43,6 @@ var contextFieldStore = new Ext.data.JsonStore({
 
 var GraphRecord = new Ext.data.Record.create([
   {name: 'id'},
-  {name: 'targets', type: 'auto'},
   {name: 'params', type: 'auto'},
   {name: 'url'}
 ]);
@@ -98,7 +99,7 @@ function initNavigator () {
   schemesStore.add(schemeRecords);
 
   spacer = new Ext.form.TextField({
-    hidden: false, //XXX Debug
+    hidden: true,
     hideMode: 'visibility'
   });
 
@@ -139,8 +140,11 @@ function initNavigator () {
 
   var graphTemplate = new Ext.XTemplate(
     '<tpl for=".">',
-      '<div class="graph-wrap">',
-        '<img class="graph-img" src="{url}">',
+      '<div class="graph-container">',
+        '<div class="graph-overlay">',
+          '<img class="graph-img" src="{url}">',
+          '<div class="overlay-close-button" onclick="javascript: graphAreaToggle(\'{id}\'); justClosedGraph = true;">X</div>',
+        '</div>',
       '</div>',
     '</tpl>',
     '<div class="x-clear"></div>'
@@ -150,14 +154,16 @@ function initNavigator () {
     store: graphStore,
     tpl: graphTemplate,
     overClass: 'graph-over',
-    itemSelector: 'div.graph-wrap',
-    emptyText: "Configure your context above, and then select some metrics."
+    itemSelector: 'div.graph-container',
+    emptyText: "Configure your context above, and then select some metrics.",
+    autoScroll: true,
+    listeners: {click: graphClicked}
   });
 
   graphArea = new Ext.Panel({
     region: 'center',
     layout: 'fit',
-    autoScroll: true,
+    autoScroll: false,
     bodyCssClass: 'graphAreaBody',
     items: [graphView],
     tbar: new Ext.Toolbar({
@@ -181,6 +187,9 @@ function initNavigator () {
           xtype: 'tbtext',
           text: getTimeText()
         }, '->', {
+          text: "Change Graph Size",
+          handler: selectGraphSize
+        }, '|', {
           xtype: 'tbtext',
           text: 'Last Refreshed: '
         }, {
@@ -309,7 +318,6 @@ function contextFieldChanged (combo, oldValue, newValue) {
   }
 
   metricSelectorShow(pattern);
-  spacer.setValue(pattern);
 }
 
 function metricSelectorShow(pattern) {
@@ -386,6 +394,24 @@ function refreshGraphs() {
   graphArea.getTopToolbar().get('last-refreshed-text').setText( (new Date()).format('g:i:s A') );
 }
 
+/*
+function refreshGraph(index) {
+  var node = graphView.getNode(index);
+  var record = graphView.getRecord(node);
+  record.data.params.uniq = Math.random();
+  record.set('url', '/render?' + Ext.urlEncode(record.get('params')));
+
+  // This refreshNode method only refreshes the record data, it doesn't re-render
+  // the template. Which is pretty useless... It would be more efficient if we
+  // could simply re-render the template. Need to see if thats feasible.
+  //graphView.refreshNode(node);
+
+  // This is *slightly* better than just calling refreshGraphs() because we're only
+  // updating the URL of one graph, so caching should save us from re-rendering each
+  // graph.
+  //graphView.refresh();
+}
+*/
 
 /* Time Range management */
 var TimeRange = {
@@ -417,9 +443,6 @@ function timeRangeUpdated() {
     var fromParam = TimeRange.startDate.format('H:i_Ymd');
     var untilParam = TimeRange.endDate.format('H:i_Ymd');
   }
-  spacer.setValue("from=" + fromParam + "&until=" + untilParam);
-  graphArea.getTopToolbar().get('time-range-text').setText( getTimeText() );
-
   defaultGraphParams.from = fromParam;
   defaultGraphParams.until = untilParam;
 
@@ -428,6 +451,7 @@ function timeRangeUpdated() {
     this.data.params.until = untilParam;
   });
 
+  graphArea.getTopToolbar().get('time-range-text').setText( getTimeText() );
   refreshGraphs();
 }
 
@@ -539,4 +563,145 @@ function selectAbsoluteTime() {
     ]
   });
   win.show();
+}
+
+
+/* Graph size stuff */
+
+var GraphSize = {
+  width: UI_CONFIG.default_graph_width,
+  height: UI_CONFIG.default_graph_height
+};
+
+function selectGraphSize() {
+  var widthField = new Ext.form.TextField({
+    fieldLabel: "Width",
+    width: 80,
+    regex: /\d+/,
+    regexText: "Please enter a number",
+    allowBlank: false,
+    value: GraphSize.width || UI_CONFIG.default_graph_width
+  });
+
+  var heightField = new Ext.form.TextField({
+    fieldLabel: "Height",
+    width: 80,
+    regex: /\d+/,
+    regexText: "Please enter a number",
+    allowBlank: false,
+    value: GraphSize.height || UI_CONFIG.default_graph_height
+  })
+
+  var win;
+
+  function resize() {
+    GraphSize.width = defaultGraphParams.width = widthField.getValue();
+    GraphSize.height = defaultGraphParams.height = heightField.getValue();
+    win.close();
+
+    graphStore.each(function () {
+      this.data.params.width = GraphSize.width;
+      this.data.params.height = GraphSize.height;
+    });
+    refreshGraphs();
+  }
+
+  win = new Ext.Window({
+    title: "Change Graph Size",
+    width: 185,
+    height: 120,
+    resizable: false,
+    layout: 'form',
+    labelAlign: 'right',
+    labelWidth: 80,
+    items: [widthField, heightField],
+    buttonAlign: 'center',
+    buttons: [
+      {text: 'Ok', handler: resize},
+      {text: 'Cancel', handler: function () { win.close(); } }
+    ]
+  });
+  win.show();
+}
+
+/* Other stuff */
+var targetListing;
+
+function graphClicked(graphView, index, element, evt) {
+  var record = graphStore.getAt(index);
+  if (!record) {
+    return;
+  }
+
+  if (justClosedGraph) {
+    justClosedGraph = false;
+    return;
+  }
+
+  var menu;
+  var menuItems = [];
+
+  Ext.each(record.data.params.target, function (target, index) {
+
+    menuItems.push({
+      xtype: 'textfield',
+      fieldLabel: "Target",
+      allowBlank: false,
+      grow: true,
+      growMin: 150,
+      value: target,
+      disableKeyFilter: true,
+      listeners: {
+        specialkey: function (field, e) {
+                      if (e.getKey() == e.ENTER) {
+                        record.data.params.target[index] = field.getValue();
+                        refreshGraphs();
+                        menu.destroy();
+                      }
+                    }
+      }
+    });
+
+    var editParams = Ext.apply({}, record.data.params);
+    removeUneditable(editParams);
+    menuItems.push({
+      xtype: 'textfield',
+      fieldLabel: "Params",
+      allowBlank: true,
+      grow: true,
+      growMin: 150,
+      value: Ext.urlEncode(editParams),
+      disableKeyFilter: true,
+      listeners: {
+        specialkey: function (field, e) {
+                      if (e.getKey() == e.ENTER) {
+                        var newParams = Ext.urlDecode( field.getValue() );
+                        removeUneditable(newParams);
+                        Ext.apply(record.data.params, newParams);
+                        refreshGraphs();
+                        menu.destroy();
+                      }
+                    }
+      }
+    });
+
+  });
+
+  menu = new Ext.menu.Menu({
+    layout: 'form',
+    labelWidth: 72,
+    labelAlign: 'right',
+    items: menuItems
+  });
+  menu.showAt( evt.getXY() );
+  menu.get(0).focus(false, 50);
+  menu.keyNav.disable();
+}
+
+
+function removeUneditable (obj) {
+  Ext.each(NOT_EDITABLE, function (p) {
+    delete obj[p];
+  });
+  return obj;
 }
