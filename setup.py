@@ -29,6 +29,8 @@ for root, dirs, files in os.walk('webapp/content'):
     webapp_content[root].append(filepath)
 
 
+conf_files = [ ('conf', glob('conf/*.example')) ]
+
 setup(
   name='graphite-web',
   version='0.9.7c',
@@ -41,6 +43,6 @@ setup(
   packages=['graphite', 'graphite.account', 'graphite.browser', 'graphite.cli', 'graphite.composer', 'graphite.render', 'graphite.whitelist', 'graphite.metrics', 'graphite.thirdparty', 'graphite.thirdparty.pytz'],
   package_data={'graphite' : ['templates/*', 'local_settings.py.example', 'render/graphTemplates.conf']},
   scripts=glob('bin/*'),
-  data_files=webapp_content.items() + storage_dirs,
+  data_files=webapp_content.items() + storage_dirs + conf_files,
   **setup_kwargs
 )
