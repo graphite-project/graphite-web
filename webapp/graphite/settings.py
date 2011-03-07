@@ -17,6 +17,7 @@ import sys, os
 from os.path import join, dirname, abspath
 
 DEBUG = False
+JAVASCRIPT_DEBUG = False
 
 # Filesystem layout (all directores should end in a /)
 WEB_DIR = dirname( abspath(__file__) ) + '/'
