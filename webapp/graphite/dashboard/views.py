@@ -1,9 +1,9 @@
 import re
-import json
 from os.path import getmtime
 from ConfigParser import ConfigParser
 from django.shortcuts import render_to_response
 from django.conf import settings
+from graphite.util import json
 
 
 fieldRegex = re.compile(r'<([^>]+)>')
