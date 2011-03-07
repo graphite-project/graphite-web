@@ -41,7 +41,10 @@ class FunctionsTest(unittest.TestCase):
         self.assertEquals([], functions.highestMax({}, [], 1))
 
     def percCount(self, series, perc):
-      return int(len(series) * (perc / 100.0)) if perc else 0
+      if perc:
+        return int(len(series) * (perc / 100.0))
+      else:
+        return 0
 
     def testPercentileOrdinal(self):
       seriesList = [
