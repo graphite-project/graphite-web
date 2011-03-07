@@ -9,4 +9,4 @@ include webapp/graphite/thirdparty/pytz/pytz-LICENSE.txt
 recursive-include webapp/graphite/ *.html
 recursive-include webapp/content/ *
 exclude webapp/graphite/local_settings.py
-exclude conf/navigator.conf
+exclude conf/viewer.conf

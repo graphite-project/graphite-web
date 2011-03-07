@@ -82,7 +82,7 @@ DATABASE_PASSWORD = ''				# Not used with sqlite3.
 DATABASE_HOST = ''				# Set to empty string for localhost. Not used with sqlite3.
 DATABASE_PORT = ''				# Set to empty string for default. Not used with sqlite3.
 
-NAVIGATOR_CONF = join(CONF_DIR, 'navigator.conf')
+DASHBOARD_CONF = join(CONF_DIR, 'dashboard.conf')
 
 
 #Pull in overrides from local_settings.py
@@ -157,7 +157,7 @@ INSTALLED_APPS = (
   'graphite.browser',
   'graphite.composer',
   'graphite.account',
-  'graphite.navigator',
+  'graphite.dashboard',
   'graphite.whitelist',
   'django.contrib.auth',
   'django.contrib.sessions',

@@ -60,7 +60,7 @@ var defaultGraphParams = {
 };
 
 
-function initNavigator () {
+function initDashboard () {
 
   // Populate naming-scheme based datastructures
   Ext.each(schemes, function (scheme_info) {

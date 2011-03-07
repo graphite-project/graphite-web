@@ -9,20 +9,20 @@ from django.conf import settings
 fieldRegex = re.compile(r'<([^>]+)>')
 
 
-class NavigatorConfig:
+class DashboardConfig:
   def __init__(self):
     self.last_read = 0
     self.schemes = []
     self.ui_config = {}
 
   def check(self):
-    if getmtime(settings.NAVIGATOR_CONF) > self.last_read:
+    if getmtime(settings.DASHBOARD_CONF) > self.last_read:
       self.load()
 
   def load(self):
     schemes = []
     parser = ConfigParser()
-    parser.read(settings.NAVIGATOR_CONF)
+    parser.read(settings.DASHBOARD_CONF)
 
     self.ui_config['default_graph_width'] = parser.getint('ui', 'default_graph_width')
     self.ui_config['default_graph_height'] = parser.getint('ui', 'default_graph_height')
@@ -57,14 +57,14 @@ class NavigatorConfig:
     self.schemes = schemes
 
 
-config = NavigatorConfig()
+config = DashboardConfig()
 
 
-def navigator(request):
+def dashboard(request):
   config.check()
   context = {
     'schemes_json' : json.dumps(config.schemes),
     'ui_config_json' : json.dumps(config.ui_config),
     'jsdebug' : settings.JAVASCRIPT_DEBUG,
   }
-  return render_to_response("navigator.html", context)
+  return render_to_response("dashboard.html", context)

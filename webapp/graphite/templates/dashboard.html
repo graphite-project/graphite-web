@@ -2,9 +2,9 @@
 
 <html>
   <head>
-    <title>Graphite Navigator</title>
+    <title>Graphite Dashboard</title>
     <link rel="stylesheet" type="text/css" href="/content/js/ext/resources/css/ext-all.css"/>
-    <link rel="stylesheet" type="text/css" href="/content/css/navigator.css"/>
+    <link rel="stylesheet" type="text/css" href="/content/css/dashboard.css"/>
 
     <script type="text/javascript">
     var schemes = {{schemes_json|safe}};
@@ -20,17 +20,17 @@
     {% if jsdebug %}
     <script type="text/javascript" src="/content/js/ext/adapter/ext/ext-base-debug.js"></script>
     <script type="text/javascript" src="/content/js/ext/ext-all-debug.js"></script>
-    <script type="text/javascript" src="/content/js/navigator.js"></script>
+    <script type="text/javascript" src="/content/js/dashboard.js"></script>
     {% else %}
     <script type="text/javascript" src="/content/js/ext/adapter/ext/ext-base.js"></script>
     <script type="text/javascript" src="/content/js/ext/ext-all.js"></script>
-    <script type="text/javascript" src="/content/js/navigator.js"></script>
+    <script type="text/javascript" src="/content/js/dashboard.js"></script>
     {% endif %}
 
     <script type="text/javascript">
     Ext.BLANK_IMAGE_URL = '/content/js/ext/resources/images/default/s.gif';
     Ext.QuickTips.init();
-    Ext.onReady(initNavigator);
+    Ext.onReady(initDashboard);
     </script> 
 
   </head>

@@ -1,5 +1,5 @@
-# This configuration file controls the behavior of the Navigator UI, available
-# at http://my-graphite-server/nav/.
+# This configuration file controls the behavior of the Dashboard UI, available
+# at http://my-graphite-server/dashboard/.
 #
 # This file must contain a [ui] section that defines the following settings:
 #
@@ -12,7 +12,7 @@
 # These settings apply to the UI as a whole, all other sections in this file
 # pertain only to specific metric types.
 #
-# The navigator works only with metrics that fall into naming schemes
+# The dashboard presents only metrics that fall into specified naming schemes
 # defined in this file. This creates a simpler, more targetted view of the
 # data. The general form for defining a naming scheme is as follows:
 #
