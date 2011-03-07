@@ -33,14 +33,14 @@ conf_files = [ ('conf', glob('conf/*.example')) ]
 
 setup(
   name='graphite-web',
-  version='0.9.8-pre1',
+  version='0.9.8-pre2',
   url='https://launchpad.net/graphite',
   author='Chris Davis',
   author_email='chrismd@gmail.com',
   license='Apache Software License 2.0',
   description='Enterprise scalable realtime graphing',
   package_dir={'' : 'webapp'},
-  packages=['graphite', 'graphite.account', 'graphite.browser', 'graphite.cli', 'graphite.composer', 'graphite.render', 'graphite.whitelist', 'graphite.metrics', 'graphite.thirdparty', 'graphite.thirdparty.pytz'],
+  packages=['graphite', 'graphite.account', 'graphite.browser', 'graphite.cli', 'graphite.composer', 'graphite.render', 'graphite.whitelist', 'graphite.metrics', 'graphite.dashboard', 'graphite.thirdparty', 'graphite.thirdparty.pytz'],
   package_data={'graphite' : ['templates/*', 'local_settings.py.example', 'render/graphTemplates.conf']},
   scripts=glob('bin/*'),
   data_files=webapp_content.items() + storage_dirs + conf_files,
