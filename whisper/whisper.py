@@ -212,7 +212,9 @@ def __propagate(fh,timestamp,xff,higher,lower):
     higherFirstOffset = higher['offset'] + (byteDistance % higher['size'])
   higherPoints = lower['secondsPerPoint'] / higher['secondsPerPoint']
   higherSize = higherPoints * pointSize
-  higherLastOffset = higherFirstOffset + (higherSize % higher['size'])
+  relativeFirstOffset = higherFirstOffset - higher['offset']
+  relativeLastOffset = (relativeFirstOffset + higherSize) % higher['size']
+  higherLastOffset = relativeLastOffset + higher['offset']
   fh.seek(higherFirstOffset)
   if higherFirstOffset < higherLastOffset: #we don't wrap the archive
     seriesString = fh.read(higherLastOffset - higherFirstOffset)
