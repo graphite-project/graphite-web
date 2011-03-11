@@ -7,7 +7,7 @@ from distutils.core import setup
 
 setup(
   name='whisper',
-  version='0.9.7',
+  version='0.9.7b',
   url='https://launchpad.net/graphite',
   author='Chris Davis',
   author_email='chrismd@gmail.com',
