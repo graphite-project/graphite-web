@@ -170,7 +170,7 @@ function initDashboard () {
       items: [
         {
           icon: REFRESH_ICON,
-          tooltop: 'Refresh Graphs',
+          tooltip: 'Refresh Graphs',
           handler: refreshGraphs
         }, {
           icon: CLOCK_ICON,
@@ -183,13 +183,23 @@ function initDashboard () {
           handler: selectAbsoluteTime,
           scope: this
         }, '-', {
+          text: 'Graphs',
+          menu: {
+            items: [
+              {
+                text: "Resize",
+                handler: selectGraphSize
+              }, {
+                text: "Remove All",
+                handler: removeAllGraphs
+              }
+            ]
+          }
+        }, '-', {
           id: 'time-range-text',
           xtype: 'tbtext',
           text: getTimeText()
         }, '->', {
-          text: "Change Graph Size",
-          handler: selectGraphSize
-        }, '|', {
           xtype: 'tbtext',
           text: 'Last Refreshed: '
         }, {
@@ -676,8 +686,8 @@ function graphClicked(graphView, index, element, evt) {
         specialkey: function (field, e) {
                       if (e.getKey() == e.ENTER) {
                         var newParams = Ext.urlDecode( field.getValue() );
-                        removeUneditable(newParams);
-                        Ext.apply(record.data.params, newParams);
+                        copyUneditable(record.data.params, newParams);
+                        record.data.params = newParams;
                         refreshGraphs();
                         menu.destroy();
                       }
@@ -705,3 +715,40 @@ function removeUneditable (obj) {
   });
   return obj;
 }
+
+function copyUneditable (src, dst) {
+  Ext.each(NOT_EDITABLE, function (p) {
+    if (src[p] === undefined) {
+      delete dst[p];
+    } else {
+      dst[p] = src[p];
+    }
+  });
+}
+
+
+function removeAllGraphs() {
+  Ext.Msg.confirm(
+    "Are you sure?",
+    "Are you sure you want to remove all the graphs?",
+    function (choice) {
+      if (choice == 'yes') {
+        graphStore.removeAll();
+        refreshGraphs();
+      }
+    }
+  );
+}
+
+
+function toggleToolbar() {
+  var tbar = graphArea.getTopToolbar();
+  tbar.setVisible( ! tbar.isVisible() );
+  graphArea.doLayout();
+}
+
+var keyMap = new Ext.KeyMap(document, {
+  key: 'z',
+  ctrl: true,
+  handler: toggleToolbar
+});
