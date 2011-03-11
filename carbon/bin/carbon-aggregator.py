@@ -106,10 +106,15 @@ from carbon.listeners import MetricLineReceiver, MetricPickleReceiver, startList
 from carbon.aggregator.rules import RuleManager
 from carbon.aggregator import receiver
 from carbon.aggregator import client
+from carbon.rewrite impot RewriteRuleManager
 from carbon.events import metricReceived
 from carbon.util import daemonize
 
 RuleManager.read_from(options.rules)
+
+rewrite_rules_conf = join(CONF_DIR, 'rewrite-rules.conf')
+if exists(rewrite_rules_conf):
+  RewriteRuleManager.read_from(rewrite_rules_conf)
 
 # --debug
 if options.debug:
