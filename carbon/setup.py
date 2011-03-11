@@ -18,13 +18,13 @@ conf_files = [ ('conf', glob('conf/*.example')) ]
 
 setup(
   name='carbon',
-  version='0.9.7',
+  version='0.9.7.1-aggregator',
   url='https://launchpad.net/graphite',
   author='Chris Davis',
   author_email='chrismd@gmail.com',
   license='Apache Software License 2.0',
   description='Backend data caching and persistence daemon for Graphite',
-  packages=['carbon'],
+  packages=['carbon', 'carbon.aggregator'],
   package_dir={'' : 'lib'},
   scripts=glob('bin/*'),
   package_data={ 'carbon' : ['*.xml'] },
