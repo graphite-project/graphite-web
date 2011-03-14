@@ -2,13 +2,13 @@ from carbon.instrumentation import increment
 from carbon.aggregator.client import send_metric
 from carbon.aggregator.rules import RuleManager
 from carbon.aggregator.buffers import BufferManager
-from carbon.rewrite import RewriteManager
+from carbon.rewrite import RewriteRuleManager
 
 
 def process(metric, datapoint):
   increment('datapointsReceived')
 
-  for rule in RewriteManager.preRules:
+  for rule in RewriteRuleManager.preRules:
     metric = rule.apply(metric)
 
   for rule in RuleManager.rules:
@@ -24,7 +24,7 @@ def process(metric, datapoint):
 
     buffer.input(datapoint)
 
-  for rule in RewriteManager.postRules:
+  for rule in RewriteRuleManager.postRules:
     metric = rule.apply(metric)
 
   send_metric(metric, datapoint)

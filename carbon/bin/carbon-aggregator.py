@@ -106,7 +106,7 @@ from carbon.listeners import MetricLineReceiver, MetricPickleReceiver, startList
 from carbon.aggregator.rules import RuleManager
 from carbon.aggregator import receiver
 from carbon.aggregator import client
-from carbon.rewrite impot RewriteRuleManager
+from carbon.rewrite import RewriteRuleManager
 from carbon.events import metricReceived
 from carbon.util import daemonize
 
