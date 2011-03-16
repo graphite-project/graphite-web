@@ -45,6 +45,7 @@ def renderView(request):
   requestContext = {
     'startTime' : requestOptions['startTime'],
     'endTime' : requestOptions['endTime'],
+    'localOnly' : requestOptions['localOnly'],
     'data' : []
   }
   data = requestContext['data']
@@ -179,6 +180,8 @@ def parseOptions(request):
     requestOptions['format'] = queryParams['format']
   if 'noCache' in queryParams:
     requestOptions['noCache'] = True
+
+  requestOptions['localOnly'] = queryParams.get('local') == '1'
 
   # Fill in the graphOptions
   for opt in graphClass.customizable:
