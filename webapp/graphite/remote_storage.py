@@ -14,9 +14,8 @@ except ImportError:
 
 
 class RemoteStore(object):
-  timeout = 5
   lastFailure = 0.0
-  retryDelay = 10
+  retryDelay = settings.REMOTE_STORE_RETRY_DELAY
   available = property(lambda self: time.time() - self.lastFailure > self.retryDelay)
 
   def __init__(self, host):
@@ -52,7 +51,7 @@ class FindRequest:
       return
 
     self.connection = HTTPConnectionWithTimeout(self.store.host)
-    self.connection.timeout = self.store.timeout
+    self.connection.timeout = settings.REMOTE_STORE_FIND_TIMEOUT
 
     query_params = [
       ('local', '1'),
@@ -121,7 +120,7 @@ class RemoteNode:
     query_string = urlencode(query_params)
 
     connection = HTTPConnectionWithTimeout(self.store.host)
-    connection.timeout = self.store.timeout
+    connection.timeout = settings.REMOTE_STORE_FETCH_TIMEOUT
     connection.request('GET', '/render/?' + query_string)
     response = connection.getresponse()
     assert response.status == 200, "Failed to retrieve remote data: %d %s" % (response.status, response.reason)
