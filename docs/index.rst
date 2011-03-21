@@ -1,15 +1,20 @@
-.. Graphite documentation master file, created by
-   sphinx-quickstart on Mon Mar 21 12:31:35 2011.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
 
-Welcome to Graphite's documentation!
-====================================
-
-Contents:
+Graphite Documentation
+======================
 
 .. toctree::
-   :maxdepth: 2
+
+   overview
+   install
+   config-carbon
+   config-webapp
+   admin-carbon
+   admin-webapp
+   feeding-carbon
+   composer
+   url-api
+   carbon-daemons
+
 
 Indices and tables
 ==================
