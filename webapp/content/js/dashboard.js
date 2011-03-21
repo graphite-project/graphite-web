@@ -69,6 +69,7 @@ function initDashboard () {
 
     Ext.each(scheme_info.fields, function (field) {
 
+      // Context Field configuration
       contextSelectorFields.push( new Ext.form.ComboBox({
         id: scheme_info.name + '-' + field.name,
         fieldLabel: field.label,
@@ -83,6 +84,7 @@ function initDashboard () {
         queryParam: 'query',
         minChars: 1,
         typeAhead: false,
+        value: "*",
         listeners: {
           beforequery: buildQuery,
           change: contextFieldChanged,
@@ -126,6 +128,26 @@ function initDashboard () {
     ].concat(contextSelectorFields)
   });
 
+  var folderContextMenu = new Ext.menu.Menu({
+    items: [{
+      text: "Add All Metrics",
+      handler: function (item, e) {
+                 var node = item.parentMenu.node;
+                 function addAll () {
+                   Ext.each(node.childNodes, function (child) {
+                     graphAreaToggle(child.id, true);
+                   });
+                 }
+
+                 if (node.isExpanded()) {
+                   addAll();
+                 } else {
+                   node.expand(false, false, addAll);
+                 }
+               }
+    }]
+  });
+
   metricSelector = new Ext.tree.TreePanel({
     root: new Ext.tree.TreeNode({}),
     containerScroll: true,
@@ -135,7 +157,15 @@ function initDashboard () {
     rootVisible: false,
     singleExpand: false,
     trackMouseOver: true,
-    listeners: {click: metricSelectorNodeClicked}
+    listeners: {
+      click: metricSelectorNodeClicked,
+      contextmenu: function (node, e) {
+                     if (!node.leaf) {
+                       folderContextMenu.node = node;
+                       folderContextMenu.showAt( e.getXY() );
+                     }
+                   }
+    }
   });
 
   var graphTemplate = new Ext.XTemplate(
@@ -159,6 +189,21 @@ function initDashboard () {
     autoScroll: true,
     listeners: {click: graphClicked}
   });
+
+  function updateAutoRefresh (newValue) {
+    var value = parseInt(newValue);
+    if ( isNaN(value) ) {
+      return;
+    }
+
+    if (Ext.getCmp('auto-refresh-button').pressed) {
+      Ext.TaskMgr.stop(refreshTask);
+      refreshTask.interval = value * 1000;
+      Ext.TaskMgr.start(refreshTask);
+    } else {
+      refreshTask.interval = value * 1000;
+    }
+  }
 
   graphArea = new Ext.Panel({
     region: 'center',
@@ -200,6 +245,40 @@ function initDashboard () {
           xtype: 'tbtext',
           text: getTimeText()
         }, '->', {
+          xtype: 'button',
+          id: 'auto-refresh-button',
+          text: "Auto-Refresh",
+          enableToggle: true,
+          pressed: true,
+          tooltip: "Toggle auto-refresh",
+          toggleHandler: function (button, state) {
+                           if (state) {
+                             Ext.TaskMgr.start(refreshTask);
+                           } else {
+                             Ext.TaskMgr.stop(refreshTask);
+                           }
+                         }
+        }, {
+          xtype: 'tbtext',
+          text: 'every'
+        }, {
+          xtype: 'textfield',
+          width: 25,
+          value: UI_CONFIG.refresh_interval,
+          enableKeyEvents: true,
+          disableKeyFilter: true,
+          listeners: {
+            change: function (field, newValue) { updateAutoRefresh(newValue); },
+            specialkey: function (field, e) {
+                          if (e.getKey() == e.ENTER) {
+                            updateAutoRefresh( field.getValue() );
+                          }
+                        }
+          }
+        }, {
+          xtype: 'tbtext',
+          text: 'seconds'
+        }, '-', {
           xtype: 'tbtext',
           text: 'Last Refreshed: '
         }, {
@@ -251,6 +330,7 @@ function metricTypeSelected (combo, record, index) {
     }
   });
 
+  contextFieldChanged();
 }
 
 
@@ -300,7 +380,7 @@ function buildQuery (queryEvent) {
 }
 
 
-function contextFieldChanged (combo, oldValue, newValue) {
+function contextFieldChanged () {
   var schemeName = selectedScheme.get('name');
   var pattern = selectedScheme.get('pattern');
   var fields = selectedScheme.get('fields');
@@ -377,11 +457,13 @@ function metricSelectorNodeClicked (node, e) {
 }
 
 
-function graphAreaToggle(target) {
+function graphAreaToggle(target, dontRemove) {
   var existingIndex = graphStore.find('id', target);
 
   if (existingIndex > -1) {
-    graphStore.removeAt(existingIndex);
+    if (!dontRemove) {
+      graphStore.removeAt(existingIndex);
+    }
   } else {
     // Add it
     var params = Ext.apply({target: [target]}, defaultGraphParams);
@@ -652,7 +734,6 @@ function graphClicked(graphView, index, element, evt) {
   var menuItems = [];
 
   Ext.each(record.data.params.target, function (target, index) {
-
     menuItems.push({
       xtype: 'textfield',
       fieldLabel: "Target",
@@ -671,30 +752,36 @@ function graphClicked(graphView, index, element, evt) {
                     }
       }
     });
+  });
 
-    var editParams = Ext.apply({}, record.data.params);
-    removeUneditable(editParams);
-    menuItems.push({
-      xtype: 'textfield',
-      fieldLabel: "Params",
-      allowBlank: true,
-      grow: true,
-      growMin: 150,
-      value: Ext.urlEncode(editParams),
-      disableKeyFilter: true,
-      listeners: {
-        specialkey: function (field, e) {
-                      if (e.getKey() == e.ENTER) {
-                        var newParams = Ext.urlDecode( field.getValue() );
-                        copyUneditable(record.data.params, newParams);
-                        record.data.params = newParams;
-                        refreshGraphs();
-                        menu.destroy();
-                      }
+  var editParams = Ext.apply({}, record.data.params);
+  removeUneditable(editParams);
+  menuItems.push({
+    xtype: 'textfield',
+    fieldLabel: "Params",
+    allowBlank: true,
+    grow: true,
+    growMin: 150,
+    value: Ext.urlEncode(editParams),
+    disableKeyFilter: true,
+    listeners: {
+      specialkey: function (field, e) {
+                    if (e.getKey() == e.ENTER) {
+                      var newParams = Ext.urlDecode( field.getValue() );
+                      copyUneditable(record.data.params, newParams);
+                      record.data.params = newParams;
+                      refreshGraphs();
+                      menu.destroy();
                     }
-      }
-    });
+                  }
+    }
+  });
 
+  menuItems.push({
+    xtype: 'button',
+    fieldLabel: "<span style='visibility: hidden'>",
+    text: 'Breakout Into Separate Graphs',
+    handler: function () { menu.destroy(); breakoutGraph(record); }
   });
 
   menu = new Ext.menu.Menu({
@@ -723,6 +810,23 @@ function copyUneditable (src, dst) {
     } else {
       dst[p] = src[p];
     }
+  });
+}
+
+
+function breakoutGraph(record) {
+  Ext.Ajax.request({
+    url: '/metrics/expand/',
+    params: {
+      query: record.data.params.target
+    },
+    callback: function (options, success, response) {
+                var responseObj = Ext.decode(response.responseText);
+                graphStore.remove(record);
+                Ext.each(responseObj.results, function (metricPath) {
+                  graphAreaToggle(metricPath, true);
+                });
+              }
   });
 }
 

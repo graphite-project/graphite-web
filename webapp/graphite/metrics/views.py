@@ -116,6 +116,30 @@ def find_view(request):
   return response
 
 
+def expand_view(request):
+  "View for expanding a pattern into matching metric paths"
+  local_only = int( request.REQUEST.get('local', 0) )
+
+  if local_only:
+    store = LOCAL_STORE
+  else:
+    store = STORE
+
+  results = set()
+  for query in request.REQUEST.getlist('query'):
+    for node in store.find(query):
+      results.add( node.metric_path )
+
+  result = {
+    'results' : sorted(results)
+  }
+
+  response = HttpResponse(json.dumps(result), mimetype='text/json')
+  response['Pragma'] = 'no-cache'
+  response['Cache-Control'] = 'no-cache'
+  return response
+
+
 def tree_json(nodes, base_path, wildcards=False, contexts=False):
   results = []
 
