@@ -14,6 +14,8 @@ Graphite Documentation
    composer
    url-api
    carbon-daemons
+   tools
+   who-is-using
 
 
 Indices and tables
