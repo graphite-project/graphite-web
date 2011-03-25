@@ -139,7 +139,11 @@ class Graph:
       colorList = self.defaultColorList
     self.colors = itertools.cycle( colorList )
 
-    if self.data:
+    startTime = min([series.start for series in self.data])
+    endTime = max([series.end for series in self.data])
+    timeRange = endTime - startTime
+
+    if self.data and timeRange:
       self.drawGraph(**params)
     else:
       x = self.width / 2
