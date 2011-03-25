@@ -96,7 +96,7 @@ def writeCachedDataPoints():
             break
 
         if not archiveConfig:
-          raise Exception("No storage schema matched the metric '%s', check your storage-schemas.conf file.")
+          raise Exception("No storage schema matched the metric '%s', check your storage-schemas.conf file." % metric)
 
         dbDir = dirname(dbFilePath)
         os.system("mkdir -p -m 755 '%s'" % dbDir)
