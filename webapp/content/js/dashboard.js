@@ -135,7 +135,9 @@ function initDashboard () {
                  var node = item.parentMenu.node;
                  function addAll () {
                    Ext.each(node.childNodes, function (child) {
-                     graphAreaToggle(child.id, true);
+                     if (child.isLeaf()) {
+                       graphAreaToggle(child.id, true);
+                     }
                    });
                  }
 
