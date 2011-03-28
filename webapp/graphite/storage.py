@@ -198,6 +198,7 @@ def _find(current_dir, patterns):
 # Node classes
 class Node:
   context = {}
+  intervals = []
 
   def __init__(self, fs_path, metric_path):
     self.fs_path = str(fs_path)
@@ -233,6 +234,10 @@ class WhisperFile(Leaf):
   def __init__(self, *args, **kwargs):
     Leaf.__init__(self, *args, **kwargs)
     real_fs_path = realpath(self.fs_path)
+
+    start = time.time() - whisper.info(self.fs_path)['maxRetention']
+    end = max( os.stat(self.fs_path).st_mtime, start )
+    self.intervals = [ (start, end) ]
 
     if real_fs_path != self.fs_path:
       relative_fs_path = self.metric_path.replace('.', '/') + self.extension
