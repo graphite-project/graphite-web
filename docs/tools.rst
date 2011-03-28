@@ -15,8 +15,8 @@ statsd
 
 Ganglia
 -------
-`Ganglia`_ does not yet natively "work with" Graphite except that it uses RRD to store datapoints,
-and Graphite can read RRD files. However, there is an `add-on <https://github.com/ganglia/ganglia_contrib/tree/master/graphite_integration/>`_
+`Ganglia`_ uses RRD to store datapoints, and Graphite can read RRD files. Also there is an
+`add-on <https://github.com/ganglia/ganglia_contrib/tree/master/graphite_integration/>`_
 that allows Ganglia to send metrics directly to Graphite. Further integration work is underway.
 
 

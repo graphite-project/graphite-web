@@ -10,18 +10,18 @@ Graphite does two things:
 2. Render graphs of this data on demand
 
 What Graphite does not do is collect data for you, however there are some :doc:`tools </tools>` out
-there that know how to send data to graphite. Even though it often requires a little code, sending
-data to Graphite very simple.
+there that know how to send data to graphite. Even though it often requires a little code,
+:doc:`sending data </feeding-carbon>` to Graphite is very simple.
 
 
 About the project
 -----------------
-Graphite is an enterprise-scale tool that runs well on cheap hardware. It was originally designed
-and written by `Chris Davis`_ at `Orbitz`_ in 2006 as side project that ultimately grew
-to be a foundational monitoring tool. In 2008, Orbitz allowed Graphite to be released under
-the open source Apache 2.0 license. Since then Chris has continued to work on Graphite and
-has deployed it at other companies including `Sears`_, where it serves as a pillar of the
-e-commerce monitoring system. Today many large :doc:`companies </who-is-using>` use it.
+Graphite is an enterprise-scale monitoring tool that runs well on cheap hardware. It was
+originally designed and written by `Chris Davis`_ at `Orbitz`_ in 2006 as side project that
+ultimately grew to be a foundational monitoring tool. In 2008, Orbitz allowed Graphite to be
+released under the open source Apache 2.0 license. Since then Chris has continued to work on
+Graphite and has deployed it at other companies including `Sears`_, where it serves as a pillar
+of the e-commerce monitoring system. Today many large :doc:`companies </who-is-using>` use it.
 
 
 The architecture in a nutshell
@@ -45,6 +45,6 @@ webpages.
 .. _Twisted: http://www.twistedmatrix.com/
 .. _Cairo: http://www.cairographics.org/
 .. _RRD: http://oss.oetiker.ch/rrdtool/
-.. _Chris Davis: emailto:chrismd@gmail.com
+.. _Chris Davis: mailto:chrismd@gmail.com
 .. _Orbitz: http://www.orbitz.com/
 .. _Sears: http://www.sears.com/
