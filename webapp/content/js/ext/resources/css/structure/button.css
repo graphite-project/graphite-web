@@ -1,8 +1,8 @@
 /*!
- * Ext JS Library 3.0.0
- * Copyright(c) 2006-2009 Ext JS, LLC
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.3.1
+ * Copyright(c) 2006-2010 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 .x-btn{
 	cursor:pointer;
@@ -11,7 +11,7 @@
 
 .x-btn button{
     border:0 none;
-    background:transparent;
+    background-color:transparent;
     padding-left:3px;
     padding-right:3px;
     cursor:pointer;
@@ -26,7 +26,7 @@
     width:1px;
 }
 
-.ext-gecko .x-btn button {
+.ext-gecko .x-btn button, .ext-webkit .x-btn button {
     padding-left:0;
     padding-right:0;
 }
@@ -214,6 +214,11 @@
 	white-space:nowrap;
 }
 
+/* Fixes an issue with the button height */
+.ext-strict .ext-ie6 .x-btn-mc, .ext-strict .ext-ie7 .x-btn-mc {
+    height: 100%;
+}
+
 .x-btn-bl{
 	width:3px;
 	height:3px;
@@ -338,7 +343,7 @@
 /* height adjustment class */
 .x-btn-as-arrow .x-btn-mc em {
     display:block;
-    background:transparent;
+    background-color:transparent;
 	padding-bottom:14px;
 }
 
@@ -397,7 +402,7 @@
 }
 
 .x-btn-group-mc .x-btn-group-body {
-    background:transparent;
+    background-color:transparent;
     border: 0 none;
 }
 

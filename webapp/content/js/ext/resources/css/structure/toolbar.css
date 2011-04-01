@@ -1,8 +1,8 @@
 /*!
- * Ext JS Library 3.0.0
- * Copyright(c) 2006-2009 Ext JS, LLC
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.3.1
+ * Copyright(c) 2006-2010 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 .x-toolbar{
     border-style:solid;
@@ -15,6 +15,10 @@
     top:0;
     zoom:1;
     overflow:hidden;
+}
+
+.x-toolbar-left {
+    width: 100%;
 }
 
 .x-toolbar .x-item-disabled .x-btn-icon {
@@ -46,7 +50,7 @@
     vertical-align:middle;
 }
 
-.x-toolbar .x-btn-tl, .x-toolbar .x-btn-tr, .x-toolbar .x-btn-tc, .x-toolbar .x-btn-ml, .x-toolbar .x-btn-mr, 
+.x-toolbar .x-btn-tl, .x-toolbar .x-btn-tr, .x-toolbar .x-btn-tc, .x-toolbar .x-btn-ml, .x-toolbar .x-btn-mr,
 .x-toolbar .x-btn-mc, .x-toolbar .x-btn-bl, .x-toolbar .x-btn-br, .x-toolbar .x-btn-bc
 {
 	background-position: 500px 500px;
@@ -185,7 +189,7 @@
 
 .x-toolbar-more em.x-btn-arrow {
     display:inline;
-    background:transparent;
+    background-color:transparent;
 	padding-right:0;
 }
 
@@ -225,35 +229,18 @@ div.x-toolbar-no-items {
 }
 
 .x-toolbar-cell .x-form-checkbox, .x-toolbar-cell .x-form-radio{
-    vertical-align: top;
     margin-top: 5px;
+}
+
+.x-toolbar-cell .x-form-cb-label{
+    vertical-align: bottom;
+    top: 1px;
 }
 
 .ext-ie .x-toolbar-cell .x-form-checkbox, .ext-ie .x-toolbar-cell .x-form-radio{
     margin-top: 4px;
 }
 
-.x-toolbar-cell .x-form-check-wrap label{
-    vertical-align: bottom;
-}
-
-/* StatusBar */
-.x-statusbar .x-status-text {
-    height: 21px;
-    line-height: 21px;
-    padding: 0 4px;
-    cursor: default;
-}
-
-.x-statusbar .x-status-busy {
-    padding-left: 25px;
-    background: transparent no-repeat 3px 3px;
-}
-
-.x-statusbar .x-status-text-panel {
-    border-top: 1px solid;
-    border-right: 1px solid;
-    border-bottom: 1px solid;
-    border-left: 1px solid;
-    padding: 2px 8px 2px 5px;
+.ext-ie .x-toolbar-cell .x-form-cb-label{
+    top: 0;
 }

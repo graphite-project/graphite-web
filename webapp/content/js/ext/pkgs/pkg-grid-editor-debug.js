@@ -1,8 +1,8 @@
 /*!
- * Ext JS Library 3.0.0
- * Copyright(c) 2006-2009 Ext JS, LLC
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.3.1
+ * Copyright(c) 2006-2010 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 /**
  * @class Ext.grid.CellSelectionModel
@@ -17,58 +17,60 @@
  * @constructor
  * @param {Object} config The object containing the configuration of this model.
  */
-Ext.grid.CellSelectionModel = function(config){
-    Ext.apply(this, config);
+Ext.grid.CellSelectionModel = Ext.extend(Ext.grid.AbstractSelectionModel,  {
+    
+    constructor : function(config){
+        Ext.apply(this, config);
 
-    this.selection = null;
-
-    this.addEvents(
-        /**
-	     * @event beforecellselect
-	     * Fires before a cell is selected, return false to cancel the selection.
-	     * @param {SelectionModel} this
-	     * @param {Number} rowIndex The selected row index
-	     * @param {Number} colIndex The selected cell index
-	     */
-	    "beforecellselect",
-        /**
-	     * @event cellselect
-	     * Fires when a cell is selected.
-	     * @param {SelectionModel} this
-	     * @param {Number} rowIndex The selected row index
-	     * @param {Number} colIndex The selected cell index
-	     */
-	    "cellselect",
-        /**
-	     * @event selectionchange
-	     * Fires when the active selection changes.
-	     * @param {SelectionModel} this
-	     * @param {Object} selection null for no selection or an object with two properties
-         * <div class="mdetail-params"><ul>
-         * <li><b>cell</b> : see {@link #getSelectedCell} 
-         * <li><b>record</b> : Ext.data.record<p class="sub-desc">The {@link Ext.data.Record Record}
-         * which provides the data for the row containing the selection</p></li>
-         * </ul></div>
-	     */
-	    "selectionchange"
-    );
-
-    Ext.grid.CellSelectionModel.superclass.constructor.call(this);
-};
-
-Ext.extend(Ext.grid.CellSelectionModel, Ext.grid.AbstractSelectionModel,  {
+	    this.selection = null;
+	
+	    this.addEvents(
+	        /**
+	         * @event beforecellselect
+	         * Fires before a cell is selected, return false to cancel the selection.
+	         * @param {SelectionModel} this
+	         * @param {Number} rowIndex The selected row index
+	         * @param {Number} colIndex The selected cell index
+	         */
+	        "beforecellselect",
+	        /**
+	         * @event cellselect
+	         * Fires when a cell is selected.
+	         * @param {SelectionModel} this
+	         * @param {Number} rowIndex The selected row index
+	         * @param {Number} colIndex The selected cell index
+	         */
+	        "cellselect",
+	        /**
+	         * @event selectionchange
+	         * Fires when the active selection changes.
+	         * @param {SelectionModel} this
+	         * @param {Object} selection null for no selection or an object with two properties
+	         * <div class="mdetail-params"><ul>
+	         * <li><b>cell</b> : see {@link #getSelectedCell} 
+	         * <li><b>record</b> : Ext.data.record<p class="sub-desc">The {@link Ext.data.Record Record}
+	         * which provides the data for the row containing the selection</p></li>
+	         * </ul></div>
+	         */
+	        "selectionchange"
+	    );
+	
+	    Ext.grid.CellSelectionModel.superclass.constructor.call(this);
+    },
 
     /** @ignore */
     initEvents : function(){
-        this.grid.on("cellmousedown", this.handleMouseDown, this);
-        this.grid.getGridEl().on(Ext.EventManager.useKeydown ? "keydown" : "keypress", this.handleKeyDown, this);
-        var view = this.grid.view;
-        view.on("refresh", this.onViewChange, this);
-        view.on("rowupdated", this.onRowUpdated, this);
-        view.on("beforerowremoved", this.clearSelections, this);
-        view.on("beforerowsinserted", this.clearSelections, this);
+        this.grid.on('cellmousedown', this.handleMouseDown, this);
+        this.grid.on(Ext.EventManager.getKeyEvent(), this.handleKeyDown, this);
+        this.grid.getView().on({
+            scope: this,
+            refresh: this.onViewChange,
+            rowupdated: this.onRowUpdated,
+            beforerowremoved: this.clearSelections,
+            beforerowsinserted: this.clearSelections
+        });
         if(this.grid.isEditor){
-            this.grid.on("beforeedit", this.beforeEdit,  this);
+            this.grid.on('beforeedit', this.beforeEdit,  this);
         }
     },
 
@@ -179,85 +181,107 @@ var data = record.get(fieldName);
     isSelectable : function(rowIndex, colIndex, cm){
         return !cm.isHidden(colIndex);
     },
+    
+    // private
+    onEditorKey: function(field, e){
+        if(e.getKey() == e.TAB){
+            this.handleKeyDown(e);
+        }
+    },
 
     /** @ignore */
     handleKeyDown : function(e){
         if(!e.isNavKeyPress()){
             return;
         }
-        var g = this.grid, s = this.selection;
+        
+        var k = e.getKey(),
+            g = this.grid,
+            s = this.selection,
+            sm = this,
+            walk = function(row, col, step){
+                return g.walkCells(
+                    row,
+                    col,
+                    step,
+                    g.isEditor && g.editing ? sm.acceptsNav : sm.isSelectable, // *** handle tabbing while editorgrid is in edit mode
+                    sm
+                );
+            },
+            cell, newCell, r, c, ae;
+
+        switch(k){
+            case e.ESC:
+            case e.PAGE_UP:
+            case e.PAGE_DOWN:
+                // do nothing
+                break;
+            default:
+                // *** call e.stopEvent() only for non ESC, PAGE UP/DOWN KEYS
+                e.stopEvent();
+                break;
+        }
+
         if(!s){
-            e.stopEvent();
-            var cell = g.walkCells(0, 0, 1, this.isSelectable,  this);
+            cell = walk(0, 0, 1); // *** use private walk() function defined above
             if(cell){
                 this.select(cell[0], cell[1]);
             }
             return;
         }
-        var sm = this;
-        var walk = function(row, col, step){
-            return g.walkCells(row, col, step, sm.isSelectable,  sm);
-        };
-        var k = e.getKey(), r = s.cell[0], c = s.cell[1];
-        var newCell;
 
+        cell = s.cell;  // currently selected cell
+        r = cell[0];    // current row
+        c = cell[1];    // current column
+        
         switch(k){
-             case e.TAB:
-                 if(e.shiftKey){
-                     newCell = walk(r, c-1, -1);
-                 }else{
-                     newCell = walk(r, c+1, 1);
-                 }
-             break;
-             case e.DOWN:
-                 newCell = walk(r+1, c, 1);
-             break;
-             case e.UP:
-                 newCell = walk(r-1, c, -1);
-             break;
-             case e.RIGHT:
-                 newCell = walk(r, c+1, 1);
-             break;
-             case e.LEFT:
-                 newCell = walk(r, c-1, -1);
-             break;
-             case e.ENTER:
-                 if(g.isEditor && !g.editing){
+            case e.TAB:
+                if(e.shiftKey){
+                    newCell = walk(r, c - 1, -1);
+                }else{
+                    newCell = walk(r, c + 1, 1);
+                }
+                break;
+            case e.DOWN:
+                newCell = walk(r + 1, c, 1);
+                break;
+            case e.UP:
+                newCell = walk(r - 1, c, -1);
+                break;
+            case e.RIGHT:
+                newCell = walk(r, c + 1, 1);
+                break;
+            case e.LEFT:
+                newCell = walk(r, c - 1, -1);
+                break;
+            case e.ENTER:
+                if (g.isEditor && !g.editing) {
                     g.startEditing(r, c);
-                    e.stopEvent();
                     return;
                 }
-             break;
+                break;
         }
+
         if(newCell){
-            this.select(newCell[0], newCell[1]);
-            e.stopEvent();
+            // *** reassign r & c variables to newly-selected cell's row and column
+            r = newCell[0];
+            c = newCell[1];
+
+            this.select(r, c); // *** highlight newly-selected cell and update selection
+
+            if(g.isEditor && g.editing){ // *** handle tabbing while editorgrid is in edit mode
+                ae = g.activeEditor;
+                if(ae && ae.field.triggerBlur){
+                    // *** if activeEditor is a TriggerField, explicitly call its triggerBlur() method
+                    ae.field.triggerBlur();
+                }
+                g.startEditing(r, c);
+            }
         }
     },
 
     acceptsNav : function(row, col, cm){
         return !cm.isHidden(col) && cm.isCellEditable(col, row);
-    },
-
-    onEditorKey : function(field, e){
-        var k = e.getKey(), newCell, g = this.grid, ed = g.activeEditor;
-        if(k == e.TAB){
-            if(e.shiftKey){
-                newCell = g.walkCells(ed.row, ed.col-1, -1, this.acceptsNav, this);
-            }else{
-                newCell = g.walkCells(ed.row, ed.col+1, 1, this.acceptsNav, this);
-            }
-            e.stopEvent();
-        }else if(k == e.ENTER){
-            ed.completeEdit();
-            e.stopEvent();
-        }else if(k == e.ESC){
-        	e.stopEvent();
-            ed.cancelEdit();
-        }
-        if(newCell){
-            g.startEditing(newCell[0], newCell[1]);
-        }
     }
 });/**
  * @class Ext.grid.EditorGridPanel
@@ -290,7 +314,7 @@ Ext.grid.EditorGridPanel = Ext.extend(Ext.grid.GridPanel, {
      * editing that cell.</p>
      */
     clicksToEdit: 2,
-    
+
     /**
     * @cfg {Boolean} forceValidation
     * True to force validation even if the value is unmodified (defaults to false)
@@ -302,15 +326,15 @@ Ext.grid.EditorGridPanel = Ext.extend(Ext.grid.GridPanel, {
     // private
     detectEdit: false,
 
-	/**
-	 * @cfg {Boolean} autoEncode
-	 * True to automatically HTML encode and decode values pre and post edit (defaults to false)
-	 */
-	autoEncode : false,
+    /**
+     * @cfg {Boolean} autoEncode
+     * True to automatically HTML encode and decode values pre and post edit (defaults to false)
+     */
+    autoEncode : false,
 
-	/**
-	 * @cfg {Boolean} trackMouseOver @hide
-	 */
+    /**
+     * @cfg {Boolean} trackMouseOver @hide
+     */
     // private
     trackMouseOver: false, // causes very odd FF errors
 
@@ -328,7 +352,7 @@ Ext.grid.EditorGridPanel = Ext.extend(Ext.grid.GridPanel, {
 
         this.activeEditor = null;
 
-	    this.addEvents(
+        this.addEvents(
             /**
              * @event beforeedit
              * Fires before cell editing is triggered. The edit event object has the following properties <br />
@@ -357,13 +381,13 @@ Ext.grid.EditorGridPanel = Ext.extend(Ext.grid.GridPanel, {
              * <li>column - The grid column index</li>
              * </ul>
              *
-             * <pre><code> 
+             * <pre><code>
 grid.on('afteredit', afterEdit, this );
 
 function afterEdit(e) {
     // execute an XHR to send/commit data to the server, in callback do (if successful):
     e.record.commit();
-}; 
+};
              * </code></pre>
              * @param {Object} e An edit event (see above for description)
              */
@@ -386,10 +410,10 @@ function afterEdit(e) {
              * records (not all).  By observing the grid's validateedit event, it can be cancelled if
              * the edit occurs on a targeted row (for example) and then setting the field's new value
              * in the Record directly:
-             * <pre><code> 
+             * <pre><code>
 grid.on('validateedit', function(e) {
   var myTargetRow = 6;
- 
+
   if (e.row == myTargetRow) {
     e.cancel = true;
     e.record.data[e.field] = e.value;
@@ -406,16 +430,25 @@ grid.on('validateedit', function(e) {
     initEvents : function(){
         Ext.grid.EditorGridPanel.superclass.initEvents.call(this);
 
-        this.on("bodyscroll", this.stopEditing, this, [true]);
-        this.on("columnresize", this.stopEditing, this, [true]);
+        this.getGridEl().on('mousewheel', this.stopEditing.createDelegate(this, [true]), this);
+        this.on('columnresize', this.stopEditing, this, [true]);
 
         if(this.clicksToEdit == 1){
             this.on("cellclick", this.onCellDblClick, this);
         }else {
-            if(this.clicksToEdit == 'auto' && this.view.mainBody){
-                this.view.mainBody.on("mousedown", this.onAutoEditClick, this);
+            var view = this.getView();
+            if(this.clicksToEdit == 'auto' && view.mainBody){
+                view.mainBody.on('mousedown', this.onAutoEditClick, this);
             }
-            this.on("celldblclick", this.onCellDblClick, this);
+            this.on('celldblclick', this.onCellDblClick, this);
+        }
+    },
+
+    onResize : function(){
+        Ext.grid.EditorGridPanel.superclass.onResize.apply(this, arguments);
+        var ae = this.activeEditor;
+        if(this.editing && ae){
+            ae.realign(true);
         }
     },
 
@@ -429,8 +462,8 @@ grid.on('validateedit', function(e) {
         if(e.button !== 0){
             return;
         }
-        var row = this.view.findRowIndex(t);
-        var col = this.view.findCellIndex(t);
+        var row = this.view.findRowIndex(t),
+            col = this.view.findCellIndex(t);
         if(row !== false && col !== false){
             this.stopEditing();
             if(this.selModel.getSelectedCell){ // cell sm
@@ -449,10 +482,11 @@ grid.on('validateedit', function(e) {
     // private
     onEditComplete : function(ed, value, startValue){
         this.editing = false;
+        this.lastActiveEditor = this.activeEditor;
         this.activeEditor = null;
-        ed.un("specialkey", this.selModel.onEditorKey, this.selModel);
-		var r = ed.record;
-        var field = this.colModel.getDataIndex(ed.col);
+
+        var r = ed.record,
+            field = this.colModel.getDataIndex(ed.col);
         value = this.postEditValue(value, startValue, r, field);
         if(this.forceValidation === true || String(value) !== String(startValue)){
             var e = {
@@ -483,17 +517,17 @@ grid.on('validateedit', function(e) {
         this.stopEditing();
         if(this.colModel.isCellEditable(col, row)){
             this.view.ensureVisible(row, col, true);
-            var r = this.store.getAt(row);
-            var field = this.colModel.getDataIndex(col);
-            var e = {
-                grid: this,
-                record: r,
-                field: field,
-                value: r.data[field],
-                row: row,
-                column: col,
-                cancel:false
-            };
+            var r = this.store.getAt(row),
+                field = this.colModel.getDataIndex(col),
+                e = {
+                    grid: this,
+                    record: r,
+                    field: field,
+                    value: r.data[field],
+                    row: row,
+                    column: col,
+                    cancel:false
+                };
             if(this.fireEvent("beforeedit", e) !== false && !e.cancel){
                 this.editing = true;
                 var ed = this.colModel.getCellEditor(col, row);
@@ -501,22 +535,43 @@ grid.on('validateedit', function(e) {
                     return;
                 }
                 if(!ed.rendered){
-                    ed.render(this.view.getEditorParent(ed));
+                    ed.parentEl = this.view.getEditorParent(ed);
+                    ed.on({
+                        scope: this,
+                        render: {
+                            fn: function(c){
+                                c.field.focus(false, true);
+                            },
+                            single: true,
+                            scope: this
+                        },
+                        specialkey: function(field, e){
+                            this.getSelectionModel().onEditorKey(field, e);
+                        },
+                        complete: this.onEditComplete,
+                        canceledit: this.stopEditing.createDelegate(this, [true])
+                    });
                 }
-                (function(){ // complex but required for focus issues in safari, ie and opera
-                    ed.row = row;
-                    ed.col = col;
-                    ed.record = r;
-                    ed.on("complete", this.onEditComplete, this, {single: true});
-                    ed.on("specialkey", this.selModel.onEditorKey, this.selModel);
-                    /**
-                     * The currently active editor or null
-                      * @type Ext.Editor
-                     */
-                    this.activeEditor = ed;
-                    var v = this.preEditValue(r, field);
-                    ed.startEdit(this.view.getCell(row, col).firstChild, v === undefined ? '' : v);
-                }).defer(50, this);
+                Ext.apply(ed, {
+                    row     : row,
+                    col     : col,
+                    record  : r
+                });
+                this.lastEdit = {
+                    row: row,
+                    col: col
+                };
+                this.activeEditor = ed;
+                // Set the selectSameEditor flag if we are reusing the same editor again and
+                // need to prevent the editor from firing onBlur on itself.
+                ed.selectSameEditor = (this.activeEditor == this.lastActiveEditor);
+                var v = this.preEditValue(r, field);
+                ed.startEdit(this.view.getCell(row, col).firstChild, Ext.isDefined(v) ? v : '');
+
+                // Clear the selectSameEditor flag
+                (function(){
+                    delete ed.selectSameEditor;
+                }).defer(50);
             }
         }
     },
@@ -524,23 +579,29 @@ grid.on('validateedit', function(e) {
     // private
     preEditValue : function(r, field){
         var value = r.data[field];
-        return this.autoEncode && typeof value == 'string' ? Ext.util.Format.htmlDecode(value) : value;
+        return this.autoEncode && Ext.isString(value) ? Ext.util.Format.htmlDecode(value) : value;
     },
 
     // private
-	postEditValue : function(value, originalValue, r, field){
-		return this.autoEncode && typeof value == 'string' ? Ext.util.Format.htmlEncode(value) : value;
-	},
+    postEditValue : function(value, originalValue, r, field){
+        return this.autoEncode && Ext.isString(value) ? Ext.util.Format.htmlEncode(value) : value;
+    },
 
     /**
      * Stops any active editing
      * @param {Boolean} cancel (optional) True to cancel any changes
      */
     stopEditing : function(cancel){
-        if(this.activeEditor){
-            this.activeEditor[cancel === true ? 'cancelEdit' : 'completeEdit']();
+        if(this.editing){
+            // Store the lastActiveEditor to check if it is changing
+            var ae = this.lastActiveEditor = this.activeEditor;
+            if(ae){
+                ae[cancel === true ? 'cancelEdit' : 'completeEdit']();
+                this.view.focusCell(ae.row, ae.col);
+            }
+            this.activeEditor = null;
         }
-        this.activeEditor = null;
+        this.editing = false;
     }
 });
 Ext.reg('editorgrid', Ext.grid.EditorGridPanel);// private

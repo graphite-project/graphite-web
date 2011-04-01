@@ -1,8 +1,8 @@
 /*!
- * Ext JS Library 3.0.0
- * Copyright(c) 2006-2009 Ext JS, LLC
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.3.1
+ * Copyright(c) 2006-2010 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 /* Grid3 styles */
 .x-grid3 {
@@ -28,6 +28,7 @@
 
 .x-grid3-hd-row td, .x-grid3-row td, .x-grid3-summary-row td{
     -moz-outline: none;
+    outline: none;
 	-moz-user-focus: normal;
 }
 
@@ -68,6 +69,16 @@
 	text-overflow: ellipsis;
     padding:3px 3px 3px 5px;
     white-space: nowrap;
+}
+
+/* ActionColumn, reduce padding to accommodate 16x16 icons in normal row height */
+.x-action-col-cell .x-grid3-cell-inner {
+    padding-top: 1px;
+    padding-bottom: 1px;
+}
+
+.x-action-col-icon {
+    cursor: pointer;
 }
 
 .x-grid3-hd-inner {
@@ -347,7 +358,7 @@ td.x-grid3-hd-over .x-grid3-hd-inner, td.sort-desc .x-grid3-hd-inner, td.sort-as
 .x-grid3-col-dd {
     border:0 none;
     padding:0;
-    background:transparent;
+    background-color:transparent;
 }
 
 .x-dd-drag-ghost .x-grid3-dd-wrap {
@@ -440,10 +451,18 @@ a.x-grid3-hd-btn:hover {
 }
 
 .x-grid3-hd-checker {
+    background-position:2px 1px;
+}
+
+.ext-border-box .x-grid3-hd-checker {
     background-position:2px 3px;
 }
 
 .x-grid3-hd-checker-on .x-grid3-hd-checker {
+    background-position:-23px 1px;
+}
+
+.ext-border-box .x-grid3-hd-checker-on .x-grid3-hd-checker {
     background-position:-23px 3px;
 }
 
@@ -541,9 +560,26 @@ a.x-grid3-hd-btn:hover {
     position:relative;
 }
 
+
+/* Reset position to static when Grid Panel has been framed */
+/* to resolve 'snapping' from top to bottom behavior. */
+/* @forumThread 86656 */
+.ext-ie7 .x-grid-panel .x-panel-mc .x-panel-bbar {
+    position: static;
+}
+
 .ext-ie6 .x-grid3-header {
     position: relative;
 }
+
+/* Fix WebKit bug in Grids */
+.ext-webkit .x-grid-panel .x-panel-bwrap{
+    -webkit-user-select:none;
+}
+.ext-webkit .x-tbar-page-number{
+    -webkit-user-select:ignore;
+}
+/* end*/
 
 /* column lines */
 .x-grid-with-col-lines .x-grid3-row td.x-grid3-cell {

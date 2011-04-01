@@ -1,8 +1,8 @@
 /*!
- * Ext JS Library 3.0.0
- * Copyright(c) 2006-2009 Ext JS, LLC
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.3.1
+ * Copyright(c) 2006-2010 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 /*
  * These classes are derivatives of the similarly named classes in the YUI Library.
@@ -96,7 +96,7 @@ Ext.dd.DragDrop.prototype = {
 
     /**
      * The id of the element that will be dragged.  By default this is same
-     * as the linked element , but could be changed to another element. Ex:
+     * as the linked element, but could be changed to another element. Ex:
      * Ext.dd.DDProxy
      * @property dragElId
      * @type String
@@ -187,7 +187,9 @@ Ext.dd.DragDrop.prototype = {
      * Lock this instance
      * @method lock
      */
-    lock: function() { this.locked = true; },
+    lock: function() {
+        this.locked = true;
+    },
 
     /**
      * When set to true, other DD objects in cooperating DDGroups do not receive
@@ -201,7 +203,9 @@ Ext.dd.DragDrop.prototype = {
      * Unlock this instace
      * @method unlock
      */
-    unlock: function() { this.locked = false; },
+    unlock: function() {
+        this.locked = false;
+    },
 
     /**
      * By default, all instances can be a drop target.  This can be disabled by
@@ -269,7 +273,6 @@ Ext.dd.DragDrop.prototype = {
      * The up constraint
      * @property minY
      * @type int
-     * @type int
      * @private
      */
     minY: 0,
@@ -321,7 +324,7 @@ Ext.dd.DragDrop.prototype = {
     primaryButtonOnly: true,
 
     /**
-     * The availabe property is false until the linked dom element is accessible.
+     * The available property is false until the linked dom element is accessible.
      * @property available
      * @type boolean
      */
@@ -519,24 +522,25 @@ Ext.dd.DragDrop.prototype = {
      * @param {Boolean} inContent (optional) Constrain the draggable in the content box of the element (inside padding and borders)
      */
     constrainTo : function(constrainTo, pad, inContent){
-        if(typeof pad == "number"){
+        if(Ext.isNumber(pad)){
             pad = {left: pad, right:pad, top:pad, bottom:pad};
         }
         pad = pad || this.defaultPadding;
-        var b = Ext.get(this.getEl()).getBox();
-        var ce = Ext.get(constrainTo);
-        var s = ce.getScroll();
-        var c, cd = ce.dom;
+        var b = Ext.get(this.getEl()).getBox(),
+            ce = Ext.get(constrainTo),
+            s = ce.getScroll(),
+            c, 
+            cd = ce.dom;
         if(cd == document.body){
             c = { x: s.left, y: s.top, width: Ext.lib.Dom.getViewWidth(), height: Ext.lib.Dom.getViewHeight()};
         }else{
             var xy = ce.getXY();
-            c = {x : xy[0]+s.left, y: xy[1]+s.top, width: cd.clientWidth, height: cd.clientHeight};
+            c = {x : xy[0], y: xy[1], width: cd.clientWidth, height: cd.clientHeight};
         }
 
 
-        var topSpace = b.y - c.y;
-        var leftSpace = b.x - c.x;
+        var topSpace = b.y - c.y,
+            leftSpace = b.x - c.x;
 
         this.resetConstraints();
         this.setXConstraint(leftSpace - (pad.left||0), // left
@@ -711,7 +715,6 @@ Ext.dd.DragDrop.prototype = {
         this.lastPageX = p[0];
         this.lastPageY = p[1];
 
-
         this.setStartPosition(p);
     },
 
@@ -852,7 +855,6 @@ Ext.dd.DragDrop.prototype = {
 
                 // set the initial element position
                 this.setStartPosition();
-
 
                 this.b4MouseDown(e);
                 this.onMouseDown(e);
@@ -1104,8 +1106,6 @@ Ext.dd.DragDrop.prototype = {
      * @param {boolean} maintainOffset
      */
     resetConstraints: function() {
-
-
         // Maintain offsets if necessary
         if (this.initPageX || this.initPageX === 0) {
             // figure out how much this thing has moved
@@ -1143,7 +1143,6 @@ Ext.dd.DragDrop.prototype = {
      * @private
      */
     getTick: function(val, tickArray) {
-
         if (!tickArray) {
             // If tick interval is not defined, it is effectively 1 pixel,
             // so we return the value passed to us.
@@ -1180,7 +1179,7 @@ Ext.dd.DragDrop.prototype = {
 };
 
 })();
-/**
+/*
  * The drag and drop utility provides a framework for building drag and drop
  * applications.  In addition to enabling drag and drop for specific elements,
  * the drag and drop elements are tracked by the manager class, and the
@@ -1211,7 +1210,7 @@ Ext.dd.DragDropMgr = function() {
          * dimension is the DragDrop item group, the second the DragDrop
          * object.
          * @property ids
-         * @type {string: string}
+         * @type String[]
          * @private
          * @static
          */
@@ -1222,7 +1221,7 @@ Ext.dd.DragDropMgr = function() {
          * if the element that generated the mousedown event is actually the
          * handle and not the html element itself.
          * @property handleIds
-         * @type {string: string}
+         * @type String[]
          * @private
          * @static
          */
@@ -1436,7 +1435,7 @@ Ext.dd.DragDropMgr = function() {
 
         /**
          * The number of milliseconds after the mousedown event to initiate the
-         * drag if we don't get a mouseup event. Default=1000
+         * drag if we don't get a mouseup event. Default=350
          * @property clickTimeThresh
          * @type int
          * @static
@@ -1592,8 +1591,8 @@ Ext.dd.DragDropMgr = function() {
          * Returns true if the specified dd target is a legal target for
          * the specifice drag obj
          * @method isLegalTarget
-         * @param {DragDrop} the drag obj
-         * @param {DragDrop} the target
+         * @param {DragDrop} oDD the drag obj
+         * @param {DragDrop} oTargetDD the target
          * @return {boolean} true if the target is a legal target for the
          * dd obj
          * @static
@@ -1665,7 +1664,7 @@ Ext.dd.DragDropMgr = function() {
          */
         handleMouseDown: function(e, oDD) {
             if(Ext.QuickTips){
-                Ext.QuickTips.disable();
+                Ext.QuickTips.ddDisable();
             }
             if(this.dragCurrent){
                 // the original browser mouseup wasn't handled (e.g. outside FF browser window)
@@ -1723,7 +1722,7 @@ Ext.dd.DragDropMgr = function() {
         handleMouseUp: function(e) {
 
             if(Ext.QuickTips){
-                Ext.QuickTips.enable();
+                Ext.QuickTips.ddEnable();
             }
             if (! this.dragCurrent) {
                 return;
@@ -2267,7 +2266,7 @@ Ext.dd.DragDropMgr = function() {
 
         /**
          * Inner class for cached elements
-         * @class DragDropMgr.ElementWrapper
+         * @class Ext.dd.DragDropMgr.ElementWrapper
          * @for DragDropMgr
          * @private
          * @deprecated
@@ -2380,7 +2379,9 @@ Ext.dd.DragDropMgr = function() {
          * @return {int} the document's scrollTop
          * @static
          */
-        getScrollTop: function () { return this.getScroll().top; },
+        getScrollTop: function () {
+            return this.getScroll().top;
+        },
 
         /**
          * Gets the scrollLeft
@@ -2388,7 +2389,9 @@ Ext.dd.DragDropMgr = function() {
          * @return {int} the document's scrollTop
          * @static
          */
-        getScrollLeft: function () { return this.getScroll().left; },
+        getScrollLeft: function () {
+            return this.getScroll().left;
+        },
 
         /**
          * Sets the x/y position of an element to the location of the
@@ -2408,7 +2411,9 @@ Ext.dd.DragDropMgr = function() {
          * @method numericSort
          * @static
          */
-        numericSort: function(a, b) { return (a - b); },
+        numericSort: function(a, b) {
+            return (a - b);
+        },
 
         /**
          * Internal counter
@@ -2683,8 +2688,6 @@ Ext.extend(Ext.dd.DD, Ext.dd.DragDrop, {
      * @private
      */
     getTargetCoord: function(iPageX, iPageY) {
-
-
         var x = iPageX - this.deltaX;
         var y = iPageY - this.deltaY;
 
@@ -2986,63 +2989,183 @@ Ext.dd.DDTarget = function(id, sGroup, config) {
 
 // Ext.dd.DDTarget.prototype = new Ext.dd.DragDrop();
 Ext.extend(Ext.dd.DDTarget, Ext.dd.DragDrop, {
+    /**
+     * @hide
+     * Overridden and disabled. A DDTarget does not support being dragged.
+     * @method
+     */
+    getDragEl: Ext.emptyFn,
+    /**
+     * @hide
+     * Overridden and disabled. A DDTarget does not support being dragged.
+     * @method
+     */
+    isValidHandleChild: Ext.emptyFn,
+    /**
+     * @hide
+     * Overridden and disabled. A DDTarget does not support being dragged.
+     * @method
+     */
+    startDrag: Ext.emptyFn,
+    /**
+     * @hide
+     * Overridden and disabled. A DDTarget does not support being dragged.
+     * @method
+     */
+    endDrag: Ext.emptyFn,
+    /**
+     * @hide
+     * Overridden and disabled. A DDTarget does not support being dragged.
+     * @method
+     */
+    onDrag: Ext.emptyFn,
+    /**
+     * @hide
+     * Overridden and disabled. A DDTarget does not support being dragged.
+     * @method
+     */
+    onDragDrop: Ext.emptyFn,
+    /**
+     * @hide
+     * Overridden and disabled. A DDTarget does not support being dragged.
+     * @method
+     */
+    onDragEnter: Ext.emptyFn,
+    /**
+     * @hide
+     * Overridden and disabled. A DDTarget does not support being dragged.
+     * @method
+     */
+    onDragOut: Ext.emptyFn,
+    /**
+     * @hide
+     * Overridden and disabled. A DDTarget does not support being dragged.
+     * @method
+     */
+    onDragOver: Ext.emptyFn,
+    /**
+     * @hide
+     * Overridden and disabled. A DDTarget does not support being dragged.
+     * @method
+     */
+    onInvalidDrop: Ext.emptyFn,
+    /**
+     * @hide
+     * Overridden and disabled. A DDTarget does not support being dragged.
+     * @method
+     */
+    onMouseDown: Ext.emptyFn,
+    /**
+     * @hide
+     * Overridden and disabled. A DDTarget does not support being dragged.
+     * @method
+     */
+    onMouseUp: Ext.emptyFn,
+    /**
+     * @hide
+     * Overridden and disabled. A DDTarget does not support being dragged.
+     * @method
+     */
+    setXConstraint: Ext.emptyFn,
+    /**
+     * @hide
+     * Overridden and disabled. A DDTarget does not support being dragged.
+     * @method
+     */
+    setYConstraint: Ext.emptyFn,
+    /**
+     * @hide
+     * Overridden and disabled. A DDTarget does not support being dragged.
+     * @method
+     */
+    resetConstraints: Ext.emptyFn,
+    /**
+     * @hide
+     * Overridden and disabled. A DDTarget does not support being dragged.
+     * @method
+     */
+    clearConstraints: Ext.emptyFn,
+    /**
+     * @hide
+     * Overridden and disabled. A DDTarget does not support being dragged.
+     * @method
+     */
+    clearTicks: Ext.emptyFn,
+    /**
+     * @hide
+     * Overridden and disabled. A DDTarget does not support being dragged.
+     * @method
+     */
+    setInitPosition: Ext.emptyFn,
+    /**
+     * @hide
+     * Overridden and disabled. A DDTarget does not support being dragged.
+     * @method
+     */
+    setDragElId: Ext.emptyFn,
+    /**
+     * @hide
+     * Overridden and disabled. A DDTarget does not support being dragged.
+     * @method
+     */
+    setHandleElId: Ext.emptyFn,
+    /**
+     * @hide
+     * Overridden and disabled. A DDTarget does not support being dragged.
+     * @method
+     */
+    setOuterHandleElId: Ext.emptyFn,
+    /**
+     * @hide
+     * Overridden and disabled. A DDTarget does not support being dragged.
+     * @method
+     */
+    addInvalidHandleClass: Ext.emptyFn,
+    /**
+     * @hide
+     * Overridden and disabled. A DDTarget does not support being dragged.
+     * @method
+     */
+    addInvalidHandleId: Ext.emptyFn,
+    /**
+     * @hide
+     * Overridden and disabled. A DDTarget does not support being dragged.
+     * @method
+     */
+    addInvalidHandleType: Ext.emptyFn,
+    /**
+     * @hide
+     * Overridden and disabled. A DDTarget does not support being dragged.
+     * @method
+     */
+    removeInvalidHandleClass: Ext.emptyFn,
+    /**
+     * @hide
+     * Overridden and disabled. A DDTarget does not support being dragged.
+     * @method
+     */
+    removeInvalidHandleId: Ext.emptyFn,
+    /**
+     * @hide
+     * Overridden and disabled. A DDTarget does not support being dragged.
+     * @method
+     */
+    removeInvalidHandleType: Ext.emptyFn,
+
     toString: function() {
         return ("DDTarget " + this.id);
     }
-});
-/**
+});/**
  * @class Ext.dd.DragTracker
  * @extends Ext.util.Observable
+ * A DragTracker listens for drag events on an Element and fires events at the start and end of the drag,
+ * as well as during the drag. This is useful for components such as {@link Ext.slider.MultiSlider}, where there is
+ * an element that can be dragged around to change the Slider's value.
+ * DragTracker provides a series of template methods that should be overridden to provide functionality
+ * in response to detected drag operations. These are onBeforeStart, onStart, onDrag and onEnd.
+ * See {@link Ext.slider.MultiSlider}'s initEvents function for an example implementation.
  */
-Ext.dd.DragTracker = function(config){
-    Ext.apply(this, config);
-    this.addEvents(
-        /**
-         * @event mousedown
-         * @param {Object} this
-         * @param {Object} e event object
-         */
-        'mousedown',
-        /**
-         * @event mouseup
-         * @param {Object} this
-         * @param {Object} e event object
-         */
-        'mouseup',
-        /**
-         * @event mousemove
-         * @param {Object} this
-         * @param {Object} e event object
-         */
-        'mousemove',
-        /**
-         * @event dragstart
-         * @param {Object} this
-         * @param {Object} startXY the page coordinates of the event
-         */
-        'dragstart',
-        /**
-         * @event dragend
-         * @param {Object} this
-         * @param {Object} e event object
-         */
-        'dragend',
-        /**
-         * @event drag
-         * @param {Object} this
-         * @param {Object} e event object
-         */
-        'drag'
-    );
-
-    this.dragRegion = new Ext.lib.Region(0,0,0,0);
-
-    if(this.el){
-        this.initEl(this.el);
-    }
-}
-
-Ext.extend(Ext.dd.DragTracker, Ext.util.Observable,  {
+Ext.dd.DragTracker = Ext.extend(Ext.util.Observable,  {    
     /**
      * @cfg {Boolean} active
 	 * Defaults to <tt>false</tt>.
@@ -3050,7 +3173,7 @@ Ext.extend(Ext.dd.DragTracker, Ext.util.Observable,  {
     active: false,
     /**
      * @cfg {Number} tolerance
-	 * Defaults to <tt>5</tt>.
+	 * Number of pixels the drag target must be moved before dragging is considered to have started. Defaults to <tt>5</tt>.
 	 */	
     tolerance: 5,
     /**
@@ -3059,6 +3182,55 @@ Ext.extend(Ext.dd.DragTracker, Ext.util.Observable,  {
 	 * Specify a Number for the number of milliseconds to defer trigger start.
 	 */	
     autoStart: false,
+    
+    constructor : function(config){
+        Ext.apply(this, config);
+	    this.addEvents(
+	        /**
+	         * @event mousedown
+	         * @param {Object} this
+	         * @param {Object} e event object
+	         */
+	        'mousedown',
+	        /**
+	         * @event mouseup
+	         * @param {Object} this
+	         * @param {Object} e event object
+	         */
+	        'mouseup',
+	        /**
+	         * @event mousemove
+	         * @param {Object} this
+	         * @param {Object} e event object
+	         */
+	        'mousemove',
+	        /**
+	         * @event dragstart
+	         * @param {Object} this
+	         * @param {Object} e event object
+	         */
+	        'dragstart',
+	        /**
+	         * @event dragend
+	         * @param {Object} this
+	         * @param {Object} e event object
+	         */
+	        'dragend',
+	        /**
+	         * @event drag
+	         * @param {Object} this
+	         * @param {Object} e event object
+	         */
+	        'drag'
+	    );
+	
+	    this.dragRegion = new Ext.lib.Region(0,0,0,0);
+	
+	    if(this.el){
+	        this.initEl(this.el);
+	    }
+        Ext.dd.DragTracker.superclass.constructor.call(this, config);
+    },
 
     initEl: function(el){
         this.el = Ext.get(el);
@@ -3068,6 +3240,7 @@ Ext.extend(Ext.dd.DragTracker, Ext.util.Observable,  {
 
     destroy : function(){
         this.el.un('mousedown', this.onMouseDown, this);
+        delete this.el;
     },
 
     onMouseDown: function(e, target){
@@ -3077,12 +3250,14 @@ Ext.extend(Ext.dd.DragTracker, Ext.util.Observable,  {
             if(this.preventDefault !== false){
                 e.preventDefault();
             }
-            var doc = Ext.getDoc();
-            doc.on('mouseup', this.onMouseUp, this);
-            doc.on('mousemove', this.onMouseMove, this);
-            doc.on('selectstart', this.stopSelect, this);
+            Ext.getDoc().on({
+                scope: this,
+                mouseup: this.onMouseUp,
+                mousemove: this.onMouseMove,
+                selectstart: this.stopSelect
+            });
             if(this.autoStart){
-                this.timer = this.triggerStart.defer(this.autoStart === true ? 1000 : this.autoStart, this);
+                this.timer = this.triggerStart.defer(this.autoStart === true ? 1000 : this.autoStart, this, [e]);
             }
         }
     },
@@ -3100,7 +3275,7 @@ Ext.extend(Ext.dd.DragTracker, Ext.util.Observable,  {
         this.lastXY = xy;
         if(!this.active){
             if(Math.abs(s[0]-xy[0]) > this.tolerance || Math.abs(s[1]-xy[1]) > this.tolerance){
-                this.triggerStart();
+                this.triggerStart(e);
             }else{
                 return;
             }
@@ -3110,14 +3285,15 @@ Ext.extend(Ext.dd.DragTracker, Ext.util.Observable,  {
         this.fireEvent('drag', this, e);
     },
 
-    onMouseUp: function(e){
-        var doc = Ext.getDoc();
+    onMouseUp: function(e) {
+        var doc = Ext.getDoc(),
+            wasActive = this.active;
+            
         doc.un('mousemove', this.onMouseMove, this);
         doc.un('mouseup', this.onMouseUp, this);
         doc.un('selectstart', this.stopSelect, this);
         e.preventDefault();
         this.clearStart();
-        var wasActive = this.active;
         this.active = false;
         delete this.elRegion;
         this.fireEvent('mouseup', this, e);
@@ -3127,41 +3303,64 @@ Ext.extend(Ext.dd.DragTracker, Ext.util.Observable,  {
         }
     },
 
-    triggerStart: function(isTimer){
+    triggerStart: function(e) {
         this.clearStart();
         this.active = true;
-        this.onStart(this.startXY);
-        this.fireEvent('dragstart', this, this.startXY);
+        this.onStart(e);
+        this.fireEvent('dragstart', this, e);
     },
 
-    clearStart : function(){
+    clearStart : function() {
         if(this.timer){
             clearTimeout(this.timer);
             delete this.timer;
         }
     },
 
-    stopSelect : function(e){
+    stopSelect : function(e) {
         e.stopEvent();
         return false;
     },
-
-    onBeforeStart : function(e){
-
-    },
-
-    onStart : function(xy){
-
-    },
-
-    onDrag : function(e){
+    
+    /**
+     * Template method which should be overridden by each DragTracker instance. Called when the user first clicks and
+     * holds the mouse button down. Return false to disallow the drag
+     * @param {Ext.EventObject} e The event object
+     */
+    onBeforeStart : function(e) {
 
     },
 
-    onEnd : function(e){
+    /**
+     * Template method which should be overridden by each DragTracker instance. Called when a drag operation starts
+     * (e.g. the user has moved the tracked element beyond the specified tolerance)
+     * @param {Ext.EventObject} e The event object
+     */
+    onStart : function(xy) {
 
     },
 
+    /**
+     * Template method which should be overridden by each DragTracker instance. Called whenever a drag has been detected.
+     * @param {Ext.EventObject} e The event object
+     */
+    onDrag : function(e) {
+
+    },
+
+    /**
+     * Template method which should be overridden by each DragTracker instance. Called when a drag operation has been completed
+     * (e.g. the user clicked and held the mouse down, dragged the element and then released the mouse button)
+     * @param {Ext.EventObject} e The event object
+     */
+    onEnd : function(e) {
+
+    },
+
+    /**
+     * Returns the drag target
+     * @return {Ext.Element} The element currently being tracked
+     */
     getDragTarget : function(){
         return this.dragTarget;
     },
@@ -3176,8 +3375,8 @@ Ext.extend(Ext.dd.DragTracker, Ext.util.Observable,  {
     },
 
     getOffset : function(constrain){
-        var xy = this.getXY(constrain);
-        var s = this.startXY;
+        var xy = this.getXY(constrain),
+            s = this.startXY;
         return [s[0]-xy[0], s[1]-xy[1]];
     },
 
@@ -3260,14 +3459,19 @@ Ext.dd.ScrollManager = function(){
         proc.el = null;
         proc.dir = "";
     };
-    
+
     var startProc = function(el, dir){
         clearProc();
         proc.el = el;
         proc.dir = dir;
-        var freq = (el.ddScrollConfig && el.ddScrollConfig.frequency) ? 
-                el.ddScrollConfig.frequency : Ext.dd.ScrollManager.frequency;
-        proc.id = setInterval(doScroll, freq);
+        var group = el.ddScrollConfig ? el.ddScrollConfig.ddGroup : undefined,
+            freq  = (el.ddScrollConfig && el.ddScrollConfig.frequency)
+                  ? el.ddScrollConfig.frequency
+                  : Ext.dd.ScrollManager.frequency;
+
+        if (group === undefined || ddm.dragCurrent.ddGroup == group) {
+            proc.id = setInterval(doScroll, freq);
+        }
     };
     
     var onFire = function(e, isDrop){
@@ -3359,7 +3563,7 @@ Ext.dd.ScrollManager = function(){
         hthresh : 25,
 
         /**
-         * The number of pixels to scroll in each scroll increment (defaults to 50)
+         * The number of pixels to scroll in each scroll increment (defaults to 100)
          * @type Number
          */
         increment : 100,
@@ -3382,6 +3586,13 @@ Ext.dd.ScrollManager = function(){
          * @type Number
          */
         animDuration: .4,
+        
+        /**
+         * The named drag drop {@link Ext.dd.DragSource#ddGroup group} to which this container belongs (defaults to undefined). 
+         * If a ddGroup is specified, then container scrolling will only occur when a dragged object is in the same ddGroup.
+         * @type String
+         */
+        ddGroup: undefined,
         
         /**
          * Manually trigger a cache refresh.
@@ -3420,7 +3631,7 @@ Ext.dd.Registry = function(){
     return {
     /**
      * Resgister a drag drop element
-     * @param {String/HTMLElement) element The id or DOM node to register
+     * @param {String/HTMLElement} element The id or DOM node to register
      * @param {Object} data (optional) An custom data object that will be passed between the elements that are involved
      * in drag drop operations.  You can populate this object with any arbitrary properties that your own code
      * knows how to interpret, plus there are some specific properties known to the Registry that should be
@@ -3454,7 +3665,7 @@ isHandle   True if the element passed in triggers<br />
 
     /**
      * Unregister a drag drop element
-     * @param {String/HTMLElement) element The id or DOM node to unregister
+     * @param {String/HTMLElement} element The id or DOM node to unregister
      */
         unregister : function(el){
             var id = getId(el, false);
@@ -3647,8 +3858,8 @@ Ext.dd.StatusProxy.prototype = {
      * Causes the proxy to return to its position of origin via an animation.  Should be called after an
      * invalid drop operation by the item being dragged.
      * @param {Array} xy The XY position of the element ([x, y])
-     * @param {Function} callback The function to call after the repair is complete
-     * @param {Object} scope The scope in which to execute the callback
+     * @param {Function} callback The function to call after the repair is complete.
+     * @param {Object} scope The scope (<code>this</code> reference) in which the callback function is executed. Defaults to the browser window.
      */
     repair : function(xy, callback, scope){
         this.callback = callback;
@@ -3677,6 +3888,10 @@ Ext.dd.StatusProxy.prototype = {
         }
         this.callback = null;
         this.scope = null;
+    },
+    
+    destroy: function(){
+        Ext.destroy(this.ghost, this.el);    
     }
 };/**
  * @class Ext.dd.DragSource
@@ -4035,7 +4250,12 @@ Ext.extend(Ext.dd.DragSource, Ext.dd.DDProxy, {
     // private - pin to cursor
     autoOffset : function(x, y) {
         this.setDelta(-12, -20);
-    }    
+    },
+    
+    destroy: function(){
+        Ext.dd.DragSource.superclass.destroy.call(this);
+        Ext.destroy(this.proxy);
+    }
 });/**
  * @class Ext.dd.DropTarget
  * @extends Ext.dd.DDTarget
@@ -4045,21 +4265,21 @@ Ext.extend(Ext.dd.DragSource, Ext.dd.DDProxy, {
  * @param {Mixed} el The container element
  * @param {Object} config
  */
-Ext.dd.DropTarget = function(el, config){
-    this.el = Ext.get(el);
+Ext.dd.DropTarget = Ext.extend(Ext.dd.DDTarget, {
     
-    Ext.apply(this, config);
+    constructor : function(el, config){
+        this.el = Ext.get(el);
     
-    if(this.containerScroll){
-        Ext.dd.ScrollManager.register(this.el);
-    }
+        Ext.apply(this, config);
     
-    Ext.dd.DropTarget.superclass.constructor.call(this, this.el.dom, this.ddGroup || this.group, 
-          {isTarget: true});
-
-};
-
-Ext.extend(Ext.dd.DropTarget, Ext.dd.DDTarget, {
+        if(this.containerScroll){
+            Ext.dd.ScrollManager.register(this.el);
+        }
+    
+        Ext.dd.DropTarget.superclass.constructor.call(this, this.el.dom, this.ddGroup || this.group, 
+              {isTarget: true});        
+    },
+    
     /**
      * @cfg {String} ddGroup
      * A named drag drop group to which this object belongs.  If a group is specified, then this object will only
@@ -4143,6 +4363,13 @@ Ext.extend(Ext.dd.DropTarget, Ext.dd.DDTarget, {
      */
     notifyDrop : function(dd, e, data){
         return false;
+    },
+    
+    destroy : function(){
+        Ext.dd.DropTarget.superclass.destroy.call(this);
+        if(this.containerScroll){
+            Ext.dd.ScrollManager.unregister(this.el);
+        }
     }
 });/**
  * @class Ext.dd.DragZone
@@ -4161,8 +4388,8 @@ Ext.extend(Ext.dd.DropTarget, Ext.dd.DDTarget, {
  * by using the event's {@link Ext.EventObject#getTarget getTarget} method to identify a node based on a
  * {@link Ext.DomQuery} selector. For example, to make the nodes of a DataView draggable, use the following
  * technique. Knowledge of the use of the DataView is required:</p><pre><code>
-myDataView.on('render', function() {
-    myDataView.dragZone = new Ext.dd.DragZone(myDataView.getEl(), {
+myDataView.on('render', function(v) {
+    myDataView.dragZone = new Ext.dd.DragZone(v.getEl(), {
 
 //      On receipt of a mousedown event, see if it is within a DataView node.
 //      Return a drag data object if so.
@@ -4170,7 +4397,7 @@ myDataView.on('render', function() {
 
 //          Use the DataView's own itemSelector (a mandatory property) to
 //          test if the mousedown is within one of the DataView's nodes.
-            var sourceEl = e.getTarget(myDataView.itemSelector, 10);
+            var sourceEl = e.getTarget(v.itemSelector, 10);
 
 //          If the mousedown is within a DataView node, clone the node to produce
 //          a ddel element for use by the drag proxy. Also add application data
@@ -4182,8 +4409,8 @@ myDataView.on('render', function() {
                     ddel: d,
                     sourceEl: sourceEl,
                     repairXY: Ext.fly(sourceEl).getXY(),
-                    sourceStore: myDataView.store,
-                    draggedRecord: v.getRecord(sourceEl)
+                    sourceStore: v.store,
+                    draggedRecord: v.{@link Ext.DataView#getRecord getRecord}(sourceEl)
                 }
             }
         },
@@ -4202,14 +4429,15 @@ myDataView.on('render', function() {
  * @param {Mixed} el The container element
  * @param {Object} config
  */
-Ext.dd.DragZone = function(el, config){
-    Ext.dd.DragZone.superclass.constructor.call(this, el, config);
-    if(this.containerScroll){
-        Ext.dd.ScrollManager.register(this.el);
-    }
-};
-
-Ext.extend(Ext.dd.DragZone, Ext.dd.DragSource, {
+Ext.dd.DragZone = Ext.extend(Ext.dd.DragSource, {
+    
+    constructor : function(el, config){
+        Ext.dd.DragZone.superclass.constructor.call(this, el, config);
+        if(this.containerScroll){
+            Ext.dd.ScrollManager.register(this.el);
+        }
+    },
+    
     /**
      * This property contains the data representing the dragged object. This data is set up by the implementation
      * of the {@link #getDragData} method. It must contain a <tt>ddel</tt> property, but can contain
@@ -4269,6 +4497,13 @@ Ext.extend(Ext.dd.DragZone, Ext.dd.DragSource, {
      */
     getRepairXY : function(e){
         return Ext.Element.fly(this.dragData.ddel).getXY();  
+    },
+    
+    destroy : function(){
+        Ext.dd.DragZone.superclass.destroy.call(this);
+        if(this.containerScroll){
+            Ext.dd.ScrollManager.unregister(this.el);
+        }
     }
 });/**
  * @class Ext.dd.DropZone

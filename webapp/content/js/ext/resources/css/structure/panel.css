@@ -1,8 +1,8 @@
 /*!
- * Ext JS Library 3.0.0
- * Copyright(c) 2006-2009 Ext JS, LLC
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.3.1
+ * Copyright(c) 2006-2010 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 .x-panel {
     border-style: solid;
@@ -49,7 +49,7 @@
 .x-panel-tl .x-panel-header {
     padding:5px 0 4px 0;
     border:0 none;
-    background:transparent;
+    background:transparent no-repeat;
 }
 
 .x-panel-tl .x-panel-icon, .x-window-tl .x-panel-icon {
@@ -122,7 +122,7 @@
 }
 
 .x-panel-mc .x-panel-body {
-    background:transparent;
+    background-color:transparent;
     border: 0 none;
 }
 
@@ -260,6 +260,22 @@
     background-position:-15px -90px;
 }
 
+.x-tool-prev {
+    background-position:0 -105px;
+}
+
+.x-tool-prev-over {
+    background-position:-15px -105px;
+}
+
+.x-tool-next {
+    background-position:0 -120px;
+}
+
+.x-tool-next-over {
+    background-position:-15px -120px;
+}
+
 .x-tool-pin {
     background-position:0 -135px;
 }
@@ -292,20 +308,20 @@
     background-position:-15px -180px;
 }
 
-.x-tool-up {
-    background-position:0 -210px;
-}
-
-.x-tool-up-over {
-    background-position:-15px -210px;
-}
-
 .x-tool-down {
     background-position:0 -195px;
 }
 
 .x-tool-down-over {
     background-position:-15px -195px;
+}
+
+.x-tool-up {
+    background-position:0 -210px;
+}
+
+.x-tool-up-over {
+    background-position:-15px -210px;
 }
 
 .x-tool-refresh {
@@ -316,20 +332,20 @@
     background-position:-15px -225px;
 }
 
-.x-tool-minus {
-    background-position:0 -255px;
-}
-
-.x-tool-minus-over {
-    background-position:-15px -255px;
-}
-
 .x-tool-plus {
     background-position:0 -240px;
 }
 
 .x-tool-plus-over {
     background-position:-15px -240px;
+}
+
+.x-tool-minus {
+    background-position:0 -255px;
+}
+
+.x-tool-minus-over {
+    background-position:-15px -255px;
 }
 
 .x-tool-search {
@@ -362,6 +378,38 @@
 
 .x-tool-print-over {
     background-position:-15px -315px;
+}
+
+.x-tool-expand {
+    background-position:0 -330px;
+}
+
+.x-tool-expand-over {
+    background-position:-15px -330px;
+}
+
+.x-tool-collapse {
+    background-position:0 -345px;
+}
+
+.x-tool-collapse-over {
+    background-position:-15px -345px;
+}
+
+.x-tool-resize {
+    background-position:0 -360px;
+}
+
+.x-tool-resize-over {
+    background-position:-15px -360px;
+}
+
+.x-tool-move {
+    background-position:0 -375px;
+}
+
+.x-tool-move-over {
+    background-position:-15px -375px;
 }
 
 /* Ghosting */
@@ -398,29 +446,6 @@
 .x-panel-btns {
     padding:5px;
     overflow:hidden;
-}
-
-.x-panel-btns-right .x-panel-fbar {
-	float:right;
-	clear:none;
-}
-
-.x-panel-btns-left .x-panel-fbar {
-	clear:none;
-}
-
-.x-panel-btns-center{
-	text-align:center; /*ie*/
-}
-
-.x-panel-btns-center .x-toolbar-ct {
-	margin:0 auto; /*everyone else*/
-    text-align:left;
-    width:auto;
-}
-
-.ext-gecko2 .x-panel-btns-right .x-toolbar-ct {
-    width:auto;
 }
 
 .x-panel-btns td.x-toolbar-cell{

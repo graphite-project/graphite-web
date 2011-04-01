@@ -995,8 +995,9 @@ function createOptionsMenu() {
 
   var yAxisUnitMenu = new Ext.menu.Menu({
     items: [
-      menuRadioItem("yUnit", "Standard", "yUnitSystem", ""),
-      menuRadioItem("yUnit", "Binary", "yUnitSystem", "binary")
+      menuRadioItem("yUnit", "Standard", "yUnitSystem", "si"),
+      menuRadioItem("yUnit", "Binary", "yUnitSystem", "binary"),
+      menuRadioItem("yUnit", "None", "yUnitSystem", "none")
     ]
   });
 

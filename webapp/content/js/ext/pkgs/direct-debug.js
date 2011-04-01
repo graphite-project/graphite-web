@@ -1,8 +1,8 @@
 /*!
- * Ext JS Library 3.0.0
- * Copyright(c) 2006-2009 Ext JS, LLC
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.3.1
+ * Copyright(c) 2006-2010 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 /**
  * @class Ext.data.DirectProxy
@@ -45,38 +45,59 @@ paramOrder: 'param1|param2|param'
      */
     directFn : undefined,
 
-    // protected
+    /**
+     * DirectProxy implementation of {@link Ext.data.DataProxy#doRequest}
+     * @param {String} action The crud action type (create, read, update, destroy)
+     * @param {Ext.data.Record/Ext.data.Record[]} rs If action is load, rs will be null
+     * @param {Object} params An object containing properties which are to be used as HTTP parameters
+     * for the request to the remote server.
+     * @param {Ext.data.DataReader} reader The Reader object which converts the data
+     * object into a block of Ext.data.Records.
+     * @param {Function} callback
+     * <div class="sub-desc"><p>A function to be called after the request.
+     * The <tt>callback</tt> is passed the following arguments:<ul>
+     * <li><tt>r</tt> : Ext.data.Record[] The block of Ext.data.Records.</li>
+     * <li><tt>options</tt>: Options object from the action request</li>
+     * <li><tt>success</tt>: Boolean success indicator</li></ul></p></div>
+     * @param {Object} scope The scope (<code>this</code> reference) in which the callback function is executed. Defaults to the browser window.
+     * @param {Object} arg An optional argument which is passed to the callback as its second parameter.
+     * @protected
+     */
     doRequest : function(action, rs, params, reader, callback, scope, options) {
-        var args = [];
-        var directFn = this.api[action] || this.directFn;
+        var args = [],
+            directFn = this.api[action] || this.directFn;
 
         switch (action) {
             case Ext.data.Api.actions.create:
-                args.push(params[reader.meta.root]);		// <-- create(Hash)
+                args.push(params.jsonData);		// <-- create(Hash)
                 break;
             case Ext.data.Api.actions.read:
-                if(this.paramOrder){
-                    for(var i = 0, len = this.paramOrder.length; i < len; i++){
-                        args.push(params[this.paramOrder[i]]);
+                // If the method has no parameters, ignore the paramOrder/paramsAsHash.
+                if(directFn.directCfg.method.len > 0){
+                    if(this.paramOrder){
+                        for(var i = 0, len = this.paramOrder.length; i < len; i++){
+                            args.push(params[this.paramOrder[i]]);
+                        }
+                    }else if(this.paramsAsHash){
+                        args.push(params);
                     }
-                }else if(this.paramsAsHash){
-                    args.push(params);
                 }
                 break;
             case Ext.data.Api.actions.update:
-                args.push(params[reader.meta.idProperty]);  // <-- save(Integer/Integer[], Hash/Hash[])
-                args.push(params[reader.meta.root]);
+                args.push(params.jsonData);        // <-- update(Hash/Hash[])
                 break;
             case Ext.data.Api.actions.destroy:
-                args.push(params[reader.meta.root]);        // <-- destroy(Int/Int[])
+                args.push(params.jsonData);        // <-- destroy(Int/Int[])
                 break;
         }
 
         var trans = {
             params : params || {},
-            callback : callback,
-            scope : scope,
-            arg : options,
+            request: {
+                callback : callback,
+                scope : scope,
+                arg : options
+            },
             reader: reader
         };
 
@@ -86,29 +107,32 @@ paramOrder: 'param1|param2|param'
 
     // private
     createCallback : function(action, rs, trans) {
+        var me = this;
         return function(result, res) {
             if (!res.status) {
                 // @deprecated fire loadexception
                 if (action === Ext.data.Api.actions.read) {
-                    this.fireEvent("loadexception", this, trans, res, null);
+                    me.fireEvent("loadexception", me, trans, res, null);
                 }
-                this.fireEvent('exception', this, 'remote', action, trans, res, null);
-                trans.callback.call(trans.scope, null, trans.arg, false);
+                me.fireEvent('exception', me, 'remote', action, trans, res, null);
+                trans.request.callback.call(trans.request.scope, null, trans.request.arg, false);
                 return;
             }
             if (action === Ext.data.Api.actions.read) {
-                this.onRead(action, trans, result, res);
+                me.onRead(action, trans, result, res);
             } else {
-                this.onWrite(action, trans, result, res, rs);
+                me.onWrite(action, trans, result, res, rs);
             }
         };
     },
+
     /**
      * Callback for read actions
      * @param {String} action [Ext.data.Api.actions.create|read|update|destroy]
      * @param {Object} trans The request transaction object
+     * @param {Object} result Data object picked out of the server-response.
      * @param {Object} res The server response
-     * @private
+     * @protected
      */
     onRead : function(action, trans, result, res) {
         var records;
@@ -120,25 +144,33 @@ paramOrder: 'param1|param2|param'
             this.fireEvent("loadexception", this, trans, res, ex);
 
             this.fireEvent('exception', this, 'response', action, trans, res, ex);
-            trans.callback.call(trans.scope, null, trans.arg, false);
+            trans.request.callback.call(trans.request.scope, null, trans.request.arg, false);
             return;
         }
-        this.fireEvent("load", this, res, trans.arg);
-        trans.callback.call(trans.scope, records, trans.arg, true);
+        this.fireEvent("load", this, res, trans.request.arg);
+        trans.request.callback.call(trans.request.scope, records, trans.request.arg, true);
     },
     /**
      * Callback for write actions
-     * @param {String} action [Ext.data.Api.actions.create|read|update|destroy]
+     * @param {String} action [{@link Ext.data.Api#actions create|read|update|destroy}]
      * @param {Object} trans The request transaction object
+     * @param {Object} result Data object picked out of the server-response.
      * @param {Object} res The server response
-     * @private
+     * @param {Ext.data.Record/[Ext.data.Record]} rs The Store resultset associated with the action.
+     * @protected
      */
     onWrite : function(action, trans, result, res, rs) {
-        this.fireEvent("write", this, action, result, res, rs, trans.arg);
-        trans.callback.call(trans.scope, result, res, true);
+        var data = trans.reader.extractData(trans.reader.getRoot(result), false);
+        var success = trans.reader.getSuccess(result);
+        success = (success !== false);
+        if (success){
+            this.fireEvent("write", this, action, data, res, rs, trans.request.arg);
+        }else{
+            this.fireEvent('exception', this, 'remote', action, trans, result, rs);
+        }
+        trans.request.callback.call(trans.request.scope, data, res, success);
     }
 });
-
 /**
  * @class Ext.data.DirectStore
  * @extends Ext.data.Store
@@ -174,67 +206,69 @@ paramOrder: 'param1|param2|param'
  * @constructor
  * @param {Object} config
  */
-Ext.data.DirectStore = function(c){
-    // each transaction upon a singe record will generatie a distinct Direct transaction since Direct queues them into one Ajax request.
-    c.batchTransactions = false;
-
-    Ext.data.DirectStore.superclass.constructor.call(this, Ext.apply(c, {
-        proxy: (typeof(c.proxy) == 'undefined') ? new Ext.data.DirectProxy(Ext.copyTo({}, c, 'paramOrder,paramsAsHash,directFn,api')) : c.proxy,
-        reader: (typeof(c.reader) == 'undefined' && typeof(c.fields) == 'object') ? new Ext.data.JsonReader(Ext.copyTo({}, c, 'totalProperty,root,idProperty'), c.fields) : c.reader
-    }));
-};
-Ext.extend(Ext.data.DirectStore, Ext.data.Store, {});
+Ext.data.DirectStore = Ext.extend(Ext.data.Store, {
+    constructor : function(config){
+        // each transaction upon a singe record will generate a distinct Direct transaction since Direct queues them into one Ajax request.
+        var c = Ext.apply({}, {
+            batchTransactions: false
+        }, config);
+        Ext.data.DirectStore.superclass.constructor.call(this, Ext.apply(c, {
+            proxy: Ext.isDefined(c.proxy) ? c.proxy : new Ext.data.DirectProxy(Ext.copyTo({}, c, 'paramOrder,paramsAsHash,directFn,api')),
+            reader: (!Ext.isDefined(c.reader) && c.fields) ? new Ext.data.JsonReader(Ext.copyTo({}, c, 'totalProperty,root,idProperty'), c.fields) : c.reader
+        }));
+    }
+});
 Ext.reg('directstore', Ext.data.DirectStore);
 /**
  * @class Ext.Direct
  * @extends Ext.util.Observable
  * <p><b><u>Overview</u></b></p>
- * 
+ *
  * <p>Ext.Direct aims to streamline communication between the client and server
  * by providing a single interface that reduces the amount of common code
  * typically required to validate data and handle returned data packets
  * (reading data, error conditions, etc).</p>
- *  
+ *
  * <p>The Ext.direct namespace includes several classes for a closer integration
  * with the server-side. The Ext.data namespace also includes classes for working
  * with Ext.data.Stores which are backed by data from an Ext.Direct method.</p>
- * 
+ *
  * <p><b><u>Specification</u></b></p>
- * 
- * <p>For additional information consult the 
+ *
+ * <p>For additional information consult the
  * <a href="http://extjs.com/products/extjs/direct.php">Ext.Direct Specification</a>.</p>
- *   
+ *
  * <p><b><u>Providers</u></b></p>
- * 
+ *
  * <p>Ext.Direct uses a provider architecture, where one or more providers are
  * used to transport data to and from the server. There are several providers
  * that exist in the core at the moment:</p><div class="mdetail-params"><ul>
- * 
+ *
  * <li>{@link Ext.direct.JsonProvider JsonProvider} for simple JSON operations</li>
  * <li>{@link Ext.direct.PollingProvider PollingProvider} for repeated requests</li>
  * <li>{@link Ext.direct.RemotingProvider RemotingProvider} exposes server side
  * on the client.</li>
  * </ul></div>
- * 
+ *
  * <p>A provider does not need to be invoked directly, providers are added via
  * {@link Ext.Direct}.{@link Ext.Direct#add add}.</p>
- * 
+ *
  * <p><b><u>Router</u></b></p>
- * 
+ *
  * <p>Ext.Direct utilizes a "router" on the server to direct requests from the client
  * to the appropriate server-side method. Because the Ext.Direct API is completely
  * platform-agnostic, you could completely swap out a Java based server solution
  * and replace it with one that uses C# without changing the client side JavaScript
  * at all.</p>
- * 
+ *
  * <p><b><u>Server side events</u></b></p>
- * 
+ *
  * <p>Custom events from the server may be handled by the client by adding
  * listeners, for example:</p>
  * <pre><code>
 {"type":"event","name":"message","data":"Successfully polled at: 11:19:30 am"}
 
-// add a handler for a 'message' event sent by the server 
+// add a handler for a 'message' event sent by the server
 Ext.Direct.on('message', function(e){
     out.append(String.format('&lt;p>&lt;i>{0}&lt;/i>&lt;/p>', e.data));
             out.el.scrollTo('t', 100000, true);
@@ -271,7 +305,7 @@ Ext.Direct = Ext.extend(Ext.util.Observable, {
         LOGIN: 'login',
         SERVER: 'exception'
     },
-    
+
     // private
     constructor: function(){
         this.addEvents(
@@ -299,14 +333,14 @@ Ext.Direct = Ext.extend(Ext.util.Observable, {
      * <pre><code>
 var pollProv = new Ext.direct.PollingProvider({
     url: 'php/poll2.php'
-}); 
+});
 
 Ext.Direct.addProvider(
     {
-        "type":"remoting",       // create a {@link Ext.direct.RemotingProvider} 
+        "type":"remoting",       // create a {@link Ext.direct.RemotingProvider}
         "url":"php\/router.php", // url to connect to the Ext.Direct server-side router.
-        "actions":{              // each property within the actions object represents a Class 
-            "TestAction":[       // array of methods within each server side Class   
+        "actions":{              // each property within the actions object represents a Class
+            "TestAction":[       // array of methods within each server side Class
             {
                 "name":"doEcho", // name of method
                 "len":1
@@ -315,13 +349,13 @@ Ext.Direct.addProvider(
                 "len":1
             },{
                 "name":"doForm",
-                "formHandler":true, // handle form on server with Ext.Direct.Transaction 
+                "formHandler":true, // handle form on server with Ext.Direct.Transaction
                 "len":1
             }]
         },
         "namespace":"myApplication",// namespace to create the Remoting Provider in
     },{
-        type: 'polling', // create a {@link Ext.direct.PollingProvider} 
+        type: 'polling', // create a {@link Ext.direct.PollingProvider}
         url:  'php/poll.php'
     },
     pollProv // reference to previously created instance
@@ -331,7 +365,7 @@ Ext.Direct.addProvider(
      * or config object for a Provider) or any number of Provider descriptions as arguments.  Each
      * Provider description instructs Ext.Direct how to create client-side stub methods.
      */
-    addProvider : function(provider){        
+    addProvider : function(provider){
         var a = arguments;
         if(a.length > 1){
             for(var i = 0, len = a.length; i < len; i++){
@@ -339,7 +373,7 @@ Ext.Direct.addProvider(
             }
             return;
         }
-        
+
         // if provider has not already been instantiated
         if(!provider.events){
             provider = new Ext.Direct.PROVIDERS[provider.type](provider);
@@ -362,14 +396,14 @@ Ext.Direct.addProvider(
      * Retrieve a {@link Ext.direct.Provider provider} by the
      * <b><tt>{@link Ext.direct.Provider#id id}</tt></b> specified when the provider is
      * {@link #addProvider added}.
-     * @param {String} id Unique identifier assigned to the provider when calling {@link #addProvider} 
+     * @param {String} id Unique identifier assigned to the provider when calling {@link #addProvider}
      */
     getProvider : function(id){
         return this.providers[id];
     },
 
     removeProvider : function(id){
-        var provider = id.id ? id : this.providers[id.id];
+        var provider = id.id ? id : this.providers[id];
         provider.un('data', this.onProviderData, this);
         provider.un('exception', this.onProviderException, this);
         delete this.providers[provider.id];
@@ -440,7 +474,8 @@ Ext.Direct.Transaction.prototype = {
     }
 };Ext.Direct.Event = function(config){
     Ext.apply(this, config);
-}
+};
+
 Ext.Direct.Event.prototype = {
     status: true,
     getData: function(){
@@ -465,7 +500,6 @@ Ext.Direct.eventTypes = {
     'event':  Ext.Direct.Event,
     'exception':  Ext.Direct.ExceptionEvent
 };
-
 /**
  * @class Ext.direct.Provider
  * @extends Ext.util.Observable
@@ -595,7 +629,7 @@ Ext.direct.JsonProvider = Ext.extend(Ext.direct.Provider, {
                 xhr: xhr,
                 code: Ext.Direct.exceptions.PARSE,
                 message: 'Error parsing json response: \n\n ' + data
-            })
+            });
             return [event];
         }
         var events = [];
@@ -850,9 +884,15 @@ TestAction.multiply(
     
     /**
      * @cfg {Number} maxRetries
-     * Number of times to re-attempt delivery on failure of a call.
+     * Number of times to re-attempt delivery on failure of a call. Defaults to <tt>1</tt>.
      */
     maxRetries: 1,
+    
+    /**
+     * @cfg {Number} timeout
+     * The timeout to use for each request. Defaults to <tt>undefined</tt>.
+     */
+    timeout: undefined,
 
     constructor : function(config){
         Ext.direct.RemotingProvider.superclass.constructor.call(this, config);
@@ -864,18 +904,20 @@ TestAction.multiply(
              * executing.
              * @param {Ext.direct.RemotingProvider} provider
              * @param {Ext.Direct.Transaction} transaction
+             * @param {Object} meta The meta data
              */            
-            'beforecall',
+            'beforecall',            
             /**
              * @event call
              * Fires immediately after the request to the server-side is sent. This does
              * NOT fire after the response has come back from the call.
              * @param {Ext.direct.RemotingProvider} provider
              * @param {Ext.Direct.Transaction} transaction
+             * @param {Object} meta The meta data
              */            
             'call'
         );
-        this.namespace = (typeof this.namespace === 'string') ? Ext.ns(this.namespace) : this.namespace || window;
+        this.namespace = (Ext.isString(this.namespace)) ? Ext.ns(this.namespace) : this.namespace || window;
         this.transactions = {};
         this.callBuffer = [];
     },
@@ -884,8 +926,8 @@ TestAction.multiply(
     initAPI : function(){
         var o = this.actions;
         for(var c in o){
-            var cls = this.namespace[c] || (this.namespace[c] = {});
-            var ms = o[c];
+            var cls = this.namespace[c] || (this.namespace[c] = {}),
+                ms = o[c];
             for(var i = 0, len = ms.length; i < len; i++){
                 var m = ms[i];
                 cls[m.name] = this.createMethod(c, m);
@@ -919,8 +961,8 @@ TestAction.multiply(
         if(success){
             var events = this.getEvents(xhr);
             for(var i = 0, len = events.length; i < len; i++){
-                var e = events[i];
-                var t = this.getTransaction(e);
+                var e = events[i],
+                    t = this.getTransaction(e);
                 this.fireEvent('data', this, e);
                 if(t){
                     this.doCallback(t, e, true);
@@ -966,11 +1008,10 @@ TestAction.multiply(
             url: this.url,
             callback: this.onData,
             scope: this,
-            ts: data
-        };
+            ts: data,
+            timeout: this.timeout
+        }, callData;
 
-        // send only needed data
-        var callData;
         if(Ext.isArray(data)){
             callData = [];
             for(var i = 0, len = data.length; i < len; i++){
@@ -982,7 +1023,7 @@ TestAction.multiply(
 
         if(this.enableUrlEncode){
             var params = {};
-            params[typeof this.enableUrlEncode == 'string' ? this.enableUrlEncode : 'data'] = Ext.encode(callData);
+            params[Ext.isString(this.enableUrlEncode) ? this.enableUrlEncode : 'data'] = Ext.encode(callData);
             o.params = params;
         }else{
             o.jsonData = callData;
@@ -1008,7 +1049,7 @@ TestAction.multiply(
             if(!this.callTask){
                 this.callTask = new Ext.util.DelayedTask(this.combineAndSend, this);
             }
-            this.callTask.delay(typeof this.enableBuffer == 'number' ? this.enableBuffer : 10);
+            this.callTask.delay(Ext.isNumber(this.enableBuffer) ? this.enableBuffer : 10);
         }else{
             this.combineAndSend();
         }
@@ -1030,10 +1071,10 @@ TestAction.multiply(
             cb: scope && Ext.isFunction(hs) ? hs.createDelegate(scope) : hs
         });
 
-        if(this.fireEvent('beforecall', this, t) !== false){
+        if(this.fireEvent('beforecall', this, t, m) !== false){
             Ext.Direct.addTransaction(t);
             this.queueTransaction(t);
-            this.fireEvent('call', this, t);
+            this.fireEvent('call', this, t, m);
         }
     },
 
@@ -1047,7 +1088,7 @@ TestAction.multiply(
             isForm: true
         });
 
-        if(this.fireEvent('beforecall', this, t) !== false){
+        if(this.fireEvent('beforecall', this, t, m) !== false){
             Ext.Direct.addTransaction(t);
             var isUpload = String(form.getAttribute("enctype")).toLowerCase() == 'multipart/form-data',
                 params = {
@@ -1065,7 +1106,7 @@ TestAction.multiply(
                 isUpload: isUpload,
                 params: callback && Ext.isObject(callback.params) ? Ext.apply(params, callback.params) : params
             });
-            this.fireEvent('call', this, t);
+            this.fireEvent('call', this, t, m);
             this.processForm(t);
         }
     },
@@ -1107,8 +1148,8 @@ TestAction.multiply(
     doCallback: function(t, e){
         var fn = e.status ? 'success' : 'failure';
         if(t && t.cb){
-            var hs = t.cb;
-            var result = e.result || e.data;
+            var hs = t.cb,
+                result = Ext.isDefined(e.result) ? e.result : e.data;
             if(Ext.isFunction(hs)){
                 hs(result, e);
             } else{

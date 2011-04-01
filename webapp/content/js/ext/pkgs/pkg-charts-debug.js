@@ -1,8 +1,8 @@
 /*!
- * Ext JS Library 3.0.0
- * Copyright(c) 2006-2009 Ext JS, LLC
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.3.1
+ * Copyright(c) 2006-2010 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 /*! SWFObject v2.2 <http://code.google.com/p/swfobject/> 
     is released under the MIT License <http://www.opensource.org/licenses/mit-license.php> 
@@ -45,8 +45,8 @@ var swfobject = function() {
         var w3cdom = typeof doc.getElementById != UNDEF && typeof doc.getElementsByTagName != UNDEF && typeof doc.createElement != UNDEF,
             u = nav.userAgent.toLowerCase(),
             p = nav.platform.toLowerCase(),
-            windows = p ? /win/.test(p) : /win/.test(u),
-            mac = p ? /mac/.test(p) : /mac/.test(u),
+            windows = p ? (/win/).test(p) : /win/.test(u),
+            mac = p ? (/mac/).test(p) : /mac/.test(u),
             webkit = /webkit/.test(u) ? parseFloat(u.replace(/^.*webkit\/(\d+(\.\d+)?).*$/, "$1")) : false, // returns either the webkit version or false if not webkit
             ie = !+"\v1", // feature detection based on Andrea Giammarchi's solution: http://webreflection.blogspot.com/2009/01/32-bytes-to-know-if-your-browser-is-ie.html
             playerVersion = [0,0,0],
@@ -117,7 +117,7 @@ var swfobject = function() {
             if (ua.wk) {
                 (function(){
                     if (isDomLoaded) { return; }
-                    if (!/loaded|complete/.test(doc.readyState)) {
+                    if (!(/loaded|complete/).test(doc.readyState)) {
                         setTimeout(arguments.callee, 0);
                         return;
                     }
@@ -330,8 +330,13 @@ var swfobject = function() {
                 storedAltContentId = replaceElemIdStr;
             }
             att.id = EXPRESS_INSTALL_ID;
-            if (typeof att.width == UNDEF || (!/%$/.test(att.width) && parseInt(att.width, 10) < 310)) { att.width = "310"; }
-            if (typeof att.height == UNDEF || (!/%$/.test(att.height) && parseInt(att.height, 10) < 137)) { att.height = "137"; }
+            if (typeof att.width == UNDEF || (!(/%$/).test(att.width) && parseInt(att.width, 10) < 310)) {
+                att.width = "310";
+            }
+            
+            if (typeof att.height == UNDEF || (!(/%$/).test(att.height) && parseInt(att.height, 10) < 137)) {
+                att.height = "137";
+            }
             doc.title = doc.title.slice(0, 47) + " - Flash Player Installation";
             var pt = ua.ie && ua.win ? "ActiveX" : "PlugIn",
                 fv = "MMredirectURL=" + win.location.toString().replace(/&/g,"%26") + "&MMplayerType=" + pt + "&MMdoctitle=" + doc.title;
@@ -790,9 +795,9 @@ var swfobject = function() {
 Ext.FlashComponent = Ext.extend(Ext.BoxComponent, {
     /**
      * @cfg {String} flashVersion
-     * Indicates the version the flash content was published for. Defaults to <tt>'9.0.45'</tt>.
+     * Indicates the version the flash content was published for. Defaults to <tt>'9.0.115'</tt>.
      */
-    flashVersion : '9.0.45',
+    flashVersion : '9.0.115',
 
     /**
      * @cfg {String} backgroundColor
@@ -805,6 +810,19 @@ Ext.FlashComponent = Ext.extend(Ext.BoxComponent, {
      * The wmode of the flash object. This can be used to control layering. Defaults to <tt>'opaque'</tt>.
      */
     wmode: 'opaque',
+
+    /**
+     * @cfg {Object} flashVars
+     * A set of key value pairs to be passed to the flash object as flash variables. Defaults to <tt>undefined</tt>.
+     */
+    flashVars: undefined,
+
+    /**
+     * @cfg {Object} flashParams
+     * A set of key value pairs to be passed to the flash object as parameters. Possible parameters can be found here:
+     * http://kb2.adobe.com/cps/127/tn_12701.html Defaults to <tt>undefined</tt>.
+     */
+    flashParams: undefined,
 
     /**
      * @cfg {String} url
@@ -825,21 +843,28 @@ Ext.FlashComponent = Ext.extend(Ext.BoxComponent, {
     initComponent : function(){
         Ext.FlashComponent.superclass.initComponent.call(this);
 
-        this.addEvents('initialize');
+        this.addEvents(
+            /**
+             * @event initialize
+             *
+             * @param {Chart} this
+             */
+            'initialize'
+        );
     },
 
     onRender : function(){
         Ext.FlashComponent.superclass.onRender.apply(this, arguments);
 
-        var params = {
+        var params = Ext.apply({
             allowScriptAccess: 'always',
             bgcolor: this.backgroundColor,
             wmode: this.wmode
-        }, vars = {
+        }, this.flashParams), vars = Ext.apply({
             allowedDomain: document.location.hostname,
-            elementID: this.getId(),
-            eventHandler: 'Ext.FlashEventProxy.onEvent'
-        };
+            YUISwfId: this.getId(),
+            YUIBridgeCallback: 'Ext.FlashEventProxy.onEvent'
+        }, this.flashVars);
 
         new swfobject.embedSWF(this.url, this.id, this.swfWidth, this.swfHeight, this.flashVersion,
             this.expressInstall ? Ext.FlashComponent.EXPRESS_INSTALL_URL : undefined, vars, params);
@@ -904,22 +929,28 @@ Ext.FlashEventProxy = {
             arguments.callee.defer(10, this, [id, e]);
         }
     }
-}/**
+};/**
  * @class Ext.chart.Chart
  * @extends Ext.FlashComponent
  * The Ext.chart package provides the capability to visualize data with flash based charting.
  * Each chart binds directly to an Ext.data.Store enabling automatic updates of the chart.
+ * To change the look and feel of a chart, see the {@link #chartStyle} and {@link #extraStyle} config options.
  * @constructor
  * @xtype chart
  */
- 
+
  Ext.chart.Chart = Ext.extend(Ext.FlashComponent, {
     refreshBuffer: 100,
 
     /**
+     * @cfg {String} backgroundColor
+     * @hide
+     */
+
+    /**
      * @cfg {Object} chartStyle
-     * Sets styles for this chart. Contains a number of default values. Modifying this property will override
-     * the base styles on the chart.
+     * Sets styles for this chart. This contains default styling, so modifying this property will <b>override</b>
+     * the built in styles of the chart. Use {@link #extraStyle} to add customizations to the default styling.
      */
     chartStyle: {
         padding: 10,
@@ -947,19 +978,85 @@ Ext.FlashEventProxy = {
             }
         }
     },
-    
+
     /**
      * @cfg {String} url
      * The url to load the chart from. This defaults to Ext.chart.Chart.CHART_URL, which should
      * be modified to point to the local charts resource.
      */
-    
+
     /**
      * @cfg {Object} extraStyle
      * Contains extra styles that will be added or overwritten to the default chartStyle. Defaults to <tt>null</tt>.
+     * For a detailed list of the options available, visit the YUI Charts site
+     * at <a href="http://developer.yahoo.com/yui/charts/#basicstyles">http://developer.yahoo.com/yui/charts/#basicstyles</a><br/>
+     * Some of the options availabe:<br />
+     * <ul style="padding:5px;padding-left:16px;list-style-type:inherit;">
+     * <li><b>padding</b> - The space around the edge of the chart's contents. Padding does not increase the size of the chart.</li>
+     * <li><b>animationEnabled</b> - A Boolean value that specifies whether marker animations are enabled or not. Enabled by default.</li>
+     * <li><b>font</b> - An Object defining the font style to be used in the chart. Defaults to <tt>{ name: 'Tahoma', color: 0x444444, size: 11 }</tt><br/>
+     *  <ul style="padding:5px;padding-left:26px;list-style-type:circle;">
+     *      <li><b>name</b> - font name</li>
+     *      <li><b>color</b> - font color (hex code, ie: "#ff0000", "ff0000" or 0xff0000)</li>
+     *      <li><b>size</b> - font size in points (numeric portion only, ie: 11)</li>
+     *      <li><b>bold</b> - boolean</li>
+     *      <li><b>italic</b> - boolean</li>
+     *      <li><b>underline</b> - boolean</li>
+     *  </ul>
+     * </li>
+     * <li><b>border</b> - An object defining the border style around the chart. The chart itself will decrease in dimensions to accomodate the border.<br/>
+     *  <ul style="padding:5px;padding-left:26px;list-style-type:circle;">
+     *      <li><b>color</b> - border color (hex code, ie: "#ff0000", "ff0000" or 0xff0000)</li>
+     *      <li><b>size</b> - border size in pixels (numeric portion only, ie: 1)</li>
+     *  </ul>
+     * </li>
+     * <li><b>background</b> - An object defining the background style of the chart.<br/>
+     *  <ul style="padding:5px;padding-left:26px;list-style-type:circle;">
+     *      <li><b>color</b> - border color (hex code, ie: "#ff0000", "ff0000" or 0xff0000)</li>
+     *      <li><b>image</b> - an image URL. May be relative to the current document or absolute.</li>
+     *  </ul>
+     * </li>
+     * <li><b>legend</b> - An object defining the legend style<br/>
+     *  <ul style="padding:5px;padding-left:26px;list-style-type:circle;">
+     *      <li><b>display</b> - location of the legend. Possible values are "none", "left", "right", "top", and "bottom".</li>
+     *      <li><b>spacing</b> - an image URL. May be relative to the current document or absolute.</li>
+     *      <li><b>padding, border, background, font</b> - same options as described above.</li>
+     *  </ul></li>
+     * <li><b>dataTip</b> - An object defining the style of the data tip (tooltip).<br/>
+     *  <ul style="padding:5px;padding-left:26px;list-style-type:circle;">
+     *      <li><b>padding, border, background, font</b> - same options as described above.</li>
+     *  </ul></li>
+     * <li><b>xAxis and yAxis</b> - An object defining the style of the style of either axis.<br/>
+     *  <ul style="padding:5px;padding-left:26px;list-style-type:circle;">
+     *      <li><b>color</b> - same option as described above.</li>
+     *      <li><b>size</b> - same option as described above.</li>
+     *      <li><b>showLabels</b> - boolean</li>
+     *      <li><b>labelRotation</b> - a value in degrees from -90 through 90. Default is zero.</li>
+     *  </ul></li>
+     * <li><b>majorGridLines and minorGridLines</b> - An object defining the style of the style of the grid lines.<br/>
+     *  <ul style="padding:5px;padding-left:26px;list-style-type:circle;">
+     *      <li><b>color, size</b> - same options as described above.</li>
+     *  </ul></li></li>
+     * <li><b>zeroGridLine</b> - An object defining the style of the style of the zero grid line.<br/>
+     *  <ul style="padding:5px;padding-left:26px;list-style-type:circle;">
+     *      <li><b>color, size</b> - same options as described above.</li>
+     *  </ul></li></li>
+     * <li><b>majorTicks and minorTicks</b> - An object defining the style of the style of ticks in the chart.<br/>
+     *  <ul style="padding:5px;padding-left:26px;list-style-type:circle;">
+     *      <li><b>color, size</b> - same options as described above.</li>
+     *      <li><b>length</b> - the length of each tick in pixels extending from the axis.</li>
+     *      <li><b>display</b> - how the ticks are drawn. Possible values are "none", "inside", "outside", and "cross".</li>
+     *  </ul></li></li>
+     * </ul>
      */
     extraStyle: null,
-    
+
+    /**
+     * @cfg {Object} seriesStyles
+     * Contains styles to apply to the series after a refresh. Defaults to <tt>null</tt>.
+     */
+    seriesStyles: null,
+
     /**
      * @cfg {Boolean} disableCaching
      * True to add a "cache buster" to the end of the chart url. Defaults to true for Opera and IE.
@@ -982,7 +1079,20 @@ Ext.FlashEventProxy = {
             'itemdoubleclick',
             'itemdragstart',
             'itemdrag',
-            'itemdragend'
+            'itemdragend',
+            /**
+             * @event beforerefresh
+             * Fires before a refresh to the chart data is called.  If the beforerefresh handler returns
+             * <tt>false</tt> the {@link #refresh} action will be cancelled.
+             * @param {Chart} this
+             */
+            'beforerefresh',
+            /**
+             * @event refresh
+             * Fires after the chart data has been refreshed.
+             * @param {Chart} this
+             */
+            'refresh'
         );
         this.store = Ext.StoreMgr.lookup(this.store);
     },
@@ -1012,6 +1122,7 @@ Ext.FlashEventProxy = {
      * @param styles {Array} Initializer for all Chart series styles.
      */
     setSeriesStyles: function(styles){
+        this.seriesStyles = styles;
         var s = [];
         Ext.each(styles, function(style){
             s.push(Ext.encode(style));
@@ -1023,13 +1134,25 @@ Ext.FlashEventProxy = {
         this.swf.setCategoryNames(names);
     },
 
-    setTipRenderer : function(fn){
+    setLegendRenderer : function(fn, scope){
         var chart = this;
-        this.tipFnName = this.createFnProxy(function(item, index, series){
+        scope = scope || chart;
+        chart.removeFnProxy(chart.legendFnName);
+        chart.legendFnName = chart.createFnProxy(function(name){
+            return fn.call(scope, name);
+        });
+        chart.swf.setLegendLabelFunction(chart.legendFnName);
+    },
+
+    setTipRenderer : function(fn, scope){
+        var chart = this;
+        scope = scope || chart;
+        chart.removeFnProxy(chart.tipFnName);
+        chart.tipFnName = chart.createFnProxy(function(item, index, series){
             var record = chart.store.getAt(index);
-            return fn(chart, record, index, series);
-        }, this.tipFnName);
-        this.swf.setDataTipFunction(this.tipFnName);
+            return fn.call(scope, chart, record, index, series);
+        });
+        chart.swf.setDataTipFunction(chart.tipFnName);
     },
 
     setSeries : function(series){
@@ -1043,13 +1166,14 @@ Ext.FlashEventProxy = {
      */
     bindStore : function(store, initial){
         if(!initial && this.store){
-            this.store.un("datachanged", this.refresh, this);
-            this.store.un("add", this.delayRefresh, this);
-            this.store.un("remove", this.delayRefresh, this);
-            this.store.un("update", this.delayRefresh, this);
-            this.store.un("clear", this.refresh, this);
             if(store !== this.store && this.store.autoDestroy){
                 this.store.destroy();
+            }else{
+                this.store.un("datachanged", this.refresh, this);
+                this.store.un("add", this.delayRefresh, this);
+                this.store.un("remove", this.delayRefresh, this);
+                this.store.un("update", this.delayRefresh, this);
+                this.store.un("clear", this.refresh, this);
             }
         }
         if(store){
@@ -1071,10 +1195,11 @@ Ext.FlashEventProxy = {
 
     onSwfReady : function(isReset){
         Ext.chart.Chart.superclass.onSwfReady.call(this, isReset);
+        var ref;
         this.swf.setType(this.type);
 
         if(this.chartStyle){
-            this.setStyles(Ext.apply(this.extraStyle || {}, this.chartStyle));
+            this.setStyles(Ext.apply({}, this.extraStyle, this.chartStyle));
         }
 
         if(this.categoryNames){
@@ -1082,7 +1207,12 @@ Ext.FlashEventProxy = {
         }
 
         if(this.tipRenderer){
-            this.setTipRenderer(this.tipRenderer);
+            ref = this.getFunctionRef(this.tipRenderer);
+            this.setTipRenderer(ref.fn, ref.scope);
+        }
+        if(this.legendRenderer){
+            ref = this.getFunctionRef(this.legendRenderer);
+            this.setLegendRenderer(ref.fn, ref.scope);
         }
         if(!isReset){
             this.bindStore(this.store, true);
@@ -1098,76 +1228,110 @@ Ext.FlashEventProxy = {
     },
 
     refresh : function(){
-        var styleChanged = false;
-        // convert the store data into something YUI charts can understand
-        var data = [], rs = this.store.data.items;
-        for(var j = 0, len = rs.length; j < len; j++){
-            data[j] = rs[j].data;
-        }
-        //make a copy of the series definitions so that we aren't
-        //editing them directly.
-        var dataProvider = [];
-        var seriesCount = 0;
-        var currentSeries = null;
-        var i = 0;
-        if(this.series){
-            seriesCount = this.series.length;
-            for(i = 0; i < seriesCount; i++){
-                currentSeries = this.series[i];
-                var clonedSeries = {};
-                for(var prop in currentSeries){
-                    if(prop == "style" && currentSeries.style !== null){
-                        clonedSeries.style = Ext.encode(currentSeries.style);
-                        styleChanged = true;
-                        //we don't want to modify the styles again next time
-                        //so null out the style property.
-                        // this causes issues
-                        // currentSeries.style = null;
-                    } else{
-                        clonedSeries[prop] = currentSeries[prop];
+        if(this.fireEvent('beforerefresh', this) !== false){
+            var styleChanged = false;
+            // convert the store data into something YUI charts can understand
+            var data = [], rs = this.store.data.items;
+            for(var j = 0, len = rs.length; j < len; j++){
+                data[j] = rs[j].data;
+            }
+            //make a copy of the series definitions so that we aren't
+            //editing them directly.
+            var dataProvider = [];
+            var seriesCount = 0;
+            var currentSeries = null;
+            var i = 0;
+            if(this.series){
+                seriesCount = this.series.length;
+                for(i = 0; i < seriesCount; i++){
+                    currentSeries = this.series[i];
+                    var clonedSeries = {};
+                    for(var prop in currentSeries){
+                        if(prop == "style" && currentSeries.style !== null){
+                            clonedSeries.style = Ext.encode(currentSeries.style);
+                            styleChanged = true;
+                            //we don't want to modify the styles again next time
+                            //so null out the style property.
+                            // this causes issues
+                            // currentSeries.style = null;
+                        } else{
+                            clonedSeries[prop] = currentSeries[prop];
+                        }
                     }
+                    dataProvider.push(clonedSeries);
                 }
-                dataProvider.push(clonedSeries);
             }
-        }
 
-        if(seriesCount > 0){
-            for(i = 0; i < seriesCount; i++){
-                currentSeries = dataProvider[i];
-                if(!currentSeries.type){
-                    currentSeries.type = this.type;
+            if(seriesCount > 0){
+                for(i = 0; i < seriesCount; i++){
+                    currentSeries = dataProvider[i];
+                    if(!currentSeries.type){
+                        currentSeries.type = this.type;
+                    }
+                    currentSeries.dataProvider = data;
                 }
-                currentSeries.dataProvider = data;
+            } else{
+                dataProvider.push({type: this.type, dataProvider: data});
             }
-        } else{
-            dataProvider.push({type: this.type, dataProvider: data});
+            this.swf.setDataProvider(dataProvider);
+            if(this.seriesStyles){
+                this.setSeriesStyles(this.seriesStyles);
+            }
+            this.fireEvent('refresh', this);
         }
-        this.swf.setDataProvider(dataProvider);
     },
 
-    createFnProxy : function(fn, old){
-        if(old){
-            delete window[old];
-        }
-        var fnName = "extFnProxy" + (++Ext.chart.Chart.PROXY_FN_ID);
-        window[fnName] = fn;
-        return fnName;
+    // private
+    createFnProxy : function(fn){
+        var fnName = 'extFnProxy' + (++Ext.chart.Chart.PROXY_FN_ID);
+        Ext.chart.Chart.proxyFunction[fnName] = fn;
+        return 'Ext.chart.Chart.proxyFunction.' + fnName;
     },
-    
+
+    // private
+    removeFnProxy : function(fn){
+        if(!Ext.isEmpty(fn)){
+            fn = fn.replace('Ext.chart.Chart.proxyFunction.', '');
+            delete Ext.chart.Chart.proxyFunction[fn];
+        }
+    },
+
+    // private
+    getFunctionRef : function(val){
+        if(Ext.isFunction(val)){
+            return {
+                fn: val,
+                scope: this
+            };
+        }else{
+            return {
+                fn: val.fn,
+                scope: val.scope || this
+            };
+        }
+    },
+
+    // private
     onDestroy: function(){
+        if (this.refreshTask && this.refreshTask.cancel){
+            this.refreshTask.cancel();
+        }
         Ext.chart.Chart.superclass.onDestroy.call(this);
-        delete window[this.tipFnName];
+        this.bindStore(null);
+        this.removeFnProxy(this.tipFnName);
+        this.removeFnProxy(this.legendFnName);
     }
 });
 Ext.reg('chart', Ext.chart.Chart);
 Ext.chart.Chart.PROXY_FN_ID = 0;
+Ext.chart.Chart.proxyFunction = {};
 
 /**
  * Sets the url to load the chart from. This should be set to a local resource.
  * @static
  * @type String
  */
-Ext.chart.Chart.CHART_URL = 'http:/' + '/yui.yahooapis.com/2.7.0/build/charts/assets/charts.swf';
+Ext.chart.Chart.CHART_URL = 'http:/' + '/yui.yahooapis.com/2.8.2/build/charts/assets/charts.swf';
 
 /**
  * @class Ext.chart.PieChart
@@ -1206,7 +1370,7 @@ Ext.reg('piechart', Ext.chart.PieChart);
 Ext.chart.CartesianChart = Ext.extend(Ext.chart.Chart, {
     onSwfReady : function(isReset){
         Ext.chart.CartesianChart.superclass.onSwfReady.call(this, isReset);
-
+        this.labelFn = [];
         if(this.xField){
             this.setXField(this.xField);
         }
@@ -1216,8 +1380,17 @@ Ext.chart.CartesianChart = Ext.extend(Ext.chart.Chart, {
         if(this.xAxis){
             this.setXAxis(this.xAxis);
         }
+        if(this.xAxes){
+            this.setXAxes(this.xAxes);
+        }
         if(this.yAxis){
             this.setYAxis(this.yAxis);
+        }
+        if(this.yAxes){
+            this.setYAxes(this.yAxes);
+        }
+        if(Ext.isDefined(this.constrainViewport)){
+            this.swf.setConstrainViewport(this.constrainViewport);
         }
     },
 
@@ -1236,24 +1409,56 @@ Ext.chart.CartesianChart = Ext.extend(Ext.chart.Chart, {
         this.swf.setHorizontalAxis(this.xAxis);
     },
 
+    setXAxes : function(value){
+        var axis;
+        for(var i = 0; i < value.length; i++) {
+            axis = this.createAxis('xAxis' + i, value[i]);
+            this.swf.setHorizontalAxis(axis);
+        }
+    },
+
     setYAxis : function(value){
         this.yAxis = this.createAxis('yAxis', value);
         this.swf.setVerticalAxis(this.yAxis);
     },
 
+    setYAxes : function(value){
+        var axis;
+        for(var i = 0; i < value.length; i++) {
+            axis = this.createAxis('yAxis' + i, value[i]);
+            this.swf.setVerticalAxis(axis);
+        }
+    },
+
     createAxis : function(axis, value){
-        var o = Ext.apply({}, value), oldFn = null;
+        var o = Ext.apply({}, value),
+            ref,
+            old;
+
         if(this[axis]){
-            oldFn = this[axis].labelFunction;
+            old = this[axis].labelFunction;
+            this.removeFnProxy(old);
+            this.labelFn.remove(old);
         }
         if(o.labelRenderer){
-            var fn = o.labelRenderer;
+            ref = this.getFunctionRef(o.labelRenderer);
             o.labelFunction = this.createFnProxy(function(v){
-                return fn(v);
-            }, oldFn);
+                return ref.fn.call(ref.scope, v);
+            });
             delete o.labelRenderer;
+            this.labelFn.push(o.labelFunction);
+        }
+        if(axis.indexOf('xAxis') > -1 && o.position == 'left'){
+            o.position = 'bottom';
         }
         return o;
+    },
+
+    onDestroy : function(){
+        Ext.chart.CartesianChart.superclass.onDestroy.call(this);
+        Ext.each(this.labelFn, function(fn){
+            this.removeFnProxy(fn);
+        }, this);
     }
 });
 Ext.reg('cartesianchart', Ext.chart.CartesianChart);
@@ -1365,7 +1570,15 @@ Ext.chart.Axis.prototype =
      * @property hideOverlappingLabels
      * @type Boolean
      */
-    hideOverlappingLabels: true
+    hideOverlappingLabels: true,
+
+    /**
+     * The space, in pixels, between labels on an axis.
+     *
+     * @property labelSpacing
+     * @type Number
+     */
+    labelSpacing: 2
 };
 
 /**
@@ -1378,8 +1591,8 @@ Ext.chart.NumericAxis = Ext.extend(Ext.chart.Axis, {
     type: "numeric",
 
     /**
-     * The minimum value drawn by the axis. If not set explicitly, the axis minimum
-     * will be calculated automatically.
+     * The minimum value drawn by the axis. If not set explicitly, the axis
+     * minimum will be calculated automatically.
      *
      * @property minimum
      * @type Number
@@ -1387,8 +1600,8 @@ Ext.chart.NumericAxis = Ext.extend(Ext.chart.Axis, {
     minimum: NaN,
 
     /**
-     * The maximum value drawn by the axis. If not set explicitly, the axis maximum
-     * will be calculated automatically.
+     * The maximum value drawn by the axis. If not set explicitly, the axis
+     * maximum will be calculated automatically.
      *
      * @property maximum
      * @type Number
@@ -1412,9 +1625,9 @@ Ext.chart.NumericAxis = Ext.extend(Ext.chart.Axis, {
     minorUnit: NaN,
 
     /**
-     * If true, the labels, ticks, gridlines, and other objects will snap to
-     * the nearest major or minor unit. If false, their position will be based
-     * on the minimum value.
+     * If true, the labels, ticks, gridlines, and other objects will snap to the
+     * nearest major or minor unit. If false, their position will be based on
+     * the minimum value.
      *
      * @property snapToUnits
      * @type Boolean
@@ -1422,8 +1635,8 @@ Ext.chart.NumericAxis = Ext.extend(Ext.chart.Axis, {
     snapToUnits: true,
 
     /**
-     * If true, and the bounds are calculated automatically, either the minimum or
-     * maximum will be set to zero.
+     * If true, and the bounds are calculated automatically, either the minimum
+     * or maximum will be set to zero.
      *
      * @property alwaysShowZero
      * @type Boolean
@@ -1431,12 +1644,57 @@ Ext.chart.NumericAxis = Ext.extend(Ext.chart.Axis, {
     alwaysShowZero: true,
 
     /**
-     * The scaling algorithm to use on this axis. May be "linear" or "logarithmic".
+     * The scaling algorithm to use on this axis. May be "linear" or
+     * "logarithmic".
      *
      * @property scale
      * @type String
      */
-    scale: "linear"
+    scale: "linear",
+
+    /**
+     * Indicates whether to round the major unit.
+     *
+     * @property roundMajorUnit
+     * @type Boolean
+     */
+    roundMajorUnit: true,
+
+    /**
+     * Indicates whether to factor in the size of the labels when calculating a
+     * major unit.
+     *
+     * @property calculateByLabelSize
+     * @type Boolean
+     */
+    calculateByLabelSize: true,
+
+    /**
+     * Indicates the position of the axis relative to the chart
+     *
+     * @property position
+     * @type String
+     */
+    position: 'left',
+
+    /**
+     * Indicates whether to extend maximum beyond data's maximum to the nearest
+     * majorUnit.
+     *
+     * @property adjustMaximumByMajorUnit
+     * @type Boolean
+     */
+    adjustMaximumByMajorUnit: true,
+
+    /**
+     * Indicates whether to extend the minimum beyond data's minimum to the
+     * nearest majorUnit.
+     *
+     * @property adjustMinimumByMajorUnit
+     * @type Boolean
+     */
+    adjustMinimumByMajorUnit: true
+
 });
 
 /**
@@ -1449,8 +1707,8 @@ Ext.chart.TimeAxis = Ext.extend(Ext.chart.Axis, {
     type: "time",
 
     /**
-     * The minimum value drawn by the axis. If not set explicitly, the axis minimum
-     * will be calculated automatically.
+     * The minimum value drawn by the axis. If not set explicitly, the axis
+     * minimum will be calculated automatically.
      *
      * @property minimum
      * @type Date
@@ -1458,8 +1716,8 @@ Ext.chart.TimeAxis = Ext.extend(Ext.chart.Axis, {
     minimum: null,
 
     /**
-     * The maximum value drawn by the axis. If not set explicitly, the axis maximum
-     * will be calculated automatically.
+     * The maximum value drawn by the axis. If not set explicitly, the axis
+     * maximum will be calculated automatically.
      *
      * @property maximum
      * @type Number
@@ -1499,14 +1757,32 @@ Ext.chart.TimeAxis = Ext.extend(Ext.chart.Axis, {
     minorTimeUnit: null,
 
     /**
-     * If true, the labels, ticks, gridlines, and other objects will snap to
-     * the nearest major or minor unit. If false, their position will be based
-     * on the minimum value.
+     * If true, the labels, ticks, gridlines, and other objects will snap to the
+     * nearest major or minor unit. If false, their position will be based on
+     * the minimum value.
      *
      * @property snapToUnits
      * @type Boolean
      */
-    snapToUnits: true
+    snapToUnits: true,
+
+    /**
+     * Series that are stackable will only stack when this value is set to true.
+     *
+     * @property stackingEnabled
+     * @type Boolean
+     */
+    stackingEnabled: false,
+
+    /**
+     * Indicates whether to factor in the size of the labels when calculating a
+     * major unit.
+     *
+     * @property calculateByLabelSize
+     * @type Boolean
+     */
+    calculateByLabelSize: true
+
 });
 
 /**
@@ -1524,7 +1800,19 @@ Ext.chart.CategoryAxis = Ext.extend(Ext.chart.Axis, {
      * @property categoryNames
      * @type Array
      */
-    categoryNames: null
+    categoryNames: null,
+
+    /**
+     * Indicates whether or not to calculate the number of categories (ticks and
+     * labels) when there is not enough room to display all labels on the axis.
+     * If set to true, the axis will determine the number of categories to plot.
+     * If not, all categories will be plotted.
+     *
+     * @property calculateCategoryCount
+     * @type Boolean
+     */
+    calculateCategoryCount: false
+
 });
 
 /**
@@ -1561,7 +1849,8 @@ Ext.chart.Series.prototype =
  */
 Ext.chart.CartesianSeries = Ext.extend(Ext.chart.Series, {
     /**
-     * The field used to access the x-axis value from the items from the data source.
+     * The field used to access the x-axis value from the items from the data
+     * source.
      *
      * @property xField
      * @type String
@@ -1569,12 +1858,29 @@ Ext.chart.CartesianSeries = Ext.extend(Ext.chart.Series, {
     xField: null,
 
     /**
-     * The field used to access the y-axis value from the items from the data source.
+     * The field used to access the y-axis value from the items from the data
+     * source.
      *
      * @property yField
      * @type String
      */
-    yField: null
+    yField: null,
+
+    /**
+     * False to not show this series in the legend. Defaults to <tt>true</tt>.
+     *
+     * @property showInLegend
+     * @type Boolean
+     */
+    showInLegend: true,
+
+    /**
+     * Indicates which axis the series will bind to
+     *
+     * @property axis
+     * @type String
+     */
+    axis: 'primary'
 });
 
 /**

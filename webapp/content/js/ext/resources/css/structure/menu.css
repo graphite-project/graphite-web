@@ -1,8 +1,8 @@
 /*!
- * Ext JS Library 3.0.0
- * Copyright(c) 2006-2009 Ext JS, LLC
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.3.1
+ * Copyright(c) 2006-2010 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 .x-menu {
 	z-index: 15000;
@@ -25,7 +25,7 @@
 
 .x-menu-list{
     padding: 2px;
-	background:transparent;
+	background-color:transparent;
 	border:0 none;
     overflow:hidden;
     overflow-y: hidden;
@@ -46,11 +46,14 @@
 
 .x-menu-list-item{
     white-space: nowrap;
+	display:block;
+	padding:1px;
+}
+
+.x-menu-item{
     -moz-user-select: none;
     -khtml-user-select:none;
     -webkit-user-select:ignore;
-	display:block;
-	padding:1px;
 }
 
 .x-menu-item-arrow{
@@ -144,7 +147,7 @@ a.x-menu-item {
 }
 
 .x-menu-group-item .x-menu-item-icon{
-	background: transparent;
+	background-color: transparent;
 }
 
 .x-menu-item-checked .x-menu-group-item .x-menu-item-icon{
@@ -177,6 +180,43 @@ a.x-menu-item {
 
 .x-date-menu {
    padding:0 !important;
+}
+
+/*
+ * fixes separator visibility problem in IE 6
+ */
+.ext-strict .ext-ie6 .x-menu-sep-li {
+    padding: 3px 4px;
+}
+.ext-strict .ext-ie6 .x-menu-sep {
+    margin: 0;
+    height: 1px;
+}
+
+/*
+ * Fixes an issue with "fat" separators in webkit
+ */
+.ext-webkit .x-menu-sep{
+    height: 1px;
+}
+
+/*
+ * Ugly mess to remove the white border under the picker
+ */
+.ext-ie .x-date-menu{
+    height: 199px;
+}
+
+.ext-strict .ext-ie .x-date-menu, .ext-border-box .ext-ie8 .x-date-menu{
+    height: 197px;
+}
+
+.ext-strict .ext-ie7 .x-date-menu{
+    height: 195px;
+}
+
+.ext-strict .ext-ie8 .x-date-menu{
+    height: auto;
 }
 
 .x-cycle-menu .x-menu-item-checked {

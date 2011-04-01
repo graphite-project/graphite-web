@@ -1,12 +1,13 @@
 /*!
- * Ext JS Library 3.0.0
- * Copyright(c) 2006-2009 Ext JS, LLC
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.3.1
+ * Copyright(c) 2006-2010 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 /**
  * @class Ext.Tip
  * @extends Ext.Panel
+ * @xtype tip
  * This is the base class for {@link Ext.QuickTip} and {@link Ext.Tooltip} that provides the basic layout and
  * positioning that all tip-based classes require. This class can be used directly for simple, statically-positioned
  * tips that are displayed programmatically, or it can be extended to provide custom tip implementations.
@@ -93,12 +94,13 @@ tip.showAt([50,100]);
     },
 
     // protected
-    doAutoWidth : function(){
+    doAutoWidth : function(adjust){
+        adjust = adjust || 0;
         var bw = this.body.getTextWidth();
         if(this.title){
             bw = Math.max(bw, this.header.child('span').getTextWidth(this.title));
         }
-        bw += this.getFrameWidth() + (this.closable ? 20 : 0) + this.body.getPadding("lr");
+        bw += this.getFrameWidth() + (this.closable ? 20 : 0) + this.body.getPadding("lr") + adjust;
         this.setWidth(bw.constrain(this.minWidth, this.maxWidth));
         
         // IE7 repaint bug on initial show
@@ -135,6 +137,8 @@ tip.showBy('my-el', 'tl-tr');
     }
 });
 
+Ext.reg('tip', Ext.Tip);
+
 // private - custom Tip DD implementation
 Ext.Tip.DD = function(tip, config){
     Ext.apply(this, config);
@@ -158,69 +162,85 @@ Ext.extend(Ext.Tip.DD, Ext.dd.DD, {
  * @class Ext.ToolTip
  * @extends Ext.Tip
  * A standard tooltip implementation for providing additional information when hovering over a target element.
+ * @xtype tooltip
  * @constructor
  * Create a new Tooltip
  * @param {Object} config The configuration options
  */
 Ext.ToolTip = Ext.extend(Ext.Tip, {
     /**
-     * When a Tooltip is configured with the {@link #delegate} option to cause selected child elements of the {@link #target}
-     * Element to each trigger a seperate show event, this property is set to the DOM element which triggered the show.
+     * When a Tooltip is configured with the <code>{@link #delegate}</code>
+     * option to cause selected child elements of the <code>{@link #target}</code>
+     * Element to each trigger a seperate show event, this property is set to
+     * the DOM element which triggered the show.
      * @type DOMElement
      * @property triggerElement
      */
     /**
-     * @cfg {Mixed} target The target HTMLElement, Ext.Element or id to monitor for mouseover events to trigger
-     * showing this ToolTip.
+     * @cfg {Mixed} target The target HTMLElement, Ext.Element or id to monitor
+     * for mouseover events to trigger showing this ToolTip.
      */
     /**
-     * @cfg {Boolean} autoHide True to automatically hide the tooltip after the mouse exits the target element
-     * or after the {@link #dismissDelay} has expired if set (defaults to true).  If {@link closable} = true a close
-     * tool button will be rendered into the tooltip header.
+     * @cfg {Boolean} autoHide True to automatically hide the tooltip after the
+     * mouse exits the target element or after the <code>{@link #dismissDelay}</code>
+     * has expired if set (defaults to true).  If <code>{@link closable} = true</code>
+     * a close tool button will be rendered into the tooltip header.
      */
     /**
-     * @cfg {Number} showDelay Delay in milliseconds before the tooltip displays after the mouse enters the
-     * target element (defaults to 500)
+     * @cfg {Number} showDelay Delay in milliseconds before the tooltip displays
+     * after the mouse enters the target element (defaults to 500)
      */
-    showDelay: 500,
+    showDelay : 500,
     /**
-     * @cfg {Number} hideDelay Delay in milliseconds after the mouse exits the target element but before the
-     * tooltip actually hides (defaults to 200).  Set to 0 for the tooltip to hide immediately.
+     * @cfg {Number} hideDelay Delay in milliseconds after the mouse exits the
+     * target element but before the tooltip actually hides (defaults to 200).
+     * Set to 0 for the tooltip to hide immediately.
      */
-    hideDelay: 200,
+    hideDelay : 200,
     /**
-     * @cfg {Number} dismissDelay Delay in milliseconds before the tooltip automatically hides (defaults to 5000).
-     * To disable automatic hiding, set dismissDelay = 0.
+     * @cfg {Number} dismissDelay Delay in milliseconds before the tooltip
+     * automatically hides (defaults to 5000). To disable automatic hiding, set
+     * dismissDelay = 0.
      */
-    dismissDelay: 5000,
+    dismissDelay : 5000,
     /**
-     * @cfg {Array} mouseOffset An XY offset from the mouse position where the tooltip should be shown (defaults to [15,18]).
+     * @cfg {Array} mouseOffset An XY offset from the mouse position where the
+     * tooltip should be shown (defaults to [15,18]).
      */
     /**
-     * @cfg {Boolean} trackMouse True to have the tooltip follow the mouse as it moves over the target element (defaults to false).
+     * @cfg {Boolean} trackMouse True to have the tooltip follow the mouse as it
+     * moves over the target element (defaults to false).
      */
     trackMouse : false,
     /**
-     * @cfg {Boolean} anchorToTarget True to anchor the tooltip to the target element, false to
-     * anchor it relative to the mouse coordinates (defaults to true).  When anchorToTarget is
-     * true, use {@link #defaultAlign} to control tooltip alignment to the target element.  When
-     * anchorToTarget is false, use {@link #anchorPosition} instead to control alignment.
+     * @cfg {Boolean} anchorToTarget True to anchor the tooltip to the target
+     * element, false to anchor it relative to the mouse coordinates (defaults
+     * to true).  When <code>anchorToTarget</code> is true, use
+     * <code>{@link #defaultAlign}</code> to control tooltip alignment to the
+     * target element.  When <code>anchorToTarget</code> is false, use
+     * <code>{@link #anchorPosition}</code> instead to control alignment.
      */
-    anchorToTarget: true,
+    anchorToTarget : true,
     /**
-     * @cfg {Number} anchorOffset A numeric pixel value used to offset the default position of the
-     * anchor arrow (defaults to 0).  When the anchor position is on the top or bottom of the tooltip,
-     * anchorOffset will be used as a horizontal offset.  Likewise, when the anchor position is on the
-     * left or right side, anchorOffset will be used as a vertical offset.
+     * @cfg {Number} anchorOffset A numeric pixel value used to offset the
+     * default position of the anchor arrow (defaults to 0).  When the anchor
+     * position is on the top or bottom of the tooltip, <code>anchorOffset</code>
+     * will be used as a horizontal offset.  Likewise, when the anchor position
+     * is on the left or right side, <code>anchorOffset</code> will be used as
+     * a vertical offset.
      */
-    anchorOffset: 0,
+    anchorOffset : 0,
     /**
-     * @cfg {String} delegate <p>Optional. A {@link Ext.DomQuery DomQuery} selector which allows selection of individual elements
-     * within the {@link #target} element to trigger showing and hiding the ToolTip as the mouse moves within the target.</p>
-     * <p>When specified, the child element of the target which caused a show event is placed into the {@link #triggerElement} property
+     * @cfg {String} delegate <p>Optional. A {@link Ext.DomQuery DomQuery}
+     * selector which allows selection of individual elements within the
+     * <code>{@link #target}</code> element to trigger showing and hiding the
+     * ToolTip as the mouse moves within the target.</p>
+     * <p>When specified, the child element of the target which caused a show
+     * event is placed into the <code>{@link #triggerElement}</code> property
      * before the ToolTip is shown.</p>
-     * <p>This may be useful when a Component has regular, repeating elements in it, each of which need a Tooltip which contains
-     * information specific to that element. For example:</p><pre><code>
+     * <p>This may be useful when a Component has regular, repeating elements
+     * in it, each of which need a Tooltip which contains information specific
+     * to that element. For example:</p><pre><code>
 var myGrid = new Ext.grid.gridPanel(gridConfig);
 myGrid.on('render', function(grid) {
     var store = grid.getStore();  // Capture the Store.
@@ -229,24 +249,27 @@ myGrid.on('render', function(grid) {
         target: view.mainBody,    // The overall target element.
         delegate: '.x-grid3-row', // Each grid row causes its own seperate show and hide.
         trackMouse: true,         // Moving within the row should not hide the tip.
-        renderTo: document.body,  // Render immediately so that tip.body can be referenced prior to the first show.
-        listeners: {              // Change content dynamically depending on which element triggered the show.
+        renderTo: document.body,  // Render immediately so that tip.body can be
+                                  //  referenced prior to the first show.
+        listeners: {              // Change content dynamically depending on which element
+                                  //  triggered the show.
             beforeshow: function updateTipBody(tip) {
                 var rowIndex = view.findRowIndex(tip.triggerElement);
-                tip.body.dom.innerHTML = "Over Record ID " + store.getAt(rowIndex).id;
+                tip.body.dom.innerHTML = 'Over Record ID ' + store.getAt(rowIndex).id;
             }
         }
     });
-});</code></pre>
+});
+     *</code></pre>
      */
 
     // private
-    targetCounter: 0,
+    targetCounter : 0,
 
-    constrainPosition: false,
+    constrainPosition : false,
 
     // private
-    initComponent: function(){
+    initComponent : function(){
         Ext.ToolTip.superclass.initComponent.call(this);
         this.lastActive = new Date();
         this.initTarget(this.target);
@@ -265,7 +288,7 @@ myGrid.on('render', function(grid) {
     // private
     afterRender : function(){
         Ext.ToolTip.superclass.afterRender.call(this);
-        this.anchorEl.setStyle('z-index', this.el.getZIndex() + 1);
+        this.anchorEl.setStyle('z-index', this.el.getZIndex() + 1).setVisibilityMode(Ext.Element.DISPLAY);
     },
 
     /**
@@ -276,10 +299,10 @@ myGrid.on('render', function(grid) {
         var t;
         if((t = Ext.get(target))){
             if(this.target){
-                this.target = Ext.get(this.target);
-                this.target.un('mouseover', this.onTargetOver, this);
-                this.target.un('mouseout', this.onTargetOut, this);
-                this.target.un('mousemove', this.onMouseMove, this);
+                var tg = Ext.get(this.target);
+                this.mun(tg, 'mouseover', this.onTargetOver, this);
+                this.mun(tg, 'mouseout', this.onTargetOut, this);
+                this.mun(tg, 'mousemove', this.onMouseMove, this);
             }
             this.mon(t, {
                 mouseover: this.onTargetOver,
@@ -315,20 +338,22 @@ myGrid.on('render', function(grid) {
 
     // private
     getTargetXY : function(){
+        if(this.delegate){
+            this.anchorTarget = this.triggerElement;
+        }
         if(this.anchor){
             this.targetCounter++;
-            var offsets = this.getOffsets();
-            var xy = (this.anchorToTarget && !this.trackMouse) ?
-                this.el.getAlignToXY(this.anchorTarget, this.getAnchorAlign()) :
-                this.targetXY;
-
-            var dw = Ext.lib.Dom.getViewWidth()-5;
-            var dh = Ext.lib.Dom.getViewHeight()-5;
-            var scrollX = (document.documentElement.scrollLeft || document.body.scrollLeft || 0)+5;
-            var scrollY = (document.documentElement.scrollTop || document.body.scrollTop || 0)+5;
-
-            var axy = [xy[0] + offsets[0], xy[1] + offsets[1]];
-            var sz = this.getSize();
+            var offsets = this.getOffsets(),
+                xy = (this.anchorToTarget && !this.trackMouse) ? this.el.getAlignToXY(this.anchorTarget, this.getAnchorAlign()) : this.targetXY,
+                dw = Ext.lib.Dom.getViewWidth() - 5,
+                dh = Ext.lib.Dom.getViewHeight() - 5,
+                de = document.documentElement,
+                bd = document.body,
+                scrollX = (de.scrollLeft || bd.scrollLeft || 0) + 5,
+                scrollY = (de.scrollTop || bd.scrollTop || 0) + 5,
+                axy = [xy[0] + offsets[0], xy[1] + offsets[1]],
+                sz = this.getSize();
+                
             this.anchorEl.removeClass(this.anchorCls);
 
             if(this.targetCounter < 2){
@@ -392,7 +417,7 @@ myGrid.on('render', function(grid) {
         }else{
             var m = this.defaultAlign.match(/^([a-z]+)-([a-z]+)(\?)?$/);
             if(!m){
-               throw "AnchorTip.defaultAlign is invalid";
+               throw 'AnchorTip.defaultAlign is invalid';
             }
             this.tipAnchor = m[1].charAt(0);
         }
@@ -416,8 +441,9 @@ myGrid.on('render', function(grid) {
     },
 
     // private
-    getOffsets: function(){
-        var offsets, ap = this.getAnchorPosition().charAt(0);
+    getOffsets : function(){
+        var offsets, 
+            ap = this.getAnchorPosition().charAt(0);
         if(this.anchorToTarget && !this.trackMouse){
             switch(ap){
                 case 't':
@@ -529,8 +555,8 @@ myGrid.on('render', function(grid) {
         this.showAt(this.getTargetXY());
 
         if(this.anchor){
-            this.syncAnchor();
             this.anchorEl.show();
+            this.syncAnchor();
             this.constrainPosition = this.origConstrainPosition;
         }else{
             this.anchorEl.hide();
@@ -544,6 +570,12 @@ myGrid.on('render', function(grid) {
         Ext.ToolTip.superclass.showAt.call(this, xy);
         if(this.dismissDelay && this.autoHide !== false){
             this.dismissTimer = this.hide.defer(this.dismissDelay, this);
+        }
+        if(this.anchor && !this.anchorEl.isVisible()){
+            this.syncAnchor();
+            this.anchorEl.show();
+        }else{
+            this.anchorEl.hide();
         }
     },
 
@@ -613,7 +645,14 @@ myGrid.on('render', function(grid) {
     onDocMouseDown : function(e){
         if(this.autoHide !== true && !this.closable && !e.within(this.el.dom)){
             this.disable();
-            this.enable.defer(100, this);
+            this.doEnable.defer(100, this);
+        }
+    },
+    
+    // private
+    doEnable : function(){
+        if(!this.isDestroyed){
+            this.enable();
         }
     },
 
@@ -633,15 +672,28 @@ myGrid.on('render', function(grid) {
         }
         return {x : x, y: y};
     },
+    
+    beforeDestroy : function(){
+        this.clearTimers();
+        Ext.destroy(this.anchorEl);
+        delete this.anchorEl;
+        delete this.target;
+        delete this.anchorTarget;
+        delete this.triggerElement;
+        Ext.ToolTip.superclass.beforeDestroy.call(this);    
+    },
 
     // private
     onDestroy : function(){
         Ext.getDoc().un('mousedown', this.onDocMouseDown, this);
         Ext.ToolTip.superclass.onDestroy.call(this);
     }
-});/**
+});
+
+Ext.reg('tooltip', Ext.ToolTip);/**
  * @class Ext.QuickTip
  * @extends Ext.ToolTip
+ * @xtype quicktip
  * A specialized tooltip class for tooltips that can be specified in markup and automatically managed by the global
  * {@link Ext.QuickTips} instance.  See the QuickTips class header for additional usage details and examples.
  * @constructor
@@ -730,6 +782,22 @@ Ext.QuickTip = Ext.extend(Ext.ToolTip, {
             this.clearTimer('show');
         }
     },
+    
+    getTipCfg: function(e) {
+        var t = e.getTarget(), 
+            ttp, 
+            cfg;
+        if(this.interceptTitles && t.title && Ext.isString(t.title)){
+            ttp = t.title;
+            t.qtip = ttp;
+            t.removeAttribute("title");
+            e.preventDefault();
+        }else{
+            cfg = this.tagConfig;
+            ttp = t.qtip || Ext.fly(t).getAttribute(cfg.attribute, cfg.namespace);
+        }
+        return ttp;
+    },
 
     // private
     onTargetOver : function(e){
@@ -741,7 +809,7 @@ Ext.QuickTip = Ext.extend(Ext.ToolTip, {
         if(!t || t.nodeType !== 1 || t == document || t == document.body){
             return;
         }
-        if(this.activeTarget && t == this.activeTarget.el){
+        if(this.activeTarget && ((t == this.activeTarget.el) || Ext.fly(this.activeTarget.el).contains(t))){
             this.clearTimer('hide');
             this.show();
             return;
@@ -756,18 +824,8 @@ Ext.QuickTip = Ext.extend(Ext.ToolTip, {
             this.delayShow();
             return;
         }
-        
-        var ttp, et = Ext.fly(t), cfg = this.tagConfig;
-        var ns = cfg.namespace;
-        if(this.interceptTitles && t.title){
-            ttp = t.title;
-            t.qtip = ttp;
-            t.removeAttribute("title");
-            e.preventDefault();
-        } else{
-            ttp = t.qtip || et.getAttribute(cfg.attribute, ns);
-        }
-        if(ttp){
+        var ttp, et = Ext.fly(t), cfg = this.tagConfig, ns = cfg.namespace;
+        if(ttp = this.getTipCfg(e)){
             var autoHide = et.getAttribute(cfg.hide, ns);
             this.activeTarget = {
                 el: t,
@@ -789,6 +847,12 @@ Ext.QuickTip = Ext.extend(Ext.ToolTip, {
 
     // private
     onTargetOut : function(e){
+
+        // If moving within the current target, and it does not have a new tip, ignore the mouseout
+        if (this.activeTarget && e.within(this.activeTarget.el) && !this.getTipCfg(e)) {
+            return;
+        }
+
         this.clearTimer('show');
         if(this.autoHide !== false){
             this.delayHide();
@@ -839,7 +903,8 @@ Ext.QuickTip = Ext.extend(Ext.ToolTip, {
         delete this.activeTarget;
         Ext.QuickTip.superclass.hide.call(this);
     }
-});/**
+});
+Ext.reg('quicktip', Ext.QuickTip);/**
  * @class Ext.QuickTips
  * <p>Provides attractive and customizable tooltips for any element. The QuickTips
  * singleton is used to configure and manage tooltips globally for multiple elements
@@ -852,7 +917,7 @@ Ext.QuickTip = Ext.extend(Ext.ToolTip, {
  * configuration properties of Ext.QuickTip. These settings will apply to all
  * tooltips shown by the singleton.</p>
  * <p>Below is the summary of the configuration properties which can be used.
- * For detailed descriptions see {@link #getQuickTip}</p>
+ * For detailed descriptions see the config options for the {@link Ext.QuickTip QuickTip} class</p>
  * <p><b>QuickTips singleton configs (all are optional)</b></p>
  * <div class="mdetail-params"><ul><li>dismissDelay</li>
  * <li>hideDelay</li>
@@ -877,7 +942,7 @@ Ext.QuickTips.init();
 Ext.apply(Ext.QuickTips.getQuickTip(), {
     maxWidth: 200,
     minWidth: 100,
-    showDelay: 50,
+    showDelay: 50,      // Show 50ms after entering target
     trackMouse: true
 });
 
@@ -887,7 +952,7 @@ Ext.QuickTips.register({
     title: 'My Tooltip',
     text: 'This tooltip was added in code',
     width: 100,
-    dismissDelay: 20
+    dismissDelay: 10000 // Hide after 10 seconds hover
 });
 </code></pre>
  * <p>To register a quick tip in markup, you simply add one or more of the valid QuickTip attributes prefixed with
@@ -908,7 +973,9 @@ Ext.QuickTips.register({
  * @singleton
  */
 Ext.QuickTips = function(){
-    var tip, locks = [];
+    var tip,
+        disabled = false;
+        
     return {
         /**
          * Initialize the global QuickTips instance and prepare any quick tips.
@@ -922,10 +989,29 @@ Ext.QuickTips = function(){
                     });
                     return;
                 }
-                tip = new Ext.QuickTip({elements:'header,body'});
+                tip = new Ext.QuickTip({
+                    elements:'header,body', 
+                    disabled: disabled
+                });
                 if(autoRender !== false){
                     tip.render(Ext.getBody());
                 }
+            }
+        },
+        
+        // Protected method called by the dd classes
+        ddDisable : function(){
+            // don't disable it if we don't need to
+            if(tip && !disabled){
+                tip.disable();
+            }    
+        },
+        
+        // Protected method called by the dd classes
+        ddEnable : function(){
+            // only enable it if it hasn't been disabled
+            if(tip && !disabled){
+                tip.enable();
             }
         },
 
@@ -934,11 +1020,9 @@ Ext.QuickTips = function(){
          */
         enable : function(){
             if(tip){
-                locks.pop();
-                if(locks.length < 1){
-                    tip.enable();
-                }
+                tip.enable();
             }
+            disabled = false;
         },
 
         /**
@@ -948,7 +1032,7 @@ Ext.QuickTips = function(){
             if(tip){
                 tip.disable();
             }
-            locks.push(1);
+            disabled = true;
         },
 
         /**
@@ -960,7 +1044,8 @@ Ext.QuickTips = function(){
         },
 
         /**
-         * Gets the global QuickTips instance.
+         * Gets the single {@link Ext.QuickTip QuickTip} instance used to show tips from all registered elements.
+         * @return {Ext.QuickTip}
          */
         getQuickTip : function(){
             return tip;
@@ -987,8 +1072,75 @@ Ext.QuickTips = function(){
          * Alias of {@link #register}.
          * @param {Object} config The config object
          */
-        tips :function(){
+        tips : function(){
             tip.register.apply(tip, arguments);
         }
+    };
+}();/**
+ * @class Ext.slider.Tip
+ * @extends Ext.Tip
+ * Simple plugin for using an Ext.Tip with a slider to show the slider value. Example usage:
+<pre>
+new Ext.Slider({
+    width: 214,
+    minValue: 0,
+    maxValue: 100,
+    plugins: new Ext.slider.Tip()
+});
+</pre>
+ * Optionally provide your own tip text by overriding getText:
+ <pre>
+ new Ext.Slider({
+     width: 214,
+     minValue: 0,
+     maxValue: 100,
+     plugins: new Ext.slider.Tip({
+         getText: function(thumb){
+             return String.format('<b>{0}% complete</b>', thumb.value);
+         }
+     })
+ });
+ </pre>
+ */
+Ext.slider.Tip = Ext.extend(Ext.Tip, {
+    minWidth: 10,
+    offsets : [0, -10],
+    
+    init: function(slider) {
+        slider.on({
+            scope    : this,
+            dragstart: this.onSlide,
+            drag     : this.onSlide,
+            dragend  : this.hide,
+            destroy  : this.destroy
+        });
+    },
+    
+    /**
+     * @private
+     * Called whenever a dragstart or drag event is received on the associated Thumb. 
+     * Aligns the Tip with the Thumb's new position.
+     * @param {Ext.slider.MultiSlider} slider The slider
+     * @param {Ext.EventObject} e The Event object
+     * @param {Ext.slider.Thumb} thumb The thumb that the Tip is attached to
+     */
+    onSlide : function(slider, e, thumb) {
+        this.show();
+        this.body.update(this.getText(thumb));
+        this.doAutoWidth();
+        this.el.alignTo(thumb.el, 'b-t?', this.offsets);
+    },
+
+    /**
+     * Used to create the text that appears in the Tip's body. By default this just returns
+     * the value of the Slider Thumb that the Tip is attached to. Override to customize.
+     * @param {Ext.slider.Thumb} thumb The Thumb that the Tip is attached to
+     * @return {String} The text to display in the tip
+     */
+    getText : function(thumb) {
+        return String(thumb.value);
     }
-}();
+});
+
+//backwards compatibility - SliderTip used to be a ux before 3.2
+Ext.ux.SliderTip = Ext.slider.Tip;

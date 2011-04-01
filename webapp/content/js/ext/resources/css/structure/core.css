@@ -1,8 +1,8 @@
 /*!
- * Ext JS Library 3.0.0
- * Copyright(c) 2006-2009 Ext JS, LLC
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.3.1
+ * Copyright(c) 2006-2010 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 .ext-el-mask {
     z-index: 100;
@@ -68,6 +68,16 @@
     display:none !important;
 }
 
+.x-hide-nosize,
+.x-hide-nosize *    /* Emulate display:none for children */
+ {
+   height:0px!important;
+   width:0px!important;
+   visibility:hidden!important;
+   border:none!important;
+   zoom:1;
+}
+
 .x-hide-visibility {
     visibility:hidden !important;
 }
@@ -97,6 +107,7 @@
     zoom: 1;
     background-color: transparent;
     -moz-outline: none;
+    outline: none;
 }
 
 .x-item-disabled {
@@ -108,6 +119,10 @@
 
 .x-item-disabled * {
     cursor: default !important;
+}
+
+.x-form-radio-group .x-item-disabled {
+    filter: none;
 }
 
 .x-splitbar-proxy {
@@ -219,7 +234,7 @@
 .x-shadow .xsmc {
     float: left;
     height: 100%;
-    background: transparent;
+    background-color: transparent;
 }
 
 .x-shadow .xst, .x-shadow .xsb {

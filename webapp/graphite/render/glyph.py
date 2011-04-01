@@ -101,7 +101,7 @@ UnitSystems = {
 class Graph:
   customizable = ('width','height','margin','bgcolor','fgcolor', \
                  'fontName','fontSize','fontBold','fontItalic', \
-                 'colorList','template','YAxis')
+                 'colorList','template','yAxisSide')
 
   def __init__(self,**params):
     self.params = params
@@ -139,11 +139,14 @@ class Graph:
       colorList = self.defaultColorList
     self.colors = itertools.cycle( colorList )
 
-    startTime = min([series.start for series in self.data])
-    endTime = max([series.end for series in self.data])
-    timeRange = endTime - startTime
+    if self.data:
+      startTime = min([series.start for series in self.data])
+      endTime = max([series.end for series in self.data])
+      timeRange = endTime - startTime
+    else:
+      timeRange = None
 
-    if self.data and timeRange:
+    if timeRange:
       self.drawGraph(**params)
     else:
       x = self.width / 2
@@ -310,7 +313,7 @@ class LineGraph(Graph):
                   'hideAxes','minXStep','hideGrid','majorGridLineColor', \
                   'minorGridLineColor','thickness','min','max', \
                   'graphOnly','yMin','yMax','yLimit','yStep','areaMode', \
-                  'areaAlpha','drawNullAsZero','tz', 'YAxis','pieMode', \
+                  'areaAlpha','drawNullAsZero','tz', 'yAxisSide','pieMode', \
                   'yUnitSystem')
   validLineModes = ('staircase','slope')
   validAreaModes = ('none','first','all','stacked')
@@ -322,7 +325,7 @@ class LineGraph(Graph):
       params['hideLegend'] = True
       params['hideGrid'] = True
       params['hideAxes'] = True
-      params['YAxis'] = 'left' 
+      params['yAxisSide'] = 'left' 
       params['title'] = ''
       params['vtitle'] = ''
       params['margin'] = 0
@@ -338,14 +341,14 @@ class LineGraph(Graph):
       params['yMax'] = params['max']
     if 'lineWidth' not in params and 'thickness' in params:
       params['lineWidth'] = params['thickness']
-    if 'YAxis' not in params:
-      params['YAxis'] = 'left'
+    if 'yAxisSide' not in params:
+      params['yAxisSide'] = 'left'
     if 'yUnitSystem' not in params:
       params['yUnitSystem'] = 'si'
     self.params = params
     # When Y Axis is labeled on the right, we subtract x-axis positions from the max, 
     # instead of adding to the minimum
-    if self.params.get('YAxis') == 'right': 
+    if self.params.get('yAxisSide') == 'right': 
       self.margin = self.width
     #Now to setup our LineGraph specific options
     self.lineWidth = float( params.get('lineWidth', 1.2) )
@@ -592,11 +595,6 @@ class LineGraph(Graph):
       yMinValue = self.params['yMin']
     
     yVariance = yMaxValue - yMinValue
-
-    if math.floor(yVariance) == 0:
-      yVariance = 1
-      yMaxValue = yMinValue + 1
-
     order = math.log10(yVariance)
     orderFactor = 10 ** math.floor(order)
     v = yVariance / orderFactor #we work with a scaled down yVariance for simplicity
@@ -650,14 +648,17 @@ class LineGraph(Graph):
         elif ySpan > 3:
           return "%.1f %s " % (float(yValue), prefix)
 
-        else:
+        elif ySpan > 0.1:
           return "%.2f %s " % (float(yValue), prefix)
+
+        else:
+          return "%g %s" % (float(yValue), prefix)
 
       self.yLabelValues = list( frange(self.yBottom,self.yTop,self.yStep) )
       self.yLabels = map(makeLabel,self.yLabelValues)
       self.yLabelWidth = max([self.getExtents(label)['width'] for label in self.yLabels])
 
-      if self.params.get('YAxis') == 'left': #scoot the graph over to the left just enough to fit the y-labels
+      if self.params.get('yAxisSide') == 'left': #scoot the graph over to the left just enough to fit the y-labels
         xMin = self.margin + (self.yLabelWidth * 1.02)
         if self.area['xmin'] < xMin:
           self.area['xmin'] = xMin
@@ -701,14 +702,14 @@ class LineGraph(Graph):
   def drawLabels(self):
     #Draw the Y-labels
     for value,label in zip(self.yLabelValues,self.yLabels):
-      if self.params.get('YAxis') == 'left':
+      if self.params.get('yAxisSide') == 'left':
         x = self.area['xmin'] - (self.yLabelWidth * 0.02)
       else:
         x = self.area['xmax'] + (self.yLabelWidth * 0.02) #Inverted for right side Y Axis
 
       y = self.area['ymax'] - ((value - self.yBottom) * self.yScaleFactor)
 
-      if self.params.get('YAxis') == 'left':
+      if self.params.get('yAxisSide') == 'left':
         self.drawText(label, x, y, align='right', valign='middle')
       else:
         self.drawText(label, x, y, align='left', valign='middle') #Inverted for right side Y Axis
