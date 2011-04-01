@@ -15,7 +15,7 @@ UnitMultipliers = {
 }
 
 
-def parseRetentionDefinition(retentionDef):
+def parseRetentionDef(retentionDef):
   (precision, points) = retentionDef.strip().split(':')
 
   if precision.isdigit():
