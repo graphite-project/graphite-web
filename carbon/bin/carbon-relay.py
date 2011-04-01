@@ -43,15 +43,6 @@ __builtins__.CONF_DIR = CONF_DIR
 sys.path.insert(0, LIB_DIR)
 
 
-# Import application components
-from carbon.conf import settings
-from carbon.log import logToStdout, logToDir
-from carbon.listeners import MetricLineReceiver, MetricPickleReceiver, startListener
-from carbon.relay import startRelaying, relay
-from carbon.events import metricReceived
-from carbon.instrumentation import startRecordingRelayMetrics
-
-
 # Parse command line options
 parser = optparse.OptionParser(usage='%prog [options] <start|stop|status>')
 parser.add_option('--debug', action='store_true', help='Run in the foreground, log to stdout')
@@ -119,8 +110,15 @@ if exists(options.pidfile):
 
 
 # Read config (we want failures to occur before daemonizing)
+from carbon.conf import settings
 settings.readFrom(options.config, 'relay')
 
+# Import application components
+from carbon.log import logToStdout, logToDir
+from carbon.listeners import MetricLineReceiver, MetricPickleReceiver, startListener
+from carbon.relay import startRelaying, relay
+from carbon.events import metricReceived
+from carbon.instrumentation import startRecordingRelayMetrics
 
 # --debug
 if options.debug:

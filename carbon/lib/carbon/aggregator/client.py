@@ -10,7 +10,7 @@ except ImportError:
   import pickle
 
 
-MAX_DATAPOINTS_PER_MESSAGE = 500
+MAX_DATAPOINTS_PER_MESSAGE = settings.MAX_DATAPOINTS_PER_MESSAGE
 
 
 def connect(host, port):
