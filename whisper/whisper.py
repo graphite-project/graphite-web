@@ -36,6 +36,7 @@ except ImportError:
 
 LOCK = False
 CACHE_HEADERS = False
+AUTOFLUSH = False
 __headerCache = {}
 
 longFormat = "!L"
@@ -104,13 +105,15 @@ def enableDebug():
 
 def __readHeader(fh):
   info = __headerCache.get(fh.name)
-  if info: return info
-  #startBlock('__readHeader')
+  if info:
+    return info
+
   originalOffset = fh.tell()
   fh.seek(0)
   packedMetadata = fh.read(metadataSize)
   (lastUpdate,maxRetention,xff,archiveCount) = struct.unpack(metadataFormat,packedMetadata)
   archives = []
+
   for i in xrange(archiveCount):
     packedArchiveInfo = fh.read(archiveInfoSize)
     (offset,secondsPerPoint,points) = struct.unpack(archiveInfoFormat,packedArchiveInfo)
@@ -122,6 +125,7 @@ def __readHeader(fh):
       'size' : points * pointSize,
     }
     archives.append(archiveInfo)
+
   fh.seek(originalOffset)
   info = {
     #'lastUpdate' : lastUpdate, # Deprecated
@@ -131,20 +135,18 @@ def __readHeader(fh):
   }
   if CACHE_HEADERS:
     __headerCache[fh.name] = info
-  #endBlock('__readHeader')
+
   return info
 
 
 def __changeLastUpdate(fh):
   return #XXX Make this a NOP, use os.stat(filename).st_mtime instead
-  startBlock('__changeLastUpdate()')
   originalOffset = fh.tell()
   fh.seek(0) #Based on assumption that first field is lastUpdate
   now = int( time.time() )
   packedTime = struct.pack(timestampFormat,now)
   fh.write(packedTime)
   fh.seek(originalOffset)
-  endBlock('__changeLastUpdate()')
 
 
 def create(path,archiveList,xFilesFactor=0.5):
@@ -157,28 +159,39 @@ xFilesFactor specifies the fraction of data points in a propagation interval tha
   #Validate archive configurations...
   if not archiveList:
     raise InvalidConfiguration("You must specify at least one archive configuration!")
+
   archiveList.sort(key=lambda a: a[0]) #sort by precision (secondsPerPoint)
+
   for i,archive in enumerate(archiveList):
-    if i == len(archiveList) - 1: break
+    if i == len(archiveList) - 1:
+      break
+
     next = archiveList[i+1]
     if not (archive[0] < next[0]):
       raise InvalidConfiguration("You cannot configure two archives "
         "with the same precision %s,%s" % (archive,next))
+
     if (next[0] % archive[0]) != 0:
       raise InvalidConfiguration("Higher precision archives' precision "
         "must evenly divide all lower precision archives' precision %s,%s" \
         % (archive[0],next[0]))
+
     retention = archive[0] * archive[1]
     nextRetention = next[0] * next[1]
+
     if not (nextRetention > retention):
       raise InvalidConfiguration("Lower precision archives must cover "
         "larger time intervals than higher precision archives %s,%s" \
         % (archive,next))
+
   #Looks good, now we create the file and write the header
   if os.path.exists(path):
     raise InvalidConfiguration("File %s already exists!" % path)
+
   fh = open(path,'wb')
-  if LOCK: fcntl.flock( fh.fileno(), fcntl.LOCK_EX )
+  if LOCK:
+    fcntl.flock( fh.fileno(), fcntl.LOCK_EX )
+
   lastUpdate = struct.pack( timestampFormat, int(time.time()) )
   oldest = sorted([secondsPerPoint * points for secondsPerPoint,points in archiveList])[-1]
   maxRetention = struct.pack( longFormat, oldest )
@@ -188,21 +201,30 @@ xFilesFactor specifies the fraction of data points in a propagation interval tha
   fh.write(packedMetadata)
   headerSize = metadataSize + (archiveInfoSize * len(archiveList))
   archiveOffsetPointer = headerSize
+
   for secondsPerPoint,points in archiveList:
     archiveInfo = struct.pack(archiveInfoFormat, archiveOffsetPointer, secondsPerPoint, points)
     fh.write(archiveInfo)
     archiveOffsetPointer += (points * pointSize)
+
   zeroes = '\x00' * (archiveOffsetPointer - headerSize)
   fh.write(zeroes)
+
+  if AUTOFLUSH:
+    fh.flush()
+    os.fsync(fh.fileno())
+
   fh.close()
 
 
 def __propagate(fh,timestamp,xff,higher,lower):
   lowerIntervalStart = timestamp - (timestamp % lower['secondsPerPoint'])
   lowerIntervalEnd = lowerIntervalStart + lower['secondsPerPoint']
+
   fh.seek(higher['offset'])
   packedPoint = fh.read(pointSize)
   (higherBaseInterval,higherBaseValue) = struct.unpack(pointFormat,packedPoint)
+
   if higherBaseInterval == 0:
     higherFirstOffset = higher['offset']
   else:
@@ -210,12 +232,14 @@ def __propagate(fh,timestamp,xff,higher,lower):
     pointDistance = timeDistance / higher['secondsPerPoint']
     byteDistance = pointDistance * pointSize
     higherFirstOffset = higher['offset'] + (byteDistance % higher['size'])
+
   higherPoints = lower['secondsPerPoint'] / higher['secondsPerPoint']
   higherSize = higherPoints * pointSize
   relativeFirstOffset = higherFirstOffset - higher['offset']
   relativeLastOffset = (relativeFirstOffset + higherSize) % higher['size']
   higherLastOffset = relativeLastOffset + higher['offset']
   fh.seek(higherFirstOffset)
+
   if higherFirstOffset < higherLastOffset: #we don't wrap the archive
     seriesString = fh.read(higherLastOffset - higherFirstOffset)
   else: #We do wrap the archive
@@ -223,24 +247,29 @@ def __propagate(fh,timestamp,xff,higher,lower):
     seriesString = fh.read(higherEnd - higherFirstOffset)
     fh.seek(higher['offset'])
     seriesString += fh.read(higherLastOffset - higher['offset'])
+
   #Now we unpack the series data we just read
   byteOrder,pointTypes = pointFormat[0],pointFormat[1:]
   points = len(seriesString) / pointSize
   seriesFormat = byteOrder + (pointTypes * points)
   unpackedSeries = struct.unpack(seriesFormat, seriesString)
+
   #And finally we construct a list of values
   neighborValues = [None] * points
   currentInterval = lowerIntervalStart
   step = higher['secondsPerPoint']
+
   for i in xrange(0,len(unpackedSeries),2):
     pointTime = unpackedSeries[i]
     if pointTime == currentInterval:
       neighborValues[i/2] = unpackedSeries[i+1]
     currentInterval += step
+
   #Propagate aggregateValue to propagate from neighborValues if we have enough known points
   knownValues = [v for v in neighborValues if v is not None]
   if not knownValues:
     return False
+
   knownPercent = float(len(knownValues)) / float(len(neighborValues))
   if knownPercent >= xff: #we have enough data to propagate a value!
     aggregateValue = float(sum(knownValues)) / float(len(knownValues)) #TODO another CF besides average?
@@ -248,6 +277,7 @@ def __propagate(fh,timestamp,xff,higher,lower):
     fh.seek(lower['offset'])
     packedPoint = fh.read(pointSize)
     (lowerBaseInterval,lowerBaseValue) = struct.unpack(pointFormat,packedPoint)
+
     if lowerBaseInterval == 0: #First propagated update to this lower archive
       fh.seek(lower['offset'])
       fh.write(myPackedPoint)
@@ -258,7 +288,9 @@ def __propagate(fh,timestamp,xff,higher,lower):
       lowerOffset = lower['offset'] + (byteDistance % lower['size'])
       fh.seek(lowerOffset)
       fh.write(myPackedPoint)
+
     return True
+
   else:
     return False
 
@@ -276,25 +308,32 @@ timestamp is either an int or float
 
 
 def file_update(fh, value, timestamp):
-  if LOCK: fcntl.flock( fh.fileno(), fcntl.LOCK_EX )
+  if LOCK:
+    fcntl.flock( fh.fileno(), fcntl.LOCK_EX )
+
   header = __readHeader(fh)
   now = int( time.time() )
-  if timestamp is None: timestamp = now
+  if timestamp is None:
+    timestamp = now
+
   timestamp = int(timestamp)
   diff = now - timestamp
   if not ((diff < header['maxRetention']) and diff >= 0):
     raise TimestampNotCovered("Timestamp not covered by any archives in "
       "this database.")
+
   for i,archive in enumerate(header['archives']): #Find the highest-precision archive that covers timestamp
     if archive['retention'] < diff: continue
     lowerArchives = header['archives'][i+1:] #We'll pass on the update to these lower precision archives later
     break
+
   #First we update the highest-precision archive
   myInterval = timestamp - (timestamp % archive['secondsPerPoint'])
   myPackedPoint = struct.pack(pointFormat,myInterval,value)
   fh.seek(archive['offset'])
   packedPoint = fh.read(pointSize)
   (baseInterval,baseValue) = struct.unpack(pointFormat,packedPoint)
+
   if baseInterval == 0: #This file's first update
     fh.seek(archive['offset'])
     fh.write(myPackedPoint)
@@ -306,14 +345,20 @@ def file_update(fh, value, timestamp):
     myOffset = archive['offset'] + (byteDistance % archive['size'])
     fh.seek(myOffset)
     fh.write(myPackedPoint)
+
   #Now we propagate the update to lower-precision archives
-  #startBlock('update propagation')
   higher = archive
   for lower in lowerArchives:
-    if not __propagate(fh,myInterval,header['xFilesFactor'],higher,lower): break
+    if not __propagate(fh, myInterval, header['xFilesFactor'], higher, lower):
+      break
     higher = lower
-  #endBlock('update propagation')
+
   __changeLastUpdate(fh)
+
+  if AUTOFLUSH:
+    fh.flush()
+    os.fsync(fh.fileno())
+
   fh.close()
 
 
@@ -331,82 +376,78 @@ points is a list of (timestamp,value) points
 
 
 def file_update_many(fh, points):
-  if LOCK: fcntl.flock( fh.fileno(), fcntl.LOCK_EX )
+  if LOCK:
+    fcntl.flock( fh.fileno(), fcntl.LOCK_EX )
+
   header = __readHeader(fh)
   now = int( time.time() )
   archives = iter( header['archives'] )
   currentArchive = archives.next()
-  #debug('  update_many currentArchive=%s' % str(currentArchive))
   currentPoints = []
+
   for point in points:
     age = now - point[0]
-    #debug('  update_many iterating points, point=%s age=%d' % (str(point),age))
+
     while currentArchive['retention'] < age: #we can't fit any more points in this archive
-      #debug('  update_many this point is too old to fit here, currentPoints=%d' % len(currentPoints))
       if currentPoints: #commit all the points we've found that it can fit
         currentPoints.reverse() #put points in chronological order
         __archive_update_many(fh,header,currentArchive,currentPoints)
         currentPoints = []
       try:
         currentArchive = archives.next()
-        #debug('  update_many using next archive %s' % str(currentArchive))
       except StopIteration:
-        #debug('  update_many no more archives!')
         currentArchive = None
         break
-    if not currentArchive: break #drop remaining points that don't fit in the database
-    #debug('  update_many adding point=%s' % str(point))
+
+    if not currentArchive:
+      break #drop remaining points that don't fit in the database
+
     currentPoints.append(point)
-  #debug('  update_many done iterating points')
+
   if currentArchive and currentPoints: #don't forget to commit after we've checked all the archives
     currentPoints.reverse()
     __archive_update_many(fh,header,currentArchive,currentPoints)
+
   __changeLastUpdate(fh)
+
+  if AUTOFLUSH:
+    fh.flush()
+    os.fsync(fh.fileno())
+
   fh.close()
 
 
 def __archive_update_many(fh,header,archive,points):
   step = archive['secondsPerPoint']
-  #startBlock('__archive_update_many file=%s archive=%s points=%d' % (fh.name,step,len(points)))
   alignedPoints = [ (timestamp - (timestamp % step), value)
                     for (timestamp,value) in points ]
   #Create a packed string for each contiguous sequence of points
-  #startBlock('__archive_update_many string packing')
   packedStrings = []
   previousInterval = None
   currentString = ""
   for (interval,value) in alignedPoints:
-    #debug('__archive_update_many  iterating alignedPoint at %s' % interval)
     if (not previousInterval) or (interval == previousInterval + step):
-      #debug('__archive_update_many  was expected, packing onto currentString')
       currentString += struct.pack(pointFormat,interval,value)
       previousInterval = interval
     else:
       numberOfPoints = len(currentString) / pointSize
       startInterval = previousInterval - (step * (numberOfPoints-1))
-      #debug('__archive_update_many  was NOT expected, appending to packedStrings startInterval=%s currentString=%d bytes' % (startInterval,len(currentString)))
       packedStrings.append( (startInterval,currentString) )
       currentString = struct.pack(pointFormat,interval,value)
       previousInterval = interval
   if currentString:
-    #startInterval = previousInterval - (step * len(currentString) / pointSize) + step
     numberOfPoints = len(currentString) / pointSize
     startInterval = previousInterval - (step * (numberOfPoints-1))
-    #debug('__archive_update_many  done iterating alignedPoints, remainder currentString of %d bytes, startInterval=%s' % (len(currentString),startInterval))
     packedStrings.append( (startInterval,currentString) )
-  #endBlock('__archive_update_many string packing')
 
   #Read base point and determine where our writes will start
   fh.seek(archive['offset'])
   packedBasePoint = fh.read(pointSize)
   (baseInterval,baseValue) = struct.unpack(pointFormat,packedBasePoint)
   if baseInterval == 0: #This file's first update
-    #debug('__archive_update_many  first update')
     baseInterval = packedStrings[0][0] #use our first string as the base, so we start at the start
-  #debug('__archive_update_many  baseInterval is %s' % baseInterval)
 
   #Write all of our packed strings in locations determined by the baseInterval
-  #startBlock('__archive_update_many write() operations')
   for (interval,packedString) in packedStrings:
     timeDistance = interval - baseInterval
     pointDistance = timeDistance / step
@@ -415,38 +456,31 @@ def __archive_update_many(fh,header,archive,points):
     fh.seek(myOffset)
     archiveEnd = archive['offset'] + archive['size']
     bytesBeyond = (myOffset + len(packedString)) - archiveEnd
-    #debug('  __archive_update_many myOffset=%d packedString=%d archiveEnd=%d bytesBeyond=%d' % (myOffset,len(packedString),archiveEnd,bytesBeyond))
+
     if bytesBeyond > 0:
       fh.write( packedString[:-bytesBeyond] )
-      #debug('We wrapped an archive!')
       assert fh.tell() == archiveEnd, "archiveEnd=%d fh.tell=%d bytesBeyond=%d len(packedString)=%d" % (archiveEnd,fh.tell(),bytesBeyond,len(packedString))
       fh.seek( archive['offset'] )
       fh.write( packedString[-bytesBeyond:] ) #safe because it can't exceed the archive (retention checking logic above)
     else:
       fh.write(packedString)
-  #endBlock('__archive_update_many write() operations')
 
   #Now we propagate the updates to lower-precision archives
-  #startBlock('__archive_update_many propagation')
   higher = archive
   lowerArchives = [arc for arc in header['archives'] if arc['secondsPerPoint'] > archive['secondsPerPoint']]
-  #debug('__archive_update_many I have %d lower archives' % len(lowerArchives))
+
   for lower in lowerArchives:
     fit = lambda i: i - (i % lower['secondsPerPoint'])
     lowerIntervals = [fit(p[0]) for p in alignedPoints]
     uniqueLowerIntervals = set(lowerIntervals)
-    #debug('  __archive_update_many points=%d unique=%d' % (len(alignedPoints),len(uniqueLowerIntervals)))
     propagateFurther = False
     for interval in uniqueLowerIntervals:
-      #debug('  __archive_update_many propagating from %d to %d, interval=%d' % (higher['secondsPerPoint'],lower['secondsPerPoint'],interval))
       if __propagate(fh,interval,header['xFilesFactor'],higher,lower):
         propagateFurther = True
-        #debug('  __archive_update_many Successful propagation!')
-    #debug('  __archive_update_many propagateFurther=%s' % propagateFurther)
-    if not propagateFurther: break
+
+    if not propagateFurther:
+      break
     higher = lower
-  #endBlock('__archive_update_many propagation')
-  #endBlock('__archive_update_many file=%s archive=%s points=%d' % (fh.name,step,len(points)))
 
 
 def info(path):
@@ -489,30 +523,37 @@ def file_fetch(fh, fromTime, untilTime):
     untilTime = now
   if untilTime < fromTime:
     untilTime = now
+
   diff = now - fromTime
   for archive in header['archives']:
-    if archive['retention'] >= diff: break
+    if archive['retention'] >= diff:
+      break
+
   fromInterval = int( fromTime - (fromTime % archive['secondsPerPoint']) ) + archive['secondsPerPoint']
   untilInterval = int( untilTime - (untilTime % archive['secondsPerPoint']) ) + archive['secondsPerPoint']
   fh.seek(archive['offset'])
   packedPoint = fh.read(pointSize)
   (baseInterval,baseValue) = struct.unpack(pointFormat,packedPoint)
+
   if baseInterval == 0:
     step = archive['secondsPerPoint']
     points = (untilInterval - fromInterval) / step
     timeInfo = (fromInterval,untilInterval,step)
     valueList = [None] * points
     return (timeInfo,valueList)
+
   #Determine fromOffset
   timeDistance = fromInterval - baseInterval
   pointDistance = timeDistance / archive['secondsPerPoint']
   byteDistance = pointDistance * pointSize
   fromOffset = archive['offset'] + (byteDistance % archive['size'])
+
   #Determine untilOffset
   timeDistance = untilInterval - baseInterval
   pointDistance = timeDistance / archive['secondsPerPoint']
   byteDistance = pointDistance * pointSize
   untilOffset = archive['offset'] + (byteDistance % archive['size'])
+
   #Read all the points in the interval
   fh.seek(fromOffset)
   if fromOffset < untilOffset: #If we don't wrap around the archive
@@ -522,21 +563,25 @@ def file_fetch(fh, fromTime, untilTime):
     seriesString = fh.read(archiveEnd - fromOffset)
     fh.seek(archive['offset'])
     seriesString += fh.read(untilOffset - archive['offset'])
+
   #Now we unpack the series data we just read (anything faster than unpack?)
   byteOrder,pointTypes = pointFormat[0],pointFormat[1:]
   points = len(seriesString) / pointSize
   seriesFormat = byteOrder + (pointTypes * points)
   unpackedSeries = struct.unpack(seriesFormat, seriesString)
+
   #And finally we construct a list of values (optimize this!)
   valueList = [None] * points #pre-allocate entire list for speed
   currentInterval = fromInterval
   step = archive['secondsPerPoint']
+
   for i in xrange(0,len(unpackedSeries),2):
     pointTime = unpackedSeries[i]
     if pointTime == currentInterval:
       pointValue = unpackedSeries[i+1]
       valueList[i/2] = pointValue #in-place reassignment is faster than append()
     currentInterval += step
+
   fh.close()
   timeInfo = (fromInterval,untilInterval,step)
   return (timeInfo,valueList)
