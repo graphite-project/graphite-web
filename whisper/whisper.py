@@ -71,6 +71,15 @@ class InvalidTimeInterval(WhisperException):
 class TimestampNotCovered(WhisperException):
     """Timestamp not covered by any archives in this database."""
 
+class CorruptWhisperFile(WhisperException):
+  def __init__(self, error, path):
+    Exception.__init__(self, error)
+    self.error = error
+    self.path = path
+
+  def __repr__(self):
+    return "<CorruptWhisperFile[%s] %s>" % (self.path, self.error)
+
 
 def enableDebug():
   global open, debug, startBlock, endBlock
@@ -109,11 +118,20 @@ def __readHeader(fh):
   originalOffset = fh.tell()
   fh.seek(0)
   packedMetadata = fh.read(metadataSize)
-  (lastUpdate,maxRetention,xff,archiveCount) = struct.unpack(metadataFormat,packedMetadata)
+
+  try:
+    (lastUpdate,maxRetention,xff,archiveCount) = struct.unpack(metadataFormat,packedMetadata)
+  except:
+    raise CorruptWhisperFile("Unable to read header", fh.name)
+
   archives = []
   for i in xrange(archiveCount):
     packedArchiveInfo = fh.read(archiveInfoSize)
-    (offset,secondsPerPoint,points) = struct.unpack(archiveInfoFormat,packedArchiveInfo)
+    try:
+      (offset,secondsPerPoint,points) = struct.unpack(archiveInfoFormat,packedArchiveInfo)
+    except:
+      raise CorruptWhisperFile("Unable to read archive %d metadata" % i, fh.name)
+
     archiveInfo = {
       'offset' : offset,
       'secondsPerPoint' : secondsPerPoint,
