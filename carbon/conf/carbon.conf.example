@@ -25,7 +25,7 @@ MAX_UPDATES_PER_SECOND = 1000
 # database files to all get created and thus longer until the data becomes usable.
 # Setting this value high (like "inf" for infinity) will cause graphite to create
 # the files quickly but at the risk of slowing I/O down considerably for a while.
-MAX_CREATES_PER_MINUTE = inf
+MAX_CREATES_PER_MINUTE = 50
 
 LINE_RECEIVER_INTERFACE = 0.0.0.0
 LINE_RECEIVER_PORT = 2003
@@ -38,7 +38,7 @@ CACHE_QUERY_PORT = 7002
 
 # By default, carbon-cache will log every whisper update. This can be excessive and
 # degrade performance if logging on the same volume as the whisper data is stored.
-LOG_UPDATES = True
+LOG_UPDATES = False
 
 
 # Enable AMQP if you want to receve metrics using an amqp broker
