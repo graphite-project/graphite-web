@@ -54,6 +54,7 @@ LOG_UPDATES = True
 # AMQP_USER = guest
 # AMQP_PASSWORD = guest
 # AMQP_EXCHANGE = graphite
+# AMQP_METRIC_NAME_IN_BODY = False
 
 # Patterns for all of the metrics this machine will store. Read more at
 # http://en.wikipedia.org/wiki/Advanced_Message_Queuing_Protocol#Bindings

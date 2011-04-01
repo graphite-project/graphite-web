@@ -53,6 +53,10 @@ AMQP_VERBOSE = True
 # AMQP_HOST = localhost
 # AMQP_PORT = 5672
 
+# if you want to include the metric name as part of the message body
+# instead of as the routing key, set this to True
+# AMQP_METRIC_NAME_IN_BODY = False
+
 # NOTE: you cannot run both a cache and a relay on the same server
 # with the default configuration, you have to specify a distinict
 # interfaces and ports for the listeners.
