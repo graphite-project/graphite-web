@@ -62,7 +62,6 @@ from carbon.conf import settings
 from carbon.log import logToStdout, logToDir
 from carbon.listeners import MetricLineReceiver, MetricPickleReceiver, CacheQueryHandler, startListener
 from carbon.cache import MetricCache
-from carbon.writer import startWriter
 from carbon.instrumentation import startRecordingCacheMetrics
 from carbon.events import metricReceived
 
@@ -196,6 +195,7 @@ if use_amqp:
                               exchange_name=amqp_exchange_name,
                               verbose=amqp_verbose)
 
+from carbon.writer import startWriter # have to import this *after* settings are defined
 startWriter()
 startRecordingCacheMetrics()
 

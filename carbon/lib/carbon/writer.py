@@ -175,7 +175,7 @@ def reloadStorageSchemas():
 
 
 schemaReloadTask = LoopingCall(reloadStorageSchemas)
-schemas = []
+schemas = loadStorageSchemas()
 
 
 def startWriter():
