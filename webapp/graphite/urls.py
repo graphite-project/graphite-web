@@ -19,7 +19,7 @@ from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = patterns('',
-  ('^admin/(.*)', admin.site.root),
+  ('^admin/', include(admin.site.urls)),
   ('^render/?', include('graphite.render.urls')),
   ('^cli/?', include('graphite.cli.urls')),
   ('^composer/?', include('graphite.composer.urls')),
