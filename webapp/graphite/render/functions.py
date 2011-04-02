@@ -485,16 +485,19 @@ def doStdDev(sumOfSquares, first, new, n, avg):
    return (math.sqrt((newSumOfSquares / float(n)) - (avg * avg)), newSumOfSquares)
 
 
-def stdev(requestContext, seriesList,time):
+def stdev(requestContext, seriesList, time):
   count = 0
   for series in seriesList:
     stddevs = TimeSeries("stddev(%s,%.1f)" % (series.name, float(time)), series.start, series.end, series.step, [])
     stddevs.pathExpression = "stddev(%s,%.1f)" % (series.name, float(time))
     avg = safeDiv(safeSum(series[:time]), time)
 
-    sumOfSquares = sum(map(lambda(x): x * x, [v for v in series[:time] if v is not None]))
-    (sd, sumOfSquares) = doStdDev(sumOfSquares, 0, 0, time, avg)
-    stddevs.append(sd)
+    if avg is not None:
+      sumOfSquares = sum(map(lambda(x): x * x, [v for v in series[:time] if v is not None]))
+      (sd, sumOfSquares) = doStdDev(sumOfSquares, 0, 0, time, avg)
+      stddevs.append(sd)
+    else:
+      stddevs.append(None)
 
     for (index, el) in enumerate(series[time:]):
       if el is None:
@@ -507,8 +510,11 @@ def stdev(requestContext, seriesList,time):
       s = safeSum([safeMul(time, avg), el, -toDrop])
       avg = safeDiv(s, time)
 
-      (sd, sumOfSquares) = doStdDev(sumOfSquares, toDrop, series[index+time], time, avg)
-      stddevs.append(sd)
+      if avg is not None:
+        (sd, sumOfSquares) = doStdDev(sumOfSquares, toDrop, series[index+time], time, avg)
+        stddevs.append(sd)
+      else:
+        stddevs.append(None)
 
     for i in range(0, time-1):
       stddevs.insert(0, None)
