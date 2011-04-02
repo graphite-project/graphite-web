@@ -57,15 +57,6 @@ except ImportError:
   sys.exit(1)
 
 
-# Import application components
-from carbon.conf import settings
-from carbon.log import logToStdout, logToDir
-from carbon.listeners import MetricLineReceiver, MetricPickleReceiver, CacheQueryHandler, startListener
-from carbon.cache import MetricCache
-from carbon.instrumentation import startRecordingCacheMetrics
-from carbon.events import metricReceived
-
-
 # Parse command line options
 parser = optparse.OptionParser(usage='%prog [options] <start|stop|status>')
 parser.add_option('--debug', action='store_true', help='Run in the foreground, log to stdout')
@@ -132,7 +123,15 @@ if exists(options.pidfile):
 
 
 # Read config (we want failures to occur before daemonizing)
+from carbon.conf import settings
 settings.readFrom(options.config, 'cache')
+
+# Import application components
+from carbon.log import logToStdout, logToDir
+from carbon.listeners import MetricLineReceiver, MetricPickleReceiver, CacheQueryHandler, startListener
+from carbon.cache import MetricCache
+from carbon.instrumentation import startRecordingCacheMetrics
+from carbon.events import metricReceived
 
 storage_schemas = join(CONF_DIR, 'storage-schemas.conf')
 if not exists(storage_schemas):
@@ -194,6 +193,10 @@ if use_amqp:
                               vhost=amqp_vhost, spec=amqp_spec,
                               exchange_name=amqp_exchange_name,
                               verbose=amqp_verbose)
+
+if settings.ENABLE_MANHOLE:
+  from carbon import manhole
+  manhole.start()
 
 from carbon.writer import startWriter # have to import this *after* settings are defined
 startWriter()
