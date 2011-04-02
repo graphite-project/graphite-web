@@ -128,24 +128,34 @@ function initDashboard () {
     ].concat(contextSelectorFields)
   });
 
+  function expandNode(node, recurse) {
+    function addAll () {
+      Ext.each(node.childNodes, function (child) {
+        if (child.leaf) {
+          graphAreaToggle(child.id, true);
+        } else if (recurse) {
+          expandNode(child, recurse);
+        }
+      });
+    }
+
+    if (node.isExpanded()) {
+      addAll();
+    } else {
+      node.expand(false, false, addAll);
+    }
+  }
+
   var folderContextMenu = new Ext.menu.Menu({
     items: [{
       text: "Add All Metrics",
       handler: function (item, e) {
-                 var node = item.parentMenu.node;
-                 function addAll () {
-                   Ext.each(node.childNodes, function (child) {
-                     if (child.leaf) {
-                       graphAreaToggle(child.id, true);
-                     }
-                   });
-                 }
-
-                 if (node.isExpanded()) {
-                   addAll();
-                 } else {
-                   node.expand(false, false, addAll);
-                 }
+                 expandNode(item.parentMenu.node, false);
+               }
+    }, {
+      text: "Add All Metrics (recursively)",
+      handler: function (item, e) {
+                 expandNode(item.parentMenu.node, true);
                }
     }]
   });
