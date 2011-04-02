@@ -39,12 +39,16 @@ function GraphiteBrowser () {
 function createTreePanel(){
   var rootNode = new Ext.tree.TreeNode({});
 
-  function setParams(loader,node) {
+  function setParams(loader, node) {
     var node_id = node.id.replace(/^[A-Za-z]+Tree\.?/,"");
     loader.baseParams.query = (node_id == "") ? "*" : (node_id + ".*");
     loader.baseParams.format = 'treejson';
     loader.baseParams.contexts = '1';
     loader.baseParams.path = node_id;
+
+    if (node.parentNode && node.parentNode.id == "UserGraphsTree") {
+      loader.baseParams.user = node.id;
+    }
   }
 
   var graphiteNode = new Ext.tree.AsyncTreeNode({
@@ -58,11 +62,11 @@ function createTreePanel(){
   });
   rootNode.appendChild(graphiteNode);
 
-  function reloadOnce (node) {
-    node.un('beforeexpand', reloadOnce);
-    node.reload();
-    setTimeout(function () { node.on('beforeexpand', reloadOnce); }, 1000);
-  }
+  //function reloadOnce (node) {
+  //  node.un('beforeexpand', reloadOnce);
+  //  node.reload();
+  //  setTimeout(function () { node.on('beforeexpand', reloadOnce); }, 1000);
+  //}
 
   if (GraphiteConfig.showMyGraphs) {
     var myGraphsNode = new Ext.tree.AsyncTreeNode({
@@ -72,7 +76,7 @@ function createTreePanel(){
       allowChildren: true,
       expandable: true,
       allowDrag: false,
-      listeners: {beforeexpand: reloadOnce},
+      //listeners: {beforeexpand: reloadOnce},
       loader: new Ext.tree.TreeLoader({
         url: "../browser/mygraph/",
         requestMethod: "GET",
@@ -85,7 +89,7 @@ function createTreePanel(){
   var userGraphsNode = new Ext.tree.AsyncTreeNode({
     id: 'UserGraphsTree',
     text: "User Graphs",
-    listeners: {beforeexpand: reloadOnce},
+    //listeners: {beforeexpand: reloadOnce},
     loader: new Ext.tree.TreeLoader({
       url: "../browser/usergraph/",
       requestMethod: "GET",

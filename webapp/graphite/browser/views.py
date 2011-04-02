@@ -149,6 +149,7 @@ def myGraphLookup(request):
 
 def userGraphLookup(request):
   "View for User Graphs navigation"
+  user = request.GET.get('user')
   path = request.GET['path']
 
   if '.' in path:
