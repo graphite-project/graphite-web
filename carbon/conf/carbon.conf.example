@@ -40,6 +40,10 @@ CACHE_QUERY_PORT = 7002
 # degrade performance if logging on the same volume as the whisper data is stored.
 LOG_UPDATES = False
 
+# On some systems it is desirable for whisper to write synchronously.
+# Set this option to True if you'd like to try this. Basically it will
+# shift the onus of buffering writes from the kernel into carbon's cache.
+WHISPER_AUTOFLUSH = False
 
 # Enable AMQP if you want to receve metrics using an amqp broker
 # ENABLE_AMQP = False
@@ -91,6 +95,10 @@ PICKLE_RECEIVER_PORT = 2014
 
 MAX_QUEUE_SIZE = 10000
 
+# This defines the maximum "message size" between carbon daemons.
+# You shouldn't need to tune this unless you really know what you're doing.
+MAX_DATAPOINTS_PER_MESSAGE = 500
+
 
 [aggregator]
 LINE_RECEIVER_INTERFACE = 0.0.0.0
@@ -102,3 +110,7 @@ PICKLE_RECEIVER_PORT = 2024
 DESTINATION_HOST = 127.0.0.1
 DESTINATION_PORT = 2004
 MAX_QUEUE_SIZE = 10000
+
+# This defines the maximum "message size" between carbon daemons.
+# You shouldn't need to tune this unless you really know what you're doing.
+MAX_DATAPOINTS_PER_MESSAGE = 500

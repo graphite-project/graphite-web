@@ -30,6 +30,9 @@ try:
 except ImportError:
   import pickle
 
+if settings.WHISPER_AUTOFLUSH:
+  log.msg("enabling whisper autoflush")
+  whisper.AUTOFLUSH = True
 
 lastCreateInterval = 0
 createCount = 0

@@ -40,7 +40,7 @@ code that appears in your web server logs.
 
 Rocksteady
 ----------
-A system that ties together Grpahite, `RabbitMQ`_, and `Esper`_. Developed by
+A system that ties together Graphite, `RabbitMQ`_, and `Esper`_. Developed by
 AdMob (who was then bought by Google), this was released by Google as open source
 (http://google-opensource.blogspot.com/2010/09/get-ready-to-rocksteady.html).
 Learn more here, http://code.google.com/p/rocksteady/
