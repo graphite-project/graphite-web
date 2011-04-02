@@ -499,7 +499,8 @@ var GraphDataWindow = {
                   {text: 'Non-negative Derivative', handler: this.applyFuncToEachWithInput('nonNegativeDerivative', "Please enter a maximum value if this metric is a wrapping counter (or just leave this blank)", {allowBlank: true})},
                   {text: 'Log', handler: this.applyFuncToEachWithInput('log', 'Please enter a base')},
                   {text: 'timeShift', handler: this.applyFuncToEachWithInput('timeShift', 'Shift this metric ___ back in time (examples: 10min, 7d, 2w)', {quote: true})},
-                  {text: 'Summarize', handler: this.applyFuncToEachWithInput('summarize', 'Please enter a summary interval (examples: 10min, 1h, 7d)', {quote: true})}
+                  {text: 'Summarize', handler: this.applyFuncToEachWithInput('summarize', 'Please enter a summary interval (examples: 10min, 1h, 7d)', {quote: true})},
+                  {text: 'Hit Count', handler: this.applyFuncToEachWithInput('hitcount', 'Please enter a summary interval (examples: 10min, 1h, 7d)', {quote: true})}
                 ]
               }, {
                 text: 'Calculate',
