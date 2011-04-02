@@ -37,8 +37,19 @@ It is ideal for visualizing trends of events that are occurring in your applicat
 logs. For example, you might use logster to graph the number of occurrences of HTTP response
 code that appears in your web server logs.
 
+
+Rocksteady
+----------
+A system that ties together Grpahite, `RabbitMQ`_, and `Esper`_. Developed by
+AdMob (who was then bought by Google), this was released by Google as open source
+(http://google-opensource.blogspot.com/2010/09/get-ready-to-rocksteady.html).
+Learn more here, http://code.google.com/p/rocksteady/
+
+
 .. _jmxtrans: http://code.google.com/p/jmxtrans/
 .. _statsd: https://github.com/etsy/statsd
 .. _Ganglia: http://ganglia.info/
 .. _collectd: http://collectd.org/
 .. _Logster: https://github.com/etsy/logster
+.. _RabbitMQ: http://www.rabbitmq.com/
+.. _Esper: http://esper.codehaus.org/
