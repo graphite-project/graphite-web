@@ -684,7 +684,13 @@ def hitcount(requestContext, seriesList, intervalString):
         if end_mod > 0:
           buckets[end_bucket].append(value * end_mod)
 
-    newValues = [(sum(bucket) if bucket else None) for bucket in buckets]
+    newValues = []
+    for bucket in buckets:
+      if bucket:
+        newValues.append( sum(bucket) )
+      else:
+        newValues.append(None)
+
     newName = 'hitcount(%s, "%s")' % (series.name, intervalString)
     newSeries = TimeSeries(newName, newStart, series.end, interval, newValues)
     newSeries.pathExpression = newName
