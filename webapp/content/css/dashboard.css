@@ -51,3 +51,7 @@ img.graph-img {
 .graph-over div.overlay-close-button {
   visibility: visible;
 }
+
+.x-list-selected {
+  background-color: rgb(180, 180, 220);
+}

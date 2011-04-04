@@ -8,10 +8,12 @@ var graphArea;
 var graphStore;
 var graphView;
 var topBar;
+var dashboardName;
 var refreshTask;
 var spacer;
 var justClosedGraph = false;
 var NOT_EDITABLE = ['from', 'until', 'width', 'height', 'target', 'uniq'];
+
 
 // Record types and stores
 var SchemeRecord = Ext.data.Record.create([
@@ -202,21 +204,6 @@ function initDashboard () {
     listeners: {click: graphClicked}
   });
 
-  function updateAutoRefresh (newValue) {
-    var value = parseInt(newValue);
-    if ( isNaN(value) ) {
-      return;
-    }
-
-    if (Ext.getCmp('auto-refresh-button').pressed) {
-      Ext.TaskMgr.stop(refreshTask);
-      refreshTask.interval = value * 1000;
-      Ext.TaskMgr.start(refreshTask);
-    } else {
-      refreshTask.interval = value * 1000;
-    }
-  }
-
   graphArea = new Ext.Panel({
     region: 'center',
     layout: 'fit',
@@ -240,6 +227,57 @@ function initDashboard () {
           handler: selectAbsoluteTime,
           scope: this
         }, '-', {
+          text: 'Dashboard',
+          menu: {
+            items: [
+/*
+              {
+                text: "Open",
+                handler: function (item, e) {
+                           Ext.Msg.prompt(
+                             "Load Dashboard",
+                             "Enter the name of the dashboard you would like to open",
+                             function (button, text) {
+                               if (button == 'ok' && text.length > 0) {
+                                 sendLoadRequest(text);
+                               }
+                             }
+                           );
+                         }
+              },
+*/
+              {
+                text: "Open",
+                handler: showDashboardFinder
+              }, {
+                id: 'dashboard-save-button',
+                text: "Save",
+                handler: function (item, e) {
+                           sendSaveRequest(dashboardName);
+                         },
+                disabled: (dashboardName == null) ? true : false
+              }, {
+                text: "Save As",
+                handler: saveDashboard
+              }, {
+                id: 'dashboard-delete-button',
+                text: "Delete",
+                handler: function (item, e) {
+                           Ext.Msg.confirm(
+                             "Delete Dashboard",
+                             "Are you sure you want to delete the " + dashboardName + " dashboard?",
+                             function (button) {
+                               if (button == 'yes') {
+                                 deleteDashboard(dashboardName);
+                               }
+                             }
+                           )
+                         },
+                disabled: (dashboardName == null) ? true : false
+              }
+            ]
+          }
+        }, {
           text: 'Graphs',
           menu: {
             items: [
@@ -263,8 +301,8 @@ function initDashboard () {
           enableToggle: true,
           pressed: true,
           tooltip: "Toggle auto-refresh",
-          toggleHandler: function (button, state) {
-                           if (state) {
+          toggleHandler: function (button, pressed) {
+                           if (pressed) {
                              Ext.TaskMgr.start(refreshTask);
                            } else {
                              Ext.TaskMgr.stop(refreshTask);
@@ -274,6 +312,7 @@ function initDashboard () {
           xtype: 'tbtext',
           text: 'every'
         }, {
+          id: 'auto-refresh-field',
           xtype: 'textfield',
           width: 25,
           value: UI_CONFIG.refresh_interval,
@@ -323,10 +362,20 @@ function initDashboard () {
   });
 
   refreshTask = {
+    enabled: true,
     run: refreshGraphs,
     interval: UI_CONFIG.refresh_interval * 1000
   };
   Ext.TaskMgr.start(refreshTask);
+
+  // Load initial dashboard state if it was passed in
+  if (initialState) {
+    applyState(initialState);
+  }
+
+  if (initialError) {
+    Ext.Msg.alert("Error", initialError);
+  }
 }
 
 
@@ -517,6 +566,24 @@ function refreshGraph(index) {
 }
 */
 
+function updateAutoRefresh (newValue) {
+  Ext.getCmp('auto-refresh-field').setValue(newValue);
+
+  var value = parseInt(newValue);
+  if ( isNaN(value) ) {
+    return;
+  }
+
+  if (Ext.getCmp('auto-refresh-button').pressed) {
+    Ext.TaskMgr.stop(refreshTask);
+    refreshTask.interval = value * 1000;
+    Ext.TaskMgr.start(refreshTask);
+  } else {
+    refreshTask.interval = value * 1000;
+  }
+}
+
+
 /* Time Range management */
 var TimeRange = {
   // Default to a relative time range
@@ -539,6 +606,10 @@ function getTimeText() {
   }
 }
 
+function updateTimeText() {
+  graphArea.getTopToolbar().get('time-range-text').setText( getTimeText() );
+}
+
 function timeRangeUpdated() {
   if (TimeRange.type == 'relative') {
     var fromParam = '-' + TimeRange.quantity + TimeRange.units;
@@ -555,7 +626,7 @@ function timeRangeUpdated() {
     this.data.params.until = untilParam;
   });
 
-  graphArea.getTopToolbar().get('time-range-text').setText( getTimeText() );
+  updateTimeText();
   refreshGraphs();
 }
 
@@ -868,3 +939,255 @@ var keyMap = new Ext.KeyMap(document, {
   ctrl: true,
   handler: toggleToolbar
 });
+
+
+/* Dashboard functions */
+function saveDashboard() {
+  Ext.Msg.prompt(
+    "Save Dashboard",
+    "Enter the name to save this dashboard as",
+    function (button, text) {
+      if (button == 'ok') {
+        setDashboardName(text);
+        sendSaveRequest(text);
+      }
+    },
+    this,
+    false,
+    (dashboardName) ? dashboardName : ""
+  );
+}
+
+function sendSaveRequest(name) {
+  Ext.Ajax.request({
+    url: "/dashboard/save/" + name,
+    method: 'POST',
+    params: {
+      state: Ext.encode( getState() )
+    },
+    success: function (response) {
+               var result = Ext.decode(response.responseText);
+               if (result.error) {
+                 Ext.Msg.alert("Error", "There was an error saving this dashboard: " + result.error);
+               }
+             },
+    failure: failedAjaxCall
+  });
+}
+
+function sendLoadRequest(name) {
+  Ext.Ajax.request({
+    url: "/dashboard/load/" + name,
+    success: function (response) {
+               var result = Ext.decode(response.responseText);
+               if (result.error) {
+                 Ext.Msg.alert("Error Loading Dashboard", result.error);
+               } else {
+                 applyState(result.state);
+               }
+             },
+    failure: failedAjaxCall
+  });
+}
+
+function getState() {
+  var graphs = [];
+  graphStore.each(
+    function (record) {
+      graphs.push([
+        record.data.id,
+        record.data.params,
+        record.data.url
+      ]);
+    }
+  );
+
+  return {
+    name: dashboardName,
+    timeConfig: TimeRange,
+    refreshConfig: {
+      enabled: Ext.getCmp('auto-refresh-button').pressed,
+      interval: refreshTask.interval
+    },
+    graphSize: GraphSize,
+    graphs: graphs
+  };
+}
+
+function applyState(state) {
+  setDashboardName(state.name);
+
+  //state.timeConfig = {type, relativeConfig={, absoluteConfig}
+  var timeConfig = state.timeConfig
+  TimeRange.type = timeConfig.type;
+  TimeRange.quantity = timeConfig.quantity;
+  TimeRange.units = timeConfig.units;
+  TimeRange.startDate = new Date(timeConfig.startDate);
+  TimeRange.startTime = timeConfig.startTime;
+  TimeRange.endDate = new Date(timeConfig.endDate);
+  TimeRange.endTime = timeConfig.endTime;
+  updateTimeText();
+
+  //state.refreshConfig = {enabled, interval}
+  var refreshConfig = state.refreshConfig;
+  if (refreshConfig.enabled) {
+    Ext.TaskMgr.stop(refreshTask);
+    Ext.TaskMgr.start(refreshTask);
+    Ext.getCmp('auto-refresh-button').toggle(true);
+  } else {
+    Ext.TaskMgr.stop(refreshTask);
+    Ext.getCmp('auto-refresh-button').toggle(false);
+  }
+  //refreshTask.interval = refreshConfig.interval;
+  updateAutoRefresh(refreshConfig.interval / 1000);
+
+  //state.graphSize = {width, height}
+  var graphSize = state.graphSize;
+  GraphSize.width = graphSize.width;
+  GraphSize.height = graphSize.height;
+
+  //state.graphs = [ [id, params, url], ... ]
+  graphStore.loadData(state.graphs);
+
+  refreshGraphs();
+}
+
+function deleteDashboard(name) {
+  Ext.Ajax.request({
+    url: "/dashboard/delete/" + name,
+    success: function (response) {
+      var result = Ext.decode(response.responseText);
+      if (result.error) {
+        Ext.Msg.alert("Error", "Failed to delete dashboard '" + name + "': " + result.error);
+      } else {
+        Ext.Msg.alert("Dashboard Deleted", "The " + name + "dashboard was deleted successfully.");
+      }
+    },
+    failure: failedAjaxCall
+  });
+}
+
+function setDashboardName(name) {
+  dashboardName = name;
+  document.title = name + " - Graphite Dashboard";
+  Ext.getCmp('dashboard-save-button').enable();
+  Ext.getCmp('dashboard-delete-button').enable();
+}
+
+function failedAjaxCall(response, options) {
+  Ext.Msg.alert(
+    "Ajax Error",
+    "Ajax call failed, response was :" + response.responseText
+  );
+}
+
+
+// Dashboard Finder
+function showDashboardFinder() {
+  var win;
+  var dashboardsList;
+  var queryField;
+  var dashboardsStore = new Ext.data.JsonStore({
+    url: "/dashboard/find/",
+    method: 'GET',
+    params: {query: "e"},
+    fields: ['name'],
+    root: 'dashboards',
+    listeners: {
+      beforeload: function (store) {
+                    store.setBaseParam('query', queryField.getValue());
+                  }
+    }
+  });
+
+  function openSelected() {
+    var selected = dashboardsList.getSelectedRecords();
+    if (selected.length > 0) {
+      sendLoadRequest(selected[0].data.name);
+    }
+    win.close();
+  }
+
+  dashboardsList = new Ext.list.ListView({
+    columns: [
+      {header: 'Dashboard', width: 1.0, dataIndex: 'name', sortable: false}
+    ],
+    columnSort: false,
+    emptyText: "No dashboards found",
+    hideHeaders: true,
+    listeners: {
+      selectionchange: function (listView, selections) {
+                         var button = Ext.getCmp('finder-open-button');
+                         if (listView.getSelectedRecords().length == 0) {
+                           button.disable();
+                         } else {
+                           button.enable();
+                         }
+                       },
+
+      dblclick: function (listView, index, node, e) {
+                  var record = dashboardsStore.getAt(index);
+                  sendLoadRequest(record.data.name);
+                  win.close();
+                }
+    },
+    overClass: '',
+    region: 'center',
+    reserveScrollOffset: true,
+    singleSelect: true,
+    store: dashboardsStore,
+    style: "background-color: white;"
+  });
+
+  var lastQuery = null;
+  var queryUpdateTask = new Ext.util.DelayedTask(
+    function () {
+      var currentQuery = queryField.getValue();
+      if (lastQuery != currentQuery) {
+        dashboardsStore.load();
+      }
+      lastQuery = currentQuery;
+    }
+  );
+
+  queryField = new Ext.form.TextField({
+    region: 'south',
+    emptyText: "filter dashboard listing",
+    enableKeyEvents: true,
+    listeners: {
+      keyup: function (field, e) {
+                  if (e.getKey() == e.ENTER) {
+                    sendLoadRequest(field.getValue());
+                    win.close();
+                  } else {
+                    queryUpdateTask.delay(QUERY_DELAY);
+                  }
+                }
+    }
+  });
+
+  win = new Ext.Window({
+    title: "Find Dashboards",
+    width: 400,
+    height: 500,
+    layout: 'border',
+    modal: true,
+    items: [
+      dashboardsList,
+      queryField
+    ],
+    buttons: [
+      {
+        id: 'finder-open-button',
+        text: "Open",
+        disabled: true,
+        handler: openSelected
+      }, {
+        text: "Cancel",
+        handler: function () { win.close(); }
+      }
+    ]
+  });
+  dashboardsStore.load();
+  win.show();
+}

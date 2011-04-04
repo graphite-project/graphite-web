@@ -14,7 +14,19 @@
     var REFRESH_ICON = '/content/js/ext/examples/shared/icons/fam/table_refresh.png';
     var CLOCK_ICON = '/content/img/clock_16.png';
     var CALENDAR_ICON = '/content/js/ext/resources/images/default/shared/calendar.gif';
+    var QUERY_DELAY = 100;
 
+    {% if initialState %}
+    var initialState = {{initialState|safe}};
+    {% else %}
+    var initialState = null;
+    {% endif %}
+
+    {% if initialError %}
+    var initialError = "{{initialError|safe}}";
+    {% else %}
+    var initialError = null;
+    {% endif %}
     </script>
 
     {% if jsdebug %}
