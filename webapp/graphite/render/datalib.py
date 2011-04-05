@@ -100,7 +100,7 @@ class CarbonLinkPool:
     self.hashRing = ConsistentHashRing(self.hosts)
     self.connections = {}
     # Create a connection pool for each host
-    for host in hosts:
+    for host in self.hosts:
       self.connections[host] = set()
 
   def selectHost(self, metric):
@@ -117,7 +117,7 @@ class CarbonLinkPool:
     except KeyError:
       pass #nothing left in the pool, gotta make a new connection
 
-    log.cache("CarbonLink creating a new socket for %s:%d" % host)
+    log.cache("CarbonLink creating a new socket for %s" % str(host))
     connection = socket.socket()
     connection.settimeout(self.timeout)
     connection.connect( (server, port) )
@@ -151,7 +151,7 @@ class CarbonLinkPool:
 
           while remaining:
             packet = connection.recv(remaining)
-            assert packet, "CarbonLink lost connection to %s:%d" % host
+            assert packet, "CarbonLink lost connection to %s" % str(host)
 
             buf += packet
 
@@ -168,7 +168,7 @@ class CarbonLinkPool:
 
           # Now parse the response
           points = pickle.loads(buf)
-          log.cache("CarbonLink to %s, retrieved %d points for %s" % (host,len(points),metric))
+          log.cache("CarbonLink to %s, retrieved %d points for %s" % (host, len(points), metric))
 
           for point in points:
             yield point
