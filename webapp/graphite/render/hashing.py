@@ -15,7 +15,10 @@ limitations under the License."""
 
 from graphite.logger import log
 import time
-import hashlib
+try:
+  from hashlib import md5
+except ImportError:
+  from md5 import md5
 import bisect
 
 def hashRequest(request):
@@ -50,7 +53,7 @@ def stripControlChars(string):
 
 
 def compactHash(string):
-  hash = hashlib.md5()
+  hash = md5()
   hash.update(string)
   return hash.hexdigest()
 
@@ -64,7 +67,7 @@ class ConsistentHashRing:
       self.add_node(node)
 
   def compute_ring_position(self, key):
-    big_hash = hashlib.md5( str(key) ).hexdigest()
+    big_hash = md5( str(key) ).hexdigest()
     small_hash = int(big_hash[:4], 16)
     return small_hash
 
