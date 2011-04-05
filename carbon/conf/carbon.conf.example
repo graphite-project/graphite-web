@@ -86,6 +86,15 @@ WHISPER_AUTOFLUSH = False
 # with the default configuration, you have to specify a distinict
 # interfaces and ports for the listeners.
 
+# To configure special settings for the 'foo' carbon-cache instance, uncomment this:
+#[cache:foo]
+#LINE_RECEIVER_PORT = 2003
+#PICKLE_RECEIVER_PORT = 2004
+#CACHE_QUERY_PORT = 7002
+# and any other settings you want to customize, defaults are inherited
+# from [carbon] section.
+
+
 [relay]
 LINE_RECEIVER_INTERFACE = 0.0.0.0
 LINE_RECEIVER_PORT = 2013
