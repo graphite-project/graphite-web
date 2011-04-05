@@ -18,7 +18,7 @@ import time
 from django.conf import settings
 from graphite.logger import log
 from graphite.storage import STORE, LOCAL_STORE
-from graphite.hashing import ConsistentHashRing
+from graphite.render.hashing import ConsistentHashRing
 
 try:
   import cPickle as pickle
