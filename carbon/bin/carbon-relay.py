@@ -113,12 +113,19 @@ if exists(options.pidfile):
 from carbon.conf import settings
 settings.readFrom(options.config, 'relay')
 
+# Quick validation
+if settings.RELAY_METHOD not in ('rules', 'consistent-hashing'):
+  print "In carbon.conf, RELAY_METHOD must be either 'rules' or 'consistent-hashing'. Invalid value: '%s'" % settings.RELAY_METHOD
+  sys.exit(1)
+
 # Import application components
 from carbon.log import logToStdout, logToDir
 from carbon.listeners import MetricLineReceiver, MetricPickleReceiver, startListener
-from carbon.relay import startRelaying, relay
+from carbon.relay import createClientConnections, relay
 from carbon.events import metricReceived
 from carbon.instrumentation import startRecordingRelayMetrics
+from carbon.rules import loadRules, allDestinationServers, parseHostList
+from carbon.hashing import setDestinationServers
 
 # --debug
 if options.debug:
@@ -147,7 +154,14 @@ metricReceived.installHandler(relay)
 startListener(settings.LINE_RECEIVER_INTERFACE, settings.LINE_RECEIVER_PORT, MetricLineReceiver)
 startListener(settings.PICKLE_RECEIVER_INTERFACE, settings.PICKLE_RECEIVER_PORT, MetricPickleReceiver)
 
-startRelaying(options.rules)
+if settings.RELAY_METHOD == 'rules':
+  loadRules(options.rules)
+  createClientConnections( allDestinationServers() )
+elif settings.RELAY_METHOD == 'consistent-hashing':
+  servers = parseHostList(settings.CH_SERVER_LIST)
+  setDestinationServers(servers)
+  createClientConnections(servers)
+
 startRecordingRelayMetrics()
 
 

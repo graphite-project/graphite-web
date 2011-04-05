@@ -18,6 +18,7 @@ import time
 from django.conf import settings
 from graphite.logger import log
 from graphite.storage import STORE, LOCAL_STORE
+from graphite.hashing import ConsistentHashRing
 
 try:
   import cPickle as pickle
@@ -92,9 +93,10 @@ class TimeSeries(list):
 
 
 class CarbonLinkPool:
-  def __init__(self,hosts,timeout):
+  def __init__(self, hosts, timeout):
     self.hosts = hosts
     self.timeout = float(timeout)
+    self.hashRing = ConsistentHashRing(hosts)
     self.connections = {}
     # Create a connection pool for each host
     for host in hosts:
@@ -102,7 +104,7 @@ class CarbonLinkPool:
 
   def selectHost(self, metric):
     "Returns the carbon host that has data for the given metric"
-    return self.hosts[ hash(metric) % len(self.hosts) ]
+    return self.hashRing.get_node(metric)
 
   def getConnection(self, host):
     # First try to take one out of the pool for this host

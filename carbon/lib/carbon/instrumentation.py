@@ -118,14 +118,14 @@ def recordRelayMetrics():
   send('cpuUsage', getCpuUsage())
 
   # per-destination metrics
-  for server in RelayServers:
-    prefix = 'destinations.%s.' % server.destinationName
+  for connection in clientConnections:
+    prefix = 'destinations.%s.' % connection.destinationName
 
     for metric in ('attemptedRelays', 'sent', 'queuedUntilReady', 'queuedUntilConnected', 'fullQueueDrops'):
       metric = prefix + metric
       send(metric, myStats.get(metric, 0))
 
-    send(prefix + 'queueSize', len(server.queue))
+    send(prefix + 'queueSize', len(connection.queue))
 
 
 def send(metric, value):
@@ -162,5 +162,5 @@ def recordAggregatorMetrics():
 # Avoid import circularity
 from carbon.aggregator.buffers import BufferManager
 from carbon.aggregator.client import send_metric
-from carbon.relay import relay, RelayServers
+from carbon.relay import relay, clientConnections
 from carbon.cache import MetricCache

@@ -1,9 +1,8 @@
 from twisted.internet import reactor
 from twisted.internet.protocol import ReconnectingClientFactory
 from twisted.protocols.basic import Int32StringReceiver
-from carbon.rules import loadRules, getDestinations, allDestinationServers
 from carbon.conf import settings
-from carbon import log
+from carbon import rules, hashing, log
 
 try:
   import cPickle as pickle
@@ -12,20 +11,23 @@ except ImportError:
 
 
 MAX_DATAPOINTS_PER_MESSAGE = settings.MAX_DATAPOINTS_PER_MESSAGE
-RelayServers = []
+clientConnections = []
 
 
 def relay(metric, datapoint):
-  for server in getServers(metric):
-    server.send(metric, datapoint)
+  for connection in getDestinationConnections(metric):
+    connection.send(metric, datapoint)
 
 
-def getServers(metric):
-  destinations = getDestinations(metric)
+def getDestinationConnections(metric):
+  if settings.RELAY_METHOD == 'rules':
+    destinations = rules.getDestinations(metric)
+  else:
+    destinations = hashing.getDestinations(metric)
 
-  for server in RelayServers:
-    if server.remoteAddr in destinations:
-      yield server
+  for connection in clientConnections:
+    if connection.remoteAddr in destinations:
+      yield connection
 
 
 class MetricPickleSender(Int32StringReceiver):
@@ -119,17 +121,14 @@ class MetricSenderFactory(ReconnectingClientFactory):
     log.relay("connection attempt to %s failed: %s" % (self.remoteAddr, reason.value))
 
 
-def startRelaying(rulesFile):
-  assert not RelayServers, "Relaying already started"
-  loadRules(rulesFile)
-
-  for (host, port) in allDestinationServers():
+def createClientConnections(servers):
+  for (host, port) in servers:
     log.msg("Connecting to destination server %s:%d" % (host, port))
     factory = MetricSenderFactory(host, port)
-    RelayServers.append(factory) # each factory represents a cache server
+    clientConnections.append(factory)
     reactor.connectTCP(host, port, factory)
 
-  RelayServers.sort(key=lambda f: f.remoteAddr) # normalize the order
+  clientConnections.sort(key=lambda f: f.remoteAddr) # normalize the order
 
 
 # Avoid import circularities

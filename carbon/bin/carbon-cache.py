@@ -64,6 +64,7 @@ parser.add_option('--profile', help='Record performance profile data to the give
 parser.add_option('--pidfile', default=join(STORAGE_DIR, '%s.pid' % program.split('.')[0]), help='Write pid to the given file')
 parser.add_option('--config', default=join(CONF_DIR, 'carbon.conf'), help='Use the given config file')
 parser.add_option('--logdir', default=LOG_DIR, help="Write logs in the given directory")
+parser.add_option('--instance', default=None, help="Manage a specific carbon instnace")
 
 (options, args) = parser.parse_args()
 
@@ -71,22 +72,35 @@ if not args:
   parser.print_usage()
   raise SystemExit(1)
 
+# Assume standard locations when using --instance
+if options.instance:
+  instance = str(options.instance)
+  pidfile = join(STORAGE_DIR, '%s-%s.pid' % (program.split('.')[0], instance))
+  logdir = "%s-%s/" % (LOG_DIR.rstrip('/'), instance)
+  #config = join(CONF_DIR, 'carbon-%s.conf' % instance)
+  config = options.config
+else:
+  instance = None
+  pidfile = options.pidfile
+  logdir = options.logdir
+  config = options.config
+
 action = args[0]
 
 if action == 'stop':
-  if not exists(options.pidfile):
-    print 'Pidfile %s does not exist' % options.pidfile
+  if not exists(pidfile):
+    print 'Pidfile %s does not exist' % pidfile
     raise SystemExit(0)
 
-  pidfile = open(options.pidfile, 'r')
+  pf = open(pidfile, 'r')
   try:
-    pid = int( pidfile.read().strip() )
+    pid = int( pf.read().strip() )
   except:
-    print 'Could not read pidfile %s' % options.pidfile
+    print 'Could not read pidfile %s' % pidfile
     raise SystemExit(1)
 
-  print 'Deleting %s (contained pid %d)' % (options.pidfile, pid)
-  os.unlink(options.pidfile)
+  print 'Deleting %s (contained pid %d)' % (pidfile, pid)
+  os.unlink(pidfile)
 
   print 'Sending kill signal to pid %d' % pid
   os.kill(pid, 15)
@@ -94,15 +108,15 @@ if action == 'stop':
 
 
 elif action == 'status':
-  if not exists(options.pidfile):
+  if not exists(pidfile):
     print '%s is not running' % program
     raise SystemExit(0)
 
-  pidfile = open(options.pidfile, 'r')
+  pf = open(pidfile, 'r')
   try:
-    pid = int( pidfile.read().strip() )
+    pid = int( pf.read().strip() )
   except:
-    print 'Failed to read pid from %s' % options.pidfile
+    print 'Failed to read pid from %s' % pidfile
     raise SystemExit(1)
 
   if exists('/proc/%d' % pid):
@@ -117,14 +131,17 @@ elif action != 'start':
   raise SystemExit(1)
 
 
-if exists(options.pidfile):
-  print "Pidfile %s already exists, is %s already running?" % (options.pidfile, program)
+if exists(pidfile):
+  print "Pidfile %s already exists, is %s already running?" % (pidfile, program)
   raise SystemExit(1)
 
 
 # Read config (we want failures to occur before daemonizing)
 from carbon.conf import settings
-settings.readFrom(options.config, 'cache')
+settings.readFrom(config, 'cache')
+
+if instance:
+  settings.readFrom(config, 'cache:%s' % instance)
 
 # Import application components
 from carbon.log import logToStdout, logToDir
@@ -156,8 +173,8 @@ if options.debug:
   logToStdout()
 
 else:
-  if not isdir(options.logdir):
-    os.makedirs(options.logdir)
+  if not isdir(logdir):
+    os.makedirs(logdir)
 
   if settings.USER:
     print "Dropping privileges to become the user %s" % settings.USER
@@ -165,22 +182,22 @@ else:
   from carbon.util import daemonize, dropprivs
   daemonize()
 
-  pidfile = open(options.pidfile, 'w')
-  pidfile.write( str(os.getpid()) )
-  pidfile.close()
+  pf = open(pidfile, 'w')
+  pf.write( str(os.getpid()) )
+  pf.close()
 
   def shutdown():
-    if os.path.exists(options.pidfile):
-      os.unlink(options.pidfile)
+    if os.path.exists(pidfile):
+      os.unlink(pidfile)
 
   atexit.register(shutdown)
 
   if settings.USER:
     pwent = pwd.getpwnam(settings.USER)
-    os.chown(options.pidfile, pwent.pw_uid, pwent.pw_gid)
+    os.chown(pidfile, pwent.pw_uid, pwent.pw_gid)
     dropprivs(settings.USER)
 
-  logToDir(options.logdir)
+  logToDir(logdir)
 
 # Configure application components
 metricReceived.installHandler(MetricCache.store)
@@ -204,7 +221,7 @@ startRecordingCacheMetrics()
 
 
 # Run the twisted reactor
-print "%s running" % program
+print "%s running [instance %s]" % (program, instance)
 
 if options.profile:
   import cProfile

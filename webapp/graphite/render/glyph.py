@@ -593,7 +593,10 @@ class LineGraph(Graph):
 
     if 'yMin' in self.params:
       yMinValue = self.params['yMin']
-    
+
+    if yMaxValue <= yMinValue:
+      yMaxValue = yMinValue + 1
+
     yVariance = yMaxValue - yMinValue
     order = math.log10(yVariance)
     orderFactor = 10 ** math.floor(order)

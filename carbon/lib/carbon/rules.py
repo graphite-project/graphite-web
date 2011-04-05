@@ -16,6 +16,22 @@ class Rule:
     return bool( self.condition(metric) )
 
 
+def parseHostList(host_list):
+  hosts = []
+  for addr in host_list:
+    addr = addr.strip()
+
+    if ':' in addr:
+      ip, port = addr.split(':')
+    else:
+      ip, port = addr, DEFAULT_CARBON_PORT
+
+    hosts.append( (ip, int(port)) )
+
+  return hosts
+
+
+
 def loadRules(path):
   global defaultRule
 
@@ -29,16 +45,7 @@ def loadRules(path):
     if not parser.has_option(section, 'servers'):
       raise ValueError("Rules file %s section %s does not define a 'servers' list" % (path, section))
 
-    servers = []
-    for s in parser.get(section, 'servers').split(','):
-      s = s.strip()
-
-      if ':' in s:
-        host, port = s.split(':')
-      else:
-        host, port = s, DEFAULT_CARBON_PORT
-
-      servers.append( (host, int(port)) )
+    servers = parseHostList( parser.get(section, 'servers').split(',') )
 
     if parser.has_option(section, 'pattern'):
       assert not parser.has_option(section, 'default'), "Section %s contains both 'pattern' and 'default'. You must use one or the other." % section

@@ -38,6 +38,8 @@ defaults = dict(
   MANHOLE_PORT=7222,
   MANHOLE_USER="",
   MANHOLE_PUBLIC_KEY="",
+  RELAY_METHOD='rules',
+  CH_SERVER_LIST=[],
 )
 
 
@@ -69,13 +71,17 @@ class OrderedConfigParser(ConfigParser):
 class Settings(dict):
   __getattr__ = dict.__getitem__
 
-  def readFrom(self, path, section):
-    self.clear()
+  def __init__(self):
+    dict.__init__(self)
     self.update(defaults)
 
+  def readFrom(self, path, section):
     parser = ConfigParser()
     if not parser.read(path):
       raise Exception("Failed to read config file %s" % path)
+
+    if not parser.has_section(section):
+      return
 
     for key,value in parser.items(section):
       key = key.upper()
