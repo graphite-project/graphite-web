@@ -109,7 +109,7 @@ if action == 'stop':
 
 elif action == 'status':
   if not exists(pidfile):
-    print '%s is not running' % program
+    print '%s (instance %s) is not running' % (program, instance)
     raise SystemExit(0)
 
   pf = open(pidfile, 'r')
@@ -120,10 +120,10 @@ elif action == 'status':
     raise SystemExit(1)
 
   if exists('/proc/%d' % pid):
-    print "%s is running with pid %d" % (program, pid)
+    print "%s (instance %s) is running with pid %d" % (program, instance, pid)
     raise SystemExit(0)
   else:
-    print "%s is not running" % program
+    print "%s (instance %s) is not running" % (program, instance)
     raise SystemExit(0)
 
 elif action != 'start':
