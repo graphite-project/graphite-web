@@ -20,7 +20,7 @@ import atexit
 from os.path import basename, dirname, exists, join, isdir
 
 
-program = basename( sys.argv[0] )
+__builtins__.program = basename( sys.argv[0] ).split('.')[0]
 
 # Initialize twisted
 try:
@@ -47,7 +47,7 @@ sys.path.insert(0, LIB_DIR)
 parser = optparse.OptionParser(usage='%prog [options] <start|stop|status>')
 parser.add_option('--debug', action='store_true', help='Run in the foreground, log to stdout')
 parser.add_option('--profile', help='Record performance profile data to the given file')
-parser.add_option('--pidfile', default=join(STORAGE_DIR, '%s.pid' % program.split('.')[0]), help='Write pid to the given file')
+parser.add_option('--pidfile', default=join(STORAGE_DIR, '%s.pid' % program), help='Write pid to the given file')
 parser.add_option('--config', default=join(CONF_DIR, 'carbon.conf'), help='Use the given config file')
 parser.add_option('--rules', default=join(CONF_DIR, 'relay-rules.conf'), help='Use the give relay rules file')
 parser.add_option('--logdir', default=LOG_DIR, help="Write logs in the given directory")
@@ -119,13 +119,13 @@ if settings.RELAY_METHOD not in ('rules', 'consistent-hashing'):
   sys.exit(1)
 
 # Import application components
-from carbon.log import logToStdout, logToDir
+from carbon.log import logToStdout, logToDir, msg
 from carbon.listeners import MetricLineReceiver, MetricPickleReceiver, startListener
 from carbon.relay import createClientConnections, relay
 from carbon.events import metricReceived
 from carbon.instrumentation import startRecordingRelayMetrics
 from carbon.rules import loadRules, allDestinationServers, parseHostList
-from carbon.hashing import setDestinationServers
+from carbon.hashing import setDestinationHosts
 
 # --debug
 if options.debug:
@@ -158,9 +158,10 @@ if settings.RELAY_METHOD == 'rules':
   loadRules(options.rules)
   createClientConnections( allDestinationServers() )
 elif settings.RELAY_METHOD == 'consistent-hashing':
-  servers = parseHostList(settings.CH_SERVER_LIST)
-  setDestinationServers(servers)
-  createClientConnections(servers)
+  hosts = parseHostList(settings.CH_HOST_LIST)
+  msg('consistent-hashing hosts = %s' % str(hosts))
+  setDestinationHosts(hosts)
+  createClientConnections(hosts)
 
 startRecordingRelayMetrics()
 

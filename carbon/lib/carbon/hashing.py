@@ -3,6 +3,7 @@ import bisect
 
 
 serverRing = None
+ports = {}
 
 
 class ConsistentHashRing:
@@ -37,10 +38,16 @@ class ConsistentHashRing:
     return entry[1]
 
 
-def setDestinationServers(servers):
+def setDestinationHosts(hosts):
   global serverRing
-  serverRing = ConsistentHashRing(servers)
+  for (server, port, instance) in hosts:
+    ports[ (server, instance) ] = port
+
+  serverRing = ConsistentHashRing(ports)
 
 
 def getDestinations(metric):
-  return [ serverRing.get_node(metric) ]
+  host = serverRing.get_node(metric)
+  port = ports[host]
+  (server, instance) = host
+  return [ (server, port) ]

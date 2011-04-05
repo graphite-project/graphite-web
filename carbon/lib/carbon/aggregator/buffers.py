@@ -7,6 +7,9 @@ class BufferManager:
   def __init__(self):
     self.buffers = {}
 
+  def __len__(self):
+    return len(self.buffers)
+
   def get_buffer(self, metric_path):
     if metric_path not in self.buffers:
       log.aggregator("Allocating new buffer for %s" % metric_path)

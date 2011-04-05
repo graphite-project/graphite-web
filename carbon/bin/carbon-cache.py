@@ -22,7 +22,7 @@ import atexit
 from os.path import basename, dirname, exists, join, isdir
 
 
-program = basename( sys.argv[0] )
+program = basename( sys.argv[0] ).split('.')[0]
 hostname = socket.gethostname().split('.')[0]
 os.umask(022)
 
@@ -61,7 +61,7 @@ except ImportError:
 parser = optparse.OptionParser(usage='%prog [options] <start|stop|status>')
 parser.add_option('--debug', action='store_true', help='Run in the foreground, log to stdout')
 parser.add_option('--profile', help='Record performance profile data to the given file')
-parser.add_option('--pidfile', default=join(STORAGE_DIR, '%s.pid' % program.split('.')[0]), help='Write pid to the given file')
+parser.add_option('--pidfile', default=join(STORAGE_DIR, '%s.pid' % program), help='Write pid to the given file')
 parser.add_option('--config', default=join(CONF_DIR, 'carbon.conf'), help='Use the given config file')
 parser.add_option('--logdir', default=LOG_DIR, help="Write logs in the given directory")
 parser.add_option('--instance', default=None, help="Manage a specific carbon instnace")
@@ -75,9 +75,8 @@ if not args:
 # Assume standard locations when using --instance
 if options.instance:
   instance = str(options.instance)
-  pidfile = join(STORAGE_DIR, '%s-%s.pid' % (program.split('.')[0], instance))
+  pidfile = join(STORAGE_DIR, '%s-%s.pid' % (program, instance))
   logdir = "%s-%s/" % (LOG_DIR.rstrip('/'), instance)
-  #config = join(CONF_DIR, 'carbon-%s.conf' % instance)
   config = options.config
 else:
   instance = None
@@ -85,6 +84,8 @@ else:
   logdir = options.logdir
   config = options.config
 
+__builtins__.instance = instance # This isn't as evil as you might think
+__builtins__.program = program
 action = args[0]
 
 if action == 'stop':

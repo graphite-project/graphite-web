@@ -27,6 +27,7 @@ def getDestinationConnections(metric):
 
   for connection in clientConnections:
     if connection.remoteAddr in destinations:
+      #log.relay("%s\t-> %s"%  (metric, connection.remoteAddr))
       yield connection
 
 
@@ -121,12 +122,12 @@ class MetricSenderFactory(ReconnectingClientFactory):
     log.relay("connection attempt to %s failed: %s" % (self.remoteAddr, reason.value))
 
 
-def createClientConnections(servers):
-  for (host, port) in servers:
-    log.msg("Connecting to destination server %s:%d" % (host, port))
-    factory = MetricSenderFactory(host, port)
+def createClientConnections(hosts):
+  for (server, port, instance) in hosts:
+    log.msg("Connecting to destination server %s:%d" % (server, port))
+    factory = MetricSenderFactory(server, port)
     clientConnections.append(factory)
-    reactor.connectTCP(host, port, factory)
+    reactor.connectTCP(server, port, factory)
 
   clientConnections.sort(key=lambda f: f.remoteAddr) # normalize the order
 

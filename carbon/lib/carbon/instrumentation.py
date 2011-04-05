@@ -54,113 +54,92 @@ def getMemUsage():
   return rss_pages * PAGESIZE
 
 
-# Cache metrics
-def startRecordingCacheMetrics():
+def startRecording():
   global recordTask
-  assert not recordTask, "Already recording metrics"
-  recordTask = LoopingCall(recordCacheMetrics)
+  recordTask = LoopingCall(recordMetrics)
   recordTask.start(60, now=False)
 
 
-def recordCacheMetrics():
+def recordMetrics():
   global lastUsage
   myStats = stats.copy()
   stats.clear()
 
-  metricsReceived = myStats.get('metricsReceived', 0)
-  updateTimes = myStats.get('updateTimes', [])
-  committedPoints = myStats.get('committedPoints', 0)
-  creates = myStats.get('creates', 0)
-  errors = myStats.get('errors', 0)
-  cacheQueries = myStats.get('cacheQueries', 0)
+  # cache metrics
+  if program == 'carbon-cache':
+    record = cache_record
+    updateTimes = myStats.get('updateTimes', [])
+    committedPoints = myStats.get('committedPoints', 0)
+    creates = myStats.get('creates', 0)
+    errors = myStats.get('errors', 0)
+    cacheQueries = myStats.get('cacheQueries', 0)
 
-  if updateTimes:
-    avgUpdateTime = sum(updateTimes) / len(updateTimes)
-    store('avgUpdateTime', avgUpdateTime)
+    if updateTimes:
+      avgUpdateTime = sum(updateTimes) / len(updateTimes)
+      record('avgUpdateTime', avgUpdateTime)
 
-  if committedPoints:
-    pointsPerUpdate = len(updateTimes) / committedPoints
-    store('pointsPerUpdate', pointsPerUpdate)
+    if committedPoints:
+      pointsPerUpdate = len(updateTimes) / committedPoints
+      record('pointsPerUpdate', pointsPerUpdate)
 
-  store('metricsReceived', metricsReceived)
-  store('updateOperations', len(updateTimes))
-  store('committedPoints', committedPoints)
-  store('creates', creates)
-  store('errors', errors)
+    record('updateOperations', len(updateTimes))
+    record('committedPoints', committedPoints)
+    record('creates', creates)
+    record('errors', errors)
+    record('cache.queries', cacheQueries)
+    record('cache.queues', len(MetricCache))
+    record('cache.size', MetricCache.size)
 
-  store('cache.queries', cacheQueries)
-  store('cache.queues', len(MetricCache))
-  store('cache.size', MetricCache.size)
+  # relay metrics
+  elif program == 'carbon-relay':
+    record = relay_record
+    for connection in relay.clientConnections:
+      prefix = 'destinations.%s.' % connection.destinationName
 
-  store('cpuUsage', getCpuUsage())
+      for metric in ('attemptedRelays', 'sent', 'queuedUntilReady', 'queuedUntilConnected', 'fullQueueDrops'):
+        metric = prefix + metric
+        record(metric, myStats.get(metric, 0))
 
+      record(prefix + 'queueSize', len(connection.queue))
 
-def store(metric, value):
-  fullMetric = 'carbon.agents.%s.%s' % (HOSTNAME, metric)
-  datapoint = (time.time(), value)
-  MetricCache.store(fullMetric, datapoint)
+  # aggregator metrics
+  elif program == 'carbon-aggregator':
+    record = aggregator_record
+    record('allocatedBuffers', len(buffers.BufferManager))
+    record('bufferedDatapoints', sum([b.size for b in BufferManager.buffers.values()]))
+    record('datapointsReceived', myStats.get('datapointsReceived', 0))
+    record('aggregateDatapointsSent', myStats.get('aggregateDatapointsSent', 0))
 
-
-# Relay metrics
-def startRecordingRelayMetrics():
-  global recordTask
-  assert not recordTask, "Already recording metrics"
-  recordTask = LoopingCall(recordRelayMetrics)
-  recordTask.start(60, now=False)
-
-
-def recordRelayMetrics():
-  myStats = stats.copy()
-  stats.clear()
-
-  # global metrics
-  send('metricsReceived', myStats.get('metricsReceived', 0))
-  send('cpuUsage', getCpuUsage())
-
-  # per-destination metrics
-  for connection in clientConnections:
-    prefix = 'destinations.%s.' % connection.destinationName
-
-    for metric in ('attemptedRelays', 'sent', 'queuedUntilReady', 'queuedUntilConnected', 'fullQueueDrops'):
-      metric = prefix + metric
-      send(metric, myStats.get(metric, 0))
-
-    send(prefix + 'queueSize', len(connection.queue))
-
-
-def send(metric, value):
-  fullMetric = 'carbon.relays.%s.%s' % (HOSTNAME, metric)
-  datapoint = (time.time(), value)
-  relay(fullMetric, datapoint)
-
-
-def startRecordingAggregatorMetrics():
-  global recordTask
-  assert not recordTask, "Already recording metrics"
-  recordTask = LoopingCall(recordAggregatorMetrics)
-  recordTask.start(60, now=False)
-
-
-def recordAggregatorMetrics():
-  myStats = stats.copy()
-  stats.clear()
-  prefix = 'carbon.aggregator.%s.' % HOSTNAME
-  #XXX Yes, this is horribly redundant with the relay's send(), the two will be merged soon.
-  send = lambda metric, value: send_metric(prefix + metric, (time.time(), value))
-
-  send('allocatedBuffers', len(BufferManager.buffers))
-  send('bufferedDatapoints', sum([b.size for b in BufferManager.buffers.values()]))
-  send('datapointsReceived', myStats.get('datapointsReceived', 0))
-  send('aggregateDatapointsSent', myStats.get('aggregateDatapointsSent', 0))
-  send('cpuUsage', getCpuUsage())
+  # common metrics
+  record('metricsReceived', myStats.get('metricsReceived', 0))
+  record('cpuUsage', getCpuUsage())
   try: # This only works on Linux
-    send('memUsage', getMemUsage())
+    record('memUsage', getMemUsage())
   except:
     pass
 
 
+def cache_record(metric, value):
+  if instance is None:
+    fullMetric = 'carbon.agents.%s.%s' % (HOSTNAME, metric)
+  else:
+    fullMetric = 'carbon.agents.%s-%s.%s' % (HOSTNAME, instance, metric)
+  datapoint = (time.time(), value)
+  MetricCache.store(fullMetric, datapoint)
+
+def relay_record(metric, value):
+  fullMetric = 'carbon.relays.%s.%s' % (HOSTNAME, metric)
+  datapoint = (time.time(), value)
+  relay.relay(fullMetric, datapoint)
+
+def aggregator_record(metric, value):
+  fullMetric = 'carbon.aggregator.%s.%s' % (HOSTNAME, metric)
+  datapoint = (time.time(), value)
+  client.send_metric(fullMetric, datapoint)
+
+
 # Avoid import circularity
 from carbon.aggregator.buffers import BufferManager
-from carbon.aggregator.client import send_metric
-from carbon.relay import relay, clientConnections
+from carbon.aggregator.client
+from carbon import relay
 from carbon.cache import MetricCache

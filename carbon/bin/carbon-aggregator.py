@@ -6,7 +6,7 @@ import atexit
 from os.path import basename, dirname, exists, join, isdir
 
 
-program = basename( sys.argv[0] )
+__builtins__.program = basename( sys.argv[0] ).split('.')[0]
 
 # Initialize twisted
 try:
@@ -32,7 +32,7 @@ os.environ['GRAPHITE_ROOT'] = ROOT_DIR
 parser = optparse.OptionParser(usage='%prog [options] <start|stop|status>')
 parser.add_option('--debug', action='store_true', help='Run in the foreground, log to stdout')
 parser.add_option('--profile', help='Record performance profile data to the given file')
-parser.add_option('--pidfile', default=join(STORAGE_DIR, '%s.pid' % program.split('.')[0]), help='Write pid to the given file')
+parser.add_option('--pidfile', default=join(STORAGE_DIR, '%s.pid' % program), help='Write pid to the given file')
 parser.add_option('--config', default=join(CONF_DIR, 'carbon.conf'), help='Use the given config file')
 parser.add_option('--rules', default=join(CONF_DIR, 'aggregation-rules.conf'), help='Use the give aggregation rules file')
 parser.add_option('--logdir', default=LOG_DIR, help="Write logs in the given directory")

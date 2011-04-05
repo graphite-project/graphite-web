@@ -18,15 +18,16 @@ class Rule:
 
 def parseHostList(host_list):
   hosts = []
-  for addr in host_list:
-    addr = addr.strip()
-
-    if ':' in addr:
-      ip, port = addr.split(':')
+  for host_string in host_list:
+    parts = host_string.strip().split(':')
+    server = parts[0]
+    port = int( parts[1] )
+    if len(parts) > 2:
+      instance = parts[2]
     else:
-      ip, port = addr, DEFAULT_CARBON_PORT
+      instance = None
 
-    hosts.append( (ip, int(port)) )
+    hosts.append( (server, port, instance) )
 
   return hosts
 
@@ -45,19 +46,19 @@ def loadRules(path):
     if not parser.has_option(section, 'servers'):
       raise ValueError("Rules file %s section %s does not define a 'servers' list" % (path, section))
 
-    servers = parseHostList( parser.get(section, 'servers').split(',') )
+    hosts = parseHostList( parser.get(section, 'servers').split(',') )
 
     if parser.has_option(section, 'pattern'):
       assert not parser.has_option(section, 'default'), "Section %s contains both 'pattern' and 'default'. You must use one or the other." % section
       pattern = parser.get(section, 'pattern')
       regex = re.compile(pattern, re.I)
-      rules.append( Rule(condition=regex.search, destinations=servers) )
+      rules.append( Rule(condition=regex.search, destinations=hosts) )
       continue
 
     if parser.has_option(section, 'default'):
       if not parser.getboolean(section, 'default'): continue # just ignore default = false
       assert not defaultRule, "Two default rules? Seriously?"
-      defaultRule = Rule(condition=lambda metric: True, destinations=servers)
+      defaultRule = Rule(condition=lambda metric: True, destinations=hosts)
 
   assert defaultRule, "No default rule defined. You must specify exactly one rule with 'default = true' instead of a pattern."
   rules.append(defaultRule)

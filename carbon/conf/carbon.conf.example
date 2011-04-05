@@ -100,7 +100,7 @@ RELAY_METHOD = rules
 # For consistent hashing you must also define a list of carbon-cache servers.
 # THIS HAS TO EXACTLY MATCH the CARBONLINK_HOSTS list used in the
 # webapps' local_settings.py otherwise the hashing will be... inconsistent.
-# CH_SERVER_LIST = server-ip1:port1, server-ip2:port2, ...
+# CH_HOST_LIST = server-ip1:port1, server-ip2:port2, ...
 
 # This defines the maximum "message size" between carbon daemons.
 # You shouldn't need to tune this unless you really know what you're doing.

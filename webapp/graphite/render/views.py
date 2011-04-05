@@ -29,8 +29,8 @@ from graphite.logger import log
 from graphite.render.evaluator import evaluateTarget
 from graphite.render.attime import parseATTime
 from graphite.render.functions import PieFunctions
-from graphite.render.glyph import GraphTypes
 from graphite.render.hashing import hashRequest, hashData
+from graphite.render.glyph import GraphTypes
 
 from django.http import HttpResponse, HttpResponseServerError
 from django.core.cache import cache

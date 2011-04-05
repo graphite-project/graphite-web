@@ -18,7 +18,7 @@ import time
 from django.conf import settings
 from graphite.logger import log
 from graphite.storage import STORE, LOCAL_STORE
-from graphite.hashing import ConsistentHashRing
+from graphite.render.hashing import ConsistentHashRing
 
 try:
   import cPickle as pickle
@@ -94,9 +94,10 @@ class TimeSeries(list):
 
 class CarbonLinkPool:
   def __init__(self, hosts, timeout):
-    self.hosts = hosts
+    self.hosts = [ (server, instance) for (server, port, instance) in hosts ]
+    self.ports = dict( ((server, instance), port) for (server, port, instance) in hosts )
     self.timeout = float(timeout)
-    self.hashRing = ConsistentHashRing(hosts)
+    self.hashRing = ConsistentHashRing(self.hosts)
     self.connections = {}
     # Create a connection pool for each host
     for host in hosts:
@@ -108,6 +109,8 @@ class CarbonLinkPool:
 
   def getConnection(self, host):
     # First try to take one out of the pool for this host
+    (server, instance) = host
+    port = self.ports[host]
     connectionPool = self.connections[host]
     try:
       return connectionPool.pop()
@@ -117,7 +120,7 @@ class CarbonLinkPool:
     log.cache("CarbonLink creating a new socket for %s:%d" % host)
     connection = socket.socket()
     connection.settimeout(self.timeout)
-    connection.connect(host)
+    connection.connect( (server, port) )
     connection.setsockopt( socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1 )
     return connection
 
@@ -186,8 +189,15 @@ class CarbonLinkPool:
 #parse hosts from local_settings.py
 hosts = []
 for host in settings.CARBONLINK_HOSTS:
-  server,port = host.split(':',1)
-  hosts.append( (server,int(port)) )
+  parts = host.split(':')
+  server = parts[0]
+  port = int( parts[1] )
+  if len(parts) > 2:
+    instance = parts[2]
+  else:
+    instance = None
+
+  hosts.append( (server, int(port), instance) )
 
 
 #A shared importable singleton

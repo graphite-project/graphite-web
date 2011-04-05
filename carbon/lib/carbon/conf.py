@@ -39,7 +39,7 @@ defaults = dict(
   MANHOLE_USER="",
   MANHOLE_PUBLIC_KEY="",
   RELAY_METHOD='rules',
-  CH_SERVER_LIST=[],
+  CH_HOST_LIST=[],
 )
 
 
