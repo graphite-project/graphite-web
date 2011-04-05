@@ -148,7 +148,7 @@ if instance:
 from carbon.log import logToStdout, logToDir
 from carbon.listeners import MetricLineReceiver, MetricPickleReceiver, CacheQueryHandler, startListener
 from carbon.cache import MetricCache
-from carbon.instrumentation import startRecordingCacheMetrics
+from carbon.instrumentation import startRecording
 from carbon.events import metricReceived
 
 storage_schemas = join(CONF_DIR, 'storage-schemas.conf')
@@ -218,7 +218,7 @@ if settings.ENABLE_MANHOLE:
 
 from carbon.writer import startWriter # have to import this *after* settings are defined
 startWriter()
-startRecordingCacheMetrics()
+startRecording()
 
 
 # Run the twisted reactor

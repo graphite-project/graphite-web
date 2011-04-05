@@ -93,7 +93,7 @@ def recordMetrics():
   # relay metrics
   elif program == 'carbon-relay':
     record = relay_record
-    for connection in relay.clientConnections:
+    for connection in clientConnections:
       prefix = 'destinations.%s.' % connection.destinationName
 
       for metric in ('attemptedRelays', 'sent', 'queuedUntilReady', 'queuedUntilConnected', 'fullQueueDrops'):
@@ -130,16 +130,16 @@ def cache_record(metric, value):
 def relay_record(metric, value):
   fullMetric = 'carbon.relays.%s.%s' % (HOSTNAME, metric)
   datapoint = (time.time(), value)
-  relay.relay(fullMetric, datapoint)
+  relay(fullMetric, datapoint)
 
 def aggregator_record(metric, value):
   fullMetric = 'carbon.aggregator.%s.%s' % (HOSTNAME, metric)
   datapoint = (time.time(), value)
-  client.send_metric(fullMetric, datapoint)
+  send_metric(fullMetric, datapoint)
 
 
 # Avoid import circularity
 from carbon.aggregator.buffers import BufferManager
-from carbon.aggregator.client
-from carbon import relay
+from carbon.aggregator.client import send_metric
+from carbon.relay import relay, clientConnections
 from carbon.cache import MetricCache

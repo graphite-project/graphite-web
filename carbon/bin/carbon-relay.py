@@ -123,7 +123,7 @@ from carbon.log import logToStdout, logToDir, msg
 from carbon.listeners import MetricLineReceiver, MetricPickleReceiver, startListener
 from carbon.relay import createClientConnections, relay
 from carbon.events import metricReceived
-from carbon.instrumentation import startRecordingRelayMetrics
+from carbon.instrumentation import startRecording
 from carbon.rules import loadRules, allDestinationServers, parseHostList
 from carbon.hashing import setDestinationHosts
 
@@ -163,7 +163,7 @@ elif settings.RELAY_METHOD == 'consistent-hashing':
   setDestinationHosts(hosts)
   createClientConnections(hosts)
 
-startRecordingRelayMetrics()
+startRecording()
 
 
 # Run the twisted reactor

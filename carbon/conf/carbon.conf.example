@@ -109,7 +109,7 @@ RELAY_METHOD = rules
 # For consistent hashing you must also define a list of carbon-cache servers.
 # THIS HAS TO EXACTLY MATCH the CARBONLINK_HOSTS list used in the
 # webapps' local_settings.py otherwise the hashing will be... inconsistent.
-# CH_HOST_LIST = server-ip1:port1, server-ip2:port2, ...
+# CH_HOST_LIST = 127.0.0.1:2004, 127.0.0.1:2104:a, 127.0.0.1:2204:b
 
 # This defines the maximum "message size" between carbon daemons.
 # You shouldn't need to tune this unless you really know what you're doing.
@@ -125,7 +125,7 @@ PICKLE_RECEIVER_INTERFACE = 0.0.0.0
 PICKLE_RECEIVER_PORT = 2024
 
 DESTINATION_HOST = 127.0.0.1
-DESTINATION_PORT = 2004
+DESTINATION_PORT = 2014
 MAX_QUEUE_SIZE = 10000
 
 # This defines the maximum "message size" between carbon daemons.

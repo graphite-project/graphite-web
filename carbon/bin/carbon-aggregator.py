@@ -101,7 +101,7 @@ settings.readFrom(options.config, 'aggregator')
 
 # Import application components
 from carbon.log import logToStdout, logToDir
-from carbon.instrumentation import startRecordingAggregatorMetrics
+from carbon.instrumentation import startRecording
 from carbon.listeners import MetricLineReceiver, MetricPickleReceiver, startListener
 from carbon.aggregator.rules import RuleManager
 from carbon.aggregator import receiver
@@ -145,7 +145,7 @@ startListener(settings.LINE_RECEIVER_INTERFACE, settings.LINE_RECEIVER_PORT, Met
 startListener(settings.PICKLE_RECEIVER_INTERFACE, settings.PICKLE_RECEIVER_PORT, MetricPickleReceiver)
 
 client.connect(settings.DESTINATION_HOST, settings.DESTINATION_PORT)
-startRecordingAggregatorMetrics()
+startRecording()
 
 
 # Run the twisted reactor
