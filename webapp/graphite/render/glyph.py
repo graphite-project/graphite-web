@@ -1024,3 +1024,14 @@ def find_x_times(start_dt, unit, step):
     dt += x_delta
 
   return (dt, x_delta)
+
+
+def logrange(base, scale_min, scale_max):
+  current = scale_min
+  if scale_min > 0:
+      current = math.floor(math.log(scale_min, base))
+  factor = current
+  while current <= scale_max:
+     current = math.pow(base, factor)
+     yield current
+     factor += 1
