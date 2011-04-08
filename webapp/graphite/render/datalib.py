@@ -17,7 +17,8 @@ import struct
 import time
 from django.conf import settings
 from graphite.logger import log
-from graphite.storage import STORE
+from graphite.storage import STORE, LOCAL_STORE
+from graphite.render.hashing import ConsistentHashRing
 
 try:
   import cPickle as pickle
@@ -92,30 +93,34 @@ class TimeSeries(list):
 
 
 class CarbonLinkPool:
-  def __init__(self,hosts,timeout):
-    self.hosts = hosts
+  def __init__(self, hosts, timeout):
+    self.hosts = [ (server, instance) for (server, port, instance) in hosts ]
+    self.ports = dict( ((server, instance), port) for (server, port, instance) in hosts )
     self.timeout = float(timeout)
+    self.hashRing = ConsistentHashRing(self.hosts)
     self.connections = {}
     # Create a connection pool for each host
-    for host in hosts:
+    for host in self.hosts:
       self.connections[host] = set()
 
   def selectHost(self, metric):
     "Returns the carbon host that has data for the given metric"
-    return self.hosts[ hash(metric) % len(self.hosts) ]
+    return self.hashRing.get_node(metric)
 
   def getConnection(self, host):
     # First try to take one out of the pool for this host
+    (server, instance) = host
+    port = self.ports[host]
     connectionPool = self.connections[host]
     try:
       return connectionPool.pop()
     except KeyError:
       pass #nothing left in the pool, gotta make a new connection
 
-    log.cache("CarbonLink creating a new socket for %s:%d" % host)
+    log.cache("CarbonLink creating a new socket for %s" % str(host))
     connection = socket.socket()
     connection.settimeout(self.timeout)
-    connection.connect(host)
+    connection.connect( (server, port) )
     connection.setsockopt( socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1 )
     return connection
 
@@ -146,7 +151,7 @@ class CarbonLinkPool:
 
           while remaining:
             packet = connection.recv(remaining)
-            assert packet, "CarbonLink lost connection to %s:%d" % host
+            assert packet, "CarbonLink lost connection to %s" % str(host)
 
             buf += packet
 
@@ -163,7 +168,7 @@ class CarbonLinkPool:
 
           # Now parse the response
           points = pickle.loads(buf)
-          log.cache("CarbonLink to %s, retrieved %d points for %s" % (host,len(points),metric))
+          log.cache("CarbonLink to %s, retrieved %d points for %s" % (host, len(points), metric))
 
           for point in points:
             yield point
@@ -184,8 +189,15 @@ class CarbonLinkPool:
 #parse hosts from local_settings.py
 hosts = []
 for host in settings.CARBONLINK_HOSTS:
-  server,port = host.split(':',1)
-  hosts.append( (server,int(port)) )
+  parts = host.split(':')
+  server = parts[0]
+  port = int( parts[1] )
+  if len(parts) > 2:
+    instance = parts[2]
+  else:
+    instance = None
+
+  hosts.append( (server, int(port), instance) )
 
 
 #A shared importable singleton
@@ -201,7 +213,12 @@ def fetchData(requestContext, pathExpr):
   startTime = requestContext['startTime']
   endTime = requestContext['endTime']
 
-  for dbFile in STORE.find(pathExpr):
+  if requestContext['localOnly']:
+    store = LOCAL_STORE
+  else:
+    store = STORE
+
+  for dbFile in store.find(pathExpr):
     log.metric_access(dbFile.metric_path)
     getCacheResults = CarbonLink.sendRequest(dbFile.real_metric)
     dbResults = dbFile.fetch( timestamp(startTime), timestamp(endTime) )

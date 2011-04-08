@@ -1,6 +1,6 @@
 #[example]
 #pattern = ^mydata\.foo\..+
-#servers = 10.1.2.3, 10.1.2.4, myserver.mydomain.com
+#servers = 10.1.2.3, 10.1.2.4:2004, myserver.mydomain.com
 
 # You must have exactly one section with 'default = true'
 [default]

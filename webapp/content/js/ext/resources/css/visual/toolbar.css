@@ -1,8 +1,8 @@
 /*!
- * Ext JS Library 3.0.0
- * Copyright(c) 2006-2009 Ext JS, LLC
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.3.1
+ * Copyright(c) 2006-2010 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 .x-toolbar{
 	border-color:#a9bfd3;
@@ -26,8 +26,8 @@
     background-image:url(../images/default/button/s-arrow-noline.gif);
 }
 
-.x-toolbar .x-btn-over .x-btn-mc em.x-btn-split, .x-toolbar .x-btn-click .x-btn-mc em.x-btn-split, 
-.x-toolbar .x-btn-menu-active .x-btn-mc em.x-btn-split, .x-toolbar .x-btn-pressed .x-btn-mc em.x-btn-split 
+.x-toolbar .x-btn-over .x-btn-mc em.x-btn-split, .x-toolbar .x-btn-click .x-btn-mc em.x-btn-split,
+.x-toolbar .x-btn-menu-active .x-btn-mc em.x-btn-split, .x-toolbar .x-btn-pressed .x-btn-mc em.x-btn-split
 {
     background-image:url(../images/default/button/s-arrow-o.gif);
 }
@@ -36,8 +36,8 @@
     background-image:url(../images/default/button/s-arrow-b-noline.gif);
 }
 
-.x-toolbar .x-btn-over .x-btn-mc em.x-btn-split-bottom, .x-toolbar .x-btn-click .x-btn-mc em.x-btn-split-bottom, 
-.x-toolbar .x-btn-menu-active .x-btn-mc em.x-btn-split-bottom, .x-toolbar .x-btn-pressed .x-btn-mc em.x-btn-split-bottom 
+.x-toolbar .x-btn-over .x-btn-mc em.x-btn-split-bottom, .x-toolbar .x-btn-click .x-btn-mc em.x-btn-split-bottom,
+.x-toolbar .x-btn-menu-active .x-btn-mc em.x-btn-split-bottom, .x-toolbar .x-btn-pressed .x-btn-mc em.x-btn-split-bottom
 {
     background-image:url(../images/default/button/s-arrow-bo.gif);
 }
@@ -67,7 +67,7 @@
 }
 
 .x-item-disabled .x-tbar-loading{
-	background-image: url(../images/default/grid/loading.gif) !important;
+	background-image: url(../images/default/grid/refresh-disabled.gif) !important;
 }
 
 .x-item-disabled .x-tbar-page-first{
@@ -92,12 +92,4 @@
 
 .x-toolbar-more-icon {
     background-image: url(../images/default/toolbar/more.gif) !important;
-}
-
-.x-statusbar .x-status-busy {
-    background-image: url(../images/default/grid/loading.gif);
-}
-
-.x-statusbar .x-status-text-panel {
-    border-color: #99bbe8 #fff #fff #99bbe8;
 }

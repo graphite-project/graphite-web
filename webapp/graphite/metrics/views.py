@@ -97,15 +97,44 @@ def find_view(request):
     response = HttpResponse(content, mimetype='application/pickle')
 
   elif format == 'completer':
-    if len(matches) == 1 and (not matches[0].isLeaf()) and query == matches[0].metric_path + '*': # auto-complete children
-      matches = list( store.find(query + '.*') )
+    #if len(matches) == 1 and (not matches[0].isLeaf()) and query == matches[0].metric_path + '*': # auto-complete children
+    #  matches = list( store.find(query + '.*') )
+    results = [ dict(path=node.metric_path, name=node.name) for node in matches ]
 
-    content = json.dumps({ 'metrics' : [ dict(path=node.metric_path, name=node.name) for node in matches ] })
+    if len(results) > 1 and wildcards:
+      wildcardNode = {'name' : '*'}
+      results.append(wildcardNode)
+
+    content = json.dumps({ 'metrics' : results })
     response = HttpResponse(content, mimetype='text/json')
 
   else:
     return HttpResponseBadRequest(content="Invalid value for 'format' parameter", mimetype="text/plain")
 
+  response['Pragma'] = 'no-cache'
+  response['Cache-Control'] = 'no-cache'
+  return response
+
+
+def expand_view(request):
+  "View for expanding a pattern into matching metric paths"
+  local_only = int( request.REQUEST.get('local', 0) )
+
+  if local_only:
+    store = LOCAL_STORE
+  else:
+    store = STORE
+
+  results = set()
+  for query in request.REQUEST.getlist('query'):
+    for node in store.find(query):
+      results.add( node.metric_path )
+
+  result = {
+    'results' : sorted(results)
+  }
+
+  response = HttpResponse(json.dumps(result), mimetype='text/json')
   response['Pragma'] = 'no-cache'
   response['Cache-Control'] = 'no-cache'
   return response
@@ -166,10 +195,10 @@ def tree_json(nodes, base_path, wildcards=False, contexts=False):
 
 def pickle_nodes(nodes, contexts=False):
   if contexts:
-    return pickle.dumps([ { 'metric_path' : n.metric_path, 'isLeaf' : n.isLeaf(), 'context' : n.context } for n in nodes ])
+    return pickle.dumps([ { 'metric_path' : n.metric_path, 'isLeaf' : n.isLeaf(), 'intervals' : n.intervals, 'context' : n.context } for n in nodes ])
 
   else:
-    return pickle.dumps([ { 'metric_path' : n.metric_path, 'isLeaf' : n.isLeaf() } for n in nodes ])
+    return pickle.dumps([ { 'metric_path' : n.metric_path, 'isLeaf' : n.isLeaf(), 'intervals' : n.intervals} for n in nodes ])
 
 
 def any(iterable): #python2.4 compatibility

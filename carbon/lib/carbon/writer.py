@@ -30,6 +30,9 @@ try:
 except ImportError:
   import pickle
 
+if settings.WHISPER_AUTOFLUSH:
+  log.msg("enabling whisper autoflush")
+  whisper.AUTOFLUSH = True
 
 lastCreateInterval = 0
 createCount = 0
@@ -96,7 +99,7 @@ def writeCachedDataPoints():
             break
 
         if not archiveConfig:
-          raise Exception("No storage schema matched the metric '%s', check your storage-schemas.conf file.")
+          raise Exception("No storage schema matched the metric '%s', check your storage-schemas.conf file." % metric)
 
         dbDir = dirname(dbFilePath)
         os.system("mkdir -p -m 755 '%s'" % dbDir)
@@ -175,7 +178,7 @@ def reloadStorageSchemas():
 
 
 schemaReloadTask = LoopingCall(reloadStorageSchemas)
-schemas = []
+schemas = loadStorageSchemas()
 
 
 def startWriter():

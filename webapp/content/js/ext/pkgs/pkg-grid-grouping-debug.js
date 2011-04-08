@@ -1,8 +1,8 @@
 /*!
- * Ext JS Library 3.0.0
- * Copyright(c) 2006-2009 Ext JS, LLC
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.3.1
+ * Copyright(c) 2006-2010 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 /**
  * @class Ext.grid.GroupingView
@@ -10,10 +10,10 @@
  * Adds the ability for single level grouping to the grid. A {@link Ext.data.GroupingStore GroupingStore}
  * must be used to enable grouping.  Some grouping characteristics may also be configured at the
  * {@link Ext.grid.Column Column level}<div class="mdetail-params"><ul>
- * <li><code>{@link Ext.grid.Column#emptyGroupText emptyGroupText}</li>
- * <li><code>{@link Ext.grid.Column#groupable groupable}</li>
- * <li><code>{@link Ext.grid.Column#groupName groupName}</li>
- * <li><code>{@link Ext.grid.Column#groupRender groupRender}</li>
+ * <li><code>{@link Ext.grid.Column#emptyGroupText emptyGroupText}</code></li>
+ * <li><code>{@link Ext.grid.Column#groupable groupable}</code></li>
+ * <li><code>{@link Ext.grid.Column#groupName groupName}</code></li>
+ * <li><code>{@link Ext.grid.Column#groupRender groupRender}</code></li>
  * </ul></div>
  * <p>Sample usage:</p>
  * <pre><code>
@@ -139,13 +139,22 @@ var grid = new Ext.grid.GridPanel({
      * </code></pre>
      */
     groupTextTpl : '{text}',
+
+    /**
+     * @cfg {String} groupMode Indicates how to construct the group identifier. <tt>'value'</tt> constructs the id using
+     * raw value, <tt>'display'</tt> constructs the id using the rendered value. Defaults to <tt>'value'</tt>.
+     */
+    groupMode: 'value',
+
     /**
      * @cfg {Function} groupRenderer This property must be configured in the {@link Ext.grid.Column} for
      * each column.
      */
-
-    // private
-    gidSeed : 1000,
+    
+    /**
+     * @cfg {Boolean} cancelEditOnToggle True to cancel any editing when the group header is toggled. Defaults to <tt>true</tt>.
+     */
+    cancelEditOnToggle: true,
 
     // private
     initTemplates : function(){
@@ -164,7 +173,10 @@ var grid = new Ext.grid.GridPanel({
             );
         }
         this.startGroup.compile();
-        this.endGroup = '</div></div>';
+
+        if (!this.endGroup) {
+            this.endGroup = '</div></div>';
+        }
     },
 
     // private
@@ -178,12 +190,14 @@ var grid = new Ext.grid.GridPanel({
     },
 
     // private
-    onAdd : function(){
-        if(this.enableGrouping && !this.ignoreAdd){
+    onAdd : function(ds, records, index) {
+        if (this.canGroup() && !this.ignoreAdd) {
             var ss = this.getScrollState();
+            this.fireEvent('beforerowsinserted', ds, index, index + (records.length-1));
             this.refresh();
             this.restoreScroll(ss);
-        }else if(!this.enableGrouping){
+            this.fireEvent('rowsinserted', ds, index, index + (records.length-1));
+        } else if (!this.canGroup()) {
             Ext.grid.GroupingView.superclass.onAdd.apply(this, arguments);
         }
     },
@@ -217,14 +231,13 @@ var grid = new Ext.grid.GridPanel({
         }
         if((item = items.get('showGroups'))){
             item.setDisabled(disabled);
-		    item.setChecked(!!this.getGroupField(), true);
+            item.setChecked(this.canGroup(), true);
         }
     },
 
     // private
     renderUI : function(){
-        Ext.grid.GroupingView.superclass.renderUI.call(this);
-        this.mainBody.on('mousedown', this.interceptMouse, this);
+        var markup = Ext.grid.GroupingView.superclass.renderUI.call(this);
 
         if(this.enableGroupingMenu && this.hmenu){
             this.hmenu.add('-',{
@@ -245,20 +258,66 @@ var grid = new Ext.grid.GridPanel({
             }
             this.hmenu.on('beforeshow', this.beforeMenuShow, this);
         }
+        return markup;
+    },
+
+    processEvent: function(name, e){
+        Ext.grid.GroupingView.superclass.processEvent.call(this, name, e);
+        var hd = e.getTarget('.x-grid-group-hd', this.mainBody);
+        if(hd){
+            // group value is at the end of the string
+            var field = this.getGroupField(),
+                prefix = this.getPrefix(field),
+                groupValue = hd.id.substring(prefix.length),
+                emptyRe = new RegExp('gp-' + Ext.escapeRe(field) + '--hd');
+
+            // remove trailing '-hd'
+            groupValue = groupValue.substr(0, groupValue.length - 3);
+            
+            // also need to check for empty groups
+            if(groupValue || emptyRe.test(hd.id)){
+                this.grid.fireEvent('group' + name, this.grid, field, groupValue, e);
+            }
+            if(name == 'mousedown' && e.button == 0){
+                this.toggleGroup(hd.parentNode);
+            }
+        }
+
     },
 
     // private
     onGroupByClick : function(){
-        this.grid.store.groupBy(this.cm.getDataIndex(this.hdCtxIndex));
+        var grid = this.grid;
+        this.enableGrouping = true;
+        grid.store.groupBy(this.cm.getDataIndex(this.hdCtxIndex));
+        grid.fireEvent('groupchange', grid, grid.store.getGroupState());
         this.beforeMenuShow(); // Make sure the checkboxes get properly set when changing groups
+        this.refresh();
     },
 
     // private
     onShowGroupsClick : function(mi, checked){
+        this.enableGrouping = checked;
         if(checked){
             this.onGroupByClick();
         }else{
             this.grid.store.clearGrouping();
+            this.grid.fireEvent('groupchange', this, null);
+        }
+    },
+
+    /**
+     * Toggle the group that contains the specific row.
+     * @param {Number} rowIndex The row inside the group
+     * @param {Boolean} expanded (optional)
+     */
+    toggleRowIndex : function(rowIndex, expanded){
+        if(!this.canGroup()){
+            return;
+        }
+        var row = this.getRow(rowIndex);
+        if(row){
+            this.toggleGroup(this.findGroup(row), expanded);
         }
     },
 
@@ -268,14 +327,15 @@ var grid = new Ext.grid.GridPanel({
      * @param {Boolean} expanded (optional)
      */
     toggleGroup : function(group, expanded){
-        this.grid.stopEditing(true);
-        group = Ext.getDom(group);
-        var gel = Ext.fly(group);
-        expanded = expanded !== undefined ?
-                expanded : gel.hasClass('x-grid-group-collapsed');
-
-        this.state[gel.dom.id] = expanded;
-        gel[expanded ? 'removeClass' : 'addClass']('x-grid-group-collapsed');
+        var gel = Ext.get(group);
+        expanded = Ext.isDefined(expanded) ? expanded : gel.hasClass('x-grid-group-collapsed');
+        if(this.state[gel.id] !== expanded){
+            if (this.cancelEditOnToggle !== false) {
+                this.grid.stopEditing(true);
+            }
+            this.state[gel.id] = expanded;
+            gel[expanded ? 'removeClass' : 'addClass']('x-grid-group-collapsed');
+        }
     },
 
     /**
@@ -304,19 +364,11 @@ var grid = new Ext.grid.GridPanel({
     },
 
     // private
-    interceptMouse : function(e){
-        var hd = e.getTarget('.x-grid-group-hd', this.mainBody);
-        if(hd){
-            e.stopEvent();
-            this.toggleGroup(hd.parentNode);
-        }
-    },
-
-    // private
     getGroup : function(v, r, groupRenderer, rowIndex, colIndex, ds){
-        var g = groupRenderer ? groupRenderer(v, {}, r, rowIndex, colIndex, ds) : String(v);
-        if(g === ''){
-            g = this.cm.config[colIndex].emptyGroupText || this.emptyGroupText;
+        var column = this.cm.config[colIndex],
+            g = groupRenderer ? groupRenderer.call(column.scope, v, {}, r, rowIndex, colIndex, ds) : String(v);
+        if(g === '' || g === '&#160;'){
+            g = column.emptyGroupText || this.emptyGroupText;
         }
         return g;
     },
@@ -325,12 +377,41 @@ var grid = new Ext.grid.GridPanel({
     getGroupField : function(){
         return this.grid.store.getGroupState();
     },
-    
+
     // private
     afterRender : function(){
+        if(!this.ds || !this.cm){
+            return;
+        }
         Ext.grid.GroupingView.superclass.afterRender.call(this);
         if(this.grid.deferRowRender){
             this.updateGroupWidths();
+        }
+    },
+    
+    afterRenderUI: function () {
+        Ext.grid.GroupingView.superclass.afterRenderUI.call(this);
+
+        if (this.enableGroupingMenu && this.hmenu) {
+            this.hmenu.add('-',{
+                itemId:'groupBy',
+                text: this.groupByText,
+                handler: this.onGroupByClick,
+                scope: this,
+                iconCls:'x-group-by-icon'
+            });
+            
+            if (this.enableNoGroups) {
+                this.hmenu.add({
+                    itemId:'showGroups',
+                    text: this.showGroupsText,
+                    checked: true,
+                    checkHandler: this.onShowGroupsClick,
+                    scope: this
+                });
+            }
+            
+            this.hmenu.on('beforeshow', this.beforeMenuShow, this);
         }
     },
 
@@ -340,15 +421,16 @@ var grid = new Ext.grid.GridPanel({
         var eg = !!groupField;
         // if they turned off grouping and the last grouped field is hidden
         if(this.hideGroupedColumn) {
-            var colIndex = this.cm.findColumnIndex(groupField);
-            if(!eg && this.lastGroupField !== undefined) {
+            var colIndex = this.cm.findColumnIndex(groupField),
+                hasLastGroupField = Ext.isDefined(this.lastGroupField);
+            if(!eg && hasLastGroupField){
                 this.mainBody.update('');
                 this.cm.setHidden(this.cm.findColumnIndex(this.lastGroupField), false);
                 delete this.lastGroupField;
-            }else if (eg && this.lastGroupField === undefined) {
+            }else if (eg && !hasLastGroupField){
                 this.lastGroupField = groupField;
                 this.cm.setHidden(colIndex, true);
-            }else if (eg && this.lastGroupField !== undefined && groupField !== this.lastGroupField) {
+            }else if (eg && hasLastGroupField && groupField !== this.lastGroupField) {
                 this.mainBody.update('');
                 var oldIndex = this.cm.findColumnIndex(this.lastGroupField);
                 this.cm.setHidden(oldIndex, false);
@@ -365,37 +447,32 @@ var grid = new Ext.grid.GridPanel({
         if(rs.length < 1){
             return '';
         }
+
+        if(!this.canGroup() || this.isUpdating){
+            return Ext.grid.GroupingView.superclass.doRender.apply(this, arguments);
+        }
+
         var groupField = this.getGroupField(),
             colIndex = this.cm.findColumnIndex(groupField),
-            g;
+            g,
+            gstyle = 'width:' + this.getTotalWidth() + ';',
+            cfg = this.cm.config[colIndex],
+            groupRenderer = cfg.groupRenderer || cfg.renderer,
+            prefix = this.showGroupName ? (cfg.groupName || cfg.header)+': ' : '',
+            groups = [],
+            curGroup, i, len, gid;
 
-        this.enableGrouping = !!groupField;
-
-        if(!this.enableGrouping || this.isUpdating){
-            return Ext.grid.GroupingView.superclass.doRender.apply(
-                    this, arguments);
-        }
-        var gstyle = 'width:'+this.getTotalWidth()+';';
-
-        var gidPrefix = this.grid.getGridEl().id;
-        var cfg = this.cm.config[colIndex];
-        var groupRenderer = cfg.groupRenderer || cfg.renderer;
-        var prefix = this.showGroupName ?
-                     (cfg.groupName || cfg.header)+': ' : '';
-
-        var groups = [], curGroup, i, len, gid;
         for(i = 0, len = rs.length; i < len; i++){
             var rowIndex = startRow + i,
                 r = rs[i],
                 gvalue = r.data[groupField];
-                
+
                 g = this.getGroup(gvalue, r, groupRenderer, rowIndex, colIndex, ds);
             if(!curGroup || curGroup.group != g){
-                gid = gidPrefix + '-gp-' + groupField + '-' + Ext.util.Format.htmlEncode(g);
-               	// if state is defined use it, however state is in terms of expanded
-				// so negate it, otherwise use the default.
-				var isCollapsed  = typeof this.state[gid] !== 'undefined' ? !this.state[gid] : this.startCollapsed;
-				var gcls = isCollapsed ? 'x-grid-group-collapsed' : '';	
+                gid = this.constructId(gvalue, groupField, colIndex);
+                // if state is defined use it, however state is in terms of expanded
+                // so negate it, otherwise use the default.
+                this.state[gid] = !(Ext.isDefined(this.state[gid]) ? !this.state[gid] : this.startCollapsed);
                 curGroup = {
                     group: g,
                     gvalue: gvalue,
@@ -403,7 +480,7 @@ var grid = new Ext.grid.GridPanel({
                     groupId: gid,
                     startRow: rowIndex,
                     rs: [r],
-                    cls: gcls,
+                    cls: this.state[gid] ? '' : 'x-grid-group-collapsed',
                     style: gstyle
                 };
                 groups.push(curGroup);
@@ -431,13 +508,27 @@ var grid = new Ext.grid.GridPanel({
      * @return {String} The group id
      */
     getGroupId : function(value){
-        var gidPrefix = this.grid.getGridEl().id;
-        var groupField = this.getGroupField();
-        var colIndex = this.cm.findColumnIndex(groupField);
-        var cfg = this.cm.config[colIndex];
-        var groupRenderer = cfg.groupRenderer || cfg.renderer;
-        var gtext = this.getGroup(value, {data:{}}, groupRenderer, 0, colIndex, this.ds);
-        return gidPrefix + '-gp-' + groupField + '-' + Ext.util.Format.htmlEncode(value);
+        var field = this.getGroupField();
+        return this.constructId(value, field, this.cm.findColumnIndex(field));
+    },
+
+    // private
+    constructId : function(value, field, idx){
+        var cfg = this.cm.config[idx],
+            groupRenderer = cfg.groupRenderer || cfg.renderer,
+            val = (this.groupMode == 'value') ? value : this.getGroup(value, {data:{}}, groupRenderer, 0, idx, this.ds);
+
+        return this.getPrefix(field) + Ext.util.Format.htmlEncode(val);
+    },
+
+    // private
+    canGroup  : function(){
+        return this.enableGrouping && !!this.getGroupField();
+    },
+
+    // private
+    getPrefix: function(field){
+        return this.grid.getGridEl().id + '-gp-' + field + '-';
     },
 
     // private
@@ -452,15 +543,23 @@ var grid = new Ext.grid.GridPanel({
 
     // private
     getRows : function(){
-        if(!this.enableGrouping){
+        if(!this.canGroup()){
             return Ext.grid.GroupingView.superclass.getRows.call(this);
         }
-        var r = [];
-        var g, gs = this.getGroups();
-        for(var i = 0, len = gs.length; i < len; i++){
-            g = gs[i].childNodes[1].childNodes;
-            for(var j = 0, jlen = g.length; j < jlen; j++){
-                r[r.length] = g[j];
+        var r = [],
+            gs = this.getGroups(),
+            g,
+            i = 0,
+            len = gs.length,
+            j,
+            jlen;
+        for(; i < len; ++i){
+            g = gs[i].childNodes[1];
+            if(g){
+                g = g.childNodes;
+                for(j = 0, jlen = g.length; j < jlen; ++j){
+                    r[r.length] = g[j];
+                }
             }
         }
         return r;
@@ -468,10 +567,10 @@ var grid = new Ext.grid.GridPanel({
 
     // private
     updateGroupWidths : function(){
-        if(!this.enableGrouping || !this.hasRows()){
+        if(!this.canGroup() || !this.hasRows()){
             return;
         }
-        var tw = Math.max(this.cm.getTotalWidth(), this.el.dom.offsetWidth-this.scrollOffset) +'px';
+        var tw = Math.max(this.cm.getTotalWidth(), this.el.dom.offsetWidth-this.getScrollOffset()) +'px';
         var gs = this.getGroups();
         for(var i = 0, len = gs.length; i < len; i++){
             gs[i].firstChild.style.width = tw;
@@ -503,14 +602,7 @@ var grid = new Ext.grid.GridPanel({
 
     // private
     onBeforeRowSelect : function(sm, rowIndex){
-        if(!this.enableGrouping){
-            return;
-        }
-        var row = this.getRow(rowIndex);
-        if(row && !row.offsetParent){
-            var g = this.findGroup(row);
-            this.toggleGroup(g, true);
-        }
+        this.toggleRowIndex(rowIndex, true);
     }
 });
 // private

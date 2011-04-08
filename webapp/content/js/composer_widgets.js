@@ -485,6 +485,8 @@ var GraphDataWindow = {
                   {text: 'Average', handler: this.applyFuncToAll('averageSeries')},
                   {text: 'Sum using wildcards', handler: this.applyFuncToEachWithInput('sumSeriesWithWildcards', 'Please enter a comma separated list of numbers specifying the locations in the name to place wildcards')},
                   {text: 'Average using wildcards', handler: this.applyFuncToEachWithInput('averageSeriesWithWildcards', 'Please enter a comma separated list of numbers specifying the locations in the name to place wildcards')},
+                  {text: 'Min Values', handler: this.applyFuncToAll('minSeries')},
+                  {text: 'Max Values', handler: this.applyFuncToAll('maxSeries')},
                   {text: 'Group', handler: this.applyFuncToAll('group')}
                 ]
               }, {
@@ -497,7 +499,8 @@ var GraphDataWindow = {
                   {text: 'Non-negative Derivative', handler: this.applyFuncToEachWithInput('nonNegativeDerivative', "Please enter a maximum value if this metric is a wrapping counter (or just leave this blank)", {allowBlank: true})},
                   {text: 'Log', handler: this.applyFuncToEachWithInput('log', 'Please enter a base')},
                   {text: 'timeShift', handler: this.applyFuncToEachWithInput('timeShift', 'Shift this metric ___ back in time (examples: 10min, 7d, 2w)', {quote: true})},
-                  {text: 'Summarize', handler: this.applyFuncToEachWithInput('summarize', 'Please enter a summary interval (examples: 10min, 1h, 7d)', {quote: true})}
+                  {text: 'Summarize', handler: this.applyFuncToEachWithInput('summarize', 'Please enter a summary interval (examples: 10min, 1h, 7d)', {quote: true})},
+                  {text: 'Hit Count', handler: this.applyFuncToEachWithInput('hitcount', 'Please enter a summary interval (examples: 10min, 1h, 7d)', {quote: true})}
                 ]
               }, {
                 text: 'Calculate',
@@ -993,8 +996,9 @@ function createOptionsMenu() {
 
   var yAxisUnitMenu = new Ext.menu.Menu({
     items: [
-      menuRadioItem("yUnit", "Standard", "yUnitSystem", ""),
-      menuRadioItem("yUnit", "Binary", "yUnitSystem", "binary")
+      menuRadioItem("yUnit", "Standard", "yUnitSystem", "si"),
+      menuRadioItem("yUnit", "Binary", "yUnitSystem", "binary"),
+      menuRadioItem("yUnit", "None", "yUnitSystem", "none")
     ]
   });
 

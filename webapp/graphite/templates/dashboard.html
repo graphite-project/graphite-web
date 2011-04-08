@@ -1,0 +1,53 @@
+{% autoescape off %}
+
+<html>
+  <head>
+    <title>Graphite Dashboard</title>
+    <link rel="stylesheet" type="text/css" href="/content/js/ext/resources/css/ext-all.css"/>
+    <link rel="stylesheet" type="text/css" href="/content/css/dashboard.css"/>
+
+    <script type="text/javascript">
+    var schemes = {{schemes_json|safe}};
+    var UI_CONFIG = {{ui_config_json|safe}};
+    var CONTEXT_FIELD_WIDTH = 250;
+
+    var REFRESH_ICON = '/content/js/ext/examples/shared/icons/fam/table_refresh.png';
+    var CLOCK_ICON = '/content/img/clock_16.png';
+    var CALENDAR_ICON = '/content/js/ext/resources/images/default/shared/calendar.gif';
+    var QUERY_DELAY = 100;
+
+    {% if initialState %}
+    var initialState = {{initialState|safe}};
+    {% else %}
+    var initialState = null;
+    {% endif %}
+
+    {% if initialError %}
+    var initialError = "{{initialError|safe}}";
+    {% else %}
+    var initialError = null;
+    {% endif %}
+    </script>
+
+    {% if jsdebug %}
+    <script type="text/javascript" src="/content/js/ext/adapter/ext/ext-base-debug.js"></script>
+    <script type="text/javascript" src="/content/js/ext/ext-all-debug.js"></script>
+    <script type="text/javascript" src="/content/js/dashboard.js"></script>
+    {% else %}
+    <script type="text/javascript" src="/content/js/ext/adapter/ext/ext-base.js"></script>
+    <script type="text/javascript" src="/content/js/ext/ext-all.js"></script>
+    <script type="text/javascript" src="/content/js/dashboard.js"></script>
+    {% endif %}
+
+    <script type="text/javascript">
+    Ext.BLANK_IMAGE_URL = '/content/js/ext/resources/images/default/s.gif';
+    Ext.QuickTips.init();
+    Ext.onReady(initDashboard);
+    </script> 
+
+  </head>
+  <body>
+  </body>
+</html>
+
+{% endautoescape %}

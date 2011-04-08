@@ -18,6 +18,10 @@
 # If you've got more than one backend server they should all be listed here
 #CLUSTER_SERVERS = []
 
+# If you're using a relay with consistent hashing, you'll need to configure
+# this line the same as CH_SERVER_LIST in carbon.conf under [relay]
+# CARBONLINK_HOSTS = ["127.0.0.1:7002", "127.0.0.1:7102:a", "127.0.0.1:7202:b"]
+
 # Override this if you need to provide documentation specific to your graphite deployment
 #DOCUMENTATION_URL = "http://wiki.mycompany.com/graphite"
 

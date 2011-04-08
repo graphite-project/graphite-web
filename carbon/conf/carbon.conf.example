@@ -25,7 +25,7 @@ MAX_UPDATES_PER_SECOND = 1000
 # database files to all get created and thus longer until the data becomes usable.
 # Setting this value high (like "inf" for infinity) will cause graphite to create
 # the files quickly but at the risk of slowing I/O down considerably for a while.
-MAX_CREATES_PER_MINUTE = inf
+MAX_CREATES_PER_MINUTE = 50
 
 LINE_RECEIVER_INTERFACE = 0.0.0.0
 LINE_RECEIVER_PORT = 2003
@@ -38,8 +38,12 @@ CACHE_QUERY_PORT = 7002
 
 # By default, carbon-cache will log every whisper update. This can be excessive and
 # degrade performance if logging on the same volume as the whisper data is stored.
-LOG_UPDATES = True
+LOG_UPDATES = False
 
+# On some systems it is desirable for whisper to write synchronously.
+# Set this option to True if you'd like to try this. Basically it will
+# shift the onus of buffering writes from the kernel into carbon's cache.
+WHISPER_AUTOFLUSH = False
 
 # Enable AMQP if you want to receve metrics using an amqp broker
 # ENABLE_AMQP = False
@@ -54,6 +58,20 @@ LOG_UPDATES = True
 # AMQP_USER = guest
 # AMQP_PASSWORD = guest
 # AMQP_EXCHANGE = graphite
+# AMQP_METRIC_NAME_IN_BODY = False
+
+# The manhole interface allows you to SSH into the carbon daemon
+# and get a python interpreter. BE CAREFUL WITH THIS! If you do
+# something like time.sleep() in the interpreter, the whole process
+# will sleep! This is *extremely* helpful in debugging, assuming
+# you are familiar with the code. If you are not, please don't
+# mess with this, you are asking for trouble :)
+#
+# ENABLE_MANHOLE = False
+# MANHOLE_INTERFACE = 127.0.0.1
+# MANHOLE_PORT = 7222
+# MANHOLE_USER = admin
+# MANHOLE_PUBLIC_KEY = ssh-rsa AAAAB3NzaC1yc2EAAAABiwAaAIEAoxN0sv/e4eZCPpi3N3KYvyzRaBaMeS2RsOQ/cDuKv11dlNzVeiyc3RFmCv5Rjwn/lQ79y0zyHxw67qLyhQ/kDzINc4cY41ivuQXm2tPmgvexdrBv5nsfEpjs3gLZfJnyvlcVyWK/lId8WUvEWSWHTzsbtmXAF2raJMdgLTbQ8wE=
 
 # Patterns for all of the metrics this machine will store. Read more at
 # http://en.wikipedia.org/wiki/Advanced_Message_Queuing_Protocol#Bindings
@@ -68,12 +86,48 @@ LOG_UPDATES = True
 # with the default configuration, you have to specify a distinict
 # interfaces and ports for the listeners.
 
+# To configure special settings for the 'foo' carbon-cache instance, uncomment this:
+#[cache:foo]
+#LINE_RECEIVER_PORT = 2003
+#PICKLE_RECEIVER_PORT = 2004
+#CACHE_QUERY_PORT = 7002
+# and any other settings you want to customize, defaults are inherited
+# from [carbon] section.
+
+
 [relay]
 LINE_RECEIVER_INTERFACE = 0.0.0.0
-LINE_RECEIVER_PORT = 2003
+LINE_RECEIVER_PORT = 2013
+PICKLE_RECEIVER_INTERFACE = 0.0.0.0
+PICKLE_RECEIVER_PORT = 2014
+
+RELAY_METHOD = rules
+
+# To use consistent hashing instead of user-defined rules, uncomment this:
+# RELAY_METHOD = consistent-hashing
+#
+# For consistent hashing you must also define a list of carbon-cache servers.
+# THIS HAS TO EXACTLY MATCH the CARBONLINK_HOSTS list used in the
+# webapps' local_settings.py otherwise the hashing will be... inconsistent.
+# CH_HOST_LIST = 127.0.0.1:2004, 127.0.0.1:2104:a, 127.0.0.1:2204:b
+
+# This defines the maximum "message size" between carbon daemons.
+# You shouldn't need to tune this unless you really know what you're doing.
+MAX_DATAPOINTS_PER_MESSAGE = 500
+MAX_QUEUE_SIZE = 10000
+
+
+[aggregator]
+LINE_RECEIVER_INTERFACE = 0.0.0.0
+LINE_RECEIVER_PORT = 2023
 
 PICKLE_RECEIVER_INTERFACE = 0.0.0.0
-PICKLE_RECEIVER_PORT = 2004
+PICKLE_RECEIVER_PORT = 2024
 
-CACHE_SERVERS = server1, server2, server3
+DESTINATION_HOST = 127.0.0.1
+DESTINATION_PORT = 2014
 MAX_QUEUE_SIZE = 10000
+
+# This defines the maximum "message size" between carbon daemons.
+# You shouldn't need to tune this unless you really know what you're doing.
+MAX_DATAPOINTS_PER_MESSAGE = 500

@@ -114,7 +114,7 @@ def is_local_interface(host):
 
 
 def is_pattern(s):
-  return '*' in s or '?' in s or '[' in s
+  return '*' in s or '?' in s or '[' in s or '{' in s
 
 
 def find(root_dir, pattern):
@@ -164,12 +164,12 @@ def _find(current_dir, patterns):
   entries = os.listdir(current_dir)
 
   subdirs = [e for e in entries if isdir( join(current_dir,e) )]
-  matching_subdirs = fnmatch.filter(subdirs, pattern)
+  matching_subdirs = match_entries(subdirs, pattern)
   matching_subdirs.sort()
 
   if len(patterns) == 1 and rrdtool: #the last pattern may apply to RRD data sources
     files = [e for e in entries if isfile( join(current_dir,e) )]
-    rrd_files = fnmatch.filter(files, pattern + ".rrd")
+    rrd_files = match_entries(files, pattern + ".rrd")
     rrd_files.sort()
 
     if rrd_files: #let's assume it does
@@ -188,16 +188,35 @@ def _find(current_dir, patterns):
 
   else: #we've got the last pattern
     files = [e for e in entries if isfile( join(current_dir,e) )]
-    matching_files = fnmatch.filter(files, pattern + '.*')
+    matching_files = match_entries(files, pattern + '.*')
     matching_files.sort()
 
     for basename in matching_subdirs + matching_files:
       yield join(current_dir, basename)
 
 
+def match_entries(entries, pattern):
+  # First we check for pattern variants (ie. {foo,bar}baz = foobaz or barbaz)
+  v1, v2 = pattern.find('{'), pattern.find('}')
+
+  if v1 > -1 and v2 > v1:
+    variations = pattern[v1+1:v2].split(',')
+    variants = [ pattern[:v1] + v + pattern[v2+1:] for v in variations ]
+    matching = []
+
+    for variant in variants:
+      matching.extend( fnmatch.filter(entries, variant) )
+
+    return list( set(matching) ) #remove potential dupes
+
+  else:
+    return fnmatch.filter(entries, pattern)
+
+
 # Node classes
 class Node:
   context = {}
+  intervals = []
 
   def __init__(self, fs_path, metric_path):
     self.fs_path = str(fs_path)
@@ -233,6 +252,10 @@ class WhisperFile(Leaf):
   def __init__(self, *args, **kwargs):
     Leaf.__init__(self, *args, **kwargs)
     real_fs_path = realpath(self.fs_path)
+
+    start = time.time() - whisper.info(self.fs_path)['maxRetention']
+    end = max( os.stat(self.fs_path).st_mtime, start )
+    self.intervals = [ (start, end) ]
 
     if real_fs_path != self.fs_path:
       relative_fs_path = self.metric_path.replace('.', '/') + self.extension

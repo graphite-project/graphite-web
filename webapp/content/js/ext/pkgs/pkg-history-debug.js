@@ -1,8 +1,8 @@
 /*!
- * Ext JS Library 3.0.0
- * Copyright(c) 2006-2009 Ext JS, LLC
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.3.1
+ * Copyright(c) 2006-2010 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 /**
  * @class Ext.History
@@ -19,7 +19,7 @@ Ext.History = (function () {
     var currentToken;
 
     function getHash() {
-        var href = top.location.href, i = href.indexOf("#");
+        var href = location.href, i = href.indexOf("#");
         return i >= 0 ? href.substr(i + 1) : null;
     }
 
@@ -33,7 +33,7 @@ Ext.History = (function () {
     }
 
     function updateIFrame (token) {
-        var html = ['<html><body><div id="state">',token,'</div></body></html>'].join('');
+        var html = ['<html><body><div id="state">',Ext.util.Format.htmlEncode(token),'</div></body></html>'].join('');
         try {
             var doc = iframe.contentWindow.document;
             doc.open();
@@ -117,14 +117,14 @@ Ext.History = (function () {
          * @property
          */
         iframeId: 'x-history-frame',
-        
+
         events:{},
 
         /**
          * Initialize the global History instance.
          * @param {Boolean} onReady (optional) A callback function that will be called once the history
          * component is fully initialized.
-         * @param {Object} scope (optional) The callback scope
+         * @param {Object} scope (optional) The scope (<code>this</code> reference) in which the callback is executed. Defaults to the browser window.
          */
         init: function (onReady, scope) {
             if(ready) {
@@ -141,7 +141,20 @@ Ext.History = (function () {
             if (Ext.isIE) {
                 iframe = Ext.getDom(Ext.History.iframeId);
             }
-            this.addEvents('ready', 'change');
+            this.addEvents(
+                /**
+                 * @event ready
+                 * Fires when the Ext.History singleton has been initialized and is ready for use.
+                 * @param {Ext.History} The Ext.History singleton.
+                 */
+                'ready',
+                /**
+                 * @event change
+                 * Fires when navigation back or forwards within the local page's history occurs.
+                 * @param {String} token An identifier associated with the page state at that point in its history.
+                 */
+                'change'
+            );
             if(onReady){
                 this.on('ready', onReady, scope, {single:true});
             }

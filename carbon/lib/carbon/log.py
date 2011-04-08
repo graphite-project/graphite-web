@@ -64,6 +64,10 @@ def relay(message, **context):
   context['type'] = 'relay'
   msg(message, **context)
 
+def aggregator(message, **context):
+  context['type'] = 'aggregator'
+  msg(message, **context)
+
 def query(message, **context):
   context['type'] = 'query'
   msg(message, **context)

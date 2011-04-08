@@ -17,11 +17,13 @@ import sys, os
 from os.path import join, dirname, abspath
 
 DEBUG = False
+JAVASCRIPT_DEBUG = False
 
 # Filesystem layout (all directores should end in a /)
 WEB_DIR = dirname( abspath(__file__) ) + '/'
 WEBAPP_DIR = dirname( dirname(WEB_DIR) ) + '/'
 GRAPHITE_ROOT = dirname( dirname(WEBAPP_DIR) ) + '/'
+CONF_DIR = GRAPHITE_ROOT + 'conf/'
 CONTENT_DIR = WEBAPP_DIR + 'content/'
 STORAGE_DIR = GRAPHITE_ROOT + 'storage/'
 WHISPER_DIR = STORAGE_DIR + 'whisper/'
@@ -46,8 +48,13 @@ except:
 #Memcache settings
 MEMCACHE_HOSTS = []
 MEMCACHE_DURATION = 60 #metric data and graphs are cached for one minute by default
-REMOTE_FIND_CACHE_DURATION = 300
 LOG_CACHE_PERFORMANCE = False
+
+# Remote store settings
+REMOTE_STORE_FETCH_TIMEOUT = 6
+REMOTE_STORE_FIND_TIMEOUT = 2.5
+REMOTE_STORE_RETRY_DELAY = 60
+REMOTE_FIND_CACHE_DURATION = 300
 
 #Remote rendering settings
 REMOTE_RENDERING = False #if True, rendering is delegated to RENDERING_HOSTS
@@ -80,6 +87,8 @@ DATABASE_USER = ''				# Not used with sqlite3.
 DATABASE_PASSWORD = ''				# Not used with sqlite3.
 DATABASE_HOST = ''				# Set to empty string for localhost. Not used with sqlite3.
 DATABASE_PORT = ''				# Set to empty string for default. Not used with sqlite3.
+
+DASHBOARD_CONF = join(CONF_DIR, 'dashboard.conf')
 
 
 #Pull in overrides from local_settings.py
@@ -154,6 +163,7 @@ INSTALLED_APPS = (
   'graphite.browser',
   'graphite.composer',
   'graphite.account',
+  'graphite.dashboard',
   'graphite.whitelist',
   'django.contrib.auth',
   'django.contrib.sessions',

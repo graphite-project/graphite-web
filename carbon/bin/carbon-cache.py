@@ -22,7 +22,7 @@ import atexit
 from os.path import basename, dirname, exists, join, isdir
 
 
-program = basename( sys.argv[0] )
+program = basename( sys.argv[0] ).split('.')[0]
 hostname = socket.gethostname().split('.')[0]
 os.umask(022)
 
@@ -57,23 +57,14 @@ except ImportError:
   sys.exit(1)
 
 
-# Import application components
-from carbon.conf import settings
-from carbon.log import logToStdout, logToDir
-from carbon.listeners import MetricLineReceiver, MetricPickleReceiver, CacheQueryHandler, startListener
-from carbon.cache import MetricCache
-from carbon.writer import startWriter
-from carbon.instrumentation import startRecordingCacheMetrics
-from carbon.events import metricReceived
-
-
 # Parse command line options
 parser = optparse.OptionParser(usage='%prog [options] <start|stop|status>')
 parser.add_option('--debug', action='store_true', help='Run in the foreground, log to stdout')
 parser.add_option('--profile', help='Record performance profile data to the given file')
-parser.add_option('--pidfile', default=join(STORAGE_DIR, '%s.pid' % program.split('.')[0]), help='Write pid to the given file')
+parser.add_option('--pidfile', default=join(STORAGE_DIR, '%s.pid' % program), help='Write pid to the given file')
 parser.add_option('--config', default=join(CONF_DIR, 'carbon.conf'), help='Use the given config file')
 parser.add_option('--logdir', default=LOG_DIR, help="Write logs in the given directory")
+parser.add_option('--instance', default=None, help="Manage a specific carbon instnace")
 
 (options, args) = parser.parse_args()
 
@@ -81,22 +72,36 @@ if not args:
   parser.print_usage()
   raise SystemExit(1)
 
+# Assume standard locations when using --instance
+if options.instance:
+  instance = str(options.instance)
+  pidfile = join(STORAGE_DIR, '%s-%s.pid' % (program, instance))
+  logdir = "%s-%s/" % (LOG_DIR.rstrip('/'), instance)
+  config = options.config
+else:
+  instance = None
+  pidfile = options.pidfile
+  logdir = options.logdir
+  config = options.config
+
+__builtins__.instance = instance # This isn't as evil as you might think
+__builtins__.program = program
 action = args[0]
 
 if action == 'stop':
-  if not exists(options.pidfile):
-    print 'Pidfile %s does not exist' % options.pidfile
+  if not exists(pidfile):
+    print 'Pidfile %s does not exist' % pidfile
     raise SystemExit(0)
 
-  pidfile = open(options.pidfile, 'r')
+  pf = open(pidfile, 'r')
   try:
-    pid = int( pidfile.read().strip() )
+    pid = int( pf.read().strip() )
   except:
-    print 'Could not read pidfile %s' % options.pidfile
+    print 'Could not read pidfile %s' % pidfile
     raise SystemExit(1)
 
-  print 'Deleting %s (contained pid %d)' % (options.pidfile, pid)
-  os.unlink(options.pidfile)
+  print 'Deleting %s (contained pid %d)' % (pidfile, pid)
+  os.unlink(pidfile)
 
   print 'Sending kill signal to pid %d' % pid
   os.kill(pid, 15)
@@ -104,22 +109,22 @@ if action == 'stop':
 
 
 elif action == 'status':
-  if not exists(options.pidfile):
-    print '%s is not running' % program
+  if not exists(pidfile):
+    print '%s (instance %s) is not running' % (program, instance)
     raise SystemExit(0)
 
-  pidfile = open(options.pidfile, 'r')
+  pf = open(pidfile, 'r')
   try:
-    pid = int( pidfile.read().strip() )
+    pid = int( pf.read().strip() )
   except:
-    print 'Failed to read pid from %s' % options.pidfile
+    print 'Failed to read pid from %s' % pidfile
     raise SystemExit(1)
 
   if exists('/proc/%d' % pid):
-    print "%s is running with pid %d" % (program, pid)
+    print "%s (instance %s) is running with pid %d" % (program, instance, pid)
     raise SystemExit(0)
   else:
-    print "%s is not running" % program
+    print "%s (instance %s) is not running" % (program, instance)
     raise SystemExit(0)
 
 elif action != 'start':
@@ -127,13 +132,29 @@ elif action != 'start':
   raise SystemExit(1)
 
 
-if exists(options.pidfile):
-  print "Pidfile %s already exists, is %s already running?" % (options.pidfile, program)
+if exists(pidfile):
+  print "Pidfile %s already exists, is %s already running?" % (pidfile, program)
   raise SystemExit(1)
 
 
 # Read config (we want failures to occur before daemonizing)
-settings.readFrom(options.config, 'cache')
+from carbon.conf import settings
+settings.readFrom(config, 'cache')
+
+if instance:
+  settings.readFrom(config, 'cache:%s' % instance)
+
+# Import application components
+from carbon.log import logToStdout, logToDir
+from carbon.listeners import MetricLineReceiver, MetricPickleReceiver, CacheQueryHandler, startListener
+from carbon.cache import MetricCache
+from carbon.instrumentation import startRecording
+from carbon.events import metricReceived
+
+storage_schemas = join(CONF_DIR, 'storage-schemas.conf')
+if not exists(storage_schemas):
+  print "Error: missing required config %s" % storage_schemas
+  sys.exit(1)
 
 use_amqp = settings.get("ENABLE_AMQP", False)
 if use_amqp:
@@ -153,8 +174,8 @@ if options.debug:
   logToStdout()
 
 else:
-  if not isdir(options.logdir):
-    os.makedirs(options.logdir)
+  if not isdir(logdir):
+    os.makedirs(logdir)
 
   if settings.USER:
     print "Dropping privileges to become the user %s" % settings.USER
@@ -162,22 +183,22 @@ else:
   from carbon.util import daemonize, dropprivs
   daemonize()
 
-  pidfile = open(options.pidfile, 'w')
-  pidfile.write( str(os.getpid()) )
-  pidfile.close()
+  pf = open(pidfile, 'w')
+  pf.write( str(os.getpid()) )
+  pf.close()
 
   def shutdown():
-    if os.path.exists(options.pidfile):
-      os.unlink(options.pidfile)
+    if os.path.exists(pidfile):
+      os.unlink(pidfile)
 
   atexit.register(shutdown)
 
   if settings.USER:
     pwent = pwd.getpwnam(settings.USER)
-    os.chown(options.pidfile, pwent.pw_uid, pwent.pw_gid)
+    os.chown(pidfile, pwent.pw_uid, pwent.pw_gid)
     dropprivs(settings.USER)
 
-  logToDir(options.logdir)
+  logToDir(logdir)
 
 # Configure application components
 metricReceived.installHandler(MetricCache.store)
@@ -191,12 +212,17 @@ if use_amqp:
                               exchange_name=amqp_exchange_name,
                               verbose=amqp_verbose)
 
+if settings.ENABLE_MANHOLE:
+  from carbon import manhole
+  manhole.start()
+
+from carbon.writer import startWriter # have to import this *after* settings are defined
 startWriter()
-startRecordingCacheMetrics()
+startRecording()
 
 
 # Run the twisted reactor
-print "%s running" % program
+print "%s running [instance %s]" % (program, instance)
 
 if options.profile:
   import cProfile

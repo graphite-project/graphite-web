@@ -1,0 +1,57 @@
+
+.graphAreaBody {
+  color: white;
+  background-color: black;
+}
+
+div.graph-container {
+  /* display: inline; */
+  float: left;
+  margin: 7px;
+  margin-right: 0;
+}
+
+div.graph-overlay {
+  position: relative;
+  visibility: hidden;
+}
+
+div.overlay-close-button {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: #faa;
+  color: #922;
+  font-family: monospace;
+  font-size: 8pt;
+  font-weight: bold;
+  text-align: center;
+  width: 15px;
+  height: 15px;
+  border-radius:         5px;
+  -moz-border-radius:    5px;
+  -webkit-border-radius: 5px;
+  -khtml-border-radius:  5px;
+}
+
+img.graph-img {
+  visibility: visible;
+  padding: 3px;
+  background-color: rgb(160, 160, 160);
+  border-radius:         5px;
+  -moz-border-radius:    5px;
+  -webkit-border-radius: 5px;
+  -khtml-border-radius:  5px;
+}
+
+.graph-over img {
+  background-color: rgb(140, 140, 255);
+}
+
+.graph-over div.overlay-close-button {
+  visibility: visible;
+}
+
+.x-list-selected {
+  background-color: rgb(180, 180, 220);
+}

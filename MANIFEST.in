@@ -2,8 +2,12 @@ include INSTALL
 include LICENSE
 include check-dependencies.py
 include examples/*
+include conf/*.example
+include conf/graphite.wsgi.example
 include webapp/graphite/local_settings.py.example
 include webapp/graphite/render/graphTemplates.conf
+include webapp/graphite/thirdparty/pytz/pytz-LICENSE.txt
 recursive-include webapp/graphite/ *.html
 recursive-include webapp/content/ *
 exclude webapp/graphite/local_settings.py
+exclude conf/*.conf

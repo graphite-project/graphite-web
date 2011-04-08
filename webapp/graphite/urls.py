@@ -12,20 +12,27 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
+from django import VERSION
 from django.conf.urls.defaults import *
 from django.conf import settings
 from django.contrib import admin
 
 admin.autodiscover()
 
+if VERSION[:2] == (1, 0):
+  admin_urls = admin.site.root
+else:
+  admin_urls = include(admin.site.urls)
+
 urlpatterns = patterns('',
-  ('^admin/(.*)', admin.site.root),
+  ('^admin/', admin_urls),
   ('^render/?', include('graphite.render.urls')),
   ('^cli/?', include('graphite.cli.urls')),
   ('^composer/?', include('graphite.composer.urls')),
   ('^metrics/?', include('graphite.metrics.urls')),
   ('^browser/?', include('graphite.browser.urls')),
   ('^account/?', include('graphite.account.urls')),
+  ('^dashboard/?', include('graphite.dashboard.urls')),
   ('^whitelist/?', include('graphite.whitelist.urls')),
   ('^content/(?P<path>.*)$', 'django.views.static.serve', {'document_root' : settings.CONTENT_DIR}),
   ('', include('graphite.browser.urls')),

@@ -1,13 +1,13 @@
+import os
 import time
 import socket
 from resource import getrusage, RUSAGE_SELF
 from twisted.internet.task import LoopingCall
-from carbon.cache import MetricCache
-from carbon.relay import relay, RelayServers
 
 
 stats = {}
 HOSTNAME = socket.gethostname().replace('.','_')
+PAGESIZE = os.sysconf('SC_PAGESIZE')
 recordTask = None
 rusage = getrusage(RUSAGE_SELF)
 lastUsage = rusage.ru_utime + rusage.ru_stime
@@ -49,81 +49,97 @@ def getCpuUsage():
   return cpuUsagePercent
 
 
-# Cache metrics
-def startRecordingCacheMetrics():
+def getMemUsage():
+  rss_pages = int( open('/proc/self/statm').read().split()[1] )
+  return rss_pages * PAGESIZE
+
+
+def startRecording():
   global recordTask
-  assert not recordTask, "Already recording metrics"
-  recordTask = LoopingCall(recordCacheMetrics)
+  recordTask = LoopingCall(recordMetrics)
   recordTask.start(60, now=False)
 
 
-def recordCacheMetrics():
+def recordMetrics():
   global lastUsage
   myStats = stats.copy()
   stats.clear()
 
-  metricsReceived = myStats.get('metricsReceived', 0)
-  updateTimes = myStats.get('updateTimes', [])
-  committedPoints = myStats.get('committedPoints', 0)
-  creates = myStats.get('creates', 0)
-  errors = myStats.get('errors', 0)
-  cacheQueries = myStats.get('cacheQueries', 0)
+  # cache metrics
+  if program == 'carbon-cache':
+    record = cache_record
+    updateTimes = myStats.get('updateTimes', [])
+    committedPoints = myStats.get('committedPoints', 0)
+    creates = myStats.get('creates', 0)
+    errors = myStats.get('errors', 0)
+    cacheQueries = myStats.get('cacheQueries', 0)
 
-  if updateTimes:
-    avgUpdateTime = sum(updateTimes) / len(updateTimes)
-    store('avgUpdateTime', avgUpdateTime)
+    if updateTimes:
+      avgUpdateTime = sum(updateTimes) / len(updateTimes)
+      record('avgUpdateTime', avgUpdateTime)
 
-  if committedPoints:
-    pointsPerUpdate = len(updateTimes) / committedPoints
-    store('pointsPerUpdate', pointsPerUpdate)
+    if committedPoints:
+      pointsPerUpdate = len(updateTimes) / committedPoints
+      record('pointsPerUpdate', pointsPerUpdate)
 
-  store('metricsReceived', metricsReceived)
-  store('updateOperations', len(updateTimes))
-  store('committedPoints', committedPoints)
-  store('creates', creates)
-  store('errors', errors)
+    record('updateOperations', len(updateTimes))
+    record('committedPoints', committedPoints)
+    record('creates', creates)
+    record('errors', errors)
+    record('cache.queries', cacheQueries)
+    record('cache.queues', len(MetricCache))
+    record('cache.size', MetricCache.size)
 
-  store('cache.queries', cacheQueries)
-  store('cache.queues', len(MetricCache))
-  store('cache.size', MetricCache.size)
+  # relay metrics
+  elif program == 'carbon-relay':
+    record = relay_record
+    for connection in clientConnections:
+      prefix = 'destinations.%s.' % connection.destinationName
 
-  store('cpuUsage', getCpuUsage())
+      for metric in ('attemptedRelays', 'sent', 'queuedUntilReady', 'queuedUntilConnected', 'fullQueueDrops'):
+        metric = prefix + metric
+        record(metric, myStats.get(metric, 0))
+
+      record(prefix + 'queueSize', len(connection.queue))
+
+  # aggregator metrics
+  elif program == 'carbon-aggregator':
+    record = aggregator_record
+    record('allocatedBuffers', len(buffers.BufferManager))
+    record('bufferedDatapoints', sum([b.size for b in BufferManager.buffers.values()]))
+    record('datapointsReceived', myStats.get('datapointsReceived', 0))
+    record('aggregateDatapointsSent', myStats.get('aggregateDatapointsSent', 0))
+
+  # common metrics
+  record('metricsReceived', myStats.get('metricsReceived', 0))
+  record('cpuUsage', getCpuUsage())
+  try: # This only works on Linux
+    record('memUsage', getMemUsage())
+  except:
+    pass
 
 
-def store(metric, value):
-  fullMetric = 'carbon.agents.%s.%s' % (HOSTNAME, metric)
+def cache_record(metric, value):
+  if instance is None:
+    fullMetric = 'carbon.agents.%s.%s' % (HOSTNAME, metric)
+  else:
+    fullMetric = 'carbon.agents.%s-%s.%s' % (HOSTNAME, instance, metric)
   datapoint = (time.time(), value)
   MetricCache.store(fullMetric, datapoint)
 
-
-# Relay metrics
-def startRecordingRelayMetrics():
-  global recordTask
-  assert not recordTask, "Already recording metrics"
-  recordTask = LoopingCall(recordRelayMetrics)
-  recordTask.start(60, now=False)
-
-
-def recordRelayMetrics():
-  myStats = stats.copy()
-  stats.clear()
-
-  # global metrics
-  send('metricsReceived', myStats.get('metricsReceived', 0))
-  send('cpuUsage', getCpuUsage())
-
-  # per-destination metrics
-  for server in RelayServers:
-    prefix = 'destinations.%s.' % server.destinationName
-
-    for metric in ('attemptedRelays', 'sent', 'queuedUntilReady', 'queuedUntilConnected', 'fullQueueDrops'):
-      metric = prefix + metric
-      send(metric, myStats.get(metric, 0))
-
-    send(prefix + 'queueSize', len(server.queue))
-
-
-def send(metric, value):
+def relay_record(metric, value):
   fullMetric = 'carbon.relays.%s.%s' % (HOSTNAME, metric)
   datapoint = (time.time(), value)
   relay(fullMetric, datapoint)
+
+def aggregator_record(metric, value):
+  fullMetric = 'carbon.aggregator.%s.%s' % (HOSTNAME, metric)
+  datapoint = (time.time(), value)
+  send_metric(fullMetric, datapoint)
+
+
+# Avoid import circularity
+from carbon.aggregator.buffers import BufferManager
+from carbon.aggregator.client import send_metric
+from carbon.relay import relay, clientConnections
+from carbon.cache import MetricCache

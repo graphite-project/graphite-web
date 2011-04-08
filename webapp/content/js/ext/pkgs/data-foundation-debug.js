@@ -1,9 +1,10 @@
 /*!
- * Ext JS Library 3.0.0
- * Copyright(c) 2006-2009 Ext JS, LLC
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.3.1
+ * Copyright(c) 2006-2010 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
+
 /**
  * @class Ext.data.Api
  * @extends Object
@@ -64,8 +65,7 @@ restActions : {
 
         /**
          * Returns true if supplied action-name is a valid API action defined in <code>{@link #actions}</code> constants
-         * @param {String} action
-         * @param {String[]}(Optional) List of available CRUD actions.  Pass in list when executing multiple times for efficiency.
+         * @param {String} action Action to test for availability.
          * @return {Boolean}
          */
         isAction : function(action) {
@@ -97,7 +97,7 @@ restActions : {
         /**
          * Returns true if the supplied API is valid; that is, check that all keys match defined actions
          * otherwise returns an array of mistakes.
-         * @return {String[]||true}
+         * @return {String[]|true}
          */
         isValid : function(api){
             var invalid = [];
@@ -168,7 +168,8 @@ new Ext.data.HttpProxy({
                 proxy.api[action] = proxy.api[action] || proxy.url || proxy.directFn;
                 if (typeof(proxy.api[action]) == 'string') {
                     proxy.api[action] = {
-                        url: proxy.api[action]
+                        url: proxy.api[action],
+                        method: (proxy.restful === true) ? Ext.data.Api.restActions[action] : undefined
                     };
                 }
             }
@@ -182,11 +183,83 @@ new Ext.data.HttpProxy({
         restify : function(proxy) {
             proxy.restful = true;
             for (var verb in this.restActions) {
-                proxy.api[this.actions[verb]].method = this.restActions[verb];
+                proxy.api[this.actions[verb]].method ||
+                    (proxy.api[this.actions[verb]].method = this.restActions[verb]);
             }
+            // TODO: perhaps move this interceptor elsewhere?  like into DataProxy, perhaps?  Placed here
+            // to satisfy initial 3.0 final release of REST features.
+            proxy.onWrite = proxy.onWrite.createInterceptor(function(action, o, response, rs) {
+                var reader = o.reader;
+                var res = new Ext.data.Response({
+                    action: action,
+                    raw: response
+                });
+
+                switch (response.status) {
+                    case 200:   // standard 200 response, send control back to HttpProxy#onWrite by returning true from this intercepted #onWrite
+                        return true;
+                        break;
+                    case 201:   // entity created but no response returned
+                        if (Ext.isEmpty(res.raw.responseText)) {
+                          res.success = true;
+                        } else {
+                          //if the response contains data, treat it like a 200
+                          return true;
+                        }
+                        break;
+                    case 204:  // no-content.  Create a fake response.
+                        res.success = true;
+                        res.data = null;
+                        break;
+                    default:
+                        return true;
+                        break;
+                }
+                if (res.success === true) {
+                    this.fireEvent("write", this, action, res.data, res, rs, o.request.arg);
+                } else {
+                    this.fireEvent('exception', this, 'remote', action, o, res, rs);
+                }
+                o.request.callback.call(o.request.scope, res.data, res, res.success);
+
+                return false;   // <-- false to prevent intercepted function from running.
+            }, proxy);
         }
     };
 })();
+
+/**
+ * Ext.data.Response
+ * Experimental.  Do not use directly.
+ */
+Ext.data.Response = function(params, response) {
+    Ext.apply(this, params, {
+        raw: response
+    });
+};
+Ext.data.Response.prototype = {
+    message : null,
+    success : false,
+    status : null,
+    root : null,
+    raw : null,
+
+    getMessage : function() {
+        return this.message;
+    },
+    getSuccess : function() {
+        return this.success;
+    },
+    getStatus : function() {
+        return this.status;
+    },
+    getRoot : function() {
+        return this.root;
+    },
+    getRawResponse : function() {
+        return this.raw;
+    }
+};
 
 /**
  * @class Ext.data.Api.Error
@@ -208,6 +281,8 @@ Ext.apply(Ext.data.Api.Error.prototype, {
         'execute': 'Attempted to execute an unknown action.  Valid API actions are defined in Ext.data.Api.actions"'
     }
 });
+
+
 
 /**
  * @class Ext.data.SortTypes
@@ -309,15 +384,17 @@ Ext.data.SortTypes = {
  * <code>{@link #data}</code> and <code>{@link #id}</code> properties.</p>
  * <p>Record objects generated by this constructor inherit all the methods of Ext.data.Record listed below.</p>
  * @constructor
- * This constructor should not be used to create Record objects. Instead, use {@link #create} to
- * generate a subclass of Ext.data.Record configured with information about its constituent fields.
+ * <p>This constructor should not be used to create Record objects. Instead, use {@link #create} to
+ * generate a subclass of Ext.data.Record configured with information about its constituent fields.<p>
+ * <p><b>The generated constructor has the same signature as this constructor.</b></p>
  * @param {Object} data (Optional) An object, the properties of which provide values for the new Record's
  * fields. If not specified the <code>{@link Ext.data.Field#defaultValue defaultValue}</code>
  * for each field will be assigned.
- * @param {Object} id (Optional) The id of the Record. This id should be unique, and is used by the
- * {@link Ext.data.Store} object which owns the Record to index its collection of Records. If
- * an <code>id</code> is not specified a <b><code>{@link #phantom}</code></b> Record will be created
- * with an {@link #Record.id automatically generated id}.
+ * @param {Object} id (Optional) The id of the Record. The id is used by the
+ * {@link Ext.data.Store} object which owns the Record to index its collection
+ * of Records (therefore this id should be unique within each store). If an
+ * <code>id</code> is not specified a <b><code>{@link #phantom}</code></b>
+ * Record will be created with an {@link #Record.id automatically generated id}.
  */
 Ext.data.Record = function(data, id){
     // if no id, call the auto id method
@@ -360,8 +437,8 @@ var myNewRecord = new TopicRecord(
 myStore.{@link Ext.data.Store#add add}(myNewRecord);
 </code></pre>
  * @method create
- * @return {function} A constructor which is used to create new Records according
- * to the definition. The constructor has the same signature as {@link #Ext.data.Record}.
+ * @return {Function} A constructor which is used to create new Records according
+ * to the definition. The constructor has the same signature as {@link #Record}.
  * @static
  */
 Ext.data.Record.create = function(o){
@@ -424,21 +501,33 @@ Ext.data.Record.prototype = {
      * @type {Object}
      */
     /**
+     * <p><b>Only present if this Record was created by an {@link Ext.data.XmlReader XmlReader}</b>.</p>
+     * <p>The XML element which was the source of the data for this Record.</p>
+     * @property node
+     * @type {XMLElement}
+     */
+    /**
+     * <p><b>Only present if this Record was created by an {@link Ext.data.ArrayReader ArrayReader} or a {@link Ext.data.JsonReader JsonReader}</b>.</p>
+     * <p>The Array or object which was the source of the data for this Record.</p>
+     * @property json
+     * @type {Array|Object}
+     */
+    /**
      * Readonly flag - true if this Record has been modified.
      * @type Boolean
      */
     dirty : false,
     editing : false,
-    error: null,
+    error : null,
     /**
      * This object contains a key and value storing the original values of all modified
      * fields or is null if no fields have been modified.
      * @property modified
      * @type {Object}
      */
-    modified: null,
+    modified : null,
     /**
-     * <tt>false</tt> when the record does not yet exist in a server-side database (see
+     * <tt>true</tt> when the record does not yet exist in a server-side database (see
      * {@link #markDirty}).  Any record which has a real database pk set as its id property
      * is NOT a phantom -- it's real.
      * @property phantom
@@ -476,7 +565,7 @@ rec.{@link #commit}();
 
 // update the record in the store, bypass setting dirty flag,
 // and do not store the change in the {@link Ext.data.Store#getModifiedRecords modified records}
-rec.{@link #data}['firstname'] = 'Wilma'); // updates record, but not the view
+rec.{@link #data}['firstname'] = 'Wilma'; // updates record, but not the view
 rec.{@link #commit}(); // updates the view
      * </code></pre>
      * <b>Notes</b>:<div class="mdetail-params"><ul>
@@ -488,20 +577,18 @@ rec.{@link #commit}(); // updates the view
      * event fire.</li>
      * </ul></div>
      * @param {String} name The {@link Ext.data.Field#name name of the field} to set.
-     * @param {Object} value The value to set the field to.
+     * @param {String/Object/Array} value The value to set the field to.
      */
     set : function(name, value){
-        var isObj = (typeof value === 'object');
-        if(!isObj && String(this.data[name]) === String(value)){
+        var encode = Ext.isPrimitive(value) ? String : Ext.encode;
+        if(encode(this.data[name]) == encode(value)) {
             return;
-        } else if (isObj && Ext.encode(this.data[name]) === Ext.encode(value)) {
-            return;
-        }
+        }        
         this.dirty = true;
         if(!this.modified){
             this.modified = {};
         }
-        if(typeof this.modified[name] == 'undefined'){
+        if(this.modified[name] === undefined){
             this.modified[name] = this.data[name];
         }
         this.data[name] = value;
@@ -511,21 +598,21 @@ rec.{@link #commit}(); // updates the view
     },
 
     // private
-    afterEdit: function(){
-        if(this.store){
+    afterEdit : function(){
+        if (this.store != undefined && typeof this.store.afterEdit == "function") {
             this.store.afterEdit(this);
         }
     },
 
     // private
-    afterReject: function(){
+    afterReject : function(){
         if(this.store){
             this.store.afterReject(this);
         }
     },
 
     // private
-    afterCommit: function(){
+    afterCommit : function(){
         if(this.store){
             this.store.afterCommit(this);
         }
@@ -635,10 +722,13 @@ rec.{@link #commit}(); // updates the view
     },
 
     /**
-     * Creates a copy of this Record.
-     * @param {String} id (optional) A new Record id, defaults to {@link #Record.id autogenerating an id}.
-     * Note: if an <code>id</code> is not specified the copy created will be a
-     * <code>{@link #phantom}</code> Record.
+     * Creates a copy (clone) of this Record.
+     * @param {String} id (optional) A new Record id, defaults to the id
+     * of the record being copied. See <code>{@link #id}</code>. 
+     * To generate a phantom record with a new id use:<pre><code>
+var rec = record.copy(); // clone the record
+Ext.data.Record.id(rec); // automatically generate a unique sequential id
+     * </code></pre>
      * @return {Record}
      */
     copy : function(newId) {
@@ -685,7 +775,8 @@ rec.{@link #commit}(); // updates the view
             this.modified[f.name] = this.data[f.name];
         },this);
     }
-};/**
+};
+/**
  * @class Ext.StoreMgr
  * @extends Ext.util.MixedCollection
  * The default global group of stores.
@@ -813,286 +904,16 @@ var recId = 100; // provide unique id for the record
 var r = new myStore.recordType(defaultData, ++recId); // create new record
 myStore.{@link #insert}(0, r); // insert a new record into the store (also see {@link #add})
  * </code></pre>
+ * <p><u>Writing Data</u></p>
+ * <p>And <b>new in Ext version 3</b>, use the new {@link Ext.data.DataWriter DataWriter} to create an automated, <a href="http://extjs.com/deploy/dev/examples/writer/writer.html">Writable Store</a>
+ * along with <a href="http://extjs.com/deploy/dev/examples/restful/restful.html">RESTful features.</a>
  * @constructor
  * Creates a new Store.
  * @param {Object} config A config object containing the objects needed for the Store to access data,
  * and read the data into Records.
  * @xtype store
  */
-Ext.data.Store = function(config){
-    this.data = new Ext.util.MixedCollection(false);
-    this.data.getKey = function(o){
-        return o.id;
-    };
-    /**
-     * See the <code>{@link #baseParams corresponding configuration option}</code>
-     * for a description of this property.
-     * To modify this property see <code>{@link #setBaseParam}</code>.
-     * @property
-     */
-    this.baseParams = {};
-
-    // temporary removed-records cache
-    this.removed = [];
-
-    if(config && config.data){
-        this.inlineData = config.data;
-        delete config.data;
-    }
-
-    Ext.apply(this, config);
-    
-    this.paramNames = Ext.applyIf(this.paramNames || {}, this.defaultParamNames);
-
-    if(this.url && !this.proxy){
-        this.proxy = new Ext.data.HttpProxy({url: this.url});
-    }
-    // If Store is RESTful, so too is the DataProxy
-    if (this.restful === true && this.proxy) {
-        // When operating RESTfully, a unique transaction is generated for each record.
-        this.batch = false;
-        Ext.data.Api.restify(this.proxy);
-    }
-
-    if(this.reader){ // reader passed
-        if(!this.recordType){
-            this.recordType = this.reader.recordType;
-        }
-        if(this.reader.onMetaChange){
-            this.reader.onMetaChange = this.onMetaChange.createDelegate(this);
-        }
-        if (this.writer) { // writer passed
-            this.writer.meta = this.reader.meta;
-            this.pruneModifiedRecords = true;
-        }
-    }
-
-    /**
-     * The {@link Ext.data.Record Record} constructor as supplied to (or created by) the
-     * {@link Ext.data.DataReader Reader}. Read-only.
-     * <p>If the Reader was constructed by passing in an Array of {@link Ext.data.Field} definition objects,
-     * instead of a Record constructor, it will implicitly create a Record constructor from that Array (see
-     * {@link Ext.data.Record}.{@link Ext.data.Record#create create} for additional details).</p>
-     * <p>This property may be used to create new Records of the type held in this Store, for example:</p><pre><code>
-// create the data store
-var store = new Ext.data.ArrayStore({
-    autoDestroy: true,
-    fields: [
-       {name: 'company'},
-       {name: 'price', type: 'float'},
-       {name: 'change', type: 'float'},
-       {name: 'pctChange', type: 'float'},
-       {name: 'lastChange', type: 'date', dateFormat: 'n/j h:ia'}
-    ]
-});
-store.loadData(myData);
-
-// create the Grid
-var grid = new Ext.grid.EditorGridPanel({
-    store: store,
-    colModel: new Ext.grid.ColumnModel({
-        columns: [
-            {id:'company', header: 'Company', width: 160, dataIndex: 'company'},
-            {header: 'Price', renderer: 'usMoney', dataIndex: 'price'},
-            {header: 'Change', renderer: change, dataIndex: 'change'},
-            {header: '% Change', renderer: pctChange, dataIndex: 'pctChange'},
-            {header: 'Last Updated', width: 85,
-                renderer: Ext.util.Format.dateRenderer('m/d/Y'),
-                dataIndex: 'lastChange'}
-        ],
-        defaults: {
-            sortable: true,
-            width: 75
-        }
-    }),
-    autoExpandColumn: 'company', // match the id specified in the column model
-    height:350,
-    width:600,
-    title:'Array Grid',
-    tbar: [{
-        text: 'Add Record',
-        handler : function(){
-            var defaultData = {
-                change: 0,
-                company: 'New Company',
-                lastChange: (new Date()).clearTime(),
-                pctChange: 0,
-                price: 10
-            };
-            var recId = 3; // provide unique id
-            var p = new store.recordType(defaultData, recId); // create new record
-            grid.stopEditing();
-            store.{@link #insert}(0, p); // insert a new record into the store (also see {@link #add})
-            grid.startEditing(0, 0);
-        }
-    }]
-});
-     * </code></pre>
-     * @property recordType
-     * @type Function
-     */
-
-    if(this.recordType){
-        /**
-         * A {@link Ext.util.MixedCollection MixedCollection} containing the defined {@link Ext.data.Field Field}s
-         * for the {@link Ext.data.Record Records} stored in this Store. Read-only.
-         * @property fields
-         * @type Ext.util.MixedCollection
-         */
-        this.fields = this.recordType.prototype.fields;
-    }
-    this.modified = [];
-
-    this.addEvents(
-        /**
-         * @event datachanged
-         * Fires when the data cache has changed in a bulk manner (e.g., it has been sorted, filtered, etc.) and a
-         * widget that is using this Store as a Record cache should refresh its view.
-         * @param {Store} this
-         */
-        'datachanged',
-        /**
-         * @event metachange
-         * Fires when this store's reader provides new metadata (fields). This is currently only supported for JsonReaders.
-         * @param {Store} this
-         * @param {Object} meta The JSON metadata
-         */
-        'metachange',
-        /**
-         * @event add
-         * Fires when Records have been {@link #add}ed to the Store
-         * @param {Store} this
-         * @param {Ext.data.Record[]} records The array of Records added
-         * @param {Number} index The index at which the record(s) were added
-         */
-        'add',
-        /**
-         * @event remove
-         * Fires when a Record has been {@link #remove}d from the Store
-         * @param {Store} this
-         * @param {Ext.data.Record} record The Record that was removed
-         * @param {Number} index The index at which the record was removed
-         */
-        'remove',
-        /**
-         * @event update
-         * Fires when a Record has been updated
-         * @param {Store} this
-         * @param {Ext.data.Record} record The Record that was updated
-         * @param {String} operation The update operation being performed.  Value may be one of:
-         * <pre><code>
- Ext.data.Record.EDIT
- Ext.data.Record.REJECT
- Ext.data.Record.COMMIT
-         * </code></pre>
-         */
-        'update',
-        /**
-         * @event clear
-         * Fires when the data cache has been cleared.
-         * @param {Store} this
-         */
-        'clear',
-        /**
-         * @event exception
-         * <p>Fires if an exception occurs in the Proxy during a remote request.
-         * This event is relayed through the corresponding {@link Ext.data.DataProxy}.
-         * See {@link Ext.data.DataProxy}.{@link Ext.data.DataProxy#exception exception}
-         * for additional details.
-         * @param {misc} misc See {@link Ext.data.DataProxy}.{@link Ext.data.DataProxy#exception exception}
-         * for description.
-         */
-        'exception',
-        /**
-         * @event beforeload
-         * Fires before a request is made for a new data object.  If the beforeload handler returns
-         * <tt>false</tt> the {@link #load} action will be canceled.
-         * @param {Store} this
-         * @param {Object} options The loading options that were specified (see {@link #load} for details)
-         */
-        'beforeload',
-        /**
-         * @event load
-         * Fires after a new set of Records has been loaded.
-         * @param {Store} this
-         * @param {Ext.data.Record[]} records The Records that were loaded
-         * @param {Object} options The loading options that were specified (see {@link #load} for details)
-         */
-        'load',
-        /**
-         * @event loadexception
-         * <p>This event is <b>deprecated</b> in favor of the catch-all <b><code>{@link #exception}</code></b>
-         * event instead.</p>
-         * <p>This event is relayed through the corresponding {@link Ext.data.DataProxy}.
-         * See {@link Ext.data.DataProxy}.{@link Ext.data.DataProxy#loadexception loadexception}
-         * for additional details.
-         * @param {misc} misc See {@link Ext.data.DataProxy}.{@link Ext.data.DataProxy#loadexception loadexception}
-         * for description.
-         */
-        'loadexception',
-        /**
-         * @event beforewrite
-         * @param {DataProxy} this
-         * @param {String} action [Ext.data.Api.actions.create|update|destroy]
-         * @param {Record/Array[Record]} rs
-         * @param {Object} options The loading options that were specified. Edit <code>options.params</code> to add Http parameters to the request.  (see {@link #save} for details)
-         * @param {Object} arg The callback's arg object passed to the {@link #request} function
-         */
-        'beforewrite',
-        /**
-         * @event write
-         * Fires if the server returns 200 after an Ext.data.Api.actions CRUD action.
-         * Success or failure of the action is available in the <code>result['successProperty']</code> property.
-         * The server-code might set the <code>successProperty</code> to <tt>false</tt> if a database validation
-         * failed, for example.
-         * @param {Ext.data.Store} store
-         * @param {String} action [Ext.data.Api.actions.create|update|destroy]
-         * @param {Object} result The 'data' picked-out out of the response for convenience.
-         * @param {Ext.Direct.Transaction} res
-         * @param {Record/Record[]} rs Store's records, the subject(s) of the write-action
-         */
-        'write'
-    );
-
-    if(this.proxy){
-        this.relayEvents(this.proxy,  ['loadexception', 'exception']);
-    }
-    // With a writer set for the Store, we want to listen to add/remove events to remotely create/destroy records.
-    if (this.writer) {
-        this.on({
-            scope: this,
-            add: this.createRecords,
-            remove: this.destroyRecord,
-            update: this.updateRecord
-        });
-    }
-
-    this.sortToggle = {};
-    if(this.sortField){
-        this.setDefaultSort(this.sortField, this.sortDir);
-    }else if(this.sortInfo){
-        this.setDefaultSort(this.sortInfo.field, this.sortInfo.direction);
-    }
-
-    Ext.data.Store.superclass.constructor.call(this);
-
-    if(this.id){
-        this.storeId = this.id;
-        delete this.id;
-    }
-    if(this.storeId){
-        Ext.StoreMgr.register(this);
-    }
-    if(this.inlineData){
-        this.loadData(this.inlineData);
-        delete this.inlineData;
-    }else if(this.autoLoad){
-        this.load.defer(10, this, [
-            typeof this.autoLoad == 'object' ?
-                this.autoLoad : undefined]);
-    }
-};
-Ext.extend(Ext.data.Store, Ext.util.Observable, {
+Ext.data.Store = Ext.extend(Ext.util.Observable, {
     /**
      * @cfg {String} storeId If passed, the id to use to register with the <b>{@link Ext.StoreMgr StoreMgr}</b>.
      * <p><b>Note</b>: if a (deprecated) <tt>{@link #id}</tt> is specified it will supersede the <tt>storeId</tt>
@@ -1241,7 +1062,7 @@ sortInfo: {
      * internally be set to <tt>false</tt>.</p>
      */
     restful: false,
-    
+
     /**
      * @cfg {Object} paramNames
      * <p>An object containing properties which specify the names of the paging and
@@ -1261,7 +1082,7 @@ sortInfo: {
      * the parameter names to use in its {@link #load requests}.
      */
     paramNames : undefined,
-    
+
     /**
      * @cfg {Object} defaultParamNames
      * Provides the default values for the {@link #paramNames} property. To globally modify the parameters
@@ -1274,17 +1095,364 @@ sortInfo: {
         dir : 'dir'
     },
 
+    isDestroyed: false,    
+    hasMultiSort: false,
+
+    // private
+    batchKey : '_ext_batch_',
+
+    constructor : function(config){
+        /**
+         * @property multiSort
+         * @type Boolean
+         * True if this store is currently sorted by more than one field/direction combination.
+         */
+        
+        /**
+         * @property isDestroyed
+         * @type Boolean
+         * True if the store has been destroyed already. Read only
+         */
+        
+        this.data = new Ext.util.MixedCollection(false);
+        this.data.getKey = function(o){
+            return o.id;
+        };
+        
+
+        // temporary removed-records cache
+        this.removed = [];
+
+        if(config && config.data){
+            this.inlineData = config.data;
+            delete config.data;
+        }
+
+        Ext.apply(this, config);
+
+        /**
+         * See the <code>{@link #baseParams corresponding configuration option}</code>
+         * for a description of this property.
+         * To modify this property see <code>{@link #setBaseParam}</code>.
+         * @property
+         */
+        this.baseParams = Ext.isObject(this.baseParams) ? this.baseParams : {};
+
+        this.paramNames = Ext.applyIf(this.paramNames || {}, this.defaultParamNames);
+
+        if((this.url || this.api) && !this.proxy){
+            this.proxy = new Ext.data.HttpProxy({url: this.url, api: this.api});
+        }
+        // If Store is RESTful, so too is the DataProxy
+        if (this.restful === true && this.proxy) {
+            // When operating RESTfully, a unique transaction is generated for each record.
+            // TODO might want to allow implemention of faux REST where batch is possible using RESTful routes only.
+            this.batch = false;
+            Ext.data.Api.restify(this.proxy);
+        }
+
+        if(this.reader){ // reader passed
+            if(!this.recordType){
+                this.recordType = this.reader.recordType;
+            }
+            if(this.reader.onMetaChange){
+                this.reader.onMetaChange = this.reader.onMetaChange.createSequence(this.onMetaChange, this);
+            }
+            if (this.writer) { // writer passed
+                if (this.writer instanceof(Ext.data.DataWriter) === false) {    // <-- config-object instead of instance.
+                    this.writer = this.buildWriter(this.writer);
+                }
+                this.writer.meta = this.reader.meta;
+                this.pruneModifiedRecords = true;
+            }
+        }
+
+        /**
+         * The {@link Ext.data.Record Record} constructor as supplied to (or created by) the
+         * {@link Ext.data.DataReader Reader}. Read-only.
+         * <p>If the Reader was constructed by passing in an Array of {@link Ext.data.Field} definition objects,
+         * instead of a Record constructor, it will implicitly create a Record constructor from that Array (see
+         * {@link Ext.data.Record}.{@link Ext.data.Record#create create} for additional details).</p>
+         * <p>This property may be used to create new Records of the type held in this Store, for example:</p><pre><code>
+    // create the data store
+    var store = new Ext.data.ArrayStore({
+        autoDestroy: true,
+        fields: [
+           {name: 'company'},
+           {name: 'price', type: 'float'},
+           {name: 'change', type: 'float'},
+           {name: 'pctChange', type: 'float'},
+           {name: 'lastChange', type: 'date', dateFormat: 'n/j h:ia'}
+        ]
+    });
+    store.loadData(myData);
+
+    // create the Grid
+    var grid = new Ext.grid.EditorGridPanel({
+        store: store,
+        colModel: new Ext.grid.ColumnModel({
+            columns: [
+                {id:'company', header: 'Company', width: 160, dataIndex: 'company'},
+                {header: 'Price', renderer: 'usMoney', dataIndex: 'price'},
+                {header: 'Change', renderer: change, dataIndex: 'change'},
+                {header: '% Change', renderer: pctChange, dataIndex: 'pctChange'},
+                {header: 'Last Updated', width: 85,
+                    renderer: Ext.util.Format.dateRenderer('m/d/Y'),
+                    dataIndex: 'lastChange'}
+            ],
+            defaults: {
+                sortable: true,
+                width: 75
+            }
+        }),
+        autoExpandColumn: 'company', // match the id specified in the column model
+        height:350,
+        width:600,
+        title:'Array Grid',
+        tbar: [{
+            text: 'Add Record',
+            handler : function(){
+                var defaultData = {
+                    change: 0,
+                    company: 'New Company',
+                    lastChange: (new Date()).clearTime(),
+                    pctChange: 0,
+                    price: 10
+                };
+                var recId = 3; // provide unique id
+                var p = new store.recordType(defaultData, recId); // create new record
+                grid.stopEditing();
+                store.{@link #insert}(0, p); // insert a new record into the store (also see {@link #add})
+                grid.startEditing(0, 0);
+            }
+        }]
+    });
+         * </code></pre>
+         * @property recordType
+         * @type Function
+         */
+
+        if(this.recordType){
+            /**
+             * A {@link Ext.util.MixedCollection MixedCollection} containing the defined {@link Ext.data.Field Field}s
+             * for the {@link Ext.data.Record Records} stored in this Store. Read-only.
+             * @property fields
+             * @type Ext.util.MixedCollection
+             */
+            this.fields = this.recordType.prototype.fields;
+        }
+        this.modified = [];
+
+        this.addEvents(
+            /**
+             * @event datachanged
+             * Fires when the data cache has changed in a bulk manner (e.g., it has been sorted, filtered, etc.) and a
+             * widget that is using this Store as a Record cache should refresh its view.
+             * @param {Store} this
+             */
+            'datachanged',
+            /**
+             * @event metachange
+             * Fires when this store's reader provides new metadata (fields). This is currently only supported for JsonReaders.
+             * @param {Store} this
+             * @param {Object} meta The JSON metadata
+             */
+            'metachange',
+            /**
+             * @event add
+             * Fires when Records have been {@link #add}ed to the Store
+             * @param {Store} this
+             * @param {Ext.data.Record[]} records The array of Records added
+             * @param {Number} index The index at which the record(s) were added
+             */
+            'add',
+            /**
+             * @event remove
+             * Fires when a Record has been {@link #remove}d from the Store
+             * @param {Store} this
+             * @param {Ext.data.Record} record The Record that was removed
+             * @param {Number} index The index at which the record was removed
+             */
+            'remove',
+            /**
+             * @event update
+             * Fires when a Record has been updated
+             * @param {Store} this
+             * @param {Ext.data.Record} record The Record that was updated
+             * @param {String} operation The update operation being performed.  Value may be one of:
+             * <pre><code>
+     Ext.data.Record.EDIT
+     Ext.data.Record.REJECT
+     Ext.data.Record.COMMIT
+             * </code></pre>
+             */
+            'update',
+            /**
+             * @event clear
+             * Fires when the data cache has been cleared.
+             * @param {Store} this
+             * @param {Record[]} records The records that were cleared.
+             */
+            'clear',
+            /**
+             * @event exception
+             * <p>Fires if an exception occurs in the Proxy during a remote request.
+             * This event is relayed through the corresponding {@link Ext.data.DataProxy}.
+             * See {@link Ext.data.DataProxy}.{@link Ext.data.DataProxy#exception exception}
+             * for additional details.
+             * @param {misc} misc See {@link Ext.data.DataProxy}.{@link Ext.data.DataProxy#exception exception}
+             * for description.
+             */
+            'exception',
+            /**
+             * @event beforeload
+             * Fires before a request is made for a new data object.  If the beforeload handler returns
+             * <tt>false</tt> the {@link #load} action will be canceled.
+             * @param {Store} this
+             * @param {Object} options The loading options that were specified (see {@link #load} for details)
+             */
+            'beforeload',
+            /**
+             * @event load
+             * Fires after a new set of Records has been loaded.
+             * @param {Store} this
+             * @param {Ext.data.Record[]} records The Records that were loaded
+             * @param {Object} options The loading options that were specified (see {@link #load} for details)
+             */
+            'load',
+            /**
+             * @event loadexception
+             * <p>This event is <b>deprecated</b> in favor of the catch-all <b><code>{@link #exception}</code></b>
+             * event instead.</p>
+             * <p>This event is relayed through the corresponding {@link Ext.data.DataProxy}.
+             * See {@link Ext.data.DataProxy}.{@link Ext.data.DataProxy#loadexception loadexception}
+             * for additional details.
+             * @param {misc} misc See {@link Ext.data.DataProxy}.{@link Ext.data.DataProxy#loadexception loadexception}
+             * for description.
+             */
+            'loadexception',
+            /**
+             * @event beforewrite
+             * @param {Ext.data.Store} store
+             * @param {String} action [Ext.data.Api.actions.create|update|destroy]
+             * @param {Record/Record[]} rs The Record(s) being written.
+             * @param {Object} options The loading options that were specified. Edit <code>options.params</code> to add Http parameters to the request.  (see {@link #save} for details)
+             * @param {Object} arg The callback's arg object passed to the {@link #request} function
+             */
+            'beforewrite',
+            /**
+             * @event write
+             * Fires if the server returns 200 after an Ext.data.Api.actions CRUD action.
+             * Success of the action is determined in the <code>result['successProperty']</code>property (<b>NOTE</b> for RESTful stores,
+             * a simple 20x response is sufficient for the actions "destroy" and "update".  The "create" action should should return 200 along with a database pk).
+             * @param {Ext.data.Store} store
+             * @param {String} action [Ext.data.Api.actions.create|update|destroy]
+             * @param {Object} result The 'data' picked-out out of the response for convenience.
+             * @param {Ext.Direct.Transaction} res
+             * @param {Record/Record[]} rs Store's records, the subject(s) of the write-action
+             */
+            'write',
+            /**
+             * @event beforesave
+             * Fires before a save action is called. A save encompasses destroying records, updating records and creating records.
+             * @param {Ext.data.Store} store
+             * @param {Object} data An object containing the data that is to be saved. The object will contain a key for each appropriate action,
+             * with an array of records for each action.
+             */
+            'beforesave',
+            /**
+             * @event save
+             * Fires after a save is completed. A save encompasses destroying records, updating records and creating records.
+             * @param {Ext.data.Store} store
+             * @param {Number} batch The identifier for the batch that was saved.
+             * @param {Object} data An object containing the data that is to be saved. The object will contain a key for each appropriate action,
+             * with an array of records for each action.
+             */
+            'save'
+
+        );
+
+        if(this.proxy){
+            // TODO remove deprecated loadexception with ext-3.0.1
+            this.relayEvents(this.proxy,  ['loadexception', 'exception']);
+        }
+        // With a writer set for the Store, we want to listen to add/remove events to remotely create/destroy records.
+        if (this.writer) {
+            this.on({
+                scope: this,
+                add: this.createRecords,
+                remove: this.destroyRecord,
+                update: this.updateRecord,
+                clear: this.onClear
+            });
+        }
+
+        this.sortToggle = {};
+        if(this.sortField){
+            this.setDefaultSort(this.sortField, this.sortDir);
+        }else if(this.sortInfo){
+            this.setDefaultSort(this.sortInfo.field, this.sortInfo.direction);
+        }
+
+        Ext.data.Store.superclass.constructor.call(this);
+
+        if(this.id){
+            this.storeId = this.id;
+            delete this.id;
+        }
+        if(this.storeId){
+            Ext.StoreMgr.register(this);
+        }
+        if(this.inlineData){
+            this.loadData(this.inlineData);
+            delete this.inlineData;
+        }else if(this.autoLoad){
+            this.load.defer(10, this, [
+                typeof this.autoLoad == 'object' ?
+                    this.autoLoad : undefined]);
+        }
+        // used internally to uniquely identify a batch
+        this.batchCounter = 0;
+        this.batches = {};
+    },
+
+    /**
+     * builds a DataWriter instance when Store constructor is provided with a writer config-object instead of an instace.
+     * @param {Object} config Writer configuration
+     * @return {Ext.data.DataWriter}
+     * @private
+     */
+    buildWriter : function(config) {
+        var klass = undefined,
+            type = (config.format || 'json').toLowerCase();
+        switch (type) {
+            case 'json':
+                klass = Ext.data.JsonWriter;
+                break;
+            case 'xml':
+                klass = Ext.data.XmlWriter;
+                break;
+            default:
+                klass = Ext.data.JsonWriter;
+        }
+        return new klass(config);
+    },
+
     /**
      * Destroys the store.
      */
     destroy : function(){
-        if(this.storeId){
-            Ext.StoreMgr.unregister(this);
+        if(!this.isDestroyed){
+            if(this.storeId){
+                Ext.StoreMgr.unregister(this);
+            }
+            this.clearData();
+            this.data = null;
+            Ext.destroy(this.proxy);
+            this.reader = this.writer = null;
+            this.purgeListeners();
+            this.isDestroyed = true;
         }
-        this.data = null;
-        Ext.destroy(this.proxy);
-        this.reader = this.writer = null;
-        this.purgeListeners();
     },
 
     /**
@@ -1294,19 +1462,31 @@ sortInfo: {
      * @param {Ext.data.Record[]} records An Array of Ext.data.Record objects
      * to add to the cache. See {@link #recordType}.
      */
-    add : function(records){
+    add : function(records) {
+        var i, len, record, index;
+        
         records = [].concat(records);
-        if(records.length < 1){
+        if (records.length < 1) {
             return;
         }
-        for(var i = 0, len = records.length; i < len; i++){
-            records[i].join(this);
+        
+        for (i = 0, len = records.length; i < len; i++) {
+            record = records[i];
+            
+            record.join(this);
+            
+            if (record.dirty || record.phantom) {
+                this.modified.push(record);
+            }
         }
-        var index = this.data.length;
+        
+        index = this.data.length;
         this.data.addAll(records);
-        if(this.snapshot){
+        
+        if (this.snapshot) {
             this.snapshot.addAll(records);
         }
+        
         this.fireEvent('add', this, records, index);
     },
 
@@ -1319,21 +1499,42 @@ sortInfo: {
         var index = this.findInsertIndex(record);
         this.insert(index, record);
     },
+    
+    /**
+     * @private
+     * Update a record within the store with a new reference
+     */
+    doUpdate : function(rec){
+        this.data.replace(rec.id, rec);
+        if(this.snapshot){
+            this.snapshot.replace(rec.id, rec);
+        }
+        this.fireEvent('update', this, rec, Ext.data.Record.COMMIT);
+    },
 
     /**
-     * Remove a Record from the Store and fires the {@link #remove} event.
-     * @param {Ext.data.Record} record The Ext.data.Record object to remove from the cache.
+     * Remove Records from the Store and fires the {@link #remove} event.
+     * @param {Ext.data.Record/Ext.data.Record[]} record The record object or array of records to remove from the cache.
      */
     remove : function(record){
+        if(Ext.isArray(record)){
+            Ext.each(record, function(r){
+                this.remove(r);
+            }, this);
+            return;
+        }
         var index = this.data.indexOf(record);
         if(index > -1){
+            record.join(null);
             this.data.removeAt(index);
-            if(this.pruneModifiedRecords){
-                this.modified.remove(record);
-            }
-            if(this.snapshot){
-                this.snapshot.remove(record);
-            }
+        }
+        if(this.pruneModifiedRecords){
+            this.modified.remove(record);
+        }
+        if(this.snapshot){
+            this.snapshot.remove(record);
+        }
+        if(index > -1){
             this.fireEvent('remove', this, record, index);
         }
     },
@@ -1348,16 +1549,30 @@ sortInfo: {
 
     /**
      * Remove all Records from the Store and fires the {@link #clear} event.
+     * @param {Boolean} silent [false] Defaults to <tt>false</tt>.  Set <tt>true</tt> to not fire clear event.
      */
-    removeAll : function(){
-        this.data.clear();
+    removeAll : function(silent){
+        var items = [];
+        this.each(function(rec){
+            items.push(rec);
+        });
+        this.clearData();
         if(this.snapshot){
             this.snapshot.clear();
         }
         if(this.pruneModifiedRecords){
             this.modified = [];
         }
-        this.fireEvent('clear', this);
+        if (silent !== true) {  // <-- prevents write-actions when we just want to clear a store.
+            this.fireEvent('clear', this, items);
+        }
+    },
+
+    // private
+    onClear: function(store, records){
+        Ext.each(records, function(rec, index){
+            this.destroyRecord(this, rec, index);
+        }, this);
     },
 
     /**
@@ -1366,12 +1581,25 @@ sortInfo: {
      * @param {Number} index The start index at which to insert the passed Records.
      * @param {Ext.data.Record[]} records An Array of Ext.data.Record objects to add to the cache.
      */
-    insert : function(index, records){
+    insert : function(index, records) {
+        var i, len, record;
+        
         records = [].concat(records);
-        for(var i = 0, len = records.length; i < len; i++){
-            this.data.insert(index, records[i]);
-            records[i].join(this);
+        for (i = 0, len = records.length; i < len; i++) {
+            record = records[i];
+            
+            this.data.insert(index + i, record);
+            record.join(this);
+            
+            if (record.dirty || record.phantom) {
+                this.modified.push(record);
+            }
         }
+        
+        if (this.snapshot) {
+            this.snapshot.addAll(records);
+        }
+        
         this.fireEvent('add', this, records, index);
     },
 
@@ -1399,7 +1627,7 @@ sortInfo: {
      * @return {Ext.data.Record} The Record with the passed id. Returns undefined if not found.
      */
     getById : function(id){
-        return this.data.key(id);
+        return (this.snapshot || this.data).key(id);
     },
 
     /**
@@ -1429,6 +1657,14 @@ sortInfo: {
         this.lastOptions = o;
     },
 
+    // private
+    clearData: function(){
+        this.data.each(function(rec) {
+            rec.join(null);
+        });
+        this.data.clear();
+    },
+
     /**
      * <p>Loads the Record cache from the configured <tt>{@link #proxy}</tt> using the configured <tt>{@link #reader}</tt>.</p>
      * <br><p>Notes:</p><div class="mdetail-params"><ul>
@@ -1447,25 +1683,25 @@ sortInfo: {
      * parameters to a remote data source. <b>Note</b>: <code>params</code> will override any
      * <code>{@link #baseParams}</code> of the same name.</p>
      * <p>Parameters are encoded as standard HTTP parameters using {@link Ext#urlEncode}.</p></div></li>
-     * <li><b><tt>callback</tt></b> : Function<div class="sub-desc"><p>A function to be called after the Records
-     * have been loaded. The <tt>callback</tt> is called after the load event and is passed the following arguments:<ul>
-     * <li><tt>r</tt> : Ext.data.Record[]</li>
-     * <li><tt>options</tt>: Options object from the load call</li>
-     * <li><tt>success</tt>: Boolean success indicator</li></ul></p></div></li>
-     * <li><b><tt>scope</tt></b> : Object<div class="sub-desc"><p>Scope with which to call the callback (defaults
+     * <li><b>callback</b> : Function<div class="sub-desc"><p>A function to be called after the Records
+     * have been loaded. The callback is called after the load event is fired, and is passed the following arguments:<ul>
+     * <li>r : Ext.data.Record[] An Array of Records loaded.</li>
+     * <li>options : Options object from the load call.</li>
+     * <li>success : Boolean success indicator.</li></ul></p></div></li>
+     * <li><b>scope</b> : Object<div class="sub-desc"><p>Scope with which to call the callback (defaults
      * to the Store object)</p></div></li>
-     * <li><b><tt>add</tt></b> : Boolean<div class="sub-desc"><p>Indicator to append loaded records rather than
+     * <li><b>add</b> : Boolean<div class="sub-desc"><p>Indicator to append loaded records rather than
      * replace the current cache.  <b>Note</b>: see note for <tt>{@link #loadData}</tt></p></div></li>
      * </ul>
      * @return {Boolean} If the <i>developer</i> provided <tt>{@link #beforeload}</tt> event handler returns
      * <tt>false</tt>, the load call will abort and will return <tt>false</tt>; otherwise will return <tt>true</tt>.
      */
     load : function(options) {
-        options = options || {};
+        options = Ext.apply({}, options);
         this.storeOptions(options);
         if(this.sortInfo && this.remoteSort){
             var pn = this.paramNames;
-            options.params = options.params || {};
+            options.params = Ext.apply({}, options.params);
             options.params[pn.sort] = this.sortInfo.field;
             options.params[pn.dir] = this.sortInfo.direction;
         }
@@ -1486,23 +1722,32 @@ sortInfo: {
      * @private
      */
     updateRecord : function(store, record, action) {
-        if (action == Ext.data.Record.EDIT && this.autoSave === true && (!record.phantom || (record.phantom && record.isValid))) {
+        if (action == Ext.data.Record.EDIT && this.autoSave === true && (!record.phantom || (record.phantom && record.isValid()))) {
             this.save();
         }
     },
 
     /**
+     * @private
      * Should not be used directly.  Store#add will call this automatically if a Writer is set
      * @param {Object} store
-     * @param {Object} rs
+     * @param {Object} records
      * @param {Object} index
-     * @private
      */
-    createRecords : function(store, rs, index) {
-        for (var i = 0, len = rs.length; i < len; i++) {
-            if (rs[i].phantom && rs[i].isValid()) {
-                rs[i].markDirty();  // <-- Mark new records dirty
-                this.modified.push(rs[i]);  // <-- add to modified
+    createRecords : function(store, records, index) {
+        var modified = this.modified,
+            length   = records.length,
+            record, i;
+        
+        for (i = 0; i < length; i++) {
+            record = records[i];
+            
+            if (record.phantom && record.isValid()) {
+                record.markDirty();  // <-- Mark new records dirty (Ed: why?)
+                
+                if (modified.indexOf(record) == -1) {
+                    modified.push(record);
+                }
             }
         }
         if (this.autoSave === true) {
@@ -1511,9 +1756,9 @@ sortInfo: {
     },
 
     /**
-     * Destroys a record or records.  Should not be used directly.  It's called by Store#remove if a Writer is set.
-     * @param {Store} this
-     * @param {Ext.data.Record/Ext.data.Record[]}
+     * Destroys a Record.  Should not be used directly.  It's called by Store#remove if a Writer is set.
+     * @param {Store} store this
+     * @param {Ext.data.Record} record
      * @param {Number} index
      * @private
      */
@@ -1545,25 +1790,29 @@ sortInfo: {
      * @throws Error
      * @private
      */
-    execute : function(action, rs, options) {
+    execute : function(action, rs, options, /* private */ batch) {
         // blow up if action not Ext.data.CREATE, READ, UPDATE, DESTROY
         if (!Ext.data.Api.isAction(action)) {
             throw new Ext.data.Api.Error('execute', action);
         }
-        // make sure options has a params key
+        // make sure options has a fresh, new params hash
         options = Ext.applyIf(options||{}, {
             params: {}
         });
-
+        if(batch !== undefined){
+            this.addToBatch(batch);
+        }
         // have to separate before-events since load has a different signature than create,destroy and save events since load does not
         // include the rs (record resultset) parameter.  Capture return values from the beforeaction into doRequest flag.
         var doRequest = true;
 
         if (action === 'read') {
             doRequest = this.fireEvent('beforeload', this, options);
+            Ext.applyIf(options.params, this.baseParams);
         }
         else {
-            // if Writer is configured as listful, force single-recoord rs to be [{}} instead of {}
+            // if Writer is configured as listful, force single-record rs to be [{}] instead of {}
+            // TODO Move listful rendering into DataWriter where the @cfg is defined.  Should be easy now.
             if (this.writer.listful === true && this.restful !== true) {
                 rs = (Ext.isArray(rs)) ? rs : [rs];
             }
@@ -1573,18 +1822,20 @@ sortInfo: {
             }
             // Write the action to options.params
             if ((doRequest = this.fireEvent('beforewrite', this, action, rs, options)) !== false) {
-                this.writer.write(action, options.params, rs);
+                this.writer.apply(options.params, this.baseParams, action, rs);
             }
         }
         if (doRequest !== false) {
             // Send request to proxy.
-            var params = Ext.apply({}, options.params, this.baseParams);
             if (this.writer && this.proxy.url && !this.proxy.restful && !Ext.data.Api.hasUniqueUrl(this.proxy, action)) {
-                params.xaction = action;
+                options.params.xaction = action;    // <-- really old, probaby unecessary.
             }
-            // Note:  Up until this point we've been dealing with 'action' as a key from Ext.data.Api.actions.  We'll flip it now
-            // and send the value into DataProxy#request, since it's the value which maps to the DataProxy#api
-            this.proxy.request(Ext.data.Api.actions[action], rs, params, this.reader, this.createCallback(action, rs), this, options);
+            // Note:  Up until this point we've been dealing with 'action' as a key from Ext.data.Api.actions.
+            // We'll flip it now and send the value into DataProxy#request, since it's the value which maps to
+            // the user's configured DataProxy#api
+            // TODO Refactor all Proxies to accept an instance of Ext.data.Request (not yet defined) instead of this looooooong list
+            // of params.  This method is an artifact from Ext2.
+            this.proxy.request(Ext.data.Api.actions[action], rs, options.params, this.reader, this.createCallback(action, rs, batch), this, options);
         }
         return doRequest;
     },
@@ -1601,81 +1852,140 @@ sortInfo: {
      * </pre>
      * @TODO:  Create extensions of Error class and send associated Record with thrown exceptions.
      * e.g.:  Ext.data.DataReader.Error or Ext.data.Error or Ext.data.DataProxy.Error, etc.
+     * @return {Number} batch Returns a number to uniquely identify the "batch" of saves occurring. -1 will be returned
+     * if there are no items to save or the save was cancelled.
      */
     save : function() {
         if (!this.writer) {
             throw new Ext.data.Store.Error('writer-undefined');
         }
 
+        var queue = [],
+            len,
+            trans,
+            batch,
+            data = {},
+            i;
         // DESTROY:  First check for removed records.  Records in this.removed are guaranteed non-phantoms.  @see Store#remove
-        if (this.removed.length) {
-            this.doTransaction('destroy', this.removed);
+        if(this.removed.length){
+            queue.push(['destroy', this.removed]);
         }
 
         // Check for modified records. Use a copy so Store#rejectChanges will work if server returns error.
         var rs = [].concat(this.getModifiedRecords());
-        if (!rs.length) { // Bail-out if empty...
-            return true;
-        }
-
-        // CREATE:  Next check for phantoms within rs.  splice-off and execute create.
-        var phantoms = [];
-        for (var i = rs.length-1; i >= 0; i--) {
-            if (rs[i].phantom === true) {
-                var rec = rs.splice(i, 1).shift();
-                if (rec.isValid()) {
-                    phantoms.push(rec);
+        if(rs.length){
+            // CREATE:  Next check for phantoms within rs.  splice-off and execute create.
+            var phantoms = [];
+            for(i = rs.length-1; i >= 0; i--){
+                if(rs[i].phantom === true){
+                    var rec = rs.splice(i, 1).shift();
+                    if(rec.isValid()){
+                        phantoms.push(rec);
+                    }
+                }else if(!rs[i].isValid()){ // <-- while we're here, splice-off any !isValid real records
+                    rs.splice(i,1);
                 }
-            } else if (!rs[i].isValid()) { // <-- while we're here, splice-off any !isValid real records
-                rs.splice(i,1);
+            }
+            // If we have valid phantoms, create them...
+            if(phantoms.length){
+                queue.push(['create', phantoms]);
+            }
+
+            // UPDATE:  And finally, if we're still here after splicing-off phantoms and !isValid real records, update the rest...
+            if(rs.length){
+                queue.push(['update', rs]);
             }
         }
-        // If we have valid phantoms, create them...
-        if (phantoms.length) {
-            this.doTransaction('create', phantoms);
+        len = queue.length;
+        if(len){
+            batch = ++this.batchCounter;
+            for(i = 0; i < len; ++i){
+                trans = queue[i];
+                data[trans[0]] = trans[1];
+            }
+            if(this.fireEvent('beforesave', this, data) !== false){
+                for(i = 0; i < len; ++i){
+                    trans = queue[i];
+                    this.doTransaction(trans[0], trans[1], batch);
+                }
+                return batch;
+            }
         }
-
-        // UPDATE:  And finally, if we're still here after splicing-off phantoms and !isValid real records, update the rest...
-        if (rs.length) {
-            this.doTransaction('update', rs);
-        }
-        return true;
+        return -1;
     },
 
     // private.  Simply wraps call to Store#execute in try/catch.  Defers to Store#handleException on error.  Loops if batch: false
-    doTransaction : function(action, rs) {
+    doTransaction : function(action, rs, batch) {
         function transaction(records) {
-            try {
-                this.execute(action, records);
-            } catch (e) {
+            try{
+                this.execute(action, records, undefined, batch);
+            }catch (e){
                 this.handleException(e);
             }
         }
-        if (this.batch === false) {
-            for (var i = 0, len = rs.length; i < len; i++) {
+        if(this.batch === false){
+            for(var i = 0, len = rs.length; i < len; i++){
                 transaction.call(this, rs[i]);
             }
-        } else {
+        }else{
             transaction.call(this, rs);
+        }
+    },
+
+    // private
+    addToBatch : function(batch){
+        var b = this.batches,
+            key = this.batchKey + batch,
+            o = b[key];
+
+        if(!o){
+            b[key] = o = {
+                id: batch,
+                count: 0,
+                data: {}
+            };
+        }
+        ++o.count;
+    },
+
+    removeFromBatch : function(batch, action, data){
+        var b = this.batches,
+            key = this.batchKey + batch,
+            o = b[key],
+            arr;
+
+
+        if(o){
+            arr = o.data[action] || [];
+            o.data[action] = arr.concat(data);
+            if(o.count === 1){
+                data = o.data;
+                delete b[key];
+                this.fireEvent('save', this, batch, data);
+            }else{
+                --o.count;
+            }
         }
     },
 
     // @private callback-handler for remote CRUD actions
     // Do not override -- override loadRecords, onCreateRecords, onDestroyRecords and onUpdateRecords instead.
-    createCallback : function(action, rs) {
+    createCallback : function(action, rs, batch) {
         var actions = Ext.data.Api.actions;
         return (action == 'read') ? this.loadRecords : function(data, response, success) {
             // calls: onCreateRecords | onUpdateRecords | onDestroyRecords
-            this['on' + Ext.util.Format.capitalize(action) + 'Records'](success, rs, data);
+            this['on' + Ext.util.Format.capitalize(action) + 'Records'](success, rs, [].concat(data));
             // If success === false here, exception will have been called in DataProxy
             if (success === true) {
                 this.fireEvent('write', this, action, data, response, rs);
             }
+            this.removeFromBatch(batch, action, data);
         };
     },
 
     // Clears records from modified array after an exception event.
     // NOTE:  records are left marked dirty.  Do we want to commit them even though they were not updated/realized?
+    // TODO remove this method?
     clearModified : function(rs) {
         if (Ext.isArray(rs)) {
             for (var n=rs.length-1;n>=0;n--) {
@@ -1736,7 +2046,7 @@ sortInfo: {
     // @protected onDestroyRecords proxy callback for destroy action
     onDestroyRecords : function(success, rs, data) {
         // splice each rec out of this.removed
-        rs = (rs instanceof Ext.data.Record) ? [rs] : rs;
+        rs = (rs instanceof Ext.data.Record) ? [rs] : [].concat(rs);
         for (var i=0,len=rs.length;i<len;i++) {
             this.removed.splice(this.removed.indexOf(rs[i]), 1);
         }
@@ -1756,12 +2066,22 @@ sortInfo: {
     },
 
     /**
-     * <p>Reloads the Record cache from the configured Proxy using the configured {@link Ext.data.Reader Reader} and
-     * the options from the last load operation performed.</p>
+     * <p>Reloads the Record cache from the configured Proxy using the configured
+     * {@link Ext.data.Reader Reader} and the options from the last load operation
+     * performed.</p>
      * <p><b>Note</b>: see the Important note in {@link #load}.</p>
-     * @param {Object} options (optional) An <tt>Object</tt> containing {@link #load loading options} which may
-     * override the options used in the last {@link #load} operation. See {@link #load} for details (defaults to
-     * <tt>null</tt>, in which case the {@link #lastOptions} are used).
+     * @param {Object} options <p>(optional) An <tt>Object</tt> containing
+     * {@link #load loading options} which may override the {@link #lastOptions options}
+     * used in the last {@link #load} operation. See {@link #load} for details
+     * (defaults to <tt>null</tt>, in which case the {@link #lastOptions} are
+     * used).</p>
+     * <br><p>To add new params to the existing params:</p><pre><code>
+lastOptions = myStore.lastOptions;
+Ext.apply(lastOptions.params, {
+    myNewParam: true
+});
+myStore.reload(lastOptions);
+     * </code></pre>
      */
     reload : function(options){
         this.load(Ext.applyIf(options||{}, this.lastOptions));
@@ -1770,6 +2090,11 @@ sortInfo: {
     // private
     // Called as a callback by the Reader during a load operation.
     loadRecords : function(o, options, success){
+        var i, len;
+        
+        if (this.isDestroyed === true) {
+            return;
+        }
         if(!o || success === false){
             if(success !== false){
                 this.fireEvent('load', this, [], options);
@@ -1784,21 +2109,33 @@ sortInfo: {
             if(this.pruneModifiedRecords){
                 this.modified = [];
             }
-            for(var i = 0, len = r.length; i < len; i++){
+            for(i = 0, len = r.length; i < len; i++){
                 r[i].join(this);
             }
             if(this.snapshot){
                 this.data = this.snapshot;
                 delete this.snapshot;
             }
-            this.data.clear();
+            this.clearData();
             this.data.addAll(r);
             this.totalLength = t;
             this.applySort();
             this.fireEvent('datachanged', this);
         }else{
-            this.totalLength = Math.max(t, this.data.length+r.length);
-            this.add(r);
+            var toAdd = [],
+                rec,
+                cnt = 0;
+            for(i = 0, len = r.length; i < len; ++i){
+                rec = r[i];
+                if(this.indexOfId(rec.id) > -1){
+                    this.doUpdate(rec);
+                }else{
+                    toAdd.push(rec);
+                    ++cnt;
+                }
+            }
+            this.totalLength = Math.max(t, this.data.length + cnt);
+            this.add(toAdd);
         }
         this.fireEvent('load', this, r, options);
         if(options.callback){
@@ -1861,26 +2198,88 @@ sortInfo: {
         return this.sortInfo;
     },
 
-    // private
+    /**
+     * @private
+     * Invokes sortData if we have sortInfo to sort on and are not sorting remotely
+     */
     applySort : function(){
-        if(this.sortInfo && !this.remoteSort){
-            var s = this.sortInfo, f = s.field;
-            this.sortData(f, s.direction);
+        if ((this.sortInfo || this.multiSortInfo) && !this.remoteSort) {
+            this.sortData();
         }
     },
 
-    // private
-    sortData : function(f, direction){
-        direction = direction || 'ASC';
-        var st = this.fields.get(f).sortType;
-        var fn = function(r1, r2){
-            var v1 = st(r1.data[f]), v2 = st(r2.data[f]);
-            return v1 > v2 ? 1 : (v1 < v2 ? -1 : 0);
+    /**
+     * @private
+     * Performs the actual sorting of data. This checks to see if we currently have a multi sort or not. It applies
+     * each sorter field/direction pair in turn by building an OR'ed master sorting function and running it against
+     * the full dataset
+     */
+    sortData : function() {
+        var sortInfo  = this.hasMultiSort ? this.multiSortInfo : this.sortInfo,
+            direction = sortInfo.direction || "ASC",
+            sorters   = sortInfo.sorters,
+            sortFns   = [];
+
+        //if we just have a single sorter, pretend it's the first in an array
+        if (!this.hasMultiSort) {
+            sorters = [{direction: direction, field: sortInfo.field}];
+        }
+
+        //create a sorter function for each sorter field/direction combo
+        for (var i=0, j = sorters.length; i < j; i++) {
+            sortFns.push(this.createSortFunction(sorters[i].field, sorters[i].direction));
+        }
+        
+        if (sortFns.length == 0) {
+            return;
+        }
+
+        //the direction modifier is multiplied with the result of the sorting functions to provide overall sort direction
+        //(as opposed to direction per field)
+        var directionModifier = direction.toUpperCase() == "DESC" ? -1 : 1;
+
+        //create a function which ORs each sorter together to enable multi-sort
+        var fn = function(r1, r2) {
+          var result = sortFns[0].call(this, r1, r2);
+
+          //if we have more than one sorter, OR any additional sorter functions together
+          if (sortFns.length > 1) {
+              for (var i=1, j = sortFns.length; i < j; i++) {
+                  result = result || sortFns[i].call(this, r1, r2);
+              }
+          }
+
+          return directionModifier * result;
         };
+
+        //sort the data
         this.data.sort(direction, fn);
-        if(this.snapshot && this.snapshot != this.data){
+        if (this.snapshot && this.snapshot != this.data) {
             this.snapshot.sort(direction, fn);
         }
+    },
+
+    /**
+     * @private
+     * Creates and returns a function which sorts an array by the given field and direction
+     * @param {String} field The field to create the sorter for
+     * @param {String} direction The direction to sort by (defaults to "ASC")
+     * @return {Function} A function which sorts by the field/direction combination provided
+     */
+    createSortFunction: function(field, direction) {
+        direction = direction || "ASC";
+        var directionModifier = direction.toUpperCase() == "DESC" ? -1 : 1;
+
+        var sortType = this.fields.get(field).sortType;
+
+        //create a comparison function. Takes 2 records, returns 1 if record 1 is greater,
+        //-1 if record 2 is greater or 0 if they are equal
+        return function(r1, r2) {
+            var v1 = sortType(r1.data[field]),
+                v2 = sortType(r2.data[field]);
+
+            return directionModifier * (v1 > v2 ? 1 : (v1 < v2 ? -1 : 0));
+        };
     },
 
     /**
@@ -1888,7 +2287,7 @@ sortInfo: {
      * @param {String} fieldName The name of the field to sort by.
      * @param {String} dir (optional) The sort order, 'ASC' or 'DESC' (case-sensitive, defaults to <tt>'ASC'</tt>)
      */
-    setDefaultSort : function(field, dir){
+    setDefaultSort : function(field, dir) {
         dir = dir ? dir.toUpperCase() : 'ASC';
         this.sortInfo = {field: field, direction: dir};
         this.sortToggle[field] = dir;
@@ -1898,38 +2297,112 @@ sortInfo: {
      * Sort the Records.
      * If remote sorting is used, the sort is performed on the server, and the cache is reloaded. If local
      * sorting is used, the cache is sorted internally. See also {@link #remoteSort} and {@link #paramNames}.
+     * This function accepts two call signatures - pass in a field name as the first argument to sort on a single
+     * field, or pass in an array of sort configuration objects to sort by multiple fields.
+     * Single sort example:
+     * store.sort('name', 'ASC');
+     * Multi sort example:
+     * store.sort([
+     *   {
+     *     field    : 'name',
+     *     direction: 'ASC'
+     *   },
+     *   {
+     *     field    : 'salary',
+     *     direction: 'DESC'
+     *   }
+     * ], 'ASC');
+     * In this second form, the sort configs are applied in order, with later sorters sorting within earlier sorters' results.
+     * For example, if two records with the same name are present they will also be sorted by salary if given the sort configs
+     * above. Any number of sort configs can be added.
+     * @param {String/Array} fieldName The name of the field to sort by, or an array of ordered sort configs
+     * @param {String} dir (optional) The sort order, 'ASC' or 'DESC' (case-sensitive, defaults to <tt>'ASC'</tt>)
+     */
+    sort : function(fieldName, dir) {
+        if (Ext.isArray(arguments[0])) {
+            return this.multiSort.call(this, fieldName, dir);
+        } else {
+            return this.singleSort(fieldName, dir);
+        }
+    },
+
+    /**
+     * Sorts the store contents by a single field and direction. This is called internally by {@link sort} and would
+     * not usually be called manually
      * @param {String} fieldName The name of the field to sort by.
      * @param {String} dir (optional) The sort order, 'ASC' or 'DESC' (case-sensitive, defaults to <tt>'ASC'</tt>)
      */
-    sort : function(fieldName, dir){
-        var f = this.fields.get(fieldName);
-        if(!f){
+    singleSort: function(fieldName, dir) {
+        var field = this.fields.get(fieldName);
+        if (!field) {
             return false;
         }
-        if(!dir){
-            if(this.sortInfo && this.sortInfo.field == f.name){ // toggle sort dir
-                dir = (this.sortToggle[f.name] || 'ASC').toggle('ASC', 'DESC');
-            }else{
-                dir = f.sortDir;
+
+        var name       = field.name,
+            sortInfo   = this.sortInfo || null,
+            sortToggle = this.sortToggle ? this.sortToggle[name] : null;
+
+        if (!dir) {
+            if (sortInfo && sortInfo.field == name) { // toggle sort dir
+                dir = (this.sortToggle[name] || 'ASC').toggle('ASC', 'DESC');
+            } else {
+                dir = field.sortDir;
             }
         }
-        var st = (this.sortToggle) ? this.sortToggle[f.name] : null;
-        var si = (this.sortInfo) ? this.sortInfo : null;
 
-        this.sortToggle[f.name] = dir;
-        this.sortInfo = {field: f.name, direction: dir};
-        if(!this.remoteSort){
-            this.applySort();
-            this.fireEvent('datachanged', this);
-        }else{
+        this.sortToggle[name] = dir;
+        this.sortInfo = {field: name, direction: dir};
+        this.hasMultiSort = false;
+
+        if (this.remoteSort) {
             if (!this.load(this.lastOptions)) {
-                if (st) {
-                    this.sortToggle[f.name] = st;
+                if (sortToggle) {
+                    this.sortToggle[name] = sortToggle;
                 }
-                if (si) {
-                    this.sortInfo = si;
+                if (sortInfo) {
+                    this.sortInfo = sortInfo;
                 }
             }
+        } else {
+            this.applySort();
+            this.fireEvent('datachanged', this);
+        }
+        return true;
+    },
+
+    /**
+     * Sorts the contents of this store by multiple field/direction sorters. This is called internally by {@link sort}
+     * and would not usually be called manually.
+     * Multi sorting only currently applies to local datasets - multiple sort data is not currently sent to a proxy
+     * if remoteSort is used.
+     * @param {Array} sorters Array of sorter objects (field and direction)
+     * @param {String} direction Overall direction to sort the ordered results by (defaults to "ASC")
+     */
+    multiSort: function(sorters, direction) {
+        this.hasMultiSort = true;
+        direction = direction || "ASC";
+
+        //toggle sort direction
+        if (this.multiSortInfo && direction == this.multiSortInfo.direction) {
+            direction = direction.toggle("ASC", "DESC");
+        }
+
+        /**
+         * Object containing overall sort direction and an ordered array of sorter configs used when sorting on multiple fields
+         * @property multiSortInfo
+         * @type Object
+         */
+        this.multiSortInfo = {
+            sorters  : sorters,
+            direction: direction
+        };
+        
+        if (this.remoteSort) {
+            this.singleSort(sorters[0].field, sorters[0].direction);
+
+        } else {
+            this.applySort();
+            this.fireEvent('datachanged', this);
         }
     },
 
@@ -1937,7 +2410,8 @@ sortInfo: {
      * Calls the specified function for each of the {@link Ext.data.Record Records} in the cache.
      * @param {Function} fn The function to call. The {@link Ext.data.Record Record} is passed as the first parameter.
      * Returning <tt>false</tt> aborts and exits the iteration.
-     * @param {Object} scope (optional) The scope in which to call the function (defaults to the {@link Ext.data.Record Record}).
+     * @param {Object} scope (optional) The scope (<code>this</code> reference) in which the function is executed.
+     * Defaults to the current {@link Ext.data.Record Record} in the iteration.
      */
     each : function(fn, scope){
         this.data.each(fn, scope);
@@ -1954,17 +2428,6 @@ sortInfo: {
      */
     getModifiedRecords : function(){
         return this.modified;
-    },
-
-    // private
-    createFilterFn : function(property, value, anyMatch, caseSensitive){
-        if(Ext.isEmpty(value, false)){
-            return false;
-        }
-        value = this.data.createValueMatcher(value, anyMatch, caseSensitive);
-        return function(r){
-            return value.test(r.data[property]);
-        };
     },
 
     /**
@@ -1987,15 +2450,109 @@ sortInfo: {
     },
 
     /**
-     * Filter the {@link Ext.data.Record records} by a specified property.
-     * @param {String} field A field on your records
+     * @private
+     * Returns a filter function used to test a the given property's value. Defers most of the work to
+     * Ext.util.MixedCollection's createValueMatcher function
+     * @param {String} property The property to create the filter function for
+     * @param {String/RegExp} value The string/regex to compare the property value to
+     * @param {Boolean} anyMatch True if we don't care if the filter value is not the full value (defaults to false)
+     * @param {Boolean} caseSensitive True to create a case-sensitive regex (defaults to false)
+     * @param {Boolean} exactMatch True to force exact match (^ and $ characters added to the regex). Defaults to false. Ignored if anyMatch is true.
+     */
+    createFilterFn : function(property, value, anyMatch, caseSensitive, exactMatch){
+        if(Ext.isEmpty(value, false)){
+            return false;
+        }
+        value = this.data.createValueMatcher(value, anyMatch, caseSensitive, exactMatch);
+        return function(r) {
+            return value.test(r.data[property]);
+        };
+    },
+
+    /**
+     * @private
+     * Given an array of filter functions (each with optional scope), constructs and returns a single function that returns
+     * the result of all of the filters ANDed together
+     * @param {Array} filters The array of filter objects (each object should contain an 'fn' and optional scope)
+     * @return {Function} The multiple filter function
+     */
+    createMultipleFilterFn: function(filters) {
+        return function(record) {
+            var isMatch = true;
+
+            for (var i=0, j = filters.length; i < j; i++) {
+                var filter = filters[i],
+                    fn     = filter.fn,
+                    scope  = filter.scope;
+
+                isMatch = isMatch && fn.call(scope, record);
+            }
+
+            return isMatch;
+        };
+    },
+
+    /**
+     * Filter the {@link Ext.data.Record records} by a specified property. Alternatively, pass an array of filter
+     * options to filter by more than one property.
+     * Single filter example:
+     * store.filter('name', 'Ed', true, true); //finds all records containing the substring 'Ed'
+     * Multiple filter example:
+     * <pre><code>
+     * store.filter([
+     *   {
+     *     property     : 'name',
+     *     value        : 'Ed',
+     *     anyMatch     : true, //optional, defaults to true
+     *     caseSensitive: true  //optional, defaults to true
+     *   },
+     *
+     *   //filter functions can also be passed
+     *   {
+     *     fn   : function(record) {
+     *       return record.get('age') == 24
+     *     },
+     *     scope: this
+     *   }
+     * ]);
+     * </code></pre>
+     * @param {String|Array} field A field on your records, or an array containing multiple filter options
      * @param {String/RegExp} value Either a string that the field should begin with, or a RegExp to test
      * against the field.
      * @param {Boolean} anyMatch (optional) <tt>true</tt> to match any part not just the beginning
      * @param {Boolean} caseSensitive (optional) <tt>true</tt> for case sensitive comparison
+     * @param {Boolean} exactMatch True to force exact match (^ and $ characters added to the regex). Defaults to false. Ignored if anyMatch is true.
      */
-    filter : function(property, value, anyMatch, caseSensitive){
-        var fn = this.createFilterFn(property, value, anyMatch, caseSensitive);
+    filter : function(property, value, anyMatch, caseSensitive, exactMatch){
+        var fn;
+        //we can accept an array of filter objects, or a single filter object - normalize them here
+        if (Ext.isObject(property)) {
+            property = [property];
+        }
+
+        if (Ext.isArray(property)) {
+            var filters = [];
+
+            //normalize the filters passed into an array of filter functions
+            for (var i=0, j = property.length; i < j; i++) {
+                var filter = property[i],
+                    func   = filter.fn,
+                    scope  = filter.scope || this;
+
+                //if we weren't given a filter function, construct one now
+                if (!Ext.isFunction(func)) {
+                    func = this.createFilterFn(filter.property, filter.value, filter.anyMatch, filter.caseSensitive, filter.exactMatch);
+                }
+
+                filters.push({fn: func, scope: scope});
+            }
+
+            fn = this.createMultipleFilterFn(filters);
+        } else {
+            //classic single property filter
+            fn = this.createFilterFn(property, value, anyMatch, caseSensitive, exactMatch);
+        }
+
         return fn ? this.filterBy(fn) : this.clearFilter();
     },
 
@@ -2008,12 +2565,35 @@ sortInfo: {
      * to test for filtering. Access field values using {@link Ext.data.Record#get}.</p></li>
      * <li><b>id</b> : Object<p class="sub-desc">The ID of the Record passed.</p></li>
      * </ul>
-     * @param {Object} scope (optional) The scope of the function (defaults to this)
+     * @param {Object} scope (optional) The scope (<code>this</code> reference) in which the function is executed. Defaults to this Store.
      */
     filterBy : function(fn, scope){
         this.snapshot = this.snapshot || this.data;
-        this.data = this.queryBy(fn, scope||this);
+        this.data = this.queryBy(fn, scope || this);
         this.fireEvent('datachanged', this);
+    },
+
+    /**
+     * Revert to a view of the Record cache with no filtering applied.
+     * @param {Boolean} suppressEvent If <tt>true</tt> the filter is cleared silently without firing the
+     * {@link #datachanged} event.
+     */
+    clearFilter : function(suppressEvent){
+        if(this.isFiltered()){
+            this.data = this.snapshot;
+            delete this.snapshot;
+            if(suppressEvent !== true){
+                this.fireEvent('datachanged', this);
+            }
+        }
+    },
+
+    /**
+     * Returns true if this store is currently filtered
+     * @return {Boolean}
+     */
+    isFiltered : function(){
+        return !!this.snapshot && this.snapshot != this.data;
     },
 
     /**
@@ -2039,7 +2619,7 @@ sortInfo: {
      * to test for filtering. Access field values using {@link Ext.data.Record#get}.</p></li>
      * <li><b>id</b> : Object<p class="sub-desc">The ID of the Record passed.</p></li>
      * </ul>
-     * @param {Object} scope (optional) The scope of the function (defaults to this)
+     * @param {Object} scope (optional) The scope (<code>this</code> reference) in which the function is executed. Defaults to this Store.
      * @return {MixedCollection} Returns an Ext.util.MixedCollection of the matched records
      **/
     queryBy : function(fn, scope){
@@ -2048,10 +2628,10 @@ sortInfo: {
     },
 
     /**
-     * Finds the index of the first matching record in this store by a specific property/value.
-     * @param {String} property A property on your objects
-     * @param {String/RegExp} value Either a string that the property value
-     * should begin with, or a RegExp to test against the property.
+     * Finds the index of the first matching Record in this store by a specific field value.
+     * @param {String} fieldName The name of the Record field to test.
+     * @param {String/RegExp} value Either a string that the field value
+     * should begin with, or a RegExp to test against the field.
      * @param {Number} startIndex (optional) The index to start searching at
      * @param {Boolean} anyMatch (optional) True to match any part of the string, not just the beginning
      * @param {Boolean} caseSensitive (optional) True for case sensitive comparison
@@ -2063,9 +2643,9 @@ sortInfo: {
     },
 
     /**
-     * Finds the index of the first matching record in this store by a specific property/value.
-     * @param {String} property A property on your objects
-     * @param {String/RegExp} value The value to match against
+     * Finds the index of the first matching Record in this store by a specific field value.
+     * @param {String} fieldName The name of the Record field to test.
+     * @param {Mixed} value The value to match the field against.
      * @param {Number} startIndex (optional) The index to start searching at
      * @return {Number} The matched index or -1
      */
@@ -2083,7 +2663,7 @@ sortInfo: {
      * to test for filtering. Access field values using {@link Ext.data.Record#get}.</p></li>
      * <li><b>id</b> : Object<p class="sub-desc">The ID of the Record passed.</p></li>
      * </ul>
-     * @param {Object} scope (optional) The scope of the function (defaults to this)
+     * @param {Object} scope (optional) The scope (<code>this</code> reference) in which the function is executed. Defaults to this Store.
      * @param {Number} startIndex (optional) The index to start searching at
      * @return {Number} The matched index or -1
      */
@@ -2113,29 +2693,6 @@ sortInfo: {
         return r;
     },
 
-    /**
-     * Revert to a view of the Record cache with no filtering applied.
-     * @param {Boolean} suppressEvent If <tt>true</tt> the filter is cleared silently without firing the
-     * {@link #datachanged} event.
-     */
-    clearFilter : function(suppressEvent){
-        if(this.isFiltered()){
-            this.data = this.snapshot;
-            delete this.snapshot;
-            if(suppressEvent !== true){
-                this.fireEvent('datachanged', this);
-            }
-        }
-    },
-
-    /**
-     * Returns true if this store is currently filtered
-     * @return {Boolean}
-     */
-    isFiltered : function(){
-        return this.snapshot && this.snapshot != this.data;
-    },
-
     // private
     afterEdit : function(record){
         if(this.modified.indexOf(record) == -1){
@@ -2162,33 +2719,53 @@ sortInfo: {
      * Ext.data.Record.COMMIT.
      */
     commitChanges : function(){
-        var m = this.modified.slice(0);
-        this.modified = [];
-        for(var i = 0, len = m.length; i < len; i++){
-            m[i].commit();
+        var modified = this.modified.slice(0),
+            length   = modified.length,
+            i;
+            
+        for (i = 0; i < length; i++){
+            modified[i].commit();
         }
+        
+        this.modified = [];
+        this.removed  = [];
     },
 
     /**
      * {@link Ext.data.Record#reject Reject} outstanding changes on all {@link #getModifiedRecords modified records}.
      */
-    rejectChanges : function(){
-        var m = this.modified.slice(0);
-        this.modified = [];
-        for(var i = 0, len = m.length; i < len; i++){
-            m[i].reject();
+    rejectChanges : function() {
+        var modified = this.modified.slice(0),
+            removed  = this.removed.slice(0).reverse(),
+            mLength  = modified.length,
+            rLength  = removed.length,
+            i;
+        
+        for (i = 0; i < mLength; i++) {
+            modified[i].reject();
         }
+        
+        for (i = 0; i < rLength; i++) {
+            this.insert(removed[i].lastIndex || 0, removed[i]);
+            removed[i].reject();
+        }
+        
+        this.modified = [];
+        this.removed  = [];
     },
 
     // private
-    onMetaChange : function(meta, rtype, o){
-        this.recordType = rtype;
-        this.fields = rtype.prototype.fields;
+    onMetaChange : function(meta){
+        this.recordType = this.reader.recordType;
+        this.fields = this.recordType.prototype.fields;
         delete this.snapshot;
-        if(meta.sortInfo){
-            this.sortInfo = meta.sortInfo;
+        if(this.reader.meta.sortInfo){
+            this.sortInfo = this.reader.meta.sortInfo;
         }else if(this.sortInfo  && !this.fields.get(this.sortInfo.field)){
             delete this.sortInfo;
+        }
+        if(this.writer){
+            this.writer.meta = this.reader.meta;
         }
         this.modified = [];
         this.fireEvent('metachange', this, this.reader.meta);
@@ -2235,7 +2812,6 @@ Ext.apply(Ext.data.Store.Error.prototype, {
         'writer-undefined' : 'Attempted to execute a write-action without a DataWriter installed.'
     }
 });
-
 /**
  * @class Ext.data.Field
  * <p>This class encapsulates the field definition information specified in the field definition objects
@@ -2243,107 +2819,49 @@ Ext.apply(Ext.data.Store.Error.prototype, {
  * <p>Developers do not need to instantiate this class. Instances are created by {@link Ext.data.Record.create}
  * and cached in the {@link Ext.data.Record#fields fields} property of the created Record constructor's <b>prototype.</b></p>
  */
-Ext.data.Field = function(config){
-    if(typeof config == "string"){
-        config = {name: config};
-    }
-    Ext.apply(this, config);
-
-    if(!this.type){
-        this.type = "auto";
-    }
-
-    var st = Ext.data.SortTypes;
-    // named sortTypes are supported, here we look them up
-    if(typeof this.sortType == "string"){
-        this.sortType = st[this.sortType];
-    }
-
-    // set default sortType for strings and dates
-    if(!this.sortType){
-        switch(this.type){
-            case "string":
-                this.sortType = st.asUCString;
-                break;
-            case "date":
-                this.sortType = st.asDate;
-                break;
-            default:
-                this.sortType = st.none;
+Ext.data.Field = Ext.extend(Object, {
+    
+    constructor : function(config){
+        if(Ext.isString(config)){
+            config = {name: config};
         }
-    }
+        Ext.apply(this, config);
+        
+        var types = Ext.data.Types,
+            st = this.sortType,
+            t;
 
-    // define once
-    var stripRe = /[\$,%]/g;
-
-    // prebuilt conversion function for this field, instead of
-    // switching every time we're reading a value
-    if(!this.convert){
-        var cv, dateFormat = this.dateFormat;
-        switch(this.type){
-            case "":
-            case "auto":
-            case undefined:
-                cv = function(v){ return v; };
-                break;
-            case "string":
-                cv = function(v){ return (v === undefined || v === null) ? '' : String(v); };
-                break;
-            case "int":
-                cv = function(v){
-                    return v !== undefined && v !== null && v !== '' ?
-                           parseInt(String(v).replace(stripRe, ""), 10) : '';
-                    };
-                break;
-            case "float":
-                cv = function(v){
-                    return v !== undefined && v !== null && v !== '' ?
-                           parseFloat(String(v).replace(stripRe, ""), 10) : '';
-                    };
-                break;
-            case "bool":
-            case "boolean":
-                cv = function(v){ return v === true || v === "true" || v == 1; };
-                break;
-            case "date":
-                cv = function(v){
-                    if(!v){
-                        return '';
-                    }
-                    if(Ext.isDate(v)){
-                        return v;
-                    }
-                    if(dateFormat){
-                        if(dateFormat == "timestamp"){
-                            return new Date(v*1000);
-                        }
-                        if(dateFormat == "time"){
-                            return new Date(parseInt(v, 10));
-                        }
-                        return Date.parseDate(v, dateFormat);
-                    }
-                    var parsed = Date.parse(v);
-                    return parsed ? new Date(parsed) : null;
-                };
-             break;
-
+        if(this.type){
+            if(Ext.isString(this.type)){
+                this.type = Ext.data.Types[this.type.toUpperCase()] || types.AUTO;
+            }
+        }else{
+            this.type = types.AUTO;
         }
-        this.convert = cv;
-    }
-};
 
-Ext.data.Field.prototype = {
+        // named sortTypes are supported, here we look them up
+        if(Ext.isString(st)){
+            this.sortType = Ext.data.SortTypes[st];
+        }else if(Ext.isEmpty(st)){
+            this.sortType = this.type.sortType;
+        }
+
+        if(!this.convert){
+            this.convert = this.type.convert;
+        }
+    },
+    
     /**
      * @cfg {String} name
      * The name by which the field is referenced within the Record. This is referenced by, for example,
-     * the <tt>dataIndex</tt> property in column definition objects passed to {@link Ext.grid.ColumnModel}.
-     * <p>Note: In the simplest case, if no properties other than <tt>name</tt> are required, a field
+     * the <code>dataIndex</code> property in column definition objects passed to {@link Ext.grid.ColumnModel}.
+     * <p>Note: In the simplest case, if no properties other than <code>name</code> are required, a field
      * definition may consist of just a String for the field name.</p>
      */
     /**
-     * @cfg {String} type
-     * (Optional) The data type for conversion to displayable value if <tt>{@link Ext.data.Field#convert convert}</tt>
-     * has not been specified. Possible values are
+     * @cfg {Mixed} type
+     * (Optional) The data type for automatic conversion from received data to the <i>stored</i> value if <code>{@link Ext.data.Field#convert convert}</code>
+     * has not been specified. This may be specified as a string value. Possible values are
      * <div class="mdetail-params"><ul>
      * <li>auto (Default, implies no conversion)</li>
      * <li>string</li>
@@ -2351,13 +2869,16 @@ Ext.data.Field.prototype = {
      * <li>float</li>
      * <li>boolean</li>
      * <li>date</li></ul></div>
+     * <p>This may also be specified by referencing a member of the {@link Ext.data.Types} class.</p>
+     * <p>Developers may create their own application-specific data types by defining new members of the
+     * {@link Ext.data.Types} class.</p>
      */
     /**
      * @cfg {Function} convert
      * (Optional) A function which converts the value provided by the Reader into an object that will be stored
      * in the Record. It is passed the following parameters:<div class="mdetail-params"><ul>
      * <li><b>v</b> : Mixed<div class="sub-desc">The data value as read by the Reader, if undefined will use
-     * the configured <tt>{@link Ext.data.Field#defaultValue defaultValue}</tt>.</div></li>
+     * the configured <code>{@link Ext.data.Field#defaultValue defaultValue}</code>.</div></li>
      * <li><b>rec</b> : Mixed<div class="sub-desc">The data object containing the row as read by the Reader.
      * Depending on the Reader type, this could be an Array ({@link Ext.data.ArrayReader ArrayReader}), an object
      *  ({@link Ext.data.JsonReader JsonReader}), or an XML element ({@link Ext.data.XMLReader XMLReader}).</div></li>
@@ -2386,7 +2907,7 @@ var store = new Ext.data.Store({
     reader: new Ext.data.JsonReader(
         {
             idProperty: 'key',
-            root: 'daRoot',  
+            root: 'daRoot',
             totalProperty: 'total'
         },
         Dude  // recordType
@@ -2411,15 +2932,24 @@ var myData = [
      */
     /**
      * @cfg {String} dateFormat
-     * (Optional) A format string for the {@link Date#parseDate Date.parseDate} function, or "timestamp" if the
+     * <p>(Optional) Used when converting received data into a Date when the {@link #type} is specified as <code>"date"</code>.</p>
+     * <p>A format string for the {@link Date#parseDate Date.parseDate} function, or "timestamp" if the
      * value provided by the Reader is a UNIX timestamp, or "time" if the value provided by the Reader is a
-     * javascript millisecond timestamp.
+     * javascript millisecond timestamp. See {@link Date}</p>
      */
     dateFormat: null,
+    
+    /**
+     * @cfg {Boolean} useNull
+     * <p>(Optional) Use when converting received data into a Number type (either int or float). If the value cannot be parsed,
+     * null will be used if useNull is true, otherwise the value will be 0. Defaults to <tt>false</tt>
+     */
+    useNull: false,
+    
     /**
      * @cfg {Mixed} defaultValue
      * (Optional) The default value used <b>when a Record is being created by a {@link Ext.data.Reader Reader}</b>
-     * when the item referenced by the <tt>{@link Ext.data.Field#mapping mapping}</tt> does not exist in the data
+     * when the item referenced by the <code>{@link Ext.data.Field#mapping mapping}</code> does not exist in the data
      * object (i.e. undefined). (defaults to "")
      */
     defaultValue: "",
@@ -2467,18 +2997,19 @@ sortType: function(value) {
     sortType : null,
     /**
      * @cfg {String} sortDir
-     * (Optional) Initial direction to sort (<tt>"ASC"</tt> or  <tt>"DESC"</tt>).  Defaults to
-     * <tt>"ASC"</tt>.
+     * (Optional) Initial direction to sort (<code>"ASC"</code> or  <code>"DESC"</code>).  Defaults to
+     * <code>"ASC"</code>.
      */
     sortDir : "ASC",
-	/**
-	 * @cfg {Boolean} allowBlank 
-	 * (Optional) Used for validating a {@link Ext.data.Record record}, defaults to <tt>true</tt>.
-	 * An empty value here will cause {@link Ext.data.Record}.{@link Ext.data.Record#isValid isValid}
-	 * to evaluate to <tt>false</tt>.
-	 */
-	allowBlank : true
-};/**
+    /**
+     * @cfg {Boolean} allowBlank
+     * (Optional) Used for validating a {@link Ext.data.Record record}, defaults to <code>true</code>.
+     * An empty value here will cause {@link Ext.data.Record}.{@link Ext.data.Record#isValid isValid}
+     * to evaluate to <code>false</code>.
+     */
+    allowBlank : true
+});
+/**
  * @class Ext.data.DataReader
  * Abstract base class for reading structured data from a data source and converting
  * it into an object containing {@link Ext.data.Record} objects and metadata for use
@@ -2507,14 +3038,45 @@ Ext.data.DataReader = function(meta, recordType){
      */
     this.recordType = Ext.isArray(recordType) ?
         Ext.data.Record.create(recordType) : recordType;
+
+    // if recordType defined make sure extraction functions are defined
+    if (this.recordType){
+        this.buildExtractors();
+    }
 };
 
 Ext.data.DataReader.prototype = {
-
     /**
-     * Abstract method, overridden in {@link Ext.data.JsonReader}
+     * @cfg {String} messageProperty [undefined] Optional name of a property within a server-response that represents a user-feedback message.
+     */
+    /**
+     * Abstract method created in extension's buildExtractors impl.
+     */
+    getTotal: Ext.emptyFn,
+    /**
+     * Abstract method created in extension's buildExtractors impl.
+     */
+    getRoot: Ext.emptyFn,
+    /**
+     * Abstract method created in extension's buildExtractors impl.
+     */
+    getMessage: Ext.emptyFn,
+    /**
+     * Abstract method created in extension's buildExtractors impl.
+     */
+    getSuccess: Ext.emptyFn,
+    /**
+     * Abstract method created in extension's buildExtractors impl.
+     */
+    getId: Ext.emptyFn,
+    /**
+     * Abstract method, overridden in DataReader extensions such as {@link Ext.data.JsonReader} and {@link Ext.data.XmlReader}
      */
     buildExtractors : Ext.emptyFn,
+    /**
+     * Abstract method overridden in DataReader extensions such as {@link Ext.data.JsonReader} and {@link Ext.data.XmlReader}
+     */
+    extractValues : Ext.emptyFn,
 
     /**
      * Used for un-phantoming a record after a successful database insert.  Sets the records pk along with new data from server.
@@ -2549,24 +3111,20 @@ Ext.data.DataReader.prototype = {
                 //rs.commit();
                 throw new Ext.data.DataReader.Error('realize', rs);
             }
-            this.buildExtractors();
-            var values = this.extractValues(data, rs.fields.items, rs.fields.items.length);
             rs.phantom = false; // <-- That's what it's all about
             rs._phid = rs.id;  // <-- copy phantom-id -> _phid, so we can remap in Store#onCreateRecords
-            rs.id = data[this.meta.idProperty];
-            rs.data = values;
+            rs.id = this.getId(data);
+            rs.data = data;
+
             rs.commit();
         }
     },
 
     /**
      * Used for updating a non-phantom or "real" record's data with fresh data from server after remote-save.
-     * You <b>must</b> return a complete new record from the server.  If you don't, your local record's missing fields
-     * will be populated with the default values specified in your Ext.data.Record.create specification.  Without a defaultValue,
-     * local fields will be populated with empty string "".  So return your entire record's data after both remote create and update.
-     * In addition, you <b>must</b> return record-data from the server in the same order received.
-     * Will perform a commit as well, un-marking dirty-fields.  Store's "update" event will be suppressed as the record receives
-     * a fresh new data-hash.
+     * If returning data from multiple-records after a batch-update, you <b>must</b> return record-data from the server in
+     * the same order received.  Will perform a commit as well, un-marking dirty-fields.  Store's "update" event will be
+     * suppressed as the record receives fresh new data-hash
      * @param {Record/Record[]} rs
      * @param {Object/Object[]} data
      */
@@ -2584,20 +3142,55 @@ Ext.data.DataReader.prototype = {
             }
         }
         else {
-                     // If rs is NOT an array but data IS, see if data contains just 1 record.  If so extract it and carry on.
+            // If rs is NOT an array but data IS, see if data contains just 1 record.  If so extract it and carry on.
             if (Ext.isArray(data) && data.length == 1) {
                 data = data.shift();
             }
-            if (!this.isData(data)) {
-                // TODO: create custom Exception class to return record in thrown exception.  Allow exception-handler the choice
-                // to commit or not rather than blindly rs.commit() here.
-                rs.commit();
-                throw new Ext.data.DataReader.Error('update', rs);
+            if (this.isData(data)) {
+                rs.data = Ext.apply(rs.data, data);
             }
-            this.buildExtractors();
-            rs.data = this.extractValues(Ext.apply(rs.data, data), rs.fields.items, rs.fields.items.length);
             rs.commit();
         }
+    },
+
+    /**
+     * returns extracted, type-cast rows of data.  Iterates to call #extractValues for each row
+     * @param {Object[]/Object} data-root from server response
+     * @param {Boolean} returnRecords [false] Set true to return instances of Ext.data.Record
+     * @private
+     */
+    extractData : function(root, returnRecords) {
+        // A bit ugly this, too bad the Record's raw data couldn't be saved in a common property named "raw" or something.
+        var rawName = (this instanceof Ext.data.JsonReader) ? 'json' : 'node';
+
+        var rs = [];
+
+        // Had to add Check for XmlReader, #isData returns true if root is an Xml-object.  Want to check in order to re-factor
+        // #extractData into DataReader base, since the implementations are almost identical for JsonReader, XmlReader
+        if (this.isData(root) && !(this instanceof Ext.data.XmlReader)) {
+            root = [root];
+        }
+        var f       = this.recordType.prototype.fields,
+            fi      = f.items,
+            fl      = f.length,
+            rs      = [];
+        if (returnRecords === true) {
+            var Record = this.recordType;
+            for (var i = 0; i < root.length; i++) {
+                var n = root[i];
+                var record = new Record(this.extractValues(n, fi, fl), this.getId(n));
+                record[rawName] = n;    // <-- There's implementation of ugly bit, setting the raw record-data.
+                rs.push(record);
+            }
+        }
+        else {
+            for (var i = 0; i < root.length; i++) {
+                var data = this.extractValues(root[i], fi, fl);
+                data[this.meta.idProperty] = this.getId(root[i]);
+                rs.push(data);
+            }
+        }
+        return rs;
     },
 
     /**
@@ -2607,7 +3200,15 @@ Ext.data.DataReader.prototype = {
      * @return {Boolean}
      */
     isData : function(data) {
-        return (data && Ext.isObject(data) && !Ext.isEmpty(data[this.meta.idProperty])) ? true : false;
+        return (data && Ext.isObject(data) && !Ext.isEmpty(this.getId(data))) ? true : false;
+    },
+
+    // private function a store will createSequence upon
+    onMetaChange : function(meta){
+        delete this.ef;
+        this.meta = meta;
+        this.recordType = Ext.data.Record.create(meta.fields);
+        this.buildExtractors();
     }
 };
 
@@ -2630,8 +3231,6 @@ Ext.apply(Ext.data.DataReader.Error.prototype, {
         'invalid-response': "#readResponse received an invalid response from the server."
     }
 });
-
-
 /**
  * @class Ext.data.DataWriter
  * <p>Ext.data.DataWriter facilitates create, update, and destroy actions between
@@ -2642,34 +3241,72 @@ Ext.apply(Ext.data.DataReader.Error.prototype, {
  * {@link Ext.data.JsonWriter}.</p>
  * <p>Creating a writer is simple:</p>
  * <pre><code>
-var writer = new Ext.data.JsonWriter();
+var writer = new Ext.data.JsonWriter({
+    encode: false   // &lt;--- false causes data to be printed to jsonData config-property of Ext.Ajax#reqeust
+});
  * </code></pre>
+ * * <p>Same old JsonReader as Ext-2.x:</p>
+ * <pre><code>
+var reader = new Ext.data.JsonReader({idProperty: 'id'}, [{name: 'first'}, {name: 'last'}, {name: 'email'}]);
+ * </code></pre>
+ *
  * <p>The proxy for a writer enabled store can be configured with a simple <code>url</code>:</p>
  * <pre><code>
 // Create a standard HttpProxy instance.
 var proxy = new Ext.data.HttpProxy({
-    url: 'app.php/users'
+    url: 'app.php/users'    // &lt;--- Supports "provides"-type urls, such as '/users.json', '/products.xml' (Hello Rails/Merb)
 });
  * </code></pre>
- * <p>For finer grained control, the proxy may also be configured with an <code>api</code>:</p>
+ * <p>For finer grained control, the proxy may also be configured with an <code>API</code>:</p>
  * <pre><code>
-// Use the api specification
+// Maximum flexibility with the API-configuration
 var proxy = new Ext.data.HttpProxy({
     api: {
         read    : 'app.php/users/read',
         create  : 'app.php/users/create',
         update  : 'app.php/users/update',
-        destroy : 'app.php/users/destroy'
+        destroy : {  // &lt;--- Supports object-syntax as well
+            url: 'app.php/users/destroy',
+            method: "DELETE"
+        }
     }
 });
  * </code></pre>
- * <p>Creating a Writer enabled store:</p>
+ * <p>Pulling it all together into a Writer-enabled Store:</p>
  * <pre><code>
 var store = new Ext.data.Store({
     proxy: proxy,
     reader: reader,
-    writer: writer
+    writer: writer,
+    autoLoad: true,
+    autoSave: true  // -- Cell-level updates.
 });
+ * </code></pre>
+ * <p>Initiating write-actions <b>automatically</b>, using the existing Ext2.0 Store/Record API:</p>
+ * <pre><code>
+var rec = store.getAt(0);
+rec.set('email', 'foo@bar.com');  // &lt;--- Immediately initiates an UPDATE action through configured proxy.
+
+store.remove(rec);  // &lt;---- Immediately initiates a DESTROY action through configured proxy.
+ * </code></pre>
+ * <p>For <b>record/batch</b> updates, use the Store-configuration {@link Ext.data.Store#autoSave autoSave:false}</p>
+ * <pre><code>
+var store = new Ext.data.Store({
+    proxy: proxy,
+    reader: reader,
+    writer: writer,
+    autoLoad: true,
+    autoSave: false  // -- disable cell-updates
+});
+
+var urec = store.getAt(0);
+urec.set('email', 'foo@bar.com');
+
+var drec = store.getAt(1);
+store.remove(drec);
+
+// Push the button!
+store.save();
  * </code></pre>
  * @constructor Create a new DataWriter
  * @param {Object} meta Metadata configuration options (implementation-specific)
@@ -2678,14 +3315,8 @@ var store = new Ext.data.Store({
  * using {@link Ext.data.Record#create}.
  */
 Ext.data.DataWriter = function(config){
-    /**
-     * This DataWriter's configured metadata as passed to the constructor.
-     * @type Mixed
-     * @property meta
-     */
     Ext.apply(this, config);
 };
-
 Ext.data.DataWriter.prototype = {
 
     /**
@@ -2703,14 +3334,26 @@ Ext.data.DataWriter.prototype = {
     listful : false,    // <-- listful is actually not used internally here in DataWriter.  @see Ext.data.Store#execute.
 
     /**
-     * Writes data in preparation for server-write action.  Simply proxies to DataWriter#update, DataWriter#create
-     * DataWriter#destroy.
-     * @param {String} action [CREATE|UPDATE|DESTROY]
-     * @param {Object} params The params-hash to write-to
-     * @param {Record/Record[]} rs The recordset write.
+     * Compiles a Store recordset into a data-format defined by an extension such as {@link Ext.data.JsonWriter} or {@link Ext.data.XmlWriter} in preparation for a {@link Ext.data.Api#actions server-write action}.  The first two params are similar similar in nature to {@link Ext#apply},
+     * Where the first parameter is the <i>receiver</i> of paramaters and the second, baseParams, <i>the source</i>.
+     * @param {Object} params The request-params receiver.
+     * @param {Object} baseParams as defined by {@link Ext.data.Store#baseParams}.  The baseParms must be encoded by the extending class, eg: {@link Ext.data.JsonWriter}, {@link Ext.data.XmlWriter}.
+     * @param {String} action [{@link Ext.data.Api#actions create|update|destroy}]
+     * @param {Record/Record[]} rs The recordset to write, the subject(s) of the write action.
      */
-    write : function(action, params, rs) {
-        this.render(action, rs, params, this[action](rs));
+    apply : function(params, baseParams, action, rs) {
+        var data    = [],
+        renderer    = action + 'Record';
+        // TODO implement @cfg listful here
+        if (Ext.isArray(rs)) {
+            Ext.each(rs, function(rec){
+                data.push(this[renderer](rec));
+            }, this);
+        }
+        else if (rs instanceof Ext.data.Record) {
+            data = this[renderer](rs);
+        }
+        this.render(params, baseParams, data);
     },
 
     /**
@@ -2724,56 +3367,10 @@ Ext.data.DataWriter.prototype = {
     render : Ext.emptyFn,
 
     /**
-     * update
-     * @param {Object} p Params-hash to apply result to.
-     * @param {Record/Record[]} rs Record(s) to write
-     * @private
-     */
-    update : function(rs) {
-        var params = {};
-        if (Ext.isArray(rs)) {
-            var data = [],
-                ids = [];
-            Ext.each(rs, function(val){
-                ids.push(val.id);
-                data.push(this.updateRecord(val));
-            }, this);
-            params[this.meta.idProperty] = ids;
-            params[this.meta.root] = data;
-        }
-        else if (rs instanceof Ext.data.Record) {
-            params[this.meta.idProperty] = rs.id;
-            params[this.meta.root] = this.updateRecord(rs);
-        }
-        return params;
-    },
-
-    /**
-     * @cfg {Function} saveRecord Abstract method that should be implemented in all subclasses
-     * (e.g.: {@link Ext.data.JsonWriter#saveRecord JsonWriter.saveRecord}
+     * @cfg {Function} updateRecord Abstract method that should be implemented in all subclasses
+     * (e.g.: {@link Ext.data.JsonWriter#updateRecord JsonWriter.updateRecord}
      */
     updateRecord : Ext.emptyFn,
-
-    /**
-     * create
-     * @param {Object} p Params-hash to apply result to.
-     * @param {Record/Record[]} rs Record(s) to write
-     * @private
-     */
-    create : function(rs) {
-        var params = {};
-        if (Ext.isArray(rs)) {
-            var data = [];
-            Ext.each(rs, function(val){
-                data.push(this.createRecord(val));
-            }, this);
-            params[this.meta.root] = data;
-        }
-        else if (rs instanceof Ext.data.Record) {
-            params[this.meta.root] = this.createRecord(rs);
-        }
-        return params;
-    },
 
     /**
      * @cfg {Function} createRecord Abstract method that should be implemented in all subclasses
@@ -2782,38 +3379,22 @@ Ext.data.DataWriter.prototype = {
     createRecord : Ext.emptyFn,
 
     /**
-     * destroy
-     * @param {Object} p Params-hash to apply result to.
-     * @param {Record/Record[]} rs Record(s) to write
-     * @private
-     */
-    destroy : function(rs) {
-        var params = {};
-        if (Ext.isArray(rs)) {
-            var data = [],
-                ids = [];
-            Ext.each(rs, function(val){
-                data.push(this.destroyRecord(val));
-            }, this);
-            params[this.meta.root] = data;
-        } else if (rs instanceof Ext.data.Record) {
-            params[this.meta.root] = this.destroyRecord(rs);
-        }
-        return params;
-    },
-
-    /**
      * @cfg {Function} destroyRecord Abstract method that should be implemented in all subclasses
      * (e.g.: {@link Ext.data.JsonWriter#destroyRecord JsonWriter.destroyRecord})
      */
     destroyRecord : Ext.emptyFn,
 
     /**
-     * Converts a Record to a hash
-     * @param {Record}
-     * @private
+     * Converts a Record to a hash, taking into account the state of the Ext.data.Record along with configuration properties
+     * related to its rendering, such as {@link #writeAllFields}, {@link Ext.data.Record#phantom phantom}, {@link Ext.data.Record#getChanges getChanges} and
+     * {@link Ext.data.DataReader#idProperty idProperty}
+     * @param {Ext.data.Record} rec The Record from which to create a hash.
+     * @param {Object} config <b>NOT YET IMPLEMENTED</b>.  Will implement an exlude/only configuration for fine-control over which fields do/don't get rendered.
+     * @return {Object}
+     * @protected
+     * TODO Implement excludes/only configuration with 2nd param?
      */
-    toHash : function(rec) {
+    toHash : function(rec, config) {
         var map = rec.fields.map,
             data = {},
             raw = (this.writeAllFields === false && rec.phantom === false) ? rec.getChanges() : rec.data,
@@ -2823,8 +3404,35 @@ Ext.data.DataWriter.prototype = {
                 data[m.mapping ? m.mapping : m.name] = value;
             }
         });
-        data[this.meta.idProperty] = rec.id;
+        // we don't want to write Ext auto-generated id to hash.  Careful not to remove it on Models not having auto-increment pk though.
+        // We can tell its not auto-increment if the user defined a DataReader field for it *and* that field's value is non-empty.
+        // we could also do a RegExp here for the Ext.data.Record AUTO_ID prefix.
+        if (rec.phantom) {
+            if (rec.fields.containsKey(this.meta.idProperty) && Ext.isEmpty(rec.data[this.meta.idProperty])) {
+                delete data[this.meta.idProperty];
+            }
+        } else {
+            data[this.meta.idProperty] = rec.id;
+        }
         return data;
+    },
+
+    /**
+     * Converts a {@link Ext.data.DataWriter#toHash Hashed} {@link Ext.data.Record} to fields-array array suitable
+     * for encoding to xml via XTemplate, eg:
+<code><pre>&lt;tpl for=".">&lt;{name}>{value}&lt;/{name}&lt;/tpl></pre></code>
+     * eg, <b>non-phantom</b>:
+<code><pre>{id: 1, first: 'foo', last: 'bar'} --> [{name: 'id', value: 1}, {name: 'first', value: 'foo'}, {name: 'last', value: 'bar'}]</pre></code>
+     * {@link Ext.data.Record#phantom Phantom} records will have had their idProperty omitted in {@link #toHash} if determined to be auto-generated.
+     * Non AUTOINCREMENT pks should have been protected.
+     * @param {Hash} data Hashed by Ext.data.DataWriter#toHash
+     * @return {[Object]} Array of attribute-objects.
+     * @protected
+     */
+    toArray : function(data) {
+        var fields = [];
+        Ext.iterate(data, function(k, v) {fields.push({name: k, value: v});},this);
+        return fields;
     }
 };/**
  * @class Ext.data.DataProxy
@@ -2861,6 +3469,25 @@ proxy : new Ext.data.HttpProxy({
     }
 }),
  * </code></pre>
+ * <p>And <b>new in Ext version 3</b>, attach centralized event-listeners upon the DataProxy class itself!  This is a great place
+ * to implement a <i>messaging system</i> to centralize your application's user-feedback and error-handling.</p>
+ * <pre><code>
+// Listen to all "beforewrite" event fired by all proxies.
+Ext.data.DataProxy.on('beforewrite', function(proxy, action) {
+    console.log('beforewrite: ', action);
+});
+
+// Listen to "write" event fired by all proxies
+Ext.data.DataProxy.on('write', function(proxy, action, data, res, rs) {
+    console.info('write: ', action);
+});
+
+// Listen to "exception" event fired by all proxies
+Ext.data.DataProxy.on('exception', function(proxy, type, action, exception) {
+    console.error(type + action + ' exception);
+});
+ * </code></pre>
+ * <b>Note:</b> These three events are all fired with the signature of the corresponding <i>DataProxy instance</i> event {@link #beforewrite beforewrite}, {@link #write write} and {@link #exception exception}.
  */
 Ext.data.DataProxy = function(conn){
     // make sure we have a config object here to support ux proxies.
@@ -2889,7 +3516,27 @@ api: {
     update  : undefined,
     destroy : undefined
 }
-</code></pre>
+     * </code></pre>
+     * <p>The url is built based upon the action being executed <tt>[load|create|save|destroy]</tt>
+     * using the commensurate <tt>{@link #api}</tt> property, or if undefined default to the
+     * configured {@link Ext.data.Store}.{@link Ext.data.Store#url url}.</p><br>
+     * <p>For example:</p>
+     * <pre><code>
+api: {
+    load :    '/controller/load',
+    create :  '/controller/new',  // Server MUST return idProperty of new record
+    save :    '/controller/update',
+    destroy : '/controller/destroy_action'
+}
+
+// Alternatively, one can use the object-form to specify each API-action
+api: {
+    load: {url: 'read.php', method: 'GET'},
+    create: 'create.php',
+    destroy: 'destroy.php',
+    save: 'update.php'
+}
+     * </code></pre>
      * <p>If the specific URL for a given CRUD action is undefined, the CRUD action request
      * will be directed to the configured <tt>{@link Ext.data.Connection#url url}</tt>.</p>
      * <br><p><b>Note</b>: To modify the URL for an action dynamically the appropriate API
@@ -2907,22 +3554,9 @@ myStore.on({
             // permanent, applying this URL for all subsequent requests.
             store.proxy.setUrl('changed1.php', true);
 
-            // manually set the <b>private</b> connection URL.
-            // <b>Warning:</b>  Accessing the private URL property should be avoided.
-            // Use the public method <tt>{@link Ext.data.HttpProxy#setUrl setUrl}</tt> instead, shown above.
-            // It should be noted that changing the URL like this will affect
-            // the URL for just this request.  Subsequent requests will use the
-            // API or URL defined in your initial proxy configuration.
-            store.proxy.conn.url = 'changed1.php';
-
-            // proxy URL will be superseded by API (only if proxy created to use ajax):
-            // It should be noted that proxy API changes are permanent and will
-            // be used for all subsequent requests.
-            store.proxy.api.load = 'changed2.php';
-
-            // However, altering the proxy API should be done using the public
-            // method <tt>{@link Ext.data.DataProxy#setApi setApi}</tt> instead.
-            store.proxy.setApi('load', 'changed2.php');
+            // Altering the proxy API should be done using the public
+            // method <tt>{@link Ext.data.DataProxy#setApi setApi}</tt>.
+            store.proxy.setApi('read', 'changed2.php');
 
             // Or set the entire API with a config-object.
             // When using the config-object option, you must redefine the <b>entire</b>
@@ -2939,23 +3573,17 @@ myStore.on({
      * </code></pre>
      * </p>
      */
-    // Prepare the proxy api.  Ensures all API-actions are defined with the Object-form.
-    try {
-        Ext.data.Api.prepare(this);
-    } catch (e) {
-        if (e instanceof Ext.data.Api.Error) {
-            e.toConsole();
-        }
-    }
 
     this.addEvents(
         /**
          * @event exception
-         * <p>Fires if an exception occurs in the Proxy during a remote request.
-         * This event is relayed through a corresponding
-         * {@link Ext.data.Store}.{@link Ext.data.Store#exception exception},
-         * so any Store instance may observe this event.
-         * This event can be fired for one of two reasons:</p>
+         * <p>Fires if an exception occurs in the Proxy during a remote request. This event is relayed
+         * through a corresponding {@link Ext.data.Store}.{@link Ext.data.Store#exception exception},
+         * so any Store instance may observe this event.</p>
+         * <p>In addition to being fired through the DataProxy instance that raised the event, this event is also fired
+         * through the Ext.data.DataProxy <i>class</i> to allow for centralized processing of exception events from <b>all</b>
+         * DataProxies by attaching a listener to the Ext.data.DataProxy class itself.</p>
+         * <p>This event can be fired for one of two reasons:</p>
          * <div class="mdetail-params"><ul>
          * <li>remote-request <b>failed</b> : <div class="sub-desc">
          * The server did not return status === 200.
@@ -3039,26 +3667,43 @@ myStore.on({
         'loadexception',
         /**
          * @event beforewrite
-         * Fires before a request is generated for one of the actions Ext.data.Api.actions.create|update|destroy
+         * <p>Fires before a request is generated for one of the actions Ext.data.Api.actions.create|update|destroy</p>
+         * <p>In addition to being fired through the DataProxy instance that raised the event, this event is also fired
+         * through the Ext.data.DataProxy <i>class</i> to allow for centralized processing of beforewrite events from <b>all</b>
+         * DataProxies by attaching a listener to the Ext.data.DataProxy class itself.</p>
          * @param {DataProxy} this The proxy for the request
          * @param {String} action [Ext.data.Api.actions.create|update|destroy]
-         * @param {Record/Array[Record]} rs The Record(s) to create|update|destroy.
+         * @param {Record/Record[]} rs The Record(s) to create|update|destroy.
          * @param {Object} params The request <code>params</code> object.  Edit <code>params</code> to add parameters to the request.
          */
         'beforewrite',
         /**
          * @event write
-         * Fires before the request-callback is called
+         * <p>Fires before the request-callback is called</p>
+         * <p>In addition to being fired through the DataProxy instance that raised the event, this event is also fired
+         * through the Ext.data.DataProxy <i>class</i> to allow for centralized processing of write events from <b>all</b>
+         * DataProxies by attaching a listener to the Ext.data.DataProxy class itself.</p>
          * @param {DataProxy} this The proxy that sent the request
          * @param {String} action [Ext.data.Api.actions.create|upate|destroy]
          * @param {Object} data The data object extracted from the server-response
          * @param {Object} response The decoded response from server
-         * @param {Record/Record{}} rs The records from Store
+         * @param {Record/Record[]} rs The Record(s) from Store
          * @param {Object} options The callback's <tt>options</tt> property as passed to the {@link #request} function
          */
         'write'
     );
     Ext.data.DataProxy.superclass.constructor.call(this);
+
+    // Prepare the proxy api.  Ensures all API-actions are defined with the Object-form.
+    try {
+        Ext.data.Api.prepare(this);
+    } catch (e) {
+        if (e instanceof Ext.data.Api.Error) {
+            e.toConsole();
+        }
+    }
+    // relay each proxy's events onto Ext.data.DataProxy class for centralized Proxy-listening
+    Ext.data.DataProxy.relayEvents(this, ['beforewrite', 'write', 'exception']);
 };
 
 Ext.extend(Ext.data.DataProxy, Ext.util.Observable, {
@@ -3077,7 +3722,7 @@ store: new Ext.data.Store({
     ...
 )}
      * </code></pre>
-     * There is no <code>{@link #api}</code> specified in the configuration of the proxy,
+     * If there is no <code>{@link #api}</code> specified in the configuration of the proxy,
      * all requests will be marshalled to a single RESTful url (/users) so the serverside
      * framework can inspect the HTTP Method and act accordingly:
      * <pre>
@@ -3087,6 +3732,18 @@ GET      /users     read
 PUT      /users/23  update
 DESTROY  /users/23  delete
      * </pre></p>
+     * <p>If set to <tt>true</tt>, a {@link Ext.data.Record#phantom non-phantom} record's
+     * {@link Ext.data.Record#id id} will be appended to the url. Some MVC (e.g., Ruby on Rails,
+     * Merb and Django) support segment based urls where the segments in the URL follow the
+     * Model-View-Controller approach:<pre><code>
+     * someSite.com/controller/action/id
+     * </code></pre>
+     * Where the segments in the url are typically:<div class="mdetail-params"><ul>
+     * <li>The first segment : represents the controller class that should be invoked.</li>
+     * <li>The second segment : represents the class function, or method, that should be called.</li>
+     * <li>The third segment : represents the ID (a variable typically passed to the method).</li>
+     * </ul></div></p>
+     * <br><p>Refer to <code>{@link Ext.data.DataProxy#api}</code> for additional information.</p>
      */
     restful: false,
 
@@ -3145,7 +3802,7 @@ proxy.setApi(Ext.data.Api.actions.read, '/users/new_load_url');
      * @param {Object} params
      * @param {Ext.data.DataReader} reader
      * @param {Function} callback
-     * @param {Object} scope Scope with which to call the callback (defaults to the Proxy object)
+     * @param {Object} scope The scope (<code>this</code> reference) in which the callback function is executed. Defaults to the Proxy object.
      * @param {Object} options Any options specified for the action (e.g. see {@link Ext.data.Store#load}.
      */
     request : function(action, rs, params, reader, callback, scope, options) {
@@ -3174,7 +3831,7 @@ proxy.setApi(Ext.data.Api.actions.read, '/users/new_load_url');
     load : null,
 
     /**
-     * @cfg {Function} doRequest Abstract method that should be implemented in all subclasses
+     * @cfg {Function} doRequest Abstract method that should be implemented in all subclasses.  <b>Note:</b> Should only be used by custom-proxy developers.
      * (e.g.: {@link Ext.data.HttpProxy#doRequest HttpProxy.doRequest},
      * {@link Ext.data.DirectProxy#doRequest DirectProxy.doRequest}).
      */
@@ -3186,36 +3843,64 @@ proxy.setApi(Ext.data.Api.actions.read, '/users/new_load_url');
     },
 
     /**
+     * @cfg {Function} onRead Abstract method that should be implemented in all subclasses.  <b>Note:</b> Should only be used by custom-proxy developers.  Callback for read {@link Ext.data.Api#actions action}.
+     * @param {String} action Action name as per {@link Ext.data.Api.actions#read}.
+     * @param {Object} o The request transaction object
+     * @param {Object} res The server response
+     * @fires loadexception (deprecated)
+     * @fires exception
+     * @fires load
+     * @protected
+     */
+    onRead : Ext.emptyFn,
+    /**
+     * @cfg {Function} onWrite Abstract method that should be implemented in all subclasses.  <b>Note:</b> Should only be used by custom-proxy developers.  Callback for <i>create, update and destroy</i> {@link Ext.data.Api#actions actions}.
+     * @param {String} action [Ext.data.Api.actions.create|read|update|destroy]
+     * @param {Object} trans The request transaction object
+     * @param {Object} res The server response
+     * @fires exception
+     * @fires write
+     * @protected
+     */
+    onWrite : Ext.emptyFn,
+    /**
      * buildUrl
      * Sets the appropriate url based upon the action being executed.  If restful is true, and only a single record is being acted upon,
      * url will be built Rails-style, as in "/controller/action/32".  restful will aply iff the supplied record is an
      * instance of Ext.data.Record rather than an Array of them.
      * @param {String} action The api action being executed [read|create|update|destroy]
-     * @param {Ext.data.Record/Array[Ext.data.Record]} The record or Array of Records being acted upon.
+     * @param {Ext.data.Record/Ext.data.Record[]} record The record or Array of Records being acted upon.
      * @return {String} url
      * @private
      */
     buildUrl : function(action, record) {
         record = record || null;
-        var url = (this.api[action]) ? this.api[action].url : this.url;
+
+        // conn.url gets nullified after each request.  If it's NOT null here, that means the user must have intervened with a call
+        // to DataProxy#setUrl or DataProxy#setApi and changed it before the request was executed.  If that's the case, use conn.url,
+        // otherwise, build the url from the api or this.url.
+        var url = (this.conn && this.conn.url) ? this.conn.url : (this.api[action]) ? this.api[action].url : this.url;
         if (!url) {
             throw new Ext.data.Api.Error('invalid-url', action);
         }
 
-        var format = null;
-        var m = url.match(/(.*)(\.\w+)$/);  // <-- look for urls with "provides" suffix, e.g.: /users.json, /users.xml, etc
+        // look for urls having "provides" suffix used in some MVC frameworks like Rails/Merb and others.  The provides suffice informs
+        // the server what data-format the client is dealing with and returns data in the same format (eg: application/json, application/xml, etc)
+        // e.g.: /users.json, /users.xml, etc.
+        // with restful routes, we need urls like:
+        // PUT /users/1.json
+        // DELETE /users/1.json
+        var provides = null;
+        var m = url.match(/(.*)(\.json|\.xml|\.html)$/);
         if (m) {
-            format = m[2];
-            url = m[1];
+            provides = m[2];    // eg ".json"
+            url      = m[1];    // eg: "/users"
         }
         // prettyUrls is deprectated in favor of restful-config
-        if ((this.prettyUrls === true || this.restful === true) && record instanceof Ext.data.Record && !record.phantom) {
+        if ((this.restful === true || this.prettyUrls === true) && record instanceof Ext.data.Record && !record.phantom) {
             url += '/' + record.id;
         }
-        if (format) {   // <-- append the request format if exists (ie: /users/update/69[.json])
-            url += format;
-        }
-        return url;
+        return (provides === null) ? url : url + provides;
     },
 
     /**
@@ -3226,13 +3911,18 @@ proxy.setApi(Ext.data.Api.actions.read, '/users/new_load_url');
     }
 });
 
+// Apply the Observable prototype to the DataProxy class so that proxy instances can relay their
+// events to the class.  Allows for centralized listening of all proxy instances upon the DataProxy class.
+Ext.apply(Ext.data.DataProxy, Ext.util.Observable.prototype);
+Ext.util.Observable.call(Ext.data.DataProxy);
+
 /**
  * @class Ext.data.DataProxy.Error
  * @extends Ext.Error
  * DataProxy Error extension.
  * constructor
- * @param {String} name
- * @param {Record/Array[Record]/Array}
+ * @param {String} message Message describing the error.
+ * @param {Record/Record[]} arg
  */
 Ext.data.DataProxy.Error = Ext.extend(Ext.Error, {
     constructor : function(message, arg) {
@@ -3247,6 +3937,76 @@ Ext.apply(Ext.data.DataProxy.Error.prototype, {
         'api-invalid': 'Recieved an invalid API-configuration.  Please ensure your proxy API-configuration contains only the actions from Ext.data.Api.actions.'
     }
 });
+
+
+/**
+ * @class Ext.data.Request
+ * A simple Request class used internally to the data package to provide more generalized remote-requests
+ * to a DataProxy.
+ * TODO Not yet implemented.  Implement in Ext.data.Store#execute
+ */
+Ext.data.Request = function(params) {
+    Ext.apply(this, params);
+};
+Ext.data.Request.prototype = {
+    /**
+     * @cfg {String} action
+     */
+    action : undefined,
+    /**
+     * @cfg {Ext.data.Record[]/Ext.data.Record} rs The Store recordset associated with the request.
+     */
+    rs : undefined,
+    /**
+     * @cfg {Object} params HTTP request params
+     */
+    params: undefined,
+    /**
+     * @cfg {Function} callback The function to call when request is complete
+     */
+    callback : Ext.emptyFn,
+    /**
+     * @cfg {Object} scope The scope of the callback funtion
+     */
+    scope : undefined,
+    /**
+     * @cfg {Ext.data.DataReader} reader The DataReader instance which will parse the received response
+     */
+    reader : undefined
+};
+/**
+ * @class Ext.data.Response
+ * A generic response class to normalize response-handling internally to the framework.
+ */
+Ext.data.Response = function(params) {
+    Ext.apply(this, params);
+};
+Ext.data.Response.prototype = {
+    /**
+     * @cfg {String} action {@link Ext.data.Api#actions}
+     */
+    action: undefined,
+    /**
+     * @cfg {Boolean} success
+     */
+    success : undefined,
+    /**
+     * @cfg {String} message
+     */
+    message : undefined,
+    /**
+     * @cfg {Array/Object} data
+     */
+    data: undefined,
+    /**
+     * @cfg {Object} raw The raw response returned from server-code
+     */
+    raw: undefined,
+    /**
+     * @cfg {Ext.data.Record/Ext.data.Record[]} records related to the Request action
+     */
+    records: undefined
+};
 /**
  * @class Ext.data.ScriptTagProxy
  * @extends Ext.data.DataProxy
@@ -3281,6 +4041,32 @@ out.print(dataBlock.toJsonString());
 if (scriptTag) {
     out.write(");");
 }
+</code></pre>
+ * <p>Below is a PHP example to do the same thing:</p><pre><code>
+$callback = $_REQUEST['callback'];
+
+// Create the output object.
+$output = array('a' => 'Apple', 'b' => 'Banana');
+
+//start output
+if ($callback) {
+    header('Content-Type: text/javascript');
+    echo $callback . '(' . json_encode($output) . ');';
+} else {
+    header('Content-Type: application/x-json');
+    echo json_encode($output);
+}
+</code></pre>
+ * <p>Below is the ASP.Net code to do the same thing:</p><pre><code>
+String jsonString = "{success: true}";
+String cb = Request.Params.Get("callback");
+String responseString = "";
+if (!String.IsNullOrEmpty(cb)) {
+    responseString = cb + "(" + jsonString + ")";
+} else {
+    responseString = jsonString;
+}
+Response.Write(responseString);
 </code></pre>
  *
  * @constructor
@@ -3351,7 +4137,7 @@ Ext.extend(Ext.data.ScriptTagProxy, Ext.data.DataProxy, {
      * <li>The "arg" argument from the load function</li>
      * <li>A boolean success indicator</li>
      * </ul>
-     * @param {Object} scope The scope in which to call the callback
+     * @param {Object} scope The scope (<code>this</code> reference) in which the callback function is executed. Defaults to the browser window.
      * @param {Object} arg An optional argument which is passed to the callback as its second parameter.
      */
     doRequest : function(action, rs, params, reader, callback, scope, arg) {
@@ -3414,7 +4200,7 @@ Ext.extend(Ext.data.ScriptTagProxy, Ext.data.DataProxy, {
      * @param {String} action [Ext.data.Api.actions.create|read|update|destroy]
      * @param {Object} trans The request transaction object
      * @param {Object} res The server response
-     * @private
+     * @protected
      */
     onRead : function(action, trans, res) {
         var result;
@@ -3443,25 +4229,25 @@ Ext.extend(Ext.data.ScriptTagProxy, Ext.data.DataProxy, {
      * @param {String} action [Ext.data.Api.actions.create|read|update|destroy]
      * @param {Object} trans The request transaction object
      * @param {Object} res The server response
-     * @private
+     * @protected
      */
-    onWrite : function(action, trans, res, rs) {
+    onWrite : function(action, trans, response, rs) {
         var reader = trans.reader;
         try {
             // though we already have a response object here in STP, run through readResponse to catch any meta-data exceptions.
-            reader.readResponse(action, res);
+            var res = reader.readResponse(action, response);
         } catch (e) {
             this.fireEvent('exception', this, 'response', action, trans, res, e);
             trans.callback.call(trans.scope||window, null, res, false);
             return;
         }
-        if(!res[reader.meta.successProperty] === true){
+        if(!res.success === true){
             this.fireEvent('exception', this, 'remote', action, trans, res, rs);
             trans.callback.call(trans.scope||window, null, res, false);
             return;
         }
-        this.fireEvent("write", this, action, res[reader.meta.root], res, rs, trans.arg );
-        trans.callback.call(trans.scope||window, res[reader.meta.root], res, true);
+        this.fireEvent("write", this, action, res.data, res, rs, trans.arg );
+        trans.callback.call(trans.scope||window, res.data, res, true);
     },
 
     // private
@@ -3532,7 +4318,7 @@ Ext.extend(Ext.data.ScriptTagProxy, Ext.data.DataProxy, {
  * @constructor
  * @param {Object} conn
  * An {@link Ext.data.Connection} object, or options parameter to {@link Ext.Ajax#request}.
- * <p>Note that if this HttpProxy is being used by a (@link Ext.data.Store Store}, then the
+ * <p>Note that if this HttpProxy is being used by a {@link Ext.data.Store Store}, then the
  * Store's call to {@link #load} will override any specified <tt>callback</tt> and <tt>params</tt>
  * options. In this case, use the Store's {@link Ext.data.Store#events events} to modify parameters,
  * or react to loading events. The Store's {@link Ext.data.Store#baseParams baseParams} may also be
@@ -3553,13 +4339,13 @@ Ext.data.HttpProxy = function(conn){
 
     // nullify the connection url.  The url param has been copied to 'this' above.  The connection
     // url will be set during each execution of doRequest when buildUrl is called.  This makes it easier for users to override the
-    // connection url during beforeaction events (ie: beforeload, beforesave, etc).  The connection url will be nullified
-    // after each request as well.  Url is always re-defined during doRequest.
+    // connection url during beforeaction events (ie: beforeload, beforewrite, etc).
+    // Url is always re-defined during doRequest.
     this.conn.url = null;
 
     this.useAjax = !conn || !conn.events;
 
-    //private.  A hash containing active requests, keyed on action [Ext.data.Api.actions.create|read|update|destroy]
+    // A hash containing active requests, keyed on action [Ext.data.Api.actions.create|read|update|destroy]
     var actions = Ext.data.Api.actions;
     this.activeRequest = {};
     for (var verb in actions) {
@@ -3568,40 +4354,6 @@ Ext.data.HttpProxy = function(conn){
 };
 
 Ext.extend(Ext.data.HttpProxy, Ext.data.DataProxy, {
-    /**
-     * @cfg {Boolean} restful
-     * <p>If set to <tt>true</tt>, a {@link Ext.data.Record#phantom non-phantom} record's
-     * {@link Ext.data.Record#id id} will be appended to the url (defaults to <tt>false</tt>).</p><br>
-     * <p>The url is built based upon the action being executed <tt>[load|create|save|destroy]</tt>
-     * using the commensurate <tt>{@link #api}</tt> property, or if undefined default to the
-     * configured {@link Ext.data.Store}.{@link Ext.data.Store#url url}.</p><br>
-     * <p>Some MVC (e.g., Ruby on Rails, Merb and Django) support this style of segment based urls
-     * where the segments in the URL follow the Model-View-Controller approach.</p><pre><code>
-     * someSite.com/controller/action/id
-     * </code></pre>
-     * Where the segments in the url are typically:<div class="mdetail-params"><ul>
-     * <li>The first segment : represents the controller class that should be invoked.</li>
-     * <li>The second segment : represents the class function, or method, that should be called.</li>
-     * <li>The third segment : represents the ID (a variable typically passed to the method).</li>
-     * </ul></div></p>
-     * <p>For example:</p>
-     * <pre><code>
-api: {
-    load :    '/controller/load',
-    create :  '/controller/new',  // Server MUST return idProperty of new record
-    save :    '/controller/update',
-    destroy : '/controller/destroy_action'
-}
-
-// Alternatively, one can use the object-form to specify each API-action
-api: {
-    load: {url: 'read.php', method: 'GET'},
-    create: 'create.php',
-    destroy: 'destroy.php',
-    save: 'update.php'
-}
-     */
-
     /**
      * Return the {@link Ext.data.Connection} object being used by this Proxy.
      * @return {Connection} The Connection object. This object may be used to subscribe to events on
@@ -3625,6 +4377,7 @@ api: {
         this.conn.url = url;
         if (makePermanent === true) {
             this.url = url;
+            this.api = null;
             Ext.data.Api.prepare(this);
         }
     },
@@ -3643,8 +4396,9 @@ api: {
      * <li><tt>r</tt> : Ext.data.Record[] The block of Ext.data.Records.</li>
      * <li><tt>options</tt>: Options object from the action request</li>
      * <li><tt>success</tt>: Boolean success indicator</li></ul></p></div>
-     * @param {Object} scope The scope in which to call the callback
+     * @param {Object} scope The scope (<code>this</code> reference) in which the callback function is executed. Defaults to the browser window.
      * @param {Object} arg An optional argument which is passed to the callback as its second parameter.
+     * @protected
      */
     doRequest : function(action, rs, params, reader, cb, scope, arg) {
         var  o = {
@@ -3658,29 +4412,31 @@ api: {
             callback : this.createCallback(action, rs),
             scope: this
         };
-        // Sample the request data:  If it's an object, then it hasn't been json-encoded yet.
-        // Transmit data using jsonData config of Ext.Ajax.request
-        if (typeof(params[reader.meta.root]) === 'object') {
-            o.jsonData = params;
+
+        // If possible, transmit data using jsonData || xmlData on Ext.Ajax.request (An installed DataWriter would have written it there.).
+        // Use std HTTP params otherwise.
+        if (params.jsonData) {
+            o.jsonData = params.jsonData;
+        } else if (params.xmlData) {
+            o.xmlData = params.xmlData;
         } else {
             o.params = params || {};
         }
         // Set the connection url.  If this.conn.url is not null here,
-        // the user may have overridden the url during a beforeaction event-handler.
+        // the user must have overridden the url during a beforewrite/beforeload event-handler.
         // this.conn.url is nullified after each request.
-        if (this.conn.url === null) {
-            this.conn.url = this.buildUrl(action, rs);
-        }
-        else if (this.restful === true && rs instanceof Ext.data.Record && !rs.phantom) {
-            this.conn.url += '/' + rs.id;
-        }
+        this.conn.url = this.buildUrl(action, rs);
+
         if(this.useAjax){
 
             Ext.applyIf(o, this.conn);
 
             // If a currently running request is found for this action, abort it.
             if (this.activeRequest[action]) {
+                ////
                 // Disabled aborting activeRequest while implementing REST.  activeRequest[action] will have to become an array
+                // TODO ideas anyone?
+                //
                 //Ext.Ajax.abort(this.activeRequest[action]);
             }
             this.activeRequest[action] = Ext.Ajax.request(o);
@@ -3704,6 +4460,7 @@ api: {
             if (!success) {
                 if (action === Ext.data.Api.actions.read) {
                     // @deprecated: fire loadexception for backwards compat.
+                    // TODO remove
                     this.fireEvent('loadexception', this, o, response);
                 }
                 this.fireEvent('exception', this, 'response', action, o, response);
@@ -3715,7 +4472,7 @@ api: {
             } else {
                 this.onWrite(action, o, response, rs);
             }
-        }
+        };
     },
 
     /**
@@ -3723,7 +4480,10 @@ api: {
      * @param {String} action Action name as per {@link Ext.data.Api.actions#read}.
      * @param {Object} o The request transaction object
      * @param {Object} res The server response
-     * @private
+     * @fires loadexception (deprecated)
+     * @fires exception
+     * @fires load
+     * @protected
      */
     onRead : function(action, o, response) {
         var result;
@@ -3731,13 +4491,16 @@ api: {
             result = o.reader.read(response);
         }catch(e){
             // @deprecated: fire old loadexception for backwards-compat.
+            // TODO remove
             this.fireEvent('loadexception', this, o, response, e);
+
             this.fireEvent('exception', this, 'response', action, o, response, e);
             o.request.callback.call(o.request.scope, null, o.request.arg, false);
             return;
         }
         if (result.success === false) {
             // @deprecated: fire old loadexception for backwards-compat.
+            // TODO remove
             this.fireEvent('loadexception', this, o, response);
 
             // Get DataReader read-back a response-object to pass along to exception event
@@ -3747,6 +4510,9 @@ api: {
         else {
             this.fireEvent('load', this, o, o.request.arg);
         }
+        // TODO refactor onRead, onWrite to be more generalized now that we're dealing with Ext.data.Response instance
+        // the calls to request.callback(...) in each will have to be made identical.
+        // NOTE reader.readResponse does not currently return Ext.data.Response
         o.request.callback.call(o.request.scope, result, o.request.arg, result.success);
     },
     /**
@@ -3754,7 +4520,9 @@ api: {
      * @param {String} action [Ext.data.Api.actions.create|read|update|destroy]
      * @param {Object} trans The request transaction object
      * @param {Object} res The server response
-     * @private
+     * @fires exception
+     * @fires write
+     * @protected
      */
     onWrite : function(action, o, response, rs) {
         var reader = o.reader;
@@ -3766,12 +4534,15 @@ api: {
             o.request.callback.call(o.request.scope, null, o.request.arg, false);
             return;
         }
-        if (res[reader.meta.successProperty] === false) {
-            this.fireEvent('exception', this, 'remote', action, o, res, rs);
+        if (res.success === true) {
+            this.fireEvent('write', this, action, res.data, res, rs, o.request.arg);
         } else {
-            this.fireEvent('write', this, action, res[reader.meta.root], res, rs, o.request.arg);
+            this.fireEvent('exception', this, 'remote', action, o, res, rs);
         }
-        o.request.callback.call(o.request.scope, res[reader.meta.root], res, res[reader.meta.successProperty]);
+        // TODO refactor onRead, onWrite to be more generalized now that we're dealing with Ext.data.Response instance
+        // the calls to request.callback(...) in each will have to be made similar.
+        // NOTE reader.readResponse does not currently return Ext.data.Response
+        o.request.callback.call(o.request.scope, res.data, res, res.success);
     },
 
     // inherit docs
@@ -3831,7 +4602,7 @@ Ext.extend(Ext.data.MemoryProxy, Ext.data.DataProxy, {
      * <li>The "arg" argument from the load function</li>
      * <li>A boolean success indicator</li>
      * </ul>
-     * @param {Object} scope The scope in which to call the callback
+     * @param {Object} scope The scope (<code>this</code> reference) in which the callback function is executed. Defaults to the browser window.
      * @param {Object} arg An optional argument which is passed to the callback as its second parameter.
      */
     doRequest : function(action, rs, params, reader, callback, scope, arg) {
@@ -3850,4 +4621,184 @@ Ext.extend(Ext.data.MemoryProxy, Ext.data.DataProxy, {
         }
         callback.call(scope, result, arg, true);
     }
-});
+});/**
+ * @class Ext.data.Types
+ * <p>This is s static class containing the system-supplied data types which may be given to a {@link Ext.data.Field Field}.<p/>
+ * <p>The properties in this class are used as type indicators in the {@link Ext.data.Field Field} class, so to
+ * test whether a Field is of a certain type, compare the {@link Ext.data.Field#type type} property against properties
+ * of this class.</p>
+ * <p>Developers may add their own application-specific data types to this class. Definition names must be UPPERCASE.
+ * each type definition must contain three properties:</p>
+ * <div class="mdetail-params"><ul>
+ * <li><code>convert</code> : <i>Function</i><div class="sub-desc">A function to convert raw data values from a data block into the data
+ * to be stored in the Field. The function is passed the collowing parameters:
+ * <div class="mdetail-params"><ul>
+ * <li><b>v</b> : Mixed<div class="sub-desc">The data value as read by the Reader, if undefined will use
+ * the configured <tt>{@link Ext.data.Field#defaultValue defaultValue}</tt>.</div></li>
+ * <li><b>rec</b> : Mixed<div class="sub-desc">The data object containing the row as read by the Reader.
+ * Depending on the Reader type, this could be an Array ({@link Ext.data.ArrayReader ArrayReader}), an object
+ * ({@link Ext.data.JsonReader JsonReader}), or an XML element ({@link Ext.data.XMLReader XMLReader}).</div></li>
+ * </ul></div></div></li>
+ * <li><code>sortType</code> : <i>Function</i> <div class="sub-desc">A function to convert the stored data into comparable form, as defined by {@link Ext.data.SortTypes}.</div></li>
+ * <li><code>type</code> : <i>String</i> <div class="sub-desc">A textual data type name.</div></li>
+ * </ul></div>
+ * <p>For example, to create a VELatLong field (See the Microsoft Bing Mapping API) containing the latitude/longitude value of a datapoint on a map from a JsonReader data block
+ * which contained the properties <code>lat</code> and <code>long</code>, you would define a new data type like this:</p>
+ *<pre><code>
+// Add a new Field data type which stores a VELatLong object in the Record.
+Ext.data.Types.VELATLONG = {
+    convert: function(v, data) {
+        return new VELatLong(data.lat, data.long);
+    },
+    sortType: function(v) {
+        return v.Latitude;  // When sorting, order by latitude
+    },
+    type: 'VELatLong'
+};
+</code></pre>
+ * <p>Then, when declaring a Record, use <pre><code>
+var types = Ext.data.Types; // allow shorthand type access
+UnitRecord = Ext.data.Record.create([
+    { name: 'unitName', mapping: 'UnitName' },
+    { name: 'curSpeed', mapping: 'CurSpeed', type: types.INT },
+    { name: 'latitude', mapping: 'lat', type: types.FLOAT },
+    { name: 'latitude', mapping: 'lat', type: types.FLOAT },
+    { name: 'position', type: types.VELATLONG }
+]);
+</code></pre>
+ * @singleton
+ */
+Ext.data.Types = new function(){
+    var st = Ext.data.SortTypes;
+    Ext.apply(this, {
+        /**
+         * @type Regexp
+         * @property stripRe
+         * A regular expression for stripping non-numeric characters from a numeric value. Defaults to <tt>/[\$,%]/g</tt>.
+         * This should be overridden for localization.
+         */
+        stripRe: /[\$,%]/g,
+        
+        /**
+         * @type Object.
+         * @property AUTO
+         * This data type means that no conversion is applied to the raw data before it is placed into a Record.
+         */
+        AUTO: {
+            convert: function(v){ return v; },
+            sortType: st.none,
+            type: 'auto'
+        },
+
+        /**
+         * @type Object.
+         * @property STRING
+         * This data type means that the raw data is converted into a String before it is placed into a Record.
+         */
+        STRING: {
+            convert: function(v){ return (v === undefined || v === null) ? '' : String(v); },
+            sortType: st.asUCString,
+            type: 'string'
+        },
+
+        /**
+         * @type Object.
+         * @property INT
+         * This data type means that the raw data is converted into an integer before it is placed into a Record.
+         * <p>The synonym <code>INTEGER</code> is equivalent.</p>
+         */
+        INT: {
+            convert: function(v){
+                return v !== undefined && v !== null && v !== '' ?
+                    parseInt(String(v).replace(Ext.data.Types.stripRe, ''), 10) : (this.useNull ? null : 0);
+            },
+            sortType: st.none,
+            type: 'int'
+        },
+        
+        /**
+         * @type Object.
+         * @property FLOAT
+         * This data type means that the raw data is converted into a number before it is placed into a Record.
+         * <p>The synonym <code>NUMBER</code> is equivalent.</p>
+         */
+        FLOAT: {
+            convert: function(v){
+                return v !== undefined && v !== null && v !== '' ?
+                    parseFloat(String(v).replace(Ext.data.Types.stripRe, ''), 10) : (this.useNull ? null : 0);
+            },
+            sortType: st.none,
+            type: 'float'
+        },
+        
+        /**
+         * @type Object.
+         * @property BOOL
+         * <p>This data type means that the raw data is converted into a boolean before it is placed into
+         * a Record. The string "true" and the number 1 are converted to boolean <code>true</code>.</p>
+         * <p>The synonym <code>BOOLEAN</code> is equivalent.</p>
+         */
+        BOOL: {
+            convert: function(v){ return v === true || v === 'true' || v == 1; },
+            sortType: st.none,
+            type: 'bool'
+        },
+        
+        /**
+         * @type Object.
+         * @property DATE
+         * This data type means that the raw data is converted into a Date before it is placed into a Record.
+         * The date format is specified in the constructor of the {@link Ext.data.Field} to which this type is
+         * being applied.
+         */
+        DATE: {
+            convert: function(v){
+                var df = this.dateFormat;
+                if(!v){
+                    return null;
+                }
+                if(Ext.isDate(v)){
+                    return v;
+                }
+                if(df){
+                    if(df == 'timestamp'){
+                        return new Date(v*1000);
+                    }
+                    if(df == 'time'){
+                        return new Date(parseInt(v, 10));
+                    }
+                    return Date.parseDate(v, df);
+                }
+                var parsed = Date.parse(v);
+                return parsed ? new Date(parsed) : null;
+            },
+            sortType: st.asDate,
+            type: 'date'
+        }
+    });
+    
+    Ext.apply(this, {
+        /**
+         * @type Object.
+         * @property BOOLEAN
+         * <p>This data type means that the raw data is converted into a boolean before it is placed into
+         * a Record. The string "true" and the number 1 are converted to boolean <code>true</code>.</p>
+         * <p>The synonym <code>BOOL</code> is equivalent.</p>
+         */
+        BOOLEAN: this.BOOL,
+        /**
+         * @type Object.
+         * @property INTEGER
+         * This data type means that the raw data is converted into an integer before it is placed into a Record.
+         * <p>The synonym <code>INT</code> is equivalent.</p>
+         */
+        INTEGER: this.INT,
+        /**
+         * @type Object.
+         * @property NUMBER
+         * This data type means that the raw data is converted into a number before it is placed into a Record.
+         * <p>The synonym <code>FLOAT</code> is equivalent.</p>
+         */
+        NUMBER: this.FLOAT    
+    });
+};

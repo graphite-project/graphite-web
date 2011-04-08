@@ -1,8 +1,8 @@
 /*!
- * Ext JS Library 3.0.0
- * Copyright(c) 2006-2009 Ext JS, LLC
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.3.1
+ * Copyright(c) 2006-2010 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 /**
  * @class Ext.tree.TreePanel
@@ -118,11 +118,19 @@ new Ext.Viewport({
  */
 Ext.tree.TreePanel = Ext.extend(Ext.Panel, {
     rootVisible : true,
-    animate: Ext.enableFx,
+    animate : Ext.enableFx,
     lines : true,
     enableDD : false,
     hlDrop : Ext.enableFx,
-    pathSeparator: "/",
+    pathSeparator : '/',
+
+    /**
+     * @cfg {Array} bubbleEvents
+     * <p>An array of events that, when fired, should be bubbled to any parent container.
+     * See {@link Ext.util.Observable#enableBubble}.
+     * Defaults to <tt>[]</tt>.
+     */
+    bubbleEvents : [],
 
     initComponent : function(){
         Ext.tree.TreePanel.superclass.initComponent.call(this);
@@ -138,7 +146,7 @@ Ext.tree.TreePanel = Ext.extend(Ext.Panel, {
                 dataUrl: this.dataUrl,
                 requestMethod: this.requestMethod
             });
-        }else if(typeof l == 'object' && !l.load){
+        }else if(Ext.isObject(l) && !l.load){
             l = new Ext.tree.TreeLoader(l);
         }
         this.loader = l;
@@ -167,7 +175,7 @@ Ext.tree.TreePanel = Ext.extend(Ext.Panel, {
             * @param {Node} node The newly appended node
             * @param {Number} index The index of the newly appended node
             */
-           "append",
+           'append',
            /**
             * @event remove
             * Fires when a child node is removed from a node in this tree.
@@ -175,7 +183,7 @@ Ext.tree.TreePanel = Ext.extend(Ext.Panel, {
             * @param {Node} parent The parent node
             * @param {Node} node The child node removed
             */
-           "remove",
+           'remove',
            /**
             * @event movenode
             * Fires when a node is moved to a new location in the tree
@@ -185,7 +193,7 @@ Ext.tree.TreePanel = Ext.extend(Ext.Panel, {
             * @param {Node} newParent The new parent of this node
             * @param {Number} index The index it was moved to
             */
-           "movenode",
+           'movenode',
            /**
             * @event insert
             * Fires when a new child node is inserted in a node in this tree.
@@ -194,7 +202,7 @@ Ext.tree.TreePanel = Ext.extend(Ext.Panel, {
             * @param {Node} node The child node inserted
             * @param {Node} refNode The child node the node was inserted before
             */
-           "insert",
+           'insert',
            /**
             * @event beforeappend
             * Fires before a new child is appended to a node in this tree, return false to cancel the append.
@@ -202,7 +210,7 @@ Ext.tree.TreePanel = Ext.extend(Ext.Panel, {
             * @param {Node} parent The parent node
             * @param {Node} node The child node to be appended
             */
-           "beforeappend",
+           'beforeappend',
            /**
             * @event beforeremove
             * Fires before a child is removed from a node in this tree, return false to cancel the remove.
@@ -210,7 +218,7 @@ Ext.tree.TreePanel = Ext.extend(Ext.Panel, {
             * @param {Node} parent The parent node
             * @param {Node} node The child node to be removed
             */
-           "beforeremove",
+           'beforeremove',
            /**
             * @event beforemovenode
             * Fires before a node is moved to a new location in the tree. Return false to cancel the move.
@@ -220,7 +228,7 @@ Ext.tree.TreePanel = Ext.extend(Ext.Panel, {
             * @param {Node} newParent The new parent the node is moving to
             * @param {Number} index The index it is being moved to
             */
-           "beforemovenode",
+           'beforemovenode',
            /**
             * @event beforeinsert
             * Fires before a new child is inserted in a node in this tree, return false to cancel the insert.
@@ -229,20 +237,20 @@ Ext.tree.TreePanel = Ext.extend(Ext.Panel, {
             * @param {Node} node The child node to be inserted
             * @param {Node} refNode The child node the node is being inserted before
             */
-            "beforeinsert",
+            'beforeinsert',
 
             /**
             * @event beforeload
             * Fires before a node is loaded, return false to cancel
             * @param {Node} node The node being loaded
             */
-            "beforeload",
+            'beforeload',
             /**
             * @event load
             * Fires when a node is loaded
             * @param {Node} node The node that was loaded
             */
-            "load",
+            'load',
             /**
             * @event textchange
             * Fires when the text for a node is changed
@@ -250,7 +258,7 @@ Ext.tree.TreePanel = Ext.extend(Ext.Panel, {
             * @param {String} text The new text
             * @param {String} oldText The old text
             */
-            "textchange",
+            'textchange',
             /**
             * @event beforeexpandnode
             * Fires before a node is expanded, return false to cancel.
@@ -258,7 +266,7 @@ Ext.tree.TreePanel = Ext.extend(Ext.Panel, {
             * @param {Boolean} deep
             * @param {Boolean} anim
             */
-            "beforeexpandnode",
+            'beforeexpandnode',
             /**
             * @event beforecollapsenode
             * Fires before a node is collapsed, return false to cancel.
@@ -266,54 +274,75 @@ Ext.tree.TreePanel = Ext.extend(Ext.Panel, {
             * @param {Boolean} deep
             * @param {Boolean} anim
             */
-            "beforecollapsenode",
+            'beforecollapsenode',
             /**
             * @event expandnode
             * Fires when a node is expanded
             * @param {Node} node The node
             */
-            "expandnode",
+            'expandnode',
             /**
             * @event disabledchange
             * Fires when the disabled status of a node changes
             * @param {Node} node The node
             * @param {Boolean} disabled
             */
-            "disabledchange",
+            'disabledchange',
             /**
             * @event collapsenode
             * Fires when a node is collapsed
             * @param {Node} node The node
             */
-            "collapsenode",
+            'collapsenode',
             /**
             * @event beforeclick
             * Fires before click processing on a node. Return false to cancel the default action.
             * @param {Node} node The node
             * @param {Ext.EventObject} e The event object
             */
-            "beforeclick",
+            'beforeclick',
             /**
             * @event click
             * Fires when a node is clicked
             * @param {Node} node The node
             * @param {Ext.EventObject} e The event object
             */
-            "click",
+            'click',
+            /**
+            * @event containerclick
+            * Fires when the tree container is clicked
+            * @param {Tree} this
+            * @param {Ext.EventObject} e The event object
+            */
+            'containerclick',
             /**
             * @event checkchange
             * Fires when a node with a checkbox's checked property changes
             * @param {Node} this This node
             * @param {Boolean} checked
             */
-            "checkchange",
+            'checkchange',
+            /**
+            * @event beforedblclick
+            * Fires before double click processing on a node. Return false to cancel the default action.
+            * @param {Node} node The node
+            * @param {Ext.EventObject} e The event object
+            */
+            'beforedblclick',
             /**
             * @event dblclick
             * Fires when a node is double clicked
             * @param {Node} node The node
             * @param {Ext.EventObject} e The event object
             */
-            "dblclick",
+            'dblclick',
+            /**
+            * @event containerdblclick
+            * Fires when the tree container is double clicked
+            * @param {Tree} this
+            * @param {Ext.EventObject} e The event object
+            */
+            'containerdblclick',
             /**
             * @event contextmenu
             * Fires when a node is right clicked. To display a context menu in response to this
@@ -361,13 +390,20 @@ new Ext.tree.TreePanel({
             * @param {Node} node The node
             * @param {Ext.EventObject} e The event object
             */
-            "contextmenu",
+            'contextmenu',
+            /**
+            * @event containercontextmenu
+            * Fires when the tree container is right clicked
+            * @param {Tree} this
+            * @param {Ext.EventObject} e The event object
+            */
+            'containercontextmenu',
             /**
             * @event beforechildrenrendered
             * Fires right before the child nodes for a node are rendered
             * @param {Node} node The node
             */
-            "beforechildrenrendered",
+            'beforechildrenrendered',
            /**
              * @event startdrag
              * Fires when a node starts being dragged
@@ -375,7 +411,7 @@ new Ext.tree.TreePanel({
              * @param {Ext.tree.TreeNode} node
              * @param {event} e The raw browser event
              */
-            "startdrag",
+            'startdrag',
             /**
              * @event enddrag
              * Fires when a drag operation is complete
@@ -383,7 +419,7 @@ new Ext.tree.TreePanel({
              * @param {Ext.tree.TreeNode} node
              * @param {event} e The raw browser event
              */
-            "enddrag",
+            'enddrag',
             /**
              * @event dragdrop
              * Fires when a dragged node is dropped on a valid DD target
@@ -392,7 +428,7 @@ new Ext.tree.TreePanel({
              * @param {DD} dd The dd it was dropped on
              * @param {event} e The raw browser event
              */
-            "dragdrop",
+            'dragdrop',
             /**
              * @event beforenodedrop
              * Fires when a DD object is dropped on a node in this tree for preprocessing. Return false to cancel the drop. The dropEvent
@@ -408,11 +444,11 @@ new Ext.tree.TreePanel({
              * to be inserted by setting them on this object.</li>
              * <li>cancel - Set this to true to cancel the drop.</li>
              * <li>dropStatus - If the default drop action is cancelled but the drop is valid, setting this to true
-             * will prevent the animated "repair" from appearing.</li>
+             * will prevent the animated 'repair' from appearing.</li>
              * </ul>
              * @param {Object} dropEvent
              */
-            "beforenodedrop",
+            'beforenodedrop',
             /**
              * @event nodedrop
              * Fires after a DD object is dropped on a node in this tree. The dropEvent
@@ -428,7 +464,7 @@ new Ext.tree.TreePanel({
              * </ul>
              * @param {Object} dropEvent
              */
-            "nodedrop",
+            'nodedrop',
              /**
              * @event nodedragover
              * Fires when a tree node is being targeted for a drag drop, return false to signal drop not allowed. The dragOverEvent
@@ -445,10 +481,10 @@ new Ext.tree.TreePanel({
              * </ul>
              * @param {Object} dragOverEvent
              */
-            "nodedragover"
+            'nodedragover'
         );
         if(this.singleExpand){
-            this.on("beforeexpandnode", this.restrictExpand, this);
+            this.on('beforeexpandnode', this.restrictExpand, this);
         }
     },
 
@@ -477,7 +513,7 @@ new Ext.tree.TreePanel({
      * @return {Node}
      */
     setRootNode : function(node){
-        Ext.destroy(this.root);
+        this.destroyRoot();
         if(!node.render){ // attributes passed
             node = this.loader.createNode(node);
         }
@@ -489,11 +525,23 @@ new Ext.tree.TreePanel({
             var uiP = node.attributes.uiProvider;
             node.ui = uiP ? new uiP(node) : new Ext.tree.RootTreeNodeUI(node);
         }
-        if (this.innerCt) {
-            this.innerCt.update('');
-            this.afterRender();
+        if(this.innerCt){
+            this.clearInnerCt();
+            this.renderRoot();
         }
         return node;
+    },
+    
+    clearInnerCt : function(){
+        this.innerCt.update('');    
+    },
+    
+    // private
+    renderRoot : function(){
+        this.root.render();
+        if(!this.rootVisible){
+            this.root.renderChildren();
+        }
     },
 
     /**
@@ -517,7 +565,7 @@ new Ext.tree.TreePanel({
 
     // private
     toString : function(){
-        return "[Tree"+(this.id?" "+this.id:"")+"]";
+        return '[Tree'+(this.id?' '+this.id:'')+']';
     },
 
     // private
@@ -532,7 +580,7 @@ new Ext.tree.TreePanel({
     },
 
     /**
-     * Retrieve an array of checked nodes, or an array of a specific attribute of checked nodes (e.g. "id")
+     * Retrieve an array of checked nodes, or an array of a specific attribute of checked nodes (e.g. 'id')
      * @param {String} attribute (optional) Defaults to null (return the actual nodes)
      * @param {TreeNode} startNode (optional) The node to start from, defaults to the root
      * @return {Array}
@@ -547,14 +595,6 @@ new Ext.tree.TreePanel({
         };
         startNode.cascade(f);
         return r;
-    },
-
-    /**
-     * Returns the container element for this TreePanel.
-     * @return {Element} The container element for this TreePanel.
-     */
-    getEl : function(){
-        return this.el;
     },
 
     /**
@@ -598,7 +638,13 @@ new Ext.tree.TreePanel({
      * (bSuccess, oLastNode) where bSuccess is if the expand was successful and oLastNode is the last node that was expanded.
      */
     expandPath : function(path, attr, callback){
-        attr = attr || "id";
+        if(Ext.isEmpty(path)){
+            if(callback){
+                callback(false, undefined);
+            }
+            return;
+        }
+        attr = attr || 'id';
         var keys = path.split(this.pathSeparator);
         var curNode = this.root;
         if(curNode.attributes[attr] != keys[1]){ // invalid root
@@ -636,10 +682,16 @@ new Ext.tree.TreePanel({
      * (bSuccess, oSelNode) where bSuccess is if the selection was successful and oSelNode is the selected node.
      */
     selectPath : function(path, attr, callback){
-        attr = attr || "id";
-        var keys = path.split(this.pathSeparator);
-        var v = keys.pop();
-        if(keys.length > 0){
+        if(Ext.isEmpty(path)){
+            if(callback){
+                callback(false, undefined);
+            }
+            return;
+        }
+        attr = attr || 'id';
+        var keys = path.split(this.pathSeparator),
+            v = keys.pop();
+        if(keys.length > 1){
             var f = function(success, node){
                 if(success && node){
                     var n = node.findChild(attr, v);
@@ -678,9 +730,9 @@ new Ext.tree.TreePanel({
     onRender : function(ct, position){
         Ext.tree.TreePanel.superclass.onRender.call(this, ct, position);
         this.el.addClass('x-tree');
-        this.innerCt = this.body.createChild({tag:"ul",
-               cls:"x-tree-root-ct " +
-               (this.useArrows ? 'x-tree-arrows' : this.lines ? "x-tree-lines" : "x-tree-no-lines")});
+        this.innerCt = this.body.createChild({tag:'ul',
+               cls:'x-tree-root-ct ' +
+               (this.useArrows ? 'x-tree-arrows' : this.lines ? 'x-tree-lines' : 'x-tree-no-lines')});
     },
 
     // private
@@ -697,7 +749,7 @@ new Ext.tree.TreePanel({
             * @type Ext.tree.TreeDropZone
             */
              this.dropZone = new Ext.tree.TreeDropZone(this, this.dropConfig || {
-               ddGroup: this.ddGroup || "TreeDD", appendOnly: this.ddAppendOnly === true
+               ddGroup: this.ddGroup || 'TreeDD', appendOnly: this.ddAppendOnly === true
            });
         }
         if((this.enableDD || this.enableDrag) && !this.dragZone){
@@ -707,7 +759,7 @@ new Ext.tree.TreePanel({
             * @type Ext.tree.TreeDragZone
             */
             this.dragZone = new Ext.tree.TreeDragZone(this, this.dragConfig || {
-               ddGroup: this.ddGroup || "TreeDD",
+               ddGroup: this.ddGroup || 'TreeDD',
                scroll: this.ddScroll
            });
         }
@@ -717,26 +769,28 @@ new Ext.tree.TreePanel({
     // private
     afterRender : function(){
         Ext.tree.TreePanel.superclass.afterRender.call(this);
-        this.root.render();
-        if(!this.rootVisible){
-            this.root.renderChildren();
-        }
+        this.renderRoot();
     },
 
-    onDestroy : function(){
+    beforeDestroy : function(){
         if(this.rendered){
-            this.body.removeAllListeners();
             Ext.dd.ScrollManager.unregister(this.body);
-            if(this.dropZone){
-                this.dropZone.unreg();
-            }
-            if(this.dragZone){
-               this.dragZone.unreg();
-            }
+            Ext.destroy(this.dropZone, this.dragZone);
         }
-        this.root.destroy();
-        this.nodeHash = null;
-        Ext.tree.TreePanel.superclass.onDestroy.call(this);
+        this.destroyRoot();
+        Ext.destroy(this.loader);
+        this.nodeHash = this.root = this.loader = null;
+        Ext.tree.TreePanel.superclass.beforeDestroy.call(this);
+    },
+    
+    /**
+     * Destroy the root node. Not included by itself because we need to pass the silent parameter.
+     * @private
+     */
+    destroyRoot : function(){
+        if(this.root && this.root.destroy){
+            this.root.destroy(true);
+        }
     }
 
     /**
@@ -879,6 +933,15 @@ new Ext.tree.TreePanel({
      * @cfg {String} contentEl  @hide
      */
     /**
+     * @cfg {Mixed} data  @hide
+     */
+    /**
+     * @cfg {Mixed} tpl  @hide
+     */
+    /**
+     * @cfg {String} tplWriteMode  @hide
+     */
+    /**
      * @cfg {String} disabledClass  @hide
      */
     /**
@@ -918,18 +981,25 @@ Ext.tree.TreePanel.nodeTypes = {};
 Ext.reg('treepanel', Ext.tree.TreePanel);Ext.tree.TreeEventModel = function(tree){
     this.tree = tree;
     this.tree.on('render', this.initEvents, this);
-}
+};
 
 Ext.tree.TreeEventModel.prototype = {
     initEvents : function(){
-        var el = this.tree.getTreeEl();
-        el.on('click', this.delegateClick, this);
-        if(this.tree.trackMouseOver !== false){
-            this.tree.innerCt.on('mouseover', this.delegateOver, this);
-            this.tree.innerCt.on('mouseout', this.delegateOut, this);
+        var t = this.tree;
+
+        if(t.trackMouseOver !== false){
+            t.mon(t.innerCt, {
+                scope: this,
+                mouseover: this.delegateOver,
+                mouseout: this.delegateOut
+            });
         }
-        el.on('dblclick', this.delegateDblClick, this);
-        el.on('contextmenu', this.delegateContextMenu, this);
+        t.mon(t.getTreeEl(), {
+            scope: this,
+            click: this.delegateClick,
+            dblclick: this.delegateDblClick,
+            contextmenu: this.delegateContextMenu
+        });
     },
 
     getNode : function(e){
@@ -989,40 +1059,61 @@ Ext.tree.TreeEventModel.prototype = {
     },
 
     trackExit : function(e){
-        if(this.lastOverNode && !e.within(this.lastOverNode.ui.getEl())){
-            this.onNodeOut(e, this.lastOverNode);
+        if(this.lastOverNode){
+            if(this.lastOverNode.ui && !e.within(this.lastOverNode.ui.getEl())){
+                this.onNodeOut(e, this.lastOverNode);
+            }
             delete this.lastOverNode;
             Ext.getBody().un('mouseover', this.trackExit, this);
             this.trackingDoc = false;
         }
+
     },
 
     delegateClick : function(e, t){
-        if(!this.beforeEvent(e)){
-            return;
-        }
-
-        if(e.getTarget('input[type=checkbox]', 1)){
-            this.onCheckboxClick(e, this.getNode(e));
-        }
-        else if(e.getTarget('.x-tree-ec-icon', 1)){
-            this.onIconClick(e, this.getNode(e));
-        }
-        else if(this.getNodeTarget(e)){
-            this.onNodeClick(e, this.getNode(e));
+        if(this.beforeEvent(e)){
+            if(e.getTarget('input[type=checkbox]', 1)){
+                this.onCheckboxClick(e, this.getNode(e));
+            }else if(e.getTarget('.x-tree-ec-icon', 1)){
+                this.onIconClick(e, this.getNode(e));
+            }else if(this.getNodeTarget(e)){
+                this.onNodeClick(e, this.getNode(e));
+            }
+        }else{
+            this.checkContainerEvent(e, 'click');
         }
     },
 
     delegateDblClick : function(e, t){
-        if(this.beforeEvent(e) && this.getNodeTarget(e)){
-            this.onNodeDblClick(e, this.getNode(e));
+        if(this.beforeEvent(e)){
+            if(this.getNodeTarget(e)){
+                this.onNodeDblClick(e, this.getNode(e));
+            }
+        }else{
+            this.checkContainerEvent(e, 'dblclick');
         }
     },
 
     delegateContextMenu : function(e, t){
-        if(this.beforeEvent(e) && this.getNodeTarget(e)){
-            this.onNodeContextMenu(e, this.getNode(e));
+        if(this.beforeEvent(e)){
+            if(this.getNodeTarget(e)){
+                this.onNodeContextMenu(e, this.getNode(e));
+            }
+        }else{
+            this.checkContainerEvent(e, 'contextmenu');
         }
+    },
+    
+    checkContainerEvent: function(e, type){
+        if(this.disabled){
+            e.stopEvent();
+            return false;
+        }
+        this.onContainerEvent(e, type);    
+    },
+
+    onContainerEvent: function(e, type){
+        this.tree.fireEvent('container' + type, this.tree, e);
     },
 
     onNodeClick : function(e, node){
@@ -1063,7 +1154,8 @@ Ext.tree.TreeEventModel.prototype = {
     },
 
     beforeEvent : function(e){
-        if(this.disabled){
+        var node = this.getNode(e);
+        if(this.disabled || !node || !node.ui){
             e.stopEvent();
             return false;
         }
@@ -1082,37 +1174,38 @@ Ext.tree.TreeEventModel.prototype = {
  * @extends Ext.util.Observable
  * The default single selection for a TreePanel.
  */
-Ext.tree.DefaultSelectionModel = function(config){
-   this.selNode = null;
+Ext.tree.DefaultSelectionModel = Ext.extend(Ext.util.Observable, {
+    
+    constructor : function(config){
+        this.selNode = null;
    
-   this.addEvents(
-       /**
-        * @event selectionchange
-        * Fires when the selected node changes
-        * @param {DefaultSelectionModel} this
-        * @param {TreeNode} node the new selection
-        */
-       "selectionchange",
+        this.addEvents(
+            /**
+             * @event selectionchange
+             * Fires when the selected node changes
+             * @param {DefaultSelectionModel} this
+             * @param {TreeNode} node the new selection
+             */
+            'selectionchange',
 
-       /**
-        * @event beforeselect
-        * Fires before the selected node changes, return false to cancel the change
-        * @param {DefaultSelectionModel} this
-        * @param {TreeNode} node the new selection
-        * @param {TreeNode} node the old selection
-        */
-       "beforeselect"
-   );
+            /**
+             * @event beforeselect
+             * Fires before the selected node changes, return false to cancel the change
+             * @param {DefaultSelectionModel} this
+             * @param {TreeNode} node the new selection
+             * @param {TreeNode} node the old selection
+             */
+            'beforeselect'
+        );
 
-    Ext.apply(this, config);
-    Ext.tree.DefaultSelectionModel.superclass.constructor.call(this);
-};
-
-Ext.extend(Ext.tree.DefaultSelectionModel, Ext.util.Observable, {
+        Ext.apply(this, config);
+        Ext.tree.DefaultSelectionModel.superclass.constructor.call(this);    
+    },
+    
     init : function(tree){
         this.tree = tree;
-        tree.getTreeEl().on("keydown", this.onKeyDown, this);
-        tree.on("click", this.onNodeClick, this);
+        tree.mon(tree.getTreeEl(), 'keydown', this.onKeyDown, this);
+        tree.on('click', this.onNodeClick, this);
     },
     
     onNodeClick : function(node, e){
@@ -1124,17 +1217,21 @@ Ext.extend(Ext.tree.DefaultSelectionModel, Ext.util.Observable, {
      * @param {TreeNode} node The node to select
      * @return {TreeNode} The selected node
      */
-    select : function(node){
+    select : function(node, /* private*/ selectNextNode){
+        // If node is hidden, select the next node in whatever direction was being moved in.
+        if (!Ext.fly(node.ui.wrap).isVisible() && selectNextNode) {
+            return selectNextNode.call(this, node);
+        }
         var last = this.selNode;
         if(node == last){
             node.ui.onSelectedChange(true);
         }else if(this.fireEvent('beforeselect', this, node, last) !== false){
-            if(last){
+            if(last && last.ui){
                 last.ui.onSelectedChange(false);
             }
             this.selNode = node;
             node.ui.onSelectedChange(true);
-            this.fireEvent("selectionchange", this, node, last);
+            this.fireEvent('selectionchange', this, node, last);
         }
         return node;
     },
@@ -1142,22 +1239,26 @@ Ext.extend(Ext.tree.DefaultSelectionModel, Ext.util.Observable, {
     /**
      * Deselect a node.
      * @param {TreeNode} node The node to unselect
+     * @param {Boolean} silent True to stop the selectionchange event from firing.
      */
-    unselect : function(node){
+    unselect : function(node, silent){
         if(this.selNode == node){
-            this.clearSelections();
+            this.clearSelections(silent);
         }    
     },
     
     /**
      * Clear all selections
+     * @param {Boolean} silent True to stop the selectionchange event from firing.
      */
-    clearSelections : function(){
+    clearSelections : function(silent){
         var n = this.selNode;
         if(n){
             n.ui.onSelectedChange(false);
             this.selNode = null;
-            this.fireEvent("selectionchange", this, null);
+            if(silent !== true){
+                this.fireEvent('selectionchange', this, null);
+            }
         }
         return n;
     },
@@ -1183,24 +1284,24 @@ Ext.extend(Ext.tree.DefaultSelectionModel, Ext.util.Observable, {
      * Selects the node above the selected node in the tree, intelligently walking the nodes
      * @return TreeNode The new selection
      */
-    selectPrevious : function(){
-        var s = this.selNode || this.lastSelNode;
-        if(!s){
+    selectPrevious : function(/* private */ s){
+        if(!(s = s || this.selNode || this.lastSelNode)){
             return null;
         }
+        // Here we pass in the current function to select to indicate the direction we're moving
         var ps = s.previousSibling;
         if(ps){
             if(!ps.isExpanded() || ps.childNodes.length < 1){
-                return this.select(ps);
+                return this.select(ps, this.selectPrevious);
             } else{
                 var lc = ps.lastChild;
-                while(lc && lc.isExpanded() && lc.childNodes.length > 0){
+                while(lc && lc.isExpanded() && Ext.fly(lc.ui.wrap).isVisible() && lc.childNodes.length > 0){
                     lc = lc.lastChild;
                 }
-                return this.select(lc);
+                return this.select(lc, this.selectPrevious);
             }
         } else if(s.parentNode && (this.tree.rootVisible || !s.parentNode.isRoot)){
-            return this.select(s.parentNode);
+            return this.select(s.parentNode, this.selectPrevious);
         }
         return null;
     },
@@ -1209,20 +1310,20 @@ Ext.extend(Ext.tree.DefaultSelectionModel, Ext.util.Observable, {
      * Selects the node above the selected node in the tree, intelligently walking the nodes
      * @return TreeNode The new selection
      */
-    selectNext : function(){
-        var s = this.selNode || this.lastSelNode;
-        if(!s){
+    selectNext : function(/* private */ s){
+        if(!(s = s || this.selNode || this.lastSelNode)){
             return null;
         }
-        if(s.firstChild && s.isExpanded()){
-             return this.select(s.firstChild);
+        // Here we pass in the current function to select to indicate the direction we're moving
+        if(s.firstChild && s.isExpanded() && Ext.fly(s.ui.wrap).isVisible()){
+             return this.select(s.firstChild, this.selectNext);
          }else if(s.nextSibling){
-             return this.select(s.nextSibling);
+             return this.select(s.nextSibling, this.selectNext);
          }else if(s.parentNode){
             var newS = null;
             s.parentNode.bubble(function(){
                 if(this.nextSibling){
-                    newS = this.getOwnerTree().selModel.select(this.nextSibling);
+                    newS = this.getOwnerTree().selModel.select(this.nextSibling, this.selectNext);
                     return false;
                 }
             });
@@ -1275,27 +1376,28 @@ Ext.extend(Ext.tree.DefaultSelectionModel, Ext.util.Observable, {
  * @extends Ext.util.Observable
  * Multi selection for a TreePanel.
  */
-Ext.tree.MultiSelectionModel = function(config){
-   this.selNodes = [];
-   this.selMap = {};
-   this.addEvents(
-       /**
-        * @event selectionchange
-        * Fires when the selected nodes change
-        * @param {MultiSelectionModel} this
-        * @param {Array} nodes Array of the selected nodes
-        */
-       "selectionchange"
-   );
-    Ext.apply(this, config);
-    Ext.tree.MultiSelectionModel.superclass.constructor.call(this);
-};
-
-Ext.extend(Ext.tree.MultiSelectionModel, Ext.util.Observable, {
+Ext.tree.MultiSelectionModel = Ext.extend(Ext.util.Observable, {
+    
+    constructor : function(config){
+        this.selNodes = [];
+        this.selMap = {};
+        this.addEvents(
+            /**
+             * @event selectionchange
+             * Fires when the selected nodes change
+             * @param {MultiSelectionModel} this
+             * @param {Array} nodes Array of the selected nodes
+             */
+            'selectionchange'
+        );
+        Ext.apply(this, config);
+        Ext.tree.MultiSelectionModel.superclass.constructor.call(this);    
+    },
+    
     init : function(tree){
         this.tree = tree;
-        tree.getTreeEl().on("keydown", this.onKeyDown, this);
-        tree.on("click", this.onNodeClick, this);
+        tree.mon(tree.getTreeEl(), 'keydown', this.onKeyDown, this);
+        tree.on('click', this.onNodeClick, this);
     },
     
     onNodeClick : function(node, e){
@@ -1325,7 +1427,7 @@ Ext.extend(Ext.tree.MultiSelectionModel, Ext.util.Observable, {
         this.selMap[node.id] = node;
         this.lastSelNode = node;
         node.ui.onSelectedChange(true);
-        this.fireEvent("selectionchange", this, this.selNodes);
+        this.fireEvent('selectionchange', this, this.selNodes);
         return node;
     },
     
@@ -1342,7 +1444,7 @@ Ext.extend(Ext.tree.MultiSelectionModel, Ext.util.Observable, {
                 this.selNodes.splice(index, 1);
             }
             delete this.selMap[node.id];
-            this.fireEvent("selectionchange", this, this.selNodes);
+            this.fireEvent('selectionchange', this, this.selNodes);
         }
     },
     
@@ -1358,7 +1460,7 @@ Ext.extend(Ext.tree.MultiSelectionModel, Ext.util.Observable, {
             this.selNodes = [];
             this.selMap = {};
             if(suppressEvent !== true){
-                this.fireEvent("selectionchange", this, this.selNodes);
+                this.fireEvent('selectionchange', this, this.selNodes);
             }
         }
     },
@@ -1377,7 +1479,7 @@ Ext.extend(Ext.tree.MultiSelectionModel, Ext.util.Observable, {
      * @return {Array}
      */
     getSelectedNodes : function(){
-        return this.selNodes;    
+        return this.selNodes.concat([]);
     },
 
     onKeyDown : Ext.tree.DefaultSelectionModel.prototype.onKeyDown,
@@ -1393,94 +1495,94 @@ Ext.extend(Ext.tree.MultiSelectionModel, Ext.util.Observable, {
  * @constructor
  * @param {Node} root (optional) The root node
  */
-Ext.data.Tree = function(root){
-   this.nodeHash = {};
-   /**
-    * The root node for this tree
-    * @type Node
-    */
-   this.root = null;
-   if(root){
-       this.setRootNode(root);
-   }
-   this.addEvents(
-       /**
-        * @event append
-        * Fires when a new child node is appended to a node in this tree.
-        * @param {Tree} tree The owner tree
-        * @param {Node} parent The parent node
-        * @param {Node} node The newly appended node
-        * @param {Number} index The index of the newly appended node
-        */
-       "append",
-       /**
-        * @event remove
-        * Fires when a child node is removed from a node in this tree.
-        * @param {Tree} tree The owner tree
-        * @param {Node} parent The parent node
-        * @param {Node} node The child node removed
-        */
-       "remove",
-       /**
-        * @event move
-        * Fires when a node is moved to a new location in the tree
-        * @param {Tree} tree The owner tree
-        * @param {Node} node The node moved
-        * @param {Node} oldParent The old parent of this node
-        * @param {Node} newParent The new parent of this node
-        * @param {Number} index The index it was moved to
-        */
-       "move",
-       /**
-        * @event insert
-        * Fires when a new child node is inserted in a node in this tree.
-        * @param {Tree} tree The owner tree
-        * @param {Node} parent The parent node
-        * @param {Node} node The child node inserted
-        * @param {Node} refNode The child node the node was inserted before
-        */
-       "insert",
-       /**
-        * @event beforeappend
-        * Fires before a new child is appended to a node in this tree, return false to cancel the append.
-        * @param {Tree} tree The owner tree
-        * @param {Node} parent The parent node
-        * @param {Node} node The child node to be appended
-        */
-       "beforeappend",
-       /**
-        * @event beforeremove
-        * Fires before a child is removed from a node in this tree, return false to cancel the remove.
-        * @param {Tree} tree The owner tree
-        * @param {Node} parent The parent node
-        * @param {Node} node The child node to be removed
-        */
-       "beforeremove",
-       /**
-        * @event beforemove
-        * Fires before a node is moved to a new location in the tree. Return false to cancel the move.
-        * @param {Tree} tree The owner tree
-        * @param {Node} node The node being moved
-        * @param {Node} oldParent The parent of the node
-        * @param {Node} newParent The new parent the node is moving to
-        * @param {Number} index The index it is being moved to
-        */
-       "beforemove",
-       /**
-        * @event beforeinsert
-        * Fires before a new child is inserted in a node in this tree, return false to cancel the insert.
-        * @param {Tree} tree The owner tree
-        * @param {Node} parent The parent node
-        * @param {Node} node The child node to be inserted
-        * @param {Node} refNode The child node the node is being inserted before
-        */
-       "beforeinsert"
-   );
-
-    Ext.data.Tree.superclass.constructor.call(this);
-};
-
-Ext.extend(Ext.data.Tree, Ext.util.Observable, {
+Ext.data.Tree = Ext.extend(Ext.util.Observable, {
+    
+    constructor: function(root){
+        this.nodeHash = {};
+        /**
+         * The root node for this tree
+         * @type Node
+         */
+        this.root = null;
+        if(root){
+            this.setRootNode(root);
+        }
+        this.addEvents(
+            /**
+             * @event append
+             * Fires when a new child node is appended to a node in this tree.
+             * @param {Tree} tree The owner tree
+             * @param {Node} parent The parent node
+             * @param {Node} node The newly appended node
+             * @param {Number} index The index of the newly appended node
+             */
+            "append",
+            /**
+             * @event remove
+             * Fires when a child node is removed from a node in this tree.
+             * @param {Tree} tree The owner tree
+             * @param {Node} parent The parent node
+             * @param {Node} node The child node removed
+             */
+            "remove",
+            /**
+             * @event move
+             * Fires when a node is moved to a new location in the tree
+             * @param {Tree} tree The owner tree
+             * @param {Node} node The node moved
+             * @param {Node} oldParent The old parent of this node
+             * @param {Node} newParent The new parent of this node
+             * @param {Number} index The index it was moved to
+             */
+            "move",
+            /**
+             * @event insert
+             * Fires when a new child node is inserted in a node in this tree.
+             * @param {Tree} tree The owner tree
+             * @param {Node} parent The parent node
+             * @param {Node} node The child node inserted
+             * @param {Node} refNode The child node the node was inserted before
+             */
+            "insert",
+            /**
+             * @event beforeappend
+             * Fires before a new child is appended to a node in this tree, return false to cancel the append.
+             * @param {Tree} tree The owner tree
+             * @param {Node} parent The parent node
+             * @param {Node} node The child node to be appended
+             */
+            "beforeappend",
+            /**
+             * @event beforeremove
+             * Fires before a child is removed from a node in this tree, return false to cancel the remove.
+             * @param {Tree} tree The owner tree
+             * @param {Node} parent The parent node
+             * @param {Node} node The child node to be removed
+             */
+            "beforeremove",
+            /**
+             * @event beforemove
+             * Fires before a node is moved to a new location in the tree. Return false to cancel the move.
+             * @param {Tree} tree The owner tree
+             * @param {Node} node The node being moved
+             * @param {Node} oldParent The parent of the node
+             * @param {Node} newParent The new parent the node is moving to
+             * @param {Number} index The index it is being moved to
+             */
+            "beforemove",
+            /**
+             * @event beforeinsert
+             * Fires before a new child is inserted in a node in this tree, return false to cancel the insert.
+             * @param {Tree} tree The owner tree
+             * @param {Node} parent The parent node
+             * @param {Node} node The child node to be inserted
+             * @param {Node} refNode The child node the node is being inserted before
+             */
+            "beforeinsert"
+        );
+        Ext.data.Tree.superclass.constructor.call(this);        
+    },
+    
     /**
      * @cfg {String} pathSeparator
      * The token used to separate paths in node ids (defaults to '/').
@@ -1545,134 +1647,125 @@ Ext.extend(Ext.data.Tree, Ext.util.Observable, {
  * @constructor
  * @param {Object} attributes The attributes/config for the node
  */
-Ext.data.Node = function(attributes){
-    /**
-     * The attributes supplied for the node. You can use this property to access any custom attributes you supplied.
-     * @type {Object}
-     */
-    this.attributes = attributes || {};
-    this.leaf = this.attributes.leaf;
-    /**
-     * The node id. @type String
-     */
-    this.id = this.attributes.id;
-    if(!this.id){
-        this.id = Ext.id(null, "xnode-");
-        this.attributes.id = this.id;
-    }
-    /**
-     * All child nodes of this node. @type Array
-     */
-    this.childNodes = [];
-    if(!this.childNodes.indexOf){ // indexOf is a must
-        this.childNodes.indexOf = function(o){
-            for(var i = 0, len = this.length; i < len; i++){
-                if(this[i] == o){
-                    return i;
-                }
-            }
-            return -1;
-        };
-    }
-    /**
-     * The parent node for this node. @type Node
-     */
-    this.parentNode = null;
-    /**
-     * The first direct child node of this node, or null if this node has no child nodes. @type Node
-     */
-    this.firstChild = null;
-    /**
-     * The last direct child node of this node, or null if this node has no child nodes. @type Node
-     */
-    this.lastChild = null;
-    /**
-     * The node immediately preceding this node in the tree, or null if there is no sibling node. @type Node
-     */
-    this.previousSibling = null;
-    /**
-     * The node immediately following this node in the tree, or null if there is no sibling node. @type Node
-     */
-    this.nextSibling = null;
+Ext.data.Node = Ext.extend(Ext.util.Observable, {
+    
+    constructor: function(attributes){
+        /**
+         * The attributes supplied for the node. You can use this property to access any custom attributes you supplied.
+         * @type {Object}
+         */
+        this.attributes = attributes || {};
+        this.leaf = this.attributes.leaf;
+        /**
+         * The node id. @type String
+         */
+        this.id = this.attributes.id;
+        if(!this.id){
+            this.id = Ext.id(null, "xnode-");
+            this.attributes.id = this.id;
+        }
+        /**
+         * All child nodes of this node. @type Array
+         */
+        this.childNodes = [];
+        /**
+         * The parent node for this node. @type Node
+         */
+        this.parentNode = null;
+        /**
+         * The first direct child node of this node, or null if this node has no child nodes. @type Node
+         */
+        this.firstChild = null;
+        /**
+         * The last direct child node of this node, or null if this node has no child nodes. @type Node
+         */
+        this.lastChild = null;
+        /**
+         * The node immediately preceding this node in the tree, or null if there is no sibling node. @type Node
+         */
+        this.previousSibling = null;
+        /**
+         * The node immediately following this node in the tree, or null if there is no sibling node. @type Node
+         */
+        this.nextSibling = null;
 
-    this.addEvents({
-       /**
-        * @event append
-        * Fires when a new child node is appended
-        * @param {Tree} tree The owner tree
-        * @param {Node} this This node
-        * @param {Node} node The newly appended node
-        * @param {Number} index The index of the newly appended node
-        */
-       "append" : true,
-       /**
-        * @event remove
-        * Fires when a child node is removed
-        * @param {Tree} tree The owner tree
-        * @param {Node} this This node
-        * @param {Node} node The removed node
-        */
-       "remove" : true,
-       /**
-        * @event move
-        * Fires when this node is moved to a new location in the tree
-        * @param {Tree} tree The owner tree
-        * @param {Node} this This node
-        * @param {Node} oldParent The old parent of this node
-        * @param {Node} newParent The new parent of this node
-        * @param {Number} index The index it was moved to
-        */
-       "move" : true,
-       /**
-        * @event insert
-        * Fires when a new child node is inserted.
-        * @param {Tree} tree The owner tree
-        * @param {Node} this This node
-        * @param {Node} node The child node inserted
-        * @param {Node} refNode The child node the node was inserted before
-        */
-       "insert" : true,
-       /**
-        * @event beforeappend
-        * Fires before a new child is appended, return false to cancel the append.
-        * @param {Tree} tree The owner tree
-        * @param {Node} this This node
-        * @param {Node} node The child node to be appended
-        */
-       "beforeappend" : true,
-       /**
-        * @event beforeremove
-        * Fires before a child is removed, return false to cancel the remove.
-        * @param {Tree} tree The owner tree
-        * @param {Node} this This node
-        * @param {Node} node The child node to be removed
-        */
-       "beforeremove" : true,
-       /**
-        * @event beforemove
-        * Fires before this node is moved to a new location in the tree. Return false to cancel the move.
-        * @param {Tree} tree The owner tree
-        * @param {Node} this This node
-        * @param {Node} oldParent The parent of this node
-        * @param {Node} newParent The new parent this node is moving to
-        * @param {Number} index The index it is being moved to
-        */
-       "beforemove" : true,
-       /**
-        * @event beforeinsert
-        * Fires before a new child is inserted, return false to cancel the insert.
-        * @param {Tree} tree The owner tree
-        * @param {Node} this This node
-        * @param {Node} node The child node to be inserted
-        * @param {Node} refNode The child node the node is being inserted before
-        */
-       "beforeinsert" : true
-   });
-    this.listeners = this.attributes.listeners;
-    Ext.data.Node.superclass.constructor.call(this);
-};
-
-Ext.extend(Ext.data.Node, Ext.util.Observable, {
+        this.addEvents({
+            /**
+             * @event append
+             * Fires when a new child node is appended
+             * @param {Tree} tree The owner tree
+             * @param {Node} this This node
+             * @param {Node} node The newly appended node
+             * @param {Number} index The index of the newly appended node
+             */
+            "append" : true,
+            /**
+             * @event remove
+             * Fires when a child node is removed
+             * @param {Tree} tree The owner tree
+             * @param {Node} this This node
+             * @param {Node} node The removed node
+             */
+            "remove" : true,
+            /**
+             * @event move
+             * Fires when this node is moved to a new location in the tree
+             * @param {Tree} tree The owner tree
+             * @param {Node} this This node
+             * @param {Node} oldParent The old parent of this node
+             * @param {Node} newParent The new parent of this node
+             * @param {Number} index The index it was moved to
+             */
+            "move" : true,
+            /**
+             * @event insert
+             * Fires when a new child node is inserted.
+             * @param {Tree} tree The owner tree
+             * @param {Node} this This node
+             * @param {Node} node The child node inserted
+             * @param {Node} refNode The child node the node was inserted before
+             */
+            "insert" : true,
+            /**
+             * @event beforeappend
+             * Fires before a new child is appended, return false to cancel the append.
+             * @param {Tree} tree The owner tree
+             * @param {Node} this This node
+             * @param {Node} node The child node to be appended
+             */
+            "beforeappend" : true,
+            /**
+             * @event beforeremove
+             * Fires before a child is removed, return false to cancel the remove.
+             * @param {Tree} tree The owner tree
+             * @param {Node} this This node
+             * @param {Node} node The child node to be removed
+             */
+            "beforeremove" : true,
+            /**
+             * @event beforemove
+             * Fires before this node is moved to a new location in the tree. Return false to cancel the move.
+             * @param {Tree} tree The owner tree
+             * @param {Node} this This node
+             * @param {Node} oldParent The parent of this node
+             * @param {Node} newParent The new parent this node is moving to
+             * @param {Number} index The index it is being moved to
+             */
+            "beforemove" : true,
+             /**
+              * @event beforeinsert
+              * Fires before a new child is inserted, return false to cancel the insert.
+              * @param {Tree} tree The owner tree
+              * @param {Node} this This node
+              * @param {Node} node The child node to be inserted
+              * @param {Node} refNode The child node the node is being inserted before
+              */
+            "beforeinsert" : true
+        });
+        this.listeners = this.attributes.listeners;
+        Ext.data.Node.superclass.constructor.call(this);    
+    },
+    
     // private
     fireEvent : function(evtName){
         // first do standard event for this node
@@ -1731,7 +1824,7 @@ Ext.extend(Ext.data.Node, Ext.util.Observable, {
     hasChildNodes : function(){
         return !this.isLeaf() && this.childNodes.length > 0;
     },
-    
+
     /**
      * Returns true if this node has one or more child nodes, or if the <tt>expandable</tt>
      * node attribute is explicitly specified as true (see {@link #attributes}), otherwise returns false.
@@ -1756,7 +1849,7 @@ Ext.extend(Ext.data.Node, Ext.util.Observable, {
         // if passed an array or multiple args do them one by one
         if(multi){
             for(var i = 0, len = multi.length; i < len; i++) {
-            	this.appendChild(multi[i]);
+                this.appendChild(multi[i]);
             }
         }else{
             if(this.fireEvent("beforeappend", this.ownerTree, this, node) === false){
@@ -1798,9 +1891,10 @@ Ext.extend(Ext.data.Node, Ext.util.Observable, {
     /**
      * Removes a child node from this node.
      * @param {Node} node The node to remove
+     * @param {Boolean} destroy <tt>true</tt> to destroy the node upon removal. Defaults to <tt>false</tt>.
      * @return {Node} The removed node
      */
-    removeChild : function(node){
+    removeChild : function(node, destroy){
         var index = this.childNodes.indexOf(node);
         if(index == -1){
             return false;
@@ -1828,13 +1922,45 @@ Ext.extend(Ext.data.Node, Ext.util.Observable, {
             this.setLastChild(node.previousSibling);
         }
 
-        node.setOwnerTree(null);
-        // clear any references from the node
-        node.parentNode = null;
-        node.previousSibling = null;
-        node.nextSibling = null;
         this.fireEvent("remove", this.ownerTree, this, node);
+        if(destroy){
+            node.destroy(true);
+        }else{
+            node.clear();
+        }
         return node;
+    },
+
+    // private
+    clear : function(destroy){
+        // clear any references from the node
+        this.setOwnerTree(null, destroy);
+        this.parentNode = this.previousSibling = this.nextSibling = null;
+        if(destroy){
+            this.firstChild = this.lastChild = null;
+        }
+    },
+
+    /**
+     * Destroys the node.
+     */
+    destroy : function(/* private */ silent){
+        /*
+         * Silent is to be used in a number of cases
+         * 1) When setRootNode is called.
+         * 2) When destroy on the tree is called
+         * 3) For destroying child nodes on a node
+         */
+        if(silent === true){
+            this.purgeListeners();
+            this.clear(true);
+            Ext.each(this.childNodes, function(n){
+                n.destroy(true);
+            });
+            this.childNodes = null;
+        }else{
+            this.remove(true);
+        }
     },
 
     /**
@@ -1895,10 +2021,27 @@ Ext.extend(Ext.data.Node, Ext.util.Observable, {
 
     /**
      * Removes this node from its parent
+     * @param {Boolean} destroy <tt>true</tt> to destroy the node upon removal. Defaults to <tt>false</tt>.
      * @return {Node} this
      */
-    remove : function(){
-        this.parentNode.removeChild(this);
+    remove : function(destroy){
+        if (this.parentNode) {
+            this.parentNode.removeChild(this, destroy);
+        }
+        return this;
+    },
+
+    /**
+     * Removes all child nodes from this node.
+     * @param {Boolean} destroy <tt>true</tt> to destroy the node upon removal. Defaults to <tt>false</tt>.
+     * @return {Node} this
+     */
+    removeAll : function(destroy){
+        var cn = this.childNodes,
+            n;
+        while((n = cn[0])){
+            this.removeChild(n, destroy);
+        }
         return this;
     },
 
@@ -1967,23 +2110,25 @@ Ext.extend(Ext.data.Node, Ext.util.Observable, {
     },
 
     // private
-    setOwnerTree : function(tree){
+    setOwnerTree : function(tree, destroy){
         // if it is a move, we need to update everyone
         if(tree != this.ownerTree){
             if(this.ownerTree){
                 this.ownerTree.unregisterNode(this);
             }
             this.ownerTree = tree;
-            var cs = this.childNodes;
-            for(var i = 0, len = cs.length; i < len; i++) {
-            	cs[i].setOwnerTree(tree);
+            // If we're destroying, we don't need to recurse since it will be called on each child node
+            if(destroy !== true){
+                Ext.each(this.childNodes, function(n){
+                    n.setOwnerTree(tree);
+                });
             }
             if(tree){
                 tree.registerNode(this);
             }
         }
     },
-    
+
     /**
      * Changes the id of this node.
      * @param {String} id The new id for the node.
@@ -1994,14 +2139,14 @@ Ext.extend(Ext.data.Node, Ext.util.Observable, {
             if(t){
                 t.unregisterNode(this);
             }
-            this.id = id;
+            this.id = this.attributes.id = id;
             if(t){
                 t.registerNode(this);
             }
             this.onIdChange(id);
         }
     },
-    
+
     // private
     onIdChange: Ext.emptyFn,
 
@@ -2023,13 +2168,12 @@ Ext.extend(Ext.data.Node, Ext.util.Observable, {
     },
 
     /**
-     * Bubbles up the tree from this node, calling the specified function with each node. The scope (<i>this</i>) of
-     * function call will be the scope provided or the current node. The arguments to the function
+     * Bubbles up the tree from this node, calling the specified function with each node. The arguments to the function
      * will be the args provided or the current node. If the function returns false at any point,
      * the bubble is stopped.
      * @param {Function} fn The function to call
-     * @param {Object} scope (optional) The scope of the function (defaults to current node)
-     * @param {Array} args (optional) The args to call the function with (default to passing the current node)
+     * @param {Object} scope (optional) The scope (<code>this</code> reference) in which the function is executed. Defaults to the current Node.
+     * @param {Array} args (optional) The args to call the function with (default to passing the current Node)
      */
     bubble : function(fn, scope, args){
         var p = this;
@@ -2042,38 +2186,36 @@ Ext.extend(Ext.data.Node, Ext.util.Observable, {
     },
 
     /**
-     * Cascades down the tree from this node, calling the specified function with each node. The scope (<i>this</i>) of
-     * function call will be the scope provided or the current node. The arguments to the function
+     * Cascades down the tree from this node, calling the specified function with each node. The arguments to the function
      * will be the args provided or the current node. If the function returns false at any point,
      * the cascade is stopped on that branch.
      * @param {Function} fn The function to call
-     * @param {Object} scope (optional) The scope of the function (defaults to current node)
-     * @param {Array} args (optional) The args to call the function with (default to passing the current node)
+     * @param {Object} scope (optional) The scope (<code>this</code> reference) in which the function is executed. Defaults to the current Node.
+     * @param {Array} args (optional) The args to call the function with (default to passing the current Node)
      */
     cascade : function(fn, scope, args){
         if(fn.apply(scope || this, args || [this]) !== false){
             var cs = this.childNodes;
             for(var i = 0, len = cs.length; i < len; i++) {
-            	cs[i].cascade(fn, scope, args);
+                cs[i].cascade(fn, scope, args);
             }
         }
     },
 
     /**
-     * Interates the child nodes of this node, calling the specified function with each node. The scope (<i>this</i>) of
-     * function call will be the scope provided or the current node. The arguments to the function
+     * Interates the child nodes of this node, calling the specified function with each node. The arguments to the function
      * will be the args provided or the current node. If the function returns false at any point,
      * the iteration stops.
      * @param {Function} fn The function to call
-     * @param {Object} scope (optional) The scope of the function (defaults to current node)
-     * @param {Array} args (optional) The args to call the function with (default to passing the current node)
+     * @param {Object} scope (optional) The scope (<code>this</code> reference) in which the function is executed. Defaults to the current Node in the iteration.
+     * @param {Array} args (optional) The args to call the function with (default to passing the current Node)
      */
     eachChild : function(fn, scope, args){
         var cs = this.childNodes;
         for(var i = 0, len = cs.length; i < len; i++) {
-        	if(fn.apply(scope || this, args || [cs[i]]) === false){
-        	    break;
-        	}
+            if(fn.apply(scope || cs[i], args || [cs[i]]) === false){
+                break;
+            }
         }
     },
 
@@ -2081,39 +2223,47 @@ Ext.extend(Ext.data.Node, Ext.util.Observable, {
      * Finds the first child that has the attribute with the specified value.
      * @param {String} attribute The attribute name
      * @param {Mixed} value The value to search for
+     * @param {Boolean} deep (Optional) True to search through nodes deeper than the immediate children
      * @return {Node} The found child or null if none was found
      */
-    findChild : function(attribute, value){
-        var cs = this.childNodes;
-        for(var i = 0, len = cs.length; i < len; i++) {
-        	if(cs[i].attributes[attribute] == value){
-        	    return cs[i];
-        	}
+    findChild : function(attribute, value, deep){
+        return this.findChildBy(function(){
+            return this.attributes[attribute] == value;
+        }, null, deep);
+    },
+
+    /**
+     * Finds the first child by a custom function. The child matches if the function passed returns <code>true</code>.
+     * @param {Function} fn A function which must return <code>true</code> if the passed Node is the required Node.
+     * @param {Object} scope (optional) The scope (<code>this</code> reference) in which the function is executed. Defaults to the Node being tested.
+     * @param {Boolean} deep (Optional) True to search through nodes deeper than the immediate children
+     * @return {Node} The found child or null if none was found
+     */
+    findChildBy : function(fn, scope, deep){
+        var cs = this.childNodes,
+            len = cs.length,
+            i = 0,
+            n,
+            res;
+        for(; i < len; i++){
+            n = cs[i];
+            if(fn.call(scope || n, n) === true){
+                return n;
+            }else if (deep){
+                res = n.findChildBy(fn, scope, deep);
+                if(res != null){
+                    return res;
+                }
+            }
+            
         }
         return null;
     },
 
     /**
-     * Finds the first child by a custom function. The child matches if the function passed
-     * returns true.
-     * @param {Function} fn
-     * @param {Object} scope (optional)
-     * @return {Node} The found child or null if none was found
-     */
-    findChildBy : function(fn, scope){
-        var cs = this.childNodes;
-        for(var i = 0, len = cs.length; i < len; i++) {
-        	if(fn.call(scope||cs[i], cs[i]) === true){
-        	    return cs[i];
-        	}
-        }
-        return null;
-    },
-
-    /**
-     * Sorts this nodes children using the supplied sort function
-     * @param {Function} fn
-     * @param {Object} scope (optional)
+     * Sorts this nodes children using the supplied sort function.
+     * @param {Function} fn A function which, when passed two Nodes, returns -1, 0 or 1 depending upon required sort order.
+     * @param {Object} scope (optional)The scope (<code>this</code> reference) in which the function is executed. Defaults to the browser window.
      */
     sort : function(fn, scope){
         var cs = this.childNodes;
@@ -2188,136 +2338,145 @@ Ext.extend(Ext.data.Node, Ext.util.Observable, {
  * @cfg {Boolean} draggable True to make this node draggable (defaults to false)
  * @cfg {Boolean} isTarget False to not allow this node to act as a drop target (defaults to true)
  * @cfg {Boolean} allowChildren False to not allow this node to have child nodes (defaults to true)
- * @cfg {Boolean} editable False to not allow this node to be edited by an (@link Ext.tree.TreeEditor} (defaults to true)
+ * @cfg {Boolean} editable False to not allow this node to be edited by an {@link Ext.tree.TreeEditor} (defaults to true)
  * @constructor
  * @param {Object/String} attributes The attributes/config for the node or just a string with the text for the node
  */
-Ext.tree.TreeNode = function(attributes){
-    attributes = attributes || {};
-    if(typeof attributes == "string"){
-        attributes = {text: attributes};
-    }
-    this.childrenRendered = false;
-    this.rendered = false;
-    Ext.tree.TreeNode.superclass.constructor.call(this, attributes);
-    this.expanded = attributes.expanded === true;
-    this.isTarget = attributes.isTarget !== false;
-    this.draggable = attributes.draggable !== false && attributes.allowDrag !== false;
-    this.allowChildren = attributes.allowChildren !== false && attributes.allowDrop !== false;
+Ext.tree.TreeNode = Ext.extend(Ext.data.Node, {
+    
+    constructor : function(attributes){
+        attributes = attributes || {};
+        if(Ext.isString(attributes)){
+            attributes = {text: attributes};
+        }
+        this.childrenRendered = false;
+        this.rendered = false;
+        Ext.tree.TreeNode.superclass.constructor.call(this, attributes);
+        this.expanded = attributes.expanded === true;
+        this.isTarget = attributes.isTarget !== false;
+        this.draggable = attributes.draggable !== false && attributes.allowDrag !== false;
+        this.allowChildren = attributes.allowChildren !== false && attributes.allowDrop !== false;
 
-    /**
-     * Read-only. The text for this node. To change it use setText().
-     * @type String
-     */
-    this.text = attributes.text;
-    /**
-     * True if this node is disabled.
-     * @type Boolean
-     */
-    this.disabled = attributes.disabled === true;
-    /**
-     * True if this node is hidden.
-     * @type Boolean
-     */
-    this.hidden = attributes.hidden === true;
-
-    this.addEvents(
         /**
-        * @event textchange
-        * Fires when the text for this node is changed
-        * @param {Node} this This node
-        * @param {String} text The new text
-        * @param {String} oldText The old text
-        */
-        "textchange",
+         * Read-only. The text for this node. To change it use <code>{@link #setText}</code>.
+         * @type String
+         */
+        this.text = attributes.text;
         /**
-        * @event beforeexpand
-        * Fires before this node is expanded, return false to cancel.
-        * @param {Node} this This node
-        * @param {Boolean} deep
-        * @param {Boolean} anim
-        */
-        "beforeexpand",
+         * True if this node is disabled.
+         * @type Boolean
+         */
+        this.disabled = attributes.disabled === true;
         /**
-        * @event beforecollapse
-        * Fires before this node is collapsed, return false to cancel.
-        * @param {Node} this This node
-        * @param {Boolean} deep
-        * @param {Boolean} anim
-        */
-        "beforecollapse",
+         * True if this node is hidden.
+         * @type Boolean
+         */
+        this.hidden = attributes.hidden === true;
+    
+        this.addEvents(
+            /**
+            * @event textchange
+            * Fires when the text for this node is changed
+            * @param {Node} this This node
+            * @param {String} text The new text
+            * @param {String} oldText The old text
+            */
+            'textchange',
+            /**
+            * @event beforeexpand
+            * Fires before this node is expanded, return false to cancel.
+            * @param {Node} this This node
+            * @param {Boolean} deep
+            * @param {Boolean} anim
+            */
+            'beforeexpand',
+            /**
+            * @event beforecollapse
+            * Fires before this node is collapsed, return false to cancel.
+            * @param {Node} this This node
+            * @param {Boolean} deep
+            * @param {Boolean} anim
+            */
+            'beforecollapse',
+            /**
+            * @event expand
+            * Fires when this node is expanded
+            * @param {Node} this This node
+            */
+            'expand',
+            /**
+            * @event disabledchange
+            * Fires when the disabled status of this node changes
+            * @param {Node} this This node
+            * @param {Boolean} disabled
+            */
+            'disabledchange',
+            /**
+            * @event collapse
+            * Fires when this node is collapsed
+            * @param {Node} this This node
+            */
+            'collapse',
+            /**
+            * @event beforeclick
+            * Fires before click processing. Return false to cancel the default action.
+            * @param {Node} this This node
+            * @param {Ext.EventObject} e The event object
+            */
+            'beforeclick',
+            /**
+            * @event click
+            * Fires when this node is clicked
+            * @param {Node} this This node
+            * @param {Ext.EventObject} e The event object
+            */
+            'click',
+            /**
+            * @event checkchange
+            * Fires when a node with a checkbox's checked property changes
+            * @param {Node} this This node
+            * @param {Boolean} checked
+            */
+            'checkchange',
+            /**
+            * @event beforedblclick
+            * Fires before double click processing. Return false to cancel the default action.
+            * @param {Node} this This node
+            * @param {Ext.EventObject} e The event object
+            */
+            'beforedblclick',
+            /**
+            * @event dblclick
+            * Fires when this node is double clicked
+            * @param {Node} this This node
+            * @param {Ext.EventObject} e The event object
+            */
+            'dblclick',
+            /**
+            * @event contextmenu
+            * Fires when this node is right clicked
+            * @param {Node} this This node
+            * @param {Ext.EventObject} e The event object
+            */
+            'contextmenu',
+            /**
+            * @event beforechildrenrendered
+            * Fires right before the child nodes for this node are rendered
+            * @param {Node} this This node
+            */
+            'beforechildrenrendered'
+        );
+    
+        var uiClass = this.attributes.uiProvider || this.defaultUI || Ext.tree.TreeNodeUI;
+    
         /**
-        * @event expand
-        * Fires when this node is expanded
-        * @param {Node} this This node
-        */
-        "expand",
-        /**
-        * @event disabledchange
-        * Fires when the disabled status of this node changes
-        * @param {Node} this This node
-        * @param {Boolean} disabled
-        */
-        "disabledchange",
-        /**
-        * @event collapse
-        * Fires when this node is collapsed
-        * @param {Node} this This node
-        */
-        "collapse",
-        /**
-        * @event beforeclick
-        * Fires before click processing. Return false to cancel the default action.
-        * @param {Node} this This node
-        * @param {Ext.EventObject} e The event object
-        */
-        "beforeclick",
-        /**
-        * @event click
-        * Fires when this node is clicked
-        * @param {Node} this This node
-        * @param {Ext.EventObject} e The event object
-        */
-        "click",
-        /**
-        * @event checkchange
-        * Fires when a node with a checkbox's checked property changes
-        * @param {Node} this This node
-        * @param {Boolean} checked
-        */
-        "checkchange",
-        /**
-        * @event dblclick
-        * Fires when this node is double clicked
-        * @param {Node} this This node
-        * @param {Ext.EventObject} e The event object
-        */
-        "dblclick",
-        /**
-        * @event contextmenu
-        * Fires when this node is right clicked
-        * @param {Node} this This node
-        * @param {Ext.EventObject} e The event object
-        */
-        "contextmenu",
-        /**
-        * @event beforechildrenrendered
-        * Fires right before the child nodes for this node are rendered
-        * @param {Node} this This node
-        */
-        "beforechildrenrendered"
-    );
-
-    var uiClass = this.attributes.uiProvider || this.defaultUI || Ext.tree.TreeNodeUI;
-
-    /**
-     * Read-only. The UI for this node
-     * @type TreeNodeUI
-     */
-    this.ui = new uiClass(this);
-};
-Ext.extend(Ext.tree.TreeNode, Ext.data.Node, {
-    preventHScroll: true,
+         * Read-only. The UI for this node
+         * @type TreeNodeUI
+         */
+        this.ui = new uiClass(this);    
+    },
+    
+    preventHScroll : true,
     /**
      * Returns true if this node is expanded
      * @return {Boolean}
@@ -2338,7 +2497,7 @@ Ext.extend(Ext.tree.TreeNode, Ext.data.Node, {
 
     getLoader : function(){
         var owner;
-        return this.loader || ((owner = this.getOwnerTree()) && owner.loader ? owner.loader : new Ext.tree.TreeLoader());
+        return this.loader || ((owner = this.getOwnerTree()) && owner.loader ? owner.loader : (this.loader = new Ext.tree.TreeLoader()));
     },
 
     // private override
@@ -2380,27 +2539,31 @@ Ext.extend(Ext.tree.TreeNode, Ext.data.Node, {
     },
 
     // private override
-    removeChild : function(node){
+    removeChild : function(node, destroy){
         this.ownerTree.getSelectionModel().unselect(node);
         Ext.tree.TreeNode.superclass.removeChild.apply(this, arguments);
-        // if it's been rendered remove dom node
-        if(this.childrenRendered){
-            node.ui.remove();
-        }
-        if(this.childNodes.length < 1){
-            this.collapse(false, false);
-        }else{
-            this.ui.updateExpandIcon();
-        }
-        if(!this.firstChild && !this.isHiddenRoot()) {
-            this.childrenRendered = false;
+        // only update the ui if we're not destroying
+        if(!destroy){
+            var rendered = node.ui.rendered;
+            // if it's been rendered remove dom node
+            if(rendered){
+                node.ui.remove();
+            }
+            if(rendered && this.childNodes.length < 1){
+                this.collapse(false, false);
+            }else{
+                this.ui.updateExpandIcon();
+            }
+            if(!this.firstChild && !this.isHiddenRoot()){
+                this.childrenRendered = false;
+            }
         }
         return node;
     },
 
     // private override
     insertBefore : function(node, refNode){
-        if(!node.render){ 
+        if(!node.render){
             node = this.getLoader().createNode(node);
         }
         var newNode = Ext.tree.TreeNode.superclass.insertBefore.call(this, node, refNode);
@@ -2417,26 +2580,93 @@ Ext.extend(Ext.tree.TreeNode, Ext.data.Node, {
      */
     setText : function(text){
         var oldText = this.text;
-        this.text = text;
-        this.attributes.text = text;
+        this.text = this.attributes.text = text;
         if(this.rendered){ // event without subscribing
             this.ui.onTextChange(this, text, oldText);
         }
-        this.fireEvent("textchange", this, text, oldText);
+        this.fireEvent('textchange', this, text, oldText);
+    },
+    
+    /**
+     * Sets the icon class for this node.
+     * @param {String} cls
+     */
+    setIconCls : function(cls){
+        var old = this.attributes.iconCls;
+        this.attributes.iconCls = cls;
+        if(this.rendered){
+            this.ui.onIconClsChange(this, cls, old);
+        }
+    },
+    
+    /**
+     * Sets the tooltip for this node.
+     * @param {String} tip The text for the tip
+     * @param {String} title (Optional) The title for the tip
+     */
+    setTooltip : function(tip, title){
+        this.attributes.qtip = tip;
+        this.attributes.qtipTitle = title;
+        if(this.rendered){
+            this.ui.onTipChange(this, tip, title);
+        }
+    },
+    
+    /**
+     * Sets the icon for this node.
+     * @param {String} icon
+     */
+    setIcon : function(icon){
+        this.attributes.icon = icon;
+        if(this.rendered){
+            this.ui.onIconChange(this, icon);
+        }
+    },
+    
+    /**
+     * Sets the href for the node.
+     * @param {String} href The href to set
+     * @param {String} (Optional) target The target of the href
+     */
+    setHref : function(href, target){
+        this.attributes.href = href;
+        this.attributes.hrefTarget = target;
+        if(this.rendered){
+            this.ui.onHrefChange(this, href, target);
+        }
+    },
+    
+    /**
+     * Sets the class on this node.
+     * @param {String} cls
+     */
+    setCls : function(cls){
+        var old = this.attributes.cls;
+        this.attributes.cls = cls;
+        if(this.rendered){
+            this.ui.onClsChange(this, cls, old);
+        }
     },
 
     /**
      * Triggers selection of this node
      */
     select : function(){
-        this.getOwnerTree().getSelectionModel().select(this);
+        var t = this.getOwnerTree();
+        if(t){
+            t.getSelectionModel().select(this);
+        }
     },
 
     /**
      * Triggers deselection of this node
+     * @param {Boolean} silent (optional) True to stop selection change events from firing.
      */
-    unselect : function(){
-        this.getOwnerTree().getSelectionModel().unselect(this);
+    unselect : function(silent){
+        var t = this.getOwnerTree();
+        if(t){
+            t.getSelectionModel().unselect(this, silent);
+        }
     },
 
     /**
@@ -2444,7 +2674,8 @@ Ext.extend(Ext.tree.TreeNode, Ext.data.Node, {
      * @return {Boolean}
      */
     isSelected : function(){
-        return this.getOwnerTree().getSelectionModel().isSelected(this);
+        var t = this.getOwnerTree();
+        return t ? t.getSelectionModel().isSelected(this) : false;
     },
 
     /**
@@ -2454,11 +2685,11 @@ Ext.extend(Ext.tree.TreeNode, Ext.data.Node, {
      * @param {Function} callback (optional) A callback to be called when
      * expanding this node completes (does not wait for deep expand to complete).
      * Called with 1 parameter, this node.
-     * @param {Object} scope (optional) The scope in which to execute the callback.
+     * @param {Object} scope (optional) The scope (<code>this</code> reference) in which the callback is executed. Defaults to this TreeNode.
      */
     expand : function(deep, anim, callback, scope){
         if(!this.expanded){
-            if(this.fireEvent("beforeexpand", this, deep, anim) === false){
+            if(this.fireEvent('beforeexpand', this, deep, anim) === false){
                 return;
             }
             if(!this.childrenRendered){
@@ -2467,16 +2698,16 @@ Ext.extend(Ext.tree.TreeNode, Ext.data.Node, {
             this.expanded = true;
             if(!this.isHiddenRoot() && (this.getOwnerTree().animate && anim !== false) || anim){
                 this.ui.animExpand(function(){
-                    this.fireEvent("expand", this);
+                    this.fireEvent('expand', this);
                     this.runCallback(callback, scope || this, [this]);
                     if(deep === true){
-                        this.expandChildNodes(true);
+                        this.expandChildNodes(true, true);
                     }
                 }.createDelegate(this));
                 return;
             }else{
                 this.ui.expand();
-                this.fireEvent("expand", this);
+                this.fireEvent('expand', this);
                 this.runCallback(callback, scope || this, [this]);
             }
         }else{
@@ -2486,8 +2717,8 @@ Ext.extend(Ext.tree.TreeNode, Ext.data.Node, {
             this.expandChildNodes(true);
         }
     },
-    
-    runCallback: function(cb, scope, args){
+
+    runCallback : function(cb, scope, args){
         if(Ext.isFunction(cb)){
             cb.apply(scope, args);
         }
@@ -2504,17 +2735,17 @@ Ext.extend(Ext.tree.TreeNode, Ext.data.Node, {
      * @param {Function} callback (optional) A callback to be called when
      * expanding this node completes (does not wait for deep expand to complete).
      * Called with 1 parameter, this node.
-     * @param {Object} scope (optional) The scope in which to execute the callback.
+     * @param {Object} scope (optional) The scope (<code>this</code> reference) in which the callback is executed. Defaults to this TreeNode.
      */
     collapse : function(deep, anim, callback, scope){
         if(this.expanded && !this.isHiddenRoot()){
-            if(this.fireEvent("beforecollapse", this, deep, anim) === false){
+            if(this.fireEvent('beforecollapse', this, deep, anim) === false){
                 return;
             }
             this.expanded = false;
             if((this.getOwnerTree().animate && anim !== false) || anim){
                 this.ui.animCollapse(function(){
-                    this.fireEvent("collapse", this);
+                    this.fireEvent('collapse', this);
                     this.runCallback(callback, scope || this, [this]);
                     if(deep === true){
                         this.collapseChildNodes(true);
@@ -2523,7 +2754,7 @@ Ext.extend(Ext.tree.TreeNode, Ext.data.Node, {
                 return;
             }else{
                 this.ui.collapse();
-                this.fireEvent("collapse", this);
+                this.fireEvent('collapse', this);
                 this.runCallback(callback, scope || this, [this]);
             }
         }else if(!this.expanded){
@@ -2567,7 +2798,7 @@ Ext.extend(Ext.tree.TreeNode, Ext.data.Node, {
      * Ensures all parent nodes are expanded, and if necessary, scrolls
      * the node into view.
      * @param {Function} callback (optional) A function to call when the node has been made visible.
-     * @param {Object} scope (optional) The scope in which to execute the callback.
+     * @param {Object} scope (optional) The scope (<code>this</code> reference) in which the callback is executed. Defaults to this TreeNode.
      */
     ensureVisible : function(callback, scope){
         var tree = this.getOwnerTree();
@@ -2582,10 +2813,12 @@ Ext.extend(Ext.tree.TreeNode, Ext.data.Node, {
      * Expand all child nodes
      * @param {Boolean} deep (optional) true if the child nodes should also expand their child nodes
      */
-    expandChildNodes : function(deep){
-        var cs = this.childNodes;
-        for(var i = 0, len = cs.length; i < len; i++) {
-        	cs[i].expand(deep);
+    expandChildNodes : function(deep, anim) {
+        var cs = this.childNodes,
+            i,
+            len = cs.length;
+        for (i = 0; i < len; i++) {
+        	cs[i].expand(deep, anim);
         }
     },
 
@@ -2609,7 +2842,7 @@ Ext.extend(Ext.tree.TreeNode, Ext.data.Node, {
         if(this.rendered && this.ui.onDisableChange){ // event without subscribing
             this.ui.onDisableChange(this, true);
         }
-        this.fireEvent("disabledchange", this, true);
+        this.fireEvent('disabledchange', this, true);
     },
 
     /**
@@ -2620,13 +2853,13 @@ Ext.extend(Ext.tree.TreeNode, Ext.data.Node, {
         if(this.rendered && this.ui.onDisableChange){ // event without subscribing
             this.ui.onDisableChange(this, false);
         }
-        this.fireEvent("disabledchange", this, false);
+        this.fireEvent('disabledchange', this, false);
     },
 
     // private
     renderChildren : function(suppressEvent){
         if(suppressEvent !== false){
-            this.fireEvent("beforechildrenrendered", this);
+            this.fireEvent('beforechildrenrendered', this);
         }
         var cs = this.childNodes;
         for(var i = 0, len = cs.length; i < len; i++){
@@ -2684,20 +2917,18 @@ Ext.extend(Ext.tree.TreeNode, Ext.data.Node, {
         }
     },
 
-    destroy : function(){
-        if(this.childNodes){
-            for(var i = 0,l = this.childNodes.length; i < l; i++){
-                this.childNodes[i].destroy();
-            }
-            this.childNodes = null;
+    //inherit docs
+    destroy : function(silent){
+        if(silent === true){
+            this.unselect(true);
         }
-        if(this.ui.destroy){
-            this.ui.destroy();
-        }
+        Ext.tree.TreeNode.superclass.destroy.call(this, silent);
+        Ext.destroy(this.ui, this.loader);
+        this.ui = this.loader = null;
     },
-    
+
     // private
-    onIdChange: function(id){
+    onIdChange : function(id){
         this.ui.onIdChange(id);
     }
 });
@@ -2793,7 +3024,7 @@ Ext.extend(Ext.tree.AsyncTreeNode, Ext.tree.TreeNode, {
     /**
      * Trigger a reload for this node
      * @param {Function} callback
-     * @param {Object} scope (optional) The scope in which to execute the callback.
+     * @param {Object} scope (optional) The scope (<code>this</code> reference) in which the callback is executed. Defaults to this Node.
      */
     reload : function(callback, scope){
         this.collapse(false, false);
@@ -2822,21 +3053,24 @@ Ext.tree.TreePanel.nodeTypes.async = Ext.tree.AsyncTreeNode;/**
  * This class provides access to the user interface components of an Ext TreeNode, through
  * {@link Ext.tree.TreeNode#getUI}
  */
-Ext.tree.TreeNodeUI = function(node){
-    this.node = node;
-    this.rendered = false;
-    this.animating = false;
-    this.wasLeaf = true;
-    this.ecc = 'x-tree-ec-icon x-tree-elbow';
-    this.emptyIcon = Ext.BLANK_IMAGE_URL;
-};
-
-Ext.tree.TreeNodeUI.prototype = {
+Ext.tree.TreeNodeUI = Ext.extend(Object, {
+    
+    constructor : function(node){
+        Ext.apply(this, {
+            node: node,
+            rendered: false,
+            animating: false,
+            wasLeaf: true,
+            ecc: 'x-tree-ec-icon x-tree-elbow',
+            emptyIcon: Ext.BLANK_IMAGE_URL    
+        });
+    },
+    
     // private
     removeChild : function(node){
         if(this.rendered){
             this.ctNode.removeChild(node.ui.getEl());
-        } 
+        }
     },
 
     // private
@@ -2855,18 +3089,66 @@ Ext.tree.TreeNodeUI.prototype = {
             this.textNode.innerHTML = text;
         }
     },
+    
+    // private
+    onIconClsChange : function(node, cls, oldCls){
+        if(this.rendered){
+            Ext.fly(this.iconNode).replaceClass(oldCls, cls);
+        }
+    },
+    
+    // private
+    onIconChange : function(node, icon){
+        if(this.rendered){
+            //'<img src="', a.icon || this.emptyIcon, '" class="x-tree-node-icon',(a.icon ? " x-tree-node-inline-icon" : ""),(a.iconCls ? " "+a.iconCls : ""),'" unselectable="on" />',
+            var empty = Ext.isEmpty(icon);
+            this.iconNode.src = empty ? this.emptyIcon : icon;
+            Ext.fly(this.iconNode)[empty ? 'removeClass' : 'addClass']('x-tree-node-inline-icon');
+        }
+    },
+    
+    // private
+    onTipChange : function(node, tip, title){
+        if(this.rendered){
+            var hasTitle = Ext.isDefined(title);
+            if(this.textNode.setAttributeNS){
+                this.textNode.setAttributeNS("ext", "qtip", tip);
+                if(hasTitle){
+                    this.textNode.setAttributeNS("ext", "qtitle", title);
+                }
+            }else{
+                this.textNode.setAttribute("ext:qtip", tip);
+                if(hasTitle){
+                    this.textNode.setAttribute("ext:qtitle", title);
+                }
+            }
+        }
+    },
+    
+    // private
+    onHrefChange : function(node, href, target){
+        if(this.rendered){
+            this.anchor.href = this.getHref(href);
+            if(Ext.isDefined(target)){
+                this.anchor.target = target;
+            }
+        }
+    },
+    
+    // private
+    onClsChange : function(node, cls, oldCls){
+        if(this.rendered){
+            Ext.fly(this.elNode).replaceClass(oldCls, cls);
+        }    
+    },
 
     // private
     onDisableChange : function(node, state){
         this.disabled = state;
-		if (this.checkbox) {
-			this.checkbox.disabled = state;
-		}        
-        if(state){
-            this.addClass("x-tree-node-disabled");
-        }else{
-            this.removeClass("x-tree-node-disabled");
-        } 
+        if (this.checkbox) {
+            this.checkbox.disabled = state;
+        }
+        this[state ? 'addClass' : 'removeClass']('x-tree-node-disabled');
     },
 
     // private
@@ -2917,7 +3199,7 @@ Ext.tree.TreeNodeUI.prototype = {
  */
     removeClass : function(cls){
         if(this.elNode){
-            Ext.fly(this.elNode).removeClass(cls);  
+            Ext.fly(this.elNode).removeClass(cls);
         }
     },
 
@@ -2926,12 +3208,12 @@ Ext.tree.TreeNodeUI.prototype = {
         if(this.rendered){
             this.holder = document.createElement("div");
             this.holder.appendChild(this.wrap);
-        }  
+        }
     },
 
     // private
     fireEvent : function(){
-        return this.node.fireEvent.apply(this.node, arguments);  
+        return this.node.fireEvent.apply(this.node, arguments);
     },
 
     // private
@@ -2939,10 +3221,7 @@ Ext.tree.TreeNodeUI.prototype = {
         this.node.on("move", this.onMove, this);
 
         if(this.node.disabled){
-            this.addClass("x-tree-node-disabled");
-			if (this.checkbox) {
-				this.checkbox.disabled = true;
-			}            
+            this.onDisableChange(this.node, true);
         }
         if(this.node.hidden){
             this.hide();
@@ -2980,7 +3259,7 @@ Ext.tree.TreeNodeUI.prototype = {
         this.node.hidden = false;
         if(this.wrap){
             this.wrap.style.display = "";
-        } 
+        }
     },
 
     // private
@@ -3027,13 +3306,15 @@ Ext.tree.TreeNodeUI.prototype = {
         if(this.disabled){
             return;
         }
-        if(this.checkbox){
-            this.toggleCheck();
+        if(this.fireEvent("beforedblclick", this.node, e) !== false){
+            if(this.checkbox){
+                this.toggleCheck();
+            }
+            if(!this.animating && this.node.isExpandable()){
+                this.node.toggle();
+            }
+            this.fireEvent("dblclick", this.node, e);
         }
-        if(!this.animating && this.node.isExpandable()){
-            this.node.toggle();
-        }
-        this.fireEvent("dblclick", this.node, e);
     },
 
     onOver : function(e){
@@ -3047,8 +3328,8 @@ Ext.tree.TreeNodeUI.prototype = {
     // private
     onCheckChange : function(){
         var checked = this.checkbox.checked;
-		// fix for IE6
-		this.checkbox.defaultChecked = checked;		
+        // fix for IE6
+        this.checkbox.defaultChecked = checked;
         this.node.attributes.checked = checked;
         this.fireEvent('checkchange', this.node, checked);
     },
@@ -3064,12 +3345,12 @@ Ext.tree.TreeNodeUI.prototype = {
     startDrop : function(){
         this.dropping = true;
     },
-    
+
     // delayed drop so the click event doesn't get fired on a drop
-    endDrop : function(){ 
+    endDrop : function(){
        setTimeout(function(){
            this.dropping = false;
-       }.createDelegate(this), 50); 
+       }.createDelegate(this), 50);
     },
 
     // private
@@ -3096,7 +3377,7 @@ Ext.tree.TreeNodeUI.prototype = {
 /**
  * Sets the checked status of the tree node to the passed value, or, if no value was passed,
  * toggles the checked status. If the node was rendered with no checkbox, this has no effect.
- * @param {Boolean} (optional) The new checked status.
+ * @param {Boolean} value (optional) The new checked status.
  */
     toggleCheck : function(value){
         var cb = this.checkbox;
@@ -3110,7 +3391,7 @@ Ext.tree.TreeNodeUI.prototype = {
     blur : function(){
         try{
             this.anchor.blur();
-        }catch(e){} 
+        }catch(e){}
     },
 
     // private
@@ -3125,7 +3406,7 @@ Ext.tree.TreeNodeUI.prototype = {
         }
         this.animating = true;
         this.updateExpandIcon();
-        
+
         ct.slideIn('t', {
            callback : function(){
                this.animating = false;
@@ -3172,12 +3453,15 @@ Ext.tree.TreeNodeUI.prototype = {
 
     // private
     getContainer : function(){
-        return this.ctNode;  
+        return this.ctNode;
     },
 
-    // private
+/**
+ * Returns the element which encapsulates this node.
+ * @return {HtmlElement} The DOM element. The default implementation uses a <code>&lt;li></code>.
+ */
     getEl : function(){
-        return this.wrap;  
+        return this.wrap;
     },
 
     // private
@@ -3192,32 +3476,22 @@ Ext.tree.TreeNodeUI.prototype = {
 
     // private
     onRender : function(){
-        this.render();    
+        this.render();
     },
 
     // private
     render : function(bulkRender){
         var n = this.node, a = n.attributes;
-        var targetNode = n.parentNode ? 
+        var targetNode = n.parentNode ?
               n.parentNode.ui.getContainer() : n.ownerTree.innerCt.dom;
-        
+
         if(!this.rendered){
             this.rendered = true;
 
             this.renderElements(n, a, targetNode, bulkRender);
 
             if(a.qtip){
-               if(this.textNode.setAttributeNS){
-                   this.textNode.setAttributeNS("ext", "qtip", a.qtip);
-                   if(a.qtipTitle){
-                       this.textNode.setAttributeNS("ext", "qtitle", a.qtipTitle);
-                   }
-               }else{
-                   this.textNode.setAttribute("ext:qtip", a.qtip);
-                   if(a.qtipTitle){
-                       this.textNode.setAttribute("ext:qtitle", a.qtipTitle);
-                   }
-               } 
+                this.onTipChange(n, a.qtip, a.qtipTitle);
             }else if(a.qtipCfg){
                 a.qtipCfg.target = Ext.id(this.textNode);
                 Ext.QuickTips.register(a.qtipCfg);
@@ -3238,26 +3512,25 @@ Ext.tree.TreeNodeUI.prototype = {
         // add some indent caching, this helps performance when rendering a large tree
         this.indentMarkup = n.parentNode ? n.parentNode.ui.getChildIndent() : '';
 
-        var cb = typeof a.checked == 'boolean';
-
-        var href = a.href ? a.href : Ext.isGecko ? "" : "#";
-        var buf = ['<li class="x-tree-node"><div ext:tree-node-id="',n.id,'" class="x-tree-node-el x-tree-node-leaf x-unselectable ', a.cls,'" unselectable="on">',
+        var cb = Ext.isBoolean(a.checked),
+            nel,
+            href = this.getHref(a.href),
+            buf = ['<li class="x-tree-node"><div ext:tree-node-id="',n.id,'" class="x-tree-node-el x-tree-node-leaf x-unselectable ', a.cls,'" unselectable="on">',
             '<span class="x-tree-node-indent">',this.indentMarkup,"</span>",
-            '<img src="', this.emptyIcon, '" class="x-tree-ec-icon x-tree-elbow" />',
-            '<img src="', a.icon || this.emptyIcon, '" class="x-tree-node-icon',(a.icon ? " x-tree-node-inline-icon" : ""),(a.iconCls ? " "+a.iconCls : ""),'" unselectable="on" />',
+            '<img alt="" src="', this.emptyIcon, '" class="x-tree-ec-icon x-tree-elbow" />',
+            '<img alt="" src="', a.icon || this.emptyIcon, '" class="x-tree-node-icon',(a.icon ? " x-tree-node-inline-icon" : ""),(a.iconCls ? " "+a.iconCls : ""),'" unselectable="on" />',
             cb ? ('<input class="x-tree-node-cb" type="checkbox" ' + (a.checked ? 'checked="checked" />' : '/>')) : '',
             '<a hidefocus="on" class="x-tree-node-anchor" href="',href,'" tabIndex="1" ',
              a.hrefTarget ? ' target="'+a.hrefTarget+'"' : "", '><span unselectable="on">',n.text,"</span></a></div>",
             '<ul class="x-tree-node-ct" style="display:none;"></ul>',
             "</li>"].join('');
 
-        var nel;
         if(bulkRender !== true && n.nextSibling && (nel = n.nextSibling.ui.getEl())){
             this.wrap = Ext.DomHelper.insertHtml("beforeBegin", nel, buf);
         }else{
             this.wrap = Ext.DomHelper.insertHtml("beforeEnd", targetNode, buf);
         }
-        
+
         this.elNode = this.wrap.childNodes[0];
         this.ctNode = this.wrap.childNodes[1];
         var cs = this.elNode.childNodes;
@@ -3267,12 +3540,20 @@ Ext.tree.TreeNodeUI.prototype = {
         var index = 3;
         if(cb){
             this.checkbox = cs[3];
-			// fix for IE6
-			this.checkbox.defaultChecked = this.checkbox.checked;						
+            // fix for IE6
+            this.checkbox.defaultChecked = this.checkbox.checked;
             index++;
         }
         this.anchor = cs[index];
         this.textNode = cs[index].firstChild;
+    },
+    
+    /**
+     * @private Gets a normalized href for the node.
+     * @param {String} href
+     */
+    getHref : function(href){
+        return Ext.isEmpty(href) ? (Ext.isGecko ? '' : '#') : href;
     },
 
 /**
@@ -3282,7 +3563,7 @@ Ext.tree.TreeNodeUI.prototype = {
     getAnchor : function(){
         return this.anchor;
     },
-    
+
 /**
  * Returns the text node.
  * @return {HtmlNode} The DOM text node.
@@ -3290,7 +3571,7 @@ Ext.tree.TreeNodeUI.prototype = {
     getTextEl : function(){
         return this.textNode;
     },
-    
+
 /**
  * Returns the icon &lt;img> element.
  * @return {HtmlElement} The DOM image element.
@@ -3305,15 +3586,17 @@ Ext.tree.TreeNodeUI.prototype = {
  * @return {Boolean} The checked flag.
  */
     isChecked : function(){
-        return this.checkbox ? this.checkbox.checked : false; 
+        return this.checkbox ? this.checkbox.checked : false;
     },
 
     // private
     updateExpandIcon : function(){
         if(this.rendered){
-            var n = this.node, c1, c2;
-            var cls = n.isLast() ? "x-tree-elbow-end" : "x-tree-elbow";
-            var hasChild = n.hasChildNodes();
+            var n = this.node,
+                c1,
+                c2,
+                cls = n.isLast() ? "x-tree-elbow-end" : "x-tree-elbow",
+                hasChild = n.hasChildNodes();
             if(hasChild || n.attributes.expandable){
                 if(n.expanded){
                     cls += "-minus";
@@ -3334,7 +3617,7 @@ Ext.tree.TreeNodeUI.prototype = {
                 }
             }else{
                 if(!this.wasLeaf){
-                    Ext.fly(this.elNode).replaceClass("x-tree-node-expanded", "x-tree-node-leaf");
+                    Ext.fly(this.elNode).replaceClass("x-tree-node-expanded", "x-tree-node-collapsed");
                     delete this.c1;
                     delete this.c2;
                     this.wasLeaf = true;
@@ -3347,7 +3630,7 @@ Ext.tree.TreeNodeUI.prototype = {
             }
         }
     },
-    
+
     // private
     onIdChange: function(id){
         if(this.rendered){
@@ -3358,14 +3641,14 @@ Ext.tree.TreeNodeUI.prototype = {
     // private
     getChildIndent : function(){
         if(!this.childIndent){
-            var buf = [];
-            var p = this.node;
+            var buf = [],
+                p = this.node;
             while(p){
                 if(!p.isRoot || (p.isRoot && p.ownerTree.rootVisible)){
                     if(!p.isLast()) {
-                        buf.unshift('<img src="'+this.emptyIcon+'" class="x-tree-elbow-line" />');
+                        buf.unshift('<img alt="" src="'+this.emptyIcon+'" class="x-tree-elbow-line" />');
                     } else {
-                        buf.unshift('<img src="'+this.emptyIcon+'" class="x-tree-icon" />');
+                        buf.unshift('<img alt="" src="'+this.emptyIcon+'" class="x-tree-icon" />');
                     }
                 }
                 p = p.parentNode;
@@ -3378,8 +3661,8 @@ Ext.tree.TreeNodeUI.prototype = {
     // private
     renderIndent : function(){
         if(this.rendered){
-            var indent = "";
-            var p = this.node.parentNode;
+            var indent = "",
+                p = this.node.parentNode;
             if(p){
                 indent = p.ui.getChildIndent();
             }
@@ -3395,25 +3678,16 @@ Ext.tree.TreeNodeUI.prototype = {
         if(this.elNode){
             Ext.dd.Registry.unregister(this.elNode.id);
         }
-        delete this.elNode;
-        delete this.ctNode;
-        delete this.indentNode;
-        delete this.ecNode;
-        delete this.iconNode;
-        delete this.checkbox;
-        delete this.anchor;
-        delete this.textNode;
-        
-        if (this.holder){
-             delete this.wrap;
-             Ext.removeNode(this.holder);
-             delete this.holder;
-        }else{
-            Ext.removeNode(this.wrap);
-            delete this.wrap;
-        }
+
+        Ext.each(['textnode', 'anchor', 'checkbox', 'indentNode', 'ecNode', 'iconNode', 'elNode', 'ctNode', 'wrap', 'holder'], function(el){
+            if(this[el]){
+                Ext.fly(this[el]).remove();
+                delete this[el];
+            }
+        }, this);
+        delete this.node;
     }
-};
+});
 
 /**
  * @class Ext.tree.RootTreeNodeUI
@@ -3505,7 +3779,7 @@ Ext.tree.TreeLoader = function(config){
         "loadexception"
     );
     Ext.tree.TreeLoader.superclass.constructor.call(this);
-    if(typeof this.paramOrder == 'string'){
+    if(Ext.isString(this.paramOrder)){
         this.paramOrder = this.paramOrder.split(/[\s,|]/);
     }
 };
@@ -3551,15 +3825,15 @@ Ext.extend(Ext.tree.TreeLoader, Ext.util.Observable, {
 
     /**
      * @cfg {Array/String} paramOrder Defaults to <tt>undefined</tt>. Only used when using directFn.
-     * A list of params to be executed
-     * server side.  Specify the params in the order in which they must be executed on the server-side
+     * Specifies the params in the order in which they must be passed to the server-side Direct method
      * as either (1) an Array of String values, or (2) a String of params delimited by either whitespace,
      * comma, or pipe. For example,
      * any of the following would be acceptable:<pre><code>
+nodeParameter: 'node',
 paramOrder: ['param1','param2','param3']
-paramOrder: 'param1 param2 param3'
-paramOrder: 'param1,param2,param3'
-paramOrder: 'param1|param2|param'
+paramOrder: 'node param1 param2 param3'
+paramOrder: 'param1,node,param2,param3'
+paramOrder: 'param1|param2|param|node'
      </code></pre>
      */
     paramOrder: undefined,
@@ -3572,6 +3846,12 @@ paramOrder: 'param1|param2|param'
     paramsAsHash: false,
 
     /**
+     * @cfg {String} nodeParameter The name of the parameter sent to the server which contains
+     * the identifier of the node. Defaults to <tt>'node'</tt>.
+     */
+    nodeParameter: 'node',
+
+    /**
      * @cfg {Function} directFn
      * Function to call when executing a request.
      */
@@ -3582,8 +3862,10 @@ paramOrder: 'param1|param2|param'
      * This is called automatically when a node is expanded, but may be used to reload
      * a node (or append new children if the {@link #clearOnLoad} option is false.)
      * @param {Ext.tree.TreeNode} node
-     * @param {Function} callback
-     * @param (Object) scope
+     * @param {Function} callback Function to call after the node has been loaded. The
+     * function is passed the TreeNode which was requested to be loaded.
+     * @param {Object} scope The scope (<code>this</code> reference) in which the callback is executed.
+     * defaults to the loaded TreeNode.
      */
     load : function(node, callback, scope){
         if(this.clearOnLoad){
@@ -3592,7 +3874,7 @@ paramOrder: 'param1|param2|param'
             }
         }
         if(this.doPreload(node)){ // preloaded json children
-            this.runCallback(callback, scope || node, []);
+            this.runCallback(callback, scope || node, [node]);
         }else if(this.directFn || this.dataUrl || this.url){
             this.requestData(node, callback, scope || node);
         }
@@ -3617,27 +3899,29 @@ paramOrder: 'param1|param2|param'
     },
 
     getParams: function(node){
-        var buf = [], bp = this.baseParams;
+        var bp = Ext.apply({}, this.baseParams),
+            np = this.nodeParameter,
+            po = this.paramOrder;
+
+        np && (bp[ np ] = node.id);
+
         if(this.directFn){
-            buf.push(node.id);
-            if(bp){
-                if(this.paramOrder){
-                    for(var i = 0, len = this.paramOrder.length; i < len; i++){
-                        buf.push(bp[this.paramOrder[i]]);
-                    }
-                }else if(this.paramsAsHash){
-                    buf.push(bp);
+            var buf = [node.id];
+            if(po){
+                // reset 'buf' if the nodeParameter was included in paramOrder
+                if(np && po.indexOf(np) > -1){
+                    buf = [];
                 }
+
+                for(var i = 0, len = po.length; i < len; i++){
+                    buf.push(bp[ po[i] ]);
+                }
+            }else if(this.paramsAsHash){
+                buf = [bp];
             }
             return buf;
         }else{
-            for(var key in bp){
-                if(!Ext.isFunction(bp[key])){
-                    buf.push(encodeURIComponent(key), "=", encodeURIComponent(bp[key]), "&");
-                }
-            }
-            buf.push("node=", encodeURIComponent(node.id));
-            return buf.join("");
+            return bp;
         }
     },
 
@@ -3702,7 +3986,7 @@ paramOrder: 'param1|param2|param'
     * Example:<pre><code>
 new Ext.tree.TreePanel({
     ...
-    new Ext.tree.TreeLoader({
+    loader: new Ext.tree.TreeLoader({
         url: 'dataUrl',
         createNode: function(attr) {
 //          Allow consolidation consignments to have
@@ -3711,7 +3995,7 @@ new Ext.tree.TreePanel({
                 attr.iconCls = 'x-consol',
                 attr.allowDrop = true;
             }
-            return Ext.tree.TreeLoader.prototype.call(this, attr);
+            return Ext.tree.TreeLoader.prototype.createNode.call(this, attr);
         }
     }),
     ...
@@ -3724,10 +4008,10 @@ new Ext.tree.TreePanel({
         if(this.baseAttrs){
             Ext.applyIf(attr, this.baseAttrs);
         }
-        if(this.applyLoader !== false){
+        if(this.applyLoader !== false && !attr.loader){
             attr.loader = this;
         }
-        if(typeof attr.uiProvider == 'string'){
+        if(Ext.isString(attr.uiProvider)){
            attr.uiProvider = this.uiProviders[attr.uiProvider] || eval(attr.uiProvider);
         }
         if(attr.nodeType){
@@ -3769,6 +4053,11 @@ new Ext.tree.TreePanel({
         var a = response.argument;
         this.fireEvent("loadexception", this, a.node, response);
         this.runCallback(a.callback, a.scope || a.node, [a.node]);
+    },
+
+    destroy : function(){
+        this.abort();
+        this.purgeListeners();
     }
 });/**
  * @class Ext.tree.TreeFilter
@@ -3824,7 +4113,7 @@ Ext.tree.TreeFilter.prototype = {
      * node in the tree (or from the startNode). If the function returns true, the node is kept
      * otherwise it is filtered. If a node is filtered, its children are also filtered.
      * @param {Function} fn The filter function
-     * @param {Object} scope (optional) The scope of the function (defaults to the current node)
+     * @param {Object} scope (optional) The scope (<code>this</code> reference) in which the function is executed. Defaults to the current Node.
      */
     filterBy : function(fn, scope, startNode){
         startNode = startNode || this.tree.root;
@@ -3880,7 +4169,7 @@ Ext.tree.TreeFilter.prototype = {
 };
 /**
  * @class Ext.tree.TreeSorter
- * Provides sorting of nodes in a {@link Ext.tree.TreePanel}.  The TreeSorter automatically monitors events on the 
+ * Provides sorting of nodes in a {@link Ext.tree.TreePanel}.  The TreeSorter automatically monitors events on the
  * associated TreePanel that might affect the tree's sort order (beforechildrenrendered, append, insert and textchange).
  * Example usage:<br />
  * <pre><code>
@@ -3897,87 +4186,95 @@ new Ext.tree.TreeSorter(myTree, {
  * @param {TreePanel} tree
  * @param {Object} config
  */
-Ext.tree.TreeSorter = function(tree, config){
-    /**
+Ext.tree.TreeSorter = Ext.extend(Object, {
+    
+    constructor: function(tree, config){
+        /**
      * @cfg {Boolean} folderSort True to sort leaf nodes under non-leaf nodes (defaults to false)
      */
-    /** 
-     * @cfg {String} property The named attribute on the node to sort by (defaults to "text").  Note that this 
+    /**
+     * @cfg {String} property The named attribute on the node to sort by (defaults to "text").  Note that this
      * property is only used if no {@link #sortType} function is specified, otherwise it is ignored.
      */
-    /** 
+    /**
      * @cfg {String} dir The direction to sort ("asc" or "desc," case-insensitive, defaults to "asc")
      */
-    /** 
+    /**
      * @cfg {String} leafAttr The attribute used to determine leaf nodes when {@link #folderSort} = true (defaults to "leaf")
      */
-    /** 
+    /**
      * @cfg {Boolean} caseSensitive true for case-sensitive sort (defaults to false)
      */
-    /** 
+    /**
      * @cfg {Function} sortType A custom "casting" function used to convert node values before sorting.  The function
      * will be called with a single parameter (the {@link Ext.tree.TreeNode} being evaluated) and is expected to return
      * the node's sort value cast to the specific data type required for sorting.  This could be used, for example, when
-     * a node's text (or other attribute) should be sorted as a date or numeric value.  See the class description for 
+     * a node's text (or other attribute) should be sorted as a date or numeric value.  See the class description for
      * example usage.  Note that if a sortType is specified, any {@link #property} config will be ignored.
      */
-    
-    Ext.apply(this, config);
-    tree.on("beforechildrenrendered", this.doSort, this);
-    tree.on("append", this.updateSort, this);
-    tree.on("insert", this.updateSort, this);
-    tree.on("textchange", this.updateSortParent, this);
-    
-    var dsc = this.dir && this.dir.toLowerCase() == "desc";
-    var p = this.property || "text";
-    var sortType = this.sortType;
-    var fs = this.folderSort;
-    var cs = this.caseSensitive === true;
-    var leafAttr = this.leafAttr || 'leaf';
 
+    Ext.apply(this, config);
+    tree.on({
+        scope: this,
+        beforechildrenrendered: this.doSort,
+        append: this.updateSort,
+        insert: this.updateSort,
+        textchange: this.updateSortParent
+    });
+
+    var desc = this.dir && this.dir.toLowerCase() == 'desc',
+        prop = this.property || 'text';
+        sortType = this.sortType;
+        folderSort = this.folderSort;
+        caseSensitive = this.caseSensitive === true;
+        leafAttr = this.leafAttr || 'leaf';
+
+    if(Ext.isString(sortType)){
+        sortType = Ext.data.SortTypes[sortType];
+    }
     this.sortFn = function(n1, n2){
-        if(fs){
-            if(n1.attributes[leafAttr] && !n2.attributes[leafAttr]){
+        var attr1 = n1.attributes,
+            attr2 = n2.attributes;
+            
+        if(folderSort){
+            if(attr1[leafAttr] && !attr2[leafAttr]){
                 return 1;
             }
-            if(!n1.attributes[leafAttr] && n2.attributes[leafAttr]){
+            if(!attr1[leafAttr] && attr2[leafAttr]){
                 return -1;
             }
         }
-    	var v1 = sortType ? sortType(n1) : (cs ? n1.attributes[p] : n1.attributes[p].toUpperCase());
-    	var v2 = sortType ? sortType(n2) : (cs ? n2.attributes[p] : n2.attributes[p].toUpperCase());
-    	if(v1 < v2){
-			return dsc ? +1 : -1;
-		}else if(v1 > v2){
-			return dsc ? -1 : +1;
-        }else{
-	    	return 0;
+        var prop1 = attr1[prop],
+            prop2 = attr2[prop],
+            v1 = sortType ? sortType(prop1) : (caseSensitive ? prop1 : prop1.toUpperCase());
+            v2 = sortType ? sortType(prop2) : (caseSensitive ? prop2 : prop2.toUpperCase());
+            
+        if(v1 < v2){
+            return desc ? 1 : -1;
+        }else if(v1 > v2){
+            return desc ? -1 : 1;
         }
+        return 0;
     };
-};
-
-Ext.tree.TreeSorter.prototype = {
+    },
+    
     doSort : function(node){
         node.sort(this.sortFn);
     },
-    
-    compareNodes : function(n1, n2){
-        return (n1.text.toUpperCase() > n2.text.toUpperCase() ? 1 : -1);
-    },
-    
+
     updateSort : function(tree, node){
         if(node.childrenRendered){
             this.doSort.defer(1, this, [node]);
         }
     },
-    
+
     updateSortParent : function(node){
-		var p = node.parentNode;
-		if(p && p.childrenRendered){
+        var p = node.parentNode;
+        if(p && p.childrenRendered){
             this.doSort.defer(1, this, [p]);
         }
-    }
-};/**
+    }    
+});/**
  * @class Ext.tree.TreeDropZone
  * @extends Ext.dd.DropZone
  * @constructor
@@ -4380,6 +4677,7 @@ Ext.extend(Ext.tree.TreeDragZone, Ext.dd.DragZone, {
 Ext.tree.TreeEditor = function(tree, fc, config){
     fc = fc || {};
     var field = fc.events ? fc : new Ext.form.TextField(fc);
+    
     Ext.tree.TreeEditor.superclass.constructor.call(this, field, config);
 
     this.tree = tree;
@@ -4431,12 +4729,20 @@ Ext.extend(Ext.tree.TreeEditor, Ext.Editor, {
     editDelay : 350,
 
     initEditor : function(tree){
-        tree.on('beforeclick', this.beforeNodeClick, this);
-        tree.on('dblclick', this.onNodeDblClick, this);
-        this.on('complete', this.updateNode, this);
-        this.on('beforestartedit', this.fitToTree, this);
+        tree.on({
+            scope      : this,
+            beforeclick: this.beforeNodeClick,
+            dblclick   : this.onNodeDblClick
+        });
+        
+        this.on({
+            scope          : this,
+            complete       : this.updateNode,
+            beforestartedit: this.fitToTree,
+            specialkey     : this.onSpecialKey
+        });
+        
         this.on('startedit', this.bindScroll, this, {delay:10});
-        this.on('specialkey', this.onSpecialKey, this);
     },
 
     // private
@@ -4518,5 +4824,13 @@ Ext.extend(Ext.tree.TreeEditor, Ext.Editor, {
             e.stopEvent();
             this.completeEdit();
         }
+    },
+    
+    onDestroy : function(){
+        clearTimeout(this.autoEditTimer);
+        Ext.tree.TreeEditor.superclass.onDestroy.call(this);
+        var tree = this.tree;
+        tree.un('beforeclick', this.beforeNodeClick, this);
+        tree.un('dblclick', this.onNodeDblClick, this);
     }
 });

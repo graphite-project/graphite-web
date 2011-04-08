@@ -1,8 +1,8 @@
 /*!
- * Ext JS Library 3.0.0
- * Copyright(c) 2006-2009 Ext JS, LLC
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.3.1
+ * Copyright(c) 2006-2010 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 .ext-strict .ext-ie .x-tree .x-panel-bwrap{
     position:relative;
@@ -31,49 +31,64 @@
 }
 
 .ext-ie .x-tree-node-indent img, .ext-ie .x-tree-node-icon, .ext-ie .x-tree-ec-icon {
-    vertical-align:middle !important;
+    vertical-align: middle !important;
+}
+
+.ext-strict .ext-ie8 .x-tree-node-indent img, .ext-strict .ext-ie8 .x-tree-node-icon, .ext-strict .ext-ie8 .x-tree-ec-icon {
+    vertical-align: top !important;
 }
 
 /* checkboxes */
-.ext-ie input.x-tree-node-cb {
-    width:15px;
-    height:15px;
-}
 
 input.x-tree-node-cb {
     margin-left:1px;
+    height: 19px;
+	vertical-align: bottom;
 }
 
 .ext-ie input.x-tree-node-cb {
     margin-left:0;
+    margin-top: 1px;
+    width: 16px;
+    height: 16px;
+    vertical-align: middle;
+}
+
+.ext-strict .ext-ie8 input.x-tree-node-cb{
+    margin: 1px 1px;
+    height: 14px;
+    vertical-align: bottom;
+}
+
+.ext-strict .ext-ie8 input.x-tree-node-cb + a{
+    vertical-align: bottom;
+}
+
+.ext-opera input.x-tree-node-cb {
+    height: 14px;
+    vertical-align: middle;
 }
 
 .x-tree-noicon .x-tree-node-icon{
 	width:0; height:0;
 }
 
-/* loading icon */
-.ext-ie .x-tree-node-el input {
-    width:15px;
-    height:15px;
-}
-
 /* No line styles */
 .x-tree-no-lines .x-tree-elbow{
-	background:transparent;
+	background-color:transparent;
 }
 
 .x-tree-no-lines .x-tree-elbow-end{
-	background:transparent;
+	background-color:transparent;
 }
 
 .x-tree-no-lines .x-tree-elbow-line{
-	background:transparent;
+	background-color:transparent;
 }
 
 /* Arrows */
 .x-tree-arrows .x-tree-elbow{
-	background:transparent;
+	background-color:transparent;
 }
 
 .x-tree-arrows .x-tree-elbow-plus{
@@ -85,7 +100,7 @@ input.x-tree-node-cb {
 }
 
 .x-tree-arrows .x-tree-elbow-end{
-	background:transparent;
+	background-color:transparent;
 }
 
 .x-tree-arrows .x-tree-elbow-end-plus{
@@ -97,7 +112,7 @@ input.x-tree-node-cb {
 }
 
 .x-tree-arrows .x-tree-elbow-line{
-	background:transparent;
+	background-color:transparent;
 }
 
 .x-tree-arrows .x-tree-ec-over .x-tree-elbow-plus{
@@ -158,7 +173,7 @@ input.x-tree-node-cb {
 }
 
 .x-tree-node .x-tree-node-inline-icon{
-	background:transparent;
+	background-color:transparent;
 }
 
 .x-tree-node a:hover, .x-dd-drag-ghost a:hover{

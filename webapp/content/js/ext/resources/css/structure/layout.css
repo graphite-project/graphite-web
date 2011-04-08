@@ -1,8 +1,8 @@
 /*!
- * Ext JS Library 3.0.0
- * Copyright(c) 2006-2009 Ext JS, LLC
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.3.1
+ * Copyright(c) 2006-2010 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 .x-border-layout-ct {
     position: relative;
@@ -84,7 +84,7 @@
 
 .x-tool-expand-east, .x-tool-expand-west {
     float:none;
-    margin:3px auto;
+    margin:3px 2px;
 }
 
 .x-accordion-hd .x-tool-toggle {
@@ -248,14 +248,14 @@
     border:0 none;
     width:5px !important;
     padding:0;
-    background:transparent;
+    background-color:transparent;
 }
 
 .x-layout-cmini-north, .x-layout-cmini-south {
     border:0 none;
     height:5px !important;
     padding:0;
-    background:transparent;
+    background-color:transparent;
 }
 
 .x-viewport, .x-viewport body {

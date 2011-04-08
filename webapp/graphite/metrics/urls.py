@@ -16,5 +16,6 @@ from django.conf.urls.defaults import *
 
 urlpatterns = patterns('graphite.metrics.views',
   ('^find/?$', 'find_view'),
+  ('^expand/?$', 'expand_view'),
   ('^context/?$', 'context_view'),
 )
