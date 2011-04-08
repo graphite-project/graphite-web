@@ -519,7 +519,6 @@ class LineGraph(Graph):
           fromNone = True
 
         else:
-          #y = self.area['ymax'] - ((float(value) - self.yBottom) * self.yScaleFactor)
           y = self.getYCoord(value)
           if y < 0: y = 0
 
@@ -747,7 +746,6 @@ class LineGraph(Graph):
       else:
         x = self.area['xmax'] + (self.yLabelWidth * 0.02) #Inverted for right side Y Axis
 
-      #y = self.area['ymax'] - ((value - self.yBottom) * self.yScaleFactor)
       y = self.getYCoord(value)
 
       if self.params.get('yAxisSide') == 'left':
@@ -775,7 +773,6 @@ class LineGraph(Graph):
       self.ctx.set_line_width(0.4)
       self.setColor( self.params.get('majorGridLineColor',self.defaultMajorGridLineColor) )
 
-      #y = self.area['ymax'] - ((value - self.yBottom) * self.yScaleFactor)
       y = self.getYCoord(value)
       self.ctx.move_to(leftSide, y)
       self.ctx.line_to(rightSide, y)
@@ -792,7 +789,6 @@ class LineGraph(Graph):
       if value >= self.yTop:
         continue
 
-      #y = self.area['ymax'] - ((value - self.yBottom) * self.yScaleFactor)
       y = self.getYCoord(value)
       self.ctx.move_to(leftSide, y)
       self.ctx.line_to(rightSide, y)
