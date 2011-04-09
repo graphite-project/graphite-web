@@ -218,12 +218,14 @@ function initDashboard () {
           handler: refreshGraphs
         }, {
           icon: CLOCK_ICON,
+          text: "Relatve Time Range",
           tooltip: 'View Recent Data',
           handler: selectRelativeTime,
           scope: this
         }, {
           icon: CALENDAR_ICON,
-          tooltip: 'View Time Range',
+          text: "Absolute Time Range",
+          tooltip: 'View Specific Time Range',
           handler: selectAbsoluteTime,
           scope: this
         }, '-', {
@@ -528,6 +530,7 @@ function graphAreaToggle(target, dontRemove) {
   } else {
     // Add it
     var params = Ext.apply({target: [target]}, defaultGraphParams);
+    params.title = target;
     var record = new GraphRecord({
       id: target,
       params: params,
@@ -668,6 +671,7 @@ function selectRelativeTime() {
     width: 205,
     height: 130,
     resizable: false,
+    modal: true,
     layout: 'form',
     labelAlign: 'right',
     labelWidth: 90,
@@ -727,6 +731,7 @@ function selectAbsoluteTime() {
     width: 225,
     height: 180,
     resizable: false,
+    modal: true,
     layout: 'form',
     labelAlign: 'right',
     labelWidth: 70,

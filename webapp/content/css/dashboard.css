@@ -55,3 +55,32 @@ img.graph-img {
 .x-list-selected {
   background-color: rgb(180, 180, 220);
 }
+
+/* Customize the size of the split bar toggle button */
+.x-layout-split {
+  height: 10px;
+}
+
+.x-layout-split-north .x-layout-mini {
+  height: 10px;
+  background-image: url(/content/img/mini-top2.gif);
+}
+
+.x-layout-split-south .x-layout-mini {
+  height: 10px !important;
+  background-image: url(/content/img/mini-bottom2.gif);
+}
+
+.x-layout-cmini-north {
+  height: 10px !important;
+}
+
+.x-layout-cmini-north .x-layout-mini {
+  height: 10px !important;
+  background-image: url(/content/img/mini-bottom2.gif);
+}
+
+.x-layout-cmini-south .x-layout-mini {
+  height: 10px;
+  background-image: url(/content/img/mini-top2.gif);
+}
