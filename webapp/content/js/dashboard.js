@@ -93,7 +93,7 @@ function initDashboard () {
         queryParam: 'query',
         minChars: 1,
         typeAhead: false,
-        value: getContextFieldCookie(field.name) || "*",
+        value: queryString[field.name] || getContextFieldCookie(field.name) || "*",
         listeners: {
           beforequery: buildQuery,
           change: contextFieldChanged,
@@ -125,12 +125,13 @@ function initDashboard () {
     displayField: 'name',
     listeners: {
       afterrender: function (combo) {
-        var cookieValue = getContextFieldCookie('metric-type');
-        if (cookieValue && cookieValue.length > 0) {
-          var index = combo.store.find("name", cookieValue);
+        var value = (queryString.metricType) ? queryString.metricType : getContextFieldCookie('metric-type');
+
+        if (value && value.length > 0) {
+          var index = combo.store.find("name", value);
           if (index > -1) {
             var record = combo.store.getAt(index);
-            combo.setValue(cookieValue);
+            combo.setValue(value);
             metricTypeSelected.defer(250, this, [combo, record, index]);
           }
         }

@@ -68,6 +68,7 @@ def dashboard(request, name=None):
     'schemes_json' : json.dumps(config.schemes),
     'ui_config_json' : json.dumps(config.ui_config),
     'jsdebug' : settings.JAVASCRIPT_DEBUG,
+    'querystring' : json.dumps( dict( request.GET.items() ) ),
   }
 
   if name is not None:

@@ -27,6 +27,13 @@
     {% else %}
     var initialError = null;
     {% endif %}
+
+    {% if querystring %}
+    var queryString = {{querystring|safe}};
+    //for (param in queryString) {
+      //queryString[param];
+    //}
+    {% endif %}
     </script>
 
     {% if jsdebug %}
