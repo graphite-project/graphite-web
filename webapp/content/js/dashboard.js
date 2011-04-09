@@ -283,6 +283,9 @@ function initDashboard () {
     menu: {
       items: [
         {
+          text: "Set Default Parameters",
+          handler: setDefaultGraphParameters
+        }, {
           text: "Resize",
           handler: selectGraphSize
         }, {
@@ -569,12 +572,18 @@ function graphAreaToggle(target, dontRemove) {
     }
   } else {
     // Add it
-    var params = Ext.apply({target: [target]}, defaultGraphParams);
-    params.title = target;
+    var myParams = {
+      target: [target],
+      title: target
+    };
+    var urlParams = {};
+    Ext.apply(urlParams, defaultGraphParams);
+    Ext.apply(urlParams, myParams);
+
     var record = new GraphRecord({
       target: target,
-      params: params,
-      url: '/render?' + Ext.urlEncode(params)
+      params: myParams,
+      url: '/render?' + Ext.urlEncode(urlParams)
     });
     graphStore.add([record]);
   }
@@ -583,8 +592,11 @@ function graphAreaToggle(target, dontRemove) {
 
 function refreshGraphs() {
   graphStore.each(function () {
-    this.data.params.uniq = Math.random();
-    this.set('url', '/render?' + Ext.urlEncode(this.get('params')));
+    var params = {};
+    Ext.apply(params, defaultGraphParams);
+    Ext.apply(params, this.data.params);
+    params.uniq = Math.random();
+    this.set('url', '/render?' + Ext.urlEncode(params));
   });
   graphView.refresh();
   graphArea.getTopToolbar().get('last-refreshed-text').setText( (new Date()).format('g:i:s A') );
@@ -792,6 +804,56 @@ var GraphSize = {
   width: UI_CONFIG.default_graph_width,
   height: UI_CONFIG.default_graph_height
 };
+
+
+function setDefaultGraphParameters() {
+  var editParams = Ext.apply({}, defaultGraphParams);
+  removeUneditable(editParams);
+
+  function applyParams() {
+    var paramsString = Ext.getCmp('default-params-field').getValue();
+    var params = Ext.urlDecode(paramsString);
+    copyUneditable(defaultGraphParams, params);
+    defaultGraphParams = params;
+    refreshGraphs();
+    win.close();
+  }
+
+  var paramsField = new Ext.form.TextField({
+    id: 'default-params-field',
+    region: 'center',
+    value: Ext.urlEncode(editParams),
+    listeners: {
+      specialkey: function (field, e) {
+                    if (e.getKey() == e.ENTER) {
+                      applyParams();
+                    }
+                  },
+      afterrender: function (field) { field.focus(false, 100); }
+    }
+  });
+
+  var win = new Ext.Window({
+    title: "Default Graph Parameters",
+    width: 470,
+    height: 87,
+    layout: 'border',
+    resizable: true,
+    modal: true,
+    items: [paramsField],
+    buttonAlign: 'center',
+    buttons: [
+      {
+        text: 'Set',
+        handler: applyParams
+      }, {
+        text: 'Cancel',
+        handler: function () { win.close(); }
+      }
+    ]
+  });
+  win.show();
+}
 
 function selectGraphSize() {
   var presetCombo = new Ext.form.ComboBox({
