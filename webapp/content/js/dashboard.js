@@ -14,6 +14,9 @@ var spacer;
 var justClosedGraph = false;
 var NOT_EDITABLE = ['from', 'until', 'width', 'height', 'target', 'uniq'];
 
+var cookieProvider = new Ext.state.CookieProvider({
+  path: "/dashboard"
+});
 
 // Record types and stores
 var SchemeRecord = Ext.data.Record.create([
@@ -86,7 +89,7 @@ function initDashboard () {
         queryParam: 'query',
         minChars: 1,
         typeAhead: false,
-        value: "*",
+        value: getContextFieldCookie(field.name) || "*",
         listeners: {
           beforequery: buildQuery,
           change: contextFieldChanged,
@@ -452,6 +455,9 @@ function contextFieldChanged () {
   Ext.each(fields, function (field) {
     var id = schemeName + '-' + field.name;
     var value = Ext.getCmp(id).getValue();
+
+    // Update context field cookies
+    setContextFieldCookie(field.name, value);
 
     if (UI_CONFIG.automatic_variants) {
       if (value.indexOf(',') > -1 && value.search(/[{}]/) == -1) {
@@ -1195,4 +1201,13 @@ function showDashboardFinder() {
   });
   dashboardsStore.load();
   win.show();
+}
+
+/* Cookie stuff */
+function getContextFieldCookie(field) {
+  return cookieProvider.get(field);
+}
+
+function setContextFieldCookie(field, value) {
+  cookieProvider.set(field, value)
 }
