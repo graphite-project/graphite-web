@@ -9,14 +9,18 @@ var graphStore;
 var graphView;
 var topBar;
 var dashboardName;
+var dashboardURL;
 var refreshTask;
 var spacer;
 var justClosedGraph = false;
 var NOT_EDITABLE = ['from', 'until', 'width', 'height', 'target', 'uniq'];
+var NEW_DASHBOARD_REMOVE_GRAPHS = false;
 
 var cookieProvider = new Ext.state.CookieProvider({
   path: "/dashboard"
 });
+
+var CONFIRM_REMOVE_ALL = cookieProvider.get('confirm-remove-all') != 'false';
 
 // Record types and stores
 var SchemeRecord = Ext.data.Record.create([
@@ -47,7 +51,7 @@ var contextFieldStore = new Ext.data.JsonStore({
 
 
 var GraphRecord = new Ext.data.Record.create([
-  {name: 'id'},
+  {name: 'target'},
   {name: 'params', type: 'auto'},
   {name: 'url'}
 ]);
@@ -111,6 +115,7 @@ function initDashboard () {
   });
 
   var metricTypeCombo = new Ext.form.ComboBox({
+    id: 'metric-type-field',
     fieldLabel: 'Metric Type',
     width: CONTEXT_FIELD_WIDTH,
     mode: 'local',
@@ -119,6 +124,17 @@ function initDashboard () {
     store: schemesStore,
     displayField: 'name',
     listeners: {
+      afterrender: function (combo) {
+        var cookieValue = getContextFieldCookie('metric-type');
+        if (cookieValue && cookieValue.length > 0) {
+          var index = combo.store.find("name", cookieValue);
+          if (index > -1) {
+            var record = combo.store.getAt(index);
+            combo.setValue(cookieValue);
+            metricTypeSelected.defer(250, this, [combo, record, index]);
+          }
+        }
+      },
       select: metricTypeSelected
     }
   });
@@ -190,7 +206,7 @@ function initDashboard () {
       '<div class="graph-container">',
         '<div class="graph-overlay">',
           '<img class="graph-img" src="{url}">',
-          '<div class="overlay-close-button" onclick="javascript: graphAreaToggle(\'{id}\'); justClosedGraph = true;">X</div>',
+          '<div class="overlay-close-button" onclick="javascript: graphAreaToggle(\'{target}\'); justClosedGraph = true;">X</div>',
         '</div>',
       '</div>',
     '</tpl>',
@@ -207,6 +223,135 @@ function initDashboard () {
     listeners: {click: graphClicked}
   });
 
+  /* Toolbar items */
+  var relativeTimeRange = {
+          icon: CLOCK_ICON,
+          text: "Relative Time Range",
+          tooltip: 'View Recent Data',
+          handler: selectRelativeTime,
+          scope: this
+  };
+
+  var absoluteTimeRange = {
+    icon: CALENDAR_ICON,
+    text: "Absolute Time Range",
+    tooltip: 'View Specific Time Range',
+    handler: selectAbsoluteTime,
+    scope: this
+  };
+
+  var timeRangeText = {
+    id: 'time-range-text',
+    xtype: 'tbtext',
+    text: getTimeText()
+  };
+
+  var dashboardMenu = {
+    text: 'Dashboard',
+    menu: {
+      items: [
+        {
+          text: "New",
+          handler: function (item, e) {
+                     setDashboardName(null);
+                     if (NEW_DASHBOARD_REMOVE_GRAPHS) {
+                       graphStore.removeAll();
+                     }
+                     refreshGraphs();
+                   }
+        }, {
+          text: "Finder",
+          handler: showDashboardFinder
+        }, {
+          id: 'dashboard-save-button',
+          text: "Save",
+          handler: function (item, e) {
+                     sendSaveRequest(dashboardName);
+                   },
+          disabled: (dashboardName == null) ? true : false
+        }, {
+          text: "Save As",
+          handler: saveDashboard
+        }
+      ]
+    }
+  };
+
+  var graphsMenu = {
+    text: 'Graphs',
+    menu: {
+      items: [
+        {
+          text: "Resize",
+          handler: selectGraphSize
+        }, {
+          text: "Remove All",
+          handler: removeAllGraphs
+        }
+      ]
+    }
+  };
+
+  var refreshButton = {
+    icon: REFRESH_ICON,
+    tooltip: 'Refresh Graphs',
+    handler: refreshGraphs
+  };
+
+  var autoRefreshButton = {
+    xtype: 'button',
+    id: 'auto-refresh-button',
+    text: "Auto-Refresh",
+    enableToggle: true,
+    pressed: false,
+    tooltip: "Toggle auto-refresh",
+    toggleHandler: function (button, pressed) {
+                     if (pressed) {
+                       Ext.TaskMgr.start(refreshTask);
+                     } else {
+                       Ext.TaskMgr.stop(refreshTask);
+                     }
+                   }
+  };
+
+  var every = {
+    xtype: 'tbtext',
+    text: 'every'
+  };
+
+  var seconds = {
+    xtype: 'tbtext',
+    text: 'seconds'
+  };
+
+  var autoRefreshField = {
+    id: 'auto-refresh-field',
+    xtype: 'textfield',
+    width: 25,
+    value: UI_CONFIG.refresh_interval,
+    enableKeyEvents: true,
+    disableKeyFilter: true,
+    listeners: {
+      change: function (field, newValue) { updateAutoRefresh(newValue); },
+      specialkey: function (field, e) {
+                    if (e.getKey() == e.ENTER) {
+                      updateAutoRefresh( field.getValue() );
+                    }
+                  }
+    }
+  };
+
+  var lastRefreshed = {
+    xtype: 'tbtext',
+    text: 'Last Refreshed: '
+  };
+
+  var lastRefreshedText = {
+    id: 'last-refreshed-text',
+    xtype: 'tbtext',
+    text: ( new Date() ).format('g:i:s A')
+  };
+
   graphArea = new Ext.Panel({
     region: 'center',
     layout: 'fit',
@@ -215,133 +360,19 @@ function initDashboard () {
     items: [graphView],
     tbar: new Ext.Toolbar({
       items: [
-        {
-          icon: REFRESH_ICON,
-          tooltip: 'Refresh Graphs',
-          handler: refreshGraphs
-        }, {
-          icon: CLOCK_ICON,
-          text: "Relatve Time Range",
-          tooltip: 'View Recent Data',
-          handler: selectRelativeTime,
-          scope: this
-        }, {
-          icon: CALENDAR_ICON,
-          text: "Absolute Time Range",
-          tooltip: 'View Specific Time Range',
-          handler: selectAbsoluteTime,
-          scope: this
-        }, '-', {
-          text: 'Dashboard',
-          menu: {
-            items: [
-/*
-              {
-                text: "Open",
-                handler: function (item, e) {
-                           Ext.Msg.prompt(
-                             "Load Dashboard",
-                             "Enter the name of the dashboard you would like to open",
-                             function (button, text) {
-                               if (button == 'ok' && text.length > 0) {
-                                 sendLoadRequest(text);
-                               }
-                             }
-                           );
-                         }
-              },
-*/
-              {
-                text: "Open",
-                handler: showDashboardFinder
-              }, {
-                id: 'dashboard-save-button',
-                text: "Save",
-                handler: function (item, e) {
-                           sendSaveRequest(dashboardName);
-                         },
-                disabled: (dashboardName == null) ? true : false
-              }, {
-                text: "Save As",
-                handler: saveDashboard
-              }, {
-                id: 'dashboard-delete-button',
-                text: "Delete",
-                handler: function (item, e) {
-                           Ext.Msg.confirm(
-                             "Delete Dashboard",
-                             "Are you sure you want to delete the " + dashboardName + " dashboard?",
-                             function (button) {
-                               if (button == 'yes') {
-                                 deleteDashboard(dashboardName);
-                               }
-                             }
-                           )
-                         },
-                disabled: (dashboardName == null) ? true : false
-              }
-            ]
-          }
-        }, {
-          text: 'Graphs',
-          menu: {
-            items: [
-              {
-                text: "Resize",
-                handler: selectGraphSize
-              }, {
-                text: "Remove All",
-                handler: removeAllGraphs
-              }
-            ]
-          }
-        }, '-', {
-          id: 'time-range-text',
-          xtype: 'tbtext',
-          text: getTimeText()
-        }, '->', {
-          xtype: 'button',
-          id: 'auto-refresh-button',
-          text: "Auto-Refresh",
-          enableToggle: true,
-          pressed: false,
-          tooltip: "Toggle auto-refresh",
-          toggleHandler: function (button, pressed) {
-                           if (pressed) {
-                             Ext.TaskMgr.start(refreshTask);
-                           } else {
-                             Ext.TaskMgr.stop(refreshTask);
-                           }
-                         }
-        }, {
-          xtype: 'tbtext',
-          text: 'every'
-        }, {
-          id: 'auto-refresh-field',
-          xtype: 'textfield',
-          width: 25,
-          value: UI_CONFIG.refresh_interval,
-          enableKeyEvents: true,
-          disableKeyFilter: true,
-          listeners: {
-            change: function (field, newValue) { updateAutoRefresh(newValue); },
-            specialkey: function (field, e) {
-                          if (e.getKey() == e.ENTER) {
-                            updateAutoRefresh( field.getValue() );
-                          }
-                        }
-          }
-        }, {
-          xtype: 'tbtext',
-          text: 'seconds'
-        }, '-', {
-          xtype: 'tbtext',
-          text: 'Last Refreshed: '
-        }, {
-          id: 'last-refreshed-text',
-          xtype: 'tbtext',
-          text: ( new Date() ).format('g:i:s A')
-        }
+        dashboardMenu,
+        graphsMenu,
+        '-',
+        relativeTimeRange,
+        absoluteTimeRange,
+        ' ',
+        timeRangeText,
+        '->',
+        refreshButton,
+        autoRefreshButton,
+        every, autoRefreshField, seconds,
+        '-',
+        lastRefreshed, lastRefreshedText
       ]
     })
   });
@@ -353,7 +384,8 @@ function initDashboard () {
     collapsible: true,
     collapseMode: 'mini',
     split: true,
-    header: false,
+    title: "untitled",
+    //header: false,
     height: 220,
     items: [contextSelector, metricSelector]
   });
@@ -396,6 +428,7 @@ function metricTypeSelected (combo, record, index) {
     }
   });
 
+  setContextFieldCookie("metric-type", combo.getValue());
   contextFieldChanged();
 }
 
@@ -527,7 +560,7 @@ function metricSelectorNodeClicked (node, e) {
 
 
 function graphAreaToggle(target, dontRemove) {
-  var existingIndex = graphStore.find('id', target);
+  var existingIndex = graphStore.find('target', target);
 
   if (existingIndex > -1) {
     if (!dontRemove) {
@@ -538,7 +571,7 @@ function graphAreaToggle(target, dontRemove) {
     var params = Ext.apply({target: [target]}, defaultGraphParams);
     params.title = target;
     var record = new GraphRecord({
-      id: target,
+      target: target,
       params: params,
       url: '/render?' + Ext.urlEncode(params)
     });
@@ -760,7 +793,36 @@ var GraphSize = {
 };
 
 function selectGraphSize() {
+  var presetCombo = new Ext.form.ComboBox({
+    fieldLabel: "Preset",
+    width: 80,
+    editable: false,
+    forceSelection: true,
+    triggerAction: 'all',
+    mode: 'local',
+    store: ['Custom', 'Small', 'Medium', 'Large'],
+    listeners: {
+      select: function (combo, record, index) {
+                var w = "";
+                var h = "";
+                if (index == 1) { //small
+                  w = 300;
+                  h = 230;
+                } else if (index == 2) { //medium
+                  w = 400;
+                  h = 300;
+                } else if (index == 3) { //large
+                  w = 500;
+                  h = 400;
+                }
+                Ext.getCmp('width-field').setValue(w);
+                Ext.getCmp('height-field').setValue(h);
+              }
+    }
+  });
+
   var widthField = new Ext.form.TextField({
+    id: 'width-field',
     fieldLabel: "Width",
     width: 80,
     regex: /\d+/,
@@ -770,6 +832,7 @@ function selectGraphSize() {
   });
 
   var heightField = new Ext.form.TextField({
+    id: 'height-field',
     fieldLabel: "Height",
     width: 80,
     regex: /\d+/,
@@ -795,12 +858,12 @@ function selectGraphSize() {
   win = new Ext.Window({
     title: "Change Graph Size",
     width: 185,
-    height: 120,
+    height: 160,
     resizable: false,
     layout: 'form',
     labelAlign: 'right',
     labelWidth: 80,
-    items: [widthField, heightField],
+    items: [presetCombo, widthField, heightField],
     buttonAlign: 'center',
     buttons: [
       {text: 'Ok', handler: resize},
@@ -878,6 +941,13 @@ function graphClicked(graphView, index, element, evt) {
     handler: function () { menu.destroy(); breakoutGraph(record); }
   });
 
+  menuItems.push({
+    xtype: 'button',
+    fieldLabel: "<span style='visibility: hidden'>",
+    text: 'Clone Graph',
+    handler: function () { menu.destroy(); cloneGraph(record); }
+  });
+
   menu = new Ext.menu.Menu({
     layout: 'form',
     labelWidth: 72,
@@ -925,17 +995,29 @@ function breakoutGraph(record) {
 }
 
 
+function cloneGraph(record) {
+  var index = graphStore.indexOf(record);
+  var clone = new GraphRecord(record.data);
+  graphStore.insert(index+1, [clone]);
+  refreshGraphs();
+}
+
 function removeAllGraphs() {
-  Ext.Msg.confirm(
-    "Are you sure?",
-    "Are you sure you want to remove all the graphs?",
-    function (choice) {
-      if (choice == 'yes') {
-        graphStore.removeAll();
-        refreshGraphs();
+  if (CONFIRM_REMOVE_ALL) {
+    Ext.Msg.confirm(
+      "Are you sure?",
+      "Are you sure you want to remove all the graphs?",
+      function (choice) {
+        if (choice == 'yes') {
+          graphStore.removeAll();
+          refreshGraphs();
+        }
       }
-    }
-  );
+    );
+  } else {
+    graphStore.removeAll();
+    refreshGraphs();
+  }
 }
 
 
@@ -1007,6 +1089,7 @@ function getState() {
     function (record) {
       graphs.push([
         record.data.id,
+        record.data.target,
         record.data.params,
         record.data.url
       ]);
@@ -1057,7 +1140,7 @@ function applyState(state) {
   GraphSize.width = graphSize.width;
   GraphSize.height = graphSize.height;
 
-  //state.graphs = [ [id, params, url], ... ]
+  //state.graphs = [ [id, target, params, url], ... ]
   graphStore.loadData(state.graphs);
 
   refreshGraphs();
@@ -1080,9 +1163,27 @@ function deleteDashboard(name) {
 
 function setDashboardName(name) {
   dashboardName = name;
-  document.title = name + " - Graphite Dashboard";
-  Ext.getCmp('dashboard-save-button').enable();
-  Ext.getCmp('dashboard-delete-button').enable();
+
+  if (name == null) {
+    dashboardURL = null;
+    document.title = "untitled - Graphite Dashboard";
+    topBar.setTitle("untitled");
+    Ext.getCmp('dashboard-save-button').disable();
+  } else {
+    var urlparts = location.href.split('/');
+    var i = urlparts.indexOf('dashboard');
+    if (i == -1) {
+      Ext.Msg.alert("Error", "urlparts = " + Ext.encode(urlparts) + " and indexOf(dashboard) = " + i);
+      return;
+    }
+    urlparts = urlparts.slice(0, i+1);
+    urlparts.push( encodeURI(name) )
+    dashboardURL = urlparts.join('/');
+
+    document.title = name + " - Graphite Dashboard";
+    topBar.setTitle(name + " - (" + dashboardURL + ")");
+    Ext.getCmp('dashboard-save-button').enable();
+  }
 }
 
 function failedAjaxCall(response, options) {
@@ -1119,6 +1220,26 @@ function showDashboardFinder() {
     win.close();
   }
 
+  function deleteSelected() {
+    var selected = dashboardsList.getSelectedRecords();
+    if (selected.length > 0) {
+      var record = selected[0];
+      var name = record.data.name;
+
+      Ext.Msg.confirm(
+       "Delete Dashboard",
+        "Are you sure you want to delete the " + name + " dashboard?",
+        function (button) {
+          if (button == 'yes') {
+            deleteDashboard(name);
+            dashboardsStore.remove(record);
+            dashboardsList.refresh();
+          }
+        }
+      );
+    }
+  }
+
   dashboardsList = new Ext.list.ListView({
     columns: [
       {header: 'Dashboard', width: 1.0, dataIndex: 'name', sortable: false}
@@ -1128,11 +1249,12 @@ function showDashboardFinder() {
     hideHeaders: true,
     listeners: {
       selectionchange: function (listView, selections) {
-                         var button = Ext.getCmp('finder-open-button');
                          if (listView.getSelectedRecords().length == 0) {
-                           button.disable();
+                           Ext.getCmp('finder-open-button').disable();
+                           Ext.getCmp('finder-delete-button').disable();
                          } else {
-                           button.enable();
+                           Ext.getCmp('finder-open-button').enable();
+                           Ext.getCmp('finder-delete-button').enable();
                          }
                        },
 
@@ -1178,7 +1300,7 @@ function showDashboardFinder() {
   });
 
   win = new Ext.Window({
-    title: "Find Dashboards",
+    title: "Dashboard Finder",
     width: 400,
     height: 500,
     layout: 'border',
@@ -1193,6 +1315,11 @@ function showDashboardFinder() {
         text: "Open",
         disabled: true,
         handler: openSelected
+      }, {
+        id: 'finder-delete-button',
+        text: "Delete",
+        disabled: true,
+        handler: deleteSelected
       }, {
         text: "Cancel",
         handler: function () { win.close(); }

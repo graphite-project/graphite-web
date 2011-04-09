@@ -52,6 +52,20 @@ img.graph-img {
   visibility: visible;
 }
 
+.selectable, .selectable * {
+  user-select: text !important;
+  -moz-user-select: text !important;
+  -khtml-user-select: text !important;
+  -webkit-user-select: text !important;
+}
+
+.x-unselectable, .x-unselectable * {
+  user-select: text !important;
+  -moz-user-select: text !important;
+  -khtml-user-select: text !important;
+  -webkit-user-select: text !important;
+}
+
 .x-list-selected {
   background-color: rgb(180, 180, 220);
 }
