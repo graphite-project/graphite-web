@@ -299,7 +299,7 @@ function initDashboard () {
           id: 'auto-refresh-button',
           text: "Auto-Refresh",
           enableToggle: true,
-          pressed: true,
+          pressed: false,
           tooltip: "Toggle auto-refresh",
           toggleHandler: function (button, pressed) {
                            if (pressed) {
@@ -362,11 +362,11 @@ function initDashboard () {
   });
 
   refreshTask = {
-    enabled: true,
+    enabled: false,
     run: refreshGraphs,
     interval: UI_CONFIG.refresh_interval * 1000
   };
-  Ext.TaskMgr.start(refreshTask);
+  //Ext.TaskMgr.start(refreshTask);
 
   // Load initial dashboard state if it was passed in
   if (initialState) {
