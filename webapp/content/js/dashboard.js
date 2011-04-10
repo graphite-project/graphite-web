@@ -7,21 +7,41 @@ var metricSelector;
 var graphArea;
 var graphStore;
 var graphView;
-var topBar;
+var navBar;
 var dashboardName;
 var dashboardURL;
 var refreshTask;
 var spacer;
 var justClosedGraph = false;
 var NOT_EDITABLE = ['from', 'until', 'width', 'height', 'target', 'uniq'];
-var NEW_DASHBOARD_REMOVE_GRAPHS = false;
 
 var cookieProvider = new Ext.state.CookieProvider({
   path: "/dashboard"
 });
 
+var NAV_BAR_REGION = cookieProvider.get('navbar-region') || 'north';
+
 //var CONFIRM_REMOVE_ALL = cookieProvider.get('confirm-remove-all') != 'false';
 var CONFIRM_REMOVE_ALL = false;
+
+/* Nav Bar configuration */
+var navBarNorthConfig = {
+  region: 'north',
+  layout: 'hbox',
+  layoutConfig: { align: 'stretch' },
+  collapsible: true,
+  collapseMode: 'mini',
+  split: true,
+  title: "untitled",
+  height: 220
+};
+
+var navBarWestConfig = Ext.apply({}, navBarNorthConfig);
+delete navBarWestConfig.height;
+navBarWestConfig.region = 'west';
+navBarWestConfig.layout = 'vbox';
+navBarWestConfig.width = 338;
+
 
 // Record types and stores
 var SchemeRecord = Ext.data.Record.create([
@@ -275,6 +295,9 @@ function initDashboard () {
         }, {
           text: "Save As",
           handler: saveDashboard
+        }, {
+          text: "Configure Nav Bar",
+          handler: configureNavBar
         }
       ]
     }
@@ -392,23 +415,16 @@ function initDashboard () {
     })
   });
 
-  topBar = new Ext.Panel({
-    region: 'north',
-    layout: 'hbox',
-    layoutConfig: { align: 'stretch' },
-    collapsible: true,
-    collapseMode: 'mini',
-    split: true,
-    title: "untitled",
-    //header: false,
-    height: 220,
-    items: [contextSelector, metricSelector]
-  });
+  /* Nav Bar */
+  navBarNorthConfig.items = [contextSelector, metricSelector];
+  navBarWestConfig.items = [contextSelector, metricSelector];
+  var navBarConfig = (NAV_BAR_REGION == 'west') ? navBarWestConfig : navBarNorthConfig;
+  navBar = new Ext.Panel(navBarConfig);
 
   viewport = new Ext.Viewport({
     layout: 'border',
     items: [
-      topBar,
+      navBar,
       graphArea
     ]
   });
@@ -589,6 +605,7 @@ function graphAreaToggle(target, dontRemove) {
     };
     var urlParams = {};
     Ext.apply(urlParams, defaultGraphParams);
+    Ext.apply(urlParams, GraphSize);
     Ext.apply(urlParams, myParams);
 
     var record = new GraphRecord({
@@ -606,6 +623,7 @@ function refreshGraphs() {
     var params = {};
     Ext.apply(params, defaultGraphParams);
     Ext.apply(params, this.data.params);
+    Ext.apply(params, GraphSize);
     params.uniq = Math.random();
     this.set('url', '/render?' + Ext.urlEncode(params));
   });
@@ -920,11 +938,6 @@ function selectGraphSize() {
     GraphSize.width = defaultGraphParams.width = widthField.getValue();
     GraphSize.height = defaultGraphParams.height = heightField.getValue();
     win.close();
-
-    graphStore.each(function () {
-      this.data.params.width = GraphSize.width;
-      this.data.params.height = GraphSize.height;
-    });
     refreshGraphs();
   }
 
@@ -1212,7 +1225,7 @@ function sendLoadRequest(name) {
   });
 }
 
-function getState() { //XXX
+function getState() {
   var graphs = [];
   graphStore.each(
     function (record) {
@@ -1301,7 +1314,7 @@ function setDashboardName(name) {
   if (name == null) {
     dashboardURL = null;
     document.title = "untitled - Graphite Dashboard";
-    topBar.setTitle("untitled");
+    navBar.setTitle("untitled");
     saveButton.setText("Save");
     saveButton.disable();
   } else {
@@ -1316,7 +1329,7 @@ function setDashboardName(name) {
     dashboardURL = urlparts.join('/');
 
     document.title = name + " - Graphite Dashboard";
-    topBar.setTitle(name + " - (" + dashboardURL + ")");
+    navBar.setTitle(name + " - (" + dashboardURL + ")");
     saveButton.setText('Save "' + name + '"');
     saveButton.enable();
   }
@@ -1329,6 +1342,74 @@ function failedAjaxCall(response, options) {
   );
 }
 
+function configureNavBar() {
+  var win;
+
+  function updateOrientation() {
+    if (Ext.getCmp('navbar-left-radio').getValue()) {
+      updateNavBar('west');
+    } else {
+      updateNavBar('north');
+    }
+    win.close();
+  }
+
+  win = new Ext.Window({
+    title: "Configure Navigation Bar",
+    layout: 'form',
+    width: 200,
+    height: 120,
+    labelWidth: 110,
+    items: [
+      {
+        id: 'navbar-left-radio',
+        xtype: "radio",
+        fieldLabel: "Nav Bar Position",
+        boxLabel: "Left",
+        name: "navbar-position",
+        inputValue: "left",
+        checked: (NAV_BAR_REGION == 'west')
+      }, {
+        id: 'navbar-top-radio',
+        xtype: "radio",
+        fieldLabel: "",
+        boxLabel: "Top",
+        name: "navbar-position",
+        inputValue: "top",
+        checked: (NAV_BAR_REGION == 'north')
+      }
+    ],
+    buttons: [
+      {text: 'Ok', handler: updateOrientation},
+      {text: 'Cancel', handler: function () { win.close(); } }
+    ]
+  });
+  win.show();
+}
+
+function updateNavBar(region) {
+  if (region == NAV_BAR_REGION) {
+    return;
+  }
+  cookieProvider.set('navbar-region', region);
+  Ext.Msg.alert('Cookie Updated', "You must refresh the page to update the nav bar's location.");
+
+  /* Potentially avoid the full refresh by hiding a second nav bar */
+  //region: 'north',
+  //layout: 'hbox',
+  //layoutConfig: { align: 'stretch' },
+  //collapsible: true,
+  //collapseMode: 'mini',
+  //split: true,
+  //title: "untitled",
+  //height: 220,
+
+  //delete navBarWestConfig.height;
+  //navBarWestConfig.region = 'west';
+  //navBarWestConfig.layout = 'vbox';
+  //navBarWestConfig.width = 338;
+  NAV_BAR_REGION = region;
+}
 
 // Dashboard Finder
 function showDashboardFinder() {

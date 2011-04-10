@@ -13,6 +13,7 @@ Graphite Documentation
    feeding-carbon
    composer
    url-api
+   dashboard
    carbon-daemons
    tools
    who-is-using
