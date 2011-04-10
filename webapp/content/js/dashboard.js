@@ -19,7 +19,7 @@ var cookieProvider = new Ext.state.CookieProvider({
   path: "/dashboard"
 });
 
-var NAV_BAR_REGION = cookieProvider.get('navbar-region') || 'north';
+var NAV_BAR_REGION = cookieProvider.get('navbar-region') || 'west';
 
 //var CONFIRM_REMOVE_ALL = cookieProvider.get('confirm-remove-all') != 'false';
 var CONFIRM_REMOVE_ALL = false;
@@ -296,8 +296,8 @@ function initDashboard () {
           text: "Save As",
           handler: saveDashboard
         }, {
-          text: "Configure Nav Bar",
-          handler: configureNavBar
+          text: "Configure UI",
+          handler: configureUI
         }
       ]
     }
@@ -418,7 +418,7 @@ function initDashboard () {
   /* Nav Bar */
   navBarNorthConfig.items = [contextSelector, metricSelector];
   navBarWestConfig.items = [contextSelector, metricSelector];
-  var navBarConfig = (NAV_BAR_REGION == 'west') ? navBarWestConfig : navBarNorthConfig;
+  var navBarConfig = (NAV_BAR_REGION == 'north') ? navBarNorthConfig : navBarWestConfig;
   navBar = new Ext.Panel(navBarConfig);
 
   viewport = new Ext.Viewport({
@@ -1342,7 +1342,7 @@ function failedAjaxCall(response, options) {
   );
 }
 
-function configureNavBar() {
+function configureUI() {
   var win;
 
   function updateOrientation() {
@@ -1355,7 +1355,7 @@ function configureNavBar() {
   }
 
   win = new Ext.Window({
-    title: "Configure Navigation Bar",
+    title: "Configure UI",
     layout: 'form',
     width: 200,
     height: 120,
