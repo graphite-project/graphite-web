@@ -208,7 +208,7 @@ function initDashboard () {
     root: new Ext.tree.TreeNode({}),
     containerScroll: true,
     autoScroll: true,
-    flex: 1.5,
+    flex: (NAV_BAR_REGION == 'north') ? 1.5 : 3.0,
     pathSeparator: '.',
     rootVisible: false,
     singleExpand: false,
