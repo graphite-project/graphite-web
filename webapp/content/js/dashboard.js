@@ -62,12 +62,13 @@ var graphStore = new Ext.data.ArrayStore({
 });
 
 
-var defaultGraphParams = {
+var originalDefaultGraphParams = {
   from: '-2hours',
   until: 'now',
   width: UI_CONFIG.default_graph_width,
   height: UI_CONFIG.default_graph_height
 };
+var defaultGraphParams = Ext.apply({}, originalDefaultGraphParams);
 
 
 function initDashboard () {
@@ -1232,6 +1233,7 @@ function getState() { //XXX
       interval: refreshTask.interval
     },
     graphSize: GraphSize,
+    defaultGraphParams: defaultGraphParams,
     graphs: graphs
   };
 }
@@ -1267,6 +1269,9 @@ function applyState(state) {
   var graphSize = state.graphSize;
   GraphSize.width = graphSize.width;
   GraphSize.height = graphSize.height;
+
+  //state.defaultGraphParams = {...}
+  defaultGraphParams = state.defaultGraphParams || originalDefaultGraphParams;
 
   //state.graphs = [ [id, target, params, url], ... ]
   graphStore.loadData(state.graphs);
