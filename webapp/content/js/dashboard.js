@@ -20,7 +20,8 @@ var cookieProvider = new Ext.state.CookieProvider({
   path: "/dashboard"
 });
 
-var CONFIRM_REMOVE_ALL = cookieProvider.get('confirm-remove-all') != 'false';
+//var CONFIRM_REMOVE_ALL = cookieProvider.get('confirm-remove-all') != 'false';
+var CONFIRM_REMOVE_ALL = false;
 
 // Record types and stores
 var SchemeRecord = Ext.data.Record.create([
@@ -283,8 +284,8 @@ function initDashboard () {
     menu: {
       items: [
         {
-          text: "Set Default Parameters",
-          handler: setDefaultGraphParameters
+          text: "Edit Default Parameters",
+          handler: editDefaultGraphParameters
         }, {
           text: "Resize",
           handler: selectGraphSize
@@ -294,6 +295,13 @@ function initDashboard () {
         }
       ]
     }
+  };
+
+  var shareButton = {
+    icon: SHARE_ICON,
+    tooltip: "Share This Dashboard",
+    text: "Share",
+    handler: doShare
   };
 
   var refreshButton = {
@@ -366,6 +374,8 @@ function initDashboard () {
       items: [
         dashboardMenu,
         graphsMenu,
+        '-',
+        shareButton,
         '-',
         relativeTimeRange,
         absoluteTimeRange,
@@ -799,14 +809,13 @@ function selectAbsoluteTime() {
 
 
 /* Graph size stuff */
-
 var GraphSize = {
   width: UI_CONFIG.default_graph_width,
   height: UI_CONFIG.default_graph_height
 };
 
 
-function setDefaultGraphParameters() {
+function editDefaultGraphParameters() {
   var editParams = Ext.apply({}, defaultGraphParams);
   removeUneditable(editParams);
 
@@ -844,7 +853,7 @@ function setDefaultGraphParameters() {
     buttonAlign: 'center',
     buttons: [
       {
-        text: 'Set',
+        text: 'OK',
         handler: applyParams
       }, {
         text: 'Cancel',
@@ -931,6 +940,62 @@ function selectGraphSize() {
     buttons: [
       {text: 'Ok', handler: resize},
       {text: 'Cancel', handler: function () { win.close(); } }
+    ]
+  });
+  win.show();
+}
+
+function doShare() {
+  if (dashboardName == null) {
+    Ext.Ajax.request({
+      url: "/dashboard/create-temporary/",
+      method: 'POST',
+      params: {
+        state: Ext.encode( getState() )
+      },
+      callback: function (options, success, response) {
+                  var result = Ext.decode(response.responseText);
+                  if (result.error) {
+                    Ext.Msg.alert("Error", "There was an error saving this dashboard: " + result.error);
+                  } else {
+                    setDashboardName(result.name);
+                    sendSaveRequest(result.name); // Resave the state with the proper dashboardName now
+                    showShareWindow();
+                  }
+                }
+    });
+  } else {
+    showShareWindow();
+  }
+}
+
+function showShareWindow() {
+  var win = new Ext.Window({
+    title: "Share Dashboard",
+    width: 600,
+    height: 125,
+    layout: 'border',
+    modal: true,
+    items: [
+      {
+        xtype: "label",
+        region: 'north',
+        style: "text-align: center;",
+        text: "You can use this URL to access the current dashboard."
+      }, {
+        xtype: 'textfield',
+        region: 'center',
+        value: dashboardURL,
+        editable: false,
+        style: "text-align: center; font-size: large;",
+        listeners: {
+          afterrender: function (field) { field.selectText(); }
+        }
+      }
+    ],
+    buttonAlign: 'center',
+    buttons: [
+      {text: "Close", handler: function () { win.close(); } }
     ]
   });
   win.show();
@@ -1146,7 +1211,7 @@ function sendLoadRequest(name) {
   });
 }
 
-function getState() {
+function getState() { //XXX
   var graphs = [];
   graphStore.each(
     function (record) {
@@ -1217,7 +1282,7 @@ function deleteDashboard(name) {
       if (result.error) {
         Ext.Msg.alert("Error", "Failed to delete dashboard '" + name + "': " + result.error);
       } else {
-        Ext.Msg.alert("Dashboard Deleted", "The " + name + "dashboard was deleted successfully.");
+        Ext.Msg.alert("Dashboard Deleted", "The " + name + " dashboard was deleted successfully.");
       }
     },
     failure: failedAjaxCall
@@ -1226,12 +1291,14 @@ function deleteDashboard(name) {
 
 function setDashboardName(name) {
   dashboardName = name;
+  var saveButton = Ext.getCmp('dashboard-save-button');
 
   if (name == null) {
     dashboardURL = null;
     document.title = "untitled - Graphite Dashboard";
     topBar.setTitle("untitled");
-    Ext.getCmp('dashboard-save-button').disable();
+    saveButton.setText("Save");
+    saveButton.disable();
   } else {
     var urlparts = location.href.split('/');
     var i = urlparts.indexOf('dashboard');
@@ -1245,7 +1312,8 @@ function setDashboardName(name) {
 
     document.title = name + " - Graphite Dashboard";
     topBar.setTitle(name + " - (" + dashboardURL + ")");
-    Ext.getCmp('dashboard-save-button').enable();
+    saveButton.setText('Save "' + name + '"');
+    saveButton.enable();
   }
 }
 
@@ -1384,7 +1452,7 @@ function showDashboardFinder() {
         disabled: true,
         handler: deleteSelected
       }, {
-        text: "Cancel",
+        text: "Close",
         handler: function () { win.close(); }
       }
     ]
