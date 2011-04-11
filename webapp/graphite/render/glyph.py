@@ -432,7 +432,7 @@ class LineGraph(Graph):
 
     if self.logScale:
         if value <= 0: return None
-        relativeValue = math.log(relativeValue, self.logBase)
+        if relativeValue > 0: relativeValue = math.log(relativeValue, self.logBase)
         valueRange = math.log(highestValue, self.logBase) - math.log(lowestValue, self.logBase)
 
     pixelToValueRatio = pixelRange / valueRange
