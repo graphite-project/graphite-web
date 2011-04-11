@@ -676,21 +676,26 @@ class LineGraph(Graph):
       def makeLabel(yValue):
         yValue, prefix = format_units(yValue, self.yStep,
                 system=self.params.get('yUnitSystem'))
-
         ySpan, spanPrefix = format_units(self.ySpan, self.yStep,
                 system=self.params.get('yUnitSystem'))
 
-        if ySpan > 10 or spanPrefix != prefix:
-          return "%d %s " % (int(yValue), prefix)
+        yValue = float(yValue)
+        if yValue < 0.1:
+          return "%g %s" % (yValue, prefix)
+        elif yValue < 1.0:
+          return "%.2f %s" % (yValue, prefix)
 
-        elif ySpan > 3:
-          return "%.1f %s " % (float(yValue), prefix)
+         if ySpan > 10 or spanPrefix != prefix:
+           return "%d %s " % (int(yValue), prefix)
 
-        elif ySpan > 0.1:
-          return "%.2f %s " % (float(yValue), prefix)
+         elif ySpan > 3:
+           return "%.1f %s " % (float(yValue), prefix)
 
-        else:
-          return "%g %s" % (float(yValue), prefix)
+         elif ySpan > 0.1:
+           return "%.2f %s " % (float(yValue), prefix)
+
+         else:
+           return "%g %s" % (float(yValue), prefix)
 
       self.yLabelValues = self.getYLabelValues(self.yBottom, self.yTop)
       self.yLabels = map(makeLabel,self.yLabelValues)
