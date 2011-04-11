@@ -21,8 +21,7 @@ var cookieProvider = new Ext.state.CookieProvider({
 
 var NAV_BAR_REGION = cookieProvider.get('navbar-region') || 'west';
 
-//var CONFIRM_REMOVE_ALL = cookieProvider.get('confirm-remove-all') != 'false';
-var CONFIRM_REMOVE_ALL = false;
+var CONFIRM_REMOVE_ALL = cookieProvider.get('confirm-remove-all') != 'false';
 
 /* Nav Bar configuration */
 var navBarNorthConfig = {
@@ -328,6 +327,18 @@ function initDashboard () {
     handler: doShare
   };
 
+  var resizeButton = {
+    icon: RESIZE_ICON,
+    tooltip: "Resize Graphs",
+    handler: selectGraphSize
+  };
+
+  var removeAllButton = {
+    icon: REMOVE_ICON,
+    tooltip: "Remove All Graphs",
+    handler: removeAllGraphs
+  };
+
   var refreshButton = {
     icon: REFRESH_ICON,
     tooltip: 'Refresh Graphs',
@@ -406,6 +417,8 @@ function initDashboard () {
         ' ',
         timeRangeText,
         '->',
+        resizeButton,
+        removeAllButton,
         refreshButton,
         autoRefreshButton,
         every, autoRefreshField, seconds,
@@ -891,6 +904,7 @@ function selectGraphSize() {
     forceSelection: true,
     triggerAction: 'all',
     mode: 'local',
+    value: 'Custom',
     store: ['Custom', 'Small', 'Medium', 'Large'],
     listeners: {
       select: function (combo, record, index) {
@@ -1146,6 +1160,7 @@ function cloneGraph(record) {
 
 function removeAllGraphs() {
   if (CONFIRM_REMOVE_ALL) {
+    /*
     Ext.Msg.confirm(
       "Are you sure?",
       "Are you sure you want to remove all the graphs?",
@@ -1156,6 +1171,51 @@ function removeAllGraphs() {
         }
       }
     );
+    */
+    var win;
+    win = new Ext.Window({
+      title: "Remove All Graphs",
+      width: 200,
+      height: 120,
+      layout: 'vbox',
+      layoutConfig: { align: 'center' },
+      items: [
+        {
+          xtype: 'label',
+          text: "Are You Sure?",
+          style: "font-size: large;"
+        }, {
+          id: 'always-ask-me',
+          xtype: 'checkbox',
+          boxLabel: "Always Ask Me",
+          name: "ask-me",
+          inputValue: "yes",
+          checked: true
+        }
+      ],
+      buttonAlign: 'center',
+      buttons: [
+        {
+          text: "Yes",
+          handler: function () {
+                     if (Ext.getCmp('always-ask-me').getValue()) {
+                       CONFIRM_REMOVE_ALL = true;
+                       cookieProvider.set('confirm-remove-all', 'true');
+                     } else {
+                       CONFIRM_REMOVE_ALL = false;
+                       cookieProvider.set('confirm-remove-all', 'false');
+                     }
+                     graphStore.removeAll();
+                     refreshGraphs();
+                     win.close();
+                   }
+        }, {
+          text: "No",
+          handler: function () { win.close(); }
+        }
+      ]
+    });
+    win.show();
   } else {
     graphStore.removeAll();
     refreshGraphs();
