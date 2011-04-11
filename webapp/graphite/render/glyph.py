@@ -18,8 +18,7 @@ from urllib import unquote_plus
 from ConfigParser import SafeConfigParser
 from django.conf import settings
 from graphite.render.datalib import TimeSeries
-from graphite.logger import log as logger
-from pprint import pformat
+
 
 try: # See if there is a system installation of pytz first
   import pytz
