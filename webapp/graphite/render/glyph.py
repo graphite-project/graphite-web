@@ -444,7 +444,10 @@ class LineGraph(Graph):
 
     pixelToValueRatio = pixelRange / valueRange                       # 90 / 10 = 9
     valueInPixels = pixelToValueRatio * relativeValue             # 9 * 7 = 63
-    return self.area['ymax'] - valueInPixels
+    y = self.area['ymax'] - valueInPixels
+    if y < 0:
+        return None
+    return y
 
   def drawLines(self, width=None, dash=None, linecap='butt', linejoin='miter'):
     if not width: width = self.lineWidth
