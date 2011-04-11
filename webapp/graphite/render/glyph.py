@@ -799,7 +799,7 @@ class LineGraph(Graph):
       self.ctx.set_line_width(0.3)
       self.setColor( self.params.get('minorGridLineColor',self.defaultMinorGridLineColor) )
 
-      # If this is the last label continue not minor gridline.
+      # If this is the last label or we are using a log scale no minor grid line.
       if self.logBase or i == len(self.yLabelValues) - 1:
           continue
 
