@@ -419,25 +419,30 @@ class LineGraph(Graph):
       x += lineHeight
     self.area['xmin'] = x + self.margin + lineHeight
 
-  def getYCoord(self, number):
-    yScale = self.yLabelValues
-    yMaxPixel = self.area['ymax']
-    yMinPixel = self.area['ymin']
-    assert len(yScale) > 1
+  def getYCoord(self, value):
+    highestValue = max(self.yLabelValues)
+    lowestValue = min(self.yLabelValues)
+    pixelRange = self.area['ymax'] - self.area['ymin']
+
+    relativeValue = value - lowestValue                           # 7 - 0 = 0
+    valueRange = highestValue - lowestValue                    # 10 - 0 = 10
 
     if self.logScale:
-      slope = math.log(number, self.logBase) - math.log(self.yBottom, self.logBase)
-      # Calculate plot by using the coords (0, yMinPixel) (1, number)
-      # slope is m = log(y2) - log(y1) / x2 - x1;
-      # Therefore m = log(number) - log(yMinPixel) / 1 - 0
-      deduct = 0.0
-      if slope > 0:
-          deduct += slope * (yMaxPixel / len(yScale))
-      yPixels = yMaxPixel - deduct
-      logger.info('FOOOO %0.10f %0.10f %0.10f, %0.10f %s' %(number, slope, yMaxPixel, yPixels, yScale))
-    else:
-      yPixels = yMaxPixel - ((float(number) - self.yBottom) * self.yScaleFactor)
-    return yPixels
+        relativeValue = 0.0
+        if value > 0:
+            relativeValue = math.log(value, self.logBase)
+        if lowestValue > 0:
+            relativeValue -= math.log(lowestValue, self.logBase)
+
+        valueRange = 0.0
+        if highestValue > 0:
+            valueRange = math.log(highestValue, self.logBase)
+        if lowestValue > 0:
+            valueRange -= math.log(lowestValue, self.logBase)
+
+    pixelToValueRatio = pixelRange / valueRange                       # 90 / 10 = 9
+    valueInPixels = pixelToValueRatio * relativeValue             # 9 * 7 = 63
+    return self.area['ymax'] - valueInPixels
 
   def drawLines(self, width=None, dash=None, linecap='butt', linejoin='miter'):
     if not width: width = self.lineWidth
