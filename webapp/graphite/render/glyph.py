@@ -428,8 +428,8 @@ class LineGraph(Graph):
     lowestValue = min(self.yLabelValues)
     pixelRange = self.area['ymax'] - self.area['ymin']
 
-    relativeValue = value - lowestValue                           # 7 - 0 = 0
-    valueRange = highestValue - lowestValue                    # 10 - 0 = 10
+    relativeValue = value - lowestValue
+    valueRange = highestValue - lowestValue
 
     if self.logScale:
         if value <= 0: return None
@@ -446,8 +446,8 @@ class LineGraph(Graph):
         if lowestValue > 0:
             valueRange -= math.log(lowestValue, self.logBase)
 
-    pixelToValueRatio = pixelRange / valueRange                       # 90 / 10 = 9
-    valueInPixels = pixelToValueRatio * relativeValue             # 9 * 7 = 63
+    pixelToValueRatio = pixelRange / valueRange
+    valueInPixels = pixelToValueRatio * relativeValue
     return self.area['ymax'] - valueInPixels
 
   def drawLines(self, width=None, dash=None, linecap='butt', linejoin='miter'):
