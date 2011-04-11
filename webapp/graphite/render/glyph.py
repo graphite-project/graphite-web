@@ -434,9 +434,7 @@ class LineGraph(Graph):
     if self.logScale:
         if value <= 0: return None
 
-        relativeValue = 0.0
-        if value > 0:
-            relativeValue = math.log(value, self.logBase)
+        relativeValue = math.log(value, self.logBase)
         if lowestValue > 0:
             relativeValue -= math.log(lowestValue, self.logBase)
 
