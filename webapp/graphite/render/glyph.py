@@ -420,6 +420,8 @@ class LineGraph(Graph):
     self.area['xmin'] = x + self.margin + lineHeight
 
   def getYCoord(self, value):
+    if value < 0:
+        return None
     highestValue = max(self.yLabelValues)
     lowestValue = min(self.yLabelValues)
     pixelRange = self.area['ymax'] - self.area['ymin']
@@ -525,7 +527,8 @@ class LineGraph(Graph):
 
         else:
           y = self.getYCoord(value)
-          if y < 0: y = 0
+          if y is None or y < 0:
+              continue
 
           if series.options.has_key('drawAsInfinite') and value > 0:
             self.ctx.move_to(x, self.area['ymax'])
@@ -752,6 +755,8 @@ class LineGraph(Graph):
         x = self.area['xmax'] + (self.yLabelWidth * 0.02) #Inverted for right side Y Axis
 
       y = self.getYCoord(value)
+      if y is None or y < 0:
+          continue
 
       if self.params.get('yAxisSide') == 'left':
         self.drawText(label, x, y, align='right', valign='middle')
@@ -779,6 +784,8 @@ class LineGraph(Graph):
       self.setColor( self.params.get('majorGridLineColor',self.defaultMajorGridLineColor) )
 
       y = self.getYCoord(value)
+      if y is None or y < 0:
+          continue
       self.ctx.move_to(leftSide, y)
       self.ctx.line_to(rightSide, y)
       self.ctx.stroke()
@@ -795,6 +802,8 @@ class LineGraph(Graph):
         continue
 
       y = self.getYCoord(value)
+      if y is None or y < 0:
+          continue
       self.ctx.move_to(leftSide, y)
       self.ctx.line_to(rightSide, y)
       self.ctx.stroke()
