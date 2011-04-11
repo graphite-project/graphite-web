@@ -424,7 +424,7 @@ class LineGraph(Graph):
     self.area['xmin'] = x + self.margin + lineHeight
 
   def getYCoord(self, value):
-    if value < 0:
+    if self.logScale and value < 0:
         return None
     highestValue = max(self.yLabelValues)
     lowestValue = min(self.yLabelValues)
@@ -448,8 +448,7 @@ class LineGraph(Graph):
 
     pixelToValueRatio = pixelRange / valueRange                       # 90 / 10 = 9
     valueInPixels = pixelToValueRatio * relativeValue             # 9 * 7 = 63
-    y = self.area['ymax'] - valueInPixels
-    return y
+    return self.area['ymax'] - valueInPixels
 
   def drawLines(self, width=None, dash=None, linecap='butt', linejoin='miter'):
     if not width: width = self.lineWidth
@@ -533,7 +532,7 @@ class LineGraph(Graph):
         else:
           y = self.getYCoord(value)
           if y is None: value = None
-          if y < 0: y = 0
+          elif y < 0: y = 0
 
           if series.options.has_key('drawAsInfinite') and value > 0:
             self.ctx.move_to(x, self.area['ymax'])
@@ -764,7 +763,7 @@ class LineGraph(Graph):
 
       y = self.getYCoord(value)
       if y is None: value = None
-      if y < 0: y = 0
+      elif y < 0: y = 0
 
       if self.params.get('yAxisSide') == 'left':
         self.drawText(label, x, y, align='right', valign='middle')
