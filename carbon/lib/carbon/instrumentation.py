@@ -105,7 +105,7 @@ def recordMetrics():
   # aggregator metrics
   elif program == 'carbon-aggregator':
     record = aggregator_record
-    record('allocatedBuffers', len(buffers.BufferManager))
+    record('allocatedBuffers', len(BufferManager))
     record('bufferedDatapoints', sum([b.size for b in BufferManager.buffers.values()]))
     record('datapointsReceived', myStats.get('datapointsReceived', 0))
     record('aggregateDatapointsSent', myStats.get('aggregateDatapointsSent', 0))

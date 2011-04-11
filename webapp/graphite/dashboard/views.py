@@ -68,6 +68,7 @@ def dashboard(request, name=None):
     'schemes_json' : json.dumps(config.schemes),
     'ui_config_json' : json.dumps(config.ui_config),
     'jsdebug' : settings.JAVASCRIPT_DEBUG,
+    'querystring' : json.dumps( dict( request.GET.items() ) ),
   }
 
   if name is not None:
@@ -135,6 +136,22 @@ def find(request):
       results.append( dict(name=dashboard.name) )
 
   return json_response( dict(dashboards=results) )
+
+
+def create_temporary(request):
+  state = str( json.dumps( json.loads( request.POST['state'] ) ) )
+  i = 0
+  while True:
+    name = "temporary-%d" % i
+    try:
+      Dashboard.objects.get(name=name)
+    except Dashboard.DoesNotExist:
+      dashboard = Dashboard.objects.create(name=name, state=state)
+      break
+    else:
+      i += 1
+
+  return json_response( dict(name=dashboard.name) )
 
 
 def json_response(obj):
