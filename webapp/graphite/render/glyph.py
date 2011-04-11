@@ -685,17 +685,17 @@ class LineGraph(Graph):
         elif yValue < 1.0:
           return "%.2f %s" % (yValue, prefix)
 
-         if ySpan > 10 or spanPrefix != prefix:
-           return "%d %s " % (int(yValue), prefix)
+        if ySpan > 10 or spanPrefix != prefix:
+          return "%d %s " % (int(yValue), prefix)
 
-         elif ySpan > 3:
-           return "%.1f %s " % (float(yValue), prefix)
+        elif ySpan > 3:
+          return "%.1f %s " % (float(yValue), prefix)
 
-         elif ySpan > 0.1:
-           return "%.2f %s " % (float(yValue), prefix)
+        elif ySpan > 0.1:
+          return "%.2f %s " % (float(yValue), prefix)
 
-         else:
-           return "%g %s" % (float(yValue), prefix)
+        else:
+          return "%g %s" % (float(yValue), prefix)
 
       self.yLabelValues = self.getYLabelValues(self.yBottom, self.yTop)
       self.yLabels = map(makeLabel,self.yLabelValues)
