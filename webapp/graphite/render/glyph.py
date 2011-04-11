@@ -424,8 +424,6 @@ class LineGraph(Graph):
     self.area['xmin'] = x + self.margin + lineHeight
 
   def getYCoord(self, value):
-    if self.logScale and value < 0:
-        return None
     highestValue = max(self.yLabelValues)
     lowestValue = min(self.yLabelValues)
     pixelRange = self.area['ymax'] - self.area['ymin']
@@ -434,6 +432,8 @@ class LineGraph(Graph):
     valueRange = highestValue - lowestValue                    # 10 - 0 = 10
 
     if self.logScale:
+        if value <= 0: return None
+
         relativeValue = 0.0
         if value > 0:
             relativeValue = math.log(value, self.logBase)
