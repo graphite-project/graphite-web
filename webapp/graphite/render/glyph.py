@@ -115,8 +115,9 @@ class Graph:
     self.height = int( params.get('height',200) )
     self.margin = int( params.get('margin',10) )
     self.userTimeZone = params.get('tz')
-    self.logScale = params.get('logScale')
-    self.logBase = params.get('logBase', math.e)
+    self.logBase = params.get('logBase')
+    if self.logBase and self.logBase == 'e':
+        self.logBase = math.e
 
     if self.margin < 0:
       self.margin = 10
@@ -321,7 +322,7 @@ class LineGraph(Graph):
                   'minorGridLineColor','thickness','min','max', \
                   'graphOnly','yMin','yMax','yLimit','yStep','areaMode', \
                   'areaAlpha','drawNullAsZero','tz', 'yAxisSide','pieMode', \
-                  'yUnitSystem', 'logScale', 'logBase')
+                  'yUnitSystem', 'logBase')
   validLineModes = ('staircase','slope')
   validAreaModes = ('none','first','all','stacked')
   validPieModes = ('maximum', 'minimum', 'average')
@@ -430,7 +431,7 @@ class LineGraph(Graph):
     relativeValue = value - lowestValue
     valueRange = highestValue - lowestValue
 
-    if self.logScale:
+    if self.logBase:
         if value <= 0:
             return None
         relativeValue = math.log(value, self.logBase) - math.log(lowestValue, self.logBase)
@@ -649,10 +650,10 @@ class LineGraph(Graph):
     self.yBottom = self.yStep * math.floor( yMinValue / self.yStep ) #start labels at the greatest multiple of yStep <= yMinValue
     self.yTop = self.yStep * math.ceil( yMaxValue / self.yStep ) #Extend the top of our graph to the lowest yStep multiple >= yMaxValue
 
-    if self.logScale and yMinValue > 0:
+    if self.logBase and yMinValue > 0:
       self.yBottom = math.pow(self.logBase, math.floor(math.log(yMinValue, self.logBase)))
       self.yTop = math.pow(self.logBase, math.ceil(math.log(yMaxValue, self.logBase)))
-    elif self.logScale and yMinValue <= 0:
+    elif self.logBase and yMinValue <= 0:
         raise GraphError('Logarithmic scale specified with a dataset with a '
                          'minimum value less than or equal to zero')
 
@@ -717,7 +718,7 @@ class LineGraph(Graph):
 
   def getYLabelValues(self, minYValue, maxYValue):
     vals = []
-    if self.logScale:
+    if self.logBase:
         vals = list( logrange(self.logBase, minYValue, maxYValue) )
     else:
         vals = list( frange(self.yBottom,self.yTop,self.yStep) )
@@ -799,7 +800,7 @@ class LineGraph(Graph):
       self.setColor( self.params.get('minorGridLineColor',self.defaultMinorGridLineColor) )
 
       # If this is the last label continue not minor gridline.
-      if self.logScale or i == len(self.yLabelValues) - 1:
+      if self.logBase or i == len(self.yLabelValues) - 1:
           continue
 
       # Draw the minor grid lines for linear scales.
