@@ -115,9 +115,12 @@ class Graph:
     self.height = int( params.get('height',200) )
     self.margin = int( params.get('margin',10) )
     self.userTimeZone = params.get('tz')
-    self.logBase = params.get('logBase')
-    if self.logBase and self.logBase == 'e':
-        self.logBase = math.e
+    self.logBase = params.get('logBase', None)
+    if self.logBase:
+        if self.logBase == 'e':
+            self.logBase = math.e
+        else:
+            self.logBase = float(self.logBase)
 
     if self.margin < 0:
       self.margin = 10
