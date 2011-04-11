@@ -521,8 +521,10 @@ class LineGraph(Graph):
 
         else:
           y = self.getYCoord(value)
-          if y is None: value = None
-          elif y < 0: y = 0
+          if y is None:
+              value = None
+          elif y < 0:
+              y = 0
 
           if series.options.has_key('drawAsInfinite') and value > 0:
             self.ctx.move_to(x, self.area['ymax'])
@@ -752,8 +754,10 @@ class LineGraph(Graph):
         x = self.area['xmax'] + (self.yLabelWidth * 0.02) #Inverted for right side Y Axis
 
       y = self.getYCoord(value)
-      if y is None: value = None
-      elif y < 0: y = 0
+      if y is None:
+          value = None
+      elif y < 0:
+          y = 0
 
       if self.params.get('yAxisSide') == 'left':
         self.drawText(label, x, y, align='right', valign='middle')
