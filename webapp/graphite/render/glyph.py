@@ -799,10 +799,10 @@ class LineGraph(Graph):
       self.setColor( self.params.get('minorGridLineColor',self.defaultMinorGridLineColor) )
 
       # If this is the last label continue not minor gridline.
-      if i == len(self.yLabelValues) - 1:
+      if self.logScale or i == len(self.yLabelValues) - 1:
           continue
 
-      # What is this?
+      # Draw the minor grid lines for linear scales.
       value += (self.yStep / 2.0)
       if value >= self.yTop:
         continue
