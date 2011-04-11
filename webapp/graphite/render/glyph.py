@@ -100,6 +100,10 @@ UnitSystems = {
 }
 
 
+class GraphError(Exception):
+  pass
+
+
 class Graph:
   customizable = ('width','height','margin','bgcolor','fgcolor', \
                  'fontName','fontSize','fontBold','fontItalic', \
@@ -445,8 +449,6 @@ class LineGraph(Graph):
     pixelToValueRatio = pixelRange / valueRange                       # 90 / 10 = 9
     valueInPixels = pixelToValueRatio * relativeValue             # 9 * 7 = 63
     y = self.area['ymax'] - valueInPixels
-    if y < 0:
-        return None
     return y
 
   def drawLines(self, width=None, dash=None, linecap='butt', linejoin='miter'):
@@ -530,8 +532,8 @@ class LineGraph(Graph):
 
         else:
           y = self.getYCoord(value)
-          if y is None or y < 0:
-              continue
+          if y is None: value = None
+          if y < 0: y = 0
 
           if series.options.has_key('drawAsInfinite') and value > 0:
             self.ctx.move_to(x, self.area['ymax'])
@@ -659,6 +661,9 @@ class LineGraph(Graph):
     if self.logScale and yMinValue > 0:
       self.yBottom = math.pow(self.logBase, math.floor(math.log(yMinValue, self.logBase)))
       self.yTop = math.pow(self.logBase, math.ceil(math.log(yMaxValue, self.logBase)))
+    elif self.logScale and yMinValue <= 0:
+        raise GraphError('Logarithmic scale specified with a dataset with a '
+                         'minimum value less than or equal to zero')
 
     if 'yMax' in self.params:
       self.yTop = self.params['yMax']
@@ -758,8 +763,8 @@ class LineGraph(Graph):
         x = self.area['xmax'] + (self.yLabelWidth * 0.02) #Inverted for right side Y Axis
 
       y = self.getYCoord(value)
-      if y is None or y < 0:
-          continue
+      if y is None: value = None
+      if y < 0: y = 0
 
       if self.params.get('yAxisSide') == 'left':
         self.drawText(label, x, y, align='right', valign='middle')
