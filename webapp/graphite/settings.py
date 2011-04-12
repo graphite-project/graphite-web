@@ -90,6 +90,12 @@ DATABASE_PORT = ''				# Set to empty string for default. Not used with sqlite3.
 
 DASHBOARD_CONF = join(CONF_DIR, 'dashboard.conf')
 
+ADMINS = ()
+MANAGERS = ADMINS
+
+TEMPLATE_DIRS = (
+  join(WEB_DIR, 'templates'),
+)
 
 #Pull in overrides from local_settings.py
 try:
@@ -98,9 +104,6 @@ except ImportError:
   print >> sys.stderr, "Could not import graphite.local_settings, using defaults!"
 
 
-TEMPLATE_DIRS = (
-  join(WEB_DIR, 'templates'),
-)
 
 
 #Django settings below, do not touch!
@@ -110,9 +113,6 @@ if MEMCACHE_HOSTS:
   CACHE_BACKEND = 'memcached://' + ';'.join(MEMCACHE_HOSTS) + ('/?timeout=%d' % MEMCACHE_DURATION)
 else:
   CACHE_BACKEND = "dummy:///"
-
-ADMINS = ()
-MANAGERS = ADMINS
 
 # Local time zone for this installation. All choices can be found here:
 # http://www.postgresql.org/docs/current/static/datetime-keywords.html#DATETIME-TIMEZONE-SET-TABLE
