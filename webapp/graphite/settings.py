@@ -89,6 +89,7 @@ DATABASE_HOST = ''				# Set to empty string for localhost. Not used with sqlite3
 DATABASE_PORT = ''				# Set to empty string for default. Not used with sqlite3.
 
 DASHBOARD_CONF = join(CONF_DIR, 'dashboard.conf')
+GRAPHTEMPLATES_CONF = join(CONF_DIR, 'graphTemplates.conf')
 
 ADMINS = ()
 MANAGERS = ADMINS
