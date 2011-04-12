@@ -1032,8 +1032,8 @@ function showShareWindow() {
 /* Other stuff */
 var targetListing;
 
-function graphClicked(graphView, index, element, evt) {
-  var record = graphStore.getAt(index);
+function graphClicked(graphView, graphIndex, element, evt) {
+  var record = graphStore.getAt(graphIndex);
   if (!record) {
     return;
   }
@@ -1046,9 +1046,35 @@ function graphClicked(graphView, index, element, evt) {
   var menu;
   var menuItems = [];
 
-  Ext.each(record.data.params.target, function (target, index) {
-    menuItems.push({
-      xtype: 'textfield',
+  function applyChanges (field, e) {
+    if (e.getKey() != e.ENTER) {
+      return;
+    }
+
+    var targets = [];
+    Ext.each(menuItems, function (field) {
+      if ((!field.getXType) || field.getXType() != 'textfield') {
+        return;
+      }
+
+      if (field.initialConfig.isTargetField) {
+        targets.push( field.getValue() );
+      } else {
+        var newParams = Ext.urlDecode( field.getValue() );
+        copyUneditable(record.data.params, newParams);
+        record.data.params = newParams;
+      }
+    });
+    record.data.target = Ext.urlEncode( {target: targets} );
+    record.data.params.target = targets;
+
+    refreshGraphs();
+    menu.destroy();
+  }
+
+  Ext.each(record.data.params.target, function (target, targetIndex) {
+    var item = new Ext.form.TextField({
+      isTargetField: true, // total hack
       fieldLabel: "Target",
       allowBlank: false,
       grow: true,
@@ -1056,21 +1082,15 @@ function graphClicked(graphView, index, element, evt) {
       value: target,
       disableKeyFilter: true,
       listeners: {
-        specialkey: function (field, e) {
-                      if (e.getKey() == e.ENTER) {
-                        record.data.params.target[index] = field.getValue();
-                        refreshGraphs();
-                        menu.destroy();
-                      }
-                    }
+        specialkey: applyChanges
       }
     });
+    menuItems.push(item);
   });
 
   var editParams = Ext.apply({}, record.data.params);
   removeUneditable(editParams);
-  menuItems.push({
-    xtype: 'textfield',
+  menuItems.push(new Ext.form.TextField({
     fieldLabel: "Params",
     allowBlank: true,
     grow: true,
@@ -1078,17 +1098,9 @@ function graphClicked(graphView, index, element, evt) {
     value: Ext.urlEncode(editParams),
     disableKeyFilter: true,
     listeners: {
-      specialkey: function (field, e) {
-                    if (e.getKey() == e.ENTER) {
-                      var newParams = Ext.urlDecode( field.getValue() );
-                      copyUneditable(record.data.params, newParams);
-                      record.data.params = newParams;
-                      refreshGraphs();
-                      menu.destroy();
-                    }
-                  }
+      specialkey: applyChanges
     }
-  });
+  }));
 
   menuItems.push({
     xtype: 'button',
@@ -1153,9 +1165,23 @@ function breakoutGraph(record) {
 
 function cloneGraph(record) {
   var index = graphStore.indexOf(record);
-  var clone = new GraphRecord(record.data);
+  var clone = cloneGraphRecord(record);
   graphStore.insert(index+1, [clone]);
   refreshGraphs();
+}
+
+function cloneGraphRecord(record) {
+  //ensure we are working with copies, not references
+  var props = {
+    url: record.data.url,
+    target: Ext.urlEncode({ target: record.data.params.target }),
+    params: Ext.apply({}, record.data.params)
+  };
+  props.params.target = Ext.urlDecode(props.target).target;
+  if (typeof props.params.target == "string") {
+    props.params.target = [props.params.target];
+  }
+  return new GraphRecord(props);
 }
 
 function removeAllGraphs() {

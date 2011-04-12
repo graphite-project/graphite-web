@@ -645,17 +645,23 @@ class LineGraph(Graph):
         ySpan, spanPrefix = format_units(self.ySpan, self.yStep,
                 system=self.params.get('yUnitSystem'))
 
+        yValue = float(yValue)
+        if yValue < 0.1:
+         return "%g %s" % (yValue, prefix)
+        elif yValue < 1.0:
+         return "%.2f %s" % (yValue, prefix)
+
         if ySpan > 10 or spanPrefix != prefix:
           return "%d %s " % (int(yValue), prefix)
 
         elif ySpan > 3:
-          return "%.1f %s " % (float(yValue), prefix)
+          return "%.1f %s " % (yValue, prefix)
 
         elif ySpan > 0.1:
-          return "%.2f %s " % (float(yValue), prefix)
+          return "%.2f %s " % (yValue, prefix)
 
         else:
-          return "%g %s" % (float(yValue), prefix)
+          return "%g %s" % (yValue, prefix)
 
       self.yLabelValues = list( frange(self.yBottom,self.yTop,self.yStep) )
       self.yLabels = map(makeLabel,self.yLabelValues)
