@@ -16,7 +16,7 @@ var justClosedGraph = false;
 var NOT_EDITABLE = ['from', 'until', 'width', 'height', 'target', 'uniq'];
 
 var cookieProvider = new Ext.state.CookieProvider({
-  path: "/dashboard"
+  path: "../dashboard"
 });
 
 var NAV_BAR_REGION = cookieProvider.get('navbar-region') || 'west';
@@ -62,7 +62,7 @@ var ContextFieldValueRecord = Ext.data.Record.create([
 ]);
 
 var contextFieldStore = new Ext.data.JsonStore({
-  url: '/metrics/find/',
+  url: '../metrics/find/',
   root: 'metrics',
   idProperty: 'name',
   fields: ContextFieldValueRecord,
@@ -573,7 +573,7 @@ function metricSelectorShow(pattern) {
   }
 
   var loader = new Ext.tree.TreeLoader({
-    url: '/metrics/find/',
+    url: '../metrics/find/',
     requestMethod: 'GET',
     listeners: {beforeload: setParams}
   });
@@ -624,7 +624,7 @@ function graphAreaToggle(target, dontRemove) {
     var record = new GraphRecord({
       target: target,
       params: myParams,
-      url: '/render?' + Ext.urlEncode(urlParams)
+      url: '../render?' + Ext.urlEncode(params)
     });
     graphStore.add([record]);
   }
@@ -638,7 +638,7 @@ function refreshGraphs() {
     Ext.apply(params, this.data.params);
     Ext.apply(params, GraphSize);
     params.uniq = Math.random();
-    this.set('url', '/render?' + Ext.urlEncode(params));
+    this.set('url', '../render?' + Ext.urlEncode(this.get('params')));
   });
   graphView.refresh();
   graphArea.getTopToolbar().get('last-refreshed-text').setText( (new Date()).format('g:i:s A') );
@@ -649,7 +649,7 @@ function refreshGraph(index) {
   var node = graphView.getNode(index);
   var record = graphView.getRecord(node);
   record.data.params.uniq = Math.random();
-  record.set('url', '/render?' + Ext.urlEncode(record.get('params')));
+  record.set('url', '../render?' + Ext.urlEncode(record.get('params')));
 
   // This refreshNode method only refreshes the record data, it doesn't re-render
   // the template. Which is pretty useless... It would be more efficient if we
@@ -976,7 +976,7 @@ function selectGraphSize() {
 function doShare() {
   if (dashboardName == null) {
     Ext.Ajax.request({
-      url: "/dashboard/create-temporary/",
+      url: "../dashboard/create-temporary/",
       method: 'POST',
       params: {
         state: Ext.encode( getState() )
@@ -1148,7 +1148,7 @@ function copyUneditable (src, dst) {
 
 function breakoutGraph(record) {
   Ext.Ajax.request({
-    url: '/metrics/expand/',
+    url: '../metrics/expand/',
     params: {
       query: record.data.params.target
     },
@@ -1281,7 +1281,7 @@ function saveDashboard() {
 
 function sendSaveRequest(name) {
   Ext.Ajax.request({
-    url: "/dashboard/save/" + name,
+    url: "../dashboard/save/" + name,
     method: 'POST',
     params: {
       state: Ext.encode( getState() )
@@ -1298,7 +1298,7 @@ function sendSaveRequest(name) {
 
 function sendLoadRequest(name) {
   Ext.Ajax.request({
-    url: "/dashboard/load/" + name,
+    url: "../dashboard/load/" + name,
     success: function (response) {
                var result = Ext.decode(response.responseText);
                if (result.error) {
@@ -1380,7 +1380,7 @@ function applyState(state) {
 
 function deleteDashboard(name) {
   Ext.Ajax.request({
-    url: "/dashboard/delete/" + name,
+    url: "../dashboard/delete/" + name,
     success: function (response) {
       var result = Ext.decode(response.responseText);
       if (result.error) {
@@ -1503,7 +1503,7 @@ function showDashboardFinder() {
   var dashboardsList;
   var queryField;
   var dashboardsStore = new Ext.data.JsonStore({
-    url: "/dashboard/find/",
+    url: "../dashboard/find/",
     method: 'GET',
     params: {query: "e"},
     fields: ['name'],

@@ -3,8 +3,8 @@
 <html>
   <head>
     <title>Graphite Dashboard</title>
-    <link rel="stylesheet" type="text/css" href="/content/js/ext/resources/css/ext-all.css"/>
-    <link rel="stylesheet" type="text/css" href="/content/css/dashboard.css"/>
+    <link rel="stylesheet" type="text/css" href="../content/js/ext/resources/css/ext-all.css"/>
+    <link rel="stylesheet" type="text/css" href="../content/css/dashboard.css"/>
 
     <script type="text/javascript">
     var schemes = {{schemes_json|safe}};
@@ -13,12 +13,12 @@
     var QUERY_DELAY = 100;
     var NEW_DASHBOARD_REMOVE_GRAPHS = false;
 
-    var RESIZE_ICON   = '/content/js/ext/examples/shared/icons/fam/cog_edit.png';
-    var REMOVE_ICON   = '/content/js/ext/examples/shared/icons/fam/cross.gif';
-    var REFRESH_ICON  = '/content/js/ext/examples/shared/icons/fam/table_refresh.png';
-    var SHARE_ICON    = '/content/js/ext/examples/shared/icons/fam/application_go.png';
-    var CALENDAR_ICON = '/content/js/ext/resources/images/default/shared/calendar.gif';
-    var CLOCK_ICON    = '/content/img/clock_16.png';
+    var RESIZE_ICON   = '../content/js/ext/examples/shared/icons/fam/cog_edit.png';
+    var REMOVE_ICON   = '../content/js/ext/examples/shared/icons/fam/cross.gif';
+    var REFRESH_ICON  = '../content/js/ext/examples/shared/icons/fam/table_refresh.png';
+    var SHARE_ICON    = '../content/js/ext/examples/shared/icons/fam/application_go.png';
+    var CALENDAR_ICON = '../content/js/ext/resources/images/default/shared/calendar.gif';
+    var CLOCK_ICON    = '../content/img/clock_16.png';
 
     {% if initialState %}
     var initialState = {{initialState|safe}};
@@ -38,17 +38,17 @@
     </script>
 
     {% if jsdebug %}
-    <script type="text/javascript" src="/content/js/ext/adapter/ext/ext-base-debug.js"></script>
-    <script type="text/javascript" src="/content/js/ext/ext-all-debug.js"></script>
-    <script type="text/javascript" src="/content/js/dashboard.js"></script>
+    <script type="text/javascript" src="../content/js/ext/adapter/ext/ext-base-debug.js"></script>
+    <script type="text/javascript" src="../content/js/ext/ext-all-debug.js"></script>
+    <script type="text/javascript" src="../content/js/dashboard.js"></script>
     {% else %}
-    <script type="text/javascript" src="/content/js/ext/adapter/ext/ext-base.js"></script>
-    <script type="text/javascript" src="/content/js/ext/ext-all.js"></script>
-    <script type="text/javascript" src="/content/js/dashboard.js"></script>
+    <script type="text/javascript" src="../content/js/ext/adapter/ext/ext-base.js"></script>
+    <script type="text/javascript" src="../content/js/ext/ext-all.js"></script>
+    <script type="text/javascript" src="../content/js/dashboard.js"></script>
     {% endif %}
 
     <script type="text/javascript">
-    Ext.BLANK_IMAGE_URL = '/content/js/ext/resources/images/default/s.gif';
+    Ext.BLANK_IMAGE_URL = '../content/js/ext/resources/images/default/s.gif';
     Ext.QuickTips.init();
     Ext.onReady(initDashboard);
     </script> 
