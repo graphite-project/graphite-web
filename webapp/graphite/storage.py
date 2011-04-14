@@ -309,12 +309,13 @@ class GzippedWhisperFile(WhisperFile):
 
 class RRDFile(Branch):
   def getDataSources(self):
-    try:
-      info = rrdtool.info(self.fs_path)
-      return [RRDDataSource(self, source) for source in info['ds']]
-    except:
-      raise
-      return []
+    info = rrdtool.info(self.fs_path)
+    if 'ds' in info:
+      return [RRDDataSource(self, datasource_name) for datasource_name in info['ds']]
+    else:
+      ds_keys = [ key for key in info if key.startswith('ds[') ]
+      datasources = set( key[3:].split(']')[0] for key in ds_keys )
+      return [ RRDDataSource(self, ds) for ds in datasources ]
 
 
 class RRDDataSource(Leaf):
