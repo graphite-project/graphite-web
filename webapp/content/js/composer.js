@@ -12,7 +12,8 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License. */
 
-var RENDER_BASE_URL = window.location.protocol + "//" + window.location.host + window.location.pathname + "../render/?";
+var RENDER_BASE_URL = window.location.protocol + "//" + window.location.host + window.location.pathname;
+RENDER_BASE_URL = RENDER_BASE_URL.replace(/\/composer\/?.*$/, '/render/?');
 
 /* GraphiteComposer encapsulates a set of Ext UI Panels,
  * as well as a ParameterizedURL for the displayed graph. */
