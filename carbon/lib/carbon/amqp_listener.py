@@ -102,11 +102,14 @@ class AMQPGraphiteProtocol(AMQClient):
         metric = message.routing_key
 
         for line in message.content.body.split("\n"):
+            line = line.strip()
+            if not line:
+                continue
             try:
                 if settings.get("AMQP_METRIC_NAME_IN_BODY", False):
-                    metric, value, timestamp = line.strip().split()
+                    metric, value, timestamp = line.split()
                 else:
-                    value, timestamp = line.strip().split()
+                    value, timestamp = line.split()
                 datapoint = ( float(timestamp), float(value) )
             except ValueError:
                 log.listener("invalid message line: %s" % (line,))
