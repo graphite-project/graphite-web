@@ -2,6 +2,8 @@
 5-minute Overview
 =================
 
+testing... 1.0 docs
+
 What Graphite is and is not
 ---------------------------
 Graphite does two things:
