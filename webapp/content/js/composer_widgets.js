@@ -536,6 +536,7 @@ var GraphDataWindow = {
                 text: 'Special',
                 menu: [
                   {text: 'Set Legend Name', handler: this.applyFuncToEachWithInput('alias', 'Enter a legend label for this graph target', {quote: true})},
+                  {text: 'Color', handler: this.applyFuncToEachWithInput('color', 'Set the color for this graph target', {quote: true})},
                   {text: 'Aggregate By Sum', handler: this.applyFuncToEach('cumulative')},
                   {text: 'Draw non-zero As Infinite', handler: this.applyFuncToEach('drawAsInfinite')},
                   {text: 'Line Width', handler: this.applyFuncToEachWithInput('lineWidth', 'Please enter a line width for this graph target')},

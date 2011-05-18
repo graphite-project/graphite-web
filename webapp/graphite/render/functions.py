@@ -343,6 +343,10 @@ def alias(requestContext, seriesList, newName):
     series.name = newName
   return seriesList
 
+def color(requestContext, seriesList, theColor):
+  for series in seriesList:
+    series.color = theColor
+  return seriesList
 
 def substr(requestContext, seriesList, start=0, stop=0):
   for series in seriesList:
@@ -764,6 +768,7 @@ SeriesFunctions = {
 
   # Special functions
   'alias' : alias,
+  'color' : color,
   'cumulative' : cumulative,
   'keepLastValue' : keepLastValue,
   'drawAsInfinite' : drawAsInfinite,
