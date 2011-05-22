@@ -1,4 +1,5 @@
 import re
+import errno
 from os.path import getmtime
 from ConfigParser import ConfigParser
 from django.shortcuts import render_to_response
@@ -63,12 +64,22 @@ config = DashboardConfig()
 
 
 def dashboard(request, name=None):
-  config.check()
+  dashboard_conf_missing = False
+
+  try:
+    config.check()
+  except OSError, e:
+    if e.errno == errno.ENOENT:
+      dashboard_conf_missing = True
+    else:
+      raise
+
   context = {
     'schemes_json' : json.dumps(config.schemes),
     'ui_config_json' : json.dumps(config.ui_config),
     'jsdebug' : settings.JAVASCRIPT_DEBUG,
     'querystring' : json.dumps( dict( request.GET.items() ) ),
+    'dashboard_conf_missing' : dashboard_conf_missing,
   }
 
   if name is not None:
