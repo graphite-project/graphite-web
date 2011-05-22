@@ -212,16 +212,17 @@ def parseOptions(request):
   # Get the time interval for time-oriented graph types
   if graphType == 'line' or graphType == 'pie':
     if 'until' in queryParams:
-      endTime = parseATTime( queryParams['until'] )
+      untilTime = parseATTime( queryParams['until'] )
     else:
-      endTime = datetime.now()
+      untilTime = datetime.now()
     if 'from' in queryParams:
-      startTime = parseATTime( queryParams['from'] )
+      fromTime = parseATTime( queryParams['from'] )
     else:
-      startTime = endTime - timedelta(days=1)
-    if endTime > datetime.now():
-      endTime = datetime.now()
-    assert startTime < endTime, "Invalid time range!"
+      fromTime = untilTime - timedelta(days=1)
+
+    startTime = min(fromTime, untilTime)
+    endTime = max(fromTime, untilTime)
+    assert startTime != endTime, "Invalid empty time range"
     
     requestOptions['startTime'] = startTime
     requestOptions['endTime'] = endTime
