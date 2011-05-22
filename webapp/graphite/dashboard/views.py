@@ -135,6 +135,9 @@ def find(request):
   # Find all dashboard names that contain each of our query terms as a substring
   for dashboard in Dashboard.objects.all():
     name = dashboard.name.lower()
+    if name.startswith('temporary-'):
+      continue
+
     found = True # blank queries return everything
     for term in query_terms:
       if term in name:
