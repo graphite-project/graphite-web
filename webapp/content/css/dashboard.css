@@ -123,3 +123,10 @@ img.graph-img {
   width: 10px !important;
   background-image: url(/content/img/mini-right2.gif);
 }
+
+/* DnD classes */
+.x-dd-drop-ok {
+}
+
+.x-dd-drop-nodrop {
+}

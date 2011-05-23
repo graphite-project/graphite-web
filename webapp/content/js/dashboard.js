@@ -235,6 +235,63 @@ function initDashboard () {
     '<div class="x-clear"></div>'
   );
 
+  function setupGraphDD (graphView) {
+    graphView.dragZone = new Ext.dd.DragZone(graphView.getEl(), {
+      containerScroll: true,
+      ddGroup: 'graphs',
+
+      getDragData: function (e) {
+        var sourceEl = e.getTarget(graphView.itemSelector, 10);
+        if (sourceEl) {
+          var dupe = sourceEl.cloneNode(true);
+          dupe.id = Ext.id();
+          return {
+            ddel: dupe,
+            sourceEl: sourceEl,
+            repairXY: Ext.fly(sourceEl).getXY(),
+            sourceStore: graphStore,
+            draggedRecord: graphView.getRecord(sourceEl)
+          }
+        }
+      },
+
+      getRepairXY: function () {
+        return this.dragData.repairXY;
+      }
+
+    });
+
+    graphView.dropZone = new Ext.dd.DropZone(graphView.getEl(), {
+      ddGroup: 'graphs',
+
+      getTargetFromEvent: function (e) {
+        return e.getTarget(graphView.itemSelector);
+      },
+
+      onNodeEnter: function (target, dd, e, data) {
+        Ext.fly(target).addClass('graph-highlight');
+      },
+
+      onNodeOut: function (target, dd, e, data) {
+        Ext.fly(target).removeClass('graph-highlight');
+      },
+
+      onNodeOver: function (target, dd, e, data) {
+        return Ext.dd.DropZone.prototype.dropAllowed;
+      },
+
+      onNodeDrop: function (target, dd, e, data){ 
+        var nodes = graphView.getNodes();
+        var dropIndex = nodes.indexOf(target);
+        var dragIndex = graphStore.indexOf(data.draggedRecord);
+        graphStore.removeAt(dragIndex);
+        graphStore.insert(dropIndex, data.draggedRecord);
+        graphView.refresh();
+        return true;
+      }
+    });
+  }
+
   graphView = new Ext.DataView({
     store: graphStore,
     tpl: graphTemplate,
@@ -242,7 +299,10 @@ function initDashboard () {
     itemSelector: 'div.graph-container',
     emptyText: "Configure your context above, and then select some metrics.",
     autoScroll: true,
-    listeners: {click: graphClicked}
+    listeners: {
+      click: graphClicked,
+      render: setupGraphDD
+    }
   });
 
   /* Toolbar items */
