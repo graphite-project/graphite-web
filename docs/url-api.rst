@@ -33,13 +33,17 @@ When creating a graph, a dot is place above each time on the x-axis, at the valu
 
 Parameters
 ==========
-These are separated by an ampersand ( & ) and are in the format.
-(As opposed to functions, which are described in the next section)
+These are separated by an ampersand ( & ) and are in the format
 
 .. code-block:: none
   
   &name=value
 
+(As opposed to functions, which are described in the next section)
+.. note::
+  Most of the functions and parameters are case sensitive.
+  For example &linewidth=2 will fail silently.  
+  The correct parameter is &lineWidth=2
 
 target
 ------
@@ -275,37 +279,108 @@ colorList
 ---------
 Passed one or more comma-separated color names or RGB values (see bgcolor for a list of color names) and uses that list in order as the colors of the lines.  If more lines / metrics are drawn than colors passed, the list is reused in order. 
 
-
+Example:
+.. code-block:: none
+  &colorList=green,yellow,orange,red,purple,#DECAFF
 
 title
 -----
+Puts a title at the top of the graph, center aligned.
+If omitted, no title is displayed.
+
+Example:
+.. code-block:: none
+  &title=Apache Busy Threads, All Servers, Past 24h
+
 
 vtitle
 ------
+Labels the y-axis with vertical text.
+If omitted, no y-axis labe is displayed.
+
+Example:
+.. code-block:: none
+  &vtitle=Threads
 
 lineMode
 --------
+Sets the type of line to be drawn.
+Valid modes are 'staircase' (each data point is flat for the duration of the time period) and 'slope' (comes to a point at the time, and slopes to the next time.)
+If omitted, default is 'slope'.
+
+Example:
+.. code-block:: none
+  &lineMode=staircase
 
 lineWidth
 ---------
+Takes any floating point or integer.  (negative numbers do not error but will cause no line to be drawn.
+Changes the width of the line in pixels.
+
+Example:
+.. code-block:: none
+  &lineWidth=2
 
 hideLegend
 ----------
+If set to 'true', the legend is not drawn. 
+If set to 'false', the legend is drawn.
+
+*Default value changes depending on the number of targets.*
+If there are 10 or less targets, default is true.
+If there are more than 10 targets, default is false.
+
+You can force the legend to be draw for more than 10 targets by setting this to false.
+You may need to increase the &height parameter to accomodate the additional text.
+
+Example:
+.. code-block:: none
+ &hideLegend=false
 
 hideAxes
 --------
+true or false.
+Hides the x- and y-axes.
+Default is false.
 
+Example:
+.. code-block:: none
+  &hideAxes=true
+ 
 hideGrid
 --------
+true or false
+Hides the grid lines. 
+Default is false. 
+
+Example:
+.. code-block:: none
+  &hideGrid=true
 
 minXStep
 --------
 
 majorGridLineColor
 ------------------
+Sets the color of the major grid lines.  
+
+See bgcolor for valid color names and formats. 
+
+
+Example:
+.. code-block:: none
+  &majorGridLineColor=#FF22FF
 
 minorGridLineColor
 ------------------
+Sets the color of the minor grid lines.
+
+See bgcolor for valid color names and formats.
+
+Example:
+.. code-block:: none
+  &minorGridLineColor=darkgrey
+
 
 thickness
 ---------
@@ -328,20 +403,25 @@ functions are usually applied to targets in the format
   
   &target=functionName(foo.bar)
 
-Some functions can 
+Some functions can nested. Some can only be nested in a specific order. 
 
+.. code-block:: none
+  
+  &target=function1(function2(foo.bar.baz),function3(foo.bar.baz))
+
+If a mix of serveral functions does not work, try reordering them. 
+Typically, timeShift must be the innermost function (if used.)
 
 sum
 ---
 
-Used in conjuntion with the target
 This will add metrics together and return the sum at each datapoint. (See integral for a sum over time)
 
 Example:
 
 .. code-block:: none
 
-  &targe=sum(company.server.application*.requestsHandled)
+  &target=sum(company.server.application*.requestsHandled)
 
 This would show the sum of all requests handled per minute (provided requestsHandled are collected once a minute). 
 If metrics with different retention rates are combined, the coarsest metric is graphed, and the sum of the other metrics is averaged for the metrics with finer retention rates.
@@ -350,7 +430,6 @@ If metrics with different retention rates are combined, the coarsest metric is g
 integral
 --------
 
-Used in conjunction with the target
 This will show the sum over time, sort of like a continuous addition function.  Usefu for finding totals or trends in metrics that are collected per minute. 
 
 Example: 
@@ -364,7 +443,6 @@ This whould show the total sales for the time period selected.
 derivative
 ----------
 
-Used in conjuntion with the target
 This is the opposite of the integral function.  This is useful for taking a running total metric and showing how many requests per minute were handled. 
 
 Example:
@@ -373,20 +451,38 @@ Example:
 
   &target=derivative(company.server.application01.ifconfig.TXPackets)
 
-Each time you run ifconfig, the RX and TXPackets are higher (assuming there is network traffic.) By applying the derivative function, you can get an idea of the packets per minute sent or received. 
+Each time you run ifconfig, the RX and TXPackets are higher (assuming there is network traffic.) By applying the derivative function, you can get an idea of the packets per minute sent or received, even though you're only recording the total.
 
 nonNegativeDerivative
 ---------------------
-Used in conjuntion with the target
 
 Same as the derivative function above, but ignores negative derivatives. Useful for counters that increase for a long time, then wrap or reset. (Such as if the interface is destroyed and recreated by unloading and re-loading a kernel module, common with USB / WiFi cards. 
 
 Example:
 
 .. code-block:: none
-
+  
   &target=derivative(company.server.application01.ifconfig.TXPackets)
 
+averageSeries
+-------------
+Takes a comma-separated list of metrics and/or a metric with a wildcard. 
+Draws the average value of all metrics passed at each time.
 
+Example:
 
+.. code-block:: none
+  &target=averageSeries(company.server.*.threads.busy)
+
+diffSeries
+----------
+Can take two or more metrics, or a single metric and a constant.
+Subtracts parameters 2 through n from parameter 1.
+
+Example:
+
+.. code-block:: none
+  
+  &target=diffSeries(service.connections.total,service.connections.failed)
+  &target=diffSeries(service.connections.total,5)
 
