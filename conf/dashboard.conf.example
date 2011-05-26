@@ -1,14 +1,16 @@
 # This configuration file controls the behavior of the Dashboard UI, available
 # at http://my-graphite-server/dashboard/.
 #
-# This file must contain a [ui] section that defines the following settings:
-#
-#[ui]
-#default_graph_width = 400
-#default_graph_height = 250
-#automatic_variants = true
-#refresh_interval = 60
-#
+# This file must contain a [ui] section that defines values for all of the
+# following settings.
+[ui]
+default_graph_width = 400
+default_graph_height = 250
+automatic_variants = true
+refresh_interval = 60
+merge_hover_delay = 750
+
+
 # These settings apply to the UI as a whole, all other sections in this file
 # pertain only to specific metric types.
 #

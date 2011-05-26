@@ -31,6 +31,7 @@ class DashboardConfig:
     self.ui_config['default_graph_height'] = parser.getint('ui', 'default_graph_height')
     self.ui_config['automatic_variants'] = parser.getboolean('ui', 'automatic_variants')
     self.ui_config['refresh_interval'] = parser.getint('ui', 'refresh_interval')
+    self.ui_config['merge_hover_delay'] = parser.getint('ui', 'merge_hover_delay')
 
     for section in parser.sections():
       if section == 'ui':

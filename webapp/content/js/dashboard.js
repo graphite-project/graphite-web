@@ -263,31 +263,84 @@ function initDashboard () {
 
     graphView.dropZone = new Ext.dd.DropZone(graphView.getEl(), {
       ddGroup: 'graphs',
+      dropAction: 'reorder',
+      mergeEl: Ext.get('merge'),
 
       getTargetFromEvent: function (e) {
         return e.getTarget(graphView.itemSelector);
       },
 
       onNodeEnter: function (target, dd, e, data) {
-        Ext.fly(target).addClass('graph-highlight');
+        //Ext.fly(target).addClass('graph-highlight');
+        this.setDropAction('reorder');
+        this.mergeTarget = Ext.get(target);
+        this.mergeSwitchTimeout = this.setDropAction.defer(UI_CONFIG.merge_hover_delay, this, ['merge']);
       },
 
       onNodeOut: function (target, dd, e, data) {
-        Ext.fly(target).removeClass('graph-highlight');
+        //Ext.fly(target).removeClass('graph-highlight');
+        this.mergeEl.hide();
+        //this.setDropAction('reorder');
       },
 
       onNodeOver: function (target, dd, e, data) {
         return Ext.dd.DropZone.prototype.dropAllowed;
       },
 
+      setDropAction: function (action) {
+        if (this.mergeSwitchTimeout != null) {
+          clearTimeout(this.mergeSwitchTimeout);
+          this.mergeSwitchTimeout = null;
+        }
+
+        this.dropAction = action;
+        if (action == 'reorder') {
+          //revert merge ui change
+          this.mergeEl.hide();
+        } else if (action == 'merge') {
+          //apply merge ui change
+          this.mergeEl.show();
+          var targetXY = this.mergeTarget.getXY();
+          var mergeElWidth = Math.max(GraphSize.width * 0.75, 20);
+          var xOffset = (GraphSize.width - mergeElWidth) / 2;
+          var yOffset = -14;
+          this.mergeEl.setXY([targetXY[0] + xOffset, targetXY[1] + yOffset]);
+          this.mergeEl.setWidth(mergeElWidth);
+        }
+      },
+
       onNodeDrop: function (target, dd, e, data){ 
         var nodes = graphView.getNodes();
         var dropIndex = nodes.indexOf(target);
         var dragIndex = graphStore.indexOf(data.draggedRecord);
-        graphStore.removeAt(dragIndex);
-        graphStore.insert(dropIndex, data.draggedRecord);
-        graphView.refresh();
-        return true;
+
+        if (dragIndex == dropIndex) {
+          return false;
+        }
+
+        if (this.dropAction == 'reorder') {
+          graphStore.removeAt(dragIndex);
+          graphStore.insert(dropIndex, data.draggedRecord);
+          graphView.refresh();
+          return true;
+        } else if (this.dropAction == 'merge') {
+          var dragRecord = data.draggedRecord;
+          var dropRecord = graphView.getRecord(target);
+          if (dropRecord.data.params.target.length == 1) {
+            if (dropRecord.data.params.target[0] == dropRecord.data.params.title) {
+              delete dropRecord.data.params.title;
+            }
+          }
+
+          var mergedTargets = uniq( dragRecord.data.params.target.concat(dropRecord.data.params.target) );
+          dropRecord.data.params.target = mergedTargets;
+          dropRecord.data.target = Ext.urlEncode({target: mergedTargets});
+          dropRecord.commit();
+          graphStore.remove(dragRecord);
+          refreshGraphs();
+          return true;
+        }
+        return false;
       }
     });
   }
@@ -664,7 +717,22 @@ function metricSelectorNodeClicked (node, e) {
 
 
 function graphAreaToggle(target, dontRemove) {
-  var existingIndex = graphStore.find('target', target);
+  /* The GraphRecord's id is their URL-encoded target=...&target=... string
+     This function can get called with either the encoded string or just a raw
+     metric path, eg. "foo.bar.baz".
+  */
+  var graphTargetString;
+  if (target.substr(0,7) == "target=") {
+    graphTargetString = target;
+  } else {
+    graphTargetString = "target=" + target;
+  }
+  var graphTargetList = Ext.urlDecode(graphTargetString)['target'];
+  if (typeof graphTargetList == 'string') {
+    graphTargetList = [graphTargetList];
+  }
+
+  var existingIndex = graphStore.find('target', graphTargetString);
 
   if (existingIndex > -1) {
     if (!dontRemove) {
@@ -673,7 +741,7 @@ function graphAreaToggle(target, dontRemove) {
   } else {
     // Add it
     var myParams = {
-      target: [target],
+      target: graphTargetList,
       title: target
     };
     var urlParams = {};
@@ -682,7 +750,7 @@ function graphAreaToggle(target, dontRemove) {
     Ext.apply(urlParams, myParams);
 
     var record = new GraphRecord({
-      target: target,
+      target: graphTargetString,
       params: myParams,
       url: '/render?' + Ext.urlEncode(urlParams)
     });
@@ -1234,7 +1302,7 @@ function cloneGraphRecord(record) {
   //ensure we are working with copies, not references
   var props = {
     url: record.data.url,
-    target: Ext.urlEncode({ target: record.data.params.target }),
+    target: record.data.target,
     params: Ext.apply({}, record.data.params)
   };
   props.params.target = Ext.urlDecode(props.target).target;
@@ -1400,7 +1468,7 @@ function getState() {
 function applyState(state) {
   setDashboardName(state.name);
 
-  //state.timeConfig = {type, relativeConfig={, absoluteConfig}
+  //state.timeConfig = {type, quantity, units, startDate, startTime, endDate, endTime}
   var timeConfig = state.timeConfig
   TimeRange.type = timeConfig.type;
   TimeRange.quantity = timeConfig.quantity;
@@ -1699,5 +1767,16 @@ function getContextFieldCookie(field) {
 }
 
 function setContextFieldCookie(field, value) {
-  cookieProvider.set(field, value)
+  cookieProvider.set(field, value);
+}
+
+/* Misc */
+function uniq(myArray) {
+  var uniqArray = [];
+  for (var i=0; i<myArray.length; i++) {
+    if (uniqArray.indexOf(myArray[i]) == -1) {
+      uniqArray.push(myArray[i]);
+    }
+  }
+  return uniqArray;
 }
