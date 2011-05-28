@@ -128,10 +128,6 @@ function fitImageToWindow(win) {
   }
 }
 
-function updateGraph() {
-  Composer.updateImage();
-}
-
 /* Toolbar stuff */
 function createToolbarButton(tip, icon, handler) {
   return new Ext.Toolbar.Button({
@@ -1027,6 +1023,24 @@ function createOptionsMenu() {
   });
 }
 
+/* Graph Options API */
+function updateGraph() {
+  return Composer.updateImage();
+}
+
+function getParam(param) {
+  return Composer.url.getParam(param);
+}
+
+function setParam(param, value) {
+  return Composer.url.setParam(param, value);
+}
+
+function removeParam(param) {
+  return Composer.url.removeParam(param);
+}
+/* End of Graph Options API */
+
 function createFontFacesMenu() {
   var faces = ["Times", "Courier", "Sans", "Helvetica"];
   var menuItems = [];
@@ -1036,8 +1050,8 @@ function createFontFacesMenu() {
       menuItems.push({
         text: face,
         handler: function (menuItem, e) {
-                   Composer.url.setParam("fontName", face);
-                   Composer.updateImage();
+                   setParam("fontName", face);
+                   updateGraph();
                  }
       });
     }
@@ -1049,8 +1063,8 @@ function createColorMenu(param) {
   var colorPicker = new Ext.menu.ColorMenu({hideOnClick: false});
   colorPicker.on('select',
     function (palette, color) {
-      Composer.url.setParam(param, color);
-      Composer.updateImage();
+      setParam(param, color);
+      updateGraph();
     }
   );
   return colorPicker;
@@ -1066,12 +1080,12 @@ function paramPrompt(question, param) {
       "Input Required",
       question,
       function (button, value) {
-        Composer.url.setParam(param, value);
-        Composer.updateImage();
+        setParam(param, value);
+        updateGraph();
       },
       this, //scope
       false, //multiline
-      Composer.url.getParam(param) || "" //default value
+      getParam(param) || "" //default value
     );
   };
 }
@@ -1084,14 +1098,14 @@ function menuCheckItem(name, param, paramValue) {
     function (item, checked) {
       if (paramValue) { // Set param to a specific value
         if (checked) {
-          Composer.url.setParam(param, paramValue);
+          setParam(param, paramValue);
         } else { // Remove the param if we're being unchecked
-          Composer.url.removeParam(param);
+          removeParam(param);
         }
       } else { // Set the param to true/false
-        Composer.url.setParam(param, checked.toString());
+        setParam(param, checked.toString());
       }
-      Composer.updateImage();
+      updateGraph();
     }
   );
   return checkItem;
@@ -1102,11 +1116,11 @@ function menuRadioItem(groupName, name, param, paramValue ) {
   selectItem.on('checkchange', 
     function( item, clicked ) {
       if( paramValue ) {
-        Composer.url.setParam(param, paramValue);
+        setParam(param, paramValue);
       } else {
-        Composer.url.removeParam(param);
+        removeParam(param);
       }
-      Composer.updateImage();
+      updateGraph();
     }
   );
   return selectItem;
@@ -1116,7 +1130,7 @@ function updateCheckItems() {
   Ext.each(checkItems,
     function (item) {
       var param = item.initialConfig.param;
-      item.setChecked( Composer.url.getParam(param) ? true : false );
+      item.setChecked(getParam(param) ? true : false, true);
     }
   );
 }

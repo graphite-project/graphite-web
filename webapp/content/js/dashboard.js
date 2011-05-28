@@ -175,7 +175,7 @@ function initDashboard () {
     function addAll () {
       Ext.each(node.childNodes, function (child) {
         if (child.leaf) {
-          graphAreaToggle(child.id, true);
+          graphAreaToggle(child.id, {dontRemove: true});
         } else if (recurse) {
           expandNode(child, recurse);
         }
@@ -716,7 +716,7 @@ function metricSelectorNodeClicked (node, e) {
 }
 
 
-function graphAreaToggle(target, dontRemove) {
+function graphAreaToggle(target, options) {
   /* The GraphRecord's id is their URL-encoded target=...&target=... string
      This function can get called with either the encoded string or just a raw
      metric path, eg. "foo.bar.baz".
@@ -735,7 +735,7 @@ function graphAreaToggle(target, dontRemove) {
   var existingIndex = graphStore.find('target', graphTargetString);
 
   if (existingIndex > -1) {
-    if (!dontRemove) {
+    if ( (options === undefined) || (!options.dontRemove) ) {
       graphStore.removeAt(existingIndex);
     }
   } else {
@@ -745,7 +745,7 @@ function graphAreaToggle(target, dontRemove) {
       title: target
     };
     var urlParams = {};
-    Ext.apply(urlParams, defaultGraphParams);
+    Ext.apply(urlParams, (options && options.defaultParams) || defaultGraphParams);
     Ext.apply(urlParams, GraphSize);
     Ext.apply(urlParams, myParams);
 
@@ -1171,6 +1171,8 @@ function graphClicked(graphView, graphIndex, element, evt) {
     return;
   }
 
+  selectedRecord = record; // global state hack for graph options API
+
   var menu;
   var menuItems = [];
 
@@ -1230,6 +1232,18 @@ function graphClicked(graphView, graphIndex, element, evt) {
     }
   }));
 
+  var optionsMenu = createOptionsMenu(); // defined in composer_widgets.js
+  optionsMenu.allowOtherMenus = true;
+  optionsMenu.on('hide', function () { menu.hide(); });
+  updateCheckItems();
+
+  menuItems.push({
+    xtype: 'button',
+    fieldLabel: "<span style='visibility: hidden'>",
+    text: "Graph Options",
+    menu: optionsMenu
+  });
+
   menuItems.push({
     xtype: 'button',
     fieldLabel: "<span style='visibility: hidden'>",
@@ -1248,6 +1262,7 @@ function graphClicked(graphView, graphIndex, element, evt) {
     layout: 'form',
     labelWidth: 72,
     labelAlign: 'right',
+    allowOtherMenus: true,
     items: menuItems
   });
   menu.showAt( evt.getXY() );
@@ -1284,7 +1299,7 @@ function breakoutGraph(record) {
                 var responseObj = Ext.decode(response.responseText);
                 graphStore.remove(record);
                 Ext.each(responseObj.results, function (metricPath) {
-                  graphAreaToggle(metricPath, true);
+                  graphAreaToggle(metricPath, {dontRemove: true, defaultParams: record.data.params});
                 });
               }
   });
@@ -1760,6 +1775,26 @@ function showDashboardFinder() {
   dashboardsStore.load();
   win.show();
 }
+
+/* Graph Options API (to reuse createOptionsMenu from composer_widgets.js) */
+function updateGraph() {
+  refreshGraphs();
+}
+
+function getParam(param) {
+  return selectedRecord.data.params[param];
+}
+
+function setParam(param, value) {
+  selectedRecord.data.params[param] = value;
+  selectedRecord.commit();
+}
+
+function removeParam(param) {
+  delete selectedRecord.data.params[param];
+  selectedRecord.commit();
+}
+
 
 /* Cookie stuff */
 function getContextFieldCookie(field) {
