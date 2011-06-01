@@ -1221,6 +1221,7 @@ function graphClicked(graphView, graphIndex, element, evt) {
   var editParams = Ext.apply({}, record.data.params);
   removeUneditable(editParams);
   menuItems.push(new Ext.form.TextField({
+    id: 'graphMenuParams',
     fieldLabel: "Params",
     allowBlank: true,
     grow: true,
@@ -1268,6 +1269,13 @@ function graphClicked(graphView, graphIndex, element, evt) {
   menu.showAt( evt.getXY() );
   menu.get(0).focus(false, 50);
   menu.keyNav.disable();
+  menu.on('hide', function () {
+                    var graphMenuParams = Ext.getCmp('graphMenuParams');
+                    if (graphMenuParams) {
+                      graphMenuParams.destroy();
+                    }
+                  }
+  );
 }
 
 
@@ -1779,6 +1787,12 @@ function showDashboardFinder() {
 /* Graph Options API (to reuse createOptionsMenu from composer_widgets.js) */
 function updateGraph() {
   refreshGraphs();
+  var graphMenuParams = Ext.getCmp('graphMenuParams');
+  if (graphMenuParams) {
+    var editParams = Ext.apply({}, selectedRecord.data.params);
+    removeUneditable(editParams);
+    graphMenuParams.setValue( Ext.urlEncode(editParams) );
+  }
 }
 
 function getParam(param) {
