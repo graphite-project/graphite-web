@@ -1158,7 +1158,7 @@ function showShareWindow() {
 }
 
 /* Other stuff */
-var targetListing;
+var targetView;
 
 function graphClicked(graphView, graphIndex, element, evt) {
   var record = graphStore.getAt(graphIndex);
@@ -1202,67 +1202,111 @@ function graphClicked(graphView, graphIndex, element, evt) {
     menu.destroy();
   }
 
-  Ext.each(record.data.params.target, function (target, targetIndex) {
-    var item = new Ext.form.TextField({
-      isTargetField: true, // total hack
-      fieldLabel: "Target",
-      allowBlank: false,
-      grow: true,
-      growMin: 150,
-      value: target,
-      disableKeyFilter: true,
-      listeners: {
-        specialkey: applyChanges
-      }
-    });
-    menuItems.push(item);
+  /* Inline store definition hackery*/
+  var functionsButton;
+  var targets = record.data.params.target;
+  targets = map(targets, function (t) { return {target: t}; });
+  var targetStore = new Ext.data.JsonStore({
+    fields: ['target'],
+    data: targets
   });
 
-  var editParams = Ext.apply({}, record.data.params);
-  removeUneditable(editParams);
-  menuItems.push(new Ext.form.TextField({
-    id: 'graphMenuParams',
-    fieldLabel: "Params",
-    allowBlank: true,
-    grow: true,
-    growMin: 150,
-    value: Ext.urlEncode(editParams),
-    disableKeyFilter: true,
+  targetView = new Ext.list.ListView({
+    store: targetStore,
+    multiSelect: true,
+    hideHeaders: true,
+    columns: [ {header: "Target", width: 1.0, dataIndex: 'target'} ],
     listeners: {
-      specialkey: applyChanges
+               afterrender: function (thisView) {
+                         thisView.select(0);
+                       },
+      selectionchange: function (thisView, selectedNodes) {
+                         functionsButton.setDisabled(selectedNodes.length == 0);
+                       }
     }
-  }));
+  });
+  menuItems.push(targetView);
 
-  var optionsMenu = createOptionsMenu(); // defined in composer_widgets.js
-  optionsMenu.allowOtherMenus = true;
+  /* Setup our menus */
+  var functionsMenu = new Ext.menu.Menu({
+    allowOtherMenus: true,
+    items: createFunctionsMenu().concat([ {text: 'Remove Outer Call', handler: removeOuterCall} ])
+  });
+
+  functionsButton = new Ext.Button({
+    text: 'Apply Function',
+    disabled: true,
+    width: 125,
+    handler: function (thisButton) {
+               if (functionsMenu.isVisible()) {
+                 functionsMenu.hide();
+               } else {
+                 operationsMenu.hide();
+                 optionsMenu.doHide(); // private method... yuck
+                 functionsMenu.show(thisButton.getEl());
+               }
+             }
+  });
+
+
+  var optionsMenuConfig = createOptionsMenu(); // defined in composer_widgets.js
+  optionsMenuConfig.allowOtherMenus = true;
+  var optionsMenu = new Ext.menu.Menu(optionsMenuConfig);
   optionsMenu.on('hide', function () { menu.hide(); });
   updateCheckItems();
 
+  var operationsMenu = new Ext.menu.Menu({
+    allowOtherMenus: true,
+    items: [{
+      xtype: 'button',
+      fieldLabel: "<span style='visibility: hidden'>",
+      text: 'Breakout',
+      width: 100,
+      handler: function () { menu.destroy(); breakoutGraph(record); }
+    }, {
+      xtype: 'button',
+      fieldLabel: "<span style='visibility: hidden'>",
+      text: 'Clone',
+      width: 100,
+      handler: function () { menu.destroy(); cloneGraph(record); }
+    }]
+  });
+
+  //XXX does everything work?
+  menuItems.push(functionsButton);
+
   menuItems.push({
     xtype: 'button',
-    fieldLabel: "<span style='visibility: hidden'>",
-    text: "Graph Options",
-    menu: optionsMenu
+    text: "Render Options",
+    width: 125,
+    handler: function (thisButton) {
+               if (optionsMenu.isVisible()) {
+                 optionsMenu.doHide(); // private method... yuck (no other way to hide w/out trigging hide event handler)
+               } else {
+                 operationsMenu.hide();
+                 functionsMenu.hide();
+                 optionsMenu.show(thisButton.getEl());
+               }
+             }
   });
 
   menuItems.push({
     xtype: 'button',
-    fieldLabel: "<span style='visibility: hidden'>",
-    text: 'Breakout Into Separate Graphs',
-    handler: function () { menu.destroy(); breakoutGraph(record); }
-  });
-
-  menuItems.push({
-    xtype: 'button',
-    fieldLabel: "<span style='visibility: hidden'>",
-    text: 'Clone Graph',
-    handler: function () { menu.destroy(); cloneGraph(record); }
+    text: "Graph Operations",
+    width: 125,
+    handler: function (thisButton) {
+               if (operationsMenu.isVisible()) {
+                 operationsMenu.hide();
+               } else {
+                 optionsMenu.doHide(); // private method... yuck
+                 functionsMenu.hide();
+                 operationsMenu.show(thisButton.getEl());
+               }
+             }
   });
 
   menu = new Ext.menu.Menu({
-    layout: 'form',
-    labelWidth: 72,
-    labelAlign: 'right',
+    layout: 'anchor',
     allowOtherMenus: true,
     items: menuItems
   });
@@ -1275,6 +1319,12 @@ function graphClicked(graphView, graphIndex, element, evt) {
                       graphMenuParams.destroy();
                     }
                   }
+  );
+  menu.on('destroy', function () {
+                       optionsMenu.destroy();
+                       operationsMenu.destroy();
+                       functionsMenu.destroy();
+                     }
   );
 }
 
@@ -1810,6 +1860,134 @@ function removeParam(param) {
 }
 
 
+/* Target Functions API (super-ghetto) */
+function getSelectedTargets() {
+  if (targetView) {
+    return map(targetView.getSelectedRecords(), function (r) {
+      return r.data.target;
+    });
+  }
+  return [];
+}
+
+function applyFuncToEach(funcName, extraArg) {
+
+  function applyFunc() {
+    Ext.each(targetView.getSelectedRecords(),
+      function (record) {
+        var target = record.data.target;
+        var newTarget;
+        var targetStore = targetView.getStore();
+
+        targetStore.remove(record);
+        selectedRecord.data.params.target.remove(target);
+
+        if (extraArg) {
+          if (funcName == 'mostDeviant') { //SPECIAL CASE HACK
+            newTarget = funcName + '(' + extraArg + ',' + target + ')';
+          } else {
+            newTarget = funcName + '(' + target + ',' + extraArg + ')';
+          }
+        } else {
+          newTarget = funcName + '(' + target + ')';
+        }
+
+        // Add newTarget to selectedRecord
+        targetStore.add([ new targetStore.recordType({target: newTarget}, newTarget) ]);
+        selectedRecord.data.params.target.push(newTarget);
+        targetView.select(targetStore.findExact('target', newTarget), true);
+      }
+    );
+    refreshGraphs();
+  }
+  return applyFunc;
+}
+
+function applyFuncToEachWithInput (funcName, question, options) {
+  if (options == null) {
+    options = {};
+  }
+
+ function applyFunc() {
+    Ext.MessageBox.prompt(
+      "Input Required", //title
+      question, //message
+      function (button, inputValue) { //handler
+        if (button == 'ok' && (options.allowBlank || inputValue != '')) {
+          if (options.quote) {
+            inputValue = '"' + inputValue + '"';
+          }
+          applyFuncToEach(funcName, inputValue)();
+        }
+      },
+      this, //scope
+      false, //multiline
+      "" //initial value
+    );
+  }
+  applyFunc = applyFunc.createDelegate(this);
+  return applyFunc;
+}
+
+function applyFuncToAll (funcName) {
+  function applyFunc() {
+    var args = getSelectedTargets().join(',');
+    var newTarget = funcName + '(' + args + ')';
+    var targetStore = targetView.getStore();
+
+    Ext.each(targetView.getSelectedRecords(),
+      function (record) {
+        targetStore.remove(record);
+        selectedRecord.data.params.target.remove(record.data.target);
+      }
+    );
+    targetStore.add([ new targetStore.recordType({target: newTarget}, newTarget) ]);
+    selectedRecord.data.params.target.push(newTarget);
+    targetView.select( targetStore.findExact('target', newTarget), true);
+    refreshGraphs();
+  }
+  applyFunc = applyFunc.createDelegate(this);
+  return applyFunc;
+}
+
+function removeOuterCall() { // blatantly repurposed from composer_widgets.js (don't hate)
+  Ext.each(targetView.getSelectedRecords(), function (record) {
+    var target = record.data.target;
+    var targetStore = targetView.getStore();
+    var args = [];
+    var i, c;
+    var lastArg = 0;
+    var depth = 0;
+    var argString = target.replace(/^[^(]+\((.+)\)/, "$1"); //First we strip it down to just args
+
+    for (i = 0; i < argString.length; i++) {
+      switch (argString.charAt(i)) {
+        case '(': depth += 1; break;
+        case ')': depth -= 1; break;
+        case ',':
+          if (depth > 0) { continue; }
+          if (depth < 0) { Ext.Msg.alert("Malformed target, cannot remove outer call."); return; }
+          args.push( argString.substring(lastArg, i).replace(/^\s+/, '').replace(/\s+$/, '') );
+          lastArg = i + 1;
+          break;
+      }
+    }
+    args.push( argString.substring(lastArg, i) );
+
+    targetStore.remove(record);
+    selectedRecord.data.params.target.remove(target);
+
+    Ext.each(args, function (arg) {
+      if (!arg.match(/^([0123456789\.]+|".+")$/)) { //Skip string and number literals
+        targetStore.add([ new targetStore.recordType({target: arg}) ]);
+        selectedRecord.data.params.target.push(arg);
+        targetView.select( targetStore.findExact('target', arg), true);
+      }
+    });
+  });
+  refreshGraphs();
+}
+
 /* Cookie stuff */
 function getContextFieldCookie(field) {
   return cookieProvider.get(field);
@@ -1828,4 +2006,12 @@ function uniq(myArray) {
     }
   }
   return uniqArray;
+}
+
+function map(myArray, myFunc) {
+  var results = [];
+  for (var i=0; i<myArray.length; i++) {
+    results.push( myFunc(myArray[i]) );
+  }
+  return results;
 }

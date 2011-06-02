@@ -75,10 +75,12 @@ def dashboard(request, name=None):
     else:
       raise
 
+  debug = request.GET.get('debug', False)
   context = {
     'schemes_json' : json.dumps(config.schemes),
     'ui_config_json' : json.dumps(config.ui_config),
-    'jsdebug' : settings.JAVASCRIPT_DEBUG,
+    'jsdebug' : debug or settings.JAVASCRIPT_DEBUG,
+    'debug' : debug,
     'querystring' : json.dumps( dict( request.GET.items() ) ),
     'dashboard_conf_missing' : dashboard_conf_missing,
   }
