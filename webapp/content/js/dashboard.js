@@ -1272,7 +1272,6 @@ function graphClicked(graphView, graphIndex, element, evt) {
     }]
   });
 
-  //XXX does everything work?
   menuItems.push(functionsButton);
 
   menuItems.push({
