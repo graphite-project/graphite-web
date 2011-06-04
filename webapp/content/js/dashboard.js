@@ -1121,7 +1121,19 @@ function doShare() {
                 }
     });
   } else {
-    showShareWindow();
+    // Prompt the user to save their dashboard so they are aware only saved changes get shared
+    Ext.Msg.show({
+      title: "Save Dashboard And Share",
+      msg: "You must save changes to your dashboard in order to share it.",
+      buttons: Ext.Msg.OKCANCEL,
+      fn: function (button) {
+            if (button == 'ok') {
+              sendSaveRequest(dashboardName);
+              showShareWindow();
+            }
+          }
+    });
+
   }
 }
 
