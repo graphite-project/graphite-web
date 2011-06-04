@@ -1860,6 +1860,16 @@ function removeParam(param) {
 
 
 /* Target Functions API (super-ghetto) */
+function addTargetToSelectedGraph(target) {
+  selectedRecord.data.params.target.push(target);
+  selectedRecord.data.target = Ext.urlEncode({target: selectedRecord.data.params.target});
+}
+
+function removeTargetFromSelectedGraph(target) {
+  selectedRecord.data.params.target.remove(target);
+  selectedRecord.data.target = Ext.urlEncode({target: selectedRecord.data.params.target});
+}
+
 function getSelectedTargets() {
   if (targetView) {
     return map(targetView.getSelectedRecords(), function (r) {
@@ -1879,7 +1889,7 @@ function applyFuncToEach(funcName, extraArg) {
         var targetStore = targetView.getStore();
 
         targetStore.remove(record);
-        selectedRecord.data.params.target.remove(target);
+        removeTargetFromSelectedGraph(target);
 
         if (extraArg) {
           if (funcName == 'mostDeviant') { //SPECIAL CASE HACK
@@ -1893,7 +1903,7 @@ function applyFuncToEach(funcName, extraArg) {
 
         // Add newTarget to selectedRecord
         targetStore.add([ new targetStore.recordType({target: newTarget}, newTarget) ]);
-        selectedRecord.data.params.target.push(newTarget);
+        addTargetToSelectedGraph(newTarget);
         targetView.select(targetStore.findExact('target', newTarget), true);
       }
     );
@@ -1937,11 +1947,11 @@ function applyFuncToAll (funcName) {
     Ext.each(targetView.getSelectedRecords(),
       function (record) {
         targetStore.remove(record);
-        selectedRecord.data.params.target.remove(record.data.target);
+        removeTargetFromSelectedGraph(record.data.target);
       }
     );
     targetStore.add([ new targetStore.recordType({target: newTarget}, newTarget) ]);
-    selectedRecord.data.params.target.push(newTarget);
+    addTargetToSelectedGraph(newTarget);
     targetView.select( targetStore.findExact('target', newTarget), true);
     refreshGraphs();
   }
