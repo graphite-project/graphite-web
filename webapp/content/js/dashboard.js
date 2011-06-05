@@ -80,7 +80,6 @@ var graphStore = new Ext.data.ArrayStore({
   fields: GraphRecord
 });
 
-
 var originalDefaultGraphParams = {
   from: '-2hours',
   until: 'now',
@@ -235,7 +234,7 @@ function initDashboard () {
     '<div class="x-clear"></div>'
   );
 
-  function setupGraphDD (graphView) {
+  function setupGraphDD () {
     graphView.dragZone = new Ext.dd.DragZone(graphView.getEl(), {
       containerScroll: true,
       ddGroup: 'graphs',
@@ -321,7 +320,7 @@ function initDashboard () {
         if (this.dropAction == 'reorder') {
           graphStore.removeAt(dragIndex);
           graphStore.insert(dropIndex, data.draggedRecord);
-          graphView.refresh();
+          updateGraphRecords();
           return true;
         } else if (this.dropAction == 'merge') {
           var dragRecord = data.draggedRecord;
@@ -337,7 +336,7 @@ function initDashboard () {
           dropRecord.data.target = Ext.urlEncode({target: mergedTargets});
           dropRecord.commit();
           graphStore.remove(dragRecord);
-          refreshGraphs();
+          updateGraphRecords();
           return true;
         }
         return false;
@@ -352,6 +351,12 @@ function initDashboard () {
     itemSelector: 'div.graph-container',
     emptyText: "Configure your context above, and then select some metrics.",
     autoScroll: true,
+//    plugins: [
+//      new Ext.ux.DataViewTransition({
+//        duration: 750,
+//        idProperty: 'target'
+//      })
+//    ],
     listeners: {
       click: graphClicked,
       render: setupGraphDD
@@ -745,7 +750,10 @@ function graphAreaToggle(target, options) {
       title: target
     };
     var urlParams = {};
-    Ext.apply(urlParams, (options && options.defaultParams) || defaultGraphParams);
+    Ext.apply(urlParams, defaultGraphParams);
+    if (options && options.defaultParams) {
+      Ext.apply(urlParams, options.defaultParams);
+    }
     Ext.apply(urlParams, GraphSize);
     Ext.apply(urlParams, myParams);
 
@@ -756,10 +764,9 @@ function graphAreaToggle(target, options) {
     });
     graphStore.add([record]);
   }
-
 }
 
-function refreshGraphs() {
+function updateGraphRecords() {
   graphStore.each(function () {
     var params = {};
     Ext.apply(params, defaultGraphParams);
@@ -768,7 +775,11 @@ function refreshGraphs() {
     params.uniq = Math.random();
     this.set('url', '/render?' + Ext.urlEncode(params));
   });
-  graphView.refresh();
+}
+
+function refreshGraphs() {
+  updateGraphRecords();
+  //graphView.refresh();
   graphArea.getTopToolbar().get('last-refreshed-text').setText( (new Date()).format('g:i:s A') );
 }
 
