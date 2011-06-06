@@ -84,6 +84,27 @@ def normalize(seriesLists):
 #the same interval, despite having possibly different steps...
 
 def sumSeries(requestContext, *seriesLists):
+  """
+  sumSeries
+  ---------
+  Short form: sum()
+
+  This will add metrics together and return the sum at each datapoint. (See 
+  integral for a sum over time)
+
+  Example:
+
+  .. code-block:: none
+
+    &target=sum(company.server.application*.requestsHandled)
+
+  This would show the sum of all requests handled per minute (provided 
+  requestsHandled are collected once a minute).   If metrics with different 
+  retention rates are combined, the coarsest metric is graphed, and the sum
+  of the other metrics is averaged for the metrics with finer retention rates.
+
+  """
+
   try:
     (seriesList,start,end,step) = normalize(seriesLists)
   except:
@@ -128,6 +149,20 @@ def averageSeriesWithWildcards(requestContext, seriesList, *position): #XXX
   return result
 
 def diffSeries(requestContext, *seriesLists):
+  """
+  diffSeries
+  ----------
+  Can take two or more metrics, or a single metric and a constant.
+  Subtracts parameters 2 through n from parameter 1.
+
+  Example:
+
+  .. code-block:: none
+    
+    &target=diffSeries(service.connections.total,service.connections.failed)
+    &target=diffSeries(service.connections.total,5)
+
+  """
   (seriesList,start,end,step) = normalize(seriesLists)
   name = "diffSeries(%s)" % ','.join(set([s.pathExpression for s in seriesList]))
   values = ( safeDiff(row) for row in izip(*seriesList) )
@@ -136,6 +171,21 @@ def diffSeries(requestContext, *seriesLists):
   return [series]
 
 def averageSeries(requestContext, *seriesLists):
+  """
+  averageSeries
+  -------------
+  Short Alias: avg()
+
+  Takes one or more metrics.
+  Draws the average value of all metrics passed at each time.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=averageSeries(company.server.*.threads.busy)
+  
+  """
   (seriesList,start,end,step) = normalize(seriesLists)
   #name = "averageSeries(%s)" % ','.join((s.name for s in seriesList))
   name = "averageSeries(%s)" % ','.join(set([s.pathExpression for s in seriesList]))
@@ -145,6 +195,20 @@ def averageSeries(requestContext, *seriesLists):
   return [series]
 
 def minSeries(requestContext, *seriesLists):
+  """
+  minSeries
+  ---------
+
+  Takes one or more metrics.
+  For each datapoint from each metric passed in, pick the minimum value and graph it.
+
+  Example:
+
+  .. code-block:: none
+      
+    &target=minSeries(Server*.connections.total)
+
+  """
   (seriesList, start, end, step) = normalize(seriesLists)
   pathExprs = list( set([s.pathExpression for s in seriesList]) )
   name = "minSeries(%s)" % ','.join(pathExprs)
@@ -154,6 +218,20 @@ def minSeries(requestContext, *seriesLists):
   return [series]
 
 def maxSeries(requestContext, *seriesLists):
+  """
+  maxSeries
+  ---------
+
+  Takes one or more metrics.
+  For each datapoint from each metric passed in, pick the maximum value and graph it.
+
+  Example:
+
+  .. code-block:: none
+      
+    &target=maxSeries(Server*.connections.total)
+
+  """
   (seriesList, start, end, step) = normalize(seriesLists)
   pathExprs = list( set([s.pathExpression for s in seriesList]) )
   name = "maxSeries(%s)" % ','.join(pathExprs)
@@ -163,6 +241,20 @@ def maxSeries(requestContext, *seriesLists):
   return [series]
 
 def keepLastValue(requestContext, seriesList):
+  """
+  keepLastValue
+  -------------
+
+  Takes one or more metrics.
+  Continues the line with the last received value when gaps ('None' values) appear in your data, rather than breaking your line.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=keepLastValue(Server01.connections.handled)
+
+  """
   for series in seriesList:
     series.name = "keepLastValue(%s)" % (series.name)
     for i,value in enumerate(series):
@@ -172,6 +264,21 @@ def keepLastValue(requestContext, seriesList):
   return seriesList
 
 def asPercent(requestContext, seriesList1, seriesList2orNumber):
+  """
+  asPercent
+  ---------
+
+  Takes exactly two metrics, or a metric and a constant.
+  Draws the first metric as a percent of the second.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=asPercent(Server01.connections.failed,Server01.connetions,total)
+    &target=asPercent(apache01.threads.busy,1500)
+
+  """
   assert len(seriesList1) == 1, "asPercent series arguments must reference *exactly* 1 series"
   series1 = seriesList1[0]
   if type(seriesList2orNumber) is list:
@@ -199,6 +306,23 @@ def asPercent(requestContext, seriesList1, seriesList2orNumber):
 
 
 def divideSeries(requestContext, dividendSeriesList, divisorSeriesList):
+  """
+  divideSeries
+  ------------
+
+  Takes a dividend metric and a divisor metric and draws the division result.
+  A constant may *not* be passed. To divide by a constant, use the scale() 
+  function (which is essetially a muliplication operation) and use the inverse
+  of the dividend. (Division by 8 = multiplication by 1/8 or 0.125)
+
+  Example:
+
+  .. code-block:: none
+
+    &target=asPercent(Series.dividends,Series.divisors)
+
+
+  """
   if len(divisorSeriesList) != 1:
     raise ValueError("divideSeries second argument must reference exactly 1 series")
 
@@ -227,6 +351,21 @@ def divideSeries(requestContext, dividendSeriesList, divisorSeriesList):
 
 
 def scale(requestContext, seriesList, factor):
+  """
+  scale
+  -----
+
+  Takes one or more metrics followed by a constant, and multiplies the datapoint
+  by the constant provided at each point.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=scale(Server.instance01.threads.busy,10)
+    &target=scale(Server.instance*.threads.busy,10)
+
+  """
   for series in seriesList:
     series.name = "scale(%s,%.1f)" % (series.name,float(factor))
     for i,value in enumerate(series):
@@ -234,6 +373,21 @@ def scale(requestContext, seriesList, factor):
   return seriesList
 
 def offset(requestContext, seriesList, factor):
+  """
+  offset
+  ------
+
+  Takes one or more metrics followed by a constant, and adds the constant to
+  each datapoint.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=offset(Server.instance01.threads.busy,10)
+
+
+  """
   for series in seriesList:
     series.name = "offset(%s,%.1f)" % (series.name,float(factor))
     for i,value in enumerate(series):
@@ -242,6 +396,19 @@ def offset(requestContext, seriesList, factor):
   return seriesList
 
 def movingAverage(requestContext, seriesList, windowSize):
+  """
+  movingAverage
+  -------------
+
+  Takes one or more metrics followed by a number N of datapoints and graphs 
+  the average of N previous datapoints.  N-1 datapoints are set to None at the
+  beginning of the graph.
+
+  .. code-block:: none
+
+    &target=movingAverage(Server.instance01.threads.busy,10)
+
+  """
   for seriesIndex, series in enumerate(seriesList):
     newName = "movingAverage(%s,%.1f)" % (series.name, float(windowSize))
     newSeries = TimeSeries(newName, series.start, series.end, series.step, [])
@@ -266,12 +433,47 @@ def movingAverage(requestContext, seriesList, windowSize):
   return seriesList
 
 def cumulative(requestContext, seriesList):
+  """
+  cumulative
+  ----------
+
+  Takes one or more metrics.
+
+  By default, when a graph is drawn, and the width of the graph in pixels is
+  smaller than the number of datapoints to be graphed, Graphite averages the 
+  value at each pixel.  The cumulative() function changes the consolidation 
+  function to sum from average.  This is especially useful in sales graphs, 
+  where fractional values make no sense (How can you have half of a sale?)
+
+  .. code-block:: none
+    
+    &target=cumulative(Sales.widgets.largeBlue)
+
+  """
   for series in seriesList:
     series.consolidationFunc = 'sum'
     series.name = 'cumulative(%s)' % series.name
   return seriesList
 
 def derivative(requestContext, seriesList):
+  """
+  derivative
+  ----------
+
+  This is the opposite of the integral function.  This is useful for taking a
+  running total metric and showing how many requests per minute were handled. 
+
+  Example:
+
+    .. code-block:: none
+
+      &target=derivative(company.server.application01.ifconfig.TXPackets)
+
+  Each time you run ifconfig, the RX and TXPackets are higher (assuming there
+  is network traffic.) By applying the derivative function, you can get an 
+  idea of the packets per minute sent or received, even though you're only 
+  recording the total.
+  """
   results = []
   for series in seriesList:
     newValues = []
@@ -290,6 +492,21 @@ def derivative(requestContext, seriesList):
   return results
 
 def integral(requestContext, seriesList):
+  """
+  integral
+  --------
+
+  This will show the sum over time, sort of like a continuous addition function.  
+  Useful for finding totals or trends in metrics that are collected per minute. 
+
+  Example: 
+
+  .. code-block:: none
+
+    &target=integral(company.sales.perMinute)
+
+    This whould show the total sales for the time period selected.
+  """
   results = []
   for series in seriesList:
     newValues = []
@@ -308,6 +525,22 @@ def integral(requestContext, seriesList):
 
 
 def nonNegativeDerivative(requestContext, seriesList, maxValue=None):
+  """
+  nonNegativeDerivative
+  ---------------------
+
+  Same as the derivative function above, but ignores datapoints that trend 
+  down.  Useful for counters that increase for a long time, then wrap or 
+  reset. (Such as if a network interface is destroyed and recreated by unloading 
+  and re-loading a kernel module, common with USB / WiFi cards.
+
+      Example:
+
+      .. code-block:: none
+        
+        &target=derivative(company.server.application01.ifconfig.TXPackets)
+
+  """
   results = []
 
   for series in seriesList:
@@ -339,6 +572,18 @@ def nonNegativeDerivative(requestContext, seriesList, maxValue=None):
 
 
 def alias(requestContext, seriesList, newName):
+  """
+  alias
+  -----
+
+  Takes one or more metrics and a string in quotes.
+  Prints the string instead of the metric name in the legend.
+
+  .. code-block:: none
+    
+    &target=alias(Sales.widgets.largeBlue,"Large Blue Widgets")
+
+  """
   for series in seriesList:
     series.name = newName
   return seriesList
@@ -349,6 +594,24 @@ def color(requestContext, seriesList, theColor):
   return seriesList
 
 def substr(requestContext, seriesList, start=0, stop=0):
+  """
+  substr
+  ------
+
+  Takes one or more metrics followed by 1 or 2 integers.  Assume that the 
+  metric name is a list or array, with each element separated by dots.  Prints
+  n - length elements of the array (if only one integer n is passed) or n - m
+  elements of the array (if two integers n and m are passed).  The list starts
+  with element 0 and ends with element (length - 1).
+
+  Example:
+
+  .. code-block:: none
+    &target=substr(carbon.agents.hostname.avgUpdateTime,2,4))
+
+  The label would be printed as "hostname.avgUpdateTime".
+
+  """
   for series in seriesList:
     left = series.name.rfind('(') + 1
     right = series.name.find(')')
@@ -363,6 +626,20 @@ def substr(requestContext, seriesList, start=0, stop=0):
 
 
 def log(requestContext, seriesList, base=10):
+  """
+  log
+  ---
+
+  Takes one or more metrics, a base, and draws the y-axis in logarithmic 
+  format.  If base is omitted, the function defaults to base 10.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=log(carbon.agents.hostname.avgUpdateTime,2)
+
+  """
   results = []
   for series in seriesList:
     newValues = []
@@ -381,6 +658,21 @@ def log(requestContext, seriesList, base=10):
 
 
 def maximumAbove(requestContext, seriesList, n):
+  """
+  maximumAbove
+  ------------
+
+  Takes one or more metrics followed by a constant n. 
+  Draws only the metrics with a maximum value above n.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=maximumAbove(system.interface.eth*.packetsSent,1000)
+
+  This would only display interfaces which sent more than 1000 packets/min.
+  """
   results = []
   for series in seriesList:
     if max(series) >= n:
@@ -389,6 +681,22 @@ def maximumAbove(requestContext, seriesList, n):
 
 
 def maximumBelow(requestContext, seriesList, n):
+  """
+  maximumBelow
+  ------------
+
+  Takes one or more metrics followed by a constant n. 
+  Draws only the metrics with a maximum value below n.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=maximumBelow(system.interface.eth*.packetsSent,1000)
+
+  This would only display interfaces which sent less than 1000 packets/min.
+  """
+
   result = []
   for series in seriesList:
     if max(series) <= n:
@@ -397,6 +705,13 @@ def maximumBelow(requestContext, seriesList, n):
 
 
 def highestCurrent(requestContext, seriesList, n):
+  """
+  highestCurrent
+  --------------
+
+  Takes one or more metrics.
+
+  """
   return sorted( seriesList, key=safeLast )[-n:]
 
 def highestMax(requestContext, seriesList, n):
