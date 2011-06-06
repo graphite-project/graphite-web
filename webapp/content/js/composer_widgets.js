@@ -996,7 +996,16 @@ function createOptionsMenu() {
       menuCheckItem("Graph Only", "graphOnly"),
       menuCheckItem("Hide Axes", "hideAxes"),
       menuCheckItem("Hide Grid", "hideGrid"),
-      menuCheckItem("Hide Legend", "hideLegend")
+      {
+        text: 'Graph Legend',
+        menu: {
+          items: [
+            menuRadioItem('legend', 'Hide If Too Many', 'hideLegend'),
+            menuRadioItem('legend', 'Always Hide', 'hideLegend', 'true'),
+            menuRadioItem('legend', 'Never Hide', 'hideLegend', 'false')
+          ]
+        }
+      }
     ]
   });
 
