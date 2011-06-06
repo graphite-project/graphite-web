@@ -1187,6 +1187,7 @@ var targetGrid;
 var activeMenu;
 
 function graphClicked(graphView, graphIndex, element, evt) {
+  Ext.get('merge').hide();
   var record = graphStore.getAt(graphIndex);
   if (!record) {
     return;
@@ -1197,7 +1198,7 @@ function graphClicked(graphView, graphIndex, element, evt) {
     return;
   }
 
-  if (activeMenu) {
+  if ( (activeMenu != null) && (selectedRecord == record) ) {
     activeMenu.destroy();
     activeMenu = null;
     return;
