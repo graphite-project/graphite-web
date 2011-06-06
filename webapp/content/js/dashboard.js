@@ -746,8 +746,7 @@ function graphAreaToggle(target, options) {
   } else {
     // Add it
     var myParams = {
-      target: graphTargetList,
-      title: target
+      target: graphTargetList
     };
     var urlParams = {};
     Ext.apply(urlParams, defaultGraphParams);
@@ -773,13 +772,16 @@ function updateGraphRecords() {
     Ext.apply(params, this.data.params);
     Ext.apply(params, GraphSize);
     params.uniq = Math.random();
+    if (params.title === undefined && params.target.length == 1) {
+      params.title = params.target[0];
+    }
     this.set('url', '/render?' + Ext.urlEncode(params));
   });
 }
 
 function refreshGraphs() {
   updateGraphRecords();
-  //graphView.refresh();
+  graphView.refresh();
   graphArea.getTopToolbar().get('last-refreshed-text').setText( (new Date()).format('g:i:s A') );
 }
 
@@ -1181,7 +1183,8 @@ function showShareWindow() {
 }
 
 /* Other stuff */
-var targetView;
+var targetGrid;
+var activeMenu;
 
 function graphClicked(graphView, graphIndex, element, evt) {
   var record = graphStore.getAt(graphIndex);
@@ -1191,6 +1194,12 @@ function graphClicked(graphView, graphIndex, element, evt) {
 
   if (justClosedGraph) {
     justClosedGraph = false;
+    return;
+  }
+
+  if (activeMenu) {
+    activeMenu.destroy();
+    activeMenu = null;
     return;
   }
 
@@ -1209,7 +1218,6 @@ function graphClicked(graphView, graphIndex, element, evt) {
       if ((!field.getXType) || field.getXType() != 'textfield') {
         return;
       }
-
       if (field.initialConfig.isTargetField) {
         targets.push( field.getValue() );
       } else {
@@ -1231,24 +1239,59 @@ function graphClicked(graphView, graphIndex, element, evt) {
   targets = map(targets, function (t) { return {target: t}; });
   var targetStore = new Ext.data.JsonStore({
     fields: ['target'],
-    data: targets
-  });
-
-  targetView = new Ext.list.ListView({
-    store: targetStore,
-    multiSelect: true,
-    hideHeaders: true,
-    columns: [ {header: "Target", width: 1.0, dataIndex: 'target'} ],
+    data: targets,
     listeners: {
-               afterrender: function (thisView) {
-                         thisView.select(0);
-                       },
-      selectionchange: function (thisView, selectedNodes) {
-                         functionsButton.setDisabled(selectedNodes.length == 0);
-                       }
+      update: function (thisStore, record, operation) {
+        var targets = [];
+        thisStore.each(function (rec) { targets.push(rec.data.target); });
+        selectedRecord.data.params.target = targets;
+        selectedRecord.data.target = Ext.urlEncode({target: targets});
+        refreshGraphs();
+      }
     }
   });
-  menuItems.push(targetView);
+
+  var buttonWidth = 150;
+  var rowHeight = 21;
+  var maxRows = 6;
+  var frameHeight = 5;
+  var gridWidth = (buttonWidth * 3) + 2;
+  var gridHeight = (rowHeight * Math.min(targets.length, maxRows)) + frameHeight;
+
+  targetGrid = new Ext.grid.EditorGridPanel({
+    //frame: true,
+    width: gridWidth,
+    height: gridHeight,
+    store: targetStore,
+    hideHeaders: true,
+    viewConfig: {markDirty: false},
+    colModel: new Ext.grid.ColumnModel({
+      columns: [
+        {
+          id: 'target',
+          header: 'Target',
+          dataIndex: 'target',
+          width: gridWidth - 22,
+          editor: {xtype: 'textfield'}
+        }
+      ]
+    }),
+    selModel: new Ext.grid.RowSelectionModel({
+      singleSelect: false,
+      listeners: {
+        selectionchange: function (thisSelModel) {
+          functionsButton.setDisabled(thisSelModel.getCount() == 0);
+        }
+      }
+    }),
+    clicksToEdit: 2,
+    listeners: {
+      afterrender: function (thisGrid) {
+        thisGrid.getSelectionModel().selectFirstRow.defer(50, thisGrid.getSelectionModel());
+      }
+    }
+  });
+  menuItems.push(targetGrid);
 
   /* Setup our menus */
   var functionsMenu = new Ext.menu.Menu({
@@ -1259,7 +1302,7 @@ function graphClicked(graphView, graphIndex, element, evt) {
   functionsButton = new Ext.Button({
     text: 'Apply Function',
     disabled: true,
-    width: 125,
+    width: buttonWidth,
     handler: function (thisButton) {
                if (functionsMenu.isVisible()) {
                  functionsMenu.hide();
@@ -1295,12 +1338,12 @@ function graphClicked(graphView, graphIndex, element, evt) {
     }]
   });
 
-  menuItems.push(functionsButton);
+  var buttons = [functionsButton];
 
-  menuItems.push({
+  buttons.push({
     xtype: 'button',
     text: "Render Options",
-    width: 125,
+    width: buttonWidth,
     handler: function (thisButton) {
                if (optionsMenu.isVisible()) {
                  optionsMenu.doHide(); // private method... yuck (no other way to hide w/out trigging hide event handler)
@@ -1312,10 +1355,10 @@ function graphClicked(graphView, graphIndex, element, evt) {
              }
   });
 
-  menuItems.push({
+  buttons.push({
     xtype: 'button',
     text: "Graph Operations",
-    width: 125,
+    width: buttonWidth,
     handler: function (thisButton) {
                if (operationsMenu.isVisible()) {
                  operationsMenu.hide();
@@ -1327,11 +1370,18 @@ function graphClicked(graphView, graphIndex, element, evt) {
              }
   });
 
+  menuItems.push({
+    xtype: 'panel',
+    layout: 'hbox',
+    items: buttons
+  });
+
   menu = new Ext.menu.Menu({
     layout: 'anchor',
     allowOtherMenus: true,
     items: menuItems
   });
+  activeMenu = menu;
   menu.showAt( evt.getXY() );
   menu.get(0).focus(false, 50);
   menu.keyNav.disable();
@@ -1894,8 +1944,8 @@ function removeTargetFromSelectedGraph(target) {
 }
 
 function getSelectedTargets() {
-  if (targetView) {
-    return map(targetView.getSelectedRecords(), function (r) {
+  if (targetGrid) {
+    return map(targetGrid.getSelectionModel().getSelections(), function (r) {
       return r.data.target;
     });
   }
@@ -1905,11 +1955,11 @@ function getSelectedTargets() {
 function applyFuncToEach(funcName, extraArg) {
 
   function applyFunc() {
-    Ext.each(targetView.getSelectedRecords(),
+    Ext.each(targetGrid.getSelectionModel().getSelections(),
       function (record) {
         var target = record.data.target;
         var newTarget;
-        var targetStore = targetView.getStore();
+        var targetStore = targetGrid.getStore();
 
         targetStore.remove(record);
         removeTargetFromSelectedGraph(target);
@@ -1927,7 +1977,7 @@ function applyFuncToEach(funcName, extraArg) {
         // Add newTarget to selectedRecord
         targetStore.add([ new targetStore.recordType({target: newTarget}, newTarget) ]);
         addTargetToSelectedGraph(newTarget);
-        targetView.select(targetStore.findExact('target', newTarget), true);
+        targetGrid.getSelectionModel().selectRow(targetStore.findExact('target', newTarget), true);
       }
     );
     refreshGraphs();
@@ -1965,9 +2015,9 @@ function applyFuncToAll (funcName) {
   function applyFunc() {
     var args = getSelectedTargets().join(',');
     var newTarget = funcName + '(' + args + ')';
-    var targetStore = targetView.getStore();
+    var targetStore = targetGrid.getStore();
 
-    Ext.each(targetView.getSelectedRecords(),
+    Ext.each(targetGrid.getSelectionModel().getSelections(),
       function (record) {
         targetStore.remove(record);
         removeTargetFromSelectedGraph(record.data.target);
@@ -1975,7 +2025,7 @@ function applyFuncToAll (funcName) {
     );
     targetStore.add([ new targetStore.recordType({target: newTarget}, newTarget) ]);
     addTargetToSelectedGraph(newTarget);
-    targetView.select( targetStore.findExact('target', newTarget), true);
+    targetGrid.getSelectionModel().selectRow(targetStore.findExact('target', newTarget), true);
     refreshGraphs();
   }
   applyFunc = applyFunc.createDelegate(this);
@@ -1983,9 +2033,9 @@ function applyFuncToAll (funcName) {
 }
 
 function removeOuterCall() { // blatantly repurposed from composer_widgets.js (don't hate)
-  Ext.each(targetView.getSelectedRecords(), function (record) {
+  Ext.each(targetGrid.getSelectionModel().getSelections(), function (record) {
     var target = record.data.target;
-    var targetStore = targetView.getStore();
+    var targetStore = targetGrid.getStore();
     var args = [];
     var i, c;
     var lastArg = 0;
@@ -2013,7 +2063,7 @@ function removeOuterCall() { // blatantly repurposed from composer_widgets.js (d
       if (!arg.match(/^([0123456789\.]+|".+")$/)) { //Skip string and number literals
         targetStore.add([ new targetStore.recordType({target: arg}) ]);
         selectedRecord.data.params.target.push(arg);
-        targetView.select( targetStore.findExact('target', arg), true);
+        targetGrid.getSelectionModel().selectRow(targetStore.findExact('target', arg), true);
       }
     });
   });
