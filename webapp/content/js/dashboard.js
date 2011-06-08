@@ -472,9 +472,9 @@ function initDashboard () {
     tooltip: "Toggle auto-refresh",
     toggleHandler: function (button, pressed) {
                      if (pressed) {
-                       Ext.TaskMgr.start(refreshTask);
+                       startTask(refreshTask);
                      } else {
-                       Ext.TaskMgr.stop(refreshTask);
+                       stopTask(refreshTask);
                      }
                    }
   };
@@ -561,11 +561,9 @@ function initDashboard () {
   });
 
   refreshTask = {
-    enabled: false,
     run: refreshGraphs,
     interval: UI_CONFIG.refresh_interval * 1000
   };
-  //Ext.TaskMgr.start(refreshTask);
 
   // Load initial dashboard state if it was passed in
   if (initialState) {
@@ -813,14 +811,28 @@ function updateAutoRefresh (newValue) {
   }
 
   if (Ext.getCmp('auto-refresh-button').pressed) {
-    Ext.TaskMgr.stop(refreshTask);
+    stopTask(refreshTask);
     refreshTask.interval = value * 1000;
-    Ext.TaskMgr.start(refreshTask);
+    startTask(refreshTask);
   } else {
     refreshTask.interval = value * 1000;
   }
 }
 
+/* Task management */
+function stopTask(task) {
+  if (task.running) {
+    Ext.TaskMgr.stop(task);
+    task.running = false;
+  }
+}
+
+function startTask(task) {
+  if (!task.running) {
+    Ext.TaskMgr.start(task);
+    task.running = true;
+  }
+}
 
 /* Time Range management */
 var TimeRange = {
@@ -1628,11 +1640,11 @@ function applyState(state) {
   //state.refreshConfig = {enabled, interval}
   var refreshConfig = state.refreshConfig;
   if (refreshConfig.enabled) {
-    Ext.TaskMgr.stop(refreshTask);
-    Ext.TaskMgr.start(refreshTask);
+    stopTask(refreshTask);
+    startTask(refreshTask);
     Ext.getCmp('auto-refresh-button').toggle(true);
   } else {
-    Ext.TaskMgr.stop(refreshTask);
+    stopTask(refreshTask);
     Ext.getCmp('auto-refresh-button').toggle(false);
   }
   //refreshTask.interval = refreshConfig.interval;
