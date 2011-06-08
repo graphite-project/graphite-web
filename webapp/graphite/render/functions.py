@@ -728,7 +728,7 @@ def holtWintersAberration(requestContext, seriesList):
       elif series[i] < lowerBand[i]:
         aberration.append(series[i] - lowerBand[i])
       else:
-        aberration.append(None)
+        aberration.append(0)
 
     newName = "holtWintersAberration(%s)" % series.name
     results.append(TimeSeries(newName, series.start, series.end
@@ -955,12 +955,12 @@ SeriesFunctions = {
   'holtWintersBootstrap': holtWintersBootstrap,
   'holtWintersForecast': holtWintersForecast,
   'holtWintersConfidenceBands': holtWintersConfidenceBands,
+  'holtWintersAberration': holtWintersAberration,
   'asPercent' : asPercent,
   'pct' : asPercent,
 
   # Filter functions
   'mostDeviant' : mostDeviant,
-  'holtWintersAberration': holtWintersAberration,
   'highestCurrent' : highestCurrent,
   'lowestCurrent' : lowestCurrent,
   'highestMax' : highestMax,
