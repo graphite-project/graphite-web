@@ -728,7 +728,7 @@ def holtWintersAberration(requestContext, seriesList):
       elif series[i] < lowerBand[i]:
         aberration.append(series[i] - lowerBand[i])
       else:
-        aberration.append(0)
+        aberration.append(None)
 
     newName = "holtWintersAberration(%s)" % series.name
     results.append(TimeSeries(newName, series.start, series.end
