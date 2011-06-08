@@ -902,6 +902,8 @@ function createFunctionsMenu() {
       menu: [
         {text: 'Moving Average', handler: applyFuncToEachWithInput('movingAverage', 'Moving average for the last ___ data points')},
         {text: 'Moving Standard Deviation', handler: applyFuncToEachWithInput('stdev', 'Moving standard deviation for the last ___ data points')},
+        {text: 'Holt-Winters Forecast', handler: this.applyFuncToEach('holtWintersForecast')},
+        {text: 'Holt-Winters Confidence Bands', handler: this.applyFuncToEach('holtWintersConfidenceBands')},
         {text: 'As Percent', handler: applyFuncToEachWithInput('asPercent', 'Please enter the value that corresponds to 100%')},
         {text: 'Difference (of 2 series)', handler: applyFuncToAll('diffSeries')},
         {text: 'Ratio (of 2 series)', handler: applyFuncToAll('divideSeries')}
@@ -910,6 +912,7 @@ function createFunctionsMenu() {
       text: 'Filter',
       menu: [
         {text: 'Most Deviant', handler: applyFuncToEachWithInput('mostDeviant', 'Draw the ___ metrics with the highest standard deviation')},
+        {text: 'Holt-Winters Aberration', handler: this.applyFuncToEach('holtWintersAberration')},
         {text: 'Highest Current Value', handler: applyFuncToEachWithInput('highestCurrent', 'Draw the ___ metrics with the highest current value')},
         {text: 'Lowest Current Value', handler: applyFuncToEachWithInput('lowestCurrent', 'Draw the ___ metrics with the lowest current value')},
         {text: 'Highest Maximum Value', handler: applyFuncToEachWithInput('highestMax', 'Draw the ___ metrics with the highest maximum value')},
