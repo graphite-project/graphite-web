@@ -118,20 +118,31 @@ def find_view(request):
 
 def expand_view(request):
   "View for expanding a pattern into matching metric paths"
-  local_only = int( request.REQUEST.get('local', 0) )
+  local_only    = int( request.REQUEST.get('local', 0) )
+  group_by_expr = int( request.REQUEST.get('groupByExpr', 0) )
+  leaves_only   = int( request.REQUEST.get('leavesOnly', 0) )
 
   if local_only:
     store = LOCAL_STORE
   else:
     store = STORE
 
-  results = set()
+  results = {}
   for query in request.REQUEST.getlist('query'):
+    results[query] = set()
     for node in store.find(query):
-      results.add( node.metric_path )
+      if node.isLeaf() or not leaves_only:
+        results[query].add( node.metric_path )
+
+  # Convert our results to sorted lists because sets aren't json-friendly
+  if group_by_expr:
+    for query, matches in results.items():
+      results[query] = sorted(matches)
+  else:
+    results = sorted( reduce(set.union, results.values(), set()) )
 
   result = {
-    'results' : sorted(results)
+    'results' : results
   }
 
   response = HttpResponse(json.dumps(result), mimetype='text/json')

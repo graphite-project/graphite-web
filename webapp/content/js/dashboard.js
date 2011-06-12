@@ -1431,19 +1431,64 @@ function copyUneditable (src, dst) {
   });
 }
 
-
 function breakoutGraph(record) {
+  /* We have to gather some context from the
+     graph target's expressions so we can reapply
+     functions after the expressions get expanded. */
+  var pathExpressions = [];
+  var exprInfo = {};
+
+  try {
+    Ext.each(record.data.params.target, function(target) {
+      var exprsInThisTarget = 0;
+      map(target.split(','), function (arg) {
+        var arglets = arg.split('(');
+        map(arglets[arglets.length-1].split(')'), function (expr) {
+          expr = expr.replace(/^\s*(.+?)\s*$/, '$1');
+          if (expr.length == 0 || expr[0] == '"' || expr[0] == "'") return;
+
+          if (expr.match(/[a-z].*\..*[a-z]/i)) {
+            exprsInThisTarget++;
+            if (exprsInThisTarget > 1) {
+              throw 'arrr!';
+            }
+
+            pathExpressions.push(expr);
+            var i = target.indexOf(expr);
+            exprInfo[expr] = {
+              expr: expr,
+              pre: target.substr(0, i),
+              post: target.substr(i + expr.length)
+            }
+
+          }   
+
+        }); //map arglets
+      }); //map args
+    }); //each target
+  } catch (err) {
+    Ext.Msg.alert("Graph contains unbreakable target", "Graph targets containing more than one metric expression cannot be broken out.");
+    return;
+  }
+
   Ext.Ajax.request({
     url: '/metrics/expand/',
     params: {
-      query: record.data.params.target
+      groupByExpr: '1',
+      leavesOnly: '1',
+      query: pathExpressions
     },
     callback: function (options, success, response) {
                 var responseObj = Ext.decode(response.responseText);
                 graphStore.remove(record);
-                Ext.each(responseObj.results, function (metricPath) {
-                  graphAreaToggle(metricPath, {dontRemove: true, defaultParams: record.data.params});
-                });
+                for (var expr in responseObj.results) {
+                  var pre = exprInfo[expr].pre;
+                  var post = exprInfo[expr].post;
+                  map(responseObj.results[expr], function (metricPath) {
+                    metricPath = pre + metricPath + post;
+                    graphAreaToggle(metricPath, {dontRemove: true, defaultParams: record.data.params});
+                  });
+                }
               }
   });
 }
