@@ -12,6 +12,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
+from os.path import join, dirname, normpath
+from optparse import OptionParser
 from ConfigParser import ConfigParser
 
 
@@ -113,3 +115,100 @@ class Settings(dict):
 
 settings = Settings()
 settings.update(defaults)
+
+
+def get_default_parser(usage="%prog [options] <start|stop|status>"):
+    """Create a parser for command line options."""
+    parser = OptionParser(usage=usage)
+    parser.add_option(
+        "--debug", action="store_true",
+        help="Run in the foreground, log to stdout")
+    parser.add_option(
+        "--profile",
+        help="Record performance profile data to the given file")
+    parser.add_option(
+        "--pidfile", default=None,
+        help="Write pid to the given file")
+    parser.add_option(
+        "--config",
+        default=None,
+        help="Use the given config file")
+    parser.add_option(
+        "--logdir",
+        default=None,
+        help="Write logs in the given directory")
+    parser.add_option(
+        "--instance",
+        default=None,
+        help="Manage a specific carbon instance")
+
+    return parser
+
+
+def parse_options(parser, args):
+    """
+    Parse command line options and print usage message if no arguments were
+    provided for the command.
+    """
+    (options, args) = parser.parse_args(args)
+
+    if not args:
+        parser.print_usage()
+        raise SystemExit(1)
+
+    if args[0] not in ("start", "stop", "status"):
+        parser.print_usage()
+        raise SystemExit(1)
+
+    return options, args
+
+
+def read_config(program, options, **kwargs):
+    """
+    Read settings for 'program' from configuration file specified by
+    'options.config', with missing values provided by 'defaults'.
+    """
+    settings = Settings()
+    settings.update(defaults)
+
+    # Initialize default values if not set yet.
+    for name, value in kwargs.items():
+        settings.setdefault(name, value)
+
+    # At minimum, 'ROOT_DIR' needs to be set.
+    if settings.get("ROOT_DIR", None) is None:
+        raise ValueError("ROOT_DIR needs to be provided.")
+
+    if options.config is None:
+        raise ValueError("--config needs to be provided.")
+
+    # Default config directory to same directory as the specified carbon
+    # configuration file.
+    settings.setdefault("CONF_DIR", dirname(normpath(options.config)))
+
+    # Other settings default to relative paths from the root directory, for
+    # backwards-compatibility.
+    settings.setdefault("STORAGE_DIR", join(settings.ROOT_DIR, "storage"))
+    settings.setdefault("LOG_DIR", join(settings.STORAGE_DIR, "log", program))
+
+    # Read configuration options from program-specific section.
+    section = program[len("carbon-"):]
+    settings.readFrom(options.config, section)
+
+    # If a specific instance of the program is specified, augment the settings
+    # with the instance-specific settings and provide sane defaults for
+    # optional settings.
+    if options.instance:
+        settings.readFrom(options.config, "%s:%s" % (section, options.instance))
+        settings["pidfile"] = (options.pidfile or
+                               join(settings.STORAGE_DIR,
+                                    "%s-%s.pid" % (program, options.instance)))
+        settings["LOG_DIR"] = (options.logdir or
+                              "%s-%s/" % (settings.LOG_DIR.rstrip('/'),
+                                          options.instance))
+    else:
+        settings["pidfile"] = (options.pidfile or
+                               join(settings.STORAGE_DIR, '%s.pid' % program))
+        settings["LOG_DIR"] = (options.logdir or settings.LOG_DIR)
+
+    return settings
