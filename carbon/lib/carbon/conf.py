@@ -204,7 +204,7 @@ def read_config(program, options, **kwargs):
                                join(settings.STORAGE_DIR,
                                     "%s-%s.pid" % (program, options.instance)))
         settings["LOG_DIR"] = (options.logdir or
-                              "%s-%s/" % (settings.LOG_DIR.rstrip('/'),
+                              "%s-%s" % (settings.LOG_DIR.rstrip('/'),
                                           options.instance))
     else:
         settings["pidfile"] = (options.pidfile or

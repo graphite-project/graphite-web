@@ -149,6 +149,36 @@ class ReadConfigTest(MockerTestCase):
         self.assertEqual(join("bar", "log", "carbon-foo"),
                          settings.LOG_DIR)
 
+    def test_log_dir_for_instance_relative_to_storage_dir(self):
+        """
+        The 'LOG_DIR' setting defaults to a program-specific directory relative
+        to the 'STORAGE_DIR' setting. In the case of an instance, the instance
+        name is appended to the directory.
+        """
+        config = self.makeFile(content="[foo]")
+        settings = read_config(
+            "carbon-foo",
+            FakeOptions(config=config, instance="x",
+                        pidfile=None, logdir=None),
+            ROOT_DIR="foo")
+        self.assertEqual(join("foo", "storage", "log", "carbon-foo-x"),
+                         settings.LOG_DIR)
+
+    def test_log_dir_for_instance_relative_to_provided_storage_dir(self):
+        """
+        Providing a different 'STORAGE_DIR' in defaults overrides the default
+        of being relative to 'ROOT_DIR'. In the case of an instance, the
+        instance name is appended to the directory.
+        """
+        config = self.makeFile(content="[foo]")
+        settings = read_config(
+            "carbon-foo",
+            FakeOptions(config=config, instance="x",
+                        pidfile=None, logdir=None),
+            ROOT_DIR="foo", STORAGE_DIR="bar")
+        self.assertEqual(join("bar", "log", "carbon-foo-x"),
+                         settings.LOG_DIR)
+
     def test_pidfile_relative_to_storage_dir(self):
         """
         The 'pidfile' setting defaults to a program-specific filename relative
@@ -171,6 +201,19 @@ class ReadConfigTest(MockerTestCase):
         settings = read_config(
             "carbon-foo",
             FakeOptions(config=config, instance=None,
+                        pidfile="foo.pid", logdir=None),
+            ROOT_DIR="foo")
+        self.assertEqual("foo.pid", settings.pidfile)
+
+    def test_pidfile_for_instance_in_options_has_precedence(self):
+        """
+        The 'pidfile' option from command line overrides the default setting
+        for the instance, if one is specified.
+        """
+        config = self.makeFile(content="[foo]")
+        settings = read_config(
+            "carbon-foo",
+            FakeOptions(config=config, instance="x",
                         pidfile="foo.pid", logdir=None),
             ROOT_DIR="foo")
         self.assertEqual("foo.pid", settings.pidfile)
@@ -214,6 +257,19 @@ class ReadConfigTest(MockerTestCase):
             ROOT_DIR="foo")
         self.assertEqual("baz", settings.LOG_DIR)
 
+    def test_log_dir_for_instance_from_options(self):
+        """
+        Providing a 'LOG_DIR' in the command line overrides the
+        storage-relative default for the instance.
+        """
+        config = self.makeFile(content="[foo]")
+        settings = read_config(
+            "carbon-foo",
+            FakeOptions(config=config, instance="x",
+                        pidfile=None, logdir="baz"),
+            ROOT_DIR="foo")
+        self.assertEqual("baz", settings.LOG_DIR)
+
     def test_storage_dir_from_config(self):
         """
         Providing a 'STORAGE_DIR' in the configuration file overrides the
@@ -239,3 +295,19 @@ class ReadConfigTest(MockerTestCase):
                         pidfile=None, logdir=None),
             ROOT_DIR="foo")
         self.assertEqual("baz", settings.LOG_DIR)
+
+    def test_log_dir_from_instance_config(self):
+        """
+        Providing a 'LOG_DIR' for the specific instance in the configuration
+        file overrides the storage-relative default. The actual value will have
+        the instance name appended to it and ends with a forward slash.
+        """
+        config = self.makeFile(
+            content=("[foo]\nLOG_DIR = baz\n"
+                     "[foo:x]\nLOG_DIR = boo"))
+        settings = read_config(
+            "carbon-foo",
+            FakeOptions(config=config, instance="x",
+                        pidfile=None, logdir=None),
+            ROOT_DIR="foo")
+        self.assertEqual("boo-x", settings.LOG_DIR)
