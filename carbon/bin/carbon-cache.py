@@ -20,7 +20,6 @@ import pwd
 import atexit
 from os.path import basename, dirname, exists, join, isdir
 
-
 program = basename( sys.argv[0] ).split('.')[0]
 hostname = socket.gethostname().split('.')[0]
 os.umask(022)
@@ -33,11 +32,13 @@ except:
   pass
 from twisted.internet import reactor
 
+
 # Figure out where we're installed
 BIN_DIR = dirname( os.path.abspath(__file__) )
 ROOT_DIR = dirname(BIN_DIR)
 LIB_DIR = join(ROOT_DIR, 'lib')
 sys.path.insert(0, LIB_DIR)
+
 
 # Capture useful debug info for this commonly reported problem
 try:
@@ -49,19 +50,25 @@ except ImportError:
   print '__file__=%s' % __file__
   sys.exit(1)
 
+
 # Read config (we want failures to occur before daemonizing)
-from carbon.conf import settings, get_default_parser, parse_options, read_config
+from carbon.conf import (get_default_parser, parse_options,
+                         read_config, settings as global_settings)
+
 
 (options, args) = parse_options(get_default_parser())
-read_config(program, options, ROOT_DIR=ROOT_DIR)
+settings = read_config(program, options, ROOT_DIR=ROOT_DIR)
+global_settings.update(settings)
 
 instance = options.instance
 pidfile = settings.pidfile
 logdir = settings.LOG_DIR
 
+
 __builtins__.instance = instance # This isn't as evil as you might think
 __builtins__.program = program
 action = args[0]
+
 
 if action == 'stop':
   if not exists(pidfile):

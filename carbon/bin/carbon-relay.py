@@ -15,18 +15,18 @@ limitations under the License."""
 
 import sys
 import os
-import optparse
 import atexit
 from os.path import basename, dirname, exists, join, isdir
 
+program = basename( sys.argv[0] ).split('.')[0]
+os.umask(022)
 
-__builtins__.program = basename( sys.argv[0] ).split('.')[0]
 
 # Initialize twisted
 try:
   from twisted.internet import epollreactor
   epollreactor.install()
-except: 
+except:
   pass
 from twisted.internet import reactor
 
@@ -34,46 +34,60 @@ from twisted.internet import reactor
 # Figure out where we're installed
 BIN_DIR = dirname(__file__)
 ROOT_DIR = dirname(BIN_DIR)
-STORAGE_DIR = join(ROOT_DIR, 'storage')
-LOG_DIR = join(STORAGE_DIR, 'log', 'carbon-relay')
 LIB_DIR = join(ROOT_DIR, 'lib')
-CONF_DIR = join(ROOT_DIR, 'conf')
-__builtins__.CONF_DIR = CONF_DIR
-
 sys.path.insert(0, LIB_DIR)
 
 
-# Parse command line options
-parser = optparse.OptionParser(usage='%prog [options] <start|stop|status>')
-parser.add_option('--debug', action='store_true', help='Run in the foreground, log to stdout')
-parser.add_option('--profile', help='Record performance profile data to the given file')
-parser.add_option('--pidfile', default=join(STORAGE_DIR, '%s.pid' % program), help='Write pid to the given file')
-parser.add_option('--config', default=join(CONF_DIR, 'carbon.conf'), help='Use the given config file')
-parser.add_option('--rules', default=join(CONF_DIR, 'relay-rules.conf'), help='Use the give relay rules file')
-parser.add_option('--logdir', default=LOG_DIR, help="Write logs in the given directory")
+# Capture useful debug info for this commonly reported problem
+try:
+  import carbon
+except ImportError:
+  print 'Failed to import carbon, debug information follows.'
+  print 'pwd=%s' % os.getcwd()
+  print 'sys.path=%s' % sys.path
+  print '__file__=%s' % __file__
+  sys.exit(1)
 
-(options, args) = parser.parse_args()
 
-if not args:
-  parser.print_usage()
-  raise SystemExit(1)
+# Read config (we want failures to occur before daemonizing)
+from carbon.conf import (get_default_parser, parse_options,
+                         read_config, settings as global_settings)
 
+
+parser = get_default_parser()
+parser.add_option(
+    '--rules',
+    default=None,
+    help='Use the given relay rules file')
+
+(options, args) = parse_options(parser)
+settings = read_config(program, options, ROOT_DIR=ROOT_DIR)
+global_settings.update(settings)
+
+if options.rules is None:
+    options.rules = join(settings.CONF_DIR, "relay-rules.conf")
+
+pidfile = settings.pidfile
+logdir = settings.LOG_DIR
+
+__builtins__.program = program
 action = args[0]
 
+
 if action == 'stop':
-  if not exists(options.pidfile):
-    print 'Pidfile %s does not exist' % options.pidfile
+  if not exists(pidfile):
+    print 'Pidfile %s does not exist' % pidfile
     raise SystemExit(0)
 
-  pidfile = open(options.pidfile, 'r')
+  pf = open(pidfile, 'r')
   try:
-    pid = int( pidfile.read().strip() )
+    pid = int( pf.read().strip() )
   except:
-    print 'Could not read pidfile %s' % options.pidfile
+    print 'Could not read pidfile %s' % pidfile
     raise SystemExit(1)
 
-  print 'Deleting %s (contained pid %d)' % (options.pidfile, pid)
-  os.unlink(options.pidfile)
+  print 'Deleting %s (contained pid %d)' % (pidfile, pid)
+  os.unlink(pidfile)
 
   print 'Sending kill signal to pid %d' % pid
   os.kill(pid, 15)
@@ -81,15 +95,15 @@ if action == 'stop':
 
 
 elif action == 'status':
-  if not exists(options.pidfile):
+  if not exists(pidfile):
     print '%s is not running' % program
     raise SystemExit(0)
 
-  pidfile = open(options.pidfile, 'r')
+  pf = open(pidfile, 'r')
   try:
-    pid = int( pidfile.read().strip() )
+    pid = int( pf.read().strip() )
   except:
-    print 'Failed to read pid from %s' % options.pidfile
+    print 'Failed to read pid from %s' % pidfile
     raise SystemExit(1)
 
   if exists('/proc/%d' % pid):
@@ -99,19 +113,9 @@ elif action == 'status':
     print "%s is not running" % program
     raise SystemExit(0)
 
-elif action != 'start':
-  parser.print_usage()
+if exists(pidfile):
+  print "Pidfile %s already exists, is %s already running?" % (pidfile, program)
   raise SystemExit(1)
-
-
-if exists(options.pidfile):
-  print "Pidfile %s already exists, is %s already running?" % (options.pidfile, program)
-  raise SystemExit(1)
-
-
-# Read config (we want failures to occur before daemonizing)
-from carbon.conf import settings
-settings.readFrom(options.config, 'relay')
 
 # Quick validation
 if settings.RELAY_METHOD not in ('rules', 'consistent-hashing'):
@@ -131,20 +135,20 @@ from carbon.hashing import setDestinationHosts
 if options.debug:
   logToStdout()
 else:
-  if not isdir(options.logdir):
-    os.makedirs(options.logdir)
+  if not isdir(logdir):
+    os.makedirs(logdir)
 
   from carbon.util import daemonize
   daemonize()
-  logToDir(options.logdir)
+  logToDir(logdir)
 
-  pidfile = open(options.pidfile, 'w')
+  pidfile = open(pidfile, 'w')
   pidfile.write( str(os.getpid()) )
   pidfile.close()
 
   def shutdown():
-    if os.path.exists(options.pidfile):
-      os.unlink(options.pidfile)
+    if os.path.exists(pidfile):
+      os.unlink(pidfile)
 
   atexit.register(shutdown)
 
