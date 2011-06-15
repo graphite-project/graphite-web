@@ -348,7 +348,10 @@ class LineGraph(Graph):
                   'minorGridLineColor','thickness','min','max', \
                   'graphOnly','yMin','yMax','yLimit','yStep','areaMode', \
                   'areaAlpha','drawNullAsZero','tz', 'yAxisSide','pieMode', \
-                  'yUnitSystem', 'logBase')
+                  'yUnitSystem', 'logBase','yMinLeft','yMinRight','yMaxLeft', \
+                  'yMaxRight', 'yLimitLeft', 'yLimitRight', 'yStepLeft', \
+                  'yStepRight', 'rightWidth', 'rightColor', 'rightDashed', \
+                  'leftWidth', 'leftColor', 'leftDashed')
   validLineModes = ('staircase','slope')
   validAreaModes = ('none','first','all','stacked')
   validPieModes = ('maximum', 'minimum', 'average')
@@ -380,10 +383,11 @@ class LineGraph(Graph):
     if 'yUnitSystem' not in params:
       params['yUnitSystem'] = 'si'
     self.params = params
-
+    
     # Don't do any of the special right y-axis stuff if we're drawing 2 y-axes.
-    if self.secondYAxis == True:
+    if self.secondYAxis:
       params['yAxisSide'] = 'left'
+    
     # When Y Axis is labeled on the right, we subtract x-axis positions from the max,
     # instead of adding to the minimum
     if self.params.get('yAxisSide') == 'right':
@@ -397,7 +401,29 @@ class LineGraph(Graph):
     assert self.areaMode in self.validAreaModes, "Invalid area mode!"
     self.pieMode = params.get('pieMode', 'maximum').lower()
     assert self.pieMode in self.validPieModes, "Invalid pie mode!"
-
+    
+    if self.secondYAxis:
+      for series in self.data:
+        if series.options.has_key('secondYAxis'):
+          if 'rightWidth' in params:
+            series.options['lineWidth'] = params['rightWidth']
+            print "Found rightWidth"
+          if 'rightDashed' in params:
+            series.options['dashed'] = params['rightDashed']
+            print "Found rightDashed"
+          if 'rightColor' in params:
+            series.options['color'] = params['rightColor']
+            print "Found rightColor"
+        else:
+          if 'leftWidth' in params:
+            series.options['lineWidth'] = params['leftWidth']
+          if 'leftDashed' in params:
+            series.options['dashed'] = params['leftDashed']
+          if 'leftColor' in params:
+            series.options['color'] = params['leftColor']
+        
+    #'rightBold', 'rightColor', 'rightDashed', 'leftBold', 'leftColor', 'leftDashed'
+    
     for series in self.data:
       if not hasattr(series, 'color'):
         series.color = self.colors.next()
@@ -530,7 +556,7 @@ class LineGraph(Graph):
     }[linejoin])
     print "entered drawLine routine."
     # stack the values
-    if self.areaMode == 'stacked' and self.secondYAxis != True: #TODO Allow stacked area mode with secondYAxis
+    if self.areaMode == 'stacked' and not self.secondYAxis: #TODO Allow stacked area mode with secondYAxis
       print "entered stacked mode."
       total = []
       for series in self.data:
@@ -839,14 +865,20 @@ class LineGraph(Graph):
     if yMaxValueR is None:
       yMaxValueR = 1.0
 
-#    if 'yMax' in self.params: # TODO: Let the user split this into &yMaxLeft and &yMaxRight
-#      yMaxValue = self.params['yMax']
+    if 'yMaxLeft' in self.params: 
+      yMaxValueL = self.params['yMaxLeft']
+    if 'yMaxRight' in self.params: 
+      yMaxValueR = self.params['yMaxRight']
 
-#    if 'yLimit' in self.params and self.params['yLimit'] < yMaxValue: #TODO: Let Let the user split this into &yLimitLeft and &yLimitRight
-#      yMaxValue = self.params['yLimit']
+    if 'yLimitLeft' in self.params and self.params['yLimitLeft'] < yMaxValueL: 
+      yMaxValueL = self.params['yLimitLeft']
+    if 'yLimitRight' in self.params and self.params['yLimitRight'] < yMaxValueR: 
+      yMaxValueR = self.params['yLimitRight']
 
-#    if 'yMin' in self.params: #TODO: Let the user split this into &yLimitLeft & yLimitRight.
-#      yMinValue = self.params['yMin']
+    if 'yMinLeft' in self.params: 
+      yMinValueL = self.params['yMinLeft']
+    if 'yMinRight' in self.params: 
+      yMinValueR = self.params['yMinRight']
 
     if yMaxValueL <= yMinValueL:
       yMaxValueL = yMinValueL + 1
@@ -882,8 +914,10 @@ class LineGraph(Graph):
     self.yStepL = prettyValueL * orderFactorL #scale it back up to the order of yVariance
     self.yStepR = prettyValueR * orderFactorR 
 
-#    if 'yStep' in self.params: #TODO: Allow user to specify L & R ySteps
-#      self.yStep = self.params['yStep]
+    if 'yStepLeft' in self.params: 
+      self.yStepL = self.params['yStepLeft']
+    if 'yStepRight' in self.params: 
+      self.yStepR = self.params['yStepRight']
 
     self.yBottomL = self.yStepL * math.floor( yMinValueL / self.yStepL ) #start labels at the greatest multiple of yStepL <= yMinValue
     self.yBottomR = self.yStepR * math.floor( yMinValueR / self.yStepR ) #start labels at the greatest multiple of yStepR <= yMinValue
@@ -899,10 +933,14 @@ class LineGraph(Graph):
         raise GraphError('Logarithmic scale specified with a dataset with a '
                          'minimum value less than or equal to zero')
 
-#    if 'yMax' in self.params:
-#      self.yTop = self.params['yMax']
-#    if 'yMin' in self.params:
-#      self.yBottom = self.params['yMin']
+    if 'yMaxLeft' in self.params:
+      self.yTopL = self.params['yMaxLeft']
+    if 'yMaxRight' in self.params:
+      self.yTopR = self.params['yMaxRight']
+    if 'yMinLeft' in self.params:
+      self.yBottomL = self.params['yMinLeft']
+    if 'yMinRight' in self.params:
+      self.yBottomR = self.params['yMinRight']
 
     self.ySpanL = self.yTopL - self.yBottomL
     self.ySpanR = self.yTopR - self.yBottomR
