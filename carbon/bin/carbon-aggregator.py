@@ -46,7 +46,7 @@ parser.add_option(
     default=None,
     help='Use the give aggregation rules file')
 
-(options, args) = parse_options(parser)
+(options, args) = parse_options(parser, sys.argv[1:])
 settings = read_config(program, options, ROOT_DIR=ROOT_DIR)
 global_settings.update(settings)
 

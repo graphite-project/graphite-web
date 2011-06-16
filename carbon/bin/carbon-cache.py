@@ -56,7 +56,7 @@ from carbon.conf import (get_default_parser, parse_options,
                          read_config, settings as global_settings)
 
 
-(options, args) = parse_options(get_default_parser())
+(options, args) = parse_options(get_default_parser(), sys.argv[1:])
 settings = read_config(program, options, ROOT_DIR=ROOT_DIR)
 global_settings.update(settings)
 
