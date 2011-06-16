@@ -1,3 +1,5 @@
+import os
+from os import makedirs
 from os.path import dirname, join
 from unittest import TestCase
 from mocker import MockerTestCase
@@ -84,16 +86,47 @@ class ReadConfigTest(MockerTestCase):
         else:
             self.fail("Did not raise exception.")
 
-    def test_config_is_required(self):
+    def test_config_is_not_required(self):
         """
-        The 'options' object must have a non-None 'config' attribute.
+        If the '--config' option is not provided, it will default to the
+        'carbon.conf' file inside 'ROOT_DIR/conf'.
         """
-        try:
-            read_config("carbon-foo", FakeOptions(config=None), ROOT_DIR="foo")
-        except ValueError, e:
-            self.assertEqual("--config needs to be provided.", e.message)
+        root_dir = self.makeDir()
+        conf_dir = join(root_dir, "conf")
+        makedirs(conf_dir)
+        self.makeFile(content="[foo]",
+                      basename="carbon.conf",
+                      dirname=conf_dir)
+        settings = read_config("carbon-foo",
+                               FakeOptions(config=None, instance=None,
+                                           pidfile=None, logdir=None),
+                               ROOT_DIR=root_dir)
+        self.assertEqual(conf_dir, settings.CONF_DIR)
+
+    def test_config_dir_from_environment(self):
+        """
+        If the 'GRAPHITE_CONFIG_DIR' variable is set in the environment, then
+        'CONFIG_DIR' will be set to that directory.
+        """
+        root_dir = self.makeDir()
+        conf_dir = join(root_dir, "configs", "production")
+        makedirs(conf_dir)
+        self.makeFile(content="[foo]",
+                      basename="carbon.conf",
+                      dirname=conf_dir)
+        orig_value = os.environ.get("GRAPHITE_CONF_DIR", None)
+        if orig_value is not None:
+            self.addCleanup(os.environ.__setitem__,
+                            "GRAPHITE_CONF_DIR",
+                            orig_value)
         else:
-            self.fail("Did not raise exception.")
+            self.addCleanup(os.environ.__delitem__, "GRAPHITE_CONF_DIR")
+        os.environ["GRAPHITE_CONF_DIR"] = conf_dir
+        settings = read_config("carbon-foo",
+                               FakeOptions(config=None, instance=None,
+                                           pidfile=None, logdir=None),
+                               ROOT_DIR=root_dir)
+        self.assertEqual(conf_dir, settings.CONF_DIR)
 
     def test_conf_dir_defaults_to_config_dirname(self):
         """

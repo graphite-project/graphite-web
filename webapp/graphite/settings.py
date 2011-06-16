@@ -23,16 +23,19 @@ JAVASCRIPT_DEBUG = False
 WEB_DIR = dirname( abspath(__file__) ) + '/'
 WEBAPP_DIR = dirname( dirname(WEB_DIR) ) + '/'
 GRAPHITE_ROOT = dirname( dirname(WEBAPP_DIR) ) + '/'
-CONF_DIR = GRAPHITE_ROOT + 'conf/'
 CONTENT_DIR = WEBAPP_DIR + 'content/'
-STORAGE_DIR = GRAPHITE_ROOT + 'storage/'
+THIRDPARTY_DIR = WEB_DIR + 'thirdparty/'
+
+CONF_DIR = os.environ.get('GRAPHITE_CONF_DIR', GRAPHITE_ROOT + 'conf/')
+STORAGE_DIR = os.environ.get('GRAPHITE_STORAGE_DIR', GRAPHITE_ROOT + 'storage/')
+
 WHISPER_DIR = STORAGE_DIR + 'whisper/'
 RRD_DIR = STORAGE_DIR + 'rrd/'
 LISTS_DIR = STORAGE_DIR + 'lists/'
 INDEX_FILE = STORAGE_DIR + 'index'
 WHITELIST_FILE = LISTS_DIR + 'whitelist'
 LOG_DIR = STORAGE_DIR + 'log/webapp/'
-THIRDPARTY_DIR = WEB_DIR + 'thirdparty/'
+
 CLUSTER_SERVERS = []
 
 sys.path.insert(0, THIRDPARTY_DIR)

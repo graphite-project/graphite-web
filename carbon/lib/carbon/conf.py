@@ -12,6 +12,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
+import os
 from os.path import join, dirname, normpath
 from optparse import OptionParser
 from ConfigParser import ConfigParser
@@ -179,16 +180,24 @@ def read_config(program, options, **kwargs):
     if settings.get("ROOT_DIR", None) is None:
         raise ValueError("ROOT_DIR needs to be provided.")
 
+    # Default config directory to root-relative, unless overriden by the
+    # 'GRAPHITE_CONF_DIR' environment variable.
+    settings.setdefault("CONF_DIR",
+                        os.environ.get("GRAPHITE_CONF_DIR",
+                                       join(settings.ROOT_DIR, "conf")))
     if options.config is None:
-        raise ValueError("--config needs to be provided.")
+        options.config = join(settings.CONF_DIR, "carbon.conf")
+    else:
+        # Set 'CONF_DIR' to the parent directory of the 'carbon.conf' config
+        # file.
+        settings["CONF_DIR"] = dirname(normpath(options.config))
 
-    # Default config directory to same directory as the specified carbon
-    # configuration file.
-    settings.setdefault("CONF_DIR", dirname(normpath(options.config)))
-
-    # Other settings default to relative paths from the root directory, for
-    # backwards-compatibility.
-    settings.setdefault("STORAGE_DIR", join(settings.ROOT_DIR, "storage"))
+    # Storage directory can be overriden by the 'GRAPHITE_STORAGE_DIR'
+    # environment variable. It defaults to a path relative to 'ROOT_DIR' for
+    # backwards compatibility though.
+    settings.setdefault("STORAGE_DIR",
+                        os.environ.get("GRAPHITE_STORAGE_DIR",
+                                       join(settings.ROOT_DIR, "storage")))
     settings.setdefault("LOG_DIR", join(settings.STORAGE_DIR, "log", program))
 
     # Read configuration options from program-specific section.
