@@ -1022,6 +1022,7 @@ function createOptionsMenu() {
       menuInputItem("Label", "vtitle"),
       menuInputItem("Minimum", "yMin"),
       menuInputItem("Maximum", "yMax"),
+      menuInputItem("Logarithmic Scale", "logBase", "Please enter the logarithmic base to use (ie. 10, e, etc...)"),
       {text: "Unit", menu: yAxisUnitMenu}
     ]
   });
@@ -1089,8 +1090,8 @@ function createColorMenu(param) {
   return colorPicker;
 }
 
-function menuInputItem(name, param) {
-  return new Ext.menu.Item({text: name, handler: paramPrompt(name, param)});
+function menuInputItem(name, param, question) {
+  return new Ext.menu.Item({text: name, handler: paramPrompt(question || name, param)});
 }
 
 function paramPrompt(question, param) {
