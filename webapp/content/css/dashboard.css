@@ -141,3 +141,15 @@ img.graph-img {
   font-family: sans-serif;
   font-weight: bold;
 }
+
+/* Metric selector grid stuff */
+.metric-toggled {
+  background-color: rgb(255, 230, 240);
+}
+.metric-toggled div {
+  font-style: italic;
+}
+
+.metric-not-toggled {
+  background-color: white;
+}
