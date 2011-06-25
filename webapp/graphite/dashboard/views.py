@@ -46,7 +46,7 @@ class DashboardConfig:
         self.ui_config[option] = default_value
 
     if parser.has_option('ui', 'automatic_variants'):
-      self.ui_config['automatic_variants']   = parser.getboolean('automatic_variants')
+      self.ui_config['automatic_variants']   = parser.getboolean('ui', 'automatic_variants')
     else:
       self.ui_config['automatic_variants'] = True
 
