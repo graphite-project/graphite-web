@@ -9,17 +9,13 @@ class IndexSearcher:
   def __init__(self, index_path):
     self.index_path = index_path
     self.last_mtime = 0
-    self._tree = {}
+    self._tree = (None, {}) # (data, children)
 
   @property
   def tree(self):
     current_mtime = getmtime(self.index_path)
     if current_mtime > self.last_mtime:
-      try:
-        self.reload()
-      except:
-        raise
-        raise SearchIndexCorrupt(self.index_path)
+      self.reload()
 
     return self._tree
 
@@ -27,18 +23,23 @@ class IndexSearcher:
     log.info("SearchIndex: reloading data from %s" % self.index_path)
     t = time.time()
     total_entries = 0
-    tree = {}
+    tree = (None, {}) # (data, children)
     for line in open(self.index_path):
       line = line.strip()
-      if not line: continue
+      if not line:
+        continue
+
       branches = line.split('.')
       leaf = branches.pop()
+      parent = None
       cursor = tree
       for branch in branches:
-        if branch not in cursor:
-          cursor[branch] = {}
-        cursor = cursor[branch]
-      cursor[leaf] = line
+        if branch not in cursor[1]:
+          cursor[1][branch] = (None, {}) # (data, children)
+        parent = cursor
+        cursor = cursor[1][branch]
+
+      cursor[1][leaf] = (line, {})
       total_entries += 1
 
     self._tree = tree
@@ -59,21 +60,20 @@ class IndexSearcher:
     if query_parts:
       my_query = query_parts[0]
       if is_pattern(my_query):
-        matches = [root[node] for node in match_entries(root, my_query)]
-      elif my_query in root:
-        matches = [ root[my_query] ]
+        matches = [root[1][node] for node in match_entries(root[1], my_query)]
+      elif my_query in root[1]:
+        matches = [ root[1][my_query] ]
       else:
         matches = []
 
     else:
-      matches = root.values()
+      matches = root[1].values()
 
     for child_node in matches:
-      if isinstance(child_node, basestring): # we've hit a match
-        yield child_node
-      else: # keep recursing
-        for result in self.subtree_query(child_node, query_parts[1:]):
-          yield result
+      if child_node[0] is not None:
+        yield child_node[0]
+      for result in self.subtree_query(child_node, query_parts[1:]):
+        yield result
 
   def apply_filters(self, node, filters):
     for filter_expr in filters:
