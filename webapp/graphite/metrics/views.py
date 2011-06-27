@@ -31,8 +31,16 @@ def autocomplete_view(request):
   query = str( request.REQUEST['query'].strip() )
   filters = [str(f.strip()) for f in request.REQUEST.getlist('filters') if f.strip()]
   max_results = int( request.REQUEST.get('max_results', 25) )
-  results = [dict(path=p) for p in searcher.search(query, filters, max_results)]
-  result_data = json.dumps( dict(metrics=results) )
+
+  results = set()
+  prefix_parts = query.split('.')
+  for path in searcher.search(query, filters, max_results):
+    path_parts = path.split('.')
+    corrected_path = '.'.join(prefix_parts + path_parts[len(prefix_parts):])
+    results.add(corrected_path)
+
+  result_objects = [ dict(path=path) for path in sorted(results) ]
+  result_data = json.dumps( dict(metrics=result_objects) )
   return HttpResponse(result_data, mimetype='text/json')
 
 
