@@ -275,7 +275,7 @@ function initDashboard () {
       store: new Ext.data.JsonStore({
         method: 'GET',
         url: '/metrics/autocomplete/',
-        //baseParams: {},
+        baseParams: {max_results: 100},
         fields: ['path'],
         root: 'metrics'
       }),
@@ -854,7 +854,7 @@ function graphAreaToggle(target, options) {
     graphTargetList = [graphTargetList];
   }
 
-  var existingIndex = graphStore.find('target', graphTargetString);
+  var existingIndex = graphStore.findExact('target', graphTargetString);
 
   if (existingIndex > -1) {
     if ( (options === undefined) || (!options.dontRemove) ) {
