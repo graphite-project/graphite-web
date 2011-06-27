@@ -19,6 +19,6 @@ TMP_INDEX="${GRAPHITE_ROOT}/storage/.index.tmp"
 rm -f $TMP_INDEX
 cd $WHISPER_DIR
 echo "[`date`]  building index..."
-find . -name '*.wsp' | perl -pe 's!^[^/]+/(.+)\.wsp$!$1!; s!/!.!g' > $TMP_INDEX
+find -L . -name '*.wsp' | perl -pe 's!^[^/]+/(.+)\.wsp$!$1!; s!/!.!g' > $TMP_INDEX
 echo "[`date`]  complete, switching to new index file"
 mv -f $TMP_INDEX $INDEX_FILE
