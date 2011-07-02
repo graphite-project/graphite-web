@@ -43,6 +43,7 @@ class IndexSearcher:
       total_entries += 1
 
     self._tree = tree
+    self.last_mtime = getmtime(self.index_path)
     log.info("SearchIndex: index reload took %.6f seconds (%d entries)" % (time.time() - t, total_entries))
 
   def search(self, query, filters=(), max_results=None, keep_query_pattern=False):
@@ -98,3 +99,4 @@ class SearchIndexCorrupt(StandardError):
 
 
 searcher = IndexSearcher(settings.INDEX_FILE)
+searcher.reload()
