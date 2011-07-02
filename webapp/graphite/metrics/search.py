@@ -45,11 +45,16 @@ class IndexSearcher:
     self._tree = tree
     log.info("SearchIndex: index reload took %.6f seconds (%d entries)" % (time.time() - t, total_entries))
 
-  def search(self, query, filters=(), max_results=None):
+  def search(self, query, filters=(), max_results=None, keep_query_pattern=False):
     query_parts = query.split('.')
     filters = [f.lower() for f in filters]
     results_found = 0
     for result in self.subtree_query(self.tree, query_parts):
+      # Overlay the query pattern on the resulting paths
+      if keep_query_pattern:
+        result_parts = result.split('.')
+        result = '.'.join(query_parts + result_parts[len(query_parts):])
+
       if self.apply_filters(result.lower(), filters):
         yield result
         results_found += 1

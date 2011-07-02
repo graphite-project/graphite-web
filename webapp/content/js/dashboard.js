@@ -275,7 +275,10 @@ function initDashboard () {
       store: new Ext.data.JsonStore({
         method: 'GET',
         url: '/metrics/autocomplete/',
-        baseParams: {max_results: 100},
+        baseParams: {
+          max_results: '100',
+          keep_query_pattern: '1'
+        },
         fields: ['path'],
         root: 'metrics'
       }),
