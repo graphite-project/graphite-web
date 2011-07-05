@@ -1,19 +1,26 @@
 import time
-from os.path import getmtime
+import subprocess
+import os.path
 from django.conf import settings
 from graphite.logger import log
 from graphite.storage import is_pattern, match_entries
 
-
 class IndexSearcher:
   def __init__(self, index_path):
     self.index_path = index_path
+    if not os.path.isfile(index_path) and os.path.exists(index_path):
+      log.exception("%s does not appear to be a file." % str(index_path));
+    else:
+      build_index_path = os.path.join(settings.GRAPHITE_ROOT, "bin/build-index.sh")
+      retcode = subprocess.call(build_index_path)
+      if retcode != 0:
+        log.exception("Couldn't build index file %s" % str(index_path))
     self.last_mtime = 0
     self._tree = (None, {}) # (data, children)
 
   @property
   def tree(self):
-    current_mtime = getmtime(self.index_path)
+    current_mtime = os.path.getmtime(self.index_path)
     if current_mtime > self.last_mtime:
       self.reload()
 
@@ -43,7 +50,7 @@ class IndexSearcher:
       total_entries += 1
 
     self._tree = tree
-    self.last_mtime = getmtime(self.index_path)
+    self.last_mtime = os.path.getmtime(self.index_path)
     log.info("SearchIndex: index reload took %.6f seconds (%d entries)" % (time.time() - t, total_entries))
 
   def search(self, query, filters=(), max_results=None, keep_query_pattern=False):
