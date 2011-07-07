@@ -982,11 +982,9 @@ class LineGraph(Graph):
     if self.area['xmin'] < xMin:
       self.area['xmin'] = xMin
     #scoot the graph over to the right just enough to fit the y-labels
-    print "yLabelWidthR = %d" % self.yLabelWidthR
     xMax = self.area['xmax'] - (self.yLabelWidthR * 1.02)
     if self.area['xmax'] >= xMax:
       self.area['xmax'] = xMax
-    # print "xMin %d, xMax %d" % (xMin, xMax)
 
   def getYLabelValues(self, minYValue, maxYValue, yStep=None):
     vals = []
@@ -1053,7 +1051,6 @@ class LineGraph(Graph):
           value = None
         elif yL < 0:
           yL = 0
-        # print "Drawing label %s at (%d, %d) for left axis.\n" % (labelL, xL, yL)
         self.drawText(labelL, xL, yL, align='right', valign='middle')
         
         ### Right Side
@@ -1064,10 +1061,8 @@ class LineGraph(Graph):
           valueR = None
         elif yR < 0:
           yR = 0
-        # print "Drawing label %s at (%d, %d) for right axis.\n" % (labelR, xR, yR)
         self.drawText(labelR, xR, yR, align='left', valign='middle') #Inverted for right side Y Axis
       
-
     (dt, x_label_delta) = find_x_times(self.start_dt, self.xConf['labelUnit'], self.xConf['labelStep'])
 
     #Draw the X-labels
@@ -1078,7 +1073,6 @@ class LineGraph(Graph):
       self.drawText(label, x, y, align='center', valign='top')
       dt += x_label_delta
 
-
   def drawGridLines(self):
     # Not sure how to handle this for 2 y-axes
     # Just using the left side info for the grid.  
@@ -1086,7 +1080,6 @@ class LineGraph(Graph):
     #Horizontal grid lines
     leftSide = self.area['xmin']
     rightSide = self.area['xmax']
-    # print "leftSide: %d, rightSide, %d" % (leftSide, rightSide)
     labels = []
     if self.secondYAxis:
       labels = self.yLabelValuesL
