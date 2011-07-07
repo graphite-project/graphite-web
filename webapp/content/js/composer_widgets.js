@@ -882,7 +882,8 @@ function createFunctionsMenu() {
         {text: 'Average using wildcards', handler: applyFuncToEachWithInput('averageSeriesWithWildcards', 'Please enter a comma separated list of numbers specifying the locations in the name to place wildcards')},
         {text: 'Min Values', handler: applyFuncToAll('minSeries')},
         {text: 'Max Values', handler: applyFuncToAll('maxSeries')},
-        {text: 'Group', handler: applyFuncToAll('group')}
+        {text: 'Group', handler: applyFuncToAll('group')}//,
+        // {text: 'Draw in Second Y Axis', handler: applyFuncToAll('secondYAxis')}
       ]
     }, {
       text: 'Transform',
@@ -938,7 +939,8 @@ function createFunctionsMenu() {
         {text: 'Dashed Line', handler: applyFuncToEach('dashed')},
         {text: 'Keep Last Value', handler: applyFuncToEach('keepLastValue')},
         {text: 'Substring', handler: applyFuncToEachWithInput('substr', 'Enter a starting position')},
-        {text: 'Add Threshold Line', handler: applyFuncToEachWithInput('threshold', 'Enter a threshold value')}
+        {text: 'Add Threshold Line', handler: applyFuncToEachWithInput('threshold', 'Enter a threshold value')},
+        {text: 'Draw in Second Y Axis', handler: applyFuncToEach('secondYAxis')}
       ]
     }
   ];
@@ -1014,6 +1016,7 @@ function createOptionsMenu() {
       menuRadioItem("yUnit", "Standard", "yUnitSystem", "si"),
       menuRadioItem("yUnit", "Binary", "yUnitSystem", "binary"),
       menuRadioItem("yUnit", "None", "yUnitSystem", "none")
+      
     ]
   });
 
@@ -1022,7 +1025,40 @@ function createOptionsMenu() {
       menuInputItem("Label", "vtitle"),
       menuInputItem("Minimum", "yMin"),
       menuInputItem("Maximum", "yMax"),
-      {text: "Unit", menu: yAxisUnitMenu}
+      {text: "Unit", menu: yAxisUnitMenu},
+      menuHelpItem("Second Y Axis", "To select metrics to associate with the second (right-side) y-axis, go into the Graph Data dialog box, highlight a metric, click Apply Functions, Special, Second Y Axis.")
+      
+    ]
+  });
+  var yAxisLeftMenu = new Ext.menu.Menu({
+    items: [
+      menuInputItem("Left Y Minimum", "yMinLeft"),
+      menuInputItem("Left Y Maximum", "yMaxLeft"),
+      menuInputItem("Left Y Limit", "yLimitLeft"),
+      menuInputItem("Left Y Step", "yStepLeft"),
+      menuInputItem("Left Line Width", "leftWidth"),
+      menuInputItem("Left Line Color", "leftColor"),
+      menuInputItem("Left Line Dashed (length, in px)", "leftDashed"),
+    
+    ]
+  });
+  var yAxisRightMenu = new Ext.menu.Menu({
+    items: [
+      menuInputItem("Right Y Minimum", "yMinRight"),
+      menuInputItem("Right Y Maximum", "yMinRight"),
+      menuInputItem("Right Y Limit", "yLimitRight"),
+      menuInputItem("Right Y Step", "yStepRight"),
+      menuInputItem("Right Line Width", "rightWidth"),
+      menuInputItem("Right Line Color", "rightColor"),
+      menuInputItem("Right Line Dashed (length, in px)", "rightDashed"),
+    
+    ]
+  });
+
+  var SecondYAxisMenu = new Ext.menu.Menu({
+    items: [
+      {text: "Left Y Axis", menu: yAxisLeftMenu},
+      {text: "Right Y Axis", menu: yAxisRightMenu}
     ]
   });
 
@@ -1031,6 +1067,7 @@ function createOptionsMenu() {
     items: [
       menuInputItem("Graph Title", "title"),
       {text: "Y Axis", menu: yAxisMenu},
+      {text: "Left/Right Y Axis Options", menu: SecondYAxisMenu},
       menuInputItem("Line Thickness", "lineWidth"),
       {text: "Area Mode", menu: areaMenu},
       menuCheckItem("Alpha Masking", "template", "alphas"),
@@ -1093,6 +1130,10 @@ function menuInputItem(name, param) {
   return new Ext.menu.Item({text: name, handler: paramPrompt(name, param)});
 }
 
+function menuHelpItem(name, message) {
+  return new Ext.menu.Item({text: name, handler: helpMessage('FYI', message)});
+}
+
 function paramPrompt(question, param) {
   return function (menuItem, e) {
     Ext.MessageBox.prompt(
@@ -1109,6 +1150,16 @@ function paramPrompt(question, param) {
   };
 }
 
+function helpMessage(myTitle, myMessage) {
+  return function (menuItem, e) {
+    Ext.MessageBox.show(
+        {title: myTitle,
+          msg: myMessage,
+          button: Ext.MessageBox.OK
+          }
+    );
+  };
+}
 var checkItems = [];
 function menuCheckItem(name, param, paramValue) {
   var checkItem = new Ext.menu.CheckItem({text: name, param: param, hideOnClick: false});
