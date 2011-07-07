@@ -10,28 +10,45 @@ from graphite.dashboard.models import Dashboard
 
 
 fieldRegex = re.compile(r'<([^>]+)>')
+defaultScheme = {
+  'name' : 'Everything',
+  'pattern' : '<category>',
+  'fields' : [ dict(name='category', label='Category') ],
+}
+defaultUIConfig = {
+  'default_graph_width'  : 400,
+  'default_graph_height' : 250,
+  'refresh_interval'     :  60,
+  'autocomplete_delay'   : 375,
+  'merge_hover_delay'    : 700,
+}
 
 
 class DashboardConfig:
   def __init__(self):
     self.last_read = 0
-    self.schemes = []
-    self.ui_config = {}
+    self.schemes = [defaultScheme]
+    self.ui_config = defaultUIConfig.copy()
 
   def check(self):
     if getmtime(settings.DASHBOARD_CONF) > self.last_read:
       self.load()
 
   def load(self):
-    schemes = []
+    schemes = [defaultScheme]
     parser = ConfigParser()
     parser.read(settings.DASHBOARD_CONF)
 
-    self.ui_config['default_graph_width'] = parser.getint('ui', 'default_graph_width')
-    self.ui_config['default_graph_height'] = parser.getint('ui', 'default_graph_height')
-    self.ui_config['automatic_variants'] = parser.getboolean('ui', 'automatic_variants')
-    self.ui_config['refresh_interval'] = parser.getint('ui', 'refresh_interval')
-    self.ui_config['merge_hover_delay'] = parser.getint('ui', 'merge_hover_delay')
+    for option, default_value in defaultUIConfig.items():
+      if parser.has_option('ui', option):
+        self.ui_config[option] = parser.getint('ui', option)
+      else:
+        self.ui_config[option] = default_value
+
+    if parser.has_option('ui', 'automatic_variants'):
+      self.ui_config['automatic_variants']   = parser.getboolean('ui', 'automatic_variants')
+    else:
+      self.ui_config['automatic_variants'] = True
 
     for section in parser.sections():
       if section == 'ui':

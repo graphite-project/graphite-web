@@ -8,6 +8,7 @@ default_graph_width = 400
 default_graph_height = 250
 automatic_variants = true
 refresh_interval = 60
+autocomplete_delay = 375
 merge_hover_delay = 750
 
 

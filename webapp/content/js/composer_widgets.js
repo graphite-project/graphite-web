@@ -882,8 +882,7 @@ function createFunctionsMenu() {
         {text: 'Average using wildcards', handler: applyFuncToEachWithInput('averageSeriesWithWildcards', 'Please enter a comma separated list of numbers specifying the locations in the name to place wildcards')},
         {text: 'Min Values', handler: applyFuncToAll('minSeries')},
         {text: 'Max Values', handler: applyFuncToAll('maxSeries')},
-        {text: 'Group', handler: applyFuncToAll('group')}//,
-        // {text: 'Draw in Second Y Axis', handler: applyFuncToAll('secondYAxis')}
+        {text: 'Group', handler: applyFuncToAll('group')}
       ]
     }, {
       text: 'Transform',
@@ -1025,9 +1024,9 @@ function createOptionsMenu() {
       menuInputItem("Label", "vtitle"),
       menuInputItem("Minimum", "yMin"),
       menuInputItem("Maximum", "yMax"),
+      menuInputItem("Logarithmic Scale", "logBase", "Please enter the logarithmic base to use (ie. 10, e, etc...)"),
       {text: "Unit", menu: yAxisUnitMenu},
       menuHelpItem("Second Y Axis", "To select metrics to associate with the second (right-side) y-axis, go into the Graph Data dialog box, highlight a metric, click Apply Functions, Special, Second Y Axis.")
-      
     ]
   });
   var yAxisLeftMenu = new Ext.menu.Menu({
@@ -1126,8 +1125,8 @@ function createColorMenu(param) {
   return colorPicker;
 }
 
-function menuInputItem(name, param) {
-  return new Ext.menu.Item({text: name, handler: paramPrompt(name, param)});
+function menuInputItem(name, param, question) {
+  return new Ext.menu.Item({text: name, handler: paramPrompt(question || name, param)});
 }
 
 function menuHelpItem(name, message) {
