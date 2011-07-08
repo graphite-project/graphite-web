@@ -2,6 +2,7 @@ from carbon import log
 
 
 class EventHandler:
+
   def __init__(self, defaultHandler=None):
     self.handler = defaultHandler
 

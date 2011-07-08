@@ -16,26 +16,29 @@ limitations under the License."""
 import os
 import time
 from os.path import join, exists, dirname, basename
-from threading import Thread
-from twisted.internet import reactor
-from twisted.internet.task import LoopingCall
-import whisper
-from carbon.cache import MetricCache
-from carbon.storage import getFilesystemPath, loadStorageSchemas
-from carbon.conf import settings
-from carbon.instrumentation import increment, append
-from carbon import log
+
 try:
   import cPickle as pickle
 except ImportError:
   import pickle
 
-if settings.WHISPER_AUTOFLUSH:
-  log.msg("enabling whisper autoflush")
-  whisper.AUTOFLUSH = True
+import whisper
+
+from carbon.cache import MetricCache
+from carbon.storage import getFilesystemPath, loadStorageSchemas
+from carbon.conf import settings
+from carbon.instrumentation import increment, append
+from carbon import log
+
+from twisted.internet import reactor
+from twisted.internet.task import LoopingCall
+from twisted.application.service import Service
+
 
 lastCreateInterval = 0
 createCount = 0
+schemas = loadStorageSchemas()
+
 
 def optimalWriteOrder():
   "Generates metrics with the most cached values first and applies a soft rate limit on new metrics"
@@ -177,10 +180,16 @@ def reloadStorageSchemas():
     log.err()
 
 
-schemaReloadTask = LoopingCall(reloadStorageSchemas)
-schemas = loadStorageSchemas()
+class WriterService(Service):
 
+    def __init__(self):
+        self.reload_task = LoopingCall(reloadStorageSchemas)
 
-def startWriter():
-  schemaReloadTask.start(60)
-  reactor.callInThread(writeForever)
+    def startService(self):
+        self.reload_task.start(60, False)
+        reactor.callInThread(writeForever)
+        Service.startService(self)
+
+    def stopService(self):
+        self.reload_task.stop()
+        Service.stopService(self)

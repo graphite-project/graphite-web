@@ -147,11 +147,12 @@ class AMQPReconnectingFactory(ReconnectingClientFactory):
         p.factory = self
         return p
 
-def startReceiver(host, port, username, password, vhost, exchange_name,
-                  spec=None, channel=1, verbose=False):
-    """Starts a twisted process that will read messages on the amqp broker
-    and post them as metrics."""
 
+def createAMQPListener(username, password, vhost, exchange_name,
+                       spec=None, channel=1, verbose=False):
+    """
+    Create an C{AMQPReconnectingFactory} configured with the specified options.
+    """
     # use provided spec if not specified
     if not spec:
         spec = txamqp.spec.load(os.path.normpath(
@@ -161,6 +162,17 @@ def startReceiver(host, port, username, password, vhost, exchange_name,
     factory = AMQPReconnectingFactory(username, password, delegate, vhost,
                                       spec, channel, exchange_name,
                                       verbose=verbose)
+    return factory
+
+
+def startReceiver(host, port, username, password, vhost, exchange_name,
+                  spec=None, channel=1, verbose=False):
+    """
+    Starts a twisted process that will read messages on the amqp broker and
+    post them as metrics.
+    """
+    factory = createAMQPListener(username, password, vhost, exchange_name,
+                                 spec=spec, channel=channel, verbose=verbose)
     reactor.connectTCP(host, port, factory)
 
 

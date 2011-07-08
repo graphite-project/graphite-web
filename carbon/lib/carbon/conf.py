@@ -13,9 +13,18 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 import os
-from os.path import join, dirname, normpath
+import sys
+import pwd
+
+from os.path import join, dirname, normpath, abspath, basename, exists
 from optparse import OptionParser
 from ConfigParser import ConfigParser
+
+import whisper
+from carbon import log
+
+from twisted.python import usage
+from twisted.scripts import twistd
 
 
 defaults = dict(
@@ -118,6 +127,51 @@ settings = Settings()
 settings.update(defaults)
 
 
+class CarbonServerOptions(usage.Options):
+
+    optParameters = [
+        ["config", "c", None, "Use the given config file."],
+        ["instance", "", None, "Manage a specific carbon instance."],
+        ["logdir", "", None, "Write logs to the given directory."],
+        ["pidfile", "", None, "Name of the pidfile"],
+        ]
+
+    def postOptions(self):
+        global settings
+        ROOT_DIR = dirname(dirname(abspath(self["python"])))
+        program = basename(self["python"]).split('.')[0]
+        program_settings = read_config(program, self, ROOT_DIR=ROOT_DIR)
+        settings.update(program_settings)
+
+        settings["program"] = program
+
+        if settings.USER:
+            self["uid"], self["gid"] = pwd.getpwnam(settings.USER)[2:4]
+
+        self["pidfile"] = settings["pidfile"]
+
+        storage_schemas = join(settings["CONF_DIR"], "storage-schemas.conf")
+        if not exists(storage_schemas):
+            print "Error: missing required config %s" % storage_schemas
+            sys.exit(1)
+
+        if settings.WHISPER_AUTOFLUSH:
+            log.msg("enabling whisper autoflush")
+            whisper.AUTOFLUSH = True
+
+
+class ServerOptions(CarbonServerOptions, twistd.ServerOptions):
+
+    optParameters = (
+        twistd.ServerOptions.optParameters +
+        CarbonServerOptions.optParameters
+        )
+
+    def postOptions(self):
+        twistd.ServerOptions.postOptions(self)
+        CarbonServerOptions.postOptions(self)
+
+
 def get_default_parser(usage="%prog [options] <start|stop|status>"):
     """Create a parser for command line options."""
     parser = OptionParser(usage=usage)
@@ -167,7 +221,7 @@ def parse_options(parser, args):
 def read_config(program, options, **kwargs):
     """
     Read settings for 'program' from configuration file specified by
-    'options.config', with missing values provided by 'defaults'.
+    'options["config"]', with missing values provided by 'defaults'.
     """
     settings = Settings()
     settings.update(defaults)
@@ -184,40 +238,44 @@ def read_config(program, options, **kwargs):
     # 'GRAPHITE_CONF_DIR' environment variable.
     settings.setdefault("CONF_DIR",
                         os.environ.get("GRAPHITE_CONF_DIR",
-                                       join(settings.ROOT_DIR, "conf")))
-    if options.config is None:
-        options.config = join(settings.CONF_DIR, "carbon.conf")
+                                       join(settings["ROOT_DIR"], "conf")))
+    if options["config"] is None:
+        options["config"] = join(settings["CONF_DIR"], "carbon.conf")
     else:
         # Set 'CONF_DIR' to the parent directory of the 'carbon.conf' config
         # file.
-        settings["CONF_DIR"] = dirname(normpath(options.config))
+        settings["CONF_DIR"] = dirname(normpath(options["config"]))
 
     # Storage directory can be overriden by the 'GRAPHITE_STORAGE_DIR'
     # environment variable. It defaults to a path relative to 'ROOT_DIR' for
     # backwards compatibility though.
     settings.setdefault("STORAGE_DIR",
                         os.environ.get("GRAPHITE_STORAGE_DIR",
-                                       join(settings.ROOT_DIR, "storage")))
-    settings.setdefault("LOG_DIR", join(settings.STORAGE_DIR, "log", program))
+                                       join(settings["ROOT_DIR"], "storage")))
+    settings.setdefault(
+        "LOG_DIR", join(settings["STORAGE_DIR"], "log", program))
 
     # Read configuration options from program-specific section.
     section = program[len("carbon-"):]
-    settings.readFrom(options.config, section)
+    settings.readFrom(options["config"], section)
 
     # If a specific instance of the program is specified, augment the settings
     # with the instance-specific settings and provide sane defaults for
     # optional settings.
-    if options.instance:
-        settings.readFrom(options.config, "%s:%s" % (section, options.instance))
-        settings["pidfile"] = (options.pidfile or
-                               join(settings.STORAGE_DIR,
-                                    "%s-%s.pid" % (program, options.instance)))
-        settings["LOG_DIR"] = (options.logdir or
-                              "%s-%s" % (settings.LOG_DIR.rstrip('/'),
-                                          options.instance))
+    if options["instance"]:
+        settings.readFrom(options["config"],
+                          "%s:%s" % (section, options["instance"]))
+        settings["pidfile"] = (
+            options["pidfile"] or
+            join(settings["STORAGE_DIR"], "%s-%s.pid" %
+                 (program, options["instance"])))
+        settings["LOG_DIR"] = (options["logdir"] or
+                              "%s-%s" % (settings["LOG_DIR"].rstrip('/'),
+                                          options["instance"]))
     else:
-        settings["pidfile"] = (options.pidfile or
-                               join(settings.STORAGE_DIR, '%s.pid' % program))
-        settings["LOG_DIR"] = (options.logdir or settings.LOG_DIR)
+        settings["pidfile"] = (
+            options["pidfile"] or
+            join(settings["STORAGE_DIR"], '%s.pid' % program))
+        settings["LOG_DIR"] = (options["logdir"] or settings["LOG_DIR"])
 
     return settings
