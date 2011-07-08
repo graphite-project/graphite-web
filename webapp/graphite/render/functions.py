@@ -528,11 +528,22 @@ def stdev(requestContext, seriesList, time):
 
   return seriesList
 
+def secondYAxis(requestContext, seriesList):
+  for series in seriesList:
+    series.options['secondYAxis'] = True
+    series.name= 'secondYAxis(%s)' % series.name
+  return seriesList
 
 def drawAsInfinite(requestContext, seriesList):
   for series in seriesList:
     series.options['drawAsInfinite'] = True
     series.name = 'drawAsInfinite(%s)' % series.name
+  return seriesList
+
+def secondYAxis(requestContext, seriesList):
+  for series in seriesList:
+    series.options['secondYAxis'] = True
+    series.name = 'secondYAxis(%s)' % series.name
   return seriesList
 
 def lineWidth(requestContext, seriesList, width):
@@ -772,6 +783,7 @@ SeriesFunctions = {
   'cumulative' : cumulative,
   'keepLastValue' : keepLastValue,
   'drawAsInfinite' : drawAsInfinite,
+  'secondYAxis': secondYAxis,
   'lineWidth' : lineWidth,
   'dashed' : dashed,
   'substr' : substr,

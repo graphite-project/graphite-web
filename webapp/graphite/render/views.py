@@ -256,9 +256,9 @@ def delegateRendering(graphType, graphOptions):
       except CannotSendRequest:
         connection = HTTPConnectionWithTimeout(server) #retry once
         connection.timeout = settings.REMOTE_RENDER_CONNECT_TIMEOUT
-        conn.request('POST', '/render/local/', postData)
+        connection.request('POST', '/render/local/', postData)
       # Read the response
-      response = conn.getresponse()
+      response = connection.getresponse()
       assert response.status == 200, "Bad response code %d from %s" % (response.status,server)
       contentType = response.getheader('Content-Type')
       imageData = response.read()
