@@ -24,9 +24,6 @@ def dropprivs(user):
 
 
 def run_tac(tac_file):
-    from carbon.log import logToDir
-    from carbon.conf import settings
-
     plugins = {}
     for plug in plugin.getPlugins(service.IServiceMaker):
         plugins[plug.tapname] = plug
@@ -34,14 +31,7 @@ def run_tac(tac_file):
     program = basename(tac_file).split('.')[0]
     config = plugins[program].options()
     config["python"] = tac_file
-    config["umask"] = 022
     config.parseOptions()
-
-    if not config["nodaemon"]:
-        logdir = settings.LOG_DIR
-        if not isdir(logdir):
-            os.makedirs(logdir)
-        logToDir(logdir)
 
     # This isn't as evil as you might think
     __builtins__["instance"] = config["instance"]

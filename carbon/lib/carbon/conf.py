@@ -16,7 +16,7 @@ import os
 import sys
 import pwd
 
-from os.path import join, dirname, normpath, abspath, basename, exists
+from os.path import join, dirname, normpath, abspath, basename, exists, isdir
 from optparse import OptionParser
 from ConfigParser import ConfigParser
 
@@ -53,6 +53,10 @@ defaults = dict(
   RELAY_METHOD='rules',
   CH_HOST_LIST=[],
 )
+
+
+def _umask(value):
+    return int(value, 8)
 
 
 class OrderedConfigParser(ConfigParser):
@@ -134,6 +138,8 @@ class CarbonServerOptions(usage.Options):
         ["instance", "", None, "Manage a specific carbon instance."],
         ["logdir", "", None, "Write logs to the given directory."],
         ["pidfile", "", None, "Name of the pidfile"],
+        ['umask', None, 022,
+         "The (octal) file creation mask to apply.", _umask],
         ]
 
     def postOptions(self):
@@ -165,6 +171,12 @@ class CarbonServerOptions(usage.Options):
         if settings.WHISPER_AUTOFLUSH:
             log.msg("enabling whisper autoflush")
             whisper.AUTOFLUSH = True
+
+        if not self["nodaemon"]:
+            logdir = settings.LOG_DIR
+            if not isdir(logdir):
+                os.makedirs(logdir)
+            log.logToDir(logdir)
 
 
 class CarbonCacheOptions(CarbonServerOptions, twistd.ServerOptions):
