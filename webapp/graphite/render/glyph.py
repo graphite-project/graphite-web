@@ -972,9 +972,9 @@ class LineGraph(Graph):
       self.yLabelsR.append( makeLabel(value,self.yStepR,self.ySpanR) )
     self.yLabelWidthL = max([self.getExtents(label)['width'] for label in self.yLabelsL])
     # The next line seems to set a value much too large in most cases
-    # By subtracting 17px, the right side axis looks much nicer.
+    # By subtracting 10 px, the right side axis looks much nicer.
     # Tested with standard, binary, and none yAxis units.
-    self.yLabelWidthR = max([self.getExtents(label)['width'] for label in self.yLabelsR]) - 17 
+    self.yLabelWidthR = max([self.getExtents(label)['width'] for label in self.yLabelsR]) - 10 
     #scoot the graph over to the left just enough to fit the y-labels
         
     #xMin = self.margin + self.margin + (self.yLabelWidthL * 1.02)
