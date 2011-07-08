@@ -16,7 +16,7 @@ class CarbonRelayServiceMaker(object):
 
     def makeService(self, options):
         """
-        Construct a C{carbon-aggregator} service.
+        Construct a C{carbon-relay} service.
         """
         return service.createRelayService(options)
 
