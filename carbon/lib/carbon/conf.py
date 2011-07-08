@@ -160,7 +160,7 @@ class CarbonServerOptions(usage.Options):
             whisper.AUTOFLUSH = True
 
 
-class ServerOptions(CarbonServerOptions, twistd.ServerOptions):
+class CarbonCacheOptions(CarbonServerOptions, twistd.ServerOptions):
 
     optParameters = (
         twistd.ServerOptions.optParameters +
@@ -170,6 +170,44 @@ class ServerOptions(CarbonServerOptions, twistd.ServerOptions):
     def postOptions(self):
         twistd.ServerOptions.postOptions(self)
         CarbonServerOptions.postOptions(self)
+
+
+class CarbonAggregatorOptions(CarbonCacheOptions):
+
+    optParameters = [
+        ["rules", "", None, "Use the given aggregation rules file."],
+        ["rewrite-rules", "", None, "Use the given rewrite rules file."],
+        ] + CarbonCacheOptions.optParameters
+
+    def postOptions(self):
+        CarbonCacheOptions.postOptions(self)
+        if self["rules"] is None:
+            self["rules"] = join(settings["CONF_DIR"], "aggregation-rules.conf")
+        settings["aggregation-rules"] = self["rules"]
+
+        if self["rewrite-rules"] is None:
+            self["rewrite-rules"] = join(settings["CONF_DIR"],
+                                         "rewrite-rules.conf")
+        settings["rewrite-rules"] = self["rewrite-rules"]
+
+
+class CarbonRelayOptions(CarbonCacheOptions):
+
+    optParameters = [
+        ["rules", "", None, "Use the given relay rules file."],
+        ] + CarbonCacheOptions.optParameters
+
+    def postOptions(self):
+        CarbonCacheOptions.postOptions(self)
+        if self["rules"] is None:
+            self["rules"] = join(settings["CONF_DIR"], "relay-rules.conf")
+        settings["relay-rules"] = self["rules"]
+
+        if settings["RELAY_METHOD"] not in ("rules", "consistent-hashing"):
+            print ("In carbon.conf, RELAY_METHOD must be either 'rules' or "
+                   "'consistent-hashing'. Invalid value: '%s'" %
+                   settings.RELAY_METHOD)
+            sys.exit(1)
 
 
 def get_default_parser(usage="%prog [options] <start|stop|status>"):

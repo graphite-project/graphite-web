@@ -1,9 +1,12 @@
 import os
-import sys
 import pwd
 
-from os.path import dirname, basename, abspath, isdir
+from os.path import basename, isdir
 
+import carbon
+
+from twisted.application import service
+from twisted import plugin
 from twisted.python.util import initgroups
 from twisted.scripts.twistd import runApp
 from twisted.scripts._twistd_unix import daemonize
@@ -22,14 +25,17 @@ def dropprivs(user):
 
 def run_tac(tac_file):
     from carbon.log import logToDir
-    from carbon.conf import ServerOptions, settings
+    from carbon.conf import settings
 
-    config = ServerOptions()
+    plugins = {}
+    for plug in plugin.getPlugins(service.IServiceMaker):
+        plugins[plug.tapname] = plug
+
+    program = basename(tac_file).split('.')[0]
+    config = plugins[program].options()
     config["python"] = tac_file
     config["umask"] = 022
     config.parseOptions()
-
-    program = basename(tac_file).split('.')[0]
 
     if not config["nodaemon"]:
         logdir = settings.LOG_DIR

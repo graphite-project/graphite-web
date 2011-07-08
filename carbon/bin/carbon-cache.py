@@ -43,5 +43,5 @@ from carbon import service
 
 application = Application("carbon-cache")
 
-carbon_cache_service = service.createCacheService(None)
-carbon_cache_service.setServiceParent(application)
+cache_service = service.createCacheService(None)
+cache_service.setServiceParent(application)

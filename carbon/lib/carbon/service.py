@@ -13,17 +13,16 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
+from os.path import exists
+
 from twisted.application.service import MultiService
 from twisted.application.internet import TCPServer, TCPClient
 from twisted.internet.protocol import ServerFactory
 
 
-def createCacheService(config):
-    from carbon.cache import MetricCache
+def createBaseService(config):
     from carbon.conf import settings
-    from carbon.events import metricReceived
-    from carbon.listeners import (MetricLineReceiver, MetricPickleReceiver,
-                                  CacheQueryHandler)
+    from carbon.listeners import MetricLineReceiver, MetricPickleReceiver
 
     root_service = MultiService()
     root_service.setName(settings.program)
@@ -42,18 +41,12 @@ def createCacheService(config):
         amqp_exchange_name = settings.get("AMQP_EXCHANGE", "graphite")
 
 
-    # Configure application components
-    metricReceived.installHandler(MetricCache.store)
-
     for interface, port, protocol in ((settings.LINE_RECEIVER_INTERFACE,
                                        settings.LINE_RECEIVER_PORT,
                                        MetricLineReceiver),
                                       (settings.PICKLE_RECEIVER_INTERFACE,
                                        settings.PICKLE_RECEIVER_PORT,
-                                       MetricPickleReceiver),
-                                      (settings.CACHE_QUERY_INTERFACE,
-                                       settings.CACHE_QUERY_PORT,
-                                       CacheQueryHandler)):
+                                       MetricPickleReceiver)):
         factory = ServerFactory()
         factory.protocol = protocol
         service = TCPServer(int(port), factory, interface=interface)
@@ -88,5 +81,77 @@ def createCacheService(config):
 
     service = InstrumentationService()
     service.setServiceParent(root_service)
+
+    return root_service
+
+
+def createCacheService(config):
+    from carbon.cache import MetricCache
+    from carbon.conf import settings
+    from carbon.events import metricReceived
+    from carbon.listeners import CacheQueryHandler
+
+    # Configure application components
+    metricReceived.installHandler(MetricCache.store)
+
+    root_service = createBaseService(config)
+    factory = ServerFactory()
+    factory.protocol = CacheQueryHandler
+    service = TCPServer(int(settings.CACHE_QUERY_PORT), factory,
+                        interface=settings.CACHE_QUERY_INTERFACE)
+    service.setServiceParent(root_service)
+
+    # have to import this *after* settings are defined
+    from carbon.writer import WriterService
+
+    service = WriterService()
+    service.setServiceParent(root_service)
+
+    return root_service
+
+
+def createAggregatorService(config):
+    from carbon.events import metricReceived
+    from carbon.aggregator import receiver
+    from carbon.aggregator.rules import RuleManager
+    from carbon.aggregator import client
+    from carbon.rewrite import RewriteRuleManager
+    from carbon.conf import settings
+
+    root_service = createBaseService(config)
+
+    # Configure application components
+    metricReceived.installHandler(receiver.process)
+    RuleManager.read_from(settings["aggregation-rules"])
+    if exists(settings["rewrite-rules"]):
+        RewriteRuleManager.read_from(settings["rewrite-rules"])
+
+    client.connect(settings["DESTINATION_HOST"],
+                   int(settings["DESTINATION_PORT"]))
+
+    return root_service
+
+
+def createRelayService(config):
+    from carbon.log import msg
+    from carbon.conf import settings
+    from carbon.events import metricReceived
+    from carbon.hashing import setDestinationHosts
+    from carbon.relay import createClientConnections, relay
+    from carbon.rules import loadRules, allDestinationServers, parseHostList
+
+    root_service = createBaseService(config)
+
+    # Configure application components
+    metricReceived.installHandler(relay)
+
+    if settings["RELAY_METHOD"] == "rules":
+        loadRules(settings["relay-rules"])
+        createClientConnections(allDestinationServers())
+    elif settings["RELAY_METHOD"] == "consistent-hashing":
+        hosts = parseHostList(settings["CH_HOST_LIST"])
+        msg('consistent-hashing hosts = %s' % str(hosts))
+        setDestinationHosts(hosts)
+        createClientConnections(hosts)
 
     return root_service
