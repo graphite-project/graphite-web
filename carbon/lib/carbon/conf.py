@@ -138,8 +138,15 @@ class CarbonServerOptions(usage.Options):
 
     def postOptions(self):
         global settings
-        ROOT_DIR = dirname(dirname(abspath(self["python"])))
-        program = basename(self["python"]).split('.')[0]
+
+        if self["python"] is not None:
+            ROOT_DIR = dirname(dirname(abspath(self["python"])))
+            program = basename(self["python"] or sys.argv[0]).split('.')[0]
+        else:
+            if self.parent is not None and self.parent.subCommand is not None:
+                ROOT_DIR = os.getcwd()
+                program = self.parent.subCommand
+
         program_settings = read_config(program, self, ROOT_DIR=ROOT_DIR)
         settings.update(program_settings)
 
