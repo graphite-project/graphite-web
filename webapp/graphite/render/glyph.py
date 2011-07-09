@@ -120,10 +120,13 @@ class Graph:
     self.userTimeZone = params.get('tz')
     self.logBase = params.get('logBase', None)
     if self.logBase:
-        if self.logBase == 'e':
-            self.logBase = math.e
-        else:
-            self.logBase = float(self.logBase)
+      if self.logBase == 'e':
+        self.logBase = math.e
+      elif self.logBase <= 0:
+        self.logBase = None
+        params['logBase'] = None
+      else:
+        self.logBase = float(self.logBase)
 
     if self.margin < 0:
       self.margin = 10
