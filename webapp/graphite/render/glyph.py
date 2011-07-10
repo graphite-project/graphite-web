@@ -50,6 +50,19 @@ colorAliases = {
   'darkgrey' : (111,111,111),
 }
 
+# This gets overriden by graphTemplates.conf
+defaultGraphOptions = dict(
+  background='black',
+  foreground='white',
+  majorline='white',
+  minorline='grey',
+  linecolors='blue,green,red,purple,brown,yellow,aqua,grey,magenta,pink,gold,rose',
+  fontname='Sans',
+  fontsize=10,
+  fontbold='false',
+  fontitalic='false',
+)
+
 #X-axis configurations (copied from rrdtool, this technique is evil & ugly but effective)
 SEC = 1
 MIN = 60
@@ -317,12 +330,15 @@ class Graph:
 
   def loadTemplate(self,template):
     conf = SafeConfigParser()
-    conf.read(settings.GRAPHTEMPLATES_CONF)
-    defaults = dict( conf.items('default') )
-    if template in conf.sections():
-      opts = dict( conf.items(template) )
+    if conf.read(settings.GRAPHTEMPLATES_CONF):
+      defaults = dict( conf.items('default') )
+      if template in conf.sections():
+        opts = dict( conf.items(template) )
+      else:
+        opts = defaults
     else:
-      opts = defaults
+      opts = defaults = defaultGraphOptions
+
     self.defaultBackground = opts.get('background', defaults['background'])
     self.defaultForeground = opts.get('foreground', defaults['foreground'])
     self.defaultMajorGridLineColor = opts.get('majorline', defaults['majorline'])
