@@ -103,7 +103,7 @@ class ListSchema(Schema):
     self.name = name
     self.listName = listName
     self.archives = archives
-    self.path = join(WHITELISTS_DIR, listName)
+    self.path = join(settings.WHITELISTS_DIR, listName)
 
     if exists(self.path):
       self.mtime = os.stat(self.path).st_mtime
