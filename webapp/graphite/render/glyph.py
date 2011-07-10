@@ -316,9 +316,8 @@ class Graph:
         y += lineHeight
 
   def loadTemplate(self,template):
-    confFile = os.path.join(settings.WEB_DIR,'render','graphTemplates.conf')
     conf = SafeConfigParser()
-    conf.read(confFile)
+    conf.read(settings.GRAPHTEMPLATES_CONF)
     defaults = dict( conf.items('default') )
     if template in conf.sections():
       opts = dict( conf.items(template) )
