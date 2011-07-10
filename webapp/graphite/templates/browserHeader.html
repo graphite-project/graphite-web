@@ -73,21 +73,11 @@ img.toolbar:active {
 <!-- Right side (only works in firefox for some reason) -->
 <!--
 <div id="rightSide" style='font-size: smaller;'>
- <a href="http://graphite.prod.o.com/" target="_top">production</a><br/>
- <a href="http://graphite.stag.o.com/" target="_top">pre-production</a><br/>
 </div>
 -->
 
 <!-- Left side -->
 <table style='display: inline' cellpadding=0 cellspacing=0>
-
- <tr><td style='font-size: smaller;'>
-  <a href="/dashboard/" target="_top">Dashboard UI</a>
- </td></tr>
-
- <tr><td style='font-size: smaller;'>
-  <a href="/cli/" target="_top">Command-Line Interface</a>
- </td></tr>
 
  <tr><td style='font-size: smaller;'>
   {% if user.is_authenticated %}
@@ -102,6 +92,12 @@ img.toolbar:active {
   {% if documentation_url %}
    <a href="{{documentation_url}}" target="_newWindow">Documentation</a>
   {% endif %}
+ </td></tr>
+
+ <tr><td style='font-size: smaller;'>
+  User Interface: <a href="/dashboard/" target="_top">Dashboard</a> |
+  <a href="/graphlot/" target="_top">flot (experimental)</a> |
+  <a href="/cli/" target="_top">Command-Line (deprecated)</a>
  </td></tr>
 
 </table>
