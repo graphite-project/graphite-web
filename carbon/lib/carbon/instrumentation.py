@@ -73,6 +73,7 @@ def recordMetrics():
     creates = myStats.get('creates', 0)
     errors = myStats.get('errors', 0)
     cacheQueries = myStats.get('cacheQueries', 0)
+    cacheOverflow = myStats.get('cache.overflow', 0)
 
     if updateTimes:
       avgUpdateTime = sum(updateTimes) / len(updateTimes)
@@ -89,6 +90,7 @@ def recordMetrics():
     record('cache.queries', cacheQueries)
     record('cache.queues', len(MetricCache))
     record('cache.size', MetricCache.size)
+    record('cache.overflow', cacheOverflow)
 
   # relay metrics
   elif program == 'carbon-relay':

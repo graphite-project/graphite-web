@@ -12,48 +12,49 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
+from threading import Lock
 from carbon.conf import settings
+from carbon.instrumentation import increment
 from carbon import log
 
 
 class MetricCache(dict):
   def __init__(self):
     self.size = 0
-
+    self.lock = Lock()
 
   def __setitem__(self, key, value):
     raise TypeError("Use store() method instead!")
 
-
   def store(self, metric, datapoint):
     if self.isFull():
+      increment('cache.overflow')
       return
 
     metric = '.'.join(part for part in metric.split('.') if part) # normalize the path
-
-    try: # This is a hackish but very efficient technique for concurrent dict access without locking (the GIL does it for me)
-      datapoints = dict.pop(self, metric)
-    except KeyError:
-      datapoints = []
-
-    datapoints.append(datapoint)
-    dict.__setitem__(self, metric, datapoints)
-    self.size += 1
-
+    try:
+      self.lock.acquire()
+      datapoints = self.get(metric, [])
+      datapoints.append(datapoint)
+      self.size += 1
+      dict.__setitem__(self, metric, datapoints)
+    finally:
+      self.lock.release()
 
   def isFull(self):
     return self.size >= settings.MAX_CACHE_SIZE
 
-
-  def pop(self, metric): # This raises a KeyError if a metric is concurrently having store() called on it, simply ignore and pop another
-    datapoints = dict.pop(self, metric)
-    self.size -= len(datapoints)
-    return datapoints
-
+  def pop(self, metric):
+    try:
+      self.lock.acquire()
+      datapoints = dict.pop(self, metric)
+      self.size -= len(datapoints)
+      return datapoints
+    finally:
+      self.lock.release()
 
   def counts(self):
     return [ (metric, len(datapoints)) for (metric, datapoints) in self.items() ]
 
-  
 
 MetricCache = MetricCache()
