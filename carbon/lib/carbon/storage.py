@@ -14,7 +14,7 @@ limitations under the License."""
 
 import os, re
 from os.path import join, exists
-from carbon.conf import OrderedConfigParser, Settings, settings
+from carbon.conf import OrderedConfigParser, settings
 
 try:
   import cPickle as pickle
@@ -22,8 +22,8 @@ except ImportError:
   import pickle
 
 
-STORAGE_SCHEMAS_CONFIG = join(CONF_DIR, 'storage-schemas.conf')
-STORAGE_LISTS_DIR = join(CONF_DIR, 'lists')
+STORAGE_SCHEMAS_CONFIG = join(settings.CONF_DIR, 'storage-schemas.conf')
+STORAGE_LISTS_DIR = join(settings.CONF_DIR, 'lists')
 
 
 def getFilesystemPath(metric):
