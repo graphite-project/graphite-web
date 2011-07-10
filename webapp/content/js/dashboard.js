@@ -37,11 +37,7 @@ var navBarNorthConfig = {
   title: "untitled",
   height: 220,
   listeners: {
-    expand: function () {
-              if (metricSelectorTextField) {
-                metricSelectorTextField.focus(false, 50); 
-              }
-            }
+    expand: function() { focusCompleter(); } // defined below
   }
 };
 
@@ -137,7 +133,7 @@ function initDashboard () {
         listeners: {
           beforequery: buildQuery,
           change: contextFieldChanged,
-          select: function (thisField) { thisField.triggerBlur(); },
+          select: function (thisField) { thisField.triggerBlur(); focusCompleter(); },
           afterrender: function (thisField) { thisField.hide(); },
           hide: function (thisField) { thisField.getEl().up('.x-form-item').setDisplayed(false); },
           show: function (thisField) { thisField.getEl().up('.x-form-item').setDisplayed(true); }
@@ -167,13 +163,14 @@ function initDashboard () {
       afterrender: function (combo) {
         var value = (queryString.metricType) ? queryString.metricType : getContextFieldCookie('metric-type');
 
-        if (value && value.length > 0) {
-          var index = combo.store.find("name", value);
-          if (index > -1) {
-            var record = combo.store.getAt(index);
-            combo.setValue(value);
-            metricTypeSelected.defer(250, this, [combo, record, index]);
-          }
+        if (!value) {
+          value = "Everything";
+        }
+        var index = combo.store.find("name", value);
+        if (index > -1) {
+          var record = combo.store.getAt(index);
+          combo.setValue(value);
+          metricTypeSelected.defer(250, this, [combo, record, index]);
         }
       },
       select: metricTypeSelected
@@ -288,7 +285,7 @@ function initDashboard () {
                     graphAreaToggle(record.data.path);
                     thisGrid.getView().refresh();
                     thisGrid.getSelectionModel().clearSelections();
-                    metricSelectorTextField.focus(false, 50); 
+                    focusCompleter();
                   }
       }
     });
@@ -306,9 +303,7 @@ function initDashboard () {
       listeners: {
         keypress: completerKeyPress,
         specialkey: completerKeyPress,
-        afterrender: function () {
-                       metricSelectorTextField.focus(false, 50);
-                     }
+        afterrender: focusCompleter
       }
     });
     metricSelector = new Ext.Panel({
@@ -693,6 +688,7 @@ function metricTypeSelected (combo, record, index) {
 
   setContextFieldCookie("metric-type", combo.getValue());
   contextFieldChanged();
+  focusCompleter();
 }
 
 
@@ -1712,6 +1708,10 @@ function toggleNavBar() {
   navBar.toggleCollapse(true);
 }
 
+function focusCompleter() {
+  if (metricSelectorTextField) metricSelectorTextField.focus(false, 50);
+}
+
 var keyMap = new Ext.KeyMap(document, [
   {
     key: 'z',
@@ -1724,9 +1724,7 @@ var keyMap = new Ext.KeyMap(document, [
   }, {
     key: 32, //space
     shift: true,
-    handler: function () {
-               if (metricSelectorTextField) metricSelectorTextField.focus(false, 50); 
-             }
+    handler: focusCompleter
   }, {
     key: 'x',
     alt: true,
@@ -1743,7 +1741,7 @@ var keyMap = new Ext.KeyMap(document, [
                  metricSelectorGrid.getStore().each(function (record) {
                    graphAreaToggle(record.data.path, {dontRemove: true});
                  });
-                 metricSelectorTextField.focus(false, 50); 
+                 focusCompleter(); 
                }
              }
   }, {
@@ -1754,7 +1752,7 @@ var keyMap = new Ext.KeyMap(document, [
                  metricSelectorGrid.getStore().each(function (record) {
                    graphAreaToggle(record.data.path, {onlyRemove: true});
                  });
-                 metricSelectorTextField.focus(false, 50); 
+                 focusCompleter();
                }
              }
   }, {
