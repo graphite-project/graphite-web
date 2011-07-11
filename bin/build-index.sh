@@ -5,7 +5,13 @@ then
   GRAPHITE_ROOT="/opt/graphite"
 fi
 
-WHISPER_DIR="${GRAPHITE_ROOT}/storage/whisper"
+if [ "$GRAPHITE_STORAGE_DIR" = "" ]
+then
+  GRAPHITE_STORAGE_DIR="${GRAPHITE_ROOT}/storage"
+fi
+
+
+WHISPER_DIR="${GRAPHITE_STORAGE_DIR}/whisper"
 
 if [ ! -d "$WHISPER_DIR" ]
 then
@@ -13,8 +19,8 @@ then
   exit 1
 fi
 
-INDEX_FILE="${GRAPHITE_ROOT}/storage/index"
-TMP_INDEX="${GRAPHITE_ROOT}/storage/.index.tmp"
+INDEX_FILE="${GRAPHITE_STORAGE_DIR}/index"
+TMP_INDEX="${GRAPHITE_STORAGE_DIR}/.index.tmp"
 
 rm -f $TMP_INDEX
 cd $WHISPER_DIR
