@@ -1,12 +1,8 @@
 import os
 import pwd
 
-from os.path import basename, isdir
+from os.path import basename
 
-import carbon
-
-from twisted.application import service
-from twisted import plugin
 from twisted.python.util import initgroups
 from twisted.scripts.twistd import runApp
 from twisted.scripts._twistd_unix import daemonize
@@ -23,18 +19,43 @@ def dropprivs(user):
   return (uid, gid)
 
 
-def run_tac(tac_file):
-    plugins = {}
-    for plug in plugin.getPlugins(service.IServiceMaker):
-        plugins[plug.tapname] = plug
+def run_twistd_plugin(filename):
+    from carbon.conf import get_parser
+    from twisted.scripts.twistd import ServerOptions
 
-    program = basename(tac_file).split('.')[0]
-    config = plugins[program].options()
-    config["python"] = tac_file
-    config.parseOptions()
+    program = basename(filename).split('.')[0]
+
+    # First, parse command line options as the legacy carbon scripts used to
+    # do.
+    parser = get_parser(program)
+    (options, args) = parser.parse_args()
 
     # This isn't as evil as you might think
-    __builtins__["instance"] = config["instance"]
+    __builtins__["instance"] = options.instance
     __builtins__["program"] = program
+
+    # Then forward applicable options to either twistd or to the plugin itself.
+    twistd_options = []
+    if options.debug:
+        twistd_options.extend(["-n", "--logfile", "-"])
+    if options.profile:
+        twistd_options.append("--profile")
+    if options.pidfile:
+        twistd_options.extend(["--pidfile", options.pidfile])
+
+    # Now for the plugin-specific options.
+    twistd_options.append(program)
+
+    if options.debug:
+        twistd_options.append("--debug")
+
+    for option_name, option_value in vars(options).items():
+        if (option_value is not None and
+            option_name not in ("debug", "profile", "pidfile")):
+            twistd_options.extend(["--%s" % option_name.replace("_", "-"),
+                                   option_value])
+
+    config = ServerOptions()
+    config.parseOptions(twistd_options)
 
     runApp(config)

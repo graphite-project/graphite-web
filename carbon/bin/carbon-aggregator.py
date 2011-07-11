@@ -25,23 +25,6 @@ ROOT_DIR = dirname(BIN_DIR)
 LIB_DIR = join(ROOT_DIR, 'lib')
 sys.path.insert(0, LIB_DIR)
 
-if __name__ == "__main__":
-    # If we were run directly, call ourselves as a tac file instead.
-    from carbon.util import run_tac
+from carbon.util import run_twistd_plugin
 
-    run_tac(__file__)
-
-# Initialize twisted
-try:
-  from twisted.internet import epollreactor
-  epollreactor.install()
-except:
-  pass
-
-from twisted.application.service import Application
-from carbon import service
-
-application = Application("carbon-aggregator")
-
-aggregator_service = service.createAggregatorService(None)
-aggregator_service.setServiceParent(application)
+run_twistd_plugin(__file__)

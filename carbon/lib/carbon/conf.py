@@ -131,37 +131,50 @@ settings = Settings()
 settings.update(defaults)
 
 
-class CarbonServerOptions(usage.Options):
+class CarbonCacheOptions(usage.Options):
+
+    optFlags = [
+        ["debug", "", "Run in debug mode."],
+        ]
 
     optParameters = [
         ["config", "c", None, "Use the given config file."],
         ["instance", "", None, "Manage a specific carbon instance."],
         ["logdir", "", None, "Write logs to the given directory."],
-        ["pidfile", "", None, "Name of the pidfile"],
-        ['umask', None, 022,
-         "The (octal) file creation mask to apply.", _umask],
         ]
 
     def postOptions(self):
         global settings
 
-        if self["python"] is not None:
-            ROOT_DIR = dirname(dirname(abspath(self["python"])))
-            program = basename(self["python"] or sys.argv[0]).split('.')[0]
-        else:
-            if self.parent is not None and self.parent.subCommand is not None:
-                ROOT_DIR = os.getcwd()
-                program = self.parent.subCommand
+        ROOT_DIR = os.getcwd()
+        program = self.parent.subCommand
 
+        # Use provided pidfile (if any) as default for configuration. If it's
+        # set to 'twistd.pid', that means no value was provided and the default
+        # was used.
+        pidfile = self.parent["pidfile"]
+        if pidfile.endswith("twistd.pid"):
+            pidfile = None
+        self["pidfile"] = pidfile
+
+        # Enforce a default umask of '022' if none was set.
+        if self.parent["umask"] is None:
+            self.parent["umask"] = 022
+
+        # Read extra settings from the configuration file.
         program_settings = read_config(program, self, ROOT_DIR=ROOT_DIR)
         settings.update(program_settings)
-
         settings["program"] = program
 
+        # Set process uid/gid by changing the parent config, if a user was
+        # provided in the configuration file.
         if settings.USER:
-            self["uid"], self["gid"] = pwd.getpwnam(settings.USER)[2:4]
+            self.parent["uid"], self.parent["gid"] = (
+                pwd.getpwnam(settings.USER)[2:4])
 
-        self["pidfile"] = settings["pidfile"]
+        # Set the pidfile in parent config to the value that was computed by
+        # C{read_config}.
+        self.parent["pidfile"] = settings["pidfile"]
 
         storage_schemas = join(settings["CONF_DIR"], "storage-schemas.conf")
         if not exists(storage_schemas):
@@ -172,23 +185,13 @@ class CarbonServerOptions(usage.Options):
             log.msg("enabling whisper autoflush")
             whisper.AUTOFLUSH = True
 
-        if not self["nodaemon"]:
+        # If we are not running in debug mode or non-daemon mode, then log to a
+        # directory, otherwise log output will go to stdout.
+        if not (self["debug"] or self.parent["nodaemon"]):
             logdir = settings.LOG_DIR
             if not isdir(logdir):
                 os.makedirs(logdir)
             log.logToDir(logdir)
-
-
-class CarbonCacheOptions(CarbonServerOptions, twistd.ServerOptions):
-
-    optParameters = (
-        twistd.ServerOptions.optParameters +
-        CarbonServerOptions.optParameters
-        )
-
-    def postOptions(self):
-        twistd.ServerOptions.postOptions(self)
-        CarbonServerOptions.postOptions(self)
 
 
 class CarbonAggregatorOptions(CarbonCacheOptions):
@@ -254,6 +257,25 @@ def get_default_parser(usage="%prog [options] <start|stop|status>"):
         default=None,
         help="Manage a specific carbon instance")
 
+    return parser
+
+
+def get_parser(name):
+    parser = get_default_parser()
+    if name == "carbon-aggregator":
+        parser.add_option(
+            "--rules",
+            default=None,
+            help="Use the given aggregation rules file.")
+        parser.add_option(
+            "--rewrite-rules",
+            default=None,
+            help="Use the given rewrite rules file.")
+    elif name == "carbon-relay":
+        parser.add_option(
+            "--rules",
+            default=None,
+            help="Use the given relay rules file.")
     return parser
 
 
