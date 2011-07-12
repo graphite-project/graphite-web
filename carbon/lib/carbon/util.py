@@ -55,6 +55,9 @@ def run_twistd_plugin(filename):
             twistd_options.extend(["--%s" % option_name.replace("_", "-"),
                                    option_value])
 
+    # Finally, append extra args so that twistd has a chance to process them.
+    twistd_options.extend(args)
+
     config = ServerOptions()
     config.parseOptions(twistd_options)
 

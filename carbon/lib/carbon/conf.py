@@ -193,6 +193,69 @@ class CarbonCacheOptions(usage.Options):
                 os.makedirs(logdir)
             log.logToDir(logdir)
 
+        if not "action" in self:
+            self["action"] = "start"
+        self.handleAction()
+
+    def parseArgs(self, action):
+        """If an action was provided, store it for further processing."""
+        self["action"] = action
+
+    def handleAction(self):
+        """Handle extra argument for backwards-compatibility.
+
+        * C{start} will simply do minimal pid checking and otherwise let twistd
+              take over.
+        * C{stop} will kill an existing running process if it matches the
+              C{pidfile} contents.
+        * C{status} will simply report if the process is up or not.
+        """
+        action = self["action"]
+        pidfile = self.parent["pidfile"]
+        program = settings["program"]
+        instance = self["instance"]
+
+        if action == "stop":
+            if not exists(pidfile):
+                print "Pidfile %s does not exist" % pidfile
+                raise SystemExit(0)
+            pf = open(pidfile, 'r')
+            try:
+                pid = int(pf.read().strip())
+            except:
+                print "Could not read pidfile %s" % pidfile
+                raise SystemExit(1)
+            print "Sending kill signal to pid %d" % pid
+            os.kill(pid, 15)
+
+            print "Deleting %s (contained pid %d)" % (pidfile, pid)
+            os.unlink(pidfile)
+            raise SystemExit(0)
+
+        elif action == "status":
+            if not exists(pidfile):
+                print "%s (instance %s) is not running" % (program, instance)
+                raise SystemExit(0)
+            pf = open(pidfile, "r")
+            try:
+                pid = int(pf.read().strip())
+            except:
+                print "Failed to read pid from %s" % pidfile
+                raise SystemExit(1)
+
+            if exists("/proc/%d" % pid):
+                print ("%s (instance %s) is running with pid %d" %
+                       (program, instance, pid))
+                raise SystemExit(0)
+            else:
+                print "%s (instance %s) is not running" % (program, instance)
+                raise SystemExit(0)
+        elif action == "start":
+            if exists(pidfile):
+                print ("Pidfile %s already exists, is %s already running?" %
+                       (pidfile, program))
+                raise SystemExit(1)
+
 
 class CarbonAggregatorOptions(CarbonCacheOptions):
 
