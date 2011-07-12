@@ -35,8 +35,8 @@ urlpatterns = patterns('',
   ('^dashboard/?', include('graphite.dashboard.urls')),
   ('^whitelist/?', include('graphite.whitelist.urls')),
   ('^content/(?P<path>.*)$', 'django.views.static.serve', {'document_root' : settings.CONTENT_DIR}),
-  ('', include('graphite.graphlot.urls')),
-  ('', include('graphite.browser.urls')),
+  ('^graphlot/?', include('graphite.graphlot.urls')),
+  ('', 'graphite.browser.views.browser'),
 )
 
 handler500 = 'graphite.views.server_error'

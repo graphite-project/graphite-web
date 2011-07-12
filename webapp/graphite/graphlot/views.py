@@ -1,12 +1,13 @@
 import re
 
 from django.shortcuts import render_to_response
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, HttpResponseBadRequest
 from django.conf import settings
 import simplejson
 
 from graphite.render.views import parseOptions
 from graphite.render.evaluator import evaluateTarget
+from graphite.storage import STORE
 
 
 def graphlot_render(request):
@@ -28,6 +29,7 @@ def get_data(request):
     requestContext = {
         'startTime' : requestOptions['startTime'],
         'endTime' : requestOptions['endTime'],
+        'localOnly' : False,
         'data' : []
     }
     target = requestOptions['targets'][0]
@@ -51,9 +53,7 @@ def find_metric(request):
         return HttpResponseBadRequest(
             content="Missing required parameter 'q'", mimetype="text/plain")
 
-    store = settings.LOCAL_STORE
-
-    matches = list( store.find(query+"*") )
+    matches = list( STORE.find(query+"*") )
     content = "\n".join([node.metric_path for node in matches ])
     response = HttpResponse(content, mimetype='text/plain')
 
