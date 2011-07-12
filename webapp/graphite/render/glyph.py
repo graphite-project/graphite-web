@@ -299,7 +299,11 @@ class Graph:
     for line in text.split('\n'):
       self.drawText(line, x, y, align='center')
       y += lineHeight
-    self.area['ymin'] = y + self.margin
+    if self.params.get('yAxisSide') == 'right':
+      self.area['ymin'] = y 
+    else:
+      self.area['ymin'] = y + self.margin
+
 
   def drawLegend(self,elements): #elements is [ (name,color), (name,color), ... ]
     longestName = sorted([e[0] for e in elements],key=len)[-1]
