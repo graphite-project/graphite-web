@@ -991,6 +991,14 @@ function createOptionsMenu() {
       menuRadioItem("area", "All", "areaMode", "all")
     ]
   });
+
+  var lineMenu = new Ext.menu.Menu({
+    items: [
+        menuRadioItem("line", "Slope Line (default)", "lineMode", ""),
+        menuRadioItem("line", "Staircase Line", "lineMode", "staircase"),
+        menuRadioItem("line", "Connected Line", "lineMode", "connected"),
+    ]
+  });
   
   var displayMenu = new Ext.menu.Menu({
     items: [
@@ -1077,8 +1085,8 @@ function createOptionsMenu() {
       {text: "Left/Right Y Axis Options", menu: SecondYAxisMenu},
       menuInputItem("Line Thickness", "lineWidth"),
       {text: "Area Mode", menu: areaMenu},
+      {text: "Line Mode", menu: lineMenu},
       menuCheckItem("Alpha Masking", "template", "alphas"),
-      menuCheckItem("Staircase Line", "lineMode", "staircase"),
       {text: "Canvas Color", menu: createColorMenu('bgcolor')},
       {text: "Display", menu: displayMenu},
       {text: "Font", menu: fontMenu}
