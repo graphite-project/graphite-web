@@ -14,7 +14,6 @@ limitations under the License."""
 
 from threading import Lock
 from carbon.conf import settings
-from carbon.instrumentation import increment
 from carbon import log
 
 
@@ -58,3 +57,6 @@ class MetricCache(dict):
 
 
 MetricCache = MetricCache()
+
+# Avoid import circularities
+from carbon.instrumentation import increment
