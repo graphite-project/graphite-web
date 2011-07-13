@@ -13,9 +13,17 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 import os
-from os.path import join, dirname, normpath
+import sys
+import pwd
+
+from os.path import join, dirname, normpath, exists, isdir
 from optparse import OptionParser
 from ConfigParser import ConfigParser
+
+import whisper
+from carbon import log
+
+from twisted.python import usage
 
 
 defaults = dict(
@@ -45,6 +53,10 @@ defaults = dict(
   RELAY_METHOD='rules',
   CH_HOST_LIST=[],
 )
+
+
+def _umask(value):
+    return int(value, 8)
 
 
 class OrderedConfigParser(ConfigParser):
@@ -119,6 +131,170 @@ settings = Settings()
 settings.update(defaults)
 
 
+class CarbonCacheOptions(usage.Options):
+
+    optFlags = [
+        ["debug", "", "Run in debug mode."],
+        ]
+
+    optParameters = [
+        ["config", "c", None, "Use the given config file."],
+        ["instance", "", None, "Manage a specific carbon instance."],
+        ["logdir", "", None, "Write logs to the given directory."],
+        ]
+
+    def postOptions(self):
+        global settings
+
+        ROOT_DIR = os.getcwd()
+        program = self.parent.subCommand
+
+        # Use provided pidfile (if any) as default for configuration. If it's
+        # set to 'twistd.pid', that means no value was provided and the default
+        # was used.
+        pidfile = self.parent["pidfile"]
+        if pidfile.endswith("twistd.pid"):
+            pidfile = None
+        self["pidfile"] = pidfile
+
+        # Enforce a default umask of '022' if none was set.
+        if self.parent["umask"] is None:
+            self.parent["umask"] = 022
+
+        # Read extra settings from the configuration file.
+        program_settings = read_config(program, self, ROOT_DIR=ROOT_DIR)
+        settings.update(program_settings)
+        settings["program"] = program
+
+        # Set process uid/gid by changing the parent config, if a user was
+        # provided in the configuration file.
+        if settings.USER:
+            self.parent["uid"], self.parent["gid"] = (
+                pwd.getpwnam(settings.USER)[2:4])
+
+        # Set the pidfile in parent config to the value that was computed by
+        # C{read_config}.
+        self.parent["pidfile"] = settings["pidfile"]
+
+        storage_schemas = join(settings["CONF_DIR"], "storage-schemas.conf")
+        if not exists(storage_schemas):
+            print "Error: missing required config %s" % storage_schemas
+            sys.exit(1)
+
+        if settings.WHISPER_AUTOFLUSH:
+            log.msg("enabling whisper autoflush")
+            whisper.AUTOFLUSH = True
+
+        # If we are not running in debug mode or non-daemon mode, then log to a
+        # directory, otherwise log output will go to stdout.
+        if not (self["debug"] or self.parent["nodaemon"]):
+            logdir = settings.LOG_DIR
+            if not isdir(logdir):
+                os.makedirs(logdir)
+            log.logToDir(logdir)
+
+        if not "action" in self:
+            self["action"] = "start"
+        self.handleAction()
+
+    def parseArgs(self, action):
+        """If an action was provided, store it for further processing."""
+        self["action"] = action
+
+    def handleAction(self):
+        """Handle extra argument for backwards-compatibility.
+
+        * C{start} will simply do minimal pid checking and otherwise let twistd
+              take over.
+        * C{stop} will kill an existing running process if it matches the
+              C{pidfile} contents.
+        * C{status} will simply report if the process is up or not.
+        """
+        action = self["action"]
+        pidfile = self.parent["pidfile"]
+        program = settings["program"]
+        instance = self["instance"]
+
+        if action == "stop":
+            if not exists(pidfile):
+                print "Pidfile %s does not exist" % pidfile
+                raise SystemExit(0)
+            pf = open(pidfile, 'r')
+            try:
+                pid = int(pf.read().strip())
+            except:
+                print "Could not read pidfile %s" % pidfile
+                raise SystemExit(1)
+            print "Sending kill signal to pid %d" % pid
+            os.kill(pid, 15)
+
+            print "Deleting %s (contained pid %d)" % (pidfile, pid)
+            os.unlink(pidfile)
+            raise SystemExit(0)
+
+        elif action == "status":
+            if not exists(pidfile):
+                print "%s (instance %s) is not running" % (program, instance)
+                raise SystemExit(0)
+            pf = open(pidfile, "r")
+            try:
+                pid = int(pf.read().strip())
+            except:
+                print "Failed to read pid from %s" % pidfile
+                raise SystemExit(1)
+
+            if exists("/proc/%d" % pid):
+                print ("%s (instance %s) is running with pid %d" %
+                       (program, instance, pid))
+                raise SystemExit(0)
+            else:
+                print "%s (instance %s) is not running" % (program, instance)
+                raise SystemExit(0)
+        elif action == "start":
+            if exists(pidfile):
+                print ("Pidfile %s already exists, is %s already running?" %
+                       (pidfile, program))
+                raise SystemExit(1)
+
+
+class CarbonAggregatorOptions(CarbonCacheOptions):
+
+    optParameters = [
+        ["rules", "", None, "Use the given aggregation rules file."],
+        ["rewrite-rules", "", None, "Use the given rewrite rules file."],
+        ] + CarbonCacheOptions.optParameters
+
+    def postOptions(self):
+        CarbonCacheOptions.postOptions(self)
+        if self["rules"] is None:
+            self["rules"] = join(settings["CONF_DIR"], "aggregation-rules.conf")
+        settings["aggregation-rules"] = self["rules"]
+
+        if self["rewrite-rules"] is None:
+            self["rewrite-rules"] = join(settings["CONF_DIR"],
+                                         "rewrite-rules.conf")
+        settings["rewrite-rules"] = self["rewrite-rules"]
+
+
+class CarbonRelayOptions(CarbonCacheOptions):
+
+    optParameters = [
+        ["rules", "", None, "Use the given relay rules file."],
+        ] + CarbonCacheOptions.optParameters
+
+    def postOptions(self):
+        CarbonCacheOptions.postOptions(self)
+        if self["rules"] is None:
+            self["rules"] = join(settings["CONF_DIR"], "relay-rules.conf")
+        settings["relay-rules"] = self["rules"]
+
+        if settings["RELAY_METHOD"] not in ("rules", "consistent-hashing"):
+            print ("In carbon.conf, RELAY_METHOD must be either 'rules' or "
+                   "'consistent-hashing'. Invalid value: '%s'" %
+                   settings.RELAY_METHOD)
+            sys.exit(1)
+
+
 def get_default_parser(usage="%prog [options] <start|stop|status>"):
     """Create a parser for command line options."""
     parser = OptionParser(usage=usage)
@@ -147,6 +323,25 @@ def get_default_parser(usage="%prog [options] <start|stop|status>"):
     return parser
 
 
+def get_parser(name):
+    parser = get_default_parser()
+    if name == "carbon-aggregator":
+        parser.add_option(
+            "--rules",
+            default=None,
+            help="Use the given aggregation rules file.")
+        parser.add_option(
+            "--rewrite-rules",
+            default=None,
+            help="Use the given rewrite rules file.")
+    elif name == "carbon-relay":
+        parser.add_option(
+            "--rules",
+            default=None,
+            help="Use the given relay rules file.")
+    return parser
+
+
 def parse_options(parser, args):
     """
     Parse command line options and print usage message if no arguments were
@@ -168,7 +363,7 @@ def parse_options(parser, args):
 def read_config(program, options, **kwargs):
     """
     Read settings for 'program' from configuration file specified by
-    'options.config', with missing values provided by 'defaults'.
+    'options["config"]', with missing values provided by 'defaults'.
     """
     settings = Settings()
     settings.update(defaults)
@@ -185,40 +380,44 @@ def read_config(program, options, **kwargs):
     # 'GRAPHITE_CONF_DIR' environment variable.
     settings.setdefault("CONF_DIR",
                         os.environ.get("GRAPHITE_CONF_DIR",
-                                       join(settings.ROOT_DIR, "conf")))
-    if options.config is None:
-        options.config = join(settings.CONF_DIR, "carbon.conf")
+                                       join(settings["ROOT_DIR"], "conf")))
+    if options["config"] is None:
+        options["config"] = join(settings["CONF_DIR"], "carbon.conf")
     else:
         # Set 'CONF_DIR' to the parent directory of the 'carbon.conf' config
         # file.
-        settings["CONF_DIR"] = dirname(normpath(options.config))
+        settings["CONF_DIR"] = dirname(normpath(options["config"]))
 
     # Storage directory can be overriden by the 'GRAPHITE_STORAGE_DIR'
     # environment variable. It defaults to a path relative to 'ROOT_DIR' for
     # backwards compatibility though.
     settings.setdefault("STORAGE_DIR",
                         os.environ.get("GRAPHITE_STORAGE_DIR",
-                                       join(settings.ROOT_DIR, "storage")))
-    settings.setdefault("LOG_DIR", join(settings.STORAGE_DIR, "log", program))
+                                       join(settings["ROOT_DIR"], "storage")))
+    settings.setdefault(
+        "LOG_DIR", join(settings["STORAGE_DIR"], "log", program))
 
     # Read configuration options from program-specific section.
     section = program[len("carbon-"):]
-    settings.readFrom(options.config, section)
+    settings.readFrom(options["config"], section)
 
     # If a specific instance of the program is specified, augment the settings
     # with the instance-specific settings and provide sane defaults for
     # optional settings.
-    if options.instance:
-        settings.readFrom(options.config, "%s:%s" % (section, options.instance))
-        settings["pidfile"] = (options.pidfile or
-                               join(settings.STORAGE_DIR,
-                                    "%s-%s.pid" % (program, options.instance)))
-        settings["LOG_DIR"] = (options.logdir or
-                              "%s-%s" % (settings.LOG_DIR.rstrip('/'),
-                                          options.instance))
+    if options["instance"]:
+        settings.readFrom(options["config"],
+                          "%s:%s" % (section, options["instance"]))
+        settings["pidfile"] = (
+            options["pidfile"] or
+            join(settings["STORAGE_DIR"], "%s-%s.pid" %
+                 (program, options["instance"])))
+        settings["LOG_DIR"] = (options["logdir"] or
+                              "%s-%s" % (settings["LOG_DIR"].rstrip('/'),
+                                          options["instance"]))
     else:
-        settings["pidfile"] = (options.pidfile or
-                               join(settings.STORAGE_DIR, '%s.pid' % program))
-        settings["LOG_DIR"] = (options.logdir or settings.LOG_DIR)
+        settings["pidfile"] = (
+            options["pidfile"] or
+            join(settings["STORAGE_DIR"], '%s.pid' % program))
+        settings["LOG_DIR"] = (options["logdir"] or settings["LOG_DIR"])
 
     return settings

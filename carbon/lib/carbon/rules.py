@@ -21,13 +21,16 @@ def parseHostList(host_list):
   for host_string in host_list:
     parts = host_string.strip().split(':')
     server = parts[0]
-    port = int( parts[1] )
+    if len(parts) > 1:
+        port = int(parts[1])
+    else:
+        port = DEFAULT_CARBON_PORT
     if len(parts) > 2:
       instance = parts[2]
     else:
       instance = None
 
-    hosts.append( (server, port, instance) )
+    hosts.append((server, port, instance))
 
   return hosts
 

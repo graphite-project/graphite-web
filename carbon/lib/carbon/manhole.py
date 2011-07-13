@@ -1,4 +1,4 @@
-from twisted.cred import portal, checkers
+from twisted.cred import portal
 from twisted.conch.ssh import keys
 from twisted.conch.checkers import SSHPublicKeyDatabase
 from twisted.conch.manhole import Manhole
@@ -21,8 +21,7 @@ class PublicKeyChecker(SSHPublicKeyDatabase):
       keyBlob = self.userKeys[credentials.username]
       return keyBlob == credentials.blob
 
-
-def start():
+def createManholeListener():
   sshRealm = TerminalRealm()
   sshRealm.chainedProtocolFactory.protocolFactory = lambda _: Manhole(namespace)
 
@@ -37,4 +36,8 @@ def start():
   sshPortal = portal.Portal(sshRealm)
   sshPortal.registerChecker(credChecker)
   sessionFactory = ConchFactory(sshPortal)
-  reactor.listenTCP(settings.MANHOLE_PORT, sessionFactory, interface=settings.MANHOLE_INTERFACE)
+  return sessionFactory
+
+def start():
+    sessionFactory = createManholeListener()
+    reactor.listenTCP(settings.MANHOLE_PORT, sessionFactory, interface=settings.MANHOLE_INTERFACE)

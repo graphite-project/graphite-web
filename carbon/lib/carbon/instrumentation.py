@@ -2,13 +2,14 @@ import os
 import time
 import socket
 from resource import getrusage, RUSAGE_SELF
+
+from twisted.application.service import Service
 from twisted.internet.task import LoopingCall
 
 
 stats = {}
 HOSTNAME = socket.gethostname().replace('.','_')
 PAGESIZE = os.sysconf('SC_PAGESIZE')
-recordTask = None
 rusage = getrusage(RUSAGE_SELF)
 lastUsage = rusage.ru_utime + rusage.ru_stime
 lastUsageTime = time.time()
@@ -56,8 +57,6 @@ def getMemUsage():
 
 def startRecording():
   global recordTask
-  recordTask = LoopingCall(recordMetrics)
-  recordTask.start(60, now=False)
 
 
 def recordMetrics():
@@ -138,6 +137,20 @@ def aggregator_record(metric, value):
   fullMetric = 'carbon.aggregator.%s.%s' % (HOSTNAME, metric)
   datapoint = (time.time(), value)
   send_metric(fullMetric, datapoint)
+
+
+class InstrumentationService(Service):
+
+    def __init__(self):
+        self.record_task = LoopingCall(recordMetrics)
+
+    def startService(self):
+        self.record_task.start(60, False)
+        Service.startService(self)
+
+    def stopService(self):
+        self.record_task.stop()
+        Service.stopService(self)
 
 
 # Avoid import circularity

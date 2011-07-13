@@ -14,7 +14,6 @@ limitations under the License."""
 
 from threading import Lock
 from carbon.conf import settings
-from carbon import log
 
 
 class MetricCache(dict):
