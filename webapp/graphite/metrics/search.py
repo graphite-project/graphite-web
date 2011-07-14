@@ -61,17 +61,17 @@ class IndexSearcher:
   def search(self, query, filters=(), max_results=None, keep_query_pattern=False):
     query_parts = query.split('.')
     filters = [f.lower() for f in filters]
-    results_found = 0
+    results_found = set()
     for result in self.subtree_query(self.tree, query_parts):
       # Overlay the query pattern on the resulting paths
       if keep_query_pattern:
         result_parts = result.split('.')
         result = '.'.join(query_parts + result_parts[len(query_parts):])
 
-      if self.apply_filters(result.lower(), filters):
+      if result not in results_found and self.apply_filters(result.lower(), filters):
         yield result
-        results_found += 1
-        if max_results is not None and results_found >= max_results:
+        results_found.add(result)
+        if max_results is not None and len(results_found) >= max_results:
           return
 
   def subtree_query(self, root, query_parts):
