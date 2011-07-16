@@ -146,7 +146,6 @@ class CarbonCacheOptions(usage.Options):
     def postOptions(self):
         global settings
 
-        ROOT_DIR = os.getcwd()
         program = self.parent.subCommand
 
         # Use provided pidfile (if any) as default for configuration. If it's
@@ -162,7 +161,7 @@ class CarbonCacheOptions(usage.Options):
             self.parent["umask"] = 022
 
         # Read extra settings from the configuration file.
-        program_settings = read_config(program, self, ROOT_DIR=ROOT_DIR)
+        program_settings = read_config(program, self)
         settings.update(program_settings)
         settings["program"] = program
 
@@ -372,15 +371,13 @@ def read_config(program, options, **kwargs):
     for name, value in kwargs.items():
         settings.setdefault(name, value)
 
-    # At minimum, 'ROOT_DIR' needs to be set.
-    if settings.get("ROOT_DIR", None) is None:
-        raise ValueError("ROOT_DIR needs to be provided.")
+    graphite_root = os.environ['GRAPHITE_ROOT']
 
     # Default config directory to root-relative, unless overriden by the
     # 'GRAPHITE_CONF_DIR' environment variable.
     settings.setdefault("CONF_DIR",
                         os.environ.get("GRAPHITE_CONF_DIR",
-                                       join(settings["ROOT_DIR"], "conf")))
+                                       join(graphite_root, "conf")))
     if options["config"] is None:
         options["config"] = join(settings["CONF_DIR"], "carbon.conf")
     else:
@@ -389,11 +386,11 @@ def read_config(program, options, **kwargs):
         settings["CONF_DIR"] = dirname(normpath(options["config"]))
 
     # Storage directory can be overriden by the 'GRAPHITE_STORAGE_DIR'
-    # environment variable. It defaults to a path relative to 'ROOT_DIR' for
-    # backwards compatibility though.
+    # environment variable. It defaults to a path relative to GRAPHITE_ROOT
+    # for backwards compatibility though.
     settings.setdefault("STORAGE_DIR",
                         os.environ.get("GRAPHITE_STORAGE_DIR",
-                                       join(settings["ROOT_DIR"], "storage")))
+                                       join(graphite_root, "storage")))
     settings.setdefault(
         "LOG_DIR", join(settings["STORAGE_DIR"], "log", program))
 
