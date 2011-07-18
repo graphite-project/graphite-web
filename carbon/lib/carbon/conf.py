@@ -157,7 +157,7 @@ class CarbonCacheOptions(usage.Options):
         self["pidfile"] = pidfile
 
         # Enforce a default umask of '022' if none was set.
-        if self.parent["umask"] is None:
+        if not self.parent.has_key("umask") or self.parent["umask"] is None:
             self.parent["umask"] = 022
 
         # Read extra settings from the configuration file.
