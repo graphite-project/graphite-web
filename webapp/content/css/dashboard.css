@@ -144,12 +144,26 @@ img.graph-img {
 
 /* Metric selector grid stuff */
 .metric-toggled {
-  background-color: rgb(255, 230, 240);
+  font: bold 11pt monospace;
 }
 .metric-toggled div {
-  font-style: italic;
+  font: bold 11pt monospace;
 }
 
 .metric-not-toggled {
+  font: 11pt monospace;
   background-color: white;
+}
+
+.metric-not-toggled div {
+  font: 11pt monospace;
+}
+
+.branch-node {
+  font: 11pt monospace;
+  background-color: rgb(240, 245, 255) !important;
+}
+
+.terminalStyle {
+  font: 11pt monospace;
 }
