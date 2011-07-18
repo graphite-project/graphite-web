@@ -116,10 +116,25 @@ def is_local_interface(host):
 def is_pattern(s):
   return '*' in s or '?' in s or '[' in s or '{' in s
 
+def is_escaped_pattern(s):
+  for symbol in '*?[{':
+    i = s.find(symbol)
+    if i > 0:
+      if s[i-1] == '\\':
+        return True
+  return False
+
+def find_escaped_pattern_fields(pattern_string):
+  pattern_parts = pattern_string.split('.')
+  for index,part in enumerate(pattern_parts):
+    if is_escaped_pattern(part):
+      yield index
+
 
 def find(root_dir, pattern):
   "Generates nodes beneath root_dir matching the given pattern"
-  pattern_parts = pattern.split('.')
+  clean_pattern = pattern.replace('\\', '')
+  pattern_parts = clean_pattern.split('.')
 
   for absolute_path in _find(root_dir, pattern_parts):
 
@@ -130,6 +145,12 @@ def find(root_dir, pattern):
 
     relative_path = absolute_path[ len(root_dir): ].lstrip('/')
     metric_path = relative_path.replace('/','.')
+
+    # Preserve pattern in resulting path for escaped query pattern elements
+    metric_path_parts = metric_path.split('.')
+    for field_index in find_escaped_pattern_fields(pattern):
+      metric_path_parts[field_index] = pattern_parts[field_index].replace('\\', '')
+    metric_path = '.'.join(metric_path_parts)
 
     if isdir(absolute_path):
       yield Branch(absolute_path, metric_path)
