@@ -26,21 +26,18 @@ try:
 except ImportError:
   import pickle
 
-''' TODO
-Rewrite this as a general purpose search view with the following API:
-  query=some.usual.pattern.* (required)
-  filter=asdf&filter=oij (optional, default: [])
-  keepQueryPattern=true (optional, default: False)
-  maxResults=25 (optional, default: 25)
-'''
-def autocomplete_view(request):
+
+def search_view(request):
+  query = str(request.REQUEST['query'].strip())
   search_request = {
-    'query' : str(request.REQUEST['query'].strip()),
-    'filters' : [str(f.strip()) for f in request.REQUEST.getlist('filters') if f.strip()],
+    'query' : query,
     'max_results' : int( request.REQUEST.get('max_results', 25) ),
     'keep_query_pattern' : int(request.REQUEST.get('keep_query_pattern', 0)),
   }
-  results = [ dict(path=p) for p in sorted(searcher.search(**search_request)) ]
+  #if not search_request['query'].endswith('*'):
+  #  search_request['query'] += '*'
+
+  results = sorted(searcher.search(**search_request))
   result_data = json.dumps( dict(metrics=results) )
   return HttpResponse(result_data, mimetype='text/json')
 
@@ -86,6 +83,7 @@ def find_view(request):
   local_only = int( request.REQUEST.get('local', 0) )
   contexts = int( request.REQUEST.get('contexts', 0) )
   wildcards = int( request.REQUEST.get('wildcards', 0) )
+  automatic_variants = int( request.REQUEST.get('automatic_variants', 0) )
 
   try:
     query = str( request.REQUEST['query'] )
@@ -101,6 +99,18 @@ def find_view(request):
     store = LOCAL_STORE
   else:
     store = STORE
+
+  if format == 'completer':
+    query = query.replace('..', '*.')
+    if not query.endswith('*'):
+      query += '*'
+
+    if automatic_variants:
+      query_parts = query.split('.')
+      for i,part in enumerate(query_parts):
+        if ',' in part and '{' not in part:
+          query_parts[i] = '{%s}' % part
+      query = '.'.join(query_parts)
 
   matches = list( store.find(query) )
 
@@ -118,7 +128,12 @@ def find_view(request):
   elif format == 'completer':
     #if len(matches) == 1 and (not matches[0].isLeaf()) and query == matches[0].metric_path + '*': # auto-complete children
     #  matches = list( store.find(query + '.*') )
-    results = [ dict(path=node.metric_path, name=node.name) for node in matches ]
+    results = []
+    for node in matches:
+      node_info = dict(path=node.metric_path, name=node.name, is_leaf=str(int(node.isLeaf())))
+      if not node.isLeaf():
+        node_info['path'] += '.'
+      results.append(node_info)
 
     if len(results) > 1 and wildcards:
       wildcardNode = {'name' : '*'}

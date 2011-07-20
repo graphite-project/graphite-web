@@ -58,21 +58,22 @@ class IndexSearcher:
     self.last_mtime = os.path.getmtime(self.index_path)
     log.info("[IndexSearcher] index reload took %.6f seconds (%d entries)" % (time.time() - t, total_entries))
 
-  def search(self, query, filters=(), max_results=None, keep_query_pattern=False):
+  def search(self, query, max_results=None, keep_query_pattern=False):
     query_parts = query.split('.')
-    filters = [f.lower() for f in filters]
-    results_found = set()
+    metrics_found = set()
     for result in self.subtree_query(self.tree, query_parts):
       # Overlay the query pattern on the resulting paths
       if keep_query_pattern:
-        result_parts = result.split('.')
-        result = '.'.join(query_parts + result_parts[len(query_parts):])
+        path_parts = result['path'].split('.')
+        result['path'] = '.'.join(query_parts) + result['path'][len(query_parts):]
 
-      if result not in results_found and self.apply_filters(result.lower(), filters):
-        yield result
-        results_found.add(result)
-        if max_results is not None and len(results_found) >= max_results:
-          return
+      if result['path'] in metrics_found:
+        continue
+      yield result
+
+      metrics_found.add(result['path'])
+      if max_results is not None and len(metrics_found) >= max_results:
+        return
 
   def subtree_query(self, root, query_parts):
     if query_parts:
@@ -88,22 +89,17 @@ class IndexSearcher:
       matches = root[1].values()
 
     for child_node in matches:
-      if child_node[0] is not None:
-        yield child_node[0]
-      for result in self.subtree_query(child_node, query_parts[1:]):
-        yield result
+      result = {
+        'path' : child_node[0],
+        'is_leaf' : bool(child_node[0]),
+      }
+      if result['path'] is not None and not result['is_leaf']:
+        result['path'] += '.'
+      yield result
 
-  def apply_filters(self, node, filters):
-    for filter_expr in filters:
-      if not self.test_filter(node, filter_expr):
-        return False
-    return True
-
-  def test_filter(self, node, filter_expr):
-    for subexpr in filter_expr.split(','):
-      if subexpr and subexpr in node:
-        return True
-    return False
+      if query_parts:
+        for result in self.subtree_query(child_node, query_parts[1:]):
+          yield result
 
 
 class SearchIndexCorrupt(StandardError):

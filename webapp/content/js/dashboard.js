@@ -35,7 +35,7 @@ var navBarNorthConfig = {
   collapseMode: 'mini',
   split: true,
   title: "untitled",
-  height: 220,
+  height: 350,
   listeners: {
     expand: function() { focusCompleter(); } // defined below
   }
@@ -246,6 +246,7 @@ function initDashboard () {
       region: 'center',
       hideHeaders: true,
       loadMask: true,
+      bodyCssClass: 'terminalStyle',
 
       colModel: new Ext.grid.ColumnModel({
         defaults: {
@@ -258,12 +259,16 @@ function initDashboard () {
       }),
       viewConfig: {
         forceFit: true,
+        rowOverCls: '',
+        bodyCssClass: 'terminalStyle',
         getRowClass: function(record, index) {
-	if (graphStore.findExact('target', 'target=' + record.data.path) == -1) {
-            return 'metric-not-toggled';
-          } else {
-            return 'metric-toggled';
-          }
+          var toggledClass = (
+             graphStore.findExact('target', 'target=' + record.data.path) == -1
+            ) ? "metric-not-toggled" : "metric-toggled";
+          var branchClass = (
+            record.data['is_leaf'] == '0'
+          ) ? "branch-node" : "";
+          return toggledClass + ' ' + branchClass + ' terminalStyle';
         }
       },
       selModel: new Ext.grid.RowSelectionModel({
@@ -271,19 +276,23 @@ function initDashboard () {
       }),
       store: new Ext.data.JsonStore({
         method: 'GET',
-        url: '/metrics/autocomplete/',
+        url: '/metrics/find/',
+        autoLoad: true,
         baseParams: {
-          max_results: '100',
-          keep_query_pattern: '1'
+          query: '',
+          format: 'completer',
+          automatic_variants: (UI_CONFIG.automatic_variants) ? '1' : '0'
         },
-        fields: ['path'],
+        fields: ['path', 'is_leaf'],
         root: 'metrics'
       }),
       listeners: {
         rowclick: function (thisGrid, rowIndex, e) {
                     var record = thisGrid.getStore().getAt(rowIndex);
-                    graphAreaToggle(record.data.path);
-                    thisGrid.getView().refresh();
+                    if (record.data['is_leaf'] == '1') {
+                      graphAreaToggle(record.data.path);
+                      thisGrid.getView().refresh();
+                    }
                     thisGrid.getSelectionModel().clearSelections();
                     focusCompleter();
                   }
@@ -292,14 +301,18 @@ function initDashboard () {
 
     function completerKeyPress(thisField, e) {
       var charCode = e.getCharCode();
-      if (charCode == 8 || charCode >= 48) {
-	autocompleteTask.delay(AUTOCOMPLETE_DELAY);
+      if (charCode == 8 ||  //backspace
+          charCode >= 46 || //delete and all printables
+          charCode == 36 || //home
+          charCode == 35) { //end
+        autocompleteTask.delay(AUTOCOMPLETE_DELAY);
       }
     }
 
     metricSelectorTextField = new Ext.form.TextField({
       region: 'south',
       enableKeyEvents: true,
+      cls: 'terminalStyle',
       listeners: {
         keypress: completerKeyPress,
         specialkey: completerKeyPress,
@@ -314,9 +327,9 @@ function initDashboard () {
   }
 
   var autocompleteTask = new Ext.util.DelayedTask(function () {
-    var filters = metricSelectorTextField.getValue().split(/\s+/);
+    var query = metricSelectorTextField.getValue();
     var store = metricSelectorGrid.getStore();
-    store.setBaseParam('filters', filters);
+    store.setBaseParam('query', query);
     store.load();
   });
 
@@ -543,6 +556,12 @@ function initDashboard () {
     handler: doShare
   };
 
+  var helpButton = {
+    icon: HELP_ICON,
+    tooltip: "Keyboard Shortcuts",
+    handler: showHelp
+  };
+
   var resizeButton = {
     icon: RESIZE_ICON,
     tooltip: "Resize Graphs",
@@ -633,6 +652,7 @@ function initDashboard () {
         ' ',
         timeRangeText,
         '->',
+        helpButton,
         resizeButton,
         removeAllButton,
         refreshButton,
@@ -645,7 +665,7 @@ function initDashboard () {
   });
 
   /* Nav Bar */
-  navBarNorthConfig.items = [contextSelector, metricSelector];
+  navBarNorthConfig.items = [metricSelector];
   navBarWestConfig.items = [contextSelector, metricSelector];
   var navBarConfig = (NAV_BAR_REGION == 'north') ? navBarNorthConfig : navBarWestConfig;
   navBar = new Ext.Panel(navBarConfig);
@@ -673,6 +693,16 @@ function initDashboard () {
   }
 }
 
+function showHelp() {
+  var win = new Ext.Window({
+    title: "Keyboard Shortcuts",
+    modal: true,
+    width: 550,
+    height: 300,
+    autoLoad: "/dashboard/help/"
+  });
+  win.show();
+}
 
 function metricTypeSelected (combo, record, index) {
   selectedScheme = record;
@@ -1513,7 +1543,9 @@ function graphClicked(graphView, graphIndex, element, evt) {
     items: menuItems
   });
   activeMenu = menu;
-  menu.showAt( evt.getXY() );
+  var position = evt.getXY();
+  position[0] -= (buttonWidth * 1.5) + 10; //horizontally center menu with the mouse
+  menu.showAt(position);
   menu.get(0).focus(false, 50);
   menu.keyNav.disable();
   menu.on('hide', function () {
@@ -1739,7 +1771,9 @@ var keyMap = new Ext.KeyMap(document, [
     handler: function () {
                if (metricSelectorGrid) {
                  metricSelectorGrid.getStore().each(function (record) {
-                   graphAreaToggle(record.data.path, {dontRemove: true});
+                   if (record.data.path[ record.data.path.length - 1] != '.') {
+                     graphAreaToggle(record.data.path, {dontRemove: true});
+                   }
                  });
                  focusCompleter(); 
                }

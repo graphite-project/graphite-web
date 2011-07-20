@@ -172,6 +172,11 @@ def find(request):
   return json_response( dict(dashboards=results) )
 
 
+def help(request):
+  context = {}
+  return render_to_response("dashboardHelp.html", context)
+
+
 def create_temporary(request):
   state = str( json.dumps( json.loads( request.POST['state'] ) ) )
   i = 0

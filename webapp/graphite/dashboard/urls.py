@@ -6,6 +6,7 @@ urlpatterns = patterns('graphite.dashboard.views',
   ('^delete/(?P<name>[^/]+)', 'delete'),
   ('^create-temporary/?', 'create_temporary'),
   ('^find/', 'find'),
+  ('^help/', 'help'),
   ('^(?P<name>[^/]+)', 'dashboard'),
   ('', 'dashboard'),
 )
