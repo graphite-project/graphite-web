@@ -42,6 +42,7 @@ def renderView(request):
   start = time()
   (graphOptions, requestOptions) = parseOptions(request)
   useCache = 'noCache' not in requestOptions
+  cacheTimeout = requestOptions['cacheTimeout']
   requestContext = {
     'startTime' : requestOptions['startTime'],
     'endTime' : requestOptions['endTime'],
@@ -103,7 +104,7 @@ def renderView(request):
         data.extend(seriesList)
 
     if useCache:
-      cache.set(dataKey, data)
+      cache.set(dataKey, data, cacheTimeout)
 
     # If data is all we needed, we're done
     if 'pickle' in requestOptions:
@@ -157,7 +158,7 @@ def renderView(request):
   response = buildResponse(image)
 
   if useCache:
-    cache.set(requestKey, response)
+    cache.set(requestKey, response, cacheTimeout)
 
   log.rendering('Total rendering time %.6f seconds' % (time() - start))
   return response
@@ -178,6 +179,7 @@ def parseOptions(request):
   requestOptions['graphType'] = graphType
   requestOptions['graphClass'] = graphClass
   requestOptions['pieMode'] = queryParams.get('pieMode', 'average')
+  requestOptions['cacheTimeout'] = int( queryParams.get('cacheTimeout', settings.DEFAULT_CACHE_DURATION) )
   requestOptions['targets'] = []
   for target in queryParams.getlist('target'):
     if target.lower().startswith('graphite.'): #Strip leading "Graphite." as a convenience

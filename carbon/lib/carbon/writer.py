@@ -44,7 +44,7 @@ def optimalWriteOrder():
   "Generates metrics with the most cached values first and applies a soft rate limit on new metrics"
   global lastCreateInterval
   global createCount
-  metrics = [ (metric, len(datapoints)) for metric,datapoints in MetricCache.items() ]
+  metrics = MetricCache.counts()
 
   t = time.time()
   metrics.sort(key=lambda item: item[1], reverse=True) # by queue size, descending

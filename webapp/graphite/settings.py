@@ -50,7 +50,7 @@ except:
 
 #Memcache settings
 MEMCACHE_HOSTS = []
-MEMCACHE_DURATION = 60 #metric data and graphs are cached for one minute by default
+DEFAULT_CACHE_DURATION = 60 #metric data and graphs are cached for one minute by default
 LOG_CACHE_PERFORMANCE = False
 
 # Remote store settings
@@ -114,7 +114,7 @@ except ImportError:
 APPEND_SLASH = False
 TEMPLATE_DEBUG = DEBUG
 if MEMCACHE_HOSTS:
-  CACHE_BACKEND = 'memcached://' + ';'.join(MEMCACHE_HOSTS) + ('/?timeout=%d' % MEMCACHE_DURATION)
+  CACHE_BACKEND = 'memcached://' + ';'.join(MEMCACHE_HOSTS) + ('/?timeout=%d' % DEFAULT_CACHE_DURATION)
 else:
   CACHE_BACKEND = "dummy:///"
 
