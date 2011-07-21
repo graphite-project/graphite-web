@@ -44,15 +44,15 @@ class MetricLineReceiver(LoggingMixin, LineOnlyReceiver):
 
 class MetricDatagramReceiver(LoggingMixin, DatagramProtocol):
   def datagramReceived(self, data, (host, port)):
-    try:
-      metric, value, timestamp = data.strip().split()
-      datapoint = ( float(timestamp), float(value) )
-    except:
-      log.listener('invalid line received from client %s, ignoring' % host)
-      return
+    for line in data.splitlines():
+      try:
+        metric, value, timestamp = line.strip().split()
+        datapoint = ( float(timestamp), float(value) )
 
-    increment('metricsReceived')
-    metricReceived(metric, datapoint)
+        increment('metricsReceived')
+        metricReceived(metric, datapoint)
+      except:
+        log.listener('invalid line received from client %s, ignoring' % host)
 
 
 class MetricPickleReceiver(LoggingMixin, Int32StringReceiver):
