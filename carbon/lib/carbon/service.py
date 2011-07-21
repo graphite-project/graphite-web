@@ -16,13 +16,13 @@ limitations under the License."""
 from os.path import exists
 
 from twisted.application.service import MultiService
-from twisted.application.internet import TCPServer, TCPClient
+from twisted.application.internet import TCPServer, TCPClient, UDPServer
 from twisted.internet.protocol import ServerFactory
 
 
 def createBaseService(config):
     from carbon.conf import settings
-    from carbon.listeners import MetricLineReceiver, MetricPickleReceiver
+    from carbon.listeners import MetricLineReceiver, MetricPickleReceiver, MetricDatagramReceiver
 
     root_service = MultiService()
     root_service.setName(settings.program)
@@ -51,6 +51,11 @@ def createBaseService(config):
         factory.protocol = protocol
         service = TCPServer(int(port), factory, interface=interface)
         service.setServiceParent(root_service)
+
+    service = UDPServer(int(settings.UDP_RECEIVER_PORT),
+                        MetricDatagramReceiver(),
+                        interface=settings.UDP_RECEIVER_INTERFACE)
+    service.setServiceParent(root_service)
 
     if use_amqp:
         factory = amqp_listener.createAMQPListener(
