@@ -1,5 +1,5 @@
 from twisted.internet import reactor
-from twisted.internet.protocol import Factory
+from twisted.internet.protocol import Factory, DatagramProtocol
 from twisted.internet.error import ConnectionDone
 from twisted.protocols.basic import LineOnlyReceiver, Int32StringReceiver
 from carbon.cache import MetricCache
@@ -40,6 +40,19 @@ class MetricLineReceiver(LoggingMixin, LineOnlyReceiver):
 
     increment('metricsReceived')
     metricReceived(metric, datapoint)
+
+
+class MetricDatagramReceiver(LoggingMixin, DatagramProtocol):
+  def datagramReceived(self, data, (host, port)):
+    for line in data.splitlines():
+      try:
+        metric, value, timestamp = line.strip().split()
+        datapoint = ( float(timestamp), float(value) )
+
+        increment('metricsReceived')
+        metricReceived(metric, datapoint)
+      except:
+        log.listener('invalid line received from client %s, ignoring' % host)
 
 
 class MetricPickleReceiver(LoggingMixin, Int32StringReceiver):
