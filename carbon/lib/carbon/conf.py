@@ -234,7 +234,7 @@ class CarbonCacheOptions(usage.Options):
         elif action == "status":
             if not exists(pidfile):
                 print "%s (instance %s) is not running" % (program, instance)
-                raise SystemExit(0)
+                raise SystemExit(1)
             pf = open(pidfile, "r")
             try:
                 pid = int(pf.read().strip())
@@ -248,7 +248,7 @@ class CarbonCacheOptions(usage.Options):
                 raise SystemExit(0)
             else:
                 print "%s (instance %s) is not running" % (program, instance)
-                raise SystemExit(0)
+                raise SystemExit(1)
         elif action == "start":
             if exists(pidfile):
                 print ("Pidfile %s already exists, is %s already running?" %
