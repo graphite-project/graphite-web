@@ -48,7 +48,7 @@ class MetricDatagramReceiver(LoggingMixin, DatagramProtocol):
       metric, value, timestamp = data.strip().split()
       datapoint = ( float(timestamp), float(value) )
     except:
-      log.listener('invalid line received from client %s:%d, ignoring' % host, port)
+      log.listener('invalid line received from client %s, ignoring' % host)
       return
 
     increment('metricsReceived')
