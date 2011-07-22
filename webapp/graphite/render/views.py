@@ -115,7 +115,8 @@ def renderView(request):
       log.rendering('Total pickle rendering time %.6f' % (time() - start))
       return response
 
-    if requestOptions.get('format') == 'csv':
+    format = requestOptions.get('format')
+    if format == 'csv':
       response = HttpResponse(mimetype='text/csv')
       writer = csv.writer(response, dialect='excel')
 
@@ -126,7 +127,7 @@ def renderView(request):
 
       return response
 
-    if requestOptions.get('format') == 'json':
+    if format == 'json':
       series_data = []
       for series in data:
         timestamps = range(series.start, series.end, series.step)
@@ -138,7 +139,7 @@ def renderView(request):
       response['Cache-Control'] = 'no-cache'
       return response
 
-    if 'rawData' in requestOptions:
+    if format == 'raw':
       response = HttpResponse(mimetype='text/plain')
       for series in data:
         response.write( "%s,%d,%d,%d|" % (series.name, series.start, series.end, series.step) )
@@ -189,7 +190,7 @@ def parseOptions(request):
   if 'pickle' in queryParams:
     requestOptions['pickle'] = True
   if 'rawData' in queryParams:
-    requestOptions['rawData'] = True
+    requestOptions['format'] = 'raw'
   if 'format' in queryParams:
     requestOptions['format'] = queryParams['format']
   if 'noCache' in queryParams:
