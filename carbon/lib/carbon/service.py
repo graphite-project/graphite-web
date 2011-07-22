@@ -52,10 +52,11 @@ def createBaseService(config):
         service = TCPServer(int(port), factory, interface=interface)
         service.setServiceParent(root_service)
 
-    service = UDPServer(int(settings.UDP_RECEIVER_PORT),
-                        MetricDatagramReceiver(),
-                        interface=settings.UDP_RECEIVER_INTERFACE)
-    service.setServiceParent(root_service)
+    if settings.ENABLE_UDP_LISTENER:
+      service = UDPServer(int(settings.UDP_RECEIVER_PORT),
+                          MetricDatagramReceiver(),
+                          interface=settings.UDP_RECEIVER_INTERFACE)
+      service.setServiceParent(root_service)
 
     if use_amqp:
         factory = amqp_listener.createAMQPListener(

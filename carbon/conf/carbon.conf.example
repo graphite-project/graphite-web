@@ -30,6 +30,10 @@ MAX_CREATES_PER_MINUTE = 50
 LINE_RECEIVER_INTERFACE = 0.0.0.0
 LINE_RECEIVER_PORT = 2003
 
+# Set this to True to enable the UDP listener. By default this is off
+# because it is very common to run multiple carbon daemons and managing
+# another (rarely used) port for every carbon instance is not fun.
+ENABLE_UDP_LISTENER = False
 UDP_RECEIVER_INTERFACE = 0.0.0.0
 UDP_RECEIVER_PORT = 2003
 
@@ -85,15 +89,11 @@ WHISPER_AUTOFLUSH = False
 # Example: store everything
 # BIND_PATTERNS = #
 
-# NOTE: you cannot run both a cache and a relay on the same server
-# with the default configuration, you have to specify a distinict
-# interfaces and ports for the listeners.
-
 # To configure special settings for the 'foo' carbon-cache instance, uncomment this:
 #[cache:foo]
-#LINE_RECEIVER_PORT = 2003
-#PICKLE_RECEIVER_PORT = 2004
-#CACHE_QUERY_PORT = 7002
+#LINE_RECEIVER_PORT = 2103
+#PICKLE_RECEIVER_PORT = 2104
+#CACHE_QUERY_PORT = 7102
 # and any other settings you want to customize, defaults are inherited
 # from [carbon] section.
 
@@ -134,3 +134,8 @@ MAX_QUEUE_SIZE = 10000
 # This defines the maximum "message size" between carbon daemons.
 # You shouldn't need to tune this unless you really know what you're doing.
 MAX_DATAPOINTS_PER_MESSAGE = 500
+
+# This defines how many datapoints the aggregator remembers for
+# each metric. Aggregation only happens for datapoints that fall in
+# the past MAX_AGGREGATION_INTERVALS * intervalSize seconds.
+MAX_AGGREGATION_INTERVALS = 5
