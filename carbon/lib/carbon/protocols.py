@@ -19,14 +19,14 @@ class LoggingMixin:
     self.peer = self.transport.getPeer()
     self.peerAddr = "%s:%d" % (self.peer.host, self.peer.port)
     log.listener("%s connection with %s established" % (self.__class__.__name__, self.peerAddr))
-    self.factory.clientConnected(self)
+    self.factory.protocolConnected(self)
 
   def connectionLost(self, reason):
     if reason.check(ConnectionDone):
       log.listener("%s connection with %s closed cleanly" % (self.__class__.__name__, self.peerAddr))
     else:
       log.listener("%s connection with %s lost: %s" % (self.__class__.__name__, self.peerAddr, reason.value))
-    self.factory.clientDisconnected(self)
+    self.factory.protocolDisconnected(self)
 
 
 class MetricLineReceiver(LoggingMixin, LineOnlyReceiver):
@@ -135,4 +135,10 @@ class ProtocolManager:
     self.clientsPaused = False
 
 
-protocolManager = protocolManager()
+protocolManager = ProtocolManager()
+
+
+# Avoid import circularities
+from carbon.cache import MetricCache
+from carbon.relay import relay
+from carbon.instrumentation import increment

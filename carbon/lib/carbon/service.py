@@ -17,6 +17,7 @@ from os.path import exists
 
 from twisted.application.service import MultiService
 from twisted.application.internet import TCPServer, TCPClient, UDPServer
+import carbon.instrumentation # fulfill import deps to avoid circularities
 from carbon.protocols import protocolManager
 
 
