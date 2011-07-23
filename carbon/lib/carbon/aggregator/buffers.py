@@ -64,7 +64,7 @@ class MetricBuffer:
         buffer.mark_inactive()
 
       if buffer.interval < age_threshold:
-        del self.interval_values[interval]
+        del self.interval_values[buffer.interval]
 
   def close(self):
     if self.compute_task and self.compute_task.running:
