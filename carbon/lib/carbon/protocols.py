@@ -19,6 +19,7 @@ class LoggingMixin:
     self.peer = self.transport.getPeer()
     self.peerAddr = "%s:%d" % (self.peer.host, self.peer.port)
     log.listener("%s connection with %s established" % (self.__class__.__name__, self.peerAddr))
+    self.factory.clientConnected(self)
 
   def connectionLost(self, reason):
     if reason.check(ConnectionDone):
@@ -87,53 +88,51 @@ class CacheQueryHandler(LoggingMixin, Int32StringReceiver):
     increment('cacheQueries')
 
 
-class ReceiverFactory(Factory):
+class ConnectionTrackingFactory(Factory):
   def startFactory(self):
-    self.clients = []
+    self.connectedProtocols = []
 
   def buildProtocol(self, addr):
     p = self.protocol()
     p.factory = self
-    self.clients.append(p)
+    return p
 
-  def clientDisconnected(self, client):
-    if client in self.clients:
-      self.clients.remove(client)
+  def protocolConnected(self, p):
+    self.connectedProtocols.append(p)
+
+  def protocolDisconnected(self, p):
+    if p in self.connectedProtocols:
+      self.connectedProtocols.remove(p)
 
 
-class ClientManager:
+class ProtocolManager:
   def __init__(self):
     self.factories = []
     self.clientsPaused = False
 
   def createFactory(self, protocol):
-    factory = ReceiverFactory()
+    factory = ConnectionTrackingFactory()
     factory.protocol = protocol
     self.factories.append(factory)
     return factory
 
   @property
-  def clients(self):
+  def connectedProtocols(self):
     for factory in self.factories:
-      for client in factory.clients:
-        yield client
+      for p in factory.connectedProtocols:
+        yield p
 
-  def pauseAllClients(self):
-    log.listener("ClientManager.pauseAllClients")
-    for client in self.clients:
-      client.transport.pauseProducing()
+  def pauseAll(self):
+    log.listener("ProtocolManager.pauseAll")
+    for p in self.connectedProtocols:
+      p.transport.pauseProducing()
     self.clientsPaused = True
 
-  def resumeAllClients(self):
-    log.listener("ClientManager.resumeAllClients")
-    for client in self.clients:
-      client.transport.resumeProducing()
+  def resumeAll(self):
+    log.listener("ProtocolManager.resumeAll")
+    for p in self.connectedProtocols:
+      p.transport.resumeProducing()
     self.clientsPaused = False
 
 
-ClientManager = ClientManager() # ghetto singleton
-
-
-def startListener(interface, port, protocol):
-  factory = ClientManager.createFactory(protocol)
-  return reactor.listenTCP( int(port), factory, interface=interface )
+protocolManager = protocolManager()

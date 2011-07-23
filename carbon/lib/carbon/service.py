@@ -17,12 +17,12 @@ from os.path import exists
 
 from twisted.application.service import MultiService
 from twisted.application.internet import TCPServer, TCPClient, UDPServer
-from twisted.internet.protocol import ServerFactory
+from carbon.protocols import protocolManager
 
 
 def createBaseService(config):
     from carbon.conf import settings
-    from carbon.listeners import MetricLineReceiver, MetricPickleReceiver, MetricDatagramReceiver
+    from carbon.protocols import MetricLineReceiver, MetricPickleReceiver, MetricDatagramReceiver
 
     root_service = MultiService()
     root_service.setName(settings.program)
@@ -47,8 +47,7 @@ def createBaseService(config):
                                       (settings.PICKLE_RECEIVER_INTERFACE,
                                        settings.PICKLE_RECEIVER_PORT,
                                        MetricPickleReceiver)):
-        factory = ServerFactory()
-        factory.protocol = protocol
+        factory = protocolManager.createFactory(protocol)
         service = TCPServer(int(port), factory, interface=interface)
         service.setServiceParent(root_service)
 
@@ -95,7 +94,7 @@ def createCacheService(config):
     from carbon.cache import MetricCache
     from carbon.conf import settings
     from carbon.events import metricReceived
-    from carbon.listeners import CacheQueryHandler
+    from carbon.protocols import CacheQueryHandler
 
     # Configure application components
     metricReceived.installHandler(MetricCache.store)

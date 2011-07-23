@@ -37,7 +37,7 @@ except:
     LIB_DIR = os.path.dirname(os.path.dirname(__file__))
     sys.path.insert(0, LIB_DIR)
 
-import carbon.listeners #satisfy import order requirements
+import carbon.protocols #satisfy import order requirements
 from carbon.instrumentation import increment
 from carbon.events import metricReceived
 from carbon.conf import settings
