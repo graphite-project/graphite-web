@@ -1,5 +1,6 @@
 import time
 from twisted.internet.task import LoopingCall
+from carbon.conf import settings
 from carbon import log
 
 
@@ -64,7 +65,7 @@ class MetricBuffer:
         buffer.mark_inactive()
 
       if buffer.interval < age_threshold:
-        del self.interval_values[buffer.interval]
+        del self.interval_buffers[buffer.interval]
 
   def close(self):
     if self.compute_task and self.compute_task.running:
@@ -73,7 +74,7 @@ class MetricBuffer:
 
   @property
   def size(self):
-    return len(self.values)
+    return sum([len(buf.values) for buf in self.interval_buffers.values()])
 
 
 class IntervalBuffer:
