@@ -253,12 +253,18 @@ class CarbonCacheOptions(usage.Options):
             else:
                 print "%s (instance %s) is not running" % (program, instance)
                 raise SystemExit(1)
+
         elif action == "start":
             if exists(pidfile):
                 print ("Pidfile %s already exists, is %s already running?" %
                        (pidfile, program))
                 raise SystemExit(1)
             print "Starting %s (instance %s)" % (program, instance)
+
+        else:
+            print "Invalid action '%s'" % action
+            print "Valid actions: start stop status"
+            raise SystemExit(1)
 
 
 class CarbonAggregatorOptions(CarbonCacheOptions):
