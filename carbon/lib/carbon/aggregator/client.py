@@ -48,6 +48,7 @@ class MetricPickleSender(Int32StringReceiver):
 
     # Flow control magic
     if protocolManager.clientsPaused and len(self.queue) < settings.MAX_QUEUE_SIZE * 0.8:
+      log.aggregator('send queue has space available, resuming paused clients')
       protocolManager.resumeAll()
 
   def send(self, metric, datapoint):
@@ -85,7 +86,7 @@ class MetricSenderFactory(ReconnectingClientFactory):
 
   def send(self, metric, datapoint):
     if len(self.queue) >= settings.MAX_QUEUE_SIZE:
-      log.aggregator('send queue full for %s, throttling client connections' % self.remoteAddr)
+      log.aggregator('send queue full, throttling client connections')
       self.queue.append( (metric, datapoint) ) # it's a soft max
 
       # We attempt to do some simple flow control
