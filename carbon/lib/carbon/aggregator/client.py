@@ -1,6 +1,7 @@
 from twisted.internet import reactor
 from twisted.internet.protocol import ReconnectingClientFactory
 from twisted.protocols.basic import Int32StringReceiver
+from carbon.listeners import ClientManager
 from carbon.conf import settings
 from carbon import log
 
@@ -45,6 +46,10 @@ class MetricPickleSender(Int32StringReceiver):
       self.queue = self.factory.queue = self.queue[MAX_DATAPOINTS_PER_MESSAGE:]
       self.sendString( pickle.dumps(datapoints, protocol=-1) )
 
+    # Flow control magic
+    if ClientManager.clientsPaused and len(self.queue) < settings.MAX_QUEUE_SIZE * 0.8:
+      ClientManager.resumeAllClients()
+
   def send(self, metric, datapoint):
     if self.paused:
       self.queue.append( (metric, datapoint) )
@@ -80,7 +85,12 @@ class MetricSenderFactory(ReconnectingClientFactory):
 
   def send(self, metric, datapoint):
     if len(self.queue) >= settings.MAX_QUEUE_SIZE:
-      log.aggregator('send queue full for %s, dropping data' % self.remoteAddr)
+      log.aggregator('send queue full for %s, throttling client connections' % self.remoteAddr)
+      self.queue.append( (metric, datapoint) ) # it's a soft max
+
+      # We attempt to do some simple flow control
+      if not ClientManager.clientsPaused:
+        ClientManager.pauseAllClients()
 
     elif self.connectedProtocol:
       self.connectedProtocol.send(metric, datapoint)
