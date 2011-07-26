@@ -102,7 +102,15 @@ var originalDefaultGraphParams = {
   width: UI_CONFIG.default_graph_width,
   height: UI_CONFIG.default_graph_height
 };
-var defaultGraphParams = Ext.apply({}, originalDefaultGraphParams);
+var defaultGraphParams;
+//XXX
+// Per-session default graph params
+var sessionDefaultParamsJson = cookieProvider.get('defaultGraphParams');
+if (sessionDefaultParamsJson && sessionDefaultParamsJson.length > 0) {
+  defaultGraphParams = Ext.decode(sessionDefaultParamsJson);
+} else {
+  defaultGraphParams = Ext.apply({}, originalDefaultGraphParams);
+}
 
 
 function initDashboard () {
@@ -985,17 +993,20 @@ function startTask(task) {
 }
 
 /* Time Range management */
+defaultGraphParams['from'].match(/([0-9]+)([^0-9]+)/);
+var defaultRelativeQuantity = RegExp.$1;
+var defaultRelativeUnits = RegExp.$2;
 var TimeRange = {
   // Default to a relative time range
   type: 'relative',
-  quantity: '2',
-  units: 'hours',
+  quantity: defaultRelativeQuantity,
+  units: defaultRelativeUnits,
   // Absolute time range
   startDate: new Date(),
   startTime: "9:00 AM",
   endDate: new Date(),
   endTime: "5:00 PM"
-}
+};
 
 function getTimeText() {
   if (TimeRange.type == 'relative') {
@@ -1020,6 +1031,7 @@ function timeRangeUpdated() {
   }
   defaultGraphParams.from = fromParam;
   defaultGraphParams.until = untilParam;
+  saveDefaultGraphParams();
 
   graphStore.each(function () {
     this.data.params.from = fromParam;
@@ -1159,6 +1171,7 @@ function editDefaultGraphParameters() {
     var params = Ext.urlDecode(paramsString);
     copyUneditable(defaultGraphParams, params);
     defaultGraphParams = params;
+    saveDefaultGraphParams();
     refreshGraphs();
     win.close();
   }
@@ -1254,6 +1267,7 @@ function selectGraphSize() {
   function resize() {
     GraphSize.width = defaultGraphParams.width = widthField.getValue();
     GraphSize.height = defaultGraphParams.height = heightField.getValue();
+    saveDefaultGraphParams();
     win.close();
     refreshGraphs();
   }
@@ -2332,6 +2346,11 @@ function removeOuterCall() { // blatantly repurposed from composer_widgets.js (d
   });
   refreshGraphs();
 }
+
+function saveDefaultGraphParams() {
+  cookieProvider.set('defaultGraphParams', Ext.encode(defaultGraphParams));
+}
+
 
 /* Cookie stuff */
 function getContextFieldCookie(field) {
