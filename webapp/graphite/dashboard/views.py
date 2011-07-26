@@ -1,6 +1,6 @@
 import re
 import errno
-from os.path import getmtime
+from os.path import getmtime, join, exists
 from ConfigParser import ConfigParser
 from django.shortcuts import render_to_response
 from django.http import HttpResponse
@@ -21,6 +21,7 @@ defaultUIConfig = {
   'refresh_interval'     :  60,
   'autocomplete_delay'   : 375,
   'merge_hover_delay'    : 700,
+  'theme'                : 'default',
 }
 
 
@@ -92,12 +93,21 @@ def dashboard(request, name=None):
     else:
       raise
 
+  initialError = None
   debug = request.GET.get('debug', False)
+  theme = request.GET.get('theme', config.ui_config['theme'])
+  css_file = join(settings.CSS_DIR, 'dashboard-%s.css' % theme)
+  if not exists(css_file):
+    initialError = "Invalid theme '%s'" % theme
+    theme = config.ui_config['theme']
+
   context = {
     'schemes_json' : json.dumps(config.schemes),
     'ui_config_json' : json.dumps(config.ui_config),
     'jsdebug' : debug or settings.JAVASCRIPT_DEBUG,
     'debug' : debug,
+    'theme' : theme,
+    'initialError' : initialError,
     'querystring' : json.dumps( dict( request.GET.items() ) ),
     'dashboard_conf_missing' : dashboard_conf_missing,
   }

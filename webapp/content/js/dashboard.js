@@ -267,8 +267,8 @@ function initDashboard () {
             ) ? "metric-not-toggled" : "metric-toggled";
           var branchClass = (
             record.data['is_leaf'] == '0'
-          ) ? "branch-node" : "";
-          return toggledClass + ' ' + branchClass + ' terminalStyle';
+          ) ? "result-is-branch-node" : "";
+          return toggledClass + ' ' + branchClass + ' metric-result';
         }
       },
       selModel: new Ext.grid.RowSelectionModel({
@@ -312,7 +312,7 @@ function initDashboard () {
     metricSelectorTextField = new Ext.form.TextField({
       region: 'south',
       enableKeyEvents: true,
-      cls: 'terminalStyle',
+      cls: 'completer-input-field',
       listeners: {
         keypress: completerKeyPress,
         specialkey: completerKeyPress,
@@ -638,7 +638,7 @@ function initDashboard () {
     region: 'center',
     layout: 'fit',
     autoScroll: false,
-    bodyCssClass: 'graphAreaBody',
+    bodyCssClass: 'graph-area-body',
     items: [graphView],
     tbar: new Ext.Toolbar({
       items: [

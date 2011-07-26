@@ -11,6 +11,12 @@ refresh_interval = 60
 autocomplete_delay = 375
 merge_hover_delay = 750
 
+# You can set this 'default', 'white', or a custom theme name.
+# To create a custom theme, copy the dashboard-default.css file
+# to dashboard-myThemeName.css in the content/css directory and
+# modify it to your liking.
+theme = default
+
 
 # These settings apply to the UI as a whole, all other sections in this file
 # pertain only to specific metric types.
