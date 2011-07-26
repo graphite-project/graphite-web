@@ -45,7 +45,16 @@ def run_twistd_plugin(filename):
     __builtins__["program"] = program
 
     # Then forward applicable options to either twistd or to the plugin itself.
-    twistd_options = ["--no_save", "--reactor=epoll"]
+    twistd_options = ["--no_save"]
+
+    # If no reactor was selected yet, try to use the epool reactor if
+    # available.
+    try:
+        from twisted.internet import epollreactor
+        twistd_options.append("--reactor=epoll")
+    except:
+        pass
+
     if options.debug:
         twistd_options.extend(["-n", "--logfile", "-"])
     if options.profile:

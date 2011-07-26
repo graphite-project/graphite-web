@@ -17,13 +17,15 @@ from os.path import exists
 
 from twisted.application.service import MultiService
 from twisted.application.internet import TCPServer, TCPClient, UDPServer
+from twisted.internet.protocol import ServerFactory
 import carbon.instrumentation # fulfill import deps to avoid circularities
 from carbon.protocols import protocolManager
 
 
 def createBaseService(config):
     from carbon.conf import settings
-    from carbon.protocols import MetricLineReceiver, MetricPickleReceiver, MetricDatagramReceiver
+    from carbon.protocols import (MetricLineReceiver, MetricPickleReceiver,
+                                  MetricDatagramReceiver)
 
     root_service = MultiService()
     root_service.setName(settings.program)
