@@ -42,7 +42,10 @@ class DashboardConfig:
 
     for option, default_value in defaultUIConfig.items():
       if parser.has_option('ui', option):
-        self.ui_config[option] = parser.getint('ui', option)
+        try:
+          self.ui_config[option] = parser.getint('ui', option)
+        except ValueError:
+          self.ui_config[option] = parser.get('ui', option)
       else:
         self.ui_config[option] = default_value
 
