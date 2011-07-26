@@ -292,8 +292,10 @@ function initDashboard () {
                     if (record.data['is_leaf'] == '1') {
                       graphAreaToggle(record.data.path);
                       thisGrid.getView().refresh();
+                    } else {
+                      metricSelectorTextField.setValue(record.data.path);
                     }
-                    thisGrid.getSelectionModel().clearSelections();
+                    autocompleteTask.delay(50);
                     focusCompleter();
                   }
       }
