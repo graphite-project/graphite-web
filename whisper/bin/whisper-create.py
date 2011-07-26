@@ -4,7 +4,8 @@ import sys, os
 import whisper
 from optparse import OptionParser
 
-option_parser = OptionParser(usage='''%prog path secondsPerPoint:pointsToStore [secondsPerPoint:pointsToStore]* ''')
+option_parser = OptionParser(usage=('%prog path secondsPerPoint:pointsToStore '
+                                    '[secondsPerPoint:pointsToStore]*'))
 option_parser.add_option('--xFilesFactor', default=0.5, type='float')
 option_parser.add_option('--overwrite', default=False, action='store_true')
 
@@ -15,7 +16,8 @@ if len(args) < 2:
   sys.exit(1)
 
 path = args[0]
-archives = [ tuple( map(int,archive_str.split(':')) ) for archive_str in args[1:] ]
+archives = [whisper.parseRetentionDef(retentionDef)
+            for retentionDef in args[1:]]
 
 if options.overwrite and os.path.exists(path):
   print 'Overwriting existing file: %s' % path

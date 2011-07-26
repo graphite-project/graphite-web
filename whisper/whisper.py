@@ -56,6 +56,45 @@ archiveInfoSize = struct.calcsize(archiveInfoFormat)
 
 debug = startBlock = endBlock = lambda *a,**k: None
 
+UnitMultipliers = {
+  's' : 1,
+  'm' : 60,
+  'h' : 60 * 60,
+  'd' : 60 * 60 * 24,
+  'y' : 60 * 60 * 24 * 365,
+}
+
+
+def parseRetentionDef(retentionDef):
+  (precision, points) = retentionDef.strip().split(':')
+
+  if precision.isdigit():
+    precisionUnit = 's'
+    precision = int(precision)
+  else:
+    precisionUnit = precision[-1]
+    precision = int( precision[:-1] )
+
+  if points.isdigit():
+    pointsUnit = None
+    points = int(points)
+  else:
+    pointsUnit = points[-1]
+    points = int( points[:-1] )
+
+  if precisionUnit not in UnitMultipliers:
+    raise ValueError("Invalid unit: '%s'" % precisionUnit)
+
+  if pointsUnit not in UnitMultipliers and pointsUnit is not None:
+    raise ValueError("Invalid unit: '%s'" % pointsUnit)
+
+  precision = precision * UnitMultipliers[precisionUnit]
+
+  if pointsUnit:
+    points = points * UnitMultipliers[pointsUnit] / precision
+
+  return (precision, points)
+
 
 class WhisperException(Exception):
     """Base class for whisper exceptions."""

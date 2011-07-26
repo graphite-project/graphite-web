@@ -4,49 +4,10 @@ import sys, os, time, traceback
 import whisper
 from optparse import OptionParser
 
-now = int( time.time() )
+now = int(time.time())
 
-UnitMultipliers = {
-  's' : 1,
-  'm' : 60,
-  'h' : 60 * 60,
-  'd' : 60 * 60 * 24,
-  'y' : 60 * 60 * 24 * 365,
-}
-
-
-def parseRetentionDef(retentionDef):
-  (precision, points) = retentionDef.strip().split(':')
-
-  if precision.isdigit():
-    precisionUnit = 's'
-    precision = int(precision)
-  else:
-    precisionUnit = precision[-1]
-    precision = int( precision[:-1] )
-
-  if points.isdigit():
-    pointsUnit = None
-    points = int(points)
-  else:
-    pointsUnit = points[-1]
-    points = int( points[:-1] )
-
-  if precisionUnit not in UnitMultipliers:
-    raise ValueError("Invalid unit: '%s'" % precisionUnit)
-
-  if pointsUnit not in UnitMultipliers and pointsUnit is not None:
-    raise ValueError("Invalid unit: '%s'" % pointsUnit)
-
-  precision = precision * UnitMultipliers[precisionUnit]
-
-  if pointsUnit:
-    points = points * UnitMultipliers[pointsUnit] / precision
-
-  return (precision, points)
-
-
-option_parser = OptionParser(usage='''%prog path precision:retention [precision:retention]*
+option_parser = OptionParser(
+    usage='''%prog path precision:retention [precision:retention]*
 
 precision and retention specify lengths of time, for example:
 
@@ -55,10 +16,19 @@ precision and retention specify lengths of time, for example:
 1h:7d        1 hour per datapoint, 7 days of retention
 12h:2y       12 hours per datapoint, 2 years of retention
 ''')
-option_parser.add_option('--xFilesFactor', default=None, type='float', help="Change the xFilesFactor")
-option_parser.add_option('--force', default=False, action='store_true', help="Perform a destructive change")
-option_parser.add_option('--newfile', default=None, action='store', help="Create a new database file without removing the existing one")
-option_parser.add_option('--nobackup', action='store_true', help='Delete the .bak file after successful execution')
+
+option_parser.add_option(
+    '--xFilesFactor', default=None,
+    type='float', help="Change the xFilesFactor")
+option_parser.add_option(
+    '--force', default=False, action='store_true',
+    help="Perform a destructive change")
+option_parser.add_option(
+    '--newfile', default=None, action='store',
+    help="Create a new database file without removing the existing one")
+option_parser.add_option(
+    '--nobackup', action='store_true',
+    help='Delete the .bak file after successful execution')
 
 (options, args) = option_parser.parse_args()
 
@@ -67,11 +37,13 @@ if len(args) < 2:
   sys.exit(1)
 
 path = args[0]
-new_archives = [ parseRetentionDef(retentionDef) for retentionDef in args[1:] ]
+new_archives = [whisper.parseRetentionDef(retentionDef)
+                for retentionDef in args[1:]]
 
 info = whisper.info(path)
 old_archives = info['archives']
-old_archives.sort(key=lambda a: a['secondsPerPoint'], reverse=True) #sort by precision, lowest to highest
+# sort by precision, lowest to highest
+old_archives.sort(key=lambda a: a['secondsPerPoint'], reverse=True)
 
 if options.xFilesFactor is None:
   xff = info['xFilesFactor']
