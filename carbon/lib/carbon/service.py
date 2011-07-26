@@ -77,12 +77,6 @@ def createBaseService(config):
                             interface=settings.MANHOLE_INTERFACE)
         service.setServiceParent(root_service)
 
-    # have to import this *after* settings are defined
-    from carbon.writer import WriterService
-
-    service = WriterService()
-    service.setServiceParent(root_service)
-
     # Instantiate an instrumentation service that will record metrics about
     # this service.
     from carbon.instrumentation import InstrumentationService

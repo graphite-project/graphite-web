@@ -5,6 +5,7 @@ from resource import getrusage, RUSAGE_SELF
 
 from twisted.application.service import Service
 from twisted.internet.task import LoopingCall
+from carbon.conf import settings
 
 
 stats = {}
@@ -65,7 +66,7 @@ def recordMetrics():
   stats.clear()
 
   # cache metrics
-  if program == 'carbon-cache':
+  if settings.program == 'carbon-cache':
     record = cache_record
     updateTimes = myStats.get('updateTimes', [])
     committedPoints = myStats.get('committedPoints', 0)
@@ -92,22 +93,24 @@ def recordMetrics():
     record('cache.overflow', cacheOverflow)
 
   # relay metrics
-  elif program == 'carbon-relay':
+  elif settings.program == 'carbon-relay':
     record = relay_record
     for connection in clientConnections:
       prefix = 'destinations.%s.' % connection.destinationName
 
-      for metric in ('attemptedRelays', 'sent', 'queuedUntilReady', 'queuedUntilConnected', 'fullQueueDrops'):
+      for metric in ('attemptedRelays', 'sent', 'queuedUntilReady',
+                     'queuedUntilConnected', 'fullQueueDrops'):
         metric = prefix + metric
         record(metric, myStats.get(metric, 0))
 
       record(prefix + 'queueSize', len(connection.queue))
 
   # aggregator metrics
-  elif program == 'carbon-aggregator':
+  elif settings.program == 'carbon-aggregator':
     record = aggregator_record
     record('allocatedBuffers', len(BufferManager))
-    record('bufferedDatapoints', sum([b.size for b in BufferManager.buffers.values()]))
+    record('bufferedDatapoints',
+           sum([b.size for b in BufferManager.buffers.values()]))
     record('datapointsReceived', myStats.get('datapointsReceived', 0))
     record('aggregateDatapointsSent', myStats.get('aggregateDatapointsSent', 0))
 
@@ -121,10 +124,11 @@ def recordMetrics():
 
 
 def cache_record(metric, value):
-  if instance is None:
+  if settings.instance is None:
     fullMetric = 'carbon.agents.%s.%s' % (HOSTNAME, metric)
   else:
-    fullMetric = 'carbon.agents.%s-%s.%s' % (HOSTNAME, instance, metric)
+    fullMetric = 'carbon.agents.%s-%s.%s' % (
+        HOSTNAME, settings.instance, metric)
   datapoint = (time.time(), value)
   MetricCache.store(fullMetric, datapoint)
 

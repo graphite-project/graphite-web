@@ -200,9 +200,10 @@ class CarbonCacheOptions(usage.Options):
                 os.makedirs(logdir)
             log.logToDir(logdir)
 
-    def parseArgs(self, action):
+    def parseArgs(self, *action):
         """If an action was provided, store it for further processing."""
-        self["action"] = action
+        if len(action) == 1:
+            self["action"] = action[0]
 
     def handleAction(self):
         """Handle extra argument for backwards-compatibility.
@@ -408,6 +409,8 @@ def read_config(program, options, **kwargs):
     # Read configuration options from program-specific section.
     section = program[len("carbon-"):]
     settings.readFrom(options["config"], section)
+
+    settings.setdefault("instance", options["instance"])
 
     # If a specific instance of the program is specified, augment the settings
     # with the instance-specific settings and provide sane defaults for
