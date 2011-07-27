@@ -16,7 +16,24 @@ import sys, os
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-#sys.path.append(os.path.abspath('.'))
+sys.path.append(os.path.abspath('../carbon/lib/carbon/tests'))
+sys.path.append(os.path.abspath('../carbon/lib/carbon/aggregator'))
+sys.path.append(os.path.abspath('../carbon/lib/carbon'))
+sys.path.append(os.path.abspath('../webapp/graphite/cli'))
+sys.path.append(os.path.abspath('../webapp/graphite/dashboard'))
+sys.path.append(os.path.abspath('../webapp/graphite/render'))
+sys.path.append(os.path.abspath('../webapp/graphite/metrics'))
+sys.path.append(os.path.abspath('../webapp/graphite/composer'))
+sys.path.append(os.path.abspath('../webapp/graphite/whitelist'))
+sys.path.append(os.path.abspath('../webapp/graphite/account'))
+sys.path.append(os.path.abspath('../webapp/graphite/browser'))
+sys.path.append(os.path.abspath('../webapp/graphite'))
+sys.path.append(os.path.abspath('../webapp/graphite/thirdparty/pytz'))
+sys.path.append(os.path.abspath('../webapp/graphite/thirdparty'))
+sys.path.append(os.path.abspath('../webapp/graphite/graphlot'))
+os.environ['PYTHONPATH']=str(os.path.abspath('../webapp/'))
+os.environ['DJANGO_SETTINGS_MODULE']="graphite.settings"
+
 
 # -- General configuration -----------------------------------------------------
 

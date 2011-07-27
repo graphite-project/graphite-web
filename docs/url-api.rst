@@ -40,6 +40,7 @@ These are separated by an ampersand ( & ) and are in the format
 
 (As opposed to functions, which are described in the next section)
 .. note::
+
   Most of the functions and parameters are case sensitive.
   For example &linewidth=2 will fail silently.  
   The correct parameter is &lineWidth=2
@@ -98,6 +99,7 @@ If $until is omittied, it defaults to the current time (now).
 There are two formats for these functions:
 
 .. code-block:: none
+
   &from=-RELATIVE_TIME
   &from=HH:MM_YYYYMMDD
 
@@ -131,7 +133,6 @@ DD            Day of month with leadng zero
 
 Examples:
 
-
 .. code-block:: none
 
   &from=-8d&until=-7d
@@ -144,6 +145,7 @@ Examples:
   
 rawData
 -------
+
 Used to get numerical data out of the webapp instead of an image.
 Can be set to true, false, csv.
 Affects all &targets passed in the URL.
@@ -151,6 +153,7 @@ Affects all &targets passed in the URL.
 Example:
 
 .. code-block:: none
+
   &target=carbon.agents.graphiteServer01.cpuUsage&from=-5min&rawData=true
 
 Returns the following text:
@@ -161,12 +164,15 @@ Returns the following text:
 
 margin
 ------
+
 Used to increase the margin around a graph image on all sides. 
 Must be passed a positive integer.
 If omitted, the default margin is 10 pixels. 
 
 Example:
+
 .. code-block:: none
+
  &margin=20 
 
 bgcolor
@@ -204,6 +210,7 @@ RGB can be passed directly in the format #RRGGBB where RR, GG, and BB are 2-digi
 
 Examples:
 .. code-block:: none
+
   &bgcolor=blue
   &bgcolor=#2222FF
 
@@ -223,6 +230,7 @@ The font must be installed on the Graphite Server.
 
 Example:
 .. code-block:: none
+
   &fontName=FreeMono
 
 fontSize
@@ -233,6 +241,7 @@ Default is 10
 
 Example:
 .. code-block:: none
+
   &fontSize=8
 
 fontBold
@@ -242,6 +251,7 @@ Default is false.
 
 Example:
 .. code-block:: none
+
   &fontBold=true
 
 fontItalic
@@ -251,6 +261,7 @@ Default is false.
 
 Example:
 .. code-block:: none
+
   &fontItalic=true
 
 yMin
@@ -261,6 +272,7 @@ By deafult, Graphite attempts to fit all data on one graph.
 
 Example:
 .. code-block:: none
+
   &yMin=0
 
 
@@ -271,6 +283,7 @@ By deafult, Graphite attempts to fit all data on one graph.
 
 Example:
 .. code-block:: none
+
   &yMax=0.2345
 
 
@@ -280,6 +293,7 @@ Passed one or more comma-separated color names or RGB values (see bgcolor for a 
 
 Example:
 .. code-block:: none
+
   &colorList=green,yellow,orange,red,purple,#DECAFF
 
 title
@@ -289,6 +303,7 @@ If omitted, no title is displayed.
 
 Example:
 .. code-block:: none
+
   &title=Apache Busy Threads, All Servers, Past 24h
 
 
@@ -299,6 +314,7 @@ If omitted, no y-axis labe is displayed.
 
 Example:
 .. code-block:: none
+
   &vtitle=Threads
 
 lineMode
@@ -309,6 +325,7 @@ If omitted, default is 'slope'.
 
 Example:
 .. code-block:: none
+
   &lineMode=staircase
 
 lineWidth
@@ -318,6 +335,7 @@ Changes the width of the line in pixels.
 
 Example:
 .. code-block:: none
+
   &lineWidth=2
 
 hideLegend
@@ -334,6 +352,7 @@ You may need to increase the &height parameter to accomodate the additional text
 
 Example:
 .. code-block:: none
+
  &hideLegend=false
 
 hideAxes
@@ -344,6 +363,7 @@ Default is false.
 
 Example:
 .. code-block:: none
+
   &hideAxes=true
  
 hideGrid
@@ -354,6 +374,7 @@ Default is false.
 
 Example:
 .. code-block:: none
+
   &hideGrid=true
 
 minXStep
@@ -368,6 +389,7 @@ See bgcolor for valid color names and formats.
 
 Example:
 .. code-block:: none
+
   &majorGridLineColor=#FF22FF
 
 minorGridLineColor
@@ -378,6 +400,7 @@ See bgcolor for valid color names and formats.
 
 Example:
 .. code-block:: none
+
   &minorGridLineColor=darkgrey
 
 
