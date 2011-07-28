@@ -24,11 +24,8 @@ customize your graphs and pull out raw data. For example:
   # single server load on large graph
   http://graphite/render?target=server.web1.load&height=800&width=600
 
-  # average load across web machines
-  http://graphite/render?target=averageSeries(server.web*.load)
-
-  # 5min average load on web1 over last 12 hours
-  http://graphite/render?target=summarize(server.web1.load,"5min")&from=-12hours
+  # average load across web machines over last 12 hours
+  http://graphite/render?target=averageSeries(server.web*.load)&from=-12hours
 
   # number of registered users over past day as raw json data
   http://graphite/render?target=app.numUsers&format=json
