@@ -25,9 +25,11 @@ that allows Ganglia to send metrics directly to Graphite. Further integration wo
 collectd
 --------
 `collectd`_ is a daemon which collects system performance statistics periodically and provides
-mechanisms to store the values in a variety of ways, including RRD. Jordan Sissel of Loggly wrote
-a neat tool (https://github.com/loggly/collectd-to-graphite) that allows collectd to
-send metrics to Graphite.
+mechanisms to store the values in a variety of ways, including RRD. To send collectd merics into carbon/graphite, use:
+
+- Jordan Sissel's node collectd-to-graphite_ proxy
+- Joe Miller's perl collectd-graphite_ plugin
+- Gregory Szorc's python collectd-carbon_ plugin
 
 
 Logster
@@ -50,6 +52,9 @@ Learn more here, http://code.google.com/p/rocksteady/
 .. _statsd: https://github.com/etsy/statsd
 .. _Ganglia: http://ganglia.info/
 .. _collectd: http://collectd.org/
+.. _collectd-to-graphite: https://github.com/loggly/collectd-to-graphite
+.. _collectd-carbon: https://github.com/indygreg/collectd-carbon
+.. _collectd-graphite: https://github.com/joemiller/collectd-graphite
 .. _Logster: https://github.com/etsy/logster
 .. _RabbitMQ: http://www.rabbitmq.com/
 .. _Esper: http://esper.codehaus.org/
