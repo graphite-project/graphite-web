@@ -94,44 +94,47 @@ from / until
 ------------
 
 These are optional parameters that specify the relative or absolute time period to graph. 
-&from specifies the beginning, &until specifies the end. 
-If &from is omitted, it defaults to 24 hours ago. 
-If $until is omittied, it defaults to the current time (now). 
+``&from`` specifies the beginning, ``&until`` specifies the end.
+If ``&from`` is omitted, it defaults to 24 hours ago.
+If ``&until`` is omittied, it defaults to the current time (now).
 
-There are two formats for these functions:
+There are multiple formats for these functions:
 
 .. code-block:: none
 
   &from=-RELATIVE_TIME
-  &from=HH:MM_YYYYMMDD
+  &from=ABSOLUTE_TIME
 
-RELATIVE_TIME is a length of time since the current time. 
+RELATIVE_TIME is a length of time since the current time.
 It is always preceded my a minus sign ( - ) and follow by a unit of time.
 Valid units of time:
 
 ============== ===============
 Abbrieviation  Unit
 ============== ===============
+s              Seconds
 min            Minutes
 h              Hours
 d              Days
+w              Weeks
 mon            30 Days (month)
 y              365 Days (year)
 ============== ===============
 
-Absolute time is in the format HH:MM_YYMMDD
+ABSOLUTE_TIME is in the format HH:MM_YYMMDD, YYYYMMDD, MM/DD/YY, or any other
+``at(1)``-compatible time format.
 
 ============= =======
 Abbreiviation Meaning
 ============= =======
 HH            Hours, in 24h clock format.  Times before 12PM must include leading zeroes.
 MM            Minutes
-YYYY          4 Digit Year. 
+YYYY          4 Digit Year.
 MM            Numeric month representation with leading zero
 DD            Day of month with leadng zero
 ============= =======
 
-&from and &until can mix absolute and relative time if desired.
+``&from`` and ``&until`` can mix absolute and relative time if desired.
 
 Examples:
 
@@ -143,8 +146,21 @@ Examples:
   &from=04:00_20110501&until=16:00_20110501
   (shows 4AM-4PM on May 1st, 2011)
 
+  &from=20091201&until=20091231
+  (shows December 2009)
 
-  
+  &from=noon+yesterday
+  (shows data since 12:00pm on the previous day)
+
+  &from=6pm+today
+  (shows data since 6:00pm on the same day)
+
+  &from=january+1
+  (shows data since the beginning of the current year)
+
+  &from=monday
+  (show data since the previous monday)
+
 rawData
 -------
 
@@ -362,7 +378,7 @@ If there are 10 or less targets, default is true.
 If there are more than 10 targets, default is false.
 
 You can force the legend to be draw for more than 10 targets by setting this to false.
-You may need to increase the &height parameter to accomodate the additional text.
+You may need to increase the ``&height`` parameter to accomodate the additional text.
 
 Example:
 
