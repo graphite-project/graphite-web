@@ -28,7 +28,7 @@ from twisted.python import usage
 
 defaults = dict(
   LOCAL_DATA_DIR="/opt/graphite/storage/whisper/",
-  WHITELISTS_DIR="/opt/graphite/storage/",
+  WHITELISTS_DIR="/opt/graphite/storage/lists/",
   USER="",
   MAX_CACHE_SIZE='inf',
   MAX_UPDATES_PER_SECOND=1000,
