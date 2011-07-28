@@ -504,3 +504,17 @@ max
 ---
 alias for yMax
 
+tz
+--
+Time zone to render data in.
+
+Examples:
+
+.. code-block:: none
+
+  &tz=America/Los_Angeles
+  &tz=UTC
+
+.. note::
+
+  To change the default timezone, edit ``webapp/graphite/local_settings.py``.
