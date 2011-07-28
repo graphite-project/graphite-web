@@ -13,6 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 import os, re
+import whisper
+
 from os.path import join, exists
 from carbon.conf import OrderedConfigParser, settings
 
@@ -30,46 +32,6 @@ def getFilesystemPath(metric):
   return join(settings.LOCAL_DATA_DIR, metric.replace('.','/')) + '.wsp'
 
 
-UnitMultipliers = {
-  's' : 1,
-  'm' : 60,
-  'h' : 60 * 60,
-  'd' : 60 * 60 * 24,
-  'y' : 60 * 60 * 24 * 365,
-}
-
-def parseRetentionDefinition(retentionDef):
-  (precision, points) = retentionDef.strip().split(':')
-
-  if precision.isdigit():
-    precisionUnit = 's'
-    precision = int(precision)
-  else:
-    precisionUnit = precision[-1]
-    precision = int( precision[:-1] )
-
-  if points.isdigit():
-    pointsUnit = None
-    points = int(points)
-  else:
-    pointsUnit = points[-1]
-    points = int( points[:-1] )
-
-  if precisionUnit not in UnitMultipliers:
-    raise ValueError("Invalid unit: '%s'" % precisionUnit)
-
-  if pointsUnit not in UnitMultipliers and pointsUnit is not None:
-    raise ValueError("Invalid unit: '%s'" % pointsUnit)
-
-  precision = precision * UnitMultipliers[precisionUnit]
-
-  if pointsUnit:
-    points = points * UnitMultipliers[pointsUnit] / precision
-
-  return (precision, points)
-
-
-
 class Schema:
   def test(self, metric):
     raise NotImplementedError()
@@ -79,6 +41,7 @@ class Schema:
 
 
 class DefaultSchema(Schema):
+
   def __init__(self, name, archives):
     self.name = name
     self.archives = archives
@@ -88,6 +51,7 @@ class DefaultSchema(Schema):
 
 
 class PatternSchema(Schema):
+
   def __init__(self, name, pattern, archives):
     self.name = name
     self.pattern = pattern
@@ -99,6 +63,7 @@ class PatternSchema(Schema):
 
 
 class ListSchema(Schema):
+
   def __init__(self, name, listName, archives):
     self.name = name
     self.listName = listName
@@ -130,9 +95,10 @@ class ListSchema(Schema):
 
 
 class Archive:
+
   def __init__(self,secondsPerPoint,points):
-    self.secondsPerPoint = int( secondsPerPoint )
-    self.points = int( points )
+    self.secondsPerPoint = int(secondsPerPoint)
+    self.points = int(points)
 
 
   def getTuple(self):
@@ -141,7 +107,7 @@ class Archive:
 
   @staticmethod
   def fromString(retentionDef):
-    (secondsPerPoint, points) = parseRetentionDefinition(retentionDef)
+    (secondsPerPoint, points) = whisper.parseRetentionDef(retentionDef)
     return Archive(secondsPerPoint, points)
 
 
@@ -172,9 +138,9 @@ def loadStorageSchemas():
     else:
       raise ValueError('schema "%s" has no pattern or list parameter configured' % section)
 
-    schemaList.append( mySchema )
+    schemaList.append(mySchema)
 
-  schemaList.append( defaultSchema )
+  schemaList.append(defaultSchema)
   return schemaList
 
 
