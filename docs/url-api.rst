@@ -1,3 +1,4 @@
+===========
 The URL API
 ===========
 
@@ -9,11 +10,11 @@ Terminology
 You should be familiar with these definitions before reading the URL API
 
 datapoint
----------
+^^^^^^^^^
 A value for a given time.
 
 metric
-------
+^^^^^^
 A metric is a named set of datapoints ranging over time. 
 You determine the name for the data when you send messages to port 2003. 
 An example would be system load on a server called 'apache02' in datacenter 'MetroEast':
@@ -21,7 +22,7 @@ An example would be system load on a server called 'apache02' in datacenter 'Met
 MetroEast.servers.apache02.system.loadAvg
 
 time
-----
+^^^^
 Time is represented on the x-axis. 
 
 The smallest time that Graphite can currently save is one second, however,  many metrics are recorded once a minute. Others may only be kept hourly or daily. You pick the length (of time) of one datapoint by configuring storage-schemas.conf *before sending the first datapoint*.
@@ -198,13 +199,15 @@ Examples:
   &format=csv
   &format=json
 
-Raw output:
+raw
+^^^
 
 .. code-block:: none
 
   entries,1311836008,1311836013,1|1.0,2.0,3.0,5.0,6.0
 
-CSV output:
+csv
+^^^
 
 .. code-block:: none
 
@@ -214,7 +217,8 @@ CSV output:
   entries,2011-07-28 01:53:31,5.0
   entries,2011-07-28 01:53:32,6.0
 
-JSON output:
+json
+^^^^
 
 .. code-block:: none
 
