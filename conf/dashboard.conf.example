@@ -17,6 +17,14 @@ merge_hover_delay = 750
 # modify it to your liking.
 theme = default
 
+[keyboard-shortcuts]
+toggle_toolbar = ctrl-z
+toggle_metrics_panel = ctrl-space
+erase_all_graphs = alt-x
+save_dashboard = alt-s
+completer_add_metrics = alt-enter
+completer_del_metrics = alt-backspace
+give_completer_focus = shift-space
 
 # These settings apply to the UI as a whole, all other sections in this file
 # pertain only to specific metric types.
