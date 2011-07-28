@@ -15,28 +15,28 @@ A value for a given time.
 
 metric
 ^^^^^^
-A metric is a named set of datapoints ranging over time. 
-You determine the name for the data when you send messages to port 2003. 
+A metric is a named set of datapoints ranging over time.
+You determine the name for the data when you send messages to port 2003.
 An example would be system load on a server called 'apache02' in datacenter 'MetroEast':
 
 MetroEast.servers.apache02.system.loadAvg
 
 time
 ^^^^
-Time is represented on the x-axis. 
+Time is represented on the x-axis.
 
 The smallest time that Graphite can currently save is one second, however,  many metrics are recorded once a minute. Others may only be kept hourly or daily. You pick the length (of time) of one datapoint by configuring storage-schemas.conf *before sending the first datapoint*.
 
-If you send more frequently than defined in storage-schemas.conf, by default Graphite drops the old value and replaces it with the last one it receives.  You can confiure a hit-count function, to add all values, instead of replacing, or have your data collection agent aggregate and send only one value. 
+If you send more frequently than defined in storage-schemas.conf, by default Graphite drops the old value and replaces it with the last one it receives.  You can configure a hit-count function, to add all values, instead of replacing, or have your data collection agent aggregate and send only one value.
 
-When creating a graph, a dot is place above each time on the x-axis, at the value on the y-axis, and a line is drawn connecting them. If no data was sent, the line will not be drawn and you will see a gap. When using any function that combines many lines (metrics) into one, the lowest resolution (the longest time period per datapoint) is used. 
+When creating a graph, a dot is place above each time on the x-axis, at the value on the y-axis, and a line is drawn connecting them. If no data was sent, the line will not be drawn and you will see a gap. When using any function that combines many lines (metrics) into one, the lowest resolution (the longest time period per datapoint) is used.
 
 Parameters
 ==========
-These are separated by an ampersand ( & ) and are in the format
+These are separated by an ampersand (``&``) and are in the format
 
 .. code-block:: none
-  
+
   &name=value
 
 (As opposed to functions, which are described in the next section)
@@ -44,7 +44,7 @@ These are separated by an ampersand ( & ) and are in the format
 .. note::
 
   Most of the functions and parameters are case sensitive.
-  For example &linewidth=2 will fail silently.  
+  For example &linewidth=2 will fail silently.
   The correct parameter is &lineWidth=2
 
 target
@@ -55,46 +55,46 @@ This will draw one or more metrics
 Example:
 
 .. code-block:: none
-  
+
   &target=company.server05.applicationInstance04.requestsHandled
   (draws one metric)
 
 Let's say there are 4 identical application instances running on each server.
 
 .. code-block:: none
-  
+
   &target=company.server05.applicationInstance*.requestsHandled
   (draws 4 metrics / lines)
 
-Now let's say you have 10 servers. 
+Now let's say you have 10 servers.
 
 .. code-block:: none
-  
+
   &target=company.server*.applicationInstance*.requestsHandled
   (draws 40 metrics / lines)
 
 .. note::
-  If more than 10 metrics are drawn the legend is no longer displayed. See the &hideLegend parameter for details. 
+  If more than 10 metrics are drawn the legend is no longer displayed. See the &hideLegend parameter for details.
 
 width / height
 --------------
 
 .. code-block:: none
-  
+
   &width=XXX&height=XXX
 
 These are optional parameters that define the image size in pixels
 
-Example: 
+Example:
 
 .. code-block:: none
-  
+
   &width=650&height=250
 
 from / until
 ------------
 
-These are optional parameters that specify the relative or absolute time period to graph. 
+These are optional parameters that specify the relative or absolute time period to graph.
 ``&from`` specifies the beginning, ``&until`` specifies the end.
 If ``&from`` is omitted, it defaults to 24 hours ago.
 If ``&until`` is omittied, it defaults to the current time (now).
@@ -236,9 +236,9 @@ json
 margin
 ------
 
-Used to increase the margin around a graph image on all sides. 
+Used to increase the margin around a graph image on all sides.
 Must be passed a positive integer.
-If omitted, the default margin is 10 pixels. 
+If omitted, the default margin is 10 pixels.
 
 Example:
 
@@ -249,7 +249,7 @@ Example:
 bgcolor
 -------
 
-Sets the background color of the graph. 
+Sets the background color of the graph.
 
 ============ =============
 Color Names  RGB Value
@@ -288,7 +288,7 @@ Examples:
 
 fgcolor
 -------
-Sets the foreground color.  
+Sets the foreground color.
 This only affects the title, legend text, and axis labels.
 
 See majorGridLineColor, and minorGridLineColor to change more of the graph to your preference.
@@ -297,7 +297,7 @@ See bgcolor for a list of color names and details on formatting this parameter.
 
 fontName
 --------
-Change the font used to render text on the graph. 
+Change the font used to render text on the graph.
 The font must be installed on the Graphite Server.
 
 Example:
@@ -320,7 +320,7 @@ Example:
 
 fontBold
 --------
-If set to true, makes the font bold. 
+If set to true, makes the font bold.
 Default is false.
 
 Example:
@@ -331,7 +331,7 @@ Example:
 
 fontItalic
 ----------
-If set to true, makes the font italic / oblique. 
+If set to true, makes the font italic / oblique.
 Default is false.
 
 Example:
@@ -344,7 +344,7 @@ yMin
 ----
 
 Manually sets the lower bound of the graph. Can be passed any integer or floating point number.
-By deafult, Graphite attempts to fit all data on one graph. 
+By deafult, Graphite attempts to fit all data on one graph.
 
 Example:
 
@@ -356,7 +356,7 @@ Example:
 yMax
 ----
 Manually sets the upper bound of the graph. Can be passed any integer or floating point number.
-By deafult, Graphite attempts to fit all data on one graph. 
+By deafult, Graphite attempts to fit all data on one graph.
 
 Example:
 
@@ -367,7 +367,7 @@ Example:
 
 colorList
 ---------
-Passed one or more comma-separated color names or RGB values (see bgcolor for a list of color names) and uses that list in order as the colors of the lines.  If more lines / metrics are drawn than colors passed, the list is reused in order. 
+Passed one or more comma-separated color names or RGB values (see bgcolor for a list of color names) and uses that list in order as the colors of the lines.  If more lines / metrics are drawn than colors passed, the list is reused in order.
 
 Example:
 
@@ -423,7 +423,7 @@ Example:
 
 hideLegend
 ----------
-If set to 'true', the legend is not drawn. 
+If set to 'true', the legend is not drawn.
 If set to 'false', the legend is drawn.
 
 *Default value changes depending on the number of targets.*
@@ -450,12 +450,12 @@ Example:
 .. code-block:: none
 
   &hideAxes=true
- 
+
 hideGrid
 --------
 true or false
-Hides the grid lines. 
-Default is false. 
+Hides the grid lines.
+Default is false.
 
 Example:
 
@@ -468,9 +468,9 @@ minXStep
 
 majorGridLineColor
 ------------------
-Sets the color of the major grid lines.  
+Sets the color of the major grid lines.
 
-See bgcolor for valid color names and formats. 
+See bgcolor for valid color names and formats.
 
 
 Example:
