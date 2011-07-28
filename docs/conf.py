@@ -18,24 +18,12 @@ import sys, os
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.append(os.path.abspath('../webapp'))
 sys.path.append(os.path.abspath('../whisper'))
-sys.path.append(os.path.abspath('../carbon/lib/carbon/tests'))
-sys.path.append(os.path.abspath('../carbon/lib/carbon/aggregator'))
-sys.path.append(os.path.abspath('../carbon/lib/carbon'))
-sys.path.append(os.path.abspath('../webapp/graphite/cli'))
-sys.path.append(os.path.abspath('../webapp/graphite/dashboard'))
-sys.path.append(os.path.abspath('../webapp/graphite/render'))
-sys.path.append(os.path.abspath('../webapp/graphite/metrics'))
-sys.path.append(os.path.abspath('../webapp/graphite/composer'))
-sys.path.append(os.path.abspath('../webapp/graphite/whitelist'))
-sys.path.append(os.path.abspath('../webapp/graphite/account'))
-sys.path.append(os.path.abspath('../webapp/graphite/browser'))
-sys.path.append(os.path.abspath('../webapp/graphite'))
-sys.path.append(os.path.abspath('../webapp/graphite/thirdparty/pytz'))
-sys.path.append(os.path.abspath('../webapp/graphite/thirdparty'))
-sys.path.append(os.path.abspath('../webapp/graphite/graphlot'))
-os.environ['PYTHONPATH']=str(os.path.abspath('../webapp/'))
-os.environ['DJANGO_SETTINGS_MODULE']="graphite.settings"
+sys.path.append(os.path.abspath('../carbon'))
+os.environ['DJANGO_SETTINGS_MODULE'] = "graphite.settings"
 
+# Prevent graphite logger from complaining about missing log dir.
+from graphite import settings
+settings.LOG_DIR = os.path.abspath('.')
 
 # -- General configuration -----------------------------------------------------
 
@@ -93,7 +81,7 @@ exclude_trees = ['_build']
 
 # If true, the current module name will be prepended to all description
 # unit titles (such as .. function::).
-#add_module_names = True
+add_module_names = False
 
 # If true, sectionauthor and moduleauthor directives will be shown in the
 # output. They are ignored by default.
