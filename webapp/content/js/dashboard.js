@@ -1760,63 +1760,69 @@ function focusCompleter() {
   if (metricSelectorTextField) metricSelectorTextField.focus(false, 50);
 }
 
-var keyMap = new Ext.KeyMap(document, [
-  {
-    key: 'z',
-    ctrl: true,
-    handler: toggleToolbar
-  }, {
-    key: 32, //space
-    ctrl: true,
-    handler: toggleNavBar
-  }, {
-    key: 32, //space
-    shift: true,
-    handler: focusCompleter
-  }, {
-    key: 'x',
-    alt: true,
-    handler: function () { 
-                graphStore.removeAll();
-                refreshGraphs();
-                graphStoreUpdated();
-             }
-  }, {
-    key: Ext.EventObject.ENTER,
-    alt: true,
-    handler: function () {
-               if (metricSelectorGrid) {
-                 metricSelectorGrid.getStore().each(function (record) {
-                   if (record.data.path[ record.data.path.length - 1] != '.') {
-                     graphAreaToggle(record.data.path, {dontRemove: true});
-                   }
-                 });
-                 focusCompleter(); 
-               }
-             }
-  }, {
-    key: Ext.EventObject.BACKSPACE,
-    alt: true,
-    handler: function () {
-               if (metricSelectorGrid) {
-                 metricSelectorGrid.getStore().each(function (record) {
-                   graphAreaToggle(record.data.path, {onlyRemove: true});
-                 });
-                 focusCompleter();
-               }
-             }
-  }, {
-    key: 's',
-    alt: true,
-    handler: function () {
-               if (dashboardName == null) {
-                 saveDashboard();
-               } else {
-                 sendSaveRequest(dashboardName);
-               }
-             }
+/* Keyboard shortcuts */
+var keyEventHandlers = {
+  toggle_toolbar: toggleToolbar,
+  toggle_metrics_panel: toggleNavBar,
+  give_completer_focus: focusCompleter,
+  erase_all_graphs: function () {
+      graphStore.removeAll();
+      refreshGraphs();
+      graphStoreUpdated();
+    },
+  completer_add_metrics: function () {
+      if (metricSelectorGrid) {
+        metricSelectorGrid.getStore().each(function (record) {
+          if (record.data.path[ record.data.path.length - 1] != '.') {
+            graphAreaToggle(record.data.path, {dontRemove: true});
+          }
+        });
+        focusCompleter(); 
+      }
+    },
+  completer_del_metrics: function () {
+      if (metricSelectorGrid) {
+        metricSelectorGrid.getStore().each(function (record) {
+          graphAreaToggle(record.data.path, {onlyRemove: true});
+        });
+        focusCompleter();
+      }
+    },
+  save_dashboard: function () {
+      if (dashboardName == null) {
+        saveDashboard();
+      } else {
+        sendSaveRequest(dashboardName);
+      }
+    }
+};
+
+var specialKeys = {
+  space: 32,
+  enter: Ext.EventObject.ENTER,
+  backspace: Ext.EventObject.BACKSPACE
+};
+
+var keyMapConfigs = [];
+
+for (var event_name in UI_CONFIG.keyboard_shortcuts) {
+  var config = {handler: keyEventHandlers[event_name]};
+  if (!config.handler) {
+    continue;
   }
-]);
+  var keyString = UI_CONFIG.keyboard_shortcuts[event_name];
+  var keys = keyString.split('-');
+  config.ctrl = keys.indexOf('ctrl') > -1;
+  config.alt = keys.indexOf('alt') > -1;
+  config.shift = keys.indexOf('shift') > -1;
+  config.key = keys[keys.length - 1];
+  if (specialKeys[config.key]) {
+    config.key = specialKeys[config.key];
+  }
+  keyMapConfigs.push(config);
+}
+
+var keyMap = new Ext.KeyMap(document, keyMapConfigs);
 
 
 /* Dashboard functions */
