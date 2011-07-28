@@ -7,9 +7,9 @@ from optparse import OptionParser
 now = int(time.time())
 
 option_parser = OptionParser(
-    usage='''%prog path precision:retention [precision:retention]*
+    usage='''%prog path timePerPoint:timeToStore [timePerPoint:timeToStore]*
 
-precision and retention specify lengths of time, for example:
+timePerPoint and timeToStore specify lengths of time, for example:
 
 60:1440      60 seconds per datapoint, 1440 datapoints = 1 day of retention
 15m:8        15 minutes per datapoint, 8 datapoints = 2 hours of retention
