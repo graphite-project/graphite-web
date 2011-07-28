@@ -39,6 +39,7 @@ These are separated by an ampersand ( & ) and are in the format
   &name=value
 
 (As opposed to functions, which are described in the next section)
+
 .. note::
 
   Most of the functions and parameters are case sensitive.
@@ -51,6 +52,7 @@ target
 This will draw one or more metrics
 
 Example:
+
 .. code-block:: none
   
   &target=company.server05.applicationInstance04.requestsHandled
@@ -70,7 +72,7 @@ Now let's say you have 10 servers.
   &target=company.server*.applicationInstance*.requestsHandled
   (draws 40 metrics / lines)
 
-.. Note:: 
+.. note::
   If more than 10 metrics are drawn the legend is no longer displayed. See the &hideLegend parameter for details. 
 
 width / height
@@ -173,7 +175,7 @@ Example:
 
 .. code-block:: none
 
- &margin=20 
+  &margin=20
 
 bgcolor
 -------
@@ -209,6 +211,7 @@ darkgrey     111,111,111
 RGB can be passed directly in the format #RRGGBB where RR, GG, and BB are 2-digit hex vaules for red, green and blue, respectively.
 
 Examples:
+
 .. code-block:: none
 
   &bgcolor=blue
@@ -229,6 +232,7 @@ Change the font used to render text on the graph.
 The font must be installed on the Graphite Server.
 
 Example:
+
 .. code-block:: none
 
   &fontName=FreeMono
@@ -240,6 +244,7 @@ Must be passed a positive floating point number or integer equal to or greater t
 Default is 10
 
 Example:
+
 .. code-block:: none
 
   &fontSize=8
@@ -250,6 +255,7 @@ If set to true, makes the font bold.
 Default is false.
 
 Example:
+
 .. code-block:: none
 
   &fontBold=true
@@ -260,6 +266,7 @@ If set to true, makes the font italic / oblique.
 Default is false.
 
 Example:
+
 .. code-block:: none
 
   &fontItalic=true
@@ -271,6 +278,7 @@ Manually sets the lower bound of the graph. Can be passed any integer or floatin
 By deafult, Graphite attempts to fit all data on one graph. 
 
 Example:
+
 .. code-block:: none
 
   &yMin=0
@@ -282,6 +290,7 @@ Manually sets the upper bound of the graph. Can be passed any integer or floatin
 By deafult, Graphite attempts to fit all data on one graph. 
 
 Example:
+
 .. code-block:: none
 
   &yMax=0.2345
@@ -292,6 +301,7 @@ colorList
 Passed one or more comma-separated color names or RGB values (see bgcolor for a list of color names) and uses that list in order as the colors of the lines.  If more lines / metrics are drawn than colors passed, the list is reused in order. 
 
 Example:
+
 .. code-block:: none
 
   &colorList=green,yellow,orange,red,purple,#DECAFF
@@ -302,6 +312,7 @@ Puts a title at the top of the graph, center aligned.
 If omitted, no title is displayed.
 
 Example:
+
 .. code-block:: none
 
   &title=Apache Busy Threads, All Servers, Past 24h
@@ -313,6 +324,7 @@ Labels the y-axis with vertical text.
 If omitted, no y-axis labe is displayed.
 
 Example:
+
 .. code-block:: none
 
   &vtitle=Threads
@@ -324,6 +336,7 @@ Valid modes are 'staircase' (each data point is flat for the duration of the tim
 If omitted, default is 'slope'.
 
 Example:
+
 .. code-block:: none
 
   &lineMode=staircase
@@ -334,6 +347,7 @@ Takes any floating point or integer.  (negative numbers do not error but will ca
 Changes the width of the line in pixels.
 
 Example:
+
 .. code-block:: none
 
   &lineWidth=2
@@ -351,6 +365,7 @@ You can force the legend to be draw for more than 10 targets by setting this to 
 You may need to increase the &height parameter to accomodate the additional text.
 
 Example:
+
 .. code-block:: none
 
  &hideLegend=false
@@ -362,6 +377,7 @@ Hides the x- and y-axes.
 Default is false.
 
 Example:
+
 .. code-block:: none
 
   &hideAxes=true
@@ -373,6 +389,7 @@ Hides the grid lines.
 Default is false. 
 
 Example:
+
 .. code-block:: none
 
   &hideGrid=true
@@ -388,6 +405,7 @@ See bgcolor for valid color names and formats.
 
 
 Example:
+
 .. code-block:: none
 
   &majorGridLineColor=#FF22FF
@@ -399,6 +417,7 @@ Sets the color of the minor grid lines.
 See bgcolor for valid color names and formats.
 
 Example:
+
 .. code-block:: none
 
   &minorGridLineColor=darkgrey
