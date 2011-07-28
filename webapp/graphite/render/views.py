@@ -134,7 +134,7 @@ def renderView(request):
         datapoints = zip(series, timestamps)
         series_data.append( dict(target=series.name, datapoints=datapoints) )
 
-      response = HttpResponse(content=json.dumps(series_data), mimetype='text/json')
+      response = HttpResponse(content=json.dumps(series_data), mimetype='application/json')
       response['Pragma'] = 'no-cache'
       response['Cache-Control'] = 'no-cache'
       return response
