@@ -13,7 +13,7 @@
 #limitations under the License.
 
 """
-These functions are used on the metrics passed in the '&target='
+These functions are used on the metrics passed in the ``&target=``
 URL parameters to change the data being graphed in some way.
 """
 

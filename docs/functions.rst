@@ -2,4 +2,4 @@ Functions
 =========
 
 .. automodule:: functions
-  :members:   
+  :members:
