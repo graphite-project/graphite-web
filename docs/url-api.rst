@@ -164,9 +164,13 @@ Examples:
 rawData
 -------
 
+.. note::
+
+  This option is deprecated in favor of ``&format``
+
 Used to get numerical data out of the webapp instead of an image.
 Can be set to true, false, csv.
-Affects all &targets passed in the URL.
+Affects all ``&targets`` passed in the URL.
 
 Example:
 
@@ -179,6 +183,51 @@ Returns the following text:
 .. code-block:: none
 
   carbon.agents.graphiteServer01.cpuUsage,1306217160,1306217460,60|0.0,0.00666666520965,0.00666666624282,0.0,0.0133345399694
+
+format
+------
+
+Returns raw data instead of a graph.
+Affects all ``&targets`` passed in the URL.
+
+Examples:
+
+.. code-block:: none
+
+  &format=raw
+  &format=csv
+  &format=json
+
+Raw output:
+
+.. code-block:: none
+
+  entries,1311836008,1311836013,1|1.0,2.0,3.0,5.0,6.0
+
+CSV output:
+
+.. code-block:: none
+
+  entries,2011-07-28 01:53:28,1.0
+  entries,2011-07-28 01:53:29,2.0
+  entries,2011-07-28 01:53:30,3.0
+  entries,2011-07-28 01:53:31,5.0
+  entries,2011-07-28 01:53:32,6.0
+
+JSON output:
+
+.. code-block:: none
+
+  [{
+    "target": "entries",
+    "datapoints": [
+      [1.0, 1311836008],
+      [2.0, 1311836009],
+      [3.0, 1311836010],
+      [5.0, 1311836011],
+      [6.0, 1311836012]
+    ]
+  }]
 
 margin
 ------
