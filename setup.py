@@ -33,7 +33,7 @@ conf_files = [ ('conf', glob('conf/*.example')) ]
 
 setup(
   name='graphite-web',
-  version='0.9.9-pre1',
+  version='0.9.9-pre2',
   url='https://launchpad.net/graphite',
   author='Chris Davis',
   author_email='chrismd@gmail.com',
