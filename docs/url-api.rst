@@ -2,50 +2,51 @@
 The URL API
 ===========
 
-Basics
-======
-
-Terminology
------------
-You should be familiar with these definitions before reading the URL API
-
-datapoint
-^^^^^^^^^
-A value for a given time.
-
-metric
-^^^^^^
-A metric is a named set of datapoints ranging over time.
-You determine the name for the data when you send messages to port 2003.
-An example would be system load on a server called 'apache02' in datacenter 'MetroEast':
-
-MetroEast.servers.apache02.system.loadAvg
-
-time
-^^^^
-Time is represented on the x-axis.
-
-The smallest time that Graphite can currently save is one second, however,  many metrics are recorded once a minute. Others may only be kept hourly or daily. You pick the length (of time) of one datapoint by configuring storage-schemas.conf *before sending the first datapoint*.
-
-If you send more frequently than defined in storage-schemas.conf, by default Graphite drops the old value and replaces it with the last one it receives.  You can configure a hit-count function, to add all values, instead of replacing, or have your data collection agent aggregate and send only one value.
-
-When creating a graph, a dot is place above each time on the x-axis, at the value on the y-axis, and a line is drawn connecting them. If no data was sent, the line will not be drawn and you will see a gap. When using any function that combines many lines (metrics) into one, the lowest resolution (the longest time period per datapoint) is used.
-
-Parameters
-==========
-These are separated by an ampersand (``&``) and are in the format
+The graphite webapp provides a ``/render`` endpoint for generating graphs
+(and retreiving raw data). This endpoint accepts various arguments via query
+string parameters.  These parameters are separated by an ampersand (``&``)
+and are supplied in the format:
 
 .. code-block:: none
 
   &name=value
 
-(As opposed to functions, which are described in the next section)
+To verify that the api is running and able to generate images, open
+``http://GRAPHITE_HOST:GRAPHITE_PORT/render`` in a browser. The api should
+return a simple 330x250 image with the text "No Data".
+
+Once the api is running and you've begun
+:doc:`feeding data into carbon </feeding-carbon>`, use the parameters below to
+customize your graphs and pull out raw data. For example:
+
+.. code-block:: none
+
+  # single server load on large graph
+  http://graphite/render?target=server.web1.load&height=800&width=600
+
+  # average load across web machines
+  http://graphite/render?target=averageSeries(server.web*.load)
+
+  # 5min average load on web1 over last 12 hours
+  http://graphite/render?target=summarize(server.web1.load,"5min")&from=-12hours
+
+  # number of registered users over past day as raw json data
+  http://graphite/render?target=app.numUsers&format=json
+
+  # rate of new signups per minute
+  http://graphite/render?target=summarize(deriviative(app.numUsers),"1min")&title=New_Users_Per_Minute
 
 .. note::
 
   Most of the functions and parameters are case sensitive.
-  For example &linewidth=2 will fail silently.
-  The correct parameter is &lineWidth=2
+  For example ``&linewidth=2`` will fail silently.
+  The correct parameter is ``&lineWidth=2``
+
+Graphing Metrics
+================
+
+To begin graphing specific metrics, pass one or more target_ parameters
+and specify a time window for the graph via `from / until`_.
 
 target
 ------
@@ -73,23 +74,21 @@ Now let's say you have 10 servers.
   &target=company.server*.applicationInstance*.requestsHandled
   (draws 40 metrics / lines)
 
+You can also run any number of :doc:`functions </functions>` on the various metrics before graphing.
+
+.. code-block:: none
+
+  &target=averageSeries(company.server*.applicationInstance.requestsHandled)
+  (draws 1 aggregate line)
+
+The target param can also be repeated to graph multiple related metrics.
+
+.. code-block:: none
+
+  &target=company.server1.loadAvg&target=company.server1.memUsage
+
 .. note::
-  If more than 10 metrics are drawn the legend is no longer displayed. See the &hideLegend parameter for details.
-
-width / height
---------------
-
-.. code-block:: none
-
-  &width=XXX&height=XXX
-
-These are optional parameters that define the image size in pixels
-
-Example:
-
-.. code-block:: none
-
-  &width=650&height=250
+  If more than 10 metrics are drawn the legend is no longer displayed. See the hideLegend_ parameter for details.
 
 from / until
 ------------
@@ -162,6 +161,12 @@ Examples:
   &from=monday
   (show data since the previous monday)
 
+Retreving Data
+==============
+
+Instead of rendering an image, the api can also return the raw data in various
+formats for external graphing, analysis or monitoring.
+
 rawData
 -------
 
@@ -232,6 +237,36 @@ json
       [6.0, 1311836012]
     ]
   }]
+
+Customizing Graphs
+==================
+
+width / height
+--------------
+
+.. code-block:: none
+
+  &width=XXX&height=XXX
+
+These are optional parameters that define the image size in pixels
+
+Example:
+
+.. code-block:: none
+
+  &width=650&height=250
+
+template
+--------
+
+Used to specify a template from ``graphTemplates.conf`` to use for default
+colors and graph styles.
+
+Example:
+
+.. code-block:: none
+
+  &template=plain
 
 margin
 ------
@@ -506,7 +541,7 @@ alias for yMax
 
 tz
 --
-Time zone to render data in.
+Time zone to convert all times into.
 
 Examples:
 
