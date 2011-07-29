@@ -17,12 +17,11 @@ from os.path import exists
 
 from twisted.application.service import MultiService
 from twisted.application.internet import TCPServer, TCPClient, UDPServer
-import carbon.instrumentation # fulfill import deps to avoid circularities
-from carbon.protocols import protocolManager
-
 
 def createBaseService(config):
+    import carbon.instrumentation # fulfill import deps to avoid circularities
     from carbon.conf import settings
+    from carbon.protocols import protocolManager
     from carbon.protocols import (MetricLineReceiver, MetricPickleReceiver,
                                   MetricDatagramReceiver)
 
@@ -91,6 +90,7 @@ def createCacheService(config):
     from carbon.cache import MetricCache
     from carbon.conf import settings
     from carbon.events import metricReceived
+    from carbon.protocols import protocolManager
     from carbon.protocols import CacheQueryHandler
 
     # Configure application components
