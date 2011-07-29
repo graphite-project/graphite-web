@@ -57,6 +57,9 @@ def run_twistd_plugin(filename):
 
     if options.debug:
         twistd_options.extend(["-n", "--logfile", "-"])
+    else:
+        twistd_options.extend(["--logfile", "/dev/null"])
+
     if options.profile:
         twistd_options.append("--profile")
     if options.pidfile:
