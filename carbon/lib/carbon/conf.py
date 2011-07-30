@@ -27,8 +27,6 @@ from twisted.python import usage
 
 
 defaults = dict(
-  LOCAL_DATA_DIR="/opt/graphite/storage/whisper/",
-  WHITELISTS_DIR="/opt/graphite/storage/lists/",
   USER="",
   MAX_CACHE_SIZE='inf',
   MAX_UPDATES_PER_SECOND=1000,
@@ -415,6 +413,12 @@ def read_config(program, options, **kwargs):
                                        join(graphite_root, "storage")))
     settings.setdefault(
         "LOG_DIR", join(settings["STORAGE_DIR"], "log", program))
+
+    # Storage directory holds whisper and whitelist data by default.
+    settings.setdefault(
+        "LOCAL_DATA_DIR", join(settings["STORAGE_DIR"], "whisper"))
+    settings.setdefault(
+        "WHITELISTS_DIR", join(settings["STORAGE_DIR"], "lists"))
 
     # Read configuration options from program-specific section.
     section = program[len("carbon-"):]
