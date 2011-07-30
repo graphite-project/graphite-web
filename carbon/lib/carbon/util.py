@@ -25,9 +25,7 @@ def run_twistd_plugin(filename):
 
     bin_dir = dirname(abspath(filename))
     root_dir = dirname(bin_dir)
-    storage_dir = join(root_dir, 'storage')
     os.environ.setdefault('GRAPHITE_ROOT', root_dir)
-    os.environ.setdefault('GRAPHITE_STORAGE_DIR', storage_dir)
 
     program = basename(filename).split('.')[0]
 
