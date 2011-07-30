@@ -62,6 +62,16 @@ defaults = dict(
 def _umask(value):
     return int(value, 8)
 
+def _process_alive(pid):
+    if exists("/proc"):
+        return exists("/proc/%d" % pid)
+    else:
+        try:
+            os.kill(int(pid), 0)
+            return True
+        except OSError, err:
+            return err.errno == errno.EPERM
+
 
 class OrderedConfigParser(ConfigParser):
   """Hacky workaround to ensure sections are always returned in the order
@@ -247,7 +257,7 @@ class CarbonCacheOptions(usage.Options):
                 print "Failed to read pid from %s" % pidfile
                 raise SystemExit(1)
 
-            if exists("/proc/%d" % pid):
+            if _process_alive(pid):
                 print ("%s (instance %s) is running with pid %d" %
                        (program, instance, pid))
                 raise SystemExit(0)
