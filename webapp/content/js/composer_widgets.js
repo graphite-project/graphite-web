@@ -435,7 +435,7 @@ var GraphDataWindow = {
     var targetsPanel = new Ext.Panel({
       region: 'center',
       width: 400,
-      height: 300,
+      height: 200,
       layout: 'fit',
       items: this.targetList
     });
@@ -484,7 +484,7 @@ var GraphDataWindow = {
 
     this.window = new Ext.Window({
       title: "Graph Data",
-      height: 300,
+      height: 200,
       width: 600,
       closeAction: 'hide',
       layout: 'border',
