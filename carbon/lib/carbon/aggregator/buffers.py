@@ -26,6 +26,9 @@ class BufferManager:
 
 
 class MetricBuffer:
+  __slots__ = ('metric_path', 'interval_buffers', 'compute_task', 'configured',
+               'aggregation_frequency', 'aggregation_func')
+
   def __init__(self, metric_path):
     self.metric_path = metric_path
     self.interval_buffers = {}
@@ -70,7 +73,6 @@ class MetricBuffer:
   def close(self):
     if self.compute_task and self.compute_task.running:
       self.compute_task.stop()
-    self.values = []
 
   @property
   def size(self):
@@ -78,6 +80,8 @@ class MetricBuffer:
 
 
 class IntervalBuffer:
+  __slots__ = ('interval', 'values', 'active')
+
   def __init__(self, interval):
     self.interval = interval
     self.values = []
