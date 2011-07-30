@@ -422,15 +422,20 @@ def read_config(program, options, **kwargs):
 
     # Read configuration options from program-specific section.
     section = program[len("carbon-"):]
-    settings.readFrom(options["config"], section)
+    config = options["config"]
 
+    if not exists(config):
+        print "Error: missing required config %s" % config
+        sys.exit(1)
+
+    settings.readFrom(config, section)
     settings.setdefault("instance", options["instance"])
 
     # If a specific instance of the program is specified, augment the settings
     # with the instance-specific settings and provide sane defaults for
     # optional settings.
     if options["instance"]:
-        settings.readFrom(options["config"],
+        settings.readFrom(config,
                           "%s:%s" % (section, options["instance"]))
         settings["pidfile"] = (
             options["pidfile"] or
