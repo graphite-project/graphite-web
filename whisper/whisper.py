@@ -120,6 +120,8 @@ class CorruptWhisperFile(WhisperException):
   def __repr__(self):
     return "<CorruptWhisperFile[%s] %s>" % (self.path, self.error)
 
+  def __str__(self):
+    return "%s (%s)" % (self.error, self.path)
 
 def enableDebug():
   global open, debug, startBlock, endBlock
