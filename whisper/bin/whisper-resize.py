@@ -23,7 +23,7 @@ option_parser.add_option(
 option_parser.add_option(
     '--aggregationMethod', default=None,
     type='string', help="Change the aggregation function (%s)" %
-    ', '.join(whisper.aggregationTypes))
+    ', '.join(whisper.aggregationMethods))
 option_parser.add_option(
     '--force', default=False, action='store_true',
     help="Perform a destructive change")

@@ -17,7 +17,7 @@ timePerPoint and timeToStore specify lengths of time, for example:
 option_parser.add_option('--xFilesFactor', default=0.5, type='float')
 option_parser.add_option('--aggregationMethod', default='average',
         type='string', help="Function to use when aggregating values (%s)" %
-        ', '.join(whisper.aggregationTypes))
+        ', '.join(whisper.aggregationMethods))
 option_parser.add_option('--overwrite', default=False, action='store_true')
 
 (options, args) = option_parser.parse_args()

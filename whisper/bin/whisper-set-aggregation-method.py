@@ -5,7 +5,7 @@ import whisper
 from optparse import OptionParser
 
 option_parser = OptionParser(
-    usage='%%prog path <%s>' % '|'.join(whisper.aggregationTypes))
+    usage='%%prog path <%s>' % '|'.join(whisper.aggregationMethods))
 
 (options, args) = option_parser.parse_args()
 
