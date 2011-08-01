@@ -21,6 +21,10 @@ option_parser.add_option(
     '--xFilesFactor', default=None,
     type='float', help="Change the xFilesFactor")
 option_parser.add_option(
+    '--aggregationMethod', default=None,
+    type='string', help="Change the aggregation function (%s)" %
+    ', '.join(whisper.aggregationTypes))
+option_parser.add_option(
     '--force', default=False, action='store_true',
     help="Perform a destructive change")
 option_parser.add_option(
@@ -50,6 +54,11 @@ if options.xFilesFactor is None:
 else:
   xff = options.xFilesFactor
 
+if options.aggregationMethod is None:
+  aggregationMethod = info['aggregationMethod']
+else:
+  aggregationMethod = options.aggregationMethod
+
 print 'Retrieving all data from the archives'
 for archive in old_archives:
   fromTime = now - archive['retention'] + archive['secondsPerPoint']
@@ -67,7 +76,7 @@ else:
   newfile = options.newfile
 
 print 'Creating new whisper database: %s' % newfile
-whisper.create(newfile, new_archives, xFilesFactor=xff)
+whisper.create(newfile, new_archives, xFilesFactor=xff, aggregationMethod=aggregationMethod)
 size = os.stat(newfile).st_size
 print 'Created: %s (%d bytes)' % (newfile,size)
 
