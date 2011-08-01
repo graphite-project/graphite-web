@@ -58,7 +58,7 @@ aggregationTypeToMethod = dict({
   5: 'min'
 })
 aggregationMethodToType = dict([[v,k] for k,v in aggregationTypeToMethod.items()])
-aggregationTypes = aggregationTypeToMethod.values()
+aggregationMethods = aggregationTypeToMethod.values()
 
 debug = startBlock = endBlock = lambda *a,**k: None
 
@@ -212,7 +212,7 @@ def setAggregationMethod(path, aggregationMethod):
   """setAggregationMethod(path,aggregationMethod)
 
 path is a string
-aggregationMethod specifies the method to use when propogating data (see ``whisper.aggregationTypes``)
+aggregationMethod specifies the method to use when propogating data (see ``whisper.aggregationMethods``)
 """
   fh = open(path,'r+b')
   if LOCK:
@@ -252,7 +252,7 @@ def create(path,archiveList,xFilesFactor=0.5,aggregationMethod='average'):
 path is a string
 archiveList is a list of archives, each of which is of the form (secondsPerPoint,numberOfPoints)
 xFilesFactor specifies the fraction of data points in a propagation interval that must have known values for a propagation to occur
-aggregationMethod specifies the function to use when propogating data (see ``whisper.aggregationTypes``)
+aggregationMethod specifies the function to use when propogating data (see ``whisper.aggregationMethods``)
 """
   #Validate archive configurations...
   if not archiveList:
