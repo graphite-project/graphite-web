@@ -1,6 +1,13 @@
 Tools That Work With Graphite
 =============================
 
+Diamond
+-------
+`Diamond`_ is a Python daemon that collects system metrics and publishes them to Graphite. It is
+capable of collecting cpu, memory, network, I/O, load and disk metrics. Additionally, it features
+an API for implementing custom collectors for gathering metrics from almost any source.
+
+
 jmxtrans
 --------
 `jmxtrans`_ is a powerful tool that performs JMX queries to collect metrics from Java applications.
@@ -48,6 +55,7 @@ AdMob (who was then bought by Google), this was released by Google as open sourc
 Learn more here, http://code.google.com/p/rocksteady/
 
 
+.. _Diamond: http://opensource.brightcove.com/project/Diamond/
 .. _jmxtrans: http://code.google.com/p/jmxtrans/
 .. _statsd: https://github.com/etsy/statsd
 .. _Ganglia: http://ganglia.info/
