@@ -186,12 +186,10 @@ def _find(current_dir, patterns):
 
   subdirs = [e for e in entries if isdir( join(current_dir,e) )]
   matching_subdirs = match_entries(subdirs, pattern)
-  matching_subdirs.sort()
 
   if len(patterns) == 1 and rrdtool: #the last pattern may apply to RRD data sources
     files = [e for e in entries if isfile( join(current_dir,e) )]
     rrd_files = match_entries(files, pattern + ".rrd")
-    rrd_files.sort()
 
     if rrd_files: #let's assume it does
       datasource_pattern = patterns[0]
@@ -210,10 +208,17 @@ def _find(current_dir, patterns):
   else: #we've got the last pattern
     files = [e for e in entries if isfile( join(current_dir,e) )]
     matching_files = match_entries(files, pattern + '.*')
-    matching_files.sort()
 
     for basename in matching_subdirs + matching_files:
       yield join(current_dir, basename)
+
+
+def _deduplicate(entries):
+  yielded = set()
+  for entry in entries:
+    if entry not in yielded:
+      yielded.add(entry)
+      yield entry
 
 
 def match_entries(entries, pattern):
@@ -228,10 +233,12 @@ def match_entries(entries, pattern):
     for variant in variants:
       matching.extend( fnmatch.filter(entries, variant) )
 
-    return list( set(matching) ) #remove potential dupes
+    return list( _deduplicate(matching) ) #remove dupes without changing order
 
   else:
-    return fnmatch.filter(entries, pattern)
+    matching = fnmatch.filter(entries, pattern)
+    matching.sort()
+    return matching
 
 
 # Node classes
