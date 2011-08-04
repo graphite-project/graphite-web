@@ -997,6 +997,9 @@ def stdev(requestContext, seriesList, time):
   return seriesList
 
 def secondYAxis(requestContext, seriesList):
+  """
+  Graph the metric on the secondary Y axis.
+  """
   for series in seriesList:
     series.options['secondYAxis'] = True
     series.name= 'secondYAxis(%s)' % series.name
@@ -1176,6 +1179,16 @@ def exclude(requestContext, seriesList, pattern):
 
 
 def summarize(requestContext, seriesList, intervalString):
+  """
+  Summarize the data into interval buckets of a certain size.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=summarize(counter.errors, "1hour") # errors per hour
+    &target=summarize(nonNegativeDerivative(gauage.num_users), "1week") # new users per week
+  """
   results = []
   delta = parseTimeOffset(intervalString)
   interval = delta.seconds + (delta.days * 86400)
