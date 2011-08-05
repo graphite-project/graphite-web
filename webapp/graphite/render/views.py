@@ -134,7 +134,13 @@ def renderView(request):
         datapoints = zip(series, timestamps)
         series_data.append( dict(target=series.name, datapoints=datapoints) )
 
-      response = HttpResponse(content=json.dumps(series_data), mimetype='application/json')
+      if 'jsonp' in requestOptions:
+        response = HttpResponse(
+          content="%s(%s)" % (requestOptions['jsonp'], json.dumps(series_data)),
+          mimetype='text/javascript')
+      else:
+        response = HttpResponse(content=json.dumps(series_data), mimetype='application/json')
+
       response['Pragma'] = 'no-cache'
       response['Cache-Control'] = 'no-cache'
       return response
@@ -193,6 +199,8 @@ def parseOptions(request):
     requestOptions['format'] = 'raw'
   if 'format' in queryParams:
     requestOptions['format'] = queryParams['format']
+    if 'jsonp' in queryParams:
+      requestOptions['jsonp'] = queryParams['jsonp']
   if 'noCache' in queryParams:
     requestOptions['noCache'] = True
 
