@@ -938,9 +938,9 @@ def mostDeviant(requestContext, n, seriesList):
 
   .. code-block:: none
 
-    &target=sortByMaxima(5, server*.instance*.memory.free)
+    &target=mostDeviant(5, server*.instance*.memory.free)
 
-  Draws the 5 instances farthest from the average memory free.
+  Draws the 5 instances furthest from the average memory free.
 
   """
 
