@@ -20,11 +20,11 @@ flushing them to disk on an interval using the underlying `whisper` library.
 
 ``carbon-cache.py`` requires some basic configuration files to run:
 
-carbon.conf
+:doc:`carbon.conf </config-carbon>`
   The ``[cache]`` section tells ``carbon-cache.py`` what ports (2003/2004/7002),
   protocols (newline delimited, pickle) and transports (TCP/UDP) to listen on.
 
-storage-schemas.conf
+:doc:`storage-schemas.conf </config-carbon>`
   Defines a retention policy for incoming merics based on regex patterns. This
   policy is passed to `whipser` when the ``.wsp`` file is pre-allocated, and
   dictates how long data is stored for.
@@ -51,10 +51,10 @@ spread reads across the multiple backends.
 
 ``carbon-relay.py`` is configured via:
 
-carbon.conf
+:doc:`carbon.conf </config-carbon>`
   The ``[relay]`` section defines listener host/ports and a ``RELAY_METHOD``
 
-relay-rules.conf
+:doc:`relay-rules.conf </config-carbon>`
   In ``RELAY_METHOD = rules``, pattern/servers tuples define what servers
   metrics matching certain regex rules are forwarded to.
 
@@ -69,10 +69,10 @@ and whisper file sizes due to lower retention policies.
 
 ``carbon-aggregator.py`` is configured via:
 
-carbon.conf
+:doc:`carbon.conf </config-carbon>`
   The ``[aggregator]`` section defines listener and destination host/ports.
 
-aggregation-rules.conf
+:doc:`aggregation-rules.conf </config-carbon>`
   Defines a time interval (in seconds) and aggregation function (sum or
   average) for incoming metrics matching a certain pattern. At the end of each
   interval, the values received are aggregated and published to
