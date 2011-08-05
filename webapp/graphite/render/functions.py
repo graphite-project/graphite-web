@@ -1205,7 +1205,7 @@ def summarize(requestContext, seriesList, intervalString):
   .. code-block:: none
 
     &target=summarize(counter.errors, "1hour") # errors per hour
-    &target=summarize(nonNegativeDerivative(gauage.num_users), "1week") # new users per week
+    &target=summarize(nonNegativeDerivative(gauge.num_users), "1week") # new users per week
   """
   results = []
   delta = parseTimeOffset(intervalString)
