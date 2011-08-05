@@ -15,6 +15,7 @@ storage-schemas.conf
 --------------------
 This file defines how much data to store, and at what precision.
 Important notes before continuing:
+
 * There can be many sections in this file.
 * Each section must have a header in square brackets, a pattern and a retentions line.
 * The sections are applied in order from the top (first) and bottom (last). 
@@ -27,7 +28,7 @@ Important notes before continuing:
 Here's an example:
 
 .. code-block:: none
-  
+
  [garbage_collection]
  pattern = garbageCollections$
  retentions = 10s:14d
@@ -41,21 +42,21 @@ The retention line is saying that each 'slot' or 'datapoint' represents 10 secon
 Here's a more complicated example with multiple retention rates:
 
 .. code-block:: none
-  
+
  [apache_busyWorkers]
  pattern = servers\.www.*\.workers\.busyWorkers$
  retentions = 15s:7d,1min:21d,15min:5y
 
 The pattern matches server names that start with 'www', followed by anything, that end in '.workers.busyWorkers'.  This way not all metrics associated with your webservers need this type of retention.  
 
-As you can see there are multiple retentions.  Each is used in the order that it is provided.  As a general rule, they should be in most-precise:shortest-length to least-precise:longest-time.  Retentions are merely a way to save you disk space an decrease I/O for graphs that span a long period of time. When data moves from a higher precision to a lower precision, it is **averaged**.  This way, you can still find the **total** for a particular time period if you know the original precision.  
+As you can see there are multiple retentions.  Each is used in the order that it is provided.  As a general rule, they should be in most-precise:shortest-length to least-precise:longest-time.  Retentions are merely a way to save you disk space and decrease I/O for graphs that span a long period of time. When data moves from a higher precision to a lower precision, it is **averaged**.  This way, you can still find the **total** for a particular time period if you know the original precision.  
 
 Example: You store the number of sales per minute for 1 year, and the sales per hour for 5 years after that.  You need to know the total sales for January 1st of the year before.  You can query whisper for the raw data, and you'll get 24 datapoints, one for each hour.  They will most likely be floating point numbers.  You can take each datapoint, multiply by 60 (the ratio of high-precision to low-precision datapoints) and still get the total sales per hour.  
 
 
 The old retentions was done as follows:
 
-.. code-block:: none 
+.. code-block:: none
 
   retentions = 60:1440
 
@@ -118,5 +119,4 @@ As an example, if the following metrics are received:
 They would all go into the same aggregation buffer and after 60 seconds the
 aggregate metric 'prod.applications.apache.all.requests' would be calculated
 by summing their values.
-
 
