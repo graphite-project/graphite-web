@@ -6,16 +6,15 @@ Graphite Documentation
 
    overview
    install
+   carbon-daemons
    config-carbon
-   config-webapp
-   admin-carbon
-   admin-webapp
    feeding-carbon
+   config-webapp
+   admin-webapp
    composer
    url-api
    functions
    dashboard
-   carbon-daemons
    tools
    who-is-using
 
