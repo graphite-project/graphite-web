@@ -455,7 +455,7 @@ class LineGraph(Graph):
     self.setFont()
 
     if not params.get('hideLegend', len(self.data) > settings.LEGEND_MAX_ITEMS):
-      elements = [ (series.name,series.color) for series in self.data ]
+      elements = [ (series.name,series.color) for series in self.data if series.name ]
       self.drawLegend(elements)
 
     #Setup axes, labels, and grid
