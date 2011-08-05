@@ -95,6 +95,7 @@ every 'frequency' seconds and the 'method' can specify 'sum' or
 'output_template' filling in any captured fields from 'input_pattern'.
 
 For example, if you're metric naming scheme is:
+
 .. code-block:: none
 
   <env>.applications.<app>.<server>.<metric>
