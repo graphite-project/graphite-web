@@ -38,6 +38,12 @@ mechanisms to store the values in a variety of ways, including RRD. To send coll
 - Joe Miller's perl collectd-graphite_ plugin
 - Gregory Szorc's python collectd-carbon_ plugin
 
+Graphite can also read directly from `collectd`_'s RRD files. RRD files can
+simply be added to ``STORAGE_DIR/rrd`` (as long as directory names and files do not
+contain any ``.`` characters). For example, collectd's
+``host.name/load/load.rrd`` can be symlinked to ``rrd/collectd/host_name/load/load.rrd``
+to graph ``collectd.host_name.load.load.{short,mid,long}term``.
+
 
 Logster
 -------
