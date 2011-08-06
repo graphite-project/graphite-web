@@ -18,11 +18,11 @@ Important notes before continuing:
 
 * There can be many sections in this file.
 * Each section must have a header in square brackets, a pattern and a retentions line.
-* The sections are applied in order from the top (first) and bottom (last). 
+* The sections are applied in order from the top (first) and bottom (last).
 * The patterns are regular expressions, as opposed to the wildcards used in the URL API.
 * The first pattern that matches the metric name is used.
-* These are set at the time the first metric is sent. 
-* Changing this file will not affect .wsp files already created on disk. Use whisper-resize.py to change those. 
+* These are set at the time the first metric is sent.
+* Changing this file will not affect .wsp files already created on disk. Use whisper-resize.py to change those.
 * There are two very different ways to specify retentions. We will show the new, easier way first, and the old, more difficult way second for historical purposes second.
 
 Here's an example:
