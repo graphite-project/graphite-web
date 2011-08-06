@@ -411,10 +411,12 @@ def read_config(program, options, **kwargs):
     settings.setdefault("STORAGE_DIR",
                         os.environ.get("GRAPHITE_STORAGE_DIR",
                                        join(graphite_root, "storage")))
+
+    # By default, everything is written to subdirectories of the storage dir.
+    settings.setdefault(
+        "PID_DIR", settings["STORAGE_DIR"])
     settings.setdefault(
         "LOG_DIR", join(settings["STORAGE_DIR"], "log", program))
-
-    # Storage directory holds whisper and whitelist data by default.
     settings.setdefault(
         "LOCAL_DATA_DIR", join(settings["STORAGE_DIR"], "whisper"))
     settings.setdefault(
@@ -439,7 +441,7 @@ def read_config(program, options, **kwargs):
                           "%s:%s" % (section, options["instance"]))
         settings["pidfile"] = (
             options["pidfile"] or
-            join(settings["STORAGE_DIR"], "%s-%s.pid" %
+            join(settings["PID_DIR"], "%s-%s.pid" %
                  (program, options["instance"])))
         settings["LOG_DIR"] = (options["logdir"] or
                               "%s-%s" % (settings["LOG_DIR"].rstrip('/'),
@@ -447,7 +449,7 @@ def read_config(program, options, **kwargs):
     else:
         settings["pidfile"] = (
             options["pidfile"] or
-            join(settings["STORAGE_DIR"], '%s.pid' % program))
+            join(settings["PID_DIR"], '%s.pid' % program))
         settings["LOG_DIR"] = (options["logdir"] or settings["LOG_DIR"])
 
     return settings
