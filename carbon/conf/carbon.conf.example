@@ -1,10 +1,39 @@
 [cache]
-LOCAL_DATA_DIR = /opt/graphite/storage/whisper/
+# Configure carbon directories.
+#
+# OS environment variables can be used to tell carbon where graphite is
+# installed, where to read configuration from and where to write data.
+#
+#   GRAPHITE_ROOT        - Root directory of the graphite installation.
+#                          Defaults to ../
+#   GRAPHITE_CONF_DIR    - Configuration directory (where this file lives).
+#                          Defaults to $GRAPHITE_ROOT/conf/
+#   GRAPHITE_STORAGE_DIR - Storage directory for whipser/rrd/log/pid files.
+#                          Defaults to $GRAPHITE_ROOT/storage/
+#
+# To change other directory paths, add settings to this file. The following
+# configuration variables are available with these default values:
+#
+#   STORAGE_DIR    = $GRAPHITE_STORAGE_DIR
+#   LOCAL_DATA_DIR = STORAGE_DIR/whisper/
+#   WHITELISTS_DIR = STORAGE_DIR/lists/
+#   CONF_DIR       = STORAGE_DIR/conf/
+#   LOG_DIR        = STORAGE_DIR/log/
+#   PID_DIR        = STORAGE_DIR/
+#
+# For FHS style directory structures, use:
+#
+#   STORAGE_DIR    = /var/lib/carbon/
+#   CONF_DIR       = /etc/carbon/
+#   LOG_DIR        = /var/log/carbon/
+#   PID_DIR        = /var/run/
+#
+#LOCAL_DATA_DIR = /opt/graphite/storage/whisper/
 
 # Specify the user to drop privileges to
 # If this is blank carbon runs as the user that invokes it
 # This user must have write access to the local data directory
-USER = 
+USER =
 
 # Limit the size of the cache to avoid swapping or becoming CPU bound.
 # Sorts and serving cache queries gets more expensive as the cache grows.
