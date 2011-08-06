@@ -290,7 +290,7 @@ aggregationMethod specifies the function to use when propogating data (see ``whi
   if LOCK:
     fcntl.flock( fh.fileno(), fcntl.LOCK_EX )
 
-  aggregationType = struct.pack( longFormat, aggregationMethodToType[aggregationMethod] )
+  aggregationType = struct.pack( longFormat, aggregationMethodToType.get(aggregationMethod, 1) )
   oldest = sorted([secondsPerPoint * points for secondsPerPoint,points in archiveList])[-1]
   maxRetention = struct.pack( longFormat, oldest )
   xFilesFactor = struct.pack( floatFormat, float(xFilesFactor) )
