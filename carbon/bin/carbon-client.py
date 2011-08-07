@@ -59,9 +59,6 @@ metricReceived(client_manager.sendDatapoint)
 class StdinMetricsReader(LineReceiver):
   delimiter = '\n'
 
-#  def dataReceived(self, data):
-#    LineReceiver.dataReceived(self, data) # I have *no idea* why I have to explicitly call this...
-
   def lineReceived(self, line):
     try:
       (metric, value, timestamp) = line.split()
