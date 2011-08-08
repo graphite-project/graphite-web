@@ -1218,7 +1218,7 @@ def summarize(requestContext, seriesList, intervalString):
     datapoints = zip(timestamps, series)
 
     for (timestamp, value) in datapoints:
-      bucketInterval = timestamp - (timestamp % interval)
+      bucketInterval = int((timestamp - series.start) / interval)
 
       if bucketInterval not in buckets:
         buckets[bucketInterval] = []
@@ -1226,11 +1226,13 @@ def summarize(requestContext, seriesList, intervalString):
       if value is not None:
         buckets[bucketInterval].append(value)
 
-    newStart = series.start - (series.start % interval)
-    newEnd = series.end - (series.end % interval) + interval
+    newStart = series.start
+    newEnd = series.end
     newValues = []
-    for timestamp in range(newStart, newEnd, interval):
-      bucket = buckets.get(timestamp, [])
+    for timestamp in range( int(series.start), int(series.end), interval ):
+      newEnd = timestamp
+      bucketInterval = int((timestamp - series.start) / interval)
+      bucket = buckets.get(bucketInterval, [])
 
       if bucket:
         newValues.append( sum(bucket) )
@@ -1238,7 +1240,7 @@ def summarize(requestContext, seriesList, intervalString):
         newValues.append( None )
 
     newName = "summarize(%s, \"%s\")" % (series.name, intervalString)
-    newSeries = TimeSeries(newName, newStart, newEnd, interval, newValues)
+    newSeries = TimeSeries(newName, newStart, newEnd + interval, interval, newValues)
     newSeries.pathExpression = newName
     results.append(newSeries)
 
