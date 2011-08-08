@@ -305,7 +305,7 @@ class Graph:
       self.area['ymin'] = y + self.margin
 
 
-  def drawLegend(self,elements): #elements is [ (name,color), (name,color), ... ]
+  def drawLegend(self,elements): #elements is [ (name,color,rightSide), ... ]
     longestName = sorted([e[0] for e in elements],key=len)[-1]
     extents = self.getExtents(longestName)
     padding = 5
@@ -313,24 +313,65 @@ class Graph:
     lineHeight = extents['maxHeight'] + 1
     labelWidth = extents['width'] + 2 * (boxSize + padding)
     columns = math.floor( self.width / labelWidth )
+
+    if self.secondYAxis:
+      numRight = len([name for (name,color,rightSide) in elements if rightSide])
+      numberOfLines = max(len(elements) - numRight, numRight)
+      columns = math.floor(columns / 2.0)
+    else:
+      numberOfLines = math.ceil( float(len(elements)) / columns )
+
     if columns < 1: columns = 1
-    numberOfLines = math.ceil( float(len(elements)) / columns )
+
     legendHeight = numberOfLines * (lineHeight + padding)
     self.area['ymax'] -= legendHeight #scoot the drawing area up to fit the legend
     self.ctx.set_line_width(1.0)
+
     x = self.area['xmin']
     y = self.area['ymax'] + (2 * padding)
-    for i,(name,color) in enumerate(elements):
+    n = 0
+    if self.secondYAxis:
+      xRight = self.area['xmax'] - self.area['xmin']
+      yRight = y
+      nRight = 0
+
+    for (name,color,rightSide) in elements:
+      if self.secondYAxis and rightSide:
+        nRight += 1
+      else:
+        n += 1
+
       self.setColor( color )
-      self.drawRectangle(x,y,boxSize,boxSize)
+      if self.secondYAxis and rightSide:
+        self.drawRectangle(xRight - padding,yRight,boxSize,boxSize)
+      else:
+        self.drawRectangle(x,y,boxSize,boxSize)
+
       self.setColor( 'darkgrey' )
-      self.drawRectangle(x,y,boxSize,boxSize,fill=False)
+      if self.secondYAxis and rightSide:
+        self.drawRectangle(xRight - padding,yRight,boxSize,boxSize,fill=False)
+      else:
+        self.drawRectangle(x,y,boxSize,boxSize,fill=False)
+
       self.setColor( self.foregroundColor )
-      self.drawText(name, x + boxSize + padding, y, align='left')
-      x += labelWidth
-      if (i + 1) % columns == 0:
-        x = self.area['xmin']
-        y += lineHeight
+      if self.secondYAxis and rightSide:
+        self.drawText(name, xRight - boxSize, yRight, align='right')
+      else:
+        self.drawText(name, x + boxSize + padding, y, align='left')
+
+      if self.secondYAxis and rightSide:
+        xRight -= labelWidth
+
+        if nRight % columns == 0:
+          xRight = self.area['xmax'] - self.area['xmin']
+          yRight += lineHeight
+      else:
+        x += labelWidth
+
+        if n % columns == 0:
+          x = self.area['xmin']
+          y += lineHeight
+
 
   def loadTemplate(self,template):
     conf = SafeConfigParser()
@@ -455,7 +496,7 @@ class LineGraph(Graph):
     self.setFont()
 
     if not params.get('hideLegend', len(self.data) > settings.LEGEND_MAX_ITEMS):
-      elements = [ (series.name,series.color) for series in self.data if series.name ]
+      elements = [ (series.name,series.color,series.options.get('secondYAxis')) for series in self.data if series.name ]
       self.drawLegend(elements)
 
     #Setup axes, labels, and grid
@@ -1224,7 +1265,7 @@ class PieGraph(Graph):
     self.setFont()
 
     if not params.get('hideLegend',False):
-      elements = [ (slice['name'],slice['color']) for slice in self.slices ]
+      elements = [ (slice['name'],slice['color'],None) for slice in self.slices ]
       self.drawLegend(elements)
 
     self.drawSlices()
