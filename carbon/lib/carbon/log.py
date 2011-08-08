@@ -48,6 +48,10 @@ def cache(message, **context):
   context['type'] = 'cache'
   msg(message, **context)
 
+def clients(message, **context):
+  context['type'] = 'clients'
+  msg(message, **context)
+
 def creates(message, **context):
   context['type'] = 'creates'
   msg(message, **context)

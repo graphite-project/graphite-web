@@ -2,9 +2,6 @@ from twisted.internet import reactor
 from twisted.internet.protocol import Factory, DatagramProtocol
 from twisted.internet.error import ConnectionDone
 from twisted.protocols.basic import LineOnlyReceiver, Int32StringReceiver
-from carbon.cache import MetricCache
-from carbon.relay import relay
-from carbon.instrumentation import increment
 from carbon.events import metricReceived
 from carbon import log
 
