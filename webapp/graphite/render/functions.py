@@ -1196,16 +1196,24 @@ def exclude(requestContext, seriesList, pattern):
   return [s for s in seriesList if not regex.search(s.name)]
 
 
-def summarize(requestContext, seriesList, intervalString):
+def summarize(requestContext, seriesList, intervalString, func='sum'):
   """
   Summarize the data into interval buckets of a certain size.
+
+  By default, the contents of each interval bucket are summed together. This is
+  useful for counters where each increment represents a discrete event and
+  retrieving a "per X" value requires summing all the events in that interval.
+
+  Specifying 'avg' instead will return the mean for each bucket, which can be more
+  useful when the value is a gauge that represents a certain value in time.
 
   Example:
 
   .. code-block:: none
 
-    &target=summarize(counter.errors, "1hour") # errors per hour
+    &target=summarize(counter.errors, "1hour") # total errors per hour
     &target=summarize(nonNegativeDerivative(gauge.num_users), "1week") # new users per week
+    &target=summarize(queue.size, "1hour", "avg") # average queue size per hour
   """
   results = []
   delta = parseTimeOffset(intervalString)
@@ -1235,7 +1243,10 @@ def summarize(requestContext, seriesList, intervalString):
       bucket = buckets.get(bucketInterval, [])
 
       if bucket:
-        newValues.append( sum(bucket) )
+        if func == 'avg':
+          newValues.append( float(sum(bucket)) / float(len(bucket)) )
+        else:
+          newValues.append( sum(bucket) )
       else:
         newValues.append( None )
 
