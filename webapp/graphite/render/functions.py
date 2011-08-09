@@ -1207,6 +1207,8 @@ def summarize(requestContext, seriesList, intervalString, func='sum'):
   Specifying 'avg' instead will return the mean for each bucket, which can be more
   useful when the value is a gauge that represents a certain value in time.
 
+  'max', 'min' or 'last' can also be specified.
+
   Example:
 
   .. code-block:: none
@@ -1214,6 +1216,7 @@ def summarize(requestContext, seriesList, intervalString, func='sum'):
     &target=summarize(counter.errors, "1hour") # total errors per hour
     &target=summarize(nonNegativeDerivative(gauge.num_users), "1week") # new users per week
     &target=summarize(queue.size, "1hour", "avg") # average queue size per hour
+    &target=summarize(queue.size, "1hour", "max") # maximum queue size during each hour
   """
   results = []
   delta = parseTimeOffset(intervalString)
@@ -1245,6 +1248,12 @@ def summarize(requestContext, seriesList, intervalString, func='sum'):
       if bucket:
         if func == 'avg':
           newValues.append( float(sum(bucket)) / float(len(bucket)) )
+        elif func == 'last':
+          newValues.append( bucket[len(bucket)-1] )
+        elif func == 'max':
+          newValues.append( max(bucket) )
+        elif func == 'min':
+          newValues.append( min(bucket) )
         else:
           newValues.append( sum(bucket) )
       else:
