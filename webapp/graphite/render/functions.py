@@ -610,6 +610,9 @@ def substr(requestContext, seriesList, start=0, stop=0):
       series.name = '.'.join(cleanName.split('.')[int(start)::])
     else:
       series.name = '.'.join(cleanName.split('.')[int(start):int(stop):])
+
+    # substr(func(a.b,'c'),1) becomes b instead of b,'c'
+    series.name = re.sub(',.*$', '', series.name)
   return seriesList
 
 
