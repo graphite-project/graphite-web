@@ -45,7 +45,7 @@ Here's a more complicated example with multiple retention rates:
 
  [apache_busyWorkers]
  pattern = servers\.www.*\.workers\.busyWorkers$
- retentions = 15s:7d,1min:21d,15min:5y
+ retentions = 15s:7d,1m:21d,15m:5y
 
 The pattern matches server names that start with 'www', followed by anything, that end in '.workers.busyWorkers'.  This way not all metrics associated with your webservers need this type of retention.  
 
