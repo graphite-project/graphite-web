@@ -1199,7 +1199,7 @@ def exclude(requestContext, seriesList, pattern):
   return [s for s in seriesList if not regex.search(s.name)]
 
 
-def summarize(requestContext, seriesList, intervalString, func='sum'):
+def summarize(requestContext, seriesList, intervalString, func='sum', alignToFrom=False):
   """
   Summarize the data into interval buckets of a certain size.
 
@@ -1212,6 +1212,14 @@ def summarize(requestContext, seriesList, intervalString, func='sum'):
 
   'max', 'min' or 'last' can also be specified.
 
+  By default, buckets are caculated by rounding to the nearest interval. This
+  works well for intervals smaller than a day. For example, 22:32 will end up
+  in the bucket 22:00-23:00 when the interval=1hour.
+
+  Passing alignToFrom=true will instead create buckets starting at the from
+  time. In this case, the bucket for 22:32 depends on the from time. If
+  from=6:30 then the 1hour bucket for 22:32 is 22:30-23:30.
+
   Example:
 
   .. code-block:: none
@@ -1220,6 +1228,7 @@ def summarize(requestContext, seriesList, intervalString, func='sum'):
     &target=summarize(nonNegativeDerivative(gauge.num_users), "1week") # new users per week
     &target=summarize(queue.size, "1hour", "avg") # average queue size per hour
     &target=summarize(queue.size, "1hour", "max") # maximum queue size during each hour
+    &target=summarize(metric, "13week", "avg", true)&from=midnight+20100101 # 2010 Q1-4
   """
   results = []
   delta = parseTimeOffset(intervalString)
@@ -1232,7 +1241,10 @@ def summarize(requestContext, seriesList, intervalString, func='sum'):
     datapoints = zip(timestamps, series)
 
     for (timestamp, value) in datapoints:
-      bucketInterval = int((timestamp - series.start) / interval)
+      if alignToFrom:
+        bucketInterval = int((timestamp - series.start) / interval)
+      else:
+        bucketInterval = timestamp - (timestamp % interval)
 
       if bucketInterval not in buckets:
         buckets[bucketInterval] = []
@@ -1240,12 +1252,21 @@ def summarize(requestContext, seriesList, intervalString, func='sum'):
       if value is not None:
         buckets[bucketInterval].append(value)
 
-    newStart = series.start
-    newEnd = series.end
+    if alignToFrom:
+      newStart = series.start
+      newEnd = series.end
+    else:
+      newStart = series.start - (series.start % interval)
+      newEnd = series.end - (series.end % interval) + interval
+
     newValues = []
-    for timestamp in range( int(series.start), int(series.end), interval ):
-      newEnd = timestamp
-      bucketInterval = int((timestamp - series.start) / interval)
+    for timestamp in range(newStart, newEnd, interval):
+      if alignToFrom:
+        newEnd = timestamp
+        bucketInterval = int((timestamp - series.start) / interval)
+      else:
+        bucketInterval = timestamp - (timestamp % interval)
+
       bucket = buckets.get(bucketInterval, [])
 
       if bucket:
@@ -1262,8 +1283,11 @@ def summarize(requestContext, seriesList, intervalString, func='sum'):
       else:
         newValues.append( None )
 
+    if alignToFrom:
+      newEnd += interval
+
     newName = "summarize(%s, \"%s\")" % (series.name, intervalString)
-    newSeries = TimeSeries(newName, newStart, newEnd + interval, interval, newValues)
+    newSeries = TimeSeries(newName, newStart, newEnd, interval, newValues)
     newSeries.pathExpression = newName
     results.append(newSeries)
 
