@@ -37,6 +37,7 @@ mechanisms to store the values in a variety of ways, including RRD. To send coll
 - Jordan Sissel's node collectd-to-graphite_ proxy
 - Joe Miller's perl collectd-graphite_ plugin
 - Gregory Szorc's python collectd-carbon_ plugin
+- Scott Sanders's C collectd-write_graphite_ plugin
 
 Graphite can also read directly from `collectd`_'s RRD files. RRD files can
 simply be added to ``STORAGE_DIR/rrd`` (as long as directory names and files do not
@@ -69,6 +70,7 @@ Learn more here, http://code.google.com/p/rocksteady/
 .. _collectd-to-graphite: https://github.com/loggly/collectd-to-graphite
 .. _collectd-carbon: https://github.com/indygreg/collectd-carbon
 .. _collectd-graphite: https://github.com/joemiller/collectd-graphite
+.. _collectd-write_graphite: https://github.com/jssjr/collectd-write_graphite
 .. _Logster: https://github.com/etsy/logster
 .. _RabbitMQ: http://www.rabbitmq.com/
 .. _Esper: http://esper.codehaus.org/
