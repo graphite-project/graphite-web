@@ -90,8 +90,7 @@ class MetricSenderFactory(ReconnectingClientFactory):
       self.queue.append( (metric, datapoint) ) # it's a soft max
 
       # We attempt to do some simple flow control
-      if not protocolManager.clientsPaused:
-        protocolManager.pauseAll()
+      protocolManager.pauseAll()
 
     elif self.connectedProtocol:
       self.connectedProtocol.send(metric, datapoint)

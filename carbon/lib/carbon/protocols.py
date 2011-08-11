@@ -96,6 +96,8 @@ class ConnectionTrackingFactory(Factory):
 
   def protocolConnected(self, p):
     self.connectedProtocols.append(p)
+    if self.manager.clientsPaused:
+      p.transport.pauseProducing()
 
   def protocolDisconnected(self, p):
     if p in self.connectedProtocols:
@@ -109,6 +111,7 @@ class ProtocolManager:
 
   def createFactory(self, protocol):
     factory = ConnectionTrackingFactory()
+    factory.manager = self
     factory.protocol = protocol
     self.factories.append(factory)
     return factory
