@@ -57,7 +57,7 @@ def search_view(request):
 
   results = sorted(searcher.search(**search_request))
   result_data = json.dumps( dict(metrics=results) )
-  return HttpResponse(result_data, mimetype='text/json')
+  return HttpResponse(result_data, mimetype='application/json')
 
 
 def context_view(request):
@@ -65,7 +65,7 @@ def context_view(request):
     contexts = []
 
     if not 'metric' not in request.GET:
-      return HttpResponse('{ "error" : "missing required parameter \"metric\"" }', mimetype='text/json')
+      return HttpResponse('{ "error" : "missing required parameter \"metric\"" }', mimetype='application/json')
 
     for metric in request.GET.getlist('metric'):
       try:
@@ -76,19 +76,19 @@ def context_view(request):
         contexts.append({ 'metric' : metric, 'context' : context })
 
     content = json.dumps( { 'contexts' : contexts } )
-    return HttpResponse(content, mimetype='text/json')
+    return HttpResponse(content, mimetype='application/json')
 
   elif request.method == 'POST':
 
     if 'metric' not in request.POST:
-      return HttpResponse('{ "error" : "missing required parameter \"metric\"" }', mimetype='text/json')
+      return HttpResponse('{ "error" : "missing required parameter \"metric\"" }', mimetype='application/json')
 
     newContext = dict( item for item in request.POST.items() if item[0] != 'metric' )
 
     for metric in request.POST.getlist('metric'):
       STORE.get(metric).updateContext(newContext)
 
-    return HttpResponse('{ "success" : true }', mimetype='text/json')
+    return HttpResponse('{ "success" : true }', mimetype='application/json')
 
   else:
     return HttpResponseBadRequest("invalid method, must be GET or POST")
@@ -137,7 +137,7 @@ def find_view(request):
 
   if format == 'treejson':
     content = tree_json(matches, base_path, wildcards=profile.advancedUI or wildcards, contexts=contexts)
-    response = HttpResponse(content, mimetype='text/json')
+    response = HttpResponse(content, mimetype='application/json')
 
   elif format == 'pickle':
     content = pickle_nodes(matches, contexts=contexts)
@@ -158,7 +158,7 @@ def find_view(request):
       results.append(wildcardNode)
 
     content = json.dumps({ 'metrics' : results })
-    response = HttpResponse(content, mimetype='text/json')
+    response = HttpResponse(content, mimetype='application/json')
 
   else:
     return HttpResponseBadRequest(content="Invalid value for 'format' parameter", mimetype="text/plain")
@@ -197,7 +197,7 @@ def expand_view(request):
     'results' : results
   }
 
-  response = HttpResponse(json.dumps(result), mimetype='text/json')
+  response = HttpResponse(json.dumps(result), mimetype='application/json')
   response['Pragma'] = 'no-cache'
   response['Cache-Control'] = 'no-cache'
   return response
