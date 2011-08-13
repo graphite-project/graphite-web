@@ -20,11 +20,29 @@ from graphite.util import getProfile, getProfileByUsername, defaultUser, json
 from graphite.logger import log
 from graphite.storage import STORE, LOCAL_STORE
 from graphite.metrics.search import searcher
+import fnmatch, os
 
 try:
   import cPickle as pickle
 except ImportError:
   import pickle
+
+
+def index_json(request):
+  jsonp = request.REQUEST.get('jsonp', False)
+  matches = []
+
+  for root, dirs, files in os.walk(settings.WHISPER_DIR):
+    root = root.replace(settings.WHISPER_DIR, '')
+    for basename in files:
+      if fnmatch.fnmatch(basename, '*.wsp'):
+        matches.append(os.path.join(root, basename))
+
+  matches = [ m.replace('.wsp','').replace('/', '.') for m in sorted(matches) ]
+  if jsonp:
+    return HttpResponse("%s(%s)" % (jsonp, json.dumps(matches)), mimetype='text/javascript')
+  else:
+    return HttpResponse(json.dumps(matches), mimetype='application/json')
 
 
 def search_view(request):
