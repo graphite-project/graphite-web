@@ -2,7 +2,7 @@ from twisted.internet import reactor
 from twisted.internet.protocol import DatagramProtocol, Protocol
 from twisted.internet.error import ConnectionDone
 from twisted.protocols.basic import LineOnlyReceiver, Int32StringReceiver
-from carbon import log, events, state
+from carbon import log, events, state, management
 
 try:
   import cPickle as pickle
@@ -89,7 +89,7 @@ class MetricPickleReceiver(MetricReceiver, Int32StringReceiver):
         metricReceived(metric, datapoint)
 
 
-class CacheQueryHandler(Int32StringReceiver):
+class CacheManagementHandler(Int32StringReceiver):
   def connectionMade(self):
     peer = self.transport.getPeer()
     self.peerAddr = "%s:%d" % (peer.host, peer.port)
@@ -101,12 +101,26 @@ class CacheQueryHandler(Int32StringReceiver):
     else:
       log.query("%s connection lost: %s" % (self.peerAddr, reason.value))
 
-  def stringReceived(self, metric):
-    values = MetricCache.get(metric, [])
-    log.query('[%s] cache query for \"%s\" returned %d values' % (self.peerAddr, metric, len(values)))
-    response = pickle.dumps(values, protocol=-1)
+  def stringReceived(self, rawRequest):
+    request = pickle.loads(rawRequest)
+    if request['type'] == 'cache-query':
+      metric = request['metric']
+      result = MetricCache.get(metric, [])
+      log.query('[%s] cache query for \"%s\" returned %d values' % (self.peerAddr, metric, len(result)))
+      instrumentation.increment('cacheQueries')
+
+    elif request['type'] == 'get-metadata':
+      result = management.getMetadata(request['metric'], request['key'])
+
+    elif request['type'] == 'set-metadata':
+      management.setMetadata(request['metric'], request['key'], request['value'])
+      result = True
+
+    else:
+      result = dict(error="Invalid request type \"%s\"" % request['type'])
+
+    response = pickle.dumps(result, protocol=-1)
     self.sendString(response)
-    instrumentation.increment('cacheQueries')
 
 
 # Avoid import circularities

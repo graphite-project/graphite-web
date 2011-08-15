@@ -97,17 +97,18 @@ class CarbonLinkPool:
     self.hosts = [ (server, instance) for (server, port, instance) in hosts ]
     self.ports = dict( ((server, instance), port) for (server, port, instance) in hosts )
     self.timeout = float(timeout)
-    self.hashRing = ConsistentHashRing(self.hosts)
+    self.hash_ring = ConsistentHashRing(self.hosts)
     self.connections = {}
+    self.last_failure = {}
     # Create a connection pool for each host
     for host in self.hosts:
       self.connections[host] = set()
 
-  def selectHost(self, metric):
+  def select_host(self, metric):
     "Returns the carbon host that has data for the given metric"
     return self.hashRing.get_node(metric)
 
-  def getConnection(self, host):
+  def get_connection(self, host):
     # First try to take one out of the pool for this host
     (server, instance) = host
     port = self.ports[host]
@@ -120,70 +121,39 @@ class CarbonLinkPool:
     log.cache("CarbonLink creating a new socket for %s" % str(host))
     connection = socket.socket()
     connection.settimeout(self.timeout)
-    connection.connect( (server, port) )
-    connection.setsockopt( socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1 )
-    return connection
-
-  def putConnectionInPool(self, host, connection):
-    connectionPool = self.connections[host]
-    connectionPool.add(connection)
-
-  def removeConnectionFromPool(self, host, connection):
-    connectionPool = self.connections.get(host, set())
-    connectionPool.discard(connection)
-
-  def sendRequest(self, metric):
-    "Sends a request and returns a completion callback"
-    host = self.selectHost(metric)
-    query = struct.pack("!L", len(metric)) + metric # 32-bit length prefix string
-    connection = None
-
     try:
-      connection = self.getConnection(host)
-      connection.sendall(query)
-
-      # To keep things asynchronous we return a result callback
-      def receiveResponse():
-        try:
-          buf = ''
-          remaining = 4
-          message_size = None
-
-          while remaining:
-            packet = connection.recv(remaining)
-            assert packet, "CarbonLink lost connection to %s" % str(host)
-
-            buf += packet
-
-            if message_size is None:
-              if len(buf) == 4:
-                remaining = message_size = struct.unpack("!L", buf)[0]
-                buf = ''
-                continue
-
-            remaining -= len(packet)
-
-          # We're done with the connection for this request, put it in the pool
-          self.putConnectionInPool(host, connection)
-
-          # Now parse the response
-          points = pickle.loads(buf)
-          log.cache("CarbonLink to %s, retrieved %d points for %s" % (host, len(points), metric))
-
-          for point in points:
-            yield point
-
-        except:
-          log.exception("CarbonLink to %s, exception while getting response" % str(host))
-          self.removeConnectionFromPool(host, connection)
-
-      return receiveResponse
+      connection.connect( (server, port) )
     except:
-      log.exception("CarbonLink to %s, exception while sending request" % str(host))
-      if connection:
-        self.removeConnectionFromPool(host, connection)
-      noResults = lambda: []
-      return noResults
+      self.last_failure[host] = time.time()
+      raise
+    else:
+      connection.setsockopt( socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1 )
+      return connection
+
+  def query(self, metric_path):
+    host = self.select_host(metric_path)
+    conn = self.get_connection(host)
+    try:
+      self.send_request(conn, metric_path)
+      results = self.recv_response(conn)
+    except:
+      self.last_failure[host] = time.time()
+      raise
+    else:
+      log.cache("CarbonLink query for %s returned %d datapoints" % (metric_path, len(results)))
+      self.connections[host].add(conn)
+      return results
+
+  def send_request(self, conn, metric_path):
+    len_prefix = struct.pack("!L", len(metric_path))
+    request_packet = len_prefix + metric_path
+    conn.sendall(request_packet)
+
+  def recv_response(self, conn):
+    len_prefix = recv_exactly(conn, 4)
+    body_size = struct.unpack("!L", len_prefix)[0]
+    body = recv_exactly(conn, body_size)
+    return pickle.loads(body)
 
 
 #parse hosts from local_settings.py
@@ -220,9 +190,9 @@ def fetchData(requestContext, pathExpr):
 
   for dbFile in store.find(pathExpr):
     log.metric_access(dbFile.metric_path)
-    getCacheResults = CarbonLink.sendRequest(dbFile.real_metric)
+    cachedResults = CarbonLink.query(dbFile.real_metric)
     dbResults = dbFile.fetch( timestamp(startTime), timestamp(endTime) )
-    results = mergeResults(dbResults, getCacheResults())
+    results = mergeResults(dbResults, cachedResults)
 
     if not results:
       continue
