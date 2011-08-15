@@ -75,3 +75,12 @@ def aggregator(message, **context):
 def query(message, **context):
   context['type'] = 'query'
   msg(message, **context)
+
+def debug(message, **context):
+  if debugEnabled:
+    msg(message, **context)
+
+debugEnabled = False
+def setDebugEnabled(enabled):
+  global debugEnabled
+  debugEnabled = enabled

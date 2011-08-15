@@ -6,7 +6,6 @@ from resource import getrusage, RUSAGE_SELF
 from twisted.application.service import Service
 from twisted.internet.task import LoopingCall
 from carbon.conf import settings
-from carbon import state, cache
 
 
 stats = {}
@@ -157,4 +156,5 @@ class InstrumentationService(Service):
 
 
 # Avoid import circularities
+from carbon import state, events, cache
 from carbon.aggregator.buffers import BufferManager

@@ -8,8 +8,8 @@ from twisted.internet import reactor
 from twisted.internet.defer import Deferred, DeferredList, succeed
 from twisted.internet.protocol import ReconnectingClientFactory
 from twisted.protocols.basic import Int32StringReceiver
-from carbon.events import pauseReceivingMetrics, resumeReceivingMetrics
-from carbon import log, state
+from carbon.conf import settings
+from carbon import log, state, events
 
 
 SEND_QUEUE_LOW_WATERMARK = settings.MAX_QUEUE_SIZE * 0.8
@@ -65,7 +65,7 @@ class CarbonClientProtocol(Int32StringReceiver):
         state.metricReceiversPaused and
         self.factory.queueSize < SEND_QUEUE_LOW_WATERMARK):
       log.clients('send queue has space available, resuming paused clients')
-      resumeReceivingMetrics()
+      events.resumeReceivingMetrics()
 
   def __str__(self):
     return 'CarbonClientProtocol(%s:%d:%s)' % (self.factory.destination)

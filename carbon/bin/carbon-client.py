@@ -10,14 +10,14 @@ except ImportError:
 
 from twisted.internet import stdio, reactor
 from twisted.protocols.basic import LineReceiver
-from carbon.client import CarbonClientManager
 from carbon.events import metricReceived
 from carbon.routers import ConsistentHashingRouter
+from carbon.client import CarbonClientManager
 from carbon import log
 
 
 option_parser = OptionParser(usage="%prog [options] <host:port:instance> <host:port:instance> ...")
-option_parser.add_option('--logstdout', action='store_true', help="Log to stdout")
+option_parser.add_option('--debug', action='store_true', help="Log debug info to stdout")
 option_parser.add_option('--keyfunc', help="Use a custom key function (path/to/module.py:myFunc)")
 
 options, args = option_parser.parse_args()
@@ -72,8 +72,9 @@ class StdinMetricsReader(LineReceiver):
 
 stdio.StandardIO( StdinMetricsReader() )
 
-if options.logstdout:
+if options.debug:
   log.logToStdout()
+  log.setDebugEnabled(True)
 
 exitCode = 0
 def shutdown(results):

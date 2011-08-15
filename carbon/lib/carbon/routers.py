@@ -40,7 +40,7 @@ class ConsistentHashingRouter(DatapointRouter):
   def __init__(self, replication_factor=1):
     self.replication_factor = int(replication_factor)
     self.instance_ports = {} # { (server, instance) : port }
-    self.ring = ConsistentHashRing()
+    self.ring = ConsistentHashRing([])
 
   def addDestination(self, destination):
     (server, port, instance) = destination

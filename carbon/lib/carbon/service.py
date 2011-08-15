@@ -19,7 +19,7 @@ from twisted.application.service import MultiService
 from twisted.application.internet import TCPServer, TCPClient, UDPServer
 from twisted.internet.protocol import ServerFactory
 from twisted.internet import reactor
-from carbon import util, state
+from carbon import events, util, state
 
 
 def createBaseService(config):
@@ -93,7 +93,6 @@ def createCacheService(config):
     from carbon.cache import MetricCache
     from carbon.conf import settings
     from carbon.protocols import CacheQueryHandler
-    from carbon import events
 
     # Configure application components
     events.metricReceived.addHandler(MetricCache.store)
@@ -144,7 +143,7 @@ def createAggregatorService(config):
     if not settings.DESTINATIONS:
       raise Exception("Required setting DESTINATIONS is missing from carbon.conf")
 
-    for destination in util.parseDestinations(settings.DESTINATIONS)
+    for destination in util.parseDestinations(settings.DESTINATIONS):
       client_manager.startClient(destination)
 
     return root_service
@@ -173,7 +172,7 @@ def createRelayService(config):
     if not settings.DESTINATIONS:
       raise Exception("Required setting DESTINATIONS is missing from carbon.conf")
 
-    for destination in util.parseDestinations(settings.DESTINATIONS)
+    for destination in util.parseDestinations(settings.DESTINATIONS):
       client_manager.startClient(destination)
 
     return root_service

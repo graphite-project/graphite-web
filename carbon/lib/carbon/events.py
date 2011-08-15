@@ -1,5 +1,3 @@
-from carbon import log, state, instrumentation
-
 
 class Event:
   def __init__(self, name):
@@ -38,3 +36,7 @@ cacheSpaceAvailable.addHandler(lambda: setattr(state, 'cacheTooFull', False))
 
 pauseReceivingMetrics.addHandler(lambda: setattr(state, 'metricReceiversPaused', True))
 resumeReceivingMetrics.addHandler(lambda: setattr(state, 'metricReceiversPaused', False))
+
+
+# Avoid import circularities
+from carbon import log, state, instrumentation
