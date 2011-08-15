@@ -28,9 +28,9 @@ pauseReceivingMetrics = Event('pauseReceivingMetrics')
 resumeReceivingMetrics = Event('resumeReceivingMetrics')
 
 # Default handlers
-metricReceived.addHandler(lambda metric, datapoint: instrumentation.increment('metricsReceived'))
+metricReceived.addHandler(lambda metric, datapoint: state.instrumentation.increment('metricsReceived'))
 
-cacheFull.addHandler(lambda: instrumentation.increment('cache.overflow'))
+cacheFull.addHandler(lambda: state.instrumentation.increment('cache.overflow'))
 cacheFull.addHandler(lambda: setattr(state, 'cacheTooFull', True))
 cacheSpaceAvailable.addHandler(lambda: setattr(state, 'cacheTooFull', False))
 
@@ -39,4 +39,4 @@ resumeReceivingMetrics.addHandler(lambda: setattr(state, 'metricReceiversPaused'
 
 
 # Avoid import circularities
-from carbon import log, state, instrumentation
+from carbon import log, state

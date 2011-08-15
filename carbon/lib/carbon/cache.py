@@ -27,7 +27,7 @@ class MetricCache(dict):
   def store(self, metric, datapoint):
     if self.isFull():
       log.msg("MetricCache is full: self.size=%d" % self.size)
-      events.cacheFull()
+      state.events.cacheFull()
       return
 
     metric = '.'.join(part for part in metric.split('.') if part) # normalize the path
@@ -63,4 +63,4 @@ MetricCache = MetricCache()
 
 
 # Avoid import circularities
-from carbon import log, events
+from carbon import log, state

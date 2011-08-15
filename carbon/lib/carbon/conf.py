@@ -15,6 +15,7 @@ limitations under the License."""
 import os
 import sys
 import pwd
+import errno
 
 from os.path import join, dirname, normpath, exists, isdir
 from optparse import OptionParser
@@ -241,7 +242,13 @@ class CarbonCacheOptions(usage.Options):
                 print "Could not read pidfile %s" % pidfile
                 raise SystemExit(1)
             print "Sending kill signal to pid %d" % pid
-            os.kill(pid, 15)
+            try:
+                os.kill(pid, 15)
+            except OSError, e:
+                if e.errno == errno.ESRCH:
+                    print "No process with pid %d running" % pid
+                else:
+                    raise
 
             print "Deleting %s (contained pid %d)" % (pidfile, pid)
             os.unlink(pidfile)

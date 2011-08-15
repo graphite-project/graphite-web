@@ -25,8 +25,8 @@ def loadRelayRules(path):
       raise ValueError("Rules file %s section %s does not define a "
                        "'destinations' list" % (path, section))
 
-    destinations_string = parser.get(section, 'destinations')
-    destinations = parseDestinations(destinations_string)
+    destination_strings = parser.get(section, 'destinations').split(',')
+    destinations = parseDestinations(destination_strings)
 
     if parser.has_option(section, 'pattern'):
       if parser.has_option(section, 'default'):

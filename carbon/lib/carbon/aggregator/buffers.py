@@ -63,8 +63,8 @@ class MetricBuffer:
       if buffer.active:
         value = self.aggregation_func(buffer.values)
         datapoint = (buffer.interval, value)
-        send_metric(self.metric_path, datapoint)
-        increment('aggregateDatapointsSent')
+        state.events.metricGenerated(self.metric_path, datapoint)
+        state.instrumnetation.increment('aggregateDatapointsSent')
         buffer.mark_inactive()
 
       if buffer.interval < age_threshold:
@@ -99,5 +99,4 @@ class IntervalBuffer:
 BufferManager = BufferManager()
 
 # Avoid import circularity
-from carbon.instrumentation import increment
-from carbon.aggregator.client import send_metric
+from carbon import state

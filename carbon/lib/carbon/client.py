@@ -187,6 +187,7 @@ class CarbonClientManager(Service):
     if destination in self.client_factories:
       return
 
+    log.clients("connecting to carbon daemon at %s:%d:%s" % destination)
     factory = self.client_factories[destination] = CarbonClientFactory(destination)
     self.router.addDestination(destination)
     if self.running:

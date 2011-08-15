@@ -49,7 +49,7 @@ def run_twistd_plugin(filename):
     # available.
     try:
         from twisted.internet import epollreactor
-        twistd_options.append("--reactor=epoll")
+        #twistd_options.append("--reactor=epoll") #XXX Did the twistd API change recently?
     except:
         pass
 
@@ -84,10 +84,10 @@ def run_twistd_plugin(filename):
     runApp(config)
 
 
-def parseDestinations(destinations_string):
+def parseDestinations(destination_strings):
   destinations = []
 
-  for dest_string in destinations_string.split(','):
+  for dest_string in destination_strings:
     parts = dest_string.strip().split(':')
     if len(parts) == 2:
       server, port = parts
