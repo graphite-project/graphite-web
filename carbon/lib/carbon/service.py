@@ -95,14 +95,14 @@ def createBaseService(config):
 def createCacheService(config):
     from carbon.cache import MetricCache
     from carbon.conf import settings
-    from carbon.protocols import CacheQueryHandler
+    from carbon.protocols import CacheManagementHandler
 
     # Configure application components
     events.metricReceived.addHandler(MetricCache.store)
 
     root_service = createBaseService(config)
     factory = ServerFactory()
-    factory.protocol = CacheQueryHandler
+    factory.protocol = CacheManagementHandler
     service = TCPServer(int(settings.CACHE_QUERY_PORT), factory,
                         interface=settings.CACHE_QUERY_INTERFACE)
     service.setServiceParent(root_service)
