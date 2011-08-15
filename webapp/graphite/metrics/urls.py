@@ -20,5 +20,7 @@ urlpatterns = patterns('graphite.metrics.views',
   ('^find/?$', 'find_view'),
   ('^expand/?$', 'expand_view'),
   ('^context/?$', 'context_view'),
+  ('^get-metadata/?$', 'get_metadata_view'),
+  ('^set-metadata/?$', 'set_metadata_view'),
   ('', 'find_view'),
 )

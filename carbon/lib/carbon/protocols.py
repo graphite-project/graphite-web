@@ -105,16 +105,16 @@ class CacheManagementHandler(Int32StringReceiver):
     request = pickle.loads(rawRequest)
     if request['type'] == 'cache-query':
       metric = request['metric']
-      result = MetricCache.get(metric, [])
-      log.query('[%s] cache query for \"%s\" returned %d values' % (self.peerAddr, metric, len(result)))
+      datapoints = MetricCache.get(metric, [])
+      result = dict(datapoints=datapoints)
+      log.query('[%s] cache query for \"%s\" returned %d values' % (self.peerAddr, metric, len(datapoints)))
       instrumentation.increment('cacheQueries')
 
     elif request['type'] == 'get-metadata':
       result = management.getMetadata(request['metric'], request['key'])
 
     elif request['type'] == 'set-metadata':
-      management.setMetadata(request['metric'], request['key'], request['value'])
-      result = True
+      result = management.setMetadata(request['metric'], request['key'], request['value'])
 
     else:
       result = dict(error="Invalid request type \"%s\"" % request['type'])

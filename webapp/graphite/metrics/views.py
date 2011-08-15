@@ -20,6 +20,7 @@ from graphite.util import getProfile, getProfileByUsername, defaultUser, json
 from graphite.logger import log
 from graphite.storage import STORE, LOCAL_STORE
 from graphite.metrics.search import searcher
+from graphite.render.datalib import CarbonLink
 import fnmatch, os
 
 try:
@@ -201,6 +202,51 @@ def expand_view(request):
   response['Pragma'] = 'no-cache'
   response['Cache-Control'] = 'no-cache'
   return response
+
+
+def get_metadata_view(request):
+  key = request.REQUEST['key']
+  metrics = request.REQUEST.getlist('metric')
+  results = {}
+  for metric in metrics:
+    try:
+      results[metric] = CarbonLink.get_metadata(metric, key)
+    except:
+      log.exception()
+      results[metric] = dict(error="Unexpected error occurred in CarbonLink.get_metadata(%s, %s)" % (metric, key))
+
+  return HttpResponse(json.dumps(results), mimetype='application/json')
+
+
+def set_metadata_view(request):
+  results = {}
+
+  if request.method == 'GET':
+    metric = request.GET['metric']
+    key = request.GET['key']
+    value = request.GET['value']
+    try:
+      results[metric] = CarbonLink.set_metadata(metric, key, value)
+    except:
+      log.exception()
+      results[metric] = dict(error="Unexpected error occurred in CarbonLink.set_metadata(%s, %s)" % (metric, key))
+
+  elif request.method == 'POST':
+    operations = json.loads( request.POST['operations'] )
+    for op in operations:
+      metric = None
+      try:
+        metric, key, value = op['metric'], op['key'], op['value']
+        results[metric] = CarbonLink.set_metadata(metric, key, value)
+      except:
+        log.exception()
+        if metric:
+          results[metric] = dict(error="Unexpected error occurred in bulk CarbonLink.set_metadata(%s)" % metric)
+
+  else:
+    results = dict(error="Invalid request method")
+
+  return HttpResponse(json.dumps(results), mimetype='application/json')
 
 
 def tree_json(nodes, base_path, wildcards=False, contexts=False):
