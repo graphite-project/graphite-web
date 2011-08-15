@@ -82,3 +82,21 @@ def run_twistd_plugin(filename):
     config.parseOptions(twistd_options)
 
     runApp(config)
+
+
+def parseDestinations(destinations_string):
+  destinations = []
+
+  for dest_string in destinations_string.split(','):
+    parts = dest_string.strip().split(':')
+    if len(parts) == 2:
+      server, port = parts
+      instance = None
+    elif len(parts) == 3:
+      server, port, instance = parts
+    else:
+      raise ValueError("Invalid destination string \"%s\"" % dest_string)
+
+    destinations.append( (server, int(port), instance) )
+
+  return destinations

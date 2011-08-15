@@ -38,10 +38,8 @@ except:
     sys.path.insert(0, LIB_DIR)
 
 import carbon.protocols #satisfy import order requirements
-from carbon.instrumentation import increment
-from carbon.events import metricReceived
 from carbon.conf import settings
-from carbon import log
+from carbon import log, events, instrumentation
 
 
 HOSTNAME = socket.gethostname().split('.')[0]
@@ -114,8 +112,7 @@ class AMQPGraphiteProtocol(AMQClient):
                 log.listener("invalid message line: %s" % (line,))
                 continue
 
-            increment('metricsReceived')
-            metricReceived(metric, datapoint)
+            events.metricReceived(metric, datapoint)
 
             if self.factory.verbose:
                 log.listener("Metric posted: %s %s %s" %

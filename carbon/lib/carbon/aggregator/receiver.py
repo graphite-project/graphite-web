@@ -1,8 +1,8 @@
 from carbon.instrumentation import increment
-from carbon.aggregator.client import send_metric
 from carbon.aggregator.rules import RuleManager
 from carbon.aggregator.buffers import BufferManager
 from carbon.rewrite import RewriteRuleManager
+from carbon import events
 
 
 def process(metric, datapoint):
@@ -27,4 +27,4 @@ def process(metric, datapoint):
   for rule in RewriteRuleManager.postRules:
     metric = rule.apply(metric)
 
-  send_metric(metric, datapoint)
+  events.metricSent(metric, datapoint)

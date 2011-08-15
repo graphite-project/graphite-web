@@ -12,7 +12,8 @@ from twisted.internet import stdio, reactor
 from twisted.protocols.basic import LineReceiver
 from carbon.client import CarbonClientManager
 from carbon.events import metricReceived
-from carbon import hashing, log
+from carbon.routers import ConsistentHashingRouter
+from carbon import log
 
 
 option_parser = OptionParser(usage="%prog [options] <host:port:instance> <host:port:instance> ...")
@@ -38,20 +39,16 @@ for arg in args:
     instance = None
   destinations.append( (host, port, instance) )
 
-hashing.setDestinationHosts(destinations)
-client_manager = CarbonClientManager()
+#TODO(chrismd) make this more configurable via options
+router = ConsistentHashingRouter()
+client_manager = CarbonClientManager(router)
+reactor.callWhenRunning(client_manager.startService)
 
 if options.keyfunc:
-  module_path, func_name = options.keyfunc.rsplit(':', 1)
-  module_file = open(module_path, 'U')
-  description = ('.py', 'U', imp.PY_SOURCE)
-  module = imp.load_module('keyfunc_module', module_file, module_path, description)
-  keyfunc = getattr(module, func_name)
-  client_manager.setKeyFunction(keyfunc)
+  router.setKeyFunctionFromModule(options.keyfunc)
 
-for (host, port, instance) in destinations:
-  addr = (host, port)
-  reactor.callWhenRunning(client_manager.startClient, addr)
+for destination in destinations:
+  client_manager.startClient(destination)
 
 metricReceived(client_manager.sendDatapoint)
 

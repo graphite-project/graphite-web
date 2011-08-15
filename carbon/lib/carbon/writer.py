@@ -27,8 +27,7 @@ import whisper
 from carbon.cache import MetricCache
 from carbon.storage import getFilesystemPath, loadStorageSchemas
 from carbon.conf import settings
-from carbon.instrumentation import increment, append
-from carbon import log
+from carbon import log, events, instrumentation
 
 from twisted.internet import reactor
 from twisted.internet.task import LoopingCall
@@ -38,6 +37,7 @@ from twisted.application.service import Service
 lastCreateInterval = 0
 createCount = 0
 schemas = loadStorageSchemas()
+CACHE_SIZE_LOW_WATERMARK = settings.MAX_CACHE_SIZE * 0.95
 
 
 def optimalWriteOrder():
@@ -49,6 +49,9 @@ def optimalWriteOrder():
   t = time.time()
   metrics.sort(key=lambda item: item[1], reverse=True) # by queue size, descending
   log.msg("Sorted %d cache queues in %.6f seconds" % (len(metrics), time.time() - t))
+
+  if state.cacheTooFull and MetricCache.size < CACHE_SIZE_LOW_WATERMARK:
+    events.cacheSpaceAvailable()
 
   for metric, queueSize in metrics:
     dbFilePath = getFilesystemPath(metric)
@@ -110,7 +113,7 @@ def writeCachedDataPoints():
         log.creates("creating database file %s" % dbFilePath)
         whisper.create(dbFilePath, archiveConfig)
         os.chmod(dbFilePath, 0755)
-        increment('creates')
+        instrumentation.increment('creates')
 
         # Create metadata file
         dbFileName = basename(dbFilePath)
@@ -124,11 +127,11 @@ def writeCachedDataPoints():
         updateTime = t2 - t1
       except:
         log.err()
-        increment('errors')
+        instrumentation.increment('errors')
       else:
         pointCount = len(datapoints)
-        increment('committedPoints', pointCount)
-        append('updateTimes', updateTime)
+        instrumentation.increment('committedPoints', pointCount)
+        instrumentation.append('updateTimes', updateTime)
 
         if settings.LOG_UPDATES:
           log.updates("wrote %d datapoints for %s in %.5f seconds" % (pointCount, metric, updateTime))

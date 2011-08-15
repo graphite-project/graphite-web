@@ -26,7 +26,8 @@ class MetricCache(dict):
 
   def store(self, metric, datapoint):
     if self.isFull():
-      increment('cache.overflow')
+      log.msg("MetricCache is full: self.size=%d" % self.size)
+      events.cacheFull()
       return
 
     metric = '.'.join(part for part in metric.split('.') if part) # normalize the path
@@ -57,7 +58,9 @@ class MetricCache(dict):
       self.lock.release()
 
 
+# Ghetto singleton
 MetricCache = MetricCache()
 
+
 # Avoid import circularities
-from carbon.instrumentation import increment
+from carbon import log, events

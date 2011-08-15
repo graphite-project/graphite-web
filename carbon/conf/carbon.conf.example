@@ -72,6 +72,12 @@ PICKLE_RECEIVER_PORT = 2004
 CACHE_QUERY_INTERFACE = 0.0.0.0
 CACHE_QUERY_PORT = 7002
 
+# Set this to False to drop datapoints received after the cache
+# reaches MAX_CACHE_SIZE. If this is True (the default) then sockets
+# over which metrics are received will temporarily stop accepting
+# data until the cache size falls below 95% MAX_CACHE_SIZE.
+USE_FLOW_CONTROL = True
+
 # By default, carbon-cache will log every whisper update. This can be excessive and
 # degrade performance if logging on the same volume as the whisper data is stored.
 LOG_UPDATES = False
@@ -133,20 +139,41 @@ LINE_RECEIVER_PORT = 2013
 PICKLE_RECEIVER_INTERFACE = 0.0.0.0
 PICKLE_RECEIVER_PORT = 2014
 
+# To use consistent hashing instead of the user defined relay-rules.conf,
+# change this to:
+# RELAY_METHOD = consistent-hashing
 RELAY_METHOD = rules
 
-# To use consistent hashing instead of user-defined rules, uncomment this:
-# RELAY_METHOD = consistent-hashing
+# If you use consistent-hashing you may want to add redundancy
+# of your data by replicating every datapoint to more than
+# one machine.
+REPLICATION_FACTOR = 1
+
+# This is a list of carbon daemons we will send any relayed or
+# generated metrics to. The default provided would send to a single
+# carbon-cache instance on the default port. However if you
+# use multiple carbon-cache instances then it would look like this:
 #
-# For consistent hashing you must also define a list of carbon-cache servers.
-# THIS HAS TO EXACTLY MATCH the CARBONLINK_HOSTS list used in the
-# webapps' local_settings.py otherwise the hashing will be... inconsistent.
-# CH_HOST_LIST = 127.0.0.1:2004, 127.0.0.1:2104:a, 127.0.0.1:2204:b
+# DESTINATIONS = 127.0.0.1:2004:a, 127.0.0.1:2104:b
+#
+# The general form is IP:PORT:INSTANCE where the :INSTANCE part is
+# optional and refers to the "None" instance if omitted.
+#
+# Note that if the destinations are all carbon-caches then this should
+# exactly match the webapp's CARBONLINK_HOSTS setting in terms of
+# instances listed (order matters!).
+DESTINATIONS = 127.0.0.1:2004
 
 # This defines the maximum "message size" between carbon daemons.
 # You shouldn't need to tune this unless you really know what you're doing.
 MAX_DATAPOINTS_PER_MESSAGE = 500
 MAX_QUEUE_SIZE = 10000
+
+# Set this to False to drop datapoints when any send queue (sending datapoints
+# to a downstream carbon daemon) hits MAX_QUEUE_SIZE. If this is True (the
+# default) then sockets over which metrics are received will temporarily stop accepting
+# data until the send queues fall below 80% MAX_QUEUE_SIZE.
+USE_FLOW_CONTROL = True
 
 
 [aggregator]
@@ -156,9 +183,36 @@ LINE_RECEIVER_PORT = 2023
 PICKLE_RECEIVER_INTERFACE = 0.0.0.0
 PICKLE_RECEIVER_PORT = 2024
 
-DESTINATION_HOST = 127.0.0.1
-DESTINATION_PORT = 2014
+# This is a list of carbon daemons we will send any relayed or
+# generated metrics to. The default provided would send to a single
+# carbon-cache instance on the default port. However if you
+# use multiple carbon-cache instances then it would look like this:
+#
+# DESTINATIONS = 127.0.0.1:2004:a, 127.0.0.1:2104:b
+# 
+# The format is comma-delimited IP:PORT:INSTANCE where the :INSTANCE part is
+# optional and refers to the "None" instance if omitted.
+#
+# Note that if the destinations are all carbon-caches then this should
+# exactly match the webapp's CARBONLINK_HOSTS setting in terms of
+# instances listed (order matters!).
+DESTINATIONS = 127.0.0.1:2004
+
+# If you want to add redundancy to your data by replicating every
+# datapoint to more than one machine, increase this.
+REPLICATION_FACTOR = 1
+
+# This is the maximum number of datapoints that can be queued up
+# for a single destination. Once this limit is hit, we will
+# stop accepting new data if USE_FLOW_CONTROL is True, otherwise
+# we will drop any subsequently received datapoints.
 MAX_QUEUE_SIZE = 10000
+
+# Set this to False to drop datapoints when any send queue (sending datapoints
+# to a downstream carbon daemon) hits MAX_QUEUE_SIZE. If this is True (the
+# default) then sockets over which metrics are received will temporarily stop accepting
+# data until the send queues fall below 80% MAX_QUEUE_SIZE.
+USE_FLOW_CONTROL = True
 
 # This defines the maximum "message size" between carbon daemons.
 # You shouldn't need to tune this unless you really know what you're doing.

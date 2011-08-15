@@ -6,6 +6,7 @@ from resource import getrusage, RUSAGE_SELF
 from twisted.application.service import Service
 from twisted.internet.task import LoopingCall
 from carbon.conf import settings
+from carbon import state, cache
 
 
 stats = {}
@@ -14,6 +15,10 @@ PAGESIZE = os.sysconf('SC_PAGESIZE')
 rusage = getrusage(RUSAGE_SELF)
 lastUsage = rusage.ru_utime + rusage.ru_stime
 lastUsageTime = time.time()
+
+# TODO(chrismd) refactor the graphite metrics hierarchy to be cleaner,
+# more consistent, and make room for frontend metrics.
+#metric_prefix = "Graphite.backend.%(program)s.%(instance)s." % settings
 
 
 def increment(stat, increase=1):
@@ -40,7 +45,7 @@ def getCpuUsage():
   usageDiff = currentUsage - lastUsage
   timeDiff = currentTime - lastUsageTime
 
-  if timeDiff == 0: #shouldn't be possible
+  if timeDiff == 0: #shouldn't be possible, but I've actually seen a ZeroDivisionError from this
     timeDiff = 0.000001
 
   cpuUsagePercent = (usageDiff / timeDiff) * 100.0
@@ -54,10 +59,6 @@ def getCpuUsage():
 def getMemUsage():
   rss_pages = int( open('/proc/self/statm').read().split()[1] )
   return rss_pages * PAGESIZE
-
-
-def startRecording():
-  global recordTask
 
 
 def recordMetrics():
@@ -88,16 +89,16 @@ def recordMetrics():
     record('creates', creates)
     record('errors', errors)
     record('cache.queries', cacheQueries)
-    record('cache.queues', len(MetricCache))
-    record('cache.size', MetricCache.size)
+    record('cache.queues', len(cache.MetricCache))
+    record('cache.size', cache.MetricCache.size)
     record('cache.overflow', cacheOverflow)
 
   # relay metrics
   elif settings.program == 'carbon-relay':
     record = relay_record
-    for connection in clientConnections:
-      prefix = 'destinations.%s.' % connection.destinationName
 
+    for receiverProto in state.connectedMetricReceiverProtocols:
+      prefix = 'destinations.%s.' % receiverProto.destinationName
       for metric in ('attemptedRelays', 'sent', 'queuedUntilReady',
                      'queuedUntilConnected', 'fullQueueDrops'):
         metric = prefix + metric
@@ -111,7 +112,6 @@ def recordMetrics():
     record('allocatedBuffers', len(BufferManager))
     record('bufferedDatapoints',
            sum([b.size for b in BufferManager.buffers.values()]))
-    record('datapointsReceived', myStats.get('datapointsReceived', 0))
     record('aggregateDatapointsSent', myStats.get('aggregateDatapointsSent', 0))
 
   # common metrics
@@ -124,27 +124,26 @@ def recordMetrics():
 
 
 def cache_record(metric, value):
-  if settings.instance is None:
-    fullMetric = 'carbon.agents.%s.%s' % (HOSTNAME, metric)
-  else:
-    fullMetric = 'carbon.agents.%s-%s.%s' % (
-        HOSTNAME, settings.instance, metric)
-  datapoint = (time.time(), value)
-  MetricCache.store(fullMetric, datapoint)
+    if settings.instance is None:
+      fullMetric = 'carbon.agents.%s.%s' % (HOSTNAME, metric)
+    else:
+      fullMetric = 'carbon.agents.%s-%s.%s' % (
+          HOSTNAME, settings.instance, metric)
+    datapoint = (time.time(), value)
+    cache.MetricCache.store(fullMetric, datapoint)
 
 def relay_record(metric, value):
-  fullMetric = 'carbon.relays.%s.%s' % (HOSTNAME, metric)
-  datapoint = (time.time(), value)
-  relay(fullMetric, datapoint)
+    fullMetric = 'carbon.relays.%s.%s' % (HOSTNAME, metric)
+    datapoint = (time.time(), value)
+    events.metricGenerated(fullMetric, datapoint)
 
 def aggregator_record(metric, value):
-  fullMetric = 'carbon.aggregator.%s.%s' % (HOSTNAME, metric)
-  datapoint = (time.time(), value)
-  send_metric(fullMetric, datapoint)
+    fullMetric = 'carbon.aggregator.%s.%s' % (HOSTNAME, metric)
+    datapoint = (time.time(), value)
+    events.metricGenerated(fullMetric, datapoint)
 
 
 class InstrumentationService(Service):
-
     def __init__(self):
         self.record_task = LoopingCall(recordMetrics)
 
@@ -157,8 +156,5 @@ class InstrumentationService(Service):
         Service.stopService(self)
 
 
-# Avoid import circularity
+# Avoid import circularities
 from carbon.aggregator.buffers import BufferManager
-from carbon.aggregator.client import send_metric
-from carbon.relay import relay, clientConnections
-from carbon.cache import MetricCache
