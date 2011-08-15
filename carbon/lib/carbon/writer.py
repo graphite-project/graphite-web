@@ -16,6 +16,7 @@ limitations under the License."""
 import os
 import time
 from os.path import join, exists, dirname, basename
+from carbon import state
 
 try:
   import cPickle as pickle
