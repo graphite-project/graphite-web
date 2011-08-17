@@ -49,7 +49,7 @@ def run_twistd_plugin(filename):
     # available.
     try:
         from twisted.internet import epollreactor
-        #twistd_options.append("--reactor=epoll") #XXX Did the twistd API change recently?
+        twistd_options.append("--reactor=epoll")
     except:
         pass
 

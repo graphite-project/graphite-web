@@ -23,8 +23,8 @@ class MetricReceiver(Protocol):
       self.pauseReceiving()
 
     state.connectedMetricReceiverProtocols.add(self)
-    events.pauseMetricReceivers.addHandler(self.pauseReceiving)
-    events.resumeMetricReceivers.addHandler(self.resumeReceiving)
+    events.pauseReceivingMetrics.addHandler(self.pauseReceiving)
+    events.resumeReceivingMetrics.addHandler(self.resumeReceiving)
 
   def pauseReceiving(self):
     self.transport.pauseProducing()
@@ -39,8 +39,8 @@ class MetricReceiver(Protocol):
       log.listener("%s connection with %s lost: %s" % (self.__class__.__name__, self.peerAddr, reason.value))
 
     state.connectedMetricReceiverProtocols.remove(self)
-    events.pauseMetricReceivers.removeHandler(self.pauseReceiving)
-    events.resumeMetricReceivers.removeHandler(self.resumeReceiving)
+    events.pauseReceivingMetrics.removeHandler(self.pauseReceiving)
+    events.resumeReceivingMetrics.removeHandler(self.resumeReceiving)
 
 
 class MetricLineReceiver(MetricReceiver, LineOnlyReceiver):

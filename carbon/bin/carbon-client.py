@@ -1,19 +1,43 @@
 #!/usr/bin/env python
+"""Copyright 2009 Chris Davis
 
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License."""
+
+import sys
 import imp
+from os.path import dirname, join, abspath
 from optparse import OptionParser
+
+# Figure out where we're installed
+BIN_DIR = dirname(abspath(__file__))
+ROOT_DIR = dirname(BIN_DIR)
+
+# Make sure that carbon's 'lib' dir is in the $PYTHONPATH if we're running from
+# source.
+LIB_DIR = join(ROOT_DIR, 'lib')
+sys.path.insert(0, LIB_DIR)
+
 try:
   from twisted.internet import epollreactor
   epollreactor.install()
 except ImportError:
   pass
 
-from twisted.internet import stdio, reactor
+from twisted.internet import stdio, reactor, defer
 from twisted.protocols.basic import LineReceiver
-from carbon.events import metricReceived
 from carbon.routers import ConsistentHashingRouter
 from carbon.client import CarbonClientManager
-from carbon import log
+from carbon import log, events
 
 
 option_parser = OptionParser(usage="%prog [options] <host:port:instance> <host:port:instance> ...")
@@ -39,6 +63,11 @@ for arg in args:
     instance = None
   destinations.append( (host, port, instance) )
 
+if options.debug:
+  log.logToStdout()
+  log.setDebugEnabled(True)
+  defer.setDebugging(True)
+
 #TODO(chrismd) make this more configurable via options
 router = ConsistentHashingRouter()
 client_manager = CarbonClientManager(router)
@@ -47,34 +76,34 @@ reactor.callWhenRunning(client_manager.startService)
 if options.keyfunc:
   router.setKeyFunctionFromModule(options.keyfunc)
 
-for destination in destinations:
-  client_manager.startClient(destination)
+firstConnectAttempts = [client_manager.startClient(dest) for dest in destinations]
+firstConnectsAttempted = defer.DeferredList(firstConnectAttempts)
 
-metricReceived(client_manager.sendDatapoint)
+events.metricReceived.addHandler(client_manager.sendDatapoint)
 
-# Create a transport to read user data from
+
 class StdinMetricsReader(LineReceiver):
   delimiter = '\n'
 
   def lineReceived(self, line):
+    #log.msg("[DEBUG] lineReceived(): %s" % line)
     try:
       (metric, value, timestamp) = line.split()
       datapoint = (float(timestamp), float(value))
       assert datapoint[1] == datapoint[1] # filter out NaNs
       client_manager.sendDatapoint(metric, datapoint)
     except:
-      log.err('Dropping invalid line: %s' % line)
+      log.err(None, 'Dropping invalid line: %s' % line)
 
   def connectionLost(self, reason):
-    log.clients('stdin disconnected, sending remaining data and shutting down')
-    allStopped = client_manager.stopAllClients(graceful=True)
-    allStopped.addCallback(shutdown)
+    log.msg('stdin disconnected')
+    def startShutdown(results):
+      log.msg("startShutdown(%s)" % str(results))
+      allStopped = client_manager.stopAllClients()
+      allStopped.addCallback(shutdown)
+    firstConnectsAttempted.addCallback(startShutdown)
 
 stdio.StandardIO( StdinMetricsReader() )
-
-if options.debug:
-  log.logToStdout()
-  log.setDebugEnabled(True)
 
 exitCode = 0
 def shutdown(results):
@@ -83,7 +112,8 @@ def shutdown(results):
     if not success:
       exitCode = 1
       break
-  reactor.stop()
+  if reactor.running:
+    reactor.stop()
 
 reactor.run()
 raise SystemExit(exitCode)

@@ -5,6 +5,7 @@ from twisted.python.logfile import DailyLogFile
 
 
 def formatEvent(event, includeType=False):
+  event['isError'] = 'failure' in event
   message = textFromEventDict(event)
 
   timestamp = time.strftime("%d/%m/%Y %H:%M:%S")

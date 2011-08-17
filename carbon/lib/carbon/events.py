@@ -1,3 +1,5 @@
+from twisted.python.failure import Failure
+
 
 class Event:
   def __init__(self, name):
@@ -17,7 +19,7 @@ class Event:
       try:
         handler(*args, **kwargs)
       except:
-        log.err("Exception in %s event handler" % self.name)
+        log.err(None, "Exception in %s event handler: args=%s kwargs=%s" % (self.name, args, kwargs))
 
 
 metricReceived = Event('metricReceived')
