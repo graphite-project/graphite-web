@@ -10,7 +10,7 @@ except ImportError:
   import pickle
 
 
-class MetricReceiver(Protocol):
+class MetricReceiver:
   """ Base class for all metric receiving protocols, handles flow
   control events and connection state logging.
   """
