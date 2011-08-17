@@ -64,7 +64,7 @@ class MetricDatagramReceiver(MetricReceiver, DatagramProtocol):
         metric, value, timestamp = line.strip().split()
         datapoint = ( float(timestamp), float(value) )
 
-        metricReceived(metric, datapoint)
+        events.metricReceived(metric, datapoint)
       except:
         log.listener('invalid line received from client %s, ignoring' % host)
 
@@ -86,7 +86,7 @@ class MetricPickleReceiver(MetricReceiver, Int32StringReceiver):
         continue
 
       if datapoint[1] == datapoint[1]: # filter out NaN values
-        metricReceived(metric, datapoint)
+        events.metricReceived(metric, datapoint)
 
 
 class CacheManagementHandler(Int32StringReceiver):
