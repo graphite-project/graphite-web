@@ -16,9 +16,11 @@ class MetricReceiver:
   """
 
   def connectionMade(self):
-    self.peer = self.transport.getPeer()
-    self.peerAddr = "%s:%d" % (self.peer.host, self.peer.port)
-    log.listener("%s connection with %s established" % (self.__class__.__name__, self.peerAddr))
+    if hasattr(self.transport, 'getPeer'):
+      self.peer = self.transport.getPeer()
+      self.peerAddr = "%s:%d" % (self.peer.host, self.peer.port)
+      log.listener("%s connection with %s established" % (self.__class__.__name__, self.peerAddr))
+
     if state.metricReceiversPaused:
       self.pauseReceiving()
 
@@ -33,10 +35,11 @@ class MetricReceiver:
     self.transport.resumeProducing()
 
   def connectionLost(self, reason):
-    if reason.check(ConnectionDone):
-      log.listener("%s connection with %s closed cleanly" % (self.__class__.__name__, self.peerAddr))
-    else:
-      log.listener("%s connection with %s lost: %s" % (self.__class__.__name__, self.peerAddr, reason.value))
+    if self.peer:
+      if reason.check(ConnectionDone):
+        log.listener("%s connection with %s closed cleanly" % (self.__class__.__name__, self.peerAddr))
+      else:
+        log.listener("%s connection with %s lost: %s" % (self.__class__.__name__, self.peerAddr, reason.value))
 
     state.connectedMetricReceiverProtocols.remove(self)
     events.pauseReceivingMetrics.removeHandler(self.pauseReceiving)
