@@ -29,9 +29,9 @@ from twisted.python import usage
 
 defaults = dict(
   USER="",
-  MAX_CACHE_SIZE='inf',
+  MAX_CACHE_SIZE=float('inf'),
   MAX_UPDATES_PER_SECOND=1000,
-  MAX_CREATES_PER_MINUTE='inf',
+  MAX_CREATES_PER_MINUTE=float('inf'),
   LINE_RECEIVER_INTERFACE='0.0.0.0',
   LINE_RECEIVER_PORT=2003,
   ENABLE_UDP_LISTENER=False,
