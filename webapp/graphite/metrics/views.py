@@ -232,7 +232,11 @@ def set_metadata_view(request):
       results[metric] = dict(error="Unexpected error occurred in CarbonLink.set_metadata(%s, %s)" % (metric, key))
 
   elif request.method == 'POST':
-    operations = json.loads( request.POST['operations'] )
+    if request.META.get('CONTENT_TYPE') == 'application/json':
+      operations = json.loads( request.raw_post_data )
+    else:
+      operations = json.loads( request.POST['operations'] )
+
     for op in operations:
       metric = None
       try:
