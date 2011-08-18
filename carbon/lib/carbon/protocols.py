@@ -1,5 +1,5 @@
 from twisted.internet import reactor
-from twisted.internet.protocol import DatagramProtocol, Protocol
+from twisted.internet.protocol import DatagramProtocol
 from twisted.internet.error import ConnectionDone
 from twisted.protocols.basic import LineOnlyReceiver, Int32StringReceiver
 from carbon import log, events, state, management
@@ -14,12 +14,9 @@ class MetricReceiver:
   """ Base class for all metric receiving protocols, handles flow
   control events and connection state logging.
   """
-
   def connectionMade(self):
-    if hasattr(self.transport, 'getPeer'):
-      self.peer = self.transport.getPeer()
-      self.peerAddr = "%s:%d" % (self.peer.host, self.peer.port)
-      log.listener("%s connection with %s established" % (self.__class__.__name__, self.peerAddr))
+    self.peerName = self.getPeerName()
+    log.listener("%s connection with %s established" % (self.__class__.__name__, self.peerName))
 
     if state.metricReceiversPaused:
       self.pauseReceiving()
@@ -28,6 +25,13 @@ class MetricReceiver:
     events.pauseReceivingMetrics.addHandler(self.pauseReceiving)
     events.resumeReceivingMetrics.addHandler(self.resumeReceiving)
 
+  def getPeerName(self):
+    if hasattr(self.transport, 'getPeer'):
+      peer = self.transport.getPeer()
+      return "%s:%d" % (peer.host, peer.port)
+    else:
+      return "peer"
+
   def pauseReceiving(self):
     self.transport.pauseProducing()
 
@@ -35,11 +39,10 @@ class MetricReceiver:
     self.transport.resumeProducing()
 
   def connectionLost(self, reason):
-    if self.peer:
-      if reason.check(ConnectionDone):
-        log.listener("%s connection with %s closed cleanly" % (self.__class__.__name__, self.peerAddr))
-      else:
-        log.listener("%s connection with %s lost: %s" % (self.__class__.__name__, self.peerAddr, reason.value))
+    if reason.check(ConnectionDone):
+      log.listener("%s connection with %s closed cleanly" % (self.__class__.__name__, self.peerName))
+    else:
+      log.listener("%s connection with %s lost: %s" % (self.__class__.__name__, self.peerName, reason.value))
 
     state.connectedMetricReceiverProtocols.remove(self)
     events.pauseReceivingMetrics.removeHandler(self.pauseReceiving)
@@ -54,7 +57,7 @@ class MetricLineReceiver(MetricReceiver, LineOnlyReceiver):
       metric, value, timestamp = line.strip().split()
       datapoint = ( float(timestamp), float(value) )
     except:
-      log.listener('invalid line received from client %s, ignoring' % self.peerAddr)
+      log.listener('invalid line received from client %s, ignoring' % self.peerName)
       return
 
     events.metricReceived(metric, datapoint)
@@ -69,7 +72,7 @@ class MetricDatagramReceiver(MetricReceiver, DatagramProtocol):
 
         events.metricReceived(metric, datapoint)
       except:
-        log.listener('invalid line received from client %s, ignoring' % host)
+        log.listener('invalid line received from %s, ignoring' % host)
 
 
 class MetricPickleReceiver(MetricReceiver, Int32StringReceiver):
@@ -79,7 +82,7 @@ class MetricPickleReceiver(MetricReceiver, Int32StringReceiver):
     try:
       datapoints = pickle.loads(data)
     except:
-      log.listener('invalid pickle received from client %s, ignoring' % self.peerAddr)
+      log.listener('invalid pickle received from %s, ignoring' % self.peerName)
       return
 
     for (metric, datapoint) in datapoints:
