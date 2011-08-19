@@ -113,7 +113,7 @@ class CarbonClientFactory(ReconnectingClientFactory):
     self.started = True
     self.connector = reactor.connectTCP(self.host, self.port, self)
 
-  def stopFactory(self):
+  def stopConnecting(self):
     self.started = False
     self.stopTrying()
     if self.connectedProtocol and self.connectedProtocol.connected:
@@ -163,17 +163,21 @@ class CarbonClientFactory(ReconnectingClientFactory):
   def clientConnectionFailed(self, connector, reason):
     ReconnectingClientFactory.clientConnectionFailed(self, connector, reason)
     log.clients("%s::clientConnectionFailed (%s:%d) %s" % (self, connector.host, connector.port, reason.getErrorMessage()))
-    self.connectFailed.addErrback(lambda failure: None) # twisted, chill the hell out
-    self.connectFailed.errback(reason)
+    self.connectFailed.callback(dict(connector=connector, reason=reason))
     self.connectFailed = Deferred()
 
   def disconnect(self):
-    self.queueEmpty.addCallback(lambda result: self.stopFactory())
+    self.queueEmpty.addCallback(lambda result: self.stopConnecting())
     readyToStop = DeferredList(
       [self.connectionLost, self.connectFailed],
       fireOnOneCallback=True,
       fireOnOneErrback=True)
     self.checkQueue()
+
+    # This can happen if the client is stopped before a connection is ever made
+    if (not readyToStop.called) and (not self.started):
+      readyToStop.callback(None)
+
     return readyToStop
 
   def __str__(self):
