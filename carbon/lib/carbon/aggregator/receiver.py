@@ -27,4 +27,4 @@ def process(metric, datapoint):
   for rule in RewriteRuleManager.postRules:
     metric = rule.apply(metric)
 
-  events.metricSent(metric, datapoint)
+  events.metricGenerated(metric, datapoint)
