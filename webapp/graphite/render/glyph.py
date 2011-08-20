@@ -312,7 +312,7 @@ class Graph:
     boxSize = extents['maxHeight'] - 1
     lineHeight = extents['maxHeight'] + 1
     labelWidth = extents['width'] + 2 * (boxSize + padding)
-    columns = math.floor( self.width / labelWidth )
+    columns = max(1, math.floor( self.width / labelWidth ))
 
     if self.secondYAxis:
       numRight = len([name for (name,color,rightSide) in elements if rightSide])
