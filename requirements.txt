@@ -31,5 +31,6 @@ Twisted==11.0.0
 python-memcached==1.47
 txAMQP==0.4
 simplejson==2.1.6
+django-tagging==0.3.1
 http://cairographics.org/releases/py2cairo-1.8.10.tar.gz
 ./whisper

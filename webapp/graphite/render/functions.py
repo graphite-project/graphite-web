@@ -17,11 +17,17 @@ These functions are used on the metrics passed in the ``&target=``
 URL parameters to change the data being graphed in some way.
 """
 
-from graphite.render.datalib import TimeSeries, timestamp
-from graphite.render.attime import parseTimeOffset
+import datetime
 from itertools import izip
 import math
 import re
+import random
+import time
+
+from graphite.render.datalib import fetchData, TimeSeries, timestamp
+from graphite.render.attime import parseTimeOffset
+
+from graphite.events import models
 
 #Utility functions
 def safeSum(values):
@@ -1360,6 +1366,141 @@ def hitcount(requestContext, seriesList, intervalString):
   return results
 
 
+def timeFunction(requestContext, name):
+  """
+  Short Alias: time()
+  
+  Just returns the timestamp for each X value. T
+
+  Example:
+
+  .. code-block:: none
+
+    &target=time("The.time.series")
+
+  This would create a series named "The.time.series" that contains in Y the same
+  value (in seconds) as X.
+
+  """
+
+  step = 60
+  delta = datetime.timedelta(seconds=step)
+  when = requestContext["startTime"]
+  values = []
+  
+  while when < requestContext["endTime"]:
+    values.append(time.mktime(when.timetuple()))
+    when += delta
+
+  return [TimeSeries(name,
+            time.mktime(requestContext["startTime"].timetuple()),
+            time.mktime(requestContext["endTime"].timetuple()),
+            step, values)]
+  
+
+def sinFunction(requestContext, name, amplitude=1):
+  """
+  Short Alias: sin()
+  
+  Just returns the sine of the current time. he optional amplitude parameter
+  changes the amplitude of the wave.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=sin("The.time.series", 2)
+
+  This would create a series named "The.time.series" that contains sin(x)*2.
+  """
+  step = 60
+  delta = datetime.timedelta(seconds=step)
+  when = requestContext["startTime"]
+  values = []
+  
+  while when < requestContext["endTime"]:
+    values.append(math.sin(time.mktime(when.timetuple()))*amplitude)
+    when += delta
+
+  return [TimeSeries(name,
+            time.mktime(requestContext["startTime"].timetuple()),
+            time.mktime(requestContext["endTime"].timetuple()),
+            step, values)]
+  
+def randomWalkFunction(requestContext, name):
+  """
+  Short Alias: randomWalk()
+  
+  Returns a random walk starting at 0. This is great for testing when there is
+  no real data in whisper.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=randomWalk("The.time.series")
+
+  This would create a series named "The.time.series" that contains points where
+  x(t) == x(t-1)+random()-0.5, and x(0) == 0.
+  """  
+  step = 60
+  delta = datetime.timedelta(seconds=step)
+  when = requestContext["startTime"]
+  values = []
+  current = 0
+  while when < requestContext["endTime"]:
+    values.append(current)
+    current += random.random() - 0.5
+    when += delta
+
+  return [TimeSeries(name,
+            time.mktime(requestContext["startTime"].timetuple()),
+            time.mktime(requestContext["endTime"].timetuple()),
+            step, values)]
+  
+def events(requestContext, *tags):
+  """
+  Returns the number of events at this point in time. Usable with
+  drawAsInfinite.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=events("tag-one", "tag-two")
+    &target=events("*")
+
+  Returns all events tagged as "tag-one" and "tag-two" and the second one
+  returns all events.
+  """
+  step = 60
+  name = "events(" + ", ".join(tags) + ")"
+  delta = datetime.timedelta(seconds=step)
+  when = requestContext["startTime"]
+  values = []
+  current = 0
+  if tags == ("*",):
+    tags = None
+  events = models.Event.find_events(requestContext["startTime"],
+                                    requestContext["endTime"], tags=tags)
+  eventsp = 0
+
+  while when < requestContext["endTime"]:
+    count = 0
+    if events:
+      while eventsp < len(events) and events[eventsp].when >= when \
+          and events[eventsp].when < (when + delta):
+        count += 1
+        eventsp += 1
+        
+    values.append(count)
+    when += delta
+
+  return [TimeSeries(name,
+            time.mktime(requestContext["startTime"].timetuple()),
+            time.mktime(requestContext["endTime"].timetuple()),
+            step, values)]
+  
 def pieAverage(requestContext, series):
   return safeDiv(safeSum(series),safeLen(series))
 
@@ -1437,6 +1578,17 @@ SeriesFunctions = {
   'exclude' : exclude,
   'constantLine' : constantLine,
   'threshold' : threshold,
+  
+  # test functions
+  'time': timeFunction,
+  "sin": sinFunction,
+  "randomWalk": randomWalkFunction,
+  'timeFunction': timeFunction,
+  "sinFunction": sinFunction,
+  "randomWalkFunction": randomWalkFunction,
+  
+  #events
+  'events': events,
 }
 
 

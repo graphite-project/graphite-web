@@ -20,7 +20,9 @@ def graphlot_render(request):
 
     untiltime = request.GET.get('until', "-0hour")
     fromtime = request.GET.get('from', "-24hour")
-    context = dict(metric_list=metrics, fromtime=fromtime, untiltime=untiltime)
+    events = request.GET.get('events', "")
+    context = dict(metric_list=metrics, fromtime=fromtime, untiltime=untiltime,
+                   events=events)
     return render_to_response("graphlot.html", context)
 
 def get_data(request):
@@ -44,6 +46,7 @@ def get_data(request):
     if not result:
         raise Http404
     return HttpResponse(simplejson.dumps(result), mimetype="application/json")
+
 
 def find_metric(request):
     """Autocomplete helper on metric names."""

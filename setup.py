@@ -51,10 +51,13 @@ setup(
     'graphite.metrics',
     'graphite.dashboard',
     'graphite.graphlot',
+    'graphite.events',
     'graphite.thirdparty',
     'graphite.thirdparty.pytz',
   ],
-  package_data={'graphite' : ['templates/*', 'local_settings.py.example', 'render/graphTemplates.conf']},
+  package_data={'graphite' : 
+    ['templates/*', 'local_settings.py.example', 
+    'render/graphTemplates.conf']},
   scripts=glob('bin/*'),
   data_files=webapp_content.items() + storage_dirs + conf_files,
   **setup_kwargs

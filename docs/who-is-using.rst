@@ -8,5 +8,6 @@ Here are some organizations that use Graphite:
 * `Etsy <http://www.etsy.com/>`_ (see http://codeascraft.etsy.com/2010/12/08/track-every-release/)
 * `Google <http://google-opensource.blogspot.com/2010/09/get-ready-to-rocksteady.html>`_ (opensource Rocksteady project)
 * `Media Temple <http://mediatemple.net/>`_
+* `Canonical <http://www.canonical.com>`_
 
 And many more, I still need to collect some links...

@@ -14,10 +14,12 @@ In general, Graphite requires:
 * Python 2.4 or greater (2.6+ recommended)
 * `Pycairo <http://www.cairographics.org/pycairo/>`_
 * `Django <http://www.djangoproject.com/>`_ 1.0 or greater
+* `django-tagging <http://code.google.com/p/django-tagging/>`_ 0.3.1
 * A json module, if you're using Python2.6 this comes standard. With 2.4 you should
   install `simplejson <http://pypi.python.org/pypi/simplejson/>`_
 * A Django-supported database module (sqlite comes standard with Python 2.6)
 * `Twisted <http://twistedmatrix.com/>`_ 8.0 or greater (10.0+ recommended)
+
 
 Also both the Graphite webapp and Carbon require the whisper database library.
 

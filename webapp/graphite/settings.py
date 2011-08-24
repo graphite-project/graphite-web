@@ -170,10 +170,12 @@ INSTALLED_APPS = (
   'graphite.account',
   'graphite.dashboard',
   'graphite.whitelist',
+  'graphite.events',
   'django.contrib.auth',
   'django.contrib.sessions',
   'django.contrib.admin',
   'django.contrib.contenttypes',
+  'tagging',
 )
 
 AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend']
