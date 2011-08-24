@@ -17,7 +17,7 @@ The plaintext protocol
 ----------------------
 The plaintext protocol is the simplest method to send data to Carbon. The data sent must be in the following format: ``<metric path> <metric value> <metric timestamp>``. Carbon will then help translate this line of text into a metric that the web interface and Whisper understand.
 
-On Unix, the ``nc`` program can be used to create a socket and send data to Carbon.
+On Unix, the ``nc`` program can be used to create a socket and send data to Carbon (by default, 'plaintext' runs on port 2003):
 
 .. code-block:: none
 
@@ -26,7 +26,21 @@ On Unix, the ``nc`` program can be used to create a socket and send data to Carb
 
 The pickle protocol
 -------------------
-...
+The pickle protocol is a much more efficient take on the plaintext protocol, and supports sending batches of metrics to Carbon in one go.
+
+The general idea is that the pickled data forms a list of multi-level tuples:
+
+.. code-block:: none
+ 
+ [(path, (timestamp, value)), ...]
+
+Once you've formed a list of sufficient size (don't go too big!), send the data using over a socket to Carbon's pickle receiver (by default, port 2004). You'll need to pack your pickled data into a packet containing a simple header:
+
+.. code-block:: python
+
+ payload = pickle.dumps(listOfMetricTuples)
+ header = struct.pack("!L", len(payload))
+ message = header + payload
 
 
 Using AMQP
