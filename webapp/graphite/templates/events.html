@@ -1,0 +1,42 @@
+<html>
+  <head>
+    <title>Events</title>
+    <link rel="stylesheet" type="text/css" href="../content/css/table.css" />
+    <style type="text/css">
+    body {
+        font-family: sans-serif;
+        font-size: 16px;
+        margin: 50px;
+        max-width: 1200px;
+    }
+    </style>
+
+
+    </head>
+    <body>
+        <div id="title" style="text-align:center">
+            <h1>graphite events</h1>
+        </div>
+        <div class="graphite">
+            <div id="main" >
+              {% if events %}
+                <table class="styledtable" width=100%>
+                  <tr><th>when</th><th>what</th><th>tags</th></tr>
+                  {% for event in events %}
+                      <tr>
+                          <td>{{event.when|date:"H:m:s D d M Y" }}</td>
+                          <td><a href="/events/{{event.id}}/">{{event.what}}</a></td>
+                          <td>{{event.tags}}</td>
+                      </tr>
+                  {% endfor %}
+              {% else %}
+                <br/>No events. Add events using 
+                <a href="/admin/events/event/">the admin interface</a> or by posting
+                (eg, curl -X POST http://localhost:8000/events/ -d
+                '{"what": "Something Interesting"}')
+              {% endif %}
+              </table>
+            </div>
+        </div>
+    </body>
+</html>
