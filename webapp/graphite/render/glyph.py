@@ -420,6 +420,10 @@ class LineGraph(Graph):
   validPieModes = ('maximum', 'minimum', 'average')
 
   def drawGraph(self,**params):
+    # Initialization of the totakStack values
+    for i in range(len(TimeSeries.totalStack)):
+      TimeSeries.totalStack[i] = 0
+
     #API compatibilty hacks first
     if params.get('graphOnly',False):
       params['hideLegend'] = True
@@ -626,6 +630,13 @@ class LineGraph(Graph):
 
       self.data = reverse_sort(self.data)
 
+    # Check whether there is an stacked metric
+    singleStacked = False;
+    for series in self.data:
+      if series.options.has_key("stacked"):
+        singleStacked = True
+    if singleStacked: self.data = reverse_sort_stacked(self.data)
+
     # setup the clip region
     self.ctx.set_line_width(1.0)
     self.ctx.rectangle(self.area['xmin'], self.area['ymin'], self.area['xmax'] - self.area['xmin'], self.area['ymax'] - self.area['ymin'])
@@ -663,7 +674,7 @@ class LineGraph(Graph):
           value = 0.0
 
         if value is None:
-          if not fromNone and self.areaMode != 'none': #Close off and fill area before unknown interval
+          if not fromNone and self.areaMode != 'none' or series.options.has_key('stacked'): #Close off and fill area before unknown interval
             self.ctx.line_to(x, self.area['ymax'])
             self.ctx.close_path()
             self.ctx.fill()
@@ -707,7 +718,7 @@ class LineGraph(Graph):
 
           elif self.lineMode == 'slope':
             if fromNone:
-              if self.areaMode != 'none':
+              if self.areaMode != 'none' or series.options.has_key('stacked'):
                 self.ctx.move_to(x, self.area['ymax'])
                 self.ctx.line_to(x, y)
               else:
@@ -1378,6 +1389,22 @@ def reverse_sort(args):
   aux_list.reverse()
   return aux_list
 
+def reverse_sort_stacked(args):
+  # There should be a better way of doing so, but my python is not so good
+  result = []
+  stacked = []
+  nonStacked = []
+  for arg in args:
+    if arg.options.has_key("stacked"): 
+      stacked.append(arg)
+    else:
+      nonStacked.append(arg)
+  stacked.reverse()
+  for series in stacked:
+    result.append(series)
+  for series in nonStacked:
+    result.append(series)
+  return result 
 
 def format_units(v, step, system="si"):
   """Format the given value in standardized units.

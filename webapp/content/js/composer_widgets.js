@@ -939,6 +939,7 @@ function createFunctionsMenu() {
         {text: 'Keep Last Value', handler: applyFuncToEach('keepLastValue')},
         {text: 'Substring', handler: applyFuncToEachWithInput('substr', 'Enter a starting position')},
         {text: 'Add Threshold Line', handler: applyFuncToEachWithInput('threshold', 'Enter a threshold value')},
+        {text: 'Draw Stacked', handler: applyFuncToEach('stacked')},
         {text: 'Draw in Second Y Axis', handler: applyFuncToEach('secondYAxis')}
       ]
     }
