@@ -224,9 +224,13 @@ def fetchData(requestContext, pathExpr):
 
   for dbFile in store.find(pathExpr):
     log.metric_access(dbFile.metric_path)
-    cachedResults = CarbonLink.query(dbFile.real_metric)
     dbResults = dbFile.fetch( timestamp(startTime), timestamp(endTime) )
-    results = mergeResults(dbResults, cachedResults)
+    try:
+      cachedResults = CarbonLink.query(dbFile.real_metric)
+      results = mergeResults(dbResults, cachedResults)
+    except:
+      log.exception()
+      results = dbResults
 
     if not results:
       continue
