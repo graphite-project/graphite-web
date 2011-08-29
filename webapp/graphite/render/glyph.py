@@ -420,9 +420,6 @@ class LineGraph(Graph):
   validPieModes = ('maximum', 'minimum', 'average')
 
   def drawGraph(self,**params):
-    # Initialization of the totakStack values
-    for i in range(len(TimeSeries.totalStack)):
-      TimeSeries.totalStack[i] = 0
 
     #API compatibilty hacks first
     if params.get('graphOnly',False):

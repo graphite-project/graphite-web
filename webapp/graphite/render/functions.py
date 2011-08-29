@@ -570,8 +570,11 @@ def stacked(requestContext,seriesLists):
     &target=stacked(company.server.application01.ifconfig.TXPackets)
 
   """
+  if 'totalStack' in requestContext:
+    totalStack = requestContext['totalStack']
+  else:
+    totalStack = [];
   results = []
-  totalStack = TimeSeries.totalStack;
   for series in seriesLists:
     newValues = []
     for i in range(len(series)):
@@ -588,6 +591,7 @@ def stacked(requestContext,seriesLists):
     newSeries.options['stacked'] = True
     newSeries.pathExpression = newName
     results.append(newSeries)
+  requestContext['totalStack'] = totalStack
   return results
 
 

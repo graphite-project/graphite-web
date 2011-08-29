@@ -28,9 +28,6 @@ except ImportError:
 
 class TimeSeries(list):
 
-  # This is used to calculate the values when using the stacked function
-  totalStack = []
-
   def __init__(self, name, start, end, step, values, consolidate='average'):
     self.name = name
     self.start = start
