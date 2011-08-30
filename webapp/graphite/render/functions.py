@@ -556,6 +556,44 @@ def nonNegativeDerivative(requestContext, seriesList, maxValue=None):
 
   return results
 
+def stacked(requestContext,seriesLists):
+  """
+  Takes one metric or a wildcard seriesList and change them so they are
+  stacked. This is a way of stacking just a couple of metrics without having
+  to use the stacked area mode (that stacks everything). By means of this a mixed
+  stacked and non stacked graph can be made
+
+  Example:
+
+  .. code-block:: none
+
+    &target=stacked(company.server.application01.ifconfig.TXPackets)
+
+  """
+  if 'totalStack' in requestContext:
+    totalStack = requestContext['totalStack']
+  else:
+    totalStack = [];
+  results = []
+  for series in seriesLists:
+    newValues = []
+    for i in range(len(series)):
+      if len(totalStack) <= i: totalStack.append(0)
+      
+      if series[i] is not None:
+        totalStack[i] += series[i]
+        newValues.append(totalStack[i])
+      else:
+        newValues.append(None)
+
+    newName = "stacked(%s)" % series.name
+    newSeries = TimeSeries(newName, series.start, series.end, series.step, newValues)
+    newSeries.options['stacked'] = True
+    newSeries.pathExpression = newName
+    results.append(newSeries)
+  requestContext['totalStack'] = totalStack
+  return results
+
 
 def alias(requestContext, seriesList, newName):
   """
@@ -1577,6 +1615,7 @@ SeriesFunctions = {
   'group' : group,
   'exclude' : exclude,
   'constantLine' : constantLine,
+  'stacked' : stacked,
   'threshold' : threshold,
   
   # test functions
