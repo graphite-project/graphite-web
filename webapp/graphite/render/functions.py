@@ -124,56 +124,6 @@ def sumSeries(requestContext, *seriesLists):
   series.pathExpression = name
   return [series]
 
-def sumSeriesWithWildcards(requestContext, seriesList, *position): #XXX
-  """
-  Call sumSeries after inserting wildcards at the given position(s).
-
-  Example:
-
-  .. code-block:: none
-
-    &target=sumSeriesWithWildcards(host.cpu-[0-7].cpu-{user,system}.value, 1)
-
-  This would be the equivalent of
-  ``target=sumSeries(host.*.cpu-user.value)&target=sumSeries(host.*.cpu-system.value)``
-
-  """
-  if type(position) is int:
-    positions = [position]
-  else:
-    positions = position
-
-  newSeries = {}
-  newNames = list()
-
-  for series in seriesList:
-    newname = '.'.join(map(lambda x: x[1], filter(lambda i: i[0] not in positions, enumerate(series.name.split('.')))))
-    if newname in newSeries.keys():
-      newSeries[newname] = sumSeries(requestContext, (series, newSeries[newname]))[0]
-    else:
-      newSeries[newname] = series
-      newNames.append(newname)
-    newSeries[newname].name = newname
-
-  return [newSeries[name] for name in newNames]
-
-def averageSeriesWithWildcards(requestContext, seriesList, *position): #XXX
-  if type(position) is int:
-    positions = [position]
-  else:
-    positions = position
-  result = []
-  matchedList = {}
-  for series in seriesList:
-    newname = '.'.join(map(lambda x: x[1], filter(lambda i: i[0] not in positions, enumerate(series.name.split('.')))))
-    if not matchedList.has_key(newname):
-      matchedList[newname] = []
-    matchedList[newname].append(series)
-  for name in matchedList.keys():
-    result.append( averageSeries(requestContext, (matchedList[name]))[0] )
-    result[-1].name = name
-  return result
-
 def diffSeries(requestContext, *seriesLists):
   """
   Can take two or more metrics, or a single metric and a constant.
@@ -1562,8 +1512,6 @@ SeriesFunctions = {
   'divideSeries' : divideSeries,
   'averageSeries' : averageSeries,
   'avg' : averageSeries,
-  'sumSeriesWithWildcards': sumSeriesWithWildcards,
-  'averageSeriesWithWildcards': averageSeriesWithWildcards,
   'minSeries' : minSeries,
   'maxSeries' : maxSeries,
 
