@@ -559,6 +559,45 @@ def alias(requestContext, seriesList, newName):
     series.name = newName
   return seriesList
 
+def cactiStyle(requestContext, seriesList):
+  """
+  Takes a series list and modifies the aliases to provide column aligned
+  output with Current, Max, and Min values in the style of cacti.
+  NOTE: column alignment only works with monospace fonts such as terminus.
+
+  .. code-block:: none
+
+    &target=cactiStyle(ganglia.*.net.bytes_out)
+
+  """
+  notNone = lambda x: [ y for y in x if y is not None]
+  nameLen = max([len(getattr(series,"name")) for series in seriesList])
+  lastLen = max([len(repr(int(safeLast(series)))) for series in seriesList]) + 3
+  maxLen = max([len(repr(int(max(series)))) for series in seriesList]) + 3
+  minLen = max([len(repr(int(min(notNone(series))))) for series in seriesList]) + 3
+  for series in seriesList:
+      series.name = "%*s Current:%*.2f Max:%*.2f Min:%*.2f" % \
+          (-nameLen, series.name, lastLen, safeLast(series),
+          maxLen, max(series), minLen, min(notNone(series)))
+  return seriesList
+
+def aliasByNode(requestContext, seriesList, *nodes):
+  """
+  Takes a serielist and applies an alias derived from one or more "node"
+  portion/s of the target name.
+
+  .. code-block:: none
+
+    &target=aliasByNode(ganglia.*.cpu.load5,1)
+
+  """
+  if type(nodes) is int:
+    nodes=[nodes]
+  for series in seriesList:
+    newname = ".".join([ series.name.split(".")[node] for node in nodes])
+    series.name = newname
+  return seriesList
+
 def color(requestContext, seriesList, theColor):
   """
   Assigns the given color to the seriesList
@@ -1552,6 +1591,8 @@ SeriesFunctions = {
 
   # Special functions
   'alias' : alias,
+  'aliasByNode' : aliasByNode,
+  'cactiStyle' : cactiStyle,
   'color' : color,
   'cumulative' : cumulative,
   'keepLastValue' : keepLastValue,
