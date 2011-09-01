@@ -1217,6 +1217,32 @@ def group(requestContext, *seriesLists):
   return seriesGroup
 
 
+def groupByNode(requestContext, seriesList, nodeNum, callback):
+  """
+  Takes a serieslist and maps a callback to subgroups within as defined by a common node
+
+  .. code-block:: none
+
+    &target=groupByNode(ganglia.by-function.*.*.cpu.load5,2,"sumSeries")
+
+    Would return multiple series which are each the result of applying the "sumSeries" function
+    to groups joined on the second node wildcard.
+
+  """
+  metaSeries = {}
+  for series in seriesList:
+    key = series.name.split(".")[nodeNum]
+    if key not in metaSeries.keys():
+      metaSeries[key] = [series]
+    else:
+      metaSeries[key].append(series)
+  for key in metaSeries.keys():
+    metaSeries[key] = SeriesFunctions[callback](requestContext,
+        metaSeries[key])[0]
+    metaSeries[key].name = key
+  return [ metaSeries[key] for key in metaSeries.keys() ]
+
+
 def exclude(requestContext, seriesList, pattern):
   """
   Takes a metric or a wildcard seriesList, followed by a regular expression
@@ -1602,6 +1628,7 @@ SeriesFunctions = {
   'dashed' : dashed,
   'substr' : substr,
   'group' : group,
+  'groupByNode' : groupByNode,
   'exclude' : exclude,
   'constantLine' : constantLine,
   'stacked' : stacked,
