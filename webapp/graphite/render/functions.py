@@ -124,56 +124,6 @@ def sumSeries(requestContext, *seriesLists):
   series.pathExpression = name
   return [series]
 
-def sumSeriesWithWildcards(requestContext, seriesList, *position): #XXX
-  """
-  Call sumSeries after inserting wildcards at the given position(s).
-
-  Example:
-
-  .. code-block:: none
-
-    &target=sumSeriesWithWildcards(host.cpu-[0-7].cpu-{user,system}.value, 1)
-
-  This would be the equivalent of
-  ``target=sumSeries(host.*.cpu-user.value)&target=sumSeries(host.*.cpu-system.value)``
-
-  """
-  if type(position) is int:
-    positions = [position]
-  else:
-    positions = position
-
-  newSeries = {}
-  newNames = list()
-
-  for series in seriesList:
-    newname = '.'.join(map(lambda x: x[1], filter(lambda i: i[0] not in positions, enumerate(series.name.split('.')))))
-    if newname in newSeries.keys():
-      newSeries[newname] = sumSeries(requestContext, (series, newSeries[newname]))[0]
-    else:
-      newSeries[newname] = series
-      newNames.append(newname)
-    newSeries[newname].name = newname
-
-  return [newSeries[name] for name in newNames]
-
-def averageSeriesWithWildcards(requestContext, seriesList, *position): #XXX
-  if type(position) is int:
-    positions = [position]
-  else:
-    positions = position
-  result = []
-  matchedList = {}
-  for series in seriesList:
-    newname = '.'.join(map(lambda x: x[1], filter(lambda i: i[0] not in positions, enumerate(series.name.split('.')))))
-    if not matchedList.has_key(newname):
-      matchedList[newname] = []
-    matchedList[newname].append(series)
-  for name in matchedList.keys():
-    result.append( averageSeries(requestContext, (matchedList[name]))[0] )
-    result[-1].name = name
-  return result
-
 def diffSeries(requestContext, *seriesLists):
   """
   Can take two or more metrics, or a single metric and a constant.
@@ -317,7 +267,7 @@ def asPercent(requestContext, seriesList1, seriesList2orNumber):
 def divideSeries(requestContext, dividendSeriesList, divisorSeriesList):
   """
   Takes a dividend metric and a divisor metric and draws the division result.
-  A constant may *not* be passed. To divide by a constant, use the scale() 
+  A constant may *not* be passed. To divide by a constant, use the scale()
   function (which is essentially a multiplication operation) and use the inverse
   of the dividend. (Division by 8 = multiplication by 1/8 or 0.125)
 
@@ -433,9 +383,9 @@ def cumulative(requestContext, seriesList):
   Takes one metric or a wildcard seriesList.
 
   By default, when a graph is drawn, and the width of the graph in pixels is
-  smaller than the number of datapoints to be graphed, Graphite averages the 
-  value at each pixel.  The cumulative() function changes the consolidation 
-  function to sum from average.  This is especially useful in sales graphs, 
+  smaller than the number of datapoints to be graphed, Graphite averages the
+  value at each pixel.  The cumulative() function changes the consolidation
+  function to sum from average.  This is especially useful in sales graphs,
   where fractional values make no sense (How can you have half of a sale?)
 
   .. code-block:: none
@@ -579,7 +529,7 @@ def stacked(requestContext,seriesLists):
     newValues = []
     for i in range(len(series)):
       if len(totalStack) <= i: totalStack.append(0)
-      
+
       if series[i] is not None:
         totalStack[i] += series[i]
         newValues.append(totalStack[i])
@@ -607,6 +557,45 @@ def alias(requestContext, seriesList, newName):
   """
   for series in seriesList:
     series.name = newName
+  return seriesList
+
+def cactiStyle(requestContext, seriesList):
+  """
+  Takes a series list and modifies the aliases to provide column aligned
+  output with Current, Max, and Min values in the style of cacti.
+  NOTE: column alignment only works with monospace fonts such as terminus.
+
+  .. code-block:: none
+
+    &target=cactiStyle(ganglia.*.net.bytes_out)
+
+  """
+  notNone = lambda x: [ y for y in x if y is not None]
+  nameLen = max([len(getattr(series,"name")) for series in seriesList])
+  lastLen = max([len(repr(int(safeLast(series)))) for series in seriesList]) + 3
+  maxLen = max([len(repr(int(max(series)))) for series in seriesList]) + 3
+  minLen = max([len(repr(int(min(notNone(series))))) for series in seriesList]) + 3
+  for series in seriesList:
+      series.name = "%*s Current:%*.2f Max:%*.2f Min:%*.2f" % \
+          (-nameLen, series.name, lastLen, safeLast(series),
+          maxLen, max(series), minLen, min(notNone(series)))
+  return seriesList
+
+def aliasByNode(requestContext, seriesList, *nodes):
+  """
+  Takes a serielist and applies an alias derived from one or more "node"
+  portion/s of the target name.
+
+  .. code-block:: none
+
+    &target=aliasByNode(ganglia.*.cpu.load5,1)
+
+  """
+  if type(nodes) is int:
+    nodes=[nodes]
+  for series in seriesList:
+    newname = ".".join([ series.name.split(".")[node] for node in nodes])
+    series.name = newname
   return seriesList
 
 def color(requestContext, seriesList, theColor):
@@ -760,7 +749,7 @@ def highestMax(requestContext, seriesList, n):
 
     &target=highestCurrent(server*.instance*.threads.busy,5)
 
-  Draws the top 5 servers who have had the most busy threads during the time 
+  Draws the top 5 servers who have had the most busy threads during the time
   period specified.
 
   """
@@ -772,7 +761,7 @@ def lowestCurrent(requestContext, seriesList, n):
   """
   Takes one metric or a wildcard seriesList followed by an integer N.
   Out of all metrics passed, draws only the N metrics with the lowest value at
-  the end of the time period specified. 
+  the end of the time period specified.
 
   Example:
 
@@ -1013,7 +1002,7 @@ def doStdDev(sumOfSquares, first, new, n, avg):
 def stdev(requestContext, seriesList, time):
   """
   Takes one metric or a wildcard seriesList followed by an integer N.
-  Draw the Standard Deviation of all metrics passed for the past N datapoints. 
+  Draw the Standard Deviation of all metrics passed for the past N datapoints.
 
   Example:
 
@@ -1105,7 +1094,7 @@ def lineWidth(requestContext, seriesList, width):
   Draw the selected metrics with a line width of F, overriding the default
   value of 1, or the &lineWidth=X.X parameter.
 
-  Useful for highlighting a single metric out of many, or having multiple 
+  Useful for highlighting a single metric out of many, or having multiple
   line widths in one graph.
 
   Example:
@@ -1146,7 +1135,7 @@ def dashed(requestContext, *seriesList):
 
 def timeShift(requestContext, seriesList, timeShift):
   """
-  Takes one metric or a wildcard seriesList, followed by a length of time, 
+  Takes one metric or a wildcard seriesList, followed by a length of time,
   surrounded by double quotes. (See the URL API for examples of time formats.)
 
   Draw the selected metrics shifted back in time.
@@ -1228,10 +1217,36 @@ def group(requestContext, *seriesLists):
   return seriesGroup
 
 
+def groupByNode(requestContext, seriesList, nodeNum, callback):
+  """
+  Takes a serieslist and maps a callback to subgroups within as defined by a common node
+
+  .. code-block:: none
+
+    &target=groupByNode(ganglia.by-function.*.*.cpu.load5,2,"sumSeries")
+
+    Would return multiple series which are each the result of applying the "sumSeries" function
+    to groups joined on the second node wildcard.
+
+  """
+  metaSeries = {}
+  for series in seriesList:
+    key = series.name.split(".")[nodeNum]
+    if key not in metaSeries.keys():
+      metaSeries[key] = [series]
+    else:
+      metaSeries[key].append(series)
+  for key in metaSeries.keys():
+    metaSeries[key] = SeriesFunctions[callback](requestContext,
+        metaSeries[key])[0]
+    metaSeries[key].name = key
+  return [ metaSeries[key] for key in metaSeries.keys() ]
+
+
 def exclude(requestContext, seriesList, pattern):
   """
   Takes a metric or a wildcard seriesList, followed by a regular expression
-  in double quotes.  Excludes metrics that match the regular expression. 
+  in double quotes.  Excludes metrics that match the regular expression.
 
   Example:
 
@@ -1407,7 +1422,7 @@ def hitcount(requestContext, seriesList, intervalString):
 def timeFunction(requestContext, name):
   """
   Short Alias: time()
-  
+
   Just returns the timestamp for each X value. T
 
   Example:
@@ -1425,7 +1440,7 @@ def timeFunction(requestContext, name):
   delta = datetime.timedelta(seconds=step)
   when = requestContext["startTime"]
   values = []
-  
+
   while when < requestContext["endTime"]:
     values.append(time.mktime(when.timetuple()))
     when += delta
@@ -1434,12 +1449,12 @@ def timeFunction(requestContext, name):
             time.mktime(requestContext["startTime"].timetuple()),
             time.mktime(requestContext["endTime"].timetuple()),
             step, values)]
-  
+
 
 def sinFunction(requestContext, name, amplitude=1):
   """
   Short Alias: sin()
-  
+
   Just returns the sine of the current time. he optional amplitude parameter
   changes the amplitude of the wave.
 
@@ -1455,7 +1470,7 @@ def sinFunction(requestContext, name, amplitude=1):
   delta = datetime.timedelta(seconds=step)
   when = requestContext["startTime"]
   values = []
-  
+
   while when < requestContext["endTime"]:
     values.append(math.sin(time.mktime(when.timetuple()))*amplitude)
     when += delta
@@ -1464,11 +1479,11 @@ def sinFunction(requestContext, name, amplitude=1):
             time.mktime(requestContext["startTime"].timetuple()),
             time.mktime(requestContext["endTime"].timetuple()),
             step, values)]
-  
+
 def randomWalkFunction(requestContext, name):
   """
   Short Alias: randomWalk()
-  
+
   Returns a random walk starting at 0. This is great for testing when there is
   no real data in whisper.
 
@@ -1480,7 +1495,7 @@ def randomWalkFunction(requestContext, name):
 
   This would create a series named "The.time.series" that contains points where
   x(t) == x(t-1)+random()-0.5, and x(0) == 0.
-  """  
+  """
   step = 60
   delta = datetime.timedelta(seconds=step)
   when = requestContext["startTime"]
@@ -1495,7 +1510,7 @@ def randomWalkFunction(requestContext, name):
             time.mktime(requestContext["startTime"].timetuple()),
             time.mktime(requestContext["endTime"].timetuple()),
             step, values)]
-  
+
 def events(requestContext, *tags):
   """
   Returns the number of events at this point in time. Usable with
@@ -1530,7 +1545,7 @@ def events(requestContext, *tags):
           and events[eventsp].when < (when + delta):
         count += 1
         eventsp += 1
-        
+
     values.append(count)
     when += delta
 
@@ -1538,7 +1553,7 @@ def events(requestContext, *tags):
             time.mktime(requestContext["startTime"].timetuple()),
             time.mktime(requestContext["endTime"].timetuple()),
             step, values)]
-  
+
 def pieAverage(requestContext, series):
   return safeDiv(safeSum(series),safeLen(series))
 
@@ -1562,8 +1577,6 @@ SeriesFunctions = {
   'divideSeries' : divideSeries,
   'averageSeries' : averageSeries,
   'avg' : averageSeries,
-  'sumSeriesWithWildcards': sumSeriesWithWildcards,
-  'averageSeriesWithWildcards': averageSeriesWithWildcards,
   'minSeries' : minSeries,
   'maxSeries' : maxSeries,
 
@@ -1604,6 +1617,8 @@ SeriesFunctions = {
 
   # Special functions
   'alias' : alias,
+  'aliasByNode' : aliasByNode,
+  'cactiStyle' : cactiStyle,
   'color' : color,
   'cumulative' : cumulative,
   'keepLastValue' : keepLastValue,
@@ -1613,11 +1628,12 @@ SeriesFunctions = {
   'dashed' : dashed,
   'substr' : substr,
   'group' : group,
+  'groupByNode' : groupByNode,
   'exclude' : exclude,
   'constantLine' : constantLine,
   'stacked' : stacked,
   'threshold' : threshold,
-  
+
   # test functions
   'time': timeFunction,
   "sin": sinFunction,
@@ -1625,7 +1641,7 @@ SeriesFunctions = {
   'timeFunction': timeFunction,
   "sinFunction": sinFunction,
   "randomWalkFunction": randomWalkFunction,
-  
+
   #events
   'events': events,
 }
