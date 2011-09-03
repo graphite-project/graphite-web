@@ -5,9 +5,14 @@
 <p>Please contact your site administrator if the problem persists.</p>
 </h2>
 <br/>
+<div style="width: 50%; text-align: center; font-family: monospace; background-color: black; font-weight: bold; color: #ff4422;">
+{{message}}
+</div>
+{% if stacktrace %}
 <div style="width: 70%; text-align: left; background-color: black; color: #44ff22; border: thin solid gray;">
 <pre>
 {{stacktrace}}
 </pre>
 </div>
+{% endif %}
 </center>

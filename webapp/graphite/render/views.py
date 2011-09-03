@@ -16,7 +16,9 @@ from time import time, strftime, localtime
 from datetime import datetime, timedelta
 from random import shuffle
 from httplib import CannotSendRequest
-from urlparse import urlsplit
+from urllib import urlencode
+from urlparse import urlsplit, urlunsplit
+from cgi import parse_qs
 from cStringIO import StringIO
 try:
   import cPickle as pickle
@@ -32,7 +34,8 @@ from graphite.render.functions import PieFunctions
 from graphite.render.hashing import hashRequest, hashData
 from graphite.render.glyph import GraphTypes
 
-from django.http import HttpResponse, HttpResponseServerError
+from django.http import HttpResponse, HttpResponseServerError, HttpResponseRedirect
+from django.template import Context, loader
 from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
@@ -305,19 +308,28 @@ def renderLocalView(request):
 
 def renderMyGraphView(request,username,graphName):
   profile = getProfileByUsername(username)
-  assert profile, "No such user '%s'" % username
+  if not profile:
+    return errorPage("No such user '%s'" % username)
   try:
     graph = profile.mygraph_set.get(name=graphName)
   except ObjectDoesNotExist:
-    assert False, "User %s doesn't have a MyGraph named '%s'" % (username,graphName)
-  (proto,host,path,query,frag) = urlsplit( graph.url )
-  if query: path += '?' + query
-  conn = HTTPConnectionWithTimeout( host )
-  conn.request('GET', path)
-  resp = conn.getresponse()
-  assert resp.status == 200, "Failed to retrieve image from URL %s" % graph.url
-  imageData = resp.read()
-  return buildResponse(imageData)
+    return errorPage("User %s doesn't have a MyGraph named '%s'" % (username,graphName))
+
+  request_params = dict(request.REQUEST.items())
+  if request_params:
+    url_parts = urlsplit(graph.url)
+    query_string = url_parts[3]
+    if query_string:
+      url_params = parse_qs(query_string)
+      for param, value in url_params.items():
+        if isinstance(value, list):
+          url_params[param] = value[0]
+      url_params.update(request_params)
+      query_string = urlencode(url_params)
+    url = urlunsplit(url_parts[:3] + (query_string,) + url_parts[4:])
+  else:
+    url = graph.url
+  return HttpResponseRedirect(url)
 
 
 def doImageRender(graphClass, graphOptions):
@@ -336,3 +348,9 @@ def buildResponse(imageData):
   response['Cache-Control'] = 'no-cache'
   response['Pragma'] = 'no-cache'
   return response
+
+
+def errorPage(message):
+  template = loader.get_template('500.html')
+  context = Context(dict(message=message))
+  return HttpResponseServerError( template.render(context) )
