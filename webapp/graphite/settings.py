@@ -84,6 +84,9 @@ LDAP_BASE_USER = "" # "CN=some_readonly_account,DC=mydomain,DC=com"
 LDAP_BASE_PASS = "" # "my_password"
 LDAP_USER_QUERY = "" # "(username=%s)"  For Active Directory use "(sAMAccountName=%s)"
 
+#Set this to True to delegate authentication to the web server
+USE_REMOTE_USER_AUTHENTICATION = False
+
 #Database settings, sqlite is intended for single-server setups
 DATABASE_ENGINE = 'sqlite3'			# 'postgresql', 'mysql', 'sqlite3' or 'ado_mssql'.
 DATABASE_NAME = STORAGE_DIR + 'graphite.db'	# Or path to database file if using sqlite3.
@@ -159,6 +162,9 @@ MIDDLEWARE_CLASSES = (
   'django.contrib.auth.middleware.AuthenticationMiddleware',
 )
 
+if USE_REMOTE_USER_AUTHENTICATION:
+  MIDDLEWARE_CLASSES += ('django.contrib.auth.middleware.RemoteUserMiddleware',)
+
 ROOT_URLCONF = 'graphite.urls'
 
 INSTALLED_APPS = (
@@ -178,6 +184,10 @@ INSTALLED_APPS = (
   'tagging',
 )
 
-AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend']
+if USE_REMOTE_USER_AUTHENTICATION:
+  AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.RemoteUserBackend']
+else:
+  AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend']
+
 if USE_LDAP_AUTH:
   AUTHENTICATION_BACKENDS.insert(0,'graphite.account.ldapBackend.LDAPBackend')
