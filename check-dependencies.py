@@ -50,6 +50,14 @@ except:
   fatal += 1
 
 
+# Test for django-tagging
+try:
+  import tagging.fields
+except:
+  print "[FATAL] Unable to import the 'tagging' module, do you have django-tagging installed for python %s?" % py_version
+  fatal += 1
+
+
 # Verify django version
 if django and django.VERSION[0] < 1:
   version = '.'.join([str(v) for v in django.VERSION if v is not None])
