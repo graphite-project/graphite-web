@@ -81,8 +81,10 @@ try:
   import mod_python
 except:
   print "[WARNING] Unable to import the 'mod_python' module, do you have mod_python installed for python %s?" % py_version
-  print "This means you will only be able to run graphite in the development server mode, which is not"
+  print "mod_python is one of the most common ways to run graphite-web under apache."
+  print "Without mod_python you will still be able to use the built in development server; which is not"
   print "recommended for production use."
+  print "wsgi or other approaches for production scale use are also possible without mod_python"
   warning += 1
 
 
