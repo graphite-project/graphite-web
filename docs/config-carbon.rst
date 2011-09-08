@@ -2,7 +2,7 @@ Configuring Carbon
 ==================
 
 Carbon's config files all live in ``/opt/graphite/conf/``. If you've just installed Graphite, none of the ``.conf`` files will
-exist yet, but there will be a ``.conf.example`` file for each one. Simply copy the example files and customize your settings.
+exist yet, but there will be a ``.conf.example`` file for each one. Simply copy the example files, removing the .example extension, and customize your settings.
 
 
 carbon.conf
