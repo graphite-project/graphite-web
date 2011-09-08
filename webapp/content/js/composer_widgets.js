@@ -878,8 +878,6 @@ function createFunctionsMenu() {
       menu: [
         {text: 'Sum', handler: applyFuncToAll('sumSeries')},
         {text: 'Average', handler: applyFuncToAll('averageSeries')},
-        {text: 'Sum using wildcards', handler: applyFuncToEachWithInput('sumSeriesWithWildcards', 'Please enter a comma separated list of numbers specifying the locations in the name to place wildcards')},
-        {text: 'Average using wildcards', handler: applyFuncToEachWithInput('averageSeriesWithWildcards', 'Please enter a comma separated list of numbers specifying the locations in the name to place wildcards')},
         {text: 'Min Values', handler: applyFuncToAll('minSeries')},
         {text: 'Max Values', handler: applyFuncToAll('maxSeries')},
         {text: 'Group', handler: applyFuncToAll('group')}
