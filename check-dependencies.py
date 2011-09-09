@@ -52,7 +52,7 @@ except:
 
 # Test for django-tagging
 try:
-  import tagging.fields
+  import tagging
 except:
   print "[FATAL] Unable to import the 'tagging' module, do you have django-tagging installed for python %s?" % py_version
   fatal += 1
