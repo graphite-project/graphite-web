@@ -598,6 +598,35 @@ def aliasByNode(requestContext, seriesList, *nodes):
     series.name = newname
   return seriesList
 
+def legendValue(requestContext, seriesList, valueType):
+  """
+  Takes one metric or a wildcard seriesList and a string in quotes.
+  Appends a value to the metric name in the legend.  Currently one of: last, avg,
+  total, min, max.
+
+  .. code-block:: none
+
+  &target=legendValue(Sales.widgets.largeBlue, 'avg')
+
+  """
+  for series in seriesList:
+    if valueType == 'avg':
+      legendValue = "avg: %s" % safeDiv(safeSum(series),safeLen(series))
+    elif valueType == 'total':
+      legendValue = "total: %s" % safeSum(series)
+    elif valueType == 'min':
+      legendValue = "min: %s" % safeMin(series)
+    elif valueType == 'max':
+      legendValue = 'max: %s' % safeMax(series)
+    elif valueType == 'last':
+      legendValue = series[-1]
+    else:
+      legendValue = '?'
+
+    series.name += "(%s)" % legendValue
+
+  return seriesList
+
 def color(requestContext, seriesList, theColor):
   """
   Assigns the given color to the seriesList
@@ -1616,6 +1645,7 @@ SeriesFunctions = {
   'sortByMinima' : sortByMinima,
 
   # Special functions
+  'legendValue' : legendValue,
   'alias' : alias,
   'aliasByNode' : aliasByNode,
   'cactiStyle' : cactiStyle,

@@ -931,6 +931,14 @@ function createFunctionsMenu() {
       text: 'Special',
       menu: [
         {text: 'Set Legend Name', handler: applyFuncToEachWithInput('alias', 'Enter a legend label for this graph target', {quote: true})},
+        {text: 'Add Value to Legend Name',
+	      	 menu: [
+        		{text: "Last Value", handler: applyFuncToEach('legendValue', '"last"')},
+        		{text: "Average Value", handler: applyFuncToEach('legendValue', '"avg"')},
+        		{text: "Total Value", handler: applyFuncToEach('legendValue', '"total"')},
+        		{text: "Min Value", handler: applyFuncToEach('legendValue', '"min"')},
+        		{text: "Max Value", handler: applyFuncToEach('legendValue', '"max"')}
+        		]},
         {text: 'Color', handler: applyFuncToEachWithInput('color', 'Set the color for this graph target', {quote: true})},
         {text: 'Aggregate By Sum', handler: applyFuncToEach('cumulative')},
         {text: 'Draw non-zero As Infinite', handler: applyFuncToEach('drawAsInfinite')},
