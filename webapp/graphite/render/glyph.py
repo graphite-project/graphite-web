@@ -151,16 +151,6 @@ class Graph:
       'ymax' : self.height - self.margin,
     }
 
-    # Determine if we're doing a 2 y-axis graph.
-
-    for series in self.data:
-      if 'secondYAxis' in series.options:
-        self.dataRight.append(series)
-      else:
-        self.dataLeft.append(series)
-    if len(self.dataRight) > 0:
-      self.secondYAxis = True
-
     self.loadTemplate( params.get('template','default') )
 
     self.setupCairo( params.get('outputFormat','png').lower() )
@@ -180,33 +170,9 @@ class Graph:
       colorList = self.defaultColorList
     self.colors = itertools.cycle( colorList )
 
-    # Here's an example of why I split up the left and right data. 
-    # For a lot of the x-axis stuff we need to operate on all data.
-    # For other stuff, just the left or right. 
-    # You can do it other ways, but then I felt that I was doing the
-    # same split in every other location. 
+    self.drawGraph(**params)
 
-    # I just do it once above and get it over with, 
-    # and test self.secondYAxis in other places.
-
-    if self.data:
-      startTime = min([series.start for series in self.data])
-      endTime = max([series.end for series in self.data])
-      timeRange = endTime - startTime
-    else:
-      timeRange = None
-
-    if timeRange:
-      self.drawGraph(**params)
-    else:
-      x = self.width / 2
-      y = self.height / 2
-      self.setColor('red')
-      self.setFont(size=math.log(self.width * self.height) )
-      self.drawText("No Data", x, y, align='center')
-
-  def setupCairo(self,outputFormat='png'): #TODO Only PNG supported for now...
-    #os.chdir( os.path.dirname(__file__) ) #To utilize local font-cache
+  def setupCairo(self,outputFormat='png'): #TODO SVG support
     self.surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, self.width, self.height)
     self.ctx = cairo.Context(self.surface)
 
@@ -420,8 +386,32 @@ class LineGraph(Graph):
   validPieModes = ('maximum', 'minimum', 'average')
 
   def drawGraph(self,**params):
+    # Make sure we've got datapoints to draw
+    if self.data:
+      startTime = min([series.start for series in self.data])
+      endTime = max([series.end for series in self.data])
+      timeRange = endTime - startTime
+    else:
+      timeRange = None
 
-    #API compatibilty hacks first
+    if not timeRange:
+      x = self.width / 2
+      y = self.height / 2
+      self.setColor('red')
+      self.setFont(size=math.log(self.width * self.height) )
+      self.drawText("No Data", x, y, align='center')
+      return
+
+    # Determine if we're doing a 2 y-axis graph.
+    for series in self.data:
+      if 'secondYAxis' in series.options:
+        self.dataRight.append(series)
+      else:
+        self.dataLeft.append(series)
+    if len(self.dataRight) > 0:
+      self.secondYAxis = True
+
+    #API compatibilty hacks
     if params.get('graphOnly',False):
       params['hideLegend'] = True
       params['hideGrid'] = True
