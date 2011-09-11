@@ -26,6 +26,7 @@
 #			Point = timestamp,value
 
 import os, struct, time
+
 try:
   import fcntl
   CAN_LOCK = True
@@ -100,7 +101,6 @@ def parseRetentionDef(retentionDef):
     points = points * UnitMultipliers[pointsUnit] / precision
 
   return (precision, points)
-
 
 class WhisperException(Exception):
     """Base class for whisper exceptions."""
@@ -246,6 +246,50 @@ aggregationMethod specifies the method to use when propogating data (see ``whisp
   return aggregationTypeToMethod.get(aggregationType, 'average')
 
 
+
+def validateArchiveList(archiveList):
+  """ Validates an archiveList.
+  An ArchiveList must:
+  1. Have at least one archive config. Example: (60, 86400) 
+  2. No archive may be a duplicate of another. 
+  3. Higher precision archives' precision must evenly divide all lower precision archives' precision.
+  4. Lower precision archives must cover larger time intervals than higher precision archives.
+
+  Returns True or False
+  """
+
+  try:
+    if not archiveList:
+      raise InvalidConfiguration("You must specify at least one archive configuration!")
+
+    archiveList.sort(key=lambda a: a[0]) #sort by precision (secondsPerPoint)
+
+    for i,archive in enumerate(archiveList):
+      if i == len(archiveList) - 1:
+        break
+
+      next = archiveList[i+1]
+      if not (archive[0] < next[0]):
+        raise InvalidConfiguration("You cannot configure two archives "
+          "with the same precision %s,%s" % (archive,next))
+
+      if (next[0] % archive[0]) != 0:
+        raise InvalidConfiguration("Higher precision archives' precision "
+          "must evenly divide all lower precision archives' precision %s,%s" \
+          % (archive[0],next[0]))
+
+      retention = archive[0] * archive[1]
+      nextRetention = next[0] * next[1]
+
+      if not (nextRetention > retention):
+        raise InvalidConfiguration("Lower precision archives must cover "
+          "larger time intervals than higher precision archives %s,%s" \
+          % (archive,next))
+  
+  except:
+    return False
+  return True
+
 def create(path,archiveList,xFilesFactor=0.5,aggregationMethod='average'):
   """create(path,archiveList,xFilesFactor=0.5,aggregationMethod='average')
 
@@ -255,32 +299,9 @@ xFilesFactor specifies the fraction of data points in a propagation interval tha
 aggregationMethod specifies the function to use when propogating data (see ``whisper.aggregationMethods``)
 """
   #Validate archive configurations...
-  if not archiveList:
-    raise InvalidConfiguration("You must specify at least one archive configuration!")
-
-  archiveList.sort(key=lambda a: a[0]) #sort by precision (secondsPerPoint)
-
-  for i,archive in enumerate(archiveList):
-    if i == len(archiveList) - 1:
-      break
-
-    next = archiveList[i+1]
-    if not (archive[0] < next[0]):
-      raise InvalidConfiguration("You cannot configure two archives "
-        "with the same precision %s,%s" % (archive,next))
-
-    if (next[0] % archive[0]) != 0:
-      raise InvalidConfiguration("Higher precision archives' precision "
-        "must evenly divide all lower precision archives' precision %s,%s" \
-        % (archive[0],next[0]))
-
-    retention = archive[0] * archive[1]
-    nextRetention = next[0] * next[1]
-
-    if not (nextRetention > retention):
-      raise InvalidConfiguration("Lower precision archives must cover "
-        "larger time intervals than higher precision archives %s,%s" \
-        % (archive,next))
+  validArchive = validateArchiveList(archiveList)
+  if not validArchive:
+    raise InvalidConfiguration("There was a problem creating %s due to an invalid schema config." % path) 
 
   #Looks good, now we create the file and write the header
   if os.path.exists(path):

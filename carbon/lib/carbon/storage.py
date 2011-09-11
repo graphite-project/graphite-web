@@ -17,6 +17,7 @@ import whisper
 
 from os.path import join, exists
 from carbon.conf import OrderedConfigParser, settings
+from carbon import log
 
 try:
   import cPickle as pickle
@@ -26,7 +27,6 @@ except ImportError:
 
 STORAGE_SCHEMAS_CONFIG = join(settings.CONF_DIR, 'storage-schemas.conf')
 STORAGE_LISTS_DIR = join(settings.CONF_DIR, 'lists')
-
 
 def getFilesystemPath(metric):
   return join(settings.LOCAL_DATA_DIR, metric.replace('.','/')) + '.wsp'
@@ -93,23 +93,22 @@ class ListSchema(Schema):
     return metric in self.members
 
 
-
 class Archive:
 
   def __init__(self,secondsPerPoint,points):
     self.secondsPerPoint = int(secondsPerPoint)
     self.points = int(points)
 
+  def __str__(self):
+    return "Archive = (Seconds per point: %d, Datapoints to save: %d)" % (self.secondsPerPoint, self.points) 
 
   def getTuple(self):
     return (self.secondsPerPoint,self.points)
-
 
   @staticmethod
   def fromString(retentionDef):
     (secondsPerPoint, points) = whisper.parseRetentionDef(retentionDef)
     return Archive(secondsPerPoint, points)
-
 
 
 def loadStorageSchemas():
@@ -125,7 +124,7 @@ def loadStorageSchemas():
 
     retentions = options['retentions'].split(',')
     archives = [ Archive.fromString(s) for s in retentions ]
-
+    
     if matchAll:
       mySchema = DefaultSchema(section, archives)
 
@@ -134,15 +133,18 @@ def loadStorageSchemas():
 
     elif listName:
       mySchema = ListSchema(section, listName, archives)
+    
+    archiveList = [a.getTuple() for a in archives]
 
+    validSchema = whisper.validateArchiveList(archiveList)
+    
+    if validSchema:
+      schemaList.append(mySchema)
     else:
-      raise ValueError('schema "%s" has no pattern or list parameter configured' % section)
-
-    schemaList.append(mySchema)
-
+      log.msg("Invalid schemas found in %s." % section )
+  
   schemaList.append(defaultSchema)
   return schemaList
-
 
 defaultArchive = Archive(60, 60 * 24 * 7) #default retention for unclassified data (7 days of minutely data)
 defaultSchema = DefaultSchema('default', [defaultArchive])
