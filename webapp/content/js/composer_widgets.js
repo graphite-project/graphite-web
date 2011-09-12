@@ -311,6 +311,15 @@ function recentSelectionMade(combo, record, index) {
 
 /* "Save to MyGraphs" */
 function saveMyGraph(button, e) {
+  var myGraphName = "";
+  if (Composer.state.myGraphName) {
+    var myGraphName = Composer.state.myGraphName;
+    tmpArray = myGraphName.split('.');
+    if (tmpArray.length > 1) {
+      tmpArray = tmpArray.slice(1,tmpArray.length);
+      myGraphName = tmpArray.join('.');
+    }
+  } 
   Ext.MessageBox.prompt(
     "Save to My Graphs", //title
     "Please enter a name for your Graph", //prompt message
@@ -347,7 +356,7 @@ function saveMyGraph(button, e) {
     },
     this,   //scope
     false,  //multiline
-    Composer.state.myGraphName ? Composer.state.myGraphName : "" //default value
+    myGraphName ? myGraphName : "" //default value
   );
 }
 
