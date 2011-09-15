@@ -76,6 +76,16 @@ except ImportError:
     fatal += 1
 
 
+# Test for zope.interface
+try:
+  from zope.interface import Interface
+except ImportError:
+  print "[WARNING] Unable to import Interface from zope.interface."
+  print "Without it, you will be unable to run carbon on this server."
+  warning +=1
+
+
+
 # Test for mod_python
 try:
   import mod_python
