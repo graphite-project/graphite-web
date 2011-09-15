@@ -20,6 +20,7 @@ DEBUG = False
 JAVASCRIPT_DEBUG = False
 
 # Filesystem layout (all directores should end in a /)
+WEBAPP_VERSION='0.9.9-pre5'
 WEB_DIR = dirname( abspath(__file__) ) + '/'
 WEBAPP_DIR = dirname( dirname(WEB_DIR) ) + '/'
 GRAPHITE_ROOT = dirname( dirname(WEBAPP_DIR) ) + '/'

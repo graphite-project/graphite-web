@@ -52,6 +52,7 @@ setup(
     'graphite.dashboard',
     'graphite.graphlot',
     'graphite.events',
+    'graphite.version',
     'graphite.thirdparty',
     'graphite.thirdparty.pytz',
   ],
