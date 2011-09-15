@@ -1174,6 +1174,16 @@ function paramPrompt(question, param) {
       "Input Required",
       question,
       function (button, value) {
+        if (value.search(/[^A-Za-z0-9_.]/) != -1) {
+          Ext.Msg.alert("Input can only contain letters, numbers, underscores, or periods.");
+          return;
+        }
+
+        if (value.charAt(value.length - 1) == '.') {
+          Ext.Msg.alert("Input cannot end in a period.");
+          return;
+        }
+        
         setParam(param, value);
         updateGraph();
       },
