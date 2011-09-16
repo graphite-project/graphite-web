@@ -313,10 +313,10 @@ function recentSelectionMade(combo, record, index) {
 function saveMyGraph(button, e) {
   var myGraphName = "";
   if (Composer.state.myGraphName) {
-    var myGraphName = Composer.state.myGraphName;
-    tmpArray = myGraphName.split('.');
+    myGraphName = Composer.state.myGraphName;
+    var tmpArray = myGraphName.split('.');
     if (tmpArray.length > 1) {
-      tmpArray = tmpArray.slice(1,tmpArray.length);
+      tmpArray = tmpArray.slice(1, tmpArray.length);
       myGraphName = tmpArray.join('.');
     }
   } 
