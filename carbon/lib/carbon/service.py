@@ -18,7 +18,6 @@ from os.path import exists
 from twisted.application.service import MultiService
 from twisted.application.internet import TCPServer, TCPClient, UDPServer
 from twisted.internet.protocol import ServerFactory
-from twisted.internet import reactor
 # Attaching modules to the global state module simplifies import order hassles
 from carbon import util, state, events, instrumentation
 state.events = events
