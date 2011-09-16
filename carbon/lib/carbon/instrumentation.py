@@ -80,7 +80,7 @@ def recordMetrics():
       record('avgUpdateTime', avgUpdateTime)
 
     if committedPoints:
-      pointsPerUpdate = len(updateTimes) / committedPoints
+      pointsPerUpdate = float(committedPoints) / len(updateTimes)
       record('pointsPerUpdate', pointsPerUpdate)
 
     record('updateOperations', len(updateTimes))
