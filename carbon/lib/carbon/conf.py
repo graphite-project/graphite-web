@@ -155,7 +155,7 @@ class CarbonCacheOptions(usage.Options):
 
     optParameters = [
         ["config", "c", None, "Use the given config file."],
-        ["instance", "", None, "Manage a specific carbon instance."],
+        ["instance", "", "a", "Manage a specific carbon instance."],
         ["logdir", "", None, "Write logs to the given directory."],
         ]
 
@@ -346,7 +346,7 @@ def get_default_parser(usage="%prog [options] <start|stop|status>"):
         help="Write logs in the given directory")
     parser.add_option(
         "--instance",
-        default=None,
+        default='a',
         help="Manage a specific carbon instance")
 
     return parser
