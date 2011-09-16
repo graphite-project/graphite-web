@@ -20,7 +20,7 @@ from django.contrib.auth.models import User
 class LDAPBackend:
   def authenticate(self, username=None, password=None):
     try:
-      conn = ldap.open(settings.LDAP_SERVER, port=settings.LDAP_PORT)
+      conn = ldap.initialize(settings.LDAP_URI)
       conn.protocol_version = ldap.VERSION3
       conn.simple_bind_s( settings.LDAP_BASE_USER, settings.LDAP_BASE_PASS )
     except ldap.LDAPError:

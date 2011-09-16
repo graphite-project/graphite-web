@@ -30,9 +30,6 @@ THIRDPARTY_DIR = WEB_DIR + 'thirdparty/'
 
 CONF_DIR = os.environ.get('GRAPHITE_CONF_DIR', GRAPHITE_ROOT + 'conf/')
 STORAGE_DIR = os.environ.get('GRAPHITE_STORAGE_DIR', GRAPHITE_ROOT + 'storage/')
-
-WHISPER_DIR = STORAGE_DIR + 'whisper/'
-RRD_DIR = STORAGE_DIR + 'rrd/'
 LISTS_DIR = STORAGE_DIR + 'lists/'
 INDEX_FILE = STORAGE_DIR + 'index'
 WHITELIST_FILE = LISTS_DIR + 'whitelist'
@@ -43,6 +40,12 @@ CLUSTER_SERVERS = []
 sys.path.insert(0, THIRDPARTY_DIR)
 sys.path.insert(0, WEBAPP_DIR)
 
+# Do not override WHISPER_DIR, RRD_DIR, etc directly in
+# local_settings.py, instead you should override DATA_DIRS
+# to list all directories that should be searched for files
+# of a supported format.
+WHISPER_DIR = STORAGE_DIR + 'whisper/'
+RRD_DIR = STORAGE_DIR + 'rrd/'
 try:
   import rrdtool
   DATA_DIRS = [WHISPER_DIR, RRD_DIR]
@@ -71,7 +74,7 @@ LOG_RENDERING_PERFORMANCE = False
 CARBONLINK_HOSTS = ["127.0.0.1:7002"]
 CARBONLINK_TIMEOUT = 1.0
 SMTP_SERVER = "localhost"
-DOCUMENTATION_URL = "http://graphite.wikidot.com/documentation"
+DOCUMENTATION_URL = "http://graphite.readthedocs.org/"
 ALLOW_ANONYMOUS_CLI = True
 LOG_METRIC_ACCESS = False
 LEGEND_MAX_ITEMS = 10
@@ -84,6 +87,7 @@ LDAP_SEARCH_BASE = "" # "OU=users,DC=mydomain,DC=com"
 LDAP_BASE_USER = "" # "CN=some_readonly_account,DC=mydomain,DC=com"
 LDAP_BASE_PASS = "" # "my_password"
 LDAP_USER_QUERY = "" # "(username=%s)"  For Active Directory use "(sAMAccountName=%s)"
+LDAP_URI = None
 
 #Set this to True to delegate authentication to the web server
 USE_REMOTE_USER_AUTHENTICATION = False
@@ -113,7 +117,8 @@ except ImportError:
   print >> sys.stderr, "Could not import graphite.local_settings, using defaults!"
 
 
-
+if USE_LDAP_AUTH and LDAP_URI is None:
+  LDAP_URI = "ldap://%s:%d/" % (LDAP_SERVER, LDAP_PORT)
 
 #Django settings below, do not touch!
 APPEND_SLASH = False
