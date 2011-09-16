@@ -30,6 +30,17 @@
 #LDAP_BASE_USER = "CN=some_readonly_account,DC=mycompany,DC=com"
 #LDAP_BASE_PASS = "readonly_account_password"
 #LDAP_USER_QUERY = "(username=%s)"  #For Active Directory use "(sAMAccountName=%s)"
+#
+# If you want to further customize the ldap connection options you should
+# directly use ldap.set_option to set the ldap module's global options.
+# For example:
+#
+#import ldap
+#ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_ALLOW)
+#ldap.set_option(ldap.OPT_X_TLS_CACERTDIR, "/etc/ssl/ca")
+#ldap.set_option(ldap.OPT_X_TLS_CERTFILE, "/etc/ssl/mycert.pem")
+#ldap.set_option(ldap.OPT_X_TLS_KEYFILE, "/etc/ssl/mykey.pem")
+# See http://www.python-ldap.org/ for further details on these options.
 
 
 ##########################
