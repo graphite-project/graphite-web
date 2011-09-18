@@ -1,4 +1,4 @@
-from twisted.cred import portal
+from twisted.cred import portal, checkers
 from twisted.conch.ssh import keys
 from twisted.conch.checkers import SSHPublicKeyDatabase
 from twisted.conch.manhole import Manhole

@@ -204,7 +204,6 @@ def main():
     (options, args) = parser.parse_args()
 
 
-    log.logToStdout()
     startReceiver(options.host, options.port, options.username,
                   options.password, vhost=options.vhost,
                   exchange_name=options.exchange, verbose=options.verbose)

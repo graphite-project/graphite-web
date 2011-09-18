@@ -18,10 +18,23 @@ from os.path import exists
 from twisted.application.service import MultiService
 from twisted.application.internet import TCPServer, TCPClient, UDPServer
 from twisted.internet.protocol import ServerFactory
+from twisted.python.components import Componentized
+from twisted.python.log import ILogObserver
 # Attaching modules to the global state module simplifies import order hassles
 from carbon import util, state, events, instrumentation
+from carbon.log import carbonLogObserver
 state.events = events
 state.instrumentation = instrumentation
+
+
+class CarbonRootService(MultiService):
+  """Root Service that properly configures twistd logging"""
+
+  def setServiceParent(self, parent):
+    MultiService.setServiceParent(self, parent)
+    if isinstance(parent, Componentized):
+      parent.setComponent(ILogObserver, carbonLogObserver)
+
 
 
 def createBaseService(config):
@@ -29,7 +42,7 @@ def createBaseService(config):
     from carbon.protocols import (MetricLineReceiver, MetricPickleReceiver,
                                   MetricDatagramReceiver)
 
-    root_service = MultiService()
+    root_service = CarbonRootService()
     root_service.setName(settings.program)
 
     use_amqp = settings.get("ENABLE_AMQP", False)
@@ -155,7 +168,7 @@ def createRelayService(config):
     from carbon.routers import RelayRulesRouter, ConsistentHashingRouter
     from carbon.client import CarbonClientManager
     from carbon.conf import settings
-    from carbon import log, events
+    from carbon import events
 
     root_service = createBaseService(config)
 

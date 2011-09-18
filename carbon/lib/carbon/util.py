@@ -54,10 +54,7 @@ def run_twistd_plugin(filename):
         pass
 
     if options.debug:
-        twistd_options.extend(["-n", "--logfile", "-"])
-    else:
-        twistd_options.extend(["--logfile", "/dev/null"])
-
+        twistd_options.extend(["--nodaemon"])
     if options.profile:
         twistd_options.append("--profile")
     if options.pidfile:

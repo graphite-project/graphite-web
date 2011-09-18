@@ -1,7 +1,42 @@
 import time
 from sys import stdout, stderr
-from twisted.python.log import startLoggingWithObserver, textFromEventDict, msg, err
+from zope.interface import implements
+from twisted.python.log import startLoggingWithObserver, textFromEventDict, msg, err, ILogObserver
 from twisted.python.logfile import DailyLogFile
+
+
+class CarbonLogObserver(object):
+  implements(ILogObserver)
+
+  def log_to_dir(self, logdir):
+    self.logdir = logdir
+    self.console_logfile = DailyLogFile('console.log', logdir)
+    self.custom_logs = {}
+    self.observer = self.logdir_observer
+
+  def __call__(self, event):
+    return self.observer(event)
+
+  def stdout_observer(self, event):
+    stdout.write( formatEvent(event, includeType=True) + '\n' )
+    stdout.flush()
+
+  def logdir_observer(self, event):
+    message = formatEvent(event)
+    log_type = event.get('type')
+
+    if log_type is not None and log_type not in self.custom_logs:
+      self.custom_logs[log_type] = DailyLogFile(log_type + '.log', self.logdir)
+
+    logfile = self.custom_logs.get(log_type, self.console_logfile)
+    logfile.write(message + '\n')
+    logfile.flush()
+
+  # Default to stdout
+  observer = stdout_observer
+   
+
+carbonLogObserver = CarbonLogObserver()
 
 
 def formatEvent(event, includeType=False):
@@ -18,31 +53,7 @@ def formatEvent(event, includeType=False):
   return "%s :: %s%s" % (timestamp, typeTag, message)
 
 
-def logToStdout():
-
-  def observer(event):
-    stdout.write( formatEvent(event, includeType=True) + '\n' )
-    stdout.flush()
-
-  startLoggingWithObserver(observer)
-
-
-def logToDir(logDir):
-  consoleLogFile = DailyLogFile('console.log', logDir)
-  customLogs = {}
-
-  def observer(event):
-    message = formatEvent(event)
-    logType = event.get('type')
-
-    if logType is not None and logType not in customLogs:
-      customLogs[logType] = DailyLogFile(logType + '.log', logDir)
-
-    logfile = customLogs.get(logType, consoleLogFile)
-    logfile.write(message + '\n')
-    logfile.flush()
-
-  startLoggingWithObserver(observer)
+logToDir = carbonLogObserver.log_to_dir
 
 
 def cache(message, **context):

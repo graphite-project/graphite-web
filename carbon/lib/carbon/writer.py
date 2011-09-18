@@ -116,11 +116,6 @@ def writeCachedDataPoints():
         os.chmod(dbFilePath, 0755)
         instrumentation.increment('creates')
 
-        # Create metadata file
-        dbFileName = basename(dbFilePath)
-        metaFilePath = join(dbDir, dbFileName[ :-len('.wsp') ] + '.context.pickle')
-        createMetaFile(metric, schema, metaFilePath)
-
       try:
         t1 = time.time()
         whisper.update_many(dbFilePath, datapoints)
@@ -151,18 +146,6 @@ def writeCachedDataPoints():
     # Avoid churning CPU when only new metrics are in the cache
     if not dataWritten:
       time.sleep(0.1)
-
-
-def createMetaFile(metric, schema, path):
-  return #XXX disabled for now.
-
-  metadata = {
-    'interval' : min( [a.secondsPerPoint for a in schema.archives] ),
-  }
-
-  fh = open(path, 'wb')
-  pickle.dump(metadata, fh, protocol=-1)
-  fh.close()
 
 
 def writeForever():
