@@ -26,7 +26,7 @@ except ImportError:
 import whisper
 
 from carbon.cache import MetricCache
-from carbon.storage import getFilesystemPath, loadStorageSchemas
+from carbon.storage import getFilesystemPath, loadStorageSchemas, loadAggregationSchemas
 from carbon.conf import settings
 from carbon import log, events, instrumentation
 
@@ -38,6 +38,7 @@ from twisted.application.service import Service
 lastCreateInterval = 0
 createCount = 0
 schemas = loadStorageSchemas()
+agg_schemas = loadAggregationSchemas()
 CACHE_SIZE_LOW_WATERMARK = settings.MAX_CACHE_SIZE * 0.95
 
 
@@ -98,11 +99,18 @@ def writeCachedDataPoints():
 
       if not dbFileExists:
         archiveConfig = None
+        xFilesFactor, aggregationMethod = None, None
 
         for schema in schemas:
           if schema.matches(metric):
             log.creates('new metric %s matched schema %s' % (metric, schema.name))
             archiveConfig = [archive.getTuple() for archive in schema.archives]
+            break
+
+        for schema in agg_schemas:
+          if schema.matches(metric):
+            log.creates('new metric %s matched aggregation schema %s' % (metric, schema.name))
+            xFilesFactor, aggregationMethod = schema.archives
             break
 
         if not archiveConfig:
@@ -112,7 +120,8 @@ def writeCachedDataPoints():
         os.system("mkdir -p -m 755 '%s'" % dbDir)
 
         log.creates("creating database file %s" % dbFilePath)
-        whisper.create(dbFilePath, archiveConfig)
+        log.creates("  %s, %s, %s" % (archiveConfig, xFilesFactor, aggregationMethod))
+        whisper.create(dbFilePath, archiveConfig, xFilesFactor, aggregationMethod)
         os.chmod(dbFilePath, 0755)
         instrumentation.increment('creates')
 

@@ -246,7 +246,6 @@ aggregationMethod specifies the method to use when propogating data (see ``whisp
   return aggregationTypeToMethod.get(aggregationType, 'average')
 
 
-
 def validateArchiveList(archiveList):
   """ Validates an archiveList.
   An ArchiveList must:
@@ -290,7 +289,7 @@ def validateArchiveList(archiveList):
     return False
   return True
 
-def create(path,archiveList,xFilesFactor=0.5,aggregationMethod='average'):
+def create(path,archiveList,xFilesFactor=None,aggregationMethod=None):
   """create(path,archiveList,xFilesFactor=0.5,aggregationMethod='average')
 
 path is a string
@@ -298,6 +297,12 @@ archiveList is a list of archives, each of which is of the form (secondsPerPoint
 xFilesFactor specifies the fraction of data points in a propagation interval that must have known values for a propagation to occur
 aggregationMethod specifies the function to use when propogating data (see ``whisper.aggregationMethods``)
 """
+  # Set default params
+  if xFilesFactor is None:
+    xFilesFactor = 0.5
+  if aggregationMethod is None:
+    aggregationMethod = 'average'
+
   #Validate archive configurations...
   validArchive = validateArchiveList(archiveList)
   if not validArchive:

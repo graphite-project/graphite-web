@@ -26,6 +26,7 @@ except ImportError:
 
 
 STORAGE_SCHEMAS_CONFIG = join(settings.CONF_DIR, 'storage-schemas.conf')
+STORAGE_AGGREGATION_CONFIG = join(settings.CONF_DIR, 'storage-aggregation.conf')
 STORAGE_LISTS_DIR = join(settings.CONF_DIR, 'lists')
 
 def getFilesystemPath(metric):
@@ -146,5 +147,52 @@ def loadStorageSchemas():
   schemaList.append(defaultSchema)
   return schemaList
 
+
+def loadAggregationSchemas():
+  # NOTE: This abuses the Schema classes above, and should probably be refactored.
+  schemaList = []
+  config = OrderedConfigParser()
+
+  try:
+    config.read(STORAGE_AGGREGATION_CONFIG)
+  except IOError:
+    log.msg("%s not found, ignoring." % STORAGE_AGGREGATION_CONFIG)
+
+  for section in config.sections():
+    options = dict( config.items(section) )
+    matchAll = options.get('match-all')
+    pattern = options.get('pattern')
+    listName = options.get('list')
+
+    xFilesFactor = options.get('xfilesfactor')
+    aggregationMethod = options.get('aggregationmethod')
+
+    try:
+      if xFilesFactor is not None:
+        xFilesFactor = float(xFilesFactor)
+        assert 0 <= xFilesFactor <= 1
+      if aggregationMethod is not None:
+        assert aggregationMethod in whisper.aggregationMethods
+    except:
+      log.msg("Invalid schemas found in %s." % section )
+      continue
+
+    archives = (xFilesFactor, aggregationMethod)
+
+    if matchAll:
+      mySchema = DefaultSchema(section, archives)
+
+    elif pattern:
+      mySchema = PatternSchema(section, pattern, archives)
+
+    elif listName:
+      mySchema = ListSchema(section, listName, archives)
+
+    schemaList.append(mySchema)
+
+  schemaList.append(defaultAggregation)
+  return schemaList
+
 defaultArchive = Archive(60, 60 * 24 * 7) #default retention for unclassified data (7 days of minutely data)
 defaultSchema = DefaultSchema('default', [defaultArchive])
+defaultAggregation = DefaultSchema('default', (None, None))
