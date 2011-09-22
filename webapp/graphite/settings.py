@@ -20,24 +20,32 @@ DEBUG = False
 JAVASCRIPT_DEBUG = False
 
 # Filesystem layout (all directores should end in a /)
+WEBAPP_VERSION='0.9.9-pre5'
 WEB_DIR = dirname( abspath(__file__) ) + '/'
 WEBAPP_DIR = dirname( dirname(WEB_DIR) ) + '/'
 GRAPHITE_ROOT = dirname( dirname(WEBAPP_DIR) ) + '/'
-CONF_DIR = GRAPHITE_ROOT + 'conf/'
 CONTENT_DIR = WEBAPP_DIR + 'content/'
-STORAGE_DIR = GRAPHITE_ROOT + 'storage/'
-WHISPER_DIR = STORAGE_DIR + 'whisper/'
-RRD_DIR = STORAGE_DIR + 'rrd/'
+CSS_DIR = CONTENT_DIR + 'css/'
+THIRDPARTY_DIR = WEB_DIR + 'thirdparty/'
+
+CONF_DIR = os.environ.get('GRAPHITE_CONF_DIR', GRAPHITE_ROOT + 'conf/')
+STORAGE_DIR = os.environ.get('GRAPHITE_STORAGE_DIR', GRAPHITE_ROOT + 'storage/')
 LISTS_DIR = STORAGE_DIR + 'lists/'
 INDEX_FILE = STORAGE_DIR + 'index'
 WHITELIST_FILE = LISTS_DIR + 'whitelist'
 LOG_DIR = STORAGE_DIR + 'log/webapp/'
-THIRDPARTY_DIR = WEB_DIR + 'thirdparty/'
+
 CLUSTER_SERVERS = []
 
 sys.path.insert(0, THIRDPARTY_DIR)
 sys.path.insert(0, WEBAPP_DIR)
 
+# Do not override WHISPER_DIR, RRD_DIR, etc directly in
+# local_settings.py, instead you should override DATA_DIRS
+# to list all directories that should be searched for files
+# of a supported format.
+WHISPER_DIR = STORAGE_DIR + 'whisper/'
+RRD_DIR = STORAGE_DIR + 'rrd/'
 try:
   import rrdtool
   DATA_DIRS = [WHISPER_DIR, RRD_DIR]
@@ -47,7 +55,7 @@ except:
 
 #Memcache settings
 MEMCACHE_HOSTS = []
-MEMCACHE_DURATION = 60 #metric data and graphs are cached for one minute by default
+DEFAULT_CACHE_DURATION = 60 #metric data and graphs are cached for one minute by default
 LOG_CACHE_PERFORMANCE = False
 
 # Remote store settings
@@ -66,7 +74,7 @@ LOG_RENDERING_PERFORMANCE = False
 CARBONLINK_HOSTS = ["127.0.0.1:7002"]
 CARBONLINK_TIMEOUT = 1.0
 SMTP_SERVER = "localhost"
-DOCUMENTATION_URL = "http://graphite.wikidot.com/documentation"
+DOCUMENTATION_URL = "http://graphite.readthedocs.org/"
 ALLOW_ANONYMOUS_CLI = True
 LOG_METRIC_ACCESS = False
 LEGEND_MAX_ITEMS = 10
@@ -79,6 +87,10 @@ LDAP_SEARCH_BASE = "" # "OU=users,DC=mydomain,DC=com"
 LDAP_BASE_USER = "" # "CN=some_readonly_account,DC=mydomain,DC=com"
 LDAP_BASE_PASS = "" # "my_password"
 LDAP_USER_QUERY = "" # "(username=%s)"  For Active Directory use "(sAMAccountName=%s)"
+LDAP_URI = None
+
+#Set this to True to delegate authentication to the web server
+USE_REMOTE_USER_AUTHENTICATION = False
 
 #Database settings, sqlite is intended for single-server setups
 DATABASE_ENGINE = 'sqlite3'			# 'postgresql', 'mysql', 'sqlite3' or 'ado_mssql'.
@@ -89,7 +101,14 @@ DATABASE_HOST = ''				# Set to empty string for localhost. Not used with sqlite3
 DATABASE_PORT = ''				# Set to empty string for default. Not used with sqlite3.
 
 DASHBOARD_CONF = join(CONF_DIR, 'dashboard.conf')
+GRAPHTEMPLATES_CONF = join(CONF_DIR, 'graphTemplates.conf')
 
+ADMINS = ()
+MANAGERS = ADMINS
+
+TEMPLATE_DIRS = (
+  join(WEB_DIR, 'templates'),
+)
 
 #Pull in overrides from local_settings.py
 try:
@@ -98,21 +117,16 @@ except ImportError:
   print >> sys.stderr, "Could not import graphite.local_settings, using defaults!"
 
 
-TEMPLATE_DIRS = (
-  join(WEB_DIR, 'templates'),
-)
-
+if USE_LDAP_AUTH and LDAP_URI is None:
+  LDAP_URI = "ldap://%s:%d/" % (LDAP_SERVER, LDAP_PORT)
 
 #Django settings below, do not touch!
 APPEND_SLASH = False
 TEMPLATE_DEBUG = DEBUG
 if MEMCACHE_HOSTS:
-  CACHE_BACKEND = 'memcached://' + ';'.join(MEMCACHE_HOSTS) + ('/?timeout=%d' % MEMCACHE_DURATION)
+  CACHE_BACKEND = 'memcached://' + ';'.join(MEMCACHE_HOSTS) + ('/?timeout=%d' % DEFAULT_CACHE_DURATION)
 else:
   CACHE_BACKEND = "dummy:///"
-
-ADMINS = ()
-MANAGERS = ADMINS
 
 # Local time zone for this installation. All choices can be found here:
 # http://www.postgresql.org/docs/current/static/datetime-keywords.html#DATETIME-TIMEZONE-SET-TABLE
@@ -154,6 +168,9 @@ MIDDLEWARE_CLASSES = (
   'django.contrib.auth.middleware.AuthenticationMiddleware',
 )
 
+if USE_REMOTE_USER_AUTHENTICATION:
+  MIDDLEWARE_CLASSES += ('django.contrib.auth.middleware.RemoteUserMiddleware',)
+
 ROOT_URLCONF = 'graphite.urls'
 
 INSTALLED_APPS = (
@@ -165,12 +182,18 @@ INSTALLED_APPS = (
   'graphite.account',
   'graphite.dashboard',
   'graphite.whitelist',
+  'graphite.events',
   'django.contrib.auth',
   'django.contrib.sessions',
   'django.contrib.admin',
   'django.contrib.contenttypes',
+  'tagging',
 )
 
-AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend']
+if USE_REMOTE_USER_AUTHENTICATION:
+  AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.RemoteUserBackend']
+else:
+  AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend']
+
 if USE_LDAP_AUTH:
   AUTHENTICATION_BACKENDS.insert(0,'graphite.account.ldapBackend.LDAPBackend')

@@ -116,10 +116,25 @@ def is_local_interface(host):
 def is_pattern(s):
   return '*' in s or '?' in s or '[' in s or '{' in s
 
+def is_escaped_pattern(s):
+  for symbol in '*?[{':
+    i = s.find(symbol)
+    if i > 0:
+      if s[i-1] == '\\':
+        return True
+  return False
+
+def find_escaped_pattern_fields(pattern_string):
+  pattern_parts = pattern_string.split('.')
+  for index,part in enumerate(pattern_parts):
+    if is_escaped_pattern(part):
+      yield index
+
 
 def find(root_dir, pattern):
   "Generates nodes beneath root_dir matching the given pattern"
-  pattern_parts = pattern.split('.')
+  clean_pattern = pattern.replace('\\', '')
+  pattern_parts = clean_pattern.split('.')
 
   for absolute_path in _find(root_dir, pattern_parts):
 
@@ -130,6 +145,12 @@ def find(root_dir, pattern):
 
     relative_path = absolute_path[ len(root_dir): ].lstrip('/')
     metric_path = relative_path.replace('/','.')
+
+    # Preserve pattern in resulting path for escaped query pattern elements
+    metric_path_parts = metric_path.split('.')
+    for field_index in find_escaped_pattern_fields(pattern):
+      metric_path_parts[field_index] = pattern_parts[field_index].replace('\\', '')
+    metric_path = '.'.join(metric_path_parts)
 
     if isdir(absolute_path):
       yield Branch(absolute_path, metric_path)
@@ -165,12 +186,10 @@ def _find(current_dir, patterns):
 
   subdirs = [e for e in entries if isdir( join(current_dir,e) )]
   matching_subdirs = match_entries(subdirs, pattern)
-  matching_subdirs.sort()
 
   if len(patterns) == 1 and rrdtool: #the last pattern may apply to RRD data sources
     files = [e for e in entries if isfile( join(current_dir,e) )]
     rrd_files = match_entries(files, pattern + ".rrd")
-    rrd_files.sort()
 
     if rrd_files: #let's assume it does
       datasource_pattern = patterns[0]
@@ -189,10 +208,17 @@ def _find(current_dir, patterns):
   else: #we've got the last pattern
     files = [e for e in entries if isfile( join(current_dir,e) )]
     matching_files = match_entries(files, pattern + '.*')
-    matching_files.sort()
 
     for basename in matching_subdirs + matching_files:
       yield join(current_dir, basename)
+
+
+def _deduplicate(entries):
+  yielded = set()
+  for entry in entries:
+    if entry not in yielded:
+      yielded.add(entry)
+      yield entry
 
 
 def match_entries(entries, pattern):
@@ -207,10 +233,12 @@ def match_entries(entries, pattern):
     for variant in variants:
       matching.extend( fnmatch.filter(entries, variant) )
 
-    return list( set(matching) ) #remove potential dupes
+    return list( _deduplicate(matching) ) #remove dupes without changing order
 
   else:
-    return fnmatch.filter(entries, pattern)
+    matching = fnmatch.filter(entries, pattern)
+    matching.sort()
+    return matching
 
 
 # Node classes

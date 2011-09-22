@@ -50,6 +50,14 @@ except:
   fatal += 1
 
 
+# Test for django-tagging
+try:
+  import tagging
+except:
+  print "[FATAL] Unable to import the 'tagging' module, do you have django-tagging installed for python %s?" % py_version
+  fatal += 1
+
+
 # Verify django version
 if django and django.VERSION[0] < 1:
   version = '.'.join([str(v) for v in django.VERSION if v is not None])
@@ -66,6 +74,16 @@ except ImportError:
   except ImportError:
     print "[FATAL] Unable to import either the 'json' or 'simplejson' module, at least one is required."
     fatal += 1
+
+
+# Test for zope.interface
+try:
+  from zope.interface import Interface
+except ImportError:
+  print "[WARNING] Unable to import Interface from zope.interface."
+  print "Without it, you will be unable to run carbon on this server."
+  warning +=1
+
 
 
 # Test for mod_python

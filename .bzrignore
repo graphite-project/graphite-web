@@ -1,1 +1,5 @@
 MANIFEST
+_trial_temp
+build
+dist
+graphite.db

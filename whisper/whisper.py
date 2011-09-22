@@ -19,15 +19,14 @@
 #
 # File = Header,Data
 #	Header = Metadata,ArchiveInfo+
-#		Metadata = lastUpdate,maxRetention,xFilesFactor,archiveCount
+#		Metadata = aggregationType,maxRetention,xFilesFactor,archiveCount
 #		ArchiveInfo = Offset,SecondsPerPoint,Points
 #	Data = Archive+
 #		Archive = Point+
 #			Point = timestamp,value
-#
-# NOTE: the lastUpdate field is deprecated, do not use it!
 
 import os, struct, time
+
 try:
   import fcntl
   CAN_LOCK = True
@@ -43,8 +42,6 @@ longFormat = "!L"
 longSize = struct.calcsize(longFormat)
 floatFormat = "!f"
 floatSize = struct.calcsize(floatFormat)
-timestampFormat = "!L"
-timestampSize = struct.calcsize(timestampFormat)
 valueFormat = "!d"
 valueSize = struct.calcsize(valueFormat)
 pointFormat = "!Ld"
@@ -54,8 +51,56 @@ metadataSize = struct.calcsize(metadataFormat)
 archiveInfoFormat = "!3L"
 archiveInfoSize = struct.calcsize(archiveInfoFormat)
 
+aggregationTypeToMethod = dict({
+  1: 'average',
+  2: 'sum',
+  3: 'last',
+  4: 'max',
+  5: 'min'
+})
+aggregationMethodToType = dict([[v,k] for k,v in aggregationTypeToMethod.items()])
+aggregationMethods = aggregationTypeToMethod.values()
+
 debug = startBlock = endBlock = lambda *a,**k: None
 
+UnitMultipliers = {
+  's' : 1,
+  'm' : 60,
+  'h' : 60 * 60,
+  'd' : 60 * 60 * 24,
+  'y' : 60 * 60 * 24 * 365,
+}
+
+
+def parseRetentionDef(retentionDef):
+  (precision, points) = retentionDef.strip().split(':')
+
+  if precision.isdigit():
+    precisionUnit = 's'
+    precision = int(precision)
+  else:
+    precisionUnit = precision[-1]
+    precision = int( precision[:-1] )
+
+  if points.isdigit():
+    pointsUnit = None
+    points = int(points)
+  else:
+    pointsUnit = points[-1]
+    points = int( points[:-1] )
+
+  if precisionUnit not in UnitMultipliers:
+    raise ValueError("Invalid unit: '%s'" % precisionUnit)
+
+  if pointsUnit not in UnitMultipliers and pointsUnit is not None:
+    raise ValueError("Invalid unit: '%s'" % pointsUnit)
+
+  precision = precision * UnitMultipliers[precisionUnit]
+
+  if pointsUnit:
+    points = points * UnitMultipliers[pointsUnit] / precision
+
+  return (precision, points)
 
 class WhisperException(Exception):
     """Base class for whisper exceptions."""
@@ -63,6 +108,10 @@ class WhisperException(Exception):
 
 class InvalidConfiguration(WhisperException):
     """Invalid configuration."""
+
+
+class InvalidAggregationMethod(WhisperException):
+    """Invalid aggregation method."""
 
 
 class InvalidTimeInterval(WhisperException):
@@ -81,6 +130,8 @@ class CorruptWhisperFile(WhisperException):
   def __repr__(self):
     return "<CorruptWhisperFile[%s] %s>" % (self.path, self.error)
 
+  def __str__(self):
+    return "%s (%s)" % (self.error, self.path)
 
 def enableDebug():
   global open, debug, startBlock, endBlock
@@ -122,7 +173,7 @@ def __readHeader(fh):
   packedMetadata = fh.read(metadataSize)
 
   try:
-    (lastUpdate,maxRetention,xff,archiveCount) = struct.unpack(metadataFormat,packedMetadata)
+    (aggregationType,maxRetention,xff,archiveCount) = struct.unpack(metadataFormat,packedMetadata)
   except:
     raise CorruptWhisperFile("Unable to read header", fh.name)
 
@@ -146,7 +197,7 @@ def __readHeader(fh):
 
   fh.seek(originalOffset)
   info = {
-    #'lastUpdate' : lastUpdate, # Deprecated
+    'aggregationMethod' : aggregationTypeToMethod.get(aggregationType, 'average'),
     'maxRetention' : maxRetention,
     'xFilesFactor' : xff,
     'archives' : archives,
@@ -157,50 +208,100 @@ def __readHeader(fh):
   return info
 
 
-def __changeLastUpdate(fh):
-  return #XXX Make this a NOP, use os.stat(filename).st_mtime instead
-  originalOffset = fh.tell()
-  fh.seek(0) #Based on assumption that first field is lastUpdate
-  now = int( time.time() )
-  packedTime = struct.pack(timestampFormat,now)
-  fh.write(packedTime)
-  fh.seek(originalOffset)
+def setAggregationMethod(path, aggregationMethod):
+  """setAggregationMethod(path,aggregationMethod)
+
+path is a string
+aggregationMethod specifies the method to use when propogating data (see ``whisper.aggregationMethods``)
+"""
+  fh = open(path,'r+b')
+  if LOCK:
+    fcntl.flock( fh.fileno(), fcntl.LOCK_EX )
+
+  packedMetadata = fh.read(metadataSize)
+
+  try:
+    (aggregationType,maxRetention,xff,archiveCount) = struct.unpack(metadataFormat,packedMetadata)
+  except:
+    raise CorruptWhisperFile("Unable to read header", fh.name)
+
+  try:
+    newAggregationType = struct.pack( longFormat, aggregationMethodToType[aggregationMethod] )
+  except KeyError:
+    raise InvalidAggregationMethod("Unrecognized aggregation method: %s" %
+          aggregationMethod)
+
+  fh.seek(0)
+  fh.write(newAggregationType)
+
+  if AUTOFLUSH:
+    fh.flush()
+    os.fsync(fh.fileno())
+
+  if CACHE_HEADERS and fh.name in __headerCache:
+    del __headerCache[fh.name]
+
+  fh.close()
+
+  return aggregationTypeToMethod.get(aggregationType, 'average')
 
 
-def create(path,archiveList,xFilesFactor=0.5):
-  """create(path,archiveList,xFilesFactor=0.5)
+
+def validateArchiveList(archiveList):
+  """ Validates an archiveList.
+  An ArchiveList must:
+  1. Have at least one archive config. Example: (60, 86400) 
+  2. No archive may be a duplicate of another. 
+  3. Higher precision archives' precision must evenly divide all lower precision archives' precision.
+  4. Lower precision archives must cover larger time intervals than higher precision archives.
+
+  Returns True or False
+  """
+
+  try:
+    if not archiveList:
+      raise InvalidConfiguration("You must specify at least one archive configuration!")
+
+    archiveList.sort(key=lambda a: a[0]) #sort by precision (secondsPerPoint)
+
+    for i,archive in enumerate(archiveList):
+      if i == len(archiveList) - 1:
+        break
+
+      next = archiveList[i+1]
+      if not (archive[0] < next[0]):
+        raise InvalidConfiguration("You cannot configure two archives "
+          "with the same precision %s,%s" % (archive,next))
+
+      if (next[0] % archive[0]) != 0:
+        raise InvalidConfiguration("Higher precision archives' precision "
+          "must evenly divide all lower precision archives' precision %s,%s" \
+          % (archive[0],next[0]))
+
+      retention = archive[0] * archive[1]
+      nextRetention = next[0] * next[1]
+
+      if not (nextRetention > retention):
+        raise InvalidConfiguration("Lower precision archives must cover "
+          "larger time intervals than higher precision archives %s,%s" \
+          % (archive,next))
+  
+  except:
+    return False
+  return True
+
+def create(path,archiveList,xFilesFactor=0.5,aggregationMethod='average'):
+  """create(path,archiveList,xFilesFactor=0.5,aggregationMethod='average')
 
 path is a string
 archiveList is a list of archives, each of which is of the form (secondsPerPoint,numberOfPoints)
 xFilesFactor specifies the fraction of data points in a propagation interval that must have known values for a propagation to occur
+aggregationMethod specifies the function to use when propogating data (see ``whisper.aggregationMethods``)
 """
   #Validate archive configurations...
-  if not archiveList:
-    raise InvalidConfiguration("You must specify at least one archive configuration!")
-
-  archiveList.sort(key=lambda a: a[0]) #sort by precision (secondsPerPoint)
-
-  for i,archive in enumerate(archiveList):
-    if i == len(archiveList) - 1:
-      break
-
-    next = archiveList[i+1]
-    if not (archive[0] < next[0]):
-      raise InvalidConfiguration("You cannot configure two archives "
-        "with the same precision %s,%s" % (archive,next))
-
-    if (next[0] % archive[0]) != 0:
-      raise InvalidConfiguration("Higher precision archives' precision "
-        "must evenly divide all lower precision archives' precision %s,%s" \
-        % (archive[0],next[0]))
-
-    retention = archive[0] * archive[1]
-    nextRetention = next[0] * next[1]
-
-    if not (nextRetention > retention):
-      raise InvalidConfiguration("Lower precision archives must cover "
-        "larger time intervals than higher precision archives %s,%s" \
-        % (archive,next))
+  validArchive = validateArchiveList(archiveList)
+  if not validArchive:
+    raise InvalidConfiguration("There was a problem creating %s due to an invalid schema config." % path) 
 
   #Looks good, now we create the file and write the header
   if os.path.exists(path):
@@ -210,12 +311,12 @@ xFilesFactor specifies the fraction of data points in a propagation interval tha
   if LOCK:
     fcntl.flock( fh.fileno(), fcntl.LOCK_EX )
 
-  lastUpdate = struct.pack( timestampFormat, int(time.time()) )
+  aggregationType = struct.pack( longFormat, aggregationMethodToType.get(aggregationMethod, 1) )
   oldest = sorted([secondsPerPoint * points for secondsPerPoint,points in archiveList])[-1]
   maxRetention = struct.pack( longFormat, oldest )
   xFilesFactor = struct.pack( floatFormat, float(xFilesFactor) )
   archiveCount = struct.pack(longFormat, len(archiveList))
-  packedMetadata = lastUpdate + maxRetention + xFilesFactor + archiveCount
+  packedMetadata = aggregationType + maxRetention + xFilesFactor + archiveCount
   fh.write(packedMetadata)
   headerSize = metadataSize + (archiveInfoSize * len(archiveList))
   archiveOffsetPointer = headerSize
@@ -234,8 +335,26 @@ xFilesFactor specifies the fraction of data points in a propagation interval tha
 
   fh.close()
 
+def __aggregate(aggregationMethod, knownValues):
+  if aggregationMethod == 'average':
+    return float(sum(knownValues)) / float(len(knownValues))
+  elif aggregationMethod == 'sum':
+    return float(sum(knownValues))
+  elif aggregationMethod == 'last':
+    return knownValues[len(knownValues)-1]
+  elif aggregationMethod == 'max':
+    return max(knownValues)
+  elif aggregationMethod == 'min':
+    return min(knownValues)
+  else:
+    raise InvalidAggregationMethod("Unrecognized aggregation method %s" %
+            aggregationMethod)
 
-def __propagate(fh,timestamp,xff,higher,lower):
+
+def __propagate(fh,header,timestamp,higher,lower):
+  aggregationMethod = header['aggregationMethod']
+  xff = header['xFilesFactor']
+
   lowerIntervalStart = timestamp - (timestamp % lower['secondsPerPoint'])
   lowerIntervalEnd = lowerIntervalStart + lower['secondsPerPoint']
 
@@ -290,7 +409,7 @@ def __propagate(fh,timestamp,xff,higher,lower):
 
   knownPercent = float(len(knownValues)) / float(len(neighborValues))
   if knownPercent >= xff: #we have enough data to propagate a value!
-    aggregateValue = float(sum(knownValues)) / float(len(knownValues)) #TODO another CF besides average?
+    aggregateValue = __aggregate(aggregationMethod, knownValues)
     myPackedPoint = struct.pack(pointFormat,lowerIntervalStart,aggregateValue)
     fh.seek(lower['offset'])
     packedPoint = fh.read(pointSize)
@@ -367,11 +486,9 @@ def file_update(fh, value, timestamp):
   #Now we propagate the update to lower-precision archives
   higher = archive
   for lower in lowerArchives:
-    if not __propagate(fh, myInterval, header['xFilesFactor'], higher, lower):
+    if not __propagate(fh, header, myInterval, higher, lower):
       break
     higher = lower
-
-  __changeLastUpdate(fh)
 
   if AUTOFLUSH:
     fh.flush()
@@ -425,8 +542,6 @@ def file_update_many(fh, points):
   if currentArchive and currentPoints: #don't forget to commit after we've checked all the archives
     currentPoints.reverse()
     __archive_update_many(fh,header,currentArchive,currentPoints)
-
-  __changeLastUpdate(fh)
 
   if AUTOFLUSH:
     fh.flush()
@@ -493,7 +608,7 @@ def __archive_update_many(fh,header,archive,points):
     uniqueLowerIntervals = set(lowerIntervals)
     propagateFurther = False
     for interval in uniqueLowerIntervals:
-      if __propagate(fh,interval,header['xFilesFactor'],higher,lower):
+      if __propagate(fh, header, interval, higher, lower):
         propagateFurther = True
 
     if not propagateFurther:

@@ -16,36 +16,43 @@ limitations under the License."""
 import os
 import time
 from os.path import join, exists, dirname, basename
-from threading import Thread
-from twisted.internet import reactor
-from twisted.internet.task import LoopingCall
-import whisper
-from carbon.cache import MetricCache
-from carbon.storage import getFilesystemPath, loadStorageSchemas
-from carbon.conf import settings
-from carbon.instrumentation import increment, append
-from carbon import log
+from carbon import state
+
 try:
   import cPickle as pickle
 except ImportError:
   import pickle
 
-if settings.WHISPER_AUTOFLUSH:
-  log.msg("enabling whisper autoflush")
-  whisper.AUTOFLUSH = True
+import whisper
+
+from carbon.cache import MetricCache
+from carbon.storage import getFilesystemPath, loadStorageSchemas
+from carbon.conf import settings
+from carbon import log, events, instrumentation
+
+from twisted.internet import reactor
+from twisted.internet.task import LoopingCall
+from twisted.application.service import Service
+
 
 lastCreateInterval = 0
 createCount = 0
+schemas = loadStorageSchemas()
+CACHE_SIZE_LOW_WATERMARK = settings.MAX_CACHE_SIZE * 0.95
+
 
 def optimalWriteOrder():
   "Generates metrics with the most cached values first and applies a soft rate limit on new metrics"
   global lastCreateInterval
   global createCount
-  metrics = [ (metric, len(datapoints)) for metric,datapoints in MetricCache.items() ]
+  metrics = MetricCache.counts()
 
   t = time.time()
   metrics.sort(key=lambda item: item[1], reverse=True) # by queue size, descending
   log.msg("Sorted %d cache queues in %.6f seconds" % (len(metrics), time.time() - t))
+
+  if state.cacheTooFull and MetricCache.size < CACHE_SIZE_LOW_WATERMARK:
+    events.cacheSpaceAvailable()
 
   for metric, queueSize in metrics:
     dbFilePath = getFilesystemPath(metric)
@@ -107,12 +114,7 @@ def writeCachedDataPoints():
         log.creates("creating database file %s" % dbFilePath)
         whisper.create(dbFilePath, archiveConfig)
         os.chmod(dbFilePath, 0755)
-        increment('creates')
-
-        # Create metadata file
-        dbFileName = basename(dbFilePath)
-        metaFilePath = join(dbDir, dbFileName[ :-len('.wsp') ] + '.context.pickle')
-        createMetaFile(metric, schema, metaFilePath)
+        instrumentation.increment('creates')
 
       try:
         t1 = time.time()
@@ -121,11 +123,11 @@ def writeCachedDataPoints():
         updateTime = t2 - t1
       except:
         log.err()
-        increment('errors')
+        instrumentation.increment('errors')
       else:
         pointCount = len(datapoints)
-        increment('committedPoints', pointCount)
-        append('updateTimes', updateTime)
+        instrumentation.increment('committedPoints', pointCount)
+        instrumentation.append('updateTimes', updateTime)
 
         if settings.LOG_UPDATES:
           log.updates("wrote %d datapoints for %s in %.5f seconds" % (pointCount, metric, updateTime))
@@ -144,18 +146,6 @@ def writeCachedDataPoints():
     # Avoid churning CPU when only new metrics are in the cache
     if not dataWritten:
       time.sleep(0.1)
-
-
-def createMetaFile(metric, schema, path):
-  return #XXX disabled for now.
-
-  metadata = {
-    'interval' : min( [a.secondsPerPoint for a in schema.archives] ),
-  }
-
-  fh = open(path, 'wb')
-  pickle.dump(metadata, fh, protocol=-1)
-  fh.close()
 
 
 def writeForever():
@@ -177,10 +167,16 @@ def reloadStorageSchemas():
     log.err()
 
 
-schemaReloadTask = LoopingCall(reloadStorageSchemas)
-schemas = loadStorageSchemas()
+class WriterService(Service):
 
+    def __init__(self):
+        self.reload_task = LoopingCall(reloadStorageSchemas)
 
-def startWriter():
-  schemaReloadTask.start(60)
-  reactor.callInThread(writeForever)
+    def startService(self):
+        self.reload_task.start(60, False)
+        reactor.callInThread(writeForever)
+        Service.startService(self)
+
+    def stopService(self):
+        self.reload_task.stop()
+        Service.stopService(self)

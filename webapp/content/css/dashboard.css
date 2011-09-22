@@ -1,11 +1,8 @@
-
-.graphAreaBody {
-  color: white;
-  background-color: black;
-}
-
+/* You should not need to change stuff in this file.
+   If something is missing from dashboard-default.css
+  that belongs there, please let graphite-dev know.
+*/
 div.graph-container {
-  /* display: inline; */
   float: left;
   margin: 7px;
   margin-right: 0;

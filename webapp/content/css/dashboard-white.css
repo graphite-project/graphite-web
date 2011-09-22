@@ -1,0 +1,32 @@
+/* This is the basic body style of the graph area */
+.graph-area-body {
+  color: black;
+  background-color: white;
+}
+
+/* Metric Completer Settings */
+.completer-input-field {
+  font-size: 9pt;
+  font-family: monospace;
+}
+
+/* This class is applied to each completer result row. */
+.metric-result div {
+  font-size: 9pt;
+  font-family: monospace;
+}
+
+/* This class is applied to completer results that are already present
+ in the graph area. */
+.metric-toggled div {
+  font-weight: bold;
+}
+
+/* Likewise this is applied to any metrics not in the graph area already. */
+.metric-not-toggled div {
+}
+
+/* This applies to any results that are branch nodes, not actual metrics. */
+.result-is-branch-node {
+  background-color: rgb(240, 245, 255) !important;
+}

@@ -1,6 +1,6 @@
 import re
 import errno
-from os.path import getmtime
+from os.path import getmtime, join, exists
 from ConfigParser import ConfigParser
 from django.shortcuts import render_to_response
 from django.http import HttpResponse
@@ -10,31 +10,65 @@ from graphite.dashboard.models import Dashboard
 
 
 fieldRegex = re.compile(r'<([^>]+)>')
+defaultScheme = {
+  'name' : 'Everything',
+  'pattern' : '<category>',
+  'fields' : [ dict(name='category', label='Category') ],
+}
+defaultUIConfig = {
+  'default_graph_width'  : 400,
+  'default_graph_height' : 250,
+  'refresh_interval'     :  60,
+  'autocomplete_delay'   : 375,
+  'merge_hover_delay'    : 700,
+  'theme'                : 'default',
+}
+defaultKeyboardShortcuts = {
+  'toggle_toolbar' : 'ctrl-z',
+  'toggle_metrics_panel' : 'ctrl-space',
+  'erase_all_graphs' : 'alt-x',
+  'save_dashboard' : 'alt-s',
+  'completer_add_metrics' : 'alt-enter',
+  'completer_del_metrics' : 'alt-backspace',
+  'give_completer_focus' : 'shift-space',
+}
 
 
 class DashboardConfig:
   def __init__(self):
     self.last_read = 0
-    self.schemes = []
-    self.ui_config = {}
+    self.schemes = [defaultScheme]
+    self.ui_config = defaultUIConfig.copy()
 
   def check(self):
     if getmtime(settings.DASHBOARD_CONF) > self.last_read:
       self.load()
 
   def load(self):
-    schemes = []
+    schemes = [defaultScheme]
     parser = ConfigParser()
     parser.read(settings.DASHBOARD_CONF)
 
-    self.ui_config['default_graph_width'] = parser.getint('ui', 'default_graph_width')
-    self.ui_config['default_graph_height'] = parser.getint('ui', 'default_graph_height')
-    self.ui_config['automatic_variants'] = parser.getboolean('ui', 'automatic_variants')
-    self.ui_config['refresh_interval'] = parser.getint('ui', 'refresh_interval')
-    self.ui_config['merge_hover_delay'] = parser.getint('ui', 'merge_hover_delay')
+    for option, default_value in defaultUIConfig.items():
+      if parser.has_option('ui', option):
+        try:
+          self.ui_config[option] = parser.getint('ui', option)
+        except ValueError:
+          self.ui_config[option] = parser.get('ui', option)
+      else:
+        self.ui_config[option] = default_value
+
+    if parser.has_option('ui', 'automatic_variants'):
+      self.ui_config['automatic_variants']   = parser.getboolean('ui', 'automatic_variants')
+    else:
+      self.ui_config['automatic_variants'] = True
+
+    self.ui_config['keyboard_shortcuts'] = defaultKeyboardShortcuts.copy()
+    if parser.has_section('keyboard-shortcuts'):
+      self.ui_config['keyboard_shortcuts'].update( parser.items('keyboard-shortcuts') )
 
     for section in parser.sections():
-      if section == 'ui':
+      if section in ('ui', 'keyboard-shortcuts'):
         continue
 
       scheme = parser.get(section, 'scheme')
@@ -75,12 +109,21 @@ def dashboard(request, name=None):
     else:
       raise
 
+  initialError = None
   debug = request.GET.get('debug', False)
+  theme = request.GET.get('theme', config.ui_config['theme'])
+  css_file = join(settings.CSS_DIR, 'dashboard-%s.css' % theme)
+  if not exists(css_file):
+    initialError = "Invalid theme '%s'" % theme
+    theme = config.ui_config['theme']
+
   context = {
     'schemes_json' : json.dumps(config.schemes),
     'ui_config_json' : json.dumps(config.ui_config),
     'jsdebug' : debug or settings.JAVASCRIPT_DEBUG,
     'debug' : debug,
+    'theme' : theme,
+    'initialError' : initialError,
     'querystring' : json.dumps( dict( request.GET.items() ) ),
     'dashboard_conf_missing' : dashboard_conf_missing,
   }
@@ -155,6 +198,11 @@ def find(request):
   return json_response( dict(dashboards=results) )
 
 
+def help(request):
+  context = {}
+  return render_to_response("dashboardHelp.html", context)
+
+
 def create_temporary(request):
   state = str( json.dumps( json.loads( request.POST['state'] ) ) )
   i = 0
@@ -172,4 +220,4 @@ def create_temporary(request):
 
 
 def json_response(obj):
-  return HttpResponse(mimetype='text/json', content=json.dumps(obj))
+  return HttpResponse(mimetype='application/json', content=json.dumps(obj))

@@ -15,7 +15,12 @@ You may obtain a copy of the License at
 from django.conf.urls.defaults import *
 
 urlpatterns = patterns('graphite.metrics.views',
+  ('^index\.json$', 'index_json'),
+  ('^search/?$', 'search_view'),
   ('^find/?$', 'find_view'),
   ('^expand/?$', 'expand_view'),
   ('^context/?$', 'context_view'),
+  ('^get-metadata/?$', 'get_metadata_view'),
+  ('^set-metadata/?$', 'set_metadata_view'),
+  ('', 'find_view'),
 )

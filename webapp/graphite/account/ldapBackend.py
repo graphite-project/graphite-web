@@ -18,14 +18,15 @@ from django.contrib.auth.models import User
 
 
 class LDAPBackend:
-  def authenticate(self,username=None,password=None):
+  def authenticate(self, username=None, password=None):
     try:
-      conn = ldap.open(settings.LDAP_SERVER, port=settings.LDAP_PORT)
+      conn = ldap.initialize(settings.LDAP_URI)
       conn.protocol_version = ldap.VERSION3
       conn.simple_bind_s( settings.LDAP_BASE_USER, settings.LDAP_BASE_PASS )
     except ldap.LDAPError:
       traceback.print_exc()
       return None
+
     scope = ldap.SCOPE_SUBTREE
     filter = settings.LDAP_USER_QUERY % username
     returnFields = ['dn','mail']
@@ -34,9 +35,13 @@ class LDAPBackend:
       resultType, resultData = conn.result( resultID, 0 )
       if len(resultData) != 1: #User does not exist
         return None
+
       userDN = resultData[0][0]
-      try: userMail = resultData[0][1]['mail'][0]
-      except: userMail = "Unknown"
+      try:
+        userMail = resultData[0][1]['mail'][0]
+      except:
+        userMail = "Unknown"
+
       conn.simple_bind_s(userDN,password)
       try:
         user = User.objects.get(username=username)
@@ -44,7 +49,9 @@ class LDAPBackend:
         randomPasswd = User.objects.make_random_password(length=16) #To prevent login from django db user
         user = User.objects.create_user(username, userMail, randomPasswd)
         user.save()
+
       return user
+
     except ldap.INVALID_CREDENTIALS:
       traceback.print_exc()
       return None

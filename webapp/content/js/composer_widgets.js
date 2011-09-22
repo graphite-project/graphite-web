@@ -311,6 +311,15 @@ function recentSelectionMade(combo, record, index) {
 
 /* "Save to MyGraphs" */
 function saveMyGraph(button, e) {
+  var myGraphName = "";
+  if (Composer.state.myGraphName) {
+    myGraphName = Composer.state.myGraphName;
+    var tmpArray = myGraphName.split('.');
+    if (tmpArray.length > 1) {
+      tmpArray = tmpArray.slice(1, tmpArray.length);
+      myGraphName = tmpArray.join('.');
+    }
+  } 
   Ext.MessageBox.prompt(
     "Save to My Graphs", //title
     "Please enter a name for your Graph", //prompt message
@@ -347,7 +356,7 @@ function saveMyGraph(button, e) {
     },
     this,   //scope
     false,  //multiline
-    Composer.state.myGraphName ? Composer.state.myGraphName : "" //default value
+    myGraphName ? myGraphName : "" //default value
   );
 }
 
@@ -435,7 +444,7 @@ var GraphDataWindow = {
     var targetsPanel = new Ext.Panel({
       region: 'center',
       width: 400,
-      height: 300,
+      height: 200,
       layout: 'fit',
       items: this.targetList
     });
@@ -484,7 +493,7 @@ var GraphDataWindow = {
 
     this.window = new Ext.Window({
       title: "Graph Data",
-      height: 300,
+      height: 200,
       width: 600,
       closeAction: 'hide',
       layout: 'border',
@@ -934,6 +943,14 @@ function createFunctionsMenu() {
       text: 'Special',
       menu: [
         {text: 'Set Legend Name', handler: applyFuncToEachWithInput('alias', 'Enter a legend label for this graph target', {quote: true})},
+        {text: 'Add Value to Legend Name',
+	      	 menu: [
+        		{text: "Last Value", handler: applyFuncToEach('legendValue', '"last"')},
+        		{text: "Average Value", handler: applyFuncToEach('legendValue', '"avg"')},
+        		{text: "Total Value", handler: applyFuncToEach('legendValue', '"total"')},
+        		{text: "Min Value", handler: applyFuncToEach('legendValue', '"min"')},
+        		{text: "Max Value", handler: applyFuncToEach('legendValue', '"max"')}
+        		]},
         {text: 'Color', handler: applyFuncToEachWithInput('color', 'Set the color for this graph target', {quote: true})},
         {text: 'Aggregate By Sum', handler: applyFuncToEach('cumulative')},
         {text: 'Draw non-zero As Infinite', handler: applyFuncToEach('drawAsInfinite')},
@@ -941,7 +958,9 @@ function createFunctionsMenu() {
         {text: 'Dashed Line', handler: applyFuncToEach('dashed')},
         {text: 'Keep Last Value', handler: applyFuncToEach('keepLastValue')},
         {text: 'Substring', handler: applyFuncToEachWithInput('substr', 'Enter a starting position')},
-        {text: 'Add Threshold Line', handler: applyFuncToEachWithInput('threshold', 'Enter a threshold value')}
+        {text: 'Add Threshold Line', handler: applyFuncToEachWithInput('threshold', 'Enter a threshold value')},
+        {text: 'Draw Stacked', handler: applyFuncToEach('stacked')},
+        {text: 'Draw in Second Y Axis', handler: applyFuncToEach('secondYAxis')}
       ]
     }
   ];
@@ -993,6 +1012,15 @@ function createOptionsMenu() {
       menuRadioItem("area", "All", "areaMode", "all")
     ]
   });
+
+  var lineMenu = new Ext.menu.Menu({
+    items: [
+        menuRadioItem("line", "Slope Line (default)", "lineMode", ""),
+        menuRadioItem("line", "Staircase Line", "lineMode", "staircase"),
+        menuRadioItem("line", "Connected Line", "lineMode", "connected"),
+        menuCheckItem("Draw Null as Zero", "drawNullAsZero")
+    ]
+  });
   
   var displayMenu = new Ext.menu.Menu({
     items: [
@@ -1017,6 +1045,13 @@ function createOptionsMenu() {
       menuRadioItem("yUnit", "Standard", "yUnitSystem", "si"),
       menuRadioItem("yUnit", "Binary", "yUnitSystem", "binary"),
       menuRadioItem("yUnit", "None", "yUnitSystem", "none")
+      
+    ]
+  });
+  var yAxisSideMenu = new Ext.menu.Menu({
+    items: [
+      menuRadioItem("yAxis", "Left", "yAxisSide", "left"),
+      menuRadioItem("yAxis", "Right", "yAxisSide", "right"),
     ]
   });
 
@@ -1025,7 +1060,42 @@ function createOptionsMenu() {
       menuInputItem("Label", "vtitle"),
       menuInputItem("Minimum", "yMin"),
       menuInputItem("Maximum", "yMax"),
-      {text: "Unit", menu: yAxisUnitMenu}
+      menuInputItem("Logarithmic Scale", "logBase", "Please enter the logarithmic base to use (ie. 10, e, etc...)"),
+      {text: "Unit", menu: yAxisUnitMenu},
+      {text: "Side", menu: yAxisSideMenu},
+      
+      menuHelpItem("Second Y Axis", "To select metrics to associate with the second (right-side) y-axis, go into the Graph Data dialog box, highlight a metric, click Apply Functions, Special, Second Y Axis.")
+    ]
+  });
+  var yAxisLeftMenu = new Ext.menu.Menu({
+    items: [
+      menuInputItem("Left Y Minimum", "yMinLeft"),
+      menuInputItem("Left Y Maximum", "yMaxLeft"),
+      menuInputItem("Left Y Limit", "yLimitLeft"),
+      menuInputItem("Left Y Step", "yStepLeft"),
+      menuInputItem("Left Line Width", "leftWidth"),
+      menuInputItem("Left Line Color", "leftColor"),
+      menuInputItem("Left Line Dashed (length, in px)", "leftDashed"),
+    
+    ]
+  });
+  var yAxisRightMenu = new Ext.menu.Menu({
+    items: [
+      menuInputItem("Right Y Minimum", "yMinRight"),
+      menuInputItem("Right Y Maximum", "yMinRight"),
+      menuInputItem("Right Y Limit", "yLimitRight"),
+      menuInputItem("Right Y Step", "yStepRight"),
+      menuInputItem("Right Line Width", "rightWidth"),
+      menuInputItem("Right Line Color", "rightColor"),
+      menuInputItem("Right Line Dashed (length, in px)", "rightDashed"),
+    
+    ]
+  });
+
+  var SecondYAxisMenu = new Ext.menu.Menu({
+    items: [
+      {text: "Left Y Axis", menu: yAxisLeftMenu},
+      {text: "Right Y Axis", menu: yAxisRightMenu}
     ]
   });
 
@@ -1034,10 +1104,11 @@ function createOptionsMenu() {
     items: [
       menuInputItem("Graph Title", "title"),
       {text: "Y Axis", menu: yAxisMenu},
+      {text: "Left/Right Y Axis Options", menu: SecondYAxisMenu},
       menuInputItem("Line Thickness", "lineWidth"),
       {text: "Area Mode", menu: areaMenu},
+      {text: "Line Mode", menu: lineMenu},
       menuCheckItem("Alpha Masking", "template", "alphas"),
-      menuCheckItem("Staircase Line", "lineMode", "staircase"),
       {text: "Canvas Color", menu: createColorMenu('bgcolor')},
       {text: "Display", menu: displayMenu},
       {text: "Font", menu: fontMenu}
@@ -1092,8 +1163,12 @@ function createColorMenu(param) {
   return colorPicker;
 }
 
-function menuInputItem(name, param) {
-  return new Ext.menu.Item({text: name, handler: paramPrompt(name, param)});
+function menuInputItem(name, param, question) {
+  return new Ext.menu.Item({text: name, handler: paramPrompt(question || name, param)});
+}
+
+function menuHelpItem(name, message) {
+  return new Ext.menu.Item({text: name, handler: helpMessage('FYI', message)});
 }
 
 function paramPrompt(question, param) {
@@ -1102,6 +1177,16 @@ function paramPrompt(question, param) {
       "Input Required",
       question,
       function (button, value) {
+        if (value.search(/[^A-Za-z0-9_.]/) != -1) {
+          Ext.Msg.alert("Input can only contain letters, numbers, underscores, or periods.");
+          return;
+        }
+
+        if (value.charAt(value.length - 1) == '.') {
+          Ext.Msg.alert("Input cannot end in a period.");
+          return;
+        }
+        
         setParam(param, value);
         updateGraph();
       },
@@ -1112,6 +1197,16 @@ function paramPrompt(question, param) {
   };
 }
 
+function helpMessage(myTitle, myMessage) {
+  return function (menuItem, e) {
+    Ext.MessageBox.show(
+        {title: myTitle,
+          msg: myMessage,
+          button: Ext.MessageBox.OK
+          }
+    );
+  };
+}
 var checkItems = [];
 function menuCheckItem(name, param, paramValue) {
   var checkItem = new Ext.menu.CheckItem({text: name, param: param, hideOnClick: false});

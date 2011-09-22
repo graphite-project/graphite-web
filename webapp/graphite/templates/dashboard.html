@@ -10,7 +10,8 @@
     var schemes = {{schemes_json|safe}};
     var UI_CONFIG = {{ui_config_json|safe}};
     var CONTEXT_FIELD_WIDTH = 220;
-    var QUERY_DELAY = 100;
+    var AUTOCOMPLETE_DELAY = UI_CONFIG.autocomplete_delay;
+    var FINDER_QUERY_DELAY = 100;
     var NEW_DASHBOARD_REMOVE_GRAPHS = false;
 
     var RESIZE_ICON   = '/content/js/ext/examples/shared/icons/fam/cog_edit.png';
@@ -19,6 +20,7 @@
     var SHARE_ICON    = '/content/js/ext/examples/shared/icons/fam/application_go.png';
     var CALENDAR_ICON = '/content/js/ext/resources/images/default/shared/calendar.gif';
     var CLOCK_ICON    = '/content/img/clock_16.png';
+    var HELP_ICON     = '/content/js/ext/examples/shared/icons/fam/information.png';
 
     {% if initialState %}
     var initialState = {{initialState|safe}};
@@ -36,6 +38,9 @@
     var queryString = {{querystring|safe}};
     {% endif %}
     </script>
+
+    <!-- Theme overrides -->
+    <link rel="stylesheet" type="text/css" href="/content/css/dashboard-{{theme}}.css"/>
 
     {% if jsdebug %}
     <script type="text/javascript" src="/content/js/ext/adapter/ext/ext-base-debug.js"></script>

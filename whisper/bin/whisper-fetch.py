@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import sys, os, time
+import sys, time
 import whisper
 from optparse import OptionParser
 
@@ -9,7 +9,8 @@ yesterday = now - (60 * 60 * 24)
 
 option_parser = OptionParser(usage='''%prog [options] path''')
 option_parser.add_option('--from', default=yesterday, type='int', dest='_from',
-  help="Unix epoch time of the beginning of your requested interval (default: 24 hours ago)")
+  help=("Unix epoch time of the beginning of "
+        "your requested interval (default: 24 hours ago)"))
 option_parser.add_option('--until', default=now, type='int',
   help="Unix epoch time of the end of your requested interval (default: now)")
 option_parser.add_option('--json', default=False, action='store_true',

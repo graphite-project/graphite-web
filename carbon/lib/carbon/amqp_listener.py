@@ -25,8 +25,7 @@ from optparse import OptionParser
 
 from twisted.internet.defer import inlineCallbacks
 from twisted.internet import reactor
-from twisted.internet.protocol import ClientCreator, Protocol, \
-    ReconnectingClientFactory
+from twisted.internet.protocol import ReconnectingClientFactory
 from txamqp.protocol import AMQClient
 from txamqp.client import TwistedDelegate
 import txamqp.spec
@@ -38,11 +37,9 @@ except:
     LIB_DIR = os.path.dirname(os.path.dirname(__file__))
     sys.path.insert(0, LIB_DIR)
 
-import carbon.listeners #satisfy import order requirements
-from carbon.instrumentation import increment
-from carbon.events import metricReceived
+import carbon.protocols #satisfy import order requirements
 from carbon.conf import settings
-from carbon import log
+from carbon import log, events, instrumentation
 
 
 HOSTNAME = socket.gethostname().split('.')[0]
@@ -115,8 +112,7 @@ class AMQPGraphiteProtocol(AMQClient):
                 log.listener("invalid message line: %s" % (line,))
                 continue
 
-            increment('metricsReceived')
-            metricReceived(metric, datapoint)
+            events.metricReceived(metric, datapoint)
 
             if self.factory.verbose:
                 log.listener("Metric posted: %s %s %s" %
@@ -147,11 +143,12 @@ class AMQPReconnectingFactory(ReconnectingClientFactory):
         p.factory = self
         return p
 
-def startReceiver(host, port, username, password, vhost, exchange_name,
-                  spec=None, channel=1, verbose=False):
-    """Starts a twisted process that will read messages on the amqp broker
-    and post them as metrics."""
 
+def createAMQPListener(username, password, vhost, exchange_name,
+                       spec=None, channel=1, verbose=False):
+    """
+    Create an C{AMQPReconnectingFactory} configured with the specified options.
+    """
     # use provided spec if not specified
     if not spec:
         spec = txamqp.spec.load(os.path.normpath(
@@ -161,6 +158,17 @@ def startReceiver(host, port, username, password, vhost, exchange_name,
     factory = AMQPReconnectingFactory(username, password, delegate, vhost,
                                       spec, channel, exchange_name,
                                       verbose=verbose)
+    return factory
+
+
+def startReceiver(host, port, username, password, vhost, exchange_name,
+                  spec=None, channel=1, verbose=False):
+    """
+    Starts a twisted process that will read messages on the amqp broker and
+    post them as metrics.
+    """
+    factory = createAMQPListener(username, password, vhost, exchange_name,
+                                 spec=spec, channel=channel, verbose=verbose)
     reactor.connectTCP(host, port, factory)
 
 
@@ -196,7 +204,6 @@ def main():
     (options, args) = parser.parse_args()
 
 
-    log.logToStdout()
     startReceiver(options.host, options.port, options.username,
                   options.password, vhost=options.vhost,
                   exchange_name=options.exchange, verbose=options.verbose)

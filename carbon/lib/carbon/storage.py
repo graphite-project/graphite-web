@@ -13,8 +13,11 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 import os, re
+import whisper
+
 from os.path import join, exists
-from carbon.conf import OrderedConfigParser, Settings, settings
+from carbon.conf import OrderedConfigParser, settings
+from carbon import log
 
 try:
   import cPickle as pickle
@@ -22,52 +25,11 @@ except ImportError:
   import pickle
 
 
-STORAGE_SCHEMAS_CONFIG = join(CONF_DIR, 'storage-schemas.conf')
-STORAGE_LISTS_DIR = join(CONF_DIR, 'lists')
-
+STORAGE_SCHEMAS_CONFIG = join(settings.CONF_DIR, 'storage-schemas.conf')
+STORAGE_LISTS_DIR = join(settings.CONF_DIR, 'lists')
 
 def getFilesystemPath(metric):
   return join(settings.LOCAL_DATA_DIR, metric.replace('.','/')) + '.wsp'
-
-
-UnitMultipliers = {
-  's' : 1,
-  'm' : 60,
-  'h' : 60 * 60,
-  'd' : 60 * 60 * 24,
-  'y' : 60 * 60 * 24 * 365,
-}
-
-def parseRetentionDefinition(retentionDef):
-  (precision, points) = retentionDef.strip().split(':')
-
-  if precision.isdigit():
-    precisionUnit = 's'
-    precision = int(precision)
-  else:
-    precisionUnit = precision[-1]
-    precision = int( precision[:-1] )
-
-  if points.isdigit():
-    pointsUnit = None
-    points = int(points)
-  else:
-    pointsUnit = points[-1]
-    points = int( points[:-1] )
-
-  if precisionUnit not in UnitMultipliers:
-    raise ValueError("Invalid unit: '%s'" % precisionUnit)
-
-  if pointsUnit not in UnitMultipliers and pointsUnit is not None:
-    raise ValueError("Invalid unit: '%s'" % pointsUnit)
-
-  precision = precision * UnitMultipliers[precisionUnit]
-
-  if pointsUnit:
-    points = points * UnitMultipliers[pointsUnit] / precision
-
-  return (precision, points)
-
 
 
 class Schema:
@@ -79,6 +41,7 @@ class Schema:
 
 
 class DefaultSchema(Schema):
+
   def __init__(self, name, archives):
     self.name = name
     self.archives = archives
@@ -88,6 +51,7 @@ class DefaultSchema(Schema):
 
 
 class PatternSchema(Schema):
+
   def __init__(self, name, pattern, archives):
     self.name = name
     self.pattern = pattern
@@ -99,11 +63,12 @@ class PatternSchema(Schema):
 
 
 class ListSchema(Schema):
+
   def __init__(self, name, listName, archives):
     self.name = name
     self.listName = listName
     self.archives = archives
-    self.path = join(WHITELISTS_DIR, listName)
+    self.path = join(settings.WHITELISTS_DIR, listName)
 
     if exists(self.path):
       self.mtime = os.stat(self.path).st_mtime
@@ -128,22 +93,22 @@ class ListSchema(Schema):
     return metric in self.members
 
 
-
 class Archive:
-  def __init__(self,secondsPerPoint,points):
-    self.secondsPerPoint = int( secondsPerPoint )
-    self.points = int( points )
 
+  def __init__(self,secondsPerPoint,points):
+    self.secondsPerPoint = int(secondsPerPoint)
+    self.points = int(points)
+
+  def __str__(self):
+    return "Archive = (Seconds per point: %d, Datapoints to save: %d)" % (self.secondsPerPoint, self.points) 
 
   def getTuple(self):
     return (self.secondsPerPoint,self.points)
 
-
   @staticmethod
   def fromString(retentionDef):
-    (secondsPerPoint, points) = parseRetentionDefinition(retentionDef)
+    (secondsPerPoint, points) = whisper.parseRetentionDef(retentionDef)
     return Archive(secondsPerPoint, points)
-
 
 
 def loadStorageSchemas():
@@ -159,7 +124,7 @@ def loadStorageSchemas():
 
     retentions = options['retentions'].split(',')
     archives = [ Archive.fromString(s) for s in retentions ]
-
+    
     if matchAll:
       mySchema = DefaultSchema(section, archives)
 
@@ -168,15 +133,18 @@ def loadStorageSchemas():
 
     elif listName:
       mySchema = ListSchema(section, listName, archives)
+    
+    archiveList = [a.getTuple() for a in archives]
 
+    validSchema = whisper.validateArchiveList(archiveList)
+    
+    if validSchema:
+      schemaList.append(mySchema)
     else:
-      raise ValueError('schema "%s" has no pattern or list parameter configured' % section)
-
-    schemaList.append( mySchema )
-
-  schemaList.append( defaultSchema )
+      log.msg("Invalid schemas found in %s." % section )
+  
+  schemaList.append(defaultSchema)
   return schemaList
-
 
 defaultArchive = Archive(60, 60 * 24 * 7) #default retention for unclassified data (7 days of minutely data)
 defaultSchema = DefaultSchema('default', [defaultArchive])

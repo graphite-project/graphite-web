@@ -14,10 +14,12 @@ In general, Graphite requires:
 * Python 2.4 or greater (2.6+ recommended)
 * `Pycairo <http://www.cairographics.org/pycairo/>`_
 * `Django <http://www.djangoproject.com/>`_ 1.0 or greater
+* `django-tagging <http://code.google.com/p/django-tagging/>`_ 0.3.1
 * A json module, if you're using Python2.6 this comes standard. With 2.4 you should
   install `simplejson <http://pypi.python.org/pypi/simplejson/>`_
 * A Django-supported database module (sqlite comes standard with Python 2.6)
 * `Twisted <http://twistedmatrix.com/>`_ 8.0 or greater (10.0+ recommended)
+
 
 Also both the Graphite webapp and Carbon require the whisper database library.
 
@@ -93,32 +95,27 @@ If you run into any issues with Graphite, feel free to post a question to our
 
 Post-Install Tasks
 ------------------
-Once you've installed everything you will need to create some basic configuration.
-Initially none of the config files are created by the installer but example files
-are provided. Simply copy the ``.example`` files and customize.
 
 :doc:`Configuring Carbon </config-carbon>`
-
-Once Carbon is configured, you need to start it up.
+    Once you've installed everything you will need to create some basic configuration.
+    Initially none of the config files are created by the installer but example files
+    are provided. Simply copy the ``.example`` files and customize.
 
 :doc:`Administering Carbon </admin-carbon>`
-
-Once it's up and running, you need to feed it some data.
+    Once Carbon is configured, you need to start it up.
 
 :doc:`Feeding In Your Data </feeding-carbon>`
-
-Once you're feeding in data, you probably want to look at graphs of it. So now
-we turn our attention to the webapp.
+    Once it's up and running, you need to feed it some data.
 
 :doc:`Configuring The Webapp </config-webapp>`
-
-Once its configured you'll need to get it running.
+    With data getting into carbon, you probably want to look at graphs of it.
+    So now we turn our attention to the webapp.
 
 :doc:`Administering The Webapp </admin-webapp>`
-
-Now that the webapp is running, you probably want to learn how to use it.
+    Once its configured you'll need to get it running.
 
 :doc:`Using the Composer </composer>`
+    Now that the webapp is running, you probably want to learn how to use it.
 
 That covers the basics, the next thing you should probably read about is
 :doc:`The URL API </url-api>`.

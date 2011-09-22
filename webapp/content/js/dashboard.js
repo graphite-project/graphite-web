@@ -4,6 +4,9 @@ var contextSelector;
 var contextSelectorFields = [];
 var selectedScheme = null;
 var metricSelector;
+var metricSelectorMode;
+var metricSelectorGrid;
+var metricSelectorTextField;
 var graphArea;
 var graphStore;
 var graphView;
@@ -32,7 +35,10 @@ var navBarNorthConfig = {
   collapseMode: 'mini',
   split: true,
   title: "untitled",
-  height: 220
+  height: 350,
+  listeners: {
+    expand: function() { focusCompleter(); } // defined below
+  }
 };
 
 var navBarWestConfig = Ext.apply({}, navBarNorthConfig);
@@ -76,8 +82,18 @@ var GraphRecord = new Ext.data.Record.create([
   {name: 'url'}
 ]);
 
-var graphStore = new Ext.data.ArrayStore({
-  fields: GraphRecord
+var graphStore;
+function graphStoreUpdated() {
+  if (metricSelectorGrid) metricSelectorGrid.getView().refresh();
+}
+
+graphStore = new Ext.data.ArrayStore({
+  fields: GraphRecord,
+  listeners: {
+    add: graphStoreUpdated,
+    remove: graphStoreUpdated,
+    update: graphStoreUpdated
+  }
 });
 
 var originalDefaultGraphParams = {
@@ -86,7 +102,15 @@ var originalDefaultGraphParams = {
   width: UI_CONFIG.default_graph_width,
   height: UI_CONFIG.default_graph_height
 };
-var defaultGraphParams = Ext.apply({}, originalDefaultGraphParams);
+var defaultGraphParams;
+//XXX
+// Per-session default graph params
+var sessionDefaultParamsJson = cookieProvider.get('defaultGraphParams');
+if (sessionDefaultParamsJson && sessionDefaultParamsJson.length > 0) {
+  defaultGraphParams = Ext.decode(sessionDefaultParamsJson);
+} else {
+  defaultGraphParams = Ext.apply({}, originalDefaultGraphParams);
+}
 
 
 function initDashboard () {
@@ -117,7 +141,7 @@ function initDashboard () {
         listeners: {
           beforequery: buildQuery,
           change: contextFieldChanged,
-          select: function (thisField) { thisField.triggerBlur(); },
+          select: function (thisField) { thisField.triggerBlur(); focusCompleter(); },
           afterrender: function (thisField) { thisField.hide(); },
           hide: function (thisField) { thisField.getEl().up('.x-form-item').setDisplayed(false); },
           show: function (thisField) { thisField.getEl().up('.x-form-item').setDisplayed(true); }
@@ -147,13 +171,14 @@ function initDashboard () {
       afterrender: function (combo) {
         var value = (queryString.metricType) ? queryString.metricType : getContextFieldCookie('metric-type');
 
-        if (value && value.length > 0) {
-          var index = combo.store.find("name", value);
-          if (index > -1) {
-            var record = combo.store.getAt(index);
-            combo.setValue(value);
-            metricTypeSelected.defer(250, this, [combo, record, index]);
-          }
+        if (!value) {
+          value = "Everything";
+        }
+        var index = combo.store.find("name", value);
+        if (index > -1) {
+          var record = combo.store.getAt(index);
+          combo.setValue(value);
+          metricTypeSelected.defer(250, this, [combo, record, index]);
         }
       },
       select: metricTypeSelected
@@ -202,24 +227,120 @@ function initDashboard () {
     }]
   });
 
-  metricSelector = new Ext.tree.TreePanel({
-    root: new Ext.tree.TreeNode({}),
-    containerScroll: true,
-    autoScroll: true,
-    flex: (NAV_BAR_REGION == 'north') ? 1.5 : 3.0,
-    pathSeparator: '.',
-    rootVisible: false,
-    singleExpand: false,
-    trackMouseOver: true,
-    listeners: {
-      click: metricSelectorNodeClicked,
+  if (NAV_BAR_REGION == 'west') {
+    metricSelectorMode = 'tree';
+    metricSelector = new Ext.tree.TreePanel({
+      root: new Ext.tree.TreeNode({}),
+      containerScroll: true,
+      autoScroll: true,
+      flex: 3.0,
+      pathSeparator: '.',
+      rootVisible: false,
+      singleExpand: false,
+      trackMouseOver: true,
+      listeners: {
+      click: metricTreeSelectorNodeClicked,
       contextmenu: function (node, e) {
                      if (!node.leaf) {
                        folderContextMenu.node = node;
                        folderContextMenu.showAt( e.getXY() );
                      }
                    }
+      }
+    });
+  } else { // NAV_BAR_REGION == 'north'
+    metricSelectorMode = 'text';
+    metricSelectorGrid = new Ext.grid.GridPanel({
+      region: 'center',
+      hideHeaders: true,
+      loadMask: true,
+      bodyCssClass: 'terminalStyle',
+
+      colModel: new Ext.grid.ColumnModel({
+        defaults: {
+          sortable: false,
+          menuDisabled: true
+        },
+        columns: [
+          {header: 'Metric Path', width: 1.0, dataIndex: 'path'}
+        ]
+      }),
+      viewConfig: {
+        forceFit: true,
+        rowOverCls: '',
+        bodyCssClass: 'terminalStyle',
+        getRowClass: function(record, index) {
+          var toggledClass = (
+             graphStore.findExact('target', 'target=' + record.data.path) == -1
+            ) ? "metric-not-toggled" : "metric-toggled";
+          var branchClass = (
+            record.data['is_leaf'] == '0'
+          ) ? "result-is-branch-node" : "";
+          return toggledClass + ' ' + branchClass + ' metric-result';
+        }
+      },
+      selModel: new Ext.grid.RowSelectionModel({
+        singleSelect: false
+      }),
+      store: new Ext.data.JsonStore({
+        method: 'GET',
+        url: '/metrics/find/',
+        autoLoad: true,
+        baseParams: {
+          query: '',
+          format: 'completer',
+          automatic_variants: (UI_CONFIG.automatic_variants) ? '1' : '0'
+        },
+        fields: ['path', 'is_leaf'],
+        root: 'metrics'
+      }),
+      listeners: {
+        rowclick: function (thisGrid, rowIndex, e) {
+                    var record = thisGrid.getStore().getAt(rowIndex);
+                    if (record.data['is_leaf'] == '1') {
+                      graphAreaToggle(record.data.path);
+                      thisGrid.getView().refresh();
+                    } else {
+                      metricSelectorTextField.setValue(record.data.path);
+                    }
+                    autocompleteTask.delay(50);
+                    focusCompleter();
+                  }
+      }
+    });
+
+    function completerKeyPress(thisField, e) {
+      var charCode = e.getCharCode();
+      if (charCode == 8 ||  //backspace
+          charCode >= 46 || //delete and all printables
+          charCode == 36 || //home
+          charCode == 35) { //end
+        autocompleteTask.delay(AUTOCOMPLETE_DELAY);
+      }
     }
+
+    metricSelectorTextField = new Ext.form.TextField({
+      region: 'south',
+      enableKeyEvents: true,
+      cls: 'completer-input-field',
+      listeners: {
+        keypress: completerKeyPress,
+        specialkey: completerKeyPress,
+        afterrender: focusCompleter
+      }
+    });
+    metricSelector = new Ext.Panel({
+      flex: 1.5,
+      layout: 'border',
+      items: [metricSelectorGrid, metricSelectorTextField]
+    });
+  }
+
+  var autocompleteTask = new Ext.util.DelayedTask(function () {
+    var query = metricSelectorTextField.getValue();
+    var store = metricSelectorGrid.getStore();
+    store.setBaseParam('query', query);
+    store.load();
   });
 
   var graphTemplate = new Ext.XTemplate(
@@ -445,6 +566,12 @@ function initDashboard () {
     handler: doShare
   };
 
+  var helpButton = {
+    icon: HELP_ICON,
+    tooltip: "Keyboard Shortcuts",
+    handler: showHelp
+  };
+
   var resizeButton = {
     icon: RESIZE_ICON,
     tooltip: "Resize Graphs",
@@ -521,7 +648,7 @@ function initDashboard () {
     region: 'center',
     layout: 'fit',
     autoScroll: false,
-    bodyCssClass: 'graphAreaBody',
+    bodyCssClass: 'graph-area-body',
     items: [graphView],
     tbar: new Ext.Toolbar({
       items: [
@@ -535,6 +662,7 @@ function initDashboard () {
         ' ',
         timeRangeText,
         '->',
+        helpButton,
         resizeButton,
         removeAllButton,
         refreshButton,
@@ -547,7 +675,7 @@ function initDashboard () {
   });
 
   /* Nav Bar */
-  navBarNorthConfig.items = [contextSelector, metricSelector];
+  navBarNorthConfig.items = [metricSelector];
   navBarWestConfig.items = [contextSelector, metricSelector];
   var navBarConfig = (NAV_BAR_REGION == 'north') ? navBarNorthConfig : navBarWestConfig;
   navBar = new Ext.Panel(navBarConfig);
@@ -575,6 +703,16 @@ function initDashboard () {
   }
 }
 
+function showHelp() {
+  var win = new Ext.Window({
+    title: "Keyboard Shortcuts",
+    modal: true,
+    width: 550,
+    height: 300,
+    autoLoad: "/dashboard/help/"
+  });
+  win.show();
+}
 
 function metricTypeSelected (combo, record, index) {
   selectedScheme = record;
@@ -590,6 +728,7 @@ function metricTypeSelected (combo, record, index) {
 
   setContextFieldCookie("metric-type", combo.getValue());
   contextFieldChanged();
+  focusCompleter();
 }
 
 
@@ -639,7 +778,12 @@ function buildQuery (queryEvent) {
 }
 
 
-function contextFieldChanged () {
+function contextFieldChanged() {
+  var pattern = getContextFieldsPattern();
+  if (pattern) metricSelectorShow(pattern);
+}
+
+function getContextFieldsPattern() {
   var schemeName = selectedScheme.get('name');
   var pattern = selectedScheme.get('pattern');
   var fields = selectedScheme.get('fields');
@@ -669,10 +813,18 @@ function contextFieldChanged () {
     return;
   }
 
-  metricSelectorShow(pattern);
+  return pattern;
 }
 
 function metricSelectorShow(pattern) {
+  if (metricSelectorMode == 'tree') {
+    metricTreeSelectorShow(pattern);
+  } else {
+    metricTextSelectorShow(pattern);
+  }
+}
+
+function metricTreeSelectorShow(pattern) {
   var base_parts = pattern.split('.');
 
   function setParams (loader, node, callback) {
@@ -708,8 +860,14 @@ function metricSelectorShow(pattern) {
   root.expand();
 }
 
+function metricTextSelectorShow(pattern) {
+  var store = metricSelectorGrid.getStore();
+  store.setBaseParam('query', pattern);
+  store.load();
+}
 
-function metricSelectorNodeClicked (node, e) {
+
+function metricTreeSelectorNodeClicked (node, e) {
   if (!node.leaf) {
     node.toggle();
     return;
@@ -735,13 +893,13 @@ function graphAreaToggle(target, options) {
     graphTargetList = [graphTargetList];
   }
 
-  var existingIndex = graphStore.find('target', graphTargetString);
+  var existingIndex = graphStore.findExact('target', graphTargetString);
 
   if (existingIndex > -1) {
     if ( (options === undefined) || (!options.dontRemove) ) {
       graphStore.removeAt(existingIndex);
     }
-  } else {
+  } else if ( (options === undefined) || (!options.onlyRemove) ) {
     // Add it
     var myParams = {
       target: graphTargetList
@@ -835,17 +993,20 @@ function startTask(task) {
 }
 
 /* Time Range management */
+defaultGraphParams['from'].match(/([0-9]+)([^0-9]+)/);
+var defaultRelativeQuantity = RegExp.$1;
+var defaultRelativeUnits = RegExp.$2;
 var TimeRange = {
   // Default to a relative time range
   type: 'relative',
-  quantity: '2',
-  units: 'hours',
+  quantity: defaultRelativeQuantity,
+  units: defaultRelativeUnits,
   // Absolute time range
   startDate: new Date(),
   startTime: "9:00 AM",
   endDate: new Date(),
   endTime: "5:00 PM"
-}
+};
 
 function getTimeText() {
   if (TimeRange.type == 'relative') {
@@ -870,6 +1031,7 @@ function timeRangeUpdated() {
   }
   defaultGraphParams.from = fromParam;
   defaultGraphParams.until = untilParam;
+  saveDefaultGraphParams();
 
   graphStore.each(function () {
     this.data.params.from = fromParam;
@@ -1009,6 +1171,7 @@ function editDefaultGraphParameters() {
     var params = Ext.urlDecode(paramsString);
     copyUneditable(defaultGraphParams, params);
     defaultGraphParams = params;
+    saveDefaultGraphParams();
     refreshGraphs();
     win.close();
   }
@@ -1104,6 +1267,7 @@ function selectGraphSize() {
   function resize() {
     GraphSize.width = defaultGraphParams.width = widthField.getValue();
     GraphSize.height = defaultGraphParams.height = heightField.getValue();
+    saveDefaultGraphParams();
     win.close();
     refreshGraphs();
   }
@@ -1395,7 +1559,9 @@ function graphClicked(graphView, graphIndex, element, evt) {
     items: menuItems
   });
   activeMenu = menu;
-  menu.showAt( evt.getXY() );
+  var position = evt.getXY();
+  position[0] -= (buttonWidth * 1.5) + 10; //horizontally center menu with the mouse
+  menu.showAt(position);
   menu.get(0).focus(false, 50);
   menu.keyNav.disable();
   menu.on('hide', function () {
@@ -1431,19 +1597,64 @@ function copyUneditable (src, dst) {
   });
 }
 
-
 function breakoutGraph(record) {
+  /* We have to gather some context from the
+     graph target's expressions so we can reapply
+     functions after the expressions get expanded. */
+  var pathExpressions = [];
+  var exprInfo = {};
+
+  try {
+    Ext.each(record.data.params.target, function(target) {
+      var exprsInThisTarget = 0;
+      map(target.split(','), function (arg) {
+        var arglets = arg.split('(');
+        map(arglets[arglets.length-1].split(')'), function (expr) {
+          expr = expr.replace(/^\s*(.+?)\s*$/, '$1');
+          if (expr.length == 0 || expr[0] == '"' || expr[0] == "'") return;
+
+          if (expr.match(/[a-z].*\..*[a-z]/i)) {
+            exprsInThisTarget++;
+            if (exprsInThisTarget > 1) {
+              throw 'arrr!';
+            }
+
+            pathExpressions.push(expr);
+            var i = target.indexOf(expr);
+            exprInfo[expr] = {
+              expr: expr,
+              pre: target.substr(0, i),
+              post: target.substr(i + expr.length)
+            }
+
+          }   
+
+        }); //map arglets
+      }); //map args
+    }); //each target
+  } catch (err) {
+    Ext.Msg.alert("Graph contains unbreakable target", "Graph targets containing more than one metric expression cannot be broken out.");
+    return;
+  }
+
   Ext.Ajax.request({
     url: '/metrics/expand/',
     params: {
-      query: record.data.params.target
+      groupByExpr: '1',
+      leavesOnly: '1',
+      query: pathExpressions
     },
     callback: function (options, success, response) {
                 var responseObj = Ext.decode(response.responseText);
                 graphStore.remove(record);
-                Ext.each(responseObj.results, function (metricPath) {
-                  graphAreaToggle(metricPath, {dontRemove: true, defaultParams: record.data.params});
-                });
+                for (var expr in responseObj.results) {
+                  var pre = exprInfo[expr].pre;
+                  var post = exprInfo[expr].post;
+                  map(responseObj.results[expr], function (metricPath) {
+                    metricPath = pre + metricPath + post;
+                    graphAreaToggle(metricPath, {dontRemove: true, defaultParams: record.data.params});
+                  });
+                }
               }
   });
 }
@@ -1541,11 +1752,77 @@ function toggleToolbar() {
   graphArea.doLayout();
 }
 
-var keyMap = new Ext.KeyMap(document, {
-  key: 'z',
-  ctrl: true,
-  handler: toggleToolbar
-});
+function toggleNavBar() {
+  navBar.toggleCollapse(true);
+}
+
+function focusCompleter() {
+  if (metricSelectorTextField) metricSelectorTextField.focus(false, 50);
+}
+
+/* Keyboard shortcuts */
+var keyEventHandlers = {
+  toggle_toolbar: toggleToolbar,
+  toggle_metrics_panel: toggleNavBar,
+  give_completer_focus: focusCompleter,
+  erase_all_graphs: function () {
+      graphStore.removeAll();
+      refreshGraphs();
+      graphStoreUpdated();
+    },
+  completer_add_metrics: function () {
+      if (metricSelectorGrid) {
+        metricSelectorGrid.getStore().each(function (record) {
+          if (record.data.path[ record.data.path.length - 1] != '.') {
+            graphAreaToggle(record.data.path, {dontRemove: true});
+          }
+        });
+        focusCompleter(); 
+      }
+    },
+  completer_del_metrics: function () {
+      if (metricSelectorGrid) {
+        metricSelectorGrid.getStore().each(function (record) {
+          graphAreaToggle(record.data.path, {onlyRemove: true});
+        });
+        focusCompleter();
+      }
+    },
+  save_dashboard: function () {
+      if (dashboardName == null) {
+        saveDashboard();
+      } else {
+        sendSaveRequest(dashboardName);
+      }
+    }
+};
+
+var specialKeys = {
+  space: 32,
+  enter: Ext.EventObject.ENTER,
+  backspace: Ext.EventObject.BACKSPACE
+};
+
+var keyMapConfigs = [];
+
+for (var event_name in UI_CONFIG.keyboard_shortcuts) {
+  var config = {handler: keyEventHandlers[event_name]};
+  if (!config.handler) {
+    continue;
+  }
+  var keyString = UI_CONFIG.keyboard_shortcuts[event_name];
+  var keys = keyString.split('-');
+  config.ctrl = keys.indexOf('ctrl') > -1;
+  config.alt = keys.indexOf('alt') > -1;
+  config.shift = keys.indexOf('shift') > -1;
+  config.key = keys[keys.length - 1];
+  if (specialKeys[config.key]) {
+    config.key = specialKeys[config.key];
+  }
+  keyMapConfigs.push(config);
+}
+
+var keyMap = new Ext.KeyMap(document, keyMapConfigs);
 
 
 /* Dashboard functions */
@@ -1714,8 +1991,12 @@ function failedAjaxCall(response, options) {
   );
 }
 
+var configure_ui_win;
 function configureUI() {
-  var win;
+
+  if (configure_ui_win) {
+    configure_ui_win.close();
+  }
 
   function updateOrientation() {
     if (Ext.getCmp('navbar-left-radio').getValue()) {
@@ -1723,21 +2004,23 @@ function configureUI() {
     } else {
       updateNavBar('north');
     }
-    win.close();
+    configure_ui_win.close();
+    configure_ui_win = null;
   }
 
-  win = new Ext.Window({
+  configure_ui_win = new Ext.Window({
     title: "Configure UI",
     layout: 'form',
-    width: 200,
-    height: 120,
-    labelWidth: 110,
+    width: 300,
+    height: 125,
+    labelWidth: 120,
+    labelAlign: 'right',
     items: [
       {
         id: 'navbar-left-radio',
         xtype: "radio",
-        fieldLabel: "Nav Bar Position",
-        boxLabel: "Left",
+        fieldLabel: "Navigation Mode",
+        boxLabel: "Tree (left nav)",
         name: "navbar-position",
         inputValue: "left",
         checked: (NAV_BAR_REGION == 'west')
@@ -1745,7 +2028,7 @@ function configureUI() {
         id: 'navbar-top-radio',
         xtype: "radio",
         fieldLabel: "",
-        boxLabel: "Top",
+        boxLabel: "Completer (top nav)",
         name: "navbar-position",
         inputValue: "top",
         checked: (NAV_BAR_REGION == 'north')
@@ -1753,10 +2036,10 @@ function configureUI() {
     ],
     buttons: [
       {text: 'Ok', handler: updateOrientation},
-      {text: 'Cancel', handler: function () { win.close(); } }
+      {text: 'Cancel', handler: function () { configure_ui_win.close(); configure_ui_win = null; } }
     ]
   });
-  win.show();
+  configure_ui_win.show();
 }
 
 function updateNavBar(region) {
@@ -1765,21 +2048,8 @@ function updateNavBar(region) {
   }
   cookieProvider.set('navbar-region', region);
   Ext.Msg.alert('Cookie Updated', "You must refresh the page to update the nav bar's location.");
+  //TODO prompt the user to save their dashboard and refresh for them
 
-  /* Potentially avoid the full refresh by hiding a second nav bar */
-  //region: 'north',
-  //layout: 'hbox',
-  //layoutConfig: { align: 'stretch' },
-  //collapsible: true,
-  //collapseMode: 'mini',
-  //split: true,
-  //title: "untitled",
-  //height: 220,
-
-  //delete navBarWestConfig.height;
-  //navBarWestConfig.region = 'west';
-  //navBarWestConfig.layout = 'vbox';
-  //navBarWestConfig.width = 338;
   NAV_BAR_REGION = region;
 }
 
@@ -1882,7 +2152,7 @@ function showDashboardFinder() {
                     sendLoadRequest(field.getValue());
                     win.close();
                   } else {
-                    queryUpdateTask.delay(QUERY_DELAY);
+                    queryUpdateTask.delay(FINDER_QUERY_DELAY);
                   }
                 }
     }
@@ -2082,6 +2352,11 @@ function removeOuterCall() { // blatantly repurposed from composer_widgets.js (d
   });
   refreshGraphs();
 }
+
+function saveDefaultGraphParams() {
+  cookieProvider.set('defaultGraphParams', Ext.encode(defaultGraphParams));
+}
+
 
 /* Cookie stuff */
 function getContextFieldCookie(field) {

@@ -1,6 +1,13 @@
 Tools That Work With Graphite
 =============================
 
+Diamond
+-------
+`Diamond`_ is a Python daemon that collects system metrics and publishes them to Graphite. It is
+capable of collecting cpu, memory, network, I/O, load and disk metrics. Additionally, it features
+an API for implementing custom collectors for gathering metrics from almost any source.
+
+
 jmxtrans
 --------
 `jmxtrans`_ is a powerful tool that performs JMX queries to collect metrics from Java applications.
@@ -25,9 +32,18 @@ that allows Ganglia to send metrics directly to Graphite. Further integration wo
 collectd
 --------
 `collectd`_ is a daemon which collects system performance statistics periodically and provides
-mechanisms to store the values in a variety of ways, including RRD. Jordan Sissel of Loggly wrote
-a neat tool (https://github.com/loggly/collectd-to-graphite) that allows collectd to
-send metrics to Graphite.
+mechanisms to store the values in a variety of ways, including RRD. To send collectd merics into carbon/graphite, use:
+
+- Jordan Sissel's node collectd-to-graphite_ proxy
+- Joe Miller's perl collectd-graphite_ plugin
+- Gregory Szorc's python collectd-carbon_ plugin
+- Scott Sanders's C collectd-write_graphite_ plugin
+
+Graphite can also read directly from `collectd`_'s RRD files. RRD files can
+simply be added to ``STORAGE_DIR/rrd`` (as long as directory names and files do not
+contain any ``.`` characters). For example, collectd's
+``host.name/load/load.rrd`` can be symlinked to ``rrd/collectd/host_name/load/load.rrd``
+to graph ``collectd.host_name.load.load.{short,mid,long}term``.
 
 
 Logster
@@ -46,10 +62,15 @@ AdMob (who was then bought by Google), this was released by Google as open sourc
 Learn more here, http://code.google.com/p/rocksteady/
 
 
+.. _Diamond: http://opensource.brightcove.com/project/Diamond/
 .. _jmxtrans: http://code.google.com/p/jmxtrans/
 .. _statsd: https://github.com/etsy/statsd
 .. _Ganglia: http://ganglia.info/
 .. _collectd: http://collectd.org/
+.. _collectd-to-graphite: https://github.com/loggly/collectd-to-graphite
+.. _collectd-carbon: https://github.com/indygreg/collectd-carbon
+.. _collectd-graphite: https://github.com/joemiller/collectd-graphite
+.. _collectd-write_graphite: https://github.com/jssjr/collectd-write_graphite
 .. _Logster: https://github.com/etsy/logster
 .. _RabbitMQ: http://www.rabbitmq.com/
 .. _Esper: http://esper.codehaus.org/
