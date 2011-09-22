@@ -17,7 +17,7 @@ These functions are used on the metrics passed in the ``&target=``
 URL parameters to change the data being graphed in some way.
 """
 
-import datetime
+from datetime import timedelta
 from itertools import izip
 import math
 import re
@@ -1099,6 +1099,8 @@ def holtWintersSeasonal(gamma,actual,intercept,last_season):
   return gamma * (actual - intercept) + (1 - gamma) * last_season
 
 def holtWintersDeviation(gamma,actual,prediction,last_seasonal_dev):
+  if prediction is None:
+    prediction = 0
   return gamma * math.fabs(actual - prediction) + (1 - gamma) * last_seasonal_dev
 
 def holtWintersAnalysis(series, bootstrap=None):
@@ -1673,7 +1675,7 @@ def timeFunction(requestContext, name):
   """
 
   step = 60
-  delta = datetime.timedelta(seconds=step)
+  delta = timedelta(seconds=step)
   when = requestContext["startTime"]
   values = []
 
@@ -1703,7 +1705,7 @@ def sinFunction(requestContext, name, amplitude=1):
   This would create a series named "The.time.series" that contains sin(x)*2.
   """
   step = 60
-  delta = datetime.timedelta(seconds=step)
+  delta = timedelta(seconds=step)
   when = requestContext["startTime"]
   values = []
 
@@ -1733,7 +1735,7 @@ def randomWalkFunction(requestContext, name):
   x(t) == x(t-1)+random()-0.5, and x(0) == 0.
   """
   step = 60
-  delta = datetime.timedelta(seconds=step)
+  delta = timedelta(seconds=step)
   when = requestContext["startTime"]
   values = []
   current = 0
@@ -1764,7 +1766,7 @@ def events(requestContext, *tags):
   """
   step = 60
   name = "events(" + ", ".join(tags) + ")"
-  delta = datetime.timedelta(seconds=step)
+  delta = timedelta(seconds=step)
   when = requestContext["startTime"]
   values = []
   current = 0
