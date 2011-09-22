@@ -436,6 +436,11 @@ class LineGraph(Graph):
       params['yAxisSide'] = 'left'
     if 'yUnitSystem' not in params:
       params['yUnitSystem'] = 'si'
+    else:
+      params['yUnitSystem'] = str(params['yUnitSystem']).lower()
+      if params['yUnitSystem'] not in UnitSystems.keys():
+        params['yUnitSystem'] = 'si'
+
     self.params = params
     
     # Don't do any of the special right y-axis stuff if we're drawing 2 y-axes.
@@ -837,22 +842,19 @@ class LineGraph(Graph):
                 system=self.params.get('yUnitSystem'))
         ySpan, spanPrefix = format_units(self.ySpan, self.yStep,
                 system=self.params.get('yUnitSystem'))
-
-        yValue = float(yValue)
         if yValue < 0.1:
-          return "%g %s" % (yValue, prefix)
+          return "%g %s" % (float(yValue), prefix)
         elif yValue < 1.0:
-          return "%.2f %s" % (yValue, prefix)
-
+          return "%.2f %s" % (float(yValue), prefix)
         if ySpan > 10 or spanPrefix != prefix:
-          return "%d %s " % (int(yValue), prefix)
-
+          if type(yValue) is float:
+            return "%.1f %s" % (float(yValue), prefix)
+          else:
+            return "%d %s " % (int(yValue), prefix)
         elif ySpan > 3:
           return "%.1f %s " % (float(yValue), prefix)
-
         elif ySpan > 0.1:
           return "%.2f %s " % (float(yValue), prefix)
-
         else:
           return "%g %s" % (float(yValue), prefix)
 
@@ -1012,13 +1014,15 @@ class LineGraph(Graph):
     def makeLabel(yValue, yStep=None, ySpan=None):
       yValue, prefix = format_units(yValue,yStep,system=self.params.get('yUnitSystem'))
       ySpan, spanPrefix = format_units(ySpan,yStep,system=self.params.get('yUnitSystem'))
-      yValue = float(yValue)
       if yValue < 0.1:
-        return "%g %s" % (yValue, prefix)
+        return "%g %s" % (float(yValue), prefix)
       elif yValue < 1.0:
-        return "%.2f %s" % (yValue, prefix)
+        return "%.2f %s" % (float(yValue), prefix)
       if ySpan > 10 or spanPrefix != prefix:
-        return "%d %s " % (int(yValue), prefix)
+        if type(yValue) is float:
+          return "%.1f %s " % (float(yValue), prefix)
+        else:
+          return "%d %s " % (int(yValue), prefix)
       elif ySpan > 3:
         return "%.1f %s " % (float(yValue), prefix)
       elif ySpan > 0.1:
@@ -1395,9 +1399,13 @@ def format_units(v, step, system="si"):
 
   for prefix, size in UnitSystems[system]:
     if abs(v) >= size and step >= size:
-      v /= size
-      return v, prefix
-
+      v2 = v / size
+      if (v2 - int(v2)) < 0.00000000001 and v > 1:
+        v2 = int(v2)
+      return v2, prefix
+  
+  if (v - int(v)) < 0.00000000001 and v > 1 :
+    v = int(v)
   return v, ""
 
 
