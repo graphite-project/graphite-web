@@ -380,7 +380,7 @@ class LineGraph(Graph):
                   'yUnitSystem', 'logBase','yMinLeft','yMinRight','yMaxLeft', \
                   'yMaxRight', 'yLimitLeft', 'yLimitRight', 'yStepLeft', \
                   'yStepRight', 'rightWidth', 'rightColor', 'rightDashed', \
-                  'leftWidth', 'leftColor', 'leftDashed')
+                  'leftWidth', 'leftColor', 'leftDashed', 'xFormat')
   validLineModes = ('staircase','slope','connected')
   validAreaModes = ('none','first','all','stacked')
   validPieModes = ('maximum', 'minimum', 'average')
@@ -1132,8 +1132,9 @@ class LineGraph(Graph):
     (dt, x_label_delta) = find_x_times(self.start_dt, self.xConf['labelUnit'], self.xConf['labelStep'])
 
     #Draw the X-labels
+    xFormat = self.params.get('xFormat', self.xConf['format'])
     while dt < self.end_dt:
-      label = dt.strftime( self.xConf['format'] )
+      label = dt.strftime(xFormat)
       x = self.area['xmin'] + (toSeconds(dt - self.start_dt) * self.xScaleFactor)
       y = self.area['ymax'] + self.getExtents()['maxAscent']
       self.drawText(label, x, y, align='center', valign='top')
