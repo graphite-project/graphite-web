@@ -17,7 +17,7 @@ These functions are used on the metrics passed in the ``&target=``
 URL parameters to change the data being graphed in some way.
 """
 
-import datetime
+from datetime import timedelta
 from itertools import izip
 import math
 import re
@@ -1088,6 +1088,215 @@ def secondYAxis(requestContext, seriesList):
     series.name= 'secondYAxis(%s)' % series.name
   return seriesList
 
+def holtWintersIntercept(alpha,actual,last_season,last_intercept,last_slope):
+  return alpha * (actual - last_season) \
+          + (1 - alpha) * (last_intercept + last_slope)
+
+def holtWintersSlope(beta,intercept,last_intercept,last_slope):
+  return beta * (intercept - last_intercept) + (1 - beta) * last_slope
+
+def holtWintersSeasonal(gamma,actual,intercept,last_season):
+  return gamma * (actual - intercept) + (1 - gamma) * last_season
+
+def holtWintersDeviation(gamma,actual,prediction,last_seasonal_dev):
+  if prediction is None:
+    prediction = 0
+  return gamma * math.fabs(actual - prediction) + (1 - gamma) * last_seasonal_dev
+
+def holtWintersAnalysis(series, bootstrap=None):
+  alpha = gamma = 0.1
+  beta = 0.0035
+  season_length = (24*60*60) / series.step
+  intercept = 0
+  slope = 0
+  pred = 0
+  intercepts = list()
+  slopes = list()
+  seasonals = list()
+  predictions = list()
+  deviations = list()
+
+  def getLastSeasonal(i):
+    j = i - season_length
+    if j >= 0:
+      return seasonals[j]
+    if bootstrap:
+      return bootstrap['seasonals'][j]
+    return 0
+
+  def getLastDeviation(i):
+    j = i - season_length
+    if j >= 0:
+      return deviations[j]
+    if bootstrap:
+      return bootstrap['deviations'][j]
+    return 0
+
+  last_seasonal = 0
+  last_seasonal_dev = 0
+  next_last_seasonal = 0
+  next_pred = None
+
+  for i,actual in enumerate(series):
+    if actual is None:
+      # missing input values break all the math
+      # do the best we can and move on
+      intercepts.append(None)
+      slopes.append(0)
+      seasonals.append(0)
+      predictions.append(next_pred)
+      deviations.append(0)
+      next_pred = None
+      continue
+
+    if i == 0:
+      if bootstrap:
+        last_intercept = bootstrap['intercepts'][-1]
+        last_slope = bootstrap['slopes'][-1]
+        prediction = bootstrap['predictions'][-1]
+      else:
+        last_intercept = actual
+        last_slope = 0
+        # seed the first prediction as the first actual
+        prediction = actual
+    else:
+      last_intercept = intercepts[-1]
+      last_slope = slopes[-1]
+      if last_intercept is None:
+        last_intercept = actual
+      prediction = next_pred
+
+    last_seasonal = getLastSeasonal(i)
+    next_last_seasonal = getLastSeasonal(i+1)
+    last_seasonal_dev = getLastDeviation(i)
+
+    intercept = holtWintersIntercept(alpha,actual,last_seasonal
+            ,last_intercept,last_slope)
+    slope = holtWintersSlope(beta,intercept,last_intercept,last_slope)
+    seasonal = holtWintersSeasonal(gamma,actual,intercept,last_seasonal)
+    next_pred = intercept + slope + next_last_seasonal
+    deviation = holtWintersDeviation(gamma,actual,prediction,last_seasonal_dev)
+
+    intercepts.append(intercept)
+    slopes.append(slope)
+    seasonals.append(seasonal)
+    predictions.append(prediction)
+    deviations.append(deviation)
+
+  # make the new forecast series
+  forecastName = "holtWintersForecast(%s)" % series.name
+  forecastSeries = TimeSeries(forecastName, series.start, series.end
+    , series.step, predictions)
+  forecastSeries.pathExpression = forecastName
+
+  # make the new deviation series
+  deviationName = "holtWintersDeviation(%s)" % series.name
+  deviationSeries = TimeSeries(deviationName, series.start, series.end
+          , series.step, deviations)
+  deviationSeries.pathExpression = deviationName
+
+  results = { 'predictions': forecastSeries
+        , 'deviations': deviationSeries
+        , 'intercepts': intercepts
+        , 'slopes': slopes
+        , 'seasonals': seasonals
+        }
+  return results
+
+def holtWintersFetchBootstrap(requestContext, seriesPath):
+  previousContext = requestContext.copy()
+  # go back 1 week to get a solid bootstrap
+  previousContext['startTime'] = requestContext['startTime'] - timedelta(7)
+  previousContext['endTime'] = requestContext['startTime']
+  bootstrapPath = "holtWintersBootstrap(%s)" % seriesPath
+  previousResults = evaluateTarget(previousContext, bootstrapPath)
+  return {'predictions': previousResults[0]
+        , 'deviations': previousResults[1]
+        , 'intercepts': previousResults[2]
+        , 'slopes': previousResults[3]
+        , 'seasonals': previousResults[4]
+        }
+
+def holtWintersBootstrap(requestContext, seriesList):
+  results = []
+  for series in seriesList:
+    bootstrap = holtWintersAnalysis(series)
+    interceptSeries = TimeSeries('intercepts', series.start, series.end
+            , series.step, bootstrap['intercepts'])
+    slopeSeries = TimeSeries('slopes', series.start, series.end
+            , series.step, bootstrap['slopes'])
+    seasonalSeries = TimeSeries('seasonals', series.start, series.end
+            , series.step, bootstrap['seasonals'])
+
+    results.append(bootstrap['predictions'])
+    results.append(bootstrap['deviations'])
+    results.append(interceptSeries)
+    results.append(slopeSeries)
+    results.append(seasonalSeries)
+  return results
+
+def holtWintersForecast(requestContext, seriesList):
+  results = []
+  for series in seriesList:
+    bootstrap = holtWintersFetchBootstrap(requestContext, series.pathExpression)
+    analysis = holtWintersAnalysis(series, bootstrap)
+    results.append(analysis['predictions'])
+    #results.append(analysis['deviations'])
+  return results
+
+def holtWintersConfidenceBands(requestContext, seriesList):
+  results = []
+  for series in seriesList:
+    bootstrap = holtWintersFetchBootstrap(requestContext, series.pathExpression)
+    analysis = holtWintersAnalysis(series, bootstrap)
+    forecast = analysis['predictions']
+    deviation = analysis['deviations']
+    seriesLength = len(series)
+    i = 0
+    upperBand = list()
+    lowerBand = list()
+    while i < seriesLength:
+      forecast_item = forecast[i]
+      deviation_item = deviation[i]
+      i = i + 1
+      if forecast_item is None or deviation_item is None:
+        upperBand.append(None)
+        lowerBand.append(None)
+      else:
+        scaled_deviation = 3 * deviation_item
+        upperBand.append(forecast_item + scaled_deviation)
+        lowerBand.append(forecast_item - scaled_deviation)
+    upperName = "holtWintersConfidenceUpper(%s)" % series.name
+    lowerName = "holtWintersConfidenceLower(%s)" % series.name
+    upperSeries = TimeSeries(upperName, series.start, series.end
+            , series.step, upperBand)
+    lowerSeries = TimeSeries(lowerName, series.start, series.end
+            , series.step, lowerBand)
+    results.append(upperSeries)
+    results.append(lowerSeries)
+  return results
+
+def holtWintersAberration(requestContext, seriesList):
+  results = []
+  for series in seriesList:
+    confidenceBands = holtWintersConfidenceBands(requestContext, [series])
+    upperBand = confidenceBands[0]
+    lowerBand = confidenceBands[1]
+    aberration = list()
+    for i, actual in enumerate(series):
+      if series[i] > upperBand[i]:
+        aberration.append(series[i] - upperBand[i])
+      elif series[i] < lowerBand[i]:
+        aberration.append(series[i] - lowerBand[i])
+      else:
+        aberration.append(0)
+
+    newName = "holtWintersAberration(%s)" % series.name
+    results.append(TimeSeries(newName, series.start, series.end
+            , series.step, aberration))
+  return results
+
+
 def drawAsInfinite(requestContext, seriesList):
   """
   Takes one metric or a wildcard seriesList.
@@ -1466,7 +1675,7 @@ def timeFunction(requestContext, name):
   """
 
   step = 60
-  delta = datetime.timedelta(seconds=step)
+  delta = timedelta(seconds=step)
   when = requestContext["startTime"]
   values = []
 
@@ -1496,7 +1705,7 @@ def sinFunction(requestContext, name, amplitude=1):
   This would create a series named "The.time.series" that contains sin(x)*2.
   """
   step = 60
-  delta = datetime.timedelta(seconds=step)
+  delta = timedelta(seconds=step)
   when = requestContext["startTime"]
   values = []
 
@@ -1526,7 +1735,7 @@ def randomWalkFunction(requestContext, name):
   x(t) == x(t-1)+random()-0.5, and x(0) == 0.
   """
   step = 60
-  delta = datetime.timedelta(seconds=step)
+  delta = timedelta(seconds=step)
   when = requestContext["startTime"]
   values = []
   current = 0
@@ -1557,7 +1766,7 @@ def events(requestContext, *tags):
   """
   step = 60
   name = "events(" + ", ".join(tags) + ")"
-  delta = datetime.timedelta(seconds=step)
+  delta = timedelta(seconds=step)
   when = requestContext["startTime"]
   values = []
   current = 0
@@ -1623,6 +1832,10 @@ SeriesFunctions = {
   # Calculate functions
   'movingAverage' : movingAverage,
   'stdev' : stdev,
+  'holtWintersBootstrap': holtWintersBootstrap,
+  'holtWintersForecast': holtWintersForecast,
+  'holtWintersConfidenceBands': holtWintersConfidenceBands,
+  'holtWintersAberration': holtWintersAberration,
   'asPercent' : asPercent,
   'pct' : asPercent,
 
