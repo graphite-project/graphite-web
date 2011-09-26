@@ -1414,7 +1414,7 @@ def constantLine(requestContext, value):
 
   .. code-block:: none
 
-    &target=contstantLine(123.456)
+    &target=constantLine(123.456)
 
   """
   start = timestamp( requestContext['startTime'] )

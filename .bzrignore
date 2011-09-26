@@ -3,3 +3,6 @@ _trial_temp
 build
 dist
 graphite.db
+webapp/wsgi-profile.py
+webapp/wsgi.py
+.bzrignore
