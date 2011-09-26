@@ -36,6 +36,7 @@ colorAliases = {
   'orange' : (255, 165, 0),
   'purple' : (200,100,255),
   'brown' : (150,100,50),
+  'cyan' : (0,255,255),
   'aqua' : (0,150,150),
   'gray' : (175,175,175),
   'grey' : (175,175,175),
@@ -151,16 +152,6 @@ class Graph:
       'ymax' : self.height - self.margin,
     }
 
-    # Determine if we're doing a 2 y-axis graph.
-
-    for series in self.data:
-      if 'secondYAxis' in series.options:
-        self.dataRight.append(series)
-      else:
-        self.dataLeft.append(series)
-    if len(self.dataRight) > 0:
-      self.secondYAxis = True
-
     self.loadTemplate( params.get('template','default') )
 
     self.setupCairo( params.get('outputFormat','png').lower() )
@@ -180,33 +171,9 @@ class Graph:
       colorList = self.defaultColorList
     self.colors = itertools.cycle( colorList )
 
-    # Here's an example of why I split up the left and right data. 
-    # For a lot of the x-axis stuff we need to operate on all data.
-    # For other stuff, just the left or right. 
-    # You can do it other ways, but then I felt that I was doing the
-    # same split in every other location. 
+    self.drawGraph(**params)
 
-    # I just do it once above and get it over with, 
-    # and test self.secondYAxis in other places.
-
-    if self.data:
-      startTime = min([series.start for series in self.data])
-      endTime = max([series.end for series in self.data])
-      timeRange = endTime - startTime
-    else:
-      timeRange = None
-
-    if timeRange:
-      self.drawGraph(**params)
-    else:
-      x = self.width / 2
-      y = self.height / 2
-      self.setColor('red')
-      self.setFont(size=math.log(self.width * self.height) )
-      self.drawText("No Data", x, y, align='center')
-
-  def setupCairo(self,outputFormat='png'): #TODO Only PNG supported for now...
-    #os.chdir( os.path.dirname(__file__) ) #To utilize local font-cache
+  def setupCairo(self,outputFormat='png'): #TODO SVG support
     self.surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, self.width, self.height)
     self.ctx = cairo.Context(self.surface)
 
@@ -414,14 +381,38 @@ class LineGraph(Graph):
                   'yUnitSystem', 'logBase','yMinLeft','yMinRight','yMaxLeft', \
                   'yMaxRight', 'yLimitLeft', 'yLimitRight', 'yStepLeft', \
                   'yStepRight', 'rightWidth', 'rightColor', 'rightDashed', \
-                  'leftWidth', 'leftColor', 'leftDashed')
+                  'leftWidth', 'leftColor', 'leftDashed', 'xFormat')
   validLineModes = ('staircase','slope','connected')
   validAreaModes = ('none','first','all','stacked')
   validPieModes = ('maximum', 'minimum', 'average')
 
   def drawGraph(self,**params):
+    # Make sure we've got datapoints to draw
+    if self.data:
+      startTime = min([series.start for series in self.data])
+      endTime = max([series.end for series in self.data])
+      timeRange = endTime - startTime
+    else:
+      timeRange = None
 
-    #API compatibilty hacks first
+    if not timeRange:
+      x = self.width / 2
+      y = self.height / 2
+      self.setColor('red')
+      self.setFont(size=math.log(self.width * self.height) )
+      self.drawText("No Data", x, y, align='center')
+      return
+
+    # Determine if we're doing a 2 y-axis graph.
+    for series in self.data:
+      if 'secondYAxis' in series.options:
+        self.dataRight.append(series)
+      else:
+        self.dataLeft.append(series)
+    if len(self.dataRight) > 0:
+      self.secondYAxis = True
+
+    #API compatibilty hacks
     if params.get('graphOnly',False):
       params['hideLegend'] = True
       params['hideGrid'] = True
@@ -446,6 +437,11 @@ class LineGraph(Graph):
       params['yAxisSide'] = 'left'
     if 'yUnitSystem' not in params:
       params['yUnitSystem'] = 'si'
+    else:
+      params['yUnitSystem'] = str(params['yUnitSystem']).lower()
+      if params['yUnitSystem'] not in UnitSystems.keys():
+        params['yUnitSystem'] = 'si'
+
     self.params = params
     
     # Don't do any of the special right y-axis stuff if we're drawing 2 y-axes.
@@ -847,22 +843,19 @@ class LineGraph(Graph):
                 system=self.params.get('yUnitSystem'))
         ySpan, spanPrefix = format_units(self.ySpan, self.yStep,
                 system=self.params.get('yUnitSystem'))
-
-        yValue = float(yValue)
         if yValue < 0.1:
-          return "%g %s" % (yValue, prefix)
+          return "%g %s" % (float(yValue), prefix)
         elif yValue < 1.0:
-          return "%.2f %s" % (yValue, prefix)
-
+          return "%.2f %s" % (float(yValue), prefix)
         if ySpan > 10 or spanPrefix != prefix:
-          return "%d %s " % (int(yValue), prefix)
-
+          if type(yValue) is float:
+            return "%.1f %s" % (float(yValue), prefix)
+          else:
+            return "%d %s " % (int(yValue), prefix)
         elif ySpan > 3:
           return "%.1f %s " % (float(yValue), prefix)
-
         elif ySpan > 0.1:
           return "%.2f %s " % (float(yValue), prefix)
-
         else:
           return "%g %s" % (float(yValue), prefix)
 
@@ -1022,13 +1015,15 @@ class LineGraph(Graph):
     def makeLabel(yValue, yStep=None, ySpan=None):
       yValue, prefix = format_units(yValue,yStep,system=self.params.get('yUnitSystem'))
       ySpan, spanPrefix = format_units(ySpan,yStep,system=self.params.get('yUnitSystem'))
-      yValue = float(yValue)
       if yValue < 0.1:
-        return "%g %s" % (yValue, prefix)
+        return "%g %s" % (float(yValue), prefix)
       elif yValue < 1.0:
-        return "%.2f %s" % (yValue, prefix)
+        return "%.2f %s" % (float(yValue), prefix)
       if ySpan > 10 or spanPrefix != prefix:
-        return "%d %s " % (int(yValue), prefix)
+        if type(yValue) is float:
+          return "%.1f %s " % (float(yValue), prefix)
+        else:
+          return "%d %s " % (int(yValue), prefix)
       elif ySpan > 3:
         return "%.1f %s " % (float(yValue), prefix)
       elif ySpan > 0.1:
@@ -1138,8 +1133,9 @@ class LineGraph(Graph):
     (dt, x_label_delta) = find_x_times(self.start_dt, self.xConf['labelUnit'], self.xConf['labelStep'])
 
     #Draw the X-labels
+    xFormat = self.params.get('xFormat', self.xConf['format'])
     while dt < self.end_dt:
-      label = dt.strftime( self.xConf['format'] )
+      label = dt.strftime(xFormat)
       x = self.area['xmin'] + (toSeconds(dt - self.start_dt) * self.xScaleFactor)
       y = self.area['ymax'] + self.getExtents()['maxAscent']
       self.drawText(label, x, y, align='center', valign='top')
@@ -1405,9 +1401,13 @@ def format_units(v, step, system="si"):
 
   for prefix, size in UnitSystems[system]:
     if abs(v) >= size and step >= size:
-      v /= size
-      return v, prefix
-
+      v2 = v / size
+      if (v2 - int(v2)) < 0.00000000001 and v > 1:
+        v2 = int(v2)
+      return v2, prefix
+  
+  if (v - int(v)) < 0.00000000001 and v > 1 :
+    v = int(v)
   return v, ""
 
 
