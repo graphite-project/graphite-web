@@ -594,6 +594,7 @@ def aliasByNode(requestContext, seriesList, *nodes):
   if type(nodes) is int:
     nodes=[nodes]
   for series in seriesList:
+    newname = re.search('(?:.*\()?(?P<name>[\w\.]+)(?:,|\]?.*)?',series.name).groups()[0]
     newname = ".".join([ series.name.split(".")[node] for node in nodes])
     series.name = newname
   return seriesList
