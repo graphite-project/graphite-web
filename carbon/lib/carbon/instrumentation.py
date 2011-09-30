@@ -126,18 +126,23 @@ def cache_record(metric, value):
     if settings.instance is None:
       fullMetric = 'carbon.agents.%s.%s' % (HOSTNAME, metric)
     else:
-      fullMetric = 'carbon.agents.%s-%s.%s' % (
-          HOSTNAME, settings.instance, metric)
+      fullMetric = 'carbon.agents.%s-%s.%s' % (HOSTNAME, settings.instance, metric)
     datapoint = (time.time(), value)
     cache.MetricCache.store(fullMetric, datapoint)
 
 def relay_record(metric, value):
-    fullMetric = 'carbon.relays.%s.%s' % (HOSTNAME, metric)
+    if settings.instance is None:
+      fullMetric = 'carbon.relays.%s.%s' % (HOSTNAME, metric)
+    else:
+      fullMetric = 'carbon.relays.%s-%s.%s' % (HOSTNAME, settings.instance, metric)
     datapoint = (time.time(), value)
     events.metricGenerated(fullMetric, datapoint)
 
 def aggregator_record(metric, value):
-    fullMetric = 'carbon.aggregator.%s.%s' % (HOSTNAME, metric)
+    if settings.instance is None:
+      fullMetric = 'carbon.aggregator.%s.%s' % (HOSTNAME, metric)
+    else:
+      fullMetric = 'carbon.aggregator.%s-%s.%s' % (HOSTNAME, settings.instance, metric)
     datapoint = (time.time(), value)
     events.metricGenerated(fullMetric, datapoint)
 
