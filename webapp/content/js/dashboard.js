@@ -347,7 +347,7 @@ function initDashboard () {
     '<tpl for=".">',
       '<div class="graph-container">',
         '<div class="graph-overlay">',
-          '<img class="graph-img" src="{url}">',
+          '<img class="graph-img" src="{url}" width="{width}" height="{height}">',
           '<div class="overlay-close-button" onclick="javascript: graphAreaToggle(\'{target}\'); justClosedGraph = true;">X</div>',
         '</div>',
       '</div>',
@@ -932,6 +932,8 @@ function updateGraphRecords() {
       params.title = params.target[0];
     }
     this.set('url', '/render?' + Ext.urlEncode(params));
+    this.set('width', GraphSize.width);
+    this.set('height', GraphSize.height);
   });
 }
 
