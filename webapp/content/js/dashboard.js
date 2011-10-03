@@ -696,6 +696,7 @@ function initDashboard () {
   // Load initial dashboard state if it was passed in
   if (initialState) {
     applyState(initialState);
+    navBar.collapse();
   }
 
   if (initialError) {
