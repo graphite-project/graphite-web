@@ -289,6 +289,7 @@ function initDashboard () {
         baseParams: {
           query: '',
           format: 'completer',
+          wildcards: '1',
           automatic_variants: (UI_CONFIG.automatic_variants) ? '1' : '0'
         },
         fields: ['path', 'is_leaf'],

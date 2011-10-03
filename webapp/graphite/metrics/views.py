@@ -155,8 +155,13 @@ def find_view(request):
       results.append(node_info)
 
     if len(results) > 1 and wildcards:
-      wildcardNode = {'name' : '*'}
-      results.append(wildcardNode)
+      base_metric_path = matches[0].metric_path.rstrip('.').split('.')
+      base_metric_path[-1] = '*'
+      parent_metric_path = '.'.join(base_metric_path)
+      if not wildcard_is_leaf:
+        parent_metric_path += '.'
+      wildcard_node = {'path' : parent_metric_path, 'name' : '*', 'is_leaf' : str(False)}
+      results.append(wildcard_node)
 
     content = json.dumps({ 'metrics' : results })
     response = HttpResponse(content, mimetype='application/json')
