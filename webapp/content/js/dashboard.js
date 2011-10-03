@@ -254,7 +254,7 @@ function initDashboard () {
       region: 'center',
       hideHeaders: true,
       loadMask: true,
-      bodyCssClass: 'terminalStyle',
+      bodyCssClass: 'metric-result',
 
       colModel: new Ext.grid.ColumnModel({
         defaults: {
@@ -268,7 +268,7 @@ function initDashboard () {
       viewConfig: {
         forceFit: true,
         rowOverCls: '',
-        bodyCssClass: 'terminalStyle',
+        bodyCssClass: 'metric-result',
         getRowClass: function(record, index) {
           var toggledClass = (
              graphStore.findExact('target', 'target=' + record.data.path) == -1
