@@ -318,6 +318,17 @@ function initDashboard () {
           charCode == 35) { //end
         autocompleteTask.delay(AUTOCOMPLETE_DELAY);
       }
+      if (charCode == 9) { //tab
+        autocompleteSelectorGrid({
+          callback: function (result, options, success) {
+            if (result.length == 1) {
+              thisField.setValue(result[0].data['path']);
+              autocomplete();
+            }
+          }
+        });
+        focusCompleter();
+      }
     }
 
     metricSelectorTextField = new Ext.form.TextField({
@@ -337,12 +348,14 @@ function initDashboard () {
     });
   }
 
-  var autocompleteTask = new Ext.util.DelayedTask(function () {
+  function autocompleteSelectorGrid (loadOptions) {
     var query = metricSelectorTextField.getValue();
     var store = metricSelectorGrid.getStore();
     store.setBaseParam('query', query);
-    store.load();
-  });
+    store.load(loadOptions);
+  }
+
+  var autocompleteTask = new Ext.util.DelayedTask(autocompleteSelectorGrid);
 
   var graphTemplate = new Ext.XTemplate(
     '<tpl for=".">',
