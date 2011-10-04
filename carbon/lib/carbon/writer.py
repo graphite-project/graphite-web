@@ -16,15 +16,9 @@ limitations under the License."""
 import os
 import time
 from os.path import join, exists, dirname, basename
-from carbon import state
-
-try:
-  import cPickle as pickle
-except ImportError:
-  import pickle
 
 import whisper
-
+from carbon import state
 from carbon.cache import MetricCache
 from carbon.storage import getFilesystemPath, loadStorageSchemas, loadAggregationSchemas
 from carbon.conf import settings

@@ -48,6 +48,10 @@ class MetricReceiver:
     events.pauseReceivingMetrics.removeHandler(self.pauseReceiving)
     events.resumeReceivingMetrics.removeHandler(self.resumeReceiving)
 
+  def metricReceived(self, metric, datapoint):
+    if datapoint[1] == datapoint[1]: # filter out NaN values
+      events.metricReceived(metric, datapoint)
+
 
 class MetricLineReceiver(MetricReceiver, LineOnlyReceiver):
   delimiter = '\n'
@@ -60,7 +64,7 @@ class MetricLineReceiver(MetricReceiver, LineOnlyReceiver):
       log.listener('invalid line received from client %s, ignoring' % self.peerName)
       return
 
-    events.metricReceived(metric, datapoint)
+    self.metricReceived(metric, datapoint)
 
 
 class MetricDatagramReceiver(MetricReceiver, DatagramProtocol):
@@ -70,7 +74,7 @@ class MetricDatagramReceiver(MetricReceiver, DatagramProtocol):
         metric, value, timestamp = line.strip().split()
         datapoint = ( float(timestamp), float(value) )
 
-        events.metricReceived(metric, datapoint)
+        self.metricReceived(metric, datapoint)
       except:
         log.listener('invalid line received from %s, ignoring' % host)
 
@@ -91,8 +95,7 @@ class MetricPickleReceiver(MetricReceiver, Int32StringReceiver):
       except:
         continue
 
-      if datapoint[1] == datapoint[1]: # filter out NaN values
-        events.metricReceived(metric, datapoint)
+      self.metricReceived(metric, datapoint)
 
 
 class CacheManagementHandler(Int32StringReceiver):
