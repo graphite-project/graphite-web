@@ -594,7 +594,7 @@ def aliasByNode(requestContext, seriesList, *nodes):
   if type(nodes) is int:
     nodes=[nodes]
   for series in seriesList:
-    newname = ".".join([ series.name.split(".")[node] for node in nodes])
+    newname = re.search('(?:.*\()?(?P<name>[\w\.]+)(?:,|\]?.*)?',series.name).groups()[0]
     series.name = newname
   return seriesList
 
@@ -1413,7 +1413,7 @@ def constantLine(requestContext, value):
 
   .. code-block:: none
 
-    &target=contstantLine(123.456)
+    &target=constantLine(123.456)
 
   """
   start = timestamp( requestContext['startTime'] )
