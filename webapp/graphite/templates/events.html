@@ -24,7 +24,7 @@
                   <tr><th>when</th><th>what</th><th>tags</th></tr>
                   {% for event in events %}
                       <tr>
-                          <td>{{event.when|date:"H:m:s D d M Y" }}</td>
+                          <td>{{event.when|date:"H:i:s D d M Y" }}</td>
                           <td><a href="/events/{{event.id}}/">{{event.what}}</a></td>
                           <td>{{event.tags}}</td>
                       </tr>
