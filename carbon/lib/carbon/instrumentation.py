@@ -92,19 +92,6 @@ def recordMetrics():
     record('cache.size', cache.MetricCache.size)
     record('cache.overflow', cacheOverflow)
 
-  # relay metrics
-  elif settings.program == 'carbon-relay':
-    record = relay_record
-
-    for receiverProto in state.connectedMetricReceiverProtocols:
-      prefix = 'destinations.%s.' % receiverProto.destinationName
-      for metric in ('attemptedRelays', 'sent', 'queuedUntilReady',
-                     'queuedUntilConnected', 'fullQueueDrops'):
-        metric = prefix + metric
-        record(metric, myStats.get(metric, 0))
-
-      record(prefix + 'queueSize', len(connection.queue))
-
   # aggregator metrics
   elif settings.program == 'carbon-aggregator':
     record = aggregator_record
