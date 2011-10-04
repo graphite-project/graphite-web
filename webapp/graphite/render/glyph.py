@@ -624,7 +624,7 @@ class LineGraph(Graph):
       self.data = reverse_sort(self.data)
 
     # Check whether there is an stacked metric
-    singleStacked = False #XXX
+    singleStacked = False
     for series in self.data:
       if 'stacked' in series.options:
         singleStacked = True
@@ -664,6 +664,9 @@ class LineGraph(Graph):
       fromNone = True
 
       for value in series:
+        if value != value: # convert NaN to None
+          value = None
+
         if value is None and self.params.get('drawNullAsZero'):
           value = 0.0
 
