@@ -5,4 +5,4 @@
 # You must have exactly one section with 'default = true'
 [default]
 default = true
-servers = localhost
+destinations = 127.0.0.1:2004:a, 127.0.0.1:2104:b

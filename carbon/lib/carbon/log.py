@@ -55,6 +55,8 @@ def formatEvent(event, includeType=False):
 
 logToDir = carbonLogObserver.log_to_dir
 
+def logToStdout():
+  startLoggingWithObserver(carbonLogObserver)
 
 def cache(message, **context):
   context['type'] = 'cache'
