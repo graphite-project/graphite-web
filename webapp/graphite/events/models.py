@@ -1,9 +1,13 @@
 import time
+import os
 
 from django.db import models
 from django.contrib import admin
 
-import tagging.fields
+if os.environ.get('READTHEDOCS'):
+    TagField = lambda *args, **kwargs: None
+else:
+    from tagging.fields import TagField
 
 class Event(models.Model):
     class Admin: pass
@@ -11,7 +15,7 @@ class Event(models.Model):
     when = models.DateTimeField()
     what = models.CharField(max_length=255)
     data = models.TextField(blank=True)
-    tags = tagging.fields.TagField(default="")
+    tags = TagField(default="")
 
     def get_tags(self):
         return Tag.objects.get_for_object(self)
