@@ -3,11 +3,8 @@ from twisted.internet.protocol import DatagramProtocol
 from twisted.internet.error import ConnectionDone
 from twisted.protocols.basic import LineOnlyReceiver, Int32StringReceiver
 from carbon import log, events, state, management
-
-try:
-  import cPickle as pickle
-except ImportError:
-  import pickle
+from carbon.conf import settings
+from carbon.util import pickle, get_unpickler
 
 
 class MetricReceiver:
@@ -82,9 +79,13 @@ class MetricDatagramReceiver(MetricReceiver, DatagramProtocol):
 class MetricPickleReceiver(MetricReceiver, Int32StringReceiver):
   MAX_LENGTH = 2 ** 20
 
+  def connectionMade(self):
+    MetricReceiver.connectionMade(self)
+    self.unpickler = get_unpickler(insecure=settings.USE_INSECURE_UNPICKLER)
+
   def stringReceived(self, data):
     try:
-      datapoints = pickle.loads(data)
+      datapoints = self.unpickler.loads(data)
     except:
       log.listener('invalid pickle received from %s, ignoring' % self.peerName)
       return
@@ -103,6 +104,7 @@ class CacheManagementHandler(Int32StringReceiver):
     peer = self.transport.getPeer()
     self.peerAddr = "%s:%d" % (peer.host, peer.port)
     log.query("%s connected" % self.peerAddr)
+    self.unpickler = get_unpickler(insecure=settings.USE_INSECURE_UNPICKLER)
 
   def connectionLost(self, reason):
     if reason.check(ConnectionDone):
@@ -111,7 +113,7 @@ class CacheManagementHandler(Int32StringReceiver):
       log.query("%s connection lost: %s" % (self.peerAddr, reason.value))
 
   def stringReceived(self, rawRequest):
-    request = pickle.loads(rawRequest)
+    request = self.unpickler.loads(rawRequest)
     if request['type'] == 'cache-query':
       metric = request['metric']
       datapoints = MetricCache.get(metric, [])

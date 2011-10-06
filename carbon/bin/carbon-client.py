@@ -80,7 +80,6 @@ if options.debug:
   log.setDebugEnabled(True)
   defer.setDebugging(True)
 
-#TODO(chrismd) make this more configurable via options
 if options.routing == 'consistent-hashing':
   router = ConsistentHashingRouter(options.replication)
 elif options.routing == 'relay':
@@ -98,8 +97,6 @@ if options.keyfunc:
 
 firstConnectAttempts = [client_manager.startClient(dest) for dest in destinations]
 firstConnectsAttempted = defer.DeferredList(firstConnectAttempts)
-
-events.metricReceived.addHandler(client_manager.sendDatapoint)
 
 
 class StdinMetricsReader(LineReceiver):

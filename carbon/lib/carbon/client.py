@@ -1,14 +1,10 @@
-try:
-  import cPickle as pickle
-except ImportError:
-  import pickle
-
 from twisted.application.service import Service
 from twisted.internet import reactor
 from twisted.internet.defer import Deferred, DeferredList
 from twisted.internet.protocol import ReconnectingClientFactory
 from twisted.protocols.basic import Int32StringReceiver
 from carbon.conf import settings
+from carbon.util import pickle
 from carbon import log, state, events, instrumentation
 
 
@@ -26,9 +22,9 @@ class CarbonClientProtocol(Int32StringReceiver):
     self.queuedUntilReady = 'destinations.%s.queuedUntilReady' % self.destinationName
     self.sent = 'destinations.%s.sent' % self.destinationName
 
-    self.sendQueued()
     self.factory.connectionMade.callback(self)
     self.factory.connectionMade = Deferred()
+    self.sendQueued()
 
   def connectionLost(self, reason):
     log.clients("%s::connectionLost %s" % (self, reason.getErrorMessage()))
@@ -241,9 +237,6 @@ class CarbonClientManager(Service):
   def sendDatapoint(self, metric, datapoint):
     for destination in self.router.getDestinations(metric):
       self.client_factories[destination].sendDatapoint(metric, datapoint)
-
-  def whenClientQueueEmpty(self, destination):
-    return self.client_factories[destination].queueEmpty
 
   def __str__(self):
     return "<%s[%x]>" % (self.__class__.__name__, id(self))

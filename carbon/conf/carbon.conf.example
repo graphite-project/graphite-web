@@ -69,6 +69,11 @@ UDP_RECEIVER_PORT = 2003
 PICKLE_RECEIVER_INTERFACE = 0.0.0.0
 PICKLE_RECEIVER_PORT = 2004
 
+# Per security concerns outlined in Bug #817247 the pickle receiver
+# will use a more secure and slightly less efficient unpickler.
+# Set this to True to revert to the old-fashioned insecure unpickler.
+USE_INSECURE_UNPICKLER = False
+
 CACHE_QUERY_INTERFACE = 0.0.0.0
 CACHE_QUERY_PORT = 7002
 

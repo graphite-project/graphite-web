@@ -113,8 +113,8 @@ def writeCachedDataPoints():
         dbDir = dirname(dbFilePath)
         os.system("mkdir -p -m 755 '%s'" % dbDir)
 
-        log.creates("creating database file %s" % dbFilePath)
-        log.creates("  %s, %s, %s" % (archiveConfig, xFilesFactor, aggregationMethod))
+        log.creates("creating database file %s (archive=%s xff=%s agg=%s)" % 
+                    (dbFilePath, archiveConfig, xFilesFactor, aggregationMethod))
         whisper.create(dbFilePath, archiveConfig, xFilesFactor, aggregationMethod)
         os.chmod(dbFilePath, 0755)
         instrumentation.increment('creates')

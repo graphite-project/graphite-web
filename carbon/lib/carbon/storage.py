@@ -17,12 +17,8 @@ import whisper
 
 from os.path import join, exists
 from carbon.conf import OrderedConfigParser, settings
+from carbon.util import pickle
 from carbon import log
-
-try:
-  import cPickle as pickle
-except ImportError:
-  import pickle
 
 
 STORAGE_SCHEMAS_CONFIG = join(settings.CONF_DIR, 'storage-schemas.conf')

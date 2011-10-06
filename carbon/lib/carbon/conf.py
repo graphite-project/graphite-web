@@ -58,6 +58,7 @@ defaults = dict(
   REPLICATION_FACTOR=1,
   DESTINATIONS=[],
   USE_FLOW_CONTROL=True,
+  USE_INSECURE_UNPICKLER=False,
 )
 
 
