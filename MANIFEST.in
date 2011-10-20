@@ -1,5 +1,6 @@
 include INSTALL
 include LICENSE
+include MANIFEST.in
 include check-dependencies.py
 include examples/*
 include conf/*.example
