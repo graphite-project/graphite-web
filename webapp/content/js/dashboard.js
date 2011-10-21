@@ -79,7 +79,9 @@ var contextFieldStore = new Ext.data.JsonStore({
 var GraphRecord = new Ext.data.Record.create([
   {name: 'target'},
   {name: 'params', type: 'auto'},
-  {name: 'url'}
+  {name: 'url'},
+  {name: 'width', type: 'auto'},
+  {name: 'height', type: 'auto'}
 ]);
 
 var graphStore;
@@ -254,7 +256,7 @@ function initDashboard () {
       region: 'center',
       hideHeaders: true,
       loadMask: true,
-      bodyCssClass: 'terminalStyle',
+      bodyCssClass: 'metric-result',
 
       colModel: new Ext.grid.ColumnModel({
         defaults: {
@@ -268,7 +270,7 @@ function initDashboard () {
       viewConfig: {
         forceFit: true,
         rowOverCls: '',
-        bodyCssClass: 'terminalStyle',
+        bodyCssClass: 'metric-result',
         getRowClass: function(record, index) {
           var toggledClass = (
              graphStore.findExact('target', 'target=' + record.data.path) == -1
@@ -347,7 +349,7 @@ function initDashboard () {
     '<tpl for=".">',
       '<div class="graph-container">',
         '<div class="graph-overlay">',
-          '<img class="graph-img" src="{url}">',
+          '<img class="graph-img" src="{url}" width="{width}" height="{height}">',
           '<div class="overlay-close-button" onclick="javascript: graphAreaToggle(\'{target}\'); justClosedGraph = true;">X</div>',
         '</div>',
       '</div>',
@@ -696,6 +698,7 @@ function initDashboard () {
   // Load initial dashboard state if it was passed in
   if (initialState) {
     applyState(initialState);
+    navBar.collapse();
   }
 
   if (initialError) {
@@ -932,6 +935,8 @@ function updateGraphRecords() {
       params.title = params.target[0];
     }
     this.set('url', '/render?' + Ext.urlEncode(params));
+    this.set('width', GraphSize.width);
+    this.set('height', GraphSize.height);
   });
 }
 
