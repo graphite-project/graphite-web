@@ -1468,17 +1468,19 @@ def groupByNode(requestContext, seriesList, nodeNum, callback):
 
   """
   metaSeries = {}
+  keys = []
   for series in seriesList:
     key = series.name.split(".")[nodeNum]
     if key not in metaSeries.keys():
       metaSeries[key] = [series]
+      keys.append(key)
     else:
       metaSeries[key].append(series)
   for key in metaSeries.keys():
     metaSeries[key] = SeriesFunctions[callback](requestContext,
         metaSeries[key])[0]
     metaSeries[key].name = key
-  return [ metaSeries[key] for key in metaSeries.keys() ]
+  return [ metaSeries[key] for key in keys ]
 
 
 def exclude(requestContext, seriesList, pattern):
