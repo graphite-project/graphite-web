@@ -800,8 +800,12 @@ class LineGraph(Graph):
       yMaxValue = yMinValue + 1
 
     yVariance = yMaxValue - yMinValue
-    order = math.log10(yVariance)
-    orderFactor = 10 ** math.floor(order)
+    if 'yUnitSystem' in self.params and self.params['yUnitSystem'] == 'binary':
+      order = math.log(yVariance, 2)
+      orderFactor = 2 ** math.floor(order)
+    else:
+      order = math.log10(yVariance)
+      orderFactor = 10 ** math.floor(order)
     v = yVariance / orderFactor #we work with a scaled down yVariance for simplicity
 
     divisors = (4,5,6) #different ways to divide-up the y-axis with labels
