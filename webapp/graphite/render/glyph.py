@@ -764,14 +764,19 @@ class LineGraph(Graph):
 
   def setupYAxis(self):
     seriesWithMissingValues = [ series for series in self.data if None in series ]
-    
+
     if self.params.get('drawNullAsZero') and seriesWithMissingValues:
       yMinValue = 0.0
     else:
       yMinValue = safeMin( [safeMin(series) for series in self.data if not series.options.get('drawAsInfinite')] )
 
     if self.areaMode == 'stacked':
-      yMaxValue = safeSum( [safeMax(series) for series in self.data] )
+      length = safeMin( [len(series) for series in self.data] )
+      sumSeries = []
+
+      for i in xrange(0, length):
+        sumSeries.append( safeSum( [series[i] for series in self.data] ) )
+      yMaxValue = safeMax( sumSeries )
     else:
       yMaxValue = safeMax( [safeMax(series) for series in self.data] )
 
@@ -782,7 +787,8 @@ class LineGraph(Graph):
       yMaxValue = 1.0
 
     if 'yMax' in self.params:
-      yMaxValue = self.params['yMax']
+      if self.params['yMax'] != 'max':
+        yMaxValue = self.params['yMax']
 
     if 'yLimit' in self.params and self.params['yLimit'] < yMaxValue:
       yMaxValue = self.params['yLimit']
@@ -825,7 +831,10 @@ class LineGraph(Graph):
                          'minimum value less than or equal to zero')
 
     if 'yMax' in self.params:
-      self.yTop = self.params['yMax']
+      if self.params['yMax'] == 'max':
+        self.yTop = yMaxValue
+      else:
+        self.yTop = self.params['yMax']
     if 'yMin' in self.params:
       self.yBottom = self.params['yMin']
 
