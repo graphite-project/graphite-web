@@ -671,7 +671,7 @@ class LineGraph(Graph):
           value = 0.0
 
         if value is None:
-          if not fromNone and self.areaMode != 'none' or series.options.has_key('stacked'): #Close off and fill area before unknown interval
+          if not fromNone and self.areaMode != 'none' or 'stacked' in series.options: #Close off and fill area before unknown interval
             self.ctx.line_to(x, self.area['ymax'])
             self.ctx.close_path()
             self.ctx.fill()
@@ -715,7 +715,7 @@ class LineGraph(Graph):
 
           elif self.lineMode == 'slope':
             if fromNone:
-              if self.areaMode != 'none' or series.options.has_key('stacked'):
+              if self.areaMode != 'none' or 'stacked' in series.options:
                 self.ctx.move_to(x, self.area['ymax'])
                 self.ctx.line_to(x, y)
               else:
