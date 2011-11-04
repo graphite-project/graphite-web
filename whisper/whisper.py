@@ -331,8 +331,8 @@ aggregationMethod specifies the function to use when propogating data (see ``whi
     fh.write(archiveInfo)
     archiveOffsetPointer += (points * pointSize)
 
-  zeroes = '\x00' * (archiveOffsetPointer - headerSize)
-  fh.write(zeroes)
+  fh.seek(archiveOffsetPointer - headerSize - 1)
+  fh.write("\0")
 
   if AUTOFLUSH:
     fh.flush()
