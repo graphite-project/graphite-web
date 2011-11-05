@@ -1096,6 +1096,7 @@ def stdev(requestContext, seriesList, time):
     stddevs = TimeSeries("stddev(%s,%.1f)" % (series.name, float(time)), series.start, series.end, series.step, [])
     stddevs.pathExpression = "stddev(%s,%.1f)" % (series.name, float(time))
     avg = safeDiv(safeSum(series[:time]), time)
+    sumOfSquares = None
 
     if avg is not None:
       sumOfSquares = sum(map(lambda(x): x * x, [v for v in series[:time] if v is not None]))
@@ -1115,7 +1116,7 @@ def stdev(requestContext, seriesList, time):
       s = safeSum([safeMul(time, avg), el, -toDrop])
       avg = safeDiv(s, time)
 
-      if avg is not None:
+      if avg is not None and sumOfSquares is not None:
         (sd, sumOfSquares) = doStdDev(sumOfSquares, toDrop, series[index+time], time, avg)
         stddevs.append(sd)
       else:

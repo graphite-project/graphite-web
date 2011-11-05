@@ -929,7 +929,7 @@ class LineGraph(Graph):
       yMaxValueR = safeMax( [safeMax(series) for series in Rdata] )
 
     if yMinValueL is None:
-      yMinValue = 0.0
+      yMinValueL = 0.0
     if yMinValueR is None:
       yMinValueR = 0.0
 
