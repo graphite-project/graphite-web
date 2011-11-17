@@ -1049,7 +1049,7 @@ function createOptionsMenu() {
   var yAxisSideMenu = new Ext.menu.Menu({
     items: [
       menuRadioItem("yAxis", "Left", "yAxisSide", "left"),
-      menuRadioItem("yAxis", "Right", "yAxisSide", "right"),
+      menuRadioItem("yAxis", "Right", "yAxisSide", "right")
     ]
   });
 
@@ -1073,7 +1073,7 @@ function createOptionsMenu() {
       menuInputItem("Left Y Step", "yStepLeft"),
       menuInputItem("Left Line Width", "leftWidth"),
       menuInputItem("Left Line Color", "leftColor"),
-      menuInputItem("Left Line Dashed (length, in px)", "leftDashed"),
+      menuInputItem("Left Line Dashed (length, in px)", "leftDashed")
     
     ]
   });
@@ -1085,7 +1085,7 @@ function createOptionsMenu() {
       menuInputItem("Right Y Step", "yStepRight"),
       menuInputItem("Right Line Width", "rightWidth"),
       menuInputItem("Right Line Color", "rightColor"),
-      menuInputItem("Right Line Dashed (length, in px)", "rightDashed"),
+      menuInputItem("Right Line Dashed (length, in px)", "rightDashed")
     
     ]
   });
