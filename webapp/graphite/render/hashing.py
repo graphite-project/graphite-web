@@ -30,10 +30,7 @@ def hashRequest(request):
   normalizedParams = ','.join( sorted(queryParams) ) or 'noParam'
   myHash = stripControlChars(normalizedParams) #memcached doesn't like unprintable characters in its keys
 
-  if len(myHash) > 249: #memcached key size limitation
-    return compactHash(myHash)
-  else:
-    return myHash
+  return compactHash(myHash)
 
 
 def hashData(targets, startTime, endTime):
@@ -42,10 +39,8 @@ def hashData(targets, startTime, endTime):
   endTimeString = endTime.strftime("%Y%m%d_%H%M")
   myHash = targetsString + '@' + startTimeString + ':' + endTimeString
   myHash = stripControlChars(myHash)
-  if len(myHash) > 249:
-    return compactHash(myHash)
-  else:
-    return myHash
+
+  return compactHash(myHash)
 
 
 def stripControlChars(string):
