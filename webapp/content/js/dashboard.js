@@ -701,6 +701,11 @@ function initDashboard () {
     navBar.collapse();
   }
 
+  if(window.location.hash != '')
+  {
+    sendLoadRequest(window.location.hash.substr(1));
+  }
+
   if (initialError) {
     Ext.Msg.alert("Error", initialError);
   }
@@ -2026,6 +2031,7 @@ function setDashboardName(name) {
     dashboardURL = urlparts.join('/');
 
     document.title = name + " - Graphite Dashboard";
+    window.location.hash = name;
     navBar.setTitle(name + " - (" + dashboardURL + ")");
     saveButton.setText('Save "' + name + '"');
     saveButton.enable();
