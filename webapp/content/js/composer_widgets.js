@@ -333,11 +333,6 @@ function saveMyGraph(button, e) {
 	return;
       }
 
-      if (text.search(/[^A-Za-z0-9_.]/) != -1) {
-        Ext.Msg.alert("Graph names can only contain letters, numbers, underscores, or periods.");
-        return;
-      }
-
       if (text.charAt(text.length - 1) == '.') {
         Ext.Msg.alert("Graph names cannot end in a period.");
         return;
@@ -1100,7 +1095,7 @@ function createOptionsMenu() {
   return {
     xtype: 'menu',
     items: [
-      menuInputItem("Graph Title", "title"),
+      menuInputItem("Graph Title", "title", "Graph Title", /^$/),
       {text: "Y Axis", menu: yAxisMenu},
       {text: "Left/Right Y Axis Options", menu: SecondYAxisMenu},
       menuInputItem("Line Thickness", "lineWidth"),
@@ -1161,21 +1156,26 @@ function createColorMenu(param) {
   return colorPicker;
 }
 
-function menuInputItem(name, param, question) {
-  return new Ext.menu.Item({text: name, handler: paramPrompt(question || name, param)});
+function menuInputItem(name, param, question, regexp) {
+  return new Ext.menu.Item({text: name, handler: paramPrompt(question || name, param, regexp)});
 }
 
 function menuHelpItem(name, message) {
   return new Ext.menu.Item({text: name, handler: helpMessage('FYI', message)});
 }
 
-function paramPrompt(question, param) {
+function paramPrompt(question, param, regexp) {
+
+  if(regexp == null) {
+    regexp = /[^A-Za-z0-9_.]/;
+  }
+
   return function (menuItem, e) {
     Ext.MessageBox.prompt(
       "Input Required",
       question,
       function (button, value) {
-        if (value.search(/[^A-Za-z0-9_.]/) != -1) {
+        if (value.search(regexp) != -1) {
           Ext.Msg.alert("Input can only contain letters, numbers, underscores, or periods.");
           return;
         }

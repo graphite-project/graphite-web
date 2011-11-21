@@ -19,6 +19,8 @@ from django.conf import settings
 from graphite.account.models import Profile
 from graphite.util import getProfile, getProfileByUsername, defaultUser, json
 from graphite.logger import log
+import hashlib
+
 try:
   import cPickle as pickle
 except ImportError:
@@ -132,7 +134,10 @@ def myGraphLookup(request):
         node.update(branchNode)
 
       else:
-        node.update( { 'id' : str(userpath_prefix + name), 'graphUrl' : str(graph.url) } )
+        m = hashlib.md5() # don't forget to "import hashlib"
+        m.update(name)
+        md5 = m.hexdigest() 
+        node.update( { 'id' : str(userpath_prefix + md5), 'graphUrl' : str(graph.url) } )
         node.update(leafNode)
 
       nodes.append(node)
@@ -215,9 +220,13 @@ def userGraphLookup(request):
           }
           node.update(branchNode)
         else: # leaf
+          m = hashlib.md5() # don't forget to "import hashlib"
+          m.update(nodeName)
+          md5 = m.hexdigest() 
+
           node = {
-            'text' : str(nodeName),
-            'id' : str(username + '.' + prefix + nodeName),
+            'text' : str(nodeName ),
+            'id' : str(username + '.' + prefix + md5),
             'graphUrl' : str(graph.url),
           }
           node.update(leafNode)
