@@ -1473,6 +1473,49 @@ function graphClicked(graphView, graphIndex, element, evt) {
       }
     }
   });
+
+  urlButton = new Ext.Button({
+    icon: SHARE_ICON,
+    text: (record.data.params.title || "Unamed Graph"),
+    width: gridWidth,
+    handler: function(thisButton) {
+      menu.destroy();
+      var win = new Ext.Window({
+        title: "Graph URL",
+        width: 600,
+        height: 125,
+        layout: 'border',
+        modal: true,
+        items: [
+          {
+            xtype: "label",
+            region: 'north',
+            style: "text-align: center;",
+            text: "You can use this URL to graph directly this Graph"
+          }, {
+            xtype: 'textfield',
+            region: 'center',
+            value:  record.data.url,
+            editable: false,
+            style: "text-align: center; font-size: large;",
+            listeners: {
+              afterrender: function (field) { field.selectText(); }
+            }
+          }
+        ],
+        buttonAlign: 'center',
+        buttons: [
+          {text: "Close", handler: function () { win.close(); } }
+        ]
+      });
+      win.show();
+
+    }
+
+  });
+
+  menuItems.push(urlButton);
+
   menuItems.push(targetGrid);
 
   /* Setup our menus */
