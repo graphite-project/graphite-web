@@ -1356,7 +1356,7 @@ function showShareWindow() {
         editable: false,
         style: "text-align: center; font-size: large;",
         listeners: {
-          afterrender: function (field) { field.selectText(); }
+          focus: function (field) { field.selectText(); }
         }
       }
     ],
@@ -1504,7 +1504,7 @@ function graphClicked(graphView, graphIndex, element, evt) {
             editable: false,
             style: "text-align: center; font-size: large;",
             listeners: {
-              afterrender: function (field) { field.selectText(); }
+              focus: function (field) { field.selectText(); }
             }
           }
         ],
