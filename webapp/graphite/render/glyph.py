@@ -273,6 +273,15 @@ class Graph:
 
 
   def drawLegend(self,elements): #elements is [ (name,color,rightSide), ... ]
+    # remove duplicate names
+    namesSeen = {}
+    newElements = []
+    for e in elements:
+      if e[0] not in namesSeen:
+        namesSeen[e[0]] = True
+        newElements.append(e)
+    elements = newElements
+
     longestName = sorted([e[0] for e in elements],key=len)[-1]
     extents = self.getExtents(longestName)
     padding = 5
