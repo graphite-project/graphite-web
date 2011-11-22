@@ -38,6 +38,8 @@ def evaluateTokens(requestContext, tokens):
   elif tokens.string:
     return str(tokens.string)[1:-1]
 
+  elif tokens.boolean:
+    return tokens.boolean[0] == 'true'
 
 
 #Avoid import circularities

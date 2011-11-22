@@ -1636,7 +1636,7 @@ def summarize(requestContext, seriesList, intervalString, func='sum', alignToFro
     if alignToFrom:
       newEnd += interval
 
-    newName = "summarize(%s, \"%s\")" % (series.name, intervalString)
+    newName = "summarize(%s, \"%s\", \"%s\"%s)" % (series.name, intervalString, func, alignToFrom and ", true" or "")
     newSeries = TimeSeries(newName, newStart, newEnd, interval, newValues)
     newSeries.pathExpression = newName
     results.append(newSeries)

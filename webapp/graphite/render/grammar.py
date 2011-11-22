@@ -23,8 +23,14 @@ number = Group(
   (intNumber + afterNumber)
 )('number')
 
+boolean = Group(
+  CaselessKeyword("true") |
+  CaselessKeyword("false")
+)('boolean')
+
 # Function calls
 arg = Group(
+  boolean |
   number |
   aString |
   expression
