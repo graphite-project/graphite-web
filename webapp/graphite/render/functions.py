@@ -1139,6 +1139,24 @@ def secondYAxis(requestContext, seriesList):
     series.name= 'secondYAxis(%s)' % series.name
   return seriesList
 
+def fetchWithBootstrap(requestContext, path, days):
+  'Request the same data but with a bootstrap period at the beginning'
+  previousContext = requestContext.copy()
+  # go back 1 week to get a solid bootstrap
+  previousContext['startTime'] = requestContext['startTime'] - timedelta(days)
+  previousContext['endTime'] = requestContext['endTime']
+  return evaluateTarget(previousContext, path)[0]
+
+def trimBootstrap(bootstrap, original):
+  'Trim the bootstrap period off the front of this series so it matches the original'
+  original_len = len(original)
+  bootstrap_len = len(bootstrap)
+  length_limit = (original_len * original.step) / bootstrap.step
+  trim_start = bootstrap.end - (length_limit * bootstrap.step)
+  trimmed = TimeSeries(bootstrap.name, trim_start, bootstrap.end, bootstrap.step,
+        bootstrap[-length_limit:])
+  return trimmed
+
 def holtWintersIntercept(alpha,actual,last_season,last_intercept,last_slope):
   return alpha * (actual - last_season) \
           + (1 - alpha) * (last_intercept + last_slope)
@@ -1154,9 +1172,10 @@ def holtWintersDeviation(gamma,actual,prediction,last_seasonal_dev):
     prediction = 0
   return gamma * math.fabs(actual - prediction) + (1 - gamma) * last_seasonal_dev
 
-def holtWintersAnalysis(series, bootstrap=None):
+def holtWintersAnalysis(series):
   alpha = gamma = 0.1
   beta = 0.0035
+  # season is currently one day
   season_length = (24*60*60) / series.step
   intercept = 0
   slope = 0
@@ -1171,16 +1190,12 @@ def holtWintersAnalysis(series, bootstrap=None):
     j = i - season_length
     if j >= 0:
       return seasonals[j]
-    if bootstrap:
-      return bootstrap['seasonals'][j]
     return 0
 
   def getLastDeviation(i):
     j = i - season_length
     if j >= 0:
       return deviations[j]
-    if bootstrap:
-      return bootstrap['deviations'][j]
     return 0
 
   last_seasonal = 0
@@ -1201,15 +1216,10 @@ def holtWintersAnalysis(series, bootstrap=None):
       continue
 
     if i == 0:
-      if bootstrap:
-        last_intercept = bootstrap['intercepts'][-1]
-        last_slope = bootstrap['slopes'][-1]
-        prediction = bootstrap['predictions'][-1]
-      else:
-        last_intercept = actual
-        last_slope = 0
-        # seed the first prediction as the first actual
-        prediction = actual
+      last_intercept = actual
+      last_slope = 0
+      # seed the first prediction as the first actual
+      prediction = actual
     else:
       last_intercept = intercepts[-1]
       last_slope = slopes[-1]
@@ -1254,55 +1264,22 @@ def holtWintersAnalysis(series, bootstrap=None):
         }
   return results
 
-def holtWintersFetchBootstrap(requestContext, seriesPath):
-  previousContext = requestContext.copy()
-  # go back 1 week to get a solid bootstrap
-  previousContext['startTime'] = requestContext['startTime'] - timedelta(7)
-  previousContext['endTime'] = requestContext['startTime']
-  bootstrapPath = "holtWintersBootstrap(%s)" % seriesPath
-  previousResults = evaluateTarget(previousContext, bootstrapPath)
-  return {'predictions': previousResults[0]
-        , 'deviations': previousResults[1]
-        , 'intercepts': previousResults[2]
-        , 'slopes': previousResults[3]
-        , 'seasonals': previousResults[4]
-        }
-
-def holtWintersBootstrap(requestContext, seriesList):
-  results = []
-  for series in seriesList:
-    bootstrap = holtWintersAnalysis(series)
-    interceptSeries = TimeSeries('intercepts', series.start, series.end
-            , series.step, bootstrap['intercepts'])
-    slopeSeries = TimeSeries('slopes', series.start, series.end
-            , series.step, bootstrap['slopes'])
-    seasonalSeries = TimeSeries('seasonals', series.start, series.end
-            , series.step, bootstrap['seasonals'])
-
-    results.append(bootstrap['predictions'])
-    results.append(bootstrap['deviations'])
-    results.append(interceptSeries)
-    results.append(slopeSeries)
-    results.append(seasonalSeries)
-  return results
-
 def holtWintersForecast(requestContext, seriesList):
   results = []
   for series in seriesList:
-    bootstrap = holtWintersFetchBootstrap(requestContext, series.pathExpression)
-    analysis = holtWintersAnalysis(series, bootstrap)
-    results.append(analysis['predictions'])
-    #results.append(analysis['deviations'])
+    withBootstrap = fetchWithBootstrap(requestContext, series.pathExpression, 7)
+    analysis = holtWintersAnalysis(withBootstrap)
+    results.append(trimBootstrap(analysis['predictions'], series))
   return results
 
 def holtWintersConfidenceBands(requestContext, seriesList):
   results = []
   for series in seriesList:
-    bootstrap = holtWintersFetchBootstrap(requestContext, series.pathExpression)
-    analysis = holtWintersAnalysis(series, bootstrap)
-    forecast = analysis['predictions']
-    deviation = analysis['deviations']
-    seriesLength = len(series)
+    bootstrap = fetchWithBootstrap(requestContext, series.pathExpression, 7)
+    analysis = holtWintersAnalysis(bootstrap)
+    forecast = trimBootstrap(analysis['predictions'], series)
+    deviation = trimBootstrap(analysis['deviations'], series)
+    seriesLength = len(forecast)
     i = 0
     upperBand = list()
     lowerBand = list()
@@ -1319,10 +1296,10 @@ def holtWintersConfidenceBands(requestContext, seriesList):
         lowerBand.append(forecast_item - scaled_deviation)
     upperName = "holtWintersConfidenceUpper(%s)" % series.name
     lowerName = "holtWintersConfidenceLower(%s)" % series.name
-    upperSeries = TimeSeries(upperName, series.start, series.end
-            , series.step, upperBand)
-    lowerSeries = TimeSeries(lowerName, series.start, series.end
-            , series.step, lowerBand)
+    upperSeries = TimeSeries(upperName, forecast.start, forecast.end
+            , forecast.step, upperBand)
+    lowerSeries = TimeSeries(lowerName, forecast.start, forecast.end
+            , forecast.step, lowerBand)
     results.append(upperSeries)
     results.append(lowerSeries)
   return results
@@ -1331,11 +1308,15 @@ def holtWintersAberration(requestContext, seriesList):
   results = []
   for series in seriesList:
     confidenceBands = holtWintersConfidenceBands(requestContext, [series])
+    bootstrapped = fetchWithBootstrap(requestContext, series.pathExpression, 7)
+    series = trimBootstrap(bootstrapped, series)
     upperBand = confidenceBands[0]
     lowerBand = confidenceBands[1]
     aberration = list()
     for i, actual in enumerate(series):
-      if series[i] > upperBand[i]:
+      if series[i] is None:
+        aberration.append(0)
+      elif series[i] > upperBand[i]:
         aberration.append(series[i] - upperBand[i])
       elif series[i] < lowerBand[i]:
         aberration.append(series[i] - lowerBand[i])
@@ -1887,7 +1868,6 @@ SeriesFunctions = {
   # Calculate functions
   'movingAverage' : movingAverage,
   'stdev' : stdev,
-  'holtWintersBootstrap': holtWintersBootstrap,
   'holtWintersForecast': holtWintersForecast,
   'holtWintersConfidenceBands': holtWintersConfidenceBands,
   'holtWintersAberration': holtWintersAberration,
