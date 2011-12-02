@@ -56,23 +56,25 @@ class CarbonClientProtocol(Int32StringReceiver):
       self.sendQueued()
 
     else:
-      datapoints = [ (metric, datapoint) ]
-      self.sendString( pickle.dumps(datapoints, protocol=-1) )
-      instrumentation.increment(self.sent)
+      self._sendDatapoints([(metric, datapoint)])
+
+  def _sendDatapoints(self, datapoints):
+      self.sendString(pickle.dumps(datapoints, protocol=-1))
+      instrumentation.increment(self.sent, len(datapoints))
       self.factory.checkQueue()
 
   def sendQueued(self):
     while (not self.paused) and self.factory.hasQueuedDatapoints():
       datapoints = self.factory.takeSomeFromQueue()
-      self.sendString( pickle.dumps(datapoints, protocol=-1) )
-      self.factory.checkQueue()
-      instrumentation.increment(self.sent, len(datapoints))
+      self._sendDatapoints(datapoints)
 
-    if (settings.USE_FLOW_CONTROL and
-        state.metricReceiversPaused and
-        self.factory.queueSize < SEND_QUEUE_LOW_WATERMARK):
-      log.clients('send queue has space available, resuming paused clients')
-      events.resumeReceivingMetrics()
+    if self.factory.queueSize < SEND_QUEUE_LOW_WATERMARK:
+      self.factory.queueHasSpace.callback()
+
+      if (settings.USE_FLOW_CONTROL and
+          state.metricReceiversPaused):
+        log.clients('send queue has space available, resuming paused clients')
+        events.resumeReceivingMetrics()
 
   def __str__(self):
     return 'CarbonClientProtocol(%s:%d:%s)' % (self.factory.destination)
@@ -92,6 +94,9 @@ class CarbonClientFactory(ReconnectingClientFactory):
     self.queue = [] # including datapoints that still need to be sent
     self.connectedProtocol = None
     self.queueEmpty = Deferred()
+    self.queueFull = Deferred()
+    self.queueHasSpace = Deferred()
+    self.queueHasSpace.addCallback(self.queueSpaceCallback)
     self.connectFailed = Deferred()
     self.connectionMade = Deferred()
     self.connectionLost = Deferred()
@@ -99,6 +104,15 @@ class CarbonClientFactory(ReconnectingClientFactory):
     self.attemptedRelays = 'destinations.%s.attemptedRelays' % self.destinationName
     self.fullQueueDrops = 'destinations.%s.fullQueueDrops' % self.destinationName
     self.queuedUntilConnected = 'destinations.%s.queuedUntilConnected' % self.destinationName
+
+  def queueFullCallback(self, result):
+    log.clients('%s::sendDatapoint send queue full, dropping datapoint' % self)
+    
+  def queueSpaceCallback(self, result):
+    self.queueFull = Deferred()
+    self.queueFull.addCallback(self.queueFullCallback)
+    self.queueHasSpace = Deferred()
+    self.queueHasSpace.addCallback(self.queueSpaceCallback)
 
   def buildProtocol(self, addr):
     self.connectedProtocol = CarbonClientProtocol()
@@ -137,8 +151,10 @@ class CarbonClientFactory(ReconnectingClientFactory):
 
   def sendDatapoint(self, metric, datapoint):
     instrumentation.increment(self.attemptedRelays)
-    if len(self.queue) >= settings.MAX_QUEUE_SIZE:
-      log.clients('%s::sendDatapoint send queue full, dropping datapoint')
+    queueSize = self.queueSize
+    if queueSize >= settings.MAX_QUEUE_SIZE:
+      if not self.queueFull.called:
+        self.queueFull.callback(queueSize)
       instrumentation.increment(self.fullQueueDrops)
     elif self.connectedProtocol:
       self.connectedProtocol.sendDatapoint(metric, datapoint)
