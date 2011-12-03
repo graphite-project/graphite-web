@@ -192,8 +192,6 @@ def parseOptions(request):
   requestOptions['cacheTimeout'] = int( queryParams.get('cacheTimeout', settings.DEFAULT_CACHE_DURATION) )
   requestOptions['targets'] = []
   for target in queryParams.getlist('target'):
-    if target.lower().startswith('graphite.'): #Strip leading "Graphite." as a convenience
-      target = target[9:]
     requestOptions['targets'].append(target)
 
   if 'pickle' in queryParams:
