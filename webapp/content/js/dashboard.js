@@ -1517,6 +1517,43 @@ function graphClicked(graphView, graphIndex, element, evt) {
       text: 'Clone',
       width: 100,
       handler: function () { menu.destroy(); cloneGraph(record); }
+    }, {
+      xtype: 'button',
+      fieldLabel: "<span style='visibility: hidden'>",
+      text: "Direct URL",
+      width: 100,
+      handler: function () {
+        menu.destroy();
+        var win = new Ext.Window({
+          title: "Graph URL",
+          width: 600,
+          height: 125,
+          layout: 'border',
+          modal: true,
+          items: [
+            {
+              xtype: "label",
+              region: 'north',
+              style: "text-align: center;",
+              text: "Direct URL to this graph"
+            }, {
+              xtype: 'textfield',
+              region: 'center',
+              value:  record.data.url,
+              editable: false,
+              style: "text-align: center; font-size: large;",
+              listeners: {
+                afterrender: function (field) { field.selectText(); }
+              }
+            }
+          ],
+          buttonAlign: 'center',
+          buttons: [
+            {text: "Close", handler: function () { win.close(); } }
+          ]
+        });
+        win.show();
+      }
     }]
   });
 
