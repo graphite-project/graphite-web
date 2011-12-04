@@ -210,9 +210,6 @@ CarbonLink = CarbonLinkPool(hosts, settings.CARBONLINK_TIMEOUT)
 
 # Data retrieval API
 def fetchData(requestContext, pathExpr):
-  if pathExpr.lower().startswith('graphite.'):
-    pathExpr = pathExpr[9:]
-
   seriesList = []
   startTime = requestContext['startTime']
   endTime = requestContext['endTime']
