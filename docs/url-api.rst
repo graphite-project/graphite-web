@@ -524,6 +524,17 @@ Example:
   &minorGridLineColor=darkgrey
 
 
+minorY
+------------------
+Sets the number of minor grid lines per major line on the y-axis.
+
+Example:
+
+.. code-block:: none
+
+  &minorY=3
+
+
 thickness
 ---------
 Alias for lineWidth
