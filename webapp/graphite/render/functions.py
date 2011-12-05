@@ -677,6 +677,14 @@ def legendValue(requestContext, seriesList, valueType):
 
   return seriesList
 
+def alpha(requestContext, seriesList, alpha):
+  """
+  Assigns the given color alpha setting to the seriesList
+  """
+  for series in seriesList:
+    series.options['alpha'] = alpha
+  return seriesList
+
 def color(requestContext, seriesList, theColor):
   """
   Assigns the given color to the seriesList
@@ -1898,6 +1906,7 @@ SeriesFunctions = {
   'aliasByNode' : aliasByNode,
   'cactiStyle' : cactiStyle,
   'color' : color,
+  'alpha' : alpha,
   'cumulative' : cumulative,
   'keepLastValue' : keepLastValue,
   'drawAsInfinite' : drawAsInfinite,
