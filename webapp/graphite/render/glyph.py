@@ -619,6 +619,7 @@ class LineGraph(Graph):
       'round' : cairo.LINE_JOIN_ROUND,
       'bevel' : cairo.LINE_JOIN_BEVEL,
     }[linejoin])
+
     # stack the values
     if self.areaMode == 'stacked' and not self.secondYAxis: #TODO Allow stacked area mode with secondYAxis
       total = []
@@ -631,13 +632,40 @@ class LineGraph(Graph):
             series[i] += total[i]
             total[i] += original
 
-    # Check whether there is an stacked metric
+    # check whether there is an stacked metric
     singleStacked = False
     for series in self.data:
       if 'stacked' in series.options:
         singleStacked = True
     if singleStacked:
       self.data = sort_stacked(self.data)
+
+    # apply stacked setting on series based on areaMode
+    if self.areaMode == 'first':
+      self.data[0].options['stacked'] = True
+    elif self.areaMode != 'none':
+      for series in self.data:
+        series.options['stacked'] = True
+
+    # apply alpha channel and create separate stroke series
+    if self.params.get('areaAlpha'):
+      try:
+        alpha = float(self.params['areaAlpha'])
+      except ValueError:
+        alpha = 0.5
+        pass
+
+      strokeSeries = []
+      for series in self.data:
+        if 'stacked' in series.options:
+          series.options['alpha'] = alpha
+          series.options['stacked'] = True
+
+          newSeries = TimeSeries(None, series.start, series.end, series.step, [x for x in series])
+          newSeries.xStep = series.xStep
+          newSeries.color = series.color
+          strokeSeries.append(newSeries)
+      self.data += strokeSeries
 
     # setup the clip region
     self.ctx.set_line_width(1.0)
@@ -649,33 +677,11 @@ class LineGraph(Graph):
     self.ctx.save()
     clipRestored = False
 
-    if self.params.get('areaAlpha'):
-      try:
-        alpha = float(self.params['areaAlpha'])
-      except ValueError:
-        alpha = 1.0
-        pass
-
-      if self.areaMode == 'first':
-        alphaSeries = TimeSeries(None, self.data[0].start, self.data[0].end, self.data[0].step, [x for x in self.data[0]])
-        alphaSeries.xStep = self.data[0].xStep
-        alphaSeries.color = self.data[0].color
-        alphaSeries.options['alpha'] = alpha
-        self.data.insert(0, alphaSeries)
-      else:
-        strokeSeries = []
-        for series in self.data:
-          if self.areaMode != 'none' or 'stacked' in series.options:
-            series.options['alpha'] = alpha
-            newSeries = TimeSeries(None, series.start, series.end, series.step, [x for x in series])
-            newSeries.xStep = series.xStep
-            newSeries.color = series.color
-            strokeSeries.append(newSeries)
-        self.data += strokeSeries
-
     for series in self.data:
 
-      if self.areaMode == 'none' and 'stacked' not in series.options:
+      if 'stacked' not in series.options:
+        # stacked areas are always drawn first. if this series is not stacked, we finished stacking.
+        # reset the clip region so lines can show up on top of the stacked areas.
         if not clipRestored:
           clipRestored = True
           self.ctx.restore()
@@ -702,7 +708,7 @@ class LineGraph(Graph):
           value = 0.0
 
         if value is None:
-          if not fromNone and self.areaMode != 'none' or 'stacked' in series.options: #Close off and fill area before unknown interval
+          if not fromNone and 'stacked' in series.options: #Close off and fill area before unknown interval
             self.ctx.line_to(x, self.area['ymax'])
             self.ctx.close_path()
             self.ctx.fill_preserve()
@@ -737,7 +743,7 @@ class LineGraph(Graph):
 
           if self.lineMode == 'staircase':
             if fromNone:
-              if self.areaMode != 'none':
+              if 'stacked' in series.options:
                 self.ctx.move_to(x, self.area['ymax'])
                 self.ctx.line_to(x, y)
               else:
@@ -751,7 +757,7 @@ class LineGraph(Graph):
 
           elif self.lineMode == 'slope':
             if fromNone:
-              if self.areaMode != 'none' or 'stacked' in series.options:
+              if 'stacked' in series.options:
                 self.ctx.move_to(x, self.area['ymax'])
                 self.ctx.line_to(x, y)
               else:
@@ -766,7 +772,7 @@ class LineGraph(Graph):
 
           fromNone = False
 
-      if self.areaMode != 'none' or 'stacked' in series.options:
+      if 'stacked' in series.options:
         self.ctx.line_to(x, self.area['ymax'])
         self.ctx.close_path()
         self.ctx.fill_preserve()
@@ -775,9 +781,6 @@ class LineGraph(Graph):
         self.ctx.rectangle(0, 0, self.width, self.height) # wrapper to invert even/odd
         self.ctx.clip()
         self.ctx.set_fill_rule(cairo.FILL_RULE_WINDING)
-
-        if self.areaMode == 'first':
-          self.areaMode = 'none' #This ensures only the first line is drawn as area
 
       else:
         self.ctx.stroke()
