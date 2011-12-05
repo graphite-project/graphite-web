@@ -4,3 +4,5 @@ build
 dist
 graphite.db
 .bzrignore
+dropin.cache
+*.egg-info
