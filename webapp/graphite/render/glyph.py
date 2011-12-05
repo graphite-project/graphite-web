@@ -133,6 +133,7 @@ class Graph:
     self.margin = int( params.get('margin',10) )
     self.userTimeZone = params.get('tz')
     self.logBase = params.get('logBase', None)
+    self.minorY = int(params.get('minorY', 1))
     if self.logBase:
       if self.logBase == 'e':
         self.logBase = math.e
@@ -390,7 +391,7 @@ class LineGraph(Graph):
                   'yUnitSystem', 'logBase','yMinLeft','yMinRight','yMaxLeft', \
                   'yMaxRight', 'yLimitLeft', 'yLimitRight', 'yStepLeft', \
                   'yStepRight', 'rightWidth', 'rightColor', 'rightDashed', \
-                  'leftWidth', 'leftColor', 'leftDashed', 'xFormat')
+                  'leftWidth', 'leftColor', 'leftDashed', 'xFormat', 'minorY')
   validLineModes = ('staircase','slope','connected')
   validAreaModes = ('none','first','all','stacked')
   validPieModes = ('maximum', 'minimum', 'average')
@@ -1180,6 +1181,8 @@ class LineGraph(Graph):
       labels = self.yLabelValuesL
     else:
       labels = self.yLabelValues
+    if self.logBase:
+      labels.append(self.logBase * max(labels))
 
     for i, value in enumerate(labels):
       self.ctx.set_line_width(0.4)
@@ -1195,37 +1198,47 @@ class LineGraph(Graph):
       self.ctx.move_to(leftSide, y)
       self.ctx.line_to(rightSide, y)
       self.ctx.stroke()
-      self.ctx.set_line_width(0.3)
-      self.setColor( self.params.get('minorGridLineColor',self.defaultMinorGridLineColor) )
 
-      # If this is the last label or we are using a log scale no minor grid line.
-      if self.secondYAxis:
-        if self.logBase or i == len(self.yLabelValuesL) - 1:
-          continue
-      else:
-        if self.logBase or i == len(self.yLabelValues) - 1:
-          continue
-        
-      # Draw the minor grid lines for linear scales.
-      if self.secondYAxis:
-        value += (self.yStepL / 2.0)
-        if value >= self.yTopL:
-          continue
-      else:
-        value += (self.yStep / 2.0)
-        if value >= self.yTop:
-          continue
+      # draw minor gridlines if this isn't the last label
+      if self.minorY >= 1 and i < (len(labels) - 1):
+        # in case graphite supports inverted Y axis now or someday
+        (valueLower, valueUpper) = sorted((value, labels[i+1]))
 
-      if self.secondYAxis:
-        y = self.getYCoord(value,"left")
-      else:
-        y = self.getYCoord(value)
-      if y is None or y < 0:
-          continue
+        # each minor gridline is 1/minorY apart from the nearby gridlines.
+        # we calculate that distance, for adding to the value in the loop.
+        distance = ((valueUpper - valueLower) / float(1 + self.minorY))
 
-      self.ctx.move_to(leftSide, y)
-      self.ctx.line_to(rightSide, y)
-      self.ctx.stroke()
+        # starting from the initial valueLower, we add the minor distance
+        # for each minor gridline that we wish to draw, and then draw it.
+        for minor in range(self.minorY):
+          self.ctx.set_line_width(0.3)
+          self.setColor( self.params.get('minorGridLineColor',self.defaultMinorGridLineColor) )
+
+          # the current minor gridline value is halfway between the current and next major gridline values
+          value = (valueLower + ((1+minor) * distance))
+
+          if self.logBase:
+            yTopFactor = self.logBase * self.logBase
+          else:
+            yTopFactor = 1
+
+          if self.secondYAxis:
+            if value >= (yTopFactor * self.yTopL):
+              continue
+          else:
+            if value >= (yTopFactor * self.yTop):
+              continue
+
+          if self.secondYAxis:
+            y = self.getYCoord(value,"left")
+          else:
+            y = self.getYCoord(value)
+          if y is None or y < 0:
+              continue
+
+          self.ctx.move_to(leftSide, y)
+          self.ctx.line_to(rightSide, y)
+          self.ctx.stroke()
 
     #Vertical grid lines
     top = self.area['ymin']

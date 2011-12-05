@@ -1053,6 +1053,7 @@ function createOptionsMenu() {
       menuInputItem("Label", "vtitle"),
       menuInputItem("Minimum", "yMin"),
       menuInputItem("Maximum", "yMax"),
+      menuInputItem("Minor Lines", "minorY"),
       menuInputItem("Logarithmic Scale", "logBase", "Please enter the logarithmic base to use (ie. 10, e, etc...)"),
       {text: "Unit", menu: yAxisUnitMenu},
       {text: "Side", menu: yAxisSideMenu},
