@@ -631,15 +631,13 @@ class LineGraph(Graph):
             series[i] += total[i]
             total[i] += original
 
-      self.data = reverse_sort(self.data)
-
     # Check whether there is an stacked metric
     singleStacked = False
     for series in self.data:
       if 'stacked' in series.options:
         singleStacked = True
     if singleStacked:
-      self.data = reverse_sort_stacked(self.data)
+      self.data = sort_stacked(self.data)
 
     # setup the clip region
     self.ctx.set_line_width(1.0)
@@ -647,17 +645,40 @@ class LineGraph(Graph):
     self.ctx.clip()
     self.ctx.set_line_width(originalWidth)
 
-    if self.params.get('areaAlpha') and self.areaMode == 'first': 
-      alphaSeries = TimeSeries(None, self.data[0].start, self.data[0].end, self.data[0].step, [x for x in self.data[0]])
-      alphaSeries.xStep = self.data[0].xStep
-      alphaSeries.color = self.data[0].color
+    # save clip to restore once stacked areas are drawn
+    self.ctx.save()
+    clipRestored = False
+
+    if self.params.get('areaAlpha'):
       try:
-        alphaSeries.options['alpha'] = float(self.params['areaAlpha'])
+        alpha = float(self.params['areaAlpha'])
       except ValueError:
+        alpha = 1.0
         pass
-      self.data.insert(0, alphaSeries)
+
+      if self.areaMode == 'first':
+        alphaSeries = TimeSeries(None, self.data[0].start, self.data[0].end, self.data[0].step, [x for x in self.data[0]])
+        alphaSeries.xStep = self.data[0].xStep
+        alphaSeries.color = self.data[0].color
+        alphaSeries.options['alpha'] = alpha
+        self.data.insert(0, alphaSeries)
+      else:
+        strokeSeries = []
+        for series in self.data:
+          if self.areaMode != 'none' or 'stacked' in series.options:
+            series.options['alpha'] = alpha
+            newSeries = TimeSeries(None, series.start, series.end, series.step, [x for x in series])
+            newSeries.xStep = series.xStep
+            newSeries.color = series.color
+            strokeSeries.append(newSeries)
+        self.data += strokeSeries
 
     for series in self.data:
+
+      if self.areaMode == 'none' and 'stacked' not in series.options:
+        if not clipRestored:
+          clipRestored = True
+          self.ctx.restore()
 
       if 'lineWidth' in series.options: # adjusts the lineWidth of this line if option is set on the series
         self.ctx.set_line_width(series.options['lineWidth'])
@@ -684,7 +705,12 @@ class LineGraph(Graph):
           if not fromNone and self.areaMode != 'none' or 'stacked' in series.options: #Close off and fill area before unknown interval
             self.ctx.line_to(x, self.area['ymax'])
             self.ctx.close_path()
-            self.ctx.fill()
+            self.ctx.fill_preserve()
+            # add the filled area to the clipping region so its not overwritten
+            self.ctx.set_fill_rule(cairo.FILL_RULE_EVEN_ODD)
+            self.ctx.rectangle(0, 0, self.width, self.height) # wrapper to invert even/odd
+            self.ctx.clip()
+            self.ctx.set_fill_rule(cairo.FILL_RULE_WINDING)
           x += series.xStep
           fromNone = True
 
@@ -740,10 +766,15 @@ class LineGraph(Graph):
 
           fromNone = False
 
-      if self.areaMode != 'none':
+      if self.areaMode != 'none' or 'stacked' in series.options:
         self.ctx.line_to(x, self.area['ymax'])
         self.ctx.close_path()
-        self.ctx.fill()
+        self.ctx.fill_preserve()
+        # add the filled area to the clipping region so its not overwritten
+        self.ctx.set_fill_rule(cairo.FILL_RULE_EVEN_ODD)
+        self.ctx.rectangle(0, 0, self.width, self.height) # wrapper to invert even/odd
+        self.ctx.clip()
+        self.ctx.set_fill_rule(cairo.FILL_RULE_WINDING)
 
         if self.areaMode == 'first':
           self.areaMode = 'none' #This ensures only the first line is drawn as area
@@ -1418,15 +1449,9 @@ def any(args):
   return False
 
 
-def reverse_sort(args):
-  aux_list = [arg for arg in args]
-  aux_list.reverse()
-  return aux_list
-
-def reverse_sort_stacked(series_list):
+def sort_stacked(series_list):
   stacked = [s for s in series_list if 'stacked' in s.options]
   not_stacked = [s for s in series_list if 'stacked' not in s.options]
-  stacked.reverse()
   return stacked + not_stacked
 
 def format_units(v, step, system="si"):
