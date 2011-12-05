@@ -91,7 +91,8 @@
             var latestPosition = null;
             var autocompleteoptions = {
                         minChars: 0,
-                        selectFirst: false
+                        selectFirst: false,
+                        matchCase: true //Metrics can be case sensitive
             };
             var markings = [];
 
@@ -291,7 +292,7 @@
                     var metric = $(this);
                     update_metric_row(metric);
                 });
-                get_events(graph.find("#eventdesc"))
+                get_events(graph.find("#eventdesc"), "#eventcount")
                 render();
             }
 
@@ -334,9 +335,9 @@
             var build_url_events = function (tags) {
                 when = build_when()
                 if (tags == "*") {
-                    return '/events/get_data?'+when
+                    return SLASH+'events/get_data?'+when
                 } else {
-                    return '/events/get_data?'+when+'&tags='+tags;
+                    return SLASH+'events/get_data?'+when+'&tags='+tags;
                 }
             }
 
@@ -368,7 +369,7 @@
 
             }
 
-            var get_events = function(events_text) {
+            var get_events = function(events_text, event_count) {
                 if (events_text.val() == "") {
                     events_text.removeClass("ajaxworking");
                     events_text.removeClass("ajaxerror");
@@ -382,13 +383,14 @@
                             events_text.removeClass("ajaxerror");
                             events_text.removeClass("ajaxworking");
                             markings = [];
+                            $(event_count).text(req_data.length);
                             for (i in req_data) {
                                 row = req_data[i];
                                 markings.push({
                                     color: '#000',
                                     lineWidth: 1,
                                     xaxis: { from: row.when*1000, to: row.when*1000 },
-                                    text:'<a href="/events/'+row.id+'/">'+row.what+'<a>'
+                                    text:'<a href="'+SLASH+'events/'+row.id+'/">'+row.what+'<a>'
                                 });
                             }
                             render();
@@ -493,7 +495,7 @@
                     if(e.which===13) { // on enter
                         // add row
                         edit.blur();
-                        get_events(edit);
+                        get_events(edit, "#eventcount");
                     }
                 });
             });

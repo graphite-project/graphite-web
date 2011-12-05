@@ -8,6 +8,8 @@ import simplejson
 from graphite.render.views import parseOptions
 from graphite.render.evaluator import evaluateTarget
 from graphite.storage import STORE
+from django.core.urlresolvers import get_script_prefix
+
 
 
 def graphlot_render(request):
@@ -21,8 +23,13 @@ def graphlot_render(request):
     untiltime = request.GET.get('until', "-0hour")
     fromtime = request.GET.get('from', "-24hour")
     events = request.GET.get('events', "")
-    context = dict(metric_list=metrics, fromtime=fromtime, untiltime=untiltime,
-                   events=events)
+    context = {
+      'metric_list' : metrics,
+      'fromtime' : fromtime,
+      'untiltime' : untiltime,
+      'events' : events,
+      'slash' : get_script_prefix()
+    }
     return render_to_response("graphlot.html", context)
 
 def get_data(request):
@@ -64,10 +71,12 @@ def find_metric(request):
 
 def header(request):
   "View for the header frame of the browser UI"
-  context = {}
-  context['user'] = request.user
-  context['profile'] = getProfile(request)
-  context['documentation_url'] = settings.DOCUMENTATION_URL
+  context = {
+    'user' : request.user,
+    'profile' : getProfile(request),
+    'documentation_url' : settings.DOCUMENTATION_URL,
+    'slash' : get_script_prefix()
+  }
   return render_to_response("browserHeader.html", context)
 
 
@@ -75,7 +84,8 @@ def browser(request):
   "View for the top-level frame of the browser UI"
   context = {
     'queryString' : request.GET.urlencode(),
-    'target' : request.GET.get('target')
+    'target' : request.GET.get('target'),
+    'slash' : get_script_prefix()
   }
   if context['queryString']:
     context['queryString'] = context['queryString'].replace('#','%23')

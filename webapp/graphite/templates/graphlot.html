@@ -13,6 +13,8 @@
     
     <script type="text/javascript">
 
+    var SLASH='{{slash}}';
+
     $(document).ready(function () {
         $('.graphite').graphiteGraph();
     });
@@ -58,7 +60,7 @@
 
                 <table id="rowlist" class="styledtable"  style="float:left">
                 <tr><th  style="width:750px">events</th></tr>
-                <tr id="eventsrow"><td><input class="event_tags" style="width:600px" type="text" id="eventdesc" value="{{events}}"/></td></tr>
+                <tr id="eventsrow"><td><input class="event_tags" style="width:600px" type="text" id="eventdesc" value="{{events}}"/>(<span id="eventcount">0</span>)</td></tr>
                 </table>
                 
                 <table id="rowlist" class="styledtable"  style="float:left">

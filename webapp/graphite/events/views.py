@@ -8,6 +8,8 @@ from django.shortcuts import render_to_response, get_object_or_404
 
 from graphite.events import models
 from graphite.render.attime import parseATTime
+from django.core.urlresolvers import get_script_prefix
+
 
 
 def to_timestamp(dt):
@@ -23,14 +25,18 @@ class EventEncoder(simplejson.JSONEncoder):
 
 def view_events(request):
     if request.method == "GET":
-        context = dict(events=fetch(request))
+        context = { 'events' : fetch(request),
+            'slash' : get_script_prefix()
+        }
         return render_to_response("events.html", context)
     else:
         return post_event(request)
 
 def detail(request, event_id):
     e = get_object_or_404(models.Event, pk=event_id)
-    context = dict(event=e)
+    context = { 'event' : e,
+       'slash' : get_script_prefix()
+    }
     return render_to_response("event.html", context)
 
 

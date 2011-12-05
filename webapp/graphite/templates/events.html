@@ -32,8 +32,8 @@
               {% else %}
                 <br/>No events. Add events using 
                 <a href="/admin/events/event/">the admin interface</a> or by posting
-                (eg, curl -X POST http://localhost:8000/events/ -d
-                '{"what": "Something Interesting"}')
+                (eg, curl -X POST http://localhost:8000{{slash}}events/ -d
+                '{"what": "Something Interesting", "tags" : "tag1 "}')
               {% endif %}
               </table>
             </div>
