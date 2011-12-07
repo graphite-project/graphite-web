@@ -785,6 +785,26 @@ def maximumAbove(requestContext, seriesList, n):
   return results
 
 
+def minimumAbove(requestContext, seriesList, n):
+  """
+  Takes one metric or a wildcard seriesList followed by a constant n.
+  Draws only the metrics with a minimum value above n.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=minimumAbove(system.interface.eth*.packetsSent,1000)
+
+  This would only display interfaces which sent more than 1000 packets/min.
+  """
+  results = []
+  for series in seriesList:
+    if min(series) >= n:
+      results.append(series)
+  return results
+
+
 def maximumBelow(requestContext, seriesList, n):
   """
   Takes one metric or a wildcard seriesList followed by a constant n.
@@ -1894,6 +1914,7 @@ SeriesFunctions = {
   'averageAbove' : averageAbove,
   'averageBelow' : averageBelow,
   'maximumAbove' : maximumAbove,
+  'minimumAbove' : minimumAbove,
   'maximumBelow' : maximumBelow,
   'nPercentile' : nPercentile,
   'limit' : limit,
