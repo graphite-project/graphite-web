@@ -178,7 +178,7 @@ class Graph:
     self.surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, self.width, self.height)
     self.ctx = cairo.Context(self.surface)
 
-  def setColor(self, value, alpha=1.0):
+  def setColor(self, value, alpha=1.0, forceAlpha=False):
     if type(value) is tuple and len(value) == 3:
       r,g,b = value
     elif value in colorAliases:
@@ -187,7 +187,7 @@ class Graph:
       s = value
       if s[0] == '#': s = s[1:]
       r,g,b = ( int(s[0:2],base=16), int(s[2:4],base=16), int(s[4:6],base=16) )
-      if len(s) == 8:
+      if len(s) == 8 and not forceAlpha:
         alpha = float( int(s[6:8],base=16) ) / 255.0
     else:
       raise ValueError, "Must specify an RGB 3-tuple, an html color string, or a known color alias!"
@@ -659,7 +659,6 @@ class LineGraph(Graph):
       for series in self.data:
         if 'stacked' in series.options:
           series.options['alpha'] = alpha
-          series.options['stacked'] = True
 
           newSeries = TimeSeries(None, series.start, series.end, series.step, [x for x in series])
           newSeries.xStep = series.xStep
@@ -696,7 +695,11 @@ class LineGraph(Graph):
 
       x = float(self.area['xmin']) + (self.lineWidth / 2.0)
       y = float(self.area['ymin'])
-      self.setColor( series.color, series.options.get('alpha') or 1.0)
+
+      if series.options.get('invisible'):
+        self.setColor( series.color, 0, True )
+      else:
+        self.setColor( series.color, series.options.get('alpha') or 1.0 )
 
       fromNone = True
 

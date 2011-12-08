@@ -595,6 +595,22 @@ def stacked(requestContext,seriesLists):
   return results
 
 
+def areaBetween(requestContext, seriesList):
+  """
+  Draws the area in between the two series in seriesList
+  """
+  assert len(seriesList) == 2, "areaBetween series argument must reference *exactly* 2 series"
+  lower = seriesList[0]
+  upper = seriesList[1]
+
+  lower.options['stacked'] = True
+  lower.options['invisible'] = True
+
+  upper.options['stacked'] = True
+  lower.name = upper.name = "areaBetween(%s)" % upper.name
+  return seriesList
+
+
 def alias(requestContext, seriesList, newName):
   """
   Takes one metric or a wildcard seriesList and a string in quotes.
@@ -1328,8 +1344,8 @@ def holtWintersConfidenceBands(requestContext, seriesList):
             , forecast.step, upperBand)
     lowerSeries = TimeSeries(lowerName, forecast.start, forecast.end
             , forecast.step, lowerBand)
-    results.append(upperSeries)
     results.append(lowerSeries)
+    results.append(upperSeries)
   return results
 
 def holtWintersAberration(requestContext, seriesList):
@@ -1338,8 +1354,8 @@ def holtWintersAberration(requestContext, seriesList):
     confidenceBands = holtWintersConfidenceBands(requestContext, [series])
     bootstrapped = fetchWithBootstrap(requestContext, series.pathExpression, 7)
     series = trimBootstrap(bootstrapped, series)
-    upperBand = confidenceBands[0]
-    lowerBand = confidenceBands[1]
+    lowerBand = confidenceBands[0]
+    upperBand = confidenceBands[1]
     aberration = list()
     for i, actual in enumerate(series):
       if series[i] is None:
@@ -1355,6 +1371,10 @@ def holtWintersAberration(requestContext, seriesList):
     results.append(TimeSeries(newName, series.start, series.end
             , series.step, aberration))
   return results
+
+def holtWintersConfidenceArea(requestContext, seriesList):
+  bands = holtWintersConfidenceBands(requestContext, seriesList)
+  return areaBetween(requestContext, bands)
 
 
 def drawAsInfinite(requestContext, seriesList):
@@ -1898,6 +1918,7 @@ SeriesFunctions = {
   'stdev' : stdev,
   'holtWintersForecast': holtWintersForecast,
   'holtWintersConfidenceBands': holtWintersConfidenceBands,
+  'holtWintersConfidenceArea': holtWintersConfidenceArea,
   'holtWintersAberration': holtWintersAberration,
   'asPercent' : asPercent,
   'pct' : asPercent,
@@ -1940,6 +1961,7 @@ SeriesFunctions = {
   'exclude' : exclude,
   'constantLine' : constantLine,
   'stacked' : stacked,
+  'areaBetween' : areaBetween,
   'threshold' : threshold,
 
   # test functions
