@@ -13,6 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 import os, cairo, math, itertools
+import StringIO
 from datetime import datetime, timedelta
 from urllib import unquote_plus
 from ConfigParser import SafeConfigParser
@@ -120,7 +121,7 @@ class GraphError(Exception):
 class Graph:
   customizable = ('width','height','margin','bgcolor','fgcolor', \
                  'fontName','fontSize','fontBold','fontItalic', \
-                 'colorList','template','yAxisSide')
+                 'colorList','template','yAxisSide','outputFormat')
 
   def __init__(self,**params):
     self.params = params
@@ -174,8 +175,13 @@ class Graph:
 
     self.drawGraph(**params)
 
-  def setupCairo(self,outputFormat='png'): #TODO SVG support
-    self.surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, self.width, self.height)
+  def setupCairo(self,outputFormat='png'):
+    self.outputFormat = outputFormat
+    if outputFormat == 'png':
+      self.surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, self.width, self.height)
+    else:
+      self.surfaceData = StringIO.StringIO()
+      self.surface = cairo.SVGSurface(self.surfaceData, self.width, self.height)
     self.ctx = cairo.Context(self.surface)
 
   def setColor(self, value, alpha=1.0, forceAlpha=False):
@@ -378,7 +384,12 @@ class Graph:
     }
 
   def output(self, fileObj):
-    self.surface.write_to_png(fileObj)
+    if self.outputFormat == 'png':
+      self.surface.write_to_png(fileObj)
+    else:
+      self.surface.finish()
+      fileObj.write(self.surfaceData.getvalue())
+      self.surfaceData.close()
 
 
 class LineGraph(Graph):

@@ -165,7 +165,7 @@ def renderView(request):
   else:
     image = doImageRender(requestOptions['graphClass'], graphOptions)
 
-  response = buildResponse(image)
+  response = buildResponse(image, graphOptions.get('outputFormat') == 'svg' and 'image/svg+xml' or 'image/png')
 
   if useCache:
     cache.set(requestKey, response, cacheTimeout)
@@ -341,8 +341,8 @@ def doImageRender(graphClass, graphOptions):
   return imageData
 
 
-def buildResponse(imageData):
-  response = HttpResponse(imageData, mimetype="image/png")
+def buildResponse(imageData, mimetype="image/png"):
+  response = HttpResponse(imageData, mimetype=mimetype)
   response['Cache-Control'] = 'no-cache'
   response['Pragma'] = 'no-cache'
   return response
