@@ -388,7 +388,9 @@ class Graph:
       self.surface.write_to_png(fileObj)
     else:
       self.surface.finish()
-      fileObj.write(self.surfaceData.getvalue())
+      svgData = self.surfaceData.getvalue()
+      svgData = svgData.replace('pt"','px"',2) # we expect height/width in pixels, not points
+      fileObj.write(svgData)
       self.surfaceData.close()
 
 
