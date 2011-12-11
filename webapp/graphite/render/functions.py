@@ -796,7 +796,7 @@ def maximumAbove(requestContext, seriesList, n):
   """
   results = []
   for series in seriesList:
-    if max(series) >= n:
+    if max(series) > n:
       results.append(series)
   return results
 
@@ -816,7 +816,7 @@ def minimumAbove(requestContext, seriesList, n):
   """
   results = []
   for series in seriesList:
-    if min(series) >= n:
+    if min(series) > n:
       results.append(series)
   return results
 
