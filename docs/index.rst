@@ -15,6 +15,7 @@ Graphite Documentation
    url-api
    functions
    dashboard
+   whisper
    tools
    who-is-using
 
