@@ -59,6 +59,7 @@ defaults = dict(
   DESTINATIONS=[],
   USE_FLOW_CONTROL=True,
   USE_INSECURE_UNPICKLER=False,
+  USE_WHITELIST=False,
 )
 
 
@@ -158,6 +159,8 @@ class CarbonCacheOptions(usage.Options):
         ["config", "c", None, "Use the given config file."],
         ["instance", "", "a", "Manage a specific carbon instance."],
         ["logdir", "", None, "Write logs to the given directory."],
+        ["whitelist", "", None, "List of metric patterns to allow."],
+        ["blacklist", "", None, "List of metric patterns to disallow."],
         ]
 
     def postOptions(self):
@@ -212,6 +215,14 @@ class CarbonCacheOptions(usage.Options):
             if not isdir(logdir):
                 os.makedirs(logdir)
             log.logToDir(logdir)
+
+        if self["whitelist"] is None:
+            self["whitelist"] = join(settings["CONF_DIR"], "whitelist")
+        settings["whitelist"] = self["whitelist"]
+
+        if self["blacklist"] is None:
+            self["blacklist"] = join(settings["CONF_DIR"], "blacklist")
+        settings["blacklist"] = self["blacklist"]
 
     def parseArgs(self, *action):
         """If an action was provided, store it for further processing."""
@@ -341,6 +352,14 @@ def get_default_parser(usage="%prog [options] <start|stop|status>"):
         "--config",
         default=None,
         help="Use the given config file")
+    parser.add_option(
+      "--whitelist",
+      default=None,
+      help="Use the given whitelist file")
+    parser.add_option(
+      "--blacklist",
+      default=None
+      help="Use the given blacklist file")
     parser.add_option(
         "--logdir",
         default=None,

@@ -4,6 +4,7 @@ from twisted.internet.error import ConnectionDone
 from twisted.protocols.basic import LineOnlyReceiver, Int32StringReceiver
 from carbon import log, events, state, management
 from carbon.conf import settings
+from carbon.regexlist import WhiteList, BlackList
 from carbon.util import pickle, get_unpickler
 
 
@@ -46,6 +47,10 @@ class MetricReceiver:
     events.resumeReceivingMetrics.removeHandler(self.resumeReceiving)
 
   def metricReceived(self, metric, datapoint):
+    if BlackList and metric in BlackList:
+      return
+    if WhiteList and metric not in WhiteList:
+      return
     if datapoint[1] == datapoint[1]: # filter out NaN values
       events.metricReceived(metric, datapoint)
 
