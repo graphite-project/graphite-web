@@ -94,6 +94,11 @@ Scales
 ------
 `Scales`_ is a Python server state and statistics library that can output its data to Graphite.
 
+Graphiti
+--------
+`Graphiti`_ is a powerful dashboard front end with a focus on ease of access, ease of recovery and
+ease of tweaking and manipulation.
+
 
 .. _Diamond: http://opensource.brightcove.com/project/Diamond/
 .. _jmxtrans: http://code.google.com/p/jmxtrans/
@@ -113,3 +118,4 @@ Scales
 .. _Gdash: https://github.com/ripienaar/gdash.git
 .. _Pencil: https://github.com/fetep/pencil
 .. _Graphite-relay: https://github.com/markchadwick/graphite-relay
+.. _Graphiti: https://github.com/paperlesspost/graphiti
