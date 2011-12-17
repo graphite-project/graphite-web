@@ -831,14 +831,14 @@ class LineGraph(Graph):
       yMinValue = safeMin( [safeMin(series) for series in self.data if not series.options.get('drawAsInfinite')] )
 
     if self.areaMode == 'stacked':
-      length = safeMin( [len(series) for series in self.data] )
+      length = safeMin( [len(series) for series in self.data if not series.options.get('drawAsInfinite')] )
       sumSeries = []
 
       for i in xrange(0, length):
-        sumSeries.append( safeSum( [series[i] for series in self.data] ) )
+        sumSeries.append( safeSum( [series[i] for series in self.data if not series.options.get('drawAsInfinite')] ) )
       yMaxValue = safeMax( sumSeries )
     else:
-      yMaxValue = safeMax( [safeMax(series) for series in self.data] )
+      yMaxValue = safeMax( [safeMax(series) for series in self.data if not series.options.get('drawAsInfinite')] )
 
     if yMinValue is None:
       yMinValue = 0.0
