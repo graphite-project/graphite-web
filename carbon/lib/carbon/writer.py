@@ -125,6 +125,7 @@ def writeCachedDataPoints():
         t2 = time.time()
         updateTime = t2 - t1
       except:
+        log.msg("Error writing to %s" % (dbFilePath))
         log.err()
         instrumentation.increment('errors')
       else:
