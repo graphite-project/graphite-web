@@ -2,8 +2,8 @@ import time
 from sys import stdout, stderr
 from zope.interface import implements
 from twisted.python.log import startLoggingWithObserver, textFromEventDict, msg, err, ILogObserver
+from twisted.python.syslog import SyslogObserver
 from twisted.python.logfile import DailyLogFile
-
 
 class CarbonLogObserver(object):
   implements(ILogObserver)
@@ -13,6 +13,13 @@ class CarbonLogObserver(object):
     self.console_logfile = DailyLogFile('console.log', logdir)
     self.custom_logs = {}
     self.observer = self.logdir_observer
+
+  def log_to_syslog(self, prefix):
+    observer = SyslogObserver(prefix).emit
+    def syslog_observer(event):
+      event["system"] = event.get("type", "console")
+      observer(event)
+    self.observer = syslog_observer
 
   def __call__(self, event):
     return self.observer(event)
@@ -43,17 +50,18 @@ def formatEvent(event, includeType=False):
   event['isError'] = 'failure' in event
   message = textFromEventDict(event)
 
-  timestamp = time.strftime("%d/%m/%Y %H:%M:%S")
-
   if includeType:
     typeTag = '[%s] ' % event.get('type', 'console')
   else:
     typeTag = ''
 
+  timestamp = time.strftime("%d/%m/%Y %H:%M:%S")
   return "%s :: %s%s" % (timestamp, typeTag, message)
 
 
 logToDir = carbonLogObserver.log_to_dir
+
+logToSyslog = carbonLogObserver.log_to_syslog
 
 def logToStdout():
   startLoggingWithObserver(carbonLogObserver)

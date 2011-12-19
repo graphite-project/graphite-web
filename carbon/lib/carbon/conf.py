@@ -206,12 +206,16 @@ class CarbonCacheOptions(usage.Options):
         self.handleAction()
 
         # If we are not running in debug mode or non-daemon mode, then log to a
-        # directory, otherwise log output will go to stdout.
-        if not (self["debug"] or self.parent["nodaemon"]):
-            logdir = settings.LOG_DIR
-            if not isdir(logdir):
-                os.makedirs(logdir)
-            log.logToDir(logdir)
+        # directory, otherwise log output will go to stdout. If parent options
+        # are set to log to syslog, then use that instead.
+        if not self["debug"]:
+            if self.parent.get("syslog", None):
+                log.logToSyslog(self.parent["prefix"])
+            elif not self.parent["nodaemon"]:
+                logdir = settings.LOG_DIR
+                if not isdir(logdir):
+                    os.makedirs(logdir)
+                log.logToDir(logdir)
 
     def parseArgs(self, *action):
         """If an action was provided, store it for further processing."""
