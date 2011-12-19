@@ -274,7 +274,7 @@ class Graph:
       self.drawText(line, x, y, align='center')
       y += lineHeight
     if self.params.get('yAxisSide') == 'right':
-      self.area['ymin'] = y 
+      self.area['ymin'] = y
     else:
       self.area['ymin'] = y + self.margin
 
@@ -709,6 +709,8 @@ class LineGraph(Graph):
       x = float(self.area['xmin']) + (self.lineWidth / 2.0)
       y = float(self.area['ymin'])
 
+      startX = x
+
       if series.options.get('invisible'):
         self.setColor( series.color, 0, True )
       else:
@@ -725,14 +727,8 @@ class LineGraph(Graph):
 
         if value is None:
           if not fromNone and 'stacked' in series.options: #Close off and fill area before unknown interval
-            self.ctx.line_to(x, self.area['ymax'])
-            self.ctx.close_path()
-            self.ctx.fill_preserve()
-            # add the filled area to the clipping region so its not overwritten
-            self.ctx.set_fill_rule(cairo.FILL_RULE_EVEN_ODD)
-            self.ctx.rectangle(0, 0, self.width, self.height) # wrapper to invert even/odd
-            self.ctx.clip()
-            self.ctx.set_fill_rule(cairo.FILL_RULE_WINDING)
+            self.fillAreaAndClip(x, y, startX)
+
           x += series.xStep
           fromNone = True
 
@@ -757,14 +753,12 @@ class LineGraph(Graph):
             x += series.xStep
             continue
 
+          if fromNone:
+            startX = x
+
           if self.lineMode == 'staircase':
             if fromNone:
-              if 'stacked' in series.options:
-                self.ctx.move_to(x, self.area['ymax'])
-                self.ctx.line_to(x, y)
-              else:
-                self.ctx.move_to(x, y)
-
+              self.ctx.move_to(x, y)
             else:
               self.ctx.line_to(x, y)
 
@@ -773,11 +767,7 @@ class LineGraph(Graph):
 
           elif self.lineMode == 'slope':
             if fromNone:
-              if 'stacked' in series.options:
-                self.ctx.move_to(x, self.area['ymax'])
-                self.ctx.line_to(x, y)
-              else:
-                self.ctx.move_to(x, y)
+              self.ctx.move_to(x, y)
 
             x += series.xStep
             self.ctx.line_to(x,y)
@@ -789,15 +779,7 @@ class LineGraph(Graph):
           fromNone = False
 
       if 'stacked' in series.options:
-        self.ctx.line_to(x, self.area['ymax'])
-        self.ctx.close_path()
-        self.ctx.fill_preserve()
-        # add the filled area to the clipping region so its not overwritten
-        self.ctx.set_fill_rule(cairo.FILL_RULE_EVEN_ODD)
-        self.ctx.rectangle(0, 0, self.width, self.height) # wrapper to invert even/odd
-        self.ctx.clip()
-        self.ctx.set_fill_rule(cairo.FILL_RULE_WINDING)
-
+        self.fillAreaAndClip(x, y, startX)
       else:
         self.ctx.stroke()
 
@@ -807,6 +789,25 @@ class LineGraph(Graph):
           self.ctx.set_dash(dash,1)
         else:
           self.ctx.set_dash([],0)
+
+  def fillAreaAndClip(self, x, y, startX=None):
+    startX = (startX or self.area['xmin'])
+    pattern = self.ctx.copy_path()
+
+    self.ctx.line_to(x, self.area['ymax'])                  # bottom endX
+    self.ctx.line_to(startX, self.area['ymax'])             # bottom startX
+    self.ctx.close_path()
+    self.ctx.fill()
+
+    self.ctx.append_path(pattern)
+    self.ctx.line_to(x, self.area['ymax'])                  # bottom endX
+    self.ctx.line_to(self.area['xmax'], self.area['ymax'])  # bottom right
+    self.ctx.line_to(self.area['xmax'], self.area['ymin'])  # top right
+    self.ctx.line_to(self.area['xmin'], self.area['ymin'])  # top left
+    self.ctx.line_to(self.area['xmin'], self.area['ymax'])  # bottom left
+    self.ctx.line_to(startX, self.area['ymax'])             # bottom startX
+    self.ctx.close_path()
+    self.ctx.clip()
 
   def consolidateDataPoints(self):
     numberOfPixels = self.graphWidth = self.area['xmax'] - self.area['xmin'] - (self.lineWidth + 1)
