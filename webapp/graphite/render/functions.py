@@ -158,6 +158,19 @@ def sumSeriesWithWildcards(requestContext, seriesList, *position): #XXX
   return [newSeries[name] for name in newNames]
 
 def averageSeriesWithWildcards(requestContext, seriesList, *position): #XXX
+  """
+  Call averageSeries after inserting wildcards at the given position(s).
+
+  Example:
+
+  .. code-block:: none
+
+    &target=averageSeriesWithWildcards(host.cpu-[0-7].cpu-{user,system}.value, 1)
+
+  This would be the equivalent of
+  ``target=averageSeries(host.*.cpu-user.value)&target=averageSeries(host.*.cpu-system.value)``
+
+  """
   if type(position) is int:
     positions = [position]
   else:
@@ -695,7 +708,7 @@ def legendValue(requestContext, seriesList, valueType):
 
 def alpha(requestContext, seriesList, alpha):
   """
-  Assigns the given color alpha setting to the seriesList
+  Assigns the given alpha transparency setting to the series. Takes a float value between 0 and 1.
   """
   for series in seriesList:
     series.options['alpha'] = alpha
@@ -1176,14 +1189,14 @@ def stdev(requestContext, seriesList, time):
 
 def secondYAxis(requestContext, seriesList):
   """
-  Graph the metric on the secondary Y axis.
+  Graph the series on the secondary Y axis.
   """
   for series in seriesList:
     series.options['secondYAxis'] = True
     series.name= 'secondYAxis(%s)' % series.name
   return seriesList
 
-def fetchWithBootstrap(requestContext, path, days):
+def _fetchWithBootstrap(requestContext, path, days):
   'Request the same data but with a bootstrap period at the beginning'
   previousContext = requestContext.copy()
   # go back 1 week to get a solid bootstrap
@@ -1191,7 +1204,7 @@ def fetchWithBootstrap(requestContext, path, days):
   previousContext['endTime'] = requestContext['endTime']
   return evaluateTarget(previousContext, path)[0]
 
-def trimBootstrap(bootstrap, original):
+def _trimBootstrap(bootstrap, original):
   'Trim the bootstrap period off the front of this series so it matches the original'
   original_len = len(original)
   bootstrap_len = len(bootstrap)
@@ -1309,20 +1322,28 @@ def holtWintersAnalysis(series):
   return results
 
 def holtWintersForecast(requestContext, seriesList):
+  """
+  Performs a Holt-Winters forecast using the series as input data. Data from
+  one week previous to the series is used to bootstrap the initial forecast.
+  """
   results = []
   for series in seriesList:
-    withBootstrap = fetchWithBootstrap(requestContext, series.pathExpression, 7)
+    withBootstrap = _fetchWithBootstrap(requestContext, series.pathExpression, 7)
     analysis = holtWintersAnalysis(withBootstrap)
-    results.append(trimBootstrap(analysis['predictions'], series))
+    results.append(_trimBootstrap(analysis['predictions'], series))
   return results
 
 def holtWintersConfidenceBands(requestContext, seriesList):
+  """
+  Performs a Holt-Winters forecast using the series as input data and plots
+  upper and lower bands with the predicted forecast deviations.
+  """
   results = []
   for series in seriesList:
-    bootstrap = fetchWithBootstrap(requestContext, series.pathExpression, 7)
+    bootstrap = _fetchWithBootstrap(requestContext, series.pathExpression, 7)
     analysis = holtWintersAnalysis(bootstrap)
-    forecast = trimBootstrap(analysis['predictions'], series)
-    deviation = trimBootstrap(analysis['deviations'], series)
+    forecast = _trimBootstrap(analysis['predictions'], series)
+    deviation = _trimBootstrap(analysis['deviations'], series)
     seriesLength = len(forecast)
     i = 0
     upperBand = list()
@@ -1349,11 +1370,15 @@ def holtWintersConfidenceBands(requestContext, seriesList):
   return results
 
 def holtWintersAberration(requestContext, seriesList):
+  """
+  Performs a Holt-Winters forecast using the series as input data and plots the
+  positive or negative deviation of the series data from the forecast.
+  """
   results = []
   for series in seriesList:
     confidenceBands = holtWintersConfidenceBands(requestContext, [series])
-    bootstrapped = fetchWithBootstrap(requestContext, series.pathExpression, 7)
-    series = trimBootstrap(bootstrapped, series)
+    bootstrapped = _fetchWithBootstrap(requestContext, series.pathExpression, 7)
+    series = _trimBootstrap(bootstrapped, series)
     lowerBand = confidenceBands[0]
     upperBand = confidenceBands[1]
     aberration = list()
@@ -1397,12 +1422,6 @@ def drawAsInfinite(requestContext, seriesList):
   for series in seriesList:
     series.options['drawAsInfinite'] = True
     series.name = 'drawAsInfinite(%s)' % series.name
-  return seriesList
-
-def secondYAxis(requestContext, seriesList):
-  for series in seriesList:
-    series.options['secondYAxis'] = True
-    series.name = 'secondYAxis(%s)' % series.name
   return seriesList
 
 def lineWidth(requestContext, seriesList, width):
@@ -1775,7 +1794,7 @@ def sinFunction(requestContext, name, amplitude=1):
   """
   Short Alias: sin()
 
-  Just returns the sine of the current time. he optional amplitude parameter
+  Just returns the sine of the current time. The optional amplitude parameter
   changes the amplitude of the wave.
 
   Example:
