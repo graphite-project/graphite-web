@@ -19,6 +19,7 @@ from urllib import unquote_plus
 from ConfigParser import SafeConfigParser
 from django.conf import settings
 from graphite.render.datalib import TimeSeries
+from graphite.util import json
 
 
 try: # See if there is a system installation of pytz first
@@ -389,9 +390,44 @@ class Graph:
     else:
       self.surface.finish()
       svgData = self.surfaceData.getvalue()
-      svgData = svgData.replace('pt"','px"',2) # we expect height/width in pixels, not points
-      fileObj.write(svgData)
       self.surfaceData.close()
+
+      svgData = svgData.replace('pt"','px"',2) # we expect height/width in pixels, not points
+      svgData = svgData.replace('</svg>\n','',1)
+      fileObj.write(svgData)
+      metaData = {
+        'x': {
+          'start': self.startTime,
+          'end': self.endTime
+        },
+        'y': {
+          'top': self.yTop,
+          'bottom': self.yBottom,
+          'step': self.yStep,
+          'labels': self.yLabels,
+          'labelValues': self.yLabelValues
+        },
+        'font': self.defaultFontParams,
+        'area': self.area,
+        'series': []
+      }
+      for series in self.data:
+        if 'stacked' not in series.options:
+          metaData['series'].append({
+            'name': series.name,
+            'start': series.start,
+            'end': series.end,
+            'step': series.step,
+            'valuesPerPoint': series.valuesPerPoint,
+            'color': series.color,
+            'data': series
+          })
+      fileObj.write("""<script>
+  <![CDATA[
+    metadata = %s
+  ]]>
+</script>
+</svg>""" % json.dumps(metaData))
 
 
 class LineGraph(Graph):
