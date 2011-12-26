@@ -962,7 +962,7 @@ class LineGraph(Graph):
         else:
           return "%g %s" % (float(yValue), prefix)
 
-      self.yLabelValues = self.getYLabelValues(self.yBottom, self.yTop)
+      self.yLabelValues = self.getYLabelValues(self.yBottom, self.yTop, self.yStep)
       self.yLabels = map(makeLabel,self.yLabelValues)
       self.yLabelWidth = max([self.getExtents(label)['width'] for label in self.yLabels])
 
@@ -1161,10 +1161,7 @@ class LineGraph(Graph):
     if self.logBase:
       vals = list( logrange(self.logBase, minYValue, maxYValue) )
     else:
-      if self.secondYAxis:
-        vals = list( frange(minYValue,maxYValue,yStep) )
-      else:
-        vals = list( frange(self.yBottom,self.yTop,self.yStep) )
+      vals = list( frange(minYValue, maxYValue, yStep) )
     return vals
 
   def setupXAxis(self):
