@@ -168,7 +168,13 @@ def renderView(request):
   else:
     image = doImageRender(requestOptions['graphClass'], graphOptions)
 
-  response = buildResponse(image, graphOptions.get('outputFormat') == 'svg' and 'image/svg+xml' or 'image/png')
+  useSVG = graphOptions.get('outputFormat') == 'svg'
+  if useSVG and 'jsonp' in requestOptions:
+    response = HttpResponse(
+      content="%s(%s)" % (requestOptions['jsonp'], json.dumps(image)),
+      mimetype='text/javascript')
+  else:
+    response = buildResponse(image, useSVG and 'image/svg+xml' or 'image/png')
 
   if useCache:
     cache.set(requestKey, response, cacheTimeout)
