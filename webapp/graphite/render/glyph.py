@@ -722,11 +722,11 @@ class LineGraph(Graph):
           clipRestored = True
           self.ctx.restore()
 
-      if 'lineWidth' in series.options: # adjusts the lineWidth of this line if option is set on the series
+      if 'lineWidth' in series.options:
         self.ctx.set_line_width(series.options['lineWidth'])
 
-      if 'dashed' in series.options: # turn on dashing if dashed option set
-        self.ctx.set_dash([ series.options['dashed'] ],1)
+      if 'dashed' in series.options:
+        self.ctx.set_dash([ series.options['dashed'] ], 1)
       else:
         self.ctx.set_dash([], 0)
 
