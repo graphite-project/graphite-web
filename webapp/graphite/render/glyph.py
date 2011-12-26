@@ -697,7 +697,7 @@ class LineGraph(Graph):
         if 'stacked' in series.options:
           series.options['alpha'] = alpha
 
-          newSeries = TimeSeries(None, series.start, series.end, series.step, [x for x in series])
+          newSeries = TimeSeries(series.name, series.start, series.end, series.step*series.valuesPerPoint, [x for x in series])
           newSeries.xStep = series.xStep
           newSeries.color = series.color
           strokeSeries.append(newSeries)
