@@ -158,6 +158,9 @@ def renderView(request):
       log.rendering('Total rawData rendering time %.6f' % (time() - start))
       return response
 
+    if format == 'svg':
+      graphOptions['outputFormat'] = 'svg'
+
   # We've got the data, now to render it
   graphOptions['data'] = data
   if settings.REMOTE_RENDERING: # Rendering on other machines is faster in some situations
