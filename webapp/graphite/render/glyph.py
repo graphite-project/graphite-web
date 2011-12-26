@@ -921,9 +921,9 @@ class LineGraph(Graph):
 
     if 'yMax' in self.params:
       if self.params['yMax'] == 'max':
-        scale = yMaxValue / self.yTop
-        self.yStep *= scale
-        self.yTop = self.yStep * math.ceil( yMaxValue / self.yStep )
+        scale = 1.0 * yMaxValue / self.yTop
+        self.yStep *= (scale - 0.000001)
+        self.yTop = yMaxValue
       else:
         self.yTop = self.params['yMax']
     if 'yMin' in self.params:
