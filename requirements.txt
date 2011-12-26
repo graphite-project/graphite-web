@@ -20,7 +20,7 @@
 #   .venv/bin/django-admin.py syncdb --settings=graphite.settings --pythonpath=webapp
 #   bin/run-graphite-devel-server.py ./
 #   # or
-#   # cd webapp/graphite && $GRAPHITE_ROOT/.venv/bin/gunicorn_django
+#   # cd webapp/graphite && $GRAPHITE_ROOT/.venv/bin/gunicorn_django -b 127.0.0.1:8080
 #
 # To clean up:
 #
