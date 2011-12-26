@@ -601,53 +601,41 @@ class LineGraph(Graph):
     self.area['xmin'] = x + self.margin + lineHeight
 
   def getYCoord(self, value, side=None):
-    if not side:
-      try:
-        highestValue = max(self.yLabelValues)
-        lowestValue = min(self.yLabelValues)
-      except ValueError:
-        highestValue = self.yTop
-        lowestValue = self.yBottom
-      pixelRange = self.area['ymax'] - self.area['ymin']
-
-      relativeValue = value - lowestValue
-      valueRange = highestValue - lowestValue
-
-      if self.logBase:
-          if value <= 0:
-              return None
-          relativeValue = math.log(value, self.logBase) - math.log(lowestValue, self.logBase)
-          valueRange = math.log(highestValue, self.logBase) - math.log(lowestValue, self.logBase)
-
-      pixelToValueRatio = pixelRange / valueRange
-      valueInPixels = pixelToValueRatio * relativeValue
-      return self.area['ymax'] - valueInPixels
+    if "left" == side:
+      yLabelValues = self.yLabelValuesL
+      yTop = self.yTopL
+      yBottom = self.yBottomL
+    elif "right" == side:
+      yLabelValues = self.yLabelValuesR
+      yTop = self.yTopR
+      yBottom = self.yBottomR
     else:
-      if "left" in side:
-        yLabelValues = self.yLabelValuesL
-      elif "right" in side:
-        yLabelValues = self.yLabelValuesR
-      try:
-        highestValue = max(yLabelValues)
-        lowestValue = min(yLabelValues)
-      except ValueError:
-        highestValue = self.yTop
-        lowestValue = self.yBottom
-      pixelRange = self.area['ymax'] - self.area['ymin']
+      yLabelValues = self.yLabelValues
+      yTop = self.yTop
+      yBottom = self.yBottom
 
-      relativeValue = value - lowestValue
-      valueRange = highestValue - lowestValue
+    try:
+      highestValue = max(yLabelValues)
+      lowestValue = min(yLabelValues)
+    except ValueError:
+      highestValue = yTop
+      lowestValue = yBottom
 
-      if self.logBase:
-          if value <= 0:
-              return None
-          relativeValue = math.log(value, self.logBase) - math.log(lowestValue, self.logBase)
-          valueRange = math.log(highestValue, self.logBase) - math.log(lowestValue, self.logBase)
+    pixelRange = self.area['ymax'] - self.area['ymin']
 
-      pixelToValueRatio = pixelRange / valueRange
-      valueInPixels = pixelToValueRatio * relativeValue
-      return self.area['ymax'] - valueInPixels
-      
+    relativeValue = value - lowestValue
+    valueRange = highestValue - lowestValue
+
+    if self.logBase:
+        if value <= 0:
+            return None
+        relativeValue = math.log(value, self.logBase) - math.log(lowestValue, self.logBase)
+        valueRange = math.log(highestValue, self.logBase) - math.log(lowestValue, self.logBase)
+
+    pixelToValueRatio = pixelRange / valueRange
+    valueInPixels = pixelToValueRatio * relativeValue
+    return self.area['ymax'] - valueInPixels
+
 
   def drawLines(self, width=None, dash=None, linecap='butt', linejoin='miter'):
     if not width: width = self.lineWidth
