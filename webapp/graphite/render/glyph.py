@@ -12,7 +12,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
-import os, cairo, math, itertools
+import os, cairo, math, itertools, re
 import StringIO
 from datetime import datetime, timedelta
 from urllib import unquote_plus
@@ -268,6 +268,8 @@ class Graph:
       self.ctx.set_matrix(origMatrix)
 
   def drawTitle(self,text):
+    self.encodeHeader('title')
+
     y = self.area['ymin']
     x = self.width / 2
     lineHeight = self.getExtents()['maxHeight']
@@ -281,6 +283,8 @@ class Graph:
 
 
   def drawLegend(self,elements): #elements is [ (name,color,rightSide), ... ]
+    self.encodeHeader('legend')
+
     # remove duplicate names
     namesSeen = {}
     newElements = []
@@ -388,13 +392,6 @@ class Graph:
     if self.outputFormat == 'png':
       self.surface.write_to_png(fileObj)
     else:
-      self.surface.finish()
-      svgData = self.surfaceData.getvalue()
-      self.surfaceData.close()
-
-      svgData = svgData.replace('pt"','px"',2) # we expect height/width in pixels, not points
-      svgData = svgData.replace('</svg>\n','',1)
-      fileObj.write(svgData)
       metaData = {
         'x': {
           'start': self.startTime,
@@ -407,10 +404,14 @@ class Graph:
           'labels': self.yLabels,
           'labelValues': self.yLabelValues
         },
+        'options': {
+          'lineWidth': self.lineWidth
+        },
         'font': self.defaultFontParams,
         'area': self.area,
         'series': []
       }
+
       for series in self.data:
         if 'stacked' not in series.options:
           metaData['series'].append({
@@ -420,8 +421,32 @@ class Graph:
             'step': series.step,
             'valuesPerPoint': series.valuesPerPoint,
             'color': series.color,
-            'data': series
+            'data': series,
+            'options': series.options
           })
+
+      self.surface.finish()
+      svgData = self.surfaceData.getvalue()
+      self.surfaceData.close()
+
+      svgData = svgData.replace('pt"', 'px"', 2) # we expect height/width in pixels, not points
+      svgData = svgData.replace('</svg>\n', '', 1)
+      svgData = svgData.replace('</defs>\n<g', '</defs>\n<g class="graphite"', 1)
+
+      # We encode headers using special paths with d^="M -88 -88"
+      # Find these, and turn them into <g> wrappers instead
+      def onHeaderPath(match):
+        name = ''
+        for char in re.findall(r'L -(\d+) -\d+', match.group(1)):
+          name += chr(int(char))
+        return '</g><g data-header="true" class="%s">' % name
+      svgData = re.sub(r'<path.+?d="M -88 -88 (.+?)"/>', onHeaderPath, svgData)
+
+      # Replace the first </g><g> with <g>, and close out the last </g> at the end
+      svgData = svgData.replace('</g><g data-header','<g data-header',1) + "</g>"
+      svgData = svgData.replace(' data-header="true"','')
+
+      fileObj.write(svgData)
       fileObj.write("""<script>
   <![CDATA[
     metadata = %s
@@ -545,6 +570,7 @@ class LineGraph(Graph):
     titleSize = self.defaultFontParams['size'] + math.floor( math.log(self.defaultFontParams['size']) )
     self.setFont( size=titleSize )
     self.setColor( self.foregroundColor )
+
     if params.get('title'):
       self.drawTitle( str(params['title']) )
     if params.get('vtitle'):
@@ -561,7 +587,9 @@ class LineGraph(Graph):
       self.area['ymax'] -= self.getExtents()['maxAscent'] * 2
 
     #Now we consolidate our data points to fit in the currently estimated drawing area
-    self.consolidateDataPoints() 
+    self.consolidateDataPoints()
+
+    self.encodeHeader('axes')
 
     #Now its time to fully configure the Y-axis and determine the space required for Y-axis labels
     #Since we'll probably have to squeeze the drawing area to fit the Y labels, we may need to
@@ -578,7 +606,7 @@ class LineGraph(Graph):
       if self.secondYAxis: #and recalculate their new requirements 
         self.setupTwoYAxes()
       else:
-        self.setupYAxis() 
+        self.setupYAxis()
 
     #Now that our Y-axis is finalized, let's determine our X labels (this won't affect the drawing area)
     self.setupXAxis()
@@ -586,12 +614,25 @@ class LineGraph(Graph):
     if not self.params.get('hideAxes',False):
       self.drawLabels()
       if not self.params.get('hideGrid',False): #hideAxes implies hideGrid
+        self.encodeHeader('grid')
         self.drawGridLines()
 
     #Finally, draw the graph lines
+    self.encodeHeader('lines')
     self.drawLines()
 
+  def encodeHeader(self,text):
+    self.ctx.save()
+    self.setColor( self.backgroundColor )
+    self.ctx.move_to(-88,-88) # identifier
+    for i, char in enumerate(text):
+      self.ctx.line_to(-ord(char), -i-1)
+    self.ctx.stroke()
+    self.ctx.restore()
+
   def drawVTitle(self,text):
+    self.encodeHeader('vtitle')
+
     lineHeight = self.getExtents()['maxHeight']
     x = self.area['xmin'] + lineHeight
     y = self.height / 2
