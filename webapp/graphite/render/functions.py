@@ -419,11 +419,11 @@ def movingAverage(requestContext, seriesList, windowSize):
 
   """
   for seriesIndex, series in enumerate(seriesList):
-    newName = "movingAverage(%s,%.1f)" % (series.name, float(windowSize))
+    newName = "movingAverage(%s,%d)" % (series.name, windowSize)
     newSeries = TimeSeries(newName, series.start, series.end, series.step, [])
     newSeries.pathExpression = newName
 
-    windowIndex = windowSize - 1
+    windowIndex = int(windowSize) - 1
 
     for i in range( len(series) ):
       if i < windowIndex: # Pad the beginning with None's since we don't have enough data
