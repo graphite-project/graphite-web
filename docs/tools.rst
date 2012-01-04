@@ -94,10 +94,34 @@ Scales
 ------
 `Scales`_ is a Python server state and statistics library that can output its data to Graphite.
 
+
 Graphiti
 --------
 `Graphiti`_ is a powerful dashboard front end with a focus on ease of access, ease of recovery and
 ease of tweaking and manipulation.
+
+
+Graphios
+--------
+`Graphios`_ is a small Python daemon to send Nagios performance data (perfdata) to Graphite.
+
+
+Charcoal
+--------
+`Charcoal`_ is a simple Sinatra dashboarding frontend for Graphite or any other system status
+service which can generate images directly from a URL. Charcoal configuration is driven by a YAML
+config file.
+
+
+Graphitejs
+---------
+`Graphitejs`_ is a jQuery plugin for easily making and displaying graphs and updating them on
+the fly using the Graphite URL api.
+
+
+Grockets
+--------
+`Grockets`_ is a node.js application which provides streaming JSON data over HTTP from Graphite.
 
 
 .. _Diamond: http://opensource.brightcove.com/project/Diamond/
@@ -119,3 +143,7 @@ ease of tweaking and manipulation.
 .. _Pencil: https://github.com/fetep/pencil
 .. _Graphite-relay: https://github.com/markchadwick/graphite-relay
 .. _Graphiti: https://github.com/paperlesspost/graphiti
+.. _Graphios: https://github.com/shawn-sterling/graphios
+.. _Charcoal: https://github.com/cebailey59/charcoal
+.. _Graphitejs: https://github.com/prestontimmons/graphitejs
+.. _Grockets: https://github.com/disqus/grockets
