@@ -217,11 +217,11 @@ class CarbonCacheOptions(usage.Options):
             log.logToDir(logdir)
 
         if self["whitelist"] is None:
-            self["whitelist"] = join(settings["CONF_DIR"], "whitelist")
+            self["whitelist"] = join(settings["CONF_DIR"], "whitelist.conf")
         settings["whitelist"] = self["whitelist"]
 
         if self["blacklist"] is None:
-            self["blacklist"] = join(settings["CONF_DIR"], "blacklist")
+            self["blacklist"] = join(settings["CONF_DIR"], "blacklist.conf")
         settings["blacklist"] = self["blacklist"]
 
     def parseArgs(self, *action):
