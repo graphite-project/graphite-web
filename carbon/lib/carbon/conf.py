@@ -243,6 +243,7 @@ class CarbonCacheOptions(usage.Options):
             pf = open(pidfile, 'r')
             try:
                 pid = int(pf.read().strip())
+                pf.close()
             except:
                 print "Could not read pidfile %s" % pidfile
                 raise SystemExit(1)
@@ -255,8 +256,6 @@ class CarbonCacheOptions(usage.Options):
                 else:
                     raise
 
-            print "Deleting %s (contained pid %d)" % (pidfile, pid)
-            os.unlink(pidfile)
             raise SystemExit(0)
 
         elif action == "status":
@@ -266,6 +265,7 @@ class CarbonCacheOptions(usage.Options):
             pf = open(pidfile, "r")
             try:
                 pid = int(pf.read().strip())
+                pf.close()
             except:
                 print "Failed to read pid from %s" % pidfile
                 raise SystemExit(1)
@@ -280,9 +280,24 @@ class CarbonCacheOptions(usage.Options):
 
         elif action == "start":
             if exists(pidfile):
-                print ("Pidfile %s already exists, is %s already running?" %
-                       (pidfile, program))
-                raise SystemExit(1)
+                pf = open(pidfile, 'r')
+                try:
+                    pid = int(pf.read().strip())
+                    pf.close()
+                except:
+                    print "Could not read pidfile %s" % pidfile
+                    raise SystemExit(1)
+                if _process_alive(pid):
+                    print ("%s (instance %s) is already running with pid %d" %
+                           (program, instance, pid))
+                    raise SystemExit(1)
+                else:
+                    print "Removing stale pidfile %s" % pidfile
+                    try:
+                        os.unlink(pidfile)
+                    except:
+                        print "Could not remove pidfile %s" % pidfile
+
             print "Starting %s (instance %s)" % (program, instance)
 
         else:
