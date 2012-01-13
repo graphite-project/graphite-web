@@ -114,7 +114,7 @@ config file.
 
 
 Graphitejs
----------
+----------
 `Graphitejs`_ is a jQuery plugin for easily making and displaying graphs and updating them on
 the fly using the Graphite URL api.
 
@@ -122,6 +122,14 @@ the fly using the Graphite URL api.
 Grockets
 --------
 `Grockets`_ is a node.js application which provides streaming JSON data over HTTP from Graphite.
+
+
+Host sFlow
+----------
+`Host sFlow`_ is an open source implementation of the sFlow protocol (http://www.sflow.org),
+exporting a standard set of host cpu, memory, disk and network I/O metrics. The
+sflow2graphite utility converts sFlow to Graphite's plaintext
+protocol, allowing Graphite to receive sFlow metrics.
 
 
 .. _Diamond: http://opensource.brightcove.com/project/Diamond/
@@ -147,3 +155,4 @@ Grockets
 .. _Charcoal: https://github.com/cebailey59/charcoal
 .. _Graphitejs: https://github.com/prestontimmons/graphitejs
 .. _Grockets: https://github.com/disqus/grockets
+.. _Host sFlow: http://host-sflow.sourceforge.net/
