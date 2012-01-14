@@ -544,8 +544,15 @@ class LineGraph(Graph):
     assert self.areaMode in self.validAreaModes, "Invalid area mode!"
     self.pieMode = params.get('pieMode', 'maximum').lower()
     assert self.pieMode in self.validPieModes, "Invalid pie mode!"
-    
-    
+
+    # Line mode slope does not work (or even make sense) for series that have
+    # only one datapoint. So if any series have one datapoint we force staircase mode.
+    if self.lineMode == 'slope':
+      for series in self.data:
+        if len(series) == 1:
+          self.lineMode = 'staircase'
+          break
+
     if self.secondYAxis:
       for series in self.data:
         if 'secondYAxis' in series.options:
@@ -791,8 +798,10 @@ class LineGraph(Graph):
           value = 0.0
 
         if value is None:
-          if not fromNone and 'stacked' in series.options: #Close off and fill area before unknown interval
-            self.fillAreaAndClip(x, y, startX)
+          if not fromNone:
+            self.ctx.line_to(x, y)
+            if 'stacked' in series.options: #Close off and fill area before unknown interval
+              self.fillAreaAndClip(x, y, startX)
 
           x += series.xStep
           fromNone = True
@@ -834,17 +843,17 @@ class LineGraph(Graph):
             if fromNone:
               self.ctx.move_to(x, y)
 
+            self.ctx.line_to(x, y)
             x += series.xStep
-            self.ctx.line_to(x,y)
 
           elif self.lineMode == 'connected':
-            x += series.xStep
             self.ctx.line_to(x, y)
+            x += series.xStep
 
           fromNone = False
 
       if 'stacked' in series.options:
-        self.fillAreaAndClip(x, y, startX)
+        self.fillAreaAndClip(x-series.xStep, y, startX)
       else:
         self.ctx.stroke()
 
@@ -879,7 +888,11 @@ class LineGraph(Graph):
     for series in self.data:
       numberOfDataPoints = len(series)
       minXStep = float( self.params.get('minXStep',1.0) )
-      bestXStep = numberOfPixels / numberOfDataPoints
+      if self.lineMode == 'staircase':
+        divisor = numberOfDataPoints
+      else:
+        divisor = ((numberOfDataPoints - 1) or 1)
+      bestXStep = numberOfPixels / divisor
       if bestXStep < minXStep:
         drawableDataPoints = int( numberOfPixels / minXStep )
         pointsPerPixel = math.ceil( float(numberOfDataPoints) / float(drawableDataPoints) )
@@ -1207,7 +1220,10 @@ class LineGraph(Graph):
 
   def setupXAxis(self):
     self.startTime = min([series.start for series in self.data])
-    self.endTime = max([series.end for series in self.data])
+    if self.lineMode == 'staircase':
+      self.endTime = max([series.end for series in self.data])
+    else:
+      self.endTime = max([(series.end - series.step) for series in self.data])
     timeRange = self.endTime - self.startTime
 
     if self.userTimeZone:

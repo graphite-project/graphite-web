@@ -1689,7 +1689,8 @@ def summarize(requestContext, seriesList, intervalString, func='sum', alignToFro
         newValues.append( None )
 
     newName = "summarize(%s, \"%s\", \"%s\")" % (series.name, intervalString, func)
-    newSeries = TimeSeries(newName, series.start, series.end, interval, newValues)
+    alignedEnd = series.start + (bucketInterval * interval) + interval
+    newSeries = TimeSeries(newName, series.start, alignedEnd, interval, newValues)
     newSeries.pathExpression = newName
     results.append(newSeries)
 
