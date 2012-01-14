@@ -17,13 +17,14 @@ These functions are used on the metrics passed in the ``&target=``
 URL parameters to change the data being graphed in some way.
 """
 
-from datetime import timedelta
+from datetime import date, datetime, timedelta
 from itertools import izip
 import math
 import re
 import random
 import time
 
+from graphite.logger import log
 from graphite.render.datalib import fetchData, TimeSeries, timestamp
 from graphite.render.attime import parseTimeOffset
 
@@ -765,7 +766,7 @@ def substr(requestContext, seriesList, start=0, stop=0):
   return seriesList
 
 
-def log(requestContext, seriesList, base=10):
+def logarithm(requestContext, seriesList, base=10):
   """
   Takes one metric or a wildcard seriesList, a base, and draws the y-axis in logarithmic
   format.  If base is omitted, the function defaults to base 10.
@@ -1628,43 +1629,49 @@ def summarize(requestContext, seriesList, intervalString, func='sum', alignToFro
     &target=summarize(queue.size, "1hour", "max") # maximum queue size during each hour
     &target=summarize(metric, "13week", "avg", true)&from=midnight+20100101 # 2010 Q1-4
   """
+  if alignToFrom:
+    log.info("Deprecated parameter 'alignToFrom' is being ignored.")
+
   results = []
   delta = parseTimeOffset(intervalString)
   interval = delta.seconds + (delta.days * 86400)
 
+  DAY = 86400
+  HOUR = 3600
+  MINUTE = 60
+
+  # Adjust the start time to fit an entire day for intervals >= 1 day
+  requestContext = requestContext.copy()
+  s = requestContext['startTime']
+  if interval >= DAY:
+    requestContext['startTime'] = datetime(s.year, s.month, s.day)
+  elif interval >= HOUR:
+    requestContext['startTime'] = datetime(s.year, s.month, s.day, s.hour)
+  elif interval >= MINUTE:
+    requestContext['startTime'] = datetime(s.year, s.month, s.day, s.hour, s.minute)
+
+  for i,series in enumerate(seriesList):
+    seriesList[i] = evaluateTarget(requestContext, series.pathExpression)[0]
+
   for series in seriesList:
-    buckets = {}
+    buckets = {} # { timestamp: [values] }
 
     timestamps = range( int(series.start), int(series.end), int(series.step) )
     datapoints = zip(timestamps, series)
 
+    # Populate buckets
     for (timestamp, value) in datapoints:
-      if alignToFrom:
-        bucketInterval = int((timestamp - series.start) / interval)
-      else:
-        bucketInterval = timestamp - (timestamp % interval)
-
+      bucketInterval = int((timestamp - series.start) / interval)
+      
       if bucketInterval not in buckets:
         buckets[bucketInterval] = []
 
       if value is not None:
         buckets[bucketInterval].append(value)
 
-    if alignToFrom:
-      newStart = series.start
-      newEnd = series.end
-    else:
-      newStart = series.start - (series.start % interval)
-      newEnd = series.end - (series.end % interval) + interval
 
     newValues = []
-    for timestamp in range(newStart, newEnd, interval):
-      if alignToFrom:
-        newEnd = timestamp
-        bucketInterval = int((timestamp - series.start) / interval)
-      else:
-        bucketInterval = timestamp - (timestamp % interval)
-
+    for bucketInterval in sorted(buckets):
       bucket = buckets.get(bucketInterval, [])
 
       if bucket:
@@ -1681,11 +1688,8 @@ def summarize(requestContext, seriesList, intervalString, func='sum', alignToFro
       else:
         newValues.append( None )
 
-    if alignToFrom:
-      newEnd += interval
-
-    newName = "summarize(%s, \"%s\", \"%s\"%s)" % (series.name, intervalString, func, alignToFrom and ", true" or "")
-    newSeries = TimeSeries(newName, newStart, newEnd, interval, newValues)
+    newName = "summarize(%s, \"%s\", \"%s\")" % (series.name, intervalString, func)
+    newSeries = TimeSeries(newName, series.start, series.end, interval, newValues)
     newSeries.pathExpression = newName
     results.append(newSeries)
 
@@ -1927,7 +1931,7 @@ SeriesFunctions = {
   'derivative' : derivative,
   'integral' : integral,
   'nonNegativeDerivative' : nonNegativeDerivative,
-  'log' : log,
+  'log' : logarithm,
   'timeShift': timeShift,
   'summarize' : summarize,
   'hitcount'  : hitcount,
