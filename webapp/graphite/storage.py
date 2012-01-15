@@ -355,8 +355,8 @@ class RRDDataSource(Leaf):
     self.real_metric = self.metric_path
 
   def fetch(self, startTime, endTime):
-    startString = time.strftime("%H:%M_%Y%m%d", time.localtime(startTime))
-    endString = time.strftime("%H:%M_%Y%m%d", time.localtime(endTime))
+    startString = time.strftime("%H:%M_%Y%m%d+%Ss", time.localtime(startTime))
+    endString = time.strftime("%H:%M_%Y%m%d+%Ss", time.localtime(endTime))
 
     (timeInfo,columns,rows) = rrdtool.fetch(self.fs_path,'AVERAGE','-s' + startString,'-e' + endString)
     colIndex = list(columns).index(self.name)
