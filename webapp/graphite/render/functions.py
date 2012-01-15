@@ -1598,34 +1598,12 @@ def exclude(requestContext, seriesList, pattern):
   return [s for s in seriesList if not regex.search(s.name)]
 
 
-def summarize(requestContext, seriesList, intervalString, func='sum', alignToFrom=False):
+def smartSummarize(requestContext, seriesList, intervalString, func='sum', alignToFrom=False):
   """
-  Summarize the data into interval buckets of a certain size.
-
-  By default, the contents of each interval bucket are summed together. This is
-  useful for counters where each increment represents a discrete event and
-  retrieving a "per X" value requires summing all the events in that interval.
-
-  Specifying 'avg' instead will return the mean for each bucket, which can be more
-  useful when the value is a gauge that represents a certain value in time.
-
-  'max', 'min' or 'last' can also be specified.
-
-  By default, buckets are caculated by rounding to the nearest interval. This
-  works well for intervals smaller than a day. For example, 22:32 will end up
-  in the bucket 22:00-23:00 when the interval=1hour.
+  Smarter experimental version of summarize.
 
   The alignToFrom parameter has been deprecated, it no longer has any effect.
   Alignment happens automatically for days, hours, and minutes.
-
-  Example:
-
-  .. code-block:: none
-
-    &target=summarize(counter.errors, "1hour") # total errors per hour
-    &target=summarize(nonNegativeDerivative(gauge.num_users), "1week") # new users per week
-    &target=summarize(queue.size, "1hour", "avg") # average queue size per hour
-    &target=summarize(queue.size, "1hour", "max") # maximum queue size during each hour
   """
   if alignToFrom:
     log.info("Deprecated parameter 'alignToFrom' is being ignored.")
@@ -1649,7 +1627,13 @@ def summarize(requestContext, seriesList, intervalString, func='sum', alignToFro
     requestContext['startTime'] = datetime(s.year, s.month, s.day, s.hour, s.minute)
 
   for i,series in enumerate(seriesList):
-    seriesList[i] = evaluateTarget(requestContext, series.pathExpression)[0]
+    # XXX: breaks with summarize(metric.{a,b})
+    #      each series.pathExpression == metric.{a,b}
+    newSeries = evaluateTarget(requestContext, series.pathExpression)[0]
+    series[0:len(series)] = newSeries
+    series.start = newSeries.start
+    series.end = newSeries.end
+    series.step = newSeries.step
 
   for series in seriesList:
     buckets = {} # { timestamp: [values] }
@@ -1660,7 +1644,7 @@ def summarize(requestContext, seriesList, intervalString, func='sum', alignToFro
     # Populate buckets
     for (timestamp, value) in datapoints:
       bucketInterval = int((timestamp - series.start) / interval)
-      
+
       if bucketInterval not in buckets:
         buckets[bucketInterval] = []
 
@@ -1687,9 +1671,104 @@ def summarize(requestContext, seriesList, intervalString, func='sum', alignToFro
       else:
         newValues.append( None )
 
-    newName = "summarize(%s, \"%s\", \"%s\")" % (series.name, intervalString, func)
+    newName = "smartSummarize(%s, \"%s\", \"%s\")" % (series.name, intervalString, func)
     alignedEnd = series.start + (bucketInterval * interval) + interval
     newSeries = TimeSeries(newName, series.start, alignedEnd, interval, newValues)
+    newSeries.pathExpression = newName
+    results.append(newSeries)
+
+  return results
+
+
+def summarize(requestContext, seriesList, intervalString, func='sum', alignToFrom=False):
+  """
+  Summarize the data into interval buckets of a certain size.
+
+  By default, the contents of each interval bucket are summed together. This is
+  useful for counters where each increment represents a discrete event and
+  retrieving a "per X" value requires summing all the events in that interval.
+
+  Specifying 'avg' instead will return the mean for each bucket, which can be more
+  useful when the value is a gauge that represents a certain value in time.
+
+  'max', 'min' or 'last' can also be specified.
+
+  By default, buckets are caculated by rounding to the nearest interval. This
+  works well for intervals smaller than a day. For example, 22:32 will end up
+  in the bucket 22:00-23:00 when the interval=1hour.
+
+  Passing alignToFrom=true will instead create buckets starting at the from
+  time. In this case, the bucket for 22:32 depends on the from time. If
+  from=6:30 then the 1hour bucket for 22:32 is 22:30-23:30.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=summarize(counter.errors, "1hour") # total errors per hour
+    &target=summarize(nonNegativeDerivative(gauge.num_users), "1week") # new users per week
+    &target=summarize(queue.size, "1hour", "avg") # average queue size per hour
+    &target=summarize(queue.size, "1hour", "max") # maximum queue size during each hour
+    &target=summarize(metric, "13week", "avg", true)&from=midnight+20100101 # 2010 Q1-4
+  """
+  results = []
+  delta = parseTimeOffset(intervalString)
+  interval = delta.seconds + (delta.days * 86400)
+
+  for series in seriesList:
+    buckets = {}
+
+    timestamps = range( int(series.start), int(series.end), int(series.step) )
+    datapoints = zip(timestamps, series)
+
+    for (timestamp, value) in datapoints:
+      if alignToFrom:
+        bucketInterval = int((timestamp - series.start) / interval)
+      else:
+        bucketInterval = timestamp - (timestamp % interval)
+
+      if bucketInterval not in buckets:
+        buckets[bucketInterval] = []
+
+      if value is not None:
+        buckets[bucketInterval].append(value)
+
+    if alignToFrom:
+      newStart = series.start
+      newEnd = series.end
+    else:
+      newStart = series.start - (series.start % interval)
+      newEnd = series.end - (series.end % interval) + interval
+
+    newValues = []
+    for timestamp in range(newStart, newEnd, interval):
+      if alignToFrom:
+        newEnd = timestamp
+        bucketInterval = int((timestamp - series.start) / interval)
+      else:
+        bucketInterval = timestamp - (timestamp % interval)
+
+      bucket = buckets.get(bucketInterval, [])
+
+      if bucket:
+        if func == 'avg':
+          newValues.append( float(sum(bucket)) / float(len(bucket)) )
+        elif func == 'last':
+          newValues.append( bucket[len(bucket)-1] )
+        elif func == 'max':
+          newValues.append( max(bucket) )
+        elif func == 'min':
+          newValues.append( min(bucket) )
+        else:
+          newValues.append( sum(bucket) )
+      else:
+        newValues.append( None )
+
+    if alignToFrom:
+      newEnd += interval
+
+    newName = "summarize(%s, \"%s\", \"%s\"%s)" % (series.name, intervalString, func, alignToFrom and ", true" or "")
+    newSeries = TimeSeries(newName, newStart, newEnd, interval, newValues)
     newSeries.pathExpression = newName
     results.append(newSeries)
 
@@ -1934,6 +2013,7 @@ SeriesFunctions = {
   'log' : logarithm,
   'timeShift': timeShift,
   'summarize' : summarize,
+  'smartSummarize' : smartSummarize,
   'hitcount'  : hitcount,
 
   # Calculate functions
