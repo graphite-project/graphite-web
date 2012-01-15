@@ -1615,9 +1615,8 @@ def summarize(requestContext, seriesList, intervalString, func='sum', alignToFro
   works well for intervals smaller than a day. For example, 22:32 will end up
   in the bucket 22:00-23:00 when the interval=1hour.
 
-  Passing alignToFrom=true will instead create buckets starting at the from
-  time. In this case, the bucket for 22:32 depends on the from time. If
-  from=6:30 then the 1hour bucket for 22:32 is 22:30-23:30.
+  The alignToFrom parameter has been deprecated, it no longer has any effect.
+  Alignment happens automatically for days, hours, and minutes.
 
   Example:
 
@@ -1627,7 +1626,6 @@ def summarize(requestContext, seriesList, intervalString, func='sum', alignToFro
     &target=summarize(nonNegativeDerivative(gauge.num_users), "1week") # new users per week
     &target=summarize(queue.size, "1hour", "avg") # average queue size per hour
     &target=summarize(queue.size, "1hour", "max") # maximum queue size during each hour
-    &target=summarize(metric, "13week", "avg", true)&from=midnight+20100101 # 2010 Q1-4
   """
   if alignToFrom:
     log.info("Deprecated parameter 'alignToFrom' is being ignored.")
@@ -1671,7 +1669,8 @@ def summarize(requestContext, seriesList, intervalString, func='sum', alignToFro
 
 
     newValues = []
-    for bucketInterval in sorted(buckets):
+    for timestamp in range(series.start, series.end, interval):
+      bucketInterval = int((timestamp - series.start) / interval)
       bucket = buckets.get(bucketInterval, [])
 
       if bucket:
