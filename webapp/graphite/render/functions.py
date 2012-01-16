@@ -621,7 +621,7 @@ def areaBetween(requestContext, seriesList):
   lower.options['invisible'] = True
 
   upper.options['stacked'] = True
-  lower.name = upper.name = "areaBetween(%s)" % upper.name
+  lower.name = upper.name = "areaBetween(%s)" % upper.pathExpression
   return seriesList
 
 
@@ -1197,13 +1197,26 @@ def secondYAxis(requestContext, seriesList):
     series.name= 'secondYAxis(%s)' % series.name
   return seriesList
 
-def _fetchWithBootstrap(requestContext, path, days):
+def _fetchWithBootstrap(requestContext, series, days=7):
   'Request the same data but with a bootstrap period at the beginning'
   previousContext = requestContext.copy()
   # go back 1 week to get a solid bootstrap
   previousContext['startTime'] = requestContext['startTime'] - timedelta(days)
-  previousContext['endTime'] = requestContext['endTime']
-  return evaluateTarget(previousContext, path)[0]
+  previousContext['endTime'] = requestContext['startTime']
+  oldSeries = evaluateTarget(previousContext, series.pathExpression)[0]
+
+  newValues = []
+  if oldSeries.step != series.step:
+    ratio = oldSeries.step / series.step
+    for value in oldSeries:
+      newValues.extend([ value ] * ratio)
+  else:
+    newValues.extend(oldSeries)
+  newValues.extend(series)
+
+  newSeries = TimeSeries(series.name, oldSeries.start, series.end, series.step, newValues)
+  newSeries.pathExpression = series.name
+  return newSeries
 
 def _trimBootstrap(bootstrap, original):
   'Trim the bootstrap period off the front of this series so it matches the original'
@@ -1329,19 +1342,19 @@ def holtWintersForecast(requestContext, seriesList):
   """
   results = []
   for series in seriesList:
-    withBootstrap = _fetchWithBootstrap(requestContext, series.pathExpression, 7)
+    withBootstrap = _fetchWithBootstrap(requestContext, series)
     analysis = holtWintersAnalysis(withBootstrap)
     results.append(_trimBootstrap(analysis['predictions'], series))
   return results
 
-def holtWintersConfidenceBands(requestContext, seriesList):
+def holtWintersConfidenceBands(requestContext, seriesList, delta=3):
   """
   Performs a Holt-Winters forecast using the series as input data and plots
   upper and lower bands with the predicted forecast deviations.
   """
   results = []
   for series in seriesList:
-    bootstrap = _fetchWithBootstrap(requestContext, series.pathExpression, 7)
+    bootstrap = _fetchWithBootstrap(requestContext, series)
     analysis = holtWintersAnalysis(bootstrap)
     forecast = _trimBootstrap(analysis['predictions'], series)
     deviation = _trimBootstrap(analysis['deviations'], series)
@@ -1357,28 +1370,31 @@ def holtWintersConfidenceBands(requestContext, seriesList):
         upperBand.append(None)
         lowerBand.append(None)
       else:
-        scaled_deviation = 3 * deviation_item
+        scaled_deviation = delta * deviation_item
         upperBand.append(forecast_item + scaled_deviation)
         lowerBand.append(forecast_item - scaled_deviation)
+
     upperName = "holtWintersConfidenceUpper(%s)" % series.name
     lowerName = "holtWintersConfidenceLower(%s)" % series.name
     upperSeries = TimeSeries(upperName, forecast.start, forecast.end
             , forecast.step, upperBand)
     lowerSeries = TimeSeries(lowerName, forecast.start, forecast.end
             , forecast.step, lowerBand)
+    upperSeries.pathExpression = series.pathExpression
+    lowerSeries.pathExpression = series.pathExpression
     results.append(lowerSeries)
     results.append(upperSeries)
   return results
 
-def holtWintersAberration(requestContext, seriesList):
+def holtWintersAberration(requestContext, seriesList, delta=3):
   """
   Performs a Holt-Winters forecast using the series as input data and plots the
   positive or negative deviation of the series data from the forecast.
   """
   results = []
   for series in seriesList:
-    confidenceBands = holtWintersConfidenceBands(requestContext, [series])
-    bootstrapped = _fetchWithBootstrap(requestContext, series.pathExpression, 7)
+    confidenceBands = holtWintersConfidenceBands(requestContext, [series], delta)
+    bootstrapped = _fetchWithBootstrap(requestContext, series)
     series = _trimBootstrap(bootstrapped, series)
     lowerBand = confidenceBands[0]
     upperBand = confidenceBands[1]
@@ -1398,9 +1414,12 @@ def holtWintersAberration(requestContext, seriesList):
             , series.step, aberration))
   return results
 
-def holtWintersConfidenceArea(requestContext, seriesList):
-  bands = holtWintersConfidenceBands(requestContext, seriesList)
-  return areaBetween(requestContext, bands)
+def holtWintersConfidenceArea(requestContext, seriesList, delta=3):
+  bands = holtWintersConfidenceBands(requestContext, seriesList, delta)
+  results = areaBetween(requestContext, bands)
+  for series in results:
+    series.name = series.name.replace('areaBetween', 'holtWintersConfidenceArea')
+  return results
 
 
 def drawAsInfinite(requestContext, seriesList):
