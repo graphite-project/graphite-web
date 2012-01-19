@@ -475,7 +475,7 @@ def read_config(program, options, **kwargs):
                  (program, options["instance"])))
         settings["LOG_DIR"] = (options["logdir"] or
                               join(settings["LOG_DIR"],
-                                "%s-%s" % (program ,options["instance"]))
+                                "%s-%s" % (program ,options["instance"])))
     else:
         settings["pidfile"] = (
             options["pidfile"] or

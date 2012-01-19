@@ -18,7 +18,7 @@ def process(metric, datapoint):
 
     if aggregate_metric is None:
       continue
-    else
+    else:
       aggregate_metrics.append(aggregate_metric)
 
     buffer = BufferManager.get_buffer(aggregate_metric)
