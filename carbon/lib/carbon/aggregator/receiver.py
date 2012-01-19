@@ -11,11 +11,15 @@ def process(metric, datapoint):
   for rule in RewriteRuleManager.preRules:
     metric = rule.apply(metric)
 
+  aggregate_metrics = []
+
   for rule in RuleManager.rules:
     aggregate_metric = rule.get_aggregate_metric(metric)
 
     if aggregate_metric is None:
       continue
+    else
+      aggregate_metrics.append(aggregate_metric)
 
     buffer = BufferManager.get_buffer(aggregate_metric)
 
@@ -27,4 +31,5 @@ def process(metric, datapoint):
   for rule in RewriteRuleManager.postRules:
     metric = rule.apply(metric)
 
-  events.metricGenerated(metric, datapoint)
+  if metric not in aggregate_metrics:
+    events.metricGenerated(metric, datapoint)
