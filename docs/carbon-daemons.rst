@@ -25,8 +25,8 @@ flushing them to disk on an interval using the underlying `whisper` library.
   protocols (newline delimited, pickle) and transports (TCP/UDP) to listen on.
 
 :doc:`storage-schemas.conf </config-carbon>`
-  Defines a retention policy for incoming merics based on regex patterns. This
-  policy is passed to `whipser` when the ``.wsp`` file is pre-allocated, and
+  Defines a retention policy for incoming metrics based on regex patterns. This
+  policy is passed to `whisper` when the ``.wsp`` file is pre-allocated, and
   dictates how long data is stored for.
 
 As the number of incoming metrics increases, one ``carbon-cache.py`` instance may not be

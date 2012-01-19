@@ -9,5 +9,6 @@ Here are some organizations that use Graphite:
 * `Google <http://google-opensource.blogspot.com/2010/09/get-ready-to-rocksteady.html>`_ (opensource Rocksteady project)
 * `Media Temple <http://mediatemple.net/>`_
 * `Canonical <http://www.canonical.com>`_
+* `Brightcove <http://www.brightcove.com>`_ (see http://opensource.brightcove.com/project/Diamond/)
 
-And many more, I still need to collect some links...
+And many more

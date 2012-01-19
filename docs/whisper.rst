@@ -58,7 +58,7 @@ of the higher-retention archives.
 
 When data is retrieved (scoped by a time range), the first archive which can satisfy the entire time
 period is used. If the time period overlaps an archive boundary, the lower-resolution archive will be
-used. This allows for a simpler behavior while retrieving data as the data's resolution is consistant
+used. This allows for a simpler behavior while retrieving data as the data's resolution is consistent
 through an entire returned series.
 
 

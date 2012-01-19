@@ -93,7 +93,7 @@ from / until
 These are optional parameters that specify the relative or absolute time period to graph.
 ``&from`` specifies the beginning, ``&until`` specifies the end.
 If ``&from`` is omitted, it defaults to 24 hours ago.
-If ``&until`` is omittied, it defaults to the current time (now).
+If ``&until`` is omitted, it defaults to the current time (now).
 
 There are multiple formats for these functions:
 
@@ -107,7 +107,7 @@ It is always preceded my a minus sign ( - ) and follow by a unit of time.
 Valid units of time:
 
 ============== ===============
-Abbrieviation  Unit
+Abbreviation  Unit
 ============== ===============
 s              Seconds
 min            Minutes
@@ -122,13 +122,13 @@ ABSOLUTE_TIME is in the format HH:MM_YYMMDD, YYYYMMDD, MM/DD/YY, or any other
 ``at(1)``-compatible time format.
 
 ============= =======
-Abbreiviation Meaning
+Abbreviation Meaning
 ============= =======
 HH            Hours, in 24h clock format.  Times before 12PM must include leading zeroes.
 MM            Minutes
 YYYY          4 Digit Year.
 MM            Numeric month representation with leading zero
-DD            Day of month with leadng zero
+DD            Day of month with leading zero
 ============= =======
 
 ``&from`` and ``&until`` can mix absolute and relative time if desired.
@@ -158,7 +158,7 @@ Examples:
   &from=monday
   (show data since the previous monday)
 
-Retreving Data
+Retrieving Data
 ==============
 
 Instead of rendering an image, the api can also return the raw data in various
@@ -376,7 +376,7 @@ yMin
 ----
 
 Manually sets the lower bound of the graph. Can be passed any integer or floating point number.
-By deafult, Graphite attempts to fit all data on one graph.
+By default, Graphite attempts to fit all data on one graph.
 
 Example:
 
@@ -388,7 +388,7 @@ Example:
 yMax
 ----
 Manually sets the upper bound of the graph. Can be passed any integer or floating point number.
-By deafult, Graphite attempts to fit all data on one graph.
+By default, Graphite attempts to fit all data on one graph.
 
 Example:
 
@@ -422,7 +422,7 @@ Example:
 vtitle
 ------
 Labels the y-axis with vertical text.
-If omitted, no y-axis labe is displayed.
+If omitted, no y-axis label is displayed.
 
 Example:
 
@@ -463,7 +463,7 @@ If there are 10 or less targets, default is true.
 If there are more than 10 targets, default is false.
 
 You can force the legend to be draw for more than 10 targets by setting this to false.
-You may need to increase the ``&height`` parameter to accomodate the additional text.
+You may need to increase the ``&height`` parameter to accommodate the additional text.
 
 Example:
 

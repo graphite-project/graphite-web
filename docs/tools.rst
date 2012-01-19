@@ -33,7 +33,7 @@ that allows Ganglia to send metrics directly to Graphite. Further integration wo
 collectd
 --------
 `collectd`_ is a daemon which collects system performance statistics periodically and provides
-mechanisms to store the values in a variety of ways, including RRD. To send collectd merics into carbon/graphite, use:
+mechanisms to store the values in a variety of ways, including RRD. To send collectd metrics into carbon/graphite, use:
 
 - Jordan Sissel's node collectd-to-graphite_ proxy
 - Joe Miller's perl collectd-graphite_ plugin

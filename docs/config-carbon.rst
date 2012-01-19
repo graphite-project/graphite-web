@@ -7,25 +7,47 @@ exist yet, but there will be a ``.conf.example`` file for each one. Simply copy 
 
 carbon.conf
 -----------
-This is the main config file defines the settings for each Carbon daemon. If this is your first time using Graphite, don't worry about
-anything but the ``[cache]`` section for now. If you're curious you can read about :doc:`The Carbon Daemons </carbon-daemons>`.
+This is the main config file, and defines the settings for each Carbon daemon.
+
+**Each setting within this file is documented via comments in the config file itself.** The settings are broken down into sections for each daemon - carbon-cache is controlled by the ``[cache]`` section, carbon-relay is controlled by ``[relay]`` and carbon-aggregator by ``[aggregator]``. However, if this is your first time using Graphite, don't worry about anything but the ``[cache]`` section for now.
+
+.. TIP::
+    Carbon-cache and carbon-relay can run on the same host! Try swapping the default ports listed for ``LINE_RECEIVER_PORT`` and ``PICKLE_RECEIVER_PORT`` between the ``[cache]`` and ``[relay]`` sections to prevent having to reconfigure your deployed metric senders. When setting ``DESTINATIONS`` in the ``[relay]`` section, keep in mind your newly-set ``PICKLE_RECEIVER_PORT`` in the ``[cache]`` section.
+
+
 
 
 storage-schemas.conf
 --------------------
-This file defines how much data to store, and at what precision.
+This configuration file details retention rates for storing metrics. It matches metric paths to patterns, and tells whisper what frequency and history of datapoints to store.
+
 Important notes before continuing:
 
 * There can be many sections in this file.
-* Each section must have a header in square brackets, a pattern and a retentions line.
 * The sections are applied in order from the top (first) and bottom (last).
 * The patterns are regular expressions, as opposed to the wildcards used in the URL API.
 * The first pattern that matches the metric name is used.
-* These are set at the time the first metric is sent.
-* Changing this file will not affect .wsp files already created on disk. Use whisper-resize.py to change those.
-* There are two very different ways to specify retentions. We will show the new, easier way first, and the old, more difficult way second for historical purposes second.
+* This retention is set at the time the first metric is sent.
+* Changing this file will not affect already-created .wsp files. Use whisper-resize.py to change those.
 
-Here's an example:
+A given rule is made up of 3 lines:
+
+* A name, specified inside square brackets.
+* A regex, specified after "pattern="
+* A retention rate line, specified after "retentions="
+
+The retentions line can specify multiple retentions. Each retention of ``frequency:history`` is separated by a comma. 
+
+Frequencies and histories are specified using the following suffixes:
+
+* s - second
+* m - minute
+* h - hour
+* d - day
+* y - year
+
+
+Here's a simple, single retention example:
 
 .. code-block:: none
 
@@ -33,34 +55,36 @@ Here's an example:
  pattern = garbageCollections$
  retentions = 10s:14d
 
-The name [garbage_collection] is only used so that you know what section this is handling, and so that the parser knows a new section has started. 
+The name ``[garbage_collection]`` is mainly for documentation purposes, and will show up in ``creates.log`` when metrics matching this section are created. 
 
-The pattern above will match any metric that ends with ``garbageCollections``. For example, ``com.acmeCorp.javaBatch01.instance01.jvm.memory.garbageCollections`` would match, but ``com.acmeCorp.javaBatch01.instance01.jvm.memory.garbageCollections.full`` would not.
+The regular expression pattern will match any metric that ends with ``garbageCollections``. For example, ``com.acmeCorp.instance01.jvm.memory.garbageCollections`` would match, but ``com.acmeCorp.instance01.jvm.memory.garbageCollections.full`` would not.
 
-The retention line is saying that each 'slot' or 'datapoint' represents 10 seconds, and we want to keep enough slots so that they add up to 14 days of data. 
+The retention line is saying that each datapoint represents 10 seconds, and we want to keep enough datapoints so that they add up to 14 days of data.
 
 Here's a more complicated example with multiple retention rates:
 
 .. code-block:: none
 
  [apache_busyWorkers]
- pattern = servers\.www.*\.workers\.busyWorkers$
+ pattern = ^servers\.www.*\.workers\.busyWorkers$
  retentions = 15s:7d,1m:21d,15m:5y
 
-The pattern matches server names that start with 'www', followed by anything, that end in '.workers.busyWorkers'.  This way not all metrics associated with your webservers need this type of retention.  
+In this example, imagine that your metric scheme is ``servers.<servername>.<metrics>``. The pattern would match server names that start with 'www', followed by anything, that are sending metrics that end in '.workers.busyWorkers' (note the escaped '.' characters).
 
-As you can see there are multiple retentions.  Each is used in the order that it is provided.  As a general rule, they should be in most-precise:shortest-length to least-precise:longest-time.  Retentions are merely a way to save you disk space and decrease I/O for graphs that span a long period of time. By default, when data moves from a higher precision to a lower precision, it is **averaged**.  This way, you can still find the **total** for a particular time period if you know the original precision.  (To change the aggregation method, see the next section.)
+Additionally, this example uses multiple retentions. The general rule is to specify retentions from most-precise:least-history to least-precise:most-history -- whisper will properly downsample metrics (averaging by default) as thresholds for retention are crossed.
+
+By using multiple retentions, you can store long histories of metrics while saving on disk space and I/O. Because whisper averages (by default) as it downsamples, one is able to determine totals of metrics by reversing the averaging process later on down the road.
 
 Example: You store the number of sales per minute for 1 year, and the sales per hour for 5 years after that.  You need to know the total sales for January 1st of the year before.  You can query whisper for the raw data, and you'll get 24 datapoints, one for each hour.  They will most likely be floating point numbers.  You can take each datapoint, multiply by 60 (the ratio of high-precision to low-precision datapoints) and still get the total sales per hour.  
 
 
-The old retentions was done as follows:
+Additionally, whisper supports a legacy retention specification for backwards compatibility reasons - ``seconds-per-datapoint:count-of-datapoints``
 
 .. code-block:: none
 
   retentions = 60:1440
 
-60 represents the number of seconds per datapoint, and 1440 represents the number of datapoints to store.  This required some unnecessarily complicated math, so although it's valid, it's not recommended.  It's left in so that large organizations with complicated retention rates need not re-write their storage-schemas.conf while when they upgrade. 
+60 represents the number of seconds per datapoint, and 1440 represents the number of datapoints to store.  This required some unnecessarily complicated math, so although it's valid, it's not recommended.
 
 
 storage-aggregation.conf
@@ -125,7 +149,7 @@ every 'frequency' seconds and the 'method' can specify 'sum' or
 'avg'. The name of the aggregate metric will be derived from
 'output_template' filling in any captured fields from 'input_pattern'.
 
-For example, if you're metric naming scheme is:
+For example, if your metric naming scheme is:
 
 .. code-block:: none
 
