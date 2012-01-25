@@ -71,7 +71,6 @@ class CarbonClientProtocol(Int32StringReceiver):
     queueSize = self.factory.queueSize
     if queueSize < SEND_QUEUE_LOW_WATERMARK:
       self.factory.queueHasSpace.callback(queueSize)
-      log.clients('%s send queue has space available' % self)
 
       if (settings.USE_FLOW_CONTROL and
           state.metricReceiversPaused):
@@ -113,6 +112,7 @@ class CarbonClientFactory(ReconnectingClientFactory):
     
   def queueSpaceCallback(self, result):
     if self.queueFull.called:
+      log.clients('%s send queue has space available' % self.connectedProtocol)
       self.queueFull = Deferred()
       self.queueFull.addCallback(self.queueFullCallback)
     self.queueHasSpace = Deferred()
