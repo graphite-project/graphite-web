@@ -19,7 +19,7 @@ import txamqp.spec
 
 @inlineCallbacks
 def writeMetric(metric_path, value, timestamp, host, port, username, password,
-                vhost, exchange, spec=None, channel_number=1):
+                vhost, exchange, spec=None, channel_number=1, ssl=False):
 
     if not spec:
         spec = txamqp.spec.load(os.path.normpath(
@@ -29,7 +29,11 @@ def writeMetric(metric_path, value, timestamp, host, port, username, password,
 
     connector = ClientCreator(reactor, AMQClient, delegate=delegate,
                               vhost=vhost, spec=spec)
-    conn = yield connector.connectTCP(host, port)
+    if ssl:
+        from twisted.internet.ssl import ClientContextFactory
+        conn = yield connector.connectSSL(host, port, ClientContextFactory())
+    else:
+        conn = yield connector.connectTCP(host, port)
 
     yield conn.authenticate(username, password)
     channel = yield conn.channel(channel_number)
@@ -66,6 +70,10 @@ def main():
                       help="vhost", metavar="VHOST",
                       default="/")
 
+    parser.add_option("-s", "--ssl", dest="ssl",
+                      help="ssl", metavar="SSL", action="store_true",
+                      default=False)
+
     parser.add_option("-e", "--exchange", dest="exchange",
                       help="exchange", metavar="EXCHANGE",
                       default="graphite")
@@ -87,7 +95,7 @@ def main():
 
     d = writeMetric(metric_path, value, timestamp, options.host, options.port,
                     options.username, options.password, vhost=options.vhost,
-                    exchange=options.exchange)
+                    exchange=options.exchange, ssl=options.ssl)
     d.addErrback(lambda f: f.printTraceback())
     d.addBoth(lambda _: reactor.stop())
     reactor.run()
