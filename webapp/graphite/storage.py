@@ -287,8 +287,8 @@ class WhisperFile(Leaf):
 
     if real_fs_path != self.fs_path:
       relative_fs_path = self.metric_path.replace('.', '/') + self.extension
-      base_fs_path = self.fs_path[ :-len(relative_fs_path) ]
-      relative_real_fs_path = real_fs_path[ len(base_fs_path): ]
+      base_fs_path = realpath(self.fs_path[ :-len(relative_fs_path) ])
+      relative_real_fs_path = real_fs_path[ len(base_fs_path)+1: ]
       self.real_metric = relative_real_fs_path[ :-len(self.extension) ].replace('/', '.')
 
   def fetch(self, startTime, endTime):
