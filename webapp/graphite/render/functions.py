@@ -1043,6 +1043,18 @@ def nPercentile(requestContext, seriesList, n):
                                   s_copy.start, s_copy.end, s_copy.step, [perc_val] ) )
   return results
 
+def filterBelowPercentile(requestContext, seriesList, n):
+  """
+  Removes data above the nth percentile from the series.
+  """
+  for s in seriesList:
+    percentile = nPercentile(requestContext, [s], n)[0][0]
+    for (index, val) in enumerate(s):
+      if val > percentile:
+        s[index] = None
+
+  return seriesList
+
 def limit(requestContext, seriesList, n):
   """
   Takes one metric or a wildcard seriesList followed by an integer N.
@@ -2045,7 +2057,7 @@ SeriesFunctions = {
   'asPercent' : asPercent,
   'pct' : asPercent,
 
-  # Filter functions
+  # Series Filter functions
   'mostDeviant' : mostDeviant,
   'highestCurrent' : highestCurrent,
   'lowestCurrent' : lowestCurrent,
@@ -2063,6 +2075,9 @@ SeriesFunctions = {
   'limit' : limit,
   'sortByMaxima' : sortByMaxima,
   'sortByMinima' : sortByMinima,
+
+  # Data Filter functions
+  'filterBelowPercentile' : filterBelowPercentile,
 
   # Special functions
   'legendValue' : legendValue,
