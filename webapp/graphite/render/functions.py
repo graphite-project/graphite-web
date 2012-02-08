@@ -625,6 +625,19 @@ def areaBetween(requestContext, seriesList):
   return seriesList
 
 
+def aliasSub(requestContext, seriesList, search, replace):
+  """
+  Runs series names through a regex search/replace.
+
+  .. code-block:: none
+
+    &target=aliasSub(ip.*TCP*,"^.*TCP(\d+)","\\1")
+  """
+  for series in seriesList:
+    series.name = re.sub(search, replace, series.name)
+  return seriesList
+
+
 def alias(requestContext, seriesList, newName):
   """
   Takes one metric or a wildcard seriesList and a string in quotes.
@@ -2096,6 +2109,7 @@ SeriesFunctions = {
   # Special functions
   'legendValue' : legendValue,
   'alias' : alias,
+  'aliasSub' : aliasSub,
   'aliasByNode' : aliasByNode,
   'cactiStyle' : cactiStyle,
   'color' : color,
