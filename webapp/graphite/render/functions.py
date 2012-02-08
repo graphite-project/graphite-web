@@ -1043,14 +1043,27 @@ def nPercentile(requestContext, seriesList, n):
                                   s_copy.start, s_copy.end, s_copy.step, [perc_val] ) )
   return results
 
-def filterBelowPercentile(requestContext, seriesList, n):
+def removeAbovePercentile(requestContext, seriesList, n):
   """
   Removes data above the nth percentile from the series.
   """
   for s in seriesList:
+    s.name = 'removeAbovePercentile(%s, %d)' % (s.name, n)
     percentile = nPercentile(requestContext, [s], n)[0][0]
     for (index, val) in enumerate(s):
       if val > percentile:
+        s[index] = None
+
+  return seriesList
+
+def removeAboveValue(requestContext, seriesList, n):
+  """
+  Removes data above the given threshold.
+  """
+  for s in seriesList:
+    s.name = 'removeAboveValue(%s, %d)' % (s.name, n)
+    for (index, val) in enumerate(s):
+      if val > n:
         s[index] = None
 
   return seriesList
@@ -2077,7 +2090,8 @@ SeriesFunctions = {
   'sortByMinima' : sortByMinima,
 
   # Data Filter functions
-  'filterBelowPercentile' : filterBelowPercentile,
+  'removeAbovePercentile' : removeAbovePercentile,
+  'removeAboveValue' : removeAboveValue,
 
   # Special functions
   'legendValue' : legendValue,
