@@ -274,6 +274,17 @@ def maxSeries(requestContext, *seriesLists):
   return [series]
 
 def rangeOfSeries(requestContext, *seriesLists):
+    """
+    Takes a wildcard seriesList.
+    Distills down a set of inputs into the range of the series
+
+    Example:
+
+    .. code-block:: none
+    
+        &target=rangeOfSeries(Server*.connections.total)
+
+    """
     (seriesList,start,end,step) = normalize(seriesLists)
     name = "rangeOfSeries(%s)" % ','.join(set([s.pathExpression for s in seriesList]))
     values = ( safeSubtract(max(row), min(row)) for row in izip(*seriesList) )
