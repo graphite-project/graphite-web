@@ -46,10 +46,10 @@ def optimalWriteOrder():
   metrics.sort(key=lambda item: item[1], reverse=True) # by queue size, descending
   log.msg("Sorted %d cache queues in %.6f seconds" % (len(metrics), time.time() - t))
 
-  if state.cacheTooFull and MetricCache.size < CACHE_SIZE_LOW_WATERMARK:
-    events.cacheSpaceAvailable()
-
   for metric, queueSize in metrics:
+    if state.cacheTooFull and MetricCache.size < CACHE_SIZE_LOW_WATERMARK:
+      events.cacheSpaceAvailable()
+
     dbFilePath = getFilesystemPath(metric)
     dbFileExists = exists(dbFilePath)
 
