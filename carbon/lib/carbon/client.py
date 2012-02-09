@@ -68,14 +68,15 @@ class CarbonClientProtocol(Int32StringReceiver):
       datapoints = self.factory.takeSomeFromQueue()
       self._sendDatapoints(datapoints)
 
-    queueSize = self.factory.queueSize
-    if queueSize < SEND_QUEUE_LOW_WATERMARK:
-      self.factory.queueHasSpace.callback(queueSize)
+      queueSize = self.factory.queueSize
+      if (self.factory.queueFull.called and
+          queueSize < SEND_QUEUE_LOW_WATERMARK):
+        self.factory.queueHasSpace.callback(queueSize)
 
-      if (settings.USE_FLOW_CONTROL and
-          state.metricReceiversPaused):
-        log.clients('%s resuming paused clients' % self)
-        events.resumeReceivingMetrics()
+        if (settings.USE_FLOW_CONTROL and
+            state.metricReceiversPaused):
+          log.clients('%s resuming paused clients' % self)
+          events.resumeReceivingMetrics()
 
   def __str__(self):
     return 'CarbonClientProtocol(%s:%d:%s)' % (self.factory.destination)
