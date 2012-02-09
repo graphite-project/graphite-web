@@ -25,11 +25,6 @@ class MetricCache(dict):
     raise TypeError("Use store() method instead!")
 
   def store(self, metric, datapoint):
-    if self.isFull():
-      log.msg("MetricCache is full: self.size=%d" % self.size)
-      state.events.cacheFull()
-      return
-
     metric = '.'.join(part for part in metric.split('.') if part) # normalize the path
     try:
       self.lock.acquire()
@@ -37,6 +32,10 @@ class MetricCache(dict):
       self.size += 1
     finally:
       self.lock.release()
+
+    if self.isFull():
+      log.msg("MetricCache is full: self.size=%d" % self.size)
+      state.events.cacheFull()
 
   def isFull(self):
     return self.size >= settings.MAX_CACHE_SIZE
