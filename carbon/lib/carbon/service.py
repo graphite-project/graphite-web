@@ -94,6 +94,11 @@ def createBaseService(config):
                             interface=settings.MANHOLE_INTERFACE)
         service.setServiceParent(root_service)
 
+    if settings.USE_WHITELIST:
+      from carbon.regexlist import WhiteList,BlackList
+      WhiteList.read_from(settings["whitelist"])
+      BlackList.read_from(settings["blacklist"])
+
     # Instantiate an instrumentation service that will record metrics about
     # this service.
     from carbon.instrumentation import InstrumentationService

@@ -92,6 +92,11 @@ LOG_UPDATES = False
 # shift the onus of buffering writes from the kernel into carbon's cache.
 WHISPER_AUTOFLUSH = False
 
+# Set this to True to enable whitelisting and blacklisting of metrics in
+# CONF_DIR/whitelist and CONF_DIR/blacklist. If the whitelist is missing or
+# empty, all metrics will pass through
+# USE_WHITELIST = False
+
 # Enable AMQP if you want to receve metrics using an amqp broker
 # ENABLE_AMQP = False
 
@@ -180,6 +185,11 @@ MAX_QUEUE_SIZE = 10000
 # data until the send queues fall below 80% MAX_QUEUE_SIZE.
 USE_FLOW_CONTROL = True
 
+# Set this to True to enable whitelisting and blacklisting of metrics in
+# CONF_DIR/whitelist and CONF_DIR/blacklist. If the whitelist is missing or
+# empty, all metrics will pass through
+# USE_WHITELIST = False
+
 
 [aggregator]
 LINE_RECEIVER_INTERFACE = 0.0.0.0
@@ -227,3 +237,8 @@ MAX_DATAPOINTS_PER_MESSAGE = 500
 # each metric. Aggregation only happens for datapoints that fall in
 # the past MAX_AGGREGATION_INTERVALS * intervalSize seconds.
 MAX_AGGREGATION_INTERVALS = 5
+
+# Set this to True to enable whitelisting and blacklisting of metrics in
+# CONF_DIR/whitelist and CONF_DIR/blacklist. If the whitelist is missing or
+# empty, all metrics will pass through
+# USE_WHITELIST = False

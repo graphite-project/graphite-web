@@ -176,3 +176,13 @@ They would all go into the same aggregation buffer and after 60 seconds the
 aggregate metric 'prod.applications.apache.all.requests' would be calculated
 by summing their values.
 
+whitelist and blacklist
+-----------------------
+The whitelist functionality allows any of the carbon daemons to only accept metrics that are explicitly
+whitelisted and/or to reject blacklisted metrics. The functionality can be enabled in carbon.conf with
+the ``USE_WHITELIST`` flag. This can be useful when too many metrics are being sent to a Graphite
+instance or when there are metric senders sending useless or invalid metrics.
+
+The whitelist and blacklist files are located in ``GRAPHITE_CONF_DIR``. Each file contains one regular
+expressions per line to match against metric values. If the whitelist configuration is missing or empty,
+all metrics will be passed through.
