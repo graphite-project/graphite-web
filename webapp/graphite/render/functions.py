@@ -55,6 +55,10 @@ def safeMul(a,b):
   if a is None or b is None: return None
   return float(a) * float(b)
 
+def safeSubtract(a,b):
+    if a is None or b is None: return None
+    return float(a) - float(b)
+
 def safeLast(values):
   for v in reversed(values):
     if v is not None: return v
@@ -268,6 +272,25 @@ def maxSeries(requestContext, *seriesLists):
   series = TimeSeries(name, start, end, step, values)
   series.pathExpression = name
   return [series]
+
+def rangeOfSeries(requestContext, *seriesLists):
+    """
+    Takes a wildcard seriesList.
+    Distills down a set of inputs into the range of the series
+
+    Example:
+
+    .. code-block:: none
+    
+        &target=rangeOfSeries(Server*.connections.total)
+
+    """
+    (seriesList,start,end,step) = normalize(seriesLists)
+    name = "rangeOfSeries(%s)" % ','.join(set([s.pathExpression for s in seriesList]))
+    values = ( safeSubtract(max(row), min(row)) for row in izip(*seriesList) )
+    series = TimeSeries(name,start,end,step,values)
+    series.pathExpression = name
+    return [series]
 
 def keepLastValue(requestContext, seriesList):
   """
@@ -2060,6 +2083,7 @@ SeriesFunctions = {
   'averageSeriesWithWildcards': averageSeriesWithWildcards,
   'minSeries' : minSeries,
   'maxSeries' : maxSeries,
+  'rangeOfSeries': rangeOfSeries,
 
   # Transform functions
   'scale' : scale,

@@ -884,7 +884,8 @@ function createFunctionsMenu() {
         {text: 'Average', handler: applyFuncToAll('averageSeries')},
         {text: 'Min Values', handler: applyFuncToAll('minSeries')},
         {text: 'Max Values', handler: applyFuncToAll('maxSeries')},
-        {text: 'Group', handler: applyFuncToAll('group')}
+        {text: 'Group', handler: applyFuncToAll('group')},
+        {text: 'Range', handler: this.applyFuncToAll('rangeOfSeries')}
       ]
     }, {
       text: 'Transform',
