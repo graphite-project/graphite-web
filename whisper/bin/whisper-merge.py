@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
-import sys, time
+import sys
 import whisper
+
 from optparse import OptionParser
 
 option_parser = OptionParser(

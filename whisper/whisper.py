@@ -726,7 +726,6 @@ def file_fetch(fh, fromTime, untilTime):
 
 def file_merge(from_fh, to_fh, step=1<<12):
   headerFrom = __readHeader(from_fh)
-  headerTo = __readHeader(to_fh)
 
   archives = headerFrom['archives']
   archives.sort(key=operator.itemgetter('retention'), reverse=True)
