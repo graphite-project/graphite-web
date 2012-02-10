@@ -5,7 +5,7 @@ import whisper
 from optparse import OptionParser
 
 option_parser = OptionParser(
-    usage='''%prog [options] from to''')
+    usage='''%prog [options] from_path to_path''')
 
 (options, args) = option_parser.parse_args()
 
