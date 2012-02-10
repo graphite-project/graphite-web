@@ -40,6 +40,15 @@ except:
   print "[FATAL] Failed to create an ImageSurface with cairo, you probably need to recompile cairo with PNG support"
   fatal += 1
 
+# Test that cairo can find fonts
+try:
+  if cairo:
+    surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 10, 10)
+    context = cairo.Context(surface)
+    context.font_extents()
+    del surface, context
+except:
+  print "[FATAL] Failed to create text with cairo, this probably means cairo cant find any fonts. Install some system fonts and try again"
 
 # Test for django
 try:
