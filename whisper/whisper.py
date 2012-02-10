@@ -64,43 +64,50 @@ aggregationMethods = aggregationTypeToMethod.values()
 debug = startBlock = endBlock = lambda *a,**k: None
 
 UnitMultipliers = {
-  's' : 1,
-  'm' : 60,
-  'h' : 60 * 60,
-  'd' : 60 * 60 * 24,
-  'y' : 60 * 60 * 24 * 365,
+  'seconds' : 1,
+  'minutes' : 60,
+  'hours' : 3600,
+  'days' : 86400,
+  'weeks' : 86400 * 7,
+  'years' : 86400 * 365
 }
 
 
+def getUnitString(s):
+  if 'seconds'.startswith(s): return 'seconds'
+  if 'minutes'.startswith(s): return 'minutes'
+  if 'hours'.startswith(s): return 'hours'
+  if 'days'.startswith(s): return 'days'
+  if 'weeks'.startswith(s): return 'weeks'
+  if 'years'.startswith(s): return 'years'
+  raise ValueError("Invalid unit '%s'" % s)
+
 def parseRetentionDef(retentionDef):
+  import re
   (precision, points) = retentionDef.strip().split(':')
 
   if precision.isdigit():
-    precisionUnit = 's'
-    precision = int(precision)
+    precision = int(precision) * UnitMultipliers[getUnitString('s')]
   else:
-    precisionUnit = precision[-1]
-    precision = int( precision[:-1] )
+    precision_re = re.compile(r'^(\d+)([a-z]+)$')
+    match = precision_re.match(precision)
+    if match:
+      precision = int(match.group(1)) * UnitMultipliers[getUnitString(match.group(2))]
+    else:
+      raise ValueError("Invalid precision specification '%s'" % precision)
 
   if points.isdigit():
-    pointsUnit = None
     points = int(points)
   else:
-    pointsUnit = points[-1]
-    points = int( points[:-1] )
-
-  if precisionUnit not in UnitMultipliers:
-    raise ValueError("Invalid unit: '%s'" % precisionUnit)
-
-  if pointsUnit not in UnitMultipliers and pointsUnit is not None:
-    raise ValueError("Invalid unit: '%s'" % pointsUnit)
-
-  precision = precision * UnitMultipliers[precisionUnit]
-
-  if pointsUnit:
-    points = points * UnitMultipliers[pointsUnit] / precision
+    points_re = re.compile(r'^(\d+)([a-z]+)$')
+    match = points_re.match(points)
+    if match:
+      points = int(match.group(1)) * UnitMultipliers[getUnitString(match.group(2))] / precision
+    else:
+      raise ValueError("Invalid retention specification '%s'" % points)
 
   return (precision, points)
+
 
 class WhisperException(Exception):
     """Base class for whisper exceptions."""
