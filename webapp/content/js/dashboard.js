@@ -1525,6 +1525,12 @@ function graphClicked(graphView, graphIndex, element, evt) {
     }, {
       xtype: 'button',
       fieldLabel: "<span style='visibility: hidden'>",
+      text: 'Email',
+      width: 100,
+      handler: function () { menu.destroy(); mailGraph(record); }
+    }, {
+      xtype: 'button',
+      fieldLabel: "<span style='visibility: hidden'>",
       text: "Direct URL",
       width: 100,
       handler: function () {
@@ -1704,6 +1710,83 @@ function breakoutGraph(record) {
                 }
               }
   });
+}
+
+function mailGraph(record) {
+  mygraphParams = record.get('params');
+  mygraphParams['target'] = record.data['target'];
+  newparams = Ext.encode(Ext.apply(mygraphParams, defaultGraphParams));
+
+  var fromField = new Ext.form.TextField({
+    fieldLabel: "From",
+    name: 'sender',
+    width: 300,
+    allowBlank: false,
+  });
+
+  var toField = new Ext.form.TextField({
+    fieldLabel: "To",
+    name: 'recipients',
+    width: 300,
+    allowBlank: false,
+  });
+
+  var subjectField = new Ext.form.TextField({
+    fieldLabel: "Subject",
+    name: 'subject',
+    width: 300,
+    allowBlank: false,
+  });
+
+  var msgField = new Ext.form.TextArea({
+    fieldLabel: "Message",
+    name: 'message',
+    width: 300,
+    height: 75
+  });
+
+  var graphParamsField = new Ext.form.TextField({
+     name: 'graph_params',
+     hidden: true,
+     value: newparams
+  });
+
+  var contactForm = new Ext.form.FormPanel({
+    width: 300,
+    labelWidth: 90,
+    items: [fromField, toField, subjectField, msgField, graphParamsField],
+    buttons: [{
+      text: 'Cancel',
+      handler: function(){win.close();}
+    }, {
+         text: 'Send',
+         handler: function(){
+           if(contactForm.getForm().isValid()){
+             contactForm.getForm().submit({
+               url: '/dashboard/email',
+               waitMsg: 'Processing Request',
+               success: function (contactForm, response) {
+         console.log(response.result);
+                 win.close();
+               }
+             });
+           }
+         }
+     }]
+  });
+
+  var win;
+
+  win = new Ext.Window({
+    title: "Send graph via email",
+    width: 450,
+    height: 230,
+    resizable: true,
+    modal: true,
+    layout: 'fit',
+    items: [contactForm],
+  });
+  win.show();
 }
 
 

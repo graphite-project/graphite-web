@@ -1,12 +1,16 @@
 import re
 import errno
+import json
 from os.path import getmtime, join, exists
+from urllib import urlencode
 from ConfigParser import ConfigParser
 from django.shortcuts import render_to_response
-from django.http import HttpResponse
+from django.http import HttpResponse, QueryDict
 from django.conf import settings
 from graphite.util import json
 from graphite.dashboard.models import Dashboard
+from graphite.render.views import renderView
+from send_graph import send_graph_email
 
 
 fieldRegex = re.compile(r'<([^>]+)>')
@@ -201,6 +205,31 @@ def find(request):
 def help(request):
   context = {}
   return render_to_response("dashboardHelp.html", context)
+
+def email(request):
+    sender = request.POST['sender']
+    recipients = request.POST['recipients'].split()
+    subject = request.POST['subject']
+    message = request.POST['message']
+
+    # these need to be passed to the render function in an HTTP request.
+    graph_params = json.loads(request.POST['graph_params'], parse_int=str)
+    target = QueryDict(graph_params.pop('target'))
+    graph_params = QueryDict(urlencode(graph_params))
+
+    new_post = request.POST.copy()
+    new_post.update(graph_params)
+    new_post.update(target)
+    request.POST = new_post
+
+    resp = renderView(request)
+    img = resp.content
+
+    if img:
+        attachments = [('graph.png', img, 'image/png')]
+        send_graph_email(subject, sender, recipients, attachments, message)
+
+    return json_response(dict(success=True))
 
 
 def create_temporary(request):
