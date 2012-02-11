@@ -25,7 +25,7 @@
 #		Archive = Point+
 #			Point = timestamp,value
 
-import os, struct, time
+import os, struct, time, operator, itertools
 
 try:
   import fcntl
@@ -730,3 +730,29 @@ def file_fetch(fh, fromTime, untilTime):
   fh.close()
   timeInfo = (fromInterval,untilInterval,step)
   return (timeInfo,valueList)
+
+def file_merge(from_fh, to_fh, step=1<<12):
+  headerFrom = __readHeader(from_fh)
+
+  archives = headerFrom['archives']
+  archives.sort(key=operator.itemgetter('retention'), reverse=True)
+
+  # Start from maxRetention of the oldest file, and skip forward at max 'step'
+  # points at a time.
+  fromTime = int(time.time()) - headerFrom['maxRetention']
+  for archive in archives:
+    pointsToRead = archive['points']
+    while pointsToRead:
+      maxPoints = step
+      if archive['points'] < step:
+        maxPoints = archive['points']
+      pointsToRead -= maxPoints
+      untilTime = fromTime + (maxPoints * archive['secondsPerPoint'])
+      (timeInfo, values) = file_fetch(from_fh, fromTime, untilTime)
+      (start, end, step) = timeInfo
+      pointsToWrite = list(itertools.ifilter(
+        lambda points: points[1] is not None,
+        itertools.izip(xrange(start, end, step), values)))
+      pointsToWrite.sort(key=lambda p: p[0],reverse=True) #order points by timestamp, newest first
+      file_update_many(to_fh, pointsToWrite)
+      fromTime = untilTime
