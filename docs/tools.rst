@@ -132,6 +132,12 @@ sflow2graphite utility converts sFlow to Graphite's plaintext
 protocol, allowing Graphite to receive sFlow metrics.
 
 
+Graphitoid
+----------
+`Graphitoid`_ is an Android app which allows one to browse and display Graphite graphs
+on an Android device.
+
+
 .. _Diamond: http://opensource.brightcove.com/project/Diamond/
 .. _jmxtrans: http://code.google.com/p/jmxtrans/
 .. _statsd: https://github.com/etsy/statsd
@@ -156,3 +162,4 @@ protocol, allowing Graphite to receive sFlow metrics.
 .. _Graphitejs: https://github.com/prestontimmons/graphitejs
 .. _Grockets: https://github.com/disqus/grockets
 .. _Host sFlow: http://host-sflow.sourceforge.net/
+.. _Graphitoid: https://market.android.com/details?id=com.tnc.android.graphite
