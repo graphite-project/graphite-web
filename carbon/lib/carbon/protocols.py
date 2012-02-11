@@ -48,10 +48,10 @@ class MetricReceiver:
 
   def metricReceived(self, metric, datapoint):
     if BlackList and metric in BlackList:
-      instrumentation.increment('blackListMatches')
+      instrumentation.increment('blacklistMatches')
       return
     if WhiteList and metric not in WhiteList:
-      instrumentation.increment('whiteListMatches')
+      instrumentation.increment('whitelistRejects')
       return
     if datapoint[1] == datapoint[1]: # filter out NaN values
       events.metricReceived(metric, datapoint)
