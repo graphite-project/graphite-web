@@ -93,7 +93,11 @@ Grockets
 
 HoardD
 ------
-`HoardD`_ is a Node.js app written in coffee-script to send data from servers to Graphite, much like collectd does, but aimed at being easier to expand and with less footprint. It comes by default with basic collectors plus Redis and MySQL metrics, and can be expanded with Javascript or coffee-script.
+`HoardD`_ is a Node.js app written in coffee-script to send data from servers to Graphite, much
+like collectd does, but aimed at being easier to expand and with less footprint. It comes by
+default with basic collectors plus Redis and MySQL metrics, and can be expanded with Javascript or
+coffee-script.
+
 
 Host sFlow
 ----------
