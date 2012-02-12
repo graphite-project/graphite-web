@@ -1,33 +1,10 @@
 Tools That Work With Graphite
 =============================
 
-Diamond
--------
-`Diamond`_ is a Python daemon that collects system metrics and publishes them to Graphite. It is
-capable of collecting cpu, memory, network, I/O, load and disk metrics. Additionally, it features
-an API for implementing custom collectors for gathering metrics from almost any source.
-
-
-jmxtrans
---------
-`jmxtrans`_ is a powerful tool that performs JMX queries to collect metrics from Java applications.
-It is requires very little configuration and is capable of sending metric data to several
-backend applications, including Graphite.
-
-
-statsd
-------
-`statsd`_ is a simple daemon for easy stats aggregation, developed by the folks at Etsy.
-A list of forks and alternative implementations can be found at <http://joemiller.me/2011/09/21/list-of-statsd-server-implementations/>
-
-
-Ganglia
--------
-`Ganglia`_ is a scalable distributed monitoring system for high-performance computing systems
-such as clusters and Grids. It collects system performance metrics and stores them in RRD,
-but now there is an
-`add-on <https://github.com/ganglia/ganglia_contrib/tree/master/graphite_integration/>`_
-that allows Ganglia to send metrics directly to Graphite. Further integration work is underway.
+Bucky
+-----
+`Bucky`_ is a small service implemented in Python for collecting and translating metrics for Graphite.
+It can current collect metric data from CollectD daemons and from StatsD clients.
 
 
 collectd
@@ -48,30 +25,27 @@ contain any ``.`` characters). For example, collectd's
 to graph ``collectd.host_name.load.load.{short,mid,long}term``.
 
 
-Logster
+Charcoal
+--------
+`Charcoal`_ is a simple Sinatra dashboarding frontend for Graphite or any other system status
+service which can generate images directly from a URL. Charcoal configuration is driven by a YAML
+config file.
+
+
+Diamond
 -------
-`Logster`_ is a utility for reading log files and generating metrics in Graphite or Ganglia.
-It is ideal for visualizing trends of events that are occurring in your application/system/error
-logs. For example, you might use logster to graph the number of occurrences of HTTP response
-code that appears in your web server logs.
+`Diamond`_ is a Python daemon that collects system metrics and publishes them to Graphite. It is
+capable of collecting cpu, memory, network, I/O, load and disk metrics. Additionally, it features
+an API for implementing custom collectors for gathering metrics from almost any source.
 
 
-Rocksteady
-----------
-`Rocksteady`_ is a system that ties together Graphite, `RabbitMQ`_, and `Esper`_. Developed by
-AdMob (who was then bought by Google), this was released by Google as open source
-(http://google-opensource.blogspot.com/2010/09/get-ready-to-rocksteady.html).
-
-
-Bucky
------
-`Bucky`_ is a small service implemented in Python for collecting and translating metrics for Graphite.
-It can current collect metric data from CollectD daemons and from StatsD clients.
-
-
-Graphite-Tattle
----------------
-`Graphite-Tattle`_ is a self-service dashboard frontend for Graphite and `Ganglia`_.
+Ganglia
+-------
+`Ganglia`_ is a scalable distributed monitoring system for high-performance computing systems
+such as clusters and Grids. It collects system performance metrics and stores them in RRD,
+but now there is an
+`add-on <https://github.com/ganglia/ganglia_contrib/tree/master/graphite_integration/>`_
+that allows Ganglia to send metrics directly to Graphite. Further integration work is underway.
 
 
 GDash
@@ -79,20 +53,14 @@ GDash
 `Gdash`_ is a simple Graphite dashboard built using Twitters Bootstrap driven by a small DSL.
 
 
-Pencil
-------
-`Pencil`_ is a monitoring frontend for graphite. It runs a webserver that dishes out pretty Graphite
-URLs in interesting and intuitive layouts.
-
-
 Graphite-relay
 --------------
 `Graphite-relay`_ is a fast Graphite relay written in Scala with the Netty framework.
 
 
-Scales
-------
-`Scales`_ is a Python server state and statistics library that can output its data to Graphite.
+Graphite-Tattle
+---------------
+`Graphite-Tattle`_ is a self-service dashboard frontend for Graphite and `Ganglia`_.
 
 
 Graphiti
@@ -101,16 +69,15 @@ Graphiti
 ease of tweaking and manipulation.
 
 
+Graphitoid
+----------
+`Graphitoid`_ is an Android app which allows one to browse and display Graphite graphs
+on an Android device.
+
+
 Graphios
 --------
 `Graphios`_ is a small Python daemon to send Nagios performance data (perfdata) to Graphite.
-
-
-Charcoal
---------
-`Charcoal`_ is a simple Sinatra dashboarding frontend for Graphite or any other system status
-service which can generate images directly from a URL. Charcoal configuration is driven by a YAML
-config file.
 
 
 Graphitejs
@@ -124,6 +91,14 @@ Grockets
 `Grockets`_ is a node.js application which provides streaming JSON data over HTTP from Graphite.
 
 
+HoardD
+------
+`HoardD`_ is a Node.js app written in coffee-script to send data from servers to Graphite, much
+like collectd does, but aimed at being easier to expand and with less footprint. It comes by
+default with basic collectors plus Redis and MySQL metrics, and can be expanded with Javascript or
+coffee-script.
+
+
 Host sFlow
 ----------
 `Host sFlow`_ is an open source implementation of the sFlow protocol (http://www.sflow.org),
@@ -132,10 +107,45 @@ sflow2graphite utility converts sFlow to Graphite's plaintext
 protocol, allowing Graphite to receive sFlow metrics.
 
 
-Graphitoid
+jmxtrans
+--------
+`jmxtrans`_ is a powerful tool that performs JMX queries to collect metrics from Java applications.
+It is requires very little configuration and is capable of sending metric data to several
+backend applications, including Graphite.
+
+
+Logster
+-------
+`Logster`_ is a utility for reading log files and generating metrics in Graphite or Ganglia.
+It is ideal for visualizing trends of events that are occurring in your application/system/error
+logs. For example, you might use logster to graph the number of occurrences of HTTP response
+code that appears in your web server logs.
+
+
+Pencil
+------
+`Pencil`_ is a monitoring frontend for graphite. It runs a webserver that dishes out pretty Graphite
+URLs in interesting and intuitive layouts.
+
+
+Rocksteady
 ----------
-`Graphitoid`_ is an Android app which allows one to browse and display Graphite graphs
-on an Android device.
+`Rocksteady`_ is a system that ties together Graphite, `RabbitMQ`_, and `Esper`_. Developed by
+AdMob (who was then bought by Google), this was released by Google as open source
+(http://google-opensource.blogspot.com/2010/09/get-ready-to-rocksteady.html).
+
+
+Scales
+------
+`Scales`_ is a Python server state and statistics library that can output its data to Graphite.
+
+
+statsd
+------
+`statsd`_ is a simple daemon for easy stats aggregation, developed by the folks at Etsy.
+A list of forks and alternative implementations can be found at <http://joemiller.me/2011/09/21/list-of-statsd-server-implementations/>
+
+
 
 
 .. _Diamond: http://opensource.brightcove.com/project/Diamond/
@@ -163,3 +173,4 @@ on an Android device.
 .. _Grockets: https://github.com/disqus/grockets
 .. _Host sFlow: http://host-sflow.sourceforge.net/
 .. _Graphitoid: https://market.android.com/details?id=com.tnc.android.graphite
+.. _HoardD: https://github.com/coredump/hoardd
