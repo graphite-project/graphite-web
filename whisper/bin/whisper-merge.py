@@ -17,6 +17,4 @@ if len(args) < 2:
 path_from = args[0]
 path_to = args[1]
 
-with open(path_from, 'rb') as from_fh:
-  with open(path_to, 'r+b') as to_fh:
-    whisper.file_merge(from_fh, to_fh)
+whisper.merge(path_from, path_to)
