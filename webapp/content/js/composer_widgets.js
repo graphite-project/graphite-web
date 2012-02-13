@@ -1077,7 +1077,7 @@ function createOptionsMenu() {
   var yAxisRightMenu = new Ext.menu.Menu({
     items: [
       menuInputItem("Right Y Minimum", "yMinRight"),
-      menuInputItem("Right Y Maximum", "yMinRight"),
+      menuInputItem("Right Y Maximum", "yMaxRight"),
       menuInputItem("Right Y Limit", "yLimitRight"),
       menuInputItem("Right Y Step", "yStepRight"),
       menuInputItem("Right Line Width", "rightWidth"),
