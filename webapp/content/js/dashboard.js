@@ -1079,7 +1079,7 @@ function selectRelativeTime() {
   var until_quantityField = new Ext.form.TextField({
     fieldLabel: "Until",
     width: 90,
-    allowBlank: false,
+    allowBlank: true,
     regex: /\d+/,
     regexText: "Please enter a number",
     value: TimeRange.until_quantity
@@ -1091,8 +1091,8 @@ function selectRelativeTime() {
     mode: 'local',
     editable: false,
     triggerAction: 'all',
-    allowBlank: false,
-    forceSelection: true,
+    allowBlank: true,
+    forceSelection: false,
     store: ['minutes', 'hours', 'days', 'weeks', 'months'],
     value: TimeRange.until_units
   });
