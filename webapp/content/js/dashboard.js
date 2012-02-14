@@ -1034,7 +1034,8 @@ function updateTimeText() {
 function timeRangeUpdated() {
   if (TimeRange.type == 'relative') {
     var fromParam = '-' + TimeRange.quantity + TimeRange.units;
-    var untilParam = 'now';
+    var untilParam = '-' + TimeRange.until_quantity + TimeRange.until_units;
+    //var untilParam = 'now';
   } else {
     var fromParam = TimeRange.startDate.format('H:i_Ymd');
     var untilParam = TimeRange.endDate.format('H:i_Ymd');
@@ -1075,12 +1076,36 @@ function selectRelativeTime() {
     value: TimeRange.units
   });
 
+  var until_quantityField = new Ext.form.TextField({
+    fieldLabel: "Until",
+    width: 90,
+    allowBlank: false,
+    regex: /\d+/,
+    regexText: "Please enter a number",
+    value: TimeRange.until_quantity
+  });
+
+  var until_unitField = new Ext.form.ComboBox({
+    fieldLabel: "",
+    width: 90,
+    mode: 'local',
+    editable: false,
+    triggerAction: 'all',
+    allowBlank: false,
+    forceSelection: true,
+    store: ['minutes', 'hours', 'days', 'weeks', 'months'],
+    value: TimeRange.until_units
+  });
+
+
   var win;
 
   function updateTimeRange() {
     TimeRange.type = 'relative';
     TimeRange.quantity = quantityField.getValue();
     TimeRange.units = unitField.getValue();
+    TimeRange.until_quantity = until_quantityField.getValue();
+    TimeRange.until_units = until_unitField.getValue();
     win.close();
     timeRangeUpdated();
   }
@@ -1088,13 +1113,13 @@ function selectRelativeTime() {
   win = new Ext.Window({
     title: "Select Relative Time Range",
     width: 205,
-    height: 130,
+    height: 170,
     resizable: false,
     modal: true,
     layout: 'form',
     labelAlign: 'right',
     labelWidth: 90,
-    items: [quantityField, unitField],
+    items: [quantityField, unitField, until_quantityField, until_unitField],
     buttonAlign: 'center',
     buttons: [
       {text: 'Ok', handler: updateTimeRange},
@@ -1290,6 +1315,7 @@ function selectGraphSize() {
     layout: 'form',
     labelAlign: 'right',
     labelWidth: 80,
+    modal: true,
     items: [presetCombo, widthField, heightField],
     buttonAlign: 'center',
     buttons: [
@@ -1830,6 +1856,7 @@ function removeAllGraphs() {
       title: "Remove All Graphs",
       width: 200,
       height: 120,
+      modal: true,
       layout: 'vbox',
       layoutConfig: { align: 'center' },
       items: [
