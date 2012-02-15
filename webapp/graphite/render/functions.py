@@ -281,7 +281,7 @@ def rangeOfSeries(requestContext, *seriesLists):
     Example:
 
     .. code-block:: none
-    
+
         &target=rangeOfSeries(Server*.connections.total)
 
     """
@@ -378,6 +378,41 @@ def divideSeries(requestContext, dividendSeriesList, divisorSeriesList):
     step = reduce(lcm,[s.step for s in bothSeries])
 
     for s in bothSeries:
+def movingMedian(requestContext, seriesList, windowSize):
+  """
+  Takes one metric or a wildcard seriesList followed by a number N of datapoints and graphs
+  the median of N previous datapoints.  N-1 datapoints are set to None at the
+  beginning of the graph.
+
+  .. code-block:: none
+
+    &target=movingMedian(Server.instance01.threads.busy,10)
+
+  """
+  for seriesIndex, series in enumerate(seriesList):
+    newName = "movingMedian(%s,%.1f)" % (series.name, float(windowSize))
+    newSeries = TimeSeries(newName, series.start, series.end, series.step, [])
+    newSeries.pathExpression = newName
+
+    windowIndex = windowSize - 1
+
+    for i in range( len(series) ):
+      if i < windowIndex: # Pad the beginning with None's since we don't have enough data
+        newSeries.append( None )
+
+      else:
+        window = series[i - windowIndex : i + 1]
+        nonNull = [ v for v in window if v is not None ]
+        if nonNull:
+          m_index = len(nonNull) / 2
+          newSeries.append(sorted(nonNull)[m_index])
+        else:
+          newSeries.append(None)
+
+    seriesList[ seriesIndex ] = newSeries
+
+  return seriesList
+
       s.consolidate( step / s.step )
 
     start = min([s.start for s in bothSeries])
@@ -2099,6 +2134,7 @@ SeriesFunctions = {
 
   # Calculate functions
   'movingAverage' : movingAverage,
+  'movingMedian' : movingMedian,
   'stdev' : stdev,
   'holtWintersForecast': holtWintersForecast,
   'holtWintersConfidenceBands': holtWintersConfidenceBands,
