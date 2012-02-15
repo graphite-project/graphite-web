@@ -904,6 +904,7 @@ function createFunctionsMenu() {
       text: 'Calculate',
       menu: [
         {text: 'Moving Average', handler: applyFuncToEachWithInput('movingAverage', 'Moving average for the last ___ data points')},
+        {text: 'Moving Median', handler: applyFuncToEachWithInput('movingMedian', 'Moving median for the last ___ data points')},
         {text: 'Moving Standard Deviation', handler: applyFuncToEachWithInput('stdev', 'Moving standard deviation for the last ___ data points')},
         {text: 'Holt-Winters Forecast', handler: this.applyFuncToEach('holtWintersForecast')},
         {text: 'Holt-Winters Confidence Bands', handler: this.applyFuncToEach('holtWintersConfidenceBands')},
