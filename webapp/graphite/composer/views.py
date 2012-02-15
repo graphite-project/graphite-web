@@ -34,7 +34,7 @@ from django.core.exceptions import ObjectDoesNotExist
 def composer(request):
   profile = getProfile(request)
   context = {
-    'queryString' : request.GET.urlencode(),
+    'queryString' : request.GET.urlencode().replace('+','%20'),
     'showTarget' : request.GET.get('showTarget',''),
     'user' : request.user,
     'profile' : profile,
