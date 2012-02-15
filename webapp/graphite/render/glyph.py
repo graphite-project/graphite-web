@@ -1518,6 +1518,10 @@ def frange(start,end,step):
   while f <= end:
     yield f
     f += step
+    # Protect against rounding errors on very small float ranges
+    if f == start:
+      yield end
+      return
 
 
 def toSeconds(t):
@@ -1565,12 +1569,12 @@ def format_units(v, step, system="si"):
   for prefix, size in UnitSystems[system]:
     if abs(v) >= size and step >= size:
       v2 = v / size
-      if (v2 - int(v2)) < 0.00000000001 and v > 1:
-        v2 = int(v2)
+      if (v2 - math.floor(v2)) < 0.00000000001 and v > 1:
+        v2 = math.floor(v2)
       return v2, prefix
-  
-  if (v - int(v)) < 0.00000000001 and v > 1 :
-    v = int(v)
+
+  if (v - math.floor(v)) < 0.00000000001 and v > 1 :
+    v = math.floor(v)
   return v, ""
 
 
