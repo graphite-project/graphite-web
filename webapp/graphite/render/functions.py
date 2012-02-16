@@ -1114,7 +1114,8 @@ def nPercentile(requestContext, seriesList, n):
 
 def removeAbovePercentile(requestContext, seriesList, n):
   """
-  Removes data above the nth percentile from the series.
+  Removes data above the nth percentile from the series or list of series provided.
+  Values below this percentile are assigned a value of None.
   """
   for s in seriesList:
     s.name = 'removeAbovePercentile(%s, %d)' % (s.name, n)
@@ -1127,10 +1128,38 @@ def removeAbovePercentile(requestContext, seriesList, n):
 
 def removeAboveValue(requestContext, seriesList, n):
   """
-  Removes data above the given threshold.
+  Removes data above the given threshold from the series or list of series provided.
+  Values below this threshole are assigned a value of None
   """
   for s in seriesList:
     s.name = 'removeAboveValue(%s, %d)' % (s.name, n)
+    for (index, val) in enumerate(s):
+      if val > n:
+        s[index] = None
+
+  return seriesList
+
+def removeBelowPercentile(requestContext, seriesList, n):
+  """
+  Removes data above the nth percentile from the series or list of series provided.
+  Values below this percentile are assigned a value of None.
+  """
+  for s in seriesList:
+    s.name = 'removeBelowPercentile(%s, %d)' % (s.name, n)
+    percentile = nPercentile(requestContext, [s], n)[0][0]
+    for (index, val) in enumerate(s):
+      if val < percentile:
+        s[index] = None
+
+  return seriesList
+
+def removeBelowValue(requestContext, seriesList, n):
+  """
+  Removes data above the given threshold from the series or list of series provided.
+  Values below this threshole are assigned a value of None
+  """
+  for s in seriesList:
+    s.name = 'removeBelowValue(%s, %d)' % (s.name, n)
     for (index, val) in enumerate(s):
       if val > n:
         s[index] = None
@@ -2163,6 +2192,8 @@ SeriesFunctions = {
   # Data Filter functions
   'removeAbovePercentile' : removeAbovePercentile,
   'removeAboveValue' : removeAboveValue,
+  'removeBelowPercentile' : removeAbovePercentile,
+  'removeBelowValue' : removeAboveValue,
 
   # Special functions
   'legendValue' : legendValue,
