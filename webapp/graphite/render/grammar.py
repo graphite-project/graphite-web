@@ -46,7 +46,7 @@ call = Group(
 # Metric pattern (aka. pathExpression)
 validMetricChars = alphanums + r'''!#$%&"'*+-.:;<=>?@[\]^_`|~'''
 pathExpression = Combine(
-  Word(validMetricChars) +
+  Optional(Word(validMetricChars)) +
   Combine(
     ZeroOrMore(
       Group(
