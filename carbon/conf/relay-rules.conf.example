@@ -1,8 +1,10 @@
 #[example]
 #pattern = ^mydata\.foo\..+
-#servers = 10.1.2.3, 10.1.2.4:2004, myserver.mydomain.com
+#destinations = 10.1.2.3, 10.1.2.4:2004, myserver.mydomain.com
 
 # You must have exactly one section with 'default = true'
+# Note that all destinations listed must also exist in carbon.conf
+# in the DESTINATIONS setting in the [relay] section
 [default]
 default = true
 destinations = 127.0.0.1:2004:a, 127.0.0.1:2104:b

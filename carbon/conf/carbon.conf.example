@@ -185,6 +185,9 @@ REPLICATION_FACTOR = 1
 # Note that if the destinations are all carbon-caches then this should
 # exactly match the webapp's CARBONLINK_HOSTS setting in terms of
 # instances listed (order matters!).
+#
+# If using RELAY_METHOD = rules, all destinations used in relay-rules.conf
+# must be defined in this list
 DESTINATIONS = 127.0.0.1:2004
 
 # This defines the maximum "message size" between carbon daemons.
