@@ -745,8 +745,8 @@ def cactiStyle(requestContext, seriesList):
 
 def aliasByNode(requestContext, seriesList, *nodes):
   """
-  Takes a serielist and applies an alias derived from one or more "node"
-  portion/s of the target name.
+  Takes a seriesList and applies an alias derived from one or more "node"
+  portion/s of the target name. Node indices are 0 indexed.
 
   .. code-block:: none
 
@@ -756,8 +756,8 @@ def aliasByNode(requestContext, seriesList, *nodes):
   if type(nodes) is int:
     nodes=[nodes]
   for series in seriesList:
-    newname = re.search('(?:.*\()?(?P<name>[\w\.]+)(?:,|\]?.*)?',series.name).groups()[0]
-    series.name = newname
+    metric_pieces = re.search('(?:.*\()?(?P<name>[-\w*\.]+)(?:,|\)?.*)?',series.name).groups()[0].split('.')
+    series.name = '.'.join(metric_pieces[n] for n in nodes)
   return seriesList
 
 def legendValue(requestContext, seriesList, valueType):
