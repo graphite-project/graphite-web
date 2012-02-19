@@ -747,7 +747,11 @@ var GraphDataWindow = {
       removeTarget(target);
     });
 
-    Composer.url.setParamList('target', targets);
+    if (targets.length == 0) {
+      Composer.url.removeParam('target');
+    } else {
+      Composer.url.setParamList('target', targets);
+    }
     Composer.updateImage();
   },
 
