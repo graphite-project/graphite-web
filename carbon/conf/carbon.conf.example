@@ -92,6 +92,19 @@ LOG_UPDATES = False
 # shift the onus of buffering writes from the kernel into carbon's cache.
 WHISPER_AUTOFLUSH = False
 
+# By default new Whisper files are created pre-allocated with the data region
+# filled with zeros to prevent fragmentation and speed up contiguous reads and
+# writes (which are common). Enabling this option will cause Whisper to create
+# the file sparsely instead. Enabling this option may allow a large increase of
+# MAX_CREATES_PER_MINUTE but may have longer term performance implications
+# depending on the underlying storage configuration.
+# WHISPER_SPARSE_CREATE = False
+
+# Enabling this option will cause Whisper to lock each Whisper file it writes
+# to with an exclusive lock (LOCK_EX, see: man 2 flock). This is useful when
+# multiple carbon-cache daemons are writing to the same files
+# WHISPER_LOCK_WRITES = False
+
 # Set this to True to enable whitelisting and blacklisting of metrics in
 # CONF_DIR/whitelist and CONF_DIR/blacklist. If the whitelist is missing or
 # empty, all metrics will pass through

@@ -43,6 +43,8 @@ defaults = dict(
   CACHE_QUERY_PORT=7002,
   LOG_UPDATES=True,
   WHISPER_AUTOFLUSH=False,
+  WHISPER_SPARSE_CREATE=False,
+  WHISPER_LOCK_WRITES=False,
   MAX_DATAPOINTS_PER_MESSAGE=500,
   MAX_AGGREGATION_INTERVALS=5,
   MAX_QUEUE_SIZE=1000,
@@ -201,8 +203,15 @@ class CarbonCacheOptions(usage.Options):
             sys.exit(1)
 
         if settings.WHISPER_AUTOFLUSH:
-            log.msg("enabling whisper autoflush")
+            log.msg("Enabling Whisper autoflush")
             whisper.AUTOFLUSH = True
+
+        if settings.WHISPER_LOCK_WRITES:
+            if whisper.CAN_LOCK:
+                log.msg("Enabling Whisper file locking")
+                whisper.LOCK = True
+            else:
+                log.err("WHISPER_LOCK_WRITES is enabled but import of fcntl module failed.")
 
         if not "action" in self:
             self["action"] = "start"
