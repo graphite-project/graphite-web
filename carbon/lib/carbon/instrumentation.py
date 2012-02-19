@@ -100,6 +100,10 @@ def recordMetrics():
            sum([b.size for b in BufferManager.buffers.values()]))
     record('aggregateDatapointsSent', myStats.get('aggregateDatapointsSent', 0))
 
+  # relay metrics
+  else:
+    record = relay_record
+
   # common metrics
   record('metricsReceived', myStats.get('metricsReceived', 0))
   record('cpuUsage', getCpuUsage())
