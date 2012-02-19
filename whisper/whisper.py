@@ -296,7 +296,7 @@ def validateArchiveList(archiveList):
     return False
   return True
 
-def create(path,archiveList,xFilesFactor=None,aggregationMethod=None):
+def create(path,archiveList,xFilesFactor=None,aggregationMethod=None,sparse=False):
   """create(path,archiveList,xFilesFactor=0.5,aggregationMethod='average')
 
 path is a string
@@ -338,8 +338,19 @@ aggregationMethod specifies the function to use when propogating data (see ``whi
     fh.write(archiveInfo)
     archiveOffsetPointer += (points * pointSize)
 
-  zeroes = '\x00' * (archiveOffsetPointer - headerSize)
-  fh.write(zeroes)
+  if sparse:
+    fh.seek(archiveOffsetPointer - headerSize - 1)
+    fh.write("\0")
+  else:
+    # If not creating the file sparsely, then fill the rest of the file with
+    # zeroes.
+    remaining = archiveOffsetPointer - headerSize
+    chunksize = 16384
+    zeroes = '\x00' * chunksize
+    while remaining > chunksize
+      fh.write(zeroes)
+      remaining -= chunksize
+    fh.write(zeroes[:remaining])
 
   if AUTOFLUSH:
     fh.flush()
