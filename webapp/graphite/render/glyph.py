@@ -27,6 +27,7 @@ try: # See if there is a system installation of pytz first
 except ImportError: # Otherwise we fall back to Graphite's bundled version
   from graphite.thirdparty import pytz
 
+INFINITY = float('inf')
 
 colorAliases = {
   'black' : (0,0,0),
@@ -1529,19 +1530,19 @@ def toSeconds(t):
 
 
 def safeMin(args):
-  args = [arg for arg in args if arg is not None]
+  args = [arg for arg in args if arg not in (None, INFINITY)]
   if args:
     return min(args)
 
 
 def safeMax(args):
-  args = [arg for arg in args if arg is not None]
+  args = [arg for arg in args if arg not in (None, INFINITY)]
   if args:
     return max(args)
 
 
 def safeSum(values):
-  return sum([v for v in values if v is not None])
+  return sum([v for v in values if v not in (None, INFINITY)])
 
 
 def any(args):
