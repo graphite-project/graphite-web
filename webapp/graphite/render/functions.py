@@ -312,9 +312,11 @@ def keepLastValue(requestContext, seriesList):
       series[i] = value
   return seriesList
 
-def asPercent(requestContext, seriesList1, seriesList2orNumber):
+def asPercent(requestContext, *seriesLists):
   """
-  Takes exactly two metrics, or a metric and a constant.
+  Takes exactly two metrics, a metric and a constant, or a seriesList with
+  exactly two series within it.
+
   Draws the first metric as a percent of the second.
 
   Example:
@@ -325,6 +327,17 @@ def asPercent(requestContext, seriesList1, seriesList2orNumber):
     &target=asPercent(apache01.threads.busy,1500)
 
   """
+  if len(seriesLists) == 1 and len(seriesLists[0]) == 2:
+    # You'll see input like this if you do:
+    #   groupByNode(%s,0,"asPercent")
+    # where the %s is a group of two series, the first of which
+    # should be the dividend and the second the divisor.
+    seriesList1 = [seriesLists[0].pop(0)]
+    seriesList2orNumber = seriesLists[0]
+  else:
+    seriesList1 = seriesLists[0]
+    seriesList2orNumber = seriesLists[1]
+
   assert len(seriesList1) == 1, "asPercent series arguments must reference *exactly* 1 series"
   series1 = seriesList1[0]
   if type(seriesList2orNumber) is list:
