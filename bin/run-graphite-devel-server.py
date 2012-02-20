@@ -21,11 +21,11 @@ graphite_root = args[0]
 
 django_admin = None
 for name in ('django-admin', 'django-admin.py'):
-  try:
-    django_admin = subprocess.check_output(['which', name])
+  process = subprocess.Popen(['which', name], stdout=subprocess.PIPE)
+  output = process.stdout.read().strip()
+  if process.wait() == 0:
+    django_admin = output
     break
-  except subprocess.CalledProcessError:
-    pass
 
 if not django_admin:
   print "Could not find a django-admin script!"
