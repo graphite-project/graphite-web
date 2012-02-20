@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys, os
+import subprocess
 from optparse import OptionParser
 
 option_parser = OptionParser(usage='''
@@ -18,9 +19,13 @@ if not args:
 
 graphite_root = args[0]
 
+django_admin = None
 for name in ('django-admin', 'django-admin.py'):
-  django_admin = os.popen('which %s' % name).read().strip()
-  if django_admin: break
+  try:
+    django_admin = subprocess.check_output(['which', name])
+    break
+  except subprocess.CalledProcessError:
+    pass
 
 if not django_admin:
   print "Could not find a django-admin script!"
