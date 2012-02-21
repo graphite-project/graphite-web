@@ -18,7 +18,7 @@ URL parameters to change the data being graphed in some way.
 """
 
 from datetime import date, datetime, timedelta
-from itertools import izip
+from itertools import izip, imap
 import math
 import re
 import random
@@ -51,9 +51,12 @@ def safeDiv(a,b):
   if b in (0,None): return None
   return float(a) / float(b)
 
-def safeMul(a,b):
-  if a is None or b is None: return None
-  return float(a) * float(b)
+def safeMul(*factors):
+  if None in factors: return None
+
+  factors = map(float, factors)
+  product = reduce(lambda x,y: x*y, factors)
+  return product
 
 def safeSubtract(a,b):
     if a is None or b is None: return None
@@ -374,7 +377,7 @@ def divideSeries(requestContext, dividendSeriesList, divisorSeriesList):
 
   .. code-block:: none
 
-    &target=asPercent(Series.dividends,Series.divisors)
+    &target=divideSeries(Series.dividends,Series.divisors)
 
 
   """
@@ -403,6 +406,28 @@ def divideSeries(requestContext, dividendSeriesList, divisorSeriesList):
     results.append(quotientSeries)
 
   return results
+
+def multiplySeries(requestContext, *seriesLists):
+  """
+  Takes two or more series and multiplies their points. A constant may not be
+  used. To multiply by a constant, use the scale() function.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=multiplySeries(Series.dividends,Series.divisors)
+
+
+  """
+  (seriesList,start,end,step) = normalize(seriesLists)
+
+  if len(seriesList) == 1:
+    return seriesList
+
+  name = "multiplySeries(%s)" % ','.join([s.name for s in seriesList])
+  product = imap(lambda x: safeMul(*x), izip(*seriesList))
+  return [TimeSeries(name, start, end, step, product)]
 
 def movingMedian(requestContext, seriesList, windowSize):
   """
@@ -2152,6 +2177,7 @@ SeriesFunctions = {
   'sum' : sumSeries,
   'diffSeries' : diffSeries,
   'divideSeries' : divideSeries,
+  'multiplySeries' : multiplySeries,
   'averageSeries' : averageSeries,
   'avg' : averageSeries,
   'sumSeriesWithWildcards': sumSeriesWithWildcards,

@@ -888,6 +888,7 @@ function createFunctionsMenu() {
       menu: [
         {text: 'Sum', handler: applyFuncToAll('sumSeries')},
         {text: 'Average', handler: applyFuncToAll('averageSeries')},
+        {text: 'Product', handler: applyFuncToAll('multiplySeries')},
         {text: 'Min Values', handler: applyFuncToAll('minSeries')},
         {text: 'Max Values', handler: applyFuncToAll('maxSeries')},
         {text: 'Group', handler: applyFuncToAll('group')},
