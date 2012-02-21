@@ -280,7 +280,8 @@ def tree_json(nodes, base_path, wildcards=False, contexts=False):
     results.append(wildcardNode)
 
   found = set()
-
+  results_leaf = []
+  results_branch = []
   for node in nodes: #Now let's add the matching children
     if node.name in found:
       continue
@@ -298,11 +299,13 @@ def tree_json(nodes, base_path, wildcards=False, contexts=False):
 
     if node.isLeaf():
       resultNode.update(leafNode)
+      results_leaf.append(resultNode)
     else:
       resultNode.update(branchNode)
+      results_branch.append(resultNode)
 
-    results.append(resultNode)
-
+  results.extend(results_branch)
+  results.extend(results_leaf)
   return json.dumps(results)
 
 
