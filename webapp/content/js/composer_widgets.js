@@ -1028,6 +1028,7 @@ function createOptionsMenu() {
     items: [
       menuCheckItem("Graph Only", "graphOnly"),
       menuCheckItem("Hide Axes", "hideAxes"),
+      menuCheckItem("Hide Y Axis", "hideYAxis"),
       menuCheckItem("Hide Grid", "hideGrid"),
       {
         text: 'Graph Legend',

@@ -490,7 +490,8 @@ class LineGraph(Graph):
                   'yUnitSystem', 'logBase','yMinLeft','yMinRight','yMaxLeft', \
                   'yMaxRight', 'yLimitLeft', 'yLimitRight', 'yStepLeft', \
                   'yStepRight', 'rightWidth', 'rightColor', 'rightDashed', \
-                  'leftWidth', 'leftColor', 'leftDashed', 'xFormat', 'minorY')
+                  'leftWidth', 'leftColor', 'leftDashed', 'xFormat', 'minorY', \
+                  'hideYAxis')
   validLineModes = ('staircase','slope','connected')
   validAreaModes = ('none','first','all','stacked')
   validPieModes = ('maximum', 'minimum', 'average')
@@ -526,6 +527,7 @@ class LineGraph(Graph):
       params['hideLegend'] = True
       params['hideGrid'] = True
       params['hideAxes'] = True
+      params['hideYAxis'] = False
       params['yAxisSide'] = 'left'
       params['title'] = ''
       params['vtitle'] = ''
@@ -1045,15 +1047,16 @@ class LineGraph(Graph):
       self.yLabels = map(makeLabel,self.yLabelValues)
       self.yLabelWidth = max([self.getExtents(label)['width'] for label in self.yLabels])
 
-      if self.params.get('yAxisSide') == 'left': #scoot the graph over to the left just enough to fit the y-labels
-        xMin = self.margin + (self.yLabelWidth * 1.02)
-        if self.area['xmin'] < xMin:
-          self.area['xmin'] = xMin
-      else: #scoot the graph over to the right just enough to fit the y-labels
-        xMin = 0
-        xMax = self.margin - (self.yLabelWidth * 1.02)
-        if self.area['xmax'] >= xMax:
-          self.area['xmax'] = xMax
+      if not self.params.get('hideYAxis'):
+        if self.params.get('yAxisSide') == 'left': #scoot the graph over to the left just enough to fit the y-labels
+          xMin = self.margin + (self.yLabelWidth * 1.02)
+          if self.area['xmin'] < xMin:
+            self.area['xmin'] = xMin
+        else: #scoot the graph over to the right just enough to fit the y-labels
+          xMin = 0
+          xMax = self.margin - (self.yLabelWidth * 1.02)
+          if self.area['xmax'] >= xMax:
+            self.area['xmax'] = xMax
     else:
       self.yLabelValues = []
       self.yLabels = []
@@ -1275,42 +1278,43 @@ class LineGraph(Graph):
 
   def drawLabels(self):
     #Draw the Y-labels
-    if not self.secondYAxis:
-      for value,label in zip(self.yLabelValues,self.yLabels):
-        if self.params.get('yAxisSide') == 'left':
-          x = self.area['xmin'] - (self.yLabelWidth * 0.02)
-        else:
-          x = self.area['xmax'] + (self.yLabelWidth * 0.02) #Inverted for right side Y Axis
+    if not self.params.get('hideYAxis'):
+      if not self.secondYAxis:
+        for value,label in zip(self.yLabelValues,self.yLabels):
+          if self.params.get('yAxisSide') == 'left':
+            x = self.area['xmin'] - (self.yLabelWidth * 0.02)
+          else:
+            x = self.area['xmax'] + (self.yLabelWidth * 0.02) #Inverted for right side Y Axis
 
-        y = self.getYCoord(value)
-        if y is None:
+          y = self.getYCoord(value)
+          if y is None:
+              value = None
+          elif y < 0:
+              y = 0
+
+          if self.params.get('yAxisSide') == 'left':
+            self.drawText(label, x, y, align='right', valign='middle')
+          else:
+            self.drawText(label, x, y, align='left', valign='middle') #Inverted for right side Y Axis
+      else: #Draws a right side and a Left side axis
+        for valueL,labelL in zip(self.yLabelValuesL,self.yLabelsL):
+          xL = self.area['xmin'] - (self.yLabelWidthL * 0.02)
+          yL = self.getYCoord(valueL, "left")
+          if yL is None:
             value = None
-        elif y < 0:
-            y = 0
-
-        if self.params.get('yAxisSide') == 'left':
-          self.drawText(label, x, y, align='right', valign='middle')
-        else:
-          self.drawText(label, x, y, align='left', valign='middle') #Inverted for right side Y Axis
-    else: #Draws a right side and a Left side axis
-      for valueL,labelL in zip(self.yLabelValuesL,self.yLabelsL):
-        xL = self.area['xmin'] - (self.yLabelWidthL * 0.02)
-        yL = self.getYCoord(valueL, "left")
-        if yL is None:
-          value = None
-        elif yL < 0:
-          yL = 0
-        self.drawText(labelL, xL, yL, align='right', valign='middle')
-        
-        ### Right Side
-      for valueR,labelR in zip(self.yLabelValuesR,self.yLabelsR):
-        xR = self.area['xmax'] + (self.yLabelWidthR * 0.02) + 3 #Inverted for right side Y Axis
-        yR = self.getYCoord(valueR, "right")
-        if yR is None:
-          valueR = None
-        elif yR < 0:
-          yR = 0
-        self.drawText(labelR, xR, yR, align='left', valign='middle') #Inverted for right side Y Axis
+          elif yL < 0:
+            yL = 0
+          self.drawText(labelL, xL, yL, align='right', valign='middle')
+          
+          ### Right Side
+        for valueR,labelR in zip(self.yLabelValuesR,self.yLabelsR):
+          xR = self.area['xmax'] + (self.yLabelWidthR * 0.02) + 3 #Inverted for right side Y Axis
+          yR = self.getYCoord(valueR, "right")
+          if yR is None:
+            valueR = None
+          elif yR < 0:
+            yR = 0
+          self.drawText(labelR, xR, yR, align='left', valign='middle') #Inverted for right side Y Axis
       
     (dt, x_label_delta) = find_x_times(self.start_dt, self.xConf['labelUnit'], self.xConf['labelStep'])
 
