@@ -282,82 +282,106 @@ class Graph:
     else:
       self.area['ymin'] = y + self.margin
 
-
-  def drawLegend(self,elements): #elements is [ (name,color,rightSide), ... ]
+  
+  def drawLegend(self,elements): #elements is [ (name,color,rightSide), (name,color,rightSide), ... ]
     self.encodeHeader('legend')
 
     # remove duplicate names
-    namesSeen = {}
-    newElements = []
+    namesSeen = {} 
+    newElements = [] 
     for e in elements:
       if e[0] not in namesSeen:
-        namesSeen[e[0]] = True
+        namesSeen[e[0]] = True 
         newElements.append(e)
     elements = newElements
-
-    longestName = sorted([e[0] for e in elements],key=len)[-1]
-    extents = self.getExtents(longestName)
+    
+    # Check if there's enough room to use two columns.
+    rightSideLabels = False
     padding = 5
-    boxSize = extents['maxHeight'] - 1
-    lineHeight = extents['maxHeight'] + 1
-    labelWidth = extents['width'] + 2 * (boxSize + padding)
-    columns = max(1, math.floor( (self.width - self.area['xmin']) / labelWidth ))
-
-    if self.secondYAxis:
+    longestName = sorted([e[0] for e in elements],key=len)[-1]
+    testSizeName = longestName + " " + longestName # Double it to check if there's enough room for 2 columns
+    testExt = self.getExtents(testSizeName)
+    testBoxSize = testExt['maxHeight'] - 1
+    testWidth = testExt['width'] + 2 * (testBoxSize + padding)
+    if testWidth + 50 < self.width:
+      rightSideLabels = True
+    
+    if(self.secondYAxis and rightSideLabels):
+      extents = self.getExtents(longestName)
+      padding = 5
+      boxSize = extents['maxHeight'] - 1
+      lineHeight = extents['maxHeight'] + 1
+      labelWidth = extents['width'] + 2 * (boxSize + padding)
+      columns = max(1, math.floor( (self.width - self.area['xmin']) / labelWidth ))
       numRight = len([name for (name,color,rightSide) in elements if rightSide])
       numberOfLines = max(len(elements) - numRight, numRight)
-      columns = math.floor(columns / 2.0)
-    else:
-      numberOfLines = math.ceil( float(len(elements)) / columns )
-
-    if columns < 1: columns = 1
-
-    legendHeight = numberOfLines * (lineHeight + padding)
-    self.area['ymax'] -= legendHeight #scoot the drawing area up to fit the legend
-    self.ctx.set_line_width(1.0)
-
-    x = self.area['xmin']
-    y = self.area['ymax'] + (2 * padding)
-    n = 0
-    if self.secondYAxis:
+      columns = math.floor(columns / 2.0) 
+      if columns < 1: columns = 1
+      legendHeight = numberOfLines * (lineHeight + padding)
+      self.area['ymax'] -= legendHeight #scoot the drawing area up to fit the legend
+      self.ctx.set_line_width(1.0)
+      x = self.area['xmin']
+      y = self.area['ymax'] + (2 * padding)
+      n = 0
       xRight = self.area['xmax'] - self.area['xmin']
       yRight = y
       nRight = 0
-
-    for (name,color,rightSide) in elements:
-      if self.secondYAxis and rightSide:
-        nRight += 1
-      else:
-        n += 1
-
-      self.setColor( color )
-      if self.secondYAxis and rightSide:
-        self.drawRectangle(xRight - padding,yRight,boxSize,boxSize)
-      else:
-        self.drawRectangle(x,y,boxSize,boxSize)
-
-      self.setColor( 'darkgrey' )
-      if self.secondYAxis and rightSide:
-        self.drawRectangle(xRight - padding,yRight,boxSize,boxSize,fill=False)
-      else:
-        self.drawRectangle(x,y,boxSize,boxSize,fill=False)
-
-      self.setColor( self.foregroundColor )
-      if self.secondYAxis and rightSide:
-        self.drawText(name, xRight - boxSize, yRight, align='right')
-      else:
-        self.drawText(name, x + boxSize + padding, y, align='left')
-
-      if self.secondYAxis and rightSide:
-        xRight -= labelWidth
-
-        if nRight % columns == 0:
-          xRight = self.area['xmax'] - self.area['xmin']
-          yRight += lineHeight
-      else:
-        x += labelWidth
-
-        if n % columns == 0:
+      for (name,color,rightSide) in elements:
+        self.setColor( color )
+        if rightSide:
+          nRight += 1 
+          self.drawRectangle(xRight - padding,yRight,boxSize,boxSize)
+          self.setColor( 'darkgrey' )
+          self.drawRectangle(xRight - padding,yRight,boxSize,boxSize,fill=False)
+          self.setColor( self.foregroundColor )
+          self.drawText(name, xRight - boxSize, yRight, align='right')
+          xRight -= labelWidth
+          if nRight % columns == 0:
+            xRight = self.area['xmax'] - self.area['xmin']
+            yRight += lineHeight
+        else:
+          n += 1 
+          self.drawRectangle(x,y,boxSize,boxSize)
+          self.setColor( 'darkgrey' )
+          self.drawRectangle(x,y,boxSize,boxSize,fill=False)
+          self.setColor( self.foregroundColor )
+          self.drawText(name, x + boxSize + padding, y, align='left')
+          x += labelWidth
+          if n % columns == 0:
+            x = self.area['xmin']
+            y += lineHeight
+    else:
+      extents = self.getExtents(longestName)
+      boxSize = extents['maxHeight'] - 1
+      lineHeight = extents['maxHeight'] + 1
+      labelWidth = extents['width'] + 2 * (boxSize + padding)
+      columns = math.floor( self.width / labelWidth )
+      if columns < 1: columns = 1
+      numberOfLines = math.ceil( float(len(elements)) / columns )
+      legendHeight = numberOfLines * (lineHeight + padding)
+      self.area['ymax'] -= legendHeight #scoot the drawing area up to fit the legend
+      self.ctx.set_line_width(1.0)
+      x = self.area['xmin']
+      y = self.area['ymax'] + (2 * padding)
+      print "ding"
+      for i,(name,color,rightSide) in enumerate(elements):
+        if rightSide:
+          self.setColor( color )
+          self.drawRectangle(x + labelWidth + padding,y,boxSize,boxSize)
+          self.setColor( 'darkgrey' )
+          self.drawRectangle(x + labelWidth + padding,y,boxSize,boxSize,fill=False)
+          self.setColor( self.foregroundColor )
+          self.drawText(name, x + labelWidth, y, align='right')
+          x += labelWidth
+        else:
+          self.setColor( color )
+          self.drawRectangle(x,y,boxSize,boxSize)
+          self.setColor( 'darkgrey' )
+          self.drawRectangle(x,y,boxSize,boxSize,fill=False)
+          self.setColor( self.foregroundColor )
+          self.drawText(name, x + boxSize + padding, y, align='left')
+          x += labelWidth
+        if (i + 1) % columns == 0:
           x = self.area['xmin']
           y += lineHeight
 
