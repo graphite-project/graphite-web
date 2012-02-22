@@ -25,6 +25,13 @@ contain any ``.`` characters). For example, collectd's
 to graph ``collectd.host_name.load.load.{short,mid,long}term``.
 
 
+Collectl
+--------
+`Collectl`_ is a collection tool for system metrics that can be run both interactively and as a daemon
+and has support for collecting from a broad set of subsystems. Collectl includes a Graphite interface
+which allows data to easily be fed to Graphite for storage.
+
+
 Charcoal
 --------
 `Charcoal`_ is a simple Sinatra dashboarding frontend for Graphite or any other system status
@@ -51,6 +58,13 @@ that allows Ganglia to send metrics directly to Graphite. Further integration wo
 GDash
 -----
 `Gdash`_ is a simple Graphite dashboard built using Twitters Bootstrap driven by a small DSL.
+
+
+Graphene
+--------
+`Graphene`_ is a Graphite dashboard toolkit based on `D3.js`_ and `Backbone.js`_ which was
+made to offer a very aesthetic realtime dashboard. Graphene provides a solution capable of
+displaying thousands upon thousands of datapoints all updated in realtime.
 
 
 Graphite-relay
@@ -152,11 +166,14 @@ A list of forks and alternative implementations can be found at <http://joemille
 .. _jmxtrans: http://code.google.com/p/jmxtrans/
 .. _statsd: https://github.com/etsy/statsd
 .. _Ganglia: http://ganglia.info/
+.. _Backbone.js: http://documentcloud.github.com/backbone/
 .. _collectd: http://collectd.org/
 .. _collectd-to-graphite: https://github.com/loggly/collectd-to-graphite
 .. _collectd-carbon: https://github.com/indygreg/collectd-carbon
 .. _collectd-graphite: https://github.com/joemiller/collectd-graphite
 .. _collectd-write_graphite: https://github.com/jssjr/collectd-write_graphite
+.. _Collectl: http://collectl.sourceforge.net/
+.. _D3.js: http://mbostock.github.com/d3/
 .. _Logster: https://github.com/etsy/logster
 .. _RabbitMQ: http://www.rabbitmq.com/
 .. _Esper: http://esper.codehaus.org/
@@ -165,6 +182,7 @@ A list of forks and alternative implementations can be found at <http://joemille
 .. _Graphite-Tattle: https://github.com/wayfair/Graphite-Tattle
 .. _Gdash: https://github.com/ripienaar/gdash.git
 .. _Pencil: https://github.com/fetep/pencil
+.. _Graphene: http://jondot.github.com/graphene/
 .. _Graphite-relay: https://github.com/markchadwick/graphite-relay
 .. _Graphiti: https://github.com/paperlesspost/graphiti
 .. _Graphios: https://github.com/shawn-sterling/graphios
