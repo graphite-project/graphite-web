@@ -90,6 +90,9 @@ LDAP_URI = None
 #Set this to True to delegate authentication to the web server
 USE_REMOTE_USER_AUTHENTICATION = False
 
+#Additional authentication backends to prepend
+ADDITIONAL_AUTHENTICATION_BACKENDS = []
+
 #Database settings, sqlite is intended for single-server setups
 DATABASE_ENGINE = 'sqlite3'			# 'postgresql', 'mysql', 'sqlite3' or 'ado_mssql'.
 DATABASE_NAME = STORAGE_DIR + 'graphite.db'	# Or path to database file if using sqlite3.
@@ -138,7 +141,7 @@ LANGUAGE_CODE = 'en-us'
 SITE_ID = 1
 
 # Absolute path to the directory that holds media.
-# Example: "/home/media/media.lawrence.com/"
+
 MEDIA_ROOT = ''
 
 # URL that handles the media served from MEDIA_ROOT.
@@ -195,3 +198,7 @@ else:
 
 if USE_LDAP_AUTH:
   AUTHENTICATION_BACKENDS.insert(0,'graphite.account.ldapBackend.LDAPBackend')
+
+if ADDITIONAL_AUTHENTICATION_BACKENDS:
+  for backend in ADDITIONAL_AUTHENTICATION_BACKENDS:
+    AUTHENTICATION_BACKENDS.insert(0, backend)

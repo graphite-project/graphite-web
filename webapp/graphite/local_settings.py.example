@@ -27,9 +27,9 @@
 #EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
 
 #####################################
-# LDAP Authentication Configuration #
+# Authentication Configuration #
 #####################################
-# LDAP / ActiveDirectory authentication setup
+## LDAP / ActiveDirectory authentication setup
 #USE_LDAP_AUTH = True
 #LDAP_SERVER = "ldap.mycompany.com"
 #LDAP_PORT = 389
@@ -51,6 +51,11 @@
 #ldap.set_option(ldap.OPT_X_TLS_KEYFILE, "/etc/ssl/mykey.pem")
 # See http://www.python-ldap.org/ for further details on these options.
 
+# REMOTE_USER authentication. See: https://docs.djangoproject.com/en/dev/howto/auth-remote-user/
+#USE_REMOTE_USER_AUTHENTICATION = True
+
+# Additional authentication backends to prepend
+#ADDITIONAL_AUTHENTICATION_BACKENDS = []
 
 ##########################
 # Database Configuration #
