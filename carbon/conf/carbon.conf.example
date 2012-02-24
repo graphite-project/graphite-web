@@ -147,13 +147,14 @@ WHISPER_AUTOFLUSH = False
 # Example: store everything
 # BIND_PATTERNS = #
 
-# To configure special settings for the 'foo' carbon-cache instance, uncomment this:
-#[cache:foo]
+# To configure special settings for the carbon-cache instance 'b', uncomment this:
+#[cache:b]
 #LINE_RECEIVER_PORT = 2103
 #PICKLE_RECEIVER_PORT = 2104
 #CACHE_QUERY_PORT = 7102
 # and any other settings you want to customize, defaults are inherited
 # from [carbon] section.
+# You can then specify the --instance=b option to manage this instance
 
 
 [relay]

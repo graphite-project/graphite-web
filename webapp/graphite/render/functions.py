@@ -1744,7 +1744,8 @@ def groupByNode(requestContext, seriesList, nodeNum, callback):
     &target=groupByNode(ganglia.by-function.*.*.cpu.load5,2,"sumSeries")
 
     Would return multiple series which are each the result of applying the "sumSeries" function
-    to groups joined on the second node wildcard.
+    to groups joined on the second node (0 indexed) resulting in a list of targets like
+    sumSeries(ganglia.by-function.server1.*.cpu.load5),sumSeries(ganglia.by-function.server2.*.cpu.load5),...
 
   """
   metaSeries = {}
