@@ -16,7 +16,7 @@ var dashboardURL;
 var refreshTask;
 var spacer;
 var justClosedGraph = false;
-var NOT_EDITABLE = ['from', 'until', 'width', 'height', 'target', 'uniq'];
+var NOT_EDITABLE = ['from', 'until', 'width', 'height', 'target', 'uniq', '_uniq'];
 
 var cookieProvider = new Ext.state.CookieProvider({
   path: "/dashboard"
@@ -431,7 +431,7 @@ function initDashboard () {
         }
       },
 
-      onNodeDrop: function (target, dd, e, data){ 
+      onNodeDrop: function (target, dd, e, data){
         var nodes = graphView.getNodes();
         var dropIndex = nodes.indexOf(target);
         var dragIndex = graphStore.indexOf(data.draggedRecord);
@@ -855,7 +855,7 @@ function metricTreeSelectorShow(pattern) {
   });
 
   try {
-    var oldRoot = Ext.getCmp('rootMetricSelectorNode')
+    var oldRoot = Ext.getCmp('rootMetricSelectorNode');
     oldRoot.destroy();
   } catch (err) { }
 
@@ -935,9 +935,12 @@ function updateGraphRecords() {
     Ext.apply(params, defaultGraphParams);
     Ext.apply(params, this.data.params);
     Ext.apply(params, GraphSize);
-    params.uniq = Math.random();
+    params._uniq = Math.random();
     if (params.title === undefined && params.target.length == 1) {
       params.title = params.target[0];
+    }
+    if (!params.uniq === undefined) {
+        delete params["uniq"];
     }
     this.set('url', '/render?' + Ext.urlEncode(params));
     this.set('width', GraphSize.width);
@@ -1680,7 +1683,7 @@ function breakoutGraph(record) {
               post: target.substr(i + expr.length)
             }
 
-          }   
+          }
 
         }); //map arglets
       }); //map args
@@ -1907,7 +1910,7 @@ var keyEventHandlers = {
             graphAreaToggle(record.data.path, {dontRemove: true});
           }
         });
-        focusCompleter(); 
+        focusCompleter();
       }
     },
   completer_del_metrics: function () {
