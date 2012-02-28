@@ -321,56 +321,49 @@ def keepLastValue(requestContext, seriesList):
       series[i] = value
   return seriesList
 
-def asPercent(requestContext, *seriesLists):
+def asPercent(requestContext, seriesList, total=None):
   """
-  Takes exactly two metrics, a metric and a constant, or a seriesList with
-  exactly two series within it.
 
-  Draws the first metric as a percent of the second.
+  Calculates a percentage of the total of a wildcard series. If `total` is specified,
+  each series will be calculated as a percentage of that total. If `total` is not specified,
+  the sum of all points in the wildcard series will be used instead.
+
+  The `total` parameter may be a single series or a numeric value.
 
   Example:
 
   .. code-block:: none
 
-    &target=asPercent(Server01.connections.failed,Server01.connections,total)
+    &target=asPercent(Server01.connections.{failed,succeeded}, Server01.connections.attempted)
     &target=asPercent(apache01.threads.busy,1500)
+    &target=asPercent(Server01.cpu.*.jiffies)
 
   """
-  if len(seriesLists) == 1 and len(seriesLists[0]) == 2:
-    # You'll see input like this if you do:
-    #   groupByNode(%s,0,"asPercent")
-    # where the %s is a group of two series, the first of which
-    # should be the dividend and the second the divisor.
-    seriesList1 = [seriesLists[0].pop(0)]
-    seriesList2orNumber = seriesLists[0]
-  else:
-    seriesList1 = seriesLists[0]
-    seriesList2orNumber = seriesLists[1]
 
-  assert len(seriesList1) == 1, "asPercent series arguments must reference *exactly* 1 series"
-  series1 = seriesList1[0]
-  if type(seriesList2orNumber) is list:
-    assert len(seriesList2orNumber) == 1, "asPercent series arguments must reference *exactly* 1 series"
-    series2 = seriesList2orNumber[0]
-    name = "asPercent(%s,%s)" % (series1.name,series2.name)
-    series = (series1,series2)
-    step = reduce(lcm,[s.step for s in series])
-    for s in series:
-      s.consolidate( step / s.step )
-    start = min([s.start for s in series])
-    end = max([s.end for s in series])
-    end -= (end - start) % step
-    values = ( safeMul( safeDiv(v1,v2), 100.0 ) for v1,v2 in izip(*series) )
+  normalize([seriesList])
+
+  if total is None:
+    totalValues = [ safeSum(row) for row in izip(*seriesList) ]
+    totalText = None # series.pathExpression
+  elif type(total) is list:
+    if len(total) != 1:
+      raise ValueError("asPercent second argument must reference exactly 1 series")
+    normalize([seriesList, total])
+    totalValues = total[0]
+    totalText = totalValues.name
   else:
-    number = float(seriesList2orNumber)
-    name = "asPercent(%s,%.1f)" % (series1.name,number)
-    step = series1.step
-    start = series1.start
-    end = series1.end
-    values = ( safeMul( safeDiv(v,number), 100.0 ) for v in series1 )
-  series = TimeSeries(name,start,end,step,values)
-  series.pathExpression = name
-  return [series]
+    totalValues = [total] * len(seriesList[0])
+    totalText = str(total)
+
+  resultList = []
+  for series in seriesList:
+    resultValues = [ safeMul(safeDiv(val, totalVal), 100.0) for val,totalVal in izip(series,totalValues) ]
+
+    name = "asPercent(%s, %s)" % (series.name, totalText or series.pathExpression)
+    resultSeries = TimeSeries(name,series.start,series.end,series.step,resultValues)
+    resultList.append(resultSeries)
+
+  return resultList
 
 def divideSeries(requestContext, dividendSeriesList, divisorSeriesList):
   """
