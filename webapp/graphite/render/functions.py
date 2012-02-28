@@ -33,15 +33,15 @@ from graphite.events import models
 #Utility functions
 def safeSum(values):
   safeValues = [v for v in values if v is not None]
-  if not safeValues: return None
-  return sum(safeValues)
+  if safeValues:
+    return sum(safeValues)
 
 def safeDiff(values):
   safeValues = [v for v in values if v is not None]
-  if not safeValues: return None
-  values = map(lambda x: x*-1, safeValues[1:])
-  values.insert(0, safeValues[0])
-  return sum(values)
+  if safeValues:
+    values = map(lambda x: x*-1, safeValues[1:])
+    values.insert(0, safeValues[0])
+    return sum(values)
 
 def safeLen(values):
   return len([v for v in values if v is not None])
@@ -52,7 +52,8 @@ def safeDiv(a,b):
   return float(a) / float(b)
 
 def safeMul(*factors):
-  if None in factors: return None
+  if None in factors:
+    return None
 
   factors = map(float, factors)
   product = reduce(lambda x,y: x*y, factors)
@@ -75,6 +76,11 @@ def safeMax(values):
   safeValues = [v for v in values if v is not None]
   if safeValues:
     return max(safeValues)
+
+def safeMap(function, values):
+  safeValues = [v for v in values if v is not None]
+  if safeValues:
+    return map(function, values)
 
 def lcm(a,b):
   if a == b: return a
@@ -1290,62 +1296,70 @@ def mostDeviant(requestContext, n, seriesList):
   return [ series for (sigma,series) in deviants ][:n] #return the n most deviant series
 
 
-# returns a two-element tuple
-# the first element is the std dev, the second is the new sum of squares
-def doStdDev(sumOfSquares, first, new, n, avg):
-   newSumOfSquares = sumOfSquares - (first * first) + (new * new)
-   return (math.sqrt((newSumOfSquares / float(n)) - (avg * avg)), newSumOfSquares)
-
-
-def stdev(requestContext, seriesList, time):
+def stdev(requestContext, seriesList, points, windowTolerance=0.1):
   """
   Takes one metric or a wildcard seriesList followed by an integer N.
   Draw the Standard Deviation of all metrics passed for the past N datapoints.
+  If the ratio of null points in the window is greater than windowTolerance,
+  skip the calculation. The default for windowTolerance is 0.1 (up to 10% of points
+  in the window can be missing). Note that if this is set to 0.0, it will cause large
+  gaps in the output anywhere a single point is missing.
 
   Example:
 
   .. code-block:: none
 
-    &target=stddev(server*.instance*.threads.busy,30)
+    &target=stdev(server*.instance*.threads.busy,30)
+    &target=stdev(server*.instance*.cpu.system,30,0.0)
 
   """
 
-  count = 0
-  for series in seriesList:
-    stddevs = TimeSeries("stddev(%s,%.1f)" % (series.name, float(time)), series.start, series.end, series.step, [])
-    stddevs.pathExpression = "stddev(%s,%.1f)" % (series.name, float(time))
-    avg = safeDiv(safeSum(series[:time]), time)
-    sumOfSquares = None
+  # For this we take the standard deviation in terms of the moving average
+  # and the moving average of series squares.
+  for (seriesIndex,series) in enumerate(seriesList):
+    stddevSeries = TimeSeries("stddev(%s,%.1f)" % (series.name, float(points)), series.start, series.end, series.step, [])
+    stddevSeries.pathExpression = "stddev(%s,%.1f)" % (series.name, float(points))
 
-    if avg is not None:
-      sumOfSquares = sum(map(lambda(x): x * x, [v for v in series[:time] if v is not None]))
-      (sd, sumOfSquares) = doStdDev(sumOfSquares, 0, 0, time, avg)
-      stddevs.append(sd)
-    else:
-      stddevs.append(None)
-
-    for (index, el) in enumerate(series[time:]):
-      if el is None:
-        continue
-
-      toDrop = series[index]
-      if toDrop is None:
-        toDrop = 0
-
-      s = safeSum([safeMul(time, avg), el, -toDrop])
-      avg = safeDiv(s, time)
-
-      if avg is not None and sumOfSquares is not None:
-        (sd, sumOfSquares) = doStdDev(sumOfSquares, toDrop, series[index+time], time, avg)
-        stddevs.append(sd)
+    validPoints = 0
+    currentSum = 0
+    currentSumOfSquares = 0
+    for (index, newValue) in enumerate(series):
+      # Mark whether we've reached our window size - dont drop points out otherwise
+      if index < points:
+        bootstrapping = True
+        droppedValue = None
       else:
-        stddevs.append(None)
+        bootstrapping = False
+        droppedValue = series[index - points]
 
-    for i in range(0, time-1):
-      stddevs.insert(0, None)
+      # Track non-None points in window
+      if not bootstrapping and droppedValue is not None:
+        validPoints -= 1
+      if newValue is not None:
+        validPoints += 1
 
-    seriesList[count] = stddevs
-    count = count + 1
+      # Remove the value that just dropped out of the window
+      if not bootstrapping and droppedValue is not None:
+        currentSum -= droppedValue
+        currentSumOfSquares -= droppedValue**2
+
+      # Add in the value that just popped in the window
+      if newValue is not None:
+        currentSum += newValue
+        currentSumOfSquares += newValue**2
+
+      if validPoints > 0 and \
+        float(validPoints)/points >= windowTolerance:
+
+        try:
+          deviation = math.sqrt(validPoints * currentSumOfSquares - currentSum**2)/validPoints
+        except ValueError:
+          deviation = None
+        stddevSeries.append(deviation)
+      else:
+        stddevSeries.append(None)
+
+    seriesList[seriesIndex] = stddevSeries
 
   return seriesList
 
