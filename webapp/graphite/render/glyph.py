@@ -363,7 +363,6 @@ class Graph:
       self.ctx.set_line_width(1.0)
       x = self.area['xmin']
       y = self.area['ymax'] + (2 * padding)
-      print "ding"
       for i,(name,color,rightSide) in enumerate(elements):
         if rightSide:
           self.setColor( color )
