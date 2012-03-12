@@ -10,7 +10,8 @@ settings.configure(
     DATA_DIRS='.',
     CLUSTER_SERVERS='',
     CARBONLINK_HOSTS='',
-    CARBONLINK_TIMEOUT=0)
+    CARBONLINK_TIMEOUT=0,
+    REMOTE_STORE_RETRY_DELAY=60)
 
 from graphite.render.datalib import TimeSeries
 import graphite.render.functions as functions
@@ -46,23 +47,23 @@ class FunctionsTest(unittest.TestCase):
       else:
         return 0
 
-    def testPercentileOrdinal(self):
+    def testGetPercentile(self):
       seriesList = [
-        ([15, 20, 35, 40, 50], 2),
+        ([15, 20, 35, 40, 50], 20),
         (range(100), 30),
         (range(200), 60),
         (range(300), 90),
-        (range(1, 101), 30),
-        (range(1, 201), 60),
-        (range(1, 301), 90),
-        (range(0, 102), 31),
+        (range(1, 101), 31),
+        (range(1, 201), 61),
+        (range(1, 301), 91),
+        (range(0, 102), 30),
         (range(1, 203), 61),
         (range(1, 303), 91),
       ]
       for index, conf in enumerate(seriesList):
         series, expected = conf
         sorted_series = sorted( series )
-        result = functions.percentileOrdinal(30, series)
+        result = functions._getPercentile(series, 30)
         self.assertEquals(expected, result, 'For series index <%s> the 30th percentile ordinal is not %d, but %d ' % (index, expected, result))
 
     def testNPercentile(self):
@@ -85,9 +86,9 @@ class FunctionsTest(unittest.TestCase):
           result =  functions.nPercentile({}, seriesList, perc)
           self.assertEquals(expected, result)
 
-        TestNPercentile(30, [ [20], [30], [60], [90], [29], [59], [89], [89] ])
-        TestNPercentile(90, [ [50], [90], [180], [270], [89], [179], [269], [269] ])
-        TestNPercentile(95, [ [50], [95], [190], [285], [94], [189], [284], [284] ])
+        TestNPercentile(30, [ [20], [31], [61], [91], [30], [60], [90], [90] ])
+        TestNPercentile(90, [ [50], [91], [181], [271], [90], [180], [270], [270] ])
+        TestNPercentile(95, [ [50], [96], [191], [286], [95], [190], [285], [285] ])
 
 
 if __name__ == '__main__':

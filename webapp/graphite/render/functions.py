@@ -301,6 +301,23 @@ def rangeOfSeries(requestContext, *seriesLists):
     series.pathExpression = name
     return [series]
 
+def percentilesOfSeries(requestContext, seriesList, n, interpolate=False):
+  """
+  percentilesOfSeries returns a single series which is composed of the n-percentile
+  values taken across a wildcard series at each point. Unless `interpolate` is
+  set to True, percentile values are actual values contained in one of the
+  supplied series.
+  """
+  if n <= 0:
+    raise ValueError('The requested percent is required to be greater than 0')
+
+  name = 'percentilesOfSeries(%s, %.1f)' % (seriesList[0].pathExpression, n)
+  (start, end, step) = normalize([seriesList])[1:]
+  values = [ _getPercentile(row, n, interpolate) for row in izip(*seriesList) ]
+  resultSeries = TimeSeries(name, start, end, step, values)
+
+  return [resultSeries]
+
 def keepLastValue(requestContext, seriesList):
   """
   Takes one metric or a wildcard seriesList.
@@ -1122,9 +1139,35 @@ def averageBelow(requestContext, seriesList, n):
   """
   return [ series for series in seriesList if safeDiv(safeSum(series),safeLen(series)) <= n ]
 
-def percentileOrdinal(n, series):
-  result = int( safeDiv(n * len(series), 100) + 0.5 )
-  return result
+def _getPercentile(points, n, interpolate=False):
+  """
+  Percentile is calculated using the method outlined in the NIST Engineering
+  Statistics Handbook:
+  http://www.itl.nist.gov/div898/handbook/prc/section2/prc252.htm
+  """
+  sortedPoints = sorted([ p for p in points if points is not None])
+  if len(sortedPoints) == 0:
+    return None
+  fractionalRank = (n/100.0) * (len(sortedPoints) + 1)
+  rank = int(fractionalRank)
+  rankFraction = fractionalRank - rank
+
+  if not interpolate:
+    rank += int(math.ceil(rankFraction))
+
+  if rank == 0:
+    percentile = sortedPoints[0]
+  elif rank - 1 == len(sortedPoints):
+    percentile = sortedPoints[-1]
+  else:
+    percentile = sortedPoints[rank - 1] # Adjust for 0-index
+
+  if interpolate:
+    if rank != len(sortedPoints): # if a next value exists
+      nextValue = sortedPoints[rank]
+      percentile = percentile + rankFraction * (nextValue - percentile)
+
+  return percentile
 
 def nPercentile(requestContext, seriesList, n):
   """Returns n-percent of each series in the seriesList."""
@@ -1137,13 +1180,7 @@ def nPercentile(requestContext, seriesList, n):
     if not s_copy:
       continue  # Skip this series because it is empty.
 
-    pord = percentileOrdinal( n, s_copy )
-    if pord > 0:
-      i = pord - 1
-    else:
-      i = pord
-
-    perc_val = s_copy[i]
+    perc_val = _getPercentile(s_copy, n)
     if perc_val:
       results.append( TimeSeries( '%dth Percentile(%s, %.1f)' % ( n, s_copy.name, perc_val ),
                                   s_copy.start, s_copy.end, s_copy.step, [perc_val] ) )
