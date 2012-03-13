@@ -301,9 +301,9 @@ def rangeOfSeries(requestContext, *seriesLists):
     series.pathExpression = name
     return [series]
 
-def percentilesOfSeries(requestContext, seriesList, n, interpolate=False):
+def percentileOfSeries(requestContext, seriesList, n, interpolate=False):
   """
-  percentilesOfSeries returns a single series which is composed of the n-percentile
+  percentileOfSeries returns a single series which is composed of the n-percentile
   values taken across a wildcard series at each point. Unless `interpolate` is
   set to True, percentile values are actual values contained in one of the
   supplied series.
@@ -2230,6 +2230,7 @@ SeriesFunctions = {
   'minSeries' : minSeries,
   'maxSeries' : maxSeries,
   'rangeOfSeries': rangeOfSeries,
+  'percentileOfSeries': percentileOfSeries,
 
   # Transform functions
   'scale' : scale,
