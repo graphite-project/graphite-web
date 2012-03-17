@@ -629,13 +629,15 @@ class LineGraph(Graph):
     #reconsolidate our data points, which in turn means re-scaling the Y axis, this process will
     #repeat until we have accurate Y labels and enough space to fit our data points
     currentXMin = self.area['xmin']
+    currentXMax = self.area['xmax']
     if self.secondYAxis:
       self.setupTwoYAxes()
     else:
       self.setupYAxis()
-    while currentXMin != self.area['xmin']: #see if the Y-labels require more space
+    while currentXMin != self.area['xmin'] or currentXMax != self.area['xmax']: #see if the Y-labels require more space
       self.consolidateDataPoints() #this can cause the Y values to change
       currentXMin = self.area['xmin'] #so let's keep track of the previous Y-label space requirements
+      currentXMax = self.area['xmax']
       if self.secondYAxis: #and recalculate their new requirements 
         self.setupTwoYAxes()
       else:
@@ -1233,7 +1235,7 @@ class LineGraph(Graph):
     if self.area['xmin'] < xMin:
       self.area['xmin'] = xMin
     #scoot the graph over to the right just enough to fit the y-labels
-    xMax = self.area['xmax'] - (self.yLabelWidthR * 1.02)
+    xMax = self.width - (self.yLabelWidthR * 1.02)
     if self.area['xmax'] >= xMax:
       self.area['xmax'] = xMax
 
