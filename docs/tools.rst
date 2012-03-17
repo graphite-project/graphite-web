@@ -154,6 +154,13 @@ Scales
 `Scales`_ is a Python server state and statistics library that can output its data to Graphite.
 
 
+Shinken
+-------
+`Shinken_` is a system monitoring solution compatible with Nagios which emphasizes scalability, flexibility,
+and ease of setup. Shinken provides complete integration with Graphite for processing and display of
+performance data.
+
+
 statsd
 ------
 `statsd`_ is a simple daemon for easy stats aggregation, developed by the folks at Etsy.
