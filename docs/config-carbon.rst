@@ -183,6 +183,6 @@ whitelisted and/or to reject blacklisted metrics. The functionality can be enabl
 the ``USE_WHITELIST`` flag. This can be useful when too many metrics are being sent to a Graphite
 instance or when there are metric senders sending useless or invalid metrics.
 
-The whitelist and blacklist files are located in ``GRAPHITE_CONF_DIR``. Each file contains one regular
+``GRAPHITE_CONF_DIR`` is searched for ``whitelist.conf`` and ``blacklist.conf``. Each file contains one regular
 expressions per line to match against metric values. If the whitelist configuration is missing or empty,
-all metrics will be passed through.
+all metrics will be passed through by default.
