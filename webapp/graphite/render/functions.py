@@ -30,6 +30,9 @@ from graphite.render.attime import parseTimeOffset
 
 from graphite.events import models
 
+NAN = float('NaN')
+INF = float('inf')
+
 #Utility functions
 def safeSum(values):
   safeValues = [v for v in values if v is not None]
@@ -773,15 +776,27 @@ def cactiStyle(requestContext, seriesList):
     &target=cactiStyle(ganglia.*.net.bytes_out)
 
   """
-  notNone = lambda x: [ y for y in x if y is not None]
   nameLen = max([len(getattr(series,"name")) for series in seriesList])
-  lastLen = max([len(repr(int(safeLast(series)))) for series in seriesList]) + 3
-  maxLen = max([len(repr(int(max(series)))) for series in seriesList]) + 3
-  minLen = max([len(repr(int(min(notNone(series))))) for series in seriesList]) + 3
+  lastLen = max([len(repr(int(safeLast(series) or 3))) for series in seriesList]) + 3
+  maxLen = max([len(repr(int(safeMax(series) or 3))) for series in seriesList]) + 3
+  minLen = max([len(repr(int(safeMin(series) or 3))) for series in seriesList]) + 3
   for series in seriesList:
+      name = series.name
+      last = safeLast(series)
+      maximum = safeMax(series)
+      minimum = safeMin(series)
+      if last is None:
+        last = NAN
+      if maximum is None:
+        maximum = NAN
+      if minimum is None:
+        minimum = NAN
+
       series.name = "%*s Current:%*.2f Max:%*.2f Min:%*.2f" % \
-          (-nameLen, series.name, lastLen, safeLast(series),
-          maxLen, max(series), minLen, min(notNone(series)))
+          (-nameLen, series.name,
+          lastLen, last,
+          maxLen, maximum,
+          minLen, minimum)
   return seriesList
 
 def aliasByNode(requestContext, seriesList, *nodes):
