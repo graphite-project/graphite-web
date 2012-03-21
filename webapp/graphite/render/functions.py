@@ -1250,7 +1250,7 @@ def removeBelowValue(requestContext, seriesList, n):
   for s in seriesList:
     s.name = 'removeBelowValue(%s, %d)' % (s.name, n)
     for (index, val) in enumerate(s):
-      if val > n:
+      if val < n:
         s[index] = None
 
   return seriesList
