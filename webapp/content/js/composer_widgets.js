@@ -898,6 +898,7 @@ function createFunctionsMenu() {
       text: 'Transform',
       menu: [
         {text: 'Scale', handler: applyFuncToEachWithInput('scale', 'Please enter a scale factor')},
+        {text: 'ScaleToSeconds', handler: applyFuncToEachWithInput('scaleToSeconds', 'Please enter a number of seconds to scale to')},
         {text: 'Offset', handler: applyFuncToEachWithInput('offset', 'Please enter the value to offset Y-values by')},
         {text: 'Derivative', handler: applyFuncToEach('derivative')},
         {text: 'Integral', handler: applyFuncToEach('integral')},

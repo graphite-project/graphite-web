@@ -502,6 +502,22 @@ def scale(requestContext, seriesList, factor):
       series[i] = safeMul(value,factor)
   return seriesList
 
+def scaleToSeconds(requestContext, seriesList, seconds):
+  """
+  Takes one metric or a wildcard seriesList and returns "value per seconds" where
+  seconds is a last argument to this functions.
+
+  Useful in conjunction with derivative or integral function if you want
+  to normalize its result to a known resolution for arbitrary retentions
+  """
+
+  for series in seriesList:
+    series.name = "scaleToSeconds(%s,%d)" % (series.name,seconds)
+    for i,value in enumerate(series):
+      factor = seconds * 1.0 / series.step
+      series[i] = safeMul(value,factor)
+  return seriesList
+
 def offset(requestContext, seriesList, factor):
   """
   Takes one metric or a wildcard seriesList followed by a constant, and adds the constant to
@@ -2273,6 +2289,7 @@ SeriesFunctions = {
 
   # Transform functions
   'scale' : scale,
+  'scaleToSeconds' : scaleToSeconds,
   'offset' : offset,
   'derivative' : derivative,
   'integral' : integral,
