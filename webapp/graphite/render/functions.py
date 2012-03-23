@@ -1785,6 +1785,30 @@ def threshold(requestContext, value, label=None, color=None):
 
   return [series]
 
+def transformNull(requestContext, seriesList, default=0):
+  """
+  Takes a metric or wild card seriesList and an optional value
+  to transform Nulls to. Default is 0. This method compliments
+  drawNullAsZero flag in graphical mode but also works in text only
+  mode.
+  Example:
+
+  .. code-block:: none
+
+    &target=transformNull(webapp.pages.*.views,-1)
+
+  This would take any page that didn't have values and supply negative 1 as a default.
+  Any other numeric value may be used as well.
+  """
+  def transform(v):
+    if v is None: return default
+    else: return v
+
+  for series in seriesList:
+    values = [transform(v) for v in series]
+    series.extend(values)
+    del series[:len(values)]
+  return seriesList
 
 def group(requestContext, *seriesLists):
   seriesGroup = []
@@ -2317,6 +2341,7 @@ SeriesFunctions = {
   'stacked' : stacked,
   'areaBetween' : areaBetween,
   'threshold' : threshold,
+  'transformNull' : transformNull,
 
   # test functions
   'time': timeFunction,
