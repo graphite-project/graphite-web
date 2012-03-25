@@ -12,10 +12,6 @@
 #See the License for the specific language governing permissions and
 #limitations under the License.
 
-"""
-These functions are used on the metrics passed in the ``&target=``
-URL parameters to change the data being graphed in some way.
-"""
 
 from datetime import date, datetime, timedelta
 from itertools import izip, imap
@@ -1651,6 +1647,10 @@ def holtWintersAberration(requestContext, seriesList, delta=3):
   return results
 
 def holtWintersConfidenceArea(requestContext, seriesList, delta=3):
+  """
+  Performs a Holt-Winters forecast using the series as input data and plots the
+  area between the upper and lower bands of the predicted forecast deviations.
+  """
   bands = holtWintersConfidenceBands(requestContext, seriesList, delta)
   results = areaBetween(requestContext, bands)
   for series in results:
@@ -1827,6 +1827,10 @@ def transformNull(requestContext, seriesList, default=0):
   return seriesList
 
 def group(requestContext, *seriesLists):
+  """
+  Takes an arbitrary number of seriesLists and adds them to a single seriesList. This is used
+  to pass multiple seriesLists to a function which only takes one
+  """
   seriesGroup = []
   for s in seriesLists:
     seriesGroup.extend(s)
