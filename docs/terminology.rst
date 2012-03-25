@@ -42,7 +42,7 @@ terms mean in the context of Graphite.
     series list
       A series name or wildcard which matches one or more :term:`series`. Series lists are received by
       :term:`functions <function>` as a list of matching series. From a user perspective, a series list is
-      merely the name of a metric. For example, each of these would be considered a series list:
+      merely the name of a metric. For example, each of these would be considered a single series list:
 
       * ``metro_east.servers.apache02.system.load_average.1_min``,
       * ``metro_east.servers.apache0{1,2,3}.system.load_average.1_min``
