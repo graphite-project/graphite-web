@@ -2000,7 +2000,7 @@ def summarize(requestContext, seriesList, intervalString, func='sum', alignToFro
   return results
 
 
-def hitcount(requestContext, seriesList, intervalString):
+def hitcount(requestContext, seriesList, intervalString, alignToInterval = False):
   """
   Estimate hit counts from a list of time series.
 
@@ -2015,6 +2015,28 @@ def hitcount(requestContext, seriesList, intervalString):
   results = []
   delta = parseTimeOffset(intervalString)
   interval = int(delta.seconds + (delta.days * 86400))
+
+  if alignToInterval:
+    DAY = 86400
+    HOUR = 3600
+    MINUTE = 60
+
+    requestContext = requestContext.copy()
+    s = requestContext['startTime']
+    if interval >= DAY:
+      requestContext['startTime'] = datetime(s.year, s.month, s.day)
+    elif interval >= HOUR:
+      requestContext['startTime'] = datetime(s.year, s.month, s.day, s.hour)
+    elif interval >= MINUTE:
+      requestContext['startTime'] = datetime(s.year, s.month, s.day, s.hour, s.minute)
+
+    for i,series in enumerate(seriesList):
+      newSeries = evaluateTarget(requestContext, series.pathExpression)[0]
+      intervalCount = int((series.end - series.start) / interval)
+      series[0:len(series)] = newSeries
+      series.start = newSeries.start
+      series.end =  newSeries.start + (intervalCount * interval) + interval
+      series.step = newSeries.step
 
   for series in seriesList:
     length = len(series)
@@ -2058,8 +2080,8 @@ def hitcount(requestContext, seriesList, intervalString):
       else:
         newValues.append(None)
 
-    newName = 'hitcount(%s, "%s")' % (series.name, intervalString)
-    newSeries = TimeSeries(newName, newStart, series.end, interval, newValues)
+    newName = 'hitcount(%s, "%s"%s)' % (series.name, intervalString, alignToInterval and ", true" or "")
+    newSeries = TimeSeries(newName, newStart, series.end, interval, newValues)    
     newSeries.pathExpression = newName
     results.append(newSeries)
 
