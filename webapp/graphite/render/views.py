@@ -328,11 +328,21 @@ def renderMyGraphView(request,username,graphName):
     query_string = url_parts[3]
     if query_string:
       url_params = parse_qs(query_string)
+      # Remove lists so that we can do an update() on the dict
       for param, value in url_params.items():
-        if isinstance(value, list):
-          url_params[param] = value[0]
+        if isinstance(value, list) and param != 'target':
+          url_params[param] = value[-1]
       url_params.update(request_params)
-      query_string = urlencode(url_params)
+      # Handle 'target' being a list - we want duplicate &target params out of it
+      url_param_pairs = []
+      for key,val in url_params.items():
+        if isinstance(val, list):
+          for v in val:
+            url_param_pairs.append( (key,v) )
+        else:
+          url_param_pairs.append( (key,val) )
+
+      query_string = urlencode(url_param_pairs)
     url = urlunsplit(url_parts[:3] + (query_string,) + url_parts[4:])
   else:
     url = graph.url

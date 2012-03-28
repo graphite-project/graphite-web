@@ -16,6 +16,7 @@ Graphite Documentation
    functions
    dashboard
    whisper
+   terminology
    tools
    who-is-using
 
@@ -26,4 +27,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-

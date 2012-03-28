@@ -26,6 +26,7 @@ WEBAPP_DIR = dirname( dirname(WEB_DIR) ) + '/'
 GRAPHITE_ROOT = dirname( dirname(WEBAPP_DIR) ) + '/'
 CONTENT_DIR = WEBAPP_DIR + 'content/'
 CSS_DIR = CONTENT_DIR + 'css/'
+THIRDPARTY_DIR = WEB_DIR + 'thirdparty/'
 
 CONF_DIR = os.environ.get('GRAPHITE_CONF_DIR', GRAPHITE_ROOT + 'conf/')
 STORAGE_DIR = os.environ.get('GRAPHITE_STORAGE_DIR', GRAPHITE_ROOT + 'storage/')
@@ -37,6 +38,8 @@ LOG_DIR = STORAGE_DIR + 'log/webapp/'
 CLUSTER_SERVERS = []
 
 sys.path.insert(0, WEBAPP_DIR)
+# Allow local versions of these libs to take precedence
+sys.path.append(THIRDPARTY_DIR)
 
 # Do not override WHISPER_DIR, RRD_DIR, etc directly in
 # local_settings.py, instead you should override DATA_DIRS

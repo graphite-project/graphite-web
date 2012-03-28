@@ -629,13 +629,15 @@ class LineGraph(Graph):
     #reconsolidate our data points, which in turn means re-scaling the Y axis, this process will
     #repeat until we have accurate Y labels and enough space to fit our data points
     currentXMin = self.area['xmin']
+    currentXMax = self.area['xmax']
     if self.secondYAxis:
       self.setupTwoYAxes()
     else:
       self.setupYAxis()
-    while currentXMin != self.area['xmin']: #see if the Y-labels require more space
+    while currentXMin != self.area['xmin'] or currentXMax != self.area['xmax']: #see if the Y-labels require more space
       self.consolidateDataPoints() #this can cause the Y values to change
       currentXMin = self.area['xmin'] #so let's keep track of the previous Y-label space requirements
+      currentXMax = self.area['xmax']
       if self.secondYAxis: #and recalculate their new requirements 
         self.setupTwoYAxes()
       else:
@@ -1222,10 +1224,7 @@ class LineGraph(Graph):
     for value in self.yLabelValuesR: 
       self.yLabelsR.append( makeLabel(value,self.yStepR,self.ySpanR) )
     self.yLabelWidthL = max([self.getExtents(label)['width'] for label in self.yLabelsL])
-    # The next line seems to set a value much too large in most cases
-    # By subtracting 10 px, the right side axis looks much nicer.
-    # Tested with standard, binary, and none yAxis units.
-    self.yLabelWidthR = max([self.getExtents(label)['width'] for label in self.yLabelsR]) - 10 
+    self.yLabelWidthR = max([self.getExtents(label)['width'] for label in self.yLabelsR])
     #scoot the graph over to the left just enough to fit the y-labels
         
     #xMin = self.margin + self.margin + (self.yLabelWidthL * 1.02)
@@ -1233,7 +1232,7 @@ class LineGraph(Graph):
     if self.area['xmin'] < xMin:
       self.area['xmin'] = xMin
     #scoot the graph over to the right just enough to fit the y-labels
-    xMax = self.area['xmax'] - (self.yLabelWidthR * 1.02)
+    xMax = self.width - (self.yLabelWidthR * 1.02)
     if self.area['xmax'] >= xMax:
       self.area['xmax'] = xMax
 

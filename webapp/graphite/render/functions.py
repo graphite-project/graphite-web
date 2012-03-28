@@ -12,10 +12,6 @@
 #See the License for the specific language governing permissions and
 #limitations under the License.
 
-"""
-These functions are used on the metrics passed in the ``&target=``
-URL parameters to change the data being graphed in some way.
-"""
 
 from datetime import date, datetime, timedelta
 from itertools import izip, imap
@@ -29,6 +25,9 @@ from graphite.render.datalib import fetchData, TimeSeries, timestamp
 from graphite.render.attime import parseTimeOffset
 
 from graphite.events import models
+
+NAN = float('NaN')
+INF = float('inf')
 
 #Utility functions
 def safeSum(values):
@@ -499,6 +498,22 @@ def scale(requestContext, seriesList, factor):
       series[i] = safeMul(value,factor)
   return seriesList
 
+def scaleToSeconds(requestContext, seriesList, seconds):
+  """
+  Takes one metric or a wildcard seriesList and returns "value per seconds" where
+  seconds is a last argument to this functions.
+
+  Useful in conjunction with derivative or integral function if you want
+  to normalize its result to a known resolution for arbitrary retentions
+  """
+
+  for series in seriesList:
+    series.name = "scaleToSeconds(%s,%d)" % (series.name,seconds)
+    for i,value in enumerate(series):
+      factor = seconds * 1.0 / series.step
+      series[i] = safeMul(value,factor)
+  return seriesList
+
 def offset(requestContext, seriesList, factor):
   """
   Takes one metric or a wildcard seriesList followed by a constant, and adds the constant to
@@ -773,15 +788,27 @@ def cactiStyle(requestContext, seriesList):
     &target=cactiStyle(ganglia.*.net.bytes_out)
 
   """
-  notNone = lambda x: [ y for y in x if y is not None]
   nameLen = max([len(getattr(series,"name")) for series in seriesList])
-  lastLen = max([len(repr(int(safeLast(series)))) for series in seriesList]) + 3
-  maxLen = max([len(repr(int(max(series)))) for series in seriesList]) + 3
-  minLen = max([len(repr(int(min(notNone(series))))) for series in seriesList]) + 3
+  lastLen = max([len(repr(int(safeLast(series) or 3))) for series in seriesList]) + 3
+  maxLen = max([len(repr(int(safeMax(series) or 3))) for series in seriesList]) + 3
+  minLen = max([len(repr(int(safeMin(series) or 3))) for series in seriesList]) + 3
   for series in seriesList:
+      name = series.name
+      last = safeLast(series)
+      maximum = safeMax(series)
+      minimum = safeMin(series)
+      if last is None:
+        last = NAN
+      if maximum is None:
+        maximum = NAN
+      if minimum is None:
+        minimum = NAN
+
       series.name = "%*s Current:%*.2f Max:%*.2f Min:%*.2f" % \
-          (-nameLen, series.name, lastLen, safeLast(series),
-          maxLen, max(series), minLen, min(notNone(series)))
+          (-nameLen, series.name,
+          lastLen, last,
+          maxLen, maximum,
+          minLen, minimum)
   return seriesList
 
 def aliasByNode(requestContext, seriesList, *nodes):
@@ -1235,7 +1262,7 @@ def removeBelowValue(requestContext, seriesList, n):
   for s in seriesList:
     s.name = 'removeBelowValue(%s, %d)' % (s.name, n)
     for (index, val) in enumerate(s):
-      if val > n:
+      if val < n:
         s[index] = None
 
   return seriesList
@@ -1620,6 +1647,10 @@ def holtWintersAberration(requestContext, seriesList, delta=3):
   return results
 
 def holtWintersConfidenceArea(requestContext, seriesList, delta=3):
+  """
+  Performs a Holt-Winters forecast using the series as input data and plots the
+  area between the upper and lower bands of the predicted forecast deviations.
+  """
   bands = holtWintersConfidenceBands(requestContext, seriesList, delta)
   results = areaBetween(requestContext, bands)
   for series in results:
@@ -1770,8 +1801,36 @@ def threshold(requestContext, value, label=None, color=None):
 
   return [series]
 
+def transformNull(requestContext, seriesList, default=0):
+  """
+  Takes a metric or wild card seriesList and an optional value
+  to transform Nulls to. Default is 0. This method compliments
+  drawNullAsZero flag in graphical mode but also works in text only
+  mode.
+  Example:
+
+  .. code-block:: none
+
+    &target=transformNull(webapp.pages.*.views,-1)
+
+  This would take any page that didn't have values and supply negative 1 as a default.
+  Any other numeric value may be used as well.
+  """
+  def transform(v):
+    if v is None: return default
+    else: return v
+
+  for series in seriesList:
+    values = [transform(v) for v in series]
+    series.extend(values)
+    del series[:len(values)]
+  return seriesList
 
 def group(requestContext, *seriesLists):
+  """
+  Takes an arbitrary number of seriesLists and adds them to a single seriesList. This is used
+  to pass multiple seriesLists to a function which only takes one
+  """
   seriesGroup = []
   for s in seriesLists:
     seriesGroup.extend(s)
@@ -2256,6 +2315,7 @@ SeriesFunctions = {
 
   # Transform functions
   'scale' : scale,
+  'scaleToSeconds' : scaleToSeconds,
   'offset' : offset,
   'derivative' : derivative,
   'integral' : integral,
@@ -2324,6 +2384,7 @@ SeriesFunctions = {
   'stacked' : stacked,
   'areaBetween' : areaBetween,
   'threshold' : threshold,
+  'transformNull' : transformNull,
 
   # test functions
   'time': timeFunction,

@@ -25,12 +25,37 @@ os.environ['DJANGO_SETTINGS_MODULE'] = "graphite.settings"
 from graphite import settings
 settings.LOG_DIR = os.path.abspath('.')
 
+# Define a custom autodoc documenter for the render.functions module
+# This will remove the requestContext parameter which doesnt make sense in the context of the docs
+import re
+from sphinx.ext import autodoc
+class RenderFunctionDocumenter(autodoc.FunctionDocumenter):
+  priority = 10 # Override FunctionDocumenter
+
+  @classmethod
+  def can_document_member(cls, member, membername, isattr, parent):
+    return autodoc.FunctionDocumenter.can_document_member(member, membername, isattr, parent) and \
+      parent.name == 'graphite.render.functions'
+
+  def format_args(self):
+    args = autodoc.FunctionDocumenter.format_args(self)
+    if args is not None:
+      # Really, a regex sub here is by far the easiest way
+      return re.sub('requestContext, ','',args)
+
+def setup(app):
+  app.add_autodocumenter(RenderFunctionDocumenter)
+
 # -- General configuration -----------------------------------------------------
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx']
 
+# Mapping for external links such as Python standard lib
+intersphinx_mapping = {
+  'python': ('http://docs.python.org/', None)
+}
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 

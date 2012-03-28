@@ -1,89 +1,68 @@
 Installing Graphite
 ===================
 
-
 Dependencies
 ------------
-Since Graphite renders graphs using Cairo, it depends on several graphics-related
-libraries not typically found on a server. If you're installing from source
+Graphite renders graphs using the Cairo graphics library. This adds dependencies on
+several graphics-related libraries not typically found on a server. If you're installing from source
 you can use the ``check-dependencies.py`` script to see if the dependencies have
 been met or not.
 
-In general, Graphite requires:
+Basic Graphite requirements:
 
 * Python 2.4 or greater (2.6+ recommended)
-* `Pycairo <http://www.cairographics.org/pycairo/>`_
-* `Django <http://www.djangoproject.com/>`_ 1.0 or greater
-* `django-tagging <http://code.google.com/p/django-tagging/>`_ 0.3.1
-* A json module, if you're using Python2.6 this comes standard. With 2.4 you should
-  install `simplejson <http://pypi.python.org/pypi/simplejson/>`_
-* A Django-supported database module (sqlite comes standard with Python 2.6)
-* `Twisted <http://twistedmatrix.com/>`_ 8.0 or greater (10.0+ recommended)
+* `Pycairo`_
+* `Django`_ 1.0 or greater
+* `django-tagging`_ 0.3.1 or greater
+* `Twisted`_ 8.0 or greater (10.0+ recommended)
+* `zope-interface`_ (often included in Twisted package dependency)
+* `fontconfig`_ and at least one font package (a system package usually)
+* A WSGI server and web server. Popular choices are:
+- `Apache`_ with `mod_wsgi` and `mod_python`
+- `gunicorn`_ with `nginx`
+- `uWSGI`_ with `nginx`
 
+Python 2.4 and 2.5 have extra requirements:
 
-Also both the Graphite webapp and Carbon require the whisper database library.
+* `simplejson`_
+* `python-sqlite2` or another Django-supported database module
 
-There are also several optional dependencies, some of which are necessary for
-high performance.
+Additionally, the Graphite webapp and Carbon require the whisper database library which
+is part of the Graphite project.
 
-* Apache with mod_wsgi or mod_python (mod_wsgi preferred)
-* memcached and `python-memcache <http://www.tummy.com/Community/software/python-memcached/>`_
-* `python-ldap <http://www.python-ldap.org/>`_ (for LDAP authentication support in the webapp)
-* `txamqp <https://launchpad.net/txamqp>`_ (for AMQP support in Carbon)
+There are also several other dependencies required for additional features:
 
-.. seealso:: On some systems it is necessary to install some fonts, if you get the
-             webapp running and only see broken images instead of graphs, this is probably why.
+* Render caching: `memcached_` and `python-memcache`_
+* LDAP authentication: `python-ldap`_ (for LDAP authentication support in the webapp)
+* AMQP support: `txamqp`_
+* RRD support: `python-rrdtool`_
+
+.. seealso:: On some systems it is necessary to install fonts for Cairo to use. If the
+             webapp is running but all graphs return as broken images, this may be why.
 
              * https://answers.launchpad.net/graphite/+question/38833
              * https://answers.launchpad.net/graphite/+question/133390
              * https://answers.launchpad.net/graphite/+question/127623
 
-Tips For Fulfilling Dependencies
---------------------------------
-Usually the hardest dependency to fulfill is Pycairo because it requires Cairo,
-which in turn requires fontconfig, etc... Often your distribution's package
-manager will be able to install cairo and all of its dependencies for you, but
-in order to build Pycairo (which is often *not* covered by the package manager)
-you'll need the *cairo-devel* package so C headers are available.
-
-
-Binary Packages
----------------
-We are currently working on getting RPMs and DEB packages ready for Graphite.
-As of this writing, Whisper is available in Ubuntu. To install it you can simply::
-
-  apt-get install python-whisper
-
-The Graphite webapp and Carbon do not yet have binary packages available.
-
+Fulfilling Dependencies
+-----------------------
+Most current Linux distributions have all of the requirements available in the base packages.
+RHEL based distributions may require the `EPEL`_ repository for requirements. 
+Python module dependencies can be install with `pip`_ rather than system packages if desired or if using
+a Python version that differs from the system default. Some modules (such as cairo) may require
+library development headers to be available.
 
 Installing From Source
 ----------------------
-You can download the latest source tarballs for grahite, carbon, and whisper
-from the Graphite project page, https://launchpad.net/graphite
+You can download the latest source tarballs for Graphite-web, Carbon, and Whisper
+from the Graphite project page, https://launchpad.net/graphite or clone the latest version using
+Bazaar: ``bzr branch lp:graphite``
 
-To install, simply extract the tarball and install like any other python package.
+To install, simply extract the source and run ``python setup.py install`` as root in the project
+directories for Whisper, Carbon, and Graphite-web (the root of the repository in the case of a
+source tree checkout).
 
-.. code-block:: bash
-
-  # First we install whisper, as both Carbon and Graphite require it
-  tar zxf whisper-0.9.8.tgz
-  cd whisper-0.9.8/
-  sudo python2.6 setup.py install
-  cd ..
-  # Now we install carbon
-  tar zxf carbon-0.9.8.tgz
-  cd carbon-0.9.8/
-  sudo python2.6 setup.py install
-  cd ..
-  # Finally, the graphite webapp
-  tar zxf graphite-web-0.9.8.tgz
-  cd graphite-web-0.9.8/
-  ./check-dependencies.py
-  # once all dependencies are met...
-  sudo python2.6 setup.py install
-
-This will install whisper as a site-package, while Carbon and Graphite will be
+This will install Whisper as a site-package, while Carbon and Graphite will be
 installed in ``/opt/graphite/``.
 
 
@@ -91,6 +70,7 @@ Help! It didn't work!
 ---------------------
 If you run into any issues with Graphite, feel free to post a question to our
 `Questions forum on Launchpad <https://answers.launchpad.net/graphite>`_
+or join us on IRC in #graphite on FreeNode
 
 
 Post-Install Tasks
@@ -119,3 +99,25 @@ Post-Install Tasks
 
 That covers the basics, the next thing you should probably read about is
 :doc:`The URL API </url-api>`.
+
+.. _Apache: http://projects.apache.org/projects/http_server.html
+.. _Django: http://www.djangoproject.com/
+.. _django-tagging: http://code.google.com/p/django-tagging/
+.. _EPEL: http://fedoraproject.org/wiki/EPEL/
+.. _fontconfig: http://www.freedesktop.org/wiki/Software/fontconfig/
+.. _gunicorn: http://gunicorn.org/
+.. _memcached: http://memcached.org/
+.. _mod_python: http://www.modpython.org/
+.. _mod_wsgi: http://code.google.com/p/modwsgi/
+.. _nginx: http://nginx.org/
+.. _pip: http://www.pip-installer.org/
+.. _Pycairo: http://www.cairographics.org/pycairo/
+.. _python-ldap: http://www.python-ldap.org/
+.. _python-memcache: http://www.tummy.com/Community/software/python-memcached/
+.. _python-rrdtool: http://oss.oetiker.ch/rrdtool/prog/rrdpython.en.html
+.. _python-sqlite2: http://code.google.com/p/pysqlite/
+.. _simplejson: http://pypi.python.org/pypi/simplejson/
+.. _Twisted: http://twistedmatrix.com/
+.. _txAMQP: https://launchpad.net/txamqp/
+.. _uWSGI: http://projects.unbit.it/uwsgi/
+.. _zope.interface: http://pypi.python.org/pypi/zope.interface/

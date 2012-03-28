@@ -1,11 +1,5 @@
-
-5-minute Overview
+Overview
 =================
-
-testing... 1.0 docs
-
-What Graphite is and is not
----------------------------
 Graphite does two things:
 
 1. Store numeric time-series data
