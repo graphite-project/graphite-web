@@ -582,6 +582,7 @@ def __archive_update_many(fh,header,archive,points):
   previousInterval = None
   currentString = ""
   for (interval,value) in alignedPoints:
+    if interval == previousInterval: continue
     if (not previousInterval) or (interval == previousInterval + step):
       currentString += struct.pack(pointFormat,interval,value)
       previousInterval = interval
