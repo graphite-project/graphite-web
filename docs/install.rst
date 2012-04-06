@@ -18,21 +18,21 @@ Basic Graphite requirements:
 * `zope-interface`_ (often included in Twisted package dependency)
 * `fontconfig`_ and at least one font package (a system package usually)
 * A WSGI server and web server. Popular choices are:
-- `Apache`_ with `mod_wsgi` and `mod_python`
-- `gunicorn`_ with `nginx`
-- `uWSGI`_ with `nginx`
+- `Apache`_ with `mod_wsgi`_ and `mod_python`_
+- `gunicorn`_ with `nginx`_
+- `uWSGI`_ with `nginx`_
 
 Python 2.4 and 2.5 have extra requirements:
 
 * `simplejson`_
-* `python-sqlite2` or another Django-supported database module
+* `python-sqlite2`_ or another Django-supported database module
 
 Additionally, the Graphite webapp and Carbon require the whisper database library which
 is part of the Graphite project.
 
 There are also several other dependencies required for additional features:
 
-* Render caching: `memcached_` and `python-memcache`_
+* Render caching: `memcached`_ and `python-memcache`_
 * LDAP authentication: `python-ldap`_ (for LDAP authentication support in the webapp)
 * AMQP support: `txamqp`_
 * RRD support: `python-rrdtool`_
@@ -49,7 +49,7 @@ Fulfilling Dependencies
 Most current Linux distributions have all of the requirements available in the base packages.
 RHEL based distributions may require the `EPEL`_ repository for requirements. 
 Python module dependencies can be install with `pip`_ rather than system packages if desired or if using
-a Python version that differs from the system default. Some modules (such as cairo) may require
+a Python version that differs from the system default. Some modules (such as Cairo) may require
 library development headers to be available.
 
 Installing From Source
