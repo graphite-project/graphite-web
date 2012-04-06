@@ -15,6 +15,9 @@
 # Override this if you need to provide documentation specific to your graphite deployment
 #DOCUMENTATION_URL = "http://wiki.mycompany.com/graphite"
 
+# If using rrdcached, set to the address or socket of the daemon
+#FLUSHRRDCACHED = 'unix:/var/run/rrdcached.sock'
+
 # Enable email-related features
 # Default backend is SMTP
 #EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

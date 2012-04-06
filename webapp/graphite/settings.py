@@ -114,6 +114,8 @@ TEMPLATE_DIRS = (
   join(WEB_DIR, 'templates'),
 )
 
+FLUSHRRDCACHED = ''
+
 #Pull in overrides from local_settings.py
 try:
   from graphite.local_settings import *
