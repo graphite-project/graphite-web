@@ -13,7 +13,6 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 import csv
 from time import time, strftime, localtime
-from datetime import datetime, timedelta
 from random import shuffle
 from httplib import CannotSendRequest
 from urllib import urlencode
@@ -235,11 +234,11 @@ def parseOptions(request):
     if 'until' in queryParams:
       untilTime = parseATTime( queryParams['until'] )
     else:
-      untilTime = datetime.now()
+      untilTime = parseATTime('now')
     if 'from' in queryParams:
       fromTime = parseATTime( queryParams['from'] )
     else:
-      fromTime = untilTime - timedelta(days=1)
+      fromTime = parseATTime('-1d')
 
     startTime = min(fromTime, untilTime)
     endTime = max(fromTime, untilTime)
