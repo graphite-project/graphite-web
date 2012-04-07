@@ -4,9 +4,10 @@ from carbon.util import parseDestinations
 
 
 class RelayRule:
-  def __init__(self, condition, destinations):
+  def __init__(self, condition, destinations, continue_matching=False):
     self.condition = condition
     self.destinations = destinations
+    self.continue_matching = continue_matching
 
   def matches(self, metric):
     return bool( self.condition(metric) )
@@ -34,7 +35,11 @@ def loadRelayRules(path):
                         "'default'. You must use one or the other." % section)
       pattern = parser.get(section, 'pattern')
       regex = re.compile(pattern, re.I)
-      rule = RelayRule(condition=regex.search, destinations=destinations)
+
+      continue_matching = False
+      if parser.has_option(section, 'continue'):
+        continue_matching = parser.getboolean(section, 'continue')
+      rule = RelayRule(condition=regex.search, destinations=destinations, continue_matching=continue_matching)
       rules.append(rule)
       continue
 
@@ -42,7 +47,7 @@ def loadRelayRules(path):
       if not parser.getboolean(section, 'default'):
         continue # just ignore default = false
       if defaultRule:
-        raise Exception("Two default rules? Seriously?")
+        raise Exception("Only one default rule can be specified")
       defaultRule = RelayRule(condition=lambda metric: True,
                               destinations=destinations)
 

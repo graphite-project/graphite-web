@@ -36,6 +36,8 @@ class RelayRulesRouter(DatapointRouter):
         for destination in rule.destinations:
           if destination in self.destinations:
             yield destination
+        if not rule.continue_matching:
+          return
 
 
 class ConsistentHashingRouter(DatapointRouter):
