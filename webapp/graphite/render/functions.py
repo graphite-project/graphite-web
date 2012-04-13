@@ -2355,7 +2355,7 @@ SeriesFunctions = {
   'removeAbovePercentile' : removeAbovePercentile,
   'removeAboveValue' : removeAboveValue,
   'removeBelowPercentile' : removeAbovePercentile,
-  'removeBelowValue' : removeAboveValue,
+  'removeBelowValue' : removeBelowValue,
 
   # Special functions
   'legendValue' : legendValue,
