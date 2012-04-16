@@ -107,10 +107,10 @@ Grockets
 
 HoardD
 ------
-`HoardD`_ is a Node.js app written in coffee-script to send data from servers to Graphite, much
+`HoardD`_ is a Node.js app written in CoffeeScript to send data from servers to Graphite, much
 like collectd does, but aimed at being easier to expand and with less footprint. It comes by
 default with basic collectors plus Redis and MySQL metrics, and can be expanded with Javascript or
-coffee-script.
+CoffeeScript.
 
 
 Host sFlow
@@ -120,6 +120,12 @@ exporting a standard set of host cpu, memory, disk and network I/O metrics. The
 sflow2graphite utility converts sFlow to Graphite's plaintext
 protocol, allowing Graphite to receive sFlow metrics.
 
+
+hubot-scripts
+-------------
+`Hubot`_ is a Campfire bot written in Node.js and CoffeeScript. The related `hubot-scripts`_
+project includes a Graphite script which supports searching and displaying saved graphs from
+the Composer directory in your Campfire rooms.
 
 jmxtrans
 --------
@@ -199,3 +205,5 @@ A list of forks and alternative implementations can be found at <http://joemille
 .. _Host sFlow: http://host-sflow.sourceforge.net/
 .. _Graphitoid: https://market.android.com/details?id=com.tnc.android.graphite
 .. _HoardD: https://github.com/coredump/hoardd
+.. _Hubot: https://github.com/github/hubot
+.. _hubot-scripts: https://github.com/github/hubot-scripts
