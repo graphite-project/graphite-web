@@ -105,6 +105,9 @@ except NameError:
 ## REMOTE_USER authentication. See: https://docs.djangoproject.com/en/dev/howto/auth-remote-user/
 #USE_REMOTE_USER_AUTHENTICATION = True
 
+# Override the URL for the login link (e.g. for django_openid_auth)
+#LOGIN_URL = '/account/login'
+
 
 ##########################
 # Database Configuration #

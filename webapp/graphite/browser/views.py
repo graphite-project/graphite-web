@@ -33,6 +33,7 @@ def header(request):
   context['user'] = request.user
   context['profile'] = getProfile(request)
   context['documentation_url'] = settings.DOCUMENTATION_URL
+  context['login_url'] = settings.LOGIN_URL
   return render_to_response("browserHeader.html", context)
 
 

@@ -85,6 +85,9 @@ LDAP_URI = None
 #Set this to True to delegate authentication to the web server
 USE_REMOTE_USER_AUTHENTICATION = False
 
+# Override to link a different URL for login (e.g. for django_openid_auth)
+LOGIN_URL = '/account/login'
+
 #Additional authentication backends to prepend
 ADDITIONAL_AUTHENTICATION_BACKENDS = []
 

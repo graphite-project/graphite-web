@@ -84,7 +84,7 @@ img.toolbar:active {
    Logged in as {{ user.username }}, <a href="/account/logout/" target="_top">logout</a> &nbsp;
    (<a href="/account/edit/" target="_top">edit profile</a>)
   {% else %}
-   <a href="/account/login/" target="_top">Login</a>
+   <a href="{{login_url}}" target="_top">Login</a>
   {% endif %}
  </td></tr>
 
