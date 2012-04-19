@@ -14,6 +14,7 @@ limitations under the License."""
 # Django settings for graphite project.
 # DO NOT MODIFY THIS FILE DIRECTLY - use local_settings.py instead
 import sys, os
+from django import VERSION as DJANGO_VERSION
 from os.path import join, dirname, abspath
 
 WEBAPP_VERSION = '0.9.9'
@@ -91,7 +92,7 @@ LOGIN_URL = '/account/login'
 #Additional authentication backends to prepend
 ADDITIONAL_AUTHENTICATION_BACKENDS = []
 
-#Database settings, sqlite is intended for single-server setups
+#Initialize database settings - Old style (pre 1.2)
 DATABASE_ENGINE = 'django.db.backends.sqlite3'	# 'postgresql', 'mysql', 'sqlite3' or 'ado_mssql'.
 DATABASE_NAME = ''				# Or path to database file if using sqlite3.
 DATABASE_USER = ''				# Not used with sqlite3.
@@ -138,10 +139,17 @@ ADMIN_MEDIA_PREFIX = '/media/'
 SECRET_KEY = ''
 
 # List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = (
-  'django.template.loaders.filesystem.load_template_source',
-  'django.template.loaders.app_directories.load_template_source',
-)
+#XXX Compatibility for Django 1.1. To be removed after 0.9.10
+if DJANGO_VERSION < (1,2):
+  TEMPLATE_LOADERS = (
+    'django.template.loaders.filesystem.load_template_source',
+    'django.template.loaders.app_directories.load_template_source',
+  )
+else:
+  TEMPLATE_LOADERS = (
+    'django.template.loaders.filesystem.Loader',
+    'django.template.loaders.app_directories.Loader',
+  )
 
 MIDDLEWARE_CLASSES = (
   'django.middleware.common.CommonMiddleware',
@@ -213,6 +221,7 @@ if not DATA_DIRS:
     DATA_DIRS = [WHISPER_DIR]
 
 # Default sqlite db file
+# This is set here so that a user-set STORAGE_DIR is available
 if 'sqlite3' in DATABASE_ENGINE \
     and not DATABASE_NAME:
   DATABASE_NAME = join(STORAGE_DIR, 'graphite.db')

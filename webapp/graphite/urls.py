@@ -12,20 +12,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
-from django import VERSION
 from django.conf.urls.defaults import *
 from django.conf import settings
 from django.contrib import admin
 
 admin.autodiscover()
 
-if VERSION[:2] == (1, 0):
-  admin_urls = admin.site.root
-else:
-  admin_urls = include(admin.site.urls)
-
 urlpatterns = patterns('',
-  ('^admin/', admin_urls),
+  ('^admin/', include(admin.site.urls)),
   ('^render/?', include('graphite.render.urls')),
   ('^cli/?', include('graphite.cli.urls')),
   ('^composer/?', include('graphite.composer.urls')),
