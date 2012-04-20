@@ -55,6 +55,7 @@ except NameError:
 #GRAPHTEMPLATES_CONF = '/opt/graphite/conf/graphTemplates.conf'
 
 ## Data directories
+# NOTE: If any directory is unreadable in DATA_DIRS it will break metric browsing
 #WHISPER_DIR = '/opt/graphite/storage/whisper'
 #RRD_DIR = '/opt/graphite/storage/rrd'
 #DATA_DIRS = [WHISPER_DIR, RRD_DIR] # Default: set from the above variables

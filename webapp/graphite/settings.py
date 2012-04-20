@@ -17,6 +17,11 @@ import sys, os
 from django import VERSION as DJANGO_VERSION
 from os.path import join, dirname, abspath
 
+try:
+  import rrdtool
+except ImportError:
+  rrdtool = False
+
 WEBAPP_VERSION = '0.9.9'
 DEBUG = False
 JAVASCRIPT_DEBUG = False
@@ -214,10 +219,9 @@ if not WHISPER_DIR:
 if not RRD_DIR:
   RRD_DIR = join(STORAGE_DIR, 'rrd/')
 if not DATA_DIRS:
-  try:
-    import rrdtool
+  if rrdtool and os.path.exists(RRD_DIR):
     DATA_DIRS = [WHISPER_DIR, RRD_DIR]
-  except:
+  else:
     DATA_DIRS = [WHISPER_DIR]
 
 # Default sqlite db file

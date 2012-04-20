@@ -131,7 +131,11 @@ def find_view(request):
           query_parts[i] = '{%s}' % part
       query = '.'.join(query_parts)
 
-  matches = list( store.find(query) )
+  try:
+    matches = list( store.find(query) )
+  except:
+    log.exception()
+    raise
 
   log.info('find_view query=%s local_only=%s matches=%d' % (query, local_only, len(matches)))
   matches.sort(key=lambda node: node.name)
