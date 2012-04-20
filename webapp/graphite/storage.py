@@ -244,13 +244,15 @@ def match_entries(entries, pattern):
 # Node classes
 class Node:
   context = {}
-  intervals = []
 
   def __init__(self, fs_path, metric_path):
     self.fs_path = str(fs_path)
     self.metric_path = str(metric_path)
     self.real_metric = str(metric_path)
     self.name = self.metric_path.split('.')[-1]
+
+  def getIntervals(self):
+    return []
 
   def updateContext(self, newContext):
     raise NotImplementedError()
@@ -281,15 +283,16 @@ class WhisperFile(Leaf):
     Leaf.__init__(self, *args, **kwargs)
     real_fs_path = realpath(self.fs_path)
 
-    start = time.time() - whisper.info(self.fs_path)['maxRetention']
-    end = max( os.stat(self.fs_path).st_mtime, start )
-    self.intervals = [ (start, end) ]
-
     if real_fs_path != self.fs_path:
       relative_fs_path = self.metric_path.replace('.', '/') + self.extension
       base_fs_path = realpath(self.fs_path[ :-len(relative_fs_path) ])
       relative_real_fs_path = real_fs_path[ len(base_fs_path)+1: ]
       self.real_metric = relative_real_fs_path[ :-len(self.extension) ].replace('/', '.')
+
+  def getIntervals(self):
+    start = time.time() - whisper.info(self.fs_path)['maxRetention']
+    end = max( os.stat(self.fs_path).st_mtime, start )
+    return [ (start, end) ]
 
   def fetch(self, startTime, endTime):
     (timeInfo,values) = whisper.fetch(self.fs_path, startTime, endTime)
@@ -334,6 +337,18 @@ class GzippedWhisperFile(WhisperFile):
     finally:
       fh.close()
 
+  def getIntervals(self):
+    if not gzip:
+      return []
+
+    fh = gzip.GzipFile(self.fs_path, 'rb')
+    try:
+      start = time.time() - whisper.__readHeader(fh)['maxRetention']
+      end = max( os.stat(self.fs_path).st_mtime, start )
+    finally:
+      fh.close()
+    return [ (start, end) ]
+
 
 class RRDFile(Branch):
   def getDataSources(self):
@@ -345,14 +360,36 @@ class RRDFile(Branch):
       datasources = set( key[3:].split(']')[0] for key in ds_keys )
       return [ RRDDataSource(self, ds) for ds in datasources ]
 
+  def getRetention(self):
+    info = rrdtool.info(self.fs_path)
+    if 'rra' in info:
+      rras = info['rra']
+    else:
+      # Ugh, I like the old python-rrdtool api better..
+      rra_keys = max([ int(key[4]) for key in info if key.startswith('rra[') ]) + 1
+      rras = [{}] * rra_count
+      for i in range(rra_count):
+        rras[i]['pdp_per_row'] = info['rra[%d].pdp_per_row' % i]
+        rras[i]['rows'] = info['rra[%d].rows' % i]
+
+    retention_points = 0
+    for rra in rras:
+      points = rra['pdp_per_row'] * rra['rows']
+      if points > retention_points:
+        retention_points = points
+
+    return  retention_points * info['step']
+
 
 class RRDDataSource(Leaf):
   def __init__(self, rrd_file, name):
+    Leaf.__init__(self, rrd_file.fs_path, rrd_file.metric_path + '.' + name)
     self.rrd_file = rrd_file
-    self.name = name
-    self.fs_path = rrd_file.fs_path
-    self.metric_path = rrd_file.metric_path + '.' + name
-    self.real_metric = self.metric_path
+
+  def getIntervals(self):
+    start = time.time() - self.rrd_file.getRetention()
+    end = max( os.stat(self.rrd_file.fs_path).st_mtime, start )
+    return [ (start, end) ]
 
   def fetch(self, startTime, endTime):
     startString = time.strftime("%H:%M_%Y%m%d+%Ss", time.localtime(startTime))

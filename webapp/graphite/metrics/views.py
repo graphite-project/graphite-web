@@ -311,10 +311,10 @@ def tree_json(nodes, base_path, wildcards=False, contexts=False):
 
 def pickle_nodes(nodes, contexts=False):
   if contexts:
-    return pickle.dumps([ { 'metric_path' : n.metric_path, 'isLeaf' : n.isLeaf(), 'intervals' : n.intervals, 'context' : n.context } for n in nodes ])
+    return pickle.dumps([ { 'metric_path' : n.metric_path, 'isLeaf' : n.isLeaf(), 'intervals' : n.getIntervals(), 'context' : n.context } for n in nodes ])
 
   else:
-    return pickle.dumps([ { 'metric_path' : n.metric_path, 'isLeaf' : n.isLeaf(), 'intervals' : n.intervals} for n in nodes ])
+    return pickle.dumps([ { 'metric_path' : n.metric_path, 'isLeaf' : n.isLeaf(), 'intervals' : n.getIntervals()} for n in nodes ])
 
 
 def any(iterable): #python2.4 compatibility
