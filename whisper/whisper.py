@@ -191,7 +191,7 @@ def __readHeader(fh):
     try:
       (offset,secondsPerPoint,points) = struct.unpack(archiveInfoFormat,packedArchiveInfo)
     except:
-      raise CorruptWhisperFile("Unable to read archive %d metadata" % i, fh.name)
+      raise CorruptWhisperFile("Unable to read archive%d metadata" % i, fh.name)
 
     archiveInfo = {
       'offset' : offset,
@@ -256,45 +256,53 @@ aggregationMethod specifies the method to use when propogating data (see ``whisp
 def validateArchiveList(archiveList):
   """ Validates an archiveList.
   An ArchiveList must:
-  1. Have at least one archive config. Example: (60, 86400) 
-  2. No archive may be a duplicate of another. 
+  1. Have at least one archive config. Example: (60, 86400)
+  2. No archive may be a duplicate of another.
   3. Higher precision archives' precision must evenly divide all lower precision archives' precision.
   4. Lower precision archives must cover larger time intervals than higher precision archives.
+  5. Each archive must have at least enough points to consolidate to the next archive
 
   Returns True or False
   """
 
-  try:
-    if not archiveList:
-      raise InvalidConfiguration("You must specify at least one archive configuration!")
+  if not archiveList:
+    raise InvalidConfiguration("You must specify at least one archive configuration!")
 
-    archiveList.sort(key=lambda a: a[0]) #sort by precision (secondsPerPoint)
+  archiveList.sort(key=lambda a: a[0]) #sort by precision (secondsPerPoint)
 
-    for i,archive in enumerate(archiveList):
-      if i == len(archiveList) - 1:
-        break
+  for i,archive in enumerate(archiveList):
+    if i == len(archiveList) - 1:
+      break
 
-      next = archiveList[i+1]
-      if not (archive[0] < next[0]):
-        raise InvalidConfiguration("You cannot configure two archives "
-          "with the same precision %s,%s" % (archive,next))
+    nextArchive = archiveList[i+1]
+    if not archive[0] < nextArchive[0]:
+      raise InvalidConfiguration("A Whisper database may not configured having"
+        "two archives with the same precision (archive%d: %s, archive%d: %s)" %
+        (i, archive, i + 1, nextArchive))
 
-      if (next[0] % archive[0]) != 0:
-        raise InvalidConfiguration("Higher precision archives' precision "
-          "must evenly divide all lower precision archives' precision %s,%s" \
-          % (archive[0],next[0]))
+    if nextArchive[0] % archive[0] != 0:
+      raise InvalidConfiguration("Higher precision archives' precision "
+        "must evenly divide all lower precision archives' precision "
+        "(archive%d: %s, archive%d: %s)" %
+        (i, archive[0], i + 1, nextArchive[0]))
 
-      retention = archive[0] * archive[1]
-      nextRetention = next[0] * next[1]
+    retention = archive[0] * archive[1]
+    nextRetention = nextArchive[0] * nextArchive[1]
 
-      if not (nextRetention > retention):
-        raise InvalidConfiguration("Lower precision archives must cover "
-          "larger time intervals than higher precision archives %s,%s" \
-          % (archive,next))
-  
-  except:
-    return False
-  return True
+    if not nextRetention > retention:
+      raise InvalidConfiguration("Lower precision archives must cover "
+        "larger time intervals than higher precision archives "
+        "(archive%d: %s seconds, archive%d: %s seconds)" %
+        (i, archive[1], i + 1, nextArchive[1]))
+
+    archivePoints = archive[1]
+    pointsPerConsolidation = nextArchive[0] / archive[0]
+    if not archivePoints >= pointsPerConsolidation:
+      raise InvalidConfiguration("Each archive must have at least enough points "
+        "to consolidate to the next archive (archive%d consolidates %d of "
+        "archive%d's points but it has only %d total points)" %
+        (i + 1, pointsPerConsolidation, i, archivePoints))
+
 
 def create(path,archiveList,xFilesFactor=None,aggregationMethod=None,sparse=False):
   """create(path,archiveList,xFilesFactor=0.5,aggregationMethod='average')
@@ -311,9 +319,7 @@ aggregationMethod specifies the function to use when propogating data (see ``whi
     aggregationMethod = 'average'
 
   #Validate archive configurations...
-  validArchive = validateArchiveList(archiveList)
-  if not validArchive:
-    raise InvalidConfiguration("There was a problem creating %s due to an invalid schema config." % path) 
+  validateArchiveList(archiveList)
 
   #Looks good, now we create the file and write the header
   if os.path.exists(path):

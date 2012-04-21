@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 """Copyright 2009 Chris Davis
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,56 +14,57 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 import sys
-from os.path import dirname, join, abspath, realpath
-import traceback
-
-BIN_DIR = dirname(abspath(__file__))
-ROOT_DIR = realpath( dirname(BIN_DIR) )
-LIB_DIR = join(ROOT_DIR, 'lib')
-sys.path.insert(0, LIB_DIR)
-
-import carbon
-from carbon.conf import settings
-settings['CONF_DIR'] = realpath(join(dirname(__file__), '..', 'conf'))
-from carbon.storage import loadStorageSchemas
+import whisper
+from os.path import dirname, exists, join, realpath
 from ConfigParser import ConfigParser
 
-config_parser = ConfigParser()
-if not config_parser.read(join(settings['CONF_DIR'], 'storage-schemas.conf')):
-  print "Error: Couldn't read config file: %s" % str(join(settings['CONF_DIR'], 'storage-schemas.conf'))
-  sys.exit(1)
-
-sections = []
-sections = config_parser.sections()
-
-validSchemas = []
-try:
-  validSchemas = carbon.storage.loadStorageSchemas()
-except:
-  traceback.print_exc()
-  print 
-  print "There is a severe syntax error in the config file."
-  print "Please review the documentation or the example config file provided."
-  print
-  print
-
-  sys.exit(1)
-
-validSections = []
-validSections = [ i.name for i in validSchemas ] 
-validSections = validSections[:-1] 
-
-invalidSections = []
-invalidSections = set(sections) - set(validSections) 
-
-print
-if invalidSections:
- print "Errors found in the following sections of storage-schemas.conf:"
- print
- for i in invalidSections:
-   print i
+if len(sys.argv) == 2:
+  SCHEMAS_FILE = sys.argv[1]
+  print "Loading storage-schemas configuration from: '%s'" % SCHEMAS_FILE
 else:
-  print "No problems found." 
+  SCHEMAS_FILE = realpath(join(dirname(__file__), '..', 'conf', 'storage-schemas.conf'))
+  print "Loading storage-schemas configuration from default location at: '%s'" % SCHEMAS_FILE
+
+config_parser = ConfigParser()
+if not config_parser.read(SCHEMAS_FILE):
+  print "Error: Couldn't read config file: %s" % SCHEMAS_FILE
+  sys.exit(1)
+
+errors_found = 0
+
+for section in config_parser.sections():
+  print "Section '%s':" % section
+  options = dict(config_parser.items(section))
+  retentions = options['retentions'].split(',')
+
+  archives = []
+  section_failed = False
+  for retention in retentions:
+    try:
+      archives.append(whisper.parseRetentionDef(retention))
+    except ValueError, e:
+      print "  - Error: Section '%s' contains an invalid item in its retention definition ('%s')" % \
+        (section, retention)
+      print "    %s" % e.message
+      section_failed = True
+
+  if not section_failed:
+    try:
+      whisper.validateArchiveList(archives)
+    except whisper.InvalidConfiguration, e:
+      print "  - Error: Section '%s' contains an invalid retention definition ('%s')" % \
+        (section, ','.join(retentions))
+      print "    %s" % e.message
+
+  if section_failed:
+    errors_found += 1
+  else:
+    print "  OK"
+
+if errors_found:
+  print
+  print "Storage-schemas configuration '%s' failed validation" % SCHEMAS_FILE
+  sys.exit(1)
 
 print
-print
+print "Storage-schemas configuration '%s' is valid" % SCHEMAS_FILE
