@@ -253,7 +253,7 @@ def json_response(nodes, request=None):
   #json = str(nodes) #poor man's json encoder for simple types
   json_data = json.dumps(nodes)
   if jsonp:
-    response = HttpResponse("%s(%s)" % (jsonp, json_data),mimetype="test/javascript")
+    response = HttpResponse("%s(%s)" % (jsonp, json_data),mimetype="text/javascript")
   else:
     response = HttpResponse(json_data,mimetype="application/json")
   response['Pragma'] = 'no-cache'

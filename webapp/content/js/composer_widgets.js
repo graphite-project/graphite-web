@@ -946,6 +946,7 @@ function createFunctionsMenu() {
       text: 'Special',
       menu: [
         {text: 'Set Legend Name', handler: applyFuncToEachWithInput('alias', 'Enter a legend label for this graph target', {quote: true})},
+        {text: 'Set Legend Name By Metric', handler: applyFuncToEach('aliasByMetric')},
         {text: 'Add Value to Legend Name',
 	      	 menu: [
         		{text: "Last Value", handler: applyFuncToEach('legendValue', '"last"')},

@@ -841,6 +841,19 @@ def aliasByNode(requestContext, seriesList, *nodes):
     series.name = '.'.join(metric_pieces[n] for n in nodes)
   return seriesList
 
+def aliasByMetric(requestContext, seriesList):
+  """
+  Takes a seriesList and applies an alias derived from the base metric name.
+
+  .. code-block:: none
+
+    &target=aliasByMetric(carbon.agents.graphite.creates)
+
+  """
+  for series in seriesList:
+    series.name = series.name.split('.')[-1]
+  return seriesList
+
 def legendValue(requestContext, seriesList, *valueTypes):
   """
   Takes one metric or a wildcard seriesList and a string in quotes.
@@ -2388,6 +2401,7 @@ SeriesFunctions = {
   'alias' : alias,
   'aliasSub' : aliasSub,
   'aliasByNode' : aliasByNode,
+  'aliasByMetric' : aliasByMetric,
   'cactiStyle' : cactiStyle,
   'color' : color,
   'alpha' : alpha,
