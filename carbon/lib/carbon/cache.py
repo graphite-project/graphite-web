@@ -25,7 +25,6 @@ class MetricCache(dict):
     raise TypeError("Use store() method instead!")
 
   def store(self, metric, datapoint):
-    metric = '.'.join(part for part in metric.split('.') if part) # normalize the path
     try:
       self.lock.acquire()
       self.setdefault(metric, []).append(datapoint)
