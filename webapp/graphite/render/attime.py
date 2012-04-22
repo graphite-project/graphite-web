@@ -33,7 +33,7 @@ def parseATTime(s):
     if len(s) == 8 and int(s[:4]) > 1900 and int(s[4:6]) < 13 and int(s[6:]) < 32:
       pass #Fall back because its not a timestamp, its YYYYMMDD form
     else:
-      return datetime.fromtimestamp( int(s) )
+      return datetime.fromtimestamp(int(s),tzinfo)
   if '+' in s:
     ref,offset = s.split('+',1)
     offset = '+' + offset
