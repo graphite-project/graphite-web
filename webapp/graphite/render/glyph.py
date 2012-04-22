@@ -1583,7 +1583,7 @@ def sort_stacked(series_list):
   not_stacked = [s for s in series_list if 'stacked' not in s.options]
   return stacked + not_stacked
 
-def format_units(v, step, system="si"):
+def format_units(v, step=None, system="si"):
   """Format the given value in standardized units.
 
   ``system`` is either 'binary' or 'si'
@@ -1593,8 +1593,13 @@ def format_units(v, step, system="si"):
     http://en.wikipedia.org/wiki/Binary_prefix
   """
 
+  if step is None:
+    condition = lambda size: abs(v) >= size
+  else:
+    condition = lambda size: abs(v) >= size and step >= size
+
   for prefix, size in UnitSystems[system]:
-    if abs(v) >= size and step >= size:
+    if condition(size):
       v2 = v / size
       if (v2 - math.floor(v2)) < 0.00000000001 and v > 1:
         v2 = math.floor(v2)

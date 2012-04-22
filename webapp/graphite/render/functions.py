@@ -25,6 +25,7 @@ from graphite.render.datalib import fetchData, TimeSeries, timestamp
 from graphite.render.attime import parseTimeOffset
 
 from graphite.events import models
+from graphite.render.glyph import format_units
 
 NAN = float('NaN')
 INF = float('inf')
@@ -698,23 +699,27 @@ def nonNegativeDerivative(requestContext, seriesList, maxValue=None):
 
   return results
 
-def stacked(requestContext,seriesLists):
+def stacked(requestContext,seriesLists,stackName='__DEFAULT__'):
   """
   Takes one metric or a wildcard seriesList and change them so they are
   stacked. This is a way of stacking just a couple of metrics without having
   to use the stacked area mode (that stacks everything). By means of this a mixed
   stacked and non stacked graph can be made
 
+  It can also take an optional argument with a name of the stack, in case there is
+  more than one, e.g. for input and output metrics.
+
   Example:
 
   .. code-block:: none
 
-    &target=stacked(company.server.application01.ifconfig.TXPackets)
+    &target=stacked(company.server.application01.ifconfig.TXPackets, 'tx')
 
   """
   if 'totalStack' in requestContext:
-    totalStack = requestContext['totalStack']
+    totalStack = requestContext['totalStack'].get(stackName, [])
   else:
+    requestContext['totalStack'] = {}
     totalStack = [];
   results = []
   for series in seriesLists:
@@ -728,12 +733,17 @@ def stacked(requestContext,seriesLists):
       else:
         newValues.append(None)
 
-    newName = "stacked(%s)" % series.name
+    # Work-around for the case when legend is set
+    if stackName=='__DEFAULT__':
+      newName = "stacked(%s)" % series.name
+    else:
+      newName = series.name
+
     newSeries = TimeSeries(newName, series.start, series.end, series.step, newValues)
     newSeries.options['stacked'] = True
     newSeries.pathExpression = newName
     results.append(newSeries)
-  requestContext['totalStack'] = totalStack
+  requestContext['totalStack'][stackName] = totalStack
   return results
 
 
@@ -831,33 +841,49 @@ def aliasByNode(requestContext, seriesList, *nodes):
     series.name = '.'.join(metric_pieces[n] for n in nodes)
   return seriesList
 
-def legendValue(requestContext, seriesList, valueType):
+def legendValue(requestContext, seriesList, *valueTypes):
   """
   Takes one metric or a wildcard seriesList and a string in quotes.
-  Appends a value to the metric name in the legend.  Currently one of: last, avg,
-  total, min, max.
+  Appends a value to the metric name in the legend.  Currently one or several of: `last`, `avg`,
+  `total`, `min`, `max`.
+  The last argument can be `si` (default) or `binary`, in that case values will be formatted in the
+  corresponding system.
 
   .. code-block:: none
 
-  &target=legendValue(Sales.widgets.largeBlue, 'avg')
+  &target=legendValue(Sales.widgets.largeBlue, 'avg', 'max', 'si')
 
   """
-  for series in seriesList:
-    if valueType == 'avg':
-      legendValue = "avg: %s" % safeDiv(safeSum(series),safeLen(series))
-    elif valueType == 'total':
-      legendValue = "total: %s" % safeSum(series)
-    elif valueType == 'min':
-      legendValue = "min: %s" % safeMin(series)
-    elif valueType == 'max':
-      legendValue = 'max: %s' % safeMax(series)
-    elif valueType == 'last':
-      legendValue = series[-1]
+  def last(s):
+    "Work-around for the missing last point"
+    v = s[-1]
+    if v is None:
+      return s[-2]
+    return v
+
+  valueFuncs = {
+    'avg':   lambda s: safeDiv(safeSum(s), safeLen(s)),
+    'total': safeSum,
+    'min':   safeMin,
+    'max':   safeMax,
+    'last':  last
+  }
+  system = None
+  if valueTypes[-1] in ('si', 'binary'):
+    system = valueTypes[-1]
+    valueTypes = valueTypes[:-1]
+  for valueType in valueTypes:
+    valueFunc = valueFuncs.get(valueType, lambda s: '(?)')
+    if system is None:
+      for series in seriesList:
+        series.name += " (%s: %s)" % (valueType, valueFunc(series))
     else:
-      legendValue = '?'
-
-    series.name += "(%s)" % legendValue
-
+      for series in seriesList:
+        value = valueFunc(series)
+        formatted = None
+        if value is not None:
+          formatted = "%.2f%s" % format_units(abs(value), system=system)
+        series.name = "%-20s%-5s%-10s" % (series.name, valueType, formatted)
   return seriesList
 
 def alpha(requestContext, seriesList, alpha):
