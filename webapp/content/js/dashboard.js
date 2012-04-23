@@ -1293,6 +1293,7 @@ function selectGraphSize() {
     layout: 'form',
     labelAlign: 'right',
     labelWidth: 80,
+    modal: true,
     items: [presetCombo, widthField, heightField],
     buttonAlign: 'center',
     buttons: [
@@ -1833,6 +1834,7 @@ function removeAllGraphs() {
       title: "Remove All Graphs",
       width: 200,
       height: 120,
+      modal: true,
       layout: 'vbox',
       layoutConfig: { align: 'center' },
       items: [

@@ -77,7 +77,7 @@ def dump_archives(archives):
     offset = archive['offset']
     for point in xrange(archive['points']):
       (timestamp, value) = struct.unpack(whisper.pointFormat, map[offset:offset+whisper.pointSize])
-      print '%d: %d, %g' % (point, timestamp, value)
+      print '%d: %d, %10.35g' % (point, timestamp, value)
       offset += whisper.pointSize
     print
 
