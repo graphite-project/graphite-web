@@ -1770,24 +1770,32 @@ def dashed(requestContext, *seriesList):
 
 def timeShift(requestContext, seriesList, timeShift):
   """
-  Takes one metric or a wildcard seriesList, followed by a length of time,
-  surrounded by double quotes. (See the URL API for examples of time formats.)
+  Takes one metric or a wildcard seriesList, followed by a quoted string with the
+  length of time (See `from / until`_. in the `URL API`_ for examples of time formats).
 
-  Draw the selected metrics shifted back in time.
+  Draws the selected metrics shifted in time. If no sign is given, a minus sign ( - ) is
+  implied which will shift the metric back in time. If a plus sign ( + ) is given, the
+  metric will be shifted forward in time.
 
-  Useful for comparing a metric against itself.
+  Useful for comparing a metric against itself at a past periods or correcting data
+  stored at an offset.
 
   Example:
 
   .. code-block:: none
 
     &target=timeShift(Sales.widgets.largeBlue,"7d")
+    &target=timeShift(Sales.widgets.largeBlue,"-7d")
+    &target=timeShift(Sales.widgets.largeBlue,"+1h")
 
   """
-  delta = abs( parseTimeOffset(timeShift) )
+  # Default to negative. parseTimeOffset defaults to +
+  if timeShift[0].isdigit():
+    timeShift = '-' + timeShift
+  delta = parseTimeOffset(timeShift)
   myContext = requestContext.copy()
-  myContext['startTime'] = requestContext['startTime'] - delta
-  myContext['endTime'] = requestContext['endTime'] - delta
+  myContext['startTime'] = requestContext['startTime'] + delta
+  myContext['endTime'] = requestContext['endTime'] + delta
   series = seriesList[0] # if len(seriesList) > 1, they will all have the same pathExpression, which is all we care about.
   results = []
 
