@@ -13,19 +13,25 @@ class RuleManager:
     self.read_task = LoopingCall(self.read_rules)
     self.rules_last_read = 0.0
 
+  def clear(self):
+    self.rules = []
+
   def read_from(self, rules_file):
     self.rules_file = rules_file
     self.read_rules()
     self.read_task.start(10, now=False)
 
   def read_rules(self):
+    if not exists(self.rules_file):
+      self.clear()
+      return
+
     # Only read if the rules file has been modified
     try:
       mtime = getmtime(self.rules_file)
     except:
       log.err("Failed to get mtime of %s" % self.rules_file)
       return
-
     if mtime <= self.rules_last_read:
       return
 

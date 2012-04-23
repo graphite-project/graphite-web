@@ -1,17 +1,45 @@
+import time
 import re
+from os.path import exists, getmtime
+from twisted.internet.task import LoopingCall
+from carbon import log
 
 
 class RewriteRuleManager:
   def __init__(self):
     self.preRules = []
     self.postRules = []
+    self.read_task = LoopingCall(self.read_rules)
+    self.rules_last_read = 0.0
 
-  def read_from(self, path):
+  def clear(self):
+    self.preRules = []
+    self.postRules = []
+
+  def read_from(self, rules_file):
+    self.rules_file = rules_file
+    self.read_rules()
+    self.read_task.start(10, now=False)
+
+  def read_rules(self)
+    if not exists(self.rules_file):
+      self.clear()
+      return
+
+    # Only read if the rules file has been modified
+    try:
+      mtime = getmtime(self.rules_file)
+    except:
+      log.err("Failed to get mtime of %s" % self.rules_file)
+      return:
+    if mtime <= self.rules_last_read:
+      return
+
     pre = []
     post = []
 
     section = None
-    for line in open(path):
+    for line in open(self.rules_file):
       line = line.strip()
       if line.startswith('#') or not line:
         continue
@@ -31,6 +59,7 @@ class RewriteRuleManager:
 
     self.preRules = pre
     self.postRules = post
+    self.rules_last_read = mtime
 
 
 class RewriteRule:

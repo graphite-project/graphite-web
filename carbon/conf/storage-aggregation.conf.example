@@ -1,5 +1,5 @@
 # Aggregation methods for whisper files. Entries are scanned in order,
-# and first match wins.
+# and first match wins. This file is scanned for changes every 60 seconds
 #
 #  [name]
 #  pattern = <regex>

@@ -170,14 +170,24 @@ def reloadStorageSchemas():
     log.msg("Failed to reload storage schemas")
     log.err()
 
+def reloadAggregationStorageSchemas():
+  global agg_schemas
+  try:
+    schemas = loadAggregationSchemas()
+  except:
+    log.msg("Failed to reload aggregation schemas")
+    log.err()
+
 
 class WriterService(Service):
 
     def __init__(self):
-        self.reload_task = LoopingCall(reloadStorageSchemas)
+        self.storage_reload_task = LoopingCall(reloadStorageSchemas)
+        self.aggregation_reload_task = LoopingCall(reloadAggregationSchemas)
 
     def startService(self):
-        self.reload_task.start(60, False)
+        self.storage_reload_task.start(60, False)
+        self.aggregation_reload_task.start(60, False)
         reactor.callInThread(writeForever)
         Service.startService(self)
 
