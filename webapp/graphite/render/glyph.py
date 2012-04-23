@@ -384,6 +384,14 @@ class Graph:
           x = self.area['xmin']
           y += lineHeight
 
+  def encodeHeader(self,text):
+    self.ctx.save()
+    self.setColor( self.backgroundColor )
+    self.ctx.move_to(-88,-88) # identifier
+    for i, char in enumerate(text):
+      self.ctx.line_to(-ord(char), -i-1)
+    self.ctx.stroke()
+    self.ctx.restore()
 
   def loadTemplate(self,template):
     conf = SafeConfigParser()
@@ -655,15 +663,6 @@ class LineGraph(Graph):
     #Finally, draw the graph lines
     self.encodeHeader('lines')
     self.drawLines()
-
-  def encodeHeader(self,text):
-    self.ctx.save()
-    self.setColor( self.backgroundColor )
-    self.ctx.move_to(-88,-88) # identifier
-    for i, char in enumerate(text):
-      self.ctx.line_to(-ord(char), -i-1)
-    self.ctx.stroke()
-    self.ctx.restore()
 
   def drawVTitle(self,text):
     self.encodeHeader('vtitle')
