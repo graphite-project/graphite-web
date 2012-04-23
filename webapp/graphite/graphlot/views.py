@@ -192,7 +192,7 @@ def myGraphLookup(request):
     no_graphs.update(leafNode)
     nodes.append(no_graphs)
 
-  return json_response(nodes)
+  return json_response(nodes, request)
 
 def userGraphLookup(request):
   "View for User Graphs navigation"
@@ -246,13 +246,19 @@ def userGraphLookup(request):
     no_graphs.update(leafNode)
     nodes.append(no_graphs)
 
-  return json_response(nodes)
+  return json_response(nodes, request)
 
 
-def json_response(nodes):
-  #json = str(nodes) #poor man's json encoder for simple types
+def json_response(nodes, request=None):
+  if request:
+    jsonp = request.REQUEST.get('jsonp', False)
+  else:
+    jsonp = False
   json_data = json.dumps(nodes)
-  response = HttpResponse(json_data,mimetype="application/json")
+  if jsonp:
+    response = HttpResponse("%s(%s)" % (jsonp, json_data),mimetype="text/javascript")
+  else:
+    response = HttpResponse(json_data,mimetype="application/json")
   response['Pragma'] = 'no-cache'
   response['Cache-Control'] = 'no-cache'
   return response
