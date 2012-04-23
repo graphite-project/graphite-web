@@ -282,19 +282,20 @@ class Graph:
     else:
       self.area['ymin'] = y + self.margin
 
-  
-  def drawLegend(self,elements): #elements is [ (name,color,rightSide), (name,color,rightSide), ... ]
+
+  def drawLegend(self, elements, unique=False): #elements is [ (name,color,rightSide), (name,color,rightSide), ... ]
     self.encodeHeader('legend')
 
-    # remove duplicate names
-    namesSeen = {} 
-    newElements = [] 
-    for e in elements:
-      if e[0] not in namesSeen:
-        namesSeen[e[0]] = True 
-        newElements.append(e)
-    elements = newElements
-    
+    if unique:
+      # remove duplicate names
+      namesSeen = []
+      newElements = []
+      for e in elements:
+        if e[0] not in namesSeen:
+          namesSeen.append(e[0])
+          newElements.append(e)
+      elements = newElements
+
     # Check if there's enough room to use two columns.
     rightSideLabels = False
     padding = 5
@@ -498,7 +499,7 @@ class LineGraph(Graph):
                   'yMaxRight', 'yLimitLeft', 'yLimitRight', 'yStepLeft', \
                   'yStepRight', 'rightWidth', 'rightColor', 'rightDashed', \
                   'leftWidth', 'leftColor', 'leftDashed', 'xFormat', 'minorY', \
-                  'hideYAxis')
+                  'hideYAxis', 'uniqueLegend')
   validLineModes = ('staircase','slope','connected')
   validAreaModes = ('none','first','all','stacked')
   validPieModes = ('maximum', 'minimum', 'average')
@@ -620,7 +621,7 @@ class LineGraph(Graph):
 
     if not params.get('hideLegend', len(self.data) > settings.LEGEND_MAX_ITEMS):
       elements = [ (series.name,series.color,series.options.get('secondYAxis')) for series in self.data if series.name ]
-      self.drawLegend(elements)
+      self.drawLegend(elements, params.get('uniqueLegend', False))
 
     #Setup axes, labels, and grid
     #First we adjust the drawing area size to fit X-axis labels
