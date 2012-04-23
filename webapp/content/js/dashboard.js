@@ -1012,8 +1012,10 @@ var defaultRelativeUnits = RegExp.$2;
 var TimeRange = {
   // Default to a relative time range
   type: 'relative',
-  quantity: defaultRelativeQuantity,
-  units: defaultRelativeUnits,
+  relativeStartQuantity: defaultRelativeQuantity,
+  relativeStartUnits: defaultRelativeUnits,
+  relativeUntilQuantity: '',
+  relativeUntilUnits: 'now',
   // Absolute time range
   startDate: new Date(),
   startTime: "9:00 AM",
@@ -1023,7 +1025,11 @@ var TimeRange = {
 
 function getTimeText() {
   if (TimeRange.type == 'relative') {
-    return "Now showing the past " + TimeRange.quantity + ' ' + TimeRange.units;
+    var text = "Now showing the past " + TimeRange.relativeStartQuantity + " " + TimeRange.relativeStartUnits;
+    if (TimeRange.relativeUntilUnits != 'now') {
+      text = text + " until " + TimeRange.relativeUntilQuantity + " " + TimeRange.relativeUntilUnits + " ago";
+    }
+    return text;
   } else {
     var fmt = 'g:ia F jS Y';
     return "Now Showing " + TimeRange.startDate.format(fmt) + ' through ' + TimeRange.endDate.format(fmt);
@@ -1036,8 +1042,12 @@ function updateTimeText() {
 
 function timeRangeUpdated() {
   if (TimeRange.type == 'relative') {
-    var fromParam = '-' + TimeRange.quantity + TimeRange.units;
-    var untilParam = 'now';
+    var fromParam = '-' + TimeRange.relativeStartQuantity + TimeRange.relativeStartUnits;
+    if (TimeRange.relativeUntilUnits == 'now') {
+      var untilParam = 'now';
+    } else {
+      var untilParam = '-' + TimeRange.relativeUntilQuantity + TimeRange.relativeUntilUnits;
+    }
   } else {
     var fromParam = TimeRange.startDate.format('H:i_Ymd');
     var untilParam = TimeRange.endDate.format('H:i_Ymd');
@@ -1063,7 +1073,7 @@ function selectRelativeTime() {
     allowBlank: false,
     regex: /\d+/,
     regexText: "Please enter a number",
-    value: TimeRange.quantity
+    value: TimeRange.relativeStartQuantity
   });
 
   var unitField = new Ext.form.ComboBox({
@@ -1075,15 +1085,58 @@ function selectRelativeTime() {
     allowBlank: false,
     forceSelection: true,
     store: ['minutes', 'hours', 'days', 'weeks', 'months'],
-    value: TimeRange.units
+    value: TimeRange.relativeStartUnits
   });
+
+  var untilQuantityField = new Ext.form.TextField({
+    id: 'until-quantity-field',
+    fieldLabel: "Until",
+    width: 90,
+    allowBlank: true,
+    regex: /\d+/,
+    regexText: "Please enter a number",
+    value: TimeRange.relativeUntilQuantity
+  });
+
+  var untilUnitField = new Ext.form.ComboBox({
+    fieldLabel: "",
+    width: 90,
+    mode: 'local',
+    editable: false,
+    triggerAction: 'all',
+    allowBlank: true,
+    forceSelection: false,
+    store: ['now', 'minutes', 'hours', 'days', 'weeks', 'months'],
+    value: TimeRange.relativeUntilUnits,
+    listeners: {
+      select: function(combo, record, index) {
+                  if (index == 0) {
+                    Ext.getCmp('until-quantity-field').setValue('');
+                    Ext.getCmp('until-quantity-field').setDisabled(true);
+                  } else {
+                    Ext.getCmp('until-quantity-field').setDisabled(false);
+                  }
+                },
+      render: function(combo) {
+                if (combo.getValue() == 'now') {
+                  Ext.getCmp('until-quantity-field').setValue('');
+                  Ext.getCmp('until-quantity-field').setDisabled(true);
+                } else {
+                  Ext.getCmp('until-quantity-field').setDisabled(false);
+                }
+              }
+    }
+  });
+
 
   var win;
 
   function updateTimeRange() {
     TimeRange.type = 'relative';
-    TimeRange.quantity = quantityField.getValue();
-    TimeRange.units = unitField.getValue();
+    TimeRange.relativeStartQuantity = quantityField.getValue();
+    TimeRange.relativeStartUnits = unitField.getValue();
+    TimeRange.relativeUntilQuantity = untilQuantityField.getValue();
+    TimeRange.relativeUntilUnits = untilUnitField.getValue();
     win.close();
     timeRangeUpdated();
   }
@@ -1091,13 +1144,13 @@ function selectRelativeTime() {
   win = new Ext.Window({
     title: "Select Relative Time Range",
     width: 205,
-    height: 130,
+    height: 170,
     resizable: false,
     modal: true,
     layout: 'form',
     labelAlign: 'right',
     labelWidth: 90,
-    items: [quantityField, unitField],
+    items: [quantityField, unitField, untilQuantityField, untilUnitField],
     buttonAlign: 'center',
     buttons: [
       {text: 'Ok', handler: updateTimeRange},
@@ -2038,11 +2091,13 @@ function getState() {
 function applyState(state) {
   setDashboardName(state.name);
 
-  //state.timeConfig = {type, quantity, units, startDate, startTime, endDate, endTime}
+  //state.timeConfig = {type, quantity, units, untilQuantity, untilUnits, startDate, startTime, endDate, endTime}
   var timeConfig = state.timeConfig
   TimeRange.type = timeConfig.type;
-  TimeRange.quantity = timeConfig.quantity;
-  TimeRange.units = timeConfig.units;
+  TimeRange.relativeStartQuantity = timeConfig.quantity;
+  TimeRange.relativeStartUnits = timeConfig.units;
+  TimeRange.relativeUntilQuantity = timeConfig.untilQuantity;
+  TimeRange.relativeUntilUnits = timeConfig.untilUnits;
   TimeRange.startDate = new Date(timeConfig.startDate);
   TimeRange.startTime = timeConfig.startTime;
   TimeRange.endDate = new Date(timeConfig.endDate);
