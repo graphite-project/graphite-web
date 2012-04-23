@@ -170,7 +170,7 @@ def reloadStorageSchemas():
     log.msg("Failed to reload storage schemas")
     log.err()
 
-def reloadAggregationStorageSchemas():
+def reloadAggregationSchemas():
   global agg_schemas
   try:
     schemas = loadAggregationSchemas()

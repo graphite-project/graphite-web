@@ -21,7 +21,7 @@ class RewriteRuleManager:
     self.read_rules()
     self.read_task.start(10, now=False)
 
-  def read_rules(self)
+  def read_rules(self):
     if not exists(self.rules_file):
       self.clear()
       return
@@ -31,7 +31,7 @@ class RewriteRuleManager:
       mtime = getmtime(self.rules_file)
     except:
       log.err("Failed to get mtime of %s" % self.rules_file)
-      return:
+      return
     if mtime <= self.rules_last_read:
       return
 

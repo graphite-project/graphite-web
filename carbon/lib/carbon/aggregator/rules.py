@@ -1,6 +1,6 @@
 import time
 import re
-from os.path import getmtime
+from os.path import exists, getmtime
 from twisted.internet.task import LoopingCall
 from carbon import log
 from carbon.aggregator.buffers import BufferManager
