@@ -776,6 +776,8 @@ class LineGraph(Graph):
           newSeries = TimeSeries(series.name, series.start, series.end, series.step*series.valuesPerPoint, [x for x in series])
           newSeries.xStep = series.xStep
           newSeries.color = series.color
+          if 'secondYAxis' in series.options:
+            newSeries.options['secondYAxis'] = True
           strokeSeries.append(newSeries)
       self.data += strokeSeries
 
