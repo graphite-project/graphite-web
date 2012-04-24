@@ -547,6 +547,21 @@ function initDashboard () {
     text: 'Graphs',
     menu: {
       items: [
+        { text: "New Graph",
+          menu: {
+            items: [
+//              { text: "Empty Graph",
+//                handler: newEmptyGraph
+//              },
+              { text: "From URL",
+                handler: newFromUrl
+              },
+              { text: "From Saved Graph",
+                handler: newFromSavedGraph
+              },
+            ]
+          }
+        },
         {
           text: "Edit Default Parameters",
           handler: editDefaultGraphParameters
@@ -1227,6 +1242,150 @@ var GraphSize = {
   height: UI_CONFIG.default_graph_height
 };
 
+
+//XXX Add once graph controls allow better +/-
+//function newEmptyGraph() {
+//}
+
+function newFromUrl() {
+  function applyUrl() {
+    var url = Ext.getCmp('import-url-field').getValue();
+    url = decodeURIComponent(url).replace(/#/,'%23');
+    if (url.length != 0) {
+      graphAreaToggle(url, {dontRemove: true});
+    }
+    win.close();
+  }
+
+  var urlField = new Ext.form.TextField({
+    id: 'import-url-field',
+    fieldLabel: "Graph URL",
+    region: 'center',
+    width: '100%',
+    listeners: {
+      specialkey: function (field, e) {
+                    if (e.getKey() == e.ENTER) {
+                      applyUrl();
+                    }
+                  },
+      afterrender: function (field) { field.focus(false, 100); }
+    }
+  });
+
+  var win = new Ext.Window({
+    title: "Import Graph From URL",
+    width: 470,
+    height: 87,
+    layout: 'form',
+    resizable: true,
+    modal: true,
+    items: [urlField],
+    buttonAlign: 'center',
+    buttons: [
+      {
+        text: 'OK',
+        handler: applyUrl
+      }, {
+        text: 'Cancel',
+        handler: function () { win.close(); }
+      }
+    ]
+  });
+  win.show();
+
+}
+
+function newFromSavedGraph() {
+  function setParams(loader, node) {
+    var node_id = node.id.replace(/^[A-Za-z]+Tree\.?/,"");
+    loader.baseParams.query = (node_id == "") ? "*" : (node_id + ".*");
+    loader.baseParams.format = 'treejson';
+    loader.baseParams.contexts = '1';
+    loader.baseParams.path = node_id;
+    if (node.parentNode && node.parentNode.id == "UserGraphsTree") {
+      loader.baseParams.user = node.id;
+    }
+  }
+
+  var userGraphsNode = new Ext.tree.AsyncTreeNode({
+    id: 'UserGraphsTree',
+    leaf: false,
+    allowChildren: true,
+    expandable: true,
+    allowDrag: false,
+    loader: new Ext.tree.TreeLoader({
+      url: "../browser/usergraph/",
+      requestMethod: "GET",
+      listeners: {beforeload: setParams}
+    })
+  });
+
+  function handleSelects(selModel, nodes) {
+    Ext.each(nodes, function (node, index) {
+      if (!node.leaf) {
+	node.unselect();
+        node.toggle();
+      }
+    });
+
+    if (selModel.getSelectedNodes().length == 0) {
+      Ext.getCmp('user-graphs-select-button').setDisabled(true);
+    } else {
+      Ext.getCmp('user-graphs-select-button').setDisabled(false);
+    }
+  } 
+
+  var treePanel = new Ext.tree.TreePanel({
+    id: 'user-graphs-tree',
+    header: false,
+    region: 'center',
+    root: userGraphsNode,
+    containerScroll: true,
+    autoScroll: true,
+    pathSeparator: '.',
+    rootVisible: false,
+    singleExpand: false,
+    trackMouseOver: true,
+    selModel: new Ext.tree.MultiSelectionModel({
+      listeners: {
+        selectionchange: handleSelects
+      } 
+    })
+  });
+
+  function selectUserGraphs(selectedNodes) {
+    Ext.each(selectedNodes, function (node, index) {
+      var url = decodeURIComponent(node.attributes.graphUrl).replace(/#/,'%23');
+      graphAreaToggle(url, {dontRemove: true});
+    });
+  }
+
+  var win = new Ext.Window({
+    title: "Import From User Graphs",
+    width: 300,
+    height: 400,
+    layout: 'border',
+    resizable: true,
+    modal: true,
+    items: [treePanel],
+    buttonAlign: 'center',
+    buttons: [
+      {
+        id: 'user-graphs-select-button',
+        text: 'Select',
+        disabled: true,
+        handler: function () {
+          selectUserGraphs(Ext.getCmp('user-graphs-tree').getSelectionModel().getSelectedNodes());
+          win.close();
+        }
+      }, {
+        text: 'Cancel',
+        handler: function () { win.close(); }
+      }
+    ]
+  });
+  win.show();
+}
 
 function editDefaultGraphParameters() {
   var editParams = Ext.apply({}, defaultGraphParams);
