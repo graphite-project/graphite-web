@@ -499,7 +499,7 @@ class LineGraph(Graph):
                   'yMaxRight', 'yLimitLeft', 'yLimitRight', 'yStepLeft', \
                   'yStepRight', 'rightWidth', 'rightColor', 'rightDashed', \
                   'leftWidth', 'leftColor', 'leftDashed', 'xFormat', 'minorY', \
-                  'hideYAxis', 'uniqueLegend')
+                  'hideYAxis', 'uniqueLegend', 'vtitleRight')
   validLineModes = ('staircase','slope','connected')
   validAreaModes = ('none','first','all','stacked')
   validPieModes = ('maximum', 'minimum', 'average')
@@ -617,6 +617,8 @@ class LineGraph(Graph):
       self.drawTitle( str(params['title']) )
     if params.get('vtitle'):
       self.drawVTitle( str(params['vtitle']) )
+    if self.secondYAxis and params.get('vtitleRight'):
+      self.drawVTitle( str(params['vtitleRight']), rightAlign=True )
     self.setFont()
 
     if not params.get('hideLegend', len(self.data) > settings.LEGEND_MAX_ITEMS):
@@ -665,16 +667,25 @@ class LineGraph(Graph):
     self.encodeHeader('lines')
     self.drawLines()
 
-  def drawVTitle(self,text):
-    self.encodeHeader('vtitle')
-
+  def drawVTitle(self, text, rightAlign=False):
     lineHeight = self.getExtents()['maxHeight']
-    x = self.area['xmin'] + lineHeight
-    y = self.height / 2
-    for line in text.split('\n'):
-      self.drawText(line, x, y, align='center', valign='baseline', rotate=270)
-      x += lineHeight
-    self.area['xmin'] = x + self.margin + lineHeight
+
+    if rightAlign:
+      self.encodeHeader('vtitleRight')
+      x = self.area['xmax'] - lineHeight
+      y = self.height / 2
+      for line in text.split('\n'):
+        self.drawText(line, x, y, align='center', valign='baseline', rotate=90)
+        x -= lineHeight
+      self.area['xmax'] = x - self.margin - lineHeight
+    else:
+      self.encodeHeader('vtitle')
+      x = self.area['xmin'] + lineHeight
+      y = self.height / 2
+      for line in text.split('\n'):
+        self.drawText(line, x, y, align='center', valign='baseline', rotate=270)
+        x += lineHeight
+      self.area['xmin'] = x + self.margin + lineHeight
 
   def getYCoord(self, value, side=None):
     if "left" == side:
