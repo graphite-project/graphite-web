@@ -560,9 +560,6 @@ var GraphDataWindow = {
         function (target) {
           var newTarget;
 
-          Composer.url.removeParam('target', target);
-          removeTarget(target);
-
           if (extraArg) {
             if (funcName == 'mostDeviant') { //SPECIAL CASE HACK
               newTarget = funcName + '(' + extraArg + ',' + target + ')';
@@ -573,8 +570,9 @@ var GraphDataWindow = {
             newTarget = funcName + '(' + target + ')';
           }
 
+          Composer.url.removeParam('target', target);
           Composer.url.addParam('target', newTarget);
-          addTarget(newTarget);
+          replaceTarget(target, newTarget);
           _this.targetList.select( TargetStore.findExact('value', newTarget), true);
         }
       );
@@ -612,9 +610,15 @@ var GraphDataWindow = {
   applyFuncToAll: function (funcName) {
     function applyFunc() {
       var args = this.getSelectedTargets().join(',');
+      var oldTargets = this.getSelectedTargets();
+      var firstTarget = oldTargets.shift();
       var newTarget = funcName + '(' + args + ')';
 
-      Ext.each(this.getSelectedTargets(),
+      // Insert new target where the first selected was
+      replaceTarget(firstTarget,newTarget);
+      Composer.url.removeParam('target', firstTarget);
+
+      Ext.each(oldTargets,
         function (target) {
 	  Composer.url.removeParam('target', target);
           removeTarget(target);
@@ -623,7 +627,6 @@ var GraphDataWindow = {
       Composer.url.addParam('target', newTarget);
       Composer.updateImage();
 
-      addTarget(newTarget);
       this.targetList.select( TargetStore.findExact('value', newTarget), true);
     }
     applyFunc = applyFunc.createDelegate(this);
@@ -661,12 +664,14 @@ var GraphDataWindow = {
         args.push( argString.substring(lastArg, i) );
 
         Composer.url.removeParam('target', target);
+        var firstIndex = indexOfTarget(target);
         removeTarget(target);
 
+        args.reverse()
         Ext.each(args, function (arg) {
-          if (!arg.match(/^([0123456789\.]+|".+")$/)) { //Skip string and number literals
+          if (!arg.match(/^([0123456789\.]+|".+"|'.*')$/)) { //Skip string and number literals
             Composer.url.addParam('target', arg);
-            addTarget(arg);
+            insertTarget(firstIndex, arg);
             _this.targetList.select( TargetStore.findExact('value', arg), true);
           }
         });

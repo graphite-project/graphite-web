@@ -36,7 +36,7 @@ limitations under the License. -->
       });
 
       function getTargetRecord(target) {
-        var index = TargetStore.findExact('value', target);
+        var index = indexOfTarget(target);
         return (index == -1) ? null : TargetStore.getAt(index);
       }
 
@@ -52,8 +52,16 @@ limitations under the License. -->
         }
       }
 
+      function indexOfTarget(target) {
+        return TargetStore.findExact('value', target);
+      }
+
+      function insertTarget(index, target) {
+        TargetStore.insert(index, [ new TargetRecord({value: target}) ]);
+      }
+
       function replaceTarget(oldTarget, newTarget) {
-        var oldrecord = getTargetRecord(oldTarget);
+        var oldRecord = getTargetRecord(oldTarget);
         var newRecord = getTargetRecord(newRecord);
 
         if (oldRecord && (!newRecord)) {
