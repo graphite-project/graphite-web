@@ -48,5 +48,3 @@ class Event(models.Model):
             tags=self.tags,
             id=self.id,
         )
-
-admin.site.register(Event)
