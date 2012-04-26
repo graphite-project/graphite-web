@@ -350,7 +350,7 @@ function initDashboard () {
       '<div class="graph-container">',
         '<div class="graph-overlay">',
           '<img class="graph-img" src="{url}" width="{width}" height="{height}">',
-          '<div class="overlay-close-button" onclick="javascript: graphAreaToggle(\'{target}\'); justClosedGraph = true;">X</div>',
+          '<div class="overlay-close-button" onclick="javascript: graphStore.removeAt(\'{index}\'); justClosedGraph = true;">X</div>',
         '</div>',
       '</div>',
     '</tpl>',
@@ -987,10 +987,10 @@ function importGraphUrl(targetUrl, options) {
 }
 
 function updateGraphRecords() {
-  graphStore.each(function () {
+  graphStore.each(function (item, index) {
     var params = {};
     Ext.apply(params, defaultGraphParams);
-    Ext.apply(params, this.data.params);
+    Ext.apply(params, item.data.params);
     Ext.apply(params, GraphSize);
     params._uniq = Math.random();
     if (params.title === undefined && params.target.length == 1) {
@@ -999,9 +999,10 @@ function updateGraphRecords() {
     if (!params.uniq === undefined) {
         delete params["uniq"];
     }
-    this.set('url', '/render?' + Ext.urlEncode(params));
-    this.set('width', GraphSize.width);
-    this.set('height', GraphSize.height);
+    item.set('url', '/render?' + Ext.urlEncode(params));
+    item.set('width', GraphSize.width);
+    item.set('height', GraphSize.height);
+    item.set('index', index);
   });
 }
 
