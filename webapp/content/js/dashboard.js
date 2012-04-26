@@ -944,6 +944,48 @@ function graphAreaToggle(target, options) {
   }
 }
 
+function importGraphUrl(targetUrl, options) {
+  var fullUrl = decodeURIComponent(targetUrl).replace(/#/,'%23');
+  var i = fullUrl.indexOf("?");
+  if (i == -1) {
+    return;
+  }
+
+  var queryString = fullUrl.substr(i+1);
+  var params = Ext.urlDecode(queryString);
+
+  var graphTargetList = params['target'];
+  if (typeof graphTargetList == 'string') {
+    graphTargetList = [graphTargetList];
+  }
+  params['target'] = graphTargetList;
+
+  if (graphTargetList.length == 0) {
+    return;
+  }
+
+  var graphTargetString = Ext.urlEncode(graphTargetList);
+  var existingIndex = graphStore.findExact('target', graphTargetString);
+
+  if (existingIndex > -1) {
+    if ( (options === undefined) || (!options.dontRemove) ) {
+      graphStore.removeAt(existingIndex);
+    }
+  } else {
+    var urlParams = {};
+    Ext.apply(urlParams, defaultGraphParams);
+    Ext.apply(urlParams, params);
+    Ext.apply(urlParams, GraphSize);
+
+    var record = new GraphRecord({
+      target: graphTargetString,
+      params: params,
+      url: '/render?' + Ext.urlEncode(urlParams)
+      });
+      graphStore.add([record]);
+  }
+}
+
 function updateGraphRecords() {
   graphStore.each(function () {
     var params = {};
@@ -1249,11 +1291,8 @@ var GraphSize = {
 
 function newFromUrl() {
   function applyUrl() {
-    var url = Ext.getCmp('import-url-field').getValue();
-    url = decodeURIComponent(url).replace(/#/,'%23');
-    if (url.length != 0) {
-      graphAreaToggle(url, {dontRemove: true});
-    }
+    var inputUrl = Ext.getCmp('import-url-field').getValue();
+    importGraphUrl(inputUrl);
     win.close();
   }
 
@@ -1333,7 +1372,7 @@ function newFromSavedGraph() {
     } else {
       Ext.getCmp('user-graphs-select-button').setDisabled(false);
     }
-  } 
+  }
 
   var treePanel = new Ext.tree.TreePanel({
     id: 'user-graphs-tree',
@@ -1349,14 +1388,13 @@ function newFromSavedGraph() {
     selModel: new Ext.tree.MultiSelectionModel({
       listeners: {
         selectionchange: handleSelects
-      } 
+      }
     })
   });
 
   function selectUserGraphs(selectedNodes) {
     Ext.each(selectedNodes, function (node, index) {
-      var url = decodeURIComponent(node.attributes.graphUrl).replace(/#/,'%23');
-      graphAreaToggle(url, {dontRemove: true});
+      importGraphUrl(node.attributes.graphUrl);
     });
   }
 
