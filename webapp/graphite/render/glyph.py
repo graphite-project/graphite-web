@@ -629,6 +629,13 @@ class LineGraph(Graph):
     #First we adjust the drawing area size to fit X-axis labels
     if not self.params.get('hideAxes',False):
       self.area['ymax'] -= self.getExtents()['maxAscent'] * 2
+    
+    self.startTime = min([series.start for series in self.data])
+    if self.lineMode == 'staircase':
+      self.endTime = max([series.end for series in self.data])
+    else:
+      self.endTime = max([(series.end - series.step) for series in self.data])
+    self.timeRange = self.endTime - self.startTime
 
     #Now we consolidate our data points to fit in the currently estimated drawing area
     self.consolidateDataPoints()
@@ -929,10 +936,6 @@ class LineGraph(Graph):
     for series in self.data:
       numberOfDataPoints = len(series)
       minXStep = float( self.params.get('minXStep',1.0) )
-      if self.lineMode == 'staircase':
-        divisor = numberOfDataPoints
-      else:
-        divisor = ((numberOfDataPoints - 1) or 1)
       bestXStep = numberOfPixels / divisor
       if bestXStep < minXStep:
         drawableDataPoints = int( numberOfPixels / minXStep )
@@ -1258,13 +1261,6 @@ class LineGraph(Graph):
     return vals
 
   def setupXAxis(self):
-    self.startTime = min([series.start for series in self.data])
-    if self.lineMode == 'staircase':
-      self.endTime = max([series.end for series in self.data])
-    else:
-      self.endTime = max([(series.end - series.step) for series in self.data])
-    timeRange = self.endTime - self.startTime
-
     if self.userTimeZone:
       tzinfo = pytz.timezone(self.userTimeZone)
     else:
@@ -1273,10 +1269,10 @@ class LineGraph(Graph):
     self.start_dt = datetime.fromtimestamp(self.startTime, tzinfo)
     self.end_dt = datetime.fromtimestamp(self.endTime, tzinfo)
 
-    secondsPerPixel = float(timeRange) / float(self.graphWidth)
-    self.xScaleFactor = float(self.graphWidth) / float(timeRange) #pixels per second
+    secondsPerPixel = float(self.timeRange) / float(self.graphWidth)
+    self.xScaleFactor = float(self.graphWidth) / float(self.timeRange) #pixels per second
 
-    potential = [c for c in xAxisConfigs if c['seconds'] <= secondsPerPixel and c.get('maxInterval', timeRange + 1) >= timeRange]
+    potential = [c for c in xAxisConfigs if c['seconds'] <= secondsPerPixel and c.get('maxInterval', self.timeRange + 1) >= self.timeRange]
     if potential:
       self.xConf = potential[-1]
     else:
