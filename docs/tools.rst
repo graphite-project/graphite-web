@@ -173,7 +173,9 @@ statsd
 A list of forks and alternative implementations can be found at <http://joemiller.me/2011/09/21/list-of-statsd-server-implementations/>
 
 
-
+Tasseo
+------
+`Tasseo`_ is a lightweight, easily configurable, real-time dashboard for Graphite metrics.
 
 .. _Diamond: http://opensource.brightcove.com/project/Diamond/
 .. _jmxtrans: http://code.google.com/p/jmxtrans/
@@ -207,3 +209,4 @@ A list of forks and alternative implementations can be found at <http://joemille
 .. _HoardD: https://github.com/coredump/hoardd
 .. _Hubot: https://github.com/github/hubot
 .. _hubot-scripts: https://github.com/github/hubot-scripts
+.. _Tasseo: https://github.com/obfuscurity/tasseo
