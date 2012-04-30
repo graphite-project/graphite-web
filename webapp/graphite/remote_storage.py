@@ -113,7 +113,7 @@ class RemoteNode:
 
     query_params = [
       ('target', self.metric_path),
-      ('pickle', 'true'),
+      ('format', 'pickle'),
       ('from', str( int(startTime) )),
       ('until', str( int(endTime) ))
     ]

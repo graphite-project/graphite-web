@@ -108,15 +108,6 @@ def renderView(request):
     if useCache:
       cache.set(dataKey, data, cacheTimeout)
 
-    # If data is all we needed, we're done
-    if 'pickle' in requestOptions:
-      response = HttpResponse(mimetype='application/pickle')
-      seriesInfo = [series.getInfo() for series in data]
-      pickle.dump(seriesInfo, response, protocol=-1)
-
-      log.rendering('Total pickle rendering time %.6f' % (time() - start))
-      return response
-
     format = requestOptions.get('format')
     if format == 'csv':
       response = HttpResponse(mimetype='text/csv')
@@ -159,6 +150,15 @@ def renderView(request):
 
     if format == 'svg':
       graphOptions['outputFormat'] = 'svg'
+
+    if format == 'pickle':
+      response = HttpResponse(mimetype='application/pickle')
+      seriesInfo = [series.getInfo() for series in data]
+      pickle.dump(seriesInfo, response, protocol=-1)
+
+      log.rendering('Total pickle rendering time %.6f' % (time() - start))
+      return response
+
 
   # We've got the data, now to render it
   graphOptions['data'] = data
@@ -203,7 +203,7 @@ def parseOptions(request):
     requestOptions['targets'].append(target)
 
   if 'pickle' in queryParams:
-    requestOptions['pickle'] = True
+    requestOptions['format'] = 'pickle'
   if 'rawData' in queryParams:
     requestOptions['format'] = 'raw'
   if 'format' in queryParams:
