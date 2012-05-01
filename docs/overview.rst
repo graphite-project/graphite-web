@@ -33,7 +33,7 @@ Graphite consists of 3 software components:
 of the effort is in collecting the data to begin with. As you send datapoints
 to Carbon, they become immediately available for graphing in the webapp. The
 webapp offers several ways to create and display graphs including a simple
-:doc:`URL API </url-api>` that makes it easy to embed graphs in other
+:doc:`URL API </render_api>` for rendering that makes it easy to embed graphs in other
 webpages.
 
 

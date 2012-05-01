@@ -12,7 +12,7 @@ Graphite Documentation
    config-webapp
    admin-webapp
    composer
-   url-api
+   render_api
    functions
    dashboard
    whisper

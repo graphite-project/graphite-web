@@ -2,7 +2,7 @@ Functions
 =========
 Functions are used to transform, combine, and perform computations on :term:`series` data. Functions are
 applied using the Composer interface or by manipulating the ``target`` parameters in the
-:doc:`URL API <url-api>`.
+:doc:`Render API <render_api>`.
 
 Usage
 -----

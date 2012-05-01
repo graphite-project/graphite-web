@@ -97,9 +97,6 @@ Post-Install Tasks
 :doc:`Using the Composer </composer>`
     Now that the webapp is running, you probably want to learn how to use it.
 
-That covers the basics, the next thing you should probably read about is
-:doc:`The URL API </url-api>`.
-
 .. _Apache: http://projects.apache.org/projects/http_server.html
 .. _Django: http://www.djangoproject.com/
 .. _django-tagging: http://code.google.com/p/django-tagging/
