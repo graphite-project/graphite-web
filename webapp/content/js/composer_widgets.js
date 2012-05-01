@@ -897,7 +897,7 @@ function createFunctionsMenu() {
         {text: 'Min Values', handler: applyFuncToAll('minSeries')},
         {text: 'Max Values', handler: applyFuncToAll('maxSeries')},
         {text: 'Group', handler: applyFuncToAll('group')},
-        {text: 'Range', handler: this.applyFuncToAll('rangeOfSeries')}
+        {text: 'Range', handler: applyFuncToAll('rangeOfSeries')}
       ]
     }, {
       text: 'Transform',
@@ -907,6 +907,7 @@ function createFunctionsMenu() {
         {text: 'Offset', handler: applyFuncToEachWithInput('offset', 'Please enter the value to offset Y-values by')},
         {text: 'Derivative', handler: applyFuncToEach('derivative')},
         {text: 'Integral', handler: applyFuncToEach('integral')},
+        {text: 'Percentile Values', handler: applyFuncToEachWithInput('percentileOfSeries', "Please enter the percentile to use")},
         {text: 'Non-negative Derivative', handler: applyFuncToEachWithInput('nonNegativeDerivative', "Please enter a maximum value if this metric is a wrapping counter (or just leave this blank)", {allowBlank: true})},
         {text: 'Log', handler: applyFuncToEachWithInput('log', 'Please enter a base')},
         {text: 'timeShift', handler: applyFuncToEachWithInput('timeShift', 'Shift this metric ___ back in time (examples: 10min, 7d, 2w)', {quote: true})},
@@ -919,9 +920,9 @@ function createFunctionsMenu() {
         {text: 'Moving Average', handler: applyFuncToEachWithInput('movingAverage', 'Moving average for the last ___ data points')},
         {text: 'Moving Median', handler: applyFuncToEachWithInput('movingMedian', 'Moving median for the last ___ data points')},
         {text: 'Moving Standard Deviation', handler: applyFuncToEachWithInput('stdev', 'Moving standard deviation for the last ___ data points')},
-        {text: 'Holt-Winters Forecast', handler: this.applyFuncToEach('holtWintersForecast')},
-        {text: 'Holt-Winters Confidence Bands', handler: this.applyFuncToEach('holtWintersConfidenceBands')},
-        {text: 'Holt-Winters Aberration', handler: this.applyFuncToEach('holtWintersAberration')},
+        {text: 'Holt-Winters Forecast', handler: applyFuncToEach('holtWintersForecast')},
+        {text: 'Holt-Winters Confidence Bands', handler: applyFuncToEach('holtWintersConfidenceBands')},
+        {text: 'Holt-Winters Aberration', handler: applyFuncToEach('holtWintersAberration')},
         {text: 'As Percent', handler: applyFuncToEachWithInput('asPercent', 'Please enter the value that corresponds to 100% or leave blank to use the total', {allowBlank: true})},
         {text: 'Difference (of 2 series)', handler: applyFuncToAll('diffSeries')},
         {text: 'Ratio (of 2 series)', handler: applyFuncToAll('divideSeries')}
@@ -929,6 +930,15 @@ function createFunctionsMenu() {
     }, {
       text: 'Filter',
       menu: [
+        {
+          text: 'Data Filters',
+          menu: {
+            {text: 'Remove Above Value', handler: applyFuncToEachWithInput('removeAboveValue', 'Set any values above ___ to None')},
+            {text: 'Remove Above Percentile', handler: applyFuncToEachWithInput('removeAbovePercentile', 'Set any values above the ___th percentile to None')},
+            {text: 'Remove Below Value', handler: applyFuncToEachWithInput('removeAboveValue', 'Set any values above ___ to None')},
+            {text: 'Remove Below Percentile', handler: applyFuncToEachWithInput('removeAbovePercentile', 'Set any values above the ___th percentile to None')}
+          }
+        },
         {text: 'Most Deviant', handler: applyFuncToEachWithInput('mostDeviant', 'Draw the ___ metrics with the highest standard deviation')},
         {text: 'Highest Current Value', handler: applyFuncToEachWithInput('highestCurrent', 'Draw the ___ metrics with the highest current value')},
         {text: 'Lowest Current Value', handler: applyFuncToEachWithInput('lowestCurrent', 'Draw the ___ metrics with the lowest current value')},
@@ -942,6 +952,7 @@ function createFunctionsMenu() {
         {text: 'Average Value Below', handler: applyFuncToEachWithInput('averageBelow', 'Draw all metrics whose average value is below ___')},
         {text: 'Maximum Value Above', handler: applyFuncToEachWithInput('maximumAbove', 'Draw all metrics whose maximum value is above ___')},
         {text: 'Maximum Value Below', handler: applyFuncToEachWithInput('maximumBelow', 'Draw all metrics whose maximum value is below ___')},
+        {text: 'Minimum Value Above', handler: applyFuncToEachWithInput('minimumAbove', 'Draw all metrics whose minimum value is above ___')},
         {text: 'sortByMaxima', handler: applyFuncToEach('sortByMaxima')},
         {text: 'sortByMinima', handler: applyFuncToEach('sortByMinima')},
         {text: 'limit', handler: applyFuncToEachWithInput('limit', 'Limit to first ___ of a list of metrics')},
@@ -952,8 +963,10 @@ function createFunctionsMenu() {
       menu: [
         {text: 'Set Legend Name', handler: applyFuncToEachWithInput('alias', 'Enter a legend label for this graph target', {quote: true})},
         {text: 'Set Legend Name By Metric', handler: applyFuncToEach('aliasByMetric')},
-        {text: 'Add Value to Legend Name',
+        {text: 'Set Legend Name By Node', handler: applyFuncToEachWithInput('aliasByNode', 'Enter the 0-indexed node to display')},
+        {text: 'Add Values to Legend Name',
 	      	 menu: [
+                        {text: "Cacti Style Legend", handler: applyFuncToEach('cactiStyle')},
         		{text: "Last Value", handler: applyFuncToEach('legendValue', '"last"')},
         		{text: "Average Value", handler: applyFuncToEach('legendValue', '"avg"')},
         		{text: "Total Value", handler: applyFuncToEach('legendValue', '"total"')},
@@ -961,13 +974,18 @@ function createFunctionsMenu() {
         		{text: "Max Value", handler: applyFuncToEach('legendValue', '"max"')}
         		]},
         {text: 'Color', handler: applyFuncToEachWithInput('color', 'Set the color for this graph target', {quote: true})},
+        {text: 'Alpha', handler: applyFuncToEachWithInput('alpha', 'Set the alpha (transparency) for this graph target (between 0.0 and 1.0)')},
         {text: 'Aggregate By Sum', handler: applyFuncToEach('cumulative')},
         {text: 'Draw non-zero As Infinite', handler: applyFuncToEach('drawAsInfinite')},
         {text: 'Line Width', handler: applyFuncToEachWithInput('lineWidth', 'Please enter a line width for this graph target')},
         {text: 'Dashed Line', handler: applyFuncToEach('dashed')},
         {text: 'Keep Last Value', handler: applyFuncToEach('keepLastValue')},
+        {text: 'Transform Nulls', handler: applyFuncToEachWithInput('transformNull', 'Please enter the value to transform null values to')},
         {text: 'Substring', handler: applyFuncToEachWithInput('substr', 'Enter a starting position')},
-//        {text: 'Add Threshold Line', handler: applyFuncToEachWithInput('threshold', 'Enter a threshold value')}, 
+        {text: 'Group', handler: applyFuncToAll('group')},
+        {text: 'Area Between', handler: applyFuncToEach('areaBetween')},
+//        {text: 'GroupByNode', handler: applyFuncToEachWithInput('group')}, // requires 2 parameters
+//        {text: 'Add Threshold Line', handler: applyFuncToEachWithInput('threshold', 'Enter a threshold value')},
         {text: 'Draw Stacked', handler: applyFuncToEach('stacked')},
         {text: 'Draw in Second Y Axis', handler: applyFuncToEach('secondYAxis')}
       ]

@@ -2343,8 +2343,6 @@ SeriesFunctions = {
   # Combine functions
   'sumSeries' : sumSeries,
   'sum' : sumSeries,
-  'diffSeries' : diffSeries,
-  'divideSeries' : divideSeries,
   'multiplySeries' : multiplySeries,
   'averageSeries' : averageSeries,
   'avg' : averageSeries,
@@ -2353,7 +2351,6 @@ SeriesFunctions = {
   'minSeries' : minSeries,
   'maxSeries' : maxSeries,
   'rangeOfSeries': rangeOfSeries,
-  'percentileOfSeries': percentileOfSeries,
 
   # Transform functions
   'scale' : scale,
@@ -2361,6 +2358,7 @@ SeriesFunctions = {
   'offset' : offset,
   'derivative' : derivative,
   'integral' : integral,
+  'percentileOfSeries': percentileOfSeries,
   'nonNegativeDerivative' : nonNegativeDerivative,
   'log' : logarithm,
   'timeShift': timeShift,
@@ -2378,6 +2376,8 @@ SeriesFunctions = {
   'holtWintersAberration': holtWintersAberration,
   'asPercent' : asPercent,
   'pct' : asPercent,
+  'diffSeries' : diffSeries,
+  'divideSeries' : divideSeries,
 
   # Series Filter functions
   'mostDeviant' : mostDeviant,
@@ -2397,6 +2397,7 @@ SeriesFunctions = {
   'limit' : limit,
   'sortByMaxima' : sortByMaxima,
   'sortByMinima' : sortByMinima,
+  'exclude' : exclude,
 
   # Data Filter functions
   'removeAbovePercentile' : removeAbovePercentile,
@@ -2422,7 +2423,6 @@ SeriesFunctions = {
   'substr' : substr,
   'group' : group,
   'groupByNode' : groupByNode,
-  'exclude' : exclude,
   'constantLine' : constantLine,
   'stacked' : stacked,
   'areaBetween' : areaBetween,
