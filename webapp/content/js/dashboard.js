@@ -22,7 +22,7 @@ var cookieProvider = new Ext.state.CookieProvider({
   path: "/dashboard"
 });
 
-var NAV_BAR_REGION = cookieProvider.get('navbar-region') || 'west';
+var NAV_BAR_REGION = cookieProvider.get('navbar-region') || 'north';
 
 var CONFIRM_REMOVE_ALL = cookieProvider.get('confirm-remove-all') != 'false';
 
