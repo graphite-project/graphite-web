@@ -932,12 +932,12 @@ function createFunctionsMenu() {
       menu: [
         {
           text: 'Data Filters',
-          menu: {
+          menu: [
             {text: 'Remove Above Value', handler: applyFuncToEachWithInput('removeAboveValue', 'Set any values above ___ to None')},
             {text: 'Remove Above Percentile', handler: applyFuncToEachWithInput('removeAbovePercentile', 'Set any values above the ___th percentile to None')},
             {text: 'Remove Below Value', handler: applyFuncToEachWithInput('removeAboveValue', 'Set any values above ___ to None')},
             {text: 'Remove Below Percentile', handler: applyFuncToEachWithInput('removeAbovePercentile', 'Set any values above the ___th percentile to None')}
-          }
+          ]
         },
         {text: 'Most Deviant', handler: applyFuncToEachWithInput('mostDeviant', 'Draw the ___ metrics with the highest standard deviation')},
         {text: 'Highest Current Value', handler: applyFuncToEachWithInput('highestCurrent', 'Draw the ___ metrics with the highest current value')},
