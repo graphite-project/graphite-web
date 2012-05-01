@@ -22,7 +22,7 @@ try:
 except ImportError:
   rrdtool = False
 
-WEBAPP_VERSION = '0.9.9'
+WEBAPP_VERSION = '0.9.10-pre1'
 DEBUG = False
 JAVASCRIPT_DEBUG = False
 
