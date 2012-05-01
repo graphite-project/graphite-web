@@ -25,7 +25,11 @@ from graphite.render.datalib import fetchData, TimeSeries, timestamp
 from graphite.render.attime import parseTimeOffset
 
 from graphite.events import models
-from graphite.render.glyph import format_units
+#XXX format_units() should go somewhere else
+if os.environ.get('READTHEDOCS'):
+  format_units = lambda *args, **kwargs: (0,'')
+else:
+  from graphite.render.glyph import format_units
 
 NAN = float('NaN')
 INF = float('inf')

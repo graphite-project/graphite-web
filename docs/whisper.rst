@@ -14,6 +14,7 @@ paired with a timestamp in seconds since the UNIX Epoch (01-01-1970). The data v
 Python `float() <http://docs.python.org/library/functions.html#float>`_ function and as such behaves
 in the same way for special strings such as ``'inf'``. Maximum and minimum values are determined by
 the Python interpreter's allowable range for float values which can be found by executing::
+
     python -c 'import sys; print sys.float_info'
 
 
