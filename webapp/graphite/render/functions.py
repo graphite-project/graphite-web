@@ -1776,7 +1776,7 @@ def dashed(requestContext, *seriesList):
 def timeShift(requestContext, seriesList, timeShift):
   """
   Takes one metric or a wildcard seriesList, followed by a quoted string with the
-  length of time (See `from / until`_. in the `URL API`_ for examples of time formats).
+  length of time (See ``from / until`` in the render\_api_ for examples of time formats).
 
   Draws the selected metrics shifted in time. If no sign is given, a minus sign ( - ) is
   implied which will shift the metric back in time. If a plus sign ( + ) is given, the
@@ -1836,7 +1836,7 @@ def constantLine(requestContext, value):
 def threshold(requestContext, value, label=None, color=None):
   """
   Takes a float F, followed by a label (in double quotes) and a color.
-  (See URL API for valid color names & formats.)
+  (See ``bgcolor`` in the render\_api_ for valid color names & formats.)
 
   Draws a horizontal line at value F across the graph.
 
