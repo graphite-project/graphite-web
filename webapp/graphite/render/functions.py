@@ -26,7 +26,8 @@ from graphite.render.attime import parseTimeOffset
 
 from graphite.events import models
 #XXX format_units() should go somewhere else
-if os.environ.get('READTHEDOCS'):
+from os import environ
+if environ.get('READTHEDOCS'):
   format_units = lambda *args, **kwargs: (0,'')
 else:
   from graphite.render.glyph import format_units
