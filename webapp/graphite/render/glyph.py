@@ -826,7 +826,11 @@ class LineGraph(Graph):
       else:
         self.ctx.set_dash([], 0)
 
-      x = float(self.area['xmin']) + (self.lineWidth / 2.0)
+      # Shift the beginning of drawing area to the start of the series if the
+      # graph itself has a larger range
+      missingPoints = (series.start - self.startTime) / series.step
+      startShift = series.xStep * (missingPoints / series.valuesPerPoint)
+      x = float(self.area['xmin']) + startShift + (self.lineWidth / 2.0)
       y = float(self.area['ymin'])
 
       startX = x
@@ -934,7 +938,7 @@ class LineGraph(Graph):
   def consolidateDataPoints(self):
     numberOfPixels = self.graphWidth = self.area['xmax'] - self.area['xmin'] - (self.lineWidth + 1)
     for series in self.data:
-      numberOfDataPoints = len(series)
+      numberOfDataPoints = self.timeRange/series.step
       minXStep = float( self.params.get('minXStep',1.0) )
       divisor = self.timeRange / series.step
       bestXStep = numberOfPixels / divisor
