@@ -117,4 +117,4 @@ Post-Install Tasks
 .. _Twisted: http://twistedmatrix.com/
 .. _txAMQP: https://launchpad.net/txamqp/
 .. _uWSGI: http://projects.unbit.it/uwsgi/
-.. _zope.interface: http://pypi.python.org/pypi/zope.interface/
+.. _zope-interface: http://pypi.python.org/pypi/zope.interface/

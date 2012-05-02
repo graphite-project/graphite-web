@@ -162,7 +162,7 @@ Scales
 
 Shinken
 -------
-`Shinken_` is a system monitoring solution compatible with Nagios which emphasizes scalability, flexibility,
+`Shinken`_ is a system monitoring solution compatible with Nagios which emphasizes scalability, flexibility,
 and ease of setup. Shinken provides complete integration with Graphite for processing and display of
 performance data.
 
@@ -210,3 +210,4 @@ Tasseo
 .. _Hubot: https://github.com/github/hubot
 .. _hubot-scripts: https://github.com/github/hubot-scripts
 .. _Tasseo: https://github.com/obfuscurity/tasseo
+.. _Shinken: http://www.shinken-monitoring.org/
