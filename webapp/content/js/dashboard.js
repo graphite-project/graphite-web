@@ -350,7 +350,7 @@ function initDashboard () {
       '<div class="graph-container">',
         '<div class="graph-overlay">',
           '<img class="graph-img" src="{url}" width="{width}" height="{height}">',
-          '<div class="overlay-close-button" onclick="javascript: graphStore.removeAt(\'{index}\'); justClosedGraph = true;">X</div>',
+          '<div class="overlay-close-button" onclick="javascript: graphStore.removeAt(\'{index}\'); updateGraphRecords(); justClosedGraph = true;">X</div>',
         '</div>',
       '</div>',
     '</tpl>',
@@ -938,9 +938,10 @@ function graphAreaToggle(target, options) {
     var record = new GraphRecord({
       target: graphTargetString,
       params: myParams,
-      url: '/render?' + Ext.urlEncode(urlParams)
+      url: '/render?' + Ext.urlEncode(urlParams),
     });
     graphStore.add([record]);
+    updateGraphRecords();
   }
 }
 
@@ -983,6 +984,7 @@ function importGraphUrl(targetUrl, options) {
       url: '/render?' + Ext.urlEncode(urlParams)
       });
       graphStore.add([record]);
+      updateGraphRecords();
   }
 }
 
