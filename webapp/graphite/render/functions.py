@@ -323,6 +323,7 @@ def percentileOfSeries(requestContext, seriesList, n, interpolate=False):
   (start, end, step) = normalize([seriesList])[1:]
   values = [ _getPercentile(row, n, interpolate) for row in izip(*seriesList) ]
   resultSeries = TimeSeries(name, start, end, step, values)
+  resultSeries.pathExpression = name
 
   return [resultSeries]
 
@@ -340,6 +341,7 @@ def keepLastValue(requestContext, seriesList):
   """
   for series in seriesList:
     series.name = "keepLastValue(%s)" % (series.name)
+    series.pathExpression = series.name
     for i,value in enumerate(series):
       if value is None and i != 0:
         value = series[i-1]
@@ -386,6 +388,7 @@ def asPercent(requestContext, seriesList, total=None):
 
     name = "asPercent(%s, %s)" % (series.name, totalText or series.pathExpression)
     resultSeries = TimeSeries(name,series.start,series.end,series.step,resultValues)
+    resultSeries.pathExpression = name
     resultList.append(resultSeries)
 
   return resultList
@@ -451,7 +454,9 @@ def multiplySeries(requestContext, *seriesLists):
 
   name = "multiplySeries(%s)" % ','.join([s.name for s in seriesList])
   product = imap(lambda x: safeMul(*x), izip(*seriesList))
-  return [TimeSeries(name, start, end, step, product)]
+  resultSeries = TimeSeries(name, start, end, step, product)
+  resultSeries.pathExpression = name
+  return resultSeries
 
 def movingMedian(requestContext, seriesList, windowSize):
   """
@@ -1256,8 +1261,10 @@ def nPercentile(requestContext, seriesList, n):
 
     perc_val = _getPercentile(s_copy, n)
     if perc_val:
-      results.append( TimeSeries( '%dth Percentile(%s, %.1f)' % ( n, s_copy.name, perc_val ),
-                                  s_copy.start, s_copy.end, s_copy.step, [perc_val] ) )
+      name = 'nPercentile(%s, %.1f)' % (n, s_copy.name, perc_val)
+      perc_series = TimeSeries(name, s_copy.start, s_copy.end, s_copy.step, [perc_val] )
+      perc_series.pathExpression = name
+      results.append(perc_series)
   return results
 
 def removeAbovePercentile(requestContext, seriesList, n):
@@ -1876,6 +1883,8 @@ def transformNull(requestContext, seriesList, default=0):
     else: return v
 
   for series in seriesList:
+    series.name = "transformNull(%s, %.2f)" % (series.name, default)
+    series.pathExpression = series.name
     values = [transform(v) for v in series]
     series.extend(values)
     del series[:len(values)]
