@@ -938,7 +938,7 @@ function graphAreaToggle(target, options) {
     var record = new GraphRecord({
       target: graphTargetString,
       params: myParams,
-      url: '/render?' + Ext.urlEncode(urlParams),
+      url: '/render?' + Ext.urlEncode(urlParams)
     });
     graphStore.add([record]);
     updateGraphRecords();
@@ -965,7 +965,7 @@ function importGraphUrl(targetUrl, options) {
     return;
   }
 
-  var graphTargetString = Ext.urlEncode(graphTargetList);
+  var graphTargetString = "target=" + Ext.urlEncode(graphTargetList);
   var existingIndex = graphStore.findExact('target', graphTargetString);
 
   if (existingIndex > -1) {
