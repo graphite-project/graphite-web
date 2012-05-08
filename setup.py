@@ -14,7 +14,7 @@ else:
 
 storage_dirs = []
 
-for subdir in ('whisper', 'lists', 'rrd', 'log', 'log/webapp'):
+for subdir in ('whisper', 'rrd', 'log', 'log/webapp'):
   storage_dirs.append( ('storage/%s' % subdir, []) )
 
 webapp_content = {}
@@ -56,9 +56,8 @@ setup(
     'graphite.thirdparty',
     'graphite.thirdparty.pytz',
   ],
-  package_data={'graphite' : 
-    ['templates/*', 'local_settings.py.example', 
-    'render/graphTemplates.conf']},
+  package_data={'graphite' :
+    ['templates/*', 'local_settings.py.example']},
   scripts=glob('bin/*'),
   data_files=webapp_content.items() + storage_dirs + conf_files,
   **setup_kwargs
