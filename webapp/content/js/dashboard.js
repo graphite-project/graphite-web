@@ -2357,7 +2357,7 @@ function setDashboardName(name) {
     saveButton.setText("Save");
     saveButton.disable();
   } else {
-    var urlparts = location.href.split('/');
+    var urlparts = location.href.split('#')[0].split('/');
     var i = urlparts.indexOf('dashboard');
     if (i == -1) {
       Ext.Msg.alert("Error", "urlparts = " + Ext.encode(urlparts) + " and indexOf(dashboard) = " + i);
