@@ -27,25 +27,14 @@ GraphiteComposer.prototype = {
   toggleTarget: function (target) {
     /* Add the given target to the graph if it does not exist,
      * otherwise remove it. */
-    var targets = this.url.getParamList("target");
     var record = getTargetRecord(target);
 
-    if (targets.indexOf(target) != -1) { // toggle it off
-      this.url.removeParam("target", target);
-
-      if (record) {
-        TargetStore.remove(record);
-      }
-
+    if (record) {
+      TargetStore.remove(record);
     } else { // toggle it on
-      this.url.addParam("target", target);
-
-      if (!record) {
-        var newRecord = new TargetRecord({value: target});
-        TargetStore.add( [newRecord] );
-      }
+      addTarget(target);
     }
-
+    this.syncTargetList();
     this.updateImage();
   },
 
@@ -64,8 +53,6 @@ GraphiteComposer.prototype = {
     this.url.copyQueryStringFromURL(tempUrl.queryString);
     Ext.each(targets, this.toggleTarget, this);
 
-    /* Apply the query string from the given url to our graph image */
-    this.url.copyQueryStringFromURL(url);
     // Fit the image into the window
     this.url.setParam('width', this.window.getInnerWidth());
     this.url.setParam('height', this.window.getInnerHeight());
@@ -92,6 +79,13 @@ GraphiteComposer.prototype = {
     this.window.updateTimeDisplay(timeInfo);
     this.window.updateUI();
     this.updateImage();
+  },
+
+  syncTargetList: function () {
+    this.url.removeParam('target');
+    TargetStore.each(function (record) {
+      this.url.addParam('target', record.data.value);
+    }, this);
   },
 
   updateImage: function () {

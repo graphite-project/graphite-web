@@ -570,12 +570,11 @@ var GraphDataWindow = {
             newTarget = funcName + '(' + target + ')';
           }
 
-          Composer.url.removeParam('target', target);
-          Composer.url.addParam('target', newTarget);
           replaceTarget(target, newTarget);
           _this.targetList.select( TargetStore.findExact('value', newTarget), true);
         }
       );
+      Composer.syncTargetList();
       Composer.updateImage();
     }
     return applyFunc;
@@ -616,15 +615,13 @@ var GraphDataWindow = {
 
       // Insert new target where the first selected was
       replaceTarget(firstTarget,newTarget);
-      Composer.url.removeParam('target', firstTarget);
 
       Ext.each(oldTargets,
         function (target) {
-	  Composer.url.removeParam('target', target);
           removeTarget(target);
         }
       );
-      Composer.url.addParam('target', newTarget);
+      Composer.syncTargetList();
       Composer.updateImage();
 
       this.targetList.select( TargetStore.findExact('value', newTarget), true);
@@ -663,18 +660,17 @@ var GraphDataWindow = {
         }
         args.push( argString.substring(lastArg, i) );
 
-        Composer.url.removeParam('target', target);
         var firstIndex = indexOfTarget(target);
         removeTarget(target);
 
         args.reverse()
         Ext.each(args, function (arg) {
           if (!arg.match(/^([0123456789\.]+|".+"|'.*')$/)) { //Skip string and number literals
-            Composer.url.addParam('target', arg);
             insertTarget(firstIndex, arg);
             _this.targetList.select( TargetStore.findExact('value', arg), true);
           }
         });
+        Composer.syncTargetList();
         Composer.updateImage();
       }
     );
@@ -690,9 +686,9 @@ var GraphDataWindow = {
         specialkey: function (field, e) {
                       if (e.getKey() == e.ENTER) {
                         var target = metricCompleter.getValue();
-                        Composer.url.addParam('target', target);
-                        Composer.updateImage();
                         addTarget(target);
+                        Composer.syncTargetList();
+                        Composer.updateImage();
                         win.close();
                         e.stopEvent();
                         return false;
@@ -726,9 +722,9 @@ var GraphDataWindow = {
           text: 'OK',
           handler: function () {
                      var target = metricCompleter.getValue();
-                     Composer.url.addParam('target', target);
-                     Composer.updateImage();
                      addTarget(target);
+                     Composer.syncTargetList();
+                     Composer.updateImage();
                      win.close();
                    }
         }, {
@@ -745,18 +741,11 @@ var GraphDataWindow = {
   },
 
   removeTarget: function (item, e) {
-    var targets = Composer.url.getParamList('target');
 
     Ext.each(this.getSelectedTargets(), function (target) {
-      targets.remove(target);
       removeTarget(target);
     });
-
-    if (targets.length == 0) {
-      Composer.url.removeParam('target');
-    } else {
-      Composer.url.setParamList('target', targets);
-    }
+    Composer.syncTargetList();
     Composer.updateImage();
   },
 
@@ -784,10 +773,10 @@ var GraphDataWindow = {
                       if (e.getKey() == e.ENTER) {
                         var target = metricCompleter.getValue();
 
-                        Composer.url.removeParam('target', record.get('value'));
-                        Composer.url.addParam('target', target);
-                        Composer.updateImage();
                         record.set('value', target);
+                        record.commit();
+                        Composer.syncTargetList();
+                        Composer.updateImage();
 
                         win.close();
                         e.stopEvent();
@@ -804,12 +793,11 @@ var GraphDataWindow = {
       var newValue = metricCompleter.getValue();
 
       if (newValue != '') {
-        Composer.url.removeParam('target', record.get('value'));
-        Composer.url.addParam('target', newValue);
-        Composer.updateImage();
-
         record.set('value', newValue);
         record.commit();
+
+        Composer.syncTargetList();
+        Composer.updateImage();
       }
 
       win.close();
