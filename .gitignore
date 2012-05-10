@@ -1,0 +1,10 @@
+MANIFEST
+_trial_temp
+build
+dist
+graphite.db
+dropin.cache
+*.egg-info
+docs/_build
+*.log
+*.pyc
