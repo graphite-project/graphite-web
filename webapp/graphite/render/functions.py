@@ -2310,33 +2310,36 @@ def events(requestContext, *tags):
   Returns all events tagged as "tag-one" and "tag-two" and the second one
   returns all events.
   """
-  step = 60
+  def to_epoch(datetime_object):
+    return int(time.mktime(datetime_object.timetuple()))
+
+  step = 1
   name = "events(" + ", ".join(tags) + ")"
-  delta = timedelta(seconds=step)
-  when = requestContext["startTime"]
-  values = []
-  current = 0
   if tags == ("*",):
     tags = None
   events = models.Event.find_events(requestContext["startTime"],
                                     requestContext["endTime"], tags=tags)
-  eventsp = 0
 
-  while when < requestContext["endTime"]:
-    count = 0
-    if events:
-      while eventsp < len(events) and events[eventsp].when >= when \
-          and events[eventsp].when < (when + delta):
-        count += 1
-        eventsp += 1
+  # Django returns database timestamps in timezone-ignorant datetime objects
+  # so we use epoch seconds and do the conversion ourselves
+  start_timestamp = to_epoch(requestContext["startTime"])
+  start_timestamp = start_timestamp - start_timestamp % step
+  end_timestamp = to_epoch(requestContext["endTime"])
+  end_timestamp = end_timestamp - end_timestamp % step
+  points = (end_timestamp - start_timestamp)/step
 
-    values.append(count)
-    when += delta
+  values = [None] * points
+  for event in events:
+    event_timestamp = to_epoch(event.when)
+    value_offset = (event_timestamp - start_timestamp)/step
+    if values[value_offset] is None:
+      values[value_offset] = 1
+    else:
+      values[value_offset] += 1
 
-  return [TimeSeries(name,
-            time.mktime(requestContext["startTime"].timetuple()),
-            time.mktime(requestContext["endTime"].timetuple()),
-            step, values)]
+  result_series = TimeSeries(name, start_timestamp, end_timestamp, step, values, 'sum')
+  result_series.pathExpression = name
+  return [result_series]
 
 def pieAverage(requestContext, series):
   return safeDiv(safeSum(series),safeLen(series))
