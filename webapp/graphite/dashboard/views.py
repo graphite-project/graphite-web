@@ -1,6 +1,11 @@
 import re
 import errno
-import json
+
+try:
+  import json
+except ImportError:
+  import simplejson as json
+
 from os.path import getmtime, join, exists
 from urllib import urlencode
 from ConfigParser import ConfigParser
