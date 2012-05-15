@@ -18,9 +18,9 @@ from django.conf import settings
 from graphite.account.models import Profile
 from graphite.util import getProfile, getProfileByUsername, defaultUser, json
 from graphite.logger import log
-from graphite.storage import STORE, LOCAL_STORE
+from graphite.storage import STORE
 from graphite.metrics.search import searcher
-from graphite.render.datalib import CarbonLink
+from graphite.carbonlink import CarbonLink
 import fnmatch, os
 
 try:
@@ -61,47 +61,20 @@ def search_view(request):
   return HttpResponse(result_data, mimetype='application/json')
 
 
-def context_view(request):
-  if request.method == 'GET':
-    contexts = []
-
-    if not 'metric' not in request.GET:
-      return HttpResponse('{ "error" : "missing required parameter \"metric\"" }', mimetype='application/json')
-
-    for metric in request.GET.getlist('metric'):
-      try:
-        context = STORE.get(metric).context
-      except:
-        contexts.append({ 'metric' : metric, 'error' : 'failed to retrieve context', 'traceback' : traceback.format_exc() })
-      else:
-        contexts.append({ 'metric' : metric, 'context' : context })
-
-    content = json.dumps( { 'contexts' : contexts } )
-    return HttpResponse(content, mimetype='application/json')
-
-  elif request.method == 'POST':
-
-    if 'metric' not in request.POST:
-      return HttpResponse('{ "error" : "missing required parameter \"metric\"" }', mimetype='application/json')
-
-    newContext = dict( item for item in request.POST.items() if item[0] != 'metric' )
-
-    for metric in request.POST.getlist('metric'):
-      STORE.get(metric).updateContext(newContext)
-
-    return HttpResponse('{ "success" : true }', mimetype='application/json')
-
-  else:
-    return HttpResponseBadRequest("invalid method, must be GET or POST")
-
-
 def find_view(request):
   "View for finding metrics matching a given pattern"
   profile = getProfile(request)
   format = request.REQUEST.get('format', 'treejson')
   local_only = int( request.REQUEST.get('local', 0) )
-  contexts = int( request.REQUEST.get('contexts', 0) )
   wildcards = int( request.REQUEST.get('wildcards', 0) )
+  fromTime = int( request.REQUEST.get('from', -1) )
+  untilTime = int( request.REQUEST.get('until', -1) )
+
+  if fromTime == -1:
+    fromTime = None
+  if untilTime == -1:
+    untilTime = None
+
   automatic_variants = int( request.REQUEST.get('automatic_variants', 0) )
 
   try:
@@ -113,11 +86,6 @@ def find_view(request):
     base_path = query.rsplit('.', 1)[0] + '.'
   else:
     base_path = ''
-
-  if local_only:
-    store = LOCAL_STORE
-  else:
-    store = STORE
 
   if format == 'completer':
     query = query.replace('..', '*.')
@@ -132,28 +100,27 @@ def find_view(request):
       query = '.'.join(query_parts)
 
   try:
-    matches = list( store.find(query) )
+    matches = list( STORE.find(query, fromTime, untilTime, local=local_only) )
   except:
     log.exception()
     raise
 
   log.info('find_view query=%s local_only=%s matches=%d' % (query, local_only, len(matches)))
   matches.sort(key=lambda node: node.name)
+  log.info("received remote find request: pattern=%s from=%s until=%s local_only=%s format=%s matches=%d" % (query, fromTime, untilTime, local_only, format, len(matches)))
 
   if format == 'treejson':
-    content = tree_json(matches, base_path, wildcards=profile.advancedUI or wildcards, contexts=contexts)
+    content = tree_json(matches, base_path, wildcards=profile.advancedUI or wildcards)
     response = HttpResponse(content, mimetype='application/json')
 
   elif format == 'pickle':
-    content = pickle_nodes(matches, contexts=contexts)
+    content = pickle_nodes(matches)
     response = HttpResponse(content, mimetype='application/pickle')
 
   elif format == 'completer':
-    #if len(matches) == 1 and (not matches[0].isLeaf()) and query == matches[0].metric_path + '*': # auto-complete children
-    #  matches = list( store.find(query + '.*') )
     results = []
     for node in matches:
-      node_info = dict(path=node.metric_path, name=node.name, is_leaf=str(int(node.isLeaf())))
+      node_info = dict(path=node.path, name=node.name, is_leaf=str(int(node.is_leaf)))
       if not node.isLeaf():
         node_info['path'] += '.'
       results.append(node_info)
@@ -179,15 +146,10 @@ def expand_view(request):
   group_by_expr = int( request.REQUEST.get('groupByExpr', 0) )
   leaves_only   = int( request.REQUEST.get('leavesOnly', 0) )
 
-  if local_only:
-    store = LOCAL_STORE
-  else:
-    store = STORE
-
   results = {}
   for query in request.REQUEST.getlist('query'):
     results[query] = set()
-    for node in store.find(query):
+    for node in STORE.find(query, local=local_only):
       if node.isLeaf() or not leaves_only:
         results[query].add( node.metric_path )
 
@@ -257,7 +219,7 @@ def set_metadata_view(request):
   return HttpResponse(json.dumps(results), mimetype='application/json')
 
 
-def tree_json(nodes, base_path, wildcards=False, contexts=False):
+def tree_json(nodes, base_path, wildcards=False):
   results = []
 
   branchNode = {
@@ -275,7 +237,7 @@ def tree_json(nodes, base_path, wildcards=False, contexts=False):
   if len(nodes) > 1 and wildcards:
     wildcardNode = {'text' : '*', 'id' : base_path + '*'}
 
-    if any(not n.isLeaf() for n in nodes):
+    if any(not n.is_leaf for n in nodes):
       wildcardNode.update(branchNode)
 
     else:
@@ -296,12 +258,7 @@ def tree_json(nodes, base_path, wildcards=False, contexts=False):
       'id' : base_path + str(node.name),
     }
 
-    if contexts:
-      resultNode['context'] = node.context
-    else:
-      resultNode['context'] = {}
-
-    if node.isLeaf():
+    if node.is_leaf:
       resultNode.update(leafNode)
       results_leaf.append(resultNode)
     else:
@@ -313,12 +270,17 @@ def tree_json(nodes, base_path, wildcards=False, contexts=False):
   return json.dumps(results)
 
 
-def pickle_nodes(nodes, contexts=False):
-  if contexts:
-    return pickle.dumps([ { 'metric_path' : n.metric_path, 'isLeaf' : n.isLeaf(), 'intervals' : n.getIntervals(), 'context' : n.context } for n in nodes ])
+def pickle_nodes(nodes):
+  nodes_info = []
 
-  else:
-    return pickle.dumps([ { 'metric_path' : n.metric_path, 'isLeaf' : n.isLeaf(), 'intervals' : n.getIntervals()} for n in nodes ])
+  for node in nodes:
+    info = dict(path=node.path, is_leaf=node.is_leaf)
+    if node.is_leaf:
+      info['intervals'] = node.intervals
+
+    nodes_info.append(info)
+
+  return pickle.dumps(nodes_info, protocol=-1)
 
 
 def any(iterable): #python2.4 compatibility

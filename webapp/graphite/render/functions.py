@@ -21,8 +21,9 @@ import random
 import time
 
 from graphite.logger import log
-from graphite.render.datalib import fetchData, TimeSeries, timestamp
+from graphite.render.datalib import TimeSeries
 from graphite.render.attime import parseTimeOffset
+from graphite.util import timestamp
 
 from graphite.events import models
 #XXX format_units() should go somewhere else
@@ -37,6 +38,9 @@ INF = float('inf')
 DAY = 86400
 HOUR = 3600
 MINUTE = 60
+
+NAN = float('NaN')
+INF = float('inf')
 
 #Utility functions
 def safeSum(values):
@@ -2370,6 +2374,7 @@ SeriesFunctions = {
   'minSeries' : minSeries,
   'maxSeries' : maxSeries,
   'rangeOfSeries': rangeOfSeries,
+  'percentileOfSeries': percentileOfSeries,
 
   # Transform functions
   'scale' : scale,

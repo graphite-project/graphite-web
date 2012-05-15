@@ -43,11 +43,11 @@ def completePath(path, shortnames=False):
 
   results = []
   
-  for match in STORE.find(pattern):
+  for node in STORE.find(pattern):
     if shortnames:
-      results.append(match.name)
+      results.append(node.name)
     else:
-      results.append(match.metric_path)
+      results.append(node.path)
 
   list_items = ["<li>%s</li>" % r for r in results]
   list_element = "<ul>" + '\n'.join(list_items) + "</ul>"

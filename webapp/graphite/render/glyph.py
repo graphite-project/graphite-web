@@ -97,6 +97,8 @@ xAxisConfigs = (
   dict(seconds=16000, minorGridUnit=DAY,  minorGridStep=7,  majorGridUnit=DAY,  majorGridStep=14, labelUnit=DAY,  labelStep=14, format="%m/%d", maxInterval=365*DAY),
   dict(seconds=32000, minorGridUnit=DAY,  minorGridStep=15, majorGridUnit=DAY,  majorGridStep=30, labelUnit=DAY,  labelStep=30, format="%m/%d", maxInterval=365*DAY),
   dict(seconds=64000, minorGridUnit=DAY,  minorGridStep=30, majorGridUnit=DAY,  majorGridStep=60, labelUnit=DAY,  labelStep=60, format="%m/%d %Y"),
+  dict(seconds=100000,minorGridUnit=DAY,  minorGridStep=60, majorGridUnit=DAY,  majorGridStep=120,labelUnit=DAY,  labelStep=120, format="%m/%d %Y"),
+  dict(seconds=120000,minorGridUnit=DAY,  minorGridStep=120,majorGridUnit=DAY,  majorGridStep=240,labelUnit=DAY,  labelStep=240, format="%m/%d %Y"),
 )
 
 UnitSystems = {
@@ -1655,7 +1657,7 @@ def logrange(base, scale_min, scale_max):
   if scale_min > 0:
       current = math.floor(math.log(scale_min, base))
   factor = current
-  while current <= scale_max:
+  while current < scale_max:
      current = math.pow(base, factor)
      yield current
      factor += 1
