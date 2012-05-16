@@ -1378,6 +1378,31 @@ def sortByMinima(requestContext, seriesList):
   newSeries.sort(compare)
   return newSeries
 
+def useSeriesAbove(requestContext, seriesList, value, search, replace):
+  """
+  Compares the maximum of each series against the given `value`. If the series
+  maximum is greater than `value`, the regular expression search and replace is
+  applied against the series name to plot a related metric
+
+  e.g. given useSeriesAbove(ganglia.metric1.reqs,10,'reqs','time'),
+  the response time metric will be plotted only when the maximum value of the
+  corresponding request/s metric is > 10
+
+  .. code-block:: none
+
+    &target=useSeriesAbove(ganglia.metric1.reqs,10,"reqs","time")
+  """
+  newSeries = []
+
+  for series in seriesList:
+    newname = re.sub(search, replace, series.name)
+    if max(series) > value:
+      n = evaluateTarget(requestContext, newname)
+      if n is not None and len(n) > 0:
+        newSeries.append(n[0])
+
+  return newSeries
+
 def mostDeviant(requestContext, n, seriesList):
   """
   Takes an integer N followed by one metric or a wildcard seriesList.
@@ -2416,6 +2441,7 @@ SeriesFunctions = {
   'limit' : limit,
   'sortByMaxima' : sortByMaxima,
   'sortByMinima' : sortByMinima,
+  'useSeriesAbove': useSeriesAbove,
   'exclude' : exclude,
 
   # Data Filter functions
