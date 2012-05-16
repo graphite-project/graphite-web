@@ -94,9 +94,6 @@ USE_REMOTE_USER_AUTHENTICATION = False
 # Override to link a different URL for login (e.g. for django_openid_auth)
 LOGIN_URL = '/account/login'
 
-#Additional authentication backends to prepend
-ADDITIONAL_AUTHENTICATION_BACKENDS = []
-
 #Initialize database settings - Old style (pre 1.2)
 DATABASE_ENGINE = 'django.db.backends.sqlite3'	# 'postgresql', 'mysql', 'sqlite3' or 'ado_mssql'.
 DATABASE_NAME = ''				# Or path to database file if using sqlite3.
