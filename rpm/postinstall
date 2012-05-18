@@ -1,8 +1,10 @@
+GRAPHITE_PATH=/opt
+
 CONFFILES="graphite.wsgi"
 for i in $CONFFILES; do
-    if [ ! -f %{graphite_path}/conf/$i ]; then
+    if [ ! -f ${GRAPHITE_PATH}/conf/$i ]; then
         /bin/echo "No pre-existing $i - creating from example."
-        /bin/cp %{graphite_path}/conf/$i.example %{graphite_path}/conf/$i;
+        /bin/cp ${GRAPHITE_PATH}/conf/$i.example ${GRAPHITE_PATH}/conf/$i;
     fi;      
 done;
 
@@ -13,10 +15,10 @@ if [ ! -f /etc/httpd/conf.d/graphite.conf ]; then
     /bin/echo "an example vhost configuration for WSGI!"
     /bin/echo "This script will now attempt to install the vHost file needed."
     /bin/echo "--IMPORTANT--"
-    /bin/cp %{graphite_path}/examples/example-graphite-vhost.conf /etc/httpd/conf.d/graphite.conf
+    /bin/cp ${GRAPHITE_PATH}/examples/example-graphite-vhost.conf /etc/httpd/conf.d/graphite.conf
 fi; 
 
-/usr/bin/python %{graphite_path}/webapp/graphite/manage.py syncdb --noinput
+/usr/bin/python ${GRAPHITE_PATH}/webapp/graphite/manage.py syncdb --noinput
 
-/bin/chown -R apache.apache %{graphite_path}/storage
-/bin/chown -R apache.apache %{graphite_path}/webapp
+/bin/chown -R apache.apache ${GRAPHITE_PATH}/storage
+/bin/chown -R apache.apache ${GRAPHITE_PATH}/webapp
