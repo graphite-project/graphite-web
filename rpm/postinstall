@@ -1,4 +1,4 @@
-GRAPHITE_PATH=/opt
+GRAPHITE_PATH=/opt/graphite
 
 CONFFILES="graphite.wsgi"
 for i in $CONFFILES; do
