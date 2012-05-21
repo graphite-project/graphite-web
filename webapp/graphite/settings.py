@@ -15,13 +15,14 @@ limitations under the License."""
 # DO NOT MODIFY THIS FILE DIRECTLY - use local_settings.py instead
 import sys, os
 from django import VERSION as DJANGO_VERSION
-from os.path import join, dirname, abspath
+from os.path import join
 
 try:
   import rrdtool
 except ImportError:
   rrdtool = False
 
+_APP_SETTINGS_LOADED = True
 WEBAPP_VERSION = '0.9.10-pre2'
 DEBUG = False
 JAVASCRIPT_DEBUG = False
@@ -102,92 +103,18 @@ DATABASE_PASSWORD = ''				# Not used with sqlite3.
 DATABASE_HOST = ''				# Set to empty string for localhost. Not used with sqlite3.
 DATABASE_PORT = ''				# Set to empty string for default. Not used with sqlite3.
 
-ADMINS = ()
-MANAGERS = ADMINS
-
-TEMPLATE_DIRS = (
-  join(WEB_DIR, 'templates'),
-)
-
 # If using rrdcached, set to the address or socket of the daemon
 FLUSHRRDCACHED = ''
 
-#Django settings below, do not touch!
-APPEND_SLASH = False
-TEMPLATE_DEBUG = DEBUG
-CACHE_BACKEND = "dummy:///"
-
-# Language code for this installation. All choices can be found here:
-# http://www.w3.org/TR/REC-html40/struct/dirlang.html#langcodes
-# http://blogs.law.harvard.edu/tech/stories/storyReader$15
-LANGUAGE_CODE = 'en-us'
-
-SITE_ID = 1
-
-# Absolute path to the directory that holds media.
-
-MEDIA_ROOT = ''
-
-# URL that handles the media served from MEDIA_ROOT.
-# Example: "http://media.lawrence.com"
-MEDIA_URL = ''
-
-# URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
-# trailing slash.
-# Examples: "http://foo.com/media/", "/media/".
-ADMIN_MEDIA_PREFIX = '/media/'
-
-# Make this unique, and don't share it with anybody.
-SECRET_KEY = ''
-
-# List of callables that know how to import templates from various sources.
-#XXX Compatibility for Django 1.1. To be removed after 0.9.10
-if DJANGO_VERSION < (1,2):
-  TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.load_template_source',
-    'django.template.loaders.app_directories.load_template_source',
-  )
-else:
-  TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-  )
-
-MIDDLEWARE_CLASSES = (
-  'django.middleware.common.CommonMiddleware',
-  'django.middleware.gzip.GZipMiddleware',
-  'django.contrib.sessions.middleware.SessionMiddleware',
-  'django.contrib.auth.middleware.AuthenticationMiddleware',
-)
-
-ROOT_URLCONF = 'graphite.urls'
-
-INSTALLED_APPS = (
-  'graphite.metrics',
-  'graphite.render',
-  'graphite.cli',
-  'graphite.browser',
-  'graphite.composer',
-  'graphite.account',
-  'graphite.dashboard',
-  'graphite.whitelist',
-  'graphite.events',
-  'django.contrib.auth',
-  'django.contrib.sessions',
-  'django.contrib.admin',
-  'django.contrib.contenttypes',
-  'tagging',
-)
-
-AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend']
-
-
-## Pull in overrides from local_settings.py
+## Load our local_settings
 try:
   from graphite.local_settings import *
 except ImportError:
   print >> sys.stderr, "Could not import graphite.local_settings, using defaults!"
 
+## Load Django settings if they werent picked up in local_settings
+if not _APP_SETTINGS_LOADED:
+  from graphite.app_settings import *
 
 ## Set config dependent on flags set in local_settings
 # Path configuration
