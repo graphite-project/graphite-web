@@ -121,7 +121,7 @@ def find_view(request):
     results = []
     for node in matches:
       node_info = dict(path=node.path, name=node.name, is_leaf=str(int(node.is_leaf)))
-      if not node.isLeaf():
+      if not node.is_leaf:
         node_info['path'] += '.'
       results.append(node_info)
 
@@ -150,7 +150,7 @@ def expand_view(request):
   for query in request.REQUEST.getlist('query'):
     results[query] = set()
     for node in STORE.find(query, local=local_only):
-      if node.isLeaf() or not leaves_only:
+      if node.is_leaf or not leaves_only:
         results[query].add( node.metric_path )
 
   # Convert our results to sorted lists because sets aren't json-friendly
