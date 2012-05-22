@@ -88,7 +88,7 @@ class CarbonLinkPool:
   def query(self, metric):
     request = dict(type='cache-query', metric=metric)
     results = self.send_request(request)
-    log.cache("CarbonLink cache-query request for %s returned %d datapoints" % (metric, len(results)))
+    log.cache("CarbonLink cache-query request for %s returned %d datapoints" % (metric, len(results['datapoints'])))
     return results['datapoints']
 
   def get_metadata(self, metric, key):
@@ -111,6 +111,7 @@ class CarbonLinkPool:
 
     host = self.select_host(metric)
     conn = self.get_connection(host)
+    log.cache("CarbonLink sending request for %s to %s" % (metric, str(host)))
     try:
       conn.sendall(request_packet)
       result = self.recv_response(conn)
@@ -120,6 +121,7 @@ class CarbonLinkPool:
     else:
       self.connections[host].add(conn)
       if 'error' in result:
+        log.cache("Error getting data from cache: %s" % result['error'])
         raise CarbonLinkRequestError(result['error'])
       else:
         return result
