@@ -18,6 +18,7 @@ except ImportError:
 def load_keyfunc():
   if settings.CARBONLINK_HASHING_KEYFUNC:
     module_path, func_name = settings.CARBONLINK_HASHING_KEYFUNC.rsplit(':', 1)
+    log.cache("Using keyfunc %s found in %s" % (str(func_name), str(module_path)))
     return load_module(module_path, member=func_name)
   else:
     return lambda x: x
