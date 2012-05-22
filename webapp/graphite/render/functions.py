@@ -638,6 +638,50 @@ def derivative(requestContext, seriesList):
     results.append(newSeries)
   return results
 
+def perSecond(requestContext, seriesList, maxValue=None):
+  """
+  Derivative adjusted for the series time interval
+  This is useful for taking a running total metric and showing how many requests
+  per second were handled.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=perSecond(company.server.application01.ifconfig.TXPackets)
+
+  Each time you run ifconfig, the RX and TXPackets are higher (assuming there
+  is network traffic.) By applying the derivative function, you can get an
+  idea of the packets per minute sent or received, even though you're only
+  recording the total.
+  """
+  results = []
+  for series in seriesList:
+    newValues = []
+    prev = None
+    for val in series:
+      step = series.step
+      if None in (prev,val):
+        newValues.append(None)
+        prev = val
+        continue
+
+      diff = val - prev
+      if diff >= 0:
+        newValues.append(diff / step)
+      elif maxValue is not None and maxValue >= val:
+        newValues.append( ((maxValue - prev) + val  + 1) / step )
+      else:
+        newValues.append(None)
+
+      prev = val
+    newName = "perSecond(%s)" % series.name
+    newSeries = TimeSeries(newName, series.start, series.end, series.step, newValues)
+    newSeries.pathExpression = newName
+    results.append(newSeries)
+  return results
+
+
 def integral(requestContext, seriesList):
   """
   This will show the sum over time, sort of like a continuous addition function.
@@ -2381,6 +2425,7 @@ SeriesFunctions = {
   'scaleToSeconds' : scaleToSeconds,
   'offset' : offset,
   'derivative' : derivative,
+  'perSecond' : perSecond,
   'integral' : integral,
   'percentileOfSeries': percentileOfSeries,
   'nonNegativeDerivative' : nonNegativeDerivative,
