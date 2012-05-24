@@ -23,7 +23,7 @@ except ImportError:
   rrdtool = False
 
 _APP_SETTINGS_LOADED = True
-WEBAPP_VERSION = '0.9.10-pre2'
+WEBAPP_VERSION = '0.9.10-pre3'
 DEBUG = False
 JAVASCRIPT_DEBUG = False
 
