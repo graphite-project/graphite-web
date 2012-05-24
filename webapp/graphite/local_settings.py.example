@@ -3,13 +3,6 @@
 #
 # Additional customizations to Django settings can be added to this file as well
 
-# Make settings.py variables available for modification, avoiding circular import
-try:
-  LOCAL_SETTINGS
-except NameError:
-  from graphite.settings import *
-  LOCAL_SETTINGS = True
-
 #####################################
 # General Configuration #
 #####################################
@@ -203,6 +196,7 @@ except NameError:
 #####################################
 # Additional Django Settings #
 #####################################
-# Place custom additions and overrides of Django settings (middlewares, etc) here
-
+# Uncomment the following line for direct access to Django settings such as
+# MIDDLEWARE_CLASSES or APPS
+#from graphite.app_settings import *
 
