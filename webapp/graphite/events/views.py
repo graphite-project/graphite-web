@@ -1,14 +1,10 @@
 import datetime
 import time
 
-try:
-  import json
-except ImportError:
-  import simplejson as json
-
 from django.http import HttpResponse
 from django.shortcuts import render_to_response, get_object_or_404
 
+from graphite.util import json
 from graphite.events import models
 from graphite.render.attime import parseATTime
 from django.core.urlresolvers import get_script_prefix
@@ -19,11 +15,11 @@ def to_timestamp(dt):
     return time.mktime(dt.timetuple())
 
 
-class EventEncoder(simplejson.JSONEncoder):
+class EventEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, datetime.datetime):
             return to_timestamp(obj)
-        return simplejson.JSONEncoder.default(self, obj)
+        return json.JSONEncoder.default(self, obj)
 
 
 def view_events(request):
@@ -45,7 +41,7 @@ def detail(request, event_id):
 
 def post_event(request):
     if request.method == 'POST':
-        event = simplejson.loads(request.raw_post_data)
+        event = json.loads(request.raw_post_data)
         assert isinstance(event, dict)
 
         values = {}
@@ -64,7 +60,7 @@ def post_event(request):
         return HttpResponse(status=405)
 
 def get_data(request):
-    return HttpResponse(simplejson.dumps(fetch(request), cls=EventEncoder),
+    return HttpResponse(json.dumps(fetch(request), cls=EventEncoder),
                         mimetype="application/json")
 
 def fetch(request):
