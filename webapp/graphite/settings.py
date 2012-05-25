@@ -15,14 +15,14 @@ limitations under the License."""
 # DO NOT MODIFY THIS FILE DIRECTLY - use local_settings.py instead
 import sys, os
 from django import VERSION as DJANGO_VERSION
-from os.path import join
+from os.path import abspath, dirname, join
 
 try:
   import rrdtool
 except ImportError:
   rrdtool = False
 
-_APP_SETTINGS_LOADED = True
+_APP_SETTINGS_LOADED = False
 WEBAPP_VERSION = '0.9.10-pre3'
 DEBUG = False
 JAVASCRIPT_DEBUG = False
