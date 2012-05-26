@@ -1,0 +1,24 @@
+GRAPHITE_PATH=/opt/graphite
+
+CONFFILES="graphite.wsgi"
+for i in $CONFFILES; do
+    if [ ! -f ${GRAPHITE_PATH}/conf/$i ]; then
+        /bin/echo "No pre-existing $i - creating from example."
+        /bin/cp ${GRAPHITE_PATH}/conf/$i.example ${GRAPHITE_PATH}/conf/$i;
+    fi;      
+done;
+
+if [ ! -f /etc/httpd/conf.d/graphite.conf ]; then 
+    /bin/echo "--IMPORTANT--"
+    /bin/echo "Graphite VirtualHost configuration not found in default"
+    /bin/echo "location. Graphite won't work without it. See sources for"
+    /bin/echo "an example vhost configuration for WSGI!"
+    /bin/echo "This script will now attempt to install the vHost file needed."
+    /bin/echo "--IMPORTANT--"
+    /bin/cp ${GRAPHITE_PATH}/examples/example-graphite-vhost.conf /etc/httpd/conf.d/graphite.conf
+fi; 
+
+/usr/bin/python ${GRAPHITE_PATH}/webapp/graphite/manage.py syncdb --noinput
+
+/bin/chown -R apache.apache ${GRAPHITE_PATH}/storage
+/bin/chown -R apache.apache ${GRAPHITE_PATH}/webapp

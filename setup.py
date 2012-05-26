@@ -30,10 +30,11 @@ for root, dirs, files in os.walk('webapp/content'):
 
 
 conf_files = [ ('conf', glob('conf/*.example')) ]
+examples = [ ('examples', glob('examples/example-*')) ]
 
 setup(
   name='graphite-web',
-  version='0.9.10-pre4',
+  version='0.9.10_pre4',
   url='https://launchpad.net/graphite',
   author='Chris Davis',
   author_email='chrismd@gmail.com',
@@ -56,9 +57,9 @@ setup(
     'graphite.thirdparty',
     'graphite.thirdparty.pytz',
   ],
-  package_data={'graphite' :
+  package_data={'graphite' : 
     ['templates/*', 'local_settings.py.example']},
   scripts=glob('bin/*'),
-  data_files=webapp_content.items() + storage_dirs + conf_files,
+  data_files=webapp_content.items() + storage_dirs + conf_files + examples,
   **setup_kwargs
 )
