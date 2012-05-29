@@ -17,13 +17,9 @@ import sys, os
 from django import VERSION as DJANGO_VERSION
 from os.path import abspath, dirname, join
 
-try:
-  import rrdtool
-except ImportError:
-  rrdtool = False
 
 _APP_SETTINGS_LOADED = False
-WEBAPP_VERSION = '0.9.10-pre4'
+WEBAPP_VERSION = '0.10.0-alpha'
 DEBUG = False
 JAVASCRIPT_DEBUG = False
 
@@ -43,9 +39,10 @@ STORAGE_DIR = ''
 WHITELIST_FILE = ''
 INDEX_FILE = ''
 LOG_DIR = ''
+CERES_DIR = ''
 WHISPER_DIR = ''
 RRD_DIR = ''
-DATA_DIRS = []
+STANDARD_DIRS = []
 
 CLUSTER_SERVERS = []
 
@@ -53,16 +50,22 @@ sys.path.insert(0, WEBAPP_DIR)
 # Allow local versions of the libs shipped in thirdparty to take precedence
 sys.path.append(THIRDPARTY_DIR)
 
-# Memcache settings
+# Cluster settings
+CLUSTER_SERVERS = []
+REMOTE_FIND_TIMEOUT = 3.0
+REMOTE_FETCH_TIMEOUT = 6.0
+REMOTE_RETRY_DELAY = 60.0
+REMOTE_READER_CACHE_SIZE_LIMIT = 1000
+CARBONLINK_HOSTS = ["127.0.0.1:7002"]
+CARBONLINK_TIMEOUT = 1.0
+CARBONLINK_HASHING_KEYFUNC = None
+CARBONLINK_RETRY_DELAY = 15
+REPLICATION_FACTOR = 1
 MEMCACHE_HOSTS = []
+FIND_CACHE_DURATION = 300
+FIND_TOLERANCE = 2 * FIND_CACHE_DURATION
 DEFAULT_CACHE_DURATION = 60 #metric data and graphs are cached for one minute by default
 LOG_CACHE_PERFORMANCE = False
-
-# Remote store settings
-REMOTE_STORE_FETCH_TIMEOUT = 6
-REMOTE_STORE_FIND_TIMEOUT = 2.5
-REMOTE_STORE_RETRY_DELAY = 60
-REMOTE_FIND_CACHE_DURATION = 300
 
 #Remote rendering settings
 REMOTE_RENDERING = False #if True, rendering is delegated to RENDERING_HOSTS
@@ -71,8 +74,6 @@ REMOTE_RENDER_CONNECT_TIMEOUT = 1.0
 LOG_RENDERING_PERFORMANCE = False
 
 #Miscellaneous settings
-CARBONLINK_HOSTS = ["127.0.0.1:7002"]
-CARBONLINK_TIMEOUT = 1.0
 SMTP_SERVER = "localhost"
 DOCUMENTATION_URL = "http://graphite.readthedocs.org/"
 ALLOW_ANONYMOUS_CLI = True
@@ -140,13 +141,23 @@ if not LOG_DIR:
   LOG_DIR = join(STORAGE_DIR, 'log', 'webapp')
 if not WHISPER_DIR:
   WHISPER_DIR = join(STORAGE_DIR, 'whisper/')
+if not CERES_DIR:
+  CERES_DIR = join(STORAGE_DIR, 'ceres/')
 if not RRD_DIR:
   RRD_DIR = join(STORAGE_DIR, 'rrd/')
-if not DATA_DIRS:
-  if rrdtool and os.path.exists(RRD_DIR):
-    DATA_DIRS = [WHISPER_DIR, RRD_DIR]
-  else:
-    DATA_DIRS = [WHISPER_DIR]
+if not STANDARD_DIRS:
+  try:
+    import whisper
+    if os.path.exists(WHISPER_DIR):
+      STANDARD_DIRS.append(WHISPER_DIR)
+  except ImportError:
+    print >> sys.stderr, "WARNING: whisper module could not be loaded, whisper support disabled"
+  try:
+    import rrdtool
+    if os.path.exists(RRD_DIR):
+      STANDARD_DIRS.append(RRD_DIR)
+  except ImportError:
+    pass
 
 # Default sqlite db file
 # This is set here so that a user-set STORAGE_DIR is available
@@ -168,4 +179,3 @@ if USE_REMOTE_USER_AUTHENTICATION:
 
 if USE_LDAP_AUTH:
   AUTHENTICATION_BACKENDS.insert(0,'graphite.account.ldapBackend.LDAPBackend')
-

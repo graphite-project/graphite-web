@@ -21,8 +21,9 @@ import random
 import time
 
 from graphite.logger import log
-from graphite.render.datalib import fetchData, TimeSeries, timestamp
+from graphite.render.datalib import TimeSeries
 from graphite.render.attime import parseTimeOffset
+from graphite.util import timestamp
 
 from graphite.events import models
 #XXX format_units() should go somewhere else
@@ -37,6 +38,9 @@ INF = float('inf')
 DAY = 86400
 HOUR = 3600
 MINUTE = 60
+
+NAN = float('NaN')
+INF = float('inf')
 
 #Utility functions
 def safeSum(values):
@@ -89,6 +93,10 @@ def safeMap(function, values):
   safeValues = [v for v in values if v is not None]
   if safeValues:
     return map(function, values)
+
+def safeAbs(value):
+  if value is None: return None
+  return abs(a)
 
 def lcm(a,b):
   if a == b: return a
@@ -528,6 +536,24 @@ def scaleToSeconds(requestContext, seriesList, seconds):
       series[i] = safeMul(value,factor)
   return seriesList
 
+def absolute(requestContext, seriesList):
+  """
+  Takes one metric or a wildcard seriesList and applies the mathematical abs function to each
+  datapoint transforming it to its absolute value.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=absolute(Server.instance01.threads.busy)
+    &target=absolute(Server.instance*.threads.busy)
+  """
+  for series in seriesList:
+    series.name = "absolute(%s)" % (series.name)
+    for i,value in enumerate(series):
+      series[i] = safeAbs(value)
+  return seriesList
+
 def offset(requestContext, seriesList, factor):
   """
   Takes one metric or a wildcard seriesList followed by a constant, and adds the constant to
@@ -633,6 +659,50 @@ def derivative(requestContext, seriesList):
     newSeries.pathExpression = newName
     results.append(newSeries)
   return results
+
+def perSecond(requestContext, seriesList, maxValue=None):
+  """
+  Derivative adjusted for the series time interval
+  This is useful for taking a running total metric and showing how many requests
+  per second were handled.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=perSecond(company.server.application01.ifconfig.TXPackets)
+
+  Each time you run ifconfig, the RX and TXPackets are higher (assuming there
+  is network traffic.) By applying the derivative function, you can get an
+  idea of the packets per minute sent or received, even though you're only
+  recording the total.
+  """
+  results = []
+  for series in seriesList:
+    newValues = []
+    prev = None
+    for val in series:
+      step = series.step
+      if None in (prev,val):
+        newValues.append(None)
+        prev = val
+        continue
+
+      diff = val - prev
+      if diff >= 0:
+        newValues.append(diff / step)
+      elif maxValue is not None and maxValue >= val:
+        newValues.append( ((maxValue - prev) + val  + 1) / step )
+      else:
+        newValues.append(None)
+
+      prev = val
+    newName = "perSecond(%s)" % series.name
+    newSeries = TimeSeries(newName, series.start, series.end, series.step, newValues)
+    newSeries.pathExpression = newName
+    results.append(newSeries)
+  return results
+
 
 def integral(requestContext, seriesList):
   """
@@ -2395,12 +2465,14 @@ SeriesFunctions = {
   'minSeries' : minSeries,
   'maxSeries' : maxSeries,
   'rangeOfSeries': rangeOfSeries,
+  'percentileOfSeries': percentileOfSeries,
 
   # Transform functions
   'scale' : scale,
   'scaleToSeconds' : scaleToSeconds,
   'offset' : offset,
   'derivative' : derivative,
+  'perSecond' : perSecond,
   'integral' : integral,
   'percentileOfSeries': percentileOfSeries,
   'nonNegativeDerivative' : nonNegativeDerivative,
@@ -2409,6 +2481,7 @@ SeriesFunctions = {
   'summarize' : summarize,
   'smartSummarize' : smartSummarize,
   'hitcount'  : hitcount,
+  'absolute' : absolute,
 
   # Calculate functions
   'movingAverage' : movingAverage,

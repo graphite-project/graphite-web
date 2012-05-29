@@ -894,10 +894,12 @@ function createFunctionsMenu() {
         {text: 'ScaleToSeconds', handler: applyFuncToEachWithInput('scaleToSeconds', 'Please enter a number of seconds to scale to')},
         {text: 'Offset', handler: applyFuncToEachWithInput('offset', 'Please enter the value to offset Y-values by')},
         {text: 'Derivative', handler: applyFuncToEach('derivative')},
+        {text: 'Time-adjusted Derivative', handler: applyFuncToEachWithInput('perSecond', "Please enter a maximum value if this metric is a wrapping counter (or just leave this blank)", {allowBlank: true})},
         {text: 'Integral', handler: applyFuncToEach('integral')},
         {text: 'Percentile Values', handler: applyFuncToEachWithInput('percentileOfSeries', "Please enter the percentile to use")},
         {text: 'Non-negative Derivative', handler: applyFuncToEachWithInput('nonNegativeDerivative', "Please enter a maximum value if this metric is a wrapping counter (or just leave this blank)", {allowBlank: true})},
         {text: 'Log', handler: applyFuncToEachWithInput('log', 'Please enter a base')},
+        {text: 'Absolute Value', handler: applyFuncToEach('absolute')},
         {text: 'timeShift', handler: applyFuncToEachWithInput('timeShift', 'Shift this metric ___ back in time (examples: 10min, 7d, 2w)', {quote: true})},
         {text: 'Summarize', handler: applyFuncToEachWithInput('summarize', 'Please enter a summary interval (examples: 10min, 1h, 7d)', {quote: true})},
         {text: 'Hit Count', handler: applyFuncToEachWithInput('hitcount', 'Please enter a summary interval (examples: 10min, 1h, 7d)', {quote: true})}

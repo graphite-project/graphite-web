@@ -36,6 +36,7 @@ There are also several other dependencies required for additional features:
 * LDAP authentication: `python-ldap`_ (for LDAP authentication support in the webapp)
 * AMQP support: `txamqp`_
 * RRD support: `python-rrdtool`_
+* Dependant modules for additional database support (MySQL, PostgreSQL, etc). See `Django database install`_ instructions and the `Django database`_ documentation for details
 
 .. seealso:: On some systems it is necessary to install fonts for Cairo to use. If the
              webapp is running but all graphs return as broken images, this may be why.
@@ -52,23 +53,75 @@ Python module dependencies can be install with `pip`_ rather than system package
 a Python version that differs from the system default. Some modules (such as Cairo) may require
 library development headers to be available.
 
-Installing From Source
-----------------------
-You can download the latest source tarballs for Graphite-web, Carbon, and Whisper
-from the Graphite project page, https://launchpad.net/graphite or clone the latest version using
-Bazaar: ``bzr branch lp:graphite``
+.. _default-installation-layout :
 
-To install, simply extract the source and run ``python setup.py install`` as root in the project
-directories for Whisper, Carbon, and Graphite-web (the root of the repository in the case of a
-source tree checkout).
+Default Installation Layout
+---------------------------
 
-This will install Whisper as a site-package, while Carbon and Graphite will be
-installed in ``/opt/graphite/``.
+Graphite defaults to an installation layout that puts the entire install in its own directory: ``/opt/graphite``
+
+Whisper
+^^^^^^^
+Whisper is installed Python's system-wide site-packages directory with Whisper's utilities installed
+in the bin dir of the system's default prefix (generally ``/usr/bin/``).
+
+Carbon and Graphite-web
+^^^^^^^^^^^^^^^^^^^^^^^
+Carbon and Graphite-web are installed in ``/opt/graphite/`` with the following layout:
+
+- ``bin/``
+- ``conf/``
+- ``lib/``
+
+  Carbon ``PYTHONPATH``
+
+- ``storage/``
+
+  - ``log``
+
+    Log directory for Carbon and Graphite-web
+
+  - ``rrd``
+
+    Location for RRD files to be read
+
+  - ``whisper``
+
+    Location for Whisper data files to be stored and read
+
+- ``webapp/``
+
+  Graphite-web ``PYTHONPATH``
+
+  - ``graphite/``
+
+    Location of ``manage.py`` and ``local_settings.py``
+
+  - ``content/``
+
+    Graphite-web static content directory
+
+
+Installing Graphite
+-------------------
+Several installation options exist:
+
+.. toctree::
+   install-source
+   install-pip
+   install-virtualenv
+
+
+Initial Configuration
+---------------------
+.. toctree::
+   configure-webapp
+   configure-carbon
 
 
 Help! It didn't work!
 ---------------------
-If you run into any issues with Graphite, feel free to post a question to our
+If you run into any issues with Graphite, please to post a question to our
 `Questions forum on Launchpad <https://answers.launchpad.net/graphite>`_
 or join us on IRC in #graphite on FreeNode
 
@@ -100,6 +153,8 @@ Post-Install Tasks
 .. _Apache: http://projects.apache.org/projects/http_server.html
 .. _Django: http://www.djangoproject.com/
 .. _django-tagging: http://code.google.com/p/django-tagging/
+.. _Django database install: https://docs.djangoproject.com/en/dev/topics/install/#get-your-database-running
+.. _Django database: https://docs.djangoproject.com/en/dev/ref/databases/
 .. _EPEL: http://fedoraproject.org/wiki/EPEL/
 .. _fontconfig: http://www.freedesktop.org/wiki/Software/fontconfig/
 .. _gunicorn: http://gunicorn.org/
