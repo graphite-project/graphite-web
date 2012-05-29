@@ -92,7 +92,7 @@ def safeMap(function, values):
 
 def safeAbs(value):
   if value is None: return None
-  return abs(a)
+  return abs(value)
 
 def lcm(a,b):
   if a == b: return a
