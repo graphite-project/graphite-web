@@ -132,10 +132,16 @@ class FindQuery:
     self.startTime = startTime
     self.endTime = endTime
     self.isExact = is_pattern(pattern)
-    self.interval = Interval(float('-inf') if startTime is None else startTime,
-                             float('inf') if endTime is None else endTime)
 
+    if startTime is None:
+        startTime = float('-inf')
 
+    if endTime is None:
+        endTime = float('inf')
+
+    self.interval = Interval(startTime, endTime)
+
+    
   def __repr__(self):
     if self.startTime is None:
       startString = '*'
