@@ -157,7 +157,25 @@ class WhisperReader(object):
     return IntervalSet( [Interval(start, end)] )
 
   def fetch(self, startTime, endTime):
-    return whisper.fetch(self.fs_path, startTime, endTime)
+    data = whisper.fetch(self.fs_path, startTime, endTime)
+    time_info, values = data
+    # Merge in data from carbon's cache
+    try:
+      cached_datapoints = CarbonLink.query(self.fs_path)
+    except:
+      log.exception("Failed CarbonLink query '%s'" % self.fs_path)
+      cached_datapoints = []
+
+    for (timestamp, value) in cached_datapoints:
+      interval = timestamp - (timestamp % data.timeStep)
+
+      try:
+        i = int(interval - data.startTime) / data.timeStep
+        values[i] = value
+      except:
+        pass
+
+    return (time_info, values)
 
 
 class GzippedWhisperReader(WhisperReader):
