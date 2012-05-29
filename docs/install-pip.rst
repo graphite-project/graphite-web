@@ -18,15 +18,13 @@ simply execute as root:
 
   On RedHat-based systems using the ``python-pip`` package, the pip executable is named ``pip-python``
 
-.. _carbon-custom-location-pip:
-
 Installing Carbon in a Custom Location
 --------------------------------------
 Installation of Carbon in a custom location with `pip` is similar to doing so from a source install.
 Arguments to the underlying ``setup.py`` controlling installation location can be passed through `pip`
 with the ``--install-option`` option.
 
-See :ref:`carbon-custom-location` for details on default locations and available arguments
+See :ref:`carbon-custom-location-source` for details of locations and available arguments
 
 For example, to install everything in ``/srv/graphite/``:
 
@@ -41,15 +39,13 @@ configuration in ``/usr/share/graphite``:
 
    pip install carbon --install-option="--install-scripts=/usr/bin" --install-option="--install-lib=/usr/lib/python2.6/site-packages" --install-option="--install-data=/var/lib/graphite"
 
-.. _graphite-web-custom-location-pip:
-
 Installing Graphite-web in a Custom Location
 --------------------------------------------
 Installation of Graphite-web in a custom location with `pip` is similar to doing so from a source install.
 Arguments to the underlying ``setup.py`` controlling installation location can be passed through `pip`
 with the ``--install-option`` option.
 
-See :ref:`graphite-web-custom-location` for details on default locations and available arguments
+See :ref:`graphite-web-custom-location-source` for details on default locations and available arguments
 
 For example, to install everything in ``/srv/graphite/``:
 

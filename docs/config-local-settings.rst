@@ -178,12 +178,12 @@ USE_LDAP_AUTH
 LDAP_SERVER
   `Default: ''`
 
-  Set the LDAP server here or alternativly in `LDAP_URL`_
+  Set the LDAP server here or alternativly in ``LDAP_URL``
 
 LDAP_PORT
   `Default: 389`
 
-  Set the LDAP server port here or alternativly in `LDAP_URL`_
+  Set the LDAP server port here or alternativly in ``LDAP_URL``
 
 LDAP_URI
   `Default: None`
@@ -327,6 +327,7 @@ and configuration of additional `middleware <https://docs.djangoproject.com/en/d
 To manipulate these settings, ensure ``app_settings.py`` is imported as such:
 
 .. code-block:: python
+
    from graphite.app_settings import *
 
 The most common settings to manipulate are ``INSTALLED_APPS``, ``MIDDLEWARE_CLASSES``, and ``AUTHENTICATION_BACKENDS`` 

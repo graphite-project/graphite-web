@@ -44,6 +44,7 @@ The following parameters influence the install location:
 For example, to install everything in ``/srv/graphite/``:
 
 .. code-block:: none
+
    python setup.py install --prefix=/srv/graphite --install-lib=/srv/graphite/lib
 
 To install Carbon into the system-wide site-packages directory with scripts in ``/usr/bin`` and storage and
