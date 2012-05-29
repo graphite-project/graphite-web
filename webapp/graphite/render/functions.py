@@ -90,6 +90,10 @@ def safeMap(function, values):
   if safeValues:
     return map(function, values)
 
+def safeAbs(value):
+  if value is None: return None
+  return abs(a)
+
 def lcm(a,b):
   if a == b: return a
   if a < b: (a,b) = (b,a) #ensure a > b
@@ -526,6 +530,24 @@ def scaleToSeconds(requestContext, seriesList, seconds):
     for i,value in enumerate(series):
       factor = seconds * 1.0 / series.step
       series[i] = safeMul(value,factor)
+  return seriesList
+
+def absolute(requestContext, seriesList):
+  """
+  Takes one metric or a wildcard seriesList and applies the mathematical abs function to each
+  datapoint transforming it to its absolute value.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=absolute(Server.instance01.threads.busy)
+    &target=absolute(Server.instance*.threads.busy)
+  """
+  for series in seriesList:
+    series.name = "absolute(%s)" % (series.name)
+    for i,value in enumerate(series):
+      series[i] = safeAbs(value)
   return seriesList
 
 def offset(requestContext, seriesList, factor):
@@ -2409,6 +2431,7 @@ SeriesFunctions = {
   'summarize' : summarize,
   'smartSummarize' : smartSummarize,
   'hitcount'  : hitcount,
+  'absolute' : absolute,
 
   # Calculate functions
   'movingAverage' : movingAverage,
