@@ -106,8 +106,16 @@ class Interval:
       return Interval(start, end)
 
   def overlaps(self, other):
-    earlier = self if self.start <= other.start else other
-    later = self if earlier is other else other
+    if self.start <= other.start:
+        earlier = self
+    else:
+        earlier = other
+
+    if earlier is other:
+        later = self
+    else:
+        later = other
+
     return earlier.end >= later.start
 
   def union(self, other):
