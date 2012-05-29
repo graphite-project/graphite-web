@@ -3,9 +3,9 @@ Installing From Source
 The latest source tarballs for Graphite-web, Carbon, and Whisper may be fetched from the Graphite
 project `download page`_ or the latest development branches may be cloned from the `Github project page`_:
 
-* Graphite-web: ``git clone https://github.com/graphite-project/graphite-web``
-* Carbon: ``git clone https://github.com/graphite-project/carbon``
-* Whisper: ``git clone https://github.com/graphite-project/whisper``
+* Graphite-web: ``git clone https://github.com/graphite-project/graphite-web.git``
+* Carbon: ``git clone https://github.com/graphite-project/carbon.git``
+* Whisper: ``git clone https://github.com/graphite-project/whisper.git``
 
 
 Installing in the Default Location
