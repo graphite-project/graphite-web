@@ -14,7 +14,7 @@ else:
 
 storage_dirs = []
 
-for subdir in ('whisper', 'rrd', 'log', 'log/webapp'):
+for subdir in ('whisper', 'ceres', 'rrd', 'log', 'log/webapp'):
   storage_dirs.append( ('storage/%s' % subdir, []) )
 
 webapp_content = {}
@@ -34,7 +34,7 @@ examples = [ ('examples', glob('examples/example-*')) ]
 
 setup(
   name='graphite-web',
-  version='0.9.10_pre5',
+  version='0.10.0-alpha',
   url='https://launchpad.net/graphite',
   author='Chris Davis',
   author_email='chrismd@gmail.com',
