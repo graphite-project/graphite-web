@@ -145,11 +145,12 @@ class CeresReader(object):
 
 
 class WhisperReader(object):
-  __slots__ = ('fs_path',)
+  __slots__ = ('fs_path', 'real_metric_path')
   supported = bool(whisper)
 
-  def __init__(self, fs_path):
+  def __init__(self, fs_path, real_metric_path):
     self.fs_path = fs_path
+    self.real_metric_path = real_metric_path
 
   def get_intervals(self):
     start = time.time() - whisper.info(self.fs_path)['maxRetention']
@@ -159,18 +160,20 @@ class WhisperReader(object):
   def fetch(self, startTime, endTime):
     data = whisper.fetch(self.fs_path, startTime, endTime)
     time_info, values = data
+    (start,end,step) = time_info
+
     # Merge in data from carbon's cache
     try:
-      cached_datapoints = CarbonLink.query(self.fs_path)
+      cached_datapoints = CarbonLink.query(self.real_metric_path)
     except:
-      log.exception("Failed CarbonLink query '%s'" % self.fs_path)
+      log.exception("Failed CarbonLink query '%s'" % self.real_metric_path)
       cached_datapoints = []
 
     for (timestamp, value) in cached_datapoints:
-      interval = timestamp - (timestamp % data.timeStep)
+      interval = timestamp - (timestamp % step)
 
       try:
-        i = int(interval - data.startTime) / data.timeStep
+        i = int(interval - start) / step
         values[i] = value
       except:
         pass

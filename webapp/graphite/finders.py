@@ -67,11 +67,11 @@ class StandardFinder:
 
         elif isfile(absolute_path):
           if absolute_path.endswith('.wsp') and WhisperReader.supported:
-            reader = WhisperReader(absolute_path)
+            reader = WhisperReader(absolute_path, real_metric_path)
             yield LeafNode(metric_path, reader)
 
           elif absolute_path.endswith('.wsp.gz') and GzippedWhisperReader.supported:
-            reader = GzippedWhisperReader(absolute_path)
+            reader = GzippedWhisperReader(absolute_path, real_metric_path)
             yield LeafNode(metric_path, reader)
 
           elif absolute_path.endswith('.rrd') and RRDReader.supported:
