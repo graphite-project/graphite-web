@@ -108,7 +108,11 @@ class Store:
         def distance_to_requested_interval(node):
           latest = sorted(node.intervals, key=lambda i: i.end)[-1]
           distance = query.interval.start - latest.end
-          return distance if distance >= 0 else float('inf')
+          if distance >= 0:
+            return distance
+          else:
+            return float('inf')
+
 
         best_candidate = min(leaf_nodes, key=distance_to_requested_interval)
         if distance_to_requested_interval(best_candidate) <= settings.FIND_TOLERANCE:
@@ -128,10 +132,16 @@ class FindQuery:
     self.startTime = startTime
     self.endTime = endTime
     self.isExact = is_pattern(pattern)
-    self.interval = Interval(float('-inf') if startTime is None else startTime,
-                             float('inf') if endTime is None else endTime)
 
+    if startTime is None:
+        startTime = float('-inf')
 
+    if endTime is None:
+        endTime = float('inf')
+
+    self.interval = Interval(startTime, endTime)
+
+    
   def __repr__(self):
     if self.startTime is None:
       startString = '*'

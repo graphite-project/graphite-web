@@ -34,7 +34,7 @@ examples = [ ('examples', glob('examples/example-*')) ]
 
 setup(
   name='graphite-web',
-  version='0.10.0-alpha',
+  version='0.10.0_alpha',
   url='https://launchpad.net/graphite',
   author='Chris Davis',
   author_email='chrismd@gmail.com',
