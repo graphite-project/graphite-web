@@ -14,7 +14,7 @@ fi
 WHISPER_DIR="${GRAPHITE_STORAGE_DIR}/whisper"
 CERES_DIR="${GRAPHITE_STORAGE_DIR}/ceres"
 
-if [ ! -d "$WHISPER_DIR"] || [ ! -d "$CERES_DIR" ]
+if [ ! -d "$WHISPER_DIR" ] || [ ! -d "$CERES_DIR" ]
 then
   echo "Fatal Error: neither $WHISPER_DIR nor $CERES_DIR exist."
   exit 1
