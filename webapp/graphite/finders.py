@@ -116,7 +116,7 @@ class StandardFinder:
       files = [e for e in entries if isfile( join(current_dir,e) )]
       matching_files = match_entries(files, pattern + '.*')
 
-      for basename in matching_subdirs + matching_files:
+      for basename in matching_files + matching_subdirs:
         yield join(current_dir, basename)
 
 
