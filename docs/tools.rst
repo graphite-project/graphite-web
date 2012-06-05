@@ -160,6 +160,11 @@ Scales
 `Scales`_ is a Python server state and statistics library that can output its data to Graphite.
 
 
+Seyren
+---------------
+`Seyren`_ is an alerting dashboard for Graphite.
+
+
 Shinken
 -------
 `Shinken`_ is a system monitoring solution compatible with Nagios which emphasizes scalability, flexibility,
@@ -211,3 +216,4 @@ Tasseo
 .. _hubot-scripts: https://github.com/github/hubot-scripts
 .. _Tasseo: https://github.com/obfuscurity/tasseo
 .. _Shinken: http://www.shinken-monitoring.org/
+.. _Seyren: https://github.com/scobal/seyren
