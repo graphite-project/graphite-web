@@ -23,6 +23,10 @@ if [ -d /etc/apache2 ] && [ ! -f /etc/apache2/sites-available/graphite.conf ]; t
     /usr/sbin/a2dissite default
     /bin/echo "Enabling Graphite..."
     /usr/sbin/a2ensite graphite
+    /bin/echo "Creating WSGI socket directory..."
+    /bin/mkdir /etc/apache2/run
+    /bin/echo "Reloading apache2..."
+    /etc/init.d/apache2 reload
 fi;
 
 /usr/bin/python ${GRAPHITE_PATH}/webapp/graphite/manage.py syncdb --noinput
