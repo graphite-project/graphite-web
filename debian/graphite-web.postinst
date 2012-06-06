@@ -1,0 +1,32 @@
+#!/bin/bash
+
+APACHE_USER=www-data
+GRAPHITE_PATH=/opt/graphite
+
+CONFFILES="graphite.wsgi"
+for i in $CONFFILES; do
+    if [ ! -f ${GRAPHITE_PATH}/conf/$i ]; then
+        /bin/echo "No pre-existing $i - creating from example."
+        /bin/cp ${GRAPHITE_PATH}/conf/$i.example ${GRAPHITE_PATH}/conf/$i;
+    fi;      
+done;
+
+if [ -d /etc/apache2 ] && [ ! -f /etc/apache2/sites-available/graphite.conf ]; then 
+    /bin/echo "--IMPORTANT--"
+    /bin/echo "Graphite VirtualHost configuration not found in available sites"
+    /bin/echo "Graphite won't work without it. See sources for"
+    /bin/echo "an example vhost configuration for WSGI!"
+    /bin/echo "This script will now attempt to install the vHost file needed."
+    /bin/echo "--IMPORTANT--"
+    /bin/cp ${GRAPHITE_PATH}/examples/example-graphite-vhost.conf /etc/apache2/sites-available/graphite
+    /bin/echo "Disabling default site..."
+    /usr/sbin/a2dissite default
+    /bin/echo "Enabling Graphite..."
+    /usr/sbin/a2ensite graphite
+fi;
+
+/usr/bin/python ${GRAPHITE_PATH}/webapp/graphite/manage.py syncdb --noinput
+
+/bin/chown -R ${APACHE_USER}.${APACHE_USER} ${GRAPHITE_PATH}/storage
+/bin/chown -R ${APACHE_USER}.${APACHE_USER} ${GRAPHITE_PATH}/webapp
+
