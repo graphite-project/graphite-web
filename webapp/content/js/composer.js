@@ -50,7 +50,7 @@ GraphiteComposer.prototype = {
     tempUrl.copyQueryStringFromURL(url);
     var targets = tempUrl.getParamList('target');
     tempUrl.removeParam('target');
-    this.url.copyQueryStringFromURL(tempUrl.queryString);
+    this.url.setQueryString(tempUrl.queryString);
     Ext.each(targets, this.toggleTarget, this);
 
     // Fit the image into the window
