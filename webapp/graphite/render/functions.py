@@ -881,6 +881,8 @@ def cactiStyle(requestContext, seriesList):
     &target=cactiStyle(ganglia.*.net.bytes_out)
 
   """
+  if 0 == len(seriesList):
+      return seriesList
   nameLen = max([len(getattr(series,"name")) for series in seriesList])
   lastLen = max([len(repr(int(safeLast(series) or 3))) for series in seriesList]) + 3
   maxLen = max([len(repr(int(safeMax(series) or 3))) for series in seriesList]) + 3
