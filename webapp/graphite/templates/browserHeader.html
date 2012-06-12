@@ -12,95 +12,45 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. -->
 <html>
-<head>
-  <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
-  <title>Graphite Browser Header</title>
-  <style>
-img.toolbarsep {
-        border: 0px;
-        margin-bottom: 1px;
-        margin-top: 1px;
-        padding-top: 3px;
-        padding-bottom: 3px;
-        vertical-align: middle;
-}
-
-img.toolbar {
-        border: 0px;
-        margin: 1px;
-        padding: 3px;
-        vertical-align: middle;
-}
-
-img.toolbar:hover {
-        border-left: 1px solid white;
-        border-right: 1px solid #B1A598;
-        border-top: 1px solid white;
-        border-bottom: 1px solid #B1A598;
-        margin: 0px;
-}
-
-img.toolbar:active {
-        border-right: 1px solid white;
-        border-left: 1px solid #B1A598;
-        border-bottom: 1px solid white;
-        border-top: 1px solid #B1A598;
-}
-
-
-#login {
-        position: fixed;
-        top: 0px;
-        right: 0px;
-        float: right;
-        padding: 5px;
-}
-
-#rightSide {
-        position: fixed;
-        top: 0px;
-        right: 0px;
-        float: right;
-        padding: 5px;
-}
-  </style>
-</head>
-
-<body bgcolor="white">
-
-<img  src="/content/img/graphite_short.png" alt="Graphite" style="border: 0px solid" align='top'/>
-
-<!-- Right side (only works in firefox for some reason) -->
-<!--
-<div id="rightSide" style='font-size: smaller;'>
-</div>
--->
-
-<!-- Left side -->
-<table style='display: inline' cellpadding=0 cellspacing=0>
-
- <tr><td style='font-size: smaller;'>
-  {% if user.is_authenticated %}
-   Logged in as {{ user.username }}, <a href="/account/logout/" target="_top">logout</a> &nbsp;
-   (<a href="/account/edit/" target="_top">edit profile</a>)
-  {% else %}
-   <a href="{{login_url}}" target="_top">Login</a>
-  {% endif %}
- </td></tr>
-
- <tr><td style='font-size: smaller;'>
-  {% if documentation_url %}
-   <a href="{{documentation_url}}" target="_newWindow">Documentation</a>
-  {% endif %}
- </td></tr>
-
- <tr><td style='font-size: smaller;'>
-  User Interface: <a href="/dashboard/" target="_top">Dashboard</a> |
-  <a href="/graphlot/" target="_top">flot (experimental)</a> |
-  <a href="/events/" target="_top">events (experimental)</a> |
- </td></tr>
-
-</table>
-
-</body>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+    <title>Graphite Browser Header</title>
+    <style>
+      img {
+        border: 0;
+      }
+      #nav {
+        position: absolute;
+        margin: 10px 10px 0 0;
+        top: 0;
+        right: 0;
+      }
+      #nav ul {
+        text-align: right;
+        list-style: none;
+        font: 12px Arial, Tahoma, Helvetica, sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Left side -->
+    <div id="logo">
+      <img src="/content/img/graphite_short.png" alt="Graphite" align="top" />
+    </div>
+  
+    <!-- Right side -->
+    <div id="nav">
+      <ul>
+      {% if user.is_authenticated %}
+        <li>Logged in as <b>{{ user.username }}</b>, <a href="/account/logout/" target="_top">logout</a> (<a href="/account/edit/" target="_top">edit profile</a>)</li>
+      {% else %}
+        <li><a href="{{login_url}}" target="_top">Login</a></li>
+      {% endif %}
+      {% if documentation_url %}
+        <li><a href="{{documentation_url}}" target="_newWindow">Documentation</a></li>
+      {% endif %}
+        <li>User Interface: <a href="/dashboard/" target="_top">Dashboard</a> | <a href="/graphlot/" target="_top">flot (experimental)</a> | <a href="/events/" target="_top">events (experimental)</a></li>
+      </ul>
+    </div>
+  </body>
 </html>
