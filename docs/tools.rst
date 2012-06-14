@@ -10,12 +10,12 @@ It can current collect metric data from CollectD daemons and from StatsD clients
 collectd
 --------
 `collectd`_ is a daemon which collects system performance statistics periodically and provides
-mechanisms to store the values in a variety of ways, including RRD. To send collectd metrics into carbon/graphite, use:
+mechanisms to store the values in a variety of ways, including RRD. To send collectd metrics into
+carbon/graphite, use collectd's write-graphite_ plugin (available as of 5.1). Other options include:
 
 - Jordan Sissel's node collectd-to-graphite_ proxy
 - Joe Miller's perl collectd-graphite_ plugin
 - Gregory Szorc's python collectd-carbon_ plugin
-- Scott Sanders's C collectd-write_graphite_ plugin
 - Paul J. Davis's `Bucky`_ service
 
 Graphite can also read directly from `collectd`_'s RRD files. RRD files can
@@ -160,6 +160,11 @@ Scales
 `Scales`_ is a Python server state and statistics library that can output its data to Graphite.
 
 
+Seyren
+---------------
+`Seyren`_ is an alerting dashboard for Graphite.
+
+
 Shinken
 -------
 `Shinken`_ is a system monitoring solution compatible with Nagios which emphasizes scalability, flexibility,
@@ -186,7 +191,6 @@ Tasseo
 .. _collectd-to-graphite: https://github.com/loggly/collectd-to-graphite
 .. _collectd-carbon: https://github.com/indygreg/collectd-carbon
 .. _collectd-graphite: https://github.com/joemiller/collectd-graphite
-.. _collectd-write_graphite: https://github.com/jssjr/collectd-write_graphite
 .. _Collectl: http://collectl.sourceforge.net/
 .. _D3.js: http://mbostock.github.com/d3/
 .. _Logster: https://github.com/etsy/logster
@@ -211,3 +215,5 @@ Tasseo
 .. _hubot-scripts: https://github.com/github/hubot-scripts
 .. _Tasseo: https://github.com/obfuscurity/tasseo
 .. _Shinken: http://www.shinken-monitoring.org/
+.. _Seyren: https://github.com/scobal/seyren
+.. _write-graphite: http://collectd.org/wiki/index.php/Plugin:Write_Graphite
