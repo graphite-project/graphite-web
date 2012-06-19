@@ -17,6 +17,7 @@ var refreshTask;
 var spacer;
 var justClosedGraph = false;
 var NOT_EDITABLE = ['from', 'until', 'width', 'height', 'target', 'uniq', '_uniq'];
+var editor = null;
 
 var cookieProvider = new Ext.state.CookieProvider({
   path: "/dashboard"
@@ -538,6 +539,9 @@ function initDashboard () {
         }, {
           text: "Configure UI",
           handler: configureUI
+        }, {
+          text: "Edit Dashboard",
+          handler: editDashboard
         }
       ]
     }
@@ -2214,6 +2218,78 @@ var keyMap = new Ext.KeyMap(document, keyMapConfigs);
 
 
 /* Dashboard functions */
+function editDashboard() {
+  var edit_dashboard_win = new Ext.Window({
+    title: "Edit Dashboard",
+    id: 'editor-window',
+    width: 700,
+    height: 500,
+    layout: 'vbox',
+    layoutConfig: {align: 'stretch', pack: 'start'},
+    modal: true,
+    items: [
+      {
+        xtype: 'container',
+        flex: 1,
+        id: 'editor',
+        title: 'ace',
+        listeners: { resize: function () { if (editor) editor.resize(); } }
+      }
+    ],
+    listeners: {
+      afterrender: {
+        scope: this,
+        fn: function (obj) { setupEditor(obj.body.dom); getInitialState() }
+      }
+    },
+    buttons: [
+      {text: "Update (doesn't save)", handler: updateAfterEdit},
+      {text: 'Cancel', handler: function () { edit_dashboard_win.close(); } }
+    ]
+  });
+  function updateAfterEdit(btn, target) {
+    var graphString = editor.getSession().getValue();
+    var targets = JSON.parse(graphString);
+    graphStore.removeAll();
+    for (var i = 0; i < targets.length; i++) {
+      var myParams = {};
+      Ext.apply(myParams, targets[i]);
+      var urlParams = {};
+      Ext.apply(urlParams, defaultGraphParams);
+      Ext.apply(urlParams, GraphSize);
+      Ext.apply(urlParams, myParams);
+      var record = new GraphRecord({
+        target: targets[i].target,
+        params: myParams,
+        url: '/render?' + Ext.urlEncode(urlParams)
+      });
+      graphStore.add([record]);
+    }
+    edit_dashboard_win.close();
+  }
+  function getInitialState() {
+    var graphs = [];
+    graphStore.each(function () {
+      var params = {};
+      Ext.apply(params, this.data.params);
+      delete params['from'];
+      delete params['until'];
+      graphs.push(params);
+    });
+    editor.getSession().setValue(JSON.stringify(graphs, null, 2));
+  }
+  function setupEditor(obj) {
+    editor = ace.edit("editor");
+    editor.setTheme("ace/theme/textmate");
+    var JSONMode = require("ace/mode/json").Mode;
+    var session = editor.getSession();
+    session.setMode(new JSONMode());
+    session.setUseSoftTabs(true);
+    session.setTabSize(2);
+  }
+  edit_dashboard_win.show();
+}
+
 function saveDashboard() {
   Ext.Msg.prompt(
     "Save Dashboard",
