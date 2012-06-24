@@ -92,4 +92,4 @@ INSTALLED_APPS = (
 
 AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend']
 
-_APP_SETTINGS_LOADED = True
+GRAPHITE_WEB_APP_SETTINGS_LOADED = True
