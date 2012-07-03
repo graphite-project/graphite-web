@@ -4,7 +4,7 @@ from graphite.node import LeafNode, BranchNode
 from graphite.intervals import Interval, IntervalSet
 from graphite.carbonlink import CarbonLink
 from graphite.logger import log
-
+from django.conf import settings
 
 try:
   import whisper
@@ -242,11 +242,12 @@ class RRDReader:
 
   @staticmethod
   def get_retention(fs_path):
+    info = rrdtool.info(fs_path)
     if 'rra' in info:
       rras = info['rra']
     else:
       # Ugh, I like the old python-rrdtool api better..
-      rra_keys = max([ int(key[4]) for key in info if key.startswith('rra[') ]) + 1
+      rra_count = max([ int(key[4]) for key in info if key.startswith('rra[') ]) + 1
       rras = [{}] * rra_count
       for i in range(rra_count):
         rras[i]['pdp_per_row'] = info['rra[%d].pdp_per_row' % i]
