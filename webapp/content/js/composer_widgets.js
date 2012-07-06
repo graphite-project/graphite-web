@@ -965,7 +965,12 @@ function createFunctionsMenu() {
         		]},
         {text: 'Color', handler: applyFuncToEachWithInput('color', 'Set the color for this graph target', {quote: true})},
         {text: 'Alpha', handler: applyFuncToEachWithInput('alpha', 'Set the alpha (transparency) for this graph target (between 0.0 and 1.0)')},
-        {text: 'Aggregate By Sum', handler: applyFuncToEach('cumulative')},
+        {text: 'Aggregate By', 
+                menu: [
+                        {text: "Sum", handler: applyFuncToEach('cumulative', '"sum"')},
+                        {text: "Max", handler: applyFuncToEach('cumulative', '"max"')},
+                        {text: "Min", handler: applyFuncToEach('cumulative', '"min"')},
+                      ]},
         {text: 'Draw non-zero As Infinite', handler: applyFuncToEach('drawAsInfinite')},
         {text: 'Line Width', handler: applyFuncToEachWithInput('lineWidth', 'Please enter a line width for this graph target')},
         {text: 'Dashed Line', handler: applyFuncToEach('dashed')},

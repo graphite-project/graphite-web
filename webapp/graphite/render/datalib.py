@@ -65,6 +65,10 @@ class TimeSeries(list):
       return sum(usable)
     if self.consolidationFunc == 'average':
       return float(sum(usable)) / len(usable)
+    if self.consolidationFunc == 'max':
+      return max(usable)
+    if self.consolidationFunc == 'min':
+      return min(usable)
     raise Exception, "Invalid consolidation function!"
 
 

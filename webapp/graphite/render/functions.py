@@ -455,6 +455,8 @@ def multiplySeries(requestContext, *seriesLists):
 
 
   """
+  import pprint as pp
+
   (seriesList,start,end,step) = normalize(seriesLists)
 
   if len(seriesList) == 1:
@@ -462,9 +464,12 @@ def multiplySeries(requestContext, *seriesLists):
 
   name = "multiplySeries(%s)" % ','.join([s.name for s in seriesList])
   product = imap(lambda x: safeMul(*x), izip(*seriesList))
+  pp.pprint(product)
   resultSeries = TimeSeries(name, start, end, step, product)
+  pp.pprint(resultSeries)
   resultSeries.pathExpression = name
-  return resultSeries
+  pp.pprint(resultSeries) 
+  return [ resultSeries ]
 
 def movingMedian(requestContext, seriesList, windowSize):
   """
@@ -607,24 +612,30 @@ def movingAverage(requestContext, seriesList, windowSize):
 
   return seriesList
 
-def cumulative(requestContext, seriesList):
+def cumulative(requestContext, seriesList, consolidationFunc='sum'):
   """
-  Takes one metric or a wildcard seriesList.
+  Takes one metric or a wildcard seriesList, and an optional function.
+
+  Valid functions are 'sum', 'average', 'min', and 'max'
 
   By default, when a graph is drawn, and the width of the graph in pixels is
   smaller than the number of datapoints to be graphed, Graphite averages the
   value at each pixel.  The cumulative() function changes the consolidation
-  function to sum from average.  This is especially useful in sales graphs,
-  where fractional values make no sense (How can you have half of a sale?)
+  function from average to sum by default, and optionally min or max. 
+  This is especially useful in sales graphs,  where fractional values make 
+  no sense (How can you have half of a sale?) and in statsD hit counts where
+  you don't want to see spikes muted in long graphs. 
 
   .. code-block:: none
 
     &target=cumulative(Sales.widgets.largeBlue)
+    &target=cumulative(Server.JVM.render.time, "max")
 
   """
+  # datalib will throw an exception, so it's not necessary to do it here.
   for series in seriesList:
-    series.consolidationFunc = 'sum'
-    series.name = 'cumulative(%s)' % series.name
+    series.consolidationFunc = consolidationFunc
+    series.name = 'cumulative(%s,"%s")' % (series.name, series.consolidationFunc)
   return seriesList
 
 def derivative(requestContext, seriesList):
