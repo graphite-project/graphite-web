@@ -455,7 +455,6 @@ def multiplySeries(requestContext, *seriesLists):
 
 
   """
-  import pprint as pp
 
   (seriesList,start,end,step) = normalize(seriesLists)
 
@@ -464,12 +463,9 @@ def multiplySeries(requestContext, *seriesLists):
 
   name = "multiplySeries(%s)" % ','.join([s.name for s in seriesList])
   product = imap(lambda x: safeMul(*x), izip(*seriesList))
-  pp.pprint(product)
   resultSeries = TimeSeries(name, start, end, step, product)
-  pp.pprint(resultSeries)
   resultSeries.pathExpression = name
-  pp.pprint(resultSeries) 
-  return [ resultSeries ]
+  return resultSeries
 
 def movingMedian(requestContext, seriesList, windowSize):
   """
