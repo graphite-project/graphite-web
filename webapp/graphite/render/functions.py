@@ -465,7 +465,7 @@ def multiplySeries(requestContext, *seriesLists):
   product = imap(lambda x: safeMul(*x), izip(*seriesList))
   resultSeries = TimeSeries(name, start, end, step, product)
   resultSeries.pathExpression = name
-  return resultSeries
+  return [ resultSeries ]
 
 def movingMedian(requestContext, seriesList, windowSize):
   """
