@@ -979,11 +979,11 @@ function createFunctionsMenu() {
         		]},
         {text: 'Color', handler: applyFuncToEachWithInput('color', 'Set the color for this graph target', {quote: true})},
         {text: 'Alpha', handler: applyFuncToEachWithInput('alpha', 'Set the alpha (transparency) for this graph target (between 0.0 and 1.0)')},
-        {text: 'Aggregate By', 
+        {text: 'Consolidate By',
                 menu: [
-                        {text: "Sum", handler: applyFuncToEach('cumulative', '"sum"')},
-                        {text: "Max", handler: applyFuncToEach('cumulative', '"max"')},
-                        {text: "Min", handler: applyFuncToEach('cumulative', '"min"')},
+                        {text: "Sum", handler: applyFuncToEach('consolidateBy', '"sum"')},
+                        {text: "Max", handler: applyFuncToEach('consolidateBy', '"max"')},
+                        {text: "Min", handler: applyFuncToEach('consolidateBy', '"min"')}
                       ]},
         {text: 'Draw non-zero As Infinite', handler: applyFuncToEach('drawAsInfinite')},
         {text: 'Line Width', handler: applyFuncToEachWithInput('lineWidth', 'Please enter a line width for this graph target')},
