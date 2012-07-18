@@ -1096,7 +1096,7 @@ function createOptionsMenu() {
   var xAxisMenu = new Ext.menu.Menu({
     items: [
       menuInputItem("Time Format", "xFormat", "Enter the time format (see Python's datetime.strftime())", /^$/),
-      menuInputItem("Timezone", "tz", "Enter the timezone to display (e.g. UTC or America/Chicago)"),
+      menuInputItem("Timezone", "tz", "Enter the timezone to display (e.g. UTC or America/Chicago)", /^$/),
       menuInputItem("Point-width Consolidation Threshold", "minXStep", "Enter the closest number of pixels between points before consolidation")
     ]
   });
