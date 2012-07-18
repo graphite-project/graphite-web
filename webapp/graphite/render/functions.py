@@ -451,6 +451,7 @@ def multiplySeries(requestContext, *seriesLists):
 
 
   """
+
   (seriesList,start,end,step) = normalize(seriesLists)
 
   if len(seriesList) == 1:
@@ -460,7 +461,7 @@ def multiplySeries(requestContext, *seriesLists):
   product = imap(lambda x: safeMul(*x), izip(*seriesList))
   resultSeries = TimeSeries(name, start, end, step, product)
   resultSeries.pathExpression = name
-  return resultSeries
+  return [ resultSeries ]
 
 def movingMedian(requestContext, seriesList, windowSize):
   """
@@ -607,20 +608,40 @@ def cumulative(requestContext, seriesList):
   """
   Takes one metric or a wildcard seriesList.
 
-  By default, when a graph is drawn, and the width of the graph in pixels is
-  smaller than the number of datapoints to be graphed, Graphite averages the
-  value at each pixel.  The cumulative() function changes the consolidation
-  function to sum from average.  This is especially useful in sales graphs,
-  where fractional values make no sense (How can you have half of a sale?)
+  Sets the consolidation function to 'sum' for the given metric seriesList.
+
+  Alias for :func:`consolidateBy(series, 'sum') <graphite.render.functions.consolidateBy>`
 
   .. code-block:: none
 
     &target=cumulative(Sales.widgets.largeBlue)
 
   """
+  return consolidateBy(requestContext, seriesList, 'sum')
+
+def consolidateBy(requestContext, seriesList, consolidationFunc):
+  """
+  Takes one metric or a wildcard seriesList and a consolidation function name.
+
+  Valid function names are 'sum', 'average', 'min', and 'max'
+
+  When a graph is drawn where width of the graph size in pixels is smaller than
+  the number of datapoints to be graphed, Graphite consolidates the values to
+  to prevent line overlap. The consolidateBy() function changes the consolidation
+  function from the default of 'average' to one of 'sum', 'max', or 'min'. This is
+  especially useful in sales graphs, where fractional values make no sense and a 'sum'
+  of consolidated values is appropriate.
+
+  .. code-block:: none
+
+    &target=consolidateBy(Sales.widgets.largeBlue, 'sum')
+    &target=consolidateBy(Servers.web01.sda1.free_space, 'max')
+
+  """
   for series in seriesList:
-    series.consolidationFunc = 'sum'
-    series.name = 'cumulative(%s)' % series.name
+    # datalib will throw an exception, so it's not necessary to validate here
+    series.consolidationFunc = consolidationFunc
+    series.name = 'consolidateBy(%s,"%s")' % (series.name, series.consolidationFunc)
   return seriesList
 
 def derivative(requestContext, seriesList):
@@ -2484,6 +2505,7 @@ SeriesFunctions = {
   'color' : color,
   'alpha' : alpha,
   'cumulative' : cumulative,
+  'consolidateBy' : consolidateBy,
   'keepLastValue' : keepLastValue,
   'drawAsInfinite' : drawAsInfinite,
   'secondYAxis': secondYAxis,
