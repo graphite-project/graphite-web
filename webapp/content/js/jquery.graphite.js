@@ -77,9 +77,14 @@
         });
     };
 
-    $.fn.graphiteGraph = function() {
-        return this.each(function() {
+    $.fn.graphiteGraph = function(config) {
+            config = config || {};
+            // something like http://<graphitehost[:port]>.  empty implicitly means current protocol/host/port
+            var url_host = (typeof config.url_host === 'undefined') ? '' : config.url_host 
+            // a prefix to apply to all paths to denote location of graphite web application.
+            var url_path_prefix = (typeof config.url_path_prefix === 'undefined') ? '' : config.url_path_prefix
 
+        return this.each(function() {
             var graph = $(this);
             var plot = null;
             var graph_lines = {};
@@ -159,7 +164,7 @@
                 // legends magic
                 legends = graph.find(".legendLabel");
                 // update link
-                graph.find("#graphurl").attr("href", build_full_url());
+                graph.find("#graphurl").attr("href", build_url_graph());
 
             }
 
@@ -296,49 +301,50 @@
                 render();
             }
 
-            var build_full_url = function() {
-                var url = window.location.protocol + '//' +
-                        window.location.host + window.location.pathname +
-                        '?' + build_when();
+            var build_when = function () {
+                var when = new Array();
+                var from  = graph.find("#from").text();
+                if (from) {
+                    when.push('from=' + from);
+                }
+                var until = graph.find("#until").text();
+                if (until) {
+                    when.push('until=' + until);
+                }
+                return when
+            }
+
+            var build_url_graph = function() {
+                var url = url_host + url_path_prefix + '/graphlot/?';
+                params = build_when();
                 for (series in graph_lines) {
                     if (metric_yaxis[series] == "two") {
-                        url = url + '&y2target=' + series;
+                        params.push('y2target=' + series);
                     } else {
-                        url = url + '&target=' + series;
+                        params.push('target=' + series);
                     }
                 }
                 events = graph.find("#eventdesc").val();
                 if (events != "") {
-                    url = url + "&events=" + events;
+                    params.push('events=' + events);
                 }
 
-                return url;
+                return url + params.join("&");
             }
-
-            var build_when = function () {
-                var when = '';
-                var from  = graph.find("#from").text();
-                if (from) {
-                    when = when + '&from=' + from;
-                }
-                var until = graph.find("#until").text();
-                if (until) {
-                    when = when + '&until=' + until;
-                }
-                return when
-            }
-            var build_url = function (series) {
-                when = build_when()
-                return 'rawdata?'+when+'&target='+series;
+            var build_url_rawdata = function (series) {
+                var url = url_host + url_path_prefix + '/graphlot/rawdata?';
+                params = build_when();
+                params.push('target=' + series);
+                return url + params.join("&");
             }
 
             var build_url_events = function (tags) {
-                when = build_when()
-                if (tags == "*") {
-                    return SLASH+'events/get_data?'+when
-                } else {
-                    return SLASH+'events/get_data?'+when+'&tags='+tags;
+                var url = url_host + url_path_prefix + '/events/get_data?';
+                params = build_when();
+                if (tags != "*") {
+                    params.push('tags=' + tags);
                 }
+                return url + params.join("&");
             }
 
             var update_metric_row = function(metric_row) {
@@ -348,7 +354,7 @@
                 metric_yaxis[metric_name] = metric.find(".yaxis").text();
 
                 $.ajax({
-                    url: build_url(metric_name),
+                    url: build_url_rawdata(metric_name),
                     success: function(req_data) {
                         metric.find(".metricname").removeClass("ajaxerror");
                         metric.find(".metricname").removeClass("ajaxworking");
