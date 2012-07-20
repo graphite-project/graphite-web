@@ -113,7 +113,6 @@
             // parameter to construct the id's of the elements to interact with (see above)
             var graph = config.graph
 
-        return this.each(function() {
             var wrap = $(this);
             var plot = null;
             var graph_lines = {};
@@ -538,7 +537,6 @@
 
             // get data
             recalculate_all();
-        });
     };
 
 })( jQuery );
