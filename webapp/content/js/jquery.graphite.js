@@ -1,5 +1,3 @@
-(function( $ ) {
-    
     function arrays_equal(array1, array2) {
         if (array1 == null || array2 == null) {
             return false;
@@ -81,6 +79,8 @@
         // for more convenient matching.  see below
         return "#g_" + name + "_" + graph;
     }
+
+(function( $ ) {
 
     $.fn.graphiteGraph = function(config) {
             // run this function on on a wrapping element containing other elements (g_wrap_{{graph}})
