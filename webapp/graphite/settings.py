@@ -22,7 +22,7 @@ try:
 except ImportError:
   rrdtool = False
 
-_APP_SETTINGS_LOADED = False
+GRAPHITE_WEB_APP_SETTINGS_LOADED = False
 WEBAPP_VERSION = '0.9.10'
 DEBUG = False
 JAVASCRIPT_DEBUG = False
@@ -113,7 +113,7 @@ except ImportError:
   print >> sys.stderr, "Could not import graphite.local_settings, using defaults!"
 
 ## Load Django settings if they werent picked up in local_settings
-if not _APP_SETTINGS_LOADED:
+if not GRAPHITE_WEB_APP_SETTINGS_LOADED:
   from graphite.app_settings import *
 
 ## Set config dependent on flags set in local_settings
