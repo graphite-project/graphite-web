@@ -7,6 +7,7 @@ from graphite.node import BranchNode, LeafNode
 from graphite.readers import CeresReader, WhisperReader, GzippedWhisperReader, RRDReader
 from graphite.util import find_escaped_pattern_fields
 
+from graphite.logger import log
 
 #setDefaultSliceCachingBehavior('all')
 
@@ -82,7 +83,7 @@ class StandardFinder:
               for datasource_name in RRDReader.get_datasources(absolute_path):
                 if match_entries([datasource_name], datasource_pattern):
                   reader = RRDReader(absolute_path, datasource_name)
-                  yield LeafNode(metric_path, reader)
+                  yield LeafNode(metric_path + "." + datasource_name, reader)
 
   def _find_paths(self, current_dir, patterns):
     """Recursively generates absolute paths whose components underneath current_dir
