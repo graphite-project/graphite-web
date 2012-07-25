@@ -854,6 +854,8 @@ def cactiStyle(requestContext, seriesList):
     &target=cactiStyle(ganglia.*.net.bytes_out)
 
   """
+  if 0 == len(seriesList):
+      return seriesList
   nameLen = max([len(getattr(series,"name")) for series in seriesList])
   lastLen = max([len(repr(int(safeLast(series) or 3))) for series in seriesList]) + 3
   maxLen = max([len(repr(int(safeMax(series) or 3))) for series in seriesList]) + 3
@@ -1849,7 +1851,7 @@ def dashed(requestContext, *seriesList):
   return seriesList[0]
 
 
-def timeShift(requestContext, seriesList, timeShift):
+def timeShift(requestContext, seriesList, timeShift, resetEnd=True):
   """
   Takes one metric or a wildcard seriesList, followed by a quoted string with the
   length of time (See ``from / until`` in the render\_api_ for examples of time formats).
@@ -1857,6 +1859,12 @@ def timeShift(requestContext, seriesList, timeShift):
   Draws the selected metrics shifted in time. If no sign is given, a minus sign ( - ) is
   implied which will shift the metric back in time. If a plus sign ( + ) is given, the
   metric will be shifted forward in time.
+
+  Will reset the end date range automatically to the end of the base stat unless
+  resetEnd is False. Example case is when you timeshift to last week and have the graph
+  date range set to include a time in the future, will limit this timeshift to pretend
+  ending at the current time. If resetEnd is False, will instead draw full range including
+  future time.
 
   Useful for comparing a metric against itself at a past periods or correcting data
   stored at an offset.
@@ -1882,8 +1890,11 @@ def timeShift(requestContext, seriesList, timeShift):
 
   for shiftedSeries in evaluateTarget(myContext, series.pathExpression):
     shiftedSeries.name = 'timeShift(%s, %s)' % (shiftedSeries.name, timeShift)
+    if resetEnd:
+      shiftedSeries.end = series.end
+    else:
+      shiftedSeries.end = shiftedSeries.end - shiftedSeries.start + series.start
     shiftedSeries.start = series.start
-    shiftedSeries.end = series.end
     results.append(shiftedSeries)
 
   return results
