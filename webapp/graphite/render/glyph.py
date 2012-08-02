@@ -316,7 +316,7 @@ class Graph:
       lineHeight = extents['maxHeight'] + 1
       labelWidth = extents['width'] + 2 * (boxSize + padding)
       columns = max(1, math.floor( (self.width - self.area['xmin']) / labelWidth ))
-      numRight = len([name for (name,color,rightSide) in elements if rightSide])
+      numRight = len([name for (name,color,rightSide,hideFromLegend) in elements if rightSide])
       numberOfLines = max(len(elements) - numRight, numRight)
       columns = math.floor(columns / 2.0) 
       if columns < 1: columns = 1
@@ -329,7 +329,7 @@ class Graph:
       xRight = self.area['xmax'] - self.area['xmin']
       yRight = y
       nRight = 0
-      for (name,color,rightSide) in elements:
+      for (name,color,rightSide,hideFromLegend) in elements:
         self.setColor( color )
         if rightSide:
           nRight += 1 
@@ -366,7 +366,7 @@ class Graph:
       self.ctx.set_line_width(1.0)
       x = self.area['xmin']
       y = self.area['ymax'] + (2 * padding)
-      for i,(name,color,rightSide) in enumerate(elements):
+      for i,(name,color,rightSide,hideFromLegend) in enumerate(elements):
         if rightSide:
           self.setColor( color )
           self.drawRectangle(x + labelWidth + padding,y,boxSize,boxSize)
@@ -624,7 +624,7 @@ class LineGraph(Graph):
     self.setFont()
 
     if not params.get('hideLegend', len(self.data) > settings.LEGEND_MAX_ITEMS):
-      elements = [ (series.name,series.color,series.options.get('secondYAxis')) for series in self.data if series.name ]
+      elements = [ (series.name,series.color,series.options.get('secondYAxis'), series.options.get('hideFromLegend')) for series in self.data if series.name ]
       self.drawLegend(elements, params.get('uniqueLegend', False))
 
     #Setup axes, labels, and grid

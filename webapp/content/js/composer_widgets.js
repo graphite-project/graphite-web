@@ -987,6 +987,7 @@ function createFunctionsMenu() {
                         {text: "Min", handler: applyFuncToEach('consolidateBy', '"min"')}
                       ]},
         {text: 'Draw non-zero As Infinite', handler: applyFuncToEach('drawAsInfinite')},
+        {text: 'Hide from Legend', handler: applyFuncToEach('hideFromLegend')},
         {text: 'Line Width', handler: applyFuncToEachWithInput('lineWidth', 'Please enter a line width for this graph target')},
         {text: 'Dashed Line', handler: applyFuncToEach('dashed')},
         {text: 'Keep Last Value', handler: applyFuncToEach('keepLastValue')},

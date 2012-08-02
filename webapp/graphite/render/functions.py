@@ -1855,6 +1855,23 @@ def drawAsInfinite(requestContext, seriesList):
     series.name = 'drawAsInfinite(%s)' % series.name
   return seriesList
 
+def hideFromLegend(requestContext, seriesList):
+  """
+  Takes one metric or a wildcard seriesList.
+  It will not draw the metric on the legend.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=hideFromLegend(server01.instance01.memory.free,5)
+
+  """
+  for series in seriesList:
+    series.options['hideFromLegend'] = True
+    series.name = 'hideFromLegend(%s)' % series.name
+  return seriesList
+
 def lineWidth(requestContext, seriesList, width):
   """
   Takes one metric or a wildcard seriesList, followed by a float F.
@@ -2571,6 +2588,7 @@ SeriesFunctions = {
   'consolidateBy' : consolidateBy,
   'keepLastValue' : keepLastValue,
   'drawAsInfinite' : drawAsInfinite,
+  'hideFromLegend' : hideFromLegend,
   'secondYAxis': secondYAxis,
   'lineWidth' : lineWidth,
   'dashed' : dashed,
