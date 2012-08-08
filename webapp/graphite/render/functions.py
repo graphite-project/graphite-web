@@ -14,6 +14,7 @@
 
 
 from datetime import date, datetime, timedelta
+from functools import partial
 from itertools import izip, imap
 import math
 import re
@@ -843,28 +844,34 @@ def alias(requestContext, seriesList, newName):
     series.name = newName
   return seriesList
 
-def cactiStyle(requestContext, seriesList):
+def cactiStyle(requestContext, seriesList, system=None):
   """
   Takes a series list and modifies the aliases to provide column aligned
-  output with Current, Max, and Min values in the style of cacti.
+  output with Current, Max, and Min values in the style of cacti. Optonally
+  takes a "system" value to apply unit formatting in the same style as the
+  Y-axis.
   NOTE: column alignment only works with monospace fonts such as terminus.
 
   .. code-block:: none
 
-    &target=cactiStyle(ganglia.*.net.bytes_out)
+    &target=cactiStyle(ganglia.*.net.bytes_out,"si")
 
   """
   if 0 == len(seriesList):
       return seriesList
+  if system:
+      fmt = lambda x:"%2.f%s" % format_units(x,system=system)
+  else:
+      fmt = lambda x:"%2.f"%x
   nameLen = max([len(getattr(series,"name")) for series in seriesList])
-  lastLen = max([len(repr(int(safeLast(series) or 3))) for series in seriesList]) + 3
-  maxLen = max([len(repr(int(safeMax(series) or 3))) for series in seriesList]) + 3
-  minLen = max([len(repr(int(safeMin(series) or 3))) for series in seriesList]) + 3
+  lastLen = max([len(fmt(int(safeLast(series) or 3))) for series in seriesList]) + 3
+  maxLen = max([len(fmt(int(safeMax(series) or 3))) for series in seriesList]) + 3
+  minLen = max([len(fmt(int(safeMin(series) or 3))) for series in seriesList]) + 3
   for series in seriesList:
       name = series.name
-      last = safeLast(series)
-      maximum = safeMax(series)
-      minimum = safeMin(series)
+      last = fmt(float(safeLast(series)))
+      maximum = fmt(float(safeMax(series)))
+      minimum = fmt(float(safeMin(series)))
       if last is None:
         last = NAN
       if maximum is None:
@@ -872,11 +879,11 @@ def cactiStyle(requestContext, seriesList):
       if minimum is None:
         minimum = NAN
 
-      series.name = "%*s Current:%*.2f Max:%*.2f Min:%*.2f" % \
+      series.name = "%*s Current:%*s Max:%*s Min:%*s " % \
           (-nameLen, series.name,
-          lastLen, last,
-          maxLen, maximum,
-          minLen, minimum)
+          -lastLen, last,
+          -maxLen, maximum,
+          -minLen, minimum)
   return seriesList
 
 def aliasByNode(requestContext, seriesList, *nodes):
