@@ -23,7 +23,7 @@ except:
 
 # Test for ceres
 try:
-  import whisper
+  import ceres
 except:
   print "[FATAL] Unable to import the 'ceres' module, please download this package from the Graphite project page and install it."
   fatal += 1
