@@ -201,6 +201,9 @@ def parseOptions(request):
   requestOptions['targets'] = []
   for target in queryParams.getlist('target'):
     requestOptions['targets'].append(target)
+  if len(requestOptions['targets']) == 0:
+    for target in queryParams.getlist('target[]'):
+      requestOptions['targets'].append(target)
 
   if 'pickle' in queryParams:
     requestOptions['format'] = 'pickle'
@@ -243,7 +246,7 @@ def parseOptions(request):
     startTime = min(fromTime, untilTime)
     endTime = max(fromTime, untilTime)
     assert startTime != endTime, "Invalid empty time range"
-    
+
     requestOptions['startTime'] = startTime
     requestOptions['endTime'] = endTime
 
