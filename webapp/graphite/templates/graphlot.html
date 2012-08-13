@@ -16,7 +16,7 @@
     var SLASH='{{slash}}';
 
     $(document).ready(function () {
-        $('#g_wrap_1').graphiteGraph({'graph': '1'});
+        $('#g_wrap').graphiteGraph();
     });
 
     </script>
@@ -44,15 +44,15 @@
         <div id="title" style="text-align:center">
             <h1>graphlot</h1>
         </div>
-        <div id="g_wrap_1">
+        <div id="g_wrap">
             <div id="main" >
-                <div id="g_canvas_1" style="padding:15px">
-                    <div id="g_container_1" style=float:left;">
-                        <div id="g_graph_1" style="width:600px;height:300px"></div>
-                        <div id="g_overview_1" style="width:600px;height:66px"></div>
+                <div class="g_canvas" style="padding:15px">
+                    <div class="g_container" style=float:left;">
+                        <div class="g_graph" style="width:600px;height:300px"></div>
+                        <div class="g_overview" style="width:600px;height:66px"></div>
                     </div>
-                    <div id="g_side_1" style="float:left">
-                        <p id="g_legend_1" style="margin-left:10px"></p>
+                    <div class="g_side" style="float:left">
+                        <p class="g_legend" style="margin-left:10px"></p>
                     </div>
                     <p style="clear:left">&nbsp</p>
                 </div>
@@ -60,7 +60,7 @@
 
                 <table class="g_rowlist styledtable"  style="float:left">
                 <tr><th  style="width:750px">events</th></tr>
-                <tr id="g_eventsrow_1"><td><input class="g_event_tags" style="width:600px" type="text" id="g_eventdesc_1" value="{{events}}"/>(<span id="g_eventcount_1">0</span>)</td></tr>
+                <tr class="g_eventsrow"><td><input style="width:600px" type="text" class="g_eventdesc" value="{{events}}"/>(<span class="g_eventcount">0</span>)</td></tr>
                 </table>
                 
                 <table class="g_rowlist styledtable"  style="float:left">
@@ -76,23 +76,23 @@
                     </tr>
                 {% endfor %}
                 
-                <tr id="g_newmetricrow_1"><td><input style="width:600px" type="text" id="g_newmetric_1"/></td></tr>
+                <tr class="g_newmetricrow"><td><input style="width:600px" type="text" class="g_newmetric"/></td></tr>
                 </table>
 
-                 <table id="g_bounds_1" class="styledtable"  style="float:right">
+                 <table class="g_bounds styledtable"  style="float:right">
                     <tr><th>From</th><th>To</th></tr>
                     <tr>
-                        <td><a href=#><span id="g_from_1">{{fromtime}}</span></a></td>
-                        <td><a href=#><span id="g_until_1">{{untiltime}}</span></a></td>
+                        <td><a href=#><span class="g_from">{{fromtime}}</span></a></td>
+                        <td><a href=#><span class="g_until">{{untiltime}}</span></a></td>
                     </tr>
                     <tr> <td colspan="2" style="text-align:center">
-                        <a href=#><span id="g_update_1">update</span></a>
+                        <a href=#><span class="g_update">update</span></a>
                     </td></tr>
                     <tr> <td colspan="2" style="text-align:center">
-                        <a href=#><span id="g_clearzoom_1">clear zoom</span></a>
+                        <a href=#><span class="g_clearzoom">clear zoom</span></a>
                     </td></tr>
                     <tr> <td colspan="2" style="text-align:center">
-                        <a href=# id="g_graphurl_1">link to graph</a>
+                        <a href=# class="g_graphurl">link to graph</a>
                     </td></tr>
                 </table>
             </div>
