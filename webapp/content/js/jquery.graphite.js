@@ -78,6 +78,9 @@
 (function( $ ) {
 
     $.fn.graphiteGraph = function(config) {
+
+        return this.each(function() {
+
             // run this function on on a wrapping element containing all other elements, with the following class names.
             // (for convention's sake, you can give the wrapping element an id like `g_wrap`)
             // g_canvas currently not used for actual logic, but can contain the container, overview, legend, etc
@@ -99,6 +102,8 @@
             // g_metricname
             // this convention allows to consistently find the right DOM elements, irrespective of the number of graphs on the page
 
+            var wrap = $(this);
+
             config = config || {};
             // something like http://<graphitehost[:port]>.  empty implicitly means current protocol/host/port
             var url_host = (typeof config.url_host === 'undefined') ? '' : config.url_host 
@@ -107,8 +112,6 @@
             // parameter to construct the id's of the elements to interact with (see above)
             var graph = config.graph
 
-        return this.each(function() {
-            var wrap = $(this);
             var plot = null;
             var graph_lines = {};
             var metric_yaxis = {};
