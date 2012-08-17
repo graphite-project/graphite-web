@@ -295,8 +295,7 @@ class WhisperFile(Leaf):
     return [ (start, end) ]
 
   def fetch(self, startTime, endTime):
-    (timeInfo,values) = whisper.fetch(self.fs_path, startTime, endTime)
-    return (timeInfo,values)
+    return whisper.fetch(self.fs_path, startTime, endTime)
 
   @property
   def context(self):
