@@ -70,7 +70,7 @@ Whisper is somewhat inefficient in its usage of disk space because of certain de
 
 *Each data point is stored with its timestamp*
   Rather than a timestamp being inferred from its position in the archive, timestamps are stored with
-  each point. The timestamps are during data retrieval to check the validity of the data point. If a
+  each point. The timestamps are used during data retrieval to check the validity of the data point. If a
   timestamp does not match the expected value for its position relative to the beginning of the requested
   series, it is known to be out of date and a null value is returned
 *Archives overlap time periods*
