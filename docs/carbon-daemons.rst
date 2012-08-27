@@ -34,6 +34,40 @@ enough to handle the I/O load. To scale out, simply run multiple
 ``carbon-cache.py`` instances (on one or more machines) behind a
 ``carbon-aggregator.py`` or ``carbon-relay.py``.
 
+.. warning::
+
+  Clients that try to connect to the ``carbon-cache.py`` might experience errors
+  such as `connection refused` by the daemon.
+
+  One possible reason for this is a shortage of file descriptors
+  ``carbon-cache.py`` needs.
+
+  In the ``console.log`` file, if you find presence of:
+
+  ``Could not accept new connection (EMFILE)``
+
+  or
+
+  ``exceptions.IOError: [Errno 24] Too many open files: '/var/lib/graphite/whisper/systems/someohost/something.wsp'``
+
+  You need to increase the number of files ``carbon-cache.py`` can open.
+
+  In Linux, based on your distribution and installation of Graphite,
+  you might need to increase the value of ``fs.file-max`` in
+  ``/etc/sysctl.conf`` then run ``sysctl -p``.
+
+  And if carbon run with the UID ``graphite``, you might need to edit the file
+  ``/etc/security/limits.conf`` and add the following 2 lines:
+
+  ``graphite soft nofile 8192``
+
+  and
+
+  ``graphite hard nofile 20000``.
+
+  Then restart carbon.
+
+  Feel free to try different value than **8192** and **20000** to fit your needs.
 
 carbon-relay.py
 ---------------
