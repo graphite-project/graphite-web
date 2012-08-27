@@ -16,7 +16,7 @@
     var SLASH='{{slash}}';
 
     $(document).ready(function () {
-        $('.graphite').graphiteGraph();
+        $('#g_wrap').graphiteGraph();
     });
 
     </script>
@@ -44,55 +44,55 @@
         <div id="title" style="text-align:center">
             <h1>graphlot</h1>
         </div>
-        <div class="graphite">
+        <div id="g_wrap">
             <div id="main" >
-                <div id="canvas" style="padding:15px">
-                    <div id="graphcontainer" style=float:left;">
-                        <div id="graph" style="width:600px;height:300px"></div>
-                        <div id="overview" style="width:600px;height:66px"></div>
+                <div class="g_canvas" style="padding:15px">
+                    <div class="g_container" style=float:left;">
+                        <div class="g_graph" style="width:600px;height:300px"></div>
+                        <div class="g_overview" style="width:600px;height:66px"></div>
                     </div>
-                    <div id="side" style="float:left">
-                        <p id="legend" style="margin-left:10px"></p>
+                    <div class="g_side" style="float:left">
+                        <p class="g_legend" style="margin-left:10px"></p>
                     </div>
                     <p style="clear:left">&nbsp</p>
                 </div>
                 <br/>
 
-                <table id="rowlist" class="styledtable"  style="float:left">
+                <table class="g_rowlist styledtable"  style="float:left">
                 <tr><th  style="width:750px">events</th></tr>
-                <tr id="eventsrow"><td><input class="event_tags" style="width:600px" type="text" id="eventdesc" value="{{events}}"/>(<span id="eventcount">0</span>)</td></tr>
+                <tr class="g_eventsrow"><td><input style="width:600px" type="text" class="g_eventdesc" value="{{events}}"/>(<span class="g_eventcount">0</span>)</td></tr>
                 </table>
                 
-                <table id="rowlist" class="styledtable"  style="float:left">
+                <table class="g_rowlist styledtable"  style="float:left">
                 <tr><th  style="width:750px">metric</th><th>y-axis</th></tr>
                 {% for metric in metric_list %}
-                    <tr class="metricrow">
-                        <td><a href=#><span class="metricName">{{metric.name}}</span></a>
+                    <tr class="g_metricrow">
+                        <td><a href=#><span class="g_metricname">{{metric.name}}</span></a>
                         </td>
-                        <td><a href=#><span class="yaxis">{{metric.yaxis}}</span></a>
+                        <td><a href=#><span class="g_yaxis">{{metric.yaxis}}</span></a>
                         </td>
-                        <td class="killrow"><img src="../content/img/delete.png">
+                        <td class="g_killrow"><img src="../content/img/delete.gif">
                         </td>
                     </tr>
                 {% endfor %}
                 
-                <tr id="newmetricrow"><td><input style="width:600px" type="text" id="newmetric"/></td></tr>
+                <tr class="g_newmetricrow"><td><input style="width:600px" type="text" class="g_newmetric"/></td></tr>
                 </table>
 
-                 <table id="bounds" class="styledtable"  style="float:right">
+                 <table class="g_bounds styledtable"  style="float:right">
                     <tr><th>From</th><th>To</th></tr>
                     <tr>
-                        <td><a href=#><span id="from">{{fromtime}}</span></a></td>
-                        <td><a href=#><span id="until">{{untiltime}}</span></a></td>
+                        <td><a href=#><span class="g_from">{{fromtime}}</span></a></td>
+                        <td><a href=#><span class="g_until">{{untiltime}}</span></a></td>
                     </tr>
                     <tr> <td colspan="2" style="text-align:center">
-                        <a href=#><span id="update">update</span></a>
+                        <a href=#><span class="g_update">update</span></a>
                     </td></tr>
                     <tr> <td colspan="2" style="text-align:center">
-                        <a href=#><span id="clearzoom">clear zoom</span></a>
+                        <a href=#><span class="g_clearzoom">clear zoom</span></a>
                     </td></tr>
                     <tr> <td colspan="2" style="text-align:center">
-                        <a href=# id="graphurl">link to graph</a>
+                        <a href=# class="g_graphurl">link to graph</a>
                     </td></tr>
                 </table>
             </div>
