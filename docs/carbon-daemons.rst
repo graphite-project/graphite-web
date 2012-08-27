@@ -34,6 +34,28 @@ enough to handle the I/O load. To scale out, simply run multiple
 ``carbon-cache.py`` instances (on one or more machines) behind a
 ``carbon-aggregator.py`` or ``carbon-relay.py``.
 
+.. warning::
+
+  If clients connecting to the ``carbon-cache.py`` are experiencing errors
+  such as `connection refused` by the daemon, a common reason is a shortage
+  of file descriptors.
+
+  In the ``console.log`` file, if you find presence of:
+
+  ``Could not accept new connection (EMFILE)``
+
+  or
+
+  ``exceptions.IOError: [Errno 24] Too many open files: '/var/lib/graphite/whisper/systems/somehost/something.wsp'``
+
+  the number of files ``carbon-cache.py`` can open will need to be increased.
+  Many systems default to a max of 1024 file descriptors. A value of 8192 or more may
+  be necessary depending on how many clients are simultaneously connecting to the
+  ``carbon-cache.py`` daemon.
+
+  In Linux, the system-global file descriptor max can be set via sysctl. Per-process
+  limits are set via ulimit. See documentation for your operating system distribution
+  for details on how to set these values.
 
 carbon-relay.py
 ---------------
