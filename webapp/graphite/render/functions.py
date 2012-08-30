@@ -484,20 +484,19 @@ def movingMedian(requestContext, seriesList, windowSize):
     newSeries = TimeSeries(newName, series.start, series.end, series.step, [])
     newSeries.pathExpression = newName
 
-    windowIndex = windowSize - 1
+    # Get some older data too, to have a complete graph
+    fakeContext = dict([(x, requestContext[x]) for x in requestContext])
+    fakeContext['startTime'] -= timedelta(0, (windowSize-1) * series.step)
+    completeSeries = fetchData(fakeContext, series.pathExpression)
 
     for i in range( len(series) ):
-      if i < windowIndex: # Pad the beginning with None's since we don't have enough data
-        newSeries.append( None )
-
+      window = completeSeries[i : i + windowSize]
+      nonNull = [ v for v in window if v is not None ]
+      if nonNull:
+        m_index = len(nonNull) / 2
+        newSeries.append(sorted(nonNull)[m_index])
       else:
-        window = series[i - windowIndex : i + 1]
-        nonNull = [ v for v in window if v is not None ]
-        if nonNull:
-          m_index = len(nonNull) / 2
-          newSeries.append(sorted(nonNull)[m_index])
-        else:
-          newSeries.append(None)
+        newSeries.append(None)
 
     seriesList[ seriesIndex ] = newSeries
 
@@ -591,19 +590,18 @@ def movingAverage(requestContext, seriesList, windowSize):
     newSeries = TimeSeries(newName, series.start, series.end, series.step, [])
     newSeries.pathExpression = newName
 
-    windowIndex = int(windowSize) - 1
+    # Get some older data too, to have a complete graph
+    fakeContext = dict([(x, requestContext[x]) for x in requestContext])
+    fakeContext['startTime'] -= timedelta(0, (windowSize-1) * series.step)
+    completeSeries = fetchData(fakeContext, series.pathExpression)[0]
 
     for i in range( len(series) ):
-      if i < windowIndex: # Pad the beginning with None's since we don't have enough data
-        newSeries.append( None )
-
+      window = completeSeries[i : i + windowSize]
+      nonNull = [ v for v in window if v is not None ]
+      if nonNull:
+        newSeries.append( sum(nonNull) / len(nonNull) )
       else:
-        window = series[i - windowIndex : i + 1]
-        nonNull = [ v for v in window if v is not None ]
-        if nonNull:
-          newSeries.append( sum(nonNull) / len(nonNull) )
-        else:
-          newSeries.append(None)
+        newSeries.append(None)
 
     seriesList[ seriesIndex ] = newSeries
 
