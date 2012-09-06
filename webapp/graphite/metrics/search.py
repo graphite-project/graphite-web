@@ -10,14 +10,16 @@ class IndexSearcher:
   def __init__(self, index_path):
     self.index_path = index_path
     if not os.path.exists(index_path):
-      open(index_path, 'w').close() # touch the file to prevent re-entry down this code path
+      open(index_path, 'w').close()  # touch the file to prevent re-entry down this code path
+      #XXX This is garbagy, should been handled natively, forking a shell to
+      #build the index is less than ideal
       build_index_path = os.path.join(settings.GRAPHITE_ROOT, "bin/build-index.sh")
       retcode = subprocess.call(build_index_path)
       if retcode != 0:
         log.exception("Couldn't build index file %s" % index_path)
         raise RuntimeError("Couldn't build index file %s" % index_path)
     self.last_mtime = 0
-    self._tree = (None, {}) # (data, children)
+    self._tree = (None, {})  # (data, children)
     log.info("[IndexSearcher] performing initial index load")
     self.reload()
 
@@ -35,7 +37,7 @@ class IndexSearcher:
     log.info("[IndexSearcher] reading index data from %s" % self.index_path)
     t = time.time()
     total_entries = 0
-    tree = (None, {}) # (data, children)
+    tree = (None, {})  # (data, children)
     for line in open(self.index_path):
       line = line.strip()
       if not line:
@@ -47,7 +49,7 @@ class IndexSearcher:
       cursor = tree
       for branch in branches:
         if branch not in cursor[1]:
-          cursor[1][branch] = (None, {}) # (data, children)
+          cursor[1][branch] = (None, {})  # (data, children)
         parent = cursor
         cursor = cursor[1][branch]
 
@@ -81,7 +83,7 @@ class IndexSearcher:
       if is_pattern(my_query):
         matches = [root[1][node] for node in match_entries(root[1], my_query)]
       elif my_query in root[1]:
-        matches = [ root[1][my_query] ]
+        matches = [root[1][my_query]]
       else:
         matches = []
 
@@ -90,8 +92,8 @@ class IndexSearcher:
 
     for child_node in matches:
       result = {
-        'path' : child_node[0],
-        'is_leaf' : bool(child_node[0]),
+        'path': child_node[0],
+        'is_leaf': bool(child_node[0]),
       }
       if result['path'] is not None and not result['is_leaf']:
         result['path'] += '.'
