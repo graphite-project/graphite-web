@@ -25,17 +25,18 @@ retention (defined in number of points or max timestamp age). Archives are order
 highest-resolution and shortest retention archive to the lowest-resolution and longest retention period
 archive.
 
-To support accurate aggregation from higher to lower resolution archives, the number of points in a
-longer retention archive must be divisible by its next lower retention archive. For example, an archive
-with 1 data points every 60 seconds and retention of 120 points (2 hours worth of data) can have
-a lower-resolution archive following it with a resolution of 1 data point every 300 seconds for 1200 points,
-while the same resolution but for only 1000 points would be invalid since 1000 is not evenly divisible by
-120.
+To support accurate aggregation from higher to lower resolution archives, the precision of a
+longer retention archive must be divisible by precision of next lower retention archive. For example,
+an archive with 1 data point every 60 seconds can have a lower-resolution archive following it with a
+resolution of 1 data point every 300 seconds because 60 cleanly divides 300. In contrast, a 180 second
+precision (3 minutes) could not be followed by a 600 second precision (10 minutes) because the ratio of
+points to be propagated from the first archive to the next would be 3 1/3 and Whisper will not do partial
+point interpolation.
 
 The total retention time of the database is determined by the archive with the highest retention as the
-time period covered by each archive is overlapping (see `Multi-Archive Storage and Retrieval Behavior`_). That is, a pair of
-archives with retentions of 1 month and 1 year will not provide 13 months of data storage. Instead,
-it will provide 1 year of storage.
+time period covered by each archive is overlapping (see `Multi-Archive Storage and Retrieval Behavior`_).
+That is, a pair of archives with retentions of 1 month and 1 year will not provide 13 months of data storage
+as may be guessed. Instead, it will provide 1 year of storage - the length of it's longest archive.
 
 
 Rollup Aggregation
@@ -69,7 +70,7 @@ Whisper is somewhat inefficient in its usage of disk space because of certain de
 
 *Each data point is stored with its timestamp*
   Rather than a timestamp being inferred from its position in the archive, timestamps are stored with
-  each point. The timestamps are during data retrieval to check the validity of the data point. If a
+  each point. The timestamps are used during data retrieval to check the validity of the data point. If a
   timestamp does not match the expected value for its position relative to the beginning of the requested
   series, it is known to be out of date and a null value is returned
 *Archives overlap time periods*

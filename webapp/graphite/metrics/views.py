@@ -47,7 +47,10 @@ def index_json(request):
 
 
 def search_view(request):
-  query = str(request.REQUEST['query'].strip())
+  try:
+    query = str( request.REQUEST['query'] )
+  except:
+    return HttpResponseBadRequest(content="Missing required parameter 'query'", mimetype="text/plain")
   search_request = {
     'query' : query,
     'max_results' : int( request.REQUEST.get('max_results', 25) ),
