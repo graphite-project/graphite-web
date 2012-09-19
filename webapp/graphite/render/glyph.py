@@ -196,6 +196,7 @@ class Graph:
     elif type(value) in (str,unicode) and len(value) >= 6:
       s = value
       if s[0] == '#': s = s[1:]
+      if s[0:3] == '%23': s = s[3:]
       r,g,b = ( int(s[0:2],base=16), int(s[2:4],base=16), int(s[4:6],base=16) )
       if len(s) == 8 and not forceAlpha:
         alpha = float( int(s[6:8],base=16) ) / 255.0
