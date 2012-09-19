@@ -1007,21 +1007,28 @@ def cactiStyle(requestContext, seriesList, system=None):
   minLen = max([0] + [len(fmt(int(safeMin(series) or 3))) for series in seriesList]) + 3
   for series in seriesList:
       name = series.name
-      last = fmt(float(safeLast(series)))
-      maximum = fmt(float(safeMax(series)))
-      minimum = fmt(float(safeMin(series)))
+      last = safeLast(series)
+      maximum = safeMax(series)
+      minimum = safeMin(series)
       if last is None:
         last = NAN
+      else:
+        last = fmt(float(last))
+        
       if maximum is None:
         maximum = NAN
+      else:
+        maximum = fmt(float(maximum))
       if minimum is None:
         minimum = NAN
-
+      else:
+        minimum = fmt(float(minimum))
+        
       series.name = "%*s Current:%*s Max:%*s Min:%*s " % \
           (-nameLen, series.name,
-          -lastLen, last,
-          -maxLen, maximum,
-          -minLen, minimum)
+            -lastLen, last,
+            -maxLen, maximum,
+            -minLen, minimum)
   return seriesList
 
 def aliasByNode(requestContext, seriesList, *nodes):
