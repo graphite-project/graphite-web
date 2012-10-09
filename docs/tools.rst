@@ -1,6 +1,10 @@
 Tools That Work With Graphite
 =============================
 
+Backstop
+-----
+`Backstop`_ is a simple endpoint for submitting metrics to Graphite. It accepts JSON data via HTTP POST and proxies the data to one or more Carbon/Graphite listeners.
+
 Bucky
 -----
 `Bucky`_ is a small service implemented in Python for collecting and translating metrics for Graphite.
@@ -38,6 +42,10 @@ Charcoal
 service which can generate images directly from a URL. Charcoal configuration is driven by a YAML
 config file.
 
+
+Descartes
+-------
+`Descartes`_ is a Sinatra-based dashboard that allows users to correlate multiple metrics in a single chart, review long-term trends across one or more charts, and to collaborate with other users through a combination of shared dashboards and rich layouts.
 
 Diamond
 -------
