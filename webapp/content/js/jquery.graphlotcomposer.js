@@ -60,10 +60,28 @@
         config = config || {};
         var graph = new wrap.graphlot(config);
             var autocompleteoptions = {
-                        minChars: 0,
-                        selectFirst: false,
-                        matchCase: true //Metrics can be case sensitive
-            };
+		minChars: 0,
+		selectFirst: false,
+		matchCase: true //Metrics can be case sensitive
+        };
+
+	// misc/common stuff
+	var post_render = function () {
+		// update link
+		wrap.find('.g_graphurl').attr("href", graph.build_url_graph());
+	}
+
+        var recalculate_all = function () {
+            wrap.find('.g_metricrow').each(function () {
+                var metric = $(this);
+                update_metric_row(metric);
+            });
+            get_events(wrap.find('.g_eventdesc'), '.eventcount')
+            graph.render(post_render);
+        }
+
+        wrap.find('.g_update').bind('click',recalculate_all);
+        wrap.find('.g_clearzoom').bind('click',graph.clear_zoom);
 
         // configure the date boxes
         wrap.find('.g_from').editable_in_place(
@@ -81,16 +99,49 @@
 		recalculate_all();
             }
         );
-        wrap.find('.g_update').bind('click',recalculate_all);
-        wrap.find('.g_clearzoom').bind('click',graph.clear_zoom);
         wrap.find('.g_from').change(function () {
             alert ("change event" + $(this).text());
             graph.setFrom($(this).text());
 		recalculate_all();
         });
 
-        // update link
-	wrap.find('.g_graphurl').attr("href", graph.build_url_graph());
+        // configure new event input
+        wrap.find('.g_eventdesc').each(function () {
+            var edit = $(this);
+            edit.keydown(function(e) {
+                if(e.which===13) { // on enter
+                    // add row
+                    edit.blur();
+                    get_events(edit, '.g_eventcount');
+                }
+            });
+        });
+        var get_events = function(events_text, event_count) {
+            if (events_text.val() == "") {
+                events_text.removeClass("ajaxworking");
+                events_text.removeClass("ajaxerror");
+                markings = [];
+                render(post_render);
+            } else {
+                events_text.addClass("ajaxworking");
+                $.ajax({
+                    url: build_url_events(events_text.val()),
+                    success: function(req_data) {
+                        events_text.removeClass("ajaxerror");
+                        events_text.removeClass("ajaxworking");
+                        markings = [];
+                        $(event_count).text(req_data.length);
+                    graph.setEvents(req_data);
+                    },
+                    error: function(req, status, err) {
+                        events_text.removeClass("ajaxworking");
+                        events_text.addClass("ajaxerror");
+                        render(post_render);
+                    }
+                });
+            }
+
+        }
 
         // configure new metric input
         wrap.find('.g_newmetric').each(function () {
@@ -112,116 +163,57 @@
             });
         });
 
-            var get_events = function(events_text, event_count) {
-                if (events_text.val() == "") {
-                    events_text.removeClass("ajaxworking");
-                    events_text.removeClass("ajaxerror");
-                    markings = [];
-                    render();
-                } else {
-                    events_text.addClass("ajaxworking");
-                    $.ajax({
-                        url: build_url_events(events_text.val()),
-                        success: function(req_data) {
-                            events_text.removeClass("ajaxerror");
-                            events_text.removeClass("ajaxworking");
-                            markings = [];
-                            $(event_count).text(req_data.length);
-                        graph.setEvents(req_data);
-                        },
-                        error: function(req, status, err) {
-                            events_text.removeClass("ajaxworking");
-                            events_text.addClass("ajaxerror");
-                            render();
-                        }
-                    });
-                }
 
-            }
-            // configure metricrows
-            var setup_row = function (metric) {
-                var metric_name = metric.find('.g_metricname').text();
+        // configure metricrows
+        var setup_metric_row = function (metric_row) {
+            var metric_name = metric.find('.g_metricname').text();
 
-                metric.find('.g_metricname').editable_in_place(
-                    function(editable, value) {
-                        delete graph_lines[$(editable).text()];
-                        $(editable).text(value);
-                        update_metric_row(metric);
-                    }
-                );
-                metric.find('.g_killrow').bind('click', function() {
-                    delete graph_lines[metric.find('.g_metricname').text()];
-                    metric.remove();
-                    render();
-                });
-
-                metric.find('.g_yaxis').bind('click', function() {
-                    if ($(this).text() == "one") {
-                        $(this).text("two");
-                    } else {
-                        $(this).text("one");
-                    }
-                    metric_yaxis[metric_name] = metric.find(".g_yaxis").text();
-                    render();
-                });
-            }
-
-            // configure new metric input
-            wrap.find('.g_eventdesc').each(function () {
-                var edit = $(this);
-                edit.keydown(function(e) {
-                    if(e.which===13) { // on enter
-                        // add row
-                        edit.blur();
-                        get_events(edit, '.g_eventcount');
-                    }
-                });
-            });
-
-            var recalculate_all = function () {
-                wrap.find('.g_metricrow').each(function () {
-                    var metric = $(this);
+            metric.find('.g_metricname').editable_in_place(
+                function(editable, value) {
+                    $(editable).text(value);
                     update_metric_row(metric);
-                });
-                get_events(wrap.find('.g_eventdesc'), '.eventcount')
-                graph.render();
-            }
+                }
+            );
+            metric.find('.g_killrow').bind('click', function() {
+                graph.removeMetric(metric.find('.g_metricname').text());
+                metric.remove();
+                render(post_render);
+            });
 
-            var update_metric_row = function(metric_row) {
-                var metric = $(metric_row);
-                var metric_name = metric.find(".g_metricname").text();
-                metric.find(".g_metricname").addClass("ajaxworking");
+            metric.find('.g_yaxis').bind('click', function() {
+                    if ($(this).text() == "one") {
+                    $(this).text("two");
+                } else {
+                    $(this).text("one");
+                }
                 metric_yaxis[metric_name] = metric.find(".g_yaxis").text();
-
-                $.ajax({
-                    url: build_url_rawdata(metric_name),
-                    success: function(req_data) {
-                        metric.find(".g_metricname").removeClass("ajaxerror");
-                        metric.find(".g_metricname").removeClass("ajaxworking");
-                        graph.deleteMetric(metric_name);
-                        for (i in req_data) { // TODO: huh, don't even understand the original code
-			    graph.addMetric(req_data[i]);
-                            target.push(parse_incoming(req_data[i]));
-                        }
-                        render();
-                    },
-                    error: function(req, status, err) {
-                        metric.find(".g_metricname").removeClass("ajaxworking");
-                        metric.find(".g_metricname").addClass("ajaxerror");
-                        render();
-                    }
-                });
-
-
-            wrap.find('.g_metricrow').each(function() {
-                setup_row($(this));
+                render(post_render);
             });
+        }
 
-            wrap.find('.g_metricrow').each(function() {
-                var row = $(this);
+        var update_metric_row = function(metric_row) {
+            var metric = $(metric_row);
+            var metric_name = metric.find(".g_metricname").text();
+            metric.find(".g_metricname").addClass("ajaxworking");
+            metric_yaxis[metric_name] = metric.find(".g_yaxis").text();
 
+            graph.updateMetric(metric_name, function () {
+                metric.find(".g_metricname").removeClass("ajaxerror");
+                metric.find(".g_metricname").removeClass("ajaxworking");
+            }, function () {
+                metric.find(".g_metricname").removeClass("ajaxworking");
+                metric.find(".g_metricname").addClass("ajaxerror");
             });
-            }
+        }
+
+        wrap.find('.g_metricrow').each(function() {
+            setup_row($(this));
+        });
+
+        wrap.find('.g_metricrow').each(function() {
+            var row = $(this);
+        });
+    }
 
 
     }
