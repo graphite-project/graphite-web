@@ -100,6 +100,8 @@ def renderView(request):
       requestContext['data'] = data = cachedData
     else: # Have to actually retrieve the data now
       for target in requestOptions['targets']:
+        if not target.strip():
+          continue
         t = time()
         seriesList = evaluateTarget(requestContext, target)
         log.rendering("Retrieval of %s took %.6f" % (target, time() - t))
@@ -108,6 +110,7 @@ def renderView(request):
     if useCache:
       cache.set(dataKey, data, cacheTimeout)
 
+    # If data is all we needed, we're done
     format = requestOptions.get('format')
     if format == 'csv':
       response = HttpResponse(mimetype='text/csv')

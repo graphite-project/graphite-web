@@ -24,29 +24,27 @@ function GraphiteComposer () {
 }
 
 GraphiteComposer.prototype = {
-  toggleTarget: function (target) {
+  toggleTargetWithoutUpdate: function(target) {
+   this.toggleTarget(target, false); 
+  },
+
+  toggleTarget: function (target, updateImage) {
     /* Add the given target to the graph if it does not exist,
-     * otherwise remove it. */
-    var targets = this.url.getParamList("target");
+     * otherwise remove it. 
+     * Optionally reload the image. (default = do update) */
     var record = getTargetRecord(target);
 
-    if (targets.indexOf(target) != -1) { // toggle it off
-      this.url.removeParam("target", target);
-
-      if (record) {
-        TargetStore.remove(record);
-      }
-
+    if (record) {
+      TargetStore.remove(record);
     } else { // toggle it on
-      this.url.addParam("target", target);
-
-      if (!record) {
-        var newRecord = new TargetRecord({value: target});
-        TargetStore.add( [newRecord] );
-      }
+      addTarget(target);
     }
+    this.syncTargetList();
 
-    this.updateImage();
+    // If the updateImage parameter is unspecified or true, reload the image.
+    if(undefined == updateImage || true == updateImage) {
+      this.updateImage();
+    }
   },
 
   loadMyGraph: function (name, url) {
@@ -61,11 +59,13 @@ GraphiteComposer.prototype = {
     tempUrl.copyQueryStringFromURL(url);
     var targets = tempUrl.getParamList('target');
     tempUrl.removeParam('target');
-    this.url.copyQueryStringFromURL(tempUrl.queryString);
-    Ext.each(targets, this.toggleTarget, this);
+    this.url.setQueryString(tempUrl.queryString);
 
-    /* Apply the query string from the given url to our graph image */
-    this.url.copyQueryStringFromURL(url);
+    /* Use ...WithoutUpdate here to avoid loading the image too soon. If
+     * there are lots of targets, each modification would cause an extra
+     * render. */
+    Ext.each(targets, this.toggleTargetWithoutUpdate, this);
+
     // Fit the image into the window
     this.url.setParam('width', this.window.getInnerWidth());
     this.url.setParam('height', this.window.getInnerHeight());
@@ -92,6 +92,13 @@ GraphiteComposer.prototype = {
     this.window.updateTimeDisplay(timeInfo);
     this.window.updateUI();
     this.updateImage();
+  },
+
+  syncTargetList: function () {
+    this.url.removeParam('target');
+    TargetStore.each(function (record) {
+      this.url.addParam('target', record.data.value);
+    }, this);
   },
 
   updateImage: function () {
@@ -211,7 +218,7 @@ ParameterizedURL.prototype = {
 
   setQueryString: function (qs) {
     /* Use the given query string (and update this.params to match) */
-    this.queryString = qs.replace(/#/,"%23");
+    this.queryString = qs.replace(/%/,"%25").replace(/#/,"%23");
     this.syncParams();
     this.syncQueryString();
   },

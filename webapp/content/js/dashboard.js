@@ -2357,7 +2357,7 @@ function setDashboardName(name) {
     saveButton.setText("Save");
     saveButton.disable();
   } else {
-    var urlparts = location.href.split('/');
+    var urlparts = location.href.split('#')[0].split('/');
     var i = urlparts.indexOf('dashboard');
     if (i == -1) {
       Ext.Msg.alert("Error", "urlparts = " + Ext.encode(urlparts) + " and indexOf(dashboard) = " + i);
@@ -2437,11 +2437,16 @@ function updateNavBar(region) {
   if (region == NAV_BAR_REGION) {
     return;
   }
-  cookieProvider.set('navbar-region', region);
-  Ext.Msg.alert('Cookie Updated', "You must refresh the page to update the nav bar's location.");
-  //TODO prompt the user to save their dashboard and refresh for them
 
+  cookieProvider.set('navbar-region', region);
   NAV_BAR_REGION = region;
+
+  if (graphStore.getCount() == 0) {
+    window.location.reload()
+  } else {
+    Ext.Msg.alert('Cookie Updated', "You must refresh the page to update the nav bar's location.");
+    //TODO prompt the user to save their dashboard and refresh for them
+  }
 }
 
 // Dashboard Finder

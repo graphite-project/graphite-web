@@ -3,6 +3,7 @@ import os
 
 from django.db import models
 from django.contrib import admin
+from tagging.managers import ModelTaggedItemManager
 
 if os.environ.get('READTHEDOCS'):
     TagField = lambda *args, **kwargs: None
@@ -25,7 +26,11 @@ class Event(models.Model):
 
     @staticmethod
     def find_events(time_from=None, time_until=None, tags=None):
-        query = Event.objects.all()
+
+        if tags is not None:
+            query = Event.tagged.with_all(tags)
+        else:
+            query = Event.objects.all()
 
         if time_from is not None:
             query = query.filter(when__gte=time_from)
@@ -33,9 +38,6 @@ class Event(models.Model):
         if time_until is not None:
             query = query.filter(when__lte=time_until)
 
-        if tags is not None:
-            for tag in tags:
-                query = query.filter(tags__iregex=r'\b%s\b' % tag)
 
         result = list(query.order_by("when"))
         return result
@@ -48,3 +50,7 @@ class Event(models.Model):
             tags=self.tags,
             id=self.id,
         )
+
+# We use this rather than tagging.register() so that tags can be exposed
+# in the admin UI
+ModelTaggedItemManager().contribute_to_class(Event, 'tagged')

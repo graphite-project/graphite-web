@@ -1,5 +1,8 @@
 Overview
 =================
+
+What Graphite is and is not
+---------------------------
 Graphite does two things:
 
 1. Store numeric time-series data

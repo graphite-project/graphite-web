@@ -1,6 +1,6 @@
 import re
 import errno
-import json
+
 from os.path import getmtime, join, exists
 from urllib import urlencode
 from ConfigParser import ConfigParser

@@ -14,7 +14,7 @@ else:
 
 storage_dirs = []
 
-for subdir in ('whisper', 'rrd', 'log', 'log/webapp'):
+for subdir in ('whisper', 'ceres', 'rrd', 'log', 'log/webapp'):
   storage_dirs.append( ('storage/%s' % subdir, []) )
 
 webapp_content = {}
@@ -30,10 +30,11 @@ for root, dirs, files in os.walk('webapp/content'):
 
 
 conf_files = [ ('conf', glob('conf/*.example')) ]
+examples = [ ('examples', glob('examples/example-*')) ]
 
 setup(
   name='graphite-web',
-  version='0.9.10-pre1',
+  version='0.10.0-alpha',
   url='https://launchpad.net/graphite',
   author='Chris Davis',
   author_email='chrismd@gmail.com',
@@ -59,6 +60,6 @@ setup(
   package_data={'graphite' :
     ['templates/*', 'local_settings.py.example']},
   scripts=glob('bin/*'),
-  data_files=webapp_content.items() + storage_dirs + conf_files,
+  data_files=webapp_content.items() + storage_dirs + conf_files + examples,
   **setup_kwargs
 )

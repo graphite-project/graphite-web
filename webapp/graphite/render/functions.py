@@ -14,6 +14,7 @@
 
 
 from datetime import date, datetime, timedelta
+from functools import partial
 from itertools import izip, imap
 import math
 import re
@@ -21,8 +22,9 @@ import random
 import time
 
 from graphite.logger import log
-from graphite.render.datalib import fetchData, TimeSeries, timestamp
+from graphite.render.datalib import TimeSeries
 from graphite.render.attime import parseTimeOffset
+from graphite.util import timestamp
 
 from graphite.events import models
 #XXX format_units() should go somewhere else
@@ -37,6 +39,9 @@ INF = float('inf')
 DAY = 86400
 HOUR = 3600
 MINUTE = 60
+
+NAN = float('NaN')
+INF = float('inf')
 
 #Utility functions
 def safeSum(values):
@@ -89,6 +94,10 @@ def safeMap(function, values):
   safeValues = [v for v in values if v is not None]
   if safeValues:
     return map(function, values)
+
+def safeAbs(value):
+  if value is None: return None
+  return abs(value)
 
 def lcm(a,b):
   if a == b: return a
@@ -447,6 +456,7 @@ def multiplySeries(requestContext, *seriesLists):
 
 
   """
+
   (seriesList,start,end,step) = normalize(seriesLists)
 
   if len(seriesList) == 1:
@@ -456,7 +466,7 @@ def multiplySeries(requestContext, *seriesLists):
   product = imap(lambda x: safeMul(*x), izip(*seriesList))
   resultSeries = TimeSeries(name, start, end, step, product)
   resultSeries.pathExpression = name
-  return resultSeries
+  return [ resultSeries ]
 
 def movingMedian(requestContext, seriesList, windowSize):
   """
@@ -528,6 +538,24 @@ def scaleToSeconds(requestContext, seriesList, seconds):
       series[i] = safeMul(value,factor)
   return seriesList
 
+def absolute(requestContext, seriesList):
+  """
+  Takes one metric or a wildcard seriesList and applies the mathematical abs function to each
+  datapoint transforming it to its absolute value.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=absolute(Server.instance01.threads.busy)
+    &target=absolute(Server.instance*.threads.busy)
+  """
+  for series in seriesList:
+    series.name = "absolute(%s)" % (series.name)
+    for i,value in enumerate(series):
+      series[i] = safeAbs(value)
+  return seriesList
+
 def offset(requestContext, seriesList, factor):
   """
   Takes one metric or a wildcard seriesList followed by a constant, and adds the constant to
@@ -581,24 +609,46 @@ def movingAverage(requestContext, seriesList, windowSize):
 
   return seriesList
 
-def cumulative(requestContext, seriesList):
+def cumulative(requestContext, seriesList, consolidationFunc='sum'):
   """
-  Takes one metric or a wildcard seriesList.
+  Takes one metric or a wildcard seriesList, and an optional function.
 
-  By default, when a graph is drawn, and the width of the graph in pixels is
-  smaller than the number of datapoints to be graphed, Graphite averages the
-  value at each pixel.  The cumulative() function changes the consolidation
-  function to sum from average.  This is especially useful in sales graphs,
-  where fractional values make no sense (How can you have half of a sale?)
+  Valid functions are 'sum', 'average', 'min', and 'max'
+
+  Sets the consolidation function to 'sum' for the given metric seriesList.
+
+  Alias for :func:`consolidateBy(series, 'sum') <graphite.render.functions.consolidateBy>`
 
   .. code-block:: none
 
     &target=cumulative(Sales.widgets.largeBlue)
 
   """
+  return consolidateBy(requestContext, seriesList, 'sum')
+
+def consolidateBy(requestContext, seriesList, consolidationFunc):
+  """
+  Takes one metric or a wildcard seriesList and a consolidation function name.
+
+  Valid function names are 'sum', 'average', 'min', and 'max'
+
+  When a graph is drawn where width of the graph size in pixels is smaller than
+  the number of datapoints to be graphed, Graphite consolidates the values to
+  to prevent line overlap. The consolidateBy() function changes the consolidation
+  function from the default of 'average' to one of 'sum', 'max', or 'min'. This is
+  especially useful in sales graphs, where fractional values make no sense and a 'sum'
+  of consolidated values is appropriate.
+
+  .. code-block:: none
+
+    &target=consolidateBy(Sales.widgets.largeBlue, 'sum')
+    &target=consolidateBy(Servers.web01.sda1.free_space, 'max')
+
+  """
   for series in seriesList:
-    series.consolidationFunc = 'sum'
-    series.name = 'cumulative(%s)' % series.name
+    # datalib will throw an exception, so it's not necessary to validate here
+    series.consolidationFunc = consolidationFunc
+    series.name = 'consolidateBy(%s,"%s")' % (series.name, series.consolidationFunc)
   return seriesList
 
 def derivative(requestContext, seriesList):
@@ -633,6 +683,50 @@ def derivative(requestContext, seriesList):
     newSeries.pathExpression = newName
     results.append(newSeries)
   return results
+
+def perSecond(requestContext, seriesList, maxValue=None):
+  """
+  Derivative adjusted for the series time interval
+  This is useful for taking a running total metric and showing how many requests
+  per second were handled.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=perSecond(company.server.application01.ifconfig.TXPackets)
+
+  Each time you run ifconfig, the RX and TXPackets are higher (assuming there
+  is network traffic.) By applying the derivative function, you can get an
+  idea of the packets per minute sent or received, even though you're only
+  recording the total.
+  """
+  results = []
+  for series in seriesList:
+    newValues = []
+    prev = None
+    for val in series:
+      step = series.step
+      if None in (prev,val):
+        newValues.append(None)
+        prev = val
+        continue
+
+      diff = val - prev
+      if diff >= 0:
+        newValues.append(diff / step)
+      elif maxValue is not None and maxValue >= val:
+        newValues.append( ((maxValue - prev) + val  + 1) / step )
+      else:
+        newValues.append(None)
+
+      prev = val
+    newName = "perSecond(%s)" % series.name
+    newSeries = TimeSeries(newName, series.start, series.end, series.step, newValues)
+    newSeries.pathExpression = newName
+    results.append(newSeries)
+  return results
+
 
 def integral(requestContext, seriesList):
   """
@@ -800,26 +894,34 @@ def alias(requestContext, seriesList, newName):
     series.name = newName
   return seriesList
 
-def cactiStyle(requestContext, seriesList):
+def cactiStyle(requestContext, seriesList, system=None):
   """
   Takes a series list and modifies the aliases to provide column aligned
-  output with Current, Max, and Min values in the style of cacti.
+  output with Current, Max, and Min values in the style of cacti. Optonally
+  takes a "system" value to apply unit formatting in the same style as the
+  Y-axis.
   NOTE: column alignment only works with monospace fonts such as terminus.
 
   .. code-block:: none
 
-    &target=cactiStyle(ganglia.*.net.bytes_out)
+    &target=cactiStyle(ganglia.*.net.bytes_out,"si")
 
   """
+  if 0 == len(seriesList):
+      return seriesList
+  if system:
+      fmt = lambda x:"%2.f%s" % format_units(x,system=system)
+  else:
+      fmt = lambda x:"%2.f"%x
   nameLen = max([len(getattr(series,"name")) for series in seriesList])
-  lastLen = max([len(repr(int(safeLast(series) or 3))) for series in seriesList]) + 3
-  maxLen = max([len(repr(int(safeMax(series) or 3))) for series in seriesList]) + 3
-  minLen = max([len(repr(int(safeMin(series) or 3))) for series in seriesList]) + 3
+  lastLen = max([len(fmt(int(safeLast(series) or 3))) for series in seriesList]) + 3
+  maxLen = max([len(fmt(int(safeMax(series) or 3))) for series in seriesList]) + 3
+  minLen = max([len(fmt(int(safeMin(series) or 3))) for series in seriesList]) + 3
   for series in seriesList:
       name = series.name
-      last = safeLast(series)
-      maximum = safeMax(series)
-      minimum = safeMin(series)
+      last = fmt(float(safeLast(series)))
+      maximum = fmt(float(safeMax(series)))
+      minimum = fmt(float(safeMin(series)))
       if last is None:
         last = NAN
       if maximum is None:
@@ -827,11 +929,11 @@ def cactiStyle(requestContext, seriesList):
       if minimum is None:
         minimum = NAN
 
-      series.name = "%*s Current:%*.2f Max:%*.2f Min:%*.2f" % \
+      series.name = "%*s Current:%*s Max:%*s Min:%*s " % \
           (-nameLen, series.name,
-          lastLen, last,
-          maxLen, maximum,
-          minLen, minimum)
+          -lastLen, last,
+          -maxLen, maximum,
+          -minLen, minimum)
   return seriesList
 
 def aliasByNode(requestContext, seriesList, *nodes):
@@ -1261,8 +1363,9 @@ def nPercentile(requestContext, seriesList, n):
 
     perc_val = _getPercentile(s_copy, n)
     if perc_val:
-      name = 'nPercentile(%s, %.1f)' % (n, s_copy.name, perc_val)
-      perc_series = TimeSeries(name, s_copy.start, s_copy.end, s_copy.step, [perc_val] )
+      name = 'nPercentile(%.1f, %s)' % (n, s_copy.name)
+      point_count = int((s.end - s.start)/s.step)
+      perc_series = TimeSeries(name, s_copy.start, s_copy.end, s_copy.step, [perc_val] * point_count )
       perc_series.pathExpression = name
       results.append(perc_series)
   return results
@@ -1376,6 +1479,31 @@ def sortByMinima(requestContext, seriesList):
     return cmp(min(x), min(y))
   newSeries = [series for series in seriesList if max(series) > 0]
   newSeries.sort(compare)
+  return newSeries
+
+def useSeriesAbove(requestContext, seriesList, value, search, replace):
+  """
+  Compares the maximum of each series against the given `value`. If the series
+  maximum is greater than `value`, the regular expression search and replace is
+  applied against the series name to plot a related metric
+
+  e.g. given useSeriesAbove(ganglia.metric1.reqs,10,'reqs','time'),
+  the response time metric will be plotted only when the maximum value of the
+  corresponding request/s metric is > 10
+
+  .. code-block:: none
+
+    &target=useSeriesAbove(ganglia.metric1.reqs,10,"reqs","time")
+  """
+  newSeries = []
+
+  for series in seriesList:
+    newname = re.sub(search, replace, series.name)
+    if max(series) > value:
+      n = evaluateTarget(requestContext, newname)
+      if n is not None and len(n) > 0:
+        newSeries.append(n[0])
+
   return newSeries
 
 def mostDeviant(requestContext, n, seriesList):
@@ -1780,7 +1908,7 @@ def dashed(requestContext, *seriesList):
   return seriesList[0]
 
 
-def timeShift(requestContext, seriesList, timeShift):
+def timeShift(requestContext, seriesList, timeShift, resetEnd=True):
   """
   Takes one metric or a wildcard seriesList, followed by a quoted string with the
   length of time (See ``from / until`` in the render\_api_ for examples of time formats).
@@ -1788,6 +1916,12 @@ def timeShift(requestContext, seriesList, timeShift):
   Draws the selected metrics shifted in time. If no sign is given, a minus sign ( - ) is
   implied which will shift the metric back in time. If a plus sign ( + ) is given, the
   metric will be shifted forward in time.
+
+  Will reset the end date range automatically to the end of the base stat unless
+  resetEnd is False. Example case is when you timeshift to last week and have the graph
+  date range set to include a time in the future, will limit this timeshift to pretend
+  ending at the current time. If resetEnd is False, will instead draw full range including
+  future time.
 
   Useful for comparing a metric against itself at a past periods or correcting data
   stored at an offset.
@@ -1813,8 +1947,11 @@ def timeShift(requestContext, seriesList, timeShift):
 
   for shiftedSeries in evaluateTarget(myContext, series.pathExpression):
     shiftedSeries.name = 'timeShift(%s, %s)' % (shiftedSeries.name, timeShift)
+    if resetEnd:
+      shiftedSeries.end = series.end
+    else:
+      shiftedSeries.end = shiftedSeries.end - shiftedSeries.start + series.start
     shiftedSeries.start = series.start
-    shiftedSeries.end = series.end
     results.append(shiftedSeries)
 
   return results
@@ -2310,33 +2447,38 @@ def events(requestContext, *tags):
   Returns all events tagged as "tag-one" and "tag-two" and the second one
   returns all events.
   """
-  step = 60
+  def to_epoch(datetime_object):
+    return int(time.mktime(datetime_object.timetuple()))
+
+  step = 1
   name = "events(" + ", ".join(tags) + ")"
-  delta = timedelta(seconds=step)
-  when = requestContext["startTime"]
-  values = []
-  current = 0
   if tags == ("*",):
     tags = None
-  events = models.Event.find_events(requestContext["startTime"],
-                                    requestContext["endTime"], tags=tags)
-  eventsp = 0
 
-  while when < requestContext["endTime"]:
-    count = 0
-    if events:
-      while eventsp < len(events) and events[eventsp].when >= when \
-          and events[eventsp].when < (when + delta):
-        count += 1
-        eventsp += 1
+  # Django returns database timestamps in timezone-ignorant datetime objects
+  # so we use epoch seconds and do the conversion ourselves
+  start_timestamp = to_epoch(requestContext["startTime"])
+  start_timestamp = start_timestamp - start_timestamp % step
+  end_timestamp = to_epoch(requestContext["endTime"])
+  end_timestamp = end_timestamp - end_timestamp % step
+  points = (end_timestamp - start_timestamp)/step
 
-    values.append(count)
-    when += delta
+  events = models.Event.find_events(datetime.fromtimestamp(start_timestamp),
+                                    datetime.fromtimestamp(end_timestamp),
+                                    tags=tags)
 
-  return [TimeSeries(name,
-            time.mktime(requestContext["startTime"].timetuple()),
-            time.mktime(requestContext["endTime"].timetuple()),
-            step, values)]
+  values = [None] * points
+  for event in events:
+    event_timestamp = to_epoch(event.when)
+    value_offset = (event_timestamp - start_timestamp)/step
+    if values[value_offset] is None:
+      values[value_offset] = 1
+    else:
+      values[value_offset] += 1
+
+  result_series = TimeSeries(name, start_timestamp, end_timestamp, step, values, 'sum')
+  result_series.pathExpression = name
+  return [result_series]
 
 def pieAverage(requestContext, series):
   return safeDiv(safeSum(series),safeLen(series))
@@ -2365,12 +2507,14 @@ SeriesFunctions = {
   'minSeries' : minSeries,
   'maxSeries' : maxSeries,
   'rangeOfSeries': rangeOfSeries,
+  'percentileOfSeries': percentileOfSeries,
 
   # Transform functions
   'scale' : scale,
   'scaleToSeconds' : scaleToSeconds,
   'offset' : offset,
   'derivative' : derivative,
+  'perSecond' : perSecond,
   'integral' : integral,
   'percentileOfSeries': percentileOfSeries,
   'nonNegativeDerivative' : nonNegativeDerivative,
@@ -2379,6 +2523,7 @@ SeriesFunctions = {
   'summarize' : summarize,
   'smartSummarize' : smartSummarize,
   'hitcount'  : hitcount,
+  'absolute' : absolute,
 
   # Calculate functions
   'movingAverage' : movingAverage,
@@ -2411,6 +2556,7 @@ SeriesFunctions = {
   'limit' : limit,
   'sortByMaxima' : sortByMaxima,
   'sortByMinima' : sortByMinima,
+  'useSeriesAbove': useSeriesAbove,
   'exclude' : exclude,
 
   # Data Filter functions
@@ -2429,6 +2575,7 @@ SeriesFunctions = {
   'color' : color,
   'alpha' : alpha,
   'cumulative' : cumulative,
+  'consolidateBy' : consolidateBy,
   'keepLastValue' : keepLastValue,
   'drawAsInfinite' : drawAsInfinite,
   'secondYAxis': secondYAxis,

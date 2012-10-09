@@ -8,7 +8,7 @@ application = django.core.handlers.wsgi.WSGIHandler()
 
 # READ THIS
 # Initializing the search index can be very expensive, please include
-# the WSGIScriptImport directive pointing to this script in your vhost
+# the WSGIImportScript directive pointing to this script in your vhost
 # config to ensure the index is preloaded before any requests are handed
 # to the process.
 from graphite.logger import log

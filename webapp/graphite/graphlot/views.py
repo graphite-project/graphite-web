@@ -3,8 +3,8 @@ import re
 from django.shortcuts import render_to_response
 from django.http import HttpResponse, Http404, HttpResponseBadRequest
 from django.conf import settings
-import simplejson
 
+from graphite.util import json
 from graphite.render.views import parseOptions
 from graphite.render.evaluator import evaluateTarget
 from graphite.storage import STORE
@@ -52,7 +52,7 @@ def get_data(request):
             ) for timeseries in seriesList ]
     if not result:
         raise Http404
-    return HttpResponse(simplejson.dumps(result), mimetype="application/json")
+    return HttpResponse(json.dumps(result), mimetype="application/json")
 
 
 def find_metric(request):
