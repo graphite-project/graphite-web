@@ -129,20 +129,20 @@ except:
 try:
   import twisted
 except:
-  print "[WARNING] Unable to import the 'twisted' package, do you have Twisted installed for python %s? Without Twisted, you cannot run carbon on this server." % py_version
+  print "[WARNING] Unable to import the 'twisted' package, do you have Twisted installed for python %s? Without Twisted, you cannot run carbon on this server.\n" % py_version
   warning += 1
 else:
   tv = []
   tv = twisted.__version__.split('.')
   if int(tv[0]) < 8 or (int(tv[0]) == 8 and int(tv[1]) < 2):
-    print "[WARNING] Your version of Twisted is too old to run carbon. You will not be able to run carbon on this server until you upgrade Twisted >= 8.2."
+    print "[WARNING] Your version of Twisted is too old to run carbon. You will not be able to run carbon on this server until you upgrade Twisted >= 8.2.\n"
     warning += 1
 
 # Test for txamqp
 try:
   import txamqp
 except:
-  print "[WARNING] Unable to import the 'txamqp' module, this is required if you want to use AMQP. Note that txamqp requires python 2.5 or greater."
+  print "[WARNING] Unable to import the 'txamqp' module, this is required if you want to use AMQP. Note that txamqp requires python 2.5 or greater.\n"
   warning += 1
 
 
