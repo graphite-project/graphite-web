@@ -430,13 +430,6 @@ class Graph:
           'start': self.startTime,
           'end': self.endTime
         },
-        'y': {
-          'top': self.yTop,
-          'bottom': self.yBottom,
-          'step': self.yStep,
-          'labels': self.yLabels,
-          'labelValues': self.yLabelValues
-        },
         'options': {
           'lineWidth': self.lineWidth
         },
@@ -444,6 +437,15 @@ class Graph:
         'area': self.area,
         'series': []
       }
+
+      if not self.secondYAxis:
+        metaData['y'] = {
+          'top': self.yTop,
+          'bottom': self.yBottom,
+          'step': self.yStep,
+          'labels': self.yLabels,
+          'labelValues': self.yLabelValues
+        }
 
       for series in self.data:
         if 'stacked' not in series.options:
