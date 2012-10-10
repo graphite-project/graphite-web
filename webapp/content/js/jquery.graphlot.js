@@ -31,53 +31,9 @@
         return true;
     }
 
-    $.fn.editable_in_place = function(callback) {
-        var editable = $(this);
-        if (editable.length > 1) {
-            console.error("Call $().editable_in_place only on a singular jquery object.");
-        }
-
-        var editing = false;
-
-        editable.bind('click', function () {
-            var $element = this;
-
-            if (editing == true) return;
-
-            editing = true;
-
-            var $edit = $('<input type="text" class="edit_in_place" value="' + editable.text() + '"/>');
-
-            $edit.css({'height' : editable.height(), 'width' : editable.width()});
-            editable.hide();
-            editable.after($edit);
-            $edit.focus();
-
-            $edit.bind('blur', function() { // on blur, forget edits and reset.
-                $edit.remove();
-                editable.show();
-                editing = false;
-            });
-
-            $edit.keydown(function(e) {
-                if(e.which===27)$edit.blur(); // blur on Esc: see above
-                if(e.which===13 || e.which===9) { // Enter or Tab: run the callback with the value
-                    e.preventDefault();
-                    $edit.hide();
-                    editable.show();
-                    if($edit.val()!=='') {
-                        editing = false;
-                        callback($element, $edit.val());
-                    }
-                    $edit.remove();
-                }
-            });
-        });
-    };
-
 (function( $ ) {
 
-    $.fn.graphiteGraph = function(config) {
+    $.fn.graphlot = function(config) {
 
         return this.each(function() {
 
@@ -87,32 +43,23 @@
             // g_container 
             // g_graph
             // g_overview
-            // g_side
+            // g_side (not functional, just contains legend)
             // g_legend legend
-            // g_from contains from datetime
-            // g_until contains until datetime
-            // g_update rerenders everything
-            // g_clearzoom resets zoom on graph
-            // g_graphurl link that points to a page showing solely this graph
-            // g_eventdesc
-            // g_eventcount
-            // g_newmetricrow
-            // g_newmetric
-            // g_metricrow
-            // g_metricname
             // this convention allows to consistently find the right DOM elements, irrespective of the number of graphs on the page
 
             var wrap = $(this);
 
             config = config || {};
             // something like http://<graphitehost[:port]>.  empty implicitly means current protocol/host/port
-            var url_host = (typeof config.url_host === 'undefined') ? '' : config.url_host 
+            var url_host = (typeof config.url_host === 'undefined') ? '' : config.url_host
             // a prefix to apply to all paths to denote location of graphite web application.
             var url_path_prefix = (typeof config.url_path_prefix === 'undefined') ? '' : config.url_path_prefix
             // parameter to construct the id's of the elements to interact with (see above)
             var graph = config.graph
 
             var plot = null;
+            var from = null;
+            var until = null;
             var graph_lines = {};
             var metric_yaxis = {};
             var xaxisranges = {};
@@ -120,11 +67,6 @@
             var legends = null;
             var updateLegendTimeout = null;
             var latestPosition = null;
-            var autocompleteoptions = {
-                        minChars: 0,
-                        selectFirst: false,
-                        matchCase: true //Metrics can be case sensitive
-            };
             var markings = [];
 
             var parse_incoming = function(incoming_data) {
@@ -143,7 +85,6 @@
                     lines: {show: true, fill: false}
                 };
             };
-
 
             var render = function () {
                 var lines = []
@@ -174,7 +115,6 @@
                     }
                 );
 
-
                 for (i in lines) {
                     lines[i] = $.extend({}, lines[i]);
                     lines[i].label = null;
@@ -189,9 +129,6 @@
 
                 // legends magic
                 legends = wrap.find(".legendLabel");
-                // update link
-                wrap.find('.g_graphurl').attr("href", build_url_graph());
-
             }
 
             function updateLegend() {
@@ -318,24 +255,22 @@
                 render();
             }
 
-            var recalculate_all = function () {
-                wrap.find('.g_metricrow').each(function () {
-                    var metric = $(this);
-                    update_metric_row(metric);
-                });
-                get_events(wrap.find('.g_eventdesc'), '.eventcount')
-                render();
+            var setFrom = function (value) {
+                this.from = value;
+                this.recalculate_all();
+            }
+
+            var setUntil = function (value) {
+                this.until = value;
             }
 
             var build_when = function () {
                 var when = new Array();
-                var from  = wrap.find('.g_from').text();
-                if (from) {
-                    when.push('from=' + from);
+                if (this.from) {
+                    when.push('from=' + this.from);
                 }
-                var until = wrap.find('.g_until').text();
-                if (until) {
-                    when.push('until=' + until);
+                if (this.until) {
+                    when.push('until=' + this.until);
                 }
                 return when
             }
@@ -372,170 +307,21 @@
                 }
                 return url + params.join("&");
             }
+	    var setEvents = function (req_data) {
+		    for (i in req_data) {
+			    row = req_data[i];
+			    markings.push({
+				color: '#000',
+				lineWidth: 1,
+				xaxis: { from: row.when*1000, to: row.when*1000 },
+				text:'<a href="'+SLASH+'events/'+row.id+'/">'+row.what+'<a>'
+			    });
+		    }
+		    render();
+	    }
 
-            var update_metric_row = function(metric_row) {
-                var metric = $(metric_row);
-                var metric_name = metric.find(".g_metricname").text();
-                metric.find(".g_metricname").addClass("ajaxworking");
-                metric_yaxis[metric_name] = metric.find(".g_yaxis").text();
-
-                $.ajax({
-                    url: build_url_rawdata(metric_name),
-                    success: function(req_data) {
-                        metric.find(".g_metricname").removeClass("ajaxerror");
-                        metric.find(".g_metricname").removeClass("ajaxworking");
-                        graph_lines[metric_name] = [];
-                        target = graph_lines[metric_name];
-                        for (i in req_data) {
-                            target.push(parse_incoming(req_data[i]));
-                        }
-                        render();
-                    },
-                    error: function(req, status, err) {
-                        metric.find(".g_metricname").removeClass("ajaxworking");
-                        metric.find(".g_metricname").addClass("ajaxerror");
-                        render();
-                    }
-                });
-
-
-            }
-
-            var get_events = function(events_text, event_count) {
-                if (events_text.val() == "") {
-                    events_text.removeClass("ajaxworking");
-                    events_text.removeClass("ajaxerror");
-                    markings = [];
-                    render();
-                } else {
-                    events_text.addClass("ajaxworking");
-                    $.ajax({
-                        url: build_url_events(events_text.val()),
-                        success: function(req_data) {
-                            events_text.removeClass("ajaxerror");
-                            events_text.removeClass("ajaxworking");
-                            markings = [];
-                            $(event_count).text(req_data.length);
-                            for (i in req_data) {
-                                row = req_data[i];
-                                markings.push({
-                                    color: '#000',
-                                    lineWidth: 1,
-                                    xaxis: { from: row.when*1000, to: row.when*1000 },
-                                    text:'<a href="'+SLASH+'events/'+row.id+'/">'+row.what+'<a>'
-                                });
-                            }
-                            render();
-                        },
-                        error: function(req, status, err) {
-                            events_text.removeClass("ajaxworking");
-                            events_text.addClass("ajaxerror");
-                            render();
-                        }
-                    });
-                }
-
-            }
-
-
-            // configure the date boxes
-            wrap.find('.g_from').editable_in_place(
-                function(editable, value) {
-                    $(editable).text(value);
-                    recalculate_all();
-                }
-            );
-
-
-            wrap.find('.g_until').editable_in_place(
-                function(editable, value) {
-                    $(editable).text(value);
-                    recalculate_all();
-                }
-            );
-
-            wrap.find('.g_update').bind('click',
-                function() {
-                    recalculate_all();
-                }
-            );
-
-            wrap.find('.g_clearzoom').bind('click',
-                clear_zoom
-            );
-
-            // configure metricrows
-            var setup_row = function (metric) {
-                var metric_name = metric.find('.g_metricname').text();
-
-                metric.find('.g_metricname').editable_in_place(
-                    function(editable, value) {
-                        delete graph_lines[$(editable).text()];
-                        $(editable).text(value);
-                        update_metric_row(metric);
-                    }
-                );
-                metric.find('.g_killrow').bind('click', function() {
-                    delete graph_lines[metric.find('.g_metricname').text()];
-                    metric.remove();
-                    render();
-                });
-
-                metric.find('.g_yaxis').bind('click', function() {
-                    if ($(this).text() == "one") {
-                        $(this).text("two");
-                    } else {
-                        $(this).text("one");
-                    }
-                    metric_yaxis[metric_name] = metric.find(".g_yaxis").text();
-                    render();
-                });
-            }
-
-            wrap.find('.g_metricrow').each(function() {
-                setup_row($(this));
-            });
-
-            wrap.find('.g_metricrow').each(function() {
-                var row = $(this);
-
-            });
-            // configure new metric input
-            wrap.find('.g_newmetric').each(function () {
-                var edit = $(this);
-                edit.autocomplete('findmetric', autocompleteoptions);
-                edit.keydown(function(e) {
-                    if(e.which===13) { // on enter
-                        // add row
-                        edit.blur();
-                        if (graph_lines[edit.val()] == null) {
-                        var new_row = $('<tr class="g_metricrow"><td><a href=#><span class="g_metricname">'+edit.val()+'</span></a></td><td><a href=#><span class="g_yaxis">one</span></a></td><td class="g_killrow"><img src="../content/img/delete.gif"></td></tr>');
-                            setup_row(new_row);
-                            wrap.find('.g_newmetricrow').before(new_row);
-                            update_metric_row(new_row);
-                            // clear input
-                        }
-                        edit.val('');
-                    }
-                });
-            });
-
-            // configure new metric input
-            wrap.find('.g_eventdesc').each(function () {
-                var edit = $(this);
-                edit.keydown(function(e) {
-                    if(e.which===13) { // on enter
-                        // add row
-                        edit.blur();
-                        get_events(edit, '.g_eventcount');
-                    }
-                });
-            });
-
-
-            // get data
-            recalculate_all();
-        });
+	    render();
+	});
     };
 
 })( jQuery );
