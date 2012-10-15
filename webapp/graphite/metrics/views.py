@@ -18,7 +18,7 @@ from django.conf import settings
 from graphite.account.models import Profile
 from graphite.util import getProfile, getProfileByUsername, defaultUser, json
 from graphite.logger import log
-from graphite.storage import STORE, LOCAL_STORE
+from graphite.storage import STORE, LOCAL_STORE, RRDFile
 from graphite.metrics.search import searcher
 from graphite.render.datalib import CarbonLink
 import fnmatch, os
@@ -39,7 +39,18 @@ def index_json(request):
       if fnmatch.fnmatch(basename, '*.wsp'):
         matches.append(os.path.join(root, basename))
 
-  matches = [ m.replace('.wsp','').replace('/', '.') for m in sorted(matches) ]
+  for root, dirs, files in os.walk(settings.RRD_DIR, followlinks=True):
+    root = root.replace(settings.RRD_DIR, '')
+    for basename in files:
+      if fnmatch.fnmatch(basename, '*.rrd'):
+        absolute_path = os.path.join(settings.RRD_DIR, root, basename)
+        (basename,extension) = os.path.splitext(basename)
+        metric_path = os.path.join(root, basename)
+        rrd = RRDFile(absolute_path, metric_path)
+        for datasource_name in rrd.getDataSources():
+          matches.append(os.path.join(metric_path, datasource_name.name))
+
+  matches = [ m.replace('.wsp','').replace('.rrd','').replace('/', '.') for m in sorted(matches) ]
   if jsonp:
     return HttpResponse("%s(%s)" % (jsonp, json.dumps(matches)), mimetype='text/javascript')
   else:
