@@ -202,7 +202,19 @@ def parseOptions(request):
   requestOptions['pieMode'] = queryParams.get('pieMode', 'average')
   requestOptions['cacheTimeout'] = int( queryParams.get('cacheTimeout', settings.DEFAULT_CACHE_DURATION) )
   requestOptions['targets'] = []
-  for target in queryParams.getlist('target'):
+
+  # Extract the targets out of the queryParams
+  mytargets = []
+  # Normal format: ?target=path.1&target=path.2
+  if len(queryParams.getlist('target')) > 0:
+    mytargets = queryParams.getlist('target')
+
+  # Rails/PHP/jQuery common practice format: ?target[]=path.1&target[]=path.2
+  elif len(queryParams.getlist('target[]')) > 0:
+    mytargets = queryParams.getlist('target[]')
+
+  # Collect the targets
+  for target in mytargets:
     requestOptions['targets'].append(target)
 
   if 'pickle' in queryParams:
@@ -246,7 +258,7 @@ def parseOptions(request):
     startTime = min(fromTime, untilTime)
     endTime = max(fromTime, untilTime)
     assert startTime != endTime, "Invalid empty time range"
-    
+
     requestOptions['startTime'] = startTime
     requestOptions['endTime'] = endTime
 
