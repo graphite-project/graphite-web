@@ -29,6 +29,26 @@ except ImportError:
   import pickle
 
 
+# link-compatible walk since we frequently symlink RRD_DIR
+# and python < 2.6.0 doesn't suppport os.walk followlinks
+def do_walk_rrd_dirs(start_path, matches=None):
+  if matches == None:
+    matches = []
+  for root, dirs, files in os.walk(start_path):
+    for dir in dirs:
+      if os.path.islink(os.path.join(root,dir)):
+        do_walk_rrd_dirs(os.path.join(root,dir), matches)
+    root = root.replace(settings.RRD_DIR, '')
+    for basename in files:
+      if fnmatch.fnmatch(basename, '*.rrd'):
+        absolute_path = os.path.join(settings.RRD_DIR, root, basename)
+        (basename,extension) = os.path.splitext(basename)
+        metric_path = os.path.join(root, basename)
+        rrd = RRDFile(absolute_path, metric_path)
+        for datasource_name in rrd.getDataSources():
+          matches.append(os.path.join(metric_path, datasource_name.name))
+  return matches
+
 def index_json(request):
   jsonp = request.REQUEST.get('jsonp', False)
   matches = []
@@ -39,16 +59,8 @@ def index_json(request):
       if fnmatch.fnmatch(basename, '*.wsp'):
         matches.append(os.path.join(root, basename))
 
-  for root, dirs, files in os.walk(settings.RRD_DIR, followlinks=True):
-    root = root.replace(settings.RRD_DIR, '')
-    for basename in files:
-      if fnmatch.fnmatch(basename, '*.rrd'):
-        absolute_path = os.path.join(settings.RRD_DIR, root, basename)
-        (basename,extension) = os.path.splitext(basename)
-        metric_path = os.path.join(root, basename)
-        rrd = RRDFile(absolute_path, metric_path)
-        for datasource_name in rrd.getDataSources():
-          matches.append(os.path.join(metric_path, datasource_name.name))
+  for match in do_walk_rrd_dirs(settings.RRD_DIR):
+    matches.append(match)
 
   matches = [ m.replace('.wsp','').replace('.rrd','').replace('/', '.') for m in sorted(matches) ]
   if jsonp:
