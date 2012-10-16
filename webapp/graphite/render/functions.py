@@ -594,8 +594,9 @@ def offset(requestContext, seriesList, factor):
 
 def movingAverage(requestContext, seriesList, windowSize):
   """
-  Takes one metric or a wildcard seriesList followed by a number N of datapoints and graphs
-  the average of N previous datapoints.  N-1 datapoints are set to None at the
+  Takes one metric or a wildcard seriesList followed by a number N of datapoints
+  or a time range string like '1hour' or '5min' and graphs the average of the
+  previous datapoints.  All previous datapoints are set to None at the
   beginning of the graph.
 
   .. code-block:: none
@@ -603,12 +604,20 @@ def movingAverage(requestContext, seriesList, windowSize):
     &target=movingAverage(Server.instance01.threads.busy,10)
 
   """
+  windowInterval = None
+  if isinstance(windowSize, str):
+    delta = parseTimeOffset(windowSize)
+    windowInterval = delta.seconds + (delta.days * 86400)
+
   for seriesIndex, series in enumerate(seriesList):
-    newName = "movingAverage(%s,%d)" % (series.name, windowSize)
+    if windowInterval:
+      windowIndex = windowInterval / series.step
+    else:
+      windowIndex = int(windowSize) - 1
+
+    newName = "movingAverage(%s,%s)" % (series.name, windowSize)
     newSeries = TimeSeries(newName, series.start, series.end, series.step, [])
     newSeries.pathExpression = newName
-
-    windowIndex = int(windowSize) - 1
 
     for i in range( len(series) ):
       if i < windowIndex: # Pad the beginning with None's since we don't have enough data
