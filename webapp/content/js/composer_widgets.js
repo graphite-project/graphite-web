@@ -900,7 +900,8 @@ function createFunctionsMenu() {
         {text: 'Min Values', handler: applyFuncToAll('minSeries')},
         {text: 'Max Values', handler: applyFuncToAll('maxSeries')},
         {text: 'Group', handler: applyFuncToAll('group')},
-        {text: 'Range', handler: applyFuncToAll('rangeOfSeries')}
+        {text: 'Range', handler: applyFuncToAll('rangeOfSeries')},
+        {text: 'Count', handler: applyFuncToEach('countSeries')}
       ]
     }, {
       text: 'Transform',
