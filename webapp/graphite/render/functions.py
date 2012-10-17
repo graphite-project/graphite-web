@@ -470,14 +470,21 @@ def multiplySeries(requestContext, *seriesLists):
 
 def movingMedian(requestContext, seriesList, windowSize):
   """
+  Graphs the moving median of a metric (or metrics) over a fixed number of
+  past points, or a time interval.
+
   Takes one metric or a wildcard seriesList followed by a number N of datapoints
-  or a time range string like '1hour' or '5min' and graphs the median of the
-  previous datapoints.  All previous datapoints are set to None at the
-  beginning of the graph.
+  or a quoted string with a length of time like '1hour' or '5min' (See ``from /
+  until`` in the render\_api_ for examples of time formats). Graphs the
+  median of the preceeding datapoints for each point on the graph. All
+  previous datapoints are set to None at the beginning of the graph.
+
+  Example:
 
   .. code-block:: none
 
     &target=movingMedian(Server.instance01.threads.busy,10)
+    &target=movingMedian(Server.instance*.threads.idle,'5min')
 
   """
   windowInterval = None
@@ -603,14 +610,21 @@ def offset(requestContext, seriesList, factor):
 
 def movingAverage(requestContext, seriesList, windowSize):
   """
+  Graphs the moving average of a metric (or metrics) over a fixed number of
+  past points, or a time interval.
+
   Takes one metric or a wildcard seriesList followed by a number N of datapoints
-  or a time range string like '1hour' or '5min' and graphs the average of the
-  previous datapoints.  All previous datapoints are set to None at the
-  beginning of the graph.
+  or a quoted string with a length of time like '1hour' or '5min' (See ``from /
+  until`` in the render\_api_ for examples of time formats). Graphs the
+  average of the preceeding datapoints for each point on the graph. All
+  previous datapoints are set to None at the beginning of the graph.
+
+  Example:
 
   .. code-block:: none
 
     &target=movingAverage(Server.instance01.threads.busy,10)
+    &target=movingAverage(Server.instance*.threads.idle,'5min')
 
   """
   windowInterval = None
