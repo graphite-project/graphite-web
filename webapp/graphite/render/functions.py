@@ -1977,6 +1977,22 @@ def transformNull(requestContext, seriesList, default=0):
     del series[:len(values)]
   return seriesList
 
+def countSeries(requestContext, *seriesLists):
+  """
+  Draws a horizontal line representing the number of nodes found in the seriesList.
+
+  .. code-block:: none
+
+    &target=countSeries(carbon.agents.*.*)
+
+  """
+  (seriesList,start,end,step) = normalize(seriesLists)
+  name = "countSeries(%s)" % ','.join(set([s.pathExpression for s in seriesList]))
+  values = ( int(len(row)) for row in izip(*seriesList) )
+  series = TimeSeries(name,start,end,step,values)
+  series.pathExpression = name
+  return [series]
+
 def group(requestContext, *seriesLists):
   """
   Takes an arbitrary number of seriesLists and adds them to a single seriesList. This is used
@@ -2457,6 +2473,7 @@ SeriesFunctions = {
   'minSeries' : minSeries,
   'maxSeries' : maxSeries,
   'rangeOfSeries': rangeOfSeries,
+  'countSeries': countSeries,
 
   # Transform functions
   'scale' : scale,
