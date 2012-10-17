@@ -466,21 +466,37 @@ def multiplySeries(requestContext, *seriesLists):
 
 def movingMedian(requestContext, seriesList, windowSize):
   """
-  Takes one metric or a wildcard seriesList followed by a number N of datapoints and graphs
-  the median of N previous datapoints.  N-1 datapoints are set to None at the
-  beginning of the graph.
+  Graphs the moving median of a metric (or metrics) over a fixed number of
+  past points, or a time interval.
+
+  Takes one metric or a wildcard seriesList followed by a number N of datapoints
+  or a quoted string with a length of time like '1hour' or '5min' (See ``from /
+  until`` in the render\_api_ for examples of time formats). Graphs the
+  median of the preceeding datapoints for each point on the graph. All
+  previous datapoints are set to None at the beginning of the graph.
+
+  Example:
 
   .. code-block:: none
 
     &target=movingMedian(Server.instance01.threads.busy,10)
+    &target=movingMedian(Server.instance*.threads.idle,'5min')
 
   """
+  windowInterval = None
+  if isinstance(windowSize, str):
+    delta = parseTimeOffset(windowSize)
+    windowInterval = delta.seconds + (delta.days * 86400)
+
   for seriesIndex, series in enumerate(seriesList):
-    newName = "movingMedian(%s,%.1f)" % (series.name, float(windowSize))
+    if windowInterval:
+      windowIndex = windowInterval / series.step
+    else:
+      windowIndex = int(windowSize) - 1
+
+    newName = "movingMedian(%s,%s)" % (series.name, windowSize)
     newSeries = TimeSeries(newName, series.start, series.end, series.step, [])
     newSeries.pathExpression = newName
-
-    windowIndex = windowSize - 1
 
     for i in range( len(series) ):
       if i < windowIndex: # Pad the beginning with None's since we don't have enough data
@@ -573,21 +589,37 @@ def offset(requestContext, seriesList, factor):
 
 def movingAverage(requestContext, seriesList, windowSize):
   """
-  Takes one metric or a wildcard seriesList followed by a number N of datapoints and graphs
-  the average of N previous datapoints.  N-1 datapoints are set to None at the
-  beginning of the graph.
+  Graphs the moving average of a metric (or metrics) over a fixed number of
+  past points, or a time interval.
+
+  Takes one metric or a wildcard seriesList followed by a number N of datapoints
+  or a quoted string with a length of time like '1hour' or '5min' (See ``from /
+  until`` in the render\_api_ for examples of time formats). Graphs the
+  average of the preceeding datapoints for each point on the graph. All
+  previous datapoints are set to None at the beginning of the graph.
+
+  Example:
 
   .. code-block:: none
 
     &target=movingAverage(Server.instance01.threads.busy,10)
+    &target=movingAverage(Server.instance*.threads.idle,'5min')
 
   """
+  windowInterval = None
+  if isinstance(windowSize, str):
+    delta = parseTimeOffset(windowSize)
+    windowInterval = delta.seconds + (delta.days * 86400)
+
   for seriesIndex, series in enumerate(seriesList):
-    newName = "movingAverage(%s,%d)" % (series.name, windowSize)
+    if windowInterval:
+      windowIndex = windowInterval / series.step
+    else:
+      windowIndex = int(windowSize) - 1
+
+    newName = "movingAverage(%s,%s)" % (series.name, windowSize)
     newSeries = TimeSeries(newName, series.start, series.end, series.step, [])
     newSeries.pathExpression = newName
-
-    windowIndex = int(windowSize) - 1
 
     for i in range( len(series) ):
       if i < windowIndex: # Pad the beginning with None's since we don't have enough data
