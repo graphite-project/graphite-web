@@ -712,6 +712,45 @@ def resample(requestContext, seriesList, pointsPerPx = 1):
 
   return seriesList
 
+
+def smooth(requestContext, seriesList, windowPixelSize = 5):
+  """
+  Resample and smooth a set of metrics. Provides line smoothing that is
+  independent of time scale (windowPixelSize ~ movingAverage over pixels)
+
+  An shorter and safer way of calling:
+     movingAverage(resample(seriesList, 2), smoothFactor * 2)
+
+  The windowPixelSize is effectively the number of pixels over which to perform
+  the movingAverage.
+
+  Note: This is safer in that if a series has fewer data points than pixels,
+  the metric won't be upsampled.  Instead the movingAverage window size will be
+  adjusted to cover the same number of pixels.
+  """
+  pointsPerPixel = 2
+  resampled = resample(requestContext, seriesList, pointsPerPixel)
+
+  sampleSize = int(windowPixelSize * pointsPerPixel)
+  expectedSamples = requestContext['width'] * pointsPerPixel
+
+  for index, series in enumerate(resampled):
+    # if we have fewer samples than expected, adjust the movingAverage sample
+    # size so it covers the same number of pixels
+    if (len(series) < expectedSamples * 0.95):
+      movingAverageSize = int((float(len(series)) / (expectedSamples)) * sampleSize)
+    else:
+      movingAverageSize = sampleSize
+
+    # If we are being asked to do a movingAverage over one point or less,
+    # don't bother
+    if (movingAverageSize <= 1):
+      continue
+
+    resampled[index] = movingAverage(requestContext, [series], movingAverageSize)[0]
+
+  return resampled
+
 def derivative(requestContext, seriesList):
   """
   This is the opposite of the integral function.  This is useful for taking a
@@ -2556,6 +2595,7 @@ SeriesFunctions = {
   'smartSummarize' : smartSummarize,
   'hitcount'  : hitcount,
   'resample'  : resample,
+  'smooth' : smooth,
   'absolute' : absolute,
 
   # Calculate functions
