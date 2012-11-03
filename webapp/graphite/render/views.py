@@ -49,6 +49,8 @@ def renderView(request):
     'startTime' : requestOptions['startTime'],
     'endTime' : requestOptions['endTime'],
     'localOnly' : requestOptions['localOnly'],
+    'width' : graphOptions['width'],
+    'height' : graphOptions['height'],
     'data' : []
   }
   data = requestContext['data']

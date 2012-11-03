@@ -645,6 +645,73 @@ def consolidateBy(requestContext, seriesList, consolidationFunc):
     series.name = 'consolidateBy(%s,"%s")' % (series.name, series.consolidationFunc)
   return seriesList
 
+
+def resample(requestContext, seriesList, pointsPerPx = 1):
+  """
+  Resamples the given series according to the requested graph width and
+  $pointsPerPx aggregating by average. Total number of points after this
+  function == graph width * pointsPerPx.
+
+  This has two significant uses:
+
+   * Drastically speeds up render time when graphing high resolution data
+     or many metrics.
+   * Allows movingAverage() to have a consistent smoothness across timescales.
+     * Example:  movingAverage(resample(metric,2),20) would end up with
+       a 10px moving average no matter what the scale of your graph.
+   * Allows a consistent number-of-samples to be returned from JSON requests
+     * the number of samples returned == graph width * points per pixel
+
+  Example:
+
+  .. code-block:: none
+
+    &target=resample(metric, 2)
+    &target=movingAverage(resample(metric, 2), 20)
+  """
+  newSampleCount = requestContext['width']
+
+  for seriesIndex, series in enumerate(seriesList):
+    newValues = []
+    seriesLength = (series.end - series.start)
+    newStep = (float(seriesLength) / float(newSampleCount)) / float(pointsPerPx)
+
+    # Leave this series alone if we're asked to do upsampling
+    if newStep < series.step:
+      continue
+
+    sampleWidth = 0
+    sampleCount = 0
+    sampleSum = 0
+
+    for value in series:
+      if (value is not None):
+        sampleCount += 1
+        sampleSum += value
+      sampleWidth += series.step
+
+      # If the current sample covers the width of a new step, add it to the
+      # result
+      if (sampleWidth >= newStep):
+        if sampleCount > 0:
+          newValues.append(sampleSum / sampleCount)
+        else:
+          newValues.append(None)
+        sampleWidth -= newStep
+        sampleSum = 0
+        sampleCount = 0
+
+    # Process and add the left-over sample if it's not empty
+    if sampleCount > 0:
+      newValues.append(sampleSum / sampleCount)
+
+    newName = "resample(%s, %s)" % (series.name, pointsPerPx)
+    newSeries = TimeSeries(newName, series.start, series.end, newStep, newValues)
+    newSeries.pathExpression = newName
+    seriesList[seriesIndex] = newSeries
+
+  return seriesList
+
 def derivative(requestContext, seriesList):
   """
   This is the opposite of the integral function.  This is useful for taking a
@@ -2488,6 +2555,7 @@ SeriesFunctions = {
   'summarize' : summarize,
   'smartSummarize' : smartSummarize,
   'hitcount'  : hitcount,
+  'resample'  : resample,
   'absolute' : absolute,
 
   # Calculate functions
