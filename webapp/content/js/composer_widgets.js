@@ -917,7 +917,8 @@ function createFunctionsMenu() {
         {text: 'Absolute Value', handler: applyFuncToEach('absolute')},
         {text: 'timeShift', handler: applyFuncToEachWithInput('timeShift', 'Shift this metric ___ back in time (examples: 10min, 7d, 2w)', {quote: true})},
         {text: 'Summarize', handler: applyFuncToEachWithInput('summarize', 'Please enter a summary interval (examples: 10min, 1h, 7d)', {quote: true})},
-        {text: 'Hit Count', handler: applyFuncToEachWithInput('hitcount', 'Please enter a summary interval (examples: 10min, 1h, 7d)', {quote: true})}
+        {text: 'Hit Count', handler: applyFuncToEachWithInput('hitcount', 'Please enter a summary interval (examples: 10min, 1h, 7d)', {quote: true})},
+        {text: 'Smooth', handler: applyFuncToEachWithInput('smooth', 'Please enter the number of pixels to average for each potin')}
       ]
     }, {
       text: 'Calculate',
@@ -930,7 +931,8 @@ function createFunctionsMenu() {
         {text: 'Holt-Winters Aberration', handler: applyFuncToEach('holtWintersAberration')},
         {text: 'As Percent', handler: applyFuncToEachWithInput('asPercent', 'Please enter the value that corresponds to 100% or leave blank to use the total', {allowBlank: true})},
         {text: 'Difference (of 2 series)', handler: applyFuncToAll('diffSeries')},
-        {text: 'Ratio (of 2 series)', handler: applyFuncToAll('divideSeries')}
+        {text: 'Ratio (of 2 series)', handler: applyFuncToAll('divideSeries')},
+        {text: 'Resample', handler: applyFuncToEachWithInput('resample', 'Please enter the desired points-per-pixel for the new resolution')}
       ]
     }, {
       text: 'Filter',
