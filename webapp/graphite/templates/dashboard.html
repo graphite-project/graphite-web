@@ -23,6 +23,11 @@
     var CLOCK_ICON    = '{% static "img/clock_16.png" %}';
     var HELP_ICON     = '{% static "js/ext/resources/icons/fam/information.png" %}';
 
+    // Prefetch images for use in Target grid
+    (new Image()).src = '{% static "img/move_up.png" %}';
+    (new Image()).src = '{% static "img/move_down.png" %}';
+    (new Image()).src = '{% static "img/trash.png" %}';
+
     {% if initialState %}
     var initialState = JSON.parse('{{ initialState|escapejs }}');
     {% else %}
