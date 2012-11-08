@@ -223,7 +223,7 @@ Tasseo
 .. _hubot-scripts: https://github.com/github/hubot-scripts
 .. _Tasseo: https://github.com/obfuscurity/tasseo
 .. _Shinken: http://www.shinken-monitoring.org/
-.. _Dashboard: https://github.com/obfuscurity/descartes
+.. _Descartes: https://github.com/obfuscurity/descartes
 .. _Backstop: https://github.com/obfuscurity/backstop
 .. _Seyren: https://github.com/scobal/seyren
 .. _write-graphite: http://collectd.org/wiki/index.php/Plugin:Write_Graphite
