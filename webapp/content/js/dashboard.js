@@ -558,7 +558,7 @@ function initDashboard () {
               },
               { text: "From Saved Graph",
                 handler: newFromSavedGraph
-              },
+              }
             ]
           }
         },
@@ -1978,21 +1978,21 @@ function mailGraph(record) {
     fieldLabel: "From",
     name: 'sender',
     width: 300,
-    allowBlank: false,
+    allowBlank: false
   });
 
   var toField = new Ext.form.TextField({
     fieldLabel: "To",
     name: 'recipients',
     width: 300,
-    allowBlank: false,
+    allowBlank: false
   });
 
   var subjectField = new Ext.form.TextField({
     fieldLabel: "Subject",
     name: 'subject',
     width: 300,
-    allowBlank: false,
+    allowBlank: false
   });
 
   var msgField = new Ext.form.TextArea({
@@ -2041,7 +2041,7 @@ function mailGraph(record) {
     resizable: true,
     modal: true,
     layout: 'fit',
-    items: [contactForm],
+    items: [contactForm]
   });
   win.show();
 }
