@@ -182,6 +182,10 @@ Tasseo
 ------
 `Tasseo`_ is a lightweight, easily configurable, real-time dashboard for Graphite metrics.
 
+Therry
+------
+`Therry`_ ia s simple web service that caches Graphite metrics and exposes an endpoint for dumping or searching against them by substring.
+
 .. _Diamond: http://opensource.brightcove.com/project/Diamond/
 .. _jmxtrans: http://code.google.com/p/jmxtrans/
 .. _statsd: https://github.com/etsy/statsd
@@ -217,3 +221,4 @@ Tasseo
 .. _Shinken: http://www.shinken-monitoring.org/
 .. _Seyren: https://github.com/scobal/seyren
 .. _write-graphite: http://collectd.org/wiki/index.php/Plugin:Write_Graphite
+.. _Therry: https://github.com/obfuscurity/therry
