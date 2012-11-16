@@ -64,6 +64,19 @@ except:
   django = None
   fatal += 1
 
+# Test for pytz
+try:
+  import pytz
+except:
+  print "[FATAL] Unable to import the 'pytz' module, do you have pytz module installed for python %s?\n" % py_version
+  fatal += 1
+
+# Test for pyparsing
+try:
+  import pyparsing
+except:
+  print "[FATAL] Unable to import the 'pyparsing' module, do you have pyparsing module installed for python %s?\n" % py_version
+  fatal += 1
 
 # Test for django-tagging
 try:
