@@ -107,6 +107,13 @@ Graphitejs
 `Graphitejs`_ is a jQuery plugin for easily making and displaying graphs and updating them on
 the fly using the Graphite URL api.
 
+Graphsky
+--------
+`Graphsky`_ is flexible and easy to configure PHP based dashboard. It uses JSON template files to
+build graphs and specify which graphs need to be displayed when, similar to Ganglia-web. Just 
+like Ganglia, it uses a hyrarchial structure: Environment/Cluster/Host/Metric to be able to display
+overview graphs and host-specific metrics. It communicates directly to the Graphite API to determine
+which Environments, Clusters, Hosts and Metrics are currently stored in Graphite.
 
 Grockets
 --------
@@ -232,3 +239,4 @@ Therry
 .. _Seyren: https://github.com/scobal/seyren
 .. _write-graphite: http://collectd.org/wiki/index.php/Plugin:Write_Graphite
 .. _Therry: https://github.com/obfuscurity/therry
+.. _Graphsky: https://github.com/hyves-org/graphsky
