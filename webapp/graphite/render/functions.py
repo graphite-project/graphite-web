@@ -863,10 +863,10 @@ def cactiStyle(requestContext, seriesList, system=None):
       fmt = lambda x:"%2.f%s" % format_units(x,system=system)
   else:
       fmt = lambda x:"%2.f"%x
-  nameLen = max([len(getattr(series,"name")) for series in seriesList])
-  lastLen = max([len(fmt(int(safeLast(series) or 3))) for series in seriesList]) + 3
-  maxLen = max([len(fmt(int(safeMax(series) or 3))) for series in seriesList]) + 3
-  minLen = max([len(fmt(int(safeMin(series) or 3))) for series in seriesList]) + 3
+  nameLen = max([0] + [len(getattr(series,"name")) for series in seriesList])
+  lastLen = max([0] + [len(fmt(int(safeLast(series) or 3))) for series in seriesList]) + 3
+  maxLen = max([0] + [len(fmt(int(safeMax(series) or 3))) for series in seriesList]) + 3
+  minLen = max([0] + [len(fmt(int(safeMin(series) or 3))) for series in seriesList]) + 3
   for series in seriesList:
       name = series.name
       last = fmt(float(safeLast(series)))
