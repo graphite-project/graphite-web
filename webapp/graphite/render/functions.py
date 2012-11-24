@@ -481,21 +481,19 @@ def movingMedian(requestContext, seriesList, windowSize):
     newSeries.pathExpression = newName
 
     windowIndex = windowSize - 1
+    bootstrap = series.step * windowSize
+    bootstrappedSeries = _fetchWithBootstrap(requestContext, series, seconds=bootstrap)
 
-    for i in range( len(series) ):
-      if i < windowIndex: # Pad the beginning with None's since we don't have enough data
-        newSeries.append( None )
-
+    for i in range(len(series)):
+      window = bootstrappedSeries[i:i + windowIndex]
+      nonNull = [v for v in window if v is not None]
+      if nonNull:
+        m_index = len(nonNull) / 2
+        newSeries.append(sorted(nonNull)[m_index])
       else:
-        window = series[i - windowIndex : i + 1]
-        nonNull = [ v for v in window if v is not None ]
-        if nonNull:
-          m_index = len(nonNull) / 2
-          newSeries.append(sorted(nonNull)[m_index])
-        else:
-          newSeries.append(None)
+        newSeries.append(None)
 
-    seriesList[ seriesIndex ] = newSeries
+    seriesList[seriesIndex] = newSeries
 
   return seriesList
 
@@ -588,18 +586,16 @@ def movingAverage(requestContext, seriesList, windowSize):
     newSeries.pathExpression = newName
 
     windowIndex = int(windowSize) - 1
+    bootstrap = series.step * windowSize
+    bootstrappedSeries = _fetchWithBootstrap(requestContext, series, seconds=bootstrap)
 
-    for i in range( len(series) ):
-      if i < windowIndex: # Pad the beginning with None's since we don't have enough data
-        newSeries.append( None )
-
+    for i in range(len(series)):
+      window = bootstrappedSeries[i:i + windowIndex]
+      nonNull = [v for v in window if v is not None]
+      if nonNull:
+        newSeries.append(sum(nonNull) / len(nonNull))
       else:
-        window = series[i - windowIndex : i + 1]
-        nonNull = [ v for v in window if v is not None ]
-        if nonNull:
-          newSeries.append( sum(nonNull) / len(nonNull) )
-        else:
-          newSeries.append(None)
+        newSeries.append(None)
 
     seriesList[ seriesIndex ] = newSeries
 
