@@ -1628,11 +1628,10 @@ def secondYAxis(requestContext, seriesList):
     series.name= 'secondYAxis(%s)' % series.name
   return seriesList
 
-def _fetchWithBootstrap(requestContext, series, days=7):
+def _fetchWithBootstrap(requestContext, series, **delta_kwargs):
   'Request the same data but with a bootstrap period at the beginning'
   previousContext = requestContext.copy()
-  # go back 1 week to get a solid bootstrap
-  previousContext['startTime'] = requestContext['startTime'] - timedelta(days)
+  previousContext['startTime'] = requestContext['startTime'] - timedelta(**delta_kwargs)
   previousContext['endTime'] = requestContext['startTime']
   oldSeries = evaluateTarget(previousContext, series.pathExpression)[0]
 
@@ -1646,7 +1645,7 @@ def _fetchWithBootstrap(requestContext, series, days=7):
   newValues.extend(series)
 
   newSeries = TimeSeries(series.name, oldSeries.start, series.end, series.step, newValues)
-  newSeries.pathExpression = series.name
+  newSeries.pathExpression = series.pathExpression
   return newSeries
 
 def _trimBootstrap(bootstrap, original):
@@ -1773,7 +1772,7 @@ def holtWintersForecast(requestContext, seriesList):
   """
   results = []
   for series in seriesList:
-    withBootstrap = _fetchWithBootstrap(requestContext, series)
+    withBootstrap = _fetchWithBootstrap(requestContext, series, days=7)
     analysis = holtWintersAnalysis(withBootstrap)
     results.append(_trimBootstrap(analysis['predictions'], series))
   return results
@@ -1785,7 +1784,7 @@ def holtWintersConfidenceBands(requestContext, seriesList, delta=3):
   """
   results = []
   for series in seriesList:
-    bootstrap = _fetchWithBootstrap(requestContext, series)
+    bootstrap = _fetchWithBootstrap(requestContext, series, days=7)
     analysis = holtWintersAnalysis(bootstrap)
     forecast = _trimBootstrap(analysis['predictions'], series)
     deviation = _trimBootstrap(analysis['deviations'], series)
@@ -1825,7 +1824,7 @@ def holtWintersAberration(requestContext, seriesList, delta=3):
   results = []
   for series in seriesList:
     confidenceBands = holtWintersConfidenceBands(requestContext, [series], delta)
-    bootstrapped = _fetchWithBootstrap(requestContext, series)
+    bootstrapped = _fetchWithBootstrap(requestContext, series, days=7)
     series = _trimBootstrap(bootstrapped, series)
     lowerBand = confidenceBands[0]
     upperBand = confidenceBands[1]
