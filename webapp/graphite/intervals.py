@@ -124,9 +124,9 @@ def union_overlapping(intervals):
   disjoint_intervals = []
 
   for interval in intervals:
-    if not disjoint_intervals or interval.start > disjoint_intervals[-1].end:
+    if disjoint_intervals and disjoint_intervals[-1].overlaps(interval):
+      disjoint_intervals[-1] = disjoint_intervals[-1].union(interval)
+    else:
       disjoint_intervals.append(interval)
-    elif interval.end > disjoint_intervals[-1].end:
-      disjoint_intervals[-1] = Interval(disjoint_intervals[-1].start, interval.end)
 
   return disjoint_intervals
