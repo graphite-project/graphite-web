@@ -16,11 +16,7 @@ from datetime import datetime,timedelta
 from time import daylight
 from django.conf import settings
 
-try: # See if there is a system installation of pytz first
-  import pytz
-except ImportError: # Otherwise we fall back to Graphite's bundled version
-  from graphite.thirdparty import pytz
-
+import pytz
 
 months = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec']
 weekdays = ['sun','mon','tue','wed','thu','fri','sat']

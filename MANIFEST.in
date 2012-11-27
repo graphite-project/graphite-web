@@ -5,7 +5,6 @@ include check-dependencies.py
 include examples/*
 include conf/*.example
 include webapp/graphite/local_settings.py.example
-include webapp/graphite/thirdparty/pytz/pytz-LICENSE.txt
 recursive-include distro/ *
 recursive-include webapp/graphite/ *.html
 recursive-include webapp/content/ *
