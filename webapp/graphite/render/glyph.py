@@ -310,7 +310,7 @@ class Graph:
     testWidth = testExt['width'] + 2 * (testBoxSize + padding)
     if testWidth + 50 < self.width:
       rightSideLabels = True
-
+    
     if(self.secondYAxis and rightSideLabels):
       extents = self.getExtents(longestName)
       padding = 5
@@ -320,7 +320,7 @@ class Graph:
       columns = max(1, math.floor( (self.width - self.area['xmin']) / labelWidth ))
       numRight = len([name for (name,color,rightSide) in elements if rightSide])
       numberOfLines = max(len(elements) - numRight, numRight)
-      columns = math.floor(columns / 2.0)
+      columns = math.floor(columns / 2.0) 
       if columns < 1: columns = 1
       legendHeight = numberOfLines * (lineHeight + padding)
       self.area['ymax'] -= legendHeight #scoot the drawing area up to fit the legend
@@ -334,7 +334,7 @@ class Graph:
       for (name,color,rightSide) in elements:
         self.setColor( color )
         if rightSide:
-          nRight += 1
+          nRight += 1 
           self.drawRectangle(xRight - padding,yRight,boxSize,boxSize)
           self.setColor( 'darkgrey' )
           self.drawRectangle(xRight - padding,yRight,boxSize,boxSize,fill=False)
@@ -345,7 +345,7 @@ class Graph:
             xRight = self.area['xmax'] - self.area['xmin']
             yRight += lineHeight
         else:
-          n += 1
+          n += 1 
           self.drawRectangle(x,y,boxSize,boxSize)
           self.setColor( 'darkgrey' )
           self.drawRectangle(x,y,boxSize,boxSize,fill=False)
@@ -568,11 +568,11 @@ class LineGraph(Graph):
         params['yUnitSystem'] = 'si'
 
     self.params = params
-
+    
     # Don't do any of the special right y-axis stuff if we're drawing 2 y-axes.
     if self.secondYAxis:
       params['yAxisSide'] = 'left'
-
+    
     # When Y Axis is labeled on the right, we subtract x-axis positions from the max,
     # instead of adding to the minimum
     if self.params.get('yAxisSide') == 'right':
@@ -610,7 +610,7 @@ class LineGraph(Graph):
             series.options['dashed'] = params['leftDashed']
           if 'leftColor' in params:
             series.color = params['leftColor']
-
+    
     for series in self.data:
       if not hasattr(series, 'color'):
         series.color = self.colors.next()
@@ -635,7 +635,7 @@ class LineGraph(Graph):
     #First we adjust the drawing area size to fit X-axis labels
     if not self.params.get('hideAxes',False):
       self.area['ymax'] -= self.getExtents()['maxAscent'] * 2
-
+    
     self.startTime = min([series.start for series in self.data])
     if self.lineMode == 'staircase':
       self.endTime = max([series.end for series in self.data])
@@ -655,6 +655,12 @@ class LineGraph(Graph):
     currentXMin = self.area['xmin']
     currentXMax = self.area['xmax']
 
+    self.yDivisors = self.params.get('yDivisors', (4,5,6))
+
+    if isinstance(self.yDivisors, str):
+      divisors = self.yDivisors.replace("(", "").replace(")", "").split(",")
+      self.yDivisors = tuple([ int(d) for d in divisors ])
+
     if self.secondYAxis:
       self.setupTwoYAxes()
     else:
@@ -663,7 +669,7 @@ class LineGraph(Graph):
       self.consolidateDataPoints() #this can cause the Y values to change
       currentXMin = self.area['xmin'] #so let's keep track of the previous Y-label space requirements
       currentXMax = self.area['xmax']
-      if self.secondYAxis: #and recalculate their new requirements
+      if self.secondYAxis: #and recalculate their new requirements 
         self.setupTwoYAxes()
       else:
         self.setupYAxis()
@@ -1003,12 +1009,7 @@ class LineGraph(Graph):
       orderFactor = 10 ** math.floor(order)
     v = yVariance / orderFactor #we work with a scaled down yVariance for simplicity
 
-    yDivisors = self.params.get('yDivisors', (4,5,6))
-
-    if isinstance(yDivisors, str):
-      divisors = yDivisors.replace("(", "").replace(")", "").split(",")
-      yDivisors = tuple([ int(d) for d in divisors ])
-
+    yDivisors = self.yDivisors
     prettyValues = (0.1,0.2,0.25,0.5,1.0,1.2,1.25,1.5,2.0,2.25,2.5)
     divisorInfo = []
 
@@ -1108,11 +1109,11 @@ class LineGraph(Graph):
     Ldata += self.dataLeft
     Rdata += self.dataRight
 
-    # Lots of coupled lines ahead.  Will operate on Left data first then Right.
+    # Lots of coupled lines ahead.  Will operate on Left data first then Right. 
 
     seriesWithMissingValuesL = [ series for series in Ldata if None in series ]
     seriesWithMissingValuesR = [ series for series in Rdata if None in series ]
-
+    
     if self.params.get('drawNullAsZero') and seriesWithMissingValuesL:
       yMinValueL = 0.0
     else:
@@ -1139,19 +1140,19 @@ class LineGraph(Graph):
     if yMaxValueR is None:
       yMaxValueR = 1.0
 
-    if 'yMaxLeft' in self.params:
+    if 'yMaxLeft' in self.params: 
       yMaxValueL = self.params['yMaxLeft']
-    if 'yMaxRight' in self.params:
+    if 'yMaxRight' in self.params: 
       yMaxValueR = self.params['yMaxRight']
 
-    if 'yLimitLeft' in self.params and self.params['yLimitLeft'] < yMaxValueL:
+    if 'yLimitLeft' in self.params and self.params['yLimitLeft'] < yMaxValueL: 
       yMaxValueL = self.params['yLimitLeft']
-    if 'yLimitRight' in self.params and self.params['yLimitRight'] < yMaxValueR:
+    if 'yLimitRight' in self.params and self.params['yLimitRight'] < yMaxValueR: 
       yMaxValueR = self.params['yLimitRight']
 
-    if 'yMinLeft' in self.params:
+    if 'yMinLeft' in self.params: 
       yMinValueL = self.params['yMinLeft']
-    if 'yMinRight' in self.params:
+    if 'yMinRight' in self.params: 
       yMinValueR = self.params['yMinRight']
 
     if yMaxValueL <= yMinValueL:
@@ -1168,12 +1169,7 @@ class LineGraph(Graph):
     vL = yVarianceL / orderFactorL #we work with a scaled down yVariance for simplicity
     vR = yVarianceR / orderFactorR
 
-    yDivisors = self.params.get('yDivisors', (4,5,6))
-
-    if isinstance(yDivisors, str):
-      divisors = yDivisors.replace("(", "").replace(")", "").split(",")
-      yDivisors = tuple([ int(d) for d in divisors ])
-
+    yDivisors = self.yDivisors
     prettyValues = (0.1,0.2,0.25,0.5,1.0,1.2,1.25,1.5,2.0,2.25,2.5)
     divisorInfoL = []
     divisorInfoR = []
@@ -1182,20 +1178,20 @@ class LineGraph(Graph):
       qL = vL / d #our scaled down quotient, must be in the open interval (0,10)
       qR = vR / d
       pL = closest(qL, prettyValues) #the prettyValue our quotient is closest to
-      pR = closest(qR, prettyValues)
+      pR = closest(qR, prettyValues) 
       divisorInfoL.append( ( pL,abs(qL-pL)) ) #make a list so we can find the prettiest of the pretty
-      divisorInfoR.append( ( pR,abs(qR-pR)) )
+      divisorInfoR.append( ( pR,abs(qR-pR)) ) 
 
     divisorInfoL.sort(key=lambda i: i[1]) #sort our pretty values by "closeness to a factor"
-    divisorInfoR.sort(key=lambda i: i[1])
+    divisorInfoR.sort(key=lambda i: i[1]) 
     prettyValueL = divisorInfoL[0][0] #our winner! Y-axis will have labels placed at multiples of our prettyValue
-    prettyValueR = divisorInfoR[0][0]
+    prettyValueR = divisorInfoR[0][0] 
     self.yStepL = prettyValueL * orderFactorL #scale it back up to the order of yVariance
-    self.yStepR = prettyValueR * orderFactorR
+    self.yStepR = prettyValueR * orderFactorR 
 
-    if 'yStepLeft' in self.params:
+    if 'yStepLeft' in self.params: 
       self.yStepL = self.params['yStepLeft']
-    if 'yStepRight' in self.params:
+    if 'yStepRight' in self.params: 
       self.yStepR = self.params['yStepRight']
 
     self.yBottomL = self.yStepL * math.floor( yMinValueL / self.yStepL ) #start labels at the greatest multiple of yStepL <= yMinValue
@@ -1259,12 +1255,12 @@ class LineGraph(Graph):
     self.yLabelValuesR = self.getYLabelValues(self.yBottomR, self.yTopR, self.yStepR)
     for value in self.yLabelValuesL: #can't use map() here self.yStepL and self.ySpanL are not iterable
       self.yLabelsL.append( makeLabel(value,self.yStepL,self.ySpanL))
-    for value in self.yLabelValuesR:
+    for value in self.yLabelValuesR: 
       self.yLabelsR.append( makeLabel(value,self.yStepR,self.ySpanR) )
     self.yLabelWidthL = max([self.getExtents(label)['width'] for label in self.yLabelsL])
     self.yLabelWidthR = max([self.getExtents(label)['width'] for label in self.yLabelsR])
     #scoot the graph over to the left just enough to fit the y-labels
-
+        
     #xMin = self.margin + self.margin + (self.yLabelWidthL * 1.02)
     xMin = self.margin + (self.yLabelWidthL * 1.02)
     if self.area['xmin'] < xMin:
@@ -1334,7 +1330,7 @@ class LineGraph(Graph):
           elif yL < 0:
             yL = 0
           self.drawText(labelL, xL, yL, align='right', valign='middle')
-
+          
           ### Right Side
         for valueR,labelR in zip(self.yLabelValuesR,self.yLabelsR):
           xR = self.area['xmax'] + (self.yLabelWidthR * 0.02) + 3 #Inverted for right side Y Axis
@@ -1344,7 +1340,7 @@ class LineGraph(Graph):
           elif yR < 0:
             yR = 0
           self.drawText(labelR, xR, yR, align='left', valign='middle') #Inverted for right side Y Axis
-
+      
     (dt, x_label_delta) = find_x_times(self.start_dt, self.xConf['labelUnit'], self.xConf['labelStep'])
 
     #Draw the X-labels
@@ -1358,7 +1354,7 @@ class LineGraph(Graph):
 
   def drawGridLines(self):
     # Not sure how to handle this for 2 y-axes
-    # Just using the left side info for the grid.
+    # Just using the left side info for the grid.  
 
     #Horizontal grid lines
     leftSide = self.area['xmin']
