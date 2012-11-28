@@ -655,12 +655,6 @@ class LineGraph(Graph):
     currentXMin = self.area['xmin']
     currentXMax = self.area['xmax']
 
-    self.yDivisors = self.params.get('yDivisors', (4,5,6))
-
-    if isinstance(self.yDivisors, str):
-      divisors = self.yDivisors.replace("(", "").replace(")", "").split(",")
-      self.yDivisors = tuple([ int(d) for d in divisors ])
-
     if self.secondYAxis:
       self.setupTwoYAxes()
     else:
@@ -1009,7 +1003,12 @@ class LineGraph(Graph):
       orderFactor = 10 ** math.floor(order)
     v = yVariance / orderFactor #we work with a scaled down yVariance for simplicity
 
-    yDivisors = self.yDivisors
+    yDivisors = self.params.get('yDivisors', (4,5,6))
+
+    if isinstance(yDivisors, str):
+      divisors = yDivisors.replace("(", "").replace(")", "").split(",")
+      yDivisors = tuple([ int(d) for d in divisors ])
+
     prettyValues = (0.1,0.2,0.25,0.5,1.0,1.2,1.25,1.5,2.0,2.25,2.5)
     divisorInfo = []
 
@@ -1169,7 +1168,12 @@ class LineGraph(Graph):
     vL = yVarianceL / orderFactorL #we work with a scaled down yVariance for simplicity
     vR = yVarianceR / orderFactorR
 
-    yDivisors = self.yDivisors
+    yDivisors = self.params.get('yDivisors', (4,5,6))
+
+    if isinstance(yDivisors, str):
+      divisors = yDivisors.replace("(", "").replace(")", "").split(",")
+      yDivisors = tuple([ int(d) for d in divisors ])
+
     prettyValues = (0.1,0.2,0.25,0.5,1.0,1.2,1.25,1.5,2.0,2.25,2.5)
     divisorInfoL = []
     divisorInfoR = []
