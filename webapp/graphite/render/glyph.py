@@ -141,6 +141,11 @@ class Graph:
     self.logBase = params.get('logBase', None)
     self.minorY = int(params.get('minorY', 1))
     self.yDivisors = params.get('yDivisors', (4,5,6))
+
+    if isinstance(self.yDivisors, str):
+      divisors = self.yDivisors.replace("(", "").replace(")", "").split(",")
+      self.yDivisors = tuple([ int(d) for d in divisors ])
+
     if self.logBase:
       if self.logBase == 'e':
         self.logBase = math.e
