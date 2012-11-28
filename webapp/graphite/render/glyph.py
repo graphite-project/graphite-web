@@ -125,8 +125,7 @@ class GraphError(Exception):
 class Graph:
   customizable = ('width','height','margin','bgcolor','fgcolor', \
                  'fontName','fontSize','fontBold','fontItalic', \
-                 'colorList','template','yAxisSide','outputFormat', \
-                 'yDivisors')
+                 'colorList','template','yAxisSide','outputFormat')
 
   def __init__(self,**params):
     self.params = params
@@ -140,11 +139,6 @@ class Graph:
     self.userTimeZone = params.get('tz')
     self.logBase = params.get('logBase', None)
     self.minorY = int(params.get('minorY', 1))
-    self.yDivisors = params.get('yDivisors', (4,5,6))
-
-    if isinstance(self.yDivisors, str):
-      divisors = self.yDivisors.replace("(", "").replace(")", "").split(",")
-      self.yDivisors = tuple([ int(d) for d in divisors ])
 
     if self.logBase:
       if self.logBase == 'e':
@@ -511,10 +505,17 @@ class LineGraph(Graph):
                   'yMaxRight', 'yLimitLeft', 'yLimitRight', 'yStepLeft', \
                   'yStepRight', 'rightWidth', 'rightColor', 'rightDashed', \
                   'leftWidth', 'leftColor', 'leftDashed', 'xFormat', 'minorY', \
-                  'hideYAxis', 'uniqueLegend', 'vtitleRight')
+                  'hideYAxis', 'uniqueLegend', 'vtitleRight', 'yDivisors')
   validLineModes = ('staircase','slope','connected')
   validAreaModes = ('none','first','all','stacked')
   validPieModes = ('maximum', 'minimum', 'average')
+
+  self.yDivisors = params.get('yDivisors', (4,5,6))
+
+  if isinstance(self.yDivisors, str):
+    divisors = self.yDivisors.replace("(", "").replace(")", "").split(",")
+    self.yDivisors = tuple([ int(d) for d in divisors ])
+
 
   def drawGraph(self,**params):
     # Make sure we've got datapoints to draw
