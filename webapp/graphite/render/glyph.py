@@ -65,6 +65,7 @@ defaultGraphOptions = dict(
   fontsize=10,
   fontbold='false',
   fontitalic='false',
+  divisors=(4,5,6)
 )
 
 #X-axis configurations (copied from rrdtool, this technique is evil & ugly but effective)
@@ -125,7 +126,7 @@ class GraphError(Exception):
 class Graph:
   customizable = ('width','height','margin','bgcolor','fgcolor', \
                  'fontName','fontSize','fontBold','fontItalic', \
-                 'colorList','template','yAxisSide','outputFormat')
+                 'colorList','template','yAxisSide','outputFormat', 'divisors')
 
   def __init__(self,**params):
     self.params = params
@@ -139,6 +140,7 @@ class Graph:
     self.userTimeZone = params.get('tz')
     self.logBase = params.get('logBase', None)
     self.minorY = int(params.get('minorY', 1))
+    self.divisors = params.get('divisors', (4,5,6))
     if self.logBase:
       if self.logBase == 'e':
         self.logBase = math.e
@@ -1001,7 +1003,7 @@ class LineGraph(Graph):
       orderFactor = 10 ** math.floor(order)
     v = yVariance / orderFactor #we work with a scaled down yVariance for simplicity
 
-    divisors = (4,5,6) #different ways to divide-up the y-axis with labels
+    divisors = self.divisors
     prettyValues = (0.1,0.2,0.25,0.5,1.0,1.2,1.25,1.5,2.0,2.25,2.5)
     divisorInfo = []
 
