@@ -510,13 +510,6 @@ class LineGraph(Graph):
   validAreaModes = ('none','first','all','stacked')
   validPieModes = ('maximum', 'minimum', 'average')
 
-  self.yDivisors = params.get('yDivisors', (4,5,6))
-
-  if isinstance(self.yDivisors, str):
-    divisors = self.yDivisors.replace("(", "").replace(")", "").split(",")
-    self.yDivisors = tuple([ int(d) for d in divisors ])
-
-
   def drawGraph(self,**params):
     # Make sure we've got datapoints to draw
     if self.data:
@@ -661,6 +654,13 @@ class LineGraph(Graph):
     #repeat until we have accurate Y labels and enough space to fit our data points
     currentXMin = self.area['xmin']
     currentXMax = self.area['xmax']
+
+    self.yDivisors = self.params.get('yDivisors', (4,5,6))
+
+    if isinstance(self.yDivisors, str):
+      divisors = self.yDivisors.replace("(", "").replace(")", "").split(",")
+      self.yDivisors = tuple([ int(d) for d in divisors ])
+
     if self.secondYAxis:
       self.setupTwoYAxes()
     else:
