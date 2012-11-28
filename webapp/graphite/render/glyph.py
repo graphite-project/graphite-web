@@ -65,7 +65,6 @@ defaultGraphOptions = dict(
   fontsize=10,
   fontbold='false',
   fontitalic='false',
-  divisors=(4,5,6)
 )
 
 #X-axis configurations (copied from rrdtool, this technique is evil & ugly but effective)
@@ -126,7 +125,8 @@ class GraphError(Exception):
 class Graph:
   customizable = ('width','height','margin','bgcolor','fgcolor', \
                  'fontName','fontSize','fontBold','fontItalic', \
-                 'colorList','template','yAxisSide','outputFormat', 'divisors')
+                 'colorList','template','yAxisSide','outputFormat', \
+                 'yDivisors')
 
   def __init__(self,**params):
     self.params = params
@@ -140,7 +140,7 @@ class Graph:
     self.userTimeZone = params.get('tz')
     self.logBase = params.get('logBase', None)
     self.minorY = int(params.get('minorY', 1))
-    self.divisors = params.get('divisors', (4,5,6))
+    self.yDivisors = params.get('yDivisors', (4,5,6))
     if self.logBase:
       if self.logBase == 'e':
         self.logBase = math.e
@@ -1003,11 +1003,11 @@ class LineGraph(Graph):
       orderFactor = 10 ** math.floor(order)
     v = yVariance / orderFactor #we work with a scaled down yVariance for simplicity
 
-    divisors = self.divisors
+    yDivisors = self.yDivisors
     prettyValues = (0.1,0.2,0.25,0.5,1.0,1.2,1.25,1.5,2.0,2.25,2.5)
     divisorInfo = []
 
-    for d in divisors:
+    for d in yDivisors:
       q = v / d #our scaled down quotient, must be in the open interval (0,10)
       p = closest(q, prettyValues) #the prettyValue our quotient is closest to
       divisorInfo.append( ( p,abs(q-p)) ) #make a list so we can find the prettiest of the pretty
@@ -1163,12 +1163,12 @@ class LineGraph(Graph):
     vL = yVarianceL / orderFactorL #we work with a scaled down yVariance for simplicity
     vR = yVarianceR / orderFactorR
 
-    divisors = (4,5,6) #different ways to divide-up the y-axis with labels
+    yDivisors = self.yDivisors
     prettyValues = (0.1,0.2,0.25,0.5,1.0,1.2,1.25,1.5,2.0,2.25,2.5)
     divisorInfoL = []
     divisorInfoR = []
 
-    for d in divisors:
+    for d in yDivisors:
       qL = vL / d #our scaled down quotient, must be in the open interval (0,10)
       qR = vR / d
       pL = closest(qL, prettyValues) #the prettyValue our quotient is closest to
