@@ -950,7 +950,7 @@ function graphAreaToggle(target, options) {
 }
 
 function importGraphUrl(targetUrl, options) {
-  var fullUrl = decodeURIComponent(targetUrl).replace(/#/,'%23');
+  var fullUrl = targetUrl;
   var i = fullUrl.indexOf("?");
   if (i == -1) {
     return;
