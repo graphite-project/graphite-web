@@ -505,7 +505,7 @@ class LineGraph(Graph):
                   'yStepRight', 'rightWidth', 'rightColor', 'rightDashed', \
                   'leftWidth', 'leftColor', 'leftDashed', 'xFormat', 'minorY', \
                   'hideYAxis', 'uniqueLegend', 'vtitleRight')
-  validLineModes = ('staircase','slope','connected')
+  validLineModes = ('staircase','slope','connected','bar')
   validAreaModes = ('none','first','all','stacked')
   validPieModes = ('maximum', 'minimum', 'average')
 
@@ -905,6 +905,14 @@ class LineGraph(Graph):
 
           elif self.lineMode == 'connected':
             self.ctx.line_to(x, y)
+            x += series.xStep
+
+          elif self.lineMode == 'bar':
+            barwidth=series.xStep / 4;
+            self.ctx.line_to(x - barwidth, self.area['ymax']) 	# go right
+            self.ctx.line_to(x - barwidth, y)			# go up
+            self.ctx.line_to(x + barwidth, y)			# go right
+            self.ctx.line_to(x + barwidth, self.area['ymax'])	# go down
             x += series.xStep
 
           fromNone = False
