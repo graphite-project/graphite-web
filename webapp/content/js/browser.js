@@ -120,7 +120,7 @@ function createTreePanel(){
     }
 
     if (node.attributes.graphUrl) {
-      var url = decodeURIComponent(node.attributes.graphUrl).replace(/#/,'%23');
+      var url = node.attributes.graphUrl
       Composer.loadMyGraph(node.attributes.text, url);
       return;
     }
