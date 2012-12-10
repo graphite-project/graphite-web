@@ -2044,7 +2044,26 @@ def threshold(requestContext, value, label=None, color=None):
 
     &target=threshold(123.456, "omgwtfbbq", red)
 
+  Where needed, functions like nPercentile() can be nested inside of threshold()
+  to draw a line based on that nested function's value.
+
+  Example:
+
+  .. code-block:: none
+
+  &target=threshold(nPercentile(load_balancers.lb1.http.requests.GET,95),"95th%20Percentile","red")&lineMode=stairCase
+
+  NOTE: ``&lineMode=stairCase`` may be necessary to convince Graphite to draw the threshold across the entire graph.
+
   """
+
+  # look for a list and determine if it's a TimeSeries object; if so, extract the value
+  # useful for nesting a function like nPercentile() inside threshold()
+  if type(value) is list:
+   ts = value[0]
+   if type(ts) is TimeSeries:
+    attrs = ts.getInfo()
+    value = attrs['values'][0]		# extract the value
 
   series = constantLine(requestContext, value)[0]
   if label:
