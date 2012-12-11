@@ -504,7 +504,7 @@ class LineGraph(Graph):
                   'yMaxRight', 'yLimitLeft', 'yLimitRight', 'yStepLeft', \
                   'yStepRight', 'rightWidth', 'rightColor', 'rightDashed', \
                   'leftWidth', 'leftColor', 'leftDashed', 'xFormat', 'minorY', \
-                  'hideYAxis', 'uniqueLegend', 'vtitleRight')
+                  'hideYAxis', 'uniqueLegend', 'vtitleRight', 'connectedLimit')
   validLineModes = ('staircase','slope','connected')
   validAreaModes = ('none','first','all','stacked')
   validPieModes = ('maximum', 'minimum', 'average')
@@ -579,6 +579,7 @@ class LineGraph(Graph):
     #Now to setup our LineGraph specific options
     self.lineWidth = float( params.get('lineWidth', 1.2) )
     self.lineMode = params.get('lineMode','slope').lower()
+    self.connectedLimit = params.get("connectedLimit", INFINITY)
     assert self.lineMode in self.validLineModes, "Invalid line mode!"
     self.areaMode = params.get('areaMode','none').lower()
     assert self.areaMode in self.validAreaModes, "Invalid area mode!"
@@ -845,7 +846,8 @@ class LineGraph(Graph):
       else:
         self.setColor( series.color, series.options.get('alpha') or 1.0 )
 
-      fromNone = True
+      # The number of preceeding datapoints that had a None value.
+      consecutiveNones = 0
 
       for value in series:
         if value != value: # convert NaN to None
@@ -855,13 +857,13 @@ class LineGraph(Graph):
           value = 0.0
 
         if value is None:
-          if not fromNone:
+          if consecutiveNones == 0:
             self.ctx.line_to(x, y)
             if 'stacked' in series.options: #Close off and fill area before unknown interval
               self.fillAreaAndClip(x, y, startX)
 
           x += series.xStep
-          fromNone = True
+          consecutiveNones += 1
 
         else:
           if self.secondYAxis:
@@ -884,11 +886,11 @@ class LineGraph(Graph):
             x += series.xStep
             continue
 
-          if fromNone:
+          if consecutiveNones > 0:
             startX = x
 
           if self.lineMode == 'staircase':
-            if fromNone:
+            if consecutiveNones > 0:
               self.ctx.move_to(x, y)
             else:
               self.ctx.line_to(x, y)
@@ -897,17 +899,20 @@ class LineGraph(Graph):
             self.ctx.line_to(x, y)
 
           elif self.lineMode == 'slope':
-            if fromNone:
+            if consecutiveNones > 0:
               self.ctx.move_to(x, y)
 
             self.ctx.line_to(x, y)
             x += series.xStep
 
           elif self.lineMode == 'connected':
+            if consecutiveNones > self.connectedLimit:
+               self.ctx.move_to(x, y)
+
             self.ctx.line_to(x, y)
             x += series.xStep
 
-          fromNone = False
+          consecutiveNones = 0
 
       if 'stacked' in series.options:
         self.fillAreaAndClip(x-series.xStep, y, startX)

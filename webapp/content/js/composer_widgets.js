@@ -1117,6 +1117,7 @@ function createOptionsMenu() {
         menuRadioItem("line", "Slope Line (default)", "lineMode", ""),
         menuRadioItem("line", "Staircase Line", "lineMode", "staircase"),
         menuRadioItem("line", "Connected Line", "lineMode", "connected"),
+        menuInputItem("Connected Line Limit", "connectedLimit", "The number of consecutive None values to jump over when in connected line mode. (default: no limit, leave empty)"),
         menuCheckItem("Draw Null as Zero", "drawNullAsZero")
     ]
   });
