@@ -990,7 +990,7 @@ function createFunctionsMenu() {
         {text: 'Draw non-zero As Infinite', handler: applyFuncToEach('drawAsInfinite')},
         {text: 'Line Width', handler: applyFuncToEachWithInput('lineWidth', 'Please enter a line width for this graph target')},
         {text: 'Dashed Line', handler: applyFuncToEach('dashed')},
-        {text: 'Keep Last Value', handler: applyFuncToEach('keepLastValue')},
+        {text: 'Keep Last Value', handler: applyFuncToEachWithInput('keepLastValue', 'Please enter the maximum number of "None" datapoints to overwrite, or leave empty for no limit. (default: empty)', {allowBlank: true})},
         {text: 'Transform Nulls', handler: applyFuncToEachWithInput('transformNull', 'Please enter the value to transform null values to')},
         {text: 'Substring', handler: applyFuncToEachWithInput('substr', 'Enter a starting position')},
         {text: 'Group', handler: applyFuncToAll('group')},
