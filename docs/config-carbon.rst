@@ -97,7 +97,7 @@ Important notes before continuing:
 * ``xFilesFactor`` should be a floating point number between 0 and 1, and specifies what fraction of the previous retention level's slots must have non-null values in order to aggregate to a non-null value.  The default is 0.5.
 * ``aggregationMethod`` specifies the function used to aggregate values for the next retention level.  Legal methods are ``average``, ``sum``, ``min``, ``max``, and ``last``. The default is ``average``.
 * These are set at the time the first metric is sent.
-* Changing this file will not affect .wsp files already created on disk. Use whisper-resize.py to change those.
+* Changing this file will not affect .wsp files already created on disk. Use whisper-set-aggregation-method.py to change those.
 
 Here's an example:
 

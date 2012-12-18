@@ -470,36 +470,55 @@ def multiplySeries(requestContext, *seriesLists):
 
 def movingMedian(requestContext, seriesList, windowSize):
   """
-  Takes one metric or a wildcard seriesList followed by a number N of datapoints and graphs
-  the median of N previous datapoints.  N-1 datapoints are set to None at the
-  beginning of the graph.
+  Graphs the moving median of a metric (or metrics) over a fixed number of
+  past points, or a time interval.
+
+  Takes one metric or a wildcard seriesList followed by a number N of datapoints
+  or a quoted string with a length of time like '1hour' or '5min' (See ``from /
+  until`` in the render\_api_ for examples of time formats). Graphs the
+  median of the preceeding datapoints for each point on the graph. All
+  previous datapoints are set to None at the beginning of the graph.
+
+  Example:
 
   .. code-block:: none
 
     &target=movingMedian(Server.instance01.threads.busy,10)
+    &target=movingMedian(Server.instance*.threads.idle,'5min')
 
   """
+  windowInterval = None
+  if type(windowSize) is str:
+    delta = parseTimeOffset(windowSize)
+    windowInterval = abs(delta.seconds + (delta.days * 86400))
+
   for seriesIndex, series in enumerate(seriesList):
-    newName = "movingMedian(%s,%.1f)" % (series.name, float(windowSize))
+    if windowInterval:
+      windowPoints = windowInterval / series.step
+    else:
+      windowPoints = int(windowSize)
+
+    if type(windowSize) is str:
+      newName = 'movingMedian(%s,"%s")' % (series.name, windowSize)
+    else:
+      newName = "movingMedian(%s,%s)" % (series.name, windowSize)
     newSeries = TimeSeries(newName, series.start, series.end, series.step, [])
     newSeries.pathExpression = newName
 
-    windowIndex = windowSize - 1
+    bootstrap = series.step * windowPoints
+    bootstrappedSeries = _fetchWithBootstrap(requestContext, series, seconds=bootstrap)
+    windowIndex = windowPoints - 1
 
-    for i in range( len(series) ):
-      if i < windowIndex: # Pad the beginning with None's since we don't have enough data
-        newSeries.append( None )
-
+    for i in range(len(series)):
+      window = bootstrappedSeries[i:i + windowIndex - 1]
+      nonNull = [v for v in window if v is not None]
+      if nonNull:
+        m_index = len(nonNull) / 2
+        newSeries.append(sorted(nonNull)[m_index])
       else:
-        window = series[i - windowIndex : i + 1]
-        nonNull = [ v for v in window if v is not None ]
-        if nonNull:
-          m_index = len(nonNull) / 2
-          newSeries.append(sorted(nonNull)[m_index])
-        else:
-          newSeries.append(None)
+        newSeries.append(None)
 
-    seriesList[ seriesIndex ] = newSeries
+    seriesList[seriesIndex] = newSeries
 
   return seriesList
 
@@ -594,33 +613,52 @@ def offset(requestContext, seriesList, factor):
 
 def movingAverage(requestContext, seriesList, windowSize):
   """
-  Takes one metric or a wildcard seriesList followed by a number N of datapoints and graphs
-  the average of N previous datapoints.  N-1 datapoints are set to None at the
-  beginning of the graph.
+  Graphs the moving average of a metric (or metrics) over a fixed number of
+  past points, or a time interval.
+
+  Takes one metric or a wildcard seriesList followed by a number N of datapoints
+  or a quoted string with a length of time like '1hour' or '5min' (See ``from /
+  until`` in the render\_api_ for examples of time formats). Graphs the
+  average of the preceeding datapoints for each point on the graph. All
+  previous datapoints are set to None at the beginning of the graph.
+
+  Example:
 
   .. code-block:: none
 
     &target=movingAverage(Server.instance01.threads.busy,10)
+    &target=movingAverage(Server.instance*.threads.idle,'5min')
 
   """
+  windowInterval = None
+  if type(windowSize) is str:
+    delta = parseTimeOffset(windowSize)
+    windowInterval = abs(delta.seconds + (delta.days * 86400))
+
   for seriesIndex, series in enumerate(seriesList):
-    newName = "movingAverage(%s,%d)" % (series.name, windowSize)
+    if windowInterval:
+      windowPoints = windowInterval / series.step
+    else:
+      windowPoints = int(windowSize)
+
+    if type(windowSize) is str:
+      newName = 'movingAverage(%s,"%s")' % (series.name, windowSize)
+    else:
+      newName = "movingAverage(%s,%s)" % (series.name, windowSize)
     newSeries = TimeSeries(newName, series.start, series.end, series.step, [])
     newSeries.pathExpression = newName
 
-    windowIndex = int(windowSize) - 1
+    bootstrap = series.step * windowPoints
+    bootstrappedSeries = _fetchWithBootstrap(requestContext, series, seconds=bootstrap)
+    windowIndex = windowPoints - 1
 
-    for i in range( len(series) ):
-      if i < windowIndex: # Pad the beginning with None's since we don't have enough data
-        newSeries.append( None )
-
+    for i in range(len(series)):
+      window = bootstrappedSeries[i:i + windowIndex]
+      nonNull = [v for v in window if v is not None]
+      if nonNull:
+        newSeries.append(sum(nonNull) / len(nonNull))
       else:
-        window = series[i - windowIndex : i + 1]
-        nonNull = [ v for v in window if v is not None ]
-        if nonNull:
-          newSeries.append( sum(nonNull) / len(nonNull) )
-        else:
-          newSeries.append(None)
+        newSeries.append(None)
 
     seriesList[ seriesIndex ] = newSeries
 
@@ -930,10 +968,10 @@ def cactiStyle(requestContext, seriesList, system=None):
       fmt = lambda x:"%2.f%s" % format_units(x,system=system)
   else:
       fmt = lambda x:"%2.f"%x
-  nameLen = max([len(getattr(series,"name")) for series in seriesList])
-  lastLen = max([len(fmt(int(safeLast(series) or 3))) for series in seriesList]) + 3
-  maxLen = max([len(fmt(int(safeMax(series) or 3))) for series in seriesList]) + 3
-  minLen = max([len(fmt(int(safeMin(series) or 3))) for series in seriesList]) + 3
+  nameLen = max([0] + [len(getattr(series,"name")) for series in seriesList])
+  lastLen = max([0] + [len(fmt(int(safeLast(series) or 3))) for series in seriesList]) + 3
+  maxLen = max([0] + [len(fmt(int(safeMax(series) or 3))) for series in seriesList]) + 3
+  minLen = max([0] + [len(fmt(int(safeMin(series) or 3))) for series in seriesList]) + 3
   for series in seriesList:
       name = series.name
       last = fmt(float(safeLast(series)))
@@ -1628,11 +1666,10 @@ def secondYAxis(requestContext, seriesList):
     series.name= 'secondYAxis(%s)' % series.name
   return seriesList
 
-def _fetchWithBootstrap(requestContext, series, days=7):
+def _fetchWithBootstrap(requestContext, series, **delta_kwargs):
   'Request the same data but with a bootstrap period at the beginning'
   previousContext = requestContext.copy()
-  # go back 1 week to get a solid bootstrap
-  previousContext['startTime'] = requestContext['startTime'] - timedelta(days)
+  previousContext['startTime'] = requestContext['startTime'] - timedelta(**delta_kwargs)
   previousContext['endTime'] = requestContext['startTime']
   oldSeries = evaluateTarget(previousContext, series.pathExpression)[0]
 
@@ -1646,7 +1683,7 @@ def _fetchWithBootstrap(requestContext, series, days=7):
   newValues.extend(series)
 
   newSeries = TimeSeries(series.name, oldSeries.start, series.end, series.step, newValues)
-  newSeries.pathExpression = series.name
+  newSeries.pathExpression = series.pathExpression
   return newSeries
 
 def _trimBootstrap(bootstrap, original):
@@ -1773,7 +1810,7 @@ def holtWintersForecast(requestContext, seriesList):
   """
   results = []
   for series in seriesList:
-    withBootstrap = _fetchWithBootstrap(requestContext, series)
+    withBootstrap = _fetchWithBootstrap(requestContext, series, days=7)
     analysis = holtWintersAnalysis(withBootstrap)
     results.append(_trimBootstrap(analysis['predictions'], series))
   return results
@@ -1785,7 +1822,7 @@ def holtWintersConfidenceBands(requestContext, seriesList, delta=3):
   """
   results = []
   for series in seriesList:
-    bootstrap = _fetchWithBootstrap(requestContext, series)
+    bootstrap = _fetchWithBootstrap(requestContext, series, days=7)
     analysis = holtWintersAnalysis(bootstrap)
     forecast = _trimBootstrap(analysis['predictions'], series)
     deviation = _trimBootstrap(analysis['deviations'], series)
@@ -1825,7 +1862,7 @@ def holtWintersAberration(requestContext, seriesList, delta=3):
   results = []
   for series in seriesList:
     confidenceBands = holtWintersConfidenceBands(requestContext, [series], delta)
-    bootstrapped = _fetchWithBootstrap(requestContext, series)
+    bootstrapped = _fetchWithBootstrap(requestContext, series, days=7)
     series = _trimBootstrap(bootstrapped, series)
     lowerBand = confidenceBands[0]
     upperBand = confidenceBands[1]

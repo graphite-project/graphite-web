@@ -558,7 +558,7 @@ function initDashboard () {
               },
               { text: "From Saved Graph",
                 handler: newFromSavedGraph
-              },
+              }
             ]
           }
         },
@@ -1086,7 +1086,7 @@ var TimeRange = {
 function getTimeText() {
   if (TimeRange.type == 'relative') {
     var text = "Now showing the past " + TimeRange.relativeStartQuantity + " " + TimeRange.relativeStartUnits;
-    if (TimeRange.relativeUntilUnits != 'now') {
+    if (TimeRange.relativeUntilUnits !== 'now' && TimeRange.relativeUntilUnits !== '') {
       text = text + " until " + TimeRange.relativeUntilQuantity + " " + TimeRange.relativeUntilUnits + " ago";
     }
     return text;
@@ -2008,21 +2008,21 @@ function mailGraph(record) {
     fieldLabel: "From",
     name: 'sender',
     width: 300,
-    allowBlank: false,
+    allowBlank: false
   });
 
   var toField = new Ext.form.TextField({
     fieldLabel: "To",
     name: 'recipients',
     width: 300,
-    allowBlank: false,
+    allowBlank: false
   });
 
   var subjectField = new Ext.form.TextField({
     fieldLabel: "Subject",
     name: 'subject',
     width: 300,
-    allowBlank: false,
+    allowBlank: false
   });
 
   var msgField = new Ext.form.TextArea({
@@ -2071,7 +2071,7 @@ function mailGraph(record) {
     resizable: true,
     modal: true,
     layout: 'fit',
-    items: [contactForm],
+    items: [contactForm]
   });
   win.show();
 }
@@ -2438,15 +2438,17 @@ function applyState(state) {
   //state.timeConfig = {type, quantity, units, untilQuantity, untilUnits, startDate, startTime, endDate, endTime}
   var timeConfig = state.timeConfig
   TimeRange.type = timeConfig.type;
-  TimeRange.relativeStartQuantity = timeConfig.quantity;
-  TimeRange.relativeStartUnits = timeConfig.units;
-  TimeRange.relativeUntilQuantity = timeConfig.untilQuantity;
-  TimeRange.relativeUntilUnits = timeConfig.untilUnits;
+  TimeRange.relativeStartQuantity = timeConfig.relativeStartQuantity;
+  TimeRange.relativeStartUnits = timeConfig.relativeStartUnits;
+  TimeRange.relativeUntilQuantity = timeConfig.relativeUntilQuantity;
+  TimeRange.relativeUntilUnits = timeConfig.relativeUntilUnits;
   TimeRange.startDate = new Date(timeConfig.startDate);
   TimeRange.startTime = timeConfig.startTime;
   TimeRange.endDate = new Date(timeConfig.endDate);
   TimeRange.endTime = timeConfig.endTime;
   updateTimeText();
+
+
 
   //state.refreshConfig = {enabled, interval}
   var refreshConfig = state.refreshConfig;
