@@ -1417,8 +1417,8 @@ def nPercentile(requestContext, seriesList, n):
       continue  # Skip this series because it is empty.
 
     perc_val = _getPercentile(s_copy, n)
-    if perc_val:
-      name = 'nPercentile(%.1f, %s)' % (n, s_copy.name)
+    if perc_val is not None:
+      name = 'nPercentile(%s, %s)' % (s_copy.name, n)
       point_count = int((s.end - s.start)/s.step)
       perc_series = TimeSeries(name, s_copy.start, s_copy.end, s_copy.step, [perc_val] * point_count )
       perc_series.pathExpression = name
@@ -1428,7 +1428,7 @@ def nPercentile(requestContext, seriesList, n):
 def removeAbovePercentile(requestContext, seriesList, n):
   """
   Removes data above the nth percentile from the series or list of series provided.
-  Values below this percentile are assigned a value of None.
+  Values above this percentile are assigned a value of None.
   """
   for s in seriesList:
     s.name = 'removeAbovePercentile(%s, %d)' % (s.name, n)
@@ -1442,7 +1442,7 @@ def removeAbovePercentile(requestContext, seriesList, n):
 def removeAboveValue(requestContext, seriesList, n):
   """
   Removes data above the given threshold from the series or list of series provided.
-  Values below this threshole are assigned a value of None
+  Values above this threshole are assigned a value of None
   """
   for s in seriesList:
     s.name = 'removeAboveValue(%s, %d)' % (s.name, n)
@@ -1454,7 +1454,7 @@ def removeAboveValue(requestContext, seriesList, n):
 
 def removeBelowPercentile(requestContext, seriesList, n):
   """
-  Removes data above the nth percentile from the series or list of series provided.
+  Removes data below the nth percentile from the series or list of series provided.
   Values below this percentile are assigned a value of None.
   """
   for s in seriesList:
@@ -1468,7 +1468,7 @@ def removeBelowPercentile(requestContext, seriesList, n):
 
 def removeBelowValue(requestContext, seriesList, n):
   """
-  Removes data above the given threshold from the series or list of series provided.
+  Removes data below the given threshold from the series or list of series provided.
   Values below this threshole are assigned a value of None
   """
   for s in seriesList:
@@ -2634,7 +2634,7 @@ SeriesFunctions = {
   # Data Filter functions
   'removeAbovePercentile' : removeAbovePercentile,
   'removeAboveValue' : removeAboveValue,
-  'removeBelowPercentile' : removeAbovePercentile,
+  'removeBelowPercentile' : removeBelowPercentile,
   'removeBelowValue' : removeBelowValue,
 
   # Special functions
