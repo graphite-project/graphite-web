@@ -68,6 +68,13 @@ GDash
 `Gdash`_ is a simple Graphite dashboard built using Twitters Bootstrap driven by a small DSL.
 
 
+Giraffe
+--------
+`Giraffe`_ is a Graphite real-time dashboard based on `Rickshaw`_ and requires no server backend.
+Inspired by `Gdash`_, `Tasseo`_ and `Graphene`_ it mixes features from all three into a slightly
+different animal.
+
+
 Graphene
 --------
 `Graphene`_ is a Graphite dashboard toolkit based on `D3.js`_ and `Backbone.js`_ which was
@@ -240,3 +247,5 @@ Therry
 .. _write-graphite: http://collectd.org/wiki/index.php/Plugin:Write_Graphite
 .. _Therry: https://github.com/obfuscurity/therry
 .. _Graphsky: https://github.com/hyves-org/graphsky
+.. _Giraffe: http://kenhub.github.com/giraffe/
+.. _Rickshaw: http://code.shutterstock.com/rickshaw/
