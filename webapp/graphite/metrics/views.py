@@ -39,6 +39,12 @@ def index_json(request):
       if fnmatch.fnmatch(basename, '*.wsp'):
         matches.append(os.path.join(root, basename))
 
+  for root, dirs, files in os.walk(settings.CERES_DIR):
+    root = root.replace(settings.CERES_DIR, '')
+    for basename in files:
+      if basename == '.ceres-node':
+        matches.append(os.path.join(root, basename))
+
   matches = [ m.replace('.wsp','').replace('/', '.') for m in sorted(matches) ]
   if jsonp:
     return HttpResponse("%s(%s)" % (jsonp, json.dumps(matches)), mimetype='text/javascript')
