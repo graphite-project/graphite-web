@@ -41,9 +41,9 @@ def index_json(request):
 
   for root, dirs, files in os.walk(settings.CERES_DIR):
     root = root.replace(settings.CERES_DIR, '')
-    for basename in files:
-      if basename == '.ceres-node':
-        matches.append(os.path.join(root, basename))
+    for filename in files:
+      if filename == '.ceres-node':
+        matches.append(root)
 
   matches = [ m.replace('.wsp','').replace('/', '.') for m in sorted(matches) ]
   if jsonp:
