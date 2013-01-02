@@ -3,6 +3,7 @@ from os.path import isdir, isfile, join, exists, splitext, basename, realpath
 import whisper
 from graphite.remote_storage import RemoteStore
 from django.conf import settings
+import re
 
 try:
   import rrdtool
@@ -114,7 +115,7 @@ def is_local_interface(host):
 
 
 def is_pattern(s):
-  return '*' in s or '?' in s or '[' in s or '{' in s
+  return '*' in s or '?' in s or '[' in s or '{' in s or EXPAND_PATTERN in s 
 
 def is_escaped_pattern(s):
   for symbol in '*?[{':
@@ -130,10 +131,20 @@ def find_escaped_pattern_fields(pattern_string):
     if is_escaped_pattern(part):
       yield index
 
+# The parttern used in the `target` to indicate arbirary expansion. This purposefully contains '.' so that is will not confilict with metric names.
+EXPAND_PATTERN = '<...>'
+# The pattern used to replace EXPAND_PATTERN. This is necessary since EXPAND_PATTERN contains '.' which is the delimeter on which the pattern is separated.
+_EXPAND_PATTERN = '<***>'
+# We shall enforce that the EXPAND_PATTERN cannot be used as a compound pattern and must appear as an entire pattern part 
+# (e.g. a.b.EXPAND_PATTERN.c or a.b.EXPAND_PATTERN, not a.b.cdfEXPAND_PATTERN)
+# In the case that it is used in a compound manner, the pattern will merely be treated as the literal string.
+EXPAND_PATTERN_REGEX = re.compile(r"(^|[.])%s([.]|$)" % re.escape(EXPAND_PATTERN))
+REPLACE_STRING = r"\1%s\2" %  _EXPAND_PATTERN
 
 def find(root_dir, pattern):
   "Generates nodes beneath root_dir matching the given pattern"
   clean_pattern = pattern.replace('\\', '')
+  clean_pattern = re.sub(EXPAND_PATTERN_REGEX, REPLACE_STRING, clean_pattern)
   pattern_parts = clean_pattern.split('.')
 
   for absolute_path in _find(root_dir, pattern_parts):
@@ -185,33 +196,89 @@ def _find(current_dir, patterns):
   entries = os.listdir(current_dir)
 
   subdirs = [e for e in entries if isdir( join(current_dir,e) )]
-  matching_subdirs = match_entries(subdirs, pattern)
+  files = [e for e in entries if isfile( join(current_dir,e) )]
 
-  if len(patterns) == 1 and rrdtool: #the last pattern may apply to RRD data sources
-    files = [e for e in entries if isfile( join(current_dir,e) )]
-    rrd_files = match_entries(files, pattern + ".rrd")
+  if pattern == _EXPAND_PATTERN:
+    # Case 1: EXPAND_PATTERN in terminal position (e.g. a.b.c.EXPAND_PATTERN)
+    #         - Match all subdirs in the current directory and recurse with [EXPAND_PATTERN] as the target pattern list
+    #         - Yield all files in the current directory
+    # Case 2: EXPAND_PATTERN positioned before a branch node (e.g. a.EXPAND_PATTERN.b.c)
+    #         - Sub-case i) - For all subdirs which match the pattern of the branch node: 
+    #           - Recurse with the target pattern list as the current pattern list starting from the pattern following the branch node.
+    #             e.g. For EXPAND_PATTERN.b.c.d, for subdirs matching b, recurse with the pattern list [c,d]
+    #         - Sub-case ii) - For all other subdirs:
+    #           - Recurse with the current pattern list as the target pattern list
+    #             e.g. For EXPAND_PATTERN.b.c.d, recurse with the pattern list [EXPAND_PATTERN,b,c,d]
+    #         - Yield no files from the current directory
+    # Case 3: EXPAND_PATTERN positioned before a leaf node (e.g. a.b.EXPAND_PATTERN.c)
+    #         - Match all subdirs and recurse with [EXPAND_PATTERN, leaf] as the target pattern list
+    #         - Yield all files from the current directory which match the pattern of the leaf node
+    subdir_groupings = {}
+    if not patterns:
+      matching_subdirs = subdirs
+      recurse_patterns = (_EXPAND_PATTERN,)
+      subdir_groupings[recurse_patterns] = matching_subdirs
+      matching_files = files
+    elif len(patterns) > 1:
+      branch_node_pattern = patterns[0]
+      branch_pattern_matches = match_entries(subdirs, branch_node_pattern)
+      branch_match_recurse_patterns = tuple(patterns[1:])
+      subdir_groupings[branch_match_recurse_patterns] = branch_pattern_matches
+      remaining_dirs = [d for d in subdirs if d not in branch_pattern_matches]
+      remaining_dirs_recurse_patterns = (_EXPAND_PATTERN,) + tuple(patterns)
+      subdir_groupings[remaining_dirs_recurse_patterns] = remaining_dirs
+      matching_files = []
 
-    if rrd_files: #let's assume it does
-      datasource_pattern = patterns[0]
+      # Handle the rdd matches
+      if rrdtool and len(patterns) == 2: #the last pattern may apply to RRD data sources
+        rrd_files = match_entries(files, branch_node_pattern + ".rrd")
+        if rrd_files: #let's assume it does
+          datasource_pattern = patterns[1]
+          for rrd_file in rrd_files:
+            absolute_path = join(current_dir, rrd_file)
+            yield absolute_path + DATASOURCE_DELIMETER + datasource_pattern
+    else:
+      # len(patterns) == 1
+      leaf_pattern = patterns[0]
+      matching_subdirs = subdirs
+      recurse_patterns = (_EXPAND_PATTERN,) + tuple(patterns)
+      subdir_groupings[recurse_patterns] = matching_subdirs
+      matching_files = match_entries(files, leaf_pattern + '.*')
 
-      for rrd_file in rrd_files:
-        absolute_path = join(current_dir, rrd_file)
-        yield absolute_path + DATASOURCE_DELIMETER + datasource_pattern
+    for recurse_patterns, subdirs in subdir_groupings.items():
+      for subdir in subdirs:
+        absolute_path = join(current_dir, subdir)
+        for match in _find(absolute_path, recurse_patterns):
+          yield match
+    for filename in matching_files:
+        yield join(current_dir, filename)
+  else:
+    matching_subdirs = match_entries(subdirs, pattern)
 
-  if patterns: #we've still got more directories to traverse
-    for subdir in matching_subdirs:
+    if len(patterns) == 1 and rrdtool: #the last pattern may apply to RRD data sources
+      files = [e for e in entries if isfile( join(current_dir,e) )]
+      rrd_files = match_entries(files, pattern + ".rrd")
 
-      absolute_path = join(current_dir, subdir)
-      for match in _find(absolute_path, patterns):
-        yield match
+      if rrd_files: #let's assume it does
+        datasource_pattern = patterns[0]
 
-  else: #we've got the last pattern
-    files = [e for e in entries if isfile( join(current_dir,e) )]
-    matching_files = match_entries(files, pattern + '.*')
+        for rrd_file in rrd_files:
+          absolute_path = join(current_dir, rrd_file)
+          yield absolute_path + DATASOURCE_DELIMETER + datasource_pattern
 
-    for basename in matching_files + matching_subdirs:
-      yield join(current_dir, basename)
+    if patterns: #we've still got more directories to traverse
+      for subdir in matching_subdirs:
 
+        absolute_path = join(current_dir, subdir)
+        for match in _find(absolute_path, patterns):
+          yield match
+
+    else:
+      files = [e for e in entries if isfile( join(current_dir,e) )]
+      matching_files = match_entries(files, pattern + '.*')
+
+      for basename in matching_files + matching_subdirs:
+        yield join(current_dir, basename)
 
 def _deduplicate(entries):
   yielded = set()
