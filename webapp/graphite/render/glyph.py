@@ -849,7 +849,7 @@ class LineGraph(Graph):
       # The number of preceeding datapoints that had a None value.
       consecutiveNones = 0
 
-      for value in series:
+      for index, value in enumerate(series):
         if value != value: # convert NaN to None
           value = None
 
@@ -906,7 +906,9 @@ class LineGraph(Graph):
             x += series.xStep
 
           elif self.lineMode == 'connected':
-            if consecutiveNones > self.connectedLimit:
+            # If if the gap is larger than the connectedLimit or if this is the
+            # first non-None datapoint in the series, start drawing from that datapoint.
+            if consecutiveNones > self.connectedLimit or consecutiveNones == index:
                self.ctx.move_to(x, y)
 
             self.ctx.line_to(x, y)
