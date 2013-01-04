@@ -1,4 +1,4 @@
-from graphite.thirdparty.pyparsing import *
+from pyparsing import *
 
 ParserElement.enablePackrat()
 grammar = Forward()

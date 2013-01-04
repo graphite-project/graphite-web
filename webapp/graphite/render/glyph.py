@@ -22,10 +22,7 @@ from graphite.render.datalib import TimeSeries
 from graphite.util import json
 
 
-try: # See if there is a system installation of pytz first
-  import pytz
-except ImportError: # Otherwise we fall back to Graphite's bundled version
-  from graphite.thirdparty import pytz
+import pytz
 
 INFINITY = float('inf')
 

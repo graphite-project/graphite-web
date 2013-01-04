@@ -27,7 +27,6 @@ JAVASCRIPT_DEBUG = False
 WEB_DIR = dirname( abspath(__file__) )
 WEBAPP_DIR = dirname(WEB_DIR)
 GRAPHITE_ROOT = dirname(WEBAPP_DIR)
-THIRDPARTY_DIR = join(WEB_DIR,'thirdparty')
 # Initialize additional path variables
 # Defaults for these are set after local_settings is imported
 CONTENT_DIR = ''
@@ -47,8 +46,6 @@ STANDARD_DIRS = []
 CLUSTER_SERVERS = []
 
 sys.path.insert(0, WEBAPP_DIR)
-# Allow local versions of the libs shipped in thirdparty to take precedence
-sys.path.append(THIRDPARTY_DIR)
 
 # Cluster settings
 CLUSTER_SERVERS = []
