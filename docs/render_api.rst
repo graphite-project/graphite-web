@@ -852,6 +852,14 @@ yAxisSide
 
 Sets the side of the graph on which to render the Y-axis. Accepts values of ``left`` or ``right``
 
+yDivisor
+--------
+*Default: 4,5,6*
+
+Supplies the preferred number of intermediate values for the Y-axis to display (Y values between
+the min and max). Note that Graphite will ultimately choose what values (and how many) to display
+based on a set of 'pretty' values. To explicitly set the Y-axis values, see `yStep`_
+
 yLimit
 ------
 *Reserved for future use*
