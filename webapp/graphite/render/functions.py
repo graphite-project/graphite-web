@@ -2161,6 +2161,32 @@ def transformNull(requestContext, seriesList, default=0):
     del series[:len(values)]
   return seriesList
 
+
+def identity(requestContext, name):
+  """
+  Identity function:
+  Returns datapoints where the value equals the timestamp of the datapoint.
+  Useful when you have another series where the value is a timestamp, and
+  you want to compare it to the time of the datapoint, to render an age
+  
+  Example:
+
+  .. code-block:: none
+
+    &target=identity("The.time.series")
+
+  This would create a series named "The.time.series" that contains points where
+  x(t) == t.
+  """
+  step = 60
+  delta = timedelta(seconds=step)
+  start = time.mktime(requestContext["startTime"].timetuple())
+  end = time.mktime(requestContext["endTime"].timetuple())
+  values = range(start, end, step)
+
+  return [TimeSeries(name, start, end, step, values)]
+
+
 def countSeries(requestContext, *seriesLists):
   """
   Draws a horizontal line representing the number of nodes found in the seriesList.
@@ -2743,6 +2769,7 @@ SeriesFunctions = {
   'areaBetween' : areaBetween,
   'threshold' : threshold,
   'transformNull' : transformNull,
+  'identity': identity,
 
   # test functions
   'time': timeFunction,
