@@ -2183,8 +2183,10 @@ def identity(requestContext, name):
   start = time.mktime(requestContext["startTime"].timetuple())
   end = time.mktime(requestContext["endTime"].timetuple())
   values = range(start, end, step)
+  series = TimeSeries(name, start, end, step, values)
+  series.pathExpression = 'identity(%s)' % name
 
-  return [TimeSeries(name, start, end, step, values)]
+  return [series]
 
 
 def countSeries(requestContext, *seriesLists):
