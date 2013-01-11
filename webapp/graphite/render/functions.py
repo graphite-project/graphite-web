@@ -2184,7 +2184,7 @@ def identity(requestContext, name):
   end = time.mktime(requestContext["endTime"].timetuple())
   values = range(start, end, step)
   series = TimeSeries(name, start, end, step, values)
-  series.pathExpression = 'identity(%s)' % name
+  series.pathExpression = 'identity("%s")' % name
 
   return [series]
 
