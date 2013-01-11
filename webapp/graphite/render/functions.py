@@ -161,8 +161,7 @@ def sumSeries(requestContext, *seriesLists):
     (seriesList,start,end,step) = normalize(seriesLists)
   except:
     return []
-  #name = "sumSeries(%s)" % ','.join((s.name for s in seriesList))
-  name = "sumSeries(%s)" % ','.join(set([s.pathExpression for s in seriesList]))
+  name = "sumSeries(%s)" % ','.join([s.pathExpression for s in seriesList])
   values = ( safeSum(row) for row in izip(*seriesList) )
   series = TimeSeries(name,start,end,step,values)
   series.pathExpression = name
@@ -245,7 +244,7 @@ def diffSeries(requestContext, *seriesLists):
 
   """
   (seriesList,start,end,step) = normalize(seriesLists)
-  name = "diffSeries(%s)" % ','.join(set([s.pathExpression for s in seriesList]))
+  name = "diffSeries(%s)" % ','.join([s.pathExpression for s in seriesList])
   values = ( safeDiff(row) for row in izip(*seriesList) )
   series = TimeSeries(name,start,end,step,values)
   series.pathExpression = name
@@ -266,8 +265,7 @@ def averageSeries(requestContext, *seriesLists):
 
   """
   (seriesList,start,end,step) = normalize(seriesLists)
-  #name = "averageSeries(%s)" % ','.join((s.name for s in seriesList))
-  name = "averageSeries(%s)" % ','.join(set([s.pathExpression for s in seriesList]))
+  name = "averageSeries(%s)" % ','.join([s.pathExpression for s in seriesList])
   values = ( safeDiv(safeSum(row),safeLen(row)) for row in izip(*seriesList) )
   series = TimeSeries(name,start,end,step,values)
   series.pathExpression = name
@@ -287,7 +285,7 @@ def stddevSeries(requestContext, *seriesLists):
 
   """
   (seriesList,start,end,step) = normalize(seriesLists)
-  name = "stddevSeries(%s)" % ','.join(set([s.pathExpression for s in seriesList]))
+  name = "stddevSeries(%s)" % ','.join([s.pathExpression for s in seriesList])
   values = ( safeStdDev(row) for row in izip(*seriesList) )
   series = TimeSeries(name,start,end,step,values)
   series.pathExpression = name
@@ -345,7 +343,7 @@ def rangeOfSeries(requestContext, *seriesLists):
 
     """
     (seriesList,start,end,step) = normalize(seriesLists)
-    name = "rangeOfSeries(%s)" % ','.join(set([s.pathExpression for s in seriesList]))
+    name = "rangeOfSeries(%s)" % ','.join([s.pathExpression for s in seriesList])
     values = ( safeSubtract(max(row), min(row)) for row in izip(*seriesList) )
     series = TimeSeries(name,start,end,step,values)
     series.pathExpression = name
@@ -2171,7 +2169,7 @@ def countSeries(requestContext, *seriesLists):
 
   """
   (seriesList,start,end,step) = normalize(seriesLists)
-  name = "countSeries(%s)" % ','.join(set([s.pathExpression for s in seriesList]))
+  name = "countSeries(%s)" % ','.join([s.pathExpression for s in seriesList])
   values = ( int(len(row)) for row in izip(*seriesList) )
   series = TimeSeries(name,start,end,step,values)
   series.pathExpression = name
