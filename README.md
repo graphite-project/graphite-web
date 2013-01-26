@@ -14,9 +14,9 @@ For example:
 
     performance.servers.www01.cpuUsage 42.5 1208815315
 
-The metric name is like a filesystem path that uses . as a separator instead of /
+The metric name is like a filesystem path that uses `.` as a separator instead of `/`
 The value is some scalar integer or floating point value
-The unix_timestamp is unix epoch time, as an integer
+The unix_timestamp is unix epoch time, as an integer.
 
 Each line like this corresponds to one data point for one metric.
 
