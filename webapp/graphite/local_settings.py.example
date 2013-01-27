@@ -119,6 +119,9 @@
 # Override the URL for the login link (e.g. for django_openid_auth)
 #LOGIN_URL = '/account/login'
 
+# Require users to be logged in to save or delete dashboards (defaults to False)
+#DASHBOARD_REQUIRE_AUTHENTICATION = True
+
 
 ##########################
 # Database Configuration #

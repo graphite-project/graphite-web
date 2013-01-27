@@ -7,7 +7,8 @@ from ConfigParser import ConfigParser
 from django.shortcuts import render_to_response
 from django.http import HttpResponse, QueryDict
 from django.conf import settings
-from graphite.util import json
+from django.contrib.auth import login, authenticate, logout
+from graphite.util import json, getProfile
 from graphite.dashboard.models import Dashboard
 from graphite.render.views import renderView
 from send_graph import send_graph_email
@@ -130,7 +131,12 @@ def dashboard(request, name=None):
     'initialError' : initialError,
     'querystring' : json.dumps( dict( request.GET.items() ) ),
     'dashboard_conf_missing' : dashboard_conf_missing,
+    'userName': '',
+    'requireAuthentication': settings.DASHBOARD_REQUIRE_AUTHENTICATION
   }
+  user = request.user
+  if user:
+      context['userName'] = user.username
 
   if name is not None:
     try:
@@ -143,7 +149,15 @@ def dashboard(request, name=None):
   return render_to_response("dashboard.html", context)
 
 
+def canMakeChanges(request):
+  return (request.user is not None and request.user.is_authenticated()) \
+      or not settings.DASHBOARD_REQUIRE_AUTHENTICATION
+
+
 def save(request, name):
+  if not canMakeChanges(request):
+    return json_response( dict(error="Must be logged in to save") )
+      
   # Deserialize and reserialize as a validation step
   state = str( json.dumps( json.loads( request.POST['state'] ) ) )
 
@@ -168,6 +182,9 @@ def load(request, name):
 
 
 def delete(request, name):
+  if not canMakeChanges(request):
+    return json_response( dict(error="Must be logged in to delete") )
+
   try:
     dashboard = Dashboard.objects.get(name=name)
   except Dashboard.DoesNotExist:
@@ -250,3 +267,24 @@ def create_temporary(request):
 
 def json_response(obj):
   return HttpResponse(mimetype='application/json', content=json.dumps(obj))
+
+  
+def user_login(request):
+  response = dict(errors={}, text={}, success=False)
+  user = authenticate(username=request.POST['username'],
+                      password=request.POST['password'])
+  if user is not None:
+    if user.is_active:
+      login(request, user)
+      response['success'] = True
+    else:
+      response['errors']['reason'] = 'Account disabled.'
+  else:
+    response['errors']['reason'] = 'Username and/or password invalid.'
+  return json_response(response)
+
+
+def user_logout(request):
+  response = dict(errors={}, text={}, success=True)
+  logout(request)
+  return json_response(response)
