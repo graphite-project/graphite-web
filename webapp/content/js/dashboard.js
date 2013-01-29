@@ -1829,11 +1829,6 @@ function graphClicked(graphView, graphIndex, element, evt) {
       allowOtherMenus: true,
       items: [{
         xtype: 'button',
-        text: 'Zoom',
-        width: 100,
-        handler: function () { menu.destroy(); initBonsai('graph' + record.data.index);  }
-      }, {
-        xtype: 'button',
         text: 'History',
         width: 100,
         handler: function () { menu.destroy(); historyGraph(record);}
