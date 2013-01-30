@@ -71,6 +71,19 @@ def safeSubtract(a,b):
     if a is None or b is None: return None
     return float(a) - float(b)
 
+def safeAvg(a):
+  return safeDiv(safeSum(a),safeLen(a))
+
+def safeStdDev(a):
+  sm = safeSum(a)
+  ln = safeLen(a)
+  avg = safeDiv(sm,ln)
+  sum = 0
+  safeValues = [v for v in a if v is not None]
+  for val in safeValues:
+     sum = sum + (val - avg) * (val - avg)
+  return math.sqrt(sum/ln)
+
 def safeLast(values):
   for v in reversed(values):
     if v is not None: return v
@@ -251,6 +264,26 @@ def averageSeries(requestContext, *seriesLists):
   #name = "averageSeries(%s)" % ','.join((s.name for s in seriesList))
   name = "averageSeries(%s)" % ','.join(set([s.pathExpression for s in seriesList]))
   values = ( safeDiv(safeSum(row),safeLen(row)) for row in izip(*seriesList) )
+  series = TimeSeries(name,start,end,step,values)
+  series.pathExpression = name
+  return [series]
+
+def stddevSeries(requestContext, *seriesLists):
+  """
+
+  Takes one metric or a wildcard seriesList.
+  Draws the standard deviation of all metrics passed at each time.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=stddevSeries(company.server.*.threads.busy)
+
+  """
+  (seriesList,start,end,step) = normalize(seriesLists)
+  name = "stddevSeries(%s)" % ','.join(set([s.pathExpression for s in seriesList]))
+  values = ( safeStdDev(row) for row in izip(*seriesList) )
   series = TimeSeries(name,start,end,step,values)
   series.pathExpression = name
   return [series]
@@ -906,21 +939,28 @@ def cactiStyle(requestContext, seriesList, system=None):
   minLen = max([0] + [len(fmt(int(safeMin(series) or 3))) for series in seriesList]) + 3
   for series in seriesList:
       name = series.name
-      last = fmt(float(safeLast(series)))
-      maximum = fmt(float(safeMax(series)))
-      minimum = fmt(float(safeMin(series)))
+      last = safeLast(series)
+      maximum = safeMax(series)
+      minimum = safeMin(series)
       if last is None:
         last = NAN
+      else:
+        last = fmt(float(last))
+        
       if maximum is None:
         maximum = NAN
+      else:
+        maximum = fmt(float(maximum))
       if minimum is None:
         minimum = NAN
-
+      else:
+        minimum = fmt(float(minimum))
+        
       series.name = "%*s Current:%*s Max:%*s Min:%*s " % \
           (-nameLen, series.name,
-          -lastLen, last,
-          -maxLen, maximum,
-          -minLen, minimum)
+            -lastLen, last,
+            -maxLen, maximum,
+            -minLen, minimum)
   return seriesList
 
 def aliasByNode(requestContext, seriesList, *nodes):
@@ -1893,6 +1933,46 @@ def dashed(requestContext, *seriesList):
     series.options['dashed'] = dashLength
   return seriesList[0]
 
+def timeStack(requestContext, seriesList, timeShiftUnit, timeShiftStart, timeShiftEnd):
+  """
+  Takes one metric or a wildcard seriesList, followed by a quoted string with the
+  length of time (See ``from / until`` in the render\_api_ for examples of time formats).
+  Also takes a start multiplier and end multiplier for the length of time
+
+  create a seriesList which is composed the orginal metric series stacked with time shifts
+  starting time shifts from the start multiplier through the end multiplier
+
+  Useful for looking at history, or feeding into seriesAverage or seriesStdDev
+
+  Example:
+
+  .. code-block:: none
+
+    &target=timeShift(Sales.widgets.largeBlue,"1d",0,7)    # create a series for today and each of the previous 7 days
+
+  """
+  # Default to negative. parseTimeOffset defaults to +
+  if timeShiftUnit[0].isdigit():
+    timeShiftUnit = '-' + timeShiftUnit
+  delta = parseTimeOffset(timeShiftUnit)
+  series = seriesList[0] # if len(seriesList) > 1, they will all have the same pathExpression, which is all we care about.
+  results = []
+  timeShiftStartint = int(timeShiftStart)
+  timeShiftEndint = int(timeShiftEnd)
+
+  for shft in range(timeShiftStartint,timeShiftEndint):
+    myContext = requestContext.copy()
+    innerDelta = delta * shft
+    myContext['startTime'] = requestContext['startTime'] + innerDelta
+    myContext['endTime'] = requestContext['endTime'] + innerDelta
+    for shiftedSeries in evaluateTarget(myContext, series.pathExpression):
+      shiftedSeries.name = 'timeShift(%s, %s, %s)' % (shiftedSeries.name, timeShiftUnit,shft)
+      shiftedSeries.start = series.start
+      shiftedSeries.end = series.end
+      results.append(shiftedSeries)
+
+  return results
+
 
 def timeShift(requestContext, seriesList, timeShift, resetEnd=True):
   """
@@ -2503,6 +2583,7 @@ SeriesFunctions = {
   'sum' : sumSeries,
   'multiplySeries' : multiplySeries,
   'averageSeries' : averageSeries,
+  'stddevSeries' : stddevSeries,
   'avg' : averageSeries,
   'sumSeriesWithWildcards': sumSeriesWithWildcards,
   'averageSeriesWithWildcards': averageSeriesWithWildcards,
@@ -2520,6 +2601,7 @@ SeriesFunctions = {
   'percentileOfSeries': percentileOfSeries,
   'nonNegativeDerivative' : nonNegativeDerivative,
   'log' : logarithm,
+  'timeStack': timeStack,
   'timeShift': timeShift,
   'summarize' : summarize,
   'smartSummarize' : smartSummarize,

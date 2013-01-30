@@ -1087,6 +1087,8 @@ function createOptionsMenu() {
       menuInputItem("Maximum", "yMax"),
       menuInputItem("Minor Lines", "minorY", "Enter the number of minor lines to draw", /^[a-zA-Z]/),
       menuInputItem("Logarithmic Scale", "logBase", "Enter the logarithmic base to use (ie. 10, e, etc...)"),
+      menuInputItem("Step", "yStep", "Enter the Y-axis step to use (e.g. 0.2)"),
+      menuInputItem("Divisors", "yDivisors", "Enter the target number of intermediate Y-axis values (e.g. 4,5,6)", /^[a-zA-Z]/),
       {text: "Unit", menu: yAxisUnitMenu},
       {text: "Side", menu: yAxisSideMenu},
       {text: "Dual Y-Axis Options", menu: SecondYAxisMenu},

@@ -218,7 +218,7 @@ ParameterizedURL.prototype = {
 
   setQueryString: function (qs) {
     /* Use the given query string (and update this.params to match) */
-    this.queryString = qs.replace(/%/,"%25").replace(/#/,"%23");
+    this.queryString = qs
     this.syncParams();
     this.syncQueryString();
   },
