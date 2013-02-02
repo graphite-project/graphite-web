@@ -1237,7 +1237,7 @@ function menuHelpItem(name, message) {
 function paramPrompt(question, param, regexp) {
 
   if(regexp == null) {
-    regexp = /[^A-Za-z0-9_.]/;
+    regexp = /[^A-Za-z0-9_.\-]/;
   }
 
   return function (menuItem, e) {
