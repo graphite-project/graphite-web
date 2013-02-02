@@ -361,7 +361,7 @@ def percentileOfSeries(requestContext, seriesList, n, interpolate=False):
   if n <= 0:
     raise ValueError('The requested percent is required to be greater than 0')
 
-  name = 'percentilesOfSeries(%s, %.1f)' % (seriesList[0].pathExpression, n)
+  name = 'percentilesOfSeries(%s,%g)' % (seriesList[0].pathExpression, n)
   (start, end, step) = normalize([seriesList])[1:]
   values = [ _getPercentile(row, n, interpolate) for row in izip(*seriesList) ]
   resultSeries = TimeSeries(name, start, end, step, values)
@@ -534,7 +534,7 @@ def movingMedian(requestContext, seriesList, windowSize):
     if type(windowSize) is str:
       newName = 'movingMedian(%s,"%s")' % (series.name, windowSize)
     else:
-      newName = "movingMedian(%s,%s)" % (series.name, windowSize)
+      newName = "movingMedian(%s,%d)" % (series.name, windowPoints)
     newSeries = TimeSeries(newName, series.start, series.end, series.step, [])
     newSeries.pathExpression = newName
 
@@ -569,7 +569,7 @@ def scale(requestContext, seriesList, factor):
 
   """
   for series in seriesList:
-    series.name = "scale(%s,%.1f)" % (series.name,float(factor))
+    series.name = "scale(%s,%g)" % (series.name,float(factor))
     for i,value in enumerate(series):
       series[i] = safeMul(value,factor)
   return seriesList
@@ -638,7 +638,7 @@ def offset(requestContext, seriesList, factor):
 
   """
   for series in seriesList:
-    series.name = "offset(%s,%.1f)" % (series.name,float(factor))
+    series.name = "offset(%s,%g)" % (series.name,float(factor))
     for i,value in enumerate(series):
       if value is not None:
         series[i] = value + factor
@@ -1458,7 +1458,7 @@ def nPercentile(requestContext, seriesList, n):
 
     perc_val = _getPercentile(s_copy, n)
     if perc_val:
-      name = 'nPercentile(%.1f, %s)' % (n, s_copy.name)
+      name = 'nPercentile(%g,%s)' % (n, s_copy.name)
       point_count = int((s.end - s.start)/s.step)
       perc_series = TimeSeries(name, s_copy.start, s_copy.end, s_copy.step, [perc_val] * point_count )
       perc_series.pathExpression = name
@@ -1651,8 +1651,8 @@ def stdev(requestContext, seriesList, points, windowTolerance=0.1):
   # For this we take the standard deviation in terms of the moving average
   # and the moving average of series squares.
   for (seriesIndex,series) in enumerate(seriesList):
-    stddevSeries = TimeSeries("stddev(%s,%.1f)" % (series.name, float(points)), series.start, series.end, series.step, [])
-    stddevSeries.pathExpression = "stddev(%s,%.1f)" % (series.name, float(points))
+    stddevSeries = TimeSeries("stddev(%s,%d)" % (series.name, int(points)), series.start, series.end, series.step, [])
+    stddevSeries.pathExpression = "stddev(%s,%d)" % (series.name, int(points))
 
     validPoints = 0
     currentSum = 0
@@ -2154,7 +2154,7 @@ def transformNull(requestContext, seriesList, default=0):
     else: return v
 
   for series in seriesList:
-    series.name = "transformNull(%s, %.2f)" % (series.name, default)
+    series.name = "transformNull(%s,%g)" % (series.name, default)
     series.pathExpression = series.name
     values = [transform(v) for v in series]
     series.extend(values)
