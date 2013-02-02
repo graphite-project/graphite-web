@@ -18,15 +18,12 @@ warning = 0
 try:
   import whisper
 except:
-  print "[FATAL] Unable to import the 'whisper' module, please download this package from the Graphite project page and install it.\n"
-  fatal += 1
-
-# Test for ceres
-try:
-  import ceres
-except:
-  print "[FATAL] Unable to import the 'ceres' module, please download this package from the Graphite project page and install it.\n"
-  fatal += 1
+  # No? test for ceres
+  try:
+    import ceres
+  except:
+    print "[FATAL] Unable to import the 'whisper' or 'ceres' modules, please download this package from the Graphite project page and install it.\n"
+    fatal += 1
 
 # Test for pycairo
 try:
