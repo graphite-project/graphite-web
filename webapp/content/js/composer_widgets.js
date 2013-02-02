@@ -1049,7 +1049,7 @@ function createOptionsMenu() {
 
   var yAxisLeftMenu = new Ext.menu.Menu({
     items: [
-      menuInputItem("Left Y Label", "vtitle"),
+      menuInputItem("Left Y Label", "vtitle", "Left Y Label", /^$/),
       menuInputItem("Left Y Minimum", "yMinLeft"),
       menuInputItem("Left Y Maximum", "yMaxLeft"),
       menuInputItem("Left Y Limit", "yLimitLeft"),
@@ -1062,7 +1062,7 @@ function createOptionsMenu() {
   });
   var yAxisRightMenu = new Ext.menu.Menu({
     items: [
-      menuInputItem("Right Y Label", "vtitleRight"),
+      menuInputItem("Right Y Label", "vtitleRight", "Right Y Label", /^$/),
       menuInputItem("Right Y Minimum", "yMinRight"),
       menuInputItem("Right Y Maximum", "yMaxRight"),
       menuInputItem("Right Y Limit", "yLimitRight"),
@@ -1083,7 +1083,7 @@ function createOptionsMenu() {
 
   var yAxisMenu = new Ext.menu.Menu({
     items: [
-      menuInputItem("Label", "vtitle"),
+      menuInputItem("Label", "vtitle", "Y-Axis Label", /^$/),
       menuInputItem("Minimum", "yMin"),
       menuInputItem("Maximum", "yMax"),
       menuInputItem("Minor Lines", "minorY", "Enter the number of minor lines to draw", /^[a-zA-Z]/),
