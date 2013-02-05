@@ -940,8 +940,8 @@ function createFunctionsMenu() {
           menu: [
             {text: 'Remove Above Value', handler: applyFuncToEachWithInput('removeAboveValue', 'Set any values above ___ to None')},
             {text: 'Remove Above Percentile', handler: applyFuncToEachWithInput('removeAbovePercentile', 'Set any values above the ___th percentile to None')},
-            {text: 'Remove Below Value', handler: applyFuncToEachWithInput('removeAboveValue', 'Set any values above ___ to None')},
-            {text: 'Remove Below Percentile', handler: applyFuncToEachWithInput('removeAbovePercentile', 'Set any values above the ___th percentile to None')}
+            {text: 'Remove Below Value', handler: applyFuncToEachWithInput('removeBelowValue', 'Set any values below ___ to None')},
+            {text: 'Remove Below Percentile', handler: applyFuncToEachWithInput('removeBelowPercentile', 'Set any values below the ___th percentile to None')}
           ]
         },
         {text: 'Most Deviant', handler: applyFuncToEachWithInput('mostDeviant', 'Draw the ___ metrics with the highest standard deviation')},
