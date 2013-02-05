@@ -181,7 +181,7 @@ class Graph:
     self.drawRectangle( 0, 0, self.width, self.height )
 
     if 'colorList' in params:
-      colorList = unquote_plus( params['colorList'] ).split(',')
+      colorList = unquote_plus( str(params['colorList']) ).split(',')
     else:
       colorList = self.defaultColorList
     self.colors = itertools.cycle( colorList )
