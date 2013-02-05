@@ -369,9 +369,9 @@ def percentileOfSeries(requestContext, seriesList, n, interpolate=False):
 
   return [resultSeries]
 
-def keepLastValue(requestContext, seriesList):
+def keepLastValue(requestContext, seriesList, limit = INF):
   """
-  Takes one metric or a wildcard seriesList.
+  Takes one metric or a wildcard seriesList, and optionally a limit to the number of 'None' values to skip over.
   Continues the line with the last received value when gaps ('None' values) appear in your data, rather than breaking your line.
 
   Example:
@@ -379,15 +379,37 @@ def keepLastValue(requestContext, seriesList):
   .. code-block:: none
 
     &target=keepLastValue(Server01.connections.handled)
+    &target=keepLastValue(Server01.connections.handled, 10)
 
   """
   for series in seriesList:
     series.name = "keepLastValue(%s)" % (series.name)
     series.pathExpression = series.name
+    consecutiveNones = 0
     for i,value in enumerate(series):
-      if value is None and i != 0:
-        value = series[i-1]
       series[i] = value
+
+      # No 'keeping' can be done on the first value because we have no idea
+      # what came before it.
+      if i == 0:
+         continue
+
+      if value is None:
+        consecutiveNones += 1
+      else:
+         if 0 < consecutiveNones <= limit:
+           # If a non-None value is seen before the limit of Nones is hit,
+           # backfill all the missing datapoints with the last known value.
+           for index in xrange(i - consecutiveNones, i):
+             series[index] = series[i - consecutiveNones - 1]
+
+         consecutiveNones = 0
+
+    # If the series ends with some None values, try to backfill a bit to cover it.
+    if 0 < consecutiveNones < limit:
+      for index in xrange(len(series) - consecutiveNones, len(series)):
+        series[index] = series[len(series) - consecutiveNones - 1]
+      
   return seriesList
 
 def asPercent(requestContext, seriesList, total=None):
