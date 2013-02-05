@@ -2516,11 +2516,13 @@ def timeFunction(requestContext, name):
     values.append(time.mktime(when.timetuple()))
     when += delta
 
-  return [TimeSeries(name,
+  series = TimeSeries(name,
             time.mktime(requestContext["startTime"].timetuple()),
             time.mktime(requestContext["endTime"].timetuple()),
-            step, values)]
+            step, values)
+  series.pathExpression = name
 
+  return [series]
 
 def sinFunction(requestContext, name, amplitude=1):
   """
