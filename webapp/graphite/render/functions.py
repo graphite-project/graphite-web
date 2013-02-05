@@ -2768,7 +2768,7 @@ SeriesFunctions = {
   # Data Filter functions
   'removeAbovePercentile' : removeAbovePercentile,
   'removeAboveValue' : removeAboveValue,
-  'removeBelowPercentile' : removeAbovePercentile,
+  'removeBelowPercentile' : removeBelowPercentile,
   'removeBelowValue' : removeBelowValue,
 
   # Special functions
