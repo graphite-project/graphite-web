@@ -14,7 +14,6 @@
 
 
 from datetime import date, datetime, timedelta
-from functools import partial
 from itertools import izip, imap
 import math
 import re
