@@ -764,7 +764,10 @@ def consolidateBy(requestContext, seriesList, consolidationFunc):
 def derivative(requestContext, seriesList):
   """
   This is the opposite of the integral function.  This is useful for taking a
-  running total metric and showing how many requests per minute were handled.
+  running total metric and calculating the delta between subsequent data points.
+
+  This function does not normalize for periods of time, as a true derivative would.
+  Instead see the perSecond() function to calculate a rate of change over time.
 
   Example:
 
