@@ -25,9 +25,7 @@ except ImportError: # Otherwise we fall back to Graphite's bundled version
 months = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec']
 weekdays = ['sun','mon','tue','wed','thu','fri','sat']
 
-tzinfo = pytz.timezone(settings.TIME_ZONE)
-
-def parseATTime(s):
+def parseATTime(s, tzinfo=None):
   s = s.strip().lower().replace('_','').replace(',','').replace(' ','')
   if s.isdigit():
     if len(s) == 8 and int(s[:4]) > 1900 and int(s[4:6]) < 13 and int(s[6:]) < 32:

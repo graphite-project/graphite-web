@@ -12,7 +12,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 import csv
-from time import time, strftime, localtime
+from datetime import datetime
+from time import time
 from random import shuffle
 from httplib import CannotSendRequest
 from urllib import urlencode
@@ -23,6 +24,11 @@ try:
   import cPickle as pickle
 except ImportError:
   import pickle
+
+try:  # See if there is a system installation of pytz first
+  import pytz
+except ImportError:  # Otherwise we fall back to Graphite's bundled version
+  from graphite.thirdparty import pytz
 
 from graphite.util import getProfileByUsername, json
 from graphite.remote_storage import HTTPConnectionWithTimeout
@@ -115,8 +121,8 @@ def renderView(request):
 
       for series in data:
         for i, value in enumerate(series):
-          timestamp = localtime( series.start + (i * series.step) )
-          writer.writerow( (series.name, strftime("%Y-%m-%d %H:%M:%S", timestamp), value) )
+          timestamp = datetime.fromtimestamp(series.start + (i * series.step), requestOptions['tzinfo'])
+          writer.writerow((series.name, timestamp.strftime("%Y-%m-%d %H:%M:%S"), value))
 
       return response
 
@@ -241,16 +247,24 @@ def parseOptions(request):
         continue
       graphOptions[opt] = val
 
+  tzinfo = pytz.timezone(settings.TIME_ZONE)
+  if 'tz' in queryParams:
+    try:
+      tzinfo = pytz.timezone(queryParams['tz'])
+    except pytz.UnknownTimeZoneError:
+      pass
+  requestOptions['tzinfo'] = tzinfo
+
   # Get the time interval for time-oriented graph types
   if graphType == 'line' or graphType == 'pie':
     if 'until' in queryParams:
-      untilTime = parseATTime( queryParams['until'] )
+      untilTime = parseATTime(queryParams['until'], tzinfo)
     else:
-      untilTime = parseATTime('now')
+      untilTime = parseATTime('now', tzinfo)
     if 'from' in queryParams:
-      fromTime = parseATTime( queryParams['from'] )
+      fromTime = parseATTime(queryParams['from'], tzinfo)
     else:
-      fromTime = parseATTime('-1d')
+      fromTime = parseATTime('-1d', tzinfo)
 
     startTime = min(fromTime, untilTime)
     endTime = max(fromTime, untilTime)
