@@ -547,7 +547,15 @@ def movingMedian(requestContext, seriesList, windowSize):
     delta = parseTimeOffset(windowSize)
     windowInterval = abs(delta.seconds + (delta.days * 86400))
 
-  for seriesIndex, series in enumerate(seriesList):
+  if windowInterval:
+    bootstrapSeconds = windowInterval
+  else:
+    bootstrapSeconds = max([s.step for s in seriesList]) * int(windowSize)
+
+  bootstrapList = _fetchWithBootstrap(requestContext, seriesList, seconds=bootstrapSeconds)
+  result = []
+
+  for bootstrap, series in zip(bootstrapList, seriesList):
     if windowInterval:
       windowPoints = windowInterval / series.step
     else:
@@ -560,22 +568,18 @@ def movingMedian(requestContext, seriesList, windowSize):
     newSeries = TimeSeries(newName, series.start, series.end, series.step, [])
     newSeries.pathExpression = newName
 
-    bootstrap = series.step * windowPoints
-    bootstrappedSeries = _fetchWithBootstrap(requestContext, series, seconds=bootstrap)
-    windowIndex = windowPoints - 1
-
+    offset = len(bootstrap) - len(series)
     for i in range(len(series)):
-      window = bootstrappedSeries[i:i + windowIndex - 1]
+      window = bootstrap[i + offset - windowPoints:i + offset]
       nonNull = [v for v in window if v is not None]
       if nonNull:
         m_index = len(nonNull) / 2
         newSeries.append(sorted(nonNull)[m_index])
       else:
         newSeries.append(None)
+    result.append(newSeries)
 
-    seriesList[seriesIndex] = newSeries
-
-  return seriesList
+  return result
 
 def scale(requestContext, seriesList, factor):
   """
@@ -690,7 +694,15 @@ def movingAverage(requestContext, seriesList, windowSize):
     delta = parseTimeOffset(windowSize)
     windowInterval = abs(delta.seconds + (delta.days * 86400))
 
-  for seriesIndex, series in enumerate(seriesList):
+  if windowInterval:
+    bootstrapSeconds = windowInterval
+  else:
+    bootstrapSeconds = max([s.step for s in seriesList]) * int(windowSize)
+
+  bootstrapList = _fetchWithBootstrap(requestContext, seriesList, seconds=bootstrapSeconds)
+  result = []
+
+  for bootstrap, series in zip(bootstrapList, seriesList):
     if windowInterval:
       windowPoints = windowInterval / series.step
     else:
@@ -703,21 +715,14 @@ def movingAverage(requestContext, seriesList, windowSize):
     newSeries = TimeSeries(newName, series.start, series.end, series.step, [])
     newSeries.pathExpression = newName
 
-    bootstrap = series.step * windowPoints
-    bootstrappedSeries = _fetchWithBootstrap(requestContext, series, seconds=bootstrap)
-    windowIndex = windowPoints - 1
-
+    offset = len(bootstrap) - len(series)
     for i in range(len(series)):
-      window = bootstrappedSeries[i:i + windowIndex]
-      nonNull = [v for v in window if v is not None]
-      if nonNull:
-        newSeries.append(sum(nonNull) / len(nonNull))
-      else:
-        newSeries.append(None)
+      window = bootstrap[i + offset - windowPoints:i + offset]
+      newSeries.append(safeAvg(window))
 
-    seriesList[ seriesIndex ] = newSeries
+    result.append(newSeries)
 
-  return seriesList
+  return result
 
 def cumulative(requestContext, seriesList, consolidationFunc='sum'):
   """
@@ -1728,25 +1733,39 @@ def secondYAxis(requestContext, seriesList):
     series.name= 'secondYAxis(%s)' % series.name
   return seriesList
 
-def _fetchWithBootstrap(requestContext, series, **delta_kwargs):
+def _fetchWithBootstrap(requestContext, seriesList, **delta_kwargs):
   'Request the same data but with a bootstrap period at the beginning'
-  previousContext = requestContext.copy()
-  previousContext['startTime'] = requestContext['startTime'] - timedelta(**delta_kwargs)
-  previousContext['endTime'] = requestContext['startTime']
-  oldSeries = evaluateTarget(previousContext, series.pathExpression)[0]
+  bootstrapContext = requestContext.copy()
+  bootstrapContext['startTime'] = requestContext['startTime'] - timedelta(**delta_kwargs)
+  bootstrapContext['endTime'] = requestContext['startTime']
 
-  newValues = []
-  if oldSeries.step != series.step:
-    ratio = oldSeries.step / series.step
-    for value in oldSeries:
-      newValues.extend([ value ] * ratio)
-  else:
-    newValues.extend(oldSeries)
-  newValues.extend(series)
+  bootstrapList = []
+  for series in seriesList:
+    if series.pathExpression in [ b.pathExpression for b in bootstrapList ]:
+      # This pathExpression returns multiple series and we already fetched it
+      continue
+    bootstraps = evaluateTarget(bootstrapContext, series.pathExpression)
+    bootstrapList.extend(bootstraps)
 
-  newSeries = TimeSeries(series.name, oldSeries.start, series.end, series.step, newValues)
-  newSeries.pathExpression = series.pathExpression
-  return newSeries
+  newSeriesList = []
+  for bootstrap, original in zip(bootstrapList, seriesList):
+    newValues = []
+    if bootstrap.step != original.step:
+      ratio = bootstrap.step / original.step
+      for value in bootstrap:
+        #XXX For series with aggregationMethod = sum this should also
+        # divide by the ratio to bring counts to the same time unit
+        # ...but we have no way of knowing whether that's the case
+        newValues.extend([ value ] * ratio)
+    else:
+      newValues.extend(bootstrap)
+    newValues.extend(original)
+
+    newSeries = TimeSeries(original.name, bootstrap.start, original.end, original.step, newValues)
+    newSeries.pathExpression = series.pathExpression
+    newSeriesList.append(newSeries)
+
+  return newSeriesList
 
 def _trimBootstrap(bootstrap, original):
   'Trim the bootstrap period off the front of this series so it matches the original'
@@ -1871,9 +1890,9 @@ def holtWintersForecast(requestContext, seriesList):
   one week previous to the series is used to bootstrap the initial forecast.
   """
   results = []
-  for series in seriesList:
-    withBootstrap = _fetchWithBootstrap(requestContext, series, days=7)
-    analysis = holtWintersAnalysis(withBootstrap)
+  bootstrapList = _fetchWithBootstrap(requestContext, seriesList, days=7)
+  for bootstrap, series in zip(bootstrapList, seriesList):
+    analysis = holtWintersAnalysis(bootstrap)
     results.append(_trimBootstrap(analysis['predictions'], series))
   return results
 
@@ -1883,8 +1902,8 @@ def holtWintersConfidenceBands(requestContext, seriesList, delta=3):
   upper and lower bands with the predicted forecast deviations.
   """
   results = []
-  for series in seriesList:
-    bootstrap = _fetchWithBootstrap(requestContext, series, days=7)
+  bootstrapList = _fetchWithBootstrap(requestContext, seriesList, days=7)
+  for bootstrap,series in zip(bootstrapList, seriesList):
     analysis = holtWintersAnalysis(bootstrap)
     forecast = _trimBootstrap(analysis['predictions'], series)
     deviation = _trimBootstrap(analysis['deviations'], series)
@@ -1924,8 +1943,6 @@ def holtWintersAberration(requestContext, seriesList, delta=3):
   results = []
   for series in seriesList:
     confidenceBands = holtWintersConfidenceBands(requestContext, [series], delta)
-    bootstrapped = _fetchWithBootstrap(requestContext, series, days=7)
-    series = _trimBootstrap(bootstrapped, series)
     lowerBand = confidenceBands[0]
     upperBand = confidenceBands[1]
     aberration = list()
