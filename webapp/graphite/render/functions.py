@@ -2312,6 +2312,21 @@ def exclude(requestContext, seriesList, pattern):
   return [s for s in seriesList if not regex.search(s.name)]
 
 
+def grep(requestContext, seriesList, pattern):
+  """
+  Takes a metric or a wildcard seriesList, followed by a regular expression
+  in double quotes.  Excludes metrics that don't match the regular expression.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=grep(servers*.instance*.threads.busy,"server02")
+  """
+  regex = re.compile(pattern)
+  return [s for s in seriesList if regex.search(s.name)]
+
+
 def smartSummarize(requestContext, seriesList, intervalString, func='sum', alignToFrom=False):
   """
   Smarter experimental version of summarize.
