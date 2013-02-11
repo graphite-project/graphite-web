@@ -769,7 +769,10 @@ def consolidateBy(requestContext, seriesList, consolidationFunc):
 def derivative(requestContext, seriesList):
   """
   This is the opposite of the integral function.  This is useful for taking a
-  running total metric and showing how many requests per minute were handled.
+  running total metric and calculating the delta between subsequent data points.
+
+  This function does not normalize for periods of time, as a true derivative would.
+  Instead see the perSecond() function to calculate a rate of change over time.
 
   Example:
 
@@ -886,7 +889,7 @@ def nonNegativeDerivative(requestContext, seriesList, maxValue=None):
 
   .. code-block:: none
 
-    &target=derivative(company.server.application01.ifconfig.TXPackets)
+    &target=nonNegativederivative(company.server.application01.ifconfig.TXPackets)
 
   """
   results = []
@@ -1310,7 +1313,7 @@ def highestMax(requestContext, seriesList, n):
 
   .. code-block:: none
 
-    &target=highestCurrent(server*.instance*.threads.busy,5)
+    &target=highestMax(server*.instance*.threads.busy,5)
 
   Draws the top 5 servers who have had the most busy threads during the time
   period specified.
@@ -1348,7 +1351,7 @@ def currentAbove(requestContext, seriesList, n):
 
   .. code-block:: none
 
-    &target=highestAbove(server*.instance*.threads.busy,50)
+    &target=currentAbove(server*.instance*.threads.busy,50)
 
   Draws the servers with more than 50 busy threads.
 
@@ -2055,7 +2058,7 @@ def timeStack(requestContext, seriesList, timeShiftUnit, timeShiftStart, timeShi
 
   .. code-block:: none
 
-    &target=timeShift(Sales.widgets.largeBlue,"1d",0,7)    # create a series for today and each of the previous 7 days
+    &target=timeStack(Sales.widgets.largeBlue,"1d",0,7)    # create a series for today and each of the previous 7 days
 
   """
   # Default to negative. parseTimeOffset defaults to +
