@@ -74,6 +74,10 @@ Giraffe
 Inspired by `Gdash`_, `Tasseo`_ and `Graphene`_ it mixes features from all three into a slightly
 different animal.
 
+Graphitus
+---------
+`graphitus`_ is a client side dashboard for graphite built using bootstrap and underscore.js.
+
 
 Graphene
 --------
@@ -212,6 +216,7 @@ Therry
 .. _jmxtrans: http://code.google.com/p/jmxtrans/
 .. _statsd: https://github.com/etsy/statsd
 .. _Ganglia: http://ganglia.info/
+.. _graphitius: https://github.com/erezmazor/graphitus
 .. _Backbone.js: http://documentcloud.github.com/backbone/
 .. _collectd: http://collectd.org/
 .. _collectd-to-graphite: https://github.com/loggly/collectd-to-graphite
