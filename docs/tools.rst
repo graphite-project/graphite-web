@@ -60,6 +60,21 @@ GDash
 `Gdash`_ is a simple Graphite dashboard built using Twitters Bootstrap driven by a small DSL.
 
 
+Giraffe
+--------
+`Giraffe`_ is a Graphite real-time dashboard based on `Rickshaw`_ and requires no server backend.
+Inspired by `Gdash`_, `Tasseo`_ and `Graphene`_ it mixes features from all three into a slightly
+different animal.
+
+
+Graph-Explorer
+--------------
+`Graph-Explorer`_ is a graphite dashboard which uses plugins to add tags and metadata
+to metrics and a query language with lets you filter through them and
+compose/manipulate graphs on the fly. Also aims for high interactivity using
+`TimeseriesWidget`_ and minimal hassle to set up and get running.
+
+
 Graphene
 --------
 `Graphene`_ is a Graphite dashboard toolkit based on `D3.js`_ and `Backbone.js`_ which was
@@ -193,6 +208,12 @@ Therry
 ------
 `Therry`_ ia s simple web service that caches Graphite metrics and exposes an endpoint for dumping or searching against them by substring.
 
+TimeseriesWidget
+----------
+`TimeseriesWidget`_ adds timeseries graphs to your webpages/dashboards using a simple api,
+focuses on high interactivity and modern features (realtime zooming, datapoint inspection,
+annotated events, etc). Supports Graphite, flot, rickshaw and anthracite.
+
 .. _Diamond: http://opensource.brightcove.com/project/Diamond/
 .. _jmxtrans: http://code.google.com/p/jmxtrans/
 .. _statsd: https://github.com/etsy/statsd
@@ -217,6 +238,7 @@ Therry
 .. _Graphiti: https://github.com/paperlesspost/graphiti
 .. _Graphios: https://github.com/shawn-sterling/graphios
 .. _Charcoal: https://github.com/cebailey59/charcoal
+.. _Graph-Explorer: https://github.com/Dieterbe/graph-explorer
 .. _Graphitejs: https://github.com/prestontimmons/graphitejs
 .. _Grockets: https://github.com/disqus/grockets
 .. _Host sFlow: http://host-sflow.sourceforge.net/
@@ -229,4 +251,5 @@ Therry
 .. _Seyren: https://github.com/scobal/seyren
 .. _write-graphite: http://collectd.org/wiki/index.php/Plugin:Write_Graphite
 .. _Therry: https://github.com/obfuscurity/therry
+.. _TimeseriesWidget: https://github.com/Dieterbe/timeserieswidget
 .. _Graphsky: https://github.com/hyves-org/graphsky
