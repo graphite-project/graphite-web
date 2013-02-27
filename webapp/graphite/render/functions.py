@@ -749,7 +749,6 @@ def derivative(requestContext, seriesList):
   running total metric and calculating the delta between subsequent data points.
 
   This function does not normalize for periods of time, as a true derivative would.
-  Instead see the perSecond() function to calculate a rate of change over time.
 
   Example:
 
