@@ -361,7 +361,7 @@ def percentileOfSeries(requestContext, seriesList, n, interpolate=False):
   if n <= 0:
     raise ValueError('The requested percent is required to be greater than 0')
 
-  name = 'percentilesOfSeries(%s, %.1f)' % (seriesList[0].pathExpression, n)
+  name = 'percentilesOfSeries(%s,%g)' % (seriesList[0].pathExpression, n)
   (start, end, step) = normalize([seriesList])[1:]
   values = [ _getPercentile(row, n, interpolate) for row in izip(*seriesList) ]
   resultSeries = TimeSeries(name, start, end, step, values)
@@ -369,9 +369,9 @@ def percentileOfSeries(requestContext, seriesList, n, interpolate=False):
 
   return [resultSeries]
 
-def keepLastValue(requestContext, seriesList):
+def keepLastValue(requestContext, seriesList, limit = INF):
   """
-  Takes one metric or a wildcard seriesList.
+  Takes one metric or a wildcard seriesList, and optionally a limit to the number of 'None' values to skip over.
   Continues the line with the last received value when gaps ('None' values) appear in your data, rather than breaking your line.
 
   Example:
@@ -379,15 +379,37 @@ def keepLastValue(requestContext, seriesList):
   .. code-block:: none
 
     &target=keepLastValue(Server01.connections.handled)
+    &target=keepLastValue(Server01.connections.handled, 10)
 
   """
   for series in seriesList:
     series.name = "keepLastValue(%s)" % (series.name)
     series.pathExpression = series.name
+    consecutiveNones = 0
     for i,value in enumerate(series):
-      if value is None and i != 0:
-        value = series[i-1]
       series[i] = value
+
+      # No 'keeping' can be done on the first value because we have no idea
+      # what came before it.
+      if i == 0:
+         continue
+
+      if value is None:
+        consecutiveNones += 1
+      else:
+         if 0 < consecutiveNones <= limit:
+           # If a non-None value is seen before the limit of Nones is hit,
+           # backfill all the missing datapoints with the last known value.
+           for index in xrange(i - consecutiveNones, i):
+             series[index] = series[i - consecutiveNones - 1]
+
+         consecutiveNones = 0
+
+    # If the series ends with some None values, try to backfill a bit to cover it.
+    if 0 < consecutiveNones < limit:
+      for index in xrange(len(series) - consecutiveNones, len(series)):
+        series[index] = series[len(series) - consecutiveNones - 1]
+      
   return seriesList
 
 def asPercent(requestContext, seriesList, total=None):
@@ -525,7 +547,15 @@ def movingMedian(requestContext, seriesList, windowSize):
     delta = parseTimeOffset(windowSize)
     windowInterval = abs(delta.seconds + (delta.days * 86400))
 
-  for seriesIndex, series in enumerate(seriesList):
+  if windowInterval:
+    bootstrapSeconds = windowInterval
+  else:
+    bootstrapSeconds = max([s.step for s in seriesList]) * int(windowSize)
+
+  bootstrapList = _fetchWithBootstrap(requestContext, seriesList, seconds=bootstrapSeconds)
+  result = []
+
+  for bootstrap, series in zip(bootstrapList, seriesList):
     if windowInterval:
       windowPoints = windowInterval / series.step
     else:
@@ -534,26 +564,22 @@ def movingMedian(requestContext, seriesList, windowSize):
     if type(windowSize) is str:
       newName = 'movingMedian(%s,"%s")' % (series.name, windowSize)
     else:
-      newName = "movingMedian(%s,%s)" % (series.name, windowSize)
+      newName = "movingMedian(%s,%d)" % (series.name, windowPoints)
     newSeries = TimeSeries(newName, series.start, series.end, series.step, [])
     newSeries.pathExpression = newName
 
-    bootstrap = series.step * windowPoints
-    bootstrappedSeries = _fetchWithBootstrap(requestContext, series, seconds=bootstrap)
-    windowIndex = windowPoints - 1
-
+    offset = len(bootstrap) - len(series)
     for i in range(len(series)):
-      window = bootstrappedSeries[i:i + windowIndex - 1]
+      window = bootstrap[i + offset - windowPoints:i + offset]
       nonNull = [v for v in window if v is not None]
       if nonNull:
         m_index = len(nonNull) / 2
         newSeries.append(sorted(nonNull)[m_index])
       else:
         newSeries.append(None)
+    result.append(newSeries)
 
-    seriesList[seriesIndex] = newSeries
-
-  return seriesList
+  return result
 
 def scale(requestContext, seriesList, factor):
   """
@@ -569,7 +595,7 @@ def scale(requestContext, seriesList, factor):
 
   """
   for series in seriesList:
-    series.name = "scale(%s,%.1f)" % (series.name,float(factor))
+    series.name = "scale(%s,%g)" % (series.name,float(factor))
     for i,value in enumerate(series):
       series[i] = safeMul(value,factor)
   return seriesList
@@ -638,7 +664,7 @@ def offset(requestContext, seriesList, factor):
 
   """
   for series in seriesList:
-    series.name = "offset(%s,%.1f)" % (series.name,float(factor))
+    series.name = "offset(%s,%g)" % (series.name,float(factor))
     for i,value in enumerate(series):
       if value is not None:
         series[i] = value + factor
@@ -668,7 +694,15 @@ def movingAverage(requestContext, seriesList, windowSize):
     delta = parseTimeOffset(windowSize)
     windowInterval = abs(delta.seconds + (delta.days * 86400))
 
-  for seriesIndex, series in enumerate(seriesList):
+  if windowInterval:
+    bootstrapSeconds = windowInterval
+  else:
+    bootstrapSeconds = max([s.step for s in seriesList]) * int(windowSize)
+
+  bootstrapList = _fetchWithBootstrap(requestContext, seriesList, seconds=bootstrapSeconds)
+  result = []
+
+  for bootstrap, series in zip(bootstrapList, seriesList):
     if windowInterval:
       windowPoints = windowInterval / series.step
     else:
@@ -681,21 +715,14 @@ def movingAverage(requestContext, seriesList, windowSize):
     newSeries = TimeSeries(newName, series.start, series.end, series.step, [])
     newSeries.pathExpression = newName
 
-    bootstrap = series.step * windowPoints
-    bootstrappedSeries = _fetchWithBootstrap(requestContext, series, seconds=bootstrap)
-    windowIndex = windowPoints - 1
-
+    offset = len(bootstrap) - len(series)
     for i in range(len(series)):
-      window = bootstrappedSeries[i:i + windowIndex]
-      nonNull = [v for v in window if v is not None]
-      if nonNull:
-        newSeries.append(sum(nonNull) / len(nonNull))
-      else:
-        newSeries.append(None)
+      window = bootstrap[i + offset - windowPoints:i + offset]
+      newSeries.append(safeAvg(window))
 
-    seriesList[ seriesIndex ] = newSeries
+    result.append(newSeries)
 
-  return seriesList
+  return result
 
 def cumulative(requestContext, seriesList, consolidationFunc='sum'):
   """
@@ -742,7 +769,10 @@ def consolidateBy(requestContext, seriesList, consolidationFunc):
 def derivative(requestContext, seriesList):
   """
   This is the opposite of the integral function.  This is useful for taking a
-  running total metric and showing how many requests per minute were handled.
+  running total metric and calculating the delta between subsequent data points.
+
+  This function does not normalize for periods of time, as a true derivative would.
+  Instead see the perSecond() function to calculate a rate of change over time.
 
   Example:
 
@@ -859,7 +889,7 @@ def nonNegativeDerivative(requestContext, seriesList, maxValue=None):
 
   .. code-block:: none
 
-    &target=derivative(company.server.application01.ifconfig.TXPackets)
+    &target=nonNegativederivative(company.server.application01.ifconfig.TXPackets)
 
   """
   results = []
@@ -1283,7 +1313,7 @@ def highestMax(requestContext, seriesList, n):
 
   .. code-block:: none
 
-    &target=highestCurrent(server*.instance*.threads.busy,5)
+    &target=highestMax(server*.instance*.threads.busy,5)
 
   Draws the top 5 servers who have had the most busy threads during the time
   period specified.
@@ -1321,7 +1351,7 @@ def currentAbove(requestContext, seriesList, n):
 
   .. code-block:: none
 
-    &target=highestAbove(server*.instance*.threads.busy,50)
+    &target=currentAbove(server*.instance*.threads.busy,50)
 
   Draws the servers with more than 50 busy threads.
 
@@ -1457,8 +1487,8 @@ def nPercentile(requestContext, seriesList, n):
       continue  # Skip this series because it is empty.
 
     perc_val = _getPercentile(s_copy, n)
-    if perc_val:
-      name = 'nPercentile(%.1f, %s)' % (n, s_copy.name)
+    if perc_val is not None:
+      name = 'nPercentile(%s, %g)' % (s_copy.name, n)
       point_count = int((s.end - s.start)/s.step)
       perc_series = TimeSeries(name, s_copy.start, s_copy.end, s_copy.step, [perc_val] * point_count )
       perc_series.pathExpression = name
@@ -1468,7 +1498,7 @@ def nPercentile(requestContext, seriesList, n):
 def removeAbovePercentile(requestContext, seriesList, n):
   """
   Removes data above the nth percentile from the series or list of series provided.
-  Values below this percentile are assigned a value of None.
+  Values above this percentile are assigned a value of None.
   """
   for s in seriesList:
     s.name = 'removeAbovePercentile(%s, %d)' % (s.name, n)
@@ -1482,7 +1512,7 @@ def removeAbovePercentile(requestContext, seriesList, n):
 def removeAboveValue(requestContext, seriesList, n):
   """
   Removes data above the given threshold from the series or list of series provided.
-  Values below this threshole are assigned a value of None
+  Values above this threshole are assigned a value of None
   """
   for s in seriesList:
     s.name = 'removeAboveValue(%s, %d)' % (s.name, n)
@@ -1494,7 +1524,7 @@ def removeAboveValue(requestContext, seriesList, n):
 
 def removeBelowPercentile(requestContext, seriesList, n):
   """
-  Removes data above the nth percentile from the series or list of series provided.
+  Removes data below the nth percentile from the series or list of series provided.
   Values below this percentile are assigned a value of None.
   """
   for s in seriesList:
@@ -1508,7 +1538,7 @@ def removeBelowPercentile(requestContext, seriesList, n):
 
 def removeBelowValue(requestContext, seriesList, n):
   """
-  Removes data above the given threshold from the series or list of series provided.
+  Removes data below the given threshold from the series or list of series provided.
   Values below this threshole are assigned a value of None
   """
   for s in seriesList:
@@ -1651,8 +1681,8 @@ def stdev(requestContext, seriesList, points, windowTolerance=0.1):
   # For this we take the standard deviation in terms of the moving average
   # and the moving average of series squares.
   for (seriesIndex,series) in enumerate(seriesList):
-    stddevSeries = TimeSeries("stddev(%s,%.1f)" % (series.name, float(points)), series.start, series.end, series.step, [])
-    stddevSeries.pathExpression = "stddev(%s,%.1f)" % (series.name, float(points))
+    stddevSeries = TimeSeries("stddev(%s,%d)" % (series.name, int(points)), series.start, series.end, series.step, [])
+    stddevSeries.pathExpression = "stddev(%s,%d)" % (series.name, int(points))
 
     validPoints = 0
     currentSum = 0
@@ -1706,25 +1736,39 @@ def secondYAxis(requestContext, seriesList):
     series.name= 'secondYAxis(%s)' % series.name
   return seriesList
 
-def _fetchWithBootstrap(requestContext, series, **delta_kwargs):
+def _fetchWithBootstrap(requestContext, seriesList, **delta_kwargs):
   'Request the same data but with a bootstrap period at the beginning'
-  previousContext = requestContext.copy()
-  previousContext['startTime'] = requestContext['startTime'] - timedelta(**delta_kwargs)
-  previousContext['endTime'] = requestContext['startTime']
-  oldSeries = evaluateTarget(previousContext, series.pathExpression)[0]
+  bootstrapContext = requestContext.copy()
+  bootstrapContext['startTime'] = requestContext['startTime'] - timedelta(**delta_kwargs)
+  bootstrapContext['endTime'] = requestContext['startTime']
 
-  newValues = []
-  if oldSeries.step != series.step:
-    ratio = oldSeries.step / series.step
-    for value in oldSeries:
-      newValues.extend([ value ] * ratio)
-  else:
-    newValues.extend(oldSeries)
-  newValues.extend(series)
+  bootstrapList = []
+  for series in seriesList:
+    if series.pathExpression in [ b.pathExpression for b in bootstrapList ]:
+      # This pathExpression returns multiple series and we already fetched it
+      continue
+    bootstraps = evaluateTarget(bootstrapContext, series.pathExpression)
+    bootstrapList.extend(bootstraps)
 
-  newSeries = TimeSeries(series.name, oldSeries.start, series.end, series.step, newValues)
-  newSeries.pathExpression = series.pathExpression
-  return newSeries
+  newSeriesList = []
+  for bootstrap, original in zip(bootstrapList, seriesList):
+    newValues = []
+    if bootstrap.step != original.step:
+      ratio = bootstrap.step / original.step
+      for value in bootstrap:
+        #XXX For series with aggregationMethod = sum this should also
+        # divide by the ratio to bring counts to the same time unit
+        # ...but we have no way of knowing whether that's the case
+        newValues.extend([ value ] * ratio)
+    else:
+      newValues.extend(bootstrap)
+    newValues.extend(original)
+
+    newSeries = TimeSeries(original.name, bootstrap.start, original.end, original.step, newValues)
+    newSeries.pathExpression = series.pathExpression
+    newSeriesList.append(newSeries)
+
+  return newSeriesList
 
 def _trimBootstrap(bootstrap, original):
   'Trim the bootstrap period off the front of this series so it matches the original'
@@ -1849,9 +1893,9 @@ def holtWintersForecast(requestContext, seriesList):
   one week previous to the series is used to bootstrap the initial forecast.
   """
   results = []
-  for series in seriesList:
-    withBootstrap = _fetchWithBootstrap(requestContext, series, days=7)
-    analysis = holtWintersAnalysis(withBootstrap)
+  bootstrapList = _fetchWithBootstrap(requestContext, seriesList, days=7)
+  for bootstrap, series in zip(bootstrapList, seriesList):
+    analysis = holtWintersAnalysis(bootstrap)
     results.append(_trimBootstrap(analysis['predictions'], series))
   return results
 
@@ -1861,8 +1905,8 @@ def holtWintersConfidenceBands(requestContext, seriesList, delta=3):
   upper and lower bands with the predicted forecast deviations.
   """
   results = []
-  for series in seriesList:
-    bootstrap = _fetchWithBootstrap(requestContext, series, days=7)
+  bootstrapList = _fetchWithBootstrap(requestContext, seriesList, days=7)
+  for bootstrap,series in zip(bootstrapList, seriesList):
     analysis = holtWintersAnalysis(bootstrap)
     forecast = _trimBootstrap(analysis['predictions'], series)
     deviation = _trimBootstrap(analysis['deviations'], series)
@@ -1902,8 +1946,6 @@ def holtWintersAberration(requestContext, seriesList, delta=3):
   results = []
   for series in seriesList:
     confidenceBands = holtWintersConfidenceBands(requestContext, [series], delta)
-    bootstrapped = _fetchWithBootstrap(requestContext, series, days=7)
-    series = _trimBootstrap(bootstrapped, series)
     lowerBand = confidenceBands[0]
     upperBand = confidenceBands[1]
     aberration = list()
@@ -2016,7 +2058,7 @@ def timeStack(requestContext, seriesList, timeShiftUnit, timeShiftStart, timeShi
 
   .. code-block:: none
 
-    &target=timeShift(Sales.widgets.largeBlue,"1d",0,7)    # create a series for today and each of the previous 7 days
+    &target=timeStack(Sales.widgets.largeBlue,"1d",0,7)    # create a series for today and each of the previous 7 days
 
   """
   # Default to negative. parseTimeOffset defaults to +
@@ -2154,12 +2196,40 @@ def transformNull(requestContext, seriesList, default=0):
     else: return v
 
   for series in seriesList:
-    series.name = "transformNull(%s, %.2f)" % (series.name, default)
+    series.name = "transformNull(%s,%g)" % (series.name, default)
     series.pathExpression = series.name
     values = [transform(v) for v in series]
     series.extend(values)
     del series[:len(values)]
   return seriesList
+
+
+def identity(requestContext, name):
+  """
+  Identity function:
+  Returns datapoints where the value equals the timestamp of the datapoint.
+  Useful when you have another series where the value is a timestamp, and
+  you want to compare it to the time of the datapoint, to render an age
+  
+  Example:
+
+  .. code-block:: none
+
+    &target=identity("The.time.series")
+
+  This would create a series named "The.time.series" that contains points where
+  x(t) == t.
+  """
+  step = 60
+  delta = timedelta(seconds=step)
+  start = time.mktime(requestContext["startTime"].timetuple())
+  end = time.mktime(requestContext["endTime"].timetuple())
+  values = range(start, end, step)
+  series = TimeSeries(name, start, end, step, values)
+  series.pathExpression = 'identity("%s")' % name
+
+  return [series]
+
 
 def countSeries(requestContext, *seriesLists):
   """
@@ -2516,11 +2586,13 @@ def timeFunction(requestContext, name):
     values.append(time.mktime(when.timetuple()))
     when += delta
 
-  return [TimeSeries(name,
+  series = TimeSeries(name,
             time.mktime(requestContext["startTime"].timetuple()),
             time.mktime(requestContext["endTime"].timetuple()),
-            step, values)]
+            step, values)
+  series.pathExpression = name
 
+  return [series]
 
 def sinFunction(requestContext, name, amplitude=1):
   """
@@ -2716,7 +2788,7 @@ SeriesFunctions = {
   # Data Filter functions
   'removeAbovePercentile' : removeAbovePercentile,
   'removeAboveValue' : removeAboveValue,
-  'removeBelowPercentile' : removeAbovePercentile,
+  'removeBelowPercentile' : removeBelowPercentile,
   'removeBelowValue' : removeBelowValue,
 
   # Special functions
@@ -2743,6 +2815,7 @@ SeriesFunctions = {
   'areaBetween' : areaBetween,
   'threshold' : threshold,
   'transformNull' : transformNull,
+  'identity': identity,
 
   # test functions
   'time': timeFunction,

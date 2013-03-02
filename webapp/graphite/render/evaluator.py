@@ -31,9 +31,10 @@ def evaluateTokens(requestContext, tokens):
   elif tokens.number:
     if tokens.number.integer:
       return int(tokens.number.integer)
-
     elif tokens.number.float:
       return float(tokens.number.float)
+    elif tokens.number.scientific:
+      return float(tokens.number.scientific[0])
 
   elif tokens.string:
     return str(tokens.string)[1:-1]
