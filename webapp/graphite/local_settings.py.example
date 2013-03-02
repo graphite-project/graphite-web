@@ -119,8 +119,26 @@
 # Override the URL for the login link (e.g. for django_openid_auth)
 #LOGIN_URL = '/account/login'
 
-# Require users to be logged in to save or delete dashboards (defaults to False)
+
+###############################
+# Authorization for Dashboard #
+###############################
+# By default, there is no security on dashboards - any user can add, change or delete them.
+#
+# This section provides 3 different authorization models, of increasing strictness.  If you
+# want security on your dashboards, you should choose JUST ONE of these settings.
+
+# If set to True, dashboards can be saved and deleted by any logged-in user. Defaults to False
 #DASHBOARD_REQUIRE_AUTHENTICATION = True
+
+# If set to the name of a user group, dashboards can be saved and deleted by any user in this
+# group.  Groups can be set in the Django Admin app, or in LDAP.  Defaults to None
+#DASHBOARD_EDIT_GROUP = 'dashboard-editors-group'
+
+# If set to True, dashboards can be saved or deleted by any user having the appropriate 
+# (change or delete) permission (as set in the Django Admin app).  Defaults to False
+#DASHBOARD_REQUIRE_PERMISSIONS = True
+
 
 
 ##########################

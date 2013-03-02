@@ -38,6 +38,7 @@ defaultKeyboardShortcuts = {
   'give_completer_focus' : 'shift-space',
 }
 
+ALL_PERMISSIONS = ['change', 'delete']
 
 class DashboardConfig:
   def __init__(self):
@@ -132,7 +133,8 @@ def dashboard(request, name=None):
     'querystring' : json.dumps( dict( request.GET.items() ) ),
     'dashboard_conf_missing' : dashboard_conf_missing,
     'userName': '',
-    'requireAuthentication': settings.DASHBOARD_REQUIRE_AUTHENTICATION
+    'permissions': json.dumps(getPermissions(request.user)),
+    'permissionsUnauthenticated': json.dumps(getPermissions(None))
   }
   user = request.user
   if user:
@@ -149,15 +151,32 @@ def dashboard(request, name=None):
   return render_to_response("dashboard.html", context)
 
 
-def canMakeChanges(request):
-  return (request.user is not None and request.user.is_authenticated()) \
-      or not settings.DASHBOARD_REQUIRE_AUTHENTICATION
-
+def getPermissions(user):
+  """Return [change, delete] based on authorisation model and user privileges/groups"""
+  if user and not user.is_authenticated():
+    user = None
+  if not user:
+    if not settings.DASHBOARD_REQUIRE_AUTHENTICATION and not settings.DASHBOARD_REQUIRE_PERMISSIONS \
+        and not settings.DASHBOARD_EDIT_GROUP:
+      return ALL_PERMISSIONS      # don't require login
+    else:
+      return []
+  # from here on, we have a user
+  if settings.DASHBOARD_REQUIRE_PERMISSIONS:
+    return [permission for permission in ALL_PERMISSIONS \
+      if user.has_perm('dashboard.%s_dashboard' % permission)]
+  editGroup = settings.DASHBOARD_EDIT_GROUP
+  if editGroup:
+    if len(user.groups.filter(name = editGroup)) > 0:
+      return ALL_PERMISSIONS
+    else:
+      return []
+  return ALL_PERMISSIONS
+  
 
 def save(request, name):
-  if not canMakeChanges(request):
-    return json_response( dict(error="Must be logged in to save") )
-      
+  if 'change' not in getPermissions(request.user):
+    return json_response( dict(error="Must be logged in with appropriate permissions to save") )
   # Deserialize and reserialize as a validation step
   state = str( json.dumps( json.loads( request.POST['state'] ) ) )
 
@@ -182,8 +201,8 @@ def load(request, name):
 
 
 def delete(request, name):
-  if not canMakeChanges(request):
-    return json_response( dict(error="Must be logged in to delete") )
+  if 'delete' not in getPermissions(request.user):
+    return json_response( dict(error="Must be logged in with appropriate permissions to delete") )
 
   try:
     dashboard = Dashboard.objects.get(name=name)
@@ -270,13 +289,14 @@ def json_response(obj):
 
   
 def user_login(request):
-  response = dict(errors={}, text={}, success=False)
+  response = dict(errors={}, text={}, success=False, permissions=[])
   user = authenticate(username=request.POST['username'],
                       password=request.POST['password'])
   if user is not None:
     if user.is_active:
       login(request, user)
       response['success'] = True
+      response['permissions'].extend(getPermissions(user))
     else:
       response['errors']['reason'] = 'Account disabled.'
   else:

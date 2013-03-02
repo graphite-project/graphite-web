@@ -38,11 +38,8 @@
     var queryString = {{querystring|safe}};
     {% endif %}
 
-    {% if requireAuthentication %}
-    var requireAuthentication = true;
-    {% else %}
-    var requireAuthentication = false;
-    {% endif %}
+    var permissions = {{permissions|safe}};
+    var permissionsUnauthenticated = {{permissionsUnauthenticated|safe}};
     
     {% if userName %}
     var userName = '{{userName|safe}}';

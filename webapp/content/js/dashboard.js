@@ -119,8 +119,13 @@ function isLoggedIn() {
   return userName != null;
 }
 
-function canMakeChanges() {
-  return isLoggedIn() || !requireAuthentication;
+function hasPermission(permission) {
+  for (i in permissions) {
+    if (permissions[i] === permission) {
+      return true;
+    }
+  }
+  return false;
 }
 
 function initDashboard () {
@@ -540,12 +545,12 @@ function initDashboard () {
           handler: function (item, e) {
                      sendSaveRequest(dashboardName);
                    },
-          disabled: dashboardName == null || !canMakeChanges()
+          disabled: dashboardName == null || !hasPermission('change')
         }, {
           id: "dashboard-save-as-button",
           text: "Save As",
           handler: saveDashboard,
-          disabled: !canMakeChanges()
+          disabled: !hasPermission('change')
         }, {
           text: "Configure UI",
           handler: configureUI
@@ -1389,7 +1394,7 @@ function newFromSavedGraph() {
   function handleSelects(selModel, nodes) {
     Ext.each(nodes, function (node, index) {
       if (!node.leaf) {
-	node.unselect();
+        node.unselect();
         node.toggle();
       }
     });
@@ -2448,7 +2453,7 @@ function setDashboardName(name) {
   dashboardName = name;
   var saveButton = Ext.getCmp('dashboard-save-button');
 
-  if (name == null || !canMakeChanges()) {
+  if (name == null || !hasPermission('change')) {
     dashboardURL = null;
     document.title = "untitled - Graphite Dashboard";
     navBar.setTitle("untitled");
@@ -2607,7 +2612,7 @@ function showDashboardFinder() {
                            Ext.getCmp('finder-delete-button').disable();
                          } else {
                            Ext.getCmp('finder-open-button').enable();
-                           if (canMakeChanges()) {
+                           if (hasPermission('delete')) {
                              Ext.getCmp('finder-delete-button').enable();
                            } else {
                              Ext.getCmp('finder-delete-button').disable();
@@ -2895,8 +2900,8 @@ function getLoginMenuItemText() {
 /* After login/logout, make any necessary adjustments to Dashboard menu items (text and/or disabled) */
 function postLoginMenuAdjust() {
   Ext.getCmp("dashboard-login-button").setText(getLoginMenuItemText());
-  Ext.getCmp("dashboard-save-button").setDisabled(dashboardName == null || !canMakeChanges());
-  Ext.getCmp("dashboard-save-as-button").setDisabled(!canMakeChanges());
+  Ext.getCmp("dashboard-save-button").setDisabled(dashboardName == null || !hasPermission('change'));
+  Ext.getCmp("dashboard-save-as-button").setDisabled(!hasPermission('change'));
 }
 
 function showLoginForm() {
@@ -2907,7 +2912,6 @@ function showLoginForm() {
     defaultType: 'textfield',
     monitorValid: true,
 
-    // The "name" attribute defines the name of variables sent to the server.
     items: [{
         fieldLabel: 'Username',
         name: 'username',
@@ -2922,20 +2926,20 @@ function showLoginForm() {
         allowBlank: false
       }
     ],
-
     buttons: [
       {text: 'Login', formBind: true, handler: doLogin},
       {text: 'Cancel', handler: function () { win.close(); } }
     ]
   });
-
+  
   function doLogin() {
     login.getForm().submit({
       method: 'POST',
       url: '/dashboard/login',
       waitMsg: 'Authenticating...',
-      success: function() {
-        userName = login.getForm().findField('username').getValue();
+      success: function(form, action) {
+        userName = form.findField('username').getValue();
+        permissions = action.result.permissions;
         postLoginMenuAdjust();
         win.close();
       },
@@ -2970,11 +2974,13 @@ function logout() {
     method: 'POST',
     success: function() {
       userName = null;
+      permissions = permissionsUnauthenticated;
       postLoginMenuAdjust();
     },
     failure: function() {
       // Probably because they no longer have a valid session - assume they're now logged out
       userName = null;
+      permissions = permissionsUnauthenticated;
       postLoginMenuAdjust();
     }
   });
