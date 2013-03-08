@@ -212,6 +212,11 @@ statsd
 A list of forks and alternative implementations can be found at <http://joemiller.me/2011/09/21/list-of-statsd-server-implementations/>
 
 
+Structured Metrics
+------------------
+`structured_metrics`_ is a lightweight python library that uses plugins to read in
+Graphite's list of metric names and convert it into a multi-dimensional tag space of clear, sanitized targets.
+
 Tasseo
 ------
 `Tasseo`_ is a lightweight, easily configurable, real-time dashboard for Graphite metrics.
@@ -266,6 +271,7 @@ annotated events, etc). Supports Graphite, flot, rickshaw and anthracite.
 .. _Seyren: https://github.com/scobal/seyren
 .. _Shinken: http://www.shinken-monitoring.org/
 .. _statsd: https://github.com/etsy/statsd
+.. _structured_metrics: https://github.com/Dieterbe/graph-explorer/tree/master/structured_metrics
 .. _Tasseo: https://github.com/obfuscurity/tasseo
 .. _Therry: https://github.com/obfuscurity/therry
 .. _TimeseriesWidget: https://github.com/Dieterbe/timeserieswidget
