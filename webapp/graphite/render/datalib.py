@@ -19,6 +19,7 @@ from django.conf import settings
 from graphite.logger import log
 from graphite.storage import STORE, LOCAL_STORE
 from graphite.render.hashing import ConsistentHashRing
+from graphite.remote_storage import RemoteNode
 
 try:
   import cPickle as pickle
@@ -222,12 +223,15 @@ def fetchData(requestContext, pathExpr):
   for dbFile in store.find(pathExpr):
     log.metric_access(dbFile.metric_path)
     dbResults = dbFile.fetch( timestamp(startTime), timestamp(endTime) )
-    try:
-      cachedResults = CarbonLink.query(dbFile.real_metric)
-      results = mergeResults(dbResults, cachedResults)
-    except:
-      log.exception()
+    if isinstance(dbFile, RemoteNode):
       results = dbResults
+    else:
+      try:
+        cachedResults = CarbonLink.query(dbFile.real_metric)
+        results = mergeResults(dbResults, cachedResults)
+      except:
+        log.exception()
+        results = dbResults
 
     if not results:
       continue
