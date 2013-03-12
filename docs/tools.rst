@@ -53,6 +53,9 @@ Diamond
 capable of collecting cpu, memory, network, I/O, load and disk metrics. Additionally, it features
 an API for implementing custom collectors for gathering metrics from almost any source.
 
+Evenflow
+--------
+`Evenflow`_ is a simple service for submitting sFlow datagrams to Graphite. It accepts sFlow datagrams from multiple network devices and proxies the data to a Carbon listener. Currently only Generic Interface Counters are supported. All other message types are discarded.
 
 Ganglia
 -------
@@ -270,3 +273,4 @@ annotated events, etc). Supports Graphite, flot, rickshaw and anthracite.
 .. _Graphsky: https://github.com/hyves-org/graphsky
 .. _Giraffe: http://kenhub.github.com/giraffe/
 .. _Rickshaw: http://code.shutterstock.com/rickshaw/
+.. _Evenflow: https://github.com/github/evenflow
