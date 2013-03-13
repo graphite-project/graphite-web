@@ -163,6 +163,11 @@ It is requires very little configuration and is capable of sending metric data t
 backend applications, including Graphite.
 
 
+Ledbetter
+---------
+`Ledbetter`_ is a simple script for gathering Nagios problem statistics and submitting them to Graphite. It focuses on summary (overall, servicegroup and hostgroup) statistics and writes them to the nagios.problems metrics namespace within Graphite.
+
+
 Logster
 -------
 `Logster`_ is a utility for reading log files and generating metrics in Graphite or Ganglia.
@@ -264,3 +269,4 @@ annotated events, etc). Supports Graphite, flot, rickshaw and anthracite.
 .. _Giraffe: http://kenhub.github.com/giraffe/
 .. _Rickshaw: http://code.shutterstock.com/rickshaw/
 .. _Evenflow: https://github.com/github/evenflow
+.. _Ledbetter: https://github.com/github/ledbetter
