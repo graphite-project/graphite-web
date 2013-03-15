@@ -772,6 +772,8 @@ class LineGraph(Graph):
     if self.areaMode == 'stacked' and not self.secondYAxis: #TODO Allow stacked area mode with secondYAxis
       total = []
       for series in self.data:
+        if 'drawAsInfinite' in series.options:
+          continue
         for i in range(len(series)):
           if len(total) <= i: total.append(0)
 
