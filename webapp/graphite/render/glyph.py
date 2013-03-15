@@ -928,7 +928,10 @@ class LineGraph(Graph):
           consecutiveNones = 0
 
       if 'stacked' in series.options:
-        self.fillAreaAndClip(x-series.xStep, y, startX)
+        if self.lineMode == 'staircase':
+          self.fillAreaAndClip(x, y, startX)
+        else:
+          self.fillAreaAndClip(x-series.xStep, y, startX)
       else:
         self.ctx.stroke()
 
