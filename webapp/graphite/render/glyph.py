@@ -767,20 +767,6 @@ class LineGraph(Graph):
       'bevel' : cairo.LINE_JOIN_BEVEL,
     }[linejoin])
 
-    # stack the values
-    if self.areaMode == 'stacked' and not self.secondYAxis: #TODO Allow stacked area mode with secondYAxis
-      total = []
-      for series in self.data:
-        if 'drawAsInfinite' in series.options:
-          continue
-        for i in range(len(series)):
-          if len(total) <= i: total.append(0)
-
-          if series[i] is not None:
-            original = series[i]
-            series[i] += total[i]
-            total[i] += original
-
     # check whether there is an stacked metric
     singleStacked = False
     for series in self.data:
@@ -789,11 +775,25 @@ class LineGraph(Graph):
     if singleStacked:
       self.data = sort_stacked(self.data)
 
-    # apply stacked setting on series based on areaMode
-    if self.areaMode == 'first':
-      self.data[0].options['stacked'] = True
-    elif self.areaMode != 'none':
+    # stack the values
+    if self.areaMode == 'stacked' and not self.secondYAxis: #TODO Allow stacked area mode with secondYAxis
+      total = []
       for series in self.data:
+        if 'drawAsInfinite' in series.options:
+          continue
+
+        series.options['stacked'] = True
+        for i in range(len(series)):
+          if len(total) <= i: total.append(0)
+
+          if series[i] is not None:
+            original = series[i]
+            series[i] += total[i]
+            total[i] += original
+    elif self.areaMode == 'first':
+      self.data[0].options['stacked'] = True
+    elif self.areaMode == 'all':
+      if 'drawAsInfinite' not in series.options:
         series.options['stacked'] = True
 
     # apply alpha channel and create separate stroke series
