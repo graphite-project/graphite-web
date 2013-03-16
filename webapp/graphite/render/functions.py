@@ -2518,8 +2518,8 @@ def timeFunction(requestContext, name):
     when += delta
 
   series = TimeSeries(name,
-            time.mktime(requestContext["startTime"].timetuple()),
-            time.mktime(requestContext["endTime"].timetuple()),
+            int(time.mktime(requestContext["startTime"].timetuple())),
+            int(time.mktime(requestContext["endTime"].timetuple())),
             step, values)
   series.pathExpression = name
 
@@ -2550,8 +2550,8 @@ def sinFunction(requestContext, name, amplitude=1):
     when += delta
 
   return [TimeSeries(name,
-            time.mktime(requestContext["startTime"].timetuple()),
-            time.mktime(requestContext["endTime"].timetuple()),
+            int(time.mktime(requestContext["startTime"].timetuple())),
+            int(time.mktime(requestContext["endTime"].timetuple())),
             step, values)]
 
 def randomWalkFunction(requestContext, name):
@@ -2581,8 +2581,8 @@ def randomWalkFunction(requestContext, name):
     when += delta
 
   return [TimeSeries(name,
-            time.mktime(requestContext["startTime"].timetuple()),
-            time.mktime(requestContext["endTime"].timetuple()),
+            int(time.mktime(requestContext["startTime"].timetuple())),
+            int(time.mktime(requestContext["endTime"].timetuple())),
             step, values)]
 
 def events(requestContext, *tags):
