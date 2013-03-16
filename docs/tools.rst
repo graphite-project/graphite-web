@@ -212,6 +212,11 @@ statsd
 A list of forks and alternative implementations can be found at <http://joemiller.me/2011/09/21/list-of-statsd-server-implementations/>
 
 
+Structured Metrics
+------------------
+`structured_metrics`_ is a lightweight python library that uses plugins to read in
+Graphite's list of metric names and convert it into a multi-dimensional tag space of clear, sanitized targets.
+
 Tasseo
 ------
 `Tasseo`_ is a lightweight, easily configurable, real-time dashboard for Graphite metrics.
@@ -226,47 +231,50 @@ TimeseriesWidget
 focuses on high interactivity and modern features (realtime zooming, datapoint inspection,
 annotated events, etc). Supports Graphite, flot, rickshaw and anthracite.
 
-.. _Diamond: http://opensource.brightcove.com/project/Diamond/
-.. _jmxtrans: http://code.google.com/p/jmxtrans/
-.. _statsd: https://github.com/etsy/statsd
-.. _Ganglia: http://ganglia.info/
-.. _graphitius: https://github.com/erezmazor/graphitus
 .. _Backbone.js: http://documentcloud.github.com/backbone/
+.. _Backstop: https://github.com/obfuscurity/backstop
+.. _Bucky: http://pypi.python.org/pypi/bucky
+.. _Charcoal: https://github.com/cebailey59/charcoal
 .. _collectd: http://collectd.org/
-.. _collectd-to-graphite: https://github.com/loggly/collectd-to-graphite
 .. _collectd-carbon: https://github.com/indygreg/collectd-carbon
 .. _collectd-graphite: https://github.com/joemiller/collectd-graphite
+.. _collectd-to-graphite: https://github.com/loggly/collectd-to-graphite
 .. _Collectl: http://collectl.sourceforge.net/
 .. _D3.js: http://mbostock.github.com/d3/
-.. _Logster: https://github.com/etsy/logster
-.. _RabbitMQ: http://www.rabbitmq.com/
+.. _Descartes: https://github.com/obfuscurity/descartes
+.. _Diamond: http://opensource.brightcove.com/project/Diamond/
 .. _Esper: http://esper.codehaus.org/
-.. _Rocksteady: http://code.google.com/p/rocksteady/
-.. _Bucky: http://pypi.python.org/pypi/bucky
-.. _Graphite-Tattle: https://github.com/wayfair/Graphite-Tattle
+.. _Evenflow: https://github.com/github/evenflow
+.. _Ganglia: http://ganglia.info/
 .. _Gdash: https://github.com/ripienaar/gdash.git
-.. _Pencil: https://github.com/fetep/pencil
-.. _Graphene: http://jondot.github.com/graphene/
-.. _Graphite-relay: https://github.com/markchadwick/graphite-relay
-.. _Graphiti: https://github.com/paperlesspost/graphiti
-.. _Graphios: https://github.com/shawn-sterling/graphios
-.. _Charcoal: https://github.com/cebailey59/charcoal
+.. _Giraffe: http://kenhub.github.com/giraffe/
 .. _Graph-Explorer: https://github.com/Dieterbe/graph-explorer
+.. _Graphene: http://jondot.github.com/graphene/
+.. _Graphios: https://github.com/shawn-sterling/graphios
+.. _Graphite-Tattle: https://github.com/wayfair/Graphite-Tattle
+.. _Graphite-relay: https://github.com/markchadwick/graphite-relay
 .. _Graphitejs: https://github.com/prestontimmons/graphitejs
-.. _Grockets: https://github.com/disqus/grockets
-.. _Host sFlow: http://host-sflow.sourceforge.net/
+.. _Graphiti: https://github.com/paperlesspost/graphiti
+.. _graphitius: https://github.com/erezmazor/graphitus
 .. _Graphitoid: https://market.android.com/details?id=com.tnc.android.graphite
+.. _Graphsky: https://github.com/hyves-org/graphsky
+.. _Grockets: https://github.com/disqus/grockets
 .. _HoardD: https://github.com/coredump/hoardd
+.. _Host sFlow: http://host-sflow.sourceforge.net/
 .. _Hubot: https://github.com/github/hubot
 .. _hubot-scripts: https://github.com/github/hubot-scripts
-.. _Tasseo: https://github.com/obfuscurity/tasseo
-.. _Shinken: http://www.shinken-monitoring.org/
+.. _jmxtrans: http://code.google.com/p/jmxtrans/
+.. _Ledbetter: https://github.com/github/ledbetter
+.. _Logster: https://github.com/etsy/logster
+.. _Pencil: https://github.com/fetep/pencil
+.. _RabbitMQ: http://www.rabbitmq.com/
+.. _Rickshaw: http://code.shutterstock.com/rickshaw/
+.. _Rocksteady: http://code.google.com/p/rocksteady/
 .. _Seyren: https://github.com/scobal/seyren
-.. _write-graphite: http://collectd.org/wiki/index.php/Plugin:Write_Graphite
+.. _Shinken: http://www.shinken-monitoring.org/
+.. _statsd: https://github.com/etsy/statsd
+.. _structured_metrics: https://github.com/Dieterbe/graph-explorer/tree/master/structured_metrics
+.. _Tasseo: https://github.com/obfuscurity/tasseo
 .. _Therry: https://github.com/obfuscurity/therry
 .. _TimeseriesWidget: https://github.com/Dieterbe/timeserieswidget
-.. _Graphsky: https://github.com/hyves-org/graphsky
-.. _Giraffe: http://kenhub.github.com/giraffe/
-.. _Rickshaw: http://code.shutterstock.com/rickshaw/
-.. _Evenflow: https://github.com/github/evenflow
-.. _Ledbetter: https://github.com/github/ledbetter
+.. _write-graphite: http://collectd.org/wiki/index.php/Plugin:Write_Graphite
