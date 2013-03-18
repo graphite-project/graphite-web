@@ -16,41 +16,55 @@ limitations under the License. -->
     <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
     <title>Graphite Browser Header</title>
     <style>
-      img {
-        border: 0;
+      body {
+        background-color: #000;
+        background: url('/content/img/carbon-fiber.png');
+        background: url('/content/img/carbon-fiber.png'), -webkit-linear-gradient(top, #000 55%, #333);
+        background: url('/content/img/carbon-fiber.png'),    -moz-linear-gradient(top, #000, #000);
+        background: url('/content/img/carbon-fiber.png'),     -ms-linear-gradient(top, #000 55%, #333);
+        background: url('/content/img/carbon-fiber.png'),      -o-linear-gradient(top, #000 55%, #333);
+        background: url('/content/img/carbon-fiber.png'),         linear-gradient(top, #000 55%, #333);
       }
-      #nav {
-        position: absolute;
-        margin: 10px 10px 0 0;
-        top: 0;
-        right: 0;
+      div.header {
+        margin-top: 15px;
       }
-      #nav ul {
+      .header span.title {
+        font-family: "HelveticaNeue-UltraLight", "Helvetica Neue", "Helvetica";
+        font-size: 2.5em;
+        font-weight: 100;
+        margin-left: 50px;
+        color: #fff;
+      }
+      .header div.nav {
+        float: right;
         text-align: right;
+      }
+      .header .nav * {
+        font: 12px Helvetica, Arial, Tahoma, sans-serif;
+        color: rgb(148, 148, 148);
+      }
+      .header .nav ul {
+        margin: 2px 15px 0 0;
         list-style: none;
-        font: 12px Arial, Tahoma, Helvetica, sans-serif;
       }
     </style>
   </head>
   <body>
-    <!-- Left side -->
-    <div id="logo">
-      <img src="/content/img/graphite_short.png" alt="Graphite" align="top" />
-    </div>
-  
-    <!-- Right side -->
-    <div id="nav">
-      <ul>
-      {% if user.is_authenticated %}
-        <li>Logged in as <b>{{ user.username }}</b>, <a href="/account/logout/" target="_top">logout</a> (<a href="/account/edit/" target="_top">edit profile</a>)</li>
-      {% else %}
-        <li><a href="{{login_url}}" target="_top">Login</a></li>
-      {% endif %}
-      {% if documentation_url %}
-        <li><a href="{{documentation_url}}" target="_newWindow">Documentation</a></li>
-      {% endif %}
-        <li>User Interface: <a href="/dashboard/" target="_top">Dashboard</a> | <a href="/graphlot/" target="_top">flot (experimental)</a> | <a href="/events/" target="_top">events (experimental)</a></li>
-      </ul>
+    <div class="header">
+      <span class="title">Graphite</span>
+      <div class="nav">
+        <ul>
+        {% if user.is_authenticated %}
+          <li>Logged in as <b>{{ user.username }}</b>, <a href="/account/logout/" target="_top">logout</a> (<a href="/account/edit/" target="_top">edit profile</a>)</li>
+        {% else %}
+          <li><a href="{{login_url}}" target="_top">Login</a></li>
+        {% endif %}
+        {% if documentation_url %}
+          <li><a href="{{documentation_url}}" target="_newWindow">Documentation</a></li>
+        {% endif %}
+          <li>User Interface: <a href="/dashboard/" target="_top">Dashboard</a> | <a href="/graphlot/" target="_top">flot (experimental)</a> | <a href="/events/" target="_top">events (experimental)</a></li>
+        </ul>
+      </div>
     </div>
   </body>
 </html>
