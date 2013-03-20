@@ -17,6 +17,7 @@ var refreshTask;
 var spacer;
 var justClosedGraph = false;
 var NOT_EDITABLE = ['from', 'until', 'width', 'height', 'target', 'uniq', '_uniq'];
+var editor = null;
 
 var cookieProvider = new Ext.state.CookieProvider({
   path: "/dashboard"
@@ -538,6 +539,9 @@ function initDashboard () {
         }, {
           text: "Configure UI",
           handler: configureUI
+        }, {
+          text: "Edit Dashboard",
+          handler: editDashboard
         }
       ]
     }
@@ -558,7 +562,7 @@ function initDashboard () {
               },
               { text: "From Saved Graph",
                 handler: newFromSavedGraph
-              },
+              }
             ]
           }
         },
@@ -946,7 +950,7 @@ function graphAreaToggle(target, options) {
 }
 
 function importGraphUrl(targetUrl, options) {
-  var fullUrl = decodeURIComponent(targetUrl).replace(/#/,'%23');
+  var fullUrl = targetUrl;
   var i = fullUrl.indexOf("?");
   if (i == -1) {
     return;
@@ -1086,7 +1090,7 @@ var TimeRange = {
 function getTimeText() {
   if (TimeRange.type == 'relative') {
     var text = "Now showing the past " + TimeRange.relativeStartQuantity + " " + TimeRange.relativeStartUnits;
-    if (TimeRange.relativeUntilUnits != 'now') {
+    if (TimeRange.relativeUntilUnits !== 'now' && TimeRange.relativeUntilUnits !== '') {
       text = text + " until " + TimeRange.relativeUntilQuantity + " " + TimeRange.relativeUntilUnits + " ago";
     }
     return text;
@@ -1978,21 +1982,21 @@ function mailGraph(record) {
     fieldLabel: "From",
     name: 'sender',
     width: 300,
-    allowBlank: false,
+    allowBlank: false
   });
 
   var toField = new Ext.form.TextField({
     fieldLabel: "To",
     name: 'recipients',
     width: 300,
-    allowBlank: false,
+    allowBlank: false
   });
 
   var subjectField = new Ext.form.TextField({
     fieldLabel: "Subject",
     name: 'subject',
     width: 300,
-    allowBlank: false,
+    allowBlank: false
   });
 
   var msgField = new Ext.form.TextArea({
@@ -2041,7 +2045,7 @@ function mailGraph(record) {
     resizable: true,
     modal: true,
     layout: 'fit',
-    items: [contactForm],
+    items: [contactForm]
   });
   win.show();
 }
@@ -2214,6 +2218,78 @@ var keyMap = new Ext.KeyMap(document, keyMapConfigs);
 
 
 /* Dashboard functions */
+function editDashboard() {
+  var edit_dashboard_win = new Ext.Window({
+    title: "Edit Dashboard",
+    id: 'editor-window',
+    width: 700,
+    height: 500,
+    layout: 'vbox',
+    layoutConfig: {align: 'stretch', pack: 'start'},
+    modal: true,
+    items: [
+      {
+        xtype: 'container',
+        flex: 1,
+        id: 'editor',
+        title: 'ace',
+        listeners: { resize: function () { if (editor) editor.resize(); } }
+      }
+    ],
+    listeners: {
+      afterrender: {
+        scope: this,
+        fn: function (obj) { setupEditor(obj.body.dom); getInitialState() }
+      }
+    },
+    buttons: [
+      {text: "Update (doesn't save)", handler: updateAfterEdit},
+      {text: 'Cancel', handler: function () { edit_dashboard_win.close(); } }
+    ]
+  });
+  function updateAfterEdit(btn, target) {
+    var graphString = editor.getSession().getValue();
+    var targets = JSON.parse(graphString);
+    graphStore.removeAll();
+    for (var i = 0; i < targets.length; i++) {
+      var myParams = {};
+      Ext.apply(myParams, targets[i]);
+      var urlParams = {};
+      Ext.apply(urlParams, defaultGraphParams);
+      Ext.apply(urlParams, GraphSize);
+      Ext.apply(urlParams, myParams);
+      var record = new GraphRecord({
+        target: targets[i].target,
+        params: myParams,
+        url: '/render?' + Ext.urlEncode(urlParams)
+      });
+      graphStore.add([record]);
+    }
+    edit_dashboard_win.close();
+  }
+  function getInitialState() {
+    var graphs = [];
+    graphStore.each(function () {
+      var params = {};
+      Ext.apply(params, this.data.params);
+      delete params['from'];
+      delete params['until'];
+      graphs.push(params);
+    });
+    editor.getSession().setValue(JSON.stringify(graphs, null, 2));
+  }
+  function setupEditor(obj) {
+    editor = ace.edit("editor");
+    editor.setTheme("ace/theme/textmate");
+    var JSONMode = require("ace/mode/json").Mode;
+    var session = editor.getSession();
+    session.setMode(new JSONMode());
+    session.setUseSoftTabs(true);
+    session.setTabSize(2);
+  }
+  edit_dashboard_win.show();
+}
+
 function saveDashboard() {
   Ext.Msg.prompt(
     "Save Dashboard",
@@ -2294,15 +2370,17 @@ function applyState(state) {
   //state.timeConfig = {type, quantity, units, untilQuantity, untilUnits, startDate, startTime, endDate, endTime}
   var timeConfig = state.timeConfig
   TimeRange.type = timeConfig.type;
-  TimeRange.relativeStartQuantity = timeConfig.quantity;
-  TimeRange.relativeStartUnits = timeConfig.units;
-  TimeRange.relativeUntilQuantity = timeConfig.untilQuantity;
-  TimeRange.relativeUntilUnits = timeConfig.untilUnits;
+  TimeRange.relativeStartQuantity = timeConfig.relativeStartQuantity;
+  TimeRange.relativeStartUnits = timeConfig.relativeStartUnits;
+  TimeRange.relativeUntilQuantity = timeConfig.relativeUntilQuantity;
+  TimeRange.relativeUntilUnits = timeConfig.relativeUntilUnits;
   TimeRange.startDate = new Date(timeConfig.startDate);
   TimeRange.startTime = timeConfig.startTime;
   TimeRange.endDate = new Date(timeConfig.endDate);
   TimeRange.endTime = timeConfig.endTime;
   updateTimeText();
+
+
 
   //state.refreshConfig = {enabled, interval}
   var refreshConfig = state.refreshConfig;

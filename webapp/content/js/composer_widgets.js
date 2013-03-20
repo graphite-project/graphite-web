@@ -941,8 +941,8 @@ function createFunctionsMenu() {
           menu: [
             {text: 'Remove Above Value', handler: applyFuncToEachWithInput('removeAboveValue', 'Set any values above ___ to None')},
             {text: 'Remove Above Percentile', handler: applyFuncToEachWithInput('removeAbovePercentile', 'Set any values above the ___th percentile to None')},
-            {text: 'Remove Below Value', handler: applyFuncToEachWithInput('removeAboveValue', 'Set any values above ___ to None')},
-            {text: 'Remove Below Percentile', handler: applyFuncToEachWithInput('removeAbovePercentile', 'Set any values above the ___th percentile to None')}
+            {text: 'Remove Below Value', handler: applyFuncToEachWithInput('removeBelowValue', 'Set any values below ___ to None')},
+            {text: 'Remove Below Percentile', handler: applyFuncToEachWithInput('removeBelowPercentile', 'Set any values below the ___th percentile to None')}
           ]
         },
         {text: 'Most Deviant', handler: applyFuncToEachWithInput('mostDeviant', 'Draw the ___ metrics with the highest standard deviation')},
@@ -990,7 +990,7 @@ function createFunctionsMenu() {
         {text: 'Draw non-zero As Infinite', handler: applyFuncToEach('drawAsInfinite')},
         {text: 'Line Width', handler: applyFuncToEachWithInput('lineWidth', 'Please enter a line width for this graph target')},
         {text: 'Dashed Line', handler: applyFuncToEach('dashed')},
-        {text: 'Keep Last Value', handler: applyFuncToEach('keepLastValue')},
+        {text: 'Keep Last Value', handler: applyFuncToEachWithInput('keepLastValue', 'Please enter the maximum number of "None" datapoints to overwrite, or leave empty for no limit. (default: empty)', {allowBlank: true})},
         {text: 'Transform Nulls', handler: applyFuncToEachWithInput('transformNull', 'Please enter the value to transform null values to')},
         {text: 'Substring', handler: applyFuncToEachWithInput('substr', 'Enter a starting position')},
         {text: 'Group', handler: applyFuncToAll('group')},
@@ -1049,7 +1049,7 @@ function createOptionsMenu() {
 
   var yAxisLeftMenu = new Ext.menu.Menu({
     items: [
-      menuInputItem("Left Y Label", "vtitle"),
+      menuInputItem("Left Y Label", "vtitle", "Left Y Label", /^$/),
       menuInputItem("Left Y Minimum", "yMinLeft"),
       menuInputItem("Left Y Maximum", "yMaxLeft"),
       menuInputItem("Left Y Limit", "yLimitLeft"),
@@ -1062,7 +1062,7 @@ function createOptionsMenu() {
   });
   var yAxisRightMenu = new Ext.menu.Menu({
     items: [
-      menuInputItem("Right Y Label", "vtitleRight"),
+      menuInputItem("Right Y Label", "vtitleRight", "Right Y Label", /^$/),
       menuInputItem("Right Y Minimum", "yMinRight"),
       menuInputItem("Right Y Maximum", "yMaxRight"),
       menuInputItem("Right Y Limit", "yLimitRight"),
@@ -1083,11 +1083,13 @@ function createOptionsMenu() {
 
   var yAxisMenu = new Ext.menu.Menu({
     items: [
-      menuInputItem("Label", "vtitle"),
+      menuInputItem("Label", "vtitle", "Y-Axis Label", /^$/),
       menuInputItem("Minimum", "yMin"),
       menuInputItem("Maximum", "yMax"),
       menuInputItem("Minor Lines", "minorY", "Enter the number of minor lines to draw", /^[a-zA-Z]/),
       menuInputItem("Logarithmic Scale", "logBase", "Enter the logarithmic base to use (ie. 10, e, etc...)"),
+      menuInputItem("Step", "yStep", "Enter the Y-axis step to use (e.g. 0.2)"),
+      menuInputItem("Divisors", "yDivisors", "Enter the target number of intermediate Y-axis values (e.g. 4,5,6)", /^[a-zA-Z]/),
       {text: "Unit", menu: yAxisUnitMenu},
       {text: "Side", menu: yAxisSideMenu},
       {text: "Dual Y-Axis Options", menu: SecondYAxisMenu},
@@ -1117,6 +1119,7 @@ function createOptionsMenu() {
         menuRadioItem("line", "Slope Line (default)", "lineMode", ""),
         menuRadioItem("line", "Staircase Line", "lineMode", "staircase"),
         menuRadioItem("line", "Connected Line", "lineMode", "connected"),
+        menuInputItem("Connected Line Limit", "connectedLimit", "The number of consecutive None values to jump over when in connected line mode. (default: no limit, leave empty)"),
         menuCheckItem("Draw Null as Zero", "drawNullAsZero")
     ]
   });
@@ -1235,7 +1238,7 @@ function menuHelpItem(name, message) {
 function paramPrompt(question, param, regexp) {
 
   if(regexp == null) {
-    regexp = /[^A-Za-z0-9_.]/;
+    regexp = /[^A-Za-z0-9_.\-]/;
   }
 
   return function (menuItem, e) {

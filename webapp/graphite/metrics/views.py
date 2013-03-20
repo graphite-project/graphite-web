@@ -39,6 +39,12 @@ def index_json(request):
       if fnmatch.fnmatch(basename, '*.wsp'):
         matches.append(os.path.join(root, basename))
 
+  for root, dirs, files in os.walk(settings.CERES_DIR):
+    root = root.replace(settings.CERES_DIR, '')
+    for filename in files:
+      if filename == '.ceres-node':
+        matches.append(root)
+
   matches = [ m.replace('.wsp','').replace('/', '.') for m in sorted(matches) ]
   if jsonp:
     return HttpResponse("%s(%s)" % (jsonp, json.dumps(matches)), mimetype='text/javascript')
@@ -154,7 +160,7 @@ def expand_view(request):
     results[query] = set()
     for node in STORE.find(query, local=local_only):
       if node.is_leaf or not leaves_only:
-        results[query].add( node.metric_path )
+        results[query].add( node.path )
 
   # Convert our results to sorted lists because sets aren't json-friendly
   if group_by_expr:

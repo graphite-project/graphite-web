@@ -60,8 +60,16 @@ def post_event(request):
         return HttpResponse(status=405)
 
 def get_data(request):
-    return HttpResponse(json.dumps(fetch(request), cls=EventEncoder),
-                        mimetype="application/json")
+    if 'jsonp' in request.REQUEST:
+        response = HttpResponse(
+          "%s(%s)" % (request.REQUEST.get('jsonp'), 
+              json.dumps(fetch(request), cls=EventEncoder)),
+          mimetype='text/javascript')
+    else:
+        response = HttpResponse(
+            json.dumps(fetch(request), cls=EventEncoder),
+            mimetype="application/json")
+    return response
 
 def fetch(request):
     if request.GET.get("from", None) is not None:

@@ -34,7 +34,6 @@ div.overlay-close-button {
 img.graph-img {
   visibility: visible;
   padding: 3px;
-  background-color: rgb(160, 160, 160);
   border-radius:         5px;
   -moz-border-radius:    5px;
   -webkit-border-radius: 5px;
