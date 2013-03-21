@@ -155,23 +155,18 @@ def getPermissions(user):
   """Return [change, delete] based on authorisation model and user privileges/groups"""
   if user and not user.is_authenticated():
     user = None
+  if not settings.DASHBOARD_REQUIRE_AUTHENTICATION:
+    return ALL_PERMISSIONS      # don't require login
   if not user:
-    if not settings.DASHBOARD_REQUIRE_AUTHENTICATION and not settings.DASHBOARD_REQUIRE_PERMISSIONS \
-        and not settings.DASHBOARD_EDIT_GROUP:
-      return ALL_PERMISSIONS      # don't require login
-    else:
       return []
   # from here on, we have a user
+  permissions = ALL_PERMISSIONS
   if settings.DASHBOARD_REQUIRE_PERMISSIONS:
-    return [permission for permission in ALL_PERMISSIONS \
-      if user.has_perm('dashboard.%s_dashboard' % permission)]
-  editGroup = settings.DASHBOARD_EDIT_GROUP
-  if editGroup:
-    if len(user.groups.filter(name = editGroup)) > 0:
-      return ALL_PERMISSIONS
-    else:
-      return []
-  return ALL_PERMISSIONS
+    permissions = [permission for permission in ALL_PERMISSIONS if user.has_perm('dashboard.%s_dashboard' % permission)]
+  editGroup = settings.DASHBOARD_REQUIRE_EDIT_GROUP
+  if editGroup and len(user.groups.filter(name = editGroup)) == 0:
+    permissions = []
+  return permissions
   
 
 def save(request, name):

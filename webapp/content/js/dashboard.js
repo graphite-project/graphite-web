@@ -2891,9 +2891,9 @@ function map(myArray, myFunc) {
 
 function getLoginMenuItemText() {
   if (isLoggedIn()) {
-    return 'Log out from "' + userName + '"';
+    return 'Log Out From "' + userName + '"';
   } else {
-    return 'Log in';
+    return 'Log In';
   }
 }
 
