@@ -160,7 +160,7 @@ def expand_view(request):
     results[query] = set()
     for node in STORE.find(query, local=local_only):
       if node.is_leaf or not leaves_only:
-        results[query].add( node.metric_path )
+        results[query].add( node.path )
 
   # Convert our results to sorted lists because sets aren't json-friendly
   if group_by_expr:

@@ -95,7 +95,7 @@ xAxisConfigs = (
   dict(seconds=30,    minorGridUnit=MIN,  minorGridStep=10, majorGridUnit=HOUR, majorGridStep=1,  labelUnit=HOUR, labelStep=1,  format="%H:%M", maxInterval=2*DAY),
   dict(seconds=60,    minorGridUnit=MIN,  minorGridStep=30, majorGridUnit=HOUR, majorGridStep=2,  labelUnit=HOUR, labelStep=2,  format="%H:%M", maxInterval=2*DAY),
   dict(seconds=100,   minorGridUnit=HOUR, minorGridStep=2,  majorGridUnit=HOUR, majorGridStep=4,  labelUnit=HOUR, labelStep=4,  format=percent_l_supported and "%a %l%p" or "%a %I%p", maxInterval=6*DAY),
-  dict(seconds=255,   minorGridUnit=HOUR, minorGridStep=6,  majorGridUnit=HOUR, majorGridStep=12, labelUnit=HOUR, labelStep=12, format=percent_l_supported and "%m/%d %l%p" or "%m/%d %I%p"),
+  dict(seconds=255,   minorGridUnit=HOUR, minorGridStep=6,  majorGridUnit=HOUR, majorGridStep=12, labelUnit=HOUR, labelStep=12, format=percent_l_supported and "%m/%d %l%p" or "%m/%d %I%p", maxInterval=10*DAY),
   dict(seconds=600,   minorGridUnit=HOUR, minorGridStep=6,  majorGridUnit=DAY,  majorGridStep=1,  labelUnit=DAY,  labelStep=1,  format="%m/%d", maxInterval=14*DAY),
   dict(seconds=600,   minorGridUnit=HOUR, minorGridStep=12, majorGridUnit=DAY,  majorGridStep=1,  labelUnit=DAY,  labelStep=1,  format="%m/%d", maxInterval=365*DAY),
   dict(seconds=2000,  minorGridUnit=DAY,  minorGridStep=1,  majorGridUnit=DAY,  majorGridStep=2,  labelUnit=DAY,  labelStep=2,  format="%m/%d", maxInterval=365*DAY),
@@ -767,18 +767,6 @@ class LineGraph(Graph):
       'bevel' : cairo.LINE_JOIN_BEVEL,
     }[linejoin])
 
-    # stack the values
-    if self.areaMode == 'stacked' and not self.secondYAxis: #TODO Allow stacked area mode with secondYAxis
-      total = []
-      for series in self.data:
-        for i in range(len(series)):
-          if len(total) <= i: total.append(0)
-
-          if series[i] is not None:
-            original = series[i]
-            series[i] += total[i]
-            total[i] += original
-
     # check whether there is an stacked metric
     singleStacked = False
     for series in self.data:
@@ -787,11 +775,25 @@ class LineGraph(Graph):
     if singleStacked:
       self.data = sort_stacked(self.data)
 
-    # apply stacked setting on series based on areaMode
-    if self.areaMode == 'first':
-      self.data[0].options['stacked'] = True
-    elif self.areaMode != 'none':
+    # stack the values
+    if self.areaMode == 'stacked' and not self.secondYAxis: #TODO Allow stacked area mode with secondYAxis
+      total = []
       for series in self.data:
+        if 'drawAsInfinite' in series.options:
+          continue
+
+        series.options['stacked'] = True
+        for i in range(len(series)):
+          if len(total) <= i: total.append(0)
+
+          if series[i] is not None:
+            original = series[i]
+            series[i] += total[i]
+            total[i] += original
+    elif self.areaMode == 'first':
+      self.data[0].options['stacked'] = True
+    elif self.areaMode == 'all':
+      if 'drawAsInfinite' not in series.options:
         series.options['stacked'] = True
 
     # apply alpha channel and create separate stroke series
@@ -927,7 +929,10 @@ class LineGraph(Graph):
           consecutiveNones = 0
 
       if 'stacked' in series.options:
-        self.fillAreaAndClip(x-series.xStep, y, startX)
+        if self.lineMode == 'staircase':
+          self.fillAreaAndClip(x, y, startX)
+        else:
+          self.fillAreaAndClip(x-series.xStep, y, startX)
       else:
         self.ctx.stroke()
 
