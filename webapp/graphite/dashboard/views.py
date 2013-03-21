@@ -7,7 +7,8 @@ from ConfigParser import ConfigParser
 from django.shortcuts import render_to_response
 from django.http import HttpResponse, QueryDict
 from django.conf import settings
-from graphite.util import json
+from django.contrib.auth import login, authenticate, logout
+from graphite.util import json, getProfile
 from graphite.dashboard.models import Dashboard
 from graphite.render.views import renderView
 from send_graph import send_graph_email
@@ -37,6 +38,7 @@ defaultKeyboardShortcuts = {
   'give_completer_focus' : 'shift-space',
 }
 
+ALL_PERMISSIONS = ['change', 'delete']
 
 class DashboardConfig:
   def __init__(self):
@@ -130,7 +132,13 @@ def dashboard(request, name=None):
     'initialError' : initialError,
     'querystring' : json.dumps( dict( request.GET.items() ) ),
     'dashboard_conf_missing' : dashboard_conf_missing,
+    'userName': '',
+    'permissions': json.dumps(getPermissions(request.user)),
+    'permissionsUnauthenticated': json.dumps(getPermissions(None))
   }
+  user = request.user
+  if user:
+      context['userName'] = user.username
 
   if name is not None:
     try:
@@ -143,7 +151,27 @@ def dashboard(request, name=None):
   return render_to_response("dashboard.html", context)
 
 
+def getPermissions(user):
+  """Return [change, delete] based on authorisation model and user privileges/groups"""
+  if user and not user.is_authenticated():
+    user = None
+  if not settings.DASHBOARD_REQUIRE_AUTHENTICATION:
+    return ALL_PERMISSIONS      # don't require login
+  if not user:
+      return []
+  # from here on, we have a user
+  permissions = ALL_PERMISSIONS
+  if settings.DASHBOARD_REQUIRE_PERMISSIONS:
+    permissions = [permission for permission in ALL_PERMISSIONS if user.has_perm('dashboard.%s_dashboard' % permission)]
+  editGroup = settings.DASHBOARD_REQUIRE_EDIT_GROUP
+  if editGroup and len(user.groups.filter(name = editGroup)) == 0:
+    permissions = []
+  return permissions
+  
+
 def save(request, name):
+  if 'change' not in getPermissions(request.user):
+    return json_response( dict(error="Must be logged in with appropriate permissions to save") )
   # Deserialize and reserialize as a validation step
   state = str( json.dumps( json.loads( request.POST['state'] ) ) )
 
@@ -168,6 +196,9 @@ def load(request, name):
 
 
 def delete(request, name):
+  if 'delete' not in getPermissions(request.user):
+    return json_response( dict(error="Must be logged in with appropriate permissions to delete") )
+
   try:
     dashboard = Dashboard.objects.get(name=name)
   except Dashboard.DoesNotExist:
@@ -250,3 +281,25 @@ def create_temporary(request):
 
 def json_response(obj):
   return HttpResponse(mimetype='application/json', content=json.dumps(obj))
+
+  
+def user_login(request):
+  response = dict(errors={}, text={}, success=False, permissions=[])
+  user = authenticate(username=request.POST['username'],
+                      password=request.POST['password'])
+  if user is not None:
+    if user.is_active:
+      login(request, user)
+      response['success'] = True
+      response['permissions'].extend(getPermissions(user))
+    else:
+      response['errors']['reason'] = 'Account disabled.'
+  else:
+    response['errors']['reason'] = 'Username and/or password invalid.'
+  return json_response(response)
+
+
+def user_logout(request):
+  response = dict(errors={}, text={}, success=True)
+  logout(request)
+  return json_response(response)
