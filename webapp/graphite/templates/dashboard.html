@@ -37,6 +37,16 @@
     {% if querystring %}
     var queryString = {{querystring|safe}};
     {% endif %}
+
+    var permissions = {{permissions|safe}};
+    var permissionsUnauthenticated = {{permissionsUnauthenticated|safe}};
+    
+    {% if userName %}
+    var userName = '{{userName|safe}}';
+    {% else %}
+    var userName = null;
+    {% endif %}
+    
     </script>
 
     <!-- Theme overrides -->

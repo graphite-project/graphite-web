@@ -9,6 +9,7 @@ Graphite Documentation
    carbon-daemons
    config-carbon
    feeding-carbon
+   config-local-settings
    config-webapp
    admin-webapp
    composer
