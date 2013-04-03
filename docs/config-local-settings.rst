@@ -109,7 +109,7 @@ RRD_DIR
   `Default: /opt/graphite/storage/rrd`
   The location of RRD data files
 
-DATA_DIRS
+STANDARD_DIRS
   `Default: [WHISPER_DIR, RRD_DIR]`
   The list of directories searched for data files. By default, this is the value of WHISPER_DIR
   and RRD_DIR (if rrd support is detected). If this setting is defined, the WHISPER_DIR and RRD_DIR
