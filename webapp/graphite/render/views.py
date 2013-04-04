@@ -194,7 +194,7 @@ def renderView(request):
 def parseOptions(request):
   content_type = request.META.get('CONTENT_TYPE', '')
   if content_type.startswith('application/json'):
-    queryParams = json.loads(request.raw_post_data)
+    queryParams = json.loads(request.raw_post_data.strip('\n'))
   else:
     queryParams = request.REQUEST
 
