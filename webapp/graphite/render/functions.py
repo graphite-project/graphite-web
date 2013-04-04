@@ -130,6 +130,12 @@ def normalize(seriesLists):
   end -= (end - start) % step
   return (seriesList,start,end,step)
 
+def formatPathExpressions(seriesList):
+   # remove duplicates
+   pathExpressions = []
+   [pathExpressions.append(s.pathExpression) for s in seriesList if not pathExpressions.count(i.pathExpression)]
+   return ','.join(pathExpressions)
+
 # Series Functions
 
 #NOTE: Some of the functions below use izip, which may be problematic.
@@ -161,8 +167,7 @@ def sumSeries(requestContext, *seriesLists):
     (seriesList,start,end,step) = normalize(seriesLists)
   except:
     return []
-  #name = "sumSeries(%s)" % ','.join((s.name for s in seriesList))
-  name = "sumSeries(%s)" % ','.join(set([s.pathExpression for s in seriesList]))
+  name = "sumSeries(%s)" % formatPathExpressions(seriesList)
   values = ( safeSum(row) for row in izip(*seriesList) )
   series = TimeSeries(name,start,end,step,values)
   series.pathExpression = name
@@ -245,7 +250,7 @@ def diffSeries(requestContext, *seriesLists):
 
   """
   (seriesList,start,end,step) = normalize(seriesLists)
-  name = "diffSeries(%s)" % ','.join(set([s.pathExpression for s in seriesList]))
+  name = "diffSeries(%s)" % formatPathExpressions(seriesList)
   values = ( safeDiff(row) for row in izip(*seriesList) )
   series = TimeSeries(name,start,end,step,values)
   series.pathExpression = name
@@ -266,8 +271,7 @@ def averageSeries(requestContext, *seriesLists):
 
   """
   (seriesList,start,end,step) = normalize(seriesLists)
-  #name = "averageSeries(%s)" % ','.join((s.name for s in seriesList))
-  name = "averageSeries(%s)" % ','.join(set([s.pathExpression for s in seriesList]))
+  name = "averageSeries(%s)" % formatPathExpressions(seriesList)
   values = ( safeDiv(safeSum(row),safeLen(row)) for row in izip(*seriesList) )
   series = TimeSeries(name,start,end,step,values)
   series.pathExpression = name
@@ -287,7 +291,7 @@ def stddevSeries(requestContext, *seriesLists):
 
   """
   (seriesList,start,end,step) = normalize(seriesLists)
-  name = "stddevSeries(%s)" % ','.join(set([s.pathExpression for s in seriesList]))
+  name = "stddevSeries(%s)" % formatPathExpressions(seriesList)
   values = ( safeStdDev(row) for row in izip(*seriesList) )
   series = TimeSeries(name,start,end,step,values)
   series.pathExpression = name
@@ -305,8 +309,7 @@ def minSeries(requestContext, *seriesLists):
     &target=minSeries(Server*.connections.total)
   """
   (seriesList, start, end, step) = normalize(seriesLists)
-  pathExprs = list( set([s.pathExpression for s in seriesList]) )
-  name = "minSeries(%s)" % ','.join(pathExprs)
+  name = "minSeries(%s)" % formatPathExpressions(seriesList)
   values = ( safeMin(row) for row in izip(*seriesList) )
   series = TimeSeries(name, start, end, step, values)
   series.pathExpression = name
@@ -325,8 +328,7 @@ def maxSeries(requestContext, *seriesLists):
 
   """
   (seriesList, start, end, step) = normalize(seriesLists)
-  pathExprs = list( set([s.pathExpression for s in seriesList]) )
-  name = "maxSeries(%s)" % ','.join(pathExprs)
+  name = "maxSeries(%s)" % formatPathExpressions(seriesList)
   values = ( safeMax(row) for row in izip(*seriesList) )
   series = TimeSeries(name, start, end, step, values)
   series.pathExpression = name
@@ -345,7 +347,7 @@ def rangeOfSeries(requestContext, *seriesLists):
 
     """
     (seriesList,start,end,step) = normalize(seriesLists)
-    name = "rangeOfSeries(%s)" % ','.join(set([s.pathExpression for s in seriesList]))
+    name = "rangeOfSeries(%s)" % formatPathExpressions(seriesList)
     values = ( safeSubtract(max(row), min(row)) for row in izip(*seriesList) )
     series = TimeSeries(name,start,end,step,values)
     series.pathExpression = name
@@ -2241,7 +2243,7 @@ def countSeries(requestContext, *seriesLists):
 
   """
   (seriesList,start,end,step) = normalize(seriesLists)
-  name = "countSeries(%s)" % ','.join(set([s.pathExpression for s in seriesList]))
+  name = "countSeries(%s)" % formatPathExpressions(seriesList)
   values = ( int(len(row)) for row in izip(*seriesList) )
   series = TimeSeries(name,start,end,step,values)
   series.pathExpression = name
