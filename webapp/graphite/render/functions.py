@@ -128,7 +128,7 @@ def normalize(seriesLists):
 def formatPathExpressions(seriesList):
    # remove duplicates
    pathExpressions = []
-   [pathExpressions.append(s.pathExpression) for s in seriesList if not pathExpressions.count(i.pathExpression)]
+   [pathExpressions.append(s.pathExpression) for s in seriesList if not pathExpressions.count(s.pathExpression)]
    return ','.join(pathExpressions)
 
 # Series Functions
