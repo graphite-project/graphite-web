@@ -34,6 +34,17 @@ boolean = Group(
 )('boolean')
 
 # Function calls
+
+## Symbols
+leftBrace = Literal('{')
+rightBrace = Literal('}')
+leftParen = Literal('(').suppress()
+rightParen = Literal(')').suppress()
+comma = Literal(',').suppress()
+equal = Literal('=').suppress()
+backslash = Literal('\\').suppress()
+
+symbols = '''(){},=.'"\\'''
 arg = Group(
   boolean |
   number |
@@ -49,23 +60,29 @@ call = Group(
 )('call')
 
 # Metric pattern (aka. pathExpression)
-validMetricChars = alphanums + r'''!#$%&"'*+-.:;<=>?@[\]^_`|~'''
-pathExpression = Combine(
-  Optional(Word(validMetricChars)) +
-  Combine(
-    ZeroOrMore(
-      Group(
-        Literal('{') +
-        Word(validMetricChars + ',') +
-        Literal('}') + Optional( Word(validMetricChars) )
-      )
-    )
+validMetricChars = ''.join((set(printables) - set(symbols)))
+escapedChar = backslash + Word(symbols, exact=1)
+partialPathElem = Combine(
+  OneOrMore(
+    escapedChar | Word(validMetricChars)
   )
-)('pathExpression')
+)
+
+matchEnum = Combine(
+  leftBrace +
+  delimitedList(partialPathElem, combine=True) +
+  rightBrace
+)
+
+pathElement = Combine(
+  Group(partialPathElem | matchEnum) +
+  Optional(matchEnum | partialPathElem)
+)
+pathExpression = delimitedList(pathElement, delim='.', combine=True)('pathExpression')
 
 expression << Group(call | pathExpression)('expression')
-
 grammar << expression
+
 
 def enableDebug():
   for name,obj in globals().items():
