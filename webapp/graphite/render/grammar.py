@@ -76,7 +76,7 @@ matchEnum = Combine(
 
 pathElement = Combine(
   Group(partialPathElem | matchEnum) +
-  Optional(matchEnum | partialPathElem)
+  ZeroOrMore(matchEnum | partialPathElem)
 )
 pathExpression = delimitedList(pathElement, delim='.', combine=True)('pathExpression')
 
