@@ -22,17 +22,18 @@ import random
 import time
 
 from graphite.logger import log
-from graphite.render.datalib import TimeSeries
 from graphite.render.attime import parseTimeOffset
-from graphite.util import timestamp
 
 from graphite.events import models
+
 #XXX format_units() should go somewhere else
 from os import environ
 if environ.get('READTHEDOCS'):
   format_units = lambda *args, **kwargs: (0,'')
 else:
   from graphite.render.glyph import format_units
+  from graphite.render.datalib import TimeSeries
+  from graphite.util import timestamp
 
 NAN = float('NaN')
 INF = float('inf')
@@ -2833,4 +2834,5 @@ SeriesFunctions = {
 
 
 #Avoid import circularity
-from graphite.render.evaluator import evaluateTarget
+if not environ.get('READTHEDOCS'):
+  from graphite.render.evaluator import evaluateTarget
