@@ -54,9 +54,9 @@ def index_json(request):
     for m in sorted(matches)
   ]
   if jsonp:
-    return HttpResponse("%s(%s)" % (jsonp, json.dumps(matches)), mimetype='text/javascript')
+    return HttpResponse("%s(%s)" % (jsonp, dumps(matches)), mimetype='text/javascript')
   else:
-    return HttpResponse(json.dumps(matches), mimetype='application/json')
+    return HttpResponse(dumps(matches), mimetype='application/json')
 
 
 def search_view(request):
@@ -73,7 +73,7 @@ def search_view(request):
   #  search_request['query'] += '*'
 
   results = sorted(searcher.search(**search_request))
-  result_data = json.dumps( dict(metrics=results) )
+  result_data = dumps( dict(metrics=results) )
   return HttpResponse(result_data, mimetype='application/json')
 
 
@@ -145,7 +145,7 @@ def find_view(request):
       wildcardNode = {'name' : '*'}
       results.append(wildcardNode)
 
-    content = json.dumps({ 'metrics' : results })
+    content = dumps({ 'metrics' : results })
     response = HttpResponse(content, mimetype='application/json')
 
   else:
@@ -180,7 +180,7 @@ def expand_view(request):
     'results' : results
   }
 
-  response = HttpResponse(json.dumps(result), mimetype='application/json')
+  response = HttpResponse(dumps(result), mimetype='application/json')
   response['Pragma'] = 'no-cache'
   response['Cache-Control'] = 'no-cache'
   return response
@@ -197,7 +197,7 @@ def get_metadata_view(request):
       log.exception()
       results[metric] = dict(error="Unexpected error occurred in CarbonLink.get_metadata(%s, %s)" % (metric, key))
 
-  return HttpResponse(json.dumps(results), mimetype='application/json')
+  return HttpResponse(dumps(results), mimetype='application/json')
 
 
 def set_metadata_view(request):
@@ -232,7 +232,7 @@ def set_metadata_view(request):
   else:
     results = dict(error="Invalid request method")
 
-  return HttpResponse(json.dumps(results), mimetype='application/json')
+  return HttpResponse(dumps(results), mimetype='application/json')
 
 
 def tree_json(nodes, base_path, wildcards=False):
@@ -283,7 +283,7 @@ def tree_json(nodes, base_path, wildcards=False):
 
   results.extend(results_branch)
   results.extend(results_leaf)
-  return json.dumps(results)
+  return dumps(results)
 
 
 def pickle_nodes(nodes):
@@ -304,3 +304,8 @@ def any(iterable): #python2.4 compatibility
     if i:
       return True
   return False
+
+def dumps(obj, ensure_ascii=False, **kwargs):
+  """Wrap json.dumps, but don't ensure_ascii by default."""
+  return json.dumps(obj, ensure_ascii=ensure_ascii, **kwargs)
+
