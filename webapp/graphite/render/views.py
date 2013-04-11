@@ -168,6 +168,15 @@ def renderView(request):
       log.rendering('Total pickle rendering time %.6f' % (time() - start))
       return response
 
+    if format == 'rickshaw':
+      series_data = []
+      for series in data:
+        timestamps = range(series.start, series.end, series.step)
+        datapoints = [{'x':x, 'y':y} for x, y in zip(series, timestamps)]
+        series_data.append(dict(name=series.name, datapoints=datapoints))
+      response = HttpResponse(content=json.dumps(series_data), mimetype='application/json')
+      return response
+
 
   # We've got the data, now to render it
   graphOptions['data'] = data
