@@ -62,7 +62,14 @@ def index_json(request):
   for match in do_walk_rrd_dirs(settings.RRD_DIR):
     matches.append(match)
 
-  matches = [ m.replace('.wsp','').replace('.rrd','').replace('/', '.').lstrip('.') for m in sorted(matches) ]
+  matches = [
+    m
+    .replace('.wsp','')
+    .replace('.rrd','')
+    .replace('/', '.')
+    .lstrip('.')
+    for m in sorted(matches)
+  ]
   if jsonp:
     return HttpResponse("%s(%s)" % (jsonp, json.dumps(matches)), mimetype='text/javascript')
   else:
