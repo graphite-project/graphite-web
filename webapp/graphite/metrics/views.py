@@ -64,8 +64,8 @@ def index_json(request):
 
   matches = [
     m
-    .replace('.wsp','')
-    .replace('.rrd','')
+    .replace('.wsp', '')
+    .replace('.rrd', '')
     .replace('/', '.')
     .lstrip('.')
     for m in sorted(matches)
