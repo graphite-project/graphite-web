@@ -45,7 +45,14 @@ def index_json(request):
       if filename == '.ceres-node':
         matches.append(root)
 
-  matches = [ m.replace('.wsp','').replace('/', '.') for m in sorted(matches) ]
+  matches = [
+    m
+    .replace('.wsp', '')
+    .replace('.rrd', '')
+    .replace('/', '.')
+    .lstrip('.')
+    for m in sorted(matches)
+  ]
   if jsonp:
     return HttpResponse("%s(%s)" % (jsonp, json.dumps(matches)), mimetype='text/javascript')
   else:
