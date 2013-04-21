@@ -240,7 +240,7 @@ def parseOptions(request):
   for opt in graphClass.customizable:
     if opt in queryParams:
       val = queryParams[opt]
-      if (val.isdigit() or (val.startswith('-') and val[1:].isdigit())) and opt not in ('fgcolor','bgcolor','fontColor'):
+      if (val.isdigit() or (val.startswith('-') and val[1:].isdigit())) and 'color' not in opt.lower():
         val = int(val)
       elif '.' in val and (val.replace('.','',1).isdigit() or (val.startswith('-') and val[1:].replace('.','',1).isdigit())):
         val = float(val)
