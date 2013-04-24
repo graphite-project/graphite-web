@@ -329,7 +329,7 @@ class Graph:
       numberOfLines = max(len(elements) - numRight, numRight)
       columns = math.floor(columns / 2.0)
       if columns < 1: columns = 1
-      legendHeight = (numberOfLines / columns) * (lineHeight + padding)
+      legendHeight = max(1, (numberOfLines / columns)) * (lineHeight + padding)
       self.area['ymax'] -= legendHeight #scoot the drawing area up to fit the legend
       self.ctx.set_line_width(1.0)
       x = self.area['xmin']
