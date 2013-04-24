@@ -996,8 +996,11 @@ def aliasSub(requestContext, seriesList, search, replace):
 
     &target=aliasSub(ip.*TCP*,"^.*TCP(\d+)","\\1")
   """
-  for series in seriesList:
-    series.name = re.sub(search, replace, series.name)
+  try:
+    seriesList.name = re.sub(search, replace, seriesList.name)
+  except AttributeError:
+    for series in seriesList:
+      series.name = re.sub(search, replace, series.name)
   return seriesList
 
 
@@ -1011,9 +1014,13 @@ def alias(requestContext, seriesList, newName):
     &target=alias(Sales.widgets.largeBlue,"Large Blue Widgets")
 
   """
-  for series in seriesList:
-    series.name = newName
+  try:
+    seriesList.name = newName
+  except AttributeError:
+    for series in seriesList:
+      series.name = newName
   return seriesList
+
 
 def cactiStyle(requestContext, seriesList, system=None):
   """
