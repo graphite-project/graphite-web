@@ -217,7 +217,11 @@ def renderView(request):
 
 
 def parseOptions(request):
-  queryParams = request.REQUEST
+  content_type = request.META.get('CONTENT_TYPE', '')
+  if content_type.startswith('application/json'):
+    queryParams = json.loads(request.raw_post_data.strip('\n'))
+  else:
+    queryParams = request.REQUEST
 
   # Start with some defaults
   graphOptions = {'width' : 330, 'height' : 250}
@@ -236,8 +240,12 @@ def parseOptions(request):
 
   # Extract the targets out of the queryParams
   mytargets = []
+  # JSON format: {'targets': ['path.1', 'path.2']}
+  if len(queryParams.get('targets', [])) > 0:
+    mytargets = queryParams.get('targets', [])
+
   # Normal format: ?target=path.1&target=path.2
-  if len(queryParams.getlist('target')) > 0:
+  elif len(queryParams.getlist('target')) > 0:
     mytargets = queryParams.getlist('target')
 
   # Rails/PHP/jQuery common practice format: ?target[]=path.1&target[]=path.2
