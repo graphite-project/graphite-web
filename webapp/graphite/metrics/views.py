@@ -173,7 +173,7 @@ def find_view(request):
 
   if format == 'treejson':
     content = tree_json(matches, base_path, wildcards=profile.advancedUI or wildcards, contexts=contexts)
-    response = HttpResponse(content, mimetype='application/json')
+    response = json_response_for(request, content)
 
   elif format == 'pickle':
     content = pickle_nodes(matches, contexts=contexts)
@@ -340,7 +340,7 @@ def tree_json(nodes, base_path, wildcards=False, contexts=False):
 
   results.extend(results_branch)
   results.extend(results_leaf)
-  return json.dumps(results)
+  return results
 
 
 def pickle_nodes(nodes, contexts=False):
