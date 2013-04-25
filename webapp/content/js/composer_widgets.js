@@ -576,11 +576,7 @@ var GraphDataWindow = {
           var newTarget;
 
           if (extraArg) {
-            if (funcName == 'mostDeviant') { //SPECIAL CASE HACK
-              newTarget = funcName + '(' + extraArg + ',' + target + ')';
-            } else {
-              newTarget = funcName + '(' + target + ',' + extraArg + ')';
-            }
+            newTarget = funcName + '(' + target + ',' + extraArg + ')';
           } else {
             newTarget = funcName + '(' + target + ')';
           }
