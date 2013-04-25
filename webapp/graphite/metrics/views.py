@@ -300,9 +300,6 @@ def any(iterable): #python2.4 compatibility
       return True
   return False
 
-def dumps(obj, ensure_ascii=False, **kwargs):
-  """Wrap json.dumps, but don't ensure_ascii by default."""
-  return json.dumps(obj, ensure_ascii=ensure_ascii, **kwargs)
 def json_response_for(request, data, mimetype='application/json', jsonp=False, **kwargs):
   accept = request.META.get('HTTP_ACCEPT', 'application/json')
   ensure_ascii = accept == 'application/json'
