@@ -70,10 +70,7 @@ def index_json(request):
     .lstrip('.')
     for m in sorted(matches)
   ]
-  if jsonp:
-    return HttpResponse("%s(%s)" % (jsonp, json.dumps(matches)), mimetype='text/javascript')
-  else:
-    return HttpResponse(json.dumps(matches), mimetype='application/json')
+  return json_response_for(request, matches, jsonp=jsonp)
 
 
 def search_view(request):
