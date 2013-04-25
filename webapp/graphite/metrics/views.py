@@ -90,8 +90,7 @@ def search_view(request):
   #  search_request['query'] += '*'
 
   results = sorted(searcher.search(**search_request))
-  result_data = json.dumps( dict(metrics=results) )
-  return HttpResponse(result_data, mimetype='application/json')
+  return json_response_for(request, dict(metrics=results))
 
 
 def context_view(request):
@@ -109,8 +108,7 @@ def context_view(request):
       else:
         contexts.append({ 'metric' : metric, 'context' : context })
 
-    content = json.dumps( { 'contexts' : contexts } )
-    return HttpResponse(content, mimetype='application/json')
+    return json_response_for(request, { 'contexts' : contexts })
 
   elif request.method == 'POST':
 
@@ -195,8 +193,7 @@ def find_view(request):
       wildcardNode = {'name' : '*'}
       results.append(wildcardNode)
 
-    content = json.dumps({ 'metrics' : results })
-    response = HttpResponse(content, mimetype='application/json')
+    response = json_response_for(request, { 'metrics' : results })
 
   else:
     return HttpResponseBadRequest(content="Invalid value for 'format' parameter", mimetype="text/plain")
@@ -235,7 +232,7 @@ def expand_view(request):
     'results' : results
   }
 
-  response = HttpResponse(json.dumps(result), mimetype='application/json')
+  response = json_response_for(request, result)
   response['Pragma'] = 'no-cache'
   response['Cache-Control'] = 'no-cache'
   return response
@@ -252,7 +249,7 @@ def get_metadata_view(request):
       log.exception()
       results[metric] = dict(error="Unexpected error occurred in CarbonLink.get_metadata(%s, %s)" % (metric, key))
 
-  return HttpResponse(json.dumps(results), mimetype='application/json')
+  return json_response_for(request, results)
 
 
 def set_metadata_view(request):
@@ -287,7 +284,7 @@ def set_metadata_view(request):
   else:
     results = dict(error="Invalid request method")
 
-  return HttpResponse(json.dumps(results), mimetype='application/json')
+  return json_response_for(request, results)
 
 
 def tree_json(nodes, base_path, wildcards=False, contexts=False):
