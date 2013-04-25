@@ -359,3 +359,16 @@ def any(iterable): #python2.4 compatibility
     if i:
       return True
   return False
+
+def json_response_for(request, data, mimetype='application/json', jsonp=False, **kwargs):
+  accept = request.META.get('HTTP_ACCEPT', 'application/json')
+  ensure_ascii = accept == 'application/json'
+
+  content = json.dumps(data, ensure_ascii=ensure_ascii)
+  if jsonp:
+    content = "%s(%)" % (jsonp, content)
+    mimetype = 'text/javascript'
+  if not ensure_ascii:
+    mimetype += ';charset=utf-8'
+
+  return HttpResponse(content, mimetype=mimetype, **kwargs)
