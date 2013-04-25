@@ -1640,12 +1640,12 @@ def useSeriesAbove(requestContext, seriesList, value, search, replace):
 
   return newSeries
 
-def mostDeviant(requestContext, n, seriesList):
+def mostDeviant(requestContext, seriesList, n):
   """
-  Takes an integer N followed by one metric or a wildcard seriesList.
+  Takes one metric or a wildcard seriesList followed by an integer N.
   Draws the N most deviant metrics.
-  To find the deviant, the average across all metrics passed is determined,
-  and then the average of each metric is compared to the overall average.
+  To find the deviants, the standard deviation (sigma) of each series
+  is taken and ranked. The top N standard deviations are returned.
 
     Example:
 
