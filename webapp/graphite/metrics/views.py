@@ -73,8 +73,7 @@ def search_view(request):
   #  search_request['query'] += '*'
 
   results = sorted(searcher.search(**search_request))
-  result_data = dumps( dict(metrics=results) )
-  return HttpResponse(result_data, mimetype='application/json')
+  return json_response_for(request, dict(metrics=results))
 
 
 def find_view(request):
@@ -145,8 +144,7 @@ def find_view(request):
       wildcardNode = {'name' : '*'}
       results.append(wildcardNode)
 
-    content = dumps({ 'metrics' : results })
-    response = HttpResponse(content, mimetype='application/json')
+    response = json_response_for(request, { 'metrics' : results})
 
   else:
     return HttpResponseBadRequest(content="Invalid value for 'format' parameter", mimetype="text/plain")
@@ -180,7 +178,7 @@ def expand_view(request):
     'results' : results
   }
 
-  response = HttpResponse(dumps(result), mimetype='application/json')
+  response = json_response_for(request, result)
   response['Pragma'] = 'no-cache'
   response['Cache-Control'] = 'no-cache'
   return response
@@ -197,7 +195,7 @@ def get_metadata_view(request):
       log.exception()
       results[metric] = dict(error="Unexpected error occurred in CarbonLink.get_metadata(%s, %s)" % (metric, key))
 
-  return HttpResponse(dumps(results), mimetype='application/json')
+  return json_response_for(request, results)
 
 
 def set_metadata_view(request):
@@ -232,7 +230,7 @@ def set_metadata_view(request):
   else:
     results = dict(error="Invalid request method")
 
-  return HttpResponse(dumps(results), mimetype='application/json')
+  return json_response_for(request, results)
 
 
 def tree_json(nodes, base_path, wildcards=False):
