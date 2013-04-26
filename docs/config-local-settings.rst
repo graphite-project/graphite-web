@@ -109,7 +109,7 @@ RRD_DIR
   `Default: /opt/graphite/storage/rrd`
   The location of RRD data files
 
-DATA_DIRS
+STANDARD_DIRS
   `Default: [WHISPER_DIR, RRD_DIR]`
   The list of directories searched for data files. By default, this is the value of WHISPER_DIR
   and RRD_DIR (if rrd support is detected). If this setting is defined, the WHISPER_DIR and RRD_DIR
@@ -227,6 +227,36 @@ LOGIN_URL
   Modifies the URL linked in the `Login` link in the Composer interface. This is useful
   for directing users to an external authentication link such as for Remote User authentication
   or a backend such as `django_openid_auth <https://launchpad.net/django-openid-auth>`_
+
+Dashboard Authorization Configuration
+-------------------------------------
+These settings control who is allowed to save and delete dashboards.  By default anyone
+can perform these actions, but by setting DASHBOARD_REQUIRE_AUTHENTICATION, users must at
+least be logged in to do so.  The other two settings allow further restriction of who is
+able to perform these actions. Users who are not suitably authorized will still be able to
+use and change dashboards, but will not be able to save changes or delete dashboards.
+
+DASHBOARD_REQUIRE_AUTHENTICATION
+  `Default: False`
+
+  If set to True, dashboards can only be saved and deleted by logged in users.
+
+DASHBOARD_REQUIRE_EDIT_GROUP
+  `Default: None`
+
+  If set to the name of a user group, dashboards can only be saved and deleted by logged-in users
+  who are members of this group.  Groups can be set in the Django Admin app, or in LDAP.
+
+  Note that DASHBOARD_REQUIRE_AUTHENTICATION must be set to true - if not, this setting is ignored.
+
+DASHBOARD_REQUIRE_PERMISSIONS
+  `Default: False`
+
+  If set to True, dashboards can only be saved or deleted by users having the appropriate
+  (change or delete) permission (as set in the Django Admin app). These permissions can be set at
+  the user or group level.  Note that Django's 'add' permission is not used.
+  
+  Note that DASHBOARD_REQUIRE_AUTHENTICATION must be set to true - if not, this setting is ignored.
 
 Database Configuration
 ----------------------

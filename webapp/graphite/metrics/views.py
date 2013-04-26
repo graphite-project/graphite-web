@@ -39,11 +39,21 @@ def index_json(request):
       if fnmatch.fnmatch(basename, '*.wsp'):
         matches.append(os.path.join(root, basename))
 
-  matches = [ m.replace('.wsp','').replace('/', '.') for m in sorted(matches) ]
-  if jsonp:
-    return HttpResponse("%s(%s)" % (jsonp, json.dumps(matches)), mimetype='text/javascript')
-  else:
-    return HttpResponse(json.dumps(matches), mimetype='application/json')
+  for root, dirs, files in os.walk(settings.CERES_DIR):
+    root = root.replace(settings.CERES_DIR, '')
+    for filename in files:
+      if filename == '.ceres-node':
+        matches.append(root)
+
+  matches = [
+    m
+    .replace('.wsp', '')
+    .replace('.rrd', '')
+    .replace('/', '.')
+    .lstrip('.')
+    for m in sorted(matches)
+  ]
+  return json_response_for(request, matches, jsonp=jsonp)
 
 
 def search_view(request):
@@ -60,8 +70,7 @@ def search_view(request):
   #  search_request['query'] += '*'
 
   results = sorted(searcher.search(**search_request))
-  result_data = json.dumps( dict(metrics=results) )
-  return HttpResponse(result_data, mimetype='application/json')
+  return json_response_for(request, dict(metrics=results))
 
 
 def find_view(request):
@@ -114,7 +123,7 @@ def find_view(request):
 
   if format == 'treejson':
     content = tree_json(matches, base_path, wildcards=profile.advancedUI or wildcards)
-    response = HttpResponse(content, mimetype='application/json')
+    response = json_response_for(request, content)
 
   elif format == 'pickle':
     content = pickle_nodes(matches)
@@ -132,8 +141,7 @@ def find_view(request):
       wildcardNode = {'name' : '*'}
       results.append(wildcardNode)
 
-    content = json.dumps({ 'metrics' : results })
-    response = HttpResponse(content, mimetype='application/json')
+    response = json_response_for(request, { 'metrics' : results})
 
   else:
     return HttpResponseBadRequest(content="Invalid value for 'format' parameter", mimetype="text/plain")
@@ -154,7 +162,7 @@ def expand_view(request):
     results[query] = set()
     for node in STORE.find(query, local=local_only):
       if node.is_leaf or not leaves_only:
-        results[query].add( node.metric_path )
+        results[query].add( node.path )
 
   # Convert our results to sorted lists because sets aren't json-friendly
   if group_by_expr:
@@ -167,7 +175,7 @@ def expand_view(request):
     'results' : results
   }
 
-  response = HttpResponse(json.dumps(result), mimetype='application/json')
+  response = json_response_for(request, result)
   response['Pragma'] = 'no-cache'
   response['Cache-Control'] = 'no-cache'
   return response
@@ -184,7 +192,7 @@ def get_metadata_view(request):
       log.exception()
       results[metric] = dict(error="Unexpected error occurred in CarbonLink.get_metadata(%s, %s)" % (metric, key))
 
-  return HttpResponse(json.dumps(results), mimetype='application/json')
+  return json_response_for(request, results)
 
 
 def set_metadata_view(request):
@@ -219,7 +227,7 @@ def set_metadata_view(request):
   else:
     results = dict(error="Invalid request method")
 
-  return HttpResponse(json.dumps(results), mimetype='application/json')
+  return json_response_for(request, results)
 
 
 def tree_json(nodes, base_path, wildcards=False):
@@ -270,7 +278,7 @@ def tree_json(nodes, base_path, wildcards=False):
 
   results.extend(results_branch)
   results.extend(results_leaf)
-  return json.dumps(results)
+  return results
 
 
 def pickle_nodes(nodes):
@@ -291,3 +299,16 @@ def any(iterable): #python2.4 compatibility
     if i:
       return True
   return False
+
+def json_response_for(request, data, mimetype='application/json', jsonp=False, **kwargs):
+  accept = request.META.get('HTTP_ACCEPT', 'application/json')
+  ensure_ascii = accept == 'application/json'
+
+  content = json.dumps(data, ensure_ascii=ensure_ascii)
+  if jsonp:
+    content = "%s(%)" % (jsonp, content)
+    mimetype = 'text/javascript'
+  if not ensure_ascii:
+    mimetype += ';charset=utf-8'
+
+  return HttpResponse(content, mimetype=mimetype, **kwargs)

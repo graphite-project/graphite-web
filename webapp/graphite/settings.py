@@ -27,7 +27,6 @@ JAVASCRIPT_DEBUG = False
 WEB_DIR = dirname( abspath(__file__) )
 WEBAPP_DIR = dirname(WEB_DIR)
 GRAPHITE_ROOT = dirname(WEBAPP_DIR)
-THIRDPARTY_DIR = join(WEB_DIR,'thirdparty')
 # Initialize additional path variables
 # Defaults for these are set after local_settings is imported
 CONTENT_DIR = ''
@@ -47,8 +46,6 @@ STANDARD_DIRS = []
 CLUSTER_SERVERS = []
 
 sys.path.insert(0, WEBAPP_DIR)
-# Allow local versions of the libs shipped in thirdparty to take precedence
-sys.path.append(THIRDPARTY_DIR)
 
 # Cluster settings
 CLUSTER_SERVERS = []
@@ -95,6 +92,16 @@ USE_REMOTE_USER_AUTHENTICATION = False
 
 # Override to link a different URL for login (e.g. for django_openid_auth)
 LOGIN_URL = '/account/login'
+
+# Set to True to require authentication to save or delete dashboards
+DASHBOARD_REQUIRE_AUTHENTICATION = False
+# Require Django change/delete permissions to save or delete dashboards.
+# NOTE: Requires DASHBOARD_REQUIRE_AUTHENTICATION to be set
+DASHBOARD_REQUIRE_PERMISSIONS = False
+# Name of a group to which the user must belong to save or delete dashboards.  Alternative to
+# DASHBOARD_REQUIRE_PERMISSIONS, particularly useful when using only LDAP (without Admin app)
+# NOTE: Requires DASHBOARD_REQUIRE_AUTHENTICATION to be set
+DASHBOARD_REQUIRE_EDIT_GROUP = None
 
 #Initialize database settings - Old style (pre 1.2)
 DATABASE_ENGINE = 'django.db.backends.sqlite3'	# 'postgresql', 'mysql', 'sqlite3' or 'ado_mssql'.

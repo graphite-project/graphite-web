@@ -1,4 +1,32 @@
 [default]
+background = white
+foreground = black
+minorLine = grey
+majorLine = rose
+
+[solarized-light]
+background = #fdf6e3
+foreground = #657b83
+majorLine = #073642
+minorLine = #586e75
+lineColors = 268bd2aa,859900aa,dc322faa,d33682aa,db4b16aa,b58900aa,2aa198aa,6c71c4aa
+fontName = Sans
+fontSize = 10
+fontBold = False
+fontItalic = False
+
+[solarized-dark]
+background = #002b36
+foreground = #839496
+majorLine = #fdf6e3
+minorLine = #eee8d5
+lineColors = 268bd2aa,859900aa,dc322faa,d33682aa,db4b16aa,b58900aa,2aa198aa,6c71c4aa
+fontName = Sans
+fontSize = 10
+fontBold = False
+fontItalic = False
+
+[classic]
 background = black
 foreground = white
 majorLine = white
@@ -19,12 +47,6 @@ fontName = Sans
 fontSize = 10
 fontBold = False
 fontItalic = False
-
-[plain]
-background = white
-foreground = black
-minorLine = grey
-majorLine = rose
 
 [summary]
 background = black

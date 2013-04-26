@@ -16,24 +16,20 @@ from datetime import datetime,timedelta
 from time import daylight
 from django.conf import settings
 
-try: # See if there is a system installation of pytz first
-  import pytz
-except ImportError: # Otherwise we fall back to Graphite's bundled version
-  from graphite.thirdparty import pytz
-
+import pytz
 
 months = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec']
 weekdays = ['sun','mon','tue','wed','thu','fri','sat']
 
-tzinfo = pytz.timezone(settings.TIME_ZONE)
-
-def parseATTime(s):
+def parseATTime(s, tzinfo=None):
   s = s.strip().lower().replace('_','').replace(',','').replace(' ','')
   if s.isdigit():
     if len(s) == 8 and int(s[:4]) > 1900 and int(s[4:6]) < 13 and int(s[6:]) < 32:
       pass #Fall back because its not a timestamp, its YYYYMMDD form
     else:
       return datetime.fromtimestamp(int(s),tzinfo)
+  elif ':' in s:
+    return datetime.strptime(s,'%H:%M%Y%m%d')
   if '+' in s:
     ref,offset = s.split('+',1)
     offset = '+' + offset

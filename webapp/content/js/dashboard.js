@@ -17,6 +17,7 @@ var refreshTask;
 var spacer;
 var justClosedGraph = false;
 var NOT_EDITABLE = ['from', 'until', 'width', 'height', 'target', 'uniq', '_uniq'];
+var editor = null;
 
 var cookieProvider = new Ext.state.CookieProvider({
   path: "/dashboard"
@@ -114,6 +115,18 @@ if (sessionDefaultParamsJson && sessionDefaultParamsJson.length > 0) {
   defaultGraphParams = Ext.apply({}, originalDefaultGraphParams);
 }
 
+function isLoggedIn() {
+  return userName != null;
+}
+
+function hasPermission(permission) {
+  for (i in permissions) {
+    if (permissions[i] === permission) {
+      return true;
+    }
+  }
+  return false;
+}
 
 function initDashboard () {
 
@@ -509,6 +522,7 @@ function initDashboard () {
     text: getTimeText()
   };
 
+  // Note that some of these items are changed in postLoginMenuAdjust() after login/logout
   var dashboardMenu = {
     text: 'Dashboard',
     menu: {
@@ -531,13 +545,28 @@ function initDashboard () {
           handler: function (item, e) {
                      sendSaveRequest(dashboardName);
                    },
-          disabled: (dashboardName == null) ? true : false
+          disabled: dashboardName == null || !hasPermission('change')
         }, {
+          id: "dashboard-save-as-button",
           text: "Save As",
-          handler: saveDashboard
+          handler: saveDashboard,
+          disabled: !hasPermission('change')
         }, {
           text: "Configure UI",
           handler: configureUI
+        }, {
+          text: "Edit Dashboard",
+          handler: editDashboard
+        }, {
+          id: "dashboard-login-button",
+          text: getLoginMenuItemText(),
+          handler: function (item, e) {
+                     if (isLoggedIn()) {
+                       logout();
+                     } else {
+                       showLoginForm();
+                     }
+                   }
         }
       ]
     }
@@ -946,7 +975,7 @@ function graphAreaToggle(target, options) {
 }
 
 function importGraphUrl(targetUrl, options) {
-  var fullUrl = decodeURIComponent(targetUrl).replace(/#/,'%23');
+  var fullUrl = targetUrl;
   var i = fullUrl.indexOf("?");
   if (i == -1) {
     return;
@@ -1365,7 +1394,7 @@ function newFromSavedGraph() {
   function handleSelects(selModel, nodes) {
     Ext.each(nodes, function (node, index) {
       if (!node.leaf) {
-	node.unselect();
+        node.unselect();
         node.toggle();
       }
     });
@@ -2214,6 +2243,78 @@ var keyMap = new Ext.KeyMap(document, keyMapConfigs);
 
 
 /* Dashboard functions */
+function editDashboard() {
+  var edit_dashboard_win = new Ext.Window({
+    title: "Edit Dashboard",
+    id: 'editor-window',
+    width: 700,
+    height: 500,
+    layout: 'vbox',
+    layoutConfig: {align: 'stretch', pack: 'start'},
+    modal: true,
+    items: [
+      {
+        xtype: 'container',
+        flex: 1,
+        id: 'editor',
+        title: 'ace',
+        listeners: { resize: function () { if (editor) editor.resize(); } }
+      }
+    ],
+    listeners: {
+      afterrender: {
+        scope: this,
+        fn: function (obj) { setupEditor(obj.body.dom); getInitialState() }
+      }
+    },
+    buttons: [
+      {text: "Update (doesn't save)", handler: updateAfterEdit},
+      {text: 'Cancel', handler: function () { edit_dashboard_win.close(); } }
+    ]
+  });
+  function updateAfterEdit(btn, target) {
+    var graphString = editor.getSession().getValue();
+    var targets = JSON.parse(graphString);
+    graphStore.removeAll();
+    for (var i = 0; i < targets.length; i++) {
+      var myParams = {};
+      Ext.apply(myParams, targets[i]);
+      var urlParams = {};
+      Ext.apply(urlParams, defaultGraphParams);
+      Ext.apply(urlParams, GraphSize);
+      Ext.apply(urlParams, myParams);
+      var record = new GraphRecord({
+        target: targets[i].target,
+        params: myParams,
+        url: '/render?' + Ext.urlEncode(urlParams)
+      });
+      graphStore.add([record]);
+    }
+    edit_dashboard_win.close();
+  }
+  function getInitialState() {
+    var graphs = [];
+    graphStore.each(function () {
+      var params = {};
+      Ext.apply(params, this.data.params);
+      delete params['from'];
+      delete params['until'];
+      graphs.push(params);
+    });
+    editor.getSession().setValue(JSON.stringify(graphs, null, 2));
+  }
+  function setupEditor(obj) {
+    editor = ace.edit("editor");
+    editor.setTheme("ace/theme/textmate");
+    var JSONMode = require("ace/mode/json").Mode;
+    var session = editor.getSession();
+    session.setMode(new JSONMode());
+    session.setUseSoftTabs(true);
+    session.setTabSize(2);
+  }
+  edit_dashboard_win.show();
+}
+
 function saveDashboard() {
   Ext.Msg.prompt(
     "Save Dashboard",
@@ -2352,7 +2453,7 @@ function setDashboardName(name) {
   dashboardName = name;
   var saveButton = Ext.getCmp('dashboard-save-button');
 
-  if (name == null) {
+  if (name == null || !hasPermission('change')) {
     dashboardURL = null;
     document.title = "untitled - Graphite Dashboard";
     navBar.setTitle("untitled");
@@ -2511,7 +2612,11 @@ function showDashboardFinder() {
                            Ext.getCmp('finder-delete-button').disable();
                          } else {
                            Ext.getCmp('finder-open-button').enable();
-                           Ext.getCmp('finder-delete-button').enable();
+                           if (hasPermission('delete')) {
+                             Ext.getCmp('finder-delete-button').enable();
+                           } else {
+                             Ext.getCmp('finder-delete-button').disable();
+                           }
                          }
                        },
 
@@ -2646,11 +2751,7 @@ function applyFuncToEach(funcName, extraArg) {
         removeTargetFromSelectedGraph(target);
 
         if (extraArg) {
-          if (funcName == 'mostDeviant') { //SPECIAL CASE HACK
-            newTarget = funcName + '(' + extraArg + ',' + target + ')';
-          } else {
-            newTarget = funcName + '(' + target + ',' + extraArg + ')';
-          }
+          newTarget = funcName + '(' + target + ',' + extraArg + ')';
         } else {
           newTarget = funcName + '(' + target + ')';
         }
@@ -2783,3 +2884,102 @@ function map(myArray, myFunc) {
   }
   return results;
 }
+
+function getLoginMenuItemText() {
+  if (isLoggedIn()) {
+    return 'Log Out From "' + userName + '"';
+  } else {
+    return 'Log In';
+  }
+}
+
+/* After login/logout, make any necessary adjustments to Dashboard menu items (text and/or disabled) */
+function postLoginMenuAdjust() {
+  Ext.getCmp("dashboard-login-button").setText(getLoginMenuItemText());
+  Ext.getCmp("dashboard-save-button").setDisabled(dashboardName == null || !hasPermission('change'));
+  Ext.getCmp("dashboard-save-as-button").setDisabled(!hasPermission('change'));
+}
+
+function showLoginForm() {
+  var login = new Ext.FormPanel({
+    labelWidth: 80,
+    frame: true,
+    title: 'Please Login',
+    defaultType: 'textfield',
+    monitorValid: true,
+
+    items: [{
+        fieldLabel: 'Username',
+        name: 'username',
+        allowBlank: false,
+        listeners: {
+          afterrender: function(field) { field.focus(false, 100); }
+        }
+      },{
+        fieldLabel: 'Password',
+        name: 'password',
+        inputType: 'password',
+        allowBlank: false
+      }
+    ],
+    buttons: [
+      {text: 'Login', formBind: true, handler: doLogin},
+      {text: 'Cancel', handler: function () { win.close(); } }
+    ]
+  });
+  
+  function doLogin() {
+    login.getForm().submit({
+      method: 'POST',
+      url: '/dashboard/login',
+      waitMsg: 'Authenticating...',
+      success: function(form, action) {
+        userName = form.findField('username').getValue();
+        permissions = action.result.permissions;
+        postLoginMenuAdjust();
+        win.close();
+      },
+      failure: function(form, action) {
+        if (action.failureType == 'server') {
+          var obj = Ext.util.JSON.decode(action.response.responseText);
+          Ext.Msg.alert('Login Failed!', obj.errors.reason);
+        } else {
+          Ext.Msg.alert('Warning!', 'Authentication server is unreachable : ' + action.response.responseText);
+        }
+        login.getForm().reset();
+      }
+    });
+  }
+
+  var win = new Ext.Window({
+    layout: 'fit',
+    width: 300,
+    height: 150,
+    closable: false,
+    resizable: false,
+    plain: true,
+    border: false,
+    items: [login]
+  });
+  win.show();
+}
+
+function logout() {
+  Ext.Ajax.request({
+    url: '/dashboard/logout',
+    method: 'POST',
+    success: function() {
+      userName = null;
+      permissions = permissionsUnauthenticated;
+      postLoginMenuAdjust();
+    },
+    failure: function() {
+      // Probably because they no longer have a valid session - assume they're now logged out
+      userName = null;
+      permissions = permissionsUnauthenticated;
+      postLoginMenuAdjust();
+    }
+  });
+}
+
+

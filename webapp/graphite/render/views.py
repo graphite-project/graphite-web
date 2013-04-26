@@ -12,7 +12,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 import csv
-from time import time, strftime, localtime
+import math
+from datetime import datetime
+from time import time
 from random import shuffle
 from httplib import CannotSendRequest
 from urllib import urlencode
@@ -23,6 +25,11 @@ try:
   import cPickle as pickle
 except ImportError:
   import pickle
+
+try:  # See if there is a system installation of pytz first
+  import pytz
+except ImportError:  # Otherwise we fall back to Graphite's bundled version
+  from graphite.thirdparty import pytz
 
 from graphite.util import getProfileByUsername, json
 from graphite.remote_storage import HTTPConnectionWithTimeout
@@ -118,17 +125,41 @@ def renderView(request):
 
       for series in data:
         for i, value in enumerate(series):
-          timestamp = localtime( series.start + (i * series.step) )
-          writer.writerow( (series.name, strftime("%Y-%m-%d %H:%M:%S", timestamp), value) )
+          timestamp = datetime.fromtimestamp(series.start + (i * series.step), requestOptions['tzinfo'])
+          writer.writerow((series.name, timestamp.strftime("%Y-%m-%d %H:%M:%S"), value))
 
       return response
 
     if format == 'json':
       series_data = []
-      for series in data:
-        timestamps = range(series.start, series.end, series.step)
-        datapoints = zip(series, timestamps)
-        series_data.append( dict(target=series.name, datapoints=datapoints) )
+      if 'maxDataPoints' in requestOptions and any(data):
+        startTime = min([series.start for series in data])
+        endTime = max([series.end for series in data])
+        timeRange = endTime - startTime
+        maxDataPoints = requestOptions['maxDataPoints']
+        for series in data:
+          numberOfDataPoints = timeRange/series.step
+          if maxDataPoints < numberOfDataPoints:
+            valuesPerPoint = math.ceil(float(numberOfDataPoints) / float(maxDataPoints))
+            secondsPerPoint = int(valuesPerPoint * series.step)
+            # Nudge start over a little bit so that the consolidation bands align with each call
+            # removing 'jitter' seen when refreshing.
+            nudge = secondsPerPoint + (series.start % series.step) - (series.start % secondsPerPoint)
+            series.start = series.start + nudge
+            valuesToLose = int(nudge/series.step)
+            for r in range(1, valuesToLose):
+              del series[0]
+            series.consolidate(valuesPerPoint)
+            timestamps = range(series.start, series.end, secondsPerPoint)
+          else:
+            timestamps = range(series.start, series.end, series.step)
+          datapoints = zip(series, timestamps)
+          series_data.append(dict(target=series.name, datapoints=datapoints))
+      else:
+        for series in data:
+          timestamps = range(series.start, series.end, series.step)
+          datapoints = zip(series, timestamps)
+          series_data.append(dict(target=series.name, datapoints=datapoints))
 
       if 'jsonp' in requestOptions:
         response = HttpResponse(
@@ -227,6 +258,8 @@ def parseOptions(request):
       requestOptions['jsonp'] = queryParams['jsonp']
   if 'noCache' in queryParams:
     requestOptions['noCache'] = True
+  if 'maxDataPoints' in queryParams and queryParams['maxDataPoints'].isdigit():
+    requestOptions['maxDataPoints'] = int(queryParams['maxDataPoints'])
 
   requestOptions['localOnly'] = queryParams.get('local') == '1'
 
@@ -244,16 +277,24 @@ def parseOptions(request):
         continue
       graphOptions[opt] = val
 
+  tzinfo = pytz.timezone(settings.TIME_ZONE)
+  if 'tz' in queryParams:
+    try:
+      tzinfo = pytz.timezone(queryParams['tz'])
+    except pytz.UnknownTimeZoneError:
+      pass
+  requestOptions['tzinfo'] = tzinfo
+
   # Get the time interval for time-oriented graph types
   if graphType == 'line' or graphType == 'pie':
     if 'until' in queryParams:
-      untilTime = parseATTime( queryParams['until'] )
+      untilTime = parseATTime(queryParams['until'], tzinfo)
     else:
-      untilTime = parseATTime('now')
+      untilTime = parseATTime('now', tzinfo)
     if 'from' in queryParams:
-      fromTime = parseATTime( queryParams['from'] )
+      fromTime = parseATTime(queryParams['from'], tzinfo)
     else:
-      fromTime = parseATTime('-1d')
+      fromTime = parseATTime('-1d', tzinfo)
 
     startTime = min(fromTime, untilTime)
     endTime = max(fromTime, untilTime)

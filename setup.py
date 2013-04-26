@@ -54,8 +54,6 @@ setup(
     'graphite.graphlot',
     'graphite.events',
     'graphite.version',
-    'graphite.thirdparty',
-    'graphite.thirdparty.pytz',
   ],
   package_data={'graphite' :
     ['templates/*', 'local_settings.py.example']},

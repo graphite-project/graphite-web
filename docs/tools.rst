@@ -53,6 +53,9 @@ Diamond
 capable of collecting cpu, memory, network, I/O, load and disk metrics. Additionally, it features
 an API for implementing custom collectors for gathering metrics from almost any source.
 
+Evenflow
+--------
+`Evenflow`_ is a simple service for submitting sFlow datagrams to Graphite. It accepts sFlow datagrams from multiple network devices and proxies the data to a Carbon listener. Currently only Generic Interface Counters are supported. All other message types are discarded.
 
 Ganglia
 -------
@@ -66,6 +69,25 @@ that allows Ganglia to send metrics directly to Graphite. Further integration wo
 GDash
 -----
 `Gdash`_ is a simple Graphite dashboard built using Twitters Bootstrap driven by a small DSL.
+
+
+Giraffe
+--------
+`Giraffe`_ is a Graphite real-time dashboard based on `Rickshaw`_ and requires no server backend.
+Inspired by `Gdash`_, `Tasseo`_ and `Graphene`_ it mixes features from all three into a slightly
+different animal.
+
+Graphitus
+---------
+`graphitus`_ is a client side dashboard for graphite built using bootstrap and underscore.js.
+
+
+Graph-Explorer
+--------------
+`Graph-Explorer`_ is a graphite dashboard which uses plugins to add tags and metadata
+to metrics and a query language with lets you filter through them and
+compose/manipulate graphs on the fly. Also aims for high interactivity using
+`TimeseriesWidget`_ and minimal hassle to set up and get running.
 
 
 Graphene
@@ -107,13 +129,15 @@ Graphitejs
 `Graphitejs`_ is a jQuery plugin for easily making and displaying graphs and updating them on
 the fly using the Graphite URL api.
 
+
 Graphsky
 --------
 `Graphsky`_ is flexible and easy to configure PHP based dashboard. It uses JSON template files to
 build graphs and specify which graphs need to be displayed when, similar to Ganglia-web. Just 
-like Ganglia, it uses a hyrarchial structure: Environment/Cluster/Host/Metric to be able to display
+like Ganglia, it uses a hierarchial structure: Environment/Cluster/Host/Metric to be able to display
 overview graphs and host-specific metrics. It communicates directly to the Graphite API to determine
 which Environments, Clusters, Hosts and Metrics are currently stored in Graphite.
+
 
 Grockets
 --------
@@ -147,6 +171,11 @@ jmxtrans
 `jmxtrans`_ is a powerful tool that performs JMX queries to collect metrics from Java applications.
 It is requires very little configuration and is capable of sending metric data to several
 backend applications, including Graphite.
+
+
+Ledbetter
+---------
+`Ledbetter`_ is a simple script for gathering Nagios problem statistics and submitting them to Graphite. It focuses on summary (overall, servicegroup and hostgroup) statistics and writes them to the nagios.problems metrics namespace within Graphite.
 
 
 Logster
@@ -193,6 +222,11 @@ statsd
 A list of forks and alternative implementations can be found at <http://joemiller.me/2011/09/21/list-of-statsd-server-implementations/>
 
 
+Structured Metrics
+------------------
+`structured_metrics`_ is a lightweight python library that uses plugins to read in
+Graphite's list of metric names and convert it into a multi-dimensional tag space of clear, sanitized targets.
+
 Tasseo
 ------
 `Tasseo`_ is a lightweight, easily configurable, real-time dashboard for Graphite metrics.
@@ -201,42 +235,56 @@ Therry
 ------
 `Therry`_ ia s simple web service that caches Graphite metrics and exposes an endpoint for dumping or searching against them by substring.
 
-.. _Diamond: http://opensource.brightcove.com/project/Diamond/
-.. _jmxtrans: http://code.google.com/p/jmxtrans/
-.. _statsd: https://github.com/etsy/statsd
-.. _Ganglia: http://ganglia.info/
+TimeseriesWidget
+----------
+`TimeseriesWidget`_ adds timeseries graphs to your webpages/dashboards using a simple api,
+focuses on high interactivity and modern features (realtime zooming, datapoint inspection,
+annotated events, etc). Supports Graphite, flot, rickshaw and anthracite.
+
 .. _Backbone.js: http://documentcloud.github.com/backbone/
+.. _Backstop: https://github.com/obfuscurity/backstop
+.. _Bucky: http://pypi.python.org/pypi/bucky
+.. _Charcoal: https://github.com/cebailey59/charcoal
 .. _collectd: http://collectd.org/
-.. _collectd-to-graphite: https://github.com/loggly/collectd-to-graphite
 .. _collectd-carbon: https://github.com/indygreg/collectd-carbon
 .. _collectd-graphite: https://github.com/joemiller/collectd-graphite
+.. _collectd-to-graphite: https://github.com/loggly/collectd-to-graphite
 .. _Collectl: http://collectl.sourceforge.net/
 .. _D3.js: http://mbostock.github.com/d3/
-.. _Logster: https://github.com/etsy/logster
-.. _RabbitMQ: http://www.rabbitmq.com/
+.. _Descartes: https://github.com/obfuscurity/descartes
+.. _Diamond: http://opensource.brightcove.com/project/Diamond/
 .. _Esper: http://esper.codehaus.org/
-.. _Rocksteady: http://code.google.com/p/rocksteady/
-.. _Bucky: http://pypi.python.org/pypi/bucky
-.. _Graphite-Tattle: https://github.com/wayfair/Graphite-Tattle
+.. _Evenflow: https://github.com/github/evenflow
+.. _Ganglia: http://ganglia.info/
 .. _Gdash: https://github.com/ripienaar/gdash.git
-.. _Pencil: https://github.com/fetep/pencil
+.. _Giraffe: http://kenhub.github.com/giraffe/
+.. _Graph-Explorer: https://github.com/Dieterbe/graph-explorer
 .. _Graphene: http://jondot.github.com/graphene/
-.. _Graphite-relay: https://github.com/markchadwick/graphite-relay
-.. _Graphiti: https://github.com/paperlesspost/graphiti
 .. _Graphios: https://github.com/shawn-sterling/graphios
-.. _Charcoal: https://github.com/cebailey59/charcoal
+.. _Graphite-Tattle: https://github.com/wayfair/Graphite-Tattle
+.. _Graphite-relay: https://github.com/markchadwick/graphite-relay
 .. _Graphitejs: https://github.com/prestontimmons/graphitejs
-.. _Grockets: https://github.com/disqus/grockets
-.. _Host sFlow: http://host-sflow.sourceforge.net/
+.. _Graphiti: https://github.com/paperlesspost/graphiti
+.. _graphitius: https://github.com/erezmazor/graphitus
 .. _Graphitoid: https://market.android.com/details?id=com.tnc.android.graphite
+.. _Graphsky: https://github.com/hyves-org/graphsky
+.. _Grockets: https://github.com/disqus/grockets
 .. _HoardD: https://github.com/coredump/hoardd
+.. _Host sFlow: http://host-sflow.sourceforge.net/
 .. _Hubot: https://github.com/github/hubot
 .. _hubot-scripts: https://github.com/github/hubot-scripts
-.. _Tasseo: https://github.com/obfuscurity/tasseo
-.. _Shinken: http://www.shinken-monitoring.org/
-.. _Descartes: https://github.com/obfuscurity/descartes
-.. _Backstop: https://github.com/obfuscurity/backstop
+.. _jmxtrans: http://code.google.com/p/jmxtrans/
+.. _Ledbetter: https://github.com/github/ledbetter
+.. _Logster: https://github.com/etsy/logster
+.. _Pencil: https://github.com/fetep/pencil
+.. _RabbitMQ: http://www.rabbitmq.com/
+.. _Rickshaw: http://code.shutterstock.com/rickshaw/
+.. _Rocksteady: http://code.google.com/p/rocksteady/
 .. _Seyren: https://github.com/scobal/seyren
-.. _write-graphite: http://collectd.org/wiki/index.php/Plugin:Write_Graphite
+.. _Shinken: http://www.shinken-monitoring.org/
+.. _statsd: https://github.com/etsy/statsd
+.. _structured_metrics: https://github.com/Dieterbe/graph-explorer/tree/master/structured_metrics
+.. _Tasseo: https://github.com/obfuscurity/tasseo
 .. _Therry: https://github.com/obfuscurity/therry
-.. _Graphsky: https://github.com/hyves-org/graphsky
+.. _TimeseriesWidget: https://github.com/Dieterbe/timeserieswidget
+.. _write-graphite: http://collectd.org/wiki/index.php/Plugin:Write_Graphite

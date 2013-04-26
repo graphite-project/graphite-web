@@ -77,7 +77,7 @@ copyright = u'2011, Chris Davis'
 # built documents.
 #
 # The short X.Y version.
-version = '0.9.10'
+version = '0.10.0'
 # The full version, including alpha/beta/rc tags.
 release = '0.9.10'
 
