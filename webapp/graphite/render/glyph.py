@@ -793,8 +793,9 @@ class LineGraph(Graph):
     elif self.areaMode == 'first':
       self.data[0].options['stacked'] = True
     elif self.areaMode == 'all':
-      if 'drawAsInfinite' not in series.options:
-        series.options['stacked'] = True
+      for series in self.data:
+        if 'drawAsInfinite' not in series.options:
+          series.options['stacked'] = True
 
     # apply alpha channel and create separate stroke series
     if self.params.get('areaAlpha'):
