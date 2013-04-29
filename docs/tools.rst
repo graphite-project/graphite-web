@@ -2,7 +2,7 @@ Tools That Work With Graphite
 =============================
 
 Backstop
------
+--------
 `Backstop`_ is a simple endpoint for submitting metrics to Graphite. It accepts JSON data via HTTP POST and proxies the data to one or more Carbon/Graphite listeners.
 
 Bucky
@@ -44,7 +44,7 @@ config file.
 
 
 Descartes
--------
+---------
 `Descartes`_ is a Sinatra-based dashboard that allows users to correlate multiple metrics in a single chart, review long-term trends across one or more charts, and to collaborate with other users through a combination of shared dashboards and rich layouts.
 
 Diamond
@@ -52,6 +52,10 @@ Diamond
 `Diamond`_ is a Python daemon that collects system metrics and publishes them to Graphite. It is
 capable of collecting cpu, memory, network, I/O, load and disk metrics. Additionally, it features
 an API for implementing custom collectors for gathering metrics from almost any source.
+
+Dusk
+----
+`Dusk`_ is a simple dashboard for isolating "hotspots" across a fleet of systems. It incorporates horizon charts using Cubism.js to maximize data visualization in a constrained space.
 
 Evenflow
 --------
@@ -72,7 +76,7 @@ GDash
 
 
 Giraffe
---------
+-------
 `Giraffe`_ is a Graphite real-time dashboard based on `Rickshaw`_ and requires no server backend.
 Inspired by `Gdash`_, `Tasseo`_ and `Graphene`_ it mixes features from all three into a slightly
 different animal.
@@ -205,7 +209,7 @@ Scales
 
 
 Seyren
----------------
+------
 `Seyren`_ is an alerting dashboard for Graphite.
 
 
@@ -236,7 +240,7 @@ Therry
 `Therry`_ ia s simple web service that caches Graphite metrics and exposes an endpoint for dumping or searching against them by substring.
 
 TimeseriesWidget
-----------
+----------------
 `TimeseriesWidget`_ adds timeseries graphs to your webpages/dashboards using a simple api,
 focuses on high interactivity and modern features (realtime zooming, datapoint inspection,
 annotated events, etc). Supports Graphite, flot, rickshaw and anthracite.
@@ -253,6 +257,7 @@ annotated events, etc). Supports Graphite, flot, rickshaw and anthracite.
 .. _D3.js: http://mbostock.github.com/d3/
 .. _Descartes: https://github.com/obfuscurity/descartes
 .. _Diamond: http://opensource.brightcove.com/project/Diamond/
+.. _Dusk: https://github.com/obfuscurity/dusk
 .. _Esper: http://esper.codehaus.org/
 .. _Evenflow: https://github.com/github/evenflow
 .. _Ganglia: http://ganglia.info/
