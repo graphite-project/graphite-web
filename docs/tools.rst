@@ -2,7 +2,7 @@ Tools That Work With Graphite
 =============================
 
 Backstop
------
+--------
 `Backstop`_ is a simple endpoint for submitting metrics to Graphite. It accepts JSON data via HTTP POST and proxies the data to one or more Carbon/Graphite listeners.
 
 Bucky
@@ -44,7 +44,7 @@ config file.
 
 
 Descartes
--------
+---------
 `Descartes`_ is a Sinatra-based dashboard that allows users to correlate multiple metrics in a single chart, review long-term trends across one or more charts, and to collaborate with other users through a combination of shared dashboards and rich layouts.
 
 Diamond
@@ -76,7 +76,7 @@ GDash
 
 
 Giraffe
---------
+-------
 `Giraffe`_ is a Graphite real-time dashboard based on `Rickshaw`_ and requires no server backend.
 Inspired by `Gdash`_, `Tasseo`_ and `Graphene`_ it mixes features from all three into a slightly
 different animal.
@@ -209,7 +209,7 @@ Scales
 
 
 Seyren
----------------
+------
 `Seyren`_ is an alerting dashboard for Graphite.
 
 
@@ -240,7 +240,7 @@ Therry
 `Therry`_ ia s simple web service that caches Graphite metrics and exposes an endpoint for dumping or searching against them by substring.
 
 TimeseriesWidget
-----------
+----------------
 `TimeseriesWidget`_ adds timeseries graphs to your webpages/dashboards using a simple api,
 focuses on high interactivity and modern features (realtime zooming, datapoint inspection,
 annotated events, etc). Supports Graphite, flot, rickshaw and anthracite.
