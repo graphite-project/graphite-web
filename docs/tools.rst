@@ -53,6 +53,10 @@ Diamond
 capable of collecting cpu, memory, network, I/O, load and disk metrics. Additionally, it features
 an API for implementing custom collectors for gathering metrics from almost any source.
 
+Dusk
+----
+`Dusk`_ is a simple dashboard for isolating "hotspots" across a fleet of systems. It incorporates horizon charts using Cubism.js to maximize data visualization in a constrained space.
+
 Evenflow
 --------
 `Evenflow`_ is a simple service for submitting sFlow datagrams to Graphite. It accepts sFlow datagrams from multiple network devices and proxies the data to a Carbon listener. Currently only Generic Interface Counters are supported. All other message types are discarded.
@@ -253,6 +257,7 @@ annotated events, etc). Supports Graphite, flot, rickshaw and anthracite.
 .. _D3.js: http://mbostock.github.com/d3/
 .. _Descartes: https://github.com/obfuscurity/descartes
 .. _Diamond: http://opensource.brightcove.com/project/Diamond/
+.. _Dusk: https://github.com/obfuscurity/dusk
 .. _Esper: http://esper.codehaus.org/
 .. _Evenflow: https://github.com/github/evenflow
 .. _Ganglia: http://ganglia.info/
