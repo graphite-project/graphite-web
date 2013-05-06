@@ -93,6 +93,16 @@ USE_REMOTE_USER_AUTHENTICATION = False
 # Override to link a different URL for login (e.g. for django_openid_auth)
 LOGIN_URL = '/account/login'
 
+# Set to True to require authentication to save or delete dashboards
+DASHBOARD_REQUIRE_AUTHENTICATION = False
+# Require Django change/delete permissions to save or delete dashboards.
+# NOTE: Requires DASHBOARD_REQUIRE_AUTHENTICATION to be set
+DASHBOARD_REQUIRE_PERMISSIONS = False
+# Name of a group to which the user must belong to save or delete dashboards.  Alternative to
+# DASHBOARD_REQUIRE_PERMISSIONS, particularly useful when using only LDAP (without Admin app)
+# NOTE: Requires DASHBOARD_REQUIRE_AUTHENTICATION to be set
+DASHBOARD_REQUIRE_EDIT_GROUP = None
+
 #Initialize database settings - Old style (pre 1.2)
 DATABASE_ENGINE = 'django.db.backends.sqlite3'	# 'postgresql', 'mysql', 'sqlite3' or 'ado_mssql'.
 DATABASE_NAME = ''				# Or path to database file if using sqlite3.

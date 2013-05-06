@@ -576,11 +576,7 @@ var GraphDataWindow = {
           var newTarget;
 
           if (extraArg) {
-            if (funcName == 'mostDeviant') { //SPECIAL CASE HACK
-              newTarget = funcName + '(' + extraArg + ',' + target + ')';
-            } else {
-              newTarget = funcName + '(' + target + ',' + extraArg + ')';
-            }
+            newTarget = funcName + '(' + target + ',' + extraArg + ')';
           } else {
             newTarget = funcName + '(' + target + ')';
           }
@@ -962,7 +958,8 @@ function createFunctionsMenu() {
         {text: 'sortByMaxima', handler: applyFuncToEach('sortByMaxima')},
         {text: 'sortByMinima', handler: applyFuncToEach('sortByMinima')},
         {text: 'limit', handler: applyFuncToEachWithInput('limit', 'Limit to first ___ of a list of metrics')},
-        {text: 'Exclude', handler: applyFuncToEachWithInput('exclude', 'Exclude metrics that match a regular expression')}
+        {text: 'Exclude', handler: applyFuncToEachWithInput('exclude', 'Exclude metrics that match a regular expression')},
+        {text: 'Grep', handler: applyFuncToEachWithInput('grep', 'Exclude metrics that don\'t match a regular expression')}
       ]
     }, {
       text: 'Special',

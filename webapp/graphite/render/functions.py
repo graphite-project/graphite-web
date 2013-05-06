@@ -22,17 +22,18 @@ import random
 import time
 
 from graphite.logger import log
-from graphite.render.datalib import TimeSeries
 from graphite.render.attime import parseTimeOffset
-from graphite.util import timestamp
 
 from graphite.events import models
+
 #XXX format_units() should go somewhere else
 from os import environ
 if environ.get('READTHEDOCS'):
   format_units = lambda *args, **kwargs: (0,'')
 else:
   from graphite.render.glyph import format_units
+  from graphite.render.datalib import TimeSeries
+  from graphite.util import timestamp
 
 NAN = float('NaN')
 INF = float('inf')
@@ -130,6 +131,12 @@ def normalize(seriesLists):
   end -= (end - start) % step
   return (seriesList,start,end,step)
 
+def formatPathExpressions(seriesList):
+   # remove duplicates
+   pathExpressions = []
+   [pathExpressions.append(s.pathExpression) for s in seriesList if not pathExpressions.count(s.pathExpression)]
+   return ','.join(pathExpressions)
+
 # Series Functions
 
 #NOTE: Some of the functions below use izip, which may be problematic.
@@ -161,8 +168,7 @@ def sumSeries(requestContext, *seriesLists):
     (seriesList,start,end,step) = normalize(seriesLists)
   except:
     return []
-  #name = "sumSeries(%s)" % ','.join((s.name for s in seriesList))
-  name = "sumSeries(%s)" % ','.join(set([s.pathExpression for s in seriesList]))
+  name = "sumSeries(%s)" % formatPathExpressions(seriesList)
   values = ( safeSum(row) for row in izip(*seriesList) )
   series = TimeSeries(name,start,end,step,values)
   series.pathExpression = name
@@ -245,7 +251,7 @@ def diffSeries(requestContext, *seriesLists):
 
   """
   (seriesList,start,end,step) = normalize(seriesLists)
-  name = "diffSeries(%s)" % ','.join(set([s.pathExpression for s in seriesList]))
+  name = "diffSeries(%s)" % formatPathExpressions(seriesList)
   values = ( safeDiff(row) for row in izip(*seriesList) )
   series = TimeSeries(name,start,end,step,values)
   series.pathExpression = name
@@ -266,8 +272,7 @@ def averageSeries(requestContext, *seriesLists):
 
   """
   (seriesList,start,end,step) = normalize(seriesLists)
-  #name = "averageSeries(%s)" % ','.join((s.name for s in seriesList))
-  name = "averageSeries(%s)" % ','.join(set([s.pathExpression for s in seriesList]))
+  name = "averageSeries(%s)" % formatPathExpressions(seriesList)
   values = ( safeDiv(safeSum(row),safeLen(row)) for row in izip(*seriesList) )
   series = TimeSeries(name,start,end,step,values)
   series.pathExpression = name
@@ -287,7 +292,7 @@ def stddevSeries(requestContext, *seriesLists):
 
   """
   (seriesList,start,end,step) = normalize(seriesLists)
-  name = "stddevSeries(%s)" % ','.join(set([s.pathExpression for s in seriesList]))
+  name = "stddevSeries(%s)" % formatPathExpressions(seriesList)
   values = ( safeStdDev(row) for row in izip(*seriesList) )
   series = TimeSeries(name,start,end,step,values)
   series.pathExpression = name
@@ -305,8 +310,7 @@ def minSeries(requestContext, *seriesLists):
     &target=minSeries(Server*.connections.total)
   """
   (seriesList, start, end, step) = normalize(seriesLists)
-  pathExprs = list( set([s.pathExpression for s in seriesList]) )
-  name = "minSeries(%s)" % ','.join(pathExprs)
+  name = "minSeries(%s)" % formatPathExpressions(seriesList)
   values = ( safeMin(row) for row in izip(*seriesList) )
   series = TimeSeries(name, start, end, step, values)
   series.pathExpression = name
@@ -325,8 +329,7 @@ def maxSeries(requestContext, *seriesLists):
 
   """
   (seriesList, start, end, step) = normalize(seriesLists)
-  pathExprs = list( set([s.pathExpression for s in seriesList]) )
-  name = "maxSeries(%s)" % ','.join(pathExprs)
+  name = "maxSeries(%s)" % formatPathExpressions(seriesList)
   values = ( safeMax(row) for row in izip(*seriesList) )
   series = TimeSeries(name, start, end, step, values)
   series.pathExpression = name
@@ -345,7 +348,7 @@ def rangeOfSeries(requestContext, *seriesLists):
 
     """
     (seriesList,start,end,step) = normalize(seriesLists)
-    name = "rangeOfSeries(%s)" % ','.join(set([s.pathExpression for s in seriesList]))
+    name = "rangeOfSeries(%s)" % formatPathExpressions(seriesList)
     values = ( safeSubtract(max(row), min(row)) for row in izip(*seriesList) )
     series = TimeSeries(name,start,end,step,values)
     series.pathExpression = name
@@ -993,8 +996,11 @@ def aliasSub(requestContext, seriesList, search, replace):
 
     &target=aliasSub(ip.*TCP*,"^.*TCP(\d+)","\\1")
   """
-  for series in seriesList:
-    series.name = re.sub(search, replace, series.name)
+  try:
+    seriesList.name = re.sub(search, replace, seriesList.name)
+  except AttributeError:
+    for series in seriesList:
+      series.name = re.sub(search, replace, series.name)
   return seriesList
 
 
@@ -1008,8 +1014,11 @@ def alias(requestContext, seriesList, newName):
     &target=alias(Sales.widgets.largeBlue,"Large Blue Widgets")
 
   """
-  for series in seriesList:
-    series.name = newName
+  try:
+    seriesList.name = newName
+  except AttributeError:
+    for series in seriesList:
+      series.name = newName
   return seriesList
 
 def cactiStyle(requestContext, seriesList, system=None):
@@ -1631,12 +1640,12 @@ def useSeriesAbove(requestContext, seriesList, value, search, replace):
 
   return newSeries
 
-def mostDeviant(requestContext, n, seriesList):
+def mostDeviant(requestContext, seriesList, n):
   """
-  Takes an integer N followed by one metric or a wildcard seriesList.
+  Takes one metric or a wildcard seriesList followed by an integer N.
   Draws the N most deviant metrics.
-  To find the deviant, the average across all metrics passed is determined,
-  and then the average of each metric is compared to the overall average.
+  To find the deviants, the standard deviation (sigma) of each series
+  is taken and ranked. The top N standard deviations are returned.
 
     Example:
 
@@ -2241,7 +2250,7 @@ def countSeries(requestContext, *seriesLists):
 
   """
   (seriesList,start,end,step) = normalize(seriesLists)
-  name = "countSeries(%s)" % ','.join(set([s.pathExpression for s in seriesList]))
+  name = "countSeries(%s)" % formatPathExpressions(seriesList)
   values = ( int(len(row)) for row in izip(*seriesList) )
   series = TimeSeries(name,start,end,step,values)
   series.pathExpression = name
@@ -2301,6 +2310,21 @@ def exclude(requestContext, seriesList, pattern):
   """
   regex = re.compile(pattern)
   return [s for s in seriesList if not regex.search(s.name)]
+
+
+def grep(requestContext, seriesList, pattern):
+  """
+  Takes a metric or a wildcard seriesList, followed by a regular expression
+  in double quotes.  Excludes metrics that don't match the regular expression.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=grep(servers*.instance*.threads.busy,"server02")
+  """
+  regex = re.compile(pattern)
+  return [s for s in seriesList if regex.search(s.name)]
 
 
 def smartSummarize(requestContext, seriesList, intervalString, func='sum', alignToFrom=False):
@@ -2831,4 +2855,5 @@ SeriesFunctions = {
 
 
 #Avoid import circularity
-from graphite.render.evaluator import evaluateTarget
+if not environ.get('READTHEDOCS'):
+  from graphite.render.evaluator import evaluateTarget
