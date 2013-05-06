@@ -126,6 +126,7 @@ def lcm(a,b):
   return a / gcd(a,b) * b
 
 def normalize(seriesLists):
+  print seriesLists
   seriesList = reduce(lambda L1,L2: L1+L2,seriesLists)
   step = reduce(lcm,[s.step for s in seriesList])
   for s in seriesList:
