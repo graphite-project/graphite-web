@@ -120,9 +120,6 @@ def gcd(a,b):
 def lcm(a,b):
   if a == b: return a
   if a < b: (a,b) = (b,a) #ensure a > b
-  #for i in xrange(1,a * b):
-  #  if a % (b * i) == 0 or (b * i) % a == 0: #probably inefficient
-  #    return max(a,b * i)
   return a / gcd(a,b) * b
 
 def normalize(seriesLists):
