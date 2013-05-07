@@ -224,6 +224,7 @@ Examples:
   &format=raw
   &format=csv
   &format=json
+  &format=rickshaw
   &format=svg
 
 png
@@ -268,6 +269,24 @@ for cross-domain access
       [6.0, 1311836012]
     ]
   }]
+
+rickshaw
+^^^^^^^^
+Renders the data as a json object in the format required for `Rickshaw
+Javascript toolkit <https://github.com/shutterstock/rickshaw>`_ . As with json,
+The jsonp_ option can be used to wrap this data in a named call for
+cross-domain access.
+
+.. code-block:: none
+  [{
+    color: 'steelblue',
+    data: [ { x: 0, y: 23}, { x: 1, y: 15 }, { x: 2, y: 79 } ] 
+   }, 
+   {
+    color: 'lightblue',
+    data: [ { x: 0, y: 30}, { x: 1, y: 20 }, { x: 2, y: 64 } ]
+   }
+  ]
 
 svg
 ^^^
