@@ -172,6 +172,24 @@ def renderView(request):
       response['Cache-Control'] = 'no-cache'
       return response
 
+    # Output for Rickshaw js: https://github.com/shutterstock/rickshaw
+    if format == 'rickshaw':
+      series_data = []
+      for series in data:
+        timestamps = range(series.start, series.end, series.step)
+        datapoints = [{'x':x, 'y':y} for x, y in zip(timestamps, series)]
+        series_data.append(dict(name=series.name, data=datapoints, color='steelblue'))
+
+      if 'jsonp' in requestOptions:
+        response = HttpResponse(
+          content="%s(%s)" % (requestOptions['jsonp'], json.dumps(series_data)),
+          mimetype='text/javascript')
+      response = HttpResponse(content=json.dumps(series_data), mimetype='application/json')
+
+      response['Pragma'] = 'no-cache'
+      response['Cache-Control'] = 'no-cache'
+      return response
+
     if format == 'raw':
       response = HttpResponse(mimetype='text/plain')
       for series in data:
