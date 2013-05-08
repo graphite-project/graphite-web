@@ -408,7 +408,11 @@ class Graph:
   def loadTemplate(self,template):
     conf = SafeConfigParser()
     if conf.read(settings.GRAPHTEMPLATES_CONF):
-      defaults = dict( conf.items('default') )
+      defaults = defaultGraphOptions
+      # If a graphTemplates.conf exists, read in
+      # the values from it, but make sure that
+      # all of the default values properly exist
+      defaults.update(dict(conf.items('default')))
       if template in conf.sections():
         opts = dict( conf.items(template) )
       else:
