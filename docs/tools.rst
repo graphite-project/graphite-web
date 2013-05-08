@@ -189,6 +189,11 @@ It is ideal for visualizing trends of events that are occurring in your applicat
 logs. For example, you might use logster to graph the number of occurrences of HTTP response
 code that appears in your web server logs.
 
+metrics-sampler
+---------------
+`metrics-sampler`_ is a java program which regularly queries metrics from a configured set of inputs, 
+selects and renames them using regular expressions and sends them to a configured set of outputs. 
+It supports JMX and JDBC as inputs and Graphite as output out of the box.
 
 Pencil
 ------
@@ -281,6 +286,7 @@ annotated events, etc). Supports Graphite, flot, rickshaw and anthracite.
 .. _jmxtrans: http://code.google.com/p/jmxtrans/
 .. _Ledbetter: https://github.com/github/ledbetter
 .. _Logster: https://github.com/etsy/logster
+.. _metrics-sampler: https://github.com/dimovelev/metrics-sampler
 .. _Pencil: https://github.com/fetep/pencil
 .. _RabbitMQ: http://www.rabbitmq.com/
 .. _Rickshaw: http://code.shutterstock.com/rickshaw/
