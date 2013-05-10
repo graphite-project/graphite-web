@@ -558,8 +558,8 @@ graphOnly
 
 Display only the graph area with no grid lines, axes, or legend
 
-graphTypes
-----------
+graphType
+---------
 *Default: line*
 
 Sets the type of graph to be rendered. Currently there are only two graph types:
