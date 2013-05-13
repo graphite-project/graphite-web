@@ -1385,7 +1385,7 @@ function newFromSavedGraph() {
     expandable: true,
     allowDrag: false,
     loader: new Ext.tree.TreeLoader({
-      url: "../browser/usergraph/",
+      url: "browser/usergraph/",
       requestMethod: "GET",
       listeners: {beforeload: setParams}
     })
