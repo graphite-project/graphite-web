@@ -18,12 +18,12 @@ limitations under the License. -->
     <style>
       body {
         background-color: #000;
-        background: url('/content/img/carbon-fiber.png');
-        background: url('/content/img/carbon-fiber.png'), -webkit-linear-gradient(top, #000 55%, #333);
-        background: url('/content/img/carbon-fiber.png'),    -moz-linear-gradient(top, #000, #000);
-        background: url('/content/img/carbon-fiber.png'),     -ms-linear-gradient(top, #000 55%, #333);
-        background: url('/content/img/carbon-fiber.png'),      -o-linear-gradient(top, #000 55%, #333);
-        background: url('/content/img/carbon-fiber.png'),         linear-gradient(top, #000 55%, #333);
+        background: url('{% url 'content' 'img/carbon-fiber.png' %}');
+        background: url('{% url 'content' 'img/carbon-fiber.png' %}'), -webkit-linear-gradient(top, #000 55%, #333);
+        background: url('{% url 'content' 'img/carbon-fiber.png' %}'),    -moz-linear-gradient(top, #000, #000);
+        background: url('{% url 'content' 'img/carbon-fiber.png' %}'),     -ms-linear-gradient(top, #000 55%, #333);
+        background: url('{% url 'content' 'img/carbon-fiber.png' %}'),      -o-linear-gradient(top, #000 55%, #333);
+        background: url('{% url 'content' 'img/carbon-fiber.png' %}'),         linear-gradient(top, #000 55%, #333);
       }
       div.header {
         margin-top: 13px;
