@@ -64,16 +64,16 @@ limitations under the License. -->
       <div class="nav">
         <ul>
         {% if user.is_authenticated %}
-          <li>Logged in as <b>{{ user.username }}</b>, <a href="/account/logout/" target="_top">logout</a> (<a href="/account/edit/" target="_top">edit profile</a>)</li>
+          <li>Logged in as <b>{{ user.username }}</b>, <a href="{% url 'account.logoutView' %}" target="_top">logout</a> (<a href="{% url 'account.editProfile' %}" target="_top">edit profile</a>)</li>
         {% else %}
-          <li><a href="{{login_url}}" target="_top">Login</a></li>
+          <li><a href="{% url 'account.loginView' %}" target="_top">Login</a></li>
         {% endif %}
         {% if documentation_url %}
           <li><a href="{{documentation_url}}" target="_newWindow">Documentation</a></li>
         {% endif %}
-          <li><a href="/dashboard/" target="_top">Dashboard</a></li>
-          <li><a href="/graphlot/" target="_top">flot</a></li>
-          <li><a href="/events/" target="_top">events</a></li>
+          <li><a href="{% url 'dashboard' %}" target="_top">Dashboard</a></li>
+          <li><a href="{% url 'graphlot' %}" target="_top">flot</a></li>
+          <li><a href="{% url 'events' %}" target="_top">events</a></li>
         </ul>
       </div>
     </div>

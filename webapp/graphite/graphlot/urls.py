@@ -15,7 +15,7 @@ You may obtain a copy of the License at
 from django.conf.urls.defaults import *
 
 urlpatterns = patterns('graphite.graphlot.views',
-  ('^rawdata/?$', 'get_data'),
-  ('^findmetric/?$', 'find_metric'),
-  ('', 'graphlot_render'),
+  url('^rawdata/?$', 'get_data', name="graphlot.get_data"),
+  url('^findmetric/?$', 'find_metric', name="graphlot.find_metric"),
+  url('', 'graphlot_render', name="graphlot"),
 )
