@@ -1,7 +1,7 @@
 <html>
   <head>
     <title>Events</title>
-    <link rel="stylesheet" type="text/css" href="../content/css/table.css" />
+    <link rel="stylesheet" type="text/css" href="{% url 'content' 'css/table.css' %}" />
     <style type="text/css">
     body {
         font-family: sans-serif;
@@ -30,7 +30,7 @@
                       </tr>
                   {% endfor %}
               {% else %}
-                <br/>No events. Add events using 
+                <br/>No events. Add events using
                 <a href="{% url 'admin:index' %}events/event/">the admin inteface</a> or by posting
                 (eg, curl -X POST http://localhost:8000{{slash}}events/ -d
                 '{"what": "Something Interesting", "tags" : "tag1 "}')
