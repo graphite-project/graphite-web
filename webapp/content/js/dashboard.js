@@ -69,7 +69,7 @@ var ContextFieldValueRecord = Ext.data.Record.create([
 ]);
 
 var contextFieldStore = new Ext.data.JsonStore({
-  url: '/metrics/find/',
+  url: 'metrics/find/',
   root: 'metrics',
   idProperty: 'name',
   fields: ContextFieldValueRecord,
@@ -299,7 +299,7 @@ function initDashboard () {
       }),
       store: new Ext.data.JsonStore({
         method: 'GET',
-        url: '/metrics/find/',
+        url: 'metrics/find/',
         autoLoad: true,
         baseParams: {
           query: '',
@@ -893,7 +893,7 @@ function metricTreeSelectorShow(pattern) {
   }
 
   var loader = new Ext.tree.TreeLoader({
-    url: '/metrics/find/',
+    url: 'metrics/find/',
     requestMethod: 'GET',
     listeners: {beforeload: setParams}
   });
@@ -993,7 +993,7 @@ function importGraphUrl(targetUrl, options) {
   if (graphTargetList.length == 0) {
     return;
   }
- 
+
   var graphTargetString = Ext.urlEncode({target: graphTargetList});
   var existingIndex = graphStore.findExact('target', graphTargetString);
 
@@ -2558,7 +2558,7 @@ function showDashboardFinder() {
   var dashboardsList;
   var queryField;
   var dashboardsStore = new Ext.data.JsonStore({
-    url: "/dashboard/find/",
+    url: "dashboard/find/",
     method: 'GET',
     params: {query: "e"},
     fields: ['name'],
@@ -2927,7 +2927,7 @@ function showLoginForm() {
       {text: 'Cancel', handler: function () { win.close(); } }
     ]
   });
-  
+
   function doLogin() {
     login.getForm().submit({
       method: 'POST',

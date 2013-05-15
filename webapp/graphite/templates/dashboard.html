@@ -50,7 +50,7 @@
     </script>
 
     <!-- Theme overrides -->
-    <link rel="stylesheet" type="text/css" href="/content/css/dashboard-{{theme}}.css"/>
+    <link rel="stylesheet" type="text/css" href="{% url 'content' 'css/dashboard-'|add:theme|add:'.css' %}"/>
 
     {% if jsdebug %}
     <script type="text/javascript" src="{% url 'content' 'js/ext/adapter/ext/ext-base-debug.js' %}"></script>
