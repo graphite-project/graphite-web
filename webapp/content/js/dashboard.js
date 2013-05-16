@@ -20,7 +20,7 @@ var NOT_EDITABLE = ['from', 'until', 'width', 'height', 'target', 'uniq', '_uniq
 var editor = null;
 
 var cookieProvider = new Ext.state.CookieProvider({
-  path: "/dashboard"
+  path: "dashboard"
 });
 
 var NAV_BAR_REGION = cookieProvider.get('navbar-region') || 'north';
@@ -217,7 +217,7 @@ function initDashboard () {
           graphAreaToggle(child.id, {dontRemove: true});
         } else if (recurse) {
           expandNode(child, recurse);
-        }
+        }/render
       });
     }
 
@@ -761,7 +761,7 @@ function showHelp() {
     modal: true,
     width: 550,
     height: 300,
-    autoLoad: "/dashboard/help/"
+    autoLoad: "dashboard/help/"
   });
   win.show();
 }
@@ -1589,7 +1589,7 @@ function selectGraphSize() {
 function doShare() {
   if (dashboardName == null) {
     Ext.Ajax.request({
-      url: "/dashboard/create-temporary/",
+      url: "dashboard/create-temporary/",
       method: 'POST',
       params: {
         state: Ext.encode( getState() )
@@ -1977,7 +1977,7 @@ function breakoutGraph(record) {
   }
 
   Ext.Ajax.request({
-    url: '/metrics/expand/',
+    url: 'metrics/expand/',
     params: {
       groupByExpr: '1',
       leavesOnly: '1',
@@ -2049,7 +2049,7 @@ function mailGraph(record) {
          handler: function(){
            if(contactForm.getForm().isValid()){
              contactForm.getForm().submit({
-               url: '/dashboard/email',
+               url: 'dashboard/email',
                waitMsg: 'Processing Request',
                success: function (contactForm, response) {
          console.log(response.result);
@@ -2333,7 +2333,7 @@ function saveDashboard() {
 
 function sendSaveRequest(name) {
   Ext.Ajax.request({
-    url: "/dashboard/save/" + name,
+    url: "dashboard/save/" + name,
     method: 'POST',
     params: {
       state: Ext.encode( getState() )
@@ -2350,7 +2350,7 @@ function sendSaveRequest(name) {
 
 function sendLoadRequest(name) {
   Ext.Ajax.request({
-    url: "/dashboard/load/" + name,
+    url: "dashboard/load/" + name,
     success: function (response) {
                var result = Ext.decode(response.responseText);
                if (result.error) {
@@ -2436,7 +2436,7 @@ function applyState(state) {
 
 function deleteDashboard(name) {
   Ext.Ajax.request({
-    url: "/dashboard/delete/" + name,
+    url: "dashboard/delete/" + name,
     success: function (response) {
       var result = Ext.decode(response.responseText);
       if (result.error) {
@@ -2931,7 +2931,7 @@ function showLoginForm() {
   function doLogin() {
     login.getForm().submit({
       method: 'POST',
-      url: '/dashboard/login',
+      url: 'dashboard/login',
       waitMsg: 'Authenticating...',
       success: function(form, action) {
         userName = form.findField('username').getValue();
@@ -2966,7 +2966,7 @@ function showLoginForm() {
 
 function logout() {
   Ext.Ajax.request({
-    url: '/dashboard/logout',
+    url: 'dashboard/logout',
     method: 'POST',
     success: function() {
       userName = null;

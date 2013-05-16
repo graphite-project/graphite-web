@@ -10,18 +10,18 @@
  *    distributed under the License is distributed on an "AS IS" BASIS,
  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *    See the License for the specific language governing permissions and
- *    limitations under the License. 
- * 
- * 
+ *    limitations under the License.
+ *
+ *
  * ======================================================================
- * 
+ *
  *     PLEASE DO NOT USE A COMMA AFTER THE FINAL ITEM IN A LIST.
- * 
+ *
  * ======================================================================
- * 
- * It works fine in FF / Chrome, but completely breaks Internet Explorer. 
- * Thank you.  
- * 
+ *
+ * It works fine in FF / Chrome, but completely breaks Internet Explorer.
+ * Thank you.
+ *
 */
 
 
@@ -43,7 +43,7 @@ function createComposerWindow(myComposer) {
     '-',
     createToolbarButton('Select a Date Range', 'calBt.gif', toggleWindow(createCalendarWindow) ),
     createToolbarButton('Select Recent Data', 'arrow1.gif', toggleWindow(createRecentWindow) ),
-    createToolbarButton('Open in GraphPlot', 'line_chart.png', function() { window.open('/graphlot/?' + Composer.url.queryString,'_blank') }),
+    createToolbarButton('Open in GraphPlot', 'line_chart.png', function() { window.open('graphlot/?' + Composer.url.queryString,'_blank') }),
     '-',
     timeDisplay
   ];
@@ -334,7 +334,7 @@ function saveMyGraph(button, e) {
       tmpArray = tmpArray.slice(1, tmpArray.length);
       myGraphName = tmpArray.join('.');
     }
-  } 
+  }
   Ext.MessageBox.prompt(
     "Save to My Graphs", //title
     "Please enter a name for your Graph", //prompt message
@@ -851,7 +851,7 @@ var GraphDataWindow = {
 
   addWlSelected: function (item, e) {
     Ext.Ajax.request({
-      url: "/whitelist/add",
+      url: "whitelist/add",
       method: "POST",
       success: function () { Ext.Msg.alert("Result", "Successfully added metrics to whitelist."); },
       failure: function () { Ext.Msg.alert("Result", "Failed to add metrics to whitelist.");   },
@@ -861,7 +861,7 @@ var GraphDataWindow = {
 
   removeWlSelected: function (item, e) {
     Ext.Ajax.request({
-      url: "/whitelist/remove",
+      url: "whitelist/remove",
       method: "POST",
       success: function () { Ext.Msg.alert("Result", "Successfully removed metrics from whitelist."); },
       failure: function () { Ext.Msg.alert("Result", "Failed to remove metrics from whitelist.");   },
@@ -1034,7 +1034,7 @@ function createOptionsMenu() {
       menuRadioItem("yUnit", "Standard", "yUnitSystem", "si"),
       menuRadioItem("yUnit", "Binary", "yUnitSystem", "binary"),
       menuRadioItem("yUnit", "None", "yUnitSystem", "none")
-      
+
     ]
   });
   var yAxisSideMenu = new Ext.menu.Menu({
@@ -1054,7 +1054,7 @@ function createOptionsMenu() {
       menuInputItem("Left Line Width", "leftWidth"),
       menuInputItem("Left Line Color", "leftColor"),
       menuInputItem("Left Line Dashed (length, in px)", "leftDashed")
-    
+
     ]
   });
   var yAxisRightMenu = new Ext.menu.Menu({
@@ -1067,7 +1067,7 @@ function createOptionsMenu() {
       menuInputItem("Right Line Width", "rightWidth"),
       menuInputItem("Right Line Color", "rightColor"),
       menuInputItem("Right Line Dashed (length, in px)", "rightDashed")
-    
+
     ]
   });
 
@@ -1127,7 +1127,7 @@ function createOptionsMenu() {
       menuRadioItem("fontFace", "Times", "fontName", "Times"),
       menuRadioItem("fontFace", "Courier", "fontName", "Courier"),
       menuRadioItem("fontFace", "Helvetica", "fontName", "Helvetica")
-    ] 
+    ]
   });
 
   var fontMenu = new Ext.menu.Menu({
@@ -1252,7 +1252,7 @@ function paramPrompt(question, param, regexp) {
           Ext.Msg.alert("Input cannot end in a period.");
           return;
         }
-        
+
         setParam(param, value);
         updateGraph();
       },
@@ -1296,7 +1296,7 @@ function menuCheckItem(name, param, paramValue) {
 
 function menuRadioItem(groupName, name, param, paramValue ) {
   var selectItem = new Ext.menu.CheckItem({text: name, param: param, hideOnClick: false, group: groupName, checked: (paramValue ? false : true)});
-  selectItem.on('checkchange', 
+  selectItem.on('checkchange',
     function( item, clicked ) {
       if( paramValue ) {
         setParam(param, paramValue);
