@@ -362,7 +362,7 @@ function initDashboard () {
     '<tpl for=".">',
       '<div class="graph-container">',
         '<div class="graph-overlay">',
-          '<img class="graph-img" src="{url}" width="{width}" height="{height}">',
+          '<img class="graph-img" src="{url}" width="{width}" height="{height}" id="graph{index}">',
           '<div class="overlay-close-button" onclick="javascript: graphStore.removeAt(\'{index}\'); updateGraphRecords(); justClosedGraph = true;">X</div>',
         '</div>',
       '</div>',
@@ -1724,11 +1724,11 @@ function graphClicked(graphView, graphIndex, element, evt) {
     }
   });
 
-  var buttonWidth = 150;
+  var buttonWidth = 110;
   var rowHeight = 21;
   var maxRows = 6;
   var frameHeight = 5;
-  var gridWidth = (buttonWidth * 3) + 2;
+  var gridWidth = (buttonWidth * 4) + 2;
   var gridHeight = (rowHeight * Math.min(targets.length, maxRows)) + frameHeight;
 
   targetGrid = new Ext.grid.EditorGridPanel({
@@ -1854,6 +1854,15 @@ function graphClicked(graphView, graphIndex, element, evt) {
     }]
   });
 
+    var additionalActionsMenu = new Ext.menu.Menu({
+      allowOtherMenus: true,
+      items: [{
+        xtype: 'button',
+        text: 'History',
+        width: 100,
+        handler: function () { menu.destroy(); historyGraph(record);}
+      },]
+    });
   var buttons = [functionsButton];
 
   buttons.push({
@@ -1886,6 +1895,21 @@ function graphClicked(graphView, graphIndex, element, evt) {
              }
   });
 
+  buttons.push({
+    xtype: 'button',
+    text: "Cacti",
+    width: buttonWidth,
+    handler: function (thisButton) {
+            if (additionalActionsMenu.isVisible()){
+                additionalActionsMenu.doHide(); // private method... yuck (no other way to hide w/out trigging hide event handler)
+            } else {
+                operationsMenu.hide();
+                functionsMenu.hide();
+                additionalActionsMenu.show(thisButton.getEl());
+            }
+        }
+  });
+
   menuItems.push({
     xtype: 'panel',
     layout: 'hbox',
@@ -1914,6 +1938,7 @@ function graphClicked(graphView, graphIndex, element, evt) {
                        optionsMenu.destroy();
                        operationsMenu.destroy();
                        functionsMenu.destroy();
+                       additionalActionsMenu.destroy();
                      }
   );
 }
@@ -2097,6 +2122,120 @@ function cloneGraphRecord(record) {
   return new GraphRecord(props);
 }
 
+function historyGraph(record){
+
+    var graphHistoryStore = new Ext.data.ArrayStore({
+      fields: GraphRecord,
+      listeners: {
+        add: graphStoreUpdated,
+        remove: graphStoreUpdated,
+        update: graphStoreUpdated
+      }
+    });
+
+    function getProps(record){
+        var props = {
+          url: record.data.url,
+          target: record.data.target,
+          params: Ext.apply({}, record.data.params)
+        };
+        props.params.target = Ext.urlDecode(props.target).target;
+        if (typeof props.params.target == "string") {
+          props.params.target = [props.params.target];
+        }
+
+        props.params.width = '750';
+        props.params.height = '300';
+        props.params.until = '-';
+
+        return props;
+    }
+
+    var props = getProps(record);
+    var title = '';
+    title = props.params.title;
+
+    props = getProps(record);
+    props.params.title = title + ' 1 hour';
+    props.params.from = '-1hour';
+    graphHistoryStore.insert(0,new GraphRecord(props));
+
+    props = getProps(record);
+    props.params.title = title + ' 1 day';
+    props.params.from = '-1day';
+    graphHistoryStore.insert(1,new GraphRecord(props));
+
+    props = getProps(record);
+    props.params.title = title + ' 7 day';
+    props.params.from = '-7day';
+    graphHistoryStore.insert(2,new GraphRecord(props));
+
+    props = getProps(record);
+    props.params.title = title + ' 30 day';
+    props.params.from = '-30day';
+    graphHistoryStore.insert(3,new GraphRecord(props));
+
+    var graphTemplate = new Ext.XTemplate(
+      '<tpl for=".">',
+        '<div class="graph-container">',
+          '<div class="graph-overlay">',
+            '<img class="graph-img" src="{url}" width="{width}" height="{height}" id="graph{index}">',
+            '<div class="overlay-close-button" onclick="javascript: graphStore.removeAt(\'{index}\'); updateGraphRecords(); justClosedGraph = true;">X</div>',
+          '</div>',
+        '</div>',
+      '</tpl>',
+      '<div class="x-clear"></div>'
+    );
+
+    updateDataHistory();
+
+    function updateDataHistory(){
+        graphHistoryStore.each(function (item, index) {
+          var params = {};
+          Ext.apply(params, defaultGraphParams);
+          Ext.apply(params, item.data.params);
+          //Ext.apply(params, GraphSize);
+          params._uniq = Math.random();
+          if (params.title === undefined && params.target.length == 1) {
+            params.title = params.target[0];
+          }
+
+          console.log(params.title);
+
+          if (!params.uniq === undefined) {
+              delete params["uniq"];
+          }
+          item.set('url', '/render?' + Ext.urlEncode(params));
+          item.set('width', item.data.params.width);
+          item.set('height', item.data.params.height);
+          item.set('index', index);
+        });
+    }
+
+    graphHistoryView = new Ext.DataView({
+      store: graphHistoryStore,
+      tpl: graphTemplate,
+      overClass: 'graph-over',
+      itemSelector: 'div.graph-container',
+      emptyText: "Configure your context above, and then select some metrics.",
+      autoScroll: true,
+      listeners: {
+      }
+    });
+
+    win = new Ext.Window({
+      title: "Graph History",
+      width: 800,
+      height: 800,
+      resizable: true,
+      modal: true,
+      layout: 'fit',
+      items: graphHistoryView
+    });
+    console.log(record);
+    win.show();
+
+}
 function removeAllGraphs() {
   if (CONFIRM_REMOVE_ALL) {
     /*
