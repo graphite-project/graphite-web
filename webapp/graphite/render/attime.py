@@ -26,6 +26,8 @@ months = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec
 weekdays = ['sun','mon','tue','wed','thu','fri','sat']
 
 def parseATTime(s, tzinfo=None):
+  if tzinfo is None:
+    tzinfo = pytz.timezone(settings.TIME_ZONE)
   s = s.strip().lower().replace('_','').replace(',','').replace(' ','')
   if s.isdigit():
     if len(s) == 8 and int(s[:4]) > 1900 and int(s[4:6]) < 13 and int(s[6:]) < 32:
