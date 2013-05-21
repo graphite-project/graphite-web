@@ -113,13 +113,14 @@ def safeAbs(value):
   if value is None: return None
   return abs(value)
 
+def gcd(a,b):
+  if b == 0: return a;
+  return gcd(b, a%b);
+
 def lcm(a,b):
   if a == b: return a
   if a < b: (a,b) = (b,a) #ensure a > b
-  for i in xrange(1,a * b):
-    if a % (b * i) == 0 or (b * i) % a == 0: #probably inefficient
-      return max(a,b * i)
-  return a * b
+  return a / gcd(a,b) * b
 
 def normalize(seriesLists):
   seriesList = reduce(lambda L1,L2: L1+L2,seriesLists)
