@@ -113,13 +113,16 @@ def safeAbs(value):
   if value is None: return None
   return abs(value)
 
-def gcd(a,b):
-  if b == 0: return a;
-  return gcd(b, a%b);
+# Greatest common divisor
+def gcd(a, b):
+  if b == 0:
+    return a
+  return gcd(b, a%b)
 
-def lcm(a,b):
+# Least common multiple
+def lcm(a, b):
   if a == b: return a
-  if a < b: (a,b) = (b,a) #ensure a > b
+  if a < b: (a, b) = (b, a) #ensure a > b
   return a / gcd(a,b) * b
 
 def normalize(seriesLists):
