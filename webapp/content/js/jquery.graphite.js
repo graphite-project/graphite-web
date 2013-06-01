@@ -341,7 +341,7 @@
             }
 
             var build_url_graph = function() {
-                var url = url_host + url_path_prefix + '/graphlot/?';
+                var url = url_host + url_path_prefix + 'graphlot/?';
                 params = build_when();
                 for (series in graph_lines) {
                     if (metric_yaxis[series] == "two") {
@@ -358,14 +358,14 @@
                 return url + params.join("&");
             }
             var build_url_rawdata = function (series) {
-                var url = url_host + url_path_prefix + '/graphlot/rawdata?';
+                var url = url_host + url_path_prefix + 'graphlot/rawdata?';
                 params = build_when();
                 params.push('target=' + series);
                 return url + params.join("&");
             }
 
             var build_url_events = function (tags) {
-                var url = url_host + url_path_prefix + '/events/get_data?';
+                var url = url_host + url_path_prefix + 'events/get_data?';
                 params = build_when();
                 if (tags != "*") {
                     params.push('tags=' + tags);
@@ -509,7 +509,7 @@
                         // add row
                         edit.blur();
                         if (graph_lines[edit.val()] == null) {
-                        var new_row = $('<tr class="g_metricrow"><td><a href=#><span class="g_metricname">'+edit.val()+'</span></a></td><td><a href=#><span class="g_yaxis">one</span></a></td><td class="g_killrow"><img src="../content/img/delete.gif"></td></tr>');
+                        var new_row = $('<tr class="g_metricrow"><td><a href=#><span class="g_metricname">'+edit.val()+'</span></a></td><td><a href=#><span class="g_yaxis">one</span></a></td><td class="g_killrow"><img src="content/img/delete.gif"></td></tr>');
                             setup_row(new_row);
                             wrap.find('.g_newmetricrow').before(new_row);
                             update_metric_row(new_row);

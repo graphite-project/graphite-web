@@ -20,7 +20,7 @@ var NOT_EDITABLE = ['from', 'until', 'width', 'height', 'target', 'uniq', '_uniq
 var editor = null;
 
 var cookieProvider = new Ext.state.CookieProvider({
-  path: "/dashboard"
+  path: "dashboard"
 });
 
 var NAV_BAR_REGION = cookieProvider.get('navbar-region') || 'north';
@@ -69,7 +69,7 @@ var ContextFieldValueRecord = Ext.data.Record.create([
 ]);
 
 var contextFieldStore = new Ext.data.JsonStore({
-  url: '/metrics/find/',
+  url: 'metrics/find/',
   root: 'metrics',
   idProperty: 'name',
   fields: ContextFieldValueRecord,
@@ -287,7 +287,7 @@ function initDashboard () {
       }),
       store: new Ext.data.JsonStore({
         method: 'GET',
-        url: '/metrics/find/',
+        url: 'metrics/find/',
         autoLoad: true,
         baseParams: {
           query: '',
@@ -736,7 +736,7 @@ function showHelp() {
     modal: true,
     width: 550,
     height: 300,
-    autoLoad: "/dashboard/help/"
+    autoLoad: "dashboard/help/"
   });
   win.show();
 }
@@ -868,7 +868,7 @@ function metricTreeSelectorShow(pattern) {
   }
 
   var loader = new Ext.tree.TreeLoader({
-    url: '/metrics/find/',
+    url: 'metrics/find/',
     requestMethod: 'GET',
     listeners: {beforeload: setParams}
   });
@@ -942,7 +942,7 @@ function graphAreaToggle(target, options) {
     var record = new GraphRecord({
       target: graphTargetString,
       params: myParams,
-      url: '/render?' + Ext.urlEncode(urlParams)
+      url: 'render?' + Ext.urlEncode(urlParams)
     });
     graphStore.add([record]);
     updateGraphRecords();
@@ -985,7 +985,7 @@ function importGraphUrl(targetUrl, options) {
     var record = new GraphRecord({
       target: graphTargetString,
       params: params,
-      url: '/render?' + Ext.urlEncode(urlParams)
+      url: 'render?' + Ext.urlEncode(urlParams)
       });
       graphStore.add([record]);
       updateGraphRecords();
@@ -1005,7 +1005,7 @@ function updateGraphRecords() {
     if (!params.uniq === undefined) {
         delete params["uniq"];
     }
-    item.set('url', '/render?' + Ext.urlEncode(params));
+    item.set('url', 'render?' + Ext.urlEncode(params));
     item.set('width', GraphSize.width);
     item.set('height', GraphSize.height);
     item.set('index', index);
@@ -1023,7 +1023,7 @@ function refreshGraph(index) {
   var node = graphView.getNode(index);
   var record = graphView.getRecord(node);
   record.data.params.uniq = Math.random();
-  record.set('url', '/render?' + Ext.urlEncode(record.get('params')));
+  record.set('url', 'render?' + Ext.urlEncode(record.get('params')));
 
   // This refreshNode method only refreshes the record data, it doesn't re-render
   // the template. Which is pretty useless... It would be more efficient if we
@@ -1360,7 +1360,7 @@ function newFromSavedGraph() {
     expandable: true,
     allowDrag: false,
     loader: new Ext.tree.TreeLoader({
-      url: "../browser/usergraph/",
+      url: "browser/usergraph/",
       requestMethod: "GET",
       listeners: {beforeload: setParams}
     })
@@ -1564,7 +1564,7 @@ function selectGraphSize() {
 function doShare() {
   if (dashboardName == null) {
     Ext.Ajax.request({
-      url: "/dashboard/create-temporary/",
+      url: "dashboard/create-temporary/",
       method: 'POST',
       params: {
         state: Ext.encode( getState() )
@@ -1952,7 +1952,7 @@ function breakoutGraph(record) {
   }
 
   Ext.Ajax.request({
-    url: '/metrics/expand/',
+    url: 'metrics/expand/',
     params: {
       groupByExpr: '1',
       leavesOnly: '1',
@@ -2024,7 +2024,7 @@ function mailGraph(record) {
          handler: function(){
            if(contactForm.getForm().isValid()){
              contactForm.getForm().submit({
-               url: '/dashboard/email',
+               url: 'dashboard/email',
                waitMsg: 'Processing Request',
                success: function (contactForm, response) {
          console.log(response.result);
@@ -2261,7 +2261,7 @@ function editDashboard() {
       var record = new GraphRecord({
         target: targets[i].target,
         params: myParams,
-        url: '/render?' + Ext.urlEncode(urlParams)
+        url: 'render?' + Ext.urlEncode(urlParams)
       });
       graphStore.add([record]);
     }
@@ -2308,7 +2308,7 @@ function saveDashboard() {
 
 function sendSaveRequest(name) {
   Ext.Ajax.request({
-    url: "/dashboard/save/" + name,
+    url: "dashboard/save/" + name,
     method: 'POST',
     params: {
       state: Ext.encode( getState() )
@@ -2325,7 +2325,7 @@ function sendSaveRequest(name) {
 
 function sendLoadRequest(name) {
   Ext.Ajax.request({
-    url: "/dashboard/load/" + name,
+    url: "dashboard/load/" + name,
     success: function (response) {
                var result = Ext.decode(response.responseText);
                if (result.error) {
@@ -2411,7 +2411,7 @@ function applyState(state) {
 
 function deleteDashboard(name) {
   Ext.Ajax.request({
-    url: "/dashboard/delete/" + name,
+    url: "dashboard/delete/" + name,
     success: function (response) {
       var result = Ext.decode(response.responseText);
       if (result.error) {
@@ -2528,7 +2528,7 @@ function showDashboardFinder() {
   var dashboardsList;
   var queryField;
   var dashboardsStore = new Ext.data.JsonStore({
-    url: "/dashboard/find/",
+    url: "dashboard/find/",
     method: 'GET',
     params: {query: "e"},
     fields: ['name'],
