@@ -991,12 +991,10 @@ class LineGraph(Graph):
       yMinValue = safeMin(map(safeMin, finite_series))
 
     if self.areaMode == 'stacked':
-      length = safeMin(map(len, finite_series))
-      sumSeries = []
-
-      for i in xrange(0, length):
-        sumSeries.append(safeSum([series[i] for series in finite_series]))
-      yMaxValue = safeMax( sumSeries )
+      # Use izip to use iteration on the TimeSeries objects so we honor
+      # consolidation. (izip will stop at the end of the shortest input, so
+      # this behavior is backwards compatible with earlier code.)
+      yMaxValue = safeMax(map(safeSum, itertools.izip(*finite_series)))
     else:
       yMaxValue = safeMax(map(safeMax, finite_series))
 
