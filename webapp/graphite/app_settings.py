@@ -71,6 +71,11 @@ MIDDLEWARE_CLASSES = (
   'django.contrib.auth.middleware.AuthenticationMiddleware',
 )
 
+if DJANGO_VERSION >= (1,4):
+  MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + (
+    'django.contrib.messages.middleware.MessageMiddleware',
+  )
+
 ROOT_URLCONF = 'graphite.urls'
 
 INSTALLED_APPS = (
