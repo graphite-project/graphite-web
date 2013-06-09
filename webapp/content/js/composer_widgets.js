@@ -43,7 +43,7 @@ function createComposerWindow(myComposer) {
     '-',
     createToolbarButton('Select a Date Range', 'calBt.gif', toggleWindow(createCalendarWindow) ),
     createToolbarButton('Select Recent Data', 'arrow1.gif', toggleWindow(createRecentWindow) ),
-    createToolbarButton('Open in Graphlot', 'line_chart.png', function() { window.open('/graphlot/?' + Composer.url.queryString,'_blank') }),
+    createToolbarButton('Open in Graphlot', 'line_chart.png', function() { window.open('graphlot/?' + Composer.url.queryString,'_blank') }),
     '-',
     timeDisplay
   ];
@@ -70,7 +70,7 @@ function createComposerWindow(myComposer) {
     tbar: topToolbar,
     buttons: bottomToolbar,
     buttonAlign: 'left',
-    items: { html: "<img id='image-viewer' src='/render'/>", region: "center" },
+    items: { html: "<img id='image-viewer' src='render'/>", region: "center" },
     listeners: {
       activate: keepDataWindowOnTop,
       show: fitImageToWindow,
@@ -146,7 +146,7 @@ function fitImageToWindow(win) {
 /* Toolbar stuff */
 function createToolbarButton(tip, icon, handler) {
   return new Ext.Toolbar.Button({
-    style: "padding-left:10pt; background:transparent url(../content/img/" + icon + ") no-repeat scroll 0% 50%",
+    style: "padding-left:10pt; background:transparent url(content/img/" + icon + ") no-repeat scroll 0% 50%",
     handler: handler,
     handleMouseEvents: false,
     text: "&nbsp; &nbsp;",
@@ -359,7 +359,7 @@ function saveMyGraph(button, e) {
       //Send the request
       Ext.Ajax.request({
         method: 'GET',
-        url: '../composer/mygraph/',
+        url: 'composer/mygraph/',
         params: {action: 'save', graphName: text, url: Composer.url.getURL()},
         callback: handleSaveMyGraphResponse
       });
@@ -404,7 +404,7 @@ function deleteMyGraph() {
       //Send the request
       Ext.Ajax.request({
         method: 'GET',
-        url: '../composer/mygraph/',
+        url: 'composer/mygraph/',
         params: {action: 'delete', graphName: text},
         callback: function (options, success, response) {
           var message = success ? "Graph deleted successfully" : "There was an error performing the operation.";
@@ -855,7 +855,7 @@ var GraphDataWindow = {
 
   addWlSelected: function (item, e) {
     Ext.Ajax.request({
-      url: "/whitelist/add",
+      url: "whitelist/add",
       method: "POST",
       success: function () { Ext.Msg.alert("Result", "Successfully added metrics to whitelist."); },
       failure: function () { Ext.Msg.alert("Result", "Failed to add metrics to whitelist.");   },
@@ -865,7 +865,7 @@ var GraphDataWindow = {
 
   removeWlSelected: function (item, e) {
     Ext.Ajax.request({
-      url: "/whitelist/remove",
+      url: "whitelist/remove",
       method: "POST",
       success: function () { Ext.Msg.alert("Result", "Successfully removed metrics from whitelist."); },
       failure: function () { Ext.Msg.alert("Result", "Failed to remove metrics from whitelist.");   },
