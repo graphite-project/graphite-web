@@ -967,7 +967,7 @@ function graphAreaToggle(target, options) {
     var record = new GraphRecord({
       target: graphTargetString,
       params: myParams,
-      url: 'render?' + Ext.urlEncode(urlParams)
+      url: SLASH + 'render?' + Ext.urlEncode(urlParams)
     });
     graphStore.add([record]);
     updateGraphRecords();
@@ -1010,7 +1010,7 @@ function importGraphUrl(targetUrl, options) {
     var record = new GraphRecord({
       target: graphTargetString,
       params: params,
-      url: 'render?' + Ext.urlEncode(urlParams)
+      url: SLASH + 'render?' + Ext.urlEncode(urlParams)
       });
       graphStore.add([record]);
       updateGraphRecords();
@@ -1030,7 +1030,7 @@ function updateGraphRecords() {
     if (!params.uniq === undefined) {
         delete params["uniq"];
     }
-    item.set('url', 'render?' + Ext.urlEncode(params));
+    item.set('url', SLASH + 'render?' + Ext.urlEncode(params));
     item.set('width', GraphSize.width);
     item.set('height', GraphSize.height);
     item.set('index', index);
@@ -1048,7 +1048,7 @@ function refreshGraph(index) {
   var node = graphView.getNode(index);
   var record = graphView.getRecord(node);
   record.data.params.uniq = Math.random();
-  record.set('url', 'render?' + Ext.urlEncode(record.get('params')));
+  record.set('url', SLASH + 'render?' + Ext.urlEncode(record.get('params')));
 
   // This refreshNode method only refreshes the record data, it doesn't re-render
   // the template. Which is pretty useless... It would be more efficient if we
@@ -2286,7 +2286,7 @@ function editDashboard() {
       var record = new GraphRecord({
         target: targets[i].target,
         params: myParams,
-        url: 'render?' + Ext.urlEncode(urlParams)
+        url: SLASH + 'render?' + Ext.urlEncode(urlParams)
       });
       graphStore.add([record]);
     }
