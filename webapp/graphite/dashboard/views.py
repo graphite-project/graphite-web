@@ -7,6 +7,7 @@ from ConfigParser import ConfigParser
 from django.shortcuts import render_to_response
 from django.http import HttpResponse, QueryDict
 from django.conf import settings
+from django.core.urlresolvers import get_script_prefix
 from graphite.util import json
 from graphite.dashboard.models import Dashboard
 from graphite.render.views import renderView
@@ -130,6 +131,7 @@ def dashboard(request, name=None):
     'initialError' : initialError,
     'querystring' : json.dumps( dict( request.GET.items() ) ),
     'dashboard_conf_missing' : dashboard_conf_missing,
+    'slash' : get_script_prefix(),
   }
 
   if name is not None:
