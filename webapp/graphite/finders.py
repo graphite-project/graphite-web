@@ -1,3 +1,19 @@
+"""
+Copyright [2013] Hewlett-Packard Development Company, L.P.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
+
 import os
 import fnmatch
 from os.path import islink, isdir, isfile, realpath, join, dirname, basename
@@ -6,8 +22,8 @@ from ceres import CeresTree, CeresNode, setDefaultSliceCachingBehavior
 from graphite.node import BranchNode, LeafNode
 from graphite.readers import CeresReader, WhisperReader, GzippedWhisperReader, RRDReader
 from graphite.util import find_escaped_pattern_fields
-
 from graphite.logger import log
+from vertica import VerticaTree
 
 #setDefaultSliceCachingBehavior('all')
 
@@ -119,6 +135,20 @@ class StandardFinder:
 
       for basename in matching_files + matching_subdirs:
         yield join(current_dir, basename)
+
+class VerticaFinder(object):
+  """ Using Vertica as the backend store find available nodes."""
+  __slots__ = ('tree')
+
+  def __init__(self, dsn, finder_table, metric_table, depth):
+    self.tree = VerticaTree(dsn, finder_table, metric_table, depth)
+
+  def find_nodes(self, query):
+    """Wraps the VerticaTree.find iterator.
+        The query is a storage.FindQuery object, but only the query.pattern is used in searches
+        query.pattern uses the graphite . path seperator.
+    """
+    return self.tree.find(query.pattern)
 
 
 def fs_to_metric(path):

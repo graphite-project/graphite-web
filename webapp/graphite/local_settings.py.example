@@ -62,7 +62,7 @@
 #DASHBOARD_CONF = '/opt/graphite/conf/dashboard.conf'
 #GRAPHTEMPLATES_CONF = '/opt/graphite/conf/graphTemplates.conf'
 
-## Data directories
+## Data directories/DB
 # NOTE: If any directory is unreadable in STANDARD_DIRS it will break metric browsing
 #CERES_DIR = '/opt/graphite/storage/ceres'
 #WHISPER_DIR = '/opt/graphite/storage/whisper'
@@ -71,6 +71,16 @@
 #STANDARD_DIRS = [WHISPER_DIR, RRD_DIR] # Default: set from the above variables
 #LOG_DIR = '/opt/graphite/storage/log/webapp'
 #INDEX_FILE = '/opt/graphite/storage/index'  # Search index file
+# Vertica Setup - If defined then no data directories are searched, ie no ceres, no whisper, no rrd
+#VERTICA_SOURCE = '' #This is a pyodbc connection string, ie 'DSN=Vertica' or a DSN-less string
+#The table or view in vertica to query against to build the graphite path/tree. It is assumed to have an id column
+#and depth[0-(VERTICA_FINDER_TABLE_DEPTH -1)] where the depth colums represent each level in a tree and each row is a leaf.
+#VERTICA_FINDER_TABLE_DEPTH = 5
+#VERTICA_FINDER_TABLE = ''
+#The table in vertica to query against for metrics, it is assumed to have 3 columns, metric_definition_id, timestamp and value
+#VERTICA_METRIC_TABLE = ''
+#import os
+#os.environ['VERTICAINI'] = '/etc/odbc.ini' #Needed for the Vertica ODBC driver
 
 
 #####################################
