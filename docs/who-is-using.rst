@@ -12,5 +12,6 @@ Here are some organizations that use Graphite:
 * `Brightcove <http://www.brightcove.com>`_ (see http://opensource.brightcove.com/project/Diamond/)
 * `Vimeo <http://www.vimeo.com>`_
 * `SocialTwist <http://www.socialtwist.com>`_
+* `Douban <http://www.douban.com>`_
 
 And many more
