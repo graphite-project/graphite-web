@@ -101,6 +101,11 @@ made to offer a very aesthetic realtime dashboard. Graphene provides a solution 
 displaying thousands upon thousands of datapoints all updated in realtime.
 
 
+Graphite-Observer
+---------------
+`Graphite-Observer`_ is a real-time monitor dashboard for Graphite.
+
+
 Graphite-relay
 --------------
 `Graphite-relay`_ is a fast Graphite relay written in Scala with the Netty framework.
@@ -272,6 +277,7 @@ annotated events, etc). Supports Graphite, flot, rickshaw and anthracite.
 .. _Graphene: http://jondot.github.com/graphene/
 .. _Graphios: https://github.com/shawn-sterling/graphios
 .. _Graphite-Tattle: https://github.com/wayfair/Graphite-Tattle
+.. _Graphite-Observer: https://github.com/huoxy/graphite-observer
 .. _Graphite-relay: https://github.com/markchadwick/graphite-relay
 .. _Graphitejs: https://github.com/prestontimmons/graphitejs
 .. _Graphiti: https://github.com/paperlesspost/graphiti
