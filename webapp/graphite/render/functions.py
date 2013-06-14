@@ -677,6 +677,31 @@ def offset(requestContext, seriesList, factor):
         series[i] = value + factor
   return seriesList
 
+def offsetToZero(requestContext, seriesList):
+  """
+  Offsets a metric or wildcard seriesList by subtracting the minimum
+  value in the series from each datapoint.
+
+  Useful to compare different series where the values in each series
+  may be higher or lower on average but you're only interested in the
+  relative difference.
+
+  Example:
+  
+  .. code-block:: none
+
+    &target=offsetToZero(Server.instance01.responseTime)
+
+  """
+  for series in seriesList:
+    series.name = "offsetToZero(%s)" % (series.name)
+    minimum = safeMin(series)
+    for i,value in enumerate(series):
+      if value is not None:
+        series[i] = value - minimum
+  return seriesList
+
+
 def movingAverage(requestContext, seriesList, windowSize):
   """
   Graphs the moving average of a metric (or metrics) over a fixed number of
@@ -2766,6 +2791,7 @@ SeriesFunctions = {
   'invert' : invert,
   'scaleToSeconds' : scaleToSeconds,
   'offset' : offset,
+  'offsetToZero' : offsetToZero,
   'derivative' : derivative,
   'perSecond' : perSecond,
   'integral' : integral,
