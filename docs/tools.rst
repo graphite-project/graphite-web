@@ -273,7 +273,7 @@ annotated events, etc). Supports Graphite, flot, rickshaw and anthracite.
 .. _Ganglia: http://ganglia.info/
 .. _Gdash: https://github.com/ripienaar/gdash.git
 .. _Giraffe: http://kenhub.github.com/giraffe/
-.. _Graph-Explorer: https://github.com/Dieterbe/graph-explorer
+.. _Graph-Explorer: http://vimeo.github.io/graph-explorer
 .. _Graphene: http://jondot.github.com/graphene/
 .. _Graphios: https://github.com/shawn-sterling/graphios
 .. _Graphite-Tattle: https://github.com/wayfair/Graphite-Tattle
@@ -300,7 +300,7 @@ annotated events, etc). Supports Graphite, flot, rickshaw and anthracite.
 .. _Seyren: https://github.com/scobal/seyren
 .. _Shinken: http://www.shinken-monitoring.org/
 .. _statsd: https://github.com/etsy/statsd
-.. _structured_metrics: https://github.com/Dieterbe/graph-explorer/tree/master/structured_metrics
+.. _structured_metrics: https://github.com/vimeo/graph-explorer/tree/master/structured_metrics
 .. _Tasseo: https://github.com/obfuscurity/tasseo
 .. _Therry: https://github.com/obfuscurity/therry
 .. _TimeseriesWidget: https://github.com/Dieterbe/timeserieswidget
