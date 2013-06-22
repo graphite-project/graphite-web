@@ -90,7 +90,11 @@ class StandardFinder:
     match the corresponding pattern in patterns"""
     pattern = patterns[0]
     patterns = patterns[1:]
-    entries = os.listdir(current_dir)
+    try:
+      entries = os.listdir(current_dir)
+    except OSError as e:
+      log.exception(e) 
+      entries = []
 
     subdirs = [e for e in entries if isdir( join(current_dir,e) )]
     matching_subdirs = match_entries(subdirs, pattern)
