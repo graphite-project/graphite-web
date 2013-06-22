@@ -1618,6 +1618,19 @@ def limit(requestContext, seriesList, n):
   """
   return seriesList[0:n]
 
+def sortByTotal(requestContext, seriesList):
+  """
+  Takes one metric or a wildcard seriesList.
+
+  Sorts the list of metrics by the sum of values across the time period
+  specified.    
+  """
+  def compare(x,y):
+    return cmp(safeSum(y), safeSum(x))
+
+  seriesList.sort(compare)
+  return seriesList
+
 def sortByMaxima(requestContext, seriesList):
   """
   Takes one metric or a wildcard seriesList.
@@ -2848,6 +2861,7 @@ SeriesFunctions = {
   'maximumBelow' : maximumBelow,
   'nPercentile' : nPercentile,
   'limit' : limit,
+  'sortByTotal'  : sortByTotal,
   'sortByMaxima' : sortByMaxima,
   'sortByMinima' : sortByMinima,
   'useSeriesAbove': useSeriesAbove,
