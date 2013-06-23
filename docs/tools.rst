@@ -101,6 +101,11 @@ made to offer a very aesthetic realtime dashboard. Graphene provides a solution 
 displaying thousands upon thousands of datapoints all updated in realtime.
 
 
+Graphite-Newrelic
+-----------------
+`Graphite-Newrelic`_ - Get your graphite data into `New Relic`_ via a New Relic Platform plugin.
+
+
 Graphite-Observer
 ---------------
 `Graphite-Observer`_ is a real-time monitor dashboard for Graphite.
@@ -277,6 +282,7 @@ annotated events, etc). Supports Graphite, flot, rickshaw and anthracite.
 .. _Graphene: http://jondot.github.com/graphene/
 .. _Graphios: https://github.com/shawn-sterling/graphios
 .. _Graphite-Tattle: https://github.com/wayfair/Graphite-Tattle
+.. _Graphite-Newrelic: https://github.com/gingerlime/graphite-newrelic
 .. _Graphite-Observer: https://github.com/huoxy/graphite-observer
 .. _Graphite-relay: https://github.com/markchadwick/graphite-relay
 .. _Graphitejs: https://github.com/prestontimmons/graphitejs
@@ -293,6 +299,7 @@ annotated events, etc). Supports Graphite, flot, rickshaw and anthracite.
 .. _Ledbetter: https://github.com/github/ledbetter
 .. _Logster: https://github.com/etsy/logster
 .. _metrics-sampler: https://github.com/dimovelev/metrics-sampler
+.. _New Relic: https://newrelic.com/platform
 .. _Pencil: https://github.com/fetep/pencil
 .. _RabbitMQ: http://www.rabbitmq.com/
 .. _Rickshaw: http://code.shutterstock.com/rickshaw/
