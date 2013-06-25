@@ -236,7 +236,7 @@ performance data.
 
 SqlToGraphite
 -------------
-`SqlToGraphite`_ is an agent for windows to collect metrics using plugins (WMI, SQL Server, Oracle) by polling
+`SqlToGraphite`_ is an agent for windows written in .net to collect metrics using plugins (WMI, SQL Server, Oracle) by polling
  an endpoint with a SQL query and pushing the results into graphite. 
 
 statsd
