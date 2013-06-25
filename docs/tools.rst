@@ -234,6 +234,10 @@ Shinken
 and ease of setup. Shinken provides complete integration with Graphite for processing and display of
 performance data.
 
+SqlToGraphite
+-------------
+`SqlToGraphite`_ is an agent for windows to collect metrics using plugins (WMI, SQL Server, Oracle) by polling
+ an endpoint with a SQL query and pushing the results into graphite. 
 
 statsd
 ------
@@ -306,6 +310,7 @@ annotated events, etc). Supports Graphite, flot, rickshaw and anthracite.
 .. _Rocksteady: http://code.google.com/p/rocksteady/
 .. _Seyren: https://github.com/scobal/seyren
 .. _Shinken: http://www.shinken-monitoring.org/
+.. _SqlToGraphite: https://github.com/perryofpeek/SqlToGraphite/
 .. _statsd: https://github.com/etsy/statsd
 .. _structured_metrics: https://github.com/vimeo/graph-explorer/tree/master/structured_metrics
 .. _Tasseo: https://github.com/obfuscurity/tasseo
