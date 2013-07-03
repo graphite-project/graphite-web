@@ -3,6 +3,7 @@ from os.path import isdir, isfile, join, exists, splitext, basename, realpath
 import whisper
 from graphite.remote_storage import RemoteStore
 from django.conf import settings
+from render.decorators import limit_time_range
 
 try:
   import rrdtool
@@ -294,6 +295,7 @@ class WhisperFile(Leaf):
     end = max( os.stat(self.fs_path).st_mtime, start )
     return [ (start, end) ]
 
+  @limit_time_range
   def fetch(self, startTime, endTime):
     return whisper.fetch(self.fs_path, startTime, endTime)
 
@@ -325,7 +327,8 @@ class WhisperFile(Leaf):
 
 class GzippedWhisperFile(WhisperFile):
   extension = '.wsp.gz'
-
+  
+  @limit_time_range
   def fetch(self, startTime, endTime):
     if not gzip:
       raise Exception("gzip module not available, GzippedWhisperFile not supported")
@@ -390,6 +393,7 @@ class RRDDataSource(Leaf):
     end = max( os.stat(self.rrd_file.fs_path).st_mtime, start )
     return [ (start, end) ]
 
+  @limit_time_range
   def fetch(self, startTime, endTime):
     startString = time.strftime("%H:%M_%Y%m%d+%Ss", time.localtime(startTime))
     endString = time.strftime("%H:%M_%Y%m%d+%Ss", time.localtime(endTime))
