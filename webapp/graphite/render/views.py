@@ -44,8 +44,10 @@ from django.template import Context, loader
 from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
+from django.views.decorators.vary import vary_on_headers
 
 
+@vary_on_headers('Cookie')
 def renderView(request):
   start = time()
   (graphOptions, requestOptions) = parseOptions(request)
