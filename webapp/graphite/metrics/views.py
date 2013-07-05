@@ -21,6 +21,7 @@ from graphite.logger import log
 from graphite.storage import STORE
 from graphite.metrics.search import searcher
 from graphite.carbonlink import CarbonLink
+from graphite.jobs import jobs_dict
 import fnmatch, os
 
 try:
@@ -94,28 +95,39 @@ def find_view(request):
   except:
     return HttpResponseBadRequest(content="Missing required parameter 'query'", mimetype="text/plain")
 
-  if '.' in query:
-    base_path = query.rsplit('.', 1)[0] + '.'
-  else:
+  job = ''
+
+  if query == "*": # Base query, add the job names to the filetree
     base_path = ''
+    matches = jobs_dict.values()
 
-  if format == 'completer':
-    query = query.replace('..', '*.')
-    if not query.endswith('*'):
-      query += '*'
+  else: # We're looking at a job, split the job name temporary from the query
 
-    if automatic_variants:
-      query_parts = query.split('.')
-      for i,part in enumerate(query_parts):
-        if ',' in part and '{' not in part:
-          query_parts[i] = '{%s}' % part
-      query = '.'.join(query_parts)
+    job = query.split('.', 1)[0]
+    query = query.split('.', 1)[1]
 
-  try:
-    matches = list( STORE.find(query, fromTime, untilTime, local=local_only) )
-  except:
-    log.exception()
-    raise
+    if '.' in query:
+      base_path = job + '.' + query.rsplit('.', 1)[0] + '.' # Add the job name back so it's fetchable in future requests
+    else:
+      base_path = job + '.'                                 # Add the job name back so it's fetchable in future requests
+
+    if format == 'completer':
+      query = query.replace('..', '*.')
+      if not query.endswith('*'):
+        query += '*'
+
+      if automatic_variants:
+        query_parts = query.split('.')
+        for i,part in enumerate(query_parts):
+          if ',' in part and '{' not in part:
+            query_parts[i] = '{%s}' % part
+        query = '.'.join(query_parts)
+
+    try:
+      matches = list( STORE.find(query, fromTime, untilTime, local=local_only, jobs_dict[job].nodes) )
+    except:
+      log.exception()
+      raise
 
   log.info('find_view query=%s local_only=%s matches=%d' % (query, local_only, len(matches)))
   matches.sort(key=lambda node: node.name)

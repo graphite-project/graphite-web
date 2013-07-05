@@ -248,7 +248,7 @@ def parseOptions(request):
 
   # Collect the targets
   for target in mytargets:
-    requestOptions['targets'].append(target)
+    requestOptions['targets'].append(target.split('.', 1)[1]) # Don't parse the job in front here
 
   if 'pickle' in queryParams:
     requestOptions['format'] = 'pickle'

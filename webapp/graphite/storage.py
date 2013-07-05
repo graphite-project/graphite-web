@@ -35,8 +35,32 @@ class Store:
     remote_hosts = [host for host in hosts if not is_local_interface(host)]
     self.remote_stores = [ RemoteStore(host) for host in remote_hosts ]
 
+  def find(self, query, job_nodes=[]):
+    if is_pattern(query):
 
-  def find(self, pattern, startTime=None, endTime=None, local=False):
+      for match in self.find_all(query):
+        if (query == '*' and match.name in job_nodes) or query != '*': # If we search the root, display only the nodes
+                                                                       # our job has run on, otherwise display all
+          yield match
+
+    else:
+      match = self.find_first(query)
+
+      if match is not None:
+        if (query == '*' and match.name in job_nodes) or query != '*': # If we search the root, display only the nodes
+                                                                       # our job has run on, otherwise display all
+          yield match
+
+
+  def find_first(self, query):
+    # Search locally first
+    for directory in self.directories:
+      for match in find(directory, query):
+        return match
+>>>>>>> Added a new job level in the filetree
+
+
+  def find(self, pattern, startTime=None, endTime=None, local=False, job_nodes=[]): # Add an optional argument: the list of nodes the job has run on
     query = FindQuery(pattern, startTime, endTime)
 
     # Start remote searches
@@ -48,13 +72,17 @@ class Store:
     # Search locally
     for finder in self.finders:
       for node in finder.find_nodes(query):
-        #log.info("find() :: local :: %s" % node)
-        matching_nodes.add(node)
+        if (query == '*' and node.name in job_nodes) or query != '*': # If we search the root, display only the nodes
+                                                                       # our job has run on, otherwise display all
+          #log.info("find() :: local :: %s" % node)
+          matching_nodes.add(node)
 
     # Gather remote search results
     if not local:
       for request in remote_requests:
         for node in request.get_results():
+          if (query == '*' and node.name in job_nodes) or query != '*': # If we search the root, display only the nodes
+                                                                         # our job has run on, otherwise display all
           #log.info("find() :: remote :: %s from %s" % (node,request.store.host))
           matching_nodes.add(node)
 
