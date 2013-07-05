@@ -26,7 +26,7 @@ DATASOURCE_DELIMETER = '::RRD_DATASOURCE::'
 
 class Store:
   def __init__(self, directories=[], remote_hosts=[]):
-    self.directories = directories
+    self.directories = directories    
     self.remote_hosts = remote_hosts
     self.remote_stores = [ RemoteStore(host) for host in remote_hosts if not is_local_interface(host) ]
 
@@ -43,17 +43,21 @@ class Store:
         return WhisperFile(absolute_fs_path, metric_path)
 
 
-  def find(self, query):
+  def find(self, query, job_nodes=[]): # Add an optional argument: the list of nodes the job has run on
     if is_pattern(query):
 
       for match in self.find_all(query):
-        yield match
+        if (query == '*' and match.name in job_nodes) or query != '*': # If we search the root, display only the nodes
+                                                                       # our job has run on, otherwise display all
+          yield match
 
     else:
       match = self.find_first(query)
 
       if match is not None:
-        yield match
+        if (query == '*' and match.name in job_nodes) or query != '*': # If we search the root, display only the nodes
+                                                                       # our job has run on, otherwise display all
+          yield match
 
 
   def find_first(self, query):

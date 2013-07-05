@@ -21,6 +21,7 @@ from graphite.logger import log
 from graphite.storage import STORE, LOCAL_STORE, RRDFile
 from graphite.metrics.search import searcher
 from graphite.render.datalib import CarbonLink
+from graphite.jobs import jobs_dict
 import fnmatch, os
 
 try:
@@ -142,33 +143,44 @@ def find_view(request):
   except:
     return HttpResponseBadRequest(content="Missing required parameter 'query'", mimetype="text/plain")
 
-  if '.' in query:
-    base_path = query.rsplit('.', 1)[0] + '.'
-  else:
+  job = ''
+
+  if query == "*": # Base query, add the job names to the filetree
     base_path = ''
+    matches = jobs_dict.values()
+    
+  else: # We're looking at a job, split the job name temporary from the query
+    
+    job = query.split('.', 1)[0]
+    query = query.split('.', 1)[1]
+    
+    if '.' in query:
+      base_path = job + '.' + query.rsplit('.', 1)[0] + '.' # Add the job name back so it's fetchable in future requests
+    else:
+      base_path = job + '.'                                 # Add the job name back so it's fetchable in future requests
 
-  if local_only:
-    store = LOCAL_STORE
-  else:
-    store = STORE
+    if local_only:
+      store = LOCAL_STORE
+    else:
+      store = STORE
 
-  if format == 'completer':
-    query = query.replace('..', '*.')
-    if not query.endswith('*'):
-      query += '*'
+    if format == 'completer':
+      query = query.replace('..', '*.')
+      if not query.endswith('*'):
+        query += '*'
 
-    if automatic_variants:
-      query_parts = query.split('.')
-      for i,part in enumerate(query_parts):
-        if ',' in part and '{' not in part:
-          query_parts[i] = '{%s}' % part
-      query = '.'.join(query_parts)
+      if automatic_variants:
+        query_parts = query.split('.')
+        for i,part in enumerate(query_parts):
+          if ',' in part and '{' not in part:
+            query_parts[i] = '{%s}' % part
+        query = '.'.join(query_parts)
 
-  try:
-    matches = list( store.find(query) )
-  except:
-    log.exception()
-    raise
+    try:
+      matches = list( store.find(query,jobs_dict[job].nodes) ) # Added an extra argument with the job name to filter
+    except:
+      log.exception()
+      raise
 
   log.info('find_view query=%s local_only=%s matches=%d' % (query, local_only, len(matches)))
   matches.sort(key=lambda node: node.name)
