@@ -168,5 +168,5 @@ if USE_REMOTE_USER_AUTHENTICATION:
 
 if USE_LDAP_AUTH:
   AUTHENTICATION_BACKENDS.insert(0,'graphite.account.ldapBackend.LDAPBackend')
-
+  
 MIDDLEWARE_CLASSES += ('graphite.account.login_required.LoginRequiredMiddleware',)
