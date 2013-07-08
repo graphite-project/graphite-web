@@ -32,7 +32,7 @@ function GraphiteBrowser () {
     collapsible: true,
     collapseMode: 'mini',
     activeTab: 0
-  });
+  });  
 }
 
 //Tree Tab
@@ -198,9 +198,80 @@ function handleSearchResponse (response, options) {
   var results = text.split(',');
   Ext.each(results, function (item) {
     var li = document.createElement('li');
-    li.innerHTML = "<a href=\"javascript: Composer.toggleTarget('" + item + "');\">" + item + "</a>";
+    // We don't want to toggle the target here as we'll only receive jobs names; rather open a new tab
+    //li.innerHTML = "<a href=\"javascript: Composer.toggleTarget('" + item + "');\">" + item + "</a>";
+    li.innerHTML = "<a href=\"javascript: addJobPanel('" + item + "');\">" + item + "</a>";
     resultList.appendChild(li);
   });
+}
+
+// Adds a new job tree when a name job is clicked in the search view
+function addJobPanel(job) 
+{
+  
+  var newTree = addJobTree(job);
+  Browser.panel.add(newTree);
+  Browser.panel.setActiveTab(newTree);
+    
+}
+
+// Creates a new Tree to add to the new job panel
+function addJobTree(job) 
+{
+  var rootNode = new Ext.tree.TreeNode({});
+
+  function setParams(loader, node) {
+    loader.baseParams.query = node.text + ".*";
+    loader.baseParams.format = 'treejson';
+    loader.baseParams.contexts = '1';
+    loader.baseParams.path = node.text;
+  }
+
+  var graphiteNode = new Ext.tree.AsyncTreeNode({
+    id: job,
+    text: job,
+    expanded: true,
+    loader: new Ext.tree.TreeLoader({
+      url: "../metrics/find/",
+      requestMethod: "GET",
+      listeners: {beforeload: setParams}
+    })
+  });
+  rootNode.appendChild(graphiteNode);
+  
+  var treePanel = new Ext.tree.TreePanel({
+    id: job,
+    title: job,
+    root: rootNode,
+    containerScroll: true,
+    autoScroll: true,
+    pathSeparator: ".",
+    closable: true,
+    rootVisible: false,
+    singleExpand: false,
+    trackMouseOver: true
+  });
+
+  treePanel.on("click", function (node,evt) {
+    if (node.id == 'no-click') {
+      return;
+    }
+
+    if (!node.leaf) {
+      node.toggle();
+      return;
+    }
+
+    if (node.attributes.graphUrl) {
+      var url = node.attributes.graphUrl
+      Composer.loadMyGraph(node.attributes.text, url);
+      return;
+    }
+
+    Composer.toggleTarget(node.id);
+  });
+
+  return treePanel;
 }
 
 function handleSearchFailure (response, options)
