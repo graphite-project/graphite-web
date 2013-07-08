@@ -19,6 +19,9 @@ from django.conf import settings
 from graphite.account.models import Profile
 from graphite.util import getProfile, getProfileByUsername, defaultUser, json
 from graphite.logger import log
+
+from graphite.jobs import jobs_dict
+
 try:
   from hashlib import md5
 except ImportError:
@@ -68,14 +71,16 @@ def search(request):
 
   results = []
 
-  index_file = open(settings.INDEX_FILE)
-  for line in index_file:
+  # We don't want to look in the files here - we rather want to search our jobs
+  #index_file = open(settings.INDEX_FILE)
+  #for line in index_file:
+  for line in jobs_dict.keys():
     if matches(line):
       results.append( line.strip() )
     if len(results) >= 100:
       break
 
-  index_file.close()
+  #index_file.close()
   result_string = ','.join(results)
   return HttpResponse(result_string, mimetype='text/plain')
 
