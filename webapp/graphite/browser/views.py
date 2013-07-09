@@ -74,6 +74,7 @@ def search(request):
   # We don't want to look in the files here - we rather want to search our jobs
   #index_file = open(settings.INDEX_FILE)
   #for line in index_file:
+  #TODO Change the jobs_dict.keys() to get_jobs(request.user)
   for line in jobs_dict.keys():
     if matches(line):
       results.append( line.strip() )
