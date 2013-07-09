@@ -58,7 +58,9 @@ def renderView(request):
     'startTime' : requestOptions['startTime'],
     'endTime' : requestOptions['endTime'],
     'localOnly' : requestOptions['localOnly'],
-    'data' : []
+    'data' : [],
+    # Add the user to the requestoptions so we can retrieve user back later without an explicit request
+    'user' : request.user
   }
   data = requestContext['data']
 
