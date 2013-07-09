@@ -99,7 +99,7 @@ function createTreePanel(){
   rootNode.appendChild(userGraphsNode);
 
   var treePanel = new Ext.tree.TreePanel({
-    title: "Tree",
+    title: "Recent jobs",
     root: rootNode,
     containerScroll: true,
     autoScroll: true,
