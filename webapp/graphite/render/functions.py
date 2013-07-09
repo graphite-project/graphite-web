@@ -406,7 +406,7 @@ def keepLastValue(requestContext, seriesList, limit = INF):
     if 0 < consecutiveNones < limit:
       for index in xrange(len(series) - consecutiveNones, len(series)):
         series[index] = series[len(series) - consecutiveNones - 1]
-      
+
   return seriesList
 
 def asPercent(requestContext, seriesList, total=None):
@@ -593,6 +593,7 @@ def scale(requestContext, seriesList, factor):
   """
   for series in seriesList:
     series.name = "scale(%s,%g)" % (series.name,float(factor))
+    series.pathExpression = series.name
     for i,value in enumerate(series):
       series[i] = safeMul(value,factor)
   return seriesList
@@ -608,6 +609,7 @@ def scaleToSeconds(requestContext, seriesList, seconds):
 
   for series in seriesList:
     series.name = "scaleToSeconds(%s,%d)" % (series.name,seconds)
+    series.pathExpression = series.name
     for i,value in enumerate(series):
       factor = seconds * 1.0 / series.step
       series[i] = safeMul(value,factor)
@@ -627,6 +629,7 @@ def absolute(requestContext, seriesList):
   """
   for series in seriesList:
     series.name = "absolute(%s)" % (series.name)
+    series.pathExpression = series.name
     for i,value in enumerate(series):
       series[i] = safeAbs(value)
   return seriesList
@@ -645,6 +648,7 @@ def offset(requestContext, seriesList, factor):
   """
   for series in seriesList:
     series.name = "offset(%s,%g)" % (series.name,float(factor))
+    series.pathExpression = series.name
     for i,value in enumerate(series):
       if value is not None:
         series[i] = value + factor
@@ -742,6 +746,7 @@ def consolidateBy(requestContext, seriesList, consolidationFunc):
     # datalib will throw an exception, so it's not necessary to validate here
     series.consolidationFunc = consolidationFunc
     series.name = 'consolidateBy(%s,"%s")' % (series.name, series.consolidationFunc)
+    series.pathExpression = series.name
   return seriesList
 
 def derivative(requestContext, seriesList):
@@ -983,7 +988,7 @@ def cactiStyle(requestContext, seriesList, system=None):
         last = NAN
       else:
         last = fmt(float(last))
-        
+
       if maximum is None:
         maximum = NAN
       else:
@@ -992,7 +997,7 @@ def cactiStyle(requestContext, seriesList, system=None):
         minimum = NAN
       else:
         minimum = fmt(float(minimum))
-        
+
       series.name = "%*s Current:%*s Max:%*s Min:%*s " % \
           (-nameLen, series.name,
             -lastLen, last,
@@ -1441,6 +1446,7 @@ def removeAbovePercentile(requestContext, seriesList, n):
   """
   for s in seriesList:
     s.name = 'removeAbovePercentile(%s, %d)' % (s.name, n)
+    s.pathExpression = s.name
     percentile = nPercentile(requestContext, [s], n)[0][0]
     for (index, val) in enumerate(s):
       if val > percentile:
@@ -1455,6 +1461,7 @@ def removeAboveValue(requestContext, seriesList, n):
   """
   for s in seriesList:
     s.name = 'removeAboveValue(%s, %d)' % (s.name, n)
+    s.pathExpression = s.name
     for (index, val) in enumerate(s):
       if val > n:
         s[index] = None
@@ -1468,6 +1475,7 @@ def removeBelowPercentile(requestContext, seriesList, n):
   """
   for s in seriesList:
     s.name = 'removeBelowPercentile(%s, %d)' % (s.name, n)
+    s.pathExpression = s.name
     percentile = nPercentile(requestContext, [s], n)[0][0]
     for (index, val) in enumerate(s):
       if val < percentile:
@@ -1482,6 +1490,7 @@ def removeBelowValue(requestContext, seriesList, n):
   """
   for s in seriesList:
     s.name = 'removeBelowValue(%s, %d)' % (s.name, n)
+    s.pathExpression = s.name
     for (index, val) in enumerate(s):
       if val < n:
         s[index] = None
@@ -2016,6 +2025,7 @@ def timeStack(requestContext, seriesList, timeShiftUnit, timeShiftStart, timeShi
     myContext['endTime'] = requestContext['endTime'] + innerDelta
     for shiftedSeries in evaluateTarget(myContext, series.pathExpression):
       shiftedSeries.name = 'timeShift(%s, %s, %s)' % (shiftedSeries.name, timeShiftUnit,shft)
+      shiftedSeries.pathExpression = shiftedSeries.name
       shiftedSeries.start = series.start
       shiftedSeries.end = series.end
       results.append(shiftedSeries)
@@ -2149,7 +2159,7 @@ def identity(requestContext, name):
   Returns datapoints where the value equals the timestamp of the datapoint.
   Useful when you have another series where the value is a timestamp, and
   you want to compare it to the time of the datapoint, to render an age
-  
+
   Example:
 
   .. code-block:: none
@@ -2492,7 +2502,7 @@ def hitcount(requestContext, seriesList, intervalString, alignToInterval = False
         newValues.append(None)
 
     newName = 'hitcount(%s, "%s"%s)' % (series.name, intervalString, alignToInterval and ", true" or "")
-    newSeries = TimeSeries(newName, newStart, series.end, interval, newValues)    
+    newSeries = TimeSeries(newName, newStart, series.end, interval, newValues)
     newSeries.pathExpression = newName
     results.append(newSeries)
 
