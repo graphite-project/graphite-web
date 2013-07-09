@@ -217,6 +217,8 @@ def fetchData(requestContext, pathExpr):
   seriesList = []
   startTime = requestContext['startTime']
   endTime = requestContext['endTime']
+  job = pathExpr.split(".", 1)[0];
+  pathExpr = pathExpr.split(".", 1)[1];
 
   if requestContext['localOnly']:
     store = LOCAL_STORE
