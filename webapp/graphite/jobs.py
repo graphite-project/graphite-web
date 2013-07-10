@@ -2,7 +2,7 @@
 Interacts with the job database/storage.
 At the moment; this uses hard coded data but should finally interact with the real database/storage.
 """
-#from graphite.logger import log
+from graphite.logger import log
 
 user_dict = {
   "root": ["Venosaur", "Charizard"],
@@ -41,7 +41,7 @@ def get_jobs(user, limit=False):
       return user_dict[user.username]
   except KeyError:
     # We log to info here; as it is possible that a user just doesn't has any jobs
-    #log.info("No jobs found for user %s", user)
+    log.info("No jobs found for user %s", user)
     return []
 
 def get_job_timerange(job):
