@@ -16,7 +16,7 @@ import time
 from graphite.logger import log
 from graphite.storage import STORE
 from graphite.readers import FetchInProgress
-from graphite.jobs import get_job_timerange
+from graphite.jobs import get_job_timerange, get_nodes
 
 class TimeSeries(list):
   def __init__(self, name, start, end, step, values, consolidate='average'):
@@ -94,17 +94,24 @@ def fetchData(requestContext, pathExpr):
   startTime = int( time.mktime( requestContext['startTime'].timetuple() ) )
   endTime   = int( time.mktime( requestContext['endTime'].timetuple() ) )
 
+  # Split the job from the path
   (job, pathExpr) = pathExpr.split(".", 1);
 
+  # Get the maximum visible time range from the job
   (jobStart, jobEnd) = get_job_timerange(job)
 
+  # Limit the visible period to the period the job has run
   startTime = max(startTime, jobStart)
   endTime = min(endTime, jobEnd)
 
+  '''
+  Simple fix: If for some weird reason the endTime is earlier then the startTime; we would get an
+  500 error. If we equalize the start to the end, we just get a "No data" message
+  '''
   if endTime < startTime:
     endTime = startTime
 
-  matching_nodes = STORE.find(pathExpr, startTime, endTime, local=requestContext['localOnly'])
+  matching_nodes = STORE.find(pathExpr, startTime, endTime, local=requestContext['localOnly'], get_nodes(job))
   fetches = [(node, node.fetch(startTime, endTime)) for node in matching_nodes if node.is_leaf]
 
   for node, results in fetches:
