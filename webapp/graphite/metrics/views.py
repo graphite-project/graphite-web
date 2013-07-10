@@ -21,7 +21,7 @@ from graphite.logger import log
 from graphite.storage import STORE
 from graphite.metrics.search import searcher
 from graphite.carbonlink import CarbonLink
-from graphite.jobs import jobs_dict
+from graphite.jobs import get_jobs, get_nodes
 import fnmatch, os
 
 try:
@@ -98,8 +98,12 @@ def find_view(request):
   job = ''
 
   if query == "*": # Base query, add the job names to the filetree
-    base_path = ''
-    matches = jobs_dict.values()
+    # TODO: List the 10-ish most recent jobs here
+    matches = get_jobs(request.user.username)
+
+    content = tree_jobs(matches)
+    response = HttpResponse(content, mimetype='application/json')
+    return response;
 
   else: # We're looking at a job, split the job name temporary from the query
 
@@ -124,7 +128,8 @@ def find_view(request):
         query = '.'.join(query_parts)
 
     try:
-      matches = list( STORE.find(query, fromTime, untilTime, local=local_only, jobs_dict[job].nodes) )
+      # Added an extra argument with the job name so we can filter the returning nodes later on
+      matches = list( STORE.find(query, fromTime, untilTime, local=local_only, get_nodes(job) )
     except:
       log.exception()
       raise
@@ -242,7 +247,29 @@ def set_metadata_view(request):
   return json_response_for(request, results)
 
 
-def tree_json(nodes, base_path, wildcards=False):
+def tree_jobs(jobs):
+  results = []
+
+  branchNode = {
+    'allowChildren': 1,
+    'expandable': 1,
+    'leaf': 0,
+  }
+
+  for job in jobs: #Now let's add the matching children
+    resultNode = {
+      'text' : str(job),
+      'id' : str(job),
+    }
+
+    resultNode['context'] = 1
+
+    resultNode.update(branchNode)
+    results.append(resultNode)
+
+  return json.dumps(results)
+
+def tree_json(nodes, base_path, wildcards=False, contexts=False):
   results = []
 
   branchNode = {

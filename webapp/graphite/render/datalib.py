@@ -16,7 +16,7 @@ import time
 from graphite.logger import log
 from graphite.storage import STORE
 from graphite.readers import FetchInProgress
-
+from graphite.jobs import get_job_timerange
 
 class TimeSeries(list):
   def __init__(self, name, start, end, step, values, consolidate='average'):
@@ -94,8 +94,15 @@ def fetchData(requestContext, pathExpr):
   startTime = int( time.mktime( requestContext['startTime'].timetuple() ) )
   endTime   = int( time.mktime( requestContext['endTime'].timetuple() ) )
 
-  job = pathExpr.split(".", 1)[0];
-  pathExpr = pathExpr.split(".", 1)[1];
+  (job, pathExpr) = pathExpr.split(".", 1);
+
+  (jobStart, jobEnd) = get_job_timerange(job)
+
+  startTime = max(startTime, jobStart)
+  endTime = min(endTime, jobEnd)
+
+  if endTime < startTime:
+    endTime = startTime
 
   matching_nodes = STORE.find(pathExpr, startTime, endTime, local=requestContext['localOnly'])
   fetches = [(node, node.fetch(startTime, endTime)) for node in matching_nodes if node.is_leaf]
