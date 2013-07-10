@@ -19,6 +19,7 @@ from django.conf import settings
 from graphite.logger import log
 from graphite.storage import STORE, LOCAL_STORE
 from graphite.render.hashing import ConsistentHashRing
+from graphite.jobs import get_job_timerange
 
 try:
   import cPickle as pickle
@@ -215,9 +216,18 @@ CarbonLink = CarbonLinkPool(hosts, settings.CARBONLINK_TIMEOUT)
 # Data retrieval API
 def fetchData(requestContext, pathExpr):
   seriesList = []
-  startTime = requestContext['startTime']
-  endTime = requestContext['endTime']
+  startTime = timestamp(requestContext['startTime'])
+  endTime = timestamp(requestContext['endTime'])
+
   (job, pathExpr) = pathExpr.split(".", 1);
+
+  (jobStart, jobEnd) = get_job_timerange(job)
+  
+  startTime = max(startTime, jobStart)
+  endTime = min(endTime, jobEnd)
+
+  if endTime < startTime:
+	  endTime = startTime
 
   if requestContext['localOnly']:
     store = LOCAL_STORE
@@ -226,7 +236,7 @@ def fetchData(requestContext, pathExpr):
 
   for dbFile in store.find(pathExpr):
     log.metric_access(dbFile.metric_path)
-    dbResults = dbFile.fetch( timestamp(startTime), timestamp(endTime) )
+    dbResults = dbFile.fetch( startTime, endTime )
     try:
       cachedResults = CarbonLink.query(dbFile.real_metric)
       results = mergeResults(dbResults, cachedResults)
@@ -244,7 +254,6 @@ def fetchData(requestContext, pathExpr):
     seriesList.append(series)
 
   return seriesList
-
 
 def mergeResults(dbResults, cacheResults):
   cacheResults = list(cacheResults)
