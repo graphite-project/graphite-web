@@ -98,8 +98,8 @@ def fetchData(requestContext, pathExpr):
   # Split the job from the path
   (job, pathExpr) = pathExpr.split(".", 1);
 
-  # Security: If the user requests a job that's not his: kick him out
-  if job not in get_jobs(user.username):
+  # Security: If the user requests a job that's not his: kick him out unless the user may see all data
+  if job not in get_jobs(user.username) and not user.has_perm('account.can_see_all'):
     return []
 
   # Get the maximum visible time range from the job
