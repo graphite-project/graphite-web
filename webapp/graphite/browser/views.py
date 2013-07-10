@@ -74,7 +74,7 @@ def search(request):
   # We don't want to look in the files here - we rather want to search our jobs
   #index_file = open(settings.INDEX_FILE)
   #for line in index_file:
-  for line in get_jobs(request.user.username):
+  for line in get_jobs(request.user):
     if matches(line):
       results.append( line.strip() )
     if len(results) >= 100:
