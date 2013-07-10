@@ -219,13 +219,20 @@ def fetchData(requestContext, pathExpr):
   startTime = timestamp(requestContext['startTime'])
   endTime = timestamp(requestContext['endTime'])
 
+  # Split the job from the path
   (job, pathExpr) = pathExpr.split(".", 1);
 
+  # Get the maximum visible time range from the job
   (jobStart, jobEnd) = get_job_timerange(job)
-  
+
+  # Limit the visible period to the period the job has run
   startTime = max(startTime, jobStart)
   endTime = min(endTime, jobEnd)
 
+  '''
+  Simple fix: If for some weird reason the endTime is earlier then the startTime; we would get an
+  500 error. If we equalize the start to the end, we just get a "No data" message
+  '''
   if endTime < startTime:
 	  endTime = startTime
 
