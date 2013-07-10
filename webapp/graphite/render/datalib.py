@@ -93,9 +93,14 @@ def fetchData(requestContext, pathExpr):
   seriesList = []
   startTime = int( time.mktime( requestContext['startTime'].timetuple() ) )
   endTime   = int( time.mktime( requestContext['endTime'].timetuple() ) )
+  user = requestContext['user']
 
   # Split the job from the path
   (job, pathExpr) = pathExpr.split(".", 1);
+
+  # Security: If the user requests a job that's not his: kick him out
+  if job not in get_jobs(user.username):
+    return []
 
   # Get the maximum visible time range from the job
   (jobStart, jobEnd) = get_job_timerange(job)
