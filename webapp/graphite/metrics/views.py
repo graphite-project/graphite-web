@@ -98,8 +98,8 @@ def find_view(request):
   job = ''
 
   if query == "*": # Base query, add the job names to the filetree
-    # TODO: List the 10-ish most recent jobs here
-    matches = get_jobs(request.user)
+    matches = get_jobs(request.user, 25)
+
     content = tree_jobs(matches)
     response = HttpResponse(content, mimetype='application/json')
     return response;
