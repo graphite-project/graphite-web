@@ -19,7 +19,7 @@ from django.conf import settings
 from graphite.logger import log
 from graphite.storage import STORE, LOCAL_STORE
 from graphite.render.hashing import ConsistentHashRing
-from graphite.jobs import get_job_timerange
+from graphite.jobs import get_job_timerange, get_jobs
 
 try:
   import cPickle as pickle
@@ -218,10 +218,15 @@ def fetchData(requestContext, pathExpr):
   seriesList = []
   startTime = timestamp(requestContext['startTime'])
   endTime = timestamp(requestContext['endTime'])
+  user = requestContext['user']
 
   # Split the job from the path
   (job, pathExpr) = pathExpr.split(".", 1);
 
+  # Security: If the user requests a job that's not his: kick him out
+  if job not in get_jobs(user.username):
+    return []
+  
   # Get the maximum visible time range from the job
   (jobStart, jobEnd) = get_job_timerange(job)
 
