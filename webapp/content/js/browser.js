@@ -221,10 +221,11 @@ function addJobTree(job)
   var rootNode = new Ext.tree.TreeNode({});
 
   function setParams(loader, node) {
-    loader.baseParams.query = node.text + ".*";
+    var node_id = node.id.replace(/^[A-Za-z]+Tree\.?/,"");
+    loader.baseParams.query = (node_id == "") ? "*" : (node_id + ".*");
     loader.baseParams.format = 'treejson';
     loader.baseParams.contexts = '1';
-    loader.baseParams.path = node.text;
+    loader.baseParams.path = node_id;
   }
 
   var graphiteNode = new Ext.tree.AsyncTreeNode({
