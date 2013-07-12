@@ -9,7 +9,7 @@ from graphite.render.views import parseOptions
 from graphite.render.evaluator import evaluateTarget
 from graphite.storage import STORE
 from django.core.urlresolvers import get_script_prefix
-
+from graphite.jobs import get_jobs
 
 
 def graphlot_render(request):
@@ -39,7 +39,8 @@ def get_data(request):
         'startTime' : requestOptions['startTime'],
         'endTime' : requestOptions['endTime'],
         'localOnly' : False,
-        'data' : []
+        'data' : [],
+        'user' : request.user
     }
     target = requestOptions['targets'][0]
     seriesList = evaluateTarget(requestContext, target)
@@ -63,8 +64,24 @@ def find_metric(request):
         return HttpResponseBadRequest(
             content="Missing required parameter 'q'", mimetype="text/plain")
 
-    matches = list( STORE.find(query+"*") )
-    content = "\n".join([node.metric_path for node in matches ])
+    if '.' not in query:
+        matches = []
+
+        regex = re.compile(query, re.I)
+
+        for line in get_jobs(request.user):
+            if regex.search(line):
+                matches.append(line)
+            if len(matches) >= 100:
+                break
+
+        content = "\n".join(matches)
+    else:
+        (job, query) = query.split(".", 1)
+        matches = list( STORE.find(query+"*") )
+
+        content = "\n".join([job + "." + node.metric_path for node in matches ])
+
     response = HttpResponse(content, mimetype='text/plain')
 
     return response
