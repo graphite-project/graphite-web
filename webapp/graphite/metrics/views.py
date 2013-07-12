@@ -172,8 +172,8 @@ def find_view(request):
   elif format == 'completer':
     results = []
     for node in matches:
-      node_info = dict(path=node.path, name=node.name, is_leaf=str(int(node.is_leaf)))
-      if not node.is_leaf:
+      node_info = dict(path=job + "." + node.metric_path, name=node.name, is_leaf=str(int(node.isLeaf())))
+      if not node.isLeaf():
         node_info['path'] += '.'
       results.append(node_info)
 
