@@ -226,7 +226,7 @@ def find_view(request):
     #  matches = list( store.find(query + '.*') )
     results = []
     for node in matches:
-      node_info = dict(path=node.metric_path, name=node.name, is_leaf=str(int(node.isLeaf())))
+      node_info = dict(path=job + "." + node.metric_path, name=node.name, is_leaf=str(int(node.isLeaf())))
       if not node.isLeaf():
         node_info['path'] += '.'
       results.append(node_info)
