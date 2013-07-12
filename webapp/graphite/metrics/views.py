@@ -12,6 +12,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
+import re
 import traceback
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.conf import settings
@@ -147,17 +148,38 @@ def find_view(request):
 
   if query == "*": # Base query, add the job names to the filetree
     matches = get_jobs(request.user, 25)
-    
+
     content = tree_jobs(matches)
     response = HttpResponse(content, mimetype='application/json')
     return response;
-    
-    
+
+  elif '.' not in query:
+    """
+    We're looking at a composer query that searches for jobs; format PartialJob*; eg Blast*
+    Lets search if one or more of our nodes match and return them.
+    """
+    results = []
+
+    regex = re.compile(query[:-1], re.I)
+
+    for line in get_jobs(request.user):
+      if regex.search(line):
+        node_info = dict(path=line, name=line, is_leaf='0')
+        node_info['path'] += '.'
+        results.append(node_info)
+      if len(results) >= 100:
+        break
+
+    content = json.dumps({ 'metrics' : results })
+
+    response = HttpResponse(content, mimetype='application/json')
+    return response;
+
   else: # We're looking at a job, split the job name temporary from the query
-    
+
     job = query.split('.', 1)[0]
     query = query.split('.', 1)[1]
-    
+
     if '.' in query:
       base_path = job + '.' + query.rsplit('.', 1)[0] + '.' # Add the job name back so it's fetchable in future requests
     else:
@@ -167,7 +189,7 @@ def find_view(request):
       store = LOCAL_STORE
     else:
       store = STORE
-
+    
     if format == 'completer':
       query = query.replace('..', '*.')
       if not query.endswith('*'):
@@ -182,10 +204,11 @@ def find_view(request):
 
     try:
       # Added an extra argument with the job name so we can filter the returning nodes later on
-      matches = list( store.find(query, get_nodes(job)) ) 
+      matches = list( store.find(query, get_nodes(job)) )
     except:
       log.exception()
       raise
+
 
   log.info('find_view query=%s local_only=%s matches=%d' % (query, local_only, len(matches)))
   matches.sort(key=lambda node: node.name)
@@ -309,7 +332,7 @@ def set_metadata_view(request):
 
 def tree_jobs(jobs):
   results = []
-  
+
   branchNode = {
     'allowChildren': 1,
     'expandable': 1,
@@ -326,7 +349,7 @@ def tree_jobs(jobs):
 
     resultNode.update(branchNode)
     results.append(resultNode)
-
+    
   return json.dumps(results)
 
 def tree_json(nodes, base_path, wildcards=False, contexts=False):
@@ -382,6 +405,7 @@ def tree_json(nodes, base_path, wildcards=False, contexts=False):
 
   results.extend(results_branch)
   results.extend(results_leaf)
+
   return json.dumps(results)
 
 
