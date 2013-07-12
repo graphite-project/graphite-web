@@ -12,6 +12,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
+import re
 import traceback
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.conf import settings
@@ -104,6 +105,28 @@ def find_view(request):
     response = HttpResponse(content, mimetype='application/json')
     return response;
 
+  elif '.' not in query:
+    """
+    We're looking at a composer query that searches for jobs; format PartialJob*; eg Blast*
+    Lets search if one or more of our nodes match and return them.
+    """
+    results = []
+
+    regex = re.compile(query[:-1], re.I)
+
+    for line in get_jobs(request.user):
+      if regex.search(line):
+        node_info = dict(path=line, name=line, is_leaf='0')
+        node_info['path'] += '.'
+        results.append(node_info)
+      if len(results) >= 100:
+        break
+
+    content = json.dumps({ 'metrics' : results })
+
+    response = HttpResponse(content, mimetype='application/json')
+    return response;
+
   else: # We're looking at a job, split the job name temporary from the query
 
     job = query.split('.', 1)[0]
@@ -132,6 +155,7 @@ def find_view(request):
     except:
       log.exception()
       raise
+
 
   log.info('find_view query=%s local_only=%s matches=%d' % (query, local_only, len(matches)))
   matches.sort(key=lambda node: node.name)
@@ -316,7 +340,8 @@ def tree_json(nodes, base_path, wildcards=False, contexts=False):
 
   results.extend(results_branch)
   results.extend(results_leaf)
-  return results
+
+  return json.dumps(results)
 
 
 def pickle_nodes(nodes):
