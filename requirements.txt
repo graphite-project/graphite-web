@@ -6,6 +6,7 @@
 #   source .venv/bin/activate
 #
 #   brew install cairo && brew link cairo # on OSX
+#   sudo apt-get install libcairo2-dev    # on Ubuntu
 #   pip install -r requirements.txt
 #
 #   mkdir -p .venv/storage .venv/conf
