@@ -231,16 +231,15 @@ def fetchData(requestContext, pathExpr):
   (jobStart, jobEnd) = get_job_timerange(job)
 
   # Limit the visible period to the period the job has run
-  if jobEnd < startTime:
-    '''
-    If the requested start is later than the jobend, we wouldn't see anything so we just
-    display the whole job here
-    '''
-    startTime = jobStart
-    endTime = jobEnd
-  else:
+  if startTime < jobEnd:
     startTime = max(startTime, jobStart)
+  else:
+    startTime = jobStart
+
+  if endTime > jobStart:
     endTime = min(endTime, jobEnd)
+  else:
+    endTime = jobEnd
 
   '''
   Simple fix: If for some weird reason the endTime is earlier then the startTime; we would get an
