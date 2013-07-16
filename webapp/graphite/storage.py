@@ -48,8 +48,16 @@ class Store:
     if is_pattern(query):
 
       for match in self.find_all(query):
+          """
+          If the is not in the query, we're retrieving the nodes so we filter
+          the matched nodes based on the job_nodes
+          """
           if '.' not in query and match.name in job_nodes:
             yield match
+          """
+          If there is a . in the query, we split the node name from the query
+          and filter the result based on this node
+          """
           if '.' in query:
             node = query.split('.', 1)[0]
             if node in job_nodes:
