@@ -330,11 +330,15 @@ class WhisperFile(Leaf):
 class GzippedWhisperFile(WhisperFile):
   extension = '.wsp.gz'
 <<<<<<< HEAD
+<<<<<<< HEAD
 
   @limit_time_range
 =======
 
 >>>>>>> Large code cleanup: generified jobs.py, adapted old code to this change, made a specific render method for the json_tree
+=======
+
+>>>>>>> Bugfix for the nodes shown
   def fetch(self, startTime, endTime):
     if not gzip:
       raise Exception("gzip module not available, GzippedWhisperFile not supported")
