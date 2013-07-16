@@ -2,78 +2,77 @@
 Interacts with the job database/storage.
 At the moment; this uses hard coded data but should finally interact with the real database/storage.
 """
+import time
+from sqlalchemy import create_engine, MetaData, Table, select
+
 from graphite.logger import log
 
-user_dict = {
-  "root": ["Venosaur", "Charizard"],
-  "Silox": ["Blastoise"]
-}
-
-jobs_dict = {
-  "Venosaur": {
-    'nodes': ["serenity", "carbon", "think"],
-    'startTime': 2,
-    'endTime': 1373444994
-  },
-  "Charizard": {
-    'nodes': ["carbon"],
-    'startTime': 1,
-    'endTime': 1373444994
-  },
-  "Blastoise":
-    {
-      'nodes': ["serenity"],
-      'startTime': 1373391116,
-      'endTime': 1373401916
-    }
-}
+engine = create_engine('postgresql://silox:sup@localhost/hpc')
+metadata = MetaData(engine)
+jobs = Table('job', metadata, autoload=True)
 
 def get_jobs(user, limit=False):
   """
   Returns all the jobs a user ever has submitted
-  If the limit paramter is set, display the most recent limit number of jobs
+  If the limit paramater is set, display the most recent limit number of jobs
   """
-  try:
-    jobs = []
+  # Build the select query
+  s = select([jobs.c.id])
 
-    # Return all jobs for the admins
-    if user.has_perm('account.can_see_all'):
-      jobs = jobs_dict.keys()
-    else:
-      jobs = user_dict[user.username]
+  # If the user isn't allowed to see everything; limit the query
+  if not user.has_perm('account.can_see_all'):
+    s = s.where(jobs.c.userr == user.username)
 
-    # Sort them by startTime
-    jobs = sorted(jobs, key=lambda k: jobs_dict[k]['startTime'])
-    jobs.reverse()
+  # Order the jobs
+  s = s.order_by(jobs.c.lasttime.desc())
 
-    # Did we limit the jobs? Return only the last limit number of jobs!
-    if limit:
-      return jobs[:limit]
-    
-    return jobs
+  # Did we limit the jobs? Return only the last limit number of jobs!
+  if limit:
+    s = s.limit(limit)
 
-  except KeyError:
-    # We log to info here; as it is possible that a user just doesn't has any jobs
-    log.info("No jobs found for user %s", user)
-    return []
+  # Fetch the results and return the ID's as a list
+  result = engine.execute(s).fetchall()
+  return [job[0] for job in result]
 
 def get_job_timerange(job):
   """
   Returns specific job timerange in the tuple (startTime, endTime)
   """
-  try:
-    return (jobs_dict[job]['startTime'], jobs_dict[job]['endTime'])
-  except KeyError:
-    # Log to exception: a job must have a timerange
+  s = select([jobs.c.start, jobs.c.lasttime]).where(jobs.c.id == job)
+  result = engine.execute(s).first()
+
+  if len(result) > 1:
+    return (timestamp(result[0]), timestamp(result[1]))
+  else:
+    # Log to exception: a job must have nodes
     log.exeption("No timerange found for job %s", job)
-    raise
+    raise NoTimeRangeForJobException
 
 def get_nodes(job):
   """
   Returns all the nodes a job has run on
   """
-  try:
-    return jobs_dict[job]['nodes']
-  except KeyError:
-    log.exception("No nodes found for job %s", job)
-    raise
+  s = select([jobs.c.exec_host]).where(jobs.c.id == job)
+  result = engine.execute(s).first()
+
+  if len(result) > 0:
+    nodestring = result[0].split('.', 1)[0]
+    nodes = nodestring.split('+')
+    nodes = [str(node.split('/', 1)[0]) for node in nodes]
+    return nodes
+  else:
+    # Log to exception: a job must have nodes
+    log.exeption("No nodes found for job %s", job)
+    raise NoNodesForJobException
+
+class NoNodesForJobException(Exception):
+  ''' Error die wordt opgegooid wanneer er geen nodes voor een job worden gevonden '''
+  pass
+
+class NoTimeRangeForJobException(Exception):
+  ''' Error die wordt opgegooid wanneer er geen timerange voor een job wordt gevonden '''
+  pass
+
+def timestamp(datetime):
+  "Convert a datetime object into epoch time"
+  return time.mktime( datetime.timetuple() )

@@ -163,6 +163,7 @@ def find_view(request):
     regex = re.compile(query[:-1], re.I)
 
     for line in get_jobs(request.user):
+      line = str(line)
       if regex.search(line):
         node_info = dict(path=line, name=line, is_leaf='0')
         node_info['path'] += '.'
@@ -189,7 +190,7 @@ def find_view(request):
       store = LOCAL_STORE
     else:
       store = STORE
-    
+
     if format == 'completer':
       query = query.replace('..', '*.')
       if not query.endswith('*'):
@@ -338,7 +339,7 @@ def tree_jobs(jobs):
     'expandable': 1,
     'leaf': 0,
   }
-  
+
   for job in jobs: #Now let's add the matching children
     resultNode = {
       'text' : str(job),
@@ -349,7 +350,7 @@ def tree_jobs(jobs):
 
     resultNode.update(branchNode)
     results.append(resultNode)
-    
+
   return json.dumps(results)
 
 def tree_json(nodes, base_path, wildcards=False, contexts=False):

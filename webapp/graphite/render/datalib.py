@@ -226,7 +226,7 @@ def fetchData(requestContext, pathExpr):
   # Security: If the user requests a job that's not his: kick him out unless the user may see all data
   if job not in get_jobs(user) and not user.has_perm('account.can_see_all'):
     return []
-  
+
   # Get the maximum visible time range from the job
   (jobStart, jobEnd) = get_job_timerange(job)
 
