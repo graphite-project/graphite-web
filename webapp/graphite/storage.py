@@ -26,7 +26,7 @@ DATASOURCE_DELIMETER = '::RRD_DATASOURCE::'
 
 class Store:
   def __init__(self, directories=[], remote_hosts=[]):
-    self.directories = directories    
+    self.directories = directories
     self.remote_hosts = remote_hosts
     self.remote_stores = [ RemoteStore(host) for host in remote_hosts if not is_local_interface(host) ]
 
@@ -44,21 +44,27 @@ class Store:
 
 
   def find(self, query, job_nodes=[]): # Add an optional argument: the list of nodes the job has run on
+
     if is_pattern(query):
 
       for match in self.find_all(query):
-        if (query == '*' and match.name in job_nodes) or query != '*': # If we search the root, display only the nodes
-                                                                       # our job has run on, otherwise display all
-          yield match
+          if '.' not in query and match.name in job_nodes:
+            yield match
+          if '.' in query:
+            node = query.split('.', 1)[0]
+            if node in job_nodes:
+                yield match
 
     else:
       match = self.find_first(query)
 
       if match is not None:
-        if (query == '*' and match.name in job_nodes) or query != '*': # If we search the root, display only the nodes
-                                                                       # our job has run on, otherwise display all
-          yield match
-
+          if '.' not in query and match.name in job_nodes:
+            yield match
+          if '.' in query:
+            node = query.split('.', 1)[0]
+            if node in job_nodes:
+                yield match
 
   def find_first(self, query):
     # Search locally first
@@ -329,7 +335,7 @@ class WhisperFile(Leaf):
 
 class GzippedWhisperFile(WhisperFile):
   extension = '.wsp.gz'
-  
+
   def fetch(self, startTime, endTime):
     if not gzip:
       raise Exception("gzip module not available, GzippedWhisperFile not supported")
