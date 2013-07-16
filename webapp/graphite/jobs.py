@@ -17,7 +17,7 @@ def get_jobs(user, limit=False):
   If the limit paramater is set, display the most recent limit number of jobs
   """
   # Build the select query
-  s = select([jobs.c.id])
+  s = select([jobs.c.name])
 
   # If the user isn't allowed to see everything; limit the query
   if not user.has_perm('account.can_see_all'):
@@ -32,13 +32,13 @@ def get_jobs(user, limit=False):
 
   # Fetch the results and return the ID's as a list
   result = engine.execute(s).fetchall()
-  return [job[0] for job in result]
+  return [job[0].replace('.', '-') for job in result]
 
 def get_job_timerange(job):
   """
   Returns specific job timerange in the tuple (startTime, endTime)
   """
-  s = select([jobs.c.start, jobs.c.lasttime]).where(jobs.c.id == job)
+  s = select([jobs.c.start, jobs.c.lasttime]).where(jobs.c.name == job.replace('-', '.'))
   result = engine.execute(s).first()
 
   if len(result) > 1:
@@ -52,7 +52,7 @@ def get_nodes(job):
   """
   Returns all the nodes a job has run on
   """
-  s = select([jobs.c.exec_host]).where(jobs.c.id == job)
+  s = select([jobs.c.exec_host]).where(jobs.c.name == job.replace('-', '.'))
   result = engine.execute(s).first()
 
   if len(result) > 0:
