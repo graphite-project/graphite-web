@@ -27,8 +27,7 @@ class Store:
     # Search locally
     for finder in self.finders:
       for node in finder.find_nodes(query):
-        if (query == '*' and node.name in job_nodes) or query != '*': # If we search the root, display only the nodes
-                                                                       # our job has run on, otherwise display all
+        if node.metric_path.split('.', 1)[0] in job_nodes:
           #log.info("find() :: local :: %s" % node)
           matching_nodes.add(node)
 
@@ -36,8 +35,7 @@ class Store:
     if not local:
       for request in remote_requests:
         for node in request.get_results():
-          if (query == '*' and node.name in job_nodes) or query != '*': # If we search the root, display only the nodes
-                                                                         # our job has run on, otherwise display all
+          if node.metric_path.split('.', 1)[0] in job_nodes:
           #log.info("find() :: remote :: %s from %s" % (node,request.store.host))
           matching_nodes.add(node)
 
