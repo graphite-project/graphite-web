@@ -53,7 +53,7 @@ def browser(request):
     context['queryString'] = context['queryString'].replace('#','%23')
   if context['target']:
     context['target'] = context['target'].replace('#','%23') #js libs terminate a querystring on #
-  return render_to_response("browser.html", context) 
+  return render_to_response("browser.html", context)
 
 
 def search(request):
@@ -75,8 +75,8 @@ def search(request):
   #index_file = open(settings.INDEX_FILE)
   #for line in index_file:
   for line in get_jobs(request.user):
-    if matches(line):
-      results.append( line.strip() )
+    if matches(str(line)):
+      results.append( str(line) )
     if len(results) >= 100:
       break
 
