@@ -44,35 +44,22 @@ class Store:
 
 
   def find(self, query, job_nodes=[]): # Add an optional argument: the list of nodes the job has run on
-
     if is_pattern(query):
 
       for match in self.find_all(query):
-          """
-          If the is not in the query, we're retrieving the nodes so we filter
-          the matched nodes based on the job_nodes
-          """
-          if '.' not in query and match.name in job_nodes:
-            yield match
-          """
-          If there is a . in the query, we split the node name from the query
-          and filter the result based on this node
-          """
-          if '.' in query:
-            node = query.split('.', 1)[0]
-            if node in job_nodes:
-                yield match
+        """
+        The first section of the metric path contains the job, so we split
+        it and check if the job_nodes list contains the node
+        """
+        if match.metric_path.split('.', 1)[0] in job_nodes:
+          yield match
 
     else:
       match = self.find_first(query)
 
       if match is not None:
-          if '.' not in query and match.name in job_nodes:
-            yield match
-          if '.' in query:
-            node = query.split('.', 1)[0]
-            if node in job_nodes:
-                yield match
+        if match.metric_path.split('.', 1)[0] in job_nodes:
+          yield match
 
   def find_first(self, query):
     # Search locally first
