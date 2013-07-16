@@ -115,6 +115,7 @@ def find_view(request):
     regex = re.compile(query[:-1], re.I)
 
     for line in get_jobs(request.user):
+      line = str(line)
       if regex.search(line):
         node_info = dict(path=line, name=line, is_leaf='0')
         node_info['path'] += '.'
