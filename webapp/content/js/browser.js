@@ -32,7 +32,7 @@ function GraphiteBrowser () {
     collapsible: true,
     collapseMode: 'mini',
     activeTab: 0
-  });  
+  });
 }
 
 //Tree Tab
@@ -162,7 +162,7 @@ function setupSearchForm(formEl) {
   var helpOptions = '"width=500,height=400,toolbar=no,location=no,directories=no,status=no,menubar=no"';
   Ext.getDom('searchHelpLink').href = helpAction+"("+helpPage+","+helpTitle+","+helpOptions+");";
   var formPanel = Ext.get("searchForm");
-  formPanel.un("render",setupSearchForm); 
+  formPanel.un("render",setupSearchForm);
 }
 
 function showSearchError(message) {
@@ -190,34 +190,38 @@ function sendSearchRequest (searchField, evt) {
 }
 
 function handleSearchResponse (response, options) {
-  var text = response.responseText;
-  if (text == "") {
+  if (!response.responseText) {
     showSearchError("Nothing matched your query");
     return;
   }
+  var result = Ext.util.JSON.decode(response.responseText);
   var resultList = Ext.getDom('searchResults');
-  var results = text.split(',');
-  Ext.each(results, function (item) {
+  Ext.each(result, function (item) {
     var li = document.createElement('li');
+
+    jobinfo = item[0].split("-")
+    jobid = jobinfo[0]
+    jobcluster = jobinfo[2]
+    jobname = item[1]
+    fancyname = jobname + " (" + jobid + " - " + jobcluster  + ")";
     // We don't want to toggle the target here as we'll only receive jobs names; rather open a new tab
-    //li.innerHTML = "<a href=\"javascript: Composer.toggleTarget('" + item + "');\">" + item + "</a>";
-    li.innerHTML = "<a href=\"javascript: addJobPanel('" + item + "');\">" + item + "</a>";
+    li.innerHTML = "<a href=\"javascript: addJobPanel('" + item[0] + "','" + fancyname + "')\">" + fancyname  + "</a>";
     resultList.appendChild(li);
   });
 }
 
 // Adds a new job tree when a name job is clicked in the search view
-function addJobPanel(job) 
+function addJobPanel(job, fancyname)
 {
-  
-  var newTree = addJobTree(job);
+
+  var newTree = addJobTree(job, fancyname);
   Browser.panel.add(newTree);
   Browser.panel.setActiveTab(newTree);
-    
+
 }
 
 // Creates a new Tree to add to the new job panel
-function addJobTree(job) 
+function addJobTree(job, fancyname)
 {
   var rootNode = new Ext.tree.TreeNode({});
 
@@ -231,7 +235,7 @@ function addJobTree(job)
 
   var graphiteNode = new Ext.tree.AsyncTreeNode({
     id: job,
-    text: job,
+    text: fancyname,
     expanded: true,
     loader: new Ext.tree.TreeLoader({
       url: "../metrics/find/",
@@ -240,10 +244,10 @@ function addJobTree(job)
     })
   });
   rootNode.appendChild(graphiteNode);
-  
+
   var treePanel = new Ext.tree.TreePanel({
     id: job,
-    title: job,
+    title: fancyname,
     root: rootNode,
     containerScroll: true,
     autoScroll: true,

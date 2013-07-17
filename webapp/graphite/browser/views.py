@@ -61,29 +61,9 @@ def search(request):
   if not query:
     return HttpResponse("")
 
-  patterns = query.split()
-  regexes = [re.compile(p,re.I) for p in patterns]
-  def matches(s):
-    for regex in regexes:
-      if regex.search(s):
-        return True
-    return False
+  results = get_jobs(request.user, query=query)
 
-  results = []
-
-  # We don't want to look in the files here - we rather want to search our jobs
-  #index_file = open(settings.INDEX_FILE)
-  #for line in index_file:
-  for line in get_jobs(request.user):
-    if matches(str(line)):
-      results.append( str(line) )
-    if len(results) >= 100:
-      break
-
-  #index_file.close()
-  result_string = ','.join(results)
-  return HttpResponse(result_string, mimetype='text/plain')
-
+  return HttpResponse(json.dumps(results), mimetype='application/json')
 
 def myGraphLookup(request):
   "View for My Graphs navigation"
