@@ -11,16 +11,20 @@ engine = create_engine('postgresql://silox:sup@localhost/hpc')
 metadata = MetaData(engine)
 jobs = Table('job', metadata, autoload=True)
 
-def get_jobs(user, limit=False):
+def get_jobs(user, limit=False, query=False):
   """
   Returns all the jobs a user ever has submitted
   If the limit paramater is set, display the most recent limit number of jobs
   """
   # Build the select query
-  s = select([jobs.c.name])
+  s = select([jobs.c.name, jobs.c.jobname])
+  if query:
+    s = s.where(jobs.c.name.ilike('%' + query + '%') | jobs.c.jobname.ilike('%' + query + '%'))
 
-  # If the user isn't allowed to see everything; limit the query
-  if not user.has_perm('account.can_see_all'):
+  # If the user isn't allowed to see everything; limit the query to 300 though,
+  if user.has_perm('account.can_see_all'):
+    s = s.limit(300)
+  else:
     s = s.where(jobs.c.userr == user.username)
 
   # Order the jobs
@@ -32,7 +36,7 @@ def get_jobs(user, limit=False):
 
   # Fetch the results and return the ID's as a list
   result = engine.execute(s).fetchall()
-  return [job[0].replace('.', '-') for job in result]
+  return [(str(job[0].replace('.', '-')), str(job[1])) for job in result]
 
 def get_job_timerange(job):
   """

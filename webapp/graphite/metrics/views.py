@@ -107,7 +107,7 @@ def find_view(request):
 
   elif '.' not in query:
     """
-    We're looking at a composer query that searches for jobs; format PartialJob*; eg Blast*
+    We're looking at a completer query that searches for jobs; format PartialJob*; eg Blast*
     Lets search if one or more of our nodes match and return them.
     """
     results = []
@@ -280,10 +280,13 @@ def tree_jobs(jobs):
     'leaf': 0,
   }
 
-  for job in jobs: #Now let's add the matching children
+  for (name, jobname) in jobs: #Now let's add the matching children
+    jobid = name.split('-')[0]
+    jobcluster = name.split('-')[2]
+
     resultNode = {
-      'text' : str(job),
-      'id' : str(job),
+      'text' : jobname + " (" + jobid + " - " + jobcluster + ")",
+      'id' : name,
     }
 
     resultNode['context'] = 1
