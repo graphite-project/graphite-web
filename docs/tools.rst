@@ -199,6 +199,10 @@ It is ideal for visualizing trends of events that are occurring in your applicat
 logs. For example, you might use logster to graph the number of occurrences of HTTP response
 code that appears in your web server logs.
 
+Orion
+-------
+`Orion`_ is powerful tool to create, view and manage dashboards for your Graphite data. It allows easy implementation of custom authentication to manage access to the dashboard.
+
 metrics-sampler
 ---------------
 `metrics-sampler`_ is a java program which regularly queries metrics from a configured set of inputs, 
@@ -301,6 +305,7 @@ annotated events, etc). Supports Graphite, flot, rickshaw and anthracite.
 .. _jmxtrans: http://code.google.com/p/jmxtrans/
 .. _Ledbetter: https://github.com/github/ledbetter
 .. _Logster: https://github.com/etsy/logster
+.. _Orion: https://github.com/gree/Orion
 .. _metrics-sampler: https://github.com/dimovelev/metrics-sampler
 .. _New Relic: https://newrelic.com/platform
 .. _Pencil: https://github.com/fetep/pencil
