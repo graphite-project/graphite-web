@@ -36,7 +36,11 @@ def get_jobs(user, limit=False, query=False):
 
   # Fetch the results and return the ID's as a list
   result = engine.execute(s).fetchall()
-  return [(str(job[0].replace('.', '-')), str(job[1])) for job in result]
+  return [(
+    str(job[0].replace('.', '-')),
+    str(job[1]),
+    str(job[1] + " (" + job[0].split('.')[0] + " - " + job[0].split('.')[2] + ")")
+  ) for job in result]
 
 def get_job_timerange(job):
   """
