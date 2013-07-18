@@ -91,12 +91,14 @@ def find_view(request):
 
   automatic_variants = int( request.REQUEST.get('automatic_variants', 0) )
 
+
   try:
     query = str( request.REQUEST['query'] )
   except:
     return HttpResponseBadRequest(content="Missing required parameter 'query'", mimetype="text/plain")
 
   job = ''
+  print query
 
   if query == "*": # Base query, add the job names to the filetree
     matches = get_jobs(request.user, 25)
@@ -112,16 +114,10 @@ def find_view(request):
     """
     results = []
 
-    regex = re.compile(query[:-1], re.I)
-
-    for line in get_jobs(request.user):
-      line = str(line)
-      if regex.search(line):
-        node_info = dict(path=line, name=line, is_leaf='0')
-        node_info['path'] += '.'
-        results.append(node_info)
-      if len(results) >= 100:
-        break
+    for line in get_jobs(request.user, 100, query[:-1]):
+      node_info = dict(path=line[0], name=line[1], fancyname=line[2], is_leaf='0')
+      node_info['path'] += '.'
+      results.append(node_info)
 
     content = json.dumps({ 'metrics' : results })
 
@@ -173,7 +169,8 @@ def find_view(request):
   elif format == 'completer':
     results = []
     for node in matches:
-      node_info = dict(path=job + "." + node.metric_path, name=node.name, is_leaf=str(int(node.isLeaf())))
+      fancyname = get_jobs(request.user, 100, job.replace('-','.'))[0][2]
+      node_info = dict(path=job + "." + node.metric_path, name=node.metric_path, fancyname=fancyname + "." + node.metric_path, is_leaf=str(int(node.isLeaf())))
       if not node.isLeaf():
         node_info['path'] += '.'
       results.append(node_info)
@@ -280,12 +277,9 @@ def tree_jobs(jobs):
     'leaf': 0,
   }
 
-  for (name, jobname) in jobs: #Now let's add the matching children
-    jobid = name.split('-')[0]
-    jobcluster = name.split('-')[2]
-
+  for (name, jobname, fancyname) in jobs: #Now let's add the matching children
     resultNode = {
-      'text' : jobname + " (" + jobid + " - " + jobcluster + ")",
+      'text' : fancyname,
       'id' : name,
     }
 

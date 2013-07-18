@@ -198,13 +198,8 @@ function handleSearchResponse (response, options) {
   Ext.each(result, function (item) {
     var li = document.createElement('li');
 
-    jobinfo = item[0].split("-")
-    jobid = jobinfo[0]
-    jobcluster = jobinfo[2]
-    jobname = item[1]
-    fancyname = jobname + " (" + jobid + " - " + jobcluster  + ")";
     // We don't want to toggle the target here as we'll only receive jobs names; rather open a new tab
-    li.innerHTML = "<a href=\"javascript: addJobPanel('" + item[0] + "','" + fancyname + "')\">" + fancyname  + "</a>";
+    li.innerHTML = "<a href=\"javascript: addJobPanel('" + item[0] + "','" + item[2] + "')\">" + item[2]  + "</a>";
     resultList.appendChild(li);
   });
 }
@@ -351,6 +346,7 @@ function completerToggle(field, evt) {
 }
 
 function sendCompleterRequest(evt, el) {
+  alert('sup');
   if(Ext.Ajax.isLoading()) {
     return;
   }
