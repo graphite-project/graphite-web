@@ -9,7 +9,7 @@ from graphite.render.views import parseOptions
 from graphite.render.evaluator import evaluateTarget
 from graphite.storage import STORE
 from django.core.urlresolvers import get_script_prefix
-from graphite.jobs import get_jobs
+from graphite.jobs import get_jobs, get_nodes
 
 
 def graphlot_render(request):
@@ -64,21 +64,15 @@ def find_metric(request):
         return HttpResponseBadRequest(
             content="Missing required parameter 'q'", mimetype="text/plain")
 
+    query += '*'
+
     if '.' not in query:
-        matches = []
+        matches = get_jobs(request.user, 100, query[:-1])
+        content = "\n".join([match[0] for match in matches])
 
-        regex = re.compile(query, re.I)
-
-        for line in get_jobs(request.user):
-            if regex.search(line):
-                matches.append(line)
-            if len(matches) >= 100:
-                break
-
-        content = "\n".join(matches)
     else:
         (job, query) = query.split(".", 1)
-        matches = list( STORE.find(query+"*") )
+        matches = list( STORE.find(query, get_nodes(job)) )
 
         content = "\n".join([job + "." + node.metric_path for node in matches ])
 
