@@ -100,7 +100,7 @@ def fetchData(requestContext, pathExpr):
   (job, pathExpr) = pathExpr.split(".", 1);
 
   # Security: If the user requests a job that's not his: kick him out unless the user may see all data
-  if has_job(user, job) and not user.has_perm('account.can_see_all'):
+  if not has_job(user, job) and not user.has_perm('account.can_see_all'):
     return []
 
 
