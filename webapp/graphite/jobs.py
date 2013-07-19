@@ -42,6 +42,12 @@ def get_jobs(user, limit=False, query=False):
     str(job[1] + " (" + job[0].split('.')[0] + " - " + job[0].split('.')[2] + ")")
   ) for job in result]
 
+def has_job(user, job):
+  s = select([jobs.c.name]).where(jobs.c.name == job and jobs.c.userr == user.username)
+  result = engine.execute(s).fetchall()
+  return len(result) > 0
+
+
 def get_job_timerange(job):
   """
   Returns specific job timerange in the tuple (startTime, endTime)

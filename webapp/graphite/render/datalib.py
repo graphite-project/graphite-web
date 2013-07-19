@@ -16,7 +16,8 @@ import time
 from graphite.logger import log
 from graphite.storage import STORE
 from graphite.readers import FetchInProgress
-from graphite.jobs import get_job_timerange, get_nodes
+from graphite.jobs import get_job_timerange, get_jobs, get_nodes, has_job
+
 
 class TimeSeries(list):
   def __init__(self, name, start, end, step, values, consolidate='average'):
@@ -99,8 +100,9 @@ def fetchData(requestContext, pathExpr):
   (job, pathExpr) = pathExpr.split(".", 1);
 
   # Security: If the user requests a job that's not his: kick him out unless the user may see all data
-  if job not in get_jobs(user) and not user.has_perm('account.can_see_all'):
+  if has_job(user, job) and not user.has_perm('account.can_see_all'):
     return []
+
 
   # Get the maximum visible time range from the job
   (jobStart, jobEnd) = get_job_timerange(job)
