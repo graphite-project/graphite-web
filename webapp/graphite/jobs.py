@@ -43,6 +43,8 @@ def get_jobs(user, limit=False, query=False):
   ) for job in result]
 
 def has_job(user, job):
+  job = job.replace('-', '.')
+
   s = select([jobs.c.name]).where(jobs.c.name == job and jobs.c.userr == user.username)
   result = engine.execute(s).fetchall()
   return len(result) > 0
