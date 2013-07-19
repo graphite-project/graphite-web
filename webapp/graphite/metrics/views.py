@@ -98,7 +98,6 @@ def find_view(request):
     return HttpResponseBadRequest(content="Missing required parameter 'query'", mimetype="text/plain")
 
   job = ''
-  print query
 
   if query == "*": # Base query, add the job names to the filetree
     matches = get_jobs(request.user, 25)
