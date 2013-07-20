@@ -43,7 +43,7 @@ STORAGE_DIR = ''
 WHITELIST_FILE = ''
 INDEX_FILE = ''
 LOG_DIR = ''
-WHISPER_DIR = ''
+WHISPER_DIRS = []
 RRD_DIR = ''
 DATA_DIRS = []
 
@@ -138,15 +138,16 @@ if not INDEX_FILE:
   INDEX_FILE = join(STORAGE_DIR, 'index')
 if not LOG_DIR:
   LOG_DIR = join(STORAGE_DIR, 'log', 'webapp')
-if not WHISPER_DIR:
-  WHISPER_DIR = join(STORAGE_DIR, 'whisper/')
+if not WHISPER_DIRS:
+  WHISPER_DIRS = [join(STORAGE_DIR, 'whisper/')]
 if not RRD_DIR:
   RRD_DIR = join(STORAGE_DIR, 'rrd/')
 if not DATA_DIRS:
   if rrdtool and os.path.exists(RRD_DIR):
-    DATA_DIRS = [WHISPER_DIR, RRD_DIR]
+    DATA_DIRS.extend(WHISPER_DIRS)
+    DATA_DIRS.append(RRD_DIR)
   else:
-    DATA_DIRS = [WHISPER_DIR]
+    DATA_DIRS.extend(WHISPER_DIRS)
 
 # Default sqlite db file
 # This is set here so that a user-set STORAGE_DIR is available
