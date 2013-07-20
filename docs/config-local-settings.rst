@@ -84,7 +84,7 @@ CONF_DIR
 
 STORAGE_DIR
   `Default: GRAPHITE_ROOT/storage`
-  The base directory from which WHISPER_DIR, RRD_DIR, LOG_DIR, and INDEX_FILE default paths
+  The base directory from which WHISPER_DIRS, RRD_DIR, LOG_DIR, and INDEX_FILE default paths
   are referenced
 
 CONTENT_DIR

@@ -39,7 +39,7 @@ WHITELIST_FILE = ''
 INDEX_FILE = ''
 LOG_DIR = ''
 CERES_DIR = ''
-WHISPER_DIR = ''
+WHISPER_DIRS = []
 RRD_DIR = ''
 STANDARD_DIRS = []
 
@@ -158,8 +158,8 @@ if not INDEX_FILE:
   INDEX_FILE = join(STORAGE_DIR, 'index')
 if not LOG_DIR:
   LOG_DIR = join(STORAGE_DIR, 'log', 'webapp')
-if not WHISPER_DIR:
-  WHISPER_DIR = join(STORAGE_DIR, 'whisper/')
+if not WHISPER_DIRS:
+  WHISPER_DIRS = [join(STORAGE_DIR, 'whisper/')]
 if not CERES_DIR:
   CERES_DIR = join(STORAGE_DIR, 'ceres/')
 if not RRD_DIR:
@@ -167,8 +167,9 @@ if not RRD_DIR:
 if not STANDARD_DIRS:
   try:
     import whisper
-    if os.path.exists(WHISPER_DIR):
-      STANDARD_DIRS.append(WHISPER_DIR)
+    for path in WHISPER_DIRS:
+      if os.path.exists(path):
+        STANDARD_DIRS.append(path)
   except ImportError:
     print >> sys.stderr, "WARNING: whisper module could not be loaded, whisper support disabled"
   try:
