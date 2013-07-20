@@ -167,6 +167,13 @@ if not RRD_DIR:
 if not STANDARD_DIRS:
   try:
     import whisper
+
+    # backwards compatibility for WHISPER_DIR
+    try:
+      STANDARD_DIRS.append(WHISPER_DIR)
+    except NameError:
+      pass
+
     for path in WHISPER_DIRS:
       if os.path.exists(path):
         STANDARD_DIRS.append(path)
