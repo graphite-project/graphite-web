@@ -68,7 +68,7 @@ The following parameters influence the install location:
 
 - ``--install-lib``
 
-  Location to install Python modules (default: ``/opt/graphite/webapp``)
+  Location to install Python modules (default: ``[prefix]/webapp``)
 
 - ``--install-data``
 
