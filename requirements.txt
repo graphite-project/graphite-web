@@ -1,11 +1,15 @@
 # This is a PIP requirements file.
 # To setup a dev environment:
 #
+#   If you use virtualenvwrapper, you can use the misc/virtualenvwrapper hook scripts to
+#   automate most of the following commands
+#
 #   easy_install virtualenv
 #   virtualenv --distribute --no-site-packages --prompt "(graphite venv) " .venv
 #   source .venv/bin/activate
 #
 #   brew install cairo && brew link cairo # on OSX
+#   sudo apt-get install libcairo2-dev    # on Ubuntu
 #   pip install -r requirements.txt
 #
 #   mkdir -p .venv/storage .venv/conf
