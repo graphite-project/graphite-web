@@ -94,6 +94,11 @@ compose/manipulate graphs on the fly. Also aims for high interactivity using
 `TimeseriesWidget`_ and minimal hassle to set up and get running.
 
 
+Graph-Index
+--------------
+`Graph-Index`_ is index of graphs for `Diamond`_
+
+
 Graphene
 --------
 `Graphene`_ is a Graphite dashboard toolkit based on `D3.js`_ and `Backbone.js`_ which was
@@ -282,6 +287,7 @@ annotated events, etc). Supports Graphite, flot, rickshaw and anthracite.
 .. _Gdash: https://github.com/ripienaar/gdash.git
 .. _Giraffe: http://kenhub.github.com/giraffe/
 .. _Graph-Explorer: http://vimeo.github.io/graph-explorer
+.. _Graph-Index: https://github.com/huoxy/graph-index
 .. _Graphene: http://jondot.github.com/graphene/
 .. _Graphios: https://github.com/shawn-sterling/graphios
 .. _Graphite-Tattle: https://github.com/wayfair/Graphite-Tattle
