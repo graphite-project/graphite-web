@@ -32,7 +32,7 @@
                       </tr>
                   {% endfor %}
               {% else %}
-                <br/>No events. Add events using 
+                <br/>No events. Add events using
                 <a href="{% url 'admin:index' %}events/event/">the admin inteface</a> or by posting
                 (eg, curl -X POST http://localhost:8000{{slash}}events/ -d
                 '{"what": "Something Interesting", "tags" : "tag1 "}')

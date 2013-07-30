@@ -16,7 +16,7 @@ from django.conf.urls.defaults import *
 
 urlpatterns = patterns('graphite.metrics.views',
   url('^index\.json$', 'index_json', name="metrics.index_json"),
-  url('^search/?$', 'search_view', name="metrics.search_view"), 
+  url('^search/?$', 'search_view', name="metrics.search_view"),
   url('^find/?$', 'find_view', name="metrics.find_view"),
   url('^expand/?$', 'expand_view', name="metrics.expand_view"),
   url('^get-metadata/?$', 'get_metadata_view', name="metrics.get_metadata_view" ),

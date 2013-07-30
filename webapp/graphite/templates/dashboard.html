@@ -42,13 +42,13 @@
 
     var permissions = {{permissions|safe}};
     var permissionsUnauthenticated = {{permissionsUnauthenticated|safe}};
-    
+
     {% if userName %}
     var userName = '{{userName|safe}}';
     {% else %}
     var userName = null;
     {% endif %}
-    
+
     </script>
 
     <!-- Theme overrides -->
@@ -78,7 +78,7 @@
     Ext.BLANK_IMAGE_URL = '{% url 'content' 'js/ext/resources/images/default/s.gif' %}';
     Ext.QuickTips.init();
     Ext.onReady(initDashboard);
-    </script> 
+    </script>
 
   </head>
   <body>
