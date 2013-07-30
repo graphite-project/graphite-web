@@ -94,11 +94,26 @@ compose/manipulate graphs on the fly. Also aims for high interactivity using
 `TimeseriesWidget`_ and minimal hassle to set up and get running.
 
 
+Graph-Index
+--------------
+`Graph-Index`_ is index of graphs for `Diamond`_
+
+
 Graphene
 --------
 `Graphene`_ is a Graphite dashboard toolkit based on `D3.js`_ and `Backbone.js`_ which was
 made to offer a very aesthetic realtime dashboard. Graphene provides a solution capable of
 displaying thousands upon thousands of datapoints all updated in realtime.
+
+
+Graphite-Newrelic
+-----------------
+`Graphite-Newrelic`_ - Get your graphite data into `New Relic`_ via a New Relic Platform plugin.
+
+
+Graphite-Observer
+---------------
+`Graphite-Observer`_ is a real-time monitor dashboard for Graphite.
 
 
 Graphite-relay
@@ -189,6 +204,10 @@ It is ideal for visualizing trends of events that are occurring in your applicat
 logs. For example, you might use logster to graph the number of occurrences of HTTP response
 code that appears in your web server logs.
 
+Orion
+-------
+`Orion`_ is powerful tool to create, view and manage dashboards for your Graphite data. It allows easy implementation of custom authentication to manage access to the dashboard.
+
 metrics-sampler
 ---------------
 `metrics-sampler`_ is a java program which regularly queries metrics from a configured set of inputs, 
@@ -224,6 +243,9 @@ Shinken
 and ease of setup. Shinken provides complete integration with Graphite for processing and display of
 performance data.
 
+SqlToGraphite
+-------------
+`SqlToGraphite`_ is an agent for windows written in .net to collect metrics using plugins (WMI, SQL Server, Oracle) by polling an endpoint with a SQL query and pushing the results into graphite. It uses either a local or a centralised configuration over HTTP. 
 
 statsd
 ------
@@ -268,10 +290,13 @@ annotated events, etc). Supports Graphite, flot, rickshaw and anthracite.
 .. _Ganglia: http://ganglia.info/
 .. _Gdash: https://github.com/ripienaar/gdash.git
 .. _Giraffe: http://kenhub.github.com/giraffe/
-.. _Graph-Explorer: https://github.com/Dieterbe/graph-explorer
+.. _Graph-Explorer: http://vimeo.github.io/graph-explorer
+.. _Graph-Index: https://github.com/huoxy/graph-index
 .. _Graphene: http://jondot.github.com/graphene/
 .. _Graphios: https://github.com/shawn-sterling/graphios
 .. _Graphite-Tattle: https://github.com/wayfair/Graphite-Tattle
+.. _Graphite-Newrelic: https://github.com/gingerlime/graphite-newrelic
+.. _Graphite-Observer: https://github.com/huoxy/graphite-observer
 .. _Graphite-relay: https://github.com/markchadwick/graphite-relay
 .. _Graphitejs: https://github.com/prestontimmons/graphitejs
 .. _Graphiti: https://github.com/paperlesspost/graphiti
@@ -286,15 +311,18 @@ annotated events, etc). Supports Graphite, flot, rickshaw and anthracite.
 .. _jmxtrans: http://code.google.com/p/jmxtrans/
 .. _Ledbetter: https://github.com/github/ledbetter
 .. _Logster: https://github.com/etsy/logster
+.. _Orion: https://github.com/gree/Orion
 .. _metrics-sampler: https://github.com/dimovelev/metrics-sampler
+.. _New Relic: https://newrelic.com/platform
 .. _Pencil: https://github.com/fetep/pencil
 .. _RabbitMQ: http://www.rabbitmq.com/
 .. _Rickshaw: http://code.shutterstock.com/rickshaw/
 .. _Rocksteady: http://code.google.com/p/rocksteady/
 .. _Seyren: https://github.com/scobal/seyren
 .. _Shinken: http://www.shinken-monitoring.org/
+.. _SqlToGraphite: https://github.com/perryofpeek/SqlToGraphite/
 .. _statsd: https://github.com/etsy/statsd
-.. _structured_metrics: https://github.com/Dieterbe/graph-explorer/tree/master/structured_metrics
+.. _structured_metrics: https://github.com/vimeo/graph-explorer/tree/master/structured_metrics
 .. _Tasseo: https://github.com/obfuscurity/tasseo
 .. _Therry: https://github.com/obfuscurity/therry
 .. _TimeseriesWidget: https://github.com/Dieterbe/timeserieswidget

@@ -113,13 +113,17 @@ def safeAbs(value):
   if value is None: return None
   return abs(value)
 
-def lcm(a,b):
+# Greatest common divisor
+def gcd(a, b):
+  if b == 0:
+    return a
+  return gcd(b, a%b)
+
+# Least common multiple
+def lcm(a, b):
   if a == b: return a
-  if a < b: (a,b) = (b,a) #ensure a > b
-  for i in xrange(1,a * b):
-    if a % (b * i) == 0 or (b * i) % a == 0: #probably inefficient
-      return max(a,b * i)
-  return a * b
+  if a < b: (a, b) = (b, a) #ensure a > b
+  return a / gcd(a,b) * b
 
 def normalize(seriesLists):
   seriesList = reduce(lambda L1,L2: L1+L2,seriesLists)
@@ -672,6 +676,45 @@ def offset(requestContext, seriesList, factor):
       if value is not None:
         series[i] = value + factor
   return seriesList
+
+def offsetToZero(requestContext, seriesList):
+  """
+  Offsets a metric or wildcard seriesList by subtracting the minimum
+  value in the series from each datapoint.
+
+  Useful to compare different series where the values in each series
+  may be higher or lower on average but you're only interested in the
+  relative difference.
+
+  An example use case is for comparing different round trip time
+  results. When measuring RTT (like pinging a server), different
+  devices may come back with consistently different results due to
+  network latency which will be different depending on how many
+  network hops between the probe and the device. To compare different
+  devices in the same graph, the network latency to each has to be
+  factored out of the results. This is a shortcut that takes the
+  fastest response (lowest number in the series) and sets that to zero
+  and then offsets all of the other datapoints in that series by that
+  amount. This makes the assumption that the lowest response is the
+  fastest the device can respond, of course the more datapoints that
+  are in the series the more accurate this assumption is.
+
+  Example:
+  
+  .. code-block:: none
+
+    &target=offsetToZero(Server.instance01.responseTime)
+    &target=offsetToZero(Server.instance*.responseTime)
+
+  """
+  for series in seriesList:
+    series.name = "offsetToZero(%s)" % (series.name)
+    minimum = safeMin(series)
+    for i,value in enumerate(series):
+      if value is not None:
+        series[i] = value - minimum
+  return seriesList
+
 
 def movingAverage(requestContext, seriesList, windowSize):
   """
@@ -1574,6 +1617,19 @@ def limit(requestContext, seriesList, n):
 
   """
   return seriesList[0:n]
+
+def sortByTotal(requestContext, seriesList):
+  """
+  Takes one metric or a wildcard seriesList.
+
+  Sorts the list of metrics by the sum of values across the time period
+  specified.    
+  """
+  def compare(x,y):
+    return cmp(safeSum(y), safeSum(x))
+
+  seriesList.sort(compare)
+  return seriesList
 
 def sortByMaxima(requestContext, seriesList):
   """
@@ -2762,6 +2818,7 @@ SeriesFunctions = {
   'invert' : invert,
   'scaleToSeconds' : scaleToSeconds,
   'offset' : offset,
+  'offsetToZero' : offsetToZero,
   'derivative' : derivative,
   'perSecond' : perSecond,
   'integral' : integral,
@@ -2804,6 +2861,7 @@ SeriesFunctions = {
   'maximumBelow' : maximumBelow,
   'nPercentile' : nPercentile,
   'limit' : limit,
+  'sortByTotal'  : sortByTotal,
   'sortByMaxima' : sortByMaxima,
   'sortByMinima' : sortByMinima,
   'useSeriesAbove': useSeriesAbove,

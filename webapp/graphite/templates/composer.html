@@ -119,10 +119,10 @@ limitations under the License. -->
 
         /* Direct graph loading */
         if ("{{queryString}}") {
-          Composer.loadURL("?{{queryString}}");
+          Composer.loadURL("?{{queryString|escapejs}}");
         }
         /* Automatic tree expansion */
-        var showTarget = decodeURIComponent("{{showTarget}}");
+        var showTarget = decodeURIComponent("{{showTarget|escapejs}}");
         if (showTarget) {
           var parts = showTarget.split('.');
 
