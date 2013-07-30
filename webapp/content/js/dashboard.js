@@ -217,7 +217,7 @@ function initDashboard () {
           graphAreaToggle(child.id, {dontRemove: true});
         } else if (recurse) {
           expandNode(child, recurse);
-        }/render
+        }
       });
     }
 
