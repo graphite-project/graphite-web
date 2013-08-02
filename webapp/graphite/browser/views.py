@@ -58,10 +58,11 @@ def browser(request):
 
 def search(request):
   query = request.POST['query']
-  if not query:
-    return HttpResponse("")
+  cluster = request.POST['cluster']
+  start = request.POST['start']
+  end = request.POST['end']
 
-  results = get_jobs(request.user, query=query)
+  results = get_jobs(request.user, query=query, cluster=cluster, start=start, end=end)
 
   return HttpResponse(json.dumps(results), mimetype='application/json')
 

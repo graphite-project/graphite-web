@@ -3,6 +3,7 @@ Interacts with the job database/storage.
 At the moment; this uses hard coded data but should finally interact with the real database/storage.
 """
 import time
+from vsc.utils.dateandtime import timestamp_parser
 from sqlalchemy import create_engine, MetaData, Table, select
 
 from graphite.logger import log
@@ -11,7 +12,7 @@ engine = create_engine('postgresql://silox:sup@localhost/hpc')
 metadata = MetaData(engine)
 jobs = Table('job', metadata, autoload=True)
 
-def get_jobs(user, limit=False, query=False):
+def get_jobs(user, limit=False, query=False, cluster=False, start=False, end=False):
   """
   Returns all the jobs a user ever has submitted
   If the limit paramater is set, display the most recent limit number of jobs
@@ -26,6 +27,16 @@ def get_jobs(user, limit=False, query=False):
     s = s.limit(300)
   else:
     s = s.where(jobs.c.userr == user.username)
+
+  # Extra limitation parameters
+  if cluster:
+    s = s.where(jobs.c.clustername.ilike('%' + cluster  + '%'))
+  if start:
+    starttime = timestamp_parser(start)
+    s = s.where(jobs.c.start >= starttime)
+  if end:
+    endtime = timestamp_parser(end)
+    s = s.where(jobs.c.lasttime <= endtime)
 
   # Order the jobs
   s = s.order_by(jobs.c.lasttime.desc())
