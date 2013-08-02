@@ -136,11 +136,12 @@ def fetchData(requestContext, pathExpr):
       log.info("render.datalib.fetchData :: no results for %s.fetch(%s, %s)" % (node, startTime, endTime))
       continue
 
-    (timeInfo, values) = results
-    (start, end, step) = timeInfo
+    (timeInfo,values) = results
+    (start,end,step) = timeInfo
 
-    series = TimeSeries(node.path, start, end, step, values)
-    series.pathExpression = pathExpr #hack to pass expressions through to render functions
+    series = TimeSeries(job + '.' + node.path, start, end, step, values)
+    series.pathExpression = job + '.' + pathExpr #hack to pass expressions through to render functions
+
     seriesList.append(series)
 
   # Prune empty series with duplicate metric paths to avoid showing empty graph elements for old whisper data
