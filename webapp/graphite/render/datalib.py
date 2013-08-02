@@ -269,8 +269,8 @@ def fetchData(requestContext, pathExpr):
 
     (timeInfo,values) = results
     (start,end,step) = timeInfo
-    series = TimeSeries(dbFile.metric_path, start, end, step, values)
-    series.pathExpression = pathExpr #hack to pass expressions through to render functions
+    series = TimeSeries(job + '.' + dbFile.metric_path, start, end, step, values)
+    series.pathExpression = job + '.' + pathExpr #hack to pass expressions through to render functions
     seriesList.append(series)
 
   return seriesList

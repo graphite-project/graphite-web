@@ -8,7 +8,6 @@ from graphite.render.datalib import fetchData, TimeSeries
 def evaluateTarget(requestContext, target):
   tokens = grammar.parseString(target)
   result = evaluateTokens(requestContext, tokens)
-
   if type(result) is TimeSeries:
     return [result] #we have to return a list of TimeSeries objects
 
