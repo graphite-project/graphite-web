@@ -416,7 +416,7 @@ def keepLastValue(requestContext, seriesList, limit = INF):
     if 0 < consecutiveNones < limit:
       for index in xrange(len(series) - consecutiveNones, len(series)):
         series[index] = series[len(series) - consecutiveNones - 1]
-      
+
   return seriesList
 
 def asPercent(requestContext, seriesList, total=None):
@@ -700,7 +700,7 @@ def offsetToZero(requestContext, seriesList):
   are in the series the more accurate this assumption is.
 
   Example:
-  
+
   .. code-block:: none
 
     &target=offsetToZero(Server.instance01.responseTime)
@@ -1096,7 +1096,7 @@ def cactiStyle(requestContext, seriesList, system=None):
         last = NAN
       else:
         last = fmt(float(last))
-        
+
       if maximum is None:
         maximum = NAN
       else:
@@ -1105,7 +1105,7 @@ def cactiStyle(requestContext, seriesList, system=None):
         minimum = NAN
       else:
         minimum = fmt(float(minimum))
-        
+
       series.name = "%*s Current:%*s Max:%*s Min:%*s " % \
           (-nameLen, series.name,
             -lastLen, last,
@@ -1547,6 +1547,38 @@ def nPercentile(requestContext, seriesList, n):
       results.append(perc_series)
   return results
 
+def averageOutsidePercentile(requestContext, seriesList, n):
+  """
+  Removes functions lying inside an average percentile interval
+  """
+  averages = []
+
+  for s in seriesList:
+    averages.append(safeDiv(safeSum(s), safeLen(s)))
+
+  if n < 50:
+    n = 100 - n;
+
+  lowPercentile = _getPercentile(averages, 100 - n)
+  highPercentile = _getPercentile(averages, n)
+
+  return [s for s in seriesList if not lowPercentile < safeDiv(safeSum(s), safeLen(s)) < highPercentile]
+
+def removeBetweenPercentile(requestContext, seriesList, n):
+  """
+  Removes lines who do not have an value lying in the x-percentile of all the values at a moment
+  """
+  if n < 50:
+    n = 100 - n
+
+  transposed = zip(*seriesList)
+
+  lowPercentiles = [_getPercentile(col, 100-n) for col in transposed]
+  highPercentiles = [_getPercentile(col, n) for col in transposed]
+
+  return [l for l in seriesList if sum([not lowPercentiles[val_i] < val < highPercentiles[val_i]
+    for (val_i, val) in enumerate(l)]) > 0]
+
 def removeAbovePercentile(requestContext, seriesList, n):
   """
   Removes data above the nth percentile from the series or list of series provided.
@@ -1623,7 +1655,7 @@ def sortByTotal(requestContext, seriesList):
   Takes one metric or a wildcard seriesList.
 
   Sorts the list of metrics by the sum of values across the time period
-  specified.    
+  specified.
   """
   def compare(x,y):
     return cmp(safeSum(y), safeSum(x))
@@ -2275,7 +2307,7 @@ def identity(requestContext, name):
   Returns datapoints where the value equals the timestamp of the datapoint.
   Useful when you have another series where the value is a timestamp, and
   you want to compare it to the time of the datapoint, to render an age
-  
+
   Example:
 
   .. code-block:: none
@@ -2633,7 +2665,7 @@ def hitcount(requestContext, seriesList, intervalString, alignToInterval = False
         newValues.append(None)
 
     newName = 'hitcount(%s, "%s"%s)' % (series.name, intervalString, alignToInterval and ", true" or "")
-    newSeries = TimeSeries(newName, newStart, series.end, interval, newValues)    
+    newSeries = TimeSeries(newName, newStart, series.end, interval, newValues)
     newSeries.pathExpression = newName
     results.append(newSeries)
 
@@ -2862,6 +2894,8 @@ SeriesFunctions = {
   'nPercentile' : nPercentile,
   'limit' : limit,
   'sortByTotal'  : sortByTotal,
+  'averageOutsidePercentile' : averageOutsidePercentile,
+  'removeBetweenPercentile' : removeBetweenPercentile,
   'sortByMaxima' : sortByMaxima,
   'sortByMinima' : sortByMinima,
   'useSeriesAbove': useSeriesAbove,
