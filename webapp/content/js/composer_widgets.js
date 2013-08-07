@@ -10,18 +10,18 @@
  *    distributed under the License is distributed on an "AS IS" BASIS,
  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *    See the License for the specific language governing permissions and
- *    limitations under the License.
- *
- *
+ *    limitations under the License. 
+ * 
+ * 
  * ======================================================================
  * 
  *     PLEASE DO NOT USE A COMMA AFTER THE FINAL ITEM IN A LIST.
  * 
  * ======================================================================
- *
- * It works fine in FF / Chrome, but completely breaks Internet Explorer.
- * Thank you.
- *
+ * 
+ * It works fine in FF / Chrome, but completely breaks Internet Explorer. 
+ * Thank you.  
+ * 
 */
 
 
