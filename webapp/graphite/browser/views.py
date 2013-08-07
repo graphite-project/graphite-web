@@ -53,7 +53,7 @@ def browser(request):
     context['queryString'] = context['queryString'].replace('#','%23')
   if context['target']:
     context['target'] = context['target'].replace('#','%23') #js libs terminate a querystring on #
-  return render_to_response("browser.html", context) 
+  return render_to_response("browser.html", context)
 
 
 def search(request):

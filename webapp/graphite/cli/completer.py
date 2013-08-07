@@ -42,7 +42,7 @@ def completePath(path, shortnames=False):
   pattern = re.sub('\w+\(','',path).replace(')','') + '*'
 
   results = []
-  
+
   for node in STORE.find(pattern):
     if shortnames:
       results.append(node.name)
