@@ -12,7 +12,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
-import re
 import traceback
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.conf import settings
@@ -90,7 +89,6 @@ def find_view(request):
     untilTime = None
 
   automatic_variants = int( request.REQUEST.get('automatic_variants', 0) )
-
 
   try:
     query = str( request.REQUEST['query'] )
@@ -337,7 +335,6 @@ def tree_json(nodes, base_path, wildcards=False, contexts=False):
 
   results.extend(results_branch)
   results.extend(results_leaf)
-
   return json.dumps(results)
 
 
