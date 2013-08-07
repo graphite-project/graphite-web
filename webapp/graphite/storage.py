@@ -1,9 +1,11 @@
 import os, time, fnmatch, socket, errno
+from django.conf import settings
 from os.path import isdir, isfile, join, exists, splitext, basename, realpath
 import whisper
-from graphite.remote_storage import RemoteStore
+
 from graphite.logger import log
-from django.conf import settings
+from graphite.remote_storage import RemoteStore
+from graphite.util import unpickle
 
 try:
   import rrdtool
@@ -311,7 +313,7 @@ class WhisperFile(Leaf):
 
     if exists(context_path):
       fh = open(context_path, 'rb')
-      context_data = pickle.load(fh)
+      context_data = unpickle.load(fh)
       fh.close()
     else:
       context_data = {}
