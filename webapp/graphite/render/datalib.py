@@ -141,7 +141,6 @@ def fetchData(requestContext, pathExpr):
 
     series = TimeSeries(job + '.' + node.path, start, end, step, values)
     series.pathExpression = job + '.' + pathExpr #hack to pass expressions through to render functions
-
     seriesList.append(series)
 
   # Prune empty series with duplicate metric paths to avoid showing empty graph elements for old whisper data
