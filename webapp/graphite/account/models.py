@@ -33,7 +33,7 @@ class View(models.Model):
   class Admin: pass
   profile = models.ForeignKey(Profile)
   name = models.CharField(max_length=64)
-  
+
 class Window(models.Model):
   class Admin: pass
   view = models.ForeignKey(View)

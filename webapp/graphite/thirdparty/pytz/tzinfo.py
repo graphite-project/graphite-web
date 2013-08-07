@@ -142,7 +142,7 @@ class StaticTzInfo(BaseTzInfo):
 
     def __reduce__(self):
         # Special pickle to zone remains a singleton and to cope with
-        # database changes. 
+        # database changes.
         return pytz._p, (self.zone,)
 
 
