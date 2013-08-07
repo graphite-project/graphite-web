@@ -275,6 +275,7 @@ def fetchData(requestContext, pathExpr):
 
   return seriesList
 
+
 def mergeResults(dbResults, cacheResults):
   cacheResults = list(cacheResults)
 
