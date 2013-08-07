@@ -14,9 +14,9 @@
  *
  *
  * ======================================================================
- *
+ * 
  *     PLEASE DO NOT USE A COMMA AFTER THE FINAL ITEM IN A LIST.
- *
+ * 
  * ======================================================================
  *
  * It works fine in FF / Chrome, but completely breaks Internet Explorer.
@@ -336,7 +336,7 @@ function saveMyGraph(button, e) {
       tmpArray = tmpArray.slice(1, tmpArray.length);
       myGraphName = tmpArray.join('.');
     }
-  }
+  } 
   Ext.MessageBox.prompt(
     "Save to My Graphs", //title
     "Please enter a name for your Graph", //prompt message
@@ -1038,7 +1038,7 @@ function createOptionsMenu() {
       menuRadioItem("yUnit", "Standard", "yUnitSystem", "si"),
       menuRadioItem("yUnit", "Binary", "yUnitSystem", "binary"),
       menuRadioItem("yUnit", "None", "yUnitSystem", "none")
-
+      
     ]
   });
   var yAxisSideMenu = new Ext.menu.Menu({
@@ -1058,7 +1058,7 @@ function createOptionsMenu() {
       menuInputItem("Left Line Width", "leftWidth"),
       menuInputItem("Left Line Color", "leftColor"),
       menuInputItem("Left Line Dashed (length, in px)", "leftDashed")
-
+    
     ]
   });
   var yAxisRightMenu = new Ext.menu.Menu({
@@ -1071,7 +1071,7 @@ function createOptionsMenu() {
       menuInputItem("Right Line Width", "rightWidth"),
       menuInputItem("Right Line Color", "rightColor"),
       menuInputItem("Right Line Dashed (length, in px)", "rightDashed")
-
+    
     ]
   });
 
@@ -1131,7 +1131,7 @@ function createOptionsMenu() {
       menuRadioItem("fontFace", "Times", "fontName", "Times"),
       menuRadioItem("fontFace", "Courier", "fontName", "Courier"),
       menuRadioItem("fontFace", "Helvetica", "fontName", "Helvetica")
-    ]
+    ] 
   });
 
   var fontMenu = new Ext.menu.Menu({
@@ -1256,7 +1256,7 @@ function paramPrompt(question, param, regexp) {
           Ext.Msg.alert("Input cannot end in a period.");
           return;
         }
-
+        
         setParam(param, value);
         updateGraph();
       },
@@ -1300,7 +1300,7 @@ function menuCheckItem(name, param, paramValue) {
 
 function menuRadioItem(groupName, name, param, paramValue ) {
   var selectItem = new Ext.menu.CheckItem({text: name, param: param, hideOnClick: false, group: groupName, checked: (paramValue ? false : true)});
-  selectItem.on('checkchange',
+  selectItem.on('checkchange', 
     function( item, clicked ) {
       if( paramValue ) {
         setParam(param, paramValue);
