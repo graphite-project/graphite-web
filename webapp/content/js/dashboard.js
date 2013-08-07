@@ -993,7 +993,7 @@ function importGraphUrl(targetUrl, options) {
   if (graphTargetList.length == 0) {
     return;
   }
-
+ 
   var graphTargetString = Ext.urlEncode({target: graphTargetList});
   var existingIndex = graphStore.findExact('target', graphTargetString);
 
