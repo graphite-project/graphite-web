@@ -87,18 +87,6 @@ function createTreePanel(){
     rootNode.appendChild(myGraphsNode);
   }
 
-//  var userGraphsNode = new Ext.tree.AsyncTreeNode({
-//    id: 'UserGraphsTree',
-//    text: "User Graphs",
-//    //listeners: {beforeexpand: reloadOnce},
-//    loader: new Ext.tree.TreeLoader({
-//      url: "../browser/usergraph/",
-//      requestMethod: "GET",
-//      listeners: {beforeload: setParams}
-//    })
-//  });
-//  rootNode.appendChild(userGraphsNode);
-
   var treePanel = new Ext.tree.TreePanel({
     title: "Recent jobs",
     root: rootNode,
@@ -468,7 +456,6 @@ function completerToggle(field, evt) {
 }
 
 function sendCompleterRequest(evt, el) {
-  alert('sup');
   if(Ext.Ajax.isLoading()) {
     return;
   }
