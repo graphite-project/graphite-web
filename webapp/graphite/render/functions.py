@@ -416,7 +416,7 @@ def keepLastValue(requestContext, seriesList, limit = INF):
     if 0 < consecutiveNones < limit:
       for index in xrange(len(series) - consecutiveNones, len(series)):
         series[index] = series[len(series) - consecutiveNones - 1]
-
+      
   return seriesList
 
 def asPercent(requestContext, seriesList, total=None):
@@ -1096,7 +1096,7 @@ def cactiStyle(requestContext, seriesList, system=None):
         last = NAN
       else:
         last = fmt(float(last))
-
+        
       if maximum is None:
         maximum = NAN
       else:
@@ -1105,7 +1105,7 @@ def cactiStyle(requestContext, seriesList, system=None):
         minimum = NAN
       else:
         minimum = fmt(float(minimum))
-
+        
       series.name = "%*s Current:%*s Max:%*s Min:%*s " % \
           (-nameLen, series.name,
             -lastLen, last,
@@ -2275,7 +2275,7 @@ def identity(requestContext, name):
   Returns datapoints where the value equals the timestamp of the datapoint.
   Useful when you have another series where the value is a timestamp, and
   you want to compare it to the time of the datapoint, to render an age
-
+  
   Example:
 
   .. code-block:: none
@@ -2633,7 +2633,7 @@ def hitcount(requestContext, seriesList, intervalString, alignToInterval = False
         newValues.append(None)
 
     newName = 'hitcount(%s, "%s"%s)' % (series.name, intervalString, alignToInterval and ", true" or "")
-    newSeries = TimeSeries(newName, newStart, series.end, interval, newValues)
+    newSeries = TimeSeries(newName, newStart, series.end, interval, newValues)    
     newSeries.pathExpression = newName
     results.append(newSeries)
 
