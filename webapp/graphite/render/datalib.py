@@ -125,7 +125,7 @@ def fetchData(requestContext, pathExpr):
   if endTime < startTime:
     endTime = startTime
 
-  matching_nodes = STORE.find(pathExpr, startTime, endTime, local=requestContext['localOnly'], get_nodes(job))
+  matching_nodes = STORE.find(pathExpr, startTime, endTime, local=requestContext['localOnly'], job_nodes=get_nodes(job))
   fetches = [(node, node.fetch(startTime, endTime)) for node in matching_nodes if node.is_leaf]
 
   for node, results in fetches:

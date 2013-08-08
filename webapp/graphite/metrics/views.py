@@ -90,6 +90,7 @@ def find_view(request):
 
   automatic_variants = int( request.REQUEST.get('automatic_variants', 0) )
 
+
   try:
     query = str( request.REQUEST['query'] )
   except:
@@ -145,7 +146,7 @@ def find_view(request):
 
     try:
       # Added an extra argument with the job name so we can filter the returning nodes later on
-      matches = list( STORE.find(query, fromTime, untilTime, local=local_only, get_nodes(job) )
+      matches = list( STORE.find(query, fromTime, untilTime, local=local_only, job_nodes=get_nodes(job) ))
     except:
       log.exception()
       raise
