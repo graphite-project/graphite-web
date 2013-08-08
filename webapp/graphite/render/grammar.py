@@ -33,19 +33,34 @@ boolean = Group(
   CaselessKeyword("false")
 )('boolean')
 
+argname = Word(alphas + '_', alphanums + '_')('argname')
+funcname = Word(alphas + '_', alphanums + '_')('funcname')
+
+## Symbols
+leftParen = Literal('(').suppress()
+rightParen = Literal(')').suppress()
+comma = Literal(',').suppress()
+equal = Literal('=').suppress()
+
 # Function calls
 arg = Group(
   boolean |
   number |
   aString |
   expression
-)
-args = delimitedList(arg)('args')
+)('args*')
+kwarg = Group(argname + equal + arg)('kwargs*')
 
-func = Word(alphas+'_', alphanums+'_')('func')
+args = delimitedList(~kwarg + arg)  # lookahead to prevent failing on equals
+kwargs = delimitedList(kwarg)
+
 call = Group(
-  func + Literal('(').suppress() +
-  args + Literal(')').suppress()
+  funcname + leftParen +
+  Optional(
+    args + Optional(
+      comma + kwargs
+    )
+  ) + rightParen
 )('call')
 
 # Metric pattern (aka. pathExpression)
