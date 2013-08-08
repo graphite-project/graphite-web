@@ -3,12 +3,17 @@ Interacts with the job database/storage.
 At the moment; this uses hard coded data but should finally interact with the real database/storage.
 """
 import time
-from vsc.utils.dateandtime import timestamp_parser
+from datetime import datetime
 from sqlalchemy import create_engine, MetaData, Table, select
+import local_settings
 
-from graphite.logger import log
+engine = create_engine(
+           local_settings.JOBS['ENGINE'] + '://' +
+           local_settings.JOBS['USER'] + ':' +
+           local_settings.JOBS['PASSWORD'] + '@' +
+           local_settings.JOBS['HOST'] + '/' +
+           local_settings.JOBS['NAME'])
 
-engine = create_engine('postgresql://silox:sup@localhost/hpc')
 metadata = MetaData(engine)
 jobs = Table('job', metadata, autoload=True)
 
@@ -54,6 +59,9 @@ def get_jobs(user, limit=False, query=False, cluster=False, start=False, end=Fal
     str(job[1]),
     str(job[1] + " (" + job[0].split('.')[0] + " - " + job[0].split('.')[2] + " - " + job[2] + ")")
   ) for job in result]
+
+def timestamp_parser(timestamp):
+    return datetime.fromtimestamp(float(timestamp))
 
 def has_job(user, job):
   job = job.replace('-', '.')
