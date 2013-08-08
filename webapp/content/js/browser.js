@@ -127,7 +127,7 @@ function createSearchPanel() {
     title: 'Search form',
     disabled: (!GraphiteConfig.searchEnabled),
     region: 'north',
-    flex: 0.5,
+    flex: 0.6,
     autoscroll: true,
     padding: 5,
     items: [
@@ -175,6 +175,25 @@ function createSearchPanel() {
             increment: 30,
             width: 85
           }),
+          new Ext.form.Label({
+            html:'<hr />',
+          }),
+          new Ext.form.ComboBox({
+            fieldLabel: 'Laststate',
+            hiddenName: 'letter',
+            hiddenValue: 'letter',
+            store: new Ext.data.SimpleStore({
+                fields: ['letter', 'name'],
+                data : [['S','Started'], ['E','Ended']]
+            }),
+            displayField: 'name',
+            valueField: 'letter',
+            typeAhead: true,
+            mode: 'local',
+            triggerAction: 'all',
+            selectOnFocus:true,
+            width: 85
+          })
         ]
       }),
     ],
@@ -195,7 +214,7 @@ function createSearchPanel() {
   resultPanel = new Ext.Panel({
     id: 'resultPanel',
     title: 'Results',
-    flex: 0.5,
+    flex: 0.4,
     padding: 5,
     region: 'center',
     autoScroll:true,
@@ -272,11 +291,12 @@ function sendLimitedSearchRequest (items) {
     items[0].getValue(),
     items[1].getValue(),
     start,
-    end
+    end,
+    items[6].getValue()
   );
 }
 
-function sendActualSearchRequest(query, cluster, start, end) {
+function sendActualSearchRequest(query, cluster, start, end, laststate) {
   //Clear any previous errors
   showSearchError("");
   //Clear the result list
@@ -294,6 +314,7 @@ function sendActualSearchRequest(query, cluster, start, end) {
       cluster: cluster,
       start: start,
       end: end,
+      laststate: laststate
     }
   });
 }
@@ -305,6 +326,14 @@ function handleSearchResponse (response, options) {
   }
   var result = Ext.util.JSON.decode(response.responseText);
   var resultList = Ext.getDom('searchResults');
+
+
+  alert(resultList.children.length)
+  if(resultList.length == 0) {
+    showSearchError("Nothing matched your query");
+    return;
+  }
+
   Ext.each(result, function (item) {
     var li = document.createElement('li');
 

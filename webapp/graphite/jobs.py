@@ -12,13 +12,13 @@ engine = create_engine('postgresql://silox:sup@localhost/hpc')
 metadata = MetaData(engine)
 jobs = Table('job', metadata, autoload=True)
 
-def get_jobs(user, limit=False, query=False, cluster=False, start=False, end=False):
+def get_jobs(user, limit=False, query=False, cluster=False, start=False, end=False, laststate=False):
   """
   Returns all the jobs a user ever has submitted
   If the limit paramater is set, display the most recent limit number of jobs
   """
   # Build the select query
-  s = select([jobs.c.name, jobs.c.jobname])
+  s = select([jobs.c.name, jobs.c.jobname, jobs.c.laststate])
   if query:
     s = s.where(jobs.c.name.ilike('%' + query + '%') | jobs.c.jobname.ilike('%' + query + '%'))
 
@@ -37,6 +37,8 @@ def get_jobs(user, limit=False, query=False, cluster=False, start=False, end=Fal
   if end:
     endtime = timestamp_parser(end)
     s = s.where(jobs.c.lasttime <= endtime)
+  if laststate:
+    s = s.where(jobs.c.laststate == laststate)
 
   # Order the jobs
   s = s.order_by(jobs.c.lasttime.desc())
@@ -50,7 +52,7 @@ def get_jobs(user, limit=False, query=False, cluster=False, start=False, end=Fal
   return [(
     str(job[0].replace('.', '-')),
     str(job[1]),
-    str(job[1] + " (" + job[0].split('.')[0] + " - " + job[0].split('.')[2] + ")")
+    str(job[1] + " (" + job[0].split('.')[0] + " - " + job[0].split('.')[2] + " - " + job[2] + ")")
   ) for job in result]
 
 def has_job(user, job):

@@ -53,7 +53,7 @@ def browser(request):
     context['queryString'] = context['queryString'].replace('#','%23')
   if context['target']:
     context['target'] = context['target'].replace('#','%23') #js libs terminate a querystring on #
-  return render_to_response("browser.html", context) 
+  return render_to_response("browser.html", context)
 
 
 def search(request):
@@ -61,8 +61,9 @@ def search(request):
   cluster = request.POST['cluster']
   start = request.POST['start']
   end = request.POST['end']
+  laststate = request.POST['laststate']
 
-  results = get_jobs(request.user, query=query, cluster=cluster, start=start, end=end)
+  results = get_jobs(request.user, query=query, cluster=cluster, start=start, end=end, laststate=laststate)
 
   return HttpResponse(json.dumps(results), mimetype='application/json')
 
