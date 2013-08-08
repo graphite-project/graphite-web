@@ -61,8 +61,9 @@ def search(request):
   cluster = request.POST['cluster']
   start = request.POST['start']
   end = request.POST['end']
+  laststate = request.POST['laststate']
 
-  results = get_jobs(request.user, query=query, cluster=cluster, start=start, end=end)
+  results = get_jobs(request.user, query=query, cluster=cluster, start=start, end=end, laststate=laststate)
 
   return HttpResponse(json.dumps(results), mimetype='application/json')
 
