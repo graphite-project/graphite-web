@@ -327,9 +327,7 @@ function handleSearchResponse (response, options) {
   var result = Ext.util.JSON.decode(response.responseText);
   var resultList = Ext.getDom('searchResults');
 
-
-  alert(resultList.children.length)
-  if(resultList.length == 0) {
+  if(result.length == 0) {
     showSearchError("Nothing matched your query");
     return;
   }
