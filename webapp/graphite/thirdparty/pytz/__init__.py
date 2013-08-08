@@ -115,7 +115,7 @@ def resource_exists(name):
 # module, as well as the Zope3 i18n package. Perhaps we should just provide
 # the POT file and translations, and leave it up to callers to make use
 # of them.
-# 
+#
 # t = gettext.translation(
 #         'pytz', os.path.join(os.path.dirname(__file__), 'locales'),
 #         fallback=True
@@ -128,7 +128,7 @@ def resource_exists(name):
 _tzinfo_cache = {}
 
 def timezone(zone):
-    r''' Return a datetime.tzinfo implementation for the given timezone 
+    r''' Return a datetime.tzinfo implementation for the given timezone
 
     >>> from datetime import datetime, timedelta
     >>> utc = timezone('UTC')
@@ -254,7 +254,7 @@ UTC = utc = UTC() # UTC is a singleton
 def _UTC():
     """Factory function for utc unpickling.
 
-    Makes sure that unpickling a utc instance always returns the same 
+    Makes sure that unpickling a utc instance always returns the same
     module global.
 
     These examples belong in the UTC class above, but it is obscured; or in
@@ -1099,7 +1099,7 @@ all_timezones = \
  'Zulu']
 all_timezones = [
         tz for tz in all_timezones if resource_exists(tz)]
-        
+
 all_timezones_set = set(all_timezones)
 common_timezones = \
 ['Africa/Abidjan',
@@ -1533,5 +1533,5 @@ common_timezones = \
  'UTC']
 common_timezones = [
         tz for tz in common_timezones if tz in all_timezones]
-        
+
 common_timezones_set = set(common_timezones)
