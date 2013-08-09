@@ -28,7 +28,7 @@ class Store:
     for finder in self.finders:
       for node in finder.find_nodes(query):
         if node.path.split('.', 1)[0] in job_nodes:
-          #log.info("find() :: local :: %s" % node)
+          log.info("find() :: local :: %s" % node)
           matching_nodes.add(node)
 
     # Gather remote search results
@@ -36,7 +36,7 @@ class Store:
       for request in remote_requests:
         for node in request.get_results():
           if node.path.split('.', 1)[0] in job_nodes:
-            #log.info("find() :: remote :: %s from %s" % (node,request.store.host))
+            log.info("find() :: remote :: %s from %s" % (node,request.store.host))
             matching_nodes.add(node)
 
     # Group matching nodes by their path

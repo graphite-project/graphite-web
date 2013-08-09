@@ -168,8 +168,8 @@ def find_view(request):
     results = []
     for node in matches:
       fancyname = get_jobs(request.user, 100, job.replace('-','.'))[0][2]
-      node_info = dict(path=job + "." + node.metric_path, name=node.metric_path, fancyname=fancyname + "." + node.metric_path, is_leaf=str(int(node.isLeaf())))
-      if not node.isLeaf():
+      node_info = dict(path=job + "." + node.path, name=node.name, fancyname=fancyname + "." + node.path, is_leaf=str(int(node.is_leaf)))
+      if not node.isLeaf:
         node_info['path'] += '.'
       results.append(node_info)
 
@@ -336,7 +336,7 @@ def tree_json(nodes, base_path, wildcards=False, contexts=False):
 
   results.extend(results_branch)
   results.extend(results_leaf)
-  return json.dumps(results)
+  return results
 
 
 def pickle_nodes(nodes):
