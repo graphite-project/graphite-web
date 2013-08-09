@@ -72,9 +72,8 @@ def find_metric(request):
 
     else:
         (job, query) = query.split(".", 1)
-        matches = list( STORE.find(query, get_nodes(job)) )
-
-        content = "\n".join([job + "." + node.metric_path for node in matches ])
+        matches = list( STORE.find(query, job_nodes=get_nodes(job)) )
+        content = "\n".join([job + "." + node.path for node in matches ])
 
     response = HttpResponse(content, mimetype='text/plain')
 
