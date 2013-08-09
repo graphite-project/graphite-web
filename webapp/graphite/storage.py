@@ -145,40 +145,8 @@ class FindQuery:
       endString = '*'
     else:
       endString = time.ctime(self.endTime)
-      datasource_pattern = None
 
-    relative_path = absolute_path[ len(root_dir): ].lstrip('/')
-    metric_path = relative_path.replace('/','.')
-
-    # Preserve pattern in resulting path for escaped query pattern elements
-    metric_path_parts = metric_path.split('.')
-    for field_index in find_escaped_pattern_fields(pattern):
-      metric_path_parts[field_index] = pattern_parts[field_index].replace('\\', '')
-    metric_path = '.'.join(metric_path_parts)
-
-    if isdir(absolute_path):
-      yield Branch(absolute_path, metric_path)
-
-    elif isfile(absolute_path):
-      (metric_path,extension) = splitext(metric_path)
-
-      if extension == '.wsp':
-        yield WhisperFile(absolute_path, metric_path)
-
-      elif extension == '.gz' and metric_path.endswith('.wsp'):
-        metric_path = splitext(metric_path)[0]
-        yield GzippedWhisperFile(absolute_path, metric_path)
-
-      elif rrdtool and extension == '.rrd':
-        rrd = RRDFile(absolute_path, metric_path)
-
-        if datasource_pattern is None:
-          yield rrd
-
-        else:
-          for source in rrd.getDataSources():
-            if fnmatch.fnmatch(source.name, datasource_pattern):
-              yield source
+    return '<FindQuery: %s from %s until %s>' % (self.pattern, startString, endString)
 
 # Exposed Storage API
 finders = [
