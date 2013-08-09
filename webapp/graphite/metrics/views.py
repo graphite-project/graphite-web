@@ -165,19 +165,23 @@ def find_view(request):
     response = HttpResponse(content, mimetype='application/pickle')
 
   elif format == 'completer':
-    results = []
-    for node in matches:
-      fancyname = get_jobs(request.user, 100, job.replace('-','.'))[0][2]
-      node_info = dict(path=job + "." + node.path, name=node.name, fancyname=fancyname + "." + node.path, is_leaf=str(int(node.is_leaf)))
-      if not node.isLeaf:
-        node_info['path'] += '.'
-      results.append(node_info)
+    try:
+      results = []
+      for node in matches:
+        fancyname = get_jobs(request.user, 100, job.replace('-','.'))[0][2]
+        node_info = dict(path=job + "." + node.path, name=node.name, fancyname=fancyname + "." + node.path, is_leaf=str(int(node.is_leaf)))
+        if not node.is_leaf:
+          node_info['path'] += '.'
+        results.append(node_info)
 
-    if len(results) > 1 and wildcards:
-      wildcardNode = {'name' : '*'}
-      results.append(wildcardNode)
+      if len(results) > 1 and wildcards:
+        wildcardNode = {'name' : '*'}
+        results.append(wildcardNode)
 
-    response = json_response_for(request, { 'metrics' : results})
+      response = json_response_for(request, { 'metrics' : results})
+    except Exception as e:
+      print e
+
 
   else:
     return HttpResponseBadRequest(content="Invalid value for 'format' parameter", mimetype="text/plain")
