@@ -27,17 +27,17 @@ class Store:
     # Search locally
     for finder in self.finders:
       for node in finder.find_nodes(query):
-        #if node.metric_path.split('.', 1)[0] in job_nodes:
+        if node.path.split('.', 1)[0] in job_nodes:
           #log.info("find() :: local :: %s" % node)
-        matching_nodes.add(node)
+          matching_nodes.add(node)
 
     # Gather remote search results
     if not local:
       for request in remote_requests:
         for node in request.get_results():
-          #if node.metric_path.split('.', 1)[0] in job_nodes:
+          if node.path.split('.', 1)[0] in job_nodes:
             #log.info("find() :: remote :: %s from %s" % (node,request.store.host))
-          matching_nodes.add(node)
+            matching_nodes.add(node)
 
     # Group matching nodes by their path
     nodes_by_path = {}
@@ -46,6 +46,8 @@ class Store:
         nodes_by_path[node.path] = []
 
       nodes_by_path[node.path].append(node)
+
+    print matching_nodes
 
     # Reduce matching nodes for each path to a minimal set
     found_branch_nodes = set()
