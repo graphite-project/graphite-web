@@ -47,8 +47,6 @@ class Store:
 
       nodes_by_path[node.path].append(node)
 
-    print matching_nodes
-
     # Reduce matching nodes for each path to a minimal set
     found_branch_nodes = set()
 
@@ -147,6 +145,7 @@ class FindQuery:
       endString = time.ctime(self.endTime)
 
     return '<FindQuery: %s from %s until %s>' % (self.pattern, startString, endString)
+
 
 # Exposed Storage API
 finders = [
