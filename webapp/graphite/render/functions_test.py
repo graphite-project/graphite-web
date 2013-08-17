@@ -49,7 +49,7 @@ class FunctionsTest(unittest.TestCase):
 
     def testGetPercentile(self):
       seriesList = [
-        ([15, 20, 35, 40, 50], 20),
+        ([None, None, 15, 20, 35, 40, 50], 20),
         (range(100), 30),
         (range(200), 60),
         (range(300), 90),
