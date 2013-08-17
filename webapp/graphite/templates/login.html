@@ -11,6 +11,9 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. -->
+
+{% load url from future %}
+
 <body onload="document.forms[0].username.focus();">
 
 <center>
@@ -28,7 +31,7 @@ limitations under the License. -->
 </div>
 {% endif %}
 
-<form method='POST' action='/account/login/'>
+<form method='POST' action='{% url "account.loginView" %}'>
 {% if nextPage %}
 <input type='hidden' name='nextPage' value='{{nextPage}}'/>
 {% endif %}
