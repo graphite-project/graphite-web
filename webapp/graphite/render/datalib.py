@@ -140,6 +140,39 @@ class CarbonLinkPool:
     log.cache("CarbonLink cache-query request for %s returned %d datapoints" % (metric, len(results)))
     return results['datapoints']
 
+  def query_bulk(self, metrics):
+    cacheResultsByMetric = {}
+    metricsByHost = {}
+ 
+    for real_metric in metrics:
+      host = self.select_host(real_metric)
+      if metricsByHost.get(host):
+         metricsByHost[host].append(real_metric)
+      else:
+         metricsByHost[host] = [real_metric]
+ 
+    for host, metrics in metricsByHost.items():
+       request = dict(type='cache-query-bulk', metrics=metrics)
+       serialized_request = pickle.dumps(request, protocol=-1)
+       len_prefix = struct.pack("!L", len(serialized_request))
+       request_packet = len_prefix + serialized_request
+ 
+       conn = self.get_connection(host)
+       try:
+         conn.sendall(request_packet)
+         result = self.recv_response(conn)
+       except:
+         self.last_failure[host] = time.time()
+         log.exception()
+       else:
+         self.connections[host].add(conn)
+         if 'error' in result:
+           log.cache("CarbonLink cache-query error %s" % result['error'])
+         else:
+           cacheResultsByMetric.update(result['datapointsByMetric'])
+ 
+    return cacheResultsByMetric
+
   def get_metadata(self, metric, key):
     request = dict(type='get-metadata', metric=metric, key=key)
     results = self.send_request(request)
@@ -217,33 +250,32 @@ def fetchData(requestContext, pathExpr):
   seriesList = []
   startTime = requestContext['startTime']
   endTime = requestContext['endTime']
-
+ 
   if requestContext['localOnly']:
     store = LOCAL_STORE
   else:
     store = STORE
-
-  for dbFile in store.find(pathExpr):
+ 
+  dbFiles = [dbFile for dbFile in store.find(pathExpr)]
+ 
+  cacheResultsByMetric = CarbonLink.query_bulk([dbFile.real_metric for dbFile in dbFiles])
+ 
+  for dbFile in dbFiles:
     log.metric_access(dbFile.metric_path)
-    dbResults = dbFile.fetch( timestamp(startTime), timestamp(endTime) )
-    try:
-      cachedResults = CarbonLink.query(dbFile.real_metric)
-      results = mergeResults(dbResults, cachedResults)
-    except:
-      log.exception()
-      results = dbResults
-
-    if not results:
+    dbResults = dbFile.fetch(timestamp(startTime), timestamp(endTime))
+ 
+    if not dbResults:
       continue
-
+ 
+    results = mergeResults(dbResults, cacheResultsByMetric.get(dbFile.real_metric,[]))
+ 
     (timeInfo,values) = results
     (start,end,step) = timeInfo
     series = TimeSeries(dbFile.metric_path, start, end, step, values)
     series.pathExpression = pathExpr #hack to pass expressions through to render functions
     seriesList.append(series)
-
+ 
   return seriesList
-
 
 def mergeResults(dbResults, cacheResults):
   cacheResults = list(cacheResults)
