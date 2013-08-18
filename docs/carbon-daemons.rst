@@ -66,7 +66,7 @@ When running with ``RELAY_METHOD = rules``, a ``carbon-relay.py`` instance can
 run in place of a ``carbon-cache.py`` server and relay all incoming metrics to
 multiple backend ``carbon-cache.py``'s running on different ports or hosts.
 
-In ``RELAY_METHOD = consistent-hashing`` mode, a ``CH_HOST_LIST`` setting defines a
+In ``RELAY_METHOD = consistent-hashing`` mode, a ``DESTINATIONS`` setting defines a
 sharding strategy across multiple ``carbon-cache.py`` backends. The same
 consistent hashing list can be provided to the graphite webapp via ``CARBONLINK_HOSTS`` to
 spread reads across the multiple backends.
