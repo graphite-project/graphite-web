@@ -22,7 +22,10 @@ class LDAPBackend:
     try:
       conn = ldap.initialize(settings.LDAP_URI)
       conn.protocol_version = ldap.VERSION3
-      conn.simple_bind_s( settings.LDAP_BASE_USER, settings.LDAP_BASE_PASS )
+      conn.start_tls_s()
+      bind_user = settings.LDAP_BASE_USER % username if "%s" in settings.LDAP_BASE_USER else settings.LDAP_BASE_USER
+      bind_pass = settings.LDAP_BASE_PASS % password if "%s" in settings.LDAP_BASE_PASS else settings.LDAP_BASE_PASS
+      conn.bind_s( bind_user, bind_pass )
     except ldap.LDAPError:
       traceback.print_exc()
       return None
