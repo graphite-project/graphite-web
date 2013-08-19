@@ -2,6 +2,7 @@ import os, time, fnmatch, socket, errno
 from os.path import isdir, isfile, join, exists, splitext, basename, realpath
 import whisper
 from graphite.remote_storage import RemoteStore
+from graphite.logger import log
 from django.conf import settings
 
 try:
@@ -187,7 +188,11 @@ def _find(current_dir, patterns):
   match the corresponding pattern in patterns"""
   pattern = patterns[0]
   patterns = patterns[1:]
-  entries = os.listdir(current_dir)
+  try:
+    entries = os.listdir(current_dir)
+  except OSError as e:
+    log.exception(e)
+    entries = []
 
   subdirs = [e for e in entries if isdir( join(current_dir,e) )]
   matching_subdirs = match_entries(subdirs, pattern)
