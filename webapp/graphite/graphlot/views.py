@@ -64,8 +64,6 @@ def find_metric(request):
         return HttpResponseBadRequest(
             content="Missing required parameter 'q'", mimetype="text/plain")
 
-    query += '*'
-
     if '.' not in query:
         matches = get_jobs(request.user, 100, query[:-1])
         content = "\n".join([match[0] for match in matches])

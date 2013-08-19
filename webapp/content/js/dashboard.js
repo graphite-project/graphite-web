@@ -2561,12 +2561,22 @@ function showDashboardFinder() {
     url: "/dashboard/find/",
     method: 'GET',
     params: {query: "e"},
-    fields: ['name'],
+    fields: [{
+      name: 'name',
+      sortType: function(value) {
+	// Make sorting case-insensitive
+        return value.toLowerCase();
+      }
+    }],
     root: 'dashboards',
+    sortInfo: {
+      field: 'name',
+      direction: 'DESC'
+    },
     listeners: {
       beforeload: function (store) {
                     store.setBaseParam('query', queryField.getValue());
-                  }
+      }
     }
   });
 
