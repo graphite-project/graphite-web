@@ -1999,9 +1999,8 @@ function breakoutGraph(record) {
 }
 
 function mailGraph(record) {
-  mygraphParams = record.get('params');
-  mygraphParams['target'] = record.data['target'];
-  newparams = Ext.encode(Ext.apply(mygraphParams, defaultGraphParams));
+  var mygraphParams = record.get('params');
+  var newparams = Ext.encode(Ext.apply(mygraphParams, defaultGraphParams));
 
   var fromField = new Ext.form.TextField({
     fieldLabel: "From",
