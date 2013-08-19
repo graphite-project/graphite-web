@@ -6,6 +6,9 @@
 #####################################
 # General Configuration #
 #####################################
+# Make this unique, and don't share it with anybody.
+# SECRET_KEY = ''
+
 # Set your local timezone (Django's default is America/Chicago)
 # If your graphs appear to be offset by a couple hours then this probably
 # needs to be explicitly set to your local timezone.

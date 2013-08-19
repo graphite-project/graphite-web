@@ -48,9 +48,6 @@ MEDIA_URL = ''
 # Examples: "http://foo.com/media/", "/media/".
 ADMIN_MEDIA_PREFIX = '/media/'
 
-# Make this unique, and don't share it with anybody.
-SECRET_KEY = ''
-
 # List of callables that know how to import templates from various sources.
 #XXX Compatibility for Django 1.1. To be removed after 0.9.10
 if DJANGO_VERSION < (1,2):
