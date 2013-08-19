@@ -15,6 +15,8 @@ limitations under the License."""
 # DO NOT MODIFY THIS FILE DIRECTLY - use local_settings.py instead
 import sys, os
 from django import VERSION as DJANGO_VERSION
+from django.core.exceptions import ImproperlyConfigured
+from exceptions import DeprecationWarning
 from os.path import abspath, dirname, join
 from warnings import warn
 
@@ -102,13 +104,24 @@ ALLOWED_HOSTS = [ '*' ]
 # Override to link a different URL for login (e.g. for django_openid_auth)
 LOGIN_URL = '/account/login'
 
-#Initialize database settings - Old style (pre 1.2)
-DATABASE_ENGINE = 'django.db.backends.sqlite3'	# 'postgresql', 'mysql', 'sqlite3' or 'ado_mssql'.
-DATABASE_NAME = ''				# Or path to database file if using sqlite3.
-DATABASE_USER = ''				# Not used with sqlite3.
-DATABASE_PASSWORD = ''				# Not used with sqlite3.
-DATABASE_HOST = ''				# Set to empty string for localhost. Not used with sqlite3.
-DATABASE_PORT = ''				# Set to empty string for default. Not used with sqlite3.
+#Initialize deprecated database settings
+DATABASE_ENGINE = ''
+DATABASE_NAME = ''
+DATABASE_USER = ''
+DATABASE_PASSWORD = ''
+DATABASE_HOST = ''
+DATABASE_PORT = ''
+
+DATABASES = {
+  'default': {
+    'NAME': '',
+    'ENGINE': 'django.db.backends.sqlite3',
+    'USER': '',
+    'PASSWORD': '',
+    'HOST': '',
+    'PORT': ''
+  }
+}
 
 # If using rrdcached, set to the address or socket of the daemon
 FLUSHRRDCACHED = ''
@@ -157,9 +170,47 @@ if not DATA_DIRS:
 
 # Default sqlite db file
 # This is set here so that a user-set STORAGE_DIR is available
-if 'sqlite3' in DATABASE_ENGINE \
-    and not DATABASE_NAME:
-  DATABASE_NAME = join(STORAGE_DIR, 'graphite.db')
+#XXX This can finally be removed once we only support Django >= 1.4
+# Support old local_settings.py db configs for a bit longer
+if DJANGO_VERSION < (1,4):
+  warn_deprecated = False
+  if DATABASE_ENGINE and 'sqlite3' not in DATABASES['default']['ENGINE']:
+    DATABASES['default']['ENGINE'] = DATABASE_ENGINE
+    warn_deprecated = True
+  if DATABASE_NAME and not DATABASES['default']['NAME']:
+    DATABASES['default']['NAME'] = DATABASE_NAME
+    warn_deprecated = True
+  if DATABASE_USER and not DATABASES['default']['USER']:
+    DATABASES['default']['USER'] = DATABASE_USER
+    warn_deprecated = True
+  if DATABASE_PASSWORD and not DATABASES['default']['PASSWORD']:
+    DATABASES['default']['PASSWORD'] = DATABASE_PASSWORD
+    warn_deprecated = True
+  if DATABASE_HOST and not DATABASES['default']['HOST']:
+    DATABASES['default']['HOST'] = DATABASE_HOST
+    warn_deprecated = True
+  if DATABASE_PORT and not DATABASES['default']['PORT']:
+    DATABASES['default']['PORT'] = DATABASE_PORT
+    warn_deprecated = True
+
+  if warn_deprecated:
+    warn("Found old-style settings.DATABASE_* configuration. Please see " \
+    "local_settings.py.example for an example of the updated database " \
+    "configuration style", DeprecationWarning)
+else:
+  if DATABASE_ENGINE or \
+     DATABASE_NAME or \
+     DATABASE_USER or \
+     DATABASE_PASSWORD or \
+     DATABASE_HOST or \
+     DATABASE_PORT:
+    raise ImproperlyConfigured("Found old-style settings.DATABASE_* configuration. Please remove "
+        "these settings from local_settings.py before continuing. See local_settings.py.example "
+        "for an example of the updated database configuration style")
+
+# Set a default sqlite file in STORAGE_DIR
+if 'sqlite3' in DATABASES['default']['ENGINE'] and not DATABASES['default']['NAME']:
+  DATABASES['default']['NAME'] = join(STORAGE_DIR, 'graphite.db')
 
 # Caching shortcuts
 if MEMCACHE_HOSTS:

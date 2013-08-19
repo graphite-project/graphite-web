@@ -147,8 +147,6 @@
 # The default is 'django.db.backends.sqlite3' with file 'graphite.db'
 # located in STORAGE_DIR
 #
-# Users with Django 1.2 or greater should use the new dictionary
-# specification as the old database specification style is removed in 1.4
 #DATABASES = {
 #    'default': {
 #        'NAME': '/opt/graphite/storage/graphite.db',
@@ -160,13 +158,6 @@
 #    }
 #}
 #
-# Users still on Django 1.1 must use the old method instead:
-#DATABASE_ENGINE = 'django.db.backends.mysql'
-#DATABASE_NAME = 'graphite'      # Or path to the database file if using sqlite3
-#DATABASE_USER = 'graphite'
-#DATABASE_PASSWORD = 'graphite-is-awesome'
-#DATABASE_HOST = 'mysql.mycompany.com'
-#DATABASE_PORT = '3306'
 
 
 #########################
