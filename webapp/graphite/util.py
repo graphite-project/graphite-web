@@ -19,6 +19,7 @@ except:
   import pickle
   USING_CPICKLE = False
 
+from os import environ
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import User
 from graphite.account.models import Profile
@@ -58,20 +59,21 @@ def getProfileByUsername(username):
     return None
 
 
-try:
-  defaultUser = User.objects.get(username='default')
-except User.DoesNotExist:
-  log.info("Default user does not exist, creating it...")
-  randomPassword = User.objects.make_random_password(length=16)
-  defaultUser = User.objects.create_user('default','default@localhost.localdomain',randomPassword)
-  defaultUser.save()
+if not environ.get('READTHEDOCS'):
+  try:
+    defaultUser = User.objects.get(username='default')
+  except User.DoesNotExist:
+    log.info("Default user does not exist, creating it...")
+    randomPassword = User.objects.make_random_password(length=16)
+    defaultUser = User.objects.create_user('default','default@localhost.localdomain',randomPassword)
+    defaultUser.save()
 
-try:
-  defaultProfile = Profile.objects.get(user=defaultUser)
-except Profile.DoesNotExist:
-  log.info("Default profile does not exist, creating it...")
-  defaultProfile = Profile(user=defaultUser)
-  defaultProfile.save()
+  try:
+    defaultProfile = Profile.objects.get(user=defaultUser)
+  except Profile.DoesNotExist:
+    log.info("Default profile does not exist, creating it...")
+    defaultProfile = Profile(user=defaultUser)
+    defaultProfile.save()
 
 # This whole song & dance is due to pickle being insecure
 # The SafeUnpickler classes were largely derived from
