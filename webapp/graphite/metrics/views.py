@@ -70,10 +70,7 @@ def index_json(request):
     .lstrip('.')
     for m in sorted(matches)
   ]
-  if jsonp:
-    return HttpResponse("%s(%s)" % (jsonp, json.dumps(matches)), mimetype='text/javascript')
-  else:
-    return HttpResponse(json.dumps(matches), mimetype='application/json')
+  return json_response_for(request, matches, jsonp=jsonp)
 
 
 def search_view(request):
@@ -90,8 +87,7 @@ def search_view(request):
   #  search_request['query'] += '*'
 
   results = sorted(searcher.search(**search_request))
-  result_data = json.dumps( dict(metrics=results) )
-  return HttpResponse(result_data, mimetype='application/json')
+  return json_response_for(request, dict(metrics=results))
 
 
 def context_view(request):
@@ -109,8 +105,7 @@ def context_view(request):
       else:
         contexts.append({ 'metric' : metric, 'context' : context })
 
-    content = json.dumps( { 'contexts' : contexts } )
-    return HttpResponse(content, mimetype='application/json')
+    return json_response_for(request, { 'contexts' : contexts })
 
   elif request.method == 'POST':
 
@@ -175,7 +170,7 @@ def find_view(request):
 
   if format == 'treejson':
     content = tree_json(matches, base_path, wildcards=profile.advancedUI or wildcards, contexts=contexts)
-    response = HttpResponse(content, mimetype='application/json')
+    response = json_response_for(request, content)
 
   elif format == 'pickle':
     content = pickle_nodes(matches, contexts=contexts)
@@ -195,8 +190,7 @@ def find_view(request):
       wildcardNode = {'name' : '*'}
       results.append(wildcardNode)
 
-    content = json.dumps({ 'metrics' : results })
-    response = HttpResponse(content, mimetype='application/json')
+    response = json_response_for(request, { 'metrics' : results })
 
   else:
     return HttpResponseBadRequest(content="Invalid value for 'format' parameter", mimetype="text/plain")
@@ -235,7 +229,7 @@ def expand_view(request):
     'results' : results
   }
 
-  response = HttpResponse(json.dumps(result), mimetype='application/json')
+  response = json_response_for(request, result)
   response['Pragma'] = 'no-cache'
   response['Cache-Control'] = 'no-cache'
   return response
@@ -252,7 +246,7 @@ def get_metadata_view(request):
       log.exception()
       results[metric] = dict(error="Unexpected error occurred in CarbonLink.get_metadata(%s, %s)" % (metric, key))
 
-  return HttpResponse(json.dumps(results), mimetype='application/json')
+  return json_response_for(request, results)
 
 
 def set_metadata_view(request):
@@ -287,7 +281,7 @@ def set_metadata_view(request):
   else:
     results = dict(error="Invalid request method")
 
-  return HttpResponse(json.dumps(results), mimetype='application/json')
+  return json_response_for(request, results)
 
 
 def tree_json(nodes, base_path, wildcards=False, contexts=False):
@@ -343,7 +337,7 @@ def tree_json(nodes, base_path, wildcards=False, contexts=False):
 
   results.extend(results_branch)
   results.extend(results_leaf)
-  return json.dumps(results)
+  return results
 
 
 def pickle_nodes(nodes, contexts=False):
@@ -359,3 +353,16 @@ def any(iterable): #python2.4 compatibility
     if i:
       return True
   return False
+
+def json_response_for(request, data, mimetype='application/json', jsonp=False, **kwargs):
+  accept = request.META.get('HTTP_ACCEPT', 'application/json')
+  ensure_ascii = accept == 'application/json'
+
+  content = json.dumps(data, ensure_ascii=ensure_ascii)
+  if jsonp:
+    content = "%s(%)" % (jsonp, content)
+    mimetype = 'text/javascript'
+  if not ensure_ascii:
+    mimetype += ';charset=utf-8'
+
+  return HttpResponse(content, mimetype=mimetype, **kwargs)
