@@ -19,6 +19,11 @@ except:
   import pickle
   USING_CPICKLE = False
 
+try:
+  from cStringIO import StringIO
+except ImportError:
+  from StringIO import StringIO
+
 from os import environ
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import User
