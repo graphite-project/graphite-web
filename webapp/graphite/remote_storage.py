@@ -93,6 +93,7 @@ class FindRequest:
 
 class RemoteNode:
   context = {}
+  local = False
 
   def __init__(self, store, metric_path, isLeaf):
     self.store = store
