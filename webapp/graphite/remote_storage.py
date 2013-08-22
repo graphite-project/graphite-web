@@ -9,11 +9,8 @@ from graphite.node import LeafNode, BranchNode
 from graphite.intervals import Interval, IntervalSet
 from graphite.readers import FetchInProgress
 from graphite.logger import log
+from graphite.util import unpickle
 
-try:
-  import cPickle as pickle
-except ImportError:
-  import pickle
 
 
 class RemoteStore(object):
@@ -100,7 +97,7 @@ class FindRequest(object):
         response = self.connection.getresponse()
         assert response.status == 200, "received error response %s - %s" % (response.status, response.reason)
         result_data = response.read()
-        results = pickle.loads(result_data)
+        results = unpickle.loads(result_data)
 
       except:
         log.exception("FindRequest.get_results(host=%s, query=%s) exception processing response" % (self.store.host, self.query))
@@ -187,7 +184,7 @@ class RemoteReader(object):
             raise Exception("Error response %d %s from %s" % (response.status, response.reason, url))
 
           pickled_response = response.read()
-          results = pickle.loads(pickled_response)
+          results = unpickle.loads(pickled_response)
           self.cache_lock.acquire()
           self.request_cache[url] = results
           self.cache_lock.release()

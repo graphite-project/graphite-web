@@ -3,6 +3,7 @@ Graphite Documentation
 ======================
 
 .. toctree::
+   :maxdepth: 1
 
    overview
    install
@@ -20,6 +21,7 @@ Graphite Documentation
    terminology
    tools
    who-is-using
+   releases
 
 
 Indices and tables

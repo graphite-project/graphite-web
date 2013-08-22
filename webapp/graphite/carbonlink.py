@@ -7,7 +7,7 @@ from select import select
 from django.conf import settings
 from graphite.render.hashing import ConsistentHashRing
 from graphite.logger import log
-from graphite.util import load_module
+from graphite.util import load_module, unpickle
 
 try:
   import cPickle as pickle
@@ -130,7 +130,7 @@ class CarbonLinkPool:
     len_prefix = recv_exactly(conn, 4)
     body_size = struct.unpack("!L", len_prefix)[0]
     body = recv_exactly(conn, body_size)
-    return pickle.loads(body)
+    return unpickle.loads(body)
 
 
 class CarbonLinkRequestError(Exception):

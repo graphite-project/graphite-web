@@ -1,0 +1,48 @@
+0.9.7
+=====
+*1/8/11*
+
+A little late but better than never, Graphite 0.9.7 is now out and available for download. It
+available through PyPI (http://pypi.python.org/pypi) and the Launchpad project page
+(https://launchpad.net/graphite). Here is a quick-rundown of the new features and some nice bug
+fixes:
+
+Features
+--------
+* Composer UI menus have been updated to reflect all currently available functions and options
+* New threshold() function allows you to draw a horizontal line with a custom color and legend name (though color and legend name are not available through composer UI yet)
+* New summarize() function allows you to draw data at a lower precision than it is stored at (ie. draw hourly datapoints for minutely data)
+* New group() function allows you to specify a collection of metrics for passing to other functions that require a single arg, without using wildcards.
+* Retention configurations support a new more convenient syntax (see [https://bugs.launchpad.net/graphite/+bug/697896 Bug #697896])
+* Carbon's logging of every whisper update can be disabled now (set LOG_UPDATES = False in carbon.conf)
+* Carbon-relay can now specify ports for remote carbon-caches
+* Timezones can now be specified at render-time using Olson timezone names (see [http://pytz.sourceforge.net/ pytz])
+* Saved MyGraphs now support a hierarchical structure when dots are used in the saved graph names
+* By popular request, carbon now ignores improperly formatted datapoint lines rather than disconnecting the client ([https://bugs.launchpad.net/graphite/+bug/589476 Bug #589476])
+* X-axis labeling has been revamped to avoid overlapping and confusing labels
+* RPM and source RPM packages are available for download. Note that they currently **do not check dependencies** and **do not perform post-install tasks**. This means they are suitable for upgrades but the usual install doc will need to be followed for new installations. Please contribute feedback regarding these packages so we can make them work out of the box on Fedora and CentOS.
+
+Bugs Fixed (woefully incomplete)
+--------------------------------
+* [https://bugs.launchpad.net/graphite/+bug/528228 Bug #528228] - fixed 'tz' parameter for specifying custom timezone at render-time
+* [https://bugs.launchpad.net/graphite/+bug/676395 Bug #676395] - fixed timeShift() function
+* [https://bugs.launchpad.net/graphite/+bug/690586 Bug #690586] - fixed log() function to work with negative data
+* [https://bugs.launchpad.net/graphite/+bug/684563 Bug #684563] - fixed carbon-cache.py --config parameter
+* [https://bugs.launchpad.net/graphite/+bug/660861 Bug #660861] - fixed nonNegativeDerivative() math for wrapping counters
+* [https://bugs.launchpad.net/graphite/+bug/591948 Bug #591948] - fixed X-axis labeling that was inaccurate in some situations
+* [https://bugs.launchpad.net/graphite/+bug/595652 Bug #595652] - fixed bug preventing clustering from working with default settings.py
+* [https://bugs.launchpad.net/graphite/+bug/542090 Bug #542090] - fixed Y-axis labeling issue for large values with small variance
+* Dozens more...
+
+The best part is, the work in this release has continued to be largely a community effort. Almost
+all bugs that got fixed were reported from users and the vast majority have been fixed because of
+contributed patches and highly detailed bug reports. In other words, this ain't a one-man show!
+Thanks to everyone who has contributed code, bug reports, documentation, questions, and answers.
+
+In the interest of not being incredibly wrong again, I will refrain from putting a date on when the
+next Graphite release will be out. But it will not be another year, that's for sure... Several
+projects I have to do for work in the coming months are going to involve major enhancements to
+Graphite, unlike this past year during which I've really only worked on it in my spare time. Thanks
+again to everyone and happy new year!
+
+\- ChrisMD

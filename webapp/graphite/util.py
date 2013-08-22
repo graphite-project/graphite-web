@@ -17,6 +17,19 @@ from os.path import splitext, basename
 import socket
 import errno
 import time
+try:
+  import cPickle as pickle
+  USING_CPICKLE = True
+except:
+  import pickle
+  USING_CPICKLE = False
+
+try:
+  from cStringIO import StringIO
+except ImportError:
+  from StringIO import StringIO
+
+from os import environ
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import User
 from graphite.account.models import Profile
@@ -95,21 +108,21 @@ def find_escaped_pattern_fields(pattern_string):
     if is_escaped_pattern(part):
       yield index
 
+if not environ.get('READTHEDOCS'):
+  try:
+    defaultUser = User.objects.get(username='default')
+  except User.DoesNotExist:
+    log.info("Default user does not exist, creating it...")
+    randomPassword = User.objects.make_random_password(length=16)
+    defaultUser = User.objects.create_user('default','default@localhost.localdomain',randomPassword)
+    defaultUser.save()
 
-try:
-  defaultUser = User.objects.get(username='default')
-except User.DoesNotExist:
-  log.info("Default user does not exist, creating it...")
-  randomPassword = User.objects.make_random_password(length=16)
-  defaultUser = User.objects.create_user('default','default@localhost.localdomain',randomPassword)
-  defaultUser.save()
-
-try:
-  defaultProfile = Profile.objects.get(user=defaultUser)
-except Profile.DoesNotExist:
-  log.info("Default profile does not exist, creating it...")
-  defaultProfile = Profile(user=defaultUser)
-  defaultProfile.save()
+    try:
+      defaultProfile = Profile.objects.get(user=defaultUser)
+    except Profile.DoesNotExist:
+      log.info("Default profile does not exist, creating it...")
+      defaultProfile = Profile(user=defaultUser)
+      defaultProfile.save()
 
 
 def load_module(module_path, member=None):
@@ -125,3 +138,52 @@ def load_module(module_path, member=None):
 def timestamp(datetime):
   "Convert a datetime object into epoch time"
   return time.mktime( datetime.timetuple() )
+
+# This whole song & dance is due to pickle being insecure
+# The SafeUnpickler classes were largely derived from
+# http://nadiana.com/python-pickle-insecure
+# This code also lives in carbon.util
+if USING_CPICKLE:
+  class SafeUnpickler(object):
+    PICKLE_SAFE = {
+      'copy_reg': set(['_reconstructor']),
+      '__builtin__': set(['object']),
+    }
+
+    @classmethod
+    def find_class(cls, module, name):
+      if not module in cls.PICKLE_SAFE:
+        raise pickle.UnpicklingError('Attempting to unpickle unsafe module %s' % module)
+      __import__(module)
+      mod = sys.modules[module]
+      if not name in cls.PICKLE_SAFE[module]:
+        raise pickle.UnpicklingError('Attempting to unpickle unsafe class %s' % name)
+      return getattr(mod, name)
+
+    @classmethod
+    def loads(cls, pickle_string):
+      pickle_obj = pickle.Unpickler(StringIO(pickle_string))
+      pickle_obj.find_global = cls.find_class
+      return pickle_obj.load()
+
+else:
+  class SafeUnpickler(pickle.Unpickler):
+    PICKLE_SAFE = {
+      'copy_reg': set(['_reconstructor']),
+      '__builtin__': set(['object']),
+    }
+
+    def find_class(self, module, name):
+      if not module in self.PICKLE_SAFE:
+        raise pickle.UnpicklingError('Attempting to unpickle unsafe module %s' % module)
+      __import__(module)
+      mod = sys.modules[module]
+      if not name in self.PICKLE_SAFE[module]:
+        raise pickle.UnpicklingError('Attempting to unpickle unsafe class %s' % name)
+      return getattr(mod, name)
+
+    @classmethod
+    def loads(cls, pickle_string):
+      return cls(StringIO(pickle_string)).load()
+
+unpickle = SafeUnpickler
