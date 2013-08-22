@@ -117,12 +117,12 @@ if not environ.get('READTHEDOCS'):
     defaultUser = User.objects.create_user('default','default@localhost.localdomain',randomPassword)
     defaultUser.save()
 
-    try:
-      defaultProfile = Profile.objects.get(user=defaultUser)
-    except Profile.DoesNotExist:
-      log.info("Default profile does not exist, creating it...")
-      defaultProfile = Profile(user=defaultUser)
-      defaultProfile.save()
+  try:
+    defaultProfile = Profile.objects.get(user=defaultUser)
+  except Profile.DoesNotExist:
+    log.info("Default profile does not exist, creating it...")
+    defaultProfile = Profile(user=defaultUser)
+    defaultProfile.save()
 
 
 def load_module(module_path, member=None):
