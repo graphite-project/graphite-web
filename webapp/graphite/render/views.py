@@ -12,6 +12,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 import csv
+import math
 from datetime import datetime
 from time import time
 from random import shuffle
@@ -30,7 +31,7 @@ try:  # See if there is a system installation of pytz first
 except ImportError:  # Otherwise we fall back to Graphite's bundled version
   from graphite.thirdparty import pytz
 
-from graphite.util import getProfileByUsername, json
+from graphite.util import getProfileByUsername, json, unpickle
 from graphite.remote_storage import HTTPConnectionWithTimeout
 from graphite.logger import log
 from graphite.render.evaluator import evaluateTarget
@@ -132,10 +133,34 @@ def renderView(request):
 
     if format == 'json':
       series_data = []
-      for series in data:
-        timestamps = range(series.start, series.end, series.step)
-        datapoints = zip(series, timestamps)
-        series_data.append( dict(target=series.name, datapoints=datapoints) )
+      if 'maxDataPoints' in requestOptions and any(data):
+        startTime = min([series.start for series in data])
+        endTime = max([series.end for series in data])
+        timeRange = endTime - startTime
+        maxDataPoints = requestOptions['maxDataPoints']
+        for series in data:
+          numberOfDataPoints = timeRange/series.step
+          if maxDataPoints < numberOfDataPoints:
+            valuesPerPoint = math.ceil(float(numberOfDataPoints) / float(maxDataPoints))
+            secondsPerPoint = int(valuesPerPoint * series.step)
+            # Nudge start over a little bit so that the consolidation bands align with each call
+            # removing 'jitter' seen when refreshing.
+            nudge = secondsPerPoint + (series.start % series.step) - (series.start % secondsPerPoint)
+            series.start = series.start + nudge
+            valuesToLose = int(nudge/series.step)
+            for r in range(1, valuesToLose):
+              del series[0]
+            series.consolidate(valuesPerPoint)
+            timestamps = range(series.start, series.end, secondsPerPoint)
+          else:
+            timestamps = range(series.start, series.end, series.step)
+          datapoints = zip(series, timestamps)
+          series_data.append(dict(target=series.name, datapoints=datapoints))
+      else:
+        for series in data:
+          timestamps = range(series.start, series.end, series.step)
+          datapoints = zip(series, timestamps)
+          series_data.append( dict(target=series.name, datapoints=datapoints) )
 
       if 'jsonp' in requestOptions:
         response = HttpResponse(
@@ -234,6 +259,8 @@ def parseOptions(request):
       requestOptions['jsonp'] = queryParams['jsonp']
   if 'noCache' in queryParams:
     requestOptions['noCache'] = True
+  if 'maxDataPoints' in queryParams and queryParams['maxDataPoints'].isdigit():
+    requestOptions['maxDataPoints'] = int(queryParams['maxDataPoints'])
 
   requestOptions['localOnly'] = queryParams.get('local') == '1'
 
@@ -333,7 +360,7 @@ def renderLocalView(request):
     optionsPickle = reqParams.read()
     reqParams.close()
     graphClass = GraphTypes[graphType]
-    options = pickle.loads(optionsPickle)
+    options = unpickle.loads(optionsPickle)
     image = doImageRender(graphClass, options)
     log.rendering("Delegated rendering request took %.6f seconds" % (time() -  start))
     return buildResponse(image)

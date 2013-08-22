@@ -35,7 +35,7 @@ def parseATTime(s, tzinfo=None):
     else:
       return datetime.fromtimestamp(int(s),tzinfo)
   elif ':' in s:
-    return datetime.strptime(s,'%H:%M%Y%m%d')
+    return datetime.strptime(s,'%H:%M%Y%m%d').replace(tzinfo=tzinfo)
   if '+' in s:
     ref,offset = s.split('+',1)
     offset = '+' + offset

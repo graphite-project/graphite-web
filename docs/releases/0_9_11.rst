@@ -1,0 +1,184 @@
+.. _0-9-11:
+0.9.11
+======
+*8/20/2013*
+
+
+**NOTE: Graphite 0.9.11 has a regression which breaks cache queries. Please use** :ref:`0.9.12 <0-9-12>` **instead**
+
+Graphite 0.9.11 is now available for usage. Source bundles are available from GitHub:
+
+* https://github.com/graphite-project/graphite-web/archive/0.9.11.tar.gz
+* https://github.com/graphite-project/carbon/archive/0.9.11.tar.gz
+* https://github.com/graphite-project/whisper/archive/0.9.11.tar.gz
+
+Graphite can also be installed from `Pypi <http://pypi.python.org/>`_ via
+`pip <http://www.pip-installer.org/en/latest/index.html>`_. Pypi bundles are here:
+
+* http://pypi.python.org/pypi/graphite-web/
+* http://pypi.python.org/pypi/carbon/
+* http://pypi.python.org/pypi/whisper/
+
+Upgrading
+---------
+It's recommended to install all three 0.9.11 packages together for the most success, however in this
+case *graphite-web* can be installed separately from carbon if necessary. *Carbon* and *Whisper* must
+be updated together due to the coupling of certain changes.
+
+Graphite 0.9.11 now requires a Django version of at least 1.3. Ensure this dependency is satisfied
+before updating *graphite-web*
+
+As always, comparing the example config files with existing ones is recommended to ensure
+awareness of any new features.
+
+Security Notes
+--------------
+This release contains several security fixes for cross-site scripting (XSS) as well as a fix for
+a remote-execution exploit in graphite-web
+(`CVE-2013-5903 <http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=2013-5093>`_).
+Patches for the past three prior releases are available in these gists:
+
+* `0.9.10 <https://gist.github.com/mleinart/6285953>`_
+* `0.9.9 <https://gist.github.com/mleinart/6285975>`_
+* `0.9.8 <https://gist.github.com/mleinart/6285983>`_
+
+In a pinch, the following url mapping can be removed by hand if the remote-rendering feature is
+not being used::
+
+    diff --git a/webapp/graphite/render/urls.py b/webapp/graphite/render/urls.py
+    index a94a5d1..f934b43 100644
+    --- a/webapp/graphite/render/urls.py
+    +++ b/webapp/graphite/render/urls.py
+    @@ -15,7 +15,6 @@ limitations under the License."""
+     from django.conf.urls.defaults import *
+
+     urlpatterns = patterns('graphite.render.views',
+    -  ('local/?$','renderLocalView'),
+       ('~(?P<username>[^/]+)/(?P<graphName>[^/]+)/?','renderMyGraphView'),
+       ('', 'renderView'),
+     )
+
+
+Finally, The setting of Django's SECRET\_KEY setting is now encouraged and exposed in local\_settings.py as
+well.
+
+New Features
+------------
+
+Graphite-web
+^^^^^^^^^^^^
+* Properly return an HTTP 400 on missing query parameter in metrics/search endpoint (dieterbe)
+* cumulative() is now superceded by consolidateBy() which supports min/max/avg/sum (nleskiw)
+* Make graphlot target host configurable for easier embedding (dieterbe)
+* Allow graphlot graphs to be embedded for use in dashboard apps (dieterbe)
+* When wildcarding, prefer matching metric files to directories with the same name (tmm1)
+* New header design and css cleanups (obfuscurity)
+* New composer button to open the target in graphlot (magec)
+* timeshift() can now shift beyond current time, allowing better current-over-week charts (mgb)
+* Unit scaling added to cactiStyle (drawks)
+* Support RRD files in index.json view (obfuscurity)
+* Support for alternate target[] url syntax (luxflux)
+* New countSeries() function which returns the cardinality of a wildcard (obfuscurity)
+* Bootstrap data for movingAverage and movingMedian (seveas)
+* movingAverage and movingMedian now optionally take time periods to specify window size (danielbeardsley)
+* jsonp support in events/get_data (gingerlime)
+* Ace editor for manually editing dashboard json (jordanlewis)
+* New stddevSeries(), timeStack() functions (windbender)
+* Remove ugly graph image background in dashboard (frejsoya)
+* y-axis divisors for determining y-axis scale are now configurable (wfarr)
+* Allow any characters in axis labels
+* Target grammar now supports scientific notation for numbers
+* New identity() function (dieterbe)
+* Update default color scheme (obfuscurity)
+* Dont blow up on permissions errors while walking directories (log instead)
+* Encourage users to set SECRET_KEY uniquely with a warning
+
+Carbon
+^^^^^^
+* Improvements to setup.py rpm generation and basic init scripts (bmhatfield)
+* Allow alternate update rate at shutdown (Daniel314)
+* Add support for new fallocate() allocation method in Whisper (slackhappy)
+* Improvements to noisy logging (nleskiw, drawks)
+* Protect against writes outside the storage tree
+* Performance fixes to rate limiting, removal of unnecessary locks (drawks)
+* Alternate write strategies for carbon-cache (max size, random) (drawks)
+* carbon-aggregator aware consistent-hashing for carbon-relay (slackhappy)
+* Allow custom umask to be passsed to twisted at startup (egnyte)
+* New options WRITE_BACK_FREQUENCY to control frequency of partially-aggregated output (jdanbrown)
+* Improve consistent-hashing performance when replication factor is 1 (slackhappy)
+* Various code cleanups (sejeff)
+* Allow a timestamp of -1 to be sent to aggregator to set to current time (gwillem)
+* Allow log rotation to be handled by an external process (justinvenus)
+* min/max aggregation methods are now supported (ishiro)
+
+Whisper
+^^^^^^
+* Better commandline sanity checking and messaging (sejeff)
+* Handle SIGPIPE correctly in commandline utils (sejeff)
+* Option to intelligently aggregate values on whisper-resize (jens-rantil)
+* Use more efficient max() instead of sorted()[-1] (ryepup)
+* Add fallocate() support (slackhappy)
+* Improve handling of exceptional fetch cases (dieterbe)
+* Improve rrd2whisper's handling of rrd files
+* Improve error messaging on retention errors at create time (lambdafu)
+
+Bug fixes
+---------
+
+Graphite-web
+^^^^^^^^^^^^
+* broken nPercentile() and related functions
+* Python 2.4 compatibility in browser endpoint (dcarley)
+* Missing URL parameters in composer load
+* Fix to multiplySeries to return the expected type (nleskiw)
+* Don't blow up when empty series passed to cactiStyle (mattus)
+* Trailing commas in js breaking ie (nleskiw, davecoutts)
+* Remove extra and unnecessary rendering while loading saved graphs (hostedgraphite)
+* Broken entry of timezone in composer menu (hcchu)
+* constantLine() not drawing across the entire graph (mattsn0w)
+* SVG rendering broken when using secondYAxis (obfuscurity)
+* Expect url-encoded octothorpes in colorList (magec)
+* Display relative times properly in dashboard (daveconcannon)
+* cactiStyle() blows up with empty series (eranrund)
+* Remove problemmatic and unnecessary url encoding 
+* Several pathExpressions missing which caused trouble in certain function combinations (dieterbe,colby,kovyrin)
+* Use non-linux-specific datetime formatter %I instead of %l (richg)
+* Use os.sep properly for path separation (justinc)
+* Negative numbers not allowed in yAxis input box
+* scale() misreports itself in legend when using small decimals
+* colorList incorrectly cast to an int in some cases (rckclmbr)
+* removeBelow* menu items adding the wrong functions to target list (harveyzh) 
+* nPercentile renders it's name incorrectly (TimZehta)
+* CSV rendering does not respect tz parameter
+* Missing max interval in xAxisConfigs causes long-term graphs with few points to render with a 12hr axis config
+* Stacked graphs not filling completely in staircase mode
+* Stacked graphs and many drawAsInfinite() lines do not draw cleanly
+* Graphlot does not handle event timestamps properly (matthew keller)
+* sin() time() and randomWalk() incorrectly using float times (jbrucenet)
+* legend height is incorrect when secondYAxis used (obfuscurity)
+* Expanded wildcards in legends are misordered (dieterbe)
+* Regression in formatPathExpression (jeblair)
+* index.json returns leading periods when WHISPER_DIR does not endin a trailing slash (bitprophet)
+* Regression in areaMode=all causes only the last series to be filled (piotr1212)
+* Default to settings.TIMEZONE if timezone unknown (gingerlime)
+* Negative filled graphs render from bottom rather than 0 (piotr1212)
+* Composer and Dashboard XSS fixes (jwheare, sejeff)
+* Fix persistence of tz aware datetime in non-postgres databases
+* Fix insecure deserialization of pickled objects (CVE-2013-5093)
+* Lots of documentation improvement (jeblair,bclermont,lensen,cbliard,hvnsweeting)
+
+Carbon
+^^^^^^
+* Empty lines match everything in whitelist (gographs)
+* Storage-schemas dont auto reload when they should
+* Carbon-relay per-destination metrics are broken
+* Regression in MAX_CREATES_PER_MINUTE where values >60 were set to 0 (jeblair)
+* Memory leak in carbon-aggregator in certain cases (lbosson)
+* Python2.4 compatibility in AMQP send/receive (justinvenus)
+* Cache/queue sizes are misreported (bitprophet)
+* NaN values shouldn't be passed through from amqp (llaurent)
+
+Whisper
+^^^^^^^
+* Python2.4 compatibility for whisper-dump.py (snore)
+* Correct filtering of duplicate values to ensure last-write-wins

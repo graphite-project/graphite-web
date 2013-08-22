@@ -13,13 +13,11 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 import os
-try:
-  import cPickle as pickle
-except ImportError:
-  import pickle
 from random import randint
 from django.http import HttpResponse
 from django.conf import settings
+
+from graphite.util import unpickle
 
 
 def add(request):
@@ -43,7 +41,7 @@ def show(request):
 
 def load_whitelist():
   fh = open(settings.WHITELIST_FILE, 'rb')
-  whitelist = pickle.load(fh)
+  whitelist = unpickle.load(fh)
   fh.close()
   return whitelist
 

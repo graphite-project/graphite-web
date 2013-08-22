@@ -19,6 +19,7 @@ from django.conf import settings
 from graphite.logger import log
 from graphite.storage import STORE, LOCAL_STORE
 from graphite.render.hashing import ConsistentHashRing
+from graphite.util import unpickle
 from graphite.jobs import get_job_timerange, get_jobs, get_nodes, has_job
 
 try:
@@ -178,7 +179,7 @@ class CarbonLinkPool:
     len_prefix = recv_exactly(conn, 4)
     body_size = struct.unpack("!L", len_prefix)[0]
     body = recv_exactly(conn, body_size)
-    return pickle.loads(body)
+    return unpickle.loads(body)
 
 
 # Utilities
@@ -256,13 +257,16 @@ def fetchData(requestContext, pathExpr):
 
   for dbFile in store.find(pathExpr, get_nodes(job)):
     log.metric_access(dbFile.metric_path)
-    dbResults = dbFile.fetch( startTime, endTime )
-    try:
-      cachedResults = CarbonLink.query(dbFile.real_metric)
-      results = mergeResults(dbResults, cachedResults)
-    except:
-      log.exception()
-      results = dbResults
+
+     dbResults = dbFile.fetch( startTime, endTime )
+    results = dbResults
+
+    if dbFile.isLocal():
+      try:
+        cachedResults = CarbonLink.query(dbFile.real_metric)
+        results = mergeResults(dbResults, cachedResults)
+      except:
+        log.exception()
 
     if not results:
       continue

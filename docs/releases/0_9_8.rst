@@ -1,0 +1,46 @@
+0.9.8
+=====
+*4/3/11*
+
+Graphite 0.9.8 is now out and available for download. It available through PyPI
+(http://pypi.python.org/pypi) and the Launchpad project page (https://launchpad.net/graphite).
+
+This release is a major step forward for Graphite, with a long list of substantive enhancements only
+3 months after the last release. One of the highlights is the move of our documentation to
+readthedocs.org, the docs are now built using Sphinx and they live in trunk under the 'docs'
+folder. Just commit any changes and readthedocs.org will automatically update by pulling changes
+from launchpad nightly.
+
+A special thanks goes out to AppNexus (http://appnexus.com/), who sponsored the development of two
+awesome new features. First is the new carbon-aggregator daemon. This new daemon lets you configure
+the calculation of aggregate metrics at storage time instead of using a heavy-weight sumSeries or
+averageSeries at rendering time. This daemon can also rewrite metric names. You manage it like the
+other two carbon daemons, via carbon.conf. Documentation on configuring carbon-aggregator will be
+coming soon.
+
+AppNexus also sponsored the development of the new Dashboard UI. This new interface allows you to
+put together dashboards containing many graphs quickly and easily. You can save a dashboard and
+view it later. Note that this is a basic implementation for now
+
+Beyond that, there are many other new features so please read through the changelog carefully.
+
+Changes
+-------
+* New carbon-aggregator daemon can compute your aggregate metrics
+* New Dashboard UI
+* Upgraded to ExtJS 3.3
+* All Documentation is moving to Sphinx in our bzr branch, HTML builds of it are hosted by readthedocs.org (http://graphite.readthedocs.org/)
+* The recommended Apache setup is now officially mod_wsgi and not mod_python.
+* New metric pattern syntax, eg. {{example.{foo,bar}.metric}}, matches both {{example.foo.metric}} and {{example.bar.metric}}
+* Y-axis now draws much more useful labels for values much less 1
+* The YAxis=left|right parameter has been renamed to yAxisSide=left|right
+* Rewrote webapp/render/grammar.py to be much more readable
+* Added new json api call /metrics/expand/?query=foo.* -> \["foo.bar", "foo.baz", ...\]
+* Added debugging manhole in carbon-cache.py (ssh-accessible python intepreter interface into carbon at runtime)
+* Added new hitcount function (thanks to Shane Hathaway)
+* The "User Graphs" tree now works properly for usernames that contain dots
+* Fixed data roll-up bug in whisper
+* Added AUTOFLUSH option in whisper/carbon for synchronous I/O
+* and as always, many more smaller bug fixes
+
+\- ChrisMD

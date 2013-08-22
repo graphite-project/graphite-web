@@ -1,9 +1,11 @@
 import os, time, fnmatch, socket, errno
+from django.conf import settings
 from os.path import isdir, isfile, join, exists, splitext, basename, realpath
 import whisper
-from graphite.remote_storage import RemoteStore
+
 from graphite.logger import log
-from django.conf import settings
+from graphite.remote_storage import RemoteStore
+from graphite.util import unpickle
 
 try:
   import rrdtool
@@ -254,12 +256,16 @@ def match_entries(entries, pattern):
 # Node classes
 class Node:
   context = {}
+  local = True
 
   def __init__(self, fs_path, metric_path):
     self.fs_path = str(fs_path)
     self.metric_path = str(metric_path)
     self.real_metric = str(metric_path)
     self.name = self.metric_path.split('.')[-1]
+
+  def isLocal(self):
+    return self.local
 
   def getIntervals(self):
     return []
@@ -316,7 +322,7 @@ class WhisperFile(Leaf):
 
     if exists(context_path):
       fh = open(context_path, 'rb')
-      context_data = pickle.load(fh)
+      context_data = unpickle.load(fh)
       fh.close()
     else:
       context_data = {}
