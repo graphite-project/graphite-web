@@ -62,9 +62,9 @@ def search(request):
   regexes = [re.compile(p,re.I) for p in patterns]
   def matches(s):
     for regex in regexes:
-      if regex.search(s):
-        return True
-    return False
+      if not regex.search(s):
+        return False
+    return True
 
   results = []
 
