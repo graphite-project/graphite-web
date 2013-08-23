@@ -251,7 +251,6 @@ def match_entries(entries, pattern):
 # Node classes
 class Node:
   context = {}
-  local = True
 
   def __init__(self, fs_path, metric_path):
     self.fs_path = str(fs_path)
@@ -260,7 +259,7 @@ class Node:
     self.name = self.metric_path.split('.')[-1]
 
   def isLocal(self):
-    return self.local
+    return True
 
   def getIntervals(self):
     return []
