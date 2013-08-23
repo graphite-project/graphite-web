@@ -17,6 +17,7 @@ from os.path import splitext, basename
 import socket
 import errno
 import time
+import sys
 try:
   import cPickle as pickle
   USING_CPICKLE = True
@@ -148,6 +149,7 @@ if USING_CPICKLE:
     PICKLE_SAFE = {
       'copy_reg': set(['_reconstructor']),
       '__builtin__': set(['object']),
+      'graphite.intervals': set(['Interval', 'IntervalSet']),
     }
 
     @classmethod
@@ -171,6 +173,7 @@ else:
     PICKLE_SAFE = {
       'copy_reg': set(['_reconstructor']),
       '__builtin__': set(['object']),
+      'graphite.intervals': set(['Interval', 'IntervalSet']),
     }
 
     def find_class(self, module, name):
