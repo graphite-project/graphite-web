@@ -123,14 +123,35 @@ def fetchData(requestContext, pathExpr):
   500 error. If we equalize the start to the end, we just get a "No data" message
   '''
   if endTime < startTime:
+<<<<<<< HEAD
     endTime = startTime
+=======
+      endTime = startTime
+
+  if requestContext['localOnly']:
+    store = LOCAL_STORE
+  else:
+    store = STORE
+>>>>>>> 203ce35... More decent path handling
 
   matching_nodes = STORE.find(pathExpr, startTime, endTime, local=requestContext['localOnly'], job_nodes=get_nodes(job))
   fetches = [(node, node.fetch(startTime, endTime)) for node in matching_nodes if node.is_leaf]
 
+<<<<<<< HEAD
   for node, results in fetches:
     if isinstance(results, FetchInProgress):
       results = results.waitForResults()
+=======
+    dbResults = dbFile.fetch( startTime, endTime )
+    results = dbResults
+
+    if dbFile.isLocal():
+      try:
+        cachedResults = CarbonLink.query(dbFile.real_metric)
+        results = mergeResults(dbResults, cachedResults)
+      except:
+        log.exception()
+>>>>>>> 203ce35... More decent path handling
 
     if not results:
       log.info("render.datalib.fetchData :: no results for %s.fetch(%s, %s)" % (node, startTime, endTime))

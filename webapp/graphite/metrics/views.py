@@ -165,6 +165,7 @@ def find_view(request):
     response = HttpResponse(content, mimetype='application/pickle')
 
   elif format == 'completer':
+<<<<<<< HEAD
     try:
       results = []
       for node in matches:
@@ -173,6 +174,17 @@ def find_view(request):
         if not node.is_leaf:
           node_info['path'] += '.'
         results.append(node_info)
+=======
+    #if len(matches) == 1 and (not matches[0].isLeaf()) and query == matches[0].metric_path + '*': # auto-complete children
+    #  matches = list( store.find(query + '.*') )
+    results = []
+    for node in matches:
+      fancyname = get_jobs(request.user, 100, job)[0][2]
+      node_info = dict(path=job + "." + node.metric_path, name=node.metric_path, fancyname=fancyname + "." + node.metric_path, is_leaf=str(int(node.isLeaf())))
+      if not node.isLeaf():
+        node_info['path'] += '.'
+      results.append(node_info)
+>>>>>>> 203ce35... More decent path handling
 
       if len(results) > 1 and wildcards:
         wildcardNode = {'name' : '*'}
