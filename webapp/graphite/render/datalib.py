@@ -248,7 +248,7 @@ def fetchData(requestContext, pathExpr):
   500 error. If we equalize the start to the end, we just get a "No data" message
   '''
   if endTime < startTime:
-	  endTime = startTime
+      endTime = startTime
 
   if requestContext['localOnly']:
     store = LOCAL_STORE
@@ -258,7 +258,7 @@ def fetchData(requestContext, pathExpr):
   for dbFile in store.find(pathExpr, get_nodes(job)):
     log.metric_access(dbFile.metric_path)
 
-     dbResults = dbFile.fetch( startTime, endTime )
+    dbResults = dbFile.fetch( startTime, endTime )
     results = dbResults
 
     if dbFile.isLocal():

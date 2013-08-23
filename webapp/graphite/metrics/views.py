@@ -215,7 +215,7 @@ def find_view(request):
     #  matches = list( store.find(query + '.*') )
     results = []
     for node in matches:
-      fancyname = get_jobs(request.user, 100, job.replace('-','.'))[0][2]
+      fancyname = get_jobs(request.user, 100, job)[0][2]
       node_info = dict(path=job + "." + node.metric_path, name=node.metric_path, fancyname=fancyname + "." + node.metric_path, is_leaf=str(int(node.isLeaf())))
       if not node.isLeaf():
         node_info['path'] += '.'
