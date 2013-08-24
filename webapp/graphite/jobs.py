@@ -23,7 +23,7 @@ def get_jobs(user, limit=False, query=False, cluster=False, start=False, end=Fal
   If the limit paramater is set, display the most recent limit number of jobs
   """
   # Build the select query
-  s = select([jobs.c.name, jobs.c.jobname, jobs.c.laststate, jobs.c.clustername])
+  s = select([jobs.c.name, jobs.c.jobname, jobs.c.laststate])
   if query:
     s = s.where(jobs.c.name.ilike('%' + query + '%') | jobs.c.jobname.ilike('%' + query + '%'))
 
@@ -55,24 +55,27 @@ def get_jobs(user, limit=False, query=False, cluster=False, start=False, end=Fal
   # Fetch the results and return the ID's as a list
   result = engine.execute(s).fetchall()
   return [(
-    str(job[0].split('.', 1)[0]),
+    str(job[0].replace('.', '-')),
     str(job[1]),
-    str(job[1] + " (" + job[0].split('.')[0] + " - " + job[3].split('_')[1] + " - " + job[2] + ")")
+    str(job[1] + " (" + job[0].split('.')[0] + " - " + job[0].split('.')[2] + " - " + job[2] + ")")
   ) for job in result]
 
 def timestamp_parser(timestamp):
     return datetime.fromtimestamp(float(timestamp))
 
 def has_job(user, job):
-  s = select([jobs.c.name]).where(jobs.c.name.like(job + ".%")).where(jobs.c.userr == user.username)
+  job = job.replace('-', '.')
+
+  s = select([jobs.c.name]).where(jobs.c.name == job and jobs.c.userr == user.username)
   result = engine.execute(s).fetchall()
   return len(result) > 0
+
 
 def get_job_timerange(job):
   """
   Returns specific job timerange in the tuple (startTime, endTime)
   """
-  s = select([jobs.c.start, jobs.c.lasttime]).where(jobs.c.name.like(job + ".%"))
+  s = select([jobs.c.start, jobs.c.lasttime]).where(jobs.c.name == job.replace('-', '.'))
   result = engine.execute(s).first()
 
   if len(result) > 1:
@@ -86,7 +89,7 @@ def get_nodes(job):
   """
   Returns all the nodes a job has run on
   """
-  s = select([jobs.c.exec_host]).where(jobs.c.name.like(job + ".%"))
+  s = select([jobs.c.exec_host]).where(jobs.c.name == job.replace('-', '.'))
   result = engine.execute(s).first()
 
   if len(result) > 0:
