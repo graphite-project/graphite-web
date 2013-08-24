@@ -248,7 +248,7 @@ def fetchData(requestContext, pathExpr):
   500 error. If we equalize the start to the end, we just get a "No data" message
   '''
   if endTime < startTime:
-      endTime = startTime
+    endTime = startTime
 
   if requestContext['localOnly']:
     store = LOCAL_STORE
