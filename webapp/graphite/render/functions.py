@@ -2792,6 +2792,25 @@ def events(requestContext, *tags):
   result_series.pathExpression = name
   return [result_series]
 
+def stepFunction(requestContext, seriesList):
+  """
+  Takes one metric or a wildcard seriesList and applies the mathematical step function to each
+  datapoint.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=stepFunction(Server.instance01.threads.busy)
+    &target=stepFunction(Server.instance*.threads.busy)
+  """
+  for series in seriesList:
+    series.name = "stepFunction(%s)" % (series.name)
+    series.pathExpression = series.name
+    for i,value in enumerate(series):
+      series[i] = 1.0 if value > 0 else 0.0
+  return seriesList
+
 def pieAverage(requestContext, series):
   return safeDiv(safeSum(series),safeLen(series))
 
@@ -2841,6 +2860,7 @@ SeriesFunctions = {
   'smartSummarize' : smartSummarize,
   'hitcount'  : hitcount,
   'absolute' : absolute,
+  'stepFunction': stepFunction,
 
   # Calculate functions
   'movingAverage' : movingAverage,
