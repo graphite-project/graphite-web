@@ -2931,7 +2931,7 @@ SeriesFunctions = {
   'groupByNode' : groupByNode,
   'constantLine' : constantLine,
   'stacked' : stacked,
-  'stackedSeries' stackedSeries,
+  'stackedSeries': stackedSeries,
   'areaBetween' : areaBetween,
   'threshold' : threshold,
   'transformNull' : transformNull,
