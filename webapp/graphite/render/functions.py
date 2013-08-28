@@ -1023,7 +1023,7 @@ def stacked(requestContext,seriesLists,stackName='__DEFAULT__'):
 def stackedSeries(requestContext,*seriesLists):
   results = []
   for seriesList in seriesLists:
-    results += stacked(requestContext,seriesList)
+    results += stacked(requestContext,seriesList,'')
   return results
 
 
