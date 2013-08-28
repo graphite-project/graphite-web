@@ -704,7 +704,7 @@ def offsetToZero(requestContext, seriesList):
   are in the series the more accurate this assumption is.
 
   Example:
-  
+
   .. code-block:: none
 
     &target=offsetToZero(Server.instance01.responseTime)
@@ -1017,6 +1017,13 @@ def stacked(requestContext,seriesLists,stackName='__DEFAULT__'):
     newSeries.pathExpression = newName
     results.append(newSeries)
   requestContext['totalStack'][stackName] = totalStack
+  return results
+
+
+def stackedSeries(requestContext,*seriesLists):
+  results = []
+  for seriesList in seriesLists:
+    results.append(stacked(requestContext,seriesList))
   return results
 
 
@@ -1632,7 +1639,7 @@ def sortByTotal(requestContext, seriesList):
   Takes one metric or a wildcard seriesList.
 
   Sorts the list of metrics by the sum of values across the time period
-  specified.    
+  specified.
   """
   def compare(x,y):
     return cmp(safeSum(y), safeSum(x))
@@ -2924,6 +2931,7 @@ SeriesFunctions = {
   'groupByNode' : groupByNode,
   'constantLine' : constantLine,
   'stacked' : stacked,
+  'stackedSeries' stackedSeries,
   'areaBetween' : areaBetween,
   'threshold' : threshold,
   'transformNull' : transformNull,
