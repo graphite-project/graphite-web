@@ -1015,6 +1015,7 @@ def stacked(requestContext,seriesLists,stackName='__DEFAULT__'):
     newSeries = TimeSeries(newName, series.start, series.end, series.step, newValues)
     newSeries.options['stacked'] = True
     newSeries.pathExpression = newName
+    newSeries.color = series.color
     results.append(newSeries)
   requestContext['totalStack'][stackName] = totalStack
   return results
