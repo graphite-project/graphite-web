@@ -946,7 +946,7 @@ class LineGraph(Graph):
 
       if 'stacked' in series.options:
         if self.lineMode == 'staircase':
-          xPos = x 
+          xPos = x
         else:
           xPos = x-series.xStep
         if self.secondYAxis:
@@ -1532,12 +1532,12 @@ class PieGraph(Graph):
     self.total = sum( [t[1] for t in self.data] )
 
     self.slices = []
-    for name,value in self.data:
+    for name,value,color in self.data:
       self.slices.append({
         'name' : name,
         'value' : value,
         'percent' : value / self.total,
-        'color' : self.colors.next(),
+        'color' : color
       })
 
     titleSize = self.defaultFontParams['size'] + math.floor( math.log(self.defaultFontParams['size']) )

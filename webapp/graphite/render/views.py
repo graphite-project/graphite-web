@@ -86,7 +86,7 @@ def renderView(request):
 
         for series in seriesList:
           func = PieFunctions[requestOptions['pieMode']]
-          data.append( (series.name, func(requestContext, series) or 0 ))
+          data.append( (series.name, func(requestContext, series) or 0, series.color))
 
   elif requestOptions['graphType'] == 'line':
     # Let's see if at least our data is cached
