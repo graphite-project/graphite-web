@@ -105,7 +105,10 @@ def fetchData(requestContext, pathExpr):
       log.info("render.datalib.fetchData :: no results for %s.fetch(%s, %s)" % (node, startTime, endTime))
       continue
 
-    (timeInfo, values) = results
+    try:
+        (timeInfo, values) = results
+    except ValueError, e:
+        raise Exception("could not parse timeInfo/values from metric '%s': %s" % (node.path, e))
     (start, end, step) = timeInfo
 
     series = TimeSeries(node.path, start, end, step, values)
