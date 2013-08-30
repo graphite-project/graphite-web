@@ -1533,6 +1533,8 @@ class PieGraph(Graph):
 
     self.slices = []
     for name,value,color in self.data:
+      if not color:
+        color = self.colors.next()
       self.slices.append({
         'name' : name,
         'value' : value,
