@@ -86,10 +86,7 @@ def renderView(request):
 
         for series in seriesList:
           func = PieFunctions[requestOptions['pieMode']]
-          if hasattr(series, 'color'):
-            color = series.color
-          else:
-            color = None
+          color = series.color if hasattr(series, 'color') else None
           data.append( (series.name, func(requestContext, series) or 0, series.color))
 
   elif requestOptions['graphType'] == 'line':
