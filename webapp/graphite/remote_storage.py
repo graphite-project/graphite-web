@@ -118,11 +118,12 @@ class FindRequest(object):
 
 
 class RemoteReader(object):
-  __slots__ = ('store', 'metric_path', 'intervals', 'query')
+  __slots__ = ('store', 'metric_path', 'intervals', 'query', 'connection')
   cache_lock = Lock()
   request_cache = {}
   request_locks = {}
   request_times = {}
+  connections = {}
 
   def __init__(self, store, node_info, bulk_query=None):
     self.store = store
@@ -162,7 +163,7 @@ class RemoteReader(object):
     # Despite our use of thread synchronization primitives, the common
     # case is for synchronizing asynchronous fetch operations within
     # a single thread.
-    (request_lock, wait_lock, completion_event) = self.get_request_locks(url)
+    (request_lock, wait_lock, connection_event, completion_event) = self.get_request_locks(url)
 
     if request_lock.acquire(False): # we only send the request the first time we're called
       try:
@@ -170,13 +171,21 @@ class RemoteReader(object):
         connection = HTTPConnectionWithTimeout(self.store.host)
         connection.timeout = settings.REMOTE_FETCH_TIMEOUT
         connection.request('GET', urlpath)
+        self.cache_lock.acquire()
+        self.connections[url] = connection
+        self.cache_lock.release()
+        connection_event.set()
       except:
         completion_event.set()
         self.store.fail()
-        log.exception("Error requesting %s" % url)
+        log.exception("Request Lock  - Error requesting %s" % url)
         raise
 
     def wait_for_results():
+      connection_event.wait(1)
+      connection = self.connections.get(url)
+      if not connection:
+        log.exception("Wait For Results - No connection found.")
       if wait_lock.acquire(False): # the FetchInProgress that gets waited on waits for the actual completion
         try:
           response = connection.getresponse()
@@ -193,14 +202,14 @@ class RemoteReader(object):
         except:
           completion_event.set()
           self.store.fail()
-          log.exception("Error requesting %s" % url)
+          log.exception("Wait For Results - Error requesting %s" % url)
           raise
 
       else: # otherwise we just wait on the completion_event
         completion_event.wait(settings.REMOTE_FETCH_TIMEOUT)
         cached_results = self.request_cache.get(url)
         if cached_results is None:
-          raise Exception("Passive remote fetch failed to find cached results")
+          raise Exception("Passive remote fetch failed to find cached results for %s" % url)
         else:
           return cached_results
 
@@ -232,7 +241,7 @@ class RemoteReader(object):
     self.cache_lock.acquire()
     try:
       if url not in self.request_locks:
-        self.request_locks[url] = (Lock(), Lock(), Event())
+        self.request_locks[url] = (Lock(), Lock(), Event(), Event())
         self.request_times[url] = time.time()
       return self.request_locks[url]
     finally:
