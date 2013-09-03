@@ -25,6 +25,8 @@ var cookieProvider = new Ext.state.CookieProvider({
 
 var NAV_BAR_REGION = cookieProvider.get('navbar-region') || 'north';
 
+var RENDER_ENGINE = cookieProvider.get('render-engine') || 'cairo';
+
 var CONFIRM_REMOVE_ALL = cookieProvider.get('confirm-remove-all') != 'false';
 
 /* Nav Bar configuration */
@@ -85,7 +87,6 @@ var GraphRecord = new Ext.data.Record.create([
   {name: 'height', type: 'auto'}
 ]);
 
-var graphStore;
 function graphStoreUpdated() {
   if (metricSelectorGrid) metricSelectorGrid.getView().refresh();
 }
@@ -358,7 +359,10 @@ function initDashboard () {
     store.load();
   });
 
-  var graphTemplate = new Ext.XTemplate(
+  var graphTemplate;
+
+  if (RENDER_ENGINE == 'cairo') {
+    graphTemplate = new Ext.XTemplate(
     '<tpl for=".">',
       '<div class="graph-container">',
         '<div class="graph-overlay">',
@@ -369,6 +373,31 @@ function initDashboard () {
     '</tpl>',
     '<div class="x-clear"></div>'
   );
+  } else {
+    graphTemplate = new Ext.XTemplate(
+    '<tpl for=".">',
+      '<div class="graph-container">',
+        '<div class="graph-overlay">',
+          '<div id="g_wrap{index}" style="visibility:visible">',
+              '<div id="main">',
+                  '<div class="g_canvas" style="padding:0px; margin: 4px;">',
+                      '<div class="g_container" style=float:left;">',
+                          '<div id="g_graph{index}" style="width:{width}px; height:{height}px;"></div>',
+                      '</div>',
+                      '<div class="g_side" style="float:left;">',
+                          '<p class="g_legend" style="margin-left:0px"></p>',
+                      '</div>',
+                  '</div>',
+              '</div>',
+          '</div>',
+          '<div class="overlay-close-button" onclick="javascript: graphStore.removeAt(\'{index}\'); refreshGraphs(); justClosedGraph = true;">X</div>',
+        '</div>',
+      '</div>',
+    '</tpl>',
+    '<div class="x-clear"></div>'
+    );
+
+  }
 
   function setupGraphDD () {
     graphView.dragZone = new Ext.dd.DragZone(graphView.getEl(), {
@@ -456,7 +485,11 @@ function initDashboard () {
         if (this.dropAction == 'reorder') {
           graphStore.removeAt(dragIndex);
           graphStore.insert(dropIndex, data.draggedRecord);
-          updateGraphRecords();
+          if ( RENDER_ENGINE == 'cairo' ) {
+              updateGraphRecords();
+          } else {
+              refreshGraphs();
+          }
           return true;
         } else if (this.dropAction == 'merge') {
           var dragRecord = data.draggedRecord;
@@ -472,7 +505,11 @@ function initDashboard () {
           dropRecord.data.target = Ext.urlEncode({target: mergedTargets});
           dropRecord.commit();
           graphStore.remove(dragRecord);
-          updateGraphRecords();
+          if ( RENDER_ENGINE == 'cairo' ) {
+              updateGraphRecords();
+          } else {
+              refreshGraphs();
+          }
           return true;
         }
         return false;
@@ -592,6 +629,9 @@ function initDashboard () {
           }
         },
         {
+          text: "Edit Default Render Engine",
+          handler: editDefaultRenderEngine
+        }, {
           text: "Edit Default Parameters",
           handler: editDefaultGraphParameters
         }, {
@@ -967,10 +1007,18 @@ function graphAreaToggle(target, options) {
     var record = new GraphRecord({
       target: graphTargetString,
       params: myParams,
-      url: '/render?' + Ext.urlEncode(urlParams)
+      url: '/render?' + Ext.urlEncode(urlParams),
+      'width': GraphSize.width,
+      'height': GraphSize.height,
+      'name': this.storeId,
     });
     graphStore.add([record]);
+    canvasId = graphStore.indexOf(record);
+    graphStore.getAt(canvasId).data.index = canvasId;
     updateGraphRecords();
+    if (RENDER_ENGINE != 'cairo') {
+      $("#g_wrap" + canvasId).graphiteGraph("#g_graph" + canvasId, "", graphTargetList, urlParams.from, urlParams.until, Boolean(myParams.areaMode));
+    }
   }
 }
 
@@ -1010,9 +1058,13 @@ function importGraphUrl(targetUrl, options) {
     var record = new GraphRecord({
       target: graphTargetString,
       params: params,
-      url: '/render?' + Ext.urlEncode(urlParams)
+      url: '/render?' + Ext.urlEncode(urlParams),
+      'width': GraphSize.width,
+      'height': GraphSize.height,
       });
       graphStore.add([record]);
+      canvasId = graphStore.indexOf(record);
+      graphStore.getAt(canvasId).data.index = canvasId;
       updateGraphRecords();
   }
 }
@@ -1040,6 +1092,22 @@ function updateGraphRecords() {
 function refreshGraphs() {
   updateGraphRecords();
   graphView.refresh();
+
+  if (RENDER_ENGINE != 'cairo') {
+    graphStore.each(function () {
+      var graphTargetString = this.data.target;
+      if (this.data.target.substr(0,7) == "target=") {
+        graphTargetString = this.data.target;
+      } else {
+        graphTargetString = "target=" + this.data.target;
+      }
+      var graphTargetList = Ext.urlDecode(graphTargetString)['target'];
+      if (typeof graphTargetList == 'string') {
+        graphTargetList = [graphTargetList];
+      }
+      $("#g_wrap" + this.data.index).graphiteGraph("#g_graph" + this.data.index, "", graphTargetList, this.data.params.from, this.data.params.until, Boolean(this.data.params.areaMode));
+    });
+  }
   graphArea.getTopToolbar().get('last-refreshed-text').setText( (new Date()).format('g:i:s A') );
 }
 
@@ -1457,6 +1525,7 @@ function newFromSavedGraph() {
   win.show();
 }
 
+
 function editDefaultGraphParameters() {
   var editParams = Ext.apply({}, defaultGraphParams);
   removeUneditable(editParams);
@@ -1506,6 +1575,70 @@ function editDefaultGraphParameters() {
   });
   win.show();
 }
+
+function updateRenderEngine(engine) {
+  if (engine == RENDER_ENGINE) {
+    return;
+  }
+
+  cookieProvider.set('render-engine', engine);
+  RENDER_ENGINE = engine;
+
+  if (graphStore.getCount() == 0) {
+    window.location.reload()
+  } else {
+    Ext.Msg.alert('Cookie Updated', "You must refresh the page to update the render engine.");
+    //TODO prompt the user to save their dashboard and refresh for them
+  }
+}
+
+
+function editDefaultRenderEngine() {
+
+  function applyRenderEngineChange() {
+    if (Ext.getCmp('cairo-radio').getValue()) {
+      updateRenderEngine('cairo');
+    } else {
+      updateRenderEngine('flot');
+    }
+    configure_re_win.close();
+    configure_re_win = null;
+  }
+
+  configure_re_win = new Ext.Window({
+    title: "Configure Render Engine",
+    layout: 'form',
+    width: 350,
+    height: 125,
+    labelWidth: 140,
+    labelAlign: 'right',
+    items: [
+      {
+        id: 'cairo-radio',
+        xtype: "radio",
+        fieldLabel: "Cairo",
+        boxLabel: "Cairo",
+        name: "render-engine",
+        inputValue: "cairo",
+        checked: (RENDER_ENGINE == 'cairo')
+      }, {
+        id: 'flot-top-radio',
+        xtype: "radio",
+        fieldLabel: "",
+        boxLabel: "Flot Render Engine",
+        name: "render-engine",
+        inputValue: "flot",
+        checked: (RENDER_ENGINE == 'flot')
+      }
+    ],
+    buttons: [
+      {text: 'Ok', handler: applyRenderEngineChange},
+      {text: 'Cancel', handler: function () { configure_re_win.close(); configure_re_win = null; } }
+    ]
+  });
+  configure_re_win.show();
+}
+
 
 function selectGraphSize() {
   var presetCombo = new Ext.form.ComboBox({

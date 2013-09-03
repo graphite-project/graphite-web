@@ -9,10 +9,10 @@ from graphite.render.views import parseOptions
 from graphite.render.evaluator import evaluateTarget
 from graphite.storage import STORE
 from django.core.urlresolvers import get_script_prefix
+import math
 
 
-
-def graphlot_render(request):
+def graphlot_render(request, dest="graphlot.html"):
     """Render the main graphlot view."""
     metrics = []
     for target in request.GET.getlist('target'):
@@ -23,18 +23,26 @@ def graphlot_render(request):
     untiltime = request.GET.get('until', "-0hour")
     fromtime = request.GET.get('from', "-24hour")
     events = request.GET.get('events', "")
+    width = request.GET.get('width', "300")
+    height = request.GET.get('height', "200")
     context = {
       'metric_list' : metrics,
       'fromtime' : fromtime,
       'untiltime' : untiltime,
       'events' : events,
-      'slash' : get_script_prefix()
+      'slash' : get_script_prefix(),
+      'height' : height,
+      'width' : width,
     }
-    return render_to_response("graphlot.html", context)
+    return render_to_response(dest, context)
+
+def graphlot_render_graph(request):
+    return graphlot_render(request, "graphlot_graph.html")
 
 def get_data(request):
     """Get the data for one series."""
     (graphOptions, requestOptions) = parseOptions(request)
+    xrange = request.GET.get('xrange', None)
     requestContext = {
         'startTime' : requestOptions['startTime'],
         'endTime' : requestOptions['endTime'],
@@ -43,15 +51,25 @@ def get_data(request):
     }
     target = requestOptions['targets'][0]
     seriesList = evaluateTarget(requestContext, target)
-    result = [ dict(
+    result = []
+    for timeseries in seriesList:
+#        pointsPerPixel=1
+#        if xrange is not None and xrange is not "null":
+#            numberOfDataPoints = len(timeseries)
+#            pointsPerPixel = math.ceil( float(numberOfDataPoints) / float(xrange) )
+#            if pointsPerPixel:
+#                timeseries.consolidate(pointsPerPixel)
+        result.append(dict(
             name=timeseries.name,
             data=[ x for x in timeseries ],
             start=timeseries.start,
             end=timeseries.end,
+#            step=(timeseries.step * pointsPerPixel),
             step=timeseries.step,
-            ) for timeseries in seriesList ]
+            stack=getattr(timeseries, 'stacked', None),
+            ))
     if not result:
-        raise Http404
+        raise Exception, "No data for %s" % target
     return HttpResponse(json.dumps(result), mimetype="application/json")
 
 
