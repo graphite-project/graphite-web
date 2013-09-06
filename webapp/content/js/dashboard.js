@@ -3209,7 +3209,9 @@ function removeOuterCall() { // blatantly repurposed from composer_widgets.js (d
     for (i = 0; i < argString.length; i++) {
       switch (argString.charAt(i)) {
         case '(': depth += 1; break;
+        case '{': depth += 1; break;
         case ')': depth -= 1; break;
+        case '}': depth -= 1; break;
         case ',':
           if (depth > 0) { continue; }
           if (depth < 0) { Ext.Msg.alert("Malformed target, cannot remove outer call."); return; }
