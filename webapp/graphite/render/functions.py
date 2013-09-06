@@ -2586,6 +2586,11 @@ def exclude(requestContext, seriesList, pattern):
   regex = re.compile(pattern)
   return [s for s in seriesList if not regex.search(s.name)]
 
+def exacerbateSeries(requestContext, seriesList):
+  for serie in seriesList:
+    serie.setConsolidateFunc('exacerbate')
+  return seriesList
+  
 def grep(requestContext, seriesList, pattern):
   """
   Takes a metric or a wildcard seriesList, followed by a regular expression
@@ -3085,6 +3090,7 @@ SeriesFunctions = {
   'sortByMinima' : sortByMinima,
   'useSeriesAbove': useSeriesAbove,
   'exclude' : exclude,
+  'exacerbateSeries' : exacerbateSeries,
 
   # Data Filter functions
   'removeAbovePercentile' : removeAbovePercentile,
