@@ -84,6 +84,7 @@ class TimeSeries(list):
       'start' : self.start,
       'end' : self.end,
       'step' : self.step,
+      'consolidationFunc' : self.consolidationFunc,
       'values' : list(self),
     }
 
@@ -108,13 +109,16 @@ def fetchData(requestContext, pathExpr):
         continue
 
       try:
-          (timeInfo, values) = results
+          (timeInfo, values, aggreg) = results
       except ValueError, e:
           e = sys.exc_info()[1]
           raise Exception("could not parse timeInfo/values from metric '%s': %s" % (node.path, e))
       (start, end, step) = timeInfo
 
-      series = TimeSeries(node.path, start, end, step, values)
+      if aggreg != "":
+          series = TimeSeries(node.path, start, end, step, values, aggreg)
+      else:
+          series = TimeSeries(node.path, start, end, step, values)
       series.pathExpression = pathExpr #hack to pass expressions through to render functions
       seriesList.append(series)
 

@@ -161,7 +161,10 @@ class WhisperReader(object):
     data = whisper.fetch(self.fs_path, startTime, endTime)
     if not data:
       return None
-
+    aggregationMethod = ""
+    whisper_info = whisper.info(self.fs_path)
+    if "aggregationMethod" in whisper_info:
+      aggregationMethod = whisper_info["aggregationMethod"]
     time_info, values = data
     (start,end,step) = time_info
 
@@ -181,7 +184,7 @@ class WhisperReader(object):
       except:
         pass
 
-    return (time_info, values)
+    return (time_info, values,aggregationMethod)
 
 
 class GzippedWhisperReader(WhisperReader):

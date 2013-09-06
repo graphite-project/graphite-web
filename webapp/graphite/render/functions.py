@@ -313,7 +313,7 @@ def minSeries(requestContext, *seriesLists):
   (seriesList, start, end, step) = normalize(seriesLists)
   name = "minSeries(%s)" % formatPathExpressions(seriesList)
   values = ( safeMin(row) for row in izip(*seriesList) )
-  series = TimeSeries(name, start, end, step, values)
+  series = TimeSeries(name, start, end, step, values, 'min')
   series.pathExpression = name
   return [series]
 
@@ -332,7 +332,7 @@ def maxSeries(requestContext, *seriesLists):
   (seriesList, start, end, step) = normalize(seriesLists)
   name = "maxSeries(%s)" % formatPathExpressions(seriesList)
   values = ( safeMax(row) for row in izip(*seriesList) )
-  series = TimeSeries(name, start, end, step, values)
+  series = TimeSeries(name, start, end, step, values, 'max')
   series.pathExpression = name
   return [series]
 
