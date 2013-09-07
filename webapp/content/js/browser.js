@@ -62,12 +62,6 @@ function createTreePanel(){
   });
   rootNode.appendChild(graphiteNode);
 
-  function reloadOnce (node) {
-   node.un('beforeexpand', reloadOnce);
-   node.reload();
-   setTimeout(function () { node.on('beforeexpand', reloadOnce); }, 1000);
-  }
-
   if (GraphiteConfig.showMyGraphs) {
     var myGraphsNode = new Ext.tree.AsyncTreeNode({
       id: 'MyGraphsTree',
@@ -76,7 +70,6 @@ function createTreePanel(){
       allowChildren: true,
       expandable: true,
       allowDrag: false,
-      //listeners: {beforeexpand: reloadOnce},
       loader: new Ext.tree.TreeLoader({
         url: "../browser/mygraph/",
         requestMethod: "GET",
@@ -89,7 +82,6 @@ function createTreePanel(){
   var userGraphsNode = new Ext.tree.AsyncTreeNode({
     id: 'UserGraphsTree',
     text: "User Graphs",
-    listeners: {beforeexpand: reloadOnce},
     loader: new Ext.tree.TreeLoader({
       url: "../browser/usergraph/",
       requestMethod: "GET",
