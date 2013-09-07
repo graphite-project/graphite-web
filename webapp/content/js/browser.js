@@ -31,7 +31,8 @@ function GraphiteBrowser () {
     width: 300,
     collapsible: true,
     collapseMode: 'mini',
-    activeTab: 0
+    activeTab: 0,
+    tools: [ { id: 'refresh' } ]
   });
 }
 
@@ -41,7 +42,7 @@ function createTreePanel(){
 
   function setParams(loader, node) {
     var node_id = node.id.replace(/^[A-Za-z]+Tree\.?/,"");
-    loader.baseParams.query = (node_id == "") ? "*" : (node_id + ".*");
+    loader.baseParams.query = (node_id === "") ? "*" : (node_id + ".*");
     loader.baseParams.format = 'treejson';
     loader.baseParams.path = node_id;
 
@@ -61,11 +62,11 @@ function createTreePanel(){
   });
   rootNode.appendChild(graphiteNode);
 
-  //function reloadOnce (node) {
-  //  node.un('beforeexpand', reloadOnce);
-  //  node.reload();
-  //  setTimeout(function () { node.on('beforeexpand', reloadOnce); }, 1000);
-  //}
+  function reloadOnce (node) {
+   node.un('beforeexpand', reloadOnce);
+   node.reload();
+   setTimeout(function () { node.on('beforeexpand', reloadOnce); }, 1000);
+  }
 
   if (GraphiteConfig.showMyGraphs) {
     var myGraphsNode = new Ext.tree.AsyncTreeNode({
@@ -88,7 +89,7 @@ function createTreePanel(){
   var userGraphsNode = new Ext.tree.AsyncTreeNode({
     id: 'UserGraphsTree',
     text: "User Graphs",
-    //listeners: {beforeexpand: reloadOnce},
+    listeners: {beforeexpand: reloadOnce},
     loader: new Ext.tree.TreeLoader({
       url: "../browser/usergraph/",
       requestMethod: "GET",
@@ -119,7 +120,7 @@ function createTreePanel(){
     }
 
     if (node.attributes.graphUrl) {
-      var url = node.attributes.graphUrl
+      var url = node.attributes.graphUrl;
       Composer.loadMyGraph(node.attributes.text, url);
       return;
     }
@@ -160,7 +161,7 @@ function setupSearchForm(formEl) {
   var helpOptions = '"width=500,height=400,toolbar=no,location=no,directories=no,status=no,menubar=no"';
   Ext.getDom('searchHelpLink').href = helpAction+"("+helpPage+","+helpTitle+","+helpOptions+");";
   var formPanel = Ext.get("searchForm");
-  formPanel.un("render",setupSearchForm); 
+  formPanel.un("render",setupSearchForm);
 }
 
 function showSearchError(message) {
