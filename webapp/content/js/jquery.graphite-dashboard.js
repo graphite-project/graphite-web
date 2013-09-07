@@ -56,7 +56,7 @@
                 return {
                     label: incoming_data.name,
                     data: result,
-                    lines: {show: true, fill: fill_area},
+                    lines: {show: true, fill: fill_area, lineWidth: 1},
                     'stack': stack,
                 };
             };
@@ -73,17 +73,20 @@
                 var yaxismode = { };
                 $.extend(xaxismode, xaxisranges);
                 $.extend(yaxismode, yaxisranges);
-                plot = $.plot($(graph_div),
-                    lines,
-                    {
+
+                var options = {
                         xaxis: xaxismode,
                         yaxis: yaxismode,
                         grid: { hoverable: true, markings: markings },
                         legend: { show: false },
-                        crosshair: { mode: "x" },
-                    }
-                );
+                        crosshair: { mode: "x" }
+                }
 
+                options.colors = $.map( lines, function ( o, i ) {
+                        return jQuery.Color({ hue: (i*200/lines.length), saturation: 0.95, lightness: 0.45, alpha: 1 }).toHexString( );
+                });
+
+                plot = $.plot($(graph_div), lines, options );
 
                 for (i in lines) {
                     lines[i] = $.extend({}, lines[i]);
