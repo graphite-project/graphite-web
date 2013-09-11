@@ -20,6 +20,7 @@ import math
 import re
 import random
 import time
+import copy
 
 from graphite.logger import log
 from graphite.render.attime import parseTimeOffset
@@ -2133,6 +2134,30 @@ def holtWintersConfidenceArea(requestContext, seriesList, delta=3):
     series.name = series.name.replace('areaBetween', 'holtWintersConfidenceArea')
   return results
 
+def drawMinMaxSeries(requestContext, seriesList):
+  """
+  Takes one or several TimeSeries
+  Break down all of them into a band
+  that is the min and max value
+
+  This method just use the consolidate function.
+  """
+  result = []
+  for serie in seriesList:
+    serieMin = copy.deepcopy(serie)
+    serieMax = copy.deepcopy(serie)
+    serieMin.consolidationFunc = 'min'
+    serieMax.consolidationFunc = 'max'
+    serieInf = copy.deepcopy(serieMin)
+    serieSup = copy.deepcopy(serieMax)
+    serieInf.name = ""
+    serieSup.name = ""
+    result.append(areaBetween(requestContext, [serieMin,serieMax]))
+    serieMin.name = ""
+    serieMax.name = serieMax.name.replace('areaBetween', 'drawMinMaxSeries')
+    result.append([serieInf,serieSup])
+  return reduce(lambda L1,L2 : L1+L2,result)
+
 def drawAsInfinite(requestContext, seriesList):
   """
   Takes one metric or a wildcard seriesList.
@@ -3065,6 +3090,7 @@ SeriesFunctions = {
   'holtWintersConfidenceBands': holtWintersConfidenceBands,
   'holtWintersConfidenceArea': holtWintersConfidenceArea,
   'holtWintersAberration': holtWintersAberration,
+  'drawMinMaxSeries' : drawMinMaxSeries,
   'asPercent' : asPercent,
   'pct' : asPercent,
   'diffSeries' : diffSeries,
