@@ -2586,10 +2586,14 @@ def exclude(requestContext, seriesList, pattern):
   regex = re.compile(pattern)
   return [s for s in seriesList if not regex.search(s.name)]
 
-def exacerbateSeries(requestContext, seriesList):
-  for serie in seriesList:
+def exacerbateSeries(requestContext, *seriesList):
+  """
+  Function that will exacerbate the extrema 
+  """
+  serList = reduce(lambda L1,L2: L1+L2, seriesList)
+  for serie in serList:
     serie.setConsolidateFunc('exacerbate')
-  return seriesList
+  return serList
   
 def grep(requestContext, seriesList, pattern):
   """
