@@ -164,7 +164,9 @@ class WhisperReader(object):
     aggregationMethod = ""
     whisper_info = whisper.info(self.fs_path)
     if "aggregationMethod" in whisper_info:
-      aggregationMethod = whisper_info["aggregationMethod"]
+      method = whisper_info["aggregationMethod"]
+      if method == 'min' or method == 'max':
+        aggregationMethod = method
     time_info, values = data
     (start,end,step) = time_info
 
