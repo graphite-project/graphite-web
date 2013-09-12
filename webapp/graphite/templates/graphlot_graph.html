@@ -20,11 +20,11 @@
 
     var graph0_metrics = Array();
     {% for metric in metric_list %}
-    graph0_metrics.push('{{metric.name}}');
+    graph0_metrics.push('{{ metric.name|escapejs }}');
     {% endfor %}
 
     $(document).ready(function () {
-        $('#g_wrap0').graphiteGraph('#g_graph0', '', graph0_metrics, '{{fromtime}}', '{{untiltime}}');
+        $('#g_wrap0').graphiteGraph('#g_graph0', '', graph0_metrics, '{{ fromtime|escapejs }}', '{{ untiltime|escapejs }}');
     });
 
     </script>
