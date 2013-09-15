@@ -130,22 +130,13 @@ limitations under the License. -->
             parts.shift();
           }
 
-          function expandNext(node) {
-            var nextPart = parts.shift();
-            if (!nextPart) {
-              return;
-            }
-            var nextNode = node.findChild('text', nextPart);
-            if (!nextNode) {
-              return;
-            }
-            nextNode.expand(false, false, expandNext);
-          }
+          recursiveExpand.expand(Browser.trees.graphite, parts);
 
-          Browser.trees.graphite.expand(false, false, expandNext);
         }
-      }
-</script> 
+
+      } // init
+
+</script>
 
   </head>
   <body onload="init();">

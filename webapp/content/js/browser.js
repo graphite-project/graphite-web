@@ -13,32 +13,67 @@ See the License for the specific language governing permissions and
 limitations under the License. */
 
 function GraphiteBrowser () {
-  var treePanel = createTreePanel();
-  var searchPanel = createSearchPanel();
-  var completerPanel = createCompleterPanel();
-  var treeRoot = treePanel.getRootNode();
+  this.rootNode = new Ext.tree.TreeNode({});
+  this.treePanel = createTreePanel( this.rootNode );
+  this.searchPanel = createSearchPanel();
+  this.completerPanel = createCompleterPanel();
+  this.treeRoot = this.treePanel.getRootNode();
 
   this.trees = {
-    graphite: treeRoot.findChild('id', 'GraphiteTree'),
-    mygraphs: treeRoot.findChild('id', 'MyGraphsTree'),
-    usergraphs: treeRoot.findChild('id', 'UserGraphsTree')
+    graphite: this.treeRoot.findChild('id', 'GraphiteTree'),
+    mygraphs: this.treeRoot.findChild('id', 'MyGraphsTree'),
+    usergraphs: this.treeRoot.findChild('id', 'UserGraphsTree')
   };
 
   this.panel = new Ext.TabPanel({
     region: 'west',
-    items: [treePanel, searchPanel, completerPanel],
+    items: [this.treePanel, this.searchPanel, this.completerPanel],
     split: true,
     width: 300,
     collapsible: true,
     collapseMode: 'mini',
     activeTab: 0,
-    tools: [ { id: 'refresh' } ]
+    tools: [ { id: 'refresh', handler : function(event, toolEl, panel) {
+
+      if( panel.activeTab.id !== 'tree' ) {
+        return;
+      }
+
+      Browser.trees.graphite.destroy();
+
+      Browser.rootNode.appendChild(createGraphiteNode());
+
+    } } ]
   });
 }
 
+function createGraphiteNode() {
+
+  return new Ext.tree.AsyncTreeNode({
+      id: 'GraphiteTree',
+      text: "Graphite",
+      loader: new Ext.tree.TreeLoader({
+        url: "../metrics/find/",
+        requestMethod: "GET",
+        listeners: {beforeload: setParams}
+      })
+    });
+
+} // createGraphiteNode
+
+function setParams(loader, node) {
+  var node_id = node.id.replace(/^[A-Za-z]+Tree\.?/,"");
+  loader.baseParams.query = (node_id === "") ? "*" : (node_id + ".*");
+  loader.baseParams.format = 'treejson';
+  loader.baseParams.path = node_id;
+
+  if (node.parentNode && node.parentNode.id == "UserGraphsTree") {
+    loader.baseParams.user = node.id;
+  }
+} // setParams
+
 //Tree Tab
-function createTreePanel(){
-  var rootNode = new Ext.tree.TreeNode({});
+function createTreePanel( rootNode ){
 
   function setParams(loader, node) {
     var node_id = node.id.replace(/^[A-Za-z]+Tree\.?/,"");
@@ -51,7 +86,7 @@ function createTreePanel(){
     }
   }
 
-  var graphiteNode = new Ext.tree.AsyncTreeNode({
+  var graphiteNode = createGraphiteNode();
     id: 'GraphiteTree',
     text: 'Metrics',
     loader: new Ext.tree.TreeLoader({
@@ -91,6 +126,7 @@ function createTreePanel(){
   rootNode.appendChild(userGraphsNode);
 
   var treePanel = new Ext.tree.TreePanel({
+    id: "tree",
     title: "Tree",
     root: rootNode,
     containerScroll: true,
@@ -143,6 +179,52 @@ function createSearchPanel() {
     listeners: {render: setupSearchForm}
   });
 }
+
+var recursiveExpand = {
+
+  parts : false,
+
+  first : true,
+
+  expand :  function( node, parts ) {
+
+    console.log('-=-=-==-=-=-=-=-=-=-=-=-=-=-');
+    console.log(parts);
+
+    console.log(( typeof parts != 'undefined' ));
+
+    if( typeof parts != 'undefined' ) {
+      this.parts = parts;
+    } else {
+      parts = recursiveExpand.parts;
+    }
+
+    console.log(parts);
+
+    if( this.first ) {
+      this.first = false;
+      node.expand(false, false, recursiveExpand.expand);
+      return;
+    }
+
+
+    var nextPart = parts.shift();
+    if (!nextPart) {
+      return;
+    }
+
+    console.log(nextPart);
+    var nextNode = node.findChild('text', nextPart);
+    console.log(nextNode);
+    if (!nextNode) {
+      return;
+    }
+    console.log(nextNode.expand(false, false, recursiveExpand.expand));
+
+  } // expand
+
+};
+
 
 function setupSearchForm(formEl) {
   var html = '<a id="searchHelpLink" > Help </a> <p id="searchError"></p> <ul id="searchResults"></ul>';
