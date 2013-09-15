@@ -183,23 +183,15 @@ function createSearchPanel() {
 var recursiveExpand = {
 
   parts : false,
-
   first : true,
 
-  expand :  function( node, parts ) {
+  expand : function( node, nodePath ) {
 
-    console.log('-=-=-==-=-=-=-=-=-=-=-=-=-=-');
-    console.log(parts);
-
-    console.log(( typeof parts != 'undefined' ));
-
-    if( typeof parts != 'undefined' ) {
-      this.parts = parts;
+    if( typeof nodePath != 'undefined' ) {
+      this.parts = nodePath;
     } else {
-      parts = recursiveExpand.parts;
+      nodePath = recursiveExpand.parts;
     }
-
-    console.log(parts);
 
     if( this.first ) {
       this.first = false;
@@ -207,19 +199,17 @@ var recursiveExpand = {
       return;
     }
 
-
-    var nextPart = parts.shift();
+    var nextPart = nodePath.shift();
     if (!nextPart) {
       return;
     }
 
-    console.log(nextPart);
     var nextNode = node.findChild('text', nextPart);
-    console.log(nextNode);
     if (!nextNode) {
       return;
     }
-    console.log(nextNode.expand(false, false, recursiveExpand.expand));
+
+    nextNode.expand(false, false, recursiveExpand.expand);
 
   } // expand
 
