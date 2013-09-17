@@ -54,25 +54,10 @@ function GraphiteBrowser () {
   });
 }
 
-function recursiveSearch( node, retval ) {
-
-  if( typeof retval == 'undefined' ) {
-    retval = {};
-  }
-
-  console.log(node.id);
-
-  Ext.each( node.childNodes, recursiveSearch );
-
-  return retval;
-
-}
-
 function createGraphiteNode() {
 
   return new Ext.tree.AsyncTreeNode({
       id: 'GraphiteTree',
-      itemId: 'GraphiteTree',
       text: "Graphite",
       loader: new Ext.tree.TreeLoader({
         url: "../metrics/find/",
