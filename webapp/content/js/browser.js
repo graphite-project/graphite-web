@@ -41,13 +41,11 @@ function GraphiteBrowser () {
 
       selNode = Browser.treePanel.getSelectionModel().selNode;
 
-      if ( typeof selNode !== null ) {
+      if ( selNode !== null ) {
         selNode.reload();
       }
       else {
         Browser.trees.graphite.eachChild(function(node){
-          console.log(node);
-          console.log(arguments);
           node.reload();
         });
       }
