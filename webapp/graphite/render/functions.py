@@ -704,7 +704,7 @@ def offsetToZero(requestContext, seriesList):
   are in the series the more accurate this assumption is.
 
   Example:
-  
+
   .. code-block:: none
 
     &target=offsetToZero(Server.instance01.responseTime)
@@ -1552,6 +1552,38 @@ def nPercentile(requestContext, seriesList, n):
       results.append(perc_series)
   return results
 
+def averageOutsidePercentile(requestContext, seriesList, n):
+  """
+  Removes functions lying inside an average percentile interval
+  """
+  averages = []
+
+  for s in seriesList:
+    averages.append(safeDiv(safeSum(s), safeLen(s)))
+
+  if n < 50:
+    n = 100 - n;
+
+  lowPercentile = _getPercentile(averages, 100 - n)
+  highPercentile = _getPercentile(averages, n)
+
+  return [s for s in seriesList if not lowPercentile < safeDiv(safeSum(s), safeLen(s)) < highPercentile]
+
+def removeBetweenPercentile(requestContext, seriesList, n):
+  """
+  Removes lines who do not have an value lying in the x-percentile of all the values at a moment
+  """
+  if n < 50:
+    n = 100 - n
+
+  transposed = zip(*seriesList)
+
+  lowPercentiles = [_getPercentile(col, 100-n) for col in transposed]
+  highPercentiles = [_getPercentile(col, n) for col in transposed]
+
+  return [l for l in seriesList if sum([not lowPercentiles[val_i] < val < highPercentiles[val_i]
+    for (val_i, val) in enumerate(l)]) > 0]
+
 def removeAbovePercentile(requestContext, seriesList, n):
   """
   Removes data above the nth percentile from the series or list of series provided.
@@ -1632,7 +1664,7 @@ def sortByTotal(requestContext, seriesList):
   Takes one metric or a wildcard seriesList.
 
   Sorts the list of metrics by the sum of values across the time period
-  specified.    
+  specified.
   """
   def compare(x,y):
     return cmp(safeSum(y), safeSum(x))
@@ -2872,6 +2904,8 @@ SeriesFunctions = {
   'nPercentile' : nPercentile,
   'limit' : limit,
   'sortByTotal'  : sortByTotal,
+  'averageOutsidePercentile' : averageOutsidePercentile,
+  'removeBetweenPercentile' : removeBetweenPercentile,
   'sortByMaxima' : sortByMaxima,
   'sortByMinima' : sortByMinima,
   'useSeriesAbove': useSeriesAbove,
