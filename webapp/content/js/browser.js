@@ -39,18 +39,42 @@ function GraphiteBrowser () {
         return;
       }
 
-      Browser.trees.graphite.destroy();
+      selNode = Browser.treePanel.getSelectionModel().selNode;
 
-      Browser.rootNode.appendChild(createGraphiteNode());
+      if ( typeof selNode !== null ) {
+        selNode.reload();
+      }
+      else {
+        Browser.trees.graphite.eachChild(function(node){
+          console.log(node);
+          console.log(arguments);
+          node.reload();
+        });
+      }
 
     } } ]
   });
+}
+
+function recursiveSearch( node, retval ) {
+
+  if( typeof retval == 'undefined' ) {
+    retval = {};
+  }
+
+  console.log(node.id);
+
+  Ext.each( node.childNodes, recursiveSearch );
+
+  return retval;
+
 }
 
 function createGraphiteNode() {
 
   return new Ext.tree.AsyncTreeNode({
       id: 'GraphiteTree',
+      itemId: 'GraphiteTree',
       text: "Graphite",
       loader: new Ext.tree.TreeLoader({
         url: "../metrics/find/",
