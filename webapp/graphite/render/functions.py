@@ -572,18 +572,17 @@ def movingMedian(requestContext, seriesList, windowSize):
       newName = 'movingMedian(%s,"%s")' % (series.name, windowSize)
     else:
       newName = "movingMedian(%s,%d)" % (series.name, windowPoints)
-    newSeries = TimeSeries(newName, series.start, series.end, series.step, [])
-    newSeries.pathExpression = newName
 
+    newValues = [None] * len(series)
     offset = len(bootstrap) - len(series)
     for i in range(len(series)):
       window = bootstrap[i + offset - windowPoints:i + offset]
       nonNull = [v for v in window if v is not None]
       if nonNull:
         m_index = len(nonNull) / 2
-        newSeries.append(sorted(nonNull)[m_index])
-      else:
-        newSeries.append(None)
+        newValues[i] = sorted(nonNull)[m_index]
+    newSeries = TimeSeries(newName, series.start, series.end, series.step, newValues)
+    newSeries.pathExpression = newName
     result.append(newSeries)
 
   return result
@@ -762,14 +761,15 @@ def movingAverage(requestContext, seriesList, windowSize):
       newName = 'movingAverage(%s,"%s")' % (series.name, windowSize)
     else:
       newName = "movingAverage(%s,%s)" % (series.name, windowSize)
-    newSeries = TimeSeries(newName, series.start, series.end, series.step, [])
-    newSeries.pathExpression = newName
 
+    newValues = [None] * len(series)
     offset = len(bootstrap) - len(series)
     for i in range(len(series)):
       window = bootstrap[i + offset - windowPoints:i + offset]
-      newSeries.append(safeAvg(window))
+      newValues[i] = safeAvg(window)
 
+    newSeries = TimeSeries(newName, series.start, series.end, series.step, newValues)
+    newSeries.pathExpression = newName
     result.append(newSeries)
 
   return result
@@ -838,14 +838,11 @@ def derivative(requestContext, seriesList):
   """
   results = []
   for series in seriesList:
-    newValues = []
+    newValues = [None] * len(series)
     prev = None
-    for val in series:
-      if None in (prev,val):
-        newValues.append(None)
-        prev = val
-        continue
-      newValues.append(val - prev)
+    for i, val in enumerate(series):
+      if None not in (prev,val):
+        newValues[i] = val - prev
       prev = val
     newName = "derivative(%s)" % series.name
     newSeries = TimeSeries(newName, series.start, series.end, series.step, newValues)
@@ -872,23 +869,16 @@ def perSecond(requestContext, seriesList, maxValue=None):
   """
   results = []
   for series in seriesList:
-    newValues = []
+    newValues = [None] * len(series)
     prev = None
-    for val in series:
+    for i, val in enumerate(series):
       step = series.step
-      if None in (prev,val):
-        newValues.append(None)
-        prev = val
-        continue
-
-      diff = val - prev
-      if diff >= 0:
-        newValues.append(diff / step)
-      elif maxValue is not None and maxValue >= val:
-        newValues.append( ((maxValue - prev) + val  + 1) / step )
-      else:
-        newValues.append(None)
-
+      if None not in (prev,val):
+        diff = val - prev
+        if diff >= 0:
+          newValues[i] = diff / step
+        elif maxValue is not None and maxValue >= val:
+          newValues[i] = ((maxValue - prev) + val  + 1) / step
       prev = val
     newName = "perSecond(%s)" % series.name
     newSeries = TimeSeries(newName, series.start, series.end, series.step, newValues)
@@ -914,14 +904,12 @@ def integral(requestContext, seriesList):
   """
   results = []
   for series in seriesList:
-    newValues = []
+    newValues = [None]*len(series)
     current = 0.0
-    for val in series:
-      if val is None:
-        newValues.append(None)
-      else:
+    for idx, val in enumerate(series):
+      if val is not None:
         current += val
-        newValues.append(current)
+        newValues[idx] = current
     newName = "integral(%s)" % series.name
     newSeries = TimeSeries(newName, series.start, series.end, series.step, newValues)
     newSeries.pathExpression = newName
@@ -946,23 +934,16 @@ def nonNegativeDerivative(requestContext, seriesList, maxValue=None):
   results = []
 
   for series in seriesList:
-    newValues = []
+    newValues = [None] * len(series)
     prev = None
 
-    for val in series:
-      if None in (prev, val):
-        newValues.append(None)
-        prev = val
-        continue
-
-      diff = val - prev
-      if diff >= 0:
-        newValues.append(diff)
-      elif maxValue is not None and maxValue >= val:
-        newValues.append( (maxValue - prev) + val  + 1 )
-      else:
-        newValues.append(None)
-
+    for i, val in enumerate(series):
+      if None not in (prev, val):
+        diff = val - prev
+        if diff >= 0:
+          newValues[i] = diff
+        elif maxValue is not None and maxValue >= val:
+          newValues[i] = (maxValue - prev) + val  + 1
       prev = val
 
     newName = "nonNegativeDerivative(%s)" % series.name
@@ -996,15 +977,13 @@ def stacked(requestContext,seriesLists,stackName='__DEFAULT__'):
     totalStack = [];
   results = []
   for series in seriesLists:
-    newValues = []
-    for i in range(len(series)):
+    newValues = [None] * len(series)
+    for i, val in enumerate(series):
       if len(totalStack) <= i: totalStack.append(0)
 
-      if series[i] is not None:
-        totalStack[i] += series[i]
-        newValues.append(totalStack[i])
-      else:
-        newValues.append(None)
+      if val is not None:
+        totalStack[i] += val
+        newValues[i] = totalStack[i]
 
     # Work-around for the case when legend is set
     if stackName=='__DEFAULT__':
@@ -1266,14 +1245,10 @@ def logarithm(requestContext, seriesList, base=10):
   """
   results = []
   for series in seriesList:
-    newValues = []
-    for val in series:
-      if val is None:
-        newValues.append(None)
-      elif val <= 0:
-        newValues.append(None)
-      else:
-        newValues.append(math.log(val, base))
+    newValues = [None] * len(series)
+    for i, val in enumerate(series):
+      if val > 0:
+        newValues[i] = math.log(val, base)
     newName = "log(%s, %s)" % (series.name, base)
     newSeries = TimeSeries(newName, series.start, series.end, series.step, newValues)
     newSeries.pathExpression = newName
@@ -1787,7 +1762,7 @@ def stdev(requestContext, seriesList, points, windowTolerance=0.1):
   # For this we take the standard deviation in terms of the moving average
   # and the moving average of series squares.
   for (seriesIndex,series) in enumerate(seriesList):
-    stddevSeries = TimeSeries("stddev(%s,%d)" % (series.name, int(points)), series.start, series.end, series.step, [])
+    stddevSeries = TimeSeries("stddev(%s,%d)" % (series.name, int(points)), series.start, series.end, series.step, [None] * len(series))
     stddevSeries.pathExpression = "stddev(%s,%d)" % (series.name, int(points))
 
     validPoints = 0
@@ -1825,9 +1800,7 @@ def stdev(requestContext, seriesList, points, windowTolerance=0.1):
           deviation = math.sqrt(validPoints * currentSumOfSquares - currentSum**2)/validPoints
         except ValueError:
           deviation = None
-        stddevSeries.append(deviation)
-      else:
-        stddevSeries.append(None)
+        stddevSeries[index] = deviation
 
     seriesList[seriesIndex] = stddevSeries
 
@@ -1909,11 +1882,11 @@ def holtWintersAnalysis(series):
   intercept = 0
   slope = 0
   pred = 0
-  intercepts = list()
-  slopes = list()
-  seasonals = list()
-  predictions = list()
-  deviations = list()
+  intercepts = [None] * len(series)
+  slopes = [0] * len(series)
+  seasonals = [0] * len(series)
+  predictions = [None] * len(series)
+  deviations = [0] * len(series)
 
   def getLastSeasonal(i):
     j = i - season_length
@@ -1936,11 +1909,7 @@ def holtWintersAnalysis(series):
     if actual is None:
       # missing input values break all the math
       # do the best we can and move on
-      intercepts.append(None)
-      slopes.append(0)
-      seasonals.append(0)
-      predictions.append(next_pred)
-      deviations.append(0)
+      predictions[i] = next_pred
       next_pred = None
       continue
 
@@ -1950,8 +1919,8 @@ def holtWintersAnalysis(series):
       # seed the first prediction as the first actual
       prediction = actual
     else:
-      last_intercept = intercepts[-1]
-      last_slope = slopes[-1]
+      last_intercept = intercepts[i-1]
+      last_slope = slopes[i-1]
       if last_intercept is None:
         last_intercept = actual
       prediction = next_pred
@@ -1967,11 +1936,11 @@ def holtWintersAnalysis(series):
     next_pred = intercept + slope + next_last_seasonal
     deviation = holtWintersDeviation(gamma,actual,prediction,last_seasonal_dev)
 
-    intercepts.append(intercept)
-    slopes.append(slope)
-    seasonals.append(seasonal)
-    predictions.append(prediction)
-    deviations.append(deviation)
+    intercepts[i] = intercept
+    slopes[i] = slope
+    seasonals[i] = seasonal
+    predictions[i] = prediction
+    deviations[i] = deviation
 
   # make the new forecast series
   forecastName = "holtWintersForecast(%s)" % series.name
@@ -2018,19 +1987,16 @@ def holtWintersConfidenceBands(requestContext, seriesList, delta=3):
     deviation = _trimBootstrap(analysis['deviations'], series)
     seriesLength = len(forecast)
     i = 0
-    upperBand = list()
-    lowerBand = list()
+    upperBand = [None] * seriesLength
+    lowerBand = [None] * seriesLength
     while i < seriesLength:
       forecast_item = forecast[i]
       deviation_item = deviation[i]
       i = i + 1
-      if forecast_item is None or deviation_item is None:
-        upperBand.append(None)
-        lowerBand.append(None)
-      else:
+      if forecast_item is not None and deviation_item is not None:
         scaled_deviation = delta * deviation_item
-        upperBand.append(forecast_item + scaled_deviation)
-        lowerBand.append(forecast_item - scaled_deviation)
+        upperBand[i] = forecast_item + scaled_deviation
+        lowerBand[i] = forecast_item - scaled_deviation
 
     upperName = "holtWintersConfidenceUpper(%s)" % series.name
     lowerName = "holtWintersConfidenceLower(%s)" % series.name
@@ -2054,16 +2020,12 @@ def holtWintersAberration(requestContext, seriesList, delta=3):
     confidenceBands = holtWintersConfidenceBands(requestContext, [series], delta)
     lowerBand = confidenceBands[0]
     upperBand = confidenceBands[1]
-    aberration = list()
+    aberration = [0] * len(series)
     for i, actual in enumerate(series):
-      if series[i] is None:
-        aberration.append(0)
-      elif series[i] > upperBand[i]:
-        aberration.append(series[i] - upperBand[i])
+      if series[i] > upperBand[i]:
+        aberration[i] = series[i] - upperBand[i]
       elif series[i] < lowerBand[i]:
-        aberration.append(series[i] - lowerBand[i])
-      else:
-        aberration.append(0)
+        aberration[i] = series[i] - lowerBand[i]
 
     newName = "holtWintersAberration(%s)" % series.name
     results.append(TimeSeries(newName, series.start, series.end
@@ -2475,24 +2437,23 @@ def smartSummarize(requestContext, seriesList, intervalString, func='sum', align
         buckets[bucketInterval].append(value)
 
 
-    newValues = []
-    for timestamp in range(series.start, series.end, interval):
+    timestamps = range(series.start, series.end, interval)
+    newValues = [None] * len(timestamps)
+    for i, timestamp in enumerate(timestamps):
       bucketInterval = int((timestamp - series.start) / interval)
       bucket = buckets.get(bucketInterval, [])
 
       if bucket:
         if func == 'avg':
-          newValues.append( float(sum(bucket)) / float(len(bucket)) )
+          newValues[i] = float(sum(bucket)) / float(len(bucket))
         elif func == 'last':
-          newValues.append( bucket[len(bucket)-1] )
+          newValues[i] = bucket[len(bucket)-1]
         elif func == 'max':
-          newValues.append( max(bucket) )
+          newValues[i] = max(bucket)
         elif func == 'min':
-          newValues.append( min(bucket) )
+          newValues[i] = min(bucket)
         else:
-          newValues.append( sum(bucket) )
-      else:
-        newValues.append( None )
+          newValues[i] = sum(bucket)
 
     newName = "smartSummarize(%s, \"%s\", \"%s\")" % (series.name, intervalString, func)
     alignedEnd = series.start + (bucketInterval * interval) + interval
@@ -2563,8 +2524,9 @@ def summarize(requestContext, seriesList, intervalString, func='sum', alignToFro
       newStart = series.start - (series.start % interval)
       newEnd = series.end - (series.end % interval) + interval
 
-    newValues = []
-    for timestamp in range(newStart, newEnd, interval):
+    timestamps = range(newStart, newEnd, interval)
+    newValues = [None] * len(timestamps)
+    for i, timestamp in enumerate(timestamps):
       if alignToFrom:
         newEnd = timestamp
         bucketInterval = int((timestamp - series.start) / interval)
@@ -2575,17 +2537,15 @@ def summarize(requestContext, seriesList, intervalString, func='sum', alignToFro
 
       if bucket:
         if func == 'avg':
-          newValues.append( float(sum(bucket)) / float(len(bucket)) )
+          newValues[i] = float(sum(bucket)) / float(len(bucket))
         elif func == 'last':
-          newValues.append( bucket[len(bucket)-1] )
+          newValues[i] = bucket[len(bucket)-1]
         elif func == 'max':
-          newValues.append( max(bucket) )
+          newValues[i] = max(bucket)
         elif func == 'min':
-          newValues.append( min(bucket) )
+          newValues[i] = min(bucket)
         else:
-          newValues.append( sum(bucket) )
-      else:
-        newValues.append( None )
+          newValues[i] = sum(bucket)
 
     if alignToFrom:
       newEnd += interval
@@ -2667,12 +2627,10 @@ def hitcount(requestContext, seriesList, intervalString, alignToInterval = False
         if end_mod > 0:
           buckets[end_bucket].append(value * end_mod)
 
-    newValues = []
-    for bucket in buckets:
+    newValues = [None] * len(buckets)
+    for i, bucket in enumerate(buckets):
       if bucket:
-        newValues.append( sum(bucket) )
-      else:
-        newValues.append(None)
+        newValues[i] = sum(bucket)
 
     newName = 'hitcount(%s, "%s"%s)' % (series.name, intervalString, alignToInterval and ", true" or "")
     newSeries = TimeSeries(newName, newStart, series.end, interval, newValues)
@@ -2702,11 +2660,8 @@ def timeFunction(requestContext, name):
   step = 60
   delta = timedelta(seconds=step)
   when = requestContext["startTime"]
-  values = []
-
-  while when < requestContext["endTime"]:
-    values.append(time.mktime(when.timetuple()))
-    when += delta
+  rawTimes = range(requestContext["startTime"], requestContext["endTime"], delta)
+  values = [time.mktime(t.timetuple()) for t in rawTimes]
 
   series = TimeSeries(name,
             int(time.mktime(requestContext["startTime"].timetuple())),
@@ -2734,11 +2689,8 @@ def sinFunction(requestContext, name, amplitude=1):
   step = 60
   delta = timedelta(seconds=step)
   when = requestContext["startTime"]
-  values = []
-
-  while when < requestContext["endTime"]:
-    values.append(math.sin(time.mktime(when.timetuple()))*amplitude)
-    when += delta
+  rawTimes = range(requestContext["startTime"], requestContext["endTime"], delta)
+  values = [math.sin(time.mktime(t.timetuple()))*amplitude for t in rawTimes]
 
   return [TimeSeries(name,
             int(time.mktime(requestContext["startTime"].timetuple())),
