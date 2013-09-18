@@ -214,7 +214,7 @@ def find(request):
   results = []
 
   # Find all dashboard names that contain each of our query terms as a substring
-  for dashboard in Dashboard.objects.all():
+  for dashboard in sorted(Dashboard.objects.all(), key=lambda dash: dash.name):
     name = dashboard.name.lower()
     if name.startswith('temporary-'):
       continue
