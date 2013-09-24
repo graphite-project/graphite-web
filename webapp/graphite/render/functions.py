@@ -241,6 +241,26 @@ def averageSeriesWithWildcards(requestContext, seriesList, *position): #XXX
     result[-1].name = name
   return result
 
+def aggregateSeriesWithWildcards(requestContext, seriesList, callback, *position):
+  if type(position) is int:
+    positions = [position]
+  else:
+    positions = position
+
+  newSeries = {}
+  newNames = list()
+
+  for series in seriesList:
+    newname = '.'.join(map(lambda x: x[1], filter(lambda i: i[0] not in positions, enumerate(series.name.split('.')))))
+    if newname in newSeries.keys():
+      newSeries[newname] = SeriesFunctions[callback](requestContext, (series, newSeries[newname]))
+    else:
+      newSeries[newname] = series
+      newNames.append(newname)
+    newSeries[newname].name = newname
+
+  return [newSeries[name] for name in newNames]
+
 def diffSeries(requestContext, *seriesLists):
   """
   Can take two or more metrics, or a single metric and a constant.
@@ -2849,6 +2869,7 @@ SeriesFunctions = {
   'avg' : averageSeries,
   'sumSeriesWithWildcards': sumSeriesWithWildcards,
   'averageSeriesWithWildcards': averageSeriesWithWildcards,
+  'aggregateSeriesWithWildcards': aggregateSeriesWithWildcards,  
   'minSeries' : minSeries,
   'maxSeries' : maxSeries,
   'rangeOfSeries': rangeOfSeries,
