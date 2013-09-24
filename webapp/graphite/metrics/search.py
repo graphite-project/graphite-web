@@ -3,17 +3,16 @@ import subprocess
 import os.path
 from django.conf import settings
 from graphite.logger import log
-from graphite.util import is_pattern
+from graphite.util import is_pattern, write_index
 from graphite.finders import match_entries
 
 class IndexSearcher:
   def __init__(self, index_path):
     self.index_path = index_path
     if not os.path.exists(index_path):
-      open(index_path, 'w').close() # touch the file to prevent re-entry down this code path
-      build_index_path = os.path.join(settings.GRAPHITE_ROOT, "bin/build-index.sh")
-      retcode = subprocess.call(build_index_path)
-      if retcode != 0:
+      try:
+        write_index()
+      except:
         log.exception("Couldn't build index file %s" % index_path)
         raise RuntimeError("Couldn't build index file %s" % index_path)
     self.last_mtime = 0
