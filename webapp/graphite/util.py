@@ -195,22 +195,30 @@ else:
 
 unpickle = SafeUnpickler
 
-def write_index( whisper_dir=None, ceres_dir=None, index=None):
-  if not whisper_dir: whisper_dir=settings.WHISPER_DIR
-  if not ceres_dir: ceres_dir=settings.CERES_DIR
-  if not index: index=settings.INDEX_FILE
-  try:  
-    tmp = mkstemp()[1]
-    with open(tmp, 'wt') as tmp_index:
+
+def write_index(whisper_dir=None, ceres_dir=None, index=None):
+  if not whisper_dir:
+    whisper_dir = settings.WHISPER_DIR
+  if not ceres_dir:
+    ceres_dir = settings.CERES_DIR
+  if not index:
+    index = settings.INDEX_FILE
+  try:
+    fd, tmp = mkstemp()
+    try:
+      tmp_index = os.fdopen(fd, 'wt')
       build_index(whisper_dir, ".wsp", tmp_index)
       build_index(ceres_dir, ".ceres-node", tmp_index)
+    finally:
+      tmp_index.close()
     move(tmp, index)
   finally:
-    try:        
-      os.unlink(tmp)    
-    except:     
-      pass              
+    try:
+      os.unlink(tmp)
+    except:
+      pass
   return None
+
 
 def build_index(base_path, extension, fd):
   contents = os.walk(base_path, followlinks=True)
@@ -219,9 +227,9 @@ def build_index(base_path, extension, fd):
     path = dirpath[len(base_path) + 1:].replace('/', '.')
     for metric in filenames:
       if metric.endswith(extension):
-        metric = metric[:-extension_len] 
-      else:             
-        continue                
+        metric = metric[:-extension_len]
+      else:
+        continue
       line = "{}.{}\n".format(path, metric)
-      fd.write(line)    
+      fd.write(line)
   fd.flush()
