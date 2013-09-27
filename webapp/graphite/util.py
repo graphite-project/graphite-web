@@ -230,6 +230,6 @@ def build_index(base_path, extension, fd):
         metric = metric[:-extension_len]
       else:
         continue
-      line = "{}.{}\n".format(path, metric)
+      line = "{0}.{1}\n".format(path, metric)
       fd.write(line)
   fd.flush()
