@@ -61,6 +61,10 @@
                 };
             };
 
+            function generate_color(num, len) {
+                return jQuery.Color({ hue: (num/len*360)+200, saturation: 0.85, lightness: 0.45, alpha: 1 }).toHexString( );
+            };
+
             var render = function () {
                 var lines = []
                 for (i in graph_lines) {
@@ -83,7 +87,7 @@
                 }
 
                 options.colors = $.map( lines, function ( o, i ) {
-                        return jQuery.Color({ hue: (i*200/lines.length), saturation: 0.95, lightness: 0.45, alpha: 1 }).toHexString( );
+                        return generate_color(i, lines.length);
                 });
 
                 plot = $.plot($(graph_div), lines, options );
