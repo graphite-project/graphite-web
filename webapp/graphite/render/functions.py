@@ -1118,6 +1118,72 @@ def cactiStyle(requestContext, seriesList, system=None):
             -minLen, minimum)
   return seriesList
 
+def cactiStyleSI(requestContext, seriesList):
+  nameLen = max([len(getattr(series,"name")) for series in seriesList])
+  lastLen = max([len(repr(formatNumberSI(safeLast(series) or 3))) for series in seriesList]) + 3
+  maxLen = max([len(repr(formatNumberSI(safeMax(series) or 3))) for series in seriesList]) + 3
+  minLen = max([len(repr(formatNumberSI(safeMin(series) or 3))) for series in seriesList]) + 3
+  for series in seriesList:
+      name = series.name
+      last = safeLast(series)
+      maximum = safeMax(series)
+      minimum = safeMin(series)
+      if last is None:
+        last = NAN
+      if maximum is None:
+        maximum = NAN
+      if minimum is None:
+        minimum = NAN
+
+      series.name = "%*s Current:%*s Max:%*s Min:%*s" % \
+          (-nameLen, series.name,
+          lastLen, formatNumberSI(last),
+          maxLen, formatNumberSI(maximum),
+          minLen, formatNumberSI(minimum))
+  return seriesList
+
+def formatNumberSI(n, precision=2):
+  if abs(n) > 10**12:
+    return "%*.2f%s" % (precision, n/10**12, 'T')
+  if abs(n) > 10**9:
+    return "%*.2f%s" % (precision, n/10**9, 'G')
+  if abs(n) > 10**6:
+    return "%*.2f%s" % (precision, n/10**6, 'M')
+  if abs(n) > 10**3:
+    return "%*.2f%s" % (precision, n/10**3, 'K')
+  return "%*.2f" % (precision, n)
+
+def cactiStyleBinary(requestContext, seriesList):
+  nameLen = max([len(getattr(series,"name")) for series in seriesList])
+  lastLen = max([len(repr(formatNumberBinary(safeLast(series) or 3))) for series in seriesList]) + 3
+  maxLen = max([len(repr(formatNumberBinary(safeMax(series) or 3))) for series in seriesList]) + 3
+  minLen = max([len(repr(formatNumberBinary(safeMin(series) or 3))) for series in seriesList]) + 3
+  for series in seriesList:
+      name = series.name
+      last = safeLast(series)
+      maximum = safeMax(series)
+      minimum = safeMin(series)
+
+      series.name = "%*s Current:%*s Max:%*s Min:%*s" % \
+          (-nameLen, series.name,
+          lastLen, formatNumberBinary(last),
+          maxLen, formatNumberBinary(maximum),
+          minLen, formatNumberBinary(minimum))
+  return seriesList
+
+def formatNumberBinary(n):
+  if n is None:
+    return NAN
+  if abs(n) > 2**40:
+    return "%.2f%s" % (n/2**40, 'T')
+  if abs(n) > 2**30:
+    return "%.2f%s" % (n/2**30, 'G')
+  if abs(n) > 2**20:
+    return "%.2f%s" % (n/2**20, 'M')
+  if abs(n) > 2**10:
+    return "%.2f%s" % (n/2**10, 'K')
+  return "%.2f" % (n,)
+
 def aliasByNode(requestContext, seriesList, *nodes):
   """
   Takes a seriesList and applies an alias derived from one or more "node"
