@@ -73,15 +73,44 @@
                         lines.push(newline);
                     }
                 }
-                var xaxismode = { mode: "time" };
-                var yaxismode = { };
+                var font = {
+                                size: 10,
+                                weight: 100,
+                                family: "serif",
+                                color: "white"
+                           };
+
+                var xaxismode = {
+                                        mode: "time",
+                                        font: font
+                                };
+                var yaxismode = {
+                                        tickFormatter: function(val, axis) {
+                                            if (val > 1000000000)
+                                                return (val / 1000000000).toFixed(axis.tickDecimals) + " G";
+                                            else if (val > 1000000)
+                                                return (val / 1000000).toFixed(axis.tickDecimals) + " M";
+                                            else if (val > 1000)
+                                                return (val / 1000).toFixed(axis.tickDecimals) + " K";
+                                            else
+                                                return val.toFixed(axis.tickDecimals);
+                                        },
+                                        font: font
+                                };
                 $.extend(xaxismode, xaxisranges);
                 $.extend(yaxismode, yaxisranges);
 
                 var options = {
                         xaxis: xaxismode,
                         yaxis: yaxismode,
-                        grid: { hoverable: true, markings: markings },
+                        grid: {
+                                hoverable: true,
+                                markings: markings,
+                                borderWidth: 1,
+                                borderColor: "white",
+                                backgroundColor: null,
+                                color: "#FFFFFF"
+                        },
                         legend: { show: false },
                         crosshair: { mode: "x" }
                 }
