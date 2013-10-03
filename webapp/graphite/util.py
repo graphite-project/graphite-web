@@ -221,6 +221,8 @@ def write_index(whisper_dir=None, ceres_dir=None, index=None):
 
 
 def build_index(base_path, extension, fd):
+  t = time.time()
+  total_entries = 0
   contents = os.walk(base_path, followlinks=True)
   extension_len = len(extension)
   for (dirpath, dirnames, filenames) in contents:
@@ -231,5 +233,8 @@ def build_index(base_path, extension, fd):
       else:
         continue
       line = "{}.{}\n".format(path, metric)
+      total_entries += 1
       fd.write(line)
   fd.flush()
+  log.info("[IndexSearcher] index rebuild of \"%s\" took %.6f seconds (%d entries)" % (base_path, time.time() - t, total_entries))
+  return None
