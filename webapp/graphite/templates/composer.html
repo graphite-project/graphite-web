@@ -118,7 +118,7 @@ limitations under the License. -->
         Composer.window.show();
 
         /* Direct graph loading */
-        if ("{{queryString}}") {
+        if ("{{queryString|escapejs}}") {
           Composer.loadURL("?{{queryString|escapejs}}");
         }
         /* Automatic tree expansion */
