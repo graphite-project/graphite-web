@@ -28,11 +28,6 @@
 # Metric data and graphs are cached for one minute by default
 #DEFAULT_CACHE_DURATION = 60
 
-# Logging
-#LOG_RENDERING_PERFORMANCE = True
-#LOG_CACHE_PERFORMANCE = True
-#LOG_METRIC_ACCESS = True
-
 # Enable full debug page display on exceptions (Internal Server Error pages)
 #DEBUG = True
 
@@ -82,6 +77,89 @@
 #STANDARD_DIRS = [WHISPER_DIR, RRD_DIR] # Default: set from the above variables
 #LOG_DIR = '/opt/graphite/storage/log/webapp'
 #INDEX_FILE = '/opt/graphite/storage/index'  # Search index file
+
+
+#####################################
+# Logging Configuration #
+#####################################
+
+#LOG_RENDERING_PERFORMANCE = True
+#LOG_CACHE_PERFORMANCE = True
+#LOG_METRIC_ACCESS = True
+
+#Only change this if you want to change where logs go
+#import os
+#LOGGING = {
+#  'version': 1,
+#  'disable_existing_loggers': False,
+#  'formatters': {
+#    'standard': {
+#        'format':  '%(asctime)s :: %(message)s',
+#        'datefmt': '%a %b %d %H:%M:%S %Y',
+#    },
+#  },
+#  'handlers': {
+#    'info':{
+#      'formatter': 'standard',
+#      'class': 'logging.handlers.TimedRotatingFileHandler',
+#      'filename': os.path.join(LOG_DIR,'info.log'),
+#      'when': 'midnight',
+#      'backupCount': 1,
+#    },
+#    'exception':{
+#      'formatter': 'standard',
+#      'class': 'logging.handlers.TimedRotatingFileHandler',
+#      'filename': os.path.join(LOG_DIR,'exception.log'),
+#      'when': 'midnight',
+#      'backupCount': 1,
+#    },
+#  },
+#  'loggers': {
+#    'info': {
+#      'handlers': ['info'],
+#      'level': 'INFO',
+#    },
+#    'exception': {
+#      'handlers': ['exception'],
+#    },
+#  }
+#}
+#
+#if LOG_CACHE_PERFORMANCE:
+#  LOGGING['handlers']['cache'] = {
+#    'formatter': 'standard',
+#    'class': 'logging.handlers.TimedRotatingFileHandler',
+#    'filename': os.path.join(LOG_DIR,'cache.log'),
+#    'when': 'midnight',
+#    'backupCount': 1,
+#  }
+#  LOGGING['loggers']['cache'] = {
+#    'handlers': ['cache'],
+#  }
+#
+#if LOG_RENDERING_PERFORMANCE:
+#  LOGGING['handlers']['rendering'] = {
+#    'formatter': 'standard',
+#    'class': 'logging.handlers.TimedRotatingFileHandler',
+#    'filename': os.path.join(LOG_DIR,'rendering.log'),
+#    'when': 'midnight',
+#    'backupCount': 1,
+#  }
+#  LOGGING['loggers']['rendering'] = {
+#    'handlers': ['rendering'],
+#  }
+#
+#if LOG_METRIC_ACCESS:
+#   LOGGING['handlers']['metric_access'] = {
+#    'formatter': 'standard',
+#    'class': 'logging.handlers.TimedRotatingFileHandler',
+#    'filename': os.path.join(LOG_DIR,'metricaccess.log'),
+#    'when': 'midnight',
+#    'backupCount': 10,
+#   }
+#   LOGGING['loggers']['metric_access'] = {
+#    'handlers': ['metric_access'],
+#   }
 
 
 #####################################
