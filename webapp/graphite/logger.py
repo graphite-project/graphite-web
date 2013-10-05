@@ -20,14 +20,29 @@ logging.addLevelName(30,"rendering")
 logging.addLevelName(30,"cache")
 logging.addLevelName(30,"metric_access")
 
+class NullHandler(logging.Handler):
+  """
+  A log handler that does nothing. Part of logging.Handlers in python 2.7,
+  but defined here for  python 2.6 compatibility.
+  """
+  def emit(self, record):
+    pass
+
 class GraphiteLogger:
   def __init__(self):
+    self.nullHandler = NullHandler()
     #Setup loggers
     self.infoLogger = logging.getLogger("info")
     self.exceptionLogger = logging.getLogger("exception")
     self.cacheLogger = logging.getLogger("cache")
+    if not self.cacheLogger.handlers:
+        self.cacheLogger.addHandler(self.nullHandler)
     self.renderingLogger = logging.getLogger("rendering")
+    if not self.renderingLogger.handlers:
+        self.renderingLogger.addHandler(self.nullHandler)
     self.metricAccessLogger = logging.getLogger("metric_access")
+    if not self.metricAccessLogger.handlers:
+        self.metricAccessLogger.addHandler(self.nullHandler)
 
   def info(self,msg,*args,**kwargs):
     return self.infoLogger.info(msg,*args,**kwargs)
