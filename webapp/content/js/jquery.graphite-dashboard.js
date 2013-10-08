@@ -141,7 +141,7 @@
                     padding: '2px',
                     'background-color': '#fee',
                     color: '#000000',
-                    opacity: 0.80
+                    opacity: 0.90
                 }).appendTo("body").fadeIn(200);
             }
 
