@@ -595,6 +595,9 @@ function initDashboard () {
               },
               { text: "From Saved Graph",
                 handler: newFromSavedGraph
+              },
+              { text: "From Metric",
+                handler: newFromMetric
               }
             ]
           }
@@ -1476,6 +1479,71 @@ function newFromSavedGraph() {
   });
   win.show();
 }
+
+function newFromMetric() {
+  function applyMetric() {
+    var inputMetric = Ext.getCmp('import-metric-field').getValue();
+    if (inputMetric == "") {
+      return;
+    }
+    var graphTargetString = Ext.urlEncode({target: inputMetric});
+
+    var myParams = {
+      target: [inputMetric]
+    };
+
+    var urlParams = {};
+    Ext.apply(urlParams, defaultGraphParams);
+    Ext.apply(urlParams, myParams);
+    Ext.apply(urlParams, GraphSize);
+
+    var record = new GraphRecord({
+      target: graphTargetString,
+      params: myParams,
+      url: '/render?' + Ext.urlEncode(urlParams)
+      });
+    graphStore.add([record]);
+    updateGraphRecords();
+    win.close();
+  }
+
+  var urlField = new Ext.form.TextField({
+    id: 'import-metric-field',
+    fieldLabel: "Metric",
+    region: 'center',
+    width: '100%',
+    listeners: {
+      specialkey: function (field, e) {
+                    if (e.getKey() == e.ENTER) {
+                      applyUrl();
+                    }
+                  },
+      afterrender: function (field) { field.focus(false, 100); }
+    }
+  });
+
+  var win = new Ext.Window({
+    title: "Import Graph From Metric",
+    width: 470,
+    height: 87,
+    layout: 'form',
+    resizable: true,
+    modal: true,
+    items: [urlField],
+    buttonAlign: 'center',
+    buttons: [
+      {
+        text: 'OK',
+        handler: applyMetric
+      }, {
+        text: 'Cancel',
+        handler: function () { win.close(); }
+      }
+    ]
+  });
+  win.show();
+}
+
 
 function editDefaultGraphParameters() {
   var editParams = Ext.apply({}, defaultGraphParams);
