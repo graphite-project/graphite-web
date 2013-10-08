@@ -27,6 +27,22 @@ var NAV_BAR_REGION = cookieProvider.get('navbar-region') || 'north';
 
 var CONFIRM_REMOVE_ALL = cookieProvider.get('confirm-remove-all') != 'false';
 
+var currently_setting_hash = false;
+
+function changeHash(hash){
+    currently_setting_hash = true;
+    window.location.hash = hash;
+}
+
+if ("onhashchange" in window) // does the browser support the hashchange event?
+  window.onhashchange = function () {
+    if (currently_setting_hash){
+      currently_setting_hash = false;
+      return;
+    }
+    location.reload();
+  }
+
 /* Nav Bar configuration */
 var navBarNorthConfig = {
   region: 'north',
@@ -2415,6 +2431,11 @@ function sendSaveRequest(name) {
                if (result.error) {
                  Ext.Msg.alert("Error", "There was an error saving this dashboard: " + result.error);
                }
+               if(newURL) {
+                 window.location = newURL;
+               } else {
+                 changeHash(name);
+               }
              },
     failure: failedAjaxCall
   });
@@ -2580,7 +2601,7 @@ function setDashboardName(name) {
     dashboardURL = urlparts.join('/');
 
     document.title = name + " - Graphite Dashboard";
-    window.location.hash = name;
+    changeHash(name);
     navBar.setTitle(name + " - (" + dashboardURL + ")");
     saveButton.setText('Save "' + name + '"');
     saveButton.enable();
