@@ -748,6 +748,7 @@ function initDashboard () {
   if(window.location.hash != '')
   {
     sendLoadRequest(window.location.hash.substr(1));
+    navBar.collapse();
   }
 
   if (initialError) {
