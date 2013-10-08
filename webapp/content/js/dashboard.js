@@ -2450,6 +2450,7 @@ function sendLoadRequest(name) {
                  Ext.Msg.alert("Error Loading Dashboard", result.error);
                } else {
                  applyState(result.state);
+                 navBar.collapse();
                }
              },
     failure: failedAjaxCall
