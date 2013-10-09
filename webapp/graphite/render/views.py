@@ -56,6 +56,7 @@ defaultScheme = {
 
 defaultRenderConfig = {
   'trim_recent' : 0,
+  'sort_series' : 0,
 }
 
 class RenderConfig:
