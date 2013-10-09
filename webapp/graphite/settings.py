@@ -24,6 +24,8 @@ WEBAPP_VERSION = '0.10.0-alpha'
 DEBUG = False
 JAVASCRIPT_DEBUG = False
 
+DATE_FORMAT = '%m/%d'
+
 # Filesystem layout
 WEB_DIR = dirname( abspath(__file__) )
 WEBAPP_DIR = dirname(WEB_DIR)
