@@ -14,6 +14,9 @@ limitations under the License."""
 import csv
 import math
 import pytz
+import re
+from os.path import getmtime
+from ConfigParser import ConfigParser
 from datetime import datetime
 from time import time
 from random import shuffle
@@ -44,13 +47,78 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.utils.cache import add_never_cache_headers, patch_response_headers
 
+fieldRegex = re.compile(r'<([^>]+)>')
+defaultScheme = {
+  'name' : 'Everything',
+  'pattern' : '<category>',
+  'fields' : [ dict(name='category', label='Category') ],
+}
+
+defaultRenderConfig = {
+  'trim_recent' : 0,
+}
+
+class RenderConfig:
+  def __init__(self):
+    self.last_read = 0
+    self.schemes = [defaultScheme]
+    self.render_config = defaultRenderConfig.copy()
+
+  def check(self):
+    if getmtime(settings.RENDER_CONF) > self.last_read:
+      self.load()
+
+  def load(self):
+    schemes = [defaultScheme]
+    parser = ConfigParser()
+    parser.read(settings.RENDER_CONF)
+
+    for option, default_value in defaultRenderConfig.items():
+      if parser.has_option('render', option):
+        try:
+          self.render_config[option] = parser.getint('render', option)
+        except ValueError:
+          self.render_config[option] = parser.get('render', option)
+      else:
+        self.render_config[option] = default_value
+
+    for section in parser.sections():
+      if section in ('render'):
+        continue
+
+      scheme = parser.get(section, 'scheme')
+      fields = []
+
+      for match in fieldRegex.finditer(scheme):
+        field = match.group(1)
+        if parser.has_option(section, '%s.label' % field):
+          label = parser.get(section, '%s.label' % field)
+        else:
+          label = field
+
+        fields.append({
+          'name' : field,
+          'label' : label
+        })
+
+      schemes.append({
+        'name' : section,
+        'pattern' : scheme,
+        'fields' : fields,
+      })
+
+    self.schemes = schemes
+
+config = RenderConfig()
 
 def renderView(request):
   start = time()
   (graphOptions, requestOptions) = parseOptions(request)
   useCache = 'noCache' not in requestOptions
   cacheTimeout = requestOptions['cacheTimeout']
+  config.check()
   requestContext = {
+    'config' : config,
     'startTime' : requestOptions['startTime'],
     'endTime' : requestOptions['endTime'],
     'localOnly' : requestOptions['localOnly'],
