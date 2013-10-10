@@ -83,8 +83,9 @@ var GraphRecord = new Ext.data.Record.create([
   {name: 'target'},
   {name: 'params', type: 'auto'},
   {name: 'url'},
+  {name: 'render_type', type: 'auto'},
   {name: 'width', type: 'auto'},
-  {name: 'height', type: 'auto'}
+  {name: 'height', type: 'auto'},
 ]);
 
 function graphStoreUpdated() {
@@ -361,23 +362,11 @@ function initDashboard () {
 
   var graphTemplate;
 
-  if (RENDER_ENGINE == 'cairo') {
-    graphTemplate = new Ext.XTemplate(
+  graphTemplate = new Ext.XTemplate(
     '<tpl for=".">',
       '<div class="graph-container">',
         '<div class="graph-overlay">',
-          '<img class="graph-img" src="{url}" width="{width}" height="{height}">',
-          '<div class="overlay-close-button" onclick="javascript: graphStore.removeAt(\'{index}\'); updateGraphRecords(); justClosedGraph = true;">X</div>',
-        '</div>',
-      '</div>',
-    '</tpl>',
-    '<div class="x-clear"></div>'
-  );
-  } else {
-    graphTemplate = new Ext.XTemplate(
-    '<tpl for=".">',
-      '<div class="graph-container">',
-        '<div class="graph-overlay">',
+        '<tpl if="render_type == \'flot\'">',
           '<div id="g_wrap{index}" style="visibility:visible">',
               '<div id="main">',
                   '<div class="g_canvas" style="padding:0px; margin: 4px;">',
@@ -391,13 +380,16 @@ function initDashboard () {
               '</div>',
           '</div>',
           '<div class="overlay-close-button" onclick="javascript: graphStore.removeAt(\'{index}\'); refreshGraphs(); justClosedGraph = true;">X</div>',
+        '</tpl>',
+        '<tpl if="render_type == \'cairo\'">',
+          '<img class="graph-img" src="{url}" width="{width}" height="{height}">',
+          '<div class="overlay-close-button" onclick="javascript: graphStore.removeAt(\'{index}\'); refreshGraphs(); justClosedGraph = true;">X</div>',
+        '</tpl>',
         '</div>',
       '</div>',
     '</tpl>',
     '<div class="x-clear"></div>'
-    );
-
-  }
+  );
 
   function setupGraphDD () {
     graphView.dragZone = new Ext.dd.DragZone(graphView.getEl(), {
@@ -485,11 +477,7 @@ function initDashboard () {
         if (this.dropAction == 'reorder') {
           graphStore.removeAt(dragIndex);
           graphStore.insert(dropIndex, data.draggedRecord);
-          if ( RENDER_ENGINE == 'cairo' ) {
-              updateGraphRecords();
-          } else {
-              refreshGraphs();
-          }
+          refreshGraphs();
           return true;
         } else if (this.dropAction == 'merge') {
           var dragRecord = data.draggedRecord;
@@ -505,11 +493,7 @@ function initDashboard () {
           dropRecord.data.target = Ext.urlEncode({target: mergedTargets});
           dropRecord.commit();
           graphStore.remove(dragRecord);
-          if ( RENDER_ENGINE == 'cairo' ) {
-              updateGraphRecords();
-          } else {
-              refreshGraphs();
-          }
+          refreshGraphs();
           return true;
         }
         return false;
@@ -1011,14 +995,12 @@ function graphAreaToggle(target, options) {
       'width': GraphSize.width,
       'height': GraphSize.height,
       'name': this.storeId,
+      'render_type': RENDER_ENGINE,
     });
     graphStore.add([record]);
     canvasId = graphStore.indexOf(record);
     graphStore.getAt(canvasId).data.index = canvasId;
-    updateGraphRecords();
-    if (RENDER_ENGINE != 'cairo') {
-      $("#g_wrap" + canvasId).graphiteGraph("#g_graph" + canvasId, "", graphTargetList, urlParams.from, urlParams.until, Boolean(myParams.areaMode));
-    }
+    refreshGraphs();
   }
 }
 
@@ -1059,13 +1041,14 @@ function importGraphUrl(targetUrl, options) {
       target: graphTargetString,
       params: params,
       url: '/render?' + Ext.urlEncode(urlParams),
+      'render_type': RENDER_ENGINE,
       'width': GraphSize.width,
       'height': GraphSize.height,
       });
       graphStore.add([record]);
       canvasId = graphStore.indexOf(record);
       graphStore.getAt(canvasId).data.index = canvasId;
-      updateGraphRecords();
+      refreshGraphs();
   }
 }
 
@@ -1082,6 +1065,9 @@ function updateGraphRecords() {
     if (!params.uniq === undefined) {
         delete params["uniq"];
     }
+    if (item.data.render_type == '') {
+      item.set('render_type', RENDER_ENGINE);
+    }
     item.set('url', '/render?' + Ext.urlEncode(params));
     item.set('width', GraphSize.width);
     item.set('height', GraphSize.height);
@@ -1093,8 +1079,8 @@ function refreshGraphs() {
   updateGraphRecords();
   graphView.refresh();
 
-  if (RENDER_ENGINE != 'cairo') {
-    graphStore.each(function () {
+  graphStore.each(function () {
+    if (this.data.render_type == 'flot') {
       var graphTargetString = this.data.target;
       if (this.data.target.substr(0,7) == "target=") {
         graphTargetString = this.data.target;
@@ -1106,8 +1092,9 @@ function refreshGraphs() {
         graphTargetList = [graphTargetList];
       }
       $("#g_wrap" + this.data.index).graphiteGraph("#g_graph" + this.data.index, "", graphTargetList, this.data.params.from, this.data.params.until, Boolean(this.data.params.areaMode));
-    });
-  }
+    }
+  });
+
   graphArea.getTopToolbar().get('last-refreshed-text').setText( (new Date()).format('g:i:s A') );
 }
 
@@ -1576,20 +1563,18 @@ function editDefaultGraphParameters() {
   win.show();
 }
 
-function updateRenderEngine(engine) {
-  if (engine == RENDER_ENGINE) {
-    return;
-  }
-
+function updateRenderEngine(engine, apply_to_existing) {
   cookieProvider.set('render-engine', engine);
   RENDER_ENGINE = engine;
 
-  if (graphStore.getCount() == 0) {
-    window.location.reload()
-  } else {
-    Ext.Msg.alert('Cookie Updated', "You must refresh the page to update the render engine.");
-    //TODO prompt the user to save their dashboard and refresh for them
+  if (apply_to_existing) {
+    graphStore.each(function () {
+      this.data.render_type = engine;
+    });
+
+    refreshGraphs();
   }
+
 }
 
 
@@ -1597,9 +1582,9 @@ function editDefaultRenderEngine() {
 
   function applyRenderEngineChange() {
     if (Ext.getCmp('cairo-radio').getValue()) {
-      updateRenderEngine('cairo');
+      updateRenderEngine('cairo', Ext.getCmp('apply-to-existing').getValue());
     } else {
-      updateRenderEngine('flot');
+      updateRenderEngine('flot', Ext.getCmp('apply-to-existing').getValue());
     }
     configure_re_win.close();
     configure_re_win = null;
@@ -1609,7 +1594,7 @@ function editDefaultRenderEngine() {
     title: "Configure Render Engine",
     layout: 'form',
     width: 350,
-    height: 125,
+    height: 140,
     labelWidth: 140,
     labelAlign: 'right',
     items: [
@@ -1622,13 +1607,20 @@ function editDefaultRenderEngine() {
         inputValue: "cairo",
         checked: (RENDER_ENGINE == 'cairo')
       }, {
-        id: 'flot-top-radio',
+        id: 'flot-radio',
         xtype: "radio",
         fieldLabel: "",
         boxLabel: "Flot Render Engine",
         name: "render-engine",
         inputValue: "flot",
         checked: (RENDER_ENGINE == 'flot')
+      }, {
+        id: 'apply-to-existing',
+        xtype: "checkbox",
+        boxLabel: "Apply to all existing graphs",
+        name: "apply-to-existing",
+        inputValue: "yes",
+        checked: false
       }
     ],
     buttons: [
@@ -1932,6 +1924,12 @@ function graphClicked(graphView, graphIndex, element, evt) {
     items: [{
       xtype: 'button',
       fieldLabel: "<span style='visibility: hidden'>",
+      text: 'Switch Renderer',
+      width: 100,
+      handler: function () { menu.destroy(); editRenderEngine(record); }
+    }, {
+      xtype: 'button',
+      fieldLabel: "<span style='visibility: hidden'>",
       text: 'Breakout',
       width: 100,
       handler: function () { menu.destroy(); breakoutGraph(record); }
@@ -2207,6 +2205,15 @@ function mailGraph(record) {
   win.show();
 }
 
+function editRenderEngine(record) {
+  if (record.data.render_type == 'flot') {
+    record.data.render_type = 'cairo';
+  } else {
+    record.data.render_type = 'flot';
+  }
+
+  refreshGraphs();
+}
 
 function cloneGraph(record) {
   var index = graphStore.indexOf(record);
@@ -2220,7 +2227,8 @@ function cloneGraphRecord(record) {
   var props = {
     url: record.data.url,
     target: record.data.target,
-    params: Ext.apply({}, record.data.params)
+    params: Ext.apply({}, record.data.params),
+    render_type: record.data.render_type
   };
   props.params.target = Ext.urlDecode(props.target).target;
   if (typeof props.params.target == "string") {
@@ -2410,6 +2418,8 @@ function editDashboard() {
     graphStore.removeAll();
     for (var i = 0; i < targets.length; i++) {
       var myParams = {};
+      var render_type = targets[i].render_type;
+      delete targets[i].render_type;
       Ext.apply(myParams, targets[i]);
       var urlParams = {};
       Ext.apply(urlParams, defaultGraphParams);
@@ -2418,7 +2428,8 @@ function editDashboard() {
       var record = new GraphRecord({
         target: targets[i].target,
         params: myParams,
-        url: '/render?' + Ext.urlEncode(urlParams)
+        url: '/render?' + Ext.urlEncode(urlParams),
+        render_type: render_type
       });
       graphStore.add([record]);
     }
@@ -2431,6 +2442,7 @@ function editDashboard() {
       Ext.apply(params, this.data.params);
       delete params['from'];
       delete params['until'];
+      params.render_type = this.data.render_type;
       graphs.push(params);
     });
     editor.getSession().setValue(JSON.stringify(graphs, null, 2));
@@ -2503,7 +2515,8 @@ function getState() {
         record.data.id,
         record.data.target,
         record.data.params,
-        record.data.url
+        record.data.url,
+        record.data.render_type
       ]);
     }
   );
