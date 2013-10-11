@@ -33,7 +33,7 @@
         return true;
     }
 
-    $.fn.graphiteGraph = function(graph_div, graph_overview_div, graph_metrics, graph_from, graph_until, fill_area) {
+    $.fn.graphiteGraph = function(graph_div, graph_overview_div, graph_metrics, graph_from, graph_until, graph_title, fill_area) {
         return this.each(function() {
             var graph = $(this);
             var plot = null;
@@ -82,8 +82,26 @@
 
                 var xaxismode = {
                                         mode: "time",
-                                        font: font
+                                        font: font,
+                                        position: 'bottom'
                                 };
+
+                // This is nasty.  But I couldn't find any other way.
+                var xaxistitle = {
+                                  position: 'top',
+                                  ticks: function(axis){ return ''; },
+                                  color: "white",
+                                  axisLabel: graph_title,
+                                  axisLabelFontSizePixels: 10,
+                                  axisLabelFontFamily: "serif"
+                                };
+                if (graph_title === undefined || graph_title == '') {
+                        $.extend(xaxistitle, {show: false});
+                } else {
+                        $.extend(xaxistitle, {show: true});
+                }
+
+
                 var yaxismode = {
                                         tickFormatter: function(val, axis) {
                                             if (val > 1000000000)
@@ -101,7 +119,7 @@
                 $.extend(yaxismode, yaxisranges);
 
                 var options = {
-                        xaxis: xaxismode,
+                        xaxes: [ xaxismode, xaxistitle ],
                         yaxis: yaxismode,
                         grid: {
                                 hoverable: true,

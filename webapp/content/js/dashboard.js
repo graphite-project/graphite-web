@@ -1076,6 +1076,7 @@ function refreshGraphs() {
   graphStore.each(function () {
     if (this.data.render_type == 'flot') {
       var graphTargetString = this.data.target;
+      var graphTitle = this.data.params.title;
       if (this.data.target.substr(0,7) == "target=") {
         graphTargetString = this.data.target;
       } else {
@@ -1085,7 +1086,10 @@ function refreshGraphs() {
       if (typeof graphTargetList == 'string') {
         graphTargetList = [graphTargetList];
       }
-      $("#g_wrap" + this.data.index).graphiteGraph("#g_graph" + this.data.index, "", graphTargetList, this.data.params.from, this.data.params.until, Boolean(this.data.params.areaMode));
+      if (this.data.params.title === undefined && this.data.params.target.length == 1) {
+        graphTitle = this.data.params.target[0];
+      }
+      $("#g_wrap" + this.data.index).graphiteGraph("#g_graph" + this.data.index, "", graphTargetList, this.data.params.from, this.data.params.until, graphTitle, Boolean(this.data.params.areaMode));
     }
   });
 
@@ -2710,7 +2714,7 @@ function showDashboardFinder() {
     root: 'dashboards',
     sortInfo: {
       field: 'name',
-      direction: 'DESC'
+      direction: 'ASC'
     },
     listeners: {
       beforeload: function (store) {

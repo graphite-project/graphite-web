@@ -8,6 +8,7 @@
     <script type="text/javascript" src="../../content/js/flot/jquery.flot.selection.js"></script>
     <script type="text/javascript" src="../../content/js/flot/jquery.flot.crosshair.js"></script>
     <script type="text/javascript" src="../../content/js/flot/jquery.flot.time.js"></script>
+    <script type="text/javascript" src="../../content/js/jquery.flot.axislabels.js"></script>
     <script type="text/javascript" src="../../content/js/jquery.graphite-dashboard.js"></script>
 
     <link rel="stylesheet" type="text/css" href="../../content/css/jquery.autocomplete.css" />
@@ -24,7 +25,7 @@
     {% endfor %}
 
     $(document).ready(function () {
-        $('#g_wrap0').graphiteGraph('#g_graph0', '', graph0_metrics, '{{ fromtime|escapejs }}', '{{ untiltime|escapejs }}');
+        $('#g_wrap0').graphiteGraph('#g_graph0', '', graph0_metrics, '{{ fromtime|escapejs }}', '{{ untiltime|escapejs }}', '{{ title|escapejs }}');
     });
 
     </script>
