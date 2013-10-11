@@ -25,6 +25,7 @@ def graphlot_render(request, dest="graphlot.html"):
     events = request.GET.get('events', "")
     width = request.GET.get('width', "300")
     height = request.GET.get('height', "200")
+    title = request.GET.get('title', "")
     context = {
       'metric_list' : metrics,
       'fromtime' : fromtime,
@@ -33,6 +34,7 @@ def graphlot_render(request, dest="graphlot.html"):
       'slash' : get_script_prefix(),
       'height' : height,
       'width' : width,
+      'title' : title,
     }
     return render_to_response(dest, context)
 
