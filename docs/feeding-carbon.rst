@@ -12,6 +12,8 @@ Choosing the right transfer method for you is dependent on how you want to build
 
 * Finally, Carbon can listen to a message bus, via AMQP.
 
+There are also  :doc:`client daemons and APIs </tools>` which can be used to send data to Carbon.
+
 
 The plaintext protocol
 ----------------------
