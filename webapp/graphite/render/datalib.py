@@ -138,6 +138,11 @@ def fetchData(requestContext, pathExpr):
 
     (timeInfo,values) = results
     (start,end,step) = timeInfo
+    try:
+        (timeInfo, values) = results
+    except ValueError, e:
+        raise Exception("could not parse timeInfo/values from metric '%s': %s" % (node.path, e))
+    (start, end, step) = timeInfo
 
     series = TimeSeries(job + '.' + node.path, start, end, step, values)
     series.pathExpression = job + '.' + pathExpr #hack to pass expressions through to render functions

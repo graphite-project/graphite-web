@@ -22,6 +22,8 @@ class LDAPBackend:
     try:
       conn = ldap.initialize(settings.LDAP_URI)
       conn.protocol_version = ldap.VERSION3
+      if settings.LDAP_USE_TLS:
+        conn.start_tls_s()
       conn.simple_bind_s( settings.LDAP_BASE_USER, settings.LDAP_BASE_PASS )
     except ldap.LDAPError:
       traceback.print_exc()

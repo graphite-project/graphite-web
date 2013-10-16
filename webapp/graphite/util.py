@@ -14,9 +14,13 @@ limitations under the License."""
 
 import imp
 from os.path import splitext, basename
+import os
+from shutil import move
+from tempfile import mkstemp
 import socket
 import errno
 import time
+import sys
 try:
   import cPickle as pickle
   USING_CPICKLE = True
@@ -30,6 +34,7 @@ except ImportError:
   from StringIO import StringIO
 
 from os import environ
+from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import User
 from graphite.account.models import Profile
@@ -148,6 +153,7 @@ if USING_CPICKLE:
     PICKLE_SAFE = {
       'copy_reg': set(['_reconstructor']),
       '__builtin__': set(['object']),
+      'graphite.intervals': set(['Interval', 'IntervalSet']),
     }
 
     @classmethod
@@ -171,6 +177,7 @@ else:
     PICKLE_SAFE = {
       'copy_reg': set(['_reconstructor']),
       '__builtin__': set(['object']),
+      'graphite.intervals': set(['Interval', 'IntervalSet']),
     }
 
     def find_class(self, module, name):
@@ -187,3 +194,47 @@ else:
       return cls(StringIO(pickle_string)).load()
 
 unpickle = SafeUnpickler
+
+
+def write_index(whisper_dir=None, ceres_dir=None, index=None):
+  if not whisper_dir:
+    whisper_dir = settings.WHISPER_DIR
+  if not ceres_dir:
+    ceres_dir = settings.CERES_DIR
+  if not index:
+    index = settings.INDEX_FILE
+  try:
+    fd, tmp = mkstemp()
+    try:
+      tmp_index = os.fdopen(fd, 'wt')
+      build_index(whisper_dir, ".wsp", tmp_index)
+      build_index(ceres_dir, ".ceres-node", tmp_index)
+    finally:
+      tmp_index.close()
+    move(tmp, index)
+  finally:
+    try:
+      os.unlink(tmp)
+    except:
+      pass
+  return None
+
+
+def build_index(base_path, extension, fd):
+  t = time.time()
+  total_entries = 0
+  contents = os.walk(base_path, followlinks=True)
+  extension_len = len(extension)
+  for (dirpath, dirnames, filenames) in contents:
+    path = dirpath[len(base_path) + 1:].replace('/', '.')
+    for metric in filenames:
+      if metric.endswith(extension):
+        metric = metric[:-extension_len]
+      else:
+        continue
+      line = "{0}.{1}\n".format(path, metric)
+      total_entries += 1
+      fd.write(line)
+  fd.flush()
+  log.info("[IndexSearcher] index rebuild of \"%s\" took %.6f seconds (%d entries)" % (base_path, time.time() - t, total_entries))
+  return None
