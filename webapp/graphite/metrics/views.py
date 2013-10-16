@@ -21,6 +21,7 @@ from graphite.logger import log
 from graphite.storage import STORE, LOCAL_STORE, RRDFile
 from graphite.metrics.search import searcher
 from graphite.render.datalib import CarbonLink
+from graphite.jobs import get_jobs, get_nodes
 import fnmatch, os
 
 try:
@@ -137,33 +138,66 @@ def find_view(request):
   except:
     return HttpResponseBadRequest(content="Missing required parameter 'query'", mimetype="text/plain")
 
-  if '.' in query:
-    base_path = query.rsplit('.', 1)[0] + '.'
-  else:
-    base_path = ''
+  job = ''
 
-  if local_only:
-    store = LOCAL_STORE
-  else:
-    store = STORE
+  if query == "*": # Base query, add the job names to the filetree
+    matches = get_jobs(request.user, 25)
 
-  if format == 'completer':
-    query = query.replace('..', '*.')
-    if not query.endswith('*'):
-      query += '*'
+    content = tree_jobs(matches)
+    response = HttpResponse(content, mimetype='application/json')
+    return response;
 
-    if automatic_variants:
-      query_parts = query.split('.')
-      for i,part in enumerate(query_parts):
-        if ',' in part and '{' not in part:
-          query_parts[i] = '{%s}' % part
-      query = '.'.join(query_parts)
+  elif '.' not in query:
+    """
+    We're looking at a completer query that searches for jobs; format PartialJob*; eg Blast*
+    Lets search if one or more of our nodes match and return them.
+    """
+    results = []
 
-  try:
-    matches = list( store.find(query) )
-  except:
-    log.exception()
-    raise
+    for line in get_jobs(request.user, 100, query[:-1]):
+      node_info = dict(path=line[0], name=line[1], fancyname=line[2], is_leaf='0')
+      node_info['path'] += '.'
+      results.append(node_info)
+
+    content = json.dumps({ 'metrics' : results })
+
+    response = HttpResponse(content, mimetype='application/json')
+    return response;
+
+  else: # We're looking at a job, split the job name temporary from the query
+
+    job = query.split('.', 1)[0]
+    query = query.split('.', 1)[1]
+
+    if '.' in query:
+      base_path = job + '.' + query.rsplit('.', 1)[0] + '.' # Add the job name back so it's fetchable in future requests
+    else:
+      base_path = job + '.'                                 # Add the job name back so it's fetchable in future requests
+
+    if local_only:
+      store = LOCAL_STORE
+    else:
+      store = STORE
+
+    if format == 'completer':
+      query = query.replace('..', '*.')
+      if not query.endswith('*'):
+        query += '*'
+
+      if automatic_variants:
+        query_parts = query.split('.')
+        for i,part in enumerate(query_parts):
+          if ',' in part and '{' not in part:
+            query_parts[i] = '{%s}' % part
+        query = '.'.join(query_parts)
+
+    try:
+      # Added an extra argument with the job name so we can filter the returning nodes later on
+      matches = list( store.find(query, get_nodes(job)) )
+    except:
+      log.exception()
+      raise
+
 
   log.info('find_view query=%s local_only=%s matches=%d' % (query, local_only, len(matches)))
   matches.sort(key=lambda node: node.name)
@@ -181,7 +215,8 @@ def find_view(request):
     #  matches = list( store.find(query + '.*') )
     results = []
     for node in matches:
-      node_info = dict(path=node.metric_path, name=node.name, is_leaf=str(int(node.isLeaf())))
+      fancyname = get_jobs(request.user, 100, job)[0][2]
+      node_info = dict(path=job + "." + node.metric_path, name=node.metric_path, fancyname=fancyname + "." + node.metric_path, is_leaf=str(int(node.isLeaf())))
       if not node.isLeaf():
         node_info['path'] += '.'
       results.append(node_info)
@@ -283,6 +318,28 @@ def set_metadata_view(request):
 
   return json_response_for(request, results)
 
+
+def tree_jobs(jobs):
+  results = []
+
+  branchNode = {
+    'allowChildren': 1,
+    'expandable': 1,
+    'leaf': 0,
+  }
+
+  for (name, jobname, fancyname) in jobs: #Now let's add the matching children
+    resultNode = {
+      'text' : fancyname,
+      'id' : name,
+    }
+
+    resultNode['context'] = 1
+
+    resultNode.update(branchNode)
+    results.append(resultNode)
+
+  return json.dumps(results)
 
 def tree_json(nodes, base_path, wildcards=False, contexts=False):
   results = []

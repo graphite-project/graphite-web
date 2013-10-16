@@ -20,6 +20,7 @@ from graphite.logger import log
 from graphite.storage import STORE, LOCAL_STORE
 from graphite.render.hashing import ConsistentHashRing
 from graphite.util import unpickle
+from graphite.jobs import get_job_timerange, get_jobs, get_nodes, has_job
 
 try:
   import cPickle as pickle
@@ -216,17 +217,48 @@ CarbonLink = CarbonLinkPool(hosts, settings.CARBONLINK_TIMEOUT)
 # Data retrieval API
 def fetchData(requestContext, pathExpr):
   seriesList = []
-  startTime = requestContext['startTime']
-  endTime = requestContext['endTime']
+  startTime = timestamp(requestContext['startTime'])
+  endTime = timestamp(requestContext['endTime'])
+  user = requestContext['user']
+
+  # Split the job from the path
+  (job, pathExpr) = pathExpr.split(".", 1);
+
+  # Security: If the user requests a job that's not his: kick him out unless the user may see all data
+  if not has_job(user, job) and not user.has_perm('account.can_see_all'):
+    return []
+
+
+  # Get the maximum visible time range from the job
+  (jobStart, jobEnd) = get_job_timerange(job)
+
+  # Limit the visible period to the period the job has run
+  if startTime < jobEnd:
+    startTime = max(startTime, jobStart)
+  else:
+    startTime = jobStart
+
+  if endTime > jobStart:
+    endTime = min(endTime, jobEnd)
+  else:
+    endTime = jobEnd
+
+  '''
+  Simple fix: If for some weird reason the endTime is earlier then the startTime; we would get an
+  500 error. If we equalize the start to the end, we just get a "No data" message
+  '''
+  if endTime < startTime:
+    endTime = startTime
 
   if requestContext['localOnly']:
     store = LOCAL_STORE
   else:
     store = STORE
 
-  for dbFile in store.find(pathExpr):
+  for dbFile in store.find(pathExpr, get_nodes(job)):
     log.metric_access(dbFile.metric_path)
-    dbResults = dbFile.fetch( timestamp(startTime), timestamp(endTime) )
+
+    dbResults = dbFile.fetch( startTime, endTime )
     results = dbResults
 
     if dbFile.isLocal():
@@ -241,8 +273,8 @@ def fetchData(requestContext, pathExpr):
 
     (timeInfo,values) = results
     (start,end,step) = timeInfo
-    series = TimeSeries(dbFile.metric_path, start, end, step, values)
-    series.pathExpression = pathExpr #hack to pass expressions through to render functions
+    series = TimeSeries(job + '.' + dbFile.metric_path, start, end, step, values)
+    series.pathExpression = job + '.' + pathExpr #hack to pass expressions through to render functions
     seriesList.append(series)
 
   return seriesList

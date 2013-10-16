@@ -3481,16 +3481,16 @@ def nestedExpr(opener="(", closer=")", content=None, ignoreExpr=quotedString):
     return ret
 
 def indentedBlock(blockStatementExpr, indentStack, indent=True):
-    """Helper method for defining space-delimited indentation blocks, such as 
+    """Helper method for defining space-delimited indentation blocks, such as
        those used to define block statements in Python source code.
-       
+
        Parameters:
-        - blockStatementExpr - expression defining syntax of statement that 
+        - blockStatementExpr - expression defining syntax of statement that
             is repeated within the indented block
         - indentStack - list created by caller to manage indentation stack
             (multiple statementWithIndentedBlock expressions within a single grammar
             should share a common indentStack)
-        - indent - boolean indicating whether block must be indented beyond the 
+        - indent - boolean indicating whether block must be indented beyond the
             the current level; set to False for block of left-most statements
             (default=True)
 

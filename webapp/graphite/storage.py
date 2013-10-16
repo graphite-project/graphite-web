@@ -46,18 +46,23 @@ class Store:
         return WhisperFile(absolute_fs_path, metric_path)
 
 
-  def find(self, query):
+  def find(self, query, job_nodes=[]): # Add an optional argument: the list of nodes the job has run on
     if is_pattern(query):
 
       for match in self.find_all(query):
-        yield match
+        """
+        The first section of the metric path contains the job, so we split
+        it and check if the job_nodes list contains the node
+        """
+        if match.metric_path.split('.', 1)[0] in job_nodes:
+          yield match
 
     else:
       match = self.find_first(query)
 
       if match is not None:
-        yield match
-
+        if match.metric_path.split('.', 1)[0] in job_nodes:
+          yield match
 
   def find_first(self, query):
     # Search locally first

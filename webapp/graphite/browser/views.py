@@ -19,6 +19,9 @@ from django.conf import settings
 from graphite.account.models import Profile
 from graphite.util import getProfile, getProfileByUsername, defaultUser, json
 from graphite.logger import log
+
+from graphite.jobs import get_jobs
+
 try:
   from hashlib import md5
 except ImportError:
@@ -50,35 +53,19 @@ def browser(request):
     context['queryString'] = context['queryString'].replace('#','%23')
   if context['target']:
     context['target'] = context['target'].replace('#','%23') #js libs terminate a querystring on #
-  return render_to_response("browser.html", context) 
+  return render_to_response("browser.html", context)
 
 
 def search(request):
   query = request.POST['query']
-  if not query:
-    return HttpResponse("")
+  cluster = request.POST['cluster']
+  start = request.POST['start']
+  end = request.POST['end']
+  laststate = request.POST['laststate']
 
-  patterns = query.split()
-  regexes = [re.compile(p,re.I) for p in patterns]
-  def matches(s):
-    for regex in regexes:
-      if regex.search(s):
-        return True
-    return False
+  results = get_jobs(request.user, query=query, cluster=cluster, start=start, end=end, laststate=laststate)
 
-  results = []
-
-  index_file = open(settings.INDEX_FILE)
-  for line in index_file:
-    if matches(line):
-      results.append( line.strip() )
-    if len(results) >= 100:
-      break
-
-  index_file.close()
-  result_string = ','.join(results)
-  return HttpResponse(result_string, mimetype='text/plain')
-
+  return HttpResponse(json.dumps(results), mimetype='application/json')
 
 def myGraphLookup(request):
   "View for My Graphs navigation"

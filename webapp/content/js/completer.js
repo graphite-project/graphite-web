@@ -2,6 +2,7 @@ var MetricCompleter;
 
 MetricCompleter = Ext.extend(Ext.form.ComboBox, {
   displayField: "path",
+  valueField: "path",
   listEmptyText: "No matching metrics",
   mode: 'remote',
   hideTrigger: true,
@@ -16,7 +17,7 @@ MetricCompleter = Ext.extend(Ext.form.ComboBox, {
     var store = new Ext.data.JsonStore({
       url: "../metrics/find/",
       root: 'metrics',
-      fields: ['path', 'name'],
+      fields: ['path', 'name', 'fancyname'],
       baseParams: {format: 'completer'}
     });
 

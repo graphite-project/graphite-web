@@ -157,6 +157,15 @@
 #        'PORT': ''
 #    }
 #}
+#JOBS = {
+#        'NAME': '',
+#        'ENGINE': 'postgresql', # SQLAlchemy engine
+#        'USER': '',
+#        'PASSWORD': '',
+#        'HOST': '',
+#        'PORT': ''
+#       }
+#
 #
 
 

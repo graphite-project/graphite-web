@@ -265,7 +265,7 @@ function initDashboard () {
           menuDisabled: true
         },
         columns: [
-          {header: 'Metric Path', width: 1.0, dataIndex: 'path'}
+          {header: 'Metric Path', width: 1.0, dataIndex: 'fancyname'}
         ]
       }),
       viewConfig: {
@@ -294,7 +294,7 @@ function initDashboard () {
           format: 'completer',
           automatic_variants: (UI_CONFIG.automatic_variants) ? '1' : '0'
         },
-        fields: ['path', 'is_leaf'],
+        fields: ['path', 'name', 'fancyname', 'is_leaf'],
         root: 'metrics'
       }),
       listeners: {
