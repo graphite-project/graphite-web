@@ -34,7 +34,7 @@ class Store:
     self.remote_stores = [ RemoteStore(host) for host in remote_hosts if not is_local_interface(host) ]
 
     if not (directories or remote_hosts):
-      raise valueError("directories and remote_hosts cannot both be empty")
+      raise ValueError("directories and remote_hosts cannot both be empty")
 
 
   def get(self, metric_path): #Deprecated
