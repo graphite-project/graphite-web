@@ -93,14 +93,20 @@ class Store:
 
       while nodes_remaining:
         node_coverages = [ (measure_of_added_coverage(n), n) for n in nodes_remaining ]
+        #log.info("node_coverage: %s" % node_coverages)
         best_coverage, best_node = max(node_coverages)
 
-        if best_coverage == 0:
-          break
+        # TODO: disabled best_coverage selection for the moment to investigate
+        # duplicate elimination
+        #if best_coverage == 0:
+        #  break
 
         nodes_remaining.remove(best_node)
         minimal_node_set.add(best_node)
         covered_intervals = covered_intervals.union(best_node.intervals)
+
+      #log.info("minimal_node_set %s" % minimal_node_set)
+      #log.info("nodes_remaining %s" % nodes_remaining)
 
       # Sometimes the requested interval falls within the caching window.
       # We include the most likely node if the gap is within tolerance.
