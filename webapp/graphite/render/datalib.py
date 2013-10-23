@@ -16,7 +16,6 @@ import time
 from graphite.logger import log
 from graphite.storage import STORE
 from graphite.readers import FetchInProgress
-from graphite.remote_storage import RemoteReader
 
 
 class TimeSeries(list):
@@ -96,19 +95,11 @@ def fetchData(requestContext, pathExpr):
   endTime   = int( time.mktime( requestContext['endTime'].timetuple() ) )
 
   matching_nodes = STORE.find(pathExpr, startTime, endTime, local=requestContext['localOnly'])
+  fetches = [(node, node.fetch(startTime, endTime)) for node in matching_nodes if node.is_leaf]
 
-  for node in matching_nodes:
-    if node.is_leaf:
-      try:
-        results = node.fetch(startTime, endTime)
-        if isinstance(results, FetchInProgress):
-          results = results.waitForResults()
-      except Exception, e:
-        log.exception("One cluster node: %s seems to be down.(Reason: %s) Skipping fetch request..." % (node, e))
-        # this can happen in case the node.fetch fails, in this case, set the underlying RemoteStroe to be failed
-        results = None
-        if isinstance(node.reader, RemoteReader):
-          node.reader.store.fail()
+  for node, results in fetches:
+    if isinstance(results, FetchInProgress):
+      results = results.waitForResults()
 
     if not results:
       log.info("render.datalib.fetchData :: no results for %s.fetch(%s, %s)" % (node, startTime, endTime))

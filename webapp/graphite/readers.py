@@ -44,24 +44,16 @@ class MultiReader(object):
 
   def fetch(self, startTime, endTime):
     # Start the fetch on each node
-    results = []
-    for n in self.nodes:
-        try:
-          f = n.fetch(startTime, endTime)
-          results.append(f)
-        except Exception, e:
-          log.exception("Failed to initiate subfetch (Reason: %s)" % e)
-          #TODO:  if node is RemoteReader set underlying node to fail
+    results = [ n.fetch(startTime, endTime) for n in self.nodes ]
 
     # Wait for any asynchronous operations to complete
     for i, result in enumerate(results):
       if isinstance(result, FetchInProgress):
         try:
           results[i] = result.waitForResults()
-        except Exception, e:
-          log.exception("Failed to complete subfetch (Reason: %s)" % e)
+        except:
+          log.exception("Failed to complete subfetch")
           results[i] = None
-          #TODO:  if node is RemoteReader set underlying node to fail
 
     results = [r for r in results if r is not None]
     if not results:
