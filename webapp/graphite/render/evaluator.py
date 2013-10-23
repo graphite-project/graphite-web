@@ -1,5 +1,6 @@
 import datetime
 import time
+from operator import attrgetter
 from django.conf import settings
 from graphite.render.grammar import grammar
 from graphite.render.datalib import fetchData, TimeSeries
@@ -8,6 +9,7 @@ from graphite.render.datalib import fetchData, TimeSeries
 def evaluateTarget(requestContext, target):
   tokens = grammar.parseString(target)
   result = evaluateTokens(requestContext, tokens)
+  result.sort(key=attrgetter('name'))
 
   if type(result) is TimeSeries:
     return [result] #we have to return a list of TimeSeries objects
