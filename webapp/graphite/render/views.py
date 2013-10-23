@@ -45,8 +45,10 @@ from django.template import Context, loader
 from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
+from django.views.decorators.vary import vary_on_headers
 
 
+@vary_on_headers('Cookie')
 def renderView(request):
   start = time()
   (graphOptions, requestOptions) = parseOptions(request)
@@ -56,7 +58,9 @@ def renderView(request):
     'startTime' : requestOptions['startTime'],
     'endTime' : requestOptions['endTime'],
     'localOnly' : requestOptions['localOnly'],
-    'data' : []
+    'data' : [],
+    # Add the user to the requestContext so we can retrieve user back later without an explicit request
+    'user' : request.user
   }
   data = requestContext['data']
 

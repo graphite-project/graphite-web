@@ -21,6 +21,7 @@ from graphite.logger import log
 from graphite.storage import STORE
 from graphite.metrics.search import searcher
 from graphite.carbonlink import CarbonLink
+from graphite.jobs import get_jobs, get_nodes
 import fnmatch, os
 
 try:
@@ -89,33 +90,67 @@ def find_view(request):
 
   automatic_variants = int( request.REQUEST.get('automatic_variants', 0) )
 
+
   try:
     query = str( request.REQUEST['query'] )
   except:
     return HttpResponseBadRequest(content="Missing required parameter 'query'", mimetype="text/plain")
 
-  if '.' in query:
-    base_path = query.rsplit('.', 1)[0] + '.'
-  else:
-    base_path = ''
+  job = ''
 
-  if format == 'completer':
-    query = query.replace('..', '*.')
-    if not query.endswith('*'):
-      query += '*'
+  if query == "*": # Base query, add the job names to the filetree
+    matches = get_jobs(request.user, 25)
 
-    if automatic_variants:
-      query_parts = query.split('.')
-      for i,part in enumerate(query_parts):
-        if ',' in part and '{' not in part:
-          query_parts[i] = '{%s}' % part
-      query = '.'.join(query_parts)
+    content = tree_jobs(matches)
+    response = HttpResponse(content, mimetype='application/json')
+    return response;
 
-  try:
-    matches = list( STORE.find(query, fromTime, untilTime, local=local_only) )
-  except:
-    log.exception()
-    raise
+  elif '.' not in query:
+    """
+    We're looking at a completer query that searches for jobs; format PartialJob*; eg Blast*
+    Lets search if one or more of our nodes match and return them.
+    """
+    results = []
+
+    for line in get_jobs(request.user, 100, query[:-1]):
+      node_info = dict(path=line[0], name=line[1], fancyname=line[2], is_leaf='0')
+      node_info['path'] += '.'
+      results.append(node_info)
+
+    content = json.dumps({ 'metrics' : results })
+
+    response = HttpResponse(content, mimetype='application/json')
+    return response;
+
+  else: # We're looking at a job, split the job name temporary from the query
+
+    job = query.split('.', 1)[0]
+    query = query.split('.', 1)[1]
+
+    if '.' in query:
+      base_path = job + '.' + query.rsplit('.', 1)[0] + '.' # Add the job name back so it's fetchable in future requests
+    else:
+      base_path = job + '.'                                 # Add the job name back so it's fetchable in future requests
+
+    if format == 'completer':
+      query = query.replace('..', '*.')
+      if not query.endswith('*'):
+        query += '*'
+
+      if automatic_variants:
+        query_parts = query.split('.')
+        for i,part in enumerate(query_parts):
+          if ',' in part and '{' not in part:
+            query_parts[i] = '{%s}' % part
+        query = '.'.join(query_parts)
+
+    try:
+      # Added an extra argument with the job name so we can filter the returning nodes later on
+      matches = list( STORE.find(query, fromTime, untilTime, local=local_only, job_nodes=get_nodes(job) ))
+    except:
+      log.exception()
+      raise
+
 
   log.info('find_view query=%s local_only=%s matches=%d' % (query, local_only, len(matches)))
   matches.sort(key=lambda node: node.name)
@@ -130,18 +165,23 @@ def find_view(request):
     response = HttpResponse(content, mimetype='application/pickle')
 
   elif format == 'completer':
-    results = []
-    for node in matches:
-      node_info = dict(path=node.path, name=node.name, is_leaf=str(int(node.is_leaf)))
-      if not node.is_leaf:
-        node_info['path'] += '.'
-      results.append(node_info)
+    try:
+      results = []
+      for node in matches:
+        fancyname = get_jobs(request.user, 100, job)[0][2]
+        node_info = dict(path=job + "." + node.path, name=node.name, fancyname=fancyname + "." + node.path, is_leaf=str(int(node.is_leaf)))
+        if not node.is_leaf:
+          node_info['path'] += '.'
+        results.append(node_info)
 
-    if len(results) > 1 and wildcards:
-      wildcardNode = {'name' : '*'}
-      results.append(wildcardNode)
+      if len(results) > 1 and wildcards:
+        wildcardNode = {'name' : '*'}
+        results.append(wildcardNode)
 
-    response = json_response_for(request, { 'metrics' : results})
+      response = json_response_for(request, { 'metrics' : results})
+    except Exception as e:
+      print e
+
 
   else:
     return HttpResponseBadRequest(content="Invalid value for 'format' parameter", mimetype="text/plain")
@@ -230,7 +270,29 @@ def set_metadata_view(request):
   return json_response_for(request, results)
 
 
-def tree_json(nodes, base_path, wildcards=False):
+def tree_jobs(jobs):
+  results = []
+
+  branchNode = {
+    'allowChildren': 1,
+    'expandable': 1,
+    'leaf': 0,
+  }
+
+  for (name, jobname, fancyname) in jobs: #Now let's add the matching children
+    resultNode = {
+      'text' : fancyname,
+      'id' : name,
+    }
+
+    resultNode['context'] = 1
+
+    resultNode.update(branchNode)
+    results.append(resultNode)
+
+  return json.dumps(results)
+
+def tree_json(nodes, base_path, wildcards=False, contexts=False):
   results = []
 
   branchNode = {

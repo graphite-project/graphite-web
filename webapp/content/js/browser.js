@@ -52,7 +52,8 @@ function createTreePanel(){
 
   var graphiteNode = new Ext.tree.AsyncTreeNode({
     id: 'GraphiteTree',
-    text: "Graphite",
+    text: "Recent jobs",
+    expanded: true,
     loader: new Ext.tree.TreeLoader({
       url: "../metrics/find/",
       requestMethod: "GET",
@@ -85,20 +86,8 @@ function createTreePanel(){
     rootNode.appendChild(myGraphsNode);
   }
 
-  var userGraphsNode = new Ext.tree.AsyncTreeNode({
-    id: 'UserGraphsTree',
-    text: "User Graphs",
-    //listeners: {beforeexpand: reloadOnce},
-    loader: new Ext.tree.TreeLoader({
-      url: "../browser/usergraph/",
-      requestMethod: "GET",
-      listeners: {beforeload: setParams}
-    })
-  });
-  rootNode.appendChild(userGraphsNode);
-
   var treePanel = new Ext.tree.TreePanel({
-    title: "Tree",
+    title: "Recent jobs",
     root: rootNode,
     containerScroll: true,
     autoScroll: true,
@@ -132,35 +121,123 @@ function createTreePanel(){
 
 //Search Tab
 function createSearchPanel() {
-  return new Ext.form.FormPanel({
+  formPanel = new Ext.form.FormPanel({
     formId: 'searchForm',
-    title: 'Search',
+    title: 'Search form',
     disabled: (!GraphiteConfig.searchEnabled),
-    width: 200,
-    containerScroll: true,
-    autoScroll: true,
+    region: 'north',
+    flex: 0.6,
+    autoscroll: true,
+    padding: 5,
     items: [
       new Ext.form.TextField({
-        emptyText: "search for metrics",
-        width: 200,
-        hideLabel: true,
+        fieldLabel: "Name or Id",
+        name: 'query',
         listeners: {specialkey: sendSearchRequest}
-      })
+      }),
+      new Ext.form.FieldSet({
+        collapsible: true,
+        collapsed: true,
+        title: 'Optional fields',
+        items: [
+          new Ext.form.TextField({
+            fieldLabel: 'Cluster',
+            name: 'cluster',
+          }),
+          new Ext.form.Label({
+            html:' <hr />',
+          }),
+          new Ext.form.DateField({
+            name: 'start_date',
+            fieldLabel: 'Started after',
+            format:'d-m-Y',
+          }),
+          new Ext.form.TimeField({
+            name: 'start_time',
+            minValue: '0:00AM',
+            maxValue: '11:30PM',
+            increment: 30,
+            width: 85
+          }),
+          new Ext.form.Label({
+            html:'<hr />',
+          }),
+          new Ext.form.DateField({
+            name: 'end_date',
+            fieldLabel: 'Ended before',
+            format:'d-m-Y',
+          }),
+          new Ext.form.TimeField({
+            name: 'end_time',
+            minValue: '0:00AM',
+            maxValue: '11:30PM',
+            increment: 30,
+            width: 85
+          }),
+          new Ext.form.Label({
+            html:'<hr />',
+          }),
+          new Ext.form.ComboBox({
+            fieldLabel: 'Laststate',
+            hiddenName: 'letter',
+            hiddenValue: 'letter',
+            store: new Ext.data.SimpleStore({
+                fields: ['letter', 'name'],
+                data : [['S','Started'], ['E','Ended']]
+            }),
+            displayField: 'name',
+            valueField: 'letter',
+            typeAhead: true,
+            mode: 'local',
+            triggerAction: 'all',
+            selectOnFocus:true,
+            width: 85
+          })
+        ]
+      }),
     ],
-    listeners: {render: setupSearchForm}
+    buttons:
+      [{
+        text: 'Clear form',
+        name: 'btnClear',
+        handler: function () { formPanel.getForm().reset(); }
+      }, {
+        text: 'Search',
+        name: 'btnSearch',
+        handler: function () {
+            sendLimitedSearchRequest(formPanel.getForm().items.items);
+          }
+      }]
   });
-}
 
-function setupSearchForm(formEl) {
-  var html = '<a id="searchHelpLink" > Help </a> <p id="searchError"></p> <ul id="searchResults"></ul>';
-  Ext.DomHelper.append("searchForm", html);
-  var helpAction = 'javascript: void window.open';
-  var helpPage = '"../content/html/searchHelp.html"';
-  var helpTitle = '"Searching Graphite"';
-  var helpOptions = '"width=500,height=400,toolbar=no,location=no,directories=no,status=no,menubar=no"';
-  Ext.getDom('searchHelpLink').href = helpAction+"("+helpPage+","+helpTitle+","+helpOptions+");";
-  var formPanel = Ext.get("searchForm");
-  formPanel.un("render",setupSearchForm); 
+  resultPanel = new Ext.Panel({
+    id: 'resultPanel',
+    title: 'Results',
+    flex: 0.4,
+    padding: 5,
+    region: 'center',
+    autoScroll:true,
+    items: [
+      new Ext.form.Label({
+        fieldLabel: 'Cluster',
+        html: '<p id="searchError"></p> <ul id="searchResults"></ul>',
+      }),
+    ]
+  });
+
+  containerPanel = new Ext.Panel({
+    id: 'containerPanel',
+    title: 'Search',
+    layout: {
+      align: 'stretch',
+      type: 'vbox'
+    },
+  });
+
+  containerPanel.add(formPanel);
+  containerPanel.add(resultPanel);
+
+  return containerPanel;
 }
 
 function showSearchError(message) {
@@ -171,6 +248,54 @@ function sendSearchRequest (searchField, evt) {
   if (evt.getCharCode() != Ext.EventObject.RETURN) {
     return;
   }
+  sendActualSearchRequest(searchField.getValue());
+}
+
+function addHours(date, time) {
+
+  var hours, minutes;
+
+  if (time !== "") {
+
+    splitted = time.split(/[ :]/);
+
+    hours = parseInt(splitted[0]);
+
+    if(splitted[2] == "PM" && hours < 12) {
+      hours += 12;
+    }
+    if(splitted[2] == "AM" && hours == 12) {
+      hours -= 12;
+    }
+
+    date.setHours(hours, splitted[1]);
+  }
+
+  return date.getTime() / 1000;
+}
+
+function sendLimitedSearchRequest (items) {
+
+
+  var start, end;
+
+  if(items[2].getValue() !== "") {
+    start = addHours(items[2].getValue(), items[3].getValue());
+  }
+  if(items[4].getValue() !== "") {
+    end = addHours(items[4].getValue(), items[5].getValue());
+  }
+
+  sendActualSearchRequest(
+    items[0].getValue(),
+    items[1].getValue(),
+    start,
+    end,
+    items[6].getValue()
+  );
+}
+
+function sendActualSearchRequest(query, cluster, start, end, laststate) {
   //Clear any previous errors
   showSearchError("");
   //Clear the result list
@@ -183,23 +308,106 @@ function sendSearchRequest (searchField, evt) {
     method: 'POST',
     success: handleSearchResponse,
     failure: handleSearchFailure,
-    params: {query: searchField.getValue()}
+    params: {
+      query: query,
+      cluster: cluster,
+      start: start,
+      end: end,
+      laststate: laststate
+    }
   });
 }
 
 function handleSearchResponse (response, options) {
-  var text = response.responseText;
-  if (text == "") {
+  if (!response.responseText) {
     showSearchError("Nothing matched your query");
     return;
   }
+  var result = Ext.util.JSON.decode(response.responseText);
   var resultList = Ext.getDom('searchResults');
-  var results = text.split(',');
-  Ext.each(results, function (item) {
+
+  if(result.length == 0) {
+    showSearchError("Nothing matched your query");
+    return;
+  }
+
+  Ext.each(result, function (item) {
     var li = document.createElement('li');
-    li.innerHTML = "<a href=\"javascript: Composer.toggleTarget('" + item + "');\">" + item + "</a>";
+
+    // We don't want to toggle the target here as we'll only receive jobs names; rather open a new tab
+    li.innerHTML = "<a href=\"javascript: addJobPanel('" + item[0] + "','" + item[2] + "')\">" + item[2]  + "</a>";
     resultList.appendChild(li);
   });
+}
+
+// Adds a new job tree when a name job is clicked in the search view
+function addJobPanel(job, fancyname)
+{
+
+  var newTree = addJobTree(job, fancyname);
+  Browser.panel.add(newTree);
+  Browser.panel.setActiveTab(newTree);
+
+}
+
+// Creates a new Tree to add to the new job panel
+function addJobTree(job, fancyname)
+{
+  var rootNode = new Ext.tree.TreeNode({});
+
+  function setParams(loader, node) {
+    var node_id = node.id.replace(/^[A-Za-z]+Tree\.?/,"");
+    loader.baseParams.query = (node_id == "") ? "*" : (node_id + ".*");
+    loader.baseParams.format = 'treejson';
+    loader.baseParams.contexts = '1';
+    loader.baseParams.path = node_id;
+  }
+
+  var graphiteNode = new Ext.tree.AsyncTreeNode({
+    id: job,
+    text: fancyname,
+    expanded: true,
+    loader: new Ext.tree.TreeLoader({
+      url: "../metrics/find/",
+      requestMethod: "GET",
+      listeners: {beforeload: setParams}
+    })
+  });
+  rootNode.appendChild(graphiteNode);
+
+  var treePanel = new Ext.tree.TreePanel({
+    id: job,
+    title: fancyname,
+    root: rootNode,
+    containerScroll: true,
+    autoScroll: true,
+    pathSeparator: ".",
+    closable: true,
+    rootVisible: false,
+    singleExpand: false,
+    trackMouseOver: true
+  });
+
+  treePanel.on("click", function (node,evt) {
+    if (node.id == 'no-click') {
+      return;
+    }
+
+    if (!node.leaf) {
+      node.toggle();
+      return;
+    }
+
+    if (node.attributes.graphUrl) {
+      var url = node.attributes.graphUrl
+      Composer.loadMyGraph(node.attributes.text, url);
+      return;
+    }
+
+    Composer.toggleTarget(node.id);
+  });
+
+  return treePanel;
 }
 
 function handleSearchFailure (response, options)

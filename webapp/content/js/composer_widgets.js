@@ -36,7 +36,9 @@ function createComposerWindow(myComposer) {
   Composer = myComposer;
 
   //Can't define this inline because I need a reference in a closure below
-  var timeDisplay = new Ext.Toolbar.TextItem({text: "Now showing the past 24 hours"});
+  //Don't show the text at first load as the shown period is not always
+  //the past 24 hours
+  var timeDisplay = new Ext.Toolbar.TextItem({text: ""});
 
   var topToolbar = [
     createToolbarButton('Update Graph', 'updateGraph.gif', updateGraph),

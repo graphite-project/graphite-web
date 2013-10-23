@@ -188,6 +188,15 @@
 #        'PORT': ''
 #    }
 #}
+#JOBS = {
+#        'NAME': '',
+#        'ENGINE': 'postgresql', # SQLAlchemy engine
+#        'USER': '',
+#        'PASSWORD': '',
+#        'HOST': '',
+#        'PORT': ''
+#       }
+#
 #
 # Users still on Django 1.1 must use the old method instead:
 #DATABASE_ENGINE = 'django.db.backends.mysql'

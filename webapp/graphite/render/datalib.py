@@ -16,6 +16,7 @@ import time
 from graphite.logger import log
 from graphite.storage import STORE
 from graphite.readers import FetchInProgress
+from graphite.jobs import get_job_timerange, get_jobs, get_nodes, has_job
 
 
 class TimeSeries(list):
@@ -93,8 +94,38 @@ def fetchData(requestContext, pathExpr):
   seriesList = []
   startTime = int( time.mktime( requestContext['startTime'].timetuple() ) )
   endTime   = int( time.mktime( requestContext['endTime'].timetuple() ) )
+  user = requestContext['user']
 
-  matching_nodes = STORE.find(pathExpr, startTime, endTime, local=requestContext['localOnly'])
+  # Split the job from the path
+  (job, pathExpr) = pathExpr.split(".", 1);
+
+  # Security: If the user requests a job that's not his: kick him out unless the user may see all data
+  if not has_job(user, job) and not user.has_perm('account.can_see_all'):
+    return []
+
+
+  # Get the maximum visible time range from the job
+  (jobStart, jobEnd) = get_job_timerange(job)
+
+  # Limit the visible period to the period the job has run
+  if startTime < jobEnd:
+    startTime = max(startTime, jobStart)
+  else:
+    startTime = jobStart
+
+  if endTime > jobStart:
+    endTime = min(endTime, jobEnd)
+  else:
+    endTime = jobEnd
+
+  '''
+  Simple fix: If for some weird reason the endTime is earlier then the startTime; we would get an
+  500 error. If we equalize the start to the end, we just get a "No data" message
+  '''
+  if endTime < startTime:
+    endTime = startTime
+
+  matching_nodes = STORE.find(pathExpr, startTime, endTime, local=requestContext['localOnly'], job_nodes=get_nodes(job))
   fetches = [(node, node.fetch(startTime, endTime)) for node in matching_nodes if node.is_leaf]
 
   for node, results in fetches:
@@ -105,14 +136,16 @@ def fetchData(requestContext, pathExpr):
       log.info("render.datalib.fetchData :: no results for %s.fetch(%s, %s)" % (node, startTime, endTime))
       continue
 
+    (timeInfo,values) = results
+    (start,end,step) = timeInfo
     try:
         (timeInfo, values) = results
     except ValueError, e:
         raise Exception("could not parse timeInfo/values from metric '%s': %s" % (node.path, e))
     (start, end, step) = timeInfo
 
-    series = TimeSeries(node.path, start, end, step, values)
-    series.pathExpression = pathExpr #hack to pass expressions through to render functions
+    series = TimeSeries(job + '.' + node.path, start, end, step, values)
+    series.pathExpression = job + '.' + pathExpr #hack to pass expressions through to render functions
     seriesList.append(series)
 
   # Prune empty series with duplicate metric paths to avoid showing empty graph elements for old whisper data

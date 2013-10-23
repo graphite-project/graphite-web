@@ -7,7 +7,7 @@ from graphite.node import LeafNode
 from graphite.intervals import Interval, IntervalSet
 from graphite.readers import MultiReader
 from graphite.finders import CeresFinder, StandardFinder
-
+from render.decorators import limit_time_range
 
 class Store:
   def __init__(self, finders, hosts=[]):
@@ -15,8 +15,7 @@ class Store:
     remote_hosts = [host for host in hosts if not is_local_interface(host)]
     self.remote_stores = [ RemoteStore(host) for host in remote_hosts ]
 
-
-  def find(self, pattern, startTime=None, endTime=None, local=False):
+  def find(self, pattern, startTime=None, endTime=None, local=False, job_nodes=[]): # Add an optional argument: the list of nodes the job has run on
     query = FindQuery(pattern, startTime, endTime)
 
     # Start remote searches
@@ -28,15 +27,17 @@ class Store:
     # Search locally
     for finder in self.finders:
       for node in finder.find_nodes(query):
-        #log.info("find() :: local :: %s" % node)
-        matching_nodes.add(node)
+        if node.path.split('.', 1)[0] in job_nodes:
+          log.info("find() :: local :: %s" % node)
+          matching_nodes.add(node)
 
     # Gather remote search results
     if not local:
       for request in remote_requests:
         for node in request.get_results():
-          #log.info("find() :: remote :: %s from %s" % (node,request.store.host))
-          matching_nodes.add(node)
+          if node.path.split('.', 1)[0] in job_nodes:
+            log.info("find() :: remote :: %s from %s" % (node,request.store.host))
+            matching_nodes.add(node)
 
     # Group matching nodes by their path
     nodes_by_path = {}
