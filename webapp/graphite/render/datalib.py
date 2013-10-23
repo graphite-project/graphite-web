@@ -16,7 +16,7 @@ import time
 from graphite.logger import log
 from graphite.storage import STORE
 from graphite.readers import FetchInProgress
-
+from django.conf import settings
 
 class TimeSeries(list):
   def __init__(self, name, start, end, step, values, consolidate='average'):
@@ -130,17 +130,18 @@ def fetchData(requestContext, pathExpr):
 
     return seriesList
   
-  retries = 0
+  retries = 1 # start counting at one to make log output and settings more readable
   while True:
     try:
       seriesList = _fetchData(pathExpr,startTime, endTime, requestContext, seriesList)
       return seriesList
     except Exception, e:
-      if retries > 2:
-        #log.info("Failed after second retry!  See: %s" % e )
-        raise Exception("Failed after second retry! See: %s" % e)
+      if retries >= settings.MAX_FETCH_RETRIES:
+        # log.info("Failed after %i retry! See: %s" % (settings.MAX_FETCH_RETRIES, e))
+        raise Exception("Failed after %i retry! See: %s" % (settings.MAX_FETCH_RETRIES, e))
       else:
-        #log.info("Got an exception when fetching data! See: %s Will do it again! Run: %i" % (e, retries))
+        # log.info("Got an exception when fetching data! See: %s Will do it again! Run: %i of %i" %
+        #             (e, retries, settings.MAX_FETCH_RETRIES))
         retries += 1
 
 
