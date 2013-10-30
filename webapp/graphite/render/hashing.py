@@ -49,7 +49,7 @@ def stripControlChars(string):
 
 def compactHash(string):
   hash = md5()
-  hash.update(string)
+  hash.update(string.encode('unicode_escape'))
   return hash.hexdigest()
 
 
