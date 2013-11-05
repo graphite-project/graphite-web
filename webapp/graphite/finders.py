@@ -1,4 +1,5 @@
 import os
+import re
 import fnmatch
 from os.path import islink, isdir, isfile, realpath, join, dirname, basename
 from glob import glob
@@ -11,6 +12,23 @@ from graphite.logger import log
 
 #setDefaultSliceCachingBehavior('all')
 
+re_braces = re.compile(r'({[^{},]*,[^{}]*})')
+
+def braces_glob(s):
+  match = re_braces.search(s)
+
+  if not match:
+    return glob(s)
+
+  res = set()
+  sub = match.group(1)
+  open_pos, close_pos = match.span(1)
+
+  for bit in sub.strip('{}').split(','):
+    res.update(braces_glob(s[:open_pos] + bit + s[close_pos:]))
+
+  return list(res)
+
 
 class CeresFinder:
   def __init__(self, directory):
@@ -18,7 +36,7 @@ class CeresFinder:
     self.tree = CeresTree(directory)
 
   def find_nodes(self, query):
-    for fs_path in glob( self.tree.getFilesystemPath(query.pattern) ):
+    for fs_path in braces_glob( self.tree.getFilesystemPath(query.pattern) ):
       metric_path = self.tree.getNodePath(fs_path)
 
       if CeresNode.isNodeDir(fs_path):
