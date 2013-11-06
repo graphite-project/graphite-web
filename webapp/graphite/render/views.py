@@ -114,8 +114,8 @@ def renderView(request):
         log.rendering("Retrieval of %s took %.6f" % (target, time() - t))
         data.extend(seriesList)
 
-    if useCache:
-      cache.add(dataKey, data, cacheTimeout)
+      if useCache:
+        cache.add(dataKey, data, cacheTimeout)
 
     # If data is all we needed, we're done
     format = requestOptions.get('format')
