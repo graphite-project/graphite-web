@@ -78,22 +78,19 @@ def is_local_interface(host):
   if ':' in host:
     host = host.split(':',1)[0]
 
-  for port in xrange(1025, 65535):
-    try:
-      sock = socket.socket()
-      sock.bind( (host,port) )
-      sock.close()
+  try:
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.connect( (host, 0) )
+    local_ip = sock.getsockname()[0]
+    sock.close()
+  except:
+      log.exception("Failed to open socket with %s" % host)
+      raise
 
-    except socket.error, e:
-      if e.args[0] == errno.EADDRNOTAVAIL:
-        return False
-      else:
-        continue
+  if local_ip == host:
+    return True
 
-    else:
-      return True
-
-  raise Exception("Failed all attempts at binding to interface %s, last exception was %s" % (host, e))
+  return False
 
 
 def is_pattern(s):
