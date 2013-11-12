@@ -14,6 +14,7 @@ limitations under the License."""
 
 import os, logging
 from logging.handlers import TimedRotatingFileHandler as Rotater
+from logging.handlers import NullHandler
 from django.conf import settings
 
 logging.addLevelName(30,"rendering")
@@ -47,14 +48,20 @@ class GraphiteLogger:
       self.cacheHandler = Rotater(self.cacheLogFile,when="midnight",backupCount=1)
       self.cacheHandler.setFormatter(self.formatter)
       self.cacheLogger.addHandler(self.cacheHandler)
+    else:
+      self.cacheLogger.addHandler(NullHandler())
     if settings.LOG_RENDERING_PERFORMANCE:
       self.renderingHandler = Rotater(self.renderingLogFile,when="midnight",backupCount=1)
       self.renderingHandler.setFormatter(self.formatter)
       self.renderingLogger.addHandler(self.renderingHandler)
+    else:
+      self.renderingHandler.addHandler(NullHandler())
     if settings.LOG_METRIC_ACCESS:
       self.metricAccessHandler = Rotater(self.metricAccessLogFile,when="midnight",backupCount=10)
       self.metricAccessHandler.setFormatter(self.formatter)
       self.metricAccessLogger.addHandler(self.metricAccessHandler)
+    else:
+      self.metricAccessHandler.addHandler(NullHandler())
 
   def info(self,msg,*args,**kwargs):
     return self.infoLogger.info(msg,*args,**kwargs)
