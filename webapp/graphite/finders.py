@@ -5,6 +5,7 @@ from glob import glob
 from ceres import CeresTree, CeresNode, setDefaultSliceCachingBehavior
 from graphite.node import BranchNode, LeafNode
 from graphite.readers import CeresReader, WhisperReader, GzippedWhisperReader, RRDReader
+from graphite.readers import BluefloodReader
 from graphite.util import find_escaped_pattern_fields
 
 from graphite.logger import log
@@ -68,7 +69,8 @@ class StandardFinder:
 
         elif isfile(absolute_path):
           if absolute_path.endswith('.wsp') and WhisperReader.supported:
-            reader = WhisperReader(absolute_path, real_metric_path)
+            reader = BluefloodReader('graphite_demo', 'fake_api_key',
+                                     real_metric_path)
             yield LeafNode(metric_path, reader)
 
           elif absolute_path.endswith('.wsp.gz') and GzippedWhisperReader.supported:
@@ -93,7 +95,7 @@ class StandardFinder:
     try:
       entries = os.listdir(current_dir)
     except OSError as e:
-      log.exception(e) 
+      log.exception(e)
       entries = []
 
     subdirs = [e for e in entries if isdir( join(current_dir,e) )]
