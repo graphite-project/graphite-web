@@ -15,6 +15,7 @@ limitations under the License."""
 import os, logging
 from logging.handlers import TimedRotatingFileHandler as Rotater
 from logging.handlers import NullHandler
+from logging.handlers import FileHandler
 from django.conf import settings
 
 logging.addLevelName(30,"rendering")
@@ -52,9 +53,12 @@ class GraphiteLogger:
     logger = logging.getLogger(name)
     if level is not None:
         logger.setLevel(level)
-    if activate:
+    if activate:  # if want to log this one
         formatter = logging.Formatter("%(asctime)s :: %(message)s","%a %b %d %H:%M:%S %Y")
-        handler = Rotater(log_file, when=when, backupCount=backupCount)
+        if settings.LOG_ROTATE:  # if we want to rotate logs
+            handler = Rotater(log_file, when=when, backupCount=backupCount)
+        else:  # let someone else, e.g. logrotate, rotate the logs
+            handler = FileHandler(log_file)
         handler.setFormatter(formatter)
         logger.addHandler(handler)
     else:
