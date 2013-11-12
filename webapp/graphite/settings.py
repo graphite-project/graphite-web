@@ -64,6 +64,7 @@ FIND_CACHE_DURATION = 300
 FIND_TOLERANCE = 2 * FIND_CACHE_DURATION
 DEFAULT_CACHE_DURATION = 60 #metric data and graphs are cached for one minute by default
 LOG_CACHE_PERFORMANCE = False
+LOG_ROTATE = True
 
 MAX_FETCH_RETRIES = 2
 
