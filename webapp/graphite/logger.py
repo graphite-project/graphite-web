@@ -14,8 +14,8 @@ limitations under the License."""
 
 import os, logging
 from logging.handlers import TimedRotatingFileHandler as Rotater
-from logging.handlers import NullHandler
-from logging.handlers import FileHandler
+from logging import NullHandler
+from logging import FileHandler
 from django.conf import settings
 
 logging.addLevelName(30,"rendering")
