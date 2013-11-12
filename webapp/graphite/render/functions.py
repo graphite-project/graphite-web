@@ -2271,7 +2271,7 @@ def verticalLine(requestContext, ts, label=None, color=None):
 
   .. code-block:: none
 
-    &target=verticalLine(12:3420131108,'event','blue')
+    &target=verticalLine("12:3420131108","event","blue")
 
   """
   ts = timestamp( parseATTime(ts, requestContext['tzinfo']) )
