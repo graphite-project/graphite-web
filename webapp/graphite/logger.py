@@ -28,21 +28,20 @@ class GraphiteLogger:
                                           True,
                                           level = logging.INFO,
                                           )
+    self.exceptionLogger = self._config_logger('exception.log',
+                                               'exception',
+                                               True,
+                                               )
     #Setup log files
-    self.exceptionLogFile = os.path.join(settings.LOG_DIR,"exception.log")
     self.cacheLogFile = os.path.join(settings.LOG_DIR,"cache.log")
     self.renderingLogFile = os.path.join(settings.LOG_DIR,"rendering.log")
     self.metricAccessLogFile = os.path.join(settings.LOG_DIR,"metricaccess.log")
     #Setup loggers
-    self.exceptionLogger = logging.getLogger("exception")
     self.cacheLogger = logging.getLogger("cache")
     self.renderingLogger = logging.getLogger("rendering")
     self.metricAccessLogger = logging.getLogger("metric_access")
     #Setup formatter & handlers
     self.formatter = logging.Formatter("%(asctime)s :: %(message)s","%a %b %d %H:%M:%S %Y")
-    self.exceptionHandler = Rotater(self.exceptionLogFile,when="midnight",backupCount=1)
-    self.exceptionHandler.setFormatter(self.formatter)
-    self.exceptionLogger.addHandler(self.exceptionHandler)
     if settings.LOG_CACHE_PERFORMANCE:
       self.cacheHandler = Rotater(self.cacheLogFile,when="midnight",backupCount=1)
       self.cacheHandler.setFormatter(self.formatter)
