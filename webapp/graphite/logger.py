@@ -63,6 +63,22 @@ class GraphiteLogger:
     else:
       self.metricAccessHandler.addHandler(NullHandler())
 
+  @staticmethod
+  def _config_logger(log_file_name, name, activate,
+                     level=None, when=midnight, backupCount=1):
+    log_file = os.path.join(settings.LOG_DIR, log_file_name)
+    logger = logging.getLogger(name)
+    if level is not None:
+        logger.setLevel(level)
+    if activate:
+        formatter = logging.Formatter("%(asctime)s :: %(message)s","%a %b %d %H:%M:%S %Y")
+        handler = Rotater(log_file, when=when, backupCount=backupCount)
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+    else:
+        logger.addHandler(NullHandler())
+    return logger
+
   def info(self,msg,*args,**kwargs):
     return self.infoLogger.info(msg,*args,**kwargs)
 
