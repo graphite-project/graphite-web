@@ -57,7 +57,7 @@ class GraphiteLogger:
     else:
       self.renderingHandler.addHandler(NullHandler())
     if settings.LOG_METRIC_ACCESS:
-      self.metricAccessHandler = Rotater(self.metricAccessLogFile,when="midnight",backupCount=10)
+      self.metricAccessHandler = Rotater(self.metricAccessLogFile,when="midnight",backupCount=1)
       self.metricAccessHandler.setFormatter(self.formatter)
       self.metricAccessLogger.addHandler(self.metricAccessHandler)
     else:
