@@ -21,6 +21,11 @@ try:
 except ImportError:
   gzip = False
 
+try:
+  from graphite.blueflood import Blueflood
+except:
+  blueflood = False
+
 
 class FetchInProgress(object):
   def __init__(self, wait_callback):
@@ -182,6 +187,41 @@ class WhisperReader(object):
         pass
 
     return (time_info, values)
+
+
+class BluefloodReader(object):
+
+  def __init__(self, tenant, api_key, metric, **options):
+    self.bf_client = Blueflood(tenant, api_key, **options)
+    self.metric = metric
+
+  def get_intervals(self):
+    intervals = []
+    tuples = self.bf_client.get_intervals(self.metric)
+    for tup in tuples:
+      intervals.append(Interval(tup[0]/1000, tup[1]/1000))
+
+    return IntervalSet(intervals)
+
+  def fetch(self, startTime, endTime):
+    values = self.bf_client.fetch(self.metric, startTime * 1000, endTime * 1000)
+
+    # TODO: Think about using carbon cache
+    # convert to format graphite understands
+    if len(values) == 0:
+      return None
+
+    if len(values) == 1:
+      time_info = (values[0]['timestamp']/1000, values[0]['timestamp']/1000, 0)  # hack
+      return (time_info, [values[0]['average']])
+
+    step = (values[1]['timestamp'] - values[0]['timestamp'])/1000  # not necessarily right
+    time_info = (values[0]['timestamp']/1000, values[len(values) - 1]['timestamp']/1000, step)
+    value_list = []
+    for value in values:
+      value_list.append(value['average'])
+
+    return (time_info, value_list)
 
 
 class GzippedWhisperReader(WhisperReader):
