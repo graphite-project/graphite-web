@@ -5,7 +5,7 @@ import glob
 import re
 
 from django.conf import settings
-# This line has to occur before importing functions and datalib.
+# This line has to occur before importing logger and datalib.
 temp_dir = tempfile.mkdtemp(prefix='graphite-log-test')
 settings.configure(
     LOG_DIR=temp_dir,
