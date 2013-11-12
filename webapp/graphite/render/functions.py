@@ -2306,7 +2306,7 @@ def threshold(requestContext, value, label=None, color=None):
 
   .. code-block:: none
 
-    &target=threshold(123.456, "omgwtfbbq", red)
+    &target=threshold(123.456, "omgwtfbbq", "red")
 
   """
   series = constantLine(requestContext, value)[0]
