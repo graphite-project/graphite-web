@@ -21,6 +21,7 @@ from graphite.logger import log
 class TestLogger(unittest.TestCase):
 
     def test_init(self):
+        """ Tesing initialization. """
         for logger in ['infoLogger', 'exceptionLogger', 'cacheLogger',
                        'renderingLogger', 'metricAccessLogger']:
             self.assertTrue(hasattr(log, logger))
@@ -29,18 +30,21 @@ class TestLogger(unittest.TestCase):
         pass
 
     def test_info_log(self):
+        """ Testing writing to a log file. """
         message = 'Test Info Message'
         log.info(message)
         lines = [l for l in open(os.path.join(temp_dir, 'info.log'))]
         self.assertEqual(message, lines[0].split('::')[1].strip())
 
     def test_metric_log(self):
+        """ Test writing to a not configured logger. """
         message = 'Test Info Message'
         log.metric_access(message)
         file_name = os.path.join(temp_dir, 'metricaccess.log')
         self.assertFalse(os.path.exists(file_name))
 
     def test_rotate(self):
+        """ Force rotation of the log file. """
         handler = log.infoLogger.handlers[0]
         handler.doRollover()
         files = glob.glob(os.path.join(temp_dir, 'info.log.*'))
