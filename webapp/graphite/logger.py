@@ -48,7 +48,7 @@ class GraphiteLogger:
 
   @staticmethod
   def _config_logger(log_file_name, name, activate,
-                     level=None, when=midnight, backupCount=1):
+                     level=None, when='midnight', backupCount=1):
     log_file = os.path.join(settings.LOG_DIR, log_file_name)
     logger = logging.getLogger(name)
     if level is not None:
