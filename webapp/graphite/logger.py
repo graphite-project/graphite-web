@@ -36,26 +36,14 @@ class GraphiteLogger:
                                            'cache',
                                            settings.LOG_CACHE_PERFORMANCE,
                                            )
-    #Setup log files
-    self.renderingLogFile = os.path.join(settings.LOG_DIR,"rendering.log")
-    self.metricAccessLogFile = os.path.join(settings.LOG_DIR,"metricaccess.log")
-    #Setup loggers
-    self.renderingLogger = logging.getLogger("rendering")
-    self.metricAccessLogger = logging.getLogger("metric_access")
-    #Setup formatter & handlers
-    self.formatter = logging.Formatter("%(asctime)s :: %(message)s","%a %b %d %H:%M:%S %Y")
-    if settings.LOG_RENDERING_PERFORMANCE:
-      self.renderingHandler = Rotater(self.renderingLogFile,when="midnight",backupCount=1)
-      self.renderingHandler.setFormatter(self.formatter)
-      self.renderingLogger.addHandler(self.renderingHandler)
-    else:
-      self.renderingHandler.addHandler(NullHandler())
-    if settings.LOG_METRIC_ACCESS:
-      self.metricAccessHandler = Rotater(self.metricAccessLogFile,when="midnight",backupCount=1)
-      self.metricAccessHandler.setFormatter(self.formatter)
-      self.metricAccessLogger.addHandler(self.metricAccessHandler)
-    else:
-      self.metricAccessHandler.addHandler(NullHandler())
+    self.renderingLogger = self._config_logger('rendering.log',
+                                               'rendering',
+                                               settings.LOG_RENDERING_PERFORMANCE,
+                                               )
+    self.metricAccessLogger = self._config_logger('metricaccess.log',
+                                                  'metric_access',
+                                                  settings.LOG_METRIC_ACCESS,
+                                                  )
 
   @staticmethod
   def _config_logger(log_file_name, name, activate,
