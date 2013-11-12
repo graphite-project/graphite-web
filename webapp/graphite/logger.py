@@ -32,22 +32,18 @@ class GraphiteLogger:
                                                'exception',
                                                True,
                                                )
+    self.cacheLogger = self._config_logger('cache.log',
+                                           'cache',
+                                           settings.LOG_CACHE_PERFORMANCE,
+                                           )
     #Setup log files
-    self.cacheLogFile = os.path.join(settings.LOG_DIR,"cache.log")
     self.renderingLogFile = os.path.join(settings.LOG_DIR,"rendering.log")
     self.metricAccessLogFile = os.path.join(settings.LOG_DIR,"metricaccess.log")
     #Setup loggers
-    self.cacheLogger = logging.getLogger("cache")
     self.renderingLogger = logging.getLogger("rendering")
     self.metricAccessLogger = logging.getLogger("metric_access")
     #Setup formatter & handlers
     self.formatter = logging.Formatter("%(asctime)s :: %(message)s","%a %b %d %H:%M:%S %Y")
-    if settings.LOG_CACHE_PERFORMANCE:
-      self.cacheHandler = Rotater(self.cacheLogFile,when="midnight",backupCount=1)
-      self.cacheHandler.setFormatter(self.formatter)
-      self.cacheLogger.addHandler(self.cacheHandler)
-    else:
-      self.cacheLogger.addHandler(NullHandler())
     if settings.LOG_RENDERING_PERFORMANCE:
       self.renderingHandler = Rotater(self.renderingLogFile,when="midnight",backupCount=1)
       self.renderingHandler.setFormatter(self.formatter)
