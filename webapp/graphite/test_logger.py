@@ -4,6 +4,8 @@ import os.path
 import glob
 import re
 
+from logging import FileHandler
+
 from django.conf import settings
 # This line has to occur before importing logger and datalib.
 temp_dir = tempfile.mkdtemp(prefix='graphite-log-test')
@@ -15,7 +17,7 @@ settings.configure(
     LOG_ROTATE=True,
     )
 
-from graphite.logger import log
+from graphite.logger import log, GraphiteLogger
 
 
 class TestLogger(unittest.TestCase):
@@ -51,3 +53,13 @@ class TestLogger(unittest.TestCase):
         matches = [re.match('info.log.[0-9]{4}-[0-9]{2}-[0-9]{2}',
                    os.path.basename(f)) for f in files]
         self.assertTrue(any(matches))
+
+    def test_no_rotate(self):
+        """ Check that deactivating log rotation creates plain FileHandlers.
+        """
+        old_val = settings.LOG_ROTATE
+        settings.LOG_ROTATE = False
+        log = GraphiteLogger()
+        self.assertTrue(isinstance(log.infoLogger.handlers[0], FileHandler))
+        self.assertTrue(isinstance(log.exceptionLogger.handlers[0], FileHandler))
+        settings.LOG_ROTATE = old_val
