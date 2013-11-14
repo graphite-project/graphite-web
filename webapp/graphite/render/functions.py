@@ -453,6 +453,33 @@ def asPercent(requestContext, seriesList, total=None):
     resultList.append(resultSeries)
 
   return resultList
+  
+def averageLine(requestContext, seriesList):
+  """
+  
+  Calculates the overall average for each series of data. Displays results as 
+  horizontal lines.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=averageLine(Server01.instance01.threads.idle)
+
+  """
+  normalize([seriesList])
+  results = []
+
+  for series in seriesList:
+    seriesAverage = safeAvg(series)
+    if seriesAverage is None:
+      seriesAverage = 0
+      
+    name = "averageLine(%s)" % series.name
+    newSeries = threshold(requestContext, seriesAverage, name)[0]
+    results.append(newSeries)
+
+  return results
 
 def divideSeries(requestContext, dividendSeriesList, divisorSeriesList):
   """
@@ -2699,6 +2726,7 @@ SeriesFunctions = {
 
   # Calculate functions
   'movingAverage' : movingAverage,
+  'averageLine' : averageLine,
   'movingMedian' : movingMedian,
   'stdev' : stdev,
   'holtWintersForecast': holtWintersForecast,
