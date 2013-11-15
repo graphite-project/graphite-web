@@ -44,6 +44,7 @@ function createComposerWindow(myComposer) {
     createToolbarButton('Select a Date Range', 'calBt.gif', toggleWindow(createCalendarWindow) ),
     createToolbarButton('Select Recent Data', 'arrow1.gif', toggleWindow(createRecentWindow) ),
     createToolbarButton('Open in GraphPlot', 'line_chart.png', function() { window.open('/graphlot/?' + Composer.url.queryString,'_blank') }),
+    createToolbarButton('Create from URL', 'link.png', toggleWindow(createURLWindow) ),
     '-',
     timeDisplay
   ];
@@ -272,6 +273,31 @@ function toggleWindow(createFunc) {
     }
   }
   return toggler;
+}
+
+function createURLWindow() {
+  var urlField = new Ext.form.TextField({
+    id: 'from-url',
+    allowBlank: false,
+    vtype: 'url',
+    listeners: { change: urlChosen, specialkey: ifEnter(urlChosen) }
+  });
+  
+  return new Ext.Window({
+      title: "Enter a URL to build graph from",
+      layout: 'fit',
+      height: 60,
+      width: 450,
+      closeAction: 'hide',
+      items: [
+        urlField
+      ]
+  });
+}
+
+function urlChosen() {
+  var url = Ext.getCmp('from-url').getValue();
+  Composer.loadMyGraph("temp", decodeURIComponent(url))
 }
 
 function createRecentWindow() {
