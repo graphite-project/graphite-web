@@ -113,22 +113,6 @@ def find_escaped_pattern_fields(pattern_string):
     if is_escaped_pattern(part):
       yield index
 
-if not environ.get('READTHEDOCS'):
-  try:
-    defaultUser = User.objects.get(username='default')
-  except User.DoesNotExist:
-    log.info("Default user does not exist, creating it...")
-    randomPassword = User.objects.make_random_password(length=16)
-    defaultUser = User.objects.create_user('default','default@localhost.localdomain',randomPassword)
-    defaultUser.save()
-
-  try:
-    defaultProfile = Profile.objects.get(user=defaultUser)
-  except Profile.DoesNotExist:
-    log.info("Default profile does not exist, creating it...")
-    defaultProfile = Profile(user=defaultUser)
-    defaultProfile.save()
-
 
 def load_module(module_path, member=None):
   module_name = splitext(basename(module_path))[0]
