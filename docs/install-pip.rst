@@ -10,6 +10,7 @@ simply execute as root:
 
 .. code-block:: none
 
+    pip install ceres
     pip install whisper
     pip install carbon
     pip install graphite-web
