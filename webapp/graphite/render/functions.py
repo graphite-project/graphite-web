@@ -2225,17 +2225,18 @@ def timeShift(requestContext, seriesList, timeShift, resetEnd=True):
   myContext = requestContext.copy()
   myContext['startTime'] = requestContext['startTime'] + delta
   myContext['endTime'] = requestContext['endTime'] + delta
-  series = seriesList[0] # if len(seriesList) > 1, they will all have the same pathExpression, which is all we care about.
   results = []
+  if len(seriesList) > 0:
+    series = seriesList[0] # if len(seriesList) > 1, they will all have the same pathExpression, which is all we care about.
 
-  for shiftedSeries in evaluateTarget(myContext, series.pathExpression):
-    shiftedSeries.name = 'timeShift(%s, %s)' % (shiftedSeries.name, timeShift)
-    if resetEnd:
-      shiftedSeries.end = series.end
-    else:
-      shiftedSeries.end = shiftedSeries.end - shiftedSeries.start + series.start
-    shiftedSeries.start = series.start
-    results.append(shiftedSeries)
+    for shiftedSeries in evaluateTarget(myContext, series.pathExpression):
+      shiftedSeries.name = 'timeShift(%s, %s)' % (shiftedSeries.name, timeShift)
+      if resetEnd:
+        shiftedSeries.end = series.end
+      else:
+        shiftedSeries.end = shiftedSeries.end - shiftedSeries.start + series.start
+      shiftedSeries.start = series.start
+      results.append(shiftedSeries)
 
   return results
 
