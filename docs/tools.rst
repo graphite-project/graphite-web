@@ -232,6 +232,10 @@ Scales
 `Scales`_ is a Python server state and statistics library that can output its data to Graphite.
 
 
+Sensu
+-----
+`Sensu`_ is a monitoring framework that can route metrics to Graphite. Servers subscribe to sets of checks, so getting metrics from a new server to Graphite is as simple as installing the Sensu client and subscribing.
+
 Seyren
 ------
 `Seyren`_ is an alerting dashboard for Graphite.
@@ -319,6 +323,7 @@ annotated events, etc). Supports Graphite, flot, rickshaw and anthracite.
 .. _Rickshaw: http://code.shutterstock.com/rickshaw/
 .. _Rocksteady: http://code.google.com/p/rocksteady/
 .. _Seyren: https://github.com/scobal/seyren
+.. _Sentu: http://sensuapp.org/
 .. _Shinken: http://www.shinken-monitoring.org/
 .. _SqlToGraphite: https://github.com/perryofpeek/SqlToGraphite/
 .. _statsd: https://github.com/etsy/statsd
