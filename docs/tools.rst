@@ -323,7 +323,7 @@ annotated events, etc). Supports Graphite, flot, rickshaw and anthracite.
 .. _Rickshaw: http://code.shutterstock.com/rickshaw/
 .. _Rocksteady: http://code.google.com/p/rocksteady/
 .. _Seyren: https://github.com/scobal/seyren
-.. _Sentu: http://sensuapp.org/
+.. _Sensu: http://sensuapp.org/
 .. _Shinken: http://www.shinken-monitoring.org/
 .. _SqlToGraphite: https://github.com/perryofpeek/SqlToGraphite/
 .. _statsd: https://github.com/etsy/statsd
