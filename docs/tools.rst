@@ -42,6 +42,9 @@ Charcoal
 service which can generate images directly from a URL. Charcoal configuration is driven by a YAML
 config file.
 
+Cubism.js
+---------
+`Cubism.js`_ is a D3 plugin for visualizing time series data in real time, and can pull data from Graphite.
 
 Descartes
 ---------
@@ -285,6 +288,7 @@ annotated events, etc). Supports Graphite, flot, rickshaw and anthracite.
 .. _collectd-graphite: https://github.com/joemiller/collectd-graphite
 .. _collectd-to-graphite: https://github.com/loggly/collectd-to-graphite
 .. _Collectl: http://collectl.sourceforge.net/
+.. _Cubism.js: http://square.github.io/cubism/
 .. _D3.js: http://mbostock.github.com/d3/
 .. _Descartes: https://github.com/obfuscurity/descartes
 .. _Diamond: http://opensource.brightcove.com/project/Diamond/
