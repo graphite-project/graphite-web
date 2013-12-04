@@ -76,7 +76,8 @@ ALLOW_ANONYMOUS_CLI = True
 LOG_METRIC_ACCESS = False
 LEGEND_MAX_ITEMS = 10
 RRD_CF = 'AVERAGE'
-STORE_BACKEND = 'graphite.storage.default'
+STORE_BACKEND = os.environ.get('GRAPHITE_STORE_BACKEND',
+                               'graphite.storage.default')
 
 #Authentication settings
 USE_LDAP_AUTH = False
