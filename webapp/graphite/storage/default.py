@@ -1,12 +1,10 @@
 import time
 from django.conf import settings
-from graphite.logger import log
 from graphite.util import is_local_interface, is_pattern
 from graphite.remote_storage import RemoteStore
 from graphite.node import LeafNode
 from graphite.intervals import Interval, IntervalSet
 from graphite.readers import MultiReader
-from graphite.finders import CeresFinder, StandardFinder
 
 
 class Store:
@@ -144,11 +142,3 @@ class FindQuery:
       endString = time.ctime(self.endTime)
 
     return '<FindQuery: %s from %s until %s>' % (self.pattern, startString, endString)
-
-
-# Exposed Storage API
-finders = [
-  CeresFinder(settings.CERES_DIR),
-  StandardFinder(settings.STANDARD_DIRS),
-]
-STORE = Store(finders, hosts=settings.CLUSTER_SERVERS)

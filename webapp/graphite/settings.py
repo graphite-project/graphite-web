@@ -44,8 +44,6 @@ WHISPER_DIR = ''
 RRD_DIR = ''
 STANDARD_DIRS = []
 
-CLUSTER_SERVERS = []
-
 sys.path.insert(0, WEBAPP_DIR)
 
 # Cluster settings
@@ -78,6 +76,7 @@ ALLOW_ANONYMOUS_CLI = True
 LOG_METRIC_ACCESS = False
 LEGEND_MAX_ITEMS = 10
 RRD_CF = 'AVERAGE'
+STORE_BACKEND = 'graphite.storage.default'
 
 #Authentication settings
 USE_LDAP_AUTH = False
