@@ -5,12 +5,6 @@ except ImportError:  # python < 2.7 compatibility
 
 from django.conf import settings
 
-from ..finders import CeresFinder, StandardFinder
 
-
-finders = [
-  CeresFinder(settings.CERES_DIR),
-  StandardFinder(settings.STANDARD_DIRS),
-]
 store = import_module(settings.STORE_BACKEND)
-STORE = store.Store(finders, hosts=settings.CLUSTER_SERVERS)
+STORE = store.Store()

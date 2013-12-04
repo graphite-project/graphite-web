@@ -5,11 +5,16 @@ from graphite.remote_storage import RemoteStore
 from graphite.node import LeafNode
 from graphite.intervals import Interval, IntervalSet
 from graphite.readers import MultiReader
+from graphite.finders import CeresFinder, StandardFinder
 
 
 class Store:
-  def __init__(self, finders, hosts=[]):
-    self.finders = finders
+  def __init__(self):
+    self.finders = [
+        CeresFinder(settings.CERES_DIR),
+        StandardFinder(settings.STANDARD_DIRS),
+    ]
+    hosts = settings.CLUSTER_SERVERS
     remote_hosts = [host for host in hosts if not is_local_interface(host)]
     self.remote_stores = [ RemoteStore(host) for host in remote_hosts ]
 
