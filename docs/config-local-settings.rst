@@ -266,16 +266,13 @@ at ``STORAGE_DIR/graphite.db`` by default. If running multiple Graphite-web inst
 such as PostgreSQL or MySQL is required so that all instances may share the same data source.
 
 .. note ::
-  As of Django 1.2, the database configuration is specified by the DATABASES dictionary.
-  For compatibility with Django 1.1, Graphite's default Sqlite database configuration still uses the
-  old method. This means that users running under Django 1.4 will not have a working default.
-  In any case, it is recommended that all users on Django 1.2 or above explicitly specify a database
-  configuration using the new format
+  As of Django 1.2, the database configuration is specified by the DATABASES
+  dictionary instead of the old ``DATABASE_*`` format. Users must use the new
+  specification to have a working database.
 
 See the
 `Django documentation <https://docs.djangoproject.com/en/dev/ref/settings/#databases>`_
-for full documentation of the DATABASE setting. Users on Django 1.1 will require setting the 
-deprecated ``DATABASE_*`` settings outlined in the `Django 1.1 documentation <https://docs.djangoproject.com/en/1.1/ref/settings/#database-engine>`_
+for full documentation of the DATABASE setting.
 
 .. note ::
    Remember, setting up a new database requires running ``manage.py syncdb`` to create the initial
