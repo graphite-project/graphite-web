@@ -21,12 +21,14 @@ def get_finder(finder_path):
 
 
 class Store:
-  def __init__(self, finders=None):
+  def __init__(self, finders=None, hosts=None):
     if finders is None:
       finders = [get_finder(finder_path)
                  for finder_path in settings.STORAGE_FINDERS]
     self.finders = finders
-    hosts = settings.CLUSTER_SERVERS
+
+    if hosts is None:
+      hosts = settings.CLUSTER_SERVERS
     remote_hosts = [host for host in hosts if not is_local_interface(host)]
     self.remote_stores = [ RemoteStore(host) for host in remote_hosts ]
 
