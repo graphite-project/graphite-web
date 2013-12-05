@@ -76,6 +76,7 @@ LEGEND_MAX_ITEMS = 10
 RRD_CF = 'AVERAGE'
 STORE_BACKEND = os.environ.get('GRAPHITE_STORE_BACKEND',
                                'graphite.storage.default')
+CYANITE_URL = os.environ.get('CYANITE_URL', 'http://127.0.0.1:8080')
 
 #Authentication settings
 USE_LDAP_AUTH = False
