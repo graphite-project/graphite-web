@@ -44,8 +44,6 @@ WHISPER_DIR = ''
 RRD_DIR = ''
 STANDARD_DIRS = []
 
-sys.path.insert(0, WEBAPP_DIR)
-
 # Cluster settings
 CLUSTER_SERVERS = []
 REMOTE_FIND_TIMEOUT = 3.0
