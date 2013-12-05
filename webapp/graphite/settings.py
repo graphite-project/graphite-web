@@ -78,7 +78,6 @@ STORAGE_FINDERS = (
     'graphite.finders.CeresFinder',
     'graphite.finders.StandardFinder',
 )
-CYANITE_URL = os.environ.get('CYANITE_URL', 'http://127.0.0.1:8080')
 
 #Authentication settings
 USE_LDAP_AUTH = False
