@@ -1,3 +1,5 @@
+import time
+
 from django.conf import settings
 
 from graphite.intervals import Interval, IntervalSet
@@ -22,12 +24,15 @@ class CyaniteReader(object):
         return time_info, values
 
     def get_intervals(self):
-        return IntervalSet([Interval(0, 10)])
+        # TODO use cyanite info
+        start = time.time() - 3600 * 24
+        end = max(start, time.time())
+        return IntervalSet([Interval(start, end)])
 
 
-class Store(object):
-    def find(self, query, from_time=None, until_time=None, local=None):
-        paths = requests.get(PATH_URL, params={'query': query}).json()
+class CyaniteFinder(object):
+    def find_nodes(self, query):
+        paths = requests.get(PATH_URL, params={'query': query.pattern}).json()
         for path in paths:
             if path['leaf']:
                 yield LeafNode(path['path'], CyaniteReader(path['path']))

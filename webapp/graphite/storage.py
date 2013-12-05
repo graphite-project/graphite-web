@@ -1,19 +1,31 @@
 import time
+
+try:
+  from importlib import import_module
+except ImportError:  # python < 2.7 compatibility
+  from django.utils.importlib import import_module
+
 from django.conf import settings
+
 from graphite.util import is_local_interface, is_pattern
 from graphite.remote_storage import RemoteStore
 from graphite.node import LeafNode
 from graphite.intervals import Interval, IntervalSet
 from graphite.readers import MultiReader
-from graphite.finders import CeresFinder, StandardFinder
+
+
+def get_finder(finder_path):
+  module_name, class_name = finder_path.rsplit('.', 1)
+  module = import_module(module_name)
+  return getattr(module, class_name)()
 
 
 class Store:
-  def __init__(self):
-    self.finders = [
-        CeresFinder(settings.CERES_DIR),
-        StandardFinder(settings.STANDARD_DIRS),
-    ]
+  def __init__(self, finders=None):
+    if finders is None:
+      finders = [get_finder(finder_path)
+                 for finder_path in settings.STORAGE_FINDERS]
+    self.finders = finders
     hosts = settings.CLUSTER_SERVERS
     remote_hosts = [host for host in hosts if not is_local_interface(host)]
     self.remote_stores = [ RemoteStore(host) for host in remote_hosts ]
@@ -147,3 +159,5 @@ class FindQuery:
       endString = time.ctime(self.endTime)
 
     return '<FindQuery: %s from %s until %s>' % (self.pattern, startString, endString)
+
+STORE = Store()

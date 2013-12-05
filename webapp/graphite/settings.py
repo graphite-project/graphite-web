@@ -74,8 +74,10 @@ ALLOW_ANONYMOUS_CLI = True
 LOG_METRIC_ACCESS = False
 LEGEND_MAX_ITEMS = 10
 RRD_CF = 'AVERAGE'
-STORE_BACKEND = os.environ.get('GRAPHITE_STORE_BACKEND',
-                               'graphite.storage.default')
+STORAGE_FINDERS = (
+    'graphite.finders.CeresFinder',
+    'graphite.finders.StandardFinder',
+)
 CYANITE_URL = os.environ.get('CYANITE_URL', 'http://127.0.0.1:8080')
 
 #Authentication settings
