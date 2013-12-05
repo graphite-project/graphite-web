@@ -5,7 +5,7 @@ from glob import glob
 from ceres import CeresTree, CeresNode, setDefaultSliceCachingBehavior
 from graphite.node import BranchNode, LeafNode
 from graphite.readers import CeresReader, WhisperReader, GzippedWhisperReader, RRDReader
-from graphite.util import find_escaped_pattern_fields
+from graphite.util import find_escaped_pattern_fields, match_entries
 
 from graphite.logger import log
 
@@ -145,30 +145,3 @@ def get_real_metric_path(absolute_path, metric_path):
     return fs_to_metric( relative_real_fs_path )
 
   return metric_path
-
-def _deduplicate(entries):
-  yielded = set()
-  for entry in entries:
-    if entry not in yielded:
-      yielded.add(entry)
-      yield entry
-
-def match_entries(entries, pattern):
-  """A drop-in replacement for fnmatch.filter that supports pattern
-  variants (ie. {foo,bar}baz = foobaz or barbaz)."""
-  v1, v2 = pattern.find('{'), pattern.find('}')
-
-  if v1 > -1 and v2 > v1:
-    variations = pattern[v1+1:v2].split(',')
-    variants = [ pattern[:v1] + v + pattern[v2+1:] for v in variations ]
-    matching = []
-
-    for variant in variants:
-      matching.extend( fnmatch.filter(entries, variant) )
-
-    return list( _deduplicate(matching) ) #remove dupes without changing order
-
-  else:
-    matching = fnmatch.filter(entries, pattern)
-    matching.sort()
-    return matching
