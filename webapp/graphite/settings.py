@@ -118,7 +118,8 @@ DATABASES = {
     'USER': '',
     'PASSWORD': '',
     'HOST': '',
-    'PORT': ''
+    'PORT': '',
+  },
 }
 
 # If using rrdcached, set to the address or socket of the daemon
