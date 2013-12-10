@@ -304,8 +304,8 @@ class WhisperFile(Leaf):
     end = max( os.stat(self.fs_path).st_mtime, start )
     return [ (start, end) ]
 
-  def fetch(self, startTime, endTime):
-    return whisper.fetch(self.fs_path, startTime, endTime)
+  def fetch(self, startTime, endTime, now=None):
+    return whisper.fetch(self.fs_path, startTime, endTime, now)
 
   @property
   def context(self):
@@ -336,13 +336,13 @@ class WhisperFile(Leaf):
 class GzippedWhisperFile(WhisperFile):
   extension = '.wsp.gz'
 
-  def fetch(self, startTime, endTime):
+  def fetch(self, startTime, endTime, now=None):
     if not gzip:
       raise Exception("gzip module not available, GzippedWhisperFile not supported")
 
     fh = gzip.GzipFile(self.fs_path, 'rb')
     try:
-      return whisper.file_fetch(fh, startTime, endTime)
+      return whisper.file_fetch(fh, startTime, endTime, now)
     finally:
       fh.close()
 
@@ -400,7 +400,8 @@ class RRDDataSource(Leaf):
     end = max( os.stat(self.rrd_file.fs_path).st_mtime, start )
     return [ (start, end) ]
 
-  def fetch(self, startTime, endTime):
+  def fetch(self, startTime, endTime, now=None):
+    # 'now' parameter is meaningful for whisper but not RRD
     startString = time.strftime("%H:%M_%Y%m%d+%Ss", time.localtime(startTime))
     endString = time.strftime("%H:%M_%Y%m%d+%Ss", time.localtime(endTime))
 

@@ -25,9 +25,12 @@ except ImportError: # Otherwise we fall back to Graphite's bundled version
 months = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec']
 weekdays = ['sun','mon','tue','wed','thu','fri','sat']
 
-def parseATTime(s, tzinfo=None):
+def parseATTime(s, tzinfo=None, now=None):
   if tzinfo is None:
     tzinfo = pytz.timezone(settings.TIME_ZONE)
+  if now is None:
+    now = datetime.now(tz=tzinfo)
+
   s = s.strip().lower().replace('_','').replace(',','').replace(' ','')
   if s.isdigit():
     if len(s) == 8 and int(s[:4]) > 1900 and int(s[4:6]) < 13 and int(s[6:]) < 32:
@@ -44,12 +47,12 @@ def parseATTime(s, tzinfo=None):
     offset = '-' + offset
   else:
     ref,offset = s,''
-  return tzinfo.localize(parseTimeReference(ref), daylight) + parseTimeOffset(offset)
+
+  return parseTimeReference(ref, now) + parseTimeOffset(offset)
 
 
-def parseTimeReference(ref):
-  if not ref or ref == 'now': return datetime.now()
-
+def parseTimeReference(ref, now):
+  if not ref or ref == 'now': return now
   #Time-of-day reference
   i = ref.find(':')
   hour,min = 0,0
@@ -71,7 +74,7 @@ def parseTimeReference(ref):
     hour,min = 16,0
     ref = ref[7:]
 
-  refDate = datetime.now().replace(hour=hour,minute=min,second=0)
+  refDate = now.replace(hour=hour,minute=min,second=0)
 
   #Day reference
   if ref in ('yesterday','today','tomorrow'): #yesterday, today, tomorrow

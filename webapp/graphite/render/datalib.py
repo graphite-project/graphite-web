@@ -218,6 +218,7 @@ def fetchData(requestContext, pathExpr):
   seriesList = []
   startTime = requestContext['startTime']
   endTime = requestContext['endTime']
+  now = requestContext['now']
 
   if requestContext['localOnly']:
     store = LOCAL_STORE
@@ -226,7 +227,7 @@ def fetchData(requestContext, pathExpr):
 
   for dbFile in store.find(pathExpr):
     log.metric_access(dbFile.metric_path)
-    dbResults = dbFile.fetch( timestamp(startTime), timestamp(endTime) )
+    dbResults = dbFile.fetch( timestamp(startTime), timestamp(endTime), timestamp(now))
     results = dbResults
 
     if dbFile.isLocal():
