@@ -173,18 +173,20 @@ def renderView(request):
           start = min(start, series.start) if start is not None else series.start
           end = max(end, series.end) if end is not None else series.end
 
-        timestamps = range(start, end, step)
         datapoints = []
 
-        iters = [iter(s) for s in data]
-        for ts in timestamps:
-          dp = [ts]
-          for i, series in enumerate(data):
-            if ts < series.start or ts >= series.end:
-              dp.append(None)
-            else:
-              dp.append(iters[i].next())
-          datapoints.append(dp)
+        if data:
+            timestamps = range(start, end, step)
+            iters = [iter(s) for s in data]
+            for ts in timestamps:
+              dp = [ts]
+              for i, series in enumerate(data):
+                if ts < series.start or ts >= series.end:
+                  dp.append(None)
+                else:
+                  dp.append(iters[i].next())
+              datapoints.append(dp)
+
         series_data = {
           'targets': [s.name for s in data],
           'datapoints': datapoints
