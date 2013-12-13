@@ -11,6 +11,7 @@ env:
 
 before_install:
   - sudo apt-get -y install libcairo2-dev
+  - mkdir -p storage/log/webapp
   - cd webapp
 
 install:
