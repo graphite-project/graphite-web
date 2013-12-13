@@ -2,8 +2,6 @@
 import os
 import sys
 
-print(sys.path)
-
 from django.core.management import execute_from_command_line
 
 
