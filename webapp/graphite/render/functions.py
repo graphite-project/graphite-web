@@ -13,8 +13,9 @@
 #limitations under the License.
 
 
-import numpy as np
-from numpy import median 
+import scipy
+import scipy.linalg
+from scipy import median 
 
 from datetime import date, datetime, timedelta
 from functools import partial
@@ -2685,73 +2686,37 @@ def hitcount(requestContext, seriesList, intervalString, alignToInterval = False
   return results
 
 
-def smoothing(x, y, bandwidth, iterations):
-  n = len(x) 
-  r = int(numpy.ceil(f * n)) 
-  h = [numpy.sort(abs(x - x[i]))[r] for i in range(n)] 
-  w = numpy.clip(abs(([x] - numpy.transpose([x])) / h), 0.0, 1.0) 
-  w = 1 - w * w * w 
-  w = w * w * w 
-  yest = numpy.zeros(n) 
-  delta = numpy.ones(n) 
-  for iteration in range(iter): 
-    for i in range(n): 
-      weights = delta * w[:, i] 
-      weights_mul_x = weights * x 
-      b1 = numpy.dot(weights, y) 
-      b2 = numpy.dot(weights_mul_x, y) 
-      A11 = sum(weights) 
-      A12 = sum(weights_mul_x) 
-      A21 = A12 
-      A22 = numpy.dot(weights_mul_x, x) 
-      determinant = A11 * A22 - A12 * A21 
-      beta1 = (A22 * b1 - A12 * b2) / determinant 
-      beta2 = (A11 * b2 - A21 * b1) / determinant 
-      yest[i] = beta1 + beta2 * x[i] 
-    residuals = y - yest 
-    s = median(abs(residuals)) 
-    delta[:] = numpy.clip(residuals / (6 * s), -1, 1) 
-    delta[:] = 1 - delta * delta 
-    delta[:] = delta * delta 
- 
-  return yest
-
-
 def lowess(requestContext, seriesList, bandwidth=0.5, iterations=3):
   results = []
 
   for series in seriesList:
-    x = np.array(xrange(1, len(series) + 1), np.float)
-    y = np.array(map(lambda n: n or 0, series), np.float)
-    n = len(x) 
-    r = int(np.ceil(bandwidth * n)) 
-    h = [np.sort(abs(x - x[i]))[r] for i in range(n)] 
-    w = np.clip(abs(([x] - np.transpose([x])) / h), 0.0, 1.0) 
-    w = 1 - w * w * w 
-    w = w * w * w 
-    yest = np.zeros(n) 
-    delta = np.ones(n) 
+    x = scipy.array(xrange(1, len(series) + 1), scipy.float32)
+    y = scipy.array(map(lambda n: n or 0, series), scipy.float32)
 
-    for iteration in range(iterations): 
-      for i in range(n): 
-        weights = delta * w[:, i] 
-        weights_mul_x = weights * x 
-        b1 = np.dot(weights, y) 
-        b2 = np.dot(weights_mul_x, y) 
-        A11 = sum(weights) 
-        A12 = sum(weights_mul_x) 
-        A21 = A12 
-        A22 = np.dot(weights_mul_x, x) 
-        determinant = A11 * A22 - A12 * A21 
-        beta1 = (A22 * b1 - A12 * b2) / determinant 
-        beta2 = (A11 * b2 - A21 * b1) / determinant 
-        yest[i] = beta1 + beta2 * x[i] 
-      residuals = y - yest 
-      s = median(abs(residuals)) 
-      delta[:] = np.clip(residuals / (6 * s), -1, 1) 
-      delta[:] = 1 - delta * delta 
-      delta[:] = delta * delta
- 
+    n = len(x)
+    r = int(scipy.ceil(bandwidth*n))
+    h = [scipy.sort(abs(x-x[i]))[r] for i in xrange(n)]
+    w = scipy.clip(abs(([x]-scipy.transpose([x]))/h),0.0,1.0)
+    w = 1 - w * w * w
+    w = w * w * w
+    yest = scipy.zeros(n,'d')
+    delta = scipy.ones(n,'d')
+
+    for iteration in xrange(iterations):
+      for i in xrange(n):
+        if (i%2 == 0 or i == n):
+          weights = delta * w[:,i]
+          sum_x = sum(weights*x)
+          b = scipy.array([sum(weights*y),sum(weights*y*x)])
+          A = scipy.array([[sum(weights),sum_x],[sum_x, sum(weights*x*x)]])
+          beta = scipy.linalg.solve(A,b)
+        yest[i] = beta[0] + beta[1] * x[i]
+      residuals = y-yest
+      s = median(abs(residuals))
+      delta = scipy.clip(residuals/(6 * s), -1, 1)
+      delta = 1-delta * delta
+      delta = delta * delta
+
     name = 'lowess(%s, %f, %d)' % (series.name, float(bandwidth), int(iterations))
     newSeries = TimeSeries(name, series.start, series.end, series.step, yest)
     newSeries.pathExpression = name
