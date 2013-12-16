@@ -12,10 +12,11 @@
 #See the License for the specific language governing permissions and
 #limitations under the License.
 
-
+import numpy as np
+from numpy import median 
 import scipy
 import scipy.linalg
-from scipy import median 
+
 
 from datetime import date, datetime, timedelta
 from functools import partial
@@ -2690,13 +2691,13 @@ def lowess(requestContext, seriesList, bandwidth=0.5, iterations=3):
   results = []
 
   for series in seriesList:
-    x = scipy.array(xrange(1, len(series) + 1), scipy.float32)
-    y = scipy.array(map(lambda n: n or 0, series), scipy.float32)
+    x = scipy.array(xrange(1, len(series) + 1), np.float)
+    y = scipy.array(map(lambda n: n or 0, series), np.float)
 
     n = len(x)
-    r = int(scipy.ceil(bandwidth*n))
-    h = [scipy.sort(abs(x-x[i]))[r] for i in xrange(n)]
-    w = scipy.clip(abs(([x]-scipy.transpose([x]))/h),0.0,1.0)
+    r = int(np.ceil(bandwidth*n))
+    h = [np.sort(abs(x-x[i]))[r] for i in xrange(n)]
+    w = np.clip(abs(([x]-scipy.transpose([x]))/h),0.0,1.0)
     w = 1 - w * w * w
     w = w * w * w
     yest = scipy.zeros(n,'d')
@@ -2704,7 +2705,7 @@ def lowess(requestContext, seriesList, bandwidth=0.5, iterations=3):
 
     for iteration in xrange(iterations):
       for i in xrange(n):
-        if (i%2 == 0 or i == n):
+        if (i%15 == 0) or (i > n-5):
           weights = delta * w[:,i]
           sum_x = sum(weights*x)
           b = scipy.array([sum(weights*y),sum(weights*y*x)])
@@ -2713,7 +2714,7 @@ def lowess(requestContext, seriesList, bandwidth=0.5, iterations=3):
         yest[i] = beta[0] + beta[1] * x[i]
       residuals = y-yest
       s = median(abs(residuals))
-      delta = scipy.clip(residuals/(6 * s), -1, 1)
+      delta = np.clip(residuals/(6 * s), -1, 1)
       delta = 1-delta * delta
       delta = delta * delta
 
