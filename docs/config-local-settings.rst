@@ -214,7 +214,7 @@ LDAP_USER_QUERY
 
 Other Authentications
 ^^^^^^^^^^^^^^^^^^^^^
-REMOTE_USER_AUTHENTICATION
+USE_REMOTE_USER_AUTHENTICATION
   `Default: False`
 
   Enables the use of the Django `RemoteUserBackend` authentication backend. See the
