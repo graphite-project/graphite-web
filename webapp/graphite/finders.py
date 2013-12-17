@@ -3,6 +3,7 @@ import fnmatch
 from os.path import islink, isdir, isfile, realpath, join, dirname, basename
 from glob import glob
 from ceres import CeresTree, CeresNode, setDefaultSliceCachingBehavior
+from django.conf import settings
 from graphite.node import BranchNode, LeafNode
 from graphite.readers import CeresReader, WhisperReader, GzippedWhisperReader, RRDReader
 from graphite.util import find_escaped_pattern_fields, match_entries
@@ -14,8 +15,7 @@ from graphite.logger import log
 
 class CeresFinder:
   def __init__(self, directory=None):
-    if directory is None:
-      directory = settings.CERES_DIR
+    directory = directory or settings.CERES_DIR
     self.directory = directory
     self.tree = CeresTree(directory)
 
@@ -39,8 +39,7 @@ class StandardFinder:
   DATASOURCE_DELIMETER = '::RRD_DATASOURCE::'
 
   def __init__(self, directories=None):
-    if directories is None:
-      directories = settings.STANDARD_DIRS
+    directories = directories or settings.STANDARD_DIRS
     self.directories = directories
 
   def find_nodes(self, query):
