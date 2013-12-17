@@ -12,11 +12,9 @@
 #See the License for the specific language governing permissions and
 #limitations under the License.
 
-import numpy as np
-from numpy import median 
-import scipy
-import scipy.linalg
-
+import numpy
+import array
+import cylowess
 
 from datetime import date, datetime, timedelta
 from functools import partial
@@ -2688,38 +2686,56 @@ def hitcount(requestContext, seriesList, intervalString, alignToInterval = False
 
 
 def lowess(requestContext, seriesList, bandwidth=0.5, iterations=3):
+  """
+  This lowess function implements the algorithm given in the
+  reference below using local linear estimates.
+
+  Suppose the input data has N points. The algorithm works by
+  estimating the `smooth` y_i by taking the frac*N closest points
+  to (x_i,y_i) based on their x values and estimating y_i
+  using a weighted linear regression. The weight for (x_j,y_j)
+  is tricube function applied to |x_i-x_j|.
+
+  If it > 1, then further weighted local linear regressions
+  are performed, where the weights are the same as above
+  times the _lowess_bisquare function of the residuals. Each iteration
+  takes approximately the same amount of time as the original fit,
+  so these iterations are expensive. They are most useful when
+  the noise has extremely heavy tails, such as Cauchy noise.
+  Noise with less heavy-tails, such as t-distributions with df>2,
+  are less problematic. The weights downgrade the influence of
+  points with large residuals. In the extreme case, points whose
+  residuals are larger than 6 times the median absolute residual
+  are given weight 0.
+
+  delta can be used to save computations. For each x_i, regressions
+  are skipped for points closer than delta. The next regression is
+  fit for the farthest point within delta of x_i and all points in
+  between are estimated by linearly interpolating between the two
+  regression fits.
+
+  Judicious choice of delta can cut computation time considerably
+  for large data (N > 5000). A good choice is delta = 0.01 *
+  range(exog).
+
+  Some experimentation is likely required to find a good
+  choice of frac and iter for a particular dataset.
+
+  References
+  ----------
+  Cleveland, W.S. (1979) "Robust Locally Weighted Regression
+  and Smoothing Scatterplots". Journal of the American Statistical
+  Association 74 (368): 829-836.
+  """
+
   results = []
 
   for series in seriesList:
-    x = scipy.array(xrange(1, len(series) + 1), np.float)
-    y = scipy.array(map(lambda n: n or 0, series), np.float)
-
-    n = len(x)
-    r = int(np.ceil(bandwidth*n))
-    h = [np.sort(abs(x-x[i]))[r] for i in xrange(n)]
-    w = np.clip(abs(([x]-scipy.transpose([x]))/h),0.0,1.0)
-    w = 1 - w * w * w
-    w = w * w * w
-    yest = scipy.zeros(n,'d')
-    delta = scipy.ones(n,'d')
-
-    for iteration in xrange(iterations):
-      for i in xrange(n):
-        if (i%15 == 0) or (i > n-5):
-          weights = delta * w[:,i]
-          sum_x = sum(weights*x)
-          b = scipy.array([sum(weights*y),sum(weights*y*x)])
-          A = scipy.array([[sum(weights),sum_x],[sum_x, sum(weights*x*x)]])
-          beta = scipy.linalg.solve(A,b)
-        yest[i] = beta[0] + beta[1] * x[i]
-      residuals = y-yest
-      s = median(abs(residuals))
-      delta = np.clip(residuals/(6 * s), -1, 1)
-      delta = 1-delta * delta
-      delta = delta * delta
-
+    x = numpy.array(xrange(1, len(series) + 1), numpy.float)
+    y = numpy.array(map(lambda n: n or 0, series), numpy.float)
+    res = map(lambda x: x[1], cylowess.lowess(y, x, bandwidth, iterations, (x.max() - x.min()) * 0.01))
     name = 'lowess(%s, %f, %d)' % (series.name, float(bandwidth), int(iterations))
-    newSeries = TimeSeries(name, series.start, series.end, series.step, yest)
+    newSeries = TimeSeries(name, series.start, series.end, series.step, res)
     newSeries.pathExpression = name
     results.append(newSeries)
 
