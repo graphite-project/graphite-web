@@ -35,7 +35,6 @@ except ImportError:
 
 from os import environ
 from django.conf import settings
-from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import User
 from graphite.account.models import Profile
 from graphite.logger import log
@@ -55,22 +54,17 @@ if hasattr(json, 'read') and not hasattr(json, 'loads'):
   json.dump = lambda obj, file: file.write( json.write(obj) )
 
 
-def getProfile(request,allowDefault=True):
+def getProfile(request, allowDefault=True):
   if request.user.is_authenticated():
-    try:
-      return request.user.profile
-    except ObjectDoesNotExist:
-      profile = Profile(user=request.user)
-      profile.save()
-      return profile
+    return Profile.objects.get_or_create(user=request.user)[0]
   elif allowDefault:
-    return defaultProfile
+    return default_profile()
+
 
 def getProfileByUsername(username):
   try:
-    user = User.objects.get(username=username)
-    return Profile.objects.get(user=user)
-  except ObjectDoesNotExist:
+    return Profile.objects.get(user__username=username)
+  except Profile.DoesNotExist:
     return None
 
 
@@ -113,21 +107,20 @@ def find_escaped_pattern_fields(pattern_string):
     if is_escaped_pattern(part):
       yield index
 
-if not environ.get('READTHEDOCS'):
-  try:
-    defaultUser = User.objects.get(username='default')
-  except User.DoesNotExist:
-    log.info("Default user does not exist, creating it...")
-    randomPassword = User.objects.make_random_password(length=16)
-    defaultUser = User.objects.create_user('default','default@localhost.localdomain',randomPassword)
-    defaultUser.save()
 
-  try:
-    defaultProfile = Profile.objects.get(user=defaultUser)
-  except Profile.DoesNotExist:
-    log.info("Default profile does not exist, creating it...")
-    defaultProfile = Profile(user=defaultUser)
-    defaultProfile.save()
+def default_profile():
+    # '!' is an unusable password. Since the default user never authenticates
+    # this avoids creating a default (expensive!) password hash at every
+    # default_profile() call.
+    user, created = User.objects.get_or_create(
+        username='default', defaults={'email': 'default@localhost.localdomain',
+                                      'password': '!'})
+    if created:
+        log.info("Default user didn't exist, created it")
+    profile, created = Profile.objects.get_or_create(user=user)
+    if created:
+        log.info("Default profile didn't exist, created it")
+    return profile
 
 
 def load_module(module_path, member=None):
