@@ -39,7 +39,7 @@ def evaluateTokens(requestContext, tokens):
       return float(tokens.number.scientific[0])
 
   elif tokens.string:
-    return str(tokens.string)[1:-1]
+    return tokens.string[1:-1]
 
   elif tokens.boolean:
     return tokens.boolean[0] == 'true'

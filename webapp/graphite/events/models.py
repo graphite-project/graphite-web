@@ -11,8 +11,6 @@ else:
     from tagging.fields import TagField
 
 class Event(models.Model):
-    class Admin: pass
-
     when = models.DateTimeField()
     what = models.CharField(max_length=255)
     data = models.TextField(blank=True)

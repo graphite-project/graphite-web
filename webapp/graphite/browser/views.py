@@ -54,7 +54,7 @@ def browser(request):
 
 
 def search(request):
-  query = request.POST['query']
+  query = request.POST.get('query')
   if not query:
     return HttpResponse("")
 

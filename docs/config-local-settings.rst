@@ -178,12 +178,12 @@ USE_LDAP_AUTH
 LDAP_SERVER
   `Default: ''`
 
-  Set the LDAP server here or alternativly in ``LDAP_URL``
+  Set the LDAP server here or alternativly in ``LDAP_URI``
 
 LDAP_PORT
   `Default: 389`
 
-  Set the LDAP server port here or alternativly in ``LDAP_URL``
+  Set the LDAP server port here or alternativly in ``LDAP_URI``
 
 LDAP_URI
   `Default: None`
@@ -214,7 +214,7 @@ LDAP_USER_QUERY
 
 Other Authentications
 ^^^^^^^^^^^^^^^^^^^^^
-REMOTE_USER_AUTHENTICATION
+USE_REMOTE_USER_AUTHENTICATION
   `Default: False`
 
   Enables the use of the Django `RemoteUserBackend` authentication backend. See the

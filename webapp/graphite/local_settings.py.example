@@ -107,7 +107,7 @@
 #LDAP_SERVER = "ldap.mycompany.com"
 #LDAP_PORT = 389
 #LDAP_USE_TLS = False
-#	OR
+#        OR
 #LDAP_URI = "ldaps://ldap.mycompany.com:636"
 #LDAP_SEARCH_BASE = "OU=users,DC=mycompany,DC=com"
 #LDAP_BASE_USER = "CN=some_readonly_account,DC=mycompany,DC=com"
