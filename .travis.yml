@@ -12,6 +12,7 @@ before_install:
   - sudo apt-get -y install libcairo2-dev
   - mkdir -p storage/log/webapp
   - mkdir -p storage/ceres
+  - mkdir -p storage/whisper
   - cd webapp
 
 install:
