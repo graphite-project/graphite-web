@@ -16,7 +16,7 @@ import traceback
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.conf import settings
 from graphite.account.models import Profile
-from graphite.util import getProfile, getProfileByUsername, defaultUser, json
+from graphite.util import getProfile, getProfileByUsername, json
 from graphite.logger import log
 from graphite.storage import STORE
 from graphite.metrics.search import searcher

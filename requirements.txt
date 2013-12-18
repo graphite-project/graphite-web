@@ -12,15 +12,17 @@
 #   sudo apt-get install libcairo2-dev    # on Ubuntu
 #   pip install -r requirements.txt
 #
-#   mkdir -p .venv/storage .venv/conf
+#   mkdir -p .venv/storage/ceres .venv/storage/log/carbon-cache  .venv/conf
 #   touch .venv/conf/carbon.conf .venv/conf/storage-schemas.conf
 #   cp conf/graphTemplates.conf.example .venv/conf/graphTemplates.conf
 #   export GRAPHITE_ROOT=`pwd` GRAPHITE_STORAGE_DIR=`pwd`/.venv/storage/ GRAPHITE_CONF_DIR=`pwd`/.venv/conf/
 #
-#   carbon/bin/carbon-cache.py start
-#   carbon/bin/carbon-cache.py status
+#   git clone https://github.com/graphite-project/carbon.git ../carbon
+#   ../carbon/bin/carbon-cache.py start
+#   ../carbon/bin/carbon-cache.py status
 #
-#   mkdir -p .venv/storage/log/webapp
+#   mkdir -p .venv/storage/log/webapp /opt/graphite/storage/
+#   sudo chown -R $USER: /opt/graphite
 #   .venv/bin/django-admin.py syncdb --settings=graphite.settings --pythonpath=webapp
 #   bin/run-graphite-devel-server.py ./
 #   # or
@@ -44,3 +46,4 @@ pytz
 pyparsing==1.5.7
 http://cairographics.org/releases/py2cairo-1.8.10.tar.gz
 git+git://github.com/graphite-project/whisper.git#egg=whisper
+git+git://github.com/graphite-project/ceres.git#egg=ceres
