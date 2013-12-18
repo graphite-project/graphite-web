@@ -176,12 +176,8 @@ except ImportError:
 try:
   import cylowess
 except ImportError:
-  try:
-    import cylowess as cyl
-  except ImportError:
-    sys.stderr.write("[REQUIRED] Unable to import the 'cylowess', do you have cylowess installed for python %s? You can install from here: https://github.com/livingsocial/cylowess\n" % py_version)
-    cylowess = None
-    required += 1
+  sys.stderr.write("[OPTIONAL] Unable to import 'cylowess', do you have cylowess installed for python %s? This allows for faster lowess processing (locallly weighted scatterplot smoothing) than the standard version, espcially for large datasets. You can install from here: https://github.com/livingsocial/cylowess\n" % py_version)
+    optional += 1
 
 if optional:
   sys.stderr.write("%d optional dependencies not met. Please consider the optional items before proceeding.\n" % optional)
