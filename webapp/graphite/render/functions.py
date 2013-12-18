@@ -2239,6 +2239,23 @@ def timeShift(requestContext, seriesList, timeShift, resetEnd=True):
 
   return results
 
+def constantMaxLineSeries(requestContext, *seriesLists):
+  """
+  Draws a horizontal line at the max value of a series or seriesList.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=constantMaxLineSeries(Server*.connections.total)
+
+  """
+  (seriesList, start, end, step) = normalize(seriesLists)
+  name = "constantMaxLineSeries(%s)" % formatPathExpressions(seriesList)
+  value = safeMax( safeMax(row) for row in izip(*seriesList) )
+  log.info("lineValue: %s" % value)
+  series = constantLine(requestContext, value)[0]
+  return [series]
 
 def constantLine(requestContext, value):
   """
