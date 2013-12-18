@@ -60,7 +60,7 @@ class FunctionsTest(TestCase):
         ]
 
         for i, c in enumerate(config):
-            seriesList.append(TimeSeries('Test(%d)' % i, 0, 0, 0, c))
+            seriesList.append(TimeSeries('Test(%d)' % i, 0, 1, 1, c))
 
         def n_percentile(perc, expected):
             result = functions.nPercentile({}, seriesList, perc)
