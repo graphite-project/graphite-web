@@ -1,4 +1,5 @@
 import os
+import warnings
 
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
@@ -23,15 +24,21 @@ class BrowserTest(TestCase):
         # Graphite has created a default user
         self.assertEqual(User.objects.get().username, 'default')
 
+    # Django 1.6.1 on python 2.7 throws a few warnings for this test
+    # that need to be silenced to calm my inner OCD monster (@SEJeff)
     @override_settings(INDEX_FILE=os.path.join(DATA_DIR, 'index'))
     def test_search(self):
         url = reverse('graphite.browser.views.search')
 
-        response = self.client.post(url)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', DeprecationWarning)
+            response = self.client.post(url)
         self.assertEqual(response.content, '')
 
         # simple query
-        response = self.client.post(url, {'query': 'collectd'})
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', DeprecationWarning)
+            response = self.client.post(url, {'query': 'collectd'})
         self.assertEqual(response.content.split(',')[0],
                          'collectd.test.df-root.df_complex-free')
 
@@ -40,7 +47,9 @@ class BrowserTest(TestCase):
         self.assertEqual(response.content, '')
 
         # Multiple terms (OR)
-        response = self.client.post(url, {'query': 'midterm shortterm'})
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', DeprecationWarning)
+            response = self.client.post(url, {'query': 'midterm shortterm'})
         self.assertEqual(response.content.split(','),
                          ['collectd.test.load.load.midterm',
                           'collectd.test.load.load.shortterm'])
