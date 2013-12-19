@@ -10,7 +10,7 @@ simply execute as root:
 
 .. code-block:: none
 
-    pip install ceres
+    pip install https://github.com/graphite-project/ceres/tarball/master
     pip install whisper
     pip install carbon
     pip install graphite-web
