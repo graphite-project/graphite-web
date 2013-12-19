@@ -127,36 +127,72 @@ def renderView(request):
 
       return response
 
-    if format == 'json':
-      series_data = []
-      if 'maxDataPoints' in requestOptions and any(data):
-        startTime = min([series.start for series in data])
-        endTime = max([series.end for series in data])
-        timeRange = endTime - startTime
-        maxDataPoints = requestOptions['maxDataPoints']
-        for series in data:
-          numberOfDataPoints = timeRange/series.step
-          if maxDataPoints < numberOfDataPoints:
-            valuesPerPoint = math.ceil(float(numberOfDataPoints) / float(maxDataPoints))
-            secondsPerPoint = int(valuesPerPoint * series.step)
-            # Nudge start over a little bit so that the consolidation bands align with each call
-            # removing 'jitter' seen when refreshing.
-            nudge = secondsPerPoint + (series.start % series.step) - (series.start % secondsPerPoint)
-            series.start = series.start + nudge
-            valuesToLose = int(nudge/series.step)
-            for r in range(1, valuesToLose):
-              del series[0]
-            series.consolidate(valuesPerPoint)
-            timestamps = range(series.start, series.end, secondsPerPoint)
-          else:
+    if format and format.startswith('json'):
+      if format == 'json':
+        series_data = []
+        if 'maxDataPoints' in requestOptions and any(data):
+          startTime = min([series.start for series in data])
+          endTime = max([series.end for series in data])
+          timeRange = endTime - startTime
+          maxDataPoints = requestOptions['maxDataPoints']
+          for series in data:
+            numberOfDataPoints = timeRange/series.step
+            if maxDataPoints < numberOfDataPoints:
+              valuesPerPoint = math.ceil(float(numberOfDataPoints) / float(maxDataPoints))
+              secondsPerPoint = int(valuesPerPoint * series.step)
+              # Nudge start over a little bit so that the consolidation bands align with each call
+              # removing 'jitter' seen when refreshing.
+              nudge = secondsPerPoint + (series.start % series.step) - (series.start % secondsPerPoint)
+              series.start = series.start + nudge
+              valuesToLose = int(nudge/series.step)
+              for r in range(1, valuesToLose):
+                del series[0]
+              series.consolidate(valuesPerPoint)
+              timestamps = range(series.start, series.end, secondsPerPoint)
+            else:
+              timestamps = range(series.start, series.end, series.step)
+            datapoints = zip(series, timestamps)
+            series_data.append(dict(target=series.name, datapoints=datapoints))
+        else:
+          for series in data:
             timestamps = range(series.start, series.end, series.step)
-          datapoints = zip(series, timestamps)
-          series_data.append(dict(target=series.name, datapoints=datapoints))
-      else:
+            datapoints = zip(series, timestamps)
+            series_data.append( dict(target=series.name, datapoints=datapoints) )
+      elif format == 'json-array':
+        # In array format, instead of sending a list of (val, ts) for each
+        # series, we send one list of (ts, val1, val2) including all series
+        # in each tuple.
+        step = None
+        start = None
+        end = None
         for series in data:
-          timestamps = range(series.start, series.end, series.step)
-          datapoints = zip(series, timestamps)
-          series_data.append( dict(target=series.name, datapoints=datapoints) )
+          if step and series.step != step:
+            return HttpResponse("Cannot plot multiple series with different steps using json-array format", status=400)
+          else:
+            step = series.step
+          start = min(start, series.start) if start is not None else series.start
+          end = max(end, series.end) if end is not None else series.end
+
+        datapoints = []
+
+        if data:
+            timestamps = range(start, end, step)
+            iters = [iter(s) for s in data]
+            for ts in timestamps:
+              dp = [ts]
+              for i, series in enumerate(data):
+                if ts < series.start or ts >= series.end:
+                  dp.append(None)
+                else:
+                  dp.append(iters[i].next())
+              datapoints.append(dp)
+
+        series_data = {
+          'targets': [s.name for s in data],
+          'datapoints': datapoints
+        }
+      else:
+        return HttpResponse("Invalid format '%s'" % format, status=400)
 
       if 'jsonp' in requestOptions:
         response = HttpResponse(
