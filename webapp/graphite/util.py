@@ -91,6 +91,8 @@ if USING_CPICKLE:
     PICKLE_SAFE = {
       'copy_reg': set(['_reconstructor']),
       '__builtin__': set(['object']),
+      'graphite.intervals': set(['Interval', 'IntervalSet']),
+      'collections': set(['deque']),
     }
 
     @classmethod
@@ -114,6 +116,8 @@ else:
     PICKLE_SAFE = {
       'copy_reg': set(['_reconstructor']),
       '__builtin__': set(['object']),
+      'graphite.intervals': set(['Interval', 'IntervalSet']),
+      'collections': set(['deque']),
     }
 
     def find_class(self, module, name):
