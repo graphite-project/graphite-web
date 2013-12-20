@@ -250,3 +250,16 @@ class FunctionsTest(TestCase):
                 "The original seriesList shouldn't have a 'color' attribute",
             )
             self.assertEqual(series.color, color)
+
+    def test_scale(self):
+        seriesList = self._generate_series_list()
+        multiplier = 2
+        # Leave the original seriesList undisturbed for verification
+        results = functions.scale({}, copy.deepcopy(seriesList), multiplier)
+        for i, series in enumerate(results):
+            for counter, value in enumerate(series):
+                if value is None:
+                    continue
+                original_value = seriesList[i][counter]
+                expected_value = original_value * multiplier
+                self.assertEqual(value, expected_value)
