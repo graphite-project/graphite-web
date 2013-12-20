@@ -12,6 +12,10 @@
 #See the License for the specific language governing permissions and
 #limitations under the License.
 
+import numpy
+from numpy import median 
+import scipy
+import scipy.linalg
 
 from datetime import date, datetime, timedelta
 from functools import partial
@@ -2682,6 +2686,119 @@ def hitcount(requestContext, seriesList, intervalString, alignToInterval = False
   return results
 
 
+def lowess(requestContext, seriesList, bandwidth=0.2, iterations=3):
+  """
+  This lowess function implements the algorithm given in the
+  reference below using local linear estimates.
+
+  Suppose the input data has N points. The algorithm works by
+  estimating the `smooth` y_i by taking the frac*N closest points
+  to (x_i,y_i) based on their x values and estimating y_i
+  using a weighted linear regression. The weight for (x_j,y_j)
+  is tricube function applied to |x_i-x_j|.
+
+  If it > 1, then further weighted local linear regressions
+  are performed, where the weights are the same as above
+  times the _lowess_bisquare function of the residuals. Each iteration
+  takes approximately the same amount of time as the original fit,
+  so these iterations are expensive. They are most useful when
+  the noise has extremely heavy tails, such as Cauchy noise.
+  Noise with less heavy-tails, such as t-distributions with df>2,
+  are less problematic. The weights downgrade the influence of
+  points with large residuals. In the extreme case, points whose
+  residuals are larger than 6 times the median absolute residual
+  are given weight 0.
+
+  delta can be used to save computations. For each x_i, regressions
+  are skipped for points closer than delta. The next regression is
+  fit for the farthest point within delta of x_i and all points in
+  between are estimated by linearly interpolating between the two
+  regression fits.
+
+  Judicious choice of delta can cut computation time considerably
+  for large data (N > 5000). A good choice is delta = 0.01 *
+  range(exog).
+
+  Some experimentation is likely required to find a good
+  choice of frac and iter for a particular dataset.
+
+  References
+  ----------
+  Cleveland, W.S. (1979) "Robust Locally Weighted Regression
+  and Smoothing Scatterplots". Journal of the American Statistical
+  Association 74 (368): 829-836.
+  """
+
+  results = []
+
+  cy_found = True
+  try:
+    import cylowess
+  except ImportError:
+	cy_found = False
+	print "Optional cylowess not found. Will execute Python version of lowess."
+
+  if cy_found:
+    for series in seriesList:
+      x = numpy.array(xrange(1, len(series) + 1), numpy.float)
+      y = numpy.array(map(lambda n: n or 0, series), numpy.float)
+      res = map(lambda x: x[1], cylowess.lowess(y, x, bandwidth, iterations, (x.max() - x.min()) * 0.01))
+      name = 'lowess(%s, %f, %d)' % (series.name, float(bandwidth), int(iterations))
+      newSeries = TimeSeries(name, series.start, series.end, series.step, res)
+      newSeries.pathExpression = name
+      results.append(newSeries)
+  else:
+    for series in seriesList:
+      x = numpy.array(xrange(1, len(series) + 1), numpy.float)
+      y = numpy.array(map(lambda n: n or 0, series), numpy.float)
+      n = len(x) 
+      r = int(numpy.ceil(bandwidth * n)) 
+      h = [numpy.sort(abs(x - x[i]))[r] for i in range(n)] 
+      w = numpy.clip(abs(([x] - numpy.transpose([x])) / h), 0.0, 1.0) 
+      w = 1 - w * w * w 
+      w = w * w * w 
+      yest = numpy.zeros(n) 
+      delta = numpy.ones(n)
+
+      if (n >= 7200):
+        skip = 75
+      elif (n >= 5800):
+        skip = 60
+      elif (n >= 4200):
+        skip = 45
+      elif (n >= 2800):
+        skip = 30
+      elif (n >= 1400):
+        skip = 15
+      else:
+        skip = 1
+      for iteration in range(iterations): 
+        for i in range(n):
+          if (i%skip == 0) or (i > n-5):
+            weights = delta * w[:, i] 
+            weights_mul_x = weights * x 
+            b1 = numpy.dot(weights, y) 
+            b2 = numpy.dot(weights_mul_x, y) 
+            A11 = sum(weights) 
+            A12 = sum(weights_mul_x) 
+            A21 = A12 
+            A22 = numpy.dot(weights_mul_x, x) 
+            determinant = A11 * A22 - A12 * A21 
+            beta1 = (A22 * b1 - A12 * b2) / determinant 
+            beta2 = (A11 * b2 - A21 * b1) / determinant 
+          yest[i] = beta1 + beta2 * x[i] 
+        residuals = y - yest 
+        s = median(abs(residuals))
+        delta = (x.max() - x.min()) * 0.01
+
+      name = 'lowess(%s, %f, %d)' % (series.name, float(bandwidth), int(iterations))
+      newSeries = TimeSeries(name, series.start, series.end, series.step, yest)
+      newSeries.pathExpression = name
+      results.append(newSeries)
+
+  return results
+
+	
 def timeFunction(requestContext, name):
   """
   Short Alias: time()
@@ -2873,6 +2990,7 @@ SeriesFunctions = {
   'smartSummarize' : smartSummarize,
   'hitcount'  : hitcount,
   'absolute' : absolute,
+  'lowess' : lowess,
 
   # Calculate functions
   'movingAverage' : movingAverage,
