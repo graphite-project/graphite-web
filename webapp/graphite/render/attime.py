@@ -30,7 +30,7 @@ def parseATTime(s, tzinfo=None):
       pass #Fall back because its not a timestamp, its YYYYMMDD form
     else:
       return datetime.fromtimestamp(int(s),tzinfo)
-  elif ':' in s:
+  elif ':' in s and len(s) == 11:
     return datetime.strptime(s,'%H:%M%Y%m%d')
   if '+' in s:
     ref,offset = s.split('+',1)
