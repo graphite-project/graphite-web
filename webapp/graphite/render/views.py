@@ -55,6 +55,7 @@ def renderView(request):
   requestContext = {
     'startTime' : requestOptions['startTime'],
     'endTime' : requestOptions['endTime'],
+    'now': requestOptions['now'],
     'localOnly' : requestOptions['localOnly'],
     'data' : []
   }
@@ -284,14 +285,21 @@ def parseOptions(request):
 
   # Get the time interval for time-oriented graph types
   if graphType == 'line' or graphType == 'pie':
+    if 'now' in queryParams:
+        now = parseATTime(queryParams['now'])
+    else:
+        now = datetime.now()
+
     if 'until' in queryParams:
-      untilTime = parseATTime(queryParams['until'], tzinfo)
+      untilTime = parseATTime(queryParams['until'], tzinfo, now)
     else:
-      untilTime = parseATTime('now', tzinfo)
+      untilTime = now
     if 'from' in queryParams:
-      fromTime = parseATTime(queryParams['from'], tzinfo)
+      fromTime = parseATTime(queryParams['from'], tzinfo, now)
     else:
-      fromTime = parseATTime('-1d', tzinfo)
+      fromTime = parseATTime('-1d', tzinfo, now)
+
+
 
     startTime = min(fromTime, untilTime)
     endTime = max(fromTime, untilTime)
@@ -299,6 +307,7 @@ def parseOptions(request):
 
     requestOptions['startTime'] = startTime
     requestOptions['endTime'] = endTime
+    requestOptions['now'] = now
 
   return (graphOptions, requestOptions)
 
