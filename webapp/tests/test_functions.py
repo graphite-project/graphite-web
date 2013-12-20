@@ -1,3 +1,4 @@
+import copy
 from django.test import TestCase
 
 from graphite.render.datalib import TimeSeries
@@ -94,7 +95,8 @@ class FunctionsTest(TestCase):
         config = [range(101), range(101), [1, None, None, None, None]]
 
         for i, c in enumerate(config):
-            seriesList.append(TimeSeries('Test(%d)' % i, 0, 1, 1, c))
+            name = "collectd.test-db{0}.load.value".format(i + 1)
+            seriesList.append(TimeSeries(name, 0, 1, 1, c))
         return seriesList
 
     def test_remove_above_percentile(self):
@@ -185,3 +187,66 @@ class FunctionsTest(TestCase):
                     self.assertEqual(tranform, result_val,
                         "Transformed value should be {0}, not {1}".format(transform, result_val),
                     )
+
+    def test_alias(self):
+        seriesList = self._generate_series_list()
+        substitution = "Ni!"
+        results = functions.alias({}, seriesList, substitution)
+        for series in results:
+            self.assertEqual(series.name, substitution)
+
+    def test_alias_sub(self):
+        seriesList = self._generate_series_list()
+        substitution = "Shrubbery"
+        results = functions.aliasSub({}, seriesList, "^\w+", substitution)
+        for series in results:
+            self.assertTrue(series.name.startswith(substitution),
+                    "aliasSub should replace the name with {0}".format(substitution),
+            )
+
+    # TODO: Add tests for * globbing and {} matching to this
+    def test_alias_by_node(self):
+        seriesList = self._generate_series_list()
+
+        def verify_node_name(*nodes):
+            if isinstance(nodes, int):
+                node_number = [nodes]
+
+            # Use deepcopy so the original seriesList is unmodified
+            results = functions.aliasByNode({}, copy.deepcopy(seriesList), *nodes)
+
+            for i, series in enumerate(results):
+                fragments = seriesList[i].name.split('.')
+                # Super simplistic. Doesn't match {thing1,thing2}
+                # or glob with *, both of what graphite allow you to use
+                expected_name = '.'.join([fragments[i] for i in nodes])
+                self.assertEqual(series.name, expected_name)
+
+        verify_node_name(1)
+        verify_node_name(1, 0)
+        verify_node_name(-1, 0)
+
+        # Verify broken input causes broken output
+        with self.assertRaises(IndexError):
+            verify_node_name(10000)
+
+    def test_alpha(self):
+        seriesList = self._generate_series_list()
+        alpha = 0.5
+        results = functions.alpha({}, seriesList, alpha)
+        self._verify_series_options(results, "alpha", alpha)
+
+    def test_color(self):
+        seriesList = self._generate_series_list()
+        color = "red"
+        # Leave the original seriesList unmodified
+        results = functions.color({}, copy.deepcopy(seriesList), color)
+
+        for i, series in enumerate(results):
+            self.assertTrue(hasattr(series, "color"),
+                "The transformed seriesList is missing the 'color' attribute",
+            )
+            self.assertFalse(hasattr(seriesList[i], "color"),
+                "The original seriesList shouldn't have a 'color' attribute",
+            )
+            self.assertEqual(series.color, color)
