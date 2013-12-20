@@ -184,7 +184,7 @@ class FunctionsTest(TestCase):
             for i, value in enumerate(series):
                 if value is None:
                     result_val = results[counter][i]
-                    self.assertEqual(tranform, result_val,
+                    self.assertEqual(transform, result_val,
                         "Transformed value should be {0}, not {1}".format(transform, result_val),
                     )
 
