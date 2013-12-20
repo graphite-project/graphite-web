@@ -3,6 +3,12 @@ from django.test import TestCase
 from graphite.render.datalib import TimeSeries
 from graphite.render import functions
 
+def return_greater(series, value):
+    return [i for i in series if i is not None and i > value]
+
+def return_less(series, value):
+    return [i for i in series if i is not None and i < value]
+
 
 class FunctionsTest(TestCase):
     def test_highest_max(self):
@@ -82,3 +88,100 @@ class FunctionsTest(TestCase):
 
         self.assertEqual(1111, functions.safeSum(result[0]))
         self.assertEqual(1110, functions.safeSum(result[1]))
+
+    def _generate_series_list(self):
+        seriesList = []
+        config = [range(101), range(101), [1, None, None, None, None]]
+
+        for i, c in enumerate(config):
+            seriesList.append(TimeSeries('Test(%d)' % i, 0, 1, 1, c))
+        return seriesList
+
+    def test_remove_above_percentile(self):
+        seriesList = self._generate_series_list()
+        percent = 50
+        results = functions.removeAbovePercentile({}, seriesList, percent)
+        for result in results:
+            self.assertListEqual(return_greater(result, percent), [])
+
+    def test_remove_below_percentile(self):
+        seriesList = self._generate_series_list()
+        percent = 50
+        results = functions.removeBelowPercentile({}, seriesList, percent)
+        expected = [[], [], [1]]
+
+        for i, result in enumerate(results):
+            self.assertListEqual(return_less(result, percent), expected[i])
+
+    def test_remove_above_value(self):
+        seriesList = self._generate_series_list()
+        value = 5
+        results = functions.removeAboveValue({}, seriesList, value)
+        for result in results:
+            self.assertListEqual(return_greater(result, value), [])
+
+    def test_remove_below_value(self):
+        seriesList = self._generate_series_list()
+        value = 5
+        results = functions.removeBelowValue({}, seriesList, value)
+        for result in results:
+            self.assertListEqual(return_less(result, value), [])
+
+    def test_limit(self):
+        seriesList = self._generate_series_list()
+        limit = len(seriesList) - 1
+        results = functions.limit({}, seriesList, limit)
+        self.assertEqual(len(results), limit,
+            "More than {0} results returned".format(limit),
+        )
+
+    def _verify_series_options(self, seriesList, name, value):
+        """
+        Verify a given option is set and True for each series in a
+        series list
+        """
+        for series in seriesList:
+            self.assertIn(name, series.options)
+            if value is True:
+                test_func = self.assertTrue
+            else:
+                test_func = self.assertEqual
+
+            test_func(series.options.get(name), value)
+
+    def test_second_y_axis(self):
+        seriesList = self._generate_series_list()
+        results = functions.secondYAxis({}, seriesList)
+        self._verify_series_options(results, "secondYAxis", True)
+
+    def test_draw_as_infinite(self):
+        seriesList = self._generate_series_list()
+        results = functions.drawAsInfinite({}, seriesList)
+        self._verify_series_options(results, "drawAsInfinite", True)
+
+    def test_line_width(self):
+        seriesList = self._generate_series_list()
+        width = 10
+        results = functions.lineWidth({}, seriesList, width)
+        self._verify_series_options(results, "lineWidth", width)
+
+    def test_transform_null(self):
+        seriesList = self._generate_series_list()
+        transform = -5
+        results = functions.transformNull({}, seriesList, transform)
+
+        for counter, series in enumerate(seriesList):
+            if not None in series:
+                continue
+            # If the None values weren't transformed, there is a problem
+            self.assertNotIn(None, results[counter],
+                "tranformNull should remove all None values",
+            )
+            # Anywhere a None was in the original series, verify it
+            # was transformed to the given value it should be.
+            for i, value in enumerate(series):
+                if value is None:
+                    result_val = results[counter][i]
+                    self.assertEqual(tranform, result_val,
+                        "Transformed value should be {0}, not {1}".format(transform, result_val),
+                    )
