@@ -11,7 +11,10 @@ from django.test import TestCase
 
 # Silence logging during tests
 LOGGER = logging.getLogger()
-LOGGER.addHandler(logging.NullHandler())
+
+# logging.NullHandler is a python 2.7ism
+if hasattr(logging, "NullHandler"):
+    LOGGER.addHandler(logging.NullHandler())
 
 
 class RenderTest(TestCase):

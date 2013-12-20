@@ -170,7 +170,7 @@ class FunctionsTest(TestCase):
     def test_transform_null(self):
         seriesList = self._generate_series_list()
         transform = -5
-        results = functions.transformNull({}, seriesList, transform)
+        results = functions.transformNull({}, copy.deepcopy(seriesList), transform)
 
         for counter, series in enumerate(seriesList):
             if not None in series:
