@@ -14,8 +14,6 @@
 
 import numpy
 from numpy import median 
-import scipy
-import scipy.linalg
 
 from datetime import date, datetime, timedelta
 from functools import partial
