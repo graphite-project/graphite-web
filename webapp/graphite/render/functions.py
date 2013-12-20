@@ -41,9 +41,6 @@ DAY = 86400
 HOUR = 3600
 MINUTE = 60
 
-NAN = float('NaN')
-INF = float('inf')
-
 #Utility functions
 def safeSum(values):
   safeValues = [v for v in values if v is not None]
@@ -192,7 +189,7 @@ def sumSeriesWithWildcards(requestContext, seriesList, *position): #XXX
   ``target=sumSeries(host.*.cpu-user.value)&target=sumSeries(host.*.cpu-system.value)``
 
   """
-  if type(position) is int:
+  if isinstance(position, int):
     positions = [position]
   else:
     positions = position
@@ -225,7 +222,7 @@ def averageSeriesWithWildcards(requestContext, seriesList, *position): #XXX
   ``target=averageSeries(host.*.cpu-user.value)&target=averageSeries(host.*.cpu-system.value)``
 
   """
-  if type(position) is int:
+  if isinstance(postition, int):
     positions = [position]
   else:
     positions = position
@@ -443,7 +440,7 @@ def asPercent(requestContext, seriesList, total=None):
   if total is None:
     totalValues = [ safeSum(row) for row in izip(*seriesList) ]
     totalText = None # series.pathExpression
-  elif type(total) is list:
+  elif isinstance(total, list):
     if len(total) != 1:
       raise ValueError("asPercent second argument must reference exactly 1 series")
     normalize([seriesList, total])
@@ -550,7 +547,7 @@ def movingMedian(requestContext, seriesList, windowSize):
 
   """
   windowInterval = None
-  if type(windowSize) is str:
+  if isinstance(windowSize, basestring):
     delta = parseTimeOffset(windowSize)
     windowInterval = abs(delta.seconds + (delta.days * 86400))
 
@@ -568,7 +565,7 @@ def movingMedian(requestContext, seriesList, windowSize):
     else:
       windowPoints = int(windowSize)
 
-    if type(windowSize) is str:
+    if isinstance(windowSize, basestring):
       newName = 'movingMedian(%s,"%s")' % (series.name, windowSize)
     else:
       newName = "movingMedian(%s,%d)" % (series.name, windowPoints)
@@ -740,7 +737,7 @@ def movingAverage(requestContext, seriesList, windowSize):
 
   """
   windowInterval = None
-  if type(windowSize) is str:
+  if isinstance(windowSize, basestring):
     delta = parseTimeOffset(windowSize)
     windowInterval = abs(delta.seconds + (delta.days * 86400))
 
@@ -758,7 +755,7 @@ def movingAverage(requestContext, seriesList, windowSize):
     else:
       windowPoints = int(windowSize)
 
-    if type(windowSize) is str:
+    if isinstance(windowSize, basestring):
       newName = 'movingAverage(%s,"%s")' % (series.name, windowSize)
     else:
       newName = "movingAverage(%s,%s)" % (series.name, windowSize)
@@ -1128,7 +1125,7 @@ def aliasByNode(requestContext, seriesList, *nodes):
     &target=aliasByNode(ganglia.*.cpu.load5,1)
 
   """
-  if type(nodes) is int:
+  if isinstance(nodes, int):
     nodes=[nodes]
   for series in seriesList:
     metric_pieces = re.search('(?:.*\()?(?P<name>[-\w*\.]+)(?:,|\)?.*)?',series.name).groups()[0].split('.')
