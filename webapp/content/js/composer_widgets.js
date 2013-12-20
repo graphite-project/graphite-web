@@ -509,6 +509,21 @@ var GraphDataWindow = {
           id: 'removeTargetButton',
           handler: this.removeTarget.createDelegate(this)
         }, {
+          text: 'Move',
+          id: 'moveButton',
+          menuAlign: 'tr-tl',
+          menu: {
+            subMenuAlign: 'tr-tl',
+            defaults: {
+              defaultAlign: 'tr-tl',
+            },
+            items: [
+              { text: 'Move Up', handler: this.moveTargetUp.createDelegate(this) },
+              { text: 'Move Down', handler: this.moveTargetDown.createDelegate(this) },
+              { text: 'Swap', handler: this.swapTargets.createDelegate(this), id: 'menuSwapTargets' }
+            ]
+          }
+        }, {
           text: 'Apply Function',
           id: 'applyFunctionButton',
           menuAlign: 'tr-tl',
@@ -539,10 +554,10 @@ var GraphDataWindow = {
       ],
       listeners: {
         afterrender: function () {
-                       if (_this.targetList.getNodes().length > 0) {
-                         _this.targetList.select(0);
-                       }
-                     }
+          if (_this.targetList.getNodes().length > 0) {
+            _this.targetList.select(0);
+          }
+        }
       }
     });
     return this.window;
@@ -564,12 +579,20 @@ var GraphDataWindow = {
       Ext.getCmp('removeTargetButton').disable();
       Ext.getCmp('applyFunctionButton').disable();
       Ext.getCmp('undoFunctionButton').disable();
+      Ext.getCmp('moveButton').disable();
     } else {
       Ext.getCmp('editTargetButton').enable();
       Ext.getCmp('removeTargetButton').enable();
       Ext.getCmp('applyFunctionButton').enable();
       Ext.getCmp('undoFunctionButton').enable();
+      Ext.getCmp('moveButton').enable();
     }
+    
+    // Swap Targets
+    if (selected == 2)
+      Ext.getCmp('menuSwapTargets').enable();
+    else
+      Ext.getCmp('menuSwapTargets').disable();
   },
 
   targetContextMenu: function (targetList, index, node, e) {
@@ -580,13 +603,24 @@ var GraphDataWindow = {
 
     var removeItem = {text: "Remove", handler: this.removeTarget.createDelegate(this)};
     var editItem = {text: "Edit", handler: this.editTarget.createDelegate(this)};
+    var moveMenu = {
+      text: "Move",
+      menu: [
+        { text: "Move Up", handler: this.moveTargetUp.createDelegate(this) },
+        { text: "Move Down", handler: this.moveTargetDown.createDelegate(this) },
+        { text: "Swap", handler: this.swapTargets.createDelegate(this), disabled: true }
+      ]
+    };
 
     if (this.getSelectedTargets().length == 0) {
       removeItem.disabled = true;
       editItem.disabled = true;
+      moveMenu.disabled = true;
     }
-
-    var contextMenu = new Ext.menu.Menu({ items: [removeItem, editItem] });
+    if (this.getSelectedTargets().length == 2)
+      moveMenu.menu[2].disabled = false;
+    
+    var contextMenu = new Ext.menu.Menu({ items: [removeItem, editItem, moveMenu] });
     contextMenu.showAt( e.getXY() );
 
     e.stopEvent();
@@ -873,6 +907,78 @@ var GraphDataWindow = {
     });
 
     win.show();
+  },
+  
+  moveTargetUp: function() {
+    this._moveTarget(-1);
+  },
+  
+  moveTargetDown: function() {
+    this._moveTarget(1);
+  },
+  
+  swapTargets: function() {
+    this._swapTargets();
+  },
+  
+  _moveTarget: function(direction) {
+    store = this.targetList.getStore();
+    selectedRecords = this.targetList.getSelectedRecords();
+      
+    // Don't move past boundaries
+    exit = false;
+    Ext.each(selectedRecords, function(record) {
+      index = store.indexOf(record);
+
+      if (direction == -1 && index == 0) {
+        exit = true;
+        return false;
+      }
+      else if (direction == 1 && index == store.getCount() - 1) {
+        exit = true;
+        return false;
+      }
+    });
+    if (exit)
+      return;
+      
+    newSelections = [];
+    Ext.each(selectedRecords, function(recordA) {
+      indexA = store.indexOf( recordA );
+      valueA = recordA.get('value');
+      recordB = store.getAt( indexA + direction );
+
+      // swap
+      recordA.set('value', recordB.get('value'));
+      recordB.set('value', valueA);
+      recordA.commit();
+      recordB.commit();
+
+      newSelections.push( indexA + direction );
+    });
+      
+    Composer.syncTargetList();
+    Composer.updateImage();
+    this.targetList.select(newSelections);
+  },
+  
+  _swapTargets: function() {
+    selectedRecords = this.targetList.getSelectedRecords();
+    if (selectedRecords.length != 2)
+      return;
+      
+    recordA = selectedRecords[0];
+    recordB = selectedRecords[1];
+
+    valueA = recordA.get('value');
+    recordA.set('value', recordB.get('value'));
+    recordB.set('value', valueA);
+
+    recordA.commit();
+    recordB.commit();
+
+    Composer.syncTargetList();
+    Composer.updateImage();
   },
 
   addWlSelected: function (item, e) {
