@@ -172,6 +172,12 @@ try:
 except ImportError:
   sys.stderr.write("[OPTIONAL] Unable to import the 'python-rrdtool' module, this is required for reading RRD.\n")
 
+# Test for cylowess
+try:
+  import cylowess
+except ImportError:
+  sys.stderr.write("[OPTIONAL] Unable to import 'cylowess', do you have cylowess installed for python %s? This allows for faster lowess processing (locallly weighted scatterplot smoothing) than the standard version, espcially for large datasets. You can install from here: https://github.com/livingsocial/cylowess\n" % py_version)
+    optional += 1
 
 if optional:
   sys.stderr.write("%d optional dependencies not met. Please consider the optional items before proceeding.\n" % optional)
