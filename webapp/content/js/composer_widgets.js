@@ -1133,7 +1133,14 @@ function createFunctionsMenu() {
 //        {text: 'GroupByNode', handler: applyFuncToEachWithInput('group')}, // requires 2 parameters
 //        {text: 'Add Threshold Line', handler: applyFuncToEachWithInput('threshold', 'Enter a threshold value')},
         {text: 'Draw Stacked', handler: applyFuncToEach('stacked')},
-        {text: 'Draw in Second Y Axis', handler: applyFuncToEach('secondYAxis')}
+        {text: 'Draw in Second Y Axis', handler: applyFuncToEach('secondYAxis')},
+        {text: 'Aggregate Line',
+         menu: [
+           {text: "Avg", handler: applyFuncToEach('aggregateLine', '"avg"')},
+           {text: "Max", handler: applyFuncToEach('aggregateLine', '"max"')},
+           {text: "Min", handler: applyFuncToEach('aggregateLine', '"min"')}
+         ]
+        }
       ]
     }
   ];
