@@ -17,7 +17,7 @@ from numpy import median
 
 from datetime import date, datetime, timedelta
 from functools import partial
-from itertools import izip, imap
+from itertools import izip, imap, repeat
 import math
 import re
 import random
@@ -428,12 +428,13 @@ def asPercent(requestContext, seriesList, total=None):
   each series will be calculated as a percentage of that total. If `total` is not specified,
   the sum of all points in the wildcard series will be used instead.
 
-  The `total` parameter may be a single series or a numeric value.
+  The `total` parameter may be a list of series, a single series or a numeric value.
 
   Example:
 
   .. code-block:: none
 
+    &target=asPercent(Server*.connections.{failed,succeeded}, Server*.connections.attempted)
     &target=asPercent(Server01.connections.{failed,succeeded}, Server01.connections.attempted)
     &target=asPercent(apache01.threads.busy,1500)
     &target=asPercent(Server01.cpu.*.jiffies)
@@ -443,20 +444,25 @@ def asPercent(requestContext, seriesList, total=None):
   normalize([seriesList])
 
   if total is None:
-    totalValues = [ safeSum(row) for row in izip(*seriesList) ]
-    totalText = None # series.pathExpression
+    totalValuesList = repeat([ safeSum(row) for row in izip(*seriesList) ], len(seriesList))
+    totalTextList = repeat(None, len(seriesList)) # series.pathExpression
   elif type(total) is list:
-    if len(total) != 1:
-      raise ValueError("asPercent second argument must reference exactly 1 series")
+    if len(total) == 0:
+      raise ValueError("asPercent total series are empty (maybe you have a typo?)")
+    if len(total) == 1:
+      total = [total[0]] * len(seriesList)
+    elif len(total) != len(seriesList):
+      raise ValueError("asPercent first and second arguments must have the same number of series (%s != %s)" %
+          (len(seriesList), len(total)))
     normalize([seriesList, total])
-    totalValues = total[0]
-    totalText = totalValues.name
+    totalValuesList = total
+    totalTextList = ( t.name for t in totalValuesList )
   else:
-    totalValues = [total] * len(seriesList[0])
-    totalText = str(total)
+    totalValuesList = repeat(repeat(total, len(seriesList[0])), len(seriesList))
+    totalTextList = repeat(str(total), len(seriesList))
 
   resultList = []
-  for series in seriesList:
+  for series, totalValues, totalText in izip(seriesList, totalValuesList, totalTextList):
     resultValues = [ safeMul(safeDiv(val, totalVal), 100.0) for val,totalVal in izip(series,totalValues) ]
 
     name = "asPercent(%s, %s)" % (series.name, totalText or series.pathExpression)
