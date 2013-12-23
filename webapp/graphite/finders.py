@@ -152,23 +152,13 @@ def _deduplicate(entries):
 
 def match_entries(entries, pattern):
   """A drop-in replacement for fnmatch.filter that supports pattern
-  variants (ie. {foo,bar}baz = foobaz or barbaz)."""
-  v1, v2 = pattern.find('{'), pattern.find('}')
+  variants (ie. {foo{1,2},bar}baz = foo1baz or foo2baz or barbaz)."""
+  matching = []
 
-  if v1 > -1 and v2 > v1:
-    variations = pattern[v1+1:v2].split(',')
-    variants = [ pattern[:v1] + v + pattern[v2+1:] for v in variations ]
-    matching = []
+  for variant in expand_braces(pattern):
+    matching.extend( fnmatch.filter(entries, variant) )
 
-    for variant in variants:
-      matching.extend( fnmatch.filter(entries, variant) )
-
-    return list( _deduplicate(matching) ) #remove dupes without changing order
-
-  else:
-    matching = fnmatch.filter(entries, pattern)
-    matching.sort()
-    return matching
+  return list( _deduplicate(matching) ) #remove dupes without changing order
 
 braces_pattern = re.compile(r'.*(\{.+?[^\\]\})')
 
