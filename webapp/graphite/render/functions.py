@@ -484,16 +484,21 @@ def divideSeries(requestContext, dividendSeriesList, divisorSeriesList):
   .. code-block:: none
 
     &target=divideSeries(Series.dividends,Series.divisors)
+    &target=divideSeries(Server*.connections.{failed,succeeded}, Server*.connections.attempted)
 
 
   """
-  if len(divisorSeriesList) != 1:
-    raise ValueError("divideSeries second argument must reference exactly 1 series")
 
-  divisorSeries = divisorSeriesList[0]
+  if len(divisorSeriesList) != 1 and len(divisorSeriesList) != len(dividendSeriesList):
+    raise ValueError("divideSeries first and second arguments must have the same number of series (%s != %s)" %
+        (len(dividendSeriesList), len(divisorSeriesList)))
+
+  if len(divisorSeriesList) == 1:
+    divisorSeriesList = repeat(divisorSeriesList[0], len(dividendSeriesList))
+
   results = []
 
-  for dividendSeries in dividendSeriesList:
+  for dividendSeries, divisorSeries in izip(dividendSeriesList, divisorSeriesList):
     name = "divideSeries(%s,%s)" % (dividendSeries.name, divisorSeries.name)
     bothSeries = (dividendSeries, divisorSeries)
     step = reduce(lcm,[s.step for s in bothSeries])
