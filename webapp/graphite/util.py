@@ -78,8 +78,8 @@ def is_local_interface(host):
     local_ip = sock.getsockname()[0]
     sock.close()
   except:
-      log.exception("Failed to open socket with %s" % host)
-      raise
+    log.exception("Failed to open socket with %s" % host)
+    raise
 
   if local_ip == host:
     return True
