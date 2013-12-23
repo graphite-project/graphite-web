@@ -18,7 +18,7 @@ class CeresFinder:
     self.tree = CeresTree(directory)
 
   def find_nodes(self, query):
-    for fs_path in glob( self.tree.getFilesystemPath(query.pattern) ):
+    for fs_path in glob_entries( self.tree.getFilesystemPath(query.pattern) ):
       metric_path = self.tree.getNodePath(fs_path)
 
       if CeresNode.isNodeDir(fs_path):
@@ -168,3 +168,10 @@ def match_entries(entries, pattern):
     matching = fnmatch.filter(entries, pattern)
     matching.sort()
     return matching
+
+def glob_entries(pattern):
+  """Expands pattern to entries list."""
+  if pattern.endswith('/**'):
+    return [ entry[0] for directory in glob(pattern[:-3]) for entry in os.walk(directory) ]
+
+  return glob(pattern)
