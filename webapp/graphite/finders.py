@@ -1,4 +1,5 @@
 import os
+import re
 import fnmatch
 from os.path import islink, isdir, isfile, realpath, join, dirname, basename
 from glob import glob
@@ -169,9 +170,36 @@ def match_entries(entries, pattern):
     matching.sort()
     return matching
 
+braces_pattern = re.compile(r'.*(\{.+?[^\\]\})')
+
+def expand_braces(orig):
+  """Expands curly brace expansion.
+  This function taken from http://bugs.python.org/issue9584."""
+  s = orig[:]
+  res = []
+
+  m = braces_pattern.search(s)
+  if m is not None:
+    sub = m.group(1)
+    open_brace = s.find(sub)
+    close_brace = open_brace + len(sub) - 1
+    if sub.find(',') != -1:
+      for pat in sub.strip('{}').split(','):
+        res.extend(expand_braces(s[:open_brace] + pat + s[close_brace+1:]))
+    else:
+      res.extend(expand_braces(s[:open_brace] + sub.replace('}', '\\}') + s[close_brace+1:]))
+  else:
+    res.append(s.replace('\\}', '}'))
+
+  return list(_deduplicate(res))
+
 def glob_entries(pattern):
   """Expands pattern to entries list."""
-  if pattern.endswith('/**'):
-    return [ entry[0] for directory in glob(pattern[:-3]) for entry in os.walk(directory) ]
+  res = []
+  for variant in expand_braces(pattern):
+    if variant.endswith('/**'):
+      res.extend([ entry[0] for directory in glob(variant[:-3]) for entry in os.walk(directory) ])
+    else:
+      res.extend(glob(variant))
 
-  return glob(pattern)
+  return list(_deduplicate(res))
