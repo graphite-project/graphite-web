@@ -12,6 +12,12 @@ This will check for graphite's runtime dependencies and let
 you know which you are missing. Download and install these modules and re-run
 check-dependencies.py until it detects all the required modules.
 
+You may wish to use ``pip`` to install dependencies automatically for you, for
+example, on Ubuntu::
+
+    sudo apt-get install libcairo2-dev
+    sudo pip install -r requirements.txt
+
 Graphite requires:
  python2.4 or greater (python 2.5 or greater is required for AMQP support)
  whisper (available for download on the graphite project page)
