@@ -309,7 +309,7 @@ annotated events, etc). Supports Graphite, flot, rickshaw and anthracite.
 .. _Graphios: https://github.com/shawn-sterling/graphios
 .. _Graphite-Tattle: https://github.com/wayfair/Graphite-Tattle
 .. _Graphite-Newrelic: https://github.com/gingerlime/graphite-newrelic
-.. _Graphite-Observer: https://github.com/douban/graphite-observer
+.. _Graphite-Observer: https://github.com/huoxy/graphite-observer
 .. _Graphite-relay: https://github.com/markchadwick/graphite-relay
 .. _Graphitejs: https://github.com/prestontimmons/graphitejs
 .. _Graphiti: https://github.com/paperlesspost/graphiti
