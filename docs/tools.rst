@@ -188,6 +188,7 @@ hubot-scripts
 project includes a Graphite script which supports searching and displaying saved graphs from
 the Composer directory in your Campfire rooms.
 
+
 jmxtrans
 --------
 `jmxtrans`_ is a powerful tool that performs JMX queries to collect metrics from Java applications.
@@ -207,9 +208,11 @@ It is ideal for visualizing trends of events that are occurring in your applicat
 logs. For example, you might use logster to graph the number of occurrences of HTTP response
 code that appears in your web server logs.
 
+
 Orion
 -------
 `Orion`_ is powerful tool to create, view and manage dashboards for your Graphite data. It allows easy implementation of custom authentication to manage access to the dashboard.
+
 
 metrics-sampler
 ---------------
@@ -217,16 +220,23 @@ metrics-sampler
 selects and renames them using regular expressions and sends them to a configured set of outputs. 
 It supports JMX and JDBC as inputs and Graphite as output out of the box.
 
+
 Pencil
 ------
 `Pencil`_ is a monitoring frontend for graphite. It runs a webserver that dishes out pretty Graphite
 URLs in interesting and intuitive layouts.
 
+
 pipe-to-graphite
 ----------------
-
 `pipe-to-graphite`_ is a small shell script that makes it easy to report the
 output of any other cli program to Graphite.
+
+
+rearview
+--------
+`rearview`_ is a real-time monitoring framework that sits on top of Graphite's time series data. This allows users to create monitors that both visualize and alert on data as it streams from Graphite. The monitors themselves are simple Ruby scripts which run in a sandbox to provide additinoal security. Monitors are also configured with a crontab compatible time specification used by the scheduler. Alerts can be sent via email, pagerduty, or campfire.
+
 
 Rocksteady
 ----------
@@ -331,6 +341,7 @@ annotated events, etc). Supports Graphite, flot, rickshaw and anthracite.
 .. _pipe-to-graphite: https://github.com/iFixit/pipe-to-graphite
 .. _RabbitMQ: http://www.rabbitmq.com/
 .. _Rickshaw: http://code.shutterstock.com/rickshaw/
+.. _rearview: http://github.com/livingsocial/rearview/
 .. _Rocksteady: http://code.google.com/p/rocksteady/
 .. _Seyren: https://github.com/scobal/seyren
 .. _Sensu: http://sensuapp.org/
