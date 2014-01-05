@@ -314,7 +314,7 @@ annotated events, etc). Supports Graphite, flot, rickshaw and anthracite.
 .. _Gdash: https://github.com/ripienaar/gdash.git
 .. _Giraffe: http://kenhub.github.com/giraffe/
 .. _Graph-Explorer: http://vimeo.github.io/graph-explorer
-.. _Graph-Index: https://github.com/huoxy/graph-index
+.. _Graph-Index: https://github.com/douban/graph-index
 .. _Graphene: http://jondot.github.com/graphene/
 .. _Graphios: https://github.com/shawn-sterling/graphios
 .. _Graphite-Tattle: https://github.com/wayfair/Graphite-Tattle
