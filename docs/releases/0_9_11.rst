@@ -108,7 +108,7 @@ Carbon
 * min/max aggregation methods are now supported (ishiro)
 
 Whisper
-^^^^^^
+^^^^^^^
 * Better commandline sanity checking and messaging (sejeff)
 * Handle SIGPIPE correctly in commandline utils (sejeff)
 * Option to intelligently aggregate values on whisper-resize (jens-rantil)

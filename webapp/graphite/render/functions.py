@@ -2706,7 +2706,7 @@ def lowess(requestContext, seriesList, bandwidth=0.2, iterations=3):
   estimating the `smooth` y_i by taking the frac*N closest points
   to (x_i,y_i) based on their x values and estimating y_i
   using a weighted linear regression. The weight for (x_j,y_j)
-  is tricube function applied to |x_i-x_j|.
+  is tricube function applied to `|x_i-x_j|`.
 
   If it > 1, then further weighted local linear regressions
   are performed, where the weights are the same as above
@@ -2733,8 +2733,8 @@ def lowess(requestContext, seriesList, bandwidth=0.2, iterations=3):
   Some experimentation is likely required to find a good
   choice of frac and iter for a particular dataset.
 
-  References
-  ----------
+  References:
+
   Cleveland, W.S. (1979) "Robust Locally Weighted Regression
   and Smoothing Scatterplots". Journal of the American Statistical
   Association 74 (368): 829-836.

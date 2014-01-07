@@ -115,7 +115,7 @@ Graphite-Newrelic
 
 
 Graphite-Observer
----------------
+-----------------
 `Graphite-Observer`_ is a real-time monitor dashboard for Graphite.
 
 

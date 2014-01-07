@@ -115,8 +115,9 @@ Several installation options exist:
 Initial Configuration
 ---------------------
 .. toctree::
-   configure-webapp
-   configure-carbon
+
+   config-webapp
+   config-carbon
 
 
 Help! It didn't work!

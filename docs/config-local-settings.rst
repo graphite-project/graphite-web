@@ -128,7 +128,7 @@ INDEX_FILE
 Email Configuration
 -------------------
 These settings configure Django's email functionality which is used for emailing rendered graphs.
-See the `Django documentation <https://docs.djangoproject.com/en/dev/topics/email/>`_ for
+See the `Django documentation <https://docs.djangoproject.com/en/dev/topics/email/>`__ for
 further detail on these settings
 
 EMAIL_BACKEND
@@ -273,7 +273,7 @@ such as PostgreSQL or MySQL is required so that all instances may share the same
   configuration using the new format
 
 See the
-`Django documentation <https://docs.djangoproject.com/en/dev/ref/settings/#databases>`_
+`Django documentation <https://docs.djangoproject.com/en/dev/ref/settings/#databases>`__
 for full documentation of the DATABASE setting. Users on Django 1.1 will require setting the 
 deprecated ``DATABASE_*`` settings outlined in the `Django 1.1 documentation <https://docs.djangoproject.com/en/1.1/ref/settings/#database-engine>`_
 

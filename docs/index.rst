@@ -9,6 +9,7 @@ Graphite Documentation
    install
    carbon-daemons
    config-carbon
+   admin-carbon
    feeding-carbon
    config-local-settings
    config-webapp
