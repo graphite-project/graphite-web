@@ -270,7 +270,7 @@ class Node:
 
 class Branch(Node):
   "Node with children"
-  def fetch(self, startTime, endTime):
+  def fetch(self, startTime, endTime, now=None):
     "No-op to make all Node's fetch-able"
     return []
 
