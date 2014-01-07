@@ -269,6 +269,10 @@ SqlToGraphite
 -------------
 `SqlToGraphite`_ is an agent for windows written in .net to collect metrics using plugins (WMI, SQL Server, Oracle) by polling an endpoint with a SQL query and pushing the results into graphite. It uses either a local or a centralised configuration over HTTP. 
 
+SSC Serv
+--------
+`SSC Serv`_ is a Windows service (agent) which periodically publishes system metrics, for example CPU, memory and disk usage. It can store data in Graphite using a naming schema that's identical to that used by collectd.
+
 statsd
 ------
 `statsd`_ is a simple daemon for easy stats aggregation, developed by the folks at Etsy.
@@ -347,6 +351,7 @@ annotated events, etc). Supports Graphite, flot, rickshaw and anthracite.
 .. _Sensu: http://sensuapp.org/
 .. _Shinken: http://www.shinken-monitoring.org/
 .. _SqlToGraphite: https://github.com/perryofpeek/SqlToGraphite/
+.. _SSC Serv: https://ssc-serv.com/
 .. _statsd: https://github.com/etsy/statsd
 .. _structured_metrics: https://github.com/vimeo/graph-explorer/tree/master/structured_metrics
 .. _Tasseo: https://github.com/obfuscurity/tasseo
