@@ -78,7 +78,8 @@ def is_local_interface(host):
       sock.bind( (host,port) )
       sock.close()
 
-    except socket.error, e:
+    except socket.error:
+      e = sys.exc_info()[1]
       if e.args[0] == errno.EADDRNOTAVAIL:
         return False
       else:

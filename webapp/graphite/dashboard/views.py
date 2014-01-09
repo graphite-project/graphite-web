@@ -1,5 +1,6 @@
 import re
 import errno
+import sys
 
 from os.path import getmtime, join, exists
 from urllib import urlencode
@@ -109,7 +110,8 @@ def dashboard(request, name=None):
 
   try:
     config.check()
-  except OSError, e:
+  except OSError:
+    e = sys.exc_info()[1]
     if e.errno == errno.ENOENT:
       dashboard_conf_missing = True
     else:
