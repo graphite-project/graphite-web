@@ -224,7 +224,7 @@ def averageSeriesWithWildcards(requestContext, seriesList, *position): #XXX
   ``target=averageSeries(host.*.cpu-user.value)&target=averageSeries(host.*.cpu-system.value)``
 
   """
-  if isinstance(postition, int):
+  if isinstance(position, int):
     positions = [position]
   else:
     positions = position
@@ -232,7 +232,7 @@ def averageSeriesWithWildcards(requestContext, seriesList, *position): #XXX
   matchedList = {}
   for series in seriesList:
     newname = '.'.join(map(lambda x: x[1], filter(lambda i: i[0] not in positions, enumerate(series.name.split('.')))))
-    if not matchedList.has_key(newname):
+    if newname not in matchedList:
       matchedList[newname] = []
     matchedList[newname].append(series)
   for name in matchedList.keys():
@@ -2777,8 +2777,8 @@ def lowess(requestContext, seriesList, bandwidth=0.2, iterations=3):
   try:
     import cylowess
   except ImportError:
-	cy_found = False
-	print "Optional cylowess not found. Will execute Python version of lowess."
+    cy_found = False
+    print("Optional cylowess not found. Will execute Python version of lowess.")
 
   if cy_found:
     for series in seriesList:
@@ -2840,7 +2840,7 @@ def lowess(requestContext, seriesList, bandwidth=0.2, iterations=3):
 
   return results
 
-	
+
 def timeFunction(requestContext, name):
   """
   Short Alias: time()

@@ -13,14 +13,15 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 import imp
-from os.path import splitext, basename
+import fnmatch
 import os
-from shutil import move
-from tempfile import mkstemp
 import socket
 import errno
 import time
 import sys
+from os.path import splitext, basename
+from shutil import move
+from tempfile import mkstemp
 try:
   import cPickle as pickle
   USING_CPICKLE = True

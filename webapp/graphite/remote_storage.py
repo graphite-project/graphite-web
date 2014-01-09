@@ -7,7 +7,6 @@ from threading import Lock, Event
 from django.conf import settings
 from django.core.cache import cache
 from graphite.node import LeafNode, BranchNode
-from graphite.intervals import Interval, IntervalSet
 from graphite.readers import FetchInProgress
 from graphite.logger import log
 from graphite.util import unpickle
