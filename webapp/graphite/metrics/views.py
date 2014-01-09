@@ -265,7 +265,7 @@ def set_metadata_view(request):
 
   elif request.method == 'POST':
     if request.META.get('CONTENT_TYPE') == 'application/json':
-      operations = json.loads( request.raw_post_data )
+      operations = json.loads( request.body )
     else:
       operations = json.loads( request.POST['operations'] )
 

@@ -367,7 +367,7 @@ def delegateRendering(graphType, graphOptions):
 def renderLocalView(request):
   try:
     start = time()
-    reqParams = StringIO(request.raw_post_data)
+    reqParams = StringIO(request.body)
     graphType = reqParams.readline().strip()
     optionsPickle = reqParams.read()
     reqParams.close()
