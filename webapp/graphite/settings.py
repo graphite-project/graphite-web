@@ -77,8 +77,7 @@ LOG_METRIC_ACCESS = False
 LEGEND_MAX_ITEMS = 10
 RRD_CF = 'AVERAGE'
 STORAGE_FINDERS = (
-    'graphite.finders.CeresFinder',
-    'graphite.finders.StandardFinder',
+    'graphite.finders.standard.StandardFinder',
 )
 
 #Authentication settings
