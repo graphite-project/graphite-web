@@ -125,7 +125,7 @@ def _draw(request,targets,_from=None,until=None,template=None,window=None,interv
       out += "}\n"
       if interval:
         i = int(interval)
-	out += "window.%s_interval = %d * 60000;\n" % (w,i)
+        out += "window.%s_interval = %d * 60000;\n" % (w,i)
         out += "window.%s_timer = setTimeout('window.%s_redraw()', window.%s_interval);\n" % (w,w,w)
     else:
       return stdout("<img src='%s' onload='scrollBy(0,this.height + 1000);'>" % url)

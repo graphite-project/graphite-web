@@ -44,6 +44,7 @@ function createComposerWindow(myComposer) {
     createToolbarButton('Select a Date Range', 'calBt.gif', toggleWindow(createCalendarWindow) ),
     createToolbarButton('Select Recent Data', 'arrow1.gif', toggleWindow(createRecentWindow) ),
     createToolbarButton('Open in GraphPlot', 'line_chart.png', function() { window.open('/graphlot/?' + Composer.url.queryString,'_blank') }),
+    createToolbarButton('Create from URL', 'link.png', toggleWindow(createURLWindow) ),
     '-',
     timeDisplay
   ];
@@ -274,6 +275,31 @@ function toggleWindow(createFunc) {
   return toggler;
 }
 
+function createURLWindow() {
+  var urlField = new Ext.form.TextField({
+    id: 'from-url',
+    allowBlank: false,
+    vtype: 'url',
+    listeners: { change: urlChosen, specialkey: ifEnter(urlChosen) }
+  });
+  
+  return new Ext.Window({
+      title: "Enter a URL to build graph from",
+      layout: 'fit',
+      height: 60,
+      width: 450,
+      closeAction: 'hide',
+      items: [
+        urlField
+      ]
+  });
+}
+
+function urlChosen() {
+  var url = Ext.getCmp('from-url').getValue();
+  Composer.loadMyGraph("temp", decodeURIComponent(url))
+}
+
 function createRecentWindow() {
   var quantityField = new Ext.form.NumberField({
     id: 'time-quantity',
@@ -483,6 +509,21 @@ var GraphDataWindow = {
           id: 'removeTargetButton',
           handler: this.removeTarget.createDelegate(this)
         }, {
+          text: 'Move',
+          id: 'moveButton',
+          menuAlign: 'tr-tl',
+          menu: {
+            subMenuAlign: 'tr-tl',
+            defaults: {
+              defaultAlign: 'tr-tl',
+            },
+            items: [
+              { text: 'Move Up', handler: this.moveTargetUp.createDelegate(this) },
+              { text: 'Move Down', handler: this.moveTargetDown.createDelegate(this) },
+              { text: 'Swap', handler: this.swapTargets.createDelegate(this), id: 'menuSwapTargets' }
+            ]
+          }
+        }, {
           text: 'Apply Function',
           id: 'applyFunctionButton',
           menuAlign: 'tr-tl',
@@ -513,10 +554,10 @@ var GraphDataWindow = {
       ],
       listeners: {
         afterrender: function () {
-                       if (_this.targetList.getNodes().length > 0) {
-                         _this.targetList.select(0);
-                       }
-                     }
+          if (_this.targetList.getNodes().length > 0) {
+            _this.targetList.select(0);
+          }
+        }
       }
     });
     return this.window;
@@ -538,12 +579,20 @@ var GraphDataWindow = {
       Ext.getCmp('removeTargetButton').disable();
       Ext.getCmp('applyFunctionButton').disable();
       Ext.getCmp('undoFunctionButton').disable();
+      Ext.getCmp('moveButton').disable();
     } else {
       Ext.getCmp('editTargetButton').enable();
       Ext.getCmp('removeTargetButton').enable();
       Ext.getCmp('applyFunctionButton').enable();
       Ext.getCmp('undoFunctionButton').enable();
+      Ext.getCmp('moveButton').enable();
     }
+    
+    // Swap Targets
+    if (selected == 2)
+      Ext.getCmp('menuSwapTargets').enable();
+    else
+      Ext.getCmp('menuSwapTargets').disable();
   },
 
   targetContextMenu: function (targetList, index, node, e) {
@@ -554,13 +603,24 @@ var GraphDataWindow = {
 
     var removeItem = {text: "Remove", handler: this.removeTarget.createDelegate(this)};
     var editItem = {text: "Edit", handler: this.editTarget.createDelegate(this)};
+    var moveMenu = {
+      text: "Move",
+      menu: [
+        { text: "Move Up", handler: this.moveTargetUp.createDelegate(this) },
+        { text: "Move Down", handler: this.moveTargetDown.createDelegate(this) },
+        { text: "Swap", handler: this.swapTargets.createDelegate(this), disabled: true }
+      ]
+    };
 
     if (this.getSelectedTargets().length == 0) {
       removeItem.disabled = true;
       editItem.disabled = true;
+      moveMenu.disabled = true;
     }
-
-    var contextMenu = new Ext.menu.Menu({ items: [removeItem, editItem] });
+    if (this.getSelectedTargets().length == 2)
+      moveMenu.menu[2].disabled = false;
+    
+    var contextMenu = new Ext.menu.Menu({ items: [removeItem, editItem, moveMenu] });
     contextMenu.showAt( e.getXY() );
 
     e.stopEvent();
@@ -848,6 +908,78 @@ var GraphDataWindow = {
 
     win.show();
   },
+  
+  moveTargetUp: function() {
+    this._moveTarget(-1);
+  },
+  
+  moveTargetDown: function() {
+    this._moveTarget(1);
+  },
+  
+  swapTargets: function() {
+    this._swapTargets();
+  },
+  
+  _moveTarget: function(direction) {
+    store = this.targetList.getStore();
+    selectedRecords = this.targetList.getSelectedRecords();
+      
+    // Don't move past boundaries
+    exit = false;
+    Ext.each(selectedRecords, function(record) {
+      index = store.indexOf(record);
+
+      if (direction == -1 && index == 0) {
+        exit = true;
+        return false;
+      }
+      else if (direction == 1 && index == store.getCount() - 1) {
+        exit = true;
+        return false;
+      }
+    });
+    if (exit)
+      return;
+      
+    newSelections = [];
+    Ext.each(selectedRecords, function(recordA) {
+      indexA = store.indexOf( recordA );
+      valueA = recordA.get('value');
+      recordB = store.getAt( indexA + direction );
+
+      // swap
+      recordA.set('value', recordB.get('value'));
+      recordB.set('value', valueA);
+      recordA.commit();
+      recordB.commit();
+
+      newSelections.push( indexA + direction );
+    });
+      
+    Composer.syncTargetList();
+    Composer.updateImage();
+    this.targetList.select(newSelections);
+  },
+  
+  _swapTargets: function() {
+    selectedRecords = this.targetList.getSelectedRecords();
+    if (selectedRecords.length != 2)
+      return;
+      
+    recordA = selectedRecords[0];
+    recordB = selectedRecords[1];
+
+    valueA = recordA.get('value');
+    recordA.set('value', recordB.get('value'));
+    recordB.set('value', valueA);
+
+    recordA.commit();
+    recordB.commit();
+
+    Composer.syncTargetList();
+    Composer.updateImage();
+  },
 
   addWlSelected: function (item, e) {
     Ext.Ajax.request({
@@ -915,7 +1047,8 @@ function createFunctionsMenu() {
         {text: 'Absolute Value', handler: applyFuncToEach('absolute')},
         {text: 'timeShift', handler: applyFuncToEachWithInput('timeShift', 'Shift this metric ___ back in time (examples: 10min, 7d, 2w)', {quote: true})},
         {text: 'Summarize', handler: applyFuncToEachWithInput('summarize', 'Please enter a summary interval (examples: 10min, 1h, 7d)', {quote: true})},
-        {text: 'Hit Count', handler: applyFuncToEachWithInput('hitcount', 'Please enter a summary interval (examples: 10min, 1h, 7d)', {quote: true})}
+        {text: 'Hit Count', handler: applyFuncToEachWithInput('hitcount', 'Please enter a summary interval (examples: 10min, 1h, 7d)', {quote: true})},
+		{text: 'Lowess Smoothing', handler: applyFuncToEachWithInput('lowess', 'Please enter smoothing parameter and iteration (default: 0.2,3)', {allowBlank: true}, {quote: false})}
       ]
     }, {
       text: 'Calculate',
@@ -958,6 +1091,7 @@ function createFunctionsMenu() {
         {text: 'Maximum Value Above', handler: applyFuncToEachWithInput('maximumAbove', 'Draw all metrics whose maximum value is above ___')},
         {text: 'Maximum Value Below', handler: applyFuncToEachWithInput('maximumBelow', 'Draw all metrics whose maximum value is below ___')},
         {text: 'Minimum Value Above', handler: applyFuncToEachWithInput('minimumAbove', 'Draw all metrics whose minimum value is above ___')},
+        {text: 'sortByName', handler: applyFuncToEach('sortByName')},
         {text: 'sortByTotal', handler: applyFuncToEach('sortByTotal')},
         {text: 'sortByMaxima', handler: applyFuncToEach('sortByMaxima')},
         {text: 'sortByMinima', handler: applyFuncToEach('sortByMinima')},
@@ -999,7 +1133,14 @@ function createFunctionsMenu() {
 //        {text: 'GroupByNode', handler: applyFuncToEachWithInput('group')}, // requires 2 parameters
 //        {text: 'Add Threshold Line', handler: applyFuncToEachWithInput('threshold', 'Enter a threshold value')},
         {text: 'Draw Stacked', handler: applyFuncToEach('stacked')},
-        {text: 'Draw in Second Y Axis', handler: applyFuncToEach('secondYAxis')}
+        {text: 'Draw in Second Y Axis', handler: applyFuncToEach('secondYAxis')},
+        {text: 'Aggregate Line',
+         menu: [
+           {text: "Avg", handler: applyFuncToEach('aggregateLine', '"avg"')},
+           {text: "Max", handler: applyFuncToEach('aggregateLine', '"max"')},
+           {text: "Min", handler: applyFuncToEach('aggregateLine', '"min"')}
+         ]
+        }
       ]
     }
   ];
