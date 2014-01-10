@@ -2425,7 +2425,7 @@ def groupByMultiNode(requestContext, seriesList, groupNode, metricNode, callback
     metric = nodes[metricNode]
     if metric in metricsList:
       i = metricsList.index(metric)
-      if key not in metaSeries.keys():
+      if key not in metaSeries:
         metaSeries[key] = [None] * len(metricsList)
         metaSeriesName[key] = '.'.join(nodes[0:groupNode+1]) + "." + callback + "." + '.'.join(metricsList)
         keys.append(key)
@@ -2458,8 +2458,7 @@ def groupByNode(requestContext, seriesList, nodeNum, callback):
     else:
       metaSeries[key].append(series)
   for key in metaSeries.keys():
-    metaSeries[key] = SeriesFunctions[callback](requestContext,
-        metaSeries[key])[0]
+    metaSeries[key] = SeriesFunctions[callback](requestContext,metaSeries[key])[0]
     metaSeries[key].name = key
   return [ metaSeries[key] for key in keys ]
 
