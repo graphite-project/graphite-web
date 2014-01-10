@@ -2391,7 +2391,7 @@ def group(requestContext, *seriesLists):
 
   return seriesGroup
 
-def groupByNodeMetric(requestContext, seriesList, groupNode, metricNode, callback, *metricsList):
+def groupByMultiNode(requestContext, seriesList, groupNode, metricNode, callback, *metricsList):
   """
   Takes a seriesList and maps a callback to subgroups within as defined by a common node and
   filtered by metricsNode matching one of the metrics defined by metricsList.
@@ -2403,7 +2403,7 @@ def groupByNodeMetric(requestContext, seriesList, groupNode, metricNode, callbac
   Example:
 
   .. code-block:: none
-     target=groupByNodeMetric(servers.*.cpu.*,1,3,"asPercent","cpu-user","cpu-total")
+     target=groupByMultiNode(servers.*.cpu.*,1,3,"asPercent","cpu-user","cpu-total")
 
   Becomes:
 
@@ -2417,6 +2417,7 @@ def groupByNodeMetric(requestContext, seriesList, groupNode, metricNode, callbac
 
   """
   metaSeries = {}
+  metaSeriesName = {}
   keys = []
   for series in seriesList:
     nodes = series.name.split(".")
@@ -2426,11 +2427,12 @@ def groupByNodeMetric(requestContext, seriesList, groupNode, metricNode, callbac
       i = metricsList.index(metric)
       if key not in metaSeries.keys():
         metaSeries[key] = [None] * len(metricsList)
+        metaSeriesName[key] = '.'.join(nodes[0:groupNode+1]) + "." + callback + "." + '.'.join(metricsList)
         keys.append(key)
       metaSeries[key][i] = series
   for key in keys:
     metaSeries[key] = SeriesFunctions[callback](requestContext,metaSeries[key])[0]
-    metaSeries[key].name = key
+    metaSeries[key].name = metaSeriesName[key]
   return [ metaSeries[key] for key in keys ]
 
 def groupByNode(requestContext, seriesList, nodeNum, callback):
@@ -2999,7 +3001,7 @@ SeriesFunctions = {
   'substr' : substr,
   'group' : group,
   'groupByNode' : groupByNode,
-  'groupByNodeMetric' : groupByNodeMetric,
+  'groupByMultiNode' : groupByMultiNode,
   'constantLine' : constantLine,
   'stacked' : stacked,
   'areaBetween' : areaBetween,
