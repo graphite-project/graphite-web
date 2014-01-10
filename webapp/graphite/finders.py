@@ -1,4 +1,5 @@
 import os
+import re
 import fnmatch
 from os.path import islink, isdir, isfile, realpath, join, dirname, basename
 from glob import glob
@@ -18,7 +19,7 @@ class CeresFinder:
     self.tree = CeresTree(directory)
 
   def find_nodes(self, query):
-    for fs_path in glob( self.tree.getFilesystemPath(query.pattern) ):
+    for fs_path in glob_entries( self.tree.getFilesystemPath(query.pattern) ):
       metric_path = self.tree.getNodePath(fs_path)
 
       if CeresNode.isNodeDir(fs_path):
@@ -151,20 +152,44 @@ def _deduplicate(entries):
 
 def match_entries(entries, pattern):
   """A drop-in replacement for fnmatch.filter that supports pattern
-  variants (ie. {foo,bar}baz = foobaz or barbaz)."""
-  v1, v2 = pattern.find('{'), pattern.find('}')
+  variants (ie. {foo{1,2},bar}baz = foo1baz or foo2baz or barbaz)."""
+  matching = []
 
-  if v1 > -1 and v2 > v1:
-    variations = pattern[v1+1:v2].split(',')
-    variants = [ pattern[:v1] + v + pattern[v2+1:] for v in variations ]
-    matching = []
+  for variant in expand_braces(pattern):
+    matching.extend( fnmatch.filter(entries, variant) )
 
-    for variant in variants:
-      matching.extend( fnmatch.filter(entries, variant) )
+  return list( _deduplicate(matching) ) #remove dupes without changing order
 
-    return list( _deduplicate(matching) ) #remove dupes without changing order
+braces_pattern = re.compile(r'.*(\{.+?[^\\]\})')
 
+def expand_braces(orig):
+  """Expands curly brace expansion.
+  This function taken from http://bugs.python.org/issue9584."""
+  s = orig[:]
+  res = []
+
+  m = braces_pattern.search(s)
+  if m is not None:
+    sub = m.group(1)
+    open_brace = s.find(sub)
+    close_brace = open_brace + len(sub) - 1
+    if sub.find(',') != -1:
+      for pat in sub.strip('{}').split(','):
+        res.extend(expand_braces(s[:open_brace] + pat + s[close_brace+1:]))
+    else:
+      res.extend(expand_braces(s[:open_brace] + sub.replace('}', '\\}') + s[close_brace+1:]))
   else:
-    matching = fnmatch.filter(entries, pattern)
-    matching.sort()
-    return matching
+    res.append(s.replace('\\}', '}'))
+
+  return list(_deduplicate(res))
+
+def glob_entries(pattern):
+  """Expands pattern to entries list."""
+  res = []
+  for variant in expand_braces(pattern):
+    if variant.endswith('/**'):
+      res.extend([ entry[0] for directory in glob(variant[:-3]) for entry in os.walk(directory) ])
+    else:
+      res.extend(glob(variant))
+
+  return list(_deduplicate(res))
