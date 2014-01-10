@@ -13,6 +13,7 @@ before_install:
   - mkdir -pv storage/log/webapp
   - mkdir -pv storage/ceres
   - mkdir -pv storage/whisper
+  - touch storage/index
   - cd webapp
 
 install:
