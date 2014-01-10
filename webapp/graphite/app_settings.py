@@ -13,7 +13,6 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 # Django settings for graphite project.
 # DO NOT MODIFY THIS FILE DIRECTLY - use local_settings.py instead
-from django import VERSION as DJANGO_VERSION
 from os.path import dirname, join, abspath
 
 ADMINS = ()
@@ -49,17 +48,10 @@ MEDIA_URL = ''
 ADMIN_MEDIA_PREFIX = '/media/'
 
 # List of callables that know how to import templates from various sources.
-#XXX Compatibility for Django 1.1. To be removed after 0.9.10
-if DJANGO_VERSION < (1,2):
-  TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.load_template_source',
-    'django.template.loaders.app_directories.load_template_source',
-  )
-else:
-  TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-  )
+TEMPLATE_LOADERS = (
+  'django.template.loaders.filesystem.Loader',
+  'django.template.loaders.app_directories.Loader',
+)
 
 MIDDLEWARE_CLASSES = (
   'django.middleware.common.CommonMiddleware',
@@ -68,11 +60,6 @@ MIDDLEWARE_CLASSES = (
   'django.contrib.auth.middleware.AuthenticationMiddleware',
   'django.contrib.messages.middleware.MessageMiddleware',
 )
-
-if DJANGO_VERSION >= (1,4):
-  MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + (
-    'django.contrib.messages.middleware.MessageMiddleware',
-  )
 
 ROOT_URLCONF = 'graphite.urls'
 
