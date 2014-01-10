@@ -52,4 +52,5 @@ You would then send the ``message`` object through a network socket.
 
 Using AMQP
 ----------
-...
+When AMQP_METRIC_NAME_IN_BODY is set to True in your carbon.conf file, the data should be of the same format as the plaintext protocol, e.g. echo "local.random.diceroll 4 `date +%s`".
+When AMQP_METRIC_NAME_IN_BODY is set to False, you should ommit 'local.random.diceroll'.
