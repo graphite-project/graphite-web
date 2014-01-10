@@ -716,7 +716,6 @@ def offsetToZero(requestContext, seriesList):
         series[i] = value - minimum
   return seriesList
 
-
 def movingAverage(requestContext, seriesList, windowSize):
   """
   Graphs the moving average of a metric (or metrics) over a fixed number of
@@ -893,7 +892,6 @@ def perSecond(requestContext, seriesList, maxValue=None):
     results.append(newSeries)
   return results
 
-
 def integral(requestContext, seriesList):
   """
   This will show the sum over time, sort of like a continuous addition function.
@@ -924,7 +922,6 @@ def integral(requestContext, seriesList):
     newSeries.pathExpression = newName
     results.append(newSeries)
   return results
-
 
 def nonNegativeDerivative(requestContext, seriesList, maxValue=None):
   """
@@ -1016,7 +1013,6 @@ def stacked(requestContext,seriesLists,stackName='__DEFAULT__'):
   requestContext['totalStack'][stackName] = totalStack
   return results
 
-
 def areaBetween(requestContext, seriesList):
   """
   Draws the area in between the two series in seriesList
@@ -1032,7 +1028,6 @@ def areaBetween(requestContext, seriesList):
   lower.name = upper.name = "areaBetween(%s)" % upper.pathExpression
   return seriesList
 
-
 def aliasSub(requestContext, seriesList, search, replace):
   """
   Runs series names through a regex search/replace.
@@ -1047,7 +1042,6 @@ def aliasSub(requestContext, seriesList, search, replace):
     for series in seriesList:
       series.name = re.sub(search, replace, series.name)
   return seriesList
-
 
 def alias(requestContext, seriesList, newName):
   """
@@ -1248,7 +1242,6 @@ def substr(requestContext, seriesList, start=0, stop=0):
     series.name = re.sub(',.*$', '', series.name)
   return seriesList
 
-
 def logarithm(requestContext, seriesList, base=10):
   """
   Takes one metric or a wildcard seriesList, a base, and draws the y-axis in logarithmic
@@ -1277,7 +1270,6 @@ def logarithm(requestContext, seriesList, base=10):
     results.append(newSeries)
   return results
 
-
 def maximumAbove(requestContext, seriesList, n):
   """
   Takes one metric or a wildcard seriesList followed by a constant n.
@@ -1296,7 +1288,6 @@ def maximumAbove(requestContext, seriesList, n):
     if max(series) > n:
       results.append(series)
   return results
-
 
 def minimumAbove(requestContext, seriesList, n):
   """
@@ -1317,7 +1308,6 @@ def minimumAbove(requestContext, seriesList, n):
       results.append(series)
   return results
 
-
 def maximumBelow(requestContext, seriesList, n):
   """
   Takes one metric or a wildcard seriesList followed by a constant n.
@@ -1337,7 +1327,6 @@ def maximumBelow(requestContext, seriesList, n):
     if max(series) <= n:
       result.append(series)
   return result
-
 
 def highestCurrent(requestContext, seriesList, n):
   """
@@ -1774,7 +1763,6 @@ def mostDeviant(requestContext, seriesList, n):
   deviants.sort(key=lambda i: i[0], reverse=True) #sort by sigma
   return [ series for (sigma,series) in deviants ][:n] #return the n most deviant series
 
-
 def stdev(requestContext, seriesList, points, windowTolerance=0.1):
   """
   Takes one metric or a wildcard seriesList followed by an integer N.
@@ -2090,7 +2078,6 @@ def holtWintersConfidenceArea(requestContext, seriesList, delta=3):
     series.name = series.name.replace('areaBetween', 'holtWintersConfidenceArea')
   return results
 
-
 def drawAsInfinite(requestContext, seriesList):
   """
   Takes one metric or a wildcard seriesList.
@@ -2199,7 +2186,6 @@ def timeStack(requestContext, seriesList, timeShiftUnit, timeShiftStart, timeShi
 
   return results
 
-
 def timeShift(requestContext, seriesList, timeShift, resetEnd=True):
   """
   Takes one metric or a wildcard seriesList, followed by a quoted string with the
@@ -2248,7 +2234,6 @@ def timeShift(requestContext, seriesList, timeShift, resetEnd=True):
       results.append(shiftedSeries)
 
   return results
-
 
 def constantLine(requestContext, value):
   """
@@ -2303,7 +2288,6 @@ def aggregateLine(requestContext, seriesList, func='avg'):
 
   return [series]
 
-
 def threshold(requestContext, value, label=None, color=None):
   """
   Takes a float F, followed by a label (in double quotes) and a color.
@@ -2354,7 +2338,6 @@ def transformNull(requestContext, seriesList, default=0):
     del series[:len(values)]
   return seriesList
 
-
 def identity(requestContext, name):
   """
   Identity function:
@@ -2380,7 +2363,6 @@ def identity(requestContext, name):
   series.pathExpression = 'identity("%s")' % name
 
   return [series]
-
 
 def countSeries(requestContext, *seriesLists):
   """
@@ -2408,7 +2390,6 @@ def group(requestContext, *seriesLists):
     seriesGroup.extend(s)
 
   return seriesGroup
-
 
 def groupByNode(requestContext, seriesList, nodeNum, callback):
   """
@@ -2438,7 +2419,6 @@ def groupByNode(requestContext, seriesList, nodeNum, callback):
     metaSeries[key].name = key
   return [ metaSeries[key] for key in keys ]
 
-
 def exclude(requestContext, seriesList, pattern):
   """
   Takes a metric or a wildcard seriesList, followed by a regular expression
@@ -2453,7 +2433,6 @@ def exclude(requestContext, seriesList, pattern):
   regex = re.compile(pattern)
   return [s for s in seriesList if not regex.search(s.name)]
 
-
 def grep(requestContext, seriesList, pattern):
   """
   Takes a metric or a wildcard seriesList, followed by a regular expression
@@ -2467,7 +2446,6 @@ def grep(requestContext, seriesList, pattern):
   """
   regex = re.compile(pattern)
   return [s for s in seriesList if regex.search(s.name)]
-
 
 def smartSummarize(requestContext, seriesList, intervalString, func='sum', alignToFrom=False):
   """
@@ -2545,7 +2523,6 @@ def smartSummarize(requestContext, seriesList, intervalString, func='sum', align
     results.append(newSeries)
 
   return results
-
 
 def summarize(requestContext, seriesList, intervalString, func='sum', alignToFrom=False):
   """
@@ -2641,7 +2618,6 @@ def summarize(requestContext, seriesList, intervalString, func='sum', alignToFro
 
   return results
 
-
 def hitcount(requestContext, seriesList, intervalString, alignToInterval = False):
   """
   Estimate hit counts from a list of time series.
@@ -2725,7 +2701,6 @@ def hitcount(requestContext, seriesList, intervalString, alignToInterval = False
 
   return results
 
-	
 def timeFunction(requestContext, name):
   """
   Short Alias: time()
