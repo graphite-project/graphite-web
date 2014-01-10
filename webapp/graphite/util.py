@@ -13,14 +13,14 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 import imp
-from os.path import splitext, basename
 import os
-from shutil import move
-from tempfile import mkstemp
 import socket
 import errno
 import time
 import sys
+from os.path import splitext, basename
+from shutil import move
+from tempfile import mkstemp
 try:
   import cPickle as pickle
   USING_CPICKLE = True
@@ -78,7 +78,8 @@ def is_local_interface(host):
       sock.bind( (host,port) )
       sock.close()
 
-    except socket.error, e:
+    except socket.error:
+      e = sys.exc_info()[1]
       if e.args[0] == errno.EADDRNOTAVAIL:
         return False
       else:

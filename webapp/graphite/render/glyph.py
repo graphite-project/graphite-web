@@ -12,7 +12,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
-import os, math, itertools, re
+import math, itertools, re
+import sys
 try:
     import cairo
 except ImportError:
@@ -84,7 +85,8 @@ YEAR = DAY * 365
 try:
     datetime.now().strftime("%a %l%p")
     percent_l_supported = True
-except ValueError, e:
+except ValueError:
+    e = sys.exc_info()[1]
     percent_l_supported = False
 
 xAxisConfigs = (
@@ -214,7 +216,7 @@ class Graph:
       if len(s) == 8 and not forceAlpha:
         alpha = float( int(s[6:8],base=16) ) / 255.0
     else:
-      raise ValueError, "Must specify an RGB 3-tuple, an html color string, or a known color alias!"
+      raise ValueError("Must specify an RGB 3-tuple, an html color string, or a known color alias!")
     r,g,b = [float(c) / 255.0 for c in (r,g,b)]
     self.ctx.set_source_rgba(r,g,b,alpha)
 

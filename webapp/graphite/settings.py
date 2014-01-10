@@ -76,6 +76,9 @@ ALLOW_ANONYMOUS_CLI = True
 LOG_METRIC_ACCESS = False
 LEGEND_MAX_ITEMS = 10
 RRD_CF = 'AVERAGE'
+STORAGE_FINDERS = (
+    'graphite.finders.standard.StandardFinder',
+)
 
 #Authentication settings
 USE_LDAP_AUTH = False

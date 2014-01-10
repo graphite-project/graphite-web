@@ -222,7 +222,7 @@ def averageSeriesWithWildcards(requestContext, seriesList, *position): #XXX
   ``target=averageSeries(host.*.cpu-user.value)&target=averageSeries(host.*.cpu-system.value)``
 
   """
-  if isinstance(postition, int):
+  if isinstance(position, int):
     positions = [position]
   else:
     positions = position
@@ -230,7 +230,7 @@ def averageSeriesWithWildcards(requestContext, seriesList, *position): #XXX
   matchedList = {}
   for series in seriesList:
     newname = '.'.join(map(lambda x: x[1], filter(lambda i: i[0] not in positions, enumerate(series.name.split('.')))))
-    if not matchedList.has_key(newname):
+    if newname not in matchedList:
       matchedList[newname] = []
     matchedList[newname].append(series)
   for name in matchedList.keys():
@@ -2700,6 +2700,7 @@ def hitcount(requestContext, seriesList, intervalString, alignToInterval = False
     results.append(newSeries)
 
   return results
+
 
 def timeFunction(requestContext, name):
   """

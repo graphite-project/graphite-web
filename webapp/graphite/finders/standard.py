@@ -1,42 +1,20 @@
 import os
-import fnmatch
-from os.path import islink, isdir, isfile, realpath, join, dirname, basename
-from glob import glob
-from ceres import CeresTree, CeresNode, setDefaultSliceCachingBehavior
-from graphite.node import BranchNode, LeafNode
-from graphite.readers import CeresReader, WhisperReader, GzippedWhisperReader, RRDReader
-from graphite.util import find_escaped_pattern_fields
+from os.path import isdir, isfile, join, basename
+from django.conf import settings
 
 from graphite.logger import log
+from graphite.node import BranchNode, LeafNode
+from graphite.readers import WhisperReader, GzippedWhisperReader, RRDReader
+from graphite.util import find_escaped_pattern_fields
 
-#setDefaultSliceCachingBehavior('all')
-
-
-class CeresFinder:
-  def __init__(self, directory):
-    self.directory = directory
-    self.tree = CeresTree(directory)
-
-  def find_nodes(self, query):
-    for fs_path in glob( self.tree.getFilesystemPath(query.pattern) ):
-      metric_path = self.tree.getNodePath(fs_path)
-
-      if CeresNode.isNodeDir(fs_path):
-        ceres_node = self.tree.getNode(metric_path)
-
-        if ceres_node.hasDataForInterval(query.startTime, query.endTime):
-          real_metric_path = get_real_metric_path(fs_path, metric_path)
-          reader = CeresReader(ceres_node, real_metric_path)
-          yield LeafNode(metric_path, reader)
-
-      elif isdir(fs_path):
-        yield BranchNode(metric_path)
+from . import fs_to_metric, get_real_metric_path, match_entries
 
 
 class StandardFinder:
   DATASOURCE_DELIMETER = '::RRD_DATASOURCE::'
 
-  def __init__(self, directories):
+  def __init__(self, directories=None):
+    directories = directories or settings.STANDARD_DIRS
     self.directories = directories
 
   def find_nodes(self, query):
@@ -123,48 +101,3 @@ class StandardFinder:
 
       for basename in matching_files + matching_subdirs:
         yield join(current_dir, basename)
-
-
-def fs_to_metric(path):
-  dirpath = dirname(path)
-  filename = basename(path)
-  return join(dirpath, filename.split('.')[0]).replace('/','.')
-
-
-def get_real_metric_path(absolute_path, metric_path):
-  # Support symbolic links (real_metric_path ensures proper cache queries)
-  if islink(absolute_path):
-    real_fs_path = realpath(absolute_path)
-    relative_fs_path = metric_path.replace('.', '/')
-    base_fs_path = absolute_path[ :-len(relative_fs_path) ]
-    relative_real_fs_path = real_fs_path[ len(base_fs_path): ]
-    return fs_to_metric( relative_real_fs_path )
-
-  return metric_path
-
-def _deduplicate(entries):
-  yielded = set()
-  for entry in entries:
-    if entry not in yielded:
-      yielded.add(entry)
-      yield entry
-
-def match_entries(entries, pattern):
-  """A drop-in replacement for fnmatch.filter that supports pattern
-  variants (ie. {foo,bar}baz = foobaz or barbaz)."""
-  v1, v2 = pattern.find('{'), pattern.find('}')
-
-  if v1 > -1 and v2 > v1:
-    variations = pattern[v1+1:v2].split(',')
-    variants = [ pattern[:v1] + v + pattern[v2+1:] for v in variations ]
-    matching = []
-
-    for variant in variants:
-      matching.extend( fnmatch.filter(entries, variant) )
-
-    return list( _deduplicate(matching) ) #remove dupes without changing order
-
-  else:
-    matching = fnmatch.filter(entries, pattern)
-    matching.sort()
-    return matching

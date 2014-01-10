@@ -79,7 +79,7 @@ def renderView(request):
           name,value = target.split(':',1)
           value = float(value)
         except:
-          raise ValueError, "Invalid target '%s'" % target
+          raise ValueError("Invalid target '%s'" % target)
         data.append( (name,value) )
       else:
         seriesList = evaluateTarget(requestContext, target)
