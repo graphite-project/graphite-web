@@ -6,7 +6,7 @@ project `download page`_ or the latest development branches may be cloned from t
 * Graphite-web: ``git clone https://github.com/graphite-project/graphite-web.git``
 * Carbon: ``git clone https://github.com/graphite-project/carbon.git``
 * Whisper: ``git clone https://github.com/graphite-project/whisper.git``
-* Ceres: ``git clone https://github.com/graphite-project/ceres``
+* Ceres: ``git clone https://github.com/graphite-project/ceres.git``
 
 .. note::
 
