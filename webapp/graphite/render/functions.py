@@ -12,6 +12,8 @@
 #See the License for the specific language governing permissions and
 #limitations under the License.
 
+import numpy
+from numpy import median 
 
 from datetime import date, datetime, timedelta
 from functools import partial
@@ -41,9 +43,6 @@ DAY = 86400
 HOUR = 3600
 MINUTE = 60
 
-NAN = float('NaN')
-INF = float('inf')
-
 #Utility functions
 def safeSum(values):
   safeValues = [v for v in values if v is not None]
@@ -60,7 +59,7 @@ def safeDiff(values):
 def safeLen(values):
   return len([v for v in values if v is not None])
 
-def safeDiv(a,b):
+def safeDiv(a, b):
   if a is None: return None
   if b in (0,None): return None
   return float(a) / float(b)
@@ -69,7 +68,7 @@ def safeMul(*factors):
   if None in factors:
     return None
 
-  factors = map(float, factors)
+  factors = [float(x) for x in factors]
   product = reduce(lambda x,y: x*y, factors)
   return product
 
@@ -107,7 +106,7 @@ def safeMax(values):
 def safeMap(function, values):
   safeValues = [v for v in values if v is not None]
   if safeValues:
-    return map(function, values)
+    return [function(x) for x in values]
 
 def safeAbs(value):
   if value is None: return None
@@ -192,7 +191,7 @@ def sumSeriesWithWildcards(requestContext, seriesList, *position): #XXX
   ``target=sumSeries(host.*.cpu-user.value)&target=sumSeries(host.*.cpu-system.value)``
 
   """
-  if type(position) is int:
+  if isinstance(position, int):
     positions = [position]
   else:
     positions = position
@@ -225,7 +224,7 @@ def averageSeriesWithWildcards(requestContext, seriesList, *position): #XXX
   ``target=averageSeries(host.*.cpu-user.value)&target=averageSeries(host.*.cpu-system.value)``
 
   """
-  if type(position) is int:
+  if isinstance(postition, int):
     positions = [position]
   else:
     positions = position
@@ -443,7 +442,7 @@ def asPercent(requestContext, seriesList, total=None):
   if total is None:
     totalValues = [ safeSum(row) for row in izip(*seriesList) ]
     totalText = None # series.pathExpression
-  elif type(total) is list:
+  elif isinstance(total, list):
     if len(total) != 1:
       raise ValueError("asPercent second argument must reference exactly 1 series")
     normalize([seriesList, total])
@@ -550,7 +549,7 @@ def movingMedian(requestContext, seriesList, windowSize):
 
   """
   windowInterval = None
-  if type(windowSize) is str:
+  if isinstance(windowSize, basestring):
     delta = parseTimeOffset(windowSize)
     windowInterval = abs(delta.seconds + (delta.days * 86400))
 
@@ -568,7 +567,7 @@ def movingMedian(requestContext, seriesList, windowSize):
     else:
       windowPoints = int(windowSize)
 
-    if type(windowSize) is str:
+    if isinstance(windowSize, basestring):
       newName = 'movingMedian(%s,"%s")' % (series.name, windowSize)
     else:
       newName = "movingMedian(%s,%d)" % (series.name, windowPoints)
@@ -740,7 +739,7 @@ def movingAverage(requestContext, seriesList, windowSize):
 
   """
   windowInterval = None
-  if type(windowSize) is str:
+  if isinstance(windowSize, basestring):
     delta = parseTimeOffset(windowSize)
     windowInterval = abs(delta.seconds + (delta.days * 86400))
 
@@ -758,7 +757,7 @@ def movingAverage(requestContext, seriesList, windowSize):
     else:
       windowPoints = int(windowSize)
 
-    if type(windowSize) is str:
+    if isinstance(windowSize, basestring):
       newName = 'movingAverage(%s,"%s")' % (series.name, windowSize)
     else:
       newName = "movingAverage(%s,%s)" % (series.name, windowSize)
@@ -1128,7 +1127,7 @@ def aliasByNode(requestContext, seriesList, *nodes):
     &target=aliasByNode(ganglia.*.cpu.load5,1)
 
   """
-  if type(nodes) is int:
+  if isinstance(nodes, int):
     nodes=[nodes]
   for series in seriesList:
     metric_pieces = re.search('(?:.*\()?(?P<name>[-\w*\.]+)(?:,|\)?.*)?',series.name).groups()[0].split('.')
@@ -1659,6 +1658,18 @@ def limit(requestContext, seriesList, n):
   """
   return seriesList[0:n]
 
+def sortByName(requestContext, seriesList):
+  """
+  Takes one metric or a wildcard seriesList.
+
+  Sorts the list of metrics by the metric name.
+  """
+  def compare(x,y):
+    return cmp(x.name, y.name)
+
+  seriesList.sort(compare)
+  return seriesList
+
 def sortByTotal(requestContext, seriesList):
   """
   Takes one metric or a wildcard seriesList.
@@ -2058,9 +2069,9 @@ def holtWintersAberration(requestContext, seriesList, delta=3):
     for i, actual in enumerate(series):
       if series[i] is None:
         aberration.append(0)
-      elif series[i] > upperBand[i]:
+      elif upperBand[i] is not None and series[i] > upperBand[i]:
         aberration.append(series[i] - upperBand[i])
-      elif series[i] < lowerBand[i]:
+      elif lowerBand[i] is not None and series[i] < lowerBand[i]:
         aberration.append(series[i] - lowerBand[i])
       else:
         aberration.append(0)
@@ -2225,17 +2236,18 @@ def timeShift(requestContext, seriesList, timeShift, resetEnd=True):
   myContext = requestContext.copy()
   myContext['startTime'] = requestContext['startTime'] + delta
   myContext['endTime'] = requestContext['endTime'] + delta
-  series = seriesList[0] # if len(seriesList) > 1, they will all have the same pathExpression, which is all we care about.
   results = []
+  if len(seriesList) > 0:
+    series = seriesList[0] # if len(seriesList) > 1, they will all have the same pathExpression, which is all we care about.
 
-  for shiftedSeries in evaluateTarget(myContext, series.pathExpression):
-    shiftedSeries.name = 'timeShift(%s, %s)' % (shiftedSeries.name, timeShift)
-    if resetEnd:
-      shiftedSeries.end = series.end
-    else:
-      shiftedSeries.end = shiftedSeries.end - shiftedSeries.start + series.start
-    shiftedSeries.start = series.start
-    results.append(shiftedSeries)
+    for shiftedSeries in evaluateTarget(myContext, series.pathExpression):
+      shiftedSeries.name = 'timeShift(%s, %s)' % (shiftedSeries.name, timeShift)
+      if resetEnd:
+        shiftedSeries.end = series.end
+      else:
+        shiftedSeries.end = shiftedSeries.end - shiftedSeries.start + series.start
+      shiftedSeries.start = series.start
+      results.append(shiftedSeries)
 
   return results
 
@@ -2257,6 +2269,40 @@ def constantLine(requestContext, value):
   end = timestamp( requestContext['endTime'] )
   step = (end - start) / 1.0
   series = TimeSeries(str(value), start, end, step, [value, value])
+  return [series]
+
+def aggregateLine(requestContext, seriesList, func='avg'):
+  """
+  Draws a horizontal line based the function applied to the series.
+
+
+  Note: By default, the graphite renderer consolidates data points by
+  averaging data points over time. If you are using the 'min' or 'max'
+  function for aggregateLine, this can cause an unusual gap in the
+  line drawn by this function and the data itself. To fix this, you
+  should use the consolidateBy() function with the same function
+  argument you are using for aggregateLine. This will ensure that the
+  proper data points are retained and the graph should line up
+  correctly.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=aggregateLineSeries(server.connections.total, 'avg')
+
+  """
+  t_funcs = { 'avg': safeAvg, 'min': safeMin, 'max': safeMax }
+
+  if func not in t_funcs:
+    raise ValueError("Invalid function %s" % func)
+
+  value = t_funcs[func]( seriesList[0] )
+  name = 'aggregateLine(%s,%d)' % (seriesList[0].pathExpression, value)
+
+  series = constantLine(requestContext, value)[0]
+  series.name = name
+
   return [series]
 
 
@@ -2682,6 +2728,119 @@ def hitcount(requestContext, seriesList, intervalString, alignToInterval = False
   return results
 
 
+def lowess(requestContext, seriesList, bandwidth=0.2, iterations=3):
+  """
+  This lowess function implements the algorithm given in the
+  reference below using local linear estimates.
+
+  Suppose the input data has N points. The algorithm works by
+  estimating the `smooth` y_i by taking the frac*N closest points
+  to (x_i,y_i) based on their x values and estimating y_i
+  using a weighted linear regression. The weight for (x_j,y_j)
+  is tricube function applied to |x_i-x_j|.
+
+  If it > 1, then further weighted local linear regressions
+  are performed, where the weights are the same as above
+  times the _lowess_bisquare function of the residuals. Each iteration
+  takes approximately the same amount of time as the original fit,
+  so these iterations are expensive. They are most useful when
+  the noise has extremely heavy tails, such as Cauchy noise.
+  Noise with less heavy-tails, such as t-distributions with df>2,
+  are less problematic. The weights downgrade the influence of
+  points with large residuals. In the extreme case, points whose
+  residuals are larger than 6 times the median absolute residual
+  are given weight 0.
+
+  delta can be used to save computations. For each x_i, regressions
+  are skipped for points closer than delta. The next regression is
+  fit for the farthest point within delta of x_i and all points in
+  between are estimated by linearly interpolating between the two
+  regression fits.
+
+  Judicious choice of delta can cut computation time considerably
+  for large data (N > 5000). A good choice is delta = 0.01 *
+  range(exog).
+
+  Some experimentation is likely required to find a good
+  choice of frac and iter for a particular dataset.
+
+  References
+  ----------
+  Cleveland, W.S. (1979) "Robust Locally Weighted Regression
+  and Smoothing Scatterplots". Journal of the American Statistical
+  Association 74 (368): 829-836.
+  """
+
+  results = []
+
+  cy_found = True
+  try:
+    import cylowess
+  except ImportError:
+	cy_found = False
+	print "Optional cylowess not found. Will execute Python version of lowess."
+
+  if cy_found:
+    for series in seriesList:
+      x = numpy.array(xrange(1, len(series) + 1), numpy.float)
+      y = numpy.array(map(lambda n: n or 0, series), numpy.float)
+      res = map(lambda x: x[1], cylowess.lowess(y, x, bandwidth, iterations, (x.max() - x.min()) * 0.01))
+      name = 'lowess(%s, %f, %d)' % (series.name, float(bandwidth), int(iterations))
+      newSeries = TimeSeries(name, series.start, series.end, series.step, res)
+      newSeries.pathExpression = name
+      results.append(newSeries)
+  else:
+    for series in seriesList:
+      x = numpy.array(xrange(1, len(series) + 1), numpy.float)
+      y = numpy.array(map(lambda n: n or 0, series), numpy.float)
+      n = len(x) 
+      r = int(numpy.ceil(bandwidth * n)) 
+      h = [numpy.sort(abs(x - x[i]))[r] for i in range(n)] 
+      w = numpy.clip(abs(([x] - numpy.transpose([x])) / h), 0.0, 1.0) 
+      w = 1 - w * w * w 
+      w = w * w * w 
+      yest = numpy.zeros(n) 
+      delta = numpy.ones(n)
+
+      if (n >= 7200):
+        skip = 75
+      elif (n >= 5800):
+        skip = 60
+      elif (n >= 4200):
+        skip = 45
+      elif (n >= 2800):
+        skip = 30
+      elif (n >= 1400):
+        skip = 15
+      else:
+        skip = 1
+      for iteration in range(iterations): 
+        for i in range(n):
+          if (i%skip == 0) or (i > n-5):
+            weights = delta * w[:, i] 
+            weights_mul_x = weights * x 
+            b1 = numpy.dot(weights, y) 
+            b2 = numpy.dot(weights_mul_x, y) 
+            A11 = sum(weights) 
+            A12 = sum(weights_mul_x) 
+            A21 = A12 
+            A22 = numpy.dot(weights_mul_x, x) 
+            determinant = A11 * A22 - A12 * A21 
+            beta1 = (A22 * b1 - A12 * b2) / determinant 
+            beta2 = (A11 * b2 - A21 * b1) / determinant 
+          yest[i] = beta1 + beta2 * x[i] 
+        residuals = y - yest 
+        s = median(abs(residuals))
+        delta = (x.max() - x.min()) * 0.01
+
+      name = 'lowess(%s, %f, %d)' % (series.name, float(bandwidth), int(iterations))
+      newSeries = TimeSeries(name, series.start, series.end, series.step, yest)
+      newSeries.pathExpression = name
+      results.append(newSeries)
+
+  return results
+
+	
 def timeFunction(requestContext, name):
   """
   Short Alias: time()
@@ -2873,6 +3032,7 @@ SeriesFunctions = {
   'smartSummarize' : smartSummarize,
   'hitcount'  : hitcount,
   'absolute' : absolute,
+  'lowess' : lowess,
 
   # Calculate functions
   'movingAverage' : movingAverage,
@@ -2904,6 +3064,7 @@ SeriesFunctions = {
   'nPercentile' : nPercentile,
   'limit' : limit,
   'sortByTotal'  : sortByTotal,
+  'sortByName' : sortByName,
   'averageOutsidePercentile' : averageOutsidePercentile,
   'removeBetweenPercentile' : removeBetweenPercentile,
   'sortByMaxima' : sortByMaxima,
@@ -2942,6 +3103,7 @@ SeriesFunctions = {
   'threshold' : threshold,
   'transformNull' : transformNull,
   'identity': identity,
+  'aggregateLine' : aggregateLine,
 
   # test functions
   'time': timeFunction,
