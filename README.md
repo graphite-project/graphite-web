@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/graphite-project/graphite-web.png?branch=master)](https://travis-ci.org/graphite-project/graphite-web)
+
 ## Overview
 
 Graphite consists of two major components:
