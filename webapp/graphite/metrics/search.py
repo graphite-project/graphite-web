@@ -2,9 +2,9 @@ import time
 import subprocess
 import os.path
 from django.conf import settings
+from graphite.finders import match_entries
 from graphite.logger import log
 from graphite.util import is_pattern, write_index
-from graphite.finders import match_entries
 
 class IndexSearcher:
   def __init__(self, index_path):

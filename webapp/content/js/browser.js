@@ -52,7 +52,7 @@ function createTreePanel(){
 
   var graphiteNode = new Ext.tree.AsyncTreeNode({
     id: 'GraphiteTree',
-    text: "Graphite",
+    text: 'Metrics',
     loader: new Ext.tree.TreeLoader({
       url: "../metrics/find/",
       requestMethod: "GET",

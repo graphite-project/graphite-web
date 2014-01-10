@@ -46,8 +46,6 @@ STANDARD_DIRS = []
 
 CLUSTER_SERVERS = []
 
-sys.path.insert(0, WEBAPP_DIR)
-
 # Cluster settings
 CLUSTER_SERVERS = []
 REMOTE_FIND_TIMEOUT = 3.0
@@ -78,6 +76,9 @@ ALLOW_ANONYMOUS_CLI = True
 LOG_METRIC_ACCESS = False
 LEGEND_MAX_ITEMS = 10
 RRD_CF = 'AVERAGE'
+STORAGE_FINDERS = (
+    'graphite.finders.standard.StandardFinder',
+)
 
 #Authentication settings
 USE_LDAP_AUTH = False

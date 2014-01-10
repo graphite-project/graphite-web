@@ -79,7 +79,7 @@ def renderView(request):
           name,value = target.split(':',1)
           value = float(value)
         except:
-          raise ValueError, "Invalid target '%s'" % target
+          raise ValueError("Invalid target '%s'" % target)
         data.append( (name,value) )
       else:
         seriesList = evaluateTarget(requestContext, target)
@@ -354,7 +354,7 @@ def delegateRendering(graphType, graphOptions):
 def renderLocalView(request):
   try:
     start = time()
-    reqParams = StringIO(request.raw_post_data)
+    reqParams = StringIO(request.body)
     graphType = reqParams.readline().strip()
     optionsPickle = reqParams.read()
     reqParams.close()

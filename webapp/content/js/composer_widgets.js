@@ -1047,8 +1047,7 @@ function createFunctionsMenu() {
         {text: 'Absolute Value', handler: applyFuncToEach('absolute')},
         {text: 'timeShift', handler: applyFuncToEachWithInput('timeShift', 'Shift this metric ___ back in time (examples: 10min, 7d, 2w)', {quote: true})},
         {text: 'Summarize', handler: applyFuncToEachWithInput('summarize', 'Please enter a summary interval (examples: 10min, 1h, 7d)', {quote: true})},
-        {text: 'Hit Count', handler: applyFuncToEachWithInput('hitcount', 'Please enter a summary interval (examples: 10min, 1h, 7d)', {quote: true})},
-		{text: 'Lowess Smoothing', handler: applyFuncToEachWithInput('lowess', 'Please enter smoothing parameter and iteration (default: 0.2,3)', {allowBlank: true}, {quote: false})}
+        {text: 'Hit Count', handler: applyFuncToEachWithInput('hitcount', 'Please enter a summary interval (examples: 10min, 1h, 7d)', {quote: true})}
       ]
     }, {
       text: 'Calculate',
@@ -1133,7 +1132,14 @@ function createFunctionsMenu() {
 //        {text: 'GroupByNode', handler: applyFuncToEachWithInput('group')}, // requires 2 parameters
 //        {text: 'Add Threshold Line', handler: applyFuncToEachWithInput('threshold', 'Enter a threshold value')},
         {text: 'Draw Stacked', handler: applyFuncToEach('stacked')},
-        {text: 'Draw in Second Y Axis', handler: applyFuncToEach('secondYAxis')}
+        {text: 'Draw in Second Y Axis', handler: applyFuncToEach('secondYAxis')},
+        {text: 'Aggregate Line',
+         menu: [
+           {text: "Avg", handler: applyFuncToEach('aggregateLine', '"avg"')},
+           {text: "Max", handler: applyFuncToEach('aggregateLine', '"max"')},
+           {text: "Min", handler: applyFuncToEach('aggregateLine', '"min"')}
+         ]
+        }
       ]
     }
   ];

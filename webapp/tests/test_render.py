@@ -1,11 +1,20 @@
 import json
 import os
 import time
+import logging
+
 import whisper
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.test import TestCase
+
+# Silence logging during tests
+LOGGER = logging.getLogger()
+
+# logging.NullHandler is a python 2.7ism
+if hasattr(logging, "NullHandler"):
+    LOGGER.addHandler(logging.NullHandler())
 
 
 class RenderTest(TestCase):
