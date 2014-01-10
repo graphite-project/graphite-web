@@ -2393,8 +2393,8 @@ def group(requestContext, *seriesLists):
 
 def groupByMultiNode(requestContext, seriesList, groupNode, metricNode, callback, *metricsList):
   """
-  Takes a seriesList and maps a callback to subgroups within as defined by a common node and
-  filtered by metricsNode matching one of the metrics defined by metricsList.
+  Takes a seriesList and maps a callback to subgroups within as defined by a common groupNode and
+  filtered by metricNode matching one of the metrics defined by metricsList.
 
   Order of the series matching metricsList is preserved when mapped to the provided callback.
 
