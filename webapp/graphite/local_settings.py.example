@@ -249,6 +249,9 @@
 # This should usually match the value configured in Carbon
 #REPLICATION_FACTOR = 1
 
+# How often should render.datalib.fetch() retry to get remote data
+# MAX_FETCH_RETRIES = 2
+
 #####################################
 # Additional Django Settings #
 #####################################
