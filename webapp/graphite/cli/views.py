@@ -13,8 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 from string import letters
-from django.http import HttpResponse
 from django.shortcuts import render_to_response
+from graphite.compat import HttpResponse
 from graphite.util import getProfile
 from graphite.cli import completer, commands, parser
 
@@ -40,7 +40,7 @@ def autocomplete(request):
 def evaluate(request):
   if 'commandInput' not in request.GET:
     output = commands.stderr("No commandInput parameter!")
-    return HttpResponse(output, mimetype='text/plain')
+    return HttpResponse(output, content_type='text/plain')
 
   #Variable substitution
   profile = getProfile(request)
@@ -59,7 +59,7 @@ def evaluate(request):
       cmd = cmd[:i] + my_vars[var] + cmd[j:]
     else:
       output = commands.stderr("Unknown variable %s" % var)
-      return HttpResponse(output, mimetype='text/plain')
+      return HttpResponse(output, content_type='text/plain')
 
   if cmd == '?': cmd = 'help'
 
@@ -68,13 +68,13 @@ def evaluate(request):
 
     if not tokens.command:
       output = commands.stderr("Invalid syntax")
-      return HttpResponse(output, mimetype='text/plain')
+      return HttpResponse(output, content_type='text/plain')
 
     handler_name = '_' + tokens.command
     handler = vars(commands).get(handler_name)
     if handler is None:
       output = commands.stderr("Unknown command")
-      return HttpResponse(output, mimetype='text/plain')
+      return HttpResponse(output, content_type='text/plain')
 
     args = dict( tokens.items() )
     del args['command']
@@ -89,4 +89,4 @@ def evaluate(request):
   profile.history = '\n'.join(history)
   profile.save()
 
-  return HttpResponse(output, mimetype='text/plain')
+  return HttpResponse(output, content_type='text/plain')
