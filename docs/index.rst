@@ -22,6 +22,7 @@ Graphite Documentation
    storage-backends
    terminology
    tools
+   development
    who-is-using
    releases
 
