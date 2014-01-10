@@ -218,7 +218,7 @@ USE_REMOTE_USER_AUTHENTICATION
   `Default: False`
 
   Enables the use of the Django `RemoteUserBackend` authentication backend. See the
-  `Django documentation <https://docs.djangoproject.com/en/dev/howto/auth-remote-user/>`_ for
+  `Django documentation <https://docs.djangoproject.com/en/dev/howto/auth-remote-user/>`__ for
   further details
 
 LOGIN_URL
