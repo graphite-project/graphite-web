@@ -1,5 +1,6 @@
 import copy
 from django.test import TestCase
+from mock import patch, call, MagicMock
 
 from graphite.render.datalib import TimeSeries
 from graphite.render import functions
@@ -263,3 +264,34 @@ class FunctionsTest(TestCase):
                 original_value = seriesList[i][counter]
                 expected_value = original_value * multiplier
                 self.assertEqual(value, expected_value)
+
+    def _generate_mr_series(self):
+        seriesList = [
+            TimeSeries('group.server1.metric1',0,1,1,[None]),
+            TimeSeries('group.server1.metric2',0,1,1,[None]),
+            TimeSeries('group.server2.metric1',0,1,1,[None]),
+            TimeSeries('group.server2.metric2',0,1,1,[None]),
+        ]
+        mappedResult = [
+            [seriesList[0],seriesList[1]],
+            [seriesList[2],seriesList[3]]
+        ]
+        return (seriesList,mappedResult)
+
+    def test_mapSeries(self):
+        seriesList, expectedResult = self._generate_mr_series()
+        results = functions.mapSeries({}, copy.deepcopy(seriesList), 1)
+        self.assertEqual(results,expectedResult)
+
+    def test_reduceSeries(self):
+        sl, inputList = self._generate_mr_series()
+        expectedResult   = [
+            TimeSeries('group.server1.reduce.mock',0,1,1,[None]),
+            TimeSeries('group.server2.reduce.mock',0,1,1,[None])
+        ]
+        resultSeriesList = [TimeSeries('mock(series)',0,1,1,[None])]
+        mock = MagicMock(return_value = resultSeriesList)
+        with patch.dict(functions.SeriesFunctions,{ 'mock': mock }):
+            results = functions.reduceSeries({}, copy.deepcopy(inputList), "mock", 2, "metric1","metric2" )
+            self.assertEqual(results,expectedResult)
+        self.assertEqual(mock.mock_calls, [call({},inputList[0]), call({},inputList[1])])
