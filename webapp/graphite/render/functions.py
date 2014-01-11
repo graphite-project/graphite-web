@@ -2420,6 +2420,50 @@ def group(requestContext, *seriesLists):
 
   return seriesGroup
 
+def groupByMultiNode(requestContext, seriesList, groupNode, metricNode, callback, *metricsList):
+  """
+  Takes a seriesList and maps a callback to subgroups within as defined by a common groupNode and
+  filtered by metricNode matching one of the metrics defined by metricsList.
+
+  Order of the series matching metricsList is preserved when mapped to the provided callback.
+
+  Both groupNode and metricNode are 0 indexed
+
+  Example:
+
+  .. code-block:: none
+     target=groupByMultiNode(servers.*.cpu.*,1,3,"asPercent","cpu-user","cpu-total")
+
+  Becomes:
+
+  .. code-block:: none
+
+     asPercent(servers.server1.cpu.cpu-user,servers.server1.cpu.cpu-total),
+     asPercent(servers.server2.cpu.cpu-user,servers.server2.cpu.cpu-total),
+     asPercent(servers.server3.cpu.cpu-user,servers.server3.cpu.cpu-total),
+     ...
+     asPercent(servers.serverN.cpu.cpu-user,servers.serverN.cpu.cpu-total)
+
+  """
+  metaSeries = {}
+  metaSeriesName = {}
+  keys = []
+  for series in seriesList:
+    nodes = series.name.split(".")
+    key = nodes[groupNode]
+    metric = nodes[metricNode]
+    if metric in metricsList:
+      i = metricsList.index(metric)
+      if key not in metaSeries:
+        metaSeries[key] = [None] * len(metricsList)
+        metaSeriesName[key] = '.'.join(nodes[0:groupNode+1]) + "." + callback + "." + '.'.join(metricsList)
+        keys.append(key)
+      metaSeries[key][i] = series
+  for key in keys:
+    metaSeries[key] = SeriesFunctions[callback](requestContext,metaSeries[key])[0]
+    metaSeries[key].name = metaSeriesName[key]
+  return [ metaSeries[key] for key in keys ]
+
 def groupByNode(requestContext, seriesList, nodeNum, callback):
   """
   Takes a serieslist and maps a callback to subgroups within as defined by a common node
@@ -2443,8 +2487,7 @@ def groupByNode(requestContext, seriesList, nodeNum, callback):
     else:
       metaSeries[key].append(series)
   for key in metaSeries.keys():
-    metaSeries[key] = SeriesFunctions[callback](requestContext,
-        metaSeries[key])[0]
+    metaSeries[key] = SeriesFunctions[callback](requestContext,metaSeries[key])[0]
     metaSeries[key].name = key
   return [ metaSeries[key] for key in keys ]
 
@@ -2986,6 +3029,7 @@ SeriesFunctions = {
   'substr' : substr,
   'group' : group,
   'groupByNode' : groupByNode,
+  'groupByMultiNode' : groupByMultiNode,
   'constantLine' : constantLine,
   'stacked' : stacked,
   'areaBetween' : areaBetween,

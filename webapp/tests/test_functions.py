@@ -1,5 +1,7 @@
 import copy
 from django.test import TestCase
+from mock import patch
+from mock import MagicMock
 
 from graphite.render.datalib import TimeSeries
 from graphite.render import functions
@@ -97,6 +99,19 @@ class FunctionsTest(TestCase):
         for i, c in enumerate(config):
             name = "collectd.test-db{0}.load.value".format(i + 1)
             seriesList.append(TimeSeries(name, 0, 1, 1, c))
+        return seriesList
+
+    def _generate_group_by_series_list(self):
+        seriesList = []
+        config = [range(101)] * 10
+
+        for i, c in enumerate(config):
+            node1 = i / 2
+            metric = 'one' if i % 2 == 0 else 'two'
+            name = "group-by.node-{0}.load.{1}".format(node1,metric)
+            series = TimeSeries(name, 0, 1, 1, c)
+            series.pathExpression = name
+            seriesList.append(series)
         return seriesList
 
     def test_remove_above_percentile(self):
@@ -263,3 +278,19 @@ class FunctionsTest(TestCase):
                 original_value = seriesList[i][counter]
                 expected_value = original_value * multiplier
                 self.assertEqual(value, expected_value)
+    def test_group_by_multi_node_alias(self):
+        seriesList = self._generate_group_by_series_list()
+        results = functions.groupByMultiNode({}, copy.deepcopy(seriesList), 1,3, "sum", "two","one" )
+        for i,series in enumerate(results):
+            self.assertEqual(series.name,"group-by.node-{0}.sum.two.one".format(i))
+    def test_group_by_multi_node_callback(self):
+        seriesList = [
+            TimeSeries('group.server.metric1',0,1,1,[None]),
+            TimeSeries('group.server.metric2',0,1,1,[None])
+        ]
+        resultSeriesList = [TimeSeries('group.server.mock.metric1.metric2',0,1,1,[None])]
+        mock = MagicMock(return_value = resultSeriesList)
+        with patch.dict(functions.SeriesFunctions,{ 'mock': mock }):
+            results = functions.groupByMultiNode({}, copy.deepcopy(seriesList), 1,2, "mock", "metric1","metric2" )
+            self.assertEqual(results,resultSeriesList)
+        mock.assert_called_once_with({},seriesList)
