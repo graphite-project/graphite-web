@@ -127,9 +127,8 @@ webapp local_settings.py file.
 
 Edit the $GRAPHITE_ROOT/webapp/graphite/local_settings.py 
 
-In particular you will need to uncomment and modify all of the settings
-that begin with "DATABASE_". Once you have done this, we need to tell
-Django to create our tables.
+In particular you will need to uncomment and modify the ``DATABASES`` setting.
+Once you have done this, we need to tell Django to create our tables.
 
 cd $GRAPHITE_ROOT/webapp/graphite/
 sudo python manage.py syncdb

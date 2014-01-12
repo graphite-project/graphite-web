@@ -18,6 +18,7 @@ Graphite Documentation
    functions
    dashboard
    whisper
+   storage-backends
    terminology
    tools
    who-is-using

@@ -3,13 +3,14 @@ import re
 from django.shortcuts import render_to_response
 from django.http import HttpResponse, Http404, HttpResponseBadRequest
 from django.conf import settings
+from django.core.urlresolvers import get_script_prefix
 
-from graphite.util import json
+from graphite.account.models import Profile
+from graphite.logger import log
+from graphite.util import json, getProfile, getProfileByUsername
 from graphite.render.views import parseOptions
 from graphite.render.evaluator import evaluateTarget
 from graphite.storage import STORE
-from django.core.urlresolvers import get_script_prefix
-
 
 
 def graphlot_render(request):
@@ -213,7 +214,7 @@ def userGraphLookup(request):
   try:
 
     if not username:
-      profiles = Profile.objects.exclude(user=defaultUser)
+      profiles = Profile.objects.exclude(user__username='default')
 
       for profile in profiles:
         if profile.mygraph_set.count():

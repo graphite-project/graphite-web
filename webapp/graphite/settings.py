@@ -14,7 +14,6 @@ limitations under the License."""
 # Django settings for graphite project.
 # DO NOT MODIFY THIS FILE DIRECTLY - use local_settings.py instead
 import sys, os
-from django import VERSION as DJANGO_VERSION
 from os.path import abspath, dirname, join
 from warnings import warn
 
@@ -46,8 +45,6 @@ STANDARD_DIRS = []
 
 CLUSTER_SERVERS = []
 
-sys.path.insert(0, WEBAPP_DIR)
-
 # Cluster settings
 CLUSTER_SERVERS = []
 REMOTE_FIND_TIMEOUT = 3.0
@@ -78,6 +75,9 @@ ALLOW_ANONYMOUS_CLI = True
 LOG_METRIC_ACCESS = False
 LEGEND_MAX_ITEMS = 10
 RRD_CF = 'AVERAGE'
+STORAGE_FINDERS = (
+    'graphite.finders.standard.StandardFinder',
+)
 
 #Authentication settings
 USE_LDAP_AUTH = False
@@ -112,24 +112,15 @@ DASHBOARD_REQUIRE_PERMISSIONS = False
 # NOTE: Requires DASHBOARD_REQUIRE_AUTHENTICATION to be set
 DASHBOARD_REQUIRE_EDIT_GROUP = None
 
-if DJANGO_VERSION < (1,4):
-  #Initialize database settings - Old style (pre 1.2)
-  DATABASE_ENGINE = 'django.db.backends.sqlite3' # 'postgresql', 'mysql', 'sqlite3' or 'ado_mssql'.
-  DATABASE_NAME = ''                           # Or path to database file if using sqlite3.
-  DATABASE_USER = ''                           # Not used with sqlite3.
-  DATABASE_PASSWORD = ''                       # Not used with sqlite3.
-  DATABASE_HOST = ''                           # Set to empty string for localhost. Not used with sqlite3.
-  DATABASE_PORT = ''                           # Set to empty string for default. Not used with sqlite3.
-else:
-  DATABASES = {
-    'default': {
-      'NAME': '/opt/graphite/storage/graphite.db',
-      'ENGINE': 'django.db.backends.sqlite3',
-      'USER': '',
-      'PASSWORD': '',
-      'HOST': '',
-      'PORT': ''
-  }
+DATABASES = {
+  'default': {
+    'NAME': '/opt/graphite/storage/graphite.db',
+    'ENGINE': 'django.db.backends.sqlite3',
+    'USER': '',
+    'PASSWORD': '',
+    'HOST': '',
+    'PORT': '',
+  },
 }
 
 # If using rrdcached, set to the address or socket of the daemon
@@ -189,14 +180,9 @@ if not STANDARD_DIRS:
 
 # Default sqlite db file
 # This is set here so that a user-set STORAGE_DIR is available
-if DJANGO_VERSION < (1,4):
-  if 'sqlite3' in DATABASE_ENGINE \
-      and not DATABASE_NAME:
-    DATABASE_NAME = join(STORAGE_DIR, 'graphite.db')
-else:
-  if 'sqlite3' in DATABASES.get('default',{}).get('ENGINE','') \
-      and not DATABASES.get('default',{}).get('NAME'):
-    DATABASES['default']['NAME'] = join(STORAGE_DIR, 'graphite.db')
+if 'sqlite3' in DATABASES.get('default',{}).get('ENGINE','') \
+    and not DATABASES.get('default',{}).get('NAME'):
+  DATABASES['default']['NAME'] = join(STORAGE_DIR, 'graphite.db')
 
 # Caching shortcuts
 if MEMCACHE_HOSTS:

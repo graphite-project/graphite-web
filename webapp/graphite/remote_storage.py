@@ -1,12 +1,12 @@
 import socket
 import time
 import httplib
+import sys
 from urllib import urlencode
 from threading import Lock, Event
 from django.conf import settings
 from django.core.cache import cache
 from graphite.node import LeafNode, BranchNode
-from graphite.intervals import Interval, IntervalSet
 from graphite.readers import FetchInProgress
 from graphite.logger import log
 from graphite.util import unpickle
@@ -258,11 +258,12 @@ class HTTPConnectionWithTimeout(httplib.HTTPConnection):
           pass
         self.sock.connect(sa)
         self.sock.settimeout(None)
-      except socket.error, msg:
+      except socket.error:
+        msg = sys.exc_info()[1]
         if self.sock:
           self.sock.close()
           self.sock = None
           continue
       break
     if not self.sock:
-      raise socket.error, msg
+      raise socket.error(msg)

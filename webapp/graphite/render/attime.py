@@ -30,7 +30,7 @@ def parseATTime(s, tzinfo=None):
       pass #Fall back because its not a timestamp, its YYYYMMDD form
     else:
       return datetime.fromtimestamp(int(s),tzinfo)
-  elif ':' in s:
+  elif ':' in s and len(s) == 11:
     return datetime.strptime(s,'%H:%M%Y%m%d')
   if '+' in s:
     ref,offset = s.split('+',1)
@@ -105,7 +105,7 @@ def parseTimeReference(ref):
     elif ref[-1:].isdigit():
       refDate = refDate.replace(day= int(ref[-1:]))
     else:
-      raise Exception, "Day of month required after month name"
+      raise Exception("Day of month required after month name")
   elif ref[:3] in weekdays: #DayOfWeek (Monday, etc)
     todayDayName = refDate.strftime("%a").lower()[:3]
     today = weekdays.index( todayDayName )
@@ -114,7 +114,7 @@ def parseTimeReference(ref):
     if dayOffset < 0: dayOffset += 7
     refDate -= timedelta(days=dayOffset)
   elif ref:
-    raise Exception, "Unknown day reference"
+    raise Exception("Unknown day reference")
   return refDate
 
 
@@ -159,4 +159,4 @@ def getUnitString(s):
   if s.startswith('w'): return 'weeks'
   if s.startswith('mon'): return 'months'
   if s.startswith('y'): return 'years'
-  raise Exception, "Invalid offset unit '%s'" % s
+  raise Exception("Invalid offset unit '%s'" % s)

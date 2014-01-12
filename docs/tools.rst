@@ -42,6 +42,9 @@ Charcoal
 service which can generate images directly from a URL. Charcoal configuration is driven by a YAML
 config file.
 
+Cubism.js
+---------
+`Cubism.js`_ is a D3 plugin for visualizing time series data in real time, and can pull data from Graphite.
 
 Descartes
 ---------
@@ -185,6 +188,7 @@ hubot-scripts
 project includes a Graphite script which supports searching and displaying saved graphs from
 the Composer directory in your Campfire rooms.
 
+
 jmxtrans
 --------
 `jmxtrans`_ is a powerful tool that performs JMX queries to collect metrics from Java applications.
@@ -204,9 +208,11 @@ It is ideal for visualizing trends of events that are occurring in your applicat
 logs. For example, you might use logster to graph the number of occurrences of HTTP response
 code that appears in your web server logs.
 
+
 Orion
 -------
 `Orion`_ is powerful tool to create, view and manage dashboards for your Graphite data. It allows easy implementation of custom authentication to manage access to the dashboard.
+
 
 metrics-sampler
 ---------------
@@ -214,10 +220,22 @@ metrics-sampler
 selects and renames them using regular expressions and sends them to a configured set of outputs. 
 It supports JMX and JDBC as inputs and Graphite as output out of the box.
 
+
 Pencil
 ------
 `Pencil`_ is a monitoring frontend for graphite. It runs a webserver that dishes out pretty Graphite
 URLs in interesting and intuitive layouts.
+
+
+pipe-to-graphite
+----------------
+`pipe-to-graphite`_ is a small shell script that makes it easy to report the
+output of any other cli program to Graphite.
+
+
+rearview
+--------
+`rearview`_ is a real-time monitoring framework that sits on top of Graphite's time series data. This allows users to create monitors that both visualize and alert on data as it streams from Graphite. The monitors themselves are simple Ruby scripts which run in a sandbox to provide additional security. Monitors are also configured with a crontab compatible time specification used by the scheduler. Alerts can be sent via email, pagerduty, or campfire.
 
 
 Rocksteady
@@ -231,6 +249,10 @@ Scales
 ------
 `Scales`_ is a Python server state and statistics library that can output its data to Graphite.
 
+
+Sensu
+-----
+`Sensu`_ is a monitoring framework that can route metrics to Graphite. Servers subscribe to sets of checks, so getting metrics from a new server to Graphite is as simple as installing the Sensu client and subscribing.
 
 Seyren
 ------
@@ -246,6 +268,10 @@ performance data.
 SqlToGraphite
 -------------
 `SqlToGraphite`_ is an agent for windows written in .net to collect metrics using plugins (WMI, SQL Server, Oracle) by polling an endpoint with a SQL query and pushing the results into graphite. It uses either a local or a centralised configuration over HTTP. 
+
+SSC Serv
+--------
+`SSC Serv`_ is a Windows service (agent) which periodically publishes system metrics, for example CPU, memory and disk usage. It can store data in Graphite using a naming schema that's identical to that used by collectd.
 
 statsd
 ------
@@ -281,6 +307,7 @@ annotated events, etc). Supports Graphite, flot, rickshaw and anthracite.
 .. _collectd-graphite: https://github.com/joemiller/collectd-graphite
 .. _collectd-to-graphite: https://github.com/loggly/collectd-to-graphite
 .. _Collectl: http://collectl.sourceforge.net/
+.. _Cubism.js: http://square.github.io/cubism/
 .. _D3.js: http://mbostock.github.com/d3/
 .. _Descartes: https://github.com/obfuscurity/descartes
 .. _Diamond: http://opensource.brightcove.com/project/Diamond/
@@ -291,7 +318,7 @@ annotated events, etc). Supports Graphite, flot, rickshaw and anthracite.
 .. _Gdash: https://github.com/ripienaar/gdash.git
 .. _Giraffe: http://kenhub.github.com/giraffe/
 .. _Graph-Explorer: http://vimeo.github.io/graph-explorer
-.. _Graph-Index: https://github.com/huoxy/graph-index
+.. _Graph-Index: https://github.com/douban/graph-index
 .. _Graphene: http://jondot.github.com/graphene/
 .. _Graphios: https://github.com/shawn-sterling/graphios
 .. _Graphite-Tattle: https://github.com/wayfair/Graphite-Tattle
@@ -315,12 +342,16 @@ annotated events, etc). Supports Graphite, flot, rickshaw and anthracite.
 .. _metrics-sampler: https://github.com/dimovelev/metrics-sampler
 .. _New Relic: https://newrelic.com/platform
 .. _Pencil: https://github.com/fetep/pencil
+.. _pipe-to-graphite: https://github.com/iFixit/pipe-to-graphite
 .. _RabbitMQ: http://www.rabbitmq.com/
 .. _Rickshaw: http://code.shutterstock.com/rickshaw/
+.. _rearview: http://github.com/livingsocial/rearview/
 .. _Rocksteady: http://code.google.com/p/rocksteady/
 .. _Seyren: https://github.com/scobal/seyren
+.. _Sensu: http://sensuapp.org/
 .. _Shinken: http://www.shinken-monitoring.org/
 .. _SqlToGraphite: https://github.com/perryofpeek/SqlToGraphite/
+.. _SSC Serv: https://ssc-serv.com/
 .. _statsd: https://github.com/etsy/statsd
 .. _structured_metrics: https://github.com/vimeo/graph-explorer/tree/master/structured_metrics
 .. _Tasseo: https://github.com/obfuscurity/tasseo

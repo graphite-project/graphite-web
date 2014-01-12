@@ -41,7 +41,7 @@ def detail(request, event_id):
 
 def post_event(request):
     if request.method == 'POST':
-        event = json.loads(request.raw_post_data)
+        event = json.loads(request.body)
         assert isinstance(event, dict)
 
         values = {}
