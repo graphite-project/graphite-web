@@ -155,7 +155,7 @@ function setupSearchForm(formEl) {
   var html = '<a id="searchHelpLink" > Help </a> <p id="searchError"></p> <ul id="searchResults"></ul>';
   Ext.DomHelper.append("searchForm", html);
   var helpAction = 'javascript: void window.open';
-  var helpPage = '"../content/html/searchHelp.html"';
+  var helpPage = '"' + document.body.dataset.staticRoot + 'html/searchHelp.html"';
   var helpTitle = '"Searching Graphite"';
   var helpOptions = '"width=500,height=400,toolbar=no,location=no,directories=no,status=no,menubar=no"';
   Ext.getDom('searchHelpLink').href = helpAction+"("+helpPage+","+helpTitle+","+helpOptions+");";
@@ -226,7 +226,7 @@ function createCompleterPanel() {
     },
     items: [
       metricCompleter,
-      new Ext.form.Label({html: '<a id="completerHelpLink" href="../content/html/completerHelp.html", target="_new"> Help </a>'})
+      new Ext.form.Label({html: '<a id="completerHelpLink" href="' + document.body.dataset.staticRoot + 'html/completerHelp.html", target="_new"> Help </a>'})
     ]
   });
 
@@ -253,7 +253,7 @@ function setupCompleterForm(formEl) {
   html = '<a id="completerHelpLink" > Help </a> <div id="completerResults"/>';
   Ext.DomHelper.append("completerForm",html);
   var helpAction = 'javascript: void window.open';
-  var helpPage= '"../content/html/completerHelp.html"';
+  var helpPage= '"' + document.body.dataset.staticRoot + 'html/completerHelp.html"';
   var helpTitle = '"Using the Auto-Completer"';
   var helpOptions = '"width=500,height=400,toolbar=no,location=no,directories=no,status=no,menubar=no"';
   Ext.getDom('completerHelpLink').href = helpAction+"("+helpPage+","+helpTitle+","+helpOptions+");";

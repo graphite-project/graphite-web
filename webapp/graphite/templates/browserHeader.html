@@ -1,3 +1,4 @@
+{% load staticfiles %}
 <!-- Copyright 2008 Orbitz WorldWide
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,12 +19,12 @@ limitations under the License. -->
     <style>
       body {
         background-color: #000;
-        background: url('/content/img/carbon-fiber.png');
-        background: url('/content/img/carbon-fiber.png'), -webkit-linear-gradient(top, #000 55%, #333);
-        background: url('/content/img/carbon-fiber.png'),    -moz-linear-gradient(top, #000, #000);
-        background: url('/content/img/carbon-fiber.png'),     -ms-linear-gradient(top, #000 55%, #333);
-        background: url('/content/img/carbon-fiber.png'),      -o-linear-gradient(top, #000 55%, #333);
-        background: url('/content/img/carbon-fiber.png'),         linear-gradient(top, #000 55%, #333);
+        background: url('{% static "img/carbon-fiber.png" %}');
+        background: url('{% static "img/carbon-fiber.png" %}'), -webkit-linear-gradient(top, #000 55%, #333);
+        background: url('{% static "img/carbon-fiber.png" %}'),    -moz-linear-gradient(top, #000, #000);
+        background: url('{% static "img/carbon-fiber.png" %}'),     -ms-linear-gradient(top, #000 55%, #333);
+        background: url('{% static "img/carbon-fiber.png" %}'),      -o-linear-gradient(top, #000 55%, #333);
+        background: url('{% static "img/carbon-fiber.png" %}'),         linear-gradient(top, #000 55%, #333);
       }
       div.header {
         margin-top: 13px;

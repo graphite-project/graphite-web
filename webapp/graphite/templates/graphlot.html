@@ -1,15 +1,15 @@
-<html>
+{% load static staticfiles %}<html>
   <head>
     <title>Graphlot</title>
-    <script type="text/javascript" src="../content/js/jquery.js"></script>
-    <script type="text/javascript" src="../content/js/jquery.flot.js"></script>
-    <script type="text/javascript" src="../content/js/jquery.autocomplete.js"></script>
-    <script type="text/javascript" src="../content/js/jquery.flot.selection.js"></script>
-    <script type="text/javascript" src="../content/js/jquery.flot.crosshair.js"></script>
-    <script type="text/javascript" src="../content/js/jquery.graphite.js"></script>
+    <script type="text/javascript" src="{% static "js/jquery.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/jquery.flot.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/jquery.autocomplete.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/jquery.flot.selection.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/jquery.flot.crosshair.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/jquery.graphite.js" %}"></script>
 
-    <link rel="stylesheet" type="text/css" href="../content/css/jquery.autocomplete.css" />
-    <link rel="stylesheet" type="text/css" href="../content/css/table.css" />
+    <link rel="stylesheet" type="text/css" href="{% static "css/jquery.autocomplete.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "css/table.css" %}" />
     
     <script type="text/javascript">
 
@@ -40,7 +40,7 @@
 
 
     </head>
-    <body>
+    <body data-static-root="{% get_static_prefix %}">
         <div id="title" style="text-align:center">
             <h1>graphlot</h1>
         </div>
@@ -71,7 +71,7 @@
                         </td>
                         <td><a href=#><span class="g_yaxis">{{metric.yaxis}}</span></a>
                         </td>
-                        <td class="g_killrow"><img src="../content/img/delete.gif">
+                        <td class="g_killrow"><img src="{% static "img/delete.gif" %}">
                         </td>
                     </tr>
                 {% endfor %}

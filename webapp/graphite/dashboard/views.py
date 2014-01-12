@@ -2,13 +2,14 @@ import re
 import errno
 import sys
 
-from os.path import getmtime, join, exists
+from os.path import getmtime
 from urllib import urlencode
 from ConfigParser import ConfigParser
 from django.shortcuts import render_to_response
 from django.http import HttpResponse, QueryDict
 from django.conf import settings
 from django.contrib.auth import login, authenticate, logout
+from django.contrib.staticfiles import finders
 from graphite.util import json, getProfile
 from graphite.dashboard.models import Dashboard
 from graphite.render.views import renderView
@@ -120,8 +121,8 @@ def dashboard(request, name=None):
   initialError = None
   debug = request.GET.get('debug', False)
   theme = request.GET.get('theme', config.ui_config['theme'])
-  css_file = join(settings.CSS_DIR, 'dashboard-%s.css' % theme)
-  if not exists(css_file):
+  css_file = finders.find('css/dashboard-%s.css' % theme)
+  if css_file is None:
     initialError = "Invalid theme '%s'" % theme
     theme = config.ui_config['theme']
 

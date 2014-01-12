@@ -11,16 +11,17 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. -->
+{% load staticfiles %}
 
 <head>
- <link rel='stylesheet' type='text/css' href='../content/css/cli.css'>
- <link rel='stylesheet' type='text/css' href='../content/css/default.css'>
- <script src="../content/js/window/prototype.js" type="text/javascript"></script>
- <script src="../content/js/window/effects.js" type="text/javascript"></script>
- <script src="../content/js/window/window.js" type="text/javascript"></script>
- <script src="../content/js/window/window_effects.js" type="text/javascript"></script>
- <script src="../content/js/scriptaculous/scriptaculous.js?load=controls,builder"></script>
- <script src="../content/js/cli.js" type="text/javascript"></script>
+<link rel="stylesheet" type="text/css" href="{% static "css/cli.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/default.css" %}">
+<script src="{% static "js/window/prototype.js" %}" type="text/javascript"></script>
+<script src="{% static "js/window/effects.js" %}" type="text/javascript"></script>
+<script src="{% static "js/window/window.js" %}" type="text/javascript"></script>
+<script src="{% static "js/window/window_effects.js" %}" type="text/javascript"></script>
+<script src="{% static "js/scriptaculous/scriptaculous.js" %}?load=controls,builder"></script>
+<script src="{% static "js/cli.js" %}" type="text/javascript"></script>
 </head>
 
 <script type="text/javascript">
