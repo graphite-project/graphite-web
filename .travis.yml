@@ -15,7 +15,6 @@ before_install:
   - mkdir -p storage/log/webapp
   - mkdir -p storage/ceres
   - mkdir -p storage/whisper
-  - rm setup.cfg
 
 install:
   - pip install tox

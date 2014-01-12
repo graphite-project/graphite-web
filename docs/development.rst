@@ -51,15 +51,11 @@ versions, you can use the `tox`_ tool.
 
 ::
 
-    rm setup.cfg
     pip install tox
     tox
 
 This will run the tests for all configurations declared in the ``tox.ini``
-file at the root of the repository. Note that the current ``setup.cfg`` file
-prevents ``tox`` from running. You can simply remove the file and tox will run
-properly. Just make sure not to commit the removal of ``setup.cfg`` in your
-branch.
+file at the root of the repository.
 
 You can see all the configurations available by running::
 
