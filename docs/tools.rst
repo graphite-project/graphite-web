@@ -272,10 +272,6 @@ TimeseriesWidget
 focuses on high interactivity and modern features (realtime zooming, datapoint inspection,
 annotated events, etc). Supports Graphite, flot, rickshaw and anthracite.
 
-txCarbonClient
-------
-`txCarbonClient`_ is a simple Twisted API for reporting metrics to Carbon.
-
 .. _Backbone.js: http://documentcloud.github.com/backbone/
 .. _Backstop: https://github.com/obfuscurity/backstop
 .. _Bucky: http://pypi.python.org/pypi/bucky
@@ -330,5 +326,4 @@ txCarbonClient
 .. _Tasseo: https://github.com/obfuscurity/tasseo
 .. _Therry: https://github.com/obfuscurity/therry
 .. _TimeseriesWidget: https://github.com/Dieterbe/timeserieswidget
-.. _txCarbonClient: https://github.com/fdChasm/txCarbonClient
 .. _write-graphite: http://collectd.org/wiki/index.php/Plugin:Write_Graphite
