@@ -6,11 +6,19 @@ It's worth noting that data sent to Graphite is actually sent to the :doc:`Carbo
 
 Choosing the right transfer method for you is dependent on how you want to build your application or script to send data:
 
+* There are some tools and APIs which can help you get your data into Carbon.
+
 * For a singular script, or for test data, the plaintext protocol is the most straightforward method.
 
 * For sending large amounts of data, you'll want to batch this data up and send it to Carbon's pickle receiver.
 
 * Finally, Carbon can listen to a message bus, via AMQP.
+
+
+Existing tools and APIs
+-----------------------
+* :doc:`client daemons and tools </tools>`
+* :doc:`client APIs </client-apis>`
 
 
 The plaintext protocol
@@ -25,8 +33,9 @@ On Unix, the ``nc`` program can be used to create a socket and send data to Carb
 
  PORT=2003
  SERVER=graphite.your.org
- echo "local.random.diceroll 4 `date +%s`" | nc ${SERVER} ${PORT};
+ echo "local.random.diceroll 4 `date +%s`" | nc -q0 ${SERVER} ${PORT}
 
+The ``-q0`` parameter instructs ``nc`` to close socket once data is sent. Without this option, some ``nc`` versions would keep the connection open.
 
 The pickle protocol
 -------------------
@@ -51,4 +60,5 @@ You would then send the ``message`` object through a network socket.
 
 Using AMQP
 ----------
-...
+When AMQP_METRIC_NAME_IN_BODY is set to True in your carbon.conf file, the data should be of the same format as the plaintext protocol, e.g. echo "local.random.diceroll 4 `date +%s`".
+When AMQP_METRIC_NAME_IN_BODY is set to False, you should ommit 'local.random.diceroll'.

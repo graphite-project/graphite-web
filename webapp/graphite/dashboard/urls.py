@@ -1,4 +1,4 @@
-from django.conf.urls.defaults import *
+from django.conf.urls import *
 
 urlpatterns = patterns('graphite.dashboard.views',
   url('^save/(?P<name>[^/]+)', 'save', name="dashboard.save"),

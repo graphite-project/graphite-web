@@ -16,7 +16,7 @@ import traceback
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.conf import settings
 from graphite.account.models import Profile
-from graphite.util import getProfile, getProfileByUsername, defaultUser, json
+from graphite.util import getProfile, getProfileByUsername, json
 from graphite.logger import log
 from graphite.storage import STORE
 from graphite.metrics.search import searcher
@@ -210,7 +210,7 @@ def set_metadata_view(request):
 
   elif request.method == 'POST':
     if request.META.get('CONTENT_TYPE') == 'application/json':
-      operations = json.loads( request.raw_post_data )
+      operations = json.loads( request.body )
     else:
       operations = json.loads( request.POST['operations'] )
 

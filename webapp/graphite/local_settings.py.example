@@ -6,6 +6,17 @@
 #####################################
 # General Configuration #
 #####################################
+# Set this to a long, random unique string to use as a secret key for this
+# install. This key is used for salting of hashes used in auth tokens,
+# CRSF middleware, cookie storage, etc. This should be set identically among
+# instances if used behind a load balancer.
+#SECRET_KEY = 'UNSAFE_DEFAULT'
+
+# In Django 1.5+ set this to the list of hosts your graphite instances is
+# accessible as. See:
+# https://docs.djangoproject.com/en/dev/ref/settings/#std:setting-ALLOWED_HOSTS
+#ALLOWED_HOSTS = [ '*' ]
+
 # Set your local timezone (Django's default is America/Chicago)
 # If your graphs appear to be offset by a couple hours then this probably
 # needs to be explicitly set to your local timezone.
@@ -95,7 +106,8 @@
 #USE_LDAP_AUTH = True
 #LDAP_SERVER = "ldap.mycompany.com"
 #LDAP_PORT = 389
-#	OR
+#LDAP_USE_TLS = False
+#        OR
 #LDAP_URI = "ldaps://ldap.mycompany.com:636"
 #LDAP_SEARCH_BASE = "OU=users,DC=mycompany,DC=com"
 #LDAP_BASE_USER = "CN=some_readonly_account,DC=mycompany,DC=com"
@@ -107,10 +119,12 @@
 # For example:
 #
 #import ldap
-#ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_ALLOW)
+#ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_ALLOW) # Use ldap.OPT_X_TLS_DEMAND to force TLS
+#ldap.set_option(ldap.OPT_REFERRALS, 0) # Enable for Active Directory
 #ldap.set_option(ldap.OPT_X_TLS_CACERTDIR, "/etc/ssl/ca")
 #ldap.set_option(ldap.OPT_X_TLS_CERTFILE, "/etc/ssl/mycert.pem")
 #ldap.set_option(ldap.OPT_X_TLS_KEYFILE, "/etc/ssl/mykey.pem")
+#ldap.set_option(ldap.OPT_DEBUG_LEVEL, 65535) # To enable verbose debugging
 # See http://www.python-ldap.org/ for further details on these options.
 
 ## REMOTE_USER authentication. See: https://docs.djangoproject.com/en/dev/howto/auth-remote-user/
@@ -153,7 +167,6 @@
 # DO NOT FORGET TO RUN 'manage.py syncdb' AFTER SETTING UP A NEW DATABASE
 #
 # The following built-in database engines are available:
-#  django.db.backends.postgresql          # Removed in Django 1.4
 #  django.db.backends.postgresql_psycopg2
 #  django.db.backends.mysql
 #  django.db.backends.sqlite3
@@ -162,8 +175,6 @@
 # The default is 'django.db.backends.sqlite3' with file 'graphite.db'
 # located in STORAGE_DIR
 #
-# Users with Django 1.2 or greater should use the new dictionary
-# specification as the old database specification style is removed in 1.4
 #DATABASES = {
 #    'default': {
 #        'NAME': '/opt/graphite/storage/graphite.db',
@@ -175,14 +186,6 @@
 #    }
 #}
 #
-# Users still on Django 1.1 must use the old method instead:
-#DATABASE_ENGINE = 'django.db.backends.mysql'
-#DATABASE_NAME = 'graphite'      # Or path to the database file if using sqlite3
-#DATABASE_USER = 'graphite'
-#DATABASE_PASSWORD = 'graphite-is-awesome'
-#DATABASE_HOST = 'mysql.mycompany.com'
-#DATABASE_PORT = '3306'
-
 
 #########################
 # Cluster Configuration #

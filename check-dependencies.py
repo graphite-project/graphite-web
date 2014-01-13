@@ -93,9 +93,8 @@ except ImportError:
   required += 1
 
 
-# Verify django version
-if django and django.VERSION[:2] < (1,1):
-  sys.stderr.write("[REQUIRED] You have django version %s installed, but version 1.1 or greater is required\n" % django.get_version())
+if django and django.VERSION[:2] < (1,4):
+  sys.stderr.write("[REQUIRED] You have django version %s installed, but version 1.4 or greater is required\n" % django.get_version())
   required += 1
 
 

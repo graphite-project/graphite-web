@@ -2000,9 +2000,8 @@ function breakoutGraph(record) {
 }
 
 function mailGraph(record) {
-  mygraphParams = record.get('params');
-  mygraphParams['target'] = record.data['target'];
-  newparams = Ext.encode(Ext.apply(mygraphParams, defaultGraphParams));
+  var mygraphParams = record.get('params');
+  var newparams = Ext.encode(Ext.apply(mygraphParams, defaultGraphParams));
 
   var fromField = new Ext.form.TextField({
     fieldLabel: "From",
@@ -2562,12 +2561,22 @@ function showDashboardFinder() {
     url: "dashboard/find/",
     method: 'GET',
     params: {query: "e"},
-    fields: ['name'],
+    fields: [{
+      name: 'name',
+      sortType: function(value) {
+	// Make sorting case-insensitive
+        return value.toLowerCase();
+      }
+    }],
     root: 'dashboards',
+    sortInfo: {
+      field: 'name',
+      direction: 'DESC'
+    },
     listeners: {
       beforeload: function (store) {
                     store.setBaseParam('query', queryField.getValue());
-                  }
+      }
     }
   });
 

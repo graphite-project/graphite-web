@@ -31,7 +31,7 @@ customize your graphs and pull out raw data. For example:
   http://graphite/render?target=app.numUsers&format=json
 
   # rate of new signups per minute
-  http://graphite/render?target=summarize(deriviative(app.numUsers),"1min")&title=New_Users_Per_Minute
+  http://graphite/render?target=summarize(derivative(app.numUsers),"1min")&title=New_Users_Per_Minute
 
 .. note::
 

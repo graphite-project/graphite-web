@@ -14,8 +14,8 @@ limitations under the License."""
 # Django settings for graphite project.
 # DO NOT MODIFY THIS FILE DIRECTLY - use local_settings.py instead
 import sys, os
-from django import VERSION as DJANGO_VERSION
 from os.path import abspath, dirname, join
+from warnings import warn
 
 
 GRAPHITE_WEB_APP_SETTINGS_LOADED = False
@@ -44,8 +44,6 @@ RRD_DIR = ''
 STANDARD_DIRS = []
 
 CLUSTER_SERVERS = []
-
-sys.path.insert(0, WEBAPP_DIR)
 
 # Cluster settings
 CLUSTER_SERVERS = []
@@ -77,11 +75,15 @@ ALLOW_ANONYMOUS_CLI = True
 LOG_METRIC_ACCESS = False
 LEGEND_MAX_ITEMS = 10
 RRD_CF = 'AVERAGE'
+STORAGE_FINDERS = (
+    'graphite.finders.standard.StandardFinder',
+)
 
 #Authentication settings
 USE_LDAP_AUTH = False
 LDAP_SERVER = "" # "ldapserver.mydomain.com"
 LDAP_PORT = 389
+LDAP_USE_TLS = False
 LDAP_SEARCH_BASE = "" # "OU=users,DC=mydomain,DC=com"
 LDAP_BASE_USER = "" # "CN=some_readonly_account,DC=mydomain,DC=com"
 LDAP_BASE_PASS = "" # "my_password"
@@ -90,6 +92,12 @@ LDAP_URI = None
 
 #Set this to True to delegate authentication to the web server
 USE_REMOTE_USER_AUTHENTICATION = False
+
+# Django 1.5 requires this so we set a default but warn the user
+SECRET_KEY = 'UNSAFE_DEFAULT'
+
+# Django 1.5 requires this to be set. Here we default to prior behavior and allow all
+ALLOWED_HOSTS = [ '*' ]
 
 # Override to link a different URL for login (e.g. for django_openid_auth)
 LOGIN_URL = '/account/login'
@@ -104,24 +112,15 @@ DASHBOARD_REQUIRE_PERMISSIONS = False
 # NOTE: Requires DASHBOARD_REQUIRE_AUTHENTICATION to be set
 DASHBOARD_REQUIRE_EDIT_GROUP = None
 
-if DJANGO_VERSION < (1,4):
-  #Initialize database settings - Old style (pre 1.2)
-  DATABASE_ENGINE = 'django.db.backends.sqlite3' # 'postgresql', 'mysql', 'sqlite3' or 'ado_mssql'.
-  DATABASE_NAME = ''                           # Or path to database file if using sqlite3.
-  DATABASE_USER = ''                           # Not used with sqlite3.
-  DATABASE_PASSWORD = ''                       # Not used with sqlite3.
-  DATABASE_HOST = ''                           # Set to empty string for localhost. Not used with sqlite3.
-  DATABASE_PORT = ''                           # Set to empty string for default. Not used with sqlite3.
-else:
-  DATABASES = {
-    'default': {
-      'NAME': '/opt/graphite/storage/graphite.db',
-      'ENGINE': 'django.db.backends.sqlite3',
-      'USER': '',
-      'PASSWORD': '',
-      'HOST': '',
-      'PORT': ''
-  }
+DATABASES = {
+  'default': {
+    'NAME': '/opt/graphite/storage/graphite.db',
+    'ENGINE': 'django.db.backends.sqlite3',
+    'USER': '',
+    'PASSWORD': '',
+    'HOST': '',
+    'PORT': '',
+  },
 }
 
 # If using rrdcached, set to the address or socket of the daemon
@@ -181,14 +180,9 @@ if not STANDARD_DIRS:
 
 # Default sqlite db file
 # This is set here so that a user-set STORAGE_DIR is available
-if DJANGO_VERSION < (1,4):
-  if 'sqlite3' in DATABASE_ENGINE \
-      and not DATABASE_NAME:
-    DATABASE_NAME = join(STORAGE_DIR, 'graphite.db')
-else:
-  if 'sqlite3' in DATABASES.get('default',{}).get('ENGINE','') \
-      and not DATABASES.get('default',{}).get('NAME'):
-    DATABASES['default']['NAME'] = join(STORAGE_DIR, 'graphite.db')
+if 'sqlite3' in DATABASES.get('default',{}).get('ENGINE','') \
+    and not DATABASES.get('default',{}).get('NAME'):
+  DATABASES['default']['NAME'] = join(STORAGE_DIR, 'graphite.db')
 
 # Caching shortcuts
 if MEMCACHE_HOSTS:
@@ -204,3 +198,6 @@ if USE_REMOTE_USER_AUTHENTICATION:
 
 if USE_LDAP_AUTH:
   AUTHENTICATION_BACKENDS.insert(0,'graphite.account.ldapBackend.LDAPBackend')
+
+if SECRET_KEY == 'UNSAFE_DEFAULT':
+  warn('SECRET_KEY is set to an unsafe default. This should be set in local_settings.py for better security')

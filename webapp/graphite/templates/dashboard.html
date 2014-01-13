@@ -1,6 +1,5 @@
 {% autoescape off %}
 {% load url from future %}
-
 <html>
   <head>
     <title>Graphite Dashboard</title>
@@ -8,8 +7,10 @@
     <link rel="stylesheet" type="text/css" href="{% url 'content' 'css/dashboard.css' %}"/>
 
     <script type="text/javascript">
-    var schemes = {{schemes_json|safe}};
-    var UI_CONFIG = {{ui_config_json|safe}};
+    // Be overly cautious to prevent an unlikely XSS (See the below link rule 3.1):
+    // https://www.owasp.org/index.php/XSS_%28Cross_Site_Scripting%29_Prevention_Cheat_Sheet
+    var schemes = JSON.parse('{{ schemes_json|safe }}');
+    var UI_CONFIG = JSON.parse('{{ ui_config_json|safe }}');
     var CONTEXT_FIELD_WIDTH = 220;
     var AUTOCOMPLETE_DELAY = UI_CONFIG.autocomplete_delay;
     var FINDER_QUERY_DELAY = 100;
@@ -25,26 +26,26 @@
     var HELP_ICON     = '{% url 'content' 'js/ext/resources/icons/fam/information.png' %}';
 
     {% if initialState %}
-    var initialState = {{initialState|safe}};
+    var initialState = "{{ initialState|escapejs }}";
     {% else %}
     var initialState = null;
     {% endif %}
 
     {% if initialError %}
-    var initialError = "{{initialError|safe}}";
+    var initialError = "{{ initialError|escapejs }}";
     {% else %}
     var initialError = null;
     {% endif %}
 
     {% if querystring %}
-    var queryString = {{querystring|safe}};
+    var queryString = JSON.parse('{{ querystring|safe }}');
     {% endif %}
 
-    var permissions = {{permissions|safe}};
-    var permissionsUnauthenticated = {{permissionsUnauthenticated|safe}};
-
+    var permissions = JSON.parse('{{ permissions|safe }}');
+    var permissionsUnauthenticated = JSON.parse('{{ permissionsUnauthenticated|safe }}');
+    
     {% if userName %}
-    var userName = '{{userName|safe}}';
+    var userName = '{{ userName|escapejs }}';
     {% else %}
     var userName = null;
     {% endif %}
@@ -52,6 +53,7 @@
     </script>
 
     <!-- Theme overrides -->
+<<<<<<< HEAD
     <link rel="stylesheet" type="text/css" href="{% url 'content' 'css/dashboard-'|add:theme|add:'.css' %}"/>
 
     {% if jsdebug %}
@@ -85,5 +87,3 @@
     <div id='merge'>Drop To Merge</div>
   </body>
 </html>
-
-{% endautoescape %}

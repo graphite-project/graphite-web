@@ -1,0 +1,215 @@
+0.9.10
+======
+*5/31/12*
+
+Graphite 0.9.10 has been released and is now available. The packages for Whisper, Carbon, and Graphite-web are available via several sources:
+
+* Pypi (and by extension, `pip <http://www.pip-installer.org/en/latest/index.html>`_)
+
+ - http://pypi.python.org/pypi/graphite-web/
+ - http://pypi.python.org/pypi/carbon/
+ - http://pypi.python.org/pypi/whisper/
+
+* Github
+
+ - https://github.com/graphite-project/graphite-web/downloads
+ - https://github.com/graphite-project/carbon/downloads
+ - https://github.com/graphite-project/whisper/downloads
+
+* Launchpad
+
+ - https://launchpad.net/graphite/0.9/0.9.10
+
+This release contains a fabulous amount of incremental improvement over 0.9.9. Some highlights include:
+* Fixes to several annoying Composer and Dashboard UI bugs
+* Import of Saved Graphs into Dashboards
+* Fixes to cache-full behavior for carbon-cache and carbon senders (relay and aggregator)
+* Many new useful render functions and graph options
+* Improvements to the rendering engine and fixes to many rendering bugs
+* Support for rendering graphs as annotated SVG
+* Better organized and more flexible Graphite-web config layout (local_settings.py)
+
+Upgrading from 0.9.9 should be as simple as updating the packages. It is recommended but not necessary that local_settings.py be recreated based on the newly shipped local_settings.py.example as it includes many newly exposed settings and an improved organization and comments. Carbon's config files also have a few new settings as well to check out.
+
+The Graphite project is also in the midst of some project changes. For those who have not yet noticed, the Graphite codebase has been moved to Github (http://github.com/graphite-project) and split into individual components (Graphite-web, Carbon, Whisper, and soon Ceres). The Launchpad project remains active in supporting the project with its Answers (http://answers.launchpad.net/graphite/) and Bugs (http://bugs.launchpad.net/graphite/) functionality.
+
+Development going forward will focus on preparing what will become Graphite 0.10.0 which will include support for the Ceres database format as well as a major refactor of the Carbon daemon (nicknamed "Megacarbon"). The master branches of the project should be considered to be in an 'alpha' state for the time being and subject to backwards-incompatible changes. Fixes to the current version will be maintained in the 0.9.x project branches but no 0.9.11 version is planned for the time being.
+
+A big thanks goes out to all those who have helped the project in contributions of time and energy in the form of code contributions, testing, discussion, and helping each other out with support questions. Additional thanks are due to Aman Gupta (tmm1) for all of his great work on the rendering engine and other fixes, Sidnei Da Silva for his work migrating the project to Github and his fixes, and everyone who's taken the time to answer questions on the Answers site and on IRC.
+
+As always, if you need any assistance please `ask a question <https://answers.launchpad.net/graphite>`_ or join us on IRC in #graphite on Freenode.
+
+The following is a summary of changes since the last release:
+
+New features
+------------
+
+Whisper
+^^^^^^^
+
+* Allocate Whisper files in chunks by default (jordansissel)
+* Allow Whisper files to be allocated sparsely (jordansissel)
+* Add whisper-merge command to copy data from one file to another (sidnei)
+* Add whisper-dump utility (amosshapira)
+
+Graphite Dashboard
+^^^^^^^^^^^^^^^^^^
+
+* New button to retrieve Graph URL (octplane)
+* Add button to send email of rendered graph as attachment (bkjones)
+* Allow relative ‘until’ time to be set in dashboard (daniellawrence)
+* Add ability to import Graphs into dashboards from URL or Saved Graphs
+
+Rendering Engine
+^^^^^^^^^^^^^^^^
+
+* New minorY option to configure minor gridlines (whd)
+* New alpha() function to set individual color alpha values (tmm1)
+* Allow areaAlpha to set alpha values for all styles of stacked graphs (tmm1)
+* New minimumAbove() function: draw only series whose min is above n (tmm1)
+* New areaBetween() function: draw the area between two graph lines (tmm1)
+* New holtWintersConfidenceArea() function: display area between Holt-Winters confidence bands (tmm1)
+* New SVG output format with embedded graph metadata (tmm1)
+* New metric whitelist/blacklist functionality using pattern files
+* New filterBelowPercentile() function: remove data below n percentile from a series (tmm1)
+* New removeAbovePercentile() and removeAboveValue() functions to remove outliers (tmm1)
+* New removeBelowPercentile() and removeBelowValue() functions to match above counterparts
+* New aliasSub() function: perform a regex search/replace on metric names (tmm1)
+* New rangeOfSeries() function: reduces multiple series into the value range of each point (saysjonathan)
+* New movingMedian() function: moving median, similar to movingAverage (recursify)
+* New multiplySeries() function: combine series by multiplying them
+* New hideYAxis option (mdeeks)
+* New percentileOfSeries() function: Combines series into the value at n percentile for each point
+* New tranformNull() function: transforms None values to specified (cbrinley)
+* New scaleToSeconds() function: scales values based on series step (redbaron)
+* New aliasByMetric() function: trims all but the last element of metric name in legend (obfuscurity)
+* New uniqueLegend option to filter duplicate metric names in legend (mdeeks)
+* New vtitleRight option to label 2nd Y-axis
+
+Carbon
+^^^^^^
+
+* Allow flock() mode to be configured for Whisper
+* Allow flushing of rrdcached before rrd data fetches (shufgy)
+* Add ability to configure carbon metric prefix (jblaine)
+
+Bug fixes
+---------
+Whisper
+^^^^^^^
+
+* Record only the last value when duplicate timestamps are sent (knyar)
+* Fix rrd2whisper.py script to work with newer python-rrdtool api
+
+Carbon
+^^^^^^
+
+* Fix full drain of queue after cache-full event when flow-control is enabled in both client and carbon-cache
+* Fix unnecessary drop of a single metric point when cache is full
+* Fix instrumentation of carbon-relay (darrellb)
+
+Webapp
+^^^^^^
+
+* Fix reading of Gzip’d whisper files and remote reading of RRDs
+* Fix registration of Event model in admin site
+* Fix events() to work with timezone aware dates
+* Fix Event model to use tagging properly and fix compatibility with MySQL (hellvinz)
+* Fix compatibility of built-in json module in events and graphlot
+* Fix loading of saved graphs where a target has a ‘%’ in the name
+
+Rendering Engine
+^^^^^^^^^^^^^^^^
+
+* Fix removal of whitespace above stacked graphs with yMax setting (tmm1)
+* Use powers of 2 when calculating yStep and yUnitSystem=binary (tmm1)
+* Force 100% usage of vertical space when yMax=max
+* Compact memcached keys to keep size under 250 after Django processing (Kevin Clark)
+* Fix alignFromTrue functionality in summarize() (tmm1)
+* Fix cases of mismatched units in holt-winters bootstraps (lapsu,tmm1)
+* Force integer in moving average window parameter (lapsu)
+* Fix incorrect cache fetch when storage dir is symlinked (mk-fraggod)
+* Fix infinite loop in Y-axis render when series range is very-very small
+* Fix “Undo Function” button when braces expressions are present in the target
+* Fix legend column calculation (darrellb)
+* Fix broken aliasByNode() (darrellb)
+* Fix rendering failures when infinite values are present in series
+* Fix legend text overlap with dual Y-axis mode (nleskiw)
+* Fix missing hunk of graph on right side with Dual Y-axis
+* Fix cactiStyle() handling of None values
+* Fix rendering breakage during DST time switch
+* Allow multiple named stacks of metrics (aleh)
+* Fix incorrect/misaligned graphs when series with unaligned steps are mixed in a graph
+* Properly shift over series that have a later start time than the graph start
+
+Composer
+^^^^^^^^
+
+* Fix JS error on IE due to tailing list commas (reed-r-lance)
+* Fix usage of + instead of %20 for spaces in URL encoding in composer view
+* Fix display of a broken image rather than “No Data” when last target is removed
+* Fix the loss of multiple targets when loading a saved graph with new params (vilkaspilkas)
+* Fix unremovable duplicate metrics
+
+Dashboard
+^^^^^^^^^
+
+* Fix automatic edit field selection on click (octplane)
+* Fix usage of browser cache-busting uniq parameter to be filtered from memcache key (sidnei)
+* Fix inability to remove Graphs with duplicate target lists
+
+Other improvements
+------------------
+
+Carbon
+^^^^^^
+
+* Match time units used in storage-schemas.conf with those in the webapp (ohlol)
+* Only log Carbon queue fullness once (sidnei)
+* Only log Carbon queue space free if it was once full (sidnei)
+* Log a message with the affected filename when a Whisper update fails (bmhatfield)
+* Move carbon instance logs to their own own directory to prevent clobbering
+* Prevent carbon-aggregator from clobbering aggregated values when aggregating to same-name
+* Add SSL option to amqp publisher (sidnei)
+* Remove duplicate dot metric path filtering for performance (drawks)
+* Refactor of schema validation to give more informative errors
+* Add reloading of rewrite-rules and aggregation-schemas for consistency
+
+Webapp
+^^^^^^
+
+* Refactor settings.py to allow more complete configuration in local_settings.py
+* Make Graphite compatible with Django 1.4
+* Add jsonp support for /browser endpoint
+* Make it harder to break metric browsing with a bad DATA_DIRS entry
+
+Rendering Engine
+^^^^^^^^^^^^^^^^
+
+* Make asPercent() much more flexible and useful
+* stddev() function made more robust
+* Allow metrics to begin with a braces-wildcard
+* Prevent drawAsInfinite() lines from affecting Y axis height (bmhatfield)
+* Pass through time with secondly rather than minutely resolution to rrdfetch (tmm1)
+* Tree branches should display above all leaves (mdeeks)
+* Add alignToInterval to hitcount() function similar to summarize() (jwoschitz)
+* Fix PieGraph missing function
+* Allow timeShift() to shift forward as well as backward
+
+Composer
+^^^^^^^^
+
+* Don’t reorder targets when applying functions
+* Refactor of Graph Options menu
+
+Dashboard
+^^^^^^^^^
+
+* Explicitly size img tags to keep scroll position intact during reloads
+* Default the navBar as collapsed when loading an existing dashboard view
+* Show wildcards in top nav browsing view
+* Allow dashboards to have any character in title (octplane)
+* Make “Remove All Graphs” and “Change Size” dialogs modal (dannyla)
+* Make the new “north” navbar the default
+
+

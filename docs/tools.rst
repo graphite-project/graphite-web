@@ -42,7 +42,6 @@ Charcoal
 service which can generate images directly from a URL. Charcoal configuration is driven by a YAML
 config file.
 
-
 Descartes
 ---------
 `Descartes`_ is a Sinatra-based dashboard that allows users to correlate multiple metrics in a single chart, review long-term trends across one or more charts, and to collaborate with other users through a combination of shared dashboards and rich layouts.
@@ -112,7 +111,7 @@ Graphite-Newrelic
 
 
 Graphite-Observer
----------------
+-----------------
 `Graphite-Observer`_ is a real-time monitor dashboard for Graphite.
 
 
@@ -141,12 +140,6 @@ on an Android device.
 Graphios
 --------
 `Graphios`_ is a small Python daemon to send Nagios performance data (perfdata) to Graphite.
-
-
-Graphitejs
-----------
-`Graphitejs`_ is a jQuery plugin for easily making and displaying graphs and updating them on
-the fly using the Graphite URL api.
 
 
 Graphsky
@@ -185,6 +178,7 @@ hubot-scripts
 project includes a Graphite script which supports searching and displaying saved graphs from
 the Composer directory in your Campfire rooms.
 
+
 jmxtrans
 --------
 `jmxtrans`_ is a powerful tool that performs JMX queries to collect metrics from Java applications.
@@ -204,9 +198,11 @@ It is ideal for visualizing trends of events that are occurring in your applicat
 logs. For example, you might use logster to graph the number of occurrences of HTTP response
 code that appears in your web server logs.
 
+
 Orion
 -------
 `Orion`_ is powerful tool to create, view and manage dashboards for your Graphite data. It allows easy implementation of custom authentication to manage access to the dashboard.
+
 
 metrics-sampler
 ---------------
@@ -214,10 +210,22 @@ metrics-sampler
 selects and renames them using regular expressions and sends them to a configured set of outputs. 
 It supports JMX and JDBC as inputs and Graphite as output out of the box.
 
+
 Pencil
 ------
 `Pencil`_ is a monitoring frontend for graphite. It runs a webserver that dishes out pretty Graphite
 URLs in interesting and intuitive layouts.
+
+
+pipe-to-graphite
+----------------
+`pipe-to-graphite`_ is a small shell script that makes it easy to report the
+output of any other cli program to Graphite.
+
+
+rearview
+--------
+`rearview`_ is a real-time monitoring framework that sits on top of Graphite's time series data. This allows users to create monitors that both visualize and alert on data as it streams from Graphite. The monitors themselves are simple Ruby scripts which run in a sandbox to provide additional security. Monitors are also configured with a crontab compatible time specification used by the scheduler. Alerts can be sent via email, pagerduty, or campfire.
 
 
 Rocksteady
@@ -227,10 +235,9 @@ AdMob (who was then bought by Google), this was released by Google as open sourc
 (http://google-opensource.blogspot.com/2010/09/get-ready-to-rocksteady.html).
 
 
-Scales
-------
-`Scales`_ is a Python server state and statistics library that can output its data to Graphite.
-
+Sensu
+-----
+`Sensu`_ is a monitoring framework that can route metrics to Graphite. Servers subscribe to sets of checks, so getting metrics from a new server to Graphite is as simple as installing the Sensu client and subscribing.
 
 Seyren
 ------
@@ -247,16 +254,14 @@ SqlToGraphite
 -------------
 `SqlToGraphite`_ is an agent for windows written in .net to collect metrics using plugins (WMI, SQL Server, Oracle) by polling an endpoint with a SQL query and pushing the results into graphite. It uses either a local or a centralised configuration over HTTP. 
 
+SSC Serv
+--------
+`SSC Serv`_ is a Windows service (agent) which periodically publishes system metrics, for example CPU, memory and disk usage. It can store data in Graphite using a naming schema that's identical to that used by collectd.
+
 statsd
 ------
 `statsd`_ is a simple daemon for easy stats aggregation, developed by the folks at Etsy.
 A list of forks and alternative implementations can be found at <http://joemiller.me/2011/09/21/list-of-statsd-server-implementations/>
-
-
-Structured Metrics
-------------------
-`structured_metrics`_ is a lightweight python library that uses plugins to read in
-Graphite's list of metric names and convert it into a multi-dimensional tag space of clear, sanitized targets.
 
 Tasseo
 ------
@@ -291,14 +296,13 @@ annotated events, etc). Supports Graphite, flot, rickshaw and anthracite.
 .. _Gdash: https://github.com/ripienaar/gdash.git
 .. _Giraffe: http://kenhub.github.com/giraffe/
 .. _Graph-Explorer: http://vimeo.github.io/graph-explorer
-.. _Graph-Index: https://github.com/huoxy/graph-index
+.. _Graph-Index: https://github.com/douban/graph-index
 .. _Graphene: http://jondot.github.com/graphene/
 .. _Graphios: https://github.com/shawn-sterling/graphios
 .. _Graphite-Tattle: https://github.com/wayfair/Graphite-Tattle
 .. _Graphite-Newrelic: https://github.com/gingerlime/graphite-newrelic
 .. _Graphite-Observer: https://github.com/huoxy/graphite-observer
 .. _Graphite-relay: https://github.com/markchadwick/graphite-relay
-.. _Graphitejs: https://github.com/prestontimmons/graphitejs
 .. _Graphiti: https://github.com/paperlesspost/graphiti
 .. _graphitius: https://github.com/erezmazor/graphitus
 .. _Graphitoid: https://market.android.com/details?id=com.tnc.android.graphite
@@ -315,14 +319,17 @@ annotated events, etc). Supports Graphite, flot, rickshaw and anthracite.
 .. _metrics-sampler: https://github.com/dimovelev/metrics-sampler
 .. _New Relic: https://newrelic.com/platform
 .. _Pencil: https://github.com/fetep/pencil
+.. _pipe-to-graphite: https://github.com/iFixit/pipe-to-graphite
 .. _RabbitMQ: http://www.rabbitmq.com/
 .. _Rickshaw: http://code.shutterstock.com/rickshaw/
+.. _rearview: http://github.com/livingsocial/rearview/
 .. _Rocksteady: http://code.google.com/p/rocksteady/
 .. _Seyren: https://github.com/scobal/seyren
+.. _Sensu: http://sensuapp.org/
 .. _Shinken: http://www.shinken-monitoring.org/
 .. _SqlToGraphite: https://github.com/perryofpeek/SqlToGraphite/
+.. _SSC Serv: https://ssc-serv.com/
 .. _statsd: https://github.com/etsy/statsd
-.. _structured_metrics: https://github.com/vimeo/graph-explorer/tree/master/structured_metrics
 .. _Tasseo: https://github.com/obfuscurity/tasseo
 .. _Therry: https://github.com/obfuscurity/therry
 .. _TimeseriesWidget: https://github.com/Dieterbe/timeserieswidget

@@ -31,7 +31,7 @@ try:  # See if there is a system installation of pytz first
 except ImportError:  # Otherwise we fall back to Graphite's bundled version
   from graphite.thirdparty import pytz
 
-from graphite.util import getProfileByUsername, json
+from graphite.util import getProfileByUsername, json, unpickle
 from graphite.remote_storage import HTTPConnectionWithTimeout
 from graphite.logger import log
 from graphite.render.evaluator import evaluateTarget
@@ -79,7 +79,7 @@ def renderView(request):
           name,value = target.split(':',1)
           value = float(value)
         except:
-          raise ValueError, "Invalid target '%s'" % target
+          raise ValueError("Invalid target '%s'" % target)
         data.append( (name,value) )
       else:
         seriesList = evaluateTarget(requestContext, target)
@@ -114,8 +114,8 @@ def renderView(request):
         log.rendering("Retrieval of %s took %.6f" % (target, time() - t))
         data.extend(seriesList)
 
-    if useCache:
-      cache.set(dataKey, data, cacheTimeout)
+      if useCache:
+        cache.add(dataKey, data, cacheTimeout)
 
     # If data is all we needed, we're done
     format = requestOptions.get('format')
@@ -354,12 +354,12 @@ def delegateRendering(graphType, graphOptions):
 def renderLocalView(request):
   try:
     start = time()
-    reqParams = StringIO(request.raw_post_data)
+    reqParams = StringIO(request.body)
     graphType = reqParams.readline().strip()
     optionsPickle = reqParams.read()
     reqParams.close()
     graphClass = GraphTypes[graphType]
-    options = pickle.loads(optionsPickle)
+    options = unpickle.loads(optionsPickle)
     image = doImageRender(graphClass, options)
     log.rendering("Delegated rendering request took %.6f seconds" % (time() -  start))
     return buildResponse(image)

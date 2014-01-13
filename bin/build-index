@@ -1,0 +1,27 @@
+#!/usr/bin/env python
+from graphite import settings
+from optparse import OptionParser
+import os
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "graphite.settings")
+from graphite.util import write_index
+
+
+if __name__ == "__main__":
+    description = "A tool to generate the search index file used by"\
+        " graphite-web."
+    prog = "build-index"
+    version = "1.0"
+    epilog = "Defaults are read from graphite.settings, it is unlikely"\
+        " that you would want to run this program with anything except the"\
+        " defaults."
+    parser = OptionParser(description=description, prog=prog, version=version,
+        epilog=epilog)
+    parser.add_option("-c", "--ceres_dir", default=settings.CERES_DIR,
+        help="default: %default")
+    parser.add_option("-w", "--whisper_dir", default=settings.WHISPER_DIR,
+        help="default: %default")
+    parser.add_option("-i", "--index", default=settings.INDEX_FILE,
+        help="default: %default")
+    (options, args) = parser.parse_args()
+    write_index(options.whisper_dir, options.ceres_dir, options.index)
