@@ -2,7 +2,7 @@
 
 Graphite consists of two major components:
 
-1. the frontend Django webapp that runs under mod_python Apache
+1. the frontend Django webapp that runs under Apache/mod_wsgi
 2. the backend carbon-cache.py daemon
 
 Client applications connect to the running carbon-cache.py daemon on port 2003 and send it
