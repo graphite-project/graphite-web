@@ -149,8 +149,7 @@ every 'frequency' seconds and the 'method' can specify 'sum' or
 'avg'. The name of the aggregate metric will be derived from
 'output_template' filling in any captured fields from 'input_pattern'.
 Any metric that will arrive to ``carbon-aggregator`` will proceed to its
-output untouched unless it is overriden by a generated metric of the
-same name.
+output untouched unless it is overridden by some rule.
 
 For example, if your metric naming scheme is:
 
