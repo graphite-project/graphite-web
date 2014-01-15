@@ -95,7 +95,7 @@ Carbon and Graphite-web are installed in ``/opt/graphite/`` with the following l
 
   - ``graphite/``
 
-    Location of ``manage.py`` and ``local_settings.py``
+    Location of ``local_settings.py``
 
   - ``content/``
 

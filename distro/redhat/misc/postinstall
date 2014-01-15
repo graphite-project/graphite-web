@@ -22,7 +22,7 @@ if [ ! -f /etc/httpd/conf.d/graphite.conf ]; then
     cp ${GRAPHITE_PATH}/examples/example-graphite-vhost.conf /etc/httpd/conf.d/graphite.conf
 fi
 
-python ${GRAPHITE_PATH}/webapp/graphite/manage.py syncdb --noinput
+PYTHONPATH=${GRAPHITE_PATH}/webapp/ django-admin.py syncdb --noinput --settings=graphite.settings
 
 chown -R apache.apache ${GRAPHITE_PATH}/storage
 chown -R apache.apache ${GRAPHITE_PATH}/webapp

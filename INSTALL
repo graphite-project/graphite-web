@@ -43,8 +43,7 @@ you are doing.
 Once you have installed graphite you must initialize its database like so:
 
 export PYTHONPATH=$PYTHONPATH:$GRAPHITE_ROOT/webapp
-cd $GRAPHITE_ROOT/webapp/graphite/
-sudo python manage.py syncdb
+django-admin.py syncdb --settings=graphite.settings
 
 Note that if you wish to use a custom database setup (like MySQL or Postgres)
 you will need to make those configuration changes first. See the "Custom
@@ -130,8 +129,7 @@ Edit the $GRAPHITE_ROOT/webapp/graphite/local_settings.py
 In particular you will need to uncomment and modify the ``DATABASES`` setting.
 Once you have done this, we need to tell Django to create our tables.
 
-cd $GRAPHITE_ROOT/webapp/graphite/
-sudo python manage.py syncdb
+PYTHONPATH=$GRAPHITE_ROOT/webapp django-admin.py syncdb --settings=graphite.settings
 # you will be prompted to create an admin user, this is a good idea
 
 Restart apache and you should see the graphite webapp on the main page.
