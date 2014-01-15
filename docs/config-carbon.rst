@@ -179,7 +179,7 @@ aggregate metric 'prod.applications.apache.all.requests' would be calculated
 by summing their values.
 
 Another common use pattern of ``carbon-aggregator`` is to aggregate several data points
-of the *same metric*. This could come in handy when you have got the same metric comning from
+of the *same metric*. This could come in handy when you have got the same metric coming from
 several hosts, or when you are bound to send data more frequently than your shortest retention.
 
 whitelist and blacklist
