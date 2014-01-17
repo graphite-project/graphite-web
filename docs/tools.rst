@@ -190,6 +190,11 @@ Ledbetter
 ---------
 `Ledbetter`_ is a simple script for gathering Nagios problem statistics and submitting them to Graphite. It focuses on summary (overall, servicegroup and hostgroup) statistics and writes them to the nagios.problems metrics namespace within Graphite.
 
+Leonardo
+--------
+`Leonardo`_ is a Graphite dashboard inspired by Gdash. It's written in Python using the Flask framework. 
+The interface is built with Bootstrap. The graphs and dashboards are configured through the YAML files.
+
 
 Logster
 -------
@@ -314,6 +319,7 @@ annotated events, etc). Supports Graphite, flot, rickshaw and anthracite.
 .. _hubot-scripts: https://github.com/github/hubot-scripts
 .. _jmxtrans: http://code.google.com/p/jmxtrans/
 .. _Ledbetter: https://github.com/github/ledbetter
+.. _Leonardo: https://github.com/PrFalken/leonardo
 .. _Logster: https://github.com/etsy/logster
 .. _Orion: https://github.com/gree/Orion
 .. _metrics-sampler: https://github.com/dimovelev/metrics-sampler
