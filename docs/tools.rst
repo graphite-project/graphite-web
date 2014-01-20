@@ -80,6 +80,13 @@ Giraffe
 Inspired by `Gdash`_, `Tasseo`_ and `Graphene`_ it mixes features from all three into a slightly
 different animal.
 
+Grafana
+-------
+`Grafana`_ is general purpose graphite dashboard replacement with feature rich graph editing and dashboard creation interface.
+It contains a unique Graphite target parser that enables easy metric and function editing. Fast client side rendering (even over large time ranges)
+using Flot with a multitude of display options (Multiple Y-axis, Bars, Lines, Points, smart Y-axis formats and much more).
+Click and drag selection rectangle to zoom in on any graph.
+
 Graphitus
 ---------
 `graphitus`_ is a client side dashboard for graphite built using bootstrap and underscore.js.
@@ -300,6 +307,7 @@ annotated events, etc). Supports Graphite, flot, rickshaw and anthracite.
 .. _Ganglia: http://ganglia.info/
 .. _Gdash: https://github.com/ripienaar/gdash.git
 .. _Giraffe: http://kenhub.github.com/giraffe/
+.. _Grafana: http://grafana.org/
 .. _Graph-Explorer: http://vimeo.github.io/graph-explorer
 .. _Graph-Index: https://github.com/douban/graph-index
 .. _Graphene: http://jondot.github.com/graphene/
