@@ -78,6 +78,7 @@ RRD_CF = 'AVERAGE'
 STORAGE_FINDERS = (
     'graphite.finders.standard.StandardFinder',
 )
+# STORAGE_FINDERS = list(STORAGE_FINDERS) + [ 'graphite.finders.mongodb.MongodbFinder']  # add this in local_settings.py if enabling Mongodb backend.
 
 #Authentication settings
 USE_LDAP_AUTH = False
