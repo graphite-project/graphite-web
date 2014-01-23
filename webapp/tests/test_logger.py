@@ -1,5 +1,4 @@
 import unittest
-import tempfile
 import os.path
 import glob
 import re
@@ -7,9 +6,6 @@ import re
 from logging import FileHandler
 
 from django.conf import settings
-# This line has to occur before importing logger and datalib.
-temp_dir = tempfile.mkdtemp(prefix='graphite-log-test')
-settings.LOG_DIR = temp_dir
 
 from graphite.logger import log, GraphiteLogger
 
@@ -29,21 +25,21 @@ class TestLogger(unittest.TestCase):
         """ Testing writing to a log file. """
         message = 'Test Info Message'
         log.info(message)
-        lines = [l for l in open(os.path.join(temp_dir, 'info.log'))]
+        lines = [l for l in open(os.path.join(settings.LOG_DIR, 'info.log'))]
         self.assertEqual(message, lines[0].split('::')[1].strip())
 
     def test_metric_log(self):
         """ Test writing to a not configured logger. """
         message = 'Test Info Message'
         log.metric_access(message)
-        file_name = os.path.join(temp_dir, 'metricaccess.log')
+        file_name = os.path.join(settings.LOG_DIR, 'metricaccess.log')
         self.assertFalse(os.path.exists(file_name))
 
     def test_rotate(self):
         """ Force rotation of the log file. """
         handler = log.infoLogger.handlers[0]
         handler.doRollover()
-        files = glob.glob(os.path.join(temp_dir, 'info.log.*'))
+        files = glob.glob(os.path.join(settings.LOG_DIR, 'info.log.*'))
         matches = [re.match('info.log.[0-9]{4}-[0-9]{2}-[0-9]{2}',
                    os.path.basename(f)) for f in files]
         self.assertTrue(any(matches))

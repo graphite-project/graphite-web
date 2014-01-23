@@ -1,3 +1,4 @@
+import tempfile
 from django.conf import settings, global_settings
 
 # Silence the warning about an insecure SECRET_KEY
@@ -16,3 +17,5 @@ CACHES = {
         'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
     },
 }
+
+LOG_DIR = tempfile.mkdtemp(prefix='graphite-log-test')
