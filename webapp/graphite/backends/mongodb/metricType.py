@@ -10,8 +10,8 @@ import pymongo
 import fnmatch
 from pprint import pformat
 
-from dcm.dcmSettings import MONGO_SERVER, MONGO_PORT, MY_DATACENTER_NUMBER
-from dcm.mods.mockLogger import MockLogger
+from graphite.settings import MONGO_SERVER, MONGO_PORT, MY_DATACENTER_NUMBER
+from graphite.backends.mongodb.mockLogger import MockLogger
 
 ###############################################################################
 

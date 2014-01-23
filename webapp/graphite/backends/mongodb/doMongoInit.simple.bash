@@ -1,4 +1,4 @@
 #!/bin/bash
 
-mongo --host localhost --port 27017 megamaid doMongoInit.simple.js
+mongo --host graphdb301p.dev.ch3.s.com --port 27017 megamaid doMongoInit.simple.js
  

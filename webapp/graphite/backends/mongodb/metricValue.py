@@ -8,10 +8,9 @@ import pymongo
 from optparse import OptionParser
 from pprint import pprint, pformat
 
-from dcm.common.util import makeFloat
-from dcm.mods.mockLogger import MockLogger
-from dcm.dcmSettings import MONGO_SAFE_MODE, MONGO_SERVER, MONGO_PORT, MONGOS_CONN_LIST
-from mods.metricType import MetricType
+from graphite.backends.mongodb.mockLogger import MockLogger
+from graphite.backends.mongodb.metricType import MetricType
+from graphite.settings import MONGO_SAFE_MODE, MONGO_SERVER, MONGO_PORT, MONGO_DBNAME, MONGOS_CONN_LIST
 
 ################################################################################
 
@@ -29,7 +28,7 @@ class MetricValue(object):
     def __init__(self, 
             mongo_server=MONGO_SERVER, 
             mongo_port=MONGO_PORT,
-            dbname="megamaid",
+            dbname=MONGO_DBNAME,
             logger=None, 
             simpleConn=False):
                 
