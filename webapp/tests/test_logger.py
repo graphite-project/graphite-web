@@ -9,6 +9,7 @@ from logging import FileHandler
 from django.conf import settings
 # This line has to occur before importing logger and datalib.
 temp_dir = tempfile.mkdtemp(prefix='graphite-log-test')
+settings.LOG_DIR = temp_dir
 
 from graphite.logger import log, GraphiteLogger
 
