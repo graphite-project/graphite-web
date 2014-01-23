@@ -4,12 +4,12 @@
 import threading
 from datetime import datetime
 
-from mods.metricValue import MetricValue
+from graphite.backends.mongodb.metricValue import MetricValue
 
 ###############################################################################
 
 
-class MetricValuePool:
+class MetricValuePool(object):
 
     connPool = {}
     connPoolLock = threading.Lock()
