@@ -7,22 +7,25 @@ except ImportError:  # python < 2.7 compatibility
 
 from django.conf import settings
 
+from graphite.logger import log
 from graphite.util import is_local_interface, is_pattern
 from graphite.remote_storage import RemoteStore
 from graphite.node import LeafNode
 from graphite.intervals import Interval, IntervalSet
-from graphite.readers import MultiReader
-
+from graphite.readers.multiReader import MultiReader
 
 def get_finder(finder_path):
+  print finder_path
   module_name, class_name = finder_path.rsplit('.', 1)
-  module = import_module(module_name)
+  log.info("get_finder() called w/ finder_path '%s', attempting to import module %s class name %s" % (finder_path, module, class_name))
+  module = import_module(module_name) 
   return getattr(module, class_name)()
 
 
 class Store:
   def __init__(self, finders=None, hosts=None):
     if finders is None:
+      log.info("storage_finders: %s" % (settings.STORAGE_FINDERS))
       finders = [get_finder(finder_path)
                  for finder_path in settings.STORAGE_FINDERS]
     self.finders = finders

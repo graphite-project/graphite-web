@@ -5,7 +5,6 @@ from graphite.intervals import Interval, IntervalSet
 from graphite.carbonlink import CarbonLink
 from graphite.logger import log
 from django.conf import settings
-from graphite.readers import FetchInProgress
 
 try:
   import whisper
