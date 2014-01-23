@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 from datetime import datetime,timedelta
-from time import daylight
+from time import daylight,strptime
 from django.conf import settings
 
 import pytz
@@ -31,7 +31,7 @@ def parseATTime(s, tzinfo=None):
     else:
       return datetime.fromtimestamp(int(s),tzinfo)
   elif ':' in s and len(s) == 11:
-    return datetime.strptime(s,'%H:%M%Y%m%d')
+    return datetime(*(strptime(s,'%H:%M%Y%m%d'))[0:6]).replace(tzinfo=tzinfo)
   if '+' in s:
     ref,offset = s.split('+',1)
     offset = '+' + offset
