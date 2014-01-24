@@ -431,13 +431,14 @@ class MetricType(object):
         ret = []
         for mn in mnames:
             mtobj = self.getByName(mn, saveNew=False)
-            # self.logger.warning("Get by name.  Name: %s, obj : %s" % (mn, self.strMtDoc(mtobj)))
+            self.logger.warning("Get by name.  Name: %s, obj : %s" % (mn, self.strMtDoc(mtobj)))
             if (not mtobj) or (not mtobj.has_key('children')):  # protect against malformed mtobjects.
                 continue
             node = self.getNodeGivenMtobj(mtobj)
             if not node:
                 continue
             ret.append(node)
+        self.logger.warning("find_nodes(): returning %s" % (ret))
         return ret        
 
     def findNodesPresumingLinks(self, qp):

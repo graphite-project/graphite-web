@@ -42,7 +42,7 @@ class MongodbReader(object):
         # log.info("MemcacheMongoReader.__init__() ending.")
 
     def dataSufficient(self, inData, startTime, endTime):
-        # return False
+        return True
         reason = ""
         if not inData:
             reason = "nodata"
@@ -106,33 +106,8 @@ class MongodbReader(object):
         accumulatedData = []
         timings = [time.time()]   #0
         haveSufficient = False
-
         try:
-            if 1:
-                #self.retrieveDataFromMemcacheWithUrllib(startTime, endTime)
-                self.retrieveDataFromMemcache(startTime, endTime)
-                timings.append(time.time())  #1
-                accumulatedData.extend(self.mcTsVals)
-                haveSufficient = self.dataSufficient(accumulatedData, startTime, endTime)
-        except:
-            haveSufficient = False
-            log.info("TB: retrieveDataFromMemcache(st=%s, et=%s): err: %s" % (
-                startTime, endTime, traceback.format_exc()))
-
-        #log.info("got from memcache, haveSufficient=%s" % haveSufficient)
-        timings.append(time.time())        #2
-        try:
-            if 1 and not haveSufficient:
-                self.retrieveDataFromCeres(startTime, endTime)
-                timings.append(time.time())  #3
-                accumulatedData.extend(self.ceresTsVals)
-                haveSufficient = self.dataSufficient(accumulatedData, startTime, endTime)
-        except:
-            log.info("TB: retrieveDataFromCeres(st=%s, et=%s): err: %s" % (startTime, endTime, traceback.format_exc()))
-        
-        timings.append(time.time())  #4
-        try:
-            if 0 and not haveSufficient:
+            if not haveSufficient:
                 self.retrieveDataFromMongo(startTime, endTime)
                 accumulatedData.extend(self.mvTsVals)
                 haveSufficient = self.dataSufficient(accumulatedData, startTime, endTime)

@@ -1,4 +1,9 @@
 
+from graphite.logger import log
+from graphite.intervals import Interval, IntervalSet
+import time
+import traceback
+
 
 class Node(object):
   __slots__ = ('name', 'path', 'local', 'is_leaf')
@@ -20,14 +25,31 @@ class BranchNode(Node):
 class LeafNode(Node):
   __slots__ = ('reader', 'intervals')
 
-  def __init__(self, path, reader):
-    Node.__init__(self, path)
-    self.reader = reader
-    self.intervals = reader.get_intervals()
-    self.is_leaf = True
+  def __init__(self, path, reader, avoidIntervals=False):
+    try:
+      Node.__init__(self, path)
+      self.reader = reader
+      if avoidIntervals:
+        now = int(time.time())
+        intervals = [Interval(0, now)]
+        self.intervals = IntervalSet(intervals)               
+      else:
+        self.intervals = reader.get_intervals()
+      self.is_leaf = True
+    except:
+      log.info("EXCEPTION: LeafNode.__init__() exception: %s" % (traceback.format_exc()))
+      return
 
   def fetch(self, startTime, endTime):
-    return self.reader.fetch(startTime, endTime)
+    retval = []
+    try:
+      self.intervals = self.reader.get_intervals(startTime=startTime, endTime=endTime)
+      log.info("LeafNode.fetch(): have intervals path %s, st=%s, et=%s, intervals: %s" % (self.path, startTime, endTime, self.intervals))
+      retval = self.reader.fetch(startTime, endTime)
+      self.reader.fetch(startTime, endTime)
+    except:
+      log.info("EXCEPTION:  LeafNode.fetch() exception: %s" % (traceback.format_exc()))
+    return retval
 
   def __repr__(self):
     return '<LeafNode[%x]: %s (%s)>' % (id(self), self.path, self.reader)

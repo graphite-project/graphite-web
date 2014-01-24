@@ -101,7 +101,7 @@ class MongodbFinder(object):
                 if not mname.startswith('ch3.'):
                     mname = 'ch3.' + mname
                 if nodeType == 'L':
-                    reader  = MongodbReader(self.mvObj, None, mname)
+                    reader  = MongodbReader(self.mvObj, mname)
                     nodes.append(self.getLeafNode(mname, reader, avoidIntervals=True))
                 elif nodeType == 'B':
                     nodes.append(BranchNode(mname))
@@ -109,6 +109,6 @@ class MongodbFinder(object):
                     assert False, "ERROR: got wrong node type back from nodeType: %s" % (nodeType)
         except:
             tb = traceback.format_exc()
-            log.info("finders.MemcacheFinder.find_nodes(%s) EXCEPTION: %s, tupes: %s." % (query, tb, tupes))
+            log.info("finders.MemcacheFinder.find_nodes(%s) EXCEPTION: %s, mongoObjects: %s." % (query, tb, mongoObjects))
         return nodes
                                   
