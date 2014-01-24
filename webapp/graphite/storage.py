@@ -17,7 +17,7 @@ from graphite.readers.multiReader import MultiReader
 def get_finder(finder_path):
   print finder_path
   module_name, class_name = finder_path.rsplit('.', 1)
-  log.info("get_finder() called w/ finder_path '%s', attempting to import module %s class name %s" % (finder_path, module, class_name))
+  log.info("get_finder() called w/ finder_path '%s', attempting to import module_name '%s' class name '%s'" % (finder_path, module_name, class_name))
   module = import_module(module_name) 
   return getattr(module, class_name)()
 

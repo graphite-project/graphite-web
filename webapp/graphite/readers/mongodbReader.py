@@ -7,8 +7,8 @@ import urllib2
 import json
 from pprint import pformat
 
-from graphite.backends.mongo.metricValue import MetricValue
-from graphite.backends.mongo.dataNormalizer import DataNormalizer
+from graphite.backends.mongodb.metricValue import MetricValue
+from graphite.backends.mongodb.dataNormalizer import DataNormalizer
 from graphite.node import LeafNode, BranchNode
 from graphite.intervals import Interval, IntervalSet
 from graphite.carbonlink import CarbonLink
@@ -18,7 +18,7 @@ from django.conf import settings
 ###############################################################################
 
 
-class MongoReader(object):
+class MongodbReader(object):
 
     supported = True
 
@@ -40,9 +40,6 @@ class MongoReader(object):
         self.normalizedMcTsData = None
         self.useInterval = None
         # log.info("MemcacheMongoReader.__init__() ending.")
-
-    def __del__(self):
-        self.mcPool.releaseConnection(self.mcDataStore)
 
     def dataSufficient(self, inData, startTime, endTime):
         # return False

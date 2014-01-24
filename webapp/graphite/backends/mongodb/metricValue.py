@@ -10,7 +10,7 @@ from pprint import pprint, pformat
 
 from graphite.backends.mongodb.mockLogger import MockLogger
 from graphite.backends.mongodb.metricType import MetricType
-from graphite.settings import MONGO_SAFE_MODE, MONGO_SERVER, MONGO_PORT, MONGO_DBNAME, MONGOS_CONN_LIST
+from graphite.settings import MONGO_SAFE_MODE, MONGO_SERVER, MONGO_PORT, MONGO_DBNAME, MONGOS_CONN_LIST, MONGO_DBUSER, MONGO_DBPASS
 
 ################################################################################
 
@@ -29,6 +29,8 @@ class MetricValue(object):
             mongo_server=MONGO_SERVER, 
             mongo_port=MONGO_PORT,
             dbname=MONGO_DBNAME,
+            dbuser=MONGO_DBUSER,
+            dbpass=MONGO_DBPASS,
             logger=None, 
             simpleConn=False):
                 

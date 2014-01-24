@@ -14,15 +14,20 @@ class MetricValuePool(object):
     connPool = {}
     connPoolLock = threading.Lock()
 
-    def __init__(self, server, port):
+    def __init__(self, server, port, dbname=None, dbuser=None, dbpass=None):
         self.server = server
         self.port   = port
+        self.dbname = dbname
+        self.dbuser = dbuser
+        self.dbpass = dbpass
 
-    def getConnection(self, server, port):
-        if not server:
-            server = self.server
-        if not port:
-            port = self.port
+    def getConnection(self, server, port, dbname, dbuser=None, dbpass=None):
+        if not server:    server = self.server
+        if not port:      port   = self.port
+        if not dbname:    dbname = self.dbname
+        if not dbuser:    dbuser = self.dbuser
+        if not dbpass:    dbpass = self.dbpass
+            
         e = threading.enumerate()
         cth = threading.current_thread()
         print 'mvpool', cth, server, port, len(self.connPool)
@@ -52,7 +57,7 @@ class MetricValuePool(object):
         conn = None
         try:
             print '===trying'
-            conn = MetricValue(mongo_server=server, mongo_port=port, simpleConn=True)
+            conn = MetricValue(mongo_server=server, mongo_port=port, dbname=dbname, dbuser=dbuser, dbpass=dbpass, simpleConn=True)
             print '===try', conn
             self.connPool[conn] = {
                                     'th': cth,

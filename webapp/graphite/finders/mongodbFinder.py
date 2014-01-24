@@ -18,10 +18,9 @@ import unittest
 from graphite.logger import log
 from graphite.node import BranchNode, LeafNode
 from graphite.util import find_escaped_pattern_fields
-from graphite.readers import MockReader
-from graphite.readers import MemcacheMongoReader  
+from graphite.readers.mongodbReader import MongodbReader
+from graphite.backends.mongodb.metricValuePool import MetricValuePool
 from django.conf import settings
-from graphite.readers.metricValuePool import MetricValuePool
 
 CUSTOMLOGFILE="/opt/graphite/storage/log/webapp/customFinder.log"
 
@@ -29,22 +28,21 @@ CUSTOMLOGFILE="/opt/graphite/storage/log/webapp/customFinder.log"
 #TODO : add dbname, authuser, authpass to MVPool init call.
 
 
-class MongoFinder(object):
+class MongodbFinder(object):
 
-    mvPool          = MetricValuePool(settings.MONGO_SERVER, settings.MONGO_PORT)
+    mvPool          = MetricValuePool(settings.MONGO_SERVER, settings.MONGO_PORT, settings.MONGO_DBNAME, settings.MONGO_DBUSER, settings.MONGO_DBPASS)
     
     def __init__(self):
-        self.dbname         = settings.MONGO_DBNAME
         self.mongoServer    = settings.MONGO_SERVER
         self.mongoPort      = settings.MONGO_PORT
+        self.dbname         = settings.MONGO_DBNAME
+        self.dbuser         = settings.MONGO_DBUSER
+        self.dbpass         = settings.MONGO_DBPASS
         self.mvObj          = None
 
     def __del__(self):
-        if self.mcDataStore: 
-            self.mvPool.releaseConnection(self.mvDataStore)
-
-    def getMongoFinder(self):
-        return MongoFinder(self.dbname, self.mongoServer, self.mongoPort)
+        if self.mvPool and self.mvObj: 
+            self.mvPool.releaseConnection(self.mvObj)
 
     def getLeafNode(self, mname, reader, avoidIntervals=False):
         ln = LeafNode(mname, reader, avoidIntervals=avoidIntervals)
@@ -55,10 +53,9 @@ class MongoFinder(object):
         return bn
 
     def verifyHaveMvObj(self):
-        return
         if not self.mvObj:
             try:
-                self.mvObj = self.mvPool.getConnection(self.mongoServer, self.mongoPort)
+                self.mvObj = self.mvPool.getConnection(self.mongoServer, self.mongoPort, self.dbname, self.dbuser, self.dbpass)
             except:
                 log.info("Could not get mvObj, tb: %s" % (traceback.format_exc()))
                 self.mvObj = None
@@ -68,6 +65,7 @@ class MongoFinder(object):
         ''' query is an object of type FindQuery from storage.py '''
         try:
             if not self.verifyHaveMvObj():
+                log.info("getMongoObjects(): ERROR: NO verified MV object.")
                 return []
             mtObjects = self.mvObj.metricType.find_nodes(query.pattern)
             if 0:
@@ -89,25 +87,21 @@ class MongoFinder(object):
     def find_nodes(self, query):
         origPattern = query.pattern
         fqdnPattern = query.pattern
-        if not query.pattern.startswith('ch3.'):
-            fqdnPattern = 'ch3.' + query.pattern
-            query.pattern = fqdnPattern
-        result = self.mcDataStore.getGlobData(query.pattern)
-        tupes     = []
-        storeTime = None
-        if result:
-            tupes       = result['nodelist']
-            storeTime   = result['timestamp']
-        if not tupes:
-            return []
-        log.info("finders.MemcacheFinder.find_nodes(%s) yielded %d tuples." % (query, len(tupes)))
+        if query.pattern.startswith('graphite.'):
+            query.pattern = query.pattern[9:]
+        log.info("finders.MongodbFinder.find_nodes() query: %s" % (query))
+        #if not query.pattern.startswith('ch3.'):
+        #    fqdnPattern = 'ch3.' + query.pattern
+        #    query.pattern = fqdnPattern
         nodes = []
+        mongoObjects = self.getMongoObjects(query)
+        log.info("finders.MongodbFinder.find_nodes() query: %s, mongoDbObjects: %s" % (query, mongoObjects))
         try:
-            for mname, nodeType in tupes:
+            for mname, nodeType in mongoObjects:
                 if not mname.startswith('ch3.'):
                     mname = 'ch3.' + mname
                 if nodeType == 'L':
-                    reader  = MemcacheMongoReader(self.mvObj, None, mname)
+                    reader  = MongodbReader(self.mvObj, None, mname)
                     nodes.append(self.getLeafNode(mname, reader, avoidIntervals=True))
                 elif nodeType == 'B':
                     nodes.append(BranchNode(mname))
@@ -116,10 +110,5 @@ class MongoFinder(object):
         except:
             tb = traceback.format_exc()
             log.info("finders.MemcacheFinder.find_nodes(%s) EXCEPTION: %s, tupes: %s." % (query, tb, tupes))
-        if 0 or hadCacheMiss:
-            log.info("finders.MemcacheFinder.find_nodes(%s) saving data! %d nodes." % (query.pattern, len(nodes)))
-            if 0:
-                log.info("finders.MemcacheFinder.find_nodes(%s) nodes to save: %s" % (query.pattern, nodes))  
-            self.storeMongoInMemcache(query.pattern, nodes)
         return nodes
                                   

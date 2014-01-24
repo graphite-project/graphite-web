@@ -268,6 +268,7 @@ class MetricType(object):
         for doc in res:
             metricname = doc['metricname']
             self.add_cache(metricname, doc)
+        self.logger.warning("metricType.getRootDocs(): returning %s" % (res))
         return res
 
     def isMtobjLeafNode(self, mtobj):
@@ -349,9 +350,10 @@ class MetricType(object):
             # yes, but only kept for 1 minute.
             return cacheData
         first, star, last = self.splitOnStars(qp)
-        # self.logger.debug("qp: %s, fsl: f=%s, s=%s, l=%s" % (qp, first, star, last))
+        self.logger.warning("metricType.find_mnames(): pattern: %s, first=%s, star=%s, last=%s" % (qp, first, star, last))
         if not first:
             # starts with a wildcard, get root docs.
+            self.logger.info("metricType.find_mnames(): getting root docs.")
             rdocs = self.getRootDocs()
             return [x.get('metricname', None) for x in rdocs if x is not None]
         realMt = self.getByName(first, saveNew=False)
@@ -422,7 +424,6 @@ class MetricType(object):
 
     def find_nodes(self, queryPattern):
         # return dict of { metricname: 'blah', nodetype: 'branch'|'leaf' }
-        
         if not queryPattern:
             return []
         # 4 basic cases: 1: top level, 2: a.b.* navigating tree, 3: a.b.c exact, 4: everything else.
