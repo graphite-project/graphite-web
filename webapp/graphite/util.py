@@ -74,7 +74,7 @@ def is_local_interface(host):
 
   try:
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.connect( (host, 0) )
+    sock.connect( (host, 4242) )
     local_ip = sock.getsockname()[0]
     sock.close()
   except:
