@@ -1,0 +1,57 @@
+#!/bin/bash
+#        file: recon-splitter
+#   chkconfig: 2345 99 99
+# description: multi-processing program for the Recon monitoring system that splits large records into many small ones.
+
+USER=esm
+ME=$(id -nu)
+[ $ME != $USER ] && SUDO="sudo -u $USER"
+
+start() 
+{
+    ulimit -n 16000
+    cd /opt/recon/dcm/scripts
+    #  note, redirection causes problems w/ permissions (sudo only applies to first arg:
+    #$SUDO nohup ./recon-splitter.py -p 10 -b 10 &> /opt/recon/dcm/logs/recon-splitter.log  &
+    # instead, do pipe:
+    echo 'nohup ./recon-splitter.py -p 10 -b 300 &> /opt/recon/dcm/logs/recon-splitter.log &' | $SUDO bash
+    sleep 2
+    status
+}
+
+stop()
+{
+    ps axw|grep recon-splitter.py|grep -v grep|while read pid rest; do
+       kill $pid
+       kill -9 $pid
+    done
+    sleep 2
+    status
+}
+
+status()
+{
+    n=`ps awx|grep recon-splitter.py|grep -v grep|wc -l`
+    echo $n splitter processes running
+}
+
+restart()
+{
+    stop
+    start
+}
+
+usage()
+{
+    echo "Usage: recon-splitter start|stop|status|restart"
+    exit 
+}
+
+case "$1" in
+    start) start ;;
+    stop) stop ;;
+    status) status ;;
+    restart) restart ;;   
+    reload) reload ;;
+    *) usage ;;
+esac
