@@ -162,7 +162,7 @@ class RemoteReader(object):
     # Despite our use of thread synchronization primitives, the common
     # case is for synchronizing asynchronous fetch operations within
     # a single thread.
-    (request_lock, wait_lock, completion_event) = self.get_request_locks(url)
+    (request_lock, wait_lock, connection_event, completion_event) = self.get_request_locks(url)
 
     if request_lock.acquire(False): # we only send the request the first time we're called
       try:
@@ -170,6 +170,7 @@ class RemoteReader(object):
         connection = HTTPConnectionWithTimeout(self.store.host)
         connection.timeout = settings.REMOTE_FETCH_TIMEOUT
         connection.request('GET', urlpath)
+        connection_event.set()
       except:
         completion_event.set()
         self.store.fail()
@@ -179,6 +180,7 @@ class RemoteReader(object):
     def wait_for_results():
       if wait_lock.acquire(False): # the FetchInProgress that gets waited on waits for the actual completion
         try:
+          connection_event.wait(settings.REMOTE_FETCH_TIMEOUT)
           response = connection.getresponse()
           if response.status != 200:
             raise Exception("Error response %d %s from %s" % (response.status, response.reason, url))
@@ -232,7 +234,7 @@ class RemoteReader(object):
     self.cache_lock.acquire()
     try:
       if url not in self.request_locks:
-        self.request_locks[url] = (Lock(), Lock(), Event())
+        self.request_locks[url] = (Lock(), Lock(), Event(), Event())
         self.request_times[url] = time.time()
       return self.request_locks[url]
     finally:
