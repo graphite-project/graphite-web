@@ -15,9 +15,9 @@ You may obtain a copy of the License at
 from django.conf.urls import *
 
 urlpatterns = patterns('graphite.browser.views',
-  ('^header/?$', 'header'),
-  ('^search/?$', 'search'),
-  ('^mygraph/?$', 'myGraphLookup'),
-  ('^usergraph/?$', 'userGraphLookup'),
-  ('^$', 'browser'),
+  url('^header/?$', 'header', name="browser.header"),
+  url('^search/?$', 'search', name="browser.search"),
+  url('^mygraph/?$', 'myGraphLookup', name="browser.myGraphLookup"),
+  url('^usergraph/?$', 'userGraphLookup', name="browser.userGraphLookup"),
+  url('^$', 'browser', name="browser"),
 )

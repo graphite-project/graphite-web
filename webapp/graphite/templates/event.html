@@ -1,7 +1,9 @@
+{% load url from future %}
+
 <html>
   <head>
     <title>{{event.what}}</title>
-    <link rel="stylesheet" type="text/css" href="/content/css/table.css" />
+    <link rel="stylesheet" type="text/css" href="{% url 'content' 'css/table.css' %}" />
     <style type="text/css">
     body {
         font-family: sans-serif;

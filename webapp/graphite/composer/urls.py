@@ -15,7 +15,7 @@ limitations under the License."""
 from django.conf.urls import *
 
 urlpatterns = patterns('graphite.composer.views',
-  ('send_email','send_email'),
-  ('mygraph', 'mygraph'),
-  ('', 'composer'),
+  url('send_email','send_email', name="composer.send_email"),
+  url('mygraph', 'mygraph', name="composer.mygraph"),
+  url('', 'composer', name="composer"),
 )

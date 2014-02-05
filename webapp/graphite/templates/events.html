@@ -1,7 +1,9 @@
+{% load url from future %}
+
 <html>
   <head>
     <title>Events</title>
-    <link rel="stylesheet" type="text/css" href="../content/css/table.css" />
+    <link rel="stylesheet" type="text/css" href="{% url 'content' 'css/table.css' %}" />
     <style type="text/css">
     body {
         font-family: sans-serif;
@@ -25,13 +27,13 @@
                   {% for event in events %}
                       <tr>
                           <td>{{event.when|date:"H:i:s D d M Y" }}</td>
-                          <td><a href="/events/{{event.id}}/">{{event.what}}</a></td>
+                          <td><a href="{% url 'events' event.id %}">{{event.what}}</a></td>
                           <td>{{event.tags}}</td>
                       </tr>
                   {% endfor %}
               {% else %}
-                <br/>No events. Add events using 
-                <a href="/admin/events/event/">the admin interface</a> or by posting
+                <br/>No events. Add events using
+                <a href="{% url 'admin:index' %}events/event/">the admin inteface</a> or by posting
                 (eg, curl -X POST http://localhost:8000{{slash}}events/ -d
                 '{"what": "Something Interesting", "tags" : "tag1 "}')
               {% endif %}

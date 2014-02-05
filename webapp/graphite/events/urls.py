@@ -15,7 +15,7 @@ You may obtain a copy of the License at
 from django.conf.urls import *
 
 urlpatterns = patterns('graphite.events.views',
-  ('^get_data?$', 'get_data'),
-  (r'(?P<event_id>\d+)/$', 'detail'),
-  ('^$', 'view_events'),
+  url('^get_data?$', 'get_data', name="events.get_data"),
+  url(r'(?P<event_id>\d+)/$', 'detail', name="events.detail"),
+  url('^$', 'view_events', name="events"),
 )

@@ -13,19 +13,19 @@ See the License for the specific language governing permissions and
 limitations under the License. -->
 
 {% autoescape off %}
+{% load url from future %}
 
 <html>
   <head>
     <title>Graphite Browser</title>
   </head>
         
-
 <frameset rows="60,*" frameborder="1" border="1">
-  <frame src="/browser/header/" name="Header" id='header' scrolling="no" noresize="true" />
+  <frame src="{% url 'browser.header' %}" name="Header" id='header' scrolling="no" noresize="true" />
   {% if target %}
-    <frame src="/composer/?showTarget={{target}}&{{queryString}}" name="content" id="composerFrame"/>
+    <frame src="{% url 'composer' %}?showTarget={{target}}&{{queryString}}" name="content" id="composerFrame"/>
   {% else %}
-    <frame src="/composer/?{{queryString}}" name="content" id="composerFrame"/>
+    <frame src="{% url 'composer' %}?{{queryString}}" name="content" id="composerFrame"/>
   {% endif %}
   </frameset>
 </html>

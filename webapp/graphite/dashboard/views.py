@@ -10,6 +10,7 @@ from django.http import HttpResponse, QueryDict
 from django.conf import settings
 from django.contrib.auth import login, authenticate, logout
 from graphite.util import json, getProfile
+from django.core.urlresolvers import get_script_prefix
 from graphite.dashboard.models import Dashboard
 from graphite.render.views import renderView
 from send_graph import send_graph_email
@@ -136,7 +137,8 @@ def dashboard(request, name=None):
     'dashboard_conf_missing' : dashboard_conf_missing,
     'userName': '',
     'permissions': json.dumps(getPermissions(request.user)),
-    'permissionsUnauthenticated': json.dumps(getPermissions(None))
+    'permissionsUnauthenticated': json.dumps(getPermissions(None)),
+    'slash' : get_script_prefix(),
   }
   user = request.user
   if user:
