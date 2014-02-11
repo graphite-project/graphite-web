@@ -1,7 +1,7 @@
 import datetime
 import time
 
-from django.conf import settings
+from django.utils.timezone import get_current_timezone
 from django.core.urlresolvers import get_script_prefix
 from django.http import HttpResponse
 from django.shortcuts import render_to_response, get_object_or_404
@@ -75,7 +75,10 @@ def get_data(request):
 def fetch(request):
     #XXX we need to move to USE_TZ=True to get rid of naive-time conversions
     def make_naive(dt):
-      tz = timezone(request.GET.get('tz', settings.TIME_ZONE))
+      if 'tz' in request.GET:
+        tz = timezone(request.GET['tz'])
+      else:
+        tz = get_current_timezone()
       local_dt = dt.astimezone(tz)
       if hasattr(local_dt, 'normalize'):
         local_dt = local_dt.normalize()
