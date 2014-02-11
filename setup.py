@@ -2,6 +2,7 @@
 
 import os
 from glob import glob
+from collections import defaultdict
 
 if os.environ.get('USE_SETUPTOOLS'):
   from setuptools import setup
@@ -17,17 +18,12 @@ storage_dirs = []
 for subdir in ('whisper', 'ceres', 'rrd', 'log', 'log/webapp'):
   storage_dirs.append( ('storage/%s' % subdir, []) )
 
-webapp_content = {}
+webapp_content = defaultdict(list)
 
 for root, dirs, files in os.walk('webapp/content'):
   for filename in files:
     filepath = os.path.join(root, filename)
-
-    if root not in webapp_content:
-      webapp_content[root] = []
-
     webapp_content[root].append(filepath)
-
 
 conf_files = [ ('conf', glob('conf/*.example')) ]
 examples = [ ('examples', glob('examples/example-*')) ]
