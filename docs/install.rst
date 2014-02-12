@@ -18,7 +18,7 @@ Basic Graphite requirements:
 * `zope-interface`_ (often included in Twisted package dependency)
 * `fontconfig`_ and at least one font package (a system package usually)
 * A WSGI server and web server. Popular choices are:
-  - `Apache`_ with `mod_wsgi`_ and `mod_python`_
+  - `Apache`_ with `mod_wsgi`_
   - `gunicorn`_ with `nginx`_
   - `uWSGI`_ with `nginx`_
 
@@ -159,7 +159,6 @@ Post-Install Tasks
 .. _fontconfig: http://www.freedesktop.org/wiki/Software/fontconfig/
 .. _gunicorn: http://gunicorn.org/
 .. _memcached: http://memcached.org/
-.. _mod_python: http://www.modpython.org/
 .. _mod_wsgi: http://code.google.com/p/modwsgi/
 .. _nginx: http://nginx.org/
 .. _pip: http://www.pip-installer.org/
