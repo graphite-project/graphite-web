@@ -2338,6 +2338,35 @@ def transformNull(requestContext, seriesList, default=0):
     del series[:len(values)]
   return seriesList
 
+def isNonNull(requestContext, seriesList):
+  """
+  Takes a metric or wild card seriesList and counts up how many
+  non-null values are specified. This is useful for understanding
+  which metrics have data at a given point in time (ie, to count
+  which servers are alive).
+
+  Example:
+
+  .. code-block:: none
+
+    &target=isNonNull(webapp.pages.*.views)
+
+  Returns a seriesList where 1 is specified for non-null values, and
+  0 is specified for null values.
+  """
+
+  def transform(v):
+    if v is None: return 0
+    else: return 1
+
+  for series in seriesList:
+    series.name = "isNonNull(%s)" % (series.name)
+    series.pathExpression = series.name
+    values = [transform(v) for v in series]
+    series.extend(values)
+    del series[:len(values)]
+  return seriesList
+
 def identity(requestContext, name):
   """
   Identity function:
@@ -2390,6 +2419,78 @@ def group(requestContext, *seriesLists):
     seriesGroup.extend(s)
 
   return seriesGroup
+
+def mapSeries(requestContext, seriesList, mapNode):
+  """
+  Takes a seriesList and maps it to a list of sub-seriesList. Each sub-seriesList has the
+  given mapNode in common.
+
+  Example:
+
+  .. code-block:: none
+    map(servers.*.cpu.*,1) =>
+      [
+        servers.server1.cpu.*,
+        servers.server2.cpu.*,
+        ...
+        servers.serverN.cpu.*
+      ]
+  """
+  metaSeries = {}
+  keys = []
+  for series in seriesList:
+    key = series.name.split(".")[mapNode]
+    if key not in metaSeries:
+      metaSeries[key] = [series]
+      keys.append(key)
+    else:
+      metaSeries[key].append(series)
+  return [ metaSeries[key] for key in keys ]
+
+def reduceSeries(requestContext, seriesLists, reduceFunction, reduceNode, *reduceMatchers):
+  """
+  Takes a list of seriesLists and reduces it to a list of series by means of the reduceFunction.
+
+  Reduction is performed by matching the reduceNode in each series against the list of
+  reduceMatchers. The each series is then passed to the reduceFunction as arguments in the order
+  given by reduceMatchers. The reduceFunction should yield a single series.
+
+  Example:
+
+  .. code-block:: none
+    reduce(map(servers.*.disk.*,1),3,"asPercent","bytes_used","total_bytes") =>
+
+        asPercent(servers.server1.disk.bytes_used,servers.server1.disk.total_bytes),
+        asPercent(servers.server2.disk.bytes_used,servers.server2.disk.total_bytes),
+        ...
+        asPercent(servers.serverN.disk.bytes_used,servers.serverN.disk.total_bytes)
+
+  The resulting list of series are aliased so that they can easily be nested in other functions.
+  In the above example, the resulting series names would become:
+
+  .. code-block:: none
+    servers.server1.disk.reduce.asPercent,
+    servers.server2.disk.reduce.asPercent,
+    ...
+    servers.serverN.disk.reduce.asPercent
+  """
+  metaSeries = {}
+  keys = []
+  for seriesList in seriesLists:
+    for series in seriesList:
+      nodes = series.name.split('.')
+      node = nodes[reduceNode]
+      reduceSeriesName = '.'.join(nodes[0:reduceNode]) + '.reduce.' + reduceFunction
+      if node in reduceMatchers:
+        if reduceSeriesName not in metaSeries:
+          metaSeries[reduceSeriesName] = [None] * len(reduceMatchers)
+          keys.append(reduceSeriesName)
+        i = reduceMatchers.index(node)
+        metaSeries[reduceSeriesName][i] = series
+  for key in keys:
+    metaSeries[key] = SeriesFunctions[reduceFunction](requestContext,metaSeries[key])[0]
+    metaSeries[key].name = key
+  return [ metaSeries[key] for key in keys ]
 
 def groupByNode(requestContext, seriesList, nodeNum, callback):
   """
@@ -2956,12 +3057,15 @@ SeriesFunctions = {
   'dashed' : dashed,
   'substr' : substr,
   'group' : group,
+  'map': mapSeries,
+  'reduce': reduceSeries,
   'groupByNode' : groupByNode,
   'constantLine' : constantLine,
   'stacked' : stacked,
   'areaBetween' : areaBetween,
   'threshold' : threshold,
   'transformNull' : transformNull,
+  'isNonNull' : isNonNull,
   'identity': identity,
   'aggregateLine' : aggregateLine,
 

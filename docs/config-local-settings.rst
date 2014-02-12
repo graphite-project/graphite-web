@@ -275,8 +275,9 @@ See the
 for full documentation of the DATABASE setting.
 
 .. note ::
-   Remember, setting up a new database requires running ``manage.py syncdb`` to create the initial
-   schema
+   Remember, setting up a new database requires running
+   ``PYTHONPATH=$GRAPHITE_ROOT/webapp django-admin.py syncdb --settings=graphite.settings``
+   to create the initial schema.
 
 Cluster Configuration
 ---------------------

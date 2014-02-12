@@ -9,8 +9,8 @@ Graphite Documentation
    install
    carbon-daemons
    config-carbon
-   admin-carbon
    feeding-carbon
+   admin-carbon
    config-local-settings
    config-webapp
    admin-webapp
@@ -23,6 +23,7 @@ Graphite Documentation
    terminology
    tools
    development
+   client-apis
    who-is-using
    releases
 
