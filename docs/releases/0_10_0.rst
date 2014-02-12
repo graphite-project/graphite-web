@@ -35,6 +35,11 @@ Changes
   has been rewritten in Python. ``build-index.sh`` is still available but is
   just an alias to ``build-index``.
 
+* The ``CONTENT_DIR`` setting has been replaced with ``STATIC_ROOT`` and now
+  allows to easily serve non-graphite static files such as Django admin's. See
+  the :doc:`configuration docs <../config-local-settings>` for usage
+  instructions.
+
 New functions
 -------------
 
