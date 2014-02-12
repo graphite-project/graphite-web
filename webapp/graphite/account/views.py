@@ -13,11 +13,14 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 from django.shortcuts import render_to_response
+from django.template import RequestContext
 from django.http import HttpResponseRedirect
 from django.contrib.auth import authenticate, login, logout
 from graphite.util import getProfile
 from graphite.logger import log
 from graphite.account.models import Profile
+
+
 
 
 def loginView(request):
@@ -30,14 +33,20 @@ def loginView(request):
   if username and password:
     user = authenticate(username=username,password=password)
     if user is None:
-      return render_to_response("login.html",{'authenticationFailed' : True, 'nextPage' : nextPage})
+      return render_to_response("login.html", RequestContext(
+        request, {'authenticationFailed' : True, 'nextPage' : nextPage}
+      ))
     elif not user.is_active:
-      return render_to_response("login.html",{'accountDisabled' : True, 'nextPage' : nextPage})
+      return render_to_response("login.html", RequestContext(
+        request, {'accountDisabled' : True, 'nextPage' : nextPage}
+      ))
     else:
       login(request,user)
       return HttpResponseRedirect(nextPage)
   else:
-    return render_to_response("login.html",{'nextPage' : nextPage})
+    return render_to_response("login.html",RequestContext(
+      request, {'nextPage' : nextPage}
+    ))
 
 def logoutView(request):
   nextPage = request.GET.get('nextPage','/')
@@ -47,7 +56,7 @@ def logoutView(request):
 def editProfile(request):
   if not request.user.is_authenticated():
     return HttpResponseRedirect('../..')
-  context = { 'profile' : getProfile(request) }
+  context = RequestContext(request, { 'profile' : getProfile(request) })
   return render_to_response("editProfile.html",context)
 
 def updateProfile(request):

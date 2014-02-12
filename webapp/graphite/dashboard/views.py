@@ -6,6 +6,7 @@ from os.path import getmtime, join, exists
 from urllib import urlencode
 from ConfigParser import ConfigParser
 from django.shortcuts import render_to_response
+from django.template import RequestContext
 from django.http import HttpResponse, QueryDict
 from django.conf import settings
 from django.contrib.auth import login, authenticate, logout
@@ -125,7 +126,7 @@ def dashboard(request, name=None):
     initialError = "Invalid theme '%s'" % theme
     theme = config.ui_config['theme']
 
-  context = {
+  context = RequestContext(request, {
     'schemes_json' : json.dumps(config.schemes),
     'ui_config_json' : json.dumps(config.ui_config),
     'jsdebug' : debug or settings.JAVASCRIPT_DEBUG,
@@ -137,7 +138,7 @@ def dashboard(request, name=None):
     'userName': '',
     'permissions': json.dumps(getPermissions(request.user)),
     'permissionsUnauthenticated': json.dumps(getPermissions(None))
-  }
+  })
   user = request.user
   if user:
       context['userName'] = user.username
@@ -236,7 +237,7 @@ def find(request):
 
 
 def help(request):
-  context = {}
+  context = RequestContext(request, {})
   return render_to_response("dashboardHelp.html", context)
 
 def email(request):

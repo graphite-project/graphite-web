@@ -146,8 +146,14 @@ function fitImageToWindow(win) {
 
 /* Toolbar stuff */
 function createToolbarButton(tip, icon, handler) {
+  content_url = '../content/';
+  if(typeof(GraphiteConfig) != 'undefined'){
+    if(GraphiteConfig.STATIC_CONTENT_PATH){
+        content_url = GraphiteConfig.STATIC_CONTENT_PATH;
+    }
+  }
   return new Ext.Toolbar.Button({
-    style: "padding-left:10pt; background:transparent url(../content/img/" + icon + ") no-repeat scroll 0% 50%",
+    style: "padding-left:10pt; background:transparent url('" + content_url + "img/" + icon + "') no-repeat scroll 0% 50%",
     handler: handler,
     handleMouseEvents: false,
     text: "&nbsp; &nbsp;",
@@ -430,7 +436,7 @@ function deleteMyGraph() {
       //Send the request
       Ext.Ajax.request({
         method: 'GET',
-        url: '../composer/mygraph/',
+        url: GraphiteConfit.COMPOSE_MYGRAPH_PATH,
         params: {action: 'delete', graphName: text},
         callback: function (options, success, response) {
           var message = success ? "Graph deleted successfully" : "There was an error performing the operation.";
@@ -983,7 +989,7 @@ var GraphDataWindow = {
 
   addWlSelected: function (item, e) {
     Ext.Ajax.request({
-      url: "/whitelist/add",
+      url: GraphiteConfig.WHITE_LISTADD_PATH,
       method: "POST",
       success: function () { Ext.Msg.alert("Result", "Successfully added metrics to whitelist."); },
       failure: function () { Ext.Msg.alert("Result", "Failed to add metrics to whitelist.");   },
@@ -993,7 +999,7 @@ var GraphDataWindow = {
 
   removeWlSelected: function (item, e) {
     Ext.Ajax.request({
-      url: "/whitelist/remove",
+      url: GraphiteConfig.WHITE_LISTREMOVE_PATH,
       method: "POST",
       success: function () { Ext.Msg.alert("Result", "Successfully removed metrics from whitelist."); },
       failure: function () { Ext.Msg.alert("Result", "Failed to remove metrics from whitelist.");   },

@@ -61,6 +61,12 @@ MIDDLEWARE_CLASSES = (
   'django.contrib.messages.middleware.MessageMiddleware',
 )
 
+TEMPLATE_CONTEXT_PROCESSORS = (
+    "django.contrib.auth.context_processors.auth",
+    "django.contrib.messages.context_processors.messages",
+    "graphite.context.graphite_content",
+)
+
 ROOT_URLCONF = 'graphite.urls'
 
 INSTALLED_APPS = (

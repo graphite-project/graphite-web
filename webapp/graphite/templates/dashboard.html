@@ -1,8 +1,8 @@
 <html>
   <head>
     <title>Graphite Dashboard</title>
-    <link rel="stylesheet" type="text/css" href="/content/js/ext/resources/css/ext-all.css"/>
-    <link rel="stylesheet" type="text/css" href="/content/css/dashboard.css"/>
+    <link rel="stylesheet" type="text/css" href="{{static_content_path}}js/ext/resources/css/ext-all.css"/>
+    <link rel="stylesheet" type="text/css" href="{{static_content_path}}css/dashboard.css"/>
 
     <script type="text/javascript">
     // Be overly cautious to prevent an unlikely XSS (See the below link rule 3.1):
@@ -14,16 +14,16 @@
     var FINDER_QUERY_DELAY = 100;
     var NEW_DASHBOARD_REMOVE_GRAPHS = false;
 
-    var RESIZE_ICON   = '/content/js/ext/resources/icons/fam/cog_edit.png';
-    var REMOVE_ICON   = '/content/js/ext/resources/icons/fam/cross.gif';
-    var REFRESH_ICON  = '/content/js/ext/resources/icons/fam/table_refresh.png';
-    var SHARE_ICON    = '/content/js/ext/resources/icons/fam/application_go.png';
-    var CALENDAR_ICON = '/content/js/ext/resources/images/default/shared/calendar.gif';
-    var CLOCK_ICON    = '/content/img/clock_16.png';
-    var HELP_ICON     = '/content/js/ext/resources/icons/fam/information.png';
+    var RESIZE_ICON   = '{{static_content_path}}js/ext/resources/icons/fam/cog_edit.png';
+    var REMOVE_ICON   = '{{static_content_path}}js/ext/resources/icons/fam/cross.gif';
+    var REFRESH_ICON  = '{{static_content_path}}js/ext/resources/icons/fam/table_refresh.png';
+    var SHARE_ICON    = '{{static_content_path}}js/ext/resources/icons/fam/application_go.png';
+    var CALENDAR_ICON = '{{static_content_path}}js/ext/resources/images/default/shared/calendar.gif';
+    var CLOCK_ICON    = '{{static_content_path}}img/clock_16.png';
+    var HELP_ICON     = '{{static_content_path}}js/ext/resources/icons/fam/information.png';
 
     {% if initialState %}
-    var initialState = "{{ initialState|escapejs }}";
+    var initialState = JSON.parse("{{ initialState|escapejs }}");
     {% else %}
     var initialState = null;
     {% endif %}
@@ -48,21 +48,49 @@
     {% endif %}
     
     </script>
+    
+    <script type="text/javascript" >
+        //the big config array
+        var GraphiteConfig = {
+            STATIC_CONTENT_PATH : "{{static_content_path}}", // /content/
+            METRIC_FIND_PATH : "{% url 'graphite.metrics.views.find_view' %}", // /metric/find/
+            METRIC_EXPAND_PATH: "{% url 'graphite.metrics.views.expand_view' %}",  // '/metrics/expand/',
+
+            MY_GRAPH_PATH :  "{% url 'graphite.browser.views.myGraphLookup' %}", // /browser/mygraph/
+            USER_GRAPH_PATH : "{% url 'graphite.browser.views.userGraphLookup' %}", // /browser/usergraph/
+            BROWSER_SEARCH_PATH : "{% url 'graphite.browser.views.search' %}", // /browser/search/
+            CLI_AUTOCOMPLETE_PATH : "{% url 'graphite.cli.views.autocomplete' %}", // /cli/autocomplete/
+            RENDER_BASE_PATH : "{% url 'graphite.render.views.renderView' %}", // /render/
+            COMPOSE_MYGRAPH_PATH: "{% url 'graphite.composer.views.mygraph' %}" ,// '../composer/mygraph/'
+            WHITE_LISTADD_PATH: "{% url 'graphite.composer.views.mygraph' %}", // '/whitelist/add'
+            WHITE_LISTREMOVE_PATH: "{% url 'graphite.composer.views.mygraph' %}", // '/whitelist/remove'
+            DASHBOARD_PATH: "{% url 'graphite.dashboard.views.dashboard' %}", // '/dashboard',
+            DASHBOARD_HELP_PATH : "{% url 'graphite.dashboard.views.help' %}", // /dashboard/help/
+            DASHBOARD_CREATE_TMP_PATH : "{% url 'graphite.dashboard.views.create_temporary' %}", // "/dashboard/create-temporary/"
+            DASHBOARD_EMAIL_PATH : "{% url 'graphite.dashboard.views.email' %}", // "/dashboard/email"
+            DASHBOARD_FIND_PATH : "{% url 'graphite.dashboard.views.find' %}", // "/dashboard/find",
+            DASHBOARD_SAVE_PATH : "{% url 'graphite.dashboard.views.save' name=' ' %}".replace("%20", ""), // "/dashboard/save/",
+            DASHBOARD_LOAD_PATH : "{% url 'graphite.dashboard.views.load' name=' ' %}".replace("%20", ""), // "/dashboard/load/"
+            DASHBOARD_DELETE_PATH : "{% url 'graphite.dashboard.views.delete' name=' ' %}".replace("%20", ""), // "/dashboard/delete/"
+            DASHBOARD_LOGIN_PATH : "{% url 'graphite.dashboard.views.user_login' %}", // "/dashboard/login/"
+            DASHBOARD_LOGOUT_PATH : "{% url 'graphite.dashboard.views.user_logout' %}" // "/dashboard/logout/"
+        };
+    </script>
 
     <!-- Theme overrides -->
-    <link rel="stylesheet" type="text/css" href="/content/css/dashboard-{{ theme }}.css" />
+    <link rel="stylesheet" type="text/css" href="{{static_content_path}}css/dashboard-{{ theme }}.css" />
 
-    <script type="text/javascript" src="/content/js/ext/adapter/ext/ext-base{% if jsdebug %}-debug{% endif %}.js"></script>
-    <script type="text/javascript" src="/content/js/ext/ext-all{% if jsdebug %}-debug{% endif %}.js"></script>
-    <script type="text/javascript" src="/content/js/ext/ux/DataViewTransition.js"></script>
-    <script type="text/javascript" src="/content/js/composer_widgets.js"></script>
-    <script type="text/javascript" src="/content/js/dashboard.js"></script>
-    <script type="text/javascript" src="/content/js/ace/ace.js"></script>
-    <script type="text/javascript" src="/content/js/ace/mode-json.js"></script>
-    <script type="text/javascript" src="/content/js/ace/theme-textmate.js"></script>
+    <script type="text/javascript" src="{{static_content_path}}js/ext/adapter/ext/ext-base{% if jsdebug %}-debug{% endif %}.js"></script>
+    <script type="text/javascript" src="{{static_content_path}}js/ext/ext-all{% if jsdebug %}-debug{% endif %}.js"></script>
+    <script type="text/javascript" src="{{static_content_path}}js/ext/ux/DataViewTransition.js"></script>
+    <script type="text/javascript" src="{{static_content_path}}js/composer_widgets.js"></script>
+    <script type="text/javascript" src="{{static_content_path}}js/dashboard.js"></script>
+    <script type="text/javascript" src="{{static_content_path}}js/ace/ace.js"></script>
+    <script type="text/javascript" src="{{static_content_path}}js/ace/mode-json.js"></script>
+    <script type="text/javascript" src="{{static_content_path}}js/ace/theme-textmate.js"></script>
 
     <script type="text/javascript">
-    Ext.BLANK_IMAGE_URL = '/content/js/ext/resources/images/default/s.gif';
+    Ext.BLANK_IMAGE_URL = '{{static_content_path}}js/ext/resources/images/default/s.gif';
     Ext.QuickTips.init();
     Ext.onReady(initDashboard);
     </script> 
