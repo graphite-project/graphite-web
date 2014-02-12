@@ -60,6 +60,10 @@ Evenflow
 --------
 `Evenflow`_ is a simple service for submitting sFlow datagrams to Graphite. It accepts sFlow datagrams from multiple network devices and proxies the data to a Carbon listener. Currently only Generic Interface Counters are supported. All other message types are discarded.
 
+Firefly
+-------
+`Firefly`_ is a web application aimed at powerful, flexible time series graphing for web developers.
+
 Ganglia
 -------
 `Ganglia`_ is a scalable distributed monitoring system for high-performance computing systems
@@ -120,6 +124,11 @@ Graphite-Newrelic
 Graphite-Observer
 -----------------
 `Graphite-Observer`_ is a real-time monitor dashboard for Graphite.
+
+Graphite PowerShell Functions
+-----------------
+`Graphite PowerShell Functions <https://github.com/MattHodge/Graphite-PowerShell-Functions>`_ are a group of functions that can be used to collect Windows Performance Counters and send them over to the Graphite server. The main function can be run as a Windows service, and everything is configurable via an XML file.
+
 
 
 Graphite-relay
@@ -304,6 +313,7 @@ annotated events, etc). Supports Graphite, flot, rickshaw and anthracite.
 .. _Dusk: https://github.com/obfuscurity/dusk
 .. _Esper: http://esper.codehaus.org/
 .. _Evenflow: https://github.com/github/evenflow
+.. _Firefly: https://github.com/Yelp/firefly
 .. _Ganglia: http://ganglia.info/
 .. _Gdash: https://github.com/ripienaar/gdash.git
 .. _Giraffe: http://kenhub.github.com/giraffe/
