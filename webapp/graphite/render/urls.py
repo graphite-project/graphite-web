@@ -12,10 +12,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
-from django.conf.urls import *
+from django.conf.urls import patterns, url
 
 urlpatterns = patterns('graphite.render.views',
-  ('local/?$','renderLocalView'),
-  ('~(?P<username>[^/]+)/(?P<graphName>[^/]+)/?','renderMyGraphView'),
-  ('', 'renderView'),
+  url(r'local/?$','renderLocalView'),
+  url(r'~(?P<username>[^/]+)/(?P<graphName>[^/]+)/?','renderMyGraphView'),
+  url('', 'renderView'),
 )

@@ -12,10 +12,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
-from django.conf.urls import *
+from django.conf.urls import patterns, url
 
 urlpatterns = patterns('graphite.composer.views',
-  ('send_email','send_email'),
-  ('mygraph', 'mygraph'),
-  ('', 'composer'),
+  url(r'send_email','send_email'),
+  url(r'mygraph', 'mygraph'),
+  url(r'', 'composer'),
 )

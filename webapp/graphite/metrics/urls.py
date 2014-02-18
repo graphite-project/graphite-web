@@ -12,14 +12,14 @@ You may obtain a copy of the License at
    See the License for the specific language governing permissions and
    limitations under the License."""
 
-from django.conf.urls import *
+from django.conf.urls import patterns, url
 
 urlpatterns = patterns('graphite.metrics.views',
-  ('^index\.json$', 'index_json'),
-  ('^search/?$', 'search_view'),
-  ('^find/?$', 'find_view'),
-  ('^expand/?$', 'expand_view'),
-  ('^get-metadata/?$', 'get_metadata_view'),
-  ('^set-metadata/?$', 'set_metadata_view'),
-  ('', 'find_view'),
+  url(r'^index\.json$', 'index_json'),
+  url(r'^search/?$', 'search_view'),
+  url(r'^find/?$', 'find_view'),
+  url(r'^expand/?$', 'expand_view'),
+  url(r'^get-metadata/?$', 'get_metadata_view'),
+  url(r'^set-metadata/?$', 'set_metadata_view'),
+  url('', 'find_view'),
 )
