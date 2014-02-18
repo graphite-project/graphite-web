@@ -13,12 +13,12 @@ you know which you are missing. Download and install these modules and re-run
 check-dependencies.py until it detects all the required modules.
 
 Graphite requires:
- python2.4 or greater (python 2.5 or greater is required for AMQP support)
+ python2.5 or greater
  whisper (available for download on the graphite project page)
  pycairo (with PNG backend support)
  django
  json (standard in python2.6) or simplejson
- mod_wsgi (optional, recommended) or mod_python (optional)
+ mod_wsgi or a standalone WSGI application server (gunicorn, chaussette)
  python-ldap (optional - needed for ldap-based webapp authentication)
  python-memcached (optional - needed for webapp caching, big performance boost)
  python-sqlite2 (optional - a django-supported database module is required)
@@ -73,7 +73,7 @@ Graphite currently provides example configurations for both of these modules.
 Of the two mod_wsgi is the most up to date and actively maintained so it's 
 highly recommended if you are starting afresh.
 
- Apache Configuration for Mod_wsgi (recommended)
+ Apache Configuration for Mod_wsgi
 -------------------------------------------------------------------------------
 
 If you are using mod_wsgi, Apache has to have mod_wsgi configured, 
@@ -81,15 +81,6 @@ this is usually done by including a line like the following in your
 httpd.conf:
 
 LoadModule wsgi_module    modules/mod_wsgi.so
-
- Apache Configuration for Mod_python
--------------------------------------------------------------------------------
-
-If you choose to use mod_python, Apache has to have mod_python configured, 
-this is usually done by including a line like the following in your 
-httpd.conf:
-
-LoadModule python_module    modules/mod_python.so
 
  General Apache Configuration
 -------------------------------------------------------------------------------
@@ -106,8 +97,7 @@ Include /usr/local/apache2/conf/vhosts.d/*.conf
 Then simply drop your graphite vhost conf file into the vhosts.d/ directory
 (or whatever directory your system uses) and apache is ready. You can use
 either of the example vhost confs as a starting point (See the examples 
-directory of this package and choose the correct one based on whether you 
-are using mod_wsgi or mod_python.)
+directory of this package.)
 
 The second approach is to copy the contents of your chosen graphite vhost conf file
 and insert it down at the end of your httpd.conf.
