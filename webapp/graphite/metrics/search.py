@@ -31,6 +31,13 @@ class IndexSearcher:
     return self._tree
 
   def reload(self):
+    try:
+        retval = self._reload()
+    except Exception, e:
+        log.error("Exception during IndexSearcher.reload(): %s" % (e))
+    return retval
+
+  def _reload(self):
     log.info("[IndexSearcher] reading index data from %s" % self.index_path)
     t = time.time()
     total_entries = 0
