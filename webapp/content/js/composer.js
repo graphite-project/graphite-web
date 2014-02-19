@@ -16,7 +16,7 @@ var RENDER_BASE_URL = window.location.protocol + "//" + window.location.host + w
 RENDER_BASE_URL = RENDER_BASE_URL.replace(/\/composer\/?.*$/, '/render/?');
 if(typeof(GraphiteConfig) != 'undefined'){
    if(GraphiteConfig.RENDER_BASE_PATH){
-        RENDER_BASE_URL = GraphiteConfig.RENDER_BASE_PATH;
+        RENDER_BASE_URL = GraphiteConfig.RENDER_BASE_PATH + "?";
     }
 }
 
