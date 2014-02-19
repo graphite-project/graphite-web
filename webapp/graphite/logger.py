@@ -70,6 +70,18 @@ class GraphiteLogger:
 
   def metric_access(self,msg,*args,**kwargs):
     return self.metricAccessLogger.log(30,msg,*args,**kwargs)
+ 
+  def warn(self, msg, *args, **kwargs):
+    return self.infoLogger.warn(msg,*args,**kwargs)
 
+  def warning(self, msg, *args, **kwargs):
+    return self.infoLogger.warning(msg,*args,**kwargs)
+
+  def debug(self, msg, *args, **kwargs):
+    return self.infoLogger.debug(msg,*args,**kwargs)
+
+  def error(self, msg, *args, **kwargs):
+    return self.infoLogger.error(msg,*args,**kwargs)
+    
 
 log = GraphiteLogger() # import-shared logger instance
