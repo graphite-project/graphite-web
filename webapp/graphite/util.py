@@ -144,6 +144,7 @@ if USING_CPICKLE:
       'copy_reg': set(['_reconstructor']),
       '__builtin__': set(['object']),
       'graphite.intervals': set(['Interval', 'IntervalSet']),
+      'graphite.render.datalib': set(['TimeSeries']),
       'collections': set(['deque']),
     }
 
