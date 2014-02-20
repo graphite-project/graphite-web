@@ -38,20 +38,19 @@ class LeafNode(Node):
       else:
         self.intervals = reader.get_intervals()
       self.is_leaf = True
-    except:
-      log.info("EXCEPTION: LeafNode.__init__() exception: %s" % (traceback.format_exc()))
-      return
+    except Exception, e:
+      log.exception("EXCEPTION: LeafNode.__init__() exception: %s" % (e))
+    return
 
   def fetch(self, startTime, endTime):
     retval = []
     try:
       if self.avoidIntervals:
         self.intervals = self.reader.get_intervals(startTime=startTime, endTime=endTime)
-      log.info("LeafNode.fetch(): have intervals path %s, st=%s, et=%s, intervals: %s" % (self.path, startTime, endTime, self.intervals))
+      # log.info("LeafNode.fetch(): have intervals path %s, st=%s, et=%s, intervals: %s" % (self.path, startTime, endTime, self.intervals))
       retval = self.reader.fetch(startTime, endTime)
-      self.reader.fetch(startTime, endTime)
-    except:
-      log.info("EXCEPTION:  LeafNode.fetch() exception: %s" % (traceback.format_exc()))
+    except Exception, e:
+      log.exception("EXCEPTION:  LeafNode.fetch(), path %s, exception: %s" % (self.path, e))
     return retval
 
   def __repr__(self):

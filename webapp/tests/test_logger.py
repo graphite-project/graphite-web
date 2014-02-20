@@ -4,9 +4,6 @@ import time
 from django.test import TestCase
 
 from graphite.logger import GraphiteLogger
-#from graphite.intervals import Interval, IntervalSet
-#from graphite.node import LeafNode, BranchNode
-#from graphite.storage import Store, get_finder
 
 class MockPythonLogger(object):
     
