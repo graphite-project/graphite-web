@@ -4,7 +4,8 @@ from django.conf import settings
 
 from graphite.logger import log
 from graphite.node import BranchNode, LeafNode
-from graphite.readers import WhisperReader, GzippedWhisperReader, RRDReader
+from graphite.readers.whisperReader import WhisperReader, GzippedWhisperReader
+from graphite.readers.rrdReader import RRDReader
 from graphite.util import find_escaped_pattern_fields
 
 from . import fs_to_metric, get_real_metric_path, match_entries

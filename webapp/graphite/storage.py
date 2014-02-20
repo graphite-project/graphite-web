@@ -11,8 +11,7 @@ from graphite.util import is_local_interface, is_pattern
 from graphite.remote_storage import RemoteStore
 from graphite.node import LeafNode
 from graphite.intervals import Interval, IntervalSet
-from graphite.readers import MultiReader
-
+from graphite.readers.multiReader import MultiReader
 
 def get_finder(finder_path):
   module_name, class_name = finder_path.rsplit('.', 1)

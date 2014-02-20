@@ -6,7 +6,7 @@ from glob import glob
 from ceres import CeresTree, CeresNode
 from django.conf import settings
 from graphite.node import BranchNode, LeafNode
-from graphite.readers import CeresReader
+from graphite.readers.ceresReader import CeresReader
 
 from . import get_real_metric_path
 
