@@ -2607,7 +2607,7 @@ def callbackToNode(requestContext, seriesList, nodeNum, callback, twoArgumentsFo
         sub = node[(node.find("{")+1):node.find("}")]
         for path in sub.split(","):
           real_paths.append(node.replace("{"+sub+"}",key+"."+path))
-        seriesList = sorted(seriesList, key=lambda x : real_paths.index(".".join(x.name.split(".")[0:nodeNum+1])))
+        seriesList.sort(key=lambda x : real_paths.index(".".join(x.name.split(".")[0:nodeNum+1])))
       length = len(seriesList)
       if length == 1:
         seriePatch = constantLine(requestContext, 0)
