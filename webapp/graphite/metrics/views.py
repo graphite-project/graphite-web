@@ -294,12 +294,6 @@ def pickle_nodes(nodes):
   return pickle.dumps(nodes_info, protocol=-1)
 
 
-def any(iterable): #python2.4 compatibility
-  for i in iterable:
-    if i:
-      return True
-  return False
-
 def json_response_for(request, data, mimetype='application/json', jsonp=False, **kwargs):
   accept = request.META.get('HTTP_ACCEPT', 'application/json')
   ensure_ascii = accept == 'application/json'
