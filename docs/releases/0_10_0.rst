@@ -35,6 +35,10 @@ Changes
   has been rewritten in Python. ``build-index.sh`` is still available but is
   just an alias to ``build-index``.
 
+* The events API now requires ``tags`` to be an array when creating tagged
+  events. Previous versions only accepted string attributes. Tags are also
+  serialized as arrays.
+
 New functions
 -------------
 
