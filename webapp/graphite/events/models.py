@@ -1,4 +1,3 @@
-import time
 import os
 
 from django.db import models
@@ -46,7 +45,7 @@ class Event(models.Model):
             when=self.when,
             what=self.what,
             data=self.data,
-            tags=self.tags,
+            tags=self.tags.split(),
             id=self.id,
         )
 

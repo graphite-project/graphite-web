@@ -46,14 +46,20 @@ def post_event(request):
 
         values = {}
         values["what"] = event["what"]
-        values["tags"] = event.get("tags", None)
+        tags = event.get('tags')
+        if tags:
+            if not isinstance(tags, list):
+                return HttpResponse(
+                    json.dumps({'error': '"tags" must be an array'}),
+                    status=400)
+            tags = " ".join(tags)
+            values["tags"] = tags
         values["when"] = datetime.datetime.fromtimestamp(
             event.get("when", time.time()))
         if "data" in event:
             values["data"] = event["data"]
 
-        e = models.Event(**values)
-        e.save()
+        models.Event.objects.create(**values)
 
         return HttpResponse(status=200)
     else:
