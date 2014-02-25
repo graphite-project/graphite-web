@@ -147,16 +147,20 @@
 
             var render = function () {
                 var lines = []
+                var offset = new Date().getTimezoneOffset();
                 for (i in graph_lines) {
                     for (j in graph_lines[i]) {
                         var newline = $.extend({}, graph_lines[i][j]);
                         if (metric_yaxis[i] == "two") {
                             newline['yaxis'] = 2;
                         }
+                        for (index in newline.data){
+                            newline.data[index][0]=newline.data[index][0] - offset*1000*60 // convert to local time stamp
+                        }
                         lines.push(newline);
                     }
                 }
-                var xaxismode = { mode: "time" };
+                var xaxismode = { mode: "time",timezone: "browser" };
                 var yaxismode = { };
 
                 $.extend(xaxismode, xaxisranges);
@@ -242,8 +246,8 @@
                     updateLegendTimeout = setTimeout(updateLegend, 50);
             });
 
-            function showTooltip(x, y, contents) {
-                $('<div class="g_tooltip">' + contents + '</div>').css( {
+            function showTooltip(x, y, contents,ts) {
+                $('<div class="g_tooltip">' + contents +"<br>"+ts+ '</div>').css( {
                     position: 'absolute',
                     display: 'none',
                     top: y + 5,
@@ -264,9 +268,9 @@
                         wrap.find('.g_tooltip').remove();
                         var x = item.datapoint[0].toFixed(2),
                             y = item.datapoint[1].toFixed(2);
-
+                        var ts = Date(x)
                         showTooltip(item.pageX, item.pageY,
-                                    item.series.label + " = " + y);
+                                    item.series.label + " = " + y,ts);
                     }
                 } else {
                     calc_distance = function(mark, event) {
