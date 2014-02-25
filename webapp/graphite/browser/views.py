@@ -19,10 +19,7 @@ from django.conf import settings
 from graphite.account.models import Profile
 from graphite.util import getProfile, getProfileByUsername, json
 from graphite.logger import log
-try:
-  from hashlib import md5
-except ImportError:
-  from md5 import md5
+from hashlib import md5
 
 try:
   import cPickle as pickle
