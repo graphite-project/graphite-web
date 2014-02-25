@@ -16,6 +16,7 @@ limitations under the License. -->
 <html>
   <head>
     <title>Graphite Composer</title>
+<<<<<<< HEAD
     <link rel="stylesheet" type="text/css" href="{% static "js/ext4/ext4-all.css" %}"/>
   </head>
   <body onload="init();" data-static-root="{% get_static_prefix %}" data-base-url="{% url "browser" %}"{% if queryString %} data-query-string="{{ queryString }}"{% endif %}{% if showTarget %} data-show-target="{{ showTarget }}"{% endif %}>
@@ -32,10 +33,28 @@ limitations under the License. -->
     <script type="text/javascript">
       /* A global cache of current metadata about metrics the user selects */
       Ext.define("target",{
+=======
+    <style>
+    .centerIcon {
+     min-width: 100%;
+     height: auto;
+      }
+    </style>
+    <link rel="stylesheet" type="text/css" href="/content/js/ext4/ext4-all.css"/>
+    <script type="text/javascript" src="/content/js/ext4/ext4-all.js"></script>
+    <script type="text/javascript" src="/content/js/composer_widgets_extjs4.js"></script>
+    <script type="text/javascript" src="/content/js/completer_extjs4.js"></script>
+    <script type="text/javascript" src="/content/js/composer_extjs4.js"></script>
+    <script type="text/javascript" src="/content/js/browser_extjs4.js"></script>
+    <script>
+    TargetRecord =Ext.data.Record.create;
+    Ext.define("target",{
+>>>>>>> 2ef4796c68d4d0d321ec393f4217f1d570eb4f0e
         extend:"Ext.data.Model",
         fields:[
              {name:"value",type:"string"}
         ]
+<<<<<<< HEAD
       })
       var STATIC_URL = "{% static "" %}"
       var TargetStore = Ext.create("Ext.data.ArrayStore",{
@@ -52,6 +71,27 @@ limitations under the License. -->
         function addTarget(target) {
           TargetStore.add(Ext.create("target",{value:target}));
         }
+=======
+    })
+    GraphiteConfig = {
+            showMyGraphs: {{showMyGraphs}},
+            searchEnabled: {{searchEnabled}}
+            }
+    var TargetStore = Ext.create("Ext.data.ArrayStore",{
+        fields:[{
+            name:"value",type:"string"
+        }]
+    }) 
+
+    function getTargetRecord(target) {
+        var index = indexOfTarget(target);
+        return (index == -1) ? null : TargetStore.getAt(index);
+      }
+
+      function addTarget(target) {
+        TargetStore.add(Ext.create("target",{value:target}));
+      }
+>>>>>>> 2ef4796c68d4d0d321ec393f4217f1d570eb4f0e
 
         function removeTarget(target) {
           var record = getTargetRecord(target);
@@ -65,9 +105,15 @@ limitations under the License. -->
           return TargetStore.findExact('value', target);
         }
 
+<<<<<<< HEAD
         function insertTarget(index, target) {
           TargetStore.insert(index, [Ext.create("target",{value:target}) ]);
         }
+=======
+      function insertTarget(index, target) {
+        TargetStore.insert(index, [Ext.create("target",{value:target}) ]);
+      }
+>>>>>>> 2ef4796c68d4d0d321ec393f4217f1d570eb4f0e
 
         function replaceTarget(oldTarget, newTarget) {
           var oldRecord = getTargetRecord(oldTarget);
@@ -78,6 +124,7 @@ limitations under the License. -->
             TargetStore.commitChanges();
           }
         }
+<<<<<<< HEAD
     </script>
     <style type="text/css">
     /* Hack to fix this bug http://extjs.net/forum/showthread.php?s=a570aba1bf2fc67a2287684c5d91c662&t=74230 */
@@ -104,6 +151,10 @@ limitations under the License. -->
       };
 
       function init() {
+=======
+      }
+    Ext.onReady(function() {
+>>>>>>> 2ef4796c68d4d0d321ec393f4217f1d570eb4f0e
         Ext.tip.QuickTipManager.init();
         Composer = new GraphiteComposer();
         Browser = new GraphiteBrowser();
@@ -138,7 +189,15 @@ limitations under the License. -->
           showTarget = ".Root."+showTarget          
           Browser.items.items[0].expandPath(showTarget,"text",".");
         }
+<<<<<<< HEAD
       }
 </script>
+=======
+});
+    </script>
+
+  </head>
+  <body >
+>>>>>>> 2ef4796c68d4d0d321ec393f4217f1d570eb4f0e
   </body>
 </html>
