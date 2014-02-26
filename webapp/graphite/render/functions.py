@@ -1753,9 +1753,9 @@ def mostDeviant(requestContext, seriesList, n):
   """
 
   deviants = []
+  mean = safeDiv( safeSum([value for series in seriesList for value in series]), sum([safeLen(series) for series in seriesList] ))
+  if mean is None: return []
   for series in seriesList:
-    mean = safeDiv( safeSum(series), safeLen(series) )
-    if mean is None: continue
     square_sum = sum([ (value - mean) ** 2 for value in series if value is not None ])
     sigma = safeDiv(square_sum, safeLen(series))
     if sigma is None: continue
