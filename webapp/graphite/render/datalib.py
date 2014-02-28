@@ -235,7 +235,7 @@ def fetchData(requestContext, pathExpr):
         cachedResults = CarbonLink.query(dbFile.real_metric)
         results = mergeResults(dbResults, cachedResults)
       except:
-        log.exception()
+        log.exception("Failed CarbonLink query '%s'" % dbFile.real_metric)
 
     if not results:
       continue
