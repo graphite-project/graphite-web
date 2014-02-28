@@ -14,7 +14,7 @@ limitations under the License."""
 
 from datetime import datetime,timedelta
 from time import daylight
-from django.conf import settings
+from django.utils.timezone import get_current_timezone
 
 try: # See if there is a system installation of pytz first
   import pytz
@@ -27,7 +27,7 @@ weekdays = ['sun','mon','tue','wed','thu','fri','sat']
 
 def parseATTime(s, tzinfo=None, now=None):
   if tzinfo is None:
-    tzinfo = pytz.timezone(settings.TIME_ZONE)
+    tzinfo = get_current_timezone()
   if now is None:
     now = datetime.now(tz=tzinfo)
 

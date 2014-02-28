@@ -45,6 +45,7 @@ from django.template import Context, loader
 from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
+from django.utils.timezone import get_current_timezone
 
 
 def renderView(request):
@@ -275,7 +276,7 @@ def parseOptions(request):
         continue
       graphOptions[opt] = val
 
-  tzinfo = pytz.timezone(settings.TIME_ZONE)
+  tzinfo = get_current_timezone()
   if 'tz' in queryParams:
     try:
       tzinfo = pytz.timezone(queryParams['tz'])
