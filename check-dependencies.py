@@ -125,17 +125,6 @@ except ImportError:
   optional += 1
 
 
-# Test for sqlite
-try:
-  try:
-    import sqlite3 # python 2.5+
-  except ImportError:
-    from pysqlite2 import dbapi2 # python 2.4
-except ImportError:
-  sys.stderr.write("[OPTIONAL] Unable to import the sqlite module, do you have python-sqlite2 installed for python %s? If you plan on using another database backend that Django supports (such as mysql or postgres) then don't worry about this. However if you do not want to setup the database yourself, you will need to install sqlite2 and python-sqlite2.\n" % py_version)
-  optional += 1
-
-
 # Test for python-ldap
 try:
   import ldap
