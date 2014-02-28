@@ -17,7 +17,7 @@ function GraphiteBrowser () {
   var searchPanel = createSearchPanel();
   var completerPanel = createCompleterPanel();
   var treeRoot = treePanel.getRootNode();
-
+   
   this.trees = {
     graphite: treeRoot.findChild('id', 'GraphiteTree'),
     mygraphs: treeRoot.findChild('id', 'MyGraphsTree'),
@@ -54,7 +54,7 @@ function createTreePanel(){
     id: 'GraphiteTree',
     text: 'Metrics',
     loader: new Ext.tree.TreeLoader({
-      url: "../metrics/find/",
+      url: GraphiteConfig.METRIC_FIND_PATH,
       requestMethod: "GET",
       listeners: {beforeload: setParams}
     })
@@ -77,7 +77,7 @@ function createTreePanel(){
       allowDrag: false,
       //listeners: {beforeexpand: reloadOnce},
       loader: new Ext.tree.TreeLoader({
-        url: "../browser/mygraph/",
+        url: GraphiteConfig.MY_GRAPH_PATH,
         requestMethod: "GET",
         listeners: {beforeload: setParams}
       })
@@ -90,7 +90,7 @@ function createTreePanel(){
     text: "User Graphs",
     //listeners: {beforeexpand: reloadOnce},
     loader: new Ext.tree.TreeLoader({
-      url: "../browser/usergraph/",
+      url: GraphiteConfig.USER_GRAPH_PATH,
       requestMethod: "GET",
       listeners: {beforeload: setParams}
     })
@@ -155,7 +155,7 @@ function setupSearchForm(formEl) {
   var html = '<a id="searchHelpLink" > Help </a> <p id="searchError"></p> <ul id="searchResults"></ul>';
   Ext.DomHelper.append("searchForm", html);
   var helpAction = 'javascript: void window.open';
-  var helpPage = '"../content/html/searchHelp.html"';
+  var helpPage = '"' + GraphiteConfig.STATIC_CONTENT_PATH + '/html/searchHelp.html"';
   var helpTitle = '"Searching Graphite"';
   var helpOptions = '"width=500,height=400,toolbar=no,location=no,directories=no,status=no,menubar=no"';
   Ext.getDom('searchHelpLink').href = helpAction+"("+helpPage+","+helpTitle+","+helpOptions+");";
@@ -179,7 +179,7 @@ function sendSearchRequest (searchField, evt) {
     resultList.removeChild( resultList.childNodes[0] );
   }
   Ext.Ajax.request({
-    url: '../browser/search/',
+    url: GraphiteConfig.BROWSER_SEARCH_PATH,
     method: 'POST',
     success: handleSearchResponse,
     failure: handleSearchFailure,
@@ -226,7 +226,7 @@ function createCompleterPanel() {
     },
     items: [
       metricCompleter,
-      new Ext.form.Label({html: '<a id="completerHelpLink" href="../content/html/completerHelp.html", target="_new"> Help </a>'})
+      new Ext.form.Label({html: '<a id="completerHelpLink" href="' + GraphiteConfig.STATIC_CONTENT_PATH + 'html/completerHelp.html", target="_new"> Help </a>'})
     ]
   });
 
@@ -253,7 +253,7 @@ function setupCompleterForm(formEl) {
   html = '<a id="completerHelpLink" > Help </a> <div id="completerResults"/>';
   Ext.DomHelper.append("completerForm",html);
   var helpAction = 'javascript: void window.open';
-  var helpPage= '"../content/html/completerHelp.html"';
+  var helpPage= '"' + GraphiteConfig.STATIC_CONTENT_PATH + 'html/completerHelp.html"';
   var helpTitle = '"Using the Auto-Completer"';
   var helpOptions = '"width=500,height=400,toolbar=no,location=no,directories=no,status=no,menubar=no"';
   Ext.getDom('completerHelpLink').href = helpAction+"("+helpPage+","+helpTitle+","+helpOptions+");";
@@ -278,7 +278,7 @@ function sendCompleterRequest(evt, el) {
     return;
   }
   Ext.Ajax.request({
-    url: '../cli/autocomplete/',
+    url: GraphiteConfig.CLI_AUTOCOMPLETE_PATH,
     method: 'GET',
     success: handleCompleterResponse,
     failure: handleCompleterFailure,

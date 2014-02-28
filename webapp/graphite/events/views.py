@@ -3,6 +3,7 @@ import time
 
 from django.http import HttpResponse
 from django.shortcuts import render_to_response, get_object_or_404
+from django.template import RequestContext
 from django.utils.timezone import localtime, now
 from graphite.util import json
 from graphite.events import models
@@ -24,18 +25,19 @@ class EventEncoder(json.JSONEncoder):
 
 def view_events(request):
     if request.method == "GET":
-        context = { 'events' : fetch(request),
+        context = RequestContext(request, { 'events' : fetch(request),
             'slash' : get_script_prefix()
-        }
+        })
         return render_to_response("events.html", context)
     else:
         return post_event(request)
 
 def detail(request, event_id):
     e = get_object_or_404(models.Event, pk=event_id)
-    context = { 'event' : e,
+    context = RequestContext(request, {
+       'event' : e,
        'slash' : get_script_prefix()
-    }
+    })
     return render_to_response("event.html", context)
 
 

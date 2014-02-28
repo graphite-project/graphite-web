@@ -12,10 +12,10 @@ You may obtain a copy of the License at
    See the License for the specific language governing permissions and
    limitations under the License."""
 
-from django.conf.urls import *
+from django.conf.urls import patterns, url
 
 urlpatterns = patterns('graphite.graphlot.views',
-  ('^rawdata/?$', 'get_data'),
-  ('^findmetric/?$', 'find_metric'),
-  ('', 'graphlot_render'),
+  url(r'^rawdata/?$', 'get_data'),
+  url(r'^findmetric/?$', 'find_metric'),
+  url('', 'graphlot_render'),
 )

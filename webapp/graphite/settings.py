@@ -136,6 +136,7 @@ except ImportError:
 if not GRAPHITE_WEB_APP_SETTINGS_LOADED:
   from graphite.app_settings import *
 
+
 ## Set config dependent on flags set in local_settings
 # Path configuration
 if not CONTENT_DIR:
@@ -201,3 +202,4 @@ if USE_LDAP_AUTH:
 
 if SECRET_KEY == 'UNSAFE_DEFAULT':
   warn('SECRET_KEY is set to an unsafe default. This should be set in local_settings.py for better security')
+

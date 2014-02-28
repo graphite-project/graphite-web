@@ -14,10 +14,18 @@
 
 var RENDER_BASE_URL = window.location.protocol + "//" + window.location.host + window.location.pathname;
 RENDER_BASE_URL = RENDER_BASE_URL.replace(/\/composer\/?.*$/, '/render/?');
+if(typeof(GraphiteConfig) != 'undefined'){
+   if(GraphiteConfig.RENDER_BASE_PATH){
+        RENDER_BASE_URL = GraphiteConfig.RENDER_BASE_PATH + "?";
+    }
+}
 
 /* GraphiteComposer encapsulates a set of Ext UI Panels,
  * as well as a ParameterizedURL for the displayed graph. */
 function GraphiteComposer () {
+  render_url = RENDER_BASE_URL;
+  //might have gotten defined after load
+  
   this.url = new ParameterizedURL(RENDER_BASE_URL);
   this.state = {}; // For storing non-querystring state information
   this.window = createComposerWindow(this);

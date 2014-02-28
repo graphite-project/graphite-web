@@ -20,7 +20,7 @@ var NOT_EDITABLE = ['from', 'until', 'width', 'height', 'target', 'uniq', '_uniq
 var editor = null;
 
 var cookieProvider = new Ext.state.CookieProvider({
-  path: "/dashboard"
+  path: GraphiteConfig.DASHBOARD_PATH
 });
 
 var NAV_BAR_REGION = cookieProvider.get('navbar-region') || 'north';
@@ -69,7 +69,7 @@ var ContextFieldValueRecord = Ext.data.Record.create([
 ]);
 
 var contextFieldStore = new Ext.data.JsonStore({
-  url: '/metrics/find/',
+  url: GraphiteConfig.METRIC_FIND_PATH,
   root: 'metrics',
   idProperty: 'name',
   fields: ContextFieldValueRecord,
@@ -299,7 +299,7 @@ function initDashboard () {
       }),
       store: new Ext.data.JsonStore({
         method: 'GET',
-        url: '/metrics/find/',
+        url: GraphiteConfig.METRIC_FIND_PATH,
         autoLoad: true,
         baseParams: {
           query: '',
@@ -761,7 +761,7 @@ function showHelp() {
     modal: true,
     width: 550,
     height: 300,
-    autoLoad: "/dashboard/help/"
+    autoLoad: GraphiteConfig.DASHBOARD_HELP_PATH
   });
   win.show();
 }
@@ -893,7 +893,7 @@ function metricTreeSelectorShow(pattern) {
   }
 
   var loader = new Ext.tree.TreeLoader({
-    url: '/metrics/find/',
+    url: GraphiteConfig.METRIC_FIND_PATH,
     requestMethod: 'GET',
     listeners: {beforeload: setParams}
   });
@@ -1010,7 +1010,7 @@ function importGraphUrl(targetUrl, options) {
     var record = new GraphRecord({
       target: graphTargetString,
       params: params,
-      url: '/render?' + Ext.urlEncode(urlParams)
+      url: GraphiteConfig.RENDER_BASE_PATH + "?" + Ext.urlEncode(urlParams)
       });
       graphStore.add([record]);
       updateGraphRecords();
@@ -1030,7 +1030,7 @@ function updateGraphRecords() {
     if (!params.uniq === undefined) {
         delete params["uniq"];
     }
-    item.set('url', '/render?' + Ext.urlEncode(params));
+    item.set('url', GraphiteConfig.RENDER_BASE_PATH + "?" + Ext.urlEncode(params));
     item.set('width', GraphSize.width);
     item.set('height', GraphSize.height);
     item.set('index', index);
@@ -1385,7 +1385,7 @@ function newFromSavedGraph() {
     expandable: true,
     allowDrag: false,
     loader: new Ext.tree.TreeLoader({
-      url: "../browser/usergraph/",
+      url: GraphiteConfig.USER_GRAPH_PATH,
       requestMethod: "GET",
       listeners: {beforeload: setParams}
     })
@@ -1589,7 +1589,7 @@ function selectGraphSize() {
 function doShare() {
   if (dashboardName == null) {
     Ext.Ajax.request({
-      url: "/dashboard/create-temporary/",
+      url: GraphiteConfig.DASHBOARD_CREATE_TMP_PATH,
       method: 'POST',
       params: {
         state: Ext.encode( getState() )
@@ -1977,7 +1977,7 @@ function breakoutGraph(record) {
   }
 
   Ext.Ajax.request({
-    url: '/metrics/expand/',
+    url: GraphiteConfig.METRIC_EXPAND_PATH, // '/metrics/expand/',
     params: {
       groupByExpr: '1',
       leavesOnly: '1',
@@ -2048,7 +2048,7 @@ function mailGraph(record) {
          handler: function(){
            if(contactForm.getForm().isValid()){
              contactForm.getForm().submit({
-               url: '/dashboard/email',
+               url: GraphiteConfig.DASHBOARD_EMAIL_PATH, // '/dashboard/email',
                waitMsg: 'Processing Request',
                success: function (contactForm, response) {
          console.log(response.result);
@@ -2285,7 +2285,7 @@ function editDashboard() {
       var record = new GraphRecord({
         target: targets[i].target,
         params: myParams,
-        url: '/render?' + Ext.urlEncode(urlParams)
+        url: GraphiteConfig.RENDER_BASE_PATH + "?" + Ext.urlEncode(urlParams)
       });
       graphStore.add([record]);
     }
@@ -2332,7 +2332,7 @@ function saveDashboard() {
 
 function sendSaveRequest(name) {
   Ext.Ajax.request({
-    url: "/dashboard/save/" + name,
+    url: GraphiteConfig.DASHBOARD_SAVE_PATH + name,
     method: 'POST',
     params: {
       state: Ext.encode( getState() )
@@ -2349,7 +2349,7 @@ function sendSaveRequest(name) {
 
 function sendLoadRequest(name) {
   Ext.Ajax.request({
-    url: "/dashboard/load/" + name,
+    url: GraphiteConfig.DASHBOARD_LOAD_PATH + name,
     success: function (response) {
                var result = Ext.decode(response.responseText);
                if (result.error) {
@@ -2435,7 +2435,7 @@ function applyState(state) {
 
 function deleteDashboard(name) {
   Ext.Ajax.request({
-    url: "/dashboard/delete/" + name,
+    url: GraphiteConfig.DASHBOARD_DELETE_PATH + name,
     success: function (response) {
       var result = Ext.decode(response.responseText);
       if (result.error) {
@@ -2557,7 +2557,7 @@ function showDashboardFinder() {
   var dashboardsList;
   var queryField;
   var dashboardsStore = new Ext.data.JsonStore({
-    url: "/dashboard/find/",
+    url: GraphiteConfig.DASHBOARD_FIND_PATH,
     method: 'GET',
     params: {query: "e"},
     fields: [{
@@ -2940,7 +2940,7 @@ function showLoginForm() {
   function doLogin() {
     login.getForm().submit({
       method: 'POST',
-      url: '/dashboard/login',
+      url: GraphiteConfig.DASHBOARD_LOGIN_PATH,
       waitMsg: 'Authenticating...',
       success: function(form, action) {
         userName = form.findField('username').getValue();
@@ -2975,7 +2975,7 @@ function showLoginForm() {
 
 function logout() {
   Ext.Ajax.request({
-    url: '/dashboard/logout',
+    url: GraphiteConfig.DASHBOARD_LOGOUT_PATH,
     method: 'POST',
     success: function() {
       userName = null;

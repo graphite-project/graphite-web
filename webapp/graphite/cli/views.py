@@ -14,12 +14,13 @@ limitations under the License."""
 
 from string import letters
 from django.http import HttpResponse
+from django.template import RequestContext
 from django.shortcuts import render_to_response
 from graphite.util import getProfile
 from graphite.cli import completer, commands, parser
 
 def cli(request):
-  context = dict( request.GET.items() )
+  context = RequestContext(request, dict( request.GET.items() ))
   context['user'] = request.user
   context['profile'] = getProfile(request)
   return render_to_response("cli.html", context)

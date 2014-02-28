@@ -14,6 +14,7 @@ limitations under the License."""
 
 import re
 from django.shortcuts import render_to_response
+from django.template import RequestContext
 from django.http import HttpResponse
 from django.conf import settings
 from graphite.account.models import Profile
@@ -29,7 +30,7 @@ except ImportError:
 
 def header(request):
   "View for the header frame of the browser UI"
-  context = {}
+  context = RequestContext(request, {})
   context['user'] = request.user
   context['profile'] = getProfile(request)
   context['documentation_url'] = settings.DOCUMENTATION_URL
@@ -39,10 +40,10 @@ def header(request):
 
 def browser(request):
   "View for the top-level frame of the browser UI"
-  context = {
+  context = RequestContext(request, {
     'queryString' : request.GET.urlencode(),
     'target' : request.GET.get('target')
-  }
+  })
   if context['queryString']:
     context['queryString'] = context['queryString'].replace('#','%23')
   if context['target']:

@@ -12,27 +12,36 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
-from django.conf.urls import *
+from django.conf.urls import patterns, url, include
 from django.conf import settings
 from django.contrib import admin
 
 admin.autodiscover()
 
 urlpatterns = patterns('',
-  ('^admin/', include(admin.site.urls)),
-  ('^render/?', include('graphite.render.urls')),
-  ('^cli/?', include('graphite.cli.urls')),
-  ('^composer/?', include('graphite.composer.urls')),
-  ('^metrics/?', include('graphite.metrics.urls')),
-  ('^browser/?', include('graphite.browser.urls')),
-  ('^account/?', include('graphite.account.urls')),
-  ('^dashboard/?', include('graphite.dashboard.urls')),
-  ('^whitelist/?', include('graphite.whitelist.urls')),
-  ('^content/(?P<path>.*)$', 'django.views.static.serve', {'document_root' : settings.CONTENT_DIR}),
-  ('graphlot/', include('graphite.graphlot.urls')),
-  ('^version/', include('graphite.version.urls')),
-  ('^events/', include('graphite.events.urls')),
-  ('', 'graphite.browser.views.browser'),
+  url(r'^admin/', include(admin.site.urls)),
+  url(r'^render$', 'graphite.render.views.renderView'),
+  url(r'^render/', include('graphite.render.urls')),
+  url(r'^cli$', 'graphite.cli.views.cli'),
+  url(r'^cli/', include('graphite.cli.urls')),
+  url(r'^composer$', 'graphite.composer.views.composer'),
+  url(r'^composer/', include('graphite.composer.urls')),
+  url(r'^metrics$', 'graphite.metrics.views.find_view'),
+  url(r'^metrics/', include('graphite.metrics.urls')),
+  url(r'^browser$', 'graphite.browser.views.browser'),
+  url(r'^browser/', include('graphite.browser.urls')),
+  url(r'^account/', include('graphite.account.urls')),
+  url(r'^dashboard$', 'graphite.dashboard.views.dashboard'),
+  url(r'^dashboard/', include('graphite.dashboard.urls')),
+  url(r'^whitelist/?', include('graphite.whitelist.urls')),
+  url(r'^content/(?P<path>.*)$', 'django.views.static.serve', {'document_root' : settings.CONTENT_DIR}),
+  url(r'^graphlot$', 'graphite.graphlot.views.graphlot_render'),
+  url(r'^graphlot/', include('graphite.graphlot.urls')),
+  url(r'^version/?', include('graphite.version.urls')),
+  url(r'^events$', 'graphite.events.views.view_events'),
+  url(r'^events/', include('graphite.events.urls')),
+  url(r'^/$', 'graphite.browser.views.browser'),
+  url(r'^$', 'graphite.browser.views.browser'),
 )
 
 handler500 = 'graphite.views.server_error'

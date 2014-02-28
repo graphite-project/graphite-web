@@ -27,13 +27,14 @@ from graphite.logger import log
 from graphite.account.models import MyGraph
 
 from django.shortcuts import render_to_response
+from django.template import RequestContext
 from django.http import HttpResponse
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 
 def composer(request):
   profile = getProfile(request)
-  context = {
+  context = RequestContext(request, {
     'queryString' : request.GET.urlencode().replace('+','%20'),
     'showTarget' : request.GET.get('showTarget',''),
     'user' : request.user,
@@ -42,7 +43,7 @@ def composer(request):
     'searchEnabled' : int( os.access(settings.INDEX_FILE, os.R_OK) ),
     'debug' : settings.DEBUG,
     'jsdebug' : settings.DEBUG,
-  }
+  })
   return render_to_response("composer.html",context)
 
 
