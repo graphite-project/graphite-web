@@ -234,6 +234,9 @@
 # This is important when your hashing has to respect certain metric groupings.
 #CARBONLINK_HASHING_KEYFUNC = "/opt/graphite/bin/keyfuncs.py:my_keyfunc"
 
+# Prefix set in carbon for the carbon specific metrics.  Default in carbon is 'carbon'
+#CARBON_METRIC_PREFIX='carbon'
+
 # The replication factor to use with consistent hashing
 # This should usually match the value configured in Carbon
 #REPLICATION_FACTOR = 1
