@@ -186,7 +186,11 @@ if 'sqlite3' in DATABASES.get('default',{}).get('ENGINE','') \
 
 # Caching shortcuts
 if MEMCACHE_HOSTS:
-  CACHE_BACKEND = 'memcached://' + ';'.join(MEMCACHE_HOSTS) + ('/?timeout=%d' % DEFAULT_CACHE_DURATION)
+    CACHES['default'] = {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': MEMCACHE_HOSTS,
+        'TIMEOUT': DEFAULT_CACHE_DURATION,
+    }
 
 # Authentication shortcuts
 if USE_LDAP_AUTH and LDAP_URI is None:
