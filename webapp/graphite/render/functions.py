@@ -1765,6 +1765,19 @@ def sortByMinima(requestContext, seriesList):
   newSeries.sort(compare)
   return newSeries
 
+def sortByName(requestContext, seriesList):
+  """
+  Takes one metric or a wildcard seriesList.
+
+  Sorts the list of metrics by the name.
+
+  """
+  def compare(x,y):
+    return 1 if x.name > y.name else -1
+
+  seriesList.sort(compare)
+  return seriesList
+
 def useSeriesAbove(requestContext, seriesList, value, search, replace):
   """
   Compares the maximum of each series against the given `value`. If the series
@@ -3086,6 +3099,7 @@ SeriesFunctions = {
   'removeBetweenPercentile' : removeBetweenPercentile,
   'sortByMaxima' : sortByMaxima,
   'sortByMinima' : sortByMinima,
+  'sortByName'  : sortByName,
   'useSeriesAbove': useSeriesAbove,
   'exclude' : exclude,
 
