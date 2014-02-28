@@ -10,11 +10,11 @@ def send_graph_email(subject, sender, recipients, attachments=None, body=None):
         https://docs.djangoproject.com/en/1.3/topics/email/#django.core.mail.EmailMessage
     """
     attachments = attachments or []
-    msg = EmailMessage(subject=subject, 
-		       from_email=sender, 
-                       to=recipients, 
+    msg = EmailMessage(subject=subject,
+		       from_email=sender,
+                       to=recipients,
 		       body=body,
                        attachments=attachments)
     msg.send()
 
-	
+
