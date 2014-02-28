@@ -540,6 +540,13 @@ function initDashboard () {
           text: "Finder",
           handler: showDashboardFinder
         }, {
+          text: "Template Finder",
+          handler: showTemplateFinder
+        }, {
+          text: "Save As Template",
+          handler: saveTemplate,
+          disabled: !hasPermission('change')
+        }, {
           id: 'dashboard-save-button',
           text: "Save",
           handler: function (item, e) {
@@ -747,7 +754,12 @@ function initDashboard () {
 
   if(window.location.hash != '')
   {
-    sendLoadRequest(window.location.hash.substr(1));
+    if (window.location.hash.indexOf("/") != -1) {
+      var name_val = window.location.hash.substr(1).split('#');
+      sendLoadTemplateRequest(name_val[0],name_val[1]);
+    } else {
+      sendLoadRequest(window.location.hash.substr(1));
+    }
   }
 
   if (initialError) {
@@ -2330,6 +2342,66 @@ function saveDashboard() {
   );
 }
 
+function saveTemplate() {
+  var nameField = new Ext.form.TextField({
+    id: 'dashboard-save-template-name',
+    fieldLabel: "Template Name",
+    width: 240,
+    allowBlank: false,
+    align: 'center',
+    value: dashboardName ? dashboardName.split('/')[0]: '',
+  });
+
+  var keyField = new Ext.form.TextField({
+    id: 'dashboard-save-template-key',
+    fieldLabel: "String to replace",
+    width: 240,
+    allowBlank: false,
+    align: 'center',
+  });
+
+  var win;
+
+  function save() {
+    sendSaveTemplateRequest(nameField.getValue(), keyField.getValue());
+    win.close();
+  }
+
+  win = new Ext.Window({
+    title: "Save dashboard as a template",
+    width: 400,
+    height: 120,
+    resizable: false,
+    layout: 'form',
+    labelAlign: 'right',
+    labelWidth: 120,
+    items: [nameField,keyField],
+    buttonAlign: 'center',
+    buttons: [
+      {text: 'Ok', handler: save},
+      {text: 'Cancel', handler: function () { win.close(); } }
+    ]
+  });
+  win.show();
+}
+
+function sendSaveTemplateRequest(name, key) {
+  Ext.Ajax.request({
+    url: "/dashboard/save_template/" + name + "/" + key,
+    method: 'POST',
+    params: {
+      state: Ext.encode( getState() )
+    },
+    success: function (response) {
+               var result = Ext.decode(response.responseText);
+               if (result.error) {
+                 Ext.Msg.alert("Error", "There was an error saving this dashboard as a template: " + result.error);
+               }
+             },
+    failure: failedAjaxCall
+  });
+}
+
 function sendSaveRequest(name) {
   Ext.Ajax.request({
     url: "/dashboard/save/" + name,
@@ -2360,6 +2432,28 @@ function sendLoadRequest(name) {
              },
     failure: failedAjaxCall
   });
+}
+
+function sendLoadTemplateRequest(name, value) {
+  urlparts = window.location.href.split('#')
+  if(urlparts[0].split('?')[1]) {
+    new_location = urlparts[0].split('?')[0] + '#'+name+'/'+value;
+    window.location.href = new_location;
+  } else {
+    Ext.Ajax.request({
+      url: "/dashboard/load_template/" + name + "/" + value,
+      success: function (response) {
+               var result = Ext.decode(response.responseText);
+               if (result.error) {
+                 Ext.Msg.alert("Error Loading Template", result.error);
+               } else {
+                 applyState(result.state);
+                 navBar.collapse(false);
+               }
+             },
+      failure: failedAjaxCall
+    });
+  }
 }
 
 function getState() {
@@ -2442,6 +2536,21 @@ function deleteDashboard(name) {
         Ext.Msg.alert("Error", "Failed to delete dashboard '" + name + "': " + result.error);
       } else {
         Ext.Msg.alert("Dashboard Deleted", "The " + name + " dashboard was deleted successfully.");
+      }
+    },
+    failure: failedAjaxCall
+  });
+}
+
+function deleteTemplate(name) {
+  Ext.Ajax.request({
+    url: "/dashboard/delete_template/" + name,
+    success: function (response) {
+      var result = Ext.decode(response.responseText);
+      if (result.error) {
+        Ext.Msg.alert("Error", "Failed to delete template '" + name + "': " + result.error);
+      } else {
+        Ext.Msg.alert("Template Deleted", "The " + name + " template was deleted successfully.");
       }
     },
     failure: failedAjaxCall
@@ -2698,6 +2807,146 @@ function showDashboardFinder() {
     ]
   });
   dashboardsStore.load();
+  win.show();
+}
+
+// Template Finder
+function showTemplateFinder() {
+  var win;
+  var templatesList;
+  var queryField;
+  var valueField;
+  var templatesStore = new Ext.data.JsonStore({
+    url: "/dashboard/find_template/",
+    method: 'GET',
+    params: {query: "e"},
+    fields: ['name'],
+    root: 'templates',
+    listeners: {
+      beforeload: function (store) {
+                    store.setBaseParam('query', queryField.getValue());
+                  }
+    }
+  });
+
+  function openSelected() {
+    var selected = templatesList.getSelectedRecords();
+    if (selected.length > 0) {
+      sendLoadTemplateRequest(selected[0].data.name, valueField.getValue());
+    }
+    win.close();
+  }
+
+  function deleteSelected() {
+    var selected = templatesList.getSelectedRecords();
+    if (selected.length > 0) {
+      var record = selected[0];
+      var name = record.data.name;
+
+      Ext.Msg.confirm(
+       "Delete Template",
+        "Are you sure you want to delete the " + name + " template?",
+        function (button) {
+          if (button == 'yes') {
+            deleteTemplate(name);
+            templatesStore.remove(record);
+            templatesList.refresh();
+          }
+        }
+      );
+    }
+  }
+
+  templatesList = new Ext.list.ListView({
+    columns: [
+      {header: 'Template', width: 1.0, dataIndex: 'name', sortable: false}
+    ],
+    columnSort: false,
+    emptyText: "No templates found",
+    hideHeaders: true,
+    listeners: {
+      selectionchange: function (listView, selections) {
+                         if (listView.getSelectedRecords().length == 0) {
+                           Ext.getCmp('finder-open-button').disable();
+                           Ext.getCmp('finder-delete-button').disable();
+                         } else {
+                           if (valueField.getValue()) {
+                             Ext.getCmp('finder-open-button').enable();
+                           }
+                           Ext.getCmp('finder-delete-button').enable();
+                         }
+                       },
+
+    },
+    overClass: '',
+    region: 'center',
+    reserveScrollOffset: true,
+    singleSelect: true,
+    store: templatesStore,
+    style: "background-color: white;"
+  });
+
+  var lastQuery = null;
+  var queryUpdateTask = new Ext.util.DelayedTask(
+    function () {
+      var currentQuery = queryField.getValue();
+      if (lastQuery != currentQuery) {
+        templatesStore.load();
+      }
+      lastQuery = currentQuery;
+    }
+  );
+
+  queryField = new Ext.form.TextField({
+    region: 'south',
+    emptyText: "filter template listing",
+    enableKeyEvents: true,
+    listeners: {
+      keyup: function (field, e) {
+                  if (e.getKey() == e.ENTER) {
+                    sendLoadRequest(field.getValue(), reset_params=true);
+                    win.close();
+                  } else {
+                    queryUpdateTask.delay(FINDER_QUERY_DELAY);
+                  }
+                }
+    }
+  });
+
+  valueField = new Ext.form.TextField({
+    region: 'north',
+    emptyText: "Value to use"
+  });
+
+  win = new Ext.Window({
+    title: "Template Finder",
+    width: 400,
+    height: 500,
+    layout: 'border',
+    modal: true,
+    items: [
+      valueField,
+      templatesList,
+      queryField,
+    ],
+    buttons: [
+      {
+        id: 'finder-open-button',
+        text: "Open",
+        disabled: true,
+        handler: openSelected
+      }, {
+        id: 'finder-delete-button',
+        text: "Delete",
+        disabled: true,
+        handler: deleteSelected
+      }, {
+        text: "Close",
+        handler: function () { win.close(); }
+      }
+    ]
+  });
+  templatesStore.load();
   win.show();
 }
 
