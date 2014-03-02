@@ -715,22 +715,33 @@ def absolute(requestContext, seriesList):
 
 def offset(requestContext, seriesList, factor):
   """
-  Takes one metric or a wildcard seriesList followed by a constant, and adds the constant to
-  each datapoint.
+  Takes one metric, a wildcard seriesList followed by a constant or single time
+  serie, and adds the value to each datapoint.
 
   Example:
 
   .. code-block:: none
 
     &target=offset(Server.instance01.threads.busy,10)
-
+    &target=scale(offset(Server.instance01.threads.*.last_change,
+      scale(Server.instance01.uptime, -1)),-1)
   """
   for series in seriesList:
-    series.name = "offset(%s,%g)" % (series.name,float(factor))
-    series.pathExpression = series.name
-    for i,value in enumerate(series):
-      if value is not None:
-        series[i] = value + factor
+    if isinstance(factor, list):
+      if len(factor) != 1:
+        raise ValueError("offset second argument must reference exactly 1 series")
+      factor_serie = factor[0]
+      series.name = "offset(%s,%s)" % (series.name,factor_serie.name)
+      series.pathExpression = series.name
+      for i,value in enumerate(series):
+        if value is not None:
+          series[i] = value + factor_serie[i]
+    else:
+      series.name = "offset(%s,%g)" % (series.name,float(factor))
+      series.pathExpression = series.name
+      for i,value in enumerate(series):
+        if value is not None:
+          series[i] = value + factor
   return seriesList
 
 def offsetToZero(requestContext, seriesList):
