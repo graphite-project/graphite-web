@@ -2435,6 +2435,62 @@ def isNonNull(requestContext, seriesList):
     del series[:len(values)]
   return seriesList
 
+def upperBound(requestContext, seriesList, boundary):
+  """
+  Takes a metric or wild card seriesList and returns min(value, boundary) for
+  non-null values. This is useful for when you only care about the value
+  up to a certain point - for example if you are logging error codes and you
+  only care if the value is >= 1 and not the value itself.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=upperBound(application.myapp.*.exitcode, 1.0)
+
+  Returns a seriesList where the maximum value is the boundary or lower.
+  """
+
+  def transform(v):
+    if v is None: return None
+    return min(v, boundary)
+
+  for series in seriesList:
+    series.name = "upperBound(%s, %d)" % (series.name, boundary)
+    series.pathExpression = series.name
+    values = [transform(v) for v in series]
+    series.extend(values)
+    del series[:len(values)]
+  return seriesList
+
+def lowerBound(requestContext, seriesList, boundary):
+  """
+  Takes a metric or wild card seriesList and returns max(value, boundary) for
+  non-null values. This is useful for when you only care about the value
+  up to a certain point - for example if you are logging error codes and you
+  only care if the value is <= -1 and not the value itself.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=lowerBound(application.myapp.*.exitcode, -1.0)
+
+  Returns a seriesList where the minimum value is the boundary or greater.
+  """
+
+  def transform(v):
+    if v is None: return None
+    return max(v, boundary)
+
+  for series in seriesList:
+    series.name = "lowerBound(%s, %d)" % (series.name, boundary)
+    series.pathExpression = series.name
+    values = [transform(v) for v in series]
+    series.extend(values)
+    del series[:len(values)]
+  return seriesList
+
 def identity(requestContext, name):
   """
   Identity function:
@@ -3138,6 +3194,8 @@ SeriesFunctions = {
   'isNonNull' : isNonNull,
   'identity': identity,
   'aggregateLine' : aggregateLine,
+  'upperBound' : upperBound,
+  'lowerBound' : lowerBound,
 
   # test functions
   'time': timeFunction,
