@@ -126,6 +126,8 @@ DATABASES = {
   },
 }
 
+LOGGING = {}
+
 # If using rrdcached, set to the address or socket of the daemon
 FLUSHRRDCACHED = ''
 
@@ -186,6 +188,79 @@ if not STANDARD_DIRS:
 if 'sqlite3' in DATABASES.get('default',{}).get('ENGINE','') \
     and not DATABASES.get('default',{}).get('NAME'):
   DATABASES['default']['NAME'] = join(STORAGE_DIR, 'graphite.db')
+
+if not LOGGING:
+  LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+      'standard': {
+        'format':  '%(asctime)s :: %(message)s',
+        'datefmt': '%a %b %d %H:%M:%S %Y',
+      },
+    },
+    'handlers': {
+      'info':{
+        'formatter': 'standard',
+        'class': 'logging.handlers.TimedRotatingFileHandler',
+        'filename': os.path.join(LOG_DIR,'info.log'),
+        'when': 'midnight',
+        'backupCount': 1,
+      },
+      'exception':{
+        'formatter': 'standard',
+        'class': 'logging.handlers.TimedRotatingFileHandler',
+        'filename': os.path.join(LOG_DIR,'exception.log'),
+        'when': 'midnight',
+        'backupCount': 1,
+      },
+    },
+    'loggers': {
+      'info': {
+        'handlers': ['info'],
+        'level': 'INFO',
+      },
+      'exception': {
+        'handlers': ['exception'],
+      },
+    }
+  }
+
+  if LOG_CACHE_PERFORMANCE:
+    LOGGING['handlers']['cache'] = {
+      'formatter': 'standard',
+      'class': 'logging.handlers.TimedRotatingFileHandler',
+      'filename': os.path.join(LOG_DIR,'cache.log'),
+      'when': 'midnight',
+      'backupCount': 1,
+    }
+    LOGGING['loggers']['cache'] = {
+      'handlers': ['cache'],
+    }
+
+  if LOG_RENDERING_PERFORMANCE:
+    LOGGING['handlers']['rendering'] = {
+      'formatter': 'standard',
+      'class': 'logging.handlers.TimedRotatingFileHandler',
+      'filename': os.path.join(LOG_DIR,'rendering.log'),
+      'when': 'midnight',
+      'backupCount': 1,
+    }
+    LOGGING['loggers']['rendering'] = {
+      'handlers': ['rendering'],
+    }
+
+  if LOG_METRIC_ACCESS:
+     LOGGING['handlers']['metric_access'] = {
+      'formatter': 'standard',
+      'class': 'logging.handlers.TimedRotatingFileHandler',
+      'filename': os.path.join(LOG_DIR,'metricaccess.log'),
+      'when': 'midnight',
+      'backupCount': 10,
+     }
+     LOGGING['loggers']['metric_access'] = {
+      'handlers': ['metric_access'],
+     }
 
 # Caching shortcuts
 if MEMCACHE_HOSTS:
