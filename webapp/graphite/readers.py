@@ -66,8 +66,8 @@ class MultiReader(object):
     if results1[0][2] > results2[0][2]:
       results1, results2 = results2, results1
 
-    time_info1, values1 = results1
-    time_info2, values2 = results2
+    time_info1, values1, conso1 = results1
+    time_info2, values2, conso2 = results2
     start1, end1, step1 = time_info1
     start2, end2, step2 = time_info2
 
@@ -76,6 +76,7 @@ class MultiReader(object):
     end    = max(end1, end2)      # latest end
     time_info = (start, end, step)
     values = []
+    conso = conso1
 
     t = start
     while t < end:
@@ -101,7 +102,10 @@ class MultiReader(object):
 
       t += step
 
-    return (time_info, values)
+    if conso1 != conso2:
+      conso = ''
+
+    return (time_info, values, conso)
 
 
 class CeresReader(object):
@@ -141,7 +145,7 @@ class CeresReader(object):
       except:
         pass
 
-    return (time_info, values)
+    return (time_info, values, '')
 
 
 class WhisperReader(object):
