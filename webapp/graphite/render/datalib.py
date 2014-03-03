@@ -109,14 +109,14 @@ def fetchData(requestContext, pathExpr):
         continue
 
       try:
-          (timeInfo, values, aggreg) = results
+          (timeInfo, values, conso) = results
       except ValueError, e:
           e = sys.exc_info()[1]
           raise Exception("could not parse timeInfo/values from metric '%s': %s" % (node.path, e))
       (start, end, step) = timeInfo
 
-      if aggreg != "":
-          series = TimeSeries(node.path, start, end, step, values, aggreg)
+      if conso != "":
+          series = TimeSeries(node.path, start, end, step, values, conso)
       else:
           series = TimeSeries(node.path, start, end, step, values)
       series.pathExpression = pathExpr #hack to pass expressions through to render functions
@@ -149,7 +149,6 @@ def fetchData(requestContext, pathExpr):
         log.exception("Got an exception when fetching data! See: %s Will do it again! Run: %i of %i" %
                      (e, retries, settings.MAX_FETCH_RETRIES))
         retries += 1
-
 
 def nonempty(series):
   for value in series:
