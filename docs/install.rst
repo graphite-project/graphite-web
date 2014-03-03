@@ -10,7 +10,7 @@ been met or not.
 
 Basic Graphite requirements:
 
-* Python 2.4 or greater (2.6+ recommended)
+* Python 2.5 or greater (2.6+ recommended)
 * `Pycairo`_
 * `Django`_ 1.0 or greater
 * `django-tagging`_ 0.3.1 or greater
@@ -22,7 +22,7 @@ Basic Graphite requirements:
   - `gunicorn`_ with `nginx`_
   - `uWSGI`_ with `nginx`_
 
-Python 2.4 and 2.5 have extra requirements:
+Python 2.5 has extra requirements:
 
 * `simplejson`_
 * `python-sqlite2`_ or another Django-supported database module
@@ -48,7 +48,7 @@ There are also several other dependencies required for additional features:
 Fulfilling Dependencies
 -----------------------
 Most current Linux distributions have all of the requirements available in the base packages.
-RHEL based distributions may require the `EPEL`_ repository for requirements. 
+RHEL based distributions may require the `EPEL`_ repository for requirements.
 Python module dependencies can be install with `pip`_ rather than system packages if desired or if using
 a Python version that differs from the system default. Some modules (such as Cairo) may require
 library development headers to be available.

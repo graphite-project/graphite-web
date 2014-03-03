@@ -12,6 +12,12 @@ This will check for graphite's runtime dependencies and let
 you know which you are missing. Download and install these modules and re-run
 check-dependencies.py until it detects all the required modules.
 
+You may wish to use ``pip`` to install dependencies automatically for you, for
+example, on Ubuntu::
+
+    sudo apt-get install libcairo2-dev
+    sudo pip install -r requirements.txt
+
 Graphite requires:
  python2.5 or greater
  whisper (available for download on the graphite project page)
@@ -66,27 +72,18 @@ The apache user must also have read access to $GRAPHITE_ROOT/storage/whisper/
 
  Apache Configuration
 -------------------------------------------------------------------------------
-When using apache there are two modules available to provide support for python
-web application.
-
-Graphite currently provides example configurations for both of these modules. 
-Of the two mod_wsgi is the most up to date and actively maintained so it's 
-highly recommended if you are starting afresh.
-
- Apache Configuration for Mod_wsgi
--------------------------------------------------------------------------------
-
-If you are using mod_wsgi, Apache has to have mod_wsgi configured, 
-this is usually done by including a line like the following in your 
-httpd.conf:
+If you are using Apache, it has to have mod_wsgi active, this is usually done
+by including a line like the following in your httpd.conf:
 
 LoadModule wsgi_module    modules/mod_wsgi.so
+
+Graphite currently provides example configuration for mod_wsgi.
 
  General Apache Configuration
 -------------------------------------------------------------------------------
 
-Once you have configured the apache module you are using you should configure 
-a vhost for graphite (technically it doesn't have to be a vhost but its good 
+Once you have configured the mod_wsgi Apache module you should configure
+a vhost for graphite (technically it doesn't have to be a vhost but its good
 practice). This can be done one of two ways.
 
 The first way (highly preferred) is to include independent vhost configs.
@@ -96,7 +93,7 @@ Include /usr/local/apache2/conf/vhosts.d/*.conf
 
 Then simply drop your graphite vhost conf file into the vhosts.d/ directory
 (or whatever directory your system uses) and apache is ready. You can use
-either of the example vhost confs as a starting point (See the examples 
+either of the example vhost confs as a starting point (See the examples
 directory of this package.)
 
 The second approach is to copy the contents of your chosen graphite vhost conf file
@@ -114,7 +111,7 @@ After you setup your database server, create a database and a user with full
 privileges on that database. Now we put that information into the graphite
 webapp local_settings.py file.
 
-Edit the $GRAPHITE_ROOT/webapp/graphite/local_settings.py 
+Edit the $GRAPHITE_ROOT/webapp/graphite/local_settings.py
 
 In particular you will need to uncomment and modify the ``DATABASES`` setting.
 Once you have done this, we need to tell Django to create our tables.

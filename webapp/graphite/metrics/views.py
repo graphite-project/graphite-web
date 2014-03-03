@@ -31,28 +31,39 @@ except ImportError:
 
 def index_json(request):
   jsonp = request.REQUEST.get('jsonp', False)
+  cluster = request.REQUEST.get('cluster', False)
+
+  def find_matches():
+    matches = []
+  
+    for root, dirs, files in os.walk(settings.WHISPER_DIR):
+      root = root.replace(settings.WHISPER_DIR, '')
+      for basename in files:
+        if fnmatch.fnmatch(basename, '*.wsp'):
+          matches.append(os.path.join(root, basename))
+  
+    for root, dirs, files in os.walk(settings.CERES_DIR):
+      root = root.replace(settings.CERES_DIR, '')
+      for filename in files:
+        if filename == '.ceres-node':
+          matches.append(root)
+  
+    matches = [
+      m
+      .replace('.wsp', '')
+      .replace('.rrd', '')
+      .replace('/', '.')
+      .lstrip('.')
+      for m in sorted(matches)
+    ]
+    return matches
   matches = []
-
-  for root, dirs, files in os.walk(settings.WHISPER_DIR):
-    root = root.replace(settings.WHISPER_DIR, '')
-    for basename in files:
-      if fnmatch.fnmatch(basename, '*.wsp'):
-        matches.append(os.path.join(root, basename))
-
-  for root, dirs, files in os.walk(settings.CERES_DIR):
-    root = root.replace(settings.CERES_DIR, '')
-    for filename in files:
-      if filename == '.ceres-node':
-        matches.append(root)
-
-  matches = [
-    m
-    .replace('.wsp', '')
-    .replace('.rrd', '')
-    .replace('/', '.')
-    .lstrip('.')
-    for m in sorted(matches)
-  ]
+  if cluster and len(settings.CLUSTER_SERVERS) > 1:
+    matches = reduce( lambda x, y: list(set(x + y)), \
+        [json.loads(urlopen("http://" + cluster_server + "/metrics/index.json").read()) \
+        for cluster_server in settings.CLUSTER_SERVERS])
+  else:
+    matches = find_matches()
   return json_response_for(request, matches, jsonp=jsonp)
 
 
@@ -293,12 +304,6 @@ def pickle_nodes(nodes):
 
   return pickle.dumps(nodes_info, protocol=-1)
 
-
-def any(iterable): #python2.4 compatibility
-  for i in iterable:
-    if i:
-      return True
-  return False
 
 def json_response_for(request, data, mimetype='application/json', jsonp=False, **kwargs):
   accept = request.META.get('HTTP_ACCEPT', 'application/json')
