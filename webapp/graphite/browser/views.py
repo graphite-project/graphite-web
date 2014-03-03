@@ -19,10 +19,7 @@ from graphite.account.models import Profile
 from graphite.compat import HttpResponse
 from graphite.util import getProfile, getProfileByUsername, json
 from graphite.logger import log
-try:
-  from hashlib import md5
-except ImportError:
-  from md5 import md5
+from hashlib import md5
 
 try:
   import cPickle as pickle
@@ -50,7 +47,7 @@ def browser(request):
     context['queryString'] = context['queryString'].replace('#','%23')
   if context['target']:
     context['target'] = context['target'].replace('#','%23') #js libs terminate a querystring on #
-  return render_to_response("browser.html", context) 
+  return render_to_response("browser.html", context)
 
 
 def search(request):
@@ -261,10 +258,3 @@ def json_response(nodes, request=None):
   response['Pragma'] = 'no-cache'
   response['Cache-Control'] = 'no-cache'
   return response
-
-
-def any(iterable): #python2.4 compatibility
-  for i in iterable:
-    if i:
-      return True
-  return False

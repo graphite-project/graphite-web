@@ -11,7 +11,7 @@ from django.conf import settings
 from django.contrib.auth import login, authenticate, logout
 from graphite.compat import HttpResponse
 from graphite.util import json, getProfile
-from graphite.dashboard.models import Dashboard
+from graphite.dashboard.models import Dashboard, Template
 from graphite.render.views import renderView
 from send_graph import send_graph_email
 
@@ -154,6 +154,53 @@ def dashboard(request, name=None):
   return render_to_response("dashboard.html", context)
 
 
+def template(request, name, val):
+  template_conf_missing = False
+
+  try:
+    config.check()
+  except OSError, e:
+    if e.errno == errno.ENOENT:
+      template_conf_missing = True
+    else:
+      raise
+
+  initialError = None
+  debug = request.GET.get('debug', False)
+  theme = request.GET.get('theme', config.ui_config['theme'])
+  css_file = join(settings.CSS_DIR, 'dashboard-%s.css' % theme)
+  if not exists(css_file):
+    initialError = "Invalid theme '%s'" % theme
+    theme = config.ui_config['theme']
+
+  context = {
+    'schemes_json' : json.dumps(config.schemes),
+    'ui_config_json' : json.dumps(config.ui_config),
+    'jsdebug' : debug or settings.JAVASCRIPT_DEBUG,
+    'debug' : debug,
+    'theme' : theme,
+    'initialError' : initialError,
+    'querystring' : json.dumps( dict( request.GET.items() ) ),
+    'template_conf_missing' : template_conf_missing,
+    'userName': '',
+    'permissions': json.dumps(getPermissions(request.user)),
+    'permissionsUnauthenticated': json.dumps(getPermissions(None))
+  }
+
+  user = request.user
+  if user:
+      context['userName'] = user.username
+
+  try:
+    template = Template.objects.get(name=name)
+  except Template.DoesNotExist:
+    context['initialError'] = "Template '%s' does not exist." % name
+  else:
+    state = json.loads(template.loadState(val))
+    state['name'] = '%s/%s' % (name, val)
+    context['initialState'] = json.dumps(state)
+  return render_to_response("dashboard.html", context)
+
 def getPermissions(user):
   """Return [change, delete] based on authorisation model and user privileges/groups"""
   if user and not user.is_authenticated():
@@ -189,6 +236,25 @@ def save(request, name):
   return json_response( dict(success=True) )
 
 
+def save_template(request, name, key):
+  if 'change' not in getPermissions(request.user):
+    return json_response( dict(error="Must be logged in with appropriate permissions to save the template") )
+  # Deserialize and reserialize as a validation step
+  state = str( json.dumps( json.loads( request.POST['state'] ) ) )
+
+  try:
+    template = Template.objects.get(name=name)
+  except Template.DoesNotExist:
+    template = Template.objects.create(name=name)
+    template.setState(state)
+    template.save()
+  else:
+    template.setState(state, key)
+    template.save();
+
+  return json_response( dict(success=True) )
+
+
 def load(request, name):
   try:
     dashboard = Dashboard.objects.get(name=name)
@@ -196,6 +262,17 @@ def load(request, name):
     return json_response( dict(error="Dashboard '%s' does not exist. " % name) )
 
   return json_response( dict(state=json.loads(dashboard.state)) )
+
+
+def load_template(request, name, val):
+  try:
+    template = Template.objects.get(name=name)
+  except Template.DoesNotExist:
+    return json_response( dict(error="Template '%s' does not exist. " % name) )
+
+  state = json.loads(template.loadState(val))
+  state['name'] = '%s/%s' % (name, val)
+  return json_response( dict(state=state) )
 
 
 def delete(request, name):
@@ -208,6 +285,19 @@ def delete(request, name):
     return json_response( dict(error="Dashboard '%s' does not exist. " % name) )
   else:
     dashboard.delete()
+    return json_response( dict(success=True) )
+
+
+def delete_template(request, name):
+  if 'delete' not in getPermissions(request.user):
+    return json_response( dict(error="Must be logged in with appropriate permissions to delete the template") )
+
+  try:
+    template = Template.objects.get(name=name)
+  except Dashboard.DoesNotExist:
+    return json_response( dict(error="Template '%s' does not exist. " % name) )
+  else:
+    template.delete()
     return json_response( dict(success=True) )
 
 
@@ -236,9 +326,33 @@ def find(request):
   return json_response( dict(dashboards=results) )
 
 
+def find_template(request):
+  query = request.REQUEST['query']
+  query_terms = set( query.lower().split() )
+  results = []
+
+  # Find all dashboard names that contain each of our query terms as a substring
+  for template in Template.objects.all():
+    name = template.name.lower()
+
+    found = True # blank queries return everything
+    for term in query_terms:
+      if term in name:
+        found = True
+      else:
+        found = False
+        break
+
+    if found:
+      results.append( dict(name=template.name) )
+
+  return json_response( dict(templates=results) )
+
+
 def help(request):
   context = {}
   return render_to_response("dashboardHelp.html", context)
+
 
 def email(request):
     sender = request.POST['sender']

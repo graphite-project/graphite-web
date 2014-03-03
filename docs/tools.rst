@@ -10,6 +10,11 @@ Bucky
 `Bucky`_ is a small service implemented in Python for collecting and translating metrics for Graphite.
 It can current collect metric data from CollectD daemons and from StatsD clients.
 
+Cabot
+-----
+`Cabot`_ is a self-hosted monitoring and alerting server that watches Graphite metrics and can alert 
+on them by phone, SMS, Hipchat or email. It is designed to be deployed to cloud or physical hardware in 
+minutes and configured via web interface.
 
 collectd
 --------
@@ -301,6 +306,7 @@ annotated events, etc). Supports Graphite, flot, rickshaw and anthracite.
 .. _Backbone.js: http://documentcloud.github.com/backbone/
 .. _Backstop: https://github.com/obfuscurity/backstop
 .. _Bucky: http://pypi.python.org/pypi/bucky
+.. _Cabot: https://github.com/arachnys/cabot
 .. _Charcoal: https://github.com/cebailey59/charcoal
 .. _collectd: http://collectd.org/
 .. _collectd-carbon: https://github.com/indygreg/collectd-carbon
