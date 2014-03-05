@@ -157,7 +157,7 @@ class Graph:
     if self.logBase:
       if self.logBase == 'e':
         self.logBase = math.e
-      elif self.logBase <= 0:
+      elif self.logBase < 1:
         self.logBase = None
         params['logBase'] = None
       else:
