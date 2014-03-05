@@ -130,13 +130,13 @@ def fetchData(requestContext, pathExpr):
       for series in empty_duplicates:
         seriesList.remove(series)
 
-    return seriesList
+    return sorted(seriesList, key=lambda x: x.name)
   
   retries = 1 # start counting at one to make log output and settings more readable
   while True:
     try:
       seriesList = _fetchData(pathExpr,startTime, endTime, requestContext, seriesList)
-      return seriesList
+      return sorted(seriesList, key=lambda x: x.name)
     except Exception, e:
       if retries >= settings.MAX_FETCH_RETRIES:
         log.exception("Failed after %i retry! See: %s" % (settings.MAX_FETCH_RETRIES, e))
