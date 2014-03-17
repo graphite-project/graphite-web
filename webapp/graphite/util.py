@@ -216,7 +216,7 @@ def build_index(base_path, extension, fd):
   contents = os.walk(base_path, followlinks=True)
   extension_len = len(extension)
   for (dirpath, dirnames, filenames) in contents:
-    path = dirpath[len(base_path):].replace('/', '.')
+    path = dirpath[len(base_path):].replace('/', '.').lstrip('.')
     for metric in filenames:
       if metric.endswith(extension):
         metric = metric[:-extension_len]
