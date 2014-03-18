@@ -25,8 +25,9 @@ class TestLogger(unittest.TestCase):
         """ Testing writing to a log file. """
         message = 'Test Info Message'
         log.info(message)
-        lines = [l for l in open(os.path.join(settings.LOG_DIR, 'info.log'))]
-        self.assertEqual(message, lines[0].split('::')[1].strip())
+        lines = [l for l in open(os.path.join(settings.LOG_DIR,
+                 'info.log')).readlines()]
+        self.assertEqual(message, lines[-1].split('::')[1].strip())
 
     def test_metric_log(self):
         """ Test writing to a not configured logger. """
