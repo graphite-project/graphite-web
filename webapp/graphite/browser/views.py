@@ -14,9 +14,9 @@ limitations under the License."""
 
 import re
 from django.shortcuts import render_to_response
-from django.http import HttpResponse
 from django.conf import settings
 from graphite.account.models import Profile
+from graphite.compat import HttpResponse
 from graphite.util import getProfile, getProfileByUsername, json
 from graphite.logger import log
 from hashlib import md5
@@ -74,7 +74,7 @@ def search(request):
 
   index_file.close()
   result_string = ','.join(results)
-  return HttpResponse(result_string, mimetype='text/plain')
+  return HttpResponse(result_string, content_type='text/plain')
 
 
 def myGraphLookup(request):
@@ -251,9 +251,10 @@ def json_response(nodes, request=None):
   #json = str(nodes) #poor man's json encoder for simple types
   json_data = json.dumps(nodes)
   if jsonp:
-    response = HttpResponse("%s(%s)" % (jsonp, json_data),mimetype="text/javascript")
+    response = HttpResponse("%s(%s)" % (jsonp, json_data),
+                            content_type="text/javascript")
   else:
-    response = HttpResponse(json_data,mimetype="application/json")
+    response = HttpResponse(json_data, content_type="application/json")
   response['Pragma'] = 'no-cache'
   response['Cache-Control'] = 'no-cache'
   return response

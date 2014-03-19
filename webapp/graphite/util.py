@@ -18,7 +18,7 @@ import socket
 import errno
 import time
 import sys
-from os.path import splitext, basename
+from os.path import splitext, basename, relpath
 from shutil import move
 from tempfile import mkstemp
 try:
@@ -216,7 +216,7 @@ def build_index(base_path, extension, fd):
   contents = os.walk(base_path, followlinks=True)
   extension_len = len(extension)
   for (dirpath, dirnames, filenames) in contents:
-    path = dirpath[len(base_path):].replace('/', '.')
+    path = relpath(dirpath, base_path).replace('/', '.')
     for metric in filenames:
       if metric.endswith(extension):
         metric = metric[:-extension_len]

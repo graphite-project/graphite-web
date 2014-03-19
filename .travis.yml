@@ -1,24 +1,23 @@
 language: python
-python:
-  - "2.6"
-  - "2.7"
+python: 2.7
 
 env:
-  - REQUIREMENTS="Django<1.5 django-discover-runner"
-  - REQUIREMENTS="Django<1.6 django-discover-runner"
-  - REQUIREMENTS="Django<1.7"
+  - TOXENV=py26-django14
+  - TOXENV=py26-django15
+  - TOXENV=py26-django16
+  - TOXENV=py27-django14
+  - TOXENV=py27-django15
+  - TOXENV=py27-django16
+  - TOXENV=docs
 
 before_install:
   - sudo apt-get -y install libcairo2-dev
   - mkdir -p storage/log/webapp
   - mkdir -p storage/ceres
   - mkdir -p storage/whisper
-  - cd webapp
 
 install:
-  - pip install https://github.com/graphite-project/ceres/tarball/master
-  - pip install $REQUIREMENTS
-  - pip install whisper django-tagging pytz pyparsing==1.5.7 mock http://cairographics.org/releases/py2cairo-1.8.10.tar.gz
+  - pip install tox
 
 script:
-  - PYTHONPATH=. python manage.py test --settings=tests.settings
+  - tox -e $TOXENV

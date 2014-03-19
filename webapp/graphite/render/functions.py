@@ -1765,19 +1765,6 @@ def sortByMinima(requestContext, seriesList):
   newSeries.sort(compare)
   return newSeries
 
-def sortByName(requestContext, seriesList):
-  """
-  Takes one metric or a wildcard seriesList.
-
-  Sorts the list of metrics by the name.
-
-  """
-  def compare(x,y):
-    return 1 if x.name > y.name else -1
-
-  seriesList.sort(compare)
-  return seriesList
-
 def useSeriesAbove(requestContext, seriesList, value, search, replace):
   """
   Compares the maximum of each series against the given `value`. If the series
@@ -2493,9 +2480,8 @@ def mapSeries(requestContext, seriesList, mapNode):
   Takes a seriesList and maps it to a list of sub-seriesList. Each sub-seriesList has the
   given mapNode in common.
 
-  Example:
+  Example::
 
-  .. code-block:: none
     map(servers.*.cpu.*,1) =>
       [
         servers.server1.cpu.*,
@@ -2523,9 +2509,8 @@ def reduceSeries(requestContext, seriesLists, reduceFunction, reduceNode, *reduc
   reduceMatchers. The each series is then passed to the reduceFunction as arguments in the order
   given by reduceMatchers. The reduceFunction should yield a single series.
 
-  Example:
+  Example::
 
-  .. code-block:: none
     reduce(map(servers.*.disk.*,1),3,"asPercent","bytes_used","total_bytes") =>
 
         asPercent(servers.server1.disk.bytes_used,servers.server1.disk.total_bytes),
@@ -2534,9 +2519,8 @@ def reduceSeries(requestContext, seriesLists, reduceFunction, reduceNode, *reduc
         asPercent(servers.serverN.disk.bytes_used,servers.serverN.disk.total_bytes)
 
   The resulting list of series are aliased so that they can easily be nested in other functions.
-  In the above example, the resulting series names would become:
+  In the above example, the resulting series names would become::
 
-  .. code-block:: none
     servers.server1.disk.reduce.asPercent,
     servers.server2.disk.reduce.asPercent,
     ...
@@ -3099,7 +3083,6 @@ SeriesFunctions = {
   'removeBetweenPercentile' : removeBetweenPercentile,
   'sortByMaxima' : sortByMaxima,
   'sortByMinima' : sortByMinima,
-  'sortByName'  : sortByName,
   'useSeriesAbove': useSeriesAbove,
   'exclude' : exclude,
 

@@ -40,6 +40,12 @@ Changes
   the :doc:`configuration docs <../config-local-settings>` for usage
   instructions.
 
+* `Tox`_ is now used for running the tests locally across the supported Django
+  and Python versions combinations. A :doc:`section about working on
+  graphite-web <../development>` has been added to the documentation.
+
+.. _Tox: https://testrun.org/tox/latest/
+
 New functions
 -------------
 

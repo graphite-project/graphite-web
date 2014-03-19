@@ -6,11 +6,11 @@ from os.path import getmtime
 from urllib import urlencode
 from ConfigParser import ConfigParser
 from django.shortcuts import render_to_response
-from django.http import HttpResponse, QueryDict
+from django.http import QueryDict
 from django.conf import settings
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.staticfiles import finders
-from graphite.util import json, getProfile
+from graphite.compat import HttpResponse
 from graphite.dashboard.models import Dashboard, Template
 from graphite.render.views import renderView
 from send_graph import send_graph_email
@@ -217,7 +217,7 @@ def getPermissions(user):
   if editGroup and len(user.groups.filter(name = editGroup)) == 0:
     permissions = []
   return permissions
-  
+
 
 def save(request, name):
   if 'change' not in getPermissions(request.user):
@@ -397,9 +397,9 @@ def create_temporary(request):
 
 
 def json_response(obj):
-  return HttpResponse(mimetype='application/json', content=json.dumps(obj))
+  return HttpResponse(content_type='application/json', content=json.dumps(obj))
 
-  
+
 def user_login(request):
   response = dict(errors={}, text={}, success=False, permissions=[])
   user = authenticate(username=request.POST['username'],
