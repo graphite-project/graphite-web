@@ -6,9 +6,10 @@ from os.path import getmtime, join, exists
 from urllib import urlencode
 from ConfigParser import ConfigParser
 from django.shortcuts import render_to_response
-from django.http import HttpResponse, QueryDict
+from django.http import QueryDict
 from django.conf import settings
 from django.contrib.auth import login, authenticate, logout
+from graphite.compat import HttpResponse
 from graphite.util import json, getProfile
 from graphite.dashboard.models import Dashboard, Template
 from graphite.render.views import renderView
@@ -396,7 +397,7 @@ def create_temporary(request):
 
 
 def json_response(obj):
-  return HttpResponse(mimetype='application/json', content=json.dumps(obj))
+  return HttpResponse(content_type='application/json', content=json.dumps(obj))
 
   
 def user_login(request):

@@ -131,7 +131,7 @@ Graphite-Observer
 `Graphite-Observer`_ is a real-time monitor dashboard for Graphite.
 
 Graphite PowerShell Functions
------------------
+-----------------------------
 `Graphite PowerShell Functions <https://github.com/MattHodge/Graphite-PowerShell-Functions>`_ are a group of functions that can be used to collect Windows Performance Counters and send them over to the Graphite server. The main function can be run as a Windows service, and everything is configurable via an XML file.
 
 

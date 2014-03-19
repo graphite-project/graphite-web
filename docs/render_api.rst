@@ -345,7 +345,7 @@ rawData
 
 .. deprecated:: 0.9.9
 
-  This option is deprecated in favor of format_
+  This option is deprecated in favor of format
 
 Used to get numerical data out of the webapp instead of an image.
 Can be set to true, false, csv.
@@ -721,7 +721,7 @@ majorGridLineColor
 
 Sets the color of the major grid lines.
 
-See bgcolor for valid color names and formats.
+See bgcolor_ for valid color names and formats.
 
 
 Example:
