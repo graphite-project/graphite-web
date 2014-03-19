@@ -48,6 +48,27 @@ img.graph-img {
   visibility: visible;
 }
 
+div.flot-wrap {
+  visibility: visible;
+  padding: 3px;
+  border-radius:         5px;
+  -moz-border-radius:    5px;
+  -webkit-border-radius: 5px;
+  -khtml-border-radius:  5px;
+}
+
+.graph-over div.flot-wrap {
+  border-radius:         5px;
+  -moz-border-radius:    5px;
+  -webkit-border-radius: 5px;
+  -khtml-border-radius:  5px;
+  background-color: rgb(140, 140, 255);
+}
+
+.graph-over div.flot-img {
+  background-color: rgb(0, 0, 0);
+}
+
 .selectable, .selectable * {
   user-select: text !important;
   -moz-user-select: text !important;

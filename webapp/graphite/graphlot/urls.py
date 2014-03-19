@@ -17,5 +17,7 @@ from django.conf.urls import *
 urlpatterns = patterns('graphite.graphlot.views',
   ('^rawdata/?$', 'get_data'),
   ('^findmetric/?$', 'find_metric'),
+  ('^render/?$', 'graphlot_render_graph'),
+  ('^render/rawdata/?$', 'get_data'),
   ('', 'graphlot_render'),
 )

@@ -140,10 +140,13 @@
                 return {
                     label: incoming_data.name,
                     data: result,
-                    lines: {show: true, fill: false}
+                    lines: {show: true, fill: false, lineWidth: 1}
                 };
             };
 
+            function generate_color(num, len) {
+                return jQuery.Color({ hue: (num/len*360)+200, saturation: 0.85, lightness: 0.45, alpha: 1 }).toHexString( );
+            };
 
             var render = function () {
                 var lines = []
@@ -162,8 +165,7 @@
                 $.extend(xaxismode, xaxisranges);
                 $.extend(yaxismode, yaxisranges);
 
-                plot = $.plot(wrap.find('.g_graph'),
-                    lines,
+		var options = 
                     {
                         xaxis: xaxismode,
                         yaxis: yaxismode,
@@ -172,20 +174,29 @@
                         legend: { show: true, container: wrap.find('.g_legend') },
                         crosshair: { mode: "x" },
                     }
-                );
+
+                options.colors = $.map( lines, function ( o, i ) {
+                        return generate_color(i, lines.length);
+                });
+
+                plot = $.plot(wrap.find('.g_graph'), lines, options);
 
 
                 for (i in lines) {
                     lines[i] = $.extend({}, lines[i]);
                     lines[i].label = null;
                 }
-                var overview = $.plot(wrap.find('.g_overview'),
-                    lines,
-                    {
+
+		options = {
                         xaxis: { mode: "time" },
                         selection: { mode: "x" },
                     }
-                );
+
+                options.colors = $.map( lines, function ( o, i ) {
+                        return generate_color(i, lines.length);
+                });
+
+                var overview = $.plot(wrap.find('.g_overview'), lines, options );
 
                 // legends magic
                 legends = wrap.find(".legendLabel");
