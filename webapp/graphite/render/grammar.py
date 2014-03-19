@@ -95,8 +95,8 @@ pathElement = Combine(
 )
 pathExpression = delimitedList(pathElement, delim='.', combine=True)('pathExpression')
 
-expression << Group(call | pathExpression)('expression')
-grammar << expression
+expression <<= Group(call | pathExpression)('expression')
+grammar <<= expression
 
 
 def enableDebug():

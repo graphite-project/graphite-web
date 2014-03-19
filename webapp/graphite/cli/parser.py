@@ -48,7 +48,7 @@ gpath = Word(alphanums + '._-+*?[]#:')
 fcall = Forward()
 expr = Word( printables.replace('(','').replace(')','').replace(',','') )
 arg = fcall | expr
-fcall << Combine( Word(alphas) + Literal('(') + arg + ZeroOrMore(',' + arg) + Literal(')') )
+fcall <<= Combine( Word(alphas) + Literal('(') + arg + ZeroOrMore(',' + arg) + Literal(')') )
 target = fcall | gpath
 targetList = delimitedList(target).setResultsName('targets')
 _from = Literal('from') + Word(printables).setResultsName('_from')
@@ -127,7 +127,7 @@ logout_cmd = Keyword('logout').setResultsName('command')
 id_cmd = Keyword('id').setResultsName('command')
 whoami_cmd = Keyword('whoami').setResultsName('command')
 
-grammar << ( set_cmd | unset_cmd | add_cmd | remove_cmd | \
+grammar <<= ( set_cmd | unset_cmd | add_cmd | remove_cmd | \
              draw_cmd | echo_cmd | vars_cmd | clear_cmd | \
              create_cmd | code_cmd | redraw_cmd | email_cmd | doemail_cmd | \
              url_cmd | change_cmd | help_cmd | find_cmd | save_cmd | \
