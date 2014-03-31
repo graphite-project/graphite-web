@@ -4,6 +4,7 @@ from mock import patch, call, MagicMock
 
 from graphite.render.datalib import TimeSeries
 from graphite.render import functions
+from graphite.render.functions import NormalizeEmptyResultError
 
 def return_greater(series, value):
     return [i for i in series if i is not None and i > value]
@@ -264,6 +265,12 @@ class FunctionsTest(TestCase):
                 original_value = seriesList[i][counter]
                 expected_value = original_value * multiplier
                 self.assertEqual(value, expected_value)
+
+    def test_normalize_empty(self):
+      try:
+        functions.normalize([])
+      except NormalizeEmptyResultError:
+        pass
 
     def _generate_mr_series(self):
         seriesList = [
