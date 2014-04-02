@@ -58,6 +58,7 @@ def renderView(request):
     'endTime' : requestOptions['endTime'],
     'now': requestOptions['now'],
     'localOnly' : requestOptions['localOnly'],
+    'cacheTimeout' : requestOptions['cacheTimeout'],
     'data' : []
   }
   data = requestContext['data']
