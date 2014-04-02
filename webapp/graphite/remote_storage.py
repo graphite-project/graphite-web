@@ -103,7 +103,7 @@ class RemoteNode:
     self.__isLeaf = isLeaf
 
 
-  def fetch(self, startTime, endTime):
+  def fetch(self, startTime, endTime, requestContext):
     if not self.__isLeaf:
       return []
 
@@ -113,6 +113,9 @@ class RemoteNode:
       ('from', str( int(startTime) )),
       ('until', str( int(endTime) ))
     ]
+    if 'cacheTimeout' in requestContext:
+      query_params.append(('cacheTimeout', str(requestContext['cacheTimeout'])))
+
     query_string = urlencode(query_params)
 
     connection = HTTPConnectionWithTimeout(self.store.host)
