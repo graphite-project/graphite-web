@@ -38,7 +38,14 @@ function createComposerWindow(myComposer) {
   //Can't define this inline because I need a reference in a closure below
   var timeDisplay = new Ext.Toolbar.TextItem({text: "Now showing the past 24 hours"});
 
+  // Adding a text-link to the end of the toolbar 
+  var domain = document.domain;
+  var protocol = ((location.protocol === 'https:') ? "https" : "http");
+  var linkDisplay = new Ext.Toolbar.TextItem({text: "<a target=\"_top\" href=\""+protocol+"://"+domain+"/?" + Composer.url.queryString + "\">Link</a>"});
+
   var topToolbar = [
+    createToolbarButton('Reset Graph', 'eraser.png', resetGraph),
+    '-',
     createToolbarButton('Update Graph', 'updateGraph.gif', updateGraph),
     '-',
     createToolbarButton('Select a Date Range', 'calBt.gif', toggleWindow(createCalendarWindow) ),
@@ -46,7 +53,9 @@ function createComposerWindow(myComposer) {
     createToolbarButton('Open in GraphPlot', 'line_chart.png', function() { window.open('/graphlot/?' + Composer.url.queryString,'_blank') }),
     createToolbarButton('Create from URL', 'link.png', toggleWindow(createURLWindow) ),
     '-',
-    timeDisplay
+    timeDisplay,
+    '-',
+    linkDisplay
   ];
   if (GraphiteConfig.showMyGraphs) {
     var saveButton = createToolbarButton('Save to My Graphs', 'save.gif', saveMyGraph);
@@ -90,6 +99,10 @@ function createComposerWindow(myComposer) {
       text = "Now showing the past " + time.quantity + " " + time.units;
     }
     timeDisplay.getEl().dom.innerHTML = text;
+  };
+
+  win.updateLinkDisplay = function (text) {
+    linkDisplay.getEl().dom.innerHTML = "<a target=\"_top\" href=\""+protocol+"://"+domain+"/?" + text + "\">Link</a>";
   };
 
   win.updateUI = function () {
