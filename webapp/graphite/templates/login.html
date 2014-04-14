@@ -1,3 +1,4 @@
+
 <!-- Copyright 2008 Orbitz WorldWide
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,32 +12,225 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. -->
+<html>
+  <head>
+    <title>Login</title>
+    <!-- taken from http://www.adam-bray.com/blog/98/Easy+HTML+5+and+CSS+3+Login+Form+with+HTML+Validation+Rules/-->
+    <style type="text/css">
+* {
+	margin: 0;
+	padding: 0;
+	outline: none;
+	
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+}
+
+body {
+	background: #eee;
+	color: #444;
+	-webkit-font-smoothing: antialiased;
+	font-family: "Open Sans", Arial, Helvetica, Geneva, sans-serif;
+	font-size: 16px;
+	font-weight: 400;
+	height: auto !important;
+	height: 100%;
+	line-height: 1.6em;
+	min-height: 100%;
+}
+
+h2 {
+	color: rgb(34,34,34);
+	font-size: 2.2em;	
+	font-weight: 200;
+	margin: 0 0 24px 0;
+}
+
+/*BUTTON DESIGN*/
+[class*='btn-'] {
+	border: none;
+	border-bottom: 2px solid rgba(0,0,0,.15);
+	border-top: 1px solid rgba(255,255,255,.15);
+	border-radius: 3px;
+	color: #fff;
+	display: inline-block;
+	font: -webkit-small-control;
+	font-size: .7em;
+	letter-spacing: 1px;
+	line-height: 140%;
+	padding: 10px 20px;
+	text-decoration: none;
+	text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25);
+	text-transform: uppercase;
+	
+	-webkit-transition: all 0.1s linear;
+	-moz-transition: all 0.1s linear;
+	-o-transition: all 0.1s linear;
+	  transition: all 0.1s linear;
+}
+
+	.btn-minimal {
+		background-color: rgb(255,255,255);
+		border-radius: 0;
+		border: 1px solid rgb( 186, 186, 186 );
+		color: rgb( 186, 186, 186 );
+		text-shadow: 0 1px 1px rgba(255, 255, 255, 1);
+	}
+	
+		.btn-minimal:hover {
+			background-color: #4195fc;
+			border: 1px solid rgba(0,0,0,.1);
+			color: rgb(255,255,255);
+			cursor: pointer;
+			text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25);
+		}
+		
+		.btn-minimal:active {
+			box-shadow: 0 1px 1px rgba(0,0,0,0.15) inset;
+			text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.25);
+		}
+
+/*SECTION CONTAINER*/
+section#loginBox {
+	background-color: rgb(255,255,255);
+	border: 1px solid rgba(0,0,0,.15);
+	border-radius: 4px;
+	box-shadow: 0 1px 0 rgba(255,255,255,0.2) inset, 0 0 4px rgba(0,0,0,0.2);
+	margin: 40px auto; /*aligns center*/
+	padding: 24px;
+	height: 300px;
+	width: 500px;
+	margin: -200px 0 0 -250px;
+	left: 50%;
+	top: 50%;
+	position: absolute;
+}
+
+/*FORM*/
+form.minimal label {
+	display: block;
+	margin: 6px 0;	
+	font-weight:bold;
+}
+
+	form.minimal input[type="text"],
+	form.minimal input[type="email"],
+	form.minimal input[type="number"],
+	form.minimal input[type="search"],
+	form.minimal input[type="password"],
+	form.minimal textarea {
+		background-color: rgb(255,255,255);
+		border: 1px solid rgb( 186, 186, 186 );
+		border-radius: 2px;
+		-webkit-box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08);
+		-moz-box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08);
+		  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08);
+		display: block;
+		font-size: 14px;
+		margin: 6px 0 12px 0;
+		padding: 8px;	
+		text-shadow: 0 1px 1px rgba(255, 255, 255, 1);
+		width: 90%;
+		
+		-webkit-transition: all 0.1s linear;
+		-moz-transition: all 0.1s linear;
+		-o-transition: all 0.1s linear;
+		  transition: all 0.1s linear;
+	}
+	
+	form.minimal input[type="text"]:focus,
+	form.minimal input[type="email"]:focus,
+	form.minimal input[type="number"]:focus,
+	form.minimal input[type="search"]:focus,
+	form.minimal input[type="password"]:focus,
+	form.minimal textarea:focus,
+	form.minimal select:focus { 
+		border-color: #4195fc;
+		-webkit-box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1), 0 0 8px #4195fc;
+		-moz-box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1), 0 0 8px #4195fc;
+		box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1), 0 0 8px #4195fc;
+		color: rgb(0,0,0);
+	}
+	
+		form.minimal input[type="text"]:invalid:focus,
+		form.minimal input[type="email"]:invalid:focus,
+		form.minimal input[type="number"]:invalid:focus,
+		form.minimal input[type="search"]:invalid:focus,
+		form.minimal input[type="password"]:invalid:focus,
+		form.minimal textarea:invalid:focus,
+		form.minimal select:invalid:focus { 
+			border-color: rgb(248,66,66);
+			-webkit-box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1), 0 0 8px rgb(248,66,66);
+			-moz-box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1), 0 0 8px rgb(248,66,66);
+			  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1), 0 0 8px rgb(248,66,66);
+		}
+
+
+.alert-box {
+    color:#555;
+    border-radius:10px;
+    padding:10px 10px 10px 36px;
+    margin:10px;
+    width: 800px;
+    margin: 0 0 0 -400px;
+    left: 50%;
+    top: 10%;
+    position:absolute;
+
+}
+.alert-box span {
+    font-weight:bold;
+    text-transform:uppercase;
+}
+.error {
+    background:#ffecec url('/content/img/login_error.png') no-repeat 10px 50%;
+    border:1px solid #f5aca6;
+}
+.success {
+    background:#e9ffd9 url('/content/img/login_success.png') no-repeat 10px 50%;
+    border:1px solid #a6ca8a;
+}
+.warning {
+    background:#fff8c4 url('/content/img/login_warning.png') no-repeat 10px 50%;
+    border:1px solid #f2c779;
+}
+.notice {
+    background:#e3f7fc url('/content/img/login_notice.png') no-repeat 10px 50%;
+    border:1px solid #8ed9f6;
+}			
+    </style>
+  </head>
+
 <body onload="document.forms[0].username.focus();">
 
-<center>
-
 {% if authenticationFailed %}
-<div style='color: red'>
-<h3>Authentication attempt failed, please make sure you entered your login and password correctly<br>
-</h3>
-</div>
+<div class="alert-box error"><span>error: </span>Authentication attempt failed, please make sure you entered your login and password correctly</div>
 {% endif %}
 
 {% if accountDisabled %}
-<div class='color: red'>
-<h3>Your account is <b>disabled</b>, please contact your site administrator.</h3>
-</div>
+<div class="alert-box notice"><span>notice: </span>Your account is <b>disabled</b>, please contact your site administrator.</div>
 {% endif %}
 
-<form method='POST' action='/account/login/'>
-{% if nextPage %}
-<input type='hidden' name='nextPage' value='{{nextPage}}'/>
-{% endif %}
- <table>
-  <tr> <th colspan='2'>login</th> </tr>
-  <tr> <td align='left'>username</td> <td align='left'><input type='text' name='username' class='textInput'></td> </tr>
-  <tr> <td align='left'>password</td> <td align='left'><input type='password' name='password' class='textInput'></td> </tr>
-  <tr> <td colspan='2' align='center'> <input type='submit' class='buttonInput' value='login'> </td> </tr>
- </table>
-</form>
-</center>
+
+
+<section id="loginBox">
+	<h2>Graphite Login</h2>
+	<form method="post" action='/account/login/' class="minimal">
+	{% if nextPage %}
+		<input type='hidden' name='nextPage' value='{{nextPage}}'/>
+	{% endif %}
+
+		<label for="username">
+			Username:
+			<input type="text" name="username" id="username"  required="required" />
+		</label>
+		<label for="password">
+			Password:
+			<input type="password" name="password" id="password" required="required" />
+		</label>
+		<button type="submit" class="btn-minimal">Sign in</button>
+	</form>
+</section>
+</body>
+</html>

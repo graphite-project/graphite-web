@@ -3230,6 +3230,7 @@ function logout() {
       userName = null;
       permissions = permissionsUnauthenticated;
       postLoginMenuAdjust();
+      window.location.reload();
     },
     failure: function() {
       // Probably because they no longer have a valid session - assume they're now logged out

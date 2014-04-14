@@ -94,6 +94,10 @@ LDAP_BASE_PASS = "" # "my_password"
 LDAP_USER_QUERY = "" # "(username=%s)"  For Active Directory use "(sAMAccountName=%s)"
 LDAP_URI = None
 
+
+#Set this to True to enable a full authenticated site
+GENERIC_LOGIN_REQUIRED = False
+
 #Set this to True to delegate authentication to the web server
 USE_REMOTE_USER_AUTHENTICATION = False
 
@@ -199,6 +203,14 @@ if MEMCACHE_HOSTS:
 # Authentication shortcuts
 if USE_LDAP_AUTH and LDAP_URI is None:
   LDAP_URI = "ldap://%s:%d/" % (LDAP_SERVER, LDAP_PORT)
+
+LOGIN_EXEMPT_URLS = (
+ r'^render',
+ r'^metrics/find'
+)
+
+if GENERIC_LOGIN_REQUIRED:
+  MIDDLEWARE_CLASSES += ('graphite.account.LoginRequired.LoginRequired',)
 
 if USE_REMOTE_USER_AUTHENTICATION:
   MIDDLEWARE_CLASSES += ('django.contrib.auth.middleware.RemoteUserMiddleware',)

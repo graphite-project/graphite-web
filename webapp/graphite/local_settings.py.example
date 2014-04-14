@@ -127,6 +127,9 @@
 #ldap.set_option(ldap.OPT_DEBUG_LEVEL, 65535) # To enable verbose debugging
 # See http://www.python-ldap.org/ for further details on these options.
 
+#uncoment this if you want always to check for a valid and autenticated user on all graphite project
+#GENERIC_LOGIN_REQUIRED = True
+
 ## REMOTE_USER authentication. See: https://docs.djangoproject.com/en/dev/howto/auth-remote-user/
 #USE_REMOTE_USER_AUTHENTICATION = True
 
