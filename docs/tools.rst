@@ -152,9 +152,9 @@ Visualization
 
 `Graph-Explorer`_
   a graphite dashboard which uses plugins to add tags and metadata
-to metrics and a query language with lets you filter through them and
-compose/manipulate graphs on the fly. Also aims for high interactivity using
-`TimeseriesWidget`_ and minimal hassle to set up and get running.
+  to metrics and a query language with lets you filter through them and
+  compose/manipulate graphs on the fly. Also aims for high interactivity using
+  `TimeseriesWidget`_ and minimal hassle to set up and get running.
 
 `Graph-Index`_
   is index of graphs for `Diamond`_
