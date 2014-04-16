@@ -43,6 +43,9 @@ WHISPER_DIR = ''
 RRD_DIR = ''
 STANDARD_DIRS = []
 
+# Define auto_refresh interval in the Graphite Composer
+AUTO_REFRESH_INTERVAL = 60
+
 CLUSTER_SERVERS = []
 
 # Cluster settings

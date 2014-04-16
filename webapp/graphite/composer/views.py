@@ -40,6 +40,7 @@ def composer(request):
     'profile' : profile,
     'showMyGraphs' : int( profile.user.username != 'default' ),
     'searchEnabled' : int( os.access(settings.INDEX_FILE, os.R_OK) ),
+    'refreshInterval': settings.AUTO_REFRESH_INTERVAL,
     'debug' : settings.DEBUG,
     'jsdebug' : settings.DEBUG,
   }
