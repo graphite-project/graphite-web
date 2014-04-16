@@ -209,3 +209,8 @@ if USE_LDAP_AUTH:
 
 if SECRET_KEY == 'UNSAFE_DEFAULT':
   warn('SECRET_KEY is set to an unsafe default. This should be set in local_settings.py for better security')
+
+# CORS support
+if CORS_ENABLED:
+  MIDDLEWARE_CLASSES += ('corsheaders.middleware.CorsMiddleware',)
+  INSTALLED_APPS += ('corsheaders',)

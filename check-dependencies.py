@@ -163,6 +163,14 @@ except ImportError:
   optional += 1
 
 
+# Test for django-cors-headers
+try:
+  import corsheaders
+except ImportError:
+  sys.stderr.write("[OPTIONAL] Unable to import the 'django-cors-headers' module, this is required for handling CORS requests.\n")
+  optional += 1
+
+
 if optional:
   sys.stderr.write("%d optional dependencies not met. Please consider the optional items before proceeding.\n" % optional)
 else:

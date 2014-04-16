@@ -41,6 +41,7 @@ python-memcached==1.47
 txAMQP==0.4
 simplejson==2.1.6
 django-tagging==0.3.1
+django-cors-headers
 gunicorn
 pytz
 pyparsing==1.5.7

@@ -244,6 +244,53 @@
 # How often should render.datalib.fetch() retry to get remote data
 # MAX_FETCH_RETRIES = 2
 
+###########################################################################################
+# CORS Settings (Please refer to https://github.com/ottoyiu/django-cors-headers for help) #
+###########################################################################################
+# Enable CORS handling
+#CORS_ENABLED = True
+
+# If True, the whitelist will not be used and all origins will be accepted
+#CORS_ORIGIN_ALLOW_ALL = True
+
+# Specify whether or not cookies are allowed to be included in cross-site HTTP requests
+#CORS_ALLOW_CREDENTIALS = True
+
+# Specify a list of origin hostnames that are authorized to make a cross-site HTTP request; set to None to allow access to anyone
+#CORS_ORIGIN_WHITELIST = ( 'google.com', 'hostname.example.com' )
+
+# Specify a regex list of origin hostnames that are authorized to make a cross-site HTTP request; Useful when you have a large amount of subdomains for instance.
+#CORS_ORIGIN_REGEX_WHITELIST = ('^http?://(\w+\.)?google\.com$', )
+
+# Specify a URL regex for which to enable the sending of CORS headers; Useful when you only want to enable CORS for specific URLs, e. g. for a render handler under /render
+#CORS_URLS_REGEX = r'^/render.*$'
+
+# Specify the allowed HTTP methods that can be used when making the actual request
+#CORS_ALLOW_METHODS = (
+#        'GET',
+#        'POST',
+#        'PUT',
+#        'PATCH',
+#        'DELETE',
+#        'OPTIONS'
+#    )
+
+# Specify which non-standard HTTP headers can be used when making the actual request
+#CORS_ALLOW_HEADERS = (
+#        'x-requested-with',
+#        'content-type',
+#        'accept',
+#        'origin',
+#        'authorization',
+#        'x-csrftoken'
+#    )
+
+# Specify which HTTP headers are to be exposed to the browser
+#CORS_EXPOSE_HEADERS = ()
+
+# Specify the number of seconds a client/browser can cache the preflight response
+#CORS_PREFLIGHT_MAX_AGE = 86400
+
 #####################################
 # Additional Django Settings #
 #####################################
