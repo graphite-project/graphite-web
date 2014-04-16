@@ -130,6 +130,9 @@ DATABASES = {
 # If using rrdcached, set to the address or socket of the daemon
 FLUSHRRDCACHED = ''
 
+# If CORS support required set it to True
+CORS_ENABLED = False
+
 ## Load our local_settings
 try:
   from graphite.local_settings import *
