@@ -206,7 +206,7 @@ if USE_LDAP_AUTH and LDAP_URI is None:
 
 LOGIN_EXEMPT_URLS = (
  r'^render',
- r'^metrics/find'
+ r'^metrics/'
 )
 
 if GENERIC_LOGIN_REQUIRED:
