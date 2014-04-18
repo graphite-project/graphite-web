@@ -23,10 +23,6 @@ for subdir in ('whisper', 'ceres', 'rrd', 'log', 'log/webapp'):
 setup(
   name='graphite-util',
   version='0.10.0-alpha',
-  url='https://github.com/edin1/graphite',
-  # author='edin1',
-  # author_email='edin1.business@gmail.com',
-  license='Apache Software License 2.0',
   description='Some utilities extracted from graphite-web',
   package_dir={'' : 'webapp'},
   packages=[
