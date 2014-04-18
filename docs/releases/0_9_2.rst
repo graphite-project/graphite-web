@@ -1,8 +1,0 @@
-0.9.2
-=====
-
-I've received a bunch of great bug reports and feedback on the 0.9 release and have resolved lots of
-minor issues this week as a result. So please try out the new 0.9.2 release on the downloads page
-and keep the bug reports coming!
-
-\- ChrisMD
