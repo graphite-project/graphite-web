@@ -1,8 +1,9 @@
 import pytz
+from graphite import settings
+from graphite.query.evaluator import evaluateTarget
+from graphite.query.attime import parseATTime
 
 def query(params):
-    from graphite import settings
-    from graphite.query.evaluator import evaluateTarget
     if 'maxDataPoints' in params and params['maxDataPoints'].isdigit():
         params['maxDataPoints'] = int(params['maxDataPoints'])
 
@@ -34,4 +35,4 @@ def query(params):
     for target in params['target']:
         data.extend(evaluateTarget(params, target))
 
-    params['data'] = data
+    return data
