@@ -17,7 +17,7 @@ import time
 from graphite.logger import log
 from graphite.storage import STORE
 from graphite.readers import FetchInProgress
-from django.conf import settings
+from graphite import settings
 
 class TimeSeries(list):
   def __init__(self, name, start, end, step, values, consolidate='average'):

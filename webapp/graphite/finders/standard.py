@@ -1,6 +1,6 @@
 import os
 from os.path import isdir, isfile, join, basename
-from django.conf import settings
+from graphite import settings
 
 from graphite.logger import log
 from graphite.node import BranchNode, LeafNode

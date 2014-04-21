@@ -31,17 +31,17 @@ from graphite.compat import HttpResponse
 from graphite.util import getProfileByUsername, json, unpickle
 from graphite.remote_storage import HTTPConnectionWithTimeout
 from graphite.logger import log
-from graphite.render.evaluator import evaluateTarget
-from graphite.render.attime import parseATTime
-from graphite.render.functions import PieFunctions
-from graphite.render.hashing import hashRequest, hashData
-from graphite.render.glyph import GraphTypes
+from graphite.query.evaluator import evaluateTarget
+from graphite.query.attime import parseATTime
+from graphite.query.functions import PieFunctions
+from graphite.query.hashing import hashRequest, hashData
+from graphite.query.glyph import GraphTypes
 
 from django.http import HttpResponseServerError, HttpResponseRedirect
 from django.template import Context, loader
 from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
-from django.conf import settings
+from graphite import settings
 
 
 def renderView(request):
@@ -362,7 +362,7 @@ def renderLocalView(request):
     log.rendering("Delegated rendering request took %.6f seconds" % (time() -  start))
     return buildResponse(image)
   except:
-    log.exception("Exception in graphite.render.views.rawrender")
+    log.exception("Exception in graphite.query.views.rawrender")
     return HttpResponseServerError()
 
 

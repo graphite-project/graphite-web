@@ -136,9 +136,6 @@ try:
 except ImportError:
   print >> sys.stderr, "Could not import graphite.local_settings, using defaults!"
 
-## Load Django settings if they werent picked up in local_settings
-if not GRAPHITE_WEB_APP_SETTINGS_LOADED:
-  from graphite.app_settings import *
 
 ## Set config dependent on flags set in local_settings
 # Path configuration

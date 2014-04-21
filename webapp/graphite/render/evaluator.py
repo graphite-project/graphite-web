@@ -1,8 +1,8 @@
 import datetime
 import time
-from django.conf import settings
-from graphite.render.grammar import grammar
-from graphite.render.datalib import fetchData, TimeSeries
+from graphite import settings
+from graphite.query.grammar import grammar
+from graphite.query.datalib import fetchData, TimeSeries
 
 
 def evaluateTarget(requestContext, target):
@@ -46,4 +46,4 @@ def evaluateTokens(requestContext, tokens):
 
 
 #Avoid import circularities
-from graphite.render.functions import SeriesFunctions
+from graphite.query.functions import SeriesFunctions

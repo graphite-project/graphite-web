@@ -4,8 +4,7 @@ import httplib
 import sys
 from urllib import urlencode
 from threading import Lock, Event
-from django.conf import settings
-from django.core.cache import cache
+from graphite import settings
 from graphite.node import LeafNode, BranchNode
 from graphite.readers import FetchInProgress
 from graphite.logger import log

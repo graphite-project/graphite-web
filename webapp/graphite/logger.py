@@ -27,7 +27,8 @@ try:
     from logging import FileHandler
 except ImportError as ie:  # py2.6
     from logging.handlers import FileHandler
-from django.conf import settings
+
+from graphite import settings
 
 logging.addLevelName(30,"rendering")
 logging.addLevelName(30,"cache")

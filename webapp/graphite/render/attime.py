@@ -14,7 +14,7 @@ limitations under the License."""
 
 from datetime import datetime,timedelta
 from time import daylight
-from django.conf import settings
+from graphite import settings
 
 import pytz
 

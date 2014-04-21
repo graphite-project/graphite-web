@@ -22,7 +22,7 @@ import random
 import time
 
 from graphite.logger import log
-from graphite.render.attime import parseTimeOffset
+from graphite.query.attime import parseTimeOffset
 
 from graphite.events import models
 
@@ -31,8 +31,8 @@ from os import environ
 if environ.get('READTHEDOCS'):
   format_units = lambda *args, **kwargs: (0,'')
 else:
-  from graphite.render.glyph import format_units
-  from graphite.render.datalib import TimeSeries
+  from graphite.query.glyph import format_units
+  from graphite.query.datalib import TimeSeries
   from graphite.util import timestamp
 
 NAN = float('NaN')
@@ -833,7 +833,7 @@ def cumulative(requestContext, seriesList, consolidationFunc='sum'):
 
   Sets the consolidation function to 'sum' for the given metric seriesList.
 
-  Alias for :func:`consolidateBy(series, 'sum') <graphite.render.functions.consolidateBy>`
+  Alias for :func:`consolidateBy(series, 'sum') <graphite.query.functions.consolidateBy>`
 
   .. code-block:: none
 
@@ -2314,7 +2314,7 @@ def aggregateLine(requestContext, seriesList, func='avg'):
   Draws a horizontal line based the function applied to the series.
 
 
-  Note: By default, the graphite renderer consolidates data points by
+  Note: By default, the graphite.queryer consolidates data points by
   averaging data points over time. If you are using the 'min' or 'max'
   function for aggregateLine, this can cause an unusual gap in the
   line drawn by this function and the data itself. To fix this, you
@@ -3137,4 +3137,4 @@ SeriesFunctions = {
 
 #Avoid import circularity
 if not environ.get('READTHEDOCS'):
-  from graphite.render.evaluator import evaluateTarget
+  from graphite.query.evaluator import evaluateTarget

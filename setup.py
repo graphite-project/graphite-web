@@ -26,10 +26,9 @@ setup(
   description='Some utilities extracted from graphite-web',
   package_dir={'' : 'webapp'},
   packages=[
-    'django',
     'graphite',
     'graphite.finders',
-    'graphite.render',
+    'graphite.query',
   ],
   package_data={'graphite' :
     ['local_settings.py.example']},

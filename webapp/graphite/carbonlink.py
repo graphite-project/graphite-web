@@ -5,8 +5,8 @@ import errno
 import random
 import sys
 from select import select
-from django.conf import settings
-from graphite.render.hashing import ConsistentHashRing
+from graphite import settings
+from graphite.query.hashing import ConsistentHashRing
 from graphite.logger import log
 from graphite.util import load_module, unpickle
 

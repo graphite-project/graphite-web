@@ -4,7 +4,7 @@ import os.path
 
 from glob import glob
 from ceres import CeresTree, CeresNode
-from django.conf import settings
+from graphite import settings
 from graphite.node import BranchNode, LeafNode
 from graphite.readers import CeresReader
 
