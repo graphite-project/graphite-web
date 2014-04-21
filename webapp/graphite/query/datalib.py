@@ -96,7 +96,7 @@ def fetchData(requestContext, pathExpr):
   endTime   = int( time.mktime( requestContext['endTime'].timetuple() ) )
 
   def _fetchData(pathExpr,startTime, endTime, requestContext, seriesList):
-    matching_nodes = STORE.find(pathExpr, startTime, endTime, local=requestContext['localOnly'])
+    matching_nodes = STORE.find(pathExpr, startTime, endTime)
     fetches = [(node, node.fetch(startTime, endTime)) for node in matching_nodes if node.is_leaf]
 
     for node, results in fetches:
