@@ -14,7 +14,6 @@
 
 
 from datetime import date, datetime, timedelta
-from functools import partial
 from itertools import izip, imap
 import math
 import re
@@ -23,8 +22,6 @@ import time
 
 from graphite.logger import log
 from graphite.query.attime import parseTimeOffset
-
-from graphite.events import models
 
 #XXX format_units() should go somewhere else
 from os import environ
@@ -2949,54 +2946,6 @@ def randomWalkFunction(requestContext, name):
             int(time.mktime(requestContext["endTime"].timetuple())),
             step, values)]
 
-def events(requestContext, *tags):
-  """
-  Returns the number of events at this point in time. Usable with
-  drawAsInfinite.
-
-  Example:
-
-  .. code-block:: none
-
-    &target=events("tag-one", "tag-two")
-    &target=events("*")
-
-  Returns all events tagged as "tag-one" and "tag-two" and the second one
-  returns all events.
-  """
-  def to_epoch(datetime_object):
-    return int(time.mktime(datetime_object.timetuple()))
-
-  step = 1
-  name = "events(" + ", ".join(tags) + ")"
-  if tags == ("*",):
-    tags = None
-
-  # Django returns database timestamps in timezone-ignorant datetime objects
-  # so we use epoch seconds and do the conversion ourselves
-  start_timestamp = to_epoch(requestContext["startTime"])
-  start_timestamp = start_timestamp - start_timestamp % step
-  end_timestamp = to_epoch(requestContext["endTime"])
-  end_timestamp = end_timestamp - end_timestamp % step
-  points = (end_timestamp - start_timestamp)/step
-
-  events = models.Event.find_events(datetime.fromtimestamp(start_timestamp),
-                                    datetime.fromtimestamp(end_timestamp),
-                                    tags=tags)
-
-  values = [None] * points
-  for event in events:
-    event_timestamp = to_epoch(event.when)
-    value_offset = (event_timestamp - start_timestamp)/step
-    if values[value_offset] is None:
-      values[value_offset] = 1
-    else:
-      values[value_offset] += 1
-
-  result_series = TimeSeries(name, start_timestamp, end_timestamp, step, values, 'sum')
-  result_series.pathExpression = name
-  return [result_series]
-
 def pieAverage(requestContext, series):
   return safeDiv(safeSum(series),safeLen(series))
 
@@ -3129,9 +3078,6 @@ SeriesFunctions = {
   'timeFunction': timeFunction,
   "sinFunction": sinFunction,
   "randomWalkFunction": randomWalkFunction,
-
-  #events
-  'events': events,
 }
 
 
