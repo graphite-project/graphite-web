@@ -23,14 +23,56 @@ import time
 from graphite.logger import log
 from graphite.query.attime import parseTimeOffset
 
-#XXX format_units() should go somewhere else
+UnitSystems = {
+  'binary': (
+    ('Pi', 1024.0**5),
+    ('Ti', 1024.0**4),
+    ('Gi', 1024.0**3),
+    ('Mi', 1024.0**2),
+    ('Ki', 1024.0   )),
+  'si': (
+    ('P', 1000.0**5),
+    ('T', 1000.0**4),
+    ('G', 1000.0**3),
+    ('M', 1000.0**2),
+    ('K', 1000.0   )),
+  'none' : [],
+}
+
+def format_units(v, step=None, system="si"):
+  """Format the given value in standardized units.
+
+  ``system`` is either 'binary' or 'si'
+
+  For more info, see:
+    http://en.wikipedia.org/wiki/SI_prefix
+    http://en.wikipedia.org/wiki/Binary_prefix
+  """
+
+  if step is None:
+    condition = lambda size: abs(v) >= size
+  else:
+    condition = lambda size: abs(v) >= size and step >= size
+
+  for prefix, size in UnitSystems[system]:
+    if condition(size):
+      v2 = v / size
+      if (v2 - math.floor(v2)) < 0.00000000001 and v > 1:
+        v2 = math.floor(v2)
+      return v2, prefix
+
+  if (v - math.floor(v)) < 0.00000000001 and v > 1 :
+    v = math.floor(v)
+  return v, ""
+
+
 from os import environ
 if environ.get('READTHEDOCS'):
   format_units = lambda *args, **kwargs: (0,'')
 else:
-  from graphite.query.glyph import format_units
   from graphite.query.datalib import TimeSeries
   from graphite.util import timestamp
+
 
 NAN = float('NaN')
 INF = float('inf')
