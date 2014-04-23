@@ -30,10 +30,10 @@ except ImportError as ie:  # py2.6
 
 from graphite import settings
 
-logging.addLevelName(30,"rendering")
 logging.addLevelName(30,"cache")
 logging.addLevelName(30,"metric_access")
 
+# TO-DO: removed unused code
 class GraphiteLogger:
   def __init__(self):
     self.infoLogger = self._config_logger('info.log',
@@ -49,10 +49,6 @@ class GraphiteLogger:
                                            'cache',
                                            settings.LOG_CACHE_PERFORMANCE,
                                            )
-    self.renderingLogger = self._config_logger('rendering.log',
-                                               'rendering',
-                                               settings.LOG_RENDERING_PERFORMANCE,
-                                               )
     self.metricAccessLogger = self._config_logger('metricaccess.log',
                                                   'metric_access',
                                                   settings.LOG_METRIC_ACCESS,
@@ -85,9 +81,6 @@ class GraphiteLogger:
 
   def cache(self,msg,*args,**kwargs):
     return self.cacheLogger.log(30,msg,*args,**kwargs)
-
-  def rendering(self,msg,*args,**kwargs):
-    return self.renderingLogger.log(30,msg,*args,**kwargs)
 
   def metric_access(self,msg,*args,**kwargs):
     return self.metricAccessLogger.log(30,msg,*args,**kwargs)
