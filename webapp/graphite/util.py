@@ -15,7 +15,6 @@ limitations under the License."""
 import imp
 import os
 import socket
-import errno
 import time
 import sys
 from os.path import splitext, basename, relpath
