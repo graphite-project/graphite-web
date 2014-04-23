@@ -8,15 +8,16 @@ def query(params):
     """ Returns a list of graphite.query.datalib.TimeSeries instances
 
         params is a dictionary whose both keys and values are strings,
-        except which were taken
-        from http://graphite.readthedocs.org/en/latest/render_api.html
-        (except for the graph/format parameters):
-        maxDataPoints: see http://graphite.readthedocs.org/en/latest/render_api.html#maxdatapoints
+        except target, which is a list of strings.
+
+        The params are taken from:
+        http://graphite.readthedocs.org/en/latest/render_api.html
+        except for the graph/format parameters
+
         tz: see http://graphite.readthedocs.org/en/latest/render_api.html#tz
         until/from: see http://graphite.readthedocs.org/en/latest/render_api.html#from-until
+        target: see http://graphite.readthedocs.org/en/latest/render_api.html#target
     """
-    if 'maxDataPoints' in params and params['maxDataPoints'].isdigit():
-        params['maxDataPoints'] = int(params['maxDataPoints'])
 
     data = []
 
