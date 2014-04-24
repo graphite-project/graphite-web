@@ -21,6 +21,9 @@ setup(
   name='graphite-util',
   version='0.10.0-alpha',
   description='Some utilities extracted from graphite-web',
+  install_requires=['pytz', 'pyparsing',
+                    'whisper', # this package might be dropped in the future
+                    ],
   package_dir={'' : 'webapp'},
   packages=[
     'graphite',
