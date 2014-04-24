@@ -48,3 +48,15 @@ def query(params):
         data.extend(evaluateTarget(params, target))
 
     return data
+
+def eval_qs(self, query_string):
+    from urlparse import parse_qs
+
+    params = parse_qs(query_string)
+
+    # In parse_qs every value is a list, so we convert
+    # them to strings
+    for key, value in params.items():
+        if key != "target":
+            params[key] = value[0]
+    return query(params)
