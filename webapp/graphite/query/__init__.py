@@ -49,7 +49,7 @@ def query(params):
 
     return data
 
-def eval_qs(self, query_string):
+def eval_qs(query_string):
     from urlparse import parse_qs
 
     params = parse_qs(query_string)
