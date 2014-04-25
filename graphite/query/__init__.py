@@ -1,8 +1,10 @@
 """ This package (query) is called render in graphite-web """
+import sys
 import pytz
 from graphite import settings
 from graphite.query.evaluator import evaluateTarget
 from graphite.query.attime import parseATTime
+import tzlocal
 
 def query(params):
     """ Returns a list of graphite.query.datalib.TimeSeries instances
@@ -21,7 +23,12 @@ def query(params):
 
     data = []
 
-    tzinfo = pytz.timezone(settings.TIME_ZONE)
+    try:
+        tzinfo = pytz.timezone(settings.TIME_ZONE)
+    except AttributeError:
+        print >> sys.stderr, """Using system's time zone. You can set it to another value by setting TIME_ZONE in local_settings.py"""
+        print >> sys.stderr, """..."""
+        tzinfo = tzlocal.get_localzone()
     if 'tz' in params:
         try:
           tzinfo = pytz.timezone(params['tz'])

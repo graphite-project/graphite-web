@@ -16,6 +16,7 @@ setup(
   version='0.10.0-alpha',
   description='Some utilities extracted from graphite-web',
   install_requires=['pytz',
+                    'tzlocal', # pytz needs this for getting system's tz
                     'pyparsing',
                     'whisper', # this package might be dropped in the future
                     ],
