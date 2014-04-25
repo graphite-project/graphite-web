@@ -17,7 +17,7 @@ import sys, os
 from os.path import abspath, dirname, join
 
 # Filesystem layout
-GRAPHITE_ROOT = dirname(dirname(dirname( abspath(__file__) )))
+GRAPHITE_ROOT = dirname(dirname( abspath(__file__) ))
 # Initialize additional path variables
 # Defaults for these are set after local_settings is imported
 STORAGE_DIR = ''
@@ -75,7 +75,7 @@ if not STORAGE_DIR:
 if not INDEX_FILE:
   INDEX_FILE = join(STORAGE_DIR, 'index')
 if not LOG_DIR:
-  LOG_DIR = join(STORAGE_DIR, 'log', 'webapp')
+  LOG_DIR = join(STORAGE_DIR, 'log', 'graphite')
 if not WHISPER_DIR:
   WHISPER_DIR = join(STORAGE_DIR, 'whisper/')
 if not CERES_DIR:
