@@ -66,6 +66,9 @@ try:
   from graphite.local_settings import *
 except ImportError:
   print >> sys.stderr, "Could not import graphite.local_settings, using defaults!"
+  print >> sys.stderr, """Note that all file and directory variables will be set relative to %s!"""%GRAPHITE_ROOT
+  print >> sys.stderr, """You'll probably want to set them to something relative to /opt/graphite"""
+  print >> sys.stderr, """..."""
 
 
 ## Set config dependent on flags set in local_settings
