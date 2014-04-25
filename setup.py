@@ -1,14 +1,8 @@
 #!/usr/bin/env python
 import os
 
-if os.environ.get('USE_SETUPTOOLS'):
-  from setuptools import setup
-  setup_kwargs = dict(zip_safe=0)
-
-else:
-  from distutils.core import setup
-  setup_kwargs = dict()
-
+from setuptools import setup, find_packages
+setup_kwargs = dict(zip_safe=0)
 
 storage_dirs = []
 
@@ -21,17 +15,14 @@ setup(
   name='graphite-util',
   version='0.10.0-alpha',
   description='Some utilities extracted from graphite-web',
-  install_requires=['pytz', 'pyparsing',
+  install_requires=['pytz',
+                    'pyparsing',
                     'whisper', # this package might be dropped in the future
                     ],
-  package_dir={'' : 'webapp'},
-  packages=[
-    'graphite',
-    'graphite.finders',
-    'graphite.query',
-  ],
+  packages=find_packages(exclude=['tests']),
   package_data={'graphite' :
     ['local_settings.py.example']},
   data_files= storage_dirs,
+  test_suite="tests",
   **setup_kwargs
 )
