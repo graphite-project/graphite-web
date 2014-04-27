@@ -77,8 +77,8 @@ spread reads across the multiple backends.
   The ``[relay]`` section defines listener host/ports and a ``RELAY_METHOD``
 
 :doc:`relay-rules.conf </config-carbon>`
-  In ``RELAY_METHOD = rules``, pattern/servers tuples define what servers
-  metrics matching certain regex rules are forwarded to.
+  With ``RELAY_METHOD = rules`` set, pattern/servers tuples in this file define which
+  metrics matching certain regex rules are forwarded to which hosts.
 
 
 carbon-aggregator.py
