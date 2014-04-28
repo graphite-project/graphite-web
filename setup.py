@@ -12,7 +12,7 @@ for subdir in ('whisper', 'ceres', 'rrd', 'log', 'log/webapp'):
 
 
 setup(
-  name='graphite-util',
+  name='graphite-query',
   version='0.10.0-alpha',
   description='Some utilities extracted from graphite-web',
   install_requires=['pytz',
