@@ -169,8 +169,10 @@ if not STANDARD_DIRS:
     import whisper
     if os.path.exists(WHISPER_DIR):
       STANDARD_DIRS.append(WHISPER_DIR)
-  except ImportError:
-    print >> sys.stderr, "WARNING: whisper module could not be loaded, whisper support disabled"
+  except ImportError, e:
+    print >> sys.stderr, "WARNING: whisper module could not be loaded, whisper support disabled: %s" % e
+  except MemoryError, e:
+    print >> sys.stderr, "WARNING: whisper module could not be loaded, whisper support disabled: %s" % e
   try:
     import rrdtool
     if os.path.exists(RRD_DIR):
