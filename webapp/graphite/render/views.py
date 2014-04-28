@@ -16,7 +16,9 @@ import math
 import pytz
 from datetime import datetime
 from time import time
+import traceback
 from random import shuffle
+from pprint import pformat
 from httplib import CannotSendRequest
 from urllib import urlencode
 from urlparse import urlsplit, urlunsplit
@@ -27,6 +29,7 @@ try:
 except ImportError:
   import pickle
 
+from json import JSONDecoder
 from graphite.util import getProfileByUsername, json, unpickle
 from graphite.remote_storage import HTTPConnectionWithTimeout
 from graphite.logger import log
@@ -35,6 +38,7 @@ from graphite.render.attime import parseATTime
 from graphite.render.functions import PieFunctions
 from graphite.render.hashing import hashRequest, hashData
 from graphite.render.glyph import GraphTypes
+from graphite.web_tools.decorators import Json_crossDomain_response
 
 from django.http import HttpResponse, HttpResponseServerError, HttpResponseRedirect
 from django.template import Context, loader
@@ -42,8 +46,18 @@ from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 
-
+@Json_crossDomain_response
 def renderView(request):
+    ret = None
+    try:
+        ret = _renderView(request)
+    except:
+        tb = traceback.format_exc()
+        log.rendering("Error: %s" % (tb))
+    return ret
+    
+def _renderView(request):
+        
   start = time()
   (graphOptions, requestOptions) = parseOptions(request)
   useCache = 'noCache' not in requestOptions
@@ -168,6 +182,23 @@ def renderView(request):
       response['Cache-Control'] = 'no-cache'
       return response
 
+    if format == 'json_singlepoint':  
+      seriesInfo = [series.getInfo() for series in data]
+      def get_last_value(result):
+          last_value = None
+          for value in reversed(result['values']):
+            if value is not None:
+              last_value = value
+              break
+          return dict(metric=result['name'], value=last_value)
+      metric_values = map(get_last_value, seriesInfo)
+      results = json.dumps( dict(metrics=metric_values) )
+
+      response = HttpResponse(content=results, mimetype='text/json')
+      response['Pragma'] = 'no-cache'
+      response['Cache-Control'] = 'no-cache'
+      return response
+
     if format == 'raw':
       response = HttpResponse(mimetype='text/plain')
       for series in data:
@@ -211,8 +242,17 @@ def renderView(request):
   log.rendering('Total rendering time %.6f seconds' % (time() - start))
   return response
 
-
 def parseOptions(request):
+    ret = None
+    try:
+        ret = _parseOptions(request)
+    except:
+        tb = traceback.format_exc()
+        log.rendering("Error: %s" % (tb))
+    return ret
+
+def _parseOptions(request):
+
   queryParams = request.REQUEST
 
   # Start with some defaults
@@ -228,10 +268,18 @@ def parseOptions(request):
   requestOptions['graphClass'] = graphClass
   requestOptions['pieMode'] = queryParams.get('pieMode', 'average')
   requestOptions['cacheTimeout'] = int( queryParams.get('cacheTimeout', settings.DEFAULT_CACHE_DURATION) )
-  requestOptions['targets'] = []
 
+  if 'targets' in queryParams:
+    qpt = queryParams.get('targets')
+    targets = json.loads(qpt)
+    requestOptions['targets'] = targets
+  else:
+    requestOptions['targets'] = []
+  
   # Extract the targets out of the queryParams
   mytargets = []
+  # log.rendering("==" * 80)
+
   # Normal format: ?target=path.1&target=path.2
   if len(queryParams.getlist('target')) > 0:
     mytargets = queryParams.getlist('target')
@@ -240,9 +288,12 @@ def parseOptions(request):
   elif len(queryParams.getlist('target[]')) > 0:
     mytargets = queryParams.getlist('target[]')
 
-  # Collect the targets
   for target in mytargets:
+    if target.startswith('Graphite.'):  # strip leading graphite.
+      target = target[9:]
     requestOptions['targets'].append(target)
+      
+  # log.rendering("targets: %s" % (requestOptions['targets']))
 
   if 'pickle' in queryParams:
     requestOptions['format'] = 'pickle'
