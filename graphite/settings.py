@@ -67,7 +67,7 @@ try:
 except ImportError:
   print >> sys.stderr, "Could not import graphite.local_settings, using defaults!"
   print >> sys.stderr, """Note that all file and directory variables will be set relative to %s!"""%GRAPHITE_ROOT,
-  print >> sys.stderr, """You'll probably want to set them to something relative to /opt/graphite"""
+  print >> sys.stderr, """You'll probably want to set them relative to /opt/graphite in local_settings.py"""
   print >> sys.stderr, """..."""
 
 
