@@ -31,9 +31,9 @@ def query(params):
         tzinfo = tzlocal.get_localzone()
     if 'tz' in params:
         try:
-          tzinfo = pytz.timezone(params['tz'])
+            tzinfo = pytz.timezone(params['tz'])
         except pytz.UnknownTimeZoneError:
-          pass
+            pass
     params['tzinfo'] = tzinfo
 
     if 'until' in params:

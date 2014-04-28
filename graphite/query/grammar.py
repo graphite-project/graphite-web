@@ -100,9 +100,9 @@ grammar << expression
 
 
 def enableDebug():
-  for name,obj in globals().items():
-    try:
-      obj.setName(name)
-      obj.setDebug(True)
-    except:
-      pass
+    for name,obj in globals().items():
+        try:
+            obj.setName(name)
+            obj.setDebug(True)
+        except:
+            pass

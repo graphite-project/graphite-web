@@ -7,7 +7,7 @@ setup_kwargs = dict(zip_safe=0)
 storage_dirs = []
 
 for subdir in ('whisper', 'ceres', 'rrd', 'log', 'log/webapp'):
-  storage_dirs.append( ('storage/%s' % subdir, []) )
+    storage_dirs.append( ('storage/%s' % subdir, []) )
 
 
 
