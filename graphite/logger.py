@@ -57,10 +57,6 @@ class GraphiteLogger:
     @staticmethod
     def _config_logger(log_file_name, name, activate,
                        level=None, when='midnight', backupCount=1):
-        if not os.path.exists(settings.LOG_DIR):
-            print >> sys.stderr, """Directory '%s' (LOG_DIR) doesn't exist.  Creating it... You can set it to another value by setting LOG_DIR in local_settings.py"""%settings.LOG_DIR
-            print >> sys.stderr, """..."""
-            os.makedirs(settings.LOG_DIR)
         log_file = os.path.join(settings.LOG_DIR, log_file_name)
         logger = logging.getLogger(name)
         if level is not None:

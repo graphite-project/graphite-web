@@ -16,7 +16,7 @@ import sys
 import time
 from graphite.logger import log
 import graphite.storage
-from graphite.readers import FetchInProgress
+import graphite.readers
 from graphite import settings
 
 class TimeSeries(list):
@@ -100,7 +100,7 @@ def fetchData(requestContext, pathExpr):
     fetches = [(node, node.fetch(startTime, endTime)) for node in matching_nodes if node.is_leaf]
 
     for node, results in fetches:
-      if isinstance(results, FetchInProgress):
+      if isinstance(results, graphite.readers.FetchInProgress):
         results = results.waitForResults()
 
       if not results:

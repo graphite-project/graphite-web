@@ -27,7 +27,7 @@ def query(params):
         tzinfo = pytz.timezone(settings.TIME_ZONE)
     except AttributeError:
         print >> sys.stderr, """Using system's time zone. You can set it to another value by setting TIME_ZONE in local_settings.py"""
-        print >> sys.stderr, """..."""
+        print >> sys.stderr, settings._SEPARATOR
         tzinfo = tzlocal.get_localzone()
     if 'tz' in params:
         try:
@@ -51,8 +51,13 @@ def query(params):
     params['startTime'] = startTime
     params['endTime'] = endTime
 
-    for target in params['target']:
-        data.extend(evaluateTarget(params, target))
+    if isinstance(params['target'], basestring):
+        data.extend(evaluateTarget(params, params['target']))
+    elif isinstance(params['target'], list):
+        for target in params['target']:
+            data.extend(evaluateTarget(params, target))
+    else:
+        raise Exception("")
 
     return data
 

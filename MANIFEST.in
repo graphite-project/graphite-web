@@ -1,2 +1,4 @@
 include README.md
 include LICENSE
+include install_requires.txt
+include tests_require.txt

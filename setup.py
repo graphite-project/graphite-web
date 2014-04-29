@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 
+
 from setuptools import setup, find_packages
 setup_kwargs = dict(zip_safe=0)
 
@@ -15,15 +16,12 @@ setup(
   name='graphite-query',
   version='0.10.0-alpha',
   description='Some utilities extracted from graphite-web',
-  install_requires=['pytz',
-                    'tzlocal', # pytz needs this for getting system's tz
-                    'pyparsing',
-                    'whisper', # this package might be dropped in the future
-                    ],
-  packages=find_packages(exclude=['tests']),
+  install_requires=open("install_requires.txt").read().split(),
+  packages=find_packages(),#exclude=['tests']),
   package_data={'graphite' :
     ['local_settings.py.example']},
   data_files= storage_dirs,
   test_suite="tests",
+  tests_require=open("tests_require.txt").read().split(),
   **setup_kwargs
 )

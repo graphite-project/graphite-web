@@ -16,6 +16,15 @@ limitations under the License."""
 import sys, os
 from os.path import abspath, dirname, join
 
+_SEPARATOR = "-------------"
+
+def __check_dir_exists(valuename, dirname):
+    if not os.path.exists(dirname):
+        print >> sys.stderr, """Directory '%s' (%s) doesn't exist.  Creating it... You can set it to another value by setting %s in local_settings.py"""%(dirname, valuename, valuename)
+        print >> sys.stderr, _SEPARATOR
+        os.makedirs(dirname)
+
+
 # Filesystem layout
 GRAPHITE_ROOT = dirname(dirname( abspath(__file__) ))
 # Initialize additional path variables
@@ -66,26 +75,35 @@ try:
     from graphite.local_settings import *
 except ImportError:
     print >> sys.stderr, "Could not import graphite.local_settings, using defaults!"
-    print >> sys.stderr, """Note that all file and directory variables will be set relative to %s!"""%GRAPHITE_ROOT,
-    print >> sys.stderr, """You'll probably want to set them relative to /opt/graphite in local_settings.py"""
-    print >> sys.stderr, """..."""
+    print >> sys.stderr, _SEPARATOR
 
 
 ## Set config dependent on flags set in local_settings
 # Path configuration
 if not STORAGE_DIR:
     STORAGE_DIR = os.environ.get('GRAPHITE_STORAGE_DIR', join(GRAPHITE_ROOT, 'storage'))
+__check_dir_exists("STORAGE_DIR", STORAGE_DIR)
+if os.path.commonprefix([STORAGE_DIR, GRAPHITE_ROOT]) == GRAPHITE_ROOT:
+    print >> sys.stderr, "Note that all file and directory variables will "\
+                      "be set relative to graphite-query's installation " \
+                      "directory: %s!"%GRAPHITE_ROOT,
+    print >> sys.stderr, "You'll probably want to set them relative to "\
+                         "/opt/graphite in local_settings.py"
+    print >> sys.stderr, _SEPARATOR
 if not INDEX_FILE:
     INDEX_FILE = join(STORAGE_DIR, 'index')
 if not LOG_DIR:
     LOG_DIR = join(STORAGE_DIR, 'log', 'graphite')
-if not WHISPER_DIR:
-    WHISPER_DIR = join(STORAGE_DIR, 'whisper/')
+__check_dir_exists("LOG_DIR", LOG_DIR)
 if not CERES_DIR:
     CERES_DIR = join(STORAGE_DIR, 'ceres/')
+__check_dir_exists("CERES_DIR", CERES_DIR)
 if not STANDARD_DIRS:
     try:
         import whisper
+        if not WHISPER_DIR:
+            WHISPER_DIR = join(STORAGE_DIR, 'whisper/')
+        __check_dir_exists("WHISPER_DIR", WHISPER_DIR)
         if os.path.exists(WHISPER_DIR):
             STANDARD_DIRS.append(WHISPER_DIR)
     except ImportError:

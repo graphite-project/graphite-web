@@ -6,7 +6,7 @@ from urllib import urlencode
 from threading import Lock, Event
 from graphite import settings
 from graphite.node import LeafNode, BranchNode
-from graphite.readers import FetchInProgress
+import graphite.readers
 from graphite.logger import log
 from graphite.util import unpickle
 
@@ -209,7 +209,7 @@ class RemoteReader(object):
                     time_info = (series['start'], series['end'], series['step'])
                     return (time_info, series['values'])
 
-        return FetchInProgress(extract_my_results)
+        return graphite.readers.FetchInProgress(extract_my_results)
 
     def clean_cache(self):
         self.cache_lock.acquire()
