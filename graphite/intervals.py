@@ -16,11 +16,15 @@ class IntervalSet:
     def __repr__(self):
         return repr(self.intervals)
 
+    def __eq__(self, other):
+        return self.intervals == other.intervals
+
     def __iter__(self):
         return iter(self.intervals)
 
-    def __nonzero__(self):
+    def __bool__(self):
         return self.size != 0
+    __nonzero__ = __bool__  # python 2
 
     def __sub__(self, other):
         return self.intersect( other.complement() )
@@ -39,7 +43,7 @@ class IntervalSet:
 
         return IntervalSet(complementary, disjoint=True)
 
-    def intersect(self, other): #XXX The last major bottleneck. Factorial-time hell.
+    def intersect(self, other): #XXX The last major bottleneck.
         # Then again, this function is entirely unused...
         if (not self) or (not other):
             return IntervalSet([])
@@ -86,14 +90,15 @@ class Interval:
     def __hash__(self):
         return hash( self.tuple )
 
-    def __cmp__(self, other):
-        return cmp(self.start, other.start)
+    def __lt__(self, other):
+        return (self.start < other.start) - (self.start > other.start)
 
     def __len__(self):
         raise TypeError("len() doesn't support infinite values, use the 'size' attribute instead")
 
-    def __nonzero__(self):
+    def __bool__(self):
         return self.size != 0
+    __nonzero__ = __bool__  # python 2
 
     def __repr__(self):
         return '<Interval: %s>' % str(self.tuple)
