@@ -36,7 +36,7 @@ point interpolation.
 The total retention time of the database is determined by the archive with the highest retention as the
 time period covered by each archive is overlapping (see `Multi-Archive Storage and Retrieval Behavior`_).
 That is, a pair of archives with retentions of 1 month and 1 year will not provide 13 months of data storage
-as may be guessed. Instead, it will provide 1 year of storage - the length of it's longest archive.
+as may be guessed. Instead, it will provide 1 year of storage - the length of its longest archive.
 
 
 Rollup Aggregation
