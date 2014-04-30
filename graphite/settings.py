@@ -11,14 +11,14 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
-# Django settings for graphite project.
+# settings for graphite project.
 # DO NOT MODIFY THIS FILE DIRECTLY - use local_settings.py instead
 import sys, os
 from os.path import abspath, dirname, join
 
 _SEPARATOR = "-------------"
 
-def __check_dir_exists(valuename, dirname):
+def _check_dir_exists(valuename, dirname):
     if not os.path.exists(dirname):
         print >> sys.stderr, """Directory '%s' (%s) doesn't exist.  Creating it... You can set it to another value by setting %s in local_settings.py"""%(dirname, valuename, valuename)
         print >> sys.stderr, _SEPARATOR
@@ -26,7 +26,7 @@ def __check_dir_exists(valuename, dirname):
 
 
 # Filesystem layout
-GRAPHITE_ROOT = dirname(dirname( abspath(__file__) ))
+GRAPHITE_ROOT = ''
 # Initialize additional path variables
 # Defaults for these are set after local_settings is imported
 STORAGE_DIR = ''
@@ -77,33 +77,38 @@ except ImportError:
     print >> sys.stderr, "Could not import graphite.local_settings, using defaults!"
     print >> sys.stderr, _SEPARATOR
 
+if not GRAPHITE_ROOT:
+    GRAPHITE_ROOT = dirname(dirname( abspath(__file__) ))
 
 ## Set config dependent on flags set in local_settings
 # Path configuration
 if not STORAGE_DIR:
     STORAGE_DIR = os.environ.get('GRAPHITE_STORAGE_DIR', join(GRAPHITE_ROOT, 'storage'))
-__check_dir_exists("STORAGE_DIR", STORAGE_DIR)
+_check_dir_exists("STORAGE_DIR", STORAGE_DIR)
 if os.path.commonprefix([STORAGE_DIR, GRAPHITE_ROOT]) == GRAPHITE_ROOT:
-    print >> sys.stderr, "Note that all file and directory variables will "\
+    try:
+        from graphite.local_settings import STORAGE_DIR
+    except ImportError:
+        print>>sys.stderr,"Note that all file and directory variables will "\
                       "be set relative to graphite-query's installation " \
                       "directory: %s!"%GRAPHITE_ROOT,
-    print >> sys.stderr, "You'll probably want to set them relative to "\
+        print >> sys.stderr, "You'll probably want to set them relative to "\
                          "/opt/graphite in local_settings.py"
-    print >> sys.stderr, _SEPARATOR
+        print >> sys.stderr, _SEPARATOR
 if not INDEX_FILE:
     INDEX_FILE = join(STORAGE_DIR, 'index')
 if not LOG_DIR:
     LOG_DIR = join(STORAGE_DIR, 'log', 'graphite')
-__check_dir_exists("LOG_DIR", LOG_DIR)
+_check_dir_exists("LOG_DIR", LOG_DIR)
 if not CERES_DIR:
     CERES_DIR = join(STORAGE_DIR, 'ceres/')
-__check_dir_exists("CERES_DIR", CERES_DIR)
+_check_dir_exists("CERES_DIR", CERES_DIR)
 if not STANDARD_DIRS:
     try:
         import whisper
         if not WHISPER_DIR:
             WHISPER_DIR = join(STORAGE_DIR, 'whisper/')
-        __check_dir_exists("WHISPER_DIR", WHISPER_DIR)
+        _check_dir_exists("WHISPER_DIR", WHISPER_DIR)
         if os.path.exists(WHISPER_DIR):
             STANDARD_DIRS.append(WHISPER_DIR)
     except ImportError:

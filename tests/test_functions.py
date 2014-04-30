@@ -1,5 +1,5 @@
 import copy
-from unittest import TestCase
+from . import TestCase
 from mock import patch, call, MagicMock
 
 from graphite.query.datalib import TimeSeries

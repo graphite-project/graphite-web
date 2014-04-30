@@ -1,7 +1,7 @@
 import random
 import time
 
-from unittest import TestCase
+from . import TestCase
 
 from graphite.intervals import Interval, IntervalSet
 from graphite.node import LeafNode, BranchNode

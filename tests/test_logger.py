@@ -1,16 +1,14 @@
-import unittest
 import os.path
 import glob
 import re
 
 from logging import FileHandler
-
 from graphite import settings
-
 from graphite.logger import log, GraphiteLogger
 
+from . import TestCase
 
-class TestLogger(unittest.TestCase):
+class TestLogger(TestCase):
 
     def test_init(self):
         """ Tesing initialization. """

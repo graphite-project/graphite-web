@@ -1,13 +1,11 @@
-import json
 import os
 import time
 import logging
 
 import whisper
 
-from graphite import settings
 from graphite import query
-from unittest import TestCase
+from . import TestCase
 
 # Silence logging during tests
 LOGGER = logging.getLogger()
@@ -18,28 +16,21 @@ if hasattr(logging, "NullHandler"):
 
 
 class QueryTest(TestCase):
-    db = os.path.join(settings.WHISPER_DIR, 'test.wsp')
     _test_data = [0.5, 0.4, 0.6]
 
-    def wipe_whisper(self):
-        try:
-            os.remove(self.db)
-        except OSError:
-            pass
-
-    def create_db(self):
+    def setUp(self):
+        super(QueryTest, self).setUp()
+        from graphite import settings
+        self.db = os.path.join(settings.WHISPER_DIR, 'test.wsp')
         whisper.create(self.db, [(1, 60)])
 
         ts = int(time.time())
         for i, value in enumerate(reversed(self._test_data)):
             whisper.update(self.db, value, ts - i)
-        return ts
+        self.ts = ts
 
 
     def test_query(self):
-        self.addCleanup(self.wipe_whisper)
-        self.create_db()
-
         data = query.query({'target': 'test'})
         end = data[0]#[-4:]
         match = False
