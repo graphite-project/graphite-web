@@ -1643,7 +1643,7 @@ def removeAbovePercentile(requestContext, seriesList, n):
 def removeAboveValue(requestContext, seriesList, n):
   """
   Removes data above the given threshold from the series or list of series provided.
-  Values above this threshole are assigned a value of None
+  Values above this threshold are assigned a value of None.
   """
   for s in seriesList:
     s.name = 'removeAboveValue(%s, %d)' % (s.name, n)
@@ -1672,7 +1672,7 @@ def removeBelowPercentile(requestContext, seriesList, n):
 def removeBelowValue(requestContext, seriesList, n):
   """
   Removes data below the given threshold from the series or list of series provided.
-  Values below this threshole are assigned a value of None
+  Values below this threshold are assigned a value of None.
   """
   for s in seriesList:
     s.name = 'removeBelowValue(%s, %d)' % (s.name, n)
@@ -2552,8 +2552,11 @@ def groupByNode(requestContext, seriesList, nodeNum, callback):
 
     &target=groupByNode(ganglia.by-function.*.*.cpu.load5,2,"sumSeries")
 
-    Would return multiple series which are each the result of applying the "sumSeries" function
-    to groups joined on the second node (0 indexed) resulting in a list of targets like
+  Would return multiple series which are each the result of applying the "sumSeries" function
+  to groups joined on the second node (0 indexed) resulting in a list of targets like
+  
+  .. code-block :: none
+  
     sumSeries(ganglia.by-function.server1.*.cpu.load5),sumSeries(ganglia.by-function.server2.*.cpu.load5),...
 
   """
