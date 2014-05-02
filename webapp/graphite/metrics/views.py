@@ -13,9 +13,9 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 import traceback
-from django.http import HttpResponse, HttpResponseBadRequest
 from django.conf import settings
 from graphite.account.models import Profile
+from graphite.compat import HttpResponse, HttpResponseBadRequest
 from graphite.util import getProfile, getProfileByUsername, json
 from graphite.logger import log
 from graphite.storage import STORE
@@ -31,28 +31,39 @@ except ImportError:
 
 def index_json(request):
   jsonp = request.REQUEST.get('jsonp', False)
+  cluster = request.REQUEST.get('cluster', False)
+
+  def find_matches():
+    matches = []
+  
+    for root, dirs, files in os.walk(settings.WHISPER_DIR):
+      root = root.replace(settings.WHISPER_DIR, '')
+      for basename in files:
+        if fnmatch.fnmatch(basename, '*.wsp'):
+          matches.append(os.path.join(root, basename))
+  
+    for root, dirs, files in os.walk(settings.CERES_DIR):
+      root = root.replace(settings.CERES_DIR, '')
+      for filename in files:
+        if filename == '.ceres-node':
+          matches.append(root)
+  
+    matches = [
+      m
+      .replace('.wsp', '')
+      .replace('.rrd', '')
+      .replace('/', '.')
+      .lstrip('.')
+      for m in sorted(matches)
+    ]
+    return matches
   matches = []
-
-  for root, dirs, files in os.walk(settings.WHISPER_DIR):
-    root = root.replace(settings.WHISPER_DIR, '')
-    for basename in files:
-      if fnmatch.fnmatch(basename, '*.wsp'):
-        matches.append(os.path.join(root, basename))
-
-  for root, dirs, files in os.walk(settings.CERES_DIR):
-    root = root.replace(settings.CERES_DIR, '')
-    for filename in files:
-      if filename == '.ceres-node':
-        matches.append(root)
-
-  matches = [
-    m
-    .replace('.wsp', '')
-    .replace('.rrd', '')
-    .replace('/', '.')
-    .lstrip('.')
-    for m in sorted(matches)
-  ]
+  if cluster and len(settings.CLUSTER_SERVERS) > 1:
+    matches = reduce( lambda x, y: list(set(x + y)), \
+        [json.loads(urlopen("http://" + cluster_server + "/metrics/index.json").read()) \
+        for cluster_server in settings.CLUSTER_SERVERS])
+  else:
+    matches = find_matches()
   return json_response_for(request, matches, jsonp=jsonp)
 
 
@@ -60,7 +71,8 @@ def search_view(request):
   try:
     query = str( request.REQUEST['query'] )
   except:
-    return HttpResponseBadRequest(content="Missing required parameter 'query'", mimetype="text/plain")
+    return HttpResponseBadRequest(content="Missing required parameter 'query'",
+                                  content_type="text/plain")
   search_request = {
     'query' : query,
     'max_results' : int( request.REQUEST.get('max_results', 25) ),
@@ -92,7 +104,8 @@ def find_view(request):
   try:
     query = str( request.REQUEST['query'] )
   except:
-    return HttpResponseBadRequest(content="Missing required parameter 'query'", mimetype="text/plain")
+    return HttpResponseBadRequest(content="Missing required parameter 'query'",
+                                  content_type="text/plain")
 
   if '.' in query:
     base_path = query.rsplit('.', 1)[0] + '.'
@@ -127,7 +140,7 @@ def find_view(request):
 
   elif format == 'pickle':
     content = pickle_nodes(matches)
-    response = HttpResponse(content, mimetype='application/pickle')
+    response = HttpResponse(content, content_type='application/pickle')
 
   elif format == 'completer':
     results = []
@@ -144,7 +157,9 @@ def find_view(request):
     response = json_response_for(request, { 'metrics' : results})
 
   else:
-    return HttpResponseBadRequest(content="Invalid value for 'format' parameter", mimetype="text/plain")
+    return HttpResponseBadRequest(
+        content="Invalid value for 'format' parameter",
+        content_type="text/plain")
 
   response['Pragma'] = 'no-cache'
   response['Cache-Control'] = 'no-cache'
@@ -294,21 +309,16 @@ def pickle_nodes(nodes):
   return pickle.dumps(nodes_info, protocol=-1)
 
 
-def any(iterable): #python2.4 compatibility
-  for i in iterable:
-    if i:
-      return True
-  return False
-
-def json_response_for(request, data, mimetype='application/json', jsonp=False, **kwargs):
+def json_response_for(request, data, content_type='application/json',
+                      jsonp=False, **kwargs):
   accept = request.META.get('HTTP_ACCEPT', 'application/json')
   ensure_ascii = accept == 'application/json'
 
   content = json.dumps(data, ensure_ascii=ensure_ascii)
   if jsonp:
     content = "%s(%)" % (jsonp, content)
-    mimetype = 'text/javascript'
+    content_type = 'text/javascript'
   if not ensure_ascii:
-    mimetype += ';charset=utf-8'
+    content_type += ';charset=utf-8'
 
-  return HttpResponse(content, mimetype=mimetype, **kwargs)
+  return HttpResponse(content, content_type=content_type, **kwargs)

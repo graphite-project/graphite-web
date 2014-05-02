@@ -527,6 +527,61 @@ def multiplySeries(requestContext, *seriesLists):
   resultSeries.pathExpression = name
   return [ resultSeries ]
 
+def weightedAverage(requestContext, seriesListAvg, seriesListWeight, node):
+  """
+  Takes a series of average values and a series of weights and 
+  produces a weighted average for all values.
+
+  The corresponding values should share a node as defined
+  by the node parameter, 0-indexed.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=weightedAverage(*.transactions.mean,*.transactions.count,0) 
+
+  """
+
+  sortedSeries={}
+
+  for seriesAvg, seriesWeight in izip(seriesListAvg , seriesListWeight):
+    key = seriesAvg.name.split(".")[node]
+    if key not in sortedSeries:
+      sortedSeries[key]={}
+
+    sortedSeries[key]['avg']=seriesAvg
+    key = seriesWeight.name.split(".")[node]
+    if key not in sortedSeries:
+      sortedSeries[key]={}
+    sortedSeries[key]['weight']=seriesWeight
+
+  productList = []
+
+  for key in sortedSeries.keys():
+    if 'weight' not in sortedSeries[key]:
+      continue
+    if 'avg' not in sortedSeries[key]:
+      continue
+
+    seriesWeight = sortedSeries[key]['weight']
+    seriesAvg = sortedSeries[key]['avg']
+
+    productValues = [ safeMul(val1, val2) for val1,val2 in izip(seriesAvg,seriesWeight) ]
+    name='product(%s,%s)' % (seriesWeight.name, seriesAvg.name)
+    productSeries = TimeSeries(name,seriesAvg.start,seriesAvg.end,seriesAvg.step,productValues)
+    productSeries.pathExpression=name
+    productList.append(productSeries)
+
+  sumProducts=sumSeries(requestContext, productList)[0]
+  sumWeights=sumSeries(requestContext, seriesListWeight)[0]
+
+  resultValues = [ safeDiv(val1, val2) for val1,val2 in izip(sumProducts,sumWeights) ]
+  name = "weightedAverage(%s, %s)" % (','.join(set(s.pathExpression for s in seriesListAvg)) ,','.join(set(s.pathExpression for s in seriesListWeight)))
+  resultSeries = TimeSeries(name,sumProducts.start,sumProducts.end,sumProducts.step,resultValues)
+  resultSeries.pathExpression = name
+  return resultSeries
+
 def movingMedian(requestContext, seriesList, windowSize):
   """
   Graphs the moving median of a metric (or metrics) over a fixed number of
@@ -2425,9 +2480,8 @@ def mapSeries(requestContext, seriesList, mapNode):
   Takes a seriesList and maps it to a list of sub-seriesList. Each sub-seriesList has the
   given mapNode in common.
 
-  Example:
+  Example::
 
-  .. code-block:: none
     map(servers.*.cpu.*,1) =>
       [
         servers.server1.cpu.*,
@@ -2455,9 +2509,8 @@ def reduceSeries(requestContext, seriesLists, reduceFunction, reduceNode, *reduc
   reduceMatchers. The each series is then passed to the reduceFunction as arguments in the order
   given by reduceMatchers. The reduceFunction should yield a single series.
 
-  Example:
+  Example::
 
-  .. code-block:: none
     reduce(map(servers.*.disk.*,1),3,"asPercent","bytes_used","total_bytes") =>
 
         asPercent(servers.server1.disk.bytes_used,servers.server1.disk.total_bytes),
@@ -2466,9 +2519,8 @@ def reduceSeries(requestContext, seriesLists, reduceFunction, reduceNode, *reduc
         asPercent(servers.serverN.disk.bytes_used,servers.serverN.disk.total_bytes)
 
   The resulting list of series are aliased so that they can easily be nested in other functions.
-  In the above example, the resulting series names would become:
+  In the above example, the resulting series names would become::
 
-  .. code-block:: none
     servers.server1.disk.reduce.asPercent,
     servers.server2.disk.reduce.asPercent,
     ...
@@ -2975,6 +3027,7 @@ SeriesFunctions = {
   'rangeOfSeries': rangeOfSeries,
   'percentileOfSeries': percentileOfSeries,
   'countSeries': countSeries,
+  'weightedAverage': weightedAverage,
 
   # Transform functions
   'scale' : scale,

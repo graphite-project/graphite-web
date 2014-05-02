@@ -1,9 +1,9 @@
 import datetime
 import time
 
-from django.http import HttpResponse
 from django.shortcuts import render_to_response, get_object_or_404
 from django.utils.timezone import localtime, now
+from graphite.compat import HttpResponse
 from graphite.util import json
 from graphite.events import models
 from graphite.render.attime import parseATTime
@@ -64,11 +64,11 @@ def get_data(request):
         response = HttpResponse(
           "%s(%s)" % (request.REQUEST.get('jsonp'), 
               json.dumps(fetch(request), cls=EventEncoder)),
-          mimetype='text/javascript')
+          content_type='text/javascript')
     else:
         response = HttpResponse(
             json.dumps(fetch(request), cls=EventEncoder),
-            mimetype="application/json")
+            content_type="application/json")
     return response
 
 def fetch(request):
