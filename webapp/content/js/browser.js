@@ -94,14 +94,6 @@ function createTreePanel( rootNode ){
   }
 
   var graphiteNode = createGraphiteNode();
-    id: 'GraphiteTree',
-    text: 'Metrics',
-    loader: new Ext.tree.TreeLoader({
-      url: "../metrics/find/",
-      requestMethod: "GET",
-      listeners: {beforeload: setParams}
-    })
-  });
   rootNode.appendChild(graphiteNode);
 
   if (GraphiteConfig.showMyGraphs) {
