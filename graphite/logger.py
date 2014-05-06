@@ -13,7 +13,6 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 import os, sys, logging
-from logging.handlers import TimedRotatingFileHandler as Rotater
 try:
     from logging import NullHandler
 except ImportError as ie:  # py2.6
@@ -23,54 +22,33 @@ except ImportError as ie:  # py2.6
 
         def emit(self, record):
             pass
-try:
-    from logging import FileHandler
-except ImportError as ie:  # py2.6
-    from logging.handlers import FileHandler
 
-from graphite import settings
+logging.EXCEPTION = 60
+logging.addLevelName(logging.EXCEPTION,"EXCEPTION")
 
-logging.addLevelName(30,"cache")
-logging.addLevelName(30,"metric_access")
+logging.CACHE = 70
+logging.addLevelName(logging.CACHE,"CACHE")
 
 # TO-DO: removed unused code
 class GraphiteLogger:
     def __init__(self):
         self.infoLogger = self._config_logger('info.log',
                                               'info',
-                                              True,
                                               level = logging.INFO,
                                               )
         self.exceptionLogger = self._config_logger('exception.log',
-                                                   'exception',
-                                                   True,
+                                                   'EXCEPTION',
                                                    )
         self.cacheLogger = self._config_logger('cache.log',
-                                               'cache',
-                                               settings.LOG_CACHE_PERFORMANCE,
+                                               'CACHE',
                                                )
-        self.metricAccessLogger = self._config_logger('metricaccess.log',
-                                                      'metric_access',
-                                                      settings.LOG_METRIC_ACCESS,
-                                                      )
 
     @staticmethod
-    def _config_logger(log_file_name, name, activate,
-                       level=None, when='midnight', backupCount=1):
-        log_file = os.path.join(settings.LOG_DIR, log_file_name)
+    def _config_logger(log_file_name, name, level=None):
         logger = logging.getLogger(name)
         if level is not None:
             logger.setLevel(level)
-        if activate:  # if want to log this one
-            formatter = logging.Formatter("%(asctime)s :: %(message)s","%a %b %d %H:%M:%S %Y")
-            if settings.LOG_ROTATE:  # if we want to rotate logs
-                handler = Rotater(log_file, when=when, backupCount=backupCount)
-            else:  # let someone else, e.g. logrotate, rotate the logs
-                handler = FileHandler(log_file)
-            handler.setFormatter(formatter)
-            logger.addHandler(handler)
-        else:
-            logger.addHandler(NullHandler())
+        logger.addHandler(NullHandler())
         return logger
 
     def info(self,msg,*args,**kwargs):
@@ -80,10 +58,7 @@ class GraphiteLogger:
         return self.exceptionLogger.exception(msg,**kwargs)
 
     def cache(self,msg,*args,**kwargs):
-        return self.cacheLogger.log(30,msg,*args,**kwargs)
-
-    def metric_access(self,msg,*args,**kwargs):
-        return self.metricAccessLogger.log(30,msg,*args,**kwargs)
+        return self.cacheLogger.log(logging.CACHE,msg,*args,**kwargs)
 
 
 log = GraphiteLogger() # import-shared logger instance

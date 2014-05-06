@@ -31,11 +31,9 @@ class Store:
 
     def find(self, pattern, startTime=None, endTime=None, local=False):
         query = FindQuery(pattern, startTime, endTime)
-
         # Start remote searches
         if not local:
             remote_requests = [ r.find(query) for r in self.remote_stores if r.available ]
-
         matching_nodes = set()
 
         # Search locally
@@ -43,14 +41,12 @@ class Store:
             for node in finder.find_nodes(query):
                 #log.info("find() :: local :: %s" % node)
                 matching_nodes.add(node)
-
         # Gather remote search results
         if not local:
             for request in remote_requests:
                 for node in request.get_results():
                     #log.info("find() :: remote :: %s from %s" % (node,request.store.host))
                     matching_nodes.add(node)
-
         # Group matching nodes by their path
         nodes_by_path = {}
         for node in matching_nodes:
@@ -58,7 +54,6 @@ class Store:
                 nodes_by_path[node.path] = []
 
             nodes_by_path[node.path].append(node)
-
         # Reduce matching nodes for each path to a minimal set
         found_branch_nodes = set()
 

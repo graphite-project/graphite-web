@@ -13,17 +13,22 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 # settings for graphite project.
 # DO NOT MODIFY THIS FILE DIRECTLY - use local_settings.py instead
-import sys, os
+import os
 from os.path import abspath, dirname, join
-
+import logging
+from graphite.logger import NullHandler
+log = logging.getLogger(__name__)
+log.addHandler(NullHandler())
 _SEPARATOR = "-------------"
 
 def _check_dir_exists(valuename, dirname):
     if not os.path.exists(dirname):
-        print >> sys.stderr, """Directory '%s' (%s) doesn't exist.  Creating it... You can set it to another value by setting %s in local_settings.py"""%(dirname, valuename, valuename)
-        print >> sys.stderr, _SEPARATOR
-        os.makedirs(dirname)
-
+        message = "Directory '%s' (%s) doesn't exist."%(\
+            dirname, valuename)
+        # Perhaps the message should be written to sys.stderr also
+        log.warning(message)
+        return False
+    return True
 
 # Filesystem layout
 GRAPHITE_ROOT = ''
@@ -31,12 +36,9 @@ GRAPHITE_ROOT = ''
 # Defaults for these are set after local_settings is imported
 STORAGE_DIR = ''
 INDEX_FILE = ''
-LOG_DIR = ''
 CERES_DIR = ''
 WHISPER_DIR = ''
 STANDARD_DIRS = []
-
-CLUSTER_SERVERS = []
 
 # Cluster settings
 CLUSTER_SERVERS = []
@@ -56,13 +58,9 @@ FIND_TOLERANCE = 2 * FIND_CACHE_DURATION
 
 # The value below was used with django
 # DEFAULT_CACHE_DURATION = 60 #metric data and graphs are cached for one minute by default
-LOG_CACHE_PERFORMANCE = False
-LOG_ROTATE = True
-
 MAX_FETCH_RETRIES = 2
 
 #Miscellaneous settings
-LOG_METRIC_ACCESS = False
 STORAGE_FINDERS = (
     'graphite.finders.standard.StandardFinder',
 )
@@ -74,8 +72,7 @@ FLUSHRRDCACHED = ''
 try:
     from graphite.local_settings import *
 except ImportError:
-    print >> sys.stderr, "Could not import graphite.local_settings, using defaults!"
-    print >> sys.stderr, _SEPARATOR
+    log.warn("Could not import graphite.local_settings, using defaults!")
 
 if not GRAPHITE_ROOT:
     GRAPHITE_ROOT = dirname(dirname( abspath(__file__) ))
@@ -89,17 +86,13 @@ if os.path.commonprefix([STORAGE_DIR, GRAPHITE_ROOT]) == GRAPHITE_ROOT:
     try:
         from graphite.local_settings import STORAGE_DIR
     except ImportError:
-        print>>sys.stderr,"Note that all file and directory variables will "\
+        log.warn("Note that all file and directory variables will "\
                       "be set relative to graphite-query's installation " \
-                      "directory: %s!"%GRAPHITE_ROOT,
-        print >> sys.stderr, "You'll probably want to set them relative to "\
-                         "/opt/graphite in local_settings.py"
-        print >> sys.stderr, _SEPARATOR
+                      "directory: %s!"%GRAPHITE_ROOT)
+        log.warn("You'll probably want to set them relative to "\
+                         "/opt/graphite in local_settings.py")
 if not INDEX_FILE:
     INDEX_FILE = join(STORAGE_DIR, 'index')
-if not LOG_DIR:
-    LOG_DIR = join(STORAGE_DIR, 'log', 'graphite')
-_check_dir_exists("LOG_DIR", LOG_DIR)
 if not CERES_DIR:
     CERES_DIR = join(STORAGE_DIR, 'ceres/')
 _check_dir_exists("CERES_DIR", CERES_DIR)
@@ -112,4 +105,6 @@ if not STANDARD_DIRS:
         if os.path.exists(WHISPER_DIR):
             STANDARD_DIRS.append(WHISPER_DIR)
     except ImportError:
-        print >> sys.stderr, "WARNING: whisper module could not be loaded, whisper support disabled"
+        # In the future, when/if there are more databases to chose from
+        # warn should be changed to info
+        log.warn("whisper module could not be loaded, whisper support disabled")

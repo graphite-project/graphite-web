@@ -4,7 +4,6 @@ import os
 
 
 from setuptools import setup, find_packages
-setup_kwargs = dict(zip_safe=0)
 
 storage_dirs = []
 
@@ -23,8 +22,6 @@ setup(
     description="Utilities for querying graphite's database",
     install_requires=open("install_requires.txt").read().split(),
     packages=find_packages(),#exclude=['tests']),
-    package_data={'graphite' :
-        ['local_settings.py.example']},
     data_files= storage_dirs,
     test_suite="tests",
     tests_require=open("tests_require.txt").read().split(),
@@ -41,5 +38,5 @@ setup(
         'Topic :: Scientific/Engineering :: Information Analysis',
         'Topic :: System :: Monitoring',
     ),
-    **setup_kwargs
+    zip_safe=False,
 )

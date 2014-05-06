@@ -1,5 +1,4 @@
-""" This package (query) is called render in graphite-web """
-import sys
+""" This is a modified version of package render from graphite-web """
 import pytz
 from graphite import settings
 from graphite.query.evaluator import evaluateTarget
@@ -26,8 +25,6 @@ def query(params):
     try:
         tzinfo = pytz.timezone(settings.TIME_ZONE)
     except AttributeError:
-        print >> sys.stderr, """Using system's time zone. You can set it to another value by setting TIME_ZONE in local_settings.py"""
-        print >> sys.stderr, settings._SEPARATOR
         tzinfo = tzlocal.get_localzone()
     if 'tz' in params:
         try:
