@@ -1,9 +1,0 @@
-collectd.test.df-root.df_complex-free
-collectd.test.df-root.df_complex-used.value
-collectd.test.df-root.df_complex-reserved
-collectd.test.df-root.df_complex-reserved.value
-collectd.test.df-root.df_complex-free.value
-collectd.test.df-root.df_complex-used
-collectd.test.load.load.midterm
-collectd.test.load.load.shortterm
-collectd.test.load.load.longterm

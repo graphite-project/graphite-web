@@ -1,0 +1,4 @@
+pytz
+tzlocal
+pyparsing
+whisper

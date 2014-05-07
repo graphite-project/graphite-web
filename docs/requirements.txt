@@ -1,7 +1,0 @@
-## Requirements for documentation
-Django>=1.4
-django-tagging==0.3.1
-sphinx
-sphinx_rtd_theme
-pytz
-git+git://github.com/graphite-project/whisper.git#egg=whisper

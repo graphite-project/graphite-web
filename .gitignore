@@ -9,3 +9,6 @@ docs/_build
 *.log
 *.pyc
 .tox
+.idea/*
+.coverage
+htmlcov/*

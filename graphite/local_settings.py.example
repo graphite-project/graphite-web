@@ -1,0 +1,93 @@
+## Graphite local_settings.py
+# Edit this file to customize the default graphite-query settings
+
+#####################################
+# General Configuration #
+#####################################
+
+# Set your local timezone
+# If your data appears to be offset by a couple hours then this probably
+# needs to be explicitly set to your local timezone.
+#TIME_ZONE = 'UTC'
+
+# Logging
+#LOG_RENDERING_PERFORMANCE = True
+#LOG_CACHE_PERFORMANCE = True
+#LOG_METRIC_ACCESS = True
+
+# Enable full debug page display on exceptions (Internal Server Error pages)
+#DEBUG = True
+
+# If using RRD files and rrdcached, set to the address or socket of the daemon
+#FLUSHRRDCACHED = 'unix:/var/run/rrdcached.sock'
+
+#####################################
+# Filesystem Paths #
+#####################################
+# Change only GRAPHITE_ROOT if your install is merely shifted from /opt/graphite
+# to somewhere else
+#GRAPHITE_ROOT = '/opt/graphite'
+
+# Most installs done outside of a separate tree such as /opt/graphite will only
+# need to change this setting. Note that the default settings for each
+# of these is relative to GRAPHITE_ROOT
+#STORAGE_DIR = '/opt/graphite/storage'
+
+## Data directories
+# NOTE: If any directory is unreadable in STANDARD_DIRS it will break metric browsing
+#CERES_DIR = '/opt/graphite/storage/ceres'
+#WHISPER_DIR = '/opt/graphite/storage/whisper'
+#RRD_DIR = '/opt/graphite/storage/rrd'
+# Data directories using the "Standard" finder (i.e. not Ceres)
+#STANDARD_DIRS = [WHISPER_DIR, RRD_DIR] # Default: set from the above variables
+#LOG_DIR = '/opt/graphite/storage/log/webapp'
+#INDEX_FILE = '/opt/graphite/storage/index'  # Search index file
+
+
+#########################
+# Cluster Configuration #
+#########################
+# (To avoid excessive DNS lookups you want to stick to using IP addresses only in this entire section)
+#
+# This should list the IP address (and optionally port) of the webapp on each
+# remote server in the cluster. These servers must each have local access to
+# metric data. Note that the first server to return a match for a query will be
+# used.
+#CLUSTER_SERVERS = ["10.0.2.2:80", "10.0.2.3:80"]
+
+## These are timeout values (in seconds) for requests to remote webapps
+#REMOTE_FIND_TIMEOUT = 3.0             # Timeout for metric find requests
+#REMOTE_FETCH_TIMEOUT = 6.0            # Timeout to fetch series data
+#REMOTE_RETRY_DELAY = 60.0             # Time before retrying a failed remote webapp
+#REMOTE_READER_CACHE_SIZE_LIMIT = 1000 # Maximum number of remote URL queries to cache
+#FIND_CACHE_DURATION = 300             # Time to cache remote metric find results
+# If the query doesn't fall entirely within the FIND_TOLERANCE window
+# we disregard the window. This prevents unnecessary remote fetches
+# caused when carbon's cache skews node.intervals, giving the appearance
+# remote systems have data we don't have locally, which we probably do.
+#FIND_TOLERANCE = 2 * FIND_CACHE_DURATION
+
+# If you are running multiple carbon-caches on this machine (typically behind a relay using
+# consistent hashing), you'll need to list the ip address, cache query port, and instance name of each carbon-cache
+# instance on the local machine (NOT every carbon-cache in the entire cluster). The default cache query port is 7002
+# and a common scheme is to use 7102 for instance b, 7202 for instance c, etc.
+#
+# You *should* use 127.0.0.1 here in most cases
+#CARBONLINK_HOSTS = ["127.0.0.1:7002:a", "127.0.0.1:7102:b", "127.0.0.1:7202:c"]
+#CARBONLINK_TIMEOUT = 1.0
+#CARBONLINK_RETRY_DELAY = 15 # Seconds to blacklist a failed remote server
+
+# A "keyfunc" is a user-defined python function that is given a metric name
+# and returns a string that should be used when hashing the metric name.
+# This is important when your hashing has to respect certain metric groupings.
+#CARBONLINK_HASHING_KEYFUNC = "/opt/graphite/bin/keyfuncs.py:my_keyfunc"
+
+# Prefix set in carbon for the carbon specific metrics.  Default in carbon is 'carbon'
+#CARBON_METRIC_PREFIX='carbon'
+
+# The replication factor to use with consistent hashing
+# This should usually match the value configured in Carbon
+#REPLICATION_FACTOR = 1
+
+# How often should render.datalib.fetch() retry to get remote data
+# MAX_FETCH_RETRIES = 2
