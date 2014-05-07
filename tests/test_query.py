@@ -2,16 +2,19 @@ import os
 
 from __setup import TestCase
 
+
 class QueryTest(TestCase):
     _test_data = [0.5, 0.4, 0.6]
 
     def setUp(self):
-        import time
         super(QueryTest, self).setUp()
+        import time
         import whisper
         from graphite import settings
         if not os.path.exists(settings.WHISPER_DIR):
             os.makedirs(settings.WHISPER_DIR)
+        if not settings.STANDARD_DIRS:
+            raise Exception("settings.STANDARD_DIRS shouldn't be empty")
         self.db = os.path.join(settings.WHISPER_DIR, 'test.wsp')
         whisper.create(self.db, [(1, 60)])
 

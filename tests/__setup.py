@@ -13,10 +13,6 @@ class TestCase(unittest.TestCase):
 
     def setUp(self):
         self._cleanup()
-        from graphite import settings
-        reload(settings)
-        # from graphite import logger
-        # reload(logger)
 
     def tearDown(self):
         self._cleanup()
