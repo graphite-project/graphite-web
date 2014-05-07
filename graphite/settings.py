@@ -31,9 +31,10 @@ def _check_dir_exists(valuename, dirname):
     return True
 
 # Filesystem layout
-GRAPHITE_ROOT = ''
+# This is where graphite-query is installed (i.e. the directory
+# that contains the "graphite" directory. Should not be modified
+GRAPHITE_ROOT = dirname(dirname( abspath(__file__) ))
 # Initialize additional path variables
-# Defaults for these are set after local_settings is imported
 STORAGE_DIR = ''
 INDEX_FILE = ''
 CERES_DIR = ''
@@ -68,43 +69,47 @@ STORAGE_FINDERS = (
 # If using rrdcached, set to the address or socket of the daemon
 FLUSHRRDCACHED = ''
 
-## Load our local_settings
-try:
-    from graphite.local_settings import *
-except ImportError:
-    log.warn("Could not import graphite.local_settings, using defaults!")
 
-if not GRAPHITE_ROOT:
-    GRAPHITE_ROOT = dirname(dirname( abspath(__file__) ))
-
-## Set config dependent on flags set in local_settings
 # Path configuration
-if not STORAGE_DIR:
-    STORAGE_DIR = os.environ.get('GRAPHITE_STORAGE_DIR', join(GRAPHITE_ROOT, 'storage'))
-_check_dir_exists("STORAGE_DIR", STORAGE_DIR)
-if os.path.commonprefix([STORAGE_DIR, GRAPHITE_ROOT]) == GRAPHITE_ROOT:
-    try:
-        from graphite.local_settings import STORAGE_DIR
-    except ImportError:
+
+def setup_storage_variables(storage_dir):
+    """ This function can be called from user's code to setup
+        the various storage variables automatically """
+    global STORAGE_DIR
+    global INDEX_FILE
+    global CERES_DIR
+    global WHISPER_DIR
+    global STANDARD_DIRS
+
+    STORAGE_DIR = storage_dir
+    STANDARD_DIRS = []
+
+    if os.path.commonprefix([STORAGE_DIR, GRAPHITE_ROOT]) == GRAPHITE_ROOT:
         log.warn("Note that all file and directory variables will "\
-                      "be set relative to graphite-query's installation " \
-                      "directory: %s!"%GRAPHITE_ROOT)
+                          "be set relative to graphite-query's installation " \
+                          "directory: %s!"%GRAPHITE_ROOT)
         log.warn("You'll probably want to set them relative to "\
-                         "/opt/graphite in local_settings.py")
-if not INDEX_FILE:
+                             "/opt/graphite")
     INDEX_FILE = join(STORAGE_DIR, 'index')
-if not CERES_DIR:
-    CERES_DIR = join(STORAGE_DIR, 'ceres/')
-_check_dir_exists("CERES_DIR", CERES_DIR)
-if not STANDARD_DIRS:
+    # The code for ceres should become similar
+    # to the code for whisper
+    CERES_DIR = join(STORAGE_DIR, 'ceres')
+    _check_dir_exists("CERES_DIR", CERES_DIR)
     try:
         import whisper
-        if not WHISPER_DIR:
-            WHISPER_DIR = join(STORAGE_DIR, 'whisper/')
-        _check_dir_exists("WHISPER_DIR", WHISPER_DIR)
-        if os.path.exists(WHISPER_DIR):
-            STANDARD_DIRS.append(WHISPER_DIR)
     except ImportError:
         # In the future, when/if there are more databases to chose from
         # warn should be changed to info
-        log.warn("whisper module could not be loaded, whisper support disabled")
+        #log.warn("whisper module could not be loaded, whisper support disabled")
+        raise ImportError("The graphite-whisper module is required, please install it.")
+    WHISPER_DIR = join(STORAGE_DIR, 'whisper')
+    _check_dir_exists("WHISPER_DIR", WHISPER_DIR)
+
+    STANDARD_DIRS.append(WHISPER_DIR)
+
+if not STORAGE_DIR:
+    STORAGE_DIR = os.environ.get('GRAPHITE_STORAGE_DIR', join(GRAPHITE_ROOT, 'storage'))
+_check_dir_exists("STORAGE_DIR", STORAGE_DIR)
+
+# Setup some default values
+setup_storage_variables(STORAGE_DIR)
