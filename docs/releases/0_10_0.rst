@@ -39,6 +39,10 @@ Changes
   and Python versions combinations. A :doc:`section about working on
   graphite-web <../development>` has been added to the documentation.
 
+* Pythons own log rotation can be disabled using the `LOG_ROTATE` setting. This
+  is useful in case of running multiple WSGI workers. See also: `Github Issue
+  #499 <https://github.com/graphite-project/graphite-web/pull/499>`_.
+
 .. _Tox: https://testrun.org/tox/latest/
 
 New functions
