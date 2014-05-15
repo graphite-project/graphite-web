@@ -2663,6 +2663,35 @@ def callbackToNode(requestContext, seriesList, nodeNum, callback, twoArgumentsFo
     metaSeries[key].name = callback + "(" + key + "." + (".".join(split_name[nodeNum:len(split_name)])) + ")"
   return [ metaSeries[key] for key in keys ]
 
+def groupByNodes(requestContext, seriesList, callback, *nodes):
+  """
+  Takes a serieslist and maps a callback to subgroups within as defined by one or more node
+
+  .. code-block:: none
+
+    &target=groupByNodes(ganglia.by-function.*.*.cpu.load4,"sumSeries",2,3)
+
+    Would return multiple series which are each the result of applying the "sumSeries" function
+    to groups joined on the second and third node (0 indexed) resulting in a list of targets like
+    sumSeries(ganglia.by-function.server1.*.cpu.load5),sumSeries(ganglia.by-function.server2.*.cpu.load5),...
+
+  """
+  metaSeries = {}
+  keys = []
+  if type(nodes) is int:
+    nodes=[nodes]
+  for series in seriesList:
+    metric_pieces = re.search('(?:.*\()?(?P<name>[-\w*\.]+)(?:,|\)?.*)?',series.name).groups()[0].split('.')
+    series.name = '.'.join(metric_pieces[n] for n in nodes)
+    key = series.name
+    if key not in metaSeries.keys():
+      keys.append(key)
+      metaSeries[key] = [series]
+      metaSeries[key] = SeriesFunctions[callback](requestContext,
+          metaSeries[key])[0]
+      metaSeries[key].name = key
+  return [ metaSeries[key] for key in keys ]
+
 def exclude(requestContext, seriesList, pattern):
   """
   Takes a metric or a wildcard seriesList, followed by a regular expression
@@ -3216,6 +3245,7 @@ SeriesFunctions = {
   'reduce': reduceSeries,
   'groupByNode' : groupByNode,
   'callbackToNode' : callbackToNode,
+  'groupByNodes' : groupByNodes,
   'constantLine' : constantLine,
   'stacked' : stacked,
   'areaBetween' : areaBetween,
