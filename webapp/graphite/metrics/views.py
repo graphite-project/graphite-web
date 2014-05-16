@@ -83,7 +83,6 @@ def search_view(request):
   results = sorted(searcher.search(**search_request))
   return json_response_for(request, dict(metrics=results))
 
-
 def find_view(request):
   "View for finding metrics matching a given pattern"
   profile = getProfile(request)
@@ -322,3 +321,31 @@ def json_response_for(request, data, content_type='application/json',
     content_type += ';charset=utf-8'
 
   return HttpResponse(content, content_type=content_type, **kwargs)
+
+def get_nodelist_data(request):
+  try:
+    node_num = int(request.REQUEST.get('node',0 ))
+    query = request.REQUEST.get('query')
+  except:
+    node_num = 0
+    query= ""
+
+  results = []
+  final = []
+  for node in STORE.find(query):
+    if node.is_leaf:
+       result_parts = node.path.split('.')
+       results.append(result_parts[node_num])
+  results = sorted(set(results));
+  for r in results:
+    log.info('get_nodelist_data r=%s ' % r )
+    final.append({'name': r})
+
+  log.info('get_nodelist_data query=%s node=%s matches=%d' % (query,node_num, len(final)))
+  response = json_response_for(request,{ 'nodes' : final })
+  response['Pragma'] = 'no-cache'
+  response['Cache-Control'] = 'no-cache'
+  return response
+
+
+
