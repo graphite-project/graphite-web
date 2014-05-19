@@ -136,7 +136,7 @@ def renderView(request):
         maxDataPoints = requestOptions['maxDataPoints']
         for series in data:
           numberOfDataPoints = timeRange/series.step
-          if maxDataPoints < numberOfDataPoints:
+          if maxDataPoints < numberOfDataPoints and maxDataPoints < len(series):
             valuesPerPoint = math.ceil(float(numberOfDataPoints) / float(maxDataPoints))
             secondsPerPoint = int(valuesPerPoint * series.step)
             # Nudge start over a little bit so that the consolidation bands align with each call
