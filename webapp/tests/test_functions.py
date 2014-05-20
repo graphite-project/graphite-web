@@ -1,6 +1,7 @@
 import copy
 from django.test import TestCase
 from mock import patch, call, MagicMock
+from datetime import datetime
 
 from graphite.render.datalib import TimeSeries
 from graphite.render import functions
@@ -252,6 +253,10 @@ class FunctionsTest(TestCase):
                 "The original seriesList shouldn't have a 'color' attribute",
             )
             self.assertEqual(series.color, color)
+
+    def test_constantLine(self):
+        requestContext = {'startTime':datetime(2014, 03, 12, 2, 0, 0),'endTime':datetime(2014, 03, 12, 3, 0, 0)}
+        results = functions.constantLine(requestContext, [1])
 
     def test_scale(self):
         seriesList = self._generate_series_list()
