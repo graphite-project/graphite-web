@@ -13,5 +13,6 @@ Here are some organizations that use Graphite:
 * `Vimeo <http://www.vimeo.com>`_
 * `SocialTwist <http://www.socialtwist.com>`_
 * `Douban <http://www.douban.com>`_
+* `Maaii <http://www.maaii.com>`_
 
 And many more
