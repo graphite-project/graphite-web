@@ -680,7 +680,9 @@ function initDashboard () {
       change: function (field, newValue) { updateAutoRefresh(newValue); },
       specialkey: function (field, e) {
                     if (e.getKey() == e.ENTER) {
-                      updateAutoRefresh( field.getValue() );
+                      if (field.getValue() >= 1) {
+                        updateAutoRefresh( field.getValue() );
+                      }
                     }
                   }
     }
