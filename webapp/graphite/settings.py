@@ -58,12 +58,12 @@ CARBONLINK_HASHING_KEYFUNC = None
 CARBONLINK_RETRY_DELAY = 15
 REPLICATION_FACTOR = 1
 MEMCACHE_HOSTS = []
+KEY_PREFIX = ''
 FIND_CACHE_DURATION = 300
 FIND_TOLERANCE = 2 * FIND_CACHE_DURATION
 DEFAULT_CACHE_DURATION = 60 #metric data and graphs are cached for one minute by default
 LOG_CACHE_PERFORMANCE = False
 LOG_ROTATE = True
-
 MAX_FETCH_RETRIES = 2
 
 #Remote rendering settings
@@ -194,6 +194,7 @@ if MEMCACHE_HOSTS:
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
         'LOCATION': MEMCACHE_HOSTS,
         'TIMEOUT': DEFAULT_CACHE_DURATION,
+        'KEY_PREFIX': KEY_PREFIX,
     }
 
 # Authentication shortcuts

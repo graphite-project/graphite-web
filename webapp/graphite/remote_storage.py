@@ -109,9 +109,9 @@ class FindRequest(object):
     for node_info in results:
       if node_info.get('is_leaf'):
         reader = RemoteReader(self.store, node_info, bulk_query=self.query.pattern)
-        node = LeafNode(node_info['path'], reader)
+        node = LeafNode(node_info['metric_path'], reader)
       else:
-        node = BranchNode(node_info['path'])
+        node = BranchNode(node_info['metric_path'])
 
       node.local = False
       yield node
@@ -156,7 +156,7 @@ class RemoteReader(object):
       for series in cached_results:
         if series['name'] == self.metric_path:
           time_info = (series['start'], series['end'], series['step'])
-          return (time_info, series['values'])
+          return (time_info, series['values'], series['consolidationFunc'])
 
     # Synchronize with other RemoteReaders using the same bulk query.
     # Despite our use of thread synchronization primitives, the common
@@ -208,7 +208,7 @@ class RemoteReader(object):
       for series in wait_for_results():
         if series['name'] == self.metric_path:
           time_info = (series['start'], series['end'], series['step'])
-          return (time_info, series['values'])
+          return (time_info, series['values'], series['consolidationFunc'])
 
     return FetchInProgress(extract_my_results)
 

@@ -20,6 +20,7 @@ import math
 import re
 import random
 import time
+import copy
 
 from graphite.logger import log
 from graphite.render.attime import parseTimeOffset
@@ -123,14 +124,26 @@ def lcm(a, b):
   return a / gcd(a,b) * b
 
 def normalize(seriesLists):
-  seriesList = reduce(lambda L1,L2: L1+L2,seriesLists)
-  step = reduce(lcm,[s.step for s in seriesList])
-  for s in seriesList:
-    s.consolidate( step / s.step )
-  start = min([s.start for s in seriesList])
-  end = max([s.end for s in seriesList])
-  end -= (end - start) % step
-  return (seriesList,start,end,step)
+  if seriesLists:
+    seriesList = reduce(lambda L1,L2: L1+L2,seriesLists)
+    if seriesList:
+      seriesList = reduce(lambda L1,L2: L1+L2,seriesLists)
+      step = reduce(lcm,[s.step for s in seriesList])
+      for s in seriesList:
+        s.consolidate( step / s.step )
+      start = min([s.start for s in seriesList])
+      end = max([s.end for s in seriesList])
+      end -= (end - start) % step
+      return (seriesList,start,end,step)
+  raise NormalizeEmptyResultError()
+
+class NormalizeEmptyResultError(Exception):
+  """
+  Error thrown by the function 'normalize'
+  when it has an empty result
+  """
+  pass
+
 
 def formatPathExpressions(seriesList):
    # remove duplicates
@@ -313,7 +326,7 @@ def minSeries(requestContext, *seriesLists):
   (seriesList, start, end, step) = normalize(seriesLists)
   name = "minSeries(%s)" % formatPathExpressions(seriesList)
   values = ( safeMin(row) for row in izip(*seriesList) )
-  series = TimeSeries(name, start, end, step, values)
+  series = TimeSeries(name, start, end, step, values, 'min')
   series.pathExpression = name
   return [series]
 
@@ -332,7 +345,7 @@ def maxSeries(requestContext, *seriesLists):
   (seriesList, start, end, step) = normalize(seriesLists)
   name = "maxSeries(%s)" % formatPathExpressions(seriesList)
   values = ( safeMax(row) for row in izip(*seriesList) )
-  series = TimeSeries(name, start, end, step, values)
+  series = TimeSeries(name, start, end, step, values, 'max')
   series.pathExpression = name
   return [series]
 
@@ -927,9 +940,12 @@ def perSecond(requestContext, seriesList, maxValue=None):
     prev = None
     for val in series:
       step = series.step
-      if None in (prev,val):
+      if prev == None:
         newValues.append(None)
         prev = val
+        continue
+      if val == None:
+        newValues.append(None)
         continue
 
       diff = val - prev
@@ -2133,6 +2149,30 @@ def holtWintersConfidenceArea(requestContext, seriesList, delta=3):
     series.name = series.name.replace('areaBetween', 'holtWintersConfidenceArea')
   return results
 
+def drawMinMaxSeries(requestContext, seriesList):
+  """
+  Takes one or several TimeSeries
+  Break down all of them into a band
+  that is the min and max value
+
+  This method just use the consolidate function.
+  """
+  result = []
+  for serie in seriesList:
+    serieMin = copy.deepcopy(serie)
+    serieMax = copy.deepcopy(serie)
+    serieMin.consolidationFunc = 'min'
+    serieMax.consolidationFunc = 'max'
+    serieInf = copy.deepcopy(serieMin)
+    serieSup = copy.deepcopy(serieMax)
+    serieInf.name = ""
+    serieSup.name = ""
+    result.append(areaBetween(requestContext, [serieMin,serieMax]))
+    serieMin.name = ""
+    serieMax.name = serieMax.name.replace('areaBetween', 'drawMinMaxSeries')
+    result.append([serieInf,serieSup])
+  return reduce(lambda L1,L2 : L1+L2,result)
+
 def drawAsInfinite(requestContext, seriesList):
   """
   Takes one metric or a wildcard seriesList.
@@ -2305,8 +2345,11 @@ def constantLine(requestContext, value):
   """
   start = timestamp( requestContext['startTime'] )
   end = timestamp( requestContext['endTime'] )
-  step = (end - start) / 1.0
-  series = TimeSeries(str(value), start, end, step, [value, value])
+  step = max(((end - start - 1.0) / 1.0),1.0)
+  values = []
+  for i in range(0,int(step)):
+    values.append(value)
+  series = TimeSeries(str(value), start, end, step, values)
   return [series]
 
 def aggregateLine(requestContext, seriesList, func='avg'):
@@ -2572,6 +2615,86 @@ def groupByNode(requestContext, seriesList, nodeNum, callback):
     metaSeries[key].name = key
   return [ metaSeries[key] for key in keys ]
 
+def callbackToNode(requestContext, seriesList, nodeNum, callback, twoArgumentsForCallback=False):
+  """
+  Takes a serieslist and maps a callback to every groups defined before the target node
+  If twoArgumentsForCallback=True, the last serie defined in the target node will be the second argument for the callback
+
+  Example :
+
+  .. code-block:: none
+
+    &target=callbackToNode(foo.*.{bar1,bar2},2,"asPercent",true) will produce :
+    asPercent(foo.baz1.bar1,foo.baz1.bar2),asPercent(foo.baz2.bar1,foo.baz2.bar2),asPercent(foo.baz3.bar1,foo.baz3.bar2),...
+
+    &target=callbackToNode(foo.*.{bar1,bar2},2,"sumSeries") will produce :
+    sumSeries(foo.baz1.{bar1,bar2}),sumSeries(foo.baz2.{bar1,bar2}),sumSeries(foo.baz3.{bar1,bar2}),...
+  """
+  metaSeries = {}
+  keys = []
+  node = ""
+  for series in seriesList:
+    key = ".".join(series.name.split(".")[0:nodeNum])
+    node = series.pathExpression.split(".")[nodeNum]
+    if key not in metaSeries.keys():
+      metaSeries[key] = [series]
+      keys.append(key)
+    else:
+      metaSeries[key].append(series)
+  for key in metaSeries.keys():
+    split_name = metaSeries[key][0].pathExpression.split(".")
+    if twoArgumentsForCallback:
+      seriesList = metaSeries[key]
+      real_paths = []
+      if (node.find("{") > -1):
+        sub = node[(node.find("{")+1):node.find("}")]
+        for path in sub.split(","):
+          real_paths.append(node.replace("{"+sub+"}",key+"."+path))
+        seriesList.sort(key=lambda x : real_paths.index(".".join(x.name.split(".")[0:nodeNum+1])))
+      length = len(seriesList)
+      if length == 1:
+        seriePatch = constantLine(requestContext, 0)
+        nodeName = ".".join(seriesList[0].name.split(".")[0:nodeNum+1])
+        if ((real_paths != []) and (real_paths.index(nodeName) != (len(real_paths)-1))):
+          metaSeries[key] = SeriesFunctions[callback](requestContext,seriePatch,[seriesList[0]])[0]
+        else:
+          metaSeries[key] = SeriesFunctions[callback](requestContext,[seriesList[0]],seriePatch)[0]
+      else:
+        metaSeries[key] = SeriesFunctions[callback](requestContext,seriesList[0:length-1],[seriesList[length-1]])[0]
+    else:
+      metaSeries[key] = SeriesFunctions[callback](requestContext,metaSeries[key])[0]
+    metaSeries[key].name = callback + "(" + key + "." + (".".join(split_name[nodeNum:len(split_name)])) + ")"
+  return [ metaSeries[key] for key in keys ]
+
+def groupByNodes(requestContext, seriesList, callback, *nodes):
+  """
+  Takes a serieslist and maps a callback to subgroups within as defined by one or more node
+
+  .. code-block:: none
+
+    &target=groupByNodes(ganglia.by-function.*.*.cpu.load4,"sumSeries",2,3)
+
+    Would return multiple series which are each the result of applying the "sumSeries" function
+    to groups joined on the second and third node (0 indexed) resulting in a list of targets like
+    sumSeries(ganglia.by-function.server1.*.cpu.load5),sumSeries(ganglia.by-function.server2.*.cpu.load5),...
+
+  """
+  metaSeries = {}
+  keys = []
+  if type(nodes) is int:
+    nodes=[nodes]
+  for series in seriesList:
+    metric_pieces = re.search('(?:.*\()?(?P<name>[-\w*\.]+)(?:,|\)?.*)?',series.name).groups()[0].split('.')
+    series.name = '.'.join(metric_pieces[n] for n in nodes)
+    key = series.name
+    if key not in metaSeries.keys():
+      keys.append(key)
+      metaSeries[key] = [series]
+      metaSeries[key] = SeriesFunctions[callback](requestContext,
+          metaSeries[key])[0]
+      metaSeries[key].name = key
+  return [ metaSeries[key] for key in keys ]
+
 def exclude(requestContext, seriesList, pattern):
   """
   Takes a metric or a wildcard seriesList, followed by a regular expression
@@ -2586,6 +2709,15 @@ def exclude(requestContext, seriesList, pattern):
   regex = re.compile(pattern)
   return [s for s in seriesList if not regex.search(s.name)]
 
+def exacerbateSeries(requestContext, *seriesList):
+  """
+  Function that will exacerbate the extrema 
+  """
+  serList = reduce(lambda L1,L2: L1+L2, seriesList)
+  for serie in serList:
+    serie.setConsolidateFunc('exacerbate')
+  return serList
+  
 def grep(requestContext, seriesList, pattern):
   """
   Takes a metric or a wildcard seriesList, followed by a regular expression
@@ -3056,6 +3188,7 @@ SeriesFunctions = {
   'holtWintersConfidenceBands': holtWintersConfidenceBands,
   'holtWintersConfidenceArea': holtWintersConfidenceArea,
   'holtWintersAberration': holtWintersAberration,
+  'drawMinMaxSeries' : drawMinMaxSeries,
   'asPercent' : asPercent,
   'pct' : asPercent,
   'diffSeries' : diffSeries,
@@ -3085,6 +3218,7 @@ SeriesFunctions = {
   'sortByMinima' : sortByMinima,
   'useSeriesAbove': useSeriesAbove,
   'exclude' : exclude,
+  'exacerbateSeries' : exacerbateSeries,
 
   # Data Filter functions
   'removeAbovePercentile' : removeAbovePercentile,
@@ -3113,6 +3247,8 @@ SeriesFunctions = {
   'map': mapSeries,
   'reduce': reduceSeries,
   'groupByNode' : groupByNode,
+  'callbackToNode' : callbackToNode,
+  'groupByNodes' : groupByNodes,
   'constantLine' : constantLine,
   'stacked' : stacked,
   'areaBetween' : areaBetween,
