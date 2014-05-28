@@ -41,7 +41,16 @@ def detail(request, event_id):
 
 def post_event(request):
     if request.method == 'POST':
-        event = json.loads(request.body)
+        try:
+            event = json.loads(request.body)
+        except ValueError:
+            # try to see if this is a heroku post hook
+            if "app" in request.POST and "user" in request.POST and "head" in request.POST:
+                event = {
+                    "what":"%(app)s release" % request.POST,
+                    "tags":"heroku,%(app)s"  % request.POST,
+                    "data":"%(app)s released to %(head)s by %(user)s" % request.POST
+                    }
         assert isinstance(event, dict)
 
         values = {}
