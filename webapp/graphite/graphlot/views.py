@@ -25,14 +25,25 @@ def graphlot_render(request):
     untiltime = request.GET.get('until', "-0hour")
     fromtime = request.GET.get('from', "-24hour")
     events = request.GET.get('events', "")
+    linemode = request.GET.get('lineMode', "")
+    connectedlimit = request.GET.get('connectedLimit', "")
     context = {
       'metric_list' : metrics,
       'fromtime' : fromtime,
       'untiltime' : untiltime,
       'events' : events,
+      'linemode' : linemode,
+      'connectedlimit' : connectedlimit,
       'slash' : get_script_prefix()
     }
-    return render_to_response("graphlot.html", context)
+
+    match = re.match('^/graphlot/([a-zA-Z0-9\-_]+)$', request.path)
+    if match:
+      templates = ['graphlot_' + match.group(1) + '.html', 'graphlot.html']
+    else:
+      templates = 'graphlot.html'
+
+    return render_to_response(templates, context)
 
 def get_data(request):
     """Get the data for one series."""
