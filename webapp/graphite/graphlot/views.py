@@ -34,7 +34,14 @@ def graphlot_render(request):
       'connectedlimit' : connectedlimit,
       'slash' : get_script_prefix()
     }
-    return render_to_response("graphlot.html", context)
+
+    match = re.match('^/graphlot/([a-zA-Z0-9\-_]+)$', request.path)
+    if match:
+      templates = ['graphlot_' + match.group(1) + '.html', 'graphlot.html']
+    else:
+      templates = 'graphlot.html'
+
+    return render_to_response(templates, context)
 
 def get_data(request):
     """Get the data for one series."""
