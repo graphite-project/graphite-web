@@ -68,6 +68,7 @@ def index_json(request):
 
 
 def search_view(request):
+  jsonp = request.REQUEST.get('jsonp', False)
   try:
     query = str( request.REQUEST['query'] )
   except:
@@ -82,7 +83,7 @@ def search_view(request):
   #  search_request['query'] += '*'
 
   results = sorted(searcher.search(**search_request))
-  return json_response_for(request, dict(metrics=results))
+  return json_response_for(request, dict(metrics=results), jsonp=jsonp)
 
 
 def find_view(request):
@@ -93,6 +94,7 @@ def find_view(request):
   wildcards = int( request.REQUEST.get('wildcards', 0) )
   fromTime = int( request.REQUEST.get('from', -1) )
   untilTime = int( request.REQUEST.get('until', -1) )
+  jsonp = request.REQUEST.get('jsonp', False)
 
   if fromTime == -1:
     fromTime = None
@@ -136,7 +138,7 @@ def find_view(request):
 
   if format == 'treejson':
     content = tree_json(matches, base_path, wildcards=profile.advancedUI or wildcards)
-    response = json_response_for(request, content)
+    response = json_response_for(request, content, jsonp=jsonp)
 
   elif format == 'pickle':
     content = pickle_nodes(matches)
@@ -154,7 +156,7 @@ def find_view(request):
       wildcardNode = {'name' : '*'}
       results.append(wildcardNode)
 
-    response = json_response_for(request, { 'metrics' : results})
+    response = json_response_for(request, { 'metrics' : results}, jsonp=jsonp)
 
   else:
     return HttpResponseBadRequest(
@@ -171,6 +173,7 @@ def expand_view(request):
   local_only    = int( request.REQUEST.get('local', 0) )
   group_by_expr = int( request.REQUEST.get('groupByExpr', 0) )
   leaves_only   = int( request.REQUEST.get('leavesOnly', 0) )
+  jsonp = request.REQUEST.get('jsonp', False)
 
   results = {}
   for query in request.REQUEST.getlist('query'):
@@ -190,7 +193,7 @@ def expand_view(request):
     'results' : results
   }
 
-  response = json_response_for(request, result)
+  response = json_response_for(request, result, jsonp=jsonp)
   response['Pragma'] = 'no-cache'
   response['Cache-Control'] = 'no-cache'
   return response
@@ -199,6 +202,7 @@ def expand_view(request):
 def get_metadata_view(request):
   key = request.REQUEST['key']
   metrics = request.REQUEST.getlist('metric')
+  jsonp = request.REQUEST.get('jsonp', False)
   results = {}
   for metric in metrics:
     try:
@@ -207,7 +211,7 @@ def get_metadata_view(request):
       log.exception()
       results[metric] = dict(error="Unexpected error occurred in CarbonLink.get_metadata(%s, %s)" % (metric, key))
 
-  return json_response_for(request, results)
+  return json_response_for(request, results, jsonp=jsonp)
 
 
 def set_metadata_view(request):
@@ -316,7 +320,7 @@ def json_response_for(request, data, content_type='application/json',
 
   content = json.dumps(data, ensure_ascii=ensure_ascii)
   if jsonp:
-    content = "%s(%)" % (jsonp, content)
+    content = "%s(%s)" % (jsonp, content)
     content_type = 'text/javascript'
   if not ensure_ascii:
     content_type += ';charset=utf-8'
