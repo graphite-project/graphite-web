@@ -12,16 +12,17 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
-import traceback
+import fnmatch
+import os
+import urllib2
+
 from django.conf import settings
-from graphite.account.models import Profile
 from graphite.compat import HttpResponse, HttpResponseBadRequest
-from graphite.util import getProfile, getProfileByUsername, json
+from graphite.util import getProfile, json
 from graphite.logger import log
 from graphite.storage import STORE
 from graphite.metrics.search import searcher
 from graphite.carbonlink import CarbonLink
-import fnmatch, os
 
 try:
   import cPickle as pickle
@@ -60,7 +61,7 @@ def index_json(request):
   matches = []
   if cluster and len(settings.CLUSTER_SERVERS) > 1:
     matches = reduce( lambda x, y: list(set(x + y)), \
-        [json.loads(urlopen("http://" + cluster_server + "/metrics/index.json").read()) \
+        [json.loads(urllib2.urlopen("http://" + cluster_server + "/metrics/index.json").read()) \
         for cluster_server in settings.CLUSTER_SERVERS])
   else:
     matches = find_matches()
