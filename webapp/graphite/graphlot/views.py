@@ -38,6 +38,7 @@ def get_data(request):
     requestContext = {
         'startTime' : requestOptions['startTime'],
         'endTime' : requestOptions['endTime'],
+        'now': requestOptions['now'],
         'localOnly' : False,
         'data' : []
     }
