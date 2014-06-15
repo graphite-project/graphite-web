@@ -66,6 +66,8 @@ LOG_ROTATE = True
 
 MAX_FETCH_RETRIES = 2
 
+MAX_FETCH_RETRIES = 2
+
 #Remote rendering settings
 REMOTE_RENDERING = False #if True, rendering is delegated to RENDERING_HOSTS
 RENDERING_HOSTS = []
