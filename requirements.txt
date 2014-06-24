@@ -38,4 +38,4 @@ django-tagging==0.3.1
 gunicorn
 pytz
 http://cairographics.org/releases/py2cairo-1.8.10.tar.gz
-git+git://github.com/graphite-project/whisper.git#egg=whisper
+git+git://github.com/graphite-project/whisper.git@0.9.x#egg=whisper
