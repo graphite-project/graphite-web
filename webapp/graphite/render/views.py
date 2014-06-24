@@ -174,7 +174,7 @@ def renderView(request):
       response = HttpResponse(content_type='text/plain')
       for series in data:
         response.write( "%s,%d,%d,%d|" % (series.name, series.start, series.end, series.step) )
-        response.write( ','.join(map(str,series)) )
+        response.write( ','.join(map(repr,series)) )
         response.write('\n')
 
       log.rendering('Total rawData rendering time %.6f' % (time() - start))
