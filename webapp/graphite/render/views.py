@@ -289,7 +289,7 @@ def parseOptions(request):
     if 'now' in queryParams:
         now = parseATTime(queryParams['now'])
     else:
-        now = datetime.now()
+        now = datetime.now(tzinfo)
 
     if 'until' in queryParams:
       untilTime = parseATTime(queryParams['until'], tzinfo, now)
