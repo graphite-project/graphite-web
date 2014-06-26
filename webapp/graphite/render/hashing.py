@@ -19,12 +19,13 @@ try:
   from hashlib import md5
 except ImportError:
   from md5 import md5
+from itertools import chain
 import bisect
 
 def hashRequest(request):
   # Normalize the request parameters so ensure we're deterministic
   queryParams = ["%s=%s" % (key, '&'.join(values))
-                 for (key,values) in request.GET.lists()
+                 for (key,values) in chain(request.POST.lists(), request.GET.lists())
                  if not key.startswith('_')]
 
   normalizedParams = ','.join( sorted(queryParams) ) or 'noParam'
