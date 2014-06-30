@@ -68,7 +68,7 @@ try:
     setup(
       name='graphite-web',
       version='0.10.0-alpha',
-      url='https://launchpad.net/graphite',
+      url='http://graphite.readthedocs.org',
       author='Chris Davis',
       author_email='chrismd@gmail.com',
       license='Apache Software License 2.0',
