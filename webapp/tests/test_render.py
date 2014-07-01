@@ -1,8 +1,9 @@
+from datetime import datetime
 import json
 import os
 import time
 
-from graphite.render.hashing import hashRequest
+from graphite.render.hashing import hashRequest, hashData
 import whisper
 
 from django.conf import settings
@@ -84,3 +85,11 @@ class RenderTest(TestCase):
 
         self.assertEqual(hashRequest(request_params),
                         hashRequest(reverse_request_params))
+
+    def test_hash_data(self):
+        targets = ['foo=1', 'bar=2']
+        start_time = datetime.fromtimestamp(0)
+        end_time = datetime.fromtimestamp(1000)
+        self.assertEqual(hashData(targets, start_time, end_time),
+                        hashData(reversed(targets), start_time, end_time))
+
