@@ -65,8 +65,8 @@ class RenderTest(TestCase):
         get_request = HttpRequest()
         get_request.GET = target_qd.copy()
         get_request.POST = empty_qd.copy()
-        
-        self.assertEqual(hashRequest(get_request), hashRequest(post_request))   
+
+        self.assertEqual(hashRequest(get_request), hashRequest(post_request))
 
         # Check that POST parameters are included in cache key calculations
         post_request_with_params = HttpRequest()
