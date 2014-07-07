@@ -270,7 +270,7 @@ class Node:
 
 class Branch(Node):
   "Node with children"
-  def fetch(self, startTime, endTime):
+  def fetch(self, startTime, endTime, requestContext):
     "No-op to make all Node's fetch-able"
     return []
 
@@ -304,7 +304,7 @@ class WhisperFile(Leaf):
     end = max( os.stat(self.fs_path).st_mtime, start )
     return [ (start, end) ]
 
-  def fetch(self, startTime, endTime, now=None):
+  def fetch(self, startTime, endTime, requestContext, now=None):
     return whisper.fetch(self.fs_path, startTime, endTime, now)
 
   @property
@@ -336,7 +336,7 @@ class WhisperFile(Leaf):
 class GzippedWhisperFile(WhisperFile):
   extension = '.wsp.gz'
 
-  def fetch(self, startTime, endTime, now=None):
+  def fetch(self, startTime, endTime, requestContext, now=None):
     if not gzip:
       raise Exception("gzip module not available, GzippedWhisperFile not supported")
 
@@ -400,7 +400,7 @@ class RRDDataSource(Leaf):
     end = max( os.stat(self.rrd_file.fs_path).st_mtime, start )
     return [ (start, end) ]
 
-  def fetch(self, startTime, endTime, now=None):
+  def fetch(self, startTime, endTime, requestContext, now=None):
     # 'now' parameter is meaningful for whisper but not RRD
     startString = time.strftime("%H:%M_%Y%m%d+%Ss", time.localtime(startTime))
     endString = time.strftime("%H:%M_%Y%m%d+%Ss", time.localtime(endTime))
