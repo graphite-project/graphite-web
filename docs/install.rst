@@ -12,9 +12,9 @@ Basic Graphite requirements:
 
 * Python 2.5 or greater (2.6+ recommended)
 * `Pycairo`_
-* `Django`_ 1.0 or greater
+* `Django`_ 1.0 or greater (not compatible with 1.6)
 * `django-tagging`_ 0.3.1 or greater
-* `Twisted`_ 8.0 or greater (10.0+ recommended)
+* `Twisted`_ 8.0 or greater (10.0+ recommended, not compatible with 14.0)
 * `zope-interface`_ (often included in Twisted package dependency)
 * `fontconfig`_ and at least one font package (a system package usually)
 * A WSGI server and web server. Popular choices are:
