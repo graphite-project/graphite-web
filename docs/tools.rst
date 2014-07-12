@@ -293,6 +293,10 @@ Tasseo
 ------
 `Tasseo`_ is a lightweight, easily configurable, real-time dashboard for Graphite metrics.
 
+Tessera
+-------
+`Tessera`_ is a flexible front-end for creating dashboards with a wide variety of data presentations. 
+
 Therry
 ------
 `Therry`_ ia s simple web service that caches Graphite metrics and exposes an endpoint for dumping or searching against them by substring.
@@ -361,6 +365,7 @@ annotated events, etc). Supports Graphite, flot, rickshaw and anthracite.
 .. _SSC Serv: https://ssc-serv.com/
 .. _statsd: https://github.com/etsy/statsd
 .. _Tasseo: https://github.com/obfuscurity/tasseo
+.. _Tessera: https://github.com/urbanairship/tessera
 .. _Therry: https://github.com/obfuscurity/therry
 .. _TimeseriesWidget: https://github.com/Dieterbe/timeserieswidget
 .. _write-graphite: http://collectd.org/wiki/index.php/Plugin:Write_Graphite
