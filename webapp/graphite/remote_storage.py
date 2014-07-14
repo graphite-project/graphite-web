@@ -124,7 +124,7 @@ class RemoteNode:
 
     seriesList = unpickle.loads(rawData)
 
-    if type(seriesList) is list and len(seriesList) == 0:
+    if seriesList == []:
       return None
 
     assert len(seriesList) == 1, "Invalid result: seriesList=%s" % str(seriesList)
