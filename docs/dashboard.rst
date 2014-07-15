@@ -242,7 +242,7 @@ Other Operations on the Graph
 The *Graph Operations* menu button is used to perform miscellaneous actions on the graph.
 
 *Breakout*
-  *TODO: What does this do?*
+  Decombine a combined graph into its separate element graphs.
 
 *Clone*
   Creates a copy of the graph, and adds it to the dashboard.
