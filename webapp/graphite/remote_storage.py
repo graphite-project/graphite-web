@@ -123,6 +123,10 @@ class RemoteNode:
     rawData = response.read()
 
     seriesList = unpickle.loads(rawData)
+
+    if seriesList == []:
+      return None
+
     assert len(seriesList) == 1, "Invalid result: seriesList=%s" % str(seriesList)
     series = seriesList[0]
 
