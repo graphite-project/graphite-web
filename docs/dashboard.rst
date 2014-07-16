@@ -242,7 +242,7 @@ Other Operations on the Graph
 The *Graph Operations* menu button is used to perform miscellaneous actions on the graph.
 
 *Breakout*
-  *TODO: What does this do?*
+  Creates new graphs for each of the metrics in the graph, adds them to the dashboard, and removes the original.
 
 *Clone*
   Creates a copy of the graph, and adds it to the dashboard.
