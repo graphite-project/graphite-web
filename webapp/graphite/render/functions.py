@@ -1839,8 +1839,8 @@ def stdev(requestContext, seriesList, points, windowTolerance=0.1):
   # For this we take the standard deviation in terms of the moving average
   # and the moving average of series squares.
   for (seriesIndex,series) in enumerate(seriesList):
-    stddevSeries = TimeSeries("stddev(%s,%d)" % (series.name, int(points)), series.start, series.end, series.step, [])
-    stddevSeries.pathExpression = "stddev(%s,%d)" % (series.name, int(points))
+    stddevSeries = TimeSeries("stdev(%s,%d)" % (series.name, int(points)), series.start, series.end, series.step, [])
+    stddevSeries.pathExpression = "stdev(%s,%d)" % (series.name, int(points))
 
     validPoints = 0
     currentSum = 0
