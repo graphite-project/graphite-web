@@ -221,6 +221,11 @@ USE_REMOTE_USER_AUTHENTICATION
   `Django documentation <https://docs.djangoproject.com/en/dev/howto/auth-remote-user/>`__ for
   further details
 
+REMOTE_USER_BACKEND
+  `Default: "django.contrib.auth.middleware.RemoteUserMiddleware"`
+
+  Enables the use of an alternative remote authentication backend.
+
 LOGIN_URL
   `Default: /account/login`
 

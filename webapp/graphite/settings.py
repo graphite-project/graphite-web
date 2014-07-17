@@ -96,6 +96,7 @@ LDAP_URI = None
 
 #Set this to True to delegate authentication to the web server
 USE_REMOTE_USER_AUTHENTICATION = False
+REMOTE_USER_BACKEND = "" # Provide an alternate or subclassed backend
 
 # Django 1.5 requires this so we set a default but warn the user
 SECRET_KEY = 'UNSAFE_DEFAULT'
@@ -200,9 +201,12 @@ if MEMCACHE_HOSTS:
 if USE_LDAP_AUTH and LDAP_URI is None:
   LDAP_URI = "ldap://%s:%d/" % (LDAP_SERVER, LDAP_PORT)
 
-if USE_REMOTE_USER_AUTHENTICATION:
+if USE_REMOTE_USER_AUTHENTICATION or REMOTE_USER_BACKEND:
   MIDDLEWARE_CLASSES += ('django.contrib.auth.middleware.RemoteUserMiddleware',)
-  AUTHENTICATION_BACKENDS.insert(0,'django.contrib.auth.backends.RemoteUserBackend')
+  if REMOTE_USER_BACKEND:
+    AUTHENTICATION_BACKENDS.insert(0,REMOTE_USER_BACKEND)
+  else:
+    AUTHENTICATION_BACKENDS.insert(0,'django.contrib.auth.backends.RemoteUserBackend')
 
 if USE_LDAP_AUTH:
   AUTHENTICATION_BACKENDS.insert(0,'graphite.account.ldapBackend.LDAPBackend')
