@@ -8,7 +8,7 @@ Backstop
 Bucky
 -----
 `Bucky`_ is a small service implemented in Python for collecting and translating metrics for Graphite.
-It can current collect metric data from CollectD daemons and from StatsD clients.
+It can currently collect metric data from CollectD daemons and from StatsD clients.
 
 Cabot
 -----
