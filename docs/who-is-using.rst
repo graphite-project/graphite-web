@@ -15,5 +15,6 @@ Here are some organizations that use Graphite:
 * `Douban <http://www.douban.com>`_
 * `Datacratic <http://www.datacratic.com>`_
 * `ImmobilienScout24 <http://www.immobilienscout24.de/>`_
+* `Wikimedia Foundation <http://gdash.wikimedia.org/>`_
 
 And many more
