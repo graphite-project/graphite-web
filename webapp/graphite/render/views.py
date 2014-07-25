@@ -154,6 +154,7 @@ def renderView(request):
           series_data.append(dict(target=series.name, datapoints=datapoints))
       else:
         for series in data:
+          series.start, series.end, series.step = map(int, [series.start, series.end, series.step])
           timestamps = range(series.start, series.end, series.step)
           datapoints = zip(series, timestamps)
           series_data.append(dict(target=series.name, datapoints=datapoints))
