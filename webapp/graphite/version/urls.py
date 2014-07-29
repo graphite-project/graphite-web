@@ -12,8 +12,10 @@ You may obtain a copy of the License at
    See the License for the specific language governing permissions and
    limitations under the License."""
 
-from django.conf.urls import *
+from django.conf.urls import patterns, url
+from . import views
 
-urlpatterns = patterns('graphite.version.views',
-  ('', 'index'),
+urlpatterns = patterns(
+    '',
+    url('', views.index, name='version_index'),
 )

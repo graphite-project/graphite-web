@@ -12,10 +12,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
-from django.conf.urls import *
+from django.conf.urls import patterns, url
+from . import views
 
-urlpatterns = patterns('graphite.cli.views',
-     (r'^autocomplete/?$', 'autocomplete'),
-     (r'^eval/?$', 'evaluate'),
-     (r'', 'cli'),
+urlpatterns = patterns(
+    '',
+    url(r'^autocomplete/?$', views.autocomplete, name='cli_autocomplete'),
+    url(r'^eval/?$', views.evaluate, name='cli_evaluate'),
+    url(r'', views.cli, name='cli'),
 )
