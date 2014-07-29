@@ -30,6 +30,8 @@ GRAPHITE_ROOT = dirname(WEBAPP_DIR)
 # Initialize additional path variables
 # Defaults for these are set after local_settings is imported
 STATIC_ROOT = ''
+STATIC_URL = '/static/'
+URL_PREFIX = ''
 CONF_DIR = ''
 DASHBOARD_CONF = ''
 GRAPHTEMPLATES_CONF = ''
@@ -183,6 +185,10 @@ if not STANDARD_DIRS:
       STANDARD_DIRS.append(RRD_DIR)
   except ImportError:
     pass
+
+# Handle URL prefix in static files handling
+if URL_PREFIX and not STATIC_URL.startswith(URL_PREFIX):
+    STATIC_URL = '/{0}{1}'.format(URL_PREFIX.strip('/'), STATIC_URL)
 
 # Default sqlite db file
 # This is set here so that a user-set STORAGE_DIR is available

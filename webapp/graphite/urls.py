@@ -39,7 +39,7 @@ graphite_urls += staticfiles_urlpatterns()
 
 urlpatterns = patterns(
     '',
-    (r'^{0}/'.format(getattr(settings, 'URL_PREFIX', '').strip('/')),
+    (r'^{0}/'.format(settings.URL_PREFIX.strip('/')),
      include(graphite_urls)),
 )
 
