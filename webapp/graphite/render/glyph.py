@@ -13,7 +13,6 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 import math, itertools, re
-import sys
 try:
     import cairo
 except ImportError:
@@ -85,8 +84,7 @@ YEAR = DAY * 365
 try:
     datetime.now().strftime("%a %l%p")
     percent_l_supported = True
-except ValueError:
-    e = sys.exc_info()[1]
+except ValueError as e:
     percent_l_supported = False
 
 xAxisConfigs = (
@@ -948,7 +946,7 @@ class LineGraph(Graph):
 
       if 'stacked' in series.options:
         if self.lineMode == 'staircase':
-          xPos = x 
+          xPos = x
         else:
           xPos = x-series.xStep
         if self.secondYAxis:

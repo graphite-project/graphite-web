@@ -12,8 +12,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
-import sys, os, urllib, time, traceback, cgi, re, socket
-from cPickle import load,dump
+import urllib, time, traceback, cgi, re, socket
 from itertools import chain
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
