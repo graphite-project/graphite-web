@@ -12,13 +12,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License"""
 
+from django.conf import settings
 from django.conf.urls import patterns, include, url
 from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 admin.autodiscover()
 
-urlpatterns = patterns(
+graphite_urls = patterns(
     '',
     ('^admin/', include(admin.site.urls)),
     ('^render/?', include('graphite.render.urls')),
@@ -34,6 +35,12 @@ urlpatterns = patterns(
     ('^events/', include('graphite.events.urls')),
     url('^$', 'graphite.browser.views.browser', name='browser'),
 )
-urlpatterns += staticfiles_urlpatterns()
+graphite_urls += staticfiles_urlpatterns()
+
+urlpatterns = patterns(
+    '',
+    (r'^{0}/'.format(getattr(settings, 'URL_PREFIX', '').strip('/')),
+     include(graphite_urls)),
+)
 
 handler500 = 'graphite.views.server_error'
