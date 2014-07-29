@@ -78,22 +78,22 @@ img.graph-img {
 
 .x-layout-split-north .x-layout-mini {
   height: 10px;
-  background-image: url(/content/img/mini-top2.gif);
+  background-image: url(../img/mini-top2.gif);
 }
 
 .x-layout-split-south .x-layout-mini {
   height: 10px !important;
-  background-image: url(/content/img/mini-bottom2.gif);
+  background-image: url(../img/mini-bottom2.gif);
 }
 
 .x-layout-split-east .x-layout-mini {
   width: 10px !important;
-  background-image: url(/content/img/mini-right2.gif);
+  background-image: url(../img/mini-right2.gif);
 }
 /*
 .x-layout-split-west .x-layout-mini {
   width: 10px !important;
-  background-image: url(/content/img/mini-left2.gif);
+  background-image: url(../img/mini-left2.gif);
 }
 */
 .x-layout-cmini-north {
@@ -102,22 +102,22 @@ img.graph-img {
 
 .x-layout-cmini-north .x-layout-mini {
   height: 10px !important;
-  background-image: url(/content/img/mini-bottom2.gif);
+  background-image: url(../img/mini-bottom2.gif);
 }
 
 .x-layout-cmini-south .x-layout-mini {
   height: 10px !important;
-  background-image: url(/content/img/mini-top2.gif);
+  background-image: url(../img/mini-top2.gif);
 }
 /*
 .x-layout-cmini-east .x-layout-mini {
   width: 10px !important;
-  background-image: url(/content/img/mini-left2.gif);
+  background-image: url(../img/mini-left2.gif);
 }
 */
 .x-layout-cmini-west .x-layout-mini {
   width: 10px !important;
-  background-image: url(/content/img/mini-right2.gif);
+  background-image: url(../img/mini-right2.gif);
 }
 
 /* DnD classes */
