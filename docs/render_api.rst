@@ -48,7 +48,7 @@ and specify a time window for the graph via `from / until`_.
 target
 ------
 
-The ``target`` parameter specifies a path identifying one of metrics, optionally with functions acting on
+The ``target`` parameter specifies a path identifying one or several metrics, optionally with functions acting on
 those metrics.  Paths are documented below, while functions are listed on the :doc:`functions` page.
 
 .. _paths-and-wildcards:
