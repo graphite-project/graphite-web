@@ -11,11 +11,16 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License"""
+import django
 
 from django.conf import settings
 from django.conf.urls import patterns, include, url
 from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+from django.template.loader import add_to_builtins
+
+if django.VERSION < (1, 5):  # load the "future" {% url %} tag
+    add_to_builtins('django.templatetags.future')
 
 admin.autodiscover()
 
