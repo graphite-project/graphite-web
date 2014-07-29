@@ -14,7 +14,7 @@ MetricCompleter = Ext.extend(Ext.form.ComboBox, {
     var _this = this;
 
     var store = new Ext.data.JsonStore({
-      url: "../metrics/find/",
+      url: document.body.dataset.baseUrl + "metrics/find/",
       root: 'metrics',
       fields: ['path', 'name'],
       baseParams: {format: 'completer'}

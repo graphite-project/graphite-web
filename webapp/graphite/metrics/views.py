@@ -35,19 +35,19 @@ def index_json(request):
 
   def find_matches():
     matches = []
-  
+
     for root, dirs, files in os.walk(settings.WHISPER_DIR):
       root = root.replace(settings.WHISPER_DIR, '')
       for basename in files:
         if fnmatch.fnmatch(basename, '*.wsp'):
           matches.append(os.path.join(root, basename))
-  
+
     for root, dirs, files in os.walk(settings.CERES_DIR):
       root = root.replace(settings.CERES_DIR, '')
       for filename in files:
         if filename == '.ceres-node':
           matches.append(root)
-  
+
     matches = [
       m
       .replace('.wsp', '')

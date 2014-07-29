@@ -19,6 +19,8 @@ limitations under the License. -->
   <head>
     <title>Graphite Composer</title>
     <link rel="stylesheet" type="text/css" href="{% static "js/ext/resources/css/ext-all.css" %}"/>
+  </head>
+  <body onload="init();" data-static-root="{% get_static_prefix %}" data-base-url="{% url "browser" %}">
 
     {% if jsdebug %}
       <script type="text/javascript" src="{% static "js/ext/adapter/ext/ext-base-debug.js" %}"></script>
@@ -146,10 +148,7 @@ limitations under the License. -->
           Browser.trees.graphite.expand(false, false, expandNext);
         }
       }
-</script> 
-
-  </head>
-  <body onload="init();" data-static-root="{% get_static_prefix %}">
+</script>
   </body>
 </html>
 

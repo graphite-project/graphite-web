@@ -13,9 +13,12 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 # Django settings for graphite project.
 # DO NOT MODIFY THIS FILE DIRECTLY - use local_settings.py instead
-import sys, os
+import os
+import sys
 from os.path import abspath, dirname, join
 from warnings import warn
+
+from django.core.urlresolvers import reverse_lazy
 
 
 GRAPHITE_WEB_APP_SETTINGS_LOADED = False
@@ -106,7 +109,7 @@ SECRET_KEY = 'UNSAFE_DEFAULT'
 ALLOWED_HOSTS = [ '*' ]
 
 # Override to link a different URL for login (e.g. for django_openid_auth)
-LOGIN_URL = '/account/login'
+LOGIN_URL = reverse_lazy('account_login')
 
 # Set to True to require authentication to save or delete dashboards
 DASHBOARD_REQUIRE_AUTHENTICATION = False

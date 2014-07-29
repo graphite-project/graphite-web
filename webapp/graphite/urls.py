@@ -27,7 +27,7 @@ graphite_urls = patterns(
     ('^composer/?', include('graphite.composer.urls')),
     ('^metrics/?', include('graphite.metrics.urls')),
     ('^browser/?', include('graphite.browser.urls')),
-    ('^account/?', include('graphite.account.urls')),
+    ('^account/', include('graphite.account.urls')),
     ('^dashboard/?', include('graphite.dashboard.urls')),
     ('^whitelist/?', include('graphite.whitelist.urls')),
     ('^graphlot/', include('graphite.graphlot.urls')),

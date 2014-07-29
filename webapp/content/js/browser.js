@@ -54,7 +54,7 @@ function createTreePanel(){
     id: 'GraphiteTree',
     text: 'Metrics',
     loader: new Ext.tree.TreeLoader({
-      url: "../metrics/find/",
+      url: document.body.dataset.baseUrl + "metrics/find/",
       requestMethod: "GET",
       listeners: {beforeload: setParams}
     })
@@ -77,7 +77,7 @@ function createTreePanel(){
       allowDrag: false,
       //listeners: {beforeexpand: reloadOnce},
       loader: new Ext.tree.TreeLoader({
-        url: "../browser/mygraph/",
+        url: document.body.dataset.baseUrl + "browser/mygraph/",
         requestMethod: "GET",
         listeners: {beforeload: setParams}
       })
@@ -90,7 +90,7 @@ function createTreePanel(){
     text: "User Graphs",
     //listeners: {beforeexpand: reloadOnce},
     loader: new Ext.tree.TreeLoader({
-      url: "../browser/usergraph/",
+      url: document.body.dataset.baseUrl + "browser/usergraph/",
       requestMethod: "GET",
       listeners: {beforeload: setParams}
     })
@@ -160,7 +160,7 @@ function setupSearchForm(formEl) {
   var helpOptions = '"width=500,height=400,toolbar=no,location=no,directories=no,status=no,menubar=no"';
   Ext.getDom('searchHelpLink').href = helpAction+"("+helpPage+","+helpTitle+","+helpOptions+");";
   var formPanel = Ext.get("searchForm");
-  formPanel.un("render",setupSearchForm); 
+  formPanel.un("render",setupSearchForm);
 }
 
 function showSearchError(message) {
@@ -179,7 +179,7 @@ function sendSearchRequest (searchField, evt) {
     resultList.removeChild( resultList.childNodes[0] );
   }
   Ext.Ajax.request({
-    url: '../browser/search/',
+    url: document.body.dataset.baseUrl + 'browser/search/',
     method: 'POST',
     success: handleSearchResponse,
     failure: handleSearchFailure,
@@ -278,7 +278,7 @@ function sendCompleterRequest(evt, el) {
     return;
   }
   Ext.Ajax.request({
-    url: '../cli/autocomplete/',
+    url: document.body.dataset.baseUrl + 'cli/autocomplete/',
     method: 'GET',
     success: handleCompleterResponse,
     failure: handleCompleterFailure,
