@@ -42,10 +42,13 @@ graphite_urls = patterns(
 )
 graphite_urls += staticfiles_urlpatterns()
 
+url_prefix = ''
+if settings.URL_PREFIX.strip('/'):
+    url_prefix = '{0}/'.format(settings.URL_PREFIX.strip('/'))
+
 urlpatterns = patterns(
     '',
-    (r'^{0}/'.format(settings.URL_PREFIX.strip('/')),
-     include(graphite_urls)),
+    (r'^{0}'.format(url_prefix), include(graphite_urls)),
 )
 
 handler500 = 'graphite.views.server_error'

@@ -23,9 +23,8 @@ class BrowserTest(TestCase):
         # Graphite has created a default user
         self.assertEqual(User.objects.get().username, 'default')
 
-    #@override_settings(URL_PREFIX='/graphite')
-    #def test_url_prefix(self):
-    #    self.assertEqual(reverse('browser'), '/graphite/')
+    def test_url_prefix(self):
+        self.assertEqual(reverse('browser'), '/graphite/')
 
     @override_settings(INDEX_FILE=os.path.join(DATA_DIR, 'index'))
     def test_search(self):
