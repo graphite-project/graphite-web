@@ -18,7 +18,7 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from graphite.util import getProfile, getProfileByUsername
 from graphite.logger import log
-from graphite.account.models import Profile, MyGraph, Variable, View, Window
+from graphite.account.models import MyGraph, Variable, View, Window
 
 #Utility functions
 def printException():

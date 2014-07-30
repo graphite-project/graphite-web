@@ -1,9 +1,8 @@
 import json
 import re
 import errno
-import sys
 
-from os.path import getmtime
+from os.path import getmtime, join, exists
 from urllib import urlencode
 from ConfigParser import ConfigParser
 from django.shortcuts import render_to_response

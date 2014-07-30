@@ -3,7 +3,6 @@ import socket
 import struct
 import errno
 import random
-import sys
 from select import select
 from django.conf import settings
 from graphite.render.hashing import ConsistentHashRing

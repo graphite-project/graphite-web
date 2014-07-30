@@ -172,13 +172,13 @@ if not RRD_DIR:
   RRD_DIR = join(STORAGE_DIR, 'rrd/')
 if not STANDARD_DIRS:
   try:
-    import whisper
+    import whisper  # noqa
     if os.path.exists(WHISPER_DIR):
       STANDARD_DIRS.append(WHISPER_DIR)
   except ImportError:
     print >> sys.stderr, "WARNING: whisper module could not be loaded, whisper support disabled"
   try:
-    import rrdtool
+    import rrdtool  # noqa
     if os.path.exists(RRD_DIR):
       STANDARD_DIRS.append(RRD_DIR)
   except ImportError:

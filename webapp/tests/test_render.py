@@ -100,4 +100,3 @@ class RenderTest(TestCase):
         end_time = datetime.fromtimestamp(1000)
         self.assertEqual(hashData(targets, start_time, end_time),
                         hashData(reversed(targets), start_time, end_time))
-
