@@ -337,7 +337,7 @@ annotated events, etc). Supports Graphite, flot, rickshaw and anthracite.
 .. _Graphite-Observer: https://github.com/huoxy/graphite-observer
 .. _Graphite-relay: https://github.com/markchadwick/graphite-relay
 .. _Graphiti: https://github.com/paperlesspost/graphiti
-.. _graphitius: https://github.com/erezmazor/graphitus
+.. _graphitius: https://github.com/ezbz/graphitus
 .. _Graphitoid: https://market.android.com/details?id=com.tnc.android.graphite
 .. _Graphsky: https://github.com/hyves-org/graphsky
 .. _Grockets: https://github.com/disqus/grockets
