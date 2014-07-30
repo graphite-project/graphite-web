@@ -78,7 +78,6 @@ try:
         'graphite',
         'graphite.account',
         'graphite.browser',
-        'graphite.cli',
         'graphite.composer',
         'graphite.dashboard',
         'graphite.events',

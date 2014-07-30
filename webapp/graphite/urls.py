@@ -21,7 +21,6 @@ admin.autodiscover()
 urlpatterns = patterns('',
   ('^admin/', include(admin.site.urls)),
   ('^render/?', include('graphite.render.urls')),
-  ('^cli/?', include('graphite.cli.urls')),
   ('^composer/?', include('graphite.composer.urls')),
   ('^metrics/?', include('graphite.metrics.urls')),
   ('^browser/?', include('graphite.browser.urls')),
