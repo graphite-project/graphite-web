@@ -48,7 +48,7 @@ and specify a time window for the graph via `from / until`_.
 target
 ------
 
-The ``target`` parameter specifies a path identifying one or metrics, optionally with functions acting on
+The ``target`` parameter specifies a path identifying one or several metrics, optionally with functions acting on
 those metrics.  Paths are documented below, while functions are listed on the :doc:`functions` page.
 
 .. _paths-and-wildcards:
@@ -375,6 +375,7 @@ areaAlpha
 *Default: 1.0*
 
 Takes a floating point number between 0.0 and 1.0 
+
 Sets the alpha (transparency) value of filled areas when using an areaMode_
 
 .. _param-areaMode:
@@ -596,6 +597,7 @@ hideAxes
 *Default: False*
 
 If set to ``true`` the X and Y axes will not be rendered
+
 Example:
 
 .. code-block:: none
