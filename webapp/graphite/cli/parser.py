@@ -83,7 +83,7 @@ doemail_cmd = Keyword('doemail').setResultsName('command')
 
 #url
 url_cmd = Keyword('url').setResultsName('command') + window
-  
+
 #find
 find_cmd = Keyword('find').setResultsName('command') + restOfLine.setResultsName('pattern')
 
