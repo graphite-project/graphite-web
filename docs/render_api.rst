@@ -440,7 +440,7 @@ Examples:
 .. code-block:: none
 
   &bgcolor=blue
-  &bgcolor=#2222FF
+  &bgcolor=2222FF
 
 cacheTimeout
 ------------
@@ -460,7 +460,7 @@ Example:
 
 .. code-block:: none
 
-  &colorList=green,yellow,orange,red,purple,#DECAFF
+  &colorList=green,yellow,orange,red,purple,DECAFF
 
 .. _param-drawNullAsZero:
 
@@ -730,7 +730,7 @@ Example:
 
 .. code-block:: none
 
-  &majorGridLineColor=#FF22FF
+  &majorGridLineColor=FF22FF
 
 margin
 ------
