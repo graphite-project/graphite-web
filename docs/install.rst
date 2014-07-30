@@ -10,9 +10,9 @@ been met or not.
 
 Basic Graphite requirements:
 
-* Python 2.5 or greater (2.6+ recommended)
+* Python 2.6 or greater
 * `Pycairo`_
-* `Django`_ 1.0 or greater
+* `Django`_ 1.4 or greater
 * `django-tagging`_ 0.3.1 or greater
 * `Twisted`_ 8.0 or greater (10.0+ recommended)
 * `zope-interface`_ (often included in Twisted package dependency)
@@ -21,11 +21,6 @@ Basic Graphite requirements:
   - `Apache`_ with `mod_wsgi`_
   - `gunicorn`_ with `nginx`_
   - `uWSGI`_ with `nginx`_
-
-Python 2.5 has extra requirements:
-
-* `simplejson`_
-* `python-sqlite2`_ or another Django-supported database module
 
 Additionally, the Graphite webapp and Carbon require the whisper database library which
 is part of the Graphite project.

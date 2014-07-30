@@ -112,8 +112,7 @@ def dashboard(request, name=None):
 
   try:
     config.check()
-  except OSError:
-    e = sys.exc_info()[1]
+  except OSError as e:
     if e.errno == errno.ENOENT:
       dashboard_conf_missing = True
     else:

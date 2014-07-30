@@ -12,10 +12,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
-import sys, os, re
-from django.conf import settings
-from graphite.util import getProfile
-from graphite.logger import log
+import re
 from graphite.storage import STORE
 
 
@@ -42,7 +39,7 @@ def completePath(path, shortnames=False):
   pattern = re.sub('\w+\(','',path).replace(')','') + '*'
 
   results = []
-  
+
   for node in STORE.find(pattern):
     if shortnames:
       results.append(node.name)
