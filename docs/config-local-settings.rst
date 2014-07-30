@@ -107,7 +107,7 @@ STATIC_ROOT
   For Nginx::
 
       location /static/ {
-          alias /opt/graphite/static;
+          alias /opt/graphite/static/;
       }
 
 DASHBOARD_CONF
