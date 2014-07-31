@@ -62,6 +62,10 @@ def safeDiv(a, b):
   if b in (0,None): return None
   return float(a) / float(b)
 
+def safeSqrt(value):
+  if value is None: return None
+  return math.sqrt(float(value))
+
 def safeMul(*factors):
   if None in factors:
     return None
@@ -692,6 +696,23 @@ def scaleToSeconds(requestContext, seriesList, seconds):
     for i,value in enumerate(series):
       factor = seconds * 1.0 / series.step
       series[i] = safeMul(value,factor)
+  return seriesList
+
+def squareRoot(requestContext, seriesList):
+  """
+  Takes one metric or a wildcard seriesList, and computes the square root of each datapoint.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=squareRoot(Server.instance01.threads.busy)
+
+  """
+  for series in seriesList:
+    series.name = "squareRoot(%s)" % (series.name)
+    for i,value in enumerate(series):
+      series[i] = safeSqrt(value)
   return seriesList
 
 def absolute(requestContext, seriesList):
@@ -3036,6 +3057,7 @@ SeriesFunctions = {
   'scale' : scale,
   'invert' : invert,
   'scaleToSeconds' : scaleToSeconds,
+  'squareRoot' : squareRoot,
   'offset' : offset,
   'offsetToZero' : offsetToZero,
   'derivative' : derivative,
