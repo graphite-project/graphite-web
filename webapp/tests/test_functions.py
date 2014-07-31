@@ -306,6 +306,7 @@ class FunctionsTest(TestCase):
                 original_value = seriesList[i][counter]
                 if value is None:
                     self.assertEqual(original_value, None)
+                    continue
                 expected_value = math.sqrt(float(original_value))
                 self.assertEqual(value, expected_value)
 
