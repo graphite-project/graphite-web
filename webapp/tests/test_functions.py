@@ -1,4 +1,5 @@
 import copy
+import math
 from django.test import TestCase
 from mock import patch, call, MagicMock
 
