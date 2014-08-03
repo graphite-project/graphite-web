@@ -71,7 +71,6 @@ ROOT_URLCONF = 'graphite.urls'
 INSTALLED_APPS = (
   'graphite.metrics',
   'graphite.render',
-  'graphite.cli',
   'graphite.browser',
   'graphite.composer',
   'graphite.account',

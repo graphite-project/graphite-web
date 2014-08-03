@@ -50,6 +50,8 @@ Changes
   is useful in case of running multiple WSGI workers. See also: `Github Issue
   #499 <https://github.com/graphite-project/graphite-web/pull/499>`_.
 
+* The cli was deprecated and has been removed.
+
 .. _Tox: https://testrun.org/tox/latest/
 
 New functions
