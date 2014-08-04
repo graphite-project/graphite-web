@@ -3,7 +3,7 @@ Tools That Work With Graphite
 
 
 Collection
-----------
+=======
 
 `Bucky`_
   a small service implemented in Python for collecting and translating metrics for Graphite.
@@ -207,6 +207,9 @@ Visualization
 `Tasseo`_
   a lightweight, easily configurable, real-time dashboard for Graphite metrics.
 
+`Tessera`_
+  a flexible front-end for creating dashboards with a wide variety of data presentations. 
+
 `TimeseriesWidget`_
   adds timeseries graphs to your webpages/dashboards using a simple api,
   focuses on high interactivity and modern features (realtime zooming, datapoint inspection,
@@ -301,6 +304,7 @@ Other
 .. _SSC Serv: https://ssc-serv.com/
 .. _statsd: https://github.com/etsy/statsd
 .. _Tasseo: https://github.com/obfuscurity/tasseo
+.. _Tessera: https://github.com/urbanairship/tessera
 .. _Therry: https://github.com/obfuscurity/therry
 .. _TimeseriesWidget: https://github.com/Dieterbe/timeserieswidget
 .. _write-graphite: http://collectd.org/wiki/index.php/Plugin:Write_Graphite
