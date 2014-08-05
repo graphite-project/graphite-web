@@ -3,7 +3,7 @@ Tools That Work With Graphite
 
 
 Collection
-=======
+----------
 
 `Bucky`_
   a small service implemented in Python for collecting and translating metrics for Graphite.
@@ -220,9 +220,7 @@ Monitoring
 ----------
 
 `Cabot`_
-  a self-hosted monitoring and alerting server that watches Graphite metrics and can alert 
-  on them by phone, SMS, Hipchat or email. It is designed to be deployed to cloud or physical hardware in 
-  minutes and configured via web interface.
+  a self-hosted monitoring and alerting server that watches Graphite metrics and can alert on them by phone, SMS, Hipchat or email. It is designed to be deployed to cloud or physical hardware in minutes and configured via web interface.
 
 `rearview`_
   a real-time monitoring framework that sits on top of Graphite's time series data. This allows users to create monitors that both visualize and alert on data as it streams from Graphite. The monitors themselves are simple Ruby scripts which run in a sandbox to provide additional security. Monitors are also configured with a crontab compatible time specification used by the scheduler. Alerts can be sent via email, pagerduty, or campfire.
@@ -245,31 +243,30 @@ Other
   a simple web service that caches Graphite metrics and exposes an endpoint for dumping or searching against them by substring.
 
 
-
-.. _Backbone.js: http://documentcloud.github.com/backbone/
+.. _Backbone.js: http://documentcloud.github.com/backbone
 .. _Backstop: https://github.com/obfuscurity/backstop
 .. _Bucky: http://pypi.python.org/pypi/bucky
 .. _Cabot: https://github.com/arachnys/cabot
 .. _Charcoal: https://github.com/cebailey59/charcoal
-.. _collectd: http://collectd.org/
+.. _collectd: http://collectd.org
 .. _collectd-carbon: https://github.com/indygreg/collectd-carbon
 .. _collectd-graphite: https://github.com/joemiller/collectd-graphite
 .. _collectd-to-graphite: https://github.com/loggly/collectd-to-graphite
-.. _Collectl: http://collectl.sourceforge.net/
-.. _D3.js: http://mbostock.github.com/d3/
+.. _Collectl: http://collectl.sourceforge.net
+.. _D3.js: http://mbostock.github.com/d3
 .. _Descartes: https://github.com/obfuscurity/descartes
-.. _Diamond: http://opensource.brightcove.com/project/Diamond/
+.. _Diamond: http://opensource.brightcove.com/project/Diamond
 .. _Dusk: https://github.com/obfuscurity/dusk
-.. _Esper: http://esper.codehaus.org/
+.. _Esper: http://esper.codehaus.org
 .. _Evenflow: https://github.com/github/evenflow
 .. _Firefly: https://github.com/Yelp/firefly
-.. _Ganglia: http://ganglia.info/
+.. _Ganglia: http://ganglia.info
 .. _Gdash: https://github.com/ripienaar/gdash.git
-.. _Giraffe: http://kenhub.github.com/giraffe/
-.. _Grafana: http://grafana.org/
+.. _Giraffe: http://kenhub.github.com/giraffe
+.. _Grafana: http://grafana.org
 .. _Graph-Explorer: http://vimeo.github.io/graph-explorer
 .. _Graph-Index: https://github.com/douban/graph-index
-.. _Graphene: http://jondot.github.com/graphene/
+.. _Graphene: http://jondot.github.com/graphene
 .. _Graphios: https://github.com/shawn-sterling/graphios
 .. _Graphite-Tattle: https://github.com/wayfair/Graphite-Tattle
 .. _Graphite-Newrelic: https://github.com/gingerlime/graphite-newrelic
@@ -281,10 +278,10 @@ Other
 .. _Graphsky: https://github.com/hyves-org/graphsky
 .. _Grockets: https://github.com/disqus/grockets
 .. _HoardD: https://github.com/coredump/hoardd
-.. _Host sFlow: http://host-sflow.sourceforge.net/
+.. _Host sFlow: http://host-sflow.sourceforge.net
 .. _Hubot: https://github.com/github/hubot
 .. _hubot-scripts: https://github.com/github/hubot-scripts
-.. _jmxtrans: http://code.google.com/p/jmxtrans/
+.. _jmxtrans: http://code.google.com/p/jmxtrans
 .. _Ledbetter: https://github.com/github/ledbetter
 .. _Leonardo: https://github.com/PrFalken/leonardo
 .. _Logster: https://github.com/etsy/logster
@@ -293,15 +290,15 @@ Other
 .. _New Relic: https://newrelic.com/platform
 .. _Pencil: https://github.com/fetep/pencil
 .. _pipe-to-graphite: https://github.com/iFixit/pipe-to-graphite
-.. _RabbitMQ: http://www.rabbitmq.com/
-.. _Rickshaw: http://code.shutterstock.com/rickshaw/
-.. _rearview: http://github.com/livingsocial/rearview/
-.. _Rocksteady: http://code.google.com/p/rocksteady/
+.. _RabbitMQ: http://www.rabbitmq.com
+.. _Rickshaw: http://code.shutterstock.com/rickshaw
+.. _rearview: http://github.com/livingsocial/rearview
+.. _Rocksteady: http://code.google.com/p/rocksteady
 .. _Seyren: https://github.com/scobal/seyren
-.. _Sensu: http://sensuapp.org/
-.. _Shinken: http://www.shinken-monitoring.org/
-.. _SqlToGraphite: https://github.com/perryofpeek/SqlToGraphite/
-.. _SSC Serv: https://ssc-serv.com/
+.. _Sensu: http://sensuapp.org
+.. _Shinken: http://www.shinken-monitoring.org
+.. _SqlToGraphite: https://github.com/perryofpeek/SqlToGraphite
+.. _SSC Serv: https://ssc-serv.com
 .. _statsd: https://github.com/etsy/statsd
 .. _Tasseo: https://github.com/obfuscurity/tasseo
 .. _Tessera: https://github.com/urbanairship/tessera
