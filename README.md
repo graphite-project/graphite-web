@@ -28,8 +28,8 @@ graphs of that data in the frontend webapp.
 
 ## Webapp Installation
 
-Use the instructions in the INSTALL file.
-
+Use the instructions in the `docs/` folder or [on
+readthedocs](http://graphite.readthedocs.org/).
 
 ## Running carbon-cache.py
 

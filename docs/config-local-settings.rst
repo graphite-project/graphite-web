@@ -87,11 +87,28 @@ STORAGE_DIR
   The base directory from which WHISPER_DIR, RRD_DIR, LOG_DIR, and INDEX_FILE default paths
   are referenced
 
-CONTENT_DIR
+STATIC_ROOT
   `Default: See below`
-  The location of Graphite-web's static content. This defaults to ``content/`` two parent
+  The location of Graphite-web's static content. This defaults to ``static/`` three parent
   directories up from ``settings.py``. In the :ref:`default layout <default-installation-layout>`
-  this is ``/opt/graphite/webapp/content``
+  this is ``/opt/graphite/static``
+
+  This directory doesn't even exists once you've installed graphite. It needs
+  to be populated with the following command::
+
+      django-admin.py collectstatic --noinput --settings=graphite.settings
+
+  This collects static files for graphite-web and external apps (namely, the
+  Django admin app) and puts them in a directory that needs to be available
+  under the ``/static/`` URL of your web server. To configure Apache::
+
+      Alias /static/ "/opt/graphite/static"
+
+  For Nginx::
+
+      location /static/ {
+          alias /opt/graphite/static/;
+      }
 
 DASHBOARD_CONF
   `Default: CONF_DIR/dashboard.conf`
@@ -220,6 +237,11 @@ USE_REMOTE_USER_AUTHENTICATION
   Enables the use of the Django `RemoteUserBackend` authentication backend. See the
   `Django documentation <https://docs.djangoproject.com/en/dev/howto/auth-remote-user/>`__ for
   further details
+
+REMOTE_USER_BACKEND
+  `Default: "django.contrib.auth.middleware.RemoteUserMiddleware"`
+
+  Enables the use of an alternative remote authentication backend.
 
 LOGIN_URL
   `Default: /account/login`

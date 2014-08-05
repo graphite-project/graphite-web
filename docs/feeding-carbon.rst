@@ -47,11 +47,11 @@ The general idea is that the pickled data forms a list of multi-level tuples:
  
  [(path, (timestamp, value)), ...]
 
-Once you've formed a list of sufficient size (don't go too big!), send the data over a socket to Carbon's pickle receiver (by default, port 2004). You'll need to pack your pickled data into a packet containing a simple header:
+Once you've formed a list of sufficient size (don't go too big!), and pickled it (if your client is running a more recent version of python than your server, you may need to specify the protocol) send the data over a socket to Carbon's pickle receiver (by default, port 2004). You'll need to pack your pickled data into a packet containing a simple header:
 
 .. code-block:: python
 
- payload = pickle.dumps(listOfMetricTuples)
+ payload = pickle.dumps(listOfMetricTuples, protocol=2)
  header = struct.pack("!L", len(payload))
  message = header + payload
 
@@ -61,4 +61,4 @@ You would then send the ``message`` object through a network socket.
 Using AMQP
 ----------
 When AMQP_METRIC_NAME_IN_BODY is set to True in your carbon.conf file, the data should be of the same format as the plaintext protocol, e.g. echo "local.random.diceroll 4 `date +%s`".
-When AMQP_METRIC_NAME_IN_BODY is set to False, you should ommit 'local.random.diceroll'.
+When AMQP_METRIC_NAME_IN_BODY is set to False, you should omit 'local.random.diceroll'.

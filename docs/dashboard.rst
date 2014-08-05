@@ -242,7 +242,7 @@ Other Operations on the Graph
 The *Graph Operations* menu button is used to perform miscellaneous actions on the graph.
 
 *Breakout*
-  *TODO: What does this do?*
+  Creates new graphs for each of the metrics in the graph, adds them to the dashboard, and removes the original.
 
 *Clone*
   Creates a copy of the graph, and adds it to the dashboard.
@@ -314,8 +314,10 @@ persistent browser cookie, so you don't have to log in again each time you conne
 
 Changing Default Graph Parameters
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-*TODO: What does this do and how?*
-
-
-
-
+By default, graphs are generated with a standard render template. If you find yourself applying *Render Options* to each and every graph you create, then you can select *Edit Default Parameters* in the *Graphs* menu to automatically handle that. These parameters are saved with the dashboard and persisted in a cookie.
+  
+The format is as a set of key-value pairs separated by ampersands, like a query string. The keys and values come from :doc:`render_api` and they're all available. For example:
+  
+``drawNullAsZero=true&graphOnly=true``
+  
+Any new graphs created after saving that as the default graph parameters would have unreported metrics graphed as zeroes and omit the grid lines.

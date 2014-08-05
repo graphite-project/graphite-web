@@ -147,7 +147,7 @@ function fitImageToWindow(win) {
 /* Toolbar stuff */
 function createToolbarButton(tip, icon, handler) {
   return new Ext.Toolbar.Button({
-    style: "padding-left:10pt; background:transparent url(../content/img/" + icon + ") no-repeat scroll 0% 50%",
+    style: "padding-left:10pt; background:transparent url(" + document.body.dataset.staticRoot + "img/" + icon + ") no-repeat scroll 0% 50%",
     handler: handler,
     handleMouseEvents: false,
     text: "&nbsp; &nbsp;",
@@ -1039,11 +1039,13 @@ function createFunctionsMenu() {
         {text: 'Offset', handler: applyFuncToEachWithInput('offset', 'Please enter the value to offset Y-values by')},
         {text: 'OffsetToZero', handler: applyFuncToEach('offsetToZero')},
         {text: 'Derivative', handler: applyFuncToEach('derivative')},
+        {text: 'Square Root', handler: applyFuncToEach('squareRoot')},
         {text: 'Time-adjusted Derivative', handler: applyFuncToEachWithInput('perSecond', "Please enter a maximum value if this metric is a wrapping counter (or just leave this blank)", {allowBlank: true})},
         {text: 'Integral', handler: applyFuncToEach('integral')},
         {text: 'Percentile Values', handler: applyFuncToEachWithInput('percentileOfSeries', "Please enter the percentile to use")},
         {text: 'Non-negative Derivative', handler: applyFuncToEachWithInput('nonNegativeDerivative', "Please enter a maximum value if this metric is a wrapping counter (or just leave this blank)", {allowBlank: true})},
         {text: 'Log', handler: applyFuncToEachWithInput('log', 'Please enter a base')},
+        {text: 'Invert', handler: applyFuncToEach('invert')},
         {text: 'Absolute Value', handler: applyFuncToEach('absolute')},
         {text: 'timeShift', handler: applyFuncToEachWithInput('timeShift', 'Shift this metric ___ back in time (examples: 10min, 7d, 2w)', {quote: true})},
         {text: 'Summarize', handler: applyFuncToEachWithInput('summarize', 'Please enter a summary interval (examples: 10min, 1h, 7d)', {quote: true})},
