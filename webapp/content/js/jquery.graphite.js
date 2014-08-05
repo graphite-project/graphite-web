@@ -232,7 +232,6 @@
                     } else {
                         legends.eq(i).text(series.label);
                     }
-                    legends.eq(i).css('width', legends.eq(i).width());
                 }
             }
 
@@ -509,7 +508,7 @@
                         // add row
                         edit.blur();
                         if (graph_lines[edit.val()] == null) {
-                        var new_row = $('<tr class="g_metricrow"><td><a href=#><span class="g_metricname">'+edit.val()+'</span></a></td><td><a href=#><span class="g_yaxis">one</span></a></td><td class="g_killrow"><img src="../content/img/delete.gif"></td></tr>');
+                        var new_row = $('<tr class="g_metricrow"><td><a href=#><span class="g_metricname">'+edit.val()+'</span></a></td><td><a href=#><span class="g_yaxis">one</span></a></td><td class="g_killrow"><img src="' + document.body.dataset.staticRoot + 'img/delete.gif"></td></tr>');
                             setup_row(new_row);
                             wrap.find('.g_newmetricrow').before(new_row);
                             update_metric_row(new_row);

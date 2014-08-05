@@ -1,4 +1,5 @@
 import copy
+import math
 from django.test import TestCase
 from mock import patch, call, MagicMock
 
@@ -295,3 +296,17 @@ class FunctionsTest(TestCase):
             results = functions.reduceSeries({}, copy.deepcopy(inputList), "mock", 2, "metric1","metric2" )
             self.assertEqual(results,expectedResult)
         self.assertEqual(mock.mock_calls, [call({},inputList[0]), call({},inputList[1])])
+
+    def test_squareRoot(self):
+        seriesList = self._generate_series_list()
+        # Leave the original seriesList undisturbed for verification
+        results = functions.squareRoot({}, copy.deepcopy(seriesList))
+        for i, series in enumerate(results):
+            for counter, value in enumerate(series):
+                original_value = seriesList[i][counter]
+                if value is None:
+                    self.assertEqual(original_value, None)
+                    continue
+                expected_value = math.sqrt(float(original_value))
+                self.assertEqual(value, expected_value)
+

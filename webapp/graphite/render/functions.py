@@ -62,6 +62,10 @@ def safeDiv(a, b):
   if b in (0,None): return None
   return float(a) / float(b)
 
+def safeSqrt(value):
+  if value is None: return None
+  return math.sqrt(float(value))
+
 def safeMul(*factors):
   if None in factors:
     return None
@@ -186,7 +190,7 @@ def sumSeriesWithWildcards(requestContext, seriesList, *position): #XXX
     &target=sumSeriesWithWildcards(host.cpu-[0-7].cpu-{user,system}.value, 1)
 
   This would be the equivalent of
-  ``target=sumSeries(host.*.cpu-user.value)&target=sumSeries(host.*.cpu-system.value)``
+  ``target=sumSeries(host.cpu-[0-7].cpu-user.value)&target=sumSeries(host.cpu-[0-7].cpu-system.value)``
 
   """
   if isinstance(position, int):
@@ -692,6 +696,23 @@ def scaleToSeconds(requestContext, seriesList, seconds):
     for i,value in enumerate(series):
       factor = seconds * 1.0 / series.step
       series[i] = safeMul(value,factor)
+  return seriesList
+
+def squareRoot(requestContext, seriesList):
+  """
+  Takes one metric or a wildcard seriesList, and computes the square root of each datapoint.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=squareRoot(Server.instance01.threads.busy)
+
+  """
+  for series in seriesList:
+    series.name = "squareRoot(%s)" % (series.name)
+    for i,value in enumerate(series):
+      series[i] = safeSqrt(value)
   return seriesList
 
 def absolute(requestContext, seriesList):
@@ -1643,7 +1664,7 @@ def removeAbovePercentile(requestContext, seriesList, n):
 def removeAboveValue(requestContext, seriesList, n):
   """
   Removes data above the given threshold from the series or list of series provided.
-  Values above this threshole are assigned a value of None
+  Values above this threshold are assigned a value of None.
   """
   for s in seriesList:
     s.name = 'removeAboveValue(%s, %d)' % (s.name, n)
@@ -1672,7 +1693,7 @@ def removeBelowPercentile(requestContext, seriesList, n):
 def removeBelowValue(requestContext, seriesList, n):
   """
   Removes data below the given threshold from the series or list of series provided.
-  Values below this threshole are assigned a value of None
+  Values below this threshold are assigned a value of None.
   """
   for s in seriesList:
     s.name = 'removeBelowValue(%s, %d)' % (s.name, n)
@@ -1801,7 +1822,7 @@ def mostDeviant(requestContext, seriesList, n):
 
   .. code-block:: none
 
-    &target=mostDeviant(5, server*.instance*.memory.free)
+    &target=mostDeviant(server*.instance*.memory.free, 5)
 
   Draws the 5 instances furthest from the average memory free.
 
@@ -2440,8 +2461,8 @@ def identity(requestContext, name):
   """
   step = 60
   delta = timedelta(seconds=step)
-  start = time.mktime(requestContext["startTime"].timetuple())
-  end = time.mktime(requestContext["endTime"].timetuple())
+  start = int(time.mktime(requestContext["startTime"].timetuple()))
+  end = int(time.mktime(requestContext["endTime"].timetuple()))
   values = range(start, end, step)
   series = TimeSeries(name, start, end, step, values)
   series.pathExpression = 'identity("%s")' % name
@@ -2552,8 +2573,11 @@ def groupByNode(requestContext, seriesList, nodeNum, callback):
 
     &target=groupByNode(ganglia.by-function.*.*.cpu.load5,2,"sumSeries")
 
-    Would return multiple series which are each the result of applying the "sumSeries" function
-    to groups joined on the second node (0 indexed) resulting in a list of targets like
+  Would return multiple series which are each the result of applying the "sumSeries" function
+  to groups joined on the second node (0 indexed) resulting in a list of targets like
+  
+  .. code-block :: none
+  
     sumSeries(ganglia.by-function.server1.*.cpu.load5),sumSeries(ganglia.by-function.server2.*.cpu.load5),...
 
   """
@@ -3033,6 +3057,7 @@ SeriesFunctions = {
   'scale' : scale,
   'invert' : invert,
   'scaleToSeconds' : scaleToSeconds,
+  'squareRoot' : squareRoot,
   'offset' : offset,
   'offsetToZero' : offsetToZero,
   'derivative' : derivative,

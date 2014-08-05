@@ -109,8 +109,7 @@ def fetchData(requestContext, pathExpr):
 
       try:
           (timeInfo, values) = results
-      except ValueError, e:
-          e = sys.exc_info()[1]
+      except ValueError as e:
           raise Exception("could not parse timeInfo/values from metric '%s': %s" % (node.path, e))
       (start, end, step) = timeInfo
 
@@ -131,7 +130,7 @@ def fetchData(requestContext, pathExpr):
         seriesList.remove(series)
 
     return seriesList
-  
+
   retries = 1 # start counting at one to make log output and settings more readable
   while True:
     try:

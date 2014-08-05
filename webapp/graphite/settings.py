@@ -29,8 +29,7 @@ WEBAPP_DIR = dirname(WEB_DIR)
 GRAPHITE_ROOT = dirname(WEBAPP_DIR)
 # Initialize additional path variables
 # Defaults for these are set after local_settings is imported
-CONTENT_DIR = ''
-CSS_DIR = ''
+STATIC_ROOT = ''
 CONF_DIR = ''
 DASHBOARD_CONF = ''
 GRAPHTEMPLATES_CONF = ''
@@ -96,6 +95,7 @@ LDAP_URI = None
 
 #Set this to True to delegate authentication to the web server
 USE_REMOTE_USER_AUTHENTICATION = False
+REMOTE_USER_BACKEND = "" # Provide an alternate or subclassed backend
 
 # Django 1.5 requires this so we set a default but warn the user
 SECRET_KEY = 'UNSAFE_DEFAULT'
@@ -140,12 +140,14 @@ except ImportError:
 if not GRAPHITE_WEB_APP_SETTINGS_LOADED:
   from graphite.app_settings import *
 
+STATICFILES_DIRS = (
+    join(WEBAPP_DIR, 'content'),
+)
+
 ## Set config dependent on flags set in local_settings
 # Path configuration
-if not CONTENT_DIR:
-  CONTENT_DIR = join(WEBAPP_DIR, 'content')
-if not CSS_DIR:
-  CSS_DIR = join(CONTENT_DIR, 'css')
+if not STATIC_ROOT:
+  STATIC_ROOT = join(GRAPHITE_ROOT, 'static')
 
 if not CONF_DIR:
   CONF_DIR = os.environ.get('GRAPHITE_CONF_DIR', join(GRAPHITE_ROOT, 'conf'))
@@ -200,9 +202,12 @@ if MEMCACHE_HOSTS:
 if USE_LDAP_AUTH and LDAP_URI is None:
   LDAP_URI = "ldap://%s:%d/" % (LDAP_SERVER, LDAP_PORT)
 
-if USE_REMOTE_USER_AUTHENTICATION:
+if USE_REMOTE_USER_AUTHENTICATION or REMOTE_USER_BACKEND:
   MIDDLEWARE_CLASSES += ('django.contrib.auth.middleware.RemoteUserMiddleware',)
-  AUTHENTICATION_BACKENDS.insert(0,'django.contrib.auth.backends.RemoteUserBackend')
+  if REMOTE_USER_BACKEND:
+    AUTHENTICATION_BACKENDS.insert(0,REMOTE_USER_BACKEND)
+  else:
+    AUTHENTICATION_BACKENDS.insert(0,'django.contrib.auth.backends.RemoteUserBackend')
 
 if USE_LDAP_AUTH:
   AUTHENTICATION_BACKENDS.insert(0,'graphite.account.ldapBackend.LDAPBackend')

@@ -680,7 +680,9 @@ function initDashboard () {
       change: function (field, newValue) { updateAutoRefresh(newValue); },
       specialkey: function (field, e) {
                     if (e.getKey() == e.ENTER) {
-                      updateAutoRefresh( field.getValue() );
+                      if (field.getValue() >= 1) {
+                        updateAutoRefresh( field.getValue() );
+                      }
                     }
                   }
     }
@@ -2287,6 +2289,7 @@ function editDashboard() {
     var graphString = editor.getSession().getValue();
     var targets = JSON.parse(graphString);
     graphStore.removeAll();
+    var graphs = [];
     for (var i = 0; i < targets.length; i++) {
       var myParams = {};
       Ext.apply(myParams, targets[i]);
@@ -2294,13 +2297,14 @@ function editDashboard() {
       Ext.apply(urlParams, defaultGraphParams);
       Ext.apply(urlParams, GraphSize);
       Ext.apply(urlParams, myParams);
-      var record = new GraphRecord({
-        target: targets[i].target,
-        params: myParams,
-        url: '/render?' + Ext.urlEncode(urlParams)
-      });
-      graphStore.add([record]);
+      graphs.push([
+        Ext.urlEncode({target: targets[i].target}),
+        myParams,
+        '/render?' + Ext.urlEncode(urlParams)
+      ]);
     }
+    graphStore.loadData(graphs);
+    refreshGraphs();
     edit_dashboard_win.close();
   }
   function getInitialState() {

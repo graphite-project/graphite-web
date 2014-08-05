@@ -1,8 +1,9 @@
+{% load static staticfiles %}
 <html>
   <head>
     <title>Graphite Dashboard</title>
-    <link rel="stylesheet" type="text/css" href="/content/js/ext/resources/css/ext-all.css"/>
-    <link rel="stylesheet" type="text/css" href="/content/css/dashboard.css"/>
+    <link rel="stylesheet" type="text/css" href="{% static "js/ext/resources/css/ext-all.css" %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static "css/dashboard.css" %}"/>
 
     <script type="text/javascript">
     // Be overly cautious to prevent an unlikely XSS (See the below link rule 3.1):
@@ -14,13 +15,13 @@
     var FINDER_QUERY_DELAY = 100;
     var NEW_DASHBOARD_REMOVE_GRAPHS = false;
 
-    var RESIZE_ICON   = '/content/js/ext/resources/icons/fam/cog_edit.png';
-    var REMOVE_ICON   = '/content/js/ext/resources/icons/fam/cross.gif';
-    var REFRESH_ICON  = '/content/js/ext/resources/icons/fam/table_refresh.png';
-    var SHARE_ICON    = '/content/js/ext/resources/icons/fam/application_go.png';
-    var CALENDAR_ICON = '/content/js/ext/resources/images/default/shared/calendar.gif';
-    var CLOCK_ICON    = '/content/img/clock_16.png';
-    var HELP_ICON     = '/content/js/ext/resources/icons/fam/information.png';
+    var RESIZE_ICON   = '{% static "js/ext/resources/icons/fam/cog_edit.png" %}';
+    var REMOVE_ICON   = '{% static "js/ext/resources/icons/fam/cross.gif" %}';
+    var REFRESH_ICON  = '{% static "js/ext/resources/icons/fam/table_refresh.png" %}';
+    var SHARE_ICON    = '{% static "js/ext/resources/icons/fam/application_go.png" %}';
+    var CALENDAR_ICON = '{% static "js/ext/resources/images/default/shared/calendar.gif" %}';
+    var CLOCK_ICON    = '{% static "img/clock_16.png" %}';
+    var HELP_ICON     = '{% static "js/ext/resources/icons/fam/information.png" %}';
 
     {% if initialState %}
     var initialState = "{{ initialState|escapejs }}";
@@ -50,25 +51,30 @@
     </script>
 
     <!-- Theme overrides -->
-    <link rel="stylesheet" type="text/css" href="/content/css/dashboard-{{ theme }}.css" />
+    <link rel="stylesheet" type="text/css" href="{% static "css/dashboard-"|add:theme|add:".css" %}" />
 
-    <script type="text/javascript" src="/content/js/ext/adapter/ext/ext-base{% if jsdebug %}-debug{% endif %}.js"></script>
-    <script type="text/javascript" src="/content/js/ext/ext-all{% if jsdebug %}-debug{% endif %}.js"></script>
-    <script type="text/javascript" src="/content/js/ext/ux/DataViewTransition.js"></script>
-    <script type="text/javascript" src="/content/js/composer_widgets.js"></script>
-    <script type="text/javascript" src="/content/js/dashboard.js"></script>
-    <script type="text/javascript" src="/content/js/ace/ace.js"></script>
-    <script type="text/javascript" src="/content/js/ace/mode-json.js"></script>
-    <script type="text/javascript" src="/content/js/ace/theme-textmate.js"></script>
+    {% if jsdebug %}
+      <script type="text/javascript" src="{% static "js/ext/adapter/ext/ext-base-debug.js" %}"></script>
+      <script type="text/javascript" src="{% static "js/ext/ext-all-debug.js" %}"></script>
+    {% else %}
+      <script type="text/javascript" src="{% static "js/ext/adapter/ext/ext-base.js" %}"></script>
+      <script type="text/javascript" src="{% static "js/ext/ext-all.js" %}"></script>
+    {% endif %}
+    <script type="text/javascript" src="{% static "js/ext/ux/DataViewTransition.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/composer_widgets.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/dashboard.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/ace/ace.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/ace/mode-json.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/ace/theme-textmate.js" %}"></script>
 
     <script type="text/javascript">
-    Ext.BLANK_IMAGE_URL = '/content/js/ext/resources/images/default/s.gif';
+    Ext.BLANK_IMAGE_URL = '{% static "js/ext/resources/images/default/s.gif" %}';
     Ext.QuickTips.init();
     Ext.onReady(initDashboard);
     </script> 
 
   </head>
-  <body>
+  <body data-static-root="{% get_static_prefix %}">
     <div id='merge'>Drop To Merge</div>
   </body>
 </html>
