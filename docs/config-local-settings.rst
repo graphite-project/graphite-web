@@ -145,6 +145,34 @@ INDEX_FILE
   must be writable by the user running the Graphite-web webap
 
 
+Configure Webserver (Apache)
+----------------------------
+There is an example example-graphite-vhost.conf file in the examples directory of the graphite web source code. You can use this to configure apache. Different distributions have different ways of configuring Apache. Please refer to your distribution's documentation on the subject.
+
+For example, Ubuntu uses /etc/apache2/sites-available and sites-enabled/ to handle this (A symlink from sites-enabled/ to sites-available/ would be used after placing the file in sites-available/).
+
+Others use an Include directive in the httpd.conf file like this:
+
+.. code-block:: none
+  # This goes in httpd.conf
+  Include /usr/local/apache2/conf/vhosts.d/*.conf
+
+The configuration files must then all be added to /usr/local/apache2/conf/vhosts.d/.
+Still others may not help handle this at all and you must add the configuration to your http.conf file directly.
+
+Graphite will be in the DocumentRoot of your webserver, and will not allow you to access plain-HTML in subdirectories without addition configuration. You may want to edit the example-graphite-vhosts.conf file to change port numbers or use additional "SetHandler None" directives to allow access to other directories.
+
+Be sure to reload your Apache configuration.
+
+.. code-block:: none
+  sudo /etc/init.d/apache2 reload
+
+or
+
+.. code-block:: none
+  sudo /etc/init.d/httpd reload
+
+
 Email Configuration
 -------------------
 These settings configure Django's email functionality which is used for emailing rendered graphs.
@@ -289,10 +317,7 @@ DASHBOARD_REQUIRE_PERMISSIONS
 
 Database Configuration
 ----------------------
-The following configures the Django database settings. Graphite uses the database for storing user
-profiles, dashboards, and for the Events functionality. Graphite uses an Sqlite database file located
-at ``STORAGE_DIR/graphite.db`` by default. If running multiple Graphite-web instances, a database
-such as PostgreSQL or MySQL is required so that all instances may share the same data source.
+The following configures the Django database settings. Graphite uses the database for storing user profiles, dashboards, and for the Events functionality. Graphite uses n Sqlite database file located at ``STORAGE_DIR/graphite.db`` by default. If running multiple Graphite-web instances, a database such as PostgreSQL or MySQL is required so that all instances may share the same data source.
 
 .. note ::
   As of Django 1.2, the database configuration is specified by the DATABASES
@@ -307,6 +332,23 @@ for full documentation of the DATABASE setting.
    Remember, setting up a new database requires running
    ``PYTHONPATH=$GRAPHITE_ROOT/webapp django-admin.py syncdb --settings=graphite.settings``
    to create the initial schema.
+
+.. note ::
+    If you are using a custom database backend (other than sqlite) you must first create a $GRAPHITE_ROOT/webapp/graphite/local_settings.py file that overrides the database related settings from settings.py. Use $GRAPHITE_ROOT/webapp/graphite/local_settings.py.example as a template.
+
+If you are experiencing problems, uncomment the following line in /opt/graphite/webapp/graphite/local_settings.py
+
+.. code-block:: none
+  
+  # DEBUG = True
+
+and review the graphite webapp in the graphite-example-vhost.conf are in /opt/graphite/storage/logs/
+
+If you encounter problems with access to the database file, you may need to change ownership of the database file to the same user that owns the Apache processes.  If your distribution has apache run as user 'nobody':
+
+.. code-block:: none
+  
+  sudo chown nobody:nobody /opt/graphite/storage/graphite.db
 
 
 Cluster Configuration
