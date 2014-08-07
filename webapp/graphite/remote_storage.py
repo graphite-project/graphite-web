@@ -5,11 +5,7 @@ from urllib import urlencode
 from django.core.cache import cache
 from django.conf import settings
 from graphite.render.hashing import compactHash
-
-try:
-  import cPickle as pickle
-except ImportError:
-  import pickle
+from graphite.util import unpickle
 
 
 
@@ -79,7 +75,7 @@ class FindRequest:
       response = self.connection.getresponse()
       assert response.status == 200, "received error response %s - %s" % (response.status, response.reason)
       result_data = response.read()
-      results = pickle.loads(result_data)
+      results = unpickle.loads(result_data)
 
     except:
       self.store.fail()
@@ -126,16 +122,22 @@ class RemoteNode:
     assert response.status == 200, "Failed to retrieve remote data: %d %s" % (response.status, response.reason)
     rawData = response.read()
 
-    seriesList = pickle.loads(rawData)
+    seriesList = unpickle.loads(rawData)
+
+    if seriesList == []:
+      return None
+
     assert len(seriesList) == 1, "Invalid result: seriesList=%s" % str(seriesList)
     series = seriesList[0]
 
     timeInfo = (series['start'], series['end'], series['step'])
     return (timeInfo, series['values'])
 
-
   def isLeaf(self):
     return self.__isLeaf
+
+  def isLocal(self):
+    return False
 
 
 

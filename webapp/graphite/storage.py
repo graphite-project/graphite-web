@@ -1,8 +1,11 @@
 import os, time, fnmatch, socket, errno
+from django.conf import settings
 from os.path import isdir, isfile, join, exists, splitext, basename, realpath
 import whisper
+
+from graphite.logger import log
 from graphite.remote_storage import RemoteStore
-from django.conf import settings
+from graphite.util import unpickle
 
 try:
   import rrdtool
@@ -31,7 +34,7 @@ class Store:
     self.remote_stores = [ RemoteStore(host) for host in remote_hosts if not is_local_interface(host) ]
 
     if not (directories or remote_hosts):
-      raise valueError("directories and remote_hosts cannot both be empty")
+      raise ValueError("directories and remote_hosts cannot both be empty")
 
 
   def get(self, metric_path): #Deprecated
@@ -182,7 +185,11 @@ def _find(current_dir, patterns):
   match the corresponding pattern in patterns"""
   pattern = patterns[0]
   patterns = patterns[1:]
-  entries = os.listdir(current_dir)
+  try:
+    entries = os.listdir(current_dir)
+  except OSError as e:
+    log.exception(e)
+    entries = []
 
   subdirs = [e for e in entries if isdir( join(current_dir,e) )]
   matching_subdirs = match_entries(subdirs, pattern)
@@ -251,6 +258,9 @@ class Node:
     self.real_metric = str(metric_path)
     self.name = self.metric_path.split('.')[-1]
 
+  def isLocal(self):
+    return True
+
   def getIntervals(self):
     return []
 
@@ -260,7 +270,7 @@ class Node:
 
 class Branch(Node):
   "Node with children"
-  def fetch(self, startTime, endTime):
+  def fetch(self, startTime, endTime, now=None):
     "No-op to make all Node's fetch-able"
     return []
 
@@ -294,8 +304,8 @@ class WhisperFile(Leaf):
     end = max( os.stat(self.fs_path).st_mtime, start )
     return [ (start, end) ]
 
-  def fetch(self, startTime, endTime):
-    return whisper.fetch(self.fs_path, startTime, endTime)
+  def fetch(self, startTime, endTime, now=None):
+    return whisper.fetch(self.fs_path, startTime, endTime, now)
 
   @property
   def context(self):
@@ -306,7 +316,7 @@ class WhisperFile(Leaf):
 
     if exists(context_path):
       fh = open(context_path, 'rb')
-      context_data = pickle.load(fh)
+      context_data = unpickle.load(fh)
       fh.close()
     else:
       context_data = {}
@@ -326,13 +336,13 @@ class WhisperFile(Leaf):
 class GzippedWhisperFile(WhisperFile):
   extension = '.wsp.gz'
 
-  def fetch(self, startTime, endTime):
+  def fetch(self, startTime, endTime, now=None):
     if not gzip:
       raise Exception("gzip module not available, GzippedWhisperFile not supported")
 
     fh = gzip.GzipFile(self.fs_path, 'rb')
     try:
-      return whisper.file_fetch(fh, startTime, endTime)
+      return whisper.file_fetch(fh, startTime, endTime, now)
     finally:
       fh.close()
 
@@ -390,7 +400,8 @@ class RRDDataSource(Leaf):
     end = max( os.stat(self.rrd_file.fs_path).st_mtime, start )
     return [ (start, end) ]
 
-  def fetch(self, startTime, endTime):
+  def fetch(self, startTime, endTime, now=None):
+    # 'now' parameter is meaningful for whisper but not RRD
     startString = time.strftime("%H:%M_%Y%m%d+%Ss", time.localtime(startTime))
     endString = time.strftime("%H:%M_%Y%m%d+%Ss", time.localtime(endTime))
 

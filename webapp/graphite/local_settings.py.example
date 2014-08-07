@@ -6,6 +6,17 @@
 #####################################
 # General Configuration #
 #####################################
+# Set this to a long, random unique string to use as a secret key for this
+# install. This key is used for salting of hashes used in auth tokens,
+# CRSF middleware, cookie storage, etc. This should be set identically among
+# instances if used behind a load balancer.
+#SECRET_KEY = 'UNSAFE_DEFAULT'
+
+# In Django 1.5+ set this to the list of hosts your graphite instances is
+# accessible as. See:
+# https://docs.djangoproject.com/en/dev/ref/settings/#std:setting-ALLOWED_HOSTS
+#ALLOWED_HOSTS = [ '*' ]
+
 # Set your local timezone (Django's default is America/Chicago)
 # If your graphs appear to be offset by a couple hours then this probably
 # needs to be explicitly set to your local timezone.
@@ -136,8 +147,6 @@
 # The default is 'django.db.backends.sqlite3' with file 'graphite.db'
 # located in STORAGE_DIR
 #
-# Users with Django 1.2 or greater should use the new dictionary
-# specification as the old database specification style is removed in 1.4
 #DATABASES = {
 #    'default': {
 #        'NAME': '/opt/graphite/storage/graphite.db',
@@ -149,13 +158,6 @@
 #    }
 #}
 #
-# Users still on Django 1.1 must use the old method instead:
-#DATABASE_ENGINE = 'django.db.backends.mysql'
-#DATABASE_NAME = 'graphite'      # Or path to the database file if using sqlite3
-#DATABASE_USER = 'graphite'
-#DATABASE_PASSWORD = 'graphite-is-awesome'
-#DATABASE_HOST = 'mysql.mycompany.com'
-#DATABASE_PORT = '3306'
 
 
 #########################

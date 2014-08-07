@@ -68,8 +68,8 @@ except:
 
 
 # Verify django version
-if django and django.VERSION[:2] < (1,1):
-  print "[FATAL] You have django version %s installed, but version 1.1 or greater is required" % django.get_version()
+if django and django.VERSION[:2] < (1,3):
+  print "[FATAL] You have django version %s installed, but version 1.3 or greater is required" % django.get_version()
   fatal += 1
 
 

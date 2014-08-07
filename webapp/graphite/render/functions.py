@@ -179,7 +179,7 @@ def sumSeriesWithWildcards(requestContext, seriesList, *position): #XXX
     &target=sumSeriesWithWildcards(host.cpu-[0-7].cpu-{user,system}.value, 1)
 
   This would be the equivalent of
-  ``target=sumSeries(host.*.cpu-user.value)&target=sumSeries(host.*.cpu-system.value)``
+  ``target=sumSeries(host.cpu-[0-7].cpu-user.value)&target=sumSeries(host.cpu-[0-7].cpu-system.value)``
 
   """
   if type(position) is int:
@@ -406,7 +406,7 @@ def keepLastValue(requestContext, seriesList, limit = INF):
     if 0 < consecutiveNones < limit:
       for index in xrange(len(series) - consecutiveNones, len(series)):
         series[index] = series[len(series) - consecutiveNones - 1]
-      
+
   return seriesList
 
 def asPercent(requestContext, seriesList, total=None):
@@ -593,6 +593,7 @@ def scale(requestContext, seriesList, factor):
   """
   for series in seriesList:
     series.name = "scale(%s,%g)" % (series.name,float(factor))
+    series.pathExpression = series.name
     for i,value in enumerate(series):
       series[i] = safeMul(value,factor)
   return seriesList
@@ -608,6 +609,7 @@ def scaleToSeconds(requestContext, seriesList, seconds):
 
   for series in seriesList:
     series.name = "scaleToSeconds(%s,%d)" % (series.name,seconds)
+    series.pathExpression = series.name
     for i,value in enumerate(series):
       factor = seconds * 1.0 / series.step
       series[i] = safeMul(value,factor)
@@ -627,6 +629,7 @@ def absolute(requestContext, seriesList):
   """
   for series in seriesList:
     series.name = "absolute(%s)" % (series.name)
+    series.pathExpression = series.name
     for i,value in enumerate(series):
       series[i] = safeAbs(value)
   return seriesList
@@ -645,6 +648,7 @@ def offset(requestContext, seriesList, factor):
   """
   for series in seriesList:
     series.name = "offset(%s,%g)" % (series.name,float(factor))
+    series.pathExpression = series.name
     for i,value in enumerate(series):
       if value is not None:
         series[i] = value + factor
@@ -742,6 +746,7 @@ def consolidateBy(requestContext, seriesList, consolidationFunc):
     # datalib will throw an exception, so it's not necessary to validate here
     series.consolidationFunc = consolidationFunc
     series.name = 'consolidateBy(%s,"%s")' % (series.name, series.consolidationFunc)
+    series.pathExpression = series.name
   return seriesList
 
 def derivative(requestContext, seriesList):
@@ -774,6 +779,49 @@ def derivative(requestContext, seriesList):
       newValues.append(val - prev)
       prev = val
     newName = "derivative(%s)" % series.name
+    newSeries = TimeSeries(newName, series.start, series.end, series.step, newValues)
+    newSeries.pathExpression = newName
+    results.append(newSeries)
+  return results
+
+def perSecond(requestContext, seriesList, maxValue=None):
+  """
+  Derivative adjusted for the series time interval
+  This is useful for taking a running total metric and showing how many requests
+  per second were handled.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=perSecond(company.server.application01.ifconfig.TXPackets)
+
+  Each time you run ifconfig, the RX and TXPackets are higher (assuming there
+  is network traffic.) By applying the derivative function, you can get an
+  idea of the packets per minute sent or received, even though you're only
+  recording the total.
+  """
+  results = []
+  for series in seriesList:
+    newValues = []
+    prev = None
+    for val in series:
+      step = series.step
+      if None in (prev,val):
+        newValues.append(None)
+        prev = val
+        continue
+
+      diff = val - prev
+      if diff >= 0:
+        newValues.append(diff / step)
+      elif maxValue is not None and maxValue >= val:
+        newValues.append( ((maxValue - prev) + val  + 1) / step )
+      else:
+        newValues.append(None)
+
+      prev = val
+    newName = "perSecond(%s)" % series.name
     newSeries = TimeSeries(newName, series.start, series.end, series.step, newValues)
     newSeries.pathExpression = newName
     results.append(newSeries)
@@ -967,9 +1015,9 @@ def cactiStyle(requestContext, seriesList, system=None):
   if 0 == len(seriesList):
       return seriesList
   if system:
-      fmt = lambda x:"%2.f%s" % format_units(x,system=system)
+      fmt = lambda x:"%.2f%s" % format_units(x,system=system)
   else:
-      fmt = lambda x:"%2.f"%x
+      fmt = lambda x:"%.2f"%x
   nameLen = max([0] + [len(getattr(series,"name")) for series in seriesList])
   lastLen = max([0] + [len(fmt(int(safeLast(series) or 3))) for series in seriesList]) + 3
   maxLen = max([0] + [len(fmt(int(safeMax(series) or 3))) for series in seriesList]) + 3
@@ -983,7 +1031,7 @@ def cactiStyle(requestContext, seriesList, system=None):
         last = NAN
       else:
         last = fmt(float(last))
-        
+
       if maximum is None:
         maximum = NAN
       else:
@@ -992,7 +1040,7 @@ def cactiStyle(requestContext, seriesList, system=None):
         minimum = NAN
       else:
         minimum = fmt(float(minimum))
-        
+
       series.name = "%*s Current:%*s Max:%*s Min:%*s " % \
           (-nameLen, series.name,
             -lastLen, last,
@@ -1390,7 +1438,7 @@ def _getPercentile(points, n, interpolate=False):
   Statistics Handbook:
   http://www.itl.nist.gov/div898/handbook/prc/section2/prc252.htm
   """
-  sortedPoints = sorted([ p for p in points if points is not None])
+  sortedPoints = sorted([ p for p in points if p is not None])
   if len(sortedPoints) == 0:
     return None
   fractionalRank = (n/100.0) * (len(sortedPoints) + 1)
@@ -1441,6 +1489,7 @@ def removeAbovePercentile(requestContext, seriesList, n):
   """
   for s in seriesList:
     s.name = 'removeAbovePercentile(%s, %d)' % (s.name, n)
+    s.pathExpression = s.name
     percentile = nPercentile(requestContext, [s], n)[0][0]
     for (index, val) in enumerate(s):
       if val > percentile:
@@ -1455,6 +1504,7 @@ def removeAboveValue(requestContext, seriesList, n):
   """
   for s in seriesList:
     s.name = 'removeAboveValue(%s, %d)' % (s.name, n)
+    s.pathExpression = s.name
     for (index, val) in enumerate(s):
       if val > n:
         s[index] = None
@@ -1468,6 +1518,7 @@ def removeBelowPercentile(requestContext, seriesList, n):
   """
   for s in seriesList:
     s.name = 'removeBelowPercentile(%s, %d)' % (s.name, n)
+    s.pathExpression = s.name
     percentile = nPercentile(requestContext, [s], n)[0][0]
     for (index, val) in enumerate(s):
       if val < percentile:
@@ -1482,6 +1533,7 @@ def removeBelowValue(requestContext, seriesList, n):
   """
   for s in seriesList:
     s.name = 'removeBelowValue(%s, %d)' % (s.name, n)
+    s.pathExpression = s.name
     for (index, val) in enumerate(s):
       if val < n:
         s[index] = None
@@ -2016,6 +2068,7 @@ def timeStack(requestContext, seriesList, timeShiftUnit, timeShiftStart, timeShi
     myContext['endTime'] = requestContext['endTime'] + innerDelta
     for shiftedSeries in evaluateTarget(myContext, series.pathExpression):
       shiftedSeries.name = 'timeShift(%s, %s, %s)' % (shiftedSeries.name, timeShiftUnit,shft)
+      shiftedSeries.pathExpression = shiftedSeries.name
       shiftedSeries.start = series.start
       shiftedSeries.end = series.end
       results.append(shiftedSeries)
@@ -2149,7 +2202,7 @@ def identity(requestContext, name):
   Returns datapoints where the value equals the timestamp of the datapoint.
   Useful when you have another series where the value is a timestamp, and
   you want to compare it to the time of the datapoint, to render an age
-  
+
   Example:
 
   .. code-block:: none
@@ -2161,8 +2214,8 @@ def identity(requestContext, name):
   """
   step = 60
   delta = timedelta(seconds=step)
-  start = time.mktime(requestContext["startTime"].timetuple())
-  end = time.mktime(requestContext["endTime"].timetuple())
+  start = int(time.mktime(requestContext["startTime"].timetuple()))
+  end = int(time.mktime(requestContext["endTime"].timetuple()))
   values = range(start, end, step)
   series = TimeSeries(name, start, end, step, values)
   series.pathExpression = 'identity("%s")' % name
@@ -2492,7 +2545,7 @@ def hitcount(requestContext, seriesList, intervalString, alignToInterval = False
         newValues.append(None)
 
     newName = 'hitcount(%s, "%s"%s)' % (series.name, intervalString, alignToInterval and ", true" or "")
-    newSeries = TimeSeries(newName, newStart, series.end, interval, newValues)    
+    newSeries = TimeSeries(newName, newStart, series.end, interval, newValues)
     newSeries.pathExpression = newName
     results.append(newSeries)
 
@@ -2676,6 +2729,7 @@ SeriesFunctions = {
   'scaleToSeconds' : scaleToSeconds,
   'offset' : offset,
   'derivative' : derivative,
+  'perSecond' : perSecond,
   'integral' : integral,
   'percentileOfSeries': percentileOfSeries,
   'nonNegativeDerivative' : nonNegativeDerivative,

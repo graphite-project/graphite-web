@@ -1,14 +1,15 @@
 import datetime
 import time
 
+from django.utils.timezone import get_current_timezone
+from django.core.urlresolvers import get_script_prefix
 from django.http import HttpResponse
 from django.shortcuts import render_to_response, get_object_or_404
+from pytz import timezone
 
 from graphite.util import json
 from graphite.events import models
 from graphite.render.attime import parseATTime
-from django.core.urlresolvers import get_script_prefix
-
 
 
 def to_timestamp(dt):
@@ -72,13 +73,24 @@ def get_data(request):
     return response
 
 def fetch(request):
+    #XXX we need to move to USE_TZ=True to get rid of naive-time conversions
+    def make_naive(dt):
+      if 'tz' in request.GET:
+        tz = timezone(request.GET['tz'])
+      else:
+        tz = get_current_timezone()
+      local_dt = dt.astimezone(tz)
+      if hasattr(local_dt, 'normalize'):
+        local_dt = local_dt.normalize()
+      return local_dt.replace(tzinfo=None)
+
     if request.GET.get("from", None) is not None:
-        time_from = parseATTime(request.GET["from"])
+        time_from = make_naive(parseATTime(request.GET["from"]))
     else:
         time_from = datetime.datetime.fromtimestamp(0)
 
     if request.GET.get("until", None) is not None:
-        time_until = parseATTime(request.GET["until"])
+        time_until = make_naive(parseATTime(request.GET["until"]))
     else:
         time_until = datetime.datetime.now()
 

@@ -232,7 +232,6 @@
                     } else {
                         legends.eq(i).text(series.label);
                     }
-                    legends.eq(i).css('width', legends.eq(i).width());
                 }
             }
 

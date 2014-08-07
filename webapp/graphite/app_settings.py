@@ -48,27 +48,18 @@ MEDIA_URL = ''
 # Examples: "http://foo.com/media/", "/media/".
 ADMIN_MEDIA_PREFIX = '/media/'
 
-# Make this unique, and don't share it with anybody.
-SECRET_KEY = ''
-
 # List of callables that know how to import templates from various sources.
-#XXX Compatibility for Django 1.1. To be removed after 0.9.10
-if DJANGO_VERSION < (1,2):
-  TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.load_template_source',
-    'django.template.loaders.app_directories.load_template_source',
-  )
-else:
-  TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-  )
+TEMPLATE_LOADERS = (
+  'django.template.loaders.filesystem.Loader',
+  'django.template.loaders.app_directories.Loader',
+)
 
 MIDDLEWARE_CLASSES = (
   'django.middleware.common.CommonMiddleware',
   'django.middleware.gzip.GZipMiddleware',
   'django.contrib.sessions.middleware.SessionMiddleware',
   'django.contrib.auth.middleware.AuthenticationMiddleware',
+  'django.contrib.messages.middleware.MessageMiddleware',
 )
 
 ROOT_URLCONF = 'graphite.urls'
