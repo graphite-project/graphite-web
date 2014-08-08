@@ -23,4 +23,5 @@ install:
   - pip install django-tagging pytz pyparsing==1.5.7 http://cairographics.org/releases/py2cairo-1.8.10.tar.gz
 
 script:
-  - PYTHONPATH=. python graphite/manage.py test --settings=tests.settings
+  - PYTHONPATH=. python graphite/manage.py syncdb --noinput
+  - PYTHONPATH=. python graphite/manage.py test --settings=tests.settings -v2

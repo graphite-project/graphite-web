@@ -4,6 +4,8 @@ import os
 import time
 
 from graphite.render.hashing import hashRequest, hashData
+from graphite.render.glyph import LineGraph
+from graphite.render.datalib import TimeSeries
 import whisper
 
 from django.conf import settings
@@ -93,3 +95,27 @@ class RenderTest(TestCase):
         self.assertEqual(hashData(targets, start_time, end_time),
                         hashData(reversed(targets), start_time, end_time))
 
+
+    def test_consolidated_stacked_yMax(self):
+        # Fixture: timeseries with a spike in the middle
+        parts = (os.path.dirname(__file__), 'data', 'single-spike.json')
+        with open(os.path.join(*parts)) as fd:
+            data = json.load(fd)[0]['datapoints']
+        ts = TimeSeries(
+            name='whatever',
+            start=data[0][1],
+            end=data[-1][1],
+            step=60,
+            values=[x[0] for x in data],
+        )
+        # Stand up graph with that data & parameters that trigger the bug
+        # (initializing auto-draws, so this calls the offending function
+        # and updates self.yTop.)
+        graph = LineGraph(data=[ts], areaMode='stacked', width=75)
+        # The fixture in question should have a yTop of 25 when consolidated
+        # down to a graph width of ~75. (Without consolidation - and when
+        # the bug is present, with consolidation - it's 60.)
+        self.assertEqual(graph.yTop, 25)
+        # Sanity check against non-stacked mode - should be identical
+        graph = LineGraph(data=[ts], areaMode='none', width=75)
+        self.assertEqual(graph.yTop, 25)
