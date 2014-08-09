@@ -109,6 +109,7 @@ Several installation options exist:
 
 Initial Configuration
 ---------------------
+
 .. toctree::
    config-local-settings
    config-webapp

@@ -147,17 +147,17 @@ INDEX_FILE
 
 Configure Webserver (Apache)
 ----------------------------
-There is an example example-graphite-vhost.conf file in the examples directory of the graphite web source code. You can use this to configure apache. Different distributions have different ways of configuring Apache. Please refer to your distribution's documentation on the subject.
+There is an example ``example-graphite-vhost.conf`` file in the examples directory of the graphite web source code. You can use this to configure apache. Different distributions have different ways of configuring Apache. Please refer to your distribution's documentation on the subject.
 
-For example, Ubuntu uses /etc/apache2/sites-available and sites-enabled/ to handle this (A symlink from sites-enabled/ to sites-available/ would be used after placing the file in sites-available/).
+For example, Ubuntu uses ``/etc/apache2/sites-available`` and ``sites-enabled/`` to handle this (A symlink from ``sites-enabled/`` to ``sites-available/`` would be used after placing the file in sites-available/).
 
 Others use an Include directive in the httpd.conf file like this:
 
 .. code-block:: none
-  # This goes in httpd.conf
-  Include /usr/local/apache2/conf/vhosts.d/*.conf
+    # This goes in httpd.conf
+    Include /usr/local/apache2/conf/vhosts.d/*.conf
 
-The configuration files must then all be added to /usr/local/apache2/conf/vhosts.d/.
+The configuration files must then all be added to ``/usr/local/apache2/conf/vhosts.d/``.
 Still others may not help handle this at all and you must add the configuration to your http.conf file directly.
 
 Graphite will be in the DocumentRoot of your webserver, and will not allow you to access plain-HTML in subdirectories without addition configuration. You may want to edit the example-graphite-vhosts.conf file to change port numbers or use additional "SetHandler None" directives to allow access to other directories.
@@ -165,12 +165,12 @@ Graphite will be in the DocumentRoot of your webserver, and will not allow you t
 Be sure to reload your Apache configuration.
 
 .. code-block:: none
-  sudo /etc/init.d/apache2 reload
+    sudo /etc/init.d/apache2 reload
 
 or
 
 .. code-block:: none
-  sudo /etc/init.d/httpd reload
+    sudo /etc/init.d/httpd reload
 
 
 Email Configuration
