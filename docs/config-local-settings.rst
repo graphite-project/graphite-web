@@ -151,7 +151,7 @@ There is an example ``example-graphite-vhost.conf`` file in the examples directo
 
 For example, Ubuntu uses ``/etc/apache2/sites-available`` and ``sites-enabled/`` to handle this (A symlink from ``sites-enabled/`` to ``sites-available/`` would be used after placing the file in sites-available/).
 
-Others use an Include directive in the httpd.conf file like this:
+Others use an Include directive in the ``httpd.conf`` file like this:
 
 .. code-block:: none
     # This goes in httpd.conf
@@ -160,17 +160,9 @@ Others use an Include directive in the httpd.conf file like this:
 The configuration files must then all be added to ``/usr/local/apache2/conf/vhosts.d/``.
 Still others may not help handle this at all and you must add the configuration to your http.conf file directly.
 
-Graphite will be in the DocumentRoot of your webserver, and will not allow you to access plain-HTML in subdirectories without addition configuration. You may want to edit the example-graphite-vhosts.conf file to change port numbers or use additional "SetHandler None" directives to allow access to other directories.
+Graphite will be in the DocumentRoot of your webserver, and will not allow you to access plain-HTML in subdirectories without addition configuration. You may want to edit the ``example-graphite-vhosts.conf`` file to change port numbers or use additional ``"SetHandler None"`` directives to allow access to other directories.
 
-Be sure to reload your Apache configuration.
-
-.. code-block:: none
-    sudo /etc/init.d/apache2 reload
-
-or
-
-.. code-block:: none
-    sudo /etc/init.d/httpd reload
+Be sure to reload your Apache configuration by running ``sudo /etc/init.d/apache2 reload`` or ``sudo /etc/init.d/httpd reload``.
 
 
 Email Configuration
