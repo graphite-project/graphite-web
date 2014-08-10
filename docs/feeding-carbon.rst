@@ -108,3 +108,26 @@ For details of implementing your schema, see the :doc:`Configuring Carbon </conf
 
 Basically, when carbon receives a metric, it determines where on the filesystem the whisper data file should be for that metric. If the data file does not exist, carbon knows it has to create it, but since whisper is a fixed size database, some parameters must be determined at the time of file creation (this is the reason we're making a schema). Carbon looks at the schemas file, and in order of priority (highest to lowest) looks for the first schema whose pattern matches the metric name. If no schema matches the default schema (2 hours of minutely data) is used. Once the appropriate schema is determined, carbon uses the retention configuration for the schema to create the whisper data file appropriately.
 
+
+Step 3 - Understanding the Graphite Message Format
+--------------------------------------------------
+
+Graphite understands messages with this format:
+
+.. code-block:: none
+
+    metric_path value timestamp\n
+
+``metric_path`` is the metric namespace that you want to populate.
+
+``value`` is the value that you want to assign to the metric at this time.
+
+``timestamp`` is the unix epoch time.
+
+A simple example of doing this from the unix terminal would look like this:
+
+.. code-block:: none
+
+    echo "test.bash.stats 42" | nc graphite.example.com 2003
+
+There are many tools that interact with Graphite.  See the :doc:`Tools </tools>` page for some choices of tools that may be used to feed Graphite.
