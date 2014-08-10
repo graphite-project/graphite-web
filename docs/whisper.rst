@@ -36,7 +36,7 @@ point interpolation.
 The total retention time of the database is determined by the archive with the highest retention as the
 time period covered by each archive is overlapping (see `Multi-Archive Storage and Retrieval Behavior`_).
 That is, a pair of archives with retentions of 1 month and 1 year will not provide 13 months of data storage
-as may be guessed. Instead, it will provide 1 year of storage - the length of it's longest archive.
+as may be guessed. Instead, it will provide 1 year of storage - the length of its longest archive.
 
 
 Rollup Aggregation
@@ -54,9 +54,10 @@ Available aggregation methods are:
 Multi-Archive Storage and Retrieval Behavior
 --------------------------------------------
 When Whisper writes to a database with multiple archives, the incoming data point is written to all
-archives at once. The data point will be written to the lowest resolution archive as-is, and will be
+archives at once. The data point will be written to the highest resolution archive as-is, and will be
 aggregated by the configured aggregation method (see `Rollup Aggregation`_) and placed into each
-of the higher-retention archives.
+of the higher-retention archives. If you are in need for aggregation of the highest resolution points,
+please consider using :doc:`carbon-aggregator </carbon-daemons>` for that purpose.
 
 When data is retrieved (scoped by a time range), the first archive which can satisfy the entire time
 period is used. If the time period overlaps an archive boundary, the lower-resolution archive will be

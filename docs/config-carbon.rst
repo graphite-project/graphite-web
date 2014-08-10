@@ -1,8 +1,15 @@
 Configuring Carbon
 ==================
 
-Carbon's config files all live in ``/opt/graphite/conf/``. If you've just installed Graphite, none of the ``.conf`` files will
-exist yet, but there will be a ``.conf.example`` file for each one. Simply copy the example files, removing the .example extension, and customize your settings.
+Carbon's config files all live in ``/opt/graphite/conf/``. If you've just installed Graphite, none of the ``.conf`` files will exist yet, but there will be a ``.conf.example`` file for each one. Simply copy the example files, removing the .example extension, and customize your settings.
+
+::
+
+  pushd /opt/graphite/conf
+  cp carbon.conf.example carbon.conf
+  cp storage-schemas.conf.example storage-schemas.conf
+
+The example defaults are sane, but they may not meet your information resolution needs or storage limitations.
 
 
 carbon.conf
@@ -13,8 +20,6 @@ This is the main config file, and defines the settings for each Carbon daemon.
 
 .. TIP::
     Carbon-cache and carbon-relay can run on the same host! Try swapping the default ports listed for ``LINE_RECEIVER_PORT`` and ``PICKLE_RECEIVER_PORT`` between the ``[cache]`` and ``[relay]`` sections to prevent having to reconfigure your deployed metric senders. When setting ``DESTINATIONS`` in the ``[relay]`` section, keep in mind your newly-set ``PICKLE_RECEIVER_PORT`` in the ``[cache]`` section.
-
-
 
 
 storage-schemas.conf
@@ -59,7 +64,7 @@ The name ``[garbage_collection]`` is mainly for documentation purposes, and will
 
 The regular expression pattern will match any metric that ends with ``garbageCollections``. For example, ``com.acmeCorp.instance01.jvm.memory.garbageCollections`` would match, but ``com.acmeCorp.instance01.jvm.memory.garbageCollections.full`` would not.
 
-The retention line is saying that each datapoint represents 10 seconds, and we want to keep enough datapoints so that they add up to 14 days of data.
+The ``retentions`` line is saying that each datapoint represents 10 seconds, and we want to keep enough datapoints so that they add up to 14 days of data.
 
 Here's a more complicated example with multiple retention rates:
 
@@ -148,6 +153,8 @@ for calculating an aggregate metric. The calculation will occur
 every 'frequency' seconds and the 'method' can specify 'sum' or
 'avg'. The name of the aggregate metric will be derived from
 'output_template' filling in any captured fields from 'input_pattern'.
+Any metric that will arrive to ``carbon-aggregator`` will proceed to its
+output untouched unless it is overridden by some rule.
 
 For example, if your metric naming scheme is:
 
@@ -175,6 +182,10 @@ As an example, if the following metrics are received:
 They would all go into the same aggregation buffer and after 60 seconds the
 aggregate metric 'prod.applications.apache.all.requests' would be calculated
 by summing their values.
+
+Another common use pattern of ``carbon-aggregator`` is to aggregate several data points
+of the *same metric*. This could come in handy when you have got the same metric coming from
+several hosts, or when you are bound to send data more frequently than your shortest retention.
 
 whitelist and blacklist
 -----------------------

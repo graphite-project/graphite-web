@@ -10,6 +10,7 @@ simply execute as root:
 
 .. code-block:: none
 
+    pip install https://github.com/graphite-project/ceres/tarball/master
     pip install whisper
     pip install carbon
     pip install graphite-web
@@ -58,5 +59,5 @@ To install the Graphite-web code into the system-wide site-packages directory wi
 
 .. code-block:: none
 
-   pip install graphite-web --install-option="--install-scripts=/usr/bin" install-option="--install-lib=/usr/lib/python2.6/site-packages" --install-option="--install-data=/var/lib/graphite"
+   pip install graphite-web --install-option="--install-scripts=/usr/bin" --install-option="--install-lib=/usr/lib/python2.6/site-packages" --install-option="--install-data=/var/lib/graphite"
 
