@@ -65,3 +65,21 @@ When AMQP_METRIC_NAME_IN_BODY is set to True in your carbon.conf file, the data 
 When AMQP_METRIC_NAME_IN_BODY is set to False, you should omit 'local.random.diceroll'.
 
 
+Getting Your Data Into Graphite
+===============================
+
+The Basic Idea
+--------------
+Graphite is useful if you have some numeric values that change over time and you want to graph them. Basically you write a program to collect these numeric values which then sends them into graphite's backend, :doc:`Carbon. </carbon-daemons>`
+
+
+Step 1 - Plan a Naming Hierarchy
+--------------------------------
+
+Everything stored in graphite has a path with components delimited by dots. So for example, website.orbitz.bookings.air or something like that would represent the number of air bookings on orbitz. Before producing your data you need to decide what your naming scheme will be.
+In a path such as "foo.bar.baz", each thing surrounded by dots is called a path component. So "foo" is a path component, as well as "bar", etc.
+
+Each path component should have a clear and well-defined purpose.  Volatile path components should be kept as deep into the hierarchy as possible.
+
+Matt Aimonetti has a reasonably sane `post describing the organization of your namespace`<http://matt.aimonetti.net/posts/2013/06/26/practical-guide-to-graphite-monitoring/>_.
+
