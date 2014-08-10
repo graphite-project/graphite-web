@@ -310,7 +310,7 @@ DASHBOARD_REQUIRE_PERMISSIONS
 
 Database Configuration
 ----------------------
-The following configures the Django database settings. Graphite uses the database for storing user profiles, dashboards, and for the Events functionality. Graphite uses n Sqlite database file located at ``STORAGE_DIR/graphite.db`` by default. If running multiple Graphite-web instances, a database such as PostgreSQL or MySQL is required so that all instances may share the same data source.
+The following configures the Django database settings. Graphite uses the database for storing user profiles, dashboards, and for the Events functionality. Graphite uses n SQLite database file located at ``STORAGE_DIR/graphite.db`` by default. If running multiple Graphite-web instances, a database such as PostgreSQL or MySQL is required so that all instances may share the same data source.
 
 .. note ::
   As of Django 1.2, the database configuration is specified by the DATABASES
@@ -327,7 +327,7 @@ for full documentation of the DATABASE setting.
    to create the initial schema.
 
 .. note ::
-    If you are using a custom database backend (other than sqlite) you must first create a $GRAPHITE_ROOT/webapp/graphite/local_settings.py file that overrides the database related settings from settings.py. Use $GRAPHITE_ROOT/webapp/graphite/local_settings.py.example as a template.
+    If you are using a custom database backend (other than SQLite) you must first create a $GRAPHITE_ROOT/webapp/graphite/local_settings.py file that overrides the database related settings from settings.py. Use $GRAPHITE_ROOT/webapp/graphite/local_settings.py.example as a template.
 
 If you are experiencing problems, uncomment the following line in /opt/graphite/webapp/graphite/local_settings.py
 
