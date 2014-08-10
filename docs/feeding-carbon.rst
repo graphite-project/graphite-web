@@ -71,7 +71,7 @@ Getting Your Data Into Graphite
 The Basic Idea
 --------------
 
-Graphite is useful if you have some numeric values that change over time and you want to graph them. Basically you write a program to collect these numeric values which then sends them into graphite's backend, :doc:`Carbon. </carbon-daemons>`
+Graphite is useful if you have some numeric values that change over time and you want to graph them. Basically you write a program to collect these numeric values which then sends them to graphite's backend, Carbon.
 
 
 Step 1 - Plan a Naming Hierarchy
