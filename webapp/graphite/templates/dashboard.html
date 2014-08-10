@@ -24,7 +24,7 @@
     var HELP_ICON     = '{% static "js/ext/resources/icons/fam/information.png" %}';
 
     {% if initialState %}
-    var initialState = "{{ initialState|escapejs }}";
+    var initialState = JSON.parse("{{ initialState|escapejs }}");
     {% else %}
     var initialState = null;
     {% endif %}
