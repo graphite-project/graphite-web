@@ -82,7 +82,11 @@ In a path such as "foo.bar.baz", each thing surrounded by dots is called a path 
 
 Each path component should have a clear and well-defined purpose.  Volatile path components should be kept as deep into the hierarchy as possible.
 
-Matt Aimonetti has a reasonably sane `post describing the organization of your namespace<http://matt.aimonetti.net/posts/2013/06/26/practical-guide-to-graphite-monitoring/>`_.
+Matt _Aimonetti has a reasonably sane `post describing the organization of your namespace`__.
+
+.. _Aimonetti: http://matt.aimonetti.net/posts/2013/06/26/practical-guide-to-graphite-monitoring/
+
+__ Aimonetti_
 
 
 Step 2 - Configure your Data Retention
