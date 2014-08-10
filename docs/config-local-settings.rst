@@ -154,6 +154,7 @@ For example, Ubuntu uses ``/etc/apache2/sites-available`` and ``sites-enabled/``
 Others use an Include directive in the ``httpd.conf`` file like this:
 
 .. code-block:: none
+
     # This goes in httpd.conf
     Include /usr/local/apache2/conf/vhosts.d/*.conf
 
