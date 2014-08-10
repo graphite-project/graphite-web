@@ -37,6 +37,7 @@ On Unix, the ``nc`` program can be used to create a socket and send data to Carb
 
 The ``-q0`` parameter instructs ``nc`` to close socket once data is sent. Without this option, some ``nc`` versions would keep the connection open.
 
+
 The pickle protocol
 -------------------
 The pickle protocol is a much more efficient take on the plaintext protocol, and supports sending batches of metrics to Carbon in one go.
@@ -62,3 +63,5 @@ Using AMQP
 ----------
 When AMQP_METRIC_NAME_IN_BODY is set to True in your carbon.conf file, the data should be of the same format as the plaintext protocol, e.g. echo "local.random.diceroll 4 `date +%s`".
 When AMQP_METRIC_NAME_IN_BODY is set to False, you should omit 'local.random.diceroll'.
+
+
