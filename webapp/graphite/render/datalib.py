@@ -152,6 +152,7 @@ class CarbonLinkPool:
       else:
          metricsByHost[host] = [real_metric]
 
+    datapointsCounter = 0
     for host, metrics in metricsByHost.items():
        request = dict(type='cache-query-bulk', metrics=metrics)
        serialized_request = pickle.dumps(request, protocol=-1)
@@ -168,10 +169,12 @@ class CarbonLinkPool:
        else:
          self.connections[host].add(conn)
          if 'error' in result:
-           log.cache("CarbonLink cache-query error %s" % result['error'])
+           log.cache("CarbonLink cache-query-bulk error %s" % result['error'])
          else:
            cacheResultsByMetric.update(result['datapointsByMetric'])
+           datapointsCounter += len(result['datapointsByMetric'])
 
+    log.cache("CarbonLink cache-query-bulk request returned %d datapoints" % datapointsCounter)
     return cacheResultsByMetric
 
   def get_metadata(self, metric, key):
@@ -268,13 +271,14 @@ def fetchData(requestContext, pathExpr):
     dbResults = dbFile.fetch( timestamp(startTime), timestamp(endTime), timestamp(now))
 
     try:
-      cachedResults = None
       if dbFile.isLocal():
-        cachedResults = CarbonLink.query(dbFile.real_metric)
-      elif settings.CARBONLINK_QUERY_BULK:
-        cachedResults = cacheResultsByMetric.get(dbFile.real_metric,[])
-      if cachedResults:
-        dbResults = mergeResults(dbResults, cachedResults)
+        cachedResults = None
+        if settings.CARBONLINK_QUERY_BULK:
+          cachedResults = cacheResultsByMetric.get(dbFile.real_metric,[])
+        else:
+          cachedResults = CarbonLink.query(dbFile.real_metric)
+          if cachedResults:
+            dbResults = mergeResults(dbResults, cachedResults)
     except:
       log.exception("Failed CarbonLink query '%s'" % dbFile.real_metric)
 
