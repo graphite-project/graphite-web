@@ -102,6 +102,8 @@ Installing Graphite
 Several installation options exist:
 
 .. toctree::
+   :maxdepth: 2
+
    install-source
    install-pip
    install-virtualenv
@@ -109,8 +111,11 @@ Several installation options exist:
 
 Initial Configuration
 ---------------------
-.. toctree::
 
+.. toctree::
+   :maxdepth: 2
+   
+   config-local-settings
    config-webapp
    config-carbon
 
