@@ -301,7 +301,7 @@ class FunctionsTest(TestCase):
         seriesList = self._generate_series_list()
         factor = 2
         # Leave the original seriesList undisturbed for verification
-        results = functions.pow({}, copy.deepcopy(seriesList), multiplier)
+        results = functions.pow({}, copy.deepcopy(seriesList), factor)
         for i, series in enumerate(results):
             for counter, value in enumerate(series):
                 if value is None:
@@ -331,7 +331,6 @@ class FunctionsTest(TestCase):
             for counter, value in enumerate(series):
                 original_value = seriesList[i][counter]
                 if value is None:
-                    self.assertEqual(original_value, None)
                     continue
                 expected_value = math.pow(original_value, -1)
                 self.assertEqual(value, expected_value)
