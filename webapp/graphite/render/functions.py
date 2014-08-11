@@ -64,7 +64,11 @@ def safeDiv(a, b):
 
 def safePow(a, b):
   if a is None: return None
-  return math.pow(a, b)
+  try:
+    result = math.pow(a, b)
+  except ValueError:
+    return None
+  return result
 
 def safeMul(*factors):
   if None in factors:
