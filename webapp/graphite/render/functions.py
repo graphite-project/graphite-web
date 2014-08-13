@@ -1557,6 +1557,18 @@ def limit(requestContext, seriesList, n):
   """
   return seriesList[0:n]
 
+def sortByName(requestContext, seriesList):
+  """
+  Takes one metric or a wildcard seriesList.
+
+  Sorts the list of metrics by the metric name.
+  """
+  def compare(x,y):
+    return cmp(x.name, y.name)
+
+  seriesList.sort(compare)
+  return seriesList
+
 def sortByMaxima(requestContext, seriesList):
   """
   Takes one metric or a wildcard seriesList.
@@ -2770,6 +2782,7 @@ SeriesFunctions = {
   'maximumBelow' : maximumBelow,
   'nPercentile' : nPercentile,
   'limit' : limit,
+  'sortByName' : sortByName,
   'sortByMaxima' : sortByMaxima,
   'sortByMinima' : sortByMinima,
   'useSeriesAbove': useSeriesAbove,
