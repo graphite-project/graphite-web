@@ -297,6 +297,19 @@ class FunctionsTest(TestCase):
             self.assertEqual(results,expectedResult)
         self.assertEqual(mock.mock_calls, [call({},inputList[0]), call({},inputList[1])])
 
+    def test_pow(self):
+        seriesList = self._generate_series_list()
+        factor = 2
+        # Leave the original seriesList undisturbed for verification
+        results = functions.pow({}, copy.deepcopy(seriesList), factor)
+        for i, series in enumerate(results):
+            for counter, value in enumerate(series):
+                if value is None:
+                    continue
+                original_value = seriesList[i][counter]
+                expected_value = math.pow(original_value, factor)
+                self.assertEqual(value, expected_value)
+
     def test_squareRoot(self):
         seriesList = self._generate_series_list()
         # Leave the original seriesList undisturbed for verification
@@ -307,6 +320,18 @@ class FunctionsTest(TestCase):
                 if value is None:
                     self.assertEqual(original_value, None)
                     continue
-                expected_value = math.sqrt(float(original_value))
+                expected_value = math.pow(original_value, 0.5)
+                self.assertEqual(value, expected_value)
+
+    def test_invert(self):
+        seriesList = self._generate_series_list()
+        # Leave the original seriesList undisturbed for verification
+        results = functions.invert({}, copy.deepcopy(seriesList))
+        for i, series in enumerate(results):
+            for counter, value in enumerate(series):
+                original_value = seriesList[i][counter]
+                if value is None:
+                    continue
+                expected_value = math.pow(original_value, -1)
                 self.assertEqual(value, expected_value)
 

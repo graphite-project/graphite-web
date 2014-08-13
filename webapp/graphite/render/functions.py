@@ -62,9 +62,13 @@ def safeDiv(a, b):
   if b in (0,None): return None
   return float(a) / float(b)
 
-def safeSqrt(value):
-  if value is None: return None
-  return math.sqrt(float(value))
+def safePow(a, b):
+  if a is None: return None
+  try:
+    result = math.pow(a, b)
+  except ValueError:
+    return None
+  return result
 
 def safeMul(*factors):
   if None in factors:
@@ -664,23 +668,6 @@ def scale(requestContext, seriesList, factor):
       series[i] = safeMul(value,factor)
   return seriesList
 
-def invert(requestContext, seriesList):
-  """
-  Takes one metric or a wildcard seriesList, and inverts each datapoint (i.e. 1/x).
-
-  Example:
-
-  .. code-block:: none
-
-    &target=invert(Server.instance01.threads.busy)
-
-  """
-  for series in seriesList:
-    series.name = "invert(%s)" % (series.name)
-    for i,value in enumerate(series):
-      series[i] = safeDiv(1,value)
-  return seriesList
-
 def scaleToSeconds(requestContext, seriesList, seconds):
   """
   Takes one metric or a wildcard seriesList and returns "value per seconds" where
@@ -698,6 +685,26 @@ def scaleToSeconds(requestContext, seriesList, seconds):
       series[i] = safeMul(value,factor)
   return seriesList
 
+def pow(requestContext, seriesList, factor):
+  """
+  Takes one metric or a wildcard seriesList followed by a constant, and raises the datapoint
+  by the power of the constant provided at each point.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=pow(Server.instance01.threads.busy,10)
+    &target=pow(Server.instance*.threads.busy,10)
+
+  """
+  for series in seriesList:
+    series.name = "pow(%s,%g)" % (series.name,float(factor))
+    series.pathExpression = series.name
+    for i,value in enumerate(series):
+      series[i] = safePow(value,factor)
+  return seriesList
+
 def squareRoot(requestContext, seriesList):
   """
   Takes one metric or a wildcard seriesList, and computes the square root of each datapoint.
@@ -712,7 +719,24 @@ def squareRoot(requestContext, seriesList):
   for series in seriesList:
     series.name = "squareRoot(%s)" % (series.name)
     for i,value in enumerate(series):
-      series[i] = safeSqrt(value)
+      series[i] = safePow(value, 0.5)
+  return seriesList
+
+def invert(requestContext, seriesList):
+  """
+  Takes one metric or a wildcard seriesList, and inverts each datapoint (i.e. 1/x).
+
+  Example:
+
+  .. code-block:: none
+
+    &target=invert(Server.instance01.threads.busy)
+
+  """
+  for series in seriesList:
+    series.name = "invert(%s)" % (series.name)
+    for i,value in enumerate(series):
+        series[i] = safePow(value, -1)
   return seriesList
 
 def absolute(requestContext, seriesList):
@@ -3055,17 +3079,18 @@ SeriesFunctions = {
 
   # Transform functions
   'scale' : scale,
-  'invert' : invert,
   'scaleToSeconds' : scaleToSeconds,
-  'squareRoot' : squareRoot,
   'offset' : offset,
   'offsetToZero' : offsetToZero,
   'derivative' : derivative,
+  'squareRoot' : squareRoot,
+  'pow' : pow,
   'perSecond' : perSecond,
   'integral' : integral,
   'percentileOfSeries': percentileOfSeries,
   'nonNegativeDerivative' : nonNegativeDerivative,
   'log' : logarithm,
+  'invert' : invert,
   'timeStack': timeStack,
   'timeShift': timeShift,
   'summarize' : summarize,
