@@ -108,6 +108,7 @@ Several installation options exist:
    install-source
    install-pip
    install-virtualenv
+   install-synthesize
 
 
 Initial Configuration
