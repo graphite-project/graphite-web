@@ -10,6 +10,7 @@ been met or not.
 
 Basic Graphite requirements:
 
+* a Unix-like Operating System
 * Python 2.6 or greater
 * `Pycairo`_
 * `Django`_ 1.4 or greater
