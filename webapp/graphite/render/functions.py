@@ -2551,7 +2551,7 @@ def reduceSeries(requestContext, seriesLists, reduceFunction, reduceNode, *reduc
   Takes a list of seriesLists and reduces it to a list of series by means of the reduceFunction.
 
   Reduction is performed by matching the reduceNode in each series against the list of
-  reduceMatchers. The each series is then passed to the reduceFunction as arguments in the order
+  reduceMatchers. Then each series is passed to the reduceFunction as arguments in the order
   given by reduceMatchers. The reduceFunction should yield a single series.
 
   Example::
