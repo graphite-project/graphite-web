@@ -126,7 +126,7 @@ Help! It didn't work!
 ---------------------
 If you run into any issues with Graphite, please to post a question to our
 `Questions forum on Launchpad <https://answers.launchpad.net/graphite>`_
-or join us on IRC in #graphite on FreeNode
+or join us on IRC in #graphite on FreeNode.
 
 
 Post-Install Tasks
