@@ -138,7 +138,7 @@ class CarbonLinkPool:
   def query(self, metric):
     request = dict(type='cache-query', metric=metric)
     results = self.send_request(request)
-    log.cache("CarbonLink cache-query request for %s returned %d datapoints" % (metric, len(results)))
+    log.cache("CarbonLink cache-query request for %s returned %d datapoints" % (metric, len(results['datapoints'])))
     return results['datapoints']
 
   def get_metadata(self, metric, key):
