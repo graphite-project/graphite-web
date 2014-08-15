@@ -153,6 +153,12 @@ Post-Install Tasks
 :doc:`Using the Composer </composer>`
     Now that the webapp is running, you probably want to learn how to use it.
 
+
+Windows Users
+-------------
+Despair Not!  Even though running Graphite on Windows is completely unsupported (we fear that handling the escaping of paths in the regexes would result only in jibbering madness, and life is just too short; pull requests happily considered!), you are not completely out of luck.  There are some solutions to running a unix as a VM within your Windows box.  The :doc:`Installing via Synthesize </install-synthesize>` article will help you set up a Vagrant VM that will run Graphite.  In order to leverage this, you will need to install `Vagrant <http://www.vagrantup.com>`_.
+
+
 .. _Apache: http://projects.apache.org/projects/http_server.html
 .. _Django: http://www.djangoproject.com/
 .. _django-tagging: http://code.google.com/p/django-tagging/
