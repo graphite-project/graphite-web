@@ -131,6 +131,7 @@ def find_view(request):
   contexts = int( request.REQUEST.get('contexts', 0) )
   wildcards = int( request.REQUEST.get('wildcards', 0) )
   automatic_variants = int( request.REQUEST.get('automatic_variants', 0) )
+  jsonp = request.REQUEST.get('jsonp', False)
 
   try:
     query = str( request.REQUEST['query'] )
@@ -190,7 +191,7 @@ def find_view(request):
       wildcardNode = {'name' : '*'}
       results.append(wildcardNode)
 
-    response = json_response_for(request, { 'metrics' : results })
+    response = json_response_for(request, { 'metrics' : results }, jsonp=jsonp)
 
   else:
     return HttpResponseBadRequest(content="Invalid value for 'format' parameter", mimetype="text/plain")
@@ -360,7 +361,7 @@ def json_response_for(request, data, mimetype='application/json', jsonp=False, *
 
   content = json.dumps(data, ensure_ascii=ensure_ascii)
   if jsonp:
-    content = "%s(%)" % (jsonp, content)
+    content = "%s(%s)" % (jsonp, content)
     mimetype = 'text/javascript'
   if not ensure_ascii:
     mimetype += ';charset=utf-8'
