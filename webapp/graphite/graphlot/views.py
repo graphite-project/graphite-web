@@ -25,11 +25,15 @@ def graphlot_render(request):
     untiltime = request.GET.get('until', "-0hour")
     fromtime = request.GET.get('from', "-24hour")
     events = request.GET.get('events', "")
+    linemode = request.GET.get('lineMode', "")
+    connectedlimit = request.GET.get('connectedLimit', "")
     context = {
       'metric_list' : metrics,
       'fromtime' : fromtime,
       'untiltime' : untiltime,
       'events' : events,
+      'linemode' : linemode,
+      'connectedlimit' : connectedlimit,
       'slash' : get_script_prefix()
     }
     return render_to_response("graphlot.html", context)

@@ -112,6 +112,16 @@
             // parameter to construct the id's of the elements to interact with (see above)
             var graph = config.graph
 
+            // parameter to change line mode
+            var linemode = (typeof config.linemode === 'undefined') ? '' : config.linemode.toLowerCase();
+
+            // parameter to define max consecutive nulls to be removed from a series
+            var maxnulls = 0;
+            if (linemode == 'connected') {
+                        maxnulls = (typeof config.connectedlimit === 'undefined' || config.connectedlimit == '') ? -1 : parseInt(config.connectedlimit);
+                        if (isNaN(maxnulls)) maxnulls = 0;
+            }
+
             var plot = null;
             var graph_lines = {};
             var metric_yaxis = {};
@@ -132,10 +142,18 @@
                 var start = incoming_data.start;
                 var end = incoming_data.end;
                 var step = incoming_data.step;
+                var nullcount = 0;
 
                 for (i in incoming_data.data) {
+                    if (maxnulls != 0) {
+                        if (incoming_data.data[i] == null) {
+                            nullcount++;
+                        } else if (nullcount > 0) {
+                            if (maxnulls == -1 || nullcount <= maxnulls) result.splice(-nullcount, nullcount);
+                            nullcount = 0;
+                        }
+                    }
                     result.push([(start+step*i)*1000, incoming_data.data[i]]);
-
                 }
                 return {
                     label: incoming_data.name,
