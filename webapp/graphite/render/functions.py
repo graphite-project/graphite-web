@@ -1115,7 +1115,25 @@ def stacked(requestContext,seriesLists,stackName='__DEFAULT__'):
 
 def areaBetween(requestContext, seriesList):
   """
-  Draws the area in between the two series in seriesList
+  Draws the vertical area in between the two series in seriesList. Useful for
+  visualizing a range such as the minimum and maximum latency for a service.
+
+  areaBetween expects exactly one argument that results in exactly two series
+  (see example below). The order of the lower and higher values series does not
+  matter. The visualization only works when used in conjunction with
+  ``areaMode=stacked``.
+
+  Most likely use case is to provide a band within which another metric should
+  move. In such case applying an ``alpha()``, as in the second example, gives
+  best visual results.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=areaBetween(service.latency.{min,max})&areaMode=stacked
+
+    &target=alpha(areaBetween(service.latency.{min,max}),0.3)&areaMode=stacked
   """
   assert len(seriesList) == 2, "areaBetween series argument must reference *exactly* 2 series"
   lower = seriesList[0]
@@ -1166,11 +1184,24 @@ def cactiStyle(requestContext, seriesList, system=None):
   output with Current, Max, and Min values in the style of cacti. Optonally
   takes a "system" value to apply unit formatting in the same style as the
   Y-axis.
-  NOTE: column alignment only works with monospace fonts such as terminus.
 
   .. code-block:: none
 
     &target=cactiStyle(ganglia.*.net.bytes_out,"si")
+
+  A possible value for ``system`` is ``si``, which would express your values in
+  multiples of a thousand. A second option is to use ``binary`` which will
+  instead express your values in multiples of 1024 (useful for network devices).
+
+  Column alignment of the Current, Max, Min values works under two conditions:
+  you use a monospace font such as terminus and use a single cactiStyle call, as
+  separate cactiStyle calls are not aware of each other. In case you have
+  different targets for which you would like to have cactiStyle to line up, you
+  can use ``group()`` to combine them before applying cactiStyle, such as:
+
+  .. code-block:: none
+
+    &target=cactiStyle(group(metricA,metricB))
 
   """
   if 0 == len(seriesList):
@@ -2551,7 +2582,7 @@ def reduceSeries(requestContext, seriesLists, reduceFunction, reduceNode, *reduc
   Takes a list of seriesLists and reduces it to a list of series by means of the reduceFunction.
 
   Reduction is performed by matching the reduceNode in each series against the list of
-  reduceMatchers. The each series is then passed to the reduceFunction as arguments in the order
+  reduceMatchers. Then each series is passed to the reduceFunction as arguments in the order
   given by reduceMatchers. The reduceFunction should yield a single series.
 
   Example::
