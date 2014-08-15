@@ -1005,11 +1005,24 @@ def cactiStyle(requestContext, seriesList, system=None):
   output with Current, Max, and Min values in the style of cacti. Optonally
   takes a "system" value to apply unit formatting in the same style as the
   Y-axis.
-  NOTE: column alignment only works with monospace fonts such as terminus.
 
   .. code-block:: none
 
     &target=cactiStyle(ganglia.*.net.bytes_out,"si")
+
+  A possible value for ``system`` is ``si``, which would express your values in
+  multiples of a thousand. A second option is to use ``binary`` which will
+  instead express your values in multiples of 1024 (useful for network devices).
+
+  Column alignment of the Current, Max, Min values works under two conditions:
+  you use a monospace font such as terminus and use a single cactiStyle call, as
+  separate cactiStyle calls are not aware of each other. In case you have
+  different targets for which you would like to have cactiStyle to line up, you
+  can use ``group()`` to combine them before applying cactiStyle, such as:
+
+  .. code-block:: none
+
+    &target=cactiStyle(group(metricA,metricB))
 
   """
   if 0 == len(seriesList):
