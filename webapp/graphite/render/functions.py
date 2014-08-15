@@ -1115,7 +1115,25 @@ def stacked(requestContext,seriesLists,stackName='__DEFAULT__'):
 
 def areaBetween(requestContext, seriesList):
   """
-  Draws the area in between the two series in seriesList
+  Draws the vertical area in between the two series in seriesList. Useful for
+  visualizing a range such as the minimum and maximum latency for a service.
+
+  areaBetween expects exactly one argument that results in exactly two series
+  (see example below). The order of the lower and higher values series does not
+  matter. The visualization only works when used in conjunction with
+  ``areaMode=stacked``.
+
+  Most likely use case is to provide a band within which another metric should
+  move. In such case applying an ``alpha()``, as in the second example, gives
+  best visual results.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=areaBetween(service.latency.{min,max})&areaMode=stacked
+
+    &target=alpha(areaBetween(service.latency.{min,max}),0.3)&areaMode=stacked
   """
   assert len(seriesList) == 2, "areaBetween series argument must reference *exactly* 2 series"
   lower = seriesList[0]
