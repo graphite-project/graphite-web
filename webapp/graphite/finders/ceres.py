@@ -9,6 +9,7 @@ from graphite.node import BranchNode, LeafNode
 from graphite.readers import CeresReader
 
 from . import get_real_metric_path
+import fnmatch
 
 
 class CeresFinder:
@@ -31,3 +32,18 @@ class CeresFinder:
 
       elif os.path.isdir(fs_path):
         yield BranchNode(metric_path)
+
+  def get_all_nodes(self):
+    for root, dirs, files in os.walk(settings.CERES_DIR):
+      root = root.replace(settings.CERES_DIR, '')
+      for filename in files:
+        if filename == '.ceres-node':
+          matches.append(root)
+  
+    matches = [
+      m
+      .replace('/', '.')
+      .lstrip('.')
+      for m in sorted(matches)
+    ]
+    return matches

@@ -8,6 +8,7 @@ from graphite.readers import WhisperReader, GzippedWhisperReader, RRDReader
 from graphite.util import find_escaped_pattern_fields
 
 from . import fs_to_metric, get_real_metric_path, match_entries
+import fnmatch
 
 
 class StandardFinder:
@@ -101,3 +102,22 @@ class StandardFinder:
 
       for basename in matching_files + matching_subdirs:
         yield join(current_dir, basename)
+
+  def get_all_nodes(self):
+    matches = []
+  
+    for root, dirs, files in os.walk(settings.WHISPER_DIR):
+      root = root.replace(settings.WHISPER_DIR, '')
+      for basename in files:
+        if fnmatch.fnmatch(basename, '*.wsp'):
+          matches.append(os.path.join(root, basename))
+
+    matches = [
+      m
+      .replace('.wsp', '')
+      .replace('.rrd', '')
+      .replace('/', '.')
+      .lstrip('.')
+      for m in sorted(matches)
+    ]
+    return matches

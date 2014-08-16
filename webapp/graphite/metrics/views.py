@@ -18,7 +18,7 @@ from graphite.account.models import Profile
 from graphite.compat import HttpResponse, HttpResponseBadRequest
 from graphite.util import getProfile, getProfileByUsername, json
 from graphite.logger import log
-from graphite.storage import STORE
+from graphite.storage import STORE, get_finder
 from graphite.metrics.search import searcher
 from graphite.carbonlink import CarbonLink
 import fnmatch, os
@@ -33,37 +33,12 @@ def index_json(request):
   jsonp = request.REQUEST.get('jsonp', False)
   cluster = request.REQUEST.get('cluster', False)
 
-  def find_matches():
-    matches = []
-  
-    for root, dirs, files in os.walk(settings.WHISPER_DIR):
-      root = root.replace(settings.WHISPER_DIR, '')
-      for basename in files:
-        if fnmatch.fnmatch(basename, '*.wsp'):
-          matches.append(os.path.join(root, basename))
-  
-    for root, dirs, files in os.walk(settings.CERES_DIR):
-      root = root.replace(settings.CERES_DIR, '')
-      for filename in files:
-        if filename == '.ceres-node':
-          matches.append(root)
-  
-    matches = [
-      m
-      .replace('.wsp', '')
-      .replace('.rrd', '')
-      .replace('/', '.')
-      .lstrip('.')
-      for m in sorted(matches)
-    ]
-    return matches
-  matches = []
   if cluster and len(settings.CLUSTER_SERVERS) > 1:
     matches = reduce( lambda x, y: list(set(x + y)), \
         [json.loads(urlopen("http://" + cluster_server + "/metrics/index.json").read()) \
         for cluster_server in settings.CLUSTER_SERVERS])
   else:
-    matches = find_matches()
+    matches = [ node for finder in settings.STORAGE_FINDERS for node in get_finder(finder).get_all_nodes() ]
   return json_response_for(request, matches, jsonp=jsonp)
 
 
