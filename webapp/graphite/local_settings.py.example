@@ -194,6 +194,10 @@
 # You *should* use 127.0.0.1 here in most cases
 #CARBONLINK_HOSTS = ["127.0.0.1:7002:a", "127.0.0.1:7102:b", "127.0.0.1:7202:c"]
 #CARBONLINK_TIMEOUT = 1.0
+# Using 'query-bulk' queries for carbon
+# It's more effective, but python-carbon 0.9.13 (or latest from 0.9.x branch) is required
+# See https://github.com/graphite-project/carbon/pull/132 for details
+#CARBONLINK_QUERY_BULK = False
 
 #####################################
 # Additional Django Settings #

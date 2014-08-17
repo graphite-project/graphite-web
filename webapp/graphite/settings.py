@@ -76,6 +76,7 @@ LOG_RENDERING_PERFORMANCE = False
 #Miscellaneous settings
 CARBONLINK_HOSTS = ["127.0.0.1:7002"]
 CARBONLINK_TIMEOUT = 1.0
+CARBONLINK_QUERY_BULK = False
 SMTP_SERVER = "localhost"
 DOCUMENTATION_URL = "http://graphite.readthedocs.org/"
 ALLOW_ANONYMOUS_CLI = True
