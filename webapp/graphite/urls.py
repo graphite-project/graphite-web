@@ -21,7 +21,6 @@ admin.autodiscover()
 urlpatterns = patterns('',
   ('^admin/', include(admin.site.urls)),
   ('^render/?', include('graphite.render.urls')),
-  ('^cli/?', include('graphite.cli.urls')),
   ('^composer/?', include('graphite.composer.urls')),
   ('^metrics/?', include('graphite.metrics.urls')),
   ('^browser/?', include('graphite.browser.urls')),
@@ -31,6 +30,8 @@ urlpatterns = patterns('',
   ('^graphlot/', include('graphite.graphlot.urls')),
   ('^version/', include('graphite.version.urls')),
   ('^events/', include('graphite.events.urls')),
+  ('^s/(?P<path>.*)', 'graphite.url_shortener.views.shorten'),
+  ('^S/(?P<link_id>[a-zA-Z0-9]+)/?$', 'graphite.url_shortener.views.follow'),
   ('^$', 'graphite.browser.views.browser'),
 )
 urlpatterns += staticfiles_urlpatterns()

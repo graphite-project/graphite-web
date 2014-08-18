@@ -155,7 +155,7 @@ class Graph:
     if self.logBase:
       if self.logBase == 'e':
         self.logBase = math.e
-      elif self.logBase <= 0:
+      elif self.logBase < 1:
         self.logBase = None
         params['logBase'] = None
       else:
@@ -1419,8 +1419,6 @@ class LineGraph(Graph):
       labels = self.yLabelValuesL
     else:
       labels = self.yLabelValues
-    if self.logBase:
-      labels.append(self.logBase * max(labels))
 
     for i, value in enumerate(labels):
       self.ctx.set_line_width(0.4)
