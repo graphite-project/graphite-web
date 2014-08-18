@@ -334,4 +334,3 @@ class FunctionsTest(TestCase):
                     continue
                 expected_value = math.pow(original_value, -1)
                 self.assertEqual(value, expected_value)
-
