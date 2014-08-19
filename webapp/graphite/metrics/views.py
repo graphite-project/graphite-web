@@ -93,6 +93,7 @@ def find_view(request):
   wildcards = int( request.REQUEST.get('wildcards', 0) )
   fromTime = int( request.REQUEST.get('from', -1) )
   untilTime = int( request.REQUEST.get('until', -1) )
+  jsonp = request.REQUEST.get('jsonp', False)
 
   if fromTime == -1:
     fromTime = None
@@ -154,7 +155,7 @@ def find_view(request):
       wildcardNode = {'name' : '*'}
       results.append(wildcardNode)
 
-    response = json_response_for(request, { 'metrics' : results})
+    response = json_response_for(request, { 'metrics' : results }, jsonp=jsonp)
 
   else:
     return HttpResponseBadRequest(
@@ -316,7 +317,7 @@ def json_response_for(request, data, content_type='application/json',
 
   content = json.dumps(data, ensure_ascii=ensure_ascii)
   if jsonp:
-    content = "%s(%)" % (jsonp, content)
+    content = "%s(%s)" % (jsonp, content)
     content_type = 'text/javascript'
   if not ensure_ascii:
     content_type += ';charset=utf-8'
