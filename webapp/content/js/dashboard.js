@@ -680,7 +680,9 @@ function initDashboard () {
       change: function (field, newValue) { updateAutoRefresh(newValue); },
       specialkey: function (field, e) {
                     if (e.getKey() == e.ENTER) {
-                      updateAutoRefresh( field.getValue() );
+                      if (field.getValue() >= 1) {
+                        updateAutoRefresh( field.getValue() );
+                      }
                     }
                   }
     }
@@ -1862,6 +1864,52 @@ function graphClicked(graphView, graphIndex, element, evt) {
           ]
         });
         win.show();
+      }
+    }, {
+      xtype: 'button',
+      fieldLabel: "<span style='visibility: hidden'>",
+      text: "Short Direct URL",
+      width: 100,
+      handler: function () {
+        menu.destroy();
+        showUrl = function(options, success, response) {
+            if(success) {
+              var win = new Ext.Window({
+                title: "Graph URL",
+                width: 600,
+                height: 125,
+                layout: 'border',
+                modal: true,
+                items: [
+                  {
+                    xtype: "label",
+                    region: 'north',
+                    style: "text-align: center;",
+                    text: "Short Direct URL to this graph"
+                  }, {
+                    xtype: 'textfield',
+                    region: 'center',
+                    value:  window.location.origin + response.responseText,
+                    editable: false,
+                    style: "text-align: center; font-size: large;",
+                    listeners: {
+                      focus: function (field) { field.selectText(); }
+                    }
+                  }
+                ],
+                buttonAlign: 'center',
+                buttons: [
+                  {text: "Close", handler: function () { win.close(); } }
+                ]
+              });
+              win.show();
+           }
+        }
+        Ext.Ajax.request({
+          method: 'GET',
+          url: '/s' + record.data.url,
+          callback: showUrl,
+        });
       }
     }]
   });

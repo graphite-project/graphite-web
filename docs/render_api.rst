@@ -48,7 +48,7 @@ and specify a time window for the graph via `from / until`_.
 target
 ------
 
-The ``target`` parameter specifies a path identifying one or metrics, optionally with functions acting on
+The ``target`` parameter specifies a path identifying one or several metrics, optionally with functions acting on
 those metrics.  Paths are documented below, while functions are listed on the :doc:`functions` page.
 
 .. _paths-and-wildcards:
@@ -375,6 +375,7 @@ areaAlpha
 *Default: 1.0*
 
 Takes a floating point number between 0.0 and 1.0 
+
 Sets the alpha (transparency) value of filled areas when using an areaMode_
 
 .. _param-areaMode:
@@ -432,14 +433,15 @@ darkgray     111,111,111
 darkgrey     111,111,111
 ============ =============
 
-RGB can be passed directly in the format #RRGGBB where RR, GG, and BB are 2-digit hex vaules for red, green and blue, respectively.
+RGB can be passed directly in the format #RRGGBB[AA] where RR, GG, and BB are 2-digit hex vaules for red, green and blue, respectively. AA is an optional addition describing the opacity ("alpha"). Where FF is fully opaque, 00 fully transparent.
 
 Examples:
 
 .. code-block:: none
 
   &bgcolor=blue
-  &bgcolor=#2222FF
+  &bgcolor=2222FF
+  &bgcolor=5522FF60
 
 cacheTimeout
 ------------
@@ -453,13 +455,15 @@ colorList
 ---------
 *Default: value from the [default] template in graphTemplates.conf*
 
-Takes one or more comma-separated color names or RGB values (see bgcolor for a list of color names) and uses that list in order as the colors of the lines.  If more lines / metrics are drawn than colors passed, the list is reused in order.
+Takes one or more comma-separated color names or RGB values (see bgcolor for a list of color names) and uses that list in order as the colors of the lines.
+If more lines / metrics are drawn than colors passed, the list is reused in order. Any RGB value can also have an optional transparency (00 being fully transparent, FF being opaque), as shown in the second example.
 
 Example:
 
 .. code-block:: none
 
-  &colorList=green,yellow,orange,red,purple,#DECAFF
+  &colorList=green,yellow,orange,red,purple,DECAFF
+  &colorList=FF000055,00FF00AA,DECAFFEF
 
 .. _param-drawNullAsZero:
 
@@ -596,6 +600,7 @@ hideAxes
 *Default: False*
 
 If set to ``true`` the X and Y axes will not be rendered
+
 Example:
 
 .. code-block:: none
@@ -728,7 +733,7 @@ Example:
 
 .. code-block:: none
 
-  &majorGridLineColor=#FF22FF
+  &majorGridLineColor=FF22FF
 
 margin
 ------

@@ -1,5 +1,4 @@
 import traceback
-from django.conf import settings
 from django.http import HttpResponseServerError
 from django.template import Context, loader
 

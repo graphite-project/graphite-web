@@ -3,7 +3,6 @@ import socket
 import struct
 import errno
 import random
-import sys
 from select import select
 from django.conf import settings
 from graphite.render.hashing import ConsistentHashRing
@@ -177,8 +176,7 @@ def still_connected(sock):
     try:
       recv_buf = sock.recv(1, socket.MSG_DONTWAIT|socket.MSG_PEEK)
 
-    except socket.error:
-      e = sys.exc_info()[1]
+    except socket.error as e:
       if e.errno in (errno.EAGAIN, errno.EWOULDBLOCK):
         return True
       else:

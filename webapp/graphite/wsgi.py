@@ -11,4 +11,4 @@ application = WSGIHandler()
 
 from graphite.logger import log
 log.info("graphite.wsgi - pid %d - reloading search index" % os.getpid())
-import graphite.metrics.search
+import graphite.metrics.search  # noqa

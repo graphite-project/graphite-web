@@ -28,7 +28,6 @@ graphite_urls = patterns(
     '',
     ('^admin/', include(admin.site.urls)),
     ('^render/?', include('graphite.render.urls')),
-    ('^cli/?', include('graphite.cli.urls')),
     ('^composer/?', include('graphite.composer.urls')),
     ('^metrics/?', include('graphite.metrics.urls')),
     ('^browser/?', include('graphite.browser.urls')),
@@ -38,6 +37,10 @@ graphite_urls = patterns(
     ('^graphlot/', include('graphite.graphlot.urls')),
     ('^version/', include('graphite.version.urls')),
     ('^events/', include('graphite.events.urls')),
+    url('^s/(?P<path>.*)',
+        'graphite.url_shortener.views.shorten', name='shorten'),
+    url('^S/(?P<link_id>[a-zA-Z0-9]+)/?$',
+        'graphite.url_shortener.views.follow', name='follow'),
     url('^$', 'graphite.browser.views.browser', name='browser'),
 )
 graphite_urls += staticfiles_urlpatterns()

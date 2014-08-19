@@ -1,7 +1,6 @@
 import socket
 import time
 import httplib
-import sys
 from urllib import urlencode
 from threading import Lock, Event
 from django.conf import settings
@@ -258,8 +257,8 @@ class HTTPConnectionWithTimeout(httplib.HTTPConnection):
           pass
         self.sock.connect(sa)
         self.sock.settimeout(None)
-      except socket.error:
-        msg = sys.exc_info()[1]
+      except socket.error as e:
+        msg = e
         if self.sock:
           self.sock.close()
           self.sock = None

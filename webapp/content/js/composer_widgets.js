@@ -45,6 +45,7 @@ function createComposerWindow(myComposer) {
     createToolbarButton('Select Recent Data', 'arrow1.gif', toggleWindow(createRecentWindow) ),
     createToolbarButton('Open in GraphPlot', 'line_chart.png', function() { window.open(document.body.dataset.baseUrl + 'graphlot/?' + Composer.url.queryString,'_blank') }),
     createToolbarButton('Create from URL', 'link.png', toggleWindow(createURLWindow) ),
+    createToolbarButton('Short URL', 'browser.png', showShortUrl),
     '-',
     timeDisplay
   ];
@@ -258,6 +259,48 @@ function getCalendarSelection(which) {
 
 function asDateString(dateObj) {
   return dateObj.format('H:i_Ymd');
+}
+
+/* Short url window */
+function showShortUrl() {
+    showUrl = function(options, success, response) {
+        if(success) {
+            var win = new Ext.Window({
+              title: "Graph URL",
+              width: 600,
+              height: 125,
+              layout: 'border',
+              modal: true,
+              items: [
+                {
+                  xtype: "label",
+                  region: 'north',
+                  style: "text-align: center;",
+                  text: "Short Direct URL to this graph"
+                }, {
+                  xtype: 'textfield',
+                  region: 'center',
+                  value:  window.location.origin + response.responseText,
+                  editable: false,
+                  style: "text-align: center; font-size: large;",
+                  listeners: {
+                    focus: function (field) { field.selectText(); }
+                  }
+                }
+              ],
+              buttonAlign: 'center',
+              buttons: [
+                {text: "Close", handler: function () { win.close(); } }
+              ]
+            });
+            win.show();
+        }
+    }
+    Ext.Ajax.request({
+        method: 'GET',
+        url: '/s/render/?' + Composer.url.queryString,
+        callback: showUrl,
+    });
 }
 
 /* "Recent Data" dialog */
@@ -1039,11 +1082,14 @@ function createFunctionsMenu() {
         {text: 'Offset', handler: applyFuncToEachWithInput('offset', 'Please enter the value to offset Y-values by')},
         {text: 'OffsetToZero', handler: applyFuncToEach('offsetToZero')},
         {text: 'Derivative', handler: applyFuncToEach('derivative')},
+        {text: 'Power', handler: applyFuncToEachWithInput('pow', 'Please enter a power factor')},
+        {text: 'Square Root', handler: applyFuncToEach('squareRoot')},
         {text: 'Time-adjusted Derivative', handler: applyFuncToEachWithInput('perSecond', "Please enter a maximum value if this metric is a wrapping counter (or just leave this blank)", {allowBlank: true})},
         {text: 'Integral', handler: applyFuncToEach('integral')},
         {text: 'Percentile Values', handler: applyFuncToEachWithInput('percentileOfSeries', "Please enter the percentile to use")},
         {text: 'Non-negative Derivative', handler: applyFuncToEachWithInput('nonNegativeDerivative', "Please enter a maximum value if this metric is a wrapping counter (or just leave this blank)", {allowBlank: true})},
         {text: 'Log', handler: applyFuncToEachWithInput('log', 'Please enter a base')},
+        {text: 'Invert', handler: applyFuncToEach('invert')},
         {text: 'Absolute Value', handler: applyFuncToEach('absolute')},
         {text: 'timeShift', handler: applyFuncToEachWithInput('timeShift', 'Shift this metric ___ back in time (examples: 10min, 7d, 2w)', {quote: true})},
         {text: 'Summarize', handler: applyFuncToEachWithInput('summarize', 'Please enter a summary interval (examples: 10min, 1h, 7d)', {quote: true})},
