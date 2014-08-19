@@ -2950,7 +2950,7 @@ def timeFunction(requestContext, name):
 
   """
 
-  step = 60
+  step = 10
   delta = timedelta(seconds=step)
   when = requestContext["startTime"]
   values = []
