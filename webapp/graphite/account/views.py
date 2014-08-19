@@ -16,8 +16,6 @@ from django.shortcuts import render_to_response
 from django.http import HttpResponseRedirect
 from django.contrib.auth import authenticate, login, logout
 from graphite.util import getProfile
-from graphite.logger import log
-from graphite.account.models import Profile
 
 
 def loginView(request):

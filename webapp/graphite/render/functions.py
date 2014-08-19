@@ -13,8 +13,7 @@
 #limitations under the License.
 
 
-from datetime import date, datetime, timedelta
-from functools import partial
+from datetime import datetime, timedelta
 from itertools import izip, imap
 import math
 import re
@@ -537,7 +536,7 @@ def multiplySeries(requestContext, *seriesLists):
 
 def weightedAverage(requestContext, seriesListAvg, seriesListWeight, node):
   """
-  Takes a series of average values and a series of weights and 
+  Takes a series of average values and a series of weights and
   produces a weighted average for all values.
 
   The corresponding values should share a node as defined
@@ -547,7 +546,7 @@ def weightedAverage(requestContext, seriesListAvg, seriesListWeight, node):
 
   .. code-block:: none
 
-    &target=weightedAverage(*.transactions.mean,*.transactions.count,0) 
+    &target=weightedAverage(*.transactions.mean,*.transactions.count,0)
 
   """
 
@@ -1892,7 +1891,7 @@ def mostDeviant(requestContext, seriesList, n):
     if sigma is None: continue
     deviants.append( (sigma, series) )
   deviants.sort(key=lambda i: i[0], reverse=True) #sort by sigma
-  return [ series for (sigma,series) in deviants ][:n] #return the n most deviant series
+  return [ series for (_, series) in deviants ][:n] #return the n most deviant series
 
 def stdev(requestContext, seriesList, points, windowTolerance=0.1):
   """
@@ -2575,7 +2574,7 @@ def mapSeries(requestContext, seriesList, mapNode):
       keys.append(key)
     else:
       metaSeries[key].append(series)
-  return [ metaSeries[key] for key in keys ]
+  return [ metaSeries[k] for k in keys ]
 
 def reduceSeries(requestContext, seriesLists, reduceFunction, reduceNode, *reduceMatchers):
   """
@@ -2630,9 +2629,9 @@ def groupByNode(requestContext, seriesList, nodeNum, callback):
 
   Would return multiple series which are each the result of applying the "sumSeries" function
   to groups joined on the second node (0 indexed) resulting in a list of targets like
-  
+
   .. code-block :: none
-  
+
     sumSeries(ganglia.by-function.server1.*.cpu.load5),sumSeries(ganglia.by-function.server2.*.cpu.load5),...
 
   """
@@ -2719,8 +2718,8 @@ def smartSummarize(requestContext, seriesList, intervalString, func='sum', align
     datapoints = zip(timestamps, series)
 
     # Populate buckets
-    for (timestamp, value) in datapoints:
-      bucketInterval = int((timestamp - series.start) / interval)
+    for timestamp_, value in datapoints:
+      bucketInterval = int((timestamp_ - series.start) / interval)
 
       if bucketInterval not in buckets:
         buckets[bucketInterval] = []
@@ -2730,8 +2729,8 @@ def smartSummarize(requestContext, seriesList, intervalString, func='sum', align
 
 
     newValues = []
-    for timestamp in range(series.start, series.end, interval):
-      bucketInterval = int((timestamp - series.start) / interval)
+    for timestamp_ in range(series.start, series.end, interval):
+      bucketInterval = int((timestamp_ - series.start) / interval)
       bucket = buckets.get(bucketInterval, [])
 
       if bucket:
@@ -2797,11 +2796,11 @@ def summarize(requestContext, seriesList, intervalString, func='sum', alignToFro
     timestamps = range( int(series.start), int(series.end), int(series.step) )
     datapoints = zip(timestamps, series)
 
-    for (timestamp, value) in datapoints:
+    for timestamp_, value in datapoints:
       if alignToFrom:
-        bucketInterval = int((timestamp - series.start) / interval)
+        bucketInterval = int((timestamp_ - series.start) / interval)
       else:
-        bucketInterval = timestamp - (timestamp % interval)
+        bucketInterval = timestamp_ - (timestamp_ % interval)
 
       if bucketInterval not in buckets:
         buckets[bucketInterval] = []
@@ -2817,12 +2816,12 @@ def summarize(requestContext, seriesList, intervalString, func='sum', alignToFro
       newEnd = series.end - (series.end % interval) + interval
 
     newValues = []
-    for timestamp in range(newStart, newEnd, interval):
+    for timestamp_ in range(newStart, newEnd, interval):
       if alignToFrom:
-        newEnd = timestamp
-        bucketInterval = int((timestamp - series.start) / interval)
+        newEnd = timestamp_
+        bucketInterval = int((timestamp_ - series.start) / interval)
       else:
-        bucketInterval = timestamp - (timestamp % interval)
+        bucketInterval = timestamp_ - (timestamp_ % interval)
 
       bucket = buckets.get(bucketInterval, [])
 

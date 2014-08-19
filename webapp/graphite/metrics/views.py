@@ -11,12 +11,11 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
+from urllib2 import urlopen
 
-import traceback
 from django.conf import settings
-from graphite.account.models import Profile
 from graphite.compat import HttpResponse, HttpResponseBadRequest
-from graphite.util import getProfile, getProfileByUsername, json
+from graphite.util import getProfile, json
 from graphite.logger import log
 from graphite.storage import STORE
 from graphite.metrics.search import searcher
@@ -35,19 +34,19 @@ def index_json(request):
 
   def find_matches():
     matches = []
-  
+
     for root, dirs, files in os.walk(settings.WHISPER_DIR):
       root = root.replace(settings.WHISPER_DIR, '')
       for basename in files:
         if fnmatch.fnmatch(basename, '*.wsp'):
           matches.append(os.path.join(root, basename))
-  
+
     for root, dirs, files in os.walk(settings.CERES_DIR):
       root = root.replace(settings.CERES_DIR, '')
       for filename in files:
         if filename == '.ceres-node':
           matches.append(root)
-  
+
     matches = [
       m
       .replace('.wsp', '')

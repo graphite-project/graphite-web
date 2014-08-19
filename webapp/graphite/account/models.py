@@ -30,7 +30,7 @@ class Variable(models.Model):
 class View(models.Model):
   profile = models.ForeignKey(Profile)
   name = models.CharField(max_length=64)
-  
+
 class Window(models.Model):
   view = models.ForeignKey(View)
   name = models.CharField(max_length=64)

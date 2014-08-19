@@ -21,11 +21,6 @@ from graphite.util import getProfile, getProfileByUsername, json
 from graphite.logger import log
 from hashlib import md5
 
-try:
-  import cPickle as pickle
-except ImportError:
-  import pickle
-
 
 def header(request):
   "View for the header frame of the browser UI"
