@@ -20,7 +20,7 @@ var NOT_EDITABLE = ['from', 'until', 'width', 'height', 'target', 'uniq', '_uniq
 var editor = null;
 
 var cookieProvider = new Ext.state.CookieProvider({
-  path: "/dashboard"
+  path: API_PREFIX + "/dashboard"
 });
 
 var NAV_BAR_REGION = cookieProvider.get('navbar-region') || 'north';
@@ -738,7 +738,7 @@ function showHelp() {
     modal: true,
     width: 550,
     height: 300,
-    autoLoad: "/dashboard/help/"
+    autoLoad: API_PREFIX + "/dashboard/help/"
   });
   win.show();
 }
@@ -1566,7 +1566,7 @@ function selectGraphSize() {
 function doShare() {
   if (dashboardName == null) {
     Ext.Ajax.request({
-      url: "/dashboard/create-temporary/",
+      url: API_PREFIX + "/dashboard/create-temporary/",
       method: 'POST',
       params: {
         state: Ext.encode( getState() )
@@ -2309,7 +2309,7 @@ function saveDashboard() {
 
 function sendSaveRequest(name) {
   Ext.Ajax.request({
-    url: "/dashboard/save/" + name,
+    url: API_PREFIX + "/dashboard/save/" + name,
     method: 'POST',
     params: {
       state: Ext.encode( getState() )
@@ -2326,7 +2326,7 @@ function sendSaveRequest(name) {
 
 function sendLoadRequest(name) {
   Ext.Ajax.request({
-    url: "/dashboard/load/" + name,
+    url: API_PREFIX + "/dashboard/load/" + name,
     success: function (response) {
                var result = Ext.decode(response.responseText);
                if (result.error) {
@@ -2412,7 +2412,7 @@ function applyState(state) {
 
 function deleteDashboard(name) {
   Ext.Ajax.request({
-    url: "/dashboard/delete/" + name,
+    url: API_PREFIX + "/dashboard/delete/" + name,
     success: function (response) {
       var result = Ext.decode(response.responseText);
       if (result.error) {
@@ -2529,7 +2529,7 @@ function showDashboardFinder() {
   var dashboardsList;
   var queryField;
   var dashboardsStore = new Ext.data.JsonStore({
-    url: "/dashboard/find/",
+    url: API_PREFIX + "/dashboard/find/",
     method: 'GET',
     params: {query: "e"},
     fields: ['name'],
