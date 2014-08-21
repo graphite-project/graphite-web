@@ -298,7 +298,7 @@ function showShortUrl() {
     }
     Ext.Ajax.request({
         method: 'GET',
-        url: '/s/render/?' + Composer.url.queryString,
+        url: document.body.dataset.baseUrl + 's/render/?' + Composer.url.queryString,
         callback: showUrl,
     });
 }

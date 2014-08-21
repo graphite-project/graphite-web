@@ -1907,7 +1907,7 @@ function graphClicked(graphView, graphIndex, element, evt) {
         }
         Ext.Ajax.request({
           method: 'GET',
-          url: '/s' + record.data.url,
+          url: document.body.dataset.baseUrl + 's' + record.data.url,
           callback: showUrl,
         });
       }
