@@ -1,4 +1,8 @@
-from pyparsing import *
+from pyparsing import (
+    ParserElement, Forward, Combine, Optional, Word, Literal, CaselessKeyword,
+    CaselessLiteral, Group, FollowedBy, LineEnd, OneOrMore, ZeroOrMore,
+    nums, alphas, alphanums, printables, delimitedList, quotedString,
+)
 
 ParserElement.enablePackrat()
 grammar = Forward()

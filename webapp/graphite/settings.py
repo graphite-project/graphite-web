@@ -137,13 +137,13 @@ FLUSHRRDCACHED = ''
 
 ## Load our local_settings
 try:
-  from graphite.local_settings import *
+  from graphite.local_settings import *  # noqa
 except ImportError:
   print >> sys.stderr, "Could not import graphite.local_settings, using defaults!"
 
 ## Load Django settings if they werent picked up in local_settings
 if not GRAPHITE_WEB_APP_SETTINGS_LOADED:
-  from graphite.app_settings import *
+  from graphite.app_settings import *  # noqa
 
 STATICFILES_DIRS = (
     join(WEBAPP_DIR, 'content'),
