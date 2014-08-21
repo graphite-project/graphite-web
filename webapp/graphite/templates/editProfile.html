@@ -15,7 +15,7 @@ limitations under the License. -->
 
 <h2><u>Profile settings for {{profile.user.username}}</u></h2>
 
-<form method='POST' action='/account/update/'>
+<form method='POST' action="{% url "account_update" %}">
 {% if nextPage %}
 <input type='hidden' name='nextPage' value='{{nextPage}}'/>
 {% endif %}

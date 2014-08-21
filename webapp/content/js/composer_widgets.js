@@ -10,18 +10,18 @@
  *    distributed under the License is distributed on an "AS IS" BASIS,
  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *    See the License for the specific language governing permissions and
- *    limitations under the License. 
- * 
- * 
+ *    limitations under the License.
+ *
+ *
  * ======================================================================
- * 
+ *
  *     PLEASE DO NOT USE A COMMA AFTER THE FINAL ITEM IN A LIST.
- * 
+ *
  * ======================================================================
- * 
- * It works fine in FF / Chrome, but completely breaks Internet Explorer. 
- * Thank you.  
- * 
+ *
+ * It works fine in FF / Chrome, but completely breaks Internet Explorer.
+ * Thank you.
+ *
 */
 
 
@@ -43,7 +43,7 @@ function createComposerWindow(myComposer) {
     '-',
     createToolbarButton('Select a Date Range', 'calBt.gif', toggleWindow(createCalendarWindow) ),
     createToolbarButton('Select Recent Data', 'arrow1.gif', toggleWindow(createRecentWindow) ),
-    createToolbarButton('Open in GraphPlot', 'line_chart.png', function() { window.open('/graphlot/?' + Composer.url.queryString,'_blank') }),
+    createToolbarButton('Open in GraphPlot', 'line_chart.png', function() { window.open(document.body.dataset.baseUrl + 'graphlot/?' + Composer.url.queryString,'_blank') }),
     createToolbarButton('Create from URL', 'link.png', toggleWindow(createURLWindow) ),
     createToolbarButton('Short URL', 'browser.png', showShortUrl),
     '-',
@@ -72,7 +72,7 @@ function createComposerWindow(myComposer) {
     tbar: topToolbar,
     buttons: bottomToolbar,
     buttonAlign: 'left',
-    items: { html: "<img id='image-viewer' src='/render'/>", region: "center" },
+    items: { html: "<img id='image-viewer' src='" + document.body.dataset.baseUrl + "render'/>", region: "center" },
     listeners: {
       activate: keepDataWindowOnTop,
       show: fitImageToWindow,
@@ -298,7 +298,7 @@ function showShortUrl() {
     }
     Ext.Ajax.request({
         method: 'GET',
-        url: '/s/render/?' + Composer.url.queryString,
+        url: document.body.dataset.baseUrl + 's/render/?' + Composer.url.queryString,
         callback: showUrl,
     });
 }
@@ -325,7 +325,7 @@ function createURLWindow() {
     vtype: 'url',
     listeners: { change: urlChosen, specialkey: ifEnter(urlChosen) }
   });
-  
+
   return new Ext.Window({
       title: "Enter a URL to build graph from",
       layout: 'fit',
@@ -403,7 +403,7 @@ function saveMyGraph(button, e) {
       tmpArray = tmpArray.slice(1, tmpArray.length);
       myGraphName = tmpArray.join('.');
     }
-  } 
+  }
   Ext.MessageBox.prompt(
     "Save to My Graphs", //title
     "Please enter a name for your Graph", //prompt message
@@ -428,7 +428,7 @@ function saveMyGraph(button, e) {
       //Send the request
       Ext.Ajax.request({
         method: 'GET',
-        url: '../composer/mygraph/',
+        url: document.body.dataset.baseUrl + 'composer/mygraph/',
         params: {action: 'save', graphName: text, url: Composer.url.getURL()},
         callback: handleSaveMyGraphResponse
       });
@@ -473,7 +473,7 @@ function deleteMyGraph() {
       //Send the request
       Ext.Ajax.request({
         method: 'GET',
-        url: '../composer/mygraph/',
+        url: document.body.dataset.baseUrl + 'composer/mygraph/',
         params: {action: 'delete', graphName: text},
         callback: function (options, success, response) {
           var message = success ? "Graph deleted successfully" : "There was an error performing the operation.";
@@ -630,7 +630,7 @@ var GraphDataWindow = {
       Ext.getCmp('undoFunctionButton').enable();
       Ext.getCmp('moveButton').enable();
     }
-    
+
     // Swap Targets
     if (selected == 2)
       Ext.getCmp('menuSwapTargets').enable();
@@ -662,7 +662,7 @@ var GraphDataWindow = {
     }
     if (this.getSelectedTargets().length == 2)
       moveMenu.menu[2].disabled = false;
-    
+
     var contextMenu = new Ext.menu.Menu({ items: [removeItem, editItem, moveMenu] });
     contextMenu.showAt( e.getXY() );
 
@@ -951,23 +951,23 @@ var GraphDataWindow = {
 
     win.show();
   },
-  
+
   moveTargetUp: function() {
     this._moveTarget(-1);
   },
-  
+
   moveTargetDown: function() {
     this._moveTarget(1);
   },
-  
+
   swapTargets: function() {
     this._swapTargets();
   },
-  
+
   _moveTarget: function(direction) {
     store = this.targetList.getStore();
     selectedRecords = this.targetList.getSelectedRecords();
-      
+
     // Don't move past boundaries
     exit = false;
     Ext.each(selectedRecords, function(record) {
@@ -984,7 +984,7 @@ var GraphDataWindow = {
     });
     if (exit)
       return;
-      
+
     newSelections = [];
     Ext.each(selectedRecords, function(recordA) {
       indexA = store.indexOf( recordA );
@@ -999,17 +999,17 @@ var GraphDataWindow = {
 
       newSelections.push( indexA + direction );
     });
-      
+
     Composer.syncTargetList();
     Composer.updateImage();
     this.targetList.select(newSelections);
   },
-  
+
   _swapTargets: function() {
     selectedRecords = this.targetList.getSelectedRecords();
     if (selectedRecords.length != 2)
       return;
-      
+
     recordA = selectedRecords[0];
     recordB = selectedRecords[1];
 
@@ -1026,7 +1026,7 @@ var GraphDataWindow = {
 
   addWlSelected: function (item, e) {
     Ext.Ajax.request({
-      url: "/whitelist/add",
+      url: document.body.dataset.baseUrl + "whitelist/add",
       method: "POST",
       success: function () { Ext.Msg.alert("Result", "Successfully added metrics to whitelist."); },
       failure: function () { Ext.Msg.alert("Result", "Failed to add metrics to whitelist.");   },
@@ -1036,7 +1036,7 @@ var GraphDataWindow = {
 
   removeWlSelected: function (item, e) {
     Ext.Ajax.request({
-      url: "/whitelist/remove",
+      url: document.body.dataset.baseUrl + "whitelist/remove",
       method: "POST",
       success: function () { Ext.Msg.alert("Result", "Successfully removed metrics from whitelist."); },
       failure: function () { Ext.Msg.alert("Result", "Failed to remove metrics from whitelist.");   },
@@ -1225,7 +1225,7 @@ function createOptionsMenu() {
       menuRadioItem("yUnit", "Standard", "yUnitSystem", "si"),
       menuRadioItem("yUnit", "Binary", "yUnitSystem", "binary"),
       menuRadioItem("yUnit", "None", "yUnitSystem", "none")
-      
+
     ]
   });
   var yAxisSideMenu = new Ext.menu.Menu({
@@ -1245,7 +1245,7 @@ function createOptionsMenu() {
       menuInputItem("Left Line Width", "leftWidth"),
       menuInputItem("Left Line Color", "leftColor"),
       menuInputItem("Left Line Dashed (length, in px)", "leftDashed")
-    
+
     ]
   });
   var yAxisRightMenu = new Ext.menu.Menu({
@@ -1258,7 +1258,7 @@ function createOptionsMenu() {
       menuInputItem("Right Line Width", "rightWidth"),
       menuInputItem("Right Line Color", "rightColor"),
       menuInputItem("Right Line Dashed (length, in px)", "rightDashed")
-    
+
     ]
   });
 
@@ -1318,7 +1318,7 @@ function createOptionsMenu() {
       menuRadioItem("fontFace", "Times", "fontName", "Times"),
       menuRadioItem("fontFace", "Courier", "fontName", "Courier"),
       menuRadioItem("fontFace", "Helvetica", "fontName", "Helvetica")
-    ] 
+    ]
   });
 
   var fontMenu = new Ext.menu.Menu({
@@ -1443,7 +1443,7 @@ function paramPrompt(question, param, regexp) {
           Ext.Msg.alert("Input cannot end in a period.");
           return;
         }
-        
+
         setParam(param, value);
         updateGraph();
       },
@@ -1487,7 +1487,7 @@ function menuCheckItem(name, param, paramValue) {
 
 function menuRadioItem(groupName, name, param, paramValue ) {
   var selectItem = new Ext.menu.CheckItem({text: name, param: param, hideOnClick: false, group: groupName, checked: (paramValue ? false : true)});
-  selectItem.on('checkchange', 
+  selectItem.on('checkchange',
     function( item, clicked ) {
       if( paramValue ) {
         setParam(param, paramValue);

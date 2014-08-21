@@ -10,10 +10,8 @@
 
     <link rel="stylesheet" type="text/css" href="{% static "css/jquery.autocomplete.css" %}" />
     <link rel="stylesheet" type="text/css" href="{% static "css/table.css" %}" />
-    
-    <script type="text/javascript">
 
-    var SLASH='{{slash}}';
+    <script type="text/javascript">
 
     $(document).ready(function () {
         $('#g_wrap').graphiteGraph();
@@ -40,7 +38,7 @@
 
 
     </head>
-    <body data-static-root="{% get_static_prefix %}">
+    <body data-static-root="{% get_static_prefix %}" data-base-url="{% url "browser" %}">
         <div id="title" style="text-align:center">
             <h1>graphlot</h1>
         </div>
@@ -62,7 +60,7 @@
                 <tr><th  style="width:750px">events</th></tr>
                 <tr class="g_eventsrow"><td><input style="width:600px" type="text" class="g_eventdesc" value="{{events}}"/>(<span class="g_eventcount">0</span>)</td></tr>
                 </table>
-                
+
                 <table class="g_rowlist styledtable"  style="float:left">
                 <tr><th  style="width:750px">metric</th><th>y-axis</th></tr>
                 {% for metric in metric_list %}
@@ -75,7 +73,7 @@
                         </td>
                     </tr>
                 {% endfor %}
-                
+
                 <tr class="g_newmetricrow"><td><input style="width:600px" type="text" class="g_newmetric"/></td></tr>
                 </table>
 

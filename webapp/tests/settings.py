@@ -19,3 +19,4 @@ CACHES = {
 }
 
 LOG_DIR = tempfile.mkdtemp(prefix='graphite-log-test')
+URL_PREFIX = '/graphite'
