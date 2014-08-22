@@ -131,7 +131,7 @@ def lcm(a, b):
 
 def normalize(seriesLists):
   seriesList = reduce(lambda L1,L2: L1+L2,seriesLists)
-  step = reduce(lcm,[s.step for s in seriesList])
+  step = reduce(lcm,[s.step for s in seriesList],1)
   for s in seriesList:
     s.consolidate( step / s.step )
   start = min([s.start for s in seriesList])
