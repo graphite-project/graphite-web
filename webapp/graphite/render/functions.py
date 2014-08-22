@@ -608,6 +608,8 @@ def movingMedian(requestContext, seriesList, windowSize):
     &target=movingMedian(Server.instance*.threads.idle,'5min')
 
   """
+  if not seriesList:
+    return []
   windowInterval = None
   if isinstance(windowSize, basestring):
     delta = parseTimeOffset(windowSize)
