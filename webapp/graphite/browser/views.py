@@ -243,6 +243,8 @@ def userGraphLookup(request):
     no_graphs.update(leafNode)
     nodes.append(no_graphs)
 
+  nodes.sort()
+
   return json_response(nodes, request)
 
 
