@@ -1141,6 +1141,7 @@ function createFunctionsMenu() {
         {text: 'Maximum Value Above', handler: applyFuncToEachWithInput('maximumAbove', 'Draw all metrics whose maximum value is above ___')},
         {text: 'Maximum Value Below', handler: applyFuncToEachWithInput('maximumBelow', 'Draw all metrics whose maximum value is below ___')},
         {text: 'Minimum Value Above', handler: applyFuncToEachWithInput('minimumAbove', 'Draw all metrics whose minimum value is above ___')},
+        {text: 'Minimum Value Below', handler: applyFuncToEachWithInput('minimumBelow', 'Draw all metrics whose minimum value is below ___')},
         {text: 'sortByName', handler: applyFuncToEach('sortByName')},
         {text: 'sortByTotal', handler: applyFuncToEach('sortByTotal')},
         {text: 'sortByMaxima', handler: applyFuncToEach('sortByMaxima')},
