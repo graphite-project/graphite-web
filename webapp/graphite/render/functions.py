@@ -409,6 +409,33 @@ def keepLastValue(requestContext, seriesList, limit = INF):
 
   return seriesList
 
+def changed(requestContext, seriesList):
+  """
+  Takes one metric or a wildcard seriesList.
+  Output 1 when the value changed, 0 when null or the same
+
+  Example:
+
+  .. code-block:: none
+
+    &target=changed(Server01.connections.handled)
+
+  """
+  for series in seriesList:
+    series.name = "changed(%s)" % (series.name)
+    series.pathExpression = series.name
+    previous = None
+    for i,value in enumerate(series):
+      if previous is None:
+        previous = value
+        series[i] = 0
+      elif value is not None and previous != value:
+        series[i] = 1
+        previous = value
+      else:
+        series[i] = 0
+  return seriesList
+
 def asPercent(requestContext, seriesList, total=None):
   """
 
@@ -2824,6 +2851,7 @@ SeriesFunctions = {
   'cumulative' : cumulative,
   'consolidateBy' : consolidateBy,
   'keepLastValue' : keepLastValue,
+  'changed' : changed,
   'drawAsInfinite' : drawAsInfinite,
   'secondYAxis': secondYAxis,
   'lineWidth' : lineWidth,
