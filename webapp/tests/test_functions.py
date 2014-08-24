@@ -341,3 +341,15 @@ class FunctionsTest(TestCase):
                     continue
                 expected_value = math.pow(original_value, -1)
                 self.assertEqual(value, expected_value)
+
+    def test_changed(self):
+        config = [
+            [[1,2,3,4,4,5,5,5,6,7], [0,1,1,1,0,1,0,0,1,1]],
+            [[None,None,None,None,0,0,0,None,None,1], [0,0,0,0,0,0,0,0,0,1]]
+        ]
+        for i, c in enumerate(config):
+            name = "collectd.test-db{0}.load.value".format(i + 1)
+            series = [TimeSeries(name,0,1,1,c[0])]
+            expected = [TimeSeries("changed(%s)" % name,0,1,1,c[1])]
+            result = functions.changed({}, series)
+            self.assertEqual(result, expected)
