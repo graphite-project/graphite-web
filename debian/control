@@ -1,0 +1,18 @@
+Source: graphite-web
+Section: devel
+Priority: optional
+Maintainer: Joseph Anthony Pasquale Holsten <joseph@josephholsten.com>
+Standards-Version: 3.9.5
+X-Python-Version: 2.7
+Build-Depends: debhelper (>= 8.0.0),
+               dh-python,
+               python
+
+Package: graphite-web
+Depends: apache2,
+         libapache2-mod-uwsgi,
+         ${shlibs:Depends},
+         ${misc:Depends}
+Architecture: all
+Description: Highly scalable real-time graphing system
+  Highly scalable real-time graphing system
