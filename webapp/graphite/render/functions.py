@@ -1133,7 +1133,7 @@ def aliasByMetric(requestContext, seriesList):
 
   """
   for series in seriesList:
-    series.name = series.name.split('.')[-1]
+    series.name = series.name.split('.')[-1].split(',')[0]
   return seriesList
 
 def legendValue(requestContext, seriesList, *valueTypes):
@@ -1326,6 +1326,27 @@ def maximumBelow(requestContext, seriesList, n):
   result = []
   for series in seriesList:
     if max(series) <= n:
+      result.append(series)
+  return result
+
+
+def minimumBelow(requestContext, seriesList, n):
+  """
+  Takes one metric or a wildcard seriesList followed by a constant n.
+  Draws only the metrics with a minimum value below n.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=minimumBelow(system.interface.eth*.packetsSent,1000)
+
+  This would only display interfaces which at one point sent less than 1000 packets/min.
+  """
+
+  result = []
+  for series in seriesList:
+    if min(series) <= n:
       result.append(series)
   return result
 
@@ -2826,6 +2847,7 @@ SeriesFunctions = {
   'maximumAbove' : maximumAbove,
   'minimumAbove' : minimumAbove,
   'maximumBelow' : maximumBelow,
+  'minimumBelow' : minimumBelow,
   'nPercentile' : nPercentile,
   'limit' : limit,
   'sortByMaxima' : sortByMaxima,

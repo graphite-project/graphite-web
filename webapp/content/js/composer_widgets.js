@@ -1096,6 +1096,7 @@ function createFunctionsMenu() {
         {text: 'Maximum Value Above', handler: applyFuncToEachWithInput('maximumAbove', 'Draw all metrics whose maximum value is above ___')},
         {text: 'Maximum Value Below', handler: applyFuncToEachWithInput('maximumBelow', 'Draw all metrics whose maximum value is below ___')},
         {text: 'Minimum Value Above', handler: applyFuncToEachWithInput('minimumAbove', 'Draw all metrics whose minimum value is above ___')},
+        {text: 'Minimum Value Below', handler: applyFuncToEachWithInput('minimumBelow', 'Draw all metrics whose minimum value is below ___')},
         {text: 'sortByMaxima', handler: applyFuncToEach('sortByMaxima')},
         {text: 'sortByMinima', handler: applyFuncToEach('sortByMinima')},
         {text: 'limit', handler: applyFuncToEachWithInput('limit', 'Limit to first ___ of a list of metrics')},
@@ -1315,6 +1316,7 @@ function createOptionsMenu() {
         }
       },
       menuInputItem("Line Thickness", "lineWidth", "Enter the line thickness in pixels"),
+      menuInputItem("Margin", "margin", "Enter the margin width in pixels"),
       menuCheckItem("Graph Only", "graphOnly"),
       menuCheckItem("Hide Axes", "hideAxes"),
       menuCheckItem("Hide Y-Axis", "hideYAxis"),
