@@ -1315,6 +1315,7 @@ function createOptionsMenu() {
         }
       },
       menuInputItem("Line Thickness", "lineWidth", "Enter the line thickness in pixels"),
+      menuInputItem("Margin", "margin", "Enter the margin width in pixels"),
       menuCheckItem("Graph Only", "graphOnly"),
       menuCheckItem("Hide Axes", "hideAxes"),
       menuCheckItem("Hide Y-Axis", "hideYAxis"),
