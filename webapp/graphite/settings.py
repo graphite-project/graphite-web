@@ -13,9 +13,12 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 # Django settings for graphite project.
 # DO NOT MODIFY THIS FILE DIRECTLY - use local_settings.py instead
-import sys, os
+import os
+import sys
 from os.path import abspath, dirname, join
 from warnings import warn
+
+from django.core.urlresolvers import reverse_lazy
 
 
 GRAPHITE_WEB_APP_SETTINGS_LOADED = False
@@ -30,6 +33,8 @@ GRAPHITE_ROOT = dirname(WEBAPP_DIR)
 # Initialize additional path variables
 # Defaults for these are set after local_settings is imported
 STATIC_ROOT = ''
+STATIC_URL = '/static/'
+URL_PREFIX = ''
 CONF_DIR = ''
 DASHBOARD_CONF = ''
 GRAPHTEMPLATES_CONF = ''
@@ -104,7 +109,7 @@ SECRET_KEY = 'UNSAFE_DEFAULT'
 ALLOWED_HOSTS = [ '*' ]
 
 # Override to link a different URL for login (e.g. for django_openid_auth)
-LOGIN_URL = '/account/login'
+LOGIN_URL = reverse_lazy('account_login')
 
 # Set to True to require authentication to save or delete dashboards
 DASHBOARD_REQUIRE_AUTHENTICATION = False
@@ -132,13 +137,13 @@ FLUSHRRDCACHED = ''
 
 ## Load our local_settings
 try:
-  from graphite.local_settings import *
+  from graphite.local_settings import *  # noqa
 except ImportError:
   print >> sys.stderr, "Could not import graphite.local_settings, using defaults!"
 
 ## Load Django settings if they werent picked up in local_settings
 if not GRAPHITE_WEB_APP_SETTINGS_LOADED:
-  from graphite.app_settings import *
+  from graphite.app_settings import *  # noqa
 
 STATICFILES_DIRS = (
     join(WEBAPP_DIR, 'content'),
@@ -172,17 +177,21 @@ if not RRD_DIR:
   RRD_DIR = join(STORAGE_DIR, 'rrd/')
 if not STANDARD_DIRS:
   try:
-    import whisper
+    import whisper  # noqa
     if os.path.exists(WHISPER_DIR):
       STANDARD_DIRS.append(WHISPER_DIR)
   except ImportError:
     print >> sys.stderr, "WARNING: whisper module could not be loaded, whisper support disabled"
   try:
-    import rrdtool
+    import rrdtool  # noqa
     if os.path.exists(RRD_DIR):
       STANDARD_DIRS.append(RRD_DIR)
   except ImportError:
     pass
+
+# Handle URL prefix in static files handling
+if URL_PREFIX and not STATIC_URL.startswith(URL_PREFIX):
+    STATIC_URL = '/{0}{1}'.format(URL_PREFIX.strip('/'), STATIC_URL)
 
 # Default sqlite db file
 # This is set here so that a user-set STORAGE_DIR is available

@@ -25,15 +25,15 @@
                   {% for event in events %}
                       <tr>
                           <td>{{event.when|date:"H:i:s D d M Y" }}</td>
-                          <td><a href="/events/{{event.id}}/">{{event.what}}</a></td>
+                          <td><a href="{% url "events_detail" event.id %}">{{event.what}}</a></td>
                           <td>{{event.tags}}</td>
                       </tr>
                   {% endfor %}
               {% else %}
-                <br/>No events. Add events using 
-                <a href="/admin/events/event/">the admin interface</a> or by posting
-                (eg, curl -X POST http://localhost:8000{{slash}}events/ -d
-                '{"what": "Something Interesting", "tags" : "tag1 "}')
+                <br/>No events. Add events using
+                <a href="{% url "admin:events_event_add" %}">the admin interface</a> or by posting
+                (eg, curl -X POST {{ protocol }}://{{ site.domain }}{% url "events" %} -d
+                '{"what": "Something Interesting", "tags" : "tag1"}')
               {% endif %}
               </table>
             </div>

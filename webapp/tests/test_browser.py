@@ -10,22 +10,25 @@ from . import DATA_DIR
 
 class BrowserTest(TestCase):
     def test_browser(self):
-        url = reverse('graphite.browser.views.browser')
+        url = reverse('browser')
         response = self.client.get(url)
         self.assertContains(response, 'Graphite Browser')
 
     def test_header(self):
         self.assertEqual(User.objects.count(), 0)
-        url = reverse('graphite.browser.views.header')
+        url = reverse('browser_header')
         response = self.client.get(url)
         self.assertContains(response, 'Graphite Browser Header')
 
         # Graphite has created a default user
         self.assertEqual(User.objects.get().username, 'default')
 
+    def test_url_prefix(self):
+        self.assertEqual(reverse('browser'), '/graphite/')
+
     @override_settings(INDEX_FILE=os.path.join(DATA_DIR, 'index'))
     def test_search(self):
-        url = reverse('graphite.browser.views.search')
+        url = reverse('browser_search')
 
         response = self.client.post(url)
         self.assertEqual(response.content, '')

@@ -41,17 +41,21 @@
 
     var permissions = JSON.parse('{{ permissions|safe }}');
     var permissionsUnauthenticated = JSON.parse('{{ permissionsUnauthenticated|safe }}');
-    
+
     {% if userName %}
     var userName = '{{ userName|escapejs }}';
     {% else %}
     var userName = null;
     {% endif %}
-    
+
     </script>
 
     <!-- Theme overrides -->
     <link rel="stylesheet" type="text/css" href="{% static "css/dashboard-"|add:theme|add:".css" %}" />
+
+  </head>
+  <body data-static-root="{% get_static_prefix %}" data-base-url="{% url "browser" %}">
+    <div id='merge'>Drop To Merge</div>
 
     {% if jsdebug %}
       <script type="text/javascript" src="{% static "js/ext/adapter/ext/ext-base-debug.js" %}"></script>
@@ -71,10 +75,6 @@
     Ext.BLANK_IMAGE_URL = '{% static "js/ext/resources/images/default/s.gif" %}';
     Ext.QuickTips.init();
     Ext.onReady(initDashboard);
-    </script> 
-
-  </head>
-  <body data-static-root="{% get_static_prefix %}">
-    <div id='merge'>Drop To Merge</div>
+    </script>
   </body>
 </html>

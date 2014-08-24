@@ -433,7 +433,7 @@ darkgray     111,111,111
 darkgrey     111,111,111
 ============ =============
 
-RGB can be passed directly in the format #RRGGBB where RR, GG, and BB are 2-digit hex vaules for red, green and blue, respectively.
+RGB can be passed directly in the format #RRGGBB[AA] where RR, GG, and BB are 2-digit hex vaules for red, green and blue, respectively. AA is an optional addition describing the opacity ("alpha"). Where FF is fully opaque, 00 fully transparent.
 
 Examples:
 
@@ -441,6 +441,7 @@ Examples:
 
   &bgcolor=blue
   &bgcolor=2222FF
+  &bgcolor=5522FF60
 
 cacheTimeout
 ------------
@@ -454,13 +455,15 @@ colorList
 ---------
 *Default: value from the [default] template in graphTemplates.conf*
 
-Takes one or more comma-separated color names or RGB values (see bgcolor for a list of color names) and uses that list in order as the colors of the lines.  If more lines / metrics are drawn than colors passed, the list is reused in order.
+Takes one or more comma-separated color names or RGB values (see bgcolor for a list of color names) and uses that list in order as the colors of the lines.
+If more lines / metrics are drawn than colors passed, the list is reused in order. Any RGB value can also have an optional transparency (00 being fully transparent, FF being opaque), as shown in the second example.
 
 Example:
 
 .. code-block:: none
 
   &colorList=green,yellow,orange,red,purple,DECAFF
+  &colorList=FF000055,00FF00AA,DECAFFEF
 
 .. _param-drawNullAsZero:
 

@@ -52,6 +52,8 @@ Changes
 
 * The cli was deprecated and has been removed.
 
+* A URL shortener has been added to the composer toolbar.
+
 .. _Tox: https://testrun.org/tox/latest/
 
 New functions

@@ -5,6 +5,7 @@ from mock import patch, call, MagicMock
 
 from graphite.render.datalib import TimeSeries
 from graphite.render import functions
+from graphite.render.functions import NormalizeEmptyResultError
 
 def return_greater(series, value):
     return [i for i in series if i is not None and i > value]
@@ -266,6 +267,12 @@ class FunctionsTest(TestCase):
                 expected_value = original_value * multiplier
                 self.assertEqual(value, expected_value)
 
+    def test_normalize_empty(self):
+      try:
+        functions.normalize([])
+      except NormalizeEmptyResultError:
+        pass
+
     def _generate_mr_series(self):
         seriesList = [
             TimeSeries('group.server1.metric1',0,1,1,[None]),
@@ -297,6 +304,19 @@ class FunctionsTest(TestCase):
             self.assertEqual(results,expectedResult)
         self.assertEqual(mock.mock_calls, [call({},inputList[0]), call({},inputList[1])])
 
+    def test_pow(self):
+        seriesList = self._generate_series_list()
+        factor = 2
+        # Leave the original seriesList undisturbed for verification
+        results = functions.pow({}, copy.deepcopy(seriesList), factor)
+        for i, series in enumerate(results):
+            for counter, value in enumerate(series):
+                if value is None:
+                    continue
+                original_value = seriesList[i][counter]
+                expected_value = math.pow(original_value, factor)
+                self.assertEqual(value, expected_value)
+
     def test_squareRoot(self):
         seriesList = self._generate_series_list()
         # Leave the original seriesList undisturbed for verification
@@ -307,7 +327,19 @@ class FunctionsTest(TestCase):
                 if value is None:
                     self.assertEqual(original_value, None)
                     continue
-                expected_value = math.sqrt(float(original_value))
+                expected_value = math.pow(original_value, 0.5)
+                self.assertEqual(value, expected_value)
+
+    def test_invert(self):
+        seriesList = self._generate_series_list()
+        # Leave the original seriesList undisturbed for verification
+        results = functions.invert({}, copy.deepcopy(seriesList))
+        for i, series in enumerate(results):
+            for counter, value in enumerate(series):
+                original_value = seriesList[i][counter]
+                if value is None:
+                    continue
+                expected_value = math.pow(original_value, -1)
                 self.assertEqual(value, expected_value)
 
     def test_changed(self):
@@ -321,4 +353,3 @@ class FunctionsTest(TestCase):
             expected = [TimeSeries("changed(%s)" % name,0,1,1,c[1])]
             result = functions.changed({}, series)
             self.assertEqual(result, expected)
-

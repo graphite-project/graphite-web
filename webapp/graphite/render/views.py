@@ -15,7 +15,7 @@ import csv
 import math
 import pytz
 from datetime import datetime
-from time import time, mktime
+from time import time
 from random import shuffle
 from httplib import CannotSendRequest
 from urllib import urlencode
