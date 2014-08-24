@@ -384,7 +384,7 @@ def percentileOfSeries(requestContext, seriesList, n, interpolate=False):
   if n <= 0:
     raise ValueError('The requested percent is required to be greater than 0')
 
-  name = 'percentilesOfSeries(%s,%g)' % (seriesList[0].pathExpression, n)
+  name = 'percentileOfSeries(%s,%g)' % (seriesList[0].pathExpression, n)
   (start, end, step) = normalize([seriesList])[1:]
   values = [ _getPercentile(row, n, interpolate) for row in izip(*seriesList) ]
   resultSeries = TimeSeries(name, start, end, step, values)
