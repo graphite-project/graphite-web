@@ -236,7 +236,7 @@ def userGraphLookup(request):
     nodes.append(no_graphs)
 
   nodes.sort()
-  
+
   return json_response(nodes, request)
 
 
