@@ -1504,7 +1504,7 @@ def maximumBelow(requestContext, seriesList, n):
 def minimumBelow(requestContext, seriesList, n):
   """
   Takes one metric or a wildcard seriesList followed by a constant n.
-  Draws only the metrics with a maximum value below n.
+  Draws only the metrics with a minimum value below n.
 
   Example:
 
