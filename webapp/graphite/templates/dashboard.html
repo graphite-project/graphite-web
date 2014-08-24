@@ -23,13 +23,13 @@
     var HELP_ICON     = '/content/js/ext/examples/shared/icons/fam/information.png';
 
     {% if initialState %}
-    var initialState = "{{ initialState|escapejs }}";
+    var initialState = JSON.parse('{{ initialState|escapejs }}');
     {% else %}
     var initialState = null;
     {% endif %}
 
     {% if initialError %}
-    var initialError = "{{ initialError|escapejs }}";
+    var initialError = '{{ initialError|escapejs }}';
     {% else %}
     var initialError = null;
     {% endif %}
