@@ -344,8 +344,8 @@ class FunctionsTest(TestCase):
 
     def test_changed(self):
         config = [
-            ([1,2,3,4,4,5,5,5,6,7], [0,0,0,0,1,0,1,1,0,0]),
-            ([None,None,None,None,0,0,0,None,None,1], [0,1,1,1,0,1,1,0,1,0])
+            [[1,2,3,4,4,5,5,5,6,7], [0,1,1,1,0,1,0,0,1,1]],
+            [[None,None,None,None,0,0,0,None,None,1], [0,0,0,0,0,0,0,0,0,1]]
         ]
         for i, c in enumerate(config):
             name = "collectd.test-db{0}.load.value".format(i + 1)
