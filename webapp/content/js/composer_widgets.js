@@ -381,7 +381,7 @@ function saveMyGraph(button, e) {
 
       //Save the name for future use and re-load the "My Graphs" tree
       Composer.state.myGraphName = text;
-      Browser.trees.mygraphs.reload();
+
       //Send the request
       Ext.Ajax.request({
         method: 'GET',
@@ -399,6 +399,7 @@ function saveMyGraph(button, e) {
 function handleSaveMyGraphResponse(options, success, response) {
   var message;
   if (success) {
+    Browser.trees.mygraphs.reload();
     message = "Graph saved successfully";
   } else {
     message = "There was an error saving your Graph, please try again later.";
@@ -426,15 +427,19 @@ function deleteMyGraph() {
 	return;
       }
 
-      Browser.trees.mygraphs.reload();
       //Send the request
       Ext.Ajax.request({
         method: 'GET',
         url: '../composer/mygraph/',
         params: {action: 'delete', graphName: text},
         callback: function (options, success, response) {
-          var message = success ? "Graph deleted successfully" : "There was an error performing the operation.";
-
+          var message;
+          if (success) {
+            Browser.trees.mygraphs.reload();
+            message = "Graph deleted successfully";
+          } else {
+            message = "There was an error performing the operation.";
+          }
           Ext.Msg.show({
             title: 'Delete My Graph',
             msg: message,
