@@ -88,14 +88,8 @@ img.graph-img {
 
 .x-layout-split-east .x-layout-mini {
   width: 10px !important;
-  background-image: url(/content/img/mini-right2.gif);
 }
-/*
-.x-layout-split-west .x-layout-mini {
-  width: 10px !important;
-  background-image: url(/content/img/mini-left2.gif);
-}
-*/
+
 .x-layout-cmini-north {
   height: 10px !important;
 }
@@ -109,15 +103,9 @@ img.graph-img {
   height: 10px !important;
   background-image: url(/content/img/mini-top2.gif);
 }
-/*
-.x-layout-cmini-east .x-layout-mini {
-  width: 10px !important;
-  background-image: url(/content/img/mini-left2.gif);
-}
-*/
+
 .x-layout-cmini-west .x-layout-mini {
   width: 10px !important;
-  background-image: url(/content/img/mini-right2.gif);
 }
 
 /* DnD classes */
