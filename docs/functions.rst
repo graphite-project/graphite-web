@@ -11,7 +11,7 @@ Most functions are applied to one :term:`series list`. Functions with the parame
 to a function which only takes one, use the :py:func:`group` function.
 
 .. _list-of-functions :
-
+	
 List of functions
 -----------------
 .. automodule:: graphite.render.functions
