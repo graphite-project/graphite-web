@@ -10,6 +10,7 @@ from django.http import QueryDict
 from django.conf import settings
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.staticfiles import finders
+from django.utils.safestring import mark_safe
 from graphite.compat import HttpResponse
 from graphite.dashboard.models import Dashboard, Template
 from graphite.render.views import renderView
@@ -126,17 +127,17 @@ def dashboard(request, name=None):
     theme = config.ui_config['theme']
 
   context = {
-    'schemes_json' : json.dumps(config.schemes),
-    'ui_config_json' : json.dumps(config.ui_config),
-    'jsdebug' : debug or settings.JAVASCRIPT_DEBUG,
-    'debug' : debug,
-    'theme' : theme,
-    'initialError' : initialError,
-    'querystring' : json.dumps( dict( request.GET.items() ) ),
-    'dashboard_conf_missing' : dashboard_conf_missing,
+    'schemes_json': mark_safe(json.dumps(config.schemes)),
+    'ui_config_json': mark_safe(json.dumps(config.ui_config)),
+    'jsdebug': debug or settings.JAVASCRIPT_DEBUG,
+    'debug': debug,
+    'theme': theme,
+    'initialError': initialError,
+    'querystring': mark_safe(json.dumps(dict(request.GET.items()))),
+    'dashboard_conf_missing': dashboard_conf_missing,
     'userName': '',
-    'permissions': json.dumps(getPermissions(request.user)),
-    'permissionsUnauthenticated': json.dumps(getPermissions(None))
+    'permissions': mark_safe(json.dumps(getPermissions(request.user))),
+    'permissionsUnauthenticated': mark_safe(json.dumps(getPermissions(None)))
   }
   user = request.user
   if user:
