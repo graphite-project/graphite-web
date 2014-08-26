@@ -2138,10 +2138,12 @@ def constantLine(requestContext, value):
     &target=constantLine(123.456)
 
   """
+  name = "constantLine(%s)" % str(value)
   start = timestamp( requestContext['startTime'] )
   end = timestamp( requestContext['endTime'] )
   step = (end - start) / 1.0
   series = TimeSeries(str(value), start, end, step, [value, value])
+  series.pathExpression = name
   return [series]
 
 
