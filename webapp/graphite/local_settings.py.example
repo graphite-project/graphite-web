@@ -50,6 +50,9 @@
 # unneeded cache misses. Set to [] to disable caching of images and fetched data
 #MEMCACHE_HOSTS = ['10.10.10.10:11211', '10.10.10.11:11211', '10.10.10.12:11211']
 #DEFAULT_CACHE_DURATION = 60 # Cache images and data for 1 minute
+#
+# Set URL_PREFIX when deploying graphite-web to a non-root location
+#URL_PREFIX = '/graphite'
 
 
 #####################################
@@ -64,7 +67,7 @@
 # of these is relative to GRAPHITE_ROOT
 #CONF_DIR = '/opt/graphite/conf'
 #STORAGE_DIR = '/opt/graphite/storage'
-#CONTENT_DIR = '/opt/graphite/webapp/content'
+#STATIC_ROOT = '/opt/graphite/static'
 
 # To further or fully customize the paths, modify the following. Note that the
 # default settings for each of these are relative to CONF_DIR and STORAGE_DIR

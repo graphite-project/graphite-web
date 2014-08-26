@@ -13,8 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. -->
 
-{% autoescape off %}
-
 <html>
   <head>
     <title>Graphite Browser</title>
@@ -22,13 +20,11 @@ limitations under the License. -->
 
 
 <frameset rows="60,*" frameborder="1" border="1">
-  <frame src="/browser/header/" name="Header" id='header' scrolling="no" noresize="true" />
+  <frame src="{% url "browser_header" %}" name="Header" id='header' scrolling="no" noresize="true" />
   {% if target %}
-    <frame src="/composer/?showTarget={{target}}&{{queryString}}" name="content" id="composerFrame"/>
+    <frame src="{% url "composer" %}?showTarget={{target|urlencode}}&{{queryString}}" name="content" id="composerFrame"/>
   {% else %}
-    <frame src="/composer/?{{queryString}}" name="content" id="composerFrame"/>
+    <frame src="{% url "composer" %}?{{queryString}}" name="content" id="composerFrame"/>
   {% endif %}
-  </frameset>
+</frameset>
 </html>
-
-{% endautoescape %}

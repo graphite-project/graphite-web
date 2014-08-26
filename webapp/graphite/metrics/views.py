@@ -11,7 +11,6 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
-
 import fnmatch
 import os
 import urllib2
@@ -36,19 +35,19 @@ def index_json(request):
 
   def find_matches():
     matches = []
-  
+
     for root, dirs, files in os.walk(settings.WHISPER_DIR):
       root = root.replace(settings.WHISPER_DIR, '')
       for basename in files:
         if fnmatch.fnmatch(basename, '*.wsp'):
           matches.append(os.path.join(root, basename))
-  
+
     for root, dirs, files in os.walk(settings.CERES_DIR):
       root = root.replace(settings.CERES_DIR, '')
       for filename in files:
         if filename == '.ceres-node':
           matches.append(root)
-  
+
     matches = [
       m
       .replace('.wsp', '')
@@ -157,7 +156,7 @@ def find_view(request):
       wildcardNode = {'name' : '*'}
       results.append(wildcardNode)
 
-    response = json_response_for(request, { 'metrics' : results}, jsonp=jsonp)
+    response = json_response_for(request, { 'metrics' : results }, jsonp=jsonp)
 
   else:
     return HttpResponseBadRequest(

@@ -46,11 +46,6 @@ MEDIA_ROOT = ''
 # Example: "http://media.lawrence.com"
 MEDIA_URL = ''
 
-# URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
-# trailing slash.
-# Examples: "http://foo.com/media/", "/media/".
-ADMIN_MEDIA_PREFIX = '/media/'
-
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
   'django.template.loaders.filesystem.Loader',
@@ -70,17 +65,18 @@ ROOT_URLCONF = 'graphite.urls'
 INSTALLED_APPS = (
   'graphite.metrics',
   'graphite.render',
-  'graphite.cli',
   'graphite.browser',
   'graphite.composer',
   'graphite.account',
   'graphite.dashboard',
   'graphite.whitelist',
   'graphite.events',
+  'graphite.url_shortener',
   'django.contrib.auth',
   'django.contrib.sessions',
   'django.contrib.admin',
   'django.contrib.contenttypes',
+  'django.contrib.staticfiles',
   'tagging',
 )
 

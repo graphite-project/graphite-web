@@ -20,7 +20,7 @@ var NOT_EDITABLE = ['from', 'until', 'width', 'height', 'target', 'uniq', '_uniq
 var editor = null;
 
 var cookieProvider = new Ext.state.CookieProvider({
-  path: "/dashboard"
+  path: document.body.dataset.baseUrl + "dashboard"
 });
 
 var NAV_BAR_REGION = cookieProvider.get('navbar-region') || 'north';
@@ -69,7 +69,7 @@ var ContextFieldValueRecord = Ext.data.Record.create([
 ]);
 
 var contextFieldStore = new Ext.data.JsonStore({
-  url: '/metrics/find/',
+  url: document.body.dataset.baseUrl + 'metrics/find/',
   root: 'metrics',
   idProperty: 'name',
   fields: ContextFieldValueRecord,
@@ -299,7 +299,7 @@ function initDashboard () {
       }),
       store: new Ext.data.JsonStore({
         method: 'GET',
-        url: '/metrics/find/',
+        url: document.body.dataset.baseUrl + 'metrics/find/',
         autoLoad: true,
         baseParams: {
           query: '',
@@ -680,7 +680,9 @@ function initDashboard () {
       change: function (field, newValue) { updateAutoRefresh(newValue); },
       specialkey: function (field, e) {
                     if (e.getKey() == e.ENTER) {
-                      updateAutoRefresh( field.getValue() );
+                      if (field.getValue() >= 1) {
+                        updateAutoRefresh( field.getValue() );
+                      }
                     }
                   }
     }
@@ -773,7 +775,7 @@ function showHelp() {
     modal: true,
     width: 550,
     height: 300,
-    autoLoad: "/dashboard/help/"
+    autoLoad: document.body.dataset.baseUrl + "dashboard/help/"
   });
   win.show();
 }
@@ -905,7 +907,7 @@ function metricTreeSelectorShow(pattern) {
   }
 
   var loader = new Ext.tree.TreeLoader({
-    url: '/metrics/find/',
+    url: document.body.dataset.baseUrl + 'metrics/find/',
     requestMethod: 'GET',
     listeners: {beforeload: setParams}
   });
@@ -979,7 +981,7 @@ function graphAreaToggle(target, options) {
     var record = new GraphRecord({
       target: graphTargetString,
       params: myParams,
-      url: '/render?' + Ext.urlEncode(urlParams)
+      url: document.body.dataset.baseUrl + 'render?' + Ext.urlEncode(urlParams)
     });
     graphStore.add([record]);
     updateGraphRecords();
@@ -1005,7 +1007,7 @@ function importGraphUrl(targetUrl, options) {
   if (graphTargetList.length == 0) {
     return;
   }
- 
+
   var graphTargetString = Ext.urlEncode({target: graphTargetList});
   var existingIndex = graphStore.findExact('target', graphTargetString);
 
@@ -1022,7 +1024,7 @@ function importGraphUrl(targetUrl, options) {
     var record = new GraphRecord({
       target: graphTargetString,
       params: params,
-      url: '/render?' + Ext.urlEncode(urlParams)
+      url: document.body.dataset.baseUrl + 'render?' + Ext.urlEncode(urlParams)
       });
       graphStore.add([record]);
       updateGraphRecords();
@@ -1042,7 +1044,7 @@ function updateGraphRecords() {
     if (!params.uniq === undefined) {
         delete params["uniq"];
     }
-    item.set('url', '/render?' + Ext.urlEncode(params));
+    item.set('url', document.body.dataset.baseUrl + 'render?' + Ext.urlEncode(params));
     item.set('width', GraphSize.width);
     item.set('height', GraphSize.height);
     item.set('index', index);
@@ -1397,7 +1399,7 @@ function newFromSavedGraph() {
     expandable: true,
     allowDrag: false,
     loader: new Ext.tree.TreeLoader({
-      url: "../browser/usergraph/",
+      url: document.body.dataset.baseUrl + "browser/usergraph/",
       requestMethod: "GET",
       listeners: {beforeload: setParams}
     })
@@ -1601,7 +1603,7 @@ function selectGraphSize() {
 function doShare() {
   if (dashboardName == null) {
     Ext.Ajax.request({
-      url: "/dashboard/create-temporary/",
+      url: document.body.dataset.baseUrl + "dashboard/create-temporary/",
       method: 'POST',
       params: {
         state: Ext.encode( getState() )
@@ -1863,6 +1865,52 @@ function graphClicked(graphView, graphIndex, element, evt) {
         });
         win.show();
       }
+    }, {
+      xtype: 'button',
+      fieldLabel: "<span style='visibility: hidden'>",
+      text: "Short Direct URL",
+      width: 100,
+      handler: function () {
+        menu.destroy();
+        showUrl = function(options, success, response) {
+            if(success) {
+              var win = new Ext.Window({
+                title: "Graph URL",
+                width: 600,
+                height: 125,
+                layout: 'border',
+                modal: true,
+                items: [
+                  {
+                    xtype: "label",
+                    region: 'north',
+                    style: "text-align: center;",
+                    text: "Short Direct URL to this graph"
+                  }, {
+                    xtype: 'textfield',
+                    region: 'center',
+                    value:  window.location.origin + response.responseText,
+                    editable: false,
+                    style: "text-align: center; font-size: large;",
+                    listeners: {
+                      focus: function (field) { field.selectText(); }
+                    }
+                  }
+                ],
+                buttonAlign: 'center',
+                buttons: [
+                  {text: "Close", handler: function () { win.close(); } }
+                ]
+              });
+              win.show();
+           }
+        }
+        Ext.Ajax.request({
+          method: 'GET',
+          url: document.body.dataset.baseUrl + 's' + record.data.url,
+          callback: showUrl,
+        });
+      }
     }]
   });
 
@@ -1989,7 +2037,7 @@ function breakoutGraph(record) {
   }
 
   Ext.Ajax.request({
-    url: '/metrics/expand/',
+    url: document.body.dataset.baseUrl + 'metrics/expand/',
     params: {
       groupByExpr: '1',
       leavesOnly: '1',
@@ -2060,7 +2108,7 @@ function mailGraph(record) {
          handler: function(){
            if(contactForm.getForm().isValid()){
              contactForm.getForm().submit({
-               url: '/dashboard/email',
+               url: document.body.dataset.baseUrl + 'dashboard/email',
                waitMsg: 'Processing Request',
                success: function (contactForm, response) {
          console.log(response.result);
@@ -2287,6 +2335,7 @@ function editDashboard() {
     var graphString = editor.getSession().getValue();
     var targets = JSON.parse(graphString);
     graphStore.removeAll();
+    var graphs = [];
     for (var i = 0; i < targets.length; i++) {
       var myParams = {};
       Ext.apply(myParams, targets[i]);
@@ -2294,13 +2343,14 @@ function editDashboard() {
       Ext.apply(urlParams, defaultGraphParams);
       Ext.apply(urlParams, GraphSize);
       Ext.apply(urlParams, myParams);
-      var record = new GraphRecord({
-        target: targets[i].target,
-        params: myParams,
-        url: '/render?' + Ext.urlEncode(urlParams)
-      });
-      graphStore.add([record]);
+      graphs.push([
+        Ext.urlEncode({target: targets[i].target}),
+        myParams,
+        document.body.dataset.baseUrl + 'render?' + Ext.urlEncode(urlParams)
+      ]);
     }
+    graphStore.loadData(graphs);
+    refreshGraphs();
     edit_dashboard_win.close();
   }
   function getInitialState() {
@@ -2387,7 +2437,7 @@ function saveTemplate() {
 
 function sendSaveTemplateRequest(name, key) {
   Ext.Ajax.request({
-    url: "/dashboard/save_template/" + name + "/" + key,
+    url: document.body.dataset.baseUrl + "dashboard/save_template/" + name + "/" + key,
     method: 'POST',
     params: {
       state: Ext.encode( getState() )
@@ -2404,7 +2454,7 @@ function sendSaveTemplateRequest(name, key) {
 
 function sendSaveRequest(name) {
   Ext.Ajax.request({
-    url: "/dashboard/save/" + name,
+    url: document.body.dataset.baseUrl + "dashboard/save/" + name,
     method: 'POST',
     params: {
       state: Ext.encode( getState() )
@@ -2421,7 +2471,7 @@ function sendSaveRequest(name) {
 
 function sendLoadRequest(name) {
   Ext.Ajax.request({
-    url: "/dashboard/load/" + name,
+    url: document.body.dataset.baseUrl + "dashboard/load/" + name,
     success: function (response) {
                var result = Ext.decode(response.responseText);
                if (result.error) {
@@ -2441,7 +2491,7 @@ function sendLoadTemplateRequest(name, value) {
     window.location.href = new_location;
   } else {
     Ext.Ajax.request({
-      url: "/dashboard/load_template/" + name + "/" + value,
+      url: document.body.dataset.baseUrl + "dashboard/load_template/" + name + "/" + value,
       success: function (response) {
                var result = Ext.decode(response.responseText);
                if (result.error) {
@@ -2529,7 +2579,7 @@ function applyState(state) {
 
 function deleteDashboard(name) {
   Ext.Ajax.request({
-    url: "/dashboard/delete/" + name,
+    url: document.body.dataset.baseUrl + "dashboard/delete/" + name,
     success: function (response) {
       var result = Ext.decode(response.responseText);
       if (result.error) {
@@ -2544,7 +2594,7 @@ function deleteDashboard(name) {
 
 function deleteTemplate(name) {
   Ext.Ajax.request({
-    url: "/dashboard/delete_template/" + name,
+    url: document.body.dataset.baseUrl + "dashboard/delete_template/" + name,
     success: function (response) {
       var result = Ext.decode(response.responseText);
       if (result.error) {
@@ -2666,7 +2716,7 @@ function showDashboardFinder() {
   var dashboardsList;
   var queryField;
   var dashboardsStore = new Ext.data.JsonStore({
-    url: "/dashboard/find/",
+    url: document.body.dataset.baseUrl + "dashboard/find/",
     method: 'GET',
     params: {query: "e"},
     fields: [{
@@ -2817,7 +2867,7 @@ function showTemplateFinder() {
   var queryField;
   var valueField;
   var templatesStore = new Ext.data.JsonStore({
-    url: "/dashboard/find_template/",
+    url: document.body.dataset.baseUrl + "dashboard/find_template/",
     method: 'GET',
     params: {query: "e"},
     fields: ['name'],
@@ -3185,11 +3235,11 @@ function showLoginForm() {
       {text: 'Cancel', handler: function () { win.close(); } }
     ]
   });
-  
+
   function doLogin() {
     login.getForm().submit({
       method: 'POST',
-      url: '/dashboard/login',
+      url: document.body.dataset.baseUrl + 'dashboard/login',
       waitMsg: 'Authenticating...',
       success: function(form, action) {
         userName = form.findField('username').getValue();
@@ -3224,7 +3274,7 @@ function showLoginForm() {
 
 function logout() {
   Ext.Ajax.request({
-    url: '/dashboard/logout',
+    url: document.body.dataset.baseUrl + 'dashboard/logout',
     method: 'POST',
     success: function() {
       userName = null;

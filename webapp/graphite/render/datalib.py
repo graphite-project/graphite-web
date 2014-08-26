@@ -12,7 +12,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
-import sys
 import time
 from graphite.logger import log
 from graphite.storage import STORE
@@ -109,8 +108,7 @@ def fetchData(requestContext, pathExpr):
 
       try:
           (timeInfo, values) = results
-      except ValueError, e:
-          e = sys.exc_info()[1]
+      except ValueError as e:
           raise Exception("could not parse timeInfo/values from metric '%s': %s" % (node.path, e))
       (start, end, step) = timeInfo
 
@@ -119,10 +117,10 @@ def fetchData(requestContext, pathExpr):
       seriesList.append(series)
 
     # Prune empty series with duplicate metric paths to avoid showing empty graph elements for old whisper data
-    names = set([ series.name for series in seriesList ])
+    names = set([ s.name for s in seriesList ])
     for name in names:
-      series_with_duplicate_names = [ series for series in seriesList if series.name == name ]
-      empty_duplicates = [ series for series in series_with_duplicate_names if not nonempty(series) ]
+      series_with_duplicate_names = [ s for s in seriesList if s.name == name ]
+      empty_duplicates = [ s for s in series_with_duplicate_names if not nonempty(s) ]
 
       if series_with_duplicate_names == empty_duplicates and len(empty_duplicates) > 0: # if they're all empty
         empty_duplicates.pop() # make sure we leave one in seriesList
@@ -131,7 +129,7 @@ def fetchData(requestContext, pathExpr):
         seriesList.remove(series)
 
     return seriesList
-  
+
   retries = 1 # start counting at one to make log output and settings more readable
   while True:
     try:

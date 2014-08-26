@@ -8,6 +8,8 @@
 Changes
 -------
 
+* Graphite-web requires Python >= 2.6 and Django >= 1.4.
+
 * Metrics can be reordered via the composer.
 
 * A WSGI file has been added to ``graphite-web``. This is especially useful for
@@ -35,6 +37,11 @@ Changes
   has been rewritten in Python. ``build-index.sh`` is still available but is
   just an alias to ``build-index``.
 
+* The ``CONTENT_DIR`` setting has been replaced with ``STATIC_ROOT`` and now
+  allows to easily serve non-graphite static files such as Django admin's. See
+  the :doc:`configuration docs <../config-local-settings>` for usage
+  instructions.
+
 * `Tox`_ is now used for running the tests locally across the supported Django
   and Python versions combinations. A :doc:`section about working on
   graphite-web <../development>` has been added to the documentation.
@@ -42,6 +49,10 @@ Changes
 * Pythons own log rotation can be disabled using the `LOG_ROTATE` setting. This
   is useful in case of running multiple WSGI workers. See also: `Github Issue
   #499 <https://github.com/graphite-project/graphite-web/pull/499>`_.
+
+* The cli was deprecated and has been removed.
+
+* A URL shortener has been added to the composer toolbar.
 
 .. _Tox: https://testrun.org/tox/latest/
 

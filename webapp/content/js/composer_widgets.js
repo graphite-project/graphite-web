@@ -10,18 +10,18 @@
  *    distributed under the License is distributed on an "AS IS" BASIS,
  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *    See the License for the specific language governing permissions and
- *    limitations under the License. 
- * 
- * 
+ *    limitations under the License.
+ *
+ *
  * ======================================================================
- * 
+ *
  *     PLEASE DO NOT USE A COMMA AFTER THE FINAL ITEM IN A LIST.
- * 
+ *
  * ======================================================================
- * 
- * It works fine in FF / Chrome, but completely breaks Internet Explorer. 
- * Thank you.  
- * 
+ *
+ * It works fine in FF / Chrome, but completely breaks Internet Explorer.
+ * Thank you.
+ *
 */
 
 
@@ -43,8 +43,9 @@ function createComposerWindow(myComposer) {
     '-',
     createToolbarButton('Select a Date Range', 'calBt.gif', toggleWindow(createCalendarWindow) ),
     createToolbarButton('Select Recent Data', 'arrow1.gif', toggleWindow(createRecentWindow) ),
-    createToolbarButton('Open in GraphPlot', 'line_chart.png', function() { window.open('/graphlot/?' + Composer.url.queryString,'_blank') }),
+    createToolbarButton('Open in GraphPlot', 'line_chart.png', function() { window.open(document.body.dataset.baseUrl + 'graphlot/?' + Composer.url.queryString,'_blank') }),
     createToolbarButton('Create from URL', 'link.png', toggleWindow(createURLWindow) ),
+    createToolbarButton('Short URL', 'browser.png', showShortUrl),
     '-',
     timeDisplay
   ];
@@ -71,7 +72,7 @@ function createComposerWindow(myComposer) {
     tbar: topToolbar,
     buttons: bottomToolbar,
     buttonAlign: 'left',
-    items: { html: "<img id='image-viewer' src='/render'/>", region: "center" },
+    items: { html: "<img id='image-viewer' src='" + document.body.dataset.baseUrl + "render'/>", region: "center" },
     listeners: {
       activate: keepDataWindowOnTop,
       show: fitImageToWindow,
@@ -147,7 +148,7 @@ function fitImageToWindow(win) {
 /* Toolbar stuff */
 function createToolbarButton(tip, icon, handler) {
   return new Ext.Toolbar.Button({
-    style: "padding-left:10pt; background:transparent url(../content/img/" + icon + ") no-repeat scroll 0% 50%",
+    style: "padding-left:10pt; background:transparent url(" + document.body.dataset.staticRoot + "img/" + icon + ") no-repeat scroll 0% 50%",
     handler: handler,
     handleMouseEvents: false,
     text: "&nbsp; &nbsp;",
@@ -260,6 +261,48 @@ function asDateString(dateObj) {
   return dateObj.format('H:i_Ymd');
 }
 
+/* Short url window */
+function showShortUrl() {
+    showUrl = function(options, success, response) {
+        if(success) {
+            var win = new Ext.Window({
+              title: "Graph URL",
+              width: 600,
+              height: 125,
+              layout: 'border',
+              modal: true,
+              items: [
+                {
+                  xtype: "label",
+                  region: 'north',
+                  style: "text-align: center;",
+                  text: "Short Direct URL to this graph"
+                }, {
+                  xtype: 'textfield',
+                  region: 'center',
+                  value:  window.location.origin + response.responseText,
+                  editable: false,
+                  style: "text-align: center; font-size: large;",
+                  listeners: {
+                    focus: function (field) { field.selectText(); }
+                  }
+                }
+              ],
+              buttonAlign: 'center',
+              buttons: [
+                {text: "Close", handler: function () { win.close(); } }
+              ]
+            });
+            win.show();
+        }
+    }
+    Ext.Ajax.request({
+        method: 'GET',
+        url: document.body.dataset.baseUrl + 's/render/?' + Composer.url.queryString,
+        callback: showUrl,
+    });
+}
+
 /* "Recent Data" dialog */
 function toggleWindow(createFunc) {
   function toggler (button, e) {
@@ -282,7 +325,7 @@ function createURLWindow() {
     vtype: 'url',
     listeners: { change: urlChosen, specialkey: ifEnter(urlChosen) }
   });
-  
+
   return new Ext.Window({
       title: "Enter a URL to build graph from",
       layout: 'fit',
@@ -360,7 +403,7 @@ function saveMyGraph(button, e) {
       tmpArray = tmpArray.slice(1, tmpArray.length);
       myGraphName = tmpArray.join('.');
     }
-  } 
+  }
   Ext.MessageBox.prompt(
     "Save to My Graphs", //title
     "Please enter a name for your Graph", //prompt message
@@ -381,11 +424,11 @@ function saveMyGraph(button, e) {
 
       //Save the name for future use and re-load the "My Graphs" tree
       Composer.state.myGraphName = text;
-      Browser.trees.mygraphs.reload();
+
       //Send the request
       Ext.Ajax.request({
         method: 'GET',
-        url: '../composer/mygraph/',
+        url: document.body.dataset.baseUrl + 'composer/mygraph/',
         params: {action: 'save', graphName: text, url: Composer.url.getURL()},
         callback: handleSaveMyGraphResponse
       });
@@ -399,6 +442,7 @@ function saveMyGraph(button, e) {
 function handleSaveMyGraphResponse(options, success, response) {
   var message;
   if (success) {
+    Browser.trees.mygraphs.reload();
     message = "Graph saved successfully";
   } else {
     message = "There was an error saving your Graph, please try again later.";
@@ -426,15 +470,19 @@ function deleteMyGraph() {
 	return;
       }
 
-      Browser.trees.mygraphs.reload();
       //Send the request
       Ext.Ajax.request({
         method: 'GET',
-        url: '../composer/mygraph/',
+        url: document.body.dataset.baseUrl + 'composer/mygraph/',
         params: {action: 'delete', graphName: text},
         callback: function (options, success, response) {
-          var message = success ? "Graph deleted successfully" : "There was an error performing the operation.";
-
+          var message;
+          if (success) {
+            Browser.trees.mygraphs.reload();
+            message = "Graph deleted successfully";
+          } else {
+            message = "There was an error performing the operation.";
+          }
           Ext.Msg.show({
             title: 'Delete My Graph',
             msg: message,
@@ -587,7 +635,7 @@ var GraphDataWindow = {
       Ext.getCmp('undoFunctionButton').enable();
       Ext.getCmp('moveButton').enable();
     }
-    
+
     // Swap Targets
     if (selected == 2)
       Ext.getCmp('menuSwapTargets').enable();
@@ -619,7 +667,7 @@ var GraphDataWindow = {
     }
     if (this.getSelectedTargets().length == 2)
       moveMenu.menu[2].disabled = false;
-    
+
     var contextMenu = new Ext.menu.Menu({ items: [removeItem, editItem, moveMenu] });
     contextMenu.showAt( e.getXY() );
 
@@ -908,23 +956,23 @@ var GraphDataWindow = {
 
     win.show();
   },
-  
+
   moveTargetUp: function() {
     this._moveTarget(-1);
   },
-  
+
   moveTargetDown: function() {
     this._moveTarget(1);
   },
-  
+
   swapTargets: function() {
     this._swapTargets();
   },
-  
+
   _moveTarget: function(direction) {
     store = this.targetList.getStore();
     selectedRecords = this.targetList.getSelectedRecords();
-      
+
     // Don't move past boundaries
     exit = false;
     Ext.each(selectedRecords, function(record) {
@@ -941,7 +989,7 @@ var GraphDataWindow = {
     });
     if (exit)
       return;
-      
+
     newSelections = [];
     Ext.each(selectedRecords, function(recordA) {
       indexA = store.indexOf( recordA );
@@ -956,17 +1004,17 @@ var GraphDataWindow = {
 
       newSelections.push( indexA + direction );
     });
-      
+
     Composer.syncTargetList();
     Composer.updateImage();
     this.targetList.select(newSelections);
   },
-  
+
   _swapTargets: function() {
     selectedRecords = this.targetList.getSelectedRecords();
     if (selectedRecords.length != 2)
       return;
-      
+
     recordA = selectedRecords[0];
     recordB = selectedRecords[1];
 
@@ -983,7 +1031,7 @@ var GraphDataWindow = {
 
   addWlSelected: function (item, e) {
     Ext.Ajax.request({
-      url: "/whitelist/add",
+      url: document.body.dataset.baseUrl + "whitelist/add",
       method: "POST",
       success: function () { Ext.Msg.alert("Result", "Successfully added metrics to whitelist."); },
       failure: function () { Ext.Msg.alert("Result", "Failed to add metrics to whitelist.");   },
@@ -993,7 +1041,7 @@ var GraphDataWindow = {
 
   removeWlSelected: function (item, e) {
     Ext.Ajax.request({
-      url: "/whitelist/remove",
+      url: document.body.dataset.baseUrl + "whitelist/remove",
       method: "POST",
       success: function () { Ext.Msg.alert("Result", "Successfully removed metrics from whitelist."); },
       failure: function () { Ext.Msg.alert("Result", "Failed to remove metrics from whitelist.");   },
@@ -1039,11 +1087,14 @@ function createFunctionsMenu() {
         {text: 'Offset', handler: applyFuncToEachWithInput('offset', 'Please enter the value to offset Y-values by')},
         {text: 'OffsetToZero', handler: applyFuncToEach('offsetToZero')},
         {text: 'Derivative', handler: applyFuncToEach('derivative')},
+        {text: 'Power', handler: applyFuncToEachWithInput('pow', 'Please enter a power factor')},
+        {text: 'Square Root', handler: applyFuncToEach('squareRoot')},
         {text: 'Time-adjusted Derivative', handler: applyFuncToEachWithInput('perSecond', "Please enter a maximum value if this metric is a wrapping counter (or just leave this blank)", {allowBlank: true})},
         {text: 'Integral', handler: applyFuncToEach('integral')},
         {text: 'Percentile Values', handler: applyFuncToEachWithInput('percentileOfSeries', "Please enter the percentile to use")},
         {text: 'Non-negative Derivative', handler: applyFuncToEachWithInput('nonNegativeDerivative', "Please enter a maximum value if this metric is a wrapping counter (or just leave this blank)", {allowBlank: true})},
         {text: 'Log', handler: applyFuncToEachWithInput('log', 'Please enter a base')},
+        {text: 'Invert', handler: applyFuncToEach('invert')},
         {text: 'Absolute Value', handler: applyFuncToEach('absolute')},
         {text: 'timeShift', handler: applyFuncToEachWithInput('timeShift', 'Shift this metric ___ back in time (examples: 10min, 7d, 2w)', {quote: true})},
         {text: 'Summarize', handler: applyFuncToEachWithInput('summarize', 'Please enter a summary interval (examples: 10min, 1h, 7d)', {quote: true})},
@@ -1090,6 +1141,7 @@ function createFunctionsMenu() {
         {text: 'Maximum Value Above', handler: applyFuncToEachWithInput('maximumAbove', 'Draw all metrics whose maximum value is above ___')},
         {text: 'Maximum Value Below', handler: applyFuncToEachWithInput('maximumBelow', 'Draw all metrics whose maximum value is below ___')},
         {text: 'Minimum Value Above', handler: applyFuncToEachWithInput('minimumAbove', 'Draw all metrics whose minimum value is above ___')},
+        {text: 'Minimum Value Below', handler: applyFuncToEachWithInput('minimumBelow', 'Draw all metrics whose minimum value is below ___')},
         {text: 'sortByName', handler: applyFuncToEach('sortByName')},
         {text: 'sortByTotal', handler: applyFuncToEach('sortByTotal')},
         {text: 'sortByMaxima', handler: applyFuncToEach('sortByMaxima')},
@@ -1125,6 +1177,7 @@ function createFunctionsMenu() {
         {text: 'Line Width', handler: applyFuncToEachWithInput('lineWidth', 'Please enter a line width for this graph target')},
         {text: 'Dashed Line', handler: applyFuncToEach('dashed')},
         {text: 'Keep Last Value', handler: applyFuncToEachWithInput('keepLastValue', 'Please enter the maximum number of "None" datapoints to overwrite, or leave empty for no limit. (default: empty)', {allowBlank: true})},
+        {text: 'Changed', handler: applyFuncToEach('changed')},
         {text: 'Transform Nulls', handler: applyFuncToEachWithInput('transformNull', 'Please enter the value to transform null values to')},
         {text: 'Count non-nulls', handler: applyFuncToAll('isNonNull')},
         {text: 'Substring', handler: applyFuncToEachWithInput('substr', 'Enter a starting position')},
@@ -1179,7 +1232,7 @@ function createOptionsMenu() {
       menuRadioItem("yUnit", "Standard", "yUnitSystem", "si"),
       menuRadioItem("yUnit", "Binary", "yUnitSystem", "binary"),
       menuRadioItem("yUnit", "None", "yUnitSystem", "none")
-      
+
     ]
   });
   var yAxisSideMenu = new Ext.menu.Menu({
@@ -1199,7 +1252,7 @@ function createOptionsMenu() {
       menuInputItem("Left Line Width", "leftWidth"),
       menuInputItem("Left Line Color", "leftColor"),
       menuInputItem("Left Line Dashed (length, in px)", "leftDashed")
-    
+
     ]
   });
   var yAxisRightMenu = new Ext.menu.Menu({
@@ -1212,7 +1265,7 @@ function createOptionsMenu() {
       menuInputItem("Right Line Width", "rightWidth"),
       menuInputItem("Right Line Color", "rightColor"),
       menuInputItem("Right Line Dashed (length, in px)", "rightDashed")
-    
+
     ]
   });
 
@@ -1272,7 +1325,7 @@ function createOptionsMenu() {
       menuRadioItem("fontFace", "Times", "fontName", "Times"),
       menuRadioItem("fontFace", "Courier", "fontName", "Courier"),
       menuRadioItem("fontFace", "Helvetica", "fontName", "Helvetica")
-    ] 
+    ]
   });
 
   var fontMenu = new Ext.menu.Menu({
@@ -1319,6 +1372,7 @@ function createOptionsMenu() {
         }
       },
       menuInputItem("Line Thickness", "lineWidth", "Enter the line thickness in pixels"),
+      menuInputItem("Margin", "margin", "Enter the margin width in pixels"),
       menuCheckItem("Graph Only", "graphOnly"),
       menuCheckItem("Hide Axes", "hideAxes"),
       menuCheckItem("Hide Y-Axis", "hideYAxis"),
@@ -1397,7 +1451,7 @@ function paramPrompt(question, param, regexp) {
           Ext.Msg.alert("Input cannot end in a period.");
           return;
         }
-        
+
         setParam(param, value);
         updateGraph();
       },
@@ -1441,7 +1495,7 @@ function menuCheckItem(name, param, paramValue) {
 
 function menuRadioItem(groupName, name, param, paramValue ) {
   var selectItem = new Ext.menu.CheckItem({text: name, param: param, hideOnClick: false, group: groupName, checked: (paramValue ? false : true)});
-  selectItem.on('checkchange', 
+  selectItem.on('checkchange',
     function( item, clicked ) {
       if( paramValue ) {
         setParam(param, paramValue);

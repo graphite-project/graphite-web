@@ -1,14 +1,14 @@
 import datetime
 import time
 
+from django.contrib.sites.models import RequestSite
 from django.shortcuts import render_to_response, get_object_or_404
 from django.utils.timezone import localtime, now
+
 from graphite.compat import HttpResponse
 from graphite.util import json
 from graphite.events import models
 from graphite.render.attime import parseATTime
-from django.core.urlresolvers import get_script_prefix
-
 
 
 def to_timestamp(dt):
@@ -24,18 +24,17 @@ class EventEncoder(json.JSONEncoder):
 
 def view_events(request):
     if request.method == "GET":
-        context = { 'events' : fetch(request),
-            'slash' : get_script_prefix()
-        }
+        context = {'events': fetch(request),
+                   'site': RequestSite(request),
+                   'protocol': 'https' if request.is_secure() else 'http'}
         return render_to_response("events.html", context)
     else:
         return post_event(request)
 
+
 def detail(request, event_id):
     e = get_object_or_404(models.Event, pk=event_id)
-    context = { 'event' : e,
-       'slash' : get_script_prefix()
-    }
+    context = {'event': e}
     return render_to_response("event.html", context)
 
 
@@ -62,7 +61,7 @@ def post_event(request):
 def get_data(request):
     if 'jsonp' in request.REQUEST:
         response = HttpResponse(
-          "%s(%s)" % (request.REQUEST.get('jsonp'), 
+          "%s(%s)" % (request.REQUEST.get('jsonp'),
               json.dumps(fetch(request), cls=EventEncoder)),
           content_type='text/javascript')
     else:
