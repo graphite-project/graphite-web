@@ -108,7 +108,7 @@ Graphite-web
 
 Carbon
 ^^^^^^
-* Restore recursive mkdir on LOG_DIR`` (jamesjuran)
+* Restore recursive mkdir on ``LOG_DIR`` (jamesjuran)
 * Fix per-host replication (dkulikovsky, deniszh)
 * More accurate queue length reporting (pcn, bitprophet)
 * Set ownership on log subdirectories if ``USER`` is defined (jamesjuran)
