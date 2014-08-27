@@ -120,6 +120,7 @@ Carbon
 
 Whisper
 ^^^^^^^
+* Write optimization in ``update_many`` (timob, deniszh)
 * Add optional ``now`` parameter to fetch for graphite-web compatibility (jcsp, steve-dave)
 * Remove unused Tox configuration (steve-dave)
 * TravisCI no longer supports Python 2.5 (steve-dave)
