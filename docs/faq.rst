@@ -8,7 +8,9 @@ Graphite is a highly scalable real-time graphing system. As a user, you write an
 
 Who should use Graphite?
 ------------------------
-Graphite is actually a bit of a niche application. Specifically, it is designed to handle numeric time-series data. For example, Graphite would be good at graphing stock prices because they are numbers that change over time. However Graphite is a complex system, and if you only have a few hundred distinct things you want to graph (stocks prices in the S&P 500) then Graphite is probably overkill. But if you need to graph a lot of different things (like dozens of performance metrics from thousands of servers) and you don't necessarily know the names of those things in advance (who wants to maintain such huge configuration?) then Graphite is for you.
+Anybody who would want to track values of anything over time.  If you have a number that could potentially change over time, and you might want to represent the value over time on a graph, then Graphite can probably meet your needs.
+
+Specifically, Graphite is designed to handle numeric time-series data. For example, Graphite would be good at graphing stock prices because they are numbers that change over time. However Graphite is a complex system, and if you only have a few hundred distinct things you want to graph (stocks prices in the S&P 500) then Graphite is probably overkill. But if you need to graph a lot of different things (like dozens of performance metrics from thousands of servers) and you don't necessarily know the names of those things in advance (who wants to maintain such huge configuration?) then Graphite is for you.
 
 
 How scalable is Graphite?
