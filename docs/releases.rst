@@ -6,6 +6,7 @@ Release Notes
    :glob:
 
    releases/0_10_0
+   releases/0_9_13
    releases/0_9_12
    releases/0_9_11
    releases/0_9_10
