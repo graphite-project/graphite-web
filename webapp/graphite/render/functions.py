@@ -982,7 +982,7 @@ def areaBetween(requestContext, seriesList):
   Draws the vertical area in between the two series in seriesList. Useful for
   visualizing a range such as the minimum and maximum latency for a service.
 
-  areaBetween expects exactly one argument that results in exactly two series
+  areaBetween expects **exactly one argument** that results in exactly two series
   (see example below). The order of the lower and higher values series does not
   matter. The visualization only works when used in conjunction with
   ``areaMode=stacked``.
@@ -998,6 +998,13 @@ def areaBetween(requestContext, seriesList):
     &target=areaBetween(service.latency.{min,max})&areaMode=stacked
 
     &target=alpha(areaBetween(service.latency.{min,max}),0.3)&areaMode=stacked
+
+  If for instance, you need to build a seriesList, you should use the ``group``
+  function, like so:
+
+  .. code-block:: none
+
+    &target=areaBetween(group(minSeries(a.*.min),maxSeries(a.*.max)))
   """
   assert len(seriesList) == 2, "areaBetween series argument must reference *exactly* 2 series"
   lower = seriesList[0]
