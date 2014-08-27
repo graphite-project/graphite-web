@@ -101,7 +101,7 @@ Graphite-web
 * Fix condition where missing ``until`` paramater caused TypeError (steve-dave)
 * Remove old jQuery workaround in Graphlot (steve-dave)
 * Fix ``now`` handling in render queries (jcsp)
-* Fix ``PICKEL_SAFE`` for CarbonLink queries (Dieterbe)
+* Fix ``PICKLE_SAFE`` for CarbonLink queries (Dieterbe)
 * Decimals not printed for ``cactiStyle()`` (SuminAndrew, drawks)
 * Typo in exception name (also)
 * Fix assumption that RemoteNode inherits from Node (mleinart)
