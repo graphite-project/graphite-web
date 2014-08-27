@@ -1177,7 +1177,7 @@ def areaBetween(requestContext, seriesList):
 
     &target=alpha(areaBetween(service.latency.{min,max}),0.3)&areaMode=stacked
 
-  If for instance, you need to build a seriesList, you should use the ``group`` 
+  If for instance, you need to build a seriesList, you should use the ``group``
   function, like so:
 
   .. code-block:: none
