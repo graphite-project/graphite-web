@@ -1,9 +1,8 @@
 .. _0-9-13:
 
-0.9.13
-======
-*8/26/2014*
-
+0.9.13 -- UNDER DEVELOPMENT
+===========================
+*no release date*
 
 Graphite 0.9.13 is now available for usage. Source bundles are available from GitHub:
 
