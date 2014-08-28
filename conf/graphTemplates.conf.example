@@ -36,3 +36,14 @@ foreground = black
 majorLine = grey
 minorLine = rose
 lineColors = 00ff00aa,ff000077,00337799
+
+[grafana]
+background = white
+foreground = black
+minorLine = grey
+majorLine = rose
+lineColors = #7eb26d,#eab839,#6ed0e0,#ef843c,#e24d42,#1f78c1,#ba43a9,#705da0,#508642,#cca300,#447ebc
+fontName = Sans
+fontSize = 10
+fontBold = False
+fontItalic = False
