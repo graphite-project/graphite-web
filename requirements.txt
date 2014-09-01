@@ -44,6 +44,6 @@ django-tagging==0.3.1
 gunicorn
 pytz
 pyparsing==1.5.7
-http://cairographics.org/releases/py2cairo-1.8.10.tar.gz
+cairocffi
 git+git://github.com/graphite-project/whisper.git#egg=whisper
 git+git://github.com/graphite-project/ceres.git#egg=ceres
