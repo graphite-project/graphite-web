@@ -43,7 +43,6 @@ function createComposerWindow(myComposer) {
     '-',
     createToolbarButton('Select a Date Range', 'calBt.gif', toggleWindow(createCalendarWindow) ),
     createToolbarButton('Select Recent Data', 'arrow1.gif', toggleWindow(createRecentWindow) ),
-    createToolbarButton('Open in GraphPlot', 'line_chart.png', function() { window.open(document.body.dataset.baseUrl + 'graphlot/?' + Composer.url.queryString,'_blank') }),
     createToolbarButton('Create from URL', 'link.png', toggleWindow(createURLWindow) ),
     createToolbarButton('Short URL', 'browser.png', showShortUrl),
     '-',
