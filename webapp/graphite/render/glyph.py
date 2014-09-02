@@ -12,7 +12,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
-import os, cairo, math, itertools, re
+import os, math, itertools, re
+
+try:
+    import cairo
+except ImportError:
+    import cairocffi as cairo
+
 import StringIO
 from datetime import datetime, timedelta
 from urllib import unquote_plus
