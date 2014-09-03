@@ -70,7 +70,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Graphite'
-copyright = u'2011, Chris Davis'
+copyright = u'2008-2012, Chris Davis; 2011-2014 The Graphite Project'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
