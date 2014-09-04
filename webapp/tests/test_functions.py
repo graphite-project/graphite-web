@@ -1,6 +1,7 @@
 import copy
 from django.test import TestCase
 from mock import patch, call, MagicMock
+from datetime import datetime
 
 from graphite.render.datalib import TimeSeries
 from graphite.render import functions
@@ -52,6 +53,18 @@ class FunctionsTest(TestCase):
             series, expected = conf
             result = functions._getPercentile(series, 30)
             self.assertEqual(expected, result, 'For series index <%s> the 30th percentile ordinal is not %d, but %d ' % (index, expected, result))
+
+    def test_integral(self):
+	seriesList = [TimeSeries('test', 0, 600, 60, [None, 1, 2, 3, 4, 5, None, 6, 7, 8])]
+	expected = [TimeSeries('integral(test)', 0, 600, 60, [None, 1, 3, 6, 10, 15, None, 21, 28, 36])]
+	result = functions.integral({}, seriesList)
+        self.assertEqual(expected, result, 'integral result incorrect')
+
+    def test_integralByInterval(self):
+        seriesList = [TimeSeries('test', 0, 600, 60, [None, 1, 2, 3, 4, 5, None, 6, 7, 8])]
+	expected = [TimeSeries("integral(test,'2min')", 0, 600, 60, [0, 1, 2, 5, 4, 9, 0, 6, 7, 15])]
+	result = functions.integralByInterval({'startTime' : datetime(1970,1,1)}, seriesList, '2min')
+	self.assertEqual(expected, result, 'integralByInterval result incorrect %s %s' %(result, result[0]))
 
     def test_n_percentile(self):
         seriesList = []
