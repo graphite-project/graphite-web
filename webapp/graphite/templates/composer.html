@@ -16,67 +16,69 @@ limitations under the License. -->
 <html>
   <head>
     <title>Graphite Composer</title>
-    <link rel="stylesheet" type="text/css" href="{% static "js/ext/resources/css/ext-all.css" %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static "js/ext4/ext4-all.css" %}"/>
   </head>
   <body onload="init();" data-static-root="{% get_static_prefix %}" data-base-url="{% url "browser" %}"{% if queryString %} data-query-string="{{ queryString }}"{% endif %}{% if showTarget %} data-show-target="{{ showTarget }}"{% endif %}>
 
     {% if jsdebug %}
-      <script type="text/javascript" src="{% static "js/ext/adapter/ext/ext-base-debug.js" %}"></script>
-      <script type="text/javascript" src="{% static "js/ext/ext-all-debug.js" %}"></script>
+      <script type="text/javascript" src="{% static "js/ext4/ext4-all.js" %}"></script>
     {% else %}
-      <script type="text/javascript" src="{% static "js/ext/adapter/ext/ext-base.js" %}"></script>
-      <script type="text/javascript" src="{% static "js/ext/ext-all.js" %}"></script>
+      <script type="text/javascript" src="{% static "js/ext4/ext4-all.js" %}"></script>
     {% endif %}
-
+    <script type="text/javascript" src="{% static "js/composer_widgets_extjs4.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/completer_extjs4.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/composer_extjs4.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/browser_extjs4.js" %}"></script>
     <script type="text/javascript">
       /* A global cache of current metadata about metrics the user selects */
-      var TargetRecord = new Ext.data.Record.create(['value']);
-
-      var TargetStore = new Ext.data.ArrayStore({
-        fields: TargetRecord.fields
-      });
+      Ext.define("target",{
+        extend:"Ext.data.Model",
+        fields:[
+             {name:"value",type:"string"}
+        ]
+      })
+      var STATIC_URL = "{% static "" %}"
+      var TargetStore = Ext.create("Ext.data.ArrayStore",{
+          fields:[{
+              name:"value",type:"string"
+          }]
+      }) 
 
       function getTargetRecord(target) {
-        var index = indexOfTarget(target);
-        return (index == -1) ? null : TargetStore.getAt(index);
-      }
-
-      function addTarget(target) {
-        TargetStore.add([ new TargetRecord({value: target}) ]);
-      }
-
-      function removeTarget(target) {
-        var record = getTargetRecord(target);
-
-        if (record) {
-          TargetStore.remove(record);
+          var index = indexOfTarget(target);
+          return (index == -1) ? null : TargetStore.getAt(index);
         }
-      }
 
-      function indexOfTarget(target) {
-        return TargetStore.findExact('value', target);
-      }
-
-      function insertTarget(index, target) {
-        TargetStore.insert(index, [ new TargetRecord({value: target}) ]);
-      }
-
-      function replaceTarget(oldTarget, newTarget) {
-        var oldRecord = getTargetRecord(oldTarget);
-        var newRecord = getTargetRecord(newRecord);
-
-        if (oldRecord && (!newRecord)) {
-          oldRecord.set('value', newTarget);
-          TargetStore.commitChanges();
+        function addTarget(target) {
+          TargetStore.add(Ext.create("target",{value:target}));
         }
-      }
+
+        function removeTarget(target) {
+          var record = getTargetRecord(target);
+
+          if (record) {
+            TargetStore.remove(record);
+          }
+        }
+
+        function indexOfTarget(target) {
+          return TargetStore.findExact('value', target);
+        }
+
+        function insertTarget(index, target) {
+          TargetStore.insert(index, [Ext.create("target",{value:target}) ]);
+        }
+
+        function replaceTarget(oldTarget, newTarget) {
+          var oldRecord = getTargetRecord(oldTarget);
+          var newRecord = getTargetRecord(newRecord);
+
+          if (oldRecord && (!newRecord)) {
+            oldRecord.set('value', newTarget);
+            TargetStore.commitChanges();
+          }
+        }
     </script>
-
-    <script type="text/javascript" src="{% static "js/browser.js" %}"></script>
-    <script type="text/javascript" src="{% static "js/composer_widgets.js" %}"></script>
-    <script type="text/javascript" src="{% static "js/composer.js" %}"></script>
-    <script type="text/javascript" src="{% static "js/completer.js" %}"></script>
-
     <style type="text/css">
     /* Hack to fix this bug http://extjs.net/forum/showthread.php?s=a570aba1bf2fc67a2287684c5d91c662&t=74230 */
     .x-list-body {
@@ -102,47 +104,39 @@ limitations under the License. -->
       };
 
       function init() {
-        Browser = new GraphiteBrowser();
+        Ext.tip.QuickTipManager.init();
         Composer = new GraphiteComposer();
+        Browser = new GraphiteBrowser();
 
-        new Ext.Viewport({
-          layout: 'border',
-          items: [
-            Browser.panel,
-            { //Panel that holds the composer window
-              region: 'center',
-              items: [Composer.window]
+       
+
+        Ext.create('Ext.container.Viewport', {
+            layout:"border",
+            items:[{
+            region:"west",
+            width:300,
+            layout:"fit",
+            items:Browser,
+            border:false,
+            padding: "0,0,0,0"
+            },{
+            region:"center",
+            id:"center",
+            //layout:"border",
+            items:Composer.window,
+            border:false,
             }
-          ]
-        });
+            ]
 
-        Composer.window.show();
-
-        /* Direct graph loading */
-        if (document.body.dataset.queryString) {
-          Composer.loadURL("?" + document.body.dataset.queryString);
+        })
+        Composer.window.show()
+        if ("{{queryString}}") {
+          Composer.loadURL("?{{queryString|escapejs}}");
         }
-        /* Automatic tree expansion */
-        if (document.body.dataset.showTarget) {
-          var parts = document.body.dataset.showTarget.split('.');
-
-          if (parts[0] == "Graphite") {
-            parts.shift();
-          }
-
-          function expandNext(node) {
-            var nextPart = parts.shift();
-            if (!nextPart) {
-              return;
-            }
-            var nextNode = node.findChild('text', nextPart);
-            if (!nextNode) {
-              return;
-            }
-            nextNode.expand(false, false, expandNext);
-          }
-
-          Browser.trees.graphite.expand(false, false, expandNext);
+        var showTarget = decodeURIComponent("{{showTarget|escapejs}}");
+        if (showTarget) {
+          showTarget = ".Root."+showTarget          
+          Browser.items.items[0].expandPath(showTarget,"text",".");
         }
       }
 </script>
