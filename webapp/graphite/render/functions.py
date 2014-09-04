@@ -2722,6 +2722,57 @@ def groupByNode(requestContext, seriesList, nodeNum, callback):
     metaSeries[key].name = key
   return [ metaSeries[key] for key in keys ]
 
+def callbackToNode(requestContext, seriesList, nodeNum, callback, twoArgumentsForCallback=False):
+  """
+  Takes a serieslist and maps a callback to every groups defined before the target node
+  If twoArgumentsForCallback=True, the last serie defined in the target node will be the second argument for the callback
+
+  Example :
+
+  .. code-block:: none
+
+    &target=callbackToNode(foo.*.{bar1,bar2},2,"asPercent",true) will produce :
+    asPercent(foo.baz1.bar1,foo.baz1.bar2),asPercent(foo.baz2.bar1,foo.baz2.bar2),asPercent(foo.baz3.bar1,foo.baz3.bar2),...
+
+    &target=callbackToNode(foo.*.{bar1,bar2},2,"sumSeries") will produce :
+    sumSeries(foo.baz1.{bar1,bar2}),sumSeries(foo.baz2.{bar1,bar2}),sumSeries(foo.baz3.{bar1,bar2}),...
+  """
+  metaSeries = {}
+  keys = []
+  node = ""
+  for series in seriesList:
+    key = ".".join(series.name.split(".")[0:nodeNum])
+    node = series.pathExpression.split(".")[nodeNum]
+    if key not in metaSeries.keys():
+      metaSeries[key] = [series]
+      keys.append(key)
+    else:
+      metaSeries[key].append(series)
+  for key in metaSeries.keys():
+    split_name = metaSeries[key][0].pathExpression.split(".")
+    if twoArgumentsForCallback:
+      seriesList = metaSeries[key]
+      real_paths = []
+      if (node.find("{") > -1):
+        sub = node[(node.find("{")+1):node.find("}")]
+        for path in sub.split(","):
+          real_paths.append(node.replace("{"+sub+"}",key+"."+path))
+        seriesList.sort(key=lambda x : real_paths.index(".".join(x.name.split(".")[0:nodeNum+1])))
+      length = len(seriesList)
+      if length == 1:
+        seriePatch = constantLine(requestContext, 0)
+        nodeName = ".".join(seriesList[0].name.split(".")[0:nodeNum+1])
+        if ((real_paths != []) and (real_paths.index(nodeName) != (len(real_paths)-1))):
+          metaSeries[key] = SeriesFunctions[callback](requestContext,seriePatch,[seriesList[0]])[0]
+        else:
+          metaSeries[key] = SeriesFunctions[callback](requestContext,[seriesList[0]],seriePatch)[0]
+      else:
+        metaSeries[key] = SeriesFunctions[callback](requestContext,seriesList[0:length-1],[seriesList[length-1]])[0]
+    else:
+      metaSeries[key] = SeriesFunctions[callback](requestContext,metaSeries[key])[0]
+    metaSeries[key].name = callback + "(" + key + "." + (".".join(split_name[nodeNum:len(split_name)])) + ")"
+  return [ metaSeries[key] for key in keys ]
+
 def exclude(requestContext, seriesList, pattern):
   """
   Takes a metric or a wildcard seriesList, followed by a regular expression
@@ -3267,6 +3318,7 @@ SeriesFunctions = {
   'map': mapSeries,
   'reduce': reduceSeries,
   'groupByNode' : groupByNode,
+  'callbackToNode' : callbackToNode,
   'constantLine' : constantLine,
   'stacked' : stacked,
   'areaBetween' : areaBetween,
