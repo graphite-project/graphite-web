@@ -23,12 +23,6 @@
  * Thank you.  
  * 
 */
-
-
-<<<<<<< HEAD
-=======
-
->>>>>>> 2ef4796c68d4d0d321ec393f4217f1d570eb4f0e
 var DEFAULT_WINDOW_WIDTH = 600;
 var DEFAULT_WINDOW_HEIGHT = 400;
 var Composer;
@@ -40,7 +34,6 @@ function createComposerWindow(myComposer) {
 
   //Can't define this inline because I need a reference in a closure below
   var timeDisplay = new Ext.Toolbar.TextItem({text: "Now showing the past 24 hours"});
-<<<<<<< HEAD
   var topToolbar = [
     {dock: 'top',xtype:"button",icon: STATIC_URL+"img/refresh.png", tooltip: 'Update Graph',handler: updateGraph},
     {dock: 'top',xtype:"button",icon: STATIC_URL+"img/calendar.png", tooltip: 'Select a Date Range', handler: toggleWindow(createCalendarWindow)},
@@ -53,20 +46,6 @@ function createComposerWindow(myComposer) {
   if (GraphiteConfig.showMyGraphs) {
     var saveButton = {dock: 'top',xtype:"button",icon:  STATIC_URL+'img/save.png', tooltip: 'Save to My Graphs', handler: saveMyGraph, scope: this}
     var deleteButton = {dock: 'top',xtype:"button",icon:  STATIC_URL+'img/trash.png', tooltip: 'Delete from My Graphs', handler: deleteMyGraph}
-=======
-
-  var topToolbar = [
-    {dock: 'top',xtype:"button",icon: '/content/img/updateGraph.gif', tooltip: 'Update Graph',handler: updateGraph},
-    {dock: 'top',xtype:"button",icon: '/content/img/calBt.gif', tooltip: 'Select a Date Range', handler: toggleWindow(createCalendarWindow)},
-    {dock: 'top',xtype:"button",icon: '/content/img/arrow1.gif', tooltip: 'Select Recent Data', handler: toggleWindow(createRecentWindow)},
-    {dock: 'top',xtype:"button",icon: '/content/img/line_chart.png', tooltip: 'Open in GraphPlot', handler: function() { window.open('/graphlot/?' + Composer.url.queryString,'_blank') }},
-    {dock: 'top',xtype:"button",icon: '/content/img/link.png', tooltip: 'Create from URL', handler: toggleWindow(createURLWindow)},
-    timeDisplay
-  ];
-  if (GraphiteConfig.showMyGraphs) {
-    var saveButton = {dock: 'top',xtype:"button",icon: '/content/img/save.gif', tooltip: 'Save to My Graphs', handler: saveMyGraph, scope: this}
-    var deleteButton = {dock: 'top',xtype:"button",icon: '/content/img/delete.gif', tooltip: 'Delete from My Graphs', handler: deleteMyGraph}
->>>>>>> 2ef4796c68d4d0d321ec393f4217f1d570eb4f0e
     topToolbar.splice(0, 0, saveButton, deleteButton);
   }
 
@@ -293,8 +272,6 @@ function getCalendarSelection(which) {
 function asDateString(dateObj) {
   return Ext.Date.format(dateObj,'H:i_Ymd');
 }
-
-<<<<<<< HEAD
 function showShortUrl() {
     showUrl = function(options, success, response) {
         if(success) {
@@ -335,8 +312,6 @@ function showShortUrl() {
         callback: showUrl,
     });
 }
-=======
->>>>>>> 2ef4796c68d4d0d321ec393f4217f1d570eb4f0e
 /* "Recent Data" dialog */
 function toggleWindow(createFunc) {
   function toggler (button, e) {
