@@ -161,12 +161,8 @@ function createUserGraph(){
 }
 
 function createMyGraph(){
-<<<<<<< HEAD
     if(GraphiteConfig.showMyGraphs){
       var my_metric_store = Ext.create('Ext.data.TreeStore', {
-=======
-    var my_metric_store = Ext.create('Ext.data.TreeStore', {
->>>>>>> 515f10d05525d19a9e9956954bdd6024335e7756
         root: {
             id:"mygraph",
             expanded: false
@@ -177,14 +173,10 @@ function createMyGraph(){
             url:"/browser/mygraph/",
             extraParams:queryParam,
         }
-<<<<<<< HEAD
       });
     }else{
       var my_metric_store = {}
     }
-=======
-    });
->>>>>>> 515f10d05525d19a9e9956954bdd6024335e7756
     
 
     // create the Tree
@@ -207,14 +199,9 @@ function createMyGraph(){
             },
             itemclick:function(thisview,record,item,index,e){
                 if(record.data.leaf){
-<<<<<<< HEAD
                   if (record.raw.graphUrl){
                       Composer.loadMyGraph(record.raw.text,record.raw.graphUrl)
                     }
-=======
-                    var node_id = record.data.id
-                    Composer.toggleTarget(node_id)
->>>>>>> 515f10d05525d19a9e9956954bdd6024335e7756
                 }else{
                   if (!record.data.expanded)
                   {this.expandNode(record)}
