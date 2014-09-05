@@ -14,6 +14,7 @@ limitations under the License."""
 import csv
 import math
 import pytz
+import traceback
 from datetime import datetime
 from time import time
 from random import shuffle
@@ -45,173 +46,177 @@ from django.conf import settings
 
 
 def renderView(request):
-  start = time()
-  (graphOptions, requestOptions) = parseOptions(request)
-  useCache = 'noCache' not in requestOptions
-  cacheTimeout = requestOptions['cacheTimeout']
-  requestContext = {
-    'startTime' : requestOptions['startTime'],
-    'endTime' : requestOptions['endTime'],
-    'localOnly' : requestOptions['localOnly'],
-    'data' : []
-  }
-  data = requestContext['data']
+  try:
+    start = time()
+    (graphOptions, requestOptions) = parseOptions(request)
+    useCache = 'noCache' not in requestOptions
+    cacheTimeout = requestOptions['cacheTimeout']
+    requestContext = {
+      'startTime' : requestOptions['startTime'],
+      'endTime' : requestOptions['endTime'],
+      'localOnly' : requestOptions['localOnly'],
+      'data' : []
+    }
+    data = requestContext['data']
 
-  # First we check the request cache
-  if useCache:
-    requestKey = hashRequest(request)
-    cachedResponse = cache.get(requestKey)
-    if cachedResponse:
-      log.cache('Request-Cache hit [%s]' % requestKey)
-      log.rendering('Returned cached response in %.6f' % (time() - start))
-      return cachedResponse
-    else:
-      log.cache('Request-Cache miss [%s]' % requestKey)
-
-  # Now we prepare the requested data
-  if requestOptions['graphType'] == 'pie':
-    for target in requestOptions['targets']:
-      if target.find(':') >= 0:
-        try:
-          name,value = target.split(':',1)
-          value = float(value)
-        except:
-          raise ValueError("Invalid target '%s'" % target)
-        data.append( (name,value) )
-      else:
-        seriesList = evaluateTarget(requestContext, target)
-
-        for series in seriesList:
-          func = PieFunctions[requestOptions['pieMode']]
-          data.append( (series.name, func(requestContext, series) or 0 ))
-
-  elif requestOptions['graphType'] == 'line':
-    # Let's see if at least our data is cached
+    # First we check the request cache
     if useCache:
-      targets = requestOptions['targets']
-      startTime = requestOptions['startTime']
-      endTime = requestOptions['endTime']
-      dataKey = hashData(targets, startTime, endTime)
-      cachedData = cache.get(dataKey)
-      if cachedData:
-        log.cache("Data-Cache hit [%s]" % dataKey)
+      requestKey = hashRequest(request)
+      cachedResponse = cache.get(requestKey)
+      if cachedResponse:
+        log.cache('Request-Cache hit [%s]' % requestKey)
+        log.rendering('Returned cached response in %.6f' % (time() - start))
+        return cachedResponse
       else:
-        log.cache("Data-Cache miss [%s]" % dataKey)
-    else:
-      cachedData = None
+        log.cache('Request-Cache miss [%s]' % requestKey)
 
-    if cachedData is not None:
-      requestContext['data'] = data = cachedData
-    else: # Have to actually retrieve the data now
+    # Now we prepare the requested data
+    if requestOptions['graphType'] == 'pie':
       for target in requestOptions['targets']:
-        if not target.strip():
-          continue
-        t = time()
-        seriesList = evaluateTarget(requestContext, target)
-        log.rendering("Retrieval of %s took %.6f" % (target, time() - t))
-        data.extend(seriesList)
+        if target.find(':') >= 0:
+          try:
+            name,value = target.split(':',1)
+            value = float(value)
+          except:
+            raise ValueError("Invalid target '%s'" % target)
+          data.append( (name,value) )
+        else:
+          seriesList = evaluateTarget(requestContext, target)
 
+          for series in seriesList:
+            func = PieFunctions[requestOptions['pieMode']]
+            data.append( (series.name, func(requestContext, series) or 0 ))
+
+    elif requestOptions['graphType'] == 'line':
+      # Let's see if at least our data is cached
       if useCache:
-        cache.add(dataKey, data, cacheTimeout)
+        targets = requestOptions['targets']
+        startTime = requestOptions['startTime']
+        endTime = requestOptions['endTime']
+        dataKey = hashData(targets, startTime, endTime)
+        cachedData = cache.get(dataKey)
+        if cachedData:
+          log.cache("Data-Cache hit [%s]" % dataKey)
+        else:
+          log.cache("Data-Cache miss [%s]" % dataKey)
+      else:
+        cachedData = None
 
-    # If data is all we needed, we're done
-    format = requestOptions.get('format')
-    if format == 'csv':
-      response = HttpResponse(content_type='text/csv')
-      writer = csv.writer(response, dialect='excel')
+      if cachedData is not None:
+        requestContext['data'] = data = cachedData
+      else: # Have to actually retrieve the data now
+        for target in requestOptions['targets']:
+          if not target.strip():
+            continue
+          t = time()
+          seriesList = evaluateTarget(requestContext, target)
+          log.rendering("Retrieval of %s took %.6f" % (target, time() - t))
+          data.extend(seriesList)
 
-      for series in data:
-        for i, value in enumerate(series):
-          timestamp = datetime.fromtimestamp(series.start + (i * series.step), requestOptions['tzinfo'])
-          writer.writerow((series.name, timestamp.strftime("%Y-%m-%d %H:%M:%S"), value))
+        if useCache:
+          cache.add(dataKey, data, cacheTimeout)
 
-      return response
+      # If data is all we needed, we're done
+      format = requestOptions.get('format')
+      if format == 'csv':
+        response = HttpResponse(content_type='text/csv')
+        writer = csv.writer(response, dialect='excel')
 
-    if format == 'json':
-      series_data = []
-      if 'maxDataPoints' in requestOptions and any(data):
-        startTime = min([series.start for series in data])
-        endTime = max([series.end for series in data])
-        timeRange = endTime - startTime
-        maxDataPoints = requestOptions['maxDataPoints']
         for series in data:
-          numberOfDataPoints = timeRange/series.step
-          if maxDataPoints < numberOfDataPoints:
-            valuesPerPoint = math.ceil(float(numberOfDataPoints) / float(maxDataPoints))
-            secondsPerPoint = int(valuesPerPoint * series.step)
-            # Nudge start over a little bit so that the consolidation bands align with each call
-            # removing 'jitter' seen when refreshing.
-            nudge = secondsPerPoint + (series.start % series.step) - (series.start % secondsPerPoint)
-            series.start = series.start + nudge
-            valuesToLose = int(nudge/series.step)
-            for r in range(1, valuesToLose):
-              del series[0]
-            series.consolidate(valuesPerPoint)
-            timestamps = range(int(series.start), int(series.end) + 1, int(secondsPerPoint))
-          else:
+          for i, value in enumerate(series):
+            timestamp = datetime.fromtimestamp(series.start + (i * series.step), requestOptions['tzinfo'])
+            writer.writerow((series.name, timestamp.strftime("%Y-%m-%d %H:%M:%S"), value))
+
+        return response
+
+      if format == 'json':
+        series_data = []
+        if 'maxDataPoints' in requestOptions and any(data):
+          startTime = min([series.start for series in data])
+          endTime = max([series.end for series in data])
+          timeRange = endTime - startTime
+          maxDataPoints = requestOptions['maxDataPoints']
+          for series in data:
+            numberOfDataPoints = timeRange/series.step
+            if maxDataPoints < numberOfDataPoints:
+              valuesPerPoint = math.ceil(float(numberOfDataPoints) / float(maxDataPoints))
+              secondsPerPoint = int(valuesPerPoint * series.step)
+              # Nudge start over a little bit so that the consolidation bands align with each call
+              # removing 'jitter' seen when refreshing.
+              nudge = secondsPerPoint + (series.start % series.step) - (series.start % secondsPerPoint)
+              series.start = series.start + nudge
+              valuesToLose = int(nudge/series.step)
+              for r in range(1, valuesToLose):
+                del series[0]
+              series.consolidate(valuesPerPoint)
+              timestamps = range(int(series.start), int(series.end) + 1, int(secondsPerPoint))
+            else:
+              timestamps = range(int(series.start), int(series.end) + 1, int(series.step))
+            datapoints = zip(series, timestamps)
+            series_data.append(dict(target=series.name, datapoints=datapoints))
+        else:
+          for series in data:
             timestamps = range(int(series.start), int(series.end) + 1, int(series.step))
-          datapoints = zip(series, timestamps)
-          series_data.append(dict(target=series.name, datapoints=datapoints))
-      else:
+            datapoints = zip(series, timestamps)
+            series_data.append(dict(target=series.name, datapoints=datapoints))
+
+        if 'jsonp' in requestOptions:
+          response = HttpResponse(
+            content="%s(%s)" % (requestOptions['jsonp'], json.dumps(series_data)),
+            content_type='text/javascript')
+        else:
+          response = HttpResponse(content=json.dumps(series_data),
+                                  content_type='application/json')
+
+        response['Pragma'] = 'no-cache'
+        response['Cache-Control'] = 'no-cache'
+        return response
+
+      if format == 'raw':
+        response = HttpResponse(content_type='text/plain')
         for series in data:
-          timestamps = range(int(series.start), int(series.end) + 1, int(series.step))
-          datapoints = zip(series, timestamps)
-          series_data.append(dict(target=series.name, datapoints=datapoints))
+          response.write( "%s,%d,%d,%d|" % (series.name, series.start, series.end, series.step) )
+          response.write( ','.join(map(str,series)) )
+          response.write('\n')
 
-      if 'jsonp' in requestOptions:
-        response = HttpResponse(
-          content="%s(%s)" % (requestOptions['jsonp'], json.dumps(series_data)),
-          content_type='text/javascript')
-      else:
-        response = HttpResponse(content=json.dumps(series_data),
-                                content_type='application/json')
+        log.rendering('Total rawData rendering time %.6f' % (time() - start))
+        return response
 
-      response['Pragma'] = 'no-cache'
-      response['Cache-Control'] = 'no-cache'
-      return response
+      if format == 'svg':
+        graphOptions['outputFormat'] = 'svg'
 
-    if format == 'raw':
-      response = HttpResponse(content_type='text/plain')
-      for series in data:
-        response.write( "%s,%d,%d,%d|" % (series.name, series.start, series.end, series.step) )
-        response.write( ','.join(map(str,series)) )
-        response.write('\n')
+      if format == 'pickle':
+        response = HttpResponse(content_type='application/pickle')
+        seriesInfo = [series.getInfo() for series in data]
+        pickle.dump(seriesInfo, response, protocol=-1)
 
-      log.rendering('Total rawData rendering time %.6f' % (time() - start))
-      return response
-
-    if format == 'svg':
-      graphOptions['outputFormat'] = 'svg'
-
-    if format == 'pickle':
-      response = HttpResponse(content_type='application/pickle')
-      seriesInfo = [series.getInfo() for series in data]
-      pickle.dump(seriesInfo, response, protocol=-1)
-
-      log.rendering('Total pickle rendering time %.6f' % (time() - start))
-      return response
+        log.rendering('Total pickle rendering time %.6f' % (time() - start))
+        return response
 
 
-  # We've got the data, now to render it
-  graphOptions['data'] = data
-  if settings.REMOTE_RENDERING: # Rendering on other machines is faster in some situations
-    image = delegateRendering(requestOptions['graphType'], graphOptions)
-  else:
-    image = doImageRender(requestOptions['graphClass'], graphOptions)
+    # We've got the data, now to render it
+    graphOptions['data'] = data
+    if settings.REMOTE_RENDERING: # Rendering on other machines is faster in some situations
+      image = delegateRendering(requestOptions['graphType'], graphOptions)
+    else:
+      image = doImageRender(requestOptions['graphClass'], graphOptions)
 
-  useSVG = graphOptions.get('outputFormat') == 'svg'
-  if useSVG and 'jsonp' in requestOptions:
-    response = HttpResponse(
-      content="%s(%s)" % (requestOptions['jsonp'], json.dumps(image)),
-      content_type='text/javascript')
-  else:
-    response = buildResponse(image, 'image/svg+xml' if useSVG else 'image/png')
+    useSVG = graphOptions.get('outputFormat') == 'svg'
+    if useSVG and 'jsonp' in requestOptions:
+      response = HttpResponse(
+        content="%s(%s)" % (requestOptions['jsonp'], json.dumps(image)),
+        content_type='text/javascript')
+    else:
+      response = buildResponse(image, 'image/svg+xml' if useSVG else 'image/png')
 
-  if useCache:
-    cache.set(requestKey, response, cacheTimeout)
+    if useCache:
+      cache.set(requestKey, response, cacheTimeout)
 
-  log.rendering('Total rendering time %.6f seconds' % (time() - start))
-  return response
+    log.rendering('Total rendering time %.6f seconds' % (time() - start))
+    return response
+  except:
+    log.exception(traceback.format_exc())
+    raise
 
 
 def parseOptions(request):
@@ -362,44 +367,48 @@ def renderLocalView(request):
     log.rendering("Delegated rendering request took %.6f seconds" % (time() -  start))
     return buildResponse(image)
   except:
-    log.exception("Exception in graphite.render.views.rawrender")
-    return HttpResponseServerError()
+    log.exception(traceback.format_exc())
+    raise
 
 
 def renderMyGraphView(request,username,graphName):
-  profile = getProfileByUsername(username)
-  if not profile:
-    return errorPage("No such user '%s'" % username)
   try:
-    graph = profile.mygraph_set.get(name=graphName)
-  except ObjectDoesNotExist:
-    return errorPage("User %s doesn't have a MyGraph named '%s'" % (username,graphName))
+    profile = getProfileByUsername(username)
+    if not profile:
+      return errorPage("No such user '%s'" % username)
+    try:
+      graph = profile.mygraph_set.get(name=graphName)
+    except ObjectDoesNotExist:
+      return errorPage("User %s doesn't have a MyGraph named '%s'" % (username,graphName))
 
-  request_params = dict(request.REQUEST.items())
-  if request_params:
-    url_parts = urlsplit(graph.url)
-    query_string = url_parts[3]
-    if query_string:
-      url_params = parse_qs(query_string)
-      # Remove lists so that we can do an update() on the dict
-      for param, value in url_params.items():
-        if isinstance(value, list) and param != 'target':
-          url_params[param] = value[-1]
-      url_params.update(request_params)
-      # Handle 'target' being a list - we want duplicate &target params out of it
-      url_param_pairs = []
-      for key,val in url_params.items():
-        if isinstance(val, list):
-          for v in val:
-            url_param_pairs.append( (key,v) )
-        else:
-          url_param_pairs.append( (key,val) )
+    request_params = dict(request.REQUEST.items())
+    if request_params:
+      url_parts = urlsplit(graph.url)
+      query_string = url_parts[3]
+      if query_string:
+        url_params = parse_qs(query_string)
+        # Remove lists so that we can do an update() on the dict
+        for param, value in url_params.items():
+          if isinstance(value, list) and param != 'target':
+            url_params[param] = value[-1]
+        url_params.update(request_params)
+        # Handle 'target' being a list - we want duplicate &target params out of it
+        url_param_pairs = []
+        for key,val in url_params.items():
+          if isinstance(val, list):
+            for v in val:
+              url_param_pairs.append( (key,v) )
+          else:
+            url_param_pairs.append( (key,val) )
 
-      query_string = urlencode(url_param_pairs)
-    url = urlunsplit(url_parts[:3] + (query_string,) + url_parts[4:])
-  else:
-    url = graph.url
-  return HttpResponseRedirect(url)
+        query_string = urlencode(url_param_pairs)
+      url = urlunsplit(url_parts[:3] + (query_string,) + url_parts[4:])
+    else:
+      url = graph.url
+    return HttpResponseRedirect(url)
+  except:
+    log.exception(traceback.format_exc())
+    raise
 
 
 def doImageRender(graphClass, graphOptions):
