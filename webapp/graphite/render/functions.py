@@ -2383,11 +2383,8 @@ def constantLine(requestContext, value):
   """
   start = timestamp( requestContext['startTime'] )
   end = timestamp( requestContext['endTime'] )
-  step = max(((end - start - 1.0) / 1.0),1.0)
-  values = []
-  for i in range(0,int(step)):
-    values.append(value)
-  series = TimeSeries(str(value), start, end, step, values)
+  step = (end - start) / 1.0
+  series = TimeSeries(str(value), start, end, step, [value, value])
   return [series]
 
 def aggregateLine(requestContext, seriesList, func='avg'):
