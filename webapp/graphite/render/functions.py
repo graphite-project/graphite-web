@@ -982,7 +982,7 @@ def areaBetween(requestContext, seriesList):
   Draws the vertical area in between the two series in seriesList. Useful for
   visualizing a range such as the minimum and maximum latency for a service.
 
-  areaBetween expects exactly one argument that results in exactly two series
+  areaBetween expects **exactly one argument** that results in exactly two series
   (see example below). The order of the lower and higher values series does not
   matter. The visualization only works when used in conjunction with
   ``areaMode=stacked``.
@@ -998,6 +998,13 @@ def areaBetween(requestContext, seriesList):
     &target=areaBetween(service.latency.{min,max})&areaMode=stacked
 
     &target=alpha(areaBetween(service.latency.{min,max}),0.3)&areaMode=stacked
+
+  If for instance, you need to build a seriesList, you should use the ``group``
+  function, like so:
+
+  .. code-block:: none
+
+    &target=areaBetween(group(minSeries(a.*.min),maxSeries(a.*.max)))
   """
   assert len(seriesList) == 2, "areaBetween series argument must reference *exactly* 2 series"
   lower = seriesList[0]
@@ -1133,7 +1140,7 @@ def aliasByMetric(requestContext, seriesList):
 
   """
   for series in seriesList:
-    series.name = series.name.split('.')[-1]
+    series.name = series.name.split('.')[-1].split(',')[0]
   return seriesList
 
 def legendValue(requestContext, seriesList, *valueTypes):
@@ -1333,7 +1340,7 @@ def maximumBelow(requestContext, seriesList, n):
 def minimumBelow(requestContext, seriesList, n):
   """
   Takes one metric or a wildcard seriesList followed by a constant n.
-  Draws only the metrics with a maximum value below n.
+  Draws only the metrics with a minimum value below n.
 
   Example:
 
@@ -2217,10 +2224,12 @@ def constantLine(requestContext, value):
     &target=constantLine(123.456)
 
   """
+  name = "constantLine(%s)" % str(value)
   start = timestamp( requestContext['startTime'] )
   end = timestamp( requestContext['endTime'] )
   step = (end - start) / 1.0
   series = TimeSeries(str(value), start, end, step, [value, value])
+  series.pathExpression = name
   return [series]
 
 

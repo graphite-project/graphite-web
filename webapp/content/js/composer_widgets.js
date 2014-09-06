@@ -39,19 +39,17 @@ function createComposerWindow(myComposer) {
   var timeDisplay = new Ext.Toolbar.TextItem({text: "Now showing the past 24 hours"});
 
   var topToolbar = [
-    createToolbarButton('Update Graph', 'updateGraph.gif', updateGraph),
-    '-',
-    createToolbarButton('Select a Date Range', 'calBt.gif', toggleWindow(createCalendarWindow) ),
-    createToolbarButton('Select Recent Data', 'arrow1.gif', toggleWindow(createRecentWindow) ),
-    createToolbarButton('Open in Graphlot', 'line_chart.png', function() { window.open('/graphlot/?' + Composer.url.queryString,'_blank') }),
-    createToolbarButton('Create from URL', 'link.png', toggleWindow(createURLWindow) ),
+    createToolbarButton('Update Graph', 'refresh.png', updateGraph),
+    createToolbarButton('Select a Date Range', 'calendar.png', toggleWindow(createCalendarWindow) ),
+    createToolbarButton('Select Recent Data', 'clock.png', toggleWindow(createRecentWindow) ),
+    createToolbarButton('Create from URL', 'upload.png', toggleWindow(createURLWindow) ),
     createToolbarButton('Short URL', 'share.png', showShortUrl),
     '-',
     timeDisplay
   ];
   if (GraphiteConfig.showMyGraphs) {
-    var saveButton = createToolbarButton('Save to My Graphs', 'save.gif', saveMyGraph);
-    var deleteButton = createToolbarButton('Delete from My Graphs', 'delete.gif', deleteMyGraph);
+    var saveButton = createToolbarButton('Save to My Graphs', 'save.png', saveMyGraph);
+    var deleteButton = createToolbarButton('Delete from My Graphs', 'trash.png', deleteMyGraph);
     topToolbar.splice(0, 0, saveButton, deleteButton);
   }
 
@@ -148,7 +146,7 @@ function fitImageToWindow(win) {
 /* Toolbar stuff */
 function createToolbarButton(tip, icon, handler) {
   return new Ext.Toolbar.Button({
-    style: "padding-left:10pt; background:transparent url(../content/img/" + icon + ") no-repeat scroll 0% 50%",
+    style: "margin: 0 5px; background:transparent url(../content/img/" + icon + ") no-repeat scroll 0% 50%",
     handler: handler,
     handleMouseEvents: false,
     text: "&nbsp; &nbsp;",

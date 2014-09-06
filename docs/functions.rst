@@ -10,6 +10,8 @@ Most functions are applied to one :term:`series list`. Functions with the parame
 ``*seriesLists`` can take an arbitrary number of series lists. To pass multiple series lists
 to a function which only takes one, use the :py:func:`group` function.
 
+.. _list-of-functions :
+	
 List of functions
 -----------------
 .. automodule:: graphite.render.functions

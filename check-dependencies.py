@@ -22,13 +22,16 @@ except:
   fatal += 1
 
 
-# Test for pycairo
+# Test for pycairo or cairocffi
 try:
   import cairo
-except:
-  print "[FATAL] Unable to import the 'cairo' module, do you have pycairo installed for python %s?" % py_version
-  cairo = None
-  fatal += 1
+except ImportError:
+  try:
+    import cairocffi as cairo
+  except ImportError:
+    print "[FATAL] Unable to import the 'cairo' module, do you have pycairo installed for python %s?" % py_version
+    cairo = None
+    fatal += 1
 
 
 # Test that pycairo has the PNG backend

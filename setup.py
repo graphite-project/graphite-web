@@ -52,7 +52,6 @@ setup(
     'graphite.whitelist',
     'graphite.metrics',
     'graphite.dashboard',
-    'graphite.graphlot',
     'graphite.events',
     'graphite.version',
     'graphite.thirdparty',
