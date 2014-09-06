@@ -43,6 +43,7 @@ function createComposerWindow(myComposer) {
     createToolbarButton('Select a Date Range', 'calendar.png', toggleWindow(createCalendarWindow) ),
     createToolbarButton('Select Recent Data', 'clock.png', toggleWindow(createRecentWindow) ),
     createToolbarButton('Create from URL', 'upload.png', toggleWindow(createURLWindow) ),
+    createToolbarButton('Short URL', 'share.png', showShortUrl),
     '-',
     timeDisplay
   ];
@@ -256,6 +257,48 @@ function getCalendarSelection(which) {
 
 function asDateString(dateObj) {
   return dateObj.format('H:i_Ymd');
+}
+
+/* Short url window */
+function showShortUrl() {
+    showUrl = function(options, success, response) {
+        if(success) {
+            var win = new Ext.Window({
+              title: "Graph URL",
+              width: 600,
+              height: 125,
+              layout: 'border',
+              modal: true,
+              items: [
+                {
+                  xtype: "label",
+                  region: 'north',
+                  style: "text-align: center;",
+                  text: "Short Direct URL to this graph"
+                }, {
+                  xtype: 'textfield',
+                  region: 'center',
+                  value:  window.location.origin + response.responseText,
+                  editable: false,
+                  style: "text-align: center; font-size: large;",
+                  listeners: {
+                    focus: function (field) { field.selectText(); }
+                  }
+                }
+              ],
+              buttonAlign: 'center',
+              buttons: [
+                {text: "Close", handler: function () { win.close(); } }
+              ]
+            });
+            win.show();
+        }
+    }
+    Ext.Ajax.request({
+        method: 'GET',
+        url: '/s/render/?' + Composer.url.queryString,
+        callback: showUrl,
+    });
 }
 
 /* "Recent Data" dialog */

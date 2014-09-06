@@ -34,6 +34,8 @@ urlpatterns = patterns('',
   ('^content/(?P<path>.*)$', 'django.views.static.serve', {'document_root' : settings.CONTENT_DIR}),
   ('^version/', include('graphite.version.urls')),
   ('^events/', include('graphite.events.urls')),
+  ('^s/(?P<path>.*)', 'graphite.url_shortener.views.shorten'),
+  ('^S/(?P<link_id>[a-zA-Z0-9]+)/?$', 'graphite.url_shortener.views.follow'),
   ('', 'graphite.browser.views.browser'),
 )
 
