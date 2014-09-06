@@ -48,6 +48,7 @@ setup(
     'graphite.cli',
     'graphite.composer',
     'graphite.render',
+    'graphite.url_shortener',
     'graphite.whitelist',
     'graphite.metrics',
     'graphite.dashboard',
