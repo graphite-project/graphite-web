@@ -2513,12 +2513,16 @@ def threshold(requestContext, value, label=None, color=None):
 
   return [series]
 
-def transformNull(requestContext, seriesList, default=0):
+def transformNull(requestContext, seriesList, default=0, match=None):
   """
   Takes a metric or wild card seriesList and an optional value
   to transform Nulls to. Default is 0. This method compliments
   drawNullAsZero flag in graphical mode but also works in text only
   mode.
+
+  If match is specified, only transforms Null when the 
+  corresponding value in match is not Null.
+
   Example:
 
   .. code-block:: none
@@ -2527,15 +2531,31 @@ def transformNull(requestContext, seriesList, default=0):
 
   This would take any page that didn't have values and supply negative 1 as a default.
   Any other numeric value may be used as well.
+
+    &target=transformNull(webapp.pages.index.errors,-1,webapp.pages.index.views)
+
+  This would produce -1 when the index page was visited but the error count was not
+  recorded.
   """
-  def transform(v):
-    if v is None: return default
-    else: return v
+  if match:
+    match = match[0]
+    match.extend([None] * (max(map(len, seriesList)) - len(match)))
+    def transform(i, v):
+      if v is None and match[i] is not None: return default
+      else: return v
+  else:
+    def transform(i, v):
+      if v is None: return default
+      else: return v
 
   for series in seriesList:
-    series.name = "transformNull(%s,%g)" % (series.name, default)
+    series.name = "transformNull(%s,%g%s)" % (
+      series.name, 
+      default, 
+      ",%s" % match.name if match else ""
+    )
     series.pathExpression = series.name
-    values = [transform(v) for v in series]
+    values = [transform(i, v) for i, v in enumerate(series)]
     series.extend(values)
     del series[:len(values)]
   return seriesList
