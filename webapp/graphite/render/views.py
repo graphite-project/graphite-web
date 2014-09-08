@@ -208,7 +208,7 @@ def renderView(request):
     response = buildResponse(image, 'image/svg+xml' if useSVG else 'image/png')
 
   if useCache:
-    cache.set(requestKey, response, cacheTimeout)
+    cache.add(requestKey, response, cacheTimeout)
 
   log.rendering('Total rendering time %.6f seconds' % (time() - start))
   return response
