@@ -121,16 +121,7 @@ DASHBOARD_REQUIRE_PERMISSIONS = False
 # NOTE: Requires DASHBOARD_REQUIRE_AUTHENTICATION to be set
 DASHBOARD_REQUIRE_EDIT_GROUP = None
 
-DATABASES = {
-  'default': {
-    'NAME': '/opt/graphite/storage/graphite.db',
-    'ENGINE': 'django.db.backends.sqlite3',
-    'USER': '',
-    'PASSWORD': '',
-    'HOST': '',
-    'PORT': '',
-  },
-}
+DATABASES = None
 
 # If using rrdcached, set to the address or socket of the daemon
 FLUSHRRDCACHED = ''
@@ -188,6 +179,18 @@ if not STANDARD_DIRS:
       STANDARD_DIRS.append(RRD_DIR)
   except ImportError:
     pass
+
+if DATABASES is None:
+    DATABASES = {
+      'default': {
+        'NAME': join(STORAGE_DIR, 'graphite.db'),
+        'ENGINE': 'django.db.backends.sqlite3',
+        'USER': '',
+        'PASSWORD': '',
+        'HOST': '',
+        'PORT': '',
+      },
+    }
 
 # Handle URL prefix in static files handling
 if URL_PREFIX and not STATIC_URL.startswith(URL_PREFIX):
