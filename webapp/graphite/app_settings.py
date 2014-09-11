@@ -53,6 +53,7 @@ TEMPLATE_LOADERS = (
 )
 
 MIDDLEWARE_CLASSES = (
+  'graphite.middleware.LogExceptionsMiddleware',
   'django.middleware.common.CommonMiddleware',
   'django.middleware.gzip.GZipMiddleware',
   'django.contrib.sessions.middleware.SessionMiddleware',
