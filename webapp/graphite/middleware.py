@@ -1,4 +1,3 @@
-import traceback
 from graphite.logger import log
 
 class LogExceptionsMiddleware(object):
