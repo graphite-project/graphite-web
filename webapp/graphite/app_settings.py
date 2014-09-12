@@ -15,9 +15,6 @@ limitations under the License."""
 # DO NOT MODIFY THIS FILE DIRECTLY - use local_settings.py instead
 from os.path import dirname, join, abspath
 
-ADMINS = ()
-MANAGERS = ADMINS
-
 TEMPLATE_DIRS = (
   join(dirname( abspath(__file__) ), 'templates'),
 )
@@ -36,8 +33,6 @@ CACHES = {
 # http://blogs.law.harvard.edu/tech/stories/storyReader$15
 LANGUAGE_CODE = 'en-us'
 
-SITE_ID = 1
-
 # Absolute path to the directory that holds media.
 
 MEDIA_ROOT = ''
@@ -45,12 +40,6 @@ MEDIA_ROOT = ''
 # URL that handles the media served from MEDIA_ROOT.
 # Example: "http://media.lawrence.com"
 MEDIA_URL = ''
-
-# List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = (
-  'django.template.loaders.filesystem.Loader',
-  'django.template.loaders.app_directories.Loader',
-)
 
 MIDDLEWARE_CLASSES = (
   'graphite.middleware.LogExceptionsMiddleware',
