@@ -915,6 +915,14 @@ See: `from / until`_
 
 .. _param-vtitle:
 
+singleColumnLegend
+------------------
+*Default: False*
+
+Display legend items, in force single column mode
+
+
+
 vtitle
 ------
 *Default: <unset>*
