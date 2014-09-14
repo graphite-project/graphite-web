@@ -137,7 +137,8 @@ class GraphError(Exception):
 class Graph:
   customizable = ('width','height','margin','bgcolor','fgcolor', \
                  'fontName','fontSize','fontBold','fontItalic', \
-                 'colorList','template','yAxisSide','outputFormat')
+                 'colorList','template','yAxisSide','outputFormat',
+                 'singleColumnLegend')
 
   def __init__(self,**params):
     self.params = params
@@ -151,6 +152,8 @@ class Graph:
     self.userTimeZone = params.get('tz')
     self.logBase = params.get('logBase', None)
     self.minorY = int(params.get('minorY', 1))
+    self.singleColumnLegend = bool(
+         params.get('singleColumnLegend', False))
 
     if self.logBase:
       if self.logBase == 'e':
@@ -329,7 +332,10 @@ class Graph:
       boxSize = extents['maxHeight'] - 1
       lineHeight = extents['maxHeight'] + 1
       labelWidth = extents['width'] + 2 * (boxSize + padding)
-      columns = max(1, math.floor( (self.width - self.area['xmin']) / labelWidth ))
+      if not self.singleColumnLegend:
+         columns = max(1, math.floor( (self.width - self.area['xmin']) / labelWidth ))
+      else:
+         columns = 1
       numRight = len([name for (name,color,rightSide) in elements if rightSide])
       numberOfLines = max(len(elements) - numRight, numRight)
       columns = math.floor(columns / 2.0)
@@ -372,8 +378,10 @@ class Graph:
       boxSize = extents['maxHeight'] - 1
       lineHeight = extents['maxHeight'] + 1
       labelWidth = extents['width'] + 2 * (boxSize + padding)
-      columns = math.floor( self.width / labelWidth )
-      if columns < 1: columns = 1
+      if not self.singleColumnLegend:
+         columns = max(math.floor( self.width / labelWidth ), 1)
+      else:
+         columns = 1
       numberOfLines = math.ceil( float(len(elements)) / columns )
       legendHeight = numberOfLines * (lineHeight + padding)
       self.area['ymax'] -= legendHeight #scoot the drawing area up to fit the legend
