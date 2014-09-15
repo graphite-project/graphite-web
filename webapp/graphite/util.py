@@ -146,7 +146,9 @@ if USING_CPICKLE:
   class SafeUnpickler(object):
     PICKLE_SAFE = {
       'copy_reg': set(['_reconstructor']),
-      '__builtin__': set(['object']),
+      '__builtin__': set(['object', 'list']),
+      'collections': set(['deque']),
+      'graphite.render.datalib': set(['TimeSeries']),
       'graphite.intervals': set(['Interval', 'IntervalSet']),
     }
 
@@ -170,7 +172,9 @@ else:
   class SafeUnpickler(pickle.Unpickler):
     PICKLE_SAFE = {
       'copy_reg': set(['_reconstructor']),
-      '__builtin__': set(['object']),
+      '__builtin__': set(['object', 'list']),
+      'collections': set(['deque']),
+      'graphite.render.datalib': set(['TimeSeries']),
       'graphite.intervals': set(['Interval', 'IntervalSet']),
     }
 
