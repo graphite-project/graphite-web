@@ -28,7 +28,6 @@ class TimeSeries(list):
     self.step = step
     self.consolidationFunc = consolidate
     self.valuesPerPoint = 1
-    self.previousValue = 0
     self.options = {}
 
 
@@ -71,15 +70,6 @@ class TimeSeries(list):
       return max(usable)
     if self.consolidationFunc == 'min':
       return min(usable)
-    if self.consolidationFunc == 'exacerbate':
-      average = float(sum(usable)) / len(usable)
-      res = 0
-      if average > self.previousValue:
-        res = max(usable)
-      else:
-        res = min(usable)
-      self.previousValue = average
-      return res
     raise Exception("Invalid consolidation function!")
 
 
@@ -97,9 +87,6 @@ class TimeSeries(list):
       'consolidationFunc' : self.consolidationFunc,
       'values' : list(self),
     }
-
-  def setConsolidateFunc(self, consolidateFunc):
-    self.consolidationFunc = consolidateFunc
 
 
 # Data retrieval API
