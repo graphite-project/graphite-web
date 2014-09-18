@@ -15,10 +15,9 @@ limitations under the License."""
 import imp
 import os
 import socket
-import errno
 import time
 import sys
-from os.path import splitext, basename
+from os.path import splitext, basename, relpath
 from shutil import move
 from tempfile import mkstemp
 try:
@@ -33,7 +32,6 @@ try:
 except ImportError:
   from StringIO import StringIO
 
-from os import environ
 from django.conf import settings
 from django.contrib.auth.models import User
 from graphite.account.models import Profile
@@ -142,7 +140,9 @@ if USING_CPICKLE:
   class SafeUnpickler(object):
     PICKLE_SAFE = {
       'copy_reg': set(['_reconstructor']),
-      '__builtin__': set(['object']),
+      '__builtin__': set(['object', 'list']),
+      'collections': set(['deque']),
+      'graphite.render.datalib': set(['TimeSeries']),
       'graphite.intervals': set(['Interval', 'IntervalSet']),
     }
 
@@ -166,7 +166,9 @@ else:
   class SafeUnpickler(pickle.Unpickler):
     PICKLE_SAFE = {
       'copy_reg': set(['_reconstructor']),
-      '__builtin__': set(['object']),
+      '__builtin__': set(['object', 'list']),
+      'collections': set(['deque']),
+      'graphite.render.datalib': set(['TimeSeries']),
       'graphite.intervals': set(['Interval', 'IntervalSet']),
     }
 
@@ -216,7 +218,7 @@ def build_index(base_path, extension, fd):
   contents = os.walk(base_path, followlinks=True)
   extension_len = len(extension)
   for (dirpath, dirnames, filenames) in contents:
-    path = dirpath[len(base_path) + 1:].replace('/', '.')
+    path = relpath(dirpath, base_path).replace('/', '.')
     for metric in filenames:
       if metric.endswith(extension):
         metric = metric[:-extension_len]

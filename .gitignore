@@ -8,3 +8,5 @@ dropin.cache
 docs/_build
 *.log
 *.pyc
+.tox
+*.swp

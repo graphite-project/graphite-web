@@ -12,8 +12,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License. */
 
-var RENDER_BASE_URL = window.location.protocol + "//" + window.location.host + window.location.pathname;
-RENDER_BASE_URL = RENDER_BASE_URL.replace(/\/composer\/?.*$/, '/render/?');
+var RENDER_BASE_URL = window.location.protocol + "//" + window.location.host + document.body.dataset.baseUrl + 'render/?';
 
 /* GraphiteComposer encapsulates a set of Ext UI Panels,
  * as well as a ParameterizedURL for the displayed graph. */
@@ -25,12 +24,12 @@ function GraphiteComposer () {
 
 GraphiteComposer.prototype = {
   toggleTargetWithoutUpdate: function(target) {
-   this.toggleTarget(target, false); 
+   this.toggleTarget(target, false);
   },
 
   toggleTarget: function (target, updateImage) {
     /* Add the given target to the graph if it does not exist,
-     * otherwise remove it. 
+     * otherwise remove it.
      * Optionally reload the image. (default = do update) */
     var record = getTargetRecord(target);
 

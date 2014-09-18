@@ -15,9 +15,9 @@ limitations under the License."""
 import os
 import pickle
 from random import randint
-from django.http import HttpResponse
 from django.conf import settings
 
+from graphite.compat import HttpResponse
 from graphite.util import unpickle
 
 
@@ -26,19 +26,19 @@ def add(request):
   whitelist = load_whitelist()
   new_whitelist = whitelist | metrics
   save_whitelist(new_whitelist)
-  return HttpResponse(mimetype="text/plain", content="OK")
+  return HttpResponse(content_type="text/plain", content="OK")
 
 def remove(request):
   metrics = set( request.POST['metrics'].split() )
   whitelist = load_whitelist()
   new_whitelist = whitelist - metrics
   save_whitelist(new_whitelist)
-  return HttpResponse(mimetype="text/plain", content="OK")
+  return HttpResponse(content_type="text/plain", content="OK")
 
 def show(request):
   whitelist = load_whitelist()
   members = '\n'.join( sorted(whitelist) )
-  return HttpResponse(mimetype="text/plain", content=members)
+  return HttpResponse(content_type="text/plain", content=members)
 
 def load_whitelist():
   fh = open(settings.WHITELIST_FILE, 'rb')

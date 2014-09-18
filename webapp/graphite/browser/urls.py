@@ -12,12 +12,14 @@ You may obtain a copy of the License at
    See the License for the specific language governing permissions and
    limitations under the License."""
 
-from django.conf.urls import *
+from django.conf.urls import patterns, url
+from . import views
 
-urlpatterns = patterns('graphite.browser.views',
-  ('^header/?$', 'header'),
-  ('^search/?$', 'search'),
-  ('^mygraph/?$', 'myGraphLookup'),
-  ('^usergraph/?$', 'userGraphLookup'),
-  ('^$', 'browser'),
+urlpatterns = patterns(
+    '',
+    url('^header/?$', views.header, name='browser_header'),
+    url('^search/?$', views.search, name='browser_search'),
+    url('^mygraph/?$', views.myGraphLookup, name='browser_my_graph'),
+    url('^usergraph/?$', views.userGraphLookup, name='browser_usergraph'),
+    url('^$', views.browser, name='browser'),
 )

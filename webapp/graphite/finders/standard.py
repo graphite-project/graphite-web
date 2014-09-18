@@ -71,14 +71,14 @@ class StandardFinder:
     try:
       entries = os.listdir(current_dir)
     except OSError as e:
-      log.exception(e) 
+      log.exception(e)
       entries = []
 
-    subdirs = [e for e in entries if isdir( join(current_dir,e) )]
+    subdirs = [entry for entry in entries if isdir(join(current_dir, entry))]
     matching_subdirs = match_entries(subdirs, pattern)
 
     if len(patterns) == 1 and RRDReader.supported: #the last pattern may apply to RRD data sources
-      files = [e for e in entries if isfile( join(current_dir,e) )]
+      files = [entry for entry in entries if isfile(join(current_dir, entry))]
       rrd_files = match_entries(files, pattern + ".rrd")
 
       if rrd_files: #let's assume it does
@@ -96,8 +96,8 @@ class StandardFinder:
           yield match
 
     else: #we've got the last pattern
-      files = [e for e in entries if isfile( join(current_dir,e) )]
+      files = [entry for entry in entries if isfile(join(current_dir, entry))]
       matching_files = match_entries(files, pattern + '.*')
 
-      for basename in matching_files + matching_subdirs:
-        yield join(current_dir, basename)
+      for base_name in matching_files + matching_subdirs:
+        yield join(current_dir, base_name)

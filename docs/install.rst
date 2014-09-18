@@ -10,9 +10,10 @@ been met or not.
 
 Basic Graphite requirements:
 
-* Python 2.4 or greater (2.6+ recommended)
+* a UNIX-like Operating System
+* Python 2.6 or greater
 * `Pycairo`_
-* `Django`_ 1.0 or greater
+* `Django`_ 1.4 or greater
 * `django-tagging`_ 0.3.1 or greater
 * `Twisted`_ 8.0 or greater (10.0+ recommended)
 * `zope-interface`_ (often included in Twisted package dependency)
@@ -21,11 +22,6 @@ Basic Graphite requirements:
   - `Apache`_ with `mod_wsgi`_
   - `gunicorn`_ with `nginx`_
   - `uWSGI`_ with `nginx`_
-
-Python 2.4 and 2.5 have extra requirements:
-
-* `simplejson`_
-* `python-sqlite2`_ or another Django-supported database module
 
 Additionally, the Graphite webapp and Carbon require the whisper database library which
 is part of the Graphite project.
@@ -48,7 +44,7 @@ There are also several other dependencies required for additional features:
 Fulfilling Dependencies
 -----------------------
 Most current Linux distributions have all of the requirements available in the base packages.
-RHEL based distributions may require the `EPEL`_ repository for requirements. 
+RHEL based distributions may require the `EPEL`_ repository for requirements.
 Python module dependencies can be install with `pip`_ rather than system packages if desired or if using
 a Python version that differs from the system default. Some modules (such as Cairo) may require
 library development headers to be available.
@@ -107,14 +103,21 @@ Installing Graphite
 Several installation options exist:
 
 .. toctree::
+   :maxdepth: 2
+
    install-source
    install-pip
    install-virtualenv
+   install-synthesize
 
 
 Initial Configuration
 ---------------------
+
 .. toctree::
+   :maxdepth: 2
+   
+   config-local-settings
    config-webapp
    config-carbon
 
@@ -123,7 +126,7 @@ Help! It didn't work!
 ---------------------
 If you run into any issues with Graphite, please to post a question to our
 `Questions forum on Launchpad <https://answers.launchpad.net/graphite>`_
-or join us on IRC in #graphite on FreeNode
+or join us on IRC in #graphite on FreeNode.
 
 
 Post-Install Tasks
@@ -149,6 +152,12 @@ Post-Install Tasks
 
 :doc:`Using the Composer </composer>`
     Now that the webapp is running, you probably want to learn how to use it.
+
+
+Windows Users
+-------------
+Despair Not!  Even though running Graphite on Windows is completely unsupported (we fear that handling the escaping of paths in the regexes would result only in jibbering madness, and life is just too short; pull requests happily considered!), you are not completely out of luck.  There are some solutions that make it easier for you to run a UNIX VM within your Windows box.  The :doc:`Installing via Synthesize </install-synthesize>` article will help you set up a Vagrant VM that will run Graphite.  In order to leverage this, you will need to install `Vagrant <http://www.vagrantup.com>`_.
+
 
 .. _Apache: http://projects.apache.org/projects/http_server.html
 .. _Django: http://www.djangoproject.com/

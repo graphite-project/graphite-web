@@ -54,7 +54,7 @@ function createTreePanel(){
     id: 'GraphiteTree',
     text: 'Metrics',
     loader: new Ext.tree.TreeLoader({
-      url: "../metrics/find/",
+      url: document.body.dataset.baseUrl + "metrics/find/",
       requestMethod: "GET",
       listeners: {beforeload: setParams}
     })
@@ -77,7 +77,7 @@ function createTreePanel(){
       allowDrag: false,
       //listeners: {beforeexpand: reloadOnce},
       loader: new Ext.tree.TreeLoader({
-        url: "../browser/mygraph/",
+        url: document.body.dataset.baseUrl + "browser/mygraph/",
         requestMethod: "GET",
         listeners: {beforeload: setParams}
       })
@@ -90,7 +90,7 @@ function createTreePanel(){
     text: "User Graphs",
     //listeners: {beforeexpand: reloadOnce},
     loader: new Ext.tree.TreeLoader({
-      url: "../browser/usergraph/",
+      url: document.body.dataset.baseUrl + "browser/usergraph/",
       requestMethod: "GET",
       listeners: {beforeload: setParams}
     })
@@ -155,12 +155,12 @@ function setupSearchForm(formEl) {
   var html = '<a id="searchHelpLink" > Help </a> <p id="searchError"></p> <ul id="searchResults"></ul>';
   Ext.DomHelper.append("searchForm", html);
   var helpAction = 'javascript: void window.open';
-  var helpPage = '"../content/html/searchHelp.html"';
+  var helpPage = '"' + document.body.dataset.staticRoot + 'html/searchHelp.html"';
   var helpTitle = '"Searching Graphite"';
   var helpOptions = '"width=500,height=400,toolbar=no,location=no,directories=no,status=no,menubar=no"';
   Ext.getDom('searchHelpLink').href = helpAction+"("+helpPage+","+helpTitle+","+helpOptions+");";
   var formPanel = Ext.get("searchForm");
-  formPanel.un("render",setupSearchForm); 
+  formPanel.un("render",setupSearchForm);
 }
 
 function showSearchError(message) {
@@ -179,7 +179,7 @@ function sendSearchRequest (searchField, evt) {
     resultList.removeChild( resultList.childNodes[0] );
   }
   Ext.Ajax.request({
-    url: '../browser/search/',
+    url: document.body.dataset.baseUrl + 'browser/search/',
     method: 'POST',
     success: handleSearchResponse,
     failure: handleSearchFailure,
@@ -226,77 +226,7 @@ function createCompleterPanel() {
     },
     items: [
       metricCompleter,
-      new Ext.form.Label({html: '<a id="completerHelpLink" href="../content/html/completerHelp.html", target="_new"> Help </a>'})
+      new Ext.form.Label({html: '<a id="completerHelpLink" href="' + document.body.dataset.staticRoot + 'html/completerHelp.html", target="_new"> Help </a>'})
     ]
   });
-
-  /*
-  return new Ext.form.FormPanel({
-    formId: "completerForm",
-    title: "Auto-Completer",
-    width: 200,
-    items: [
-      new Ext.form.TextField({
-        id: "completerField",
-        emptyText: "start typing a metric path",
-        width: 200,
-        hideLabel: true,
-        listeners: {render: setupCompleterField, specialkey: completerToggle}
-      })
-    ],
-    listeners: {render: setupCompleterForm}
-  });
-  */
-}
-
-function setupCompleterForm(formEl) {
-  html = '<a id="completerHelpLink" > Help </a> <div id="completerResults"/>';
-  Ext.DomHelper.append("completerForm",html);
-  var helpAction = 'javascript: void window.open';
-  var helpPage= '"../content/html/completerHelp.html"';
-  var helpTitle = '"Using the Auto-Completer"';
-  var helpOptions = '"width=500,height=400,toolbar=no,location=no,directories=no,status=no,menubar=no"';
-  Ext.getDom('completerHelpLink').href = helpAction+"("+helpPage+","+helpTitle+","+helpOptions+");";
-  completer = Ext.get("completerForm");
-  completer.un("render", setupCompleterForm);
-}
-
-function setupCompleterField(field) {
-  field.el.on("keyup", sendCompleterRequest);
-}
-
-function completerToggle(field, evt) {
-  if (evt.getKey() != Ext.EventObject.RETURN) {
-    return;
-  }
-
-  Composer.toggleTarget( field.getValue() );
-}
-
-function sendCompleterRequest(evt, el) {
-  if(Ext.Ajax.isLoading()) {
-    return;
-  }
-  Ext.Ajax.request({
-    url: '../cli/autocomplete/',
-    method: 'GET',
-    success: handleCompleterResponse,
-    failure: handleCompleterFailure,
-    params: {short:true, path: el.value}
-  });
-}
-
-function handleCompleterResponse(response, options) {
-  var resultList = Ext.getDom('completerResults');
-  while (resultList.childNodes[0]) {
-    resultList.removeChild( resultList.childNodes[0] );
-  }
-  Ext.DomHelper.append('completerResults',response.responseText);
-}
-
-function handleCompleterFailure(response, options) {
-  var resultList = Ext.getDom('completerResults');
-  while (resultList.childNodes[0]) {
-    resultList.removeChild( resultList.childNodes[0] );
-  }
 }

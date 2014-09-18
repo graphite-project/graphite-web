@@ -11,20 +11,21 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. -->
-
-{% autoescape off %}
+{% load static staticfiles %}
 
 <html>
   <head>
     <title>Graphite Composer</title>
-    <link rel="stylesheet" type="text/css" href="/content/js/ext/resources/css/ext-all.css"/>
+    <link rel="stylesheet" type="text/css" href="{% static "js/ext/resources/css/ext-all.css" %}"/>
+  </head>
+  <body onload="init();" data-static-root="{% get_static_prefix %}" data-base-url="{% url "browser" %}"{% if queryString %} data-query-string="{{ queryString }}"{% endif %}{% if showTarget %} data-show-target="{{ showTarget }}"{% endif %}>
 
     {% if jsdebug %}
-    <script type="text/javascript" src="/content/js/ext/adapter/ext/ext-base-debug.js"></script>
-    <script type="text/javascript" src="/content/js/ext/ext-all-debug.js"></script>
+      <script type="text/javascript" src="{% static "js/ext/adapter/ext/ext-base-debug.js" %}"></script>
+      <script type="text/javascript" src="{% static "js/ext/ext-all-debug.js" %}"></script>
     {% else %}
-    <script type="text/javascript" src="/content/js/ext/adapter/ext/ext-base.js"></script>
-    <script type="text/javascript" src="/content/js/ext/ext-all.js"></script>
+      <script type="text/javascript" src="{% static "js/ext/adapter/ext/ext-base.js" %}"></script>
+      <script type="text/javascript" src="{% static "js/ext/ext-all.js" %}"></script>
     {% endif %}
 
     <script type="text/javascript">
@@ -71,10 +72,10 @@ limitations under the License. -->
       }
     </script>
 
-    <script type="text/javascript" src="/content/js/browser.js"></script>
-    <script type="text/javascript" src="/content/js/composer_widgets.js"></script>
-    <script type="text/javascript" src="/content/js/composer.js"></script>
-    <script type="text/javascript" src="/content/js/completer.js"></script>
+    <script type="text/javascript" src="{% static "js/browser.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/composer_widgets.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/composer.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/completer.js" %}"></script>
 
     <style type="text/css">
     /* Hack to fix this bug http://extjs.net/forum/showthread.php?s=a570aba1bf2fc67a2287684c5d91c662&t=74230 */
@@ -91,7 +92,7 @@ limitations under the License. -->
     </style>
 
     <script type="text/javascript">
-      Ext.BLANK_IMAGE_URL = '/content/js/ext/resources/images/default/s.gif';
+      Ext.BLANK_IMAGE_URL = '{% static "js/ext/resources/images/default/s.gif" %}';
 
       var Browser;
       var Composer;
@@ -118,13 +119,12 @@ limitations under the License. -->
         Composer.window.show();
 
         /* Direct graph loading */
-        if ("{{queryString}}") {
-          Composer.loadURL("?{{queryString|escapejs}}");
+        if (document.body.dataset.queryString) {
+          Composer.loadURL("?" + document.body.dataset.queryString);
         }
         /* Automatic tree expansion */
-        var showTarget = decodeURIComponent("{{showTarget|escapejs}}");
-        if (showTarget) {
-          var parts = showTarget.split('.');
+        if (document.body.dataset.showTarget) {
+          var parts = document.body.dataset.showTarget.split('.');
 
           if (parts[0] == "Graphite") {
             parts.shift();
@@ -145,11 +145,6 @@ limitations under the License. -->
           Browser.trees.graphite.expand(false, false, expandNext);
         }
       }
-</script> 
-
-  </head>
-  <body onload="init();">
+</script>
   </body>
 </html>
-
-{% endautoescape %}

@@ -1,5 +1,4 @@
 import time
-import subprocess
 import os.path
 from django.conf import settings
 from graphite.finders import match_entries

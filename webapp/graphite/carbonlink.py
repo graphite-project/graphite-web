@@ -3,7 +3,6 @@ import socket
 import struct
 import errno
 import random
-import sys
 from select import select
 from django.conf import settings
 from graphite.render.hashing import ConsistentHashRing
@@ -109,6 +108,11 @@ class CarbonLinkPool:
     serialized_request = pickle.dumps(request, protocol=-1)
     len_prefix = struct.pack("!L", len(serialized_request))
     request_packet = len_prefix + serialized_request
+    result = {}
+    result.setdefault('datapoints', [])
+
+    if metric.startswith(settings.CARBON_METRIC_PREFIX):
+      return self.send_request_to_all(request)
 
     host = self.select_host(metric)
     conn = self.get_connection(host)
@@ -116,16 +120,43 @@ class CarbonLinkPool:
     try:
       conn.sendall(request_packet)
       result = self.recv_response(conn)
-    except:
+    except Exception,e:
       self.last_failure[host] = time.time()
-      raise
+      log.cache("Exception getting data from cache %s: %s" % (str(host), e))
     else:
       self.connections[host].add(conn)
       if 'error' in result:
         log.cache("Error getting data from cache: %s" % result['error'])
         raise CarbonLinkRequestError(result['error'])
+      log.cache("CarbonLink finished receiving %s from %s" % (str(metric), str(host)))
+    return result
+
+  def send_request_to_all(self, request):
+    metric = request['metric']
+    serialized_request = pickle.dumps(request, protocol=-1)
+    len_prefix = struct.pack("!L", len(serialized_request))
+    request_packet = len_prefix + serialized_request
+    results = {}
+    results.setdefault('datapoints', [])
+
+    for host in self.hosts:
+      conn = self.get_connection(host)
+      log.cache("CarbonLink sending request for %s to %s" % (metric, str(host)))
+      try:
+        conn.sendall(request_packet)
+        result = self.recv_response(conn)
+      except Exception,e:
+        self.last_failure[host] = time.time()
+        log.cache("Exception getting data from cache %s: %s" % (str(host), e))
       else:
-        return result
+        self.connections[host].add(conn)
+        if 'error' in result:
+          log.cache("Error getting data from cache %s: %s" % (str(host), result['error']))
+        else:
+          if len(result['datapoints']) > 1:
+              results['datapoints'].extend(result['datapoints'])
+      log.cache("CarbonLink finished receiving %s from %s" % (str(metric), str(host)))
+    return results
 
   def recv_response(self, conn):
     len_prefix = recv_exactly(conn, 4)
@@ -145,8 +176,7 @@ def still_connected(sock):
     try:
       recv_buf = sock.recv(1, socket.MSG_DONTWAIT|socket.MSG_PEEK)
 
-    except socket.error:
-      e = sys.exc_info()[1]
+    except socket.error as e:
       if e.errno in (errno.EAGAIN, errno.EWOULDBLOCK):
         return True
       else:

@@ -6,6 +6,7 @@ Graphite Documentation
    :maxdepth: 1
 
    overview
+   faq
    install
    carbon-daemons
    config-carbon
@@ -22,6 +23,7 @@ Graphite Documentation
    storage-backends
    terminology
    tools
+   development
    client-apis
    who-is-using
    releases
