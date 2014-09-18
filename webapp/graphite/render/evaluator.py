@@ -1,6 +1,3 @@
-import datetime
-import time
-from django.conf import settings
 from graphite.render.grammar import grammar
 from graphite.render.datalib import fetchData, TimeSeries
 

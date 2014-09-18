@@ -6,6 +6,7 @@ Graphite Documentation
    :maxdepth: 1
 
    overview
+   faq
    install
    carbon-daemons
    config-carbon

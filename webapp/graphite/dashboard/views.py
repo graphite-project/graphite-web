@@ -1,6 +1,6 @@
+import json
 import re
 import errno
-import sys
 
 from os.path import getmtime, join, exists
 from urllib import urlencode
@@ -9,8 +9,9 @@ from django.shortcuts import render_to_response
 from django.http import QueryDict
 from django.conf import settings
 from django.contrib.auth import login, authenticate, logout
+from django.contrib.staticfiles import finders
+from django.utils.safestring import mark_safe
 from graphite.compat import HttpResponse
-from graphite.util import json, getProfile
 from graphite.dashboard.models import Dashboard, Template
 from graphite.render.views import renderView
 from send_graph import send_graph_email
@@ -111,8 +112,7 @@ def dashboard(request, name=None):
 
   try:
     config.check()
-  except OSError:
-    e = sys.exc_info()[1]
+  except OSError as e:
     if e.errno == errno.ENOENT:
       dashboard_conf_missing = True
     else:
@@ -121,23 +121,23 @@ def dashboard(request, name=None):
   initialError = None
   debug = request.GET.get('debug', False)
   theme = request.GET.get('theme', config.ui_config['theme'])
-  css_file = join(settings.CSS_DIR, 'dashboard-%s.css' % theme)
-  if not exists(css_file):
+  css_file = finders.find('css/dashboard-%s.css' % theme)
+  if css_file is None:
     initialError = "Invalid theme '%s'" % theme
     theme = config.ui_config['theme']
 
   context = {
-    'schemes_json' : json.dumps(config.schemes),
-    'ui_config_json' : json.dumps(config.ui_config),
-    'jsdebug' : debug or settings.JAVASCRIPT_DEBUG,
-    'debug' : debug,
-    'theme' : theme,
-    'initialError' : initialError,
-    'querystring' : json.dumps( dict( request.GET.items() ) ),
-    'dashboard_conf_missing' : dashboard_conf_missing,
+    'schemes_json': mark_safe(json.dumps(config.schemes)),
+    'ui_config_json': mark_safe(json.dumps(config.ui_config)),
+    'jsdebug': debug or settings.JAVASCRIPT_DEBUG,
+    'debug': debug,
+    'theme': theme,
+    'initialError': initialError,
+    'querystring': mark_safe(json.dumps(dict(request.GET.items()))),
+    'dashboard_conf_missing': dashboard_conf_missing,
     'userName': '',
-    'permissions': json.dumps(getPermissions(request.user)),
-    'permissionsUnauthenticated': json.dumps(getPermissions(None))
+    'permissions': mark_safe(json.dumps(getPermissions(request.user))),
+    'permissionsUnauthenticated': mark_safe(json.dumps(getPermissions(None)))
   }
   user = request.user
   if user:
@@ -217,7 +217,7 @@ def getPermissions(user):
   if editGroup and len(user.groups.filter(name = editGroup)) == 0:
     permissions = []
   return permissions
-  
+
 
 def save(request, name):
   if 'change' not in getPermissions(request.user):
@@ -399,7 +399,7 @@ def create_temporary(request):
 def json_response(obj):
   return HttpResponse(content_type='application/json', content=json.dumps(obj))
 
-  
+
 def user_login(request):
   response = dict(errors={}, text={}, success=False, permissions=[])
   user = authenticate(username=request.POST['username'],

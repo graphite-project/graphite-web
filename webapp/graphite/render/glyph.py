@@ -13,7 +13,6 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 import math, itertools, re
-import sys
 try:
     import cairo
 except ImportError:
@@ -85,8 +84,7 @@ YEAR = DAY * 365
 try:
     datetime.now().strftime("%a %l%p")
     percent_l_supported = True
-except ValueError:
-    e = sys.exc_info()[1]
+except ValueError as e:
     percent_l_supported = False
 
 xAxisConfigs = (
@@ -157,7 +155,7 @@ class Graph:
     if self.logBase:
       if self.logBase == 'e':
         self.logBase = math.e
-      elif self.logBase <= 0:
+      elif self.logBase < 1:
         self.logBase = None
         params['logBase'] = None
       else:
@@ -497,10 +495,12 @@ class Graph:
         for char in re.findall(r'L -(\d+) -\d+', match.group(1)):
           name += chr(int(char))
         return '</g><g data-header="true" class="%s">' % name
-      svgData = re.sub(r'<path.+?d="M -88 -88 (.+?)"/>', onHeaderPath, svgData)
+      (svgData, subsMade) = re.subn(r'<path.+?d="M -88 -88 (.+?)"/>', onHeaderPath, svgData)
 
       # Replace the first </g><g> with <g>, and close out the last </g> at the end
-      svgData = svgData.replace('</g><g data-header','<g data-header',1) + "</g>"
+      svgData = svgData.replace('</g><g data-header','<g data-header',1)
+      if subsMade > 0:
+        svgData += "</g>"
       svgData = svgData.replace(' data-header="true"','')
 
       fileObj.write(svgData)
@@ -948,7 +948,7 @@ class LineGraph(Graph):
 
       if 'stacked' in series.options:
         if self.lineMode == 'staircase':
-          xPos = x 
+          xPos = x
         else:
           xPos = x-series.xStep
         if self.secondYAxis:
@@ -1421,8 +1421,6 @@ class LineGraph(Graph):
       labels = self.yLabelValuesL
     else:
       labels = self.yLabelValues
-    if self.logBase:
-      labels.append(self.logBase * max(labels))
 
     for i, value in enumerate(labels):
       self.ctx.set_line_width(0.4)

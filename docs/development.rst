@@ -5,7 +5,7 @@ Graphite-web accepts contributions on `GitHub
 <https://github.com/graphite-project/graphite-web>`_, in the form of issues or
 pull requests. If you're comfortable with Python, here is how to get started.
 
-First, keep in mind that Graphite-web supports Python versions **2.5 to 2.7**
+First, keep in mind that Graphite-web supports Python versions **2.6 to 2.7**
 and Django versions **1.4 and above**.
 
 Setting up a development environment

@@ -15,9 +15,6 @@ limitations under the License."""
 # DO NOT MODIFY THIS FILE DIRECTLY - use local_settings.py instead
 from os.path import dirname, join, abspath
 
-ADMINS = ()
-MANAGERS = ADMINS
-
 TEMPLATE_DIRS = (
   join(dirname( abspath(__file__) ), 'templates'),
 )
@@ -36,8 +33,6 @@ CACHES = {
 # http://blogs.law.harvard.edu/tech/stories/storyReader$15
 LANGUAGE_CODE = 'en-us'
 
-SITE_ID = 1
-
 # Absolute path to the directory that holds media.
 
 MEDIA_ROOT = ''
@@ -46,18 +41,8 @@ MEDIA_ROOT = ''
 # Example: "http://media.lawrence.com"
 MEDIA_URL = ''
 
-# URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
-# trailing slash.
-# Examples: "http://foo.com/media/", "/media/".
-ADMIN_MEDIA_PREFIX = '/media/'
-
-# List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = (
-  'django.template.loaders.filesystem.Loader',
-  'django.template.loaders.app_directories.Loader',
-)
-
 MIDDLEWARE_CLASSES = (
+  'graphite.middleware.LogExceptionsMiddleware',
   'django.middleware.common.CommonMiddleware',
   'django.middleware.gzip.GZipMiddleware',
   'django.contrib.sessions.middleware.SessionMiddleware',
@@ -70,17 +55,18 @@ ROOT_URLCONF = 'graphite.urls'
 INSTALLED_APPS = (
   'graphite.metrics',
   'graphite.render',
-  'graphite.cli',
   'graphite.browser',
   'graphite.composer',
   'graphite.account',
   'graphite.dashboard',
   'graphite.whitelist',
   'graphite.events',
+  'graphite.url_shortener',
   'django.contrib.auth',
   'django.contrib.sessions',
   'django.contrib.admin',
   'django.contrib.contenttypes',
+  'django.contrib.staticfiles',
   'tagging',
 )
 

@@ -13,18 +13,14 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 import re
-from django.shortcuts import render_to_response
 from django.conf import settings
+from django.shortcuts import render_to_response
+from django.utils.safestring import mark_safe
 from graphite.account.models import Profile
 from graphite.compat import HttpResponse
 from graphite.util import getProfile, getProfileByUsername, json
 from graphite.logger import log
 from hashlib import md5
-
-try:
-  import cPickle as pickle
-except ImportError:
-  import pickle
 
 
 def header(request):
@@ -40,8 +36,8 @@ def header(request):
 def browser(request):
   "View for the top-level frame of the browser UI"
   context = {
-    'queryString' : request.GET.urlencode(),
-    'target' : request.GET.get('target')
+    'queryString': mark_safe(request.GET.urlencode()),
+    'target': request.GET.get('target')
   }
   if context['queryString']:
     context['queryString'] = context['queryString'].replace('#','%23')
@@ -239,6 +235,8 @@ def userGraphLookup(request):
     no_graphs = { 'text' : "No saved graphs", 'id' : 'no-click' }
     no_graphs.update(leafNode)
     nodes.append(no_graphs)
+
+  nodes.sort()
 
   return json_response(nodes, request)
 
