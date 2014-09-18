@@ -19,7 +19,6 @@ import math
 import re
 import random
 import time
-import copy
 
 from graphite.logger import log
 from graphite.render.attime import parseTimeOffset
@@ -33,7 +32,7 @@ if environ.get('READTHEDOCS'):
 else:
   from graphite.render.glyph import format_units
   from graphite.render.datalib import TimeSeries
-  from graphite.util import timestamp
+  from graphite.util import timestamp, deltaseconds
 
 NAN = float('NaN')
 INF = float('inf')
@@ -1068,6 +1067,47 @@ def integral(requestContext, seriesList):
     newSeries.pathExpression = newName
     results.append(newSeries)
   return results
+
+
+def integralByInterval(requestContext, seriesList, intervalUnit):
+  """
+  This will do the same as integral() funcion, except resetting the total to 0
+  at the given time in the parameter "from"
+  Useful for finding totals per hour/day/week/..
+
+  Example:
+
+  .. code-block:: none
+
+  &target=integralByInterval(company.sales.perMinute, "1d")&from=midnight-10days
+
+  This would start at zero on the left side of the graph, adding the sales each
+  minute, and show the evolution of sales per day during the last 10 days.
+  """
+  intervalDuration = int(abs(deltaseconds(parseTimeOffset(intervalUnit))))
+  startTime = int(timestamp(requestContext['startTime']))
+  results = []
+  for series in seriesList:
+    newValues = []
+    currentTime = series.start # current time within series iteration
+    current = 0.0 # current accumulated value
+    for val in series:
+      # reset integral value if crossing an interval boundary
+      if (currentTime - startTime)/intervalDuration != (currentTime - startTime - series.step)/intervalDuration:
+        current = 0.0
+      if val is None:
+        # keep previous value since val can be None when resetting current to 0.0
+        newValues.append(current)
+      else:
+        current += val
+        newValues.append(current)
+      currentTime += series.step
+    newName = "integralByInterval(%s,'%s')" % (series.name, intervalUnit)
+    newSeries = TimeSeries(newName, series.start, series.end, series.step, newValues)
+    newSeries.pathExpression = newName
+    results.append(newSeries)
+  return results
+
 
 def nonNegativeDerivative(requestContext, seriesList, maxValue=None):
   """
@@ -2282,30 +2322,6 @@ def holtWintersConfidenceArea(requestContext, seriesList, delta=3):
     series.name = series.name.replace('areaBetween', 'holtWintersConfidenceArea')
   return results
 
-def drawMinMaxSeries(requestContext, seriesList):
-  """
-  Takes one or several TimeSeries
-  Break down all of them into a band
-  that is the min and max value
-
-  This method just use the consolidate function.
-  """
-  result = []
-  for serie in seriesList:
-    serieMin = copy.deepcopy(serie)
-    serieMax = copy.deepcopy(serie)
-    serieMin.consolidationFunc = 'min'
-    serieMax.consolidationFunc = 'max'
-    serieInf = copy.deepcopy(serieMin)
-    serieSup = copy.deepcopy(serieMax)
-    serieInf.name = ""
-    serieSup.name = ""
-    result.append(areaBetween(requestContext, [serieMin,serieMax]))
-    serieMin.name = ""
-    serieMax.name = serieMax.name.replace('areaBetween', 'drawMinMaxSeries')
-    result.append([serieInf,serieSup])
-  return reduce(lambda L1,L2 : L1+L2,result)
-
 def drawAsInfinite(requestContext, seriesList):
   """
   Takes one metric or a wildcard seriesList.
@@ -2479,11 +2495,8 @@ def constantLine(requestContext, value):
   name = "constantLine(%s)" % str(value)
   start = timestamp( requestContext['startTime'] )
   end = timestamp( requestContext['endTime'] )
-  step = max(((end - start - 1.0) / 1.0),1.0)
-  values = []
-  series.pathExpression = name
-    values.append(value)
-  series = TimeSeries(str(value), start, end, step, values)
+  step = int((end - start) / 2.0)
+  series = TimeSeries(str(value), start, end, step, [value, value, value])
   return [series]
 
 def aggregateLine(requestContext, seriesList, func='avg'):
@@ -2827,9 +2840,12 @@ def groupByNodes(requestContext, seriesList, callback, *nodes):
     if key not in metaSeries.keys():
       keys.append(key)
       metaSeries[key] = [series]
-      metaSeries[key] = SeriesFunctions[callback](requestContext,
+    else:
+      metaSeries[key].append(series)
+  for key in metaSeries.keys():
+    metaSeries[key] = SeriesFunctions[callback](requestContext,
           metaSeries[key])[0]
-      metaSeries[key].name = key
+    metaSeries[key].name = key
   return [ metaSeries[key] for key in keys ]
 
 def exclude(requestContext, seriesList, pattern):
@@ -2846,15 +2862,6 @@ def exclude(requestContext, seriesList, pattern):
   regex = re.compile(pattern)
   return [s for s in seriesList if not regex.search(s.name)]
 
-def exacerbateSeries(requestContext, *seriesList):
-  """
-  Function that will exacerbate the extrema 
-  """
-  serList = reduce(lambda L1,L2: L1+L2, seriesList)
-  for serie in serList:
-    serie.setConsolidateFunc('exacerbate')
-  return serList
-  
 def grep(requestContext, seriesList, pattern):
   """
   Takes a metric or a wildcard seriesList, followed by a regular expression
@@ -3308,6 +3315,7 @@ SeriesFunctions = {
   'pow' : pow,
   'perSecond' : perSecond,
   'integral' : integral,
+  'integralByInterval' : integralByInterval,
   'percentileOfSeries': percentileOfSeries,
   'nonNegativeDerivative' : nonNegativeDerivative,
   'log' : logarithm,
@@ -3327,7 +3335,6 @@ SeriesFunctions = {
   'holtWintersConfidenceBands': holtWintersConfidenceBands,
   'holtWintersConfidenceArea': holtWintersConfidenceArea,
   'holtWintersAberration': holtWintersAberration,
-  'drawMinMaxSeries' : drawMinMaxSeries,
   'asPercent' : asPercent,
   'pct' : asPercent,
   'diffSeries' : diffSeries,
@@ -3358,7 +3365,6 @@ SeriesFunctions = {
   'sortByMinima' : sortByMinima,
   'useSeriesAbove': useSeriesAbove,
   'exclude' : exclude,
-  'exacerbateSeries' : exacerbateSeries,
 
   # Data Filter functions
   'removeAbovePercentile' : removeAbovePercentile,
