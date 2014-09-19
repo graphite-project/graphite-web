@@ -375,4 +375,3 @@ class FunctionsTest(TestCase):
         ]
         results = functions.multiplySeriesWithWildcards({}, copy.deepcopy(seriesList1+seriesList2), 2,3)
         self.assertEqual(results,expectedResult)
-        
