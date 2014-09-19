@@ -282,7 +282,7 @@ def multiplySeriesWithWildcards(requestContext, seriesList, *position): #XXX
   for series in seriesList:
     newname = '.'.join(map(lambda x: x[1], filter(lambda i: i[0] not in positions, enumerate(series.name.split('.')))))
     if newname in newSeries.keys():
-      newSeries[newname] = multiplySeries(requestContext, (newSeries[newname], series))
+      newSeries[newname] = multiplySeries(requestContext, (newSeries[newname], series))[0]
     else:
       newSeries[newname] = series
       newNames.append(newname)
