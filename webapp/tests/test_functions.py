@@ -102,6 +102,19 @@ class FunctionsTest(TestCase):
             seriesList.append(TimeSeries(name, 0, 1, 1, c))
         return seriesList
 
+    def test_check_empty_lists(self):
+        seriesList = []
+        config = [[1000, 100, 10, 0], []]
+        for i, c in enumerate(config):
+            seriesList.append(TimeSeries('Test(%d)' % i, 0, 0, 0, c))
+
+        self.assertTrue(functions.safeIsNotEmpty(seriesList[0]))
+        self.assertFalse(functions.safeIsNotEmpty(seriesList[1]))
+
+        result = functions.removeEmptySeries({}, seriesList)
+
+        self.assertEqual(1, len(result))
+
     def test_remove_above_percentile(self):
         seriesList = self._generate_series_list()
         percent = 50
