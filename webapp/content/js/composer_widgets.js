@@ -1146,7 +1146,8 @@ function createFunctionsMenu() {
         {text: 'sortByMinima', handler: applyFuncToEach('sortByMinima')},
         {text: 'limit', handler: applyFuncToEachWithInput('limit', 'Limit to first ___ of a list of metrics')},
         {text: 'Exclude', handler: applyFuncToEachWithInput('exclude', 'Exclude metrics that match a regular expression')},
-        {text: 'Grep', handler: applyFuncToEachWithInput('grep', 'Exclude metrics that don\'t match a regular expression')}
+        {text: 'Grep', handler: applyFuncToEachWithInput('grep', 'Exclude metrics that don\'t match a regular expression')},
+        {text: 'Remove Empty Series', handler: applyFuncToEachWithInput('removeEmptySeries', 'Removes series with no data from graph')}
       ]
     }, {
       text: 'Special',
