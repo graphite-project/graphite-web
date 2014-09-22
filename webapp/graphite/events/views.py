@@ -47,7 +47,8 @@ def post_event(request):
         values["what"] = event["what"]
         values["tags"] = event.get("tags", None)
         values["when"] = datetime.datetime.fromtimestamp(
-            event.get("when", time.time()))
+            event.get("when", time.time())) if not event.get("when") 
+            else datetime.datetime.fromtimestamp(float(event["when"]))
         if "data" in event:
             values["data"] = event["data"]
 
