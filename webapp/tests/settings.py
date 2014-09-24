@@ -14,6 +14,9 @@ from django import VERSION
 
 if VERSION < (1, 6):
     TEST_RUNNER = 'discover_runner.DiscoverRunner'
+elif 'TEST_RUNNER' in os.environ:
+    TEST_RUNNER = os.environ['TEST_RUNNER']
+
 
 CACHES = {
     'default': {
