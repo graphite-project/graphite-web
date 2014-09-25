@@ -1052,13 +1052,13 @@ def delay(requestContext, seriesList, steps):
   results = []
   for series in seriesList:
     newValues = []
-    prev = collections.deque(maxlen=steps)
+    prev = []
     for val in series:
       if len(prev) < steps:
         newValues.append(None)
         prev.append(val)
         continue
-      newValues.append(prev.popleft())
+      newValues.append(prev.pop(0))
       prev.append(val)
     newName = "delay(%s,%d)" % (series.name, steps)
     newSeries = TimeSeries(newName, series.start, series.end, series.step, newValues)
