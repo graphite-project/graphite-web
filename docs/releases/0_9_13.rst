@@ -38,6 +38,7 @@ Graphite-web
 * Sort "User Graphs" by creator's username (ciranor)
 * New ``changed()`` function (kamaradclimber, obfuscurity)
 * Use ``query_bulk`` for improved cache query performance (huy, deniszh)
+* A URL shortener has been added to the composer toolbar (seveas, cbowman0, deniszh)
 * Allow metric finder to return jsonp objects (kali-hernandez-sociomantic)
 * Document use of alpha color values in ``colorList`` and ``bgcolor`` (ojilles)
 * Improved documentation for ``areaBetween()`` (ojilles, gwaldo)
@@ -104,6 +105,7 @@ Graphite-web
 * Decimals not printed for ``cactiStyle()`` (SuminAndrew, drawks)
 * Typo in exception name (also)
 * Fix assumption that RemoteNode inherits from Node (mleinart)
+* CACHE_* settings are deprecated in Django 1.3, so, was replaced with CACHES setting (brutasse, deniszh)
 
 Carbon
 ^^^^^^

@@ -8,15 +8,13 @@ env:
   - TOXENV=py27-django14
   - TOXENV=py27-django15
   - TOXENV=py27-django16
+  - TOXENV=py27-django17
   - TOXENV=py27-django16-pyparsing1
   - TOXENV=docs
   - TOXENV=lint
 
 before_install:
   - sudo apt-get -y install libcairo2-dev
-  - mkdir -p storage/log/webapp
-  - mkdir -p storage/ceres
-  - mkdir -p storage/whisper
 
 install:
   - pip install tox
