@@ -6,7 +6,7 @@ python:
 env:
   - REQUIREMENTS="Django<1.5 django-discover-runner"
   - REQUIREMENTS="Django<1.6 django-discover-runner"
-  - REQUIREMENTS="Django<1.7"
+  - REQUIREMENTS="Django<1.8"
 
 before_install:
   - sudo apt-get -y install libcairo2-dev
