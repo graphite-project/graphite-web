@@ -77,7 +77,7 @@ def search_view(request):
   try:
     query = str( request.REQUEST['query'] )
   except:
-    return HttpResponseBadRequest(content="Missing required parameter 'query'", mimetype="text/plain")
+    return HttpResponseBadRequest(content="Missing required parameter 'query'", content_type="text/plain")
   search_request = {
     'query' : query,
     'max_results' : int( request.REQUEST.get('max_results', 25) ),
@@ -95,7 +95,7 @@ def context_view(request):
     contexts = []
 
     if not 'metric' not in request.GET:
-      return HttpResponse('{ "error" : "missing required parameter \"metric\"" }', mimetype='application/json')
+      return HttpResponse('{ "error" : "missing required parameter \"metric\"" }', content_type='application/json')
 
     for metric in request.GET.getlist('metric'):
       try:
@@ -110,14 +110,14 @@ def context_view(request):
   elif request.method == 'POST':
 
     if 'metric' not in request.POST:
-      return HttpResponse('{ "error" : "missing required parameter \"metric\"" }', mimetype='application/json')
+      return HttpResponse('{ "error" : "missing required parameter \"metric\"" }', content_type='application/json')
 
     newContext = dict( item for item in request.POST.items() if item[0] != 'metric' )
 
     for metric in request.POST.getlist('metric'):
       STORE.get(metric).updateContext(newContext)
 
-    return HttpResponse('{ "success" : true }', mimetype='application/json')
+    return HttpResponse('{ "success" : true }', content_type='application/json')
 
   else:
     return HttpResponseBadRequest("invalid method, must be GET or POST")
@@ -136,7 +136,7 @@ def find_view(request):
   try:
     query = str( request.REQUEST['query'] )
   except:
-    return HttpResponseBadRequest(content="Missing required parameter 'query'", mimetype="text/plain")
+    return HttpResponseBadRequest(content="Missing required parameter 'query'", content_type="text/plain")
 
   if '.' in query:
     base_path = query.rsplit('.', 1)[0] + '.'
@@ -175,7 +175,7 @@ def find_view(request):
 
   elif format == 'pickle':
     content = pickle_nodes(matches, contexts=contexts)
-    response = HttpResponse(content, mimetype='application/pickle')
+    response = HttpResponse(content, content_type='application/pickle')
 
   elif format == 'completer':
     #if len(matches) == 1 and (not matches[0].isLeaf()) and query == matches[0].metric_path + '*': # auto-complete children
@@ -194,7 +194,7 @@ def find_view(request):
     response = json_response_for(request, { 'metrics' : results }, jsonp=jsonp)
 
   else:
-    return HttpResponseBadRequest(content="Invalid value for 'format' parameter", mimetype="text/plain")
+    return HttpResponseBadRequest(content="Invalid value for 'format' parameter", content_type="text/plain")
 
   response['Pragma'] = 'no-cache'
   response['Cache-Control'] = 'no-cache'
@@ -355,15 +355,15 @@ def any(iterable): #python2.4 compatibility
       return True
   return False
 
-def json_response_for(request, data, mimetype='application/json', jsonp=False, **kwargs):
+def json_response_for(request, data, content_type='application/json', jsonp=False, **kwargs):
   accept = request.META.get('HTTP_ACCEPT', 'application/json')
   ensure_ascii = accept == 'application/json'
 
   content = json.dumps(data, ensure_ascii=ensure_ascii)
   if jsonp:
     content = "%s(%s)" % (jsonp, content)
-    mimetype = 'text/javascript'
+    content_type = 'text/javascript'
   if not ensure_ascii:
-    mimetype += ';charset=utf-8'
+    content_type += ';charset=utf-8'
 
-  return HttpResponse(content, mimetype=mimetype, **kwargs)
+  return HttpResponse(content, content_type=content_type, **kwargs)

@@ -7,6 +7,7 @@ env:
   - REQUIREMENTS="Django<1.5 django-discover-runner"
   - REQUIREMENTS="Django<1.6 django-discover-runner"
   - REQUIREMENTS="Django<1.7"
+  - REQUIREMENTS="Django<1.8"
 
 before_install:
   - sudo apt-get -y install libcairo2-dev
@@ -25,3 +26,8 @@ install:
 script:
   - PYTHONPATH=. python graphite/manage.py syncdb --noinput
   - PYTHONPATH=. python graphite/manage.py test --settings=tests.settings -v2
+
+matrix:
+  exclude:
+    - python: "2.6"
+      env: REQUIREMENTS="Django<1.8"

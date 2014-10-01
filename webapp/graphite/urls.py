@@ -12,6 +12,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
+import django
+
 try:
     from django.conf.urls.defaults import *
 except ImportError:
@@ -19,7 +21,10 @@ except ImportError:
 from django.conf import settings
 from django.contrib import admin
 
-admin.autodiscover()
+if django.VERSION < (1, 7):
+    # Django doing autodiscover automaticly:
+    # https://docs.djangoproject.com/en/dev/releases/1.7/#app-loading-refactor
+    admin.autodiscover()
 
 urlpatterns = patterns('',
   ('^admin/', include(admin.site.urls)),
