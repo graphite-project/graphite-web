@@ -25,3 +25,8 @@ install:
 script:
   - PYTHONPATH=. python graphite/manage.py syncdb --noinput
   - PYTHONPATH=. python graphite/manage.py test --settings=tests.settings -v2
+
+matrix:
+  exclude:
+    - python: "2.6"
+      env: REQUIREMENTS="Django<1.8"
