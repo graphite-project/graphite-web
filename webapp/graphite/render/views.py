@@ -129,6 +129,7 @@ def renderView(request):
       return response
 
     if format == 'json':
+      jsondpfmt = requestOptions.get('jsondpfmt')
       series_data = []
       if 'maxDataPoints' in requestOptions and any(data):
         startTime = min([series.start for series in data])
@@ -151,13 +152,21 @@ def renderView(request):
             timestamps = range(int(series.start), int(series.end) + 1, int(secondsPerPoint))
           else:
             timestamps = range(int(series.start), int(series.end) + 1, int(series.step))
-          datapoints = zip(series, timestamps)
-          series_data.append(dict(target=series.name, datapoints=datapoints))
+          if jsondpfmt == 'XmsY':
+            datapoints = zip([x * 1000 for x in timestamps],series)
+            series_data.append(dict(target=series.name, dpfmt='XmsY', datapoints=datapoints))
+          else:
+            datapoints = zip(series, timestamps)
+            series_data.append(dict(target=series.name, dpfmt='YXs', datapoints=datapoints))
       else:
         for series in data:
           timestamps = range(int(series.start), int(series.end) + 1, int(series.step))
-          datapoints = zip(series, timestamps)
-          series_data.append(dict(target=series.name, datapoints=datapoints))
+          if jsondpfmt == 'XmsY':
+            datapoints = zip([x * 1000 for x in timestamps],series)
+            series_data.append(dict(target=series.name, dpfmt='XmsY', datapoints=datapoints))
+          else:
+            datapoints = zip(series, timestamps)
+            series_data.append(dict(target=series.name, dpfmt='YXs', datapoints=datapoints))
 
       if 'jsonp' in requestOptions:
         response = HttpResponse(
@@ -260,6 +269,8 @@ def parseOptions(request):
     requestOptions['format'] = queryParams['format']
     if 'jsonp' in queryParams:
       requestOptions['jsonp'] = queryParams['jsonp']
+    if 'jsondpfmt' in queryParams:
+      requestOptions['jsondpfmt'] = queryParams['jsondpfmt']
   if 'noCache' in queryParams:
     requestOptions['noCache'] = True
   if 'maxDataPoints' in queryParams and queryParams['maxDataPoints'].isdigit():
