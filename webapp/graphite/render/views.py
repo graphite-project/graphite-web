@@ -46,6 +46,7 @@ from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.utils.timezone import get_current_timezone
+from django.utils.cache import add_never_cache_headers, patch_response_headers
 
 
 def renderView(request):
@@ -167,8 +168,10 @@ def renderView(request):
       else:
         response = HttpResponse(content=json.dumps(series_data), content_type='application/json')
 
-      response['Pragma'] = 'no-cache'
-      response['Cache-Control'] = 'no-cache'
+      if useCache:
+        patch_response_headers(response, cache_timeout=cacheTimeout)
+      else:
+        add_never_cache_headers(response)
       return response
 
     if format == 'raw':
@@ -210,6 +213,9 @@ def renderView(request):
 
   if useCache:
     cache.add(requestKey, response, cacheTimeout)
+    patch_response_headers(response, cache_timeout=cacheTimeout)
+  else:
+    add_never_cache_headers(response)
 
   log.rendering('Total rendering time %.6f seconds' % (time() - start))
   return response
@@ -369,7 +375,9 @@ def renderLocalView(request):
     options = unpickle.loads(optionsPickle)
     image = doImageRender(graphClass, options)
     log.rendering("Delegated rendering request took %.6f seconds" % (time() -  start))
-    return buildResponse(image)
+    response = buildResponse(image)
+    add_never_cache_headers(response)
+    return response
   except:
     log.exception("Exception in graphite.render.views.rawrender")
     return HttpResponseServerError()
@@ -423,10 +431,7 @@ def doImageRender(graphClass, graphOptions):
 
 
 def buildResponse(imageData, content_type="image/png"):
-  response = HttpResponse(imageData, content_type=content_type)
-  response['Cache-Control'] = 'no-cache'
-  response['Pragma'] = 'no-cache'
-  return response
+  return HttpResponse(imageData, content_type=content_type)
 
 
 def errorPage(message):
