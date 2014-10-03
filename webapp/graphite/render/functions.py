@@ -3238,6 +3238,7 @@ SeriesFunctions = {
   'sortByMinima' : sortByMinima,
   'useSeriesAbove': useSeriesAbove,
   'exclude' : exclude,
+  'grep' : grep,
 
   # Data Filter functions
   'removeAbovePercentile' : removeAbovePercentile,
