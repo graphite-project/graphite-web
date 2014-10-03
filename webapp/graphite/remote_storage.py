@@ -57,7 +57,10 @@ class FindRequest:
     query_string = urlencode(query_params)
 
     try:
-      self.connection.request('GET', '/metrics/find/?' + query_string)
+      if settings.REMOTE_STORE_USE_POST:
+        self.connection.request('POST', '/metrics/find/', query_string)
+      else:
+        self.connection.request('GET', '/metrics/find/?' + query_string)
     except:
       self.store.fail()
       if not self.suppressErrors:
@@ -120,7 +123,10 @@ class RemoteNode:
 
     connection = HTTPConnectionWithTimeout(self.store.host)
     connection.timeout = settings.REMOTE_STORE_FETCH_TIMEOUT
-    connection.request('GET', '/render/?' + query_string)
+    if settings.REMOTE_STORE_USE_POST:
+      self.connection.request('POST', '/render/', query_string)
+    else:
+      self.connection.request('GET', '/render/?' + query_string)
     response = connection.getresponse()
     assert response.status == 200, "Failed to retrieve remote data: %d %s" % (response.status, response.reason)
     rawData = response.read()

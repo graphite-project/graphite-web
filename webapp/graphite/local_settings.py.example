@@ -175,6 +175,7 @@
 #REMOTE_STORE_FETCH_TIMEOUT = 6   # Timeout to fetch series data
 #REMOTE_STORE_FIND_TIMEOUT = 2.5  # Timeout for metric find requests
 #REMOTE_STORE_RETRY_DELAY = 60    # Time before retrying a failed remote webapp
+#REMOTE_STORE_USE_POST = False    # Use POST instead of GET for remote requests
 #REMOTE_FIND_CACHE_DURATION = 300 # Time to cache remote metric find results
 
 ## Remote rendering settings
