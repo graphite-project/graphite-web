@@ -2520,7 +2520,7 @@ def transformNull(requestContext, seriesList, default=0, match=None):
   drawNullAsZero flag in graphical mode but also works in text only
   mode.
 
-  If match is specified, only transforms Null when the 
+  If match is specified, only transforms Null when the
   corresponding value in match is not Null.
 
   Example:
@@ -2554,8 +2554,8 @@ def transformNull(requestContext, seriesList, default=0, match=None):
 
   for series in seriesList:
     series.name = "transformNull(%s,%g%s)" % (
-      series.name, 
-      default, 
+      series.name,
+      default,
       ",%s" % match.name if match else ""
     )
     series.pathExpression = series.name

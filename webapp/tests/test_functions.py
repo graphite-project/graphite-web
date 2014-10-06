@@ -215,18 +215,18 @@ class FunctionsTest(TestCase):
         expectedList = [
             TimeSeries(
                 "transformNull("
-                    "collectd.test-db1.load.value,"
-                    "-5,"
-                    "collectd.test-db2.load.value"
+                "collectd.test-db1.load.value,"
+                "-5,"
+                "collectd.test-db2.load.value"
                 ")",
                 0,
                 1,
                 1,
                 [
-                    x if x % 3 == 0 else 
-                        -5 if x % 2 == 0 else 
-                            None 
-                                for x in range(20)
+                    x if x % 3 == 0 else
+                    -5 if x % 2 == 0 else
+                    None
+                    for x in range(20)
                 ]
             )
         ]
