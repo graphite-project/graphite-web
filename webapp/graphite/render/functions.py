@@ -2537,9 +2537,9 @@ def transformNull(requestContext, seriesList, default=0, match=None):
   This would produce -1 when the index page was visited but the error count was not
   recorded.
   """
-  if len(match) > 1:
-    raise ValueError("transformNull match argument if specified must reference exactly 1 series")
   if match:
+    if len(match) > 1:
+      raise ValueError("transformNull match argument if specified must reference exactly 1 series")
     match = match[0]
     series_max = max(map(len, seriesList) + [0])
     if series_max > len(match):
