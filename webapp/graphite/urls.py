@@ -49,7 +49,6 @@ graphite_urls = patterns(
         'graphite.url_shortener.views.follow', name='follow'),
     url('^$', 'graphite.browser.views.browser', name='browser'),
 )
-graphite_urls += staticfiles_urlpatterns()
 
 url_prefix = ''
 if settings.URL_PREFIX.strip('/'):
@@ -59,5 +58,6 @@ urlpatterns = patterns(
     '',
     (r'^{0}'.format(url_prefix), include(graphite_urls)),
 )
+urlpatterns += staticfiles_urlpatterns()
 
 handler500 = 'graphite.views.server_error'
