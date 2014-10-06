@@ -191,6 +191,51 @@ class FunctionsTest(TestCase):
                         "Transformed value should be {0}, not {1}".format(transform, result_val),
                     )
 
+    def test_transform_null_match(self):
+        base = [
+            TimeSeries(
+                "collectd.test-db1.load.value",
+                0,
+                1,
+                1,
+                [x if x % 3 == 0 else None for x in range(20)]
+            )
+        ]
+        match = [
+            TimeSeries(
+                "collectd.test-db2.load.value",
+                0,
+                1,
+                1,
+                [x if x % 2 == 0 else None for x in range(20)]
+            )
+        ]
+        transform = -5
+        seriesList = []
+        expectedList = [
+            TimeSeries(
+                "transformNull("
+                    "collectd.test-db1.load.value,"
+                    "-5,"
+                    "collectd.test-db2.load.value"
+                ")",
+                0,
+                1,
+                1,
+                [
+                    x if x % 3 == 0 else 
+                        -5 if x % 2 == 0 else 
+                            None 
+                                for x in range(20)
+                ]
+            )
+        ]
+        gotList = functions.transformNull({}, base, transform, match)
+        self.assertEqual(len(gotList), 1)
+        for got, expected in zip(gotList, expectedList):
+            self.assertEqual(got.name, expected.name)
+            self.assertListEqual(got, expected)
+
     def test_alias(self):
         seriesList = self._generate_series_list()
         substitution = "Ni!"
