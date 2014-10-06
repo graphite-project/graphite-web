@@ -353,3 +353,16 @@ class FunctionsTest(TestCase):
             expected = [TimeSeries("changed(%s)" % name,0,1,1,c[1])]
             result = functions.changed({}, series)
             self.assertEqual(result, expected)
+
+    def test_delay(self):
+        source = [
+            TimeSeries('collectd.test-db1.load.value',0,1,1,[range(18)] + [None, None]),
+        ]
+        delay = 2
+        expectedList = [
+            TimeSeries('collectd.test-db1.load.value',0,1,1,[None, None] + [range(18)]),
+        ]
+        gotList = functions.delay({}, source, delay)
+        self.assertEqual(len(gotList), len(expectedList))
+        for got, expected in zip(gotList, expectedList):
+            self.assertListEqual(got, expected)
