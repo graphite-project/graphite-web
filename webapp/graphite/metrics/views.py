@@ -324,15 +324,22 @@ def json_response_for(request, data, content_type='application/json',
 
 def get_nodelist_data(request):
   try:
+    local_only = int( request.REQUEST.get('local', 0) )
     node_num = int(request.REQUEST.get('node',0 ))
     query = request.REQUEST.get('query')
   except:
     node_num = 0
     query= ""
-
+  #check for lehgth
+  max_nodes=len(query.split('.'))
+  if node_num > max_nodes:
+    response = json_response_for(request,{ 'nodes' : '' })
+    response['Pragma'] = 'no-cache'
+    response['Cache-Control'] = 'no-cache'
+    return response
   results = []
   final = []
-  for node in STORE.find(query):
+  for node in STORE.find(query,local=local_only):
     if node.is_leaf:
        result_parts = node.path.split('.')
        results.append(result_parts[node_num])
@@ -346,6 +353,3 @@ def get_nodelist_data(request):
   response['Pragma'] = 'no-cache'
   response['Cache-Control'] = 'no-cache'
   return response
-
-
-
