@@ -34,6 +34,7 @@ var navBarNorthConfig = {
   layoutConfig: { align: 'stretch' },
   collapsible: true,
   collapseMode: 'mini',
+  collapsed: true,
   split: true,
   title: "untitled",
   height: 350,
