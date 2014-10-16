@@ -13,6 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 import sys
+import calendar
+import pytz
 
 try:
   import cPickle as pickle
@@ -46,6 +48,11 @@ if hasattr(json, 'read') and not hasattr(json, 'loads'):
   json.load = lambda file: json.read( file.read() )
   json.dump = lambda obj, file: file.write( json.write(obj) )
 
+def epoch(dt):
+    """
+    Returns the epoch timestamp of a timezone-aware datetime object.
+    """
+    return calendar.timegm(dt.astimezone(pytz.utc).timetuple())
 
 def getProfile(request,allowDefault=True):
   if request.user.is_authenticated():
