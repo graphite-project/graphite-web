@@ -17,6 +17,7 @@ from graphite.logger import log
 from graphite.storage import STORE
 from graphite.readers import FetchInProgress
 from django.conf import settings
+from graphite.util import epoch
 
 class TimeSeries(list):
   def __init__(self, name, start, end, step, values, consolidate='average'):
@@ -91,8 +92,8 @@ class TimeSeries(list):
 def fetchData(requestContext, pathExpr):
 
   seriesList = []
-  startTime = int( time.mktime( requestContext['startTime'].timetuple() ) )
-  endTime   = int( time.mktime( requestContext['endTime'].timetuple() ) )
+  startTime = int( epoch( requestContext['startTime'].timetuple() ) )
+  endTime   = int( epoch( requestContext['endTime'].timetuple() ) )
 
   def _fetchData(pathExpr,startTime, endTime, requestContext, seriesList):
     matching_nodes = STORE.find(pathExpr, startTime, endTime, local=requestContext['localOnly'])

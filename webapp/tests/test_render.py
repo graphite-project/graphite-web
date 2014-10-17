@@ -22,6 +22,7 @@ if hasattr(logging, "NullHandler"):
 
 class RenderTest(TestCase):
     db = os.path.join(settings.WHISPER_DIR, 'test.wsp')
+    url = '/render'
 
     def wipe_whisper(self):
         try:
@@ -106,3 +107,25 @@ class RenderTest(TestCase):
         end_time = datetime.fromtimestamp(1000)
         self.assertEqual(hashData(targets, start_time, end_time),
                         hashData(reversed(targets), start_time, end_time))
+
+    def test_correct_timezone(self):
+        response = self.app.get(self.url, query_string={
+            'target': 'constantLine(12)',
+            'format': 'json',
+            'from': '07:00_20140226',
+            'until': '08:00_20140226',
+            # tz is UTC
+        })
+        data = json.loads(response.data.decode('utf-8'))[0]['datapoints']
+        # all the from/until/tz combinations lead to the same window
+        expected = [[12, 1393398000], [12, 1393401600]]
+        self.assertEqual(data, expected)
+        response = self.app.get(self.url, query_string={
+            'target': 'constantLine(12)',
+            'format': 'json',
+            'from': '08:00_20140226',
+            'until': '09:00_20140226',
+            'tz': 'Europe/Berlin',
+        })
+        data = json.loads(response.data.decode('utf-8'))[0]['datapoints']
+        self.assertEqual(data, expected)

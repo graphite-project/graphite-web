@@ -227,3 +227,6 @@ if USE_LDAP_AUTH:
 
 if SECRET_KEY == 'UNSAFE_DEFAULT':
   warn('SECRET_KEY is set to an unsafe default. This should be set in local_settings.py for better security')
+
+USE_TZ = True
+TIME_ZONE = 'UTC'
