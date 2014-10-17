@@ -48,7 +48,7 @@ def parseATTime(s, tzinfo=None, now=None):
   else:
     ref,offset = s,''
 
-  return (parseTimeReference(ref) + parseTimeOffset(offset)).astimezone(tzinfo)
+  return (parseTimeReference(ref, now) + parseTimeOffset(offset)).astimezone(tzinfo)
 
 
 def parseTimeReference(ref, now):
