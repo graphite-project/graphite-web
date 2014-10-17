@@ -315,7 +315,3 @@ def mergeResults(dbResults, cacheResults):
 
   return (timeInfo,values)
 
-
-def timestamp(datetime):
-  "Convert a datetime object into epoch time"
-  return time.mktime( datetime.timetuple() )
