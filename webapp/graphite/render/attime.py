@@ -48,11 +48,11 @@ def parseATTime(s, tzinfo=None, now=None):
   else:
     ref,offset = s,''
 
-  return parseTimeReference(ref, now) + parseTimeOffset(offset)
+  return (parseTimeReference(ref) + parseTimeOffset(offset)).astimezone(tzinfo)
 
 
 def parseTimeReference(ref, now):
-  if not ref or ref == 'now': return datetime.utcnow()
+  if not ref or ref == 'now': return datetime.utcnow().replace(tzinfo=pytz.utc)
   #Time-of-day reference
   i = ref.find(':')
   hour,min = 0,0
@@ -74,7 +74,7 @@ def parseTimeReference(ref, now):
     hour,min = 16,0
     ref = ref[7:]
 
-  refDate = datetime.utcnow().replace(hour=hour,minute=min,second=0)
+  refDate = datetime.utcnow().replace(hour=hour,minute=min,second=0,tzinfo=pytz.utc)
 
   #Day reference
   if ref in ('yesterday','today','tomorrow'): #yesterday, today, tomorrow
