@@ -92,8 +92,8 @@ class TimeSeries(list):
 def fetchData(requestContext, pathExpr):
 
   seriesList = []
-  startTime = int( epoch( requestContext['startTime'].timetuple() ) )
-  endTime   = int( epoch( requestContext['endTime'].timetuple() ) )
+  startTime = int( epoch( requestContext['startTime'] ) )
+  endTime   = int( epoch( requestContext['endTime'] ) )
 
   def _fetchData(pathExpr,startTime, endTime, requestContext, seriesList):
     matching_nodes = STORE.find(pathExpr, startTime, endTime, local=requestContext['localOnly'])
