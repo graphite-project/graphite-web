@@ -119,3 +119,29 @@ class RenderTest(TestCase):
         # Sanity check against non-stacked mode - should be identical
         graph = LineGraph(data=[ts], areaMode='none', width=75)
         self.assertEqual(graph.yTop, 25)
+
+    def test_correct_timezone(self):
+        url = reverse('graphite.render.views.renderView')
+        response = self.client.get(url, {
+                 'target': 'constantLine(12)',
+                 'format': 'json',
+                 'from': '07:0020140226',
+                 'until': '08:0020140226',
+                 # tz is UTC
+        })
+        data = json.loads(response.content)[0]['datapoints']
+        # all the from/until/tz combinations lead to the same window
+        expected = [[12, 1393398000], [12, 1393401600]]
+        self.assertEqual(data, expected)
+
+        response = self.client.get(url, {
+                 'target': 'constantLine(12)',
+                 'format': 'json',
+                 'from': '08:0020140226',
+                 'until': '09:0020140226',
+                 'tz': 'Europe/Berlin',
+        })
+        data = json.loads(response.content)[0]['datapoints']
+        # all the from/until/tz combinations lead to the same window
+        expected = [[12, 1393398000], [12, 1393401600]]
+        self.assertEqual(data, expected)
