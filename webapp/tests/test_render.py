@@ -125,8 +125,8 @@ class RenderTest(TestCase):
         response = self.client.get(url, {
                  'target': 'constantLine(12)',
                  'format': 'json',
-                 'from': '07:01_20140226',
-                 'until': '08:01_20140226',
+                 'from': '07:0120140226',
+                 'until': '08:0120140226',
                  # tz is UTC
         })
         data = json.loads(response.content)[0]['datapoints']
@@ -137,8 +137,8 @@ class RenderTest(TestCase):
         response = self.client.get(url, {
                  'target': 'constantLine(12)',
                  'format': 'json',
-                 'from': '08:01_20140226',
-                 'until': '09:01_20140226',
+                 'from': '08:0120140226',
+                 'until': '09:0120140226',
                  'tz': 'Europe/Berlin',
         })
         data = json.loads(response.content)[0]['datapoints']
