@@ -15,9 +15,6 @@ limitations under the License."""
 from datetime import datetime,timedelta
 from time import daylight
 from django.utils import timezone
-from django.conf import settings
-
-import pytz
 
 months = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec']
 weekdays = ['sun','mon','tue','wed','thu','fri','sat']
