@@ -38,7 +38,7 @@ def parseATTime(s, tzinfo=None, now=None):
     else:
       return datetime.fromtimestamp(int(s),tzinfo)
   elif ':' in s:
-    return datetime.strptime(s,'%H:%M%Y%m%d').replace(tzinfo=tzinfo)
+    return tzinfo.localize(datetime.strptime(s,'%H:%M%Y%m%d'), daylight)
   if '+' in s:
     ref,offset = s.split('+',1)
     offset = '+' + offset
@@ -47,11 +47,10 @@ def parseATTime(s, tzinfo=None, now=None):
     offset = '-' + offset
   else:
     ref,offset = s,''
+  return (parseTimeReference(ref) + parseTimeOffset(offset)).astimezone(tzinfo)
 
-  return (parseTimeReference(ref, now) + parseTimeOffset(offset)).astimezone(tzinfo)
 
-
-def parseTimeReference(ref, now):
+def parseTimeReference(ref):
   if not ref or ref == 'now': return timezone.now()
   #Time-of-day reference
   i = ref.find(':')
