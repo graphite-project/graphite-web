@@ -44,15 +44,17 @@ def parseATTime(s, tzinfo=None):
 
 
 def parseTimeReference(ref):
+  ref = ref.strip()
   if not ref or ref == 'now': return datetime.now()
 
   #Time-of-day reference
   i = ref.find(':')
   hour,min = 0,0
   if i != -1:
-    hour = int( ref[:i] )
+    hour = int( ref[i-2:i] )
     min = int( ref[i+1:i+3] )
-    ref = ref[i+3:]
+    ref = ref[:i-2]+ref[i+3:]
+    i -= 2
     if ref[:2] == 'am': ref = ref[2:]
     elif ref[:2] == 'pm':
       hour = (hour + 12) % 24
@@ -77,6 +79,8 @@ def parseTimeReference(ref):
       refDate = refDate + timedelta(days=1)
   elif ref.count('/') == 2: #MM/DD/YY[YY]
     m,d,y = map(int,ref.split('/'))
+    # YYYY/MM/DD support
+    if m >= 100: y,m,d = map(int,ref.split('/'))
     if y < 1900: y += 1900
     if y < 1970: y += 100
     refDate = refDate.replace(year=y)
