@@ -127,11 +127,11 @@ class RenderTest(TestCase):
                  'format': 'json',
                  'from': '07:01_20140226',
                  'until': '08:01_20140226',
-                 # tz is UTC
+                 'tz': 'UTC',
         })
         data = json.loads(response.content)[0]['datapoints']
         # all the from/until/tz combinations lead to the same window
-        expected = [[12, 1393398480], [12, 1393402080]]
+        expected = [[12, 1393398060], [12, 1393401660]]
         self.assertEqual(data, expected)
 
         response = self.client.get(url, {
@@ -143,5 +143,5 @@ class RenderTest(TestCase):
         })
         data = json.loads(response.content)[0]['datapoints']
         # all the from/until/tz combinations lead to the same window
-        expected = [[12, 1393398480], [12, 1393402080]]
+        expected = [[12, 1393398060], [12, 1393401660]]
         self.assertEqual(data, expected)
