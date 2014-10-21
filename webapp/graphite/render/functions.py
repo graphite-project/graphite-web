@@ -13,7 +13,7 @@
 #limitations under the License.
 
 
-from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta
 from itertools import izip, imap
 import math
 import re
@@ -21,10 +21,11 @@ import random
 import time
 
 from graphite.logger import log
-from graphite.render.datalib import fetchData, TimeSeries, timestamp
+from graphite.render.datalib import TimeSeries
 from graphite.render.attime import parseTimeOffset
-
+from graphite.util import epoch
 from graphite.events import models
+
 #XXX format_units() should go somewhere else
 from os import environ
 if environ.get('READTHEDOCS'):
@@ -2225,8 +2226,8 @@ def constantLine(requestContext, value):
 
   """
   name = "constantLine(%s)" % str(value)
-  start = timestamp( requestContext['startTime'] )
-  end = timestamp( requestContext['endTime'] )
+  start = int(epoch(requestContext['startTime']))
+  end = int(epoch(requestContext['endTime']))
   step = (end - start) / 1.0
   series = TimeSeries(str(value), start, end, step, [value, value])
   series.pathExpression = name
@@ -2302,8 +2303,8 @@ def identity(requestContext, name):
   """
   step = 60
   delta = timedelta(seconds=step)
-  start = int(time.mktime(requestContext["startTime"].timetuple()))
-  end = int(time.mktime(requestContext["endTime"].timetuple()))
+  start = int(epoch(requestContext["startTime"]))
+  end = int(epoch(requestContext["endTime"]))
   values = range(start, end, step)
   series = TimeSeries(name, start, end, step, values)
   series.pathExpression = 'identity("%s")' % name
@@ -2699,8 +2700,8 @@ def sinFunction(requestContext, name, amplitude=1):
     when += delta
 
   return [TimeSeries(name,
-            int(time.mktime(requestContext["startTime"].timetuple())),
-            int(time.mktime(requestContext["endTime"].timetuple())),
+            int(epoch(requestContext["startTime"])),
+            int(epoch(requestContext["endTime"])),
             step, values)]
 
 def randomWalkFunction(requestContext, name):
@@ -2730,8 +2731,8 @@ def randomWalkFunction(requestContext, name):
     when += delta
 
   return [TimeSeries(name,
-            int(time.mktime(requestContext["startTime"].timetuple())),
-            int(time.mktime(requestContext["endTime"].timetuple())),
+            int(epoch(requestContext["startTime"])),
+            int(epoch(requestContext["endTime"])),
             step, values)]
 
 def events(requestContext, *tags):

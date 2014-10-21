@@ -14,7 +14,7 @@ limitations under the License."""
 
 from datetime import datetime,timedelta
 from time import daylight
-from django.utils.timezone import get_current_timezone
+from django.utils import timezone
 
 try: # See if there is a system installation of pytz first
   import pytz
@@ -27,7 +27,7 @@ weekdays = ['sun','mon','tue','wed','thu','fri','sat']
 
 def parseATTime(s, tzinfo=None, now=None):
   if tzinfo is None:
-    tzinfo = get_current_timezone()
+    tzinfo = timezone.get_current_timezone()
   if now is None:
     now = datetime.now(tz=tzinfo)
 
@@ -38,7 +38,7 @@ def parseATTime(s, tzinfo=None, now=None):
     else:
       return datetime.fromtimestamp(int(s),tzinfo)
   elif ':' in s:
-    return datetime.strptime(s,'%H:%M%Y%m%d').replace(tzinfo=tzinfo)
+    return tzinfo.localize(datetime.strptime(s,'%H:%M%Y%m%d'), daylight)
   if '+' in s:
     ref,offset = s.split('+',1)
     offset = '+' + offset
@@ -47,12 +47,11 @@ def parseATTime(s, tzinfo=None, now=None):
     offset = '-' + offset
   else:
     ref,offset = s,''
+  return (parseTimeReference(ref) + parseTimeOffset(offset)).astimezone(tzinfo)
 
-  return parseTimeReference(ref, now) + parseTimeOffset(offset)
 
-
-def parseTimeReference(ref, now):
-  if not ref or ref == 'now': return now
+def parseTimeReference(ref):
+  if not ref or ref == 'now': return timezone.now()
   #Time-of-day reference
   i = ref.find(':')
   hour,min = 0,0
@@ -74,7 +73,7 @@ def parseTimeReference(ref, now):
     hour,min = 16,0
     ref = ref[7:]
 
-  refDate = now.replace(hour=hour,minute=min,second=0)
+  refDate = timezone.now().replace(hour=hour,minute=min,second=0)
 
   #Day reference
   if ref in ('yesterday','today','tomorrow'): #yesterday, today, tomorrow

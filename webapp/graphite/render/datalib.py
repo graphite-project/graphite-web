@@ -19,7 +19,7 @@ from django.conf import settings
 from graphite.logger import log
 from graphite.storage import STORE, LOCAL_STORE
 from graphite.render.hashing import ConsistentHashRing
-from graphite.util import unpickle
+from graphite.util import unpickle, epoch
 
 try:
   import cPickle as pickle
@@ -252,9 +252,9 @@ CarbonLink = CarbonLinkPool(hosts, settings.CARBONLINK_TIMEOUT)
 # Data retrieval API
 def fetchData(requestContext, pathExpr):
   seriesList = []
-  startTime = requestContext['startTime']
-  endTime = requestContext['endTime']
-  now = requestContext['now']
+  startTime = int(epoch(requestContext['startTime']))
+  endTime = int(epoch(requestContext['endTime']))
+  now = int(epoch(requestContext['now']))
 
   if requestContext['localOnly']:
     store = LOCAL_STORE
@@ -268,7 +268,7 @@ def fetchData(requestContext, pathExpr):
 
   for dbFile in dbFiles:
     log.metric_access(dbFile.metric_path)
-    dbResults = dbFile.fetch( timestamp(startTime), timestamp(endTime), timestamp(now))
+    dbResults = dbFile.fetch( startTime, endTime, now)
 
     if dbFile.isLocal():
       try:
@@ -315,7 +315,3 @@ def mergeResults(dbResults, cacheResults):
 
   return (timeInfo,values)
 
-
-def timestamp(datetime):
-  "Convert a datetime object into epoch time"
-  return time.mktime( datetime.timetuple() )
