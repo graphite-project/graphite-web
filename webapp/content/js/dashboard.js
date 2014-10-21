@@ -20,7 +20,7 @@ var NOT_EDITABLE = ['from', 'until', 'width', 'height', 'target', 'uniq', '_uniq
 var editor = null;
 
 var cookieProvider = new Ext.state.CookieProvider({
-  path: document.body.dataset.baseUrl + "dashboard"
+  path: "/dashboard"
 });
 
 var NAV_BAR_REGION = cookieProvider.get('navbar-region') || 'north';
@@ -34,7 +34,6 @@ var navBarNorthConfig = {
   layoutConfig: { align: 'stretch' },
   collapsible: true,
   collapseMode: 'mini',
-  collapsed: true,
   split: true,
   title: "untitled",
   height: 350,
@@ -70,7 +69,7 @@ var ContextFieldValueRecord = Ext.data.Record.create([
 ]);
 
 var contextFieldStore = new Ext.data.JsonStore({
-  url: document.body.dataset.baseUrl + 'metrics/find/',
+  url: '/metrics/find/',
   root: 'metrics',
   idProperty: 'name',
   fields: ContextFieldValueRecord,
@@ -116,18 +115,6 @@ if (sessionDefaultParamsJson && sessionDefaultParamsJson.length > 0) {
   defaultGraphParams = Ext.apply({}, originalDefaultGraphParams);
 }
 
-function isLoggedIn() {
-  return userName != null;
-}
-
-function hasPermission(permission) {
-  for (i in permissions) {
-    if (permissions[i] === permission) {
-      return true;
-    }
-  }
-  return false;
-}
 
 function initDashboard () {
 
@@ -300,7 +287,7 @@ function initDashboard () {
       }),
       store: new Ext.data.JsonStore({
         method: 'GET',
-        url: document.body.dataset.baseUrl + 'metrics/find/',
+        url: '/metrics/find/',
         autoLoad: true,
         baseParams: {
           query: '',
@@ -523,7 +510,6 @@ function initDashboard () {
     text: getTimeText()
   };
 
-  // Note that some of these items are changed in postLoginMenuAdjust() after login/logout
   var dashboardMenu = {
     text: 'Dashboard',
     menu: {
@@ -541,40 +527,21 @@ function initDashboard () {
           text: "Finder",
           handler: showDashboardFinder
         }, {
-          text: "Template Finder",
-          handler: showTemplateFinder
-        }, {
-          text: "Save As Template",
-          handler: saveTemplate,
-          disabled: !hasPermission('change')
-        }, {
           id: 'dashboard-save-button',
           text: "Save",
           handler: function (item, e) {
                      sendSaveRequest(dashboardName);
                    },
-          disabled: dashboardName == null || !hasPermission('change')
+          disabled: (dashboardName == null) ? true : false
         }, {
-          id: "dashboard-save-as-button",
           text: "Save As",
-          handler: saveDashboard,
-          disabled: !hasPermission('change')
+          handler: saveDashboard
         }, {
           text: "Configure UI",
           handler: configureUI
         }, {
           text: "Edit Dashboard",
           handler: editDashboard
-        }, {
-          id: "dashboard-login-button",
-          text: getLoginMenuItemText(),
-          handler: function (item, e) {
-                     if (isLoggedIn()) {
-                       logout();
-                     } else {
-                       showLoginForm();
-                     }
-                   }
         }
       ]
     }
@@ -618,6 +585,12 @@ function initDashboard () {
     tooltip: "Share This Dashboard",
     text: "Share",
     handler: doShare
+  };
+
+  var logoutButton = {
+    icon: LOGOUT_ICON,
+    tooltip: "Logout? Now you are "+user+" (id "+userid+")",
+    handler: logout
   };
 
   var helpButton = {
@@ -681,9 +654,7 @@ function initDashboard () {
       change: function (field, newValue) { updateAutoRefresh(newValue); },
       specialkey: function (field, e) {
                     if (e.getKey() == e.ENTER) {
-                      if (field.getValue() >= 1) {
-                        updateAutoRefresh( field.getValue() );
-                      }
+                      updateAutoRefresh( field.getValue() );
                     }
                   }
     }
@@ -718,6 +689,7 @@ function initDashboard () {
         ' ',
         timeRangeText,
         '->',
+        logoutButton,
         helpButton,
         resizeButton,
         removeAllButton,
@@ -749,7 +721,7 @@ function initDashboard () {
     interval: UI_CONFIG.refresh_interval * 1000
   };
 
-  // Load initial dashboard state if it was passed in
+  navBar.collapse();
   if (initialState) {
     applyState(initialState);
     navBar.collapse();
@@ -757,12 +729,7 @@ function initDashboard () {
 
   if(window.location.hash != '')
   {
-    if (window.location.hash.indexOf("/") != -1) {
-      var name_val = window.location.hash.substr(1).split('#');
-      sendLoadTemplateRequest(name_val[0],name_val[1]);
-    } else {
-      sendLoadRequest(window.location.hash.substr(1));
-    }
+    sendLoadRequest(window.location.hash.substr(1));
   }
 
   if (initialError) {
@@ -773,12 +740,15 @@ function initDashboard () {
 function showHelp() {
   var win = new Ext.Window({
     title: "Keyboard Shortcuts",
-    modal: true,
     width: 550,
     height: 300,
-    autoLoad: document.body.dataset.baseUrl + "dashboard/help/"
+    autoLoad: "/dashboard/help/"
   });
   win.show();
+}
+
+function logout() {
+  window.location.href = "https://graphite.innogames.de/account/logout";
 }
 
 function metricTypeSelected (combo, record, index) {
@@ -908,7 +878,7 @@ function metricTreeSelectorShow(pattern) {
   }
 
   var loader = new Ext.tree.TreeLoader({
-    url: document.body.dataset.baseUrl + 'metrics/find/',
+    url: '/metrics/find/',
     requestMethod: 'GET',
     listeners: {beforeload: setParams}
   });
@@ -982,7 +952,7 @@ function graphAreaToggle(target, options) {
     var record = new GraphRecord({
       target: graphTargetString,
       params: myParams,
-      url: document.body.dataset.baseUrl + 'render?' + Ext.urlEncode(urlParams)
+      url: '/render?' + Ext.urlEncode(urlParams)
     });
     graphStore.add([record]);
     updateGraphRecords();
@@ -1025,7 +995,7 @@ function importGraphUrl(targetUrl, options) {
     var record = new GraphRecord({
       target: graphTargetString,
       params: params,
-      url: document.body.dataset.baseUrl + 'render?' + Ext.urlEncode(urlParams)
+      url: '/render?' + Ext.urlEncode(urlParams)
       });
       graphStore.add([record]);
       updateGraphRecords();
@@ -1045,7 +1015,7 @@ function updateGraphRecords() {
     if (!params.uniq === undefined) {
         delete params["uniq"];
     }
-    item.set('url', document.body.dataset.baseUrl + 'render?' + Ext.urlEncode(params));
+    item.set('url', '/render?' + Ext.urlEncode(params));
     item.set('width', GraphSize.width);
     item.set('height', GraphSize.height);
     item.set('index', index);
@@ -1133,10 +1103,10 @@ function getTimeText() {
     if (TimeRange.relativeUntilUnits !== 'now' && TimeRange.relativeUntilUnits !== '') {
       text = text + " until " + TimeRange.relativeUntilQuantity + " " + TimeRange.relativeUntilUnits + " ago";
     }
-    return text;
+    return text+" <a href=\"https://wiki.innogames.de/display/SystemAdministration/Graphite\" target=\"_blank\">PLEASE READ DOCUMENTATION</a>";
   } else {
     var fmt = 'g:ia F jS Y';
-    return "Now Showing " + TimeRange.startDate.format(fmt) + ' through ' + TimeRange.endDate.format(fmt);
+    return "Now Showing " + TimeRange.startDate.format(fmt) + ' through ' + TimeRange.endDate.format(fmt)+" <a href=\"https://wiki.innogames.de/display/SystemAdministration/Graphite\" target=\"_blank\">PLEASE READ DOCUMENTATION</a>";
   }
 }
 
@@ -1400,7 +1370,7 @@ function newFromSavedGraph() {
     expandable: true,
     allowDrag: false,
     loader: new Ext.tree.TreeLoader({
-      url: document.body.dataset.baseUrl + "browser/usergraph/",
+      url: "../browser/usergraph/",
       requestMethod: "GET",
       listeners: {beforeload: setParams}
     })
@@ -1409,7 +1379,7 @@ function newFromSavedGraph() {
   function handleSelects(selModel, nodes) {
     Ext.each(nodes, function (node, index) {
       if (!node.leaf) {
-        node.unselect();
+	node.unselect();
         node.toggle();
       }
     });
@@ -1604,7 +1574,7 @@ function selectGraphSize() {
 function doShare() {
   if (dashboardName == null) {
     Ext.Ajax.request({
-      url: document.body.dataset.baseUrl + "dashboard/create-temporary/",
+      url: "/dashboard/create-temporary/",
       method: 'POST',
       params: {
         state: Ext.encode( getState() )
@@ -1866,52 +1836,6 @@ function graphClicked(graphView, graphIndex, element, evt) {
         });
         win.show();
       }
-    }, {
-      xtype: 'button',
-      fieldLabel: "<span style='visibility: hidden'>",
-      text: "Short Direct URL",
-      width: 100,
-      handler: function () {
-        menu.destroy();
-        showUrl = function(options, success, response) {
-            if(success) {
-              var win = new Ext.Window({
-                title: "Graph URL",
-                width: 600,
-                height: 125,
-                layout: 'border',
-                modal: true,
-                items: [
-                  {
-                    xtype: "label",
-                    region: 'north',
-                    style: "text-align: center;",
-                    text: "Short Direct URL to this graph"
-                  }, {
-                    xtype: 'textfield',
-                    region: 'center',
-                    value:  window.location.origin + response.responseText,
-                    editable: false,
-                    style: "text-align: center; font-size: large;",
-                    listeners: {
-                      focus: function (field) { field.selectText(); }
-                    }
-                  }
-                ],
-                buttonAlign: 'center',
-                buttons: [
-                  {text: "Close", handler: function () { win.close(); } }
-                ]
-              });
-              win.show();
-           }
-        }
-        Ext.Ajax.request({
-          method: 'GET',
-          url: document.body.dataset.baseUrl + 's' + record.data.url,
-          callback: showUrl,
-        });
-      }
     }]
   });
 
@@ -2038,7 +1962,7 @@ function breakoutGraph(record) {
   }
 
   Ext.Ajax.request({
-    url: document.body.dataset.baseUrl + 'metrics/expand/',
+    url: '/metrics/expand/',
     params: {
       groupByExpr: '1',
       leavesOnly: '1',
@@ -2109,7 +2033,7 @@ function mailGraph(record) {
          handler: function(){
            if(contactForm.getForm().isValid()){
              contactForm.getForm().submit({
-               url: document.body.dataset.baseUrl + 'dashboard/email',
+               url: '/dashboard/email',
                waitMsg: 'Processing Request',
                success: function (contactForm, response) {
          console.log(response.result);
@@ -2336,7 +2260,6 @@ function editDashboard() {
     var graphString = editor.getSession().getValue();
     var targets = JSON.parse(graphString);
     graphStore.removeAll();
-    var graphs = [];
     for (var i = 0; i < targets.length; i++) {
       var myParams = {};
       Ext.apply(myParams, targets[i]);
@@ -2344,14 +2267,13 @@ function editDashboard() {
       Ext.apply(urlParams, defaultGraphParams);
       Ext.apply(urlParams, GraphSize);
       Ext.apply(urlParams, myParams);
-      graphs.push([
-        Ext.urlEncode({target: targets[i].target}),
-        myParams,
-        document.body.dataset.baseUrl + 'render?' + Ext.urlEncode(urlParams)
-      ]);
+      var record = new GraphRecord({
+        target: targets[i].target,
+        params: myParams,
+        url: '/render?' + Ext.urlEncode(urlParams)
+      });
+      graphStore.add([record]);
     }
-    graphStore.loadData(graphs);
-    refreshGraphs();
     edit_dashboard_win.close();
   }
   function getInitialState() {
@@ -2393,69 +2315,9 @@ function saveDashboard() {
   );
 }
 
-function saveTemplate() {
-  var nameField = new Ext.form.TextField({
-    id: 'dashboard-save-template-name',
-    fieldLabel: "Template Name",
-    width: 240,
-    allowBlank: false,
-    align: 'center',
-    value: dashboardName ? dashboardName.split('/')[0]: '',
-  });
-
-  var keyField = new Ext.form.TextField({
-    id: 'dashboard-save-template-key',
-    fieldLabel: "String to replace",
-    width: 240,
-    allowBlank: false,
-    align: 'center',
-  });
-
-  var win;
-
-  function save() {
-    sendSaveTemplateRequest(nameField.getValue(), keyField.getValue());
-    win.close();
-  }
-
-  win = new Ext.Window({
-    title: "Save dashboard as a template",
-    width: 400,
-    height: 120,
-    resizable: false,
-    layout: 'form',
-    labelAlign: 'right',
-    labelWidth: 120,
-    items: [nameField,keyField],
-    buttonAlign: 'center',
-    buttons: [
-      {text: 'Ok', handler: save},
-      {text: 'Cancel', handler: function () { win.close(); } }
-    ]
-  });
-  win.show();
-}
-
-function sendSaveTemplateRequest(name, key) {
-  Ext.Ajax.request({
-    url: document.body.dataset.baseUrl + "dashboard/save_template/" + name + "/" + key,
-    method: 'POST',
-    params: {
-      state: Ext.encode( getState() )
-    },
-    success: function (response) {
-               var result = Ext.decode(response.responseText);
-               if (result.error) {
-                 Ext.Msg.alert("Error", "There was an error saving this dashboard as a template: " + result.error);
-               }
-             },
-    failure: failedAjaxCall
-  });
-}
-
 function sendSaveRequest(name) {
   Ext.Ajax.request({
-    url: document.body.dataset.baseUrl + "dashboard/save/" + name,
+    url: "/dashboard/save/" + name,
     method: 'POST',
     params: {
       state: Ext.encode( getState() )
@@ -2472,7 +2334,7 @@ function sendSaveRequest(name) {
 
 function sendLoadRequest(name) {
   Ext.Ajax.request({
-    url: document.body.dataset.baseUrl + "dashboard/load/" + name,
+    url: "/dashboard/load/" + name,
     success: function (response) {
                var result = Ext.decode(response.responseText);
                if (result.error) {
@@ -2483,28 +2345,6 @@ function sendLoadRequest(name) {
              },
     failure: failedAjaxCall
   });
-}
-
-function sendLoadTemplateRequest(name, value) {
-  urlparts = window.location.href.split('#')
-  if(urlparts[0].split('?')[1]) {
-    new_location = urlparts[0].split('?')[0] + '#'+name+'/'+value;
-    window.location.href = new_location;
-  } else {
-    Ext.Ajax.request({
-      url: document.body.dataset.baseUrl + "dashboard/load_template/" + name + "/" + value,
-      success: function (response) {
-               var result = Ext.decode(response.responseText);
-               if (result.error) {
-                 Ext.Msg.alert("Error Loading Template", result.error);
-               } else {
-                 applyState(result.state);
-                 navBar.collapse(false);
-               }
-             },
-      failure: failedAjaxCall
-    });
-  }
 }
 
 function getState() {
@@ -2580,7 +2420,7 @@ function applyState(state) {
 
 function deleteDashboard(name) {
   Ext.Ajax.request({
-    url: document.body.dataset.baseUrl + "dashboard/delete/" + name,
+    url: "/dashboard/delete/" + name,
     success: function (response) {
       var result = Ext.decode(response.responseText);
       if (result.error) {
@@ -2593,26 +2433,11 @@ function deleteDashboard(name) {
   });
 }
 
-function deleteTemplate(name) {
-  Ext.Ajax.request({
-    url: document.body.dataset.baseUrl + "dashboard/delete_template/" + name,
-    success: function (response) {
-      var result = Ext.decode(response.responseText);
-      if (result.error) {
-        Ext.Msg.alert("Error", "Failed to delete template '" + name + "': " + result.error);
-      } else {
-        Ext.Msg.alert("Template Deleted", "The " + name + " template was deleted successfully.");
-      }
-    },
-    failure: failedAjaxCall
-  });
-}
-
 function setDashboardName(name) {
   dashboardName = name;
   var saveButton = Ext.getCmp('dashboard-save-button');
 
-  if (name == null || !hasPermission('change')) {
+  if (name == null) {
     dashboardURL = null;
     document.title = "untitled - Graphite Dashboard";
     navBar.setTitle("untitled");
@@ -2699,16 +2524,11 @@ function updateNavBar(region) {
   if (region == NAV_BAR_REGION) {
     return;
   }
-
   cookieProvider.set('navbar-region', region);
-  NAV_BAR_REGION = region;
+  Ext.Msg.alert('Cookie Updated', "You must refresh the page to update the nav bar's location.");
+  //TODO prompt the user to save their dashboard and refresh for them
 
-  if (graphStore.getCount() == 0) {
-    window.location.reload()
-  } else {
-    Ext.Msg.alert('Cookie Updated', "You must refresh the page to update the nav bar's location.");
-    //TODO prompt the user to save their dashboard and refresh for them
-  }
+  NAV_BAR_REGION = region;
 }
 
 // Dashboard Finder
@@ -2717,25 +2537,15 @@ function showDashboardFinder() {
   var dashboardsList;
   var queryField;
   var dashboardsStore = new Ext.data.JsonStore({
-    url: document.body.dataset.baseUrl + "dashboard/find/",
+    url: "/dashboard/find/",
     method: 'GET',
     params: {query: "e"},
-    fields: [{
-      name: 'name',
-      sortType: function(value) {
-	// Make sorting case-insensitive
-        return value.toLowerCase();
-      }
-    }],
+    fields: ['name'],
     root: 'dashboards',
-    sortInfo: {
-      field: 'name',
-      direction: 'DESC'
-    },
     listeners: {
       beforeload: function (store) {
                     store.setBaseParam('query', queryField.getValue());
-      }
+                  }
     }
   });
 
@@ -2781,11 +2591,7 @@ function showDashboardFinder() {
                            Ext.getCmp('finder-delete-button').disable();
                          } else {
                            Ext.getCmp('finder-open-button').enable();
-                           if (hasPermission('delete')) {
-                             Ext.getCmp('finder-delete-button').enable();
-                           } else {
-                             Ext.getCmp('finder-delete-button').disable();
-                           }
+                           Ext.getCmp('finder-delete-button').enable();
                          }
                        },
 
@@ -2861,146 +2667,6 @@ function showDashboardFinder() {
   win.show();
 }
 
-// Template Finder
-function showTemplateFinder() {
-  var win;
-  var templatesList;
-  var queryField;
-  var valueField;
-  var templatesStore = new Ext.data.JsonStore({
-    url: document.body.dataset.baseUrl + "dashboard/find_template/",
-    method: 'GET',
-    params: {query: "e"},
-    fields: ['name'],
-    root: 'templates',
-    listeners: {
-      beforeload: function (store) {
-                    store.setBaseParam('query', queryField.getValue());
-                  }
-    }
-  });
-
-  function openSelected() {
-    var selected = templatesList.getSelectedRecords();
-    if (selected.length > 0) {
-      sendLoadTemplateRequest(selected[0].data.name, valueField.getValue());
-    }
-    win.close();
-  }
-
-  function deleteSelected() {
-    var selected = templatesList.getSelectedRecords();
-    if (selected.length > 0) {
-      var record = selected[0];
-      var name = record.data.name;
-
-      Ext.Msg.confirm(
-       "Delete Template",
-        "Are you sure you want to delete the " + name + " template?",
-        function (button) {
-          if (button == 'yes') {
-            deleteTemplate(name);
-            templatesStore.remove(record);
-            templatesList.refresh();
-          }
-        }
-      );
-    }
-  }
-
-  templatesList = new Ext.list.ListView({
-    columns: [
-      {header: 'Template', width: 1.0, dataIndex: 'name', sortable: false}
-    ],
-    columnSort: false,
-    emptyText: "No templates found",
-    hideHeaders: true,
-    listeners: {
-      selectionchange: function (listView, selections) {
-                         if (listView.getSelectedRecords().length == 0) {
-                           Ext.getCmp('finder-open-button').disable();
-                           Ext.getCmp('finder-delete-button').disable();
-                         } else {
-                           if (valueField.getValue()) {
-                             Ext.getCmp('finder-open-button').enable();
-                           }
-                           Ext.getCmp('finder-delete-button').enable();
-                         }
-                       },
-
-    },
-    overClass: '',
-    region: 'center',
-    reserveScrollOffset: true,
-    singleSelect: true,
-    store: templatesStore,
-    style: "background-color: white;"
-  });
-
-  var lastQuery = null;
-  var queryUpdateTask = new Ext.util.DelayedTask(
-    function () {
-      var currentQuery = queryField.getValue();
-      if (lastQuery != currentQuery) {
-        templatesStore.load();
-      }
-      lastQuery = currentQuery;
-    }
-  );
-
-  queryField = new Ext.form.TextField({
-    region: 'south',
-    emptyText: "filter template listing",
-    enableKeyEvents: true,
-    listeners: {
-      keyup: function (field, e) {
-                  if (e.getKey() == e.ENTER) {
-                    sendLoadRequest(field.getValue(), reset_params=true);
-                    win.close();
-                  } else {
-                    queryUpdateTask.delay(FINDER_QUERY_DELAY);
-                  }
-                }
-    }
-  });
-
-  valueField = new Ext.form.TextField({
-    region: 'north',
-    emptyText: "Value to use"
-  });
-
-  win = new Ext.Window({
-    title: "Template Finder",
-    width: 400,
-    height: 500,
-    layout: 'border',
-    modal: true,
-    items: [
-      valueField,
-      templatesList,
-      queryField,
-    ],
-    buttons: [
-      {
-        id: 'finder-open-button',
-        text: "Open",
-        disabled: true,
-        handler: openSelected
-      }, {
-        id: 'finder-delete-button',
-        text: "Delete",
-        disabled: true,
-        handler: deleteSelected
-      }, {
-        text: "Close",
-        handler: function () { win.close(); }
-      }
-    ]
-  });
-  templatesStore.load();
-  win.show();
-}
-
 /* Graph Options API (to reuse createOptionsMenu from composer_widgets.js) */
 function updateGraph() {
   refreshGraphs();
@@ -3060,7 +2726,11 @@ function applyFuncToEach(funcName, extraArg) {
         removeTargetFromSelectedGraph(target);
 
         if (extraArg) {
-          newTarget = funcName + '(' + target + ',' + extraArg + ')';
+          if (funcName == 'mostDeviant') { //SPECIAL CASE HACK
+            newTarget = funcName + '(' + extraArg + ',' + target + ')';
+          } else {
+            newTarget = funcName + '(' + target + ',' + extraArg + ')';
+          }
         } else {
           newTarget = funcName + '(' + target + ')';
         }
@@ -3193,102 +2863,3 @@ function map(myArray, myFunc) {
   }
   return results;
 }
-
-function getLoginMenuItemText() {
-  if (isLoggedIn()) {
-    return 'Log Out From "' + userName + '"';
-  } else {
-    return 'Log In';
-  }
-}
-
-/* After login/logout, make any necessary adjustments to Dashboard menu items (text and/or disabled) */
-function postLoginMenuAdjust() {
-  Ext.getCmp("dashboard-login-button").setText(getLoginMenuItemText());
-  Ext.getCmp("dashboard-save-button").setDisabled(dashboardName == null || !hasPermission('change'));
-  Ext.getCmp("dashboard-save-as-button").setDisabled(!hasPermission('change'));
-}
-
-function showLoginForm() {
-  var login = new Ext.FormPanel({
-    labelWidth: 80,
-    frame: true,
-    title: 'Please Login',
-    defaultType: 'textfield',
-    monitorValid: true,
-
-    items: [{
-        fieldLabel: 'Username',
-        name: 'username',
-        allowBlank: false,
-        listeners: {
-          afterrender: function(field) { field.focus(false, 100); }
-        }
-      },{
-        fieldLabel: 'Password',
-        name: 'password',
-        inputType: 'password',
-        allowBlank: false
-      }
-    ],
-    buttons: [
-      {text: 'Login', formBind: true, handler: doLogin},
-      {text: 'Cancel', handler: function () { win.close(); } }
-    ]
-  });
-
-  function doLogin() {
-    login.getForm().submit({
-      method: 'POST',
-      url: document.body.dataset.baseUrl + 'dashboard/login',
-      waitMsg: 'Authenticating...',
-      success: function(form, action) {
-        userName = form.findField('username').getValue();
-        permissions = action.result.permissions;
-        postLoginMenuAdjust();
-        win.close();
-      },
-      failure: function(form, action) {
-        if (action.failureType == 'server') {
-          var obj = Ext.util.JSON.decode(action.response.responseText);
-          Ext.Msg.alert('Login Failed!', obj.errors.reason);
-        } else {
-          Ext.Msg.alert('Warning!', 'Authentication server is unreachable : ' + action.response.responseText);
-        }
-        login.getForm().reset();
-      }
-    });
-  }
-
-  var win = new Ext.Window({
-    layout: 'fit',
-    width: 300,
-    height: 150,
-    closable: false,
-    resizable: false,
-    plain: true,
-    border: false,
-    items: [login]
-  });
-  win.show();
-}
-
-function logout() {
-  Ext.Ajax.request({
-    url: document.body.dataset.baseUrl + 'dashboard/logout',
-    method: 'POST',
-    success: function() {
-      userName = null;
-      permissions = permissionsUnauthenticated;
-      postLoginMenuAdjust();
-    },
-    failure: function() {
-      // Probably because they no longer have a valid session - assume they're now logged out
-      userName = null;
-      permissions = permissionsUnauthenticated;
-      postLoginMenuAdjust();
-    }
-  });
-}
-
-

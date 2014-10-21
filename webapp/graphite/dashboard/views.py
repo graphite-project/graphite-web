@@ -1,4 +1,3 @@
-import json
 import re
 import errno
 
@@ -6,16 +5,14 @@ from os.path import getmtime, join, exists
 from urllib import urlencode
 from ConfigParser import ConfigParser
 from django.shortcuts import render_to_response
-from django.http import QueryDict
+from django.http import HttpResponse, QueryDict
 from django.conf import settings
-from django.contrib.auth import login, authenticate, logout
-from django.contrib.staticfiles import finders
-from django.utils.safestring import mark_safe
-from graphite.compat import HttpResponse
-from graphite.dashboard.models import Dashboard, Template
+from graphite.util import json
+from graphite.dashboard.models import Dashboard
 from graphite.render.views import renderView
 from send_graph import send_graph_email
-
+from django.http import HttpResponseRedirect
+from django.db import connection
 
 fieldRegex = re.compile(r'<([^>]+)>')
 defaultScheme = {
@@ -29,7 +26,7 @@ defaultUIConfig = {
   'refresh_interval'     :  60,
   'autocomplete_delay'   : 375,
   'merge_hover_delay'    : 700,
-  'theme'                : 'default',
+  'theme'                : 'white',
 }
 defaultKeyboardShortcuts = {
   'toggle_toolbar' : 'ctrl-z',
@@ -41,13 +38,13 @@ defaultKeyboardShortcuts = {
   'give_completer_focus' : 'shift-space',
 }
 
-ALL_PERMISSIONS = ['change', 'delete']
 
 class DashboardConfig:
   def __init__(self):
     self.last_read = 0
     self.schemes = [defaultScheme]
     self.ui_config = defaultUIConfig.copy()
+
 
   def check(self):
     if getmtime(settings.DASHBOARD_CONF) > self.last_read:
@@ -108,60 +105,15 @@ config = DashboardConfig()
 
 
 def dashboard(request, name=None):
+  if not request.user.is_authenticated():
+    return HttpResponseRedirect('../loginapi/!redirect')
   dashboard_conf_missing = False
-
-  try:
-    config.check()
-  except OSError as e:
-    if e.errno == errno.ENOENT:
-      dashboard_conf_missing = True
-    else:
-      raise
-
-  initialError = None
-  debug = request.GET.get('debug', False)
-  theme = request.GET.get('theme', config.ui_config['theme'])
-  css_file = finders.find('css/dashboard-%s.css' % theme)
-  if css_file is None:
-    initialError = "Invalid theme '%s'" % theme
-    theme = config.ui_config['theme']
-
-  context = {
-    'schemes_json': mark_safe(json.dumps(config.schemes)),
-    'ui_config_json': mark_safe(json.dumps(config.ui_config)),
-    'jsdebug': debug or settings.JAVASCRIPT_DEBUG,
-    'debug': debug,
-    'theme': theme,
-    'initialError': initialError,
-    'querystring': mark_safe(json.dumps(dict(request.GET.items()))),
-    'dashboard_conf_missing': dashboard_conf_missing,
-    'userName': '',
-    'permissions': mark_safe(json.dumps(getPermissions(request.user))),
-    'permissionsUnauthenticated': mark_safe(json.dumps(getPermissions(None)))
-  }
-  user = request.user
-  if user:
-      context['userName'] = user.username
-
-  if name is not None:
-    try:
-      dashboard = Dashboard.objects.get(name=name)
-    except Dashboard.DoesNotExist:
-      context['initialError'] = "Dashboard '%s' does not exist." % name
-    else:
-      context['initialState'] = dashboard.state
-
-  return render_to_response("dashboard.html", context)
-
-
-def template(request, name, val):
-  template_conf_missing = False
 
   try:
     config.check()
   except OSError, e:
     if e.errno == errno.ENOENT:
-      template_conf_missing = True
+      dashboard_conf_missing = True
     else:
       raise
 
@@ -181,47 +133,23 @@ def template(request, name, val):
     'theme' : theme,
     'initialError' : initialError,
     'querystring' : json.dumps( dict( request.GET.items() ) ),
-    'template_conf_missing' : template_conf_missing,
-    'userName': '',
-    'permissions': json.dumps(getPermissions(request.user)),
-    'permissionsUnauthenticated': json.dumps(getPermissions(None))
+    'dashboard_conf_missing' : dashboard_conf_missing,
+    'user' : request.user.username,
+    'userid' : request.user.id
   }
 
-  user = request.user
-  if user:
-      context['userName'] = user.username
+  if name is not None:
+    try:
+      dashboard = Dashboard.objects.get(name=name)
+    except Dashboard.DoesNotExist:
+      context['initialError'] = "Dashboard '%s' does not exist." % name
+    else:
+      context['initialState'] = dashboard.state
 
-  try:
-    template = Template.objects.get(name=name)
-  except Template.DoesNotExist:
-    context['initialError'] = "Template '%s' does not exist." % name
-  else:
-    state = json.loads(template.loadState(val))
-    state['name'] = '%s/%s' % (name, val)
-    context['initialState'] = json.dumps(state)
   return render_to_response("dashboard.html", context)
-
-def getPermissions(user):
-  """Return [change, delete] based on authorisation model and user privileges/groups"""
-  if user and not user.is_authenticated():
-    user = None
-  if not settings.DASHBOARD_REQUIRE_AUTHENTICATION:
-    return ALL_PERMISSIONS      # don't require login
-  if not user:
-      return []
-  # from here on, we have a user
-  permissions = ALL_PERMISSIONS
-  if settings.DASHBOARD_REQUIRE_PERMISSIONS:
-    permissions = [permission for permission in ALL_PERMISSIONS if user.has_perm('dashboard.%s_dashboard' % permission)]
-  editGroup = settings.DASHBOARD_REQUIRE_EDIT_GROUP
-  if editGroup and len(user.groups.filter(name = editGroup)) == 0:
-    permissions = []
-  return permissions
 
 
 def save(request, name):
-  if 'change' not in getPermissions(request.user):
-    return json_response( dict(error="Must be logged in with appropriate permissions to save") )
   # Deserialize and reserialize as a validation step
   state = str( json.dumps( json.loads( request.POST['state'] ) ) )
 
@@ -230,28 +158,23 @@ def save(request, name):
   except Dashboard.DoesNotExist:
     dashboard = Dashboard.objects.create(name=name, state=state)
   else:
-    dashboard.state = state
-    dashboard.save();
+    #We have to check out permissions on this dashboard
+    try:
+      cursor = connection.cursor()
+      cursor.execute("SELECT * FROM dashboard_admindashboard where dashboard_id='%s'" % (name))
+      # This dashboard protected
+      if cursor.fetchall():
+        cursor.execute("SELECT * FROM dashboard_admindashboard where profile_id=%s and dashboard_id='%s'" % (str(request.user.id), name))
+        # You have access to this dashboard
+        if not cursor.fetchall():
+          return json_response( dict(error="Sorry, you have no permissions to change dasboard '%s'." % name) )
 
-  return json_response( dict(success=True) )
-
-
-def save_template(request, name, key):
-  if 'change' not in getPermissions(request.user):
-    return json_response( dict(error="Must be logged in with appropriate permissions to save the template") )
-  # Deserialize and reserialize as a validation step
-  state = str( json.dumps( json.loads( request.POST['state'] ) ) )
-
-  try:
-    template = Template.objects.get(name=name)
-  except Template.DoesNotExist:
-    template = Template.objects.create(name=name)
-    template.setState(state)
-    template.save()
-  else:
-    template.setState(state, key)
-    template.save();
-
+      dashboard.state = state
+      dashboard.save();
+    except:
+      return json_response( dict(error="Something strange happened.") )
+    finally:
+      cursor.close()
   return json_response( dict(success=True) )
 
 
@@ -261,44 +184,48 @@ def load(request, name):
   except Dashboard.DoesNotExist:
     return json_response( dict(error="Dashboard '%s' does not exist. " % name) )
 
-  return json_response( dict(state=json.loads(dashboard.state)) )
-
-
-def load_template(request, name, val):
+  # check for enough privileges
   try:
-    template = Template.objects.get(name=name)
-  except Template.DoesNotExist:
-    return json_response( dict(error="Template '%s' does not exist. " % name) )
-
-  state = json.loads(template.loadState(val))
-  state['name'] = '%s/%s' % (name, val)
-  return json_response( dict(state=state) )
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM dashboard_userdashboard where dashboard_id='%s'" % (name))
+    # This dashboard protected
+    if cursor.fetchall():
+      cursor.execute("SELECT * FROM dashboard_userdashboard where profile_id=%s and dashboard_id='%s'" % (str(request.user.id), name))
+      # You have access to this dashboard
+      if not cursor.fetchall():
+          return json_response( dict(error="Sorry, you have no permissions to see dasboard '%s'." % name) )
+      return json_response( dict(state=json.loads(dashboard.state)) )
+    return json_response( dict(state=json.loads(dashboard.state)) )
+  except:
+    return json_response( dict(error="Something strange happened.") )
+  finally:
+    cursor.close()
 
 
 def delete(request, name):
-  if 'delete' not in getPermissions(request.user):
-    return json_response( dict(error="Must be logged in with appropriate permissions to delete") )
-
   try:
     dashboard = Dashboard.objects.get(name=name)
   except Dashboard.DoesNotExist:
     return json_response( dict(error="Dashboard '%s' does not exist. " % name) )
   else:
-    dashboard.delete()
-    return json_response( dict(success=True) )
+    #We have to check out permissions on this dashboard
+    try:
+      cursor = connection.cursor()
+      cursor.execute("SELECT * FROM user_dashboard_admin where protected_dasboard_name='%s'" % (name))
+      # This dashboard protected
+      if cursor.fetchall():
+        cursor.execute("SELECT * FROM user_dashboard_admin where user_id=%s and protected_dasboard_name='%s'" % (str(request.user.id), name))
+        # You have access to this dashboard
+        if not cursor.fetchall():
+          return json_response( dict(error="Sorry, you have no permissions to delete dasboard '%s'." % name) )
 
-
-def delete_template(request, name):
-  if 'delete' not in getPermissions(request.user):
-    return json_response( dict(error="Must be logged in with appropriate permissions to delete the template") )
-
-  try:
-    template = Template.objects.get(name=name)
-  except Dashboard.DoesNotExist:
-    return json_response( dict(error="Template '%s' does not exist. " % name) )
-  else:
-    template.delete()
-    return json_response( dict(success=True) )
+      dashboard.delete()
+      return json_response( dict(success=True) )
+    except:
+      return json_response( dict(error="Something strange happened (Maybe you forgot to delete dashboard from user_dashboard_admin table).") )
+    finally:
+      cursor.close()
+  return json_response( dict(success=True) )
 
 
 def find(request):
@@ -326,33 +253,9 @@ def find(request):
   return json_response( dict(dashboards=results) )
 
 
-def find_template(request):
-  query = request.REQUEST['query']
-  query_terms = set( query.lower().split() )
-  results = []
-
-  # Find all dashboard names that contain each of our query terms as a substring
-  for template in Template.objects.all():
-    name = template.name.lower()
-
-    found = True # blank queries return everything
-    for term in query_terms:
-      if term in name:
-        found = True
-      else:
-        found = False
-        break
-
-    if found:
-      results.append( dict(name=template.name) )
-
-  return json_response( dict(templates=results) )
-
-
 def help(request):
   context = {}
   return render_to_response("dashboardHelp.html", context)
-
 
 def email(request):
     sender = request.POST['sender']
@@ -397,26 +300,4 @@ def create_temporary(request):
 
 
 def json_response(obj):
-  return HttpResponse(content_type='application/json', content=json.dumps(obj))
-
-
-def user_login(request):
-  response = dict(errors={}, text={}, success=False, permissions=[])
-  user = authenticate(username=request.POST['username'],
-                      password=request.POST['password'])
-  if user is not None:
-    if user.is_active:
-      login(request, user)
-      response['success'] = True
-      response['permissions'].extend(getPermissions(user))
-    else:
-      response['errors']['reason'] = 'Account disabled.'
-  else:
-    response['errors']['reason'] = 'Username and/or password invalid.'
-  return json_response(response)
-
-
-def user_logout(request):
-  response = dict(errors={}, text={}, success=True)
-  logout(request)
-  return json_response(response)
+  return HttpResponse(mimetype='application/json', content=json.dumps(obj))
