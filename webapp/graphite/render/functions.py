@@ -32,7 +32,8 @@ if environ.get('READTHEDOCS'):
 else:
   from graphite.render.glyph import format_units
   from graphite.render.datalib import TimeSeries
-  from graphite.util import timestamp
+
+from graphite.util import epoch
 
 NAN = float('NaN')
 INF = float('inf')
@@ -2481,8 +2482,8 @@ def constantLine(requestContext, value):
 
   """
   name = "constantLine(%s)" % str(value)
-  start = timestamp( requestContext['startTime'] )
-  end = timestamp( requestContext['endTime'] )
+  start = int(epoch( requestContext['startTime'] ) )
+  end = int(epoch( requestContext['endTime'] ) )
   step = (end - start) / 1.0
   series = TimeSeries(str(value), start, end, step, [value, value])
   series.pathExpression = name
@@ -2619,8 +2620,8 @@ def identity(requestContext, name):
   """
   step = 60
   delta = timedelta(seconds=step)
-  start = int(time.mktime(requestContext["startTime"].timetuple()))
-  end = int(time.mktime(requestContext["endTime"].timetuple()))
+  start = int(epoch(requestContext["startTime"]))
+  end = int(epoch(requestContext["endTime"]))
   values = range(start, end, step)
   series = TimeSeries(name, start, end, step, values)
   series.pathExpression = 'identity("%s")' % name
@@ -3096,8 +3097,8 @@ def sinFunction(requestContext, name, amplitude=1, step=60):
     when += delta
 
   return [TimeSeries(name,
-            int(time.mktime(requestContext["startTime"].timetuple())),
-            int(time.mktime(requestContext["endTime"].timetuple())),
+            int(epoch(requestContext["startTime"])),
+            int(epoch(requestContext["endTime"])),
             step, values)]
 
 def randomWalkFunction(requestContext, name, step=60):
@@ -3127,8 +3128,8 @@ def randomWalkFunction(requestContext, name, step=60):
     when += delta
 
   return [TimeSeries(name,
-            int(time.mktime(requestContext["startTime"].timetuple())),
-            int(time.mktime(requestContext["endTime"].timetuple())),
+            int(epoch(requestContext["startTime"])),
+            int(epoch(requestContext["endTime"])),
             step, values)]
 
 def events(requestContext, *tags):
