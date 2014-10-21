@@ -207,8 +207,6 @@ def renderView(request):
             data.remove(series)
   finally:
     cursor.close()
-      return response
-
 
   # We've got the data, now to render it
   graphOptions['data'] = data
