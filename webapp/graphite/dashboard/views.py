@@ -249,17 +249,49 @@ def save_template(request, name, key):
     template.setState(state)
     template.save()
   else:
-    template.setState(state, key)
-    template.save();
+    #We have to check out permissions on this dashboard
+    try:
+      cursor = connection.cursor()
+      cursor.execute("SELECT * FROM dashboard_admindashboard where dashboard_id='%s'" % (name))
+      # This dashboard protected
+      if cursor.fetchall():
+        cursor.execute("SELECT * FROM dashboard_admindashboard where profile_id=%s and dashboard_id='%s'" % (str(request.user.id), name))
+        # You have access to this dashboard
+        if not cursor.fetchall():
+          return json_response( dict(error="Sorry, you have no permissions to change dasboard '%s'." % name) )
+
+      template.setState(state, key)
+      template.save();
+
+    except:
+      return json_response( dict(error="Something strange happened.") )
+    finally:
+      cursor.close()
 
   return json_response( dict(success=True) )
-
 
 def load(request, name):
   try:
     dashboard = Dashboard.objects.get(name=name)
   except Dashboard.DoesNotExist:
     return json_response( dict(error="Dashboard '%s' does not exist. " % name) )
+
+  # check for enough privileges
+  try:
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM dashboard_userdashboard where dashboard_id='%s'" % (name))
+    # This dashboard protected
+    if cursor.fetchall():
+      cursor.execute("SELECT * FROM dashboard_userdashboard where profile_id=%s and dashboard_id='%s'" % (str(request.user.id), name))
+      # You have access to this dashboard
+      if not cursor.fetchall():
+        return json_response( dict(error="Sorry, you have no permissions to see dasboard '%s'." % name) )
+      return json_response( dict(state=json.loads(dashboard.state)) )
+    return json_response( dict(state=json.loads(dashboard.state)) )
+  except:
+    return json_response( dict(error="Something strange happened.") )
+  finally:
+    cursor.close()
 
   return json_response( dict(state=json.loads(dashboard.state)) )
 
@@ -284,9 +316,23 @@ def delete(request, name):
   except Dashboard.DoesNotExist:
     return json_response( dict(error="Dashboard '%s' does not exist. " % name) )
   else:
-    dashboard.delete()
-    return json_response( dict(success=True) )
-
+    #We have to check out permissions on this dashboard
+    try:
+      cursor = connection.cursor()
+      cursor.execute("SELECT * FROM user_dashboard_admin where protected_dasboard_name='%s'" % (name))
+      # This dashboard protected
+      if cursor.fetchall():
+        cursor.execute("SELECT * FROM user_dashboard_admin where user_id=%s and protected_dasboard_name='%s'" % (str(request.user.id), name))
+        # You have access to this dashboard
+        if not cursor.fetchall():
+          return json_response( dict(error="Sorry, you have no permissions to delete dasboard '%s'." % name) )
+                                                                          
+      dashboard.delete()
+      return json_response( dict(success=True) )
+    except:
+      return json_response( dict(error="Something strange happened (Maybe you forgot to delete dashboard from user_dashboard_admin table).") )
+    finally:
+      cursor.close()
 
 def delete_template(request, name):
   if 'delete' not in getPermissions(request.user):

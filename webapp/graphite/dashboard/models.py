@@ -8,6 +8,20 @@ class Dashboard(models.Model):
   state = models.TextField()
   __str__ = lambda self: "Dashboard [%s]" % self.name
 
+class UserDashboard(models.Model):
+  class Admin: pass
+  profile = models.ForeignKey(Profile)
+  dashboard = models.ForeignKey(Dashboard)
+  def __str__(self):
+    return "Dashboard - User - who can view protected dashboard [%s - %s]" % (self.profile.user.username, self.dashboard.name)
+
+class AdminDashboard(models.Model):
+  class Admin: pass
+  profile = models.ForeignKey(Profile)
+  dashboard = models.ForeignKey(Dashboard)
+  def __str__(self):
+    return "Dashboard - User - who can change or delete dashboard  [%s - %s]" % (self.profile.user.username, self.dashboard.name)
+
 class Template(models.Model):
 
   class Admin: pass

@@ -192,6 +192,21 @@ def renderView(request):
       pickle.dump(seriesInfo, response, protocol=-1)
 
       log.rendering('Total pickle rendering time %.6f' % (time() - start))
+        #check permissions for metric
+  try:
+    cursor = connection.cursor()
+    # get all protected metric
+    cursor.execute("SELECT * FROM metrics_usermetric" )
+    for row in cursor.fetchall() :
+      for series in data:
+        # Our metric protected
+        if row[2] in series.name:
+          cursor.execute("SELECT * FROM metrics_usermetric where profile_id=%s and metric='%s'" % (str(request.user.id),row[2]))
+          # Our user have no access to this metric
+          if not cursor.fetchall():
+            data.remove(series)
+  finally:
+    cursor.close()
       return response
 
 
