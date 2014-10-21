@@ -15,7 +15,7 @@ from graphite.compat import HttpResponse
 from graphite.dashboard.models import Dashboard, Template
 from graphite.render.views import renderView
 from send_graph import send_graph_email
-
+from django.db import connection
 
 fieldRegex = re.compile(r'<([^>]+)>')
 defaultScheme = {
