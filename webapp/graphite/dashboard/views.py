@@ -229,11 +229,9 @@ def save(request, name):
   except Dashboard.DoesNotExist:
     dashboard = Dashboard.objects.create(name=name, state=state)
   else:
-
     # check for enough privileges
     try:
-      try:
-        AdminDashboard.objects.get(dashboard=dashboard)
+      if AdminDashboard.objects.filter(dashboard=dashboard):
         try:
           AdminDashboard.objects.get(profile=request.user, dashboard=dashboard)
           dashboard.state = state
@@ -242,14 +240,14 @@ def save(request, name):
         except AdminDashboard.DoesNotExist:
           # You have access to this dashboard
           return json_response( dict(error="Sorry, you have no permissions to change dasboard '%s'." % name) )
-      except AdminDashboard.DoesNotExist:
+      else:
         # This dashboard is not protected
         dashboard.state = state
         dashboard.save();
         return json_response( dict(success=True) )
     except:
       return json_response( dict(error="Something strange happened.") )
-
+  return json_response( dict(success=True) )
 
 def save_template(request, name, key):
   if 'change' not in getPermissions(request.user):
@@ -275,18 +273,16 @@ def load(request, name):
   except Dashboard.DoesNotExist:
     return json_response( dict(error="Dashboard '%s' does not exist. " % name) )
 
-
   # check for enough privileges
   try:
-    try:
-      UserDashboard.objects.get(dashboard=dashboard)
+    if UserDashboard.objects.filter(dashboard=dashboard):
       try:
         UserDashboard.objects.get(profile=request.user, dashboard=dashboard)
         return json_response( dict(state=json.loads(dashboard.state)) )
       except UserDashboard.DoesNotExist:
         # You have access to this dashboard
         return json_response( dict(error="Sorry, you have no permissions to see dasboard '%s'." % name) )
-    except UserDashboard.DoesNotExist:
+    else:
       # This dashboard is not protected
       return json_response( dict(state=json.loads(dashboard.state)) )
   except:
@@ -317,8 +313,7 @@ def delete(request, name):
   else:
     # check for enough privileges
     try:
-      try:
-        AdminDashboard.objects.get(dashboard=dashboard)
+      if AdminDashboard.objects.filter(dashboard=dashboard):
         try:
           AdminDashboard.objects.get(profile=request.user, dashboard=dashboard)
           dashboard.delete()
@@ -326,7 +321,7 @@ def delete(request, name):
         except AdminDashboard.DoesNotExist:
           # You have access to this dashboard
           return json_response( dict(error="Sorry, you have no permissions to delete dasboard '%s'." % name) )
-      except AdminDashboard.DoesNotExist:
+      else:
         # This dashboard is not protected
         dashboard.delete()
         return json_response( dict(success=True) )
