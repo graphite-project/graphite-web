@@ -17,5 +17,6 @@ Here are some organizations that use Graphite:
 * `ImmobilienScout24 <http://www.immobilienscout24.de/>`_
 * `Wikimedia Foundation <http://gdash.wikimedia.org/>`_
 * `Instagram <http://instagram.com/>`_
+* `Uber <http://uber.com/>`_
 
 And many more
