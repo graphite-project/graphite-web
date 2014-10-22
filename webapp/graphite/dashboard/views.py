@@ -230,9 +230,23 @@ def save(request, name):
   except Dashboard.DoesNotExist:
     dashboard = Dashboard.objects.create(name=name, state=state)
   else:
-    dashboard.state = state
-    dashboard.save();
+    #We have to check out permissions on this dashboard
+    try:
+      cursor = connection.cursor()
+      cursor.execute("SELECT * FROM dashboard_admindashboard where dashboard_id='%s'" % (name))
+      # This dashboard protected
+      if cursor.fetchall():
+        cursor.execute("SELECT * FROM dashboard_admindashboard where profile_id=%s and dashboard_id='%s'" % (str(request.user.id), name))
+        # You have access to this dashboard
+        if not cursor.fetchall():
+          return json_response( dict(error="Sorry, you have no permissions to change dasboard '%s'." % name) )
 
+      dashboard.state = state
+      dashboard.save();
+    except:
+      return json_response( dict(error="Something strange happened.") )
+    finally:
+      cursor.close()
   return json_response( dict(success=True) )
 
 
@@ -249,24 +263,8 @@ def save_template(request, name, key):
     template.setState(state)
     template.save()
   else:
-    #We have to check out permissions on this dashboard
-    try:
-      cursor = connection.cursor()
-      cursor.execute("SELECT * FROM dashboard_admindashboard where dashboard_id='%s'" % (name))
-      # This dashboard protected
-      if cursor.fetchall():
-        cursor.execute("SELECT * FROM dashboard_admindashboard where profile_id=%s and dashboard_id='%s'" % (str(request.user.id), name))
-        # You have access to this dashboard
-        if not cursor.fetchall():
-          return json_response( dict(error="Sorry, you have no permissions to change dasboard '%s'." % name) )
-
-      template.setState(state, key)
-      template.save();
-
-    except:
-      return json_response( dict(error="Something strange happened.") )
-    finally:
-      cursor.close()
+    template.setState(state, key)
+    template.save();
 
   return json_response( dict(success=True) )
 
