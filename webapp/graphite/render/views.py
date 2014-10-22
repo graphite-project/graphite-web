@@ -43,7 +43,7 @@ from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.utils.cache import add_never_cache_headers, patch_response_headers
-from django.db import connection
+from graphite.metrics.models import UserMetric
 
 def renderView(request):
   start = time()
@@ -193,20 +193,19 @@ def renderView(request):
 
       log.rendering('Total pickle rendering time %.6f' % (time() - start))
         #check permissions for metric
-  try:
-    cursor = connection.cursor()
-    # get all protected metric
-    cursor.execute("SELECT * FROM metrics_usermetric" )
-    for row in cursor.fetchall() :
-      for series in data:
-        # Our metric protected
-        if row[2] in series.name:
-          cursor.execute("SELECT * FROM metrics_usermetric where profile_id=%s and metric='%s'" % (str(request.user.id),row[2]))
-          # Our user have no access to this metric
-          if not cursor.fetchall():
-            data.remove(series)
-  finally:
-    cursor.close()
+
+    try:
+      for metric in UserMetric.objects.all():
+        for series in data:
+          if metric.metric in series.name:
+            try:
+              UserMetric.objects.get(profile=request.user, metric=metric.metric)
+            except UserMetric.DoesNotExist:
+              print request.user
+              print metric.metric
+              data.remove(series)
+    except UserMetric.DoesNotExist:
+      print "Metric is not protected"
 
   # We've got the data, now to render it
   graphOptions['data'] = data
