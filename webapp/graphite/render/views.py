@@ -201,8 +201,6 @@ def renderView(request):
             try:
               UserMetric.objects.get(profile=request.user, metric=metric.metric)
             except UserMetric.DoesNotExist:
-              print request.user
-              print metric.metric
               data.remove(series)
     except UserMetric.DoesNotExist:
       print "Metric is not protected"
