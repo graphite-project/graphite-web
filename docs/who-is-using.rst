@@ -7,6 +7,7 @@ Here are some organizations that use Graphite:
 * `Canonical <http://www.canonical.com>`_
 * `Datacratic <http://www.datacratic.com>`_
 * `Douban <http://www.douban.com>`_
+* `Dyn <http://dyn.com/>`_
 * `Etsy <http://www.etsy.com/>`_ (see http://codeascraft.etsy.com/2010/12/08/track-every-release/)
 * `GitHub <https://github.com>`_
 * `Google <http://google-opensource.blogspot.com/2010/09/get-ready-to-rocksteady.html>`_ (opensource Rocksteady project)
