@@ -14,6 +14,7 @@ limitations under the License."""
 
 import re
 from django.shortcuts import render_to_response
+from django.utils.safestring import mark_safe
 from django.http import HttpResponse
 from django.conf import settings
 from graphite.account.models import Profile
@@ -43,7 +44,7 @@ def header(request):
 def browser(request):
   "View for the top-level frame of the browser UI"
   context = {
-    'queryString' : request.GET.urlencode(),
+    'queryString' : mark_safe(request.GET.urlencode()),
     'target' : request.GET.get('target')
   }
   if context['queryString']:

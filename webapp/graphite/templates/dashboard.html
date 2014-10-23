@@ -7,8 +7,8 @@
     <script type="text/javascript">
     // Be overly cautious to prevent an unlikely XSS (See the below link rule 3.1):
     // https://www.owasp.org/index.php/XSS_%28Cross_Site_Scripting%29_Prevention_Cheat_Sheet
-    var schemes = JSON.parse('{{ schemes_json|safe }}');
-    var UI_CONFIG = JSON.parse('{{ ui_config_json|safe }}');
+    var schemes = JSON.parse('{{ schemes_json }}');
+    var UI_CONFIG = JSON.parse('{{ ui_config_json }}');
     var CONTEXT_FIELD_WIDTH = 220;
     var AUTOCOMPLETE_DELAY = UI_CONFIG.autocomplete_delay;
     var FINDER_QUERY_DELAY = 100;
@@ -35,7 +35,7 @@
     {% endif %}
 
     {% if querystring %}
-    var queryString = JSON.parse('{{ querystring|safe }}');
+    var queryString = JSON.parse('{{ querystring }}');
     {% endif %}
     </script>
 

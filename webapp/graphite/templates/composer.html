@@ -12,7 +12,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. -->
 
-{% autoescape off %}
 
 <html>
   <head>
@@ -118,13 +117,12 @@ limitations under the License. -->
         Composer.window.show();
 
         /* Direct graph loading */
-        if ("{{queryString}}") {
-          Composer.loadURL("?{{queryString|escapejs}}");
+        if (document.body.dataset.queryString) {
+          Composer.loadURL("?" + document.body.dataset.queryString);
         }
         /* Automatic tree expansion */
-        var showTarget = decodeURIComponent("{{showTarget|escapejs}}");
-        if (showTarget) {
-          var parts = showTarget.split('.');
+        if (document.body.dataset.showTarget) {
+          var parts = document.body.dataset.showTarget.split('.');
 
           if (parts[0] == "Graphite") {
             parts.shift();
@@ -148,8 +146,7 @@ limitations under the License. -->
 </script> 
 
   </head>
-  <body onload="init();">
+  <body onload="init();"{% if queryString %} data-query-string="{{ queryString }}"{% endif %}{% if showTarget %} data-show-target="{{ showTarget }}"{% endif %}>
   </body>
 </html>
 
-{% endautoescape %}
