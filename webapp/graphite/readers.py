@@ -164,9 +164,13 @@ class WhisperReader(object):
     time_info, values = data
     (start,end,step) = time_info
 
+    meta_info = whisper.info(self.fs_path)
+    lowest_step = min([i['secondsPerPoint'] for i in meta_info['archives']])
     # Merge in data from carbon's cache
+    cached_datapoints = []
     try:
-      cached_datapoints = CarbonLink.query(self.real_metric_path)
+        if step == lowest_step:
+            cached_datapoints = CarbonLink.query(self.real_metric_path)
     except:
       log.exception("Failed CarbonLink query '%s'" % self.real_metric_path)
       cached_datapoints = []
