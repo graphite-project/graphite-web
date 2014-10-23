@@ -151,7 +151,7 @@ try:
   import imp
   local_settings = imp.load_source('graphite.local_settings', join(CONF_DIR, 'local_settings.py'))
   globals().update(vars(local_settings))
-except ImportError, IOError:
+except Exception:
   print >> sys.stderr, "Could not import local_settings from graphite conf dir"
 
 if not DASHBOARD_CONF:
