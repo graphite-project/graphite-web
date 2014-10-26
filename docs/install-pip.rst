@@ -21,9 +21,11 @@ simply execute as root:
 
 Installing Carbon in a Custom Location
 --------------------------------------
-Installation of Carbon in a custom location with `pip` is similar to doing so from a source install.
-Arguments to the underlying ``setup.py`` controlling installation location can be passed through `pip`
-with the ``--install-option`` option.
+Installation of Carbon in a custom location with `pip` is similar to doing so from a source install. Arguments to the underlying ``setup.py`` controlling installation location can be passed through `pip` with the ``--install-option`` option.
+
+.. note::
+
+  In order to install carbon to a custom location, you must install the Python Development Headers.  In Debian-based distributions, this will require ``apt-get install python-dev``, and in Red Hat-based distributions you will run ``yum install python-devel``.
 
 See :ref:`carbon-custom-location-source` for details of locations and available arguments
 
