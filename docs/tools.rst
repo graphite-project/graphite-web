@@ -221,6 +221,10 @@ Monitoring
 
 `Cabot`_
   a self-hosted monitoring and alerting server that watches Graphite metrics and can alert on them by phone, SMS, Hipchat or email. It is designed to be deployed to cloud or physical hardware in minutes and configured via web interface.
+  
+`graphite-beacon`_
+  a simple alerting application for Graphite. It asynchronous and sends notification alerts based on Graphite metrics.
+  It hasn't any dependencies except `Tornado` package. Very light and really very easy deployed.
 
 `rearview`_
   a real-time monitoring framework that sits on top of Graphite's time series data. This allows users to create monitors that both visualize and alert on data as it streams from Graphite. The monitors themselves are simple Ruby scripts which run in a sandbox to provide additional security. Monitors are also configured with a crontab compatible time specification used by the scheduler. Alerts can be sent via email, pagerduty, or campfire.
@@ -234,10 +238,7 @@ Monitoring
   a system monitoring solution compatible with Nagios which emphasizes scalability, flexibility,
   and ease of setup. Shinken provides complete integration with Graphite for processing and display of
   performance data.
-  
-`graphite-beacon`_
-  a simple alerting application for Graphite. It asynchronous and sends notification alerts based on Graphite metrics.
-  It has not dependencies except `Tornado` package. Very light and really very easy deployed.
+
 
 
 Other
