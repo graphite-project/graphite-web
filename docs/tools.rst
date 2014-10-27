@@ -272,6 +272,7 @@ Other
 .. _Graph-Index: https://github.com/douban/graph-index
 .. _Graphene: http://jondot.github.com/graphene
 .. _Graphios: https://github.com/shawn-sterling/graphios
+.. _graphite-beacon: https://github.com/klen/graphite-beacon
 .. _Graphite-Tattle: https://github.com/wayfair/Graphite-Tattle
 .. _Graphite-Newrelic: https://github.com/gingerlime/graphite-newrelic
 .. _Graphite-Observer: https://github.com/huoxy/graphite-observer
@@ -309,4 +310,3 @@ Other
 .. _Therry: https://github.com/obfuscurity/therry
 .. _TimeseriesWidget: https://github.com/Dieterbe/timeserieswidget
 .. _write-graphite: http://collectd.org/wiki/index.php/Plugin:Write_Graphite
-.. _graphite-beacon: https://github.com/klen/graphite-beacon
