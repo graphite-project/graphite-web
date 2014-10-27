@@ -234,6 +234,10 @@ Monitoring
   a system monitoring solution compatible with Nagios which emphasizes scalability, flexibility,
   and ease of setup. Shinken provides complete integration with Graphite for processing and display of
   performance data.
+  
+`graphite-beacon`_
+  a simple alerting application for Graphite. It asynchronous and sends notification alerts based on Graphite metrics.
+  It has not dependencies except `Tornado` package. Very light and really very easy deployed.
 
 
 Other
