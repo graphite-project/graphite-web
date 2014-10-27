@@ -309,3 +309,4 @@ Other
 .. _Therry: https://github.com/obfuscurity/therry
 .. _TimeseriesWidget: https://github.com/Dieterbe/timeserieswidget
 .. _write-graphite: http://collectd.org/wiki/index.php/Plugin:Write_Graphite
+.. _graphite-beacon: https://github.com/klen/graphite-beacon
