@@ -2536,6 +2536,13 @@ function getState() {
 function applyState(state) {
   setDashboardName(state.name);
 
+  // sometimes the server calls json.dumps once too many times.
+  // fixing that seems hard.
+  // so let's Just Fix It
+  if (typeof(state) == "string") {
+    state = JSON.parse(state);
+  }
+
   //state.timeConfig = {type, quantity, units, untilQuantity, untilUnits, startDate, startTime, endDate, endTime}
   var timeConfig = state.timeConfig
   TimeRange.type = timeConfig.type;
