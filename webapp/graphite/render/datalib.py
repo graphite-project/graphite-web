@@ -302,13 +302,18 @@ def fetchData(requestContext, pathExpr):
             candidate_nones = len([val for val in series['values'] if val is None])
             known_nones = len([val for val in known if val is None])
 
+            series_handled = True
             if candidate_nones >= known_nones:
-              series_handled = True
+              # If we already have this series in the seriesList, and
+              # it is 'worse' than the other series, we don't need to
+              # compare anything else. Save ourselves some work here.
               break
             else:
-              series_handled = True
               seriesList[seriesList.index(known)] = ts
 
+        # If we looked at this series above, and it matched a 'known'
+        # series already, then it's already in the series list (or ignored).
+        # If not, append it here.
         if not series_handled:
           seriesList.append(ts)
 
