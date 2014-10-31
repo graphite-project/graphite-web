@@ -293,14 +293,12 @@ def fetchData(requestContext, pathExpr):
       results = node.fetch(startTime, endTime, now)
 
       for series in results:
-        print "checking out", series['name']
         ts = TimeSeries(series['name'], series['start'], series['end'], series['step'], series['values'])
         ts.pathExpression = pathExpr # hack as above
 
         series_handled = False
         for known in seriesList:
           if series['name'] == known.name:
-            print "matching series name", series['name']
             candidate_nones = len([val for val in series['values'] if val is None])
             known_nones = len([val for val in known if val is None])
 
