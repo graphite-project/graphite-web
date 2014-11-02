@@ -2691,7 +2691,7 @@ def reduceSeries(requestContext, seriesLists, reduceFunction, reduceNode, *reduc
 
   Example::
 
-    reduce(map(servers.*.disk.*,1),3,"asPercent","bytes_used","total_bytes") =>
+    reduce(map(servers.*.disk.*,1),"asPercent",3,"bytes_used","total_bytes") =>
 
         asPercent(servers.server1.disk.bytes_used,servers.server1.disk.total_bytes),
         asPercent(servers.server2.disk.bytes_used,servers.server2.disk.total_bytes),
