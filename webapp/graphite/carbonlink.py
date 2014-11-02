@@ -114,6 +114,10 @@ class CarbonLinkPool:
     if metric.startswith(settings.CARBON_METRIC_PREFIX):
       return self.send_request_to_all(request)
 
+    if not self.hosts:
+      log.cache("CarbonLink is not connected to any host. Returning empty nodes list")
+      return result
+
     host = self.select_host(metric)
     conn = self.get_connection(host)
     log.cache("CarbonLink sending request for %s to %s" % (metric, str(host)))
