@@ -5,6 +5,7 @@ from os.path import getmtime, join, exists
 from urllib import urlencode
 from ConfigParser import ConfigParser
 from django.shortcuts import render_to_response
+from django.utils.safestring import mark_safe
 from django.http import HttpResponse, QueryDict
 from django.conf import settings
 from graphite.util import json
@@ -122,13 +123,13 @@ def dashboard(request, name=None):
     theme = config.ui_config['theme']
 
   context = {
-    'schemes_json' : json.dumps(config.schemes),
-    'ui_config_json' : json.dumps(config.ui_config),
+    'schemes_json' : mark_safe(json.dumps(config.schemes)),
+    'ui_config_json' : mark_safe(json.dumps(config.ui_config)),
     'jsdebug' : debug or settings.JAVASCRIPT_DEBUG,
     'debug' : debug,
     'theme' : theme,
     'initialError' : initialError,
-    'querystring' : json.dumps( dict( request.GET.items() ) ),
+    'querystring' : mark_safe(json.dumps( dict( request.GET.items() ) )),
     'dashboard_conf_missing' : dashboard_conf_missing,
   }
 
