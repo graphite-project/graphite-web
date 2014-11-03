@@ -18,6 +18,7 @@ import time
 from django.conf import settings
 from graphite.logger import log
 from graphite.storage import STORE, LOCAL_STORE
+from graphite.remote_storage import RemoteNode
 from graphite.render.hashing import ConsistentHashRing
 from graphite.util import unpickle, epoch
 
@@ -256,19 +257,14 @@ def fetchData(requestContext, pathExpr):
   endTime = int(epoch(requestContext['endTime']))
   now = int(epoch(requestContext['now']))
 
-  if requestContext['localOnly']:
-    store = LOCAL_STORE
-  else:
-    store = STORE
-
-  dbFiles = [dbFile for dbFile in store.find(pathExpr)]
+  dbFiles = [dbFile for dbFile in LOCAL_STORE.find(pathExpr)]
 
   if settings.CARBONLINK_QUERY_BULK:
     cacheResultsByMetric = CarbonLink.query_bulk([dbFile.real_metric for dbFile in dbFiles])
 
   for dbFile in dbFiles:
     log.metric_access(dbFile.metric_path)
-    dbResults = dbFile.fetch( startTime, endTime, now)
+    dbResults = dbFile.fetch(startTime, endTime, now)
 
     if dbFile.isLocal():
       try:
@@ -289,6 +285,37 @@ def fetchData(requestContext, pathExpr):
     series = TimeSeries(dbFile.metric_path, start, end, step, values)
     series.pathExpression = pathExpr #hack to pass expressions through to render functions
     seriesList.append(series)
+
+  if not requestContext['localOnly']:
+    remote_nodes = [ RemoteNode(store, pathExpr, True) for store in STORE.remote_stores ]
+
+    for node in remote_nodes:
+      results = node.fetch(startTime, endTime, now)
+
+      for series in results:
+        ts = TimeSeries(series['name'], series['start'], series['end'], series['step'], series['values'])
+        ts.pathExpression = pathExpr # hack as above
+
+        series_handled = False
+        for known in seriesList:
+          if series['name'] == known.name:
+            candidate_nones = len([val for val in series['values'] if val is None])
+            known_nones = len([val for val in known if val is None])
+
+            series_handled = True
+            if candidate_nones >= known_nones:
+              # If we already have this series in the seriesList, and
+              # it is 'worse' than the other series, we don't need to
+              # compare anything else. Save ourselves some work here.
+              break
+            else:
+              seriesList[seriesList.index(known)] = ts
+
+        # If we looked at this series above, and it matched a 'known'
+        # series already, then it's already in the series list (or ignored).
+        # If not, append it here.
+        if not series_handled:
+          seriesList.append(ts)
 
   return seriesList
 
