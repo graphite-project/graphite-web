@@ -2657,12 +2657,17 @@ def group(requestContext, *seriesLists):
 
 def mapSeries(requestContext, seriesList, mapNode):
   """
-  Takes a seriesList and maps it to a list of sub-seriesList. Each sub-seriesList has the
+  Short form: ``map()``
+
+  Takes a seriesList and maps it to a list of seriesList. Each seriesList has the
   given mapNode in common.
 
-  Example::
+  .. note:: This function is not very useful alone. It should be used with :py:func:`reduceSeries`
 
-    map(servers.*.cpu.*,1) =>
+  .. code-block:: none
+
+    mapSeries(servers.*.cpu.*,1) =>
+
       [
         servers.server1.cpu.*,
         servers.server2.cpu.*,
@@ -2683,28 +2688,54 @@ def mapSeries(requestContext, seriesList, mapNode):
 
 def reduceSeries(requestContext, seriesLists, reduceFunction, reduceNode, *reduceMatchers):
   """
+  Short form: ``reduce()``
+
   Takes a list of seriesLists and reduces it to a list of series by means of the reduceFunction.
 
   Reduction is performed by matching the reduceNode in each series against the list of
   reduceMatchers. Then each series is passed to the reduceFunction as arguments in the order
   given by reduceMatchers. The reduceFunction should yield a single series.
 
-  Example::
-
-    reduce(map(servers.*.disk.*,1),3,"asPercent","bytes_used","total_bytes") =>
-
-        asPercent(servers.server1.disk.bytes_used,servers.server1.disk.total_bytes),
-        asPercent(servers.server2.disk.bytes_used,servers.server2.disk.total_bytes),
-        ...
-        asPercent(servers.serverN.disk.bytes_used,servers.serverN.disk.total_bytes)
-
   The resulting list of series are aliased so that they can easily be nested in other functions.
-  In the above example, the resulting series names would become::
 
-    servers.server1.disk.reduce.asPercent,
-    servers.server2.disk.reduce.asPercent,
-    ...
-    servers.serverN.disk.reduce.asPercent
+  **Example**: Map/Reduce asPercent(bytes_used,total_bytes) for each server
+
+  Assume that metrics in the form below exist:
+
+  .. code-block:: none
+
+       servers.server1.disk.bytes_used
+       servers.server1.disk.total_bytes
+       servers.server2.disk.bytes_used
+       servers.server2.disk.total_bytes
+       servers.server3.disk.bytes_used
+       servers.server3.disk.total_bytes
+       ...
+       servers.serverN.disk.bytes_used
+       servers.serverN.disk.total_bytes
+
+  To get the percentage of disk used for each server:
+
+  .. code-block:: none
+
+      reduceSeries(mapSeries(servers.*.disk.*,1),"asPercent",3,"bytes_used","total_bytes") =>
+
+        alias(asPercent(servers.server1.disk.bytes_used,servers.server1.disk.total_bytes),"servers.server1.disk.reduce.asPercent"),
+        alias(asPercent(servers.server2.disk.bytes_used,servers.server2.disk.total_bytes),"servers.server2.disk.reduce.asPercent"),
+        alias(asPercent(servers.server3.disk.bytes_used,servers.server3.disk.total_bytes),"servers.server3.disk.reduce.asPercent"),
+        ...
+        alias(asPercent(servers.serverN.disk.bytes_used,servers.serverN.disk.total_bytes),"servers.serverN.disk.reduce.asPercent")
+
+  In other words, we will get back the following metrics::
+
+      servers.server1.disk.reduce.asPercent
+      servers.server2.disk.reduce.asPercent
+      servers.server3.disk.reduce.asPercent
+      ...
+      servers.serverN.disk.reduce.asPercent
+
+  .. seealso:: :py:func:`mapSeries`
+
   """
   metaSeries = {}
   keys = []
