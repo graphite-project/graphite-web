@@ -1,7 +1,11 @@
 Installing From Pip
 ===================
-Versioned Graphite releases can be installed via `pip <http://pypi.python.org/pypi/pip>`_. When installing with pip,
-Installation of dependencies will automatically be attempted.
+
+Versioned Graphite releases can be installed via `pip <http://pypi.python.org/pypi/pip>`_. When installing with pip, Installation of dependencies will automatically be attempted.
+
+.. note::
+
+  In order to install carbon, you must install the Python Development Headers.  In Debian-based distributions, this will require ``apt-get install python-dev``, and in Red Hat-based distributions you will run ``yum install python-devel``.
 
 Installing in the Default Location
 ----------------------------------
@@ -21,9 +25,7 @@ simply execute as root:
 
 Installing Carbon in a Custom Location
 --------------------------------------
-Installation of Carbon in a custom location with `pip` is similar to doing so from a source install.
-Arguments to the underlying ``setup.py`` controlling installation location can be passed through `pip`
-with the ``--install-option`` option.
+Installation of Carbon in a custom location with `pip` is similar to doing so from a source install. Arguments to the underlying ``setup.py`` controlling installation location can be passed through `pip` with the ``--install-option`` option.
 
 See :ref:`carbon-custom-location-source` for details of locations and available arguments
 
