@@ -292,7 +292,7 @@ def multiplySeriesWithWildcards(requestContext, seriesList, *position): #XXX
 
 def diffSeries(requestContext, *seriesLists):
   """
-  Can take two or more metrics, or a single metric and a constant.
+  Take two or more metrics.
   Subtracts parameters 2 through n from parameter 1.
 
   Example:
@@ -300,7 +300,6 @@ def diffSeries(requestContext, *seriesLists):
   .. code-block:: none
 
     &target=diffSeries(service.connections.total,service.connections.failed)
-    &target=diffSeries(service.connections.total,5)
 
   """
   (seriesList,start,end,step) = normalize(seriesLists)
