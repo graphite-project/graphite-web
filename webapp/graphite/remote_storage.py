@@ -108,9 +108,9 @@ class FindRequest(object):
     for node_info in results:
       if node_info.get('is_leaf'):
         reader = RemoteReader(self.store, node_info, bulk_query=self.query.pattern)
-        node = LeafNode(node_info['metric_path'], reader)
+        node = LeafNode(node_info['path'], reader)
       else:
-        node = BranchNode(node_info['metric_path'])
+        node = BranchNode(node_info['path'])
 
       node.local = False
       yield node
