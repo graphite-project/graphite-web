@@ -1,4 +1,5 @@
 MANIFEST
+.vagrant/
 _trial_temp
 build
 dist

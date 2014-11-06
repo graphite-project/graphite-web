@@ -111,6 +111,9 @@ ALLOWED_HOSTS = [ '*' ]
 # Override to link a different URL for login (e.g. for django_openid_auth)
 LOGIN_URL = reverse_lazy('account_login')
 
+# Set the default timezone to UTC
+TIME_ZONE = 'UTC'
+
 # Set to True to require authentication to save or delete dashboards
 DASHBOARD_REQUIRE_AUTHENTICATION = False
 # Require Django change/delete permissions to save or delete dashboards.
@@ -227,3 +230,5 @@ if USE_LDAP_AUTH:
 
 if SECRET_KEY == 'UNSAFE_DEFAULT':
   warn('SECRET_KEY is set to an unsafe default. This should be set in local_settings.py for better security')
+
+USE_TZ = True
