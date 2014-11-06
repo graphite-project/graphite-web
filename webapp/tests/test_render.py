@@ -106,3 +106,29 @@ class RenderTest(TestCase):
         end_time = datetime.fromtimestamp(1000)
         self.assertEqual(hashData(targets, start_time, end_time),
                         hashData(reversed(targets), start_time, end_time))
+
+    def test_correct_timezone(self):
+        url = reverse('graphite.render.views.renderView')
+        response = self.client.get(url, {
+                 'target': 'constantLine(12)',
+                 'format': 'json',
+                 'from': '07:01_20140226',
+                 'until': '08:01_20140226',
+                 # tz is UTC
+        })
+        data = json.loads(response.content)[0]['datapoints']
+        # all the from/until/tz combinations lead to the same window
+        expected = [[12, 1393398060], [12, 1393401660]]
+        self.assertEqual(data, expected)
+
+        response = self.client.get(url, {
+                 'target': 'constantLine(12)',
+                 'format': 'json',
+                 'from': '08:01_20140226',
+                 'until': '09:01_20140226',
+                 'tz': 'Europe/Berlin',
+        })
+        data = json.loads(response.content)[0]['datapoints']
+        # all the from/until/tz combinations lead to the same window
+        expected = [[12, 1393398060], [12, 1393401660]]
+        self.assertEqual(data, expected)
