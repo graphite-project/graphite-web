@@ -370,7 +370,7 @@ def fetchData(requestContext, pathExpr):
         if not series_handled:
           seriesList.append(ts)
 
-  return seriesList
+  return sorted(seriesList, key=lambda series: series.name)
 
 
 def mergeResults(dbResults, cacheResults):
