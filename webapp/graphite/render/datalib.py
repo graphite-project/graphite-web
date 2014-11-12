@@ -370,6 +370,8 @@ def fetchData(requestContext, pathExpr):
         if not series_handled:
           seriesList.append(ts)
 
+  # Stabilize the order of the results by ordering the resulting series by name.
+  # This returns the result ordering to the behavior observed pre PR#1010.
   return sorted(seriesList, key=lambda series: series.name)
 
 
