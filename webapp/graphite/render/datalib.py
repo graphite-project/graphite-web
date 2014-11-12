@@ -15,6 +15,8 @@ limitations under the License."""
 import socket
 import struct
 import time
+import threading
+import Queue
 from django.conf import settings
 from graphite.logger import log
 from graphite.storage import STORE, LOCAL_STORE
@@ -289,8 +291,22 @@ def fetchData(requestContext, pathExpr):
   if not requestContext['localOnly']:
     remote_nodes = [ RemoteNode(store, pathExpr, True) for store in STORE.remote_stores ]
 
+    remote_fetches = []
+    result_queue = Queue.Queue()
     for node in remote_nodes:
-      results = node.fetch(startTime, endTime, now)
+      fetch_thread = threading.Thread(target=node.fetch,
+                                      args=(startTime, endTime, now, result_queue))
+      fetch_thread.start()
+
+      remote_fetches.append(fetch_thread)
+
+    for fetch_thread in remote_fetches:
+      fetch.join()
+
+      if not result_queue.empty():
+        results = result_queue.fetch()
+      else:
+        continue
 
       for series in results:
         ts = TimeSeries(series['name'], series['start'], series['end'], series['step'], series['values'])
