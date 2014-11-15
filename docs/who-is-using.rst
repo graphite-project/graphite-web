@@ -13,6 +13,7 @@ Here are some organizations that use Graphite:
 * `Google <http://google-opensource.blogspot.com/2010/09/get-ready-to-rocksteady.html>`_ (opensource Rocksteady project)
 * `ImmobilienScout24 <http://www.immobilienscout24.de/>`_
 * `Instagram <http://instagram.com/>`_
+* `ITV <http://www.itv.com/>`_
 * `Media Temple <http://mediatemple.net/>`_
 * `Orbitz <http://www.orbitz.com/>`_
 * `Sears Holdings <http://www.sears.com/>`_
