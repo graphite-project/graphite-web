@@ -1,24 +1,21 @@
 import datetime
-import time
+
+import pytz
 
 from django.contrib.sites.models import RequestSite
 from django.shortcuts import render_to_response, get_object_or_404
-from django.utils.timezone import localtime, now
+from django.utils.timezone import now, make_aware
 
 from graphite.compat import HttpResponse
-from graphite.util import json
-from graphite.events import models
+from graphite.util import json, epoch
+from graphite.events.models import Event
 from graphite.render.attime import parseATTime
-
-
-def to_timestamp(dt):
-    return time.mktime(dt.timetuple())
 
 
 class EventEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, datetime.datetime):
-            return to_timestamp(obj)
+            return epoch(obj)
         return json.JSONEncoder.default(self, obj)
 
 
@@ -33,7 +30,7 @@ def view_events(request):
 
 
 def detail(request, event_id):
-    e = get_object_or_404(models.Event, pk=event_id)
+    e = get_object_or_404(Event, pk=event_id)
     context = {'event': e}
     return render_to_response("event.html", context)
 
@@ -43,20 +40,22 @@ def post_event(request):
         event = json.loads(request.body)
         assert isinstance(event, dict)
 
-        values = {}
-        values["what"] = event["what"]
-        values["tags"] = event.get("tags", None)
-        values["when"] = datetime.datetime.fromtimestamp(
-            event.get("when", time.time()))
-        if "data" in event:
-            values["data"] = event["data"]
-
-        e = models.Event(**values)
-        e.save()
-
+        if 'when' in event:
+            when = make_aware(
+                datetime.datetime.utcfromtimestamp(event['when']),
+                pytz.utc)
+        else:
+            when = now()
+        Event.objects.create(
+            what=event['what'],
+            tags=event.get("tags"),
+            when=when,
+            data=event.get("data", ""),
+        )
         return HttpResponse(status=200)
     else:
         return HttpResponse(status=405)
+
 
 def get_data(request):
     if 'jsonp' in request.REQUEST:
@@ -71,20 +70,19 @@ def get_data(request):
     return response
 
 def fetch(request):
-    #XXX we need to move to USE_TZ=True to get rid of localtime() conversions
-    if request.GET.get("from", None) is not None:
-        time_from = localtime(parseATTime(request.GET["from"])).replace(tzinfo=None)
+    if request.GET.get("from") is not None:
+        time_from = parseATTime(request.GET["from"])
     else:
         time_from = datetime.datetime.fromtimestamp(0)
 
-    if request.GET.get("until", None) is not None:
-        time_until = localtime(parseATTime(request.GET["until"])).replace(tzinfo=None)
+    if request.GET.get("until") is not None:
+        time_until = parseATTime(request.GET["until"])
     else:
         time_until = now()
 
-    tags = request.GET.get("tags", None)
+    tags = request.GET.get("tags")
     if tags is not None:
         tags = request.GET.get("tags").split(" ")
 
     return [x.as_dict() for x in
-            models.Event.find_events(time_from, time_until, tags=tags)]
+            Event.find_events(time_from, time_until, tags=tags)]
