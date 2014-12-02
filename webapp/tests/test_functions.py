@@ -412,3 +412,8 @@ class FunctionsTest(TestCase):
             'data': [],
         }, seriesList, '00:03 19700101', '00:08 19700101')
         self.assertEqual(results, expectedResult)
+
+    def test_legendValue_with_system_preserves_sign(self):
+        seriesList = [TimeSeries("foo", 0, 1, 1, [-10000, -20000, -30000, -40000])]
+        result = functions.legendValue({}, seriesList, "avg", "si")
+        self.assertEqual(result[0].name, "foo                 avg  -25.00K   ")
