@@ -1,8 +1,8 @@
 Configuring The Webapp
 ======================
 
-Running the webapp with mod_wsgi as non-root application (Apache)
------------------------------------------------------------------
+Running the webapp with mod_wsgi as URL-prefixed application (Apache)
+---------------------------------------------------------------------
 
 
 When using the new ``URL_PREFIX`` parameter in ``local_settings.py`` the 
