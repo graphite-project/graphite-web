@@ -669,7 +669,7 @@ def movingMedian(requestContext, seriesList, windowSize):
   Takes one metric or a wildcard seriesList followed by a number N of datapoints
   or a quoted string with a length of time like '1hour' or '5min' (See ``from /
   until`` in the render\_api_ for examples of time formats). Graphs the
-  median of the preceeding datapoints for each point on the graph. All
+  median of the preceding datapoints for each point on the graph. All
   previous datapoints are set to None at the beginning of the graph.
 
   Example:
@@ -897,7 +897,7 @@ def movingAverage(requestContext, seriesList, windowSize):
   Takes one metric or a wildcard seriesList followed by a number N of datapoints
   or a quoted string with a length of time like '1hour' or '5min' (See ``from /
   until`` in the render\_api_ for examples of time formats). Graphs the
-  average of the preceeding datapoints for each point on the graph. All
+  average of the preceding datapoints for each point on the graph. All
   previous datapoints are set to None at the beginning of the graph.
 
   Example:
@@ -2384,7 +2384,7 @@ def timeStack(requestContext, seriesList, timeShiftUnit, timeShiftStart, timeShi
   length of time (See ``from / until`` in the render\_api_ for examples of time formats).
   Also takes a start multiplier and end multiplier for the length of time
 
-  create a seriesList which is composed the orginal metric series stacked with time shifts
+  create a seriesList which is composed the original metric series stacked with time shifts
   starting time shifts from the start multiplier through the end multiplier
 
   Useful for looking at history, or feeding into seriesAverage or seriesStdDev

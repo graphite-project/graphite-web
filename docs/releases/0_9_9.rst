@@ -47,7 +47,7 @@ Other Stuff
 As for the current development focus, I can now finally work on the long-awaited merge of the 1.1
 branch into trunk. The Ceres database will be in the next release, I'm going to try and merge it in
 (including the new refactored storage API) in the next week or so. I'll announce on graphite-dev
-when its available for testing. My aim is to get it fully documented for 1.0, which I'm targetting
+when its available for testing. My aim is to get it fully documented for 1.0, which I'm targeting
 for end of this year. There might be an 0.9.10 first, depending on how many bugs are found in 0.9.9.
 
 As always, thanks to everyone who has contributed, especially the following rockstar crew that made

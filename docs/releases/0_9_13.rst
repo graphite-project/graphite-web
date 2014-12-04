@@ -98,7 +98,7 @@ Graphite-web
 * Fix TypeError with ``sum()`` function (macolu)
 * Remote storage should return ``None`` when ``seriesList`` is empty (steve-dave)
 * Fix project url in ``setup.py`` (esc)
-* Fix condition where missing ``until`` paramater caused TypeError (steve-dave)
+* Fix condition where missing ``until`` parameter caused TypeError (steve-dave)
 * Remove old jQuery workaround in Graphlot (steve-dave)
 * Fix ``now`` handling in render queries (jcsp)
 * Fix ``PICKLE_SAFE`` for CarbonLink queries (Dieterbe)

@@ -19,7 +19,7 @@ class FunctionsTest(TestCase):
         config = [20, 50, 30, 40]
         seriesList = [range(max_val) for max_val in config]
 
-        # Expect the test results to be returned in decending order
+        # Expect the test results to be returned in descending order
         expected = [
             [seriesList[1]],
             [seriesList[1], seriesList[3]],

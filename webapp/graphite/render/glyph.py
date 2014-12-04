@@ -555,7 +555,7 @@ class LineGraph(Graph):
     if len(self.dataRight) > 0:
       self.secondYAxis = True
 
-    #API compatibilty hacks
+    #API compatibility hacks
     if params.get('graphOnly',False):
       params['hideLegend'] = True
       params['hideGrid'] = True
@@ -870,7 +870,7 @@ class LineGraph(Graph):
       else:
         self.setColor( series.color, series.options.get('alpha') or 1.0 )
 
-      # The number of preceeding datapoints that had a None value.
+      # The number of preceding datapoints that had a None value.
       consecutiveNones = 0
 
       for index, value in enumerate(series):
