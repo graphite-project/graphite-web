@@ -27,7 +27,7 @@ if django.VERSION < (1, 5):  # load the "future" {% url %} tag
     add_to_builtins('django.templatetags.future')
 
 if django.VERSION < (1, 7):
-    # Django doing autodiscover automaticly:
+    # Django doing autodiscover automatically:
     # https://docs.djangoproject.com/en/dev/releases/1.7/#app-loading-refactor
     admin.autodiscover()
 

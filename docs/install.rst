@@ -32,7 +32,7 @@ There are also several other dependencies required for additional features:
 * LDAP authentication: `python-ldap`_ (for LDAP authentication support in the webapp)
 * AMQP support: `txamqp`_
 * RRD support: `python-rrdtool`_
-* Dependant modules for additional database support (MySQL, PostgreSQL, etc). See `Django database install`_ instructions and the `Django database`_ documentation for details
+* Dependent modules for additional database support (MySQL, PostgreSQL, etc). See `Django database install`_ instructions and the `Django database`_ documentation for details
 
 .. seealso:: On some systems it is necessary to install fonts for Cairo to use. If the
              webapp is running but all graphs return as broken images, this may be why.

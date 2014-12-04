@@ -11,7 +11,7 @@ The default graphite setup consists of:
 * Graphite-web reading and graphing data from the database
 
 It is possible to switch the storage layer to something different than
-Whisper to accomodate specific needs. The setup above would become:
+Whisper to accommodate specific needs. The setup above would become:
 
 * An alternative database
 * A carbon daemon or alternative daemon for writing to the database
