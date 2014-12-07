@@ -57,6 +57,13 @@ Graphite-web
 * Add Composer button to load existing graph url (justino)
 * Add ``maxDataPoints`` to limit number of returned datapoints for json requests (philiphoy, gingerlime)
 * Refactor json responses for clarity (whilp)
+* Adding graphana color scheme (lainSR)
+* Add optional 'now' parameter to remote node fetch (Kixeye)
+* Graphlot was completely removed (obfuscurity)
+* Use cairocffi instead of pycairo (brutasse, esc)
+* New icons converted from Font Awesome project (obfuscurity)
+* Adding tests for Django 1.7 (brutasse, syepes)
+* Bulk-fetch metrics from remote hosts (bmhatfield, deniszh, favoretti)
 
 Carbon
 ^^^^^^
@@ -105,12 +112,19 @@ Graphite-web
 * Decimals not printed for ``cactiStyle()`` (SuminAndrew, drawks)
 * Typo in exception name (also)
 * Fix assumption that RemoteNode inherits from Node (mleinart)
+* Updating the copyright notice (gwaldo)
 * CACHE_* settings are deprecated in Django 1.3, so, was replaced with CACHES setting (brutasse, deniszh)
+* Fix data cache invalidation (esc, deniszh)
+* Fixing documentation for divideSeries (gwaldo)
+* Make HTTP clients only cache graphs as long as we keep them in memcached (aroben, deniszh)
+* DST fixes, backport from graphite-api (brutasse, deniszh)
+* HttpRequest.raw_post_data was deprecated in Django 1.4 (obfuscurity)
+* Fixing XSS in browser and composer (illicium, deniszh)
+* Docs: Python Dev Headers needed for custom install location (gwaldo)
 
 Carbon
 ^^^^^^
 * Restore recursive mkdir on ``LOG_DIR`` (jamesjuran)
-* Fix per-host replication (dkulikovsky, deniszh)
 * More accurate queue length reporting (pcn, bitprophet)
 * Set ownership on log subdirectories if ``USER`` is defined (jamesjuran)
 * Improved documentation for ``FORWARD_ALL`` (hdoshi)
@@ -118,6 +132,15 @@ Carbon
 * Unable to load ``AGGREGATION_RULES`` (drawks)
 * Compatibility with Twisted 13.2.0 (esc, drawks)
 * Incorrect log rotation documentation (mleinart)
+* Fix carbon-cache cpu usage 100% when sent metric with too big name (jssr, deniszh)
+* Fix aggregator replication factor setting (jssr, deniszh)
+* Change the max update on shutdown (f80)
+* Document the fact that one can use regexps in the aggregation-rules (ctavan)
+* Move tests to tox (jssr)
+* Add hup signal handler (jssr)
+* Fixing instrumentation (avishai-ish-shalom, jssr)
+* Fix exception handling (steve-dave)
+* Fix CACHE_WRITE_STRATEGY (jssr)
 
 Whisper
 ^^^^^^^
