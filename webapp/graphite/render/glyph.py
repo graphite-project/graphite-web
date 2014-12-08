@@ -216,6 +216,9 @@ class Graph:
       r,g,b = ( int(s[0:2],base=16), int(s[2:4],base=16), int(s[4:6],base=16) )
       if len(s) == 8 and not forceAlpha:
         alpha = float( int(s[6:8],base=16) ) / 255.0
+    elif isinstance(value, int) and len(str(value)) == 6:
+        s = str(value)
+        r,g,b = ( int(s[0:2],base=16), int(s[2:4],base=16), int(s[4:6],base=16) )
     else:
       raise ValueError, "Must specify an RGB 3-tuple, an html color string, or a known color alias!"
     r,g,b = [float(c) / 255.0 for c in (r,g,b)]
@@ -945,7 +948,7 @@ class LineGraph(Graph):
 
       if 'stacked' in series.options:
         if self.lineMode == 'staircase':
-          xPos = x 
+          xPos = x
         else:
           xPos = x-series.xStep
         if self.secondYAxis:
