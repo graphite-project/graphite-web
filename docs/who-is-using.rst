@@ -16,6 +16,7 @@ Here are some organizations that use Graphite:
 * `ITV <http://www.itv.com/>`_
 * `Media Temple <http://mediatemple.net/>`_
 * `Orbitz <http://www.orbitz.com/>`_
+* `Rubicon Project <http://www.rubiconproject.com/>`_
 * `Sears Holdings <http://www.sears.com/>`_
 * `SocialTwist <http://www.socialtwist.com>`_
 * `Uber <http://uber.com/>`_
