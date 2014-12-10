@@ -1,8 +1,10 @@
+[![Build Status](https://travis-ci.org/graphite-project/graphite-web.png?branch=master)](https://travis-ci.org/graphite-project/graphite-web)
+
 ## Overview
 
 Graphite consists of two major components:
 
-1. the frontend Django webapp that runs under mod_python Apache
+1. the frontend Django webapp that runs under Apache/mod_wsgi
 2. the backend carbon-cache.py daemon
 
 Client applications connect to the running carbon-cache.py daemon on port 2003 and send it
@@ -26,8 +28,8 @@ graphs of that data in the frontend webapp.
 
 ## Webapp Installation
 
-Use the instructions in the INSTALL file.
-
+Use the instructions in the `docs/` folder or [on
+readthedocs](http://graphite.readthedocs.org/).
 
 ## Running carbon-cache.py
 
@@ -46,4 +48,4 @@ that sends loadavg data for your local machine to carbon on a minutely basis.
 
 The default storage schema stores data in one-minute intervals for 2 hours.
 This is probably not what you want so you should create a custom storage schema
-according to the docs on the graphite wiki (http://graphite.wikidot.com).
+according to the docs on the graphite wiki (http://graphite.readthedocs.org/).

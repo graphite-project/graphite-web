@@ -12,7 +12,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
-import os, cairo, math, itertools, re
+import math, itertools, re
+try:
+    import cairo
+except ImportError:
+    import cairocffi as cairo
+
 import StringIO
 from datetime import datetime, timedelta
 from urllib import unquote_plus
@@ -79,7 +84,7 @@ YEAR = DAY * 365
 try:
     datetime.now().strftime("%a %l%p")
     percent_l_supported = True
-except ValueError, e:
+except ValueError as e:
     percent_l_supported = False
 
 xAxisConfigs = (
@@ -150,7 +155,7 @@ class Graph:
     if self.logBase:
       if self.logBase == 'e':
         self.logBase = math.e
-      elif self.logBase <= 0:
+      elif self.logBase < 1:
         self.logBase = None
         params['logBase'] = None
       else:
@@ -209,7 +214,7 @@ class Graph:
       if len(s) == 8 and not forceAlpha:
         alpha = float( int(s[6:8],base=16) ) / 255.0
     else:
-      raise ValueError, "Must specify an RGB 3-tuple, an html color string, or a known color alias!"
+      raise ValueError("Must specify an RGB 3-tuple, an html color string, or a known color alias!")
     r,g,b = [float(c) / 255.0 for c in (r,g,b)]
     self.ctx.set_source_rgba(r,g,b,alpha)
 
@@ -490,10 +495,12 @@ class Graph:
         for char in re.findall(r'L -(\d+) -\d+', match.group(1)):
           name += chr(int(char))
         return '</g><g data-header="true" class="%s">' % name
-      svgData = re.sub(r'<path.+?d="M -88 -88 (.+?)"/>', onHeaderPath, svgData)
+      (svgData, subsMade) = re.subn(r'<path.+?d="M -88 -88 (.+?)"/>', onHeaderPath, svgData)
 
       # Replace the first </g><g> with <g>, and close out the last </g> at the end
-      svgData = svgData.replace('</g><g data-header','<g data-header',1) + "</g>"
+      svgData = svgData.replace('</g><g data-header','<g data-header',1)
+      if subsMade > 0:
+        svgData += "</g>"
       svgData = svgData.replace(' data-header="true"','')
 
       fileObj.write(svgData)
@@ -548,7 +555,7 @@ class LineGraph(Graph):
     if len(self.dataRight) > 0:
       self.secondYAxis = True
 
-    #API compatibilty hacks
+    #API compatibility hacks
     if params.get('graphOnly',False):
       params['hideLegend'] = True
       params['hideGrid'] = True
@@ -863,7 +870,7 @@ class LineGraph(Graph):
       else:
         self.setColor( series.color, series.options.get('alpha') or 1.0 )
 
-      # The number of preceeding datapoints that had a None value.
+      # The number of preceding datapoints that had a None value.
       consecutiveNones = 0
 
       for index, value in enumerate(series):
@@ -941,7 +948,7 @@ class LineGraph(Graph):
 
       if 'stacked' in series.options:
         if self.lineMode == 'staircase':
-          xPos = x 
+          xPos = x
         else:
           xPos = x-series.xStep
         if self.secondYAxis:
@@ -1414,8 +1421,6 @@ class LineGraph(Graph):
       labels = self.yLabelValuesL
     else:
       labels = self.yLabelValues
-    if self.logBase:
-      labels.append(self.logBase * max(labels))
 
     for i, value in enumerate(labels):
       self.ctx.set_line_width(0.4)

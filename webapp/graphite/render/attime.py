@@ -14,24 +14,22 @@ limitations under the License."""
 
 from datetime import datetime,timedelta
 from time import daylight
-from django.conf import settings
-
-import pytz
+from django.utils import timezone
 
 months = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec']
 weekdays = ['sun','mon','tue','wed','thu','fri','sat']
 
 def parseATTime(s, tzinfo=None):
   if tzinfo is None:
-    tzinfo = pytz.timezone(settings.TIME_ZONE)
+    tzinfo = timezone.get_current_timezone()
   s = s.strip().lower().replace('_','').replace(',','').replace(' ','')
   if s.isdigit():
     if len(s) == 8 and int(s[:4]) > 1900 and int(s[4:6]) < 13 and int(s[6:]) < 32:
       pass #Fall back because its not a timestamp, its YYYYMMDD form
     else:
       return datetime.fromtimestamp(int(s),tzinfo)
-  elif ':' in s:
-    return datetime.strptime(s,'%H:%M%Y%m%d')
+  elif ':' in s and len(s) == 13:
+    return tzinfo.localize(datetime.strptime(s,'%H:%M%Y%m%d'), daylight)
   if '+' in s:
     ref,offset = s.split('+',1)
     offset = '+' + offset
@@ -40,11 +38,11 @@ def parseATTime(s, tzinfo=None):
     offset = '-' + offset
   else:
     ref,offset = s,''
-  return tzinfo.localize(parseTimeReference(ref), daylight) + parseTimeOffset(offset)
+  return (parseTimeReference(ref) + parseTimeOffset(offset)).astimezone(tzinfo)
 
 
 def parseTimeReference(ref):
-  if not ref or ref == 'now': return datetime.now()
+  if not ref or ref == 'now': return timezone.now()
 
   #Time-of-day reference
   i = ref.find(':')
@@ -67,7 +65,7 @@ def parseTimeReference(ref):
     hour,min = 16,0
     ref = ref[7:]
 
-  refDate = datetime.now().replace(hour=hour,minute=min,second=0)
+  refDate = timezone.now().replace(hour=hour,minute=min,second=0)
 
   #Day reference
   if ref in ('yesterday','today','tomorrow'): #yesterday, today, tomorrow
@@ -105,7 +103,7 @@ def parseTimeReference(ref):
     elif ref[-1:].isdigit():
       refDate = refDate.replace(day= int(ref[-1:]))
     else:
-      raise Exception, "Day of month required after month name"
+      raise Exception("Day of month required after month name")
   elif ref[:3] in weekdays: #DayOfWeek (Monday, etc)
     todayDayName = refDate.strftime("%a").lower()[:3]
     today = weekdays.index( todayDayName )
@@ -114,7 +112,7 @@ def parseTimeReference(ref):
     if dayOffset < 0: dayOffset += 7
     refDate -= timedelta(days=dayOffset)
   elif ref:
-    raise Exception, "Unknown day reference"
+    raise Exception("Unknown day reference")
   return refDate
 
 
@@ -159,4 +157,4 @@ def getUnitString(s):
   if s.startswith('w'): return 'weeks'
   if s.startswith('mon'): return 'months'
   if s.startswith('y'): return 'years'
-  raise Exception, "Invalid offset unit '%s'" % s
+  raise Exception("Invalid offset unit '%s'" % s)
