@@ -36,7 +36,7 @@
     {% endif %}
 
     {% if querystring %}
-    var queryString = JSON.parse('{{ querystring }}');
+    var queryString = JSON.parse('{{ querystring|escapejs }}');
     {% endif %}
 
     var permissions = JSON.parse('{{ permissions }}');
