@@ -17,6 +17,7 @@ Basic Graphite requirements:
 * `django-tagging`_ 0.3.1 or greater
 * `Twisted`_ 8.0 or greater (10.0+ recommended)
 * `zope-interface`_ (often included in Twisted package dependency)
+* `pytz`_
 * `fontconfig`_ and at least one font package (a system package usually)
 * A WSGI server and web server. Popular choices are:
   - `Apache`_ with `mod_wsgi`_
@@ -176,6 +177,7 @@ Despair Not!  Even though running Graphite on Windows is completely unsupported 
 .. _python-memcache: http://www.tummy.com/Community/software/python-memcached/
 .. _python-rrdtool: http://oss.oetiker.ch/rrdtool/prog/rrdpython.en.html
 .. _python-sqlite2: http://code.google.com/p/pysqlite/
+.. _pytz: https://pypi.python.org/pypi/pytz/
 .. _simplejson: http://pypi.python.org/pypi/simplejson/
 .. _Twisted: http://twistedmatrix.com/
 .. _txAMQP: https://launchpad.net/txamqp/
