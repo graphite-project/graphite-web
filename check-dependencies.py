@@ -87,6 +87,14 @@ except ImportError:
     fatal += 1
 
 
+# Test for a pytz module
+try:
+  import pytz
+except ImportError:
+  print "[FATAL] Unable to import the 'pytz' module, do you have pytz installed for python %s?" % py_version
+  fatal += 1
+
+
 # Test for zope.interface
 try:
   from zope.interface import Interface
