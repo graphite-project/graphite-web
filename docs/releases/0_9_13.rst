@@ -141,6 +141,7 @@ Carbon
 * Fixing instrumentation (avishai-ish-shalom, jssr)
 * Fix exception handling (steve-dave)
 * Fix CACHE_WRITE_STRATEGY (jssr)
+* Fix aggregated metrics (pgul, ctavan)
 
 Whisper
 ^^^^^^^
