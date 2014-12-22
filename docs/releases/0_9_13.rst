@@ -64,6 +64,7 @@ Graphite-web
 * New icons converted from Font Awesome project (obfuscurity)
 * Adding tests for Django 1.7 (brutasse, syepes)
 * Bulk-fetch metrics from remote hosts (bmhatfield, deniszh, favoretti)
+* Perform all remote fetches in parallel (bmhatfield)
 
 Carbon
 ^^^^^^
