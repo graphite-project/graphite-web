@@ -103,7 +103,7 @@ class RemoteNode:
     self.__isLeaf = isLeaf
 
 
-  def fetch(self, startTime, endTime, now=None):
+  def fetch(self, startTime, endTime, now=None, result_queue=None):
     if not self.__isLeaf:
       return []
 
@@ -127,7 +127,10 @@ class RemoteNode:
 
     seriesList = unpickle.loads(rawData)
 
-    return seriesList
+    if result_queue:
+      result_queue.put(seriesList)
+    else:
+      return seriesList
 
   def isLeaf(self):
     return self.__isLeaf
