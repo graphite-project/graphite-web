@@ -1,6 +1,6 @@
 .. _0-9-13:
 
-0.9.13 -- UNDER DEVELOPMENT
+0.9.13
 ===========================
 *no release date*
 
@@ -27,6 +27,8 @@ awareness of any new features.
 
 Security Notes
 --------------
+No known security issues.
+
 
 New Features
 ------------
