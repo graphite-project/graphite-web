@@ -96,6 +96,7 @@ class TimeSeries(list):
       'end' : self.end,
       'step' : self.step,
       'values' : list(self),
+      'pathExpression' : self.pathExpression
     }
 
 
@@ -252,12 +253,114 @@ for host in settings.CARBONLINK_HOSTS:
 CarbonLink = CarbonLinkPool(hosts, settings.CARBONLINK_TIMEOUT)
 
 
-# Data retrieval API
-def fetchData(requestContext, pathExpr):
-  seriesList = []
+def _timebounds(requestContext):
   startTime = int(epoch(requestContext['startTime']))
   endTime = int(epoch(requestContext['endTime']))
   now = int(epoch(requestContext['now']))
+
+  return (startTime, endTime, now)
+
+def _prefetchMetricKey(pathExpression, start, end):
+  return '-'.join([pathExpression, str(start), str(end)])
+
+def prefetchRemoteData(requestContext, pathExpressions):
+  # if required, fetch data from all remote nodes
+  # storing the result in a big hash of the form:
+  # data[node][hash(originalPathExpression, start, end)] = [ matchingSeries, matchingSeries2, ... ]
+  prefetchedRemoteData = {}
+  if requestContext['localOnly']:
+    return prefetchedRemoteData
+
+  (startTime, endTime, now) = _timebounds(requestContext)
+  result_queue = fetchRemoteData(requestContext, pathExpressions, False)
+  while not result_queue.empty():
+    try:
+      (node, results) = result_queue.get_nowait()
+    except Queue.Empty:
+      log.exception("result_queue not empty, but unable to retrieve results")
+
+    # prefill result with empty list
+    # Needed to be able to detect if a query has already been made
+    prefetchedRemoteData[node] = {}
+    for pe in pathExpressions:
+      prefetchedRemoteData[node][_prefetchMetricKey(pe, startTime, endTime)] = []
+
+    for series in results:
+      # series.pathExpression is original target, ie. containing wildcards
+      # XXX would be nice to disable further prefetch calls to that backend
+      try:
+        k = _prefetchMetricKey(series['pathExpression'], startTime, endTime)
+      except KeyError:
+        log.exception("Remote node %s doesn't support prefetching data... upgrade!" % node)
+        raise
+        
+      if prefetchedRemoteData[node].get(k) is None:
+        # This should not be needed because of above filling with [],
+        # but could happen if backend sends unexpected stuff
+        prefetchedRemoteData[node][k] = [series]
+      else:
+        prefetchedRemoteData[node][k].append(series)
+
+  return prefetchedRemoteData
+  
+
+def prefetchLookup(requestContext, node):
+  # Returns a seriesList if found in cache
+  # or None if key doesn't exist (aka prefetch didn't cover this pathExpr / timerange
+  (start, end, now) = _timebounds(requestContext)
+  try:
+    cache = requestContext['prefetchedRemoteData'][node.store.host]
+    r = cache[_prefetchMetricKey(node.metric_path, start, end)]
+  except (AttributeError, KeyError):
+    r = None
+
+  return r
+
+def fetchRemoteData(requestContext, pathExpr, usePrefetchCache=settings.PREFETCH_REMOTE_DATA):
+  (startTime, endTime, now) = _timebounds(requestContext)
+  remote_nodes = [ RemoteNode(store, pathExpr, True) for store in STORE.remote_stores ]
+
+  # Go through all of the remote_nodes, and launch a remote_fetch for each one.
+  # Each fetch will take place in its own thread, since it's naturally parallel work.
+  # Notable: return the 'seriesList' result from each node.fetch into result_queue
+  # instead of directly from the method. Queue.Queue() is threadsafe.
+  remote_fetches = []
+  result_queue = Queue.Queue()
+  for node in remote_nodes:
+      need_fetch = True
+      if usePrefetchCache:
+        series = prefetchLookup(requestContext, node)
+        # Will be either:
+        #   []: prefetch done, returned no data. Do not fetch
+        #   seriesList: prefetch done, returned data, do not fetch
+        #   None: prefetch not done, FETCH
+        if series is not None:
+          result_queue.put( (node, series) )
+          need_fetch = False
+      if need_fetch:
+        fetch_thread = threading.Thread(target=node.fetch,
+                                        args=(startTime, endTime, now, result_queue))
+        fetch_thread.start()
+        remote_fetches.append(fetch_thread)
+
+  # Once the remote_fetches have started, wait for them all to finish. Assuming an
+  # upper bound of REMOTE_STORE_FETCH_TIMEOUT per thread, this should take about that
+  # amount of time (6s by default) at the longest. If every thread blocks permanently,
+  # then this could take a horrible REMOTE_STORE_FETCH_TIMEOUT * num(remote_fetches),
+  # but then that would imply that remote_storage's HTTPConnectionWithTimeout class isn't
+  # working correctly :-)
+  for fetch_thread in remote_fetches:
+    try:
+      fetch_thread.join(settings.REMOTE_STORE_FETCH_TIMEOUT)
+    except:
+      log.exception("Failed to join remote_fetch thread within %ss" % (settings.REMOTE_STORE_FETCH_TIMEOUT))
+
+  return result_queue
+
+# Data retrieval API
+def fetchData(requestContext, pathExpr):
+  seriesList = []
+  (startTime, endTime, now) = _timebounds(requestContext)
 
   dbFiles = [dbFile for dbFile in LOCAL_STORE.find(pathExpr)]
 
@@ -289,32 +392,7 @@ def fetchData(requestContext, pathExpr):
     seriesList.append(series)
 
   if not requestContext['localOnly']:
-    remote_nodes = [ RemoteNode(store, pathExpr, True) for store in STORE.remote_stores ]
-
-    # Go through all of the remote_nodes, and launch a remote_fetch for each one.
-    # Each fetch will take place in its own thread, since it's naturally parallel work.
-    # Notable: return the 'seriesList' result from each node.fetch into result_queue
-    # instead of directly from the method. Queue.Queue() is threadsafe.
-    remote_fetches = []
-    result_queue = Queue.Queue()
-    for node in remote_nodes:
-      fetch_thread = threading.Thread(target=node.fetch,
-                                      args=(startTime, endTime, now, result_queue))
-      fetch_thread.start()
-
-      remote_fetches.append(fetch_thread)
-
-    # Once the remote_fetches have started, wait for them all to finish. Assuming an
-    # upper bound of REMOTE_STORE_FETCH_TIMEOUT per thread, this should take about that
-    # amount of time (6s by default) at the longest. If every thread blocks permanently,
-    # then this could take a horrible REMOTE_STORE_FETCH_TIMEOUT * num(remote_fetches),
-    # but then that would imply that remote_storage's HTTPConnectionWithTimeout class isn't
-    # working correctly :-)
-    for fetch_thread in remote_fetches:
-      try:
-        fetch_thread.join(settings.REMOTE_STORE_FETCH_TIMEOUT)
-      except:
-        log.exception("Failed to join remote_fetch thread within %ss" % (settings.REMOTE_STORE_FETCH_TIMEOUT))
+    result_queue = fetchRemoteData(requestContext, pathExpr)
 
     # Used as a cache to avoid recounting series None values below.
     series_best_nones = {}
@@ -324,7 +402,7 @@ def fetchData(requestContext, pathExpr):
     # to not waiting for remote hosts sequentially.
     while not result_queue.empty():
       try:
-        results = result_queue.get(False)
+        (node, results) = result_queue.get(False)
       except:
         log.exception("result_queue not empty, but unable to retrieve results")
 
