@@ -34,7 +34,7 @@ examples = [ ('examples', glob('examples/example-*')) ]
 
 setup(
   name='graphite-web',
-  version='0.9.12',
+  version='0.9.13',
   url='http://graphite.readthedocs.org',
   author='Chris Davis',
   author_email='chrismd@gmail.com',
