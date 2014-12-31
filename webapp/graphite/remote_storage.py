@@ -102,21 +102,30 @@ class RemoteNode:
     self.fs_path = None
     self.metric_path = metric_path
     self.real_metric = metric_path
-    self.name = metric_path.split('.')[-1]
     self.__isLeaf = isLeaf
+    self.__isBulk = True if isinstance(metric_path, list) else False
+
+    if self.__isBulk:
+      self.name = "Bulk: %s" % self.metric_path
+    else:
+      self.name = metric_path.split('.')[-1]
 
 
   def fetch(self, startTime, endTime, now=None, result_queue=None):
     if not self.__isLeaf:
       return []
+    if self.__isBulk:
+      targets = [ ('target', v) for v in self.metric_path ]
+    else:
+      targets = [ ('target', self.metric_path) ]
 
     query_params = [
       ('local', '1'),
-      ('target', self.metric_path),
       ('format', 'pickle'),
       ('from', str( int(startTime) )),
       ('until', str( int(endTime) ))
     ]
+    query_params.extend(targets)
     if now is not None:
       query_params.append(('now', str( int(now) )))
     query_string = urlencode(query_params)
@@ -131,7 +140,7 @@ class RemoteNode:
     seriesList = unpickle.loads(rawData)
 
     if result_queue:
-      result_queue.put(seriesList)
+      result_queue.put( (self.store.host, seriesList) )
     else:
       return seriesList
 
