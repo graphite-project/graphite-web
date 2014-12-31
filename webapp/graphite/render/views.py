@@ -112,7 +112,7 @@ def renderView(request):
       requestContext['data'] = data = cachedData
     else: # Have to actually retrieve the data now
       targets = requestOptions['targets']
-      if settings.PREFETCH_REMOTE_DATA:
+      if settings.REMOTE_PREFETCH_DATA:
         t = time()
         pathExpressions = extractPathExpressions(targets)
         requestContext['prefetchedRemoteData'] = prefetchRemoteData(requestContext, pathExpressions)
