@@ -10,8 +10,8 @@ Graphite 0.9.13 is now available for usage. Source bundles are available from Gi
 * https://github.com/graphite-project/carbon/archive/0.9.13.tar.gz
 * https://github.com/graphite-project/whisper/archive/0.9.13.tar.gz
 
-Graphite can also be installed from `Pypi <http://pypi.python.org/>`_ via
-`pip <http://www.pip-installer.org/en/latest/index.html>`_. Pypi bundles are here:
+Graphite can also be installed from `PyPI <http://pypi.python.org/>`_ via
+`pip <http://www.pip-installer.org/en/latest/index.html>`_. PyPI bundles are here:
 
 * http://pypi.python.org/pypi/graphite-web/
 * http://pypi.python.org/pypi/carbon/
@@ -20,7 +20,7 @@ Graphite can also be installed from `Pypi <http://pypi.python.org/>`_ via
 Upgrading
 ---------
 Graphite 0.9.13 now requires a Django version of at least 1.4. Ensure this dependency is satisfied
-before updating *graphite-web*
+before updating *graphite-web*.
 
 As always, comparing the example config files with existing ones is recommended to ensure
 awareness of any new features.
@@ -67,6 +67,8 @@ Graphite-web
 * Adding tests for Django 1.7 (brutasse, syepes)
 * Bulk-fetch metrics from remote hosts (bmhatfield, deniszh, favoretti)
 * Perform all remote fetches in parallel (bmhatfield)
+* Perform `/metrics/find` queries in parallel (jraby)
+* New prefetch cache for remote queries (jraby)
 
 Carbon
 ^^^^^^
@@ -124,6 +126,7 @@ Graphite-web
 * HttpRequest.raw_post_data was deprecated in Django 1.4 (obfuscurity)
 * Fixing XSS in browser and composer (illicium, deniszh)
 * Docs: Python Dev Headers needed for custom install location (gwaldo)
+* Fix pytz install dependency (deniszh)
 
 Carbon
 ^^^^^^
