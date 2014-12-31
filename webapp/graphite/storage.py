@@ -2,6 +2,8 @@ import os, time, fnmatch, socket, errno
 from django.conf import settings
 from os.path import isdir, isfile, join, exists, splitext, basename, realpath
 import whisper
+import Queue
+import threading
 
 from graphite.logger import log
 from graphite.remote_storage import RemoteStore
@@ -59,14 +61,38 @@ class Store:
         yield match
 
 
+  def _parallel_remote_find(self, query):
+    remote_finds = []
+    results = []
+    result_queue = Queue.Queue()
+    for store in [ r for r in self.remote_stores if r.available ]:
+      thread = threading.Thread(target=store.find, args=(query, result_queue))
+      thread.start()
+      remote_finds.append(thread)
+
+    # same caveats as in datalib fetchData
+    for thread in remote_finds:
+      try:
+        thread.join(settings.REMOTE_STORE_FIND_TIMEOUT)
+      except:
+        log.exception("Failed to join remote find thread within %ss" % (settings.REMOTE_STORE_FIND_TIMEOUT))
+
+    while not result_queue.empty():
+      try:
+        results.append(result_queue.get_nowait())
+      except Queue.Empty:
+        log.exception("result_queue not empty, but unable to retrieve results")
+
+    return results
+    
   def find_first(self, query):
     # Search locally first
     for directory in self.directories:
       for match in find(directory, query):
         return match
 
-    # If nothing found earch remotely
-    remote_requests = [ r.find(query) for r in self.remote_stores if r.available ]
+    # If nothing found search remotely
+    remote_requests = self._parallel_remote_find(query)
 
     for request in remote_requests:
       for match in request.get_results():
@@ -76,7 +102,7 @@ class Store:
   def find_all(self, query):
     # Start remote searches
     found = set()
-    remote_requests = [ r.find(query) for r in self.remote_stores if r.available ]
+    remote_requests = self._parallel_remote_find(query)
 
     # Search locally
     for directory in self.directories:

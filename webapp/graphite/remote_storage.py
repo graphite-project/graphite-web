@@ -18,10 +18,13 @@ class RemoteStore(object):
     self.host = host
 
 
-  def find(self, query):
+  def find(self, query, result_queue=False):
     request = FindRequest(self, query)
     request.send()
-    return request
+    if result_queue:
+      result_queue.put(request)
+    else:
+      return request
 
 
   def fail(self):
