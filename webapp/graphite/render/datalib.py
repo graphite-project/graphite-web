@@ -316,7 +316,7 @@ def prefetchLookup(requestContext, node):
 
   return r
 
-def fetchRemoteData(requestContext, pathExpr, usePrefetchCache=settings.PREFETCH_REMOTE_DATA):
+def fetchRemoteData(requestContext, pathExpr, usePrefetchCache=settings.REMOTE_PREFETCH_DATA):
   (startTime, endTime, now) = _timebounds(requestContext)
   remote_nodes = [ RemoteNode(store, pathExpr, True) for store in STORE.remote_stores ]
 
