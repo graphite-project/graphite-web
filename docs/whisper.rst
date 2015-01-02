@@ -44,6 +44,7 @@ Rollup Aggregation
 Whisper databases with more than a single archive need a strategy to collapse multiple data points for
 when the data rolls up a lower precision archive. By default, an average function is used.
 Available aggregation methods are:
+
 * average
 * sum
 * last
