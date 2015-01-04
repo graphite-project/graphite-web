@@ -5,7 +5,7 @@ Versioned Graphite releases can be installed via `pip <http://pypi.python.org/py
 
 .. note::
 
-  In order to install carbon, you must install the Python Development Headers.  In Debian-based distributions, this will require ``apt-get install python-dev``, and in Red Hat-based distributions you will run ``yum install python-devel``.
+  In order to install carbon, you must install the Development Headers for Python and libffi. In Debian-based distributions, this will require ``apt-get install python-dev libffi-dev``, and in Red Hat-based distributions you will run ``yum install python-devel libffi-devel``.
 
 Installing in the Default Location
 ----------------------------------
