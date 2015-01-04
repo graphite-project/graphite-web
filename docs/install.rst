@@ -12,7 +12,7 @@ Basic Graphite requirements:
 
 * a UNIX-like Operating System
 * Python 2.6 or greater
-* `Pycairo`_
+* `cairocffi`_
 * `Django`_ 1.4 or greater
 * `django-tagging`_ 0.3.1 or greater
 * `Twisted`_ 8.0 or greater (10.0+ recommended)
@@ -47,7 +47,7 @@ Fulfilling Dependencies
 Most current Linux distributions have all of the requirements available in the base packages.
 RHEL based distributions may require the `EPEL`_ repository for requirements.
 Python module dependencies can be install with `pip`_ rather than system packages if desired or if using
-a Python version that differs from the system default. Some modules (such as Cairo) may require
+a Python version that differs from the system default. Some modules (such as cairocffi) may require
 library development headers to be available.
 
 .. _default-installation-layout :
@@ -161,6 +161,7 @@ Despair Not!  Even though running Graphite on Windows is completely unsupported 
 
 
 .. _Apache: http://projects.apache.org/projects/http_server.html
+.. _cairocffi: https://github.com/SimonSapin/cairocffi
 .. _Django: http://www.djangoproject.com/
 .. _django-tagging: http://code.google.com/p/django-tagging/
 .. _Django database install: https://docs.djangoproject.com/en/dev/topics/install/#get-your-database-running
@@ -172,7 +173,6 @@ Despair Not!  Even though running Graphite on Windows is completely unsupported 
 .. _mod_wsgi: http://code.google.com/p/modwsgi/
 .. _nginx: http://nginx.org/
 .. _pip: http://www.pip-installer.org/
-.. _Pycairo: http://www.cairographics.org/pycairo/
 .. _python-ldap: http://www.python-ldap.org/
 .. _python-memcache: http://www.tummy.com/Community/software/python-memcached/
 .. _python-rrdtool: http://oss.oetiker.ch/rrdtool/prog/rrdpython.en.html
