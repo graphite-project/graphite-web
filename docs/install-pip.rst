@@ -14,7 +14,9 @@ simply execute as root:
 
 .. code-block:: none
 
-    pip install https://github.com/graphite-project/ceres/tarball/master
+    export PYTHONPATH="/opt/graphite/lib/:/opt/graphite/webapp/"
+    pip install -r https://raw.githubusercontent.com/graphite-project/carbon/0.9.13/requirements.txt
+    pip install -r https://raw.githubusercontent.com/graphite-project/graphite-web/0.9.13/requirements.txt
     pip install whisper
     pip install carbon
     pip install graphite-web
