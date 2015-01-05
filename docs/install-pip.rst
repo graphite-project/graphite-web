@@ -5,7 +5,7 @@ Versioned Graphite releases can be installed via `pip <http://pypi.python.org/py
 
 .. note::
 
-  In order to install carbon, you must install the Python Development Headers.  In Debian-based distributions, this will require ``apt-get install python-dev``, and in Red Hat-based distributions you will run ``yum install python-devel``.
+  In order to install carbon, you must install the development headers for Python and libffi. In Debian-based distributions, this will require ``apt-get install python-dev libffi-dev``, and in Red Hat-based distributions you will run ``yum install python-devel libffi-devel``.
 
 Installing in the Default Location
 ----------------------------------
@@ -14,7 +14,9 @@ simply execute as root:
 
 .. code-block:: none
 
-    pip install https://github.com/graphite-project/ceres/tarball/master
+    export PYTHONPATH="/opt/graphite/lib/:/opt/graphite/webapp/"
+    pip install -r https://raw.githubusercontent.com/graphite-project/carbon/0.9.13/requirements.txt
+    pip install -r https://raw.githubusercontent.com/graphite-project/graphite-web/0.9.13/requirements.txt
     pip install whisper
     pip install carbon
     pip install graphite-web
