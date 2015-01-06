@@ -4,7 +4,7 @@
 
 Graphite consists of two major components:
 
-1. The Django web application that runs under a wsgi-compatible webserver
+1. Graphite-Web, a Django-based web application that renders graphs and dashboards
 2. The [Carbon](https://github.com/graphite-project/carbon) metric processing daemons
 3. The [Whisper](https://github.com/graphite-project/whisper) time-series database library
 
