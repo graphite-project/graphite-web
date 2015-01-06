@@ -8,7 +8,7 @@ Graphite consists of two major components:
 2. The [Carbon](https://github.com/graphite-project/carbon) metric processing daemons
 3. The [Whisper](https://github.com/graphite-project/whisper) time-series database library
 
-![Graphite Components](https://github.com/obfuscurity/graphite-web/raw/master/webapp/content/img/overview.png "Graphite Components")
+![Graphite Components](https://github.com/graphite-project/graphite-web/raw/master/webapp/content/img/overview.png "Graphite Components")
 
 ## Installation, Configuration and Usage
 
