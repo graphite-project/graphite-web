@@ -27,16 +27,27 @@ The plaintext protocol is the most straightforward protocol supported by Carbon.
 
 The data sent must be in the following format: ``<metric path> <metric value> <metric timestamp>``. Carbon will then help translate this line of text into a metric that the web interface and Whisper understand.
 
-On Unix, the ``nc`` program can be used to create a socket and send data to Carbon (by default, 'plaintext' runs on port 2003):
+On Unix, the ``nc`` program (``netcat``) can be used to create a socket and send data to Carbon (by default, 'plaintext' runs on port 2003):
 
-.. code-block:: none
+If you use the OpenBSD implementation of ``netcat``, please follow this example:
 
- PORT=2003
- SERVER=graphite.your.org
- echo "local.random.diceroll 4 `date +%s`" | nc -q0 ${SERVER} ${PORT}
+  .. code-block:: none
+ 
+    PORT=2003
+    SERVER=graphite.your.org
+    echo "local.random.diceroll 4 `date +%s`" | nc -q0 ${SERVER} ${PORT}
 
-The ``-q0`` parameter instructs ``nc`` to close socket once data is sent. Without this option, some ``nc`` versions would keep the connection open.
+  The ``-q0`` parameter instructs ``nc`` to close socket once data is sent. Without this option, some ``nc`` versions would keep the connection open.
 
+If you use the GNU implementation of ``netcat``, please follow this example:
+
+  .. code-block:: none
+ 
+    PORT=2003
+    SERVER=graphite.your.org
+    echo "local.random.diceroll 4 `date +%s`" | nc -c ${SERVER} ${PORT}
+
+  The ``-c`` parameter instructs ``nc`` to close socket once data is sent. Without this option, ``nc`` will keep the connection open and won't end.
 
 The pickle protocol
 -------------------
