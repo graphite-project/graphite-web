@@ -2,7 +2,7 @@
 
 ## Overview
 
-Graphite consists of two major components:
+Graphite consists of three major components:
 
 1. Graphite-Web, a Django-based web application that renders graphs and dashboards
 2. The [Carbon](https://github.com/graphite-project/carbon) metric processing daemons
