@@ -32,7 +32,8 @@ if environ.get('READTHEDOCS'):
 else:
   from graphite.render.glyph import format_units
   from graphite.render.datalib import TimeSeries
-  from graphite.util import timestamp
+
+from graphite.util import epoch
 
 NAN = float('NaN')
 INF = float('inf')
@@ -260,6 +261,38 @@ def averageSeriesWithWildcards(requestContext, seriesList, *position): #XXX
     result.append( averageSeries(requestContext, (matchedList[name]))[0] )
     result[-1].name = name
   return result
+
+def multiplySeriesWithWildcards(requestContext, seriesList, *position): #XXX
+  """
+  Call multiplySeries after inserting wildcards at the given position(s).
+
+  Example:
+
+  .. code-block:: none
+
+    &target=multiplySeriesWithWildcards([web.host-[0-7].avg-response.value, web.host-[0-7].total-request.value], 2,3)
+
+  This would be the equivalent of
+  ``target=multiplySeries(web.host-0.avg-response.value, web.host-0.total-request.value)&target=multiplySeries(web.host-1.avg-response.value, web.host-1.total-request.value)...``
+
+  """
+  if type(position) is int:
+    positions = [position]
+  else:
+    positions = position
+
+  newSeries = {}
+  newNames = list()
+
+  for series in seriesList:
+    newname = '.'.join(map(lambda x: x[1], filter(lambda i: i[0] not in positions, enumerate(series.name.split('.')))))
+    if newname in newSeries.keys():
+      newSeries[newname] = multiplySeries(requestContext, (newSeries[newname], series))[0]
+    else:
+      newSeries[newname] = series
+      newNames.append(newname)
+    newSeries[newname].name = newname
+  return [newSeries[name] for name in newNames]
 
 def diffSeries(requestContext, *seriesLists):
   """
@@ -640,7 +673,7 @@ def movingMedian(requestContext, seriesList, windowSize):
   Takes one metric or a wildcard seriesList followed by a number N of datapoints
   or a quoted string with a length of time like '1hour' or '5min' (See ``from /
   until`` in the render\_api_ for examples of time formats). Graphs the
-  median of the preceeding datapoints for each point on the graph. All
+  median of the preceding datapoints for each point on the graph. All
   previous datapoints are set to None at the beginning of the graph.
 
   Example:
@@ -868,7 +901,7 @@ def movingAverage(requestContext, seriesList, windowSize):
   Takes one metric or a wildcard seriesList followed by a number N of datapoints
   or a quoted string with a length of time like '1hour' or '5min' (See ``from /
   until`` in the render\_api_ for examples of time formats). Graphs the
-  average of the preceeding datapoints for each point on the graph. All
+  average of the preceding datapoints for each point on the graph. All
   previous datapoints are set to None at the beginning of the graph.
 
   Example:
@@ -2355,7 +2388,7 @@ def timeStack(requestContext, seriesList, timeShiftUnit, timeShiftStart, timeShi
   length of time (See ``from / until`` in the render\_api_ for examples of time formats).
   Also takes a start multiplier and end multiplier for the length of time
 
-  create a seriesList which is composed the orginal metric series stacked with time shifts
+  create a seriesList which is composed the original metric series stacked with time shifts
   starting time shifts from the start multiplier through the end multiplier
 
   Useful for looking at history, or feeding into seriesAverage or seriesStdDev
@@ -2453,8 +2486,8 @@ def constantLine(requestContext, value):
 
   """
   name = "constantLine(%s)" % str(value)
-  start = timestamp( requestContext['startTime'] )
-  end = timestamp( requestContext['endTime'] )
+  start = int(epoch( requestContext['startTime'] ) )
+  end = int(epoch( requestContext['endTime'] ) )
   step = (end - start) / 1.0
   series = TimeSeries(str(value), start, end, step, [value, value])
   series.pathExpression = name
@@ -2591,8 +2624,8 @@ def identity(requestContext, name):
   """
   step = 60
   delta = timedelta(seconds=step)
-  start = int(time.mktime(requestContext["startTime"].timetuple()))
-  end = int(time.mktime(requestContext["endTime"].timetuple()))
+  start = int(epoch(requestContext["startTime"]))
+  end = int(epoch(requestContext["endTime"]))
   values = range(start, end, step)
   series = TimeSeries(name, start, end, step, values)
   series.pathExpression = 'identity("%s")' % name
@@ -2628,12 +2661,17 @@ def group(requestContext, *seriesLists):
 
 def mapSeries(requestContext, seriesList, mapNode):
   """
-  Takes a seriesList and maps it to a list of sub-seriesList. Each sub-seriesList has the
+  Short form: ``map()``
+
+  Takes a seriesList and maps it to a list of seriesList. Each seriesList has the
   given mapNode in common.
 
-  Example::
+  .. note:: This function is not very useful alone. It should be used with :py:func:`reduceSeries`
 
-    map(servers.*.cpu.*,1) =>
+  .. code-block:: none
+
+    mapSeries(servers.*.cpu.*,1) =>
+
       [
         servers.server1.cpu.*,
         servers.server2.cpu.*,
@@ -2654,28 +2692,54 @@ def mapSeries(requestContext, seriesList, mapNode):
 
 def reduceSeries(requestContext, seriesLists, reduceFunction, reduceNode, *reduceMatchers):
   """
+  Short form: ``reduce()``
+
   Takes a list of seriesLists and reduces it to a list of series by means of the reduceFunction.
 
   Reduction is performed by matching the reduceNode in each series against the list of
   reduceMatchers. Then each series is passed to the reduceFunction as arguments in the order
   given by reduceMatchers. The reduceFunction should yield a single series.
 
-  Example::
-
-    reduce(map(servers.*.disk.*,1),3,"asPercent","bytes_used","total_bytes") =>
-
-        asPercent(servers.server1.disk.bytes_used,servers.server1.disk.total_bytes),
-        asPercent(servers.server2.disk.bytes_used,servers.server2.disk.total_bytes),
-        ...
-        asPercent(servers.serverN.disk.bytes_used,servers.serverN.disk.total_bytes)
-
   The resulting list of series are aliased so that they can easily be nested in other functions.
-  In the above example, the resulting series names would become::
 
-    servers.server1.disk.reduce.asPercent,
-    servers.server2.disk.reduce.asPercent,
-    ...
-    servers.serverN.disk.reduce.asPercent
+  **Example**: Map/Reduce asPercent(bytes_used,total_bytes) for each server
+
+  Assume that metrics in the form below exist:
+
+  .. code-block:: none
+
+       servers.server1.disk.bytes_used
+       servers.server1.disk.total_bytes
+       servers.server2.disk.bytes_used
+       servers.server2.disk.total_bytes
+       servers.server3.disk.bytes_used
+       servers.server3.disk.total_bytes
+       ...
+       servers.serverN.disk.bytes_used
+       servers.serverN.disk.total_bytes
+
+  To get the percentage of disk used for each server:
+
+  .. code-block:: none
+
+      reduceSeries(mapSeries(servers.*.disk.*,1),"asPercent",3,"bytes_used","total_bytes") =>
+
+        alias(asPercent(servers.server1.disk.bytes_used,servers.server1.disk.total_bytes),"servers.server1.disk.reduce.asPercent"),
+        alias(asPercent(servers.server2.disk.bytes_used,servers.server2.disk.total_bytes),"servers.server2.disk.reduce.asPercent"),
+        alias(asPercent(servers.server3.disk.bytes_used,servers.server3.disk.total_bytes),"servers.server3.disk.reduce.asPercent"),
+        ...
+        alias(asPercent(servers.serverN.disk.bytes_used,servers.serverN.disk.total_bytes),"servers.serverN.disk.reduce.asPercent")
+
+  In other words, we will get back the following metrics::
+
+      servers.server1.disk.reduce.asPercent
+      servers.server2.disk.reduce.asPercent
+      servers.server3.disk.reduce.asPercent
+      ...
+      servers.serverN.disk.reduce.asPercent
+
+  .. seealso:: :py:func:`mapSeries`
+
   """
   metaSeries = {}
   keys = []
@@ -3068,8 +3132,8 @@ def sinFunction(requestContext, name, amplitude=1, step=60):
     when += delta
 
   return [TimeSeries(name,
-            int(time.mktime(requestContext["startTime"].timetuple())),
-            int(time.mktime(requestContext["endTime"].timetuple())),
+            int(epoch(requestContext["startTime"])),
+            int(epoch(requestContext["endTime"])),
             step, values)]
 
 def removeEmptySeries(requestContext, seriesList):
@@ -3115,8 +3179,8 @@ def randomWalkFunction(requestContext, name, step=60):
     when += delta
 
   return [TimeSeries(name,
-            int(time.mktime(requestContext["startTime"].timetuple())),
-            int(time.mktime(requestContext["endTime"].timetuple())),
+            int(epoch(requestContext["startTime"])),
+            int(epoch(requestContext["endTime"])),
             step, values)]
 
 def events(requestContext, *tags):
@@ -3192,6 +3256,7 @@ SeriesFunctions = {
   'avg' : averageSeries,
   'sumSeriesWithWildcards': sumSeriesWithWildcards,
   'averageSeriesWithWildcards': averageSeriesWithWildcards,
+  'multiplySeriesWithWildcards': multiplySeriesWithWildcards,
   'minSeries' : minSeries,
   'maxSeries' : maxSeries,
   'rangeOfSeries': rangeOfSeries,
@@ -3258,6 +3323,7 @@ SeriesFunctions = {
   'sortByMinima' : sortByMinima,
   'useSeriesAbove': useSeriesAbove,
   'exclude' : exclude,
+  'grep' : grep,
   'removeEmptySeries' : removeEmptySeries,
 
   # Data Filter functions

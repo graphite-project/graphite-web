@@ -27,7 +27,7 @@ if django.VERSION < (1, 5):  # load the "future" {% url %} tag
     add_to_builtins('django.templatetags.future')
 
 if django.VERSION < (1, 7):
-    # Django doing autodiscover automaticly:
+    # Django doing autodiscover automatically:
     # https://docs.djangoproject.com/en/dev/releases/1.7/#app-loading-refactor
     admin.autodiscover()
 
@@ -49,7 +49,6 @@ graphite_urls = patterns(
         'graphite.url_shortener.views.follow', name='follow'),
     url('^$', 'graphite.browser.views.browser', name='browser'),
 )
-graphite_urls += staticfiles_urlpatterns()
 
 url_prefix = ''
 if settings.URL_PREFIX.strip('/'):
@@ -59,5 +58,6 @@ urlpatterns = patterns(
     '',
     (r'^{0}'.format(url_prefix), include(graphite_urls)),
 )
+urlpatterns += staticfiles_urlpatterns()
 
 handler500 = 'graphite.views.server_error'

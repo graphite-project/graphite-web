@@ -11,7 +11,7 @@ from . import fs_to_metric, get_real_metric_path, match_entries
 
 
 class StandardFinder:
-  DATASOURCE_DELIMETER = '::RRD_DATASOURCE::'
+  DATASOURCE_DELIMITER = '::RRD_DATASOURCE::'
 
   def __init__(self, directories=None):
     directories = directories or settings.STANDARD_DIRS
@@ -26,8 +26,8 @@ class StandardFinder:
         if basename(absolute_path).startswith('.'):
           continue
 
-        if self.DATASOURCE_DELIMETER in basename(absolute_path):
-          (absolute_path, datasource_pattern) = absolute_path.rsplit(self.DATASOURCE_DELIMETER, 1)
+        if self.DATASOURCE_DELIMITER in basename(absolute_path):
+          (absolute_path, datasource_pattern) = absolute_path.rsplit(self.DATASOURCE_DELIMITER, 1)
         else:
           datasource_pattern = None
 
@@ -86,7 +86,7 @@ class StandardFinder:
 
         for rrd_file in rrd_files:
           absolute_path = join(current_dir, rrd_file)
-          yield absolute_path + self.DATASOURCE_DELIMETER + datasource_pattern
+          yield absolute_path + self.DATASOURCE_DELIMITER + datasource_pattern
 
     if patterns: #we've still got more directories to traverse
       for subdir in matching_subdirs:

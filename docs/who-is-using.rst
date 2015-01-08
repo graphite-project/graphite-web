@@ -3,18 +3,24 @@ Who is using Graphite?
 
 Here are some organizations that use Graphite:
 
-* `Orbitz <http://www.orbitz.com/>`_
-* `Sears Holdings <http://www.sears.com/>`_
-* `Etsy <http://www.etsy.com/>`_ (see http://codeascraft.etsy.com/2010/12/08/track-every-release/)
-* `Google <http://google-opensource.blogspot.com/2010/09/get-ready-to-rocksteady.html>`_ (opensource Rocksteady project)
-* `Media Temple <http://mediatemple.net/>`_
-* `Canonical <http://www.canonical.com>`_
 * `Brightcove <http://www.brightcove.com>`_ (see http://opensource.brightcove.com/project/Diamond/)
-* `Vimeo <http://www.vimeo.com>`_
-* `SocialTwist <http://www.socialtwist.com>`_
-* `Douban <http://www.douban.com>`_
+* `Canonical <http://www.canonical.com>`_
 * `Datacratic <http://www.datacratic.com>`_
+* `Douban <http://www.douban.com>`_
+* `Dyn <http://dyn.com/>`_
+* `Etsy <http://www.etsy.com/>`_ (see http://codeascraft.etsy.com/2010/12/08/track-every-release/)
+* `GitHub <https://github.com>`_
+* `Google <http://google-opensource.blogspot.com/2010/09/get-ready-to-rocksteady.html>`_ (opensource Rocksteady project)
 * `ImmobilienScout24 <http://www.immobilienscout24.de/>`_
+* `Instagram <http://instagram.com/>`_
+* `ITV <http://www.itv.com/>`_
+* `Media Temple <http://mediatemple.net/>`_
+* `Orbitz <http://www.orbitz.com/>`_
+* `Rubicon Project <http://www.rubiconproject.com/>`_
+* `Sears Holdings <http://www.sears.com/>`_
+* `SocialTwist <http://www.socialtwist.com>`_
+* `Uber <http://uber.com/>`_
+* `Vimeo <http://www.vimeo.com>`_
 * `Wikimedia Foundation <http://gdash.wikimedia.org/>`_
 
 And many more

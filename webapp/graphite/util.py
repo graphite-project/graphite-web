@@ -17,6 +17,8 @@ import os
 import socket
 import time
 import sys
+import calendar
+import pytz
 from os.path import splitext, basename, relpath
 from shutil import move
 from tempfile import mkstemp
@@ -51,6 +53,11 @@ if hasattr(json, 'read') and not hasattr(json, 'loads'):
   json.load = lambda file: json.read( file.read() )
   json.dump = lambda obj, file: file.write( json.write(obj) )
 
+def epoch(dt):
+  """
+  Returns the epoch timestamp of a timezone-aware datetime object.
+  """
+  return calendar.timegm(dt.astimezone(pytz.utc).timetuple())
 
 def getProfile(request, allowDefault=True):
   if request.user.is_authenticated():
