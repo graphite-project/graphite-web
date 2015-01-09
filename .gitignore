@@ -11,3 +11,5 @@ docs/_build
 *.pyc
 .tox
 *.swp
+.idea
+*.iml
