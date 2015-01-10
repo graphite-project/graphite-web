@@ -1,10 +1,6 @@
 Installing From Synthesize
 ==========================
 
-`Synthesize <https://github.com/obfuscurity/synthesize/>`_ is a script dedicated to making Graphite easy to install.  As of this writing, it is only intended to run on Ubuntu Linux 14.04 LTS.
+`Synthesize <https://github.com/obfuscurity/synthesize/>`_ is a script dedicated to making Graphite easy to install. As of this writing, it supports installation of Graphite 0.9.13 in an Ubuntu Linux 14.04 LTS. Users may run the installation script manually, or they can choose to use the provided Vagrantfile.
 
-As noted in the `README <https://github.com/obfuscurity/synthesize/blob/master/README.md>`_, you are recommended against running Synthesize directly on your system, but rather in a VM for sandboxing purposes.
-
-To facilitate this, Synthesize includes a `Vagrantfile <https://github.com/obfuscurity/synthesize/blob/master/Vagrantfile>`_.  In order to use this, you will, of course, need to install `Vagrant <http://www.vagrantup.com>`_.
-
-Once the ``vagrant up`` has completed, you should be able to send stats to localhost:8125 (via StatsD) or localhost:22003 (direct to Graphite). Graphite web interface should be asccessible on `https://localhost:8443 <https://localhost:8443>`_.
+For detailed instructions, please refer to the official project documentation on the `Synthesize <https://github.com/obfuscurity/synthesize/>`_ website.
