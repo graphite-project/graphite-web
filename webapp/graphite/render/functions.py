@@ -145,10 +145,7 @@ def normalize(seriesLists):
   raise NormalizeEmptyResultError()
 
 class NormalizeEmptyResultError(Exception):
-  """
-  Error thrown by the function 'normalize'
-  when it has an empty result
-  """
+  # throw error for normalize() when empty
   pass
 
 
