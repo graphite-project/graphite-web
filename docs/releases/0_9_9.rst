@@ -40,8 +40,7 @@ Revamped Dashboard UI
 Other Stuff
 -----------
 * Tons of readthedocs.org improvements, also the example config files now have some great comment documentation
-* Whisper now supports rollup aggregation methods other than averaging. The default is
-still to average but there a new aggregation-schemas.conf (see Bug #853955)
+* Whisper now supports rollup aggregation methods other than averaging. The default is still to average but there a new aggregation-schemas.conf (see Bug #853955)
 * To learn about the new metric metadata API that can be used to configure custom rollup aggregation methods read my answer to https://answers.launchpad.net/graphite/+question/173304 (you can skip the question part if you just care about the new API)
 
 As for the current development focus, I can now finally work on the long-awaited merge of the 1.1
