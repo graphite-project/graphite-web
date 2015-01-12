@@ -75,7 +75,7 @@ Is there a diagram of Graphite's architecture?
 ----------------------------------------------
 There sure is! Here it is:
 
-.. image:: https://raw.githubusercontent.com/graphite-project/graphite-web/master/webapp/content/img/overview.png
+.. image:: ../webapp/content/img/overview.png
 
 
 .. _Django: http://www.djangoproject.com/
