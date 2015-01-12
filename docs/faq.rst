@@ -73,7 +73,9 @@ No. The sourceforge project called graphite is completely unrelated to this Grap
 
 Is there a diagram of Graphite's architecture?
 ----------------------------------------------
-No, but we have an `open issue to create a new architectural diagram`_.
+There sure is! Here it is:
+
+.. image:: ../webapp/content/img/overview.png
 
 
 .. _Django: http://www.djangoproject.com/
@@ -86,4 +88,3 @@ No, but we have an `open issue to create a new architectural diagram`_.
 .. _Graphite-Project: https://github.com/graphite-project/
 .. _Apache 2.0 License: http://www.apache.org/licenses/LICENSE-2.0.html
 .. _GitHub Issues: https://github.com/graphite-project/graphite-web/issues
-.. _open issue to create a new architectural diagram: https://github.com/graphite-project/graphite-project.github.io/issues/9
