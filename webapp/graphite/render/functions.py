@@ -242,6 +242,17 @@ def diffSeries(requestContext, *seriesLists):
 
     &target=diffSeries(service.connections.total,service.connections.failed)
 
+  To diff a series and a constant, one should use offset instead of (or in
+  addition to) diffSeries
+
+  Example:
+
+  .. code-block:: none
+
+    &target=offset(service.connections.total,-5)
+
+    &target=offset(diffSeries(service.connections.total,service.connections.failed),-4)
+
   """
   (seriesList,start,end,step) = normalize(seriesLists)
   name = "diffSeries(%s)" % formatPathExpressions(seriesList)
