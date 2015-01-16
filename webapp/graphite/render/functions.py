@@ -2475,11 +2475,22 @@ def timeShift(requestContext, seriesList, timeShift, resetEnd=True):
   return results
 
 
-def timeSlice(requestContext, seriesList, startSliceAt, endSliceAt):
+def timeSlice(requestContext, seriesList, startSliceAt, endSliceAt="now"):
   """
   Takes one metric or a wildcard seriesList, followed by a quoted string with the
   time to start the line and another quoted string with the time to end the line.
   See ``from / until`` in the render\_api_ for examples of time formats.
+
+  Useful when, for example, you've collected all of your metrics by router port
+  but you want to show metrics by customer location and the customer's router port
+  has changed over time.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=timeSlice(network.core.port1,"00:00 20140101","11:59 20140630")
+    &target=timeSlice(network.core.port1,"12:00 20140630","now")
 
   """
 
