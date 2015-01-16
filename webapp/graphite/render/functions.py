@@ -21,7 +21,7 @@ import random
 import time
 
 from graphite.logger import log
-from graphite.render.attime import parseTimeOffset
+from graphite.render.attime import parseTimeOffset, parseATTime
 
 from graphite.events import models
 
