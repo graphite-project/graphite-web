@@ -2477,9 +2477,10 @@ def timeShift(requestContext, seriesList, timeShift, resetEnd=True):
 
 def timeSlice(requestContext, seriesList, startSliceAt, endSliceAt="now"):
   """
-  Takes one metric or a wildcard seriesList, followed by a quoted string with the
+  Takes one metric or a wildcard metric, followed by a quoted string with the
   time to start the line and another quoted string with the time to end the line.
-  See ``from / until`` in the render\_api_ for examples of time formats.
+  The start and end times are inclusive. See ``from / until`` in the render\_api_
+  for examples of time formats.
 
   Useful when, for example, you've collected all of your metrics by router port
   but you want to show metrics by customer location and the customer's router port
@@ -2499,8 +2500,8 @@ def timeSlice(requestContext, seriesList, startSliceAt, endSliceAt="now"):
   start = time.mktime(parseATTime(startSliceAt).timetuple())
   end = time.mktime(parseATTime(endSliceAt).timetuple())
 
-  for slicedSeries in evaluateTarget(requestContext, series.pathExpression):
-    slicedSeries.name = 'timeSlice(%s, %s, %s)' % (slicedSeries.name, start, end)
+  for slicedSeries in seriesList:
+    slicedSeries.name = 'timeSlice(%s, %s, %s)' % (slicedSeries.name, int(start), int(end))
 
     curr = time.mktime(requestContext["startTime"].timetuple())
     for i, v in enumerate(slicedSeries):
