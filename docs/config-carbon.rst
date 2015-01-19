@@ -187,6 +187,50 @@ Another common use pattern of ``carbon-aggregator`` is to aggregate several data
 of the *same metric*. This could come in handy when you have got the same metric coming from
 several hosts, or when you are bound to send data more frequently than your shortest retention.
 
+rewrite-rules.conf
+------------------
+
+Rewrite rules allow you to rewrite metric names using Python regular
+expressions. Note that unlike some other config files, any time this file is
+modified it will take effect automatically. This requires the carbon-aggregator
+service to be running.
+
+The form of each line in this file should be as follows:
+
+.. code-block:: none
+
+  regex-pattern = replacement-text
+
+This will capture any received metrics that match 'regex-pattern' and rewrite
+the matched portion of the text with 'replacement-text'. The 'regex-pattern'
+must be a valid Python regular expression, and the 'replacement-text' can be any
+value. You may also use capture groups:
+
+.. code-block:: none
+
+  ^collectd\.([a-z0-9]+)\. = \1.system.
+
+Which would result in:
+
+.. code-block:: none
+
+  collectd.prod.cpu-0.idle-time => prod.system.cpu-0.idle-item
+
+rewrite-rules.conf consists of two sections, [pre] and [post]. The rules in the
+pre section are applied to metric names as soon as they are received. The post
+rules are applied after aggregation has taken place.
+
+For example:
+
+.. code-block:: none
+
+  [post]
+  _sum$ =
+  _avg$ =
+
+These rules would strip off a suffix of _sum or _avg from any metric names after
+aggregation.
+
 whitelist and blacklist
 -----------------------
 The whitelist functionality allows any of the carbon daemons to only accept metrics that are explicitly
