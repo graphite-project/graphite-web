@@ -2482,9 +2482,8 @@ def timeSlice(requestContext, seriesList, startSliceAt, endSliceAt="now"):
   The start and end times are inclusive. See ``from / until`` in the render\_api_
   for examples of time formats.
 
-  Useful when, for example, you've collected all of your metrics by router port
-  but you want to show metrics by customer location and the customer's router port
-  has changed over time.
+  Useful for filtering out a part of a series of data from a wider range of
+  data.
 
   Example:
 
