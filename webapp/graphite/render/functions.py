@@ -2406,7 +2406,10 @@ def timeStack(requestContext, seriesList, timeShiftUnit, timeShiftStart, timeShi
   if timeShiftUnit[0].isdigit():
     timeShiftUnit = '-' + timeShiftUnit
   delta = parseTimeOffset(timeShiftUnit)
-  series = seriesList[0] # if len(seriesList) > 1, they will all have the same pathExpression, which is all we care about.
+
+  # if len(seriesList) > 1, they will all have the same pathExpression, which is all we care about.
+  series = seriesList[0]
+
   results = []
   timeShiftStartint = int(timeShiftStart)
   timeShiftEndint = int(timeShiftEnd)
@@ -2461,7 +2464,8 @@ def timeShift(requestContext, seriesList, timeShift, resetEnd=True):
   myContext['endTime'] = requestContext['endTime'] + delta
   results = []
   if len(seriesList) > 0:
-    series = seriesList[0] # if len(seriesList) > 1, they will all have the same pathExpression, which is all we care about.
+    # if len(seriesList) > 1, they will all have the same pathExpression, which is all we care about.
+    series = seriesList[0]
 
     for shiftedSeries in evaluateTarget(myContext, series.pathExpression):
       shiftedSeries.name = 'timeShift(%s, %s)' % (shiftedSeries.name, timeShift)
@@ -2495,7 +2499,6 @@ def timeSlice(requestContext, seriesList, startSliceAt, endSliceAt="now"):
   """
 
   results = []
-  series = seriesList[0] # if len(seriesList) > 1, they will all have the same pathExpression, which is all we care about.
   start = time.mktime(parseATTime(startSliceAt).timetuple())
   end = time.mktime(parseATTime(endSliceAt).timetuple())
 
