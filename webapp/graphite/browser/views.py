@@ -91,7 +91,7 @@ def myGraphLookup(request):
   }
 
   try:
-    path = str( request.GET['path'] )
+    path = request.GET.get('path', u'')
 
     if path:
       if path.endswith('.'):
@@ -101,7 +101,7 @@ def myGraphLookup(request):
         userpath_prefix = path + '.'
 
     else:
-      userpath_prefix = ""
+      userpath_prefix = u""
 
     matches = [ graph for graph in profile.mygraph_set.all().order_by('name') if graph.name.startswith(userpath_prefix) ]
 
@@ -124,15 +124,15 @@ def myGraphLookup(request):
          if name in leaf_inserted: continue
          leaf_inserted.add(name)
 
-      node = {'text' : str(name) }
+      node = {'text': name}
 
       if isBranch:
-        node.update( { 'id' : str(userpath_prefix + name + '.') } )
+        node.update({'id': userpath_prefix + name + '.'})
         node.update(branchNode)
 
       else:
         m = md5()
-        m.update(name)
+        m.update(name.encode('utf-8'))
         node.update( { 'id' : str(userpath_prefix + m.hexdigest()), 'graphUrl' : str(graph.url) } )
         node.update(leafNode)
 
