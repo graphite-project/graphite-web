@@ -1095,6 +1095,7 @@ function createFunctionsMenu() {
         {text: 'Invert', handler: applyFuncToEach('invert')},
         {text: 'Absolute Value', handler: applyFuncToEach('absolute')},
         {text: 'timeShift', handler: applyFuncToEachWithInput('timeShift', 'Shift this metric ___ back in time (examples: 10min, 7d, 2w)', {quote: true})},
+        {text: 'timeSlice', handler: applyFuncToEachWithInput('timeSlice', 'Start showing metric at (example: 14:57 20150115)', {quote: true})},
         {text: 'Summarize', handler: applyFuncToEachWithInput('summarize', 'Please enter a summary interval (examples: 10min, 1h, 7d)', {quote: true})},
         {text: 'Hit Count', handler: applyFuncToEachWithInput('hitcount', 'Please enter a summary interval (examples: 10min, 1h, 7d)', {quote: true})}
       ]
