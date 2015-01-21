@@ -62,6 +62,6 @@ terms mean in the context of Graphite.
     value
       A numeric or null value. Values are stored as double-precision floats. Values are parsed using
       the python :py:func:`float` constructor and can also be None (null). The range and precision of
-      values is system dependant and can be found by executing (with Python 2.6 or later)::
+      values is system dependent and can be found by executing (with Python 2.6 or later)::
       python -c 'import sys; print sys.float_info'
 

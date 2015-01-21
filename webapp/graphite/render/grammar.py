@@ -1,4 +1,9 @@
-from pyparsing import *
+from pyparsing import (
+    ParserElement, Forward, Combine, Optional, Word, Literal, CaselessKeyword,
+    CaselessLiteral, Group, FollowedBy, LineEnd, OneOrMore, ZeroOrMore,
+    nums, alphas, alphanums, printables, delimitedList, quotedString,
+    __version__,
+)
 
 ParserElement.enablePackrat()
 grammar = Forward()
@@ -33,39 +38,75 @@ boolean = Group(
   CaselessKeyword("false")
 )('boolean')
 
+argname = Word(alphas + '_', alphanums + '_')('argname')
+funcname = Word(alphas + '_', alphanums + '_')('funcname')
+
+## Symbols
+leftParen = Literal('(').suppress()
+rightParen = Literal(')').suppress()
+comma = Literal(',').suppress()
+equal = Literal('=').suppress()
+
 # Function calls
+
+## Symbols
+leftBrace = Literal('{')
+rightBrace = Literal('}')
+leftParen = Literal('(').suppress()
+rightParen = Literal(')').suppress()
+comma = Literal(',').suppress()
+equal = Literal('=').suppress()
+backslash = Literal('\\').suppress()
+
+symbols = '''(){},=.'"\\'''
 arg = Group(
   boolean |
   number |
   aString |
   expression
-)
-args = delimitedList(arg)('args')
+)('args*')
+kwarg = Group(argname + equal + arg)('kwargs*')
 
-func = Word(alphas+'_', alphanums+'_')('func')
+args = delimitedList(~kwarg + arg)  # lookahead to prevent failing on equals
+kwargs = delimitedList(kwarg)
+
 call = Group(
-  func + Literal('(').suppress() +
-  args + Literal(')').suppress()
+  funcname + leftParen +
+  Optional(
+    args + Optional(
+      comma + kwargs
+    )
+  ) + rightParen
 )('call')
 
 # Metric pattern (aka. pathExpression)
-validMetricChars = alphanums + r'''!#$%&"'*+-.:;<=>?@[\]^_`|~'''
-pathExpression = Combine(
-  Optional(Word(validMetricChars)) +
-  Combine(
-    ZeroOrMore(
-      Group(
-        Literal('{') +
-        Word(validMetricChars + ',') +
-        Literal('}') + Optional( Word(validMetricChars) )
-      )
-    )
+validMetricChars = ''.join((set(printables) - set(symbols)))
+escapedChar = backslash + Word(symbols, exact=1)
+partialPathElem = Combine(
+  OneOrMore(
+    escapedChar | Word(validMetricChars)
   )
-)('pathExpression')
+)
 
-expression << Group(call | pathExpression)('expression')
+matchEnum = Combine(
+  leftBrace +
+  delimitedList(partialPathElem, combine=True) +
+  rightBrace
+)
 
-grammar << expression
+pathElement = Combine(
+  Group(partialPathElem | matchEnum) +
+  ZeroOrMore(matchEnum | partialPathElem)
+)
+pathExpression = delimitedList(pathElement, delim='.', combine=True)('pathExpression')
+
+if __version__.startswith('1.'):
+    expression << Group(call | pathExpression)('expression')
+    grammar << expression
+else:
+    expression <<= Group(call | pathExpression)('expression')
+    grammar <<= expression
+
 
 def enableDebug():
   for name,obj in globals().items():

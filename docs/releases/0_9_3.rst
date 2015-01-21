@@ -1,0 +1,14 @@
+0.9.3
+=====
+*7/16/08*
+
+This release is an incremental improvement over 0.9.2, including lots of bug fixes, major
+enhancements to the installer, and several new handy scripts. Thanks to everyone who submitted bug
+reports and questions. The next few Graphite releases will continue to focus on quality rather than
+new features. In particular, 0.9.4 will include a re-write of the carbon backend, which will be much
+simpler and easier to administer and troubleshoot. I am also working on porting lots of internal
+documentation to this wiki. My goal is to have a 1.0 release by the end of the year, which must be
+well-documented, easy to deploy, easy to troubleshoot, and of course as bug-free as possible. If
+there is time a new feature or two might make it in, but this is not the primary focus.
+
+\- ChrisMD

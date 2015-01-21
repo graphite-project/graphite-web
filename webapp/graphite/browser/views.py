@@ -13,21 +13,14 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 import re
-from django.shortcuts import render_to_response
-from django.http import HttpResponse
 from django.conf import settings
+from django.shortcuts import render_to_response
+from django.utils.safestring import mark_safe
 from graphite.account.models import Profile
-from graphite.util import getProfile, getProfileByUsername, defaultUser, json
+from graphite.compat import HttpResponse
+from graphite.util import getProfile, getProfileByUsername, json
 from graphite.logger import log
-try:
-  from hashlib import md5
-except ImportError:
-  from md5 import md5
-
-try:
-  import cPickle as pickle
-except ImportError:
-  import pickle
+from hashlib import md5
 
 
 def header(request):
@@ -43,18 +36,18 @@ def header(request):
 def browser(request):
   "View for the top-level frame of the browser UI"
   context = {
-    'queryString' : request.GET.urlencode(),
-    'target' : request.GET.get('target')
+    'queryString': mark_safe(request.GET.urlencode()),
+    'target': request.GET.get('target')
   }
   if context['queryString']:
     context['queryString'] = context['queryString'].replace('#','%23')
   if context['target']:
     context['target'] = context['target'].replace('#','%23') #js libs terminate a querystring on #
-  return render_to_response("browser.html", context) 
+  return render_to_response("browser.html", context)
 
 
 def search(request):
-  query = request.POST['query']
+  query = request.POST.get('query')
   if not query:
     return HttpResponse("")
 
@@ -77,7 +70,7 @@ def search(request):
 
   index_file.close()
   result_string = ','.join(results)
-  return HttpResponse(result_string, mimetype='text/plain')
+  return HttpResponse(result_string, content_type='text/plain')
 
 
 def myGraphLookup(request):
@@ -98,7 +91,7 @@ def myGraphLookup(request):
   }
 
   try:
-    path = str( request.GET['path'] )
+    path = request.GET.get('path', u'')
 
     if path:
       if path.endswith('.'):
@@ -108,7 +101,7 @@ def myGraphLookup(request):
         userpath_prefix = path + '.'
 
     else:
-      userpath_prefix = ""
+      userpath_prefix = u""
 
     matches = [ graph for graph in profile.mygraph_set.all().order_by('name') if graph.name.startswith(userpath_prefix) ]
 
@@ -131,15 +124,15 @@ def myGraphLookup(request):
          if name in leaf_inserted: continue
          leaf_inserted.add(name)
 
-      node = {'text' : str(name) }
+      node = {'text': name}
 
       if isBranch:
-        node.update( { 'id' : str(userpath_prefix + name + '.') } )
+        node.update({'id': userpath_prefix + name + '.'})
         node.update(branchNode)
 
       else:
         m = md5()
-        m.update(name)
+        m.update(name.encode('utf-8'))
         node.update( { 'id' : str(userpath_prefix + m.hexdigest()), 'graphUrl' : str(graph.url) } )
         node.update(leafNode)
 
@@ -184,7 +177,7 @@ def userGraphLookup(request):
   try:
 
     if not username:
-      profiles = Profile.objects.exclude(user=defaultUser)
+      profiles = Profile.objects.exclude(user__username='default')
 
       for profile in profiles:
         if profile.mygraph_set.count():
@@ -243,6 +236,8 @@ def userGraphLookup(request):
     no_graphs.update(leafNode)
     nodes.append(no_graphs)
 
+  nodes.sort()
+
   return json_response(nodes, request)
 
 
@@ -254,16 +249,10 @@ def json_response(nodes, request=None):
   #json = str(nodes) #poor man's json encoder for simple types
   json_data = json.dumps(nodes)
   if jsonp:
-    response = HttpResponse("%s(%s)" % (jsonp, json_data),mimetype="text/javascript")
+    response = HttpResponse("%s(%s)" % (jsonp, json_data),
+                            content_type="text/javascript")
   else:
-    response = HttpResponse(json_data,mimetype="application/json")
+    response = HttpResponse(json_data, content_type="application/json")
   response['Pragma'] = 'no-cache'
   response['Cache-Control'] = 'no-cache'
   return response
-
-
-def any(iterable): #python2.4 compatibility
-  for i in iterable:
-    if i:
-      return True
-  return False

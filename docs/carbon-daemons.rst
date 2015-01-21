@@ -66,7 +66,7 @@ When running with ``RELAY_METHOD = rules``, a ``carbon-relay.py`` instance can
 run in place of a ``carbon-cache.py`` server and relay all incoming metrics to
 multiple backend ``carbon-cache.py``'s running on different ports or hosts.
 
-In ``RELAY_METHOD = consistent-hashing`` mode, a ``CH_HOST_LIST`` setting defines a
+In ``RELAY_METHOD = consistent-hashing`` mode, a ``DESTINATIONS`` setting defines a
 sharding strategy across multiple ``carbon-cache.py`` backends. The same
 consistent hashing list can be provided to the graphite webapp via ``CARBONLINK_HOSTS`` to
 spread reads across the multiple backends.
@@ -77,8 +77,8 @@ spread reads across the multiple backends.
   The ``[relay]`` section defines listener host/ports and a ``RELAY_METHOD``
 
 :doc:`relay-rules.conf </config-carbon>`
-  In ``RELAY_METHOD = rules``, pattern/servers tuples define what servers
-  metrics matching certain regex rules are forwarded to.
+  With ``RELAY_METHOD = rules`` set, pattern/servers tuples in this file define which
+  metrics matching certain regex rules are forwarded to which hosts.
 
 
 carbon-aggregator.py

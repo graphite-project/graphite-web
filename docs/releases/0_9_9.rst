@@ -1,0 +1,60 @@
+0.9.9
+=====
+*10/6/11*
+
+Graphite 0.9.9 is now out and available for download. It available through PyPI
+(http://pypi.python.org/pypi) and the Launchpad project page
+(https://launchpad.net/graphite).
+
+This is a very substantial release. To give you an idea, the 0.9.8 release was cut from trunk around
+revision 380 while 0.9.9 was cut from revision 589, so that's almost as many commits as Graphite has
+ever had just since 0.9.8. The full changelog is too big for me to assemble nicely unfortunately, but
+I will try to cover all the important bits and if you're really curious you can see all the changes
+at http://bazaar.launchpad.net/~graphite-dev/graphite/main/changes
+
+There are some really important things you need to know if you're upgrading from an earlier release
+(even trunk). Read all the change summaries below please!
+
+API Changes
+-----------
+There have been API changes in whisper, carbon, and the webapp. If you are upgrading to 0.9.9
+YOU MUST UPGRADE ALL 3 PACKAGES, if you mix 0.9.8 whisper with 0.9.9 carbon for example,
+it won't work. Upgrade all 3, and don't forget to use the --force.
+
+The webapp has a new dependency on django.tagging (you should be able to simply
+'pip install django-tagging')
+
+New Default Behavior
+--------------------
+We've addressed a security vulnerability with receiving pickled datapoints, see Bug #817247.
+This affects you in that the new default behavior is to use a more secure unpickler,
+which is slightly slower than the standard insecure unpickler. To revert to the less secure but
+faster approach previously used, you have to set USE_INSECURE_UNPICKLER=True in your carbon.conf.
+
+Revamped Dashboard UI
+---------------------
+* You can now use all the composer functionality by clicking on a dashboard graph
+* You can drag and drop to move graphs around (and hover-drop to combine them!)
+* There is an awesome new auto-completer interface available by going to the Dashboard menu, Configure UI, Completer. This may become the default in the future because its so awesome. (pro tip: try using the dashboard completer with \* instead of * for some really powerful 'group by' functionality)
+
+Other Stuff
+-----------
+* Tons of readthedocs.org improvements, also the example config files now have some great comment documentation
+* Whisper now supports rollup aggregation methods other than averaging. The default is
+  still to average but there a new aggregation-schemas.conf (see Bug #853955)
+* To learn about the new metric metadata API that can be used to configure custom rollup aggregation methods read my answer to https://answers.launchpad.net/graphite/+question/173304 (you can skip the question part if you just care about the new API)
+
+As for the current development focus, I can now finally work on the long-awaited merge of the 1.1
+branch into trunk. The Ceres database will be in the next release, I'm going to try and merge it in
+(including the new refactored storage API) in the next week or so. I'll announce on graphite-dev
+when its available for testing. My aim is to get it fully documented for 1.0, which I'm targeting
+for end of this year. There might be an 0.9.10 first, depending on how many bugs are found in 0.9.9.
+
+As always, thanks to everyone who has contributed, especially the following rockstar crew that made
+some major contributions in the past few months:
+
+* Aman Gupta (tmm1)
+* Nick Leskiw (nleskiw)
+* Sidnei da Silva
+
+\- ChrisMD

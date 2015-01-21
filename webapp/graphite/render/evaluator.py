@@ -1,6 +1,3 @@
-import datetime
-import time
-from django.conf import settings
 from graphite.render.grammar import grammar
 from graphite.render.datalib import fetchData, TimeSeries
 
@@ -24,9 +21,14 @@ def evaluateTokens(requestContext, tokens):
     return fetchData(requestContext, tokens.pathExpression)
 
   elif tokens.call:
-    func = SeriesFunctions[tokens.call.func]
+    func = SeriesFunctions[tokens.call.funcname]
     args = [evaluateTokens(requestContext, arg) for arg in tokens.call.args]
-    return func(requestContext, *args)
+    kwargs = dict([(kwarg.argname, evaluateTokens(requestContext, kwarg.args[0]))
+                   for kwarg in tokens.call.kwargs])
+    try:
+      return func(requestContext, *args, **kwargs)
+    except NormalizeEmptyResultError:
+      return []
 
   elif tokens.number:
     if tokens.number.integer:
@@ -37,11 +39,11 @@ def evaluateTokens(requestContext, tokens):
       return float(tokens.number.scientific[0])
 
   elif tokens.string:
-    return str(tokens.string)[1:-1]
+    return tokens.string[1:-1]
 
   elif tokens.boolean:
     return tokens.boolean[0] == 'true'
 
 
 #Avoid import circularities
-from graphite.render.functions import SeriesFunctions
+from graphite.render.functions import SeriesFunctions,NormalizeEmptyResultError
