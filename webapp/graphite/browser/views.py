@@ -16,6 +16,7 @@ import re
 from django.conf import settings
 from django.shortcuts import render_to_response
 from django.utils.safestring import mark_safe
+from django.utils.html import escape
 from graphite.account.models import Profile
 from graphite.compat import HttpResponse
 from graphite.util import getProfile, getProfileByUsername, json
@@ -124,7 +125,7 @@ def myGraphLookup(request):
          if name in leaf_inserted: continue
          leaf_inserted.add(name)
 
-      node = {'text': name}
+      node = {'text': escape(name)}
 
       if isBranch:
         node.update({'id': userpath_prefix + name + '.'})
@@ -211,7 +212,7 @@ def userGraphLookup(request):
 
         if '.' in relativePath: # branch
           node = {
-            'text' : str(nodeName),
+            'text' : escape(str(nodeName)),
             'id' : str(username + '.' + prefix + nodeName + '.'),
           }
           node.update(branchNode)
@@ -220,7 +221,7 @@ def userGraphLookup(request):
           m.update(nodeName)
 
           node = {
-            'text' : str(nodeName ),
+            'text' : escape(str(nodeName)),
             'id' : str(username + '.' + prefix + m.hexdigest()),
             'graphUrl' : str(graph.url),
           }
