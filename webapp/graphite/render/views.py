@@ -173,6 +173,34 @@ def renderView(request):
         add_never_cache_headers(response)
       return response
 
+    if format == 'json_dygraph':
+      labels = ['Time']
+      datapoints = [[ts] for ts in range(data[0].start, data[0].end, data[0].step)]
+      for series in data:
+        labels.append(series.name)
+        for i, point in enumerate(series):
+          datapoints[i].append(point if point is not None else 'null')
+      line_template = '[%%s000%s]' % ''.join([', %s'] * len(data))
+      lines = [line_template % tuple(points) for points in datapoints]
+      result = '{"labels" : %s, "data" : [%s]}' % (json.dumps(labels), ', '.join(lines))
+      response = HttpResponse(content=result, mimetype='application/json')
+      response['Pragma'] = 'no-cache'
+      response['Cache-Control'] = 'no-cache'
+      return response
+
+    if format == 'json_rickshaw':
+      series_data = []
+      for series in data:
+        timestamps = range(series.start, series.end, series.step)
+        datapoints = [{'x' : x, 'y' : y} for x, y in zip(timestamps, series)]
+        series_data.append( dict(target=series.name, datapoints=datapoints) )
+      if 'jsonp' in requestOptions:
+        response = HttpResponse(
+          content="%s(%s)" % (requestOptions['jsonp'], json.dumps(series_data)),
+          mimetype='text/javascript')
+      else:
+        response = HttpResponse(content=json.dumps(series_data), mimetype='application/json')
+
     if format == 'raw':
       response = HttpResponse(content_type='text/plain')
       for series in data:
