@@ -172,7 +172,7 @@ class WhisperReader(object):
       cached_datapoints = []
 
     if isinstance(cached_datapoints, dict):
-      cached_datapoints = cached_datapoints[k].items()
+      cached_datapoints = cached_datapoints.items()
 
     for (timestamp, value) in cached_datapoints:
       interval = timestamp - (timestamp % step)
