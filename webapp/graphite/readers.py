@@ -171,6 +171,9 @@ class WhisperReader(object):
       log.exception("Failed CarbonLink query '%s'" % self.real_metric_path)
       cached_datapoints = []
 
+    if isinstance(cached_datapoints, dict):
+      cached_datapoints = cached_datapoints[k].items()
+
     for (timestamp, value) in cached_datapoints:
       interval = timestamp - (timestamp % step)
 
