@@ -144,6 +144,6 @@ A simple example of doing this from the unix terminal would look like this:
 
 .. code-block:: none
 
-    echo "test.bash.stats 42" | nc graphite.example.com 2003
+    echo "test.bash.stats 42 `date +%s`" | nc graphite.example.com 2003
 
 There are many tools that interact with Graphite.  See the :doc:`Tools </tools>` page for some choices of tools that may be used to feed Graphite.
