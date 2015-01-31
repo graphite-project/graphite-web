@@ -54,6 +54,7 @@ def renderView(request):
     'startTime' : requestOptions['startTime'],
     'endTime' : requestOptions['endTime'],
     'localOnly' : requestOptions['localOnly'],
+    'tzinfo' : requestOptions['tzinfo'],
     'data' : []
   }
   data = requestContext['data']

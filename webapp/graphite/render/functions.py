@@ -2575,6 +2575,41 @@ def aggregateLine(requestContext, seriesList, func='avg'):
 
   return [series]
 
+def verticalLine(requestContext, ts, label=None, color=None):
+  """
+  Takes a timestamp TS.
+
+  Draws a vertical line at time ts in the graph
+  with optional 'label' and 'color'.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=verticalLine("12:3420131108","event","blue")
+
+  """
+  ts = timestamp( parseATTime(ts, requestContext['tzinfo']) )
+  start = timestamp( requestContext['startTime'] )
+  end = timestamp( requestContext['endTime'] )
+  if ts < start:
+      raise ValueError('verticalLine(): ts is < start')
+  elif ts > end:
+      raise ValueError('verticalLine(): ts is > end')
+  start = end = ts
+  step = 1.0
+  series = TimeSeries(label, start, end, step, [1.0, 1.0])
+  series.options['drawAsInfinite'] = True
+  if color:
+    series.color = color
+  return [series]
+
+
+def horizontalLine(**kwargs):
+  # suggest deprecating constantLine
+  threshold(**kwargs)
+
+
 def threshold(requestContext, value, label=None, color=None):
   """
   Takes a float F, followed by a label (in double quotes) and a color.
@@ -2586,17 +2621,16 @@ def threshold(requestContext, value, label=None, color=None):
 
   .. code-block:: none
 
-    &target=threshold(123.456, "omgwtfbbq", red)
+    &target=threshold(123.456, "omgwtfbbq", "red")
 
   """
-
   series = constantLine(requestContext, value)[0]
   if label:
     series.name = label
   if color:
     series.color = color
-
   return [series]
+
 
 def transformNull(requestContext, seriesList, default=0):
   """
@@ -3404,9 +3438,11 @@ SeriesFunctions = {
   'reduce': reduceSeries,
   'groupByNode' : groupByNode,
   'constantLine' : constantLine,
+  'horizontalLine' : horizontalLine,
+  'threshold' : threshold,
+  'verticalLine' : verticalLine,
   'stacked' : stacked,
   'areaBetween' : areaBetween,
-  'threshold' : threshold,
   'transformNull' : transformNull,
   'isNonNull' : isNonNull,
   'identity': identity,
