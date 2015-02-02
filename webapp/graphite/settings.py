@@ -26,7 +26,7 @@ except ImportError:
   rrdtool = False
 
 GRAPHITE_WEB_APP_SETTINGS_LOADED = False
-WEBAPP_VERSION = '0.9.12'
+WEBAPP_VERSION = '0.9.13'
 DEBUG = False
 JAVASCRIPT_DEBUG = False
 
