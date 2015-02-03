@@ -21,6 +21,7 @@ from graphite.storage import STORE
 from graphite.metrics.search import searcher
 from graphite.carbonlink import CarbonLink
 import fnmatch, os
+import re
 
 try:
   import cPickle as pickle
@@ -84,6 +85,15 @@ def search_view(request):
   return json_response_for(request, dict(metrics=results))
 
 
+node_sort_RE = re.compile(r"([^0-9]+|[0-9]+)")
+
+def node_sort_key(node):
+  matches = node_sort_RE.findall(node.name)
+  for index, value in enumerate(matches):
+    if value.isdigit():
+      matches[index] = int(matches[index])
+  return matches
+
 def find_view(request):
   "View for finding metrics matching a given pattern"
   profile = getProfile(request)
@@ -131,7 +141,7 @@ def find_view(request):
     raise
 
   log.info('find_view query=%s local_only=%s matches=%d' % (query, local_only, len(matches)))
-  matches.sort(key=lambda node: node.name)
+  matches.sort(key=node_sort_key)
   log.info("received remote find request: pattern=%s from=%s until=%s local_only=%s format=%s matches=%d" % (query, fromTime, untilTime, local_only, format, len(matches)))
 
   if format == 'treejson':
