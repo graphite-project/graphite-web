@@ -12,6 +12,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
+import time
 from graphite.logger import log
 from graphite.storage import STORE
 from graphite.readers import FetchInProgress
@@ -143,6 +144,7 @@ def fetchData(requestContext, pathExpr):
         log.exception("Got an exception when fetching data! See: %s Will do it again! Run: %i of %i" %
                      (e, retries, settings.MAX_FETCH_RETRIES))
         retries += 1
+        time.sleep(0.1)
 
 
 def nonempty(series):
