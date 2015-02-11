@@ -118,6 +118,10 @@ def safeAbs(value):
   if value is None: return None
   return abs(value)
 
+def safeIsNotEmpty(values):
+    safeValues = [v for v in values if v is not None]
+    return len(safeValues) > 0
+
 # Greatest common divisor
 def gcd(a, b):
   if b == 0:
@@ -3180,6 +3184,22 @@ def sinFunction(requestContext, name, amplitude=1, step=60):
             int(epoch(requestContext["endTime"])),
             step, values)]
 
+def removeEmptySeries(requestContext, seriesList):
+    """
+    Takes one metric or a wildcard seriesList.
+    Out of all metrics passed, draws only the metrics with not empty data
+
+    Example:
+
+    .. code-block:: none
+
+      &target=removeEmptySeries(server*.instance*.threads.busy)
+
+    Draws only live servers with not empty data.
+
+    """
+    return [ series for series in seriesList if safeIsNotEmpty(series) ]
+
 def randomWalkFunction(requestContext, name, step=60):
   """
   Short Alias: randomWalk()
@@ -3353,6 +3373,7 @@ SeriesFunctions = {
   'useSeriesAbove': useSeriesAbove,
   'exclude' : exclude,
   'grep' : grep,
+  'removeEmptySeries' : removeEmptySeries,
 
   # Data Filter functions
   'removeAbovePercentile' : removeAbovePercentile,

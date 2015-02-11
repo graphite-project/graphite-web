@@ -125,7 +125,7 @@ def myGraphLookup(request):
          if name in leaf_inserted: continue
          leaf_inserted.add(name)
 
-      node = {'text': name}
+      node = {'text': escape(name)}
 
       if isBranch:
         node.update({'id': userpath_prefix + name + '.'})
