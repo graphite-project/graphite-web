@@ -1,6 +1,10 @@
 import copy
 import math
+import pytz
+from datetime import datetime
+
 from django.test import TestCase
+from django.conf import settings
 from mock import patch, call, MagicMock
 
 from graphite.render.datalib import TimeSeries
@@ -101,6 +105,19 @@ class FunctionsTest(TestCase):
             name = "collectd.test-db{0}.load.value".format(i + 1)
             seriesList.append(TimeSeries(name, 0, 1, 1, c))
         return seriesList
+
+    def test_check_empty_lists(self):
+        seriesList = []
+        config = [[1000, 100, 10, 0], []]
+        for i, c in enumerate(config):
+            seriesList.append(TimeSeries('Test(%d)' % i, 0, 0, 0, c))
+
+        self.assertTrue(functions.safeIsNotEmpty(seriesList[0]))
+        self.assertFalse(functions.safeIsNotEmpty(seriesList[1]))
+
+        result = functions.removeEmptySeries({}, seriesList)
+
+        self.assertEqual(1, len(result))
 
     def test_remove_above_percentile(self):
         seriesList = self._generate_series_list()
@@ -375,3 +392,23 @@ class FunctionsTest(TestCase):
         ]
         results = functions.multiplySeriesWithWildcards({}, copy.deepcopy(seriesList1+seriesList2), 2,3)
         self.assertEqual(results,expectedResult)
+
+    def test_timeSlice(self):
+        seriesList = [
+            # series starts at 60 seconds past the epoch and continues for 600 seconds (ten minutes)
+            # steps are every 60 seconds
+            TimeSeries('test.value',0,600,60,[None,1,2,3,None,5,6,None,7,8,9]),
+        ]
+
+        # we're going to slice such that we only include minutes 3 to 8 (of 0 to 9)
+        expectedResult = [
+            TimeSeries('timeSlice(test.value, 180, 480)',0,600,60,[None,None,None,3,None,5,6,None,7,None,None])
+        ]
+
+        results = functions.timeSlice({
+            'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+            'endTime': datetime(1970, 1, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+            'localOnly': False,
+            'data': [],
+        }, seriesList, '00:03 19700101', '00:08 19700101')
+        self.assertEqual(results, expectedResult)

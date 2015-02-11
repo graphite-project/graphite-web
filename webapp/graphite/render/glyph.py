@@ -1019,10 +1019,10 @@ class LineGraph(Graph):
   def setupYAxis(self):
     seriesWithMissingValues = [ series for series in self.data if None in series ]
 
-    if self.params.get('drawNullAsZero') and seriesWithMissingValues:
+    yMinValue = safeMin( [safeMin(series) for series in self.data if not series.options.get('drawAsInfinite')] )
+
+    if yMinValue > 0.0 and self.params.get('drawNullAsZero') and seriesWithMissingValues:
       yMinValue = 0.0
-    else:
-      yMinValue = safeMin( [safeMin(series) for series in self.data if not series.options.get('drawAsInfinite')] )
 
     if self.areaMode == 'stacked':
       length = safeMin( [len(series) for series in self.data if not series.options.get('drawAsInfinite')] )
@@ -1033,6 +1033,9 @@ class LineGraph(Graph):
       yMaxValue = safeMax( sumSeries )
     else:
       yMaxValue = safeMax( [safeMax(series) for series in self.data if not series.options.get('drawAsInfinite')] )
+
+    if yMaxValue < 0.0 and self.params.get('drawNullAsZero') and seriesWithMissingValues:
+      yMaxValue = 0.0
 
     if yMinValue is None:
       yMinValue = 0.0
