@@ -12,28 +12,27 @@
 #See the License for the specific language governing permissions and
 #limitations under the License.
 
+import math
+import random
+import re
+import time
 
 from datetime import datetime, timedelta
 from itertools import izip, imap
-import math
-import re
-import random
-import time
-
-from graphite.logger import log
-from graphite.render.attime import parseTimeOffset
+from os import environ
 
 from graphite.events import models
+from graphite.logger import log
+from graphite.render.attime import parseTimeOffset
+from graphite.util import epoch
 
-#XXX format_units() should go somewhere else
-from os import environ
+# XXX format_units() should go somewhere else
 if environ.get('READTHEDOCS'):
   format_units = lambda *args, **kwargs: (0,'')
 else:
   from graphite.render.glyph import format_units
   from graphite.render.datalib import TimeSeries
 
-from graphite.util import epoch
 
 NAN = float('NaN')
 INF = float('inf')
