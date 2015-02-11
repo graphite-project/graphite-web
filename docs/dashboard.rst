@@ -1,4 +1,3 @@
-
 ============================
 The Dashboard User Interface
 ============================
@@ -321,3 +320,51 @@ The format is as a set of key-value pairs separated by ampersands, like a query 
 ``drawNullAsZero=true&graphOnly=true``
   
 Any new graphs created after saving that as the default graph parameters would have unreported metrics graphed as zeroes and omit the grid lines.
+
+Using CLI to Export\Import Dashboards
+-------------------------------------
+The Dashboard CLI Tool allow to export\import dashboard from Graphite, to storing and it in local file system or in any VCS (Version Control System).
+The exported dashboards are stored in YAML format, that allow easy modify them.
+
+Install Dashboard CLI
+^^^^^^^^^^^^^^^^^^^^^
+You can install Graphite-Dashboard CLI tool with pip:
+.. code-block:: none
+
+    pip install graphite-dashboard
+
+Or with clone repo:
+.. code-block:: none
+    
+    git clone https://github.com/blacked/graphite-dashboard.git
+
+Export\Import Dashboards using CLI Tool
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Export all dashboards from Graphite to local file system
+.. code-block:: none
+
+    graphite-dashboard copy '*' http://graphite.local ./dashboards
+
+Import all dashboards from local file system to Graphite
+.. code-block:: none
+
+    graphite-dashboard copy '*' ./dashboards http://graphite.local
+
+Copy specific dashboard from one Graphite server to another
+.. code-block:: none
+
+    graphite-dashboard copy TestDashboard http://graphite1.local http://graphite2.local
+
+Synchronize Dashboards between multiple Graphite hosts
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+When using multiple horizontal scaled graphite hosts with loadbalancer, it might be useful to synchronize dashboard between hosts.
+.. code-block:: none
+
+    graphite-dashboard sync '*' http://graphite1.local http://graphite2.local http://graphite3.local
+
+Delete Dashboard using CLI
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+Delete dashboard 'TestDashboard' from multiple Graphite hosts:
+.. code-block:: none
+
+    graphite-dashboard delete 'TestDashboard' http://graphite1.local http://graphite2.local
