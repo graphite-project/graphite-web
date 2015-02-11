@@ -297,7 +297,7 @@ function showShortUrl() {
     Ext.Ajax.request({
         method: 'GET',
         url: '/s/render/?' + Composer.url.queryString,
-        callback: showUrl,
+        callback: showUrl
     });
 }
 
@@ -561,7 +561,7 @@ var GraphDataWindow = {
           menu: {
             subMenuAlign: 'tr-tl',
             defaults: {
-              defaultAlign: 'tr-tl',
+              defaultAlign: 'tr-tl'
             },
             items: [
               { text: 'Move Up', handler: this.moveTargetUp.createDelegate(this) },
