@@ -147,6 +147,13 @@ Visualization
   using Flot with a multitude of display options (Multiple Y-axis, Bars, Lines, Points, smart Y-axis formats and much more).
   Click and drag selection rectangle to zoom in on any graph.
 
+`graphite-dashboardcli`_
+  a tool for manage graphite dashboards from command line:
+
+  - import\Export dashboards from\to Graphite servers
+  - synchronize dashboards between multiple Graphite servers
+  - keep dashboards in YAML format
+
 `graphitus`_
   a client side dashboard for graphite built using bootstrap and underscore.js.
 
@@ -273,6 +280,7 @@ Other
 .. _Graphene: http://jondot.github.com/graphene
 .. _Graphios: https://github.com/shawn-sterling/graphios
 .. _graphite-beacon: https://github.com/klen/graphite-beacon
+.. _graphite-dashboardcli: https://github.com/blacked/graphite-dashboardcli
 .. _Graphite-Tattle: https://github.com/wayfair/Graphite-Tattle
 .. _Graphite-Newrelic: https://github.com/gingerlime/graphite-newrelic
 .. _Graphite-Observer: https://github.com/huoxy/graphite-observer
