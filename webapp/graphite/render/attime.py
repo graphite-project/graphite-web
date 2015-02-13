@@ -28,8 +28,6 @@ weekdays = ['sun','mon','tue','wed','thu','fri','sat']
 def parseATTime(s, tzinfo=None, now=None):
   if tzinfo is None:
     tzinfo = timezone.get_current_timezone()
-  if now is None:
-    now = datetime.now(tz=tzinfo)
 
   s = s.strip().lower().replace('_','').replace(',','').replace(' ','')
   if s.isdigit():
