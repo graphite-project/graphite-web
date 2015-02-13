@@ -47,11 +47,11 @@ def parseATTime(s, tzinfo=None, now=None):
     offset = '-' + offset
   else:
     ref,offset = s,''
-  return (parseTimeReference(ref) + parseTimeOffset(offset)).astimezone(tzinfo)
+  return tzinfo.localize((parseTimeReference(ref) + parseTimeOffset(offset)), daylight)
 
 
 def parseTimeReference(ref):
-  if not ref or ref == 'now': return timezone.now()
+  if not ref or ref == 'now': return datetime.now()
   #Time-of-day reference
   i = ref.find(':')
   hour,min = 0,0
@@ -73,7 +73,7 @@ def parseTimeReference(ref):
     hour,min = 16,0
     ref = ref[7:]
 
-  refDate = timezone.now().replace(hour=hour,minute=min,second=0)
+  refDate = datetime.now().replace(hour=hour,minute=min,second=0)
 
   #Day reference
   if ref in ('yesterday','today','tomorrow'): #yesterday, today, tomorrow

@@ -39,5 +39,6 @@ gunicorn
 pytz
 sphinx
 sphinx_rtd_theme
+mock
 cairocffi
 git+git://github.com/graphite-project/whisper.git@0.9.13#egg=whisper
