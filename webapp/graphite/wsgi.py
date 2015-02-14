@@ -1,10 +1,10 @@
 import os
 
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'graphite.settings')  # noqa
+
 import django
 
 from graphite.logger import log
-
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'graphite.settings')
 
 if django.VERSION < (1, 4):
     from django.core.handlers.wsgi import WSGIHandler
