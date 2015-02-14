@@ -1,4 +1,4 @@
-#!/usr/local/opt/python/bin/python2.7
+#!/usr/bin/env python
 
 import sys, os
 import subprocess
