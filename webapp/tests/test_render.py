@@ -21,11 +21,17 @@ if hasattr(logging, "NullHandler"):
 
 
 class RenderTest(TestCase):
-    db = os.path.join(settings.WHISPER_DIR, 'test.wsp')
+    db_std = os.path.join(settings.WHISPER_DIR, 'test.wsp')
+    db_hot = os.path.join(settings.HOT_WHISPER_DIR, 'test.wsp')
 
     def wipe_whisper(self):
         try:
-            os.remove(self.db)
+            os.remove(self.db_std)
+        except OSError:
+            pass
+
+        try:
+            os.remove(self.db_hot)
         except OSError:
             pass
 
@@ -45,18 +51,30 @@ class RenderTest(TestCase):
         self.assertTrue(response.has_header('Cache-Control'))
 
         self.addCleanup(self.wipe_whisper)
-        whisper.create(self.db, [(1, 60)])
+        whisper.create(self.db_std, [(1, 60)])
 
         ts = int(time.time())
-        whisper.update(self.db, 0.5, ts - 2)
-        whisper.update(self.db, 0.4, ts - 1)
-        whisper.update(self.db, 0.6, ts)
+        whisper.update(self.db_std, 0.5, ts - 2)
+        whisper.update(self.db_std, 0.4, ts - 1)
+        whisper.update(self.db_std, 0.6, ts)
 
         response = self.client.get(url, {'target': 'test', 'format': 'json'})
         data = json.loads(response.content)
         end = data[0]['datapoints'][-4:]
         self.assertEqual(
             end, [[None, ts - 3], [0.5, ts - 2], [0.4, ts - 1], [0.6, ts]])
+
+        whisper.create(self.db_hot, [(1, 60)])
+
+        whisper.update(self.db_hot, 1.5, ts - 2)
+        whisper.update(self.db_hot, 1.4, ts - 1)
+        whisper.update(self.db_hot, 1.6, ts)
+
+        response = self.client.get(url, {'target': 'test', 'format': 'json'})
+        data = json.loads(response.content)
+        end = data[0]['datapoints'][-4:]
+        self.assertEqual(
+            end, [[None, ts - 3], [1.5, ts - 2], [1.4, ts - 1], [1.6, ts]])
 
     def test_hash_request(self):
         # Requests with the same parameters should hash to the same values,

@@ -40,20 +40,20 @@ class Store:
     if not local:
       remote_requests = [ r.find(query) for r in self.remote_stores if r.available ]
 
-    matching_nodes = set()
+    matching_nodes = []
 
     # Search locally
     for finder in self.finders:
       for node in finder.find_nodes(query):
         #log.info("find() :: local :: %s" % node)
-        matching_nodes.add(node)
+        matching_nodes.append(node)
 
     # Gather remote search results
     if not local:
       for request in remote_requests:
         for node in request.get_results():
           #log.info("find() :: remote :: %s from %s" % (node,request.store.host))
-          matching_nodes.add(node)
+          matching_nodes.append(node)
 
     # Group matching nodes by their path
     nodes_by_path = {}
