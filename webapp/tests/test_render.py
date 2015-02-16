@@ -38,7 +38,12 @@ class RenderTest(TestCase):
     def test_render_view(self):
         url = reverse('graphite.render.views.renderView')
 
-        response = self.client.get(url, {'target': 'test', 'format': 'json'})
+        ts = int(time.time())
+        std_points = 60
+        hot_points = 10
+        request_fields = {'target': 'test', 'format': 'json', 'local': 1, 'until': ts, 'from': ts - 6}
+
+        response = self.client.get(url, request_fields)
         self.assertEqual(json.loads(response.content), [])
         self.assertTrue(response.has_header('Expires'))
         self.assertTrue(response.has_header('Last-Modified'))
@@ -51,30 +56,35 @@ class RenderTest(TestCase):
         self.assertTrue(response.has_header('Cache-Control'))
 
         self.addCleanup(self.wipe_whisper)
-        whisper.create(self.db_std, [(1, 60)])
 
-        ts = int(time.time())
-        whisper.update(self.db_std, 0.5, ts - 2)
-        whisper.update(self.db_std, 0.4, ts - 1)
-        whisper.update(self.db_std, 0.6, ts)
+        std_data_set = [[float(i) / 10, ts - std_points + 1 + i] for i in range(std_points)]
+        hot_data_set = [[float(i) / 100, ts - hot_points + 1 + i] for i in range(hot_points)]
 
-        response = self.client.get(url, {'target': 'test', 'format': 'json'})
+        whisper.create(self.db_std, [(1, std_points)])
+
+        for [value, timestamp] in std_data_set:
+            whisper.update(self.db_std, value, timestamp)
+
+        response = self.client.get(url, request_fields)
         data = json.loads(response.content)
-        end = data[0]['datapoints'][-4:]
-        self.assertEqual(
-            end, [[None, ts - 3], [0.5, ts - 2], [0.4, ts - 1], [0.6, ts]])
+        data_points = data[0]['datapoints'][-4:]
+        self.assertEqual(data_points, std_data_set[-4:])
 
-        whisper.create(self.db_hot, [(1, 60)])
+        whisper.create(self.db_hot, [(1, hot_points)])
 
-        whisper.update(self.db_hot, 1.5, ts - 2)
-        whisper.update(self.db_hot, 1.4, ts - 1)
-        whisper.update(self.db_hot, 1.6, ts)
+        for [value, timestamp] in hot_data_set:
+            whisper.update(self.db_hot, value, timestamp)
 
-        response = self.client.get(url, {'target': 'test', 'format': 'json'})
+        response = self.client.get(url, request_fields)
         data = json.loads(response.content)
-        end = data[0]['datapoints'][-4:]
-        self.assertEqual(
-            end, [[None, ts - 3], [1.5, ts - 2], [1.4, ts - 1], [1.6, ts]])
+        data_points = data[0]['datapoints'][-4:]
+        self.assertEqual(data_points, hot_data_set[-4:])
+
+        request_fields['from'] = ts - hot_points - 1
+        response = self.client.get(url, request_fields)
+        data = json.loads(response.content)
+        data_points = data[0]['datapoints'][-4:]
+        self.assertEqual(data_points, std_data_set[-4:])
 
     def test_hash_request(self):
         # Requests with the same parameters should hash to the same values,

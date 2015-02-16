@@ -12,6 +12,7 @@ from graphite.remote_storage import RemoteStore
 from graphite.node import LeafNode
 from graphite.intervals import Interval, IntervalSet
 from graphite.readers import MultiReader
+from graphite.logger import log
 
 
 def get_finder(finder_path):
@@ -81,7 +82,7 @@ class Store:
         continue
 
       # Calculate best minimal node set
-      minimal_node_set = set()
+      minimal_node_set = []
       covered_intervals = IntervalSet([])
 
       # If the query doesn't fall entirely within the FIND_TOLERANCE window
@@ -105,7 +106,7 @@ class Store:
       for node in leaf_nodes:
         if node.local and measure_of_added_coverage(node, False) > 0:
           nodes_remaining.remove(node)
-          minimal_node_set.add(node)
+          minimal_node_set.append(node)
           covered_intervals = covered_intervals.union(node.intervals)
 
       while nodes_remaining:
@@ -116,7 +117,7 @@ class Store:
           break
 
         nodes_remaining.remove(best_node)
-        minimal_node_set.add(best_node)
+        minimal_node_set.append(best_node)
         covered_intervals = covered_intervals.union(best_node.intervals)
 
       # Sometimes the requested interval falls within the caching window.
@@ -129,7 +130,7 @@ class Store:
 
         best_candidate = min(leaf_nodes, key=distance_to_requested_interval)
         if distance_to_requested_interval(best_candidate) <= settings.FIND_TOLERANCE:
-          minimal_node_set.add(best_candidate)
+          minimal_node_set.append(best_candidate)
 
       if len(minimal_node_set) == 1:
         yield minimal_node_set.pop()

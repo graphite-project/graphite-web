@@ -42,6 +42,19 @@ class MultiReader(object):
     return IntervalSet( sorted(interval_sets) )
 
   def fetch(self, startTime, endTime):
+    # get 1st available node which covers the full range
+    interval = Interval(startTime, endTime)
+    best_node = None
+    for n in self.nodes:
+      for i in n.intervals:
+        if i.includes(interval):
+          best_node = n
+          break
+
+    # if there is an interval with full coverage - we use it to reduce reads
+    if best_node:
+      return best_node.fetch(startTime, endTime)
+
     # Start the fetch on each node
     results = [ n.fetch(startTime, endTime) for n in self.nodes ]
 
@@ -81,7 +94,7 @@ class MultiReader(object):
       # Look for the finer precision value first if available
       i1 = (t - start1) / step1
 
-      if len(values1) > i1:
+      if 0 <= i1 < len(values1):
         v1 = values1[i1]
       else:
         v1 = None
@@ -89,7 +102,7 @@ class MultiReader(object):
       if v1 is None:
         i2 = (t - start2) / step2
 
-        if len(values2) > i2:
+        if 0 <= i2 < len(values2):
           v2 = values2[i2]
         else:
           v2 = None
