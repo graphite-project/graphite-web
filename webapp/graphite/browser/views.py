@@ -178,7 +178,7 @@ def userGraphLookup(request):
   try:
 
     if not username:
-      profiles = Profile.objects.exclude(user__username='default')
+      profiles = Profile.objects.exclude(user__username='default').order_by('user__username')
 
       for profile in profiles:
         if profile.mygraph_set.count():
