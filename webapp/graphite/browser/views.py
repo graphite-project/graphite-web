@@ -237,7 +237,7 @@ def userGraphLookup(request):
     no_graphs.update(leafNode)
     nodes.append(no_graphs)
 
-  nodes.sort()
+  nodes.sort(key=lambda node: node['allowChildren'], reverse = True)
 
   return json_response(nodes, request)
 
