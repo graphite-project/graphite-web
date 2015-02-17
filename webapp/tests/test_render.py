@@ -92,7 +92,7 @@ class RenderTest(TestCase):
         data_points = data[0]['datapoints'][-4:] \
             if data[0]['datapoints'][-1][0] is not None \
             else data[0]['datapoints'][-5:-1]
-        
+
         self.assertEqual(data_points, std_data_set[-4:])
 
     def test_hash_request(self):
