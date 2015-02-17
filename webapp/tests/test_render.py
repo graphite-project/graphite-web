@@ -57,8 +57,8 @@ class RenderTest(TestCase):
 
         self.addCleanup(self.wipe_whisper)
 
-        std_data_set = [[float(i) / 10, ts - std_points + 1 + i] for i in range(std_points)]
-        hot_data_set = [[float(i) / 100, ts - hot_points + 1 + i] for i in range(hot_points)]
+        std_data_set = [[float(i) / 10, ts - std_points + 1 + i] for i in range(std_points - 1)]
+        hot_data_set = [[float(i) / 100, ts - hot_points + 1 + i] for i in range(hot_points - 1)]
 
         whisper.create(self.db_std, [(1, std_points)])
 
@@ -67,7 +67,10 @@ class RenderTest(TestCase):
 
         response = self.client.get(url, request_fields)
         data = json.loads(response.content)
-        data_points = data[0]['datapoints'][-4:]
+        data_points = data[0]['datapoints'][-4:] \
+            if data[0]['datapoints'][-1][0] is not None \
+            else data[0]['datapoints'][-5:-1]
+
         self.assertEqual(data_points, std_data_set[-4:])
 
         whisper.create(self.db_hot, [(1, hot_points)])
@@ -77,13 +80,19 @@ class RenderTest(TestCase):
 
         response = self.client.get(url, request_fields)
         data = json.loads(response.content)
-        data_points = data[0]['datapoints'][-4:]
+        data_points = data[0]['datapoints'][-4:] \
+            if data[0]['datapoints'][-1][0] is not None \
+            else data[0]['datapoints'][-5:-1]
+
         self.assertEqual(data_points, hot_data_set[-4:])
 
         request_fields['from'] = ts - hot_points - 1
         response = self.client.get(url, request_fields)
         data = json.loads(response.content)
-        data_points = data[0]['datapoints'][-4:]
+        data_points = data[0]['datapoints'][-4:] \
+            if data[0]['datapoints'][-1][0] is not None \
+            else data[0]['datapoints'][-5:-1]
+        
         self.assertEqual(data_points, std_data_set[-4:])
 
     def test_hash_request(self):
