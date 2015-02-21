@@ -13,13 +13,13 @@ See the License for the specific language governing permissions and
 limitations under the License. -->
 <h1>Searching Graphite</h1><br>
 
- The search box may contain multiple search strings separated by spaces. To match your search, a graphite name must match <b>all</b> of the search strings you provide. For example,<br>
+The search box may contain multiple search strings separated by spaces. Queries with multiple strings are treated as an inclusive search, returning results that match <em>either</em> string. For example,<br>
 
 <pre>
 lfs busy
 </pre>
 <br>
 
-Will only match names that contain the word "lfs" <b>and</b> the word "busy".<br>
+Will match metric names that contain <em>either</em> the word "lfs" <em>or</em> the word "busy".<br>
 
 Advanced users may note that every search string can be a regular expression.
