@@ -12,7 +12,7 @@ from graphite.remote_storage import RemoteStore
 from graphite.node import LeafNode
 from graphite.intervals import Interval, IntervalSet
 from graphite.readers import MultiReader
-
+# from graphite.logger import log
 
 def get_finder(finder_path):
   module_name, class_name = finder_path.rsplit('.', 1)
@@ -130,6 +130,8 @@ class Store:
         best_candidate = min(leaf_nodes, key=distance_to_requested_interval)
         if distance_to_requested_interval(best_candidate) <= settings.FIND_TOLERANCE:
           minimal_node_set.append(best_candidate)
+
+      # log.metric_access("Found %s nodes for a query %s: %s", len(minimal_node_set), query, minimal_node_set)
 
       if len(minimal_node_set) == 1:
         yield minimal_node_set.pop()
