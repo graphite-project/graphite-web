@@ -47,3 +47,33 @@ fontName = Sans
 fontSize = 10
 fontBold = False
 fontItalic = False
+
+[ocean1]
+lineColors = f7fcf0,e0f3db,ccebc5,a8ddb5,7bccc4,4eb3d3,2b8cbe,0868ac,084081
+
+[ocean2]
+lineColors = 084081,0868ac,2b8cbe,4eb3d3,7bccc4,a8ddb5,ccebc5,e0f3db,f7fcf0
+
+[forest1]
+lineColors = f7fcf5,e5f5e0,c7e9c0,a1d99b,74c476,41ab5d,238b45,005a32
+
+[forest2]
+lineColors = 005a32,238b45,41ab5d,74c476,a1d99b,c7e9c0,e5f5e0,f7fcf5
+
+[sunset1]
+lineColors = fff5eb,fee6ce,fdd0a2,fdae6b,fd8d3c,f16913,d94801,8c2d04
+
+[sunset2]
+lineColors = 8c2d04,d94801,f16913,fd8d3c,fdae6b,fdd0a2,fee6ce,fff5eb
+
+[moonlight1]
+lineColors = fcfbfd,efedf5,dadaeb,bcbddc,9e9ac8,807dba,6a51a3,4a1486
+
+[moonlight2]
+lineColors = 4a1486,6a51a3,807dba,9e9ac8,bcbddc,dadaeb,efedf5,fcfbfd
+
+[lava1]
+lineColors = fff5f0,fee0d2,fcbba1,fc9272,fb6a4a,ef3b2c,cb181d,99000d
+
+[lava2]
+lineColors = 99000d,cb181d,ef3b2c,fb6a4a,fc9272,fcbba1,fee0d2,fff5f0
