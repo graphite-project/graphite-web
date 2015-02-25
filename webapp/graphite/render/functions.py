@@ -137,7 +137,6 @@ def normalize(seriesLists):
   if seriesLists:
     seriesList = reduce(lambda L1,L2: L1+L2,seriesLists)
     if seriesList:
-      seriesList = reduce(lambda L1,L2: L1+L2,seriesLists)
       step = reduce(lcm,[s.step for s in seriesList])
       for s in seriesList:
         s.consolidate( step / s.step )
