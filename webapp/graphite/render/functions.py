@@ -2821,20 +2821,7 @@ def groupByNode(requestContext, seriesList, nodeNum, callback):
     sumSeries(ganglia.by-function.server1.*.cpu.load5),sumSeries(ganglia.by-function.server2.*.cpu.load5),...
 
   """
-  metaSeries = {}
-  keys = []
-  for series in seriesList:
-    key = series.name.split(".")[nodeNum]
-    if key not in metaSeries.keys():
-      metaSeries[key] = [series]
-      keys.append(key)
-    else:
-      metaSeries[key].append(series)
-  for key in metaSeries.keys():
-    metaSeries[key] = SeriesFunctions[callback](requestContext,
-        metaSeries[key])[0]
-    metaSeries[key].name = key
-  return [ metaSeries[key] for key in keys ]
+  return groupByNodes(requestContext, seriesList, callback, nodeNum)
 
 def groupByNodes(requestContext, seriesList, callback, *nodes):
   """
