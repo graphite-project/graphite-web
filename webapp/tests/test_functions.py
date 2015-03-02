@@ -250,6 +250,60 @@ class FunctionsTest(TestCase):
         with self.assertRaises(IndexError):
             verify_node_name(10000)
 
+    def test_groupByNode(self):
+        seriesList, inputList = self._generate_mr_series()
+
+        def verify_groupByNode(expectedResult, nodeNum):
+            results = functions.groupByNode({}, copy.deepcopy(seriesList), nodeNum, "keepLastValue")
+
+            for i, series in enumerate(results):
+                self.assertEqual(series.name, expectedResult[i].name)
+            self.assertEqual(results, expectedResult)
+
+        expectedResult   = [
+            TimeSeries('group',0,1,1,[None]),
+        ]
+        verify_groupByNode(expectedResult, 0)
+
+        expectedResult   = [
+            TimeSeries('server1',0,1,1,[None]),
+            TimeSeries('server2',0,1,1,[None]),
+        ]
+        verify_groupByNode(expectedResult, 1)
+
+    def test_groupByNodes(self):
+        seriesList, inputList = self._generate_mr_series()
+
+        def verify_groupByNodes(expectedResult, *nodes):
+            if isinstance(nodes, int):
+                node_number = [nodes]
+
+            results = functions.groupByNodes({}, copy.deepcopy(seriesList), "keepLastValue", *nodes)
+
+            for i, series in enumerate(results):
+                self.assertEqual(series.name, expectedResult[i].name)
+            self.assertEqual(results, expectedResult)
+
+        expectedResult = [
+            TimeSeries('server1',0,1,1,[None]),
+            TimeSeries('server2',0,1,1,[None]),
+        ]
+        verify_groupByNodes(expectedResult, 1)
+
+        expectedResult = [
+            TimeSeries('server1.metric1',0,1,1,[None]),
+            TimeSeries('server1.metric2',0,1,1,[None]),
+            TimeSeries('server2.metric1',0,1,1,[None]),
+            TimeSeries('server2.metric2',0,1,1,[None]),
+        ]
+        verify_groupByNodes(expectedResult, 1, 2)
+
+        expectedResult = [
+            TimeSeries('server1.group',0,1,1,[None]),
+            TimeSeries('server2.group',0,1,1,[None]),
+        ]
+        verify_groupByNodes(expectedResult, 1, 0)
+
     def test_alpha(self):
         seriesList = self._generate_series_list()
         alpha = 0.5
