@@ -41,7 +41,22 @@ class MultiReader(object):
       interval_sets.extend( node.intervals.intervals )
     return IntervalSet( sorted(interval_sets) )
 
+  @staticmethod
+  def _get_best_node(interval, nodes):
+    for n in nodes:
+      for i in n.intervals:
+        if i.includes(interval):
+          return n
+
   def fetch(self, startTime, endTime):
+    # get 1st available node which covers the full range
+    interval = Interval(startTime, endTime)
+    best_node = MultiReader._get_best_node(interval, self.nodes)
+
+    # if there is an interval with full coverage - we use it to reduce reads
+    if best_node:
+      return best_node.fetch(startTime, endTime)
+
     # Start the fetch on each node
     results = [ n.fetch(startTime, endTime) for n in self.nodes ]
 
@@ -81,7 +96,7 @@ class MultiReader(object):
       # Look for the finer precision value first if available
       i1 = (t - start1) / step1
 
-      if len(values1) > i1:
+      if 0 <= i1 < len(values1):
         v1 = values1[i1]
       else:
         v1 = None
@@ -89,7 +104,7 @@ class MultiReader(object):
       if v1 is None:
         i2 = (t - start2) / step2
 
-        if len(values2) > i2:
+        if 0 <= i2 < len(values2):
           v2 = values2[i2]
         else:
           v2 = None
@@ -102,6 +117,11 @@ class MultiReader(object):
 
     return (time_info, values)
 
+  def __str__(self):
+    return "MultiReader(nodes=[%s])" % self.nodes
+
+  def __repr__(self):
+    return "<MultiReader[%s]: nodes=[%s]>" % (id(self), self.nodes)
 
 class CeresReader(object):
   __slots__ = ('ceres_node', 'real_metric_path')
@@ -142,14 +162,22 @@ class CeresReader(object):
 
     return (time_info, values)
 
+  def __str__(self):
+    return "CeresReader(ceres_node=%s, real_metric_path=%s)" % \
+           (self.ceres_node, self.real_metric_path)
+
+  def __repr__(self):
+    return "<CeresReader[%s]: ceres_node=%s, real_metric_path=%s>" % \
+           (id(self), self.ceres_node, self.real_metric_path)
 
 class WhisperReader(object):
-  __slots__ = ('fs_path', 'real_metric_path')
+  __slots__ = ('fs_path', 'real_metric_path', 'is_hot')
   supported = bool(whisper)
 
   def __init__(self, fs_path, real_metric_path):
     self.fs_path = fs_path
     self.real_metric_path = real_metric_path
+    self.is_hot = settings.HOT_WHISPER_DIR and fs_path.startswith(settings.HOT_WHISPER_DIR)
 
   def get_intervals(self):
     start = time.time() - whisper.info(self.fs_path)['maxRetention']
@@ -185,6 +213,14 @@ class WhisperReader(object):
 
     return (time_info, values)
 
+  def __str__(self):
+    return "WhisperReader(fs_path=%s, real_metric_path=%s, hot=%s)" % \
+           (self.fs_path, self.real_metric_path, self.is_hot)
+
+  def __repr__(self):
+    return "<WhisperReader[%s]: fs_path=%s, real_metric_path=%s, hot=%s>" % \
+           (id(self), self.fs_path, self.real_metric_path, self.is_hot)
+
 
 class GzippedWhisperReader(WhisperReader):
   supported = bool(whisper and gzip)
@@ -207,6 +243,13 @@ class GzippedWhisperReader(WhisperReader):
     finally:
       fh.close()
 
+  def __str__(self):
+    return "GzippedWhisperReader(fs_path=%s, real_metric_path=%s, hot_storage=%s)" % \
+           (self.fs_path, self.real_metric_path, self.is_hot)
+
+  def __repr__(self):
+    return "<GzippedWhisperReader[%s]: fs_path=%s, real_metric_path=%s, hot=%s>" % \
+           (id(self), self.fs_path, self.real_metric_path, self.is_hot)
 
 class RRDReader:
   supported = bool(rrdtool)
@@ -265,3 +308,11 @@ class RRDReader:
         retention_points = points
 
     return  retention_points * info['step']
+
+  def __str__(self):
+    return "RRDReader(fs_path=%s, datasource_name=%s)" % \
+           (self.fs_path, self.datasource_name)
+
+  def __repr__(self):
+    return "<RRDReader[%s]: fs_path=%s, datasource_name=%s>" % \
+           (id(self), self.fs_path, self.datasource_name)

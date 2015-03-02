@@ -44,6 +44,7 @@ INDEX_FILE = ''
 LOG_DIR = ''
 CERES_DIR = ''
 WHISPER_DIR = ''
+HOT_WHISPER_DIR = ''
 RRD_DIR = ''
 STANDARD_DIRS = []
 
@@ -166,6 +167,8 @@ if not LOG_DIR:
   LOG_DIR = join(STORAGE_DIR, 'log', 'webapp')
 if not WHISPER_DIR:
   WHISPER_DIR = join(STORAGE_DIR, 'whisper/')
+if not HOT_WHISPER_DIR:
+    HOT_WHISPER_DIR = join(STORAGE_DIR, 'hot_whisper/')
 if not CERES_DIR:
   CERES_DIR = join(STORAGE_DIR, 'ceres/')
 if not RRD_DIR:
@@ -173,6 +176,9 @@ if not RRD_DIR:
 if not STANDARD_DIRS:
   try:
     import whisper  # noqa
+    if os.path.exists(HOT_WHISPER_DIR):
+      STANDARD_DIRS.append(HOT_WHISPER_DIR)
+
     if os.path.exists(WHISPER_DIR):
       STANDARD_DIRS.append(WHISPER_DIR)
   except ImportError:

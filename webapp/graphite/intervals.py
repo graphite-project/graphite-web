@@ -118,6 +118,8 @@ class Interval:
     end = max(self.end, other.end)
     return Interval(start, end)
 
+  def includes(self, other, precision = 60):
+    return self.start <= other.start and self.end >= other.end - precision
 
 def union_overlapping(intervals):
   """Union any overlapping intervals in the given set."""
