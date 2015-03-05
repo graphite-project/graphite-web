@@ -41,7 +41,9 @@ MetricCompleter = Ext.extend(Ext.form.ComboBox, {
   },
 
   prepareQuery: function (queryEvent) {
-    queryEvent.query += '*';
+    if (queryEvent.query.substr(-1) != '*') {
+      queryEvent.query += '*';
+    }
   },
 
   onSpecialKey: function (field, e) {

@@ -1,4 +1,5 @@
 import os
+import operator
 from os.path import isdir, isfile, join, basename
 from django.conf import settings
 
@@ -70,6 +71,7 @@ class StandardFinder:
     patterns = patterns[1:]
 
     has_wildcard = pattern.find('{') > -1 or pattern.find('[') > -1 or pattern.find('*') > -1 or pattern.find('?') > -1
+    using_globstar = pattern == "**"
 
     if has_wildcard: # this avoids os.listdir() for performance
       try:
@@ -80,8 +82,15 @@ class StandardFinder:
     else:
       entries = [ pattern ]
 
-    subdirs = [entry for entry in entries if isdir(join(current_dir, entry))]
-    matching_subdirs = match_entries(subdirs, pattern)
+    if using_globstar:
+        matching_subdirs = map(operator.itemgetter(0), os.walk(current_dir))
+    else:
+        subdirs = [entry for entry in entries if isdir(join(current_dir, entry))]
+        matching_subdirs = match_entries(subdirs, pattern)
+
+    # if this is a terminal globstar, add a pattern for all files in subdirs
+    if using_globstar and not patterns:
+        patterns = ["*"]
 
     if len(patterns) == 1 and RRDReader.supported: #the last pattern may apply to RRD data sources
       if not has_wildcard:
