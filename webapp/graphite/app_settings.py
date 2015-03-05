@@ -11,6 +11,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
+
 # Django settings for graphite project.
 # DO NOT MODIFY THIS FILE DIRECTLY - use local_settings.py instead
 from django import VERSION as DJANGO_VERSION
@@ -40,7 +41,6 @@ LANGUAGE_CODE = 'en-us'
 SITE_ID = 1
 
 # Absolute path to the directory that holds media.
-
 MEDIA_ROOT = ''
 
 # URL that handles the media served from MEDIA_ROOT.
