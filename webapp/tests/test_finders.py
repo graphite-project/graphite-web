@@ -1,14 +1,35 @@
 import random
 import time
+import os
+import tempfile
+import shutil
+import whisper
+from os.path import exists, join, dirname
 
 from django.test import TestCase
 
 from graphite.intervals import Interval, IntervalSet
 from graphite.node import LeafNode, BranchNode
 from graphite.storage import Store, get_finder
+from graphite.finders.standard import StandardFinder
 
 
 class FinderTest(TestCase):
+    __slots__ = ('storageDir',)
+
+    def setUp(self):
+        self.storageDir = tempfile.mkdtemp()
+
+    def tearDown(self):
+        shutil.rmtree(self.storageDir, True)
+
+    def touch_path(self, path):
+        file_path = join(self.storageDir, path.replace(".", os.sep)) + ".wsp"
+        dir_path = dirname(file_path)
+        if not exists(dir_path):
+            os.makedirs(dir_path)
+        whisper.create(file_path, [(1, 60)])
+
     def test_custom_finder(self):
         store = Store(finders=[get_finder('tests.test_finders.DummyFinder')])
         nodes = list(store.find("foo"))
@@ -24,6 +45,53 @@ class FinderTest(TestCase):
         self.assertEqual(time_info, (100, 200, 10))
         self.assertEqual(len(series), 10)
 
+    def test_globstar(self):
+        finder = StandardFinder(directories=[self.storageDir])
+        store  = Store(finders=[finder])
+
+        query = "x.**.x"
+        hits = ["x.x", "x._.x", "x._._.x"]
+        misses = ["x.x.o", "o.x.x", "x._.x._.o", "o._.x._.x"]
+        for path in hits + misses:
+            self.touch_path(path)
+
+        paths = [node.path for node in store.find(query, local=True)]
+        for hit in hits:
+            self.assertIn(hit, paths)
+        for miss in misses:
+            self.assertNotIn(miss, paths)
+
+    def test_multiple_globstars(self):
+        finder = StandardFinder(directories=[self.storageDir])
+        store  = Store(finders=[finder])
+
+        query = "x.**.x.**.x"
+        hits = ["x.x.x", "x._.x.x", "x.x._.x", "x._.x._.x", "x._._.x.x", "x.x._._.x"]
+        misses = ["x.o.x", "o.x.x", "x.x.o", "o.x.x.x", "x.x.x.o", "o._.x._.x", "x._.o._.x", "x._.x._.o"]
+        for path in hits + misses:
+            self.touch_path(path)
+
+        paths = [node.path for node in store.find(query, local=True)]
+        for hit in hits:
+            self.assertIn(hit, paths)
+        for miss in misses:
+            self.assertNotIn(miss, paths)
+
+    def test_terminal_globstar(self):
+        finder = StandardFinder(directories=[self.storageDir])
+        store  = Store(finders=[finder])
+
+        query = "x.**"
+        hits = ["x._", "x._._", "x._._._"]
+        misses = ["x", "o._", "o.x._", "o._.x"]
+        for path in hits + misses:
+            self.touch_path(path)
+
+        paths = [node.path for node in store.find(query, local=True)]
+        for hit in hits:
+            self.assertIn(hit, paths)
+        for miss in misses:
+            self.assertNotIn(miss, paths)
 
 class DummyReader(object):
     __slots__ = ('path',)

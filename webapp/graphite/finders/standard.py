@@ -1,4 +1,5 @@
 import os
+import operator
 from os.path import isdir, isfile, join, basename
 from django.conf import settings
 
@@ -68,14 +69,22 @@ class StandardFinder:
     match the corresponding pattern in patterns"""
     pattern = patterns[0]
     patterns = patterns[1:]
+    using_globstar = pattern == "**"
     try:
       entries = os.listdir(current_dir)
     except OSError as e:
       log.exception(e)
       entries = []
 
-    subdirs = [entry for entry in entries if isdir(join(current_dir, entry))]
-    matching_subdirs = match_entries(subdirs, pattern)
+    if using_globstar:
+        matching_subdirs = map(operator.itemgetter(0), os.walk(current_dir))
+    else:
+        subdirs = [entry for entry in entries if isdir(join(current_dir, entry))]
+        matching_subdirs = match_entries(subdirs, pattern)
+
+    # if this is a terminal globstar, add a pattern for all files in subdirs
+    if using_globstar and not patterns:
+        patterns = ["*"]
 
     if len(patterns) == 1 and RRDReader.supported: #the last pattern may apply to RRD data sources
       files = [entry for entry in entries if isfile(join(current_dir, entry))]
