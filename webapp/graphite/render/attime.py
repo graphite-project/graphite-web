@@ -12,7 +12,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
-import pytz
 from datetime import datetime,timedelta
 from time import daylight
 from django.utils import timezone
@@ -22,7 +21,7 @@ weekdays = ['sun','mon','tue','wed','thu','fri','sat']
 
 def parseATTime(s, tzinfo=None):
   if tzinfo is None:
-    tzinfo = pytz.timezone(settings.TIME_ZONE)
+    tzinfo = timezone.get_current_timezone()
   s = s.strip().lower().replace('_','').replace(',','').replace(' ','')
   if s.isdigit():
     if len(s) == 8 and int(s[:4]) > 1900 and int(s[4:6]) < 13 and int(s[6:]) < 32:
