@@ -147,6 +147,13 @@ Visualization
   using Flot with a multitude of display options (Multiple Y-axis, Bars, Lines, Points, smart Y-axis formats and much more).
   Click and drag selection rectangle to zoom in on any graph.
 
+`graphite-dashboardcli`_
+  a tool for manage graphite dashboards from command line:
+
+  - import\Export dashboards from\to Graphite servers
+  - synchronize dashboards between multiple Graphite servers
+  - keep dashboards in YAML format
+
 `graphitus`_
   a client side dashboard for graphite built using bootstrap and underscore.js.
 
@@ -226,6 +233,9 @@ Monitoring
   a simple alerting application for Graphite. It asynchronous and sends notification alerts based on Graphite metrics.
   It hasn't any dependencies except `Tornado` package. Very light and really very easy deployed.
 
+`graphite-to-zabbix`_
+  a tool to make zabbix alerts based on Graphite data.
+
 `rearview`_
   a real-time monitoring framework that sits on top of Graphite's time series data. This allows users to create monitors that both visualize and alert on data as it streams from Graphite. The monitors themselves are simple Ruby scripts which run in a sandbox to provide additional security. Monitors are also configured with a crontab compatible time specification used by the scheduler. Alerts can be sent via email, pagerduty, or campfire.
 
@@ -273,10 +283,12 @@ Other
 .. _Graphene: http://jondot.github.com/graphene
 .. _Graphios: https://github.com/shawn-sterling/graphios
 .. _graphite-beacon: https://github.com/klen/graphite-beacon
+.. _graphite-dashboardcli: https://github.com/blacked/graphite-dashboardcli
 .. _Graphite-Tattle: https://github.com/wayfair/Graphite-Tattle
 .. _Graphite-Newrelic: https://github.com/gingerlime/graphite-newrelic
 .. _Graphite-Observer: https://github.com/huoxy/graphite-observer
 .. _Graphite-relay: https://github.com/markchadwick/graphite-relay
+.. _graphite-to-zabbix: https://github.com/blacked/graphite-to-zabbix
 .. _Graphiti: https://github.com/paperlesspost/graphiti
 .. _graphitus: https://github.com/ezbz/graphitus
 .. _Graphitoid: https://market.android.com/details?id=com.tnc.android.graphite

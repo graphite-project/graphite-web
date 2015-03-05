@@ -1,7 +1,10 @@
 import os
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'graphite.settings')
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'graphite.settings')  # noqa
 
 import django
+
+from graphite.logger import log
 
 if django.VERSION < (1, 4):
     from django.core.handlers.wsgi import WSGIHandler
@@ -17,7 +20,5 @@ else:
 # Initializing the search index can be very expensive. The import below
 # ensures the index is preloaded before any requests are handed to the
 # process.
-
-from graphite.logger import log
 log.info("graphite.wsgi - pid %d - reloading search index" % os.getpid())
 import graphite.metrics.search  # noqa

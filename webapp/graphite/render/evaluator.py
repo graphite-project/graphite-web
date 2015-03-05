@@ -45,5 +45,6 @@ def evaluateTokens(requestContext, tokens):
     return tokens.boolean[0] == 'true'
 
 
-#Avoid import circularities
-from graphite.render.functions import SeriesFunctions,NormalizeEmptyResultError
+# Avoid import circularities
+from graphite.render.functions import (SeriesFunctions,
+                                       NormalizeEmptyResultError)  # noqa

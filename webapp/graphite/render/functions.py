@@ -12,28 +12,27 @@
 #See the License for the specific language governing permissions and
 #limitations under the License.
 
+import math
+import random
+import re
+import time
 
 from datetime import datetime, timedelta
 from itertools import izip, imap
-import math
-import re
-import random
-import time
+from os import environ
 
 from graphite.logger import log
 from graphite.render.attime import parseTimeOffset, parseATTime
-
 from graphite.events import models
+from graphite.util import epoch
 
-#XXX format_units() should go somewhere else
-from os import environ
+# XXX format_units() should go somewhere else
 if environ.get('READTHEDOCS'):
   format_units = lambda *args, **kwargs: (0,'')
 else:
   from graphite.render.glyph import format_units
   from graphite.render.datalib import TimeSeries
 
-from graphite.util import epoch
 
 NAN = float('NaN')
 INF = float('inf')
@@ -138,7 +137,6 @@ def normalize(seriesLists):
   if seriesLists:
     seriesList = reduce(lambda L1,L2: L1+L2,seriesLists)
     if seriesList:
-      seriesList = reduce(lambda L1,L2: L1+L2,seriesLists)
       step = reduce(lcm,[s.step for s in seriesList])
       for s in seriesList:
         s.consolidate( step / s.step )
