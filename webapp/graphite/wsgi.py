@@ -1,6 +1,9 @@
 import os
 
-from importlib import import_module
+try:
+    from importlib import import_module
+except ImportError:
+    from django.utils.importlib import import_module
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'graphite.settings')  # noqa
 
