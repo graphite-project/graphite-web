@@ -171,6 +171,14 @@ except ImportError:
   optional += 1
 
 
+# Test for whitenoise
+try:
+    import whitenoise
+except ImportError:
+    sys.stderr.write("[OPTIONAL] Unable to import the 'whitenoise' module. This is useful for serving static files.\n")
+    optional += 1
+
+
 if optional:
   sys.stderr.write("%d optional dependencies not met. Please consider the optional items before proceeding.\n" % optional)
 else:
