@@ -47,3 +47,4 @@ pyparsing==1.5.7
 cairocffi
 git+git://github.com/graphite-project/whisper.git#egg=whisper
 git+git://github.com/graphite-project/ceres.git#egg=ceres
+whitenoise
