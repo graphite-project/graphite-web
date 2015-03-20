@@ -218,7 +218,7 @@ def sumSeriesWithWildcards(requestContext, seriesList, *position): #XXX
 
   for series in seriesList:
     newname = '.'.join(map(lambda x: x[1], filter(lambda i: i[0] not in positions, enumerate(series.name.split('.')))))
-    if newname in newSeries.keys():
+    if newname in newSeries:
       newSeries[newname] = sumSeries(requestContext, (series, newSeries[newname]))[0]
     else:
       newSeries[newname] = series
@@ -281,7 +281,7 @@ def multiplySeriesWithWildcards(requestContext, seriesList, *position): #XXX
 
   for series in seriesList:
     newname = '.'.join(map(lambda x: x[1], filter(lambda i: i[0] not in positions, enumerate(series.name.split('.')))))
-    if newname in newSeries.keys():
+    if newname in newSeries:
       newSeries[newname] = multiplySeries(requestContext, (newSeries[newname], series))[0]
     else:
       newSeries[newname] = series
@@ -2825,7 +2825,7 @@ def groupByNode(requestContext, seriesList, nodeNum, callback):
   keys = []
   for series in seriesList:
     key = series.name.split(".")[nodeNum]
-    if key not in metaSeries.keys():
+    if key not in metaSeries:
       metaSeries[key] = [series]
       keys.append(key)
     else:
