@@ -20,6 +20,7 @@ import time
 from datetime import datetime, timedelta
 from itertools import izip, imap
 from os import environ
+from collections import OrderedDict
 
 from graphite.logger import log
 from graphite.render.attime import parseTimeOffset, parseATTime
@@ -2821,20 +2822,15 @@ def groupByNode(requestContext, seriesList, nodeNum, callback):
     sumSeries(ganglia.by-function.server1.*.cpu.load5),sumSeries(ganglia.by-function.server2.*.cpu.load5),...
 
   """
-  metaSeries = {}
-  keys = []
+  metaSeries = OrderedDict()
   for series in seriesList:
     key = series.name.split(".")[nodeNum]
-    if key not in metaSeries.keys():
-      metaSeries[key] = [series]
-      keys.append(key)
-    else:
-      metaSeries[key].append(series)
+    metaSeries.setdefault(key, []).append(series)
   for key in metaSeries.keys():
     metaSeries[key] = SeriesFunctions[callback](requestContext,
         metaSeries[key])[0]
     metaSeries[key].name = key
-  return [ metaSeries[key] for key in keys ]
+  return metaSeries.values()
 
 def exclude(requestContext, seriesList, pattern):
   """
