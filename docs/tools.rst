@@ -115,6 +115,9 @@ Forwarding
   a simple daemon for easy stats aggregation, developed by the folks at Etsy.
   A list of forks and alternative implementations can be found at <http://joemiller.me/2011/09/21/list-of-statsd-server-implementations/>
 
+`Gruffalo`_
+  an asynchronous Netty based graphite proxy, for large scale installations. It protects Graphite from the herds of clients by minimizing context switches and interrupts; by batching and aggregating metrics.
+  Gruffalo also allows you to replicate metrics between Graphite installations for DR scenarios, for example.
 
 Visualization
 -------------
@@ -322,3 +325,4 @@ Other
 .. _Therry: https://github.com/obfuscurity/therry
 .. _TimeseriesWidget: https://github.com/Dieterbe/timeserieswidget
 .. _write-graphite: http://collectd.org/wiki/index.php/Plugin:Write_Graphite
+.. _Gruffalo: https://github.com/outbrain/gruffalo
