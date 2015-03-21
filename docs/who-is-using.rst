@@ -22,5 +22,6 @@ Here are some organizations that use Graphite:
 * `Uber <http://uber.com/>`_
 * `Vimeo <http://www.vimeo.com>`_
 * `Wikimedia Foundation <http://gdash.wikimedia.org/>`_
+* `Outbrain <http://outbrain.com/>`_ (see https://github.com/outbrain/gruffalo)
 
 And many more
