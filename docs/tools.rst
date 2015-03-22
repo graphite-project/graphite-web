@@ -104,6 +104,10 @@ Forwarding
 `Grockets`_ 
   a node.js application which provides streaming JSON data over HTTP from Graphite.
 
+`Gruffalo`_
+  an asynchronous Netty based graphite proxy, for large scale installations. It protects Graphite from the herds of clients by minimizing context switches and interrupts; by batching and aggregating metrics.
+  Gruffalo also allows you to replicate metrics between Graphite installations for DR scenarios, for example.
+
 `Ledbetter`_
   a simple script for gathering Nagios problem statistics and submitting them to Graphite. It focuses on summary (overall, servicegroup and hostgroup) statistics and writes them to the nagios.problems metrics namespace within Graphite.
 
@@ -114,7 +118,6 @@ Forwarding
 `statsd`_
   a simple daemon for easy stats aggregation, developed by the folks at Etsy.
   A list of forks and alternative implementations can be found at <http://joemiller.me/2011/09/21/list-of-statsd-server-implementations/>
-
 
 Visualization
 -------------
@@ -294,6 +297,7 @@ Other
 .. _Graphitoid: https://market.android.com/details?id=com.tnc.android.graphite
 .. _Graphsky: https://github.com/hyves-org/graphsky
 .. _Grockets: https://github.com/disqus/grockets
+.. _Gruffalo: https://github.com/outbrain/gruffalo
 .. _HoardD: https://github.com/coredump/hoardd
 .. _Host sFlow: http://host-sflow.sourceforge.net
 .. _Hubot: https://github.com/github/hubot
