@@ -1,7 +1,6 @@
 import copy
 import math
 import pytz
-from datetime import datetime
 from fnmatch import fnmatch
 
 from django.test import TestCase

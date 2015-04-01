@@ -24,7 +24,7 @@ from os import environ
 from graphite.logger import log
 from graphite.render.attime import parseTimeOffset, parseATTime
 from graphite.events import models
-from graphite.util import epoch
+from graphite.util import epoch, timestamp, deltaseconds
 
 # XXX format_units() should go somewhere else
 if environ.get('READTHEDOCS'):
@@ -32,8 +32,6 @@ if environ.get('READTHEDOCS'):
 else:
   from graphite.render.glyph import format_units
   from graphite.render.datalib import TimeSeries
-
-from graphite.util import epoch, timestamp, deltaseconds
 
 NAN = float('NaN')
 INF = float('inf')
