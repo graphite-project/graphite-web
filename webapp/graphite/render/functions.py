@@ -1401,7 +1401,7 @@ def legendValue(requestContext, seriesList, *valueTypes):
         value = valueFunc(series)
         formatted = None
         if value is not None:
-          formatted = "%.2f%s" % format_units(abs(value), system=system)
+          formatted = "%.2f%s" % format_units(value, system=system)
         series.name = "%-20s%-5s%-10s" % (series.name, valueType, formatted)
   return seriesList
 
