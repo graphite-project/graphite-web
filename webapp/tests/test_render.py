@@ -3,6 +3,7 @@ import json
 import os
 import time
 import logging
+import shutil
 
 from graphite.render.hashing import hashRequest, hashData
 import whisper
@@ -22,10 +23,35 @@ if hasattr(logging, "NullHandler"):
 
 class RenderTest(TestCase):
     db = os.path.join(settings.WHISPER_DIR, 'test.wsp')
+    hostcpu = os.path.join(settings.WHISPER_DIR, 'hosts/hostname/cpu.wsp')
 
     def wipe_whisper(self):
         try:
             os.remove(self.db)
+        except OSError:
+            pass
+
+    def create_whisper_hosts(self):
+        worker1 = self.hostcpu.replace('hostname', 'worker1')
+        worker2 = self.hostcpu.replace('hostname', 'worker2')
+        try:
+            os.makedirs(worker1.replace('cpu.wsp', ''))
+            os.makedirs(worker2.replace('cpu.wsp', ''))
+        except OSError:
+            pass
+
+        whisper.create(worker1, [(1, 60)])
+        whisper.create(worker2, [(1, 60)])
+
+        ts = int(time.time())
+        whisper.update(worker1, 1, ts)
+        whisper.update(worker2, 2, ts)
+
+    def wipe_whisper_hosts(self):
+        try:
+            os.remove(self.hostcpu.replace('hostname', 'worker1'))
+            os.remove(self.hostcpu.replace('hostname', 'worker2'))
+            shutil.rmtree(self.hostcpu.replace('hostname/cpu.wsp', ''))
         except OSError:
             pass
 
@@ -178,3 +204,31 @@ class RenderTest(TestCase):
         })
         data = json.loads(response.content)[0]
         self.assertEqual(data['target'], 'nameOfSeries')
+
+    def test_template_pathExpression_variables(self):
+        self.create_whisper_hosts()
+        self.addCleanup(self.wipe_whisper_hosts)
+
+        url = reverse('graphite.render.views.renderView')
+        response = self.client.get(url, {
+                 'target': 'template(sumSeries(hosts.$1.cpu),"worker1")',
+                 'format': 'json',
+        })
+        data = json.loads(response.content)[0]
+        self.assertEqual(data['target'], 'sumSeries(hosts.worker1.cpu)')
+
+        response = self.client.get(url, {
+                 'target': 'template(sumSeries(hosts.$1.cpu),"worker1")',
+                 'format': 'json',
+                 'template[1]': 'worker*'
+        })
+        data = json.loads(response.content)[0]
+        self.assertEqual(data['target'], 'sumSeries(hosts.worker*.cpu)')
+
+        response = self.client.get(url, {
+                 'target': 'template(sumSeries(hosts.$hostname.cpu))',
+                 'format': 'json',
+                 'template[hostname]': 'worker*'
+        })
+        data = json.loads(response.content)[0]
+        self.assertEqual(data['target'], 'sumSeries(hosts.worker*.cpu)')
