@@ -71,7 +71,8 @@ args = delimitedList(~kwarg + arg)  # lookahead to prevent failing on equals
 kwargs = delimitedList(kwarg)
 
 call = Group(
-  funcname + leftParen + Optional(
+  funcname + leftParen +
+  Optional(
     args + Optional(
       comma + kwargs
     )
@@ -101,7 +102,8 @@ pathExpression = delimitedList(pathElement, delim='.', combine=True)('pathExpres
 
 template = Group(
   Literal('template') + leftParen +
-  (call | pathExpression) + Optional(
+  (call | pathExpression) +
+  Optional(
     comma + args + Optional(
       comma + kwargs
     )
