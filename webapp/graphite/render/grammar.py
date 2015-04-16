@@ -101,8 +101,11 @@ pathExpression = delimitedList(pathElement, delim='.', combine=True)('pathExpres
 
 template = Group(
   Literal('template') + leftParen +
-  (call | pathExpression) +
-  comma + kwargs +
+  (call | pathExpression) + Optional(
+    comma + args + Optional(
+      comma + kwargs
+    )
+  ) +
   rightParen
 )('template')
 

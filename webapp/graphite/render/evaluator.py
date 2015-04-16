@@ -15,7 +15,13 @@ def evaluateTarget(requestContext, target):
 
 def evaluateTokens(requestContext, tokens, replacements=None):
   if tokens.template:
-    arglist = [(kwarg.argname, evaluateTokens(requestContext, kwarg.args[0])) for kwarg in tokens.template.kwargs]
+    arglist = dict()
+    if tokens.template.kwargs:
+      arglist.update(dict([(kwarg.argname, evaluateTokens(requestContext, kwarg.args[0])) for kwarg in tokens.template.kwargs]))
+    if tokens.template.args:
+      arglist.update(dict([(str(i+1), evaluateTokens(requestContext, arg)) for i, arg in enumerate(tokens.template.args)]))
+    if 'template' in requestContext:
+      arglist.update(requestContext['template'])
     return evaluateTokens(requestContext, tokens.template, arglist)
 
   elif tokens.expression:
@@ -24,8 +30,8 @@ def evaluateTokens(requestContext, tokens, replacements=None):
   elif tokens.pathExpression:
     expression = tokens.pathExpression
     if replacements:
-      for kwarg in replacements:
-        expression = expression.replace(kwarg[0], kwarg[1])
+      for name in replacements:
+        expression = expression.replace('$'+name, replacements[name])
     return fetchData(requestContext, expression)
 
   elif tokens.call:
