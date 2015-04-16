@@ -31,7 +31,7 @@ def evaluateTokens(requestContext, tokens, replacements=None):
     expression = tokens.pathExpression
     if replacements:
       for name in replacements:
-        if expression == '$'+name and isinstance(replacements[name], basestring):
+        if expression == '$'+name and not isinstance(replacements[name], str):
           return replacements[name]
         else:
           expression = expression.replace('$'+name, str(replacements[name]))
