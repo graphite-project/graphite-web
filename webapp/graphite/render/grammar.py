@@ -70,12 +70,6 @@ kwarg = Group(argname + equal + arg)('kwargs*')
 args = delimitedList(~kwarg + arg)  # lookahead to prevent failing on equals
 kwargs = delimitedList(kwarg)
 
-template = Group(
-  Literal('template') + leftParen +
-  expression + comma + kwargs +
-  rightParen
-)('template')
-
 call = Group(
   funcname + leftParen + Optional(
     args + Optional(
@@ -104,6 +98,13 @@ pathElement = Combine(
   ZeroOrMore(matchEnum | partialPathElem)
 )
 pathExpression = delimitedList(pathElement, delim='.', combine=True)('pathExpression')
+
+template = Group(
+  Literal('template') + leftParen +
+  (call | pathExpression) +
+  comma + kwargs +
+  rightParen
+)('template')
 
 if __version__.startswith('1.'):
     expression << Group(template | call | pathExpression)('expression')

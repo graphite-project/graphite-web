@@ -13,23 +13,25 @@ def evaluateTarget(requestContext, target):
     return result
 
 
-def evaluateTokens(requestContext, tokens):
+def evaluateTokens(requestContext, tokens, replacements=None):
   if tokens.template:
-    expression = tokens.expression
-    for kwarg in tokens.kwargs:
-      expression = expression.replace(kwarg.argname, kwarg.args[0])
-    return evaulateTokens(requestContext, expression)
+    arglist = [(kwarg.argname, evaluateTokens(requestContext, kwarg.args[0])) for kwarg in tokens.template.kwargs]
+    return evaluateTokens(requestContext, tokens.template, arglist)
 
   elif tokens.expression:
-    return evaluateTokens(requestContext, tokens.expression)
+    return evaluateTokens(requestContext, tokens.expression, replacements)
 
   elif tokens.pathExpression:
-    return fetchData(requestContext, tokens.pathExpression)
+    expression = tokens.pathExpression
+    if replacements:
+      for kwarg in replacements:
+        expression = expression.replace(kwarg[0], kwarg[1])
+    return fetchData(requestContext, expression)
 
   elif tokens.call:
     func = SeriesFunctions[tokens.call.funcname]
-    args = [evaluateTokens(requestContext, arg) for arg in tokens.call.args]
-    kwargs = dict([(kwarg.argname, evaluateTokens(requestContext, kwarg.args[0]))
+    args = [evaluateTokens(requestContext, arg, replacements) for arg in tokens.call.args]
+    kwargs = dict([(kwarg.argname, evaluateTokens(requestContext, kwarg.args[0], replacements))
                    for kwarg in tokens.call.kwargs])
     try:
       return func(requestContext, *args, **kwargs)
@@ -49,6 +51,9 @@ def evaluateTokens(requestContext, tokens):
 
   elif tokens.boolean:
     return tokens.boolean[0] == 'true'
+
+  else:
+    raise ValueError("unknown token in target evaulator")
 
 
 # Avoid import circularities
