@@ -255,7 +255,7 @@ def parseOptions(request):
 
   template = dict()
   for key, val in queryParams.items():
-    if key.find("template[", 0) == 0:
+    if key.startswith("template["):
       template[key[9:-1]] = val
   requestOptions['template'] = template
 
