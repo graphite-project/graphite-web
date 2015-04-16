@@ -100,12 +100,19 @@ pathElement = Combine(
 )
 pathExpression = delimitedList(pathElement, delim='.', combine=True)('pathExpression')
 
+litarg = Group(
+  number | aString
+)('args*')
+litkwarg = Group(argname + equal + litarg)('kwargs*')
+litargs = delimitedList(~litkwarg + litarg)  # lookahead to prevent failing on equals
+litkwargs = delimitedList(litkwarg)
+
 template = Group(
   Literal('template') + leftParen +
   (call | pathExpression) +
   Optional(
-    comma + args + Optional(
-      comma + kwargs
+    comma + litargs + Optional(
+      comma + litkwargs
     )
   ) +
   rightParen
