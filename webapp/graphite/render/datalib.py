@@ -293,7 +293,7 @@ def prefetchRemoteData(requestContext, pathExpressions):
       except KeyError:
         log.exception("Remote node %s doesn't support prefetching data... upgrade!" % node)
         raise
-        
+
       if prefetchedRemoteData[node].get(k) is None:
         # This should not be needed because of above filling with [],
         # but could happen if backend sends unexpected stuff
@@ -302,7 +302,7 @@ def prefetchRemoteData(requestContext, pathExpressions):
         prefetchedRemoteData[node][k].append(series)
 
   return prefetchedRemoteData
-  
+
 
 def prefetchLookup(requestContext, node):
   # Returns a seriesList if found in cache
