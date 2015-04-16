@@ -110,11 +110,7 @@ litkwargs = delimitedList(litkwarg)
 template = Group(
   Literal('template') + leftParen +
   (call | pathExpression) +
-  Optional(
-    comma + litargs + Optional(
-      comma + litkwargs
-    )
-  ) +
+  Optional(comma + (litargs | litkwargs)) +
   rightParen
 )('template')
 

@@ -132,3 +132,28 @@ class RenderTest(TestCase):
         # all the from/until/tz combinations lead to the same window
         expected = [[12, 1393398060], [12, 1393401660]]
         self.assertEqual(data, expected)
+
+    def test_template_variables(self):
+        url = reverse('graphite.render.views.renderView')
+        response = self.client.get(url, {
+                 'target': 'template(constantLine($1),12)',
+                 'format': 'json',
+                 'from': '07:01_20140226',
+                 'until': '08:01_20140226',
+        })
+        data = json.loads(response.content)[0]['datapoints']
+        # all the from/until/tz combinations lead to the same window
+        expected = [[12, 1393398060], [12, 1393401660]]
+        self.assertEqual(data, expected)
+
+        url = reverse('graphite.render.views.renderView')
+        response = self.client.get(url, {
+                 'target': 'template(constantLine($num),num=12)',
+                 'format': 'json',
+                 'from': '07:01_20140226',
+                 'until': '08:01_20140226',
+        })
+        data = json.loads(response.content)[0]['datapoints']
+        # all the from/until/tz combinations lead to the same window
+        expected = [[12, 1393398060], [12, 1393401660]]
+        self.assertEqual(data, expected)

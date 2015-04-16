@@ -31,14 +31,17 @@ def evaluateTokens(requestContext, tokens, replacements=None):
     expression = tokens.pathExpression
     if replacements:
       for name in replacements:
-        expression = expression.replace('$'+name, str(replacements[name]))
+        if expression == '$'+name and type(replacements[name]) != type(''):
+          return replacements[name]
+        else:
+          expression = expression.replace('$'+name, str(replacements[name]))
     return fetchData(requestContext, expression)
 
   elif tokens.call:
     if tokens.call.funcname == 'template':
       # if template propagates down here, it means the grammar didn't match the invocation
       # as tokens.template. this generally happens if you try to pass non-numeric/string args
-      raise ValueError("invaild template() syntax, only numeric and string values are allowed")
+      raise ValueError("invaild template() syntax, only string/numeric arguments are allowed")
 
     func = SeriesFunctions[tokens.call.funcname]
     args = [evaluateTokens(requestContext, arg, replacements) for arg in tokens.call.args]
