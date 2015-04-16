@@ -14,7 +14,13 @@ def evaluateTarget(requestContext, target):
 
 
 def evaluateTokens(requestContext, tokens):
-  if tokens.expression:
+  if tokens.template:
+    expression = tokens.expression
+    for kwarg in tokens.kwargs:
+      expression = expression.replace(kwarg.argname, kwarg.args[0])
+    return evaulateTokens(requestContext, expression)
+
+  elif tokens.expression:
     return evaluateTokens(requestContext, tokens.expression)
 
   elif tokens.pathExpression:
