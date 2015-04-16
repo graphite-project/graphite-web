@@ -69,6 +69,7 @@ Graphite-web
 * Perform all remote fetches in parallel (bmhatfield)
 * Perform `/metrics/find` queries in parallel (jraby)
 * New prefetch cache for remote queries (jraby)
+* Fixing remote fetch timeout handling (deniszh)
 
 Carbon
 ^^^^^^
