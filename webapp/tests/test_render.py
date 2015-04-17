@@ -184,6 +184,19 @@ class RenderTest(TestCase):
         expected = [[12, 1393398060], [12, 1393401660]]
         self.assertEqual(data, expected)
 
+        url = reverse('graphite.render.views.renderView')
+        response = self.client.get(url, {
+                 'target': 'template(constantLine($num))',
+                 'format': 'json',
+                 'from': '07:01_20140226',
+                 'until': '08:01_20140226',
+                 'template[num]': '12',
+        })
+        data = json.loads(response.content)[0]['datapoints']
+        # all the from/until/tz combinations lead to the same window
+        expected = [[12, 1393398060], [12, 1393401660]]
+        self.assertEqual(data, expected)
+
     def test_template_string_variables(self):
         url = reverse('graphite.render.views.renderView')
         response = self.client.get(url, {
@@ -201,6 +214,17 @@ class RenderTest(TestCase):
                  'format': 'json',
                  'from': '07:01_20140226',
                  'until': '08:01_20140226',
+        })
+        data = json.loads(response.content)[0]
+        self.assertEqual(data['target'], 'nameOfSeries')
+
+        url = reverse('graphite.render.views.renderView')
+        response = self.client.get(url, {
+                 'target': 'template(time($name))',
+                 'format': 'json',
+                 'from': '07:01_20140226',
+                 'until': '08:01_20140226',
+                 'template[name]': 'nameOfSeries',
         })
         data = json.loads(response.content)[0]
         self.assertEqual(data['target'], 'nameOfSeries')

@@ -1,3 +1,4 @@
+import re
 from graphite.render.grammar import grammar
 from graphite.render.datalib import fetchData, TimeSeries
 
@@ -31,8 +32,14 @@ def evaluateTokens(requestContext, tokens, replacements=None):
     expression = tokens.pathExpression
     if replacements:
       for name in replacements:
-        if expression == '$'+name and not isinstance(replacements[name], str):
-          return replacements[name]
+        if expression == '$'+name:
+          val = replacements[name]
+          if not isinstance(val, str) and not isinstance(val, basestring):
+            return val
+          elif re.match('^-?[\d.]+$', val):
+            return float(val)
+          else:
+            return val
         else:
           expression = expression.replace('$'+name, str(replacements[name]))
     return fetchData(requestContext, expression)
