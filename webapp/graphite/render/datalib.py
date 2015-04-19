@@ -338,7 +338,7 @@ def fetchRemoteData(requestContext, pathExpr, usePrefetchCache=settings.REMOTE_P
           result_queue.put( (node, series) )
           need_fetch = False
       if need_fetch:
-        fetch_thread = threading.Thread(target=node.fetch,
+        fetch_thread = threading.Thread(target=node.fetch, name=node.store.host,
                                         args=(startTime, endTime, now, result_queue))
         fetch_thread.start()
         remote_fetches.append(fetch_thread)
@@ -352,8 +352,10 @@ def fetchRemoteData(requestContext, pathExpr, usePrefetchCache=settings.REMOTE_P
   for fetch_thread in remote_fetches:
     try:
       fetch_thread.join(settings.REMOTE_STORE_FETCH_TIMEOUT)
+      if fetch_thread.is_alive():
+        log.exception("Failed to join remote_fetch thread %s within %ss" % (fetch_thread.name, settings.REMOTE_STORE_FETCH_TIMEOUT))
     except:
-      log.exception("Failed to join remote_fetch thread within %ss" % (settings.REMOTE_STORE_FETCH_TIMEOUT))
+      log.exception("Exception during remote_fetch thread %s" % (fetch_thread.name))
 
   return result_queue
 
