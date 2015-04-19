@@ -165,6 +165,13 @@ except:
   print "Note that txamqp requires python 2.5 or greater."
   warning += 1
 
+# Test for whitenoise
+try:
+  import whitenoise
+except ImportError:
+  print "[INFO]"
+  print "Unable to import the 'whitenoise' module."
+  print "This is useful for serving static files."
 
 if fatal:
   print "%d necessary dependencies not met. Graphite will not function until these dependencies are fulfilled." % fatal
