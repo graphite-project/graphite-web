@@ -67,6 +67,21 @@ DEFAULT_CACHE_DURATION
 
   Default expiration of cached data and images.
 
+DEFAULT_CACHE_POLICY
+  `Default: []`
+
+  Metric data and graphs are cached for one minute by default. If defined, DEFAULT_CACHE_POLICY is a list of tuples of
+  minimum query time ranges mapped to the cache duration for the results. This allows for larger queries to be cached
+  for longer periods of times. All times are in seconds. An example configuration::
+
+    DEFAULT_CACHE_POLICY = [(0, 60), # default is 60 seconds
+                            (7200, 120), # >= 2 hour queries are cached 2 minutes
+                            (21600, 180)] # >= 6 hour queries are cached 3 minutes
+
+
+  This will cache any queries between 0 seconds and 2 hours for 1 minute, any queries between 2 and 6 hours for 2
+  minutes, and anything greater than 6 hours for 3 minutes. If the policy is empty or undefined, everything will be
+  cached for DEFAULT_CACHE_DURATION.
 
 Filesystem Paths
 ----------------

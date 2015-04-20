@@ -49,7 +49,16 @@
 # as every webapp in the cluster should use the exact same values to prevent
 # unneeded cache misses. Set to [] to disable caching of images and fetched data
 #MEMCACHE_HOSTS = ['10.10.10.10:11211', '10.10.10.11:11211', '10.10.10.12:11211']
+
+# Metric data and graphs are cached for one minute by default. If defined,
+# DEFAULT_CACHE_POLICY is a list of tuples of minimum query time ranges mapped
+# to the cache duration for the results. This allows for larger queries to be
+# cached for longer periods of times. All times are in seconds. If the policy is
+# empty or undefined, all results will be cached for DEFAULT_CACHE_DURATION.
 #DEFAULT_CACHE_DURATION = 60 # Cache images and data for 1 minute
+#DEFAULT_CACHE_POLICY = [(0, 60), # default is 60 seconds
+#                        (7200, 120), # >= 2 hour queries are cached 2 minutes
+#                        (21600, 180)] # >= 6 hour queries are cached 3 minutes
 #MEMCACHE_KEY_PREFIX = 'graphite'
 
 # Set URL_PREFIX when deploying graphite-web to a non-root location
@@ -151,7 +160,7 @@
 # NOTE: Ignored if DASHBOARD_REQUIRE_AUTHENTICATION is not set
 #DASHBOARD_REQUIRE_EDIT_GROUP = 'dashboard-editors-group'
 
-# If set to True, dashboards can be saved or deleted by any user having the appropriate 
+# If set to True, dashboards can be saved or deleted by any user having the appropriate
 # (change or delete) permission (as set in the Django Admin app).  Defaults to False
 # NOTE: Ignored if DASHBOARD_REQUIRE_AUTHENTICATION is not set
 #DASHBOARD_REQUIRE_PERMISSIONS = True
@@ -254,4 +263,3 @@
 # Uncomment the following line for direct access to Django settings such as
 # MIDDLEWARE_CLASSES or APPS
 #from graphite.app_settings import *
-
