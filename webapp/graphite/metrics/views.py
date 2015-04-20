@@ -85,10 +85,10 @@ def search_view(request):
   return json_response_for(request, dict(metrics=results))
 
 
-node_sort_RE = re.compile(r"([^0-9]+|[0-9]+)")
+node_sort_RE = re.compile(r"(\d+)")
 
 def node_sort_key(node):
-  matches = node_sort_RE.findall(node.name)
+  matches = node_sort_RE.split(node.name)
   for index, value in enumerate(matches):
     if value.isdigit():
       matches[index] = int(matches[index])
