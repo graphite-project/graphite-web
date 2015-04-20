@@ -100,11 +100,25 @@ pathElement = Combine(
 )
 pathExpression = delimitedList(pathElement, delim='.', combine=True)('pathExpression')
 
+litarg = Group(
+  number | aString
+)('args*')
+litkwarg = Group(argname + equal + litarg)('kwargs*')
+litargs = delimitedList(~litkwarg + litarg)  # lookahead to prevent failing on equals
+litkwargs = delimitedList(litkwarg)
+
+template = Group(
+  Literal('template') + leftParen +
+  (call | pathExpression) +
+  Optional(comma + (litargs | litkwargs)) +
+  rightParen
+)('template')
+
 if __version__.startswith('1.'):
-    expression << Group(call | pathExpression)('expression')
+    expression << Group(template | call | pathExpression)('expression')
     grammar << expression
 else:
-    expression <<= Group(call | pathExpression)('expression')
+    expression <<= Group(template | call | pathExpression)('expression')
     grammar <<= expression
 
 

@@ -54,6 +54,7 @@ def renderView(request):
     'startTime' : requestOptions['startTime'],
     'endTime' : requestOptions['endTime'],
     'localOnly' : requestOptions['localOnly'],
+    'template' : requestOptions['template'],
     'data' : []
   }
   data = requestContext['data']
@@ -251,6 +252,12 @@ def parseOptions(request):
   # Collect the targets
   for target in mytargets:
     requestOptions['targets'].append(target)
+
+  template = dict()
+  for key, val in queryParams.items():
+    if key.startswith("template["):
+      template[key[9:-1]] = val
+  requestOptions['template'] = template
 
   if 'pickle' in queryParams:
     requestOptions['format'] = 'pickle'
