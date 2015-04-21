@@ -34,6 +34,11 @@ class Store:
     self.directories = directories
     self.remote_hosts = remote_hosts
     self.remote_stores = [ RemoteStore(host) for host in remote_hosts if not is_local_interface(host) ]
+    self.local_host = [host for host in remote_hosts if is_local_interface(host)]
+    if len(self.local_host) == 1:
+      self.local_host = self.local_host[0]
+    else:
+      self.local_host = 'local'
 
     if not (directories or remote_hosts):
       raise ValueError("directories and remote_hosts cannot both be empty")
