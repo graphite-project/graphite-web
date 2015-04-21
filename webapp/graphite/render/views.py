@@ -168,6 +168,7 @@ def renderView(request):
                                 content_type='application/json')
 
       if useCache:
+        cache.add(requestKey, response, cacheTimeout)
         patch_response_headers(response, cache_timeout=cacheTimeout)
       else:
         add_never_cache_headers(response)
