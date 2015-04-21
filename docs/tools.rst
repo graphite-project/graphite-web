@@ -302,7 +302,7 @@ Other
 .. _Host sFlow: http://host-sflow.sourceforge.net
 .. _Hubot: https://github.com/github/hubot
 .. _hubot-scripts: https://github.com/github/hubot-scripts
-.. _jmxtrans: http://code.google.com/p/jmxtrans
+.. _jmxtrans: https://github.com/jmxtrans/jmxtrans
 .. _Ledbetter: https://github.com/github/ledbetter
 .. _Leonardo: https://github.com/PrFalken/leonardo
 .. _Logster: https://github.com/etsy/logster
