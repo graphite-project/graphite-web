@@ -137,7 +137,7 @@ class CarbonLinkPool:
     len_prefix = struct.pack("!L", len(serialized_request))
     request_packet = len_prefix + serialized_request
     results = {}
-    results.setdefault('datapoints', [])
+    results.setdefault('datapoints', {})
 
     for host in self.hosts:
       conn = self.get_connection(host)
@@ -154,7 +154,7 @@ class CarbonLinkPool:
           log.cache("Error getting data from cache %s: %s" % (str(host), result['error']))
         else:
           if len(result['datapoints']) > 1:
-              results['datapoints'].extend(result['datapoints'])
+              results['datapoints'].update(result['datapoints'])
       log.cache("CarbonLink finished receiving %s from %s" % (str(metric), str(host)))
     return results
 
