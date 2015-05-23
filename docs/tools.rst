@@ -211,9 +211,6 @@ Visualization
   a monitoring frontend for graphite. It runs a webserver that dishes out pretty Graphite
   URLs in interesting and intuitive layouts.
 
-`Seyren`_
-  an alerting dashboard for Graphite.
-
 `Tasseo`_
   a lightweight, easily configurable, real-time dashboard for Graphite metrics.
 
@@ -246,6 +243,9 @@ Monitoring
   a system that ties together Graphite, `RabbitMQ`_, and `Esper`_. Developed by
   AdMob (who was then bought by Google), this was released by Google as open source
   (http://google-opensource.blogspot.com/2010/09/get-ready-to-rocksteady.html).
+
+`Seyren`_
+  an alerting dashboard for Graphite.
 
 `Shinken`_
   a system monitoring solution compatible with Nagios which emphasizes scalability, flexibility,
