@@ -1976,6 +1976,25 @@ def useSeriesAbove(requestContext, seriesList, value, search, replace):
 
   return newSeries
 
+def fallbackSeries(requestContext, seriesList, fallback):
+    """
+    Takes a wildcard seriesList, and a second fallback metric.
+    If the wildcard does not match any series, draws the fallback metric.
+
+    Example:
+
+    .. code-block:: none
+
+      &target=fallbackSeries(server*.requests_per_second, constantLine(0))
+
+    Draws a 0 line when server metric does not exist.
+
+    """
+    if len(seriesList) > 0:
+        return seriesList
+    else:
+        return fallback
+
 def mostDeviant(requestContext, seriesList, n):
   """
   Takes one metric or a wildcard seriesList followed by an integer N.
@@ -3346,6 +3365,7 @@ SeriesFunctions = {
   'divideSeries' : divideSeries,
 
   # Series Filter functions
+  'fallbackSeries' : fallbackSeries,
   'mostDeviant' : mostDeviant,
   'highestCurrent' : highestCurrent,
   'lowestCurrent' : lowestCurrent,
