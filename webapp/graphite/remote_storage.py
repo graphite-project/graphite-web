@@ -117,7 +117,7 @@ class FindRequest(object):
 
 
 class RemoteReader(object):
-  __slots__ = ('store', 'metric_path', 'intervals', 'query')
+  __slots__ = ('store', 'metric_path', 'intervals', 'query', 'connection')
   cache_lock = Lock()
   request_cache = {}
   request_locks = {}
@@ -128,6 +128,7 @@ class RemoteReader(object):
     self.metric_path = node_info['path']
     self.intervals = node_info['intervals']
     self.query = bulk_query or node_info['path']
+    self.connection = None
 
   def __repr__(self):
     return '<RemoteReader[%x]: %s>' % (id(self), self.store.host)
@@ -166,9 +167,9 @@ class RemoteReader(object):
     if request_lock.acquire(False): # we only send the request the first time we're called
       try:
         log.info("RemoteReader.request_data :: requesting %s" % url)
-        connection = HTTPConnectionWithTimeout(self.store.host)
-        connection.timeout = settings.REMOTE_FETCH_TIMEOUT
-        connection.request('GET', urlpath)
+        self.connection = HTTPConnectionWithTimeout(self.store.host)
+        self.connection.timeout = settings.REMOTE_FETCH_TIMEOUT
+        self.connection.request('GET', urlpath)
       except:
         completion_event.set()
         self.store.fail()
@@ -178,7 +179,7 @@ class RemoteReader(object):
     def wait_for_results():
       if wait_lock.acquire(False): # the FetchInProgress that gets waited on waits for the actual completion
         try:
-          response = connection.getresponse()
+          response = self.connection.getresponse()
           if response.status != 200:
             raise Exception("Error response %d %s from %s" % (response.status, response.reason, url))
 
