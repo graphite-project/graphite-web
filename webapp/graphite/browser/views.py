@@ -244,7 +244,7 @@ def userGraphLookup(request):
 
 def json_response(nodes, request=None):
   if request:
-    jsonp = request.REQUEST.get('jsonp', False)
+    jsonp = request.GET.get('jsonp', False)
   else:
     jsonp = False
   #json = str(nodes) #poor man's json encoder for simple types

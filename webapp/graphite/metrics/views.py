@@ -29,8 +29,8 @@ except ImportError:
 
 
 def index_json(request):
-  jsonp = request.REQUEST.get('jsonp', False)
-  cluster = request.REQUEST.get('cluster', False)
+  jsonp = request.GET.get('jsonp', False)
+  cluster = request.GET.get('cluster', False)
 
   def find_matches():
     matches = []
@@ -68,14 +68,14 @@ def index_json(request):
 
 def search_view(request):
   try:
-    query = str( request.REQUEST['query'] )
+    query = str( request.GET['query'] )
   except:
     return HttpResponseBadRequest(content="Missing required parameter 'query'",
                                   content_type="text/plain")
   search_request = {
     'query' : query,
-    'max_results' : int( request.REQUEST.get('max_results', 25) ),
-    'keep_query_pattern' : int(request.REQUEST.get('keep_query_pattern', 0)),
+    'max_results' : int( request.GET.get('max_results', 25) ),
+    'keep_query_pattern' : int(request.GET.get('keep_query_pattern', 0)),
   }
   #if not search_request['query'].endswith('*'):
   #  search_request['query'] += '*'
@@ -87,22 +87,22 @@ def search_view(request):
 def find_view(request):
   "View for finding metrics matching a given pattern"
   profile = getProfile(request)
-  format = request.REQUEST.get('format', 'treejson')
-  local_only = int( request.REQUEST.get('local', 0) )
-  wildcards = int( request.REQUEST.get('wildcards', 0) )
-  fromTime = int( request.REQUEST.get('from', -1) )
-  untilTime = int( request.REQUEST.get('until', -1) )
-  jsonp = request.REQUEST.get('jsonp', False)
+  format = request.GET.get('format', 'treejson')
+  local_only = int( request.GET.get('local', 0) )
+  wildcards = int( request.GET.get('wildcards', 0) )
+  fromTime = int( request.GET.get('from', -1) )
+  untilTime = int( request.GET.get('until', -1) )
+  jsonp = request.GET.get('jsonp', False)
 
   if fromTime == -1:
     fromTime = None
   if untilTime == -1:
     untilTime = None
 
-  automatic_variants = int( request.REQUEST.get('automatic_variants', 0) )
+  automatic_variants = int( request.GET.get('automatic_variants', 0) )
 
   try:
-    query = str( request.REQUEST['query'] )
+    query = str( request.GET['query'] )
   except:
     return HttpResponseBadRequest(content="Missing required parameter 'query'",
                                   content_type="text/plain")
@@ -168,12 +168,12 @@ def find_view(request):
 
 def expand_view(request):
   "View for expanding a pattern into matching metric paths"
-  local_only    = int( request.REQUEST.get('local', 0) )
-  group_by_expr = int( request.REQUEST.get('groupByExpr', 0) )
-  leaves_only   = int( request.REQUEST.get('leavesOnly', 0) )
+  local_only    = int( request.GET.get('local', 0) )
+  group_by_expr = int( request.GET.get('groupByExpr', 0) )
+  leaves_only   = int( request.GET.get('leavesOnly', 0) )
 
   results = {}
-  for query in request.REQUEST.getlist('query'):
+  for query in request.GET.getlist('query'):
     results[query] = set()
     for node in STORE.find(query, local=local_only):
       if node.is_leaf or not leaves_only:
@@ -197,8 +197,8 @@ def expand_view(request):
 
 
 def get_metadata_view(request):
-  key = request.REQUEST['key']
-  metrics = request.REQUEST.getlist('metric')
+  key = request.GET['key']
+  metrics = request.GET.getlist('metric')
   results = {}
   for metric in metrics:
     try:
