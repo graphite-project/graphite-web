@@ -714,7 +714,7 @@ lineMode
 Sets the line drawing behavior. Takes one of the following parameters:
 
 ``slope``
-  Slope line mode draws a line from each point to the next. Periods will Null values will not be drawn
+  Slope line mode draws a line from each point to the next. Periods with Null values will not be drawn
 ``staircase``
   Staircase draws a flat line for the duration of a time period and then a vertical line up or down to the next value
 ``connected``
