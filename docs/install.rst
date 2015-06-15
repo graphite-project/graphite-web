@@ -20,8 +20,11 @@ Basic Graphite requirements:
 * `pytz`_
 * `fontconfig`_ and at least one font package (a system package usually)
 * A WSGI server and web server. Popular choices are:
+
   - `Apache`_ with `mod_wsgi`_
+
   - `gunicorn`_ with `nginx`_
+
   - `uWSGI`_ with `nginx`_
 
 Additionally, the Graphite webapp and Carbon require the whisper database library which
