@@ -5,6 +5,9 @@ Tools That Work With Graphite
 Collection
 ----------
 
+`Brubeck`_
+  a statsd-compatible stats aggregator written in C.
+
 `Bucky`_
   a small service implemented in Python for collecting and translating metrics for Graphite.
   It can currently collect metric data from CollectD daemons and from StatsD clients.
@@ -266,6 +269,7 @@ Other
 
 .. _Backbone.js: http://documentcloud.github.com/backbone
 .. _Backstop: https://github.com/obfuscurity/backstop
+.. _Brubeck: https://github.com/github/brubeck
 .. _Bucky: http://pypi.python.org/pypi/bucky
 .. _Cabot: https://github.com/arachnys/cabot
 .. _Charcoal: https://github.com/cebailey59/charcoal
