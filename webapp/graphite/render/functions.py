@@ -2489,7 +2489,7 @@ def timeShift(requestContext, seriesList, timeShift, resetEnd=True):
     series = seriesList[0]
 
     for shiftedSeries in evaluateTarget(myContext, series.pathExpression):
-      shiftedSeries.name = 'timeShift(%s, %s)' % (shiftedSeries.name, timeShift)
+      shiftedSeries.name = 'timeShift(%s, "%s")' % (shiftedSeries.name, timeShift)
       if resetEnd:
         shiftedSeries.end = series.end
       else:
