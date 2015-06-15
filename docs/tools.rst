@@ -44,6 +44,10 @@ Collection
 
 `Graphite PowerShell Functions <https://github.com/MattHodge/Graphite-PowerShell-Functions>`_ 
   a group of functions that can be used to collect Windows Performance Counters and send them over to the Graphite server. The main function can be run as a Windows service, and everything is configurable via an XML file.
+  
+`Carbonator Windows Service <https://github.com/CryptonZylog/carbonator>`_
+  simple lightweight Windows Service that collects Performance Counter metrics and sends them over to the Graphite server.
+  Configured via .NET xml application configuration.
 
 `HoardD`_
   a Node.js app written in CoffeeScript to send data from servers to Graphite, much
