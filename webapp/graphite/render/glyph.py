@@ -1076,30 +1076,10 @@ class LineGraph(Graph):
     if yMaxValue <= yMinValue:
       yMaxValue = yMinValue + 1
 
-    yVariance = yMaxValue - yMinValue
-    if 'yUnitSystem' in self.params and self.params['yUnitSystem'] == 'binary':
-      order = math.log(yVariance, 2)
-      orderFactor = 2 ** math.floor(order)
-    else:
-      order = math.log10(yVariance)
-      orderFactor = 10 ** math.floor(order)
-    v = yVariance / orderFactor #we work with a scaled down yVariance for simplicity
-
     yDivisors = str(self.params.get('yDivisors', '4,5,6'))
     yDivisors = [int(d) for d in yDivisors.split(',')]
-
-    prettyValues = (0.1,0.2,0.25,0.5,1.0,1.2,1.25,1.5,2.0,2.25,2.5)
-    divisorInfo = []
-
-    for d in yDivisors:
-      q = v / d #our scaled down quotient, must be in the open interval (0,10)
-      p = closest(q, prettyValues) #the prettyValue our quotient is closest to
-      divisorInfo.append( ( p,abs(q-p)) ) #make a list so we can find the prettiest of the pretty
-
-    divisorInfo.sort(key=lambda i: i[1]) #sort our pretty values by "closeness to a factor"
-    prettyValue = divisorInfo[0][0] #our winner! Y-axis will have labels placed at multiples of our prettyValue
-    self.yStep = prettyValue * orderFactor #scale it back up to the order of yVariance
-
+    binary = 'yUnitSystem' in self.params and self.params['yUnitSystem'] == 'binary'
+    self.yStep = chooseAxisStep(yMinValue, yMaxValue, divisors=yDivisors, binary=binary)
     if 'yStep' in self.params:
       self.yStep = self.params['yStep']
 
@@ -1741,6 +1721,32 @@ def find_x_times(start_dt, unit, step):
 
   return (dt, x_delta)
 
+
+def chooseAxisStep(minValue, maxValue, divisors=None, binary=False):
+  if divisors is None:
+    divisors = [4,5,6]
+
+  variance = maxValue - minValue
+
+  if binary:
+    order = math.log(variance, 2)
+    orderFactor = 2 ** math.floor(order)
+  else:
+    order = math.log10(variance)
+    orderFactor = 10 ** math.floor(order)
+  v = variance / orderFactor #we work with a scaled down variance for simplicity
+
+  prettyValues = (0.1,0.2,0.25,0.5,1.0,1.2,1.25,1.5,2.0,2.25,2.5)
+  divisorInfo = []
+
+  for d in divisors:
+    q = v / d #our scaled down quotient, must be in the open interval (0,10)
+    p = closest(q, prettyValues) #the prettyValue our quotient is closest to
+    divisorInfo.append( ( p,abs(q-p)) ) #make a list so we can find the prettiest of the pretty
+
+  divisorInfo.sort(key=lambda i: i[1]) #sort our pretty values by "closeness to a factor"
+  prettyValue = divisorInfo[0][0] #our winner! Axis will have labels placed at multiples of our prettyValue
+  return prettyValue * orderFactor #scale it back up to the order of variance
 
 def logrange(base, scale_min, scale_max):
   current = scale_min
