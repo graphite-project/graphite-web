@@ -1219,41 +1219,18 @@ class LineGraph(Graph):
     if yMaxValueR <= yMinValueR:
       yMaxValueR = yMinValueR + 1
 
-    yVarianceL = yMaxValueL - yMinValueL
-    yVarianceR = yMaxValueR - yMinValueR
-    orderL = math.log10(yVarianceL)
-    orderR = math.log10(yVarianceR)
-    orderFactorL = 10 ** math.floor(orderL)
-    orderFactorR = 10 ** math.floor(orderR)
-    vL = yVarianceL / orderFactorL #we work with a scaled down yVariance for simplicity
-    vR = yVarianceR / orderFactorR
-
     yDivisors = str(self.params.get('yDivisors', '4,5,6'))
     yDivisors = [int(d) for d in yDivisors.split(',')]
 
-    prettyValues = (0.1,0.2,0.25,0.5,1.0,1.2,1.25,1.5,2.0,2.25,2.5)
-    divisorInfoL = []
-    divisorInfoR = []
-
-    for d in yDivisors:
-      qL = vL / d #our scaled down quotient, must be in the open interval (0,10)
-      qR = vR / d
-      pL = closest(qL, prettyValues) #the prettyValue our quotient is closest to
-      pR = closest(qR, prettyValues)
-      divisorInfoL.append( ( pL,abs(qL-pL)) ) #make a list so we can find the prettiest of the pretty
-      divisorInfoR.append( ( pR,abs(qR-pR)) )
-
-    divisorInfoL.sort(key=lambda i: i[1]) #sort our pretty values by "closeness to a factor"
-    divisorInfoR.sort(key=lambda i: i[1])
-    prettyValueL = divisorInfoL[0][0] #our winner! Y-axis will have labels placed at multiples of our prettyValue
-    prettyValueR = divisorInfoR[0][0]
-    self.yStepL = prettyValueL * orderFactorL #scale it back up to the order of yVariance
-    self.yStepR = prettyValueR * orderFactorR
-
     if 'yStepLeft' in self.params:
       self.yStepL = self.params['yStepLeft']
+    else:
+      self.yStepL = chooseAxisStep(yMinValueL, yMaxValueL, divisors=yDivisors)
+
     if 'yStepRight' in self.params:
       self.yStepR = self.params['yStepRight']
+    else:
+      self.yStepR = chooseAxisStep(yMinValueR, yMaxValueR, divisors=yDivisors)
 
     self.yBottomL = self.yStepL * math.floor( yMinValueL / self.yStepL ) #start labels at the greatest multiple of yStepL <= yMinValue
     self.yBottomR = self.yStepR * math.floor( yMinValueR / self.yStepR ) #start labels at the greatest multiple of yStepR <= yMinValue
