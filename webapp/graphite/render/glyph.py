@@ -1076,12 +1076,13 @@ class LineGraph(Graph):
     if yMaxValue <= yMinValue:
       yMaxValue = yMinValue + 1
 
-    yDivisors = str(self.params.get('yDivisors', '4,5,6'))
-    yDivisors = [int(d) for d in yDivisors.split(',')]
-    binary = 'yUnitSystem' in self.params and self.params['yUnitSystem'] == 'binary'
-    self.yStep = chooseAxisStep(yMinValue, yMaxValue, divisors=yDivisors, binary=binary)
     if 'yStep' in self.params:
       self.yStep = self.params['yStep']
+    else:
+      yDivisors = str(self.params.get('yDivisors', '4,5,6'))
+      yDivisors = [int(d) for d in yDivisors.split(',')]
+      binary = 'yUnitSystem' in self.params and self.params['yUnitSystem'] == 'binary'
+      self.yStep = chooseAxisStep(yMinValue, yMaxValue, divisors=yDivisors, binary=binary)
 
     self.yBottom = self.yStep * math.floor( yMinValue / self.yStep ) #start labels at the greatest multiple of yStep <= yMinValue
     self.yTop = self.yStep * math.ceil( yMaxValue / self.yStep ) #Extend the top of our graph to the lowest yStep multiple >= yMaxValue
