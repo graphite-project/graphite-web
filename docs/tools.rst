@@ -5,9 +5,12 @@ Tools That Work With Graphite
 Collection
 ----------
 
+`Brubeck`_
+  a statsd-compatible stats aggregator written in C.
+
 `Bucky`_
   a small service implemented in Python for collecting and translating metrics for Graphite.
-  It can current collect metric data from CollectD daemons and from StatsD clients.
+  It can currently collect metric data from CollectD daemons and from StatsD clients.
 
 `collectd`_
   a daemon which collects system performance statistics periodically and provides
@@ -44,6 +47,10 @@ Collection
 
 `Graphite PowerShell Functions <https://github.com/MattHodge/Graphite-PowerShell-Functions>`_ 
   a group of functions that can be used to collect Windows Performance Counters and send them over to the Graphite server. The main function can be run as a Windows service, and everything is configurable via an XML file.
+  
+`Carbonator Windows Service <https://github.com/CryptonZylog/carbonator>`_
+  simple lightweight Windows Service that collects Performance Counter metrics and sends them over to the Graphite server.
+  Configured via .NET xml application configuration.
 
 `HoardD`_
   a Node.js app written in CoffeeScript to send data from servers to Graphite, much
@@ -104,6 +111,10 @@ Forwarding
 `Grockets`_ 
   a node.js application which provides streaming JSON data over HTTP from Graphite.
 
+`Gruffalo`_
+  an asynchronous Netty based graphite proxy, for large scale installations. It protects Graphite from the herds of clients by minimizing context switches and interrupts; by batching and aggregating metrics.
+  Gruffalo also allows you to replicate metrics between Graphite installations for DR scenarios, for example.
+
 `Ledbetter`_
   a simple script for gathering Nagios problem statistics and submitting them to Graphite. It focuses on summary (overall, servicegroup and hostgroup) statistics and writes them to the nagios.problems metrics namespace within Graphite.
 
@@ -114,7 +125,6 @@ Forwarding
 `statsd`_
   a simple daemon for easy stats aggregation, developed by the folks at Etsy.
   A list of forks and alternative implementations can be found at <http://joemiller.me/2011/09/21/list-of-statsd-server-implementations/>
-
 
 Visualization
 -------------
@@ -146,6 +156,13 @@ Visualization
   It contains a unique Graphite target parser that enables easy metric and function editing. Fast client side rendering (even over large time ranges)
   using Flot with a multitude of display options (Multiple Y-axis, Bars, Lines, Points, smart Y-axis formats and much more).
   Click and drag selection rectangle to zoom in on any graph.
+
+`graphite-dashboardcli`_
+  a tool for manage graphite dashboards from command line:
+
+  - import\Export dashboards from\to Graphite servers
+  - synchronize dashboards between multiple Graphite servers
+  - keep dashboards in YAML format
 
 `graphitus`_
   a client side dashboard for graphite built using bootstrap and underscore.js.
@@ -201,9 +218,6 @@ Visualization
   a monitoring frontend for graphite. It runs a webserver that dishes out pretty Graphite
   URLs in interesting and intuitive layouts.
 
-`Seyren`_
-  an alerting dashboard for Graphite.
-
 `Tasseo`_
   a lightweight, easily configurable, real-time dashboard for Graphite metrics.
 
@@ -221,6 +235,13 @@ Monitoring
 
 `Cabot`_
   a self-hosted monitoring and alerting server that watches Graphite metrics and can alert on them by phone, SMS, Hipchat or email. It is designed to be deployed to cloud or physical hardware in minutes and configured via web interface.
+  
+`graphite-beacon`_
+  a simple alerting application for Graphite. It asynchronous and sends notification alerts based on Graphite metrics.
+  It hasn't any dependencies except `Tornado` package. Very light and really very easy deployed.
+
+`graphite-to-zabbix`_
+  a tool to make zabbix alerts based on Graphite data.
 
 `rearview`_
   a real-time monitoring framework that sits on top of Graphite's time series data. This allows users to create monitors that both visualize and alert on data as it streams from Graphite. The monitors themselves are simple Ruby scripts which run in a sandbox to provide additional security. Monitors are also configured with a crontab compatible time specification used by the scheduler. Alerts can be sent via email, pagerduty, or campfire.
@@ -229,6 +250,9 @@ Monitoring
   a system that ties together Graphite, `RabbitMQ`_, and `Esper`_. Developed by
   AdMob (who was then bought by Google), this was released by Google as open source
   (http://google-opensource.blogspot.com/2010/09/get-ready-to-rocksteady.html).
+
+`Seyren`_
+  an alerting dashboard for Graphite.
 
 `Shinken`_
   a system monitoring solution compatible with Nagios which emphasizes scalability, flexibility,
@@ -245,6 +269,7 @@ Other
 
 .. _Backbone.js: http://documentcloud.github.com/backbone
 .. _Backstop: https://github.com/obfuscurity/backstop
+.. _Brubeck: https://github.com/github/brubeck
 .. _Bucky: http://pypi.python.org/pypi/bucky
 .. _Cabot: https://github.com/arachnys/cabot
 .. _Charcoal: https://github.com/cebailey59/charcoal
@@ -268,20 +293,24 @@ Other
 .. _Graph-Index: https://github.com/douban/graph-index
 .. _Graphene: http://jondot.github.com/graphene
 .. _Graphios: https://github.com/shawn-sterling/graphios
+.. _graphite-beacon: https://github.com/klen/graphite-beacon
+.. _graphite-dashboardcli: https://github.com/blacked/graphite-dashboardcli
 .. _Graphite-Tattle: https://github.com/wayfair/Graphite-Tattle
 .. _Graphite-Newrelic: https://github.com/gingerlime/graphite-newrelic
 .. _Graphite-Observer: https://github.com/huoxy/graphite-observer
 .. _Graphite-relay: https://github.com/markchadwick/graphite-relay
+.. _graphite-to-zabbix: https://github.com/blacked/graphite-to-zabbix
 .. _Graphiti: https://github.com/paperlesspost/graphiti
 .. _graphitus: https://github.com/ezbz/graphitus
 .. _Graphitoid: https://market.android.com/details?id=com.tnc.android.graphite
 .. _Graphsky: https://github.com/hyves-org/graphsky
 .. _Grockets: https://github.com/disqus/grockets
+.. _Gruffalo: https://github.com/outbrain/gruffalo
 .. _HoardD: https://github.com/coredump/hoardd
 .. _Host sFlow: http://host-sflow.sourceforge.net
 .. _Hubot: https://github.com/github/hubot
 .. _hubot-scripts: https://github.com/github/hubot-scripts
-.. _jmxtrans: http://code.google.com/p/jmxtrans
+.. _jmxtrans: https://github.com/jmxtrans/jmxtrans
 .. _Ledbetter: https://github.com/github/ledbetter
 .. _Leonardo: https://github.com/PrFalken/leonardo
 .. _Logster: https://github.com/etsy/logster

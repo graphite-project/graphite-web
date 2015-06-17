@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+import json
 import os
 
 from django.contrib.auth.models import User
@@ -47,3 +49,16 @@ class BrowserTest(TestCase):
         self.assertEqual(response.content.split(','),
                          ['collectd.test.load.load.midterm',
                           'collectd.test.load.load.shortterm'])
+
+    def test_unicode_graph_name(self):
+        url = reverse('browser_my_graph')
+        user = User.objects.create_user('test', 'test@example.com', 'pass')
+        self.client.login(username='test', password='pass')
+
+        response = self.client.get(url, {'path': ''})
+        self.assertEqual(response.status_code, 200)
+        user.profile.mygraph_set.create(name=u'fòo', url='bar')
+        response = self.client.get(url, {'path': ''})
+        self.assertEqual(response.status_code, 200)
+        [leaf] = json.loads(response.content)
+        self.assertEqual(leaf['text'], u'fòo')

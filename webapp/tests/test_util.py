@@ -1,6 +1,7 @@
 from django.test import TestCase
 
 from graphite import util
+from graphite.wsgi import application  # NOQA makes sure we have a working WSGI app
 
 
 class UtilTest(TestCase):

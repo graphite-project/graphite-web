@@ -16,7 +16,6 @@ import django
 from django.conf import settings
 from django.conf.urls import patterns, include, url
 from django.contrib import admin
-from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 try:
     from django.template.base import add_to_builtins
@@ -27,7 +26,7 @@ if django.VERSION < (1, 5):  # load the "future" {% url %} tag
     add_to_builtins('django.templatetags.future')
 
 if django.VERSION < (1, 7):
-    # Django doing autodiscover automaticly:
+    # Django doing autodiscover automatically:
     # https://docs.djangoproject.com/en/dev/releases/1.7/#app-loading-refactor
     admin.autodiscover()
 
@@ -58,6 +57,5 @@ urlpatterns = patterns(
     '',
     (r'^{0}'.format(url_prefix), include(graphite_urls)),
 )
-urlpatterns += staticfiles_urlpatterns()
 
 handler500 = 'graphite.views.server_error'

@@ -3,7 +3,7 @@ The Render URL API
 ==================
 
 The graphite webapp provides a ``/render`` endpoint for generating graphs
-and retreiving raw data. This endpoint accepts various arguments via query
+and retrieving raw data. This endpoint accepts various arguments via query
 string parameters.  These parameters are separated by an ampersand (``&``)
 and are supplied in the format:
 
@@ -202,6 +202,43 @@ Examples:
 
   &from=monday
   (show data since the previous monday)
+
+template
+--------
+
+The ``target`` metrics can use a special ``template`` function which
+allows the metric paths to contain variables. Values for these variables
+can be provided via the ``template`` query parameter.
+
+Examples
+^^^^^^^^
+
+Example:
+
+.. code-block:: none
+
+  &target=template(hosts.$hostname.cpu)&template[hostname]=worker1
+
+Default values for the template variables can also be provided:
+
+.. code-block:: none
+
+  &target=template(hosts.$hostname.cpu, hostname="worker1")
+
+Positional arguments can be used instead of named ones:
+
+.. code-block:: none
+
+  &target=template(hosts.$1.cpu, "worker1")
+  &target=template(hosts.$1.cpu, "worker1")&template[1]=worker*
+
+In addition to path substitution, variables can be used for numeric and string literals:
+
+.. code-block:: none
+
+  &target=template(constantLine($number))&template[number]=123
+  &target=template(sinFunction($name))&template[name]=nameOfMySineWaveMetric
+
 
 Data Display Formats
 ====================
@@ -677,7 +714,7 @@ lineMode
 Sets the line drawing behavior. Takes one of the following parameters:
 
 ``slope``
-  Slope line mode draws a line from each point to the next. Periods will Null values will not be drawn
+  Slope line mode draws a line from each point to the next. Periods with Null values will not be drawn
 ``staircase``
   Staircase draws a flat line for the duration of a time period and then a vertical line up or down to the next value
 ``connected``

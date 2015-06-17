@@ -1,23 +1,35 @@
 import os
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'graphite.settings')
 
-import django
+try:
+    from importlib import import_module
+except ImportError:
+    from django.utils.importlib import import_module
 
-if django.VERSION < (1, 4):
-    from django.core.handlers.wsgi import WSGIHandler
-    application = WSGIHandler()
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'graphite.settings')  # noqa
+
+from django.conf import settings
+from django.core.wsgi import get_wsgi_application
+from graphite.logger import log
+
+application = get_wsgi_application()
+
+try:
+    from whitenoise.django import DjangoWhiteNoise
+except ImportError:
+    pass
 else:
-    # From 1.4 wsgi support was improved and since 1.7 old style WSGI script
-    # causes AppRegistryNotReady exception
-    # https://docs.djangoproject.com/en/dev/releases/1.7/#wsgi-scripts
-    from django.core.wsgi import get_wsgi_application
-    application = get_wsgi_application()
-
+    application = DjangoWhiteNoise(application)
+    prefix = "/".join((settings.URL_PREFIX.strip('/'), 'static'))
+    for directory in settings.STATICFILES_DIRS:
+        application.add_files(directory, prefix=prefix)
+    for app_path in settings.INSTALLED_APPS:
+        module = import_module(app_path)
+        directory = os.path.join(os.path.dirname(module.__file__), 'static')
+        if os.path.isdir(directory):
+            application.add_files(directory, prefix=prefix)
 
 # Initializing the search index can be very expensive. The import below
 # ensures the index is preloaded before any requests are handed to the
 # process.
-
-from graphite.logger import log
 log.info("graphite.wsgi - pid %d - reloading search index" % os.getpid())
 import graphite.metrics.search  # noqa

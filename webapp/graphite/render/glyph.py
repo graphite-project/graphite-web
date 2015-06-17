@@ -555,7 +555,7 @@ class LineGraph(Graph):
     if len(self.dataRight) > 0:
       self.secondYAxis = True
 
-    #API compatibilty hacks
+    #API compatibility hacks
     if params.get('graphOnly',False):
       params['hideLegend'] = True
       params['hideGrid'] = True
@@ -870,7 +870,7 @@ class LineGraph(Graph):
       else:
         self.setColor( series.color, series.options.get('alpha') or 1.0 )
 
-      # The number of preceeding datapoints that had a None value.
+      # The number of preceding datapoints that had a None value.
       consecutiveNones = 0
 
       for index, value in enumerate(series):
@@ -1019,10 +1019,10 @@ class LineGraph(Graph):
   def setupYAxis(self):
     seriesWithMissingValues = [ series for series in self.data if None in series ]
 
-    if self.params.get('drawNullAsZero') and seriesWithMissingValues:
+    yMinValue = safeMin( [safeMin(series) for series in self.data if not series.options.get('drawAsInfinite')] )
+
+    if yMinValue > 0.0 and self.params.get('drawNullAsZero') and seriesWithMissingValues:
       yMinValue = 0.0
-    else:
-      yMinValue = safeMin( [safeMin(series) for series in self.data if not series.options.get('drawAsInfinite')] )
 
     if self.areaMode == 'stacked':
       length = safeMin( [len(series) for series in self.data if not series.options.get('drawAsInfinite')] )
@@ -1033,6 +1033,9 @@ class LineGraph(Graph):
       yMaxValue = safeMax( sumSeries )
     else:
       yMaxValue = safeMax( [safeMax(series) for series in self.data if not series.options.get('drawAsInfinite')] )
+
+    if yMaxValue < 0.0 and self.params.get('drawNullAsZero') and seriesWithMissingValues:
+      yMaxValue = 0.0
 
     if yMinValue is None:
       yMinValue = 0.0

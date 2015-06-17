@@ -109,6 +109,14 @@ except ImportError:
     required += 1
 
 
+# Test for a pytz module
+try:
+  import pytz
+except ImportError:
+  print "[FATAL] Unable to import the 'pytz' module, do you have pytz installed for python %s?" % py_version
+  fatal += 1
+
+
 # Test for zope.interface
 try:
   from zope.interface import Interface
@@ -161,6 +169,14 @@ try:
 except ImportError:
   sys.stderr.write("[OPTIONAL] Unable to import the 'python-rrdtool' module, this is required for reading RRD.\n")
   optional += 1
+
+
+# Test for whitenoise
+try:
+    import whitenoise
+except ImportError:
+    sys.stderr.write("[OPTIONAL] Unable to import the 'whitenoise' module. This is useful for serving static files.\n")
+    optional += 1
 
 
 if optional:

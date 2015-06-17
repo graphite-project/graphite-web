@@ -54,6 +54,7 @@ CLUSTER_SERVERS = []
 REMOTE_FIND_TIMEOUT = 3.0
 REMOTE_FETCH_TIMEOUT = 6.0
 REMOTE_RETRY_DELAY = 60.0
+REMOTE_EXCLUDE_LOCAL = False
 REMOTE_READER_CACHE_SIZE_LIMIT = 1000
 CARBON_METRIC_PREFIX='carbon'
 CARBONLINK_HOSTS = ["127.0.0.1:7002"]
@@ -110,6 +111,9 @@ ALLOWED_HOSTS = [ '*' ]
 
 # Override to link a different URL for login (e.g. for django_openid_auth)
 LOGIN_URL = reverse_lazy('account_login')
+
+# Set the default timezone to UTC
+TIME_ZONE = 'UTC'
 
 # Set to True to require authentication to save or delete dashboards
 DASHBOARD_REQUIRE_AUTHENTICATION = False
@@ -234,3 +238,5 @@ if USE_LDAP_AUTH:
 
 if SECRET_KEY == 'UNSAFE_DEFAULT':
   warn('SECRET_KEY is set to an unsafe default. This should be set in local_settings.py for better security')
+
+USE_TZ = True

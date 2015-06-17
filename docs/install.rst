@@ -17,10 +17,14 @@ Basic Graphite requirements:
 * `django-tagging`_ 0.3.1 or greater
 * `Twisted`_ 8.0 or greater (10.0+ recommended)
 * `zope-interface`_ (often included in Twisted package dependency)
+* `pytz`_
 * `fontconfig`_ and at least one font package (a system package usually)
 * A WSGI server and web server. Popular choices are:
+
   - `Apache`_ with `mod_wsgi`_
+
   - `gunicorn`_ with `nginx`_
+
   - `uWSGI`_ with `nginx`_
 
 Additionally, the Graphite webapp and Carbon require the whisper database library which
@@ -32,7 +36,7 @@ There are also several other dependencies required for additional features:
 * LDAP authentication: `python-ldap`_ (for LDAP authentication support in the webapp)
 * AMQP support: `txamqp`_
 * RRD support: `python-rrdtool`_
-* Dependant modules for additional database support (MySQL, PostgreSQL, etc). See `Django database install`_ instructions and the `Django database`_ documentation for details
+* Dependent modules for additional database support (MySQL, PostgreSQL, etc). See `Django database install`_ instructions and the `Django database`_ documentation for details
 
 .. seealso:: On some systems it is necessary to install fonts for Cairo to use. If the
              webapp is running but all graphs return as broken images, this may be why.
@@ -176,6 +180,7 @@ Despair Not!  Even though running Graphite on Windows is completely unsupported 
 .. _python-memcache: http://www.tummy.com/Community/software/python-memcached/
 .. _python-rrdtool: http://oss.oetiker.ch/rrdtool/prog/rrdpython.en.html
 .. _python-sqlite2: http://code.google.com/p/pysqlite/
+.. _pytz: https://pypi.python.org/pypi/pytz/
 .. _simplejson: http://pypi.python.org/pypi/simplejson/
 .. _Twisted: http://twistedmatrix.com/
 .. _txAMQP: https://launchpad.net/txamqp/

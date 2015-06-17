@@ -12,11 +12,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
-import time
 from graphite.logger import log
 from graphite.storage import STORE
 from graphite.readers import FetchInProgress
 from django.conf import settings
+from graphite.util import epoch
 
 class TimeSeries(list):
   def __init__(self, name, start, end, step, values, consolidate='average'):
@@ -91,8 +91,8 @@ class TimeSeries(list):
 def fetchData(requestContext, pathExpr):
 
   seriesList = []
-  startTime = int( time.mktime( requestContext['startTime'].timetuple() ) )
-  endTime   = int( time.mktime( requestContext['endTime'].timetuple() ) )
+  startTime = int( epoch( requestContext['startTime'] ) )
+  endTime   = int( epoch( requestContext['endTime'] ) )
 
   def _fetchData(pathExpr,startTime, endTime, requestContext, seriesList):
     matching_nodes = STORE.find(pathExpr, startTime, endTime, local=requestContext['localOnly'])
