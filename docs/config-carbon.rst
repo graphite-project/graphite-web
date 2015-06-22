@@ -140,7 +140,7 @@ You must define at least one section as the default.
 
 aggregation-rules.conf
 ----------------------
-Aggregation rules allow you to add several metrics together as the come in, reducing the need to sum() many metrics in every URL. Note that unlike some other config files, any time this file is modified it will take effect automatically. This requires the carbon-aggregator service to be running. 
+Aggregation rules allow you to add several metrics together as they come in, reducing the need to sum() many metrics in every URL. Note that unlike some other config files, any time this file is modified it will take effect automatically. This requires the carbon-aggregator service to be running. 
 
 The form of each line in this file should be as follows:
 
