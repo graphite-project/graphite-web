@@ -936,7 +936,12 @@ function metricTextSelectorShow(pattern) {
 
 function metricTreeSelectorNodeClicked (node, e) {
   if (!node.leaf) {
-    node.toggle();
+    if (node.expanded) {
+      node.collapse();
+    } else {
+      node.loaded = false;
+      node.expand();
+    }
     return;
   }
 
