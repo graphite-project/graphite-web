@@ -319,7 +319,9 @@ class FunctionsTest(TestCase):
         with patch.dict(functions.SeriesFunctions,{ 'mock': mock }):
             results = functions.reduceSeries({}, copy.deepcopy(inputList), "mock", 2, "metric1","metric2" )
             self.assertEqual(results,expectedResult)
-        self.assertEqual(mock.mock_calls, [call({},inputList[0]), call({},inputList[1])])
+        self.assertEqual(mock.mock_calls,
+                         [call({},[inputList[0][0]],[inputList[0][1]]),
+                          call({},[inputList[1][0]],[inputList[1][1]])])
 
     def test_pow(self):
         seriesList = self._generate_series_list()
