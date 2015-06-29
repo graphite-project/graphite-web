@@ -15,6 +15,7 @@ settings.configure(
 
 from graphite.render.datalib import TimeSeries
 import graphite.render.functions as functions
+from graphite.render.functions import NormalizeEmptyResultError
 
 
 class FunctionsTest(unittest.TestCase):
@@ -90,6 +91,11 @@ class FunctionsTest(unittest.TestCase):
         TestNPercentile(90, [ [50], [91], [181], [271], [90], [180], [270], [270] ])
         TestNPercentile(95, [ [50], [96], [191], [286], [95], [190], [285], [285] ])
 
+    def test_normalize_empty(self):
+      try:
+        functions.normalize([])
+      except NormalizeEmptyResultError:
+        pass
 
 if __name__ == '__main__':
     unittest.main()
