@@ -55,7 +55,7 @@ class FindRequest:
     query_params = [
       ('local', '1'),
       ('format', 'pickle'),
-      ('query', self.query),
+      ('query', settings.REMOTE_STORE_METRIC_PREFIX + self.query),
     ]
     query_string = urlencode(query_params)
 
@@ -96,6 +96,21 @@ class FindRequest:
     return resultNodes
 
 
+def prepend_prefix(metric_path):
+  if isinstance(metric_path, list):
+    return [ prepend_prefix(p) for p in metric_path ]
+  if metric_path.startswith(settings.REMOTE_STORE_METRIC_PREFIX):
+    return metric_path
+  return settings.REMOTE_STORE_METRIC_PREFIX + metric_path
+
+
+def truncate_prefix(metric_path):
+  if isinstance(metric_path, list):
+    return [ truncate_prefix(p) for p in metric_path ]
+  if not metric_path.startswith(settings.REMOTE_STORE_METRIC_PREFIX):
+    return metric_path
+  return metric_path[len(settings.REMOTE_STORE_METRIC_PREFIX):]
+
 
 class RemoteNode:
   context = {}
@@ -103,24 +118,24 @@ class RemoteNode:
   def __init__(self, store, metric_path, isLeaf):
     self.store = store
     self.fs_path = None
-    self.metric_path = metric_path
-    self.real_metric = metric_path
+    self.metric_path = truncate_prefix(metric_path)
+    self.real_metric = prepend_prefix(metric_path)
     self.__isLeaf = isLeaf
     self.__isBulk = True if isinstance(metric_path, list) else False
 
     if self.__isBulk:
       self.name = "Bulk: %s" % self.metric_path
     else:
-      self.name = metric_path.split('.')[-1]
+      self.name = self.metric_path.split('.')[-1]
 
 
   def fetch(self, startTime, endTime, now=None, result_queue=None):
     if not self.__isLeaf:
       return []
     if self.__isBulk:
-      targets = [ ('target', v) for v in self.metric_path ]
+      targets = [ ('target', v) for v in self.real_metric ]
     else:
-      targets = [ ('target', self.metric_path) ]
+      targets = [ ('target', self.real_metric) ]
 
     query_params = [
       ('local', '1'),
@@ -144,6 +159,10 @@ class RemoteNode:
     rawData = response.read()
 
     seriesList = unpickle.loads(rawData)
+
+    for series in seriesList:
+      series['name'] = truncate_prefix(series['name'])
+      series['pathExpression'] = truncate_prefix(series['pathExpression'])
 
     if result_queue:
       result_queue.put( (self.store.host, seriesList) )
