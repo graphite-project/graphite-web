@@ -30,4 +30,4 @@ script:
 matrix:
   exclude:
     - python: "2.6"
-      env: REQUIREMENTS="Django<1.8"
+      env: REQUIREMENTS="Django<1.8 django-tagging<0.4"
