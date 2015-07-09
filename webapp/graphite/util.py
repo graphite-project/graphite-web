@@ -31,6 +31,7 @@ except ImportError:
 from os import environ
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import User
+from django.utils.timezone import get_current_timezone
 from graphite.account.models import Profile
 from graphite.logger import log
 
@@ -52,6 +53,8 @@ def epoch(dt):
     """
     Returns the epoch timestamp of a timezone-aware datetime object.
     """
+    if dt.tzinfo is None:
+      dt = dt.replace(tzinfo=get_current_timezone())
     return calendar.timegm(dt.astimezone(pytz.utc).timetuple())
 
 def getProfile(request,allowDefault=True):
