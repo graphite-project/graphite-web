@@ -1101,6 +1101,10 @@ Value can be one of:
   Use si units (powers of 1000) - K, M, G, T, P
 ``binary``
   Use binary units (powers of 1024) - Ki, Mi, Gi, Ti, Pi
+``sec``
+  Use time units (seconds) - m, H, D, M, Y
+``msec``
+  Use time units (milliseconds) - s, m, H, D, M, Y
 ``none``
   Dont compact values, display the raw number
 
