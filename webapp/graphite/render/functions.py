@@ -2820,7 +2820,7 @@ def reduceSeries(requestContext, seriesLists, reduceFunction, reduceNode, *reduc
         i = reduceMatchers.index(node)
         metaSeries[reduceSeriesName][i] = series
   for key in keys:
-    metaSeries[key] = SeriesFunctions[reduceFunction](requestContext,metaSeries[key])[0]
+    metaSeries[key] = SeriesFunctions[reduceFunction](requestContext,*[[l] for l in metaSeries[key]])[0]
     metaSeries[key].name = key
   return [ metaSeries[key] for key in keys ]
 
