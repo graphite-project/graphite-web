@@ -1,5 +1,6 @@
 language: python
 python: 2.7
+sudo: false
 
 env:
   - TOXENV=py26-django14-pyparsing2
@@ -13,8 +14,10 @@ env:
   - TOXENV=docs
   - TOXENV=lint
 
-before_install:
-  - sudo apt-get -y install libcairo2-dev
+addons:
+  apt:
+    packages:
+      - libcairo2-dev
 
 install:
   - pip install tox
