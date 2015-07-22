@@ -236,6 +236,23 @@ def expand_view(request):
   return response
 
 
+def set_param(request):
+  results = {}
+  if request.method == 'POST':
+    try:
+      datas = json.loads( request.body )
+      if "key" in datas and "value" in datas:
+        results = CarbonLink.set_param(datas["key"], datas["value"])
+      else:
+        results = dict(error="Invalid request datas")
+    except:
+      log.exception()
+      results = dict(error="Unexpected error occurred in CarbonLink.set_param()")
+  else:
+    results = dict(error="Invalid request method")
+
+  return json_response_for(request, results)
+
 def persist_cache(request):
   results = {}
   if request.method == 'POST':

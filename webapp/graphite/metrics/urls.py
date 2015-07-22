@@ -27,5 +27,6 @@ urlpatterns = patterns('graphite.metrics.views',
   ('^set-metadata/?$', 'set_metadata_view'),
   ('^flush-cache/?$', 'flush_cache'),
   ('^persist-cache$', 'persist_cache'),
+  ('^set-param$', 'set_param'),
   ('', 'find_view'),
 )

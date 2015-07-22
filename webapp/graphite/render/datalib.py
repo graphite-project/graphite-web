@@ -211,6 +211,12 @@ class CarbonLinkPool:
     log.cache("CarbonLink set-metadata request received for %s:%s" % (metric, key))
     return results
 
+  def set_param(self, key, value):
+    request = dict(type='set-param', key=key, value=value)
+    results = self.send_request_to_hosts(request)
+    log.info("CarbonLink set-param request received for %s=%s : %s" % (key, value, results))
+    return results
+
   def send_request(self, request):
     metric = request['metric']
     serialized_request = pickle.dumps(request, protocol=-1)
@@ -250,8 +256,7 @@ class CarbonLinkPool:
          self.connections[host].add(conn)
          if 'error' in result:
            log.cache("CarbonLink error %s" % result['error'])
-         else:
-           results[str(host)] = result
+         results[str(host)] = result
     return results
 
   def recv_response(self, conn):
