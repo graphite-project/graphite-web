@@ -49,7 +49,7 @@ def post_event(request):
         values["what"] = event["what"]
         values["tags"] = event.get("tags", None)
         values["when"] = datetime.datetime.fromtimestamp(
-            event.get("when", time.time()))
+            float(event.get("when", time.time())))
         if "data" in event:
             values["data"] = event["data"]
 
@@ -63,7 +63,7 @@ def post_event(request):
 def get_data(request):
     if 'jsonp' in request.REQUEST:
         response = HttpResponse(
-          "%s(%s)" % (request.REQUEST.get('jsonp'), 
+          "%s(%s)" % (request.REQUEST.get('jsonp'),
               json.dumps(fetch(request), cls=EventEncoder)),
           content_type='text/javascript')
     else:
