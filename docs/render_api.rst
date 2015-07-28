@@ -148,7 +148,7 @@ There are multiple formats for these functions:
   &from=ABSOLUTE_TIME
 
 RELATIVE_TIME is a length of time since the current time.
-It is always preceded my a minus sign ( - ) and follow by a unit of time.
+It is always preceded by a minus sign ( - ) and followed by a unit of time.
 Valid units of time:
 
 ============== ===============
