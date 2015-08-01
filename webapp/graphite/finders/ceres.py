@@ -8,7 +8,7 @@ from django.conf import settings
 from graphite.node import BranchNode, LeafNode
 from graphite.readers import CeresReader
 
-from . import get_real_metric_path
+from . import get_real_metric_path, extract_variants
 
 
 class CeresFinder:
@@ -18,16 +18,20 @@ class CeresFinder:
     self.tree = CeresTree(directory)
 
   def find_nodes(self, query):
-    for fs_path in glob( self.tree.getFilesystemPath(query.pattern) ):
-      metric_path = self.tree.getNodePath(fs_path)
 
-      if CeresNode.isNodeDir(fs_path):
-        ceres_node = self.tree.getNode(metric_path)
+    variants = extract_variants(query.pattern)
 
-        if ceres_node.hasDataForInterval(query.startTime, query.endTime):
-          real_metric_path = get_real_metric_path(fs_path, metric_path)
-          reader = CeresReader(ceres_node, real_metric_path)
-          yield LeafNode(metric_path, reader)
+    for variant in variants:
+      for fs_path in glob( self.tree.getFilesystemPath(variant)):
+        metric_path = self.tree.getNodePath(fs_path)
 
-      elif os.path.isdir(fs_path):
-        yield BranchNode(metric_path)
+        if CeresNode.isNodeDir(fs_path):
+          ceres_node = self.tree.getNode(metric_path)
+
+          if ceres_node.hasDataForInterval(query.startTime, query.endTime):
+            real_metric_path = get_real_metric_path(fs_path, metric_path)
+            reader = CeresReader(ceres_node, real_metric_path)
+            yield LeafNode(metric_path, reader)
+
+        elif os.path.isdir(fs_path):
+          yield BranchNode(metric_path)
