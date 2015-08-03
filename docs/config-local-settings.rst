@@ -123,6 +123,10 @@ GRAPHTEMPLATES_CONF
   `Default: CONF_DIR/graphTemplates.conf`
   The location of the Graphite-web Graph Template configuration
 
+RENDER_CONF
+  `Default: CONF_DIR/render.conf`
+  The location of the Graphite-web global render configuration
+
 WHISPER_DIR
   `Default: /opt/graphite/storage/whisper`
   The location of Whisper data files

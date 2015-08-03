@@ -1,0 +1,9 @@
+# This configuration file controls the behavior of the render function.  These
+# are settings that will be applied to all render calls.
+#
+# This file must contain a [render] section that defines values for all of the
+# following settings.
+
+[render]
+trim_recent = 1
+sort_series = 1
