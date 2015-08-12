@@ -413,14 +413,13 @@ def fetchData(requestContext, pathExpr):
         series_handled = False
         for known in seriesList:
           if series['name'] == known.name:
-            # This counts the Nones in each series, and is unfortunately O(n) for each
-            # series, which may be worth further optimization. The value of doing this
-            # at all is to avoid the "flipping" effect of loading a graph multiple times
-            # and having inconsistent data returned if one of the backing stores has
-            # inconsistent data. This is imperfect as a validity test, but in practice
-            # nicely keeps us using the "most complete" dataset available. Think of it
-            # as a very weak CRDT resolver.
-            candidate_nones = len([val for val in series['values'] if val is None])
+            # This merges multiple series for the same key and is O(n) for
+            # each series, which may be worth further optimization.  The value
+            # of doing this is to avoid partial graphs when replication > 1
+            # and a partitioning event has happened, during a rebalance of
+            # a consistent hashing cluster, or any state where metric data
+            # is in an inconsistent state.  Think of it as a weak CRDT
+            # resolver.
 
             # To avoid repeatedly recounting the 'Nones' in series we've already seen,
             # cache the best known count so far in a dict.
@@ -428,19 +427,24 @@ def fetchData(requestContext, pathExpr):
               known_nones = series_best_nones[known.name]
             else:
               known_nones = len([val for val in known if val is None])
-              series_best_nones[known.name] = known_nones
 
             series_handled = True
-            if candidate_nones >= known_nones:
-              # If we already have this series in the seriesList, and the
-              # candidate is 'worse' than what we already have, we don't need
-              # to compare anything else. Save ourselves some work here.
+            if known_nones <= 0:
+              # The existing series has no gaps and there is nothing to merge
+              # together.  Save ourselves some work here.
               break
             else:
-              # We've found a series better than what we've already seen. Update
-              # the count cache and replace the given series in the array.
-              series_best_nones[known.name] = candidate_nones
-              seriesList[seriesList.index(known)] = ts
+              # This series has potential data that might be missing from
+              # earlier series.  Attempt to merge in useful data and update
+              # the cache count.
+              log.info("Merging multiple TimeSeries for %s" % known.name)
+              for i, j in enumerate(known):
+                if j is None and ts[i] is not None:
+                  known[i] = ts[i]
+                  known_nones -= 1
+
+            # Store known_nones in our cache
+            series_best_nones[known.name] = known_nones
 
         # If we looked at this series above, and it matched a 'known'
         # series already, then it's already in the series list (or ignored).
