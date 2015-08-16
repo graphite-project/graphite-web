@@ -87,14 +87,6 @@ except ImportError:
     fatal += 1
 
 
-# Test for a pytz module
-try:
-  import pytz
-except ImportError:
-  print "[FATAL] Unable to import the 'pytz' module, do you have pytz installed for python %s?" % py_version
-  fatal += 1
-
-
 # Test for zope.interface
 try:
   from zope.interface import Interface
@@ -165,13 +157,6 @@ except:
   print "Note that txamqp requires python 2.5 or greater."
   warning += 1
 
-# Test for whitenoise
-try:
-  import whitenoise
-except ImportError:
-  print "[INFO]"
-  print "Unable to import the 'whitenoise' module."
-  print "This is useful for serving static files."
 
 if fatal:
   print "%d necessary dependencies not met. Graphite will not function until these dependencies are fulfilled." % fatal
