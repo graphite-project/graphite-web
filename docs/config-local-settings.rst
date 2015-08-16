@@ -112,6 +112,9 @@ STATIC_ROOT
           alias /opt/graphite/static/;
       }
 
+  Alternatively, static files can be served directly by the Graphite webapp if
+  you install the ``whitenoise`` Python package.
+
 DASHBOARD_CONF
   `Default: CONF_DIR/dashboard.conf`
   The location of the Graphite-web Dashboard configuration
