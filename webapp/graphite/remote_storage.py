@@ -163,19 +163,19 @@ class RemoteReader(object):
     # a single thread.
     (request_lock, wait_lock, completion_event) = self.get_request_locks(url)
 
-    if request_lock.acquire(False): # we only send the request the first time we're called
-      try:
-        log.info("RemoteReader.request_data :: requesting %s" % url)
-        connection = HTTPConnectionWithTimeout(self.store.host)
-        connection.timeout = settings.REMOTE_FETCH_TIMEOUT
-        connection.request('GET', urlpath)
-      except:
-        completion_event.set()
-        self.store.fail()
-        log.exception("Error requesting %s" % url)
-        raise
-
     def wait_for_results():
+      if request_lock.acquire(False): # we only send the request the first time we're called
+        try:
+          log.info("RemoteReader.request_data :: requesting %s" % url)
+          connection = HTTPConnectionWithTimeout(self.store.host)
+          connection.timeout = settings.REMOTE_FETCH_TIMEOUT
+          connection.request('GET', urlpath)
+        except:
+          log.exception("Error requesting %s" % url)
+          wait_lock.acquire(False)
+          completion_event.set()
+          self.store.fail()
+          raise
       if wait_lock.acquire(False): # the FetchInProgress that gets waited on waits for the actual completion
         try:
           response = connection.getresponse()
