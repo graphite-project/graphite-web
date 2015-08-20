@@ -630,14 +630,13 @@ def multiplySeries(requestContext, *seriesLists):
   resultSeries.pathExpression = name
   return [ resultSeries ]
 
-def weightedAverage(requestContext, seriesListAvg, seriesListWeight, *nodes):
+def weightedAverage(requestContext, seriesListAvg, seriesListWeight, node):
   """
   Takes a series of average values and a series of weights and
   produces a weighted average for all values.
 
   The corresponding values should share a node as defined
   by the node parameter, 0-indexed.
-  Multiple nodes may be passed
 
   Example:
 
@@ -646,24 +645,16 @@ def weightedAverage(requestContext, seriesListAvg, seriesListWeight, *nodes):
     &target=weightedAverage(*.transactions.mean,*.transactions.count,0)
 
   """
-  if isinstance(nodes, int):
-    nodes=[nodes]
 
   sortedSeries={}
 
   for seriesAvg, seriesWeight in izip(seriesListAvg , seriesListWeight):
-    key = ''
-    for node in nodes:
-      key += seriesAvg.name.split(".")[node]
-
+    key = seriesAvg.name.split(".")[node]
     if key not in sortedSeries:
       sortedSeries[key]={}
 
     sortedSeries[key]['avg']=seriesAvg
-    
-    key = ''
-    for node in nodes:
-      key += seriesWeight.name.split(".")[node]
+    key = seriesWeight.name.split(".")[node]
     if key not in sortedSeries:
       sortedSeries[key]={}
     sortedSeries[key]['weight']=seriesWeight
@@ -689,7 +680,7 @@ def weightedAverage(requestContext, seriesListAvg, seriesListWeight, *nodes):
   sumWeights=sumSeries(requestContext, seriesListWeight)[0]
 
   resultValues = [ safeDiv(val1, val2) for val1,val2 in izip(sumProducts,sumWeights) ]
-  name = "weightedAverage(%s, %s, %s)" % (','.join(set(s.pathExpression for s in seriesListAvg)) ,','.join(set(s.pathExpression for s in seriesListWeight)), ','.join(map(str,nodes))))
+  name = "weightedAverage(%s, %s, %s)" % (','.join(set(s.pathExpression for s in seriesListAvg)) ,','.join(set(s.pathExpression for s in seriesListWeight)), node)
   resultSeries = TimeSeries(name,sumProducts.start,sumProducts.end,sumProducts.step,resultValues)
   resultSeries.pathExpression = name
   return [resultSeries]
