@@ -49,8 +49,8 @@ class FindRequest:
     if self.cachedResults:
       return
 
-    self.connection = HTTPConnectionWithTimeout(self.store.host)
-    self.connection.timeout = settings.REMOTE_STORE_FIND_TIMEOUT
+    self.connection = httplib.HTTPConnection(self.store.host,
+        timeout=settings.REMOTE_STORE_FIND_TIMEOUT)
 
     query_params = [
       ('local', '1'),
@@ -133,8 +133,8 @@ class RemoteNode:
       query_params.append(('now', str( int(now) )))
     query_string = urlencode(query_params)
 
-    connection = HTTPConnectionWithTimeout(self.store.host)
-    connection.timeout = settings.REMOTE_STORE_FETCH_TIMEOUT
+    connection = httplib.HTTPConnection(self.store.host,
+        timeout=settings.REMOTE_STORE_FETCH_TIMEOUT)
     if settings.REMOTE_STORE_USE_POST:
       connection.request('POST', '/render/', query_string)
     else:
@@ -155,33 +155,3 @@ class RemoteNode:
 
   def isLocal(self):
     return False
-
-
-
-# This is a hack to put a timeout in the connect() of an HTTP request.
-# Python 2.6 supports this already, but many Graphite installations
-# are not on 2.6 yet.
-
-class HTTPConnectionWithTimeout(httplib.HTTPConnection):
-  timeout = 30
-
-  def connect(self):
-    msg = "getaddrinfo returns an empty list"
-    for res in socket.getaddrinfo(self.host, self.port, 0, socket.SOCK_STREAM):
-      af, socktype, proto, canonname, sa = res
-      try:
-        self.sock = socket.socket(af, socktype, proto)
-        try:
-          self.sock.settimeout( float(self.timeout) ) # default self.timeout is an object() in 2.6
-        except:
-          pass
-        self.sock.connect(sa)
-        self.sock.settimeout(None)
-      except socket.error, msg:
-        if self.sock:
-          self.sock.close()
-          self.sock = None
-          continue
-      break
-    if not self.sock:
-      raise socket.error, msg

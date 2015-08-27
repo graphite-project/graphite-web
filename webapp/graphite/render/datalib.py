@@ -345,13 +345,10 @@ def fetchRemoteData(requestContext, pathExpr, usePrefetchCache=settings.REMOTE_P
 
   # Once the remote_fetches have started, wait for them all to finish. Assuming an
   # upper bound of REMOTE_STORE_FETCH_TIMEOUT per thread, this should take about that
-  # amount of time (6s by default) at the longest. If every thread blocks permanently,
-  # then this could take a horrible REMOTE_STORE_FETCH_TIMEOUT * num(remote_fetches),
-  # but then that would imply that remote_storage's HTTPConnectionWithTimeout class isn't
-  # working correctly :-)
+  # amount of time (6s by default) at the longest.
   for fetch_thread in remote_fetches:
     try:
-      fetch_thread.join(settings.REMOTE_STORE_FETCH_TIMEOUT)
+      fetch_thread.join()
     except:
       log.exception("Failed to join remote_fetch thread within %ss" % (settings.REMOTE_STORE_FETCH_TIMEOUT))
 
