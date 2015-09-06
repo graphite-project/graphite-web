@@ -15,7 +15,7 @@ class TestLogger(unittest.TestCase):
     def test_init(self):
         """ Tesing initialization. """
         for logger in ['infoLogger', 'exceptionLogger', 'cacheLogger',
-                       'renderingLogger', 'metricAccessLogger']:
+                       'renderingLogger']:
             self.assertTrue(hasattr(log, logger))
 
     def test_config_logger(self):
@@ -28,13 +28,6 @@ class TestLogger(unittest.TestCase):
         lines = [l for l in open(os.path.join(settings.LOG_DIR,
                  'info.log')).readlines()]
         self.assertEqual(message, lines[-1].split('::')[1].strip())
-
-    def test_metric_log(self):
-        """ Test writing to a not configured logger. """
-        message = 'Test Info Message'
-        log.metric_access(message)
-        file_name = os.path.join(settings.LOG_DIR, 'metricaccess.log')
-        self.assertFalse(os.path.exists(file_name))
 
     def test_rotate(self):
         """ Force rotation of the log file. """
