@@ -48,9 +48,9 @@ class TestLogger(unittest.TestCase):
     def test_no_rotate(self):
         """ Check that deactivating log rotation creates plain FileHandlers.
         """
-        old_val = settings.LOG_ROTATE
-        settings.LOG_ROTATE = False
+        old_val = settings.LOG_ROTATION
+        settings.LOG_ROTATION = False
         log = GraphiteLogger()
         self.assertTrue(isinstance(log.infoLogger.handlers[0], FileHandler))
         self.assertTrue(isinstance(log.exceptionLogger.handlers[0], FileHandler))
-        settings.LOG_ROTATE = old_val
+        settings.LOG_ROTATION = old_val
