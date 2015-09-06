@@ -59,14 +59,14 @@ class GraphiteLogger:
 
   @staticmethod
   def _config_logger(log_file_name, name, activate,
-                     level=None, when='midnight', backupCount=1):
+                     level=None, when='midnight', backupCount=settings.LOG_ROTATION_COUNT):
     log_file = os.path.join(settings.LOG_DIR, log_file_name)
     logger = logging.getLogger(name)
     if level is not None:
         logger.setLevel(level)
     if activate:  # if want to log this one
         formatter = logging.Formatter("%(asctime)s :: %(message)s","%a %b %d %H:%M:%S %Y")
-        if settings.LOG_ROTATE:  # if we want to rotate logs
+        if settings.LOG_ROTATION:  # if we want to rotate logs
             handler = Rotater(log_file, when=when, backupCount=backupCount)
         else:  # let someone else, e.g. logrotate, rotate the logs
             handler = FileHandler(log_file)
