@@ -15,7 +15,7 @@ class TestLogger(unittest.TestCase):
     def test_init(self):
         """ Tesing initialization. """
         for logger in ['infoLogger', 'exceptionLogger', 'cacheLogger',
-                       'renderingLogger', 'metricAccessLogger']:
+                       'renderingLogger']:
             self.assertTrue(hasattr(log, logger))
 
     def test_config_logger(self):
