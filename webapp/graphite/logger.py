@@ -31,7 +31,6 @@ from django.conf import settings
 
 logging.addLevelName(30,"rendering")
 logging.addLevelName(30,"cache")
-logging.addLevelName(30,"metric_access")
 
 class GraphiteLogger:
   def __init__(self):
@@ -52,10 +51,6 @@ class GraphiteLogger:
                                                'rendering',
                                                settings.LOG_RENDERING_PERFORMANCE,
                                                )
-    self.metricAccessLogger = self._config_logger('metricaccess.log',
-                                                  'metric_access',
-                                                  settings.LOG_METRIC_ACCESS,
-                                                  )
 
   @staticmethod
   def _config_logger(log_file_name, name, activate,
@@ -87,9 +82,6 @@ class GraphiteLogger:
 
   def rendering(self,msg,*args,**kwargs):
     return self.renderingLogger.log(30,msg,*args,**kwargs)
-
-  def metric_access(self,msg,*args,**kwargs):
-    return self.metricAccessLogger.log(30,msg,*args,**kwargs)
 
 
 log = GraphiteLogger() # import-shared logger instance

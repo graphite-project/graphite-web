@@ -29,13 +29,6 @@ class TestLogger(unittest.TestCase):
                  'info.log')).readlines()]
         self.assertEqual(message, lines[-1].split('::')[1].strip())
 
-    def test_metric_log(self):
-        """ Test writing to a not configured logger. """
-        message = 'Test Info Message'
-        log.metric_access(message)
-        file_name = os.path.join(settings.LOG_DIR, 'metricaccess.log')
-        self.assertFalse(os.path.exists(file_name))
-
     def test_rotate(self):
         """ Force rotation of the log file. """
         handler = log.infoLogger.handlers[0]

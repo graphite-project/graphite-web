@@ -37,11 +37,6 @@ LOG_CACHE_PERFORMANCE
   Triggers the creation of ``cache.log`` which logs timings for remote calls to `carbon-cache` as
   well as Request Cache (memcached) hits and misses.
 
-LOG_METRIC_ACCESS
-  `Default: False`
-
-  Trigges the creation of ``metricaccess.log`` which logs access to `Whisper` and `RRD` data files
-
 DEBUG = True
   `Default: False`
 
