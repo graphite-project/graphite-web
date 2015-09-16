@@ -10,7 +10,23 @@ from graphite.readers import FetchInProgress
 from graphite.logger import log
 from graphite.util import unpickle
 
-
+def connector_class_selector(https_support=False):
+    import sys
+    connector_class = HTTPConnectionWithTimeout
+    # Figure out if we need to support verison prior to 2.6
+    prior_two_six = True
+    if sys.version_info.major > 2:
+        prior_two_six = False
+    if sys.version_info.major == 2 and sys.version_info.minor > 5:
+        prior_two_six = False
+    # now to select connector class
+    if prior_two_six and https_support:
+        connector_class = HTTPSConnectionWithTimeout
+    if not prior_two_six and not https_support:
+        connector_class = httplib.HTTPConnection
+    if not prior_two_six and https_support:
+        connector_class = httplib.HTTPSConnection
+    return connector_class
 
 class RemoteStore(object):
   lastFailure = 0.0
@@ -59,7 +75,8 @@ class FindRequest(object):
       log.info("FindRequest(host=%s, query=%s) using cached result" % (self.store.host, self.query))
       return
 
-    self.connection = HTTPConnectionWithTimeout(self.store.host)
+    connector_class = connector_class_selector(settings.INTRACLUSTER_HTTPS)
+    self.connection = connector_class(self.store.host)
     self.connection.timeout = settings.REMOTE_FIND_TIMEOUT
 
     query_params = [
@@ -167,8 +184,9 @@ class RemoteReader(object):
     if request_lock.acquire(False): # we only send the request the first time we're called
       try:
         log.info("RemoteReader.request_data :: requesting %s" % url)
-        self.connection = HTTPConnectionWithTimeout(self.store.host)
-        self.connection.timeout = settings.REMOTE_FETCH_TIMEOUT
+        connector_class = connector_class_selector(settings.INTRACLUSTER_HTTPS)
+        self.connection = connector_class(self.store.host)
+        self.connection.timeout = settings.REMOTE_FIND_TIMEOUT
         self.connection.request('GET', urlpath)
       except:
         completion_event.set()
@@ -242,7 +260,6 @@ class RemoteReader(object):
 # This is a hack to put a timeout in the connect() of an HTTP request.
 # Python 2.6 supports this already, but many Graphite installations
 # are not on 2.6 yet.
-
 class HTTPConnectionWithTimeout(httplib.HTTPConnection):
   timeout = 30
 
@@ -258,6 +275,34 @@ class HTTPConnectionWithTimeout(httplib.HTTPConnection):
           pass
         self.sock.connect(sa)
         self.sock.settimeout(None)
+      except socket.error as e:
+        msg = e
+        if self.sock:
+          self.sock.close()
+          self.sock = None
+          continue
+      break
+    if not self.sock:
+      raise socket.error(msg)
+
+# support for HTTPS connections with timeout for < python 2.6
+class HTTPSConnectionWithTimeout(httplib.HTTPSConnection):
+  timeout = 30
+
+  def connect(self):
+    msg = "getaddrinfo returns an empty list"
+    for res in socket.getaddrinfo(self.host, self.port, 0, socket.SOCK_STREAM):
+      af, socktype, proto, canonname, sa = res
+      try:
+        self.sock = socket.socket(af, socktype, proto)
+        try:
+          self.sock.settimeout( float(self.timeout) ) # default self.timeout is an object() in 2.6
+        except:
+          pass
+        self.sock.connect(sa)
+        self.sock.settimeout(None)
+        ssl = socket.ssl(sock, self.key_file, self.cert_file)
+        self.sock = socket.FakeSocket(sock, ssl)
       except socket.error as e:
         msg = e
         if self.sock:
