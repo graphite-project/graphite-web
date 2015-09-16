@@ -51,6 +51,8 @@ CLUSTER_SERVERS = []
 
 # Cluster settings
 CLUSTER_SERVERS = []
+# This settings control wether https is used to communicate between cluster members
+INTRACLUSTER_HTTPS = False
 REMOTE_FIND_TIMEOUT = 3.0
 REMOTE_FETCH_TIMEOUT = 6.0
 REMOTE_RETRY_DELAY = 60.0
