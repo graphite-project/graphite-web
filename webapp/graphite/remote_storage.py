@@ -301,8 +301,8 @@ class HTTPSConnectionWithTimeout(httplib.HTTPSConnection):
           pass
         self.sock.connect(sa)
         self.sock.settimeout(None)
-        ssl = socket.ssl(sock, self.key_file, self.cert_file)
-        self.sock = socket.FakeSocket(sock, ssl)
+        ssl = socket.ssl(self.sock, self.key_file, self.cert_file)
+        self.sock = socket.FakeSocket(self.sock, ssl)
       except socket.error as e:
         msg = e
         if self.sock:
