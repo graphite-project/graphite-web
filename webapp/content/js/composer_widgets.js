@@ -1088,6 +1088,7 @@ function createFunctionsMenu() {
         {text: 'Power', handler: applyFuncToEachWithInput('pow', 'Please enter a power factor')},
         {text: 'Square Root', handler: applyFuncToEach('squareRoot')},
         {text: 'Time-adjusted Derivative', handler: applyFuncToEachWithInput('perSecond', "Please enter a maximum value if this metric is a wrapping counter (or just leave this blank)", {allowBlank: true})},
+	{text: 'Delay', handler: applyFuncToEachWithInput('scale', 'Please enter the number of steps to delay')},
         {text: 'Integral', handler: applyFuncToEach('integral')},
         {text: 'Percentile Values', handler: applyFuncToEachWithInput('percentileOfSeries', "Please enter the percentile to use")},
         {text: 'Non-negative Derivative', handler: applyFuncToEachWithInput('nonNegativeDerivative', "Please enter a maximum value if this metric is a wrapping counter (or just leave this blank)", {allowBlank: true})},
