@@ -1,4 +1,3 @@
-from mock import patch
 try:
     import unittest2 as unittest
 except ImportError:
