@@ -43,6 +43,7 @@ simplejson==2.1.6
 django-tagging==0.3.6
 gunicorn
 pytz
+mock
 pyparsing==1.5.7
 cairocffi
 git+git://github.com/graphite-project/whisper.git#egg=whisper
