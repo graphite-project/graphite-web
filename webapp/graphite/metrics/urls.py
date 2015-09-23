@@ -25,5 +25,6 @@ urlpatterns = patterns(
         name='metrics_get_metadata'),
     url('^set-metadata/?$', views.set_metadata_view,
         name='metrics_set_metadata'),
+    url('^get-node/?$', views.get_nodelist_data,name='metrics_get_node'),
     url('', views.find_view, name='metrics'),
 )
