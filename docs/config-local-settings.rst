@@ -267,6 +267,13 @@ LDAP_USER_QUERY
   Sets the LDAP query to return a user object where ``%s`` substituted with the
   user id. E.g. ``(username=%s)`` or ``(sAMAccountName=%s)`` (Active Directory)
 
+LDAP_USER_DN_TEMPLATE:
+  `Default: ''`
+
+  Is this is set the LDAP query is authenticated with the usename and passowrd
+  supplied from the user.
+
+
 
 Other Authentications
 ^^^^^^^^^^^^^^^^^^^^^
