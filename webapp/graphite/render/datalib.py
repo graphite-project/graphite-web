@@ -140,6 +140,8 @@ class CarbonLinkPool:
       return connection
 
   def query(self, metric):
+    if not self.hosts:
+      return []
     request = dict(type='cache-query', metric=metric)
     results = self.send_request(request)
     log.cache("CarbonLink cache-query request for %s returned %d datapoints" % (metric, len(results['datapoints'])))
@@ -148,6 +150,8 @@ class CarbonLinkPool:
   def query_bulk(self, metrics):
     cacheResultsByMetric = {}
     metricsByHost = {}
+    if not self.hosts:
+      return cacheResultsByMetric
 
     for real_metric in metrics:
       host = self.select_host(real_metric)
