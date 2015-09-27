@@ -78,7 +78,7 @@ class FindRequest:
       self.send()
 
     try:
-      response = self.connection.getresponse()
+      response = self.connection.getresponse(buffering=True)
       assert response.status == 200, "received error response %s - %s" % (response.status, response.reason)
       result_data = response.read()
       results = unpickle.loads(result_data)
@@ -139,7 +139,7 @@ class RemoteNode:
       connection.request('POST', '/render/', query_string)
     else:
       connection.request('GET', '/render/?' + query_string)
-    response = connection.getresponse()
+    response = connection.getresponse(buffering=True)
     assert response.status == 200, "Failed to retrieve remote data: %d %s" % (response.status, response.reason)
     rawData = response.read()
 
