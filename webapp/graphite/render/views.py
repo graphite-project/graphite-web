@@ -169,6 +169,7 @@ def renderView(request):
                                 content_type='application/json')
 
       if useCache:
+        cache.add(requestKey, response, cacheTimeout)
         patch_response_headers(response, cache_timeout=cacheTimeout)
       else:
         add_never_cache_headers(response)
@@ -313,6 +314,10 @@ def parseOptions(request):
 
     requestOptions['startTime'] = startTime
     requestOptions['endTime'] = endTime
+    timeRange = endTime - startTime
+    queryTime = timeRange.days * 86400 + timeRange.seconds # convert the time delta to seconds
+    if settings.DEFAULT_CACHE_POLICY and not queryParams.get('cacheTimeout'):
+      requestOptions['cacheTimeout'] = max(timeout for period,timeout in settings.DEFAULT_CACHE_POLICY if period <= queryTime)
 
   return (graphOptions, requestOptions)
 
