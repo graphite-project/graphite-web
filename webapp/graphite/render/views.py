@@ -40,6 +40,7 @@ from graphite.render.attime import parseATTime
 from graphite.render.functions import PieFunctions
 from graphite.render.hashing import hashRequest, hashData
 from graphite.render.glyph import GraphTypes
+from graphite.storage import STORE
 
 from django.http import HttpResponse, HttpResponseServerError, HttpResponseRedirect
 from django.template import Context, loader
@@ -99,7 +100,7 @@ def renderView(request):
       targets = requestOptions['targets']
       startTime = requestOptions['startTime']
       endTime = requestOptions['endTime']
-      dataKey = hashData(targets, startTime, endTime)
+      dataKey = hashData(targets, startTime, endTime, STORE.local_host)
       cachedData = cache.get(dataKey)
       if cachedData:
         log.cache("Data-Cache hit [%s]" % dataKey)
