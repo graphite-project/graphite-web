@@ -9,6 +9,7 @@ Here are some organizations that use Graphite:
 * `Douban <http://www.douban.com>`_
 * `Dyn <http://dyn.com/>`_
 * `Etsy <http://www.etsy.com/>`_ (see http://codeascraft.etsy.com/2010/12/08/track-every-release/)
+* `GapLabs, a division of Gap Inc. <http://www.gapinc.com/content/gapinc/html/aboutus/ourbrands.html>`_
 * `GitHub <https://github.com>`_
 * `Google <http://google-opensource.blogspot.com/2010/09/get-ready-to-rocksteady.html>`_ (opensource Rocksteady project)
 * `ImmobilienScout24 <http://www.immobilienscout24.de/>`_
