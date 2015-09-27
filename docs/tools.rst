@@ -101,6 +101,12 @@ Forwarding
 `Backstop`_
   a simple endpoint for submitting metrics to Graphite. It accepts JSON data via HTTP POST and proxies the data to one or more Carbon/Graphite listeners.
 
+`carbon-c-relay`_
+  Enhanced C implementation of Carbon relay, aggregator and rewriter.
+
+`carbon-relay-ng`_
+  Fast carbon relay+aggregator with admin interfaces for making changes online - production ready.
+
 `Evenflow`_
   a simple service for submitting sFlow datagrams to Graphite. It accepts sFlow datagrams from multiple network devices and proxies the data to a Carbon listener. Currently only Generic Interface Counters are supported. All other message types are discarded.
 
@@ -267,6 +273,20 @@ Monitoring
 
 Other
 -----
+`bosun`_
+  Time Series Alerting Framework. Can use Graphite as time series source.
+
+`buckytools`_
+  Go implementation of useful tools for dealing with Graphite's Whisper DBs and Carbon hashing.
+
+`carbonate`_
+  Utilities for managing graphite clusters.
+
+`go-carbon`_
+  Golang implementation of Graphite/Carbon server with classic architecture: Agent -> Cache -> Persister.
+
+`riemann`_
+  A network event stream processing system, in Clojure. Can use Graphite as source of event stream.
 
 `Therry`_
   a simple web service that caches Graphite metrics and exposes an endpoint for dumping or searching against them by substring.
@@ -274,9 +294,14 @@ Other
 
 .. _Backbone.js: http://documentcloud.github.com/backbone
 .. _Backstop: https://github.com/obfuscurity/backstop
+.. _bosun: http://bosun.org
 .. _Brubeck: https://github.com/github/brubeck
 .. _Bucky: http://pypi.python.org/pypi/bucky
+.. _buckytools: https://github.com/jjneely/buckytools
 .. _Cabot: https://github.com/arachnys/cabot
+.. _carbon-c-relay: https://github.com/grobian/carbon-c-relay
+.. _carbon-relay-ng: https://github.com/graphite-ng/carbon-relay-ng
+.. _carbonate: https://github.com/jssjr/carbonate
 .. _Charcoal: https://github.com/cebailey59/charcoal
 .. _collectd: http://collectd.org
 .. _collectd-carbon: https://github.com/indygreg/collectd-carbon
@@ -293,6 +318,7 @@ Other
 .. _Ganglia: http://ganglia.info
 .. _Gdash: https://github.com/ripienaar/gdash.git
 .. _Giraffe: http://kenhub.github.com/giraffe
+.. _go-carbon: https://github.com/lomik/go-carbon
 .. _Grafana: http://grafana.org
 .. _Graph-Explorer: http://vimeo.github.io/graph-explorer
 .. _Graph-Index: https://github.com/douban/graph-index
@@ -327,6 +353,7 @@ Other
 .. _RabbitMQ: http://www.rabbitmq.com
 .. _Rickshaw: http://code.shutterstock.com/rickshaw
 .. _rearview: http://github.com/livingsocial/rearview
+.. _riemann: http://riemann.io
 .. _Rocksteady: http://code.google.com/p/rocksteady
 .. _Seyren: https://github.com/scobal/seyren
 .. _Sensu: http://sensuapp.org
