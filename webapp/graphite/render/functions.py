@@ -660,7 +660,7 @@ def weightedAverage(requestContext, seriesListAvg, seriesListWeight, *nodes):
       sortedSeries[key]={}
 
     sortedSeries[key]['avg']=seriesAvg
-    
+
     key = ''
     for node in nodes:
       key += seriesWeight.name.split(".")[node]
