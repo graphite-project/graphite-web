@@ -15,7 +15,7 @@ class TestLogger(unittest.TestCase):
     def test_init(self):
         """ Tesing initialization. """
         for logger in ['infoLogger', 'exceptionLogger', 'cacheLogger',
-                       'renderingLogger', 'metricAccessLogger']:
+                       'renderingLogger']:
             self.assertTrue(hasattr(log, logger))
 
     def test_config_logger(self):
@@ -29,13 +29,6 @@ class TestLogger(unittest.TestCase):
                  'info.log')).readlines()]
         self.assertEqual(message, lines[-1].split('::')[1].strip())
 
-    def test_metric_log(self):
-        """ Test writing to a not configured logger. """
-        message = 'Test Info Message'
-        log.metric_access(message)
-        file_name = os.path.join(settings.LOG_DIR, 'metricaccess.log')
-        self.assertFalse(os.path.exists(file_name))
-
     def test_rotate(self):
         """ Force rotation of the log file. """
         handler = log.infoLogger.handlers[0]
@@ -48,9 +41,9 @@ class TestLogger(unittest.TestCase):
     def test_no_rotate(self):
         """ Check that deactivating log rotation creates plain FileHandlers.
         """
-        old_val = settings.LOG_ROTATE
-        settings.LOG_ROTATE = False
+        old_val = settings.LOG_ROTATION
+        settings.LOG_ROTATION = False
         log = GraphiteLogger()
         self.assertTrue(isinstance(log.infoLogger.handlers[0], FileHandler))
         self.assertTrue(isinstance(log.exceptionLogger.handlers[0], FileHandler))
-        settings.LOG_ROTATE = old_val
+        settings.LOG_ROTATION = old_val
