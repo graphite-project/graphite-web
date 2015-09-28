@@ -637,10 +637,16 @@ def weightedAverage(requestContext, seriesListAvg, seriesListWeight, *nodes):
   The corresponding values should share a node as defined
   by the node parameter, 0-indexed.
   Multiple nodes may be passed
+
   Example:
+
   .. code-block:: none
+
     &target=weightedAverage(*.transactions.mean,*.transactions.count,0)
+
+
   """
+
   if isinstance(nodes, int):
     nodes=[nodes]
 
