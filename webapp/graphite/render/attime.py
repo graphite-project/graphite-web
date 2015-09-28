@@ -15,7 +15,6 @@ limitations under the License."""
 import pytz
 from datetime import datetime,timedelta
 from time import daylight
-from django.utils import timezone # noqa
 from django.conf import settings
 
 months = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec']
