@@ -126,7 +126,10 @@
 #LDAP_BASE_USER = "CN=some_readonly_account,DC=mycompany,DC=com"
 #LDAP_BASE_PASS = "readonly_account_password"
 #LDAP_USER_QUERY = "(username=%s)"  #For Active Directory use "(sAMAccountName=%s)"
-#LDAP_USER_DN_TEMPLATE = "CN=%(username)s,DC=mycompany,DC=com"
+#LDAP_USER_DN_TEMPLATE = "CN=%(username)s,OU=users,DC=mycompany,DC=com"
+# User DN templat to use for binding (and authentication) against
+# the LDAP server. %(username) is replaced with the username supplied at
+# graphite login.
 #
 # If you want to further customize the ldap connection options you should
 # directly use ldap.set_option to set the ldap module's global options.
