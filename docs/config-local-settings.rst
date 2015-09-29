@@ -270,8 +270,10 @@ LDAP_USER_QUERY
 LDAP_USER_DN_TEMPLATE:
   `Default: ''`
 
-  Is this is set the LDAP query is authenticated with the usename and passowrd
-  supplied from the user.
+  Instead of using a hardcoded username and password for the account that binds
+  to the LDAP server you could use the credentials of the user that tries to
+  log in to Graphite. This is the template that creates the full DN to bind
+  with.
 
 
 
