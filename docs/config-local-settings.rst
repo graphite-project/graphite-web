@@ -267,6 +267,15 @@ LDAP_USER_QUERY
   Sets the LDAP query to return a user object where ``%s`` substituted with the
   user id. E.g. ``(username=%s)`` or ``(sAMAccountName=%s)`` (Active Directory)
 
+LDAP_USER_DN_TEMPLATE:
+  `Default: ''`
+
+  Instead of using a hardcoded username and password for the account that binds
+  to the LDAP server you could use the credentials of the user that tries to
+  log in to Graphite. This is the template that creates the full DN to bind
+  with.
+
+
 
 Other Authentications
 ^^^^^^^^^^^^^^^^^^^^^
