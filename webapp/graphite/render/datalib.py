@@ -464,8 +464,6 @@ def mergeResults(dbResults, cacheResults):
 
   if not dbResults:
     return cacheResults
-  elif not cacheResults:
-    return dbResults
 
   (timeInfo,values) = dbResults
   (start,end,step) = timeInfo
