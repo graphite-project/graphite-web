@@ -136,6 +136,9 @@ Forwarding
 `statsd`_
   a simple daemon for easy stats aggregation, developed by the folks at Etsy.
   A list of forks and alternative implementations can be found at <http://joemiller.me/2011/09/21/list-of-statsd-server-implementations/>
+  
+`Graphout`_
+  a Node.js application that lets you forward Graphite based queries (using the render API) out to different external services. There are built in modules for Zabbix and CloudWatch. Custom modules are very easy to write.
 
 Visualization
 -------------
@@ -366,3 +369,4 @@ Other
 .. _Therry: https://github.com/obfuscurity/therry
 .. _TimeseriesWidget: https://github.com/Dieterbe/timeserieswidget
 .. _write-graphite: http://collectd.org/wiki/index.php/Plugin:Write_Graphite
+.. _Graphout: http://shamil.github.io/graphout
