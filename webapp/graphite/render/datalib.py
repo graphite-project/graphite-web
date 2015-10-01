@@ -384,7 +384,9 @@ def fetchData(requestContext, pathExpr):
         else:
           cachedResults = CarbonLink.query(dbFile.real_metric)
         if cachedResults:
-          dbResults = mergeResults(dbResults, cachedResults)
+          meta_info = dbFile.getInfo()
+          lowest_step = min([i['secondsPerPoint'] for i in meta_info['archives']])
+          dbResults = mergeResults(dbResults, cachedResults, lowest_step)
       except:
         log.exception("Failed CarbonLink query '%s'" % dbFile.real_metric)
 
@@ -459,7 +461,7 @@ def fetchData(requestContext, pathExpr):
   return sorted(seriesList, key=lambda series: series.name)
 
 
-def mergeResults(dbResults, cacheResults):
+def mergeResults(dbResults, cacheResults, lowest_step):
   cacheResults = list(cacheResults)
 
   if not dbResults:
@@ -467,6 +469,10 @@ def mergeResults(dbResults, cacheResults):
 
   (timeInfo,values) = dbResults
   (start,end,step) = timeInfo
+
+  # we're pulling from archive, shouldn't be merging cacheResults
+  if not step == lowest_step:
+    return dbResults
 
   for (timestamp, value) in cacheResults:
     interval = timestamp - (timestamp % step)
