@@ -109,14 +109,6 @@ except ImportError:
     required += 1
 
 
-# Test for a pytz module
-try:
-  import pytz
-except ImportError:
-  sys.stderr.write("[REQUIRED] Unable to import the 'pytz' module, do you have pytz installed for python %s?\n" % py_version)
-  required += 1
-
-
 # Test for zope.interface
 try:
   from zope.interface import Interface
