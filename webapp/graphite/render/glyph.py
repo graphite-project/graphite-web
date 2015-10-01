@@ -496,8 +496,8 @@ class Graph:
         return '</g><g data-header="true" class="%s">' % name
       svgData = re.sub(r'<path.+?d="M -88 -88 (.+?)"/>', onHeaderPath, svgData)
 
-      # Replace the first </g><g> with <g>, and close out the last </g> at the end
-      svgData = svgData.replace('</g><g data-header','<g data-header',1) + "</g>"
+      # Hack to replace the first </g><g> with <g>
+      svgData = svgData.replace('</g><g data-header','<g data-header',1)
       svgData = svgData.replace(' data-header="true"','')
 
       fileObj.write(svgData)
