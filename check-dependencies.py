@@ -113,8 +113,8 @@ except ImportError:
 try:
   import pytz
 except ImportError:
-  print "[FATAL] Unable to import the 'pytz' module, do you have pytz installed for python %s?" % py_version
-  fatal += 1
+  sys.stderr.write("[REQUIRED] Unable to import the 'pytz' module, do you have pytz installed for python %s?\n" % py_version)
+  required += 1
 
 
 # Test for zope.interface
