@@ -328,6 +328,9 @@ class WhisperFile(Leaf):
     end = max( os.stat(self.fs_path).st_mtime, start )
     return [ (start, end) ]
 
+  def getInfo(self):
+    return whisper.info(self.fs_path)
+
   def fetch(self, startTime, endTime, now=None):
     return whisper.fetch(self.fs_path, startTime, endTime, now)
 
