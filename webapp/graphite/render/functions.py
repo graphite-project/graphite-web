@@ -2633,10 +2633,11 @@ def threshold(requestContext, value, label=None, color=None):
 
 def transformNull(requestContext, seriesList, default=0):
   """
-  Takes a metric or wild card seriesList and an optional value
-  to transform Nulls to. Default is 0. This method compliments
-  drawNullAsZero flag in graphical mode but also works in text only
-  mode.
+  Takes a metric or wildcard seriesList and replaces null values with the value
+  specified by `default`.  The value 0 used if not specified.  This method
+  compliments the drawNullAsZero function in graphical mode, but also works in
+  text-only mode.
+
   Example:
 
   .. code-block:: none
