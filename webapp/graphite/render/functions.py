@@ -2661,10 +2661,9 @@ def transformNull(requestContext, seriesList, default=0):
 
 def isNonNull(requestContext, seriesList):
   """
-  Takes a metric or wild card seriesList and counts up how many
-  non-null values are specified. This is useful for understanding
-  which metrics have data at a given point in time (ie, to count
-  which servers are alive).
+  Takes a metric or wildcard seriesList and counts up the number of non-null
+  values.  This is useful for understanding the number of metrics that have data
+  at a given point in time (i.e. to count which servers are alive).
 
   Example:
 
