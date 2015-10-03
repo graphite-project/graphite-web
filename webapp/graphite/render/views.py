@@ -119,6 +119,8 @@ def renderView(request):
         requestContext['prefetchedRemoteData'] = prefetchRemoteData(requestContext, pathExpressions)
         log.rendering("Prefetching remote data took %.6f" % (time() - t))
       for target in targets:
+        if not target.strip():
+          continue
         t = time()
         seriesList = evaluateTarget(requestContext, target)
         log.rendering("Retrieval of %s took %.6f" % (target, time() - t))
