@@ -36,7 +36,6 @@
 #
 
 Django>=1.4
-Twisted==11.1.0
 python-memcached==1.47
 txAMQP==0.4
 simplejson==2.1.6
