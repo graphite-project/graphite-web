@@ -22,7 +22,6 @@ Graphite requires:
  python-ldap (optional - needed for ldap-based webapp authentication)
  python-memcached (optional - needed for webapp caching, big performance boost)
  python-sqlite2 (optional - a django-supported database module is required)
- Twisted (required only for carbon)
 
 
  Run setup.py
