@@ -15,7 +15,6 @@ Basic Graphite requirements:
 * `Pycairo`_
 * `Django`_ 1.4 or greater
 * `django-tagging`_ 0.3.1 or greater
-* `zope-interface`_
 * `pytz`_
 * `fontconfig`_ and at least one font package (a system package usually)
 * A WSGI server and web server. Popular choices are:
@@ -183,4 +182,3 @@ Despair Not!  Even though running Graphite on Windows is completely unsupported 
 .. _simplejson: http://pypi.python.org/pypi/simplejson/
 .. _txAMQP: https://launchpad.net/txamqp/
 .. _uWSGI: http://projects.unbit.it/uwsgi/
-.. _zope-interface: http://pypi.python.org/pypi/zope.interface/

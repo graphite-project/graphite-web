@@ -109,14 +109,6 @@ except ImportError:
     required += 1
 
 
-# Test for zope.interface
-try:
-  from zope.interface import Interface
-except ImportError:
-  sys.stderr.write("[OPTIONAL] Unable to import Interface from zope.interface. Without it, you will be unable to run carbon on this server.\n")
-  optional +=1
-
-
 # Test for python-memcached
 try:
   import memcache
