@@ -15,7 +15,7 @@ Basic Graphite requirements:
 * `cairocffi`_
 * `Django`_ 1.4 or greater
 * `django-tagging`_ 0.3.1 or greater
-* `zope-interface`_ (often included in Twisted package dependency)
+* `zope-interface`_
 * `pytz`_
 * `fontconfig`_ and at least one font package (a system package usually)
 * A WSGI server and web server. Popular choices are:
