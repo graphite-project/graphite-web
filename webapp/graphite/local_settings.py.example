@@ -185,6 +185,10 @@
 # there's significant latency between this server and the backends. (>20ms)
 #REMOTE_PREFETCH_DATA = False
 
+# During a rebalance of a consistent hash cluster, after a partition event on a replication > 1 cluster,
+# or in other cases we might receive multiple TimeSeries data for a metric key.  Merge them together rather
+# that choosing the "most complete" one (pre-0.9.14 behaviour).
+#REMOTE_STORE_MERGE_RESULTS = True
 
 ## Remote rendering settings
 # Set to True to enable rendering of Graphs on a remote webapp

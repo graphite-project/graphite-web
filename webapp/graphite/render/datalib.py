@@ -365,7 +365,7 @@ def fetchRemoteData(requestContext, pathExpr, usePrefetchCache=settings.REMOTE_P
 
 # Data retrieval API
 def fetchData(requestContext, pathExpr):
-  seriesList = []
+  seriesList = {}
   (startTime, endTime, now) = _timebounds(requestContext)
 
   dbFiles = [dbFile for dbFile in LOCAL_STORE.find(pathExpr)]
@@ -397,7 +397,7 @@ def fetchData(requestContext, pathExpr):
     (start,end,step) = timeInfo
     series = TimeSeries(dbFile.metric_path, start, end, step, values)
     series.pathExpression = pathExpr #hack to pass expressions through to render functions
-    seriesList.append(series)
+    seriesList[series.name] = series
 
   if not requestContext['localOnly']:
     result_queue = fetchRemoteData(requestContext, pathExpr)
@@ -418,47 +418,64 @@ def fetchData(requestContext, pathExpr):
         ts = TimeSeries(series['name'], series['start'], series['end'], series['step'], series['values'])
         ts.pathExpression = pathExpr # hack as above
 
-        series_handled = False
-        for known in seriesList:
-          if series['name'] == known.name:
-            # This counts the Nones in each series, and is unfortunately O(n) for each
-            # series, which may be worth further optimization. The value of doing this
-            # at all is to avoid the "flipping" effect of loading a graph multiple times
-            # and having inconsistent data returned if one of the backing stores has
-            # inconsistent data. This is imperfect as a validity test, but in practice
-            # nicely keeps us using the "most complete" dataset available. Think of it
-            # as a very weak CRDT resolver.
+        if ts.name in seriesList:
+          # This counts the Nones in each series, and is unfortunately O(n) for each
+          # series, which may be worth further optimization. The value of doing this
+          # at all is to avoid the "flipping" effect of loading a graph multiple times
+          # and having inconsistent data returned if one of the backing stores has
+          # inconsistent data. This is imperfect as a validity test, but in practice
+          # nicely keeps us using the "most complete" dataset available. Think of it
+          # as a very weak CRDT resolver.
+          candidate_nones = 0
+          if not settings.REMOTE_STORE_MERGE_RESULTS:
             candidate_nones = len([val for val in series['values'] if val is None])
 
-            # To avoid repeatedly recounting the 'Nones' in series we've already seen,
-            # cache the best known count so far in a dict.
-            if known.name in series_best_nones:
-              known_nones = series_best_nones[known.name]
-            else:
-              known_nones = len([val for val in known if val is None])
-              series_best_nones[known.name] = known_nones
+          known = seriesList[ts.name]
+          # To avoid repeatedly recounting the 'Nones' in series we've already seen,
+          # cache the best known count so far in a dict.
+          if known.name in series_best_nones:
+            known_nones = series_best_nones[known.name]
+          else:
+            known_nones = len([val for val in known if val is None])
 
-            series_handled = True
-            if candidate_nones >= known_nones:
-              # If we already have this series in the seriesList, and the
+          if known_nones > candidate_nones:
+            if settings.REMOTE_STORE_MERGE_RESULTS:
+              # This series has potential data that might be missing from
+              # earlier series.  Attempt to merge in useful data and update
+              # the cache count.
+              log.info("Merging multiple TimeSeries for %s" % known.name)
+              for i, j in enumerate(known):
+                if j is None and ts[i] is not None:
+                  known[i] = ts[i]
+                  known_nones -= 1
+              # Store known_nones in our cache
+              series_best_nones[known.name] = known_nones
+            else:
+              # Not merging data -
+              # we've found a series better than what we've already seen. Update
+              # the count cache and replace the given series in the array.
+              series_best_nones[known.name] = candidate_nones
+              seriesList[known.name] = ts
+          else:
+              # In case if we are merging data - the existing series has no gaps and there is nothing to merge
+              # together.  Save ourselves some work here.
+              #
+              # OR - if we picking best serie:
+              #
+              # We already have this series in the seriesList, and the
               # candidate is 'worse' than what we already have, we don't need
               # to compare anything else. Save ourselves some work here.
               break
-            else:
-              # We've found a series better than what we've already seen. Update
-              # the count cache and replace the given series in the array.
-              series_best_nones[known.name] = candidate_nones
-              seriesList[seriesList.index(known)] = ts
 
         # If we looked at this series above, and it matched a 'known'
         # series already, then it's already in the series list (or ignored).
         # If not, append it here.
-        if not series_handled:
-          seriesList.append(ts)
+        else:
+          seriesList[ts.name] = ts
 
   # Stabilize the order of the results by ordering the resulting series by name.
   # This returns the result ordering to the behavior observed pre PR#1010.
-  return sorted(seriesList, key=lambda series: series.name)
+  return [ seriesList[k] for k in sorted(seriesList) ]
 
 
 def mergeResults(dbResults, cacheResults, lowest_step):
