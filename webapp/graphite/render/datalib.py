@@ -451,15 +451,18 @@ def fetchData(requestContext, pathExpr):
               # Store known_nones in our cache
               series_best_nones[known.name] = known_nones
             else:
-              # We've found a series better than what we've already seen. Update
+              # Not merging data -
+              # we've found a series better than what we've already seen. Update
               # the count cache and replace the given series in the array.
               series_best_nones[known.name] = candidate_nones
-              seriesList[known] = ts
+              seriesList[known.name] = ts
           else:
-              # if we are merging data - the existing series has no gaps and there is nothing to merge
+              # In case if we are merging data - the existing series has no gaps and there is nothing to merge
               # together.  Save ourselves some work here.
-              # OR
-              # If we already have this series in the seriesList, and the
+              #
+              # OR - if we picking best serie:
+              #
+              # We already have this series in the seriesList, and the
               # candidate is 'worse' than what we already have, we don't need
               # to compare anything else. Save ourselves some work here.
               break
