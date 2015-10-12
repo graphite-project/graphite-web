@@ -208,6 +208,11 @@
 # See https://github.com/graphite-project/carbon/pull/132 for details
 #CARBONLINK_QUERY_BULK = False
 
+# During a rebalance of a consistent hash cluster, after a partition event on a replication > 1 cluster,
+# or in other cases we might receive multiple TimeSeries data for a metric key.  Merge them together rather
+# that choosing the "most complete" one (pre-0.9.14 behaviour).
+#MERGE_TIMESERIES=True
+
 #####################################
 # Additional Django Settings #
 #####################################
