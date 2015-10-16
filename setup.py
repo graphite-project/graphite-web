@@ -3,6 +3,9 @@
 import os
 from glob import glob
 
+if os.environ.get('READTHEDOCS'):
+  os.remove('setup.cfg')
+
 if os.environ.get('USE_SETUPTOOLS'):
   from setuptools import setup
   setup_kwargs = dict(zip_safe=0)
