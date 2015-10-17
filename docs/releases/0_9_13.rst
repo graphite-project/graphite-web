@@ -75,6 +75,7 @@ Graphite-web
 * Namespace request-cache data with the local node (jssjr)
 * Support for retrieving static assets with whitenoise (brutasse, deniszh)
 * Enable buffering in HTTPResponse objects (jjneely, deniszh)
+* Merge TimeSeries when more than one returned per key, making this feature optional (jjneely, deniszh)
 
 Carbon
 ^^^^^^
@@ -192,3 +193,4 @@ Whisper
 * TravisCI no longer supports Python 2.5 (steve-dave)
 * Unlink Whisper file if empty/corrupted (jraby)
 * Enforce closing of Whisper files (AstromechZA, jjneely)
+* Handle zero length time ranges by returning the next valid point (jjneely)
