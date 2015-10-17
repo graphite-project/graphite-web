@@ -154,7 +154,6 @@ Graphite-web
 * Fix for SVG graphs (grobian, obfuscurity)
 * Skip empty target parameters (obfuscurity)
 * Remove unnecessary dependencies (obfuscurity)
-* Fixing RTD builds (obfuscurity)
 
 Carbon
 ^^^^^^
