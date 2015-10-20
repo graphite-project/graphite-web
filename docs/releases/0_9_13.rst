@@ -194,3 +194,4 @@ Whisper
 * Unlink Whisper file if empty/corrupted (jraby)
 * Enforce closing of Whisper files (AstromechZA, jjneely)
 * Handle zero length time ranges by returning the next valid point (jjneely)
+* Used wrong ``until`` boundary for selecting archive (obfuscurity)
