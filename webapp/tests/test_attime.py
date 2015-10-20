@@ -6,20 +6,24 @@ from graphite.render import attime
 import pytz
 import mock
 
+
 class MockedDateTime(datetime):
     def __new__(cls, *args, **kwargs):
         return datetime.__new__(datetime, *args, **kwargs)
+
     @classmethod
     def now(cls):
         return cls(2015, 3, 8, 12, 0, 0)
 
+
 class ATTimeTest(TestCase):
     default_tz = timezone.get_current_timezone()
     specified_tz = pytz.timezone("America/Los_Angeles")
+
     def test_should_return_absolute_time(self):
         time_string = '12:0020150308'
 
-        expected_time = self.default_tz.localize(datetime.strptime(time_string,'%H:%M%Y%m%d'))
+        expected_time = self.default_tz.localize(datetime.strptime(time_string, '%H:%M%Y%m%d'))
         actual_time = attime.parseATTime(time_string)
         self.assertEqual(actual_time, expected_time)
 
@@ -70,6 +74,120 @@ class ATTimeTest(TestCase):
         expected_time = self.specified_tz.localize(datetime.strptime("03:00_20150308", '%H:%M_%Y%m%d'))
         actual_time = attime.parseATTime("midnight+2h", self.specified_tz)
         self.assertEqual(actual_time, expected_time)
+
+
+MOCK_DATE = datetime(2015, 1, 1, 11, 00)
+
+
+class AnotherMockedDateTime(datetime):
+    def __new__(cls, *args, **kwargs):
+        return datetime.__new__(datetime, *args, **kwargs)
+
+    @classmethod
+    def now(cls):
+        return cls(2015, 1, 1, 11, 0, 0)
+
+
+@mock.patch('graphite.render.attime.datetime', AnotherMockedDateTime)
+class parseTimeReferenceTest(TestCase):
+
+    def test_parse_empty_return_now(self):
+        time_ref = attime.parseTimeReference('')
+        self.assertEquals(time_ref, MOCK_DATE)
+
+    def test_parse_None_return_now(self):
+        time_ref = attime.parseTimeReference(None)
+        self.assertEquals(time_ref, MOCK_DATE)
+
+    def test_parse_random_string_raise_Exception(self):
+        with self.assertRaises(Exception):
+            attime.parseTimeReference("random")
+
+    def test_parse_now_return_now(self):
+        time_ref = attime.parseTimeReference("now")
+        self.assertEquals(time_ref, MOCK_DATE)
+
+    def test_parse_colon_raises_ValueError(self):
+        with self.assertRaises(ValueError):
+            attime.parseTimeReference(":")
+
+    def test_parse_hour_return_hour_of_today(self):
+        time_ref = attime.parseTimeReference("8:50")
+        expected = datetime(MOCK_DATE.year, MOCK_DATE.month, MOCK_DATE.day, 8, 50)
+        self.assertEquals(time_ref, expected)
+
+    def test_parse_hour_am(self):
+        time_ref = attime.parseTimeReference("8:50am")
+        expected = datetime(MOCK_DATE.year, MOCK_DATE.month, MOCK_DATE.day, 8, 50)
+        self.assertEquals(time_ref, expected)
+
+    def test_parse_hour_pm(self):
+        time_ref = attime.parseTimeReference("8:50pm")
+        expected = datetime(MOCK_DATE.year, MOCK_DATE.month, MOCK_DATE.day, 20, 50)
+        self.assertEquals(time_ref, expected)
+
+    def test_parse_noon(self):
+        time_ref = attime.parseTimeReference("noon")
+        expected = datetime(MOCK_DATE.year, MOCK_DATE.month, MOCK_DATE.day, 12, 0)
+        self.assertEquals(time_ref, expected)
+
+    def test_parse_midnight(self):
+        time_ref = attime.parseTimeReference("midnight")
+        expected = datetime(MOCK_DATE.year, MOCK_DATE.month, MOCK_DATE.day, 0, 0)
+        self.assertEquals(time_ref, expected)
+
+    def test_parse_teatime(self):
+        time_ref = attime.parseTimeReference("teatime")
+        expected = datetime(MOCK_DATE.year, MOCK_DATE.month, MOCK_DATE.day, 16, 0)
+        self.assertEquals(time_ref, expected)
+
+    def test_parse_yesterday(self):
+        time_ref = attime.parseTimeReference("yesterday")
+        expected = datetime(2014, 12, 31, 0, 0)
+        self.assertEquals(time_ref, expected)
+
+    def test_parse_tomorrow(self):
+        time_ref = attime.parseTimeReference("tomorrow")
+        expected = datetime(2015, 1, 2, 0, 0)
+        self.assertEquals(time_ref, expected)
+
+    def test_parse_MM_slash_DD_slash_YY(self):
+        time_ref = attime.parseTimeReference("02/25/15")
+        expected = datetime(2015, 2, 25, 0, 0)
+        self.assertEquals(time_ref, expected)
+
+    def test_parse_MM_slash_DD_slash_YYYY(self):
+        time_ref = attime.parseTimeReference("02/25/2015")
+        expected = datetime(2015, 2, 25, 0, 0)
+        self.assertEquals(time_ref, expected)
+
+    def test_parse_YYYYMMDD(self):
+        time_ref = attime.parseTimeReference("20140606")
+        expected = datetime(2014, 6, 6, 0, 0)
+        self.assertEquals(time_ref, expected)
+
+    def test_parse_MonthName_DayOfMonth_onedigits(self):
+        time_ref = attime.parseTimeReference("january8")
+        expected = datetime(2015, 1, 8, 0, 0)
+        self.assertEquals(time_ref, expected)
+
+    def test_parse_MonthName_DayOfMonth_twodigits(self):
+        time_ref = attime.parseTimeReference("january10")
+        expected = datetime(2015, 1, 10, 0, 0)
+        self.assertEquals(time_ref, expected)
+
+    def test_parse_MonthName_DayOfMonth_threedigits_raise_ValueError(self):
+        with self.assertRaises(ValueError):
+            attime.parseTimeReference("january800")
+
+    def test_parse_MonthName_without_DayOfMonth_raise_Exception(self):
+        with self.assertRaises(Exception):
+            attime.parseTimeReference("january")
+
+    def test_parse_monday_return_monday_before_now(self):
+        time_ref = attime.parseTimeReference("monday")
+        expected = datetime(2014, 12, 29, 0, 0)
+        self.assertEquals(time_ref, expected)
 
 
 class parseTimeOffsetTest(TestCase):
