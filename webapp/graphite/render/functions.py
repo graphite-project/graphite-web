@@ -2631,12 +2631,16 @@ def threshold(requestContext, value, label=None, color=None):
 
   return [series]
 
-def transformNull(requestContext, seriesList, default=0):
+def transformNull(requestContext, seriesList, default=0, referenceSeries=None):
   """
-  Takes a metric or wild card seriesList and an optional value
-  to transform Nulls to. Default is 0. This method compliments
-  drawNullAsZero flag in graphical mode but also works in text only
-  mode.
+  Takes a metric or wildcard seriesList and replaces null values with the value
+  specified by `default`.  The value 0 used if not specified.  The optional
+  referenceSeries, if specified, is a metric or wildcard series list that governs
+  which time intervals nulls should be replaced.  If specified, nulls are replaced
+  only in intervals where a non-null is found for the same interval in any of
+  referenceSeries.  This method compliments the drawNullAsZero function in
+  graphical mode, but also works in text-only mode.
+
   Example:
 
   .. code-block:: none
@@ -2646,24 +2650,34 @@ def transformNull(requestContext, seriesList, default=0):
   This would take any page that didn't have values and supply negative 1 as a default.
   Any other numeric value may be used as well.
   """
-  def transform(v):
-    if v is None: return default
+  def transform(v, d):
+    if v is None: return d
     else: return v
 
+  if referenceSeries:
+    defaults = [default if any(v is not None for v in x) else None for x in izip(*referenceSeries)]
+  else:
+    defaults = None
+
   for series in seriesList:
-    series.name = "transformNull(%s,%g)" % (series.name, default)
+    if referenceSeries:
+      series.name = "transformNull(%s,%g,referenceSeries)" % (series.name, default)
+    else:
+      series.name = "transformNull(%s,%g)" % (series.name, default)
     series.pathExpression = series.name
-    values = [transform(v) for v in series]
+    if defaults:
+      values = [transform(v, d) for v, d in izip(series, defaults)]
+    else:
+      values = [transform(v, default) for v in series]
     series.extend(values)
     del series[:len(values)]
   return seriesList
 
 def isNonNull(requestContext, seriesList):
   """
-  Takes a metric or wild card seriesList and counts up how many
-  non-null values are specified. This is useful for understanding
-  which metrics have data at a given point in time (ie, to count
-  which servers are alive).
+  Takes a metric or wildcard seriesList and counts up the number of non-null
+  values.  This is useful for understanding the number of metrics that have data
+  at a given point in time (i.e. to count which servers are alive).
 
   Example:
 
