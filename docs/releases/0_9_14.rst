@@ -1,14 +1,14 @@
-.. _0-9-13:
+.. _0-9-14:
 
-0.9.13
+0.9.14
 ===========================
 *no release date*
 
-Graphite 0.9.13 is now available for usage. Source bundles are available from GitHub:
+Graphite 0.9.14 is now available for usage. Source bundles are available from GitHub:
 
-* https://github.com/graphite-project/graphite-web/archive/0.9.13.tar.gz
-* https://github.com/graphite-project/carbon/archive/0.9.13.tar.gz
-* https://github.com/graphite-project/whisper/archive/0.9.13.tar.gz
+* https://github.com/graphite-project/graphite-web/archive/0.9.14.tar.gz
+* https://github.com/graphite-project/carbon/archive/0.9.14.tar.gz
+* https://github.com/graphite-project/whisper/archive/0.9.14.tar.gz
 
 Graphite can also be installed from `PyPI <http://pypi.python.org/>`_ via
 `pip <http://www.pip-installer.org/en/latest/index.html>`_. PyPI bundles are here:
@@ -19,11 +19,9 @@ Graphite can also be installed from `PyPI <http://pypi.python.org/>`_ via
 
 Upgrading
 ---------
-Graphite 0.9.13 now requires a Django version of at least 1.4. Ensure this dependency is satisfied
-before updating *graphite-web*.
+Graphite 0.9.14 now requires a Django version of at least 1.4. Ensure this dependency is satisfied before updating *graphite-web*.
 
-As always, comparing the example config files with existing ones is recommended to ensure
-awareness of any new features.
+As always, comparing the example config files with existing ones is recommended to ensure awareness of any new features.
 
 Security Notes
 --------------
