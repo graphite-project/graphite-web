@@ -34,7 +34,7 @@ LOG_CACHE_PERFORMANCE
 LOG_METRIC_ACCESS
   `Default: False`
 
-  Trigges the creation of ``metricaccess.log`` which logs access to `Whisper` and `RRD` data files.
+  Triggers the creation of ``metricaccess.log`` which logs access to `Whisper` and `RRD` data files.
 
 DEBUG = True
   `Default: False`
@@ -270,7 +270,7 @@ DASHBOARD_REQUIRE_PERMISSIONS
 
 Database Configuration
 ----------------------
-The following configures the Django database settings. Graphite uses the database for storing user profiles, dashboards, and for the Events functionality. Graphite uses n SQLite database file located at ``STORAGE_DIR/graphite.db`` by default. If running multiple Graphite-web instances, a database such as PostgreSQL or MySQL is required so that all instances may share the same data source.
+The following configures the Django database settings. Graphite uses the database for storing user profiles, dashboards, and for the Events functionality. Graphite uses an SQLite database file located at ``STORAGE_DIR/graphite.db`` by default. If running multiple Graphite-web instances, a database such as PostgreSQL or MySQL is required so that all instances may share the same data source.
 
 .. note ::
   As of Django 1.2, the database configuration is specified by the DATABASES
