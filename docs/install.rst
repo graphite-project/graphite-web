@@ -116,8 +116,8 @@ Initial Configuration
 .. toctree::
    :maxdepth: 2
    
+   config-database-setup
    config-local-settings
-   config-webapp
    config-carbon
 
 
