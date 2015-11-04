@@ -249,7 +249,7 @@ Storage Backend Alternates
 --------------------------
 If you wish to use a backend to graphite other than Whisper, there are some options available to you.
 
-`ceres`_
+`Ceres`_
   An alternate storage backend provided by the Graphite Project.  It it intended to be a distributable time-series database.  It is currently in a pre-release status.
 
 `Cyanite`_
@@ -294,7 +294,7 @@ Other
 .. _carbon-c-relay: https://github.com/grobian/carbon-c-relay
 .. _carbon-relay-ng: https://github.com/graphite-ng/carbon-relay-ng
 .. _carbonate: https://github.com/jssjr/carbonate
-.. _ceres: https://github.com/graphite-project/ceres
+.. _Ceres: https://github.com/graphite-project/ceres
 .. _Charcoal: https://github.com/cebailey59/charcoal
 .. _collectd: http://collectd.org
 .. _collectd-carbon: https://github.com/indygreg/collectd-carbon
