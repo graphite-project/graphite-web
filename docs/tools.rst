@@ -211,6 +211,25 @@ Monitoring
 `Shinken`_
   A system monitoring solution compatible with Nagios which emphasizes scalability, flexibility, and ease of setup. Shinken provides complete integration with Graphite for processing and display of performance data.
 
+Storage Backend Alternates
+--------------------------
+If you wish to use a backend to graphite other than Whisper, there are some options available to you.
+
+`Ceres`_
+  An alternate storage backend provided by the Graphite Project.  It it intended to be a distributable time-series database.  It is currently in a pre-release status.
+
+`Cyanite`_
+  A highly available, elastic, and low-latency time-series storage wirtten on top of Cassandra
+
+`InfluxDB`_
+  A distributed time series database.
+
+`KairosDB`_
+  A distributed time-series database written on top of Cassandra.
+
+`OpenTSDB`_
+  A distributed time-series database written on top of HBase.
+
 Other
 -----
 `bosun`_
@@ -242,12 +261,14 @@ Other
 .. _carbon-c-relay: https://github.com/grobian/carbon-c-relay
 .. _carbon-relay-ng: https://github.com/graphite-ng/carbon-relay-ng
 .. _carbonate: https://github.com/jssjr/carbonate
+.. _Ceres: https://github.com/graphite-project/ceres
 .. _Charcoal: https://github.com/cebailey59/charcoal
 .. _collectd: http://collectd.org
 .. _collectd-carbon: https://github.com/indygreg/collectd-carbon
 .. _collectd-graphite: https://github.com/joemiller/collectd-graphite
 .. _collectd-to-graphite: https://github.com/loggly/collectd-to-graphite
 .. _Collectl: http://collectl.sourceforge.net
+.. _Cyanite: http://cyanite.io/
 .. _D3.js: http://mbostock.github.com/d3
 .. _Descartes: https://github.com/obfuscurity/descartes
 .. _Diamond: http://opensource.brightcove.com/project/Diamond
@@ -282,10 +303,13 @@ Other
 .. _Host sFlow: http://host-sflow.sourceforge.net
 .. _Hubot: https://github.com/github/hubot
 .. _hubot-scripts: https://github.com/github/hubot-scripts
+.. _InfluxDB: https://influxdb.com/
 .. _jmxtrans: https://github.com/jmxtrans/jmxtrans
+.. _KairosDB: http://kairosdb.github.io/
 .. _Ledbetter: https://github.com/github/ledbetter
 .. _Leonardo: https://github.com/PrFalken/leonardo
 .. _Logster: https://github.com/etsy/logster
+.. _OpenTSDB: http://opentsdb.net/
 .. _Orion: https://github.com/gree/Orion
 .. _metrics-sampler: https://github.com/dimovelev/metrics-sampler
 .. _New Relic: https://newrelic.com/platform
