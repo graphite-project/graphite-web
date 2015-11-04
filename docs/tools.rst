@@ -245,6 +245,25 @@ Monitoring
   performance data.
 
 
+Storage Backend Alternates
+--------------------------
+If you wish to use a backend to graphite other than Whisper, there are some options available to you.
+
+`ceres`_
+  An alternate storage backend provided by the Graphite Project.  It it intended to be a distributable time-series database.  It is currently in a pre-release status.
+
+`Cyanite`_
+  A highly available, elastic, and low-latency time-series storage wirtten on top of Cassandra
+
+`InfluxDB`_
+  A distributed time series database.
+
+`KairosDB`_
+  A distributed time-series database written on top of Cassandra.
+
+`OpenTSDB`_
+  A distributed time-series database written on top of HBase.
+
 Other
 -----
 `bosun`_
@@ -275,6 +294,7 @@ Other
 .. _carbon-c-relay: https://github.com/grobian/carbon-c-relay
 .. _carbon-relay-ng: https://github.com/graphite-ng/carbon-relay-ng
 .. _carbonate: https://github.com/jssjr/carbonate
+.. _ceres: https://github.com/graphite-project/ceres
 .. _Charcoal: https://github.com/cebailey59/charcoal
 .. _collectd: http://collectd.org
 .. _collectd-carbon: https://github.com/indygreg/collectd-carbon
@@ -312,6 +332,9 @@ Other
 .. _Hubot: https://github.com/github/hubot
 .. _hubot-scripts: https://github.com/github/hubot-scripts
 .. _jmxtrans: http://code.google.com/p/jmxtrans
+.. _InfluxDB: https://influxdb.com/
+.. _jmxtrans: https://github.com/jmxtrans/jmxtrans
+.. _KairosDB: http://kairosdb.github.io/
 .. _Ledbetter: https://github.com/github/ledbetter
 .. _Leonardo: https://github.com/PrFalken/leonardo
 .. _Logster: https://github.com/etsy/logster
