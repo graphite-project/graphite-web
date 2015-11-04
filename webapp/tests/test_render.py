@@ -98,8 +98,9 @@ class RenderTest(TestCase):
         targets = ['foo=1', 'bar=2']
         start_time = datetime.fromtimestamp(0)
         end_time = datetime.fromtimestamp(1000)
-        self.assertEqual(hashData(targets, start_time, end_time),
-                        hashData(reversed(targets), start_time, end_time))
+        local_node = 'local'
+        self.assertEqual(hashData(targets, start_time, end_time, local_node),
+                        hashData(reversed(targets), start_time, end_time, local_node))
 
 
     def test_consolidated_stacked_yMax(self):

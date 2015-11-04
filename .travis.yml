@@ -4,10 +4,10 @@ python:
   - "2.7"
 
 env:
-  - REQUIREMENTS="Django<1.5 django-discover-runner"
-  - REQUIREMENTS="Django<1.6 django-discover-runner"
-  - REQUIREMENTS="Django<1.7"
-  - REQUIREMENTS="Django<1.8"
+  - REQUIREMENTS="Django<1.5 django-tagging<0.4 django-discover-runner"
+  - REQUIREMENTS="Django<1.6 django-tagging<0.4 django-discover-runner"
+  - REQUIREMENTS="Django<1.7 django-tagging<0.4"
+  - REQUIREMENTS="Django<1.8 django-tagging<0.4"
 
 before_install:
   - sudo apt-get -y install libcairo2-dev
@@ -21,7 +21,7 @@ install:
   - pip install https://github.com/graphite-project/ceres/tarball/master
   - pip install https://github.com/graphite-project/whisper/tarball/master
   - pip install $REQUIREMENTS
-  - pip install django-tagging pytz pyparsing==1.5.7 http://cairographics.org/releases/py2cairo-1.8.10.tar.gz
+  - pip install pytz pyparsing==1.5.7 http://cairographics.org/releases/py2cairo-1.8.10.tar.gz
 
 script:
   - PYTHONPATH=. python graphite/manage.py syncdb --noinput
@@ -30,4 +30,4 @@ script:
 matrix:
   exclude:
     - python: "2.6"
-      env: REQUIREMENTS="Django<1.8"
+      env: REQUIREMENTS="Django<1.8 django-tagging<0.4"

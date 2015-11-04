@@ -26,7 +26,10 @@ def evaluateTokens(requestContext, tokens):
   elif tokens.call:
     func = SeriesFunctions[tokens.call.func]
     args = [evaluateTokens(requestContext, arg) for arg in tokens.call.args]
-    return func(requestContext, *args)
+    try:
+      return func(requestContext, *args)
+    except NormalizeEmptyResultError:
+      return []
 
   elif tokens.number:
     if tokens.number.integer:
@@ -66,4 +69,4 @@ def extractPathExpressions(targets):
 
 
 #Avoid import circularities
-from graphite.render.functions import SeriesFunctions
+from graphite.render.functions import SeriesFunctions,NormalizeEmptyResultError

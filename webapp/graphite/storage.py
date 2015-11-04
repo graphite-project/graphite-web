@@ -34,6 +34,7 @@ class Store:
     self.directories = directories
     self.remote_hosts = remote_hosts
     self.remote_stores = [ RemoteStore(host) for host in remote_hosts if not is_local_interface(host) ]
+    self.local_host = next((host for host in remote_hosts if is_local_interface(host)), 'local')
 
     if not (directories or remote_hosts):
       raise ValueError("directories and remote_hosts cannot both be empty")
@@ -326,6 +327,9 @@ class WhisperFile(Leaf):
     start = time.time() - whisper.info(self.fs_path)['maxRetention']
     end = max( os.stat(self.fs_path).st_mtime, start )
     return [ (start, end) ]
+
+  def getInfo(self):
+    return whisper.info(self.fs_path)
 
   def fetch(self, startTime, endTime, now=None):
     return whisper.fetch(self.fs_path, startTime, endTime, now)

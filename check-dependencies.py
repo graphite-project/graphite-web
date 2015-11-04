@@ -87,23 +87,6 @@ except ImportError:
     fatal += 1
 
 
-# Test for a pytz module
-try:
-  import pytz
-except ImportError:
-  print "[FATAL] Unable to import the 'pytz' module, do you have pytz installed for python %s?" % py_version
-  fatal += 1
-
-
-# Test for zope.interface
-try:
-  from zope.interface import Interface
-except ImportError:
-  print "[WARNING] Unable to import Interface from zope.interface."
-  print "Without it, you will be unable to run carbon on this server."
-  warning +=1
-
-
 # Test for python-memcached
 try:
   import memcache
@@ -139,23 +122,6 @@ except:
   warning += 1
 
 
-# Test for Twisted python
-try:
-  import twisted
-except:
-  print "[WARNING]"
-  print "Unable to import the 'twisted' package, do you have Twisted installed for python %s?" % py_version
-  print "Without Twisted, you cannot run carbon on this server."
-  warning += 1
-else:
-  tv = []
-  tv = twisted.__version__.split('.')
-  if int(tv[0]) < 8 or (int(tv[0]) == 8 and int(tv[1]) < 2):
-    print "[WARNING]"
-    print "Your version of Twisted is too old to run carbon."
-    print "You will not be able to run carbon on this server until you upgrade Twisted >= 8.2."
-    warning += 1
-
 # Test for txamqp
 try:
   import txamqp
@@ -164,6 +130,14 @@ except:
   print "Unable to import the 'txamqp' module, this is required if you want to use AMQP."
   print "Note that txamqp requires python 2.5 or greater."
   warning += 1
+
+# Test for whitenoise
+try:
+  import whitenoise
+except ImportError:
+  print "[INFO]"
+  print "Unable to import the 'whitenoise' module."
+  print "This is useful for serving static files."
 
 
 if fatal:

@@ -40,6 +40,7 @@ from graphite.render.attime import parseATTime
 from graphite.render.functions import PieFunctions
 from graphite.render.hashing import hashRequest, hashData
 from graphite.render.glyph import GraphTypes
+from graphite.storage import STORE
 
 from django.http import HttpResponse, HttpResponseServerError, HttpResponseRedirect
 from django.template import Context, loader
@@ -99,7 +100,7 @@ def renderView(request):
       targets = requestOptions['targets']
       startTime = requestOptions['startTime']
       endTime = requestOptions['endTime']
-      dataKey = hashData(targets, startTime, endTime)
+      dataKey = hashData(targets, startTime, endTime, STORE.local_host)
       cachedData = cache.get(dataKey)
       if cachedData:
         log.cache("Data-Cache hit [%s]" % dataKey)
@@ -118,12 +119,14 @@ def renderView(request):
         requestContext['prefetchedRemoteData'] = prefetchRemoteData(requestContext, pathExpressions)
         log.rendering("Prefetching remote data took %.6f" % (time() - t))
       for target in targets:
+        if not target.strip():
+          continue
         t = time()
         seriesList = evaluateTarget(requestContext, target)
         log.rendering("Retrieval of %s took %.6f" % (target, time() - t))
         data.extend(seriesList)
 
-      if useCache:
+      if useCache and data:
         cache.add(dataKey, data, cacheTimeout)
 
     format = requestOptions.get('format')
