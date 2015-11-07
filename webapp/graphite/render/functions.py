@@ -2465,7 +2465,7 @@ def timeStack(requestContext, seriesList, timeShiftUnit, timeShiftStart, timeShi
 
   return results
 
-def timeShift(requestContext, seriesList, timeShift, resetEnd=True):
+def timeShift(requestContext, seriesList, timeShift, resetEnd=True, alignDST=False):
   """
   Takes one metric or a wildcard seriesList, followed by a quoted string with the
   length of time (See ``from / until`` in the render\_api_ for examples of time formats).
@@ -2479,6 +2479,10 @@ def timeShift(requestContext, seriesList, timeShift, resetEnd=True):
   date range set to include a time in the future, will limit this timeshift to pretend
   ending at the current time. If resetEnd is False, will instead draw full range including
   future time.
+
+  Because time is shifted by a fixed number of seconds, comparing a time period with DST to
+  a time period without DST, and vice-versa, will result in an apparent misalignment. For
+  example, 8am might be overlaid with 7am. To compensate for this, use the alignDST option.
 
   Useful for comparing a metric against itself at a past periods or correcting data
   stored at an offset.
@@ -2499,6 +2503,27 @@ def timeShift(requestContext, seriesList, timeShift, resetEnd=True):
   myContext = requestContext.copy()
   myContext['startTime'] = requestContext['startTime'] + delta
   myContext['endTime'] = requestContext['endTime'] + delta
+
+  if alignDST:
+    def localDST(dt):
+      return time.localtime(time.mktime(dt.timetuple())).tm_isdst
+
+    reqStartDST = localDST(requestContext['startTime'])
+    reqEndDST   = localDST(requestContext['endTime'])
+    myStartDST  = localDST(myContext['startTime'])
+    myEndDST    = localDST(myContext['endTime'])
+
+    dstOffset = timedelta(hours=0)
+    # If the requestContext is entirely in DST, and we are entirely NOT in DST
+    if ((reqStartDST and reqEndDST) and (not myStartDST and not myEndDST)):
+        dstOffset = timedelta(hours=1)
+    # Or if the requestContext is entirely NOT in DST, and we are entirely in DST
+    elif ((not reqStartDST and not reqEndDST) and (myStartDST and myEndDST)):
+        dstOffset = timedelta(hours=-1)
+    # Otherwise, we don't do anything, because it would be visually confusing
+    myContext['startTime'] += dstOffset
+    myContext['endTime'] += dstOffset
+
   results = []
   if len(seriesList) > 0:
     # if len(seriesList) > 1, they will all have the same pathExpression, which is all we care about.
