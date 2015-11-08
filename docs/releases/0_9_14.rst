@@ -2,7 +2,7 @@
 
 0.9.14
 ===========================
-*no release date*
+*11/7/2015*
 
 Graphite 0.9.14 is now available for usage. Source bundles are available from GitHub:
 
@@ -22,6 +22,15 @@ Upgrading
 Graphite 0.9.14 now requires a Django version of at least 1.4. Ensure this dependency is satisfied before updating *graphite-web*.
 
 As always, comparing the example config files with existing ones is recommended to ensure awareness of any new features.
+
+Graphite-web's application database will need to be upgraded for a new Django fixture. It's a good idea to backup the database before proceeding with the migration. The following will upgrade a SQLite database:
+
+.. code-block:: none
+
+  sudo cp /opt/graphite/storage/graphite.db \
+        /opt/graphite/storage/graphite.db.backup-`date +%Y%m%d_%H%M%S`
+  sudo PYTHONPATH=/opt/graphite/webapp django-admin.py syncdb \
+        --noinput --no-initial-data --settings=graphite.settings
 
 Security Notes
 --------------
