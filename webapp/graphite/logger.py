@@ -63,13 +63,22 @@ class GraphiteLogger:
     return self.exceptionLogger.exception(msg,**kwargs)
 
   def cache(self,msg,*args,**kwargs):
-    return self.cacheLogger.log(30,msg,*args,**kwargs)
+    if settings.LOG_CACHE_PERFORMANCE:
+      return self.cacheLogger.log(30,msg,*args,**kwargs)
+    else:
+      return
 
   def rendering(self,msg,*args,**kwargs):
-    return self.renderingLogger.log(30,msg,*args,**kwargs)
+    if settings.LOG_RENDERING_PERFORMANCE:
+      return self.renderingLogger.log(30,msg,*args,**kwargs)
+    else:
+      return
 
   def metric_access(self,msg,*args,**kwargs):
-    return self.metricAccessLogger.log(30,msg,*args,**kwargs)
+    if settings.LOG_METRIC_ACCESS:
+      return self.metricAccessLogger.log(30,msg,*args,**kwargs)
+    else:
+      return
 
 
 log = GraphiteLogger() # import-shared logger instance
