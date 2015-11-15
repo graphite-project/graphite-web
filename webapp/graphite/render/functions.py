@@ -1908,7 +1908,7 @@ def limit(requestContext, seriesList, n):
   """
   return seriesList[0:n]
 
-def sortByName(requestContext, seriesList, natural = False):
+def sortByName(requestContext, seriesList, natural=False):
   """
   Takes one metric or a wildcard seriesList.
   Sorts the list of metrics by the metric name using either alphabetical order or natural sorting.
@@ -1919,10 +1919,10 @@ def sortByName(requestContext, seriesList, natural = False):
   def paddedName(name):
     return re.sub("(\d+)", lambda x: "{0:010}".format(int(x.group(0))), name)
 
-  def compare(x, y):
+  def compare(x,y):
     return cmp(x.name, y.name)
 
-  def natSortCompare(x, y):
+  def natSortCompare(x,y):
     return cmp(paddedName(x.name), paddedName(y.name))
 
   if natural:
