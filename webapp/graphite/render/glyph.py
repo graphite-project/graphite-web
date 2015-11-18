@@ -1037,7 +1037,7 @@ class LineGraph(Graph):
         series.xStep = bestXStep
 
   def setupYAxis(self):
-    [yMinValue, yMaxValue] = dataLimits(self.data,
+    (yMinValue, yMaxValue) = dataLimits(self.data,
                                         drawNullAsZero=self.params.get('drawNullAsZero'),
                                         stacked=(self.areaMode == 'stacked'))
 
@@ -1118,8 +1118,8 @@ class LineGraph(Graph):
     drawNullAsZero = self.params.get('drawNullAsZero')
     stacked = (self.areaMode == 'stacked')
 
-    [yMinValueL, yMaxValueL] = dataLimits(self.dataLeft, drawNullAsZero, stacked)
-    [yMinValueR, yMaxValueR] = dataLimits(self.dataRight, drawNullAsZero, stacked)
+    (yMinValueL, yMaxValueL) = dataLimits(self.dataLeft, drawNullAsZero, stacked)
+    (yMinValueR, yMaxValueR) = dataLimits(self.dataRight, drawNullAsZero, stacked)
 
     if 'yMaxLeft' in self.params:
       yMaxValueL = self.params['yMaxLeft']
@@ -1555,7 +1555,7 @@ def any(args):
 
 
 def dataLimits(data, drawNullAsZero=False, stacked=False):
-  """Return the range of values in data as [yMinValue, yMaxValue].
+  """Return the range of values in data as (yMinValue, yMaxValue).
 
   data is an array of TimeSeries objects.
   """
@@ -1567,7 +1567,7 @@ def dataLimits(data, drawNullAsZero=False, stacked=False):
 
   if yMinValue is None:
     # This can only happen if there are no valid, non-infinite data.
-    return [0.0, 1.0]
+    return (0.0, 1.0)
 
   if yMinValue > 0.0 and drawNullAsZero and missingValues:
     yMinValue = 0.0
@@ -1585,7 +1585,7 @@ def dataLimits(data, drawNullAsZero=False, stacked=False):
   if yMaxValue < 0.0 and drawNullAsZero and missingValues:
     yMaxValue = 0.0
 
-  return [yMinValue, yMaxValue]
+  return (yMinValue, yMaxValue)
 
 
 def sort_stacked(series_list):
