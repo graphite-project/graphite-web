@@ -200,7 +200,85 @@ class _LinearAxisTics(_AxisTics):
   def setStep(self, step):
     self.step = step
 
+  def generateSteps(self, minStep, binary=False):
+    """Generate allowed steps with step >= minStep in increasing order."""
+
+    if binary:
+      base = 2.0
+      mantissas = [1.0]
+      exponent = math.floor(math.log(minStep, 2) - 0.001)
+    else:
+      base = 10.0
+      mantissas = [1.0, 2.0, 5.0]
+      exponent = math.floor(math.log10(minStep) - 0.001)
+
+    while True:
+      multiplier = base ** exponent
+      for mantissa in mantissas:
+        value = mantissa * multiplier
+        if value >= minStep * 0.999:
+          yield value
+      exponent += 1
+
+  def computeSlop(self, step, divisor):
+    """Compute the slop that would result from step and divisor.
+
+    Return the slop, or None if this combination can't cover the full
+    range.
+
+    """
+
+    bottom = step * math.floor(self.minValue / step + 0.001)
+    top = bottom + step * divisor
+
+    if top >= self.maxValue - 0.001 * step:
+      return max(top - self.maxValue, self.minValue - bottom)
+    else:
+      return None
+
   def chooseStep(self, divisors=None, binary=False):
+    """Choose a nice, pretty size for the steps between axis labels.
+
+    Our main constraint is that the number of divisions must be taken
+    from the divisors list. We pick a number of divisions and a step
+    size that minimizes the amount of whitespace ("slop") that would
+    need to be included outside of the range [self.minValue,
+    self.maxValue] if we were to push out the axis values to the next
+    larger multiples of the step size.
+
+    The minimum step that could possibly cover the variance satisfies
+
+        minStep * max(divisors) >= variance
+
+    or
+
+        minStep = variance / max(divisors)
+
+    It's not necessarily possible to cover the variance with a step
+    that size, but we know that any smaller step definitely *cannot*
+    cover it. So we can start there.
+
+    For a sufficiently large step size, it is definitely possible to
+    cover the variance, but at some point the slop will start growing.
+    Let's define the slop to be
+
+        slop = max(minValue - bottom, top - maxValue)
+
+    Then for a given, step size, we know that
+
+        slop >= (1/2) * (step * min(divisors) - variance)
+
+    (the factor of 1/2 is for the best-case scenario that the slop is
+    distributed equally on the two sides of the range). So suppose we
+    already have a choice that yields bestSlop. Then there is no need
+    to choose steps so large that the slop is guaranteed to be larger
+    than bestSlop. Therefore, the maximum step size that we need to
+    consider is
+
+        maxStep = (2 * bestSlop + variance) / min(divisors)
+
+    """
+
     if divisors is None:
       divisors = [4,5,6]
 
@@ -216,44 +294,32 @@ class _LinearAxisTics(_AxisTics):
 
     variance = self.maxValue - self.minValue
 
-    if binary:
-      order = math.log(variance, 2)
-      orderFactor = 2 ** math.floor(order)
-    else:
-      order = math.log10(variance)
-      orderFactor = 10 ** math.floor(order)
-    # we work with a scaled down variance for simplicity:
-    v = variance / orderFactor
-
-    prettyValues = (0.1,0.2,0.25,0.5,1.0,1.2,1.25,1.5,2.0,2.25,2.5)
-    divisorInfo = []
-
-    for d in divisors:
-      # our scaled down quotient, must be in the open interval (0,10):
-      q = v / d
-      # the prettyValue our quotient is closest to:
-      p = closest(q, prettyValues)
-      # make a list so we can find the prettiest of the pretty:
-      divisorInfo.append( ( p,abs(q-p)) )
-
-    # Sort our pretty values by "closeness to a factor":
-    divisorInfo.sort(key=lambda i: i[1])
-    # Our winner! Axis will have labels placed at multiples of our prettyValue:
-    prettyValue = divisorInfo[0][0]
+    bestSlop = None
+    bestStep = None
+    bestDivisor = None
+    for step in self.generateSteps(variance / max(divisors), binary=binary):
+      if bestSlop is not None and step * min(divisors) >= 2 * bestSlop + variance:
+        break
+      for divisor in divisors:
+        slop = self.computeSlop(step, divisor)
+        if slop is not None and (bestSlop is None or slop < bestSlop):
+          bestSlop = slop
+          bestStep = step
+          bestDivisor = divisor
 
     # Scale it back up to the order of variance:
-    self.step = prettyValue * orderFactor
+    self.step = bestStep
 
   def chooseLimits(self):
     if self.minRoundable:
       # Start labels at the greatest multiple of step <= minValue:
-      self.bottom = self.step * math.floor(self.minValue / self.step)
+      self.bottom = self.step * math.floor(self.minValue / self.step + 0.001)
     else:
       self.bottom = self.minValue
 
     if self.maxRoundable:
       # Extend the top of our graph to the lowest step multiple >= maxValue:
-      self.top = self.step * math.ceil(self.maxValue / self.step)
+      self.top = self.step * math.ceil(self.maxValue / self.step - 0.001)
     else:
       self.top = self.maxValue
 
