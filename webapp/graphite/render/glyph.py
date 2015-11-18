@@ -1040,20 +1040,20 @@ class LineGraph(Graph):
     missingValues = any(None in series for series in self.data)
     finiteData = [series for series in self.data if not series.options.get('drawAsInfinite')]
 
-    yMinValue = safeMin( [safeMin(series) for series in finiteData] )
+    yMinValue = safeMin(safeMin(series) for series in finiteData)
 
     if yMinValue > 0.0 and self.params.get('drawNullAsZero') and missingValues:
       yMinValue = 0.0
 
     if self.areaMode == 'stacked':
-      length = safeMin( [len(series) for series in finiteData] )
+      length = safeMin(len(series) for series in finiteData)
       sumSeries = []
 
       for i in xrange(0, length):
-        sumSeries.append( safeSum( [series[i] for series in finiteData] ) )
+        sumSeries.append( safeSum(series[i] for series in finiteData) )
       yMaxValue = safeMax( sumSeries )
     else:
-      yMaxValue = safeMax( [safeMax(series) for series in finiteData] )
+      yMaxValue = safeMax(safeMax(series) for series in finiteData)
 
     if yMaxValue < 0.0 and self.params.get('drawNullAsZero') and missingValues:
       yMaxValue = 0.0
@@ -1148,18 +1148,18 @@ class LineGraph(Graph):
     if self.params.get('drawNullAsZero') and missingValuesL:
       yMinValueL = 0.0
     else:
-      yMinValueL = safeMin( [safeMin(series) for series in finiteDataL] )
+      yMinValueL = safeMin(safeMin(series) for series in finiteDataL)
     if self.params.get('drawNullAsZero') and missingValuesR:
       yMinValueR = 0.0
     else:
-      yMinValueR = safeMin( [safeMin(series) for series in finiteDataR] )
+      yMinValueR = safeMin(safeMin(series) for series in finiteDataR)
 
     if self.areaMode == 'stacked':
-      yMaxValueL = safeSum( [safeMax(series) for series in self.dataLeft] )
-      yMaxValueR = safeSum( [safeMax(series) for series in self.dataRight] )
+      yMaxValueL = safeSum(safeMax(series) for series in self.dataLeft)
+      yMaxValueR = safeSum(safeMax(series) for series in self.dataRight)
     else:
-      yMaxValueL = safeMax( [safeMax(series) for series in self.dataLeft] )
-      yMaxValueR = safeMax( [safeMax(series) for series in self.dataRight] )
+      yMaxValueL = safeMax(safeMax(series) for series in self.dataLeft)
+      yMaxValueR = safeMax(safeMax(series) for series in self.dataRight)
 
     if yMinValueL is None:
       yMinValueL = 0.0
