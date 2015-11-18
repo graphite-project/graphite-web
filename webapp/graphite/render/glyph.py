@@ -1578,20 +1578,27 @@ def toSeconds(t):
   return (t.days * 86400) + t.seconds
 
 
+# Iterate over the values in an iterable that are neither None nor
+# INFINITY
+def safeArgs(args):
+  invalid = (None, INFINITY)
+  return (arg for arg in args if arg not in invalid)
+
+
 def safeMin(args):
-  args = [arg for arg in args if arg not in (None, INFINITY)]
+  args = list(safeArgs(args))
   if args:
     return min(args)
 
 
 def safeMax(args):
-  args = [arg for arg in args if arg not in (None, INFINITY)]
+  args = list(safeArgs(args))
   if args:
     return max(args)
 
 
 def safeSum(values):
-  return sum([v for v in values if v not in (None, INFINITY)])
+  return sum(safeArgs(values))
 
 
 def any(args):
