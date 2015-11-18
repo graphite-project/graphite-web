@@ -1137,33 +1137,28 @@ class LineGraph(Graph):
       self.yLabelWidth = 0.0
 
   def setupTwoYAxes(self):
-    # I am Lazy.
-    Ldata = []
-    Rdata = []
-
-    Ldata += self.dataLeft
-    Rdata += self.dataRight
-
     # Lots of coupled lines ahead.  Will operate on Left data first then Right.
 
-    missingValuesL = any(None in series for series in Ldata)
-    missingValuesR = any(None in series for series in Rdata)
+    missingValuesL = any(None in series for series in self.dataLeft)
+    missingValuesR = any(None in series for series in self.dataRight)
 
     if self.params.get('drawNullAsZero') and missingValuesL:
       yMinValueL = 0.0
     else:
-      yMinValueL = safeMin( [safeMin(series) for series in Ldata if not series.options.get('drawAsInfinite')] )
+      yMinValueL = safeMin( [safeMin(series) for series in self.dataLeft
+                             if not series.options.get('drawAsInfinite')] )
     if self.params.get('drawNullAsZero') and missingValuesR:
       yMinValueR = 0.0
     else:
-      yMinValueR = safeMin( [safeMin(series) for series in Rdata if not series.options.get('drawAsInfinite')] )
+      yMinValueR = safeMin( [safeMin(series) for series in self.dataRight
+                             if not series.options.get('drawAsInfinite')] )
 
     if self.areaMode == 'stacked':
-      yMaxValueL = safeSum( [safeMax(series) for series in Ldata] )
-      yMaxValueR = safeSum( [safeMax(series) for series in Rdata] )
+      yMaxValueL = safeSum( [safeMax(series) for series in self.dataLeft] )
+      yMaxValueR = safeSum( [safeMax(series) for series in self.dataRight] )
     else:
-      yMaxValueL = safeMax( [safeMax(series) for series in Ldata] )
-      yMaxValueR = safeMax( [safeMax(series) for series in Rdata] )
+      yMaxValueL = safeMax( [safeMax(series) for series in self.dataLeft] )
+      yMaxValueR = safeMax( [safeMax(series) for series in self.dataRight] )
 
     if yMinValueL is None:
       yMinValueL = 0.0
