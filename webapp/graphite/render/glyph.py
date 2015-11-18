@@ -1092,9 +1092,6 @@ class LineGraph(Graph):
       self.yTop += 1
       self.ySpan += 1
 
-    self.graphHeight = self.area['ymax'] - self.area['ymin']
-    self.yScaleFactor = float(self.graphHeight) / float(self.ySpan)
-
     if not self.params.get('hideAxes',False):
       #Create and measure the Y-labels
 
@@ -1176,10 +1173,6 @@ class LineGraph(Graph):
     if self.ySpanR == 0:
       self.yTopR += 1
       self.ySpanR += 1
-
-    self.graphHeight = self.area['ymax'] - self.area['ymin']
-    self.yScaleFactorL = float(self.graphHeight) / float(self.ySpanL)
-    self.yScaleFactorR = float(self.graphHeight) / float(self.ySpanR)
 
     #Create and measure the Y-labels
     self.yLabelValuesL = self.getYLabelValues(self.yBottomL, self.yTopL, self.yStepL)
