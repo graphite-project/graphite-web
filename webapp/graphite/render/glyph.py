@@ -1700,17 +1700,6 @@ GraphTypes = {
 
 
 #Convience functions
-def closest(number,neighbors):
-  distance = None
-  closestNeighbor = None
-  for neighbor in neighbors:
-    d = abs(neighbor - number)
-    if distance is None or d < distance:
-      distance = d
-      closestNeighbor = neighbor
-  return closestNeighbor
-
-
 def toSeconds(t):
   return (t.days * 86400) + t.seconds
 
