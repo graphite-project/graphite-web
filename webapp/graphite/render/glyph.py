@@ -1592,6 +1592,10 @@ def dataLimits(data, drawNullAsZero=False, stacked=False):
 
   yMinValue = safeMin(safeMin(series) for series in finiteData)
 
+  if yMinValue is None:
+    # This can only happen if there are no valid, non-infinite data.
+    return [0.0, 1.0]
+
   if yMinValue > 0.0 and drawNullAsZero and missingValues:
     yMinValue = 0.0
 
@@ -1607,12 +1611,6 @@ def dataLimits(data, drawNullAsZero=False, stacked=False):
 
   if yMaxValue < 0.0 and drawNullAsZero and missingValues:
     yMaxValue = 0.0
-
-  if yMinValue is None:
-    yMinValue = 0.0
-
-  if yMaxValue is None:
-    yMaxValue = 1.0
 
   return [yMinValue, yMaxValue]
 
