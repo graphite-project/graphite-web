@@ -458,14 +458,14 @@ def fetchData(requestContext, pathExpr):
               seriesList[known.name] = ts
           else:
               # In case if we are merging data - the existing series has no gaps and there is nothing to merge
-              # together.  Save ourselves some work here.
+              # together.
               #
               # OR - if we picking best serie:
               #
               # We already have this series in the seriesList, and the
               # candidate is 'worse' than what we already have, we don't need
-              # to compare anything else. Save ourselves some work here.
-              break
+              # to compare anything else.
+              continue
 
         # If we looked at this series above, and it matched a 'known'
         # series already, then it's already in the series list (or ignored).
