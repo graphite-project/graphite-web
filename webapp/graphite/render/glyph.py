@@ -1036,22 +1036,26 @@ class LineGraph(Graph):
       else:
         series.xStep = bestXStep
 
+  def _adjustLimits(self, minValue, maxValue, minName, maxName, limitName):
+    if maxName in self.params and self.params[maxName] != 'max':
+      maxValue = self.params[maxName]
+
+    if limitName in self.params and self.params[limitName] < maxValue:
+      maxValue = self.params[limitName]
+
+    if minName in self.params:
+      minValue = self.params[minName]
+
+    if maxValue <= minValue:
+      maxValue = minValue + 1
+
+    return (minValue, maxValue)
+
   def setupYAxis(self):
     (yMinValue, yMaxValue) = dataLimits(self.data,
                                         drawNullAsZero=self.params.get('drawNullAsZero'),
                                         stacked=(self.areaMode == 'stacked'))
-
-    if 'yMax' in self.params and self.params['yMax'] != 'max':
-      yMaxValue = self.params['yMax']
-
-    if 'yLimit' in self.params and self.params['yLimit'] < yMaxValue:
-      yMaxValue = self.params['yLimit']
-
-    if 'yMin' in self.params:
-      yMinValue = self.params['yMin']
-
-    if yMaxValue <= yMinValue:
-      yMaxValue = yMinValue + 1
+    (yMinValue, yMaxValue) = self._adjustLimits(yMinValue, yMaxValue, 'yMin', 'yMax', 'yLimit')
 
     if 'yStep' in self.params:
       self.yStep = self.params['yStep']
@@ -1119,27 +1123,12 @@ class LineGraph(Graph):
     stacked = (self.areaMode == 'stacked')
 
     (yMinValueL, yMaxValueL) = dataLimits(self.dataLeft, drawNullAsZero, stacked)
+    (yMinValueL, yMaxValueL) = self._adjustLimits(yMinValueL, yMaxValueL,
+                                                  'yMinLeft', 'yMaxLeft', 'yLimitLeft')
+
     (yMinValueR, yMaxValueR) = dataLimits(self.dataRight, drawNullAsZero, stacked)
-
-    if 'yMaxLeft' in self.params:
-      yMaxValueL = self.params['yMaxLeft']
-    if 'yMaxRight' in self.params:
-      yMaxValueR = self.params['yMaxRight']
-
-    if 'yLimitLeft' in self.params and self.params['yLimitLeft'] < yMaxValueL:
-      yMaxValueL = self.params['yLimitLeft']
-    if 'yLimitRight' in self.params and self.params['yLimitRight'] < yMaxValueR:
-      yMaxValueR = self.params['yLimitRight']
-
-    if 'yMinLeft' in self.params:
-      yMinValueL = self.params['yMinLeft']
-    if 'yMinRight' in self.params:
-      yMinValueR = self.params['yMinRight']
-
-    if yMaxValueL <= yMinValueL:
-      yMaxValueL = yMinValueL + 1
-    if yMaxValueR <= yMinValueR:
-      yMaxValueR = yMinValueR + 1
+    (yMinValueR, yMaxValueR) = self._adjustLimits(yMinValueR, yMaxValueR,
+                                                  'yMinRight', 'yMaxRight', 'yLimitRight')
 
     yDivisors = str(self.params.get('yDivisors', '4,5,6'))
     yDivisors = [int(d) for d in yDivisors.split(',')]
