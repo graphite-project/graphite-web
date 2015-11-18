@@ -1063,9 +1063,8 @@ class LineGraph(Graph):
     if yMaxValue is None:
       yMaxValue = 1.0
 
-    if 'yMax' in self.params:
-      if self.params['yMax'] != 'max':
-        yMaxValue = self.params['yMax']
+    if 'yMax' in self.params and self.params['yMax'] != 'max':
+      yMaxValue = self.params['yMax']
 
     if 'yLimit' in self.params and self.params['yLimit'] < yMaxValue:
       yMaxValue = self.params['yLimit']
