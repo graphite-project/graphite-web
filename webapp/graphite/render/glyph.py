@@ -1083,15 +1083,16 @@ class LineGraph(Graph):
       binary = self.params.get('yUnitSystem') == 'binary'
       self.yStep = chooseAxisStep(yMinValue, yMaxValue, divisors=yDivisors, binary=binary)
 
-    self.yBottom = self.yStep * math.floor( yMinValue / self.yStep ) #start labels at the greatest multiple of yStep <= yMinValue
-    self.yTop = self.yStep * math.ceil( yMaxValue / self.yStep ) #Extend the top of our graph to the lowest yStep multiple >= yMaxValue
-
-    if self.logBase and yMinValue > 0:
-      self.yBottom = math.pow(self.logBase, math.floor(math.log(yMinValue, self.logBase)))
-      self.yTop = math.pow(self.logBase, math.ceil(math.log(yMaxValue, self.logBase)))
-    elif self.logBase and yMinValue <= 0:
+    if self.logBase:
+      if yMinValue <= 0:
         raise GraphError('Logarithmic scale specified with a dataset with a '
                          'minimum value less than or equal to zero')
+      self.yBottom = math.pow(self.logBase, math.floor(math.log(yMinValue, self.logBase)))
+      self.yTop = math.pow(self.logBase, math.ceil(math.log(yMaxValue, self.logBase)))
+    else:
+      self.yBottom = self.yStep * math.floor( yMinValue / self.yStep ) #start labels at the greatest multiple of yStep <= yMinValue
+      self.yTop = self.yStep * math.ceil( yMaxValue / self.yStep ) #Extend the top of our graph to the lowest yStep multiple >= yMaxValue
+
 
     if 'yMax' in self.params:
       if self.params['yMax'] == 'max':
@@ -1231,19 +1232,20 @@ class LineGraph(Graph):
     else:
       self.yStepR = chooseAxisStep(yMinValueR, yMaxValueR, divisors=yDivisors)
 
-    self.yBottomL = self.yStepL * math.floor( yMinValueL / self.yStepL ) #start labels at the greatest multiple of yStepL <= yMinValue
-    self.yBottomR = self.yStepR * math.floor( yMinValueR / self.yStepR ) #start labels at the greatest multiple of yStepR <= yMinValue
-    self.yTopL = self.yStepL * math.ceil( yMaxValueL / self.yStepL ) #Extend the top of our graph to the lowest yStepL multiple >= yMaxValue
-    self.yTopR = self.yStepR * math.ceil( yMaxValueR / self.yStepR ) #Extend the top of our graph to the lowest yStepR multiple >= yMaxValue
-
-    if self.logBase and yMinValueL > 0 and yMinValueR > 0: #TODO: Allow separate bases for L & R Axes.
+    if self.logBase:
+      if yMinValueL <= 0 or yMinValueR <= 0:
+        raise GraphError('Logarithmic scale specified with a dataset with a '
+                         'minimum value less than or equal to zero')
+      #TODO: Allow separate bases for L & R Axes.
       self.yBottomL = math.pow(self.logBase, math.floor(math.log(yMinValueL, self.logBase)))
       self.yTopL = math.pow(self.logBase, math.ceil(math.log(yMaxValueL, self.logBase)))
       self.yBottomR = math.pow(self.logBase, math.floor(math.log(yMinValueR, self.logBase)))
       self.yTopR = math.pow(self.logBase, math.ceil(math.log(yMaxValueR, self.logBase)))
-    elif self.logBase and ( yMinValueL <= 0 or yMinValueR <=0 ) :
-        raise GraphError('Logarithmic scale specified with a dataset with a '
-                         'minimum value less than or equal to zero')
+    else:
+      self.yBottomL = self.yStepL * math.floor( yMinValueL / self.yStepL ) #start labels at the greatest multiple of yStepL <= yMinValue
+      self.yTopL = self.yStepL * math.ceil( yMaxValueL / self.yStepL ) #Extend the top of our graph to the lowest yStepL multiple >= yMaxValue
+      self.yBottomR = self.yStepR * math.floor( yMinValueR / self.yStepR ) #start labels at the greatest multiple of yStepR <= yMinValue
+      self.yTopR = self.yStepR * math.ceil( yMaxValueR / self.yStepR ) #Extend the top of our graph to the lowest yStepR multiple >= yMaxValue
 
     if 'yMaxLeft' in self.params:
       self.yTopL = self.params['yMaxLeft']
