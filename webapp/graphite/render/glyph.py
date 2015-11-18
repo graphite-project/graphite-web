@@ -1251,31 +1251,12 @@ class LineGraph(Graph):
     self.yScaleFactorR = float(self.graphHeight) / float(self.ySpanR)
 
     #Create and measure the Y-labels
-    def makeLabel(yValue, yStep=None, ySpan=None):
-      yValue, prefix = format_units(yValue,yStep,system=self.params.get('yUnitSystem'))
-      ySpan, spanPrefix = format_units(ySpan,yStep,system=self.params.get('yUnitSystem'))
-      if yValue < 0.1:
-        return "%g %s" % (float(yValue), prefix)
-      elif yValue < 1.0:
-        return "%.2f %s" % (float(yValue), prefix)
-      if ySpan > 10 or spanPrefix != prefix:
-        if type(yValue) is float:
-          return "%.1f %s " % (float(yValue), prefix)
-        else:
-          return "%d %s " % (int(yValue), prefix)
-      elif ySpan > 3:
-        return "%.1f %s " % (float(yValue), prefix)
-      elif ySpan > 0.1:
-        return "%.2f %s " % (float(yValue), prefix)
-      else:
-        return "%g %s" % (float(yValue), prefix)
-
     self.yLabelValuesL = self.getYLabelValues(self.yBottomL, self.yTopL, self.yStepL)
     self.yLabelValuesR = self.getYLabelValues(self.yBottomR, self.yTopR, self.yStepR)
     for value in self.yLabelValuesL: #can't use map() here self.yStepL and self.ySpanL are not iterable
-      self.yLabelsL.append( makeLabel(value,self.yStepL,self.ySpanL))
+      self.yLabelsL.append( makeLabel(value, self.yStepL, self.ySpanL, self.params.get('yUnitSystem')))
     for value in self.yLabelValuesR:
-      self.yLabelsR.append( makeLabel(value,self.yStepR,self.ySpanR) )
+      self.yLabelsR.append( makeLabel(value, self.yStepR, self.ySpanR, self.params.get('yUnitSystem')) )
     self.yLabelWidthL = max([self.getExtents(label)['width'] for label in self.yLabelsL])
     self.yLabelWidthR = max([self.getExtents(label)['width'] for label in self.yLabelsR])
     #scoot the graph over to the left just enough to fit the y-labels
