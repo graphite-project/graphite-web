@@ -204,6 +204,16 @@ class _LinearAxisTics(_AxisTics):
     if divisors is None:
       divisors = [4,5,6]
 
+    if self.minValue == self.maxValue:
+      if self.minValue == 0.0:
+        self.maxValue = 1.0
+      elif self.minValue < 0.0:
+        self.minValue *= 1.1
+        self.maxValue *= 0.9
+      else:
+        self.minValue *= 0.9
+        self.maxValue *= 1.1
+
     variance = self.maxValue - self.minValue
 
     if binary:
