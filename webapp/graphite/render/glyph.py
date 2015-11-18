@@ -1037,11 +1037,11 @@ class LineGraph(Graph):
         series.xStep = bestXStep
 
   def setupYAxis(self):
-    seriesWithMissingValues = [ series for series in self.data if None in series ]
+    missingValues = any(None in series for series in self.data)
 
     yMinValue = safeMin( [safeMin(series) for series in self.data if not series.options.get('drawAsInfinite')] )
 
-    if yMinValue > 0.0 and self.params.get('drawNullAsZero') and seriesWithMissingValues:
+    if yMinValue > 0.0 and self.params.get('drawNullAsZero') and missingValues:
       yMinValue = 0.0
 
     if self.areaMode == 'stacked':
@@ -1054,7 +1054,7 @@ class LineGraph(Graph):
     else:
       yMaxValue = safeMax( [safeMax(series) for series in self.data if not series.options.get('drawAsInfinite')] )
 
-    if yMaxValue < 0.0 and self.params.get('drawNullAsZero') and seriesWithMissingValues:
+    if yMaxValue < 0.0 and self.params.get('drawNullAsZero') and missingValues:
       yMaxValue = 0.0
 
     if yMinValue is None:
@@ -1140,22 +1140,20 @@ class LineGraph(Graph):
     # I am Lazy.
     Ldata = []
     Rdata = []
-    seriesWithMissingValuesL = []
-    seriesWithMissingValuesR = []
 
     Ldata += self.dataLeft
     Rdata += self.dataRight
 
     # Lots of coupled lines ahead.  Will operate on Left data first then Right.
 
-    seriesWithMissingValuesL = [ series for series in Ldata if None in series ]
-    seriesWithMissingValuesR = [ series for series in Rdata if None in series ]
+    missingValuesL = any(None in series for series in Ldata)
+    missingValuesR = any(None in series for series in Rdata)
 
-    if self.params.get('drawNullAsZero') and seriesWithMissingValuesL:
+    if self.params.get('drawNullAsZero') and missingValuesL:
       yMinValueL = 0.0
     else:
       yMinValueL = safeMin( [safeMin(series) for series in Ldata if not series.options.get('drawAsInfinite')] )
-    if self.params.get('drawNullAsZero') and seriesWithMissingValuesR:
+    if self.params.get('drawNullAsZero') and missingValuesR:
       yMinValueR = 0.0
     else:
       yMinValueR = safeMin( [safeMin(series) for series in Rdata if not series.options.get('drawAsInfinite')] )
