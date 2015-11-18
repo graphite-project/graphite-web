@@ -1115,38 +1115,11 @@ class LineGraph(Graph):
       self.yLabelWidth = 0.0
 
   def setupTwoYAxes(self):
-    # Lots of coupled lines ahead.  Will operate on Left data first then Right.
-    finiteDataL = [series for series in self.dataLeft if not series.options.get('drawAsInfinite')]
-    finiteDataR = [series for series in self.dataRight if not series.options.get('drawAsInfinite')]
+    drawNullAsZero = self.params.get('drawNullAsZero')
+    stacked = (self.areaMode == 'stacked')
 
-    missingValuesL = any(None in series for series in self.dataLeft)
-    missingValuesR = any(None in series for series in self.dataRight)
-
-    if self.params.get('drawNullAsZero') and missingValuesL:
-      yMinValueL = 0.0
-    else:
-      yMinValueL = safeMin(safeMin(series) for series in finiteDataL)
-    if self.params.get('drawNullAsZero') and missingValuesR:
-      yMinValueR = 0.0
-    else:
-      yMinValueR = safeMin(safeMin(series) for series in finiteDataR)
-
-    if self.areaMode == 'stacked':
-      yMaxValueL = safeSum(safeMax(series) for series in self.dataLeft)
-      yMaxValueR = safeSum(safeMax(series) for series in self.dataRight)
-    else:
-      yMaxValueL = safeMax(safeMax(series) for series in self.dataLeft)
-      yMaxValueR = safeMax(safeMax(series) for series in self.dataRight)
-
-    if yMinValueL is None:
-      yMinValueL = 0.0
-    if yMinValueR is None:
-      yMinValueR = 0.0
-
-    if yMaxValueL is None:
-      yMaxValueL = 1.0
-    if yMaxValueR is None:
-      yMaxValueR = 1.0
+    [yMinValueL, yMaxValueL] = dataLimits(self.dataLeft, drawNullAsZero, stacked)
+    [yMinValueR, yMaxValueR] = dataLimits(self.dataRight, drawNullAsZero, stacked)
 
     if 'yMaxLeft' in self.params:
       yMaxValueL = self.params['yMaxLeft']
