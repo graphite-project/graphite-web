@@ -1665,7 +1665,7 @@ def makeLabel(yValue, yStep=None, ySpan=None, yUnitSystem=None):
     return "%.2f %s" % (float(yValue), prefix)
   if ySpan > 10 or spanPrefix != prefix:
     if type(yValue) is float:
-      return "%.1f %s" % (float(yValue), prefix)
+      return "%.1f %s " % (float(yValue), prefix)
     else:
       return "%d %s " % (int(yValue), prefix)
   elif ySpan > 3:
