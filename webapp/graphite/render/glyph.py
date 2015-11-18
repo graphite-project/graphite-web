@@ -1080,7 +1080,7 @@ class LineGraph(Graph):
     else:
       yDivisors = str(self.params.get('yDivisors', '4,5,6'))
       yDivisors = [int(d) for d in yDivisors.split(',')]
-      binary = 'yUnitSystem' in self.params and self.params['yUnitSystem'] == 'binary'
+      binary = self.params.get('yUnitSystem') == 'binary'
       self.yStep = chooseAxisStep(yMinValue, yMaxValue, divisors=yDivisors, binary=binary)
 
     self.yBottom = self.yStep * math.floor( yMinValue / self.yStep ) #start labels at the greatest multiple of yStep <= yMinValue
