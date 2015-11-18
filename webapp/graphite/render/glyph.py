@@ -147,6 +147,172 @@ class GraphError(Exception):
   pass
 
 
+class _AxisTics:
+  def __init__(self, minValue, maxValue, unitSystem=None):
+    self.minValue = minValue
+    self.minRoundable = True
+    self.maxValue = maxValue
+    self.maxRoundable = True
+    self.unitSystem = unitSystem
+
+  def applySettings(self, axisMin=None, axisMax=None, axisLimit=None):
+    if axisMin is not None:
+      self.minValue = axisMin
+
+    if axisMax is not None:
+      self.maxRoundable = False
+      if axisMax != 'max':
+        self.maxValue = axisMax
+
+    if axisLimit is not None:
+      if axisLimit < self.maxValue:
+        self.maxValue = axisLimit
+        self.maxRoundable = False
+
+    if self.maxValue <= self.minValue:
+      self.maxValue = self.minValue + 1.0
+
+  def makeLabel(self, value):
+    value, prefix = format_units(value, self.step, system=self.unitSystem)
+    span, spanPrefix = format_units(self.span, self.step, system=self.unitSystem)
+    if value < 0.1:
+      return "%g %s" % (float(value), prefix)
+    elif value < 1.0:
+      return "%.2f %s" % (float(value), prefix)
+    if span > 10 or spanPrefix != prefix:
+      if type(value) is float:
+        return "%.1f %s " % (value, prefix)
+      else:
+        return "%d %s " % (int(value), prefix)
+    elif span > 3:
+      return "%.1f %s " % (float(value), prefix)
+    elif span > 0.1:
+      return "%.2f %s " % (float(value), prefix)
+    else:
+      return "%g %s" % (float(value), prefix)
+
+
+class _LinearAxisTics(_AxisTics):
+  def __init__(self, minValue, maxValue, unitSystem=None):
+    _AxisTics.__init__(self, minValue, maxValue, unitSystem=unitSystem)
+    self.step = None
+
+  def setStep(self, step):
+    self.step = step
+
+  def chooseStep(self, divisors=None, binary=False):
+    if divisors is None:
+      divisors = [4,5,6]
+
+    variance = self.maxValue - self.minValue
+
+    if binary:
+      order = math.log(variance, 2)
+      orderFactor = 2 ** math.floor(order)
+    else:
+      order = math.log10(variance)
+      orderFactor = 10 ** math.floor(order)
+    # we work with a scaled down variance for simplicity:
+    v = variance / orderFactor
+
+    prettyValues = (0.1,0.2,0.25,0.5,1.0,1.2,1.25,1.5,2.0,2.25,2.5)
+    divisorInfo = []
+
+    for d in divisors:
+      # our scaled down quotient, must be in the open interval (0,10):
+      q = v / d
+      # the prettyValue our quotient is closest to:
+      p = closest(q, prettyValues)
+      # make a list so we can find the prettiest of the pretty:
+      divisorInfo.append( ( p,abs(q-p)) )
+
+    # Sort our pretty values by "closeness to a factor":
+    divisorInfo.sort(key=lambda i: i[1])
+    # Our winner! Axis will have labels placed at multiples of our prettyValue:
+    prettyValue = divisorInfo[0][0]
+
+    # Scale it back up to the order of variance:
+    self.step = prettyValue * orderFactor
+
+  def chooseLimits(self):
+    if self.minRoundable:
+      # Start labels at the greatest multiple of step <= minValue:
+      self.bottom = self.step * math.floor(self.minValue / self.step)
+    else:
+      self.bottom = self.minValue
+
+    if self.maxRoundable:
+      # Extend the top of our graph to the lowest step multiple >= maxValue:
+      self.top = self.step * math.ceil(self.maxValue / self.step)
+    else:
+      self.top = self.maxValue
+
+    self.span = self.top - self.bottom
+
+    if self.span == 0:
+      self.top += 1
+      self.span += 1
+
+  def getLabelValues(self):
+    if self.step <= 0.0:
+      raise GraphError('The step size must be positive')
+    if self.span > 1000.0 * self.step:
+      # This is insane. Pick something that won't cause trouble:
+      self.chooseStep()
+
+    values = []
+
+    start = self.step * math.ceil(self.bottom / self.step - 0.0001)
+    i = 0
+    while True:
+      value = start + i * self.step
+      if value > self.top + 0.0001 * self.step:
+        break
+      values.append(value)
+      i += 1
+
+    return values
+
+
+class _LogAxisTics(_AxisTics):
+  def __init__(self, minValue, maxValue, unitSystem=None, base=10.0):
+    _AxisTics.__init__(self, minValue, maxValue, unitSystem=unitSystem)
+    if base <= 1.0:
+      raise GraphError('Logarithmic base must be greater than one')
+    self.base = base
+
+  def setStep(self, step):
+    # step is ignored for Logarithmic tics:
+    self.step = None
+
+  def chooseStep(self, divisors=None, binary=False):
+    # step is ignored for Logarithmic tics:
+    self.step = None
+
+  def chooseLimits(self):
+    if self.minValue <= 0:
+      raise GraphError('Logarithmic scale specified with a dataset with a '
+                       'minimum value less than or equal to zero')
+    self.bottom = math.pow(self.base, math.floor(math.log(self.minValue, self.base)))
+    self.top = math.pow(self.base, math.ceil(math.log(self.maxValue, self.base)))
+
+    self.span = self.top - self.bottom
+
+    if self.span == 0:
+      self.top *= self.base
+      self.span = self.top - self.bottom
+
+  def getLabelValues(self):
+    values = []
+
+    value = math.pow(self.base, math.ceil(math.log(self.bottom, self.base) - 0.0001))
+    while value < self.top * 1.0001:
+       values.append(value)
+       value *= self.base
+
+    return values
+
+
 class Graph:
   customizable = ('width','height','margin','bgcolor','fgcolor', \
                  'fontName','fontSize','fontBold','fontItalic', \
@@ -1055,57 +1221,49 @@ class LineGraph(Graph):
     (yMinValue, yMaxValue) = dataLimits(self.data,
                                         drawNullAsZero=self.params.get('drawNullAsZero'),
                                         stacked=(self.areaMode == 'stacked'))
-    (yMinValue, yMaxValue) = self._adjustLimits(yMinValue, yMaxValue, 'yMin', 'yMax', 'yLimit')
+
+    if self.logBase:
+      yTics = _LogAxisTics(yMinValue, yMaxValue,
+                           unitSystem=self.params.get('yUnitSystem'), base=self.logBase)
+    else:
+      yTics = _LinearAxisTics(yMinValue, yMaxValue,
+                           unitSystem=self.params.get('yUnitSystem'))
+
+    yTics.applySettings(axisMin=self.params.get('yMin'),
+                        axisMax=self.params.get('yMax'),
+                        axisLimit=self.params.get('yLimit'))
 
     if 'yStep' in self.params:
-      self.yStep = self.params['yStep']
+      yTics.setStep(self.params['yStep'])
     else:
       yDivisors = str(self.params.get('yDivisors', '4,5,6'))
       yDivisors = [int(d) for d in yDivisors.split(',')]
       binary = self.params.get('yUnitSystem') == 'binary'
-      self.yStep = chooseAxisStep(yMinValue, yMaxValue, divisors=yDivisors, binary=binary)
+      yTics.chooseStep(divisors=yDivisors, binary=binary)
 
-    if self.logBase:
-      if yMinValue <= 0:
-        raise GraphError('Logarithmic scale specified with a dataset with a '
-                         'minimum value less than or equal to zero')
-      self.yBottom = math.pow(self.logBase, math.floor(math.log(yMinValue, self.logBase)))
-      self.yTop = math.pow(self.logBase, math.ceil(math.log(yMaxValue, self.logBase)))
-    else:
-      self.yBottom = self.yStep * math.floor( yMinValue / self.yStep ) #start labels at the greatest multiple of yStep <= yMinValue
-      self.yTop = self.yStep * math.ceil( yMaxValue / self.yStep ) #Extend the top of our graph to the lowest yStep multiple >= yMaxValue
+    yTics.chooseLimits()
 
+    # Copy the values we need back out of the yTics object:
+    self.yStep = yTics.step
+    self.yBottom = yTics.bottom
+    self.yTop = yTics.top
+    self.ySpan = yTics.span
 
-    if 'yMax' in self.params:
-      if self.params['yMax'] == 'max':
-        scale = float(yMaxValue) / self.yTop
-        self.yStep *= (scale - 0.000001)
-        self.yTop = yMaxValue
-      else:
-        self.yTop = float(self.params['yMax'])
-    if 'yMin' in self.params:
-      self.yBottom = self.params['yMin']
-
-    self.ySpan = self.yTop - self.yBottom
-
-    if self.ySpan == 0:
-      self.yTop += 1
-      self.ySpan += 1
-
-    if not self.params.get('hideAxes',False):
+    if not self.params.get('hideAxes', False):
       #Create and measure the Y-labels
 
-      self.yLabelValues = self.getYLabelValues(self.yBottom, self.yTop, self.yStep)
-      self.yLabels = [makeLabel(value, self.yStep, self.ySpan, self.params.get('yUnitSystem'))
-                      for value in self.yLabelValues]
+      self.yLabelValues = yTics.getLabelValues()
+      self.yLabels = [yTics.makeLabel(value) for value in self.yLabelValues]
       self.yLabelWidth = max([self.getExtents(label)['width'] for label in self.yLabels])
 
       if not self.params.get('hideYAxis'):
-        if self.params.get('yAxisSide') == 'left': #scoot the graph over to the left just enough to fit the y-labels
+        if self.params.get('yAxisSide') == 'left':
+          # Scoot the graph over to the left just enough to fit the y-labels:
           xMin = self.margin + (self.yLabelWidth * 1.02)
           if self.area['xmin'] < xMin:
             self.area['xmin'] = xMin
-        else: #scoot the graph over to the right just enough to fit the y-labels
+        else:
+          # Scoot the graph over to the right just enough to fit the y-labels:
           xMin = 0
           xMax = self.margin - (self.yLabelWidth * 1.02)
           if self.area['xmax'] >= xMax:
@@ -1120,67 +1278,61 @@ class LineGraph(Graph):
     stacked = (self.areaMode == 'stacked')
 
     (yMinValueL, yMaxValueL) = dataLimits(self.dataLeft, drawNullAsZero, stacked)
-    (yMinValueL, yMaxValueL) = self._adjustLimits(yMinValueL, yMaxValueL,
-                                                  'yMinLeft', 'yMaxLeft', 'yLimitLeft')
-
     (yMinValueR, yMaxValueR) = dataLimits(self.dataRight, drawNullAsZero, stacked)
-    (yMinValueR, yMaxValueR) = self._adjustLimits(yMinValueR, yMaxValueR,
-                                                  'yMinRight', 'yMaxRight', 'yLimitRight')
+
+    # TODO: Allow separate bases for L & R Axes.
+    if self.logBase:
+      yTicsL = _LogAxisTics(yMinValueL, yMaxValueL,
+                            unitSystem=self.params.get('yUnitSystem'), base=self.logBase)
+      yTicsR = _LogAxisTics(yMinValueR, yMaxValueR,
+                            unitSystem=self.params.get('yUnitSystem'), base=self.logBase)
+    else:
+      yTicsL = _LinearAxisTics(yMinValueL, yMaxValueL,
+                               unitSystem=self.params.get('yUnitSystem'))
+      yTicsR = _LinearAxisTics(yMinValueR, yMaxValueR,
+                               unitSystem=self.params.get('yUnitSystem'))
+
+    yTicsL.applySettings(axisMin=self.params.get('yMinLeft'),
+                         axisMax=self.params.get('yMaxLeft'),
+                         axisLimit=self.params.get('yLimitLeft'))
+    yTicsR.applySettings(axisMin=self.params.get('yMinRight'),
+                         axisMax=self.params.get('yMaxRight'),
+                         axisLimit=self.params.get('yLimitRight'))
 
     yDivisors = str(self.params.get('yDivisors', '4,5,6'))
     yDivisors = [int(d) for d in yDivisors.split(',')]
+    binary = self.params.get('yUnitSystem') == 'binary'
 
     if 'yStepLeft' in self.params:
-      self.yStepL = self.params['yStepLeft']
+      yTicsL.setStep(self.params['yStepLeft'])
     else:
-      self.yStepL = chooseAxisStep(yMinValueL, yMaxValueL, divisors=yDivisors)
+      yTicsL.chooseStep(divisors=yDivisors, binary=binary)
 
     if 'yStepRight' in self.params:
-      self.yStepR = self.params['yStepRight']
+      yTicsR.setStep(self.params['yStepRight'])
     else:
-      self.yStepR = chooseAxisStep(yMinValueR, yMaxValueR, divisors=yDivisors)
+      yTicsR.chooseStep(divisors=yDivisors, binary=binary)
 
-    if self.logBase:
-      if yMinValueL <= 0 or yMinValueR <= 0:
-        raise GraphError('Logarithmic scale specified with a dataset with a '
-                         'minimum value less than or equal to zero')
-      #TODO: Allow separate bases for L & R Axes.
-      self.yBottomL = math.pow(self.logBase, math.floor(math.log(yMinValueL, self.logBase)))
-      self.yTopL = math.pow(self.logBase, math.ceil(math.log(yMaxValueL, self.logBase)))
-      self.yBottomR = math.pow(self.logBase, math.floor(math.log(yMinValueR, self.logBase)))
-      self.yTopR = math.pow(self.logBase, math.ceil(math.log(yMaxValueR, self.logBase)))
-    else:
-      self.yBottomL = self.yStepL * math.floor( yMinValueL / self.yStepL ) #start labels at the greatest multiple of yStepL <= yMinValue
-      self.yTopL = self.yStepL * math.ceil( yMaxValueL / self.yStepL ) #Extend the top of our graph to the lowest yStepL multiple >= yMaxValue
-      self.yBottomR = self.yStepR * math.floor( yMinValueR / self.yStepR ) #start labels at the greatest multiple of yStepR <= yMinValue
-      self.yTopR = self.yStepR * math.ceil( yMaxValueR / self.yStepR ) #Extend the top of our graph to the lowest yStepR multiple >= yMaxValue
+    yTicsL.chooseLimits()
+    yTicsR.chooseLimits()
 
-    if 'yMaxLeft' in self.params:
-      self.yTopL = self.params['yMaxLeft']
-    if 'yMaxRight' in self.params:
-      self.yTopR = self.params['yMaxRight']
-    if 'yMinLeft' in self.params:
-      self.yBottomL = self.params['yMinLeft']
-    if 'yMinRight' in self.params:
-      self.yBottomR = self.params['yMinRight']
+    # Copy the values we need back out of the yTics objects:
+    self.yStepL = yTicsL.step
+    self.yBottomL = yTicsL.bottom
+    self.yTopL = yTicsL.top
+    self.ySpanL = yTicsL.span
 
-    self.ySpanL = self.yTopL - self.yBottomL
-    self.ySpanR = self.yTopR - self.yBottomR
-
-    if self.ySpanL == 0:
-      self.yTopL += 1
-      self.ySpanL += 1
-    if self.ySpanR == 0:
-      self.yTopR += 1
-      self.ySpanR += 1
+    self.yStepR = yTicsR.step
+    self.yBottomR = yTicsR.bottom
+    self.yTopR = yTicsR.top
+    self.ySpanR = yTicsR.span
 
     #Create and measure the Y-labels
-    self.yLabelValuesL = self.getYLabelValues(self.yBottomL, self.yTopL, self.yStepL)
-    self.yLabelValuesR = self.getYLabelValues(self.yBottomR, self.yTopR, self.yStepR)
-    self.yLabelsL = [makeLabel(value, self.yStepL, self.ySpanL, self.params.get('yUnitSystem'))
-                     for value in self.yLabelValuesL]
-    self.yLabelsR = [makeLabel(value, self.yStepR, self.ySpanR, self.params.get('yUnitSystem'))
-                     for value in self.yLabelValuesR]
+    self.yLabelValuesL = yTicsL.getLabelValues()
+    self.yLabelValuesR = yTicsR.getLabelValues()
+
+    self.yLabelsL = [yTicsL.makeLabel(value) for value in self.yLabelValuesL]
+    self.yLabelsR = [yTicsR.makeLabel(value) for value in self.yLabelValuesR]
 
     self.yLabelWidthL = max([self.getExtents(label)['width'] for label in self.yLabelsL])
     self.yLabelWidthR = max([self.getExtents(label)['width'] for label in self.yLabelsR])
@@ -1194,14 +1346,6 @@ class LineGraph(Graph):
     xMax = self.width - (self.yLabelWidthR * 1.02)
     if self.area['xmax'] >= xMax:
       self.area['xmax'] = xMax
-
-  def getYLabelValues(self, minYValue, maxYValue, yStep=None):
-    vals = []
-    if self.logBase:
-      vals = list( logrange(self.logBase, minYValue, maxYValue) )
-    else:
-      vals = list( frange(minYValue, maxYValue, yStep) )
-    return vals
 
   def setupXAxis(self):
     if self.userTimeZone:
@@ -1491,17 +1635,6 @@ def closest(number,neighbors):
   return closestNeighbor
 
 
-def frange(start,end,step):
-  f = start
-  while f <= end:
-    yield f
-    f += step
-    # Protect against rounding errors on very small float ranges
-    if f == start:
-      yield end
-      return
-
-
 def toSeconds(t):
   return (t.days * 86400) + t.seconds
 
@@ -1603,26 +1736,6 @@ def format_units(v, step=None, system="si"):
   return v, ""
 
 
-def makeLabel(yValue, yStep=None, ySpan=None, yUnitSystem=None):
-  yValue, prefix = format_units(yValue, yStep, system=yUnitSystem)
-  ySpan, spanPrefix = format_units(ySpan, yStep, system=yUnitSystem)
-  if yValue < 0.1:
-    return "%g %s" % (float(yValue), prefix)
-  elif yValue < 1.0:
-    return "%.2f %s" % (float(yValue), prefix)
-  if ySpan > 10 or spanPrefix != prefix:
-    if type(yValue) is float:
-      return "%.1f %s " % (float(yValue), prefix)
-    else:
-      return "%d %s " % (int(yValue), prefix)
-  elif ySpan > 3:
-    return "%.1f %s " % (float(yValue), prefix)
-  elif ySpan > 0.1:
-    return "%.2f %s " % (float(yValue), prefix)
-  else:
-    return "%g %s" % (float(yValue), prefix)
-
-
 def find_x_times(start_dt, unit, step):
   if unit == SEC:
     dt = start_dt.replace(second=start_dt.second - (start_dt.second % step))
@@ -1647,40 +1760,3 @@ def find_x_times(start_dt, unit, step):
     dt += x_delta
 
   return (dt, x_delta)
-
-
-def chooseAxisStep(minValue, maxValue, divisors=None, binary=False):
-  if divisors is None:
-    divisors = [4,5,6]
-
-  variance = maxValue - minValue
-
-  if binary:
-    order = math.log(variance, 2)
-    orderFactor = 2 ** math.floor(order)
-  else:
-    order = math.log10(variance)
-    orderFactor = 10 ** math.floor(order)
-  v = variance / orderFactor #we work with a scaled down variance for simplicity
-
-  prettyValues = (0.1,0.2,0.25,0.5,1.0,1.2,1.25,1.5,2.0,2.25,2.5)
-  divisorInfo = []
-
-  for d in divisors:
-    q = v / d #our scaled down quotient, must be in the open interval (0,10)
-    p = closest(q, prettyValues) #the prettyValue our quotient is closest to
-    divisorInfo.append( ( p,abs(q-p)) ) #make a list so we can find the prettiest of the pretty
-
-  divisorInfo.sort(key=lambda i: i[1]) #sort our pretty values by "closeness to a factor"
-  prettyValue = divisorInfo[0][0] #our winner! Axis will have labels placed at multiples of our prettyValue
-  return prettyValue * orderFactor #scale it back up to the order of variance
-
-def logrange(base, scale_min, scale_max):
-  current = scale_min
-  if scale_min > 0:
-      current = math.floor(math.log(scale_min, base))
-  factor = current
-  while current < scale_max:
-     current = math.pow(base, factor)
-     yield current
-     factor += 1
