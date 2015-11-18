@@ -1038,21 +1038,22 @@ class LineGraph(Graph):
 
   def setupYAxis(self):
     missingValues = any(None in series for series in self.data)
+    finiteData = [series for series in self.data if not series.options.get('drawAsInfinite')]
 
-    yMinValue = safeMin( [safeMin(series) for series in self.data if not series.options.get('drawAsInfinite')] )
+    yMinValue = safeMin( [safeMin(series) for series in finiteData] )
 
     if yMinValue > 0.0 and self.params.get('drawNullAsZero') and missingValues:
       yMinValue = 0.0
 
     if self.areaMode == 'stacked':
-      length = safeMin( [len(series) for series in self.data if not series.options.get('drawAsInfinite')] )
+      length = safeMin( [len(series) for series in finiteData] )
       sumSeries = []
 
       for i in xrange(0, length):
-        sumSeries.append( safeSum( [series[i] for series in self.data if not series.options.get('drawAsInfinite')] ) )
+        sumSeries.append( safeSum( [series[i] for series in finiteData] ) )
       yMaxValue = safeMax( sumSeries )
     else:
-      yMaxValue = safeMax( [safeMax(series) for series in self.data if not series.options.get('drawAsInfinite')] )
+      yMaxValue = safeMax( [safeMax(series) for series in finiteData] )
 
     if yMaxValue < 0.0 and self.params.get('drawNullAsZero') and missingValues:
       yMaxValue = 0.0
@@ -1138,6 +1139,8 @@ class LineGraph(Graph):
 
   def setupTwoYAxes(self):
     # Lots of coupled lines ahead.  Will operate on Left data first then Right.
+    finiteDataL = [series for series in self.dataLeft if not series.options.get('drawAsInfinite')]
+    finiteDataR = [series for series in self.dataRight if not series.options.get('drawAsInfinite')]
 
     missingValuesL = any(None in series for series in self.dataLeft)
     missingValuesR = any(None in series for series in self.dataRight)
@@ -1145,13 +1148,11 @@ class LineGraph(Graph):
     if self.params.get('drawNullAsZero') and missingValuesL:
       yMinValueL = 0.0
     else:
-      yMinValueL = safeMin( [safeMin(series) for series in self.dataLeft
-                             if not series.options.get('drawAsInfinite')] )
+      yMinValueL = safeMin( [safeMin(series) for series in finiteDataL] )
     if self.params.get('drawNullAsZero') and missingValuesR:
       yMinValueR = 0.0
     else:
-      yMinValueR = safeMin( [safeMin(series) for series in self.dataRight
-                             if not series.options.get('drawAsInfinite')] )
+      yMinValueR = safeMin( [safeMin(series) for series in finiteDataR] )
 
     if self.areaMode == 'stacked':
       yMaxValueL = safeSum( [safeMax(series) for series in self.dataLeft] )
