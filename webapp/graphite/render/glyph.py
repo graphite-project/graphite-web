@@ -1037,32 +1037,9 @@ class LineGraph(Graph):
         series.xStep = bestXStep
 
   def setupYAxis(self):
-    missingValues = any(None in series for series in self.data)
-    finiteData = [series for series in self.data if not series.options.get('drawAsInfinite')]
-
-    yMinValue = safeMin(safeMin(series) for series in finiteData)
-
-    if yMinValue > 0.0 and self.params.get('drawNullAsZero') and missingValues:
-      yMinValue = 0.0
-
-    if self.areaMode == 'stacked':
-      length = safeMin(len(series) for series in finiteData)
-      sumSeries = []
-
-      for i in xrange(0, length):
-        sumSeries.append( safeSum(series[i] for series in finiteData) )
-      yMaxValue = safeMax( sumSeries )
-    else:
-      yMaxValue = safeMax(safeMax(series) for series in finiteData)
-
-    if yMaxValue < 0.0 and self.params.get('drawNullAsZero') and missingValues:
-      yMaxValue = 0.0
-
-    if yMinValue is None:
-      yMinValue = 0.0
-
-    if yMaxValue is None:
-      yMaxValue = 1.0
+    [yMinValue, yMaxValue] = dataLimits(self.data,
+                                        drawNullAsZero=self.params.get('drawNullAsZero'),
+                                        stacked=(self.areaMode == 'stacked'))
 
     if 'yMax' in self.params and self.params['yMax'] != 'max':
       yMaxValue = self.params['yMax']
@@ -1602,6 +1579,42 @@ def any(args):
     if arg:
       return True
   return False
+
+
+def dataLimits(data, drawNullAsZero=False, stacked=False):
+  """Return the range of values in data as [yMinValue, yMaxValue].
+
+  data is an array of TimeSeries objects.
+  """
+
+  missingValues = any(None in series for series in data)
+  finiteData = [series for series in data if not series.options.get('drawAsInfinite')]
+
+  yMinValue = safeMin(safeMin(series) for series in finiteData)
+
+  if yMinValue > 0.0 and drawNullAsZero and missingValues:
+    yMinValue = 0.0
+
+  if stacked:
+    length = safeMin(len(series) for series in finiteData)
+    sumSeries = []
+
+    for i in xrange(0, length):
+      sumSeries.append( safeSum(series[i] for series in finiteData) )
+    yMaxValue = safeMax( sumSeries )
+  else:
+    yMaxValue = safeMax(safeMax(series) for series in finiteData)
+
+  if yMaxValue < 0.0 and drawNullAsZero and missingValues:
+    yMaxValue = 0.0
+
+  if yMinValue is None:
+    yMinValue = 0.0
+
+  if yMaxValue is None:
+    yMaxValue = 1.0
+
+  return [yMinValue, yMaxValue]
 
 
 def sort_stacked(series_list):
