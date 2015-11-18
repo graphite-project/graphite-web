@@ -1142,8 +1142,6 @@ class LineGraph(Graph):
     Rdata = []
     seriesWithMissingValuesL = []
     seriesWithMissingValuesR = []
-    self.yLabelsL = []
-    self.yLabelsR = []
 
     Ldata += self.dataLeft
     Rdata += self.dataRight
@@ -1253,10 +1251,11 @@ class LineGraph(Graph):
     #Create and measure the Y-labels
     self.yLabelValuesL = self.getYLabelValues(self.yBottomL, self.yTopL, self.yStepL)
     self.yLabelValuesR = self.getYLabelValues(self.yBottomR, self.yTopR, self.yStepR)
-    for value in self.yLabelValuesL: #can't use map() here self.yStepL and self.ySpanL are not iterable
-      self.yLabelsL.append( makeLabel(value, self.yStepL, self.ySpanL, self.params.get('yUnitSystem')))
-    for value in self.yLabelValuesR:
-      self.yLabelsR.append( makeLabel(value, self.yStepR, self.ySpanR, self.params.get('yUnitSystem')) )
+    self.yLabelsL = [makeLabel(value, self.yStepL, self.ySpanL, self.params.get('yUnitSystem'))
+                     for value in self.yLabelValuesL]
+    self.yLabelsR = [makeLabel(value, self.yStepR, self.ySpanR, self.params.get('yUnitSystem'))
+                     for value in self.yLabelValuesR]
+
     self.yLabelWidthL = max([self.getExtents(label)['width'] for label in self.yLabelsL])
     self.yLabelWidthR = max([self.getExtents(label)['width'] for label in self.yLabelsR])
     #scoot the graph over to the left just enough to fit the y-labels
