@@ -165,18 +165,19 @@ class _AxisTics:
 
   def applySettings(self, axisMin=None, axisMax=None, axisLimit=None):
     if axisMin is not None:
-      self.minValueSource = 'setting'
+      self.minValueSource = 'min'
       self.minValue = axisMin
 
-    if axisMax is not None:
-      self.maxValueSource = 'setting'
-      if axisMax != 'max':
-        self.maxValue = axisMax
+    if axisMax == 'max':
+      self.maxValueSource = 'extremum'
+    elif axisMax is not None:
+      self.maxValueSource = 'max'
+      self.maxValue = axisMax
 
     if axisLimit is not None:
       if axisLimit < self.maxValue:
         self.maxValue = axisLimit
-        self.maxValueSource = 'setting'
+        self.maxValueSource = 'limit'
 
     if self.maxValue <= self.minValue:
       self.maxValue = self.minValue + 1.0
