@@ -202,6 +202,15 @@ class _AxisTics:
       if axisLimit < self.maxValue:
         self.maxValue = axisLimit
         self.maxValueSource = 'limit'
+        # The limit has already been imposed, so there is no need to
+        # remember it:
+        self.axisLimit = None
+      else:
+        # We still need to remember axisLimit to avoid rounding top to
+        # a value larger than axisLimit:
+        self.axisLimit = axisLimit
+    else:
+      self.axisLimit = None
 
     if not (self.minValue < self.maxValue):
       self.reconcileLimits()
@@ -354,6 +363,9 @@ class _LinearAxisTics(_AxisTics):
     if self.maxValueSource == 'data':
       # Extend the top of our graph to the lowest step multiple >= maxValue:
       self.top = self.step * math.ceil(self.maxValue / self.step - EPSILON)
+      # ...but never exceed a user-specified limit:
+      if self.axisLimit is not None and self.top > self.axisLimit + EPSILON * self.step:
+        self.top = self.axisLimit
     else:
       self.top = self.maxValue
 
