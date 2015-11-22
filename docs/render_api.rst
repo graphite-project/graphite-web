@@ -644,6 +644,14 @@ Example:
 
   &hideAxes=true
 
+.. _param-hideXAxis:
+
+hideXAxis
+---------
+*Default: False*
+
+If set to ``true`` the X Axis will not be rendered
+
 .. _param-hideYAxis:
 
 hideYAxis
