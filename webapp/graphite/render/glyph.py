@@ -351,7 +351,6 @@ class _LinearAxisTics(_AxisTics):
           bestStep = step
           bestDivisor = divisor
 
-    # Scale it back up to the order of variance:
     self.step = bestStep
 
   def chooseLimits(self):
