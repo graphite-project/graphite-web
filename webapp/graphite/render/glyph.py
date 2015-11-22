@@ -168,7 +168,7 @@ class _AxisTics:
     if abs(x) < 1.0e-9:
       return 1.0
     else:
-      return 0.1 * math.abs(x)
+      return 0.1 * abs(x)
 
   def reconcileLimits(self):
     minFixed = (self.minValueSource in ['min'])
