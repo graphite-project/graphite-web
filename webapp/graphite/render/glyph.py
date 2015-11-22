@@ -243,10 +243,10 @@ class _LinearAxisTics(_AxisTics):
   def setStep(self, step):
     self.step = step
 
-  def generateSteps(self, minStep, binary=False):
+  def generateSteps(self, minStep):
     """Generate allowed steps with step >= minStep in increasing order."""
 
-    if binary:
+    if self.binary:
       base = 2.0
       mantissas = [1.0]
       exponent = math.floor(math.log(minStep, 2) - EPSILON)
@@ -322,6 +322,7 @@ class _LinearAxisTics(_AxisTics):
 
     """
 
+    self.binary = binary
     if divisors is None:
       divisors = [4,5,6]
 
@@ -340,7 +341,7 @@ class _LinearAxisTics(_AxisTics):
     bestSlop = None
     bestStep = None
     bestDivisor = None
-    for step in self.generateSteps(variance / max(divisors), binary=binary):
+    for step in self.generateSteps(variance / max(divisors)):
       if bestSlop is not None and step * min(divisors) >= 2 * bestSlop + variance:
         break
       for divisor in divisors:
