@@ -158,25 +158,25 @@ class GraphError(Exception):
 class _AxisTics:
   def __init__(self, minValue, maxValue, unitSystem=None):
     self.minValue = minValue
-    self.minRoundable = True
+    self.minValueSource = 'data'
     self.maxValue = maxValue
-    self.maxRoundable = True
+    self.maxValueSource = 'data'
     self.unitSystem = unitSystem
 
   def applySettings(self, axisMin=None, axisMax=None, axisLimit=None):
     if axisMin is not None:
-      self.minRoundable = False
+      self.minValueSource = 'setting'
       self.minValue = axisMin
 
     if axisMax is not None:
-      self.maxRoundable = False
+      self.maxValueSource = 'setting'
       if axisMax != 'max':
         self.maxValue = axisMax
 
     if axisLimit is not None:
       if axisLimit < self.maxValue:
         self.maxValue = axisLimit
-        self.maxRoundable = False
+        self.maxValueSource = 'setting'
 
     if self.maxValue <= self.minValue:
       self.maxValue = self.minValue + 1.0
@@ -320,13 +320,13 @@ class _LinearAxisTics(_AxisTics):
     self.step = bestStep
 
   def chooseLimits(self):
-    if self.minRoundable:
+    if self.minValueSource == 'data':
       # Start labels at the greatest multiple of step <= minValue:
       self.bottom = self.step * math.floor(self.minValue / self.step + EPSILON)
     else:
       self.bottom = self.minValue
 
-    if self.maxRoundable:
+    if self.maxValueSource == 'data':
       # Extend the top of our graph to the lowest step multiple >= maxValue:
       self.top = self.step * math.ceil(self.maxValue / self.step - EPSILON)
     else:
