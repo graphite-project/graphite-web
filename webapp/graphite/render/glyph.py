@@ -157,6 +157,7 @@ class _AxisTics:
 
   def applySettings(self, axisMin=None, axisMax=None, axisLimit=None):
     if axisMin is not None:
+      self.minRoundable = False
       self.minValue = axisMin
 
     if axisMax is not None:
