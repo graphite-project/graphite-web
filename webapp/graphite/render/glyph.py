@@ -143,6 +143,14 @@ UnitSystems = {
 }
 
 
+# We accept values fractionally outside of nominal limits, so that
+# rounding errors don't cause weird effects. Since our goal is to
+# create plots, and the maximum resolution of the plots is likely to
+# be less than 10000 pixels, errors smaller than this size shouldn't
+# create any visible effects.
+EPSILON = 0.0001
+
+
 class GraphError(Exception):
   pass
 
@@ -207,17 +215,17 @@ class _LinearAxisTics(_AxisTics):
     if binary:
       base = 2.0
       mantissas = [1.0]
-      exponent = math.floor(math.log(minStep, 2) - 0.001)
+      exponent = math.floor(math.log(minStep, 2) - EPSILON)
     else:
       base = 10.0
       mantissas = [1.0, 2.0, 5.0]
-      exponent = math.floor(math.log10(minStep) - 0.001)
+      exponent = math.floor(math.log10(minStep) - EPSILON)
 
     while True:
       multiplier = base ** exponent
       for mantissa in mantissas:
         value = mantissa * multiplier
-        if value >= minStep * 0.999:
+        if value >= minStep * (1.0 - EPSILON):
           yield value
       exponent += 1
 
@@ -229,10 +237,10 @@ class _LinearAxisTics(_AxisTics):
 
     """
 
-    bottom = step * math.floor(self.minValue / step + 0.001)
+    bottom = step * math.floor(self.minValue / step + EPSILON)
     top = bottom + step * divisor
 
-    if top >= self.maxValue - 0.001 * step:
+    if top >= self.maxValue - EPSILON * step:
       return max(top - self.maxValue, self.minValue - bottom)
     else:
       return None
@@ -314,13 +322,13 @@ class _LinearAxisTics(_AxisTics):
   def chooseLimits(self):
     if self.minRoundable:
       # Start labels at the greatest multiple of step <= minValue:
-      self.bottom = self.step * math.floor(self.minValue / self.step + 0.001)
+      self.bottom = self.step * math.floor(self.minValue / self.step + EPSILON)
     else:
       self.bottom = self.minValue
 
     if self.maxRoundable:
       # Extend the top of our graph to the lowest step multiple >= maxValue:
-      self.top = self.step * math.ceil(self.maxValue / self.step - 0.001)
+      self.top = self.step * math.ceil(self.maxValue / self.step - EPSILON)
     else:
       self.top = self.maxValue
 
@@ -339,11 +347,11 @@ class _LinearAxisTics(_AxisTics):
 
     values = []
 
-    start = self.step * math.ceil(self.bottom / self.step - 0.0001)
+    start = self.step * math.ceil(self.bottom / self.step - EPSILON)
     i = 0
     while True:
       value = start + i * self.step
-      if value > self.top + 0.0001 * self.step:
+      if value > self.top + EPSILON * self.step:
         break
       values.append(value)
       i += 1
@@ -382,8 +390,8 @@ class _LogAxisTics(_AxisTics):
   def getLabelValues(self):
     values = []
 
-    value = math.pow(self.base, math.ceil(math.log(self.bottom, self.base) - 0.0001))
-    while value < self.top * 1.0001:
+    value = math.pow(self.base, math.ceil(math.log(self.bottom, self.base) - EPSILON))
+    while value < self.top * (1.0 + EPSILON):
        values.append(value)
        value *= self.base
 
