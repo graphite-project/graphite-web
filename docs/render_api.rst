@@ -1014,7 +1014,7 @@ Sets the side of the graph on which to render the Y-axis. Accepts values of ``le
 .. _param-yDivisor:
   
 yDivisors
---------
+---------
 *Default: 4,5,6*
 
 Sets the preferred number of intermediate values to display on the Y-axis (Y values between the
