@@ -163,6 +163,30 @@ class _AxisTics:
     self.maxValueSource = 'data'
     self.unitSystem = unitSystem
 
+  @staticmethod
+  def chooseDelta(x):
+    if abs(x) < 1.0e-9:
+      return 1.0
+    else:
+      return 0.1 * math.abs(x)
+
+  def reconcileLimits(self):
+    minFixed = (self.minValueSource in ['min'])
+    maxFixed = (self.maxValueSource in ['max', 'limit'])
+
+    if minFixed and maxFixed:
+      raise GraphError('The %s must be less than the %s' %
+                       (self.minValueSource, self.maxValueSource))
+    elif minFixed:
+      self.maxValue = self.minValue + self.chooseDelta(self.minValue)
+    elif maxFixed:
+      self.minValue = self.maxValue - self.chooseDelta(self.maxValue)
+    else:
+      delta = max(abs(self.minValue), abs(self.maxValue))
+      average = (self.minValue + self.maxValue) / 2.0
+      self.minValue = average - delta
+      self.maxValue = average + delta
+
   def applySettings(self, axisMin=None, axisMax=None, axisLimit=None):
     if axisMin is not None:
       self.minValueSource = 'min'
@@ -179,8 +203,8 @@ class _AxisTics:
         self.maxValue = axisLimit
         self.maxValueSource = 'limit'
 
-    if self.maxValue <= self.minValue:
-      self.maxValue = self.minValue + 1.0
+    if not (self.minValue < self.maxValue):
+      self.reconcileLimits()
 
   def makeLabel(self, value):
     value, prefix = format_units(value, self.step, system=self.unitSystem)
