@@ -1755,11 +1755,14 @@ def toSeconds(t):
   return (t.days * 86400) + t.seconds
 
 
-# Iterate over the values in an iterable that are neither None nor
-# INFINITY
 def safeArgs(args):
-  invalid = (None, INFINITY)
-  return (arg for arg in args if arg not in invalid)
+  """Iterate over valid, finite values an in iterable.
+
+  Skip any items that are None, NaN, or infinite.
+  """
+
+  return (arg for arg in args
+          if arg is not None and not math.isnan(arg) and not math.isinf(arg))
 
 
 def safeMin(args):
