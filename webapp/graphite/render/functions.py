@@ -534,7 +534,7 @@ def asPercent(requestContext, seriesList, seriesList2orNumber=None):
     totalText = None # series.pathExpression
   elif type(seriesList2orNumber) is list:
     if len(seriesList2orNumber) != 1 and len(seriesList2orNumber) != len(seriesList):
-      raise ValueError("asPercent second argument must be missing, a single digit, reference exactly 1 series or reference the same mumber of series as the first argument")
+      raise ValueError("asPercent second argument must be missing, a single digit, reference exactly 1 series or reference the same number of series as the first argument")
 
     if len(seriesList2orNumber) == 1:
       normalize([seriesList, seriesList2orNumber])
@@ -1287,7 +1287,7 @@ def alias(requestContext, seriesList, newName):
 def cactiStyle(requestContext, seriesList, system=None):
   """
   Takes a series list and modifies the aliases to provide column aligned
-  output with Current, Max, and Min values in the style of cacti. Optonally
+  output with Current, Max, and Min values in the style of cacti. Optionally
   takes a "system" value to apply unit formatting in the same style as the
   Y-axis.
 
@@ -3046,7 +3046,7 @@ def summarize(requestContext, seriesList, intervalString, func='sum', alignToFro
 
   'max', 'min' or 'last' can also be specified.
 
-  By default, buckets are caculated by rounding to the nearest interval. This
+  By default, buckets are calculated by rounding to the nearest interval. This
   works well for intervals smaller than a day. For example, 22:32 will end up
   in the bucket 22:00-23:00 when the interval=1hour.
 

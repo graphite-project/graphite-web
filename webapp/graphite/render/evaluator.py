@@ -48,7 +48,7 @@ def evaluateTokens(requestContext, tokens, replacements=None):
     if tokens.call.funcname == 'template':
       # if template propagates down here, it means the grammar didn't match the invocation
       # as tokens.template. this generally happens if you try to pass non-numeric/string args
-      raise ValueError("invaild template() syntax, only string/numeric arguments are allowed")
+      raise ValueError("invalid template() syntax, only string/numeric arguments are allowed")
 
     func = SeriesFunctions[tokens.call.funcname]
     args = [evaluateTokens(requestContext, arg, replacements) for arg in tokens.call.args]
@@ -74,7 +74,7 @@ def evaluateTokens(requestContext, tokens, replacements=None):
     return tokens.boolean[0] == 'true'
 
   else:
-    raise ValueError("unknown token in target evaulator")
+    raise ValueError("unknown token in target evaluator")
 
 
 # Avoid import circularities
