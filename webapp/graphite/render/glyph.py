@@ -157,11 +157,19 @@ class GraphError(Exception):
 
 class _AxisTics:
   def __init__(self, minValue, maxValue, unitSystem=None):
-    self.minValue = minValue
+    self.minValue = self.checkFinite(minValue, "data value")
     self.minValueSource = 'data'
-    self.maxValue = maxValue
+    self.maxValue = self.checkFinite(maxValue, "data value")
     self.maxValueSource = 'data'
     self.unitSystem = unitSystem
+
+  @staticmethod
+  def checkFinite(value, name='value'):
+    if math.isnan(value):
+      raise GraphError('Encountered NaN %s' % (name,))
+    elif math.isinf(value):
+      raise GraphError('Encountered infinite %s' % (name,))
+    return value
 
   @staticmethod
   def chooseDelta(x):
@@ -188,24 +196,24 @@ class _AxisTics:
       self.maxValue = average + delta
 
   def applySettings(self, axisMin=None, axisMax=None, axisLimit=None):
-    if axisMin is not None:
+    if axisMin is not None and not math.isnan(axisMin):
       self.minValueSource = 'min'
-      self.minValue = axisMin
+      self.minValue = self.checkFinite(axisMin, 'axis min')
 
     if axisMax == 'max':
       self.maxValueSource = 'extremum'
-    elif axisMax is not None:
+    elif axisMax is not None and not math.isnan(axisMax):
       self.maxValueSource = 'max'
-      self.maxValue = axisMax
+      self.maxValue = self.checkFinite(axisMax, 'axis max')
 
-    if axisLimit is not None:
+    if axisLimit is not None and not math.isnan(axisLimit):
       if axisLimit < self.maxValue:
-        self.maxValue = axisLimit
+        self.maxValue = self.checkFinite(axisLimit, 'axis limit')
         self.maxValueSource = 'limit'
         # The limit has already been imposed, so there is no need to
         # remember it:
         self.axisLimit = None
-      else:
+      elif not math.isinf(axisLimit):
         # We still need to remember axisLimit to avoid rounding top to
         # a value larger than axisLimit:
         self.axisLimit = axisLimit
@@ -241,15 +249,12 @@ class _LinearAxisTics(_AxisTics):
     self.step = None
 
   def setStep(self, step):
-    self.step = float(step)
+    self.step = self.checkFinite(float(step), 'axis step')
 
   def generateSteps(self, minStep):
     """Generate allowed steps with step >= minStep in increasing order."""
 
-    if math.isnan(minStep):
-      raise GraphError('NaN encountered')
-    elif math.isinf(minStep):
-      raise GraphError('Infinity encountered')
+    self.checkFinite(minStep)
 
     if self.binary:
       base = 2.0
@@ -330,6 +335,11 @@ class _LinearAxisTics(_AxisTics):
     self.binary = binary
     if divisors is None:
       divisors = [4,5,6]
+    else:
+      for divisor in divisors:
+        self.checkFinite(divisor, 'divisor')
+        if divisor < 1:
+          raise GraphError('Divisors must be greater than or equal to one')
 
     if self.minValue == self.maxValue:
       if self.minValue == 0.0:
@@ -406,7 +416,7 @@ class _LogAxisTics(_AxisTics):
     _AxisTics.__init__(self, minValue, maxValue, unitSystem=unitSystem)
     if base <= 1.0:
       raise GraphError('Logarithmic base must be greater than one')
-    self.base = base
+    self.base = self.checkFinite(base, 'log base')
 
   def setStep(self, step):
     # step is ignored for Logarithmic tics:
