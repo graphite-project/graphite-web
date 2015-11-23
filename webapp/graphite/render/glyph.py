@@ -246,6 +246,11 @@ class _LinearAxisTics(_AxisTics):
   def generateSteps(self, minStep):
     """Generate allowed steps with step >= minStep in increasing order."""
 
+    if math.isnan(minStep):
+      raise GraphError('NaN encountered')
+    elif math.isinf(minStep):
+      raise GraphError('Infinity encountered')
+
     if self.binary:
       base = 2.0
       mantissas = [1.0]
