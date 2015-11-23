@@ -56,7 +56,7 @@ colorAliases = {
   'darkgrey' : (111,111,111),
 }
 
-# This gets overriden by graphTemplates.conf
+# This gets overridden by graphTemplates.conf
 defaultGraphOptions = dict(
   background='white',
   foreground='black',
