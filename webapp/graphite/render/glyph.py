@@ -182,7 +182,7 @@ class _AxisTics:
     elif maxFixed:
       self.minValue = self.maxValue - self.chooseDelta(self.maxValue)
     else:
-      delta = max(abs(self.minValue), abs(self.maxValue))
+      delta = self.chooseDelta(max(abs(self.minValue), abs(self.maxValue)))
       average = (self.minValue + self.maxValue) / 2.0
       self.minValue = average - delta
       self.maxValue = average + delta
