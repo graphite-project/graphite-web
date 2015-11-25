@@ -10,6 +10,7 @@ env:
   - TOXENV=py27-django15-pyparsing2
   - TOXENV=py27-django16-pyparsing2
   - TOXENV=py27-django17-pyparsing2
+  - TOXENV=py27-django18-pyparsing2
   - TOXENV=py27-django16-pyparsing1
   - TOXENV=docs
   - TOXENV=lint
