@@ -306,18 +306,17 @@ def parseOptions(request):
     if 'now' in queryParams:
         now = parseATTime(queryParams['now'])
     else:
-        now = datetime.now(tzinfo)
+        now = datetime.now(get_current_timezone())
 
     if 'until' in queryParams:
-      untilTime = parseATTime(queryParams['until'], tzinfo, now)
+      untilTime = parseATTime(queryParams['until'], get_current_timezone(), now)
     else:
       untilTime = now
+
     if 'from' in queryParams:
-      fromTime = parseATTime(queryParams['from'], tzinfo, now)
+      fromTime = parseATTime(queryParams['from'], get_current_timezone(), now)
     else:
-      fromTime = parseATTime('-1d', tzinfo, now)
-
-
+      fromTime = parseATTime('-1d', get_current_timezone(), now)
 
     startTime = min(fromTime, untilTime)
     endTime = max(fromTime, untilTime)
