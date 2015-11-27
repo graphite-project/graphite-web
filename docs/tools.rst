@@ -57,6 +57,9 @@ Collection
   sflow2graphite utility converts sFlow to Graphite's plaintext
   protocol, allowing Graphite to receive sFlow metrics.
 
+`jmx2graphite`_
+  The easiest way to poll JMX metrics and write them to Graphite. This tool runs as a Docker container, polling your JMX every X seconds and writing the metrics to Graphite. Requires a minimum of configuration to get started.
+
 `jmxtrans`_
   a powerful tool that performs JMX queries to collect metrics from Java applications.
   It is requires very little configuration and is capable of sending metric data to several
@@ -331,6 +334,7 @@ Other
 .. _Host sFlow: http://host-sflow.sourceforge.net
 .. _Hubot: https://github.com/github/hubot
 .. _hubot-scripts: https://github.com/github/hubot-scripts
+.. _jmx2graphite: https://github.com/logzio/jmx2graphite
 .. _jmxtrans: http://code.google.com/p/jmxtrans
 .. _InfluxDB: https://influxdb.com/
 .. _jmxtrans: https://github.com/jmxtrans/jmxtrans
