@@ -45,12 +45,11 @@ Collection
 `Host sFlow`_
   An open source implementation of the sFlow protocol (http://www.sflow.org), exporting a standard set of host cpu, memory, disk and network I/O metrics. The sflow2graphite utility converts sFlow to Graphite's plaintext protocol, allowing Graphite to receive sFlow metrics.
 
+`jmx2graphite`_
+  The easiest way to poll JMX metrics and write them to Graphite. This tool runs as a Docker container, polling your JMX every X seconds and writing the metrics to Graphite. Requires a minimum of configuration to get started.
+
 `jmxtrans`_
   A powerful tool that performs JMX queries to collect metrics from Java applications. It is requires very little configuration and is capable of sending metric data to several backend applications, including Graphite.
-
-`jmx2graphite`_
-  The easiest and shortest way to poll JMX metrics and write them to Graphite. You run this tool using one line of docker run command. It polls your your JMX every X seconds and writes it to Graphite. This tool doesn't require you to predefine your JMX metrics MBeans and their attributes. It has the miniml configuration needed: Jolokia URL, Graphite hostname and you're good to go, all as command line parameters.
-
 
 `Logster`_
   A utility for reading log files and generating metrics in Graphite or Ganglia. It is ideal for visualizing trends of events that are occurring in your application/system/error logs. For example, you might use logster to graph the number of occurrences of HTTP response code that appears in your web server logs.
@@ -308,8 +307,8 @@ Other
 .. _Hubot: https://github.com/github/hubot
 .. _hubot-scripts: https://github.com/github/hubot-scripts
 .. _InfluxDB: https://influxdb.com/
-.. _jmxtrans: https://github.com/jmxtrans/jmxtrans
 .. _jmx2graphite: https://github.com/logzio/jmx2graphite
+.. _jmxtrans: https://github.com/jmxtrans/jmxtrans
 .. _KairosDB: http://kairosdb.github.io/
 .. _Ledbetter: https://github.com/github/ledbetter
 .. _Leonardo: https://github.com/PrFalken/leonardo
