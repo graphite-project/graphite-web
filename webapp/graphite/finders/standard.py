@@ -4,7 +4,8 @@ from django.conf import settings
 
 from graphite.logger import log
 from graphite.node import BranchNode, LeafNode
-from graphite.readers import WhisperReader, GzippedWhisperReader, RRDReader
+from graphite.readers import WhisperReader, GzippedWhisperReader, RRDReader, \
+  CacheReader
 from graphite.util import find_escaped_pattern_fields
 
 from . import fs_to_metric, get_real_metric_path, match_entries
@@ -18,6 +19,7 @@ class StandardFinder:
     self.directories = directories
 
   def find_nodes(self, query):
+    found = False
     clean_pattern = query.pattern.replace('\\', '')
     pattern_parts = clean_pattern.split('.')
 
@@ -41,6 +43,7 @@ class StandardFinder:
         metric_path = '.'.join(metric_path_parts)
 
         # Now we construct and yield an appropriate Node object
+        found = True
         if isdir(absolute_path):
           yield BranchNode(metric_path)
 
@@ -62,6 +65,11 @@ class StandardFinder:
                 if match_entries([datasource_name], datasource_pattern):
                   reader = RRDReader(absolute_path, datasource_name)
                   yield LeafNode(metric_path + "." + datasource_name, reader)
+
+    # Data not found in filesystem, let's query cache for unwritten new metrics.
+    if found is False:
+        reader = CacheReader(clean_pattern)
+        yield LeafNode(clean_pattern, reader)
 
   def _find_paths(self, current_dir, patterns):
     """Recursively generates absolute paths whose components underneath current_dir
