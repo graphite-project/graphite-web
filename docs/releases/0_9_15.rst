@@ -44,7 +44,7 @@ New Features
 
 Graphite-web
 ^^^^^^^^^^^^
-* "Normal" sorting functionality added to `sortByName` (sylr, obfuscurity)
+* "Natural" sorting functionality added to `sortByName` (sylr, obfuscurity)
 
 Carbon
 ^^^^^^
