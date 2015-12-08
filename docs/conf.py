@@ -25,13 +25,6 @@ os.environ['DJANGO_SETTINGS_MODULE'] = "graphite.settings"
 from graphite import settings
 settings.LOG_DIR = os.path.abspath('.')
 
-try:
-    from django import setup
-except ImportError:
-    pass
-else:
-    setup()
-
 # Bring in the new ReadTheDocs sphinx theme
 import sphinx_rtd_theme
 
