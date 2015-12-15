@@ -3,13 +3,12 @@ from django.contrib.auth.models import Group
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 
-
 class MetricFilter(models.Model):
   id = models.AutoField(primary_key=True)
   filter = models.CharField(max_length=256)
   description = models.CharField(max_length=200)
   type_filter = models.IntegerField(choices=[(0, 'include'), (1, 'exclude')])
-  __str__ = lambda self: "%s: %s" % (getTypeFilter(self.type_filter) ,self.filter)
+  __str__ = lambda self: "[%s]: %s " % (getTypeFilter(self.type_filter) ,self.filter)
 
   class Meta:
     db_table = "metric_filter"
@@ -17,7 +16,7 @@ class MetricFilter(models.Model):
 class UserMetricFilter(models.Model):
   user = models.ForeignKey(User)
   metric_filter = models.ManyToManyField(MetricFilter)
-  __str__ = lambda self: "User: [%s]" % self.use
+  __str__ = lambda self: "%s" % self.use
 
   class Meta:
     db_table = "user_metric_filter"
@@ -34,7 +33,7 @@ class UserMetricFilter(models.Model):
 class GroupMetricFilter(models.Model):
   group = models.ForeignKey(Group)
   metric_filter = models.ManyToManyField(MetricFilter)
-  _str__ = lambda self: "%s: %s" % (getTypeFilter(self.metric_filter.all()[0].type_filter), self.group)
+  __str__ = lambda self: "%s" % self.group
 
   class Meta:
     db_table = "group_metric_filter"
