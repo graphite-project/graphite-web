@@ -263,6 +263,10 @@
 # How often should render.datalib.fetch() retry to get remote data
 # MAX_FETCH_RETRIES = 2
 
+# Set to true to filter metrics by user
+# default set to false
+#ALLOW_METRICFILTER_BY_USER = True
+
 #####################################
 # Additional Django Settings #
 #####################################

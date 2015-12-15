@@ -12,6 +12,7 @@ from graphite.remote_storage import RemoteStore
 from graphite.node import LeafNode
 from graphite.intervals import Interval, IntervalSet
 from graphite.readers import MultiReader
+from graphite.metrics_filter import nodeFilter
 
 
 def get_finder(finder_path):
@@ -33,8 +34,9 @@ class Store:
     self.remote_stores = [ RemoteStore(host) for host in remote_hosts ]
 
 
-  def find(self, pattern, startTime=None, endTime=None, local=False):
+  def find(self, pattern, startTime=None, endTime=None, local=False, user=None):
     query = FindQuery(pattern, startTime, endTime)
+    self.user = user
 
     # Start remote searches
     if not local:
@@ -74,8 +76,9 @@ class Store:
         if node.is_leaf:
           leaf_nodes.append(node)
         elif node.path not in found_branch_nodes: #TODO need to filter branch nodes based on requested interval... how?!?!?
-          yield node
-          found_branch_nodes.add(node.path)
+          if nodeFilter(user, node.path):
+            yield node
+            found_branch_nodes.add(node.path)
 
       if not leaf_nodes:
         continue
@@ -131,12 +134,16 @@ class Store:
         if distance_to_requested_interval(best_candidate) <= settings.FIND_TOLERANCE:
           minimal_node_set.add(best_candidate)
 
-      if len(minimal_node_set) == 1:
-        yield minimal_node_set.pop()
-      elif len(minimal_node_set) > 1:
-        reader = MultiReader(minimal_node_set)
-        yield LeafNode(path, reader)
+      minimal_node_set_filtered = set()
+      for node in minimal_node_set:
+        if nodeFilter(user, node.path):
+          minimal_node_set_filtered.add(node)
 
+      if len(minimal_node_set_filtered) == 1:
+        yield minimal_node_set_filtered.pop()
+      elif len(minimal_node_set_filtered) > 1:
+        reader = MultiReader(minimal_node_set_filtered)
+        yield LeafNode(path, reader)
 
 
 class FindQuery:
