@@ -265,7 +265,7 @@
 
 # Set to true to filter metrics by user
 # default set to false
-ALLOW_METRICFILTER_BY_USER = False
+#ALLOW_METRICFILTER_BY_USER = False
 
 #####################################
 # Additional Django Settings #

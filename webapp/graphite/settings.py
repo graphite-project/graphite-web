@@ -74,6 +74,8 @@ LOG_ROTATION = True
 LOG_ROTATION_COUNT = 1
 MAX_FETCH_RETRIES = 2
 
+ALLOW_METRICFILTER_BY_USER = False
+
 #Remote rendering settings
 REMOTE_RENDERING = False #if True, rendering is delegated to RENDERING_HOSTS
 RENDERING_HOSTS = []
