@@ -2024,6 +2024,9 @@ class FunctionsTest(TestCase):
             series.pathExpression = series.name
         expectedResult = [
             TimeSeries('aggregateLine(collectd.test-db1.load.value, 4)', 3600, 3660, 30, [4.0, 4.0, 4.0]),
+            TimeSeries('aggregateLine(collectd.test-db2.load.value, None)', 3600, 3660, 30, [None, None, None]),
+            TimeSeries('aggregateLine(collectd.test-db3.load.value, 1.85714)', 3600, 3660, 30, [1.8571428571428572, 1.8571428571428572, 1.8571428571428572]),
+            TimeSeries('aggregateLine(collectd.test-db4.load.value, 8.22222)', 3600, 3660, 30, [8.222222222222221, 8.222222222222221, 8.222222222222221]),
         ]
         requestContext = {
                           'startTime': datetime(1970,1,1,1,0,0,0,pytz.timezone(settings.TIME_ZONE)),
@@ -2043,6 +2046,9 @@ class FunctionsTest(TestCase):
             series.pathExpression = series.name
         expectedResult = [
             TimeSeries('aggregateLine(collectd.test-db1.load.value, 4)', 3600, 3600, 0, [4.0, 4.0, 4.0]),
+            TimeSeries('aggregateLine(collectd.test-db2.load.value, None)', 3600, 3600, 0, [None, None, None]),
+            TimeSeries('aggregateLine(collectd.test-db3.load.value, 1.85714)', 3600, 3600, 0, [1.8571428571428572, 1.8571428571428572, 1.8571428571428572]),
+            TimeSeries('aggregateLine(collectd.test-db4.load.value, 8.22222)', 3600, 3600, 0, [8.222222222222221, 8.222222222222221, 8.222222222222221]),
         ]
         requestContext = {
                           'startTime': datetime(1970,1,1,1,0,0,0,pytz.timezone(settings.TIME_ZONE)),
@@ -2062,6 +2068,9 @@ class FunctionsTest(TestCase):
             series.pathExpression = series.name
         expectedResult = [
             TimeSeries('aggregateLine(collectd.test-db1.load.value, 1)', 3600, 3600, 0, [1.0, 1.0, 1.0]),
+            TimeSeries('aggregateLine(collectd.test-db2.load.value, None)', 3600, 3600, 0, [None, None, None]),
+            TimeSeries('aggregateLine(collectd.test-db3.load.value, 0)', 3600, 3600, 0, [0.0, 0.0, 0.0]),
+            TimeSeries('aggregateLine(collectd.test-db4.load.value, 6)', 3600, 3600, 0, [6.0, 6.0, 6.0]),
         ]
         requestContext = {
                           'startTime': datetime(1970,1,1,1,0,0,0,pytz.timezone(settings.TIME_ZONE)),
@@ -2081,6 +2090,9 @@ class FunctionsTest(TestCase):
             series.pathExpression = series.name
         expectedResult = [
             TimeSeries('aggregateLine(collectd.test-db1.load.value, 7)', 3600, 3600, 0, [7.0, 7.0, 7.0]),
+            TimeSeries('aggregateLine(collectd.test-db2.load.value, None)', 3600, 3600, 0, [None, None, None]),
+            TimeSeries('aggregateLine(collectd.test-db3.load.value, 4)', 3600, 3600, 0, [4.0, 4.0, 4.0]),
+            TimeSeries('aggregateLine(collectd.test-db4.load.value, 10)', 3600, 3600, 0, [10.0, 10.0, 10.0]),
         ]
         requestContext = {
                           'startTime': datetime(1970,1,1,1,0,0,0,pytz.timezone(settings.TIME_ZONE)),
