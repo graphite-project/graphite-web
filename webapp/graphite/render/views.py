@@ -29,7 +29,7 @@ except ImportError:
 
 from graphite.compat import HttpResponse
 from graphite.util import getProfileByUsername, json, unpickle
-from graphite.remote_storage import HTTPConnectionWithTimeout
+from graphite.remote_storage import connector_class_selector
 from graphite.logger import log
 from graphite.render.evaluator import evaluateTarget
 from graphite.render.attime import parseATTime
@@ -329,6 +329,7 @@ def delegateRendering(graphType, graphOptions):
   postData = graphType + '\n' + pickle.dumps(graphOptions)
   servers = settings.RENDERING_HOSTS[:] #make a copy so we can shuffle it safely
   shuffle(servers)
+  connector_class = connector_class_selector(settings.INTRACLUSTER_HTTPS)
   for server in servers:
     start2 = time()
     try:
@@ -340,13 +341,13 @@ def delegateRendering(graphType, graphOptions):
       try:
         connection = pool.pop()
       except KeyError: #No available connections, have to make a new one
-        connection = HTTPConnectionWithTimeout(server)
+        connection = connector_class(server)
         connection.timeout = settings.REMOTE_RENDER_CONNECT_TIMEOUT
       # Send the request
       try:
         connection.request('POST','/render/local/', postData)
       except CannotSendRequest:
-        connection = HTTPConnectionWithTimeout(server) #retry once
+        connection = connector_class(server) #retry once
         connection.timeout = settings.REMOTE_RENDER_CONNECT_TIMEOUT
         connection.request('POST', '/render/local/', postData)
       # Read the response
