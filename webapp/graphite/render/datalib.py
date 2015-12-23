@@ -18,6 +18,8 @@ from graphite.readers import FetchInProgress
 from django.conf import settings
 from graphite.util import epoch
 
+from traceback import format_exc
+
 class TimeSeries(list):
   def __init__(self, name, start, end, step, values, consolidate='average'):
     list.__init__(self, values)
@@ -69,7 +71,7 @@ class TimeSeries(list):
       return max(usable)
     if self.consolidationFunc == 'min':
       return min(usable)
-    raise Exception("Invalid consolidation function!")
+    raise Exception("Invalid consolidation function: '%s'" % self.consolidationFunc)
 
 
   def __repr__(self):
@@ -137,11 +139,12 @@ def fetchData(requestContext, pathExpr):
       return seriesList
     except Exception, e:
       if retries >= settings.MAX_FETCH_RETRIES:
-        log.exception("Failed after %i retry! See: %s" % (settings.MAX_FETCH_RETRIES, e))
-        raise Exception("Failed after %i retry! See: %s" % (settings.MAX_FETCH_RETRIES, e))
+        log.exception("Failed after %s retry! Root cause:\n%s" %
+            (settings.MAX_FETCH_RETRIES, format_exc()))
+        raise e
       else:
-        log.exception("Got an exception when fetching data! See: %s Will do it again! Run: %i of %i" %
-                     (e, retries, settings.MAX_FETCH_RETRIES))
+        log.exception("Got an exception when fetching data! Try: %i of %i. Root cause:\n%s" %
+                     (retries, settings.MAX_FETCH_RETRIES, format_exc()))
         retries += 1
 
 

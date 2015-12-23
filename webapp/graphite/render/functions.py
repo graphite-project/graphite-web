@@ -151,6 +151,10 @@ class NormalizeEmptyResultError(Exception):
   pass
 
 
+def matchSeries(seriesList1, seriesList2):
+  assert len(seriesList2) == len(seriesList1), "The number of series in each argument must be the same"
+  return izip(sorted(seriesList1, lambda a,b: cmp(a.name, b.name)), sorted(seriesList2, lambda a,b: cmp(a.name, b.name)))
+
 def formatPathExpressions(seriesList):
    # remove duplicates
    pathExpressions = []
@@ -503,7 +507,7 @@ def changed(requestContext, seriesList):
         series[i] = 0
   return seriesList
 
-def asPercent(requestContext, seriesList, total=None):
+def asPercent(requestContext, seriesList, seriesList2orNumber=None):
   """
 
   Calculates a percentage of the total of a wildcard series. If `total` is specified,
@@ -517,6 +521,7 @@ def asPercent(requestContext, seriesList, total=None):
   .. code-block:: none
 
     &target=asPercent(Server01.connections.{failed,succeeded}, Server01.connections.attempted)
+    &target=asPercent(Server*.connections.{failed,succeeded}, Server*.connections.attempted)
     &target=asPercent(apache01.threads.busy,1500)
     &target=asPercent(Server01.cpu.*.jiffies)
 
@@ -524,27 +529,38 @@ def asPercent(requestContext, seriesList, total=None):
 
   normalize([seriesList])
 
-  if total is None:
+  if seriesList2orNumber is None:
     totalValues = [ safeSum(row) for row in izip(*seriesList) ]
     totalText = None # series.pathExpression
-  elif isinstance(total, list):
-    if len(total) != 1:
-      raise ValueError("asPercent second argument must reference exactly 1 series")
-    normalize([seriesList, total])
-    totalValues = total[0]
-    totalText = totalValues.name
+  elif type(seriesList2orNumber) is list:
+    if len(seriesList2orNumber) != 1 and len(seriesList2orNumber) != len(seriesList):
+      raise ValueError("asPercent second argument must be missing, a single digit, reference exactly 1 series or reference the same number of series as the first argument")
+
+    if len(seriesList2orNumber) == 1:
+      normalize([seriesList, seriesList2orNumber])
+      totalValues = seriesList2orNumber[0]
+      totalText = totalValues.name
   else:
-    totalValues = [total] * len(seriesList[0])
-    totalText = str(total)
+    totalValues = [seriesList2orNumber] * len(seriesList[0])
+    totalText = str(seriesList2orNumber)
 
   resultList = []
-  for series in seriesList:
-    resultValues = [ safeMul(safeDiv(val, totalVal), 100.0) for val,totalVal in izip(series,totalValues) ]
+  if type(seriesList2orNumber) is list and len(seriesList2orNumber) == len(seriesList):
+    for series1, series2 in matchSeries(seriesList, seriesList2orNumber):
+      name = "asPercent(%s,%s)" % (series1.name,series2.name)
+      (seriesList,start,end,step) = normalize([(series1, series2)])
+      resultValues = [ safeMul(safeDiv(v1, v2), 100.0) for v1,v2 in izip(series1,series2) ]
+      resultSeries = TimeSeries(name,start,end,step,resultValues)
+      resultSeries.pathExpression = name
+      resultList.append(resultSeries)
+  else:
+    for series in seriesList:
+      resultValues = [ safeMul(safeDiv(val, totalVal), 100.0) for val,totalVal in izip(series,totalValues) ]
 
-    name = "asPercent(%s, %s)" % (series.name, totalText or series.pathExpression)
-    resultSeries = TimeSeries(name,series.start,series.end,series.step,resultValues)
-    resultSeries.pathExpression = name
-    resultList.append(resultSeries)
+      name = "asPercent(%s, %s)" % (series.name, totalText or series.pathExpression)
+      resultSeries = TimeSeries(name,series.start,series.end,series.step,resultValues)
+      resultSeries.pathExpression = name
+      resultList.append(resultSeries)
 
   return resultList
 
@@ -664,10 +680,10 @@ def weightedAverage(requestContext, seriesListAvg, seriesListWeight, node):
   sumWeights=sumSeries(requestContext, seriesListWeight)[0]
 
   resultValues = [ safeDiv(val1, val2) for val1,val2 in izip(sumProducts,sumWeights) ]
-  name = "weightedAverage(%s, %s)" % (','.join(set(s.pathExpression for s in seriesListAvg)) ,','.join(set(s.pathExpression for s in seriesListWeight)))
+  name = "weightedAverage(%s, %s, %s)" % (','.join(set(s.pathExpression for s in seriesListAvg)) ,','.join(set(s.pathExpression for s in seriesListWeight)), node)
   resultSeries = TimeSeries(name,sumProducts.start,sumProducts.end,sumProducts.step,resultValues)
   resultSeries.pathExpression = name
-  return resultSeries
+  return [resultSeries]
 
 def movingMedian(requestContext, seriesList, windowSize):
   """
@@ -1273,7 +1289,7 @@ def alias(requestContext, seriesList, newName):
 def cactiStyle(requestContext, seriesList, system=None):
   """
   Takes a series list and modifies the aliases to provide column aligned
-  output with Current, Max, and Min values in the style of cacti. Optonally
+  output with Current, Max, and Min values in the style of cacti. Optionally
   takes a "system" value to apply unit formatting in the same style as the
   Y-axis.
 
@@ -1821,7 +1837,10 @@ def removeAbovePercentile(requestContext, seriesList, n):
   for s in seriesList:
     s.name = 'removeAbovePercentile(%s, %d)' % (s.name, n)
     s.pathExpression = s.name
-    percentile = nPercentile(requestContext, [s], n)[0][0]
+    try:
+      percentile = nPercentile(requestContext, [s], n)[0][0]
+    except IndexError:
+      continue
     for (index, val) in enumerate(s):
       if val > percentile:
         s[index] = None
@@ -1850,7 +1869,10 @@ def removeBelowPercentile(requestContext, seriesList, n):
   for s in seriesList:
     s.name = 'removeBelowPercentile(%s, %d)' % (s.name, n)
     s.pathExpression = s.name
-    percentile = nPercentile(requestContext, [s], n)[0][0]
+    try:
+      percentile = nPercentile(requestContext, [s], n)[0][0]
+    except IndexError:
+      continue
     for (index, val) in enumerate(s):
       if val < percentile:
         s[index] = None
@@ -1888,16 +1910,28 @@ def limit(requestContext, seriesList, n):
   """
   return seriesList[0:n]
 
-def sortByName(requestContext, seriesList):
+def sortByName(requestContext, seriesList, natural=False):
   """
   Takes one metric or a wildcard seriesList.
-
-  Sorts the list of metrics by the metric name.
+  Sorts the list of metrics by the metric name using either alphabetical order or natural sorting.
+  Natural sorting allows names containing numbers to be sorted more naturally, e.g:
+  - Alphabetical sorting: server1, server11, server12, server2
+  - Natural sorting: server1, server2, server11, server12
   """
+  def paddedName(name):
+    return re.sub("(\d+)", lambda x: "{0:010}".format(int(x.group(0))), name)
+
   def compare(x,y):
     return cmp(x.name, y.name)
 
-  seriesList.sort(compare)
+  def natSortCompare(x,y):
+    return cmp(paddedName(x.name), paddedName(y.name))
+
+  if natural:
+    seriesList.sort(natSortCompare)
+  else:
+    seriesList.sort(compare)
+
   return seriesList
 
 def sortByTotal(requestContext, seriesList):
@@ -2451,7 +2485,7 @@ def timeStack(requestContext, seriesList, timeShiftUnit, timeShiftStart, timeShi
 
   return results
 
-def timeShift(requestContext, seriesList, timeShift, resetEnd=True):
+def timeShift(requestContext, seriesList, timeShift, resetEnd=True, alignDST=False):
   """
   Takes one metric or a wildcard seriesList, followed by a quoted string with the
   length of time (See ``from / until`` in the render\_api_ for examples of time formats).
@@ -2465,6 +2499,10 @@ def timeShift(requestContext, seriesList, timeShift, resetEnd=True):
   date range set to include a time in the future, will limit this timeshift to pretend
   ending at the current time. If resetEnd is False, will instead draw full range including
   future time.
+
+  Because time is shifted by a fixed number of seconds, comparing a time period with DST to
+  a time period without DST, and vice-versa, will result in an apparent misalignment. For
+  example, 8am might be overlaid with 7am. To compensate for this, use the alignDST option.
 
   Useful for comparing a metric against itself at a past periods or correcting data
   stored at an offset.
@@ -2485,6 +2523,27 @@ def timeShift(requestContext, seriesList, timeShift, resetEnd=True):
   myContext = requestContext.copy()
   myContext['startTime'] = requestContext['startTime'] + delta
   myContext['endTime'] = requestContext['endTime'] + delta
+
+  if alignDST:
+    def localDST(dt):
+      return time.localtime(time.mktime(dt.timetuple())).tm_isdst
+
+    reqStartDST = localDST(requestContext['startTime'])
+    reqEndDST   = localDST(requestContext['endTime'])
+    myStartDST  = localDST(myContext['startTime'])
+    myEndDST    = localDST(myContext['endTime'])
+
+    dstOffset = timedelta(hours=0)
+    # If the requestContext is entirely in DST, and we are entirely NOT in DST
+    if ((reqStartDST and reqEndDST) and (not myStartDST and not myEndDST)):
+        dstOffset = timedelta(hours=1)
+    # Or if the requestContext is entirely NOT in DST, and we are entirely in DST
+    elif ((not reqStartDST and not reqEndDST) and (myStartDST and myEndDST)):
+        dstOffset = timedelta(hours=-1)
+    # Otherwise, we don't do anything, because it would be visually confusing
+    myContext['startTime'] += dstOffset
+    myContext['endTime'] += dstOffset
+
   results = []
   if len(seriesList) > 0:
     # if len(seriesList) > 1, they will all have the same pathExpression, which is all we care about.
@@ -2617,12 +2676,16 @@ def threshold(requestContext, value, label=None, color=None):
 
   return [series]
 
-def transformNull(requestContext, seriesList, default=0):
+def transformNull(requestContext, seriesList, default=0, referenceSeries=None):
   """
-  Takes a metric or wild card seriesList and an optional value
-  to transform Nulls to. Default is 0. This method compliments
-  drawNullAsZero flag in graphical mode but also works in text only
-  mode.
+  Takes a metric or wildcard seriesList and replaces null values with the value
+  specified by `default`.  The value 0 used if not specified.  The optional
+  referenceSeries, if specified, is a metric or wildcard series list that governs
+  which time intervals nulls should be replaced.  If specified, nulls are replaced
+  only in intervals where a non-null is found for the same interval in any of
+  referenceSeries.  This method compliments the drawNullAsZero function in
+  graphical mode, but also works in text-only mode.
+
   Example:
 
   .. code-block:: none
@@ -2632,24 +2695,34 @@ def transformNull(requestContext, seriesList, default=0):
   This would take any page that didn't have values and supply negative 1 as a default.
   Any other numeric value may be used as well.
   """
-  def transform(v):
-    if v is None: return default
+  def transform(v, d):
+    if v is None: return d
     else: return v
 
+  if referenceSeries:
+    defaults = [default if any(v is not None for v in x) else None for x in izip(*referenceSeries)]
+  else:
+    defaults = None
+
   for series in seriesList:
-    series.name = "transformNull(%s,%g)" % (series.name, default)
+    if referenceSeries:
+      series.name = "transformNull(%s,%g,referenceSeries)" % (series.name, default)
+    else:
+      series.name = "transformNull(%s,%g)" % (series.name, default)
     series.pathExpression = series.name
-    values = [transform(v) for v in series]
+    if defaults:
+      values = [transform(v, d) for v, d in izip(series, defaults)]
+    else:
+      values = [transform(v, default) for v in series]
     series.extend(values)
     del series[:len(values)]
   return seriesList
 
 def isNonNull(requestContext, seriesList):
   """
-  Takes a metric or wild card seriesList and counts up how many
-  non-null values are specified. This is useful for understanding
-  which metrics have data at a given point in time (ie, to count
-  which servers are alive).
+  Takes a metric or wildcard seriesList and counts up the number of non-null
+  values.  This is useful for understanding the number of metrics that have data
+  at a given point in time (i.e. to count which servers are alive).
 
   Example:
 
@@ -2822,7 +2895,7 @@ def reduceSeries(requestContext, seriesLists, reduceFunction, reduceNode, *reduc
         i = reduceMatchers.index(node)
         metaSeries[reduceSeriesName][i] = series
   for key in keys:
-    metaSeries[key] = SeriesFunctions[reduceFunction](requestContext,metaSeries[key])[0]
+    metaSeries[key] = SeriesFunctions[reduceFunction](requestContext,*[[l] for l in metaSeries[key]])[0]
     metaSeries[key].name = key
   return [ metaSeries[key] for key in keys ]
 
@@ -2975,7 +3048,7 @@ def summarize(requestContext, seriesList, intervalString, func='sum', alignToFro
 
   'max', 'min' or 'last' can also be specified.
 
-  By default, buckets are caculated by rounding to the nearest interval. This
+  By default, buckets are calculated by rounding to the nearest interval. This
   works well for intervals smaller than a day. For example, 22:32 will end up
   in the bucket 22:00-23:00 when the interval=1hour.
 
@@ -3308,131 +3381,130 @@ def pieMinimum(requestContext, series):
   return min(series)
 
 PieFunctions = {
-  'average' : pieAverage,
-  'maximum' : pieMaximum,
-  'minimum' : pieMinimum,
+  'average': pieAverage,
+  'maximum': pieMaximum,
+  'minimum': pieMinimum,
 }
 
 SeriesFunctions = {
   # Combine functions
-  'sumSeries' : sumSeries,
-  'sum' : sumSeries,
-  'multiplySeries' : multiplySeries,
-  'averageSeries' : averageSeries,
-  'stddevSeries' : stddevSeries,
-  'avg' : averageSeries,
+  'sumSeries': sumSeries,
+  'sum': sumSeries,
+  'multiplySeries': multiplySeries,
+  'averageSeries': averageSeries,
+  'stddevSeries': stddevSeries,
+  'avg': averageSeries,
   'sumSeriesWithWildcards': sumSeriesWithWildcards,
   'averageSeriesWithWildcards': averageSeriesWithWildcards,
   'multiplySeriesWithWildcards': multiplySeriesWithWildcards,
-  'minSeries' : minSeries,
-  'maxSeries' : maxSeries,
+  'minSeries': minSeries,
+  'maxSeries': maxSeries,
   'rangeOfSeries': rangeOfSeries,
   'percentileOfSeries': percentileOfSeries,
   'countSeries': countSeries,
   'weightedAverage': weightedAverage,
 
   # Transform functions
-  'scale' : scale,
-  'scaleToSeconds' : scaleToSeconds,
-  'offset' : offset,
-  'offsetToZero' : offsetToZero,
-  'derivative' : derivative,
-  'squareRoot' : squareRoot,
-  'pow' : pow,
-  'perSecond' : perSecond,
-  'integral' : integral,
-  'percentileOfSeries': percentileOfSeries,
-  'nonNegativeDerivative' : nonNegativeDerivative,
-  'log' : logarithm,
-  'invert' : invert,
+  'scale': scale,
+  'scaleToSeconds': scaleToSeconds,
+  'offset': offset,
+  'offsetToZero': offsetToZero,
+  'derivative': derivative,
+  'squareRoot': squareRoot,
+  'pow': pow,
+  'perSecond': perSecond,
+  'integral': integral,
+  'nonNegativeDerivative': nonNegativeDerivative,
+  'log': logarithm,
+  'invert': invert,
   'timeStack': timeStack,
   'timeShift': timeShift,
   'timeSlice': timeSlice,
-  'summarize' : summarize,
-  'smartSummarize' : smartSummarize,
-  'hitcount'  : hitcount,
-  'absolute' : absolute,
+  'summarize': summarize,
+  'smartSummarize': smartSummarize,
+  'hitcount': hitcount,
+  'absolute': absolute,
 
   # Calculate functions
-  'movingAverage' : movingAverage,
-  'movingMedian' : movingMedian,
-  'stdev' : stdev,
+  'movingAverage': movingAverage,
+  'movingMedian': movingMedian,
+  'stdev': stdev,
   'holtWintersForecast': holtWintersForecast,
   'holtWintersConfidenceBands': holtWintersConfidenceBands,
   'holtWintersConfidenceArea': holtWintersConfidenceArea,
   'holtWintersAberration': holtWintersAberration,
-  'asPercent' : asPercent,
-  'pct' : asPercent,
-  'diffSeries' : diffSeries,
-  'divideSeries' : divideSeries,
+  'asPercent': asPercent,
+  'pct': asPercent,
+  'diffSeries': diffSeries,
+  'divideSeries': divideSeries,
 
   # Series Filter functions
-  'fallbackSeries' : fallbackSeries,
-  'mostDeviant' : mostDeviant,
-  'highestCurrent' : highestCurrent,
-  'lowestCurrent' : lowestCurrent,
-  'highestMax' : highestMax,
-  'currentAbove' : currentAbove,
-  'currentBelow' : currentBelow,
-  'highestAverage' : highestAverage,
-  'lowestAverage' : lowestAverage,
-  'averageAbove' : averageAbove,
-  'averageBelow' : averageBelow,
-  'maximumAbove' : maximumAbove,
-  'minimumAbove' : minimumAbove,
-  'maximumBelow' : maximumBelow,
-  'minimumBelow' : minimumBelow,
-  'nPercentile' : nPercentile,
-  'limit' : limit,
-  'sortByTotal'  : sortByTotal,
-  'sortByName' : sortByName,
-  'averageOutsidePercentile' : averageOutsidePercentile,
-  'removeBetweenPercentile' : removeBetweenPercentile,
-  'sortByMaxima' : sortByMaxima,
-  'sortByMinima' : sortByMinima,
+  'fallbackSeries': fallbackSeries,
+  'mostDeviant': mostDeviant,
+  'highestCurrent': highestCurrent,
+  'lowestCurrent': lowestCurrent,
+  'highestMax': highestMax,
+  'currentAbove': currentAbove,
+  'currentBelow': currentBelow,
+  'highestAverage': highestAverage,
+  'lowestAverage': lowestAverage,
+  'averageAbove': averageAbove,
+  'averageBelow': averageBelow,
+  'maximumAbove': maximumAbove,
+  'minimumAbove': minimumAbove,
+  'maximumBelow': maximumBelow,
+  'minimumBelow': minimumBelow,
+  'nPercentile': nPercentile,
+  'limit': limit,
+  'sortByTotal': sortByTotal,
+  'sortByName': sortByName,
+  'averageOutsidePercentile': averageOutsidePercentile,
+  'removeBetweenPercentile': removeBetweenPercentile,
+  'sortByMaxima': sortByMaxima,
+  'sortByMinima': sortByMinima,
   'useSeriesAbove': useSeriesAbove,
-  'exclude' : exclude,
-  'grep' : grep,
-  'removeEmptySeries' : removeEmptySeries,
+  'exclude': exclude,
+  'grep': grep,
+  'removeEmptySeries': removeEmptySeries,
 
   # Data Filter functions
-  'removeAbovePercentile' : removeAbovePercentile,
-  'removeAboveValue' : removeAboveValue,
-  'removeBelowPercentile' : removeBelowPercentile,
-  'removeBelowValue' : removeBelowValue,
+  'removeAbovePercentile': removeAbovePercentile,
+  'removeAboveValue': removeAboveValue,
+  'removeBelowPercentile': removeBelowPercentile,
+  'removeBelowValue': removeBelowValue,
 
   # Special functions
-  'legendValue' : legendValue,
-  'alias' : alias,
-  'aliasSub' : aliasSub,
-  'aliasByNode' : aliasByNode,
-  'aliasByMetric' : aliasByMetric,
-  'cactiStyle' : cactiStyle,
-  'color' : color,
-  'alpha' : alpha,
-  'cumulative' : cumulative,
-  'consolidateBy' : consolidateBy,
-  'keepLastValue' : keepLastValue,
-  'changed' : changed,
-  'drawAsInfinite' : drawAsInfinite,
+  'legendValue': legendValue,
+  'alias': alias,
+  'aliasSub': aliasSub,
+  'aliasByNode': aliasByNode,
+  'aliasByMetric': aliasByMetric,
+  'cactiStyle': cactiStyle,
+  'color': color,
+  'alpha': alpha,
+  'cumulative': cumulative,
+  'consolidateBy': consolidateBy,
+  'keepLastValue': keepLastValue,
+  'changed': changed,
+  'drawAsInfinite': drawAsInfinite,
   'secondYAxis': secondYAxis,
-  'lineWidth' : lineWidth,
-  'dashed' : dashed,
-  'substr' : substr,
-  'group' : group,
+  'lineWidth': lineWidth,
+  'dashed': dashed,
+  'substr': substr,
+  'group': group,
   'map': mapSeries,
   'mapSeries': mapSeries,
   'reduce': reduceSeries,
   'reduceSeries': reduceSeries,
-  'groupByNode' : groupByNode,
-  'constantLine' : constantLine,
-  'stacked' : stacked,
-  'areaBetween' : areaBetween,
-  'threshold' : threshold,
-  'transformNull' : transformNull,
-  'isNonNull' : isNonNull,
+  'groupByNode': groupByNode,
+  'constantLine': constantLine,
+  'stacked': stacked,
+  'areaBetween': areaBetween,
+  'threshold': threshold,
+  'transformNull': transformNull,
+  'isNonNull': isNonNull,
   'identity': identity,
-  'aggregateLine' : aggregateLine,
+  'aggregateLine': aggregateLine,
 
   # test functions
   'time': timeFunction,
@@ -3442,11 +3514,11 @@ SeriesFunctions = {
   "sinFunction": sinFunction,
   "randomWalkFunction": randomWalkFunction,
 
-  #events
+  # events
   'events': events,
 }
 
 
-#Avoid import circularity
+# Avoid import circularity
 if not environ.get('READTHEDOCS'):
   from graphite.render.evaluator import evaluateTarget

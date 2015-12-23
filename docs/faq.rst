@@ -79,7 +79,6 @@ There sure is! Here it is:
 
 
 .. _Django: http://www.djangoproject.com/
-.. _Twisted: http://www.twistedmatrix.com/
 .. _Cairo: http://www.cairographics.org/
 .. _RRD: http://oss.oetiker.ch/rrdtool/
 .. _Chris Davis: mailto:chrismd@gmail.com

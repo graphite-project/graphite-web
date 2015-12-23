@@ -18,7 +18,6 @@ from graphite.compat import HttpResponse, HttpResponseBadRequest
 from graphite.util import getProfile, json
 from graphite.logger import log
 from graphite.storage import STORE
-from graphite.metrics.search import searcher
 from graphite.carbonlink import CarbonLink
 import fnmatch, os
 
@@ -64,24 +63,6 @@ def index_json(request):
   else:
     matches = find_matches()
   return json_response_for(request, matches, jsonp=jsonp)
-
-
-def search_view(request):
-  try:
-    query = str( request.REQUEST['query'] )
-  except:
-    return HttpResponseBadRequest(content="Missing required parameter 'query'",
-                                  content_type="text/plain")
-  search_request = {
-    'query' : query,
-    'max_results' : int( request.REQUEST.get('max_results', 25) ),
-    'keep_query_pattern' : int(request.REQUEST.get('keep_query_pattern', 0)),
-  }
-  #if not search_request['query'].endswith('*'):
-  #  search_request['query'] += '*'
-
-  results = sorted(searcher.search(**search_request))
-  return json_response_for(request, dict(metrics=results))
 
 
 def find_view(request):

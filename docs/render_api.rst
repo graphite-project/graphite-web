@@ -148,7 +148,7 @@ There are multiple formats for these functions:
   &from=ABSOLUTE_TIME
 
 RELATIVE_TIME is a length of time since the current time.
-It is always preceded my a minus sign ( - ) and follow by a unit of time.
+It is always preceded by a minus sign ( - ) and followed by a unit of time.
 Valid units of time:
 
 ============== ===============
@@ -644,6 +644,14 @@ Example:
 
   &hideAxes=true
 
+.. _param-hideXAxis:
+
+hideXAxis
+---------
+*Default: False*
+
+If set to ``true`` the X Axis will not be rendered
+
 .. _param-hideYAxis:
 
 hideYAxis
@@ -1005,13 +1013,15 @@ Sets the side of the graph on which to render the Y-axis. Accepts values of ``le
 
 .. _param-yDivisor:
   
-yDivisor
---------
+yDivisors
+---------
 *Default: 4,5,6*
 
-Supplies the preferred number of intermediate values for the Y-axis to display (Y values between
-the min and max). Note that Graphite will ultimately choose what values (and how many) to display
-based on a set of 'pretty' values. To explicitly set the Y-axis values, see `yStep`_
+Sets the preferred number of intermediate values to display on the Y-axis (Y values between the
+minimum and maximum).  Note that Graphite will ultimately choose what values (and how many) to 
+display based on a 'pretty' factor, which tries to maintain a sensible scale (e.g. preferring 
+intermediary values like 25%,50%,75% over 33.3%,66.6%).  To explicitly set the Y-axis values, 
+see `yStep`_
 
 yLimit
 ------
@@ -1101,6 +1111,10 @@ Value can be one of:
   Use si units (powers of 1000) - K, M, G, T, P
 ``binary``
   Use binary units (powers of 1024) - Ki, Mi, Gi, Ti, Pi
+``sec``
+  Use time units (seconds) - m, H, D, M, Y
+``msec``
+  Use time units (milliseconds) - s, m, H, D, M, Y
 ``none``
   Dont compact values, display the raw number
 
