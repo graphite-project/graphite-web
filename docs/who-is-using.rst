@@ -12,6 +12,7 @@ Here are some organizations that use Graphite:
 * `GapLabs, a division of Gap Inc. <http://www.gapinc.com/content/gapinc/html/aboutus/ourbrands.html>`_
 * `GitHub <https://github.com>`_
 * `Google <http://google-opensource.blogspot.com/2010/09/get-ready-to-rocksteady.html>`_ (opensource Rocksteady project)
+* `GOV.UK <https://www.gov.uk>`_
 * `ImmobilienScout24 <http://www.immobilienscout24.de/>`_
 * `Instagram <http://instagram.com/>`_
 * `ITV <http://www.itv.com/>`_
