@@ -486,6 +486,7 @@ def mergeResults(dbResults, cacheResults, lowest_step):
 
   (timeInfo,values) = dbResults
   (start,end,step) = timeInfo
+  length = len(values)
 
   # we're pulling from archive, shouldn't be merging cacheResults
   if not step == lowest_step:
@@ -494,11 +495,8 @@ def mergeResults(dbResults, cacheResults, lowest_step):
   for (timestamp, value) in cacheResults:
     interval = timestamp - (timestamp % step)
 
-    try:
-      i = int(interval - start) / step
+    i = int(interval - start) / step
+    if i < length and i >= 0:
       values[i] = value
-    except:
-      pass
 
   return (timeInfo,values)
-
