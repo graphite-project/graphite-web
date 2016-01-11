@@ -686,6 +686,9 @@ def weightedAverage(requestContext, seriesListAvg, seriesListWeight, *nodes):
     productSeries.pathExpression=name
     productList.append(productSeries)
 
+  if not productList:
+    return []
+
   sumProducts=sumSeries(requestContext, productList)[0]
   sumWeights=sumSeries(requestContext, seriesListWeight)[0]
 
