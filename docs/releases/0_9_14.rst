@@ -1,14 +1,14 @@
-.. _0-9-13:
+.. _0-9-14:
 
-0.9.13
+0.9.14
 ===========================
-*no release date*
+*11/7/2015*
 
-Graphite 0.9.13 is now available for usage. Source bundles are available from GitHub:
+Graphite 0.9.14 is now available for usage. Source bundles are available from GitHub:
 
-* https://github.com/graphite-project/graphite-web/archive/0.9.13.tar.gz
-* https://github.com/graphite-project/carbon/archive/0.9.13.tar.gz
-* https://github.com/graphite-project/whisper/archive/0.9.13.tar.gz
+* https://github.com/graphite-project/graphite-web/archive/0.9.14.tar.gz
+* https://github.com/graphite-project/carbon/archive/0.9.14.tar.gz
+* https://github.com/graphite-project/whisper/archive/0.9.14.tar.gz
 
 Graphite can also be installed from `PyPI <http://pypi.python.org/>`_ via
 `pip <http://www.pip-installer.org/en/latest/index.html>`_. PyPI bundles are here:
@@ -19,11 +19,18 @@ Graphite can also be installed from `PyPI <http://pypi.python.org/>`_ via
 
 Upgrading
 ---------
-Graphite 0.9.13 now requires a Django version of at least 1.4. Ensure this dependency is satisfied
-before updating *graphite-web*.
+Graphite 0.9.14 now requires a Django version of at least 1.4. Ensure this dependency is satisfied before updating *graphite-web*.
 
-As always, comparing the example config files with existing ones is recommended to ensure
-awareness of any new features.
+As always, comparing the example config files with existing ones is recommended to ensure awareness of any new features.
+
+Graphite-web's application database will need to be upgraded for a new Django fixture. It's a good idea to backup the database before proceeding with the migration. The following will upgrade a SQLite database:
+
+.. code-block:: none
+
+  sudo cp /opt/graphite/storage/graphite.db \
+        /opt/graphite/storage/graphite.db.backup-`date +%Y%m%d_%H%M%S`
+  sudo PYTHONPATH=/opt/graphite/webapp django-admin.py syncdb \
+        --noinput --no-initial-data --settings=graphite.settings
 
 Security Notes
 --------------
@@ -59,7 +66,7 @@ Graphite-web
 * Add Composer button to load existing graph url (justino)
 * Add ``maxDataPoints`` to limit number of returned datapoints for json requests (philiphoy, gingerlime)
 * Refactor json responses for clarity (whilp)
-* Adding graphana color scheme (lainSR)
+* New `grafana` color scheme (lainSR)
 * Add optional 'now' parameter to remote node fetch (Kixeye)
 * Graphlot was completely removed (obfuscurity)
 * Use cairocffi instead of pycairo (brutasse, esc)
@@ -67,8 +74,15 @@ Graphite-web
 * Adding tests for Django 1.7 (brutasse, syepes)
 * Bulk-fetch metrics from remote hosts (bmhatfield, deniszh, favoretti)
 * Perform all remote fetches in parallel (bmhatfield)
-* Perform `/metrics/find` queries in parallel (jraby)
+* Perform ``/metrics/find`` queries in parallel (jraby)
 * New prefetch cache for remote queries (jraby)
+* New ``REMOTE_STORE_USE_POST`` setting for remote requests (steve-dave)
+* New single-hue color templates (obfuscurity)
+* New ``sortByName()`` function (jssjr, Krylon360)
+* Namespace request-cache data with the local node (jssjr)
+* Support for retrieving static assets with whitenoise (brutasse, deniszh)
+* Enable buffering in HTTPResponse objects (jjneely, deniszh)
+* Merge TimeSeries when more than one returned per key, making this feature optional (jjneely, deniszh)
 
 Carbon
 ^^^^^^
@@ -78,10 +92,18 @@ Carbon
 * Configurable files for aggregation and rewrite rules (drawks)
 * New bulk cache query type (huy)
 * Bulk cache query instrumentation (mleinart)
+* Require Twisted >= 13.2.0, adds IPv6 support (obfuscurity)
+* Document how to disable individual listeners (steve-dave)
+* Support backlogs for TCP listeners (jssjr)
+* Improved cache tests (jssjr)
+* New ``--profiler`` option (tail, deniszh)
+* Support for ``DIVERSE_REPLICAS`` (deniszh, dctrwatson)
 
 Whisper
 ^^^^^^^
 * New whisper-fill utility imported from Carbonate project (jssjr, grobian, deniszh)
+* Add ``--estimate`` option to whisper-create (steve-dave)
+* New whisper-diff utility (bheilman, deniszh)
 
 Bug fixes
 ---------
@@ -120,13 +142,25 @@ Graphite-web
 * Updating the copyright notice (gwaldo)
 * CACHE_* settings are deprecated in Django 1.3, so, was replaced with CACHES setting (brutasse, deniszh)
 * Fix data cache invalidation (esc, deniszh)
-* Fixing documentation for divideSeries (gwaldo)
+* Fix documentation for divideSeries (gwaldo)
 * Make HTTP clients only cache graphs as long as we keep them in memcached (aroben, deniszh)
 * DST fixes, backport from graphite-api (brutasse, deniszh)
 * HttpRequest.raw_post_data was deprecated in Django 1.4 (obfuscurity)
-* Fixing XSS in browser and composer (illicium, deniszh)
+* XSS fixes for browser and composer (illicium, piotr1212, deniszh)
 * Docs: Python Dev Headers needed for custom install location (gwaldo)
 * Fix pytz install dependency (deniszh)
+* Javascript compatibility fixes for Internet Explorer (piotr1212)
+* Timezone fixes and tests (brutasse, MFAnderson, deniszh)
+* Fix for remote fetch threads (deniszh)
+* Fixes for ``normalize()`` (g76r, jstangroome)
+* Avoid exceptions when ``CARBONLINK_HOSTS`` is an empty list (jstangroome)
+* Lock django-tagging to fix Travis CI (jstangroome)
+* Set default timezone (jjneely)
+* Never attempt to write empty data to request-cache (apg-pk)
+* Never merge CarbonLink results with Whisper rollups (penpen, obfuscurity)
+* Fix for SVG graphs (grobian, obfuscurity)
+* Skip empty target parameters (obfuscurity)
+* Remove unnecessary dependencies (obfuscurity)
 
 Carbon
 ^^^^^^
@@ -144,10 +178,19 @@ Carbon
 * Document the fact that one can use regexps in the aggregation-rules (ctavan)
 * Move tests to tox (jssr)
 * Add hup signal handler (jssr)
-* Fixing instrumentation (avishai-ish-shalom, jssr)
+* Fix instrumentation (avishai-ish-shalom, jssr)
 * Fix exception handling (steve-dave)
 * Fix CACHE_WRITE_STRATEGY (jssr)
 * Fix aggregated metrics (pgul, ctavan)
+* Logging fixes (obfuscurity, piotr1212)
+* Fix race condition for full queues (mleinart)
+* Default value for ``MAX_UPDATES_PER_SECOND_ON_SHUTDOWN`` (jssjr)
+* Never cache empty aggregation results (mleinart)
+* Fixes for MetricsCache size leak (jssjr, deniszh)
+* Documentation fix for relay-rules (obfuscurity)
+* Fix test assertions (obfuscurity)
+* Fix for ``--profile`` arg (tail, deniszh)
+* Move Red Hat initscripts to examples (deniszh, bmhatfield)
 
 Whisper
 ^^^^^^^
@@ -155,3 +198,7 @@ Whisper
 * Add optional ``now`` parameter to fetch for graphite-web compatibility (jcsp, steve-dave)
 * Remove unused Tox configuration (steve-dave)
 * TravisCI no longer supports Python 2.5 (steve-dave)
+* Unlink Whisper file if empty/corrupted (jraby)
+* Enforce closing of Whisper files (AstromechZA, jjneely)
+* Handle zero length time ranges by returning the next valid point (jjneely)
+* Used wrong ``until`` boundary for selecting archive (obfuscurity)
