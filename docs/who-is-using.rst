@@ -16,6 +16,7 @@ Here are some organizations that use Graphite:
 * `ImmobilienScout24 <http://www.immobilienscout24.de/>`_
 * `Instagram <http://instagram.com/>`_
 * `ITV <http://www.itv.com/>`_
+* `Mackerel <https://mackerel.io>`_
 * `Media Temple <http://mediatemple.net/>`_
 * `Orbitz <http://www.orbitz.com/>`_
 * `Rubicon Project <http://www.rubiconproject.com/>`_
