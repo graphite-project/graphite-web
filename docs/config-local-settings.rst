@@ -13,7 +13,7 @@ General Settings
 TIME_ZONE
   `Default: America/Chicago`
 
-  Set your local timezone. Timezone is specifed using `zoneinfo names <http://en.wikipedia.org/wiki/Zoneinfo#Names_of_time_zones>`_.
+  Set your local timezone. Timezone is specified using `zoneinfo names <http://en.wikipedia.org/wiki/Zoneinfo#Names_of_time_zones>`_.
 
 DOCUMENTATION_URL
   `Default: http://graphite.readthedocs.org/`
