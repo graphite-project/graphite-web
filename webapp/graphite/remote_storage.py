@@ -33,7 +33,6 @@ class RemoteStore(object):
 
 
 class FindRequest:
-  suppressErrors = True
 
   def __init__(self, store, query):
     self.store = store
@@ -66,8 +65,7 @@ class FindRequest:
         self.connection.request('GET', '/metrics/find/?' + query_string)
     except:
       self.store.fail()
-      if not self.suppressErrors:
-        raise
+      raise
 
 
   def get_results(self):
