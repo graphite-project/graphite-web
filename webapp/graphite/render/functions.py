@@ -579,7 +579,14 @@ def divideSeries(requestContext, dividendSeriesList, divisorSeries):
 
 
   """
-  if len(divisorSeries) != 1:
+  if len(divisorSeries) == 0:
+    for series in dividendSeriesList:
+      series.name = "divideSeries(%s,MISSING)" % (series.name,)
+      series.pathExpression = series.name
+      for i in range(len(series)):
+        series[i] = None
+    return dividendSeriesList
+  if len(divisorSeries) > 1:
     raise ValueError("divideSeries second argument must reference exactly 1 series")
 
   divisorSeries = divisorSeries[0]
