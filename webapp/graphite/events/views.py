@@ -2,7 +2,11 @@ import datetime
 
 import pytz
 
-from django.contrib.sites.models import RequestSite
+try:
+    from django.contrib.sites.requests import RequestSite
+except ImportError:  # Django < 1.9
+    from django.contrib.sites.models import RequestSite
+
 from django.shortcuts import render_to_response, get_object_or_404
 from django.utils.timezone import now, make_aware
 
