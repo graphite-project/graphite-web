@@ -62,7 +62,7 @@ def post_event(request):
 
 
 def get_data(request):
-    if 'jsonp' in request.REQUEST:
+    if 'jsonp' in request.GET or 'jsonp' in request.POST:
         response = HttpResponse(
           "%s(%s)" % (request.REQUEST.get('jsonp'),
               json.dumps(fetch(request), cls=EventEncoder)),
