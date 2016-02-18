@@ -22,6 +22,8 @@ from graphite.compat import HttpResponse
 from graphite.util import getProfile, getProfileByUsername, json
 from graphite.logger import log
 from hashlib import md5
+from urlparse import urlparse, parse_qsl
+from urllib import urlencode
 
 
 def header(request):
@@ -134,7 +136,14 @@ def myGraphLookup(request):
       else:
         m = md5()
         m.update(name.encode('utf-8'))
-        node.update( { 'id' : str(userpath_prefix + m.hexdigest()), 'graphUrl' : str(graph.url) } )
+        # Sanitize target
+        urlEscaped = str(graph.url)
+        graphUrl = urlparse(urlEscaped)
+        graphurlparams = dict(parse_qsl(graphUrl.query))
+        if 'target' in graphurlparams:
+            graphurlparams['target'] = escape(dict(parse_qsl(graphUrl.query))['target'])
+            urlEscaped = graphUrl._replace(query=urlencode(graphurlparams)).geturl()
+        node.update( { 'id' : str(userpath_prefix + m.hexdigest()), 'graphUrl' : urlEscaped } )
         node.update(leafNode)
 
       nodes.append(node)
@@ -220,10 +229,18 @@ def userGraphLookup(request):
           m = md5()
           m.update(nodeName)
 
+          # Sanitize target
+          urlEscaped = str(graph.url)
+          graphUrl = urlparse(urlEscaped)
+          graphurlparams = dict(parse_qsl(graphUrl.query))
+          if 'target' in graphurlparams:
+              graphurlparams['target'] = escape(dict(parse_qsl(graphUrl.query))['target'])
+              urlEscaped = graphUrl._replace(query=urlencode(graphurlparams)).geturl()
+
           node = {
             'text' : escape(str(nodeName)),
             'id' : str(username + '.' + prefix + m.hexdigest()),
-            'graphUrl' : str(graph.url),
+            'graphUrl' : urlEscaped,
           }
           node.update(leafNode)
 
