@@ -182,6 +182,9 @@ Visualization
 `Tasseo`_
   A lightweight, easily configurable, real-time dashboard for Graphite metrics.
 
+`Terphite`_
+  Terminal tool for displaying Graphite metrics.
+
 `Tessera`_
   A flexible front-end for creating dashboards with a wide variety of data presentations. 
 
@@ -335,6 +338,7 @@ Other
 .. _SSC Serv: https://ssc-serv.com
 .. _statsd: https://github.com/etsy/statsd
 .. _Tasseo: https://github.com/obfuscurity/tasseo
+.. _Terphite: https://github.com/benwtr/terphite
 .. _Tessera: https://github.com/urbanairship/tessera
 .. _Therry: https://github.com/obfuscurity/therry
 .. _TimeseriesWidget: https://github.com/Dieterbe/timeserieswidget
