@@ -198,6 +198,9 @@ def renderView(request):
     if format == 'svg':
       graphOptions['outputFormat'] = 'svg'
 
+    if format == 'pdf':
+      graphOptions['outputFormat'] = 'pdf'
+
     if format == 'pickle':
       response = HttpResponse(content_type='application/pickle')
       seriesInfo = [series.getInfo() for series in data]
@@ -219,6 +222,8 @@ def renderView(request):
     response = HttpResponse(
       content="%s(%s)" % (requestOptions['jsonp'], json.dumps(image)),
       content_type='text/javascript')
+  elif graphOptions.get('outputFormat') == 'pdf':
+    response = buildResponse(image, 'application/x-pdf')
   else:
     response = buildResponse(image, useSVG and 'image/svg+xml' or 'image/png')
 

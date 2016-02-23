@@ -199,9 +199,12 @@ class Graph:
     self.outputFormat = outputFormat
     if outputFormat == 'png':
       self.surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, self.width, self.height)
-    else:
+    elif outputFormat == 'svg':
       self.surfaceData = StringIO.StringIO()
       self.surface = cairo.SVGSurface(self.surfaceData, self.width, self.height)
+    elif outputFormat == 'pdf':
+      self.surfaceData = StringIO.StringIO()
+      self.surface = cairo.PDFSurface(self.surfaceData, self.width, self.height)
     self.ctx = cairo.Context(self.surface)
 
   def setColor(self, value, alpha=1.0, forceAlpha=False):
@@ -443,6 +446,11 @@ class Graph:
   def output(self, fileObj):
     if self.outputFormat == 'png':
       self.surface.write_to_png(fileObj)
+    elif self.outputFormat == 'pdf':
+      self.surface.finish()
+      pdfData = self.surfaceData.getvalue()
+      self.surfaceData.close()
+      fileObj.write(pdfData)
     else:
       metaData = {
         'x': {
