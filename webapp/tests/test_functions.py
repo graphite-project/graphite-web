@@ -2,6 +2,7 @@ import copy
 import math
 import pytz
 from datetime import datetime
+from fnmatch import fnmatch
 
 from django.test import TestCase
 from django.conf import settings
@@ -463,3 +464,40 @@ class FunctionsTest(TestCase):
             self.assertEqual(results, expectedResult)
         finally:
             functions.evaluateTarget = original
+
+    def test_applyByNode(self):
+        seriesList = [
+            TimeSeries('servers.s1.disk.bytes_used', 0, 3, 1, [10, 20, 30]),
+            TimeSeries('servers.s1.disk.bytes_free', 0, 3, 1, [90, 80, 70]),
+            TimeSeries('servers.s2.disk.bytes_used', 0, 3, 1, [1, 2, 3]),
+            TimeSeries('servers.s2.disk.bytes_free', 0, 3, 1, [99, 98, 97])
+        ]
+        for series in seriesList:
+            series.pathExpression = series.name
+
+        def mock_data_fetcher(reqCtx, path_expression):
+            rv = []
+            for s in seriesList:
+                if s.name == path_expression or fnmatch(s.name, path_expression):
+                    rv.append(s)
+            if rv:
+                return rv
+            raise KeyError('{} not found!'.format(path_expression))
+
+        expectedResults = [
+            TimeSeries('servers.s1.disk.pct_used', 0, 3, 1, [0.10, 0.20, 0.30]),
+            TimeSeries('servers.s2.disk.pct_used', 0, 3, 1, [0.01, 0.02, 0.03])
+        ]
+
+        with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
+            result = functions.applyByNode(
+                {
+                    'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'endTime': datetime(1970, 1, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'localOnly': False,
+                },
+                seriesList, 1,
+                'divideSeries(%.disk.bytes_used, sumSeries(%.disk.bytes_*))',
+                '%.disk.pct_used'
+            )
+        self.assertEqual(result, expectedResults)
