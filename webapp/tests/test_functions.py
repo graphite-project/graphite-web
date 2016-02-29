@@ -436,3 +436,30 @@ class FunctionsTest(TestCase):
         seriesList = [TimeSeries("foo", 0, 1, 1, [-10000, -20000, -30000, -40000])]
         result = functions.legendValue({}, seriesList, "avg", "si")
         self.assertEqual(result[0].name, "foo                 avg  -25.00K   ")
+
+    def test_linearRegression(self):
+        original = functions.evaluateTarget
+        try:
+            # series starts at 60 seconds past the epoch and continues for 600 seconds (ten minutes)
+            # steps are every 60 seconds
+            savedSeries = TimeSeries('test.value',180,480,60,[3,None,5,6,None,8]),
+            functions.evaluateTarget = lambda x, y: savedSeries
+
+            # input values will be ignored and replaced by regression function
+            inputSeries = TimeSeries('test.value',1200,1500,60,[123,None,None,456,None,None,None])
+            inputSeries.pathExpression = 'test.value'
+            results = functions.linearRegression({
+                'startTime': datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                'endTime': datetime(1970, 1, 1, 0, 25, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                'localOnly': False,
+                'data': [],
+            }, [ inputSeries ], '00:03 19700101', '00:08 19700101')
+
+            # regression function calculated from datapoints on minutes 3 to 8
+            expectedResult = [
+                TimeSeries('linearRegression(test.value, 180, 480)',1200,1500,60,[20.0,21.0,22.0,23.0,24.0,25.0,26.0])
+            ]
+
+            self.assertEqual(results, expectedResult)
+        finally:
+            functions.evaluateTarget = original

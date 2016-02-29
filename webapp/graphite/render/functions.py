@@ -2372,6 +2372,67 @@ def holtWintersConfidenceArea(requestContext, seriesList, delta=3):
     series.name = series.name.replace('areaBetween', 'holtWintersConfidenceArea')
   return results
 
+def linearRegressionAnalysis(series):
+  """
+  Returns factor and offset of linear regression function by least squares method.
+  """
+  n = safeLen(series)
+  sumI = sum([i for i,v in enumerate(series) if v is not None])
+  sumV = sum([v for i,v in enumerate(series) if v is not None])
+  sumII = sum([i*i for i,v in enumerate(series) if v is not None])
+  sumIV = sum([i*v for i,v in enumerate(series) if v is not None])
+  denominator = float(n*sumII - sumI*sumI)
+  if denominator == 0:
+    return None
+  else:
+    factor = (n * sumIV - sumI * sumV) / denominator / series.step
+    offset = (sumII * sumV - sumIV * sumI) /denominator - factor * series.start
+    return factor, offset
+
+def linearRegression(requestContext, seriesList, startSourceAt=None, endSourceAt=None):
+  """
+  Graphs the liner regression function by least squares method.
+
+  Takes one metric or a wildcard seriesList, followed by a quoted string with the
+  time to start the line and another quoted string with the time to end the line.
+  The start and end times are inclusive (default range is from to until). See
+  ``from / until`` in the render\_api_ for examples of time formats. Datapoints
+  in the range is used to regression.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=linearRegression(Server.instance01.threads.busy, '-1d')
+    &target=linearRegression(Server.instance*.threads.busy, "00:00 20140101","11:59 20140630")
+  """
+  results = []
+  sourceContext = requestContext.copy()
+  if startSourceAt is not None: sourceContext['startTime'] = parseATTime(startSourceAt)
+  if endSourceAt is not None: sourceContext['endTime'] = parseATTime(endSourceAt)
+
+  sourceList = []
+  for series in seriesList:
+    source = evaluateTarget(sourceContext, series.pathExpression)
+    sourceList.extend(source)
+
+  for source,series in zip(sourceList, seriesList):
+    newName = 'linearRegression(%s, %s, %s)' % (
+        series.name,
+        int(time.mktime(sourceContext['startTime'].timetuple())),
+        int(time.mktime(sourceContext['endTime'].timetuple()))
+        )
+    forecast = linearRegressionAnalysis(source)
+    if forecast is None:
+      continue
+    factor, offset = forecast
+    values = [ offset + (series.start + i * series.step) * factor for i in range(len(series)) ]
+    newSeries = TimeSeries(newName, series.start, series.end, series.step, values)
+    newSeries.pathExpression = newSeries.name
+    results.append(newSeries)
+  return results
+
+
 def drawAsInfinite(requestContext, seriesList):
   """
   Takes one metric or a wildcard seriesList.
@@ -3431,6 +3492,7 @@ SeriesFunctions = {
   'holtWintersConfidenceBands': holtWintersConfidenceBands,
   'holtWintersConfidenceArea': holtWintersConfidenceArea,
   'holtWintersAberration': holtWintersAberration,
+  'linearRegression': linearRegression,
   'asPercent': asPercent,
   'pct': asPercent,
   'diffSeries': diffSeries,
