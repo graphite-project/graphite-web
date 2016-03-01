@@ -23,3 +23,7 @@ install:
 
 script:
   - tox -e $TOXENV
+
+after_success:
+  - pip install codecov
+  - codecov
