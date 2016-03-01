@@ -223,7 +223,8 @@ def renderView(request):
 
 
 def parseOptions(request):
-  queryParams = request.REQUEST
+  queryParams = request.GET.copy()
+  queryParams.update(request.POST)
 
   # Start with some defaults
   graphOptions = {'width' : 330, 'height' : 250}

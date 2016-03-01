@@ -2,7 +2,11 @@ import datetime
 
 import pytz
 
-from django.contrib.sites.models import RequestSite
+try:
+    from django.contrib.sites.requests import RequestSite
+except ImportError:  # Django < 1.9
+    from django.contrib.sites.models import RequestSite
+
 from django.shortcuts import render_to_response, get_object_or_404
 from django.utils.timezone import now, make_aware
 
@@ -58,7 +62,7 @@ def post_event(request):
 
 
 def get_data(request):
-    if 'jsonp' in request.REQUEST:
+    if 'jsonp' in request.GET or 'jsonp' in request.POST:
         response = HttpResponse(
           "%s(%s)" % (request.REQUEST.get('jsonp'),
               json.dumps(fetch(request), cls=EventEncoder)),
