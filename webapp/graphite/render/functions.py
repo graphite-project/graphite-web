@@ -2959,15 +2959,39 @@ def reduceSeries(requestContext, seriesLists, reduceFunction, reduceNode, *reduc
 
 def applyByNode(requestContext, seriesList, nodeNum, templateFunction, newName=None):
   """
-  Takes a seriesList and applies some complicated function (described by a string), replacing templates with uniquified
-  values from the seriesList up to some unique node.
+  Takes a seriesList and applies some complicated function (described by a string), replacing templates with unique
+  prefixes of keys from the seriesList (the key is all nodes up to the index given as `nodeNum`).
+
+  If the `newName` paramter is provided, the name of the resulting series will be given by that parameter, with any
+  "%" characters replaced by the unique prefix.
+
+  **Example**
 
   ...code-block:: none
 
       &target=applyByNode(servers.*.disk.bytes_free,1,"divideSeries(%.disk.bytes_free,sumSeries(%.disk.bytes_*))")
 
   Would find all series which match `servers.*.disk.bytes_free`, then trim them down to unique series up to the node
-  given by nodeNum, then fill them into the template function provided (replacing % by the prefixes)
+  given by nodeNum, then fill them into the template function provided (replacing % by the prefixes).
+
+  **Additional Examples**
+
+  Given keys of
+
+    - `stats.counts.haproxy.web.2XX`
+    - `stats.counts.haproxy.web.3XX`
+    - `stats.counts.haproxy.web.5XX`
+    - `stats.counts.haproxy.microservice.2XX`
+    - `stats.counts.haproxy.microservice.3XX`
+    - `stats.counts.haproxy.microservice.5XX`
+
+  The following will return the rate of 5XX's per service:
+
+  ...code-block:: none
+
+     applyByNode(stats.counts.haproxy.*.*XX, 3, "asPercent(%.2XX, sumSeries(%.*XX))", "%.pct_5XX")
+
+  The output series would have keys `stats.counts.haproxy.web.pct_5XX` and `stats.counts.haproxy.microservice.pct_5XX`.
   """
   prefixes = set()
   for series in seriesList:
