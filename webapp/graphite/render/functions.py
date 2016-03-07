@@ -3400,6 +3400,12 @@ def events(requestContext, *tags):
   def to_epoch(datetime_object):
     return int(time.mktime(datetime_object.timetuple()))
 
+  def utc_to_local(timestamp):
+    dt = datetime.fromtimestamp(timestamp)
+    dt = dt.replace(tzinfo=dateutil.tz.tzutc())
+    dt = dt.astimezone(tz=dateutil.tz.tzlocal())
+    return to_epoch(dt)
+
   step = 1
   name = "events(" + ", ".join(tags) + ")"
   if tags == ("*",):
@@ -3419,8 +3425,10 @@ def events(requestContext, *tags):
 
   values = [None] * points
   for event in events:
-    event_timestamp = to_epoch(event.when)
+    event_timestamp_utc = to_epoch(event.when)
+    event_timestamp = utc_to_local(event_timestamp_utc)
     value_offset = (event_timestamp - start_timestamp)/step
+
     if values[value_offset] is None:
       values[value_offset] = 1
     else:
