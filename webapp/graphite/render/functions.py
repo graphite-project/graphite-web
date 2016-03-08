@@ -187,7 +187,6 @@ def sumSeries(requestContext, *seriesLists):
   of the other metrics is averaged for the metrics with finer retention rates.
 
   """
-
   try:
     (seriesList,start,end,step) = normalize(seriesLists)
   except:
@@ -580,7 +579,7 @@ def divideSeries(requestContext, dividendSeriesList, divisorSeries):
 
   """
   if len(divisorSeries) != 1:
-    raise ValueError("divideSeries second argument must reference exactly 1 series")
+    raise ValueError("divideSeries second argument must reference exactly 1 series (got {0})".format(len(divisorSeries)))
 
   divisorSeries = divisorSeries[0]
   results = []
@@ -2958,6 +2957,57 @@ def reduceSeries(requestContext, seriesLists, reduceFunction, reduceNode, *reduc
     metaSeries[key].name = key
   return [ metaSeries[key] for key in keys ]
 
+def applyByNode(requestContext, seriesList, nodeNum, templateFunction, newName=None):
+  """
+  Takes a seriesList and applies some complicated function (described by a string), replacing templates with unique
+  prefixes of keys from the seriesList (the key is all nodes up to the index given as `nodeNum`).
+
+  If the `newName` paramter is provided, the name of the resulting series will be given by that parameter, with any
+  "%" characters replaced by the unique prefix.
+
+  **Example**
+
+  ...code-block:: none
+
+      &target=applyByNode(servers.*.disk.bytes_free,1,"divideSeries(%.disk.bytes_free,sumSeries(%.disk.bytes_*))")
+
+  Would find all series which match `servers.*.disk.bytes_free`, then trim them down to unique series up to the node
+  given by nodeNum, then fill them into the template function provided (replacing % by the prefixes).
+
+  **Additional Examples**
+
+  Given keys of
+
+    - `stats.counts.haproxy.web.2XX`
+    - `stats.counts.haproxy.web.3XX`
+    - `stats.counts.haproxy.web.5XX`
+    - `stats.counts.haproxy.microservice.2XX`
+    - `stats.counts.haproxy.microservice.3XX`
+    - `stats.counts.haproxy.microservice.5XX`
+
+  The following will return the rate of 5XX's per service:
+
+  ...code-block:: none
+
+     applyByNode(stats.counts.haproxy.*.*XX, 3, "asPercent(%.2XX, sumSeries(%.*XX))", "%.pct_5XX")
+
+  The output series would have keys `stats.counts.haproxy.web.pct_5XX` and `stats.counts.haproxy.microservice.pct_5XX`.
+  """
+  prefixes = set()
+  for series in seriesList:
+    prefix = '.'.join(series.name.split('.')[:nodeNum + 1])
+    prefixes.add(prefix)
+  results = []
+  for prefix in sorted(prefixes):
+    for resultSeries in evaluateTarget(requestContext, templateFunction.replace('%', prefix)):
+      if newName:
+        resultSeries.name = newName.replace('%', prefix)
+      resultSeries.pathExpression = prefix
+      resultSeries.start = series.start
+      resultSeries.end = series.end
+      results.append(resultSeries)
+  return results
+
 def groupByNode(requestContext, seriesList, nodeNum, callback):
   """
   Takes a serieslist and maps a callback to subgroups within as defined by a common node
@@ -3556,6 +3606,7 @@ SeriesFunctions = {
   'mapSeries': mapSeries,
   'reduce': reduceSeries,
   'reduceSeries': reduceSeries,
+  'applyByNode': applyByNode,
   'groupByNode': groupByNode,
   'constantLine': constantLine,
   'stacked': stacked,
