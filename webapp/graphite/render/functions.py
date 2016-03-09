@@ -24,7 +24,7 @@ from os import environ
 from graphite.logger import log
 from graphite.render.attime import parseTimeOffset, parseATTime
 from graphite.events import models
-from graphite.util import epoch, utc_to_local
+from graphite.util import epoch
 
 # XXX format_units() should go somewhere else
 if environ.get('READTHEDOCS'):
