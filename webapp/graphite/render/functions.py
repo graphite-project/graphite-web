@@ -24,7 +24,7 @@ from os import environ
 from graphite.logger import log
 from graphite.render.attime import parseTimeOffset, parseATTime
 from graphite.events import models
-from graphite.util import epoch
+from graphite.util import epoch, utc_to_local
 
 # XXX format_units() should go somewhere else
 if environ.get('READTHEDOCS'):
@@ -3397,25 +3397,14 @@ def events(requestContext, *tags):
   Returns all events tagged as "tag-one" and "tag-two" and the second one
   returns all events.
   """
-  def to_epoch(datetime_object):
-    return int(time.mktime(datetime_object.timetuple()))
-
-  def utc_to_local(timestamp):
-    dt = datetime.fromtimestamp(timestamp)
-    dt = dt.replace(tzinfo=dateutil.tz.tzutc())
-    dt = dt.astimezone(tz=dateutil.tz.tzlocal())
-    return to_epoch(dt)
-
   step = 1
   name = "events(" + ", ".join(tags) + ")"
   if tags == ("*",):
     tags = None
 
-  # Django returns database timestamps in timezone-ignorant datetime objects
-  # so we use epoch seconds and do the conversion ourselves
-  start_timestamp = to_epoch(requestContext["startTime"])
+  start_timestamp = epoch(requestContext["startTime"])
   start_timestamp = start_timestamp - start_timestamp % step
-  end_timestamp = to_epoch(requestContext["endTime"])
+  end_timestamp = epoch(requestContext["endTime"])
   end_timestamp = end_timestamp - end_timestamp % step
   points = (end_timestamp - start_timestamp)/step
 
@@ -3425,8 +3414,7 @@ def events(requestContext, *tags):
 
   values = [None] * points
   for event in events:
-    event_timestamp_utc = to_epoch(event.when)
-    event_timestamp = utc_to_local(event_timestamp_utc)
+    event_timestamp = epoch(event.when)
     value_offset = (event_timestamp - start_timestamp)/step
 
     if values[value_offset] is None:
