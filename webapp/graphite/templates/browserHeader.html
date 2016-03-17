@@ -78,7 +78,7 @@ limitations under the License. -->
         <li><a href="{% url "dashboard" %}" target="_top">Dashboard</a></li>
         <li><a href="{% url "events" %}" target="_top">Events</a></li>
         {% if user.is_authenticated %}
-          <li class="user_state"><a href="/account/logout/" class="logout" target="_top">Logout</a> <b>{{ user.username }}</b> (<a href="/account/edit/" target="_top">profile</a>)</li>
+          <li class="user_state"><a href="{% url "account_logout" %}" class="logout" target="_top">Logout</a> <b>{{ user.username }}</b> (<a href="{% url "account_edit" %}" target="_top">profile</a>)</li>
         {% else %}
           <li class="user_state login"><a href="{{login_url}}" target="_top">Login</a></li>
         {% endif %}
