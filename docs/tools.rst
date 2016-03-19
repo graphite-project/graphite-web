@@ -269,7 +269,7 @@ Other
 .. _Cabot: https://github.com/arachnys/cabot
 .. _carbon-c-relay: https://github.com/grobian/carbon-c-relay
 .. _carbon-relay-ng: https://github.com/graphite-ng/carbon-relay-ng
-.. _carbonate: https://github.com/jssjr/carbonate
+.. _carbonate: https://github.com/graphite-project/carbonate
 .. _Ceres: https://github.com/graphite-project/ceres
 .. _Charcoal: https://github.com/cebailey59/charcoal
 .. _collectd: http://collectd.org
