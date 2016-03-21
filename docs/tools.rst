@@ -8,6 +8,9 @@ Collection
 `Brubeck`_
   A statsd-compatible stats aggregator written in C.
 
+`Bryans' Graphite Tools <https://github.com/linkslice/graphite-tools>`_
+  A collection of miscellaneous scripts for pulling data from various devices, F5, Infoblox, Nutanix, etc.
+  
 `Bucky`_
   A small service implemented in Python for collecting and translating metrics for Graphite. It can currently collect metric data from CollectD daemons and from StatsD clients.
 
