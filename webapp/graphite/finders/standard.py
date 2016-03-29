@@ -69,7 +69,7 @@ class StandardFinder:
     pattern = patterns[0]
     patterns = patterns[1:]
 
-    has_wildcard = pattern.find('{') > -1 or pattern.find('[') > -1 or pattern.find('*') > -1
+    has_wildcard = pattern.find('{') > -1 or pattern.find('[') > -1 or pattern.find('*') > -1 or pattern.find('?') > -1
 
     if has_wildcard: # this avoids os.listdir() for performance
       try:
