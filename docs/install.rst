@@ -11,7 +11,7 @@ been met or not.
 Basic Graphite requirements:
 
 * a UNIX-like Operating System
-* Python 2.6 or greater
+* Python 2.6 or greater but [NOT Python 3](https://python3wos.appspot.com)
 * `Pycairo`_
 * `Django`_ 1.4 or greater
 * `django-tagging`_ 0.3.1 or greater
