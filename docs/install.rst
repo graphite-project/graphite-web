@@ -11,7 +11,7 @@ been met or not.
 Basic Graphite requirements:
 
 * a UNIX-like Operating System
-* Python 2.6 or greater
+* Python 2.7 or greater but `NOT Python 3`
 * `Pycairo`_
 * `Django`_ 1.4 or greater
 * `django-tagging`_ 0.3.1 or greater
@@ -173,6 +173,7 @@ Despair Not!  Even though running Graphite on Windows is completely unsupported 
 .. _memcached: http://memcached.org/
 .. _mod_wsgi: http://code.google.com/p/modwsgi/
 .. _nginx: http://nginx.org/
+.. _NOT Python 3: https://python3wos.appspot.com
 .. _pip: http://www.pip-installer.org/
 .. _Pycairo: http://www.cairographics.org/pycairo/
 .. _python-ldap: http://www.python-ldap.org/
