@@ -84,7 +84,7 @@ STATIC_ROOT
   `Default: See below`
   The location of Graphite-web's static content. This defaults to ``static/`` three parent directories up from ``settings.py``. In the :ref:`default layout <default-installation-layout>` this is ``/opt/graphite/static``.
 
-  This directory doesn't even exists once you've installed graphite. It needs to be populated with the following command::
+  This directory doesn't even exist once you've installed graphite. It needs to be populated with the following command::
 
       django-admin.py collectstatic --noinput --settings=graphite.settings
 
