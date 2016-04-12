@@ -244,7 +244,7 @@ Other
 `bosun`_
   Time Series Alerting Framework. Can use Graphite as time series source.
 
-`Bryans' Graphite Tools <https://github.com/linkslice/graphite-tools>`_
+`Bryans-Graphite-Tools`_
   A collection of miscellaneous scripts for pulling data from various devices, F5, Infoblox, Nutanix, etc.
 
 `buckytools`_
@@ -267,6 +267,7 @@ Other
 .. _Backstop: https://github.com/obfuscurity/backstop
 .. _bosun: http://bosun.org
 .. _Brubeck: https://github.com/github/brubeck
+.. _Bryans-Graphite-Tools: https://github.com/linkslice/graphite-tools
 .. _Bucky: http://pypi.python.org/pypi/bucky
 .. _buckytools: https://github.com/jjneely/buckytools
 .. _Cabot: https://github.com/arachnys/cabot
