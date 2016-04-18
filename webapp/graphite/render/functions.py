@@ -2839,11 +2839,16 @@ def countSeries(requestContext, *seriesLists):
     &target=countSeries(carbon.agents.*.*)
 
   """
-  (seriesList,start,end,step) = normalize(seriesLists)
-  name = "countSeries(%s)" % formatPathExpressions(seriesList)
-  values = ( int(len(row)) for row in izip(*seriesList) )
-  series = TimeSeries(name,start,end,step,values)
-  series.pathExpression = name
+  if seriesLists:
+    (seriesList,start,end,step) = normalize(seriesLists)
+    name = "countSeries(%s)" % formatPathExpressions(seriesList)
+    values = ( int(len(row)) for row in izip(*seriesList) )
+    series = TimeSeries(name,start,end,step,values)
+    series.pathExpression = name
+  else:
+    series = constantLine(requestContext, 0).pop()
+    series.pathExpression = "countSeries()"
+
   return [series]
 
 def group(requestContext, *seriesLists):
