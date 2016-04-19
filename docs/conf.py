@@ -25,6 +25,13 @@ os.environ['DJANGO_SETTINGS_MODULE'] = "graphite.settings"
 from graphite import settings
 settings.LOG_DIR = os.path.abspath('.')
 
+try:
+    from django import setup
+except ImportError:
+    pass
+else:
+    setup()
+
 # Bring in the new ReadTheDocs sphinx theme
 import sphinx_rtd_theme
 
@@ -73,7 +80,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Graphite'
-copyright = u'2008-2012, Chris Davis; 2011-2014 The Graphite Project'
+copyright = u'2008-2012, Chris Davis; 2011-2016 The Graphite Project'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

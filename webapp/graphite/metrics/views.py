@@ -18,7 +18,6 @@ from graphite.compat import HttpResponse, HttpResponseBadRequest
 from graphite.util import getProfile, json
 from graphite.logger import log
 from graphite.storage import STORE
-from graphite.metrics.search import searcher
 from graphite.carbonlink import CarbonLink
 import fnmatch, os
 
@@ -66,43 +65,29 @@ def index_json(request):
   return json_response_for(request, matches, jsonp=jsonp)
 
 
-def search_view(request):
-  try:
-    query = str( request.REQUEST['query'] )
-  except:
-    return HttpResponseBadRequest(content="Missing required parameter 'query'",
-                                  content_type="text/plain")
-  search_request = {
-    'query' : query,
-    'max_results' : int( request.REQUEST.get('max_results', 25) ),
-    'keep_query_pattern' : int(request.REQUEST.get('keep_query_pattern', 0)),
-  }
-  #if not search_request['query'].endswith('*'):
-  #  search_request['query'] += '*'
-
-  results = sorted(searcher.search(**search_request))
-  return json_response_for(request, dict(metrics=results))
-
-
 def find_view(request):
   "View for finding metrics matching a given pattern"
   profile = getProfile(request)
-  format = request.REQUEST.get('format', 'treejson')
-  local_only = int( request.REQUEST.get('local', 0) )
-  wildcards = int( request.REQUEST.get('wildcards', 0) )
-  fromTime = int( request.REQUEST.get('from', -1) )
-  untilTime = int( request.REQUEST.get('until', -1) )
-  jsonp = request.REQUEST.get('jsonp', False)
+
+  queryParams = request.GET.copy()
+  queryParams.update(request.POST)
+
+  format = queryParams.get('format', 'treejson')
+  local_only = int( queryParams.get('local', 0) )
+  wildcards = int( queryParams.get('wildcards', 0) )
+  fromTime = int( queryParams.get('from', -1) )
+  untilTime = int( queryParams.get('until', -1) )
+  jsonp = queryParams.get('jsonp', False)
 
   if fromTime == -1:
     fromTime = None
   if untilTime == -1:
     untilTime = None
 
-  automatic_variants = int( request.REQUEST.get('automatic_variants', 0) )
+  automatic_variants = int( queryParams.get('automatic_variants', 0) )
 
   try:
-    query = str( request.REQUEST['query'] )
+    query = str( queryParams['query'] )
   except:
     return HttpResponseBadRequest(content="Missing required parameter 'query'",
                                   content_type="text/plain")

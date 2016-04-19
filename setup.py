@@ -27,7 +27,7 @@ with open('setup.cfg', 'r') as f:
 cf = ConfigParser.ConfigParser()
 cf.readfp(BytesIO(orig_setup_cfg), 'setup.cfg')
 
-if os.environ.get('GRAPHITE_NO_PREFIX'):
+if os.environ.get('GRAPHITE_NO_PREFIX') or os.environ.get('READTHEDOCS'):
     cf.remove_section('install')
 else:
     try:

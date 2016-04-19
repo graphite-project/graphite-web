@@ -1,4 +1,3 @@
-import socket
 import time
 import httplib
 from urllib import urlencode
@@ -11,7 +10,8 @@ from graphite.logger import log
 from graphite.util import unpickle
 from graphite.render.hashing import compactHash
 
-
+def connector_class_selector(https_support=False):
+    return httplib.HTTPSConnection if https_support else httplib.HTTPConnection
 
 class RemoteStore(object):
   lastFailure = 0.0
@@ -61,7 +61,8 @@ class FindRequest(object):
       log.info("FindRequest(host=%s, query=%s) using cached result" % (self.store.host, self.query))
       return
 
-    self.connection = HTTPConnectionWithTimeout(self.store.host)
+    connector_class = connector_class_selector(settings.INTRACLUSTER_HTTPS)
+    self.connection = connector_class(self.store.host)
     self.connection.timeout = settings.REMOTE_FIND_TIMEOUT
 
     query_params = [
@@ -119,7 +120,7 @@ class FindRequest(object):
 
 
 class RemoteReader(object):
-  __slots__ = ('store', 'metric_path', 'intervals', 'query')
+  __slots__ = ('store', 'metric_path', 'intervals', 'query', 'connection')
   cache_lock = Lock()
   request_cache = {}
   request_locks = {}
@@ -130,6 +131,7 @@ class RemoteReader(object):
     self.metric_path = node_info['path']
     self.intervals = node_info['intervals']
     self.query = bulk_query or node_info['path']
+    self.connection = None
 
   def __repr__(self):
     return '<RemoteReader[%x]: %s>' % (id(self), self.store.host)
@@ -168,9 +170,10 @@ class RemoteReader(object):
     if request_lock.acquire(False): # we only send the request the first time we're called
       try:
         log.info("RemoteReader.request_data :: requesting %s" % url)
-        connection = HTTPConnectionWithTimeout(self.store.host)
-        connection.timeout = settings.REMOTE_FETCH_TIMEOUT
-        connection.request('GET', urlpath)
+        connector_class = connector_class_selector(settings.INTRACLUSTER_HTTPS)
+        self.connection = connector_class(self.store.host)
+        self.connection.timeout = settings.REMOTE_FIND_TIMEOUT
+        self.connection.request('GET', urlpath)
       except:
         completion_event.set()
         self.store.fail()
@@ -180,7 +183,7 @@ class RemoteReader(object):
     def wait_for_results():
       if wait_lock.acquire(False): # the FetchInProgress that gets waited on waits for the actual completion
         try:
-          response = connection.getresponse()
+          response = self.connection.getresponse()
           if response.status != 200:
             raise Exception("Error response %d %s from %s" % (response.status, response.reason, url))
 
@@ -238,33 +241,3 @@ class RemoteReader(object):
       return self.request_locks[url]
     finally:
       self.cache_lock.release()
-
-
-# This is a hack to put a timeout in the connect() of an HTTP request.
-# Python 2.6 supports this already, but many Graphite installations
-# are not on 2.6 yet.
-
-class HTTPConnectionWithTimeout(httplib.HTTPConnection):
-  timeout = 30
-
-  def connect(self):
-    msg = "getaddrinfo returns an empty list"
-    for res in socket.getaddrinfo(self.host, self.port, 0, socket.SOCK_STREAM):
-      af, socktype, proto, canonname, sa = res
-      try:
-        self.sock = socket.socket(af, socktype, proto)
-        try:
-          self.sock.settimeout( float(self.timeout) ) # default self.timeout is an object() in 2.6
-        except:
-          pass
-        self.sock.connect(sa)
-        self.sock.settimeout(None)
-      except socket.error as e:
-        msg = e
-        if self.sock:
-          self.sock.close()
-          self.sock = None
-          continue
-      break
-    if not self.sock:
-      raise socket.error(msg)

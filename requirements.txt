@@ -36,14 +36,14 @@
 #
 
 Django>=1.4
-Twisted==11.1.0
 python-memcached==1.47
 txAMQP==0.4
 simplejson==2.1.6
-django-tagging==0.3.1
+django-tagging==0.3.6
 gunicorn
 pytz
 pyparsing==1.5.7
 cairocffi
 git+git://github.com/graphite-project/whisper.git#egg=whisper
 git+git://github.com/graphite-project/ceres.git#egg=ceres
+whitenoise

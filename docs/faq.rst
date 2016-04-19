@@ -19,7 +19,7 @@ From a CPU perspective, Graphite scales horizontally on both the frontend and th
 
 From an I/O perspective, under load Graphite performs lots of tiny I/O operations on lots of different files very rapidly. This is because each distinct metric sent to Graphite is stored in its own database file, similar to how many tools (drraw, Cacti, Centreon, etc) built on top of RRD work. In fact, Graphite originally did use RRD for storage until fundamental limitations arose that required a new storage engine.
 
-High volume (a few thousand distinct metrics updating minutely) pretty much requires a good RAID array and/or SSDs. Graphite's backend caches incoming data if the disks cannot keep up with the large number of small write operations that occur (each data point is only a few bytes, but most standard disks cannot do more than a few thousand I/O operations per second, even if they are tiny). When this occurs, Graphite's database engine, whisper, allows carbon to write multiple data points at once, thus increasing overall throughput only at the cost of keeping excess data cached in memory until it can be written.
+High volume (a few thousand distinct metrics updating every minute) pretty much requires a good RAID array and/or SSDs. Graphite's backend caches incoming data if the disks cannot keep up with the large number of small write operations that occur (each data point is only a few bytes, but most standard disks cannot do more than a few thousand I/O operations per second, even if they are tiny). When this occurs, Graphite's database engine, whisper, allows carbon to write multiple data points at once, thus increasing overall throughput only at the cost of keeping excess data cached in memory until it can be written.
 
 
 How real-time are the graphs?
@@ -53,7 +53,7 @@ Does Graphite use RRDtool?
 --------------------------
 No, not since Graphite was first written in 2006 at least. Graphite has its own specialized database library called :doc:`whisper </whisper>`, which is very similar in design to RRD, but has a subtle yet fundamentally important difference that Graphite requires. There are two reasons whisper was created. The first reason is that RRD is designed under the assumption that data will always be inserted into the database on a regular basis, and this assumption causes RRD behave undesirably when given irregularly occurring data. Graphite was built to facilitate visualization of various application metrics that do not always occur regularly, like when an uncommon request is handled and the latency is measured and sent to Graphite. Using RRD, the data gets put into a temporary area inside the database where it is not accessible until the current time interval has passed *and* another value is inserted into the database for the following interval. If that does not happen within an allotted period of time, the original data point will get overwritten and is lost. Now for some metrics, the lack of a value can be correctly interpreted as a value of zero, however this is not the case for metrics like latency because a zero indicates that work was done in zero time, which is different than saying no work was done. Assuming a zero value for latency also screws up analysis like calculating the average latency, etc.
 
-The second reason whisper was written is performance. RRDtool is very fast, in fact it is much faster than whisper. But the problem with RRD (at the time whisper was written) was that RRD only allows you to insert a single value into a database at a time, while whisper was written to allow the insertion of multiple data points at once, compacting them into a single write operation. The reason this improves performance drastically under high load is because Graphite operates on many many files, and with such small operations being done (write a few bytes here, a few over there, etc) the bottleneck is caused by the *number of I/O operations*. Consider the scenario where Graphite is receiving 100,000 distinct metric values each minute, in order to sustain that load Graphite must be able to write that many data points to disk each minute. But assume that you're underlying storage can only handle 20,000 I/O operations per minute. With RRD (at the time whisper was written), there was no chance of keeping up. But with whisper, we can keep caching the incoming data until we accumulate say 10 minutes worth of data for a given metric, then instead of doing 10 I/O operations to write those 10 data points, whisper can do it in 1 operation. The reason I have kept mentioning "at the time whisper was written" is because RRD now supports this behavior. However Graphite will continue to use whisper as long as the first issue still exists.
+The second reason whisper was written is performance. RRDtool is very fast; in fact it is much faster than whisper. But the problem with RRD (at the time whisper was written) was that RRD only allowed you to insert a single value into a database at a time, while whisper was written to allow the insertion of multiple data points at once, compacting them into a single write operation. This improves performance drastically under high load because Graphite operates on many many files, and with such small operations being done (write a few bytes here, a few over there, etc) the bottleneck is caused by the *number of I/O operations*. Consider the scenario where Graphite is receiving 100,000 distinct metric values each minute; in order to sustain that load Graphite must be able to write that many data points to disk each minute. But assume that your underlying storage can only handle 20,000 I/O operations per minute. With RRD (at the time whisper was written), there was no chance of keeping up. But with whisper, we can keep caching the incoming data until we accumulate say 10 minutes worth of data for a given metric, then instead of doing 10 I/O operations to write those 10 data points, whisper can do it in one operation. The reason I have kept mentioning "at the time whisper was written" is that RRD now supports this behavior. However Graphite will continue to use whisper as long as the first issue still exists.
 
 
 How do I report problems or request features for Graphite?
@@ -73,11 +73,12 @@ No. The sourceforge project called graphite is completely unrelated to this Grap
 
 Is there a diagram of Graphite's architecture?
 ----------------------------------------------
-No, but we have an `open issue to create a new architectural diagram`_.
+There sure is! Here it is:
+
+.. image:: ../webapp/content/img/overview.png
 
 
 .. _Django: http://www.djangoproject.com/
-.. _Twisted: http://www.twistedmatrix.com/
 .. _Cairo: http://www.cairographics.org/
 .. _RRD: http://oss.oetiker.ch/rrdtool/
 .. _Chris Davis: mailto:chrismd@gmail.com
@@ -86,4 +87,3 @@ No, but we have an `open issue to create a new architectural diagram`_.
 .. _Graphite-Project: https://github.com/graphite-project/
 .. _Apache 2.0 License: http://www.apache.org/licenses/LICENSE-2.0.html
 .. _GitHub Issues: https://github.com/graphite-project/graphite-web/issues
-.. _open issue to create a new architectural diagram: https://github.com/graphite-project/graphite-project.github.io/issues/9

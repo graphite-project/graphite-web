@@ -8,6 +8,7 @@ option_parser = OptionParser(usage='''
 %prog [options] GRAPHITE_ROOT
 ''')
 option_parser.add_option('--port', default=8080, action='store', type=int, help='Port to listen on')
+option_parser.add_option('--interface', default='0.0.0.0', action='store', help='Interface to listen on')
 option_parser.add_option('--libs', default=None, help='Path to the directory containing the graphite python package')
 option_parser.add_option('--noreload', action='store_true', help='Disable monitoring for changes')
 
@@ -45,7 +46,7 @@ command = [
   'runserver',
   '--pythonpath', python_path,
   '--settings', 'graphite.settings',
-  '0.0.0.0:%d' % options.port
+  '%s:%d' % (options.interface, options.port)
 ]
 
 if options.noreload:

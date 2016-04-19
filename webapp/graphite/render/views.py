@@ -29,7 +29,7 @@ except ImportError:
 
 from graphite.compat import HttpResponse
 from graphite.util import getProfileByUsername, json, unpickle
-from graphite.remote_storage import HTTPConnectionWithTimeout
+from graphite.remote_storage import connector_class_selector
 from graphite.logger import log
 from graphite.render.evaluator import evaluateTarget
 from graphite.render.attime import parseATTime
@@ -54,6 +54,7 @@ def renderView(request):
     'startTime' : requestOptions['startTime'],
     'endTime' : requestOptions['endTime'],
     'localOnly' : requestOptions['localOnly'],
+    'template' : requestOptions['template'],
     'data' : []
   }
   data = requestContext['data']
@@ -168,6 +169,7 @@ def renderView(request):
                                 content_type='application/json')
 
       if useCache:
+        cache.add(requestKey, response, cacheTimeout)
         patch_response_headers(response, cache_timeout=cacheTimeout)
       else:
         add_never_cache_headers(response)
@@ -221,7 +223,8 @@ def renderView(request):
 
 
 def parseOptions(request):
-  queryParams = request.REQUEST
+  queryParams = request.GET.copy()
+  queryParams.update(request.POST)
 
   # Start with some defaults
   graphOptions = {'width' : 330, 'height' : 250}
@@ -251,6 +254,12 @@ def parseOptions(request):
   # Collect the targets
   for target in mytargets:
     requestOptions['targets'].append(target)
+
+  template = dict()
+  for key, val in queryParams.items():
+    if key.startswith("template["):
+      template[key[9:-1]] = val
+  requestOptions['template'] = template
 
   if 'pickle' in queryParams:
     requestOptions['format'] = 'pickle'
@@ -306,6 +315,10 @@ def parseOptions(request):
 
     requestOptions['startTime'] = startTime
     requestOptions['endTime'] = endTime
+    timeRange = endTime - startTime
+    queryTime = timeRange.days * 86400 + timeRange.seconds # convert the time delta to seconds
+    if settings.DEFAULT_CACHE_POLICY and not queryParams.get('cacheTimeout'):
+      requestOptions['cacheTimeout'] = max(timeout for period,timeout in settings.DEFAULT_CACHE_POLICY if period <= queryTime)
 
   return (graphOptions, requestOptions)
 
@@ -317,6 +330,7 @@ def delegateRendering(graphType, graphOptions):
   postData = graphType + '\n' + pickle.dumps(graphOptions)
   servers = settings.RENDERING_HOSTS[:] #make a copy so we can shuffle it safely
   shuffle(servers)
+  connector_class = connector_class_selector(settings.INTRACLUSTER_HTTPS)
   for server in servers:
     start2 = time()
     try:
@@ -328,13 +342,13 @@ def delegateRendering(graphType, graphOptions):
       try:
         connection = pool.pop()
       except KeyError: #No available connections, have to make a new one
-        connection = HTTPConnectionWithTimeout(server)
+        connection = connector_class(server)
         connection.timeout = settings.REMOTE_RENDER_CONNECT_TIMEOUT
       # Send the request
       try:
         connection.request('POST','/render/local/', postData)
       except CannotSendRequest:
-        connection = HTTPConnectionWithTimeout(server) #retry once
+        connection = connector_class(server) #retry once
         connection.timeout = settings.REMOTE_RENDER_CONNECT_TIMEOUT
         connection.request('POST', '/render/local/', postData)
       # Read the response

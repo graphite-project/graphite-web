@@ -1,23 +1,29 @@
 language: python
 python: 2.7
+sudo: false
 
 env:
-  - TOXENV=py26-django14
-  - TOXENV=py26-django15
-  - TOXENV=py26-django16
-  - TOXENV=py27-django14
-  - TOXENV=py27-django15
-  - TOXENV=py27-django16
-  - TOXENV=py27-django17
+  - TOXENV=py27-django14-pyparsing2
+  - TOXENV=py27-django15-pyparsing2
+  - TOXENV=py27-django16-pyparsing2
+  - TOXENV=py27-django17-pyparsing2
+  - TOXENV=py27-django18-pyparsing2
+  - TOXENV=py27-django19-pyparsing2
   - TOXENV=py27-django16-pyparsing1
   - TOXENV=docs
   - TOXENV=lint
 
-before_install:
-  - sudo apt-get -y install libcairo2-dev
+addons:
+  apt:
+    packages:
+      - libcairo2-dev
 
 install:
   - pip install tox
 
 script:
   - tox -e $TOXENV
+
+after_success:
+  - pip install codecov
+  - codecov

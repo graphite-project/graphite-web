@@ -1,0 +1,74 @@
+.. _0-9-15:
+
+0.9.15
+===========================
+*11/27/2015*
+
+Graphite 0.9.15 is now available for usage. This is primarily a bugfix release for some regressions introduced in 0.9.14. Users upgrading from older releases are advised to review the 0.9.14 release notes first.
+
+Source bundles are available from GitHub:
+
+* https://github.com/graphite-project/graphite-web/archive/0.9.15.tar.gz
+* https://github.com/graphite-project/carbon/archive/0.9.15.tar.gz
+* https://github.com/graphite-project/whisper/archive/0.9.15.tar.gz
+
+Graphite can also be installed from `PyPI <http://pypi.python.org/>`_ via
+`pip <http://www.pip-installer.org/en/latest/index.html>`_. PyPI bundles are here:
+
+* http://pypi.python.org/pypi/graphite-web/
+* http://pypi.python.org/pypi/carbon/
+* http://pypi.python.org/pypi/whisper/
+
+Upgrading
+---------
+Graphite 0.9.15 requires a Django version of at least 1.4. Ensure this dependency is satisfied before updating *graphite-web*.
+
+As always, comparing the example config files with existing ones is recommended to ensure awareness of any new features.
+
+If you're not already running 0.9.14, Graphite-web's application database will need to be upgraded for a new Django fixture. It's a good idea to backup the database before proceeding with the migration. The following will upgrade a SQLite database:
+
+.. code-block:: none
+
+  sudo cp /opt/graphite/storage/graphite.db \
+        /opt/graphite/storage/graphite.db.backup-`date +%Y%m%d_%H%M%S`
+  sudo PYTHONPATH=/opt/graphite/webapp django-admin.py syncdb \
+        --noinput --no-initial-data --settings=graphite.settings
+
+Security Notes
+--------------
+No known security issues.
+
+
+New Features
+------------
+
+Graphite-web
+^^^^^^^^^^^^
+* "Natural" sorting functionality added to `sortByName` (sylr, obfuscurity)
+
+Carbon
+^^^^^^
+* PyPy support (robert-zaremba, deniszh)
+
+
+Bug fixes
+---------
+
+Graphite-web
+^^^^^^^^^^^^
+* Fix sample WSGI configuration (deniszh)
+* Unnecessary call to log handler when logging disabled (ShalomCohen)
+* Fix index exception for `removeAbovePercentile` and `removeBelowPercentile` (toote, obfuscurity)
+* Fix premature break when fetching series (bmhatfield)
+* Timezone fixes (bmhatfield)
+
+Carbon
+^^^^^^
+* Fix aggregator instrumentation (deniszh)
+* Fix support for twistd syslog (rppala90, obfuscurity)
+* Fix event tracking via state import (bmhatfield)
+
+Whisper
+^^^^^^^
+* Revert change affecting Whisper boundaries (obfuscurity)
+

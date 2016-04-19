@@ -36,7 +36,7 @@ Security Notes
 --------------
 This release contains several security fixes for cross-site scripting (XSS) as well as a fix for
 a remote-execution exploit in graphite-web
-(`CVE-2013-5903 <http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=2013-5093>`_).
+(`CVE-2013-5093 <http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=2013-5093>`_).
 Patches for the past three prior releases are available in these gists:
 
 * `0.9.10 <https://gist.github.com/mleinart/6285953>`_

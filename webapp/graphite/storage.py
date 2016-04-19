@@ -29,7 +29,7 @@ class Store:
 
     if hosts is None:
       hosts = settings.CLUSTER_SERVERS
-    remote_hosts = [host for host in hosts if not is_local_interface(host)]
+    remote_hosts = [host for host in hosts if not settings.REMOTE_EXCLUDE_LOCAL or not is_local_interface(host)]
     self.remote_stores = [ RemoteStore(host) for host in remote_hosts ]
 
 

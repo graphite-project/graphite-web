@@ -297,7 +297,7 @@ function showShortUrl() {
     Ext.Ajax.request({
         method: 'GET',
         url: document.body.dataset.baseUrl + 's/render/?' + Composer.url.queryString,
-        callback: showUrl,
+        callback: showUrl
     });
 }
 
@@ -561,7 +561,7 @@ var GraphDataWindow = {
           menu: {
             subMenuAlign: 'tr-tl',
             defaults: {
-              defaultAlign: 'tr-tl',
+              defaultAlign: 'tr-tl'
             },
             items: [
               { text: 'Move Up', handler: this.moveTargetUp.createDelegate(this) },
@@ -1095,6 +1095,7 @@ function createFunctionsMenu() {
         {text: 'Invert', handler: applyFuncToEach('invert')},
         {text: 'Absolute Value', handler: applyFuncToEach('absolute')},
         {text: 'timeShift', handler: applyFuncToEachWithInput('timeShift', 'Shift this metric ___ back in time (examples: 10min, 7d, 2w)', {quote: true})},
+        {text: 'timeSlice', handler: applyFuncToEachWithInput('timeSlice', 'Start showing metric at (example: 14:57 20150115)', {quote: true})},
         {text: 'Summarize', handler: applyFuncToEachWithInput('summarize', 'Please enter a summary interval (examples: 10min, 1h, 7d)', {quote: true})},
         {text: 'Hit Count', handler: applyFuncToEachWithInput('hitcount', 'Please enter a summary interval (examples: 10min, 1h, 7d)', {quote: true})}
       ]
@@ -1107,6 +1108,7 @@ function createFunctionsMenu() {
         {text: 'Holt-Winters Forecast', handler: applyFuncToEach('holtWintersForecast')},
         {text: 'Holt-Winters Confidence Bands', handler: applyFuncToEach('holtWintersConfidenceBands')},
         {text: 'Holt-Winters Aberration', handler: applyFuncToEach('holtWintersAberration')},
+        {text: 'Linear Regression', handler: applyFuncToEachWithInput('linearRegression', 'Start source of regression at (example: 14:57 20150115)', {quote: true})},
         {text: 'As Percent', handler: applyFuncToEachWithInput('asPercent', 'Please enter the value that corresponds to 100% or leave blank to use the total', {allowBlank: true})},
         {text: 'Difference (of 2 series)', handler: applyFuncToAll('diffSeries')},
         {text: 'Ratio (of 2 series)', handler: applyFuncToAll('divideSeries')}
@@ -1146,7 +1148,8 @@ function createFunctionsMenu() {
         {text: 'sortByMinima', handler: applyFuncToEach('sortByMinima')},
         {text: 'limit', handler: applyFuncToEachWithInput('limit', 'Limit to first ___ of a list of metrics')},
         {text: 'Exclude', handler: applyFuncToEachWithInput('exclude', 'Exclude metrics that match a regular expression')},
-        {text: 'Grep', handler: applyFuncToEachWithInput('grep', 'Exclude metrics that don\'t match a regular expression')}
+        {text: 'Grep', handler: applyFuncToEachWithInput('grep', 'Exclude metrics that don\'t match a regular expression')},
+        {text: 'Remove Empty Series', handler: applyFuncToEachWithInput('removeEmptySeries', 'Removes series with no data from graph')}
       ]
     }, {
       text: 'Special',
@@ -1229,6 +1232,8 @@ function createOptionsMenu() {
     items: [
       menuRadioItem("yUnit", "Standard", "yUnitSystem", "si"),
       menuRadioItem("yUnit", "Binary", "yUnitSystem", "binary"),
+      menuRadioItem("yUnit", "Seconds", "yUnitSystem", "sec"),
+      menuRadioItem("yUnit", "Milliseconds", "yUnitSystem", "msec"),
       menuRadioItem("yUnit", "None", "yUnitSystem", "none")
 
     ]

@@ -11,16 +11,18 @@ been met or not.
 Basic Graphite requirements:
 
 * a UNIX-like Operating System
-* Python 2.6 or greater
+* Python 2.7 or greater but `NOT Python 3`
 * `Pycairo`_
 * `Django`_ 1.4 or greater
 * `django-tagging`_ 0.3.1 or greater
-* `Twisted`_ 8.0 or greater (10.0+ recommended)
-* `zope-interface`_ (often included in Twisted package dependency)
+* `pytz`_
 * `fontconfig`_ and at least one font package (a system package usually)
 * A WSGI server and web server. Popular choices are:
+
   - `Apache`_ with `mod_wsgi`_
+
   - `gunicorn`_ with `nginx`_
+
   - `uWSGI`_ with `nginx`_
 
 Additionally, the Graphite webapp and Carbon require the whisper database library which
@@ -117,8 +119,9 @@ Initial Configuration
 .. toctree::
    :maxdepth: 2
    
-   config-local-settings
+   config-database-setup
    config-webapp
+   config-local-settings
    config-carbon
 
 
@@ -159,7 +162,7 @@ Windows Users
 Despair Not!  Even though running Graphite on Windows is completely unsupported (we fear that handling the escaping of paths in the regexes would result only in jibbering madness, and life is just too short; pull requests happily considered!), you are not completely out of luck.  There are some solutions that make it easier for you to run a UNIX VM within your Windows box.  The :doc:`Installing via Synthesize </install-synthesize>` article will help you set up a Vagrant VM that will run Graphite.  In order to leverage this, you will need to install `Vagrant <http://www.vagrantup.com>`_.
 
 
-.. _Apache: http://projects.apache.org/projects/http_server.html
+.. _Apache: https://projects.apache.org/project.html?httpd-http_server
 .. _Django: http://www.djangoproject.com/
 .. _django-tagging: http://code.google.com/p/django-tagging/
 .. _Django database install: https://docs.djangoproject.com/en/dev/topics/install/#get-your-database-running
@@ -170,14 +173,14 @@ Despair Not!  Even though running Graphite on Windows is completely unsupported 
 .. _memcached: http://memcached.org/
 .. _mod_wsgi: http://code.google.com/p/modwsgi/
 .. _nginx: http://nginx.org/
+.. _NOT Python 3: https://python3wos.appspot.com
 .. _pip: http://www.pip-installer.org/
 .. _Pycairo: http://www.cairographics.org/pycairo/
 .. _python-ldap: http://www.python-ldap.org/
 .. _python-memcache: http://www.tummy.com/Community/software/python-memcached/
 .. _python-rrdtool: http://oss.oetiker.ch/rrdtool/prog/rrdpython.en.html
 .. _python-sqlite2: http://code.google.com/p/pysqlite/
+.. _pytz: https://pypi.python.org/pypi/pytz/
 .. _simplejson: http://pypi.python.org/pypi/simplejson/
-.. _Twisted: http://twistedmatrix.com/
 .. _txAMQP: https://launchpad.net/txamqp/
 .. _uWSGI: http://projects.unbit.it/uwsgi/
-.. _zope-interface: http://pypi.python.org/pypi/zope.interface/

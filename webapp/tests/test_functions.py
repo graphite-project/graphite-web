@@ -1,6 +1,11 @@
 import copy
 import math
+import pytz
+from datetime import datetime
+from fnmatch import fnmatch
+
 from django.test import TestCase
+from django.conf import settings
 from mock import patch, call, MagicMock
 
 from graphite.render.datalib import TimeSeries
@@ -101,6 +106,19 @@ class FunctionsTest(TestCase):
             name = "collectd.test-db{0}.load.value".format(i + 1)
             seriesList.append(TimeSeries(name, 0, 1, 1, c))
         return seriesList
+
+    def test_check_empty_lists(self):
+        seriesList = []
+        config = [[1000, 100, 10, 0], []]
+        for i, c in enumerate(config):
+            seriesList.append(TimeSeries('Test(%d)' % i, 0, 0, 0, c))
+
+        self.assertTrue(functions.safeIsNotEmpty(seriesList[0]))
+        self.assertFalse(functions.safeIsNotEmpty(seriesList[1]))
+
+        result = functions.removeEmptySeries({}, seriesList)
+
+        self.assertEqual(1, len(result))
 
     def test_remove_above_percentile(self):
         seriesList = self._generate_series_list()
@@ -302,7 +320,26 @@ class FunctionsTest(TestCase):
         with patch.dict(functions.SeriesFunctions,{ 'mock': mock }):
             results = functions.reduceSeries({}, copy.deepcopy(inputList), "mock", 2, "metric1","metric2" )
             self.assertEqual(results,expectedResult)
-        self.assertEqual(mock.mock_calls, [call({},inputList[0]), call({},inputList[1])])
+        self.assertEqual(mock.mock_calls,
+                         [call({},[inputList[0][0]],[inputList[0][1]]),
+                          call({},[inputList[1][0]],[inputList[1][1]])])
+
+    def test_reduceSeries_asPercent(self):
+        seriesList = [
+            TimeSeries('group.server1.bytes_used',0,1,1,[1]),
+            TimeSeries('group.server1.total_bytes',0,1,1,[2]),
+            TimeSeries('group.server2.bytes_used',0,1,1,[3]),
+            TimeSeries('group.server2.total_bytes',0,1,1,[4]),
+        ]
+        for series in seriesList:
+            series.pathExpression = "tempPath"
+        expectedResult   = [
+            TimeSeries('group.server1.reduce.asPercent',0,1,1,[50]), #100*1/2
+            TimeSeries('group.server2.reduce.asPercent',0,1,1,[75])  #100*3/4
+        ]
+        mappedResult = [seriesList[0]],[seriesList[1]], [seriesList[2]],[seriesList[3]]
+        results = functions.reduceSeries({}, copy.deepcopy(mappedResult), "asPercent", 2, "bytes_used", "total_bytes")
+        self.assertEqual(results,expectedResult)
 
     def test_pow(self):
         seriesList = self._generate_series_list()
@@ -375,3 +412,92 @@ class FunctionsTest(TestCase):
         ]
         results = functions.multiplySeriesWithWildcards({}, copy.deepcopy(seriesList1+seriesList2), 2,3)
         self.assertEqual(results,expectedResult)
+
+    def test_timeSlice(self):
+        seriesList = [
+            # series starts at 60 seconds past the epoch and continues for 600 seconds (ten minutes)
+            # steps are every 60 seconds
+            TimeSeries('test.value',0,600,60,[None,1,2,3,None,5,6,None,7,8,9]),
+        ]
+
+        # we're going to slice such that we only include minutes 3 to 8 (of 0 to 9)
+        expectedResult = [
+            TimeSeries('timeSlice(test.value, 180, 480)',0,600,60,[None,None,None,3,None,5,6,None,7,None,None])
+        ]
+
+        results = functions.timeSlice({
+            'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+            'endTime': datetime(1970, 1, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+            'localOnly': False,
+            'data': [],
+        }, seriesList, '00:03 19700101', '00:08 19700101')
+        self.assertEqual(results, expectedResult)
+
+    def test_legendValue_with_system_preserves_sign(self):
+        seriesList = [TimeSeries("foo", 0, 1, 1, [-10000, -20000, -30000, -40000])]
+        result = functions.legendValue({}, seriesList, "avg", "si")
+        self.assertEqual(result[0].name, "foo                 avg  -25.00K   ")
+
+    def test_linearRegression(self):
+        original = functions.evaluateTarget
+        try:
+            # series starts at 60 seconds past the epoch and continues for 600 seconds (ten minutes)
+            # steps are every 60 seconds
+            savedSeries = TimeSeries('test.value',180,480,60,[3,None,5,6,None,8]),
+            functions.evaluateTarget = lambda x, y: savedSeries
+
+            # input values will be ignored and replaced by regression function
+            inputSeries = TimeSeries('test.value',1200,1500,60,[123,None,None,456,None,None,None])
+            inputSeries.pathExpression = 'test.value'
+            results = functions.linearRegression({
+                'startTime': datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                'endTime': datetime(1970, 1, 1, 0, 25, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                'localOnly': False,
+                'data': [],
+            }, [ inputSeries ], '00:03 19700101', '00:08 19700101')
+
+            # regression function calculated from datapoints on minutes 3 to 8
+            expectedResult = [
+                TimeSeries('linearRegression(test.value, 180, 480)',1200,1500,60,[20.0,21.0,22.0,23.0,24.0,25.0,26.0])
+            ]
+
+            self.assertEqual(results, expectedResult)
+        finally:
+            functions.evaluateTarget = original
+
+    def test_applyByNode(self):
+        seriesList = [
+            TimeSeries('servers.s1.disk.bytes_used', 0, 3, 1, [10, 20, 30]),
+            TimeSeries('servers.s1.disk.bytes_free', 0, 3, 1, [90, 80, 70]),
+            TimeSeries('servers.s2.disk.bytes_used', 0, 3, 1, [1, 2, 3]),
+            TimeSeries('servers.s2.disk.bytes_free', 0, 3, 1, [99, 98, 97])
+        ]
+        for series in seriesList:
+            series.pathExpression = series.name
+
+        def mock_data_fetcher(reqCtx, path_expression):
+            rv = []
+            for s in seriesList:
+                if s.name == path_expression or fnmatch(s.name, path_expression):
+                    rv.append(s)
+            if rv:
+                return rv
+            raise KeyError('{} not found!'.format(path_expression))
+
+        expectedResults = [
+            TimeSeries('servers.s1.disk.pct_used', 0, 3, 1, [0.10, 0.20, 0.30]),
+            TimeSeries('servers.s2.disk.pct_used', 0, 3, 1, [0.01, 0.02, 0.03])
+        ]
+
+        with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
+            result = functions.applyByNode(
+                {
+                    'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'endTime': datetime(1970, 1, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'localOnly': False,
+                },
+                seriesList, 1,
+                'divideSeries(%.disk.bytes_used, sumSeries(%.disk.bytes_*))',
+                '%.disk.pct_used'
+            )
+        self.assertEqual(result, expectedResults)

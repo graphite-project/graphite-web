@@ -1,5 +1,6 @@
 MANIFEST
 .vagrant/
+.venv/
 _trial_temp
 build
 dist
@@ -11,3 +12,5 @@ docs/_build
 *.pyc
 .tox
 *.swp
+.idea
+*.iml

@@ -19,7 +19,7 @@ limitations under the License. -->
   </head>
 
 
-<frameset rows="60,*" frameborder="1" border="1">
+<frameset rows="80,*" frameborder="1" border="1">
   <frame src="{% url "browser_header" %}" name="Header" id='header' scrolling="no" noresize="true" />
   {% if target %}
     <frame src="{% url "composer" %}?showTarget={{target|urlencode}}&{{queryString}}" name="content" id="composerFrame"/>
