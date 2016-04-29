@@ -326,7 +326,7 @@ Other
 .. _OpenTSDB: http://opentsdb.net/
 .. _Orion: https://github.com/gree/Orion
 .. _metrics-sampler: https://github.com/dimovelev/metrics-sampler
-.. _Moira: http://moira.readthedocs.org
+.. _Moira: http://moira.readthedocs.io
 .. _New Relic: https://newrelic.com/platform
 .. _Pencil: https://github.com/fetep/pencil
 .. _pipe-to-graphite: https://github.com/iFixit/pipe-to-graphite

@@ -23,7 +23,7 @@
 #TIME_ZONE = 'America/Los_Angeles'
 
 # Override this to provide documentation specific to your Graphite deployment
-#DOCUMENTATION_URL = "http://graphite.readthedocs.org/"
+#DOCUMENTATION_URL = "http://graphite.readthedocs.io/"
 
 # Metric data and graphs are cached for one minute by default
 #DEFAULT_CACHE_DURATION = 60

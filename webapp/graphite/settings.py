@@ -84,7 +84,7 @@ LOG_RENDERING_PERFORMANCE = False
 
 #Miscellaneous settings
 SMTP_SERVER = "localhost"
-DOCUMENTATION_URL = "http://graphite.readthedocs.org/"
+DOCUMENTATION_URL = "http://graphite.readthedocs.io/"
 ALLOW_ANONYMOUS_CLI = True
 LEGEND_MAX_ITEMS = 10
 RRD_CF = 'AVERAGE'
