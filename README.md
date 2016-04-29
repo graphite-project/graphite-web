@@ -14,7 +14,7 @@ Graphite consists of three major components:
 
 ## Installation, Configuration and Usage
 
-Please refer to the instructions at [readthedocs](http://graphite.readthedocs.org/).
+Please refer to the instructions at [readthedocs](http://graphite.readthedocs.io/).
 
 ## License
 

@@ -16,7 +16,7 @@ TIME_ZONE
   Set your local timezone. Timezone is specified using `zoneinfo names <http://en.wikipedia.org/wiki/Zoneinfo#Names_of_time_zones>`_.
 
 DOCUMENTATION_URL
-  `Default: http://graphite.readthedocs.org/`
+  `Default: http://graphite.readthedocs.io/`
 
   Overrides the `Documentation` link used in the header of the Graphite Composer.
 
@@ -273,7 +273,7 @@ DASHBOARD_REQUIRE_PERMISSIONS
   `Default: False`
 
   If set to True, dashboards can only be saved or deleted by users having the appropriate (change or delete) permission (as set in the Django Admin app). These permissions can be set at the user or group level.  Note that Django's 'add' permission is not used.
-  
+
   Note that DASHBOARD_REQUIRE_AUTHENTICATION must be set to true - if not, this setting is ignored.
 
 
@@ -297,7 +297,7 @@ See the `Django documentation <https://docs.djangoproject.com/en/dev/ref/setting
 If you are experiencing problems, uncomment the following line in /opt/graphite/webapp/graphite/local_settings.py:
 
 .. code-block:: none
-  
+
   # DEBUG = True
 
 and review your webapp logs. If you're using the default graphite-example-vhost.conf, your logs will be found in /opt/graphite/storage/log/webapp/.
@@ -305,7 +305,7 @@ and review your webapp logs. If you're using the default graphite-example-vhost.
 If you're using the default SQLite database, your webserver will need permissions to read and write to the database file. So, for example, if your webapp is running in Apache as the 'nobody' user, you will need to fix the permissions like this:
 
 .. code-block:: none
-  
+
   sudo chown nobody:nobody /opt/graphite/storage/graphite.db
 
 
