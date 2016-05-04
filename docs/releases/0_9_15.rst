@@ -21,7 +21,11 @@ Graphite can also be installed from `PyPI <http://pypi.python.org/>`_ via
 
 Upgrading
 ---------
-Graphite 0.9.15 requires a Django version of at least 1.4. Ensure this dependency is satisfied before updating *graphite-web*.
+Graphite 0.9.15 requires a Django version of at least 1.4. Ensure this dependency is satisfied before updating *graphite-web*. Verify this using:
+
+.. code-block:: none
+
+  python -c "exec(\"import django\\nprint django.VERSION\")"
 
 As always, comparing the example config files with existing ones is recommended to ensure awareness of any new features.
 
