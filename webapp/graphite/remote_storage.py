@@ -171,7 +171,7 @@ class RemoteReader(object):
         log.info("RemoteReader.request_data :: requesting %s" % url)
         connector_class = connector_class_selector(settings.INTRACLUSTER_HTTPS)
         self.connection = connector_class(self.store.host)
-        self.connection.timeout = settings.REMOTE_FIND_TIMEOUT
+        self.connection.timeout = settings.REMOTE_FETCH_TIMEOUT
         self.connection.request('GET', urlpath)
       except:
         completion_event.set()
