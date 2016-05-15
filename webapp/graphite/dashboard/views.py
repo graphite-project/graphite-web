@@ -12,10 +12,9 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.staticfiles import finders
 from django.utils.safestring import mark_safe
 from graphite.compat import HttpResponse
-from graphite.dashboard.models import Dashboard, Template
+from graphite.dashboard.models import Dashboard, Template, UserDashboard, AdminDashboard
 from graphite.render.views import renderView
 from send_graph import send_graph_email
-
 
 fieldRegex = re.compile(r'<([^>]+)>')
 defaultScheme = {
@@ -230,11 +229,25 @@ def save(request, name):
   except Dashboard.DoesNotExist:
     dashboard = Dashboard.objects.create(name=name, state=state)
   else:
-    dashboard.state = state
-    dashboard.save();
-
+    # check for enough privileges
+    try:
+      if AdminDashboard.objects.filter(dashboard=dashboard):
+        try:
+          AdminDashboard.objects.get(profile=request.user, dashboard=dashboard)
+          dashboard.state = state
+          dashboard.save();
+          return json_response( dict(success=True) )
+        except AdminDashboard.DoesNotExist:
+          # You have access to this dashboard
+          return json_response( dict(error="Sorry, you have no permissions to change dasboard '%s'." % name) )
+      else:
+        # This dashboard is not protected
+        dashboard.state = state
+        dashboard.save();
+        return json_response( dict(success=True) )
+    except:
+      return json_response( dict(error="Something strange happened.") )
   return json_response( dict(success=True) )
-
 
 def save_template(request, name, key):
   if 'change' not in getPermissions(request.user):
@@ -254,12 +267,26 @@ def save_template(request, name, key):
 
   return json_response( dict(success=True) )
 
-
 def load(request, name):
   try:
     dashboard = Dashboard.objects.get(name=name)
   except Dashboard.DoesNotExist:
     return json_response( dict(error="Dashboard '%s' does not exist. " % name) )
+
+  # check for enough privileges
+  try:
+    if UserDashboard.objects.filter(dashboard=dashboard):
+      try:
+        UserDashboard.objects.get(profile=request.user, dashboard=dashboard)
+        return json_response( dict(state=json.loads(dashboard.state)) )
+      except UserDashboard.DoesNotExist:
+        # You have access to this dashboard
+        return json_response( dict(error="Sorry, you have no permissions to see dasboard '%s'." % name) )
+    else:
+      # This dashboard is not protected
+      return json_response( dict(state=json.loads(dashboard.state)) )
+  except:
+    return json_response( dict(error="Something strange happened.") )
 
   return json_response( dict(state=json.loads(dashboard.state)) )
 
@@ -284,9 +311,22 @@ def delete(request, name):
   except Dashboard.DoesNotExist:
     return json_response( dict(error="Dashboard '%s' does not exist. " % name) )
   else:
-    dashboard.delete()
-    return json_response( dict(success=True) )
-
+    # check for enough privileges
+    try:
+      if AdminDashboard.objects.filter(dashboard=dashboard):
+        try:
+          AdminDashboard.objects.get(profile=request.user, dashboard=dashboard)
+          dashboard.delete()
+          return json_response( dict(success=True) )
+        except AdminDashboard.DoesNotExist:
+          # You have access to this dashboard
+          return json_response( dict(error="Sorry, you have no permissions to delete dasboard '%s'." % name) )
+      else:
+        # This dashboard is not protected
+        dashboard.delete()
+        return json_response( dict(success=True) )
+    except:
+      return json_response( dict(error="Something strange happened (Maybe you forgot to delete dashboard from dashboard_admindashboard table).") )
 
 def delete_template(request, name):
   if 'delete' not in getPermissions(request.user):

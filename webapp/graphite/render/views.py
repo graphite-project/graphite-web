@@ -43,7 +43,7 @@ from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.utils.cache import add_never_cache_headers, patch_response_headers
-
+from graphite.metrics.models import UserMetric
 
 def renderView(request):
   start = time()
@@ -196,8 +196,18 @@ def renderView(request):
       pickle.dump(seriesInfo, response, protocol=-1)
 
       log.rendering('Total pickle rendering time %.6f' % (time() - start))
-      return response
+        #check permissions for metric
 
+    try:
+      for metric in UserMetric.objects.all():
+        for series in data:
+          if metric.metric in series.name:
+            try:
+              UserMetric.objects.get(profile=request.user, metric=metric.metric)
+            except UserMetric.DoesNotExist:
+              data.remove(series)
+    except UserMetric.DoesNotExist:
+      print "Metric is not protected"
 
   # We've got the data, now to render it
   graphOptions['data'] = data
