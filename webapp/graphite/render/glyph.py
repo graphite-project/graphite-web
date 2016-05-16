@@ -112,7 +112,6 @@ xAxisConfigs = (
   dict(seconds=100000,minorGridUnit=DAY,  minorGridStep=60, majorGridUnit=DAY,  majorGridStep=120,labelUnit=DAY,  labelStep=120, format="%m/%d %Y"),
   dict(seconds=120000,minorGridUnit=DAY,  minorGridStep=120,majorGridUnit=DAY,  majorGridStep=240,labelUnit=DAY,  labelStep=240, format="%m/%d %Y"),
 )
-
 UnitSystems = {
   'binary': (
     ('Pi', 1024.0**5),
@@ -141,6 +140,22 @@ UnitSystems = {
     ('s', 1000)),
   'none' : [],
 }
+UnitSystemsExt = {
+  'binary': (
+    ('P%s', 1024.0**5),
+    ('T%s', 1024.0**4),
+    ('G%s', 1024.0**3),
+    ('M%s', 1024.0**2),
+    ('K%s', 1024.0   )),
+  'si': (
+    ('P%s', 1000.0**5),
+    ('T%s', 1000.0**4),
+    ('G%s', 1000.0**3),
+    ('M%s', 1000.0**2),
+    ('K%s', 1000.0   )),
+  'none' : [],
+}
+
 
 
 class GraphError(Exception):
@@ -1701,7 +1716,7 @@ def sort_stacked(series_list):
   not_stacked = [s for s in series_list if 'stacked' not in s.options]
   return stacked + not_stacked
 
-def format_units(v, step=None, system="si"):
+def format_units(v, step=None, system="si",units=None):
   """Format the given value in standardized units.
 
   ``system`` is either 'binary' or 'si'
@@ -1716,16 +1731,27 @@ def format_units(v, step=None, system="si"):
   else:
     condition = lambda size: abs(v) >= size and step >= size
 
-  for prefix, size in UnitSystems[system]:
+  for prefix, size in UnitSystemsExt[system]:
     if condition(size):
       v2 = v / size
       if (v2 - math.floor(v2)) < 0.00000000001 and v > 1:
         v2 = math.floor(v2)
-      return v2, prefix
+      if units:
+        prefix_string=prefix % units
+      else:
+        if system == "binary":
+          prefix_string=prefix % "i"
+        else:
+          prefix_string=prefix % " "
+      return v2, prefix_string
 
   if (v - math.floor(v)) < 0.00000000001 and v > 1 :
     v = math.floor(v)
-  return v, ""
+  if units:
+    prefix_string=units
+  else:
+    prefix_string=""
+  return v, prefix_string
 
 
 def find_x_times(start_dt, unit, step):
