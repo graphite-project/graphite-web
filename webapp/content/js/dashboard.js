@@ -1515,7 +1515,7 @@ function newFromMetric() {
     listeners: {
       specialkey: function (field, e) {
                     if (e.getKey() == e.ENTER) {
-                      applyUrl();
+                      applyMetric();
                     }
                   },
       afterrender: function (field) { field.focus(false, 100); }
