@@ -24,7 +24,7 @@ from os import environ
 from graphite.logger import log
 from graphite.render.attime import parseTimeOffset, parseATTime
 from graphite.events import models
-from graphite.util import epoch
+from graphite.util import epoch, timestamp, deltaseconds
 
 # XXX format_units() should go somewhere else
 if environ.get('READTHEDOCS'):
@@ -32,7 +32,6 @@ if environ.get('READTHEDOCS'):
 else:
   from graphite.render.glyph import format_units
   from graphite.render.datalib import TimeSeries
-
 
 NAN = float('NaN')
 INF = float('inf')
@@ -1120,6 +1119,47 @@ def integral(requestContext, seriesList):
     newSeries.pathExpression = newName
     results.append(newSeries)
   return results
+
+
+def integralByInterval(requestContext, seriesList, intervalUnit):
+  """
+  This will do the same as integral() funcion, except resetting the total to 0
+  at the given time in the parameter "from"
+  Useful for finding totals per hour/day/week/..
+
+  Example:
+
+  .. code-block:: none
+
+  &target=integralByInterval(company.sales.perMinute, "1d")&from=midnight-10days
+
+  This would start at zero on the left side of the graph, adding the sales each
+  minute, and show the evolution of sales per day during the last 10 days.
+  """
+  intervalDuration = int(abs(deltaseconds(parseTimeOffset(intervalUnit))))
+  startTime = int(timestamp(requestContext['startTime']))
+  results = []
+  for series in seriesList:
+    newValues = []
+    currentTime = series.start # current time within series iteration
+    current = 0.0 # current accumulated value
+    for val in series:
+      # reset integral value if crossing an interval boundary
+      if (currentTime - startTime)/intervalDuration != (currentTime - startTime - series.step)/intervalDuration:
+        current = 0.0
+      if val is None:
+        # keep previous value since val can be None when resetting current to 0.0
+        newValues.append(current)
+      else:
+        current += val
+        newValues.append(current)
+      currentTime += series.step
+    newName = "integralByInterval(%s,'%s')" % (series.name, intervalUnit)
+    newSeries = TimeSeries(newName, series.start, series.end, series.step, newValues)
+    newSeries.pathExpression = newName
+    results.append(newSeries)
+  return results
+
 
 def nonNegativeDerivative(requestContext, seriesList, maxValue=None):
   """
@@ -3523,6 +3563,7 @@ SeriesFunctions = {
   'pow': pow,
   'perSecond': perSecond,
   'integral': integral,
+  'integralByInterval' : integralByInterval,
   'nonNegativeDerivative': nonNegativeDerivative,
   'log': logarithm,
   'invert': invert,
