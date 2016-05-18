@@ -226,19 +226,21 @@ class _AxisTics:
   def makeLabel(self, value):
     value, prefix = format_units(value, self.step, system=self.unitSystem)
     span, spanPrefix = format_units(self.span, self.step, system=self.unitSystem)
+    if prefix:
+      prefix += " "
     if value < 0.1:
       return "%g %s" % (float(value), prefix)
     elif value < 1.0:
       return "%.2f %s" % (float(value), prefix)
     if span > 10 or spanPrefix != prefix:
       if type(value) is float:
-        return "%.1f %s " % (value, prefix)
+        return "%.1f %s" % (value, prefix)
       else:
-        return "%d %s " % (int(value), prefix)
+        return "%d %s" % (int(value), prefix)
     elif span > 3:
-      return "%.1f %s " % (float(value), prefix)
+      return "%.1f %s" % (float(value), prefix)
     elif span > 0.1:
-      return "%.2f %s " % (float(value), prefix)
+      return "%.2f %s" % (float(value), prefix)
     else:
       return "%g %s" % (float(value), prefix)
 
