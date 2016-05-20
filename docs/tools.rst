@@ -82,6 +82,14 @@ Forwarding
 `Evenflow`_
   A simple service for submitting sFlow datagrams to Graphite. It accepts sFlow datagrams from multiple network devices and proxies the data to a Carbon listener. Currently only Generic Interface Counters are supported. All other message types are discarded.
 
+`Grafsy`_
+  Very light caching proxy for graphite metrics with additional features:
+  
+  - Caching metrics in case of outage and sending them later
+  - Validation of metrics
+  - Aggregating of metrics, including SUM and AVG functions
+  - Much more
+
 `Graphite-Newrelic`_
   Get your graphite data into `New Relic`_ via a New Relic Platform plugin.
 
@@ -294,6 +302,7 @@ Other
 .. _Giraffe: http://kenhub.github.com/giraffe
 .. _go-carbon: https://github.com/lomik/go-carbon
 .. _Grafana: http://grafana.org
+.. _Grafsy: https://github.com/leoleovich/grafsy
 .. _Graphene: http://jondot.github.com/graphene
 .. _Graphios: https://github.com/shawn-sterling/graphios
 .. _graphite-beacon: https://github.com/klen/graphite-beacon
