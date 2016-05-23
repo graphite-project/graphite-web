@@ -10,11 +10,7 @@ dropin.cache
 docs/_build
 *.log
 *.pyc
-<<<<<<< HEAD
 .tox
 *.swp
 .idea
 *.iml
-=======
-*.py~
->>>>>>> b16de6a... replace _fetchWithBootstrap
