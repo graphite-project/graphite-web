@@ -6,7 +6,7 @@ from fnmatch import fnmatch
 from django.test import TestCase
 from django.conf import settings
 from mock import patch, call, MagicMock
-from datetime import datetime, tzinfo, timedelta
+from datetime import datetime
 
 from graphite.render.datalib import TimeSeries
 from graphite.render import functions
@@ -285,22 +285,7 @@ class FunctionsTest(TestCase):
             self.assertEqual(series.color, color)
 
     def test_constantLine(self):
-        class GMT1(tzinfo):
-            def utcoffset(self, dt):
-                return timedelta(hours=1) + self.dst(dt)
-            def dst(self, dt):
-                # DST starts last Sunday in March
-                d = datetime(dt.year, 4, 1)   # ends last Sunday in October
-                self.dston = d - timedelta(days=d.weekday() + 1)
-                d = datetime(dt.year, 11, 1)
-                self.dstoff = d - timedelta(days=d.weekday() + 1)
-                if self.dston <=  dt.replace(tzinfo=None) < self.dstoff:
-                    return timedelta(hours=1)
-                else:
-                    return timedelta(0)
-            def tzname(self,dt):
-                return "GMT +1"
-        requestContext = {'startTime':datetime(2014,3,12,2,0,0,2,GMT1()), 'endTime':datetime(2014,3,12,3,0,0,2,GMT1())}
+        requestContext = {'startTime': datetime(2014,3,12,2,0,0,2,pytz.timezone(settings.TIME_ZONE)), 'endTime':datetime(2014,3,12,3,0,0,2,pytz.timezone(settings.TIME_ZONE))}
         results = functions.constantLine(requestContext, [1])
 
     def test_scale(self):
