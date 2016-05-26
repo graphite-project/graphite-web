@@ -19,6 +19,7 @@ Here are some organizations that use Graphite:
 * `Mackerel <https://mackerel.io>`_
 * `Media Temple <http://mediatemple.net/>`_
 * `Orbitz <http://www.orbitz.com/>`_
+* `Pandora <http://www.pandora.com/>`_
 * `Rubicon Project <http://www.rubiconproject.com/>`_
 * `Sears Holdings <http://www.sears.com/>`_
 * `SocialTwist <http://www.socialtwist.com>`_
