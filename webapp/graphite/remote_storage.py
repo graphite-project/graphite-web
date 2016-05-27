@@ -158,7 +158,7 @@ class RemoteReader(object):
       for series in cached_results:
         if series['name'] == self.metric_path:
           time_info = (series['start'], series['end'], series['step'])
-          return (time_info, series['values'])
+          return (time_info, series['values'], series['consolidationFunc'])
 
     # Synchronize with other RemoteReaders using the same bulk query.
     # Despite our use of thread synchronization primitives, the common
@@ -211,7 +211,7 @@ class RemoteReader(object):
       for series in wait_for_results():
         if series['name'] == self.metric_path:
           time_info = (series['start'], series['end'], series['step'])
-          return (time_info, series['values'])
+          return (time_info, series['values'], series['consolidationFunc'])
 
     return FetchInProgress(extract_my_results)
 

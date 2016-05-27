@@ -65,8 +65,8 @@ class MultiReader(object):
     if results1[0][2] > results2[0][2]:
       results1, results2 = results2, results1
 
-    time_info1, values1 = results1
-    time_info2, values2 = results2
+    time_info1, values1, consolidationFunc1 = results1
+    time_info2, values2, consolidationFunc2 = results2
     start1, end1, step1 = time_info1
     start2, end2, step2 = time_info2
 
@@ -75,6 +75,7 @@ class MultiReader(object):
     end    = max(end1, end2)      # latest end
     time_info = (start, end, step)
     values = []
+    consolidationFunc = consolidationFunc1
 
     t = start
     while t < end:
@@ -100,7 +101,10 @@ class MultiReader(object):
 
       t += step
 
-    return (time_info, values)
+    if consolidationFunc1 != consolidationFunc2:
+      consolidationFunc = None
+
+    return (time_info, values, consolidationFunc)
 
 
 class CeresReader(object):
@@ -140,7 +144,7 @@ class CeresReader(object):
       except:
         pass
 
-    return (time_info, values)
+    return (time_info, values, None)
 
 
 class WhisperReader(object):
@@ -160,7 +164,12 @@ class WhisperReader(object):
     data = whisper.fetch(self.fs_path, startTime, endTime)
     if not data:
       return None
-
+    consolidationFunc = None
+    whisper_info = whisper.info(self.fs_path)
+    if "aggregationMethod" in whisper_info:
+      aggregationMethod = whisper_info["aggregationMethod"]
+      if aggregationMethod == 'min' or aggregationMethod == 'max':
+        consolidationFunc = aggregationMethod
     time_info, values = data
     (start,end,step) = time_info
 
@@ -187,7 +196,7 @@ class WhisperReader(object):
       except:
         pass
 
-    return (time_info, values)
+    return (time_info, values, consolidationFunc)
 
 
 class GzippedWhisperReader(WhisperReader):

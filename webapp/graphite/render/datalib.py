@@ -65,7 +65,7 @@ class TimeSeries(list):
     if not usable: return None
     if self.consolidationFunc == 'sum':
       return sum(usable)
-    if self.consolidationFunc == 'average':
+    if self.consolidationFunc == 'average' or self.consolidationFunc is None:
       return float(sum(usable)) / len(usable)
     if self.consolidationFunc == 'max':
       return max(usable)
@@ -85,6 +85,7 @@ class TimeSeries(list):
       'start' : self.start,
       'end' : self.end,
       'step' : self.step,
+      'consolidationFunc' : self.consolidationFunc,
       'values' : list(self),
     }
 
@@ -109,12 +110,15 @@ def fetchData(requestContext, pathExpr):
         continue
 
       try:
-          (timeInfo, values) = results
+          (timeInfo, values, consolidationFunc) = results
       except ValueError as e:
           raise Exception("could not parse timeInfo/values from metric '%s': %s" % (node.path, e))
       (start, end, step) = timeInfo
 
-      series = TimeSeries(node.path, start, end, step, values)
+      if consolidationFunc is None:
+          series = TimeSeries(node.path, start, end, step, values)
+      else:
+          series = TimeSeries(node.path, start, end, step, values, consolidationFunc)
       series.pathExpression = pathExpr #hack to pass expressions through to render functions
       seriesList.append(series)
 
