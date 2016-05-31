@@ -1020,10 +1020,10 @@ class LineGraph(Graph):
       self.data
     )
 
-    if self.params.get('drawNullAsZero') and seriesWithMissingValues:
+    yMinValue = safeMin(map(safeMin, finite_series))
+
+    if yMinValue > 0.0 and self.params.get('drawNullAsZero') and seriesWithMissingValues:
       yMinValue = 0.0
-    else:
-      yMinValue = safeMin(map(safeMin, finite_series))
 
     if self.areaMode == 'stacked':
       # Use izip to use iteration on the TimeSeries objects so we honor
@@ -1032,6 +1032,9 @@ class LineGraph(Graph):
       yMaxValue = safeMax(map(safeSum, itertools.izip(*finite_series)))
     else:
       yMaxValue = safeMax(map(safeMax, finite_series))
+
+    if yMaxValue < 0.0 and self.params.get('drawNullAsZero') and seriesWithMissingValues:
+      yMaxValue = 0.0
 
     if yMinValue is None:
       yMinValue = 0.0
