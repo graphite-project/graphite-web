@@ -2328,7 +2328,7 @@ def holtWintersConfidenceBands(requestContext, seriesList, delta=3):
     windowPoints = previewSeconds / data.step
     deviation = TimeSeries(data.name, data.start + previewSeconds, data.end, data.step, data[windowPoints:])
     deviation.pathExpression = data.pathExpression
- 
+
     seriesLength = len(forecast)
     i = 0
     upperBand = list()

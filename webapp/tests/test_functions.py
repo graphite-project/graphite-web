@@ -587,3 +587,455 @@ class FunctionsTest(TestCase):
                 '%.disk.pct_used'
             )
         self.assertEqual(result, expectedResults)
+
+    def test_movingMedian_emptySeriesList(self):
+        self.assertListEqual(functions.movingMedian({},[],""), [])
+
+    def test_movingMedian_evaluateTokens_returns_none(self):
+        def gen_seriesList(start=0):
+            seriesList = [
+                TimeSeries('collectd.test-db0.load.value', start+10, start+15, 1, range(start, start+15)),
+            ]
+            for series in seriesList:
+                series.pathExpression = series.name
+            return seriesList
+
+        seriesList = gen_seriesList(10)
+
+        def mock_evaluateTokens(reqCtx, tokens, replacements=None):
+            seriesList = [
+                TimeSeries('collectd.test-db0.load.value', 10, 25, 1, [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None])
+            ]
+            for series in seriesList:
+                series.pathExpression = series.name
+            return seriesList
+
+        expectedResults = [
+            TimeSeries('movingMedian(collectd.test-db0.load.value,60)', 20, 25, 1, [None, None, None, None, None])
+        ]
+
+        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+            result = functions.movingMedian(
+                {
+                    'template': {},
+                    'args': ({},{}),
+                    'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'endTime': datetime(1970, 1, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'localOnly': False,
+                    'data': []
+                },
+                seriesList, 10
+            )
+        self.assertListEqual(result, expectedResults)
+
+    def test_movingMedian_evaluateTokens_returns_empty_list(self):
+        def gen_seriesList(start=0):
+            seriesList = [
+                TimeSeries('collectd.test-db0.load.value', start+600, start+700, 1, range(start, start+100)),
+            ]
+            for series in seriesList:
+                series.pathExpression = series.name
+            return seriesList
+
+        seriesList = gen_seriesList(10)
+
+        def mock_evaluateTokens(reqCtx, tokens, replacements=None):
+            return []
+
+        expectedResults = []
+
+        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+            result = functions.movingMedian(
+                {
+                    'template': {},
+                    'args': ({},{}),
+                    'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'endTime': datetime(1970, 1, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'localOnly': False,
+                    'data': []
+                },
+                seriesList, 60
+            )
+        self.assertListEqual(result, expectedResults)
+
+    def test_movingMedian_integerWindowSize(self):
+        def gen_seriesList(start=0):
+            seriesList = [
+                TimeSeries('collectd.test-db0.load.value', start+600, start+700, 1, range(start, start+100)),
+            ]
+            for series in seriesList:
+                series.pathExpression = series.name
+            return seriesList
+
+        seriesList = gen_seriesList(10)
+
+        def mock_evaluateTokens(reqCtx, tokens, replacements=None):
+            return gen_seriesList()
+
+        expectedResults = [
+            TimeSeries('movingMedian(collectd.test-db0.load.value,60)', 660, 700, 1, range(30, 70)),
+        ]
+
+        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+            result = functions.movingMedian(
+                {
+                    'template': {},
+                    'args': ({},{}),
+                    'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'endTime': datetime(1970, 1, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'localOnly': False,
+                    'data': []
+                },
+                seriesList, 60
+            )
+        self.assertListEqual(result, expectedResults)
+
+    def test_movingMedian_stringWindowSize(self):
+        def gen_seriesList(start=0):
+            seriesList = [
+                TimeSeries('collectd.test-db0.load.value', start+600, start+700, 1, range(start, start+100)),
+            ]
+            for series in seriesList:
+                series.pathExpression = series.name
+            return seriesList
+
+        seriesList = gen_seriesList(10)
+
+        def mock_evaluateTokens(reqCtx, tokens, replacements=None):
+            return gen_seriesList()
+
+        expectedResults = [
+            TimeSeries('movingMedian(collectd.test-db0.load.value,"-1min")', 660, 700, 1, range(30, 70)),
+        ]
+
+        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+            result = functions.movingMedian(
+                {
+                    'template': {},
+                    'args': ({},{}),
+                    'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'endTime': datetime(1970, 1, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'localOnly': False,
+                    'data': []
+                },
+                seriesList, "-1min"
+            )
+        self.assertListEqual(result, expectedResults)
+
+    def test_movingAverage_emptySeriesList(self):
+        self.assertListEqual(functions.movingAverage({},[],""), [])
+
+    def test_movingAverage_evaluateTokens_returns_none(self):
+        def gen_seriesList(start=0):
+            seriesList = [
+                TimeSeries('collectd.test-db0.load.value', start+10, start+15, 1, range(start, start+15)),
+            ]
+            for series in seriesList:
+                series.pathExpression = series.name
+            return seriesList
+
+        seriesList = gen_seriesList(10)
+
+        def mock_evaluateTokens(reqCtx, tokens, replacements=None):
+            seriesList = [
+                TimeSeries('collectd.test-db0.load.value', 10, 25, 1, [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None])
+            ]
+            for series in seriesList:
+                series.pathExpression = series.name
+            return seriesList
+
+        expectedResults = [
+            TimeSeries('movingAverage(collectd.test-db0.load.value,60)', 20, 25, 1, [None, None, None, None, None])
+        ]
+
+        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+            result = functions.movingAverage(
+                {
+                    'template': {},
+                    'args': ({},{}),
+                    'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'endTime': datetime(1970, 1, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'localOnly': False,
+                    'data': []
+                },
+                seriesList, 10
+            )
+        self.assertListEqual(result, expectedResults)
+
+    def test_movingAverage_evaluateTokens_returns_empty_list(self):
+        def gen_seriesList(start=0):
+            seriesList = [
+                TimeSeries('collectd.test-db0.load.value', start+600, start+700, 1, range(start, start+100)),
+            ]
+            for series in seriesList:
+                series.pathExpression = series.name
+            return seriesList
+
+        seriesList = gen_seriesList(10)
+
+        def mock_evaluateTokens(reqCtx, tokens, replacements=None):
+            return []
+
+        expectedResults = []
+
+        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+            result = functions.movingAverage(
+                {
+                    'template': {},
+                    'args': ({},{}),
+                    'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'endTime': datetime(1970, 1, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'localOnly': False,
+                    'data': []
+                },
+                seriesList, 60
+            )
+        self.assertListEqual(result, expectedResults)
+
+    def test_movingAverage_integerWindowSize(self):
+        def gen_seriesList(start=0):
+            seriesList = [
+                TimeSeries('collectd.test-db0.load.value', start+600, start+700, 1, range(start, start+100)),
+            ]
+            for series in seriesList:
+                series.pathExpression = series.name
+            return seriesList
+
+        seriesList = gen_seriesList(10)
+
+        def mock_evaluateTokens(reqCtx, tokens, replacements=None):
+            return gen_seriesList()
+
+        def frange(x,y,jump):
+            while x<y:
+              yield x
+              x+=jump
+        expectedResults = [
+            TimeSeries('movingAverage(collectd.test-db0.load.value,60)', 660, 700, 1, frange(29.5, 69.5, 1)),
+        ]
+
+        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+            result = functions.movingAverage(
+                {
+                    'template': {},
+                    'args': ({},{}),
+                    'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'endTime': datetime(1970, 1, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'localOnly': False,
+                    'data': []
+                },
+                seriesList, 60
+            )
+        self.assertListEqual(result, expectedResults)
+
+    def test_movingAverage_stringWindowSize(self):
+        def gen_seriesList(start=0):
+            seriesList = [
+                TimeSeries('collectd.test-db0.load.value', start+600, start+700, 1, range(start, start+100)),
+            ]
+            for series in seriesList:
+                series.pathExpression = series.name
+            return seriesList
+
+        seriesList = gen_seriesList(10)
+
+        def mock_evaluateTokens(reqCtx, tokens, replacements=None):
+            return gen_seriesList()
+
+        def frange(x,y,jump):
+            while x<y:
+              yield x
+              x+=jump
+
+        expectedResults = [
+            TimeSeries('movingAverage(collectd.test-db0.load.value,60)', 660, 700, 1, frange(29.5, 69.5, 1)),
+        ]
+
+        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+            result = functions.movingAverage(
+                {
+                    'template': {},
+                    'args': ({},{}),
+                    'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'endTime': datetime(1970, 1, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'localOnly': False,
+                    'data': []
+                },
+                seriesList, "-1min"
+            )
+        self.assertListEqual(result, expectedResults)
+
+
+    def test_holtWintersAnalysis_None(self):
+        seriesList = TimeSeries('collectd.test-db0.load.value', 660, 700, 1, [None])
+        expectedResults = {
+                           'predictions': TimeSeries('holtWintersForecast(collectd.test-db0.load.value)', 660, 700, 1, [None]),
+                           'deviations': TimeSeries('holtWintersDeviation(collectd.test-db0.load.value)', 660, 700, 1, [0]),
+                           'seasonals': [0],
+                           'slopes': [0],
+                           'intercepts': [None]
+                          }
+
+        result = functions.holtWintersAnalysis(seriesList)
+        self.assertEqual(result, expectedResults)
+
+
+    def test_holtWintersForecast(self):
+        def gen_seriesList(start=0):
+            seriesList = [
+                TimeSeries('collectd.test-db0.load.value', start+600, start+700, 1, range(start, start+100)),
+            ]
+            for series in seriesList:
+                series.pathExpression = series.name
+            return seriesList
+
+        seriesList = gen_seriesList(10)
+
+        def mock_evaluateTokens(reqCtx, tokens, replacements=None):
+            return gen_seriesList()
+
+        expectedResults = [
+            TimeSeries('holtWintersForecast(collectd.test-db0.load.value)', 660, 700, 1, [])
+        ]
+
+        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+            result = functions.holtWintersForecast(
+                {
+                    'template': {},
+                    'args': ({},{}),
+                    'startTime': datetime(1970, 2, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'endTime': datetime(1970, 2, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'localOnly': False,
+                    'data': []
+                },
+                seriesList
+            )
+        self.assertListEqual(result, expectedResults)
+
+    def test_holtWintersConfidenceBands(self):
+        points=10
+        step=600
+        start_time=2678400 # 1970-02-01
+        week_seconds=7*86400
+
+        def hw_range(x,y,jump):
+            while x<y:
+              yield (x/jump)%10
+              x+=jump
+
+        def gen_seriesList(start=0, points=10):
+            seriesList = [
+                TimeSeries('collectd.test-db0.load.value', start, start+(points*step), step, hw_range(0, points*step, step)),
+            ]
+            for series in seriesList:
+                series.pathExpression = series.name
+            return seriesList
+
+        seriesList = gen_seriesList(start_time, points)
+
+        def mock_evaluateTokens(reqCtx, tokens, replacements=None):
+            return gen_seriesList(start_time-week_seconds, (week_seconds/step)+points)
+
+        expectedResults = [
+            TimeSeries('holtWintersConfidenceLower(collectd.test-db0.load.value)', start_time, start_time+(points*step), step, [0.2841206166091448, 1.0581027098774411, 0.3338172102994683, 0.5116859493263242, -0.18199175514936972, 0.2366173792019426, -1.2941554508809152, -0.513426806531049, -0.7970905542723132, 0.09868900726536012]),
+            TimeSeries('holtWintersConfidenceUpper(collectd.test-db0.load.value)', start_time, start_time+(points*step), step, [8.424944558327624, 9.409422251880809, 10.607070189221787, 10.288439865038768, 9.491556863132963, 9.474595784593738, 8.572310478053845, 8.897670449095346, 8.941566968508148, 9.409728797779282])
+        ]
+
+        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+            result = functions.holtWintersConfidenceBands(
+                {
+                    'template': {},
+                    'args': ({},{}),
+                    'startTime': datetime(1970, 2, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'endTime': datetime(1970, 2, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'localOnly': False,
+                    'data': []
+                },
+                seriesList
+            )
+        self.assertListEqual(result, expectedResults)
+
+    def test_holtWintersConfidenceArea(self):
+        points=10
+        step=600
+        start_time=2678400 # 1970-02-01
+        week_seconds=7*86400
+
+        def hw_range(x,y,jump):
+            while x<y:
+              yield (x/jump)%10
+              x+=jump
+
+        def gen_seriesList(start=0, points=10):
+            seriesList = [
+                TimeSeries('collectd.test-db0.load.value', start, start+(points*step), step, hw_range(0, points*step, step)),
+            ]
+            for series in seriesList:
+                series.pathExpression = series.name
+            return seriesList
+
+        seriesList = gen_seriesList(start_time, points)
+
+        def mock_evaluateTokens(reqCtx, tokens, replacements=None):
+            return gen_seriesList(start_time-week_seconds, (week_seconds/step)+points)
+
+        expectedResults = [
+            TimeSeries('holtWintersConfidenceArea(collectd.test-db0.load.value)', start_time, start_time+(points*step), step, [0.2841206166091448, 1.0581027098774411, 0.3338172102994683, 0.5116859493263242, -0.18199175514936972, 0.2366173792019426, -1.2941554508809152, -0.513426806531049, -0.7970905542723132, 0.09868900726536012]),
+            TimeSeries('holtWintersConfidenceArea(collectd.test-db0.load.value)', start_time, start_time+(points*step), step, [8.424944558327624, 9.409422251880809, 10.607070189221787, 10.288439865038768, 9.491556863132963, 9.474595784593738, 8.572310478053845, 8.897670449095346, 8.941566968508148, 9.409728797779282])
+        ]
+
+        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+            result = functions.holtWintersConfidenceArea(
+                {
+                    'template': {},
+                    'args': ({},{}),
+                    'startTime': datetime(1970, 2, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'endTime': datetime(1970, 2, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'localOnly': False,
+                    'data': []
+                },
+                seriesList
+            )
+        self.assertListEqual(result, expectedResults)
+
+    def test_holtWintersAberration(self):
+        points=10
+        step=600
+        start_time=2678400 # 1970-02-01
+        week_seconds=7*86400
+
+        def hw_range(x,y,jump):
+            while x<y:
+              yield (x/jump)%10
+              x+=jump
+
+        def gen_seriesList(start=0, points=10):
+            seriesList = [
+                TimeSeries('collectd.test-db0.load.value', start, start+(points*step), step, hw_range(0, points*step, step)),
+            ]
+            for series in seriesList:
+                series.pathExpression = series.name
+            return seriesList
+
+        seriesList = gen_seriesList(start_time, points)
+
+        def mock_evaluateTokens(reqCtx, tokens, replacements=None):
+            return gen_seriesList(start_time-week_seconds, (week_seconds/step)+points)
+
+        expectedResults = [
+            TimeSeries('holtWintersAberration(collectd.test-db0.load.value)', start_time, start_time+(points*step), step, [-0.2841206166091448, -0.05810270987744115, 0, 0, 0, 0, 0, 0, 0, 0])
+        ]
+
+        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+            result = functions.holtWintersAberration(
+                {
+                    'template': {},
+                    'args': ({},{}),
+                    'startTime': datetime(1970, 2, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'endTime': datetime(1970, 2, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'localOnly': False,
+                    'data': []
+                },
+                seriesList
+            )
+        self.assertListEqual(result, expectedResults)
