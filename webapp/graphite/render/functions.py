@@ -1872,7 +1872,7 @@ def removeAbovePercentile(requestContext, seriesList, n):
   Values above this percentile are assigned a value of None.
   """
   for s in seriesList:
-    s.name = 'removeAbovePercentile(%s, %d)' % (s.name, n)
+    s.name = 'removeAbovePercentile(%s, %g)' % (s.name, n)
     s.pathExpression = s.name
     try:
       percentile = nPercentile(requestContext, [s], n)[0][0]
@@ -1890,7 +1890,7 @@ def removeAboveValue(requestContext, seriesList, n):
   Values above this threshold are assigned a value of None.
   """
   for s in seriesList:
-    s.name = 'removeAboveValue(%s, %d)' % (s.name, n)
+    s.name = 'removeAboveValue(%s, %g)' % (s.name, n)
     s.pathExpression = s.name
     for (index, val) in enumerate(s):
       if val > n:
@@ -1904,7 +1904,7 @@ def removeBelowPercentile(requestContext, seriesList, n):
   Values below this percentile are assigned a value of None.
   """
   for s in seriesList:
-    s.name = 'removeBelowPercentile(%s, %d)' % (s.name, n)
+    s.name = 'removeBelowPercentile(%s, %g)' % (s.name, n)
     s.pathExpression = s.name
     try:
       percentile = nPercentile(requestContext, [s], n)[0][0]
@@ -1922,7 +1922,7 @@ def removeBelowValue(requestContext, seriesList, n):
   Values below this threshold are assigned a value of None.
   """
   for s in seriesList:
-    s.name = 'removeBelowValue(%s, %d)' % (s.name, n)
+    s.name = 'removeBelowValue(%s, %g)' % (s.name, n)
     s.pathExpression = s.name
     for (index, val) in enumerate(s):
       if val < n:
@@ -2535,7 +2535,7 @@ def dashed(requestContext, *seriesList):
   else:
     dashLength = 5
   for series in seriesList[0]:
-    series.name = 'dashed(%s, %d)' % (series.name, dashLength)
+    series.name = 'dashed(%s, %g)' % (series.name, dashLength)
     series.options['dashed'] = dashLength
   return seriesList[0]
 
@@ -2744,7 +2744,7 @@ def aggregateLine(requestContext, seriesList, func='avg'):
     raise ValueError("Invalid function %s" % func)
 
   value = t_funcs[func]( seriesList[0] )
-  name = 'aggregateLine(%s,%d)' % (seriesList[0].pathExpression, value)
+  name = 'aggregateLine(%s, %g)' % (seriesList[0].pathExpression, value)
 
   series = constantLine(requestContext, value)[0]
   series.name = name
