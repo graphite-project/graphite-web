@@ -1,5 +1,6 @@
 import fnmatch
 import os.path
+import re
 
 
 def get_real_metric_path(absolute_path, metric_path):
@@ -41,21 +42,38 @@ def extract_variants(pattern):
 
 
 def match_entries(entries, pattern):
-  """A drop-in replacement for fnmatch.filter that supports pattern
-  variants (ie. {foo,bar}baz = foobaz or barbaz)."""
-  v1, v2 = pattern.find('{'), pattern.find('}')
-
-  if v1 > -1 and v2 > v1:
-    variations = pattern[v1+1:v2].split(',')
-    variants = [ pattern[:v1] + v + pattern[v2+1:] for v in variations ]
+    # First we check for pattern variants (ie. {foo,bar}baz = foobaz or barbaz)
     matching = []
 
-    for variant in variants:
-      matching.extend( fnmatch.filter(entries, variant) )
+    for variant in expand_braces(pattern):
+        matching.extend(fnmatch.filter(entries, variant))
 
-    return list( _deduplicate(matching) ) #remove dupes without changing order
+    return list(_deduplicate(matching))
 
-  else:
-    matching = fnmatch.filter(entries, pattern)
-    matching.sort()
-    return matching
+
+"""
+    Brace expanding patch for python3 borrowed from:
+    https://bugs.python.org/issue9584
+"""
+def expand_braces(orig):
+    r = r'.*(\{.+?[^\\]\})'
+    p = re.compile(r)
+
+    s = orig[:]
+    res = list()
+
+    m = p.search(s)
+    if m is not None:
+        sub = m.group(1)
+        open_brace = s.find(sub)
+        close_brace = open_brace + len(sub) - 1
+        if sub.find(',') != -1:
+            for pat in sub.strip('{}').split(','):
+                res.extend(expand_braces(s[:open_brace] + pat + s[close_brace + 1:]))
+        else:
+            res.extend(expand_braces(s[:open_brace] + sub.replace('}', '\\}') + s[close_brace + 1:]))
+    else:
+        res.append(s.replace('\\}', '}'))
+
+    return list(set(res))
+
