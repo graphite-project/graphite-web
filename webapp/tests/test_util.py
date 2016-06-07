@@ -9,3 +9,14 @@ class UtilTest(TestCase):
         addresses = ['127.0.0.1', '127.0.0.1:8080', '8.8.8.8']
         results = [ util.is_local_interface(a) for a in addresses ]
         self.assertEqual( results, [True, True, False] )
+
+        addresses = ['::1', '[::1]:8080' ]
+        results = [ util.is_local_interface(a) for a in addresses ]
+        self.assertEqual( results, [True, True] )
+
+        with self.assertRaises(Exception):
+            addresses = ['::1:8080']
+            results = [ util.is_local_interface(a) for a in addresses ]
+
+    def test_write_index(self):
+        self.assertEqual(None, util.write_index() )
