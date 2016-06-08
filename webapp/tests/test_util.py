@@ -60,6 +60,7 @@ class UtilTest(TestCase):
         except OSError:
             pass
 
+        open(os.path.join(settings.WHISPER_DIR, 'bogus_file.txt'), 'a').close()
         whisper.create(worker1, [(1, 60)])
         whisper.create(worker2, [(1, 60)])
 
@@ -71,6 +72,7 @@ class UtilTest(TestCase):
         try:
             os.remove(self.hostcpu.replace('hostname', 'worker1'))
             os.remove(self.hostcpu.replace('hostname', 'worker2'))
+            os.remove(os.path.join(settings.WHISPER_DIR, 'bogus_file.txt'))
             shutil.rmtree(self.hostcpu.replace('hostname/cpu.wsp', ''))
         except OSError:
             pass
