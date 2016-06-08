@@ -12,9 +12,9 @@ from graphite.wsgi import application  # NOQA makes sure we have a working WSGI 
 
 class UtilTest(TestCase):
 
-# TODO: Determine how to craft the user object
-#    def test_getProfile(self):
-#        request = {user: {is_authenticated: 
+    # TODO: Determine how to craft the user object
+    #def test_getProfile(self):
+    #    request = {user: {is_authenticated:
 
     def test_getProfileByUsername(self):
         self.assertEqual( util.getProfileByUsername('unknown'), None)
