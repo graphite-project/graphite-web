@@ -167,6 +167,8 @@ class Graph:
     if self.margin < 0:
       self.margin = 10
 
+    self.setupCairo( params.get('outputFormat','png').lower() )
+
     self.area = {
       'xmin' : self.margin + 10, # Need extra room when the time is near the left edge
       'xmax' : self.width - self.margin,
@@ -175,8 +177,6 @@ class Graph:
     }
 
     self.loadTemplate( params.get('template','default') )
-
-    self.setupCairo( params.get('outputFormat','png').lower() )
 
     opts = self.ctx.get_font_options()
     opts.set_antialias( cairo.ANTIALIAS_NONE )
@@ -199,9 +199,16 @@ class Graph:
     self.outputFormat = outputFormat
     if outputFormat == 'png':
       self.surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, self.width, self.height)
-    else:
+    elif outputFormat == 'svg':
       self.surfaceData = StringIO.StringIO()
       self.surface = cairo.SVGSurface(self.surfaceData, self.width, self.height)
+    elif outputFormat == 'pdf':
+      self.surfaceData = StringIO.StringIO()
+      self.surface = cairo.PDFSurface(self.surfaceData, self.width, self.height)
+      res_x, res_y = self.surface.get_fallback_resolution()
+      self.width = float(self.width / res_x) * 72
+      self.height = float(self.height / res_y) * 72
+      self.surface.set_size(self.width, self.height)
     self.ctx = cairo.Context(self.surface)
 
   def setColor(self, value, alpha=1.0, forceAlpha=False):
@@ -443,6 +450,11 @@ class Graph:
   def output(self, fileObj):
     if self.outputFormat == 'png':
       self.surface.write_to_png(fileObj)
+    elif self.outputFormat == 'pdf':
+      self.surface.finish()
+      pdfData = self.surfaceData.getvalue()
+      self.surfaceData.close()
+      fileObj.write(pdfData)
     else:
       metaData = {
         'x': {
