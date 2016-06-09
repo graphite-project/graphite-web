@@ -26,6 +26,7 @@ def evaluateTokens(requestContext, tokens):
   elif tokens.call:
     func = SeriesFunctions[tokens.call.func]
     args = [evaluateTokens(requestContext, arg) for arg in tokens.call.args]
+    requestContext['args'] = tokens.call.args
     try:
       return func(requestContext, *args)
     except NormalizeEmptyResultError:
