@@ -34,15 +34,15 @@ class UtilTest(TestCase):
             results = [ util.is_local_interface(a) for a in addresses ]
 
     def test_is_escaped_pattern(self):
-        self.assertEqual( util.is_escaped_pattern('asdf'), False )
-        self.assertEqual( util.is_escaped_pattern('a\*b'), True )
-        self.assertEqual( util.is_escaped_pattern('a\?b'), True )
-        self.assertEqual( util.is_escaped_pattern('a\[b'), True )
-        self.assertEqual( util.is_escaped_pattern('a\{b'), True )
-        self.assertEqual( util.is_escaped_pattern('a*b'), False )
-        self.assertEqual( util.is_escaped_pattern('a?b'), False )
-        self.assertEqual( util.is_escaped_pattern('a[b'), False )
-        self.assertEqual( util.is_escaped_pattern('a{b'), False )
+        self.assertFalse( util.is_escaped_pattern('asdf') )
+        self.assertTrue( util.is_escaped_pattern('a\*b') )
+        self.assertTrue( util.is_escaped_pattern('a\?b') )
+        self.assertTrue( util.is_escaped_pattern('a\[b') )
+        self.assertTrue( util.is_escaped_pattern('a\{b') )
+        self.assertFalse( util.is_escaped_pattern('a*b') )
+        self.assertFalse( util.is_escaped_pattern('a?b') )
+        self.assertFalse( util.is_escaped_pattern('a[b') )
+        self.assertFalse( util.is_escaped_pattern('a{b') )
 
     def test_find_escaped_pattern_fields(self):
         self.assertEqual( list(util.find_escaped_pattern_fields('a.b.c.d')), [])
