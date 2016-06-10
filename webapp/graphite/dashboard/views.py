@@ -246,7 +246,7 @@ def save_template(request, name, key):
     template = Template.objects.get(name=name)
   except Template.DoesNotExist:
     template = Template.objects.create(name=name)
-    template.setState(state)
+    template.setState(state, key)
     template.save()
   else:
     template.setState(state, key)
@@ -294,7 +294,7 @@ def delete_template(request, name):
 
   try:
     template = Template.objects.get(name=name)
-  except Dashboard.DoesNotExist:
+  except Template.DoesNotExist:
     return json_response( dict(error="Template '%s' does not exist. " % name) )
   else:
     template.delete()
