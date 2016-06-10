@@ -136,8 +136,21 @@ class FunctionsTest(TestCase):
         seriesList = self._generate_series_list()
         percent = 50
         results = functions.removeAbovePercentile({}, seriesList, percent)
-        for result in results:
+        for i, result in enumerate(results):
             self.assertListEqual(return_greater(result, percent), [])
+            expected_name = "removeAbovePercentile(collectd.test-db{0}.load.value, 50)".format(i + 1)
+            self.assertEqual(expected_name, result.name)
+
+    def test_remove_above_percentile_float(self):
+        seriesList = self._generate_series_list()
+        percent = 0.1
+        results = functions.removeAbovePercentile({}, seriesList, percent)
+        expected = [[], [], [1]]
+
+        for i, result in enumerate(results):
+            self.assertListEqual(return_greater(result, percent), expected[i])
+            expected_name = "removeAbovePercentile(collectd.test-db{0}.load.value, 0.1)".format(i + 1)
+            self.assertEqual(expected_name, result.name)
 
     def test_remove_below_percentile(self):
         seriesList = self._generate_series_list()
@@ -147,20 +160,55 @@ class FunctionsTest(TestCase):
 
         for i, result in enumerate(results):
             self.assertListEqual(return_less(result, percent), expected[i])
+            expected_name = "removeBelowPercentile(collectd.test-db{0}.load.value, 50)".format(i + 1)
+            self.assertEqual(expected_name, result.name)
+
+    def test_remove_below_percentile_float(self):
+        seriesList = self._generate_series_list()
+        percent = 0.1
+        results = functions.removeBelowPercentile({}, seriesList, percent)
+        expected = [[0], [0], []]
+
+        for i, result in enumerate(results):
+            self.assertListEqual(return_less(result, percent), expected[i])
+            expected_name = "removeBelowPercentile(collectd.test-db{0}.load.value, 0.1)".format(i + 1)
+            self.assertEqual(expected_name, result.name)
 
     def test_remove_above_value(self):
         seriesList = self._generate_series_list()
         value = 5
         results = functions.removeAboveValue({}, seriesList, value)
-        for result in results:
+        for i, result in enumerate(results):
             self.assertListEqual(return_greater(result, value), [])
+            expected_name = "removeAboveValue(collectd.test-db{0}.load.value, 5)".format(i + 1)
+            self.assertEqual(expected_name, result.name)
+
+    def test_remove_above_value_float(self):
+        seriesList = self._generate_series_list()
+        value = 0.1
+        results = functions.removeAboveValue({}, seriesList, value)
+        for i, result in enumerate(results):
+            self.assertListEqual(return_greater(result, value), [])
+            expected_name = "removeAboveValue(collectd.test-db{0}.load.value, 0.1)".format(i + 1)
+            self.assertEqual(expected_name, result.name)
 
     def test_remove_below_value(self):
         seriesList = self._generate_series_list()
         value = 5
         results = functions.removeBelowValue({}, seriesList, value)
-        for result in results:
+        for i, result in enumerate(results):
             self.assertListEqual(return_less(result, value), [])
+            expected_name = "removeBelowValue(collectd.test-db{0}.load.value, 5)".format(i + 1)
+            self.assertEqual(expected_name, result.name)
+
+    def test_remove_below_value_float(self):
+        seriesList = self._generate_series_list()
+        value = 0.1
+        results = functions.removeBelowValue({}, seriesList, value)
+        for i, result in enumerate(results):
+            self.assertListEqual(return_less(result, value), [])
+            expected_name = "removeBelowValue(collectd.test-db{0}.load.value, 0.1)".format(i + 1)
+            self.assertEqual(expected_name, result.name)
 
     def test_limit(self):
         seriesList = self._generate_series_list()
@@ -199,6 +247,32 @@ class FunctionsTest(TestCase):
         width = 10
         results = functions.lineWidth({}, seriesList, width)
         self._verify_series_options(results, "lineWidth", width)
+
+    def test_dashed(self):
+        seriesList = self._generate_series_list()
+        dashLength = 3
+        results = functions.dashed({}, seriesList, dashLength)
+        self._verify_series_options(results, "dashed", 3)
+        for i, result in enumerate(results):
+            expected_name = "dashed(collectd.test-db{0}.load.value, 3)".format(i + 1)
+            self.assertEqual(expected_name, result.name)
+
+    def test_dashed_default(self):
+        seriesList = self._generate_series_list()
+        results = functions.dashed({}, seriesList)
+        self._verify_series_options(results, "dashed", 5)
+        for i, result in enumerate(results):
+            expected_name = "dashed(collectd.test-db{0}.load.value, 5)".format(i + 1)
+            self.assertEqual(expected_name, result.name)
+
+    def test_dashed_float(self):
+        seriesList = self._generate_series_list()
+        dashLength = 3.5
+        results = functions.dashed({}, seriesList, dashLength)
+        self._verify_series_options(results, "dashed", 3.5)
+        for i, result in enumerate(results):
+            expected_name = "dashed(collectd.test-db{0}.load.value, 3.5)".format(i + 1)
+            self.assertEqual(expected_name, result.name)
 
     def test_transform_null(self):
         seriesList = self._generate_series_list()
