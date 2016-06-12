@@ -9,7 +9,7 @@ from django.test import TestCase
 class DashboardTest(TestCase):
     def test_dashboard(self):
 
-        # Test when settings.DASHBOARD_CONF has a missing file 
+        # Test when settings.DASHBOARD_CONF has a missing file
         url = reverse('dashboard')
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
@@ -118,7 +118,7 @@ class DashboardTest(TestCase):
         url = reverse('dashboard_template', args=['bogustemplate', 'testkey'])
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
- 
+
         # Find templates
         url = reverse('dashboard_find_template')
         request = {"query": ""}

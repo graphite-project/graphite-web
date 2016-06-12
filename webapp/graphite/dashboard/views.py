@@ -2,7 +2,7 @@ import json
 import re
 import errno
 
-from os.path import getmtime, join, exists
+from os.path import getmtime, exists
 from urllib import urlencode
 from ConfigParser import ConfigParser
 from django.shortcuts import render_to_response
@@ -168,7 +168,7 @@ def template(request, name, val):
   initialError = None
   debug = request.GET.get('debug', False)
   theme = request.GET.get('theme', config.ui_config['theme'])
-  css_file = finders.find('css/dashboard-%s.css' % theme) 
+  css_file = finders.find('css/dashboard-%s.css' % theme)
   if not exists(css_file):
     initialError = "Invalid theme '%s'" % theme
     theme = config.ui_config['theme']
