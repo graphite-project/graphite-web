@@ -168,7 +168,7 @@ def template(request, name, val):
   initialError = None
   debug = request.GET.get('debug', False)
   theme = request.GET.get('theme', config.ui_config['theme'])
-  css_file = join(settings.CSS_DIR, 'dashboard-%s.css' % theme)
+  css_file = finders.find('css/dashboard-%s.css' % theme) 
   if not exists(css_file):
     initialError = "Invalid theme '%s'" % theme
     theme = config.ui_config['theme']
@@ -362,7 +362,7 @@ def email(request):
 
     # these need to be passed to the render function in an HTTP request.
     graph_params = json.loads(request.POST['graph_params'], parse_int=str)
-    target = QueryDict(graph_params.pop('target'))
+    target = QueryDict(urlencode({'target': graph_params.pop('target')}))
     graph_params = QueryDict(urlencode(graph_params))
 
     new_post = request.POST.copy()
