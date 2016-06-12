@@ -302,7 +302,10 @@ def delete_template(request, name):
 
 
 def find(request):
-  query = request.REQUEST['query']
+  queryParams = request.GET.copy()
+  queryParams.update(request.POST)
+
+  query = queryParams.get('query', False)
   query_terms = set( query.lower().split() )
   results = []
 
@@ -327,7 +330,10 @@ def find(request):
 
 
 def find_template(request):
-  query = request.REQUEST['query']
+  queryParams = request.GET.copy()
+  queryParams.update(request.POST)
+
+  query = queryParams.get('query', False)
   query_terms = set( query.lower().split() )
   results = []
 
