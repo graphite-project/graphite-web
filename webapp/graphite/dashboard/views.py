@@ -2,7 +2,7 @@ import json
 import re
 import errno
 
-from os.path import getmtime, join, exists
+from os.path import getmtime, exists
 from urllib import urlencode
 from ConfigParser import ConfigParser
 from django.shortcuts import render_to_response
@@ -168,7 +168,7 @@ def template(request, name, val):
   initialError = None
   debug = request.GET.get('debug', False)
   theme = request.GET.get('theme', config.ui_config['theme'])
-  css_file = join(settings.CSS_DIR, 'dashboard-%s.css' % theme)
+  css_file = finders.find('css/dashboard-%s.css' % theme)
   if not exists(css_file):
     initialError = "Invalid theme '%s'" % theme
     theme = config.ui_config['theme']
@@ -246,7 +246,7 @@ def save_template(request, name, key):
     template = Template.objects.get(name=name)
   except Template.DoesNotExist:
     template = Template.objects.create(name=name)
-    template.setState(state)
+    template.setState(state, key)
     template.save()
   else:
     template.setState(state, key)
@@ -294,7 +294,7 @@ def delete_template(request, name):
 
   try:
     template = Template.objects.get(name=name)
-  except Dashboard.DoesNotExist:
+  except Template.DoesNotExist:
     return json_response( dict(error="Template '%s' does not exist. " % name) )
   else:
     template.delete()
@@ -302,7 +302,10 @@ def delete_template(request, name):
 
 
 def find(request):
-  query = request.REQUEST['query']
+  queryParams = request.GET.copy()
+  queryParams.update(request.POST)
+
+  query = queryParams.get('query', False)
   query_terms = set( query.lower().split() )
   results = []
 
@@ -327,7 +330,10 @@ def find(request):
 
 
 def find_template(request):
-  query = request.REQUEST['query']
+  queryParams = request.GET.copy()
+  queryParams.update(request.POST)
+
+  query = queryParams.get('query', False)
   query_terms = set( query.lower().split() )
   results = []
 
@@ -362,7 +368,7 @@ def email(request):
 
     # these need to be passed to the render function in an HTTP request.
     graph_params = json.loads(request.POST['graph_params'], parse_int=str)
-    target = QueryDict(graph_params.pop('target'))
+    target = QueryDict(urlencode({'target': graph_params.pop('target')}))
     graph_params = QueryDict(urlencode(graph_params))
 
     new_post = request.POST.copy()
