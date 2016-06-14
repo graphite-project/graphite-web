@@ -3,10 +3,8 @@ import shutil
 import time
 import whisper
 
-import mock
-
 from django.test import TestCase
-from django.http import HttpRequest, QueryDict
+from django.http import HttpRequest
 
 #from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
