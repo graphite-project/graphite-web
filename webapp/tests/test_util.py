@@ -3,7 +3,13 @@ import shutil
 import time
 import whisper
 
+import mock
+
 from django.test import TestCase
+from django.http import HttpRequest, QueryDict
+
+#from django.contrib.auth import authenticate
+from django.contrib.auth.models import User
 
 from django.conf import settings
 from graphite import util
@@ -12,23 +18,29 @@ from graphite.wsgi import application  # NOQA makes sure we have a working WSGI 
 
 class UtilTest(TestCase):
 
-    # TODO: Determine how to craft the user object
-    #def test_getProfile(self):
-    #    request = {user: {is_authenticated:
+    def test_getProfile(self):
+        request = HttpRequest()
+        request.user = User.objects.create_user('testuser', 'testuser@test.com', 'testuserpassword')
+        self.assertEqual( str(util.getProfile(request, False)), 'Profile for testuser' )
 
     def test_getProfileByUsername(self):
-        self.assertEqual( util.getProfileByUsername('unknown'), None)
-#        self.assertEqual( util.getProfileByUsername('default'), 'default' )
+        request = HttpRequest()
+        request.user = User.objects.create_user('testuser', 'testuser@test.com', 'testuserpassword')
+        util.getProfile(request, False)
+        self.assertEqual( str(util.getProfileByUsername('testuser')), 'Profile for testuser' )
+        self.assertEqual( util.getProfileByUsername('nonexistentuser'), None )
 
-    def test_is_local_interface(self):
+    def test_is_local_interface_ipv4(self):
         addresses = ['127.0.0.1', '127.0.0.1:8080', '8.8.8.8']
         results = [ util.is_local_interface(a) for a in addresses ]
         self.assertEqual( results, [True, True, False] )
 
+    def test_is_local_interface_ipv6(self):
         addresses = ['::1', '[::1]:8080', '[::1]']
         results = [ util.is_local_interface(a) for a in addresses ]
         self.assertEqual( results, [True, True, True] )
 
+    def test_is_local_interface_bad_ipv6(self):
         with self.assertRaises(Exception):
             addresses = ['::1:8080']
             results = [ util.is_local_interface(a) for a in addresses ]
@@ -54,13 +66,16 @@ class UtilTest(TestCase):
     def create_whisper_hosts(self):
         worker1 = self.hostcpu.replace('hostname', 'worker1')
         worker2 = self.hostcpu.replace('hostname', 'worker2')
+        bogus_file = os.path.join(settings.WHISPER_DIR, 'a/b/c/bogus_file.txt')
+
         try:
             os.makedirs(worker1.replace('cpu.wsp', ''))
             os.makedirs(worker2.replace('cpu.wsp', ''))
+            os.makedirs(bogus_file.replace('bogus_file.txt', ''))
         except OSError:
             pass
 
-        open(os.path.join(settings.WHISPER_DIR, 'bogus_file.txt'), 'a').close()
+        open(bogus_file, 'a').close()
         whisper.create(worker1, [(1, 60)])
         whisper.create(worker2, [(1, 60)])
 
@@ -72,7 +87,7 @@ class UtilTest(TestCase):
         try:
             os.remove(self.hostcpu.replace('hostname', 'worker1'))
             os.remove(self.hostcpu.replace('hostname', 'worker2'))
-            os.remove(os.path.join(settings.WHISPER_DIR, 'bogus_file.txt'))
+            os.remove(os.path.join(settings.WHISPER_DIR, 'a/b/c/bogus_file.txt'))
             shutil.rmtree(self.hostcpu.replace('hostname/cpu.wsp', ''))
         except OSError:
             pass
@@ -83,3 +98,7 @@ class UtilTest(TestCase):
 
         self.assertEqual(None, util.write_index() )
         self.assertEqual(None, util.write_index(settings.WHISPER_DIR, settings.CERES_DIR, settings.INDEX_FILE) )
+
+    def test_load_module(self):
+        with self.assertRaises(IOError):
+            module = util.load_module('test', member=None)
