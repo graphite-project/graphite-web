@@ -87,6 +87,7 @@ class UtilTest(TestCase):
             os.remove(self.hostcpu.replace('hostname', 'worker2'))
             os.remove(os.path.join(settings.WHISPER_DIR, 'a/b/c/bogus_file.txt'))
             shutil.rmtree(self.hostcpu.replace('hostname/cpu.wsp', ''))
+            shutil.rmtree(os.path.join(settings.WHISPER_DIR, 'a'))
         except OSError:
             pass
 
