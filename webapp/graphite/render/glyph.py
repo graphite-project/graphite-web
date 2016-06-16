@@ -249,6 +249,8 @@ class _LinearAxisTics(_AxisTics):
   def __init__(self, minValue, maxValue, unitSystem=None):
     _AxisTics.__init__(self, minValue, maxValue, unitSystem=unitSystem)
     self.step = None
+    self.span = None
+    self.binary = None
 
   def setStep(self, step):
     self.step = self.checkFinite(float(step), 'axis step')
@@ -419,6 +421,8 @@ class _LogAxisTics(_AxisTics):
     if base <= 1.0:
       raise GraphError('Logarithmic base must be greater than one')
     self.base = self.checkFinite(base, 'log base')
+    self.step = None
+    self.span = None
 
   def setStep(self, step):
     # step is ignored for Logarithmic tics:
@@ -1862,6 +1866,9 @@ def format_units(v, step=None, system="si"):
     http://en.wikipedia.org/wiki/Binary_prefix
   """
 
+  if v is None:
+    return v, ""
+
   if step is None:
     condition = lambda size: abs(v) >= size
   else:
@@ -1880,6 +1887,11 @@ def format_units(v, step=None, system="si"):
 
 
 def find_x_times(start_dt, unit, step):
+  if not isinstance(start_dt, datetime):
+    raise ValueError("Invalid start_dt: %s" % start_dt)
+  if not isinstance(step, int) or not step > 0:
+    raise ValueError("Invalid step value: %s" % step)
+
   if unit == SEC:
     dt = start_dt.replace(second=start_dt.second - (start_dt.second % step))
     x_delta = timedelta(seconds=step)
