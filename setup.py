@@ -92,6 +92,10 @@ try:
         ['templates/*', 'local_settings.py.example']},
       scripts=glob('bin/*'),
       data_files=webapp_content.items() + storage_dirs + conf_files + examples,
+      classifiers=[
+          'Programming Language :: Python',
+          'Programming Language :: Python :: 2',
+          ],
       **setup_kwargs
     )
 finally:
