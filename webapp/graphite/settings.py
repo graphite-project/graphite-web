@@ -47,8 +47,6 @@ WHISPER_DIR = ''
 RRD_DIR = ''
 STANDARD_DIRS = []
 
-CLUSTER_SERVERS = []
-
 # Cluster settings
 CLUSTER_SERVERS = []
 # This settings control wether https is used to communicate between cluster members
@@ -66,6 +64,7 @@ CARBONLINK_RETRY_DELAY = 15
 REPLICATION_FACTOR = 1
 MEMCACHE_HOSTS = []
 MEMCACHE_KEY_PREFIX = ''
+CACHES={}
 FIND_CACHE_DURATION = 300
 FIND_TOLERANCE = 2 * FIND_CACHE_DURATION
 DEFAULT_CACHE_DURATION = 60 #metric data and graphs are cached for one minute by default
@@ -91,6 +90,7 @@ RRD_CF = 'AVERAGE'
 STORAGE_FINDERS = (
     'graphite.finders.standard.StandardFinder',
 )
+MIDDLEWARE_CLASSES=''
 
 #Authentication settings
 USE_LDAP_AUTH = False
@@ -106,6 +106,7 @@ LDAP_URI = None
 #Set this to True to delegate authentication to the web server
 USE_REMOTE_USER_AUTHENTICATION = False
 REMOTE_USER_BACKEND = "" # Provide an alternate or subclassed backend
+AUTHENTICATION_BACKENDS=[]
 
 # Django 1.5 requires this so we set a default but warn the user
 SECRET_KEY = 'UNSAFE_DEFAULT'
