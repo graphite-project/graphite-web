@@ -97,5 +97,18 @@ class FunctionsTest(unittest.TestCase):
       except NormalizeEmptyResultError:
         pass
 
+    def testSortingByTotal(self):
+      seriesList = []
+      config = [[1000, 100, 10, 0], [1000, 100, 10, 1]]
+      for i, c in enumerate(config):
+        seriesList.append( TimeSeries('Test(%d)' % i, 0, 0, 0, c) )
+
+      self.assertEquals(1110, functions.safeSum(seriesList[0]))
+
+      result = functions.sortByTotal({},seriesList)
+
+      self.assertEquals(1111, functions.safeSum(result[0]))
+      self.assertEquals(1110, functions.safeSum(result[1]))
+
 if __name__ == '__main__':
     unittest.main()

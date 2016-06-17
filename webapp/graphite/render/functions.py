@@ -1697,7 +1697,19 @@ def sortByName(requestContext, seriesList, natural = False):
     seriesList.sort(natSortCompare)
   else:
     seriesList.sort(compare)
+  return seriesList
 
+def sortByTotal(requestContext, seriesList):
+  """
+  Takes one metric or a wildcard seriesList.
+
+  Sorts the list of metrics by the sum of values across the time period
+  specified.
+  """
+  def compare(x,y):
+    return cmp(safeSum(y), safeSum(x))
+
+  seriesList.sort(compare)
   return seriesList
 
 def sortByMaxima(requestContext, seriesList):
@@ -2020,7 +2032,7 @@ def holtWintersConfidenceBands(requestContext, seriesList, delta=3):
     windowPoints = previewSeconds / data.step
     deviation = TimeSeries(data.name, data.start + previewSeconds, data.end, data.step, data[windowPoints:])
     deviation.pathExpression = data.pathExpression
- 
+
     seriesLength = len(forecast)
     i = 0
     upperBand = list()
@@ -2894,6 +2906,7 @@ SeriesFunctions = {
   'nPercentile' : nPercentile,
   'limit' : limit,
   'sortByName' : sortByName,
+  'sortByTotal'  : sortByTotal,
   'sortByMaxima' : sortByMaxima,
   'sortByMinima' : sortByMinima,
   'useSeriesAbove': useSeriesAbove,
