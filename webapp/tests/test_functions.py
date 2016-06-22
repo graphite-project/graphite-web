@@ -1,12 +1,13 @@
 import copy
 import math
 import pytz
+
+from datetime import datetime
 from fnmatch import fnmatch
+from mock import patch, call, MagicMock
 
 from django.test import TestCase
 from django.conf import settings
-from mock import patch, call, MagicMock
-from datetime import datetime
 
 from graphite.render.datalib import TimeSeries
 from graphite.render import functions
@@ -344,10 +345,8 @@ class FunctionsTest(TestCase):
     #
 
     def test_normalize_empty(self):
-        try:
+        with self.assertRaises(NormalizeEmptyResultError):
             functions.normalize([])
-        except NormalizeEmptyResultError:
-            pass
 
     def test_normalize_None_values(self):
         seriesList = []
@@ -361,12 +360,58 @@ class FunctionsTest(TestCase):
     #
     # Test matchSeries()
     #
-#def matchSeries(seriesList1, seriesList2):
+    def test_matchSeries_assert(self):
+        seriesList = self._generate_series_list()
+        with self.assertRaisesRegexp(AssertionError, 'The number of series in each argument must be the same'):
+            functions.matchSeries(seriesList[0], [])
+
+    def test_matchSeries_empty(self):
+        results=functions.matchSeries([],[])
+        for i, (series1, series2) in enumerate(results):
+            self.assertEqual(series1, [])
+            self.assertEqual(series2, [])
+
+    def test_matchSeries(self):
+        seriesList1 = [
+            TimeSeries('collectd.test-db3.load.value',0,1,1,[3,30,31]),
+            TimeSeries('collectd.test-db1.load.value',0,1,1,[1,10,11]),
+            TimeSeries('collectd.test-db2.load.value',0,1,1,[2,20,21]),
+            TimeSeries('collectd.test-db4.load.value',0,1,1,[4,40,41]),
+        ]
+        seriesList2 = [
+            TimeSeries('collectd.test-db4.load.value',0,1,1,[4,8,12]),
+            TimeSeries('collectd.test-db3.load.value',0,1,1,[3,7,11]),
+            TimeSeries('collectd.test-db1.load.value',0,1,1,[1,5,9]),
+            TimeSeries('collectd.test-db2.load.value',0,1,1,[2,6,10]),
+        ]
+        expectedResult = [
+        [
+            TimeSeries('collectd.test-db1.load.value',0,1,1,[1,10,11]),
+            TimeSeries('collectd.test-db2.load.value',0,1,1,[2,20,21]),
+            TimeSeries('collectd.test-db3.load.value',0,1,1,[3,30,31]),
+            TimeSeries('collectd.test-db4.load.value',0,1,1,[4,40,41]),
+        ],
+        [
+            TimeSeries('collectd.test-db1.load.value',0,1,1,[1,5,9]),
+            TimeSeries('collectd.test-db2.load.value',0,1,1,[2,6,10]),
+            TimeSeries('collectd.test-db3.load.value',0,1,1,[3,7,11]),
+            TimeSeries('collectd.test-db4.load.value',0,1,1,[4,8,12]),
+        ]]
+        results = functions.matchSeries(copy.deepcopy(seriesList1), copy.deepcopy(seriesList2))
+        for i, (series1, series2) in enumerate(results):
+            self.assertEqual(series1, expectedResult[0][i])
+            self.assertEqual(series2, expectedResult[1][i])
 
     #
     # Test formatPathExpressions()
     #
-#def formatPathExpressions(seriesList):
+
+    def test_formatPathExpressions_empty_list(self):
+        self.assertEqual(functions.formatPathExpressions([]), '')
+
+    def test_formatPathExpressions(self):
+        seriesList = self._generate_series_list()
+        self.assertEqual(functions.formatPathExpressions(seriesList), "collectd.test-db1.load.value,collectd.test-db2.load.value,collectd.test-db3.load.value")
 
     #
     # Test sumSeries()
