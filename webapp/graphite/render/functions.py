@@ -62,6 +62,7 @@ def safeDiv(a, b):
 
 def safePow(a, b):
   if a is None: return None
+  if b is None: return None
   try:
     result = math.pow(a, b)
   except ValueError:
@@ -87,6 +88,7 @@ def safeStdDev(a):
   sm = safeSum(a)
   ln = safeLen(a)
   avg = safeDiv(sm,ln)
+  if avg is None: return None
   sum = 0
   safeValues = [v for v in a if v is not None]
   for val in safeValues:
@@ -110,7 +112,7 @@ def safeMax(values):
 def safeMap(function, values):
   safeValues = [v for v in values if v is not None]
   if safeValues:
-    return [function(x) for x in values]
+    return [function(x) for x in safeValues]
 
 def safeAbs(value):
   if value is None: return None

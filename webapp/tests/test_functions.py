@@ -1,12 +1,13 @@
 import copy
 import math
 import pytz
+
+from datetime import datetime
 from fnmatch import fnmatch
+from mock import patch, call, MagicMock
 
 from django.test import TestCase
 from django.conf import settings
-from mock import patch, call, MagicMock
-from datetime import datetime
 
 from graphite.render.datalib import TimeSeries
 from graphite.render import functions
@@ -20,6 +21,483 @@ def return_less(series, value):
 
 
 class FunctionsTest(TestCase):
+
+    #
+    # Test safeSum()
+    #
+
+    def test_safeSum_None(self):
+        with self.assertRaises(TypeError):
+            functions.safeSum(None)
+
+    def test_safeSum_empty_list(self):
+        self.assertEqual(functions.safeSum([]), None)
+
+    def test_safeSum_all_numbers(self):
+        self.assertEqual(functions.safeSum([1,2,3,4]), 10)
+
+    def test_safeSum_all_None(self):
+        self.assertEqual(functions.safeSum([None,None,None,None]), None)
+
+    def test_safeSum_mixed(self):
+        self.assertEqual(functions.safeSum([10,None,5,None]), 15)
+
+    #
+    # Test safeDiff()
+    #
+
+    def test_safeDiff_None(self):
+        with self.assertRaises(TypeError):
+            functions.safeDiff(None)
+
+    def test_safeDiff_empty_list(self):
+        self.assertEqual(functions.safeDiff([]), None)
+
+    def test_safeDiff_all_numbers(self):
+        self.assertEqual(functions.safeDiff([1,2,3,4]), -8)
+
+    def test_safeDiff_all_None(self):
+        self.assertEqual(functions.safeDiff([None,None,None,None]), None)
+
+    def test_safeDiff_mixed(self):
+        self.assertEqual(functions.safeDiff([10,None,5,None]), 5)
+
+    #
+    # Test safeLen()
+    #
+
+    def test_safeLen_None(self):
+        with self.assertRaises(TypeError):
+            functions.safeLen(None)
+
+    def test_safeLen_empty_list(self):
+        self.assertEqual(functions.safeLen([]), 0)
+
+    def test_safeLen_all_numbers(self):
+        self.assertEqual(functions.safeLen([1,2,3,4]), 4)
+
+    def test_safeLen_all_None(self):
+        self.assertEqual(functions.safeLen([None,None,None,None]), 0)
+
+    def test_safeLen_mixed(self):
+        self.assertEqual(functions.safeLen([10,None,5,None]), 2)
+
+    #
+    # Test safeDiv()
+    #
+
+    def test_safeDiv_None_None(self):
+        self.assertEqual(functions.safeDiv(None, None), None)
+
+    def test_safeDiv_5_None(self):
+        self.assertEqual(functions.safeDiv(5, None), None)
+
+    def test_safeDiv_5_0(self):
+        self.assertEqual(functions.safeDiv(5, 0), None)
+
+    def test_safeDiv_0_10(self):
+        self.assertEqual(functions.safeDiv(0,10), 0)
+
+    def test_safeDiv_10_5(self):
+        self.assertEqual(functions.safeDiv(10,5), 2)
+
+    #
+    # Test safePow()
+    #
+
+    def test_safePow_None_None(self):
+        self.assertEqual(functions.safePow(None, None), None)
+
+    def test_safePow_5_None(self):
+        self.assertEqual(functions.safePow(5, None), None)
+
+    def test_safePow_5_0(self):
+        self.assertEqual(functions.safePow(5, 0), 1.0)
+
+    def test_safePow_0_10(self):
+        self.assertEqual(functions.safePow(0,10), 0)
+
+    def test_safePow_10_5(self):
+        self.assertEqual(functions.safePow(10,5), 100000.0)
+
+    #
+    # Test safeMul()
+    #
+
+    def test_safeMul_None_None(self):
+        self.assertEqual(functions.safeMul(None, None), None)
+
+    def test_safeMul_5_None(self):
+        self.assertEqual(functions.safeMul(5, None), None)
+
+    def test_safeMul_5_0(self):
+        self.assertEqual(functions.safeMul(5, 0), 0.0)
+
+    def test_safeMul_0_10(self):
+        self.assertEqual(functions.safeMul(0,10), 0)
+
+    def test_safeMul_10_5(self):
+        self.assertEqual(functions.safeMul(10,5), 50.0)
+
+    #
+    # Test safeSubtract()
+    #
+
+    def test_safeSubtract_None_None(self):
+        self.assertEqual(functions.safeSubtract(None, None), None)
+
+    def test_safeSubtract_5_None(self):
+        self.assertEqual(functions.safeSubtract(5, None), None)
+
+    def test_safeSubtract_5_0(self):
+        self.assertEqual(functions.safeSubtract(5, 0), 5.0)
+
+    def test_safeSubtract_0_10(self):
+        self.assertEqual(functions.safeSubtract(0,10), -10)
+
+    def test_safeSubtract_10_5(self):
+        self.assertEqual(functions.safeSubtract(10,5), 5)
+
+    #
+    # Test safeAvg()
+    #
+
+    def test_safeAvg_None(self):
+        with self.assertRaises(TypeError):
+            functions.safeAvg(None)
+
+    def test_safeAvg_empty_list(self):
+        self.assertEqual(functions.safeAvg([]), None)
+
+    def test_safeAvg_all_numbers(self):
+        self.assertEqual(functions.safeAvg([1,2,3,4]), 2.5)
+
+    def test_safeAvg_all_None(self):
+        self.assertEqual(functions.safeAvg([None,None,None,None]), None)
+
+    def test_safeAvg_mixed(self):
+        self.assertEqual(functions.safeAvg([10,None,5,None]), 7.5)
+
+    #
+    # Test safeStdDev()
+    #
+
+    def test_safeStdDev_None(self):
+        with self.assertRaises(TypeError):
+            functions.safeStdDev(None)
+
+    def test_safeStdDev_empty_list(self):
+        self.assertEqual(functions.safeStdDev([]), None)
+
+    def test_safeStdDev_all_numbers(self):
+        self.assertEqual(functions.safeStdDev([1,2,3,4]), 1.118033988749895)
+
+    def test_safeStdDev_all_None(self):
+        self.assertEqual(functions.safeStdDev([None,None,None,None]), None)
+
+    def test_safeStdDev_mixed(self):
+        self.assertEqual(functions.safeStdDev([10,None,5,None]), 2.5)
+
+    #
+    # Test safeLast()
+    #
+
+    def test_safeLast_None(self):
+        with self.assertRaises(TypeError):
+            functions.safeLast(None)
+
+    def test_safeLast_empty_list(self):
+        self.assertEqual(functions.safeLast([]), None)
+
+    def test_safeLast_all_numbers(self):
+        self.assertEqual(functions.safeLast([1,2,3,4]), 4)
+
+    def test_safeLast_all_None(self):
+        self.assertEqual(functions.safeLast([None,None,None,None]), None)
+
+    def test_safeLast_mixed(self):
+        self.assertEqual(functions.safeLast([10,None,5,None]), 5)
+
+    #
+    # Test safeMin()
+    #
+
+    def test_safeMin_None(self):
+        with self.assertRaises(TypeError):
+            functions.safeMin(None)
+
+    def test_safeMin_empty_list(self):
+        self.assertEqual(functions.safeMin([]), None)
+
+    def test_safeMin_all_numbers(self):
+        self.assertEqual(functions.safeMin([1,2,3,4]), 1)
+
+    def test_safeMin_all_None(self):
+        self.assertEqual(functions.safeMin([None,None,None,None]), None)
+
+    def test_safeMin_mixed(self):
+        self.assertEqual(functions.safeMin([10,None,5,None]), 5)
+
+    #
+    # Test safeMax()
+    #
+
+    def test_safeMax_None(self):
+        with self.assertRaises(TypeError):
+            functions.safeMax(None)
+
+    def test_safeMax_empty_list(self):
+        self.assertEqual(functions.safeMax([]), None)
+
+    def test_safeMax_all_numbers(self):
+        self.assertEqual(functions.safeMax([1,2,3,4]), 4)
+
+    def test_safeMax_all_None(self):
+        self.assertEqual(functions.safeMax([None,None,None,None]), None)
+
+    def test_safeMax_mixed(self):
+        self.assertEqual(functions.safeMax([10,None,5,None]), 10)
+
+
+    #
+    # Test safeAbs()
+    #
+
+    def test_safeAbs_None(self):
+        self.assertEqual(functions.safeAbs(None), None)
+
+    def test_safeAbs_empty_list(self):
+        with self.assertRaises(TypeError):
+          functions.safeAbs([])
+
+    def test_safeAbs_pos_number(self):
+        self.assertEqual(functions.safeAbs(1), 1)
+
+    def test_safeAbs_neg_numbers(self):
+        self.assertEqual(functions.safeAbs(-1), 1)
+
+    def test_safeAbs_zero(self):
+        self.assertEqual(functions.safeAbs(0), 0)
+
+    #
+    # Test safeMap()
+    #
+
+    def test_safeMap_None(self):
+        with self.assertRaises(TypeError):
+            functions.safeMap(abs, None)
+
+    def test_safeMap_empty_list(self):
+        self.assertEqual(functions.safeMap(abs, []), None)
+
+    def test_safeMap_all_numbers(self):
+        self.assertEqual(functions.safeMap(abs, [1,2,3,4]), [1,2,3,4])
+
+    def test_safeMap_all_None(self):
+        self.assertEqual(functions.safeMap(abs, [None,None,None,None]), None)
+
+    def test_safeMap_mixed(self):
+        self.assertEqual(functions.safeMap(abs, [10,None,5,None]), [10,5])
+
+    #
+    # Test gcd()
+    #
+
+    def test_gcd_None_None(self):
+        with self.assertRaises(TypeError):
+            functions.gcd(None, None)
+
+    def test_gcd_5_None(self):
+        with self.assertRaises(TypeError):
+            functions.gcd(5, None)
+
+    def test_gcd_5_0(self):
+        self.assertEqual(functions.gcd(5, 0), 5)
+
+    def test_gcd_0_10(self):
+        self.assertEqual(functions.gcd(0,10), 10)
+
+    def test_gcd_10_5(self):
+        self.assertEqual(functions.gcd(10,5), 5)
+
+    #
+    # Test lcm()
+    #
+
+    def test_lcm_None_None(self):
+        self.assertEqual(functions.lcm(None, None), None)
+
+    def test_lcm_5_None(self):
+        with self.assertRaises(TypeError):
+            functions.lcm(5, None)
+
+    def test_lcm_5_0(self):
+        self.assertEqual(functions.lcm(5, 0), 0)
+
+    def test_lcm_0_10(self):
+        self.assertEqual(functions.lcm(0,10), 0)
+
+    def test_lcm_10_5(self):
+        self.assertEqual(functions.lcm(10,5), 10)
+
+    #
+    # Test normalize()
+    #
+
+    def test_normalize_empty(self):
+        with self.assertRaises(NormalizeEmptyResultError):
+            functions.normalize([])
+
+    def test_normalize_None_values(self):
+        seriesList = []
+        seriesList.append(TimeSeries("collectd.test-db{0}.load.value", 0, 5, 1, [None, None, None, None, None]))
+        self.assertEqual(functions.normalize([seriesList]), (seriesList, 0, 5, 1))
+
+    def test_normalize_generate_series_list_input(self):
+        seriesList = self._generate_series_list()
+        self.assertEqual(functions.normalize([seriesList]), (seriesList, 0, 101, 1))
+
+    #
+    # Test matchSeries()
+    #
+    def test_matchSeries_assert(self):
+        seriesList = self._generate_series_list()
+        with self.assertRaisesRegexp(AssertionError, 'The number of series in each argument must be the same'):
+            functions.matchSeries(seriesList[0], [])
+
+    def test_matchSeries_empty(self):
+        results=functions.matchSeries([],[])
+        for i, (series1, series2) in enumerate(results):
+            self.assertEqual(series1, [])
+            self.assertEqual(series2, [])
+
+    def test_matchSeries(self):
+        seriesList1 = [
+            TimeSeries('collectd.test-db3.load.value',0,1,1,[3,30,31]),
+            TimeSeries('collectd.test-db1.load.value',0,1,1,[1,10,11]),
+            TimeSeries('collectd.test-db2.load.value',0,1,1,[2,20,21]),
+            TimeSeries('collectd.test-db4.load.value',0,1,1,[4,40,41]),
+        ]
+        seriesList2 = [
+            TimeSeries('collectd.test-db4.load.value',0,1,1,[4,8,12]),
+            TimeSeries('collectd.test-db3.load.value',0,1,1,[3,7,11]),
+            TimeSeries('collectd.test-db1.load.value',0,1,1,[1,5,9]),
+            TimeSeries('collectd.test-db2.load.value',0,1,1,[2,6,10]),
+        ]
+        expectedResult = [
+        [
+            TimeSeries('collectd.test-db1.load.value',0,1,1,[1,10,11]),
+            TimeSeries('collectd.test-db2.load.value',0,1,1,[2,20,21]),
+            TimeSeries('collectd.test-db3.load.value',0,1,1,[3,30,31]),
+            TimeSeries('collectd.test-db4.load.value',0,1,1,[4,40,41]),
+        ],
+        [
+            TimeSeries('collectd.test-db1.load.value',0,1,1,[1,5,9]),
+            TimeSeries('collectd.test-db2.load.value',0,1,1,[2,6,10]),
+            TimeSeries('collectd.test-db3.load.value',0,1,1,[3,7,11]),
+            TimeSeries('collectd.test-db4.load.value',0,1,1,[4,8,12]),
+        ]]
+        results = functions.matchSeries(copy.deepcopy(seriesList1), copy.deepcopy(seriesList2))
+        for i, (series1, series2) in enumerate(results):
+            self.assertEqual(series1, expectedResult[0][i])
+            self.assertEqual(series2, expectedResult[1][i])
+
+    #
+    # Test formatPathExpressions()
+    #
+
+    def test_formatPathExpressions_empty_list(self):
+        self.assertEqual(functions.formatPathExpressions([]), '')
+
+    def test_formatPathExpressions(self):
+        seriesList = self._generate_series_list()
+        self.assertEqual(functions.formatPathExpressions(seriesList), "collectd.test-db1.load.value,collectd.test-db2.load.value,collectd.test-db3.load.value")
+
+    #
+    # Test sumSeries()
+    #
+
+    def test_sumSeries_empty(self):
+        self.assertEqual(functions.sumSeries({}, []), [])
+
+    def test_sumSeries(self):
+        seriesList = self._generate_series_list()
+        data = range(0,202,2)
+        expected_name = "sumSeries(collectd.test-db1.load.value,collectd.test-db2.load.value)"
+        expectedList = [TimeSeries(expected_name, 0, len(data), 1, data)]
+        result = functions.sumSeries({}, [seriesList[0], seriesList[1]])
+        self.assertListEqual(result, expectedList)
+        for index, test in enumerate(expectedList):
+            self.assertEqual(expectedList[index].name, result[index].name)
+
+    def test_sumSeriesWithWildcards_empty_series_int_position(self):
+        self.assertEqual(functions.sumSeriesWithWildcards({}, [], 0), [])
+
+    def test_sumSeriesWithWildcards(self):
+        seriesList = self._generate_series_list()
+        data = range(0,202,2)
+        expected_name = "load.value"
+        expectedList = [TimeSeries(expected_name, 0, len(data), 1, data)]
+        result = functions.sumSeriesWithWildcards({}, [seriesList[0], seriesList[1]], 0,1)
+        self.assertListEqual(result, expectedList)
+        for index, test in enumerate(expectedList):
+            self.assertEqual(expectedList[index].name, result[index].name)
+
+    def test_averageSeriesWithWildcards_empty_series_int_position(self):
+        self.assertEqual(functions.averageSeriesWithWildcards({}, [], 0), [])
+
+    def test_averageSeriesWithWildcards(self):
+        seriesList = self._generate_series_list()
+        data = range(0,101,1)
+        expected_name = "load.value"
+        expectedList = [TimeSeries(expected_name, 0, len(data), 1, data)]
+        result = functions.averageSeriesWithWildcards({}, [seriesList[0], seriesList[1]], 0,1)
+        self.assertListEqual(result, expectedList)
+        for index, test in enumerate(expectedList):
+            self.assertEqual(expectedList[index].name, result[index].name)
+
+    def test_multiplySeriesWithWildcards(self):
+        seriesList1 = [
+            TimeSeries('web.host-1.avg-response.value',0,1,1,[1,10,11]),
+            TimeSeries('web.host-2.avg-response.value',0,1,1,[2,20,21]),
+            TimeSeries('web.host-3.avg-response.value',0,1,1,[3,30,31]),
+            TimeSeries('web.host-4.avg-response.value',0,1,1,[4,40,41]),
+        ]
+        seriesList2 = [
+            TimeSeries('web.host-4.total-request.value',0,1,1,[4,8,12]),
+            TimeSeries('web.host-3.total-request.value',0,1,1,[3,7,11]),
+            TimeSeries('web.host-1.total-request.value',0,1,1,[1,5,9]),
+            TimeSeries('web.host-2.total-request.value',0,1,1,[2,6,10]),
+        ]
+        expectedResult = [
+            TimeSeries('web.host-1',0,1,1,[1,50,99]),
+            TimeSeries('web.host-2',0,1,1,[4,120,210]),
+            TimeSeries('web.host-3',0,1,1,[9,210,341]),
+            TimeSeries('web.host-4',0,1,1,[16,320,492]),
+        ]
+        results = functions.multiplySeriesWithWildcards({}, copy.deepcopy(seriesList1+seriesList2), 2,3)
+        self.assertEqual(results,expectedResult)
+
+    def test_diffSeries(self):
+        seriesList = self._generate_series_list()
+        data = [0] * 101
+        expected_name = "diffSeries(collectd.test-db1.load.value,collectd.test-db2.load.value)"
+        expectedList = [TimeSeries(expected_name, 0, len(data), 1, data)]
+        result = functions.diffSeries({}, [seriesList[0], seriesList[1]])
+        self.assertListEqual(result, expectedList)
+        for index, test in enumerate(expectedList):
+            self.assertEqual(expectedList[index].name, result[index].name)
+
+    def test_averageSeries(self):
+        seriesList = self._generate_series_list()
+        data = range(0,101)
+        expected_name = "averageSeries(collectd.test-db1.load.value,collectd.test-db2.load.value)"
+        expectedList = [TimeSeries(expected_name, 0, len(data), 1, data)]
+        result = functions.averageSeries({}, [seriesList[0], seriesList[1]])
+        self.assertListEqual(result, expectedList)
+        for index, test in enumerate(expectedList):
+            self.assertEqual(expectedList[index].name, result[index].name)
+
     def test_highest_max(self):
         config = [20, 50, 30, 40]
         seriesList = [range(max_val) for max_val in config]
@@ -116,7 +594,11 @@ class FunctionsTest(TestCase):
 
         for i, c in enumerate(config):
             name = "collectd.test-db{0}.load.value".format(i + 1)
-            seriesList.append(TimeSeries(name, 0, 1, 1, c))
+            seriesList.append(TimeSeries(name, 0, len(c), 1, c))
+
+        for series in seriesList:
+            series.pathExpression = series.name
+
         return seriesList
 
     def test_check_empty_lists(self):
@@ -371,12 +853,6 @@ class FunctionsTest(TestCase):
                 expected_value = original_value * multiplier
                 self.assertEqual(value, expected_value)
 
-    def test_normalize_empty(self):
-      try:
-        functions.normalize([])
-      except NormalizeEmptyResultError:
-        pass
-
     def _generate_mr_series(self):
         seriesList = [
             TimeSeries('group.server1.metric1',0,1,1,[None]),
@@ -476,28 +952,6 @@ class FunctionsTest(TestCase):
             expected = [TimeSeries("changed(%s)" % name,0,1,1,c[1])]
             result = functions.changed({}, series)
             self.assertEqual(result, expected)
-
-    def test_multiplySeriesWithWildcards(self):
-        seriesList1 = [
-            TimeSeries('web.host-1.avg-response.value',0,1,1,[1,10,11]),
-            TimeSeries('web.host-2.avg-response.value',0,1,1,[2,20,21]),
-            TimeSeries('web.host-3.avg-response.value',0,1,1,[3,30,31]),
-            TimeSeries('web.host-4.avg-response.value',0,1,1,[4,40,41]),
-        ]
-        seriesList2 = [
-            TimeSeries('web.host-4.total-request.value',0,1,1,[4,8,12]),
-            TimeSeries('web.host-3.total-request.value',0,1,1,[3,7,11]),
-            TimeSeries('web.host-1.total-request.value',0,1,1,[1,5,9]),
-            TimeSeries('web.host-2.total-request.value',0,1,1,[2,6,10]),
-        ]
-        expectedResult = [
-            TimeSeries('web.host-1',0,1,1,[1,50,99]),
-            TimeSeries('web.host-2',0,1,1,[4,120,210]),
-            TimeSeries('web.host-3',0,1,1,[9,210,341]),
-            TimeSeries('web.host-4',0,1,1,[16,320,492]),
-        ]
-        results = functions.multiplySeriesWithWildcards({}, copy.deepcopy(seriesList1+seriesList2), 2,3)
-        self.assertEqual(results,expectedResult)
 
     def test_timeSlice(self):
         seriesList = [
