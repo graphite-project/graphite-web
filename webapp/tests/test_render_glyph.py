@@ -413,7 +413,7 @@ class LinearAxisTicsTest(TestCase):
       y = glyph._LinearAxisTics(0.0, 100.0, unitSystem='binary')
       y.applySettings(axisMin=0, axisMax=10, axisLimit=100)
       self.assertAlmostEqual(y.minValue, 0.0, places=4)
-      self.assertAlmostEqual(y.maxValue, 100.0, places=4)
+      self.assertAlmostEqual(y.maxValue, 10.0, places=4)
 
     def test_LinearAxisTics_reconcileLimits_ymin_0(self):
       y = glyph._LinearAxisTics(0.0, 100.0, unitSystem='binary')
@@ -425,7 +425,7 @@ class LinearAxisTicsTest(TestCase):
       y = glyph._LinearAxisTics(0.0, 100.0, unitSystem='binary')
       y.applySettings(axisMin=None, axisMax=10, axisLimit=100)
       self.assertAlmostEqual(y.minValue, 0.0, places=4)
-      self.assertAlmostEqual(y.maxValue, 100.0, places=4)
+      self.assertAlmostEqual(y.maxValue, 10.0, places=4)
 
     def test_LinearAxisTics_reconcileLimits_ymax_max(self):
       y = glyph._LinearAxisTics(0.0, 100.0, unitSystem='binary')
@@ -454,7 +454,7 @@ class LinearAxisTicsTest(TestCase):
     def test_LinearAxisTics_reconcileLimits_ymax_negative(self):
       y = glyph._LinearAxisTics(0.0, 100.0, unitSystem='binary')
       y.applySettings(axisMax=-10)
-      self.assertAlmostEqual(y.minValue, -9.0, places=4)
+      self.assertAlmostEqual(y.minValue, -11.0, places=4)
       self.assertAlmostEqual(y.maxValue, -10.0, places=4)
 
     def test_LinearAxisTics_reconcileLimits_ymin_100(self):
@@ -758,12 +758,6 @@ class LogAxisTicsTest(TestCase):
     def test_LogAxisTics_reconcileLimits_defaults(self):
       y = glyph._LogAxisTics(0.0, 100.0, unitSystem='binary')
       self.assertEqual(y.reconcileLimits(), None)
-
-    def test_LogAxisTics_reconcileLimits_ymin_and_ymax_assert(self):
-      y = glyph._LogAxisTics(0.0, 100.0, unitSystem='binary')
-      y.applySettings(axisMin=0, axisMax=10, axisLimit=100)
-      with self.assertRaises(glyph.GraphError):
-          y.reconcileLimits()
 
     def test_LogAxisTics_reconcileLimits_ymin_0(self):
       y = glyph._LogAxisTics(0.0, 100.0, unitSystem='binary')
