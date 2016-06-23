@@ -165,6 +165,12 @@ class _AxisTics:
 
   @staticmethod
   def checkFinite(value, name='value'):
+    """Check that value is a finite number.
+
+    If it is, return it. If not, raise GraphError describing the
+    problem, using name in the error message.
+    """
+
     if math.isnan(value):
       raise GraphError('Encountered NaN %s' % (name,))
     elif math.isinf(value):
@@ -173,12 +179,26 @@ class _AxisTics:
 
   @staticmethod
   def chooseDelta(x):
+    """Choose a reasonable axis range given that one limit is x.
+
+    Given that end of the axis range (i.e., minValue or maxValue) is
+    x, choose a reasonable distance to the other limit.
+    """
+
     if abs(x) < 1.0e-9:
       return 1.0
     else:
       return 0.1 * abs(x)
 
   def reconcileLimits(self):
+    """Fix the problem that self.minValue is not less than self.maxValue.
+
+    Adjust self.minValue and/or self.maxValue (depending on which was
+    not specified explicitly by the user) to make self.minValue <
+    self.maxValue. If the user specified both limits explicitly, then
+    raise GraphError.
+    """
+
     minFixed = (self.minValueSource in ['min'])
     maxFixed = (self.maxValueSource in ['max', 'limit'])
 
@@ -196,6 +216,26 @@ class _AxisTics:
       self.maxValue = average + delta
 
   def applySettings(self, axisMin=None, axisMax=None, axisLimit=None):
+    """Apply the specified settings to this axis.
+
+    Set self.minValue, self.minValueSource, self.maxValue,
+    self.maxValueSource, and self.axisLimit reasonably based on the
+    parameters provided.
+
+    Arguments:
+
+    axisMin -- a finite number, or None to choose a round minimum
+        limit that includes all of the data.
+
+    axisMax -- a finite number, 'max' to use the maximum value
+        contained in the data, or None to choose a round maximum limit
+        that includes all of the data.
+
+    axisLimit -- a finite number to use as an upper limit on maxValue,
+        or None to impose no upper limit.
+
+    """
+
     if axisMin is not None and not math.isnan(axisMin):
       self.minValueSource = 'min'
       self.minValue = self.checkFinite(axisMin, 'axis min')
@@ -226,6 +266,13 @@ class _AxisTics:
       self.reconcileLimits()
 
   def makeLabel(self, value):
+    """Create a label for the specified value.
+
+    Create a label string containing the value and its units (if any),
+    based on the values of self.step, self.span, and self.unitSystem.
+
+    """
+
     value, prefix = format_units(value, self.step, system=self.unitSystem)
     span, spanPrefix = format_units(self.span, self.step, system=self.unitSystem)
     if prefix:
@@ -248,6 +295,8 @@ class _AxisTics:
 
 
 class _LinearAxisTics(_AxisTics):
+  """Axis ticmarks with uniform spacing."""
+
   def __init__(self, minValue, maxValue, unitSystem=None):
     _AxisTics.__init__(self, minValue, maxValue, unitSystem=unitSystem)
     self.step = None
@@ -255,6 +304,8 @@ class _LinearAxisTics(_AxisTics):
     self.binary = None
 
   def setStep(self, step):
+    """Set the size of steps between ticmarks."""
+
     self.step = self.checkFinite(float(step), 'axis step')
 
   def generateSteps(self, minStep):
@@ -283,7 +334,7 @@ class _LinearAxisTics(_AxisTics):
     """Compute the slop that would result from step and divisor.
 
     Return the slop, or None if this combination can't cover the full
-    range.
+    range. See chooseStep() for the definition of "slop".
 
     """
 
