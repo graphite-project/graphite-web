@@ -3066,10 +3066,30 @@ def groupByNode(requestContext, seriesList, nodeNum, callback):
     sumSeries(ganglia.by-function.server1.*.cpu.load5),sumSeries(ganglia.by-function.server2.*.cpu.load5),...
 
   """
+  return groupByNodes(requestContext, seriesList, callback, nodeNum)
+
+def groupByNodes(requestContext, seriesList, callback, *nodes):
+  """
+  Takes a serieslist and maps a callback to subgroups within as defined by multiple nodes
+
+  .. code-block:: none
+
+    &target=groupByNodes(ganglia.server*.*.cpu.load*,"sumSeries",1,4)
+
+  Would return multiple series which are each the result of applying the "sumSeries" function
+  to groups joined on the nodes' list (0 indexed) resulting in a list of targets like
+
+  .. code-block :: none
+
+    sumSeries(ganglia.server1.*.cpu.load5),sumSeries(ganglia.server1.*.cpu.load10),sumSeries(ganglia.server1.*.cpu.load15),sumSeries(ganglia.server2.*.cpu.load5),sumSeries(ganglia.server2.*.cpu.load10),sumSeries(ganglia.server2.*.cpu.load15),...
+
+  """
   metaSeries = {}
   keys = []
+  if isinstance(nodes, int):
+    nodes=[nodes]
   for series in seriesList:
-    key = series.name.split(".")[nodeNum]
+    key = '.'.join(series.name.split(".")[n] for n in nodes)
     if key not in metaSeries:
       metaSeries[key] = [series]
       keys.append(key)
@@ -3651,6 +3671,7 @@ SeriesFunctions = {
   'reduceSeries': reduceSeries,
   'applyByNode': applyByNode,
   'groupByNode': groupByNode,
+  'groupByNodes' : groupByNodes,
   'constantLine': constantLine,
   'stacked': stacked,
   'areaBetween': areaBetween,
