@@ -578,41 +578,25 @@ class LinearAxisTicsTest(TestCase):
 
     def test_LinearAxisTics_generateSteps_1(self):
       y = glyph._LinearAxisTics(0.0, 1000.0, unitSystem='si')
-      results = []
-      for i in y.generateSteps(1):
-        results.append(i)
-        if i > 10:
-          break
-      self.assertEqual(results, [1.0,2.0,5.0,10.0,20.0])
+      for (results, expected) in zip(y.generateSteps(1), [1.0, 2.0, 5.0, 10.0, 20.0]):
+        self.assertAlmostEqual(results, expected, places=4)
 
     def test_LinearAxisTics_generateSteps_binary_1(self):
       y = glyph._LinearAxisTics(0.0, 1000.0, unitSystem='si')
       y.binary=True
-      results = []
-      for i in y.generateSteps(1):
-        results.append(i)
-        if i > 10:
-          break
-      self.assertEqual(results, [1.0, 2.0, 4.0, 8.0, 16.0])
+      for (results, expected) in zip(y.generateSteps(1), [1.0, 2.0, 4.0, 8.0, 16.0]):
+        self.assertAlmostEqual(results, expected, places=4)
 
     def test_LinearAxisTics_generateSteps_5(self):
       y = glyph._LinearAxisTics(0.0, 1000.0, unitSystem='si')
-      results = []
-      for i in y.generateSteps(5):
-        results.append(i)
-        if i > 10:
-          break
-      self.assertEqual(results, [5.0, 10.0, 20.0])
+      for (results, expected) in zip(y.generateSteps(5), [5.0, 10.0, 20.0]):
+        self.assertAlmostEqual(results, expected, places=4)
 
     def test_LinearAxisTics_generateSteps_binary_5(self):
       y = glyph._LinearAxisTics(0.0, 1000.0, unitSystem='si')
       y.binary=True
-      results = []
-      for i in y.generateSteps(5):
-        results.append(i)
-        if i > 10:
-          break
-      self.assertEqual(results, [8.0, 16.0])
+      for (results, expected) in zip(y.generateSteps(5), [8.0, 16.0]):
+        self.assertAlmostEqual(results, expected, places=4)
 
     def test_LinearAxisTics_generateSteps_0(self):
       y = glyph._LinearAxisTics(0.0, 1000.0, unitSystem='si')
