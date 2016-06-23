@@ -349,6 +349,34 @@ class glyphStandaloneFunctionTest(TestCase):
           glyph.find_x_times(self.dt, glyph.SEC, 1.0)
 
 
+class AxisTicsTest(TestCase):
+
+    #
+    # Testing _AxisTics.checkFinite()
+    #
+
+    def test_AxisTics_checkFinite_nan(self):
+      with self.assertRaises(glyph.GraphError):
+          glyph._AxisTics.checkFinite(float('nan'))
+
+    def test_AxisTics_checkFinite_inf(self):
+      with self.assertRaises(glyph.GraphError):
+          glyph._AxisTics.checkFinite(float('inf'))
+
+    def test_AxisTics_checkFinite_100(self):
+      self.assertEqual(glyph._AxisTics.checkFinite(100), 100)
+
+    #
+    # Testing _AxisTics.chooseDelta()
+    #
+
+    def test_AxisTics_chooseDelta_0_1(self):
+      self.assertEqual(glyph._AxisTics.chooseDelta(1), 0.1)
+
+    def test_AxisTics_chooseDelta_very_small(self):
+      self.assertEqual(glyph._AxisTics.chooseDelta(1.0e-10), 1.0)
+
+
 class LinearAxisTicsTest(TestCase):
 
     def test_LinearAxisTics_valid_input(self):
@@ -361,36 +389,6 @@ class LinearAxisTicsTest(TestCase):
     def test_LinearAxisTics_invalid_max_value(self):
       with self.assertRaises(glyph.GraphError):
           glyph._LinearAxisTics(0.0, float('inf'), unitSystem='binary')
-
-    #
-    # Testing _LinearAxisTics.checkFinite()
-    #
-
-    def test_LinearAxisTics_checkFinite_nan(self):
-      y = glyph._LinearAxisTics(0.0, 100.0, unitSystem='binary')
-      with self.assertRaises(glyph.GraphError):
-          y.checkFinite(float('nan'))
-
-    def test_LinearAxisTics_checkFinite_inf(self):
-      y = glyph._LinearAxisTics(0.0, 100.0, unitSystem='binary')
-      with self.assertRaises(glyph.GraphError):
-          y.checkFinite(float('inf'))
-
-    def test_LinearAxisTics_checkFinite_100(self):
-      y = glyph._LinearAxisTics(0.0, 100.0, unitSystem='binary')
-      self.assertEqual(y.checkFinite(100), 100)
-
-    #
-    # Testing _LinearAxisTics.chooseDelta()
-    #
-
-    def test_LinearAxisTics_chooseDelta_0_1(self):
-      y = glyph._LinearAxisTics(0.0, 100.0, unitSystem='binary')
-      self.assertEqual(y.chooseDelta(1), 0.1)
-
-    def test_LinearAxisTics_chooseDelta_very_small(self):
-      y = glyph._LinearAxisTics(0.0, 100.0, unitSystem='binary')
-      self.assertEqual(y.chooseDelta(1.0e-10), 1.0)
 
     #
     # Testing _LinearAxisTics.applySettings()
@@ -732,36 +730,6 @@ class LogAxisTicsTest(TestCase):
     def test_LogAxisTics_invalid_max_value(self):
       with self.assertRaises(glyph.GraphError):
           glyph._LogAxisTics(0.0, float('inf'), unitSystem='binary')
-
-    #
-    # Testing _LogAxisTics.checkFinite()
-    #
-
-    def test_LogAxisTics_checkFinite_nan(self):
-      y = glyph._LogAxisTics(0.0, 100.0, unitSystem='binary')
-      with self.assertRaises(glyph.GraphError):
-          y.checkFinite(float('nan'))
-
-    def test_LogAxisTics_checkFinite_inf(self):
-      y = glyph._LogAxisTics(0.0, 100.0, unitSystem='binary')
-      with self.assertRaises(glyph.GraphError):
-          y.checkFinite(float('inf'))
-
-    def test_LogAxisTics_checkFinite_100(self):
-      y = glyph._LogAxisTics(0.0, 100.0, unitSystem='binary')
-      self.assertEqual(y.checkFinite(100), 100)
-
-    #
-    # Testing _LogAxisTics.chooseDelta()
-    #
-
-    def test_LogAxisTics_chooseDelta_0_1(self):
-      y = glyph._LogAxisTics(0.0, 100.0, unitSystem='binary')
-      self.assertEqual(y.chooseDelta(1), 0.1)
-
-    def test_LogAxisTics_chooseDelta_very_small(self):
-      y = glyph._LogAxisTics(0.0, 100.0, unitSystem='binary')
-      self.assertEqual(y.chooseDelta(1.0e-10), 1.0)
 
     #
     # Testing _LogAxisTics.applySettings()
