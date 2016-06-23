@@ -1784,7 +1784,7 @@ def toSeconds(t):
 
 
 def safeArgs(args):
-  """Iterate over valid, finite values an in iterable.
+  """Iterate over valid, finite values in an iterable.
 
   Skip any items that are None, NaN, or infinite.
   """
