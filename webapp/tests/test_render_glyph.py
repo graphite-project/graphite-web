@@ -405,42 +405,69 @@ class LinearAxisTicsTest(TestCase):
 
     def test_LinearAxisTics_reconcileLimits_defaults(self):
       y = glyph._LinearAxisTics(0.0, 100.0, unitSystem='binary')
-      self.assertEqual(y.reconcileLimits(), None)
+      y.applySettings()
+      self.assertAlmostEqual(y.minValue, 0.0, places=4)
+      self.assertAlmostEqual(y.maxValue, 100.0, places=4)
 
     def test_LinearAxisTics_reconcileLimits_ymin_and_ymax_assert(self):
       y = glyph._LinearAxisTics(0.0, 100.0, unitSystem='binary')
       y.applySettings(axisMin=0, axisMax=10, axisLimit=100)
-      self.assertEqual(y.reconcileLimits(), None)
+      self.assertAlmostEqual(y.minValue, 0.0, places=4)
+      self.assertAlmostEqual(y.maxValue, 100.0, places=4)
 
     def test_LinearAxisTics_reconcileLimits_ymin_0(self):
       y = glyph._LinearAxisTics(0.0, 100.0, unitSystem='binary')
       y.applySettings(axisMin=0, axisMax=None, axisLimit=100)
-      self.assertEqual(y.reconcileLimits(), None)
+      self.assertAlmostEqual(y.minValue, 0.0, places=4)
+      self.assertAlmostEqual(y.maxValue, 100.0, places=4)
 
     def test_LinearAxisTics_reconcileLimits_ymax_10(self):
       y = glyph._LinearAxisTics(0.0, 100.0, unitSystem='binary')
       y.applySettings(axisMin=None, axisMax=10, axisLimit=100)
-      self.assertEqual(y.reconcileLimits(), None)
+      self.assertAlmostEqual(y.minValue, 0.0, places=4)
+      self.assertAlmostEqual(y.maxValue, 100.0, places=4)
 
     def test_LinearAxisTics_reconcileLimits_ymax_max(self):
       y = glyph._LinearAxisTics(0.0, 100.0, unitSystem='binary')
       y.applySettings(axisMin=None, axisMax='max', axisLimit=100)
-      self.assertEqual(y.reconcileLimits(), None)
-
-    def test_LinearAxisTics_reconcileLimits_axisLimit_None(self):
-      y = glyph._LinearAxisTics(0.0, 100.0, unitSystem='binary')
-      y.applySettings(axisMin=None, axisMax=None, axisLimit=None)
-      self.assertEqual(y.reconcileLimits(), None)
+      self.assertAlmostEqual(y.minValue, 0.0, places=4)
+      self.assertAlmostEqual(y.maxValue, 100.0, places=4)
 
     def test_LinearAxisTics_reconcileLimits_axisLimit_below_max(self):
       y = glyph._LinearAxisTics(0.0, 100.0, unitSystem='binary')
       y.applySettings(axisMin=None, axisMax=100, axisLimit=10)
-      self.assertEqual(y.reconcileLimits(), None)
+      self.assertAlmostEqual(y.minValue, 0.0, places=4)
+      self.assertAlmostEqual(y.maxValue, 10.0, places=4)
 
     def test_LinearAxisTics_reconcileLimits_axisLimit_above_max(self):
       y = glyph._LinearAxisTics(0.0, 100.0, unitSystem='binary')
       y.applySettings(axisMin=None, axisMax=10, axisLimit=float('inf'))
-      self.assertEqual(y.reconcileLimits(), None)
+      self.assertAlmostEqual(y.minValue, 0.0, places=4)
+      self.assertAlmostEqual(y.maxValue, 10.0, places=4)
+
+    def test_LinearAxisTics_reconcileLimits_ymax_0(self):
+      y = glyph._LinearAxisTics(0.0, 100.0, unitSystem='binary')
+      y.applySettings(axisMax=0)
+      self.assertAlmostEqual(y.minValue, -1.0, places=4)
+      self.assertAlmostEqual(y.maxValue, 0.0, places=4)
+
+    def test_LinearAxisTics_reconcileLimits_ymax_negative(self):
+      y = glyph._LinearAxisTics(0.0, 100.0, unitSystem='binary')
+      y.applySettings(axisMax=-10)
+      self.assertAlmostEqual(y.minValue, -9.0, places=4)
+      self.assertAlmostEqual(y.maxValue, -10.0, places=4)
+
+    def test_LinearAxisTics_reconcileLimits_ymin_100(self):
+      y = glyph._LinearAxisTics(0.0, 100.0, unitSystem='binary')
+      y.applySettings(axisMin=100)
+      self.assertAlmostEqual(y.minValue, 100.0, places=4)
+      self.assertAlmostEqual(y.maxValue, 110.0, places=4)
+
+    def test_LinearAxisTics_reconcileLimits_ymin_200(self):
+      y = glyph._LinearAxisTics(0.0, 100.0, unitSystem='binary')
+      y.applySettings(axisMin=200)
+      self.assertAlmostEqual(y.minValue, 200.0, places=4)
+      self.assertAlmostEqual(y.maxValue, 220.0, places=4)
 
     #
     # Testing _LinearAxisTics.makeLabel()
