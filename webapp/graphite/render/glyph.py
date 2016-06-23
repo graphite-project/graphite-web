@@ -206,19 +206,21 @@ class _AxisTics:
       self.maxValueSource = 'max'
       self.maxValue = self.checkFinite(axisMax, 'axis max')
 
-    if axisLimit is not None and not math.isnan(axisLimit):
-      if axisLimit < self.maxValue:
-        self.maxValue = self.checkFinite(axisLimit, 'axis limit')
-        self.maxValueSource = 'limit'
-        # The limit has already been imposed, so there is no need to
-        # remember it:
-        self.axisLimit = None
-      elif not math.isinf(axisLimit):
-        # We still need to remember axisLimit to avoid rounding top to
-        # a value larger than axisLimit:
-        self.axisLimit = axisLimit
-    else:
+    if axisLimit is None or math.isnan(axisLimit):
       self.axisLimit = None
+    elif axisLimit < self.maxValue:
+      self.maxValue = self.checkFinite(axisLimit, 'axis limit')
+      self.maxValueSource = 'limit'
+      # The limit has already been imposed, so there is no need to
+      # remember it:
+      self.axisLimit = None
+    elif math.isinf(axisLimit):
+      # It must be positive infinity, which is the same as no limit:
+      self.axisLimit = None
+    else:
+      # We still need to remember axisLimit to avoid rounding top to
+      # a value larger than axisLimit:
+      self.axisLimit = axisLimit
 
     if not (self.minValue < self.maxValue):
       self.reconcileLimits()
