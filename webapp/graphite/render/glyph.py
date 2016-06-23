@@ -191,13 +191,18 @@ class _AxisTics:
       return 0.1 * abs(x)
 
   def reconcileLimits(self):
-    """Fix the problem that self.minValue is not less than self.maxValue.
+    """If self.minValue is not less than self.maxValue, fix the problem.
 
-    Adjust self.minValue and/or self.maxValue (depending on which was
-    not specified explicitly by the user) to make self.minValue <
+    If self.minValue is not less than self.maxValue, adjust
+    self.minValue and/or self.maxValue (depending on which was not
+    specified explicitly by the user) to make self.minValue <
     self.maxValue. If the user specified both limits explicitly, then
     raise GraphError.
     """
+
+    if self.minValue < self.maxValue:
+      # The limits are already OK.
+      return
 
     minFixed = (self.minValueSource in ['min'])
     maxFixed = (self.maxValueSource in ['max', 'limit'])
@@ -262,8 +267,7 @@ class _AxisTics:
       # a value larger than axisLimit:
       self.axisLimit = axisLimit
 
-    if not (self.minValue < self.maxValue):
-      self.reconcileLimits()
+    self.reconcileLimits()
 
   def makeLabel(self, value):
     """Create a label for the specified value.

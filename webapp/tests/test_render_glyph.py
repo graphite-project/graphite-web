@@ -412,8 +412,7 @@ class LinearAxisTicsTest(TestCase):
     def test_LinearAxisTics_reconcileLimits_ymin_and_ymax_assert(self):
       y = glyph._LinearAxisTics(0.0, 100.0, unitSystem='binary')
       y.applySettings(axisMin=0, axisMax=10, axisLimit=100)
-      with self.assertRaises(glyph.GraphError):
-          y.reconcileLimits()
+      self.assertEqual(y.reconcileLimits(), None)
 
     def test_LinearAxisTics_reconcileLimits_ymin_0(self):
       y = glyph._LinearAxisTics(0.0, 100.0, unitSystem='binary')
