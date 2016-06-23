@@ -137,10 +137,10 @@ class glyphStandaloneFunctionTest(TestCase):
         glyph.safeSum(['a',10,30])
 
     def test_safeSum_list_all_numbers(self):
-      self.assertEqual(glyph.safeSum([1,5.1,6,]), 12.1)
+      self.assertAlmostEqual(glyph.safeSum([1,5.1,6,]), 12.1, places=4)
 
     def test_safeSum_list_with_nan(self):
-      self.assertEqual(glyph.safeSum([1,5.1,6,float('Nan')]), 12.1)
+      self.assertAlmostEqual(glyph.safeSum([1,5.1,6,float('Nan')]), 12.1, places=4)
 
     #
     # Testing any()
@@ -371,10 +371,10 @@ class AxisTicsTest(TestCase):
     #
 
     def test_AxisTics_chooseDelta_0_1(self):
-      self.assertEqual(glyph._AxisTics.chooseDelta(1), 0.1)
+      self.assertAlmostEqual(glyph._AxisTics.chooseDelta(1), 0.1, places=4)
 
     def test_AxisTics_chooseDelta_very_small(self):
-      self.assertEqual(glyph._AxisTics.chooseDelta(1.0e-10), 1.0)
+      self.assertAlmostEqual(glyph._AxisTics.chooseDelta(1.0e-10), 1.0, places=4)
 
 
 class LinearAxisTicsTest(TestCase):
@@ -607,11 +607,11 @@ class LinearAxisTicsTest(TestCase):
 
     def test_LinearAxisTics_computeSlop_med_maxValue_50_10(self):
       y = glyph._LinearAxisTics(0.0, 100.0, unitSystem='si')
-      self.assertEqual(y.computeSlop(50, 10), 400.0)
+      self.assertAlmostEqual(y.computeSlop(50, 10), 400.0, places=4)
 
     def test_LinearAxisTics_computeSlop_low_maxValue_10_3(self):
       y = glyph._LinearAxisTics(0, 1, unitSystem='si')
-      self.assertEqual(y.computeSlop(10, 3), 29.0)
+      self.assertAlmostEqual(y.computeSlop(10, 3), 29.0, places=4)
 
     #
     # Testing _LinearAxisTics.chooseStep()
@@ -620,12 +620,12 @@ class LinearAxisTicsTest(TestCase):
     def test_LinearAxisTics_chooseStep_default(self):
       y = glyph._LinearAxisTics(0.0, 1000.0, unitSystem='si')
       self.assertEqual(y.chooseStep(), None)
-      self.assertEqual(y.step, 200)
+      self.assertAlmostEqual(y.step, 200, places=4)
 
     def test_LinearAxisTics_chooseStep_default_divisors(self):
       y = glyph._LinearAxisTics(0.0, 1000.0, unitSystem='si')
       self.assertEqual(y.chooseStep([4,5,6]), None)
-      self.assertEqual(y.step, 200)
+      self.assertAlmostEqual(y.step, 200, places=4)
 
     def test_LinearAxisTics_chooseStep_bad_divisors(self):
       y = glyph._LinearAxisTics(0.0, 1000.0, unitSystem='si')
@@ -635,17 +635,17 @@ class LinearAxisTicsTest(TestCase):
     def test_LinearAxisTics_chooseStep_min_max_0_0(self):
       y = glyph._LinearAxisTics(0.0, 0.0, unitSystem='si')
       self.assertEqual(y.chooseStep([4,5,6]), None)
-      self.assertEqual(y.step, 0.2)
+      self.assertAlmostEqual(y.step, 0.2, places=5)
 
     def test_LinearAxisTics_chooseStep_min_max_1_0(self):
       y = glyph._LinearAxisTics(1.0, 1.0, unitSystem='si')
       self.assertEqual(y.chooseStep([4,5,6]), None)
-      self.assertEqual(y.step, 0.05)
+      self.assertAlmostEqual(y.step, 0.05, places=6)
 
     def test_LinearAxisTics_chooseStep_min_max_neg_1_0(self):
       y = glyph._LinearAxisTics(-1.0, -1.0, unitSystem='si')
       self.assertEqual(y.chooseStep([4,5,6]), None)
-      self.assertEqual(y.step, 0.05)
+      self.assertAlmostEqual(y.step, 0.05, places=6)
 
     #
     # Testing _LinearAxisTics.chooseLimits()
