@@ -117,6 +117,7 @@ class FindRequest(object):
         except Exception as e:
           log.exception("FindRequest %s failed for %s :: %s" % (self.query, self.store.host, e))
           self.store.fail()
+          yield None
 
       node.local = False
       yield node
