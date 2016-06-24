@@ -112,7 +112,11 @@ class FindRequest(object):
         reader = RemoteReader(self.store, node_info, bulk_query=self.query.pattern)
         node = LeafNode(node_info['path'], reader)
       else:
-        node = BranchNode(node_info['path'])
+        try:
+          node = BranchNode(node_info['path'])
+        except Exception as e:
+          log.exception("FindRequest %s failed for %s :: %s" % (self.query, self.store.host, e))
+          self.store.fail()
 
       node.local = False
       yield node
