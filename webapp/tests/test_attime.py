@@ -35,6 +35,12 @@ class ATTimeTimezoneTests(TestCase):
         actual_time = parseATTime(time_string, self.specified_tz)
         self.assertEqual(actual_time, expected_time)
 
+    def test_absolute_time_YYMMDD(self):
+        time_string = '20150110'
+        expected_time = self.specified_tz.localize(datetime.strptime(time_string, '%Y%m%d'))
+        actual_time = parseATTime(time_string, self.specified_tz)
+        self.assertEqual(actual_time, expected_time)
+
     def test_midnight(self):
         expected_time = self.specified_tz.localize(datetime.strptime("0:00_20150308", '%H:%M_%Y%m%d'))
         actual_time = parseATTime("midnight", self.specified_tz)
@@ -181,6 +187,27 @@ class parseTimeReferenceTest(TestCase):
         expected = datetime(2014, 12, 29, 0, 0)
         self.assertEquals(time_ref, expected)
 
+BUG_551771_MOCK_DATE = datetime(2010, 3, 30, 00, 00)
+
+class Bug551771MockedDateTime(datetime):
+    def __new__(cls, *args, **kwargs):
+        return datetime.__new__(datetime, *args, **kwargs)
+    @classmethod
+    def now(cls):
+        return cls(2010, 3, 30, 00, 0, 0)
+
+
+@mock.patch('graphite.render.attime.datetime', Bug551771MockedDateTime)
+class parseTimeReferenceTestBug551771(TestCase):
+    def test_parse_MM_slash_DD_slash_YY(self):
+        time_ref = parseTimeReference("02/23/10")
+        expected = datetime(2010, 2, 23, 0, 0)
+        self.assertEquals(time_ref, expected)
+
+    def test_parse_YYYYMMDD(self):
+        time_ref = parseTimeReference("20100223")
+        expected = datetime(2010, 2, 23, 0, 0)
+        self.assertEquals(time_ref, expected)
 
 class parseTimeOffsetTest(TestCase):
 
