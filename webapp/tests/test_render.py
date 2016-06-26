@@ -5,7 +5,7 @@ import time
 import logging
 import shutil
 
-from graphite.render.hashing import hashRequest, hashData
+from graphite.render.hashing import ConsistentHashRing, hashRequest, hashData
 import whisper
 
 from django.conf import settings
@@ -256,3 +256,56 @@ class RenderTest(TestCase):
         })
         data = json.loads(response.content)[0]
         self.assertEqual(data['target'], 'sumSeries(hosts.worker*.cpu)')
+
+class ConsistentHashRingTest(TestCase):
+    def test_chr_compute_ring_position(self):
+        hosts = [("127.0.0.1", "cache0"),("127.0.0.1", "cache1"),("127.0.0.1", "cache2")]
+        hashring = ConsistentHashRing(hosts)
+        self.assertEqual(hashring.compute_ring_position('hosts.worker1.cpu'), 64833)
+        self.assertEqual(hashring.compute_ring_position('hosts.worker2.cpu'), 38509)
+
+    def test_chr_add_node(self):
+        hosts = [("127.0.0.1", "cache0"),("127.0.0.1", "cache1"),("127.0.0.1", "cache2")]
+        hashring = ConsistentHashRing(hosts)
+        self.assertEqual(hashring.nodes, set(hosts))
+        hashring.add_node(("127.0.0.1", "cache3"))
+        hosts.insert(0,("127.0.0.1", "cache3"))
+        self.assertEqual(hashring.nodes, set(hosts))
+        self.assertEqual(hashring.nodes_len, 4)
+
+    def test_chr_add_node_duplicate(self):
+        hosts = [("127.0.0.1", "cache0"),("127.0.0.1", "cache1"),("127.0.0.1", "cache2")]
+        hashring = ConsistentHashRing(hosts)
+        self.assertEqual(hashring.nodes, set(hosts))
+        hashring.add_node(("127.0.0.1", "cache2"))
+        self.assertEqual(hashring.nodes, set(hosts))
+        self.assertEqual(hashring.nodes_len, 3)
+
+    def test_chr_remove_node(self):
+        hosts = [("127.0.0.1", "cache0"),("127.0.0.1", "cache1"),("127.0.0.1", "cache2")]
+        hashring = ConsistentHashRing(hosts)
+        self.assertEqual(hashring.nodes, set(hosts))
+        hashring.remove_node(("127.0.0.1", "cache2"))
+        hosts.pop()
+        self.assertEqual(hashring.nodes, set(hosts))
+        self.assertEqual(hashring.nodes_len, 2)
+
+    def test_chr_remove_node_missing(self):
+        hosts = [("127.0.0.1", "cache0"),("127.0.0.1", "cache1"),("127.0.0.1", "cache2")]
+        hashring = ConsistentHashRing(hosts)
+        self.assertEqual(hashring.nodes, set(hosts))
+        hashring.remove_node(("127.0.0.1", "cache4"))
+        self.assertEqual(hashring.nodes, set(hosts))
+        self.assertEqual(hashring.nodes_len, 3)
+
+    def test_chr_get_node(self):
+        hosts = [("127.0.0.1", "cache0"),("127.0.0.1", "cache1"),("127.0.0.1", "cache2")]
+        hashring = ConsistentHashRing(hosts)
+        node = hashring.get_node('hosts.worker1.cpu')
+        self.assertEqual(node, ('127.0.0.1', 'cache2'))
+
+    def test_chr_get_nodes(self):
+        hosts = [("127.0.0.1", "cache0"),("127.0.0.1", "cache1"),("127.0.0.1", "cache2")]
+        hashring = ConsistentHashRing(hosts)
+        node = hashring.get_nodes('hosts.worker1.cpu')
+        self.assertEqual(node, [('127.0.0.1', 'cache2'), ('127.0.0.1', 'cache0'), ('127.0.0.1', 'cache1')])
