@@ -34,7 +34,7 @@ Graphite was internally developed by `Orbitz`_ where it is used to visualize a v
 
 What is Graphite written in?
 ----------------------------
-Python. The Graphite webapp is built on the `Django`_ web framework and uses the ExtJS javascript GUI toolkit. The graph rendering is done using the Cairo graphics library. The backend and database are written in pure Python.
+Python2. The Graphite webapp is built on the `Django`_ web framework and uses the ExtJS javascript GUI toolkit. The graph rendering is done using the Cairo graphics library. The backend and database are written in pure Python.
 
 
 Who writes and maintains Graphite?
