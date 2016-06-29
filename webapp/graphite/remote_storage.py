@@ -1,7 +1,7 @@
 import time
 import httplib
 from urllib import urlencode
-from threading import Lock, Event
+from threading import Lock
 from django.conf import settings
 from django.core.cache import cache
 from graphite.node import LeafNode, BranchNode
@@ -118,12 +118,64 @@ class FindRequest(object):
       yield node
 
 
+class ReadResult(object):
+  __slots__ = ('lock', 'store', 'has_done_response_read', 'result', 'done_cb', 'connection', 'urlpath')
+
+  def __init__(self, store, urlpath, done_cb):
+    self.lock = Lock()
+    self.store = store
+    self.has_done_response_read = False
+    self.result = None
+    self.done_cb = done_cb
+    self.urlpath = urlpath
+    self._connect(urlpath)
+
+  def _connect(self, urlpath):
+    url = "http://%s%s" % (self.store.host, urlpath)
+    try:
+      log.info("ReadResult :: requesting %s" % url)
+      connector_class = connector_class_selector(settings.INTRACLUSTER_HTTPS)
+      self.connection = connector_class(self.store.host)
+      self.connection.timeout = settings.REMOTE_FETCH_TIMEOUT
+      self.connection.request('GET', urlpath)
+    except:
+      self.store.fail()
+      log.exception("Error requesting %s" % url)
+      raise
+
+  def get(self):
+    """
+    First thread to call `get` will read a response from alrady established connections
+    Subsequent calls will get memoized response
+    """
+    with self.lock:
+      if not self.has_done_response_read:  # we are first one to call for result
+        return self.read_response()
+      else:  # result was already read, return it
+        if self.result is None:
+          raise Exception("Passive remote fetch failed to find cached results")
+        return self.result
+
+  def read_response(self): # called under self.lock
+    try:
+      self.has_done_response_read = True
+      response = self.connection.getresponse() # safe if self.connection.timeout works as advertised
+      if response.status != 200:
+        raise Exception("Error response %d %s from http://%s%s" % (response.status, response.reason, self.store.host, self.urlpath))
+      pickled_response = response.read()
+      self.result = unpickle.loads(pickled_response)
+      return self.result
+    except:
+      self.store.fail()
+      log.exception("Error requesting http://%s%s" % (self.store.host, self.urlpath))
+      raise
+    finally:
+      self.done_cb()
+
 class RemoteReader(object):
   __slots__ = ('store', 'metric_path', 'intervals', 'query', 'connection')
-  cache_lock = Lock()
-  request_cache = {}
-  request_locks = {}
-  request_times = {}
+  inflight_requests = {}
+  inflight_lock = Lock()
 
   def __init__(self, store, node_info, bulk_query=None):
     self.store = store
@@ -151,92 +203,22 @@ class RemoteReader(object):
     urlpath = '/render/?' + query_string
     url = "http://%s%s" % (self.store.host, urlpath)
 
-    # Quick cache check up front
-    self.clean_cache()
-    cached_results = self.request_cache.get(url)
-    if cached_results:
-      for series in cached_results:
-        if series['name'] == self.metric_path:
-          time_info = (series['start'], series['end'], series['step'])
-          return (time_info, series['values'])
-
-    # Synchronize with other RemoteReaders using the same bulk query.
-    # Despite our use of thread synchronization primitives, the common
-    # case is for synchronizing asynchronous fetch operations within
-    # a single thread.
-    (request_lock, wait_lock, completion_event) = self.get_request_locks(url)
-
-    if request_lock.acquire(False): # we only send the request the first time we're called
-      try:
-        log.info("RemoteReader.request_data :: requesting %s" % url)
-        connector_class = connector_class_selector(settings.INTRACLUSTER_HTTPS)
-        self.connection = connector_class(self.store.host)
-        self.connection.timeout = settings.REMOTE_FETCH_TIMEOUT
-        self.connection.request('GET', urlpath)
-      except:
-        completion_event.set()
-        self.store.fail()
-        log.exception("Error requesting %s" % url)
-        raise
-
-    def wait_for_results():
-      if wait_lock.acquire(False): # the FetchInProgress that gets waited on waits for the actual completion
-        try:
-          response = self.connection.getresponse()
-          if response.status != 200:
-            raise Exception("Error response %d %s from %s" % (response.status, response.reason, url))
-
-          pickled_response = response.read()
-          results = unpickle.loads(pickled_response)
-          self.cache_lock.acquire()
-          self.request_cache[url] = results
-          self.cache_lock.release()
-          completion_event.set()
-          return results
-        except:
-          completion_event.set()
-          self.store.fail()
-          log.exception("Error requesting %s" % url)
-          raise
-
-      else: # otherwise we just wait on the completion_event
-        completion_event.wait(settings.REMOTE_FETCH_TIMEOUT)
-        cached_results = self.request_cache.get(url)
-        if cached_results is None:
-          raise Exception("Passive remote fetch failed to find cached results")
-        else:
-          return cached_results
+    fetch_result = self.get_inflight_requests(url, urlpath)
 
     def extract_my_results():
-      for series in wait_for_results():
+      for series in fetch_result.get():
         if series['name'] == self.metric_path:
           time_info = (series['start'], series['end'], series['step'])
           return (time_info, series['values'])
 
     return FetchInProgress(extract_my_results)
 
-  def clean_cache(self):
-    self.cache_lock.acquire()
-    try:
-      if len(self.request_locks) >= settings.REMOTE_READER_CACHE_SIZE_LIMIT:
-        log.info("RemoteReader.request_data :: clearing old from request_cache and request_locks")
-        now = time.time()
-        for url, timestamp in self.request_times.items():
-          age = now - timestamp
-          if age >= (2 * settings.REMOTE_FETCH_TIMEOUT):
-            del self.request_locks[url]
-            del self.request_times[url]
-            if url in self.request_cache:
-              del self.request_cache[url]
-    finally:
-      self.cache_lock.release()
+  def get_inflight_requests(self, url, urlpath):
+    with self.inflight_lock:
+      if url not in self.inflight_requests:
+        self.inflight_requests[url] = ReadResult(self.store, urlpath, lambda: self.done_inflight_request(url))
+      return self.inflight_requests[url]
 
-  def get_request_locks(self, url):
-    self.cache_lock.acquire()
-    try:
-      if url not in self.request_locks:
-        self.request_locks[url] = (Lock(), Lock(), Event())
-        self.request_times[url] = time.time()
-      return self.request_locks[url]
-    finally:
-      self.cache_lock.release()
+  def done_inflight_request(self, url):
+    with self.inflight_lock:
+      del self.inflight_requests[url]
