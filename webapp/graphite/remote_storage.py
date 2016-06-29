@@ -156,7 +156,8 @@ class RemoteReader(object):
 
     # Quick cache check up front
     self.clean_cache()
-    cached_results = self.request_cache.get(url)
+    with self.cache_lock:
+      cached_results = self.request_cache.get(url)
     if cached_results:
       for series in cached_results:
         if series['name'] == self.metric_path:
@@ -206,7 +207,8 @@ class RemoteReader(object):
 
       else: # otherwise we just wait on the completion_event
         completion_event.wait(settings.REMOTE_FETCH_TIMEOUT)
-        cached_results = self.request_cache.get(url)
+        with self.cache_lock:
+          cached_results = self.request_cache.get(url)
         if cached_results is None:
           raise Exception("Passive remote fetch failed to find cached results")
         else:
