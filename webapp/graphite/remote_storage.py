@@ -205,14 +205,15 @@ class RemoteReader(object):
         finally:
           self.cleanup_inflight_requests(url)
 
-      else: # otherwise we just wait on the completion_event
-        completion_event.wait(settings.REMOTE_FETCH_TIMEOUT)
+      elif completion_event.wait(settings.REMOTE_FETCH_TIMEOUT): # otherwise we just wait on the completion_event
         with self.cache_lock:
           cached_results = self.request_cache.get(url)
         if cached_results is None:
-          raise Exception("Passive remote fetch failed to find cached results")
+          raise Exception("Passive remote fetch returned None (bug?)")
         else:
           return cached_results
+      else:  # passive wait failed (timed out)
+        raise Exception("Passive remote fetch failed to find cached results")
 
     def extract_my_results():
       for series in wait_for_results():
