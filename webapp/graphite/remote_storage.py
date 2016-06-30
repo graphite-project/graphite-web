@@ -213,7 +213,7 @@ class RemoteReader(object):
         else:
           return cached_results
       else:  # passive wait failed (timed out)
-        raise Exception("Passive remote fetch failed to find cached results")
+        raise Exception("Passive remote fetch timed out waiting for request initiator to fetch results")
 
     def extract_my_results():
       for series in wait_for_results():
