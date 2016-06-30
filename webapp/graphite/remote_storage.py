@@ -122,8 +122,11 @@ class RemoteReader(object):
   __slots__ = ('store', 'metric_path', 'intervals', 'query', 'connection')
   cache_lock = Lock()
   request_cache = {}
-  request_locks = {}
   request_times = {}
+
+
+  inflight_requests = {}
+  inflight_lock = Lock()
 
   def __init__(self, store, node_info, bulk_query=None):
     self.store = store
@@ -153,7 +156,8 @@ class RemoteReader(object):
 
     # Quick cache check up front
     self.clean_cache()
-    cached_results = self.request_cache.get(url)
+    with self.cache_lock:
+      cached_results = self.request_cache.get(url)
     if cached_results:
       for series in cached_results:
         if series['name'] == self.metric_path:
@@ -164,9 +168,9 @@ class RemoteReader(object):
     # Despite our use of thread synchronization primitives, the common
     # case is for synchronizing asynchronous fetch operations within
     # a single thread.
-    (request_lock, wait_lock, completion_event) = self.get_request_locks(url)
+    (request_initiator, completion_event) = self.get_inflight_requests(url)
 
-    if request_lock.acquire(False): # we only send the request the first time we're called
+    if self is request_initiator: # we only send the request the first time we're called
       try:
         log.info("RemoteReader.request_data :: requesting %s" % url)
         connector_class = connector_class_selector(settings.INTRACLUSTER_HTTPS)
@@ -176,11 +180,12 @@ class RemoteReader(object):
       except:
         completion_event.set()
         self.store.fail()
+        self.cleanup_inflight_requests(url)
         log.exception("Error requesting %s" % url)
         raise
 
     def wait_for_results():
-      if wait_lock.acquire(False): # the FetchInProgress that gets waited on waits for the actual completion
+      if self is request_initiator:
         try:
           response = self.connection.getresponse()
           if response.status != 200:
@@ -188,9 +193,8 @@ class RemoteReader(object):
 
           pickled_response = response.read()
           results = unpickle.loads(pickled_response)
-          self.cache_lock.acquire()
-          self.request_cache[url] = results
-          self.cache_lock.release()
+          with self.cache_lock:
+            self.request_cache[url] = results
           completion_event.set()
           return results
         except:
@@ -198,14 +202,18 @@ class RemoteReader(object):
           self.store.fail()
           log.exception("Error requesting %s" % url)
           raise
+        finally:
+          self.cleanup_inflight_requests(url)
 
-      else: # otherwise we just wait on the completion_event
-        completion_event.wait(settings.REMOTE_FETCH_TIMEOUT)
-        cached_results = self.request_cache.get(url)
+      elif completion_event.wait(settings.REMOTE_FETCH_TIMEOUT): # otherwise we just wait on the completion_event
+        with self.cache_lock:
+          cached_results = self.request_cache.get(url)
         if cached_results is None:
-          raise Exception("Passive remote fetch failed to find cached results")
+          raise Exception("Passive remote fetch returned None (bug?)")
         else:
           return cached_results
+      else:  # passive wait failed (timed out)
+        raise Exception("Passive remote fetch timed out waiting for request initiator to fetch results")
 
     def extract_my_results():
       for series in wait_for_results():
@@ -215,28 +223,28 @@ class RemoteReader(object):
 
     return FetchInProgress(extract_my_results)
 
+
   def clean_cache(self):
-    self.cache_lock.acquire()
-    try:
-      if len(self.request_locks) >= settings.REMOTE_READER_CACHE_SIZE_LIMIT:
-        log.info("RemoteReader.request_data :: clearing old from request_cache and request_locks")
+    with self.inflight_lock:
+      if len(self.request_times) >= settings.REMOTE_READER_CACHE_SIZE_LIMIT:
+        log.info("RemoteReader.request_data :: clearing old from request_cache")
         now = time.time()
         for url, timestamp in self.request_times.items():
           age = now - timestamp
           if age >= (2 * settings.REMOTE_FETCH_TIMEOUT):
-            del self.request_locks[url]
             del self.request_times[url]
-            if url in self.request_cache:
-              del self.request_cache[url]
-    finally:
-      self.cache_lock.release()
+            with self.cache_lock:
+              if url in self.request_cache:
+                del self.request_cache[url]
 
-  def get_request_locks(self, url):
-    self.cache_lock.acquire()
-    try:
-      if url not in self.request_locks:
-        self.request_locks[url] = (Lock(), Lock(), Event())
+
+  def get_inflight_requests(self, url):
+    with self.inflight_lock:
+      if url not in self.inflight_requests:
+        self.inflight_requests[url] = (self, Event())
         self.request_times[url] = time.time()
-      return self.request_locks[url]
-    finally:
-      self.cache_lock.release()
+      return self.inflight_requests[url]
+
+  def cleanup_inflight_requests(self, url):
+    with self.inflight_lock:
+      del self.inflight_requests[url]
