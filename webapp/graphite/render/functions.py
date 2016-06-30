@@ -531,7 +531,7 @@ def asPercent(requestContext, seriesList, total=None):
 
   if total is None:
     totalValues = [ safeSum(row) for row in izip(*seriesList) ]
-    totalText = None # series.pathExpression
+    totalText = "sumSeries(%s)" % formatPathExpressions(seriesList)
   elif type(total) is list:
     if len(total) != 1 and len(total) != len(seriesList):
       raise ValueError("asPercent second argument must be missing, a single digit, reference exactly 1 series or reference the same number of series as the first argument")
