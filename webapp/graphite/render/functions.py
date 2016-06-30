@@ -507,7 +507,7 @@ def changed(requestContext, seriesList):
         series[i] = 0
   return seriesList
 
-def asPercent(requestContext, seriesList, seriesList2orNumber=None):
+def asPercent(requestContext, seriesList, total=None):
   """
 
   Calculates a percentage of the total of a wildcard series. If `total` is specified,
@@ -529,24 +529,24 @@ def asPercent(requestContext, seriesList, seriesList2orNumber=None):
 
   normalize([seriesList])
 
-  if seriesList2orNumber is None:
+  if total is None:
     totalValues = [ safeSum(row) for row in izip(*seriesList) ]
     totalText = None # series.pathExpression
-  elif type(seriesList2orNumber) is list:
-    if len(seriesList2orNumber) != 1 and len(seriesList2orNumber) != len(seriesList):
+  elif type(total) is list:
+    if len(total) != 1 and len(total) != len(seriesList):
       raise ValueError("asPercent second argument must be missing, a single digit, reference exactly 1 series or reference the same number of series as the first argument")
 
-    if len(seriesList2orNumber) == 1:
-      normalize([seriesList, seriesList2orNumber])
-      totalValues = seriesList2orNumber[0]
+    if len(total) == 1:
+      normalize([seriesList, total])
+      totalValues = total[0]
       totalText = totalValues.name
   else:
-    totalValues = [seriesList2orNumber] * len(seriesList[0])
-    totalText = str(seriesList2orNumber)
+    totalValues = [total] * len(seriesList[0])
+    totalText = str(total)
 
   resultList = []
-  if type(seriesList2orNumber) is list and len(seriesList2orNumber) == len(seriesList):
-    for series1, series2 in matchSeries(seriesList, seriesList2orNumber):
+  if type(total) is list and len(total) == len(seriesList):
+    for series1, series2 in matchSeries(seriesList, total):
       name = "asPercent(%s,%s)" % (series1.name,series2.name)
       (seriesList,start,end,step) = normalize([(series1, series2)])
       resultValues = [ safeMul(safeDiv(v1, v2), 100.0) for v1,v2 in izip(series1,series2) ]
