@@ -690,11 +690,11 @@ class FunctionsTest(TestCase):
             series.pathExpression = series.name
 
         expectedResult = [
-            TimeSeries('asPercent(collectd.test-db1.load.value, collectd.test-db1.load.value)',0,1,1,[25.0, 20.0, 50.0, 100.0/3.0, 100.0, 20.0, 100.0/3.0, 25.0, 25.0, 20.0, 25.0, 25.0, 25.0, 25.0, 100.0/3.0, 25.0, 100.0/3.0, 25.0, 50.0, 100.0/3.0]),
-            TimeSeries('asPercent(collectd.test-db2.load.value, collectd.test-db2.load.value)',0,1,1,[None, 20.0, None, 100.0/3.0, None, 20.0, None, 25.0, None, 20.0, None, 25.0, None, 25.0, None, 25.0, None, 25.0, None, 100.0/3.0]),
-            TimeSeries('asPercent(collectd.test-db3.load.value, collectd.test-db3.load.value)',0,1,1,[25.0, 20.0, None, None, None, 20.0, 100.0/3.0, 25.0, 25.0, 20.0, 25.0, 25.0, 25.0, 25.0, 100.0/3.0, 25.0, 100.0/3.0, None, None, None]),
-            TimeSeries('asPercent(collectd.test-db4.load.value, collectd.test-db4.load.value)',0,1,1,[25.0, 20.0, 50.0, 100.0/3.0, None, 20.0, None, None, 25.0, 20.0, 25.0, None, 25.0, None, None, None, None, 25.0, 50.0, 100.0/3.0]),
-            TimeSeries('asPercent(collectd.test-db5.load.value, collectd.test-db5.load.value)',0,1,1,[25.0, 20.0, None, None, None, 20.0, 100.0/3.0, 25.0, 25.0, 20.0, 25.0, 25.0, 25.0, 25.0, 100.0/3.0, 25.0, 100.0/3.0, 25.0, None, None]),
+            TimeSeries('asPercent(collectd.test-db1.load.value,sumSeries(collectd.test-db1.load.value,collectd.test-db2.load.value,collectd.test-db3.load.value,collectd.test-db4.load.value,collectd.test-db5.load.value))',0,1,1,[25.0, 20.0, 50.0, 100.0/3.0, 100.0, 20.0, 100.0/3.0, 25.0, 25.0, 20.0, 25.0, 25.0, 25.0, 25.0, 100.0/3.0, 25.0, 100.0/3.0, 25.0, 50.0, 100.0/3.0]),
+            TimeSeries('asPercent(collectd.test-db2.load.value,sumSeries(collectd.test-db1.load.value,collectd.test-db2.load.value,collectd.test-db3.load.value,collectd.test-db4.load.value,collectd.test-db5.load.value))',0,1,1,[None, 20.0, None, 100.0/3.0, None, 20.0, None, 25.0, None, 20.0, None, 25.0, None, 25.0, None, 25.0, None, 25.0, None, 100.0/3.0]),
+            TimeSeries('asPercent(collectd.test-db3.load.value,sumSeries(collectd.test-db1.load.value,collectd.test-db2.load.value,collectd.test-db3.load.value,collectd.test-db4.load.value,collectd.test-db5.load.value))',0,1,1,[25.0, 20.0, None, None, None, 20.0, 100.0/3.0, 25.0, 25.0, 20.0, 25.0, 25.0, 25.0, 25.0, 100.0/3.0, 25.0, 100.0/3.0, None, None, None]),
+            TimeSeries('asPercent(collectd.test-db4.load.value,sumSeries(collectd.test-db1.load.value,collectd.test-db2.load.value,collectd.test-db3.load.value,collectd.test-db4.load.value,collectd.test-db5.load.value))',0,1,1,[25.0, 20.0, 50.0, 100.0/3.0, None, 20.0, None, None, 25.0, 20.0, 25.0, None, 25.0, None, None, None, None, 25.0, 50.0, 100.0/3.0]),
+            TimeSeries('asPercent(collectd.test-db5.load.value,sumSeries(collectd.test-db1.load.value,collectd.test-db2.load.value,collectd.test-db3.load.value,collectd.test-db4.load.value,collectd.test-db5.load.value))',0,1,1,[25.0, 20.0, None, None, None, 20.0, 100.0/3.0, 25.0, 25.0, 20.0, 25.0, 25.0, 25.0, 25.0, 100.0/3.0, 25.0, 100.0/3.0, 25.0, None, None]),
         ]
 
         result = functions.asPercent({}, seriesList)
@@ -712,11 +712,11 @@ class FunctionsTest(TestCase):
             TimeSeries('collectd.test-db5.load.value',0,1,1,[1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,18,None,None]),
         ]
         expectedResult = [
-            TimeSeries('asPercent(collectd.test-db1.load.value, 10)',0,1,1,[10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 110.0, 120.0, 130.0, 140.0, 150.0, 160.0, 170.0, 180.0, 190.0, 200.0]),
-            TimeSeries('asPercent(collectd.test-db2.load.value, 10)',0,1,1,[None, 20.0, None, 40.0, None, 60.0, None, 80.0, None, 100.0, None, 120.0, None, 140.0, None, 160.0, None, 180.0, None, 200.0]),
-            TimeSeries('asPercent(collectd.test-db3.load.value, 10)',0,1,1,[10.0, 20.0, None, None, None, 60.0, 70.0, 80.0, 90.0, 100.0, 110.0, 120.0, 130.0, 140.0, 150.0, 160.0, 170.0, None, None, None]),
-            TimeSeries('asPercent(collectd.test-db4.load.value, 10)',0,1,1,[10.0, 20.0, 30.0, 40.0, None, 60.0, None, None, 90.0, 100.0, 110.0, None, 130.0, None, None, None, None, 180.0, 190.0, 200.0]),
-            TimeSeries('asPercent(collectd.test-db5.load.value, 10)',0,1,1,[10.0, 20.0, None, None, None, 60.0, 70.0, 80.0, 90.0, 100.0, 110.0, 120.0, 130.0, 140.0, 150.0, 160.0, 170.0, 180.0, None, None])
+            TimeSeries('asPercent(collectd.test-db1.load.value,10)',0,1,1,[10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 110.0, 120.0, 130.0, 140.0, 150.0, 160.0, 170.0, 180.0, 190.0, 200.0]),
+            TimeSeries('asPercent(collectd.test-db2.load.value,10)',0,1,1,[None, 20.0, None, 40.0, None, 60.0, None, 80.0, None, 100.0, None, 120.0, None, 140.0, None, 160.0, None, 180.0, None, 200.0]),
+            TimeSeries('asPercent(collectd.test-db3.load.value,10)',0,1,1,[10.0, 20.0, None, None, None, 60.0, 70.0, 80.0, 90.0, 100.0, 110.0, 120.0, 130.0, 140.0, 150.0, 160.0, 170.0, None, None, None]),
+            TimeSeries('asPercent(collectd.test-db4.load.value,10)',0,1,1,[10.0, 20.0, 30.0, 40.0, None, 60.0, None, None, 90.0, 100.0, 110.0, None, 130.0, None, None, None, None, 180.0, 190.0, 200.0]),
+            TimeSeries('asPercent(collectd.test-db5.load.value,10)',0,1,1,[10.0, 20.0, None, None, None, 60.0, 70.0, 80.0, 90.0, 100.0, 110.0, 120.0, 130.0, 140.0, 150.0, 160.0, 170.0, 180.0, None, None])
         ]
 
         result = functions.asPercent({}, seriesList, 10)
@@ -737,11 +737,11 @@ class FunctionsTest(TestCase):
             TimeSeries('collectd.test-db1.load.value',0,1,1,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]),
         ]
         expectedResult = [
-            TimeSeries('asPercent(collectd.test-db1.load.value, collectd.test-db1.load.value)',0,1,1,[100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0]),
-            TimeSeries('asPercent(collectd.test-db2.load.value, collectd.test-db1.load.value)',0,1,1,[None, 100.0, None, 100.0, None, 100.0, None, 100.0, None, 100.0, None, 100.0, None, 100.0, None, 100.0, None, 100.0, None, 100.0]),
-            TimeSeries('asPercent(collectd.test-db3.load.value, collectd.test-db1.load.value)',0,1,1,[100.0, 100.0, None, None, None, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, None, None, None]),
-            TimeSeries('asPercent(collectd.test-db4.load.value, collectd.test-db1.load.value)',0,1,1,[100.0, 100.0, 100.0, 100.0, None, 100.0, None, None, 100.0, 100.0, 100.0, None, 100.0, None, None, None, None, 100.0, 100.0, 100.0]),
-            TimeSeries('asPercent(collectd.test-db5.load.value, collectd.test-db1.load.value)',0,1,1,[100.0, 100.0, None, None, None, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, None, None])
+            TimeSeries('asPercent(collectd.test-db1.load.value,collectd.test-db1.load.value)',0,1,1,[100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0]),
+            TimeSeries('asPercent(collectd.test-db2.load.value,collectd.test-db1.load.value)',0,1,1,[None, 100.0, None, 100.0, None, 100.0, None, 100.0, None, 100.0, None, 100.0, None, 100.0, None, 100.0, None, 100.0, None, 100.0]),
+            TimeSeries('asPercent(collectd.test-db3.load.value,collectd.test-db1.load.value)',0,1,1,[100.0, 100.0, None, None, None, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, None, None, None]),
+            TimeSeries('asPercent(collectd.test-db4.load.value,collectd.test-db1.load.value)',0,1,1,[100.0, 100.0, 100.0, 100.0, None, 100.0, None, None, 100.0, 100.0, 100.0, None, 100.0, None, None, None, None, 100.0, 100.0, 100.0]),
+            TimeSeries('asPercent(collectd.test-db5.load.value,collectd.test-db1.load.value)',0,1,1,[100.0, 100.0, None, None, None, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, None, None])
         ]
 
         result = functions.asPercent({}, seriesList, seriesList2)
