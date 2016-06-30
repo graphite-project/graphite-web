@@ -894,6 +894,10 @@ class FunctionsTest(TestCase):
             )
             self.assertEqual(series.color, color)
 
+    def test_constantLine(self):
+        requestContext = {'startTime': datetime(2014,3,12,2,0,0,2,pytz.timezone(settings.TIME_ZONE)), 'endTime':datetime(2014,3,12,3,0,0,2,pytz.timezone(settings.TIME_ZONE))}
+        results = functions.constantLine(requestContext, [1])
+
     def test_scale(self):
         seriesList = self._generate_series_list()
         multiplier = 2
