@@ -557,7 +557,7 @@ def asPercent(requestContext, seriesList, seriesList2orNumber=None):
     for series in seriesList:
       resultValues = [ safeMul(safeDiv(val, totalVal), 100.0) for val,totalVal in izip(series,totalValues) ]
 
-      name = "asPercent(%s, %s)" % (series.name, totalText or series.pathExpression)
+      name = "asPercent(%s,%s)" % (series.name, totalText or series.pathExpression)
       resultSeries = TimeSeries(name,series.start,series.end,series.step,resultValues)
       resultSeries.pathExpression = name
       resultList.append(resultSeries)
