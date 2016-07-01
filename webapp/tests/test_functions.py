@@ -498,6 +498,60 @@ class FunctionsTest(TestCase):
         for index, test in enumerate(expectedList):
             self.assertEqual(expectedList[index].name, result[index].name)
 
+    def test_stddevSeries(self):
+        seriesList = self._generate_series_list()
+        data = [0.0] * 101
+        expected_name = "stddevSeries(collectd.test-db1.load.value,collectd.test-db2.load.value)"
+        expectedList = [TimeSeries(expected_name, 0, len(data), 1, data)]
+        result = functions.stddevSeries({}, [seriesList[0], seriesList[1]])
+        self.assertListEqual(result, expectedList)
+        for index, test in enumerate(expectedList):
+            self.assertEqual(expectedList[index].name, result[index].name)
+
+    def test_minSeries(self):
+        seriesList = self._generate_series_list()
+        data = range(0,101)
+        expected_name = "minSeries(collectd.test-db1.load.value,collectd.test-db2.load.value)"
+        expectedList = [TimeSeries(expected_name, 0, len(data), 1, data)]
+        result = functions.minSeries({}, [seriesList[0], seriesList[1]])
+        self.assertListEqual(result, expectedList)
+        for index, test in enumerate(expectedList):
+            self.assertEqual(expectedList[index].name, result[index].name)
+
+    def test_maxSeries(self):
+        seriesList = self._generate_series_list()
+        data = range(0,101)
+        expected_name = "maxSeries(collectd.test-db1.load.value,collectd.test-db2.load.value)"
+        expectedList = [TimeSeries(expected_name, 0, len(data), 1, data)]
+        result = functions.maxSeries({}, [seriesList[0], seriesList[1]])
+        self.assertListEqual(result, expectedList)
+        for index, test in enumerate(expectedList):
+            self.assertEqual(expectedList[index].name, result[index].name)
+
+    def test_rangeOfSeries(self):
+        seriesList = self._generate_series_list()
+        data = [0.0] * 101
+        expected_name = "rangeOfSeries(collectd.test-db1.load.value,collectd.test-db2.load.value)"
+        expectedList = [TimeSeries(expected_name, 0, len(data), 1, data)]
+        result = functions.rangeOfSeries({}, [seriesList[0], seriesList[1]])
+        self.assertListEqual(result, expectedList)
+        for index, test in enumerate(expectedList):
+            self.assertEqual(expectedList[index].name, result[index].name)
+
+    def test_percentileOfSeries_0th_percentile(self):
+        with self.assertRaisesRegexp(ValueError, 'The requested percent is required to be greater than 0'):
+            functions.percentileOfSeries({}, [], 0)
+
+    def test_percentileOfSeries(self):
+        seriesList = self._generate_series_list()
+        data = range(0,101)
+        expected_name = "percentileOfSeries(collectd.test-db1.load.value,90)"
+        expectedList = [TimeSeries(expected_name, 0, len(data), 1, data)]
+        result = functions.percentileOfSeries({}, [seriesList[0], seriesList[1]], 90)
+        self.assertListEqual(result, expectedList)
+        for index, test in enumerate(expectedList):
+            self.assertEqual(expectedList[index].name, result[index].name)
+
     def test_highest_max(self):
         config = [20, 50, 30, 40]
         seriesList = [range(max_val) for max_val in config]
@@ -520,6 +574,46 @@ class FunctionsTest(TestCase):
         # Test the function works properly with an empty seriesList provided.
         self.assertEqual([], functions.highestMax({}, [], 1))
 
+    def testGetPercentile_empty_points(self):
+        self.assertEqual(functions._getPercentile([], 30), None)
+
+    def testGetPercentile_percentile_0(self):
+        seriesList = [
+            ([None, None, 15, 20, 35, 40, 50], 15),
+            (range(100), 0),
+            (range(200), 0),
+            (range(300), 0),
+            (range(1, 101), 1),
+            (range(1, 201), 1),
+            (range(1, 301), 1),
+            (range(0, 102), 0),
+            (range(1, 203), 1),
+            (range(1, 303), 1),
+        ]
+        for index, conf in enumerate(seriesList):
+            series, expected = conf
+            result = functions._getPercentile(series, 0, True)
+            self.assertEqual(expected, result, 'For series index <%s> the 0th percentile ordinal is not %d, but %d ' % (index, expected, result))
+
+
+    def testGetPercentile_interpolated(self):
+        seriesList = [
+            ([None, None, 15, 20, 35, 40, 50], 19.0),
+            (range(100), 29.3),
+            (range(200), 59.3),
+            (range(300), 89.3),
+            (range(1, 101), 30.3),
+            (range(1, 201), 60.3),
+            (range(1, 301), 90.3),
+            (range(0, 102), 29.9),
+            (range(1, 203), 60.9),
+            (range(1, 303), 90.9),
+        ]
+        for index, conf in enumerate(seriesList):
+            series, expected = conf
+            result = functions._getPercentile(series, 30, True)
+            self.assertAlmostEqual(expected, result, 4, 'For series index <%s> the 30th percentile ordinal is not %g, but %g' % (index, expected, result))
+
     def testGetPercentile(self):
         seriesList = [
             ([None, None, 15, 20, 35, 40, 50], 20),
@@ -537,6 +631,219 @@ class FunctionsTest(TestCase):
             series, expected = conf
             result = functions._getPercentile(series, 30)
             self.assertEqual(expected, result, 'For series index <%s> the 30th percentile ordinal is not %d, but %d ' % (index, expected, result))
+
+    def test_keepLastValue(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,1,1,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]),
+            TimeSeries('collectd.test-db2.load.value',0,1,1,[None,2,None,4,None,6,None,8,None,10,None,12,None,14,None,16,None,18,None,20]),
+            TimeSeries('collectd.test-db3.load.value',0,1,1,[1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,None,None,None]),
+            TimeSeries('collectd.test-db4.load.value',0,1,1,[1,2,3,4,None,6,None,None,9,10,11,None,13,None,None,None,None,18,19,20]),
+            TimeSeries('collectd.test-db5.load.value',0,1,1,[1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,18,None,None]),
+        ]
+        expectedResult = [
+            TimeSeries('collectd.test-db1.load.value',0,1,1,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]),
+            TimeSeries('collectd.test-db2.load.value',0,1,1,[None,2,2,4,4,6,6,8,8,10,10,12,12,14,14,16,16,18,18,20]),
+            TimeSeries('collectd.test-db3.load.value',0,1,1,[1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,None,None,None]),
+            TimeSeries('collectd.test-db4.load.value',0,1,1,[1,2,3,4,4,6,6,6,9,10,11,11,13,None,None,None,None,18,19,20]),
+            TimeSeries('collectd.test-db5.load.value',0,1,1,[1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,18,18,18]),
+        ]
+        results = functions.keepLastValue({}, seriesList, 2)
+        for i, series in enumerate(results):
+            self.assertEqual(results[i], expectedResult[i])
+
+    def test_changed(self):
+        config = [
+            [[1,2,3,4,4,5,5,5,6,7], [0,1,1,1,0,1,0,0,1,1]],
+            [[None,None,None,None,0,0,0,None,None,1], [0,0,0,0,0,0,0,0,0,1]]
+        ]
+        for i, c in enumerate(config):
+            name = "collectd.test-db{0}.load.value".format(i + 1)
+            series = [TimeSeries(name,0,1,1,c[0])]
+            expected = [TimeSeries("changed(%s)" % name,0,1,1,c[1])]
+            result = functions.changed({}, series)
+            self.assertEqual(result, expected)
+
+    def test_asPercent_error(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,1,1,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]),
+            TimeSeries('collectd.test-db2.load.value',0,1,1,[None,2,None,4,None,6,None,8,None,10,None,12,None,14,None,16,None,18,None,20]),
+            TimeSeries('collectd.test-db3.load.value',0,1,1,[1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,None,None,None]),
+            TimeSeries('collectd.test-db4.load.value',0,1,1,[1,2,3,4,None,6,None,None,9,10,11,None,13,None,None,None,None,18,19,20]),
+            TimeSeries('collectd.test-db5.load.value',0,1,1,[1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,18,None,None]),
+        ]
+        seriesList2 = [
+            TimeSeries('collectd.test-db1.load.value',0,1,1,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]),
+            TimeSeries('collectd.test-db1.load.value',0,1,1,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]),
+        ]
+        with self.assertRaisesRegexp(ValueError, "asPercent second argument must be missing, a single digit, reference exactly 1 series or reference the same number of series as the first argument"):
+            functions.asPercent({}, seriesList, seriesList2)
+
+    def test_asPercent_no_seriesList2(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,1,1,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]),
+            TimeSeries('collectd.test-db2.load.value',0,1,1,[None,2,None,4,None,6,None,8,None,10,None,12,None,14,None,16,None,18,None,20]),
+            TimeSeries('collectd.test-db3.load.value',0,1,1,[1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,None,None,None]),
+            TimeSeries('collectd.test-db4.load.value',0,1,1,[1,2,3,4,None,6,None,None,9,10,11,None,13,None,None,None,None,18,19,20]),
+            TimeSeries('collectd.test-db5.load.value',0,1,1,[1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,18,None,None]),
+        ]
+        for series in seriesList:
+            series.pathExpression = series.name
+
+        expectedResult = [
+            TimeSeries('asPercent(collectd.test-db1.load.value, collectd.test-db1.load.value)',0,1,1,[25.0, 20.0, 50.0, 100.0/3.0, 100.0, 20.0, 100.0/3.0, 25.0, 25.0, 20.0, 25.0, 25.0, 25.0, 25.0, 100.0/3.0, 25.0, 100.0/3.0, 25.0, 50.0, 100.0/3.0]),
+            TimeSeries('asPercent(collectd.test-db2.load.value, collectd.test-db2.load.value)',0,1,1,[None, 20.0, None, 100.0/3.0, None, 20.0, None, 25.0, None, 20.0, None, 25.0, None, 25.0, None, 25.0, None, 25.0, None, 100.0/3.0]),
+            TimeSeries('asPercent(collectd.test-db3.load.value, collectd.test-db3.load.value)',0,1,1,[25.0, 20.0, None, None, None, 20.0, 100.0/3.0, 25.0, 25.0, 20.0, 25.0, 25.0, 25.0, 25.0, 100.0/3.0, 25.0, 100.0/3.0, None, None, None]),
+            TimeSeries('asPercent(collectd.test-db4.load.value, collectd.test-db4.load.value)',0,1,1,[25.0, 20.0, 50.0, 100.0/3.0, None, 20.0, None, None, 25.0, 20.0, 25.0, None, 25.0, None, None, None, None, 25.0, 50.0, 100.0/3.0]),
+            TimeSeries('asPercent(collectd.test-db5.load.value, collectd.test-db5.load.value)',0,1,1,[25.0, 20.0, None, None, None, 20.0, 100.0/3.0, 25.0, 25.0, 20.0, 25.0, 25.0, 25.0, 25.0, 100.0/3.0, 25.0, 100.0/3.0, 25.0, None, None]),
+        ]
+
+        result = functions.asPercent({}, seriesList)
+        for i, series in enumerate(result):
+            self.assertEqual(series.name, expectedResult[i].name)
+            for k, value in enumerate(series):
+                self.assertAlmostEqual(value,expectedResult[i][k])
+
+    def test_asPercent_integer(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,1,1,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]),
+            TimeSeries('collectd.test-db2.load.value',0,1,1,[None,2,None,4,None,6,None,8,None,10,None,12,None,14,None,16,None,18,None,20]),
+            TimeSeries('collectd.test-db3.load.value',0,1,1,[1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,None,None,None]),
+            TimeSeries('collectd.test-db4.load.value',0,1,1,[1,2,3,4,None,6,None,None,9,10,11,None,13,None,None,None,None,18,19,20]),
+            TimeSeries('collectd.test-db5.load.value',0,1,1,[1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,18,None,None]),
+        ]
+        expectedResult = [
+            TimeSeries('asPercent(collectd.test-db1.load.value, 10)',0,1,1,[10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 110.0, 120.0, 130.0, 140.0, 150.0, 160.0, 170.0, 180.0, 190.0, 200.0]),
+            TimeSeries('asPercent(collectd.test-db2.load.value, 10)',0,1,1,[None, 20.0, None, 40.0, None, 60.0, None, 80.0, None, 100.0, None, 120.0, None, 140.0, None, 160.0, None, 180.0, None, 200.0]),
+            TimeSeries('asPercent(collectd.test-db3.load.value, 10)',0,1,1,[10.0, 20.0, None, None, None, 60.0, 70.0, 80.0, 90.0, 100.0, 110.0, 120.0, 130.0, 140.0, 150.0, 160.0, 170.0, None, None, None]),
+            TimeSeries('asPercent(collectd.test-db4.load.value, 10)',0,1,1,[10.0, 20.0, 30.0, 40.0, None, 60.0, None, None, 90.0, 100.0, 110.0, None, 130.0, None, None, None, None, 180.0, 190.0, 200.0]),
+            TimeSeries('asPercent(collectd.test-db5.load.value, 10)',0,1,1,[10.0, 20.0, None, None, None, 60.0, 70.0, 80.0, 90.0, 100.0, 110.0, 120.0, 130.0, 140.0, 150.0, 160.0, 170.0, 180.0, None, None])
+        ]
+
+        result = functions.asPercent({}, seriesList, 10)
+        for i, series in enumerate(result):
+            self.assertEqual(series.name, expectedResult[i].name)
+            for k, value in enumerate(series):
+                self.assertAlmostEqual(value,expectedResult[i][k])
+
+    def test_asPercent_seriesList2_single(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,1,1,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]),
+            TimeSeries('collectd.test-db2.load.value',0,1,1,[None,2,None,4,None,6,None,8,None,10,None,12,None,14,None,16,None,18,None,20]),
+            TimeSeries('collectd.test-db3.load.value',0,1,1,[1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,None,None,None]),
+            TimeSeries('collectd.test-db4.load.value',0,1,1,[1,2,3,4,None,6,None,None,9,10,11,None,13,None,None,None,None,18,19,20]),
+            TimeSeries('collectd.test-db5.load.value',0,1,1,[1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,18,None,None]),
+        ]
+        seriesList2 = [
+            TimeSeries('collectd.test-db1.load.value',0,1,1,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]),
+        ]
+        expectedResult = [
+            TimeSeries('asPercent(collectd.test-db1.load.value, collectd.test-db1.load.value)',0,1,1,[100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0]),
+            TimeSeries('asPercent(collectd.test-db2.load.value, collectd.test-db1.load.value)',0,1,1,[None, 100.0, None, 100.0, None, 100.0, None, 100.0, None, 100.0, None, 100.0, None, 100.0, None, 100.0, None, 100.0, None, 100.0]),
+            TimeSeries('asPercent(collectd.test-db3.load.value, collectd.test-db1.load.value)',0,1,1,[100.0, 100.0, None, None, None, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, None, None, None]),
+            TimeSeries('asPercent(collectd.test-db4.load.value, collectd.test-db1.load.value)',0,1,1,[100.0, 100.0, 100.0, 100.0, None, 100.0, None, None, 100.0, 100.0, 100.0, None, 100.0, None, None, None, None, 100.0, 100.0, 100.0]),
+            TimeSeries('asPercent(collectd.test-db5.load.value, collectd.test-db1.load.value)',0,1,1,[100.0, 100.0, None, None, None, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, None, None])
+        ]
+
+        result = functions.asPercent({}, seriesList, seriesList2)
+        for i, series in enumerate(result):
+            self.assertEqual(series.name, expectedResult[i].name)
+            for k, value in enumerate(series):
+                self.assertAlmostEqual(value,expectedResult[i][k])
+
+    def test_asPercent_seriesList2_multi(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,1,1,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]),
+            TimeSeries('collectd.test-db2.load.value',0,1,1,[None,2,None,4,None,6,None,8,None,10,None,12,None,14,None,16,None,18,None,20]),
+            TimeSeries('collectd.test-db3.load.value',0,1,1,[1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,None,None,None]),
+            TimeSeries('collectd.test-db4.load.value',0,1,1,[1,2,3,4,None,6,None,None,9,10,11,None,13,None,None,None,None,18,19,20]),
+            TimeSeries('collectd.test-db5.load.value',0,1,1,[1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,18,None,None]),
+        ]
+
+        seriesList2 = [
+            TimeSeries('collectd.test-db1.load.value',0,1,1,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]),
+            TimeSeries('collectd.test-db2.load.value',0,1,1,[None,2,None,4,None,6,None,8,None,10,None,12,None,14,None,16,None,18,None,20]),
+            TimeSeries('collectd.test-db3.load.value',0,1,1,[1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,None,None,None]),
+            TimeSeries('collectd.test-db4.load.value',0,1,1,[1,2,3,4,None,6,None,None,9,10,11,None,13,None,None,None,None,18,19,20]),
+            TimeSeries('collectd.test-db5.load.value',0,1,1,[1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,18,None,None]),
+        ]
+        expectedResult = [
+            TimeSeries('asPercent(collectd.test-db1.load.value,collectd.test-db1.load.value)',0,1,1,[100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0]),
+            TimeSeries('asPercent(collectd.test-db2.load.value,collectd.test-db2.load.value)',0,1,1,[None, 100.0, None, 100.0, None, 100.0, None, 100.0, None, 100.0, None, 100.0, None, 100.0, None, 100.0, None, 100.0, None, 100.0]),
+            TimeSeries('asPercent(collectd.test-db3.load.value,collectd.test-db3.load.value)',0,1,1,[100.0, 100.0, None, None, None, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, None, None, None]),
+            TimeSeries('asPercent(collectd.test-db4.load.value,collectd.test-db4.load.value)',0,1,1,[100.0, 100.0, 100.0, 100.0, None, 100.0, None, None, 100.0, 100.0, 100.0, None, 100.0, None, None, None, None, 100.0, 100.0, 100.0]),
+            TimeSeries('asPercent(collectd.test-db5.load.value,collectd.test-db5.load.value)',0,1,1,[100.0, 100.0, None, None, None, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, None, None])
+        ]
+
+        result = functions.asPercent({}, seriesList, seriesList2)
+        for i, series in enumerate(result):
+            self.assertEqual(series.name, expectedResult[i].name)
+            for k, value in enumerate(series):
+                self.assertAlmostEqual(value,expectedResult[i][k])
+
+    def test_divideSeries_error(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,1,1,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]),
+            TimeSeries('collectd.test-db2.load.value',0,1,1,[None,2,None,4,None,6,None,8,None,10,None,12,None,14,None,16,None,18,None,20]),
+            TimeSeries('collectd.test-db3.load.value',0,1,1,[1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,None,None,None]),
+            TimeSeries('collectd.test-db4.load.value',0,1,1,[1,2,3,4,None,6,None,None,9,10,11,None,13,None,None,None,None,18,19,20]),
+            TimeSeries('collectd.test-db5.load.value',0,1,1,[1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,18,None,None]),
+        ]
+        seriesList2 = [
+            TimeSeries('collectd.test-db1.load.value',0,1,1,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]),
+            TimeSeries('collectd.test-db1.load.value',0,1,1,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]),
+        ]
+        with self.assertRaisesRegexp(ValueError, "divideSeries second argument must reference exactly 1 series \(got 2\)"):
+            functions.divideSeries({}, seriesList, seriesList2)
+
+
+    def test_divideSeries_seriesList2_single(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,1,1,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]),
+            TimeSeries('collectd.test-db2.load.value',0,1,1,[None,2,None,4,None,6,None,8,None,10,None,12,None,14,None,16,None,18,None,20]),
+            TimeSeries('collectd.test-db3.load.value',0,1,1,[1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,None,None,None]),
+            TimeSeries('collectd.test-db4.load.value',0,1,1,[1,2,3,4,None,6,None,None,9,10,11,None,13,None,None,None,None,18,19,20]),
+            TimeSeries('collectd.test-db5.load.value',0,1,1,[1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,18,None,None]),
+        ]
+        seriesList2 = [
+            TimeSeries('collectd.test-db1.load.value',0,1,1,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]),
+        ]
+        expectedResult = [
+            TimeSeries('divideSeries(collectd.test-db1.load.value,collectd.test-db1.load.value)',0,1,1,[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]),
+            TimeSeries('divideSeries(collectd.test-db2.load.value,collectd.test-db1.load.value)',0,1,1,[None, 1.0, None, 1.0, None, 1.0, None, 1.0, None, 1.0, None, 1.0, None, 1.0, None, 1.0, None, 1.0, None, 1.0]),
+            TimeSeries('divideSeries(collectd.test-db3.load.value,collectd.test-db1.load.value)',0,1,1,[1.0, 1.0, None, None, None, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, None, None, None]),
+            TimeSeries('divideSeries(collectd.test-db4.load.value,collectd.test-db1.load.value)',0,1,1,[1.0, 1.0, 1.0, 1.0, None, 1.0, None, None, 1.0, 1.0, 1.0, None, 1.0, None, None, None, None, 1.0, 1.0, 1.0]),
+            TimeSeries('divideSeries(collectd.test-db5.load.value,collectd.test-db1.load.value)',0,1,1,[1.0, 1.0, None, None, None, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, None, None])
+        ]
+
+        result = functions.divideSeries({}, seriesList, seriesList2)
+        for i, series in enumerate(result):
+            self.assertEqual(series.name, expectedResult[i].name)
+            for k, value in enumerate(series):
+                self.assertAlmostEqual(value,expectedResult[i][k])
+
+    def test_multiplySeries_single(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,1,1,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]),
+        ]
+        self.assertEqual(functions.multiplySeries({}, seriesList), seriesList)
+
+    def test_multiplySeries(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,1,1,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]),
+            TimeSeries('collectd.test-db2.load.value',0,1,1,[None,2,None,4,None,6,None,8,None,10,None,12,None,14,None,16,None,18,None,20]),
+            TimeSeries('collectd.test-db3.load.value',0,1,1,[1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,None,None,None]),
+            TimeSeries('collectd.test-db4.load.value',0,1,1,[1,2,3,4,None,6,None,None,9,10,11,None,13,None,None,None,None,18,19,20]),
+            TimeSeries('collectd.test-db5.load.value',0,1,1,[1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,18,None,None]),
+        ]
+        expectedResult = [
+            TimeSeries('multiplySeries(collectd.test-db1.load.value,collectd.test-db2.load.value,collectd.test-db3.load.value,collectd.test-db4.load.value,collectd.test-db5.load.value)',0,1,1,[None, 32.0, None, None, None, 7776.0, None, None, None, 100000.0, None, None, None, None, None, None, None, None, None, None]),
+        ]
+
+        result = functions.multiplySeries({}, seriesList)
+        for i, series in enumerate(result):
+            self.assertEqual(series.name, expectedResult[i].name)
+            for k, value in enumerate(series):
+                self.assertAlmostEqual(value,expectedResult[i][k])
 
     def test_integral(self):
         seriesList = [TimeSeries('test', 0, 600, 60, [None, 1, 2, 3, 4, 5, None, 6, 7, 8])]
@@ -998,18 +1305,6 @@ class FunctionsTest(TestCase):
                     continue
                 expected_value = math.pow(original_value, -1)
                 self.assertEqual(value, expected_value)
-
-    def test_changed(self):
-        config = [
-            [[1,2,3,4,4,5,5,5,6,7], [0,1,1,1,0,1,0,0,1,1]],
-            [[None,None,None,None,0,0,0,None,None,1], [0,0,0,0,0,0,0,0,0,1]]
-        ]
-        for i, c in enumerate(config):
-            name = "collectd.test-db{0}.load.value".format(i + 1)
-            series = [TimeSeries(name,0,1,1,c[0])]
-            expected = [TimeSeries("changed(%s)" % name,0,1,1,c[1])]
-            result = functions.changed({}, series)
-            self.assertEqual(result, expected)
 
     def test_timeSlice(self):
         seriesList = [

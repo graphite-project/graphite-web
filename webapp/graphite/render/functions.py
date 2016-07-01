@@ -474,7 +474,7 @@ def keepLastValue(requestContext, seriesList, limit = INF):
          consecutiveNones = 0
 
     # If the series ends with some None values, try to backfill a bit to cover it.
-    if 0 < consecutiveNones < limit:
+    if 0 < consecutiveNones <= limit:
       for index in xrange(len(series) - consecutiveNones, len(series)):
         series[index] = series[len(series) - consecutiveNones - 1]
 
