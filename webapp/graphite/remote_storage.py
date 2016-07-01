@@ -81,6 +81,10 @@ class FindRequest:
       response = self.connection.getresponse(buffering=True)
     except TypeError:  # Python 2.6 and older
       response = self.connection.getresponse()
+    except AttributeError:
+      self.store.fail()
+      if not self.suppressErrors:
+        raise
 
     try:
       assert response.status == 200, "received error response %s - %s" % (response.status, response.reason)
