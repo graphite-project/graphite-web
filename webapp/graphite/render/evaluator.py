@@ -52,6 +52,7 @@ def evaluateTokens(requestContext, tokens, replacements=None):
 
     func = SeriesFunctions[tokens.call.funcname]
     args = [evaluateTokens(requestContext, arg, replacements) for arg in tokens.call.args]
+    requestContext['args'] = tokens.call.args
     kwargs = dict([(kwarg.argname, evaluateTokens(requestContext, kwarg.args[0], replacements))
                    for kwarg in tokens.call.kwargs])
     try:
