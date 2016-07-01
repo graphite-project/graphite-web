@@ -223,7 +223,6 @@
 #REMOTE_FETCH_TIMEOUT = 6.0            # Timeout to fetch series data
 #REMOTE_RETRY_DELAY = 60.0             # Time before retrying a failed remote webapp
 #REMOTE_EXCLUDE_LOCAL = False          # Try to detect when a cluster server is localhost and don't forward queries
-#REMOTE_READER_CACHE_SIZE_LIMIT = 1000 # Maximum number of remote URL queries to cache
 #FIND_CACHE_DURATION = 300             # Time to cache remote metric find results
 # If the query doesn't fall entirely within the FIND_TOLERANCE window
 # we disregard the window. This prevents unnecessary remote fetches
