@@ -967,9 +967,17 @@ def movingAverage(requestContext, seriesList, windowSize):
     newSeries = TimeSeries(newName, series.start + previewSeconds, series.end, series.step, [])
     newSeries.pathExpression = newName
 
-    for i in range(windowPoints,len(series)):
-      window = series[i - windowPoints:i]
-      newSeries.append(safeAvg(window))
+    window_sum = safeSum(series[:windowPoints])
+    count = safeLen(series[:windowPoints])
+    newSeries.append(safeDiv(window_sum, count))
+    for n, last in enumerate(series[windowPoints:-1]):
+      if series[n] is not None:
+        window_sum -= series[n]
+        count      -= 1
+      if last is not None:
+        window_sum += last
+        count      += 1
+      newSeries.append(safeDiv(window_sum, count))
 
     result.append(newSeries)
 
