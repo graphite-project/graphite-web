@@ -41,21 +41,21 @@ def show(request):
   return HttpResponse(content_type="text/plain", content=members)
 
 def load_whitelist():
-  fh = open(settings.WHITELIST_FILE, 'rb')
+  fh = open(settings.METRIC_FILTERS_FILE, 'rb')
   whitelist = unpickle.load(fh)
   fh.close()
   return whitelist
 
 def save_whitelist(whitelist):
   serialized = pickle.dumps(whitelist, protocol=-1) #do this instead of dump() to raise potential exceptions before open()
-  tmpfile = '%s-%d' % (settings.WHITELIST_FILE, randint(0, 100000))
+  tmpfile = '%s-%d' % (settings.METRIC_FILTERS_FILE, randint(0, 100000))
   try:
     fh = open(tmpfile, 'wb')
     fh.write(serialized)
     fh.close()
-    if os.path.exists(settings.WHITELIST_FILE):
-      os.unlink(settings.WHITELIST_FILE)
-    os.rename(tmpfile, settings.WHITELIST_FILE)
+    if os.path.exists(settings.METRIC_FILTERS_FILE):
+      os.unlink(settings.METRIC_FILTERS_FILE)
+    os.rename(tmpfile, settings.METRIC_FILTERS_FILE)
   finally:
     if os.path.exists(tmpfile):
       os.unlink(tmpfile)
