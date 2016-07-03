@@ -331,7 +331,7 @@ REMOTE_STORE_FIND_TIMEOUT
 REMOTE_STORE_RETRY_DELAY
   `Default: 60`
 
-  Time in seconds to blacklist a webapp after a timed-out request.
+  Time in seconds to block/filter a webapp after a timed-out request.
 
 REMOTE_FIND_CACHE_DURATION
   `Default: 300`
