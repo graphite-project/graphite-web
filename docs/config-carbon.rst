@@ -41,7 +41,7 @@ A given rule is made up of 3 lines:
 * A regex, specified after "pattern="
 * A retention rate line, specified after "retentions="
 
-The retentions line can specify multiple retentions. Each retention of ``frequency:history`` is separated by a comma.
+The retentions line can specify multiple retentions. Each retention of ``frequency:history`` is separated by a comma. 
 
 Frequencies and histories are specified using the following suffixes:
 
@@ -60,7 +60,7 @@ Here's a simple, single retention example:
  pattern = garbageCollections$
  retentions = 10s:14d
 
-The name ``[garbage_collection]`` is mainly for documentation purposes, and will show up in ``creates.log`` when metrics matching this section are created.
+The name ``[garbage_collection]`` is mainly for documentation purposes, and will show up in ``creates.log`` when metrics matching this section are created. 
 
 The regular expression pattern will match any metric that ends with ``garbageCollections``. For example, ``com.acmeCorp.instance01.jvm.memory.garbageCollections`` would match, but ``com.acmeCorp.instance01.jvm.memory.garbageCollections.full`` would not.
 
@@ -80,7 +80,7 @@ Additionally, this example uses multiple retentions. The general rule is to spec
 
 By using multiple retentions, you can store long histories of metrics while saving on disk space and I/O. Because whisper averages (by default) as it downsamples, one is able to determine totals of metrics by reversing the averaging process later on down the road.
 
-Example: You store the number of sales per minute for 1 year, and the sales per hour for 5 years after that.  You need to know the total sales for January 1st of the year before.  You can query whisper for the raw data, and you'll get 24 datapoints, one for each hour.  They will most likely be floating point numbers.  You can take each datapoint, multiply by 60 (the ratio of high-precision to low-precision datapoints) and still get the total sales per hour.
+Example: You store the number of sales per minute for 1 year, and the sales per hour for 5 years after that.  You need to know the total sales for January 1st of the year before.  You can query whisper for the raw data, and you'll get 24 datapoints, one for each hour.  They will most likely be floating point numbers.  You can take each datapoint, multiply by 60 (the ratio of high-precision to low-precision datapoints) and still get the total sales per hour.  
 
 
 Additionally, whisper supports a legacy retention specification for backwards compatibility reasons - ``seconds-per-datapoint:count-of-datapoints``
@@ -140,7 +140,7 @@ You must define at least one section as the default.
 
 aggregation-rules.conf
 ----------------------
-Aggregation rules allow you to add several metrics together as they come in, reducing the need to sum() many metrics in every URL. Note that unlike some other config files, any time this file is modified it will take effect automatically. This requires the carbon-aggregator service to be running.
+Aggregation rules allow you to add several metrics together as they come in, reducing the need to sum() many metrics in every URL. Note that unlike some other config files, any time this file is modified it will take effect automatically. This requires the carbon-aggregator service to be running. 
 
 The form of each line in this file should be as follows:
 
@@ -231,25 +231,13 @@ For example:
 These rules would strip off a suffix of _sum or _avg from any metric names after
 aggregation.
 
-Metric Filters: allowed and blocked Metrics
--------------------------------------------
-
-The metric filter functionality allows any of the carbon daemons to only accept
-metrics that are explicitly allowed and/or to reject rejected metrics. The
-functionality can be enabled in carbon.conf with the ``USE_METRIC_FILTERS``
-flag. This can be useful when too many metrics are being sent to a Graphite
-instance or when there are metric senders sending useless or invalid metrics.
-
-``GRAPHITE_CONF_DIR`` is searched for ``allowed_metrics.conf`` and
-``blocked_metrics.conf``.  Each file contains one regular expression per line to
-match against metric values.  If the allowed_metrics configuration is missing or
-empty, all metrics will be passed through by default.
-
 whitelist and blacklist
 -----------------------
-The whitelist/blacklist functionality has been renamed to 'allowed' and
-'blocked' so as to use less ambiguous language, and remove possible connotations
-associated with those terms.
+The whitelist functionality allows any of the carbon daemons to only accept metrics that are explicitly
+whitelisted and/or to reject blacklisted metrics. The functionality can be enabled in carbon.conf with
+the ``USE_WHITELIST`` flag. This can be useful when too many metrics are being sent to a Graphite
+instance or when there are metric senders sending useless or invalid metrics.
 
-The capabilities have been renamed as of this point, but he existing ``whitelist.conf``
-and ``blacklist.conf`` will still be functional for the time being.
+``GRAPHITE_CONF_DIR`` is searched for ``whitelist.conf`` and ``blacklist.conf``. Each file contains one regular
+expressions per line to match against metric values. If the whitelist configuration is missing or empty,
+all metrics will be passed through by default.
