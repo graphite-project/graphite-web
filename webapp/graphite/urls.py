@@ -35,7 +35,7 @@ graphite_urls = patterns(
     ('^browser/?', include('graphite.browser.urls')),
     ('^account/', include('graphite.account.urls')),
     ('^dashboard/?', include('graphite.dashboard.urls')),
-    ('^whitelist/?', include('graphite.whitelist.urls')),
+    ('^metric_filters/?', include('graphite.metric_filters.urls')),
     ('^version/', include('graphite.version.urls')),
     ('^events/', include('graphite.events.urls')),
     url('^s/(?P<path>.*)',
