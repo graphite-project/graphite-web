@@ -39,7 +39,7 @@ CONF_DIR = ''
 DASHBOARD_CONF = ''
 GRAPHTEMPLATES_CONF = ''
 STORAGE_DIR = ''
-WHITELIST_FILE = ''
+METRIC_FILTERS_FILE = ''
 INDEX_FILE = ''
 LOG_DIR = ''
 CERES_DIR = ''
@@ -162,8 +162,8 @@ if not GRAPHTEMPLATES_CONF:
 
 if not STORAGE_DIR:
   STORAGE_DIR = os.environ.get('GRAPHITE_STORAGE_DIR', join(GRAPHITE_ROOT, 'storage'))
-if not WHITELIST_FILE:
-  WHITELIST_FILE = join(STORAGE_DIR, 'lists', 'whitelist')
+if not METRIC_FILTERS_FILE:
+  METRIC_FILTERS_FILE = join(STORAGE_DIR, 'lists', 'allowed_metrics')
 if not INDEX_FILE:
   INDEX_FILE = join(STORAGE_DIR, 'index')
 if not LOG_DIR:

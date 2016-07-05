@@ -88,7 +88,7 @@ try:
         'graphite.render',
         'graphite.url_shortener',
         'graphite.version',
-        'graphite.whitelist',
+        'graphite.metric_filters',
       ],
       package_data={'graphite' :
         ['templates/*', 'local_settings.py.example']},
