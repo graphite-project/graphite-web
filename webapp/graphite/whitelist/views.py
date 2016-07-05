@@ -18,6 +18,7 @@ from random import randint
 from django.conf import settings
 
 from graphite.compat import HttpResponse
+from graphite.util import unpickle
 
 
 def add(request):
@@ -40,9 +41,8 @@ def show(request):
   return HttpResponse(content_type="text/plain", content=members)
 
 def load_whitelist():
-  fh = open(settings.WHITELIST_FILE, 'rb')
-  whitelist = pickle.load(fh)
-  fh.close()
+  buffer = open(settings.WHITELIST_FILE, 'rb').read()
+  whitelist = unpickle.loads(buffer)
   return whitelist
 
 def save_whitelist(whitelist):
