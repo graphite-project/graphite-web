@@ -365,9 +365,11 @@ class getUnitStringTest(TestCase):
 
 
 class parseATTimeTest(TestCase):
+    zone = pytz.utc
+    MOCK_DATE = zone.localize(datetime(2015, 1, 1, 11, 00))
 
     @unittest.expectedFailure
     def test_parse_noon_plus_yesterday(self):
         time_ref = parseATTime("noon+yesterday")
-        expected = datetime(MOCK_DATE.year, MOCK_DATE.month, MOCK_DATE.day - 1, 12, 00)
+        expected = datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day - 1, 12, 00)
         self.assertEquals(time_ref, expected)
