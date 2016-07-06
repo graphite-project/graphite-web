@@ -292,7 +292,7 @@ Other
 .. _Cyanite: http://cyanite.io/
 .. _D3.js: http://mbostock.github.com/d3
 .. _Descartes: https://github.com/obfuscurity/descartes
-.. _Diamond: http://opensource.brightcove.com/project/Diamond
+.. _Diamond: https://diamond.readthedocs.io/en/latest/
 .. _Dusk: https://github.com/obfuscurity/dusk
 .. _Esper: http://esper.codehaus.org
 .. _Evenflow: https://github.com/github/evenflow
