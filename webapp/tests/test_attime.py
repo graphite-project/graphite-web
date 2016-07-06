@@ -363,6 +363,57 @@ class getUnitStringTest(TestCase):
         with self.assertRaises(Exception):
             result = getUnitString(1)
 
+class LeapYearMockedDateTime(datetime):
+    def __new__(cls, *args, **kwargs):
+        return datetime.__new__(datetime, *args, **kwargs)
+    @classmethod
+    def now(cls, tzinfo=None):
+        return cls(2016, 2, 29, 00, 0, 0, tzinfo=tzinfo)
+
+@mock.patch('graphite.render.attime.datetime', LeapYearMockedDateTime)
+class parseATTimeTestLeapYear(TestCase):
+    zone = pytz.utc
+
+    def test_parse_last_year(self):
+        time_ref = parseATTime("-1year")
+        expected = self.zone.localize(datetime(2015, 3, 1, 0, 0))
+        self.assertEquals(time_ref, expected)
+
+    def test_parse_last_leap_year(self):
+        time_ref = parseATTime("-4years")
+        expected = self.zone.localize(datetime(2012, 3, 1, 0, 0))
+        self.assertEquals(time_ref, expected)
+
+    def test_parse_last_month(self):
+        time_ref = parseATTime("-1month")
+        expected = self.zone.localize(datetime(2016, 1, 30, 0, 0))
+        self.assertEquals(time_ref, expected)
+
+class LeapYearMockedDateTime2(datetime):
+    def __new__(cls, *args, **kwargs):
+        return datetime.__new__(datetime, *args, **kwargs)
+    @classmethod
+    def now(cls, tzinfo=None):
+        return cls(2013, 2, 28, 00, 0, 0, tzinfo=tzinfo)
+
+@mock.patch('graphite.render.attime.datetime', LeapYearMockedDateTime2)
+class parseATTimeTestLeapYear2(TestCase):
+    zone = pytz.utc
+
+    def test_parse_last_year(self):
+        time_ref = parseATTime("-1year")
+        expected = self.zone.localize(datetime(2012, 2, 29, 0, 0))
+        self.assertEquals(time_ref, expected)
+
+    def test_parse_last_leap_year(self):
+        time_ref = parseATTime("-4years")
+        expected = self.zone.localize(datetime(2009, 3, 1, 0, 0))
+        self.assertEquals(time_ref, expected)
+
+    def test_parse_last_month(self):
+        time_ref = parseATTime("-1month")
+        expected = self.zone.localize(datetime(2013, 1, 29, 0, 0))
+        self.assertEquals(time_ref, expected)
 
 class parseATTimeTest(TestCase):
     zone = pytz.utc
