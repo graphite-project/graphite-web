@@ -21,6 +21,7 @@ Graphite Documentation
    dashboard
    whisper
    storage-backends
+   events
    terminology
    tools
    development
