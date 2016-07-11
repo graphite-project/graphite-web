@@ -3500,19 +3500,14 @@ def events(requestContext, *tags):
   Returns all events tagged as "tag-one" and "tag-two" and the second one
   returns all events.
   """
-  def to_epoch(datetime_object):
-    return int(time.mktime(datetime_object.timetuple()))
-
   step = 1
   name = "events(" + ", ".join(tags) + ")"
   if tags == ("*",):
     tags = None
 
-  # Django returns database timestamps in timezone-ignorant datetime objects
-  # so we use epoch seconds and do the conversion ourselves
-  start_timestamp = to_epoch(requestContext["startTime"])
+  start_timestamp = epoch(requestContext["startTime"])
   start_timestamp = start_timestamp - start_timestamp % step
-  end_timestamp = to_epoch(requestContext["endTime"])
+  end_timestamp = epoch(requestContext["endTime"])
   end_timestamp = end_timestamp - end_timestamp % step
   points = (end_timestamp - start_timestamp)/step
 
@@ -3522,8 +3517,9 @@ def events(requestContext, *tags):
 
   values = [None] * points
   for event in events:
-    event_timestamp = to_epoch(event.when)
+    event_timestamp = epoch(event.when)
     value_offset = (event_timestamp - start_timestamp)/step
+
     if values[value_offset] is None:
       values[value_offset] = 1
     else:
