@@ -845,6 +845,27 @@ class FunctionsTest(TestCase):
             for k, value in enumerate(series):
                 self.assertAlmostEqual(value,expectedResult[i][k])
 
+    def _verify_series_consolidationFunc(self, seriesList, value):
+        """
+        Verify the consolidationFunc is set to the specified value
+        """
+        for series in seriesList:
+            self.assertEqual(series.consolidationFunc, value)
+
+    def test_cumulative(self):
+        seriesList = self._generate_series_list()
+        self._verify_series_consolidationFunc(seriesList, "average")
+        results = functions.cumulative({}, seriesList)
+        self._verify_series_consolidationFunc(results, "sum")
+
+    def test_consolidateBy(self):
+        seriesList = self._generate_series_list()
+        self._verify_series_consolidationFunc(seriesList, "average")
+        avail_funcs = ['sum', 'average', 'min', 'max']
+        for func in avail_funcs:
+            results = functions.consolidateBy({}, seriesList, func)
+            self._verify_series_consolidationFunc(results, func)
+
     def test_integral(self):
         seriesList = [TimeSeries('test', 0, 600, 60, [None, 1, 2, 3, 4, 5, None, 6, 7, 8])]
         expected = [TimeSeries('integral(test)', 0, 600, 60, [None, 1, 3, 6, 10, 15, None, 21, 28, 36])]

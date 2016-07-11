@@ -983,13 +983,16 @@ def movingAverage(requestContext, seriesList, windowSize):
 
   return result
 
-def cumulative(requestContext, seriesList, consolidationFunc='sum'):
+def cumulative(requestContext, seriesList):
   """
-  Takes one metric or a wildcard seriesList, and an optional function.
+  Takes one metric or a wildcard seriesList.
 
-  Valid functions are 'sum', 'average', 'min', and 'max'
-
-  Sets the consolidation function to 'sum' for the given metric seriesList.
+  When a graph is drawn where width of the graph size in pixels is smaller than
+  the number of datapoints to be graphed, Graphite consolidates the values to
+  to prevent line overlap. The cumulative() function changes the consolidation
+  function from the default of 'average' to 'sum'. This is especially useful in
+  sales graphs, where fractional values make no sense and a 'sum' of consolidated
+  values is appropriate.
 
   Alias for :func:`consolidateBy(series, 'sum') <graphite.render.functions.consolidateBy>`
 
@@ -1004,7 +1007,7 @@ def consolidateBy(requestContext, seriesList, consolidationFunc):
   """
   Takes one metric or a wildcard seriesList and a consolidation function name.
 
-  Valid function names are 'sum', 'average', 'min', and 'max'
+  Valid function names are 'sum', 'average', 'min', and 'max'.
 
   When a graph is drawn where width of the graph size in pixels is smaller than
   the number of datapoints to be graphed, Graphite consolidates the values to
