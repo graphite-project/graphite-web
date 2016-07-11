@@ -16,6 +16,7 @@ import math
 import random
 import re
 import time
+import calendar
 
 from datetime import datetime, timedelta
 from itertools import izip, imap
@@ -3501,7 +3502,7 @@ def events(requestContext, *tags):
   returns all events.
   """
   def to_epoch(datetime_object):
-    return int(time.mktime(datetime_object.timetuple()))
+    return int(calendar.timegm(datetime_object.utctimetuple()))
 
   step = 1
   name = "events(" + ", ".join(tags) + ")"
