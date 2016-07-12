@@ -182,7 +182,9 @@
 # Django models such as saved graphs, dashboards, user preferences, etc.
 # Metric data is not stored here.
 #
-# DO NOT FORGET TO RUN 'django-admin.py syncdb' AFTER SETTING UP A NEW DATABASE
+# DO NOT FORGET TO RUN MIGRATIONS AFTER SETTING UP A NEW DATABASE
+# http://graphite.readthedocs.io/en/latest/config-database-setup.html
+#
 #
 # The following built-in database engines are available:
 #  django.db.backends.postgresql_psycopg2
