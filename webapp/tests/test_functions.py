@@ -883,10 +883,7 @@ class FunctionsTest(TestCase):
         ]
 
         result = functions.weightedAverage({}, seriesList, seriesList2, 1)
-        for i, series in enumerate(result):
-            self.assertEqual(series.name, expectedResult[i].name)
-            for k, value in enumerate(series):
-                self.assertAlmostEqual(value,expectedResult[i][k])
+        self.assertEqual(result, expectedResult)
 
     def test_weightedAverage_mismatched_series(self):
         seriesList = [
@@ -912,10 +909,7 @@ class FunctionsTest(TestCase):
         ]
 
         result = functions.weightedAverage({}, seriesList, seriesList2, 1)
-        for i, series in enumerate(result):
-            self.assertEqual(series.name, expectedResult[i].name)
-            for k, value in enumerate(series):
-                self.assertAlmostEqual(value,expectedResult[i][k])
+        self.assertEqual(result, expectedResult)
 
     def test_scaleToSeconds(self):
         seriesList = [
@@ -934,12 +928,7 @@ class FunctionsTest(TestCase):
         ]
 
         result = functions.scaleToSeconds({}, seriesList, 30)
-        self.assertEqual(len(result), len(expectedResult))
-        for i, series in enumerate(result):
-            self.assertEqual(series.name, expectedResult[i].name)
-            self.assertEqual(len(series), len(expectedResult[i]))
-            for k, value in enumerate(series):
-                self.assertAlmostEqual(value,expectedResult[i][k])
+        self.assertEqual(result, expectedResult)
 
     def test_absolute(self):
         seriesList = [
@@ -1009,6 +998,121 @@ class FunctionsTest(TestCase):
         expected = [TimeSeries("integralByInterval(test,'2min')", 0, 600, 60, [0, 1, 2, 5, 4, 9, 0, 6, 7, 15])]
         result = functions.integralByInterval({'startTime' : datetime(1970,1,1)}, seriesList, '2min')
         self.assertEqual(expected, result, 'integralByInterval result incorrect %s %s' %(result, expected))
+
+    def test_stacked(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,10]),
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,2,None,4,None,6,None,8,None,10]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[1,2,None,None,None,6,7,8,9,10]),
+            TimeSeries('collectd.test-db4.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,None]),
+        ]
+        for series in seriesList:
+            series.pathExpression = series.name
+        expectedResult = [
+            TimeSeries('stacked(collectd.test-db1.load.value)',0,600,60,[1,2,3,4,5,6,7,8,9,10]),
+            TimeSeries('stacked(collectd.test-db2.load.value)',0,600,60,[None,4,None,8,None,12,None,16,None,20]),
+            TimeSeries('stacked(collectd.test-db3.load.value)',0,600,60,[2,6,None,None,None,18,14,24,18,30]),
+            TimeSeries('stacked(collectd.test-db4.load.value)',0,600,60,[3,8,6,12,10,24,21,32,27,None]),
+        ]
+        for series in expectedResult:
+            series.options = {'stacked': True}
+
+        request_context = {}
+        result = functions.stacked(request_context, seriesList)
+
+        self.assertEqual(result, expectedResult)
+        self.assertEqual(request_context, {'totalStack': {'__DEFAULT__': [3,8,6,12,10,24,21,32,27,30]}})
+
+    def test_stacked_with_name(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,10]),
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,2,None,4,None,6,None,8,None,10]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[1,2,None,None,None,6,7,8,9,10]),
+            TimeSeries('collectd.test-db4.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,None]),
+        ]
+        for series in seriesList:
+            series.pathExpression = series.name
+        expectedResult = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,10]),
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,4,None,8,None,12,None,16,None,20]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[2,6,None,None,None,18,14,24,18,30]),
+            TimeSeries('collectd.test-db4.load.value',0,600,60,[3,8,6,12,10,24,21,32,27,None]),
+        ]
+        for series in expectedResult:
+            series.options = {'stacked': True}
+
+        request_context = {'totalStack': {'my_fun_stack': [0,0,0,0,0,0,0,0,0,0]}}
+        result = functions.stacked(request_context, seriesList, 'my_fun_stack')
+
+        self.assertEqual(result, expectedResult)
+        self.assertEqual(request_context, {'totalStack': {'my_fun_stack': [3,8,6,12,10,24,21,32,27,30]}})
+
+    def test_areaBetween(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,10]),
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,10]),
+        ]
+        for series in seriesList:
+            series.pathExpression = series.name
+        expectedResult = [
+            TimeSeries('areaBetween(collectd.test-db2.load.value)',0,600,60,[1,2,3,4,5,6,7,8,9,10]),
+            TimeSeries('areaBetween(collectd.test-db2.load.value)',0,600,60,[1,2,3,4,5,6,7,8,9,10]),
+        ]
+        expectedResult[0].options = {'stacked': True, 'invisible': True}
+        expectedResult[1].options = {'stacked': True}
+
+        request_context = {}
+        result = functions.areaBetween(request_context, seriesList)
+
+        self.assertEqual(result, expectedResult)
+
+    def test_cactiStyle(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,10]),
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[1,2,None,None,None,6,7,8,9,10]),
+            TimeSeries('collectd.test-db4.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,None]),
+        ]
+        for series in seriesList:
+            series.pathExpression = series.name
+        expectedResult = [
+            TimeSeries('collectd.test-db1.load.value Current:10.00    Max:10.00    Min:1.00    ',0,600,60,[1,2,3,4,5,6,7,8,9,10]),
+            TimeSeries('collectd.test-db2.load.value Current:nan      Max:nan      Min:nan     ',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('collectd.test-db3.load.value Current:10.00    Max:10.00    Min:1.00    ',0,600,60,[1,2,None,None,None,6,7,8,9,10]),
+            TimeSeries('collectd.test-db4.load.value Current:9.00     Max:9.00     Min:1.00    ',0,600,60,[1,2,3,4,5,6,7,8,9,None]),
+        ]
+        for series in expectedResult:
+            series.options = {}
+
+        request_context = {}
+        result = functions.cactiStyle(request_context, seriesList)
+        self.assertEqual(result, expectedResult)
+
+    def test_cactiStyle_emptyList(self):
+        result = functions.cactiStyle({}, [])
+        self.assertEqual(result, [])
+
+    def test_cactiStyle_binary(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,10]),
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[1,2,None,None,None,6,7,8,9,10]),
+            TimeSeries('collectd.test-db4.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,None]),
+        ]
+        for series in seriesList:
+            series.pathExpression = series.name
+        expectedResult = [
+            TimeSeries('collectd.test-db1.load.value Current:10.00    Max:10.00    Min:1.00    ',0,600,60,[1,2,3,4,5,6,7,8,9,10]),
+            TimeSeries('collectd.test-db2.load.value Current:nan      Max:nan      Min:nan     ',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('collectd.test-db3.load.value Current:10.00    Max:10.00    Min:1.00    ',0,600,60,[1,2,None,None,None,6,7,8,9,10]),
+            TimeSeries('collectd.test-db4.load.value Current:9.00     Max:9.00     Min:1.00    ',0,600,60,[1,2,3,4,5,6,7,8,9,None]),
+        ]
+        for series in expectedResult:
+            series.options = {}
+
+        request_context = {}
+        result = functions.cactiStyle(request_context, seriesList, "binary")
+        self.assertEqual(result, expectedResult)
 
     def test_n_percentile(self):
         seriesList = []
@@ -1279,6 +1383,26 @@ class FunctionsTest(TestCase):
         with self.assertRaises(IndexError):
             verify_node_name(10000)
 
+    def test_aliasByMetric(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,10]),
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[1,2,None,None,None,6,7,8,9,10]),
+            TimeSeries('collectd.test-db4.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,None]),
+        ]
+        for series in seriesList:
+            series.pathExpression = series.name
+        expectedResult = [
+            TimeSeries('value',0,600,60,[1,2,3,4,5,6,7,8,9,10]),
+            TimeSeries('value',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('value',0,600,60,[1,2,None,None,None,6,7,8,9,10]),
+            TimeSeries('value',0,600,60,[1,2,3,4,5,6,7,8,9,None]),
+        ]
+
+        request_context = {}
+        result = functions.aliasByMetric(request_context, seriesList)
+        self.assertEqual(result, expectedResult)
+
     def test_groupByNode(self):
         seriesList, inputList = self._generate_mr_series()
 
@@ -1349,6 +1473,78 @@ class FunctionsTest(TestCase):
                 "The original seriesList shouldn't have a 'color' attribute",
             )
             self.assertEqual(series.color, color)
+
+    def test_substr(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,10]),
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[1,2,None,None,None,6,7,8,9,10]),
+            TimeSeries('collectd.test-db4.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,None]),
+        ]
+        expectedResult = [
+            TimeSeries('test-db1.load',0,600,60,[1,2,3,4,5,6,7,8,9,10]),
+            TimeSeries('test-db2.load',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('test-db3.load',0,600,60,[1,2,None,None,None,6,7,8,9,10]),
+            TimeSeries('test-db4.load',0,600,60,[1,2,3,4,5,6,7,8,9,None]),
+        ]
+
+        request_context = {}
+        result = functions.substr(request_context, seriesList, 1, 3)
+        self.assertEqual(result, expectedResult)
+
+    def test_substr_no_args(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,10]),
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[1,2,None,None,None,6,7,8,9,10]),
+            TimeSeries('collectd.test-db4.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,None]),
+        ]
+        expectedResult = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,10]),
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[1,2,None,None,None,6,7,8,9,10]),
+            TimeSeries('collectd.test-db4.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,None]),
+        ]
+
+        request_context = {}
+        result = functions.substr(request_context, seriesList)
+        self.assertEqual(result, expectedResult)
+
+    def test_substr_function_no_args(self):
+        seriesList = [
+            TimeSeries('scaleToSeconds(collectd.test-db1.load.value,60)',0,600,60,[1,2,3,4,5,6,7,8,9,10]),
+            TimeSeries('scaleToSeconds(collectd.test-db2.load.value,60)',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('scaleToSeconds(collectd.test-db3.load.value,60)',0,600,60,[1,2,None,None,None,6,7,8,9,10]),
+            TimeSeries('scaleToSeconds(collectd.test-db4.load.value,60)',0,600,60,[1,2,3,4,5,6,7,8,9,None]),
+        ]
+        expectedResult = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,10]),
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[1,2,None,None,None,6,7,8,9,10]),
+            TimeSeries('collectd.test-db4.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,None]),
+        ]
+
+        request_context = {}
+        result = functions.substr(request_context, seriesList)
+        self.assertEqual(result, expectedResult)
+
+    def test_substr_function(self):
+        seriesList = [
+            TimeSeries('scaleToSeconds(collectd.test-db1.load.value,60)',0,600,60,[1,2,3,4,5,6,7,8,9,10]),
+            TimeSeries('scaleToSeconds(collectd.test-db2.load.value,60)',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('scaleToSeconds(collectd.test-db3.load.value,60)',0,600,60,[1,2,None,None,None,6,7,8,9,10]),
+            TimeSeries('scaleToSeconds(collectd.test-db4.load.value,60)',0,600,60,[1,2,3,4,5,6,7,8,9,None]),
+        ]
+        expectedResult = [
+            TimeSeries('test-db1.load',0,600,60,[1,2,3,4,5,6,7,8,9,10]),
+            TimeSeries('test-db2.load',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('test-db3.load',0,600,60,[1,2,None,None,None,6,7,8,9,10]),
+            TimeSeries('test-db4.load',0,600,60,[1,2,3,4,5,6,7,8,9,None]),
+        ]
+
+        request_context = {}
+        result = functions.substr(request_context, seriesList, 1, 3)
+        self.assertEqual(result, expectedResult)
 
     def test_constantLine(self):
         requestContext = {'startTime': datetime(2014,3,12,2,0,0,2,pytz.timezone(settings.TIME_ZONE)), 'endTime':datetime(2014,3,12,3,0,0,2,pytz.timezone(settings.TIME_ZONE))}
@@ -1476,9 +1672,51 @@ class FunctionsTest(TestCase):
         self.assertEqual(results, expectedResult)
 
     def test_legendValue_with_system_preserves_sign(self):
-        seriesList = [TimeSeries("foo", 0, 1, 1, [-10000, -20000, -30000, -40000])]
+        seriesList = [TimeSeries("foo", 0, 3, 1, [-10000, -20000, -30000, -40000])]
+        expectedResult = [TimeSeries("foo                 avg  -25.00k   ", 0, 3, 1, [-10000, -20000, -30000, -40000])]
         result = functions.legendValue({}, seriesList, "avg", "si")
-        self.assertEqual(result[0].name, "foo                 avg  -25.00k   ")
+        self.assertEqual(result, expectedResult)
+
+    def test_legendValue_all(self):
+        seriesList = [TimeSeries("foo", 0, 4, 1, [10000, 20000, -30000, -40000, None]),
+                      TimeSeries("bar", 0, 4, 1, [0, 10000, 20000, -30000, -40000]),
+                      TimeSeries("baz", 0, 4, 1, [None, None, None, None, None])]
+        expectedResult = [TimeSeries("foo (avg: -10000.0) (total: -40000) (min: -40000) (max: 20000) (last: -40000)", 0, 4, 1, [10000, 20000, -30000, -40000, None]),
+                          TimeSeries("bar (avg: -8000.0) (total: -40000) (min: -40000) (max: 20000) (last: -40000)", 0, 4, 1, [0, 10000, 20000, -30000, -40000]),
+                          TimeSeries("baz (avg: None) (total: None) (min: None) (max: None) (last: None)", 0, 4, 1, [None, None, None, None, None])]
+        result = functions.legendValue({}, seriesList, "avg", "total", "min", "max", "last")
+        self.assertEqual(result, expectedResult)
+
+    def test_legendValue_all_si(self):
+        seriesList = [TimeSeries("foo", 0, 4, 1, [10000, 20000, -30000, -40000, None]),
+                      TimeSeries("bar", 0, 4, 1, [0, 10000, 20000, -30000, -40000]),
+                      TimeSeries("baz", 0, 4, 1, [None, None, None, None, None])]
+        expectedResult = [TimeSeries("foo                 avg  -10.00k   total-40.00k   min  -40.00k   max  20.00k    last -40.00k   ", 0, 4, 1, [10000, 20000, -30000, -40000, None]),
+                          TimeSeries("bar                 avg  -8.00k    total-40.00k   min  -40.00k   max  20.00k    last -40.00k   ", 0, 4, 1, [0, 10000, 20000, -30000, -40000]),
+                          TimeSeries("baz                 avg  None      totalNone      min  None      max  None      last None      ", 0, 4, 1, [None, None, None, None, None])]
+        result = functions.legendValue({}, seriesList, "avg", "total", "min", "max", "last", "si")
+        self.assertEqual(result, expectedResult)
+
+    def test_legendValue_all_binary(self):
+        seriesList = [TimeSeries("foo", 0, 4, 1, [10000, 20000, -30000, -40000, None]),
+                      TimeSeries("bar", 0, 4, 1, [0, 10000, 20000, -30000, -40000]),
+                      TimeSeries("baz", 0, 4, 1, [None, None, None, None, None])]
+        expectedResult = [TimeSeries("foo                 avg  -9.77Ki   total-39.06Ki  min  -39.06Ki  max  19.53Ki   last -39.06Ki  ", 0, 4, 1, [10000, 20000, -30000, -40000, None]),
+                          TimeSeries("bar                 avg  -7.81Ki   total-39.06Ki  min  -39.06Ki  max  19.53Ki   last -39.06Ki  ", 0, 4, 1, [0, 10000, 20000, -30000, -40000]),
+                          TimeSeries("baz                 avg  None      totalNone      min  None      max  None      last None      ", 0, 4, 1, [None, None, None, None, None])]
+        result = functions.legendValue({}, seriesList, "avg", "total", "min", "max", "last", "binary")
+        self.assertEqual(result, expectedResult)
+
+    def test_legendValue_invalid_none(self):
+        seriesList = [TimeSeries("foo", 0, 4, 1, [10000, 20000, -30000, -40000, None]),
+                      TimeSeries("bar", 0, 4, 1, [0, 10000, 20000, -30000, -40000]),
+                      TimeSeries("baz", 0, 4, 1, [None, None, None, None, None])]
+        expectedResult = [TimeSeries("foo (avg: -10000.0) (bogus: (?))", 0, 4, 1, [10000, 20000, -30000, -40000, None]),
+                          TimeSeries("bar (avg: -8000.0) (bogus: (?))", 0, 4, 1, [0, 10000, 20000, -30000, -40000]),
+                          TimeSeries("baz (avg: None) (bogus: (?))", 0, 4, 1, [None, None, None, None, None])]
+        result = functions.legendValue({}, seriesList, "avg", "bogus")
+        self.assertEqual(result, expectedResult)
+
 
     def test_linearRegression(self):
         original = functions.evaluateTarget
