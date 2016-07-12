@@ -866,6 +866,149 @@ class FunctionsTest(TestCase):
             results = functions.consolidateBy({}, seriesList, func)
             self._verify_series_consolidationFunc(results, func)
 
+    def test_weightedAverage(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,1,1,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]),
+            TimeSeries('collectd.test-db2.load.value',0,1,1,[None,2,None,4,None,6,None,8,None,10,None,12,None,14,None,16,None,18,None,20]),
+            TimeSeries('collectd.test-db3.load.value',0,1,1,[1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,None,None,None]),
+            TimeSeries('collectd.test-db4.load.value',0,1,1,[1,2,3,4,None,6,None,None,9,10,11,None,13,None,None,None,None,18,19,20]),
+            TimeSeries('collectd.test-db5.load.value',0,1,1,[1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,18,None,None]),
+        ]
+
+        for series in seriesList:
+            series.pathExpression = series.name
+
+        seriesList2 = [
+            TimeSeries('collectd.test-db1.load.value',0,1,1,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]),
+            TimeSeries('collectd.test-db2.load.value',0,1,1,[None,2,None,4,None,6,None,8,None,10,None,12,None,14,None,16,None,18,None,20]),
+            TimeSeries('collectd.test-db3.load.value',0,1,1,[1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,None,None,None]),
+            TimeSeries('collectd.test-db4.load.value',0,1,1,[1,2,3,4,None,6,None,None,9,10,11,None,13,None,None,None,None,18,19,20]),
+            TimeSeries('collectd.test-db5.load.value',0,1,1,[1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,18,None,None]),
+        ]
+        for series in seriesList2:
+            series.pathExpression = series.name
+        expectedResult = [
+            TimeSeries('weightedAverage(collectd.test-db1.load.value,collectd.test-db2.load.value,collectd.test-db3.load.value,collectd.test-db4.load.value,collectd.test-db5.load.value, collectd.test-db1.load.value,collectd.test-db2.load.value,collectd.test-db3.load.value,collectd.test-db4.load.value,collectd.test-db5.load.value, 1)',0,1,1,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]),
+        ]
+
+        result = functions.weightedAverage({}, seriesList, seriesList2, 1)
+        for i, series in enumerate(result):
+            self.assertEqual(series.name, expectedResult[i].name)
+            for k, value in enumerate(series):
+                self.assertAlmostEqual(value,expectedResult[i][k])
+
+    def test_weightedAverage_mismatched_series(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,1,1,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]),
+            TimeSeries('collectd.test-db2.load.value',0,1,1,[None,2,None,4,None,6,None,8,None,10,None,12,None,14,None,16,None,18,None,20]),
+            TimeSeries('collectd.test-db3.load.value',0,1,1,[1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,None,None,None]),
+            TimeSeries('collectd.test-db5.load.value',0,1,1,[1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,18,None,None]),
+        ]
+
+        for series in seriesList:
+            series.pathExpression = series.name
+
+        seriesList2 = [
+            TimeSeries('collectd.test-db1.load.value',0,1,1,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]),
+            TimeSeries('collectd.test-db3.load.value',0,1,1,[1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,None,None,None]),
+            TimeSeries('collectd.test-db4.load.value',0,1,1,[1,2,3,4,None,6,None,None,9,10,11,None,13,None,None,None,None,18,19,20]),
+            TimeSeries('collectd.test-db5.load.value',0,1,1,[1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,18,None,None]),
+        ]
+        for series in seriesList2:
+            series.pathExpression = series.name
+        expectedResult = [
+            TimeSeries('weightedAverage(collectd.test-db1.load.value,collectd.test-db2.load.value,collectd.test-db3.load.value,collectd.test-db5.load.value, collectd.test-db1.load.value,collectd.test-db3.load.value,collectd.test-db4.load.value,collectd.test-db5.load.value, 1)',0,1,1,[0.75,1.5,1.5,2.0,5.0,4.5,7.0,8.0,6.75,7.5,8.25,12.0,9.75,14.0,15.0,16.0,17.0,12.0,9.5,10.0]),
+        ]
+
+        result = functions.weightedAverage({}, seriesList, seriesList2, 1)
+        for i, series in enumerate(result):
+            self.assertEqual(series.name, expectedResult[i].name)
+            for k, value in enumerate(series):
+                self.assertAlmostEqual(value,expectedResult[i][k])
+
+    def test_scaleToSeconds(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,10]),
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,2,None,4,None,6,None,8,None,10]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[1,2,None,None,None,6,7,8,9,10]),
+            TimeSeries('collectd.test-db4.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,None]),
+        ]
+        for series in seriesList:
+            series.pathExpression = series.name
+        expectedResult = [
+            TimeSeries('scaleToSeconds(collectd.test-db1.load.value,30)',0,600,60,[0.5,1.0,1.5,2.0,2.5,3.0,3.5,4.0,4.5,5.0]),
+            TimeSeries('scaleToSeconds(collectd.test-db2.load.value,30)',0,600,60,[None,1.0,None,2.0,None,3.0,None,4.0,None,5.0]),
+            TimeSeries('scaleToSeconds(collectd.test-db3.load.value,30)',0,600,60,[0.5,1.0,None,None,None,3.0,3.5,4.0,4.5,5.0]),
+            TimeSeries('scaleToSeconds(collectd.test-db4.load.value,30)',0,600,60,[0.5,1.0,1.5,2.0,2.5,3.0,3.5,4.0,4.5,None]),
+        ]
+
+        result = functions.scaleToSeconds({}, seriesList, 30)
+        self.assertEqual(len(result), len(expectedResult))
+        for i, series in enumerate(result):
+            self.assertEqual(series.name, expectedResult[i].name)
+            self.assertEqual(len(series), len(expectedResult[i]))
+            for k, value in enumerate(series):
+                self.assertAlmostEqual(value,expectedResult[i][k])
+
+    def test_absolute(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,21,1,[-10,-9,-8,-7,None,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10]),
+        ]
+        expected = [
+            TimeSeries('absolute(collectd.test-db1.load.value)',0,21,1,[10,9,8,7,None,5,4,3,2,1,0,1,2,3,4,5,6,7,8,9,10]),
+        ]
+        self.assertEqual(functions.absolute({}, seriesList), expected)
+
+    def test_offset(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,21,1,[-10,-9,-8,-7,None,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10]),
+        ]
+        expected = [
+            TimeSeries('offset(collectd.test-db1.load.value,10)',0,21,1,[0,1,2,3,None,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]),
+        ]
+        self.assertEqual(functions.offset({}, seriesList, 10), expected)
+
+    def test_offsetToZero(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,21,1,[-10,-9,-8,-7,None,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10]),
+        ]
+        expected = [
+            TimeSeries('offsetToZero(collectd.test-db1.load.value)',0,21,1,[0,1,2,3,None,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]),
+        ]
+        self.assertEqual(functions.offsetToZero({}, seriesList), expected)
+
+    def test_derivative(self):
+        seriesList = [TimeSeries('test', 0, 600, 60, [None, 1, 2, 3, 4, 5, None, 6, 7, 8])]
+        expected = [TimeSeries('derivative(test)', 0, 600, 60, [None, None, 1, 1, 1, 1, None, None, 1, 1])]
+        result = functions.derivative({}, seriesList)
+        self.assertEqual(expected, result, 'derivative result incorrect')
+
+    def test_nonNegativeDerivative(self):
+        seriesList = [TimeSeries('test', 0, 600, 60, [None, 1, 2, 3, 4, 5, None, 3, 2, 1])]
+        expected = [TimeSeries('nonNegativeDerivative(test)', 0, 600, 60, [None, None, 1, 1, 1, 1, None, None, None, None])]
+        result = functions.nonNegativeDerivative({}, seriesList)
+        self.assertEqual(expected, result, 'nonNegativeDerivative result incorrect')
+
+    def test_nonNegativeDerivative_max(self):
+        seriesList = [TimeSeries('test', 0, 600, 60, [0, 1, 2, 3, 4, 5, 0, 1, 2, 3])]
+        expected = [TimeSeries('nonNegativeDerivative(test,5)', 0, 600, 60, [None, 1, 1, 1, 1, 1, 1, 1, 1, 1])]
+        result = functions.nonNegativeDerivative({}, seriesList,5)
+        self.assertEqual(expected, result, 'nonNegativeDerivative result incorrect')
+
+    def test_perSecond(self):
+        seriesList = [TimeSeries('test', 0, 600, 60, [0, 120, 240, 480, 960, 1920, 3840, 7680, 15360, 30720])]
+        expected = [TimeSeries('perSecond(test)', 0, 600, 60, [None, 2, 2, 4, 8, 16, 32, 64, 128, 256])]
+        result = functions.perSecond({}, seriesList)
+        self.assertEqual(expected, result, 'perSecond result incorrect')
+
+    def test_perSecond_max(self):
+        seriesList = [TimeSeries('test', 0, 600, 60, [0, 120, 240, 480, 960, 900, 120, 240, 120, 0])]
+        expected = [TimeSeries('perSecond(test)', 0, 600, 60, [None, 2, 2, 4, 8, None, -5, 2, 6, 6])]
+        result = functions.perSecond({}, seriesList, 480)
+        print result
+        print result[0].getInfo()
+        self.assertEqual(expected, result, 'perSecond result incorrect')
+
     def test_integral(self):
         seriesList = [TimeSeries('test', 0, 600, 60, [None, 1, 2, 3, 4, 5, None, 6, 7, 8])]
         expected = [TimeSeries('integral(test)', 0, 600, 60, [None, 1, 3, 6, 10, 15, None, 21, 28, 36])]
