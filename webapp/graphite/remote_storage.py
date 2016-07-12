@@ -77,10 +77,11 @@ class FindRequest:
     if not self.connection:
       self.send()
 
-    try:  # Python 2.7+, use buffering of HTTP responses
-      response = self.connection.getresponse(buffering=True)
-    except TypeError:  # Python 2.6 and older
-      response = self.connection.getresponse()
+    try:
+      try: # Python 2.7+, use buffering of HTTP responses
+        response = self.connection.getresponse(buffering=True)
+      except TypeError:  # Python 2.6 and older
+        response = self.connection.getresponse()
     except AttributeError:
       self.store.fail()
       if not self.suppressErrors:
