@@ -982,7 +982,7 @@ class FunctionsTest(TestCase):
 
     def test_nonNegativeDerivative_max(self):
         seriesList = [TimeSeries('test', 0, 600, 60, [0, 1, 2, 3, 4, 5, 0, 1, 2, 3])]
-        expected = [TimeSeries('nonNegativeDerivative(test,5)', 0, 600, 60, [None, 1, 1, 1, 1, 1, 1, 1, 1, 1])]
+        expected = [TimeSeries('nonNegativeDerivative(test)', 0, 600, 60, [None, 1, 1, 1, 1, 1, 1, 1, 1, 1])]
         result = functions.nonNegativeDerivative({}, seriesList,5)
         self.assertEqual(expected, result, 'nonNegativeDerivative result incorrect')
 
@@ -996,8 +996,6 @@ class FunctionsTest(TestCase):
         seriesList = [TimeSeries('test', 0, 600, 60, [0, 120, 240, 480, 960, 900, 120, 240, 120, 0])]
         expected = [TimeSeries('perSecond(test)', 0, 600, 60, [None, 2, 2, 4, 8, None, -5, 2, 6, 6])]
         result = functions.perSecond({}, seriesList, 480)
-        print result
-        print result[0].getInfo()
         self.assertEqual(expected, result, 'perSecond result incorrect')
 
     def test_integral(self):
