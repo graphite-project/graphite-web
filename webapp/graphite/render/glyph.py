@@ -80,10 +80,13 @@ YEAR = DAY * 365
 
 # Set a flag to indicate whether the '%l' option can be used safely.
 # On Windows, in particular the %l option in strftime is not supported.
-#(It is not one of the documented Python formatters).
+# '%l' can also fail silently in Linux.
+# (It is not one of the documented Python formatters).
 try:
-    datetime.now().strftime("%a %l%p")
-    percent_l_supported = True
+    if datetime.now().strftime("%a %l%p"):
+        percent_l_supported = True
+    else:
+        percent_l_supported = False
 except ValueError as e:
     percent_l_supported = False
 
