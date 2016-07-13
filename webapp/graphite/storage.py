@@ -434,7 +434,7 @@ class RRDDataSource(Leaf):
 
     if settings.FLUSHRRDCACHED:
       rrdtool.flushcached(self.fs_path, '--daemon', settings.FLUSHRRDCACHED)
-    (timeInfo,columns,rows) = rrdtool.fetch(self.fs_path,'AVERAGE','-s' + startString,'-e' + endString)
+    (timeInfo,columns,rows) = rrdtool.fetch(self.fs_path,settings.RRD_CF,'-s' + startString,'-e' + endString)
     colIndex = list(columns).index(self.name)
     rows.pop() #chop off the latest value because RRD returns crazy last values sometimes
     values = (row[colIndex] for row in rows)
