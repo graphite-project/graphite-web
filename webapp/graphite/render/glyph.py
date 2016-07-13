@@ -1755,12 +1755,21 @@ class LineGraph(Graph):
 
 class PieGraph(Graph):
   customizable = Graph.customizable + \
-                 ('title','valueLabels','valueLabelsMin','hideLegend','pieLabels')
+                 ('title','valueLabels','valueLabelsMin','hideLegend','pieLabels','areaAlpha','valueLabelsColor')
   validValueLabels = ('none','number','percent')
 
   def drawGraph(self,**params):
     self.pieLabels = params.get('pieLabels', 'horizontal')
     self.total = sum( [t[1] for t in self.data] )
+
+    if self.params.get('areaAlpha'):
+      try:
+        self.alpha = float(self.params['areaAlpha'])
+      except ValueError:
+        self.alpha = 1.0
+        pass
+    else:
+      self.alpha = 1.0
 
     self.slices = []
     for name,value in self.data:
@@ -1769,6 +1778,7 @@ class PieGraph(Graph):
         'value' : value,
         'percent' : value / self.total,
         'color' : self.colors.next(),
+        'alpha' : self.alpha,
       })
 
     titleSize = self.defaultFontParams['size'] + math.floor( math.log(self.defaultFontParams['size']) )
@@ -1783,6 +1793,11 @@ class PieGraph(Graph):
       self.drawLegend(elements)
 
     self.drawSlices()
+
+    if params.get('valueLabelsColor'):
+      self.valueLabelsColor = params.get('valueLabelsColor')
+    else:
+      self.valueLabelsColor = 'black'
 
     self.valueLabelsMin = float( params.get('valueLabelsMin',5) )
     self.valueLabels = params.get('valueLabels','percent')
@@ -1799,7 +1814,7 @@ class PieGraph(Graph):
     self.y0 = y0 = self.area['ymin'] + halfY
     self.radius = radius = min(halfX,halfY) * 0.95
     for slice in self.slices:
-      self.setColor( slice['color'] )
+      self.setColor( slice['color'], slice['alpha'] )
       self.ctx.move_to(x0,y0)
       phi = theta + (2 * math.pi) * slice['percent']
       self.ctx.arc( x0, y0, radius, theta, phi )
@@ -1811,7 +1826,7 @@ class PieGraph(Graph):
 
   def drawLabels(self):
     self.setFont()
-    self.setColor( 'black' )
+    self.setColor( self.valueLabelsColor )
     for slice in self.slices:
       if self.valueLabels == 'percent':
         if (slice['percent'] * 100.0) < self.valueLabelsMin: continue
