@@ -865,6 +865,17 @@ pickle
 .. deprecated:: 0.9.10
   See `Data Display Formats`_
 
+pieLabels
+---------
+*Default: horizontal*
+
+Orientation to use for slice labels inside of a pie chart.
+
+``horizontal``
+  Labels are oriented horizontally within each slice
+``rotated``
+  Labels are oriented radially within each slice
+
 pieMode
 -------
 *Default: average*
@@ -964,6 +975,31 @@ until
 See: `from / until`_
 
 .. _param-vtitle:
+
+valueLabels
+-----------
+*Default: percent*
+
+Determines how slice labels are rendered within a pie chart.
+
+``none``
+  Slice labels are not shown
+``numbers``
+  Slice labels are reported with the original values
+``percent``
+  Slice labels are reported as a percent of the whole
+
+valueLabelsColor
+----------------
+*Default: black*
+
+Color used to draw slice labels within a pie chart.
+
+valueLabelsMin
+--------------
+*Default: 5*
+
+Slice values below this minimum will not have their labels rendered.
 
 vtitle
 ------
