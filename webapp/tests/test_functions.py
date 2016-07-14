@@ -532,28 +532,6 @@ class FunctionsTest(TestCase):
         result = functions.percentileOfSeries({}, [seriesList[0], seriesList[1]], 90)
         self.assertEqual(result, expectedList)
 
-    def test_highest_max(self):
-        config = [20, 50, 30, 40]
-        seriesList = [range(max_val) for max_val in config]
-
-        # Expect the test results to be returned in descending order
-        expected = [
-            [seriesList[1]],
-            [seriesList[1], seriesList[3]],
-            [seriesList[1], seriesList[3], seriesList[2]],
-            # Test where num_return == len(seriesList)
-            [seriesList[1], seriesList[3], seriesList[2], seriesList[0]],
-            # Test where num_return > len(seriesList)
-            [seriesList[1], seriesList[3], seriesList[2], seriesList[0]],
-        ]
-        for index, test in enumerate(expected):
-            results = functions.highestMax({}, seriesList, index + 1)
-            self.assertEqual(test, results)
-
-    def test_highest_max_empty_series_list(self):
-        # Test the function works properly with an empty seriesList provided.
-        self.assertEqual([], functions.highestMax({}, [], 1))
-
     def testGetPercentile_empty_points(self):
         self.assertEqual(functions._getPercentile([], 30), None)
 
@@ -1545,6 +1523,270 @@ class FunctionsTest(TestCase):
         request_context = {}
         result = functions.substr(request_context, seriesList, 1, 3)
         self.assertEqual(result, expectedResult)
+
+    def test_maximumAbove(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,10]),
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[1,2,None,None,None,6,7,8,9,10]),
+            TimeSeries('collectd.test-db4.load.value',0,600,60,[1,2,3,4,5,4,3,2,1,None]),
+        ]
+        expectedResult = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,10]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[1,2,None,None,None,6,7,8,9,10]),
+        ]
+
+        request_context = {}
+        result = functions.maximumAbove(request_context, seriesList, 5)
+        self.assertEqual(result, expectedResult)
+
+    def test_maximumAbove_empty_list(self):
+        # Test the function works properly with an empty seriesList provided.
+        self.assertEqual([], functions.maximumAbove({}, [], 1))
+
+    def test_minimumAbove(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,10]),
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[10,9,None,None,None,6,7,8,9,10]),
+            TimeSeries('collectd.test-db4.load.value',0,600,60,[10,9,8,7,6,7,8,9,10,None]),
+        ]
+        expectedResult = [
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[10,9,None,None,None,6,7,8,9,10]),
+            TimeSeries('collectd.test-db4.load.value',0,600,60,[10,9,8,7,6,7,8,9,10,None]),
+        ]
+
+        request_context = {}
+        result = functions.minimumAbove(request_context, seriesList, 5)
+        self.assertEqual(result, expectedResult)
+
+    def test_minimumAbove_empty_list(self):
+        # Test the function works properly with an empty seriesList provided.
+        self.assertEqual([], functions.minimumAbove({}, [], 1))
+
+    def test_maximumBelow(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,4,3,2,1,0]),
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[1,2,None,None,None,4,3,2,1,0]),
+            TimeSeries('collectd.test-db4.load.value',0,600,60,[10,9,8,7,6,7,8,9,10,None]),
+        ]
+        expectedResult = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,4,3,2,1,0]),
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[1,2,None,None,None,4,3,2,1,0]),
+        ]
+
+        request_context = {}
+        result = functions.maximumBelow(request_context, seriesList, 5)
+        self.assertEqual(result, expectedResult)
+
+    def test_maximumBelow_empty_list(self):
+        # Test the function works properly with an empty seriesList provided.
+        self.assertEqual([], functions.maximumBelow({}, [], 1))
+
+    def test_minimumBelow(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,4,3,2,1,0]),
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[1,2,None,None,None,4,3,2,1,0]),
+            TimeSeries('collectd.test-db4.load.value',0,600,60,[10,9,8,7,6,7,8,9,10,None]),
+        ]
+        expectedResult = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,4,3,2,1,0]),
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[1,2,None,None,None,4,3,2,1,0]),
+        ]
+
+        request_context = {}
+        result = functions.minimumBelow(request_context, seriesList, 5)
+        self.assertEqual(result, expectedResult)
+
+    def test_minimumBelow_empty_list(self):
+        # Test the function works properly with an empty seriesList provided.
+        self.assertEqual([], functions.minimumBelow({}, [], 1))
+
+    def test_highestCurrent(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,4,3,5,6,7]),
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[1,2,None,None,None,4,3,2,1,0]),
+            TimeSeries('collectd.test-db4.load.value',0,600,60,[10,9,8,7,6,7,8,9,10,None]),
+        ]
+        expectedResult = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,4,3,5,6,7]),
+            TimeSeries('collectd.test-db4.load.value',0,600,60,[10,9,8,7,6,7,8,9,10,None]),
+        ]
+
+        request_context = {}
+        result = functions.highestCurrent(request_context, seriesList, 2)
+        self.assertEqual(result, expectedResult)
+
+    def test_highestCurrent_empty_list(self):
+        # Test the function works properly with an empty seriesList provided.
+        self.assertEqual([], functions.highestCurrent({}, [], 1))
+
+    def test_highest_max(self):
+        config = [20, 50, 30, 40]
+        seriesList = [range(max_val) for max_val in config]
+
+        # Expect the test results to be returned in descending order
+        expected = [
+            [seriesList[1]],
+            [seriesList[1], seriesList[3]],
+            [seriesList[1], seriesList[3], seriesList[2]],
+            # Test where num_return == len(seriesList)
+            [seriesList[1], seriesList[3], seriesList[2], seriesList[0]],
+            # Test where num_return > len(seriesList)
+            [seriesList[1], seriesList[3], seriesList[2], seriesList[0]],
+        ]
+        for index, test in enumerate(expected):
+            results = functions.highestMax({}, seriesList, index + 1)
+            self.assertEqual(test, results)
+
+    def test_highest_max_empty_series_list(self):
+        # Test the function works properly with an empty seriesList provided.
+        self.assertEqual([], functions.highestMax({}, [], 1))
+
+    def test_lowestCurrent(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,4,3,5,6,7]),
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[1,2,None,None,None,4,3,2,1,0]),
+            TimeSeries('collectd.test-db4.load.value',0,600,60,[10,9,8,7,6,7,8,9,10,None]),
+        ]
+        expectedResult = [
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[1,2,None,None,None,4,3,2,1,0]),
+        ]
+
+        request_context = {}
+        result = functions.lowestCurrent(request_context, seriesList, 2)
+        self.assertEqual(result, expectedResult)
+
+    def test_lowestCurrent_empty_list(self):
+        # Test the function works properly with an empty seriesList provided.
+        self.assertEqual([], functions.lowestCurrent({}, [], 1))
+
+    def test_currentAbove(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,4,3,5,6,7]),
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[1,2,None,None,None,4,3,2,1,0]),
+            TimeSeries('collectd.test-db4.load.value',0,600,60,[10,9,8,7,6,7,8,9,10,None]),
+        ]
+        expectedResult = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,4,3,5,6,7]),
+            TimeSeries('collectd.test-db4.load.value',0,600,60,[10,9,8,7,6,7,8,9,10,None]),
+        ]
+
+        request_context = {}
+        result = functions.currentAbove(request_context, seriesList, 2)
+        self.assertEqual(result, expectedResult)
+
+    def test_currentAbove_empty_list(self):
+        # Test the function works properly with an empty seriesList provided.
+        self.assertEqual([], functions.currentAbove({}, [], 1))
+
+    def test_currentBelow(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,4,3,5,6,7]),
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[1,2,None,None,None,4,3,2,1,0]),
+            TimeSeries('collectd.test-db4.load.value',0,600,60,[10,9,8,7,6,7,8,9,10,None]),
+        ]
+        expectedResult = [
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[1,2,None,None,None,4,3,2,1,0]),
+        ]
+
+        request_context = {}
+        result = functions.currentBelow(request_context, seriesList, 2)
+        self.assertEqual(result, expectedResult)
+
+    def test_currentBelow_empty_list(self):
+        # Test the function works properly with an empty seriesList provided.
+        self.assertEqual([], functions.currentBelow({}, [], 1))
+
+    def test_highestAverage(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,4,3,5,6,7]),
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[1,2,None,None,None,4,3,2,1,0]),
+            TimeSeries('collectd.test-db4.load.value',0,600,60,[10,9,8,7,6,7,8,9,10,None]),
+        ]
+        expectedResult = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,4,3,5,6,7]),
+            TimeSeries('collectd.test-db4.load.value',0,600,60,[10,9,8,7,6,7,8,9,10,None]),
+        ]
+
+        request_context = {}
+        result = functions.highestAverage(request_context, seriesList, 2)
+        self.assertEqual(result, expectedResult)
+
+    def test_highestAverage_empty_list(self):
+        # Test the function works properly with an empty seriesList provided.
+        self.assertEqual([], functions.highestAverage({}, [], 1))
+
+    def test_lowestAverage(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,4,3,5,6,7]),
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[1,2,None,None,None,4,3,2,1,0]),
+            TimeSeries('collectd.test-db4.load.value',0,600,60,[10,9,8,7,6,7,8,9,10,None]),
+        ]
+        expectedResult = [
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[1,2,None,None,None,4,3,2,1,0]),
+        ]
+
+        request_context = {}
+        result = functions.lowestAverage(request_context, seriesList, 2)
+        self.assertEqual(result, expectedResult)
+
+    def test_lowestAverage_empty_list(self):
+        # Test the function works properly with an empty seriesList provided.
+        self.assertEqual([], functions.lowestAverage({}, [], 1))
+
+    def test_averageAbove(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,4,3,5,6,7]),
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[1,2,None,None,None,4,3,2,1,0]),
+            TimeSeries('collectd.test-db4.load.value',0,600,60,[10,9,8,7,6,7,8,9,10,None]),
+        ]
+        expectedResult = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,4,3,5,6,7]),
+            TimeSeries('collectd.test-db4.load.value',0,600,60,[10,9,8,7,6,7,8,9,10,None]),
+        ]
+
+        request_context = {}
+        result = functions.averageAbove(request_context, seriesList, 2)
+        self.assertEqual(result, expectedResult)
+
+    def test_averageAbove_empty_list(self):
+        # Test the function works properly with an empty seriesList provided.
+        self.assertEqual([], functions.averageAbove({}, [], 1))
+
+    def test_averageBelow(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,4,3,5,6,7]),
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[1,2,None,None,None,4,3,2,1,0]),
+            TimeSeries('collectd.test-db4.load.value',0,600,60,[10,9,8,7,6,7,8,9,10,None]),
+        ]
+        expectedResult = [
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[1,2,None,None,None,4,3,2,1,0]),
+        ]
+
+        request_context = {}
+        result = functions.averageBelow(request_context, seriesList, 2)
+        self.assertEqual(result, expectedResult)
+
+    def test_averageBelow_empty_list(self):
+        # Test the function works properly with an empty seriesList provided.
+        self.assertEqual([], functions.averageBelow({}, [], 1))
 
     def test_constantLine(self):
         requestContext = {'startTime': datetime(2014,3,12,2,0,0,2,pytz.timezone(settings.TIME_ZONE)), 'endTime':datetime(2014,3,12,3,0,0,2,pytz.timezone(settings.TIME_ZONE))}
