@@ -1580,7 +1580,7 @@ def maximumAbove(requestContext, seriesList, n):
   """
   results = []
   for series in seriesList:
-    if max(series) > n:
+    if safeMax(series) > n:
       results.append(series)
   return results
 
@@ -1599,7 +1599,7 @@ def minimumAbove(requestContext, seriesList, n):
   """
   results = []
   for series in seriesList:
-    if min(series) > n:
+    if safeMin(series) > n:
       results.append(series)
   return results
 
@@ -1619,7 +1619,7 @@ def maximumBelow(requestContext, seriesList, n):
 
   result = []
   for series in seriesList:
-    if max(series) <= n:
+    if safeMax(series) <= n:
       result.append(series)
   return result
 
@@ -1639,7 +1639,7 @@ def minimumBelow(requestContext, seriesList, n):
 
   result = []
   for series in seriesList:
-    if min(series) <= n:
+    if safeMin(series) <= n:
       result.append(series)
   return result
 
@@ -1677,7 +1677,7 @@ def highestMax(requestContext, seriesList, n):
   period specified.
 
   """
-  result_list = sorted( seriesList, key=lambda s: max(s) )[-n:]
+  result_list = sorted( seriesList, key=lambda s: safeMax(s) )[-n:]
 
   return sorted(result_list, key=lambda s: max(s), reverse=True)
 
