@@ -1118,6 +1118,110 @@ class FunctionsTest(TestCase):
         n_percentile(90, [[50], [91], [181], [271], [90], [180], [270], [270]])
         n_percentile(95, [[50], [96], [191], [286], [95], [190], [285], [285]])
 
+    def test_averageOutsidePercentile_30(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,100,1,[7]*100),
+            TimeSeries('collectd.test-db2.load.value',0,100,1,[5]*100),
+            TimeSeries('collectd.test-db3.load.value',0,100,1,[10]*100),
+            TimeSeries('collectd.test-db4.load.value',0,100,1,[1]*100),
+        ]
+
+        expectedResult = [
+            TimeSeries('collectd.test-db2.load.value',0,100,1,[5]*100),
+            TimeSeries('collectd.test-db3.load.value',0,100,1,[10]*100),
+            TimeSeries('collectd.test-db4.load.value',0,100,1,[1]*100),
+        ]
+
+        result = functions.averageOutsidePercentile({}, seriesList, 30)
+        self.assertEqual(result, expectedResult)
+
+    def test_averageOutsidePercentile_70(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,100,1,[7]*100),
+            TimeSeries('collectd.test-db2.load.value',0,100,1,[5]*100),
+            TimeSeries('collectd.test-db3.load.value',0,100,1,[10]*100),
+            TimeSeries('collectd.test-db4.load.value',0,100,1,[1]*100),
+        ]
+
+        expectedResult = [
+            TimeSeries('collectd.test-db2.load.value',0,100,1,[5]*100),
+            TimeSeries('collectd.test-db3.load.value',0,100,1,[10]*100),
+            TimeSeries('collectd.test-db4.load.value',0,100,1,[1]*100),
+        ]
+
+        result = functions.averageOutsidePercentile({}, seriesList, 70)
+        self.assertEqual(result, expectedResult)
+
+    def test_removeBetweenPercentile_30(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,100,1,[7]*100),
+            TimeSeries('collectd.test-db2.load.value',0,100,1,[5]*100),
+            TimeSeries('collectd.test-db3.load.value',0,100,1,[10]*100),
+            TimeSeries('collectd.test-db4.load.value',0,100,1,[1]*100),
+        ]
+
+        expectedResult = [
+            TimeSeries('collectd.test-db2.load.value',0,100,1,[5]*100),
+            TimeSeries('collectd.test-db3.load.value',0,100,1,[10]*100),
+            TimeSeries('collectd.test-db4.load.value',0,100,1,[1]*100),
+        ]
+
+        result = functions.removeBetweenPercentile({}, seriesList, 30)
+        self.assertEqual(result, expectedResult)
+
+    def test_removeBetweenPercentile_70(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,100,1,[7]*100),
+            TimeSeries('collectd.test-db2.load.value',0,100,1,[5]*100),
+            TimeSeries('collectd.test-db3.load.value',0,100,1,[10]*100),
+            TimeSeries('collectd.test-db4.load.value',0,100,1,[1]*100),
+        ]
+
+        expectedResult = [
+            TimeSeries('collectd.test-db2.load.value',0,100,1,[5]*100),
+            TimeSeries('collectd.test-db3.load.value',0,100,1,[10]*100),
+            TimeSeries('collectd.test-db4.load.value',0,100,1,[1]*100),
+        ]
+
+        result = functions.removeBetweenPercentile({}, seriesList, 70)
+        self.assertEqual(result, expectedResult)
+
+    def test_sortByName(self):
+        seriesList = [
+            TimeSeries('collectd.test-db3.load.value',0,100,1,[10]*100),
+            TimeSeries('collectd.test-db2.load.value',0,100,1,[5]*100),
+            TimeSeries('collectd.test-db4.load.value',0,100,1,[1]*100),
+            TimeSeries('collectd.test-db1.load.value',0,100,1,[7]*100),
+        ]
+
+        expectedResult = [
+            TimeSeries('collectd.test-db1.load.value',0,100,1,[7]*100),
+            TimeSeries('collectd.test-db2.load.value',0,100,1,[5]*100),
+            TimeSeries('collectd.test-db3.load.value',0,100,1,[10]*100),
+            TimeSeries('collectd.test-db4.load.value',0,100,1,[1]*100),
+        ]
+
+        result = functions.sortByName({}, seriesList)
+        self.assertEqual(result, expectedResult)
+
+    def test_sortByName_natural(self):
+        seriesList = [
+            TimeSeries('collectd.test-db3.load.value',0,100,1,[10]*100),
+            TimeSeries('collectd.test-db2.load.value',0,100,1,[5]*100),
+            TimeSeries('collectd.test-db4.load.value',0,100,1,[1]*100),
+            TimeSeries('collectd.test-db1.load.value',0,100,1,[7]*100),
+        ]
+
+        expectedResult = [
+            TimeSeries('collectd.test-db1.load.value',0,100,1,[7]*100),
+            TimeSeries('collectd.test-db2.load.value',0,100,1,[5]*100),
+            TimeSeries('collectd.test-db3.load.value',0,100,1,[10]*100),
+            TimeSeries('collectd.test-db4.load.value',0,100,1,[1]*100),
+        ]
+
+        result = functions.sortByName({}, seriesList, True)
+        self.assertEqual(result, expectedResult)
+
     def test_sorting_by_total(self):
         seriesList = []
         config = [[1000, 100, 10, 0], [1000, 100, 10, 1]]
@@ -1130,6 +1234,42 @@ class FunctionsTest(TestCase):
 
         self.assertEqual(1111, functions.safeSum(result[0]))
         self.assertEqual(1110, functions.safeSum(result[1]))
+
+    def test_sortByMaxima(self):
+        seriesList = [
+            TimeSeries('collectd.test-db3.load.value',0,100,1,[10]*100),
+            TimeSeries('collectd.test-db2.load.value',0,100,1,[5]*100),
+            TimeSeries('collectd.test-db4.load.value',0,100,1,[1]*100),
+            TimeSeries('collectd.test-db1.load.value',0,100,1,[7]*100),
+        ]
+
+        expectedResult = [
+            TimeSeries('collectd.test-db3.load.value',0,100,1,[10]*100),
+            TimeSeries('collectd.test-db1.load.value',0,100,1,[7]*100),
+            TimeSeries('collectd.test-db2.load.value',0,100,1,[5]*100),
+            TimeSeries('collectd.test-db4.load.value',0,100,1,[1]*100),
+        ]
+
+        result = functions.sortByMaxima({}, seriesList)
+        self.assertEqual(result, expectedResult)
+
+    def test_sortByMinima(self):
+        seriesList = [
+            TimeSeries('collectd.test-db3.load.value',0,100,1,[10]*100),
+            TimeSeries('collectd.test-db2.load.value',0,100,1,[5]*100),
+            TimeSeries('collectd.test-db4.load.value',0,100,1,[1]*100),
+            TimeSeries('collectd.test-db1.load.value',0,100,1,[7]*100),
+        ]
+
+        expectedResult = [
+            TimeSeries('collectd.test-db4.load.value',0,100,1,[1]*100),
+            TimeSeries('collectd.test-db2.load.value',0,100,1,[5]*100),
+            TimeSeries('collectd.test-db1.load.value',0,100,1,[7]*100),
+            TimeSeries('collectd.test-db3.load.value',0,100,1,[10]*100),
+        ]
+
+        result = functions.sortByMinima({}, seriesList)
+        self.assertEqual(result, expectedResult)
 
     def _generate_series_list(self):
         seriesList = []
@@ -1319,6 +1459,86 @@ class FunctionsTest(TestCase):
                     self.assertEqual(transform, result_val,
                         "Transformed value should be {0}, not {1}".format(transform, result_val),
                     )
+
+    def test_transform_null_reference(self):
+        seriesList = self._generate_series_list()
+        transform = -5
+        referenceSeries = copy.deepcopy(seriesList[0])
+        for k, v in enumerate(referenceSeries):
+            if k % 2 != 0:
+              referenceSeries[k] = None
+
+        results = functions.transformNull({}, copy.deepcopy(seriesList), transform, [referenceSeries])
+
+        for counter, series in enumerate(seriesList):
+            if not None in series:
+                continue
+
+            # Anywhere a None was in the original series, verify it
+            # was transformed to the given value if a value existed
+            # in the reference series
+            for i, value in enumerate(series):
+                if value is None and referenceSeries[i] is not None:
+                    result_val = results[counter][i]
+                    self.assertEqual(transform, result_val,
+                        "Transformed value should be {0}, not {1}".format(transform, result_val),
+                    )
+
+    def test_transform_null_reference_empty(self):
+        seriesList = self._generate_series_list()
+        transform = -5
+        referenceSeries = []
+
+        results = functions.transformNull({}, copy.deepcopy(seriesList), transform, [referenceSeries])
+
+        for counter, series in enumerate(seriesList):
+            if not None in series:
+                continue
+            # If the None values weren't transformed, there is a problem
+            self.assertNotIn(None, results[counter],
+                "tranformNull should remove all None values",
+            )
+            # Anywhere a None was in the original series, verify it
+            # was transformed to the given value if a value existed
+            for i, value in enumerate(series):
+                if value is None:
+                    result_val = results[counter][i]
+                    self.assertEqual(transform, result_val,
+                        "Transformed value should be {0}, not {1}".format(transform, result_val),
+                    )
+
+    def test_isNonNull(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,10]),
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[1,2,None,None,None,6,7,8,9,10]),
+            TimeSeries('collectd.test-db4.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,None]),
+        ]
+        for series in seriesList:
+            series.pathExpression = series.name
+        expectedResult = [
+            TimeSeries('isNonNull(collectd.test-db1.load.value)',0,600,60,[1,1,1,1,1,1,1,1,1,1]),
+            TimeSeries('isNonNull(collectd.test-db2.load.value)',0,600,60,[0,0,0,0,0,0,0,0,0,0]),
+            TimeSeries('isNonNull(collectd.test-db3.load.value)',0,600,60,[1,1,0,0,0,1,1,1,1,1]),
+            TimeSeries('isNonNull(collectd.test-db4.load.value)',0,600,60,[1,1,1,1,1,1,1,1,1,0]),
+        ]
+        for series in expectedResult:
+            series.options = {}
+
+        request_context = {}
+        result = functions.isNonNull(request_context, seriesList)
+        self.assertEqual(result, expectedResult)
+
+    def test_identity(self):
+        expectedResult = [
+            TimeSeries('my_series', 3600, 3660, 60, [3600]),
+        ]
+        requestContext = {
+                          'startTime': datetime(1970,1,1,1,0,0,0,pytz.timezone(settings.TIME_ZONE)),
+                          'endTime':datetime(1970,1,1,1,1,0,0,pytz.timezone(settings.TIME_ZONE))
+                         }
+        result = functions.identity(requestContext, "my_series")
+        self.assertEqual(result, expectedResult)
 
     def test_alias(self):
         seriesList = self._generate_series_list()
@@ -1792,6 +2012,120 @@ class FunctionsTest(TestCase):
     def test_constantLine(self):
         requestContext = {'startTime': datetime(2014,3,12,2,0,0,2,pytz.timezone(settings.TIME_ZONE)), 'endTime':datetime(2014,3,12,3,0,0,2,pytz.timezone(settings.TIME_ZONE))}
         results = functions.constantLine(requestContext, [1])
+
+    def test_aggregateLine_default(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,4,3,5,6,7]),
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[1,2,None,None,None,4,3,2,1,0]),
+            TimeSeries('collectd.test-db4.load.value',0,600,60,[10,9,8,7,6,7,8,9,10,None]),
+        ]
+        for series in seriesList:
+            series.pathExpression = series.name
+        expectedResult = [
+            TimeSeries('aggregateLine(collectd.test-db1.load.value, 4)', 3600, 3660, 30, [4.0, 4.0, 4.0]),
+        ]
+        requestContext = {
+                          'startTime': datetime(1970,1,1,1,0,0,0,pytz.timezone(settings.TIME_ZONE)),
+                          'endTime':datetime(1970,1,1,1,1,0,0,pytz.timezone(settings.TIME_ZONE))
+                         }
+        result = functions.aggregateLine(requestContext, seriesList)
+        self.assertEqual(result, expectedResult)
+
+    def test_aggregateLine_avg(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,4,3,5,6,7]),
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[1,2,None,None,None,4,3,2,1,0]),
+            TimeSeries('collectd.test-db4.load.value',0,600,60,[10,9,8,7,6,7,8,9,10,None]),
+        ]
+        for series in seriesList:
+            series.pathExpression = series.name
+        expectedResult = [
+            TimeSeries('aggregateLine(collectd.test-db1.load.value, 4)', 3600, 3600, 0, [4.0, 4.0, 4.0]),
+        ]
+        requestContext = {
+                          'startTime': datetime(1970,1,1,1,0,0,0,pytz.timezone(settings.TIME_ZONE)),
+                          'endTime':datetime(1970,1,1,1,0,0,0,pytz.timezone(settings.TIME_ZONE))
+                         }
+        result = functions.aggregateLine(requestContext, seriesList, 'avg')
+        self.assertEqual(result, expectedResult)
+
+    def test_aggregateLine_min(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,4,3,5,6,7]),
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[1,2,None,None,None,4,3,2,1,0]),
+            TimeSeries('collectd.test-db4.load.value',0,600,60,[10,9,8,7,6,7,8,9,10,None]),
+        ]
+        for series in seriesList:
+            series.pathExpression = series.name
+        expectedResult = [
+            TimeSeries('aggregateLine(collectd.test-db1.load.value, 1)', 3600, 3600, 0, [1.0, 1.0, 1.0]),
+        ]
+        requestContext = {
+                          'startTime': datetime(1970,1,1,1,0,0,0,pytz.timezone(settings.TIME_ZONE)),
+                          'endTime':datetime(1970,1,1,1,0,0,0,pytz.timezone(settings.TIME_ZONE))
+                         }
+        result = functions.aggregateLine(requestContext, seriesList, 'min')
+        self.assertEqual(result, expectedResult)
+
+    def test_aggregateLine_max(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,4,3,5,6,7]),
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[1,2,None,None,None,4,3,2,1,0]),
+            TimeSeries('collectd.test-db4.load.value',0,600,60,[10,9,8,7,6,7,8,9,10,None]),
+        ]
+        for series in seriesList:
+            series.pathExpression = series.name
+        expectedResult = [
+            TimeSeries('aggregateLine(collectd.test-db1.load.value, 7)', 3600, 3600, 0, [7.0, 7.0, 7.0]),
+        ]
+        requestContext = {
+                          'startTime': datetime(1970,1,1,1,0,0,0,pytz.timezone(settings.TIME_ZONE)),
+                          'endTime':datetime(1970,1,1,1,0,0,0,pytz.timezone(settings.TIME_ZONE))
+                         }
+        result = functions.aggregateLine(requestContext, seriesList, 'max')
+        self.assertEqual(result, expectedResult)
+
+    def test_aggregateLine_bad(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,4,3,5,6,7]),
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[1,2,None,None,None,4,3,2,1,0]),
+            TimeSeries('collectd.test-db4.load.value',0,600,60,[10,9,8,7,6,7,8,9,10,None]),
+        ]
+        for series in seriesList:
+            series.pathExpression = series.name
+        requestContext = {
+                          'startTime': datetime(1970,1,1,1,0,0,0,pytz.timezone(settings.TIME_ZONE)),
+                          'endTime':datetime(1970,1,1,1,0,0,0,pytz.timezone(settings.TIME_ZONE))
+                         }
+        with self.assertRaisesRegexp(ValueError, 'Invalid function bad'):
+          result = functions.aggregateLine(requestContext, seriesList, 'bad')
+
+    def test_threshold_default(self):
+        expectedResult = [
+            TimeSeries('7', 3600, 3600, 0, [7.0, 7.0, 7.0]),
+        ]
+        requestContext = {
+                          'startTime': datetime(1970,1,1,1,0,0,0,pytz.timezone(settings.TIME_ZONE)),
+                          'endTime':datetime(1970,1,1,1,0,0,0,pytz.timezone(settings.TIME_ZONE))
+                         }
+        result = functions.threshold(requestContext, 7)
+        self.assertEqual(result, expectedResult)
+
+    def test_threshold_label_color(self):
+        expectedResult = [
+            TimeSeries('MyLine', 3600, 3600, 0, [7.0, 7.0, 7.0]),
+        ]
+        requestContext = {
+                          'startTime': datetime(1970,1,1,1,0,0,0,pytz.timezone(settings.TIME_ZONE)),
+                          'endTime':datetime(1970,1,1,1,0,0,0,pytz.timezone(settings.TIME_ZONE))
+                         }
+        result = functions.threshold(requestContext, 7, 'MyLine', 'blue')
+        self.assertEqual(result, expectedResult)
 
     def test_scale(self):
         seriesList = self._generate_series_list()
