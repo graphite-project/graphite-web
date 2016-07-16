@@ -1093,7 +1093,6 @@ class FunctionsTest(TestCase):
         self.assertEqual(result, expectedResult)
 
     def test_n_percentile(self):
-        seriesList = []
         config = [
             [15, 35, 20, 40, 50],
             range(1, 101),
@@ -1106,10 +1105,12 @@ class FunctionsTest(TestCase):
             [None, None, None] + range(0, 300),
         ]
 
-        for i, c in enumerate(config):
-            seriesList.append(TimeSeries('Test(%d)' % i, 0, 1, 1, c))
-
-        def n_percentile(perc, expected):
+        def n_percentile(perc, expect):
+            seriesList = []
+            expected = []
+            for i, c in enumerate(config):
+                seriesList.append(TimeSeries('Test(%d)' % i, 0, len(c), 1, c))
+                expected.append(TimeSeries('nPercentile(Test(%d), %d)' % (i, perc), 0, len(c), 1, expect[i]*len(c)))
             result = functions.nPercentile({}, seriesList, perc)
             self.assertEqual(expected, result)
 

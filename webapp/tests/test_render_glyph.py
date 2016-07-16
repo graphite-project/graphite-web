@@ -1,6 +1,5 @@
 import copy
 
-#from django.conf import settings
 from django.test import TestCase
 
 from graphite.render import glyph
