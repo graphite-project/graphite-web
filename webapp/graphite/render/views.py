@@ -175,7 +175,7 @@ def renderView(request):
         add_never_cache_headers(response)
       return response
 
-    if format == 'json_dygraph':
+    if format == 'dygraph':
       labels = ['Time']
       datapoints = [[ts] for ts in range(data[0].start, data[0].end, data[0].step)]
       for series in data:
@@ -185,12 +185,12 @@ def renderView(request):
       line_template = '[%%s000%s]' % ''.join([', %s'] * len(data))
       lines = [line_template % tuple(points) for points in datapoints]
       result = '{"labels" : %s, "data" : [%s]}' % (json.dumps(labels), ', '.join(lines))
-      response = HttpResponse(content=result, mimetype='application/json')
+      response = HttpResponse(content=result, content_type='application/json')
       response['Pragma'] = 'no-cache'
       response['Cache-Control'] = 'no-cache'
       return response
 
-    if format == 'json_rickshaw':
+    if format == 'rickshaw':
       series_data = []
       for series in data:
         timestamps = range(series.start, series.end, series.step)
@@ -201,7 +201,9 @@ def renderView(request):
           content="%s(%s)" % (requestOptions['jsonp'], json.dumps(series_data)),
           mimetype='text/javascript')
       else:
-        response = HttpResponse(content=json.dumps(series_data), mimetype='application/json')
+        response = HttpResponse(content=json.dumps(series_data),
+                                content_type='application/json')
+      return response
 
     if format == 'raw':
       response = HttpResponse(content_type='text/plain')
