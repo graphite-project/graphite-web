@@ -1540,6 +1540,39 @@ class FunctionsTest(TestCase):
         result = functions.identity(requestContext, "my_series")
         self.assertEqual(result, expectedResult)
 
+    def test_countSeries(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,10]),
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[1,2,None,None,None,6,7,8,9,10]),
+            TimeSeries('collectd.test-db4.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,None]),
+        ]
+        for series in seriesList:
+            series.pathExpression = series.name
+        expectedResult = [
+            TimeSeries('countSeries(collectd.test-db1.load.value,collectd.test-db2.load.value,collectd.test-db3.load.value,collectd.test-db4.load.value)',0,600,60,[4,4,4,4,4,4,4,4,4,4]),
+        ]
+        for series in expectedResult:
+            series.options = {}
+
+        request_context = {}
+        result = functions.countSeries(request_context, seriesList)
+        self.assertEqual(result, expectedResult)
+
+    def test_group(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,10]),
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[1,2,None,None,None,6,7,8,9,10]),
+            TimeSeries('collectd.test-db4.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,None]),
+        ]
+        for series in seriesList:
+            series.pathExpression = series.name
+
+        request_context = {}
+        result = functions.group(request_context, seriesList[0], seriesList[1], seriesList[2], seriesList[3])
+        self.assertEqual(result, [1,2,3,4,5,6,7,8,9,10,None,None,None,None,None,None,None,None,None,None,1,2,None,None,None,6,7,8,9,10,1,2,3,4,5,6,7,8,9,None])
+
     def test_alias(self):
         seriesList = self._generate_series_list()
         substitution = "Ni!"
@@ -1652,6 +1685,42 @@ class FunctionsTest(TestCase):
         ]
         verify_groupByNodes(expectedResult, 1, 0)
 
+    def test_exclude(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,10]),
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[1,2,None,None,None,6,7,8,9,10]),
+            TimeSeries('collectd.test-db4.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,None]),
+        ]
+        for series in seriesList:
+            series.pathExpression = series.name
+        expectedResult = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,10]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[1,2,None,None,None,6,7,8,9,10]),
+            TimeSeries('collectd.test-db4.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,None]),
+        ]
+
+        request_context = {}
+        result = functions.exclude(request_context, seriesList, '.*db2')
+        self.assertEqual(result, expectedResult)
+
+    def test_grep(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,10]),
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[1,2,None,None,None,6,7,8,9,10]),
+            TimeSeries('collectd.test-db4.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,None]),
+        ]
+        for series in seriesList:
+            series.pathExpression = series.name
+        expectedResult = [
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+        ]
+
+        request_context = {}
+        result = functions.grep(request_context, seriesList, '.*db2')
+        self.assertEqual(result, expectedResult)
+
     def test_alpha(self):
         seriesList = self._generate_series_list()
         alpha = 0.5
@@ -1744,6 +1813,30 @@ class FunctionsTest(TestCase):
         request_context = {}
         result = functions.substr(request_context, seriesList, 1, 3)
         self.assertEqual(result, expectedResult)
+
+    def test_logarithm(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,10]),
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[-1,-2,None,None,None,-6,-7,-8,-9,-10]),
+            TimeSeries('collectd.test-db4.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,None]),
+        ]
+        expectedResult = [
+            TimeSeries('log(collectd.test-db1.load.value, 10)',0,600,60,[0.0,0.30103,0.4771213,0.60206,0.69897,0.7781513,0.845098,0.90309,0.9542425,1.0]),
+            TimeSeries('log(collectd.test-db2.load.value, 10)',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('log(collectd.test-db3.load.value, 10)',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('log(collectd.test-db4.load.value, 10)',0,600,60,[0.0,0.30103,0.4771213,0.60206,0.69897,0.7781513,0.845098,0.90309,0.9542425,None]),
+        ]
+
+        request_context = {}
+        result = functions.logarithm(request_context, seriesList)
+        # Round values to 7 digits for easier equality testing
+        for i, series in enumerate(result):
+          for k, v in enumerate(series):
+            if type(v) is float:
+              series[k] = round(v,7)
+        self.assertEqual(result, expectedResult)
+
 
     def test_maximumAbove(self):
         seriesList = [
@@ -2342,6 +2435,42 @@ class FunctionsTest(TestCase):
             raise KeyError('{} not found!'.format(path_expression))
 
         expectedResults = [
+            TimeSeries('divideSeries(servers.s1.disk.bytes_used,sumSeries(servers.s1.disk.bytes_used,servers.s1.disk.bytes_free))', 0, 3, 1, [0.10, 0.20, 0.30]),
+            TimeSeries('divideSeries(servers.s2.disk.bytes_used,sumSeries(servers.s2.disk.bytes_used,servers.s2.disk.bytes_free))', 0, 3, 1, [0.01, 0.02, 0.03])
+        ]
+
+        with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
+            result = functions.applyByNode(
+                {
+                    'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'endTime': datetime(1970, 1, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'localOnly': False,
+                },
+                seriesList, 1,
+                'divideSeries(%.disk.bytes_used, sumSeries(%.disk.bytes_*))'
+            )
+        self.assertEqual(result, expectedResults)
+
+    def test_applyByNode_newName(self):
+        seriesList = [
+            TimeSeries('servers.s1.disk.bytes_used', 0, 3, 1, [10, 20, 30]),
+            TimeSeries('servers.s1.disk.bytes_free', 0, 3, 1, [90, 80, 70]),
+            TimeSeries('servers.s2.disk.bytes_used', 0, 3, 1, [1, 2, 3]),
+            TimeSeries('servers.s2.disk.bytes_free', 0, 3, 1, [99, 98, 97])
+        ]
+        for series in seriesList:
+            series.pathExpression = series.name
+
+        def mock_data_fetcher(reqCtx, path_expression):
+            rv = []
+            for s in seriesList:
+                if s.name == path_expression or fnmatch(s.name, path_expression):
+                    rv.append(s)
+            if rv:
+                return rv
+            raise KeyError('{} not found!'.format(path_expression))
+
+        expectedResults = [
             TimeSeries('servers.s1.disk.pct_used', 0, 3, 1, [0.10, 0.20, 0.30]),
             TimeSeries('servers.s2.disk.pct_used', 0, 3, 1, [0.01, 0.02, 0.03])
         ]
@@ -2812,3 +2941,503 @@ class FunctionsTest(TestCase):
                 seriesList
             )
         self.assertEqual(result, expectedResults)
+
+    def test_smartSummarize_1day(self):
+        seriesList = [
+            TimeSeries('servers.s1.disk.bytes_used', 0, 86400, 60, range(0,86400,60)),
+            TimeSeries('servers.s1.disk.bytes_free', 0, 86400, 60, range(0, -86400, -60)),
+            TimeSeries('servers.s2.disk.bytes_used', 0, 86400, 60, [None]*1440),
+            TimeSeries('servers.s2.disk.bytes_free', 0, 86400, 60, range(0,1440))
+        ]
+        for series in seriesList:
+            series.pathExpression = series.name
+
+        def mock_data_fetcher(reqCtx, path_expression):
+            rv = []
+            for s in seriesList:
+                if s.name == path_expression or fnmatch(s.name, path_expression):
+                    rv.append(s)
+            if rv:
+                return rv
+            raise KeyError('{} not found!'.format(path_expression))
+
+        expectedResults = {'sum' : [
+            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1d", "sum")', 0, 86400, 86400, [62164800]),
+            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1d", "sum")', 0, 86400, 86400, [-62164800]),
+            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1d", "sum")', 0, 86400, 86400, [None]),
+            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1d", "sum")', 0, 86400, 86400, [1036080])
+        ],
+        'avg' : [
+            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1d", "avg")', 0, 86400, 86400, [43170.0]),
+            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1d", "avg")', 0, 86400, 86400, [-43170.0]),
+            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1d", "avg")', 0, 86400, 86400, [None]),
+            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1d", "avg")', 0, 86400, 86400, [719.5])
+        ],
+        'last' : [
+            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1d", "last")', 0, 86400, 86400, [86340]),
+            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1d", "last")', 0, 86400, 86400, [-86340]),
+            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1d", "last")', 0, 86400, 86400, [None]),
+            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1d", "last")', 0, 86400, 86400, [1439])
+        ],
+        'max' : [
+            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1d", "max")', 0, 86400, 86400, [86340]),
+            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1d", "max")', 0, 86400, 86400, [0]),
+            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1d", "max")', 0, 86400, 86400, [None]),
+            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1d", "max")', 0, 86400, 86400, [1439])
+        ],
+        'min' : [
+            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1d", "min")', 0, 86400, 86400, [0]),
+            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1d", "min")', 0, 86400, 86400, [-86340]),
+            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1d", "min")', 0, 86400, 86400, [None]),
+            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1d", "min")', 0, 86400, 86400, [0])
+        ],
+        }
+
+        for func in expectedResults:
+          with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
+              result = functions.smartSummarize(
+                  {
+                      'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                      'endTime': datetime(1970, 1, 2, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                      'localOnly': False,
+                  },
+                  seriesList, "1d", func)
+          self.assertEqual(result, expectedResults[func])
+
+    def test_smartSummarize_1hour(self):
+        seriesList = [
+            TimeSeries('servers.s1.disk.bytes_used', 0, 14400, 1, range(0,14400,1)),
+            TimeSeries('servers.s1.disk.bytes_free', 0, 14400, 1, range(0, -14400, -1)),
+            TimeSeries('servers.s2.disk.bytes_used', 0, 14400, 1, [None]*14400),
+            TimeSeries('servers.s2.disk.bytes_free', 0, 14400, 1, range(0,14400*2,2))
+        ]
+        for series in seriesList:
+            series.pathExpression = series.name
+
+        def mock_data_fetcher(reqCtx, path_expression):
+            rv = []
+            for s in seriesList:
+                if s.name == path_expression or fnmatch(s.name, path_expression):
+                    rv.append(s)
+            if rv:
+                return rv
+            raise KeyError('{} not found!'.format(path_expression))
+
+        expectedResults = {'sum' : [
+            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1hour", "sum")', 0, 14400, 3600, [6478200, 19438200, 32398200, 45358200]),
+            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1hour", "sum")', 0, 14400, 3600, [-6478200, -19438200, -32398200, -45358200]),
+            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1hour", "sum")', 0, 14400, 3600, [None, None, None, None]),
+            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1hour", "sum")', 0, 14400, 3600, [12956400, 38876400, 64796400, 90716400])
+        ],
+        'avg' : [
+            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1hour", "avg")', 0, 14400, 3600, [1799.5, 5399.5, 8999.5, 12599.5]),
+            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1hour", "avg")', 0, 14400, 3600, [-1799.5, -5399.5, -8999.5, -12599.5]),
+            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1hour", "avg")', 0, 14400, 3600, [None, None, None, None]),
+            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1hour", "avg")', 0, 14400, 3600, [3599.0, 10799.0, 17999.0, 25199.0])
+        ],
+        'last' : [
+            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1hour", "last")', 0, 14400, 3600, [3599, 7199, 10799, 14399]),
+            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1hour", "last")', 0, 14400, 3600, [-3599, -7199, -10799, -14399]),
+            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1hour", "last")', 0, 14400, 3600, [None, None, None, None]),
+            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1hour", "last")', 0, 14400, 3600, [7198, 14398, 21598, 28798])
+        ],
+        'max' : [
+            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1hour", "max")', 0, 14400, 3600, [3599, 7199, 10799, 14399]),
+            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1hour", "max")', 0, 14400, 3600, [0, -3600, -7200, -10800]),
+            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1hour", "max")', 0, 14400, 3600, [None, None, None, None]),
+            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1hour", "max")', 0, 14400, 3600, [7198, 14398, 21598, 28798])
+        ],
+        'min' : [
+            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1hour", "min")', 0, 14400, 3600, [0, 3600, 7200, 10800]),
+            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1hour", "min")', 0, 14400, 3600, [-3599, -7199, -10799, -14399]),
+            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1hour", "min")', 0, 14400, 3600, [None, None, None, None]),
+            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1hour", "min")', 0, 14400, 3600, [0, 7200, 14400, 21600])
+        ],
+        }
+
+        for func in expectedResults:
+          with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
+              result = functions.smartSummarize(
+                  {
+                      'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                      'endTime': datetime(1970, 1, 1, 4, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                      'localOnly': False,
+                  },
+                  seriesList, "1hour", func)
+          self.assertEqual(result, expectedResults[func])
+
+    def test_smartSummarize_1minute(self):
+        seriesList = [
+            TimeSeries('servers.s1.disk.bytes_used', 0, 240, 1, range(0,240)),
+            TimeSeries('servers.s1.disk.bytes_free', 0, 240, 1, range(0, -240, -1)),
+            TimeSeries('servers.s2.disk.bytes_used', 0, 240, 1, [None]*240),
+            TimeSeries('servers.s2.disk.bytes_free', 0, 240, 1, range(0,480,2))
+        ]
+        for series in seriesList:
+            series.pathExpression = series.name
+
+        def mock_data_fetcher(reqCtx, path_expression):
+            rv = []
+            for s in seriesList:
+                if s.name == path_expression or fnmatch(s.name, path_expression):
+                    rv.append(s)
+            if rv:
+                return rv
+            raise KeyError('{} not found!'.format(path_expression))
+
+        expectedResults = {'sum' : [
+            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1minute", "sum")', 0, 240, 60, [1770, 5370, 8970, 12570]),
+            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1minute", "sum")', 0, 240, 60, [-1770, -5370, -8970, -12570]),
+            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1minute", "sum")', 0, 240, 60, [None, None, None, None]),
+            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1minute", "sum")', 0, 240, 60, [3540, 10740, 17940, 25140])
+        ],
+        'avg' : [
+            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1minute", "avg")', 0, 240, 60, [29.5, 89.5, 149.5, 209.5]),
+            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1minute", "avg")', 0, 240, 60, [-29.5, -89.5, -149.5, -209.5]),
+            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1minute", "avg")', 0, 240, 60, [None, None, None, None]),
+            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1minute", "avg")', 0, 240, 60, [59.0, 179.0, 299.0, 419.0])
+        ],
+        'last' : [
+            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1minute", "last")', 0, 240, 60, [59, 119, 179, 239]),
+            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1minute", "last")', 0, 240, 60, [-59, -119, -179, -239]),
+            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1minute", "last")', 0, 240, 60, [None, None, None, None]),
+            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1minute", "last")', 0, 240, 60, [118, 238, 358, 478])
+        ],
+        'max' : [
+            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1minute", "max")', 0, 240, 60, [59, 119, 179, 239]),
+            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1minute", "max")', 0, 240, 60, [0, -60, -120, -180]),
+            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1minute", "max")', 0, 240, 60, [None, None, None, None]),
+            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1minute", "max")', 0, 240, 60, [118, 238, 358, 478])
+        ],
+        'min' : [
+            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1minute", "min")', 0, 240, 60, [0, 60, 120, 180]),
+            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1minute", "min")', 0, 240, 60, [-59, -119, -179, -239]),
+            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1minute", "min")', 0, 240, 60, [None, None, None, None]),
+            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1minute", "min")', 0, 240, 60, [0, 120, 240, 360])
+        ],
+        }
+
+        for func in expectedResults:
+          with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
+              result = functions.smartSummarize(
+                  {
+                      'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                      'endTime': datetime(1970, 1, 1, 0, 4, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                      'localOnly': False,
+                  },
+                  seriesList, "1minute", func)
+          self.assertEqual(result, expectedResults[func])
+
+    def test_smartSummarize_1minute_alignToFrom(self):
+        seriesList = [
+            TimeSeries('servers.s1.disk.bytes_used', 0, 240, 1, range(0,240)),
+            TimeSeries('servers.s1.disk.bytes_free', 0, 240, 1, range(0, -240, -1)),
+            TimeSeries('servers.s2.disk.bytes_used', 0, 240, 1, [None]*240),
+            TimeSeries('servers.s2.disk.bytes_free', 0, 240, 1, range(0,480,2))
+        ]
+        for series in seriesList:
+            series.pathExpression = series.name
+
+        def mock_data_fetcher(reqCtx, path_expression):
+            rv = []
+            for s in seriesList:
+                if s.name == path_expression or fnmatch(s.name, path_expression):
+                    rv.append(s)
+            if rv:
+                return rv
+            raise KeyError('{} not found!'.format(path_expression))
+
+        expectedResults = {'sum' : [
+            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1minute", "sum")', 0, 240, 60, [1770, 5370, 8970, 12570]),
+            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1minute", "sum")', 0, 240, 60, [-1770, -5370, -8970, -12570]),
+            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1minute", "sum")', 0, 240, 60, [None, None, None, None]),
+            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1minute", "sum")', 0, 240, 60, [3540, 10740, 17940, 25140])
+        ],
+        'avg' : [
+            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1minute", "avg")', 0, 240, 60, [29.5, 89.5, 149.5, 209.5]),
+            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1minute", "avg")', 0, 240, 60, [-29.5, -89.5, -149.5, -209.5]),
+            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1minute", "avg")', 0, 240, 60, [None, None, None, None]),
+            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1minute", "avg")', 0, 240, 60, [59.0, 179.0, 299.0, 419.0])
+        ],
+        'last' : [
+            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1minute", "last")', 0, 240, 60, [59, 119, 179, 239]),
+            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1minute", "last")', 0, 240, 60, [-59, -119, -179, -239]),
+            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1minute", "last")', 0, 240, 60, [None, None, None, None]),
+            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1minute", "last")', 0, 240, 60, [118, 238, 358, 478])
+        ],
+        'max' : [
+            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1minute", "max")', 0, 240, 60, [59, 119, 179, 239]),
+            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1minute", "max")', 0, 240, 60, [0, -60, -120, -180]),
+            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1minute", "max")', 0, 240, 60, [None, None, None, None]),
+            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1minute", "max")', 0, 240, 60, [118, 238, 358, 478])
+        ],
+        'min' : [
+            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1minute", "min")', 0, 240, 60, [0, 60, 120, 180]),
+            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1minute", "min")', 0, 240, 60, [-59, -119, -179, -239]),
+            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1minute", "min")', 0, 240, 60, [None, None, None, None]),
+            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1minute", "min")', 0, 240, 60, [0, 120, 240, 360])
+        ],
+        }
+
+        for func in expectedResults:
+          with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
+              result = functions.smartSummarize(
+                  {
+                      'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                      'endTime': datetime(1970, 1, 1, 0, 4, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                      'localOnly': False,
+                  },
+                  seriesList, "1minute", func, True)
+          self.assertEqual(result, expectedResults[func])
+
+    def test_hitcount_1day(self):
+        seriesList = [
+            TimeSeries('servers.s1.disk.bytes_used', 0, 86400, 60, range(0,86400,60)),
+            TimeSeries('servers.s1.disk.bytes_free', 0, 86400, 60, range(0, -86400, -60)),
+            TimeSeries('servers.s2.disk.bytes_used', 0, 86400, 60, [None]*1440),
+            TimeSeries('servers.s2.disk.bytes_free', 0, 86400, 60, range(0,1440))
+        ]
+        for series in seriesList:
+            series.pathExpression = series.name
+
+        def mock_data_fetcher(reqCtx, path_expression):
+            rv = []
+            for s in seriesList:
+                if s.name == path_expression or fnmatch(s.name, path_expression):
+                    rv.append(s)
+            if rv:
+                return rv
+            raise KeyError('{} not found!'.format(path_expression))
+
+        expectedResults = [
+            TimeSeries('hitcount(servers.s1.disk.bytes_used, "1d", true)', 0, 172800, 86400, [3729888000, None]),
+            TimeSeries('hitcount(servers.s1.disk.bytes_free, "1d", true)', 0, 172800, 86400, [-3729888000, None]),
+            TimeSeries('hitcount(servers.s2.disk.bytes_used, "1d", true)', 0, 172800, 86400, [None, None]),
+            TimeSeries('hitcount(servers.s2.disk.bytes_free, "1d", true)', 0, 172800, 86400, [62164800, None])
+        ]
+
+        with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
+            result = functions.hitcount(
+                {
+                    'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'endTime': datetime(1970, 1, 2, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'localOnly': False,
+                },
+                seriesList, "1d", True)
+        self.assertEqual(result, expectedResults)
+
+    def test_hitcount_1hour(self):
+        seriesList = [
+            TimeSeries('servers.s1.disk.bytes_used', 0, 14400, 1, range(0,14400,1)),
+            TimeSeries('servers.s1.disk.bytes_free', 0, 14400, 1, range(0, -14400, -1)),
+            TimeSeries('servers.s2.disk.bytes_used', 0, 14400, 1, [None]*14400),
+            TimeSeries('servers.s2.disk.bytes_free', 0, 14400, 1, range(0,14400*2,2))
+        ]
+        for series in seriesList:
+            series.pathExpression = series.name
+
+        def mock_data_fetcher(reqCtx, path_expression):
+            rv = []
+            for s in seriesList:
+                if s.name == path_expression or fnmatch(s.name, path_expression):
+                    rv.append(s)
+            if rv:
+                return rv
+            raise KeyError('{} not found!'.format(path_expression))
+
+        expectedResults = [
+            TimeSeries('hitcount(servers.s1.disk.bytes_used, "1hour", true)', 0, 18000, 3600, [6478200, 19438200, 32398200, 45358200, None]),
+            TimeSeries('hitcount(servers.s1.disk.bytes_free, "1hour", true)', 0, 18000, 3600, [-6478200, -19438200, -32398200, -45358200, None]),
+            TimeSeries('hitcount(servers.s2.disk.bytes_used, "1hour", true)', 0, 18000, 3600, [None, None, None, None, None]),
+            TimeSeries('hitcount(servers.s2.disk.bytes_free, "1hour", true)', 0, 18000, 3600, [12956400, 38876400, 64796400, 90716400, None])
+        ]
+
+        with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
+            result = functions.hitcount(
+                {
+                    'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'endTime': datetime(1970, 1, 1, 4, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'localOnly': False,
+                },
+                seriesList, "1hour", True)
+        self.assertEqual(result, expectedResults)
+
+    def test_hitcount_1minute(self):
+        seriesList = [
+            TimeSeries('servers.s1.disk.bytes_used', 0, 240, 1, range(0,240)),
+            TimeSeries('servers.s1.disk.bytes_free', 0, 240, 1, range(0, -240, -1)),
+            TimeSeries('servers.s2.disk.bytes_used', 0, 240, 1, [None]*240),
+            TimeSeries('servers.s2.disk.bytes_free', 0, 240, 1, range(0,480,2))
+        ]
+        for series in seriesList:
+            series.pathExpression = series.name
+
+        def mock_data_fetcher(reqCtx, path_expression):
+            rv = []
+            for s in seriesList:
+                if s.name == path_expression or fnmatch(s.name, path_expression):
+                    rv.append(s)
+            if rv:
+                return rv
+            raise KeyError('{} not found!'.format(path_expression))
+
+        expectedResults = [
+            TimeSeries('hitcount(servers.s1.disk.bytes_used, "1minute", true)', 0, 300, 60, [1770, 5370, 8970, 12570, None]),
+            TimeSeries('hitcount(servers.s1.disk.bytes_free, "1minute", true)', 0, 300, 60, [-1770, -5370, -8970, -12570, None]),
+            TimeSeries('hitcount(servers.s2.disk.bytes_used, "1minute", true)', 0, 300, 60, [None, None, None, None, None]),
+            TimeSeries('hitcount(servers.s2.disk.bytes_free, "1minute", true)', 0, 300, 60, [3540, 10740, 17940, 25140, None])
+        ]
+
+        with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
+            result = functions.hitcount(
+                {
+                    'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'endTime': datetime(1970, 1, 1, 0, 4, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'localOnly': False,
+                },
+                seriesList, "1minute", True)
+        self.assertEqual(result, expectedResults)
+
+    def test_hitcount_1minute_alignToFrom_false(self):
+        seriesList = [
+            TimeSeries('servers.s1.disk.bytes_used', 0, 240, 1, range(0,240)),
+            TimeSeries('servers.s1.disk.bytes_free', 0, 240, 1, range(0, -240, -1)),
+            TimeSeries('servers.s2.disk.bytes_used', 0, 240, 1, [None]*240),
+            TimeSeries('servers.s2.disk.bytes_free', 0, 240, 1, range(0,480,2))
+        ]
+        for series in seriesList:
+            series.pathExpression = series.name
+
+        def mock_data_fetcher(reqCtx, path_expression):
+            rv = []
+            for s in seriesList:
+                if s.name == path_expression or fnmatch(s.name, path_expression):
+                    rv.append(s)
+            if rv:
+                return rv
+            raise KeyError('{} not found!'.format(path_expression))
+
+        expectedResults = [
+            TimeSeries('hitcount(servers.s1.disk.bytes_used, "1minute")', 0, 240, 60, [1770, 5370, 8970, 12570]),
+            TimeSeries('hitcount(servers.s1.disk.bytes_free, "1minute")', 0, 240, 60, [-1770, -5370, -8970, -12570]),
+            TimeSeries('hitcount(servers.s2.disk.bytes_used, "1minute")', 0, 240, 60, [None, None, None, None]),
+            TimeSeries('hitcount(servers.s2.disk.bytes_free, "1minute")', 0, 240, 60, [3540, 10740, 17940, 25140])
+        ]
+
+        with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
+            result = functions.hitcount(
+                {
+                    'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'endTime': datetime(1970, 1, 1, 0, 4, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'localOnly': False,
+                },
+                seriesList, "1minute", False)
+        self.assertEqual(result, expectedResults)
+
+    def test_summarize_1minute(self):
+        seriesList = [
+            TimeSeries('servers.s1.disk.bytes_used', 0, 240, 1, range(0,240)),
+            TimeSeries('servers.s1.disk.bytes_free', 0, 240, 1, range(0, -240, -1)),
+            TimeSeries('servers.s2.disk.bytes_used', 0, 240, 1, [None]*240),
+            TimeSeries('servers.s2.disk.bytes_free', 0, 240, 1, range(0,480,2))
+        ]
+        for series in seriesList:
+            series.pathExpression = series.name
+
+        expectedResults = {'sum' : [
+            TimeSeries('summarize(servers.s1.disk.bytes_used, "1minute", "sum")', 0, 300, 60, [1770, 5370, 8970, 12570, None]),
+            TimeSeries('summarize(servers.s1.disk.bytes_free, "1minute", "sum")', 0, 300, 60, [-1770, -5370, -8970, -12570, None]),
+            TimeSeries('summarize(servers.s2.disk.bytes_used, "1minute", "sum")', 0, 300, 60, [None, None, None, None, None]),
+            TimeSeries('summarize(servers.s2.disk.bytes_free, "1minute", "sum")', 0, 300, 60, [3540, 10740, 17940, 25140, None])
+        ],
+        'avg' : [
+            TimeSeries('summarize(servers.s1.disk.bytes_used, "1minute", "avg")', 0, 300, 60, [29.5, 89.5, 149.5, 209.5, None]),
+            TimeSeries('summarize(servers.s1.disk.bytes_free, "1minute", "avg")', 0, 300, 60, [-29.5, -89.5, -149.5, -209.5, None]),
+            TimeSeries('summarize(servers.s2.disk.bytes_used, "1minute", "avg")', 0, 300, 60, [None, None, None, None, None]),
+            TimeSeries('summarize(servers.s2.disk.bytes_free, "1minute", "avg")', 0, 300, 60, [59.0, 179.0, 299.0, 419.0, None])
+        ],
+        'last' : [
+            TimeSeries('summarize(servers.s1.disk.bytes_used, "1minute", "last")', 0, 300, 60, [59, 119, 179, 239, None]),
+            TimeSeries('summarize(servers.s1.disk.bytes_free, "1minute", "last")', 0, 300, 60, [-59, -119, -179, -239, None]),
+            TimeSeries('summarize(servers.s2.disk.bytes_used, "1minute", "last")', 0, 300, 60, [None, None, None, None, None]),
+            TimeSeries('summarize(servers.s2.disk.bytes_free, "1minute", "last")', 0, 300, 60, [118, 238, 358, 478, None])
+        ],
+        'max' : [
+            TimeSeries('summarize(servers.s1.disk.bytes_used, "1minute", "max")', 0, 300, 60, [59, 119, 179, 239, None]),
+            TimeSeries('summarize(servers.s1.disk.bytes_free, "1minute", "max")', 0, 300, 60, [0, -60, -120, -180, None]),
+            TimeSeries('summarize(servers.s2.disk.bytes_used, "1minute", "max")', 0, 300, 60, [None, None, None, None, None]),
+            TimeSeries('summarize(servers.s2.disk.bytes_free, "1minute", "max")', 0, 300, 60, [118, 238, 358, 478, None])
+        ],
+        'min' : [
+            TimeSeries('summarize(servers.s1.disk.bytes_used, "1minute", "min")', 0, 300, 60, [0, 60, 120, 180, None]),
+            TimeSeries('summarize(servers.s1.disk.bytes_free, "1minute", "min")', 0, 300, 60, [-59, -119, -179, -239, None]),
+            TimeSeries('summarize(servers.s2.disk.bytes_used, "1minute", "min")', 0, 300, 60, [None, None, None, None, None]),
+            TimeSeries('summarize(servers.s2.disk.bytes_free, "1minute", "min")', 0, 300, 60, [0, 120, 240, 360, None])
+        ],
+        }
+
+        for func in expectedResults:
+          for series in expectedResults[func]:
+              series.pathExpression = series.name
+          result = functions.summarize(
+              {
+                  'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                  'endTime': datetime(1970, 1, 1, 0, 4, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                  'localOnly': False,
+              },
+              seriesList, "1minute", func)
+          self.assertEqual(result, expectedResults[func])
+
+    def test_summarize_1minute_alignToFrom(self):
+        seriesList = [
+            TimeSeries('servers.s1.disk.bytes_used', 0, 240, 1, range(0,240)),
+            TimeSeries('servers.s1.disk.bytes_free', 0, 240, 1, range(0, -240, -1)),
+            TimeSeries('servers.s2.disk.bytes_used', 0, 240, 1, [None]*240),
+            TimeSeries('servers.s2.disk.bytes_free', 0, 240, 1, range(0,480,2))
+        ]
+        for series in seriesList:
+            series.pathExpression = series.name
+
+        expectedResults = {'sum' : [
+            TimeSeries('summarize(servers.s1.disk.bytes_used, "1minute", "sum", true)', 0, 240, 60, [1770, 5370, 8970, 12570]),
+            TimeSeries('summarize(servers.s1.disk.bytes_free, "1minute", "sum", true)', 0, 240, 60, [-1770, -5370, -8970, -12570]),
+            TimeSeries('summarize(servers.s2.disk.bytes_used, "1minute", "sum", true)', 0, 240, 60, [None, None, None, None]),
+            TimeSeries('summarize(servers.s2.disk.bytes_free, "1minute", "sum", true)', 0, 240, 60, [3540, 10740, 17940, 25140])
+        ],
+        'avg' : [
+            TimeSeries('summarize(servers.s1.disk.bytes_used, "1minute", "avg", true)', 0, 240, 60, [29.5, 89.5, 149.5, 209.5]),
+            TimeSeries('summarize(servers.s1.disk.bytes_free, "1minute", "avg", true)', 0, 240, 60, [-29.5, -89.5, -149.5, -209.5]),
+            TimeSeries('summarize(servers.s2.disk.bytes_used, "1minute", "avg", true)', 0, 240, 60, [None, None, None, None]),
+            TimeSeries('summarize(servers.s2.disk.bytes_free, "1minute", "avg", true)', 0, 240, 60, [59.0, 179.0, 299.0, 419.0])
+        ],
+        'last' : [
+            TimeSeries('summarize(servers.s1.disk.bytes_used, "1minute", "last", true)', 0, 240, 60, [59, 119, 179, 239]),
+            TimeSeries('summarize(servers.s1.disk.bytes_free, "1minute", "last", true)', 0, 240, 60, [-59, -119, -179, -239]),
+            TimeSeries('summarize(servers.s2.disk.bytes_used, "1minute", "last", true)', 0, 240, 60, [None, None, None, None]),
+            TimeSeries('summarize(servers.s2.disk.bytes_free, "1minute", "last", true)', 0, 240, 60, [118, 238, 358, 478])
+        ],
+        'max' : [
+            TimeSeries('summarize(servers.s1.disk.bytes_used, "1minute", "max", true)', 0, 240, 60, [59, 119, 179, 239]),
+            TimeSeries('summarize(servers.s1.disk.bytes_free, "1minute", "max", true)', 0, 240, 60, [0, -60, -120, -180]),
+            TimeSeries('summarize(servers.s2.disk.bytes_used, "1minute", "max", true)', 0, 240, 60, [None, None, None, None]),
+            TimeSeries('summarize(servers.s2.disk.bytes_free, "1minute", "max", true)', 0, 240, 60, [118, 238, 358, 478])
+        ],
+        'min' : [
+            TimeSeries('summarize(servers.s1.disk.bytes_used, "1minute", "min", true)', 0, 240, 60, [0, 60, 120, 180]),
+            TimeSeries('summarize(servers.s1.disk.bytes_free, "1minute", "min", true)', 0, 240, 60, [-59, -119, -179, -239]),
+            TimeSeries('summarize(servers.s2.disk.bytes_used, "1minute", "min", true)', 0, 240, 60, [None, None, None, None]),
+            TimeSeries('summarize(servers.s2.disk.bytes_free, "1minute", "min", true)', 0, 240, 60, [0, 120, 240, 360])
+        ],
+        }
+
+        for func in expectedResults:
+          for series in expectedResults[func]:
+              series.pathExpression = series.name
+          result = functions.summarize(
+              {
+                  'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                  'endTime': datetime(1970, 1, 1, 0, 4, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                  'localOnly': False,
+              },
+              seriesList, "1minute", func, True)
+          self.assertEqual(result, expectedResults[func])
