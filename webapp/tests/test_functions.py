@@ -1559,6 +1559,18 @@ class FunctionsTest(TestCase):
         result = functions.countSeries(request_context, seriesList)
         self.assertEqual(result, expectedResult)
 
+    def test_empty_countSeries(self):
+        expectedResult = [
+            TimeSeries('0',0,600,300,[0,0,0]),
+        ]
+
+        request_context = {
+            'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+            'endTime': datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+        }
+        result = functions.countSeries(request_context)
+        self.assertEqual(result, expectedResult)
+
     def test_group(self):
         seriesList = [
             TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,10]),
