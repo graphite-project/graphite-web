@@ -634,15 +634,14 @@ def weightedAverage(requestContext, seriesListAvg, seriesListWeight, *nodes):
   """
   Takes a series of average values and a series of weights and
   produces a weighted average for all values.
-  The corresponding values should share a node as defined
-  by the node parameter, 0-indexed.
-  Multiple nodes may be passed
+  The corresponding values should share one or more zero-indexed nodes.
 
   Example:
 
   .. code-block:: none
 
     &target=weightedAverage(*.transactions.mean,*.transactions.count,0)
+    &target=weightedAverage(*.transactions.mean,*.transactions.count,1,3,4)
 
 
   """
