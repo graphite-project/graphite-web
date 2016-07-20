@@ -177,17 +177,23 @@ def renderView(request):
 
     if format == 'dygraph':
       labels = ['Time']
-      datapoints = [[ts] for ts in range(data[0].start, data[0].end, data[0].step)]
-      for series in data:
-        labels.append(series.name)
-        for i, point in enumerate(series):
-          datapoints[i].append(point if point is not None else 'null')
-      line_template = '[%%s000%s]' % ''.join([', %s'] * len(data))
-      lines = [line_template % tuple(points) for points in datapoints]
-      result = '{"labels" : %s, "data" : [%s]}' % (json.dumps(labels), ', '.join(lines))
+      result = '{}'
+      if data:
+        datapoints = [[ts] for ts in range(data[0].start, data[0].end, data[0].step)]
+        for series in data:
+          labels.append(series.name)
+          for i, point in enumerate(series):
+            datapoints[i].append(point if point is not None else 'null')
+        line_template = '[%%s000%s]' % ''.join([', %s'] * len(data))
+        lines = [line_template % tuple(points) for points in datapoints]
+        result = '{"labels" : %s, "data" : [%s]}' % (json.dumps(labels), ', '.join(lines))
       response = HttpResponse(content=result, content_type='application/json')
-      response['Pragma'] = 'no-cache'
-      response['Cache-Control'] = 'no-cache'
+
+      if useCache:
+        cache.add(requestKey, response, cacheTimeout)
+        patch_response_headers(response, cache_timeout=cacheTimeout)
+      else:
+        add_never_cache_headers(response)
       return response
 
     if format == 'rickshaw':
@@ -203,6 +209,12 @@ def renderView(request):
       else:
         response = HttpResponse(content=json.dumps(series_data),
                                 content_type='application/json')
+
+      if useCache:
+        cache.add(requestKey, response, cacheTimeout)
+        patch_response_headers(response, cache_timeout=cacheTimeout)
+      else:
+        add_never_cache_headers(response)
       return response
 
     if format == 'raw':
