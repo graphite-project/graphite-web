@@ -70,6 +70,18 @@ class RenderTest(TestCase):
         self.assertTrue(response.has_header('Last-Modified'))
         self.assertTrue(response.has_header('Cache-Control'))
 
+        response = self.client.get(url, {'target': 'test', 'format': 'dygraph'})
+        self.assertEqual(json.loads(response.content), {})
+        self.assertTrue(response.has_header('Expires'))
+        self.assertTrue(response.has_header('Last-Modified'))
+        self.assertTrue(response.has_header('Cache-Control'))
+
+        response = self.client.get(url, {'target': 'test', 'format': 'rickshaw'})
+        self.assertEqual(json.loads(response.content), [])
+        self.assertTrue(response.has_header('Expires'))
+        self.assertTrue(response.has_header('Last-Modified'))
+        self.assertTrue(response.has_header('Cache-Control'))
+
         self.addCleanup(self.wipe_whisper)
         whisper.create(self.db, [(1, 60)])
 
@@ -83,6 +95,24 @@ class RenderTest(TestCase):
         end = data[0]['datapoints'][-4:]
         self.assertEqual(
             end, [[None, ts - 3], [0.5, ts - 2], [0.4, ts - 1], [0.6, ts]])
+
+        response = self.client.get(url, {'target': 'test', 'format': 'dygraph'})
+        data = json.loads(response.content)
+        end = data['data'][-4:]
+        self.assertEqual(end,
+            [[(ts - 3) * 1000, None],
+            [(ts - 2) * 1000, 0.5],
+            [(ts - 1) * 1000, 0.4],
+            [ts * 1000, 0.6]])
+
+        response = self.client.get(url, {'target': 'test', 'format': 'rickshaw'})
+        data = json.loads(response.content)
+        end = data[0]['datapoints'][-4:]
+        self.assertEqual(end,
+            [{'x': ts - 3, 'y': None},
+            {'x': ts - 2, 'y': 0.5},
+            {'x': ts - 1, 'y': 0.4},
+            {'x': ts, 'y': 0.6}])
 
     def test_hash_request(self):
         # Requests with the same parameters should hash to the same values,

@@ -263,6 +263,8 @@ Examples:
   &format=json
   &format=svg
   &format=pdf
+  &format=dygraph
+  &format=rickshaw
 
 png
 ^^^
@@ -363,6 +365,40 @@ an object describing the graph
 pdf
 ^^^
 Renders the graph as a PDF of size determined by width_ and height_.
+
+dygraph
+^^^^^^^
+Renders the data as a json object suitable for passing to a `Dygraph <http://dygraphs.com/data.html>`_ object.
+
+.. code-block:: none
+
+  {
+    "labels" : [
+      "Time",
+      "entries"
+    ],
+    "data" : [
+      [1468791890000, 0.0],
+      [1468791900000, 0.0]
+    ]
+  }
+
+rickshaw
+^^^^^^^^
+Renders the data as a json object suitable for passing to a `Rickshaw <http://code.shutterstock.com/rickshaw/tutorial/introduction.html>`_ object.
+
+.. code-block:: none
+
+  [{
+    "target": "entries",
+    "datapoints": [{
+      "y": 0.0,
+      "x": 1468791890
+    }, {
+      "y": 0.0,
+      "x": 1468791900
+    }]
+  }]
 
 pickle
 ^^^^^^
