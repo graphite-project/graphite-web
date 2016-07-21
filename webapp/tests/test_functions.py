@@ -2540,6 +2540,43 @@ class FunctionsTest(TestCase):
             )
         self.assertEqual(result, expectedResults)
 
+    def test_movingMedian_evaluateTokens_returns_half_none(self):
+        def gen_seriesList(start=0):
+            seriesList = [
+                TimeSeries('collectd.test-db0.load.value', start+10, start+20, 1, range(0, 10)),
+            ]
+            for series in seriesList:
+                series.pathExpression = series.name
+            return seriesList
+
+        seriesList = gen_seriesList(10)
+
+        def mock_evaluateTokens(reqCtx, tokens, replacements=None):
+            seriesList = [
+                TimeSeries('collectd.test-db0.load.value', 10, 30, 1, [None] * 10 + range(0, 10))
+            ]
+            for series in seriesList:
+                series.pathExpression = series.name
+            return seriesList
+
+        expectedResults = [
+            TimeSeries('movingMedian(collectd.test-db0.load.value,10)', 20, 30, 1, [None, 0, 1, 1, 2, 2, 3, 3, 4, 4])
+        ]
+
+        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+            result = functions.movingMedian(
+                {
+                    'template': {},
+                    'args': ({},{}),
+                    'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'endTime': datetime(1970, 1, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'localOnly': False,
+                    'data': []
+                },
+                seriesList, 10
+            )
+        self.assertEqual(result, expectedResults)
+
     def test_movingMedian_evaluateTokens_returns_empty_list(self):
         def gen_seriesList(start=0):
             seriesList = [
@@ -2658,6 +2695,43 @@ class FunctionsTest(TestCase):
 
         expectedResults = [
             TimeSeries('movingAverage(collectd.test-db0.load.value,10)', 20, 25, 1, [None, None, None, None, None])
+        ]
+
+        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+            result = functions.movingAverage(
+                {
+                    'template': {},
+                    'args': ({},{}),
+                    'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'endTime': datetime(1970, 1, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'localOnly': False,
+                    'data': []
+                },
+                seriesList, 10
+            )
+        self.assertEqual(result, expectedResults)
+
+    def test_movingAverage_evaluateTokens_returns_half_none(self):
+        def gen_seriesList(start=0):
+            seriesList = [
+                TimeSeries('collectd.test-db0.load.value', start+10, start+20, 1, range(0, 10)),
+            ]
+            for series in seriesList:
+                series.pathExpression = series.name
+            return seriesList
+
+        seriesList = gen_seriesList(10)
+
+        def mock_evaluateTokens(reqCtx, tokens, replacements=None):
+            seriesList = [
+                TimeSeries('collectd.test-db0.load.value', 10, 30, 1, [None] * 10 + range(0, 10))
+            ]
+            for series in seriesList:
+                series.pathExpression = series.name
+            return seriesList
+
+        expectedResults = [
+            TimeSeries('movingAverage(collectd.test-db0.load.value,10)', 20, 30, 1, [None, 0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0])
         ]
 
         with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
