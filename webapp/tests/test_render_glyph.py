@@ -319,6 +319,12 @@ class glyphStandaloneFunctionTest(TestCase):
       self.assertEquals(dt_out, expected_dt)
       self.assertEquals(delta_out, expected_delta)
 
+    def test_find_x_times_xconfigs(self):
+      for xconf in glyph.xAxisConfigs:
+        glyph.find_x_times(self.dt, xconf['labelUnit'], xconf['labelStep'])
+        glyph.find_x_times(self.dt, xconf['majorGridUnit'], xconf['majorGridStep'])
+        glyph.find_x_times(self.dt, xconf['minorGridUnit'], xconf['minorGridStep'])
+
     def test_find_x_times_invalid_input(self):
       with self.assertRaises(ValueError):
           glyph.find_x_times(None, glyph.SEC, 1.0)
@@ -346,6 +352,9 @@ class glyphStandaloneFunctionTest(TestCase):
 
       with self.assertRaises(ValueError):
           glyph.find_x_times(self.dt, glyph.SEC, 1.0)
+
+      with self.assertRaises(ValueError):
+          glyph.find_x_times(self.dt, glyph.DAY, -1.0)
 
 
 class AxisTicsTest(TestCase):

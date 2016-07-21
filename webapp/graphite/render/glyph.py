@@ -1968,7 +1968,8 @@ def find_x_times(start_dt, unit, step):
   if not isinstance(start_dt, datetime):
     raise ValueError("Invalid start_dt: %s" % start_dt)
   if not isinstance(step, int) or not step > 0:
-    raise ValueError("Invalid step value: %s" % step)
+    if not isinstance(step, float) or unit != DAY or not step > 0.0:
+      raise ValueError("Invalid step value: %s" % step)
 
   if unit == SEC:
     dt = start_dt.replace(second=start_dt.second - (start_dt.second % step))
