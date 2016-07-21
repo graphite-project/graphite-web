@@ -154,7 +154,7 @@ def renderView(request):
             timestamps = range(int(series.start), int(series.end) + 1, int(series.step))
           datapoints = zip(series, timestamps)
           series_data.append(dict(target=series.name, datapoints=datapoints))
-      elif 'NoNullPoints' in requestOptions and any(data):
+      elif 'noNullPoints' in requestOptions and any(data):
         for series in data:
           values = []
           for (index,v) in enumerate(series):
@@ -328,8 +328,8 @@ def parseOptions(request):
     requestOptions['noCache'] = True
   if 'maxDataPoints' in queryParams and queryParams['maxDataPoints'].isdigit():
     requestOptions['maxDataPoints'] = int(queryParams['maxDataPoints'])
-  if 'NoNullPoints' in queryParams:
-    requestOptions['NoNullPoints'] = True
+  if 'noNullPoints' in queryParams:
+    requestOptions['noNullPoints'] = True
 
   requestOptions['localOnly'] = queryParams.get('local') == '1'
 
