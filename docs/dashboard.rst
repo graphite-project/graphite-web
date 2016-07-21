@@ -229,7 +229,7 @@ The functions are grouped as follows:
   - the number of minor lines to draw (see :ref:`param-minorY`)
   - drawing on a logarithmic scale of the specified base (see :ref:`param-logBase`)
   - step between the Y-axis labels and gridlines (see :ref:`param-yStep`)
-  - divisor for the axis (see :ref:`param-yDivisor`)
+  - divisor for the axis (see :ref:`param-yDivisors`)
   - unit system (SI, binary, or none - see :ref:`param-yUnitSystem`)
   - side the axis appears (see :ref:`param-yAxisSide`).
 
