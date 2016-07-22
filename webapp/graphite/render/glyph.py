@@ -14,9 +14,9 @@ limitations under the License."""
 
 import math, itertools, re
 try:
-    import cairo
-except ImportError:
     import cairocffi as cairo
+except ImportError:
+    import cairo
 
 import StringIO
 from datetime import datetime, timedelta
@@ -25,7 +25,6 @@ from ConfigParser import SafeConfigParser
 from django.conf import settings
 from graphite.render.datalib import TimeSeries
 from graphite.util import json
-
 
 import pytz
 
