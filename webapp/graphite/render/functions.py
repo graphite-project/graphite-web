@@ -269,10 +269,10 @@ def multiplySeriesWithWildcards(requestContext, seriesList, *position): #XXX
 
   .. code-block:: none
 
-    &target=multiplySeriesWithWildcards([web.host-[0-7].avg-response.value, web.host-[0-7].total-request.value], 2,3)
+    &target=multiplySeriesWithWildcards(web.host-[0-7].{avg-response,total-request}.value, 2)
 
   This would be the equivalent of
-  ``target=multiplySeries(web.host-0.avg-response.value, web.host-0.total-request.value)&target=multiplySeries(web.host-1.avg-response.value, web.host-1.total-request.value)...``
+  ``target=multiplySeries(web.host-0.{avg-response,total-request}.value)&target=multiplySeries(web.host-1.{avg-response,total-request}.value)...``
 
   """
   if type(position) is int:
