@@ -86,7 +86,9 @@ STATIC_ROOT
 
   This directory doesn't even exist once you've installed graphite. It needs to be populated with the following command::
 
-      django-admin.py collectstatic --noinput --settings=graphite.settings
+      PYTHONPATH=$PATH:/opt/graphite:webapp django-admin.py collectstatic --noinput --settings=graphite.settings
+
+  Replace /opt/graphite points with actuall path to GRAPHITE_ROOT
 
   This collects static files for graphite-web and external apps (namely, the Django admin app) and puts them in a directory that needs to be available under the ``/static/`` URL of your web server. To configure Apache::
 
