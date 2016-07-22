@@ -2715,8 +2715,8 @@ def constantLine(requestContext, value):
 
 def aggregateLine(requestContext, seriesList, func='avg'):
   """
-  Draws a horizontal line based the function applied to the series.
-
+  Takes a metric or wildcard seriesList and draws a horizontal line
+  based on the function applied to each series.
 
   Note: By default, the graphite renderer consolidates data points by
   averaging data points over time. If you are using the 'min' or 'max'
@@ -2731,7 +2731,8 @@ def aggregateLine(requestContext, seriesList, func='avg'):
 
   .. code-block:: none
 
-    &target=aggregateLine(server.connections.total, 'avg')
+    &target=aggregateLine(server01.connections.total, 'avg')
+    &target=aggregateLine(server*.connections.total, 'avg')
 
   """
   t_funcs = { 'avg': safeAvg, 'min': safeMin, 'max': safeMax }
@@ -2739,13 +2740,19 @@ def aggregateLine(requestContext, seriesList, func='avg'):
   if func not in t_funcs:
     raise ValueError("Invalid function %s" % func)
 
-  value = t_funcs[func]( seriesList[0] )
-  name = 'aggregateLine(%s, %g)' % (seriesList[0].pathExpression, value)
+  results = []
+  for series in seriesList:
+    value = t_funcs[func](series)
+    if value is not None:
+        name = 'aggregateLine(%s, %g)' % (series.name, value)
+    else:
+        name = 'aggregateLine(%s, None)' % (series.name)
 
-  series = constantLine(requestContext, value)[0]
-  series.name = name
-
-  return [series]
+    [series] = constantLine(requestContext, value)
+    series.name = name
+    series.pathExpression = series.name
+    results.append(series)
+  return results
 
 def threshold(requestContext, value, label=None, color=None):
   """
