@@ -28,12 +28,13 @@ except ImportError:
     required += 1
 
 
-# Test for pycairo or cairocffi
+# Test for cairocffi or pycairo
 try:
-  import cairo
+  import cairocffi as cairo
 except ImportError:
+  sys.stderr.write("[REQUIRED] Unable to import the 'cairocffi' module, attempting to fall back to pycairo\n")
   try:
-    import cairocffi as cairo
+    import cairo
   except ImportError:
     sys.stderr.write("[REQUIRED] Unable to import the 'cairo' module, do you have pycairo installed for python %s?\n" % py_version)
     cairo = None
@@ -48,6 +49,7 @@ try:
 except Exception:
   sys.stderr.write("[REQUIRED] Failed to create an ImageSurface with cairo, you probably need to recompile cairo with PNG support\n")
   required += 1
+
 
 # Test that cairo can find fonts
 try:
