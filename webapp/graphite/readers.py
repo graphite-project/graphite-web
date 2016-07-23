@@ -219,7 +219,7 @@ class RRDReader:
   supported = bool(rrdtool)
 
   @staticmethod
-  def _convert_fs_path (fs_path):
+  def _convert_fs_path(fs_path):
     if isinstance(fs_path, unicode):
       fs_path = fs_path.encode(sys.getfilesystemencoding())
     return fs_path
