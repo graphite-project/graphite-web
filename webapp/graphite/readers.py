@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 from graphite.intervals import Interval, IntervalSet
 from graphite.carbonlink import CarbonLink
@@ -217,8 +218,14 @@ class GzippedWhisperReader(WhisperReader):
 class RRDReader:
   supported = bool(rrdtool)
 
+  @staticmethod
+  def _convert_fs_path (fs_path):
+    if isinstance(fs_path, unicode):
+      fs_path = fs_path.encode(sys.getfilesystemencoding())
+    return fs_path
+
   def __init__(self, fs_path, datasource_name):
-    self.fs_path = fs_path
+    self.fs_path = RRDReader._convert_fs_path(fs_path)
     self.datasource_name = datasource_name
 
   def get_intervals(self):
@@ -242,7 +249,7 @@ class RRDReader:
 
   @staticmethod
   def get_datasources(fs_path):
-    info = rrdtool.info(fs_path)
+    info = rrdtool.info(RRDReader._convert_fs_path(fs_path))
 
     if 'ds' in info:
       return [datasource_name for datasource_name in info['ds']]
@@ -253,7 +260,7 @@ class RRDReader:
 
   @staticmethod
   def get_retention(fs_path):
-    info = rrdtool.info(fs_path)
+    info = rrdtool.info(RRDReader._convert_fs_path(fs_path))
     if 'rra' in info:
       rras = info['rra']
     else:
