@@ -16,9 +16,11 @@ Here are some organizations that use Graphite:
 * `ImmobilienScout24 <http://www.immobilienscout24.de/>`_
 * `Instagram <http://instagram.com/>`_
 * `ITV <http://www.itv.com/>`_
+* `Maaii <http://www.maaii.com>`_
 * `Mackerel <https://mackerel.io>`_
 * `Media Temple <http://mediatemple.net/>`_
 * `Orbitz <http://www.orbitz.com/>`_
+* `Outbrain <http://outbrain.com/>`_ (see https://github.com/outbrain/gruffalo)
 * `Pandora <http://www.pandora.com/>`_
 * `Rubicon Project <http://www.rubiconproject.com/>`_
 * `Sears Holdings <http://www.sears.com/>`_
@@ -26,6 +28,5 @@ Here are some organizations that use Graphite:
 * `Uber <http://uber.com/>`_
 * `Vimeo <http://www.vimeo.com>`_
 * `Wikimedia Foundation <http://gdash.wikimedia.org/>`_
-* `Outbrain <http://outbrain.com/>`_ (see https://github.com/outbrain/gruffalo)
 
 And many more
