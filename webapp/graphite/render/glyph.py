@@ -985,7 +985,7 @@ class LineGraph(Graph):
     if 'yUnitSystem' not in params:
       params['yUnitSystem'] = 'si'
     else:
-      params['yUnitSystem'] = str(params['yUnitSystem']).lower()
+      params['yUnitSystem'] = unicode(params['yUnitSystem']).lower()
       if params['yUnitSystem'] not in UnitSystems.keys():
         params['yUnitSystem'] = 'si'
 
@@ -1043,11 +1043,11 @@ class LineGraph(Graph):
     self.setColor( self.foregroundColor )
 
     if params.get('title'):
-      self.drawTitle( str(params['title']) )
+      self.drawTitle( unicode(params['title']) )
     if params.get('vtitle'):
-      self.drawVTitle( str(params['vtitle']) )
+      self.drawVTitle( unicode(params['vtitle']) )
     if self.secondYAxis and params.get('vtitleRight'):
-      self.drawVTitle( str(params['vtitleRight']), rightAlign=True )
+      self.drawVTitle( unicode(params['vtitleRight']), rightAlign=True )
     self.setFont()
 
     if not params.get('hideLegend', len(self.data) > settings.LEGEND_MAX_ITEMS):
@@ -1835,7 +1835,7 @@ class PieGraph(Graph):
         if slice['value'] < 10 and slice['value'] != int(slice['value']):
           label = "%.2f" % slice['value']
         else:
-          label = str(int(slice['value']))
+          label = unicode(int(slice['value']))
       extents = self.getExtents(label)
       theta = slice['midAngle']
       x = self.x0 + (self.radius / 2.0 * math.cos(theta))
