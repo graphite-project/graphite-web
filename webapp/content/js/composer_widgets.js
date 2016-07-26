@@ -1084,6 +1084,7 @@ function createFunctionsMenu() {
         {text: 'ScaleToSeconds', handler: applyFuncToEachWithInput('scaleToSeconds', 'Please enter a number of seconds to scale to')},
         {text: 'Offset', handler: applyFuncToEachWithInput('offset', 'Please enter the value to offset Y-values by')},
         {text: 'OffsetToZero', handler: applyFuncToEach('offsetToZero')},
+        {text: 'Interpolate', handler: applyFuncToEach('interpolate')},
         {text: 'Derivative', handler: applyFuncToEach('derivative')},
         {text: 'Power', handler: applyFuncToEachWithInput('pow', 'Please enter a power factor')},
         {text: 'Square Root', handler: applyFuncToEach('squareRoot')},
