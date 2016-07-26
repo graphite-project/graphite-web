@@ -4,6 +4,7 @@ from django.http import (HttpResponse as BaseHttpResponse,
 
 
 class ContentTypeMixin(object):
+
     def __init__(self, *args, **kwargs):
         if VERSION < (1, 5) and 'content_type' in kwargs:
             kwargs['mimetype'] = kwargs.pop('content_type')

@@ -9,6 +9,7 @@ if os.environ.get('READTHEDOCS'):
 else:
     from tagging.fields import TagField
 
+
 class Event(models.Model):
     when = models.DateTimeField()
     what = models.CharField(max_length=255)
@@ -34,7 +35,6 @@ class Event(models.Model):
 
         if time_until is not None:
             query = query.filter(when__lte=time_until)
-
 
         result = list(query.order_by("when"))
         return result
