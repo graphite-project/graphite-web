@@ -480,6 +480,54 @@ def keepLastValue(requestContext, seriesList, limit = INF):
 
   return seriesList
 
+def interpolate(requestContext, seriesList, limit = INF):
+  """
+  Takes one metric or a wildcard seriesList, and optionally a limit to the number of 'None' values to skip over.
+  Continues the line with the last received value when gaps ('None' values) appear in your data, rather than breaking your line.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=interpolate(Server01.connections.handled)
+    &target=interpolate(Server01.connections.handled, 10)
+
+  """
+  for series in seriesList:
+    series.name = "interpolate(%s)" % (series.name)
+    series.pathExpression = series.name
+    consecutiveNones = 0
+    for i,value in enumerate(series):
+      series[i] = value
+
+      # No 'keeping' can be done on the first value because we have no idea
+      # what came before it.
+      if i == 0:
+        continue
+
+      if value is None:
+        consecutiveNones += 1
+      elif consecutiveNones == 0: # have a value but no need to interpolate
+        continue
+      elif series[i - consecutiveNones - 1] is None: # have a value but can't interpolate: reset count
+        consecutiveNones = 0
+        continue
+      else: # have a value and can interpolate
+        # If a non-None value is seen before the limit of Nones is hit,
+        # backfill all the missing datapoints with the last known value.
+        if 0 < consecutiveNones <= limit:
+          for index in xrange(i - consecutiveNones, i):
+            series[index] = series[i - consecutiveNones - 1] + (index - (i - consecutiveNones -1)) * (value - series[i - consecutiveNones - 1]) / (consecutiveNones + 1)
+
+        consecutiveNones = 0
+
+    # If the series ends with some None values, try to backfill a bit to cover it.
+    # if 0 < consecutiveNones < limit:
+    #   for index in xrange(len(series) - consecutiveNones, len(series)):
+    #     series[index] = series[len(series) - consecutiveNones - 1]
+
+  return seriesList
+
 def changed(requestContext, seriesList):
   """
   Takes one metric or a wildcard seriesList.
@@ -3610,6 +3658,7 @@ SeriesFunctions = {
   'smartSummarize': smartSummarize,
   'hitcount': hitcount,
   'absolute': absolute,
+  'interpolate': interpolate,
 
   # Calculate functions
   'movingAverage': movingAverage,
