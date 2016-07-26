@@ -89,9 +89,8 @@ class TimeSeriesTest(TestCase):
         self.assertEqual(series.valuesPerPoint, 1)
         series.consolidate(2)
         self.assertEqual(series.valuesPerPoint, 2)
-        expected = TimeSeries("collectd.test-db.load.value", 0, 5, 1, range(0, 100, 2) + [None])
         with self.assertRaisesRegexp(Exception, "Invalid consolidation function: 'bogus'"):
-            result = list(series)
+            list(series)
 
 
 class DatalibFunctionTest(TestCase):

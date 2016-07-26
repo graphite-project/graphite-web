@@ -41,7 +41,7 @@ class UtilTest(TestCase):
     def test_is_local_interface_bad_ipv6(self):
         with self.assertRaises(Exception):
             addresses = ['::1:8080']
-            results = [util.is_local_interface(a) for a in addresses]
+            [util.is_local_interface(a) for a in addresses]
 
     def test_is_escaped_pattern(self):
         self.assertFalse(util.is_escaped_pattern('asdf'))
@@ -100,4 +100,4 @@ class UtilTest(TestCase):
 
     def test_load_module(self):
         with self.assertRaises(IOError):
-            module = util.load_module('test', member=None)
+            util.load_module('test', member=None)

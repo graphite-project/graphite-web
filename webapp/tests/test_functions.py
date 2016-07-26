@@ -1443,7 +1443,7 @@ class FunctionsTest(TestCase):
         results = functions.transformNull({}, copy.deepcopy(seriesList), transform)
 
         for counter, series in enumerate(seriesList):
-            if not None in series:
+            if None not in series:
                 continue
             # If the None values weren't transformed, there is a problem
             self.assertNotIn(None, results[counter],
@@ -1469,7 +1469,7 @@ class FunctionsTest(TestCase):
         results = functions.transformNull({}, copy.deepcopy(seriesList), transform, [referenceSeries])
 
         for counter, series in enumerate(seriesList):
-            if not None in series:
+            if None not in series:
                 continue
 
             # Anywhere a None was in the original series, verify it
@@ -1490,7 +1490,7 @@ class FunctionsTest(TestCase):
         results = functions.transformNull({}, copy.deepcopy(seriesList), transform, [referenceSeries])
 
         for counter, series in enumerate(seriesList):
-            if not None in series:
+            if None not in series:
                 continue
             # If the None values weren't transformed, there is a problem
             self.assertNotIn(None, results[counter],
@@ -1604,9 +1604,6 @@ class FunctionsTest(TestCase):
         seriesList = self._generate_series_list()
 
         def verify_node_name(*nodes):
-            if isinstance(nodes, int):
-                node_number = [nodes]
-
             # Use deepcopy so the original seriesList is unmodified
             results = functions.aliasByNode({}, copy.deepcopy(seriesList), *nodes)
 
@@ -1668,9 +1665,6 @@ class FunctionsTest(TestCase):
         seriesList, inputList = self._generate_mr_series()
 
         def verify_groupByNodes(expectedResult, *nodes):
-            if isinstance(nodes, int):
-                node_number = [nodes]
-
             results = functions.groupByNodes({}, copy.deepcopy(seriesList), "keepLastValue", *nodes)
 
             self.assertEqual(results, expectedResult)
@@ -2217,7 +2211,7 @@ class FunctionsTest(TestCase):
             'endTime': datetime(1970, 1, 1, 1, 0, 0, 0, pytz.timezone(settings.TIME_ZONE))
         }
         with self.assertRaisesRegexp(ValueError, 'Invalid function bad'):
-            result = functions.aggregateLine(requestContext, seriesList, 'bad')
+            functions.aggregateLine(requestContext, seriesList, 'bad')
 
     def test_threshold_default(self):
         expectedResult = [
@@ -3053,12 +3047,13 @@ class FunctionsTest(TestCase):
                 return rv
             raise KeyError('{} not found!'.format(path_expression))
 
-        expectedResults = {'sum': [
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1d", "sum")', 0, 86400, 86400, [62164800]),
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1d", "sum")', 0, 86400, 86400, [-62164800]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1d", "sum")', 0, 86400, 86400, [None]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1d", "sum")', 0, 86400, 86400, [1036080])
-        ],
+        expectedResults = {
+            'sum': [
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1d", "sum")', 0, 86400, 86400, [62164800]),
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1d", "sum")', 0, 86400, 86400, [-62164800]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1d", "sum")', 0, 86400, 86400, [None]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1d", "sum")', 0, 86400, 86400, [1036080])
+            ],
             'avg': [
                 TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1d", "avg")', 0, 86400, 86400, [43170.0]),
                 TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1d", "avg")', 0, 86400, 86400, [-43170.0]),
@@ -3115,12 +3110,13 @@ class FunctionsTest(TestCase):
                 return rv
             raise KeyError('{} not found!'.format(path_expression))
 
-        expectedResults = {'sum': [
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1hour", "sum")', 0, 14400, 3600, [6478200, 19438200, 32398200, 45358200]),
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1hour", "sum")', 0, 14400, 3600, [-6478200, -19438200, -32398200, -45358200]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1hour", "sum")', 0, 14400, 3600, [None, None, None, None]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1hour", "sum")', 0, 14400, 3600, [12956400, 38876400, 64796400, 90716400])
-        ],
+        expectedResults = {
+            'sum': [
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1hour", "sum")', 0, 14400, 3600, [6478200, 19438200, 32398200, 45358200]),
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1hour", "sum")', 0, 14400, 3600, [-6478200, -19438200, -32398200, -45358200]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1hour", "sum")', 0, 14400, 3600, [None, None, None, None]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1hour", "sum")', 0, 14400, 3600, [12956400, 38876400, 64796400, 90716400])
+            ],
             'avg': [
                 TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1hour", "avg")', 0, 14400, 3600, [1799.5, 5399.5, 8999.5, 12599.5]),
                 TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1hour", "avg")', 0, 14400, 3600, [-1799.5, -5399.5, -8999.5, -12599.5]),
@@ -3177,12 +3173,13 @@ class FunctionsTest(TestCase):
                 return rv
             raise KeyError('{} not found!'.format(path_expression))
 
-        expectedResults = {'sum': [
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1minute", "sum")', 0, 240, 60, [1770, 5370, 8970, 12570]),
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1minute", "sum")', 0, 240, 60, [-1770, -5370, -8970, -12570]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1minute", "sum")', 0, 240, 60, [None, None, None, None]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1minute", "sum")', 0, 240, 60, [3540, 10740, 17940, 25140])
-        ],
+        expectedResults = {
+            'sum': [
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1minute", "sum")', 0, 240, 60, [1770, 5370, 8970, 12570]),
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1minute", "sum")', 0, 240, 60, [-1770, -5370, -8970, -12570]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1minute", "sum")', 0, 240, 60, [None, None, None, None]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1minute", "sum")', 0, 240, 60, [3540, 10740, 17940, 25140])
+            ],
             'avg': [
                 TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1minute", "avg")', 0, 240, 60, [29.5, 89.5, 149.5, 209.5]),
                 TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1minute", "avg")', 0, 240, 60, [-29.5, -89.5, -149.5, -209.5]),
@@ -3239,12 +3236,13 @@ class FunctionsTest(TestCase):
                 return rv
             raise KeyError('{} not found!'.format(path_expression))
 
-        expectedResults = {'sum': [
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1minute", "sum")', 0, 240, 60, [1770, 5370, 8970, 12570]),
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1minute", "sum")', 0, 240, 60, [-1770, -5370, -8970, -12570]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1minute", "sum")', 0, 240, 60, [None, None, None, None]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1minute", "sum")', 0, 240, 60, [3540, 10740, 17940, 25140])
-        ],
+        expectedResults = {
+            'sum': [
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1minute", "sum")', 0, 240, 60, [1770, 5370, 8970, 12570]),
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1minute", "sum")', 0, 240, 60, [-1770, -5370, -8970, -12570]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1minute", "sum")', 0, 240, 60, [None, None, None, None]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1minute", "sum")', 0, 240, 60, [3540, 10740, 17940, 25140])
+            ],
             'avg': [
                 TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1minute", "avg")', 0, 240, 60, [29.5, 89.5, 149.5, 209.5]),
                 TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1minute", "avg")', 0, 240, 60, [-29.5, -89.5, -149.5, -209.5]),
@@ -3436,12 +3434,13 @@ class FunctionsTest(TestCase):
         for series in seriesList:
             series.pathExpression = series.name
 
-        expectedResults = {'sum': [
-            TimeSeries('summarize(servers.s1.disk.bytes_used, "1minute", "sum")', 0, 300, 60, [1770, 5370, 8970, 12570, None]),
-            TimeSeries('summarize(servers.s1.disk.bytes_free, "1minute", "sum")', 0, 300, 60, [-1770, -5370, -8970, -12570, None]),
-            TimeSeries('summarize(servers.s2.disk.bytes_used, "1minute", "sum")', 0, 300, 60, [None, None, None, None, None]),
-            TimeSeries('summarize(servers.s2.disk.bytes_free, "1minute", "sum")', 0, 300, 60, [3540, 10740, 17940, 25140, None])
-        ],
+        expectedResults = {
+            'sum': [
+                TimeSeries('summarize(servers.s1.disk.bytes_used, "1minute", "sum")', 0, 300, 60, [1770, 5370, 8970, 12570, None]),
+                TimeSeries('summarize(servers.s1.disk.bytes_free, "1minute", "sum")', 0, 300, 60, [-1770, -5370, -8970, -12570, None]),
+                TimeSeries('summarize(servers.s2.disk.bytes_used, "1minute", "sum")', 0, 300, 60, [None, None, None, None, None]),
+                TimeSeries('summarize(servers.s2.disk.bytes_free, "1minute", "sum")', 0, 300, 60, [3540, 10740, 17940, 25140, None])
+            ],
             'avg': [
                 TimeSeries('summarize(servers.s1.disk.bytes_used, "1minute", "avg")', 0, 300, 60, [29.5, 89.5, 149.5, 209.5, None]),
                 TimeSeries('summarize(servers.s1.disk.bytes_free, "1minute", "avg")', 0, 300, 60, [-29.5, -89.5, -149.5, -209.5, None]),
@@ -3490,12 +3489,13 @@ class FunctionsTest(TestCase):
         for series in seriesList:
             series.pathExpression = series.name
 
-        expectedResults = {'sum': [
-            TimeSeries('summarize(servers.s1.disk.bytes_used, "1minute", "sum", true)', 0, 240, 60, [1770, 5370, 8970, 12570]),
-            TimeSeries('summarize(servers.s1.disk.bytes_free, "1minute", "sum", true)', 0, 240, 60, [-1770, -5370, -8970, -12570]),
-            TimeSeries('summarize(servers.s2.disk.bytes_used, "1minute", "sum", true)', 0, 240, 60, [None, None, None, None]),
-            TimeSeries('summarize(servers.s2.disk.bytes_free, "1minute", "sum", true)', 0, 240, 60, [3540, 10740, 17940, 25140])
-        ],
+        expectedResults = {
+            'sum': [
+                TimeSeries('summarize(servers.s1.disk.bytes_used, "1minute", "sum", true)', 0, 240, 60, [1770, 5370, 8970, 12570]),
+                TimeSeries('summarize(servers.s1.disk.bytes_free, "1minute", "sum", true)', 0, 240, 60, [-1770, -5370, -8970, -12570]),
+                TimeSeries('summarize(servers.s2.disk.bytes_used, "1minute", "sum", true)', 0, 240, 60, [None, None, None, None]),
+                TimeSeries('summarize(servers.s2.disk.bytes_free, "1minute", "sum", true)', 0, 240, 60, [3540, 10740, 17940, 25140])
+            ],
             'avg': [
                 TimeSeries('summarize(servers.s1.disk.bytes_used, "1minute", "avg", true)', 0, 240, 60, [29.5, 89.5, 149.5, 209.5]),
                 TimeSeries('summarize(servers.s1.disk.bytes_free, "1minute", "avg", true)', 0, 240, 60, [-29.5, -89.5, -149.5, -209.5]),
