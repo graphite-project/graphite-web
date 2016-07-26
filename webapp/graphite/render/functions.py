@@ -3658,6 +3658,7 @@ SeriesFunctions = {
   'smartSummarize': smartSummarize,
   'hitcount': hitcount,
   'absolute': absolute,
+  'interpolate': interpolate,
 
   # Calculate functions
   'movingAverage': movingAverage,
