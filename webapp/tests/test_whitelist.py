@@ -11,6 +11,7 @@ from django.test import TestCase
 
 from graphite.whitelist.views import load_whitelist, save_whitelist
 
+
 class WhitelistTester(TestCase):
     settings.WHITELIST_FILE = os.path.join(DATA_DIR, 'lists/whitelist')
 
@@ -32,7 +33,7 @@ class WhitelistTester(TestCase):
     def test_whitelist_show_no_whitelist(self):
         url = reverse('whitelist_show')
         with self.assertRaises(IOError):
-          response = self.client.get(url)
+            response = self.client.get(url)
 
     def test_whitelist_show(self):
         url = reverse('whitelist_show')
@@ -104,12 +105,12 @@ class WhitelistTester(TestCase):
         except OSError:
             pass
         self.addCleanup(self.wipe_whitelist)
-        self.assertEqual(save_whitelist({'a.b.c.d','e.f.g.h'}), None)
-        self.assertEqual(load_whitelist(), {'a.b.c.d','e.f.g.h'})
+        self.assertEqual(save_whitelist({'a.b.c.d', 'e.f.g.h'}), None)
+        self.assertEqual(load_whitelist(), {'a.b.c.d', 'e.f.g.h'})
 
     @mock.patch('os.rename')
     def test_save_whitelist_rename_failure(self, rename):
         self.addCleanup(self.wipe_whitelist)
         rename.side_effect = OSError(errno.EPERM, 'Operation not permitted')
         with self.assertRaises(OSError):
-            save_whitelist({'a.b.c.d','e.f.g.h'})
+            save_whitelist({'a.b.c.d', 'e.f.g.h'})
