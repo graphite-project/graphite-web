@@ -21,7 +21,7 @@ else:
     # WhiteNoise < 2.0.1 does not support Python 2.6
     if sys.version_info[:2] < (2, 7):
         whitenoise_version = tuple(map(
-                int, getattr(whitenoise, '__version__', '0').split('.')))
+            int, getattr(whitenoise, '__version__', '0').split('.')))
         if whitenoise_version < (2, 0, 1):
             whitenoise = False
 

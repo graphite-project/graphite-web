@@ -14,6 +14,7 @@ import whisper
 
 
 class FinderTest(TestCase):
+
     def test_custom_finder(self):
         store = Store(finders=[get_finder('tests.test_finders.DummyFinder')])
         nodes = list(store.find("foo"))
@@ -47,6 +48,7 @@ class DummyReader(object):
 
 
 class DummyFinder(object):
+
     def find_nodes(self, query):
         if query.pattern == 'foo':
             yield BranchNode('foo')
@@ -55,6 +57,7 @@ class DummyFinder(object):
             for i in xrange(10):
                 path = 'bar.{0}'.format(i)
                 yield LeafNode(path, DummyReader(path))
+
 
 class StandardFinderTest(TestCase):
     _listdir_counter = 0

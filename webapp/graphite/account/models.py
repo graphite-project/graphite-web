@@ -17,31 +17,35 @@ from django.contrib.auth import models as auth_models
 
 
 class Profile(models.Model):
-  user = models.OneToOneField(auth_models.User)
-  history = models.TextField(default="")
-  advancedUI = models.BooleanField(default=False)
-  __str__ = lambda self: "Profile for %s" % self.user
+    user = models.OneToOneField(auth_models.User)
+    history = models.TextField(default="")
+    advancedUI = models.BooleanField(default=False)
+    __str__ = lambda self: "Profile for %s" % self.user
+
 
 class Variable(models.Model):
-  profile = models.ForeignKey(Profile)
-  name = models.CharField(max_length=64)
-  value = models.CharField(max_length=64)
+    profile = models.ForeignKey(Profile)
+    name = models.CharField(max_length=64)
+    value = models.CharField(max_length=64)
+
 
 class View(models.Model):
-  profile = models.ForeignKey(Profile)
-  name = models.CharField(max_length=64)
+    profile = models.ForeignKey(Profile)
+    name = models.CharField(max_length=64)
+
 
 class Window(models.Model):
-  view = models.ForeignKey(View)
-  name = models.CharField(max_length=64)
-  top = models.IntegerField()
-  left = models.IntegerField()
-  width = models.IntegerField()
-  height = models.IntegerField()
-  url = models.TextField()
-  interval = models.IntegerField(null=True)
+    view = models.ForeignKey(View)
+    name = models.CharField(max_length=64)
+    top = models.IntegerField()
+    left = models.IntegerField()
+    width = models.IntegerField()
+    height = models.IntegerField()
+    url = models.TextField()
+    interval = models.IntegerField(null=True)
+
 
 class MyGraph(models.Model):
-  profile = models.ForeignKey(Profile)
-  name = models.CharField(max_length=64)
-  url = models.TextField()
+    profile = models.ForeignKey(Profile)
+    name = models.CharField(max_length=64)
+    url = models.TextField()

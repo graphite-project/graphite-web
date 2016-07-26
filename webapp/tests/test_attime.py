@@ -11,20 +11,25 @@ from django.test import TestCase
 import pytz
 import mock
 
+
 class MockedDateTime(datetime):
+
     def __new__(cls, *args, **kwargs):
         return datetime.__new__(datetime, *args, **kwargs)
+
     @classmethod
     def now(cls, tzinfo=None):
         return cls(2015, 3, 8, 12, 0, 0, tzinfo=tzinfo)
+
 
 @mock.patch('graphite.render.attime.datetime', MockedDateTime)
 class ATTimeTimezoneTests(TestCase):
     default_tz = timezone.get_current_timezone()
     specified_tz = pytz.timezone("America/Los_Angeles")
+
     def test_should_return_absolute_time(self):
         time_string = '12:0020150308'
-        expected_time = self.default_tz.localize(datetime.strptime(time_string,'%H:%M%Y%m%d'))
+        expected_time = self.default_tz.localize(datetime.strptime(time_string, '%H:%M%Y%m%d'))
         actual_time = parseATTime(time_string)
         self.assertEqual(actual_time, expected_time)
 
@@ -80,9 +85,12 @@ class ATTimeTimezoneTests(TestCase):
         actual_time = parseATTime("midnight+2h", self.specified_tz)
         self.assertEqual(actual_time, expected_time)
 
+
 class AnotherMockedDateTime(datetime):
+
     def __new__(cls, *args, **kwargs):
         return datetime.__new__(datetime, *args, **kwargs)
+
     @classmethod
     def now(cls, tzinfo=None):
         return cls(2015, 1, 1, 11, 0, 0, tzinfo=tzinfo)
@@ -104,7 +112,7 @@ class parseTimeReferenceTest(TestCase):
 
     def test_parse_random_string_raise_Exception(self):
         with self.assertRaises(Exception):
-            time_ref = parseTimeReference("random")
+            parseTimeReference("random")
 
     def test_parse_now_return_now(self):
         time_ref = parseTimeReference("now")
@@ -112,7 +120,7 @@ class parseTimeReferenceTest(TestCase):
 
     def test_parse_colon_raises_ValueError(self):
         with self.assertRaises(ValueError):
-            time_ref = parseTimeReference(":")
+            parseTimeReference(":")
 
     def test_parse_hour_return_hour_of_today(self):
         time_ref = parseTimeReference("8:50")
@@ -181,23 +189,27 @@ class parseTimeReferenceTest(TestCase):
 
     def test_parse_MonthName_DayOfMonth_threedigits_raise_ValueError(self):
         with self.assertRaises(ValueError):
-            time_ref = parseTimeReference("january800")
+            parseTimeReference("january800")
 
     def test_parse_MonthName_without_DayOfMonth_raise_Exception(self):
         with self.assertRaises(Exception):
-            time_ref = parseTimeReference("january")
+            parseTimeReference("january")
 
     def test_parse_monday_return_monday_before_now(self):
         time_ref = parseTimeReference("monday")
         expected = self.zone.localize(datetime(2014, 12, 29, 0, 0))
         self.assertEquals(time_ref, expected)
 
+
 class Bug551771MockedDateTime(datetime):
+
     def __new__(cls, *args, **kwargs):
         return datetime.__new__(datetime, *args, **kwargs)
+
     @classmethod
     def now(cls, tzinfo=None):
         return cls(2010, 3, 30, 00, 0, 0, tzinfo=tzinfo)
+
 
 @mock.patch('graphite.render.attime.datetime', Bug551771MockedDateTime)
 class parseTimeReferenceTestBug551771(TestCase):
@@ -213,6 +225,7 @@ class parseTimeReferenceTestBug551771(TestCase):
         expected = self.zone.localize(datetime(2010, 2, 23, 0, 0))
         self.assertEquals(time_ref, expected)
 
+
 class parseTimeOffsetTest(TestCase):
 
     def test_parse_None_returns_empty_timedelta(self):
@@ -222,23 +235,23 @@ class parseTimeOffsetTest(TestCase):
 
     def test_parse_integer_raises_TypeError(self):
         with self.assertRaises(TypeError):
-            time_ref = parseTimeOffset(1)
+            parseTimeOffset(1)
 
     def test_parse_string_starting_neither_with_minus_nor_digit_raises_KeyError(self):
         with self.assertRaises(KeyError):
-            time_ref = parseTimeOffset("Something")
+            parseTimeOffset("Something")
 
     def test_parse_m_as_unit_raises_Exception(self):
         with self.assertRaises(Exception):
-            time_ref = parseTimeOffset("1m")
+            parseTimeOffset("1m")
 
     def test_parse_digits_only_raises_exception(self):
         with self.assertRaises(Exception):
-            time_ref = parseTimeOffset("10")
+            parseTimeOffset("10")
 
     def test_parse_alpha_only_raises_KeyError(self):
         with self.assertRaises(KeyError):
-            time_ref = parseTimeOffset("month")
+            parseTimeOffset("month")
 
     def test_parse_minus_only_returns_zero(self):
         time_ref = parseTimeOffset("-")
@@ -357,18 +370,22 @@ class getUnitStringTest(TestCase):
 
     def test_m_raises_Exception(self):
         with self.assertRaises(Exception):
-            result = getUnitString("m")
+            getUnitString("m")
 
     def test_integer_raises_Exception(self):
         with self.assertRaises(Exception):
-            result = getUnitString(1)
+            getUnitString(1)
+
 
 class LeapYearMockedDateTime(datetime):
+
     def __new__(cls, *args, **kwargs):
         return datetime.__new__(datetime, *args, **kwargs)
+
     @classmethod
     def now(cls, tzinfo=None):
         return cls(2016, 2, 29, 00, 0, 0, tzinfo=tzinfo)
+
 
 @mock.patch('graphite.render.attime.datetime', LeapYearMockedDateTime)
 class parseATTimeTestLeapYear(TestCase):
@@ -389,12 +406,16 @@ class parseATTimeTestLeapYear(TestCase):
         expected = self.zone.localize(datetime(2016, 1, 30, 0, 0))
         self.assertEquals(time_ref, expected)
 
+
 class LeapYearMockedDateTime2(datetime):
+
     def __new__(cls, *args, **kwargs):
         return datetime.__new__(datetime, *args, **kwargs)
+
     @classmethod
     def now(cls, tzinfo=None):
         return cls(2013, 2, 28, 00, 0, 0, tzinfo=tzinfo)
+
 
 @mock.patch('graphite.render.attime.datetime', LeapYearMockedDateTime2)
 class parseATTimeTestLeapYear2(TestCase):
@@ -414,6 +435,7 @@ class parseATTimeTestLeapYear2(TestCase):
         time_ref = parseATTime("-1month")
         expected = self.zone.localize(datetime(2013, 1, 29, 0, 0))
         self.assertEquals(time_ref, expected)
+
 
 class parseATTimeTest(TestCase):
     zone = pytz.utc
