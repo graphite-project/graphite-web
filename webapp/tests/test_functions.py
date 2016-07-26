@@ -608,6 +608,24 @@ class FunctionsTest(TestCase):
         results = functions.keepLastValue({}, seriesList, 2)
         self.assertEqual(results, expectedResult)
 
+    def test_interpolate(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,1,1,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]),
+            TimeSeries('collectd.test-db2.load.value',0,1,1,[None,2,None,4,None,6,None,8,None,10,None,12,None,14,None,16,None,18,None,20]),
+            TimeSeries('collectd.test-db3.load.value',0,1,1,[1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,None,None,None]),
+            TimeSeries('collectd.test-db4.load.value',0,1,1,[1,2,3,4,None,6,None,None,9,10,11,None,13,None,None,None,None,18,19,20]),
+            TimeSeries('collectd.test-db5.load.value',0,1,1,[1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,18,None,None]),
+        ]
+        expectedResult = [
+            TimeSeries('interpolate(collectd.test-db1.load.value)',0,1,1,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]),
+            TimeSeries('interpolate(collectd.test-db2.load.value)',0,1,1,[None,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]),
+            TimeSeries('interpolate(collectd.test-db3.load.value)',0,1,1,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,None,None,None]),
+            TimeSeries('interpolate(collectd.test-db4.load.value)',0,1,1,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]),
+            TimeSeries('interpolate(collectd.test-db5.load.value)',0,1,1,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,None,None]),
+        ]
+        results = functions.interpolate({}, seriesList)
+        self.assertEqual(results, expectedResult)
+
     def test_changed(self):
         config = [
             [[1,2,3,4,4,5,5,5,6,7], [0,1,1,1,0,1,0,0,1,1]],
