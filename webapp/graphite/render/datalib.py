@@ -147,11 +147,11 @@ def fetchData(requestContext, pathExpr):
         except Exception as e:
             if retries >= settings.MAX_FETCH_RETRIES:
                 log.exception("Failed after %s retry! Root cause:\n%s" %
-                             (settings.MAX_FETCH_RETRIES, format_exc()))
+                              (settings.MAX_FETCH_RETRIES, format_exc()))
                 raise e
             else:
                 log.exception("Got an exception when fetching data! Try: %i of %i. Root cause:\n%s" %
-                             (retries, settings.MAX_FETCH_RETRIES, format_exc()))
+                              (retries, settings.MAX_FETCH_RETRIES, format_exc()))
                 retries += 1
 
 

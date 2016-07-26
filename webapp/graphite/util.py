@@ -179,11 +179,11 @@ if USING_CPICKLE:
 
         @classmethod
         def find_class(cls, module, name):
-            if not module in cls.PICKLE_SAFE:
+            if module not in cls.PICKLE_SAFE:
                 raise pickle.UnpicklingError('Attempting to unpickle unsafe module %s' % module)
             __import__(module)
             mod = sys.modules[module]
-            if not name in cls.PICKLE_SAFE[module]:
+            if name not in cls.PICKLE_SAFE[module]:
                 raise pickle.UnpicklingError('Attempting to unpickle unsafe class %s' % name)
             return getattr(mod, name)
 
@@ -204,11 +204,11 @@ else:
         }
 
         def find_class(self, module, name):
-            if not module in self.PICKLE_SAFE:
+            if module not in self.PICKLE_SAFE:
                 raise pickle.UnpicklingError('Attempting to unpickle unsafe module %s' % module)
             __import__(module)
             mod = sys.modules[module]
-            if not name in self.PICKLE_SAFE[module]:
+            if name not in self.PICKLE_SAFE[module]:
                 raise pickle.UnpicklingError('Attempting to unpickle unsafe class %s' % name)
             return getattr(mod, name)
 
