@@ -58,6 +58,10 @@ class RenderTest(TestCase):
     def test_render_view(self):
         url = reverse('graphite.render.views.renderView')
 
+        response = self.client.get(url, {'target': 'test', 'format': 'raw'})
+        self.assertEqual(response.content, "")
+        self.assertEqual(response['Content-Type'], 'text/plain')
+
         response = self.client.get(url, {'target': 'test', 'format': 'json'})
         self.assertEqual(json.loads(response.content), [])
         self.assertTrue(response.has_header('Expires'))
@@ -86,22 +90,32 @@ class RenderTest(TestCase):
         whisper.create(self.db, [(1, 60)])
 
         ts = int(time.time())
-        whisper.update(self.db, 0.5, ts - 2)
+        whisper.update(self.db, 0.1234567890123456789012, ts - 2)
         whisper.update(self.db, 0.4, ts - 1)
         whisper.update(self.db, 0.6, ts)
+
+        response = self.client.get(url, {'target': 'test', 'format': 'raw'})
+        raw_data = ("None,None,None,None,None,None,None,None,None,None,None,"
+                    "None,None,None,None,None,None,None,None,None,None,None,"
+                    "None,None,None,None,None,None,None,None,None,None,None,"
+                    "None,None,None,None,None,None,None,None,None,None,None,"
+                    "None,None,None,None,None,None,None,None,None,None,None,"
+                    "None,None,0.12345678901234568,0.4,0.6")
+        raw_response = "test,%d,%d,1|%s\n" % (ts-59, ts+1, raw_data)
+        self.assertEqual(response.content, raw_response)
 
         response = self.client.get(url, {'target': 'test', 'format': 'json'})
         data = json.loads(response.content)
         end = data[0]['datapoints'][-4:]
         self.assertEqual(
-            end, [[None, ts - 3], [0.5, ts - 2], [0.4, ts - 1], [0.6, ts]])
+            end, [[None, ts - 3], [0.12345678901234568, ts - 2], [0.4, ts - 1], [0.6, ts]])
 
         response = self.client.get(url, {'target': 'test', 'format': 'dygraph'})
         data = json.loads(response.content)
         end = data['data'][-4:]
         self.assertEqual(end,
             [[(ts - 3) * 1000, None],
-            [(ts - 2) * 1000, 0.5],
+            [(ts - 2) * 1000, 0.123456789012],
             [(ts - 1) * 1000, 0.4],
             [ts * 1000, 0.6]])
 
@@ -110,7 +124,7 @@ class RenderTest(TestCase):
         end = data[0]['datapoints'][-4:]
         self.assertEqual(end,
             [{'x': ts - 3, 'y': None},
-            {'x': ts - 2, 'y': 0.5},
+            {'x': ts - 2, 'y': 0.12345678901234568},
             {'x': ts - 1, 'y': 0.4},
             {'x': ts, 'y': 0.6}])
 
