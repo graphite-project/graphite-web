@@ -4,6 +4,7 @@ from django.test import TestCase
 
 
 class VersionTest(TestCase):
+
     def test_version(self):
         url = reverse('version_index')
         response = self.client.get(url)
