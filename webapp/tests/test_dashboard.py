@@ -436,50 +436,50 @@ class DashboardTest(TestCase):
         self.assertEqual(response.content, '{"error": "Must be logged in with appropriate permissions to delete the template"}')
 
     def test_getPermissions_no_user(self):
-        settings.DASHBOARD_REQUIRE_AUTHENTICATION=False
-        settings.DASHBOARD_REQUIRE_PERMISSIONS=False
-        settings.DASHBOARD_REQUIRE_EDIT_GROUP=False
+        settings.DASHBOARD_REQUIRE_AUTHENTICATION = False
+        settings.DASHBOARD_REQUIRE_PERMISSIONS = False
+        settings.DASHBOARD_REQUIRE_EDIT_GROUP = False
         from graphite.dashboard.views import getPermissions
         self.assertEqual(getPermissions(False), ['change', 'delete'])
 
     def test_getPermissions_no_user_require_auth(self):
-        settings.DASHBOARD_REQUIRE_AUTHENTICATION=True
-        settings.DASHBOARD_REQUIRE_PERMISSIONS=False
-        settings.DASHBOARD_REQUIRE_EDIT_GROUP=False
+        settings.DASHBOARD_REQUIRE_AUTHENTICATION = True
+        settings.DASHBOARD_REQUIRE_PERMISSIONS = False
+        settings.DASHBOARD_REQUIRE_EDIT_GROUP = False
         from graphite.dashboard.views import getPermissions
         self.assertEqual(getPermissions(False), [])
 
     def test_getPermissions_valid_user(self):
-        settings.DASHBOARD_REQUIRE_AUTHENTICATION=True
-        settings.DASHBOARD_REQUIRE_PERMISSIONS=False
-        settings.DASHBOARD_REQUIRE_EDIT_GROUP=False
+        settings.DASHBOARD_REQUIRE_AUTHENTICATION = True
+        settings.DASHBOARD_REQUIRE_PERMISSIONS = False
+        settings.DASHBOARD_REQUIRE_EDIT_GROUP = False
         from graphite.dashboard.views import getPermissions
         user = User.objects.create(email='testuser@test.com')
         user.backend = ''
         self.assertEqual(getPermissions(user), ['change', 'delete'])
 
     def test_getPermissions_valid_user_require_perm(self):
-        settings.DASHBOARD_REQUIRE_AUTHENTICATION=True
-        settings.DASHBOARD_REQUIRE_PERMISSIONS=True
-        settings.DASHBOARD_REQUIRE_EDIT_GROUP=False
+        settings.DASHBOARD_REQUIRE_AUTHENTICATION = True
+        settings.DASHBOARD_REQUIRE_PERMISSIONS = True
+        settings.DASHBOARD_REQUIRE_EDIT_GROUP = False
         from graphite.dashboard.views import getPermissions
         user = User.objects.create(email='testuser@test.com')
         user.backend = ''
         self.assertEqual(getPermissions(user), [])
 
     def test_getPermissions_valid_user_edit_group(self):
-        settings.DASHBOARD_REQUIRE_AUTHENTICATION=True
-        settings.DASHBOARD_REQUIRE_PERMISSIONS=False
-        settings.DASHBOARD_REQUIRE_EDIT_GROUP=True
+        settings.DASHBOARD_REQUIRE_AUTHENTICATION = True
+        settings.DASHBOARD_REQUIRE_PERMISSIONS = False
+        settings.DASHBOARD_REQUIRE_EDIT_GROUP = True
         from graphite.dashboard.views import getPermissions
         user = User.objects.create(email='testuser@test.com')
         user.backend = ''
         self.assertEqual(getPermissions(user), [])
 
     def test_getPermissions_valid_user_require_perms_edit_group(self):
-        settings.DASHBOARD_REQUIRE_AUTHENTICATION=True
-        settings.DASHBOARD_REQUIRE_PERMISSIONS=True
-        settings.DASHBOARD_REQUIRE_EDIT_GROUP=True
+        settings.DASHBOARD_REQUIRE_AUTHENTICATION = True
+        settings.DASHBOARD_REQUIRE_PERMISSIONS = True
+        settings.DASHBOARD_REQUIRE_EDIT_GROUP = True
         from graphite.dashboard.views import getPermissions
         user = User.objects.create(email='testuser@test.com')
         user.backend = ''

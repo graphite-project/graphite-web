@@ -25,9 +25,10 @@ def load_keyfunc():
 
 
 class CarbonLinkPool:
+
   def __init__(self, hosts, timeout):
-    self.hosts = [ (server, instance) for (server, port, instance) in hosts ]
-    self.ports = dict( ((server, instance), port) for (server, port, instance) in hosts )
+    self.hosts = [(server, instance) for (server, port, instance) in hosts]
+    self.ports = dict(((server, instance), port) for (server, port, instance) in hosts)
     self.timeout = float(timeout)
     servers = set([server for (server, port, instance) in hosts])
     if len(servers) < settings.REPLICATION_FACTOR:
@@ -55,7 +56,7 @@ class CarbonLinkPool:
       if len(servers) >= settings.REPLICATION_FACTOR:
         break
 
-    available = [ n for n in nodes if self.is_available(n) ]
+    available = [n for n in nodes if self.is_available(n)]
     return random.choice(available or nodes)
 
   def is_available(self, host):
@@ -71,18 +72,18 @@ class CarbonLinkPool:
     try:
       return connectionPool.pop()
     except KeyError:
-      pass #nothing left in the pool, gotta make a new connection
+      pass  # nothing left in the pool, gotta make a new connection
 
     log.cache("CarbonLink creating a new socket for %s" % str(host))
     connection = socket.socket()
     connection.settimeout(self.timeout)
     try:
-      connection.connect( (server, port) )
+      connection.connect((server, port))
     except:
       self.last_failure[host] = time.time()
       raise
     else:
-      connection.setsockopt( socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1 )
+      connection.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
       return connection
 
   def query(self, metric):
@@ -124,7 +125,7 @@ class CarbonLinkPool:
     try:
       conn.sendall(request_packet)
       result = self.recv_response(conn)
-    except Exception,e:
+    except Exception as e:
       self.last_failure[host] = time.time()
       log.cache("Exception getting data from cache %s: %s" % (str(host), e))
     else:
@@ -149,7 +150,7 @@ class CarbonLinkPool:
       try:
         conn.sendall(request_packet)
         result = self.recv_response(conn)
-      except Exception,e:
+      except Exception as e:
         self.last_failure[host] = time.time()
         log.cache("Exception getting data from cache %s: %s" % (str(host), e))
       else:
@@ -178,7 +179,7 @@ def still_connected(sock):
   is_readable = select([sock], [], [], 0)[0]
   if is_readable:
     try:
-      recv_buf = sock.recv(1, socket.MSG_DONTWAIT|socket.MSG_PEEK)
+      recv_buf = sock.recv(1, socket.MSG_DONTWAIT | socket.MSG_PEEK)
 
     except socket.error as e:
       if e.errno in (errno.EAGAIN, errno.EWOULDBLOCK):
@@ -196,7 +197,7 @@ def still_connected(sock):
 def recv_exactly(conn, num_bytes):
   buf = ''
   while len(buf) < num_bytes:
-    data = conn.recv( num_bytes - len(buf) )
+    data = conn.recv(num_bytes - len(buf))
     if not data:
       raise Exception("Connection lost")
     buf += data
@@ -204,19 +205,19 @@ def recv_exactly(conn, num_bytes):
   return buf
 
 
-#parse hosts from local_settings.py
+# parse hosts from local_settings.py
 hosts = []
 for host in settings.CARBONLINK_HOSTS:
   parts = host.split(':')
   server = parts[0]
-  port = int( parts[1] )
+  port = int(parts[1])
   if len(parts) > 2:
     instance = parts[2]
   else:
     instance = None
 
-  hosts.append( (server, int(port), instance) )
+  hosts.append((server, int(port), instance))
 
 
-#A shared importable singleton
+# A shared importable singleton
 CarbonLink = CarbonLinkPool(hosts, settings.CARBONLINK_TIMEOUT)

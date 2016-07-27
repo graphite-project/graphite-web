@@ -21,6 +21,7 @@ def get_finder(finder_path):
 
 
 class Store:
+
   def __init__(self, finders=None, hosts=None):
     if finders is None:
       finders = [get_finder(finder_path)
@@ -30,29 +31,28 @@ class Store:
     if hosts is None:
       hosts = settings.CLUSTER_SERVERS
     remote_hosts = [host for host in hosts if not settings.REMOTE_EXCLUDE_LOCAL or not is_local_interface(host)]
-    self.remote_stores = [ RemoteStore(host) for host in remote_hosts ]
-
+    self.remote_stores = [RemoteStore(host) for host in remote_hosts]
 
   def find(self, pattern, startTime=None, endTime=None, local=False):
     query = FindQuery(pattern, startTime, endTime)
 
     # Start remote searches
     if not local:
-      remote_requests = [ r.find(query) for r in self.remote_stores if r.available ]
+      remote_requests = [r.find(query) for r in self.remote_stores if r.available]
 
     matching_nodes = set()
 
     # Search locally
     for finder in self.finders:
       for node in finder.find_nodes(query):
-        #log.info("find() :: local :: %s" % node)
+        # log.info("find() :: local :: %s" % node)
         matching_nodes.add(node)
 
     # Gather remote search results
     if not local:
       for request in remote_requests:
         for node in request.get_results():
-          #log.info("find() :: remote :: %s from %s" % (node,request.store.host))
+          # log.info("find() :: remote :: %s from %s" % (node,request.store.host))
           matching_nodes.add(node)
 
     # Group matching nodes by their path
@@ -73,7 +73,7 @@ class Store:
       for node in nodes:
         if node.is_leaf:
           leaf_nodes.append(node)
-        elif node.path not in found_branch_nodes: #TODO need to filter branch nodes based on requested interval... how?!?!?
+        elif node.path not in found_branch_nodes:  # TODO need to filter branch nodes based on requested interval... how?!?!?
           yield node
           found_branch_nodes.add(node.path)
 
@@ -88,10 +88,10 @@ class Store:
       # we disregard the window. This prevents unnecessary remote fetches
       # caused when carbon's cache skews node.intervals, giving the appearance
       # remote systems have data we don't have locally, which we probably do.
-      now = int( time.time() )
+      now = int(time.time())
       tolerance_window = now - settings.FIND_TOLERANCE
       disregard_tolerance_window = query.interval.start < tolerance_window
-      prior_to_window = Interval( float('-inf'), tolerance_window )
+      prior_to_window = Interval(float('-inf'), tolerance_window)
 
       def measure_of_added_coverage(node, drop_window=disregard_tolerance_window):
         relevant_intervals = node.intervals.intersect_interval(query.interval)
@@ -109,7 +109,7 @@ class Store:
           covered_intervals = covered_intervals.union(node.intervals)
 
       while nodes_remaining:
-        node_coverages = [ (measure_of_added_coverage(n), n) for n in nodes_remaining ]
+        node_coverages = [(measure_of_added_coverage(n), n) for n in nodes_remaining]
         best_coverage, best_node = max(node_coverages)
 
         if best_coverage == 0:
@@ -138,8 +138,8 @@ class Store:
         yield LeafNode(path, reader)
 
 
-
 class FindQuery:
+
   def __init__(self, pattern, startTime, endTime):
     self.pattern = pattern
     self.startTime = startTime
@@ -147,7 +147,6 @@ class FindQuery:
     self.isExact = is_pattern(pattern)
     self.interval = Interval(float('-inf') if startTime is None else startTime,
                              float('inf') if endTime is None else endTime)
-
 
   def __repr__(self):
     if self.startTime is None:

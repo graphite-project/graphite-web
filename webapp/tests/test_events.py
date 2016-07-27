@@ -11,6 +11,7 @@ from graphite.events.models import Event
 
 
 class EventTest(TestCase):
+
     def test_timezone_handling(self):
         url = reverse("events")
         data = {'what': 'something happened',

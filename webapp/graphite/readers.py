@@ -5,6 +5,7 @@ from graphite.intervals import Interval, IntervalSet
 from graphite.carbonlink import CarbonLink
 from graphite.logger import log
 from django.conf import settings
+from functools import reduce
 
 try:
   import whisper
@@ -23,6 +24,7 @@ except ImportError:
 
 
 class FetchInProgress(object):
+
   def __init__(self, wait_callback):
     self.wait_callback = wait_callback
 
@@ -39,12 +41,12 @@ class MultiReader(object):
   def get_intervals(self):
     interval_sets = []
     for node in self.nodes:
-      interval_sets.extend( node.intervals.intervals )
-    return IntervalSet( sorted(interval_sets) )
+      interval_sets.extend(node.intervals.intervals)
+    return IntervalSet(sorted(interval_sets))
 
   def fetch(self, startTime, endTime):
     # Start the fetch on each node
-    results = [ n.fetch(startTime, endTime) for n in self.nodes ]
+    results = [n.fetch(startTime, endTime) for n in self.nodes]
 
     # Wait for any asynchronous operations to complete
     for i, result in enumerate(results):
@@ -71,9 +73,9 @@ class MultiReader(object):
     start1, end1, step1 = time_info1
     start2, end2, step2 = time_info2
 
-    step   = step1                # finest step
-    start  = min(start1, start2)  # earliest start
-    end    = max(end1, end2)      # latest end
+    step = step1                # finest step
+    start = min(start1, start2)  # earliest start
+    end = max(end1, end2)      # latest end
     time_info = (start, end, step)
     values = []
 
@@ -116,7 +118,7 @@ class CeresReader(object):
     intervals = []
     for info in self.ceres_node.slice_info:
       (start, end, step) = info
-      intervals.append( Interval(start, end) )
+      intervals.append(Interval(start, end))
 
     return IntervalSet(intervals)
 
@@ -154,8 +156,8 @@ class WhisperReader(object):
 
   def get_intervals(self):
     start = time.time() - whisper.info(self.fs_path)['maxRetention']
-    end = max( os.stat(self.fs_path).st_mtime, start )
-    return IntervalSet( [Interval(start, end)] )
+    end = max(os.stat(self.fs_path).st_mtime, start)
+    return IntervalSet([Interval(start, end)])
 
   def fetch(self, startTime, endTime):
     data = whisper.fetch(self.fs_path, startTime, endTime)
@@ -163,7 +165,7 @@ class WhisperReader(object):
       return None
 
     time_info, values = data
-    (start,end,step) = time_info
+    (start, end, step) = time_info
 
     meta_info = whisper.info(self.fs_path)
     lowest_step = min([i['secondsPerPoint'] for i in meta_info['archives']])
@@ -199,13 +201,13 @@ class GzippedWhisperReader(WhisperReader):
   def get_intervals(self):
     fh = gzip.GzipFile(self.fs_path, 'rb')
     try:
-      info = whisper.__readHeader(fh) # evil, but necessary.
+      info = whisper.__readHeader(fh)  # evil, but necessary.
     finally:
       fh.close()
 
     start = time.time() - info['maxRetention']
-    end = max( os.stat(self.fs_path).st_mtime, start )
-    return IntervalSet( [Interval(start, end)] )
+    end = max(os.stat(self.fs_path).st_mtime, start)
+    return IntervalSet([Interval(start, end)])
 
   def fetch(self, startTime, endTime):
     fh = gzip.GzipFile(self.fs_path, 'rb')
@@ -230,8 +232,8 @@ class RRDReader:
 
   def get_intervals(self):
     start = time.time() - self.get_retention(self.fs_path)
-    end = max( os.stat(self.fs_path).st_mtime, start )
-    return IntervalSet( [Interval(start, end)] )
+    end = max(os.stat(self.fs_path).st_mtime, start)
+    return IntervalSet([Interval(start, end)])
 
   def fetch(self, startTime, endTime):
     startString = time.strftime("%H:%M_%Y%m%d+%Ss", time.localtime(startTime))
@@ -240,9 +242,9 @@ class RRDReader:
     if settings.FLUSHRRDCACHED:
       rrdtool.flushcached(self.fs_path, '--daemon', settings.FLUSHRRDCACHED)
 
-    (timeInfo, columns, rows) = rrdtool.fetch(self.fs_path,settings.RRD_CF,'-s' + startString,'-e' + endString)
+    (timeInfo, columns, rows) = rrdtool.fetch(self.fs_path, settings.RRD_CF, '-s' + startString, '-e' + endString)
     colIndex = list(columns).index(self.datasource_name)
-    rows.pop() #chop off the latest value because RRD returns crazy last values sometimes
+    rows.pop()  # chop off the latest value because RRD returns crazy last values sometimes
     values = (row[colIndex] for row in rows)
 
     return (timeInfo, values)
@@ -254,8 +256,8 @@ class RRDReader:
     if 'ds' in info:
       return [datasource_name for datasource_name in info['ds']]
     else:
-      ds_keys = [ key for key in info if key.startswith('ds[') ]
-      datasources = set( key[3:].split(']')[0] for key in ds_keys )
+      ds_keys = [key for key in info if key.startswith('ds[')]
+      datasources = set(key[3:].split(']')[0] for key in ds_keys)
       return list(datasources)
 
   @staticmethod
@@ -265,7 +267,7 @@ class RRDReader:
       rras = info['rra']
     else:
       # Ugh, I like the old python-rrdtool api better..
-      rra_count = max([ int(key[4]) for key in info if key.startswith('rra[') ]) + 1
+      rra_count = max([int(key[4]) for key in info if key.startswith('rra[')]) + 1
       rras = [{}] * rra_count
       for i in range(rra_count):
         rras[i]['pdp_per_row'] = info['rra[%d].pdp_per_row' % i]
@@ -277,4 +279,4 @@ class RRDReader:
       if points > retention_points:
         retention_points = points
 
-    return  retention_points * info['step']
+    return retention_points * info['step']

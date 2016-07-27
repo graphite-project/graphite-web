@@ -10,8 +10,10 @@ from graphite.logger import log
 from graphite.util import unpickle
 from graphite.render.hashing import compactHash
 
+
 def connector_class_selector(https_support=False):
     return httplib.HTTPSConnection if https_support else httplib.HTTPConnection
+
 
 class RemoteStore(object):
   lastFailure = 0.0
@@ -65,15 +67,15 @@ class FindRequest(object):
     self.connection.timeout = settings.REMOTE_FIND_TIMEOUT
 
     query_params = [
-      ('local', '1'),
-      ('format', 'pickle'),
-      ('query', self.query.pattern),
+        ('local', '1'),
+        ('format', 'pickle'),
+        ('query', self.query.pattern),
     ]
     if self.query.startTime:
-      query_params.append( ('from', self.query.startTime) )
+      query_params.append(('from', self.query.startTime))
 
     if self.query.endTime:
-      query_params.append( ('until', self.query.endTime) )
+      query_params.append(('until', self.query.endTime))
 
     query_string = urlencode(query_params)
 
@@ -156,10 +158,10 @@ class ReadResult(object):
           raise Exception("Passive remote fetch failed to find cached results")
         return self.result
 
-  def read_response(self): # called under self.lock
+  def read_response(self):  # called under self.lock
     try:
       self.has_done_response_read = True
-      response = self.connection.getresponse() # safe if self.connection.timeout works as advertised
+      response = self.connection.getresponse()  # safe if self.connection.timeout works as advertised
       if response.status != 200:
         raise Exception("Error response %d %s from http://%s%s" % (response.status, response.reason, self.store.host, self.urlpath))
       pickled_response = response.read()
@@ -171,6 +173,7 @@ class ReadResult(object):
       raise
     finally:
       self.done_cb()
+
 
 class RemoteReader(object):
   __slots__ = ('store', 'metric_path', 'intervals', 'query', 'connection')
@@ -192,12 +195,12 @@ class RemoteReader(object):
 
   def fetch(self, startTime, endTime):
     query_params = [
-      ('target', self.query),
-      ('format', 'pickle'),
-      ('local', '1'),
-      ('noCache', '1'),
-      ('from', str( int(startTime) )),
-      ('until', str( int(endTime) ))
+        ('target', self.query),
+        ('format', 'pickle'),
+        ('local', '1'),
+        ('noCache', '1'),
+        ('from', str(int(startTime))),
+        ('until', str(int(endTime)))
     ]
     query_string = urlencode(query_params)
     urlpath = '/render/?' + query_string
