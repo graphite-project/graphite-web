@@ -17,7 +17,7 @@ def get_real_metric_path(absolute_path, metric_path):
 def fs_to_metric(path):
   dirpath = os.path.dirname(path)
   filename = os.path.basename(path)
-  return os.path.join(dirpath, filename.split('.')[0]).replace(os.sep,'.')
+  return os.path.join(dirpath, filename.split('.')[0]).replace(os.sep, '.')
 
 
 def _deduplicate(entries):
@@ -34,16 +34,15 @@ def match_entries(entries, pattern):
   v1, v2 = pattern.find('{'), pattern.find('}')
 
   if v1 > -1 and v2 > v1:
-    variations = pattern[v1+1:v2].split(',')
-    variants = [ pattern[:v1] + v + pattern[v2+1:] for v in variations ]
+    variations = pattern[v1 + 1:v2].split(',')
+    variants = [pattern[:v1] + v + pattern[v2 + 1:] for v in variations]
     matching = []
 
     for variant in variants:
-      matching.extend( fnmatch.filter(entries, variant) )
+      matching.extend(fnmatch.filter(entries, variant))
 
-    return list( _deduplicate(matching) ) #remove dupes without changing order
+    return list(_deduplicate(matching))  # remove dupes without changing order
 
   else:
-    matching = fnmatch.filter(entries, pattern)
-    matching.sort()
+    matching = sorted(fnmatch.filter(entries, pattern))
     return matching

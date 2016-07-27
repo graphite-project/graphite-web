@@ -12,7 +12,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
-import os, logging
+import os
+import logging
 from logging.handlers import TimedRotatingFileHandler as Rotater
 try:
     from logging import NullHandler
@@ -29,15 +30,17 @@ except ImportError as ie:  # py2.6
     from logging.handlers import FileHandler
 from django.conf import settings
 
-logging.addLevelName(30,"rendering")
-logging.addLevelName(30,"cache")
+logging.addLevelName(30, "rendering")
+logging.addLevelName(30, "cache")
+
 
 class GraphiteLogger:
+
   def __init__(self):
     self.infoLogger = self._config_logger('info.log',
                                           'info',
                                           True,
-                                          level = logging.INFO,
+                                          level=logging.INFO,
                                           )
     self.exceptionLogger = self._config_logger('exception.log',
                                                'exception',
@@ -60,7 +63,7 @@ class GraphiteLogger:
     if level is not None:
         logger.setLevel(level)
     if activate:  # if want to log this one
-        formatter = logging.Formatter("%(asctime)s :: %(message)s","%a %b %d %H:%M:%S %Y")
+        formatter = logging.Formatter("%(asctime)s :: %(message)s", "%a %b %d %H:%M:%S %Y")
         if settings.LOG_ROTATION:  # if we want to rotate logs
             handler = Rotater(log_file, when=when, backupCount=backupCount)
         else:  # let someone else, e.g. logrotate, rotate the logs
@@ -71,17 +74,17 @@ class GraphiteLogger:
         logger.addHandler(NullHandler())
     return logger
 
-  def info(self,msg,*args,**kwargs):
-    return self.infoLogger.info(msg,*args,**kwargs)
+  def info(self, msg, *args, **kwargs):
+    return self.infoLogger.info(msg, *args, **kwargs)
 
-  def exception(self,msg="Exception Caught",**kwargs):
-    return self.exceptionLogger.exception(msg,**kwargs)
+  def exception(self, msg="Exception Caught", **kwargs):
+    return self.exceptionLogger.exception(msg, **kwargs)
 
-  def cache(self,msg,*args,**kwargs):
-    return self.cacheLogger.log(30,msg,*args,**kwargs)
+  def cache(self, msg, *args, **kwargs):
+    return self.cacheLogger.log(30, msg, *args, **kwargs)
 
-  def rendering(self,msg,*args,**kwargs):
-    return self.renderingLogger.log(30,msg,*args,**kwargs)
+  def rendering(self, msg, *args, **kwargs):
+    return self.renderingLogger.log(30, msg, *args, **kwargs)
 
 
-log = GraphiteLogger() # import-shared logger instance
+log = GraphiteLogger()  # import-shared logger instance

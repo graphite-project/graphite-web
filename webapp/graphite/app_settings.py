@@ -17,10 +17,10 @@ limitations under the License."""
 from os.path import dirname, join, abspath
 
 TEMPLATE_DIRS = (
-  join(dirname( abspath(__file__) ), 'templates'),
+    join(dirname(abspath(__file__)), 'templates'),
 )
 
-#Django settings below, do not touch!
+# Django settings below, do not touch!
 APPEND_SLASH = False
 TEMPLATE_DEBUG = False
 CACHES = {
@@ -42,32 +42,32 @@ MEDIA_ROOT = ''
 MEDIA_URL = ''
 
 MIDDLEWARE_CLASSES = (
-  'graphite.middleware.LogExceptionsMiddleware',
-  'django.middleware.common.CommonMiddleware',
-  'django.middleware.gzip.GZipMiddleware',
-  'django.contrib.sessions.middleware.SessionMiddleware',
-  'django.contrib.auth.middleware.AuthenticationMiddleware',
-  'django.contrib.messages.middleware.MessageMiddleware',
+    'graphite.middleware.LogExceptionsMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.gzip.GZipMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
 )
 
 ROOT_URLCONF = 'graphite.urls'
 
 INSTALLED_APPS = (
-  'graphite.metrics',
-  'graphite.render',
-  'graphite.browser',
-  'graphite.composer',
-  'graphite.account',
-  'graphite.dashboard',
-  'graphite.whitelist',
-  'graphite.events',
-  'graphite.url_shortener',
-  'django.contrib.auth',
-  'django.contrib.sessions',
-  'django.contrib.admin',
-  'django.contrib.contenttypes',
-  'django.contrib.staticfiles',
-  'tagging',
+    'graphite.metrics',
+    'graphite.render',
+    'graphite.browser',
+    'graphite.composer',
+    'graphite.account',
+    'graphite.dashboard',
+    'graphite.whitelist',
+    'graphite.events',
+    'graphite.url_shortener',
+    'django.contrib.auth',
+    'django.contrib.sessions',
+    'django.contrib.admin',
+    'django.contrib.contenttypes',
+    'django.contrib.staticfiles',
+    'tagging',
 )
 
 AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend']

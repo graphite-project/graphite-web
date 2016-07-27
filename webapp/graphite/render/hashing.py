@@ -21,10 +21,10 @@ import bisect
 def hashRequest(request):
   # Normalize the request parameters so ensure we're deterministic
   queryParams = ["%s=%s" % (key, '&'.join(values))
-                 for (key,values) in chain(request.POST.lists(), request.GET.lists())
+                 for (key, values) in chain(request.POST.lists(), request.GET.lists())
                  if not key.startswith('_')]
 
-  normalizedParams = ','.join( sorted(queryParams) )
+  normalizedParams = ','.join(sorted(queryParams))
   return compactHash(normalizedParams)
 
 
@@ -43,6 +43,7 @@ def compactHash(string):
 
 
 class ConsistentHashRing:
+
   def __init__(self, nodes, replica_count=100):
     self.ring = []
     self.ring_len = len(self.ring)
@@ -53,7 +54,7 @@ class ConsistentHashRing:
       self.add_node(node)
 
   def compute_ring_position(self, key):
-    big_hash = md5( str(key) ).hexdigest()
+    big_hash = md5(str(key)).hexdigest()
     small_hash = int(big_hash[:4], 16)
     return small_hash
 

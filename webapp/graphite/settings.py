@@ -27,7 +27,7 @@ DEBUG = False
 JAVASCRIPT_DEBUG = False
 
 # Filesystem layout
-WEB_DIR = dirname( abspath(__file__) )
+WEB_DIR = dirname(abspath(__file__))
 WEBAPP_DIR = dirname(WEB_DIR)
 GRAPHITE_ROOT = dirname(WEBAPP_DIR)
 # Initialize additional path variables
@@ -55,7 +55,7 @@ REMOTE_FIND_TIMEOUT = 3.0
 REMOTE_FETCH_TIMEOUT = 3.0
 REMOTE_RETRY_DELAY = 60.0
 REMOTE_EXCLUDE_LOCAL = False
-CARBON_METRIC_PREFIX='carbon'
+CARBON_METRIC_PREFIX = 'carbon'
 CARBONLINK_HOSTS = ["127.0.0.1:7002"]
 CARBONLINK_TIMEOUT = 1.0
 CARBONLINK_HASHING_KEYFUNC = None
@@ -63,10 +63,10 @@ CARBONLINK_RETRY_DELAY = 15
 REPLICATION_FACTOR = 1
 MEMCACHE_HOSTS = []
 MEMCACHE_KEY_PREFIX = ''
-CACHES={}
+CACHES = {}
 FIND_CACHE_DURATION = 300
 FIND_TOLERANCE = 2 * FIND_CACHE_DURATION
-DEFAULT_CACHE_DURATION = 60 #metric data and graphs are cached for one minute by default
+DEFAULT_CACHE_DURATION = 60  # metric data and graphs are cached for one minute by default
 DEFAULT_CACHE_POLICY = []
 
 LOG_CACHE_PERFORMANCE = False
@@ -74,13 +74,13 @@ LOG_ROTATION = True
 LOG_ROTATION_COUNT = 1
 MAX_FETCH_RETRIES = 2
 
-#Remote rendering settings
-REMOTE_RENDERING = False #if True, rendering is delegated to RENDERING_HOSTS
+# Remote rendering settings
+REMOTE_RENDERING = False  # if True, rendering is delegated to RENDERING_HOSTS
 RENDERING_HOSTS = []
 REMOTE_RENDER_CONNECT_TIMEOUT = 1.0
 LOG_RENDERING_PERFORMANCE = False
 
-#Miscellaneous settings
+# Miscellaneous settings
 SMTP_SERVER = "localhost"
 DOCUMENTATION_URL = "http://graphite.readthedocs.io/"
 ALLOW_ANONYMOUS_CLI = True
@@ -89,29 +89,29 @@ RRD_CF = 'AVERAGE'
 STORAGE_FINDERS = (
     'graphite.finders.standard.StandardFinder',
 )
-MIDDLEWARE_CLASSES=''
+MIDDLEWARE_CLASSES = ''
 
-#Authentication settings
+# Authentication settings
 USE_LDAP_AUTH = False
-LDAP_SERVER = "" # "ldapserver.mydomain.com"
+LDAP_SERVER = ""  # "ldapserver.mydomain.com"
 LDAP_PORT = 389
 LDAP_USE_TLS = False
-LDAP_SEARCH_BASE = "" # "OU=users,DC=mydomain,DC=com"
-LDAP_BASE_USER = "" # "CN=some_readonly_account,DC=mydomain,DC=com"
-LDAP_BASE_PASS = "" # "my_password"
-LDAP_USER_QUERY = "" # "(username=%s)"  For Active Directory use "(sAMAccountName=%s)"
+LDAP_SEARCH_BASE = ""  # "OU=users,DC=mydomain,DC=com"
+LDAP_BASE_USER = ""  # "CN=some_readonly_account,DC=mydomain,DC=com"
+LDAP_BASE_PASS = ""  # "my_password"
+LDAP_USER_QUERY = ""  # "(username=%s)"  For Active Directory use "(sAMAccountName=%s)"
 LDAP_URI = None
 
-#Set this to True to delegate authentication to the web server
+# Set this to True to delegate authentication to the web server
 USE_REMOTE_USER_AUTHENTICATION = False
-REMOTE_USER_BACKEND = "" # Provide an alternate or subclassed backend
-AUTHENTICATION_BACKENDS=[]
+REMOTE_USER_BACKEND = ""  # Provide an alternate or subclassed backend
+AUTHENTICATION_BACKENDS = []
 
 # Django 1.5 requires this so we set a default but warn the user
 SECRET_KEY = 'UNSAFE_DEFAULT'
 
 # Django 1.5 requires this to be set. Here we default to prior behavior and allow all
-ALLOWED_HOSTS = [ '*' ]
+ALLOWED_HOSTS = ['*']
 
 # Override to link a different URL for login (e.g. for django_openid_auth)
 LOGIN_URL = reverse_lazy('account_login')
@@ -134,13 +134,13 @@ DATABASES = None
 # If using rrdcached, set to the address or socket of the daemon
 FLUSHRRDCACHED = ''
 
-## Load our local_settings
+# Load our local_settings
 try:
   from graphite.local_settings import *  # noqa
 except ImportError:
   print >> sys.stderr, "Could not import graphite.local_settings, using defaults!"
 
-## Load Django settings if they werent picked up in local_settings
+# Load Django settings if they werent picked up in local_settings
 if not GRAPHITE_WEB_APP_SETTINGS_LOADED:
   from graphite.app_settings import *  # noqa
 
@@ -148,7 +148,7 @@ STATICFILES_DIRS = (
     join(WEBAPP_DIR, 'content'),
 )
 
-## Set config dependent on flags set in local_settings
+# Set config dependent on flags set in local_settings
 # Path configuration
 if not STATIC_ROOT:
   STATIC_ROOT = join(GRAPHITE_ROOT, 'static')
@@ -190,14 +190,14 @@ if not STANDARD_DIRS:
 
 if DATABASES is None:
     DATABASES = {
-      'default': {
-        'NAME': join(STORAGE_DIR, 'graphite.db'),
-        'ENGINE': 'django.db.backends.sqlite3',
-        'USER': '',
-        'PASSWORD': '',
-        'HOST': '',
-        'PORT': '',
-      },
+        'default': {
+            'NAME': join(STORAGE_DIR, 'graphite.db'),
+            'ENGINE': 'django.db.backends.sqlite3',
+            'USER': '',
+            'PASSWORD': '',
+            'HOST': '',
+            'PORT': '',
+        },
     }
 
 # Handle URL prefix in static files handling
@@ -206,8 +206,8 @@ if URL_PREFIX and not STATIC_URL.startswith(URL_PREFIX):
 
 # Default sqlite db file
 # This is set here so that a user-set STORAGE_DIR is available
-if 'sqlite3' in DATABASES.get('default',{}).get('ENGINE','') \
-    and not DATABASES.get('default',{}).get('NAME'):
+if 'sqlite3' in DATABASES.get('default', {}).get('ENGINE', '') \
+        and not DATABASES.get('default', {}).get('NAME'):
   DATABASES['default']['NAME'] = join(STORAGE_DIR, 'graphite.db')
 
 # Caching shortcuts
@@ -226,12 +226,12 @@ if USE_LDAP_AUTH and LDAP_URI is None:
 if USE_REMOTE_USER_AUTHENTICATION or REMOTE_USER_BACKEND:
   MIDDLEWARE_CLASSES += ('django.contrib.auth.middleware.RemoteUserMiddleware',)
   if REMOTE_USER_BACKEND:
-    AUTHENTICATION_BACKENDS.insert(0,REMOTE_USER_BACKEND)
+    AUTHENTICATION_BACKENDS.insert(0, REMOTE_USER_BACKEND)
   else:
-    AUTHENTICATION_BACKENDS.insert(0,'django.contrib.auth.backends.RemoteUserBackend')
+    AUTHENTICATION_BACKENDS.insert(0, 'django.contrib.auth.backends.RemoteUserBackend')
 
 if USE_LDAP_AUTH:
-  AUTHENTICATION_BACKENDS.insert(0,'graphite.account.ldapBackend.LDAPBackend')
+  AUTHENTICATION_BACKENDS.insert(0, 'graphite.account.ldapBackend.LDAPBackend')
 
 if SECRET_KEY == 'UNSAFE_DEFAULT':
   warn('SECRET_KEY is set to an unsafe default. This should be set in local_settings.py for better security')

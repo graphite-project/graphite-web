@@ -31,7 +31,7 @@ class StandardFinder:
         else:
           datasource_pattern = None
 
-        relative_path = absolute_path[ len(root_dir): ].lstrip('/')
+        relative_path = absolute_path[len(root_dir):].lstrip('/')
         metric_path = fs_to_metric(relative_path)
         real_metric_path = get_real_metric_path(absolute_path, metric_path)
 
@@ -71,41 +71,41 @@ class StandardFinder:
 
     has_wildcard = pattern.find('{') > -1 or pattern.find('[') > -1 or pattern.find('*') > -1 or pattern.find('?') > -1
 
-    if has_wildcard: # this avoids os.listdir() for performance
+    if has_wildcard:  # this avoids os.listdir() for performance
       try:
         entries = os.listdir(current_dir)
       except OSError as e:
         log.exception(e)
         entries = []
     else:
-      entries = [ pattern ]
+      entries = [pattern]
 
     subdirs = [entry for entry in entries if isdir(join(current_dir, entry))]
     matching_subdirs = match_entries(subdirs, pattern)
 
-    if len(patterns) == 1 and RRDReader.supported: #the last pattern may apply to RRD data sources
+    if len(patterns) == 1 and RRDReader.supported:  # the last pattern may apply to RRD data sources
       if not has_wildcard:
-        entries = [ pattern + ".rrd" ]
+        entries = [pattern + ".rrd"]
       files = [entry for entry in entries if isfile(join(current_dir, entry))]
       rrd_files = match_entries(files, pattern + ".rrd")
 
-      if rrd_files: #let's assume it does
+      if rrd_files:  # let's assume it does
         datasource_pattern = patterns[0]
 
         for rrd_file in rrd_files:
           absolute_path = join(current_dir, rrd_file)
           yield absolute_path + self.DATASOURCE_DELIMITER + datasource_pattern
 
-    if patterns: #we've still got more directories to traverse
+    if patterns:  # we've still got more directories to traverse
       for subdir in matching_subdirs:
 
         absolute_path = join(current_dir, subdir)
         for match in self._find_paths(absolute_path, patterns):
           yield match
 
-    else: #we've got the last pattern
+    else:  # we've got the last pattern
       if not has_wildcard:
-        entries = [ pattern + '.wsp', pattern + '.wsp.gz', pattern + '.rrd' ]
+        entries = [pattern + '.wsp', pattern + '.wsp.gz', pattern + '.rrd']
       files = [entry for entry in entries if isfile(join(current_dir, entry))]
       matching_files = match_entries(files, pattern + '.*')
 

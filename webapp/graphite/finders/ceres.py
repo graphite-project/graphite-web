@@ -12,13 +12,14 @@ from . import get_real_metric_path
 
 
 class CeresFinder:
+
   def __init__(self, directory=None):
     directory = directory or settings.CERES_DIR
     self.directory = directory
     self.tree = CeresTree(directory)
 
   def find_nodes(self, query):
-    for fs_path in glob( self.tree.getFilesystemPath(query.pattern) ):
+    for fs_path in glob(self.tree.getFilesystemPath(query.pattern)):
       metric_path = self.tree.getNodePath(fs_path)
 
       if CeresNode.isNodeDir(fs_path):

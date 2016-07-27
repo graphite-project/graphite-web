@@ -12,6 +12,7 @@ Sample usage:
 1234
 """
 
+
 class BaseConverter(object):
     decimal_digits = "0123456789"
 

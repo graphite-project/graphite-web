@@ -7,8 +7,8 @@ def evaluateTarget(requestContext, target):
   tokens = grammar.parseString(target)
   result = evaluateTokens(requestContext, tokens)
 
-  if type(result) is TimeSeries:
-    return [result] #we have to return a list of TimeSeries objects
+  if isinstance(result, TimeSeries):
+    return [result]  # we have to return a list of TimeSeries objects
 
   else:
     return result
@@ -20,7 +20,7 @@ def evaluateTokens(requestContext, tokens, replacements=None):
     if tokens.template.kwargs:
       arglist.update(dict([(kwarg.argname, evaluateTokens(requestContext, kwarg.args[0])) for kwarg in tokens.template.kwargs]))
     if tokens.template.args:
-      arglist.update(dict([(str(i+1), evaluateTokens(requestContext, arg)) for i, arg in enumerate(tokens.template.args)]))
+      arglist.update(dict([(str(i + 1), evaluateTokens(requestContext, arg)) for i, arg in enumerate(tokens.template.args)]))
     if 'template' in requestContext:
       arglist.update(requestContext['template'])
     return evaluateTokens(requestContext, tokens.template, arglist)
@@ -32,7 +32,7 @@ def evaluateTokens(requestContext, tokens, replacements=None):
     expression = tokens.pathExpression
     if replacements:
       for name in replacements:
-        if expression == '$'+name:
+        if expression == '$' + name:
           val = replacements[name]
           if not isinstance(val, str) and not isinstance(val, basestring):
             return val
@@ -41,7 +41,7 @@ def evaluateTokens(requestContext, tokens, replacements=None):
           else:
             return val
         else:
-          expression = expression.replace('$'+name, str(replacements[name]))
+          expression = expression.replace('$' + name, str(replacements[name]))
     return fetchData(requestContext, expression)
 
   elif tokens.call:
