@@ -1148,9 +1148,12 @@ def perSecond(requestContext, seriesList, maxValue=None):
     prev = None
     for val in series:
       step = series.step
-      if None in (prev,val):
+      if prev == None:
         newValues.append(None)
         prev = val
+        continue
+      if val == None:
+        newValues.append(None)
         continue
 
       diff = val - prev
