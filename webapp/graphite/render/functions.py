@@ -1407,16 +1407,17 @@ def alias(requestContext, seriesList, newName):
       series.name = newName
   return seriesList
 
-def cactiStyle(requestContext, seriesList, system=None):
+def cactiStyle(requestContext, seriesList, system=None, units=None):
   """
   Takes a series list and modifies the aliases to provide column aligned
   output with Current, Max, and Min values in the style of cacti. Optionally
   takes a "system" value to apply unit formatting in the same style as the
-  Y-axis.
+  Y-axis, or a "unit" string to append an arbitrary unit suffix.
 
   .. code-block:: none
 
     &target=cactiStyle(ganglia.*.net.bytes_out,"si")
+    &target=cactiStyle(ganglia.*.net.bytes_out,"si","b")
 
   A possible value for ``system`` is ``si``, which would express your values in
   multiples of a thousand. A second option is to use ``binary`` which will
@@ -1436,9 +1437,15 @@ def cactiStyle(requestContext, seriesList, system=None):
   if 0 == len(seriesList):
       return seriesList
   if system:
-      fmt = lambda x:"%.2f%s" % format_units(x,system=system)
+      if units:
+          fmt = lambda x:"%.2f %s" % format_units(x,system=system,units=units)
+      else:
+          fmt = lambda x:"%.2f%s" % format_units(x,system=system)
   else:
-      fmt = lambda x:"%.2f"%x
+      if units:
+          fmt = lambda x:"%.2f %s"%(x,units)
+      else:
+          fmt = lambda x:"%.2f"%x
   nameLen = max([0] + [len(getattr(series,"name")) for series in seriesList])
   lastLen = max([0] + [len(fmt(int(safeLast(series) or 3))) for series in seriesList]) + 3
   maxLen = max([0] + [len(fmt(int(safeMax(series) or 3))) for series in seriesList]) + 3

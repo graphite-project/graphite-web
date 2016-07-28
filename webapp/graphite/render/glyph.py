@@ -1933,7 +1933,7 @@ def sort_stacked(series_list):
   return stacked + not_stacked
 
 
-def format_units(v, step=None, system="si"):
+def format_units(v, step=None, system='si', units=None):
   """Format the given value in standardized units.
 
   ``system`` is either 'binary' or 'si'
@@ -1944,7 +1944,7 @@ def format_units(v, step=None, system="si"):
   """
 
   if v is None:
-    return v, ""
+    return v, ''
 
   if step is None:
     condition = lambda size: abs(v) >= size
@@ -1956,11 +1956,17 @@ def format_units(v, step=None, system="si"):
       v2 = v / size
       if (v2 - math.floor(v2)) < 0.00000000001 and v > 1:
         v2 = math.floor(v2)
+      if units:
+        prefix = "%s%s" % (prefix, units)
       return v2, prefix
 
   if (v - math.floor(v)) < 0.00000000001 and v > 1 :
     v = math.floor(v)
-  return v, ""
+  if units:
+    prefix = units
+  else:
+    prefix = ''
+  return v, prefix
 
 
 def find_x_times(start_dt, unit, step):
