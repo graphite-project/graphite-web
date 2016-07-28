@@ -8,7 +8,7 @@
 Changes
 -------
 
-* Graphite-web requires Python >= 2.6 and Django >= 1.4.
+* Graphite-web requires Python >= 2.6 and Django 1.9.
 
 * Metrics can be reordered via the composer.
 
@@ -53,6 +53,10 @@ Changes
 * The cli was deprecated and has been removed.
 
 * A URL shortener has been added to the composer toolbar.
+
+* The events API now requires ``tags`` to be an array when creating tagged
+  events. Previous versions only accepted string attributes. Tags are also
+  serialized as arrays.
 
 .. _Tox: https://testrun.org/tox/latest/
 
