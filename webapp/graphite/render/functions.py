@@ -1407,11 +1407,12 @@ def cactiStyle(requestContext, seriesList, system=None, units=None):
   Takes a series list and modifies the aliases to provide column aligned
   output with Current, Max, and Min values in the style of cacti. Optionally
   takes a "system" value to apply unit formatting in the same style as the
-  Y-axis.
+  Y-axis, or a "unit" string to append an arbitrary unit suffix.
 
   .. code-block:: none
 
     &target=cactiStyle(ganglia.*.net.bytes_out,"si")
+    &target=cactiStyle(ganglia.*.net.bytes_out,"si","b")
 
   A possible value for ``system`` is ``si``, which would express your values in
   multiples of a thousand. A second option is to use ``binary`` which will
