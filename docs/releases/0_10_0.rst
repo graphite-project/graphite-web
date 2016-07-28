@@ -54,6 +54,10 @@ Changes
 
 * A URL shortener has been added to the composer toolbar.
 
+* The events API now requires ``tags`` to be an array when creating tagged
+  events. Previous versions only accepted string attributes. Tags are also
+  serialized as arrays.
+
 .. _Tox: https://testrun.org/tox/latest/
 
 New functions
