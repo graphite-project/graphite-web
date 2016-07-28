@@ -1965,7 +1965,7 @@ def format_units(v, step=None, system='si', units=None):
   if units:
     prefix = units
   else:
-    prefix=''
+    prefix = ''
   return v, prefix
 
 
