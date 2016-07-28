@@ -54,8 +54,7 @@ def post_event(request):
         if 'when' in event:
             when = make_aware(
                 datetime.datetime.utcfromtimestamp(
-                    event.get('when')),
-                    pytz.utc)
+                    event.get('when')), pytz.utc)
         else:
             when = now()
 
