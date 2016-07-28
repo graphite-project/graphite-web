@@ -1146,11 +1146,15 @@ def perSecond(requestContext, seriesList, maxValue=None):
   for series in seriesList:
     newValues = []
     prev = None
+    step = series.step
     for val in series:
-      step = series.step
-      if None in (prev,val):
+      if prev is None:
         newValues.append(None)
         prev = val
+        continue
+      if val is None:
+        newValues.append(None)
+        step = step * 2
         continue
 
       diff = val - prev
@@ -1161,6 +1165,7 @@ def perSecond(requestContext, seriesList, maxValue=None):
       else:
         newValues.append(None)
 
+      step = series.step
       prev = val
     newName = "perSecond(%s)" % series.name
     newSeries = TimeSeries(newName, series.start, series.end, series.step, newValues)
