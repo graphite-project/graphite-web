@@ -977,6 +977,12 @@ class FunctionsTest(TestCase):
         result = functions.perSecond({}, seriesList)
         self.assertEqual(expected, result, 'perSecond result incorrect')
 
+    def test_perSecond_nones(self):
+        seriesList = [TimeSeries('test', 0, 600, 60, [0, 60, None, 180, None, 300, None, 420, None, 540])]
+        expected = [TimeSeries('perSecond(test)', 0, 600, 60, [None, 1, None, 1, None, 1, None, 1, None, 1])]
+        result = functions.perSecond({}, seriesList)
+        self.assertEqual(expected, result, 'perSecond result incorrect')
+
     def test_perSecond_max(self):
         seriesList = [TimeSeries('test', 0, 600, 60, [0, 120, 240, 480, 960, 900, 120, 240, 120, 0])]
         expected = [TimeSeries('perSecond(test)', 0, 600, 60, [None, 2, 2, 4, 8, None, -5, 2, 6, 6])]
