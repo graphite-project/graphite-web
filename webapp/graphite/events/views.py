@@ -44,18 +44,27 @@ def post_event(request):
         event = json.loads(request.body)
         assert isinstance(event, dict)
 
+        tags = event.get('tags')
+        if tags:
+            if not isinstance(tags, list):
+                return HttpResponse(
+                    json.dumps({'error': '"tags" must be an array'}),
+                    status=400)
+            tags = ' '.join(tags)
         if 'when' in event:
             when = make_aware(
-                datetime.datetime.utcfromtimestamp(event['when']),
-                pytz.utc)
+                datetime.datetime.utcfromtimestamp(
+                    event.get('when')), pytz.utc)
         else:
             when = now()
+
         Event.objects.create(
-            what=event['what'],
-            tags=event.get("tags"),
+            what=event.get('what'),
+            tags=tags,
             when=when,
-            data=event.get("data", ""),
+            data=event.get('data', ''),
         )
+
         return HttpResponse(status=200)
     else:
         return HttpResponse(status=405)
