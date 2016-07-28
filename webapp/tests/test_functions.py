@@ -1084,6 +1084,29 @@ class FunctionsTest(TestCase):
         result = functions.cactiStyle(request_context, seriesList)
         self.assertEqual(result, expectedResult)
 
+    def test_cactiStyle_units(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,10]),
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[1,2,None,None,None,6,7,8,9,10]),
+            TimeSeries('collectd.test-db4.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,None]),
+        ]
+        for series in seriesList:
+            series.pathExpression = series.name
+        expectedResult = [
+            TimeSeries('collectd.test-db1.load.value Current:10.00 b    Max:10.00 b    Min:1.00 b    ',0,600,60,[1,2,3,4,5,6,7,8,9,10]),
+            TimeSeries('collectd.test-db2.load.value Current:nan        Max:nan        Min:nan       ',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('collectd.test-db3.load.value Current:10.00 b    Max:10.00 b    Min:1.00 b    ',0,600,60,[1,2,None,None,None,6,7,8,9,10]),
+            TimeSeries('collectd.test-db4.load.value Current:9.00 b     Max:9.00 b     Min:1.00 b    ',0,600,60,[1,2,3,4,5,6,7,8,9,None]),
+        ]
+        for series in expectedResult:
+            series.options = {}
+
+        request_context = {}
+        result = functions.cactiStyle(request_context, seriesList, units="b")
+        self.assertEqual(result, expectedResult)
+
+
     def test_cactiStyle_emptyList(self):
         result = functions.cactiStyle({}, [])
         self.assertEqual(result, [])
@@ -1109,6 +1132,29 @@ class FunctionsTest(TestCase):
         request_context = {}
         result = functions.cactiStyle(request_context, seriesList, "binary")
         self.assertEqual(result, expectedResult)
+
+    def test_cactiStyle_binary_units(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,10]),
+            TimeSeries('collectd.test-db2.load.value',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('collectd.test-db3.load.value',0,600,60,[1,2,None,None,None,6,7,8,9,10]),
+            TimeSeries('collectd.test-db4.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,None]),
+        ]
+        for series in seriesList:
+            series.pathExpression = series.name
+        expectedResult = [
+            TimeSeries('collectd.test-db1.load.value Current:10.00 b    Max:10.00 b    Min:1.00 b    ',0,600,60,[1,2,3,4,5,6,7,8,9,10]),
+            TimeSeries('collectd.test-db2.load.value Current:nan        Max:nan        Min:nan       ',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
+            TimeSeries('collectd.test-db3.load.value Current:10.00 b    Max:10.00 b    Min:1.00 b    ',0,600,60,[1,2,None,None,None,6,7,8,9,10]),
+            TimeSeries('collectd.test-db4.load.value Current:9.00 b     Max:9.00 b     Min:1.00 b    ',0,600,60,[1,2,3,4,5,6,7,8,9,None]),
+        ]
+        for series in expectedResult:
+            series.options = {}
+
+        request_context = {}
+        result = functions.cactiStyle(request_context, seriesList, "binary", "b")
+        self.assertEqual(result, expectedResult)
+
 
     def test_n_percentile(self):
         config = [
