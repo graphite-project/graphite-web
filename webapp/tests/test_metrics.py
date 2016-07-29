@@ -253,6 +253,39 @@ class MetricsTester(TestCase):
         data = json.loads(content.split("(")[1].strip(")"))
         self.assertEqual(data['metrics'], [])
 
+        #
+        # format=nodelist
+        #
+        request=copy.deepcopy(request_default)
+        request['format']='nodelist'
+        request['query']='*'
+        content = test_find_view_basics(request)
+        data = json.loads(content)
+        self.assertEqual(data, {u'nodes': [u'hosts']})
+
+        request=copy.deepcopy(request_default)
+        request['format']='nodelist'
+        request['query']='*.*'
+        content = test_find_view_basics(request)
+        data = json.loads(content)
+        self.assertEqual(data, {u'nodes': [u'worker1', u'worker2']})
+
+        request=copy.deepcopy(request_default)
+        request['format']='nodelist'
+        request['query']='*.*.*'
+        content = test_find_view_basics(request)
+        data = json.loads(content)
+        self.assertEqual(data, {u'nodes': [u'cpu']})
+
+        # override node position
+        request=copy.deepcopy(request_default)
+        request['format']='nodelist'
+        request['query']='*.*.*'
+        request['position']='0'
+        content = test_find_view_basics(request)
+        data = json.loads(content)
+        self.assertEqual(data, {u'nodes': [u'hosts']})
+
 
     def test_expand_view(self):
         self.create_whisper_hosts()

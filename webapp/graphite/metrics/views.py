@@ -80,6 +80,7 @@ def find_view(request):
   wildcards = int( queryParams.get('wildcards', 0) )
   fromTime = int( queryParams.get('from', -1) )
   untilTime = int( queryParams.get('until', -1) )
+  nodePosition = int( queryParams.get('position', -1) )
   jsonp = queryParams.get('jsonp', False)
 
   if fromTime == -1:
@@ -124,6 +125,10 @@ def find_view(request):
 
   if format == 'treejson':
     content = tree_json(matches, base_path, wildcards=profile.advancedUI or wildcards)
+    response = json_response_for(request, content)
+
+  elif format == 'nodelist':
+    content = nodes_by_position(matches, nodePosition)
     response = json_response_for(request, content)
 
   elif format == 'pickle':
@@ -287,6 +292,16 @@ def tree_json(nodes, base_path, wildcards=False):
 
   results.extend(results_branch)
   results.extend(results_leaf)
+  return results
+
+
+def nodes_by_position(matches, position):
+  found = set()
+
+  for metric in matches:
+    nodes = metric.path.split('.')
+    found.add(nodes[position])
+  results = { 'nodes' : sorted(found) }
   return results
 
 
