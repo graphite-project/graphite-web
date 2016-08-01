@@ -2828,7 +2828,7 @@ def aggregateLine(requestContext, seriesList, func='avg'):
 
 def verticalLine(requestContext, ts, label=None, color=None):
   """
-  Takes a timestamp string.
+  Takes a timestamp string ts.
 
   Draws a vertical line at the designated timestamp with optional
   'label' and 'color'. Supported timestamp formats include both
@@ -2852,9 +2852,9 @@ def verticalLine(requestContext, ts, label=None, color=None):
   start = timestamp( requestContext['startTime'] )
   end = timestamp( requestContext['endTime'] )
   if ts < start:
-    raise ValueError('verticalLine(): ts is < start')
+    raise ValueError("verticalLine(): timestamp %s exists before start of range" % ts)
   elif ts > end:
-    raise ValueError('verticalLine(): ts is > end')
+    raise ValueError("verticalLine(): timestamp %s exists after end of range" % ts)
   start = end = ts
   step = 1.0
   series = TimeSeries(label, start, end, step, [1.0, 1.0])
