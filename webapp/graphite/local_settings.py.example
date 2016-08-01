@@ -23,6 +23,9 @@
 # needs to be explicitly set to your local timezone.
 #TIME_ZONE = 'America/Los_Angeles'
 
+# Set the default short date format. See strftime(3) for supported sequences.
+#DATE_FORMAT = '%m/%d'
+
 # Override this to provide documentation specific to your Graphite deployment
 #DOCUMENTATION_URL = "http://graphite.readthedocs.io/"
 
