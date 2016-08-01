@@ -1477,6 +1477,12 @@ class FunctionsTest(TestCase):
         results = functions.drawAsInfinite({}, seriesList)
         self._verify_series_options(results, "drawAsInfinite", True)
 
+    def test_vertical_line(self):
+        seriesList = self._generate_series_list()
+        result = functions.verticalLine({'tzinfo' : '1470080529'}, "foo")
+        expectedResult = [ TimeSeries('foo',0,1,1,[1.0]), ]
+        self.assertEqual(result, expectedResult)
+
     def test_line_width(self):
         seriesList = self._generate_series_list()
         width = 10
