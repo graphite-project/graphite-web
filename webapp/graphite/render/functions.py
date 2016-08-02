@@ -2864,11 +2864,6 @@ def verticalLine(requestContext, ts, label=None, color=None):
   return [series]
 
 
-def horizontalLine(**kwargs):
-  # suggest deprecating constantLine
-  threshold(**kwargs)
-
-
 def threshold(requestContext, value, label=None, color=None):
   """
   Takes a float F, followed by a label (in double quotes) and a color.
