@@ -1484,7 +1484,7 @@ class FunctionsTest(TestCase):
                           'tzinfo':pytz.utc,
                          }
         result = functions.verticalLine(requestContext, "01:0019700101", "foo")
-        expectedResult = [ TimeSeries('foo',3600.0,3600.0,1.0,[1.0, 1.0]), ]
+        expectedResult = [ TimeSeries('foo',3600,3600,1.0,[1.0, 1.0]), ]
         expectedResult[0].options = {'drawAsInfinite': True}
         self.assertEqual(result, expectedResult)
 
@@ -1495,7 +1495,7 @@ class FunctionsTest(TestCase):
                           'tzinfo':pytz.utc,
                          }
         result = functions.verticalLine(requestContext, "01:0019700101", "foo", "white")
-        expectedResult = [ TimeSeries('foo',3600.0,3600.0,1.0,[1.0, 1.0]), ]
+        expectedResult = [ TimeSeries('foo',3600,3600,1.0,[1.0, 1.0]), ]
         expectedResult[0].options = {'drawAsInfinite': True}
         expectedResult[0].color = "white"
         self.assertEqual(result, expectedResult)
@@ -1506,7 +1506,7 @@ class FunctionsTest(TestCase):
                           'endTime':datetime(1971,1,1,1,2,0,0,pytz.timezone(settings.TIME_ZONE)),
                           'tzinfo':pytz.utc,
                          }
-        with self.assertRaisesRegexp(ValueError, "verticalLine\(\): timestamp 3600.0 exists before start of range"):
+        with self.assertRaisesRegexp(ValueError, "verticalLine\(\): timestamp 3600 exists before start of range"):
             result = functions.verticalLine(requestContext, "01:0019700101", "foo")
 
     def test_vertical_line_after_end(self):
@@ -1515,7 +1515,7 @@ class FunctionsTest(TestCase):
                           'endTime':datetime(1970,1,1,1,2,0,0,pytz.timezone(settings.TIME_ZONE)),
                           'tzinfo':pytz.utc,
                          }
-        with self.assertRaisesRegexp(ValueError, "verticalLine\(\): timestamp 31539600.0 exists after end of range"):
+        with self.assertRaisesRegexp(ValueError, "verticalLine\(\): timestamp 31539600 exists after end of range"):
             result = functions.verticalLine(requestContext, "01:0019710101", "foo")
 
     def test_line_width(self):
