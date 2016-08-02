@@ -2848,9 +2848,9 @@ def verticalLine(requestContext, ts, label=None, color=None):
     &target=verticalLine("-5mins")
 
   """
-  ts = timestamp( parseATTime(ts, requestContext['tzinfo']) )
-  start = timestamp( requestContext['startTime'] )
-  end = timestamp( requestContext['endTime'] )
+  ts = int(timestamp( parseATTime(ts, requestContext['tzinfo']) ))
+  start = int(timestamp( requestContext['startTime'] ))
+  end = int(timestamp( requestContext['endTime'] ))
   if ts < start:
     raise ValueError("verticalLine(): timestamp %s exists before start of range" % ts)
   elif ts > end:
