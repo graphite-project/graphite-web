@@ -34,8 +34,17 @@ class TimeSeries(list):
 
   def __eq__(self, other):
     if isinstance(other, TimeSeries):
+      color_check = True
+      if hasattr(self, 'color'):
+        if hasattr(other, 'color'):
+          color_check = (self.color == other.color)
+        else:
+          color_check = False
+      elif hasattr(other, 'color'):
+        color_check = False
+
       return ((self.name, self.start, self.end, self.step, self.consolidationFunc, self.valuesPerPoint, self.options) ==
-              (other.name, other.start, other.end, other.step, other.consolidationFunc, other.valuesPerPoint, other.options)) and list.__eq__(self, other)
+              (other.name, other.start, other.end, other.step, other.consolidationFunc, other.valuesPerPoint, other.options)) and list.__eq__(self, other) and color_check
     return False
 
 

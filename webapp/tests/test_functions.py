@@ -2348,6 +2348,7 @@ class FunctionsTest(TestCase):
         expectedResult = [
             TimeSeries('MyLine', 3600, 3600, 0, [7.0, 7.0, 7.0]),
         ]
+        expectedResult[0].color='blue'
         requestContext = {
                           'startTime': datetime(1970,1,1,1,0,0,0,pytz.timezone(settings.TIME_ZONE)),
                           'endTime':datetime(1970,1,1,1,0,0,0,pytz.timezone(settings.TIME_ZONE))

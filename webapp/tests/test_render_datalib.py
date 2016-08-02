@@ -19,6 +19,30 @@ class TimeSeriesTest(TestCase):
       with self.assertRaises(AssertionError):
         self.assertEqual(values, series)
 
+    def test_TimeSeries_equal_list_color(self):
+      values = range(0,100)
+      series1 = TimeSeries("collectd.test-db.load.value", 0, len(values), 1, values)
+      series1.color = 'white'
+      series2 = TimeSeries("collectd.test-db.load.value", 0, len(values), 1, values)
+      series2.color = 'white'
+      self.assertEqual(series1, series2)
+
+    def test_TimeSeries_equal_list_color_bad(self):
+      values = range(0,100)
+      series1 = TimeSeries("collectd.test-db.load.value", 0, len(values), 1, values)
+      series2 = TimeSeries("collectd.test-db.load.value", 0, len(values), 1, values)
+      series2.color = 'white'
+      with self.assertRaises(AssertionError):
+        self.assertEqual(series1, series2)
+
+    def test_TimeSeries_equal_list_color_bad2(self):
+      values = range(0,100)
+      series1 = TimeSeries("collectd.test-db.load.value", 0, len(values), 1, values)
+      series2 = TimeSeries("collectd.test-db.load.value", 0, len(values), 1, values)
+      series1.color = 'white'
+      with self.assertRaises(AssertionError):
+        self.assertEqual(series1, series2)
+
     def test_TimeSeries_getInfo(self):
       values = range(0,100)
       series = TimeSeries("collectd.test-db.load.value", 0, len(values), 1, values)
