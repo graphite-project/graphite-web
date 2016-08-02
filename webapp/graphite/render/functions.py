@@ -2826,6 +2826,44 @@ def aggregateLine(requestContext, seriesList, func='avg'):
     results.append(series)
   return results
 
+def verticalLine(requestContext, ts, label=None, color=None):
+  """
+  Takes a timestamp string ts.
+
+  Draws a vertical line at the designated timestamp with optional
+  'label' and 'color'. Supported timestamp formats include both
+  relative (e.g. -3h) and absolute (e.g. 16:00_20110501) strings,
+  such as those used with ``from`` and ``until`` parameters. When
+  set, the 'label' will appear in the graph legend.
+
+  Note: Any timestamps defined outside the requested range will
+  raise a 'ValueError' exception.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=verticalLine("12:3420131108","event","blue")
+    &target=verticalLine("16:00_20110501","event")
+    &target=verticalLine("-5mins")
+
+  """
+  ts = int(timestamp( parseATTime(ts, requestContext['tzinfo']) ))
+  start = int(timestamp( requestContext['startTime'] ))
+  end = int(timestamp( requestContext['endTime'] ))
+  if ts < start:
+    raise ValueError("verticalLine(): timestamp %s exists before start of range" % ts)
+  elif ts > end:
+    raise ValueError("verticalLine(): timestamp %s exists after end of range" % ts)
+  start = end = ts
+  step = 1.0
+  series = TimeSeries(label, start, end, step, [1.0, 1.0])
+  series.options['drawAsInfinite'] = True
+  if color:
+    series.color = color
+  return [series]
+
+
 def threshold(requestContext, value, label=None, color=None):
   """
   Takes a float F, followed by a label (in double quotes) and a color.
@@ -2837,17 +2875,16 @@ def threshold(requestContext, value, label=None, color=None):
 
   .. code-block:: none
 
-    &target=threshold(123.456, "omgwtfbbq", red)
+    &target=threshold(123.456, "omgwtfbbq", "red")
 
   """
-
   series = constantLine(requestContext, value)[0]
   if label:
     series.name = label
   if color:
     series.color = color
-
   return [series]
+
 
 def transformNull(requestContext, seriesList, default=0, referenceSeries=None):
   """
@@ -3753,6 +3790,8 @@ SeriesFunctions = {
   'threshold': threshold,
   'transformNull': transformNull,
   'isNonNull': isNonNull,
+  'threshold' : threshold,
+  'verticalLine' : verticalLine,
   'identity': identity,
   'aggregateLine': aggregateLine,
 

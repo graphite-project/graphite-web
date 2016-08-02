@@ -1477,6 +1477,47 @@ class FunctionsTest(TestCase):
         results = functions.drawAsInfinite({}, seriesList)
         self._verify_series_options(results, "drawAsInfinite", True)
 
+    def test_vertical_line(self):
+        requestContext = {
+                          'startTime': datetime(1970,1,1,1,0,0,0,pytz.timezone(settings.TIME_ZONE)),
+                          'endTime':datetime(1970,1,1,1,2,0,0,pytz.timezone(settings.TIME_ZONE)),
+                          'tzinfo':pytz.utc,
+                         }
+        result = functions.verticalLine(requestContext, "01:0019700101", "foo")
+        expectedResult = [ TimeSeries('foo',3600,3600,1.0,[1.0, 1.0]), ]
+        expectedResult[0].options = {'drawAsInfinite': True}
+        self.assertEqual(result, expectedResult)
+
+    def test_vertical_line_color(self):
+        requestContext = {
+                          'startTime': datetime(1970,1,1,1,0,0,0,pytz.timezone(settings.TIME_ZONE)),
+                          'endTime':datetime(1970,1,1,1,2,0,0,pytz.timezone(settings.TIME_ZONE)),
+                          'tzinfo':pytz.utc,
+                         }
+        result = functions.verticalLine(requestContext, "01:0019700101", "foo", "white")
+        expectedResult = [ TimeSeries('foo',3600,3600,1.0,[1.0, 1.0]), ]
+        expectedResult[0].options = {'drawAsInfinite': True}
+        expectedResult[0].color = "white"
+        self.assertEqual(result, expectedResult)
+
+    def test_vertical_line_before_start(self):
+        requestContext = {
+                          'startTime': datetime(1971,1,1,1,0,0,0,pytz.timezone(settings.TIME_ZONE)),
+                          'endTime':datetime(1971,1,1,1,2,0,0,pytz.timezone(settings.TIME_ZONE)),
+                          'tzinfo':pytz.utc,
+                         }
+        with self.assertRaisesRegexp(ValueError, "verticalLine\(\): timestamp 3600 exists before start of range"):
+            result = functions.verticalLine(requestContext, "01:0019700101", "foo")
+
+    def test_vertical_line_after_end(self):
+        requestContext = {
+                          'startTime': datetime(1970,1,1,1,0,0,0,pytz.timezone(settings.TIME_ZONE)),
+                          'endTime':datetime(1970,1,1,1,2,0,0,pytz.timezone(settings.TIME_ZONE)),
+                          'tzinfo':pytz.utc,
+                         }
+        with self.assertRaisesRegexp(ValueError, "verticalLine\(\): timestamp 31539600 exists after end of range"):
+            result = functions.verticalLine(requestContext, "01:0019710101", "foo")
+
     def test_line_width(self):
         seriesList = self._generate_series_list()
         width = 10
