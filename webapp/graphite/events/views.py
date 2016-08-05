@@ -6,7 +6,9 @@ try:
 except ImportError:  # Django < 1.9
     from django.contrib.sites.models import RequestSite
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.forms.models import model_to_dict
+from django.http import HttpResponseNotFound
 from django.shortcuts import render_to_response, get_object_or_404
 from django.utils.timezone import now, make_aware
 
@@ -35,12 +37,19 @@ def view_events(request):
 
 def detail(request, event_id):
     if request.META['HTTP_ACCEPT'] == 'application/json':
-        e = Event.objects.get(id=event_id)
-        e.tags = e.tags.split()
-        response = HttpResponse(
-            json.dumps(model_to_dict(e), cls=EventEncoder),
-            content_type="application/json")
-        return response
+        try:
+           e = Event.objects.get(id=event_id)
+           e.tags = e.tags.split()
+           response = HttpResponse(
+               json.dumps(model_to_dict(e), cls=EventEncoder),
+               content_type='application/json')
+           return response
+        except ObjectDoesNotExist:
+           error = {'error': 'Event matching query does not exist'}
+           response = HttpResponseNotFound(
+               json.dumps(error, cls=EventEncoder),
+               content_type='application/json')
+           return response
     else:
         e = get_object_or_404(Event, pk=event_id)
         context = {'event': e}
