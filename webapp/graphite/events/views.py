@@ -8,7 +8,7 @@ except ImportError:  # Django < 1.9
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.forms.models import model_to_dict
-from django.http import HttpResponseNotFound
+from django.http import HttpResponseNotFound, JsonResponse
 from django.shortcuts import render_to_response, get_object_or_404
 from django.utils.timezone import now, make_aware
 
@@ -40,15 +40,11 @@ def detail(request, event_id):
         try:
            e = Event.objects.get(id=event_id)
            e.tags = e.tags.split()
-           response = HttpResponse(
-               json.dumps(model_to_dict(e), cls=EventEncoder),
-               content_type='application/json')
+           response = JsonResponse(model_to_dict(e))
            return response
         except ObjectDoesNotExist:
            error = {'error': 'Event matching query does not exist'}
-           response = HttpResponseNotFound(
-               json.dumps(error, cls=EventEncoder),
-               content_type='application/json')
+           response = JsonResponse(error, status=404)
            return response
     else:
         e = get_object_or_404(Event, pk=event_id)
