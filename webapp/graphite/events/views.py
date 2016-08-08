@@ -8,11 +8,10 @@ except ImportError:  # Django < 1.9
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.forms.models import model_to_dict
-from django.http import JsonResponse
 from django.shortcuts import render_to_response, get_object_or_404
 from django.utils.timezone import now, make_aware
 
-from graphite.compat import HttpResponse
+from graphite.compat import HttpResponse, JsonResponse
 from graphite.util import json, epoch
 from graphite.events.models import Event
 from graphite.render.attime import parseATTime
