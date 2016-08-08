@@ -86,3 +86,21 @@ class EventTest(TestCase):
         error = json.loads(response.content)
         self.assertEqual(error, {'error': '"tags" must be an array'})
         self.assertEqual(Event.objects.count(), 0)
+
+    def test_get_detail_json(self):
+        creation_url = reverse('graphite.events.views.view_events')
+        event = {
+            'what': 'Something happened',
+            'data': 'more info',
+            'tags': ['foo', 'bar'],
+        }
+        response = self.client.post(creation_url, json.dumps(event),
+                                    content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+
+        url = reverse('events_detail', args=[1])
+        response = self.client.get(url, {}, HTTP_ACCEPT='application/json')
+        self.assertEqual(response.status_code, 200)
+        event = json.loads(response.content)
+        self.assertEqual(event['what'], 'Something happened')
+        self.assertEqual(event['tags'], ['foo', 'bar'])
