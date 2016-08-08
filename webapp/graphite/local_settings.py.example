@@ -69,6 +69,9 @@
 # Set URL_PREFIX when deploying graphite-web to a non-root location
 #URL_PREFIX = '/graphite'
 
+# Graphite uses Django Tagging to support tags in Events. By default each
+# tag is limited to 50 characters in length.
+#MAX_TAG_LENGTH = 50
 
 #####################################
 # Filesystem Paths #
