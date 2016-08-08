@@ -92,6 +92,7 @@ STORAGE_FINDERS = (
     'graphite.finders.standard.StandardFinder',
 )
 MIDDLEWARE_CLASSES=''
+MAX_TAG_LENGTH = 50
 
 #Authentication settings
 USE_LDAP_AUTH = False
