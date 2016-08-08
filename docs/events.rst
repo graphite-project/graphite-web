@@ -23,7 +23,7 @@ Events can be submitted via HTTP POST using command-line tools such as ``curl`` 
 .. code-block:: none
 
     $ curl -X POST "http://graphite/events/" 
-        -d '{ "what": "Event - deploy", "tags": "deploy", 
+        -d '{ "what": "Event - deploy", "tags": ["deploy"], 
         "data": "deploy of master branch happened at Wed Jul  6 22:34:41 UTC 2016" }'
 
 
@@ -60,7 +60,7 @@ It's also possible to dump the raw events using the API.
     [
        {
           "when" : 1392046352,
-          "tags" : "deploy",
+          "tags" : ["deploy"],
           "data" : "deploy of master branch happened at Fri Jan 3 22:34:41 UTC 2014",
           "id" : 2,
           "what" : "Event - deploy"
@@ -69,10 +69,12 @@ It's also possible to dump the raw events using the API.
           "id" : 3,
           "what" : "Event - deploy",
           "when" : 1392046661,
-          "tags" : "deploy",
+          "tags" : ["deploy"],
           "data" : "deploy of master branch happened at Fri Jan 3 22:34:41 UTC 2014"
        }
     ]
+
+The ``set`` parameter accepts an optional ``union`` or ``intersection`` argument to determine the behavior for filtering sets of tags (i.e. inclusive or exclusive). By default, Graphite uses a "lazy union" that will return any matching events for a given tag in a list of tags. This behavior is not intuitive and will therefore be deprecated in a future release.
 
 
 Managing Events in the Admin UI
