@@ -1,8 +1,9 @@
 import os
 
 from django.db import models
-from tagging.managers import ModelTaggedItemManager
 from tagging.models import Tag
+
+from graphite.events.compat import ModelTaggedItemManager
 
 if os.environ.get('READTHEDOCS'):
     TagField = lambda *args, **kwargs: None
@@ -22,10 +23,15 @@ class Event(models.Model):
         return "%s: %s" % (self.when, self.what)
 
     @staticmethod
-    def find_events(time_from=None, time_until=None, tags=None):
+    def find_events(time_from=None, time_until=None, tags=None, set=None):
 
         if tags is not None:
-            query = Event.tagged.with_all(tags)
+            if set == 'union':
+                query = Event.tagged.with_any(tags)
+            elif set == 'intersection':
+                query = Event.tagged.with_intersection(tags)
+            else:
+                query = Event.tagged.with_all(tags)
         else:
             query = Event.objects.all()
 
