@@ -104,3 +104,10 @@ class EventTest(TestCase):
         event = json.loads(response.content)
         self.assertEqual(event['what'], 'Something happened')
         self.assertEqual(event['tags'], ['foo', 'bar'])
+
+    def test_get_detail_json_object_does_not_exist(self):
+        url = reverse('events_detail', args=[1])
+        response = self.client.get(url, {}, HTTP_ACCEPT='application/json')
+        self.assertEqual(response.status_code, 404)
+        event = json.loads(response.content)
+        self.assertEqual(event['error'], 'Event matching query does not exist')
