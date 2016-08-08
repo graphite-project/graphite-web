@@ -1,5 +1,4 @@
 import datetime
-
 import pytz
 
 try:
@@ -7,10 +6,12 @@ try:
 except ImportError:  # Django < 1.9
     from django.contrib.sites.models import RequestSite
 
+from django.core.exceptions import ObjectDoesNotExist
+from django.forms.models import model_to_dict
 from django.shortcuts import render_to_response, get_object_or_404
 from django.utils.timezone import now, make_aware
 
-from graphite.compat import HttpResponse
+from graphite.compat import HttpResponse, JsonResponse
 from graphite.util import json, epoch
 from graphite.events.models import Event
 from graphite.render.attime import parseATTime
@@ -34,9 +35,20 @@ def view_events(request):
 
 
 def detail(request, event_id):
-    e = get_object_or_404(Event, pk=event_id)
-    context = {'event': e}
-    return render_to_response("event.html", context)
+    if request.META['HTTP_ACCEPT'] == 'application/json':
+        try:
+           e = Event.objects.get(id=event_id)
+           e.tags = e.tags.split()
+           response = JsonResponse(model_to_dict(e))
+           return response
+        except ObjectDoesNotExist:
+           error = {'error': 'Event matching query does not exist'}
+           response = JsonResponse(error, status=404)
+           return response
+    else:
+        e = get_object_or_404(Event, pk=event_id)
+        context = {'event': e}
+        return render_to_response("event.html", context)
 
 
 def post_event(request):
@@ -81,6 +93,7 @@ def get_data(request):
             json.dumps(fetch(request), cls=EventEncoder),
             content_type="application/json")
     return response
+
 
 def fetch(request):
     if request.GET.get("from") is not None:
