@@ -87,6 +87,57 @@ class EventTest(TestCase):
         self.assertEqual(error, {'error': '"tags" must be an array'})
         self.assertEqual(Event.objects.count(), 0)
 
+    def test_tag_sets(self):
+        creation_url = reverse('graphite.events.views.view_events')
+        events = [
+            {
+                'what': 'Something happened',
+                'data': 'more info',
+                'tags': ['foo'],
+            },
+            {
+                'what': 'Something else happened',
+                'data': 'even more info',
+                'tags': ['bar'],
+            },
+            {
+                'what': 'A final thing happened',
+                'data': 'yet even more info',
+                'tags': ['foo', 'bar'],
+            },
+        ]
+
+        for event in events:
+            response = self.client.post(creation_url, json.dumps(event),
+                                        content_type='application/json')
+            self.assertEqual(response.status_code, 200)
+
+        url = reverse('events_get_data')
+
+        # should match two events using old set logic
+        response = self.client.get(url, {'tags': 'foo'})
+        self.assertEqual(response.status_code, 200)
+        events = json.loads(response.content)
+        self.assertEqual(len(events), 2)
+
+        # should match one event using set intersection
+        response = self.client.get("%s%s" % (url, '?tags=foo%20bar&set=intersection'))
+        self.assertEqual(response.status_code, 200)
+        events = json.loads(response.content)
+        self.assertEqual(len(events), 1)
+
+        # should match zero events using set intersection and unknown tag
+        response = self.client.get("%s%s" % (url, '?tags=foo%20bar%20nope&set=intersection'))
+        self.assertEqual(response.status_code, 200)
+        events = json.loads(response.content)
+        self.assertEqual(len(events), 0)
+
+        # should match all events using set union
+        response = self.client.get("%s%s" % (url, '?tags=foo%20bar&set=union'))
+        self.assertEqual(response.status_code, 200)
+        events = json.loads(response.content)
+        self.assertEqual(len(events), 3)
+
     def test_get_detail_json(self):
         creation_url = reverse('graphite.events.views.view_events')
         event = {
