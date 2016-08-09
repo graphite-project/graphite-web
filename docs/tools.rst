@@ -114,6 +114,9 @@ Forwarding
 `pipe-to-graphite`_
   A small shell script that makes it easy to report the output of any other cli program to Graphite.
 
+`Polymur`_
+  A fast relay and HTTPS forwarder toolset written in Go.
+
 `statsd`_
   A simple daemon for easy stats aggregation, developed by the folks at Etsy. A list of forks and alternative implementations can be found at <http://joemiller.me/2011/09/21/list-of-statsd-server-implementations/>
 
@@ -339,6 +342,7 @@ Other
 .. _New Relic: https://newrelic.com/platform
 .. _Pencil: https://github.com/fetep/pencil
 .. _pipe-to-graphite: https://github.com/iFixit/pipe-to-graphite
+.. _Polymur: https://github.com/jamiealquiza/polymur
 .. _RabbitMQ: http://www.rabbitmq.com
 .. _rearview: http://github.com/livingsocial/rearview
 .. _Rickshaw: http://code.shutterstock.com/rickshaw
