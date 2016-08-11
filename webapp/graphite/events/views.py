@@ -114,6 +114,9 @@ def fetch(request):
 
     result = []
     for x in Event.find_events(time_from, time_until, tags=tags, set_operation=set_operation):
+
+        # django-tagging's with_intersection() returns matches with unknown tags
+        # this is a workaround to ensure we only return positive matches
         if set_operation == 'intersection':
             if len(set(tags) & set(x.as_dict()['tags'])) == len(tags):
                 result.append(x.as_dict())
