@@ -23,12 +23,12 @@ class Event(models.Model):
         return "%s: %s" % (self.when, self.what)
 
     @staticmethod
-    def find_events(time_from=None, time_until=None, tags=None, set=None):
+    def find_events(time_from=None, time_until=None, tags=None, set_operation=None):
 
         if tags is not None:
-            if set == 'union':
+            if set_operation == 'union':
                 query = Event.tagged.with_any(tags)
-            elif set == 'intersection':
+            elif set_operation == 'intersection':
                 query = Event.tagged.with_intersection(tags)
             else:
                 query = Event.tagged.with_all(tags)

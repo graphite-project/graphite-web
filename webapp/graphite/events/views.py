@@ -106,11 +106,17 @@ def fetch(request):
     else:
         time_until = now()
 
-    set = request.GET.get('set')
+    set_operation = request.GET.get('set')
 
     tags = request.GET.get('tags')
     if tags is not None:
         tags = request.GET.get('tags').split(' ')
 
-    return [x.as_dict() for x in
-            Event.find_events(time_from, time_until, tags=tags, set=set)]
+    result = []
+    for x in Event.find_events(time_from, time_until, tags=tags, set_operation=set_operation):
+        if set_operation == 'intersection':
+            if len(set(tags) & set(x.as_dict()['tags'])) == len(tags):
+                result.append(x.as_dict())
+        else:
+            result.append(x.as_dict())
+    return result
