@@ -25,11 +25,11 @@ class EventEncoder(json.JSONEncoder):
 
 
 def view_events(request):
-    if request.method == "GET":
+    if request.method == 'GET':
         context = {'events': fetch(request),
                    'site': RequestSite(request),
                    'protocol': 'https' if request.is_secure() else 'http'}
-        return render_to_response("events.html", context)
+        return render_to_response('events.html', context)
     else:
         return post_event(request)
 
@@ -48,7 +48,7 @@ def detail(request, event_id):
     else:
         e = get_object_or_404(Event, pk=event_id)
         context = {'event': e}
-        return render_to_response("event.html", context)
+        return render_to_response('event.html', context)
 
 
 def post_event(request):
@@ -91,24 +91,35 @@ def get_data(request):
     else:
         response = HttpResponse(
             json.dumps(fetch(request), cls=EventEncoder),
-            content_type="application/json")
+            content_type='application/json')
     return response
 
 
 def fetch(request):
-    if request.GET.get("from") is not None:
-        time_from = parseATTime(request.GET["from"])
+    if request.GET.get('from') is not None:
+        time_from = parseATTime(request.GET['from'])
     else:
         time_from = datetime.datetime.fromtimestamp(0)
 
-    if request.GET.get("until") is not None:
-        time_until = parseATTime(request.GET["until"])
+    if request.GET.get('until') is not None:
+        time_until = parseATTime(request.GET['until'])
     else:
         time_until = now()
 
-    tags = request.GET.get("tags")
-    if tags is not None:
-        tags = request.GET.get("tags").split(" ")
+    set_operation = request.GET.get('set')
 
-    return [x.as_dict() for x in
-            Event.find_events(time_from, time_until, tags=tags)]
+    tags = request.GET.get('tags')
+    if tags is not None:
+        tags = request.GET.get('tags').split(' ')
+
+    result = []
+    for x in Event.find_events(time_from, time_until, tags=tags, set_operation=set_operation):
+
+        # django-tagging's with_intersection() returns matches with unknown tags
+        # this is a workaround to ensure we only return positive matches
+        if set_operation == 'intersection':
+            if len(set(tags) & set(x.as_dict()['tags'])) == len(tags):
+                result.append(x.as_dict())
+        else:
+            result.append(x.as_dict())
+    return result
