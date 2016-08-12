@@ -29,7 +29,6 @@ class FinderTest(TestCase):
         self.assertEqual(time_info, (100, 200, 10))
         self.assertEqual(len(series), 10)
 
-
 class DummyReader(object):
     __slots__ = ('path',)
 
@@ -60,47 +59,104 @@ class StandardFinderTest(TestCase):
     _listdir_counter = 0
     _original_listdir = os.listdir
 
+    test_dir = settings.WHISPER_DIR
+
+    def create_whisper(self, path):
+        path = join(self.test_dir, path)
+        if not isdir(dirname(path)):
+            os.makedirs(dirname(path))
+        whisper.create(path, [(1, 60)])
+
+    def wipe_whisper(self):
+        try:
+            shutil.rmtree(self.test_dir)
+        except OSError:
+            pass
+
+        if not isdir(self.test_dir):
+            os.makedirs(self.test_dir)
+
     def test_standard_finder(self):
-        test_dir = join(settings.WHISPER_DIR, 'test_standard_finder')
-
-        def create_whisper(path):
-            path = join(test_dir, path)
-            if not isdir(dirname(path)):
-                os.makedirs(dirname(path))
-            whisper.create(path, [(1, 60)])
-
-        def wipe_whisper():
-            try:
-                shutil.rmtree(test_dir)
-            except OSError:
-                pass
-
         def listdir_mock(d):
             self._listdir_counter += 1
             return self._original_listdir(d)
 
         try:
             os.listdir = listdir_mock
-            create_whisper('foo.wsp')
-            create_whisper(join('foo', 'bar', 'baz.wsp'))
-            create_whisper(join('bar', 'baz', 'foo.wsp'))
+            self.create_whisper('foo.wsp')
+            self.create_whisper(join('foo', 'bar', 'baz.wsp'))
+            self.create_whisper(join('bar', 'baz', 'foo.wsp'))
             finder = get_finder('graphite.finders.standard.StandardFinder')
 
             self._listdir_counter = 0
-            nodes = finder.find_nodes(FindQuery('test_standard_finder.foo', None, None))
+            nodes = finder.find_nodes(FindQuery('foo', None, None))
             self.assertEqual(len(list(nodes)), 2)
             self.assertEqual(self._listdir_counter, 0)
 
             self._listdir_counter = 0
-            nodes = finder.find_nodes(FindQuery('test_standard_finder.foo.bar.baz', None, None))
+            nodes = finder.find_nodes(FindQuery('foo.bar.baz', None, None))
             self.assertEqual(len(list(nodes)), 1)
             self.assertEqual(self._listdir_counter, 0)
 
             self._listdir_counter = 0
-            nodes = finder.find_nodes(FindQuery('test_standard_finder.*.ba?.{baz,foo}', None, None))
+            nodes = finder.find_nodes(FindQuery('*.ba?.{baz,foo}', None, None))
             self.assertEqual(len(list(nodes)), 2)
             self.assertEqual(self._listdir_counter, 5)
 
         finally:
             os.listdir = self._original_listdir
-            wipe_whisper()
+            self.wipe_whisper()
+
+    def test_globstar(self):
+        self.addCleanup(self.wipe_whisper)
+        finder = get_finder('graphite.finders.standard.StandardFinder')
+        store  = Store(finders=[finder])
+
+        query = "x.**.x"
+        hits = ["x.x", "x._.x", "x._._.x"]
+        misses = ["x.x.o", "o.x.x", "x._.x._.o", "o._.x._.x"]
+        for path in hits + misses:
+            file = join(path.replace(".", os.sep)) + ".wsp"
+            self.create_whisper(file)
+
+        paths = [node.path for node in store.find(query, local=True)]
+        for hit in hits:
+            self.assertIn(hit, paths)
+        for miss in misses:
+            self.assertNotIn(miss, paths)
+
+    def test_multiple_globstars(self):
+        self.addCleanup(self.wipe_whisper)
+        finder = get_finder('graphite.finders.standard.StandardFinder')
+        store  = Store(finders=[finder])
+
+        query = "x.**.x.**.x"
+        hits = ["x.x.x", "x._.x.x", "x.x._.x", "x._.x._.x", "x._._.x.x", "x.x._._.x"]
+        misses = ["x.o.x", "o.x.x", "x.x.o", "o.x.x.x", "x.x.x.o", "o._.x._.x", "x._.o._.x", "x._.x._.o"]
+        for path in hits + misses:
+            file = join(path.replace(".", os.sep)) + ".wsp"
+            self.create_whisper(file)
+
+        paths = [node.path for node in store.find(query, local=True)]
+        for hit in hits:
+            self.assertIn(hit, paths)
+        for miss in misses:
+            self.assertNotIn(miss, paths)
+
+    def test_terminal_globstar(self):
+        self.addCleanup(self.wipe_whisper)
+        finder = get_finder('graphite.finders.standard.StandardFinder')
+        store  = Store(finders=[finder])
+
+        query = "x.**"
+        hits = ["x._", "x._._", "x._._._"]
+        misses = ["x", "o._", "o.x._", "o._.x"]
+        for path in hits + misses:
+            file = join(path.replace(".", os.sep)) + ".wsp"
+            self.create_whisper(file)
+
+        paths = [node.path for node in store.find(query, local=True)]
+        for hit in hits:
+            self.assertIn(hit, paths)
+        for miss in misses:
+            self.assertNotIn(miss, paths)
