@@ -25,6 +25,7 @@ from ConfigParser import SafeConfigParser
 from django.conf import settings
 from graphite.render.datalib import TimeSeries
 from graphite.util import json
+from urllib import unquote
 
 import pytz
 
@@ -1053,7 +1054,7 @@ class LineGraph(Graph):
     self.setFont()
 
     if not params.get('hideLegend', len(self.data) > settings.LEGEND_MAX_ITEMS):
-      elements = [ (series.name,series.color,series.options.get('secondYAxis')) for series in self.data if series.name ]
+      elements = [ (unquote(series.name),series.color,series.options.get('secondYAxis')) for series in self.data if series.name ]
       self.drawLegend(elements, params.get('uniqueLegend', False))
 
     #Setup axes, labels, and grid
