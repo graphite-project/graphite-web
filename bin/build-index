@@ -2,8 +2,11 @@
 from graphite import settings
 from optparse import OptionParser
 import os
+import django
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "graphite.settings")
+django.setup()
+
 from graphite.util import write_index
 
 
