@@ -39,25 +39,11 @@ function GraphiteBrowser () {
         return;
       }
 
-      selNode = Browser.treePanel.getSelectionModel().selNode;
-
-      if ( selNode !== null ) {
-        if ( selNode.leaf === 0 ) {
-          // selected node is a folder
-          selNode.reload();
+      Ext.each(Object.keys(Browser.trees), function(tree) {
+        if ( Browser.trees[tree] !== null ) {
+          Browser.trees[tree].reload();
         }
-        else {
-          Browser.trees.graphite.eachChild(function(node){
-            // selected node is a leaf metric
-            node.reload();
-          });
-        }
-      }
-      else {
-        Browser.trees.graphite.eachChild(function(node){
-          node.reload();
-        });
-      }
+      });
 
     } } ]
   });
@@ -67,7 +53,7 @@ function createGraphiteNode() {
 
   return new Ext.tree.AsyncTreeNode({
       id: 'GraphiteTree',
-      text: 'Graphite',
+      text: 'Metrics',
       loader: new Ext.tree.TreeLoader({
         url: document.body.dataset.baseUrl + 'metrics/find/',
         requestMethod: 'GET',
@@ -88,7 +74,7 @@ function setParams(loader, node) {
   }
 } // setParams
 
-//Tree Tab
+// Tree Tab
 function createTreePanel( rootNode ){
 
   function setParams(loader, node) {
@@ -167,7 +153,7 @@ function createTreePanel( rootNode ){
   return treePanel;
 }
 
-//Search Tab
+// Search Tab
 function createSearchPanel() {
   return new Ext.form.FormPanel({
     formId: 'searchForm',
@@ -244,9 +230,9 @@ function sendSearchRequest (searchField, evt) {
   if (evt.getCharCode() != Ext.EventObject.RETURN) {
     return;
   }
-  //Clear any previous errors
+  // Clear any previous errors
   showSearchError("");
-  //Clear the result list
+  // Clear the result list
   var resultList = Ext.getDom('searchResults');
   while (resultList.childNodes[0]) {
     resultList.removeChild( resultList.childNodes[0] );
@@ -280,7 +266,7 @@ function handleSearchFailure (response, options)
   showSearchError("Search request failed");
 }
 
-//Auto-Completer Tab
+// Auto-Completer Tab
 function createCompleterPanel() {
   var metricCompleter = new MetricCompleter({emptyText: "Start typing a metric name..."});
 
