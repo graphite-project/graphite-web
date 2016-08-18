@@ -73,6 +73,9 @@
 # tag is limited to 50 characters in length.
 #MAX_TAG_LENGTH = 50
 
+# Interval for the Auto-Refresh feature in the Composer, measured in seconds.
+#AUTO_REFRESH_INTERVAL = 60
+
 #####################################
 # Filesystem Paths #
 #####################################
