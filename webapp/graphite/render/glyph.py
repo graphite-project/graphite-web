@@ -68,7 +68,7 @@ defaultGraphOptions = dict(
   fontitalic='false',
 )
 
-#X-axis configurations (copied from rrdtool, this technique is evil & ugly but effective)
+# X-axis configurations (copied from rrdtool, this technique is evil & ugly but effective)
 SEC = 1
 MIN = 60
 HOUR = MIN * 60
@@ -959,7 +959,7 @@ class LineGraph(Graph):
     if len(self.dataRight) > 0:
       self.secondYAxis = True
 
-    #API compatibility hacks
+    # API compatibility hacks
     if params.get('graphOnly',False):
       params['hideLegend'] = True
       params['hideGrid'] = True
@@ -1001,7 +1001,8 @@ class LineGraph(Graph):
     # instead of adding to the minimum
     if self.params.get('yAxisSide') == 'right':
       self.margin = self.width
-    #Now to setup our LineGraph specific options
+
+    # Now to setup our LineGraph specific options
     self.lineWidth = float( params.get('lineWidth', 1.2) )
     self.lineMode = params.get('lineMode','slope').lower()
     self.connectedLimit = params.get("connectedLimit", INFINITY)
@@ -1061,8 +1062,8 @@ class LineGraph(Graph):
       if len(elements) > 0:
         self.drawLegend(elements, params.get('uniqueLegend', False))
 
-    #Setup axes, labels, and grid
-    #First we adjust the drawing area size to fit X-axis labels
+    # Setup axes, labels, and grid
+    # First we adjust the drawing area size to fit X-axis labels
     if not self.params.get('hideAxes',False) and not self.params.get('hideXAxis', False):
       self.area['ymax'] -= self.getExtents()['maxAscent'] * 2
 
@@ -1073,15 +1074,15 @@ class LineGraph(Graph):
       self.endTime = max([(series.end - series.step) for series in self.data])
     self.timeRange = self.endTime - self.startTime
 
-    #Now we consolidate our data points to fit in the currently estimated drawing area
+    # Now we consolidate our data points to fit in the currently estimated drawing area
     self.consolidateDataPoints()
 
     self.encodeHeader('axes')
 
-    #Now its time to fully configure the Y-axis and determine the space required for Y-axis labels
-    #Since we'll probably have to squeeze the drawing area to fit the Y labels, we may need to
-    #reconsolidate our data points, which in turn means re-scaling the Y axis, this process will
-    #repeat until we have accurate Y labels and enough space to fit our data points
+    # Now its time to fully configure the Y-axis and determine the space required for Y-axis labels
+    # Since we'll probably have to squeeze the drawing area to fit the Y labels, we may need to
+    # reconsolidate our data points, which in turn means re-scaling the Y axis, this process will
+    # repeat until we have accurate Y labels and enough space to fit our data points
     currentXMin = self.area['xmin']
     currentXMax = self.area['xmax']
 
@@ -1098,7 +1099,7 @@ class LineGraph(Graph):
       else:
         self.setupYAxis()
 
-    #Now that our Y-axis is finalized, let's determine our X labels (this won't affect the drawing area)
+    # Now that our Y-axis is finalized, let's determine our X labels (this won't affect the drawing area)
     self.setupXAxis()
 
     if not self.params.get('hideAxes',False):
@@ -1107,7 +1108,7 @@ class LineGraph(Graph):
         self.encodeHeader('grid')
         self.drawGridLines()
 
-    #Finally, draw the graph lines
+    # Finally, draw the graph lines
     self.encodeHeader('lines')
     self.drawLines()
 
@@ -1595,7 +1596,7 @@ class LineGraph(Graph):
 
 
   def drawLabels(self):
-    #Draw the Y-labels
+    # Draw the Y-labels
     if not self.params.get('hideYAxis'):
       if not self.secondYAxis:
         for value,label in zip(self.yLabelValues,self.yLabels):
@@ -1614,7 +1615,7 @@ class LineGraph(Graph):
             self.drawText(label, x, y, align='right', valign='middle')
           else:
             self.drawText(label, x, y, align='left', valign='middle') #Inverted for right side Y Axis
-      else: #Draws a right side and a Left side axis
+      else: # Draws a right side and a Left side axis
         for valueL,labelL in zip(self.yLabelValuesL,self.yLabelsL):
           xL = self.area['xmin'] - (self.yLabelWidthL * 0.02)
           yL = self.getYCoord(valueL, "left")
@@ -1637,7 +1638,7 @@ class LineGraph(Graph):
     if not self.params.get('hideXAxis'):
       (dt, x_label_delta) = find_x_times(self.start_dt, self.xConf['labelUnit'], self.xConf['labelStep'])
 
-      #Draw the X-labels
+      # Draw the X-labels
       xFormat = self.params.get('xFormat', self.xConf['format'])
       while dt < self.end_dt:
         label = dt.strftime(xFormat)
@@ -1650,7 +1651,7 @@ class LineGraph(Graph):
     # Not sure how to handle this for 2 y-axes
     # Just using the left side info for the grid.
 
-    #Horizontal grid lines
+    # Horizontal grid lines
     leftSide = self.area['xmin']
     rightSide = self.area['xmax']
     labels = []
@@ -1715,7 +1716,7 @@ class LineGraph(Graph):
           self.ctx.line_to(rightSide, y)
           self.ctx.stroke()
 
-    #Vertical grid lines
+    # Vertical grid lines
     top = self.area['ymin']
     bottom = self.area['ymax']
 
@@ -1749,7 +1750,7 @@ class LineGraph(Graph):
 
       dt += x_major_delta
 
-    #Draw side borders for our graph area
+    # Draw side borders for our graph area
     self.ctx.set_line_width(0.5)
     self.ctx.move_to(self.area['xmax'], bottom)
     self.ctx.line_to(self.area['xmax'], top)
@@ -1862,7 +1863,7 @@ GraphTypes = {
 }
 
 
-#Convience functions
+# Convenience functions
 def toSeconds(t):
   return (t.days * 86400) + t.seconds
 
