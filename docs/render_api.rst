@@ -678,6 +678,20 @@ Example:
 
  &hideLegend=false
 
+.. _param-hideNullFromLegend:
+
+hideNullFromLegend
+------------------
+*Default: False*
+
+If set to ``true``, series with all null values will not be reported in the legend.
+
+Example:
+
+.. code-block:: none
+
+ &hideNullFromLegend=true
+
 .. _param-hideAxes:
 
 hideAxes

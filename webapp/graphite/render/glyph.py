@@ -928,7 +928,7 @@ class LineGraph(Graph):
                   'yStepRight', 'rightWidth', 'rightColor', 'rightDashed', \
                   'leftWidth', 'leftColor', 'leftDashed', 'xFormat', 'minorY', \
                   'hideYAxis', 'uniqueLegend', 'vtitleRight', 'yDivisors', \
-                  'connectedLimit', 'hideXAxis')
+                  'connectedLimit', 'hideXAxis', 'hideNullFromLegend')
   validLineModes = ('staircase','slope','connected')
   validAreaModes = ('none','first','all','stacked')
   validPieModes = ('maximum', 'minimum', 'average')
@@ -1053,8 +1053,13 @@ class LineGraph(Graph):
     self.setFont()
 
     if not params.get('hideLegend', len(self.data) > settings.LEGEND_MAX_ITEMS):
-      elements = [ (series.name,series.color,series.options.get('secondYAxis')) for series in self.data if series.name ]
-      self.drawLegend(elements, params.get('uniqueLegend', False))
+      elements = []
+      for series in self.data:
+        if series.name:
+          if not (params.get('hideNullFromLegend', False) and all(v is None for v in list(series))):
+            elements.append((series.name,series.color,series.options.get('secondYAxis')))
+      if len(elements) > 0:
+        self.drawLegend(elements, params.get('uniqueLegend', False))
 
     #Setup axes, labels, and grid
     #First we adjust the drawing area size to fit X-axis labels
