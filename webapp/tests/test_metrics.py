@@ -63,14 +63,12 @@ class MetricsTester(TestCase):
         self.assertEqual(data[0], 'hosts.worker1.cpu')
         self.assertEqual(data[1], 'hosts.worker2.cpu')
 
-# This currently fails because there's no error checking on the urlopen()
-#        # cluster
-#        request = {'cluster': 1}
-#        response = self.client.post(url, request)
-#        self.assertEqual(response.status_code, 200)
-#        data = json.loads(response.content)
-#        self.assertEqual(data[0], 'hosts.worker1.cpu')
-#        self.assertEqual(data[1], 'hosts.worker2.cpu')
+        # cluster failure
+        request = {'cluster': 1}
+        response = self.client.post(url, request)
+        self.assertEqual(response.status_code, 500)
+        data = json.loads(response.content)
+        self.assertEqual(data, [])
 
         # jsonp
         request = {'jsonp': 'callback'}
