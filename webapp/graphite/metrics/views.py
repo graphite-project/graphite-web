@@ -13,8 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 import fnmatch
 import os
-
-from urllib2 import urlopen
+import urllib2
 
 from django.conf import settings
 from graphite.compat import HttpResponse, HttpResponseBadRequest
@@ -60,11 +59,16 @@ def index_json(request):
       for m in sorted(matches)
     ]
     return matches
+
   matches = []
-  if cluster and len(settings.CLUSTER_SERVERS) > 1:
-    matches = reduce( lambda x, y: list(set(x + y)), \
-        [json.loads(urlopen('http://' + cluster_server + '/metrics/index.json').read()) \
+  if cluster and len(settings.CLUSTER_SERVERS) >= 1:
+    try:
+      matches = reduce( lambda x, y: list(set(x + y)), \
+        [json.loads(urllib2.urlopen('http://' + cluster_server + '/metrics/index.json').read()) \
         for cluster_server in settings.CLUSTER_SERVERS])
+    except urllib2.URLError:
+      log.exception()
+      return json_response_for(request, matches, jsonp=jsonp, status=500)
   else:
     matches = find_matches()
   return json_response_for(request, matches, jsonp=jsonp)
