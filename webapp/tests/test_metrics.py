@@ -17,7 +17,7 @@ class MetricsTester(TestCase):
     db = os.path.join(settings.WHISPER_DIR, 'test.wsp')
     hostcpu = os.path.join(settings.WHISPER_DIR, 'hosts/hostname/cpu.wsp')
 
-    settings.CLUSTER_SERVERS = ['127.0.0.1', '127.1.1.1']
+    settings.CLUSTER_SERVERS = ['127.1.1.1', '127.1.1.2']
 
     def wipe_whisper(self):
         try:
@@ -63,14 +63,12 @@ class MetricsTester(TestCase):
         self.assertEqual(data[0], 'hosts.worker1.cpu')
         self.assertEqual(data[1], 'hosts.worker2.cpu')
 
-# This currently fails because there's no error checking on the urlopen()
-#        # cluster
-#        request = {'cluster': 1}
-#        response = self.client.post(url, request)
-#        self.assertEqual(response.status_code, 200)
-#        data = json.loads(response.content)
-#        self.assertEqual(data[0], 'hosts.worker1.cpu')
-#        self.assertEqual(data[1], 'hosts.worker2.cpu')
+        # cluster failure
+        request = {'cluster': 1}
+        response = self.client.post(url, request)
+        self.assertEqual(response.status_code, 500)
+        data = json.loads(response.content)
+        self.assertEqual(data, [])
 
         # jsonp
         request = {'jsonp': 'callback'}
