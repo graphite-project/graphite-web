@@ -872,6 +872,35 @@ def pow(requestContext, seriesList, factor):
       series[i] = safePow(value,factor)
   return seriesList
 
+def powSeries(requestContext, *seriesLists):
+  """
+  Takes two or more series and pows their points. A constant line may be
+  used.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=powSeries(Server.instance01.app.requests, Server.instance01.app.replies)
+
+
+  """
+
+  try:
+    (seriesList,start,end,step) = normalize(seriesLists)
+  except:
+    return []
+  name = "powSeries(%s)" % formatPathExpressions(seriesList)
+  values = []
+  for row in izip(*seriesList):
+    tmpVal = 1
+    for element in row:
+      tmpVal = safePow(tmpVal, element)
+    values.append(tmpVal)
+  series = TimeSeries(name,start,end,step,values)
+  series.pathExpression = name
+  return [series]
+
 def squareRoot(requestContext, seriesList):
   """
   Takes one metric or a wildcard seriesList, and computes the square root of each datapoint.
@@ -3701,6 +3730,7 @@ SeriesFunctions = {
   'derivative': derivative,
   'squareRoot': squareRoot,
   'pow': pow,
+  'powSeries': powSeries,
   'perSecond': perSecond,
   'integral': integral,
   'integralByInterval' : integralByInterval,
