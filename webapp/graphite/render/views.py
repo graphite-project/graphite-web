@@ -56,6 +56,8 @@ def renderView(request):
     'localOnly' : requestOptions['localOnly'],
     'template' : requestOptions['template'],
     'tzinfo' : requestOptions['tzinfo'],
+    'width' : graphOptions['width'],
+    'height' : graphOptions['height'],
     'data' : []
   }
   data = requestContext['data']

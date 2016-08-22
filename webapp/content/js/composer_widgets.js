@@ -1100,7 +1100,8 @@ function createFunctionsMenu() {
         {text: 'timeShift', handler: applyFuncToEachWithInput('timeShift', 'Shift this metric ___ back in time (examples: 10min, 7d, 2w)', {quote: true})},
         {text: 'timeSlice', handler: applyFuncToEachWithInput('timeSlice', 'Start showing metric at (example: 14:57 20150115)', {quote: true})},
         {text: 'Summarize', handler: applyFuncToEachWithInput('summarize', 'Please enter a summary interval (examples: 10min, 1h, 7d)', {quote: true})},
-        {text: 'Hit Count', handler: applyFuncToEachWithInput('hitcount', 'Please enter a summary interval (examples: 10min, 1h, 7d)', {quote: true})}
+        {text: 'Hit Count', handler: applyFuncToEachWithInput('hitcount', 'Please enter a summary interval (examples: 10min, 1h, 7d)', {quote: true})},
+        {text: 'Smooth', handler: applyFuncToEachWithInput('smooth', 'Please enter the number of pixels to average for each point')}
       ]
     }, {
       text: 'Calculate',
@@ -1114,7 +1115,8 @@ function createFunctionsMenu() {
         {text: 'Linear Regression', handler: applyFuncToEachWithInput('linearRegression', 'Start source of regression at (example: 14:57 20150115)', {quote: true})},
         {text: 'As Percent', handler: applyFuncToEachWithInput('asPercent', 'Please enter the value that corresponds to 100% or leave blank to use the total', {allowBlank: true})},
         {text: 'Difference (of 2 series)', handler: applyFuncToAll('diffSeries')},
-        {text: 'Ratio (of 2 series)', handler: applyFuncToAll('divideSeries')}
+        {text: 'Ratio (of 2 series)', handler: applyFuncToAll('divideSeries')},
+        {text: 'Resample', handler: applyFuncToEachWithInput('resample', 'Please enter the desired points-per-pixel for the new resolution')}
       ]
     }, {
       text: 'Filter',

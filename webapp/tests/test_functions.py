@@ -866,6 +866,38 @@ class FunctionsTest(TestCase):
             results = functions.consolidateBy({}, seriesList, func)
             self._verify_series_consolidationFunc(results, func)
 
+    def test_smooth(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,1,1,[range(20)]),
+        ]
+
+        def mock_evaluateTokens(reqCtx, tokens, replacements=None):
+            seriesList = [
+                TimeSeries('collectd.test-db1.load.value',0,1,1,[range(20)]),
+            ]
+            for series in seriesList:
+                series.pathExpression = series.name
+            return seriesList
+
+        expectedResults = [
+            TimeSeries('smooth(collectd.test-db1.load.value, 5)',0,1,1,[None,None,None,None,2,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20])
+        ]
+
+        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+            result = functions.smooth(
+                {
+                    'template': {},
+                    'args': ({},{}),
+                    'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'endTime': datetime(1970, 1, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'localOnly': False,
+                    'width': 400,
+                    'data': []
+                },
+                seriesList, 5
+            )
+        self.assertEqual(result, expectedResults)
+
     def test_weightedAverage(self):
         seriesList = [
             TimeSeries('collectd.test-db1.load.value',0,1,1,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]),
