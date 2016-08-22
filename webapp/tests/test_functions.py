@@ -2271,7 +2271,10 @@ class FunctionsTest(TestCase):
         self.assertEqual([], functions.averageBelow({}, [], 1))
 
     def test_constantLine(self):
-        requestContext = {'startTime': datetime(2014,3,12,2,0,0,2,pytz.timezone(settings.TIME_ZONE)), 'endTime':datetime(2014,3,12,3,0,0,2,pytz.timezone(settings.TIME_ZONE))}
+        requestContext = {
+                          'startTime': datetime(2014,3,12,2,0,0,2,pytz.timezone(settings.TIME_ZONE)),
+                          'endTime':datetime(2014,3,12,3,0,0,2,pytz.timezone(settings.TIME_ZONE))
+                         }
         results = functions.constantLine(requestContext, [1])
 
     def test_aggregateLine_default(self):
