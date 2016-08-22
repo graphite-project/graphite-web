@@ -2432,6 +2432,18 @@ class FunctionsTest(TestCase):
                 expected_value = math.pow(original_value, factor)
                 self.assertEqual(value, expected_value)
 
+    def test_powSeries(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,1,1,[1,2,3,4,5,6,7,8,9,0]),
+            TimeSeries('collectd.test-db2.load.value',0,1,1,[1,3,5,7,None,6,4,8,0,10]),
+        ]
+        expectedResult = [
+            TimeSeries('powSeries(collectd.test-db1.load.value,collectd.test-db2.load.value)',0,1,1,[1,8,243,16384,None,46656,2401,64,1,0]),
+        ]
+
+        result = functions.powSeries({}, seriesList)
+        self.assertEqual(result, expectedResult)
+
     def test_squareRoot(self):
         seriesList = self._generate_series_list()
         # Leave the original seriesList undisturbed for verification
