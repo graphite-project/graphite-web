@@ -1180,6 +1180,42 @@ def perSecond(requestContext, seriesList, maxValue=None):
     results.append(newSeries)
   return results
 
+def delay(requestContext, seriesList, steps):
+  """
+  This shifts all samples later by an integer number of steps. This can be
+  used for custom derivative calculations, among other things. Note: this
+  will pad the early end of the data with None for every step shifted.
+
+  This complements other time-displacement functions such as timeShift and
+  timeSlice, in that this function is indifferent about the step intervals
+  being shifted.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=divideSeries(server.FreeSpace,delay(server.FreeSpace,1))
+
+  This computes the change in server free space as a percentage of the previous
+  free space.
+  """
+  results = []
+  for series in seriesList:
+    newValues = []
+    prev = []
+    for val in series:
+      if len(prev) < steps:
+        newValues.append(None)
+        prev.append(val)
+        continue
+      newValues.append(prev.pop(0))
+      prev.append(val)
+    newName = "delay(%s,%d)" % (series.name, steps)
+    newSeries = TimeSeries(newName, series.start, series.end, series.step, newValues)
+    newSeries.pathExpression = newName
+    results.append(newSeries)
+  return results
+
 def integral(requestContext, seriesList):
   """
   This will show the sum over time, sort of like a continuous addition function.
@@ -3699,6 +3735,7 @@ SeriesFunctions = {
   'offset': offset,
   'offsetToZero': offsetToZero,
   'derivative': derivative,
+  'delay': delay,
   'squareRoot': squareRoot,
   'pow': pow,
   'perSecond': perSecond,
