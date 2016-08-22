@@ -107,8 +107,7 @@ class TimeSeries(list):
 
 # Data retrieval API
 def fetchData(requestContext, pathExpr):
-
-  seriesList = []
+  seriesList = {}
   startTime = int( epoch( requestContext['startTime'] ) )
   endTime   = int( epoch( requestContext['endTime'] ) )
 
@@ -132,21 +131,69 @@ def fetchData(requestContext, pathExpr):
 
       series = TimeSeries(node.path, start, end, step, values)
       series.pathExpression = pathExpr #hack to pass expressions through to render functions
-      seriesList.append(series)
 
-    # Prune empty series with duplicate metric paths to avoid showing empty graph elements for old whisper data
-    names = set([ s.name for s in seriesList ])
-    for name in names:
-      series_with_duplicate_names = [ s for s in seriesList if s.name == name ]
-      empty_duplicates = [ s for s in series_with_duplicate_names if not nonempty(s) ]
+      # Used as a cache to avoid recounting series None values below.
+      series_best_nones = {}
 
-      if series_with_duplicate_names == empty_duplicates and len(empty_duplicates) > 0: # if they're all empty
-        empty_duplicates.pop() # make sure we leave one in seriesList
+      if series.name in seriesList:
+        # This counts the Nones in each series, and is unfortunately O(n) for each
+        # series, which may be worth further optimization. The value of doing this
+        # at all is to avoid the "flipping" effect of loading a graph multiple times
+        # and having inconsistent data returned if one of the backing stores has
+        # inconsistent data. This is imperfect as a validity test, but in practice
+        # nicely keeps us using the "most complete" dataset available. Think of it
+        # as a very weak CRDT resolver.
+        candidate_nones = 0
+        if not settings.REMOTE_STORE_MERGE_RESULTS:
+          candidate_nones = len(
+            [val for val in series['values'] if val is None])
 
-      for series in empty_duplicates:
-        seriesList.remove(series)
+        known = seriesList[series.name]
+        # To avoid repeatedly recounting the 'Nones' in series we've already seen,
+        # cache the best known count so far in a dict.
+        if known.name in series_best_nones:
+          known_nones = series_best_nones[known.name]
+        else:
+          known_nones = len([val for val in known if val is None])
 
-    return seriesList
+        if known_nones > candidate_nones:
+          if settings.REMOTE_STORE_MERGE_RESULTS:
+            # This series has potential data that might be missing from
+            # earlier series.  Attempt to merge in useful data and update
+            # the cache count.
+            log.info("Merging multiple TimeSeries for %s" % known.name)
+            for i, j in enumerate(known):
+              if j is None and series[i] is not None:
+                known[i] = series[i]
+                known_nones -= 1
+            # Store known_nones in our cache
+            series_best_nones[known.name] = known_nones
+          else:
+            # Not merging data -
+            # we've found a series better than what we've already seen. Update
+            # the count cache and replace the given series in the array.
+            series_best_nones[known.name] = candidate_nones
+            seriesList[known.name] = series
+        else:
+          # In case if we are merging data - the existing series has no gaps and there is nothing to merge
+          # together.  Save ourselves some work here.
+          #
+          # OR - if we picking best serie:
+          #
+          # We already have this series in the seriesList, and the
+          # candidate is 'worse' than what we already have, we don't need
+          # to compare anything else. Save ourselves some work here.
+          break
+
+          # If we looked at this series above, and it matched a 'known'
+          # series already, then it's already in the series list (or ignored).
+          # If not, append it here.
+      else:
+        seriesList[series.name] = series
+
+    # Stabilize the order of the results by ordering the resulting series by name.
+    # This returns the result ordering to the behavior observed pre PR#1010.
+    return [seriesList[k] for k in sorted(seriesList)]
 
   retries = 1 # start counting at one to make log output and settings more readable
   while True:
