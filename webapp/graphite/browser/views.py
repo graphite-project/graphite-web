@@ -13,6 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 import re
+
 from django.conf import settings
 from django.shortcuts import render_to_response
 from django.utils.safestring import mark_safe
@@ -136,13 +137,18 @@ def myGraphLookup(request):
       else:
         m = md5()
         m.update(name.encode('utf-8'))
+
         # Sanitize target
         urlEscaped = str(graph.url)
         graphUrl = urlparse(urlEscaped)
-        graphurlparams = dict(parse_qsl(graphUrl.query))
-        if 'target' in graphurlparams:
-            graphurlparams['target'] = escape(dict(parse_qsl(graphUrl.query))['target'])
-            urlEscaped = graphUrl._replace(query=urlencode(graphurlparams)).geturl()
+        graphUrlParams = {}
+        graphUrlParams['target'] = []
+        for param in parse_qsl(graphUrl.query):
+          if param[0] != 'target':
+            graphUrlParams[param[0]] = param[1]
+          else:
+            graphUrlParams[param[0]].append(escape(param[1]))
+        urlEscaped = graphUrl._replace(query=urlencode(graphUrlParams, True)).geturl()
         node.update( { 'id' : str(userpath_prefix + m.hexdigest()), 'graphUrl' : urlEscaped } )
         node.update(leafNode)
 
@@ -232,10 +238,14 @@ def userGraphLookup(request):
           # Sanitize target
           urlEscaped = str(graph.url)
           graphUrl = urlparse(urlEscaped)
-          graphurlparams = dict(parse_qsl(graphUrl.query))
-          if 'target' in graphurlparams:
-              graphurlparams['target'] = escape(dict(parse_qsl(graphUrl.query))['target'])
-              urlEscaped = graphUrl._replace(query=urlencode(graphurlparams)).geturl()
+          graphUrlParams = {}
+          graphUrlParams['target'] = []
+          for param in parse_qsl(graphUrl.query):
+            if param[0] != 'target':
+              graphUrlParams[param[0]] = param[1]
+            else:
+              graphUrlParams[param[0]].append(escape(param[1]))
+          urlEscaped = graphUrl._replace(query=urlencode(graphUrlParams, True)).geturl()
 
           node = {
             'text' : escape(str(nodeName)),
