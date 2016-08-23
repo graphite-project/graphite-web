@@ -64,8 +64,9 @@ def safePow(a, b):
   if a is None: return None
   if b is None: return None
   try:
-    result = math.pow(a, b)
-  except ValueError:
+    # with math.pow() we will get OverflowError on quite small digits
+    result = a ** b
+  except:
     return None
   return result
 
@@ -893,10 +894,13 @@ def powSeries(requestContext, *seriesLists):
   name = "powSeries(%s)" % ','.join([s.name for s in seriesList])
   values = []
   for row in izip(*seriesList):
+    first = True
     tmpVal = None
     for element in row:
-      if tmpVal is None:
+      # If it is a first iteration - tmpVal needs to be element
+      if first:
         tmpVal = element
+        first = False
       else:
         tmpVal = safePow(tmpVal, element)
     values.append(tmpVal)
