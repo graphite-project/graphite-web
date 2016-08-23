@@ -1058,7 +1058,7 @@ class LineGraph(Graph):
       for series in self.data:
         if series.name:
           if not (params.get('hideNullFromLegend', False) and all(v is None for v in list(series))):
-            elements.append((series.name,series.color,series.options.get('secondYAxis')))
+            elements.append((unquote_plus(series.name),series.color,series.options.get('secondYAxis')))
       if len(elements) > 0:
         self.drawLegend(elements, params.get('uniqueLegend', False))
 

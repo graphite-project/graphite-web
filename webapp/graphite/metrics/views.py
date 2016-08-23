@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 import fnmatch
 import os
-import urllib2
+import urllib
 
 from django.conf import settings
 from graphite.compat import HttpResponse, HttpResponseBadRequest
@@ -64,9 +64,9 @@ def index_json(request):
   if cluster and len(settings.CLUSTER_SERVERS) >= 1:
     try:
       matches = reduce( lambda x, y: list(set(x + y)), \
-        [json.loads(urllib2.urlopen('http://' + cluster_server + '/metrics/index.json').read()) \
+        [json.loads(urllib.urlopen('http://' + cluster_server + '/metrics/index.json').read()) \
         for cluster_server in settings.CLUSTER_SERVERS])
-    except urllib2.URLError:
+    except urllib.URLError:
       log.exception()
       return json_response_for(request, matches, jsonp=jsonp, status=500)
   else:
@@ -287,7 +287,7 @@ def tree_json(nodes, base_path, wildcards=False):
 
     found.add(node.name)
     resultNode = {
-      'text' : str(node.name),
+      'text' : urllib.unquote_plus(str(node.name)),
       'id' : base_path + str(node.name),
     }
 
