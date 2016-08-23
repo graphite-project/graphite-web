@@ -868,12 +868,12 @@ class FunctionsTest(TestCase):
 
     def test_smooth(self):
         seriesList = [
-            TimeSeries('collectd.test-db1.load.value',0,1,1,[range(20)]),
+            TimeSeries('collectd.test-db1.load.value',0,1,1,range(20)),
         ]
 
         def mock_evaluateTokens(reqCtx, tokens, replacements=None):
             seriesList = [
-                TimeSeries('collectd.test-db1.load.value',0,1,1,[range(20)]),
+                TimeSeries('collectd.test-db1.load.value',0,1,1,range(20)),
             ]
             for series in seriesList:
                 series.pathExpression = series.name
