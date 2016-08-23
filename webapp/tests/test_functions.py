@@ -2434,11 +2434,11 @@ class FunctionsTest(TestCase):
 
     def test_powSeries(self):
         seriesList = [
-            TimeSeries('collectd.test-db1.load.value',0,1,1,[1,2,3,4,5,6,7,8,9,0,372]),
-            TimeSeries('collectd.test-db2.load.value',0,1,1,[1,3,5,7,None,6,4,8,0,10,372]),
+            TimeSeries('collectd.test-db1.load.value',0,1,1,[1,2,3,4,5,6,7,8,9,0,312.1]),
+            TimeSeries('collectd.test-db2.load.value',0,1,1,[1,3,5,7,None,6,4,8,0,10,234.2]),
         ]
         expectedResult = [
-            TimeSeries('powSeries(collectd.test-db1.load.value,collectd.test-db2.load.value)',0,1,1,[1.0,8.0,243.0,16384.0,None,46656.0,2401.0,16777216.0,1.0,0.0, None]),
+            TimeSeries('powSeries(collectd.test-db1.load.value,collectd.test-db2.load.value)',0,1,1,[1.0,8.0,243.0,16384.0,None,46656.0,2401.0,16777216.0,1.0,0.0,None]),
         ]
 
         result = functions.powSeries({}, seriesList)
