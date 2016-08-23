@@ -64,8 +64,7 @@ def safePow(a, b):
   if a is None: return None
   if b is None: return None
   try:
-    # with math.pow() we will get OverflowError on quite small digits
-    result = a ** b
+    result = math.pow(a, b)
   except:
     return None
   return result
