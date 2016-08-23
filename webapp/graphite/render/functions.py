@@ -893,9 +893,12 @@ def powSeries(requestContext, *seriesLists):
   name = "powSeries(%s)" % ','.join([s.name for s in seriesList])
   values = []
   for row in izip(*seriesList):
-    tmpVal = 1
+    tmpVal = None
     for element in row:
-      tmpVal = safePow(tmpVal, element)
+      if tmpVal is None:
+        tmpVal = element
+      else:
+        tmpVal = safePow(tmpVal, element)
     values.append(tmpVal)
   series = TimeSeries(name,start,end,step,values)
   series.pathExpression = name
