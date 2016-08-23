@@ -890,7 +890,7 @@ def powSeries(requestContext, *seriesLists):
     (seriesList,start,end,step) = normalize(seriesLists)
   except:
     return []
-  name = "powSeries(%s)" % formatPathExpressions(seriesList)
+  name = "powSeries(%s)" % ','.join([s.name for s in seriesList])
   values = []
   for row in izip(*seriesList):
     tmpVal = 1
