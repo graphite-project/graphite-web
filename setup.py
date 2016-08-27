@@ -3,15 +3,13 @@
 from __future__ import with_statement
 
 import os
-import ConfigParser
+try:
+    import configparser as ConfigParser
+except ImportError:
+    import ConfigParser
 
 from glob import glob
 from collections import defaultdict
-
-try:
-    from io import BytesIO
-except ImportError:
-    from StringIO import StringIO as BytesIO
 
 # Graphite historically has an install prefix set in setup.cfg. Being in a
 # configuration file, it's not easy to override it or unset it (for installing
@@ -24,8 +22,9 @@ except ImportError:
 # ``setup.cfg``.
 with open('setup.cfg', 'r') as f:
     orig_setup_cfg = f.read()
-cf = ConfigParser.ConfigParser()
-cf.readfp(BytesIO(orig_setup_cfg), 'setup.cfg')
+    f.seek(0)
+    cf = ConfigParser.ConfigParser()
+    cf.readfp(f, 'setup.cfg')
 
 if os.environ.get('GRAPHITE_NO_PREFIX') or os.environ.get('READTHEDOCS'):
     cf.remove_section('install')
@@ -39,7 +38,7 @@ else:
     if not cf.has_option('install', 'install-lib'):
         cf.set('install', 'install-lib', '%(prefix)s/webapp')
 
-with open('setup.cfg', 'wb') as f:
+with open('setup.cfg', 'w') as f:
     cf.write(f)
 
 if os.environ.get('USE_SETUPTOOLS'):
@@ -93,7 +92,7 @@ try:
       package_data={'graphite' :
         ['templates/*', 'local_settings.py.example']},
       scripts=glob('bin/*'),
-      data_files=webapp_content.items() + storage_dirs + conf_files + examples,
+      data_files=list(webapp_content.items()) + storage_dirs + conf_files + examples,
       classifiers=[
           'Intended Audience :: Developers',
           'Natural Language :: English',
