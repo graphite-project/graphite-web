@@ -44,22 +44,27 @@ class MultiReader(object):
 
   def fetch(self, startTime, endTime):
     # Start the fetch on each node
-    results = [ n.fetch(startTime, endTime) for n in self.nodes ]
+    fetches = [ n.fetch(startTime, endTime) for n in self.nodes ]
 
-    # Wait for any asynchronous operations to complete
-    for i, result in enumerate(results):
-      if isinstance(result, FetchInProgress):
-        try:
-          results[i] = result.waitForResults()
-        except:
-          log.exception("Failed to complete subfetch")
-          results[i] = None
+    def merge_results():
+      results = {}
 
-    results = [r for r in results if r is not None]
-    if not results:
-      raise Exception("All sub-fetches failed")
+      # Wait for any asynchronous operations to complete
+      for i, result in enumerate(fetches):
+        if isinstance(result, FetchInProgress):
+          try:
+            results[i] = result.waitForResults()
+          except:
+            log.exception("Failed to complete subfetch")
+            results[i] = None
 
-    return reduce(self.merge, results)
+      results = [r for r in results.values() if r is not None]
+      if not results:
+        raise Exception("All sub-fetches failed")
+
+      return reduce(self.merge, results)
+
+    return FetchInProgress(merge_results)
 
   def merge(self, results1, results2):
     # Ensure results1 is finer than results2
