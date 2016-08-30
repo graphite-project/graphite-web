@@ -163,7 +163,10 @@ class ReadResult(object):
       if response.status != 200:
         raise Exception("Error response %d %s from http://%s%s" % (response.status, response.reason, self.store.host, self.urlpath))
       pickled_response = response.read()
-      self.result = unpickle.loads(pickled_response)
+      self.result = {
+          series['name']: series
+          for series in unpickle.loads(pickled_response)
+      }
       return self.result
     except:
       self.store.fail()
@@ -206,10 +209,11 @@ class RemoteReader(object):
     fetch_result = self.get_inflight_requests(url, urlpath)
 
     def extract_my_results():
-      for series in fetch_result.get():
-        if series['name'] == self.metric_path:
-          time_info = (series['start'], series['end'], series['step'])
-          return (time_info, series['values'])
+      series = fetch_result.get().get(self.metric_path, None)
+      if not series:
+        return None
+      time_info = (series['start'], series['end'], series['step'])
+      return (time_info, series['values'])
 
     return FetchInProgress(extract_my_results)
 
