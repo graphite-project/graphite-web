@@ -7,4 +7,6 @@ dropin.cache
 *.egg-info
 docs/_build
 *.log
+*.iml
+storage
 *.pyc
