@@ -496,6 +496,13 @@ def mergeResults(dbResults, cacheResults, lowest_step):
 
     try:
       i = int(interval - start) / step
+      if i < 0:
+          # cached data point is earlier then the requested data point.
+          # meaning we can definitely ignore the cache result.
+          # note that we cannot rely on the 'except'
+          # in this case since 'values[-n]=' is
+          # is equivalent to 'values[values.length - n]='
+          continue
       values[i] = value
     except:
       pass
