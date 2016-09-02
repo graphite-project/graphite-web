@@ -2959,7 +2959,7 @@ def transformNull(requestContext, seriesList, default=0, referenceSeries=None):
 
   for series in seriesList:
     if referenceSeries:
-      series.name = "transformNull(%s,%g,%s)" % (series.name, default, referenceSeries)
+      series.name = "transformNull(%s,%g,referenceSeries)" % (series.name, default)
     else:
       series.name = "transformNull(%s,%g)" % (series.name, default)
     series.pathExpression = series.name
