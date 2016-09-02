@@ -283,6 +283,11 @@ def merge_with_cache(cached_datapoints, start, step, values):
       try:
           i = int(interval - start) / step
           if i < 0:
+              # cached data point is earlier then the requested data point.
+              # meaning we can definitely ignore the cache result.
+              # note that we cannot rely on the 'except'
+              # in this case since 'values[-n]='
+              # is equivalent to 'values[len(values) - n]='
               continue
           values[i] = value
       except:
