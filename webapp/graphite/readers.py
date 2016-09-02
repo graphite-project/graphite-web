@@ -137,16 +137,12 @@ class CeresReader(object):
       log.exception("Failed CarbonLink query '%s'" % self.real_metric_path)
       cached_datapoints = []
 
-    for (timestamp, value) in cached_datapoints:
-      interval = timestamp - (timestamp % data.timeStep)
+    values = merge_with_cache(cached_datapoints,
+                              data.startTime,
+                              data.timeStep,
+                              values)
 
-      try:
-        i = int(interval - data.startTime) / data.timeStep
-        values[i] = value
-      except:
-        pass
-
-    return (time_info, values)
+    return time_info, values
 
 
 class WhisperReader(object):
@@ -184,18 +180,12 @@ class WhisperReader(object):
     if isinstance(cached_datapoints, dict):
       cached_datapoints = cached_datapoints.items()
 
-    for (timestamp, value) in cached_datapoints:
-      interval = timestamp - (timestamp % step)
+    values = merge_with_cache(cached_datapoints,
+                              start,
+                              step,
+                              values)
 
-      try:
-        i = int(interval - start) / step
-        if i < 0:
-            continue
-        values[i] = value
-      except:
-        pass
-
-    return (time_info, values)
+    return time_info, values
 
 
 class GzippedWhisperReader(WhisperReader):
@@ -283,3 +273,19 @@ class RRDReader:
         retention_points = points
 
     return  retention_points * info['step']
+
+
+def merge_with_cache(cached_datapoints, start, step, values):
+
+  for (timestamp, value) in cached_datapoints:
+      interval = timestamp - (timestamp % step)
+
+      try:
+          i = int(interval - start) / step
+          if i < 0:
+              continue
+          values[i] = value
+      except:
+          pass
+
+  return values
