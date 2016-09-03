@@ -12,7 +12,7 @@ from graphite.remote_storage import RemoteStore
 from graphite.node import LeafNode
 from graphite.intervals import Interval, IntervalSet
 from graphite.readers import MultiReader
-
+from graphite.logger import log
 
 def get_finder(finder_path):
   module_name, class_name = finder_path.rsplit('.', 1)
@@ -41,19 +41,21 @@ class Store:
       remote_requests = [ r.find(query) for r in self.remote_stores if r.available ]
 
     matching_nodes = set()
+    remote_nodes = set()
 
     # Search locally
     for finder in self.finders:
       for node in finder.find_nodes(query):
-        #log.info("find() :: local :: %s" % node)
+        log.info("find() :: local :: %s" % node)
         matching_nodes.add(node)
 
     # Gather remote search results
     if not local:
       for request in remote_requests:
         for node in request.get_results():
-          #log.info("find() :: remote :: %s from %s" % (node,request.store.host))
+          log.info("find() :: remote :: %s from %s" % (node,request.store.host))
           matching_nodes.add(node)
+          remote_nodes.add(node)
 
     # Group matching nodes by their path
     nodes_by_path = {}
@@ -80,60 +82,60 @@ class Store:
       if not leaf_nodes:
         continue
 
-      if settings.REMOTE_STORE_MERGE_RESULTS and not local:
-        # we need all nodes for merging results
-        minimal_node_set = leaf_nodes
-      else:
-        # Calculate best minimal node set
-        minimal_node_set = set()
-        covered_intervals = IntervalSet([])
+      # Calculate best minimal node set
+      minimal_node_set = set()
+      covered_intervals = IntervalSet([])
 
-        # If the query doesn't fall entirely within the FIND_TOLERANCE window
-        # we disregard the window. This prevents unnecessary remote fetches
-        # caused when carbon's cache skews node.intervals, giving the appearance
-        # remote systems have data we don't have locally, which we probably do.
-        now = int( time.time() )
-        tolerance_window = now - settings.FIND_TOLERANCE
-        disregard_tolerance_window = query.interval.start < tolerance_window
-        prior_to_window = Interval( float('-inf'), tolerance_window )
+      # If the query doesn't fall entirely within the FIND_TOLERANCE window
+      # we disregard the window. This prevents unnecessary remote fetches
+      # caused when carbon's cache skews node.intervals, giving the appearance
+      # remote systems have data we don't have locally, which we probably do.
+      now = int( time.time() )
+      tolerance_window = now - settings.FIND_TOLERANCE
+      disregard_tolerance_window = query.interval.start < tolerance_window
+      prior_to_window = Interval( float('-inf'), tolerance_window )
 
-        def measure_of_added_coverage(node, drop_window=disregard_tolerance_window):
-          relevant_intervals = node.intervals.intersect_interval(query.interval)
-          if drop_window:
-            relevant_intervals = relevant_intervals.intersect_interval(prior_to_window)
-          return covered_intervals.union(relevant_intervals).size - covered_intervals.size
+      def measure_of_added_coverage(node, drop_window=disregard_tolerance_window):
+        relevant_intervals = node.intervals.intersect_interval(query.interval)
+        if drop_window:
+          relevant_intervals = relevant_intervals.intersect_interval(prior_to_window)
+        return covered_intervals.union(relevant_intervals).size - covered_intervals.size
 
-        nodes_remaining = list(leaf_nodes)
+      nodes_remaining = list(leaf_nodes)
 
-        # Prefer local nodes first (and do *not* drop the tolerance window)
-        for node in leaf_nodes:
-          if node.local and measure_of_added_coverage(node, False) > 0:
-            nodes_remaining.remove(node)
-            minimal_node_set.add(node)
-            covered_intervals = covered_intervals.union(node.intervals)
+      # Prefer local nodes first (and do *not* drop the tolerance window)
+      for node in leaf_nodes:
+        if node.local and measure_of_added_coverage(node, False) > 0:
+          nodes_remaining.remove(node)
+          minimal_node_set.add(node)
+          covered_intervals = covered_intervals.union(node.intervals)
 
-        while nodes_remaining:
-          node_coverages = [ (measure_of_added_coverage(n), n) for n in nodes_remaining ]
-          best_coverage, best_node = max(node_coverages)
+      while nodes_remaining:
+        node_coverages = [ (measure_of_added_coverage(n), n) for n in nodes_remaining ]
+        best_coverage, best_node = max(node_coverages)
 
-          if best_coverage == 0:
-            break
+        if best_coverage == 0:
+          break
 
-          nodes_remaining.remove(best_node)
-          minimal_node_set.add(best_node)
-          covered_intervals = covered_intervals.union(best_node.intervals)
+        nodes_remaining.remove(best_node)
+        minimal_node_set.add(best_node)
+        covered_intervals = covered_intervals.union(best_node.intervals)
 
-        # Sometimes the requested interval falls within the caching window.
-        # We include the most likely node if the gap is within tolerance.
-        if not minimal_node_set:
-          def distance_to_requested_interval(node):
-            latest = sorted(node.intervals, key=lambda i: i.end)[-1]
-            distance = query.interval.start - latest.end
-            return distance if distance >= 0 else float('inf')
+      # Sometimes the requested interval falls within the caching window.
+      # We include the most likely node if the gap is within tolerance.
+      if not minimal_node_set:
+        def distance_to_requested_interval(node):
+          latest = sorted(node.intervals, key=lambda i: i.end)[-1]
+          distance = query.interval.start - latest.end
+          return distance if distance >= 0 else float('inf')
 
-          best_candidate = min(leaf_nodes, key=distance_to_requested_interval)
-          if distance_to_requested_interval(best_candidate) <= settings.FIND_TOLERANCE:
-            minimal_node_set.add(best_candidate)
+        best_candidate = min(leaf_nodes, key=distance_to_requested_interval)
+        if distance_to_requested_interval(best_candidate) <= settings.FIND_TOLERANCE:
+          minimal_node_set.add(best_candidate)
+
+      if settings.REMOTE_STORE_MERGE_RESULTS and not local and remote_nodes:
+        # add remote nodes for (possible) merging
+        minimal_node_set.add(remote_nodes)
 
       if len(minimal_node_set) == 1:
         yield minimal_node_set.pop()
