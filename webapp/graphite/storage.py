@@ -80,7 +80,7 @@ class Store:
       if not leaf_nodes:
         continue
 
-      if settings.REMOTE_STORE_MERGE_RESULTS:
+      if settings.REMOTE_STORE_MERGE_RESULTS and not local:
         # we need all nodes for merging results
         minimal_node_set = leaf_nodes
       else:
