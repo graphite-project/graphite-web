@@ -55,7 +55,9 @@ class Store:
         for node in request.get_results():
           log.info("find() :: remote :: %s from %s" % (node,request.store.host))
           matching_nodes.add(node)
-          remote_nodes.add(node)
+          # storing remote leaf nodes for merge results
+          if node.is_leaf:
+            remote_nodes.add(node)
 
     # Group matching nodes by their path
     nodes_by_path = {}
