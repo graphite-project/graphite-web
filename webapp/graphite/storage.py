@@ -135,7 +135,7 @@ class Store:
 
       if settings.REMOTE_STORE_MERGE_RESULTS and not local and remote_nodes:
         # add remote nodes for (possible) merging
-        minimal_node_set.add(remote_nodes)
+        minimal_node_set = minimal_node_set.union(remote_nodes)
 
       if len(minimal_node_set) == 1:
         yield minimal_node_set.pop()
