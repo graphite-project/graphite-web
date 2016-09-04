@@ -126,17 +126,17 @@ class Store:
           minimal_node_set.add(best_node)
           covered_intervals = covered_intervals.union(best_node.intervals)
 
-      # Sometimes the requested interval falls within the caching window.
-      # We include the most likely node if the gap is within tolerance.
-      if not minimal_node_set:
-        def distance_to_requested_interval(node):
-          latest = sorted(node.intervals, key=lambda i: i.end)[-1]
-          distance = query.interval.start - latest.end
-          return distance if distance >= 0 else float('inf')
+        # Sometimes the requested interval falls within the caching window.
+        # We include the most likely node if the gap is within tolerance.
+        if not minimal_node_set:
+          def distance_to_requested_interval(node):
+            latest = sorted(node.intervals, key=lambda i: i.end)[-1]
+            distance = query.interval.start - latest.end
+            return distance if distance >= 0 else float('inf')
 
-        best_candidate = min(leaf_nodes, key=distance_to_requested_interval)
-        if distance_to_requested_interval(best_candidate) <= settings.FIND_TOLERANCE:
-          minimal_node_set.add(best_candidate)
+          best_candidate = min(leaf_nodes, key=distance_to_requested_interval)
+          if distance_to_requested_interval(best_candidate) <= settings.FIND_TOLERANCE:
+            minimal_node_set.add(best_candidate)
 
       if len(minimal_node_set) == 1:
         yield minimal_node_set.pop()
