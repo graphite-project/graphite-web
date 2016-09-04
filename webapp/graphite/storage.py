@@ -12,7 +12,6 @@ from graphite.remote_storage import RemoteStore
 from graphite.node import LeafNode
 from graphite.intervals import Interval, IntervalSet
 from graphite.readers import MultiReader
-from graphite.logger import log
 
 def get_finder(finder_path):
   module_name, class_name = finder_path.rsplit('.', 1)
@@ -41,23 +40,19 @@ class Store:
       remote_requests = [ r.find(query) for r in self.remote_stores if r.available ]
 
     matching_nodes = set()
-    remote_nodes = set()
 
     # Search locally
     for finder in self.finders:
       for node in finder.find_nodes(query):
-        log.info("find() :: local :: %s" % node)
+        #log.info("find() :: local :: %s" % node)
         matching_nodes.add(node)
 
     # Gather remote search results
     if not local:
       for request in remote_requests:
         for node in request.get_results():
-          log.info("find() :: remote :: %s from %s" % (node,request.store.host))
+          #log.info("find() :: remote :: %s from %s" % (node,request.store.host))
           matching_nodes.add(node)
-          # storing remote leaf nodes for merge results
-          if node.is_leaf:
-            remote_nodes.add(node)
 
     # Group matching nodes by their path
     nodes_by_path = {}
@@ -112,16 +107,22 @@ class Store:
           minimal_node_set.add(node)
           covered_intervals = covered_intervals.union(node.intervals)
 
-      while nodes_remaining:
-        node_coverages = [ (measure_of_added_coverage(n), n) for n in nodes_remaining ]
-        best_coverage, best_node = max(node_coverages)
+      if settings.REMOTE_STORE_MERGE_RESULTS:
+        remote_nodes = [n for n in nodes_remaining if not n.local]
+        for node in remote_nodes:
+          nodes_remaining.remove(node)
+          minimal_node_set.add(node)
+          covered_intervals = covered_intervals.union(node.intervals)
+      else:
+        while nodes_remaining:
+          node_coverages = [(measure_of_added_coverage(n), n) for n in nodes_remaining]
+          best_coverage, best_node = max(node_coverages)
+          if best_coverage == 0:
+            break
 
-        if best_coverage == 0:
-          break
-
-        nodes_remaining.remove(best_node)
-        minimal_node_set.add(best_node)
-        covered_intervals = covered_intervals.union(best_node.intervals)
+      nodes_remaining.remove(best_node)
+      minimal_node_set.add(best_node)
+      covered_intervals = covered_intervals.union(best_node.intervals)
 
       # Sometimes the requested interval falls within the caching window.
       # We include the most likely node if the gap is within tolerance.
@@ -134,10 +135,6 @@ class Store:
         best_candidate = min(leaf_nodes, key=distance_to_requested_interval)
         if distance_to_requested_interval(best_candidate) <= settings.FIND_TOLERANCE:
           minimal_node_set.add(best_candidate)
-
-      if settings.REMOTE_STORE_MERGE_RESULTS and not local and remote_nodes:
-        # add remote nodes for (possible) merging
-        minimal_node_set = minimal_node_set.union(remote_nodes)
 
       if len(minimal_node_set) == 1:
         yield minimal_node_set.pop()
