@@ -80,38 +80,41 @@ class Store:
       if not leaf_nodes:
         continue
 
+      # Calculate best minimal node set
+      minimal_node_set = set()
+      covered_intervals = IntervalSet([])
+
+      # If the query doesn't fall entirely within the FIND_TOLERANCE window
+      # we disregard the window. This prevents unnecessary remote fetches
+      # caused when carbon's cache skews node.intervals, giving the appearance
+      # remote systems have data we don't have locally, which we probably do.
+      now = int( time.time() )
+      tolerance_window = now - settings.FIND_TOLERANCE
+      disregard_tolerance_window = query.interval.start < tolerance_window
+      prior_to_window = Interval( float('-inf'), tolerance_window )
+
+      def measure_of_added_coverage(node, drop_window=disregard_tolerance_window):
+        relevant_intervals = node.intervals.intersect_interval(query.interval)
+        if drop_window:
+          relevant_intervals = relevant_intervals.intersect_interval(prior_to_window)
+        return covered_intervals.union(relevant_intervals).size - covered_intervals.size
+
+      nodes_remaining = list(leaf_nodes)
+
+      # Prefer local nodes first (and do *not* drop the tolerance window)
+      for node in leaf_nodes:
+        if node.local and measure_of_added_coverage(node, False) > 0:
+          nodes_remaining.remove(node)
+          minimal_node_set.add(node)
+          covered_intervals = covered_intervals.union(node.intervals)
+
       if settings.REMOTE_STORE_MERGE_RESULTS:
-        # we need all nodes for merging results
-        minimal_node_set = leaf_nodes
+        remote_nodes = [n for n in nodes_remaining if not n.local]
+        for node in remote_nodes:
+          nodes_remaining.remove(node)
+          minimal_node_set.add(node)
+          covered_intervals = covered_intervals.union(node.intervals)
       else:
-        # Calculate best minimal node set
-        minimal_node_set = set()
-        covered_intervals = IntervalSet([])
-
-        # If the query doesn't fall entirely within the FIND_TOLERANCE window
-        # we disregard the window. This prevents unnecessary remote fetches
-        # caused when carbon's cache skews node.intervals, giving the appearance
-        # remote systems have data we don't have locally, which we probably do.
-        now = int( time.time() )
-        tolerance_window = now - settings.FIND_TOLERANCE
-        disregard_tolerance_window = query.interval.start < tolerance_window
-        prior_to_window = Interval( float('-inf'), tolerance_window )
-
-        def measure_of_added_coverage(node, drop_window=disregard_tolerance_window):
-          relevant_intervals = node.intervals.intersect_interval(query.interval)
-          if drop_window:
-            relevant_intervals = relevant_intervals.intersect_interval(prior_to_window)
-          return covered_intervals.union(relevant_intervals).size - covered_intervals.size
-
-        nodes_remaining = list(leaf_nodes)
-
-        # Prefer local nodes first (and do *not* drop the tolerance window)
-        for node in leaf_nodes:
-          if node.local and measure_of_added_coverage(node, False) > 0:
-            nodes_remaining.remove(node)
-            minimal_node_set.add(node)
-            covered_intervals = covered_intervals.union(node.intervals)
-
         while nodes_remaining:
           node_coverages = [ (measure_of_added_coverage(n), n) for n in nodes_remaining ]
           best_coverage, best_node = max(node_coverages)
