@@ -13,6 +13,7 @@ from graphite.node import LeafNode
 from graphite.intervals import Interval, IntervalSet
 from graphite.readers import MultiReader
 
+
 def get_finder(finder_path):
   module_name, class_name = finder_path.rsplit('.', 1)
   module = import_module(module_name)
@@ -115,14 +116,15 @@ class Store:
           covered_intervals = covered_intervals.union(node.intervals)
       else:
         while nodes_remaining:
-          node_coverages = [(measure_of_added_coverage(n), n) for n in nodes_remaining]
+          node_coverages = [ (measure_of_added_coverage(n), n) for n in nodes_remaining ]
           best_coverage, best_node = max(node_coverages)
+
           if best_coverage == 0:
             break
 
-      nodes_remaining.remove(best_node)
-      minimal_node_set.add(best_node)
-      covered_intervals = covered_intervals.union(best_node.intervals)
+          nodes_remaining.remove(best_node)
+          minimal_node_set.add(best_node)
+          covered_intervals = covered_intervals.union(best_node.intervals)
 
       # Sometimes the requested interval falls within the caching window.
       # We include the most likely node if the gap is within tolerance.
