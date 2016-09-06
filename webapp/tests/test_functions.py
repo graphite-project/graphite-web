@@ -3175,15 +3175,6 @@ class FunctionsTest(TestCase):
         for series in seriesList:
             series.pathExpression = series.name
 
-        def mock_data_fetcher(reqCtx, path_expression):
-            rv = []
-            for s in seriesList:
-                if s.name == path_expression or fnmatch(s.name, path_expression):
-                    rv.append(s)
-            if rv:
-                return rv
-            raise KeyError('{} not found!'.format(path_expression))
-
         expectedResults = {'sum' : [
             TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1d", "sum")', 0, 86400, 86400, [62164800]),
             TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1d", "sum")', 0, 86400, 86400, [-62164800]),
@@ -3217,9 +3208,10 @@ class FunctionsTest(TestCase):
         }
 
         for func in expectedResults:
-          with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
+          with patch('graphite.render.functions.evaluateTokens', lambda *_: seriesList):
               result = functions.smartSummarize(
                   {
+                      'args': [[]],
                       'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
                       'endTime': datetime(1970, 1, 2, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
                       'localOnly': False,
@@ -3236,15 +3228,6 @@ class FunctionsTest(TestCase):
         ]
         for series in seriesList:
             series.pathExpression = series.name
-
-        def mock_data_fetcher(reqCtx, path_expression):
-            rv = []
-            for s in seriesList:
-                if s.name == path_expression or fnmatch(s.name, path_expression):
-                    rv.append(s)
-            if rv:
-                return rv
-            raise KeyError('{} not found!'.format(path_expression))
 
         expectedResults = {'sum' : [
             TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1hour", "sum")', 0, 14400, 3600, [6478200, 19438200, 32398200, 45358200]),
@@ -3279,9 +3262,10 @@ class FunctionsTest(TestCase):
         }
 
         for func in expectedResults:
-          with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
+          with patch('graphite.render.functions.evaluateTokens', lambda *_: seriesList):
               result = functions.smartSummarize(
                   {
+                      'args': [[]],
                       'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
                       'endTime': datetime(1970, 1, 1, 4, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
                       'localOnly': False,
@@ -3299,15 +3283,6 @@ class FunctionsTest(TestCase):
         for series in seriesList:
             series.pathExpression = series.name
 
-        def mock_data_fetcher(reqCtx, path_expression):
-            rv = []
-            for s in seriesList:
-                if s.name == path_expression or fnmatch(s.name, path_expression):
-                    rv.append(s)
-            if rv:
-                return rv
-            raise KeyError('{} not found!'.format(path_expression))
-
         expectedResults = {'sum' : [
             TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1minute", "sum")', 0, 240, 60, [1770, 5370, 8970, 12570]),
             TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1minute", "sum")', 0, 240, 60, [-1770, -5370, -8970, -12570]),
@@ -3341,9 +3316,10 @@ class FunctionsTest(TestCase):
         }
 
         for func in expectedResults:
-          with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
+          with patch('graphite.render.functions.evaluateTokens', lambda *_: seriesList):
               result = functions.smartSummarize(
                   {
+                      'args': [[]],
                       'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
                       'endTime': datetime(1970, 1, 1, 0, 4, 0, 0, pytz.timezone(settings.TIME_ZONE)),
                       'localOnly': False,
@@ -3361,15 +3337,6 @@ class FunctionsTest(TestCase):
         for series in seriesList:
             series.pathExpression = series.name
 
-        def mock_data_fetcher(reqCtx, path_expression):
-            rv = []
-            for s in seriesList:
-                if s.name == path_expression or fnmatch(s.name, path_expression):
-                    rv.append(s)
-            if rv:
-                return rv
-            raise KeyError('{} not found!'.format(path_expression))
-
         expectedResults = {'sum' : [
             TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1minute", "sum")', 0, 240, 60, [1770, 5370, 8970, 12570]),
             TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1minute", "sum")', 0, 240, 60, [-1770, -5370, -8970, -12570]),
@@ -3403,9 +3370,10 @@ class FunctionsTest(TestCase):
         }
 
         for func in expectedResults:
-          with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
+          with patch('graphite.render.functions.evaluateTokens', lambda *_: seriesList):
               result = functions.smartSummarize(
                   {
+                      'args': [[]],
                       'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
                       'endTime': datetime(1970, 1, 1, 0, 4, 0, 0, pytz.timezone(settings.TIME_ZONE)),
                       'localOnly': False,
@@ -3423,15 +3391,6 @@ class FunctionsTest(TestCase):
         for series in seriesList:
             series.pathExpression = series.name
 
-        def mock_data_fetcher(reqCtx, path_expression):
-            rv = []
-            for s in seriesList:
-                if s.name == path_expression or fnmatch(s.name, path_expression):
-                    rv.append(s)
-            if rv:
-                return rv
-            raise KeyError('{} not found!'.format(path_expression))
-
         expectedResults = [
             TimeSeries('hitcount(servers.s1.disk.bytes_used, "1d", true)', 0, 172800, 86400, [3729888000, None]),
             TimeSeries('hitcount(servers.s1.disk.bytes_free, "1d", true)', 0, 172800, 86400, [-3729888000, None]),
@@ -3439,9 +3398,10 @@ class FunctionsTest(TestCase):
             TimeSeries('hitcount(servers.s2.disk.bytes_free, "1d", true)', 0, 172800, 86400, [62164800, None])
         ]
 
-        with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
+        with patch('graphite.render.functions.evaluateTokens', lambda *_: seriesList):
             result = functions.hitcount(
                 {
+                    'args': [[]],
                     'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
                     'endTime': datetime(1970, 1, 2, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
                     'localOnly': False,
@@ -3459,15 +3419,6 @@ class FunctionsTest(TestCase):
         for series in seriesList:
             series.pathExpression = series.name
 
-        def mock_data_fetcher(reqCtx, path_expression):
-            rv = []
-            for s in seriesList:
-                if s.name == path_expression or fnmatch(s.name, path_expression):
-                    rv.append(s)
-            if rv:
-                return rv
-            raise KeyError('{} not found!'.format(path_expression))
-
         expectedResults = [
             TimeSeries('hitcount(servers.s1.disk.bytes_used, "1hour", true)', 0, 18000, 3600, [6478200, 19438200, 32398200, 45358200, None]),
             TimeSeries('hitcount(servers.s1.disk.bytes_free, "1hour", true)', 0, 18000, 3600, [-6478200, -19438200, -32398200, -45358200, None]),
@@ -3475,9 +3426,10 @@ class FunctionsTest(TestCase):
             TimeSeries('hitcount(servers.s2.disk.bytes_free, "1hour", true)', 0, 18000, 3600, [12956400, 38876400, 64796400, 90716400, None])
         ]
 
-        with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
+        with patch('graphite.render.functions.evaluateTokens', lambda *_: seriesList):
             result = functions.hitcount(
                 {
+                    'args': [[]],
                     'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
                     'endTime': datetime(1970, 1, 1, 4, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
                     'localOnly': False,
@@ -3495,15 +3447,6 @@ class FunctionsTest(TestCase):
         for series in seriesList:
             series.pathExpression = series.name
 
-        def mock_data_fetcher(reqCtx, path_expression):
-            rv = []
-            for s in seriesList:
-                if s.name == path_expression or fnmatch(s.name, path_expression):
-                    rv.append(s)
-            if rv:
-                return rv
-            raise KeyError('{} not found!'.format(path_expression))
-
         expectedResults = [
             TimeSeries('hitcount(servers.s1.disk.bytes_used, "1minute", true)', 0, 300, 60, [1770, 5370, 8970, 12570, None]),
             TimeSeries('hitcount(servers.s1.disk.bytes_free, "1minute", true)', 0, 300, 60, [-1770, -5370, -8970, -12570, None]),
@@ -3511,9 +3454,10 @@ class FunctionsTest(TestCase):
             TimeSeries('hitcount(servers.s2.disk.bytes_free, "1minute", true)', 0, 300, 60, [3540, 10740, 17940, 25140, None])
         ]
 
-        with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
+        with patch('graphite.render.functions.evaluateTokens', lambda *_: seriesList):
             result = functions.hitcount(
                 {
+                    'args': [[]],
                     'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
                     'endTime': datetime(1970, 1, 1, 0, 4, 0, 0, pytz.timezone(settings.TIME_ZONE)),
                     'localOnly': False,
@@ -3531,15 +3475,6 @@ class FunctionsTest(TestCase):
         for series in seriesList:
             series.pathExpression = series.name
 
-        def mock_data_fetcher(reqCtx, path_expression):
-            rv = []
-            for s in seriesList:
-                if s.name == path_expression or fnmatch(s.name, path_expression):
-                    rv.append(s)
-            if rv:
-                return rv
-            raise KeyError('{} not found!'.format(path_expression))
-
         expectedResults = [
             TimeSeries('hitcount(servers.s1.disk.bytes_used, "1minute")', 0, 240, 60, [1770, 5370, 8970, 12570]),
             TimeSeries('hitcount(servers.s1.disk.bytes_free, "1minute")', 0, 240, 60, [-1770, -5370, -8970, -12570]),
@@ -3547,9 +3482,10 @@ class FunctionsTest(TestCase):
             TimeSeries('hitcount(servers.s2.disk.bytes_free, "1minute")', 0, 240, 60, [3540, 10740, 17940, 25140])
         ]
 
-        with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
+        with patch('graphite.render.functions.evaluateTokens', lambda *_: seriesList):
             result = functions.hitcount(
                 {
+                    'args': [[]],
                     'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
                     'endTime': datetime(1970, 1, 1, 0, 4, 0, 0, pytz.timezone(settings.TIME_ZONE)),
                     'localOnly': False,
