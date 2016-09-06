@@ -216,6 +216,9 @@ Monitoring
 `graphite-to-zabbix`_
   A tool to make zabbix alerts based on Graphite data.
 
+`Icinga`_
+  Icinga 2 will directly write metrics to the defined Graphite Carbon daemon tcp socket if the graphite feature is enabled. This feature is a more simple integration compared to Icinga 1.x and Graphios.
+
 `Moira`_
   An alerting system based on Graphite data. Moira is a real-time alerting tool, independent from graphite storage, custom expressions and extendable notification channels.
 
@@ -329,6 +332,7 @@ Other
 .. _Hubot: https://github.com/github/hubot
 .. _hubot-scripts: https://github.com/github/hubot-scripts
 .. _InfluxDB: https://influxdb.com/
+.. _Icinga: http://docs.icinga.org/icinga2/latest/doc/module/icinga2/chapter/icinga2-features#graphite-carbon-cache-writer
 .. _jmx2graphite: https://github.com/logzio/jmx2graphite
 .. _jmxtrans: https://github.com/jmxtrans/jmxtrans
 .. _KairosDB: http://kairosdb.github.io/
