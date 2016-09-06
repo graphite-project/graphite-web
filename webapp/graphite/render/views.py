@@ -294,7 +294,7 @@ def parseOptions(request):
   requestOptions['graphType'] = graphType
   requestOptions['graphClass'] = graphClass
   requestOptions['pieMode'] = queryParams.get('pieMode', 'average')
-  requestOptions['cacheTimeout'] = int( queryParams.get('cacheTimeout', settings.DEFAULT_CACHE_DURATION) )
+  cacheTimeout = int( queryParams.get('cacheTimeout', settings.DEFAULT_CACHE_DURATION) )
   requestOptions['targets'] = []
 
   # Extract the targets out of the queryParams
@@ -376,7 +376,11 @@ def parseOptions(request):
     timeRange = endTime - startTime
     queryTime = timeRange.days * 86400 + timeRange.seconds # convert the time delta to seconds
     if settings.DEFAULT_CACHE_POLICY and not queryParams.get('cacheTimeout'):
-      requestOptions['cacheTimeout'] = max(timeout for period,timeout in settings.DEFAULT_CACHE_POLICY if period <= queryTime)
+      cacheTimeout = max(timeout for period,timeout in settings.DEFAULT_CACHE_POLICY if period <= queryTime)
+
+  if cacheTimeout == 0:
+    requestOptions['noCache'] = True
+  requestOptions['cacheTimeout'] = cacheTimeout
 
   return (graphOptions, requestOptions)
 
