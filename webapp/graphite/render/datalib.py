@@ -12,6 +12,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
+import threading
+import Queue
+
 from graphite.logger import log
 from graphite.storage import STORE
 from graphite.readers import FetchInProgress
@@ -111,11 +114,60 @@ def fetchData(requestContext, pathExpr):
   startTime = int( epoch( requestContext['startTime'] ) )
   endTime   = int( epoch( requestContext['endTime'] ) )
 
-  def _fetchData(pathExpr,startTime, endTime, requestContext, seriesList):
-    matching_nodes = STORE.find(pathExpr, startTime, endTime, local=requestContext['localOnly'])
-    fetches = [(node, node.fetch(startTime, endTime)) for node in matching_nodes if node.is_leaf]
+  def _fetchDataWrapper(node, startTime, endTime, result_queue):
+    result = node.fetch(startTime, endTime)
+    result_queue.put((node, result))
 
-    for node, results in fetches:
+  def _fetchData(pathExpr,startTime, endTime, requestContext, seriesList):
+    result_queue = Queue.Queue()
+
+    matching_nodes = STORE.find(pathExpr, startTime, endTime, local=requestContext['localOnly'])
+
+    if settings.MAX_FETCH_THREADS < 1:
+      for node in matching_nodes:
+        if node.is_leaf:
+          _fetchDataWrapper(node, startTime, endTime, result_queue)
+    else:
+      fetches = []
+      fetches_running = []
+
+      for node in matching_nodes:
+        if not node.is_leaf:
+          next
+
+        fetch_thread = threading.Thread(target=_fetchDataWrapper,
+                                        args=(node, startTime, endTime, result_queue))
+        fetches.append(fetch_thread)
+
+      # Keep MAX_FETCH_THREADS running.
+      while len(fetches) > 0:
+        if len(fetches_running) < settings.MAX_FETCH_THREADS:
+          fetch_thread = fetches.pop()
+          fetch_thread.start()
+          fetches_running.append(fetch_thread)
+
+        # Rebuild list of running fetches
+        temp_fetches_running = []
+        for fetch_thread in fetches_running:
+          if fetch_thread.is_alive():
+            temp_fetches_running.append(fetch_thread)
+
+        # Induce some sort of sleep?
+          # Would be nice to wait on a semaphore...
+        if len(fetches_running) >= settings.MAX_FETCH_THREADS:
+          for fetch_thread in fetches_running:
+            fetch_thread.join(10)
+        fetches_running = temp_fetches_running
+
+      for fetch_thread in fetches_running:
+        fetch_thread.join(10)
+
+    while not result_queue.empty():
+      try:
+        (node, results) = result_queue.get(False)
+      except:
+        log.exception("result_queue not empty, but unable to retrieve results")
+
       if isinstance(results, FetchInProgress):
         results = results.waitForResults()
 
