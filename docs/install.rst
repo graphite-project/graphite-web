@@ -12,9 +12,9 @@ Basic Graphite requirements:
 
 * a UNIX-like Operating System
 * Python 2.7 or greater but `NOT Python 3`
-* `Pycairo`_
-* `Django`_ 1.4 or greater
-* `django-tagging`_ 0.3.1 or greater
+* `cairocffi`_
+* `Django`_ 1.9
+* `django-tagging`_ 0.4.3
 * `pytz`_
 * `fontconfig`_ and at least one font package (a system package usually)
 * A WSGI server and web server. Popular choices are:
@@ -25,7 +25,7 @@ Basic Graphite requirements:
 
   - `uWSGI`_ with `nginx`_
 
-Additionally, the Graphite webapp and Carbon require the whisper database library which
+Additionally, the Graphite webapp and Carbon require the Whisper database library which
 is part of the Graphite project.
 
 There are also several other dependencies required for additional features:
@@ -159,28 +159,28 @@ Post-Install Tasks
 
 Windows Users
 -------------
-Despair Not!  Even though running Graphite on Windows is completely unsupported (we fear that handling the escaping of paths in the regexes would result only in jibbering madness, and life is just too short; pull requests happily considered!), you are not completely out of luck.  There are some solutions that make it easier for you to run a UNIX VM within your Windows box.  The :doc:`Installing via Synthesize </install-synthesize>` article will help you set up a Vagrant VM that will run Graphite.  In order to leverage this, you will need to install `Vagrant <http://www.vagrantup.com>`_.
+Despair Not!  Even though running Graphite on Windows is completely unsupported (we fear that handling the escaping of paths in the regexes would result only in jibbering madness, and life is just too short; pull requests happily considered!), you are not completely out of luck.  There are some solutions that make it easier for you to run a UNIX VM within your Windows box.  The :doc:`Installing via Synthesize </install-synthesize>` article will help you set up a Vagrant VM that will run Graphite.  In order to leverage this, you will need to install `Vagrant <https://www.vagrantup.com/>`_.
 
 
 .. _Apache: https://projects.apache.org/project.html?httpd-http_server
+.. _cairocffi: https://pythonhosted.org/cairocffi/
 .. _Django: http://www.djangoproject.com/
-.. _django-tagging: http://code.google.com/p/django-tagging/
+.. _django-tagging: http://django-tagging.readthedocs.io/
 .. _Django database install: https://docs.djangoproject.com/en/dev/topics/install/#get-your-database-running
 .. _Django database: https://docs.djangoproject.com/en/dev/ref/databases/
-.. _EPEL: http://fedoraproject.org/wiki/EPEL/
+.. _EPEL: http://fedoraproject.org/wiki/EPEL
 .. _fontconfig: http://www.freedesktop.org/wiki/Software/fontconfig/
 .. _gunicorn: http://gunicorn.org/
 .. _memcached: http://memcached.org/
-.. _mod_wsgi: http://code.google.com/p/modwsgi/
+.. _mod_wsgi: https://modwsgi.readthedocs.io/
 .. _nginx: http://nginx.org/
-.. _NOT Python 3: https://python3wos.appspot.com
-.. _pip: http://www.pip-installer.org/
-.. _Pycairo: http://www.cairographics.org/pycairo/
-.. _python-ldap: http://www.python-ldap.org/
-.. _python-memcache: http://www.tummy.com/Community/software/python-memcached/
+.. _NOT Python 3: https://python3wos.appspot.com/
+.. _pip: https://pip.pypa.io/
+.. _python-ldap: https://www.python-ldap.org/
+.. _python-memcache: https://www.tummy.com/software/python-memcached/
 .. _python-rrdtool: http://oss.oetiker.ch/rrdtool/prog/rrdpython.en.html
-.. _python-sqlite2: http://code.google.com/p/pysqlite/
+.. _python-sqlite2: https://github.com/ghaering/pysqlite
 .. _pytz: https://pypi.python.org/pypi/pytz/
-.. _simplejson: http://pypi.python.org/pypi/simplejson/
+.. _simplejson: http://simplejson.readthedocs.io/
 .. _txAMQP: https://launchpad.net/txamqp/
-.. _uWSGI: http://projects.unbit.it/uwsgi/
+.. _uWSGI: http://uwsgi-docs.readthedocs.io/
