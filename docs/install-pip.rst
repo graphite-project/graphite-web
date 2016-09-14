@@ -1,7 +1,7 @@
 Installing From Pip
 ===================
 
-Versioned Graphite releases can be installed via `pip <http://pypi.python.org/pypi/pip>`_. When installing with pip, Installation of dependencies will automatically be attempted.
+Versioned Graphite releases can be installed via `pip <http://pypi.python.org/pypi/pip>`_. When installing with pip, installation of Python package dependencies will automatically be attempted.
 
 .. note::
 
