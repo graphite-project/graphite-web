@@ -14,10 +14,10 @@ simply execute as root:
 
 .. code-block:: none
 
-    pip install https://github.com/graphite-project/ceres/tarball/master
-    pip install whisper
-    pip install carbon
-    pip install graphite-web
+    export PYTHONPATH="/opt/graphite/lib/:/opt/graphite/webapp/"
+    pip install https://github.com/graphite-project/whisper/tarball/master
+    pip install https://github.com/graphite-project/carbon/tarball/master
+    pip install https://github.com/graphite-project/graphite-web/tarball/master
 
 .. note::
 
@@ -62,4 +62,12 @@ To install the Graphite-web code into the system-wide site-packages directory wi
 .. code-block:: none
 
    pip install graphite-web --install-option="--install-scripts=/usr/bin" --install-option="--install-lib=/usr/lib/python2.6/site-packages" --install-option="--install-data=/var/lib/graphite"
+
+Installing Ceres
+----------------
+Ceres is an alternative storage backend that some choose to use in place of the default Whisper backend.
+
+.. code-block:: none
+
+    pip install https://github.com/graphite-project/ceres/tarball/master
 
