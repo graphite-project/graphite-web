@@ -94,6 +94,7 @@ try:
         ['templates/*', 'local_settings.py.example']},
       scripts=glob('bin/*'),
       data_files=webapp_content.items() + storage_dirs + conf_files + examples,
+      install_requires=['Django', 'django-tagging', 'pytz', 'pyparsing', 'cairocffi', 'whitenoise'],
       classifiers=[
           'Intended Audience :: Developers',
           'Natural Language :: English',
