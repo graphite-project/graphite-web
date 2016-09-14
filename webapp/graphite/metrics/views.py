@@ -19,6 +19,7 @@ from django.conf import settings
 from graphite.compat import HttpResponse, HttpResponseBadRequest
 from graphite.util import getProfile, json
 from graphite.logger import log
+from graphite.readers import RRDReader
 from graphite.storage import STORE
 from graphite.carbonlink import CarbonLink
 
@@ -49,6 +50,20 @@ def index_json(request):
       for filename in files:
         if filename == '.ceres-node':
           matches.append(root)
+
+    # unlike 0.9.x, we're going to use os.walk with followlinks
+    # since we require Python 2.7 and newer that supports it
+    if RRDReader.supported:
+      for root, dirs, files in os.walk(settings.RRD_DIR, followlinks=True):
+        root = root.replace(settings.RRD_DIR, '')
+        for basename in files:
+          if fnmatch.fnmatch(basename, '*.rrd'):
+            absolute_path = os.path.join(settings.RRD_DIR, root, basename)
+            (basename,extension) = os.path.splitext(basename)
+            metric_path = os.path.join(root, basename)
+            rrd = RRDReader(absolute_path, metric_path)
+            for datasource_name in rrd.get_datasources(absolute_path):
+              matches.append(os.path.join(metric_path, datasource_name))
 
     matches = [
       m
