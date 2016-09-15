@@ -17,7 +17,7 @@ from . import views
 
 urlpatterns = patterns(
     '',
-    url('add', views.add, name='whitelist_add'),
-    url('remove', views.remove, name='whitelist_remove'),
-    url('', views.show, name='whitelist_show'),
+    url('add', views.add, name='metric_filters_add'),
+    url('remove', views.remove, name='metric_filters_remove'),
+    url('', views.show, name='metric_filters_show'),
 )

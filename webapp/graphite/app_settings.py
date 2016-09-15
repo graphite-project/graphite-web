@@ -59,7 +59,7 @@ INSTALLED_APPS = (
   'graphite.composer',
   'graphite.account',
   'graphite.dashboard',
-  'graphite.whitelist',
+  'graphite.metric_filters',
   'graphite.events',
   'graphite.url_shortener',
   'django.contrib.auth',
