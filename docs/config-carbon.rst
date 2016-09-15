@@ -249,7 +249,7 @@ aggregation.
 Metric Filters: allowed and blocked Metrics
 -------------------------------------------
 
-The metric filter functionality allows any of the carbon daemons to only accept
+The metric filter functionality allows any of the Carbon daemons to only accept
 metrics that are explicitly allowed and/or to reject rejected metrics. The
 functionality can be enabled in carbon.conf with the ``USE_METRIC_FILTERS``
 flag. This can be useful when too many metrics are being sent to a Graphite
@@ -266,7 +266,7 @@ The whitelist/blacklist functionality has been renamed to 'allowed' and
 'blocked' so as to use less ambiguous language, and remove possible connotations
 associated with those terms.
 
-The capabilities have been renamed as of this point, but he existing ``whitelist.conf``
+The capabilities have been renamed as of this point, but the existing ``whitelist.conf``
 and ``blacklist.conf`` will still be functional for the time being.
 
 Additionally, the ``USE_WHITELIST`` flag in carbon.conf will still be respected,
