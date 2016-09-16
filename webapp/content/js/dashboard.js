@@ -2643,6 +2643,24 @@ function applyState(state) {
   TimeRange.startTime = timeConfig.startTime;
   TimeRange.endDate = new Date(timeConfig.endDate);
   TimeRange.endTime = timeConfig.endTime;
+
+  if (queryString.from && queryString.until) {
+    // The URL contains a "from" and "until" parameters (format "YYYY-MM-DDThh:mm:ss") => use the timestamps as default absolute range of the dashboard
+    var from = new Date(queryString.from);
+    var until = new Date(queryString.until);
+
+    TimeRange.startDate = from;
+    TimeRange.startTime = from.format("H:m");
+    TimeRange.endDate = until;
+    TimeRange.endTime = until.format("H:m");
+    TimeRange.type = 'absolute';
+
+    state.timeConfig = TimeRange;
+
+    state.defaultGraphParams.from = from.format('H:i_Ymd');
+    state.defaultGraphParams.until = until.format('H:i_Ymd');
+  }
+
   updateTimeText();
 
 
