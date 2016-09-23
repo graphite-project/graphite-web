@@ -54,7 +54,13 @@ class MultiReader(object):
 
   def fetch(self, startTime, endTime):
     # Start the fetch on each node
-    fetches = [ n.fetch(startTime, endTime) for n in self.nodes ]
+    fetches = []
+
+    for n in self.nodes:
+      try:
+        fetches.append(n.fetch(startTime, endTime))
+      except:
+        log.exception("Failed to initiate subfetch for %s" % str(n))
 
     def merge_results():
       results = {}
