@@ -272,7 +272,10 @@ def multiplySeriesWithWildcards(requestContext, seriesList, *position): #XXX
     &target=multiplySeriesWithWildcards(web.host-[0-7].{avg-response,total-request}.value, 2)
 
   This would be the equivalent of
-  ``target=multiplySeries(web.host-0.{avg-response,total-request}.value)&target=multiplySeries(web.host-1.{avg-response,total-request}.value)...``
+
+  .. code-block:: none
+
+    &target=multiplySeries(web.host-0.{avg-response,total-request}.value)&target=multiplySeries(web.host-1.{avg-response,total-request}.value)...
 
   """
   if type(position) is int:
@@ -1258,7 +1261,7 @@ def integralByInterval(requestContext, seriesList, intervalUnit):
 
   .. code-block:: none
 
-  &target=integralByInterval(company.sales.perMinute, "1d")&from=midnight-10days
+    &target=integralByInterval(company.sales.perMinute, "1d")&from=midnight-10days
 
   This would start at zero on the left side of the graph, adding the sales each
   minute, and show the evolution of sales per day during the last 10 days.
@@ -1559,7 +1562,7 @@ def legendValue(requestContext, seriesList, *valueTypes):
 
   .. code-block:: none
 
-  &target=legendValue(Sales.widgets.largeBlue, 'avg', 'max', 'si')
+    &target=legendValue(Sales.widgets.largeBlue, 'avg', 'max', 'si')
 
   """
   def last(s):
@@ -3165,16 +3168,16 @@ def applyByNode(requestContext, seriesList, nodeNum, templateFunction, newName=N
   If the `newName` paramter is provided, the name of the resulting series will be given by that parameter, with any
   "%" characters replaced by the unique prefix.
 
-  **Example**
+  Example:
 
-  ...code-block:: none
+  .. code-block:: none
 
-      &target=applyByNode(servers.*.disk.bytes_free,1,"divideSeries(%.disk.bytes_free,sumSeries(%.disk.bytes_*))")
+     &target=applyByNode(servers.*.disk.bytes_free,1,"divideSeries(%.disk.bytes_free,sumSeries(%.disk.bytes_*))")
 
   Would find all series which match `servers.*.disk.bytes_free`, then trim them down to unique series up to the node
   given by nodeNum, then fill them into the template function provided (replacing % by the prefixes).
 
-  **Additional Examples**
+  Additional Examples:
 
   Given keys of
 
@@ -3187,9 +3190,9 @@ def applyByNode(requestContext, seriesList, nodeNum, templateFunction, newName=N
 
   The following will return the rate of 5XX's per service:
 
-  ...code-block:: none
+  .. code-block:: none
 
-     applyByNode(stats.counts.haproxy.*.*XX, 3, "asPercent(%.2XX, sumSeries(%.*XX))", "%.pct_5XX")
+    applyByNode(stats.counts.haproxy.*.*XX, 3, "asPercent(%.2XX, sumSeries(%.*XX))", "%.pct_5XX")
 
   The output series would have keys `stats.counts.haproxy.web.pct_5XX` and `stats.counts.haproxy.microservice.pct_5XX`.
   """
