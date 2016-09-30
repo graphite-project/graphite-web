@@ -32,6 +32,7 @@ We are always looking to improve our test coverage.  New tests will be appreciat
 
 If you see a mistake, have a feature, or a performance gain, we'd love to see it.  It's _strongly_ encouraged for contributions that aren't already covered by tests to come with them.  We're not trying to foist work on to you, but it makes it much easier for us to accept your contributions.
 
+To set up your development environment, see the instructions in requirements.txt
 
 ### Documentation
 
