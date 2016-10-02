@@ -46,7 +46,7 @@ def match_entries(entries, pattern):
     matching = []
 
     for variant in expand_braces(pattern):
-        matching.extend(fnmatch.filter(entries, variant))
+      matching.extend(fnmatch.filter(entries, variant))
 
     return list(_deduplicate(matching))
 
@@ -64,16 +64,16 @@ def expand_braces(orig):
 
     m = p.search(s)
     if m is not None:
-        sub = m.group(1)
-        open_brace = s.find(sub)
-        close_brace = open_brace + len(sub) - 1
-        if sub.find(',') != -1:
-            for pat in sub.strip('{}').split(','):
-                res.extend(expand_braces(s[:open_brace] + pat + s[close_brace + 1:]))
-        else:
-            res.extend(expand_braces(s[:open_brace] + sub.replace('}', '\\}') + s[close_brace + 1:]))
+      sub = m.group(1)
+      open_brace = s.find(sub)
+      close_brace = open_brace + len(sub) - 1
+      if sub.find(',') != -1:
+        for pat in sub.strip('{}').split(','):
+          res.extend(expand_braces(s[:open_brace] + pat + s[close_brace + 1:]))
+      else:
+          res.extend(expand_braces(s[:open_brace] + sub.replace('}', '\\}') + s[close_brace + 1:]))
     else:
-        res.append(s.replace('\\}', '}'))
+      res.append(s.replace('\\}', '}'))
 
     return list(set(res))
 
