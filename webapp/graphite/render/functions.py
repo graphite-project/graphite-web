@@ -565,7 +565,7 @@ def asPercent(requestContext, seriesList, total=None):
   each series will be calculated as a percentage of that total. If `total` is not specified,
   the sum of all points in the wildcard series will be used instead.
 
-  The `total` parameter may be a single series or a numeric value.
+  The `total` parameter may be a single series, reference the same number of series as `seriesList` or a numeric value.
 
   Example:
 
