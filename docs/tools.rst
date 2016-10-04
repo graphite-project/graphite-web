@@ -60,7 +60,7 @@ Collection
 `Sensu`_
   A monitoring framework that can route metrics to Graphite. Servers subscribe to sets of checks, so getting metrics from a new server to Graphite is as simple as installing the Sensu client and subscribing.
 
-[snort2graphite] (https://github.com/gregvolk/snort2graphite)
+`snort2graphite <https://github.com/gregvolk/snort2graphite>`_
   Snort IDS/IPS can be configured to create a rich set of metrics about network traffic. Presently there are more than 130 metrics available. Snort2graphite will pick up the most recent data from your snort.stats file and send all the metrics into Graphite. 
 
 `SqlToGraphite`_
