@@ -356,9 +356,9 @@ Other
 .. _riemann: http://riemann.io
 .. _Rocksteady: http://code.google.com/p/rocksteady
 .. _Sensu: http://sensuapp.org
-.. _snort2graphite: https://github.com/gregvolk/snort2graphite
 .. _Seyren: https://github.com/scobal/seyren
 .. _Shinken: http://www.shinken-monitoring.org
+.. _snort2graphite: https://github.com/gregvolk/snort2graphite
 .. _SqlToGraphite: https://github.com/perryofpeek/SqlToGraphite
 .. _SSC Serv: https://ssc-serv.com
 .. _statsd: https://github.com/etsy/statsd
