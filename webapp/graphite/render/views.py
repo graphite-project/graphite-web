@@ -183,6 +183,7 @@ def renderView(request):
         patch_response_headers(response, cache_timeout=cacheTimeout)
       else:
         add_never_cache_headers(response)
+      log.rendering('Total json rendering time %.6f' % (time() - start))
       return response
 
     if format == 'dygraph':
@@ -204,6 +205,7 @@ def renderView(request):
         patch_response_headers(response, cache_timeout=cacheTimeout)
       else:
         add_never_cache_headers(response)
+      log.rendering('Total dygraph rendering time %.6f' % (time() - start))
       return response
 
     if format == 'rickshaw':
@@ -225,6 +227,7 @@ def renderView(request):
         patch_response_headers(response, cache_timeout=cacheTimeout)
       else:
         add_never_cache_headers(response)
+      log.rendering('Total rickshaw rendering time %.6f' % (time() - start))
       return response
 
     if format == 'raw':
