@@ -76,4 +76,3 @@ def expand_braces(orig):
       res.append(s.replace('\\}', '}'))
 
     return list(set(res))
-
