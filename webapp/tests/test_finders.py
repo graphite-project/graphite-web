@@ -104,6 +104,16 @@ class StandardFinderTest(TestCase):
             self.assertEqual(len(list(nodes)), 2)
             self.assertEqual(self._listdir_counter, 5)
 
+            self._listdir_counter = 0
+            nodes = finder.find_nodes(FindQuery('{foo,bar}.{baz,bar}.{baz,foo}', None, None))
+            self.assertEqual(len(list(nodes)), 2)
+            self.assertEqual(self._listdir_counter, 5)
+
+            self._listdir_counter = 0
+            nodes = finder.find_nodes(FindQuery('foo.{ba{r,z},baz}.baz', None, None))
+            self.assertEqual(len(list(nodes)), 1)
+            self.assertEqual(self._listdir_counter, 1)
+
         finally:
             os.listdir = self._original_listdir
             self.wipe_whisper()
