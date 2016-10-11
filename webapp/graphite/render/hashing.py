@@ -16,6 +16,7 @@ limitations under the License."""
 from hashlib import md5
 from itertools import chain
 import bisect
+from ast import literal_eval
 
 
 def hashRequest(request):
@@ -42,18 +43,37 @@ def compactHash(string):
   return hash.hexdigest()
 
 
+def fnv32a(string):
+    """
+    FNV-1a Hash (http://isthe.com/chongo/tech/comp/fnv/) in Python.
+    Taken from https://gist.github.com/vaiorabbit/5670985
+    """
+    hval = 0x811c9dc5
+    fnv_32_prime = 0x01000193
+    uint32_max = 2 ** 32
+    for s in string:
+      hval = hval ^ ord(s)
+      hval = (hval * fnv_32_prime) % uint32_max
+    return hval
+
+
 class ConsistentHashRing:
-  def __init__(self, nodes, replica_count=100):
+  def __init__(self, nodes, replica_count=100, hash_type='carbon_ch'):
     self.ring = []
     self.ring_len = len(self.ring)
     self.nodes = set()
     self.nodes_len = len(self.nodes)
     self.replica_count = replica_count
+    self.hash_type = hash_type
     for node in nodes:
       self.add_node(node)
 
   def compute_ring_position(self, key):
-    big_hash = md5( str(key) ).hexdigest()
+    big_hash = None
+    if self.hash_type == 'carbon_ch':
+      big_hash = md5( str(key) ).hexdigest()
+    elif self.hash_type == 'fnv1a_ch':
+      big_hash = '{:x}'.format(int(fnv32a( str(key) )))
     small_hash = int(big_hash[:4], 16)
     return small_hash
 
@@ -62,6 +82,13 @@ class ConsistentHashRing:
     self.nodes_len = len(self.nodes)
     for i in range(self.replica_count):
       replica_key = "%s:%d" % (key, i)
+      if self.hash_type == 'fnv1a_ch':
+        # getting instance from key
+        try:
+          (_, instance) = literal_eval(key)
+          replica_key = "%d-%s" % (i, instance)
+        except ValueError:
+          pass
       position = self.compute_ring_position(replica_key)
       entry = (position, key)
       bisect.insort(self.ring, entry)
