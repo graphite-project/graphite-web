@@ -363,6 +363,11 @@ CARBONLINK_TIMEOUT
 
   Timeout for carbon-cache cache queries in seconds.
 
+CARBONLINK_HASHING_TYPE
+  `Default: carbon_ch`
+
+  Type of metric hashing function. Graphite-web has limited support of "fnv1a_ch" hashing from carbon-c-relay. Please note, that fnv1a_ch hashing will work here only if instance is defined.
+
 
 Additional Django Settings
 --------------------------
