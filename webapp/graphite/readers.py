@@ -12,6 +12,11 @@ except ImportError:
   whisper = False
 
 try:
+  import ceres
+except ImportError:
+  ceres = False
+
+try:
   import rrdtool
 except ImportError:
   rrdtool = False
@@ -111,7 +116,7 @@ class MultiReader(object):
 
 class CeresReader(object):
   __slots__ = ('ceres_node', 'real_metric_path')
-  supported = True
+  supported = bool(ceres)
 
   def __init__(self, ceres_node, real_metric_path):
     self.ceres_node = ceres_node
