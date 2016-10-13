@@ -69,12 +69,12 @@ class ConsistentHashRing:
       self.add_node(node)
 
   def compute_ring_position(self, key):
-    big_hash = None
-    if self.hash_type == 'carbon_ch':
-      big_hash = md5( str(key) ).hexdigest()
-    elif self.hash_type == 'fnv1a_ch':
+    if self.hash_type == 'fnv1a_ch':
       big_hash = '{:x}'.format(int(fnv32a( str(key) )))
-    small_hash = int(big_hash[:4], 16)
+      small_hash = int(big_hash[:4], 16) ^ int(big_hash[4:], 16)
+    else:
+      big_hash = md5(str(key)).hexdigest()
+      small_hash = int(big_hash[:4], 16)
     return small_hash
 
   def add_node(self, key):
@@ -83,12 +83,7 @@ class ConsistentHashRing:
     for i in range(self.replica_count):
       replica_key = "%s:%d" % (key, i)
       if self.hash_type == 'fnv1a_ch':
-        # getting instance from key
-        try:
-          (_, instance) = literal_eval(key)
-          replica_key = "%d-%s" % (i, instance)
-        except ValueError:
-          pass
+        replica_key = "%d-%s" % (i, key[1])
       position = self.compute_ring_position(replica_key)
       entry = (position, key)
       bisect.insort(self.ring, entry)
