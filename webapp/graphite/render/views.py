@@ -418,7 +418,10 @@ def delegateRendering(graphType, graphOptions):
         connection.timeout = settings.REMOTE_RENDER_CONNECT_TIMEOUT
         connection.request('POST', '/render/local/', postData)
       # Read the response
-      response = connection.getresponse()
+      try: # Python 2.7+, use buffering of HTTP responses
+        response = connection.getresponse(buffering=True)
+      except TypeError:  # Python 2.6 and older
+        response = connection.getresponse()
       assert response.status == 200, "Bad response code %d from %s" % (response.status,server)
       contentType = response.getheader('Content-Type')
       imageData = response.read()

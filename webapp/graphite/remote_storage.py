@@ -95,7 +95,10 @@ class FindRequest(object):
         self.send()
 
       try:
-        response = self.connection.getresponse()
+        try: # Python 2.7+, use buffering of HTTP responses
+          response = self.connection.getresponse(buffering=True)
+        except TypeError:  # Python 2.6 and older
+          response = self.connection.getresponse()
         assert response.status == 200, "received error response %s - %s" % (response.status, response.reason)
         result_data = response.read()
         results = unpickle.loads(result_data)
@@ -159,7 +162,13 @@ class ReadResult(object):
   def read_response(self): # called under self.lock
     try:
       self.has_done_response_read = True
-      response = self.connection.getresponse() # safe if self.connection.timeout works as advertised
+
+      # safe if self.connection.timeout works as advertised
+      try: # Python 2.7+, use buffering of HTTP responses
+        response = self.connection.getresponse(buffering=True)
+      except TypeError:  # Python 2.6 and older
+        response = self.connection.getresponse()
+
       if response.status != 200:
         raise Exception("Error response %d %s from http://%s%s" % (response.status, response.reason, self.store.host, self.urlpath))
       pickled_response = response.read()
