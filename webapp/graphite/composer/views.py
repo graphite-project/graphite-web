@@ -100,7 +100,10 @@ def send_email(request):
     if query: path += '?' + query
     conn = HTTPConnection(server)
     conn.request('GET',path)
-    resp = conn.getresponse()
+    try: # Python 2.7+, use buffering of HTTP responses
+      resp = conn.getresponse(buffering=True)
+    except TypeError:  # Python 2.6 and older
+      resp = conn.getresponse()
     assert resp.status == 200, "Failed HTTP response %s %s" % (resp.status, resp.reason)
     rawData = resp.read()
     conn.close()
