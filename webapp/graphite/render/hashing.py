@@ -16,8 +16,25 @@ limitations under the License."""
 from hashlib import md5
 from itertools import chain
 import bisect
-from ast import literal_eval
 
+try:
+  import pyhash
+  hasher = pyhash.fnv1a_32()
+  def fnv32a(string, seed=0x811c9dc5):
+    return hasher(string, seed=seed)
+except ImportError:
+  def fnv32a(string, seed=0x811c9dc5):
+    """
+    FNV-1a Hash (http://isthe.com/chongo/tech/comp/fnv/) in Python.
+    Taken from https://gist.github.com/vaiorabbit/5670985
+    """
+    hval = seed
+    fnv_32_prime = 0x01000193
+    uint32_max = 2 ** 32
+    for s in string:
+      hval = hval ^ ord(s)
+      hval = (hval * fnv_32_prime) % uint32_max
+    return hval
 
 def hashRequest(request):
   # Normalize the request parameters so ensure we're deterministic
@@ -41,20 +58,6 @@ def compactHash(string):
   hash = md5()
   hash.update(string.encode('utf-8'))
   return hash.hexdigest()
-
-
-def fnv32a(string):
-    """
-    FNV-1a Hash (http://isthe.com/chongo/tech/comp/fnv/) in Python.
-    Taken from https://gist.github.com/vaiorabbit/5670985
-    """
-    hval = 0x811c9dc5
-    fnv_32_prime = 0x01000193
-    uint32_max = 2 ** 32
-    for s in string:
-      hval = hval ^ ord(s)
-      hval = (hval * fnv_32_prime) % uint32_max
-    return hval
 
 
 class ConsistentHashRing:

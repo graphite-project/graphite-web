@@ -151,6 +151,14 @@ except ImportError:
     optional += 1
 
 
+# Test for pyhash
+try:
+    import pyhash
+except ImportError:
+    sys.stderr.write("[OPTIONAL] Unable to import the 'pyhash' module. This is useful for fnv1_ch hashing support.\n")
+    optional += 1
+
+
 if optional:
   sys.stderr.write("%d optional dependencies not met. Please consider the optional items before proceeding.\n" % optional)
 else:
