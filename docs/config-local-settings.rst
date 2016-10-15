@@ -368,9 +368,7 @@ CARBONLINK_HASHING_TYPE
 
   `Possible values: carbon_ch, fnv1a_ch`
 
-  The default is "carbon_ch" - usual Graphite hashing function. Also, you can use "fnv1a_ch" hashing from `carbon-c-relay relay <https://github.com/grobian/carbon-c-relay>`_. Fnv1a_ch cluster uses instance name as the solely source of routing information. As described in "carbon-c-relay" documentation: 
-
-  `The fnv1a_ch cluster is identical in behavior to carbon_ch, but it uses a different hash technique (FNV1a) which defined to get by a limitation of carbon_ch to use both host and port from the members. When using the fnv1a_ch cluster, instance value overrides the hash key in use. This allows for many things, including masquerading old IP addresses, but mostly to make the hash key location to become agnostic of the (physical) location of that key. For example, usage like 10.0.0.1:2003:4d79d13554fa1301476c1f9fe968b0ac would allow to change port and/or IP address of the server that receives data for the instance key.`
+  The default is "carbon_ch" - usual Graphite hashing function. Also, you can use "fnv1a_ch" hashing from `carbon-c-relay relay <https://github.com/grobian/carbon-c-relay>`_. Fnv1a_ch cluster uses instance name as the solely source of routing information, as described in "carbon-c-relay" documentation.
 
 Additional Django Settings
 --------------------------
