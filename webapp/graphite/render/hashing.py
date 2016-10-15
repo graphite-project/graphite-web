@@ -84,9 +84,10 @@ class ConsistentHashRing:
     self.nodes.add(key)
     self.nodes_len = len(self.nodes)
     for i in range(self.replica_count):
-      replica_key = "%s:%d" % (key, i)
       if self.hash_type == 'fnv1a_ch':
         replica_key = "%d-%s" % (i, key[1])
+      else:
+        replica_key = "%s:%d" % (key, i)
       position = self.compute_ring_position(replica_key)
       entry = (position, key)
       bisect.insort(self.ring, entry)
