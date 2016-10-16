@@ -33,7 +33,7 @@ class CarbonLinkPool:
     if len(servers) < settings.REPLICATION_FACTOR:
       raise Exception("REPLICATION_FACTOR=%d cannot exceed servers=%d" % (settings.REPLICATION_FACTOR, len(servers)))
 
-    self.hash_ring = ConsistentHashRing(self.hosts)
+    self.hash_ring = ConsistentHashRing(self.hosts, hash_type=settings.CARBONLINK_HASHING_TYPE)
     self.keyfunc = load_keyfunc()
     self.connections = {}
     self.last_failure = {}

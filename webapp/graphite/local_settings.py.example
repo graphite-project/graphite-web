@@ -279,12 +279,25 @@
 # machine (NOT every carbon-cache in the entire cluster). The default cache
 # query port is 7002 and a common scheme is to use 7102 for instance b, 7202
 # for instance c, etc.
+# If you're using consistent hashing, please keep an order of hosts the same as
+# order of DESTINATIONS in your relay - otherways you'll get cache misses.
 #
 # You *should* use 127.0.0.1 here in most cases.
 #
 #CARBONLINK_HOSTS = ["127.0.0.1:7002:a", "127.0.0.1:7102:b", "127.0.0.1:7202:c"]
 #CARBONLINK_TIMEOUT = 1.0
 #CARBONLINK_RETRY_DELAY = 15 # Seconds to blacklist a failed remote server
+#
+
+# Type of metric hashing function.
+# The default `carbon_ch` is Graphite's traditional consistent-hashing implementation.
+# Alternatively, you can use `fnv1a_ch`, which supports the Fowler–Noll–Vo hash
+# function (FNV-1a) hash implementation offered by the carbon-c-relay project
+# https://github.com/grobian/carbon-c-relay
+#
+# Supported values: carbon_ch, fnv1a_ch
+#
+#CARBONLINK_HASHING_TYPE = 'carbon_ch'
 
 # A "keyfunc" is a user-defined python function that is given a metric name
 # and returns a string that should be used when hashing the metric name.

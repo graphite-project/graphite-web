@@ -363,6 +363,12 @@ CARBONLINK_TIMEOUT
 
   Timeout for carbon-cache cache queries in seconds.
 
+CARBONLINK_HASHING_TYPE
+  `Default: carbon_ch`
+
+  `Possible values: carbon_ch, fnv1a_ch`
+
+  The default `carbon_ch` is Graphite's traditional consistent-hashing implementation. Alternatively, you can use `fnv1a_ch`, which supports the Fowler–Noll–Vo hash function (FNV-1a) hash implementation offered by the `carbon-c-relay relay <https://github.com/grobian/carbon-c-relay>`_ project.
 
 Additional Django Settings
 --------------------------
@@ -375,3 +381,4 @@ To manipulate these settings, ensure ``app_settings.py`` is imported as such:
    from graphite.app_settings import *
 
 The most common settings to manipulate are ``INSTALLED_APPS``, ``MIDDLEWARE_CLASSES``, and ``AUTHENTICATION_BACKENDS``.
+ 
