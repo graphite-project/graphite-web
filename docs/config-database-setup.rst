@@ -17,7 +17,10 @@ for full documentation of the DATABASES setting.
   If you are using a custom database backend (other than SQLite) you must first create a $GRAPHITE_ROOT/webapp/graphite/local_settings.py file that overrides the database related settings from settings.py. Use $GRAPHITE_ROOT/webapp/graphite/local_settings.py.example as a template.
 
 To set up a new database and create the initial schema, run:
-``PYTHONPATH=$GRAPHITE_ROOT/webapp django-admin.py migrate --settings=graphite.settings --run-syncdb``
+
+.. code-block:: none
+
+  PYTHONPATH=$GRAPHITE_ROOT/webapp django-admin.py migrate --settings=graphite.settings --run-syncdb``
 
 If you are experiencing problems, uncomment the following line in /opt/graphite/webapp/graphite/local_settings.py:
 
