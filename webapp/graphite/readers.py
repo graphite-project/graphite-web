@@ -217,7 +217,7 @@ class RRDReader:
   def _convert_fs_path(fs_path):
     if isinstance(fs_path, unicode):
       fs_path = fs_path.encode(sys.getfilesystemencoding())
-    return fs_path
+    return os.path.realpath(fs_path)
 
   def __init__(self, fs_path, datasource_name):
     self.fs_path = RRDReader._convert_fs_path(fs_path)
