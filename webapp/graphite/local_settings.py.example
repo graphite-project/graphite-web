@@ -1,5 +1,4 @@
 ## Graphite local_settings.py
-# -*- coding: utf-8 -*-
 
 # Edit this file to customize the default Graphite webapp settings
 #
@@ -293,7 +292,7 @@
 
 # Type of metric hashing function.
 # The default `carbon_ch` is Graphite's traditional consistent-hashing implementation.
-# Alternatively, you can use `fnv1a_ch`, which supports the Fowler–Noll–Vo hash
+# Alternatively, you can use `fnv1a_ch`, which supports the Fowler-Noll-Vo hash
 # function (FNV-1a) hash implementation offered by the carbon-c-relay project
 # https://github.com/grobian/carbon-c-relay
 #
