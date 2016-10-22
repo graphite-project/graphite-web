@@ -253,13 +253,13 @@ def _deduplicate(entries):
 
 
 def match_entries(entries, pattern):
-    # First we check for pattern variants (ie. {foo,bar}baz = foobaz or barbaz)
-    matching = []
+  # First we check for pattern variants (ie. {foo,bar}baz = foobaz or barbaz)
+  matching = []
 
-    for variant in expand_braces(pattern):
-        matching.extend(fnmatch.filter(entries, variant))
+  for variant in expand_braces(pattern):
+    matching.extend(fnmatch.filter(entries, variant))
 
-    return list(_deduplicate(matching))
+  return list(_deduplicate(matching))
 
 
 """
@@ -267,22 +267,22 @@ def match_entries(entries, pattern):
     https://bugs.python.org/issue9584
 """
 def expand_braces(s):
-    res = list()
+  res = list()
 
-    m = EXPAND_BRACES_RE.search(s)
-    if m is not None:
-        sub = m.group(1)
-        open_brace = s.find(sub)
-        close_brace = open_brace + len(sub) - 1
-        if sub.find(',') != -1:
-            for pat in sub.strip('{}').split(','):
-                res.extend(expand_braces(s[:open_brace] + pat + s[close_brace + 1:]))
-        else:
-            res.extend(expand_braces(s[:open_brace] + sub.replace('}', '\\}') + s[close_brace + 1:]))
+  m = EXPAND_BRACES_RE.search(s)
+  if m is not None:
+    sub = m.group(1)
+    open_brace = s.find(sub)
+    close_brace = open_brace + len(sub) - 1
+    if sub.find(',') != -1:
+      for pat in sub.strip('{}').split(','):
+        res.extend(expand_braces(s[:open_brace] + pat + s[close_brace + 1:]))
     else:
+      res.extend(expand_braces(s[:open_brace] + sub.replace('}', '\\}') + s[close_brace + 1:]))
+  else:
         res.append(s.replace('\\}', '}'))
 
-    return list(set(res))
+  return list(set(res))
 
 
 # Node classes
