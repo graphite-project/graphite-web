@@ -106,7 +106,7 @@ class CarbonLinkPool:
     self.hosts = [ (server, instance) for (server, port, instance) in hosts ]
     self.ports = dict( ((server, instance), port) for (server, port, instance) in hosts )
     self.timeout = float(timeout)
-    self.hash_ring = ConsistentHashRing(self.hosts)
+    self.hash_ring = ConsistentHashRing(self.hosts, hash_type=settings.CARBONLINK_HASHING_TYPE)
     self.connections = {}
     self.last_failure = {}
     # Create a connection pool for each host
