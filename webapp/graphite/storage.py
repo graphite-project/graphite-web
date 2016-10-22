@@ -26,7 +26,7 @@ except ImportError:
 
 
 DATASOURCE_DELIMETER = '::RRD_DATASOURCE::'
-
+EXPAND_BRACES_RE = re.compile(r'.*(\{.+?[^\\]\})')
 
 
 class Store:
@@ -266,14 +266,10 @@ def match_entries(entries, pattern):
     Brace expanding patch for python3 borrowed from:
     https://bugs.python.org/issue9584
 """
-def expand_braces(orig):
-    r = r'.*(\{.+?[^\\]\})'
-    p = re.compile(r)
-
-    s = orig[:]
+def expand_braces(s):
     res = list()
 
-    m = p.search(s)
+    m = EXPAND_BRACES_RE.search(s)
     if m is not None:
         sub = m.group(1)
         open_brace = s.find(sub)
