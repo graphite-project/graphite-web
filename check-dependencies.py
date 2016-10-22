@@ -140,6 +140,15 @@ except ImportError:
   print "This is useful for serving static files."
 
 
+# Test for pyhash
+try:
+    import pyhash
+except ImportError:
+    print "[INFO]"
+    print "Unable to import the 'pyhash' module."
+    print "This is useful for fnv1_ch hashing support."
+
+
 if fatal:
   print "%d necessary dependencies not met. Graphite will not function until these dependencies are fulfilled." % fatal
 
