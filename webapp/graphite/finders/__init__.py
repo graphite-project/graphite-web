@@ -62,13 +62,12 @@ def expand_braces(s):
   m = EXPAND_BRACES_RE.search(s)
   if m is not None:
     sub = m.group(1)
-    open_brace = s.find(sub)
-    close_brace = open_brace + len(sub) - 1
-    if sub.find(',') != -1:
+    open_brace, close_brace = m.span(1)
+    if ',' in sub:
       for pat in sub.strip('{}').split(','):
-        res.extend(expand_braces(s[:open_brace] + pat + s[close_brace + 1:]))
+        res.extend(expand_braces(s[:open_brace] + pat + s[close_brace:]))
     else:
-        res.extend(expand_braces(s[:open_brace] + sub.replace('}', '\\}') + s[close_brace + 1:]))
+        res.extend(expand_braces(s[:open_brace] + sub.replace('}', '\\}') + s[close_brace:]))
   else:
       res.append(s.replace('\\}', '}'))
 
