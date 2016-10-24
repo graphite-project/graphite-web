@@ -343,7 +343,7 @@ def fetchRemoteData(requestContext, pathExpr, usePrefetchCache=settings.REMOTE_P
           need_fetch = False
       if need_fetch:
         fetch_thread = threading.Thread(target=node.fetch, name=node.store.host,
-                                        args=(startTime, endTime, now, result_queue))
+                                        args=(startTime, endTime, now, result_queue, requestContext.get('forwardHeaders')))
         fetch_thread.start()
         remote_fetches.append(fetch_thread)
 

@@ -178,6 +178,10 @@
 #REMOTE_STORE_USE_POST = False    # Use POST instead of GET for remote requests
 #REMOTE_FIND_CACHE_DURATION = 300 # Time to cache remote metric find results
 
+# Provide a list of HTTP headers that you want forwarded on from this host
+# when making a request to a remote webapp server in CLUSTER_SERVERS
+#REMOTE_STORE_FORWARD_HEADERS = [] # An iterable of HTTP header names
+
 ## Prefetch cache
 # set to True to fetch all metrics using a single http request per remote server
 # instead of one http request per target, per remote server.

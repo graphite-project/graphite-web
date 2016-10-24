@@ -49,25 +49,25 @@ class Store:
         return WhisperFile(absolute_fs_path, metric_path)
 
 
-  def find(self, query):
+  def find(self, query, headers=None):
     if is_pattern(query):
 
-      for match in self.find_all(query):
+      for match in self.find_all(query, headers):
         yield match
 
     else:
-      match = self.find_first(query)
+      match = self.find_first(query, headers)
 
       if match is not None:
         yield match
 
 
-  def _parallel_remote_find(self, query):
+  def _parallel_remote_find(self, query, headers=None):
     remote_finds = []
     results = []
     result_queue = Queue.Queue()
     for store in [ r for r in self.remote_stores if r.available ]:
-      thread = threading.Thread(target=store.find, args=(query, result_queue))
+      thread = threading.Thread(target=store.find, args=(query, result_queue, headers))
       thread.start()
       remote_finds.append(thread)
 
@@ -86,24 +86,24 @@ class Store:
 
     return results
     
-  def find_first(self, query):
+  def find_first(self, query, headers=None):
     # Search locally first
     for directory in self.directories:
       for match in find(directory, query):
         return match
 
     # If nothing found search remotely
-    remote_requests = self._parallel_remote_find(query)
+    remote_requests = self._parallel_remote_find(query, headers)
 
     for request in remote_requests:
       for match in request.get_results():
         return match
 
 
-  def find_all(self, query):
+  def find_all(self, query, headers=None):
     # Start remote searches
     found = set()
-    remote_requests = self._parallel_remote_find(query)
+    remote_requests = self._parallel_remote_find(query, headers)
 
     # Search locally
     for directory in self.directories:
