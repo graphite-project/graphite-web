@@ -32,7 +32,7 @@ except ImportError:  # Otherwise we fall back to Graphite's bundled version
   from graphite.thirdparty import pytz
 
 from graphite.util import getProfileByUsername, json, unpickle
-from graphite.remote_storage import HTTPConnectionWithTimeout
+from graphite.remote_storage import HTTPConnectionWithTimeout, extractForwardHeaders
 from graphite.logger import log
 from graphite.render.evaluator import evaluateTarget, extractPathExpressions
 from graphite.render.datalib import prefetchRemoteData
@@ -61,6 +61,7 @@ def renderView(request):
     'endTime' : requestOptions['endTime'],
     'now': requestOptions['now'],
     'localOnly' : requestOptions['localOnly'],
+    'forwardHeaders': extractForwardHeaders(request),
     'prefetchedRemoteData' : {},
     'data' : []
   }
@@ -213,7 +214,7 @@ def renderView(request):
   # We've got the data, now to render it
   graphOptions['data'] = data
   if settings.REMOTE_RENDERING: # Rendering on other machines is faster in some situations
-    image = delegateRendering(requestOptions['graphType'], graphOptions)
+    image = delegateRendering(requestOptions['graphType'], graphOptions, requestContext['forwardHeaders'])
   else:
     image = doImageRender(requestOptions['graphClass'], graphOptions)
 
@@ -337,7 +338,9 @@ def parseOptions(request):
 
 connectionPools = {}
 
-def delegateRendering(graphType, graphOptions):
+def delegateRendering(graphType, graphOptions, headers=None):
+  if headers is None:
+    headers = {}
   start = time()
   postData = graphType + '\n' + pickle.dumps(graphOptions)
   servers = settings.RENDERING_HOSTS[:] #make a copy so we can shuffle it safely
@@ -357,11 +360,11 @@ def delegateRendering(graphType, graphOptions):
         connection.timeout = settings.REMOTE_RENDER_CONNECT_TIMEOUT
       # Send the request
       try:
-        connection.request('POST','/render/local/', postData)
+        connection.request('POST','/render/local/', postData, headers)
       except CannotSendRequest:
         connection = HTTPConnectionWithTimeout(server) #retry once
         connection.timeout = settings.REMOTE_RENDER_CONNECT_TIMEOUT
-        connection.request('POST', '/render/local/', postData)
+        connection.request('POST', '/render/local/', postData, headers)
       # Read the response
       response = connection.getresponse()
       assert response.status == 200, "Bad response code %d from %s" % (response.status,server)
