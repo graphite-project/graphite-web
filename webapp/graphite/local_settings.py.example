@@ -216,6 +216,16 @@
 # See https://github.com/graphite-project/carbon/pull/132 for details
 #CARBONLINK_QUERY_BULK = False
 
+# Type of metric hashing function.
+# The default `carbon_ch` is Graphite's traditional consistent-hashing implementation.
+# Alternatively, you can use `fnv1a_ch`, which supports the Fowler-Noll-Vo hash
+# function (FNV-1a) hash implementation offered by the carbon-c-relay project
+# https://github.com/grobian/carbon-c-relay
+#
+# Supported values: carbon_ch, fnv1a_ch
+#
+#CARBONLINK_HASHING_TYPE = 'carbon_ch'
+
 #####################################
 # Additional Django Settings #
 #####################################
