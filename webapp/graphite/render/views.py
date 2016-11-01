@@ -29,7 +29,7 @@ except ImportError:
 
 from graphite.compat import HttpResponse
 from graphite.util import getProfileByUsername, json, unpickle
-from graphite.remote_storage import connector_class_selector
+from graphite.remote_storage import connector_class_selector, extractForwardHeaders
 from graphite.logger import log
 from graphite.render.evaluator import evaluateTarget
 from graphite.render.attime import parseATTime
@@ -56,6 +56,7 @@ def renderView(request):
     'localOnly' : requestOptions['localOnly'],
     'template' : requestOptions['template'],
     'tzinfo' : requestOptions['tzinfo'],
+    'forwardHeaders': extractForwardHeaders(request),
     'data' : []
   }
   data = requestContext['data']
@@ -257,7 +258,7 @@ def renderView(request):
   # We've got the data, now to render it
   graphOptions['data'] = data
   if settings.REMOTE_RENDERING: # Rendering on other machines is faster in some situations
-    image = delegateRendering(requestOptions['graphType'], graphOptions)
+    image = delegateRendering(requestOptions['graphType'], graphOptions, requestContext['forwardHeaders'])
   else:
     image = doImageRender(requestOptions['graphClass'], graphOptions)
 
@@ -391,7 +392,9 @@ def parseOptions(request):
 
 connectionPools = {}
 
-def delegateRendering(graphType, graphOptions):
+def delegateRendering(graphType, graphOptions, headers=None):
+  if headers is None:
+    headers = {}
   start = time()
   postData = graphType + '\n' + pickle.dumps(graphOptions)
   servers = settings.RENDERING_HOSTS[:] #make a copy so we can shuffle it safely
@@ -412,11 +415,11 @@ def delegateRendering(graphType, graphOptions):
         connection.timeout = settings.REMOTE_RENDER_CONNECT_TIMEOUT
       # Send the request
       try:
-        connection.request('POST','/render/local/', postData)
+        connection.request('POST','/render/local/', postData, headers)
       except CannotSendRequest:
         connection = connector_class(server) #retry once
         connection.timeout = settings.REMOTE_RENDER_CONNECT_TIMEOUT
-        connection.request('POST', '/render/local/', postData)
+        connection.request('POST', '/render/local/', postData, headers)
       # Read the response
       try: # Python 2.7+, use buffering of HTTP responses
         response = connection.getresponse(buffering=True)

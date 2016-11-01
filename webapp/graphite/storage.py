@@ -33,12 +33,12 @@ class Store:
     self.remote_stores = [ RemoteStore(host) for host in remote_hosts ]
 
 
-  def find(self, pattern, startTime=None, endTime=None, local=False):
+  def find(self, pattern, startTime=None, endTime=None, local=False, headers=None):
     query = FindQuery(pattern, startTime, endTime)
 
     # Start remote searches
     if not local:
-      remote_requests = [ r.find(query) for r in self.remote_stores if r.available ]
+      remote_requests = [ r.find(query, headers) for r in self.remote_stores if r.available ]
 
     matching_nodes = set()
 
