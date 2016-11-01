@@ -105,7 +105,7 @@ class TimeSeries(list):
     }
 
 def _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList):
-  matching_nodes = STORE.find(pathExpr, startTime, endTime, local=requestContext['localOnly'])
+  matching_nodes = STORE.find(pathExpr, startTime, endTime, local=requestContext['localOnly'], headers=requestContext.get('forwardHeaders'))
   fetches = [
     (node, node.fetch(startTime, endTime, now, requestContext))
     for node in matching_nodes
