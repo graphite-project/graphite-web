@@ -110,7 +110,42 @@ class StandardFinderTest(TestCase):
             self.assertEqual(self._listdir_counter, 5)
 
             self._listdir_counter = 0
+            nodes = finder.find_nodes(FindQuery('{foo}.bar.*', None, None))
+            self.assertEqual(len(list(nodes)), 1)
+            self.assertEqual(self._listdir_counter, 2)
+
+            self._listdir_counter = 0
             nodes = finder.find_nodes(FindQuery('foo.{ba{r,z},baz}.baz', None, None))
+            self.assertEqual(len(list(nodes)), 1)
+            self.assertEqual(self._listdir_counter, 1)
+
+            self._listdir_counter = 0
+            nodes = finder.find_nodes(FindQuery('{foo,garbage}.bar.baz', None, None))
+            self.assertEqual(len(list(nodes)), 1)
+            self.assertEqual(self._listdir_counter, 1)
+
+            self._listdir_counter = 0
+            nodes = finder.find_nodes(FindQuery('{fo{o}}.bar.baz', None, None))
+            self.assertEqual(len(list(nodes)), 1)
+            self.assertEqual(self._listdir_counter, 1)
+
+            self._listdir_counter = 0
+            nodes = finder.find_nodes(FindQuery('foo{}.bar.baz', None, None))
+            self.assertEqual(len(list(nodes)), 1)
+            self.assertEqual(self._listdir_counter, 1)
+
+            self._listdir_counter = 0
+            nodes = finder.find_nodes(FindQuery('{fo,ba}{o}.bar.baz', None, None))
+            self.assertEqual(len(list(nodes)), 1)
+            self.assertEqual(self._listdir_counter, 1)
+
+            self._listdir_counter = 0
+            nodes = finder.find_nodes(FindQuery('{fo,ba}{o,o}.bar.baz', None, None))
+            self.assertEqual(len(list(nodes)), 1)
+            self.assertEqual(self._listdir_counter, 1)
+
+            self._listdir_counter = 0
+            nodes = finder.find_nodes(FindQuery('{fo,ba}{o,z}.bar.baz', None, None))
             self.assertEqual(len(list(nodes)), 1)
             self.assertEqual(self._listdir_counter, 1)
 
