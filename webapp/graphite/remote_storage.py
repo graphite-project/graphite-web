@@ -48,9 +48,6 @@ class FindRequest:
     if self.cachedResults:
       return
 
-    self.connection = HTTPConnectionWithTimeout(self.store.host)
-    self.connection.timeout = settings.REMOTE_STORE_FIND_TIMEOUT
-
     query_params = [
       ('local', '1'),
       ('format', 'pickle'),
@@ -59,6 +56,9 @@ class FindRequest:
     query_string = urlencode(query_params)
 
     try:
+      self.connection = HTTPConnectionWithTimeout(self.store.host)
+      self.connection.timeout = settings.REMOTE_STORE_FIND_TIMEOUT
+
       if settings.REMOTE_STORE_USE_POST:
         self.connection.request('POST', '/metrics/find/', query_string, headers)
       else:
@@ -139,12 +139,17 @@ class RemoteNode:
       query_params.append(('now', str( int(now) )))
     query_string = urlencode(query_params)
 
-    connection = HTTPConnectionWithTimeout(self.store.host)
-    connection.timeout = settings.REMOTE_STORE_FETCH_TIMEOUT
-    if settings.REMOTE_STORE_USE_POST:
-      connection.request('POST', '/render/', query_string, headers)
-    else:
-      connection.request('GET', '/render/?' + query_string, None, headers)
+    try:
+      connection = HTTPConnectionWithTimeout(self.store.host)
+      connection.timeout = settings.REMOTE_STORE_FETCH_TIMEOUT
+      if settings.REMOTE_STORE_USE_POST:
+        connection.request('POST', '/render/', query_string, headers)
+      else:
+        connection.request('GET', '/render/?' + query_string, None, headers)
+    except:
+      self.store.fail()
+      return None
+
     try:  # Python 2.7+, use buffering of HTTP responses
       response = connection.getresponse(buffering=True)
     except TypeError:  # Python 2.6 and older
