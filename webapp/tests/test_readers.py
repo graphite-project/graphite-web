@@ -18,11 +18,13 @@ class ReadersTest(TestCase):
         for i in range(0, window_size/2, step):
             values.append(None)
 
-        # Generate data from Carbon.  Step will be different.
+        # Generate data that would normally come from Carbon.
+        # Step will be different since that is what we are testing
         cache_results = []
         for i in range(start+window_size/2, start+window_size, 1):
             cache_results.append((i, 1))
 
+        # merge the db results with the cached results
         values = readers.merge_with_cache(
             cached_datapoints=cache_results,
             start=start,
@@ -31,7 +33,7 @@ class ReadersTest(TestCase):
             func='sum'
         )
 
-        # Compute what this is.
+        # Generate the expected values
         expected_values = range(0, window_size/2, step)
         for i in range(0, window_size/2, step):
             expected_values.append(60)
