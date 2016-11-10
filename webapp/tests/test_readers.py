@@ -14,7 +14,7 @@ class ReadersTest(TestCase):
         step = 60           # (1 minute)
 
         # Fill in half the data.  Nones for the rest.
-        values = range (0, window_size/2, step)
+        values = range(0, window_size/2, step)
         for i in range(0, window_size/2, step):
             values.append(None)
 
@@ -32,7 +32,7 @@ class ReadersTest(TestCase):
         )
 
         #Compute what this is.
-        expected_values = range (0, window_size/2, step)
+        expected_values = range(0, window_size/2, step)
         for i in range(0, window_size/2, step):
             expected_values.append(60)
 
