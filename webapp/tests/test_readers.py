@@ -31,7 +31,7 @@ class ReadersTest(TestCase):
             func='sum'
         )
 
-        #Compute what this is.
+        # Compute what this is.
         expected_values = range(0, window_size/2, step)
         for i in range(0, window_size/2, step):
             expected_values.append(60)
