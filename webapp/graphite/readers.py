@@ -167,12 +167,12 @@ class WhisperReader(object):
     (start,end,step) = time_info
 
     meta_info = whisper.info(self.fs_path)
+    aggregation_method = meta_info['aggregationMethod']
     lowest_step = min([i['secondsPerPoint'] for i in meta_info['archives']])
     # Merge in data from carbon's cache
     cached_datapoints = []
     try:
-        if step == lowest_step:
-            cached_datapoints = CarbonLink.query(self.real_metric_path)
+      cached_datapoints = CarbonLink.query(self.real_metric_path)
     except:
       log.exception("Failed CarbonLink query '%s'" % self.real_metric_path)
       cached_datapoints = []
@@ -183,7 +183,8 @@ class WhisperReader(object):
     values = merge_with_cache(cached_datapoints,
                               start,
                               step,
-                              values)
+                              values,
+                              aggregation_method)
 
     return time_info, values
 
@@ -275,11 +276,40 @@ class RRDReader:
     return  retention_points * info['step']
 
 
-def merge_with_cache(cached_datapoints, start, step, values):
+def merge_with_cache(cached_datapoints, start, step, values, func=None):
 
-  for (timestamp, value) in cached_datapoints:
-      interval = timestamp - (timestamp % step)
+  consolidated=[]
 
+  # Similar to the function in render/datalib:TimeSeries
+  def consolidate(func, values):
+      usable = [v for v in values if v is not None]
+      if not usable: return None
+      if func == 'sum':
+          return sum(usable)
+      if func == 'average':
+          return float(sum(usable)) / len(usable)
+      if func == 'max':
+          return max(usable)
+      if func == 'min':
+          return min(usable)
+      raise Exception("Invalid consolidation function: '%s'" % func)
+
+  if func:
+      consolidated_dict = {}
+      for (timestamp, value) in cached_datapoints:
+          interval = timestamp - (timestamp % step)
+          if interval in consolidated_dict:
+              consolidated_dict[interval].append(value)
+          else:
+              consolidated_dict[interval] = [value]
+      for interval in consolidated_dict:
+          value = consolidate(func, consolidated_dict[interval])
+          consolidated.append((interval, value)) 
+
+  else:
+      consolidated = cached_datapoints
+
+  for (interval, value) in consolidated:
       try:
           i = int(interval - start) / step
           if i < 0:

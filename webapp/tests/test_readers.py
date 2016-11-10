@@ -5,6 +5,39 @@ from graphite import readers
 
 class ReadersTest(TestCase):
 
+    maxDiff = None
+
+    def test_merge_with_cache_with_different_step(self):
+        # Data values from the Reader:
+        start = 1465844460  # (Mon Jun 13 19:01:00 UTC 2016)
+        window_size = 7200  # (2 hour)
+        step = 60           # (1 minute)
+
+        # Fill in half the data.  Nones for the rest.
+        values = range (0, window_size/2, step)
+        for i in range(0, window_size/2, step):
+            values.append(None)
+
+        # Generate data from Carbon.  Step will be different.
+        cache_results = []
+        for i in range(start+window_size/2, start+window_size, 1):
+            cache_results.append((i, 1))
+
+        values = readers.merge_with_cache(
+            cached_datapoints=cache_results,
+            start=start,
+            step=step,
+            values=values,
+            func='sum'
+        )
+
+        #Compute what this is.
+        expected_values = range (0, window_size/2, step)
+        for i in range(0, window_size/2, step):
+            expected_values.append(60)
+
+        self.assertEqual(expected_values, values)
+
     def test_merge_with_cache_when_previous_window_in_cache(self):
 
         start = 1465844460  # (Mon Jun 13 19:01:00 UTC 2016)
