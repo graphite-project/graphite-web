@@ -11,6 +11,11 @@ try:
 except ImportError:
   whisper = False
 
+# The parser was repalcing __readHeader with the <class>__readHeader
+# which was not working.
+if bool(whisper):
+  whisper__readHeader = whisper.__readHeader
+
 try:
   import rrdtool
 except ImportError:
@@ -194,7 +199,7 @@ class GzippedWhisperReader(WhisperReader):
   def get_intervals(self):
     fh = gzip.GzipFile(self.fs_path, 'rb')
     try:
-      info = whisper.__readHeader(fh) # evil, but necessary.
+      info = whisper__readHeader(fh) # evil, but necessary.
     finally:
       fh.close()
 
