@@ -1,3 +1,4 @@
+import gzip
 import os
 from os.path import join, dirname, isdir
 import random
@@ -62,11 +63,15 @@ class StandardFinderTest(TestCase):
 
     test_dir = settings.WHISPER_DIR
 
-    def create_whisper(self, path):
+    def create_whisper(self, path, gz=False):
         path = join(self.test_dir, path)
         if not isdir(dirname(path)):
             os.makedirs(dirname(path))
         whisper.create(path, [(1, 60)])
+        if gz:
+          with open(path, 'rb') as f_in, gzip.open("%s.gz" % path, 'wb') as f_out:
+             shutil.copyfileobj(f_in, f_out)
+          os.remove(path)
 
     def wipe_whisper(self):
         try:
@@ -146,6 +151,32 @@ class StandardFinderTest(TestCase):
 
             self._listdir_counter = 0
             nodes = finder.find_nodes(FindQuery('{fo,ba}{o,z}.bar.baz', None, None))
+            self.assertEqual(len(list(nodes)), 1)
+            self.assertEqual(self._listdir_counter, 1)
+
+        finally:
+            os.listdir = self._original_listdir
+            self.wipe_whisper()
+
+    def test_standard_finder_gzipped_whisper(self):
+        def listdir_mock(d):
+            self._listdir_counter += 1
+            return self._original_listdir(d)
+
+        try:
+            os.listdir = listdir_mock
+            self.create_whisper('foo.wsp', True)
+            self.create_whisper(join('foo', 'bar', 'baz.wsp'), True)
+            self.create_whisper(join('bar', 'baz', 'foo.wsp'))
+            finder = get_finder('graphite.finders.standard.StandardFinder')
+
+            self._listdir_counter = 0
+            nodes = finder.find_nodes(FindQuery('foo', None, None))
+            self.assertEqual(len(list(nodes)), 2)
+            self.assertEqual(self._listdir_counter, 0)
+
+            self._listdir_counter = 0
+            nodes = finder.find_nodes(FindQuery('foo{}.bar.baz', None, None))
             self.assertEqual(len(list(nodes)), 1)
             self.assertEqual(self._listdir_counter, 1)
 
