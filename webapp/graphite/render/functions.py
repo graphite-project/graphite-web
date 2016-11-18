@@ -3165,7 +3165,7 @@ def applyByNode(requestContext, seriesList, nodeNum, templateFunction, newName=N
   Takes a seriesList and applies some complicated function (described by a string), replacing templates with unique
   prefixes of keys from the seriesList (the key is all nodes up to the index given as `nodeNum`).
 
-  If the `newName` paramter is provided, the name of the resulting series will be given by that parameter, with any
+  If the `newName` parameter is provided, the name of the resulting series will be given by that parameter, with any
   "%" characters replaced by the unique prefix.
 
   Example:
