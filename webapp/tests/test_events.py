@@ -162,3 +162,16 @@ class EventTest(TestCase):
         self.assertEqual(response.status_code, 404)
         event = json.loads(response.content)
         self.assertEqual(event['error'], 'Event matching query does not exist')
+
+    def test_render_events_issue_1749(self):
+        url = reverse('graphite.render.views.renderView')
+        response = self.client.get(url, {
+                 'target': 'timeShift(events("tag1"), "1d")',
+                 'format': 'json',
+        })
+        self.assertEqual(response.status_code, 200)
+        response = self.client.get(url, {
+                 'target': 'timeShift(events("tag1", "tag2"), "1d")',
+                 'format': 'json',
+        })
+        self.assertEqual(response.status_code, 200)
