@@ -3671,7 +3671,7 @@ def events(requestContext, *tags):
   returns all events.
   """
   step = 1
-  name = "events(" + ", ".join(tags) + ")"
+  name = "events(\"" + "\", \"".join(tags) + "\")"
   if tags == ("*",):
     tags = None
 
