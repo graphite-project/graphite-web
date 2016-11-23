@@ -1548,9 +1548,7 @@ def aliasByMetric(requestContext, seriesList):
     &target=aliasByMetric(carbon.agents.graphite.creates)
 
   """
-  for series in seriesList:
-    series.name = series.name.split('.')[-1].split(',')[0]
-  return seriesList
+  return substr(requestContext, seriesList, -1, 0)
 
 def legendValue(requestContext, seriesList, *valueTypes):
   """

@@ -1757,6 +1757,11 @@ class FunctionsTest(TestCase):
             TimeSeries('collectd.test-db2.load.value',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
             TimeSeries('collectd.test-db3.load.value',0,600,60,[1,2,None,None,None,6,7,8,9,10]),
             TimeSeries('collectd.test-db4.load.value',0,600,60,[1,2,3,4,5,6,7,8,9,None]),
+            TimeSeries('scaleToSeconds(collectd.test-db5.load.value, 1)',0,600,60,[1,2,3,4,5,6,7,8,9,10]),
+            TimeSeries('sumSeries(collectd.test-db6.load.value)',0,600,60,[1,2,3,4,5,6,7,8,9,10]),
+            TimeSeries('a', 0, 600, 60, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+            TimeSeries('a.b', 0, 600, 60, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+            TimeSeries('a.b.c', 0, 600, 60, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
         ]
         for series in seriesList:
             series.pathExpression = series.name
@@ -1765,6 +1770,11 @@ class FunctionsTest(TestCase):
             TimeSeries('value',0,600,60,[None,None,None,None,None,None,None,None,None,None]),
             TimeSeries('value',0,600,60,[1,2,None,None,None,6,7,8,9,10]),
             TimeSeries('value',0,600,60,[1,2,3,4,5,6,7,8,9,None]),
+            TimeSeries('value',0,600,60,[1,2,3,4,5,6,7,8,9,10]),
+            TimeSeries('value',0,600,60,[1,2,3,4,5,6,7,8,9,10]),
+            TimeSeries('a', 0, 600, 60, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+            TimeSeries('b', 0, 600, 60, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+            TimeSeries('c', 0, 600, 60, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
         ]
 
         request_context = {}
