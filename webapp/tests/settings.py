@@ -32,6 +32,7 @@ def atexit_tmpremover(dirname):
         # if the temp dir was removed already by other means
         pass
 
+
 # create a temporary directory
 TEMP_GRAPHITE_DIR = tempfile.mkdtemp(prefix='graphite-test-')
 atexit.register(atexit_tmpremover, TEMP_GRAPHITE_DIR)

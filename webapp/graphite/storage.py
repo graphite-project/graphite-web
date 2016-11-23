@@ -169,4 +169,5 @@ class FindQuery:
 
     return '<FindQuery: %s from %s until %s>' % (self.pattern, startString, endString)
 
+
 STORE = Store()
