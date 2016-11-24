@@ -51,7 +51,11 @@ STANDARD_DIRS = []
 
 # Cluster settings
 CLUSTER_SERVERS = []
-# This settings control wether https is used to communicate between cluster members
+USE_WORKER_POOL = True
+POOL_WORKERS_PER_BACKEND = 10
+POOL_WORKERS = 10
+
+# This settings control whether https is used to communicate between cluster members
 INTRACLUSTER_HTTPS = False
 REMOTE_FIND_TIMEOUT = 3.0
 REMOTE_FETCH_TIMEOUT = 3.0
@@ -59,6 +63,8 @@ REMOTE_RETRY_DELAY = 60.0
 REMOTE_EXCLUDE_LOCAL = False
 REMOTE_STORE_MERGE_RESULTS = True
 REMOTE_STORE_FORWARD_HEADERS = []
+REMOTE_STORE_USE_POST = False
+REMOTE_PREFETCH_DATA = False
 CARBON_METRIC_PREFIX='carbon'
 CARBONLINK_HOSTS = ["127.0.0.1:7002"]
 CARBONLINK_TIMEOUT = 1.0

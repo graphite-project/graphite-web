@@ -245,6 +245,22 @@
 # used.
 #CLUSTER_SERVERS = ["10.0.2.2:80", "10.0.2.3:80"]
 
+# Creates a pool of worker threads to which tasks can be dispatched. This makes
+# sense if there are multiple CLUSTER_SERVERS because then the communication
+# with them can be parallelized
+#USE_WORKER_POOL = True
+
+# The number of worker threads that should be created per backend server.
+# It makes sense to have more than one thread per backend server because
+# the graphite-web web server itself is multi threaded and can handle multiple
+# incoming requests at once.
+#POOL_WORKERS_PER_BACKEND = 10
+
+# A baseline number of workers that should always be created, no matter how many
+# cluster servers are configured. These are used for other tasks that can be
+# off-loaded from the request handling threads.
+#POOL_WORKERS = 10
+
 # This setting controls whether https is used to communicate between cluster members
 #INTRACLUSTER_HTTPS = False
 
@@ -266,6 +282,8 @@
 # remote systems have data we don't have locally, which we probably do.
 #FIND_TOLERANCE = 2 * FIND_CACHE_DURATION
 
+#REMOTE_STORE_USE_POST = False    # Use POST instead of GET for remote requests
+
 # During a rebalance of a consistent hash cluster, after a partition event on a replication > 1 cluster,
 # or in other cases we might receive multiple TimeSeries data for a metric key.  Merge them together rather
 # that choosing the "most complete" one (pre-0.9.14 behaviour).
@@ -274,6 +292,13 @@
 # Provide a list of HTTP headers that you want forwarded on from this host
 # when making a request to a remote webapp server in CLUSTER_SERVERS
 #REMOTE_STORE_FORWARD_HEADERS = [] # An iterable of HTTP header names
+
+## Prefetch cache
+# set to True to fetch all metrics using a single http request per remote server
+# instead of one http request per target, per remote server.
+# Especially useful when generating graphs with more than 4-5 targets or if
+# there's significant latency between this server and the backends.
+#REMOTE_PREFETCH_DATA = False
 
 ## Remote rendering settings
 # Set to True to enable rendering of Graphs on a remote webapp

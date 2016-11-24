@@ -12,9 +12,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
+import time
+from threading import current_thread
+
 from graphite.logger import log
 from graphite.storage import STORE
 from graphite.readers import FetchInProgress
+from graphite.remote_storage import RemoteReader
 from django.conf import settings
 from graphite.util import timebounds
 
@@ -106,15 +110,74 @@ class TimeSeries(list):
       'pathExpression' : self.pathExpression,
     }
 
-def _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList):
-  matching_nodes = STORE.find(pathExpr, startTime, endTime, local=requestContext['localOnly'], headers=requestContext.get('forwardHeaders'))
-  fetches = [
-    (node.path, node.fetch(startTime, endTime, now, requestContext))
-    for node in matching_nodes
-    if node.is_leaf
-  ]
 
-  for path, results in fetches:
+def prefetchRemoteData(requestContext, pathExpressions):
+  if requestContext['localOnly']:
+    return
+
+  if requestContext is None:
+    requestContext = {}
+
+  (startTime, endTime, now) = timebounds(requestContext)
+  log.info('thread %s prefetchRemoteData:: Starting fetch_list on all backends' % current_thread().name)
+
+  # Go through all of the remote nodes, and launch a fetch for each one.
+  # Each fetch will take place in its own thread, since it's naturally parallel work.
+  for pathExpr in pathExpressions:
+    for store in STORE.remote_stores:
+      reader = RemoteReader(store, {'path': pathExpr, 'intervals': []}, bulk_query=pathExpr)
+      reader.fetch_list(startTime, endTime, now, requestContext)
+
+
+def _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList):
+  t = time.time()
+
+  if settings.REMOTE_PREFETCH_DATA:
+    # inflight_requests is only present if at least one remote store
+    # has been queried
+    if 'inflight_requests' in requestContext:
+      fetches = requestContext['inflight_requests']
+    else:
+      fetches = {}
+
+    def result_queue_generator():
+      log.info(
+        'render.datalib.fetchData:: result_queue_generator got {count} fetches'
+        .format(count=len(fetches)),
+      )
+      for key, fetch in fetches.iteritems():
+        log.info(
+          'render.datalib.fetchData:: getting results of {host}'
+          .format(host=key),
+        )
+
+        if isinstance(fetch, FetchInProgress):
+          fetch = fetch.waitForResults()
+
+        if fetch is None:
+          log.info('render.datalib.fetchData:: fetch is None')
+          continue
+
+        for result in fetch:
+          yield (
+            result['path'],
+            (
+              (result['start'], result['end'], result['step']),
+              result['values'],
+            ),
+          )
+
+    result_queue = result_queue_generator()
+  else:
+    matching_nodes = [node for node in STORE.find(pathExpr, startTime, endTime, local=requestContext['localOnly'])]
+    result_queue = [
+      (node.path, node.fetch(startTime, endTime, now, requestContext))
+      for node in matching_nodes
+      if node.is_leaf
+    ]
+
+  log.info("render.datalib.fetchData :: starting to merge")
+  for path, results in result_queue:
     if isinstance(results, FetchInProgress):
       results = results.waitForResults()
 
@@ -123,9 +186,9 @@ def _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList):
       continue
 
     try:
-        (timeInfo, values) = results
+      (timeInfo, values) = results
     except ValueError as e:
-        raise Exception("could not parse timeInfo/values from metric '%s': %s" % (path, e))
+      raise Exception("could not parse timeInfo/values from metric '%s': %s" % (path, e))
     (start, end, step) = timeInfo
 
     series = TimeSeries(path, start, end, step, values)
@@ -162,7 +225,6 @@ def _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList):
           # This series has potential data that might be missing from
           # earlier series.  Attempt to merge in useful data and update
           # the cache count.
-          log.info("Merging multiple TimeSeries for %s" % known.name)
           for i, j in enumerate(known):
             if j is None and series[i] is not None:
               known[i] = series[i]
@@ -176,21 +238,29 @@ def _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList):
           series_best_nones[known.name] = candidate_nones
           seriesList[known.name] = series
       else:
-        # In case if we are merging data - the existing series has no gaps and
-        # there is nothing to merge together.  Save ourselves some work here.
-        #
-        # OR - if we picking best serie:
-        #
-        # We already have this series in the seriesList, and the
-        # candidate is 'worse' than what we already have, we don't need
-        # to compare anything else. Save ourselves some work here.
-        break
+        if not settings.REMOTE_PREFETCH_DATA:
+          # In case if we are merging data - the existing series has no gaps and
+          # there is nothing to merge together.  Save ourselves some work here.
+          #
+          # OR - if we picking best serie:
+          #
+          # We already have this series in the seriesList, and the
+          # candidate is 'worse' than what we already have, we don't need
+          # to compare anything else. Save ourselves some work here.
+          break
+        else:
+          # if we're using REMOTE_PREFETCH_DATA we can save some time by skipping
+          # find, but that means we don't know how many nodes to expect so we
+          # have to iterate over all returned results
+          continue
 
         # If we looked at this series above, and it matched a 'known'
         # series already, then it's already in the series list (or ignored).
         # If not, append it here.
     else:
       seriesList[series.name] = series
+
+  log.info("render.datalib._fetchData :: completed in %fs" % (time.time() - t))
 
   # Stabilize the order of the results by ordering the resulting series by name.
   # This returns the result ordering to the behavior observed pre PR#1010.
@@ -199,6 +269,8 @@ def _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList):
 
 # Data retrieval API
 def fetchData(requestContext, pathExpr):
+  start = time.time()
+
   seriesList = {}
   (startTime, endTime, now) = timebounds(requestContext)
 
@@ -206,8 +278,8 @@ def fetchData(requestContext, pathExpr):
   while True:
     try:
       seriesList = _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList)
-      return seriesList
-    except Exception:
+      break
+    except Exception, e:
       if retries >= settings.MAX_FETCH_RETRIES:
         log.exception("Failed after %s retry! Root cause:\n%s" %
             (settings.MAX_FETCH_RETRIES, format_exc()))
@@ -216,6 +288,9 @@ def fetchData(requestContext, pathExpr):
         log.exception("Got an exception when fetching data! Try: %i of %i. Root cause:\n%s" %
                      (retries, settings.MAX_FETCH_RETRIES, format_exc()))
         retries += 1
+
+  log.info("render.datalib.fetchData :: completed in %fs" % (time.time() - start))
+  return seriesList
 
 
 def nonempty(series):

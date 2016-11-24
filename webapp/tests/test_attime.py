@@ -7,7 +7,7 @@ from graphite.render.attime import parseTimeReference, parseATTime, parseTimeOff
 from datetime import datetime, timedelta
 
 from django.utils import timezone
-from django.test import TestCase
+from .base import BaseTestCase as TestCase
 import pytz
 import mock
 

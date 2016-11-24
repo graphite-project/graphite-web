@@ -9,7 +9,7 @@ from . import TEST_CONF_DIR
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse
-from django.test import TestCase
+from .base import BaseTestCase as TestCase
 from django.test.utils import override_settings
 try:
     from django.contrib.auth import get_user_model

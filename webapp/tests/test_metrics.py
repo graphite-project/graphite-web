@@ -6,7 +6,7 @@ import time
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
-from django.test import TestCase
+from .base import BaseTestCase as TestCase
 
 import whisper
 

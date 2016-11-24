@@ -33,7 +33,8 @@ from graphite.user_util import getProfileByUsername
 from graphite.util import json, unpickle
 from graphite.remote_storage import connector_class_selector, extractForwardHeaders
 from graphite.logger import log
-from graphite.render.evaluator import evaluateTarget
+from graphite.render.evaluator import evaluateTarget, extractPathExpressions
+from graphite.render.datalib import prefetchRemoteData
 from graphite.render.attime import parseATTime
 from graphite.render.functions import PieFunctions
 from graphite.render.hashing import hashRequest, hashData
@@ -57,9 +58,9 @@ def renderView(request):
     'endTime' : requestOptions['endTime'],
     'now': requestOptions['now'],
     'localOnly' : requestOptions['localOnly'],
+    'forwardHeaders': extractForwardHeaders(request),
     'template' : requestOptions['template'],
     'tzinfo' : requestOptions['tzinfo'],
-    'forwardHeaders': extractForwardHeaders(request),
     'data' : []
   }
   data = requestContext['data']
@@ -111,6 +112,11 @@ def renderView(request):
       requestContext['data'] = data = cachedData
     else: # Have to actually retrieve the data now
       targets = requestOptions['targets']
+      if settings.REMOTE_PREFETCH_DATA and not requestOptions.get('localOnly'):
+        log.rendering("Prefetching remote data")
+        t = time()
+        pathExpressions = extractPathExpressions(targets)
+        prefetchRemoteData(requestContext, pathExpressions)
       for target in targets:
         if not target.strip():
           continue

@@ -60,34 +60,32 @@ class MultiReader(object):
     return IntervalSet( sorted(interval_sets) )
 
   def fetch(self, startTime, endTime, now=None, requestContext=None):
-    # Start the fetch on each node
-    fetches = []
+    try:
+      results = [
+        node.fetch(startTime, endTime, now, requestContext)
+        for node in self.nodes
+        if node.is_leaf
+      ]
+    except Exception as exc:
+      log.exception(
+        'Failed to initiate subfetch: {exc}'
+        .format(exc=str(exc))
+      )
 
-    for n in self.nodes:
-      try:
-        fetches.append(n.fetch(startTime, endTime, now, requestContext))
-      except:
-        log.exception("Failed to initiate subfetch for %s" % str(n))
+    result = []
+    for r in results:
+      if isinstance(r, FetchInProgress):
+        r = r.waitForResults()
 
-    def merge_results():
-      results = {}
+      if r is None:
+        continue
+      result.append(r)
 
-      # Wait for any asynchronous operations to complete
-      for i, result in enumerate(fetches):
-        if isinstance(result, FetchInProgress):
-          try:
-            results[i] = result.waitForResults()
-          except:
-            log.exception("Failed to complete subfetch")
-            results[i] = None
+    if not result:
+      raise Exception("All sub-fetches failed")
 
-      results = [r for r in results.values() if r is not None]
-      if not results:
-        raise Exception("All sub-fetches failed")
+    return reduce(self.merge, result)
 
-      return reduce(self.merge, results)
-
-    return FetchInProgress(merge_results)
 
   def merge(self, results1, results2):
     # Ensure results1 is finer than results2

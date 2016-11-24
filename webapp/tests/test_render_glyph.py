@@ -1,6 +1,6 @@
 import copy
 
-from django.test import TestCase
+from .base import BaseTestCase as TestCase
 
 from graphite.render import glyph
 from graphite.render.datalib import TimeSeries

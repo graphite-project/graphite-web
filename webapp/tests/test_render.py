@@ -12,7 +12,7 @@ import whisper
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.http import HttpRequest, QueryDict
-from django.test import TestCase
+from .base import BaseTestCase as TestCase
 
 # Silence logging during tests
 LOGGER = logging.getLogger()

@@ -1,4 +1,6 @@
 import re
+import time
+from graphite.logger import log
 from graphite.render.grammar import grammar
 from graphite.render.datalib import fetchData, TimeSeries
 
@@ -42,7 +44,10 @@ def evaluateTokens(requestContext, tokens, replacements=None):
             return val
         else:
           expression = expression.replace('$'+name, str(replacements[name]))
-    return fetchData(requestContext, expression)
+    t = time.time()
+    data = fetchData(requestContext, expression)
+    log.info("fetchData took %fs" % (time.time() - t))
+    return data
 
   elif tokens.call:
     if tokens.call.funcname == 'template':
@@ -76,6 +81,28 @@ def evaluateTokens(requestContext, tokens, replacements=None):
 
   else:
     raise ValueError("unknown token in target evaluator")
+
+
+def extractPathExpressions(targets):
+  # Returns a list of unique pathExpressions found in the targets list
+
+  pathExpressions = []
+
+  def extractPathExpression(tokens):
+    if tokens.expression:
+      return extractPathExpression(tokens.expression)
+    elif tokens.pathExpression:
+      pathExpressions.append(tokens.pathExpression)
+    elif tokens.call:
+      [extractPathExpression(arg) for arg in tokens.call.args]
+
+  for target in targets:
+    tokens = grammar.parseString(target)
+    extractPathExpression(tokens)
+
+  s = set(pathExpressions)
+  pathExpressions = list(s)
+  return pathExpressions
 
 
 # Avoid import circularities

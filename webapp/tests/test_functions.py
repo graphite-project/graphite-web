@@ -6,7 +6,7 @@ from datetime import datetime
 from fnmatch import fnmatch
 from mock import patch, call, MagicMock
 
-from django.test import TestCase
+from .base import BaseTestCase as TestCase
 from django.conf import settings
 
 from graphite.render.datalib import TimeSeries
