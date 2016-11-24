@@ -49,3 +49,4 @@ cairocffi
 git+git://github.com/graphite-project/whisper.git#egg=whisper
 git+git://github.com/graphite-project/ceres.git#egg=ceres
 whitenoise
+requests==2.12.1
