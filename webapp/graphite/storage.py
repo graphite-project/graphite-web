@@ -1,5 +1,7 @@
 import time
 import random
+import threading
+import Queue
 
 try:
   from importlib import import_module
@@ -8,6 +10,7 @@ except ImportError:  # python < 2.7 compatibility
 
 from django.conf import settings
 
+from graphite.logger import log
 from graphite.util import is_local_interface, is_pattern
 from graphite.remote_storage import RemoteStore
 from graphite.node import LeafNode
@@ -34,27 +37,55 @@ class Store:
     self.remote_stores = [ RemoteStore(host) for host in remote_hosts ]
 
 
-  def find(self, pattern, startTime=None, endTime=None, local=False):
-    query = FindQuery(pattern, startTime, endTime)
+  def find(self, pattern, startTime=None, endTime=None, local=False, headers=None):
+    query = FindQuery(pattern, startTime, endTime, local)
 
+    for match in self.find_all(query, headers):
+      yield match
+
+  def _parallel_remote_find(self, query, headers=None):
+    remote_finds = []
+    results = []
+    result_queue = Queue.Queue()
+    random.shuffle(self.remote_stores)
+    for store in [ r for r in self.remote_stores if r.available ]:
+      thread = threading.Thread(target=store.find, args=(query, result_queue, headers))
+      thread.start()
+      remote_finds.append(thread)
+
+    # same caveats as in datalib fetchData
+    for thread in remote_finds:
+      try:
+        thread.join(settings.REMOTE_FIND_TIMEOUT)
+      except:
+        log.exception("Failed to join remote find thread within %ss" % (settings.REMOTE_FIND_TIMEOUT))
+
+    while not result_queue.empty():
+      try:
+        results.append(result_queue.get_nowait())
+      except Queue.Empty:
+        log.exception("result_queue not empty, but unable to retrieve results")
+
+    return results
+
+  def find_all(self, query, headers=None):
     # Start remote searches
-    if not local:
-      random.shuffle(self.remote_stores)
-      remote_requests = [ r.find(query) for r in self.remote_stores if r.available ]
+    if not query.local:
+      remote_requests = self._parallel_remote_find(query, headers)
 
     matching_nodes = set()
 
     # Search locally
     for finder in self.finders:
       for node in finder.find_nodes(query):
-        #log.info("find() :: local :: %s" % node)
+        log.info("find() :: local :: %s" % node)
         matching_nodes.add(node)
 
     # Gather remote search results
-    if not local:
+    if not query.local:
       for request in remote_requests:
         for node in request.get_results():
-          #log.info("find() :: remote :: %s from %s" % (node,request.store.host))
+          log.info("find() :: remote :: %s from %s" % (node,request.store.host))
           matching_nodes.add(node)
 
     # Group matching nodes by their path
@@ -155,15 +186,15 @@ class Store:
         yield LeafNode(path, reader)
 
 
-
 class FindQuery:
-  def __init__(self, pattern, startTime, endTime):
+  def __init__(self, pattern, startTime, endTime, local=False):
     self.pattern = pattern
     self.startTime = startTime
     self.endTime = endTime
     self.isExact = is_pattern(pattern)
     self.interval = Interval(float('-inf') if startTime is None else startTime,
                              float('inf') if endTime is None else endTime)
+    self.local = local
 
 
   def __repr__(self):

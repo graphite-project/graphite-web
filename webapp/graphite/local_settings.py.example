@@ -245,7 +245,7 @@
 # used.
 #CLUSTER_SERVERS = ["10.0.2.2:80", "10.0.2.3:80"]
 
-# This settings control wether https is used to communicate between cluster members
+# This settings control whether https is used to communicate between cluster members
 #INTRACLUSTER_HTTPS = False
 
 # These are timeout values (in seconds) for requests to remote webapps
@@ -266,10 +266,23 @@
 # remote systems have data we don't have locally, which we probably do.
 #FIND_TOLERANCE = 2 * FIND_CACHE_DURATION
 
+#REMOTE_STORE_USE_POST = False    # Use POST instead of GET for remote requests
+
+# Provide a list of HTTP headers that you want forwarded on from this host
+# when making a request to a remote webapp server in CLUSTER_SERVERS
+#REMOTE_STORE_FORWARD_HEADERS = [] # An iterable of HTTP header names
+
 # During a rebalance of a consistent hash cluster, after a partition event on a replication > 1 cluster,
 # or in other cases we might receive multiple TimeSeries data for a metric key.  Merge them together rather
 # that choosing the "most complete" one (pre-0.9.14 behaviour).
 #REMOTE_STORE_MERGE_RESULTS = True
+
+## Prefetch cache
+# set to True to fetch all metrics using a single http request per remote server
+# instead of one http request per target, per remote server.
+# Especially useful when generating graphs with more than 4-5 targets or if
+# there's significant latency between this server and the backends.
+#REMOTE_PREFETCH_DATA = False
 
 ## Remote rendering settings
 # Set to True to enable rendering of Graphs on a remote webapp

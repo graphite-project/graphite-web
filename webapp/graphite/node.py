@@ -25,8 +25,11 @@ class LeafNode(Node):
     self.reader = reader
     self.is_leaf = True
 
-  def fetch(self, startTime, endTime):
-    return self.reader.fetch(startTime, endTime)
+  def fetch(self, startTime, endTime, now=None, result_queue=None, headers=None):
+    if result_queue:
+      result_queue.put((self, self.reader.fetch(startTime, endTime)))
+    else:
+      return self.reader.fetch(startTime, endTime)
 
   @property
   def intervals(self):
@@ -34,3 +37,14 @@ class LeafNode(Node):
 
   def __repr__(self):
     return '<LeafNode[%x]: %s (%s)>' % (id(self), self.path, self.reader)
+
+
+class RemoteNode(LeafNode):
+  def fetch(self, startTime, endTime, now=None, result_queue=None, headers=None):
+    if result_queue:
+      result_queue.put((self, self.reader.fetch(startTime, endTime, now, headers)))
+    else:
+      return self.reader.fetch(startTime, endTime, now, headers)
+
+  def __repr__(self):
+    return '<RemoteNode[%x]: %s (%s)>' % (id(self), self.path, self.reader)

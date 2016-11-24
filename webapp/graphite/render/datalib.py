@@ -12,6 +12,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
+# import pprint
+import threading
+import Queue
+
 from graphite.logger import log
 from graphite.storage import STORE
 from graphite.readers import FetchInProgress
@@ -30,6 +34,7 @@ class TimeSeries(list):
     self.consolidationFunc = consolidate
     self.valuesPerPoint = 1
     self.options = {}
+    self.pathExpression = name
 
 
   def __eq__(self, other):
@@ -102,114 +107,243 @@ class TimeSeries(list):
       'end' : self.end,
       'step' : self.step,
       'values' : list(self),
+      'pathExpression' : self.pathExpression,
     }
+
+
+def _timebounds(requestContext):
+  startTime = int(epoch(requestContext['startTime']))
+  endTime = int(epoch(requestContext['endTime']))
+  now = int(epoch(requestContext['now']))
+
+  return (startTime, endTime, now)
+
+
+def _prefetchMetricKey(pathExpression, start, end):
+  return '-'.join([pathExpression, str(start), str(end)])
+
+
+def prefetchRemoteData(requestContext, pathExpressions):
+  # if required, fetch data from all remote nodes
+  # storing the result in a big hash of the form:
+  # data[node][hash(originalPathExpression, start, end)] = [
+  #   matchingSeries, matchingSeries2, ... ]
+
+  prefetchedRemoteData = {}
+  if requestContext['localOnly']:
+    return prefetchedRemoteData
+
+  (startTime, endTime, now) = _timebounds(requestContext)
+  result_queue = fetchRemoteData(requestContext, pathExpressions, False)
+  while not result_queue.empty():
+    try:
+      (node, results) = result_queue.get_nowait()
+    except Queue.Empty:
+      log.exception("result_queue not empty, but unable to retrieve results")
+
+    # prefill result with empty list
+    # Needed to be able to detect if a query has already been made
+    prefetchedRemoteData[node] = {}
+    for pe in pathExpressions:
+      prefetchedRemoteData[node][_prefetchMetricKey(pe, startTime, endTime)] = []
+
+    for series in results:
+      # series.pathExpression is original target, ie. containing wildcards
+      # XXX would be nice to disable further prefetch calls to that backend
+      try:
+        k = _prefetchMetricKey(series['pathExpression'], startTime, endTime)
+      except KeyError:
+        log.exception("Remote node %s doesn't support prefetching data" % node)
+        raise
+
+      if prefetchedRemoteData[node].get(k) is None:
+        # This should not be needed because of above filling with [],
+        # but could happen if backend sends unexpected stuff
+        prefetchedRemoteData[node][k] = [series]
+      else:
+        prefetchedRemoteData[node][k].append(series)
+
+  return prefetchedRemoteData
+
+
+def prefetchLookup(requestContext, node):
+  # Returns a seriesList if found in cache
+  # or None if key doesn't exist (aka prefetch didn't cover this pathExpr / timerange
+  (start, end, now) = _timebounds(requestContext)
+  try:
+    cache = requestContext['prefetchedRemoteData'][node.store.host]
+    r = cache[_prefetchMetricKey(node.metric_path, start, end)]
+  except (AttributeError, KeyError):
+    r = None
+
+  return r
+
+
+def fetchRemoteData(requestContext, pathExpr, usePrefetchCache=settings.REMOTE_PREFETCH_DATA):
+  (startTime, endTime, now) = _timebounds(requestContext)
+  nodes = STORE.find(pathExpr, startTime, endTime, local=requestContext['localOnly'])
+
+  # Go through all of the remote_nodes, and launch a remote_fetch for each one.
+  # Each fetch will take place in its own thread, since it's naturally parallel work.
+  # Notable: return the 'seriesList' result from each node.fetch into result_queue
+  # instead of directly from the method. Queue.Queue() is threadsafe.
+  fetches = []
+  result_queue = Queue.Queue()
+  for node in nodes:
+    need_fetch = True
+
+    if not node.local and usePrefetchCache:
+      series = prefetchLookup(requestContext, node)
+      # Will be either:
+      #   []: prefetch done, returned no data. Do not fetch
+      #   seriesList: prefetch done, returned data, do not fetch
+      #   None: prefetch not done, FETCH
+      if series is not None:
+        result_queue.put( (node, series) )
+        need_fetch = False
+
+    if need_fetch:
+      fetch_thread = threading.Thread(target=node.fetch,
+                                      args=(startTime, endTime, now, result_queue, requestContext.get('forwardHeaders')))
+      fetch_thread.start()
+      fetches.append(fetch_thread)
+
+  # Once the fetches have started, wait for them all to finish. Assuming an
+  # upper bound of REMOTE_FETCH_TIMEOUT per thread, this should take about that
+  # amount of time (6s by default) at the longest. If every thread blocks permanently,
+  # then this could take a horrible REMOTE_FETCH_TIMEOUT * num(fetches),
+  # but then that would imply that remote_storage's HTTPConnectionWithTimeout class isn't
+  # working correctly :-)
+  for fetch_thread in fetches:
+    try:
+      fetch_thread.join(settings.REMOTE_FETCH_TIMEOUT)
+    except:
+      log.exception("Failed to join fetch thread within %ss" % (settings.REMOTE_FETCH_TIMEOUT))
+
+  results = []
+
+  while not result_queue.empty():
+    try:
+      results.append(result_queue.get_nowait())
+    except Queue.Empty:
+      log.exception("result_queue not empty, but unable to retrieve results")
+
+  return results
 
 
 # Data retrieval API
 def fetchData(requestContext, pathExpr):
   seriesList = {}
-  startTime = int( epoch( requestContext['startTime'] ) )
-  endTime   = int( epoch( requestContext['endTime'] ) )
-
-  def _fetchData(pathExpr,startTime, endTime, requestContext, seriesList):
-    matching_nodes = STORE.find(pathExpr, startTime, endTime, local=requestContext['localOnly'])
-    fetches = [(node, node.fetch(startTime, endTime)) for node in matching_nodes if node.is_leaf]
-
-    for node, results in fetches:
-      if isinstance(results, FetchInProgress):
-        results = results.waitForResults()
-
-      if not results:
-        log.info("render.datalib.fetchData :: no results for %s.fetch(%s, %s)" % (node, startTime, endTime))
-        continue
-
-      try:
-          (timeInfo, values) = results
-      except ValueError as e:
-          raise Exception("could not parse timeInfo/values from metric '%s': %s" % (node.path, e))
-      (start, end, step) = timeInfo
-
-      series = TimeSeries(node.path, start, end, step, values)
-      series.pathExpression = pathExpr #hack to pass expressions through to render functions
-
-      # Used as a cache to avoid recounting series None values below.
-      series_best_nones = {}
-
-      if series.name in seriesList:
-        # This counts the Nones in each series, and is unfortunately O(n) for each
-        # series, which may be worth further optimization. The value of doing this
-        # at all is to avoid the "flipping" effect of loading a graph multiple times
-        # and having inconsistent data returned if one of the backing stores has
-        # inconsistent data. This is imperfect as a validity test, but in practice
-        # nicely keeps us using the "most complete" dataset available. Think of it
-        # as a very weak CRDT resolver.
-        candidate_nones = 0
-        if not settings.REMOTE_STORE_MERGE_RESULTS:
-          candidate_nones = len(
-            [val for val in series['values'] if val is None])
-
-        known = seriesList[series.name]
-        # To avoid repeatedly recounting the 'Nones' in series we've already seen,
-        # cache the best known count so far in a dict.
-        if known.name in series_best_nones:
-          known_nones = series_best_nones[known.name]
-        else:
-          known_nones = len([val for val in known if val is None])
-
-        if known_nones > candidate_nones:
-          if settings.REMOTE_STORE_MERGE_RESULTS:
-            # This series has potential data that might be missing from
-            # earlier series.  Attempt to merge in useful data and update
-            # the cache count.
-            log.info("Merging multiple TimeSeries for %s" % known.name)
-            for i, j in enumerate(known):
-              if j is None and series[i] is not None:
-                known[i] = series[i]
-                known_nones -= 1
-            # Store known_nones in our cache
-            series_best_nones[known.name] = known_nones
-          else:
-            # Not merging data -
-            # we've found a series better than what we've already seen. Update
-            # the count cache and replace the given series in the array.
-            series_best_nones[known.name] = candidate_nones
-            seriesList[known.name] = series
-        else:
-          # In case if we are merging data - the existing series has no gaps and there is nothing to merge
-          # together.  Save ourselves some work here.
-          #
-          # OR - if we picking best serie:
-          #
-          # We already have this series in the seriesList, and the
-          # candidate is 'worse' than what we already have, we don't need
-          # to compare anything else. Save ourselves some work here.
-          break
-
-          # If we looked at this series above, and it matched a 'known'
-          # series already, then it's already in the series list (or ignored).
-          # If not, append it here.
-      else:
-        seriesList[series.name] = series
-
-    # Stabilize the order of the results by ordering the resulting series by name.
-    # This returns the result ordering to the behavior observed pre PR#1010.
-    return [seriesList[k] for k in sorted(seriesList)]
+  (startTime, endTime, now) = _timebounds(requestContext)
 
   retries = 1 # start counting at one to make log output and settings more readable
   while True:
     try:
-      seriesList = _fetchData(pathExpr,startTime, endTime, requestContext, seriesList)
-      return seriesList
+      seriesList = _fetchData(pathExpr, startTime, endTime, requestContext, seriesList)
+      break
     except Exception, e:
       if retries >= settings.MAX_FETCH_RETRIES:
         log.exception("Failed after %s retry! Root cause:\n%s" %
             (settings.MAX_FETCH_RETRIES, format_exc()))
-        raise e
+        raise
       else:
         log.exception("Got an exception when fetching data! Try: %i of %i. Root cause:\n%s" %
                      (retries, settings.MAX_FETCH_RETRIES, format_exc()))
         retries += 1
 
+  # Stabilize the order of the results by ordering the resulting series by name.
+  # This returns the result ordering to the behavior observed pre PR#1010.
+  return [ seriesList[k] for k in sorted(seriesList) ]
+
+def _fetchData(pathExpr, startTime, endTime, requestContext, seriesList):
+  # matching_nodes = STORE.find(pathExpr, startTime, endTime, local=True)
+  # fetches = [(node, node.fetch(startTime, endTime)) for node in matching_nodes if node.is_leaf]
+  result_queue = fetchRemoteData(requestContext, pathExpr)
+  #pp = pprint.PrettyPrinter(indent=4)
+  #log.rendering('DEBUG: fetches...')
+  #log.rendering(pp.pprint(fetches))
+  #log.rendering('DEBUG: test_result_queue...')
+  #log.rendering(pp.pprint(result_queue))
+
+  for node, results in result_queue:
+    if isinstance(results, FetchInProgress):
+      results = results.waitForResults()
+
+    if not results:
+      log.info("render.datalib.fetchData :: no results for %s.fetch(%s, %s)" % (node, startTime, endTime))
+      continue
+
+    try:
+        (timeInfo, values) = results
+    except ValueError as e:
+        raise Exception("could not parse timeInfo/values from metric '%s': %s" % (node.path, e))
+    (start, end, step) = timeInfo
+
+    series = TimeSeries(node.path, start, end, step, values)
+
+    # hack to pass expressions through to render functions
+    series.pathExpression = pathExpr
+
+    # Used as a cache to avoid recounting series None values below.
+    series_best_nones = {}
+
+    if series.name in seriesList:
+      # This counts the Nones in each series, and is unfortunately O(n) for each
+      # series, which may be worth further optimization. The value of doing this
+      # at all is to avoid the "flipping" effect of loading a graph multiple times
+      # and having inconsistent data returned if one of the backing stores has
+      # inconsistent data. This is imperfect as a validity test, but in practice
+      # nicely keeps us using the "most complete" dataset available. Think of it
+      # as a very weak CRDT resolver.
+      candidate_nones = 0
+      if not settings.REMOTE_STORE_MERGE_RESULTS:
+        candidate_nones = len(
+          [val for val in series['values'] if val is None])
+
+      known = seriesList[series.name]
+      # To avoid repeatedly recounting the 'Nones' in series we've already seen,
+      # cache the best known count so far in a dict.
+      if known.name in series_best_nones:
+        known_nones = series_best_nones[known.name]
+      else:
+        known_nones = len([val for val in known if val is None])
+
+      if known_nones > candidate_nones:
+        if settings.REMOTE_STORE_MERGE_RESULTS:
+          # This series has potential data that might be missing from
+          # earlier series.  Attempt to merge in useful data and update
+          # the cache count.
+          log.info("Merging multiple TimeSeries for %s" % known.name)
+          for i, j in enumerate(known):
+            if j is None and series[i] is not None:
+              known[i] = series[i]
+              known_nones -= 1
+          # Store known_nones in our cache
+          series_best_nones[known.name] = known_nones
+        else:
+          # Not merging data -
+          # we've found a series better than what we've already seen. Update
+          # the count cache and replace the given series in the array.
+          series_best_nones[known.name] = candidate_nones
+          seriesList[known.name] = series
+      else:
+        # In case if we are merging data - the existing series has no gaps and
+        # there is nothing to merge together.  Save ourselves some work here.
+        #
+        # OR - if we picking best serie:
+        #
+        # We already have this series in the seriesList, and the
+        # candidate is 'worse' than what we already have, we don't need
+        # to compare anything else. Save ourselves some work here.
+        break
+
+        # If we looked at this series above, and it matched a 'known'
+        # series already, then it's already in the series list (or ignored).
+        # If not, append it here.
+    else:
+      seriesList[series.name] = series
+
+  return seriesList
 
 def nonempty(series):
   for value in series:

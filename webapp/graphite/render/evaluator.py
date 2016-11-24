@@ -78,6 +78,28 @@ def evaluateTokens(requestContext, tokens, replacements=None):
     raise ValueError("unknown token in target evaluator")
 
 
+def extractPathExpressions(targets):
+  # Returns a list of unique pathExpressions found in the targets list
+
+  pathExpressions = []
+
+  def extractPathExpression(tokens):
+    if tokens.expression:
+      return extractPathExpression(tokens.expression)
+    elif tokens.pathExpression:
+      pathExpressions.append(tokens.pathExpression)
+    elif tokens.call:
+      [extractPathExpression(arg) for arg in tokens.call.args]
+
+  for target in targets:
+    tokens = grammar.parseString(target)
+    extractPathExpression(tokens)
+
+  s = set(pathExpressions)
+  pathExpressions = list(s)
+  return pathExpressions
+
+
 # Avoid import circularities
 from graphite.render.functions import (SeriesFunctions,
                                        NormalizeEmptyResultError)  # noqa
