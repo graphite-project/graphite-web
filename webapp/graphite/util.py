@@ -156,6 +156,7 @@ def deltaseconds(timedelta):
   "Convert a timedelta object into seconds (same as timedelta.total_seconds() in Python 2.7+)"
   return (timedelta.microseconds + (timedelta.seconds + timedelta.days * 24 * 3600) * 10**6) / 10**6
 
+
 # This whole song & dance is due to pickle being insecure
 # The SafeUnpickler classes were largely derived from
 # http://nadiana.com/python-pickle-insecure

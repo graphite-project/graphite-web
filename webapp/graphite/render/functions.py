@@ -3706,6 +3706,7 @@ def pieMaximum(requestContext, series):
 def pieMinimum(requestContext, series):
   return min(series)
 
+
 PieFunctions = {
   'average': pieAverage,
   'maximum': pieMaximum,

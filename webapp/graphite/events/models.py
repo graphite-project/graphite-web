@@ -54,6 +54,7 @@ class Event(models.Model):
             id=self.id,
         )
 
+
 # We use this rather than tagging.register() so that tags can be exposed
 # in the admin UI
 ModelTaggedItemManager().contribute_to_class(Event, 'tagged')

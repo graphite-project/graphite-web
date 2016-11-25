@@ -51,6 +51,7 @@ class BaseConverter(object):
         return res
     convert = staticmethod(convert)
 
+
 bin = BaseConverter('01')
 hexconv = BaseConverter('0123456789ABCDEF')
 base62 = BaseConverter(

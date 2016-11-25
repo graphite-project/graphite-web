@@ -57,6 +57,7 @@ def search(request):
 
   patterns = query.split()
   regexes = [re.compile(p,re.I) for p in patterns]
+
   def matches(s):
     for regex in regexes:
       if regex.search(s):
