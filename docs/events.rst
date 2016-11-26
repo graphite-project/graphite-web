@@ -33,7 +33,7 @@ Events can be submitted via HTTP POST using command-line tools such as ``curl`` 
 
 Querying Events
 ---------------
-Graphite allows you to query for tags associated with events. You can search for a single tag string, a combination of tags (separated by a space), or a simple ``*`` wildcard using the `events <functions.html#graphite.render.functions.events>`_ function.
+Graphite allows you to query for tags associated with events. You can search for a single tag string, a combination of space-delimited tags, or a simple ``*`` wildcard using the `events <functions.html#graphite.render.functions.events>`_ function.
 
 .. code-block:: none
 
