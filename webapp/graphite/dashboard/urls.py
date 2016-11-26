@@ -1,8 +1,7 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 from . import views
 
-urlpatterns = patterns(
-    '',
+urlpatterns = [
     url('^save/(?P<name>[^/]+)', views.save, name='dashboard_save'),
     url('^save_template/(?P<name>[^/]+)/(?P<key>[^/]+)',
         views.save_template, name='dashboard_save_template'),
@@ -27,4 +26,4 @@ urlpatterns = patterns(
         name='dashboard_template'),
     url('^(?P<name>[^/]+)', views.dashboard, name='dashboard'),
     url('', views.dashboard, name='dashboard'),
-)
+]
