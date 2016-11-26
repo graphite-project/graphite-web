@@ -23,13 +23,17 @@ Events can be submitted via HTTP POST using command-line tools such as ``curl`` 
 .. code-block:: none
 
     $ curl -X POST "http://graphite/events/" 
-        -d '{ "what": "Event - deploy", "tags": ["deploy"], 
+        -d '{ "what": "Event - deploy", "tags": ["deploy"], "when": 1467844481,
         "data": "deploy of master branch happened at Wed Jul  6 22:34:41 UTC 2016" }'
+ 
+``when`` is an optional key which is set to the current Unix timestamp if ``when`` is not set.
+
+*Note*: Prior to 0.10.0, the value of ``tags`` is a string, with multiple tags being separated by a space.
 
 
 Querying Events
 ---------------
-Graphite allows you to query for tags associated with events. You can search for a single tag string, a combination of tags, or a simple ``*`` wildcard using the `events <functions.html#graphite.render.functions.events>`_ function.
+Graphite allows you to query for tags associated with events. You can search for a single tag string, a combination of tags (separated by a space), or a simple ``*`` wildcard using the `events <functions.html#graphite.render.functions.events>`_ function.
 
 .. code-block:: none
 
@@ -55,7 +59,7 @@ It's also possible to dump the raw events using the API.
 
 .. code-block:: none
 
-    $ curl -s "http://graphite/render/events/get_data?tags=deploy&from=-3hours&until=now" | json_pp
+    $ curl -s "http://graphite/events/get_data?tags=deploy&from=-3hours&until=now" | json_pp
 
     [
        {
