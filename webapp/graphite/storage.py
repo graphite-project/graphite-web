@@ -24,6 +24,10 @@ def get_finder(finder_path):
   return getattr(module, class_name)()
 
 
+def find_into_queue(finder, query, result_queue):
+  result_queue.put(finder.find_nodes(query))
+
+
 class Store:
   def __init__(self, finders=None, hosts=None):
     if finders is None:
@@ -43,58 +47,59 @@ class Store:
     for match in self.find_all(query, headers):
       yield match
 
-  def _parallel_remote_find(self, query, headers=None):
-    remote_finds = []
-    results = []
-    result_queue = Queue.Queue()
-    random.shuffle(self.remote_stores)
-    for store in [ r for r in self.remote_stores if r.available ]:
-      thread = threading.Thread(target=store.find, args=(query, result_queue, headers))
-      thread.start()
-      remote_finds.append(thread)
-
-    # same caveats as in datalib fetchData
-    for thread in remote_finds:
-      try:
-        thread.join(settings.REMOTE_FIND_TIMEOUT)
-      except:
-        log.exception("Failed to join remote find thread within %ss" % (settings.REMOTE_FIND_TIMEOUT))
-
-    while not result_queue.empty():
-      try:
-        results.append(result_queue.get_nowait())
-      except Queue.Empty:
-        log.exception("result_queue not empty, but unable to retrieve results")
-
-    return results
-
   def find_all(self, query, headers=None):
+    finds = []
+    result_queue = Queue.Queue()
+
     # Start remote searches
     if not query.local:
-      remote_requests = self._parallel_remote_find(query, headers)
+      for store in [ r for r in self.remote_stores if r.available ]:
+        log.info("Started thread for %s" % (store))
+        thread = threading.Thread(target=store.find, args=(query, result_queue, headers))
+        thread.start()
+        finds.append(thread)
 
-    matching_nodes = set()
-
-    # Search locally
+    # Start local searches
     for finder in self.finders:
-      for node in finder.find_nodes(query):
-        log.info("find() :: local :: %s" % node)
-        matching_nodes.add(node)
-
-    # Gather remote search results
-    if not query.local:
-      for request in remote_requests:
-        for node in request.get_results():
-          log.info("find() :: remote :: %s from %s" % (node,request.store.host))
-          matching_nodes.add(node)
+      log.info("Started thread for %s" % (finder))
+      thread = threading.Thread(target=find_into_queue, args=(finder, query, result_queue))
+      thread.start()
+      finds.append(thread)
 
     # Group matching nodes by their path
     nodes_by_path = {}
-    for node in matching_nodes:
-      if node.path not in nodes_by_path:
-        nodes_by_path[node.path] = []
 
-      nodes_by_path[node.path].append(node)
+    deadline = time.clock() + settings.REMOTE_FIND_TIMEOUT
+    result_cnt = 0
+    threads_alive = finds
+
+    while True:
+      if time.clock() > deadline:
+        log.info("Timed out")
+        break
+
+      threads_alive = [t for t in threads_alive if t.is_alive()]
+
+      try:
+        nodes = result_queue.get(True, 0.01)
+      except Queue.Empty:
+        if len(threads_alive) == 0:
+          log.info("Empty queue and no threads alive")
+          break
+        continue
+
+      result_cnt += 1
+      if nodes:
+        for node in nodes:
+          if node.path not in nodes_by_path:
+            nodes_by_path[node.path] = []
+
+          nodes_by_path[node.path].append(node)
+          log.info("Found node %s" % (node))
+
+      if result_cnt >= len(finds):
+        log.info("Got all results")
+        break
 
     # Reduce matching nodes for each path to a minimal set
     found_branch_nodes = set()

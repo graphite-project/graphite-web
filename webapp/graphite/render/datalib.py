@@ -15,10 +15,10 @@ limitations under the License."""
 # import pprint
 import threading
 import Queue
+import time
 
 from graphite.logger import log
 from graphite.storage import STORE
-from graphite.readers import FetchInProgress
 from django.conf import settings
 from graphite.util import epoch
 
@@ -188,6 +188,7 @@ def fetchRemoteData(requestContext, pathExpr, usePrefetchCache=settings.REMOTE_P
   # Notable: return the 'seriesList' result from each node.fetch into result_queue
   # instead of directly from the method. Queue.Queue() is threadsafe.
   fetches = []
+  results = []
   result_queue = Queue.Queue()
   for node in nodes:
     need_fetch = True
@@ -199,7 +200,7 @@ def fetchRemoteData(requestContext, pathExpr, usePrefetchCache=settings.REMOTE_P
       #   seriesList: prefetch done, returned data, do not fetch
       #   None: prefetch not done, FETCH
       if series is not None:
-        result_queue.put( (node, series) )
+        results.append( (node, series) )
         need_fetch = False
 
     if need_fetch:
@@ -208,25 +209,33 @@ def fetchRemoteData(requestContext, pathExpr, usePrefetchCache=settings.REMOTE_P
       fetch_thread.start()
       fetches.append(fetch_thread)
 
+  deadline = time.clock() + settings.REMOTE_FETCH_TIMEOUT
+  result_cnt = 0
+  threads_alive = fetches
+
   # Once the fetches have started, wait for them all to finish. Assuming an
   # upper bound of REMOTE_FETCH_TIMEOUT per thread, this should take about that
-  # amount of time (6s by default) at the longest. If every thread blocks permanently,
-  # then this could take a horrible REMOTE_FETCH_TIMEOUT * num(fetches),
-  # but then that would imply that remote_storage's HTTPConnectionWithTimeout class isn't
-  # working correctly :-)
-  for fetch_thread in fetches:
-    try:
-      fetch_thread.join(settings.REMOTE_FETCH_TIMEOUT)
-    except:
-      log.exception("Failed to join fetch thread within %ss" % (settings.REMOTE_FETCH_TIMEOUT))
+  # amount of time (6s by default) at the longest.
+  while True:
+    if time.clock() > deadline:
+      log.info("Timed out")
+      break
 
-  results = []
+    threads_alive = [t for t in threads_alive if t.is_alive()]
 
-  while not result_queue.empty():
     try:
-      results.append(result_queue.get_nowait())
+      result = result_queue.get(True, 0.01)
     except Queue.Empty:
-      log.exception("result_queue not empty, but unable to retrieve results")
+      if len(threads_alive) == 0:
+        log.info("Empty queue and no threads alive")
+        break
+      continue
+
+    results.append(result)
+    result_cnt += 1
+    if result_cnt >= len(fetches):
+      log.info("Got all results")
+      break
 
   return results
 
@@ -266,9 +275,6 @@ def _fetchData(pathExpr, startTime, endTime, requestContext, seriesList):
   #log.rendering(pp.pprint(result_queue))
 
   for node, results in result_queue:
-    if isinstance(results, FetchInProgress):
-      results = results.waitForResults()
-
     if not results:
       log.info("render.datalib.fetchData :: no results for %s.fetch(%s, %s)" % (node, startTime, endTime))
       continue
