@@ -71,7 +71,7 @@ class MultiReader(object):
         fetch_thread.start()
         fetches.append(fetch_thread)
 
-    deadline = time.clock() + settings.REMOTE_FETCH_TIMEOUT
+    deadline = time.time() + settings.REMOTE_FETCH_TIMEOUT
     result_cnt = 0
     threads_alive = fetches
 
@@ -79,7 +79,7 @@ class MultiReader(object):
     # upper bound of REMOTE_FETCH_TIMEOUT per thread, this should take about that
     # amount of time (6s by default) at the longest.
     while True:
-      if time.clock() > deadline:
+      if time.time() > deadline:
         log.info("Timed out")
         break
 

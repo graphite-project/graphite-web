@@ -69,12 +69,13 @@ class Store:
     # Group matching nodes by their path
     nodes_by_path = {}
 
-    deadline = time.clock() + settings.REMOTE_FIND_TIMEOUT
+    start = time.time()
+    deadline = start + settings.REMOTE_FIND_TIMEOUT
     result_cnt = 0
     threads_alive = finds
 
     while True:
-      if time.clock() > deadline:
+      if time.time() > deadline:
         log.info("Timed out")
         break
 
@@ -98,7 +99,7 @@ class Store:
           log.info("Found node %s" % (node))
 
       if result_cnt >= len(finds):
-        log.info("Got all results")
+        log.info("Got all find results in %fs" % (time.time() - start))
         break
 
     # Reduce matching nodes for each path to a minimal set

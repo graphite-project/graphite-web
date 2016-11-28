@@ -1,6 +1,7 @@
 import time
 import httplib
 import requests
+from threading import Lock
 from urllib import urlencode
 from django.conf import settings
 from django.core.cache import cache
@@ -52,6 +53,7 @@ class FindRequest(object):
     self.cacheKey = "find:%s:%s:%s:%s" % (store.host, compactHash(query.pattern), start, end)
 
   def send(self, headers=None):
+    t = time.time()
     log.info("FindRequest.send(host=%s, query=%s) called" % (self.store.host, self.query))
 
     results = cache.get(self.cacheKey)
@@ -93,6 +95,8 @@ class FindRequest(object):
 
       cache.set(self.cacheKey, results, settings.FIND_CACHE_DURATION)
 
+    log.info("FindRequest.send(host=%s, query=%s) completed in %fs" % (self.store.host, self.query, time.time() - t))
+
     for node_info in results:
       if node_info.get('is_leaf'):
         reader = RemoteReader(self.store, node_info, bulk_query=self.query.pattern)
@@ -106,6 +110,9 @@ class FindRequest(object):
 
 class RemoteReader(object):
   __slots__ = ('store', 'metric_path', 'intervals', 'query', 'connection')
+  inflight_requests = {}
+  inflight_lock = Lock()
+  inflight_locks = {}
 
   def __init__(self, store, node_info, bulk_query=None):
     self.store = store
@@ -120,7 +127,19 @@ class RemoteReader(object):
   def get_intervals(self):
     return self.intervals
 
+  def fetch(self, startTime, endTime, now=None, headers=None):
+    seriesList = self.fetch_list( startTime, endTime, now, headers);
+
+    for series in seriesList:
+      if series['name'] == self.metric_path:
+        time_info = (series['start'], series['end'], series['step'])
+        return (time_info, series['values'])
+
+    return None
+
   def fetch_list(self, startTime, endTime, now=None, headers=None):
+    t = time.time()
+
     query_params = [
       ('target', self.query),
       ('format', 'pickle'),
@@ -136,31 +155,54 @@ class RemoteReader(object):
     urlpath = '/render/'
     url = "%s://%s%s" % ('https' if settings.INTRACLUSTER_HTTPS else 'http', self.store.host, urlpath)
 
-    try:
-      log.info("ReadResult :: requesting %s?%s" % (url, query_string))
-      if settings.REMOTE_STORE_USE_POST:
-        result = requests.post(url, data=query_params, headers=headers, timeout=settings.REMOTE_FETCH_TIMEOUT)
-      else:
-        result = requests.get(url, params=query_params, headers=headers, timeout=settings.REMOTE_FETCH_TIMEOUT)
-    except:
-      self.store.fail()
-      log.exception("Error requesting %s?%s" % (url, query_string))
-      raise
+    cacheKey = "%s?%s" % (url, query_string)
 
-    if result.status_code != 200:
-      raise Exception("Error response %d %s from %s?%s" % (result.status_code, result.reason, url, query_string))
+    log.info("ReadResult :: waiting for global lock %s?%s at %fs" % (url, query_string, time.time()))
+    with self.inflight_lock:
+      if cacheKey not in self.inflight_locks:
+        log.info("ReadResult :: creating lock %s?%s at %fs" % (url, query_string, time.time()))
+        self.inflight_locks[cacheKey] = Lock()
 
-    return unpickle.loads(result.content)
+    log.info("ReadResult :: waiting for url lock %s?%s at %fs" % (url, query_string, time.time()))
+    with self.inflight_locks[cacheKey]:
+      try:
+        data = self.inflight_requests[cacheKey]
+        log.info("ReadResult :: returning cached data %s?%s in %fs" % (url, query_string, time.time()))
+        return data
+      except KeyError:
+        # the request isn't in flight, let's start it
+        pass
 
-  def fetch(self, startTime, endTime, now=None, headers=None):
-    seriesList = self.fetch_list( startTime, endTime, now, headers);
+      try:
+        log.info("ReadResult :: requesting %s?%s at %fs" % (url, query_string, time.time()))
+        if settings.REMOTE_STORE_USE_POST:
+          result = requests.post(url, data=query_params, headers=headers, timeout=settings.REMOTE_FETCH_TIMEOUT)
+        else:
+          result = requests.get(url, params=query_params, headers=headers, timeout=settings.REMOTE_FETCH_TIMEOUT)
+      except:
+        self.store.fail()
+        log.exception("ReadResult :: Error requesting %s?%s" % (url, query_string))
+        raise
 
-    for series in seriesList:
-      if series['name'] == self.metric_path:
-        time_info = (series['start'], series['end'], series['step'])
-        return (time_info, series['values'])
+      if result.status_code != 200:
+        raise Exception("ReadResult :: Error response %d %s from %s?%s" % (result.status_code, result.reason, url, query_string))
 
-    return None
+      data = unpickle.loads(result.content)
+
+      self.inflight_requests[cacheKey] = data
+
+    # release lock to allow waiting threads to read data
+
+    with self.inflight_locks[cacheKey]:
+      log.info("ReadResult :: removing cached data %s?%s at %fs" % (url, query_string, time.time()))
+      del self.inflight_requests[cacheKey]
+
+    with self.inflight_lock:
+      log.info("ReadResult :: removing url lock %s?%s at %fs" % (url, query_string, time.time()))
+      del self.inflight_locks[cacheKey]
+
+    log.info("ReadResult :: returning %s?%s at %fs in %fs" % (url, query_string, time.time(), time.time() - t))
+    return data
 
 
 def extractForwardHeaders(request):

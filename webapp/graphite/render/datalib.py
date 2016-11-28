@@ -16,6 +16,7 @@ limitations under the License."""
 import threading
 import Queue
 import time
+import pprint
 
 from graphite.logger import log
 from graphite.storage import STORE
@@ -191,6 +192,10 @@ def fetchRemoteData(requestContext, pathExpr, usePrefetchCache=settings.REMOTE_P
   results = []
   result_queue = Queue.Queue()
   for node in nodes:
+    pprint.PrettyPrinter(indent=4).pprint(node)
+    if not node.is_leaf:
+      continue
+
     need_fetch = True
 
     if not node.local and usePrefetchCache:
@@ -209,7 +214,8 @@ def fetchRemoteData(requestContext, pathExpr, usePrefetchCache=settings.REMOTE_P
       fetch_thread.start()
       fetches.append(fetch_thread)
 
-  deadline = time.clock() + settings.REMOTE_FETCH_TIMEOUT
+  start = time.time()
+  deadline = start + settings.REMOTE_FETCH_TIMEOUT
   result_cnt = 0
   threads_alive = fetches
 
@@ -217,7 +223,7 @@ def fetchRemoteData(requestContext, pathExpr, usePrefetchCache=settings.REMOTE_P
   # upper bound of REMOTE_FETCH_TIMEOUT per thread, this should take about that
   # amount of time (6s by default) at the longest.
   while True:
-    if time.clock() > deadline:
+    if time.time() > deadline:
       log.info("Timed out")
       break
 
@@ -234,7 +240,7 @@ def fetchRemoteData(requestContext, pathExpr, usePrefetchCache=settings.REMOTE_P
     results.append(result)
     result_cnt += 1
     if result_cnt >= len(fetches):
-      log.info("Got all results")
+      log.info("Got all read results in %fs" % (time.time() - start))
       break
 
   return results
@@ -242,6 +248,8 @@ def fetchRemoteData(requestContext, pathExpr, usePrefetchCache=settings.REMOTE_P
 
 # Data retrieval API
 def fetchData(requestContext, pathExpr):
+  start = time.time()
+
   seriesList = {}
   (startTime, endTime, now) = _timebounds(requestContext)
 
@@ -262,17 +270,26 @@ def fetchData(requestContext, pathExpr):
 
   # Stabilize the order of the results by ordering the resulting series by name.
   # This returns the result ordering to the behavior observed pre PR#1010.
-  return [ seriesList[k] for k in sorted(seriesList) ]
+  retval = [ seriesList[k] for k in sorted(seriesList) ]
+
+  log.info("render.datalib.fetchRemoteData :: completed in %fs" % (time.time() - start))
+
+  return retval
 
 def _fetchData(pathExpr, startTime, endTime, requestContext, seriesList):
   # matching_nodes = STORE.find(pathExpr, startTime, endTime, local=True)
   # fetches = [(node, node.fetch(startTime, endTime)) for node in matching_nodes if node.is_leaf]
+
+  t = time.time()
+
   result_queue = fetchRemoteData(requestContext, pathExpr)
   #pp = pprint.PrettyPrinter(indent=4)
   #log.rendering('DEBUG: fetches...')
   #log.rendering(pp.pprint(fetches))
   #log.rendering('DEBUG: test_result_queue...')
   #log.rendering(pp.pprint(result_queue))
+
+  log.info("render.datalib.fetchRemoteData :: completed in %fs" % (time.time() - t))
 
   for node, results in result_queue:
     if not results:
@@ -348,6 +365,8 @@ def _fetchData(pathExpr, startTime, endTime, requestContext, seriesList):
         # If not, append it here.
     else:
       seriesList[series.name] = series
+
+  log.info("render.datalib._fetchData :: completed in %fs" % (time.time() - t))
 
   return seriesList
 
