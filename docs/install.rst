@@ -87,6 +87,10 @@ Carbon and Graphite-web are installed in ``/opt/graphite/`` with the following l
 
     Location for Whisper data files to be stored and read
 
+  - ``ceres``
+
+    Location for Ceres data files to be stored and read
+
 - ``webapp/``
 
   Graphite-web ``PYTHONPATH``
