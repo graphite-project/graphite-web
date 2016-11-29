@@ -4,7 +4,9 @@
 ===========================
 *TBD*
 
-Graphite 0.10.0 is now available for usage. This marks the first release of Graphite's main line in many years. There are two new *optional* components available: Carbonate, a suite of tools for managing and rebalancing Whisper files, and Ceres, an experimental new time-series database intended to supplant Whisper in a future release.
+Graphite 0.10.0 is now available for usage. This marks the first release of Graphite's main line in many years. There are two new *optional* components available: Carbonate, a suite of tools for managing and rebalancing Whisper files, and Ceres, an experimental new time-series database.
+
+Most users will only need to install the Graphite-Web, Carbon, and Whisper components. Advanced users may choose to run :doc:`Ceres <../ceres>` in staging or development environments to become familiar with its design and operating characteristics.
 
 Source bundles are available from GitHub:
 
@@ -22,6 +24,7 @@ Graphite can also be installed from `PyPI <http://pypi.python.org/>`_ via
 * http://pypi.python.org/pypi/whisper/
 * http://pypi.python.org/pypi/carbonate/
 * http://pypi.python.org/pypi/ceres/
+
 
 Upgrading
 ---------
