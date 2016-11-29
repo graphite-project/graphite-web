@@ -36,12 +36,15 @@ If you're not already running from the *master* branch, Graphite-Web's applicati
   sudo PYTHONPATH=/opt/graphite/webapp django-admin.py migrate \
         --noinput --settings=graphite.settings --run-syncdb
 
-A new document is available for :doc:`developers and contributors <../development>` that covers how to setup your own development environment, and running & writing tests.
+A new document is available for :doc:`developers and contributors <../development>`_ that covers how to setup your own development environment, and running & writing tests.
+
+We're also happy to publish a new document for :doc:`Graphite Events <../events>`_. It covers the storage, creation, retrieval, and management of events used for annotation or tracking release-style events.
 
 
 Security Notes
 --------------
-No known security issues.
+
+* XSS issue affecting saved graph definitions. Targets are now properly sanitized before being handed back to the user.
 
 
 New Render Functions
