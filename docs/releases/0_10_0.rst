@@ -129,6 +129,10 @@ Graphite-Web
 
 * The ``constantLine`` function can now be rendered without any other series.
 
+* Incorrect float format across a variety of functions.
+
+* Fix "thousands" unit for y-axis.
+
 
 Carbon
 ^^^^^^
@@ -207,6 +211,10 @@ Graphite-Web
 * Event times are now converted to local time to align with query times.
 
 * Faster calculation algorithm for ``movingAverage``.
+
+* Automatically close the Dashboard's upper navigation panel if the dashboard was loaded by a parameterized URL.
+
+* Cluster servers can now communicate over HTTPS when ``INTRACLUSTER_HTTPS`` is enabled.
 
 
 Carbon
