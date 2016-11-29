@@ -105,6 +105,31 @@ Bug Fixes
 Graphite-Web
 ^^^^^^^^^^^^
 
+* Render infinite values correctly for compatibility with JSON consumers (e.g. Grafana).
+
+* Fix for ``aliasByMetric`` to handle trailing parentheses properly.
+
+* Some functions would not handle ``event`` tags formatting. The format for these strings has been fixed.
+
+* Improved data extraction from CarbonLink cache when crossing archive boundaries.
+
+* Follow symlinks for RRD files.
+
+* Unicode fixes for RRD paths.
+
+* Support for the FNV1a_ch hashing algorithm used by the `carbon-c-relay <https://github.com/grobian/carbon-c-relay>`_ project.
+
+* Fix for ``smartSummarize`` where it would discard timezone information, sometimes resulting in an exception due to broken intervals.
+
+* Better handling for missing data in the divisor series for ``divideSeries``.
+
+* Fix function name reported in path expression for ``stdev``.
+
+* The ``countSeries`` function will now return zeroes instead of an empty series.
+
+* The ``constantLine`` function can now be rendered without any other series.
+
+
 Carbon
 ^^^^^^
 
@@ -122,6 +147,7 @@ Carbon
 
 * Fix ``--profile`` option for recording performance data.
 
+* Improved help documentation in the Composer.
 
 
 Other Changes
@@ -143,6 +169,45 @@ Graphite-Web
 * Python's own log rotation can be disabled using the `LOG_ROTATION` setting. This is useful when running multiple WSGI workers.
 
 * The events API now requires ``tags`` to be an array when creating tagged events. Previous versions only accepted string attributes. Tags are also serialized as arrays.
+
+* Enhancements and optimizations to brace expansion for wildcards.
+
+* Graphite Dashboards support absolute time ranges passed in the URL.
+
+* Dumping the known metrics list with ``/metrics/index.json`` now includes RRD metrics.
+
+* Improved support for special characters in metric names.
+
+* Support for jsonp requests in the metrics view.
+
+* New "refresh" button in the metrics tree navigation panel.
+
+* Refresh all visible nodes in the metrics tree navigation view, not just the current node level.
+
+* Support for globstar matching in target paths.
+
+* Introduce the ``MAX_TAG_LENGTH`` setting for overriding the maximum tag length for events.
+
+* Ability to retrieve a single event via the API. Previously you would have to dump the entire events database to inspect any events.
+
+* Configurable ``DATE_FORMAT`` setting for overriding the short date format.
+
+* New ``nodelist`` format for the metrics find view. This mode makes it easier for clients to query metric node information from the API.
+
+* Ability to pass units suffix string (e.g. "Kb") to ``cactiStyle``.
+
+* Interpolate across null values in ``perSecond`` function.
+
+* Dashboards are now sorted alphabetically in the finder.
+
+* Support for unicode in rendered graph text.
+
+* Improved sorting of saved graphs.
+
+* Event times are now converted to local time to align with query times.
+
+* Faster calculation algorithm for ``movingAverage``.
+
 
 Carbon
 ^^^^^^
