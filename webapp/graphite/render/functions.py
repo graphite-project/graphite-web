@@ -1696,7 +1696,8 @@ def maximumAbove(requestContext, seriesList, n):
   """
   results = []
   for series in seriesList:
-    if safeMax(series) > n:
+    val = safeMax(series)
+    if val is not None and val > n:
       results.append(series)
   return results
 
@@ -1715,7 +1716,8 @@ def minimumAbove(requestContext, seriesList, n):
   """
   results = []
   for series in seriesList:
-    if safeMin(series) > n:
+    val = safeMin(series)
+    if val is not None and val > n:
       results.append(series)
   return results
 
@@ -1735,7 +1737,8 @@ def maximumBelow(requestContext, seriesList, n):
 
   result = []
   for series in seriesList:
-    if safeMax(series) <= n:
+    val = safeMax(series)
+    if val is None or val <= n:
       result.append(series)
   return result
 
@@ -1755,7 +1758,8 @@ def minimumBelow(requestContext, seriesList, n):
 
   result = []
   for series in seriesList:
-    if safeMin(series) <= n:
+    val = safeMin(series)
+    if val is None or val <= n:
       result.append(series)
   return result
 
@@ -1830,7 +1834,12 @@ def currentAbove(requestContext, seriesList, n):
   Draws the servers with more than 50 busy threads.
 
   """
-  return [ series for series in seriesList if safeLast(series) >= n ]
+  results = []
+  for series in seriesList:
+    val = safeLast(series)
+    if val is not None and val >= n:
+      results.append(series)
+  return results
 
 def currentBelow(requestContext, seriesList, n):
   """
@@ -1847,7 +1856,12 @@ def currentBelow(requestContext, seriesList, n):
   Draws the servers with less than 3 busy threads.
 
   """
-  return [ series for series in seriesList if safeLast(series) <= n ]
+  results = []
+  for series in seriesList:
+    val = safeLast(series)
+    if val is None or val <= n:
+      results.append(series)
+  return results
 
 def highestAverage(requestContext, seriesList, n):
   """
@@ -1900,7 +1914,12 @@ def averageAbove(requestContext, seriesList, n):
   Draws the servers with average values above 25.
 
   """
-  return [ series for series in seriesList if safeDiv(safeSum(series),safeLen(series)) >= n ]
+  results = []
+  for series in seriesList:
+    val = safeAvg(series)
+    if val is not None and val >= n:
+      results.append(series)
+  return results
 
 def averageBelow(requestContext, seriesList, n):
   """
@@ -1917,7 +1936,12 @@ def averageBelow(requestContext, seriesList, n):
   Draws the servers with average values below 25.
 
   """
-  return [ series for series in seriesList if safeDiv(safeSum(series),safeLen(series)) <= n ]
+  results = []
+  for series in seriesList:
+    val = safeAvg(series)
+    if val is None or val <= n:
+      results.append(series)
+  return results
 
 def _getPercentile(points, n, interpolate=False):
   """
