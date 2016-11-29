@@ -1,6 +1,6 @@
 import time
 import httplib
-import requests
+import urllib3
 from threading import Lock
 from urllib import urlencode
 from django.conf import settings
@@ -9,6 +9,9 @@ from graphite.node import LeafNode, BranchNode
 from graphite.logger import log
 from graphite.util import unpickle
 from graphite.render.hashing import compactHash
+
+findHTTP = urllib3.PoolManager()
+fetchHTTP = urllib3.PoolManager()
 
 def connector_class_selector(https_support=False):
     return httplib.HTTPSConnection if https_support else httplib.HTTPConnection
@@ -77,18 +80,20 @@ class FindRequest(object):
       query_string = urlencode(query_params)
 
       try:
-        if settings.REMOTE_STORE_USE_POST:
-          result = requests.post(url, data=query_params, headers=headers or {}, timeout=settings.REMOTE_FIND_TIMEOUT)
-        else:
-          result = requests.get(url, params=query_params, headers=headers or {}, timeout=settings.REMOTE_FIND_TIMEOUT)
+        result = findHTTP.request('POST' if settings.REMOTE_STORE_USE_POST else 'GET',
+                              url, fields=query_params, headers=headers, timeout=settings.REMOTE_FIND_TIMEOUT)
       except:
         log.exception("FindRequest.send(host=%s, query=%s) exception during request" % (self.store.host, self.query))
         self.store.fail()
         return
 
+      if result.status != 200:
+        log.error("ReadResult :: Error response %d from %s?%s" % (result.status, url, query_string))
+        self.store.fail()
+        return
+
       try:
-        result.raise_for_status()
-        results = unpickle.loads(result.content)
+        results = unpickle.loads(result.data)
       except:
         log.exception("FindRequest.get_results(host=%s, query=%s) exception processing response" % (self.store.host, self.query))
         self.store.fail()
@@ -184,20 +189,18 @@ class RemoteReader(object):
 
       try:
         log.info("ReadResult :: requesting %s?%s at %fs" % (url, query_string, time.time()))
-        if settings.REMOTE_STORE_USE_POST:
-          result = requests.post(url, data=query_params, headers=headers, timeout=settings.REMOTE_FETCH_TIMEOUT)
-        else:
-          result = requests.get(url, params=query_params, headers=headers, timeout=settings.REMOTE_FETCH_TIMEOUT)
+        result = fetchHTTP.request('POST' if settings.REMOTE_STORE_USE_POST else 'GET',
+                              url, fields=query_params, headers=headers, timeout=settings.REMOTE_FIND_TIMEOUT)
       except Exception as err:
         self.store.fail()
         log.exception("ReadResult :: Error requesting %s?%s: %s" % (url, query_string, err))
         raise
 
-      if result.status_code != 200:
+      if result.status != 200:
         self.store.fail()
-        raise Exception("ReadResult :: Error response %d %s from %s?%s" % (result.status_code, result.reason, url, query_string))
+        raise Exception("ReadResult :: Error response %d from %s?%s" % (result.status, url, query_string))
 
-      data = unpickle.loads(result.content)
+      data = unpickle.loads(result.data)
 
       requestContext['inflight_requests'][cacheKey] = data
 
