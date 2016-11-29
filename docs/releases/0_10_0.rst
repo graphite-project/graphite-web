@@ -105,6 +105,21 @@ Graphite-Web
 Carbon
 ^^^^^^
 
+* Avoid duplication of aggregator statistics by using a dedicated pipeline.
+
+* Log incorrect schemas missing the ``retentions`` attribute.
+
+* Improved logging for writer create or update failures.
+
+* Fix long-standing issue with negative cache size statistic.
+
+* Use the correct ``AGGREGATION_RULES`` configuration file.
+
+* Fix race condition possible when queue is full and destinations reconnect.
+
+* Fix ``--profile`` option for recording performance data.
+
+
 
 Other Changes
 -------------
@@ -141,6 +156,29 @@ Graphite-Web
 Carbon
 ^^^^^^
 
+* Support for pluggable protocols and clients. No new protocols have been added yet, but existing protocols have been ported over to use the new design.
+
+* Support for pluggable routers, including new ``fast-hashing`` and ``fast-aggregated-hashing`` relay methods based on MurmurHash3.
+
+* Introduced ``CERES_NODE_CACHING_BEHAVIOR`` for tuning Ceres' caching behavior.
+
+* Aggregators now report ``destinations`` statistics.
+
+* Remove unused ``list`` and ``match-all`` schema options.
+
+* Introduced ``WHISPER_FADVISE_RANDOM`` as an option to avoid disk thrashing in certain scenarios.
+
+* Support for ``MAX_RECEIVER_CONNECTIONS`` to limit the number of TCP connections to the intended Carbon service.
+
+* Listeners will include metric path details when logging due to invalid line submission.
+
+* Support logging to syslog with the ``--syslog`` runtime option.
+
+* Allow Manhole to operate with no passphrase.
+
+* New ``--profiler`` runtime option for specifying the profiler.
+
+* Improved ``HUP`` signal handling.
 
 .. _Tox: https://testrun.org/tox/latest/
 
