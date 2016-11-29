@@ -129,29 +129,17 @@ Graphite-Web
 
 * New Graphite logo in the Composer banner.
 
-* Pluggable storage finders have been added. This allows graphite to fetch
-  data from other datastores than Whisper or Ceres. See the :doc:`storage
-  finder docs <../storage-backends>` for more information.
+* Pluggable storage finders have been added. This allows graphite to fetch data from other datastores than Whisper or Ceres. See the :doc:`storage finder docs <../storage-backends>` for more information.
 
-* The search index file is now generated with the ``build-index`` command that
-  has been rewritten in Python. ``build-index.sh`` is still available but is
-  just an alias to ``build-index``.
+* The search index file is now generated with the ``build-index`` command that has been rewritten in Python. ``build-index.sh`` is still available but is just an alias to ``build-index``.
 
-* The ``CONTENT_DIR`` setting has been replaced with ``STATIC_ROOT`` and now
-  allows to easily serve non-graphite static files such as Django admin's. See
-  the :doc:`configuration docs <../config-local-settings>` for usage
-  instructions.
+* The ``CONTENT_DIR`` setting has been replaced with ``STATIC_ROOT`` and now allows to easily serve non-graphite static files such as Django admin's. See the :doc:`configuration docs <../config-local-settings>` for usage instructions.
 
-* `Tox`_ is now used for running the tests locally across the supported Django
-  and Python version combinations. A :doc:`section about working on
-  graphite-web <../development>` has been added to the documentation.
+* `Tox <https://testrun.org/tox/latest/>`_ is now used for running the tests locally across the supported Django and Python version combinations. A :doc:`section about working on graphite-web <../development>` has been added to the documentation.
 
-* Python's own log rotation can be disabled using the `LOG_ROTATION` setting. This
-  is useful when running multiple WSGI workers.
+* Python's own log rotation can be disabled using the `LOG_ROTATION` setting. This is useful when running multiple WSGI workers.
 
-* The events API now requires ``tags`` to be an array when creating tagged
-  events. Previous versions only accepted string attributes. Tags are also
-  serialized as arrays.
+* The events API now requires ``tags`` to be an array when creating tagged events. Previous versions only accepted string attributes. Tags are also serialized as arrays.
 
 Carbon
 ^^^^^^
@@ -179,6 +167,4 @@ Carbon
 * New ``--profiler`` runtime option for specifying the profiler.
 
 * Improved ``HUP`` signal handling.
-
-.. _Tox: https://testrun.org/tox/latest/
 
