@@ -36,6 +36,8 @@ If you're not already running from the *master* branch, Graphite-Web's applicati
   sudo PYTHONPATH=/opt/graphite/webapp django-admin.py migrate \
         --noinput --settings=graphite.settings --run-syncdb
 
+A new document is available for :doc:`developers and contributors <../development>` that covers how to setup your own development environment, and running & writing tests.
+
 
 Security Notes
 --------------
