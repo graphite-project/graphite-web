@@ -76,7 +76,7 @@ class ConsistentHashRing:
 
   def compute_ring_position(self, key):
     if self.hash_type == 'fnv1a_ch':
-      big_hash = ('%X' % int(fnv32a(str(key)))).lower()
+      big_hash = ('%08X' % int(fnv32a(str(key)))).lower()
       small_hash = int(big_hash[:4], 16) ^ int(big_hash[4:], 16)
     else:
       big_hash = md5( str(key) ).hexdigest()
