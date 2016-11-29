@@ -22,6 +22,7 @@ from urllib import urlencode
 from urlparse import urlsplit, urlunsplit
 from cgi import parse_qs
 from cStringIO import StringIO
+
 try:
   import cPickle as pickle
 except ImportError:
@@ -36,6 +37,7 @@ from graphite.render.attime import parseATTime
 from graphite.render.functions import PieFunctions
 from graphite.render.hashing import hashRequest, hashData
 from graphite.render.glyph import GraphTypes
+from graphite.render.float_encoder import FloatEncoder
 
 from django.http import HttpResponseServerError, HttpResponseRedirect
 from django.template import Context, loader
@@ -172,10 +174,10 @@ def renderView(request):
 
       if 'jsonp' in requestOptions:
         response = HttpResponse(
-          content="%s(%s)" % (requestOptions['jsonp'], json.dumps(series_data)),
+          content="%s(%s)" % (requestOptions['jsonp'], json.dumps(series_data, cls=FloatEncoder)),
           content_type='text/javascript')
       else:
-        response = HttpResponse(content=json.dumps(series_data),
+        response = HttpResponse(content=json.dumps(series_data, cls=FloatEncoder),
                                 content_type='application/json')
 
       if useCache:
@@ -194,7 +196,15 @@ def renderView(request):
         for series in data:
           labels.append(series.name)
           for i, point in enumerate(series):
-            datapoints[i].append(point if point is not None else 'null')
+            if point is None:
+              point = 'null'
+            elif point == float('inf'):
+              point = 'Infinity'
+            elif point == float('-inf'):
+              point = '-Infinity'
+            elif math.isnan(point):
+              point = 'null'
+            datapoints[i].append(point)
         line_template = '[%%s000%s]' % ''.join([', %s'] * len(data))
         lines = [line_template % tuple(points) for points in datapoints]
         result = '{"labels" : %s, "data" : [%s]}' % (json.dumps(labels), ', '.join(lines))
