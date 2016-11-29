@@ -114,10 +114,10 @@ def renderView(request):
     else: # Have to actually retrieve the data now
       targets = requestOptions['targets']
       if settings.REMOTE_PREFETCH_DATA:
+        log.rendering("Prefetching remote data")
         t = time()
         pathExpressions = extractPathExpressions(targets)
-        requestContext['prefetchedRemoteData'] = prefetchRemoteData(requestContext, pathExpressions)
-        log.rendering("Prefetching remote data took %.6f" % (time() - t))
+        prefetchRemoteData(requestContext, pathExpressions)
       for target in targets:
         if not target.strip():
           continue

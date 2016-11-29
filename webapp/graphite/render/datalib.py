@@ -16,12 +16,13 @@ limitations under the License."""
 import threading
 import Queue
 import time
-import pprint
+# import pprint
 
 from graphite.logger import log
 from graphite.storage import STORE
 from django.conf import settings
 from graphite.util import epoch
+from graphite.remote_storage import RemoteReader
 
 from traceback import format_exc
 
@@ -120,71 +121,27 @@ def _timebounds(requestContext):
   return (startTime, endTime, now)
 
 
-def _prefetchMetricKey(pathExpression, start, end):
-  return '-'.join([pathExpression, str(start), str(end)])
-
-
 def prefetchRemoteData(requestContext, pathExpressions):
-  # if required, fetch data from all remote nodes
-  # storing the result in a big hash of the form:
-  # data[node][hash(originalPathExpression, start, end)] = [
-  #   matchingSeries, matchingSeries2, ... ]
-
-  prefetchedRemoteData = {}
   if requestContext['localOnly']:
-    return prefetchedRemoteData
+    return
 
   (startTime, endTime, now) = _timebounds(requestContext)
-  result_queue = fetchRemoteData(requestContext, pathExpressions, False)
-  while not result_queue.empty():
-    try:
-      (node, results) = result_queue.get_nowait()
-    except Queue.Empty:
-      log.exception("result_queue not empty, but unable to retrieve results")
 
-    # prefill result with empty list
-    # Needed to be able to detect if a query has already been made
-    prefetchedRemoteData[node] = {}
-    for pe in pathExpressions:
-      prefetchedRemoteData[node][_prefetchMetricKey(pe, startTime, endTime)] = []
+  # Go through all of the remote nodes, and launch a fetch for each one.
+  # Each fetch will take place in its own thread, since it's naturally parallel work.
+  for pathExpr in pathExpressions:
+    for store in STORE.remote_stores:
+      reader = RemoteReader(store, {'path': pathExpr, 'intervals': []}, bulk_query=pathExpr)
 
-    for series in results:
-      # series.pathExpression is original target, ie. containing wildcards
-      # XXX would be nice to disable further prefetch calls to that backend
-      try:
-        k = _prefetchMetricKey(series['pathExpression'], startTime, endTime)
-      except KeyError:
-        log.exception("Remote node %s doesn't support prefetching data" % node)
-        raise
-
-      if prefetchedRemoteData[node].get(k) is None:
-        # This should not be needed because of above filling with [],
-        # but could happen if backend sends unexpected stuff
-        prefetchedRemoteData[node][k] = [series]
-      else:
-        prefetchedRemoteData[node][k].append(series)
-
-  return prefetchedRemoteData
+      fetch_thread = threading.Thread(target=reader.fetch_list,
+                                      args=(startTime, endTime, now, requestContext))
+      fetch_thread.start()
 
 
-def prefetchLookup(requestContext, node):
-  # Returns a seriesList if found in cache
-  # or None if key doesn't exist (aka prefetch didn't cover this pathExpr / timerange
-  (start, end, now) = _timebounds(requestContext)
-  try:
-    cache = requestContext['prefetchedRemoteData'][node.store.host]
-    r = cache[_prefetchMetricKey(node.metric_path, start, end)]
-  except (AttributeError, KeyError):
-    r = None
-
-  return r
-
-
-def fetchRemoteData(requestContext, pathExpr, usePrefetchCache=settings.REMOTE_PREFETCH_DATA):
+def fetchRemoteData(requestContext, pathExpr, nodes):
   (startTime, endTime, now) = _timebounds(requestContext)
-  nodes = STORE.find(pathExpr, startTime, endTime, local=requestContext['localOnly'])
 
-  # Go through all of the remote_nodes, and launch a remote_fetch for each one.
+  # Go through all of the nodes, and launch a fetch for each one.
   # Each fetch will take place in its own thread, since it's naturally parallel work.
   # Notable: return the 'seriesList' result from each node.fetch into result_queue
   # instead of directly from the method. Queue.Queue() is threadsafe.
@@ -192,27 +149,13 @@ def fetchRemoteData(requestContext, pathExpr, usePrefetchCache=settings.REMOTE_P
   results = []
   result_queue = Queue.Queue()
   for node in nodes:
-    pprint.PrettyPrinter(indent=4).pprint(node)
     if not node.is_leaf:
       continue
 
-    need_fetch = True
-
-    if not node.local and usePrefetchCache:
-      series = prefetchLookup(requestContext, node)
-      # Will be either:
-      #   []: prefetch done, returned no data. Do not fetch
-      #   seriesList: prefetch done, returned data, do not fetch
-      #   None: prefetch not done, FETCH
-      if series is not None:
-        results.append( (node, series) )
-        need_fetch = False
-
-    if need_fetch:
-      fetch_thread = threading.Thread(target=node.fetch,
-                                      args=(startTime, endTime, now, result_queue, requestContext.get('forwardHeaders')))
-      fetch_thread.start()
-      fetches.append(fetch_thread)
+    fetch_thread = threading.Thread(target=node.fetch,
+                                    args=(startTime, endTime, now, result_queue, requestContext))
+    fetch_thread.start()
+    fetches.append(fetch_thread)
 
   start = time.time()
   deadline = start + settings.REMOTE_FETCH_TIMEOUT
@@ -277,17 +220,11 @@ def fetchData(requestContext, pathExpr):
   return retval
 
 def _fetchData(pathExpr, startTime, endTime, requestContext, seriesList):
-  # matching_nodes = STORE.find(pathExpr, startTime, endTime, local=True)
-  # fetches = [(node, node.fetch(startTime, endTime)) for node in matching_nodes if node.is_leaf]
-
   t = time.time()
 
-  result_queue = fetchRemoteData(requestContext, pathExpr)
-  #pp = pprint.PrettyPrinter(indent=4)
-  #log.rendering('DEBUG: fetches...')
-  #log.rendering(pp.pprint(fetches))
-  #log.rendering('DEBUG: test_result_queue...')
-  #log.rendering(pp.pprint(result_queue))
+  nodes = STORE.find(pathExpr, startTime, endTime, local=requestContext['localOnly'])
+
+  result_queue = fetchRemoteData(requestContext, pathExpr, nodes)
 
   log.info("render.datalib.fetchRemoteData :: completed in %fs" % (time.time() - t))
 

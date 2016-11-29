@@ -46,30 +46,20 @@ class MultiReader(object):
       interval_sets.extend( node.intervals.intervals )
     return IntervalSet( sorted(interval_sets) )
 
-  def fetch(self, startTime, endTime, now=None, headers=None):
+  def fetch(self, startTime, endTime, now=None, requestContext=None):
     # Go through the nodes and launch a fetch for each one.
     # Each fetch will take place in its own thread, since it's naturally parallel work.
     fetches = []
     results = []
     result_queue = Queue.Queue()
     for node in self.nodes:
-      need_fetch = True
+      if not node.is_leaf:
+        continue
 
-      # if not node.local and usePrefetchCache:
-        # series = prefetchLookup(requestContext, node)
-        # Will be either:
-        #   []: prefetch done, returned no data. Do not fetch
-        #   seriesList: prefetch done, returned data, do not fetch
-        #   None: prefetch not done, FETCH
-        # if series is not None:
-          # results.append( (node, series) )
-          # need_fetch = False
-
-      if need_fetch:
-        fetch_thread = threading.Thread(target=node.fetch,
-                                        args=(startTime, endTime, now, result_queue, headers))
-        fetch_thread.start()
-        fetches.append(fetch_thread)
+      fetch_thread = threading.Thread(target=node.fetch,
+                                      args=(startTime, endTime, now, result_queue, requestContext))
+      fetch_thread.start()
+      fetches.append(fetch_thread)
 
     deadline = time.time() + settings.REMOTE_FETCH_TIMEOUT
     result_cnt = 0
@@ -165,7 +155,7 @@ class CeresReader(object):
 
     return IntervalSet(intervals)
 
-  def fetch(self, startTime, endTime, now=None, headers=None):
+  def fetch(self, startTime, endTime, now=None, requestContext=None):
     data = self.ceres_node.read(startTime, endTime)
     time_info = (data.startTime, data.endTime, data.timeStep)
     values = list(data.values)
@@ -198,7 +188,7 @@ class WhisperReader(object):
     end = max( os.stat(self.fs_path).st_mtime, start )
     return IntervalSet( [Interval(start, end)] )
 
-  def fetch(self, startTime, endTime, now=None, headers=None):
+  def fetch(self, startTime, endTime, now=None, requestContext=None):
     data = whisper.fetch(self.fs_path, startTime, endTime)
     if not data:
       return None
@@ -243,7 +233,7 @@ class GzippedWhisperReader(WhisperReader):
     end = max( os.stat(self.fs_path).st_mtime, start )
     return IntervalSet( [Interval(start, end)] )
 
-  def fetch(self, startTime, endTime, now=None, headers=None):
+  def fetch(self, startTime, endTime, now=None, requestContext=None):
     fh = gzip.GzipFile(self.fs_path, 'rb')
     try:
       return whisper.file_fetch(fh, startTime, endTime)
@@ -269,7 +259,7 @@ class RRDReader:
     end = max( os.stat(self.fs_path).st_mtime, start )
     return IntervalSet( [Interval(start, end)] )
 
-  def fetch(self, startTime, endTime, now=None, headers=None):
+  def fetch(self, startTime, endTime, now=None, requestContext=None):
     startString = time.strftime("%H:%M_%Y%m%d+%Ss", time.localtime(startTime))
     endString = time.strftime("%H:%M_%Y%m%d+%Ss", time.localtime(endTime))
 

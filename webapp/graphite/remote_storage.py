@@ -110,9 +110,7 @@ class FindRequest(object):
 
 class RemoteReader(object):
   __slots__ = ('store', 'metric_path', 'intervals', 'query', 'connection')
-  inflight_requests = {}
   inflight_lock = Lock()
-  inflight_locks = {}
 
   def __init__(self, store, node_info, bulk_query=None):
     self.store = store
@@ -127,8 +125,8 @@ class RemoteReader(object):
   def get_intervals(self):
     return self.intervals
 
-  def fetch(self, startTime, endTime, now=None, headers=None):
-    seriesList = self.fetch_list( startTime, endTime, now, headers);
+  def fetch(self, startTime, endTime, now=None, requestContext=None):
+    seriesList = self.fetch_list( startTime, endTime, now, requestContext);
 
     for series in seriesList:
       if series['name'] == self.metric_path:
@@ -137,7 +135,7 @@ class RemoteReader(object):
 
     return None
 
-  def fetch_list(self, startTime, endTime, now=None, headers=None):
+  def fetch_list(self, startTime, endTime, now=None, requestContext=None):
     t = time.time()
 
     query_params = [
@@ -154,19 +152,29 @@ class RemoteReader(object):
     query_string = urlencode(query_params)
     urlpath = '/render/'
     url = "%s://%s%s" % ('https' if settings.INTRACLUSTER_HTTPS else 'http', self.store.host, urlpath)
+    headers = requestContext.get('forwardHeaders') if requestContext else None
 
     cacheKey = "%s?%s" % (url, query_string)
 
     log.info("ReadResult :: waiting for global lock %s?%s at %fs" % (url, query_string, time.time()))
     with self.inflight_lock:
-      if cacheKey not in self.inflight_locks:
+      if requestContext is None:
+        requestContext = {}
+      if 'inflight_locks' not in requestContext:
+        requestContext['inflight_locks'] = {}
+      if 'inflight_requests' not in requestContext:
+        requestContext['inflight_requests'] = {}
+
+      if cacheKey not in requestContext['inflight_locks']:
         log.info("ReadResult :: creating lock %s?%s at %fs" % (url, query_string, time.time()))
-        self.inflight_locks[cacheKey] = Lock()
+        requestContext['inflight_locks'][cacheKey] = Lock()
+
+      cacheLock = requestContext['inflight_locks'][cacheKey]
 
     log.info("ReadResult :: waiting for url lock %s?%s at %fs" % (url, query_string, time.time()))
-    with self.inflight_locks[cacheKey]:
+    with cacheLock:
       try:
-        data = self.inflight_requests[cacheKey]
+        data = requestContext['inflight_requests'][cacheKey]
         log.info("ReadResult :: returning cached data %s?%s in %fs" % (url, query_string, time.time()))
         return data
       except KeyError:
@@ -179,27 +187,18 @@ class RemoteReader(object):
           result = requests.post(url, data=query_params, headers=headers, timeout=settings.REMOTE_FETCH_TIMEOUT)
         else:
           result = requests.get(url, params=query_params, headers=headers, timeout=settings.REMOTE_FETCH_TIMEOUT)
-      except:
+      except Exception as err:
         self.store.fail()
-        log.exception("ReadResult :: Error requesting %s?%s" % (url, query_string))
+        log.exception("ReadResult :: Error requesting %s?%s: %s" % (url, query_string, err))
         raise
 
       if result.status_code != 200:
+        self.store.fail()
         raise Exception("ReadResult :: Error response %d %s from %s?%s" % (result.status_code, result.reason, url, query_string))
 
       data = unpickle.loads(result.content)
 
-      self.inflight_requests[cacheKey] = data
-
-    # release lock to allow waiting threads to read data
-
-    with self.inflight_locks[cacheKey]:
-      log.info("ReadResult :: removing cached data %s?%s at %fs" % (url, query_string, time.time()))
-      del self.inflight_requests[cacheKey]
-
-    with self.inflight_lock:
-      log.info("ReadResult :: removing url lock %s?%s at %fs" % (url, query_string, time.time()))
-      del self.inflight_locks[cacheKey]
+      requestContext['inflight_requests'][cacheKey] = data
 
     log.info("ReadResult :: returning %s?%s at %fs in %fs" % (url, query_string, time.time(), time.time() - t))
     return data
