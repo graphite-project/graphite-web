@@ -25,7 +25,8 @@ class RemoteStore(object):
     request = FindRequest(self, query)
     result = request.send(headers)
     if result_queue:
-      result_queue.put(result)
+      # iterate over the returned generator
+      result_queue.put([node for node in result])
     else:
       return result
 
@@ -54,7 +55,7 @@ class FindRequest(object):
 
   def send(self, headers=None):
     t = time.time()
-    log.info("FindRequest.send(host=%s, query=%s) called" % (self.store.host, self.query))
+    log.info("FindRequest.send(host=%s, query=%s) called at %s" % (self.store.host, self.query, t))
 
     results = cache.get(self.cacheKey)
     if results is not None:
@@ -95,7 +96,7 @@ class FindRequest(object):
 
       cache.set(self.cacheKey, results, settings.FIND_CACHE_DURATION)
 
-    log.info("FindRequest.send(host=%s, query=%s) completed in %fs" % (self.store.host, self.query, time.time() - t))
+    log.info("FindRequest.send(host=%s, query=%s) completed in %fs at %s" % (self.store.host, self.query, time.time() - t, time.time()))
 
     for node_info in results:
       if node_info.get('is_leaf'):

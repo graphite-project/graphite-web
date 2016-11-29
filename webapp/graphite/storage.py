@@ -25,7 +25,8 @@ def get_finder(finder_path):
 
 
 def find_into_queue(finder, query, result_queue):
-  result_queue.put(finder.find_nodes(query))
+  # iterate over the returned generator
+  result_queue.put([node for node in finder.find_nodes(query)])
 
 
 class Store:
