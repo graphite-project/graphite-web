@@ -144,7 +144,6 @@ def renderView(request):
 
     if format == 'json':
       jsonStart = time()
-
       series_data = []
       if 'maxDataPoints' in requestOptions and any(data):
         startTime = min([series.start for series in data])
