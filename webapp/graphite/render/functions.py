@@ -147,6 +147,9 @@ def normalize(seriesLists):
       return (seriesList,start,end,step)
   raise NormalizeEmptyResultError()
 
+def getNodes(series):
+  return re.search('(?:.*\()?(?P<name>[-\w*\.]+)(?:,|\)?.*)?',series.name).groups(
+
 class NormalizeEmptyResultError(Exception):
   # throw error for normalize() when empty
   pass
@@ -439,6 +442,137 @@ def percentileOfSeries(requestContext, seriesList, n, interpolate=False):
   resultSeries.pathExpression = name
 
   return [resultSeries]
+
+def summaryOfHistogram(requestContext, seriesList, bucketNode=-1, cummulative=True):
+  """
+  Takes a list of metrics representing histogram buckets into parameter and returns
+  multiple series representing the summary of this histogram. The resulting series
+  include the following instant values: sum, count, avg, and max.
+
+  Point values are interpolated assuming a linear distribution within a bucket. For values
+  falling into the highest bucket (+inf) the second highest upper bound is used instead.
+
+  The bucketNode argument is used to get the upper bound of each bucket.
+
+  If cummulative is set to True the lower bound of each bucket is 0, when set
+  to False this lower bound is the previous upper bound.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=summaryOfHistogram(myapp.latency.histogram.*)
+
+  """
+
+  # TODO: find something better because this allows only a single summary
+  # per gaph.
+  name = '.'.join(getNodes(seriesList[0])[0:bucketNode])
+  (start, end, step) = normalize([seriesList])[1:]
+
+  # Prepare resulting series.
+  num_values = (end - start) / step
+  values = [None] * num_values
+  result = {
+    'min': TimeSeries(name + '.min', start, end, step, list(values)),
+    'max': TimeSeries(name + '.max', start, end, step, list(values)),
+    'count': TimeSeries(name + '.count', start, end, step, list(values)),
+    'sum': TimeSeries(name + '.sum', start, end, step, list(values)),
+    'avg': TimeSeries(name + '.avg', start, end, step, list(values)),
+  }
+  percentiles = [50, 75, 90, 95, 99, 99.9]
+  for p in percentiles:
+    pname = ('%spctl' % p).replace('.', '')
+    result[pname] = TimeSeries(name + '.%s' % pname, start, end, step, list(values))
+
+  # Make bucket easy to access for computations.
+  buckets = {}
+  for series in seriesList:
+    nodes = getNodes(series)
+    bucket = nodes[bucketNode]
+    buckets[bucket] = series
+
+  sorted_bucket_keys = sorted(
+    buckets.keys(),
+    key=lambda k: float(k))
+
+  # Create the new series.
+  for i in range(0, num_values):
+    bucket_start = 0
+    prev_count = 0
+    summary_count = 0
+    summary_sum = 0
+    summary_max = None
+    summary_min = None
+    summary_pctl = {p: None for p in percentiles}
+    current_count = 0
+
+    # Get the total for percentiles.
+    if cummulative:
+      total_count = buckets[sorted_bucket_keys[-1]][i]
+    else:
+      for key in sorted_bucket_keys:
+        total_count += buckets[key][i]
+
+    # Look at each bucket in order.
+    for key in sorted_bucket_keys:
+      bucket_stop = float(key)
+      count = buckets[key][i]
+      if count is None:
+        continue
+
+      # Get the number of items for this bucket alone.
+      if cummulative and count:
+        count -= prev_count
+
+      # Get a representative value for this bucket.
+      if key == 'inf':
+        value = bucket_start
+      else:
+        value = (bucket_stop - bucket_start) / 2
+
+      if count and summary_min is None:
+        summary_min = value
+      if count:
+        summary_max = value
+
+      summary_count += count
+      if cummulative:
+        current_count = count
+      else:
+        current_count += count
+      summary_sum += value * count
+
+      # Compute percentiles.
+      for p in percentiles:
+        if summary_pctl[p] is not None:
+          continue
+        rank = (p / 100.) * total_count
+        rank -= prev_count
+
+        # See if the percentile is in this bucket.
+        if key == sorted_bucket_keys[-1]:
+          summary_pctl[p] = bucket_start
+        elif rank <= current_count:
+          summary_pctl[p] = bucket_start + bucket_stop-bucket_start * (rank/count)
+
+      bucket_start = bucket_stop
+      prev_count = max(count, prev_count)
+
+    summary_avg = None
+
+    if summary_count:
+      summary_avg = summary_sum / summary_count
+    result['sum'][i] = summary_sum
+    result['count'][i] = summary_count
+    result['avg'][i] = summary_avg
+    result['max'][i] = summary_max
+    result['min'][i] = summary_min
+    for p in percentiles:
+      pname = ('%spctl' % p).replace('.', '')
+      result[pname][i] = summary_pctl[p]
+
+  return result.values()
 
 def keepLastValue(requestContext, seriesList, limit = INF):
   """
@@ -1535,7 +1669,7 @@ def aliasByNode(requestContext, seriesList, *nodes):
   if isinstance(nodes, int):
     nodes=[nodes]
   for series in seriesList:
-    metric_pieces = re.search('(?:.*\()?(?P<name>[-\w*\.]+)(?:,|\)?.*)?',series.name).groups()[0].split('.')
+    metric_pieces = getNodes(series)
     series.name = '.'.join(metric_pieces[n] for n in nodes)
   return seriesList
 
@@ -3754,6 +3888,7 @@ SeriesFunctions = {
   'percentileOfSeries': percentileOfSeries,
   'countSeries': countSeries,
   'weightedAverage': weightedAverage,
+  'summaryOfHistogram': summaryOfHistogram,
 
   # Transform functions
   'scale': scale,
