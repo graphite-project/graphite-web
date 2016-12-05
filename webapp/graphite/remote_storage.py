@@ -115,7 +115,12 @@ class FindRequest(object):
         reader = RemoteReader(self.store, node_info, bulk_query=self.query.pattern)
         node = LeafNode(node_info['path'], reader)
       else:
-        node = BranchNode(node_info['path'])
+        try:
+          node = BranchNode(node_info['path'])
+        except:
+          log.exception("FindRequest.get_results(host=%s, query=%s) branch node did not respond" % (self.store.host, self.query))
+          self.store.fail()
+          return
 
       node.local = False
       yield node
