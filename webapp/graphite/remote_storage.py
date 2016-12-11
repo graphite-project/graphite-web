@@ -61,7 +61,7 @@ class FindRequest(object):
 
     results = cache.get(self.cacheKey)
     if results is not None:
-      log.info("FindRequest(host=%s, query=%s) using cached result" % (self.store.host, self.query))
+      log.info("FindRequest.send(host=%s, query=%s) using cached result" % (self.store.host, self.query))
     else:
       url = "%s://%s/metrics/find/" % ('https' if settings.INTRACLUSTER_HTTPS else 'http', self.store.host)
 
@@ -76,8 +76,6 @@ class FindRequest(object):
       if self.query.endTime:
         query_params.append( ('until', self.query.endTime) )
 
-      query_string = urlencode(query_params)
-
       try:
         result = http.request('POST' if settings.REMOTE_STORE_USE_POST else 'GET',
                               url, fields=query_params, headers=headers, timeout=settings.REMOTE_FIND_TIMEOUT)
@@ -87,14 +85,14 @@ class FindRequest(object):
         return
 
       if result.status != 200:
-        log.error("ReadResult :: Error response %d from %s?%s" % (result.status, url, query_string))
+        log.error("FindRequest.send(host=%s, query=%s) error response %d from %s?%s" % (self.store.host, self.query, result.status, url, urlencode(query_params)))
         self.store.fail()
         return
 
       try:
         results = unpickle.loads(result.data)
       except:
-        log.exception("FindRequest.get_results(host=%s, query=%s) exception processing response" % (self.store.host, self.query))
+        log.exception("FindRequest.send(host=%s, query=%s) exception processing response" % (self.store.host, self.query))
         self.store.fail()
         return
 

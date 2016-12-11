@@ -155,7 +155,7 @@ class CeresReader(object):
 
     return IntervalSet(intervals)
 
-  def fetch(self, startTime, endTime, now=None, requestContext=None):
+  def fetch(self, startTime, endTime):
     data = self.ceres_node.read(startTime, endTime)
     time_info = (data.startTime, data.endTime, data.timeStep)
     values = list(data.values)
@@ -188,7 +188,7 @@ class WhisperReader(object):
     end = max( os.stat(self.fs_path).st_mtime, start )
     return IntervalSet( [Interval(start, end)] )
 
-  def fetch(self, startTime, endTime, now=None, requestContext=None):
+  def fetch(self, startTime, endTime):
     data = whisper.fetch(self.fs_path, startTime, endTime)
     if not data:
       return None
@@ -233,7 +233,7 @@ class GzippedWhisperReader(WhisperReader):
     end = max( os.stat(self.fs_path).st_mtime, start )
     return IntervalSet( [Interval(start, end)] )
 
-  def fetch(self, startTime, endTime, now=None, requestContext=None):
+  def fetch(self, startTime, endTime):
     fh = gzip.GzipFile(self.fs_path, 'rb')
     try:
       return whisper.file_fetch(fh, startTime, endTime)
@@ -259,7 +259,7 @@ class RRDReader:
     end = max( os.stat(self.fs_path).st_mtime, start )
     return IntervalSet( [Interval(start, end)] )
 
-  def fetch(self, startTime, endTime, now=None, requestContext=None):
+  def fetch(self, startTime, endTime):
     startString = time.strftime("%H:%M_%Y%m%d+%Ss", time.localtime(startTime))
     endString = time.strftime("%H:%M_%Y%m%d+%Ss", time.localtime(endTime))
 
