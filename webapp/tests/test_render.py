@@ -111,6 +111,7 @@ class RenderTest(TestCase):
         response = self.client.get(url, {'target': 'test', 'format': 'json'})
         self.assertIn('[1e9999, ' + str(ts - 2) + ']', response.content)
         self.assertIn('[-1e9999, ' + str(ts - 1) + ']', response.content)
+        self.assertIn('[null, ' + str(ts) + ']', response.content)
         data = json.loads(response.content)
         end = data[0]['datapoints'][-7:]
         self.assertEqual(

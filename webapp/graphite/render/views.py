@@ -133,6 +133,8 @@ def renderView(request):
       return response
 
     if format == 'json':
+      jsonStart = time()
+
       series_data = []
       if 'maxDataPoints' in requestOptions and any(data):
         startTime = min([series.start for series in data])
@@ -172,20 +174,27 @@ def renderView(request):
           datapoints = zip(series, timestamps)
           series_data.append(dict(target=series.name, datapoints=datapoints))
 
+      useFloatEncoder = False
+      if useFloatEncoder:
+        output = json.dumps(series_data, cls=FloatEncoder)
+      else:
+        output = json.dumps(series_data).replace('None,', 'null,').replace('NaN,', 'null,').replace('Infinity,', '1e9999,')
+
       if 'jsonp' in requestOptions:
         response = HttpResponse(
-          content="%s(%s)" % (requestOptions['jsonp'], json.dumps(series_data, cls=FloatEncoder)),
+          content="%s(%s)" % (requestOptions['jsonp'], output),
           content_type='text/javascript')
       else:
-        response = HttpResponse(content=json.dumps(series_data, cls=FloatEncoder),
-                                content_type='application/json')
+        response = HttpResponse(
+          content=output,
+          content_type='application/json')
 
       if useCache:
         cache.add(requestKey, response, cacheTimeout)
         patch_response_headers(response, cache_timeout=cacheTimeout)
       else:
         add_never_cache_headers(response)
-      log.rendering('Total json rendering time %.6f' % (time() - start))
+      log.rendering('Total json rendering time %6f' % (time() - jsonStart))
       return response
 
     if format == 'dygraph':
