@@ -85,6 +85,11 @@ class Store:
       if not leaf_nodes:
         continue
 
+      # Fast-path when there is a single node.
+      if len(leaf_nodes) == 1:
+        yield leaf_nodes[0]
+        continue
+
       # Calculate best minimal node set
       minimal_node_set = set()
       covered_intervals = IntervalSet([])
