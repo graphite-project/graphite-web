@@ -25,6 +25,7 @@ from graphite.logger import log
 from graphite.render.attime import parseTimeOffset, parseATTime
 from graphite.events import models
 from graphite.util import epoch, timestamp, deltaseconds
+from graphite.render.grammar import grammar
 
 # XXX format_units() should go somewhere else
 if environ.get('READTHEDOCS'):
@@ -1522,6 +1523,23 @@ def cactiStyle(requestContext, seriesList, system=None, units=None):
             -minLen, minimum)
   return seriesList
 
+
+def _getFirstPathExpression(name):
+  """Returns the first metric path in an expression."""
+  tokens = grammar.parseString(name)
+  pathExpression = None
+  while pathExpression is None:
+    if tokens.pathExpression:
+      pathExpression = tokens.pathExpression
+    elif tokens.expression:
+      tokens = tokens.expression
+    elif tokens.call:
+      tokens = tokens.call.args[0]
+    else:
+      break
+  return pathExpression
+
+
 def aliasByNode(requestContext, seriesList, *nodes):
   """
   Takes a seriesList and applies an alias derived from one or more "node"
@@ -1535,7 +1553,8 @@ def aliasByNode(requestContext, seriesList, *nodes):
   if isinstance(nodes, int):
     nodes=[nodes]
   for series in seriesList:
-    metric_pieces = re.search('(?:.*\()?(?P<name>[-\w*\.]+)(?:,|\)?.*)?',series.name).groups()[0].split('.')
+    pathExpression = _getFirstPathExpression(series.name)
+    metric_pieces = pathExpression.split('.')
     series.name = '.'.join(metric_pieces[n] for n in nodes)
   return seriesList
 

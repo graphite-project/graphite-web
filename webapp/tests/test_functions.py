@@ -1729,27 +1729,46 @@ class FunctionsTest(TestCase):
     def test_alias_by_node(self):
         seriesList = self._generate_series_list()
 
-        def verify_node_name(*nodes):
+        def verify_node_name(cases, expected, *nodes):
             if isinstance(nodes, int):
                 node_number = [nodes]
 
             # Use deepcopy so the original seriesList is unmodified
-            results = functions.aliasByNode({}, copy.deepcopy(seriesList), *nodes)
+            results = functions.aliasByNode({}, copy.deepcopy(cases), *nodes)
 
             for i, series in enumerate(results):
-                fragments = seriesList[i].name.split('.')
-                # Super simplistic. Doesn't match {thing1,thing2}
-                # or glob with *, both of what graphite allow you to use
-                expected_name = '.'.join([fragments[i] for i in nodes])
+                if expected:
+                    expected_name = expected[i]
+                else:
+                    fragments = seriesList[i].name.split('.')
+                    # Super simplistic. Doesn't match {thing1,thing2}
+                    # or glob with *, both of what graphite allow you to use
+                    expected_name = '.'.join([fragments[i] for i in nodes])
                 self.assertEqual(series.name, expected_name)
 
-        verify_node_name(1)
-        verify_node_name(1, 0)
-        verify_node_name(-1, 0)
+        verify_node_name(seriesList, None, 1)
+        verify_node_name(seriesList, None, 1, 0)
+        verify_node_name(seriesList, None, -1, 0)
 
         # Verify broken input causes broken output
         with self.assertRaises(IndexError):
-            verify_node_name(10000)
+            verify_node_name(seriesList, None, 10000)
+
+        # Additiona tests
+        seriesList = []
+        names = [
+            "collectd.test-db:#|.load.value",
+            "sum(collectd.test-db:#|.load.value)",
+            "sum(sum(collectd.test-db:#|.load.value))",
+            "divide(collectd.test-db:#|.load.value, 5)",
+        ]
+        expected = ["test-db:#|"] * len(names)
+        for name in names:
+            series = TimeSeries(name, 0, 1, 1, [1])
+            series.pathExpression = series.name
+            seriesList.append(series)
+
+        verify_node_name(seriesList, expected, 1)
 
     def test_aliasByMetric(self):
         seriesList = [
