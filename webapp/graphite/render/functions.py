@@ -3679,11 +3679,11 @@ def uniqueNames(requestContext, *seriesLists):
 
   """
   newList = []
-  seenNames = {}
+  seenNames = set()
   for seriesList in seriesLists:
     for series in seriesList:
       if series.name not in seenNames:
-        seenNames[series.name] = True
+        seenNames.add(series.name)
         newList.append(series)
   return newList
 
