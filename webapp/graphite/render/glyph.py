@@ -1046,11 +1046,11 @@ class LineGraph(Graph):
     self.setColor( self.foregroundColor )
 
     if params.get('title'):
-      self.drawTitle( unicode(params['title']) )
+      self.drawTitle( unicode( unquote_plus(params['title']) ) )
     if params.get('vtitle'):
-      self.drawVTitle( unicode(params['vtitle']) )
+      self.drawVTitle( unicode( unquote_plus(params['vtitle']) ) )
     if self.secondYAxis and params.get('vtitleRight'):
-      self.drawVTitle( unicode(params['vtitleRight']), rightAlign=True )
+      self.drawVTitle( unicode( unquote_plus(params['vtitleRight']) ), rightAlign=True )
     self.setFont()
 
     if not params.get('hideLegend', len(self.data) > settings.LEGEND_MAX_ITEMS):
@@ -1792,7 +1792,7 @@ class PieGraph(Graph):
     self.setFont( size=titleSize )
     self.setColor( self.foregroundColor )
     if params.get('title'):
-      self.drawTitle( params['title'] )
+      self.drawTitle( unquote_plus(params['title']) )
     self.setFont()
 
     if not params.get('hideLegend',False):
