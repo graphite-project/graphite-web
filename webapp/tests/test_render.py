@@ -109,8 +109,9 @@ class RenderTest(TestCase):
         self.assertEqual(response.content, raw_response)
 
         response = self.client.get(url, {'target': 'test', 'format': 'json'})
-        self.assertIn('[1e9999, ' + str(ts - 2) + ']', response.content)
-        self.assertIn('[-1e9999, ' + str(ts - 1) + ']', response.content)
+        self.assertIn('[1.7976931348623157e+308, ' + str(ts - 2) + ']', response.content)
+        self.assertIn('[2.2250738585072014e-308, ' + str(ts - 1) + ']', response.content)
+        self.assertIn('[null, ' + str(ts) + ']', response.content)
         data = json.loads(response.content)
         end = data[0]['datapoints'][-7:]
         self.assertEqual(
@@ -118,8 +119,8 @@ class RenderTest(TestCase):
                   [0.12345678901234568, ts - 5],
                   [0.4, ts - 4],
                   [0.6, ts - 3],
-                  [float('inf'), ts - 2],
-                  [float('-inf'), ts - 1],
+                  [1.7976931348623157e+308, ts - 2],
+                  [2.2250738585072014e-308, ts - 1],
                   [None, ts]])
 
         response = self.client.get(url, {'target': 'test', 'format': 'dygraph'})
