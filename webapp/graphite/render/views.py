@@ -113,7 +113,7 @@ def renderView(request):
       requestContext['data'] = data = cachedData
     else: # Have to actually retrieve the data now
       targets = requestOptions['targets']
-      if settings.REMOTE_PREFETCH_DATA:
+      if settings.REMOTE_PREFETCH_DATA and not requestOptions.get('localOnly'):
         log.rendering("Prefetching remote data")
         t = time()
         pathExpressions = extractPathExpressions(targets)
@@ -268,8 +268,7 @@ def renderView(request):
 
     if format == 'svg':
       graphOptions['outputFormat'] = 'svg'
-
-    if format == 'pdf':
+    elif format == 'pdf':
       graphOptions['outputFormat'] = 'pdf'
 
     if format == 'pickle':

@@ -49,6 +49,7 @@ class Store:
       yield match
 
   def find_all(self, query, headers=None):
+    start = time.time()
     finds = []
     result_queue = Queue.Queue()
 
@@ -70,14 +71,13 @@ class Store:
     # Group matching nodes by their path
     nodes_by_path = {}
 
-    start = time.time()
     deadline = start + settings.REMOTE_FIND_TIMEOUT
     result_cnt = 0
     threads_alive = finds
 
     while True:
       if time.time() > deadline:
-        log.info("Timed out")
+        log.info("Timed out in find_all after %fs" % (settings.REMOTE_FIND_TIMEOUT))
         break
 
       threads_alive = [t for t in threads_alive if t.is_alive()]

@@ -34,6 +34,14 @@ except ImportError:
   gzip = False
 
 
+class FetchInProgress(object):
+  def __init__(self, wait_callback):
+    self.wait_callback = wait_callback
+
+  def waitForResults(self):
+    return self.wait_callback()
+
+
 class MultiReader(object):
   __slots__ = ('nodes',)
 
@@ -70,7 +78,7 @@ class MultiReader(object):
     # amount of time (6s by default) at the longest.
     while True:
       if time.time() > deadline:
-        log.info("Timed out")
+        log.info("Timed out in MultiReader")
         break
 
       threads_alive = [t for t in threads_alive if t.is_alive()]
@@ -89,11 +97,18 @@ class MultiReader(object):
         log.info("Got all results")
         break
 
-    results = [r for r in results.values() if r is not None]
-    if not results:
+    result = []
+    for r in results.values():
+      if isinstance(r, FetchInProgress):
+        r = r.waitForResults()
+      if r is None:
+        continue
+      result.append(r)
+
+    if not result:
       raise Exception("All sub-fetches failed")
 
-    return reduce(self.merge, results)
+    return reduce(self.merge, result)
 
 
   def merge(self, results1, results2):

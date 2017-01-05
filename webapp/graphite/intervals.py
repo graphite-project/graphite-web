@@ -19,6 +19,9 @@ class IntervalSet:
   def __iter__(self):
     return iter(self.intervals)
 
+  def __len__(self):
+    return len(self.intervals)
+
   def __nonzero__(self):
     return self.size != 0
 

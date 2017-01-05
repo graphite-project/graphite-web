@@ -20,6 +20,7 @@ import time
 
 from graphite.logger import log
 from graphite.storage import STORE
+from graphite.readers import FetchInProgress
 from django.conf import settings
 from graphite.util import epoch
 from graphite.remote_storage import RemoteReader
@@ -139,7 +140,9 @@ def prefetchRemoteData(requestContext, pathExpressions):
 
 
 def fetchRemoteData(requestContext, pathExpr, nodes):
+  start = time.time()
   (startTime, endTime, now) = _timebounds(requestContext)
+  log.info("Got timebounds %fs" % (time.time() - start))
 
   # Go through all of the nodes, and launch a fetch for each one.
   # Each fetch will take place in its own thread, since it's naturally parallel work.
@@ -157,17 +160,18 @@ def fetchRemoteData(requestContext, pathExpr, nodes):
     fetch_thread.start()
     fetches.append(fetch_thread)
 
-  start = time.time()
   deadline = start + settings.REMOTE_FETCH_TIMEOUT
   result_cnt = 0
   threads_alive = fetches
+
+  log.info("Started %d threads %fs" % (len(threads_alive), time.time() - start))
 
   # Once the fetches have started, wait for them all to finish. Assuming an
   # upper bound of REMOTE_FETCH_TIMEOUT per thread, this should take about that
   # amount of time (6s by default) at the longest.
   while True:
     if time.time() > deadline:
-      log.info("Timed out")
+      log.info("Timed out in fetchRemoteData")
       break
 
     threads_alive = [t for t in threads_alive if t.is_alive()]
@@ -215,20 +219,21 @@ def fetchData(requestContext, pathExpr):
   # This returns the result ordering to the behavior observed pre PR#1010.
   retval = [ seriesList[k] for k in sorted(seriesList) ]
 
-  log.info("render.datalib.fetchRemoteData :: completed in %fs" % (time.time() - start))
+  log.info("render.datalib.fetchData :: completed in %fs" % (time.time() - start))
 
   return retval
 
 def _fetchData(pathExpr, startTime, endTime, requestContext, seriesList):
   t = time.time()
 
-  nodes = STORE.find(pathExpr, startTime, endTime, local=requestContext['localOnly'])
+  nodes = [node for node in STORE.find(pathExpr, startTime, endTime, local=requestContext['localOnly'])]
 
   result_queue = fetchRemoteData(requestContext, pathExpr, nodes)
 
-  log.info("render.datalib.fetchRemoteData :: completed in %fs" % (time.time() - t))
-
   for node, results in result_queue:
+    if isinstance(results, FetchInProgress):
+      results = results.waitForResults()
+
     if not results:
       log.info("render.datalib.fetchData :: no results for %s.fetch(%s, %s)" % (node, startTime, endTime))
       continue
