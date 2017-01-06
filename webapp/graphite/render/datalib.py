@@ -13,8 +13,6 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 # import pprint
-import threading
-import Queue
 import time
 # import pprint
 
@@ -22,8 +20,8 @@ from graphite.logger import log
 from graphite.storage import STORE
 from graphite.readers import FetchInProgress
 from django.conf import settings
-from graphite.util import epoch
-from graphite.remote_storage import RemoteReader
+from graphite.util import timebounds
+from graphite.backend_workers.pool import get_pool
 
 from traceback import format_exc
 
@@ -114,82 +112,24 @@ class TimeSeries(list):
     }
 
 
-def _timebounds(requestContext):
-  startTime = int(epoch(requestContext['startTime']))
-  endTime = int(epoch(requestContext['endTime']))
-  now = int(epoch(requestContext['now']))
-
-  return (startTime, endTime, now)
-
-
 def prefetchRemoteData(requestContext, pathExpressions):
   if requestContext['localOnly']:
     return
 
-  (startTime, endTime, now) = _timebounds(requestContext)
-
-  # Go through all of the remote nodes, and launch a fetch for each one.
-  # Each fetch will take place in its own thread, since it's naturally parallel work.
   for pathExpr in pathExpressions:
     for store in STORE.remote_stores:
-      reader = RemoteReader(store, {'path': pathExpr, 'intervals': []}, bulk_query=pathExpr)
-
-      fetch_thread = threading.Thread(target=reader.fetch_list,
-                                      args=(startTime, endTime, now, requestContext))
-      fetch_thread.start()
+      store.fetch(pathExpr, requestContext)
 
 
 def fetchRemoteData(requestContext, pathExpr, nodes):
-  start = time.time()
-  (startTime, endTime, now) = _timebounds(requestContext)
-  log.info("Got timebounds %fs" % (time.time() - start))
+  (startTime, endTime, now) = timebounds(requestContext)
 
-  # Go through all of the nodes, and launch a fetch for each one.
-  # Each fetch will take place in its own thread, since it's naturally parallel work.
-  # Notable: return the 'seriesList' result from each node.fetch into result_queue
-  # instead of directly from the method. Queue.Queue() is threadsafe.
-  fetches = []
   results = []
-  result_queue = Queue.Queue()
-  for node in nodes:
-    if not node.is_leaf:
-      continue
-
-    fetch_thread = threading.Thread(target=node.fetch,
-                                    args=(startTime, endTime, now, result_queue, requestContext))
-    fetch_thread.start()
-    fetches.append(fetch_thread)
-
-  deadline = start + settings.REMOTE_FETCH_TIMEOUT
-  result_cnt = 0
-  threads_alive = fetches
-
-  log.info("Started %d threads %fs" % (len(threads_alive), time.time() - start))
-
-  # Once the fetches have started, wait for them all to finish. Assuming an
-  # upper bound of REMOTE_FETCH_TIMEOUT per thread, this should take about that
-  # amount of time (6s by default) at the longest.
-  while True:
-    if time.time() > deadline:
-      log.info("Timed out in fetchRemoteData")
-      break
-
-    threads_alive = [t for t in threads_alive if t.is_alive()]
-
-    try:
-      result = result_queue.get(True, 0.01)
-    except Queue.Empty:
-      if len(threads_alive) == 0:
-        log.info("Empty queue and no threads alive")
-        break
-      continue
-
-    results.append(result)
-    result_cnt += 1
-    if result_cnt >= len(fetches):
-      log.info("Got all read results in %fs" % (time.time() - start))
-      break
-
+  for res in get_pool().put_multi([
+    lambda: node.fetch(startTime, endTime, requestContext)
+    for node in nodes if node.is_leaf
+  ]):
+    results.append(res)
   return results
 
 
@@ -198,7 +138,7 @@ def fetchData(requestContext, pathExpr):
   start = time.time()
 
   seriesList = {}
-  (startTime, endTime, now) = _timebounds(requestContext)
+  (startTime, endTime, now) = timebounds(requestContext)
 
   retries = 1 # start counting at one to make log output and settings more readable
   while True:
@@ -239,9 +179,9 @@ def _fetchData(pathExpr, startTime, endTime, requestContext, seriesList):
       continue
 
     try:
-        (timeInfo, values) = results
+      (timeInfo, values) = results
     except ValueError as e:
-        raise Exception("could not parse timeInfo/values from metric '%s': %s" % (node.path, e))
+      raise Exception("could not parse timeInfo/values from metric '%s': %s" % (node.path, e))
     (start, end, step) = timeInfo
 
     series = TimeSeries(node.path, start, end, step, values)

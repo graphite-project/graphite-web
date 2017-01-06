@@ -50,45 +50,38 @@ class Store:
 
   def find_all(self, query, headers=None):
     start = time.time()
-    finds = []
     result_queue = Queue.Queue()
+    req_cnt = 0
 
     # Start remote searches
     if not query.local:
       for store in [ r for r in self.remote_stores if r.available ]:
-        log.info("Started thread for %s" % (store))
-        thread = threading.Thread(target=store.find, args=(query, result_queue, headers))
-        thread.start()
-        finds.append(thread)
+        store.find(query, result_queue, headers)
+        req_cnt += 1
 
     # Start local searches
     for finder in self.finders:
       log.info("Started thread for %s" % (finder))
       thread = threading.Thread(target=find_into_queue, args=(finder, query, result_queue))
       thread.start()
-      finds.append(thread)
+      req_cnt += 1
 
     # Group matching nodes by their path
     nodes_by_path = {}
 
     deadline = start + settings.REMOTE_FIND_TIMEOUT
     result_cnt = 0
-    threads_alive = finds
 
     while True:
       if time.time() > deadline:
         log.info("Timed out in find_all after %fs" % (settings.REMOTE_FIND_TIMEOUT))
         break
 
-      threads_alive = [t for t in threads_alive if t.is_alive()]
-
       try:
-        nodes = result_queue.get(True, 0.01)
+        nodes = result_queue.get(True, 5)
       except Queue.Empty:
-        if len(threads_alive) == 0:
-          log.info("Empty queue and no threads alive")
-          break
-        continue
+        log.info("Missing results of remote store finds")
+        break
 
       result_cnt += 1
       if nodes:
@@ -99,7 +92,7 @@ class Store:
           nodes_by_path[node.path].append(node)
           log.info("Found node %s" % (node))
 
-      if result_cnt >= len(finds):
+      if result_cnt >= req_cnt:
         log.info("Got all find results in %fs" % (time.time() - start))
         break
 

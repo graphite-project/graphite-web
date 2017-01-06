@@ -1,12 +1,11 @@
 import os
 import sys
-import threading
-import Queue
 import time
 from graphite.intervals import Interval, IntervalSet
 from graphite.carbonlink import CarbonLink
 from graphite.logger import log
 from django.conf import settings
+from graphite.backend_workers.pool import get_pool
 
 try:
   import whisper
@@ -54,61 +53,19 @@ class MultiReader(object):
       interval_sets.extend( node.intervals.intervals )
     return IntervalSet( sorted(interval_sets) )
 
-  def fetch(self, startTime, endTime, now=None, requestContext=None):
-    # Go through the nodes and launch a fetch for each one.
-    # Each fetch will take place in its own thread, since it's naturally parallel work.
-    fetches = []
-    results = []
-    result_queue = Queue.Queue()
-    for node in self.nodes:
-      if not node.is_leaf:
-        continue
+  def fetch(self, startTime, endTime, requestContext):
+    results = [
+      res[1]
+      for res in get_pool().put_multi([
+        lambda: node.fetch(startTime, endTime, requestContext)
+        for node in self.nodes if node.is_leaf
+      ]) if res is not None
+    ]
 
-      fetch_thread = threading.Thread(target=node.fetch,
-                                      args=(startTime, endTime, now, result_queue, requestContext))
-      fetch_thread.start()
-      fetches.append(fetch_thread)
-
-    deadline = time.time() + settings.REMOTE_FETCH_TIMEOUT
-    result_cnt = 0
-    threads_alive = fetches
-
-    # Once the fetches have started, wait for them all to finish. Assuming an
-    # upper bound of REMOTE_FETCH_TIMEOUT per thread, this should take about that
-    # amount of time (6s by default) at the longest.
-    while True:
-      if time.time() > deadline:
-        log.info("Timed out in MultiReader")
-        break
-
-      threads_alive = [t for t in threads_alive if t.is_alive()]
-
-      try:
-        result = result_queue.get(True, 0.01)
-      except Queue.Empty:
-        if len(threads_alive) == 0:
-          log.info("Empty queue and no threads alive")
-          break
-        continue
-
-      results.append(result[1])
-      result_cnt += 1
-      if result_cnt >= len(fetches):
-        log.info("Got all results")
-        break
-
-    result = []
-    for r in results.values():
-      if isinstance(r, FetchInProgress):
-        r = r.waitForResults()
-      if r is None:
-        continue
-      result.append(r)
-
-    if not result:
+    if not results:
       raise Exception("All sub-fetches failed")
 
-    return reduce(self.merge, result)
+    return reduce(self.merge, results)
 
 
   def merge(self, results1, results2):

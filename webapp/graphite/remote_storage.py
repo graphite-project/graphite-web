@@ -11,6 +11,7 @@ from graphite.logger import log
 from graphite.util import unpickle
 from graphite.readers import FetchInProgress
 from graphite.render.hashing import compactHash
+from graphite.util import timebounds
 
 http = urllib3.PoolManager(num_pools=10, maxsize=5)
 
@@ -27,12 +28,22 @@ class RemoteStore(object):
 
   def find(self, query, result_queue=False, headers=None):
     request = FindRequest(self, query)
-    result = request.send(headers)
     if result_queue:
-      # iterate over the returned generator
-      result_queue.put([node for node in result])
+      result_queue.put(request.send(headers))
     else:
-      return result
+      return request.send(headers)
+
+  def fetch(self, path_expr, requestContext):
+    (startTime, endTime, now) = timebounds(requestContext)
+
+    return RemoteReader(
+      self,
+      {
+        'path': path_expr,
+        'intervals': [],
+      },
+      bulk_query=path_expr
+    ).fetch_list(startTime, endTime, requestContext)
 
   def fail(self):
     self.lastFailure = time.time()
@@ -59,7 +70,7 @@ class FindRequest(object):
 
   def send(self, headers=None):
     t = time.time()
-    log.info("FindRequest.send(host=%s, query=%s) called at %s" % (self.store.host, self.query, t))
+    log.info(".send(host=%s, query=%s) called at %s" % (self.store.host, self.query, t))
 
     results = cache.get(self.cacheKey)
     if results is not None:
@@ -143,29 +154,28 @@ class RemoteReader(object):
   def get_intervals(self):
     return self.intervals
 
-  def fetch(self, startTime, endTime, now=None, requestContext=None):
-    seriesList = self.fetch_list( startTime, endTime, now, requestContext);
+  def fetch(self, startTime, endTime, requestContext):
+    return self._fetch(startTime, endTime, requestContext)
 
-    def _fetch(seriesList):
-      if seriesList is None:
-        return None
-
-      for series in seriesList:
-        if series['name'] == self.metric_path:
-          time_info = (series['start'], series['end'], series['step'])
-          return (time_info, series['values'])
-
-      return None
+  def _fetch(self, startTime, endTime, requestContext):
+    seriesList = self.fetch_list(startTime, endTime, requestContext)
 
     if isinstance(seriesList, FetchInProgress):
-      return FetchInProgress(lambda: _fetch(seriesList.waitForResults()))
+      seriesList = seriesList.waitForResults()
 
-    return _fetch(seriesList)
+    if seriesList is None:
+      return None
+
+    for series in seriesList:
+      if series['name'] == self.metric_path:
+        time_info = (series['start'], series['end'], series['step'])
+        return (time_info, series['values'])
 
   def log_info(self, msg):
     log.info(('thread %s at %fs ' % (current_thread().name, time.time())) + msg)
 
-  def fetch_list(self, startTime, endTime, now=None, requestContext=None):
+  def fetch_list(self, startTime, endTime, requestContext):
+    (startTime, endTime, now) = timebounds(requestContext)
     t = time.time()
 
     query_params = [

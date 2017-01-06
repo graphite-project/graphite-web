@@ -25,16 +25,8 @@ class LeafNode(Node):
     self.reader = reader
     self.is_leaf = True
 
-  def fetch(self, startTime, endTime, now=None, result_queue=None, requestContext=None):
-    try:
-      result = self.reader.fetch(startTime, endTime, now, requestContext);
-    except TypeError:
-      result = self.reader.fetch(startTime, endTime);
-
-    if result_queue:
-      result_queue.put((self, result))
-    else:
-      return result
+  def fetch(self, startTime, endTime, requestContext=None):
+    return (self, self.reader.fetch(startTime, endTime, requestContext))
 
   def __repr__(self):
     return '<LeafNode[%x]: %s (%s)>' % (id(self), self.path, self.reader)
