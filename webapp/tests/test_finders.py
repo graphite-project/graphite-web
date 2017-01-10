@@ -278,12 +278,12 @@ class CeresFinderTest(TestCase):
             self._listdir_counter = 0
             nodes = finder.find_nodes(FindQuery('foo', None, None))
             self.assertEqual(len(list(nodes)), 1)
-            self.assertEqual(self._listdir_counter, 2)
+            self.assertEqual(self._listdir_counter, 1)
 
             self._listdir_counter = 0
             nodes = finder.find_nodes(FindQuery('foo.bar.baz', None, None))
             self.assertEqual(len(list(nodes)), 1)
-            self.assertEqual(self._listdir_counter, 2)
+            self.assertEqual(self._listdir_counter, 1)
 
             # No data in the expected time period
             self._listdir_counter = 0
@@ -299,7 +299,7 @@ class CeresFinderTest(TestCase):
             self._listdir_counter = 0
             nodes = finder.find_nodes(FindQuery('*.ba?.{baz,foo}', None, None))
             self.assertEqual(len(list(nodes)), 2)
-            self.assertEqual(self._listdir_counter, 10)
+            self.assertEqual(self._listdir_counter, 8)
 
             # Search for something that isn't valid Ceres content
             fh = open(join(test_dir, 'foo', 'blah'), 'wb')

@@ -1,4 +1,5 @@
 import time
+import random
 
 try:
   from importlib import import_module
@@ -38,6 +39,7 @@ class Store:
 
     # Start remote searches
     if not local:
+      random.shuffle(self.remote_stores)
       remote_requests = [ r.find(query) for r in self.remote_stores if r.available ]
 
     matching_nodes = set()
@@ -66,7 +68,10 @@ class Store:
     # Reduce matching nodes for each path to a minimal set
     found_branch_nodes = set()
 
-    for path, nodes in nodes_by_path.iteritems():
+    items = list(nodes_by_path.iteritems())
+    random.shuffle(items)
+
+    for path, nodes in items:
       leaf_nodes = []
 
       # First we dispense with the BranchNodes
@@ -78,6 +83,11 @@ class Store:
           found_branch_nodes.add(node.path)
 
       if not leaf_nodes:
+        continue
+
+      # Fast-path when there is a single node.
+      if len(leaf_nodes) == 1:
+        yield leaf_nodes[0]
         continue
 
       # Calculate best minimal node set

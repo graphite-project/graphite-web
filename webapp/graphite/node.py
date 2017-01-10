@@ -23,11 +23,14 @@ class LeafNode(Node):
   def __init__(self, path, reader):
     Node.__init__(self, path)
     self.reader = reader
-    self.intervals = reader.get_intervals()
     self.is_leaf = True
 
   def fetch(self, startTime, endTime):
     return self.reader.fetch(startTime, endTime)
+
+  @property
+  def intervals(self):
+    return self.reader.get_intervals()
 
   def __repr__(self):
     return '<LeafNode[%x]: %s (%s)>' % (id(self), self.path, self.reader)

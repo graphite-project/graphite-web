@@ -60,10 +60,6 @@ class FindRequest(object):
       log.info("FindRequest(host=%s, query=%s) using cached result" % (self.store.host, self.query))
       return
 
-    connector_class = connector_class_selector(settings.INTRACLUSTER_HTTPS)
-    self.connection = connector_class(self.store.host)
-    self.connection.timeout = settings.REMOTE_FIND_TIMEOUT
-
     query_params = [
       ('local', '1'),
       ('format', 'pickle'),
@@ -78,6 +74,9 @@ class FindRequest(object):
     query_string = urlencode(query_params)
 
     try:
+      connector_class = connector_class_selector(settings.INTRACLUSTER_HTTPS)
+      self.connection = connector_class(self.store.host)
+      self.connection.timeout = settings.REMOTE_FIND_TIMEOUT
       self.connection.request('GET', '/metrics/find/?' + query_string)
     except:
       log.exception("FindRequest.send(host=%s, query=%s) exception during request" % (self.store.host, self.query))
