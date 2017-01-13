@@ -3693,3 +3693,45 @@ class FunctionsTest(TestCase):
               },
               seriesList, "1minute", func, True)
           self.assertEqual(result, expectedResults[func])
+
+    def test_consecutiveNonZero(self):
+        seriesList = [
+            TimeSeries('servers.s1.queue_length', 0, 600, 60, [10, 10, 10, None, 10, 0, 1, 1, 0, 1])
+        ]
+
+        for series in seriesList:
+            series.pathExpression = series.name
+
+        expected = TimeSeries('consecutiveNonZero(servers.s1.queue_length)', 0, 600, 60, [1, 2, 3, 3, 4, 0, 1, 2, 0, 1])
+
+        result = functions.consecutiveNonZero(
+            {
+                'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                'endTime': datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                'localOnly': False,
+            },
+            seriesList
+        )
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0], expected)
+
+    def test_consecutiveSecondsNonZero(self):
+        seriesList = [
+            TimeSeries('servers.s1.queue_length', 0, 600, 60, [10, 10, 10, None, 10, 0, 1, 1, 0, 1])
+        ]
+
+        for series in seriesList:
+            series.pathExpression = series.name
+
+        expected = TimeSeries('consecutiveSecondsNonZero(servers.s1.queue_length)', 0, 600, 60, [60, 120, 180, 180, 240, 0, 60, 120, 0, 60])
+
+        result = functions.consecutiveSecondsNonZero(
+            {
+                'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                'endTime': datetime(1970, 1, 1, 0, 4, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                'localOnly': False,
+            },
+            seriesList
+        )
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0], expected)

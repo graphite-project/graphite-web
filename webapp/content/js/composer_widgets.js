@@ -1184,6 +1184,8 @@ function createFunctionsMenu() {
         {text: 'Changed', handler: applyFuncToEach('changed')},
         {text: 'Transform Nulls', handler: applyFuncToEachWithInput('transformNull', 'Please enter the value to transform null values to')},
         {text: 'Count non-nulls', handler: applyFuncToAll('isNonNull')},
+        {text: 'Consecutive non-zeros', handler: applyFuncToEach('consecutiveNonZero')},
+        {text: 'Consecutive seconds non-zeros', handler: applyFuncToEach('consecutiveSecondsNonZero')},
         {text: 'Substring', handler: applyFuncToEachWithInput('substr', 'Enter a starting position')},
         {text: 'Group', handler: applyFuncToAll('group')},
         {text: 'Area Between', handler: applyFuncToEach('areaBetween')},

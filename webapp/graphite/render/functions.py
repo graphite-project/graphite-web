@@ -3502,6 +3502,65 @@ def summarize(requestContext, seriesList, intervalString, func='sum', alignToFro
 
   return results
 
+def consecutiveNonZero(requestContext, *seriesLists):
+  """
+  Takes one metric or a wildcard seriesList.
+
+  Output is the number of consecutive buckets for which at least one point in the
+  series was non-zero. An explicit 0 resets the count; a null just does nothing.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=consecutiveNonZero(lb1.haproxy.frontend.queue_length)
+  """
+
+  seriesLists, start, end, step = normalize(seriesLists)
+
+  name = 'consecutiveNonZero(%s)' % ','.join(s.name for s in seriesLists)
+  count = 0
+  result_values = []
+  for values in izip(*seriesLists):
+    if any(v is not None and v > 0 for v in values):
+      count += 1
+    elif any(v == 0 for v in values):
+      count = 0
+    result_values.append(count)
+  resultSeries = TimeSeries(name, start, end, step, result_values)
+  resultSeries.pathExpression = name
+  return [ resultSeries ]
+
+def consecutiveSecondsNonZero(requestContext, *seriesLists):
+  """
+  Takes one metric or a wildcard seriesList.
+
+  Output is the number of consecutive seconds for which at least one point in the
+  series was non-zero. An explicit 0 resets the count; a null just does nothing.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=consecutiveSecondsNonZero(lb1.haproxy.frontend.queue_length)
+  """
+
+  seriesLists, start, end, step = normalize(seriesLists)
+
+  name = 'consecutiveSecondsNonZero(%s)' % ','.join(s.name for s in seriesLists)
+  value = 0
+  result_values = []
+  for i, values in enumerate(izip(*seriesLists)):
+    if any(v is not None and v > 0 for v in values):
+      value += step
+    elif any(v == 0 for v in values):
+      value = 0
+    # if v is None, then leave value at its previous, uh, value
+    result_values.append(value)
+  resultSeries = TimeSeries(name, start, end, step, result_values)
+  resultSeries.pathExpression = name
+  return [ resultSeries ]
+
 def hitcount(requestContext, seriesList, intervalString, alignToInterval = False):
   """
   Estimate hit counts from a list of time series.
@@ -3883,6 +3942,9 @@ SeriesFunctions = {
   'verticalLine' : verticalLine,
   'identity': identity,
   'aggregateLine': aggregateLine,
+  'consecutiveNonZero': consecutiveNonZero,
+  'consecutiveSecondsNonZero': consecutiveSecondsNonZero,
+  'consecutive': consecutiveSecondsNonZero,
 
   # test functions
   'time': timeFunction,
