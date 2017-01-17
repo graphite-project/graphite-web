@@ -3855,7 +3855,6 @@ SeriesFunctions = {
   'percentileOfSeries': percentileOfSeries,
   'countSeries': countSeries,
   'weightedAverage': weightedAverage,
-  'exponentialMovingAverage': exponentialMovingAverage,
 
   # Transform functions
   'scale': scale,
@@ -3894,6 +3893,7 @@ SeriesFunctions = {
   'pct': asPercent,
   'diffSeries': diffSeries,
   'divideSeries': divideSeries,
+  'exponentialMovingAverage': exponentialMovingAverage,
 
   # Series Filter functions
   'fallbackSeries': fallbackSeries,

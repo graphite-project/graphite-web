@@ -17,3 +17,5 @@ docs/_build
 storage
 .webapp/coverage.xml
 .webapp/.coverage
+.webapp/static
+.webapp/static/**/*
