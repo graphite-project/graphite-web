@@ -3018,6 +3018,140 @@ class FunctionsTest(TestCase):
         self.assertEqual(result, expectedResults)
 
 
+    def test_exponentialMovingAverage_integerWindowSize(self):
+        seriesList = [
+            TimeSeries('collectd.test-db0.load.value', 0, 60, 1, range(0, 60))
+        ]
+        for series in seriesList:
+            series.pathExpression = series.name
+
+        def mock_evaluateTokens(reqCtx, tokens, replacements=None):
+            seriesList = [
+                TimeSeries('collectd.test-db0.load.value', 0, 60, 1, range(0, 60))
+            ]
+            for series in seriesList:
+                series.pathExpression = series.name
+            return seriesList
+
+        expectedResults = [
+            TimeSeries('exponentialMovingAverage(collectd.test-db0.load.value,30)', 30, 60, 1, [14.5, 15.5, 16.5, 17.5, 18.5, 19.5, 20.5, 21.5, 22.5, 23.5, 24.5, 25.5, 26.5, 27.5, 28.5, 29.5, 30.5, 31.5, 32.5, 33.5, 34.5, 35.5, 36.5, 37.5, 38.5, 39.5, 40.5, 41.5, 42.5, 43.5, 44.5])
+        ]
+
+        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+            result = functions.exponentialMovingAverage(
+                {
+                    'template': {},
+                    'args': ({},{}),
+                    'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'endTime': datetime(1970, 1, 1, 0, 59, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'localOnly': False,
+                    'data': []
+                },
+                seriesList,30
+            )
+
+        self.assertEqual(result, expectedResults)
+
+    def test_exponentialMovingAverage_stringWindowSize(self):
+        def gen_seriesList():
+            seriesList = [
+                TimeSeries('collectd.test-db0.load.value', 0, 60, 1, range(0, 60))
+            ]
+            for series in seriesList:
+                series.pathExpression = series.name
+            return seriesList
+
+        seriesList = gen_seriesList()
+
+        def mock_evaluateTokens(reqCtx, tokens, replacements=None):
+            return gen_seriesList()
+
+        expectedResults = [
+            TimeSeries('exponentialMovingAverage(collectd.test-db0.load.value,"-30s")', 30, 60, 1, [14.5, 15.5, 16.5, 17.5, 18.5, 19.5, 20.5, 21.5, 22.5, 23.5, 24.5, 25.5, 26.5, 27.5, 28.5, 29.5, 30.5, 31.5, 32.5, 33.5, 34.5, 35.5, 36.5, 37.5, 38.5, 39.5, 40.5, 41.5, 42.5, 43.5, 44.5])
+        ]
+
+        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+            result = functions.exponentialMovingAverage(
+                {
+                    'template': {},
+                    'args': ({},{}),
+                    'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'endTime': datetime(1970, 1, 1, 0, 59, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'localOnly': False,
+                    'data': []
+                },
+                seriesList,"-30s"
+            )
+        self.assertEqual(result, expectedResults)
+
+    def test_exponentialMovingAverage_evaluateTokens_returns_empty_list(self):
+        def gen_seriesList(start=0):
+            seriesList = [
+                TimeSeries('collectd.test-db0.load.value', start+600, start+700, 1, range(start, start+100)),
+            ]
+            for series in seriesList:
+                series.pathExpression = series.name
+            return seriesList
+
+        seriesList = gen_seriesList(10)
+
+        def mock_evaluateTokens(reqCtx, tokens, replacements=None):
+            return []
+
+        expectedResults = []
+
+        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+            result = functions.exponentialMovingAverage(
+                {
+                    'template': {},
+                    'args': ({},{}),
+                    'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'endTime': datetime(1970, 1, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'localOnly': False,
+                    'data': []
+                },
+                seriesList, 60
+            )
+        self.assertEqual(result, expectedResults)
+
+    def test_exponentialMovingAverage_evaluateTokens_returns_half_none(self):
+        def gen_seriesList(start=0):
+            seriesList = [
+                TimeSeries('collectd.test-db0.load.value', start+10, start+20, 1, range(0, 10)),
+            ]
+            for series in seriesList:
+                series.pathExpression = series.name
+            return seriesList
+
+        seriesList = gen_seriesList(10)
+
+        def mock_evaluateTokens(reqCtx, tokens, replacements=None):
+            seriesList = [
+                TimeSeries('collectd.test-db0.load.value', 10, 30, 1, [None] * 10 + range(0, 10))
+            ]
+            for series in seriesList:
+                series.pathExpression = series.name
+            return seriesList
+
+        expectedResults = [
+            TimeSeries('exponentialMovingAverage(collectd.test-db0.load.value,10)', 20, 30, 1, [0, 0.0, 0.182, 0.512, 0.965, 1.517, 2.15, 2.85, 3.604, 4.404, 5.239])
+        ]
+
+        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+            result = functions.exponentialMovingAverage(
+                {
+                    'template': {},
+                    'args': ({},{}),
+                    'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'endTime': datetime(1970, 1, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'localOnly': False,
+                    'data': []
+                },
+                seriesList, 10
+            )
+
+        self.assertEqual(result, expectedResults)
+
     def test_holtWintersAnalysis_None(self):
         seriesList = TimeSeries('collectd.test-db0.load.value', 660, 700, 1, [None])
         expectedResults = {

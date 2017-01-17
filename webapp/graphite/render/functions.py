@@ -756,6 +756,88 @@ def weightedAverage(requestContext, seriesListAvg, seriesListWeight, *nodes):
   resultSeries.pathExpression = name
   return [resultSeries]
 
+def exponentialMovingAverage(requestContext, seriesList, windowSize):
+  """
+  Takes a series of values and a window size and produces an exponential moving
+  average utilizing the following formula:
+
+    EMA(current) = C * ( Current Value ) + (1 - C) * EMA(previous)
+
+    The Constant is calculated as:
+
+        C = 2 / (windowSize + 1)
+
+    The first period EMA uses a simple moving average for its value.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=exponentialMovingAverage(*.transactions.count, 10)
+    &target=exponentialMovingAverage(*.transactions.count, '-10s')
+
+  """
+  # EMA = C * (current_value) + (1 - C) + EMA
+  # C = 2 / (windowSize + 1)
+
+  # The following was copied from movingAverage, and altered for EMA
+  if not seriesList:
+    return []
+  windowInterval = None
+  if isinstance(windowSize, basestring):
+    delta = parseTimeOffset(windowSize)
+    windowInterval = abs(delta.seconds + (delta.days * 86400))
+
+  # set previewSeconds and C based on windowSize string or integer
+  if windowInterval:
+    previewSeconds = windowInterval
+    C = (float(2) / (int(windowInterval) + 1))
+  else:
+    previewSeconds = max([s.step for s in seriesList]) * int(windowSize)
+    C = (float(2) / (int(windowSize) + 1))
+
+  # ignore original data and pull new, including our preview
+  # data from earlier is needed to calculate the early results
+  newContext = requestContext.copy()
+  newContext['startTime'] = requestContext['startTime'] -  timedelta(seconds=previewSeconds)
+  previewList = evaluateTokens(newContext, requestContext['args'][0])
+  result = []
+
+  for series in previewList:
+    if windowInterval:
+      windowPoints = windowInterval / series.step
+    else:
+      windowPoints = int(windowSize)
+
+    if isinstance(windowSize, basestring):
+      newName = 'exponentialMovingAverage(%s,"%s")' % (series.name, windowSize)
+    else:
+      newName = "exponentialMovingAverage(%s,%s)" % (series.name, windowSize)
+
+    newSeries = TimeSeries(newName, series.start + previewSeconds, series.end, series.step, [])
+    newSeries.pathExpression = newName
+    window_sum = safeSum(series[:windowPoints]) or 0
+    count = safeLen(series[:windowPoints])
+    EMA = safeDiv(window_sum, count)
+
+    if EMA is None:
+        EMA = 0
+    else:
+        EMA = float(EMA)
+
+    newSeries.append(EMA)
+
+    for i in range(windowPoints, len(series)):
+      if series[i] is not None:
+        EMA = float(C) * float(series[i]) + (1 - float(C)) * float(EMA)
+        newSeries.append(round(EMA,3))
+      else:
+        newSeries.append(None)
+
+    result.append(newSeries)
+
+  return result
+
 def movingMedian(requestContext, seriesList, windowSize):
   """
   Graphs the moving median of a metric (or metrics) over a fixed number of
@@ -3773,6 +3855,7 @@ SeriesFunctions = {
   'percentileOfSeries': percentileOfSeries,
   'countSeries': countSeries,
   'weightedAverage': weightedAverage,
+  'exponentialMovingAverage': exponentialMovingAverage,
 
   # Transform functions
   'scale': scale,
