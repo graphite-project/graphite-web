@@ -17,7 +17,8 @@ import urllib
 
 from django.conf import settings
 from graphite.compat import HttpResponse, HttpResponseBadRequest
-from graphite.util import getProfile, json
+from graphite.user_util import getProfile
+from graphite.util import json
 from graphite.logger import log
 from graphite.readers import RRDReader
 from graphite.storage import STORE

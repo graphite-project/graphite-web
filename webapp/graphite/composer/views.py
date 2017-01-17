@@ -22,7 +22,7 @@ from httplib import HTTPConnection
 from urlparse import urlsplit
 from time import ctime, strftime
 from traceback import format_exc
-from graphite.util import getProfile
+from graphite.user_util import getProfile
 from graphite.logger import log
 from graphite.account.models import MyGraph
 

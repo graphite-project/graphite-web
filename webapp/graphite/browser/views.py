@@ -20,7 +20,8 @@ from django.utils.safestring import mark_safe
 from django.utils.html import escape
 from graphite.account.models import Profile
 from graphite.compat import HttpResponse
-from graphite.util import getProfile, getProfileByUsername, json
+from graphite.user_util import getProfile, getProfileByUsername
+from graphite.util import json
 from graphite.logger import log
 from hashlib import md5
 from urlparse import urlparse, parse_qsl

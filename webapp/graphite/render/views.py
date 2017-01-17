@@ -29,7 +29,8 @@ except ImportError:
   import pickle
 
 from graphite.compat import HttpResponse
-from graphite.util import getProfileByUsername, json, unpickle
+from graphite.user_util import getProfileByUsername
+from graphite.util import json, unpickle
 from graphite.remote_storage import connector_class_selector
 from graphite.logger import log
 from graphite.render.evaluator import evaluateTarget
