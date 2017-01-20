@@ -308,6 +308,8 @@ def merge_with_cache(cached_datapoints, start, step, values, func=None):
           return max(usable)
       if func == 'min':
           return min(usable)
+      if func == 'last':
+          return usable[-1]
       raise Exception("Invalid consolidation function: '%s'" % func)
 
   if func:
