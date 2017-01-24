@@ -44,7 +44,7 @@ simplejson==2.1.6
 django-tagging==0.4.3
 gunicorn
 pytz
-pyparsing==1.5.7
+pyparsing
 cairocffi
 git+git://github.com/graphite-project/whisper.git#egg=whisper
 git+git://github.com/graphite-project/ceres.git#egg=ceres
