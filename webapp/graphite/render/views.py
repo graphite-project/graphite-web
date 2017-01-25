@@ -37,7 +37,6 @@ from graphite.render.attime import parseATTime
 from graphite.render.functions import PieFunctions
 from graphite.render.hashing import hashRequest, hashData
 from graphite.render.glyph import GraphTypes
-from graphite.render.float_encoder import FloatEncoder
 
 from django.http import HttpResponseServerError, HttpResponseRedirect
 from django.template import Context, loader
@@ -174,11 +173,7 @@ def renderView(request):
           datapoints = zip(series, timestamps)
           series_data.append(dict(target=series.name, datapoints=datapoints))
 
-      useFloatEncoder = False
-      if useFloatEncoder:
-        output = json.dumps(series_data, cls=FloatEncoder)
-      else:
-        output = json.dumps(series_data).replace('None,', 'null,').replace('NaN,', 'null,').replace('Infinity,', '1e9999,')
+      output = json.dumps(series_data).replace('None,', 'null,').replace('NaN,', 'null,').replace('Infinity,', '1e9999,')
 
       if 'jsonp' in requestOptions:
         response = HttpResponse(
@@ -194,7 +189,8 @@ def renderView(request):
         patch_response_headers(response, cache_timeout=cacheTimeout)
       else:
         add_never_cache_headers(response)
-      log.rendering('Total json rendering time %6f' % (time() - jsonStart))
+      log.rendering('JSON rendering time %6f' % (time() - jsonStart))
+      log.rendering('Total request processing time %6f' % (time() - start))
       return response
 
     if format == 'dygraph':
