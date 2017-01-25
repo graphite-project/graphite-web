@@ -28,6 +28,8 @@ try:
 except ImportError:
   import pickle
 
+from sys import float_info
+
 from graphite.compat import HttpResponse
 from graphite.util import getProfileByUsername, json, unpickle
 from graphite.remote_storage import connector_class_selector
@@ -37,7 +39,6 @@ from graphite.render.attime import parseATTime
 from graphite.render.functions import PieFunctions
 from graphite.render.hashing import hashRequest, hashData
 from graphite.render.glyph import GraphTypes
-from graphite.render.float_encoder import FloatEncoder
 
 from django.http import HttpResponseServerError, HttpResponseRedirect
 from django.template import Context, loader
@@ -133,7 +134,19 @@ def renderView(request):
       return response
 
     if format == 'json':
+      jsonStart = time()
       series_data = []
+
+      def fix_special_values(val_to_fix):
+        if val_to_fix == float('inf'):
+          return float_info.max
+        elif val_to_fix == float('-inf'):
+          return float_info.min
+        elif val_to_fix != val_to_fix:
+          return None
+        else:
+          return val_to_fix
+
       if 'maxDataPoints' in requestOptions and any(data):
         startTime = min([series.start for series in data])
         endTime = max([series.end for series in data])
@@ -155,29 +168,32 @@ def renderView(request):
             timestamps = range(int(series.start), int(series.end) + 1, int(secondsPerPoint))
           else:
             timestamps = range(int(series.start), int(series.end) + 1, int(series.step))
-          datapoints = zip(series, timestamps)
+          datapoints = zip((fix_special_values(v) for v in series), timestamps)
           series_data.append(dict(target=series.name, datapoints=datapoints))
       elif 'noNullPoints' in requestOptions and any(data):
+        def index_to_timestamp(index, series):
+          return series.start + (index * series.step)
+
         for series in data:
-          values = []
-          for (index,v) in enumerate(series):
-            if v is not None:
-              timestamp = series.start + (index * series.step)
-              values.append((v,timestamp))
+          values = filter(lambda (v, timestamp): v is not None,
+                          map(lambda (index, v): (fix_special_values(v), index_to_timestamp(index, series)),
+                              enumerate(series)))
           if len(values) > 0:
             series_data.append(dict(target=series.name, datapoints=values))
       else:
         for series in data:
           timestamps = range(int(series.start), int(series.end) + 1, int(series.step))
-          datapoints = zip(series, timestamps)
+          datapoints = zip((fix_special_values(v) for v in series), timestamps)
           series_data.append(dict(target=series.name, datapoints=datapoints))
+
+      output = json.dumps(series_data, allow_nan=False)
 
       if 'jsonp' in requestOptions:
         response = HttpResponse(
-          content="%s(%s)" % (requestOptions['jsonp'], json.dumps(series_data, cls=FloatEncoder)),
+          content="%s(%s)" % (requestOptions['jsonp'], output),
           content_type='text/javascript')
       else:
-        response = HttpResponse(content=json.dumps(series_data, cls=FloatEncoder),
+        response = HttpResponse(content=output,
                                 content_type='application/json')
 
       if useCache:
@@ -185,7 +201,8 @@ def renderView(request):
         patch_response_headers(response, cache_timeout=cacheTimeout)
       else:
         add_never_cache_headers(response)
-      log.rendering('Total json rendering time %.6f' % (time() - start))
+      log.rendering('JSON rendering time %.6f' % (time() - jsonStart))
+      log.rendering('Total time %.6f' % (time() - start))
       return response
 
     if format == 'dygraph':
