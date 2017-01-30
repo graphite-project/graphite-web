@@ -139,6 +139,21 @@ If you encounter problems, you can increase the verbosity of error output
 by adding a "DEBUG = True" line to local_settings.py
 
 
+ Quickly getting the web interface running from a code checkout
+-------------------------------------------------------------------------------
+git clone git://github.com/graphite-project/graphite-web.git
+cd graphite-web
+git checkout 0.9.x # optionally, check a branch you want to work with
+mkdir -p storage/log/webapp/
+cp ./webapp/graphite/local_settings.py.example ./webapp/graphite/local_settings.py
+
+Edit the config, you might want to point to an existing WHISPER_DIR that has data,
+and set your TIME_ZONE
+$EDITOR ./webapp/graphite/local_settings.py
+python ./webapp/graphite/manage.py syncdb
+python ./webapp/graphite/manage.py runserver 0.0.0.0:8000
+
+
  Next Steps - setup the backend (carbon)
 -------------------------------------------------------------------------------
 Now you have finished installing the graphite webapp, the next thing to do is put some
