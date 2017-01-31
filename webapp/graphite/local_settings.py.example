@@ -63,6 +63,13 @@
 #                        (21600, 180)] # >= 6 hour queries are cached 3 minutes
 #MEMCACHE_KEY_PREFIX = 'graphite'
 
+
+# This lists the memcached options. Default is an empty dict.
+# Accepted options depend on the Memcached implementation and the Django version. 
+# Until Django 1.10, options are used only for pylibmc. 
+# Starting from 1.11, options are used for both python-memcached and pylibmc.
+#MEMCACHE_OPTIONS = { 'socket_timeout': 0.5 }
+
 # Set URL_PREFIX when deploying graphite-web to a non-root location
 #URL_PREFIX = '/graphite'
 
