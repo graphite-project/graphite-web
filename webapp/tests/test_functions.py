@@ -3018,6 +3018,177 @@ class FunctionsTest(TestCase):
         self.assertEqual(result, expectedResults)
 
 
+    def test_movingSum_emptySeriesList(self):
+        self.assertEqual(functions.movingSum({},[],""), [])
+
+    def test_movingSum_evaluateTokens_returns_none(self):
+        def gen_seriesList(start=0):
+            seriesList = [
+                TimeSeries('collectd.test-db0.load.value', start+10, start+15, 1, range(start, start+15)),
+            ]
+            for series in seriesList:
+                series.pathExpression = series.name
+            return seriesList
+
+        seriesList = gen_seriesList(10)
+
+        def mock_evaluateTokens(reqCtx, tokens, replacements=None):
+            seriesList = [
+                TimeSeries('collectd.test-db0.load.value', 10, 25, 1, [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None])
+            ]
+            for series in seriesList:
+                series.pathExpression = series.name
+            return seriesList
+
+        expectedResults = [
+            TimeSeries('movingSum(collectd.test-db0.load.value,10)', 20, 25, 1, [None, None, None, None, None])
+        ]
+
+        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+            result = functions.movingSum(
+                {
+                    'template': {},
+                    'args': ({},{}),
+                    'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'endTime': datetime(1970, 1, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'localOnly': False,
+                    'data': []
+                },
+                seriesList, 10
+            )
+        self.assertEqual(result, expectedResults)
+
+    def test_movingSum_evaluateTokens_returns_half_none(self):
+        def gen_seriesList(start=0):
+            seriesList = [
+                TimeSeries('collectd.test-db0.load.value', start+10, start+20, 1, range(0, 10)),
+            ]
+            for series in seriesList:
+                series.pathExpression = series.name
+            return seriesList
+
+        seriesList = gen_seriesList(10)
+
+        def mock_evaluateTokens(reqCtx, tokens, replacements=None):
+            seriesList = [
+                TimeSeries('collectd.test-db0.load.value', 10, 30, 1, [None] * 10 + range(0, 10))
+            ]
+            for series in seriesList:
+                series.pathExpression = series.name
+            return seriesList
+
+        expectedResults = [
+            TimeSeries('movingSum(collectd.test-db0.load.value,10)', 20, 30, 1, [None, 0.0, 1.0, 3.0, 6.0, 10.0, 15.0, 21.0, 28.0, 36.0])
+        ]
+
+        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+            result = functions.movingSum(
+                {
+                    'template': {},
+                    'args': ({},{}),
+                    'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'endTime': datetime(1970, 1, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'localOnly': False,
+                    'data': []
+                },
+                seriesList, 10
+            )
+        self.assertEqual(result, expectedResults)
+
+    def test_movingSum_evaluateTokens_returns_empty_list(self):
+        def gen_seriesList(start=0):
+            seriesList = [
+                TimeSeries('collectd.test-db0.load.value', start+600, start+700, 1, range(start, start+100)),
+            ]
+            for series in seriesList:
+                series.pathExpression = series.name
+            return seriesList
+
+        seriesList = gen_seriesList(10)
+
+        def mock_evaluateTokens(reqCtx, tokens, replacements=None):
+            return []
+
+        expectedResults = []
+
+        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+            result = functions.movingSum(
+                {
+                    'template': {},
+                    'args': ({},{}),
+                    'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'endTime': datetime(1970, 1, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'localOnly': False,
+                    'data': []
+                },
+                seriesList, 60
+            )
+        self.assertEqual(result, expectedResults)
+
+    def test_movingSum_integerWindowSize(self):
+        def gen_seriesList(start=0):
+            seriesList = [
+                TimeSeries('collectd.test-db0.load.value', start+600, start+700, 1, [1]*100),
+            ]
+            for series in seriesList:
+                series.pathExpression = series.name
+            return seriesList
+
+        seriesList = gen_seriesList(10)
+
+        def mock_evaluateTokens(reqCtx, tokens, replacements=None):
+            return gen_seriesList()
+
+        expectedResults = [
+            TimeSeries('movingSum(collectd.test-db0.load.value,60)', 660, 700, 1, [60.0]*40)
+        ]
+
+        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+            result = functions.movingSum(
+                {
+                    'template': {},
+                    'args': ({},{}),
+                    'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'endTime': datetime(1970, 1, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'localOnly': False,
+                    'data': []
+                },
+                seriesList, 60
+            )
+        self.assertEqual(result, expectedResults)
+
+    def test_movingSum_stringWindowSize(self):
+        def gen_seriesList(start=0):
+            seriesList = [
+                TimeSeries('collectd.test-db0.load.value', start+600, start+700, 1, [1]*100),
+            ]
+            for series in seriesList:
+                series.pathExpression = series.name
+            return seriesList
+
+        seriesList = gen_seriesList(10)
+
+        def mock_evaluateTokens(reqCtx, tokens, replacements=None):
+            return gen_seriesList()
+
+        expectedResults = [
+            TimeSeries('movingSum(collectd.test-db0.load.value,"-1min")', 660, 700, 1, [60.0]*40),
+        ]
+
+        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+            result = functions.movingSum(
+                {
+                    'template': {},
+                    'args': ({},{}),
+                    'startTime': datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'endTime': datetime(1970, 1, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    'localOnly': False,
+                    'data': []
+                },
+                seriesList, "-1min"
+            )
+        self.assertEqual(result, expectedResults)
+
     def test_holtWintersAnalysis_None(self):
         seriesList = TimeSeries('collectd.test-db0.load.value', 660, 700, 1, [None])
         expectedResults = {
