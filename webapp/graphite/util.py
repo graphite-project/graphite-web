@@ -35,8 +35,6 @@ except ImportError:
   from StringIO import StringIO
 
 from django.conf import settings
-from django.contrib.auth.models import User
-from graphite.account.models import Profile
 from graphite.logger import log
 
 
@@ -58,19 +56,6 @@ def epoch(dt):
   Returns the epoch timestamp of a timezone-aware datetime object.
   """
   return calendar.timegm(dt.astimezone(pytz.utc).timetuple())
-
-def getProfile(request, allowDefault=True):
-  if request.user.is_authenticated():
-    return Profile.objects.get_or_create(user=request.user)[0]
-  elif allowDefault:
-    return default_profile()
-
-
-def getProfileByUsername(username):
-  try:
-    return Profile.objects.get(user__username=username)
-  except Profile.DoesNotExist:
-    return None
 
 def is_local_interface(host):
   is_ipv6 = False
@@ -121,21 +106,6 @@ def find_escaped_pattern_fields(pattern_string):
   for index,part in enumerate(pattern_parts):
     if is_escaped_pattern(part):
       yield index
-
-
-def default_profile():
-    # '!' is an unusable password. Since the default user never authenticates
-    # this avoids creating a default (expensive!) password hash at every
-    # default_profile() call.
-    user, created = User.objects.get_or_create(
-        username='default', defaults={'email': 'default@localhost.localdomain',
-                                      'password': '!'})
-    if created:
-        log.info("Default user didn't exist, created it")
-    profile, created = Profile.objects.get_or_create(user=user)
-    if created:
-        log.info("Default profile didn't exist, created it")
-    return profile
 
 
 def load_module(module_path, member=None):
