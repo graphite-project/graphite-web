@@ -3865,6 +3865,7 @@ SeriesFunctions = {
   # Calculate functions
   'movingAverage': movingAverage,
   'movingMedian': movingMedian,
+  'movingSum': movingSum,
   'stdev': stdev,
   'holtWintersForecast': holtWintersForecast,
   'holtWintersConfidenceBands': holtWintersConfidenceBands,
