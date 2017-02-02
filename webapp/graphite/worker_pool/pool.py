@@ -28,7 +28,7 @@ class Pool(object):
   def __init__(self):
     self.workers = []
     self.req_q = Queue()
-    self.grow_by(len(settings.CLUSTER_SERVERS) * settings.WORKERS_PER_BACKEND)
+    self.grow_by(settings.POOL_WORKERS)
 
   def grow_by(self, worker_count):
     for i in range(worker_count):

@@ -5,7 +5,7 @@ from graphite.intervals import Interval, IntervalSet
 from graphite.carbonlink import CarbonLink
 from graphite.logger import log
 from django.conf import settings
-from graphite.backend_workers.pool import get_pool
+from graphite.worker_pool.pool import get_pool
 
 try:
   import whisper

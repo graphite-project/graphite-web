@@ -21,7 +21,7 @@ from graphite.storage import STORE
 from graphite.readers import FetchInProgress
 from django.conf import settings
 from graphite.util import timebounds
-from graphite.backend_workers.pool import get_pool
+from graphite.worker_pool.pool import get_pool
 
 from traceback import format_exc
 

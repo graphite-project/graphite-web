@@ -98,7 +98,7 @@ class FindRequest(object):
         return
 
       if result.status != 200:
-        log.error("FindRequest.send(host=%s, query=%s) error response %d from %s?%s" % (self.store.host, self.query, result.status, url, urlencode(query_params)))
+        log.exception("FindRequest.send(host=%s, query=%s) error response %d from %s?%s" % (self.store.host, self.query, result.status, url, urlencode(query_params)))
         self.store.fail()
         return
 
