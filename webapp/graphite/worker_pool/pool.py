@@ -60,16 +60,16 @@ class Pool(object):
     start = time.time()
     deadline = start + timeout
 
-    i = 0
-    while i < len(jobs):
+    while i > 0:
       if time.time() > deadline:
         log.info("Timed out in pool.put_multi")
 
       try:
         yield q.get(block=True, timeout=0.1)
-        i += 1
+        i -= 1
       except Empty:
         pass
+
     log.info(
       '{pre}Completed in {sec}s'
       .format(sec=time.time()-start, pre=log_pre),
@@ -95,7 +95,7 @@ class Worker(object):
     log.info('Thread {thread}: processing'.format(
       thread=str(self.ident),
     ))
-    self.respond(job[1], job[0]())
+    self.respond(job[1], job[0][0](*job[0][1:]))
 
   def respond(self, queue, reply):
     if queue is not None:

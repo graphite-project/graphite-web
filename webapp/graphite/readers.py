@@ -54,13 +54,22 @@ class MultiReader(object):
     return IntervalSet( sorted(interval_sets) )
 
   def fetch(self, startTime, endTime, requestContext):
-    results = [
-      res[1]
-      for res in get_pool().put_multi([
-        lambda: node.fetch(startTime, endTime, requestContext)
-        for node in self.nodes if node.is_leaf
-      ]) if res is not None
-    ]
+    leaf_nodes = [node for node in self.nodes if node.is_leaf]
+
+    if settings.USE_THREADING:
+      results = list(
+        get_pool().put_multi([
+          (node.fetch, startTime, endTime, requestContext)
+          for node in self.nodes if node.is_leaf
+        ])
+      )
+    else:
+      results = [
+        node.fetch(startTime, endTime, requestContext)
+        for node in leaf_nodes
+      ]
+
+    results = [res[1] for res in results if res is not None]
 
     if not results:
       raise Exception("All sub-fetches failed")
