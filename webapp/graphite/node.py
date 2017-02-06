@@ -26,7 +26,10 @@ class LeafNode(Node):
     self.is_leaf = True
 
   def fetch(self, startTime, endTime, requestContext=None):
-    return (self, self.reader.fetch(startTime, endTime, requestContext))
+    try:
+      return (self, self.reader.fetch(startTime, endTime, requestContext))
+    except TypeError:
+      return (self, self.reader.fetch(startTime, endTime))
 
   def __repr__(self):
     return '<LeafNode[%x]: %s (%s)>' % (id(self), self.path, self.reader)
