@@ -31,5 +31,9 @@ class LeafNode(Node):
     except TypeError:
       return (self, self.reader.fetch(startTime, endTime))
 
+  @property
+  def intervals(self):
+    return self.reader.get_intervals()
+
   def __repr__(self):
     return '<LeafNode[%x]: %s (%s)>' % (id(self), self.path, self.reader)

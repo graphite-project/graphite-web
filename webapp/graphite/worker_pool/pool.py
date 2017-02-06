@@ -43,9 +43,12 @@ class Pool(object):
     except Full:
       raise Exception('All backend workers busy')
 
-  # generator that takes a list of jobs and yields result by result
-  def put_multi(self, jobs, timeout=5):
-    q = Queue()
+  def put_multi(self, jobs, timeout=5, result_queue=None):
+    if result_queue is None:
+      q = Queue()
+    else:
+      q = result_queue
+
     log_pre = 'put_multi ({inst}): '.format(inst=str(q))
 
     i = 0
@@ -57,15 +60,19 @@ class Pool(object):
       self.put(jobs[i], q)
       i += 1
 
+    if result_queue is not None:
+      return
+
     start = time.time()
     deadline = start + timeout
+    results = []
 
     while i > 0:
       if time.time() > deadline:
         log.info("Timed out in pool.put_multi")
 
       try:
-        yield q.get(block=True, timeout=0.1)
+        results.append(q.get(block=True, timeout=0.1))
         i -= 1
       except Empty:
         pass
@@ -74,6 +81,7 @@ class Pool(object):
       '{pre}Completed in {sec}s'
       .format(sec=time.time()-start, pre=log_pre),
     )
+    return results
 
 
 class Worker(object):

@@ -16,6 +16,7 @@ from graphite.remote_storage import RemoteStore
 from graphite.node import LeafNode
 from graphite.intervals import Interval, IntervalSet
 from graphite.readers import MultiReader
+from graphite.worker_pool.pool import get_pool
 
 
 def get_finder(finder_path):
@@ -55,9 +56,16 @@ class Store:
 
     # Start remote searches
     if not query.local:
-      for store in [ r for r in self.remote_stores if r.available ]:
-        store.find(query, result_queue, headers)
-        req_cnt += 1
+      jobs = [
+        (store.find, query, None, headers)
+        for store in self.remote_stores if store.available
+      ]
+      if settings.USE_THREADING:
+        get_pool().put_multi(jobs, result_queue=result_queue)
+      else:
+        for job in jobs:
+          result_queue.put(job[0](*job[1:]))
+      req_cnt += len(jobs)
 
     # Start local searches
     for finder in self.finders:
