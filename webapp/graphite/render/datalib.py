@@ -21,7 +21,6 @@ from graphite.storage import STORE
 from graphite.readers import FetchInProgress
 from django.conf import settings
 from graphite.util import timebounds
-from graphite.worker_pool.pool import get_pool
 
 from traceback import format_exc
 
@@ -128,18 +127,10 @@ def fetchRemoteData(requestContext, pathExpr, nodes):
 
   leaf_nodes = [node for node in nodes if node.is_leaf]
 
-  if settings.USE_THREADING:
-    return list(get_pool().put_multi([
-        (node.fetch, startTime, endTime, now, None, requestContext)
-        for node in leaf_nodes
-      ],
-      timeout=settings.REMOTE_FETCH_TIMEOUT,
-    ))
-  else:
-    return [
-      node.fetch(startTime, endTime, now, None, requestContext)
-      for node in leaf_nodes
-    ]
+  return [
+    node.fetch(startTime, endTime, now, None, requestContext)
+    for node in leaf_nodes
+  ]
 
 
 # Data retrieval API

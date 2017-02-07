@@ -1,6 +1,7 @@
 import time
 import httplib
 import urllib3
+from Queue import Queue
 from urllib import urlencode
 from threading import Lock, current_thread
 from django.conf import settings
@@ -12,6 +13,7 @@ from graphite.util import unpickle
 from graphite.readers import FetchInProgress
 from graphite.render.hashing import compactHash
 from graphite.util import timebounds
+from graphite.worker_pool.pool import get_pool
 
 http = urllib3.PoolManager(num_pools=10, maxsize=5)
 
@@ -196,18 +198,12 @@ class RemoteReader(object):
         requestContext['inflight_requests'] = {}
 
       if cacheKey in requestContext['inflight_locks']:
-        self.log_info("ReadResult :: returning FetchInProgress %s?%s" % (url, query_string))
-
-        def fetch_result():
-          with requestContext['inflight_locks'][cacheKey]:
-            self.log_info("ReadResult :: returning cached data via FetchInProgress %s?%s" % (url, query_string))
-            return requestContext['inflight_requests'][cacheKey] if cacheKey in requestContext['inflight_requests'] else None
-
-        return FetchInProgress(fetch_result)
+        with requestContext['inflight_locks'][cacheKey]:
+          self.log_info("ReadResult :: returning FetchInProgress %s?%s" % (url, query_string))
+          return requestContext['inflight_requests'][cacheKey]
 
       self.log_info("ReadResult :: creating lock %s?%s" % (url, query_string))
       requestContext['inflight_locks'][cacheKey] = Lock()
-
       cacheLock = requestContext['inflight_locks'][cacheKey]
 
     with cacheLock:
@@ -220,23 +216,43 @@ class RemoteReader(object):
         # the request isn't in flight, let's start it
         pass
 
-      try:
-        self.log_info("ReadResult :: requesting %s?%s" % (url, query_string))
-        result = http.request('POST' if settings.REMOTE_STORE_USE_POST else 'GET',
-                              url, fields=query_params, headers=headers, timeout=settings.REMOTE_FIND_TIMEOUT)
-        if result.status != 200:
-          self.store.fail()
-          self.log_info("ReadResult :: Error response %d from %s?%s" % (result.status, url, query_string))
-          data = None
-        else:
-          data = unpickle.loads(result.data)
-          self.log_info("ReadResult :: returning %s?%s in %fs" % (url, query_string, time.time() - t))
-      except Exception as err:
-        self.store.fail()
-        self.log_info("ReadResult :: Error requesting %s?%s: %s" % (url, query_string, err))
-        data = None
+      q = Queue()
+      get_pool().put(
+        job=(self._fetch, url, query_string, query_params, headers),
+        result_queue=q,
+      )
 
+      def retrieve():
+        # if the result is known we return it directly
+        if hasattr(retrieve, '_result'):
+          return getattr(retrieve, '_result')
+
+        # otherwise we get it from the queue and keep it for later
+        result = q.get(block=True)
+        setattr(retrieve, '_result', result)
+        return result
+
+      data = FetchInProgress(retrieve)
       requestContext['inflight_requests'][cacheKey] = data
+
+      self.log_info("ReadResult :: returning %s?%s in %fs" % (url, query_string, time.time() - t))
+      return data
+
+  def _fetch(self, url, query_string, query_params, headers):
+    try:
+      self.log_info("ReadResult :: requesting %s?%s" % (url, query_string))
+      result = http.request('POST' if settings.REMOTE_STORE_USE_POST else 'GET',
+                            url, fields=query_params, headers=headers, timeout=settings.REMOTE_FIND_TIMEOUT)
+      if result.status != 200:
+        self.store.fail()
+        self.log_info("ReadResult :: Error response %d from %s?%s" % (result.status, url, query_string))
+        data = None
+      else:
+        data = unpickle.loads(result.data)
+    except Exception as err:
+      self.store.fail()
+      self.log_info("ReadResult :: Error requesting %s?%s: %s" % (url, query_string, err))
+      data = None
 
     return data
 

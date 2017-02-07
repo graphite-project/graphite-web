@@ -35,10 +35,10 @@ class Pool(object):
       self.workers.append(Worker(self.req_q))
 
   # takes a job to execute and a queue to put the result in
-  def put(self, job, res_q):
+  def put(self, job, result_queue):
     try:
       self.req_q.put(
-        (job, res_q)
+        (job, result_queue)
       )
     except Full:
       raise Exception('All backend workers busy')

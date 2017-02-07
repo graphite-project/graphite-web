@@ -6,7 +6,6 @@ from graphite.intervals import Interval, IntervalSet
 from graphite.carbonlink import CarbonLink
 from graphite.logger import log
 from django.conf import settings
-from graphite.worker_pool.pool import get_pool
 
 try:
   import whisper
@@ -58,21 +57,10 @@ class MultiReader(object):
     result_queue = Queue.Queue()
     leaf_nodes = [node for node in self.nodes if node.is_leaf]
 
-    if settings.USE_THREADING:
-      results = list(
-        get_pool().put_multi(
-          [
-            (node.fetch, startTime, endTime, now, None, requestContext)
-            for node in leaf_nodes
-          ],
-          timeout=settings.REMOTE_FETCH_TIMEOUT,
-        )
-      )
-    else:
-      results = [
-        node.fetch(startTime, endTime, now, None, requestContext)
-        for node in leaf_nodes
-      ]
+    results = [
+      node.fetch(startTime, endTime, now, None, requestContext)
+      for node in leaf_nodes
+    ]
 
     result = []
     for r in results:
