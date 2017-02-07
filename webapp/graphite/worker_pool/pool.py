@@ -7,10 +7,6 @@ from threading import Lock
 
 from graphite.logger import log
 
-
-REQUEST_TYPE_FETCH = 0
-REQUEST_TYPE_FIND = 1
-
 # we'll never want more than one instance of Pool
 init_lock = Lock()
 
@@ -33,6 +29,7 @@ class Pool(object):
   def grow_by(self, worker_count):
     for i in range(worker_count):
       self.workers.append(Worker(self.req_q))
+    log.info("created {workers} workers".format(workers=len(self.workers)))
 
   # takes a job to execute and a queue to put the result in
   def put(self, job, result_queue):
@@ -100,8 +97,9 @@ class Worker(object):
       self.process(self.req_q.get(block=True))
 
   def process(self, job):
-    log.info('Thread {thread}: processing'.format(
+    log.info('Thread {thread} at {time}: processing'.format(
       thread=str(self.ident),
+      time=time.time(),
     ))
     self.respond(job[1], job[0][0](*job[0][1:]))
 

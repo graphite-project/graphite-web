@@ -56,7 +56,7 @@ class Store:
     # Start remote searches
     if not query.local:
       jobs.extend([
-        (store.find, query, None, headers)
+        (store.find, query, False, headers)
         for store in self.remote_stores if store.available
       ])
 
@@ -83,6 +83,7 @@ class Store:
 
       try:
         nodes = result_queue.get(True, 5)
+        log.info("Got a find result after %fs" % (time.time() - start))
       except Queue.Empty:
         log.info("Missing results of remote store finds")
         break
