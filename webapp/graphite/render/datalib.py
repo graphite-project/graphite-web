@@ -19,6 +19,7 @@ import time
 from graphite.logger import log
 from graphite.storage import STORE
 from graphite.readers import FetchInProgress
+from graphite.remote_storage import RemoteReader
 from django.conf import settings
 from graphite.util import timebounds
 
@@ -115,9 +116,12 @@ def prefetchRemoteData(requestContext, pathExpressions):
   if requestContext['localOnly']:
     return
 
+  (startTime, endTime, now) = timebounds(requestContext)
+
   for pathExpr in pathExpressions:
     for store in STORE.remote_stores:
-      store.fetch(pathExpr, requestContext)
+      reader = RemoteReader(store, {'path': pathExpr, 'intervals': []}, bulk_query=pathExpr)
+      reader.fetch_list(startTime, endTime, now, requestContext)
 
 
 def fetchRemoteData(requestContext, pathExpr, nodes):
