@@ -9,6 +9,7 @@ from graphite.readers import FetchInProgress
 from graphite.logger import log
 from graphite.util import unpickle
 from graphite.render.hashing import compactHash
+from graphite.intervals import Interval, IntervalSet
 
 def connector_class_selector(https_support=False):
     return httplib.HTTPSConnection if https_support else httplib.HTTPConnection
@@ -110,11 +111,24 @@ class FindRequest(object):
       cache.set(self.cacheKey, results, settings.FIND_CACHE_DURATION)
 
     for node_info in results:
-      if node_info.get('is_leaf'):
+      # handle both 1.x and 0.9.x output
+      path = node_info.get('path') or node_info.get('metric_path')
+      is_leaf = node_info.get('is_leaf') or node_info.get('isLeaf')
+      intervals = node_info.get('intervals') or []
+      if not isinstance(intervals, IntervalSet):
+        intervals = IntervalSet([Interval(interval[0], interval[1]) for interval in intervals])
+
+      node_info = {
+        'is_leaf': is_leaf,
+        'path': path,
+        'intervals': intervals,
+      }
+
+      if is_leaf:
         reader = RemoteReader(self.store, node_info, bulk_query=self.query.pattern)
-        node = LeafNode(node_info['path'], reader)
+        node = LeafNode(path, reader)
       else:
-        node = BranchNode(node_info['path'])
+        node = BranchNode(path)
 
       node.local = False
       yield node
