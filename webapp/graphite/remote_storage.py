@@ -60,7 +60,7 @@ class FindRequest(object):
 
   def send(self, headers=None):
     t = time.time()
-    log.info(".send(host=%s, query=%s) called at %s" % (self.store.host, self.query, t))
+    log.info("FindRequest.send(host=%s, query=%s) called at %s" % (self.store.host, self.query, t))
 
     results = cache.get(self.cacheKey)
     if results is not None:

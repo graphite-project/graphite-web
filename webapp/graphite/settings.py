@@ -51,6 +51,9 @@ STANDARD_DIRS = []
 
 # Cluster settings
 CLUSTER_SERVERS = []
+USE_THREADING=True
+POOL_WORKERS = len(CLUSTER_SERVERS) + 5
+
 # This settings control whether https is used to communicate between cluster members
 INTRACLUSTER_HTTPS = False
 REMOTE_FIND_TIMEOUT = 3.0

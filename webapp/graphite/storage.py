@@ -60,19 +60,18 @@ class Store:
         (store.find, query, None, headers)
         for store in self.remote_stores if store.available
       ]
-      if settings.USE_THREADING:
-        get_pool().put_multi(jobs, result_queue=result_queue)
-      else:
-        for job in jobs:
-          result_queue.put(job[0](*job[1:]))
       req_cnt += len(jobs)
 
     # Start local searches
     for finder in self.finders:
-      log.info("Started thread for %s" % (finder))
-      thread = threading.Thread(target=find_into_queue, args=(finder, query, result_queue))
-      thread.start()
+      jobs.append((finder.find_nodes, query))
       req_cnt += 1
+
+    if settings.USE_THREADING:
+      get_pool().put_multi(jobs, result_queue=result_queue)
+    else:
+      for job in jobs:
+        result_queue.put(job[0](*job[1:]))
 
     # Group matching nodes by their path
     nodes_by_path = {}
