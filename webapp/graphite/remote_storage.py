@@ -33,7 +33,7 @@ class RemoteStore(object):
     if result_queue:
       result_queue.put(request.send(headers))
     else:
-      return request.send(headers)
+      return list(request.send(headers))
 
   def fail(self):
     self.lastFailure = time.time()
