@@ -217,10 +217,15 @@ class RemoteReader(object):
         pass
 
       q = Queue()
-      get_pool().put(
-        job=(self._fetch, url, query_string, query_params, headers),
-        result_queue=q,
-      )
+      if settings.USE_THREADING:
+        get_pool().put(
+          job=(self._fetch, url, query_string, query_params, headers),
+          result_queue=q,
+        )
+      else:
+        q.put(
+          self._fetch(url, query_string, query_params, headers),
+        )
 
       def retrieve():
         # if the result is known we return it directly
