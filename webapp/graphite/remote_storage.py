@@ -188,33 +188,31 @@ class RemoteReader(object):
 
     cacheKey = "%s?%s" % (url, query_string)
 
-    with self.inflight_lock:
-      self.log_info("ReadResult :: got global lock %s?%s" % (url, query_string))
-      if requestContext is None:
-        requestContext = {}
-      if 'inflight_locks' not in requestContext:
-        requestContext['inflight_locks'] = {}
-      if 'inflight_requests' not in requestContext:
-        requestContext['inflight_requests'] = {}
+    # do not use with-syntax because we want to release this one as soon
+    # as we got the url lock
+    self.inflight_lock.acquire()
 
-      if cacheKey in requestContext['inflight_locks']:
-        with requestContext['inflight_locks'][cacheKey]:
-          self.log_info("ReadResult :: returning FetchInProgress %s?%s" % (url, query_string))
-          return requestContext['inflight_requests'][cacheKey]
+    self.log_info("ReadResult :: got global lock %s?%s" % (url, query_string))
+    if requestContext is None:
+      requestContext = {}
+    if 'inflight_locks' not in requestContext:
+      requestContext['inflight_locks'] = {}
+    if 'inflight_requests' not in requestContext:
+      requestContext['inflight_requests'] = {}
 
+    if cacheKey not in requestContext['inflight_locks']:
       self.log_info("ReadResult :: creating lock %s?%s" % (url, query_string))
       requestContext['inflight_locks'][cacheKey] = Lock()
-      cacheLock = requestContext['inflight_locks'][cacheKey]
+
+    cacheLock = requestContext['inflight_locks'][cacheKey]
 
     with cacheLock:
+      self.inflight_lock.release()
       self.log_info("ReadResult :: got url lock %s?%s" % (url, query_string))
-      try:
-        data = requestContext['inflight_requests'][cacheKey]
-        self.log_info("ReadResult :: returning cached data %s?%s in %fs" % (url, query_string))
-        return data
-      except KeyError:
-        # the request isn't in flight, let's start it
-        pass
+
+      if cacheKey in requestContext['inflight_requests']:
+        self.log_info("ReadResult :: returning cached FetchInProgress %s?%s" % (url, query_string))
+        return requestContext['inflight_requests'][cacheKey]
 
       q = Queue()
       if settings.USE_THREADING:
@@ -228,15 +226,17 @@ class RemoteReader(object):
         )
 
       def retrieve():
-        # if the result is known we return it directly
-        if hasattr(retrieve, '_result'):
-          return getattr(retrieve, '_result')
+        with retrieve.lock:
+          # if the result is known we return it directly
+          if hasattr(retrieve, '_result'):
+            return getattr(retrieve, '_result')
 
-        # otherwise we get it from the queue and keep it for later
-        result = q.get(block=True)
-        setattr(retrieve, '_result', result)
-        return result
+          # otherwise we get it from the queue and keep it for later
+          result = q.get(block=True)
+          setattr(retrieve, '_result', result)
+          return result
 
+      retrieve.lock = Lock()
       data = FetchInProgress(retrieve)
       requestContext['inflight_requests'][cacheKey] = data
 
