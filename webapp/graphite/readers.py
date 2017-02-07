@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+import Queue
 from graphite.intervals import Interval, IntervalSet
 from graphite.carbonlink import CarbonLink
 from graphite.logger import log
@@ -53,28 +54,40 @@ class MultiReader(object):
       interval_sets.extend( node.intervals.intervals )
     return IntervalSet( sorted(interval_sets) )
 
-  def fetch(self, startTime, endTime, requestContext):
+  def fetch(self, startTime, endTime, now=None, requestContext=None):
+    result_queue = Queue.Queue()
     leaf_nodes = [node for node in self.nodes if node.is_leaf]
 
     if settings.USE_THREADING:
       results = list(
-        get_pool().put_multi([
-          (node.fetch, startTime, endTime, requestContext)
-          for node in self.nodes if node.is_leaf
-        ])
+        get_pool().put_multi(
+          [
+            (node.fetch, startTime, endTime, now, None, requestContext)
+            for node in leaf_nodes
+          ],
+          timeout=settings.REMOTE_FETCH_TIMEOUT,
+        )
       )
     else:
       results = [
-        node.fetch(startTime, endTime, requestContext)
+        node.fetch(startTime, endTime, now, None, requestContext)
         for node in leaf_nodes
       ]
 
-    results = [res[1] for res in results if res is not None]
+    result = []
+    for r in results:
+      # we don't need the node, only the data
+      r = r[1]
+      if isinstance(r, FetchInProgress):
+        r = r.waitForResults()
+      if r is None:
+        continue
+      result.append(r)
 
-    if not results:
+    if not result:
       raise Exception("All sub-fetches failed")
 
-    return reduce(self.merge, results)
+    return reduce(self.merge, result)
 
 
   def merge(self, results1, results2):

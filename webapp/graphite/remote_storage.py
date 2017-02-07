@@ -33,18 +33,6 @@ class RemoteStore(object):
     else:
       return request.send(headers)
 
-  def fetch(self, path_expr, requestContext):
-    (startTime, endTime, now) = timebounds(requestContext)
-
-    return RemoteReader(
-      self,
-      {
-        'path': path_expr,
-        'intervals': [],
-      },
-      bulk_query=path_expr
-    ).fetch_list(startTime, endTime, requestContext)
-
   def fail(self):
     self.lastFailure = time.time()
 
@@ -154,27 +142,29 @@ class RemoteReader(object):
   def get_intervals(self):
     return self.intervals
 
-  def fetch(self, startTime, endTime, requestContext):
-    return self._fetch(startTime, endTime, requestContext)
+  def fetch(self, startTime, endTime, now=None, requestContext=None):
+    seriesList = self.fetch_list(startTime, endTime, now, requestContext)
 
-  def _fetch(self, startTime, endTime, requestContext):
-    seriesList = self.fetch_list(startTime, endTime, requestContext)
+    def _fetch(seriesList):
+      if seriesList is None:
+        return None
 
-    if isinstance(seriesList, FetchInProgress):
-      seriesList = seriesList.waitForResults()
+      for series in seriesList:
+        if series['name'] == self.metric_path:
+          time_info = (series['start'], series['end'], series['step'])
+          return (time_info, series['values'])
 
-    if seriesList is None:
       return None
 
-    for series in seriesList:
-      if series['name'] == self.metric_path:
-        time_info = (series['start'], series['end'], series['step'])
-        return (time_info, series['values'])
+    if isinstance(seriesList, FetchInProgress):
+      return FetchInProgress(lambda: _fetch(seriesList.waitForResults()))
+
+    return _fetch(seriesList)
 
   def log_info(self, msg):
     log.info(('thread %s at %fs ' % (current_thread().name, time.time())) + msg)
 
-  def fetch_list(self, startTime, endTime, requestContext):
+  def fetch_list(self, startTime, endTime, now=None, requestContext=None):
     (startTime, endTime, now) = timebounds(requestContext)
     t = time.time()
 

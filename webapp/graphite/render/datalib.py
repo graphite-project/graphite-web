@@ -122,19 +122,22 @@ def prefetchRemoteData(requestContext, pathExpressions):
 
 
 def fetchRemoteData(requestContext, pathExpr, nodes):
+  start = time.time()
   (startTime, endTime, now) = timebounds(requestContext)
+  log.info("Got timebounds %fs" % (time.time() - start))
+
   leaf_nodes = [node for node in nodes if node.is_leaf]
 
   if settings.USE_THREADING:
-    return list(
-      get_pool().put_multi([
-        (node.fetch, startTime, endTime, requestContext)
+    return list(get_pool().put_multi([
+        (node.fetch, startTime, endTime, now, None, requestContext)
         for node in leaf_nodes
-      ])
-    )
+      ],
+      timeout=settings.REMOTE_FETCH_TIMEOUT,
+    ))
   else:
     return [
-      node.fetch(startTime, endTime, requestContext)
+      node.fetch(startTime, endTime, now, None, requestContext)
       for node in leaf_nodes
     ]
 
