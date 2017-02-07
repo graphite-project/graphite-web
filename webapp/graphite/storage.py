@@ -1,6 +1,5 @@
 import time
 import random
-import threading
 import Queue
 
 try:
@@ -52,20 +51,18 @@ class Store:
   def find_all(self, query, headers=None):
     start = time.time()
     result_queue = Queue.Queue()
-    req_cnt = 0
+    jobs = []
 
     # Start remote searches
     if not query.local:
-      jobs = [
+      jobs.extend([
         (store.find, query, None, headers)
         for store in self.remote_stores if store.available
-      ]
-      req_cnt += len(jobs)
+      ])
 
     # Start local searches
     for finder in self.finders:
       jobs.append((finder.find_nodes, query))
-      req_cnt += 1
 
     if settings.USE_THREADING:
       get_pool().put_multi(jobs, result_queue=result_queue)
@@ -99,7 +96,7 @@ class Store:
           nodes_by_path[node.path].append(node)
           log.info("Found node %s" % (node))
 
-      if result_cnt >= req_cnt:
+      if result_cnt >= len(jobs):
         log.info("Got all find results in %fs" % (time.time() - start))
         break
 
