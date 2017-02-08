@@ -184,26 +184,26 @@ def _fetchData(pathExpr, startTime, endTime, requestContext, seriesList):
     resultCompleteness['awaitComplete'].acquire()
 
     fetches = requestContext['inflight_requests']
-    values = {}
-    nodes = []
-    result_queue = []
-    for fetch in fetches.values():
-      if isinstance(fetch, FetchInProgress):
-        fetch = fetch.waitForResults()
 
-      if fetch is None:
-        continue
+    def result_queue_generator():
+      for fetch in fetches.values():
+        if isinstance(fetch, FetchInProgress):
+          fetch = fetch.waitForResults()
 
-      for result in fetch:
-        result_queue.append(
-          (
+        if fetch is None:
+          continue
+
+        for result in fetch:
+          yield (
             result['node'],
             (
               (result['start'], result['end'], result['step']),
               result['values'],
             ),
-          ),
-        )
+          )
+
+    result_queue = result_queue_generator()
+
   else:
     nodes = [node for node in STORE.find(pathExpr, startTime, endTime, local=requestContext['localOnly'])]
     result_queue = fetchRemoteData(requestContext, pathExpr, nodes)

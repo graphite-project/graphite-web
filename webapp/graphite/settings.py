@@ -52,7 +52,7 @@ STANDARD_DIRS = []
 # Cluster settings
 CLUSTER_SERVERS = []
 USE_THREADING=True
-POOL_WORKERS = len(CLUSTER_SERVERS) + 5
+POOL_WORKERS = len(CLUSTER_SERVERS) * 3 + 5
 
 # This settings control whether https is used to communicate between cluster members
 INTRACLUSTER_HTTPS = False
