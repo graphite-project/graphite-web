@@ -124,7 +124,8 @@ def prefetchRemoteData(requestContext, pathExpressions):
     'stores_left': len(STORE.remote_stores),
     'await_complete': Lock(),
   }
-  requestContext['result_completeness']['await_complete'].acquire()
+  if requestContext['result_completeness']['stores_left'] > 0:
+    requestContext['result_completeness']['await_complete'].acquire()
 
   for pathExpr in pathExpressions:
     for store in STORE.remote_stores:
@@ -188,7 +189,12 @@ def _fetchData(pathExpr, startTime, endTime, requestContext, seriesList):
       if time.time() - t > settings.REMOTE_FETCH_TIMEOUT:
         raise Exception('timed out waiting for results')
 
-    fetches = requestContext['inflight_requests']
+    # inflight_requests is only present if at least one remote store
+    # has been queried
+    if 'inflight_requests' in requestContext:
+      fetches = requestContext['inflight_requests']
+    else:
+      fetches = {}
 
     def result_queue_generator():
       for fetch in fetches.values():
