@@ -58,7 +58,7 @@ class MultiReader(object):
     leaf_nodes = [node for node in self.nodes if node.is_leaf]
 
     results = [
-      node.fetch(startTime, endTime, now, None, requestContext)
+      node.fetch(startTime, endTime, now, requestContext)
       for node in leaf_nodes
     ]
 
