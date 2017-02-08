@@ -48,6 +48,7 @@ class Store:
     for match in self.find_all(query, headers):
       yield match
 
+
   def find_all(self, query, headers=None):
     start = time.time()
     result_queue = Queue.Queue()

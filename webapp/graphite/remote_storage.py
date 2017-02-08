@@ -151,7 +151,7 @@ class RemoteReader(object):
       if seriesList is None:
         return None
 
-      for series in seriesList:
+      for series in seriesList['values']:
         if series['name'] == self.metric_path:
           time_info = (series['start'], series['end'], series['step'])
           return (time_info, series['values'])
@@ -199,15 +199,17 @@ class RemoteReader(object):
       requestContext['inflight_locks'] = {}
     if 'inflight_requests' not in requestContext:
       requestContext['inflight_requests'] = {}
-
     if cacheKey not in requestContext['inflight_locks']:
       self.log_info("ReadResult :: creating lock %s?%s" % (url, query_string))
       requestContext['inflight_locks'][cacheKey] = Lock()
 
     cacheLock = requestContext['inflight_locks'][cacheKey]
+    resultCompleteness = requestContext.get('resultCompleteness', None)
 
     with cacheLock:
+      # release the global lock as soon as we got the cache key specific one
       self.inflight_lock.release()
+
       self.log_info("ReadResult :: got url lock %s?%s" % (url, query_string))
 
       if cacheKey in requestContext['inflight_requests']:
@@ -232,7 +234,11 @@ class RemoteReader(object):
             return getattr(retrieve, '_result')
 
           # otherwise we get it from the queue and keep it for later
-          result = q.get(block=True)
+          result = {
+            'values': q.get(block=True),
+            'store': self.store,
+            'query': self.query,
+          }
           setattr(retrieve, '_result', result)
           return result
 
@@ -240,10 +246,19 @@ class RemoteReader(object):
       data = FetchInProgress(retrieve)
       requestContext['inflight_requests'][cacheKey] = data
 
+      if resultCompleteness is not None:
+        with resultCompleteness['lock']:
+          resultCompleteness['storesLeft'] -= 1
+          if resultCompleteness['storesLeft'] == 0:
+            # if the results of all stores have been pushed into requestContext
+            # we release the lock to signal that find() is not necessary anymore
+            resultCompleteness['awaitComplete'].release()
+
       self.log_info("ReadResult :: returning %s?%s in %fs" % (url, query_string, time.time() - t))
       return data
 
   def _fetch(self, url, query_string, query_params, headers):
+    self.log_info("RemoteReader:: Starting to execute _fetch %s?%s" % (url, query_string))
     try:
       self.log_info("ReadResult :: requesting %s?%s" % (url, query_string))
       result = http.request('POST' if settings.REMOTE_STORE_USE_POST else 'GET',
@@ -259,6 +274,7 @@ class RemoteReader(object):
       self.log_info("ReadResult :: Error requesting %s?%s: %s" % (url, query_string, err))
       data = None
 
+    self.log_info("RemoteReader:: Completed _fetch %s?%s" % (url, query_string))
     return data
 
 

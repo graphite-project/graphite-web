@@ -14,6 +14,7 @@ limitations under the License."""
 
 # import pprint
 import time
+from threading import Lock
 # import pprint
 
 from graphite.logger import log
@@ -21,6 +22,7 @@ from graphite.storage import STORE
 from graphite.readers import FetchInProgress
 from graphite.remote_storage import RemoteReader
 from django.conf import settings
+from graphite.node import LeafNode
 from graphite.util import timebounds
 
 from traceback import format_exc
@@ -118,6 +120,13 @@ def prefetchRemoteData(requestContext, pathExpressions):
 
   (startTime, endTime, now) = timebounds(requestContext)
 
+  requestContext['resultCompleteness'] = {
+    'lock': Lock(),
+    'storesLeft': len(STORE.remote_stores),
+    'awaitComplete': Lock(),
+  }
+  requestContext['resultCompleteness']['awaitComplete'].acquire()
+
   for pathExpr in pathExpressions:
     for store in STORE.remote_stores:
       reader = RemoteReader(store, {'path': pathExpr, 'intervals': []}, bulk_query=pathExpr)
@@ -170,7 +179,35 @@ def fetchData(requestContext, pathExpr):
 def _fetchData(pathExpr, startTime, endTime, requestContext, seriesList):
   t = time.time()
 
-  nodes = [node for node in STORE.find(pathExpr, startTime, endTime, local=requestContext['localOnly'])]
+  if settings.REMOTE_PREFETCH_DATA and 'resultCompleteness' in requestContext:
+    resultCompleteness = requestContext['resultCompleteness']
+    # wait for all results to come in
+    resultCompleteness['awaitComplete'].acquire()
+
+    fetches = requestContext['inflight_requests']
+    values = {}
+    nodes = []
+    for fetch in fetches.values():
+      if isinstance(fetch, FetchInProgress):
+        fetch = fetch.waitForResults()
+
+      for v in fetch['values']:
+        nodes.append(
+          LeafNode(
+            path=v['name'],
+            reader=RemoteReader(
+              store=fetch['store'],
+              node_info={
+                'is_leaf': True,
+                'path': v['name'],
+                'intervals': v['step'],
+              },
+              bulk_query=fetch['query'],
+            ),
+          ),
+        )
+  else:
+    nodes = [node for node in STORE.find(pathExpr, startTime, endTime, local=requestContext['localOnly'])]
 
   result_queue = fetchRemoteData(requestContext, pathExpr, nodes)
 

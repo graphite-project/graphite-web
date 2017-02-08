@@ -62,7 +62,7 @@ def renderView(request):
     'template' : requestOptions['template'],
     'tzinfo' : requestOptions['tzinfo'],
     'prefetchedRemoteData' : {},
-    'data' : []
+    'data' : [],
   }
   data = requestContext['data']
 
