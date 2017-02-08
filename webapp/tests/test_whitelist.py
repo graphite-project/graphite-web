@@ -7,7 +7,7 @@ from . import DATA_DIR
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
-from django.test import TestCase
+from .base import BaseTestCase as TestCase
 
 from graphite.whitelist.views import load_whitelist, save_whitelist
 

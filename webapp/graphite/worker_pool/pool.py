@@ -9,6 +9,8 @@ from graphite.logger import log
 
 # we'll never want more than one instance of Pool
 init_lock = Lock()
+is_initialized = False
+
 
 def get_pool():
   with init_lock:
@@ -16,7 +18,16 @@ def get_pool():
     if instance is None:
       instance = Pool()
       setattr(get_pool, 'instance', instance)
+      is_initialized = True
   return instance
+
+
+def stop_pool():
+  with init_lock:
+    if not is_initialized:
+      return
+
+    get_pool().shutdown()
 
 
 class Pool(object):
@@ -28,8 +39,23 @@ class Pool(object):
 
   def grow_by(self, worker_count):
     for i in range(worker_count):
-      self.workers.append(Worker(self.req_q))
+      self.workers.append(Worker(self.req_q, self))
     log.info("created {workers} workers".format(workers=len(self.workers)))
+
+  def shutdown(self):
+    for worker in self.workers:
+      worker.shutdown = True
+
+    self.put_multi(
+      jobs=[
+        None
+        for i in range(len(self.workers))
+      ],
+      result_queue=False,
+    )
+
+    for worker in self.workers:
+      worker.t.join()
 
   # takes a job to execute and a queue to put the result in
   def put(self, job, result_queue):
@@ -83,8 +109,10 @@ class Pool(object):
 
 class Worker(object):
 
-  def __init__(self, req_q):
+  def __init__(self, req_q, pool):
+    self.pool = pool
     self.req_q = req_q
+    self.shutdown = False
     self.start()
 
   def start(self):
@@ -95,8 +123,13 @@ class Worker(object):
     self.ident = self.t.ident
     while True:
       self.process(self.req_q.get(block=True))
+      if self.shutdown:
+        break
 
   def process(self, job):
+    if self.shutdown:
+      return
+
     log.info('Thread {thread} at {time}: processing'.format(
       thread=str(self.ident),
       time=time.time(),

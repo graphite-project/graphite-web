@@ -5,7 +5,7 @@ import random
 import shutil
 import time
 
-from django.test import TestCase
+from .base import BaseTestCase as TestCase
 from django.conf import settings
 
 from graphite.intervals import Interval, IntervalSet
