@@ -174,7 +174,6 @@ class RemoteReader(object):
       ('target', self.query),
       ('format', 'pickle'),
       ('local', '1'),
-      ('noCache', '1'),
       ('from', str( int(startTime) )),
       ('until', str( int(endTime) ))
     ]

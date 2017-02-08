@@ -191,6 +191,9 @@ def _fetchData(pathExpr, startTime, endTime, requestContext, seriesList):
       if isinstance(fetch, FetchInProgress):
         fetch = fetch.waitForResults()
 
+      if fetch is None:
+        continue
+
       for result in fetch:
         result_queue.append(
           (
