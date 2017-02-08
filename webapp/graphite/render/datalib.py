@@ -180,8 +180,13 @@ def _fetchData(pathExpr, startTime, endTime, requestContext, seriesList):
 
   if settings.REMOTE_PREFETCH_DATA and 'result_completeness' in requestContext:
     result_completeness = requestContext['result_completeness']
+
     # wait for all results to come in
-    result_completeness['await_complete'].acquire()
+    acquired = False
+    while not acquired:
+      acquired=result_completeness['await_complete'].acquire(False)
+      if time.time() - t > settings.REMOTE_FETCH_TIMEOUT:
+        raise Exception('timed out waiting for results')
 
     fetches = requestContext['inflight_requests']
 
