@@ -151,7 +151,7 @@ class RemoteReader(object):
       if seriesList is None:
         return None
 
-      for series in seriesList['values']:
+      for series in seriesList:
         if series['name'] == self.metric_path:
           time_info = (series['start'], series['end'], series['step'])
           return (time_info, series['values'])
@@ -234,13 +234,25 @@ class RemoteReader(object):
             return getattr(retrieve, '_result')
 
           # otherwise we get it from the queue and keep it for later
-          result = {
-            'values': q.get(block=True),
-            'store': self.store,
-            'query': self.query,
-          }
-          setattr(retrieve, '_result', result)
-          return result
+          results = q.get(block=True)
+
+          if results is not None:
+            for i in range(len(results)):
+              results[i]['node'] = LeafNode(
+                path=results[i]['name'],
+                reader=RemoteReader(
+                  store=self.store,
+                  bulk_query=self.query,
+                  node_info={
+                    'is_leaf': True,
+                    'path': results[i]['name'],
+                    'intervals': results[i]['step'],
+                  }
+                ),
+              )
+
+          setattr(retrieve, '_result', results)
+          return results
 
       retrieve.lock = Lock()
       data = FetchInProgress(retrieve)
@@ -249,7 +261,12 @@ class RemoteReader(object):
       if resultCompleteness is not None:
         with resultCompleteness['lock']:
           resultCompleteness['storesLeft'] -= 1
+          self.log_info(
+            'decreasing storesLeft count by 1, new count is {count}'
+            .format(count=resultCompleteness['storesLeft']),
+          )
           if resultCompleteness['storesLeft'] == 0:
+            self.log_info('got all stores, releasing awaitComplete')
             # if the results of all stores have been pushed into requestContext
             # we release the lock to signal that find() is not necessary anymore
             resultCompleteness['awaitComplete'].release()

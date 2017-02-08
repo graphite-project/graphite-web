@@ -22,7 +22,6 @@ from graphite.storage import STORE
 from graphite.readers import FetchInProgress
 from graphite.remote_storage import RemoteReader
 from django.conf import settings
-from graphite.node import LeafNode
 from graphite.util import timebounds
 
 from traceback import format_exc
@@ -187,29 +186,24 @@ def _fetchData(pathExpr, startTime, endTime, requestContext, seriesList):
     fetches = requestContext['inflight_requests']
     values = {}
     nodes = []
+    result_queue = []
     for fetch in fetches.values():
       if isinstance(fetch, FetchInProgress):
         fetch = fetch.waitForResults()
 
-      for v in fetch['values']:
-        nodes.append(
-          LeafNode(
-            path=v['name'],
-            reader=RemoteReader(
-              store=fetch['store'],
-              node_info={
-                'is_leaf': True,
-                'path': v['name'],
-                'intervals': v['step'],
-              },
-              bulk_query=fetch['query'],
+      for result in fetch:
+        result_queue.append(
+          (
+            result['node'],
+            (
+              (result['start'], result['end'], result['step']),
+              result['values'],
             ),
           ),
         )
   else:
     nodes = [node for node in STORE.find(pathExpr, startTime, endTime, local=requestContext['localOnly'])]
-
-  result_queue = fetchRemoteData(requestContext, pathExpr, nodes)
+    result_queue = fetchRemoteData(requestContext, pathExpr, nodes)
 
   for node, results in result_queue:
     if isinstance(results, FetchInProgress):
