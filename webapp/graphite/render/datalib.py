@@ -119,12 +119,12 @@ def prefetchRemoteData(requestContext, pathExpressions):
 
   (startTime, endTime, now) = timebounds(requestContext)
 
-  requestContext['resultCompleteness'] = {
+  requestContext['result_completeness'] = {
     'lock': Lock(),
-    'storesLeft': len(STORE.remote_stores),
-    'awaitComplete': Lock(),
+    'stores_left': len(STORE.remote_stores),
+    'await_complete': Lock(),
   }
-  requestContext['resultCompleteness']['awaitComplete'].acquire()
+  requestContext['result_completeness']['await_complete'].acquire()
 
   for pathExpr in pathExpressions:
     for store in STORE.remote_stores:
@@ -178,10 +178,10 @@ def fetchData(requestContext, pathExpr):
 def _fetchData(pathExpr, startTime, endTime, requestContext, seriesList):
   t = time.time()
 
-  if settings.REMOTE_PREFETCH_DATA and 'resultCompleteness' in requestContext:
-    resultCompleteness = requestContext['resultCompleteness']
+  if settings.REMOTE_PREFETCH_DATA and 'result_completeness' in requestContext:
+    result_completeness = requestContext['result_completeness']
     # wait for all results to come in
-    resultCompleteness['awaitComplete'].acquire()
+    result_completeness['await_complete'].acquire()
 
     fetches = requestContext['inflight_requests']
 

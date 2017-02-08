@@ -203,7 +203,7 @@ class RemoteReader(object):
       requestContext['inflight_locks'][cacheKey] = Lock()
 
     cacheLock = requestContext['inflight_locks'][cacheKey]
-    resultCompleteness = requestContext.get('resultCompleteness', None)
+    result_completeness = requestContext.get('result_completeness', None)
 
     with cacheLock:
       # release the global lock as soon as we got the cache key specific one
@@ -257,18 +257,18 @@ class RemoteReader(object):
       data = FetchInProgress(retrieve)
       requestContext['inflight_requests'][cacheKey] = data
 
-      if resultCompleteness is not None:
-        with resultCompleteness['lock']:
-          resultCompleteness['storesLeft'] -= 1
+      if result_completeness is not None:
+        with result_completeness['lock']:
+          result_completeness['stores_left'] -= 1
           self.log_info(
-            'decreasing storesLeft count by 1, new count is {count}'
-            .format(count=resultCompleteness['storesLeft']),
+            'decreasing stores_left count by 1, new count is {count}'
+            .format(count=result_completeness['stores_left']),
           )
-          if resultCompleteness['storesLeft'] == 0:
-            self.log_info('got all stores, releasing awaitComplete')
+          if result_completeness['stores_left'] == 0:
+            self.log_info('got all stores, releasing await_complete')
             # if the results of all stores have been pushed into requestContext
             # we release the lock to signal that find() is not necessary anymore
-            resultCompleteness['awaitComplete'].release()
+            result_completeness['await_complete'].release()
 
       self.log_info("ReadResult :: returning %s?%s in %fs" % (url, query_string, time.time() - t))
       return data
