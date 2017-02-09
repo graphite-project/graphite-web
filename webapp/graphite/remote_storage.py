@@ -23,10 +23,19 @@ def connector_class_selector(https_support=False):
 
 class RemoteStore(object):
   lastFailure = 0.0
-  available = property(lambda self: time.time() - self.lastFailure > settings.REMOTE_RETRY_DELAY)
+  available = property(
+    lambda self: time.time() - self.last_failure > settings.REMOTE_RETRY_DELAY
+  )
 
   def __init__(self, host):
     self.host = host
+    self._failure_lock = Lock()
+    self._last_failure = 0
+
+  @property
+  def last_failure(self):
+    with self._failure_lock:
+      return self._last_failure
 
   def find(self, query, result_queue=False, headers=None):
     request = FindRequest(self, query)
@@ -36,7 +45,9 @@ class RemoteStore(object):
       return list(request.send(headers))
 
   def fail(self):
-    self.lastFailure = time.time()
+    with self._failure_lock:
+      self._last_failure = time.time()
+
 
 
 class FindRequest(object):
