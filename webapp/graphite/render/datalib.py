@@ -14,7 +14,7 @@ limitations under the License."""
 
 # import pprint
 import time
-from threading import Lock
+from threading import Lock, current_thread
 # import pprint
 
 from graphite.logger import log
@@ -127,6 +127,7 @@ def prefetchRemoteData(requestContext, pathExpressions):
   if requestContext['result_completeness']['stores_left'] > 0:
     requestContext['result_completeness']['await_complete'].acquire()
 
+  log.info('thread %s prefetchRemoteData:: Starting fetch_list on all backends' % current_thread().name)
   for pathExpr in pathExpressions:
     for store in STORE.remote_stores:
       reader = RemoteReader(store, {'path': pathExpr, 'intervals': []}, bulk_query=pathExpr)
