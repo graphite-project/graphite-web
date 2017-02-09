@@ -241,6 +241,7 @@ def _fetchData(pathExpr, startTime, endTime, requestContext, seriesList):
     nodes = [node for node in STORE.find(pathExpr, startTime, endTime, local=requestContext['localOnly'])]
     result_queue = fetchRemoteData(requestContext, pathExpr, nodes)
 
+  log.info("render.datalib.fetchData :: starting to merge")
   for node, results in result_queue:
     if isinstance(results, FetchInProgress):
       results = results.waitForResults()
@@ -303,15 +304,21 @@ def _fetchData(pathExpr, startTime, endTime, requestContext, seriesList):
           series_best_nones[known.name] = candidate_nones
           seriesList[known.name] = series
       else:
-        # In case if we are merging data - the existing series has no gaps and
-        # there is nothing to merge together.  Save ourselves some work here.
-        #
-        # OR - if we picking best serie:
-        #
-        # We already have this series in the seriesList, and the
-        # candidate is 'worse' than what we already have, we don't need
-        # to compare anything else. Save ourselves some work here.
-        break
+        if not settings.REMOTE_PREFETCH_DATA:
+          # In case if we are merging data - the existing series has no gaps and
+          # there is nothing to merge together.  Save ourselves some work here.
+          #
+          # OR - if we picking best serie:
+          #
+          # We already have this series in the seriesList, and the
+          # candidate is 'worse' than what we already have, we don't need
+          # to compare anything else. Save ourselves some work here.
+          break
+        else:
+          # if we're using REMOTE_PREFETCH_DATA we can save some time by skipping
+          # find, but that means we don't know how many nodes to expect so we
+          # have to iterate over all returned results
+          continue
 
         # If we looked at this series above, and it matched a 'known'
         # series already, then it's already in the series list (or ignored).
