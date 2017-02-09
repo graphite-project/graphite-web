@@ -249,12 +249,18 @@ class RemoteReader(object):
                   }
                 ),
               )
+          else:
+            self.log_info('RemoteReader:: retrieve has received no results')
 
           setattr(retrieve, '_result', results)
           return results
 
       retrieve.lock = Lock()
       data = FetchInProgress(retrieve)
+      self.log_info(
+        'RemoteReader:: Storing FetchInProgress with cacheKey {cacheKey}'
+        .format(cacheKey=cacheKey),
+      )
       requestContext['inflight_requests'][cacheKey] = data
 
       if result_completeness is not None:

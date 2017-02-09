@@ -198,14 +198,34 @@ def _fetchData(pathExpr, startTime, endTime, requestContext, seriesList):
       fetches = {}
 
     def result_queue_generator():
-      for fetch in fetches.values():
+      log.info(
+        'render.datalib.fetchData:: result_queue_generator got {count} fetches'
+        .format(count=len(fetches)),
+      )
+      for key, fetch in fetches.iteritems():
+        log.info(
+          'render.datalib.fetchData:: getting results of {host}'
+          .format(host=key),
+        )
+
         if isinstance(fetch, FetchInProgress):
           fetch = fetch.waitForResults()
 
         if fetch is None:
+          log.info('render.datalib.fetchData:: fetch is None')
           continue
 
         for result in fetch:
+          log.info(
+            'render.datalib.fetchData:: yielding {node}: {start} - {end} at steps {step}'
+            .format(
+              node=result['node'].path,
+              start=result['start'],
+              end=result['end'],
+              step=result['step'],
+            )
+          )
+
           yield (
             result['node'],
             (
@@ -253,7 +273,7 @@ def _fetchData(pathExpr, startTime, endTime, requestContext, seriesList):
       candidate_nones = 0
       if not settings.REMOTE_STORE_MERGE_RESULTS:
         candidate_nones = len(
-          [val for val in series['values'] if val is None])
+          [val for val in values if val is None])
 
       known = seriesList[series.name]
       # To avoid repeatedly recounting the 'Nones' in series we've already seen,
