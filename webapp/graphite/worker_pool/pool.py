@@ -35,7 +35,14 @@ class Pool(object):
   def __init__(self):
     self.workers = []
     self.req_q = Queue()
-    self.grow_by(settings.POOL_WORKERS)
+    self.grow_by(
+      # the number of workers should increase linear with the number of
+      # backend servers
+      settings.POOL_WORKERS_PER_BACKEND * len(settings.CLUSTER_SERVERS) +
+      # plus we need some baseline for local finds and other stuff that
+      # always happens
+      settings.POOL_WORKERS
+    )
 
   def grow_by(self, worker_count):
     for i in range(worker_count):

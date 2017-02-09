@@ -217,16 +217,6 @@ def _fetchData(pathExpr, startTime, endTime, requestContext, seriesList):
           continue
 
         for result in fetch:
-          log.info(
-            'render.datalib.fetchData:: yielding {node}: {start} - {end} at steps {step}'
-            .format(
-              node=result['node'].path,
-              start=result['start'],
-              end=result['end'],
-              step=result['step'],
-            )
-          )
-
           yield (
             result['node'],
             (
