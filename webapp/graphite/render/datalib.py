@@ -141,10 +141,11 @@ def fetchRemoteData(requestContext, pathExpr, nodes):
 
   leaf_nodes = [node for node in nodes if node.is_leaf]
 
-  return [
-    node.fetch(startTime, endTime, now, requestContext)
-    for node in leaf_nodes
-  ]
+  def _gen():
+    for node in leaf_nodes:
+      yield node.fetch(startTime, endTime, now, requestContext)
+
+  return _gen()
 
 
 # Data retrieval API
