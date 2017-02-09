@@ -23,6 +23,7 @@ from graphite.readers import FetchInProgress
 from graphite.remote_storage import RemoteReader
 from django.conf import settings
 from graphite.util import timebounds
+from graphite.worker_pool.pool import get_pool
 
 from traceback import format_exc
 
@@ -119,13 +120,31 @@ def prefetchRemoteData(requestContext, pathExpressions):
 
   (startTime, endTime, now) = timebounds(requestContext)
 
-  requestContext['result_completeness'] = {
+  result_completeness = {
     'lock': Lock(),
     'stores_left': len(STORE.remote_stores),
     'await_complete': Lock(),
   }
-  if requestContext['result_completeness']['stores_left'] > 0:
-    requestContext['result_completeness']['await_complete'].acquire()
+
+  if result_completeness['stores_left'] > 0:
+    result_completeness['await_complete'].acquire()
+    result_completeness['timed_out'] = {
+      'lock': Lock(),
+      'value': False,
+    }
+
+    def _timeout():
+      time.sleep(settings.REMOTE_FETCH_TIMEOUT)
+      with result_completeness['timed_out']['lock']:
+        result_completeness['timed_out']['value'] = True
+      result_completeness['await_complete'].release()
+
+    get_pool().put(
+      job=(_timeout,),
+      result_queue=None,
+    )
+
+  requestContext['result_completeness'] = result_completeness
 
   log.info('thread %s prefetchRemoteData:: Starting fetch_list on all backends' % current_thread().name)
   for pathExpr in pathExpressions:
@@ -184,12 +203,12 @@ def _fetchData(pathExpr, startTime, endTime, requestContext, seriesList):
   if settings.REMOTE_PREFETCH_DATA and 'result_completeness' in requestContext:
     result_completeness = requestContext['result_completeness']
 
-    # wait for all results to come in
-    acquired = False
-    while not acquired:
-      acquired=result_completeness['await_complete'].acquire(False)
-      if time.time() - t > settings.REMOTE_FETCH_TIMEOUT:
+    result_completeness['await_complete'].acquire()
+    with result_completeness['timed_out']['lock']:
+      if result_completeness['timed_out']['value']:
+        result_completeness['await_complete'].release()
         raise Exception('timed out waiting for results')
+    result_completeness['await_complete'].release()
 
     # inflight_requests is only present if at least one remote store
     # has been queried
