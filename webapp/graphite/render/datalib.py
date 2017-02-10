@@ -14,7 +14,7 @@ limitations under the License."""
 
 # import pprint
 import time
-from threading import Lock, current_thread
+from threading import Lock, current_thread, Thread, ThreadError
 # import pprint
 
 from graphite.logger import log
@@ -118,8 +118,6 @@ def prefetchRemoteData(requestContext, pathExpressions):
   if requestContext['localOnly']:
     return
 
-  (startTime, endTime, now) = timebounds(requestContext)
-
   result_completeness = {
     'lock': Lock(),
     'stores_left': len(STORE.remote_stores),
@@ -137,16 +135,36 @@ def prefetchRemoteData(requestContext, pathExpressions):
       time.sleep(settings.REMOTE_FETCH_TIMEOUT)
       with result_completeness['timed_out']['lock']:
         result_completeness['timed_out']['value'] = True
-      result_completeness['await_complete'].release()
+      try:
+        result_completeness['await_complete'].release()
+      except ThreadError:
+        # if the request has been completed before the timeout has been reached,
+        # .release() will be called on an unlocked lock
+        pass
 
-    get_pool().put(
-      job=(_timeout,),
-      result_queue=None,
-    )
+    if settings.USE_WORKER_POOL:
+      # we don't want to block a pool worker for the whole duration of REMOTE_FETCH_TIMEOUT
+      # and we also don't want the overhead of creating a new thread in this thread, so we
+      # make a pool worker create a new thread to wait for the timeout
+      get_pool().put(
+        job=(lambda: Thread(target=_timeout).start(),),
+      )
 
   requestContext['result_completeness'] = result_completeness
+  if settings.USE_WORKER_POOL:
+    get_pool().put(
+      job=(lambda: _prefetchRemoteData(requestContext, pathExpressions),),
+    )
+  else:
+    _prefetchRemoteData(requestContext, pathExpressions)
 
+
+def _prefetchRemoteData(requestContext, pathExpressions):
+  (startTime, endTime, now) = timebounds(requestContext)
   log.info('thread %s prefetchRemoteData:: Starting fetch_list on all backends' % current_thread().name)
+
+  # Go through all of the remote nodes, and launch a fetch for each one.
+  # Each fetch will take place in its own thread, since it's naturally parallel work.
   for pathExpr in pathExpressions:
     for store in STORE.remote_stores:
       reader = RemoteReader(store, {'path': pathExpr, 'intervals': []}, bulk_query=pathExpr)
@@ -203,12 +221,10 @@ def _fetchData(pathExpr, startTime, endTime, requestContext, seriesList):
   if settings.REMOTE_PREFETCH_DATA and 'result_completeness' in requestContext:
     result_completeness = requestContext['result_completeness']
 
-    result_completeness['await_complete'].acquire()
-    with result_completeness['timed_out']['lock']:
-      if result_completeness['timed_out']['value']:
-        result_completeness['await_complete'].release()
-        raise Exception('timed out waiting for results')
-    result_completeness['await_complete'].release()
+    with result_completeness['await_complete']:
+      with result_completeness['timed_out']['lock']:
+        if result_completeness['timed_out']['value']:
+          raise Exception('timed out waiting for results')
 
     # inflight_requests is only present if at least one remote store
     # has been queried
@@ -299,7 +315,6 @@ def _fetchData(pathExpr, startTime, endTime, requestContext, seriesList):
           # This series has potential data that might be missing from
           # earlier series.  Attempt to merge in useful data and update
           # the cache count.
-          log.info("Merging multiple TimeSeries for %s" % known.name)
           for i, j in enumerate(known):
             if j is None and series[i] is not None:
               known[i] = series[i]

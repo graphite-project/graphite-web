@@ -1,6 +1,7 @@
 import time
 import random
 import Queue
+from collections import defaultdict
 
 try:
   from importlib import import_module
@@ -57,7 +58,7 @@ class Store:
     # Start remote searches
     if not query.local:
       jobs.extend([
-        (store.find, query, False, headers)
+        (store.find, query, headers)
         for store in self.remote_stores if store.available
       ])
 
@@ -65,42 +66,35 @@ class Store:
     for finder in self.finders:
       jobs.append((finder.find_nodes, query))
 
-    if settings.USE_THREADING:
+    if settings.USE_WORKER_POOL:
       get_pool().put_multi(jobs, result_queue=result_queue)
     else:
       for job in jobs:
         result_queue.put(job[0](*job[1:]))
 
     # Group matching nodes by their path
-    nodes_by_path = {}
+    nodes_by_path = defaultdict(list)
 
     deadline = start + settings.REMOTE_FIND_TIMEOUT
     result_cnt = 0
 
-    while True:
+    while result_cnt < len(jobs):
       if time.time() > deadline:
         log.info("Timed out in find_all after %fs" % (settings.REMOTE_FIND_TIMEOUT))
         break
 
       try:
-        nodes = result_queue.get(True, 5)
-        log.info("Got a find result after %fs" % (time.time() - start))
+        nodes = result_queue.get(True, 0.01)
       except Queue.Empty:
-        log.info("Missing results of remote store finds")
-        break
+        continue
 
+      log.info("Got a find result after %fs" % (time.time() - start))
       result_cnt += 1
       if nodes:
         for node in nodes:
-          if node.path not in nodes_by_path:
-            nodes_by_path[node.path] = []
-
           nodes_by_path[node.path].append(node)
-          log.info("Found node %s" % (node))
 
-      if result_cnt >= len(jobs):
-        log.info("Got all find results in %fs" % (time.time() - start))
-        break
+    log.info("Got all find results in %fs" % (time.time() - start))
 
     # Reduce matching nodes for each path to a minimal set
     found_branch_nodes = set()

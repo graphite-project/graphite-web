@@ -1,9 +1,8 @@
 import time
 from Queue import Queue, Full, Empty
-from threading import Thread
+from threading import Thread, Lock
 
 from django.conf import settings
-from threading import Lock
 
 from graphite.logger import log
 
@@ -35,6 +34,7 @@ class Pool(object):
   def __init__(self):
     self.workers = []
     self.req_q = Queue()
+    self.pool_lock = Lock()
     self.grow_by(
       # the number of workers should increase linear with the number of
       # backend servers
@@ -45,27 +45,30 @@ class Pool(object):
     )
 
   def grow_by(self, worker_count):
-    for i in range(worker_count):
-      self.workers.append(Worker(self.req_q, self))
-    log.info("created {workers} workers".format(workers=len(self.workers)))
+    with self.pool_lock:
+      for i in range(worker_count):
+        self.workers.append(Worker(self.req_q, self))
+
+    log.info("got {workers} workers".format(workers=len(self.workers)))
 
   def shutdown(self):
-    for worker in self.workers:
-      worker.shutdown = True
+    with self.pool_lock:
+      for worker in self.workers:
+        worker.shutdown = True
 
-    self.put_multi(
-      jobs=[
-        None
-        for i in range(len(self.workers))
-      ],
-      result_queue=False,
-    )
+      self.put_multi(
+        jobs=[
+          None
+          for i in range(len(self.workers))
+        ],
+        result_queue=False,
+      )
 
-    for worker in self.workers:
-      worker.t.join()
+      while self.workers:
+        self.workers.pop().t.join()
 
   # takes a job to execute and a queue to put the result in
-  def put(self, job, result_queue):
+  def put(self, job, result_queue=None):
     try:
       self.req_q.put(
         (job, result_queue)

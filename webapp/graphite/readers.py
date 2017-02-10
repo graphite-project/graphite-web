@@ -1,7 +1,6 @@
 import os
 import sys
 import time
-import Queue
 from graphite.intervals import Interval, IntervalSet
 from graphite.carbonlink import CarbonLink
 from graphite.logger import log
@@ -54,20 +53,24 @@ class MultiReader(object):
     return IntervalSet( sorted(interval_sets) )
 
   def fetch(self, startTime, endTime, now=None, requestContext=None):
-    result_queue = Queue.Queue()
-    leaf_nodes = [node for node in self.nodes if node.is_leaf]
-
     results = [
       node.fetch(startTime, endTime, now, requestContext)
-      for node in leaf_nodes
+      for node in self.nodes
+      if node.is_leaf
     ]
 
     result = []
     for r in results:
-      # we don't need the node, only the data
-      r = r[1]
+      try:
+        # we don't need the node, only the data
+        r = r[1]
+      except IndexError:
+        # invalid result
+        continue
+
       if isinstance(r, FetchInProgress):
         r = r.waitForResults()
+
       if r is None:
         continue
       result.append(r)
