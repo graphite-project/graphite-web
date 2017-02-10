@@ -1,6 +1,14 @@
 import os
 import sys
 import time
+
+try:
+    from os import scandir
+    del scandir
+    import os as scandir
+except ImportError:
+    import scandir
+
 from graphite.intervals import Interval, IntervalSet
 from graphite.carbonlink import CarbonLink
 from graphite.logger import log
@@ -171,7 +179,7 @@ class WhisperReader(object):
 
   def get_intervals(self):
     start = time.time() - whisper.info(self.fs_path)['maxRetention']
-    end = max( os.stat(self.fs_path).st_mtime, start )
+    end = max( scandir.stat(self.fs_path).st_mtime, start )
     return IntervalSet( [Interval(start, end)] )
 
   def fetch(self, startTime, endTime):
@@ -216,7 +224,7 @@ class GzippedWhisperReader(WhisperReader):
       fh.close()
 
     start = time.time() - info['maxRetention']
-    end = max( os.stat(self.fs_path).st_mtime, start )
+    end = max( scandir.stat(self.fs_path).st_mtime, start )
     return IntervalSet( [Interval(start, end)] )
 
   def fetch(self, startTime, endTime):
@@ -242,7 +250,7 @@ class RRDReader:
 
   def get_intervals(self):
     start = time.time() - self.get_retention(self.fs_path)
-    end = max( os.stat(self.fs_path).st_mtime, start )
+    end = max( scandir.stat(self.fs_path).st_mtime, start )
     return IntervalSet( [Interval(start, end)] )
 
   def fetch(self, startTime, endTime):
