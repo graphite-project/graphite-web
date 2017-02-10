@@ -157,6 +157,10 @@ def find_view(request):
     content = pickle_nodes(matches)
     response = HttpResponse(content, content_type='application/pickle')
 
+  elif format == 'json':
+    content = json_nodes(matches)
+    response = json_response_for(request, content, jsonp=jsonp)
+
   elif format == 'completer':
     results = []
     for node in matches:
@@ -340,6 +344,19 @@ def pickle_nodes(nodes):
     nodes_info.append(info)
 
   return pickle.dumps(nodes_info, protocol=-1)
+
+
+def json_nodes(nodes):
+  nodes_info = []
+
+  for node in nodes:
+    info = dict(path=node.path, is_leaf=node.is_leaf)
+    if node.is_leaf:
+      info['intervals'] = [{'start': i.start, 'end': i.end} for i in node.intervals]
+
+    nodes_info.append(info)
+
+  return nodes_info
 
 
 def json_response_for(request, data, content_type='application/json',
