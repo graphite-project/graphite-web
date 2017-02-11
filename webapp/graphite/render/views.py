@@ -110,7 +110,8 @@ def renderView(request):
     if cachedData is not None:
       requestContext['data'] = data = cachedData
     else: # Have to actually retrieve the data now
-      for target in requestOptions['targets']:
+      targets = requestOptions['targets']
+      for target in targets:
         if not target.strip():
           continue
         t = time()

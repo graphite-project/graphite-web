@@ -46,7 +46,7 @@ class TimeSeriesTest(TestCase):
     def test_TimeSeries_getInfo(self):
       values = range(0,100)
       series = TimeSeries("collectd.test-db.load.value", 0, len(values), 1, values)
-      self.assertEqual(series.getInfo(), {'name': 'collectd.test-db.load.value', 'values': values, 'start': 0, 'step': 1, 'end': len(values)} )
+      self.assertEqual(series.getInfo(), {'name': 'collectd.test-db.load.value', 'values': values, 'start': 0, 'step': 1, 'end': len(values), 'pathExpression': 'collectd.test-db.load.value'} )
 
     def test_TimeSeries_consolidate(self):
       values = range(0,100)
