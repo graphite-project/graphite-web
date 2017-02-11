@@ -482,7 +482,8 @@ def renderMyGraphView(request,username,graphName):
   except ObjectDoesNotExist:
     return errorPage("User %s doesn't have a MyGraph named '%s'" % (username,graphName))
 
-  request_params = dict(request.REQUEST.items())
+  request_params = request.GET.copy()
+  request_params.update(request.POST)
   if request_params:
     url_parts = urlsplit(graph.url)
     query_string = url_parts[3]
