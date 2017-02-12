@@ -215,7 +215,7 @@ class RemoteReader(object):
   def get_intervals(self):
     return self.intervals
 
-  def fetch(self, startTime, endTime):
+  def fetch(self, startTime, endTime, now=None, requestContext=None):
     query_params = [
       ('target', self.query),
       ('format', 'pickle'),
@@ -224,6 +224,9 @@ class RemoteReader(object):
       ('from', str( int(startTime) )),
       ('until', str( int(endTime) ))
     ]
+    if now is not None:
+      query_params.append(('now', str( int(now) )))
+
     query_string = urlencode(query_params)
     urlpath = '/render/?' + query_string
     url = "http://%s%s" % (self.store.host, urlpath)

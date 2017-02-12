@@ -20,7 +20,7 @@ from django.conf import settings
 months = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec']
 weekdays = ['sun','mon','tue','wed','thu','fri','sat']
 
-def parseATTime(s, tzinfo=None):
+def parseATTime(s, tzinfo=None, now=None):
   if tzinfo is None:
     tzinfo = pytz.timezone(settings.TIME_ZONE)
   s = s.strip().lower().replace('_','').replace(',','').replace(' ','')
@@ -39,10 +39,11 @@ def parseATTime(s, tzinfo=None):
     offset = '-' + offset
   else:
     ref,offset = s,''
-  return tzinfo.normalize(parseTimeReference(ref).astimezone(tzinfo) + parseTimeOffset(offset))
+  return tzinfo.normalize(parseTimeReference(ref or now).astimezone(tzinfo) + parseTimeOffset(offset))
 
 
 def parseTimeReference(ref):
+  if isinstance(ref, datetime): return ref
   if not ref or ref == 'now': return datetime.now(pytz.utc)
 
   #Time-of-day reference
