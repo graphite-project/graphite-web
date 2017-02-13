@@ -25,7 +25,7 @@ class MetricsTester(TestCase):
         except OSError:
             pass
 
-    def create_whisper_hosts(self):
+    def create_whisper_hosts(self, ts=None):
         worker1 = self.hostcpu.replace('hostname', 'worker1')
         worker2 = self.hostcpu.replace('hostname', 'worker2')
         try:
@@ -37,7 +37,7 @@ class MetricsTester(TestCase):
         whisper.create(worker1, [(1, 60)])
         whisper.create(worker2, [(1, 60)])
 
-        ts = int(time.time())
+        ts = ts or int(time.time())
         whisper.update(worker1, 1, ts)
         whisper.update(worker2, 2, ts)
 
@@ -82,7 +82,8 @@ class MetricsTester(TestCase):
 
 
     def test_find_view(self):
-        self.create_whisper_hosts()
+        ts = int(time.time())
+        self.create_whisper_hosts(ts)
         self.addCleanup(self.wipe_whisper_hosts)
 
         url = reverse('graphite.metrics.views.find_view')
@@ -151,8 +152,29 @@ class MetricsTester(TestCase):
         request['format']='pickle'
         request['query']='*'
         content = test_find_view_basics(request)
-        [data] = unpickle.loads(content)
-        self.assertEqual(data['path'], 'hosts')
+        data = unpickle.loads(content)
+        self.assertEqual(len(data), 1)
+        self.assertEqual(data[0]['path'], 'hosts')
+        self.assertEqual(data[0]['is_leaf'], False)
+
+        request['query']='hosts.*.cpu'
+        content = test_find_view_basics(request)
+        data = unpickle.loads(content)
+        self.assertEqual(len(data), 2)
+
+        data = sorted(data, key=lambda item: item['path'])
+
+        self.assertEqual(data[0]['path'], 'hosts.worker1.cpu')
+        self.assertEqual(data[0]['is_leaf'], True)
+        self.assertEqual(len(data[0]['intervals']), 1)
+        self.assertEqual(int(data[0]['intervals'][0].start), ts - 60)
+        self.assertEqual(int(data[0]['intervals'][0].end), ts)
+
+        self.assertEqual(data[1]['path'], 'hosts.worker2.cpu')
+        self.assertEqual(data[1]['is_leaf'], True)
+        self.assertEqual(len(data[1]['intervals']), 1)
+        self.assertEqual(int(data[1]['intervals'][0].start), ts - 60)
+        self.assertEqual(int(data[1]['intervals'][0].end), ts)
 
         #
         # format=completer
@@ -286,6 +308,74 @@ class MetricsTester(TestCase):
         data = json.loads(content)
         self.assertEqual(data, {u'nodes': [u'hosts']})
 
+        # format=json
+        request=copy.deepcopy(request_default)
+        request['format']='json'
+
+        # branch
+        request['query']='*'
+        content = test_find_view_basics(request)
+        data = json.loads(content)
+        self.assertEqual(data, [{u'path': u'hosts', u'is_leaf': False}])
+
+        # leaf
+        request['query']='hosts.*.cpu'
+        content = test_find_view_basics(request)
+        data = json.loads(content)
+        self.assertEqual(len(data), 2)
+
+        self.assertEqual(data[0]['path'], 'hosts.worker1.cpu')
+        self.assertEqual(data[0]['is_leaf'], True)
+        self.assertEqual(len(data[0]['intervals']), 1)
+        self.assertEqual(int(data[0]['intervals'][0]['start']), ts - 60)
+        self.assertEqual(int(data[0]['intervals'][0]['end']), ts)
+
+        self.assertEqual(data[1]['path'], 'hosts.worker2.cpu')
+        self.assertEqual(data[1]['is_leaf'], True)
+        self.assertEqual(len(data[1]['intervals']), 1)
+        self.assertEqual(int(data[1]['intervals'][0]['start']), ts - 60)
+        self.assertEqual(int(data[1]['intervals'][0]['end']), ts)
+
+        # No match
+        request['query']='other'
+        content = test_find_view_basics(request)
+        data = json.loads(content)
+        self.assertEqual(data, [])
+
+        # format=json+jsonp
+        request=copy.deepcopy(request_default)
+        request['format']='json'
+        request['jsonp']='asdf'
+
+        # branch
+        request['query']='*'
+        content = test_find_view_basics(request)
+        data = json.loads(content.split("(")[1].strip(")"))
+        self.assertEqual(data, [{u'path': u'hosts', u'is_leaf': False}])
+
+        # leaf
+        request['query']='hosts.*.cpu'
+        content = test_find_view_basics(request)
+        data = json.loads(content.split("(")[1].strip(")"))
+        self.assertEqual(len(data), 2)
+
+        self.assertEqual(data[0]['path'], 'hosts.worker1.cpu')
+        self.assertEqual(data[0]['is_leaf'], True)
+        self.assertEqual(len(data[0]['intervals']), 1)
+        self.assertEqual(int(data[0]['intervals'][0]['start']), ts - 60)
+        self.assertEqual(int(data[0]['intervals'][0]['end']), ts)
+
+        self.assertEqual(data[1]['path'], 'hosts.worker2.cpu')
+        self.assertEqual(data[1]['is_leaf'], True)
+        self.assertEqual(len(data[1]['intervals']), 1)
+        self.assertEqual(int(data[1]['intervals'][0]['start']), ts - 60)
+        self.assertEqual(int(data[1]['intervals'][0]['end']), ts)
+
+        # No match
+        request['query']='other'
+        content = test_find_view_basics(request)
+        data = json.loads(content.split("(")[1].strip(")"))
+        self.assertEqual(data, [])
 
     def test_expand_view(self):
         self.create_whisper_hosts()

@@ -356,7 +356,7 @@ def json_nodes(nodes):
 
     nodes_info.append(info)
 
-  return nodes_info
+  return sorted(nodes_info, key=lambda item: item['path'])
 
 
 def json_response_for(request, data, content_type='application/json',
