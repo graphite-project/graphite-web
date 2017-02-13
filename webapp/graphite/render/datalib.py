@@ -244,26 +244,26 @@ def _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList):
           series_best_nones[known.name] = candidate_nones
           seriesList[known.name] = series
       else:
-        if not settings.REMOTE_PREFETCH_DATA:
-          # In case if we are merging data - the existing series has no gaps and
-          # there is nothing to merge together.  Save ourselves some work here.
-          #
-          # OR - if we picking best serie:
-          #
-          # We already have this series in the seriesList, and the
-          # candidate is 'worse' than what we already have, we don't need
-          # to compare anything else. Save ourselves some work here.
-          break
-        else:
+        if settings.REMOTE_PREFETCH_DATA:
           # if we're using REMOTE_PREFETCH_DATA we can save some time by skipping
           # find, but that means we don't know how many nodes to expect so we
           # have to iterate over all returned results
           continue
 
-        # If we looked at this series above, and it matched a 'known'
-        # series already, then it's already in the series list (or ignored).
-        # If not, append it here.
+        # In case if we are merging data - the existing series has no gaps and
+        # there is nothing to merge together.  Save ourselves some work here.
+        #
+        # OR - if we picking best serie:
+        #
+        # We already have this series in the seriesList, and the
+        # candidate is 'worse' than what we already have, we don't need
+        # to compare anything else. Save ourselves some work here.
+        break
+
     else:
+      # If we looked at this series above, and it matched a 'known'
+      # series already, then it's already in the series list (or ignored).
+      # If not, append it here.
       seriesList[series.name] = series
 
   log.info("render.datalib._fetchData :: completed in %fs" % (time.time() - t))

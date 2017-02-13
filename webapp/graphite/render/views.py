@@ -114,9 +114,9 @@ def renderView(request):
       targets = requestOptions['targets']
       if settings.REMOTE_PREFETCH_DATA and not requestOptions.get('localOnly'):
         log.rendering("Prefetching remote data")
-        t = time()
         pathExpressions = extractPathExpressions(targets)
         prefetchRemoteData(requestContext, pathExpressions)
+
       for target in targets:
         if not target.strip():
           continue
