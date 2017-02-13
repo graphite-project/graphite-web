@@ -1,15 +1,12 @@
-import os
 import operator
 from os.path import isdir, isfile, join, basename
 from django.conf import settings
-
+# Use the built-in version of scandir/walk if possible, otherwise
+# use the scandir module version
 try:
-    from os import scandir
-    del scandir
-    del os
-    import os as scandir
+    from os import scandir, walk
 except ImportError:
-    import scandir
+    from scandir import scandir, walk
 
 from graphite.logger import log
 from graphite.node import BranchNode, LeafNode
@@ -83,7 +80,7 @@ class StandardFinder:
 
     if has_wildcard: # this avoids os.listdir() for performance
       try:
-        entries = [x.name for x in scandir.scandir(current_dir)]
+        entries = [x.name for x in scandir(current_dir)]
       except OSError as e:
         log.exception(e)
         entries = []
@@ -91,7 +88,7 @@ class StandardFinder:
       entries = [ pattern ]
 
     if using_globstar:
-        matching_subdirs = map(operator.itemgetter(0), scandir.walk(current_dir))
+        matching_subdirs = map(operator.itemgetter(0), walk(current_dir))
     else:
         subdirs = [entry for entry in entries if isdir(join(current_dir, entry))]
         matching_subdirs = match_entries(subdirs, pattern)
