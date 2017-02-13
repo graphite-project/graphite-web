@@ -16,7 +16,7 @@ from graphite.logger import log
 from graphite.storage import STORE
 from graphite.readers import FetchInProgress
 from django.conf import settings
-from graphite.util import epoch
+from graphite.util import timebounds
 
 from traceback import format_exc
 
@@ -104,9 +104,13 @@ class TimeSeries(list):
       'values' : list(self),
     }
 
-def _fetchData(pathExpr,startTime, endTime, requestContext, seriesList):
+def _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList):
   matching_nodes = STORE.find(pathExpr, startTime, endTime, local=requestContext['localOnly'])
-  fetches = [(node, node.fetch(startTime, endTime)) for node in matching_nodes if node.is_leaf]
+  fetches = [
+    (node, node.fetch(startTime, endTime, now, requestContext))
+    for node in matching_nodes
+    if node.is_leaf
+  ]
 
   for node, results in fetches:
     if isinstance(results, FetchInProgress):
@@ -192,13 +196,12 @@ def _fetchData(pathExpr,startTime, endTime, requestContext, seriesList):
 # Data retrieval API
 def fetchData(requestContext, pathExpr):
   seriesList = {}
-  startTime = int( epoch( requestContext['startTime'] ) )
-  endTime   = int( epoch( requestContext['endTime'] ) )
+  (startTime, endTime, now) = timebounds(requestContext)
 
   retries = 1 # start counting at one to make log output and settings more readable
   while True:
     try:
-      seriesList = _fetchData(pathExpr,startTime, endTime, requestContext, seriesList)
+      seriesList = _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList)
       return seriesList
     except Exception, e:
       if retries >= settings.MAX_FETCH_RETRIES:

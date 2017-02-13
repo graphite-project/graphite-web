@@ -59,13 +59,13 @@ class MultiReader(object):
       interval_sets.extend( node.intervals.intervals )
     return IntervalSet( sorted(interval_sets) )
 
-  def fetch(self, startTime, endTime):
+  def fetch(self, startTime, endTime, now=None, requestContext=None):
     # Start the fetch on each node
     fetches = []
 
     for n in self.nodes:
       try:
-        fetches.append(n.fetch(startTime, endTime))
+        fetches.append(n.fetch(startTime, endTime, now, requestContext))
       except:
         log.exception("Failed to initiate subfetch for %s" % str(n))
 

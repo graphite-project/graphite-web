@@ -57,6 +57,13 @@ def epoch(dt):
   """
   return calendar.timegm(dt.astimezone(pytz.utc).timetuple())
 
+def timebounds(requestContext):
+  startTime = int(epoch(requestContext['startTime']))
+  endTime = int(epoch(requestContext['endTime']))
+  now = int(epoch(requestContext['now']))
+
+  return (startTime, endTime, now)
+
 def is_local_interface(host):
   is_ipv6 = False
   if ':' in host:
