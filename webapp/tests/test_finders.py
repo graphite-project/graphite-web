@@ -239,7 +239,6 @@ class StandardFinderTest(TestCase):
             self.wipe_whisper()
 
 
-
 class CeresFinderTest(TestCase):
     _listdir_counter = 0
     _original_listdir = os.listdir
