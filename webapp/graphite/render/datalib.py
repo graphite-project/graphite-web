@@ -133,6 +133,8 @@ def _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList):
   t = time.time()
 
   if settings.REMOTE_PREFETCH_DATA:
+    matching_nodes = [node for node in STORE.find(pathExpr, startTime, endTime, local=True)]
+
     # inflight_requests is only present if at least one remote store
     # has been queried
     if 'inflight_requests' in requestContext:
@@ -141,6 +143,10 @@ def _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList):
       fetches = {}
 
     def result_queue_generator():
+      for node in matching_nodes:
+        if node.is_leaf:
+          yield (node.path, node.fetch(startTime, endTime, now, requestContext))
+
       log.info(
         'render.datalib.fetchData:: result_queue_generator got {count} fetches'
         .format(count=len(fetches)),
