@@ -21,9 +21,9 @@ class RemoteStore(object):
   def __init__(self, host):
     self.host = host
 
-  def find(self, query):
+  def find(self, query, headers=None):
     request = FindRequest(self, query)
-    request.send()
+    request.send(headers)
     return request
 
   def fail(self):
@@ -53,8 +53,11 @@ class FindRequest(object):
     self.cacheKey = "find:%s:%s:%s:%s" % (store.host, compactHash(query.pattern), start, end)
     self.cachedResult = None
 
-  def send(self):
+  def send(self, headers=None):
     log.info("FindRequest.send(host=%s, query=%s) called" % (self.store.host, self.query))
+
+    if headers is None:
+      headers = {}
 
     self.cachedResult = cache.get(self.cacheKey)
     if self.cachedResult is not None:
@@ -78,7 +81,7 @@ class FindRequest(object):
       connector_class = connector_class_selector(settings.INTRACLUSTER_HTTPS)
       self.connection = connector_class(self.store.host)
       self.connection.timeout = settings.REMOTE_FIND_TIMEOUT
-      self.connection.request('GET', '/metrics/find/?' + query_string)
+      self.connection.request('GET', '/metrics/find/?' + query_string, None, headers)
     except:
       log.exception("FindRequest.send(host=%s, query=%s) exception during request" % (self.store.host, self.query))
       self.store.fail()
@@ -135,14 +138,15 @@ class FindRequest(object):
 
 
 class ReadResult(object):
-  __slots__ = ('lock', 'store', 'has_done_response_read', 'result', 'done_cb', 'connection', 'urlpath')
+  __slots__ = ('lock', 'store', 'has_done_response_read', 'result', 'done_cb', 'connection', 'urlpath', 'headers')
 
-  def __init__(self, store, urlpath, done_cb):
+  def __init__(self, store, urlpath, done_cb, headers=None):
     self.lock = Lock()
     self.store = store
     self.has_done_response_read = False
     self.result = None
     self.done_cb = done_cb
+    self.headers = {} if headers is None else headers
     self.urlpath = urlpath
     self._connect(urlpath)
 
@@ -153,7 +157,7 @@ class ReadResult(object):
       connector_class = connector_class_selector(settings.INTRACLUSTER_HTTPS)
       self.connection = connector_class(self.store.host)
       self.connection.timeout = settings.REMOTE_FETCH_TIMEOUT
-      self.connection.request('GET', urlpath)
+      self.connection.request('GET', urlpath, None, self.headers)
     except:
       self.store.fail()
       log.exception("Error requesting %s" % url)
@@ -230,8 +234,9 @@ class RemoteReader(object):
     query_string = urlencode(query_params)
     urlpath = '/render/?' + query_string
     url = "http://%s%s" % (self.store.host, urlpath)
+    headers = requestContext.get('forwardHeaders') if requestContext else None
 
-    fetch_result = self.get_inflight_requests(url, urlpath)
+    fetch_result = self.get_inflight_requests(url, urlpath, headers)
 
     def extract_my_results():
       series = fetch_result.get().get(self.metric_path, None)
@@ -242,12 +247,19 @@ class RemoteReader(object):
 
     return FetchInProgress(extract_my_results)
 
-  def get_inflight_requests(self, url, urlpath):
+  def get_inflight_requests(self, url, urlpath, headers=None):
     with self.inflight_lock:
       if url not in self.inflight_requests:
-        self.inflight_requests[url] = ReadResult(self.store, urlpath, lambda: self.done_inflight_request(url))
+        self.inflight_requests[url] = ReadResult(self.store, urlpath, lambda: self.done_inflight_request(url), headers)
       return self.inflight_requests[url]
 
   def done_inflight_request(self, url):
     with self.inflight_lock:
       del self.inflight_requests[url]
+
+
+def extractForwardHeaders(request):
+    headers = {}
+    for name in settings.REMOTE_STORE_FORWARD_HEADERS:
+        headers[name] = request.META.get('HTTP_%s' % name.upper().replace('-', '_'))
+    return headers

@@ -23,6 +23,7 @@ from graphite.logger import log
 from graphite.readers import RRDReader
 from graphite.storage import STORE
 from graphite.carbonlink import CarbonLink
+from graphite.remote_storage import extractForwardHeaders
 
 try:
   import cPickle as pickle
@@ -104,6 +105,7 @@ def find_view(request):
   untilTime = int( queryParams.get('until', -1) )
   nodePosition = int( queryParams.get('position', -1) )
   jsonp = queryParams.get('jsonp', False)
+  forward_headers = extractForwardHeaders(request)
 
   if fromTime == -1:
     fromTime = None
@@ -136,7 +138,7 @@ def find_view(request):
       query = '.'.join(query_parts)
 
   try:
-    matches = list( STORE.find(query, fromTime, untilTime, local=local_only) )
+    matches = list( STORE.find(query, fromTime, untilTime, local=local_only, headers=forward_headers) )
   except:
     log.exception()
     raise
@@ -194,11 +196,12 @@ def expand_view(request):
   group_by_expr = int( queryParams.get('groupByExpr', 0) )
   leaves_only = int( queryParams.get('leavesOnly', 0) )
   jsonp = queryParams.get('jsonp', False)
+  forward_headers = extractForwardHeaders(request)
 
   results = {}
   for query in queryParams.getlist('query'):
     results[query] = set()
-    for node in STORE.find(query, local=local_only):
+    for node in STORE.find(query, local=local_only, headers=forward_headers):
       if node.is_leaf or not leaves_only:
         results[query].add( node.path )
 
