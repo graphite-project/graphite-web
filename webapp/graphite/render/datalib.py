@@ -30,6 +30,7 @@ class TimeSeries(list):
     self.consolidationFunc = consolidate
     self.valuesPerPoint = 1
     self.options = {}
+    self.pathExpression = name
 
 
   def __eq__(self, other):
@@ -102,32 +103,35 @@ class TimeSeries(list):
       'end' : self.end,
       'step' : self.step,
       'values' : list(self),
+      'pathExpression' : self.pathExpression,
     }
 
 def _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList):
   matching_nodes = STORE.find(pathExpr, startTime, endTime, local=requestContext['localOnly'], headers=requestContext.get('forwardHeaders'))
   fetches = [
-    (node, node.fetch(startTime, endTime, now, requestContext))
+    (node.path, node.fetch(startTime, endTime, now, requestContext))
     for node in matching_nodes
     if node.is_leaf
   ]
 
-  for node, results in fetches:
+  for path, results in fetches:
     if isinstance(results, FetchInProgress):
       results = results.waitForResults()
 
     if not results:
-      log.info("render.datalib.fetchData :: no results for %s.fetch(%s, %s)" % (node, startTime, endTime))
+      log.info("render.datalib.fetchData :: no results for %s.fetch(%s, %s)" % (path, startTime, endTime))
       continue
 
     try:
         (timeInfo, values) = results
     except ValueError as e:
-        raise Exception("could not parse timeInfo/values from metric '%s': %s" % (node.path, e))
+        raise Exception("could not parse timeInfo/values from metric '%s': %s" % (path, e))
     (start, end, step) = timeInfo
 
-    series = TimeSeries(node.path, start, end, step, values)
-    series.pathExpression = pathExpr #hack to pass expressions through to render functions
+    series = TimeSeries(path, start, end, step, values)
+
+    # hack to pass expressions through to render functions
+    series.pathExpression = pathExpr
 
     # Used as a cache to avoid recounting series None values below.
     series_best_nones = {}
@@ -143,7 +147,7 @@ def _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList):
       candidate_nones = 0
       if not settings.REMOTE_STORE_MERGE_RESULTS:
         candidate_nones = len(
-          [val for val in series['values'] if val is None])
+          [val for val in values if val is None])
 
       known = seriesList[series.name]
       # To avoid repeatedly recounting the 'Nones' in series we've already seen,
@@ -172,8 +176,8 @@ def _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList):
           series_best_nones[known.name] = candidate_nones
           seriesList[known.name] = series
       else:
-        # In case if we are merging data - the existing series has no gaps and there is nothing to merge
-        # together.  Save ourselves some work here.
+        # In case if we are merging data - the existing series has no gaps and
+        # there is nothing to merge together.  Save ourselves some work here.
         #
         # OR - if we picking best serie:
         #
@@ -203,11 +207,11 @@ def fetchData(requestContext, pathExpr):
     try:
       seriesList = _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList)
       return seriesList
-    except Exception, e:
+    except Exception:
       if retries >= settings.MAX_FETCH_RETRIES:
         log.exception("Failed after %s retry! Root cause:\n%s" %
             (settings.MAX_FETCH_RETRIES, format_exc()))
-        raise e
+        raise
       else:
         log.exception("Got an exception when fetching data! Try: %i of %i. Root cause:\n%s" %
                      (retries, settings.MAX_FETCH_RETRIES, format_exc()))

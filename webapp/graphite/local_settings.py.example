@@ -245,7 +245,7 @@
 # used.
 #CLUSTER_SERVERS = ["10.0.2.2:80", "10.0.2.3:80"]
 
-# This settings control wether https is used to communicate between cluster members
+# This setting controls whether https is used to communicate between cluster members
 #INTRACLUSTER_HTTPS = False
 
 # These are timeout values (in seconds) for requests to remote webapps
