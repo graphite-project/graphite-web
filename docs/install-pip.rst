@@ -33,14 +33,14 @@ For example, to install everything in ``/srv/graphite/``:
 
 .. code-block:: none
 
-   pip install carbon --install-option="--prefix=/srv/graphite" --install-option="--install-lib=/srv/graphite/lib"
+   pip install https://github.com/graphite-project/carbon/tarball/master --install-option="--prefix=/srv/graphite" --install-option="--install-lib=/srv/graphite/lib"
 
 To install Carbon into the system-wide site-packages directory with scripts in ``/usr/bin`` and storage and
 configuration in ``/usr/share/graphite``:
 
 .. code-block:: none
 
-   pip install carbon --install-option="--install-scripts=/usr/bin" --install-option="--install-lib=/usr/lib/python2.6/site-packages" --install-option="--install-data=/var/lib/graphite"
+   pip install https://github.com/graphite-project/carbon/tarball/master --install-option="--install-scripts=/usr/bin" --install-option="--install-lib=/usr/lib/python2.6/site-packages" --install-option="--install-data=/var/lib/graphite"
 
 Installing Graphite-web in a Custom Location
 --------------------------------------------
@@ -54,14 +54,14 @@ For example, to install everything in ``/srv/graphite/``:
 
 .. code-block:: none
 
-   pip install graphite-web --install-option="--prefix=/srv/graphite" --install-option="--install-lib=/srv/graphite/webapp"
+   pip install https://github.com/graphite-project/graphite-web/tarball/master --install-option="--prefix=/srv/graphite" --install-option="--install-lib=/srv/graphite/webapp"
 
 To install the Graphite-web code into the system-wide site-packages directory with scripts in
 ``/usr/bin`` and storage configuration, and content in ``/usr/share/graphite``:
 
 .. code-block:: none
 
-   pip install graphite-web --install-option="--install-scripts=/usr/bin" --install-option="--install-lib=/usr/lib/python2.6/site-packages" --install-option="--install-data=/var/lib/graphite"
+   pip install https://github.com/graphite-project/graphite-web/tarball/master --install-option="--install-scripts=/usr/bin" --install-option="--install-lib=/usr/lib/python2.6/site-packages" --install-option="--install-data=/var/lib/graphite"
 
 Installing Ceres
 ----------------

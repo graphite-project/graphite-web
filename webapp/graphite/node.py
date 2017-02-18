@@ -25,8 +25,13 @@ class LeafNode(Node):
     self.reader = reader
     self.is_leaf = True
 
-  def fetch(self, startTime, endTime):
-    return self.reader.fetch(startTime, endTime)
+  def fetch(self, startTime, endTime, now=None, requestContext=None):
+    try:
+      result = self.reader.fetch(startTime, endTime, now, requestContext)
+    except TypeError:
+      result = self.reader.fetch(startTime, endTime)
+
+    return result
 
   @property
   def intervals(self):

@@ -63,6 +63,13 @@
 #                        (21600, 180)] # >= 6 hour queries are cached 3 minutes
 #MEMCACHE_KEY_PREFIX = 'graphite'
 
+
+# This lists the memcached options. Default is an empty dict.
+# Accepted options depend on the Memcached implementation and the Django version. 
+# Until Django 1.10, options are used only for pylibmc. 
+# Starting from 1.11, options are used for both python-memcached and pylibmc.
+#MEMCACHE_OPTIONS = { 'socket_timeout': 0.5 }
+
 # Set URL_PREFIX when deploying graphite-web to a non-root location
 #URL_PREFIX = '/graphite'
 
@@ -238,7 +245,7 @@
 # used.
 #CLUSTER_SERVERS = ["10.0.2.2:80", "10.0.2.3:80"]
 
-# This settings control wether https is used to communicate between cluster members
+# This setting controls whether https is used to communicate between cluster members
 #INTRACLUSTER_HTTPS = False
 
 # These are timeout values (in seconds) for requests to remote webapps
@@ -263,6 +270,10 @@
 # or in other cases we might receive multiple TimeSeries data for a metric key.  Merge them together rather
 # that choosing the "most complete" one (pre-0.9.14 behaviour).
 #REMOTE_STORE_MERGE_RESULTS = True
+
+# Provide a list of HTTP headers that you want forwarded on from this host
+# when making a request to a remote webapp server in CLUSTER_SERVERS
+#REMOTE_STORE_FORWARD_HEADERS = [] # An iterable of HTTP header names
 
 ## Remote rendering settings
 # Set to True to enable rendering of Graphs on a remote webapp

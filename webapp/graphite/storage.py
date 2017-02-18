@@ -34,13 +34,13 @@ class Store:
     self.remote_stores = [ RemoteStore(host) for host in remote_hosts ]
 
 
-  def find(self, pattern, startTime=None, endTime=None, local=False):
-    query = FindQuery(pattern, startTime, endTime)
+  def find(self, pattern, startTime=None, endTime=None, local=False, headers=None):
+    query = FindQuery(pattern, startTime, endTime, local)
 
     # Start remote searches
-    if not local:
+    if not query.local:
       random.shuffle(self.remote_stores)
-      remote_requests = [ r.find(query) for r in self.remote_stores if r.available ]
+      remote_requests = [ r.find(query, headers) for r in self.remote_stores if r.available ]
 
     matching_nodes = set()
 
@@ -51,7 +51,7 @@ class Store:
         matching_nodes.add(node)
 
     # Gather remote search results
-    if not local:
+    if not query.local:
       for request in remote_requests:
         for node in request.get_results():
           #log.info("find() :: remote :: %s from %s" % (node,request.store.host))
@@ -155,15 +155,15 @@ class Store:
         yield LeafNode(path, reader)
 
 
-
 class FindQuery:
-  def __init__(self, pattern, startTime, endTime):
+  def __init__(self, pattern, startTime, endTime, local=False):
     self.pattern = pattern
     self.startTime = startTime
     self.endTime = endTime
     self.isExact = is_pattern(pattern)
     self.interval = Interval(float('-inf') if startTime is None else startTime,
                              float('inf') if endTime is None else endTime)
+    self.local = local
 
 
   def __repr__(self):

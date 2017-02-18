@@ -17,11 +17,13 @@ import urllib
 
 from django.conf import settings
 from graphite.compat import HttpResponse, HttpResponseBadRequest
-from graphite.util import getProfile, json
+from graphite.user_util import getProfile
+from graphite.util import json
 from graphite.logger import log
 from graphite.readers import RRDReader
 from graphite.storage import STORE
 from graphite.carbonlink import CarbonLink
+from graphite.remote_storage import extractForwardHeaders
 
 try:
   import cPickle as pickle
@@ -103,6 +105,7 @@ def find_view(request):
   untilTime = int( queryParams.get('until', -1) )
   nodePosition = int( queryParams.get('position', -1) )
   jsonp = queryParams.get('jsonp', False)
+  forward_headers = extractForwardHeaders(request)
 
   if fromTime == -1:
     fromTime = None
@@ -135,7 +138,7 @@ def find_view(request):
       query = '.'.join(query_parts)
 
   try:
-    matches = list( STORE.find(query, fromTime, untilTime, local=local_only) )
+    matches = list( STORE.find(query, fromTime, untilTime, local=local_only, headers=forward_headers) )
   except:
     log.exception()
     raise
@@ -155,6 +158,10 @@ def find_view(request):
   elif format == 'pickle':
     content = pickle_nodes(matches)
     response = HttpResponse(content, content_type='application/pickle')
+
+  elif format == 'json':
+    content = json_nodes(matches)
+    response = json_response_for(request, content, jsonp=jsonp)
 
   elif format == 'completer':
     results = []
@@ -189,11 +196,12 @@ def expand_view(request):
   group_by_expr = int( queryParams.get('groupByExpr', 0) )
   leaves_only = int( queryParams.get('leavesOnly', 0) )
   jsonp = queryParams.get('jsonp', False)
+  forward_headers = extractForwardHeaders(request)
 
   results = {}
   for query in queryParams.getlist('query'):
     results[query] = set()
-    for node in STORE.find(query, local=local_only):
+    for node in STORE.find(query, local=local_only, headers=forward_headers):
       if node.is_leaf or not leaves_only:
         results[query].add( node.path )
 
@@ -339,6 +347,19 @@ def pickle_nodes(nodes):
     nodes_info.append(info)
 
   return pickle.dumps(nodes_info, protocol=-1)
+
+
+def json_nodes(nodes):
+  nodes_info = []
+
+  for node in nodes:
+    info = dict(path=node.path, is_leaf=node.is_leaf)
+    if node.is_leaf:
+      info['intervals'] = [{'start': i.start, 'end': i.end} for i in node.intervals]
+
+    nodes_info.append(info)
+
+  return sorted(nodes_info, key=lambda item: item['path'])
 
 
 def json_response_for(request, data, content_type='application/json',

@@ -60,7 +60,7 @@ class GraphiteLogger:
     if level is not None:
         logger.setLevel(level)
     if activate:  # if want to log this one
-        formatter = logging.Formatter("%(asctime)s :: %(message)s","%a %b %d %H:%M:%S %Y")
+        formatter = logging.Formatter(fmt='%(asctime)s.%(msecs)03d :: %(message)s',datefmt='%Y-%m-%d,%H:%M:%S')
         if settings.LOG_ROTATION:  # if we want to rotate logs
             handler = Rotater(log_file, when=when, backupCount=backupCount)
         else:  # let someone else, e.g. logrotate, rotate the logs
