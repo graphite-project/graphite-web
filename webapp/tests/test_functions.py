@@ -3959,6 +3959,7 @@ class FunctionsTest(TestCase):
             )
         self.assertEqual(result, expectedResults)
 
+    # test_exponentialMovingAverage_evaluateTokens_returns_half_none
     def test_exponentialMovingAverage_evaluateTokens_returns_half_none(self):
         def gen_seriesList(start=0):
             seriesList = [
