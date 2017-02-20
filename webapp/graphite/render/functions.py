@@ -761,11 +761,11 @@ def exponentialMovingAverage(requestContext, seriesList, windowSize):
   Takes a series of values and a window size and produces an exponential moving
   average utilizing the following formula:
 
-    EMA(current) = C * ( Current Value ) + (1 - C) * EMA(previous)
+    ema(current) = constant * (Current Value) + (1 - constant) * ema(previous)
 
     The Constant is calculated as:
 
-        C = 2 / (windowSize + 1)
+        constant = 2 / (windowSize + 1)
 
     The first period EMA uses a simple moving average for its value.
 
@@ -791,10 +791,10 @@ def exponentialMovingAverage(requestContext, seriesList, windowSize):
   # set previewSeconds and C based on windowSize string or integer
   if windowInterval:
     previewSeconds = windowInterval
-    C = (float(2) / (int(windowInterval) + 1))
+    constant = (float(2) / (int(windowInterval) + 1))
   else:
     previewSeconds = max([s.step for s in seriesList]) * int(windowSize)
-    C = (float(2) / (int(windowSize) + 1))
+    constant = (float(2) / (int(windowSize) + 1))
 
   # ignore original data and pull new, including our preview
   # data from earlier is needed to calculate the early results
@@ -818,19 +818,19 @@ def exponentialMovingAverage(requestContext, seriesList, windowSize):
     newSeries.pathExpression = newName
     window_sum = safeSum(series[:windowPoints]) or 0
     count = safeLen(series[:windowPoints])
-    EMA = safeDiv(window_sum, count)
+    ema = safeDiv(window_sum, count)
 
-    if EMA is None:
-        EMA = 0
+    if ema is None:
+        ema = 0
     else:
-        EMA = float(EMA)
+        ema = float(ema)
 
-    newSeries.append(EMA)
+    newSeries.append(ema)
 
     for i in range(windowPoints, len(series)):
       if series[i] is not None:
-        EMA = float(C) * float(series[i]) + (1 - float(C)) * float(EMA)
-        newSeries.append(round(EMA,3))
+        ema = float(constant) * float(series[i]) + (1 - float(constant)) * float(ema)
+        newSeries.append(round(ema, 3))
       else:
         newSeries.append(None)
 
