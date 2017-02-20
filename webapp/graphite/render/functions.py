@@ -780,7 +780,7 @@ def exponentialMovingAverage(requestContext, seriesList, windowSize):
   # EMA = C * (current_value) + (1 - C) + EMA
   # C = 2 / (windowSize + 1)
 
-  # The following was copied from movingAverage, and altered for EMA
+  # The following was copied from movingAverage, and altered for ema
   if not seriesList:
     return []
   windowInterval = None
@@ -788,7 +788,7 @@ def exponentialMovingAverage(requestContext, seriesList, windowSize):
     delta = parseTimeOffset(windowSize)
     windowInterval = abs(delta.seconds + (delta.days * 86400))
 
-  # set previewSeconds and C based on windowSize string or integer
+  # set previewSeconds and constant based on windowSize string or integer
   if windowInterval:
     previewSeconds = windowInterval
     constant = (float(2) / (int(windowInterval) + 1))
