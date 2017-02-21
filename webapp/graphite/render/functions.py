@@ -1202,7 +1202,7 @@ def derivative(requestContext, seriesList):
 
 def perSecond(requestContext, seriesList, maxValue=None):
   """
-  Derivative adjusted for the series time interval
+  NonNegativeDerivative adjusted for the series time interval
   This is useful for taking a running total metric and showing how many requests
   per second were handled.
 
@@ -1213,7 +1213,7 @@ def perSecond(requestContext, seriesList, maxValue=None):
     &target=perSecond(company.server.application01.ifconfig.TXPackets)
 
   Each time you run ifconfig, the RX and TXPackets are higher (assuming there
-  is network traffic.) By applying the derivative function, you can get an
+  is network traffic.) By applying the nonNegativeDerivative function, you can get an
   idea of the packets per minute sent or received, even though you're only
   recording the total.
   """
