@@ -83,9 +83,6 @@ class MetricsTester(TestCase):
 
     def test_find_view(self):
         ts = int(time.time())
-        #create a minus 60 variable to test with, otherwise the build could fail the longer the test runs
-        ts_minus_sixty_seconds = ts - 60
-
         self.create_whisper_hosts(ts)
         self.addCleanup(self.wipe_whisper_hosts)
 
@@ -170,13 +167,13 @@ class MetricsTester(TestCase):
         self.assertEqual(data[0]['path'], 'hosts.worker1.cpu')
         self.assertEqual(data[0]['is_leaf'], True)
         self.assertEqual(len(data[0]['intervals']), 1)
-        self.assertEqual(int(data[0]['intervals'][0].start), ts_minus_sixty_seconds)
+        self.assertEqual(int(data[0]['intervals'][0].start), ts - 60)
         self.assertEqual(int(data[0]['intervals'][0].end), ts)
 
         self.assertEqual(data[1]['path'], 'hosts.worker2.cpu')
         self.assertEqual(data[1]['is_leaf'], True)
         self.assertEqual(len(data[1]['intervals']), 1)
-        self.assertEqual(int(data[1]['intervals'][0].start), ts_minus_sixty_seconds)
+        self.assertEqual(int(data[1]['intervals'][0].start), ts - 60)
         self.assertEqual(int(data[1]['intervals'][0].end), ts)
 
         #
@@ -330,13 +327,13 @@ class MetricsTester(TestCase):
         self.assertEqual(data[0]['path'], 'hosts.worker1.cpu')
         self.assertEqual(data[0]['is_leaf'], True)
         self.assertEqual(len(data[0]['intervals']), 1)
-        self.assertEqual(int(data[0]['intervals'][0]['start']), ts_minus_sixty_seconds)
+        self.assertEqual(int(data[0]['intervals'][0]['start']), ts - 60)
         self.assertEqual(int(data[0]['intervals'][0]['end']), ts)
 
         self.assertEqual(data[1]['path'], 'hosts.worker2.cpu')
         self.assertEqual(data[1]['is_leaf'], True)
         self.assertEqual(len(data[1]['intervals']), 1)
-        self.assertEqual(int(data[1]['intervals'][0]['start']), ts_minus_sixty_seconds)
+        self.assertEqual(int(data[1]['intervals'][0]['start']), ts - 60)
         self.assertEqual(int(data[1]['intervals'][0]['end']), ts)
 
         # No match
@@ -365,13 +362,13 @@ class MetricsTester(TestCase):
         self.assertEqual(data[0]['path'], 'hosts.worker1.cpu')
         self.assertEqual(data[0]['is_leaf'], True)
         self.assertEqual(len(data[0]['intervals']), 1)
-        self.assertEqual(int(data[0]['intervals'][0]['start']), ts_minus_sixty_seconds)
+        self.assertEqual(int(data[0]['intervals'][0]['start']), ts - 60)
         self.assertEqual(int(data[0]['intervals'][0]['end']), ts)
 
         self.assertEqual(data[1]['path'], 'hosts.worker2.cpu')
         self.assertEqual(data[1]['is_leaf'], True)
         self.assertEqual(len(data[1]['intervals']), 1)
-        self.assertEqual(int(data[1]['intervals'][0]['start']), ts_minus_sixty_seconds)
+        self.assertEqual(int(data[1]['intervals'][0]['start']), ts - 60)
         self.assertEqual(int(data[1]['intervals'][0]['end']), ts)
 
         # No match
