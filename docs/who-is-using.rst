@@ -14,6 +14,7 @@ Here are some organizations that use Graphite:
 * `Google <http://google-opensource.blogspot.com/2010/09/get-ready-to-rocksteady.html>`_ (opensource Rocksteady project)
 * `GOV.UK <https://www.gov.uk>`_
 * `ImmobilienScout24 <http://www.immobilienscout24.de/>`_
+* `InMobi <http://inmobi.com/>`_
 * `Instagram <http://instagram.com/>`_
 * `ITV <http://www.itv.com/>`_
 * `Maaii <http://www.maaii.com>`_
