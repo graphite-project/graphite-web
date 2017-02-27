@@ -25,11 +25,6 @@ def get_finder(finder_path):
   return getattr(module, class_name)()
 
 
-def find_into_queue(finder, query, result_queue):
-  # iterate over the returned generator
-  result_queue.put([node for node in finder.find_nodes(query)])
-
-
 class Store:
   def __init__(self, finders=None, hosts=None):
     if finders is None:
@@ -57,6 +52,7 @@ class Store:
 
     # Start remote searches
     if not query.local:
+      random.shuffle(self.remote_stores)
       jobs.extend([
         (store.find, query, headers)
         for store in self.remote_stores if store.available

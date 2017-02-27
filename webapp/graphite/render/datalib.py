@@ -231,6 +231,7 @@ def _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList):
           # This series has potential data that might be missing from
           # earlier series.  Attempt to merge in useful data and update
           # the cache count.
+          log.info("Merging multiple TimeSeries for %s" % known.name)
           for i, j in enumerate(known):
             if j is None and series[i] is not None:
               known[i] = series[i]
@@ -285,7 +286,7 @@ def fetchData(requestContext, pathExpr):
     try:
       seriesList = _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList)
       break
-    except Exception, e:
+    except Exception:
       if retries >= settings.MAX_FETCH_RETRIES:
         log.exception("Failed after %s retry! Root cause:\n%s" %
             (settings.MAX_FETCH_RETRIES, format_exc()))

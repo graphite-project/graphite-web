@@ -58,9 +58,9 @@ def renderView(request):
     'endTime' : requestOptions['endTime'],
     'now': requestOptions['now'],
     'localOnly' : requestOptions['localOnly'],
-    'forwardHeaders': extractForwardHeaders(request),
     'template' : requestOptions['template'],
     'tzinfo' : requestOptions['tzinfo'],
+    'forwardHeaders': extractForwardHeaders(request),
     'data' : []
   }
   data = requestContext['data']
