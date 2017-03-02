@@ -1070,7 +1070,14 @@ function updateGraphRecords() {
     if (!params.uniq === undefined) {
         delete params["uniq"];
     }
-    item.set('url', document.body.dataset.baseUrl + 'render?' + Ext.urlEncode(params));
+	
+	//Preload the image and set it into the UI once it is available.
+	var img = new Image();
+    img.onload = function() {
+      item.set('url',img.src);
+    };
+    img.src = document.body.dataset.baseUrl + 'render?' + Ext.urlEncode(params);
+
     item.set('width', GraphSize.width);
     item.set('height', GraphSize.height);
     item.set('index', index);
