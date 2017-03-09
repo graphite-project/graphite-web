@@ -3472,6 +3472,302 @@ class FunctionsTest(TestCase):
             )
         self.assertEqual(result, expectedResults)
 
+    def test_movingMin_emptySeriesList(self):
+        self.assertEqual(functions.movingMin({},[],""), [])
+
+    def test_movingMin_evaluateTokens_returns_none(self):
+        start = 10
+        end = start + 15
+        seriesList = self._gen_series_list_with_data(
+            key='collectd.test-db0.load.value',
+            start=start + 10,
+            end=end,
+            data=range(start, end)
+        )
+
+        def mock_evaluateTokens(reqCtx, tokens, replacements=None):
+            seriesList = [
+                TimeSeries('collectd.test-db0.load.value', 10, 25, 1, [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None])
+            ]
+            for series in seriesList:
+                series.pathExpression = series.name
+            return seriesList
+
+        expectedResults = [
+            TimeSeries('movingMin(collectd.test-db0.load.value,10)', 20, 25, 1, [None, None, None, None, None])
+        ]
+
+        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+            result = functions.movingMin(
+                self._build_requestContext(
+                    startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    endTime=datetime(1970, 1, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE))
+                ),
+                seriesList, 10
+            )
+        self.assertEqual(result, expectedResults)
+
+    def test_movingMin_evaluateTokens_returns_half_none(self):
+        seriesList = self._gen_series_list_with_data(
+            key='collectd.test-db0.load.value',
+            start=20,
+            end=30,
+            data=[2, 1] * 5
+        )
+
+        def mock_evaluateTokens(reqCtx, tokens, replacements=None):
+            seriesList = [
+                TimeSeries('collectd.test-db0.load.value', 10, 30, 1, [None] * 10 + [2, 1] * 5)
+            ]
+            for series in seriesList:
+                series.pathExpression = series.name
+            return seriesList
+
+        expectedResults = [
+            TimeSeries('movingMin(collectd.test-db0.load.value,10)', 20, 30, 1, [None, 2, 1, 1, 1, 1, 1, 1, 1, 1] )
+        ]
+
+        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+            result = functions.movingMin(
+                self._build_requestContext(
+                    startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    endTime=datetime(1970, 1, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE))
+                ),
+                seriesList, 10
+            )
+        self.assertEqual(result, expectedResults)
+
+    def test_movingMin_evaluateTokens_returns_empty_list(self):
+        seriesList = self._gen_series_list_with_data(
+            key='collectd.test-db0.load.value',
+            start=610,
+            end=710,
+            data=range(10, 10 + 100)
+        )
+
+        def mock_evaluateTokens(reqCtx, tokens, replacements=None):
+            return []
+
+        expectedResults = []
+
+        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+            result = functions.movingMin(
+                self._build_requestContext(
+                    startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    endTime=datetime(1970, 1, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE))
+                ),
+                seriesList, 60
+            )
+        self.assertEqual(result, expectedResults)
+
+    def test_movingMin_integerWindowSize(self):
+        seriesList = self._gen_series_list_with_data(
+            key='collectd.test-db0.load.value',
+            start=20,
+            end=30,
+            data=[10, 1] * 5
+        )
+
+        def mock_evaluateTokens(reqCtx, tokens, replacements=None):
+            return self._gen_series_list_with_data(
+                key='collectd.test-db0.load.value',
+                start=10,
+                end=30,
+                data=[None] * 10 + [10, 1] * 5
+            )
+
+        expectedResults = [
+            TimeSeries('movingMin(collectd.test-db0.load.value,10)', 20, 30, 1, [None, 10] + [1] * 8)
+        ]
+
+        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+            result = functions.movingMin(
+                self._build_requestContext(
+                    startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    endTime=datetime(1970, 1, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE))
+                ),
+                seriesList, 10
+            )
+        self.assertEqual(result, expectedResults)
+
+    def test_movingMin_stringWindowSize(self):
+        seriesList = self._gen_series_list_with_data(
+            key='collectd.test-db0.load.value',
+            start=610,
+            end=710,
+            data=[10, 1] * 50
+        )
+
+        def mock_evaluateTokens(reqCtx, tokens, replacements=None):
+            return self._gen_series_list_with_data(
+                key='collectd.test-db0.load.value',
+                start=600,
+                end=700,
+                data=[10, 1] * 50
+            )
+
+        expectedResults = [
+            TimeSeries('movingMin(collectd.test-db0.load.value,"-1min")', 660, 700, 1, [1]*40),
+        ]
+
+        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+            result = functions.movingMin(
+                self._build_requestContext(
+                    startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    endTime=datetime(1970, 1, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE))
+                ),
+                seriesList, "-1min"
+            )
+        self.assertEqual(result, expectedResults)
+
+    def test_movingMax_emptySeriesList(self):
+        self.assertEqual(functions.movingMax({},[],""), [])
+
+    def test_movingMax_evaluateTokens_returns_none(self):
+        start = 10
+        end = start + 15
+        seriesList = self._gen_series_list_with_data(
+            key='collectd.test-db0.load.value',
+            start=start + 10,
+            end=end,
+            data=range(start, end)
+        )
+
+        def mock_evaluateTokens(reqCtx, tokens, replacements=None):
+            seriesList = [
+                TimeSeries('collectd.test-db0.load.value', 10, 25, 1, [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None])
+            ]
+            for series in seriesList:
+                series.pathExpression = series.name
+            return seriesList
+
+        expectedResults = [
+            TimeSeries('movingMax(collectd.test-db0.load.value,10)', 20, 25, 1, [None, None, None, None, None])
+        ]
+
+        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+            result = functions.movingMax(
+                self._build_requestContext(
+                    startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    endTime=datetime(1970, 1, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE))
+                ),
+                seriesList, 10
+            )
+        self.assertEqual(result, expectedResults)
+
+    def test_movingMax_evaluateTokens_returns_half_none(self):
+        seriesList = self._gen_series_list_with_data(
+            key='collectd.test-db0.load.value',
+            start=20,
+            end=50,
+            data=[1, 2] * 5
+        )
+
+        def mock_evaluateTokens(reqCtx, tokens, replacements=None):
+            seriesList = [
+                TimeSeries('collectd.test-db0.load.value', 10, 30, 1, [None] * 10 + [1, 2] * 5)
+            ]
+            for series in seriesList:
+                series.pathExpression = series.name
+            return seriesList
+
+        expectedResults = [
+            TimeSeries('movingMax(collectd.test-db0.load.value,10)', 20, 30, 1, [None, 1, 2, 2, 2, 2, 2, 2, 2, 2])
+        ]
+
+        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+            result = functions.movingMax(
+                self._build_requestContext(
+                    startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    endTime=datetime(1970, 1, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE))
+                ),
+                seriesList, 10
+            )
+        self.assertEqual(result, expectedResults)
+
+    def test_movingMax_evaluateTokens_returns_empty_list(self):
+        seriesList = self._gen_series_list_with_data(
+            key='collectd.test-db0.load.value',
+            start=610,
+            end=710,
+            data=range(10, 10 + 100)
+        )
+
+        def mock_evaluateTokens(reqCtx, tokens, replacements=None):
+            return []
+
+        expectedResults = []
+
+        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+            result = functions.movingMax(
+                self._build_requestContext(
+                    startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    endTime=datetime(1970, 1, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE))
+                ),
+                seriesList, 60
+            )
+        self.assertEqual(result, expectedResults)
+
+    def test_movingMax_integerWindowSize(self):
+        seriesList = self._gen_series_list_with_data(
+            key='collectd.test-db0.load.value',
+            start=20,
+            end=30,
+            data=[1, 2] * 5
+        )
+
+        def mock_evaluateTokens(reqCtx, tokens, replacements=None):
+            return self._gen_series_list_with_data(
+                key='collectd.test-db0.load.value',
+                start=10,
+                end=30,
+                data=[None] * 10 + [1, 2] * 5
+            )
+
+        expectedResults = [
+            TimeSeries('movingMax(collectd.test-db0.load.value,10)', 20, 30, 1, [None, 1, 2, 2, 2, 2, 2, 2, 2, 2])
+        ]
+
+        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+            result = functions.movingMax(
+                self._build_requestContext(
+                    startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    endTime=datetime(1970, 1, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE))
+                ),
+                seriesList, 10
+            )
+        self.assertEqual(result, expectedResults)
+
+    def test_movingMax_stringWindowSize(self):
+        seriesList = self._gen_series_list_with_data(
+            key='collectd.test-db0.load.value',
+            start=610,
+            end=710,
+            data=[1, 10] * 50
+        )
+
+        def mock_evaluateTokens(reqCtx, tokens, replacements=None):
+            return self._gen_series_list_with_data(
+                key='collectd.test-db0.load.value',
+                start=600,
+                end=700,
+                data=[1, 10] * 50
+            )
+
+        expectedResults = [
+            TimeSeries('movingMax(collectd.test-db0.load.value,"-1min")', 660, 700, 1, [10] * 40),
+        ]
+
+        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+            result = functions.movingMax(
+                self._build_requestContext(
+                    startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    endTime=datetime(1970, 1, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE))
+                ),
+                seriesList, "-1min"
+            )
+        self.assertEqual(result, expectedResults)
+
     def test_movingSum_emptySeriesList(self):
         self.assertEqual(functions.movingSum({},[],""), [])
 
