@@ -10,7 +10,7 @@ from graphite.intervals import Interval, IntervalSet
 from graphite.node import LeafNode, BranchNode
 from graphite.readers import FetchInProgress
 from graphite.logger import log
-from graphite.util import unpickle
+from graphite.util import unpickle, logtime
 from graphite.render.hashing import compactHash
 from graphite.worker_pool.pool import get_pool
 
@@ -56,8 +56,8 @@ class FindRequest(object):
 
     self.cacheKey = "find:%s:%s:%s:%s" % (store.host, compactHash(query.pattern), start, end)
 
-  def send(self, headers=None):
-    t = time.time()
+  @logtime(custom_msg=True)
+  def send(self, headers=None, msg_setter=None):
     log.info("FindRequest.send(host=%s, query=%s) called" % (self.store.host, self.query))
 
     if headers is None:
@@ -102,7 +102,7 @@ class FindRequest(object):
 
       cache.set(self.cacheKey, results, settings.FIND_CACHE_DURATION)
 
-    log.info("FindRequest.send(host=%s, query=%s) completed in %fs" % (self.store.host, self.query, time.time() - t))
+    msg_setter('host: {host}, query: {query}'.format(host=self.store.host, query=self.query))
 
     for node_info in results:
       # handle both 1.x and 0.9.x output

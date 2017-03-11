@@ -214,7 +214,36 @@ def write_index(whisper_dir=None, ceres_dir=None, index=None):
   return None
 
 
-def build_index(base_path, extension, fd):
+def logtime(custom_msg=False):
+  def wrap(f):
+    def wrapped_f(*args, **kwargs):
+      msg = 'completed in'
+
+      t = time.time()
+      if custom_msg:
+        def set_msg(msg):
+          wrapped_f.msg = msg
+
+        kwargs['msg_setter'] = set_msg
+
+      res = f(*args, **kwargs)
+      msg = getattr(wrapped_f, 'msg', msg)
+
+      log.info(
+        '{module}.{name} :: {msg} {sec:.6}s'.format(
+          module=f.__module__,
+          name=f.__name__,
+          msg=msg,
+          sec=time.time() - t,
+        )
+      )
+      return res
+    return wrapped_f
+  return wrap
+
+
+@logtime(custom_msg=True)
+def build_index(base_path, extension, fd, msg_setter=None):
   t = time.time()
   total_entries = 0
   contents = os.walk(base_path, followlinks=True)
@@ -230,5 +259,5 @@ def build_index(base_path, extension, fd):
       total_entries += 1
       fd.write(line)
   fd.flush()
-  log.info("[IndexSearcher] index rebuild of \"%s\" took %.6f seconds (%d entries)" % (base_path, time.time() - t, total_entries))
+  msg_setter("[IndexSearcher] index rebuild of \"%s\" took" % base_path)
   return None

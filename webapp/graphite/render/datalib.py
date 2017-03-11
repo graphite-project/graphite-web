@@ -12,7 +12,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
-import time
 from threading import current_thread
 
 from graphite.logger import log
@@ -20,7 +19,7 @@ from graphite.storage import STORE
 from graphite.readers import FetchInProgress
 from graphite.remote_storage import RemoteReader
 from django.conf import settings
-from graphite.util import timebounds
+from graphite.util import timebounds, logtime
 
 from traceback import format_exc
 
@@ -129,9 +128,8 @@ def prefetchRemoteData(requestContext, pathExpressions):
       reader.fetch_list(startTime, endTime, now, requestContext)
 
 
+@logtime()
 def _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList):
-  t = time.time()
-
   if settings.REMOTE_PREFETCH_DATA:
     matching_nodes = [node for node in STORE.find(pathExpr, startTime, endTime, local=True)]
 
@@ -267,17 +265,14 @@ def _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList):
       # If not, append it here.
       seriesList[series.name] = series
 
-  log.info("render.datalib._fetchData :: completed in %fs" % (time.time() - t))
-
   # Stabilize the order of the results by ordering the resulting series by name.
   # This returns the result ordering to the behavior observed pre PR#1010.
   return [seriesList[k] for k in sorted(seriesList)]
 
 
 # Data retrieval API
+@logtime()
 def fetchData(requestContext, pathExpr):
-  start = time.time()
-
   seriesList = {}
   (startTime, endTime, now) = timebounds(requestContext)
 
@@ -296,7 +291,6 @@ def fetchData(requestContext, pathExpr):
                      (retries, settings.MAX_FETCH_RETRIES, format_exc()))
         retries += 1
 
-  log.info("render.datalib.fetchData :: completed in %fs" % (time.time() - start))
   return seriesList
 
 

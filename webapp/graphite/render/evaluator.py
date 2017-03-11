@@ -1,7 +1,6 @@
 import re
-import time
-from graphite.logger import log
 from graphite.render.grammar import grammar
+from graphite.util import logtime
 from graphite.render.datalib import fetchData, TimeSeries
 
 
@@ -44,9 +43,7 @@ def evaluateTokens(requestContext, tokens, replacements=None):
             return val
         else:
           expression = expression.replace('$'+name, str(replacements[name]))
-    t = time.time()
     data = fetchData(requestContext, expression)
-    log.info("fetchData took %fs" % (time.time() - t))
     return data
 
   elif tokens.call:
