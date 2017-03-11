@@ -86,23 +86,22 @@ def evaluateTokens(requestContext, tokens, replacements=None):
 def extractPathExpressions(targets):
   # Returns a list of unique pathExpressions found in the targets list
 
-  pathExpressions = []
+  pathExpressions = set()
 
   def extractPathExpression(tokens):
     if tokens.expression:
       return extractPathExpression(tokens.expression)
     elif tokens.pathExpression:
-      pathExpressions.append(tokens.pathExpression)
+      pathExpressions.add(tokens.pathExpression)
     elif tokens.call:
-      [extractPathExpression(arg) for arg in tokens.call.args]
+      for a in tokens.call.args:
+        extractPathExpression(a)
 
   for target in targets:
     tokens = grammar.parseString(target)
     extractPathExpression(tokens)
 
-  s = set(pathExpressions)
-  pathExpressions = list(s)
-  return pathExpressions
+  return list(pathExpressions)
 
 
 # Avoid import circularities
