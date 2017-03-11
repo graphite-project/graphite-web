@@ -50,4 +50,4 @@ class TestLogger(unittest.TestCase):
         settings.LOG_ROTATION = old_val
 
     def tearDown(self):
-        get_pool().shutdown()
+        get_pool().close()

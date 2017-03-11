@@ -226,9 +226,10 @@ class RemoteReader(object):
 
       q = Queue()
       if settings.USE_WORKER_POOL:
-        get_pool().put(
-          job=(self._fetch, url, query_string, query_params, headers),
-          result_queue=q,
+        get_pool().apply_async(
+          func=self._fetch,
+          args=[url, query_string, query_params, headers],
+          callback=lambda x: q.put(x),
         )
       else:
         q.put(

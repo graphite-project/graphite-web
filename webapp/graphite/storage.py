@@ -63,7 +63,9 @@ class Store:
       jobs.append((finder.find_nodes, query))
 
     if settings.USE_WORKER_POOL:
-      get_pool().put_multi(jobs, result_queue=result_queue)
+      return_result = lambda x: result_queue.put(x)
+      for job in jobs:
+        get_pool().apply_async(func=job[0], args=job[1:], callback=return_result)
     else:
       for job in jobs:
         result_queue.put(job[0](*job[1:]))
