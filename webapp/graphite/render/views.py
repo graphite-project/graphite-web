@@ -14,10 +14,10 @@ limitations under the License."""
 import csv
 import math
 import pytz
+import httplib
 from datetime import datetime
 from time import time
 from random import shuffle
-from httplib import CannotSendRequest
 from urllib import urlencode
 from urlparse import urlsplit, urlunsplit
 from cgi import parse_qs
@@ -31,7 +31,7 @@ except ImportError:
 from graphite.compat import HttpResponse
 from graphite.user_util import getProfileByUsername
 from graphite.util import json, unpickle
-from graphite.remote_storage import connector_class_selector, extractForwardHeaders, prefetchRemoteData
+from graphite.remote_storage import extractForwardHeaders, prefetchRemoteData
 from graphite.storage import STORE
 from graphite.logger import log
 from graphite.render.evaluator import evaluateTarget, extractPathExpressions
@@ -422,6 +422,11 @@ def parseOptions(request):
 
 connectionPools = {}
 
+
+def connector_class_selector(https_support=False):
+    return httplib.HTTPSConnection if https_support else httplib.HTTPConnection
+
+
 def delegateRendering(graphType, graphOptions, headers=None):
   if headers is None:
     headers = {}
@@ -446,7 +451,7 @@ def delegateRendering(graphType, graphOptions, headers=None):
       # Send the request
       try:
         connection.request('POST','/render/local/', postData, headers)
-      except CannotSendRequest:
+      except httplib.CannotSendRequest:
         connection = connector_class(server) #retry once
         connection.timeout = settings.REMOTE_RENDER_CONNECT_TIMEOUT
         connection.request('POST', '/render/local/', postData, headers)

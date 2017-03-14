@@ -42,8 +42,7 @@ def evaluateTokens(requestContext, tokens, replacements=None):
             return val
         else:
           expression = expression.replace('$'+name, str(replacements[name]))
-    data = fetchData(requestContext, expression)
-    return data
+    return fetchData(requestContext, expression)
 
   elif tokens.call:
     if tokens.call.funcname == 'template':

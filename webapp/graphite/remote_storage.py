@@ -1,5 +1,4 @@
 import time
-import httplib
 import urllib3
 from Queue import Queue
 from urllib import urlencode
@@ -15,9 +14,6 @@ from graphite.render.hashing import compactHash
 from graphite.worker_pool.pool import get_pool
 
 http = urllib3.PoolManager(num_pools=10, maxsize=5)
-
-def connector_class_selector(https_support=False):
-    return httplib.HTTPSConnection if https_support else httplib.HTTPConnection
 
 
 def prefetchRemoteData(remote_stores, requestContext, pathExpressions):
