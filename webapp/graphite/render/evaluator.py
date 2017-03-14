@@ -1,6 +1,5 @@
 import re
 from graphite.render.grammar import grammar
-from graphite.util import logtime
 from graphite.render.datalib import fetchData, TimeSeries
 
 

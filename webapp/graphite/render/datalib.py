@@ -12,12 +12,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
-from threading import current_thread
-
 from graphite.logger import log
 from graphite.storage import STORE
 from graphite.readers import FetchInProgress
-from graphite.remote_storage import RemoteReader
 from django.conf import settings
 from graphite.util import timebounds, logtime
 
@@ -108,24 +105,6 @@ class TimeSeries(list):
       'values' : list(self),
       'pathExpression' : self.pathExpression,
     }
-
-
-def prefetchRemoteData(requestContext, pathExpressions):
-  if requestContext['localOnly']:
-    return
-
-  if requestContext is None:
-    requestContext = {}
-
-  (startTime, endTime, now) = timebounds(requestContext)
-  log.info('thread %s prefetchRemoteData:: Starting fetch_list on all backends' % current_thread().name)
-
-  # Go through all of the remote nodes, and launch a fetch for each one.
-  # Each fetch will take place in its own thread, since it's naturally parallel work.
-  for pathExpr in pathExpressions:
-    for store in STORE.remote_stores:
-      reader = RemoteReader(store, {'path': pathExpr, 'intervals': []}, bulk_query=pathExpr)
-      reader.fetch_list(startTime, endTime, now, requestContext)
 
 
 @logtime()

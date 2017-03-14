@@ -10,7 +10,7 @@ from graphite.intervals import Interval, IntervalSet
 from graphite.node import LeafNode, BranchNode
 from graphite.readers import FetchInProgress
 from graphite.logger import log
-from graphite.util import unpickle, logtime
+from graphite.util import unpickle, logtime, timebounds
 from graphite.render.hashing import compactHash
 from graphite.worker_pool.pool import get_pool
 
@@ -18,6 +18,24 @@ http = urllib3.PoolManager(num_pools=10, maxsize=5)
 
 def connector_class_selector(https_support=False):
     return httplib.HTTPSConnection if https_support else httplib.HTTPConnection
+
+
+def prefetchRemoteData(remote_stores, requestContext, pathExpressions):
+  if requestContext['localOnly']:
+    return
+
+  if requestContext is None:
+    requestContext = {}
+
+  (startTime, endTime, now) = timebounds(requestContext)
+  log.info('thread %s prefetchRemoteData:: Starting fetch_list on all backends' % current_thread().name)
+
+  # Go through all of the remote nodes, and launch a fetch for each one.
+  # Each fetch will take place in its own thread, since it's naturally parallel work.
+  for pathExpr in pathExpressions:
+    for store in remote_stores:
+      reader = RemoteReader(store, {'path': pathExpr, 'intervals': []}, bulk_query=pathExpr)
+      reader.fetch_list(startTime, endTime, now, requestContext)
 
 
 class RemoteStore(object):

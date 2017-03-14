@@ -31,10 +31,10 @@ except ImportError:
 from graphite.compat import HttpResponse
 from graphite.user_util import getProfileByUsername
 from graphite.util import json, unpickle
-from graphite.remote_storage import connector_class_selector, extractForwardHeaders
+from graphite.remote_storage import connector_class_selector, extractForwardHeaders, prefetchRemoteData
+from graphite.storage import STORE
 from graphite.logger import log
 from graphite.render.evaluator import evaluateTarget, extractPathExpressions
-from graphite.render.datalib import prefetchRemoteData
 from graphite.render.attime import parseATTime
 from graphite.render.functions import PieFunctions
 from graphite.render.hashing import hashRequest, hashData
@@ -115,7 +115,7 @@ def renderView(request):
       if settings.REMOTE_PREFETCH_DATA and not requestOptions.get('localOnly'):
         log.rendering("Prefetching remote data")
         pathExpressions = extractPathExpressions(targets)
-        prefetchRemoteData(requestContext, pathExpressions)
+        prefetchRemoteData(STORE.remote_stores, requestContext, pathExpressions)
 
       for target in targets:
         if not target.strip():
