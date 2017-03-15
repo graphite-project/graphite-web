@@ -77,14 +77,18 @@ class Store:
     result_cnt = 0
 
     while result_cnt < len(jobs):
-      if time.time() > deadline:
-        log.info("Timed out in find_all after %fs" % (settings.REMOTE_FIND_TIMEOUT))
-        break
+      wait_time = deadline - time.time()
 
       try:
-        nodes = result_queue.get(True, 0.01)
-      except Queue.Empty:
-        continue
+        nodes = result_queue.get(True, wait_time)
+
+      # ValueError could happen if due to really unlucky timing wait_time is negative
+      except (Queue.Empty, ValueError):
+        if time.time() > deadline:
+          log.info("Timed out in find_all after %fs" % (settings.REMOTE_FIND_TIMEOUT))
+          break
+        else:
+          continue
 
       log.info("Got a find result after %fs" % (time.time() - start))
       result_cnt += 1
