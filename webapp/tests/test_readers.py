@@ -1,4 +1,4 @@
-from .base import BaseTestCase as TestCase
+from .base import TestCase
 
 from graphite import readers
 

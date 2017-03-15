@@ -4,7 +4,7 @@ import os
 
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
-from .base import BaseTestCase as TestCase
+from .base import TestCase
 from django.test.utils import override_settings
 
 from . import DATA_DIR

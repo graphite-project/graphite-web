@@ -3,7 +3,7 @@ import shutil
 import time
 import whisper
 
-from .base import BaseTestCase as TestCase
+from .base import TestCase
 
 from django.conf import settings
 from graphite import util

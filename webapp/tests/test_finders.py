@@ -10,7 +10,7 @@ try:
 except ImportError:
     from mock import patch
 
-from .base import BaseTestCase as TestCase
+from .base import TestCase
 from django.conf import settings
 
 from graphite.intervals import Interval, IntervalSet

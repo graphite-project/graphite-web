@@ -1,6 +1,6 @@
 import copy
 
-from .base import BaseTestCase as TestCase
+from .base import TestCase
 
 from graphite.render import glyph
 from graphite.render.datalib import TimeSeries

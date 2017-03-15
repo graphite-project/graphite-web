@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.core.urlresolvers import reverse
-from .base import BaseTestCase as TestCase
+from .base import TestCase
 
 
 class VersionTest(TestCase):

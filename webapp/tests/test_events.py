@@ -4,7 +4,7 @@ import json
 from datetime import timedelta
 
 from django.core.urlresolvers import reverse
-from .base import BaseTestCase as TestCase
+from .base import TestCase
 from django.utils import timezone
 
 from graphite.events.models import Event

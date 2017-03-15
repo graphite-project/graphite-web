@@ -3,7 +3,7 @@ import logging
 from graphite.storage import Store
 
 from django.conf import settings
-from .base import BaseTestCase as TestCase
+from .base import TestCase
 
 # Silence logging during tests
 LOGGER = logging.getLogger()
