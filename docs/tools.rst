@@ -317,7 +317,6 @@ Other
 .. _graphite-beacon: https://github.com/klen/graphite-beacon
 .. _graphite-dashboardcli: https://github.com/blacked/graphite-dashboardcli
 .. _Graphite-Newrelic: https://github.com/gingerlime/graphite-newrelic
-.. _Graphite-Observer: https://github.com/huoxy/graphite-observer
 .. _Graphite-relay: https://github.com/markchadwick/graphite-relay
 .. _Graphite-Tattle: https://github.com/wayfair/Graphite-Tattle
 .. _graphite-to-zabbix: https://github.com/blacked/graphite-to-zabbix
