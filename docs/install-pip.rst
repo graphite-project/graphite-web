@@ -5,7 +5,7 @@ Versioned Graphite releases can be installed via `pip <http://pypi.python.org/py
 
 .. note::
 
-  In order to install Graphite-Web and Carbon, you must first install some development headers.  In Debian-based distributions, this will require ``apt-get install python-dev libcairo2-dev libffi-dev``, and in Red Hat-based distributions you will run ``yum install python-devel cairo-devel libffi-devel``.
+  In order to install Graphite-Web and Carbon, you must first install some development headers.  In Debian-based distributions, this will require ``apt-get install python-dev libcairo2-dev libffi-dev build-essential``, and in Red Hat-based distributions you will run ``yum install python-devel cairo-devel libffi-devel``.
 
 Installing in the Default Location
 ----------------------------------
