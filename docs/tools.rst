@@ -157,9 +157,6 @@ Visualization
   - synchronize dashboards between multiple Graphite servers
   - keep dashboards in YAML format
 
-`Graphite-Observer`_
-  A real-time monitor dashboard for Graphite.
-
 `Graphite-Tattle`_
   A self-service dashboard frontend for Graphite and `Ganglia`_.
 
