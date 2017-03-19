@@ -122,6 +122,16 @@ If either ``xFilesFactor`` or ``aggregationMethod`` is left out, the default val
 
 The aggregation parameters are kept separate from the retention parameters because the former depends on the type of data being collected and the latter depends on volume and importance.
 
+If you want to change aggregation methods for existing data, be sure that you update the whisper files as well.
+
+Example:
+
+.. code-block:: none
+
+  /opt/graphite/bin/whisper-set-aggregation-method.py /opt/graphite/storage/whisper/test.wsp max
+
+This example sets the aggregation for the test.wsp to max. (The location of the python script depends on your installation)
+
 
 relay-rules.conf
 ----------------
