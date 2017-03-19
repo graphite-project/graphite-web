@@ -1087,6 +1087,7 @@ function createFunctionsMenu() {
         {text: 'Interpolate', handler: applyFuncToEach('interpolate')},
         {text: 'Derivative', handler: applyFuncToEach('derivative')},
         {text: 'Power', handler: applyFuncToEachWithInput('pow', 'Please enter a power factor')},
+        {text: 'Power Series', handler: applyFuncToEachWithInput('powSeries', 'Please enter at least 2 series')},
         {text: 'Square Root', handler: applyFuncToEach('squareRoot')},
         {text: 'Time-adjusted Derivative', handler: applyFuncToEachWithInput('perSecond', "Please enter a maximum value if this metric is a wrapping counter (or just leave this blank)", {allowBlank: true})},
 	{text: 'Delay', handler: applyFuncToEachWithInput('delay', 'Please enter the number of steps to delay')},
