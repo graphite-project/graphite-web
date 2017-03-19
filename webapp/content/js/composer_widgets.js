@@ -1109,6 +1109,8 @@ function createFunctionsMenu() {
         {text: 'Moving Median', handler: applyFuncToEachWithInput('movingMedian', 'Moving median for the last ___ data points')},
         {text: 'Moving Standard Deviation', handler: applyFuncToEachWithInput('stdev', 'Moving standard deviation for the last ___ data points')},
         {text: 'Moving Sum', handler: applyFuncToEachWithInput('movingSum', 'Moving sum for the last ___ data points')},
+        {text: 'Moving Min', handler: applyFuncToEachWithInput('movingMin', 'Moving minimum for the last ___ data points')},
+        {text: 'Moving Max', handler: applyFuncToEachWithInput('movingMin', 'Moving maximum for the last ___ data points')},
         {text: 'Holt-Winters Forecast', handler: applyFuncToEach('holtWintersForecast')},
         {text: 'Holt-Winters Confidence Bands', handler: applyFuncToEach('holtWintersConfidenceBands')},
         {text: 'Holt-Winters Aberration', handler: applyFuncToEach('holtWintersAberration')},

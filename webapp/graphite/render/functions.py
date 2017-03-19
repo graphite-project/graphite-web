@@ -1200,6 +1200,122 @@ def movingSum(requestContext, seriesList, windowSize):
 
   return result
 
+def movingMin(requestContext, seriesList, windowSize):
+  """
+  Graphs the moving minimum of a metric (or metrics) over a fixed number of
+  past points, or a time interval.
+
+  Takes one metric or a wildcard seriesList followed by a number N of datapoints
+  or a quoted string with a length of time like '1hour' or '5min' (See ``from /
+  until`` in the render\_api_ for examples of time formats). Graphs the
+  minimum of the preceeding datapoints for each point on the graph.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=movingMin(Server.instance01.requests,10)
+    &target=movingMin(Server.instance*.errors,'5min')
+
+  """
+  if not seriesList:
+    return []
+  windowInterval = None
+  if isinstance(windowSize, basestring):
+    delta = parseTimeOffset(windowSize)
+    windowInterval = abs(delta.seconds + (delta.days * 86400))
+
+  if windowInterval:
+    previewSeconds = windowInterval
+  else:
+    previewSeconds = max([s.step for s in seriesList]) * int(windowSize)
+
+  # ignore original data and pull new, including our preview
+  # data from earlier is needed to calculate the early results
+  newContext = requestContext.copy()
+  newContext['startTime'] = requestContext['startTime'] -  timedelta(seconds=previewSeconds)
+  previewList = evaluateTokens(newContext, requestContext['args'][0])
+  result = []
+
+  for series in previewList:
+    if windowInterval:
+      windowPoints = windowInterval / series.step
+    else:
+      windowPoints = int(windowSize)
+
+    if isinstance(windowSize, basestring):
+      newName = 'movingMin(%s,"%s")' % (series.name, windowSize)
+    else:
+      newName = "movingMin(%s,%s)" % (series.name, windowSize)
+
+    newSeries = TimeSeries(newName, series.start + previewSeconds, series.end, series.step, [])
+    newSeries.pathExpression = newName
+    for i in range(windowPoints,len(series)):
+      window = series[i - windowPoints:i]
+      newSeries.append(safeMin(window))
+
+    result.append(newSeries)
+
+  return result
+
+def movingMax(requestContext, seriesList, windowSize):
+  """
+  Graphs the moving maximum of a metric (or metrics) over a fixed number of
+  past points, or a time interval.
+
+  Takes one metric or a wildcard seriesList followed by a number N of datapoints
+  or a quoted string with a length of time like '1hour' or '5min' (See ``from /
+  until`` in the render\_api_ for examples of time formats). Graphs the
+  maximum of the preceeding datapoints for each point on the graph.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=movingMax(Server.instance01.requests,10)
+    &target=movingMax(Server.instance*.errors,'5min')
+
+  """
+  if not seriesList:
+    return []
+  windowInterval = None
+  if isinstance(windowSize, basestring):
+    delta = parseTimeOffset(windowSize)
+    windowInterval = abs(delta.seconds + (delta.days * 86400))
+
+  if windowInterval:
+    previewSeconds = windowInterval
+  else:
+    previewSeconds = max([s.step for s in seriesList]) * int(windowSize)
+
+  # ignore original data and pull new, including our preview
+  # data from earlier is needed to calculate the early results
+  newContext = requestContext.copy()
+  newContext['startTime'] = requestContext['startTime'] -  timedelta(seconds=previewSeconds)
+  previewList = evaluateTokens(newContext, requestContext['args'][0])
+  result = []
+
+  for series in previewList:
+    if windowInterval:
+      windowPoints = windowInterval / series.step
+    else:
+      windowPoints = int(windowSize)
+
+    if isinstance(windowSize, basestring):
+      newName = 'movingMax(%s,"%s")' % (series.name, windowSize)
+    else:
+      newName = "movingMax(%s,%s)" % (series.name, windowSize)
+
+    newSeries = TimeSeries(newName, series.start + previewSeconds, series.end, series.step, [])
+    newSeries.pathExpression = newName
+    for i in range(windowPoints,len(series)):
+      window = series[i - windowPoints:i]
+      newSeries.append(safeMax(window))
+
+    result.append(newSeries)
+
+  return result
+
 def cumulative(requestContext, seriesList):
   """
   Takes one metric or a wildcard seriesList.
@@ -3942,6 +4058,8 @@ SeriesFunctions = {
   'movingAverage': movingAverage,
   'movingMedian': movingMedian,
   'movingSum': movingSum,
+  'movingMin': movingMin,
+  'movingMax': movingMax,
   'stdev': stdev,
   'holtWintersForecast': holtWintersForecast,
   'holtWintersConfidenceBands': holtWintersConfidenceBands,
