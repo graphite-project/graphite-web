@@ -3501,14 +3501,9 @@ def smartSummarize(requestContext, seriesList, intervalString, func='sum', align
   elif interval >= MINUTE:
     requestContext['startTime'] = datetime(s.year, s.month, s.day, s.hour, s.minute, tzinfo = s.tzinfo)
 
-  for i,series in enumerate(seriesList):
-    # XXX: breaks with summarize(metric.{a,b})
-    #      each series.pathExpression == metric.{a,b}
-    newSeries = evaluateTarget(requestContext, series.pathExpression)[0]
-    series[0:len(series)] = newSeries
-    series.start = newSeries.start
-    series.end = newSeries.end
-    series.step = newSeries.step
+  # Ignore the originally fetched data and pull new using the
+  # modified requestContext.
+  seriesList = evaluateTokens(requestContext, requestContext['args'][0])
 
   for series in seriesList:
     buckets = {} # { timestamp: [values] }
@@ -3674,13 +3669,12 @@ def hitcount(requestContext, seriesList, intervalString, alignToInterval = False
     elif interval >= MINUTE:
       requestContext['startTime'] = datetime(s.year, s.month, s.day, s.hour, s.minute)
 
-    for i,series in enumerate(seriesList):
-      newSeries = evaluateTarget(requestContext, series.pathExpression)[0]
+    # Ignore the originally fetched data and pull new using
+    # the modified requestContext.
+    seriesList = evaluateTokens(requestContext, requestContext['args'][0])
+    for series in seriesList:
       intervalCount = int((series.end - series.start) / interval)
-      series[0:len(series)] = newSeries
-      series.start = newSeries.start
-      series.end =  newSeries.start + (intervalCount * interval) + interval
-      series.step = newSeries.step
+      series.end = series.start + (intervalCount * interval) + interval
 
   for series in seriesList:
     length = len(series)
