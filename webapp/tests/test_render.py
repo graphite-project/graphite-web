@@ -7,12 +7,13 @@ import logging
 import shutil
 
 from graphite.render.hashing import ConsistentHashRing, hashRequest, hashData
+from graphite.render.evaluator import extractPathExpressions
 import whisper
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.http import HttpRequest, QueryDict
-from django.test import TestCase
+from .base import TestCase
 
 # Silence logging during tests
 LOGGER = logging.getLogger()
@@ -55,6 +56,14 @@ class RenderTest(TestCase):
             shutil.rmtree(self.hostcpu.replace('hostname/cpu.wsp', ''))
         except OSError:
             pass
+
+    def test_render_evaluator(self):
+        test_input = ['somefunc(my.metri[cz].{one,two})=123', 'target1,target2']
+        expected_output = ['my.metri[cz].{one,two}', 'target1']
+        outputs = extractPathExpressions(test_input)
+
+        self.assertTrue(all(output in expected_output for output in outputs))
+        self.assertTrue(all(output in outputs for output in expected_output))
 
     def test_render_view(self):
         url = reverse('graphite.render.views.renderView')

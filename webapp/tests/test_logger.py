@@ -8,6 +8,7 @@ from logging import FileHandler
 from django.conf import settings
 
 from graphite.logger import log, GraphiteLogger
+from graphite.worker_pool.pool import get_pool
 
 
 class TestLogger(unittest.TestCase):
@@ -47,3 +48,6 @@ class TestLogger(unittest.TestCase):
         self.assertTrue(isinstance(log.infoLogger.handlers[0], FileHandler))
         self.assertTrue(isinstance(log.exceptionLogger.handlers[0], FileHandler))
         settings.LOG_ROTATION = old_val
+
+    def tearDown(self):
+        get_pool().close()

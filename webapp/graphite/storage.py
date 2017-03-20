@@ -1,5 +1,7 @@
 import time
 import random
+import Queue
+from collections import defaultdict
 
 try:
   from importlib import import_module
@@ -8,11 +10,13 @@ except ImportError:  # python < 2.7 compatibility
 
 from django.conf import settings
 
+from graphite.logger import log
 from graphite.util import is_local_interface, is_pattern
 from graphite.remote_storage import RemoteStore
 from graphite.node import LeafNode
 from graphite.intervals import Interval, IntervalSet
 from graphite.readers import MultiReader
+from graphite.worker_pool.pool import get_pool
 
 
 def get_finder(finder_path):
@@ -37,33 +41,62 @@ class Store:
   def find(self, pattern, startTime=None, endTime=None, local=False, headers=None):
     query = FindQuery(pattern, startTime, endTime, local)
 
+    for match in self.find_all(query, headers):
+      yield match
+
+
+  def find_all(self, query, headers=None):
+    start = time.time()
+    result_queue = Queue.Queue()
+    jobs = []
+
     # Start remote searches
     if not query.local:
       random.shuffle(self.remote_stores)
-      remote_requests = [ r.find(query, headers) for r in self.remote_stores if r.available ]
+      jobs.extend([
+        (store.find, query, headers)
+        for store in self.remote_stores if store.available
+      ])
 
-    matching_nodes = set()
-
-    # Search locally
+    # Start local searches
     for finder in self.finders:
-      for node in finder.find_nodes(query):
-        #log.info("find() :: local :: %s" % node)
-        matching_nodes.add(node)
+      jobs.append((finder.find_nodes, query))
 
-    # Gather remote search results
-    if not query.local:
-      for request in remote_requests:
-        for node in request.get_results():
-          #log.info("find() :: remote :: %s from %s" % (node,request.store.host))
-          matching_nodes.add(node)
+    if settings.USE_WORKER_POOL:
+      return_result = lambda x: result_queue.put(x)
+      for job in jobs:
+        get_pool().apply_async(func=job[0], args=job[1:], callback=return_result)
+    else:
+      for job in jobs:
+        result_queue.put(job[0](*job[1:]))
 
     # Group matching nodes by their path
-    nodes_by_path = {}
-    for node in matching_nodes:
-      if node.path not in nodes_by_path:
-        nodes_by_path[node.path] = []
+    nodes_by_path = defaultdict(list)
 
-      nodes_by_path[node.path].append(node)
+    deadline = start + settings.REMOTE_FIND_TIMEOUT
+    result_cnt = 0
+
+    while result_cnt < len(jobs):
+      wait_time = deadline - time.time()
+
+      try:
+        nodes = result_queue.get(True, wait_time)
+
+      # ValueError could happen if due to really unlucky timing wait_time is negative
+      except (Queue.Empty, ValueError):
+        if time.time() > deadline:
+          log.info("Timed out in find_all after %fs" % (settings.REMOTE_FIND_TIMEOUT))
+          break
+        else:
+          continue
+
+      log.info("Got a find result after %fs" % (time.time() - start))
+      result_cnt += 1
+      if nodes:
+        for node in nodes:
+          nodes_by_path[node.path].append(node)
+
+    log.info("Got all find results in %fs" % (time.time() - start))
 
     # Reduce matching nodes for each path to a minimal set
     found_branch_nodes = set()
