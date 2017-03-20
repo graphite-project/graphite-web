@@ -89,6 +89,7 @@ try:
         'graphite.url_shortener',
         'graphite.version',
         'graphite.whitelist',
+        'graphite.worker_pool',
       ],
       package_data={'graphite' :
         ['templates/*', 'local_settings.py.example']},
