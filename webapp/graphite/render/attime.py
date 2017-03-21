@@ -28,8 +28,6 @@ weekdays = ['sun','mon','tue','wed','thu','fri','sat']
 def parseATTime(s, tzinfo=None, now=None):
   if tzinfo is None:
     tzinfo = timezone.get_current_timezone()
-  if now is None:
-    now = datetime.now(tz=tzinfo)
 
   s = s.strip().lower().replace('_','').replace(',','').replace(' ','')
   if s.isdigit():
@@ -47,11 +45,11 @@ def parseATTime(s, tzinfo=None, now=None):
     offset = '-' + offset
   else:
     ref,offset = s,''
-  return (parseTimeReference(ref) + parseTimeOffset(offset)).astimezone(tzinfo)
+  return tzinfo.normalize(parseTimeReference(ref).astimezone(tzinfo) + parseTimeOffset(offset))
 
 
 def parseTimeReference(ref):
-  if not ref or ref == 'now': return timezone.now()
+  if not ref or ref == 'now': return datetime.now(pytz.utc)
   #Time-of-day reference
   i = ref.find(':')
   hour,min = 0,0
@@ -73,7 +71,7 @@ def parseTimeReference(ref):
     hour,min = 16,0
     ref = ref[7:]
 
-  refDate = timezone.now().replace(hour=hour,minute=min,second=0)
+  refDate = datetime.now(pytz.utc).replace(hour=hour,minute=min,second=0)
 
   #Day reference
   if ref in ('yesterday','today','tomorrow'): #yesterday, today, tomorrow
@@ -121,6 +119,7 @@ def parseTimeReference(ref):
     refDate -= timedelta(days=dayOffset)
   elif ref:
     raise Exception, "Unknown day reference"
+
   return refDate
 
 

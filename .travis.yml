@@ -1,6 +1,5 @@
 language: python
 python:
-  - "2.6"
   - "2.7"
 
 env:
@@ -21,13 +20,8 @@ install:
   - pip install https://github.com/graphite-project/ceres/tarball/master
   - pip install https://github.com/graphite-project/whisper/tarball/master
   - pip install $REQUIREMENTS
-  - pip install pytz pyparsing==1.5.7 http://cairographics.org/releases/py2cairo-1.8.10.tar.gz
+  - pip install pytz pyparsing==1.5.7 http://cairographics.org/releases/py2cairo-1.8.10.tar.gz cairocffi
 
 script:
   - PYTHONPATH=. python graphite/manage.py syncdb --noinput
   - PYTHONPATH=. python graphite/manage.py test --settings=tests.settings -v2
-
-matrix:
-  exclude:
-    - python: "2.6"
-      env: REQUIREMENTS="Django<1.8 django-tagging<0.4"

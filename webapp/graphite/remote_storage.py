@@ -18,9 +18,9 @@ class RemoteStore(object):
     self.host = host
 
 
-  def find(self, query, result_queue=False):
+  def find(self, query, result_queue=False, headers=None):
     request = FindRequest(self, query)
-    request.send()
+    request.send(headers)
     if result_queue:
       result_queue.put(request)
     else:
@@ -33,7 +33,6 @@ class RemoteStore(object):
 
 
 class FindRequest:
-  suppressErrors = True
 
   def __init__(self, store, query):
     self.store = store
@@ -43,7 +42,7 @@ class FindRequest:
     self.cachedResults = None
 
 
-  def send(self):
+  def send(self, headers=None):
     self.cachedResults = cache.get(self.cacheKey)
 
     if self.cachedResults:
@@ -61,13 +60,12 @@ class FindRequest:
 
     try:
       if settings.REMOTE_STORE_USE_POST:
-        self.connection.request('POST', '/metrics/find/', query_string)
+        self.connection.request('POST', '/metrics/find/', query_string, headers)
       else:
-        self.connection.request('GET', '/metrics/find/?' + query_string)
+        self.connection.request('GET', '/metrics/find/?' + query_string, None, headers)
     except:
       self.store.fail()
-      if not self.suppressErrors:
-        raise
+      raise
 
 
   def get_results(self):
@@ -78,11 +76,19 @@ class FindRequest:
       self.send()
 
     try:
-      response = self.connection.getresponse()
+      try: # Python 2.7+, use buffering of HTTP responses
+        response = self.connection.getresponse(buffering=True)
+      except TypeError:  # Python 2.6 and older
+        response = self.connection.getresponse()
+    except AttributeError:
+      self.store.fail()
+      if not self.suppressErrors:
+        raise
+
+    try:
       assert response.status == 200, "received error response %s - %s" % (response.status, response.reason)
       result_data = response.read()
       results = unpickle.loads(result_data)
-
     except:
       self.store.fail()
       if not self.suppressErrors:
@@ -129,7 +135,7 @@ class RemoteNode:
       self.name = self.metric_path.split('.')[-1]
 
 
-  def fetch(self, startTime, endTime, now=None, result_queue=None):
+  def fetch(self, startTime, endTime, now=None, result_queue=None, headers=None):
     if not self.__isLeaf:
       return []
     if self.__isBulk:
@@ -151,10 +157,13 @@ class RemoteNode:
     connection = HTTPConnectionWithTimeout(self.store.host)
     connection.timeout = settings.REMOTE_STORE_FETCH_TIMEOUT
     if settings.REMOTE_STORE_USE_POST:
-      connection.request('POST', '/render/', query_string)
+      connection.request('POST', '/render/', query_string, headers)
     else:
-      connection.request('GET', '/render/?' + query_string)
-    response = connection.getresponse()
+      connection.request('GET', '/render/?' + query_string, None, headers)
+    try:  # Python 2.7+, use buffering of HTTP responses
+      response = connection.getresponse(buffering=True)
+    except TypeError:  # Python 2.6 and older
+      response = connection.getresponse()
     assert response.status == 200, "Failed to retrieve remote data: %d %s" % (response.status, response.reason)
     rawData = response.read()
 
@@ -204,3 +213,10 @@ class HTTPConnectionWithTimeout(httplib.HTTPConnection):
       break
     if not self.sock:
       raise socket.error, msg
+
+
+def extractForwardHeaders(request):
+    headers = {}
+    for name in settings.REMOTE_STORE_FORWARD_HEADERS:
+        headers[name] = request.META.get('HTTP_%s' % name.upper().replace('-', '_'))
+    return headers

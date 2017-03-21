@@ -32,7 +32,7 @@ except ImportError:  # Otherwise we fall back to Graphite's bundled version
   from graphite.thirdparty import pytz
 
 from graphite.util import getProfileByUsername, json, unpickle
-from graphite.remote_storage import HTTPConnectionWithTimeout
+from graphite.remote_storage import HTTPConnectionWithTimeout, extractForwardHeaders
 from graphite.logger import log
 from graphite.render.evaluator import evaluateTarget, extractPathExpressions
 from graphite.render.datalib import prefetchRemoteData
@@ -40,6 +40,7 @@ from graphite.render.attime import parseATTime
 from graphite.render.functions import PieFunctions
 from graphite.render.hashing import hashRequest, hashData
 from graphite.render.glyph import GraphTypes
+from graphite.storage import STORE
 
 from django.http import HttpResponse, HttpResponseServerError, HttpResponseRedirect
 from django.template import Context, loader
@@ -60,6 +61,7 @@ def renderView(request):
     'endTime' : requestOptions['endTime'],
     'now': requestOptions['now'],
     'localOnly' : requestOptions['localOnly'],
+    'forwardHeaders': extractForwardHeaders(request),
     'prefetchedRemoteData' : {},
     'data' : []
   }
@@ -99,7 +101,7 @@ def renderView(request):
       targets = requestOptions['targets']
       startTime = requestOptions['startTime']
       endTime = requestOptions['endTime']
-      dataKey = hashData(targets, startTime, endTime)
+      dataKey = hashData(targets, startTime, endTime, STORE.local_host)
       cachedData = cache.get(dataKey)
       if cachedData:
         log.cache("Data-Cache hit [%s]" % dataKey)
@@ -118,12 +120,14 @@ def renderView(request):
         requestContext['prefetchedRemoteData'] = prefetchRemoteData(requestContext, pathExpressions)
         log.rendering("Prefetching remote data took %.6f" % (time() - t))
       for target in targets:
+        if not target.strip():
+          continue
         t = time()
         seriesList = evaluateTarget(requestContext, target)
         log.rendering("Retrieval of %s took %.6f" % (target, time() - t))
         data.extend(seriesList)
 
-      if useCache:
+      if useCache and data:
         cache.add(dataKey, data, cacheTimeout)
 
     format = requestOptions.get('format')
@@ -195,6 +199,9 @@ def renderView(request):
     if format == 'svg':
       graphOptions['outputFormat'] = 'svg'
 
+    if format == 'pdf':
+      graphOptions['outputFormat'] = 'pdf'
+
     if format == 'pickle':
       response = HttpResponse(content_type='application/pickle')
       seriesInfo = [series.getInfo() for series in data]
@@ -207,7 +214,7 @@ def renderView(request):
   # We've got the data, now to render it
   graphOptions['data'] = data
   if settings.REMOTE_RENDERING: # Rendering on other machines is faster in some situations
-    image = delegateRendering(requestOptions['graphType'], graphOptions)
+    image = delegateRendering(requestOptions['graphType'], graphOptions, requestContext['forwardHeaders'])
   else:
     image = doImageRender(requestOptions['graphClass'], graphOptions)
 
@@ -216,6 +223,8 @@ def renderView(request):
     response = HttpResponse(
       content="%s(%s)" % (requestOptions['jsonp'], json.dumps(image)),
       content_type='text/javascript')
+  elif graphOptions.get('outputFormat') == 'pdf':
+    response = buildResponse(image, 'application/x-pdf')
   else:
     response = buildResponse(image, useSVG and 'image/svg+xml' or 'image/png')
 
@@ -329,7 +338,9 @@ def parseOptions(request):
 
 connectionPools = {}
 
-def delegateRendering(graphType, graphOptions):
+def delegateRendering(graphType, graphOptions, headers=None):
+  if headers is None:
+    headers = {}
   start = time()
   postData = graphType + '\n' + pickle.dumps(graphOptions)
   servers = settings.RENDERING_HOSTS[:] #make a copy so we can shuffle it safely
@@ -349,11 +360,11 @@ def delegateRendering(graphType, graphOptions):
         connection.timeout = settings.REMOTE_RENDER_CONNECT_TIMEOUT
       # Send the request
       try:
-        connection.request('POST','/render/local/', postData)
+        connection.request('POST','/render/local/', postData, headers)
       except CannotSendRequest:
         connection = HTTPConnectionWithTimeout(server) #retry once
         connection.timeout = settings.REMOTE_RENDER_CONNECT_TIMEOUT
-        connection.request('POST', '/render/local/', postData)
+        connection.request('POST', '/render/local/', postData, headers)
       # Read the response
       response = connection.getresponse()
       assert response.status == 200, "Bad response code %d from %s" % (response.status,server)

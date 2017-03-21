@@ -1,4 +1,4 @@
-import os, time, fnmatch, socket, errno
+import os, time, fnmatch, socket, errno, re
 from django.conf import settings
 from os.path import isdir, isfile, join, exists, splitext, basename, realpath
 import whisper
@@ -26,7 +26,7 @@ except ImportError:
 
 
 DATASOURCE_DELIMETER = '::RRD_DATASOURCE::'
-
+EXPAND_BRACES_RE = re.compile(r'.*(\{.+?[^\\]\})')
 
 
 class Store:
@@ -34,6 +34,7 @@ class Store:
     self.directories = directories
     self.remote_hosts = remote_hosts
     self.remote_stores = [ RemoteStore(host) for host in remote_hosts if not is_local_interface(host) ]
+    self.local_host = next((host for host in remote_hosts if is_local_interface(host)), 'local')
 
     if not (directories or remote_hosts):
       raise ValueError("directories and remote_hosts cannot both be empty")
@@ -48,25 +49,25 @@ class Store:
         return WhisperFile(absolute_fs_path, metric_path)
 
 
-  def find(self, query):
+  def find(self, query, headers=None):
     if is_pattern(query):
 
-      for match in self.find_all(query):
+      for match in self.find_all(query, headers):
         yield match
 
     else:
-      match = self.find_first(query)
+      match = self.find_first(query, headers)
 
       if match is not None:
         yield match
 
 
-  def _parallel_remote_find(self, query):
+  def _parallel_remote_find(self, query, headers=None):
     remote_finds = []
     results = []
     result_queue = Queue.Queue()
     for store in [ r for r in self.remote_stores if r.available ]:
-      thread = threading.Thread(target=store.find, args=(query, result_queue))
+      thread = threading.Thread(target=store.find, args=(query, result_queue, headers))
       thread.start()
       remote_finds.append(thread)
 
@@ -85,24 +86,24 @@ class Store:
 
     return results
     
-  def find_first(self, query):
+  def find_first(self, query, headers=None):
     # Search locally first
     for directory in self.directories:
       for match in find(directory, query):
         return match
 
     # If nothing found search remotely
-    remote_requests = self._parallel_remote_find(query)
+    remote_requests = self._parallel_remote_find(query, headers)
 
     for request in remote_requests:
       for match in request.get_results():
         return match
 
 
-  def find_all(self, query):
+  def find_all(self, query, headers=None):
     # Start remote searches
     found = set()
-    remote_requests = self._parallel_remote_find(query)
+    remote_requests = self._parallel_remote_find(query, headers)
 
     # Search locally
     for directory in self.directories:
@@ -253,22 +254,34 @@ def _deduplicate(entries):
 
 def match_entries(entries, pattern):
   # First we check for pattern variants (ie. {foo,bar}baz = foobaz or barbaz)
-  v1, v2 = pattern.find('{'), pattern.find('}')
+  matching = []
 
-  if v1 > -1 and v2 > v1:
-    variations = pattern[v1+1:v2].split(',')
-    variants = [ pattern[:v1] + v + pattern[v2+1:] for v in variations ]
-    matching = []
+  for variant in expand_braces(pattern):
+    matching.extend(fnmatch.filter(entries, variant))
 
-    for variant in variants:
-      matching.extend( fnmatch.filter(entries, variant) )
+  return list(_deduplicate(matching))
 
-    return list( _deduplicate(matching) ) #remove dupes without changing order
 
+"""
+  Brace expanding patch for python3 borrowed from:
+  https://bugs.python.org/issue9584
+"""
+def expand_braces(s):
+  res = list()
+
+  m = EXPAND_BRACES_RE.search(s)
+  if m is not None:
+    sub = m.group(1)
+    open_brace, close_brace = m.span(1)
+    if ',' in sub:
+      for pat in sub.strip('{}').split(','):
+        res.extend(expand_braces(s[:open_brace] + pat + s[close_brace:]))
+    else:
+        res.extend(expand_braces(s[:open_brace] + sub.replace('}', '\\}') + s[close_brace:]))
   else:
-    matching = fnmatch.filter(entries, pattern)
-    matching.sort()
-    return matching
+      res.append(s.replace('\\}', '}'))
+
+  return list(set(res))
 
 
 # Node classes
@@ -326,6 +339,9 @@ class WhisperFile(Leaf):
     start = time.time() - whisper.info(self.fs_path)['maxRetention']
     end = max( os.stat(self.fs_path).st_mtime, start )
     return [ (start, end) ]
+
+  def getInfo(self):
+    return whisper.info(self.fs_path)
 
   def fetch(self, startTime, endTime, now=None):
     return whisper.fetch(self.fs_path, startTime, endTime, now)
@@ -430,7 +446,7 @@ class RRDDataSource(Leaf):
 
     if settings.FLUSHRRDCACHED:
       rrdtool.flushcached(self.fs_path, '--daemon', settings.FLUSHRRDCACHED)
-    (timeInfo,columns,rows) = rrdtool.fetch(self.fs_path,'AVERAGE','-s' + startString,'-e' + endString)
+    (timeInfo,columns,rows) = rrdtool.fetch(self.fs_path,settings.RRD_CF,'-s' + startString,'-e' + endString)
     colIndex = list(columns).index(self.name)
     rows.pop() #chop off the latest value because RRD returns crazy last values sometimes
     values = (row[colIndex] for row in rows)

@@ -15,8 +15,6 @@ Basic Graphite requirements:
 * `cairocffi`_
 * `Django`_ 1.4 or greater
 * `django-tagging`_ 0.3.1 or greater
-* `Twisted`_ 8.0 or greater (10.0+ recommended)
-* `zope-interface`_ (often included in Twisted package dependency)
 * `pytz`_
 * `fontconfig`_ and at least one font package (a system package usually)
 * A WSGI server and web server. Popular choices are:
@@ -118,8 +116,8 @@ Initial Configuration
 .. toctree::
    :maxdepth: 2
    
+   config-database-setup
    config-local-settings
-   config-webapp
    config-carbon
 
 
@@ -179,7 +177,5 @@ Despair Not!  Even though running Graphite on Windows is completely unsupported 
 .. _python-sqlite2: http://code.google.com/p/pysqlite/
 .. _pytz: https://pypi.python.org/pypi/pytz/
 .. _simplejson: http://pypi.python.org/pypi/simplejson/
-.. _Twisted: http://twistedmatrix.com/
 .. _txAMQP: https://launchpad.net/txamqp/
 .. _uWSGI: http://projects.unbit.it/uwsgi/
-.. _zope-interface: http://pypi.python.org/pypi/zope.interface/

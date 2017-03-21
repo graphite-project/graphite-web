@@ -15,6 +15,7 @@ settings.configure(
 
 from graphite.render.datalib import TimeSeries
 import graphite.render.functions as functions
+from graphite.render.functions import NormalizeEmptyResultError
 
 
 class FunctionsTest(unittest.TestCase):
@@ -90,6 +91,24 @@ class FunctionsTest(unittest.TestCase):
         TestNPercentile(90, [ [50], [91], [181], [271], [90], [180], [270], [270] ])
         TestNPercentile(95, [ [50], [96], [191], [286], [95], [190], [285], [285] ])
 
+    def test_normalize_empty(self):
+      try:
+        functions.normalize([])
+      except NormalizeEmptyResultError:
+        pass
+
+    def testSortingByTotal(self):
+      seriesList = []
+      config = [[1000, 100, 10, 0], [1000, 100, 10, 1]]
+      for i, c in enumerate(config):
+        seriesList.append( TimeSeries('Test(%d)' % i, 0, 0, 0, c) )
+
+      self.assertEquals(1110, functions.safeSum(seriesList[0]))
+
+      result = functions.sortByTotal({},seriesList)
+
+      self.assertEquals(1111, functions.safeSum(result[0]))
+      self.assertEquals(1110, functions.safeSum(result[1]))
 
 if __name__ == '__main__':
     unittest.main()

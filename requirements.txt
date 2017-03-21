@@ -30,7 +30,6 @@
 #
 
 Django==1.4
-Twisted==11.0.0
 python-memcached==1.47
 txAMQP==0.4
 simplejson==2.1.6
@@ -41,3 +40,4 @@ sphinx
 sphinx_rtd_theme
 cairocffi
 git+git://github.com/graphite-project/whisper.git@0.9.13#egg=whisper
+whitenoise

@@ -21,6 +21,7 @@ from graphite.logger import log
 from graphite.storage import STORE, LOCAL_STORE, RRDFile
 from graphite.metrics.search import searcher
 from graphite.render.datalib import CarbonLink
+from graphite.remote_storage import extractForwardHeaders
 import fnmatch, os
 
 try:
@@ -132,6 +133,7 @@ def find_view(request):
   wildcards = int( request.REQUEST.get('wildcards', 0) )
   automatic_variants = int( request.REQUEST.get('automatic_variants', 0) )
   jsonp = request.REQUEST.get('jsonp', False)
+  forward_headers = extractForwardHeaders(request)
 
   try:
     query = str( request.REQUEST['query'] )
@@ -161,7 +163,7 @@ def find_view(request):
       query = '.'.join(query_parts)
 
   try:
-    matches = list( store.find(query) )
+    matches = list( store.find(query, forward_headers) )
   except:
     log.exception()
     raise
@@ -206,6 +208,7 @@ def expand_view(request):
   local_only    = int( request.REQUEST.get('local', 0) )
   group_by_expr = int( request.REQUEST.get('groupByExpr', 0) )
   leaves_only   = int( request.REQUEST.get('leavesOnly', 0) )
+  forward_headers = extractForwardHeaders(request)
 
   if local_only:
     store = LOCAL_STORE
@@ -215,7 +218,7 @@ def expand_view(request):
   results = {}
   for query in request.REQUEST.getlist('query'):
     results[query] = set()
-    for node in store.find(query):
+    for node in store.find(query, forward_headers):
       if node.isLeaf() or not leaves_only:
         results[query].add( node.metric_path )
 

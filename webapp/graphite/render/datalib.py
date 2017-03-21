@@ -106,7 +106,7 @@ class CarbonLinkPool:
     self.hosts = [ (server, instance) for (server, port, instance) in hosts ]
     self.ports = dict( ((server, instance), port) for (server, port, instance) in hosts )
     self.timeout = float(timeout)
-    self.hash_ring = ConsistentHashRing(self.hosts)
+    self.hash_ring = ConsistentHashRing(self.hosts, hash_type=settings.CARBONLINK_HASHING_TYPE)
     self.connections = {}
     self.last_failure = {}
     # Create a connection pool for each host
@@ -140,6 +140,8 @@ class CarbonLinkPool:
       return connection
 
   def query(self, metric):
+    if not self.hosts:
+      return []
     request = dict(type='cache-query', metric=metric)
     results = self.send_request(request)
     log.cache("CarbonLink cache-query request for %s returned %d datapoints" % (metric, len(results['datapoints'])))
@@ -148,6 +150,8 @@ class CarbonLinkPool:
   def query_bulk(self, metrics):
     cacheResultsByMetric = {}
     metricsByHost = {}
+    if not self.hosts:
+      return cacheResultsByMetric
 
     for real_metric in metrics:
       host = self.select_host(real_metric)
@@ -338,8 +342,8 @@ def fetchRemoteData(requestContext, pathExpr, usePrefetchCache=settings.REMOTE_P
           result_queue.put( (node, series) )
           need_fetch = False
       if need_fetch:
-        fetch_thread = threading.Thread(target=node.fetch,
-                                        args=(startTime, endTime, now, result_queue))
+        fetch_thread = threading.Thread(target=node.fetch, name=node.store.host,
+                                        args=(startTime, endTime, now, result_queue, requestContext.get('forwardHeaders')))
         fetch_thread.start()
         remote_fetches.append(fetch_thread)
 
@@ -352,14 +356,16 @@ def fetchRemoteData(requestContext, pathExpr, usePrefetchCache=settings.REMOTE_P
   for fetch_thread in remote_fetches:
     try:
       fetch_thread.join(settings.REMOTE_STORE_FETCH_TIMEOUT)
+      if fetch_thread.is_alive():
+        log.exception("Failed to join remote_fetch thread %s within %ss" % (fetch_thread.name, settings.REMOTE_STORE_FETCH_TIMEOUT))
     except:
-      log.exception("Failed to join remote_fetch thread within %ss" % (settings.REMOTE_STORE_FETCH_TIMEOUT))
+      log.exception("Exception during remote_fetch thread %s" % (fetch_thread.name))
 
   return result_queue
 
 # Data retrieval API
 def fetchData(requestContext, pathExpr):
-  seriesList = []
+  seriesList = {}
   (startTime, endTime, now) = _timebounds(requestContext)
 
   dbFiles = [dbFile for dbFile in LOCAL_STORE.find(pathExpr)]
@@ -378,7 +384,9 @@ def fetchData(requestContext, pathExpr):
         else:
           cachedResults = CarbonLink.query(dbFile.real_metric)
         if cachedResults:
-          dbResults = mergeResults(dbResults, cachedResults)
+          meta_info = dbFile.getInfo()
+          lowest_step = min([i['secondsPerPoint'] for i in meta_info['archives']])
+          dbResults = mergeResults(dbResults, cachedResults, lowest_step)
       except:
         log.exception("Failed CarbonLink query '%s'" % dbFile.real_metric)
 
@@ -389,7 +397,7 @@ def fetchData(requestContext, pathExpr):
     (start,end,step) = timeInfo
     series = TimeSeries(dbFile.metric_path, start, end, step, values)
     series.pathExpression = pathExpr #hack to pass expressions through to render functions
-    seriesList.append(series)
+    seriesList[series.name] = series
 
   if not requestContext['localOnly']:
     result_queue = fetchRemoteData(requestContext, pathExpr)
@@ -410,65 +418,91 @@ def fetchData(requestContext, pathExpr):
         ts = TimeSeries(series['name'], series['start'], series['end'], series['step'], series['values'])
         ts.pathExpression = pathExpr # hack as above
 
-        series_handled = False
-        for known in seriesList:
-          if series['name'] == known.name:
-            # This counts the Nones in each series, and is unfortunately O(n) for each
-            # series, which may be worth further optimization. The value of doing this
-            # at all is to avoid the "flipping" effect of loading a graph multiple times
-            # and having inconsistent data returned if one of the backing stores has
-            # inconsistent data. This is imperfect as a validity test, but in practice
-            # nicely keeps us using the "most complete" dataset available. Think of it
-            # as a very weak CRDT resolver.
+        if ts.name in seriesList:
+          # This counts the Nones in each series, and is unfortunately O(n) for each
+          # series, which may be worth further optimization. The value of doing this
+          # at all is to avoid the "flipping" effect of loading a graph multiple times
+          # and having inconsistent data returned if one of the backing stores has
+          # inconsistent data. This is imperfect as a validity test, but in practice
+          # nicely keeps us using the "most complete" dataset available. Think of it
+          # as a very weak CRDT resolver.
+          candidate_nones = 0
+          if not settings.REMOTE_STORE_MERGE_RESULTS:
             candidate_nones = len([val for val in series['values'] if val is None])
 
-            # To avoid repeatedly recounting the 'Nones' in series we've already seen,
-            # cache the best known count so far in a dict.
-            if known.name in series_best_nones:
-              known_nones = series_best_nones[known.name]
-            else:
-              known_nones = len([val for val in known if val is None])
-              series_best_nones[known.name] = known_nones
+          known = seriesList[ts.name]
+          # To avoid repeatedly recounting the 'Nones' in series we've already seen,
+          # cache the best known count so far in a dict.
+          if known.name in series_best_nones:
+            known_nones = series_best_nones[known.name]
+          else:
+            known_nones = len([val for val in known if val is None])
 
-            series_handled = True
-            if candidate_nones >= known_nones:
-              # If we already have this series in the seriesList, and the
-              # candidate is 'worse' than what we already have, we don't need
-              # to compare anything else. Save ourselves some work here.
-              break
+          if known_nones > candidate_nones:
+            if settings.REMOTE_STORE_MERGE_RESULTS:
+              # This series has potential data that might be missing from
+              # earlier series.  Attempt to merge in useful data and update
+              # the cache count.
+              log.info("Merging multiple TimeSeries for %s" % known.name)
+              for i, j in enumerate(known):
+                if j is None and ts[i] is not None:
+                  known[i] = ts[i]
+                  known_nones -= 1
+              # Store known_nones in our cache
+              series_best_nones[known.name] = known_nones
             else:
-              # We've found a series better than what we've already seen. Update
+              # Not merging data -
+              # we've found a series better than what we've already seen. Update
               # the count cache and replace the given series in the array.
               series_best_nones[known.name] = candidate_nones
-              seriesList[seriesList.index(known)] = ts
+              seriesList[known.name] = ts
+          else:
+              # In case if we are merging data - the existing series has no gaps and there is nothing to merge
+              # together.
+              #
+              # OR - if we picking best serie:
+              #
+              # We already have this series in the seriesList, and the
+              # candidate is 'worse' than what we already have, we don't need
+              # to compare anything else.
+              continue
 
         # If we looked at this series above, and it matched a 'known'
         # series already, then it's already in the series list (or ignored).
         # If not, append it here.
-        if not series_handled:
-          seriesList.append(ts)
+        else:
+          seriesList[ts.name] = ts
 
   # Stabilize the order of the results by ordering the resulting series by name.
   # This returns the result ordering to the behavior observed pre PR#1010.
-  return sorted(seriesList, key=lambda series: series.name)
+  return [ seriesList[k] for k in sorted(seriesList) ]
 
 
-def mergeResults(dbResults, cacheResults):
+def mergeResults(dbResults, cacheResults, lowest_step):
   cacheResults = list(cacheResults)
 
   if not dbResults:
     return cacheResults
-  elif not cacheResults:
-    return dbResults
 
   (timeInfo,values) = dbResults
   (start,end,step) = timeInfo
+
+  # we're pulling from archive, shouldn't be merging cacheResults
+  if not step == lowest_step:
+    return dbResults
 
   for (timestamp, value) in cacheResults:
     interval = timestamp - (timestamp % step)
 
     try:
       i = int(interval - start) / step
+      if i < 0:
+          # cached data point is earlier then the requested data point.
+          # meaning we can definitely ignore the cache result.
+          # note that we cannot rely on the 'except'
+          # in this case since 'values[-n]=' is
+          # is equivalent to 'values[values.length - n]='
+          continue
       values[i] = value
     except:
       pass

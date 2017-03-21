@@ -18,6 +18,7 @@ Graphite Documentation
    functions
    dashboard
    whisper
+   events
    terminology
    tools
    who-is-using

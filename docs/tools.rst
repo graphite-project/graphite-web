@@ -57,6 +57,9 @@ Collection
   sflow2graphite utility converts sFlow to Graphite's plaintext
   protocol, allowing Graphite to receive sFlow metrics.
 
+`jmx2graphite`_
+  The easiest way to poll JMX metrics and write them to Graphite. This tool runs as a Docker container, polling your JMX every X seconds and writing the metrics to Graphite. Requires a minimum of configuration to get started.
+
 `jmxtrans`_
   a powerful tool that performs JMX queries to collect metrics from Java applications.
   It is requires very little configuration and is capable of sending metric data to several
@@ -88,6 +91,12 @@ Forwarding
 
 `Backstop`_
   a simple endpoint for submitting metrics to Graphite. It accepts JSON data via HTTP POST and proxies the data to one or more Carbon/Graphite listeners.
+
+`carbon-c-relay`_
+  Enhanced C implementation of Carbon relay, aggregator and rewriter.
+
+`carbon-relay-ng`_
+  Fast carbon relay+aggregator with admin interfaces for making changes online - production ready.
 
 `Evenflow`_
   a simple service for submitting sFlow datagrams to Graphite. It accepts sFlow datagrams from multiple network devices and proxies the data to a Carbon listener. Currently only Generic Interface Counters are supported. All other message types are discarded.
@@ -222,6 +231,9 @@ Monitoring
 `Cabot`_
   a self-hosted monitoring and alerting server that watches Graphite metrics and can alert on them by phone, SMS, Hipchat or email. It is designed to be deployed to cloud or physical hardware in minutes and configured via web interface.
 
+`graphite-beacon`_
+  Simple alerting system for Graphite metrics.
+
 `rearview`_
   a real-time monitoring framework that sits on top of Graphite's time series data. This allows users to create monitors that both visualize and alert on data as it streams from Graphite. The monitors themselves are simple Ruby scripts which run in a sandbox to provide additional security. Monitors are also configured with a crontab compatible time specification used by the scheduler. Alerts can be sent via email, pagerduty, or campfire.
 
@@ -236,8 +248,41 @@ Monitoring
   performance data.
 
 
+Storage Backend Alternates
+--------------------------
+If you wish to use a backend to graphite other than Whisper, there are some options available to you.
+
+`Ceres`_
+  An alternate storage backend provided by the Graphite Project.  It it intended to be a distributable time-series database.  It is currently in a pre-release status.
+
+`Cyanite`_
+  A highly available, elastic, and low-latency time-series storage wirtten on top of Cassandra
+
+`InfluxDB`_
+  A distributed time series database.
+
+`KairosDB`_
+  A distributed time-series database written on top of Cassandra.
+
+`OpenTSDB`_
+  A distributed time-series database written on top of HBase.
+
 Other
 -----
+`bosun`_
+  Time Series Alerting Framework. Can use Graphite as time series source.
+
+`buckytools`_
+  Go implementation of useful tools for dealing with Graphite's Whisper DBs and Carbon hashing.
+
+`carbonate`_
+  Utilities for managing graphite clusters.
+
+`go-carbon`_
+  Golang implementation of Graphite/Carbon server with classic architecture: Agent -> Cache -> Persister.
+
+`riemann`_
+  A network event stream processing system, in Clojure. Can use Graphite as source of event stream.
 
 `Therry`_
   a simple web service that caches Graphite metrics and exposes an endpoint for dumping or searching against them by substring.
@@ -245,8 +290,14 @@ Other
 
 .. _Backbone.js: http://documentcloud.github.com/backbone
 .. _Backstop: https://github.com/obfuscurity/backstop
+.. _bosun: http://bosun.org
 .. _Bucky: http://pypi.python.org/pypi/bucky
+.. _buckytools: https://github.com/jjneely/buckytools
 .. _Cabot: https://github.com/arachnys/cabot
+.. _carbon-c-relay: https://github.com/grobian/carbon-c-relay
+.. _carbon-relay-ng: https://github.com/graphite-ng/carbon-relay-ng
+.. _carbonate: https://github.com/jssjr/carbonate
+.. _Ceres: https://github.com/graphite-project/ceres
 .. _Charcoal: https://github.com/cebailey59/charcoal
 .. _collectd: http://collectd.org
 .. _collectd-carbon: https://github.com/indygreg/collectd-carbon
@@ -263,11 +314,13 @@ Other
 .. _Ganglia: http://ganglia.info
 .. _Gdash: https://github.com/ripienaar/gdash.git
 .. _Giraffe: http://kenhub.github.com/giraffe
+.. _go-carbon: https://github.com/lomik/go-carbon
 .. _Grafana: http://grafana.org
 .. _Graph-Explorer: http://vimeo.github.io/graph-explorer
 .. _Graph-Index: https://github.com/douban/graph-index
 .. _Graphene: http://jondot.github.com/graphene
 .. _Graphios: https://github.com/shawn-sterling/graphios
+.. _graphite-beacon: https://github.com/klen/graphite-beacon
 .. _Graphite-Tattle: https://github.com/wayfair/Graphite-Tattle
 .. _Graphite-Newrelic: https://github.com/gingerlime/graphite-newrelic
 .. _Graphite-Observer: https://github.com/huoxy/graphite-observer
@@ -281,7 +334,11 @@ Other
 .. _Host sFlow: http://host-sflow.sourceforge.net
 .. _Hubot: https://github.com/github/hubot
 .. _hubot-scripts: https://github.com/github/hubot-scripts
+.. _jmx2graphite: https://github.com/logzio/jmx2graphite
 .. _jmxtrans: http://code.google.com/p/jmxtrans
+.. _InfluxDB: https://influxdb.com/
+.. _jmxtrans: https://github.com/jmxtrans/jmxtrans
+.. _KairosDB: http://kairosdb.github.io/
 .. _Ledbetter: https://github.com/github/ledbetter
 .. _Leonardo: https://github.com/PrFalken/leonardo
 .. _Logster: https://github.com/etsy/logster
@@ -293,6 +350,7 @@ Other
 .. _RabbitMQ: http://www.rabbitmq.com
 .. _Rickshaw: http://code.shutterstock.com/rickshaw
 .. _rearview: http://github.com/livingsocial/rearview
+.. _riemann: http://riemann.io
 .. _Rocksteady: http://code.google.com/p/rocksteady
 .. _Seyren: https://github.com/scobal/seyren
 .. _Sensu: http://sensuapp.org

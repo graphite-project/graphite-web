@@ -167,6 +167,8 @@ class Graph:
     if self.margin < 0:
       self.margin = 10
 
+    self.setupCairo( params.get('outputFormat','png').lower() )
+
     self.area = {
       'xmin' : self.margin + 10, # Need extra room when the time is near the left edge
       'xmax' : self.width - self.margin,
@@ -175,8 +177,6 @@ class Graph:
     }
 
     self.loadTemplate( params.get('template','default') )
-
-    self.setupCairo( params.get('outputFormat','png').lower() )
 
     opts = self.ctx.get_font_options()
     opts.set_antialias( cairo.ANTIALIAS_NONE )
@@ -199,9 +199,16 @@ class Graph:
     self.outputFormat = outputFormat
     if outputFormat == 'png':
       self.surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, self.width, self.height)
-    else:
+    elif outputFormat == 'svg':
       self.surfaceData = StringIO.StringIO()
       self.surface = cairo.SVGSurface(self.surfaceData, self.width, self.height)
+    elif outputFormat == 'pdf':
+      self.surfaceData = StringIO.StringIO()
+      self.surface = cairo.PDFSurface(self.surfaceData, self.width, self.height)
+      res_x, res_y = self.surface.get_fallback_resolution()
+      self.width = float(self.width / res_x) * 72
+      self.height = float(self.height / res_y) * 72
+      self.surface.set_size(self.width, self.height)
     self.ctx = cairo.Context(self.surface)
 
   def setColor(self, value, alpha=1.0, forceAlpha=False):
@@ -216,6 +223,9 @@ class Graph:
       r,g,b = ( int(s[0:2],base=16), int(s[2:4],base=16), int(s[4:6],base=16) )
       if len(s) == 8 and not forceAlpha:
         alpha = float( int(s[6:8],base=16) ) / 255.0
+    elif isinstance(value, int) and len(str(value)) == 6:
+      s = str(value)
+      r,g,b = ( int(s[0:2],base=16), int(s[2:4],base=16), int(s[4:6],base=16) )
     else:
       raise ValueError, "Must specify an RGB 3-tuple, an html color string, or a known color alias!"
     r,g,b = [float(c) / 255.0 for c in (r,g,b)]
@@ -443,6 +453,11 @@ class Graph:
   def output(self, fileObj):
     if self.outputFormat == 'png':
       self.surface.write_to_png(fileObj)
+    elif self.outputFormat == 'pdf':
+      self.surface.finish()
+      pdfData = self.surfaceData.getvalue()
+      self.surfaceData.close()
+      fileObj.write(pdfData)
     else:
       metaData = {
         'x': {
@@ -496,8 +511,8 @@ class Graph:
         return '</g><g data-header="true" class="%s">' % name
       svgData = re.sub(r'<path.+?d="M -88 -88 (.+?)"/>', onHeaderPath, svgData)
 
-      # Replace the first </g><g> with <g>, and close out the last </g> at the end
-      svgData = svgData.replace('</g><g data-header','<g data-header',1) + "</g>"
+      # Hack to replace the first </g><g> with <g>
+      svgData = svgData.replace('</g><g data-header','<g data-header',1)
       svgData = svgData.replace(' data-header="true"','')
 
       fileObj.write(svgData)
@@ -945,7 +960,7 @@ class LineGraph(Graph):
 
       if 'stacked' in series.options:
         if self.lineMode == 'staircase':
-          xPos = x 
+          xPos = x
         else:
           xPos = x-series.xStep
         if self.secondYAxis:
@@ -1020,10 +1035,10 @@ class LineGraph(Graph):
       self.data
     )
 
-    if self.params.get('drawNullAsZero') and seriesWithMissingValues:
+    yMinValue = safeMin(map(safeMin, finite_series))
+
+    if yMinValue > 0.0 and self.params.get('drawNullAsZero') and seriesWithMissingValues:
       yMinValue = 0.0
-    else:
-      yMinValue = safeMin(map(safeMin, finite_series))
 
     if self.areaMode == 'stacked':
       # Use izip to use iteration on the TimeSeries objects so we honor
@@ -1032,6 +1047,9 @@ class LineGraph(Graph):
       yMaxValue = safeMax(map(safeSum, itertools.izip(*finite_series)))
     else:
       yMaxValue = safeMax(map(safeMax, finite_series))
+
+    if yMaxValue < 0.0 and self.params.get('drawNullAsZero') and seriesWithMissingValues:
+      yMaxValue = 0.0
 
     if yMinValue is None:
       yMinValue = 0.0

@@ -178,6 +178,10 @@
 #REMOTE_STORE_USE_POST = False    # Use POST instead of GET for remote requests
 #REMOTE_FIND_CACHE_DURATION = 300 # Time to cache remote metric find results
 
+# Provide a list of HTTP headers that you want forwarded on from this host
+# when making a request to a remote webapp server in CLUSTER_SERVERS
+#REMOTE_STORE_FORWARD_HEADERS = [] # An iterable of HTTP header names
+
 ## Metric prefixing
 # Set to the value to prepend to all metric paths queried from remote webapp
 # servers specified in the above CLUSTER_SERVERS setting. The prefix will also
@@ -194,6 +198,10 @@
 # there's significant latency between this server and the backends. (>20ms)
 #REMOTE_PREFETCH_DATA = False
 
+# During a rebalance of a consistent hash cluster, after a partition event on a replication > 1 cluster,
+# or in other cases we might receive multiple TimeSeries data for a metric key.  Merge them together rather
+# that choosing the "most complete" one (pre-0.9.14 behaviour).
+#REMOTE_STORE_MERGE_RESULTS = True
 
 ## Remote rendering settings
 # Set to True to enable rendering of Graphs on a remote webapp
@@ -216,6 +224,16 @@
 # It's more effective, but python-carbon 0.9.13 (or latest from 0.9.x branch) is required
 # See https://github.com/graphite-project/carbon/pull/132 for details
 #CARBONLINK_QUERY_BULK = False
+
+# Type of metric hashing function.
+# The default `carbon_ch` is Graphite's traditional consistent-hashing implementation.
+# Alternatively, you can use `fnv1a_ch`, which supports the Fowler-Noll-Vo hash
+# function (FNV-1a) hash implementation offered by the carbon-c-relay project
+# https://github.com/grobian/carbon-c-relay
+#
+# Supported values: carbon_ch, fnv1a_ch
+#
+#CARBONLINK_HASHING_TYPE = 'carbon_ch'
 
 #####################################
 # Additional Django Settings #
