@@ -178,6 +178,15 @@
 #REMOTE_STORE_USE_POST = False    # Use POST instead of GET for remote requests
 #REMOTE_FIND_CACHE_DURATION = 300 # Time to cache remote metric find results
 
+## Metric prefixing
+# Set to the value to prepend to all metric paths queried from remote webapp
+# servers specified in the above CLUSTER_SERVERS setting. The prefix will also
+# be removed from matching metrics before returning to the user.
+# Allows independent webapp instances to share a remote server cluster but
+# limit access to only a subset of the metrics.
+# Cannot be combined with CARBONLINK_HOSTS setting (below).
+#REMOTE_STORE_METRIC_PREFIX = 'customer_a.metrics.only.'
+
 ## Prefetch cache
 # set to True to fetch all metrics using a single http request per remote server
 # instead of one http request per target, per remote server.

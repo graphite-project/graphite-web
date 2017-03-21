@@ -380,6 +380,11 @@ REMOTE_FIND_CACHE_DURATION
 
   Time to cache remote metric find results in seconds
 
+REMOTE_STORE_METRIC_PREFIX
+  `Default: ''`
+
+  Value to prepend to all metric paths queried from remote webapp servers
+
 REMOTE_RENDERING
   `Default: False`
 
