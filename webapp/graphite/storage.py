@@ -173,6 +173,8 @@ class Store:
         # We include the most likely node if the gap is within tolerance.
         if not minimal_node_set:
           def distance_to_requested_interval(node):
+            if not node.intervals:
+              return float('inf')
             latest = sorted(node.intervals, key=lambda i: i.end)[-1]
             distance = query.interval.start - latest.end
             return distance if distance >= 0 else float('inf')
