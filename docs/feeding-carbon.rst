@@ -110,7 +110,7 @@ To determine the best retention configuration, you must answer all of the follow
 2. What is the finest precision you will require?
 3. How far back will you need to look at that level of precision?
 4. What is the coarsest precision you can use?
-5. How far back would you ever need to see data? (yes it has to be finite, and determine ahead of time)
+5. How far back would you ever need to see data? (yes it has to be finite, and determined ahead of time)
 
 Once you have picked your naming scheme and answered all of the retention questions, you need to create a schema by creating/editing the ``/opt/graphite/conf/storage-schemas.conf`` file.
 
