@@ -369,6 +369,38 @@ CARBONLINK_HASHING_TYPE
   The default `carbon_ch` is Graphite's traditional consistent-hashing implementation. Alternatively, you can use `fnv1a_ch`, which supports the Fowler–Noll–Vo hash function (FNV-1a) hash implementation offered by the `carbon-c-relay relay <https://github.com/grobian/carbon-c-relay>`_ project.
 
 
+Metric Segregation
+^^^^^^^^^^^^^^^^^^
+
+When Graphite is configured for clustered use (ie with CLUSTER_SERVERS), the Graphite webapp can be configured to limit access only to metrics with a given prefix by also configuring REMOTE_STORE_METRIC_PREFIX.
+
+For example, assume there is a cluster of back-end Graphite webapp instances each also running Carbon Cache and have Whisper files on local storage.  Via the use of Carbon Relay, the following set of metrics are replicated and/or sharded across these back-end instances:
+
+- ``customer_a.requests.count``
+- ``customer_a.latency.mean``
+- ``customer_b.requests.count``
+- ...
+
+There is also a front-end Graphite webapp configured with CLUSTER_SERVERS array containing all the back-end graphite webapp instances and ``REMOTE_STORE_METRIC_PREFIX="customer_a."``. The front-end Graphite browser-tree will only show:
+
+- ``requests/``
+  - ``count``
+- ``latency/``
+  - ``mean``
+
+Also, the front-end Graphite Render URL API will accept targets like ``?target=requests.*``.
+
+When the front-end Graphite webapp queries the specified metric(s) from the back-end webapps, it will first prepend the value of REMOTE_STORE_METRIC_PREFIX before performing the query, ie ``requests.*`` becomes ``customer_a.requests.*``.
+
+The back-end webapps will receive a query for ``customer_a.requests.*`` and inspect their local storage for matching Whisper files and, if Carbonlink is configured, also query the Carbon Cache for matching metrics. In this example, ``customer_a.requests.count`` will match and be returned to the front-end webapp with its values.
+
+The front-end webapp will then strip the prefix from all matching metric names, ie ``customer_a.requests.count`` becomes ``requests.count``, and this name will be used in the response to the user.
+
+This allows multiple independent front-end Graphite webapps to provide distinct limited views over a shared back-end Graphite and Carbon cluster.
+
+Note that the back-end Graphite webapps do not have the REMOTE_STORE_METRIC_PREFIX setting configured as it is used only for queries to upstream Graphite and is not used for local storage or for Carbonlink.
+
+
 Additional Django Settings
 --------------------------
 The ``local_settings.py.example`` shipped with Graphite-web imports ``app_settings.py`` into the namespace to allow further customization of Django. This allows the setting or customization of standard `Django settings <https://docs.djangoproject.com/en/dev/ref/settings/>`_ and the installation and configuration of additional `middleware <https://docs.djangoproject.com/en/dev/topics/http/middleware/>`_.
