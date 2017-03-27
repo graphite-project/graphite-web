@@ -17,9 +17,13 @@ simply execute as root:
     export PYTHONPATH="/opt/graphite/lib/:/opt/graphite/webapp/"
     pip install -r https://raw.githubusercontent.com/graphite-project/carbon/0.9.13/requirements.txt
     pip install -r https://raw.githubusercontent.com/graphite-project/graphite-web/0.9.13/requirements.txt
-    pip install whisper
-    pip install carbon
-    pip install graphite-web
+    pip install --no-binary=:all: whisper
+    pip install --no-binary=:all: carbon
+    pip install --no-binary=:all: graphite-web
+
+.. note::
+
+  If your version of ``pip`` is < 7.0.0 then no need to use ``--no-binary=:all:`` parameter
 
 .. note::
 
