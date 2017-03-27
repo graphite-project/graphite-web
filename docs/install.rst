@@ -14,8 +14,9 @@ Basic Graphite requirements:
 * Python 2.7 or greater but `NOT Python 3`
 * `cairocffi`_
 * `Django`_ 1.9
-* `django-tagging`_ 0.4.3
+* `django-tagging`_ 0.4.3 (not `django-taggit` yet)
 * `pytz`_
+* `scandir`_
 * `fontconfig`_ and at least one font package (a system package usually)
 * A WSGI server and web server. Popular choices are:
 
@@ -185,6 +186,7 @@ Despair Not!  Even though running Graphite on Windows is completely unsupported 
 .. _python-rrdtool: http://oss.oetiker.ch/rrdtool/prog/rrdpython.en.html
 .. _python-sqlite2: https://github.com/ghaering/pysqlite
 .. _pytz: https://pypi.python.org/pypi/pytz/
+.. _scandir: https://pypi.python.org/pypi/scandir
 .. _simplejson: http://simplejson.readthedocs.io/
 .. _txAMQP: https://launchpad.net/txamqp/
 .. _uWSGI: http://uwsgi-docs.readthedocs.io/
