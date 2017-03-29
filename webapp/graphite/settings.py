@@ -22,7 +22,7 @@ from django.core.urlresolvers import reverse_lazy
 
 
 GRAPHITE_WEB_APP_SETTINGS_LOADED = False
-WEBAPP_VERSION = '0.10.0-alpha'
+WEBAPP_VERSION = '1.0.0-pre1'
 DEBUG = False
 JAVASCRIPT_DEBUG = False
 

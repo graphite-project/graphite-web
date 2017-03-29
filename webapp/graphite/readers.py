@@ -80,6 +80,8 @@ class MultiReader(object):
           except:
             log.exception("Failed to complete subfetch")
             results[i] = None
+        else:
+          results[i] = result
 
       results = [r for r in results.values() if r is not None]
       if not results:
