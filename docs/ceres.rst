@@ -6,6 +6,7 @@ for Graphite. In contrast with Whisper, Ceres is not a fixed-size database and i
 better support sparse data of arbitrary fixed-size resolutions. This allows Graphite to distribute
 individual time-series across multiple servers or mounts.
 
+Ceres is not actively developped at the moment. For alternatives to whisper look at :doc:`alternative storage backends </tools>`.
 
 Storage Overview
 ----------------
