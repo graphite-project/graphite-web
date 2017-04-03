@@ -123,4 +123,5 @@ a namespace of your choice. Python packaging won't be covered here but you can
 look at third-party finders to get some inspiration:
 
 * `Cyanite finder <https://github.com/brutasse/graphite-cyanite>`_
+* `BigGraphite finder <https://github.com/criteo/biggraphite/blob/master/biggraphite/plugins/graphite.py>`_
 * KairosDB finder
