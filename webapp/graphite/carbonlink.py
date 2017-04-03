@@ -1,13 +1,15 @@
 import time
 import socket
 import struct
-import errno
 import random
-from select import select
+
 from django.conf import settings
+
 from graphite.render.hashing import ConsistentHashRing
 from graphite.logger import log
 from graphite.util import load_module, unpickle
+from graphite.singleton import ThreadSafeSingleton
+
 
 try:
   import cPickle as pickle
@@ -24,16 +26,23 @@ def load_keyfunc():
     return lambda x: x
 
 
-class CarbonLinkPool:
+class CarbonLinkRequestError(Exception):
+  pass
+
+
+class CarbonLinkPool(object):
   def __init__(self, hosts, timeout):
     self.hosts = [ (server, instance) for (server, port, instance) in hosts ]
-    self.ports = dict( ((server, instance), port) for (server, port, instance) in hosts )
+    self.ports = dict(
+      ((server, instance), port) for (server, port, instance) in hosts )
     self.timeout = float(timeout)
     servers = set([server for (server, port, instance) in hosts])
     if len(servers) < settings.REPLICATION_FACTOR:
-      raise Exception("REPLICATION_FACTOR=%d cannot exceed servers=%d" % (settings.REPLICATION_FACTOR, len(servers)))
+      raise Exception("REPLICATION_FACTOR=%d cannot exceed servers=%d" % (
+        settings.REPLICATION_FACTOR, len(servers)))
 
-    self.hash_ring = ConsistentHashRing(self.hosts, hash_type=settings.CARBONLINK_HASHING_TYPE)
+    self.hash_ring = ConsistentHashRing(
+      self.hosts, hash_type=settings.CARBONLINK_HASHING_TYPE)
     self.keyfunc = load_keyfunc()
     self.connections = {}
     self.last_failure = {}
@@ -77,18 +86,19 @@ class CarbonLinkPool:
     connection = socket.socket()
     connection.settimeout(self.timeout)
     try:
-      connection.connect( (server, port) )
+      connection.connect((server, port))
     except:
       self.last_failure[host] = time.time()
       raise
     else:
-      connection.setsockopt( socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1 )
+      connection.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
       return connection
 
   def query(self, metric):
     request = dict(type='cache-query', metric=metric)
     results = self.send_request(request)
-    log.cache("CarbonLink cache-query request for %s returned %d datapoints" % (metric, len(results['datapoints'])))
+    log.cache("CarbonLink cache-query request for %s returned %d datapoints" % (
+      metric, len(results['datapoints'])))
     return results['datapoints']
 
   def get_metadata(self, metric, key):
@@ -163,60 +173,41 @@ class CarbonLinkPool:
     return results
 
   def recv_response(self, conn):
-    len_prefix = recv_exactly(conn, 4)
+    len_prefix = self.recv_exactly(conn, 4)
     body_size = struct.unpack("!L", len_prefix)[0]
-    body = recv_exactly(conn, body_size)
+    body = self.recv_exactly(conn, body_size)
     return unpickle.loads(body)
 
+  @staticmethod
+  def recv_exactly(conn, num_bytes):
+    buf = ''
+    while len(buf) < num_bytes:
+      data = conn.recv(num_bytes - len(buf))
+      if not data:
+        raise Exception("Connection lost")
+      buf += data
 
-class CarbonLinkRequestError(Exception):
-  pass
+    return buf
 
 
-# Socket helper functions
-def still_connected(sock):
-  is_readable = select([sock], [], [], 0)[0]
-  if is_readable:
-    try:
-      recv_buf = sock.recv(1, socket.MSG_DONTWAIT|socket.MSG_PEEK)
-
-    except socket.error as e:
-      if e.errno in (errno.EAGAIN, errno.EWOULDBLOCK):
-        return True
+@ThreadSafeSingleton
+class GlobalCarbonLinkPool(CarbonLinkPool):
+  def __init__(self):
+    hosts = []
+    for host in settings.CARBONLINK_HOSTS:
+      parts = host.split(':')
+      server = parts[0]
+      port = int(parts[1])
+      if len(parts) > 2:
+        instance = parts[2]
       else:
-        raise
-
-    else:
-      return bool(recv_buf)
-
-  else:
-    return True
+        instance = None
+      hosts.append((server, int(port), instance))
+    timeout = settings.CARBONLINK_TIMEOUT
+    print ('hosts', hosts)
+    CarbonLinkPool.__init__(self, hosts, timeout)
 
 
-def recv_exactly(conn, num_bytes):
-  buf = ''
-  while len(buf) < num_bytes:
-    data = conn.recv( num_bytes - len(buf) )
-    if not data:
-      raise Exception("Connection lost")
-    buf += data
-
-  return buf
-
-
-#parse hosts from local_settings.py
-hosts = []
-for host in settings.CARBONLINK_HOSTS:
-  parts = host.split(':')
-  server = parts[0]
-  port = int( parts[1] )
-  if len(parts) > 2:
-    instance = parts[2]
-  else:
-    instance = None
-
-  hosts.append( (server, int(port), instance) )
-
-
-#A shared importable singleton
-CarbonLink = CarbonLinkPool(hosts, settings.CARBONLINK_TIMEOUT)
+def CarbonLink():
+  """Handy accessor for the global singleton."""
+  GlobalCarbonLinkPool.instance()
