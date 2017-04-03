@@ -248,18 +248,23 @@
 # Creates a pool of worker threads to which tasks can be dispatched. This makes
 # sense if there are multiple CLUSTER_SERVERS because then the communication
 # with them can be parallelized
+# The number of threads is equal to:
+#   POOL_WORKERS_PER_BACKEND * len(CLUSTER_SERVERS) + POOL_WORKERS
+# Be careful when increasing the number of threads, in particular if your start
+# multiple graphite-web processes (with uwsgi or similar) as this will increase
+# memory consumption (and number of connections to memcached).
 #USE_WORKER_POOL = True
 
 # The number of worker threads that should be created per backend server.
-# It makes sense to have more than one thread per backend server because
+# It makes sense to have more than one thread per backend server if
 # the graphite-web web server itself is multi threaded and can handle multiple
 # incoming requests at once.
-#POOL_WORKERS_PER_BACKEND = 10
+#POOL_WORKERS_PER_BACKEND = 1
 
 # A baseline number of workers that should always be created, no matter how many
 # cluster servers are configured. These are used for other tasks that can be
 # off-loaded from the request handling threads.
-#POOL_WORKERS = 10
+#POOL_WORKERS = 1
 
 # This setting controls whether https is used to communicate between cluster members
 #INTRACLUSTER_HTTPS = False
