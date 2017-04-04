@@ -15,9 +15,9 @@ Source bundles are available from GitHub:
 Graphite can also be installed from `PyPI <http://pypi.python.org/>`_ via
 `pip <http://www.pip-installer.org/en/latest/index.html>`_. PyPI bundles are here:
 
-* http://pypi.python.org/pypi/graphite-web/
-* http://pypi.python.org/pypi/carbon/
-* http://pypi.python.org/pypi/whisper/
+* http://pypi.python.org/pypi/graphite-web/0.9.16
+* http://pypi.python.org/pypi/carbon/0.9.16
+* http://pypi.python.org/pypi/whisper/0.9.16
 
 Upgrading
 ---------
