@@ -4,7 +4,7 @@
 ===========================
 *TBD*
 
-Graphite 1.0.0 is now available for usage. This marks the first release of Graphite's main line in many years. Also, there's a new *optional* components available: Carbonate, a suite of tools for managing and rebalancing Whisper files.
+Graphite 1.0.0 is now available for usage. This marks the first release of Graphite's main line in many years. Also, there's a new *optional* component available: Carbonate, a suite of tools for managing and rebalancing Whisper files.
 
 Most users will only need to install the Graphite-Web, Carbon, and Whisper components.
 
