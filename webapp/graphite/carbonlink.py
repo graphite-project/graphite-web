@@ -210,4 +210,4 @@ class GlobalCarbonLinkPool(CarbonLinkPool):
 
 def CarbonLink():
   """Handy accessor for the global singleton."""
-  GlobalCarbonLinkPool.instance()
+  return GlobalCarbonLinkPool.instance()
