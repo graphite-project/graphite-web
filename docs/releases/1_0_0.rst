@@ -174,7 +174,7 @@ Carbon
 * Fix CacheManagementHandler() and associated tests
 
 Whisper
-^^^^^^
+^^^^^^^
 
 * remove xFilesFactor float comparison, use whisper-resize if whisper-resize.py is not available
 
@@ -322,7 +322,7 @@ Carbon
 * Fix CACHE_WRITE_STRATEGY and add TimeSortedStrategy
 
 Whisper
-^^^^^^
+^^^^^^^
 
 * Add fallocate and sparse support in whisper-create
 
@@ -338,8 +338,7 @@ Whisper
 
 * Faster evaluation for 'last' aggregation method
 
-* Add update-storage-times.py - a  tool to change storage schemas for whisper files
-and update the data. Threaded to vastly improve speed over whisper-auto-resize.py
+* Add update-storage-times.py - a  tool to change storage schemas for whisper files and update the data. Threaded to vastly improve speed over whisper-auto-resize.py
 
 * whisper: disable buffering for update operations
 
