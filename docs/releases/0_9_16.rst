@@ -1,0 +1,95 @@
+.. _0-9-16:
+
+0.9.16
+===========================
+*04/12/2017*
+
+Graphite 0.9.16 is now available for usage. Please note that this is a bugfix release for Graphite 0.9.x versions and not recommended for production use. Please use Graphite 1.0.0 for production if possible and use 0.9.16 only if you can't upgrade to 1.0.0 because of dependencies. Users upgrading from older releases are advised to review the 0.9.16 release notes first.
+
+Source bundles are available from GitHub:
+
+* https://github.com/graphite-project/graphite-web/archive/0.9.16.tar.gz
+* https://github.com/graphite-project/carbon/archive/0.9.16.tar.gz
+* https://github.com/graphite-project/whisper/archive/0.9.16.tar.gz
+
+Graphite can also be installed from `PyPI <http://pypi.python.org/>`_ via
+`pip <http://www.pip-installer.org/en/latest/index.html>`_. PyPI bundles are here:
+
+* http://pypi.python.org/pypi/graphite-web/0.9.16
+* http://pypi.python.org/pypi/carbon/0.9.16
+* http://pypi.python.org/pypi/whisper/0.9.16
+
+Upgrading
+---------
+Graphite 0.9.16 requires a Django version of at least 1.4. Ensure this dependency is satisfied before updating *graphite-web*.
+
+Graphite 0.9.16 was not tested against python 2.6.
+
+Graphite 0.9.16 require Twisted version 13.2.0 or newer.
+
+As always, comparing the example config files with existing ones is recommended to ensure awareness of any new features.
+
+If you're not already running 0.9.15, Graphite-web's application database will need to be upgraded for a new Django fixture. It's a good idea to backup the database before proceeding with the migration. The following will upgrade a SQLite database:
+
+.. code-block:: none
+
+  sudo cp /opt/graphite/storage/graphite.db \
+        /opt/graphite/storage/graphite.db.backup-`date +%Y%m%d_%H%M%S`
+  sudo PYTHONPATH=/opt/graphite/webapp django-admin.py syncdb \
+        --noinput --no-initial-data --settings=graphite.settings
+
+Security Notes
+--------------
+No known security issues.
+
+
+New Features
+------------
+
+Graphite-web
+^^^^^^^^^^^^
+* Stop testing python2.6 (obfuscurity)
+* Adding support for rendering PDF (squarebracket)
+* Backport of `sortbytotal` function (mattus, jbergler)
+* Gracefully handle offline cluster backends (nyerup)
+* Make the rrdtool CF configurable (DazWorrall)
+* Forward HTTP request headers to CLUSTER_HOSTS (benburry)
+* Support for fnv1a_ch hashing for 0.9.x (deniszh)
+
+Carbon
+^^^^^^
+* Stop testing python2.6 (obfuscurity)
+
+Whisper
+^^^^^^^
+* Stop testing python2.6 (obfuscurity)
+* Update whisper.py : backport __archive_fetch and good version of file_fetch (Starlight42)
+
+
+
+Bug fixes
+---------
+
+Graphite-web
+^^^^^^^^^^^^
+* Fixed automatic computing of yMin and yMax when drawNullAsZero=true (Crypto89)
+* replace _fetchWithBootstrap (arielnh56)
+* fill in missing bits from wikidot carbon page (obfuscurity)
+* add events page (obfuscurity)
+* Applying #1560 fix to python 2.6 as well (roeezab)
+* Don't suppress exceptions in remote_storage.FindRequest (drawks, obfuscurity)
+* Allow setColor to recognize unquoted integers as hex values (0.9.x) (liyichao, obfuscurity)
+* port timeShift fix 7fc03ae to 0.9.x (obfuscurity)
+* Fix datalib mergeResults function to properly handle time frames that are in the future compared to the cached results (iliapolo)
+* Fix brace expansion (Crypto89)
+* Optimizing brace expansion (iain-buclaw-sociomantic, deniszh)
+
+Carbon
+^^^^^^
+* fixing handler import for cache overflow (rubbish)
+* carbon: export state.instrumentation (iksaif)
+
+Whisper
+^^^^^^^
+* Fixing #163 - failing merge for multiply retentions archive (sw0x2A, deniszh)
+
