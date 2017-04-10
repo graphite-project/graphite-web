@@ -174,7 +174,7 @@ Carbon
 * Fix CacheManagementHandler() and associated tests
 
 Whisper
-^^^^^^
+^^^^^^^
 
 * remove xFilesFactor float comparison, use whisper-resize if whisper-resize.py is not available
 
