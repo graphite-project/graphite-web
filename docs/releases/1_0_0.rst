@@ -322,7 +322,7 @@ Carbon
 * Fix CACHE_WRITE_STRATEGY and add TimeSortedStrategy
 
 Whisper
-^^^^^^
+^^^^^^^
 
 * Add fallocate and sparse support in whisper-create
 
