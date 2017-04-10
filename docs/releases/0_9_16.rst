@@ -2,7 +2,7 @@
 
 0.9.16
 ===========================
-* no release date yet *
+*04/12/2017*
 
 Graphite 0.9.16 is now available for usage. Please note that this is a bugfix release for Graphite 0.9.x versions and not recommended for production use. Please use Graphite 1.0.0 for production if possible and use 0.9.16 only if you can't upgrade to 1.0.0 because of dependencies. Users upgrading from older releases are advised to review the 0.9.16 release notes first.
 

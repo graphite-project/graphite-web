@@ -1,8 +1,8 @@
 .. _1-0-0:
 
-1.0.0 -- UNDER DEVELOPMENT
+1.0.0
 ===========================
-*TBD*
+*04/12/2017*
 
 Graphite 1.0.0 is now available for usage. This marks the first release of Graphite's main line in many years. Also, there's a new *optional* component available: Carbonate, a suite of tools for managing and rebalancing Whisper files.
 
