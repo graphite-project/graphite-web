@@ -20,6 +20,7 @@ Here are some organizations that use Graphite:
 * `Maaii <http://www.maaii.com>`_
 * `Mackerel <https://mackerel.io>`_
 * `Media Temple <http://mediatemple.net/>`_
+* `Oracle <http://www.oracle.com/>`_
 * `Orbitz <http://www.orbitz.com/>`_
 * `Outbrain <http://outbrain.com/>`_ (see https://github.com/outbrain/gruffalo)
 * `Pandora <http://www.pandora.com/>`_
