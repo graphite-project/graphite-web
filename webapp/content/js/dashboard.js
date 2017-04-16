@@ -913,9 +913,9 @@ function graphAreaToggle(target, options) {
   */
   var graphTargetString;
   if (target.substr(0,7) == "target=") {
-    graphTargetString = target;
+    graphTargetString = "target=" + encodeURIComponent(target.substr(7, target.length-7));
   } else {
-    graphTargetString = "target=" + target;
+    graphTargetString = "target=" + encodeURIComponent(target);
   }
   var graphTargetList = Ext.urlDecode(graphTargetString)['target'];
   if (typeof graphTargetList == 'string') {
@@ -970,7 +970,7 @@ function importGraphUrl(targetUrl, options) {
   if (graphTargetList.length == 0) {
     return;
   }
- 
+
   var graphTargetString = Ext.urlEncode({target: graphTargetList});
   var existingIndex = graphStore.findExact('target', graphTargetString);
 
