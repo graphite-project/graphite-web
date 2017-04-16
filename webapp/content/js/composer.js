@@ -109,6 +109,7 @@ GraphiteComposer.prototype = {
       this.url.setParam('_salt', unixTime.toString() );
       img.src = this.url.getURL();
     }
+    this.window.updateLinkDisplay(this.url.queryString);
   },
 
   parseDate: function(dateString) { // Format is HH:MM_YYYYMMDD
