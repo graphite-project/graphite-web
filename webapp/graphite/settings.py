@@ -169,6 +169,13 @@ if not STATIC_ROOT:
 
 if not CONF_DIR:
   CONF_DIR = os.environ.get('GRAPHITE_CONF_DIR', join(GRAPHITE_ROOT, 'conf'))
+try:
+  import imp
+  local_settings = imp.load_source('graphite.local_settings', join(CONF_DIR, 'local_settings.py'))
+  globals().update(vars(local_settings))
+except Exception:
+  print >> sys.stderr, "Could not import local_settings from graphite conf dir"
+
 if not DASHBOARD_CONF:
   DASHBOARD_CONF = join(CONF_DIR, 'dashboard.conf')
 if not GRAPHTEMPLATES_CONF:
