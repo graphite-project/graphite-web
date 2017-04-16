@@ -10,6 +10,8 @@ class ContentTypeMixin(object):
     def __init__(self, *args, **kwargs):
         if VERSION < (1, 5) and 'content_type' in kwargs:
             kwargs['mimetype'] = kwargs.pop('content_type')
+        elif VERSION > (1, 7) and 'mimetype' in kwargs:
+            kwargs['content_type'] = kwargs.pop('mimetype')
         super(ContentTypeMixin, self).__init__(*args, **kwargs)
 
 
