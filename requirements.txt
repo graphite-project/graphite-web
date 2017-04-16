@@ -34,6 +34,7 @@ python-memcached==1.47
 txAMQP==0.4
 simplejson==2.1.6
 django-tagging==0.3.1
+pysqlite
 gunicorn
 pytz
 sphinx
