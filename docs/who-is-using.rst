@@ -30,5 +30,5 @@ Here are some organizations that use Graphite:
 * `Uber <http://uber.com/>`_
 * `Vimeo <http://www.vimeo.com>`_
 * `Wikimedia Foundation <http://gdash.wikimedia.org/>`_
-
+* `Automattic <http://automattic.com/>`_
 And many more
