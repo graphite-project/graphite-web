@@ -125,6 +125,10 @@ def is_local_interface(host):
   if ':' in host:
     host = host.split(':',1)[0]
 
+  # If "localhost" or a loopback IP has been specified it is a deliberate reference
+  if host == 'localhost' or host.startswith('127.'):
+    return False
+
   try:
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.connect( (host, 4242) )
