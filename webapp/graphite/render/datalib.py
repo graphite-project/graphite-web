@@ -185,6 +185,24 @@ class CarbonLinkPool:
     log.cache("CarbonLink cache-query-bulk request returned %d datapoints" % datapointsCounter)
     return cacheResultsByMetric
 
+  def persist_cache(self):
+    request = dict(type='persist-cache')
+    results = self.send_request_to_hosts(request)
+    log.info("CarbonLink persist-cache request received for : %s" % (results))
+    return results
+
+  def flush_cache(self, metric):
+    request = dict(type='flush-cache', metric=metric)
+    results = self.send_request_to_hosts(request)
+    log.info("CarbonLink flush-cache request received for %s : %s" % (metric, results))
+    return results
+
+  def stop_flush_cache(self):
+    request = dict(type='stop-flush-cache')
+    results = self.send_request_to_hosts(request)
+    log.info("CarbonLink stop-flush-cache request received : %s" % (results))
+    return results
+
   def get_metadata(self, metric, key):
     request = dict(type='get-metadata', metric=metric, key=key)
     results = self.send_request(request)
@@ -195,6 +213,12 @@ class CarbonLinkPool:
     request = dict(type='set-metadata', metric=metric, key=key, value=value)
     results = self.send_request(request)
     log.cache("CarbonLink set-metadata request received for %s:%s" % (metric, key))
+    return results
+
+  def set_param(self, key, value):
+    request = dict(type='set-param', key=key, value=value)
+    results = self.send_request_to_hosts(request)
+    log.info("CarbonLink set-param request received for %s=%s : %s" % (key, value, results))
     return results
 
   def send_request(self, request):
@@ -217,6 +241,27 @@ class CarbonLinkPool:
         raise CarbonLinkRequestError(result['error'])
       else:
         return result
+
+  def send_request_to_hosts(self, request):
+    serialized_request = pickle.dumps(request, protocol=-1)
+    len_prefix = struct.pack("!L", len(serialized_request))
+    request_packet = len_prefix + serialized_request
+
+    results = {}
+    for host in self.hosts:
+       conn = self.get_connection(host)
+       try:
+         conn.sendall(request_packet)
+         result = self.recv_response(conn)
+       except:
+         self.last_failure[host] = time.time()
+         log.exception()
+       else:
+         self.connections[host].add(conn)
+         if 'error' in result:
+           log.cache("CarbonLink error %s" % result['error'])
+         results[str(host)] = result
+    return results
 
   def recv_response(self, conn):
     len_prefix = recv_exactly(conn, 4)

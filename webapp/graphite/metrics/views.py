@@ -239,6 +239,56 @@ def expand_view(request):
   return response
 
 
+def set_param(request):
+  results = {}
+  if request.method == 'POST':
+    try:
+      datas = json.loads( request.body )
+      if "key" in datas and "value" in datas:
+        results = CarbonLink.set_param(datas["key"], datas["value"])
+      else:
+        results = dict(error="Invalid request datas")
+    except:
+      log.exception()
+      results = dict(error="Unexpected error occurred in CarbonLink.set_param()")
+  else:
+    results = dict(error="Invalid request method")
+
+  return json_response_for(request, results)
+
+def persist_cache(request):
+  results = {}
+  if request.method == 'POST':
+    try:
+      results = CarbonLink.persist_cache()
+    except:
+      log.exception()
+      results = dict(error="Unexpected error occurred in CarbonLink.persist_cache()")
+  else:
+    results = dict(error="Invalid request method")
+
+  return json_response_for(request, results)
+
+def flush_cache(request):
+  metric = request.REQUEST['metric']
+  results = {}
+  if request.method == 'POST':
+    try:
+      results[metric] = CarbonLink.flush_cache(metric)
+    except:
+      log.exception()
+      results[metric] = dict(error="Unexpected error occurred in CarbonLink.flush_cache(%s)" % (metric))
+  elif request.method == 'DELETE':
+    try:
+      results[metric] = CarbonLink.stop_flush_cache()
+    except:
+      log.exception()
+      results[metric] = dict(error="Unexpected error occurred in CarbonLink.stop_flush_cache()")
+  else:
+    results = dict(error="Invalid request method")
+
+  return json_response_for(request, results)
+
 def get_metadata_view(request):
   key = request.REQUEST['key']
   metrics = request.REQUEST.getlist('metric')
