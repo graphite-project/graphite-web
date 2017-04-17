@@ -299,31 +299,38 @@ def parseOptions(request):
         continue
       graphOptions[opt] = val
 
-  tzinfo = get_current_timezone()
+  # Base Timezone is identical to the Django timezone.
+  # We'll render properly updated graphs with the request Timezone,
+  # if different, in glyph.py, but we need our starting timezone to
+  # convert first.
+  basetz = get_current_timezone()
+  
+  tzinfo = basetz
   if 'tz' in queryParams:
     try:
       tzinfo = pytz.timezone(queryParams['tz'])
     except pytz.UnknownTimeZoneError:
       pass
+
   requestOptions['tzinfo'] = tzinfo
+  requestOptions['basetz'] = basetz
 
   # Get the time interval for time-oriented graph types
   if graphType == 'line' or graphType == 'pie':
     if 'now' in queryParams:
         now = parseATTime(queryParams['now'])
     else:
-        now = datetime.now(tzinfo)
+        now = datetime.now(basetz)
 
     if 'until' in queryParams:
-      untilTime = parseATTime(queryParams['until'], tzinfo, now)
+      untilTime = parseATTime(queryParams['until'], basetz, now)
     else:
       untilTime = now
+
     if 'from' in queryParams:
-      fromTime = parseATTime(queryParams['from'], tzinfo, now)
+      fromTime = parseATTime(queryParams['from'], basetz, now)
     else:
-      fromTime = parseATTime('-1d', tzinfo, now)
-
-
+      fromTime = parseATTime('-1d', basetz, now)
 
     startTime = min(fromTime, untilTime)
     endTime = max(fromTime, untilTime)
