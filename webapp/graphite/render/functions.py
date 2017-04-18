@@ -2388,6 +2388,43 @@ def group(requestContext, *seriesLists):
   return seriesGroup
 
 
+def groupByMultiNode(requestContext, seriesList, callback, *nodeNums):
+  """
+  Takes a serieslist and maps a callback to subgroups within as defined by common nodes.
+  It's like groupByNode, but supports selecting multiple nodes to group by.
+
+  .. code-block:: none
+
+    &target=collectd.*.grafana.*.tcpconns.{8081,4433}-local.tcp_connections.LISTEN,sum,1,3)
+
+    Would return multiple series which are each the result of applying the "sumSeries" function
+    to groups joined on the first and third node (0 indexed) resulting in a list of targets like
+    sumSeries(collectd.prod.grafana.hostA.tcpconns.{8081,4433}-local.tcp_connections.LISTEN),sumSeries(collectd.prod.grafana.hostB.tcpconns.{8081,4433}-local.tcp_connections.LISTEN),...
+
+  """
+  if type(callback) is not str:
+    raise Exception("provided callback is not a string")
+  if callback not in SeriesFunctions:
+    raise Exception("unknown callback function")
+  if type(nodeNums) is int:
+    nodeNums=[nodeNums]
+  metaSeries = {}
+  keys = []
+  for series in seriesList:
+    nodes = series.name.split(".")
+    key = ".".join(nodes[nodeNum] for nodeNum in nodeNums)
+    if key not in metaSeries.keys():
+      metaSeries[key] = [series]
+      keys.append(key)
+    else:
+      metaSeries[key].append(series)
+  for key in metaSeries.keys():
+    metaSeries[key] = SeriesFunctions[callback](requestContext,
+        metaSeries[key])[0]
+    metaSeries[key].name = key
+  return [ metaSeries[key] for key in keys ]
+
+
 def groupByNode(requestContext, seriesList, nodeNum, callback):
   """
   Takes a serieslist and maps a callback to subgroups within as defined by a common node
@@ -2940,6 +2977,7 @@ SeriesFunctions = {
   'dashed' : dashed,
   'substr' : substr,
   'group' : group,
+  'groupByMultiNode' : groupByMultiNode,
   'groupByNode' : groupByNode,
   'constantLine' : constantLine,
   'stacked' : stacked,
