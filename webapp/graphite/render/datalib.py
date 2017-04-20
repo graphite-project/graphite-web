@@ -142,7 +142,7 @@ def _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList):
           continue
 
         for result in fetch:
-          if result['path'] == pathExpr:
+          if result['pathExpression'] == pathExpr:
             yield (
               result['path'],
               (
