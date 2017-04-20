@@ -28,10 +28,9 @@ def prefetchRemoteData(remote_stores, requestContext, pathExpressions):
 
   # Go through all of the remote nodes, and launch a fetch for each one.
   # Each fetch will take place in its own thread, since it's naturally parallel work.
-  for pathExpr in pathExpressions:
-    for store in remote_stores:
-      reader = RemoteReader(store, {'path': pathExpr, 'intervals': []}, bulk_query=pathExpr)
-      reader.fetch_list(startTime, endTime, now, requestContext)
+  for store in remote_stores:
+    reader = RemoteReader(store, {'intervals': []}, bulk_query=pathExpressions)
+    reader.fetch_list(startTime, endTime, now, requestContext)
 
 
 class RemoteStore(object):
@@ -133,7 +132,7 @@ class FindRequest(object):
       }
 
       if is_leaf:
-        reader = RemoteReader(self.store, node_info, bulk_query=self.query.pattern)
+        reader = RemoteReader(self.store, node_info, bulk_query=[self.query.pattern])
         node = LeafNode(path, reader)
       else:
         node = BranchNode(path)
@@ -143,14 +142,14 @@ class FindRequest(object):
 
 
 class RemoteReader(object):
-  __slots__ = ('store', 'metric_path', 'intervals', 'query', 'connection')
+  __slots__ = ('store', 'metric_path', 'intervals', 'bulk_query', 'connection')
   inflight_lock = Lock()
 
   def __init__(self, store, node_info, bulk_query=None):
     self.store = store
     self.metric_path = node_info.get('path') or node_info.get('metric_path')
     self.intervals = node_info['intervals']
-    self.query = bulk_query or self.metric_path
+    self.bulk_query = bulk_query or [self.metric_path]
     self.connection = None
 
   def __repr__(self):
@@ -195,13 +194,16 @@ class RemoteReader(object):
     t = time.time()
 
     query_params = [
-      ('target', self.query),
       ('format', 'pickle'),
       ('local', '1'),
       ('noCache', '1'),
       ('from', str( int(startTime) )),
       ('until', str( int(endTime) ))
     ]
+
+    for target in self.bulk_query:
+      query_params.append(('target', target))
+
     if now is not None:
       query_params.append(('now', str( int(now) )))
 
