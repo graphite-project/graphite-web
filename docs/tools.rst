@@ -111,6 +111,10 @@ Forwarding
 `Gruffalo`_
   An asynchronous Netty based graphite proxy, for large scale installations. It protects Graphite from the herds of clients by minimizing context switches and interrupts; by batching and aggregating metrics. Gruffalo also allows you to replicate metrics between Graphite installations for DR scenarios, for example.
 
+
+`Icinga 2 - graphite feature`_
+  Icinga 2 will directly write metrics to the defined Graphite Carbon daemon tcp socket if the graphite feature is enabled.
+
 `Ledbetter`_
   A simple script for gathering Nagios problem statistics and submitting them to Graphite. It focuses on summary (overall, servicegroup and hostgroup) statistics and writes them to the nagios.problems metrics namespace within Graphite.
 
