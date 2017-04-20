@@ -93,7 +93,6 @@ def index_json(request):
 
 def find_view(request):
   "View for finding metrics matching a given pattern"
-  profile = getProfile(request)
 
   queryParams = request.GET.copy()
   queryParams.update(request.POST)
@@ -148,6 +147,7 @@ def find_view(request):
   log.info("received remote find request: pattern=%s from=%s until=%s local_only=%s format=%s matches=%d" % (query, fromTime, untilTime, local_only, format, len(matches)))
 
   if format == 'treejson':
+    profile = getProfile(request)
     content = tree_json(matches, base_path, wildcards=profile.advancedUI or wildcards)
     response = json_response_for(request, content, jsonp=jsonp)
 

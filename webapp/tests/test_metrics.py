@@ -148,237 +148,239 @@ class MetricsTester(TestCase):
         [data] = json.loads(content)
         self.assertEqual(data['text'], 'hosts')
 
-        #
-        # format=pickle
-        #
-        request=copy.deepcopy(request_default)
-        request['format']='pickle'
-        request['query']='*'
-        content = test_find_view_basics(request)
-        data = unpickle.loads(content)
-        self.assertEqual(len(data), 1)
-        self.assertEqual(data[0]['path'], 'hosts')
-        self.assertEqual(data[0]['is_leaf'], False)
+        # Other formats than treejson shouldn't require DB calls
+        with self.assertNumQueries(0):
+            #
+            # format=pickle
+            #
+            request=copy.deepcopy(request_default)
+            request['format']='pickle'
+            request['query']='*'
+            content = test_find_view_basics(request)
+            data = unpickle.loads(content)
+            self.assertEqual(len(data), 1)
+            self.assertEqual(data[0]['path'], 'hosts')
+            self.assertEqual(data[0]['is_leaf'], False)
 
-        request['query']='hosts.*.cpu'
-        content = test_find_view_basics(request)
-        data = unpickle.loads(content)
-        self.assertEqual(len(data), 2)
+            request['query']='hosts.*.cpu'
+            content = test_find_view_basics(request)
+            data = unpickle.loads(content)
+            self.assertEqual(len(data), 2)
 
-        data = sorted(data, key=lambda item: item['path'])
+            data = sorted(data, key=lambda item: item['path'])
 
-        self.assertEqual(data[0]['path'], 'hosts.worker1.cpu')
-        self.assertEqual(data[0]['is_leaf'], True)
-        self.assertEqual(len(data[0]['intervals']), 1)
-        #self.assertEqual(int(data[0]['intervals'][0].start), ts_minus_sixty_seconds)
-        self.assertEqual(int(data[0]['intervals'][0].end), ts)
+            self.assertEqual(data[0]['path'], 'hosts.worker1.cpu')
+            self.assertEqual(data[0]['is_leaf'], True)
+            self.assertEqual(len(data[0]['intervals']), 1)
+            #self.assertEqual(int(data[0]['intervals'][0].start), ts_minus_sixty_seconds)
+            self.assertEqual(int(data[0]['intervals'][0].end), ts)
 
-        self.assertEqual(data[1]['path'], 'hosts.worker2.cpu')
-        self.assertEqual(data[1]['is_leaf'], True)
-        self.assertEqual(len(data[1]['intervals']), 1)
-        #self.assertEqual(int(data[1]['intervals'][0].start), ts_minus_sixty_seconds)
-        self.assertEqual(int(data[1]['intervals'][0].end), ts)
+            self.assertEqual(data[1]['path'], 'hosts.worker2.cpu')
+            self.assertEqual(data[1]['is_leaf'], True)
+            self.assertEqual(len(data[1]['intervals']), 1)
+            #self.assertEqual(int(data[1]['intervals'][0].start), ts_minus_sixty_seconds)
+            self.assertEqual(int(data[1]['intervals'][0].end), ts)
 
-        #
-        # format=completer
-        #
-        request=copy.deepcopy(request_default)
-        request['format']='completer'
-        request['query']='*'
-        content = test_find_view_basics(request)
-        data = json.loads(content)
-        data['metrics'] = sorted(data['metrics'])
-        self.assertEqual(data, {u'metrics': [{u'name': u'hosts', u'is_leaf': u'0', u'path': u'hosts.'}]})
+            #
+            # format=completer
+            #
+            request=copy.deepcopy(request_default)
+            request['format']='completer'
+            request['query']='*'
+            content = test_find_view_basics(request)
+            data = json.loads(content)
+            data['metrics'] = sorted(data['metrics'])
+            self.assertEqual(data, {u'metrics': [{u'name': u'hosts', u'is_leaf': u'0', u'path': u'hosts.'}]})
 
-        request['query']='hosts'
-        content = test_find_view_basics(request)
-        data = json.loads(content)
-        data['metrics'] = sorted(data['metrics'])
-        self.assertEqual(data, {u'metrics': [{u'name': u'hosts', u'is_leaf': u'0', u'path': u'hosts.'}]})
+            request['query']='hosts'
+            content = test_find_view_basics(request)
+            data = json.loads(content)
+            data['metrics'] = sorted(data['metrics'])
+            self.assertEqual(data, {u'metrics': [{u'name': u'hosts', u'is_leaf': u'0', u'path': u'hosts.'}]})
 
-        request['query']='hosts.*.*'
-        content = test_find_view_basics(request)
-        data = json.loads(content)
-        data['metrics'] = sorted(data['metrics'])
-        self.assertEqual(data, {u'metrics': [{u'path': u'hosts.worker1.cpu', u'is_leaf': u'1', u'name': u'cpu'}, {u'path': u'hosts.worker2.cpu', u'is_leaf': u'1', u'name': u'cpu'}]})
+            request['query']='hosts.*.*'
+            content = test_find_view_basics(request)
+            data = json.loads(content)
+            data['metrics'] = sorted(data['metrics'])
+            self.assertEqual(data, {u'metrics': [{u'path': u'hosts.worker1.cpu', u'is_leaf': u'1', u'name': u'cpu'}, {u'path': u'hosts.worker2.cpu', u'is_leaf': u'1', u'name': u'cpu'}]})
 
-        request['query']='hosts.'
-        content = test_find_view_basics(request)
-        data = json.loads(content)
-        data['metrics'] = sorted(data['metrics'])
-        self.assertEqual(data, {u'metrics': [{u'is_leaf': u'0', u'name': u'worker1', u'path': u'hosts.worker1.'}, {u'is_leaf': u'0', u'name': u'worker2', u'path': u'hosts.worker2.'}]})
+            request['query']='hosts.'
+            content = test_find_view_basics(request)
+            data = json.loads(content)
+            data['metrics'] = sorted(data['metrics'])
+            self.assertEqual(data, {u'metrics': [{u'is_leaf': u'0', u'name': u'worker1', u'path': u'hosts.worker1.'}, {u'is_leaf': u'0', u'name': u'worker2', u'path': u'hosts.worker2.'}]})
 
-        # No match
-        request['query']='other'
-        content = test_find_view_basics(request)
-        data = json.loads(content)
-        self.assertEqual(data['metrics'], [])
+            # No match
+            request['query']='other'
+            content = test_find_view_basics(request)
+            data = json.loads(content)
+            self.assertEqual(data['metrics'], [])
 
-        # No match
-        request['query']='other'
-        content = test_find_view_basics(request)
-        data = json.loads(content)
-        self.assertEqual(data['metrics'], [])
+            # No match
+            request['query']='other'
+            content = test_find_view_basics(request)
+            data = json.loads(content)
+            self.assertEqual(data['metrics'], [])
 
-        # Test wildcards param
-        request['wildcards']=1
-        request['query']='hosts.*.'
-        content = test_find_view_basics(request)
-        data = json.loads(content)
-        data['metrics'] = sorted(data['metrics'])
-        self.assertEqual(data, {u'metrics': [{u'name': u'*'}, {u'is_leaf': u'1', u'path': u'hosts.worker1.cpu', u'name': u'cpu'}, {u'is_leaf': u'1', u'path': u'hosts.worker2.cpu', u'name': u'cpu'}]})
+            # Test wildcards param
+            request['wildcards']=1
+            request['query']='hosts.*.'
+            content = test_find_view_basics(request)
+            data = json.loads(content)
+            data['metrics'] = sorted(data['metrics'])
+            self.assertEqual(data, {u'metrics': [{u'name': u'*'}, {u'is_leaf': u'1', u'path': u'hosts.worker1.cpu', u'name': u'cpu'}, {u'is_leaf': u'1', u'path': u'hosts.worker2.cpu', u'name': u'cpu'}]})
 
-        # Test from/until params
-        request=copy.deepcopy(request_default)
-        request['format']='completer'
-        request['query']='hosts'
-        request['from']=int(time.time())-60
-        request['until']=int(time.time())
-        content = test_find_view_basics(request)
-        data = json.loads(content)
-        data['metrics'] = sorted(data['metrics'])
-        self.assertEqual(data, {u'metrics': [{u'name': u'hosts', u'is_leaf': u'0', u'path': u'hosts.'}]})
+            # Test from/until params
+            request=copy.deepcopy(request_default)
+            request['format']='completer'
+            request['query']='hosts'
+            request['from']=int(time.time())-60
+            request['until']=int(time.time())
+            content = test_find_view_basics(request)
+            data = json.loads(content)
+            data['metrics'] = sorted(data['metrics'])
+            self.assertEqual(data, {u'metrics': [{u'name': u'hosts', u'is_leaf': u'0', u'path': u'hosts.'}]})
 
-        # automatic_variants
-        request=copy.deepcopy(request_default)
-        request['format']='completer'
-        request['automatic_variants']=1
-        request['query']='hosts.'
-        content = test_find_view_basics(request)
-        data = json.loads(content)
-        data['metrics'] = sorted(data['metrics'])
-        self.assertEqual(data, {u'metrics': [{u'is_leaf': u'0', u'name': u'worker1', u'path': u'hosts.worker1.'}, {u'is_leaf': u'0', u'name': u'worker2', u'path': u'hosts.worker2.'}]})
+            # automatic_variants
+            request=copy.deepcopy(request_default)
+            request['format']='completer'
+            request['automatic_variants']=1
+            request['query']='hosts.'
+            content = test_find_view_basics(request)
+            data = json.loads(content)
+            data['metrics'] = sorted(data['metrics'])
+            self.assertEqual(data, {u'metrics': [{u'is_leaf': u'0', u'name': u'worker1', u'path': u'hosts.worker1.'}, {u'is_leaf': u'0', u'name': u'worker2', u'path': u'hosts.worker2.'}]})
 
-        request['automatic_variants']=1
-        request['query']='{hosts,blah}.'
-        content = test_find_view_basics(request)
-        data = json.loads(content)
-        data['metrics'] = sorted(data['metrics'])
-        self.assertEqual(data, {u'metrics': [{u'path': u'hosts.worker1.', u'is_leaf': u'0', u'name': u'worker1'}, {u'path': u'hosts.worker2.', u'is_leaf': u'0', u'name': u'worker2'}]})
+            request['automatic_variants']=1
+            request['query']='{hosts,blah}.'
+            content = test_find_view_basics(request)
+            data = json.loads(content)
+            data['metrics'] = sorted(data['metrics'])
+            self.assertEqual(data, {u'metrics': [{u'path': u'hosts.worker1.', u'is_leaf': u'0', u'name': u'worker1'}, {u'path': u'hosts.worker2.', u'is_leaf': u'0', u'name': u'worker2'}]})
 
-        request['automatic_variants']=1
-        request['query']='hosts,blah.'
-        content = test_find_view_basics(request)
-        data = json.loads(content)
-        data['metrics'] = sorted(data['metrics'])
-        self.assertEqual(data, {u'metrics': [{u'name': u'worker1', u'path': u'hosts.worker1.', u'is_leaf': u'0'}, {u'name': u'worker2', u'path': u'hosts.worker2.', u'is_leaf': u'0'}]})
+            request['automatic_variants']=1
+            request['query']='hosts,blah.'
+            content = test_find_view_basics(request)
+            data = json.loads(content)
+            data['metrics'] = sorted(data['metrics'])
+            self.assertEqual(data, {u'metrics': [{u'name': u'worker1', u'path': u'hosts.worker1.', u'is_leaf': u'0'}, {u'name': u'worker2', u'path': u'hosts.worker2.', u'is_leaf': u'0'}]})
 
-        # format=completer+jsonp
-        request=copy.deepcopy(request_default)
-        request['format']='completer'
-        request['jsonp']='asdf'
-        request['query']='*'
-        content = test_find_view_basics(request)
-        data = json.loads(content.split("(")[1].strip(")"))
-        self.assertEqual(data, {u'metrics': [{u'name': u'hosts', u'path': u'hosts.', u'is_leaf': u'0'}]})
+            # format=completer+jsonp
+            request=copy.deepcopy(request_default)
+            request['format']='completer'
+            request['jsonp']='asdf'
+            request['query']='*'
+            content = test_find_view_basics(request)
+            data = json.loads(content.split("(")[1].strip(")"))
+            self.assertEqual(data, {u'metrics': [{u'name': u'hosts', u'path': u'hosts.', u'is_leaf': u'0'}]})
 
-        # No match
-        request['query']='other'
-        content = test_find_view_basics(request)
-        data = json.loads(content.split("(")[1].strip(")"))
-        self.assertEqual(data['metrics'], [])
+            # No match
+            request['query']='other'
+            content = test_find_view_basics(request)
+            data = json.loads(content.split("(")[1].strip(")"))
+            self.assertEqual(data['metrics'], [])
 
-        #
-        # format=nodelist
-        #
-        request=copy.deepcopy(request_default)
-        request['format']='nodelist'
-        request['query']='*'
-        content = test_find_view_basics(request)
-        data = json.loads(content)
-        self.assertEqual(data, {u'nodes': [u'hosts']})
+            #
+            # format=nodelist
+            #
+            request=copy.deepcopy(request_default)
+            request['format']='nodelist'
+            request['query']='*'
+            content = test_find_view_basics(request)
+            data = json.loads(content)
+            self.assertEqual(data, {u'nodes': [u'hosts']})
 
-        request=copy.deepcopy(request_default)
-        request['format']='nodelist'
-        request['query']='*.*'
-        content = test_find_view_basics(request)
-        data = json.loads(content)
-        self.assertEqual(data, {u'nodes': [u'worker1', u'worker2']})
+            request=copy.deepcopy(request_default)
+            request['format']='nodelist'
+            request['query']='*.*'
+            content = test_find_view_basics(request)
+            data = json.loads(content)
+            self.assertEqual(data, {u'nodes': [u'worker1', u'worker2']})
 
-        request=copy.deepcopy(request_default)
-        request['format']='nodelist'
-        request['query']='*.*.*'
-        content = test_find_view_basics(request)
-        data = json.loads(content)
-        self.assertEqual(data, {u'nodes': [u'cpu']})
+            request=copy.deepcopy(request_default)
+            request['format']='nodelist'
+            request['query']='*.*.*'
+            content = test_find_view_basics(request)
+            data = json.loads(content)
+            self.assertEqual(data, {u'nodes': [u'cpu']})
 
-        # override node position
-        request=copy.deepcopy(request_default)
-        request['format']='nodelist'
-        request['query']='*.*.*'
-        request['position']='0'
-        content = test_find_view_basics(request)
-        data = json.loads(content)
-        self.assertEqual(data, {u'nodes': [u'hosts']})
+            # override node position
+            request=copy.deepcopy(request_default)
+            request['format']='nodelist'
+            request['query']='*.*.*'
+            request['position']='0'
+            content = test_find_view_basics(request)
+            data = json.loads(content)
+            self.assertEqual(data, {u'nodes': [u'hosts']})
 
-        # format=json
-        request=copy.deepcopy(request_default)
-        request['format']='json'
+            # format=json
+            request=copy.deepcopy(request_default)
+            request['format']='json'
 
-        # branch
-        request['query']='*'
-        content = test_find_view_basics(request)
-        data = json.loads(content)
-        self.assertEqual(data, [{u'path': u'hosts', u'is_leaf': False}])
+            # branch
+            request['query']='*'
+            content = test_find_view_basics(request)
+            data = json.loads(content)
+            self.assertEqual(data, [{u'path': u'hosts', u'is_leaf': False}])
 
-        # leaf
-        request['query']='hosts.*.cpu'
-        content = test_find_view_basics(request)
-        data = json.loads(content)
-        self.assertEqual(len(data), 2)
+            # leaf
+            request['query']='hosts.*.cpu'
+            content = test_find_view_basics(request)
+            data = json.loads(content)
+            self.assertEqual(len(data), 2)
 
-        self.assertEqual(data[0]['path'], 'hosts.worker1.cpu')
-        self.assertEqual(data[0]['is_leaf'], True)
-        self.assertEqual(len(data[0]['intervals']), 1)
-        #self.assertEqual(int(data[0]['intervals'][0]['start']), ts_minus_sixty_seconds)
-        self.assertEqual(int(data[0]['intervals'][0]['end']), ts)
+            self.assertEqual(data[0]['path'], 'hosts.worker1.cpu')
+            self.assertEqual(data[0]['is_leaf'], True)
+            self.assertEqual(len(data[0]['intervals']), 1)
+            #self.assertEqual(int(data[0]['intervals'][0]['start']), ts_minus_sixty_seconds)
+            self.assertEqual(int(data[0]['intervals'][0]['end']), ts)
 
-        self.assertEqual(data[1]['path'], 'hosts.worker2.cpu')
-        self.assertEqual(data[1]['is_leaf'], True)
-        self.assertEqual(len(data[1]['intervals']), 1)
-        #self.assertEqual(int(data[1]['intervals'][0]['start']), ts_minus_sixty_seconds)
-        self.assertEqual(int(data[1]['intervals'][0]['end']), ts)
+            self.assertEqual(data[1]['path'], 'hosts.worker2.cpu')
+            self.assertEqual(data[1]['is_leaf'], True)
+            self.assertEqual(len(data[1]['intervals']), 1)
+            #self.assertEqual(int(data[1]['intervals'][0]['start']), ts_minus_sixty_seconds)
+            self.assertEqual(int(data[1]['intervals'][0]['end']), ts)
 
-        # No match
-        request['query']='other'
-        content = test_find_view_basics(request)
-        data = json.loads(content)
-        self.assertEqual(data, [])
+            # No match
+            request['query']='other'
+            content = test_find_view_basics(request)
+            data = json.loads(content)
+            self.assertEqual(data, [])
 
-        # format=json+jsonp
-        request=copy.deepcopy(request_default)
-        request['format']='json'
-        request['jsonp']='asdf'
+            # format=json+jsonp
+            request=copy.deepcopy(request_default)
+            request['format']='json'
+            request['jsonp']='asdf'
 
-        # branch
-        request['query']='*'
-        content = test_find_view_basics(request)
-        data = json.loads(content.split("(")[1].strip(")"))
-        self.assertEqual(data, [{u'path': u'hosts', u'is_leaf': False}])
+            # branch
+            request['query']='*'
+            content = test_find_view_basics(request)
+            data = json.loads(content.split("(")[1].strip(")"))
+            self.assertEqual(data, [{u'path': u'hosts', u'is_leaf': False}])
 
-        # leaf
-        request['query']='hosts.*.cpu'
-        content = test_find_view_basics(request)
-        data = json.loads(content.split("(")[1].strip(")"))
-        self.assertEqual(len(data), 2)
+            # leaf
+            request['query']='hosts.*.cpu'
+            content = test_find_view_basics(request)
+            data = json.loads(content.split("(")[1].strip(")"))
+            self.assertEqual(len(data), 2)
 
-        self.assertEqual(data[0]['path'], 'hosts.worker1.cpu')
-        self.assertEqual(data[0]['is_leaf'], True)
-        self.assertEqual(len(data[0]['intervals']), 1)
-        #self.assertEqual(int(data[0]['intervals'][0]['start']), ts_minus_sixty_seconds)
-        self.assertEqual(int(data[0]['intervals'][0]['end']), ts)
+            self.assertEqual(data[0]['path'], 'hosts.worker1.cpu')
+            self.assertEqual(data[0]['is_leaf'], True)
+            self.assertEqual(len(data[0]['intervals']), 1)
+            #self.assertEqual(int(data[0]['intervals'][0]['start']), ts_minus_sixty_seconds)
+            self.assertEqual(int(data[0]['intervals'][0]['end']), ts)
 
-        self.assertEqual(data[1]['path'], 'hosts.worker2.cpu')
-        self.assertEqual(data[1]['is_leaf'], True)
-        self.assertEqual(len(data[1]['intervals']), 1)
-        #self.assertEqual(int(data[1]['intervals'][0]['start']), ts_minus_sixty_seconds)
-        self.assertEqual(int(data[1]['intervals'][0]['end']), ts)
+            self.assertEqual(data[1]['path'], 'hosts.worker2.cpu')
+            self.assertEqual(data[1]['is_leaf'], True)
+            self.assertEqual(len(data[1]['intervals']), 1)
+            #self.assertEqual(int(data[1]['intervals'][0]['start']), ts_minus_sixty_seconds)
+            self.assertEqual(int(data[1]['intervals'][0]['end']), ts)
 
-        # No match
-        request['query']='other'
-        content = test_find_view_basics(request)
-        data = json.loads(content.split("(")[1].strip(")"))
-        self.assertEqual(data, [])
+            # No match
+            request['query']='other'
+            content = test_find_view_basics(request)
+            data = json.loads(content.split("(")[1].strip(")"))
+            self.assertEqual(data, [])
 
     def test_expand_view(self):
         self.create_whisper_hosts()
