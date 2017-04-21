@@ -322,7 +322,7 @@ def prefetchLookup(requestContext, node):
 
 def fetchRemoteData(requestContext, pathExpr, usePrefetchCache=settings.REMOTE_PREFETCH_DATA):
   (startTime, endTime, now) = _timebounds(requestContext)
-  remote_nodes = [ RemoteNode(store, pathExpr, True) for store in STORE.remote_stores ]
+  remote_nodes = [ RemoteNode(store, pathExpr, True) for store in STORE.remote_stores if store.available ]
 
   # Go through all of the remote_nodes, and launch a remote_fetch for each one.
   # Each fetch will take place in its own thread, since it's naturally parallel work.
