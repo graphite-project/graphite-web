@@ -108,6 +108,8 @@ def renderView(request):
     else:
       cachedData = None
 
+    new_old_target_map = {}
+
     if cachedData is not None:
       requestContext['data'] = data = cachedData
     else: # Have to actually retrieve the data now
@@ -124,6 +126,12 @@ def renderView(request):
         seriesList = evaluateTarget(requestContext, target)
         log.rendering("Retrieval of %s took %.6f" % (target, time() - t))
         data.extend(seriesList)
+
+        if type(seriesList) is list:
+          if seriesList:
+            new_old_target_map[seriesList[0].name] = target
+        else:
+            new_old_target_map[seriesList.name] = target
 
       if useCache:
         cache.add(dataKey, data, cacheTimeout)
@@ -167,7 +175,7 @@ def renderView(request):
           else:
             timestamps = range(int(series.start), int(series.end) + 1, int(series.step))
           datapoints = zip(series, timestamps)
-          series_data.append(dict(target=series.name, datapoints=datapoints))
+          series_data.append(dict(target=new_old_target_map[series.name], datapoints=datapoints))
       elif 'noNullPoints' in requestOptions and any(data):
         for series in data:
           values = []
@@ -176,12 +184,12 @@ def renderView(request):
               timestamp = series.start + (index * series.step)
               values.append((v,timestamp))
           if len(values) > 0:
-            series_data.append(dict(target=series.name, datapoints=values))
+            series_data.append(dict(target=new_old_target_map[series.name], datapoints=values))
       else:
         for series in data:
           timestamps = range(int(series.start), int(series.end) + 1, int(series.step))
           datapoints = zip(series, timestamps)
-          series_data.append(dict(target=series.name, datapoints=datapoints))
+          series_data.append(dict(target=new_old_target_map[series.name], datapoints=datapoints))
 
       output = json.dumps(series_data).replace('None,', 'null,').replace('NaN,', 'null,').replace('Infinity,', '1e9999,')
 
@@ -238,7 +246,7 @@ def renderView(request):
       for series in data:
         timestamps = range(series.start, series.end, series.step)
         datapoints = [{'x' : x, 'y' : y} for x, y in zip(timestamps, series)]
-        series_data.append( dict(target=series.name, datapoints=datapoints) )
+        series_data.append( dict(target=new_old_target_map[series.name], datapoints=datapoints) )
       if 'jsonp' in requestOptions:
         response = HttpResponse(
           content="%s(%s)" % (requestOptions['jsonp'], json.dumps(series_data)),
