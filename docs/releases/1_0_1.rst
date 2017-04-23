@@ -1,0 +1,58 @@
+.. _1-0-1:
+
+1.0.1
+===========================
+*04/23/2017*
+
+Graphite 1.0.1 is now available for usage. Please note that this is a bugfix release for stable Graphite 1.0.0 branch and it's recommended for production usage.
+
+Source bundles are available from GitHub:
+
+* https://github.com/graphite-project/graphite-web/archive/1.0.1.tar.gz
+* https://github.com/graphite-project/carbon/archive/1.0.1.tar.gz
+* https://github.com/graphite-project/whisper/archive/1.0.1.tar.gz
+* https://github.com/graphite-project/carbonate/archive/1.0.1.tar.gz
+
+Graphite can also be installed from `PyPI <http://pypi.python.org/>`_ via
+`pip <http://www.pip-installer.org/en/latest/index.html>`_. PyPI bundles are here:
+
+* http://pypi.python.org/pypi/graphite-web/
+* http://pypi.python.org/pypi/carbon/
+* http://pypi.python.org/pypi/whisper/
+* http://pypi.python.org/pypi/carbonate/
+
+Upgrading
+---------
+Graphite-web 1.0.1 is compatible with carbon 1.0.0 and whisper 1.0.0, so, you can upgrade only graphite-web package.
+
+Also, 2 of 3 patches in this release are connected with Graphite clustering, so, you can skip this update if not using it.
+
+Security Notes
+--------------
+
+None
+
+
+Bug Fixes
+---------
+
+Graphite-Web
+^^^^^^^^^^^^
+
+* Only fetch user profile when it's needed (@deejay1, PR#1906)
+
+* Use a single prefetch request for each cluster host (@DanCech, PR#1909)
+
+* Fixing duplicated results when using remote prefetch with multiple targets (@DanCech, PR#1908)
+
+
+Carbon
+^^^^^^
+
+No changes
+
+Whisper
+^^^^^^^
+
+No changes
+
