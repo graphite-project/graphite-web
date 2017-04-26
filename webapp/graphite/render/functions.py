@@ -3765,45 +3765,50 @@ def smartSummarize(requestContext, seriesList, intervalString, func='sum', align
   interval = delta.seconds + (delta.days * 86400)
   results = []
   for series in seriesList:
-    buckets = {} # { timestamp: [values] }
-
     timestamps = range( int(series.start), int(series.end), int(series.step) )
-    datapoints = zip(timestamps, series)
+    datapoints = list(series)
 
-    # Populate buckets
-    for timestamp_, value in datapoints:
-      targetBucketIndex = (timestamp_ - series.start) // interval
-
-      if targetBucketIndex not in buckets:
-        buckets[targetBucketIndex] = []
-
-      if value is not None:
-        buckets[targetBucketIndex].append(value)
+    i = 0
+    numPoints = len(timestamps)
 
     bucketIndex = 0
     newValues = []
-    for timestamp_ in range(series.start, series.end, interval):
-      bucketIndex = (timestamp_ - series.start) // interval
-      bucket = buckets.get(bucketIndex, [])
+    timestamp_ = series.start
+    while timestamp_ < series.end:
+      newValue = None
 
-      if bucket:
-        if func == 'avg':
-          newValues.append( float(sum(bucket)) / float(len(bucket)) )
-        elif func == 'last':
-          newValues.append( bucket[len(bucket)-1] )
-        elif func == 'max':
-          newValues.append( max(bucket) )
-        elif func == 'min':
-          newValues.append( min(bucket) )
-        else:
-          newValues.append( sum(bucket) )
-      else:
-        newValues.append( None )
+      while i < numPoints and timestamps[i] < timestamp_ + interval:
+        if timestamps[i] >= timestamp_ and datapoints[i] is not None:
+          if func == 'avg':
+            if newValue:
+              newValue[0] += datapoints[i]
+              newValue[1] += 1
+            else:
+              newValue = [datapoints[i], 1]
+          elif func == 'last':
+            newValue = datapoints[i]
+          elif func == 'max':
+            if newValue is None or datapoints[i] > newValue:
+              newValue = datapoints[i]
+          elif func == 'min':
+            if newValue is None or datapoints[i] < newValue:
+              newValue = datapoints[i]
+          else:
+            newValue = (newValue or 0) + datapoints[i]
+
+        i += 1
+
+      if func == 'avg' and newValue:
+        newValue = float(newValue[0]) / float(newValue[1])
+
+      newValues.append(newValue)
+
+      timestamp_ += interval
 
     series.tags['smartSummarize'] = intervalString
     series.tags['smartSummarizeFunction'] = func
     newName = "smartSummarize(%s, \"%s\", \"%s\")" % (series.name, intervalString, func)
-    alignedEnd = series.start + (bucketIndex * interval) + interval
+    alignedEnd = timestamp_
     newSeries = TimeSeries(newName, series.start, alignedEnd, interval, newValues, tags=series.tags)
     results.append(newSeries)
 
@@ -3845,22 +3850,8 @@ def summarize(requestContext, seriesList, intervalString, func='sum', alignToFro
   interval = delta.seconds + (delta.days * 86400)
 
   for series in seriesList:
-    buckets = {}
-
     timestamps = range( int(series.start), int(series.end), int(series.step) )
-    datapoints = zip(timestamps, series)
-
-    for timestamp_, value in datapoints:
-      if alignToFrom:
-        bucketInterval = int((timestamp_ - series.start) // interval)
-      else:
-        bucketInterval = timestamp_ - (timestamp_ % interval)
-
-      if bucketInterval not in buckets:
-        buckets[bucketInterval] = []
-
-      if value is not None:
-        buckets[bucketInterval].append(value)
+    datapoints = list(series)
 
     if alignToFrom:
       newStart = series.start
@@ -3869,32 +3860,44 @@ def summarize(requestContext, seriesList, intervalString, func='sum', alignToFro
       newStart = series.start - (series.start % interval)
       newEnd = series.end - (series.end % interval) + interval
 
+    i = 0
+    numPoints = len(timestamps)
+
     newValues = []
-    for timestamp_ in range(newStart, newEnd, interval):
-      if alignToFrom:
-        newEnd = timestamp_
-        bucketInterval = int((timestamp_ - series.start) // interval)
-      else:
-        bucketInterval = timestamp_ - (timestamp_ % interval)
+    timestamp_ = newStart
+    while timestamp_ < newEnd:
+      newValue = None
 
-      bucket = buckets.get(bucketInterval, [])
+      while i < numPoints and timestamps[i] < timestamp_ + interval:
+        if timestamps[i] >= timestamp_ and datapoints[i] is not None:
+          if func == 'avg':
+            if newValue:
+              newValue[0] += datapoints[i]
+              newValue[1] += 1
+            else:
+              newValue = [datapoints[i], 1]
+          elif func == 'last':
+            newValue = datapoints[i]
+          elif func == 'max':
+            if newValue is None or datapoints[i] > newValue:
+              newValue = datapoints[i]
+          elif func == 'min':
+            if newValue is None or datapoints[i] < newValue:
+              newValue = datapoints[i]
+          else:
+            newValue = (newValue or 0) + datapoints[i]
 
-      if bucket:
-        if func == 'avg':
-          newValues.append( float(sum(bucket)) / float(len(bucket)) )
-        elif func == 'last':
-          newValues.append( bucket[len(bucket)-1] )
-        elif func == 'max':
-          newValues.append( max(bucket) )
-        elif func == 'min':
-          newValues.append( min(bucket) )
-        else:
-          newValues.append( sum(bucket) )
-      else:
-        newValues.append( None )
+        i += 1
+
+      if func == 'avg' and newValue:
+        newValue = float(newValue[0]) / float(newValue[1])
+
+      newValues.append(newValue)
+
+      timestamp_ += interval
 
     if alignToFrom:
-      newEnd += interval
+      newEnd = timestamp_
 
     series.tags['summarize'] = intervalString
     series.tags['summarizeFunction'] = func
