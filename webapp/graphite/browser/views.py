@@ -61,9 +61,9 @@ def search(request):
 
   def matches(s):
     for regex in regexes:
-      if regex.search(s):
-        return True
-    return False
+      if not regex.search(s):
+        return False
+    return True
 
   results = []
 
