@@ -664,6 +664,32 @@ def divideSeries(requestContext, dividendSeriesList, divisorSeries):
 
   return results
 
+def divideEachSeries(requestContext, dividendSeriesList, divisorSeriesList):
+  if len(divisorSeriesList) != len(dividendSeriesList):
+    raise ValueError("divideEachSeries second argument must be the same length as first argument")
+
+  results = []
+
+  for dividendSeries, divisorSeries in zip(dividendSeriesList, divisorSeriesList):
+    name = "divideSeries(%s,%s)" % (dividendSeries.name, divisorSeries.name)
+    bothSeries = (dividendSeries, divisorSeries)
+    step = reduce(lcm,[s.step for s in bothSeries])
+
+    for s in bothSeries:
+      s.consolidate( step / s.step )
+
+    start = min([s.start for s in bothSeries])
+    end = max([s.end for s in bothSeries])
+    end -= (end - start) % step
+
+    values = ( safeDiv(v1,v2) for v1,v2 in izip(*bothSeries) )
+
+    quotientSeries = TimeSeries(name, start, end, step, values)
+    quotientSeries.pathExpression = name
+    results.append(quotientSeries)
+
+  return results
+
 def multiplySeries(requestContext, *seriesLists):
   """
   Takes two or more series and multiplies their points. A constant may not be
