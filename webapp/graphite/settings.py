@@ -90,6 +90,10 @@ LOG_ROTATION_COUNT = 1
 
 MAX_FETCH_RETRIES = 2
 
+# This settings limit metrics find to prevent from too large query
+METRICS_FIND_WARNING_THRESHOLD = float('Inf') # Print a warning if more than X metrics are returned
+METRICS_FIND_FAILURE_THRESHOLD = float('Inf') # Fail if more than X metrics are returned
+
 #Remote rendering settings
 REMOTE_RENDERING = False #if True, rendering is delegated to RENDERING_HOSTS
 RENDERING_HOSTS = []

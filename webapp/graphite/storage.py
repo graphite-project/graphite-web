@@ -38,17 +38,27 @@ class Store(object):
             host for host in hosts if not settings.REMOTE_EXCLUDE_LOCAL or not is_local_interface(host)]
         self.remote_stores = [RemoteStore(host) for host in remote_hosts]
 
-    def find(
-            self,
-            pattern,
-            startTime=None,
-            endTime=None,
-            local=False,
-            headers=None):
+    def find(self, pattern, startTime=None, endTime=None, local=False, headers=None):
         query = FindQuery(pattern, startTime, endTime, local)
 
+        warn_threshold = settings.METRICS_FIND_WARNING_THRESHOLD
+        fail_threshold = settings.METRICS_FIND_FAILURE_THRESHOLD
+
+        matched_leafs = 0
         for match in self.find_all(query, headers):
+            if type(match) == LeafNode:
+                matched_leafs += 1
+            if matched_leafs > fail_threshold:
+                raise Exception(
+                    ("Query %s yields too many results and failed "
+                     "(failure threshold is %d)") % (pattern, fail_threshold))
             yield match
+
+        if matched_leafs > warn_threshold:
+            log.warning(
+                ("Query %s yields large number of results up to %d "
+                 "(warning threshold is %d)") % (
+                     pattern, matched_leafs, warn_threshold))
 
     def find_all(self, query, headers=None):
         start = time.time()
@@ -213,7 +223,7 @@ class Store(object):
                 yield LeafNode(path, reader)
 
 
-class FindQuery:
+class FindQuery(object):
     def __init__(self, pattern, startTime, endTime, local=False):
         self.pattern = pattern
         self.startTime = startTime
