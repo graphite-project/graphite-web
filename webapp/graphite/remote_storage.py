@@ -321,5 +321,7 @@ class RemoteReader(object):
 def extractForwardHeaders(request):
     headers = {}
     for name in settings.REMOTE_STORE_FORWARD_HEADERS:
-        headers[name] = request.META.get('HTTP_%s' % name.upper().replace('-', '_'))
+        value = request.META.get('HTTP_%s' % name.upper().replace('-', '_'))
+        if value is not None:
+            headers[name] = value
     return headers
