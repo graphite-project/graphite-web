@@ -177,6 +177,56 @@ class CeresReader(object):
     return time_info, values
 
 
+class CacheReader(object):
+  """Reader for new metrics that are still in carbon-cache"""
+  supported = bool(whisper)
+  step = 10
+  cache_time = 7200
+  __slots__ = ('metric_name', )
+
+  def __init__(self, metric_name):
+      self.metric_name = metric_name
+
+  def get_intervals(self):
+      now = time.time()
+      return IntervalSet([Interval(now - self.cache_time, now)])
+
+  def fetch(self, startTime, endTime):
+    cached_datapoints = []
+    try:
+        cached_datapoints = CarbonLink.query(self.metric_name)
+    except:
+      log.exception("Failed CarbonLink query '%s'" % self.metric_name)
+      return None
+
+    if not cached_datapoints:
+        return None
+
+    if isinstance(cached_datapoints, dict):
+      cached_datapoints = cached_datapoints.items()
+
+    timestamps = [i[0] for i in cached_datapoints]
+    start = min(timestamps)
+    end = max(timestamps)
+
+    values = [None] * (int(end - start) / self.step + 1)
+
+    for (timestamp, value) in cached_datapoints:
+      if timestamp == start:
+          i = 0
+      else:
+          interval = timestamp - (timestamp % self.step)
+          i = int(interval - start) / self.step
+      try:
+        values[i] = value
+      except:
+        pass
+
+    time_info = (start,end,self.step)
+    data = time_info, values
+    return (time_info, values)
+
+
 class WhisperReader(object):
   __slots__ = ('fs_path', 'real_metric_path')
   supported = bool(whisper)
