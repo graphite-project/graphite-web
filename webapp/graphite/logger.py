@@ -81,6 +81,9 @@ class GraphiteLogger:
   def info(self,msg,*args,**kwargs):
     return self.infoLogger.info(msg,*args,**kwargs)
 
+  def warning(self,msg,*args,**kwargs):
+    return self.infoLogger.warn(msg,*args,**kwargs)
+
   def exception(self,msg="Exception Caught",**kwargs):
     return self.exceptionLogger.exception(msg,**kwargs)
 
