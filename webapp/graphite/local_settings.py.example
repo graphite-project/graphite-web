@@ -30,6 +30,8 @@
 #DOCUMENTATION_URL = "http://graphite.readthedocs.io/"
 
 # Logging
+# These can also be configured using Django's LOGGING:
+# https://docs.djangoproject.com/en/1.11/topics/logging/
 #LOG_ROTATION = True
 #LOG_ROTATION_COUNT = 1
 #LOG_RENDERING_PERFORMANCE = True
