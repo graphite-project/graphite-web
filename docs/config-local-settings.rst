@@ -322,6 +322,24 @@ CLUSTER_SERVERS
 
   The list of IP addresses and ports of remote Graphite webapps in a cluster. Each of these servers should have local access to metric data to serve. The first server to return a match for a query will be used to serve that data. Ex: ["10.0.2.2:80", "10.0.2.3:80"]
 
+USE_WORKER_POOL
+  `Default: True`
+  
+  Creates a pool of worker threads to which tasks can be dispatched. This makes sense if there are multiple CLUSTER_SERVERS because then the communication with them can be parallelized
+  The number of threads is equal to: POOL_WORKERS_PER_BACKEND * len(CLUSTER_SERVERS) + POOL_WORKERS
+  
+  Be careful when increasing the number of threads, in particular if your start multiple graphite-web processes (with uwsgi or similar) as this will increase memory consumption (and number of connections to memcached).
+  
+  POOL_WORKERS_PER_BACKEND
+  `Default: 1`
+  
+   The number of worker threads that should be created per backend server. It makes sense to have more than one thread per backend server if the graphite-web web server itself is multi threaded and can handle multiple incoming requests at once.
+
+  POOL_WORKERS
+  `Default: 1`
+  
+   A baseline number of workers that should always be created, no matter how many cluster servers are configured. These are used for other tasks that can be off-loaded from the request handling threads.
+
 REMOTE_FETCH_TIMEOUT
   `Default: 6`
 
