@@ -322,25 +322,65 @@ CLUSTER_SERVERS
 
   The list of IP addresses and ports of remote Graphite webapps in a cluster. Each of these servers should have local access to metric data to serve. The first server to return a match for a query will be used to serve that data. Ex: ["10.0.2.2:80", "10.0.2.3:80"]
 
-REMOTE_STORE_FETCH_TIMEOUT
+USE_WORKER_POOL
+  `Default: True`
+  
+  Creates a pool of worker threads to which tasks can be dispatched. This makes sense if there are multiple CLUSTER_SERVERS because then the communication with them can be parallelized
+  The number of threads is equal to: POOL_WORKERS_PER_BACKEND * len(CLUSTER_SERVERS) + POOL_WORKERS
+  
+  Be careful when increasing the number of threads, in particular if your start multiple graphite-web processes (with uwsgi or similar) as this will increase memory consumption (and number of connections to memcached).
+  
+  POOL_WORKERS_PER_BACKEND
+  `Default: 1`
+  
+   The number of worker threads that should be created per backend server. It makes sense to have more than one thread per backend server if the graphite-web web server itself is multi threaded and can handle multiple incoming requests at once.
+
+  POOL_WORKERS
+  `Default: 1`
+  
+   A baseline number of workers that should always be created, no matter how many cluster servers are configured. These are used for other tasks that can be off-loaded from the request handling threads.
+
+REMOTE_FETCH_TIMEOUT
   `Default: 6`
 
   Timeout for remote data fetches in seconds.
 
-REMOTE_STORE_FIND_TIMEOUT
+REMOTE_FIND_TIMEOUT
   `Default: 2.5`
 
   Timeout for remote find requests (metric browsing) in seconds.
 
-REMOTE_STORE_RETRY_DELAY
+REMOTE_RETRY_DELAY
   `Default: 60`
 
   Time in seconds to blacklist a webapp after a timed-out request.
 
-REMOTE_FIND_CACHE_DURATION
+FIND_CACHE_DURATION
   `Default: 300`
 
   Time to cache remote metric find results in seconds.
+  
+MAX_FETCH_RETRIES
+  `Default: 2`
+  
+  Number of retries for a specific remote data fetch.
+
+FIND_TOLERANCE
+  `Default: FIND_TOLERANCE = 2 * FIND_CACHE_DURATION`
+  
+  If the query doesn't fall entirely within the FIND_TOLERANCE window we disregard the window. This prevents unnecessary remote fetches
+  caused when carbon's cache skews node.intervals, giving the appearance remote systems have data we don't have locally, which we probably do.
+
+REMOTE_STORE_MERGE_RESULTS
+  `Default: True`
+  
+  During a rebalance of a consistent hash cluster, after a partition event on a replication > 1 cluster or in other cases we might receive multiple TimeSeries data for a metric key.  
+  Merge them together rather than choosing the "most complete" one (pre-0.9.14 behaviour).
+  
+REMOTE_EXCLUDE_LOCAL
+  `Default: False`
+  
+  Try to detect when a cluster server is localhost and don't forward queries
 
 REMOTE_RENDERING
   `Default: False`

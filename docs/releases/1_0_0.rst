@@ -1,20 +1,19 @@
-.. _0-10-0:
+.. _1-0-0:
 
-0.10.0 -- UNDER DEVELOPMENT
+1.0.0
 ===========================
-*TBD*
+*04/12/2017*
 
-Graphite 0.10.0 is now available for usage. This marks the first release of Graphite's main line in many years. There are two new *optional* components available: Carbonate, a suite of tools for managing and rebalancing Whisper files, and Ceres, an experimental new time-series database.
+Graphite 1.0.0 is now available for usage. This marks the first release of Graphite's main line in many years. Also, there's a new *optional* component available: Carbonate, a suite of tools for managing and rebalancing Whisper files.
 
-Most users will only need to install the Graphite-Web, Carbon, and Whisper components. Advanced users may choose to run :doc:`Ceres <../ceres>` in staging or development environments to become familiar with its design and operating characteristics.
+Most users will only need to install the Graphite-Web, Carbon, and Whisper components.
 
 Source bundles are available from GitHub:
 
-* https://github.com/graphite-project/graphite-web/archive/0.10.0.tar.gz
-* https://github.com/graphite-project/carbon/archive/0.10.0.tar.gz
-* https://github.com/graphite-project/whisper/archive/0.10.0.tar.gz
-* https://github.com/graphite-project/carbonate/archive/0.10.0.tar.gz
-* https://github.com/graphite-project/ceres/archive/0.10.0.tar.gz
+* https://github.com/graphite-project/graphite-web/archive/1.0.0.tar.gz
+* https://github.com/graphite-project/carbon/archive/1.0.0.tar.gz
+* https://github.com/graphite-project/whisper/archive/1.0.0.tar.gz
+* https://github.com/graphite-project/carbonate/archive/1.0.0.tar.gz
 
 Graphite can also be installed from `PyPI <http://pypi.python.org/>`_ via
 `pip <http://www.pip-installer.org/en/latest/index.html>`_. PyPI bundles are here:
@@ -23,12 +22,10 @@ Graphite can also be installed from `PyPI <http://pypi.python.org/>`_ via
 * http://pypi.python.org/pypi/carbon/
 * http://pypi.python.org/pypi/whisper/
 * http://pypi.python.org/pypi/carbonate/
-* http://pypi.python.org/pypi/ceres/
-
 
 Upgrading
 ---------
-Graphite-Web requires Python 2.6 or newer and Django version 1.9. Carbon requires Twisted version 13.2 or newer. There are a number of new features in this release, but we've been careful to avoid any behaviorial regressions in the default settings files. You'll want to review the new Graphite-Web and Carbon service options in the ``local_settings.py.example`` and ``carbon.conf.example`` files, respectively, before merging those into your production configurations.
+Graphite-Web requires Python 2.7 or newer and Django version 1.9. Carbon requires Twisted version 13.2 or newer. There are a number of new features in this release, but we've been careful to avoid any behaviorial regressions in the default settings files. You'll want to review the new Graphite-Web and Carbon service options in the ``local_settings.py.example`` and ``carbon.conf.example`` files, respectively, before merging those into your production configurations.
 
 If you're not already running from the *master* branch, Graphite-Web's application database will need to be upgraded . It's a good idea to backup the database before proceeding with the migration. The following steps will upgrade a SQLite database:
 
@@ -59,6 +56,7 @@ See the :doc:`functions documentation <../functions>` for more information.
 * ``applyByNode``
 * ``averageOutsidePercentile``
 * ``delay``
+* ``exponentialMovingAverage``
 * ``fallbackSeries``
 * ``grep``
 * ``groupByNodes``
@@ -69,9 +67,13 @@ See the :doc:`functions documentation <../functions>` for more information.
 * ``linearRegression``
 * ``linearRegressionAnalysis``
 * ``mapSeries``
+* ``movingMin``
+* ``movingMax``
+* ``movingSum``
 * ``multiplySeriesWithWildcards``
 * ``offsetToZero``
 * ``pow``
+* ``powSeries``
 * ``reduceSeries``
 * ``removeBetweenPercentile``
 * ``removeEmptySeries``
@@ -136,6 +138,13 @@ Graphite-Web
 
 * Fix "thousands" unit for y-axis.
 
+* Average/current/max/min Above/Below functions not fails if there is no data.
+
+* Fix blank space below the legend
+
+* Update the command to setup a new database
+
+* aliasByNode(): support all chars allowed by the grammar
 
 Carbon
 ^^^^^^
@@ -156,12 +165,38 @@ Carbon
 
 * Improved help documentation in the Composer.
 
+* Compute seconds_left rightly in util.
+
+* Better handling for failed creates.
+
+* Import manhole and amqp correctly
+
+* Fix CacheManagementHandler() and associated tests
+
+Whisper
+^^^^^^^
+
+* remove xFilesFactor float comparison, use whisper-resize if whisper-resize.py is not available
+
+* (fix) [FreeBSD-i386] correct size of off_t in posix_fallocate call
+
+* whisper-auto-resize.py: error fix
+
+* double-fix bad commit to whisper-resize
+
+* whisper-auto-resize: fix default values for xFilesFactor and aggregationMethod
+
+* Fix indentation on CACHE_HEADERS, not related to AUTOFLUSH
+
+* rrd2whisper: fix relative destinationpaths
 
 Other Changes
 -------------
 
 Graphite-Web
 ^^^^^^^^^^^^
+
+* Brand new clustering implementation using a pool of worker threads and persistent connections to backends
 
 * New Graphite logo in the Composer banner.
 
@@ -219,11 +254,36 @@ Graphite-Web
 
 * Cluster servers can now communicate over HTTPS when ``INTRACLUSTER_HTTPS`` is enabled.
 
+* Readers are more resilient to the loss of a single backend
+
+* Support whisper aggregation method "last"
+
+* Improve json rendering performance
+
+* Allow to override Memcache options easily
+
+* Make readers.py more easilly importable by moving away models
+
+* Support 0.9.x backends in 1.0.0 cluster
+
+* hange deprecated request.REQUEST
+
+* Decreasing number of stat syscalls dramatically using `scandir` module
+
+* Add json format option for find api
+
+* Forward HTTP request headers to CLUSTER_HOSTS
+
+* Pre-load each graph image before updating the dashboard UI
+
+* Fix incorrect display of 'title' URI parameter
+
+* prevent repeated series evaluations for hitcount and smartSummarize
 
 Carbon
 ^^^^^^
 
-* Support for pluggable protocols and clients. No new protocols have been added yet, but existing protocols have been ported over to use the new design.
+* Support for pluggable protocols and clients. Support for protobuf was added, existing protocols have been ported over to use the new design.
 
 * Support for pluggable routers, including new ``fast-hashing`` and ``fast-aggregated-hashing`` relay methods based on MurmurHash3.
 
@@ -247,3 +307,55 @@ Carbon
 
 * Improved ``HUP`` signal handling.
 
+* Add support for IPv6 addresses enclosed in square brackets in the destination parser.
+
+* Add LOG_CREATES to disable creation logs
+
+* Enforce better syslog tag
+
+* Update carbon.amqp.conf.example
+
+* Add protobuf support
+
+* Add MIN_TIMESTAMP_RESOLUTION
+
+* Fix CACHE_WRITE_STRATEGY and add TimeSortedStrategy
+
+Whisper
+^^^^^^^
+
+* Add fallocate and sparse support in whisper-create
+
+* use whisper-resize if whisper-resize.py is not available
+
+* Support FADVISE_RANDOM for create/update/update_many
+
+* rrd2whisper.py: Only suffix wsp files if required
+
+* whisper-fill: move to optparse, add whisper file locking
+
+* whisper-auto-resize.py: allow subdir to be a single file
+
+* Faster evaluation for 'last' aggregation method
+
+* Add update-storage-times.py - a  tool to change storage schemas for whisper files and update the data. Threaded to vastly improve speed over whisper-auto-resize.py
+
+* whisper: disable buffering for update operations
+
+* whisper-diff improvement: new until param
+
+* Add optional destinationPath for rrd2whisper
+
+* added json output to whisper-diff.py script
+
+* setup: install contrib scripts
+
+* Make indentation consistent in files with mixed indentation
+
+* Add whisper-set-xfilesfactor.py utility
+
+* parseRetentionDef: raise more descriptive exception on wrong retention
+
+* whisper resize: don't attempt to merge empty files
+
+* whisper-fetch whisper-auto-update: validate if whisper.fetch() returned data

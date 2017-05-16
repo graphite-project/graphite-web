@@ -142,13 +142,14 @@ def _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList):
           continue
 
         for result in fetch:
-          yield (
-            result['path'],
-            (
-              (result['start'], result['end'], result['step']),
-              result['values'],
-            ),
-          )
+          if result['pathExpression'] == pathExpr:
+            yield (
+              result['path'],
+              (
+                (result['start'], result['end'], result['step']),
+                result['values'],
+              ),
+            )
 
     result_queue = result_queue_generator()
   else:

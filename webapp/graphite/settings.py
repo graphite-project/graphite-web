@@ -22,7 +22,7 @@ from django.core.urlresolvers import reverse_lazy
 
 
 GRAPHITE_WEB_APP_SETTINGS_LOADED = False
-WEBAPP_VERSION = '0.10.0-alpha'
+WEBAPP_VERSION = '1.1.0-dev'
 DEBUG = False
 JAVASCRIPT_DEBUG = False
 
@@ -52,8 +52,8 @@ STANDARD_DIRS = []
 # Cluster settings
 CLUSTER_SERVERS = []
 USE_WORKER_POOL = True
-POOL_WORKERS_PER_BACKEND = 10
-POOL_WORKERS = 10
+POOL_WORKERS_PER_BACKEND = 1
+POOL_WORKERS = 1
 
 # This settings control whether https is used to communicate between cluster members
 INTRACLUSTER_HTTPS = False

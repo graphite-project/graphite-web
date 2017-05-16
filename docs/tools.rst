@@ -241,6 +241,9 @@ Storage Backend Alternates
 --------------------------
 If you wish to use a backend to graphite other than Whisper, there are some options available to you.
 
+`BigGraphite`_
+  A time-series database written in Python on top of Cassandra.
+
 `Ceres`_
   An alternate storage backend provided by the Graphite Project.  It it intended to be a distributable time-series database.  It is currently in a pre-release status.
 
@@ -282,6 +285,7 @@ Other
 
 .. _Backbone.js: http://documentcloud.github.com/backbone
 .. _Backstop: https://github.com/obfuscurity/backstop
+.. _BigGraphite: https://github.com/criteo/biggraphite
 .. _bosun: http://bosun.org
 .. _Brubeck: https://github.com/github/brubeck
 .. _Bryans-Graphite-Tools: https://github.com/linkslice/graphite-tools

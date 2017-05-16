@@ -9,7 +9,6 @@ except ImportError:
     from scandir import scandir, stat # noqa # pylint: disable=unused-import
 
 from graphite.intervals import Interval, IntervalSet
-from graphite.carbonlink import CarbonLink
 from graphite.logger import log
 from django.conf import settings
 
@@ -37,6 +36,14 @@ try:
   import gzip
 except ImportError:
   gzip = False
+
+
+def CarbonLink():
+    """Return a carbonlink instance."""
+    # Late import to avoid pulling out too many dependencies with
+    # readers.py which is usually imported by plugins.
+    from graphite.carbonlink import CarbonLink
+    return CarbonLink()
 
 
 class FetchInProgress(object):
@@ -80,6 +87,8 @@ class MultiReader(object):
           except:
             log.exception("Failed to complete subfetch")
             results[i] = None
+        else:
+          results[i] = result
 
       results = [r for r in results.values() if r is not None]
       if not results:
@@ -155,7 +164,7 @@ class CeresReader(object):
 
     # Merge in data from carbon's cache
     try:
-      cached_datapoints = CarbonLink.query(self.real_metric_path)
+      cached_datapoints = CarbonLink().query(self.real_metric_path)
     except:
       log.exception("Failed CarbonLink query '%s'" % self.real_metric_path)
       cached_datapoints = []
@@ -182,7 +191,11 @@ class WhisperReader(object):
     return IntervalSet( [Interval(start, end)] )
 
   def fetch(self, startTime, endTime):
-    data = whisper.fetch(self.fs_path, startTime, endTime)
+    try:
+      data = whisper.fetch(self.fs_path, startTime, endTime)
+    except IOError:
+      log.exception("Failed fetch of whisper file '%s'" % self.fs_path)
+      return None
     if not data:
       return None
 
@@ -195,7 +208,7 @@ class WhisperReader(object):
     # Merge in data from carbon's cache
     cached_datapoints = []
     try:
-      cached_datapoints = CarbonLink.query(self.real_metric_path)
+      cached_datapoints = CarbonLink().query(self.real_metric_path)
     except:
       log.exception("Failed CarbonLink query '%s'" % self.real_metric_path)
       cached_datapoints = []

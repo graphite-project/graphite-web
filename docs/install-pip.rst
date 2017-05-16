@@ -15,9 +15,13 @@ simply execute as root:
 .. code-block:: none
 
     export PYTHONPATH="/opt/graphite/lib/:/opt/graphite/webapp/"
-    pip install https://github.com/graphite-project/whisper/tarball/master
-    pip install https://github.com/graphite-project/carbon/tarball/master
-    pip install https://github.com/graphite-project/graphite-web/tarball/master
+    pip install --no-binary=:all: https://github.com/graphite-project/whisper/tarball/master
+    pip install --no-binary=:all: https://github.com/graphite-project/carbon/tarball/master
+    pip install --no-binary=:all: https://github.com/graphite-project/graphite-web/tarball/master
+
+.. note::
+
+  If your version of ``pip`` is < 7.0.0 then no need to use ``--no-binary=:all:`` parameter
 
 .. note::
 
