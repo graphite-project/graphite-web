@@ -99,7 +99,8 @@ var GraphRecord = new Ext.data.Record.create([
   {name: 'params', type: 'auto'},
   {name: 'url'},
   {name: 'width', type: 'auto'},
-  {name: 'height', type: 'auto'}
+  {name: 'height', type: 'auto'},
+  {name: 'loading'},
 ]);
 
 var graphStore;
@@ -379,7 +380,7 @@ function initDashboard () {
     '<tpl for=".">',
       '<div class="graph-container">',
         '<div class="graph-overlay">',
-          '<img class="graph-img" src="{url}" width="{width}" height="{height}">',
+          '<img class="graph-img{loading}" src="{url}" width="{width}" height="{height}">',
           '<div class="overlay-close-button" onclick="javascript: graphStore.removeAt(\'{index}\'); updateGraphRecords(); justClosedGraph = true;">X</div>',
         '</div>',
       '</div>',
@@ -1070,11 +1071,13 @@ function updateGraphRecords() {
     if (!params.uniq === undefined) {
         delete params["uniq"];
     }
-	
-	//Preload the image and set it into the UI once it is available.
-	var img = new Image();
+
+    //Preload the image and set it into the UI once it is available.
+    item.set('loading','-loading');
+    var img = new Image();
     img.onload = function() {
       item.set('url',img.src);
+      item.set('loading','');
     };
     img.src = document.body.dataset.baseUrl + 'render?' + Ext.urlEncode(params);
 
