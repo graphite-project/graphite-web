@@ -43,12 +43,12 @@ MINUTE = 60
 #Utility functions
 def safeSum(values):
   safeValues = [v for v in values if v is not None]
-  if safeValues:
+  if safeValues and len(safeValues) > 1:
     return sum(safeValues)
 
 def safeDiff(values):
   safeValues = [v for v in values if v is not None]
-  if safeValues:
+  if safeValues and len(safeValues) > 1:
     values = map(lambda x: x*-1, safeValues[1:])
     values.insert(0, safeValues[0])
     return sum(values)
