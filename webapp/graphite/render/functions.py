@@ -1769,23 +1769,27 @@ def aliasSub(requestContext, seriesList, search, replace):
       series.name = re.sub(search, replace, series.name)
   return seriesList
 
-def aliasQuery(requestContext, seriesList, search, query, newName):
+def aliasQuery(requestContext, seriesList, search, replace, newName):
   """
   Performs a query to alias the metrics in seriesList.
 
   .. code-block:: none
 
-    &target=aliasQuery(channel.power.*,"channel\.power\.([0-9]+)","channel.frequency.\\1", "Channel \\1 MHz")
+    &target=aliasQuery(channel.power.*,"channel\.power\.([0-9]+)","channel.frequency.\\1", "Channel %d MHz")
+
+  The series in seriesList will be aliased by first translating the series names using
+  the search & replace parameters, then using the last value of the resulting series
+  to construct the alias using sprintf-style syntax.
   """
   for series in seriesList:
-    newQuery = re.sub(search, query, series.name)
+    newQuery = re.sub(search, replace, series.name)
     newSeriesList = evaluateTarget(requestContext, newQuery)
     if newSeriesList is None or len(newSeriesList) == 0:
       raise Exception('No series found with query: ' + newQuery)
     current = safeLast(newSeriesList[0])
     if current is None:
       raise Exception('Cannot get last value of series: ' + newSeriesList[0])
-    series.name = re.sub(u'(.*)', newName, str(current))
+    series.name = newName % current
   return seriesList
 
 def alias(requestContext, seriesList, newName):

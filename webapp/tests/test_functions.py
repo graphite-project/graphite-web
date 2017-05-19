@@ -2156,10 +2156,10 @@ class FunctionsTest(TestCase):
 
             # Perform query - this one will not find a matching metric
             with self.assertRaises(Exception):
-                functions.aliasQuery({}, seriesList, 'chan\.pow\.([0-9]+)', 'chan.fred.\\1', 'Channel \\1 MHz')
+                functions.aliasQuery({}, seriesList, 'chan\.pow\.([0-9]+)', 'chan.fred.\\1', 'Channel %d MHz')
 
             # Perform query - this one will find a matching metric
-            results = functions.aliasQuery({}, seriesList, 'chan\.pow\.([0-9]+)', 'chan.freq.\\1', 'Channel \\1 MHz')
+            results = functions.aliasQuery({}, seriesList, 'chan\.pow\.([0-9]+)', 'chan.freq.\\1', 'Channel %d MHz')
 
             # Check results
             self.assertEqual(results, expectedResult)
@@ -2175,7 +2175,7 @@ class FunctionsTest(TestCase):
 
                 # Perform query - this one will fail to return a current value for the matched metric
                 with self.assertRaises(Exception):
-                    functions.aliasQuery({}, seriesList, 'chan\.pow\.([0-9]+)', 'chan.freq.\\1', 'Channel \\1 MHz')
+                    functions.aliasQuery({}, seriesList, 'chan\.pow\.([0-9]+)', 'chan.freq.\\1', 'Channel %d MHz')
 
             finally:
                 functions.safeLast = originalSafeLast
