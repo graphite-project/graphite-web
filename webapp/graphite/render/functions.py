@@ -1750,9 +1750,7 @@ def aliasQuery(requestContext, seriesList, search, query, newName):
     current = safeLast(newSeriesList[0])
     if current is None:
       raise Exception('Cannot get last value of serie: ' + newSeriesList[0])
-    current = safeLast(newSeriesList[0])
-    newSerieName = re.sub(u'(.*)', newName, current)
-    serie.name = newSerieName
+    serie.name = re.sub(u'(.*)', newName, str(current))
   return seriesList
 
 def alias(requestContext, seriesList, newName):

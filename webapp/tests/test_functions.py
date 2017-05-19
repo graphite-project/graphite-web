@@ -2074,6 +2074,58 @@ class FunctionsTest(TestCase):
                     "aliasSub should replace the name with {0}".format(substitution),
             )
 
+    def test_alias_query(self):
+
+        # Create input series
+        seriesList = self._gen_series_list_with_data(
+            key=['chan.pow.1', 'chan.pow.2', 'chan.pow.3'],
+            start=0,
+            end=1,
+            data=[
+                [0, 30], [10, 40], [20, 50]
+            ]
+        )
+
+        # Intermediate lookup series
+        lookupSeries = self._gen_series_list_with_data(
+            key=['chan.freq.1', 'chan.freq.2', 'chan.freq.3'],
+            start=0,
+            end=1,
+            data=[
+                [0, 101], [0, 102], [0, 103]
+            ]
+        )
+
+        # Expected result
+        expectedResult = [
+            TimeSeries("Channel 101 MHz", 0, 1, 1, [0, 30]),
+            TimeSeries("Channel 102 MHz", 0, 1, 1, [10, 40]),
+            TimeSeries("Channel 103 MHz", 0, 1, 1, [20, 50])
+        ]
+
+        # Custom lookup function
+        def lookup(context, query):
+            for serie in lookupSeries:
+                if serie.name == query:
+                    return [serie]
+            return []
+
+        # Temporarily replace lookup function
+        original = functions.evaluateTarget
+        try:
+
+            # New dummy lookup function
+            functions.evaluateTarget = lambda x, y: lookup(x, y)
+
+            # Perform query
+            results = functions.aliasQuery({}, seriesList, 'chan\.pow\.([0-9]+)', 'chan.freq.\\1', 'Channel \\1 MHz')
+
+            # Check results
+            self.assertEqual(results, expectedResult)
+
+        finally:
+            functions.evaluateTarget = original
+
     # TODO: Add tests for * globbing and {} matching to this
     def test_alias_by_node(self):
         seriesList = self._generate_series_list()
