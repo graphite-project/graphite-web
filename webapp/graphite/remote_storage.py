@@ -23,6 +23,9 @@ def prefetchRemoteData(remote_stores, requestContext, pathExpressions):
   if requestContext is None:
     requestContext = {}
 
+  if pathExpressions is None:
+    return
+
   (startTime, endTime, now) = timebounds(requestContext)
   log.info('thread %s prefetchRemoteData:: Starting fetch_list on all backends' % current_thread().name)
 
@@ -200,6 +203,9 @@ class RemoteReader(object):
       ('from', str( int(startTime) )),
       ('until', str( int(endTime) ))
     ]
+
+    if len(self.bulk_query) < 1:
+      return []
 
     for target in self.bulk_query:
       query_params.append(('target', target))
