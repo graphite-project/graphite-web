@@ -1769,6 +1769,25 @@ def aliasSub(requestContext, seriesList, search, replace):
       series.name = re.sub(search, replace, series.name)
   return seriesList
 
+def aliasQuery(requestContext, seriesList, search, query, newName):
+  """
+  Performs a query to alias the metrics in seriesList.
+
+  .. code-block:: none
+
+    &target=aliasQuery(channel.power.*,"channel\.power\.([0-9]+)","channel.frequency.\\1", "Channel \\1 MHz")
+  """
+  for series in seriesList:
+    newQuery = re.sub(search, query, series.name)
+    newSeriesList = evaluateTarget(requestContext, newQuery)
+    if newSeriesList is None or len(newSeriesList) == 0:
+      raise Exception('No series found with query: ' + newQuery)
+    current = safeLast(newSeriesList[0])
+    if current is None:
+      raise Exception('Cannot get last value of series: ' + newSeriesList[0])
+    series.name = re.sub(u'(.*)', newName, str(current))
+  return seriesList
+
 def alias(requestContext, seriesList, newName):
   """
   Takes one metric or a wildcard seriesList and a string in quotes.
@@ -4183,6 +4202,7 @@ SeriesFunctions = {
   'legendValue': legendValue,
   'alias': alias,
   'aliasSub': aliasSub,
+  'aliasQuery': aliasQuery,
   'aliasByNode': aliasByNode,
   'aliasByMetric': aliasByMetric,
   'cactiStyle': cactiStyle,

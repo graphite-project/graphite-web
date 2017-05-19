@@ -2113,6 +2113,76 @@ class FunctionsTest(TestCase):
                     "aliasSub should replace the name with {0}".format(substitution),
             )
 
+    def test_alias_query(self):
+
+        # Create input series
+        seriesList = self._gen_series_list_with_data(
+            key=['chan.pow.1', 'chan.pow.2', 'chan.pow.3'],
+            start=0,
+            end=1,
+            data=[
+                [0, 30], [10, 40], [20, 50]
+            ]
+        )
+
+        # Intermediate lookup series
+        lookupSeries = self._gen_series_list_with_data(
+            key=['chan.freq.1', 'chan.freq.2', 'chan.freq.3'],
+            start=0,
+            end=1,
+            data=[
+                [0, 101], [0, 102], [0, 103]
+            ]
+        )
+
+        # Expected result
+        expectedResult = [
+            TimeSeries("Channel 101 MHz", 0, 1, 1, [0, 30]),
+            TimeSeries("Channel 102 MHz", 0, 1, 1, [10, 40]),
+            TimeSeries("Channel 103 MHz", 0, 1, 1, [20, 50])
+        ]
+
+        # Temporarily replace evaluateTarget() function
+        originalEvaluate = functions.evaluateTarget
+        try:
+
+            # Custom evaluateTarget() function
+            def lookup(context, query):
+                for series in lookupSeries:
+                    if series.name == query:
+                        return [series]
+                return []
+            functions.evaluateTarget = lookup
+
+            # Perform query - this one will not find a matching metric
+            with self.assertRaises(Exception):
+                functions.aliasQuery({}, seriesList, 'chan\.pow\.([0-9]+)', 'chan.fred.\\1', 'Channel \\1 MHz')
+
+            # Perform query - this one will find a matching metric
+            results = functions.aliasQuery({}, seriesList, 'chan\.pow\.([0-9]+)', 'chan.freq.\\1', 'Channel \\1 MHz')
+
+            # Check results
+            self.assertEqual(results, expectedResult)
+
+            # Temporarily replace safeLast() function
+            originalSafeLast = functions.safeLast
+            try:
+
+                # Custom safeLast() function
+                def noneSafeLast(x):
+                    return None
+                functions.safeLast = noneSafeLast
+
+                # Perform query - this one will fail to return a current value for the matched metric
+                with self.assertRaises(Exception):
+                    functions.aliasQuery({}, seriesList, 'chan\.pow\.([0-9]+)', 'chan.freq.\\1', 'Channel \\1 MHz')
+
+            finally:
+                functions.safeLast = originalSafeLast
+
+        finally:
+            functions.evaluateTarget = originalEvaluate
+
     # TODO: Add tests for * globbing and {} matching to this
     def test_alias_by_node(self):
         seriesList = self._generate_series_list()
