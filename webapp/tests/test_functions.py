@@ -2130,7 +2130,7 @@ class FunctionsTest(TestCase):
             try:
 
                 # Custom safeLast() function
-                def noneSafeLast (x):
+                def noneSafeLast(x):
                     return None
                 functions.safeLast = noneSafeLast
 
