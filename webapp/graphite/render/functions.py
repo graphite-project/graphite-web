@@ -1742,15 +1742,15 @@ def aliasQuery(requestContext, seriesList, search, query, newName):
 
     &target=aliasQuery(channel.power.*,"channel\.power\.([0-9]+)","channel.frequency.\\1", "Channel \\1 MHz")
   """
-  for serie in seriesList:
-    newQuery = re.sub(search, query, serie.name)
+  for series in seriesList:
+    newQuery = re.sub(search, query, series.name)
     newSeriesList = evaluateTarget(requestContext, newQuery)
     if newSeriesList is None or len(newSeriesList) == 0:
-      raise Exception('No serie found with query: ' + newQuery)
+      raise Exception('No series found with query: ' + newQuery)
     current = safeLast(newSeriesList[0])
     if current is None:
-      raise Exception('Cannot get last value of serie: ' + newSeriesList[0])
-    serie.name = re.sub(u'(.*)', newName, str(current))
+      raise Exception('Cannot get last value of series: ' + newSeriesList[0])
+    series.name = re.sub(u'(.*)', newName, str(current))
   return seriesList
 
 def alias(requestContext, seriesList, newName):

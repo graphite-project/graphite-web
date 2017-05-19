@@ -2103,28 +2103,46 @@ class FunctionsTest(TestCase):
             TimeSeries("Channel 103 MHz", 0, 1, 1, [20, 50])
         ]
 
-        # Custom lookup function
-        def lookup(context, query):
-            for serie in lookupSeries:
-                if serie.name == query:
-                    return [serie]
-            return []
-
-        # Temporarily replace lookup function
-        original = functions.evaluateTarget
+        # Temporarily replace evaluateTarget() function
+        originalEvaluate = functions.evaluateTarget
         try:
 
-            # New dummy lookup function
-            functions.evaluateTarget = lambda x, y: lookup(x, y)
+            # Custom evaluateTarget() function
+            def lookup(context, query):
+                for series in lookupSeries:
+                    if series.name == query:
+                        return [series]
+                return []
+            functions.evaluateTarget = lookup
 
-            # Perform query
+            # Perform query - this one will not find a matching metric
+            with self.assertRaises(Exception):
+                functions.aliasQuery({}, seriesList, 'chan\.pow\.([0-9]+)', 'chan.fred.\\1', 'Channel \\1 MHz')
+
+            # Perform query - this one will find a matching metric
             results = functions.aliasQuery({}, seriesList, 'chan\.pow\.([0-9]+)', 'chan.freq.\\1', 'Channel \\1 MHz')
 
             # Check results
             self.assertEqual(results, expectedResult)
 
+            # Temporarily replace safeLast() function
+            originalSafeLast = functions.safeLast
+            try:
+
+                # Custom safeLast() function
+                def noneSafeLast (x):
+                    return None
+                functions.safeLast = noneSafeLast
+
+                # Perform query - this one will fail to return a current value for the matched metric
+                with self.assertRaises(Exception):
+                    functions.aliasQuery({}, seriesList, 'chan\.pow\.([0-9]+)', 'chan.freq.\\1', 'Channel \\1 MHz')
+
+            finally:
+                functions.safeLast = originalSafeLast
+
         finally:
-            functions.evaluateTarget = original
+            functions.evaluateTarget = originalEvaluate
 
     # TODO: Add tests for * globbing and {} matching to this
     def test_alias_by_node(self):
