@@ -23,6 +23,9 @@ def prefetchRemoteData(remote_stores, requestContext, pathExpressions):
   if requestContext is None:
     requestContext = {}
 
+  if pathExpressions is None:
+    return
+
   (startTime, endTime, now) = timebounds(requestContext)
   log.info('thread %s prefetchRemoteData:: Starting fetch_list on all backends' % current_thread().name)
 
@@ -149,7 +152,9 @@ class RemoteReader(object):
     self.store = store
     self.metric_path = node_info.get('path') or node_info.get('metric_path')
     self.intervals = node_info['intervals']
-    self.bulk_query = bulk_query or [self.metric_path]
+    self.bulk_query = bulk_query or (
+        [self.metric_path] if self.metric_path else []
+    )
     self.connection = None
 
   def __repr__(self):
@@ -200,6 +205,9 @@ class RemoteReader(object):
       ('from', str( int(startTime) )),
       ('until', str( int(endTime) ))
     ]
+
+    if len(self.bulk_query) < 1:
+      return []
 
     for target in self.bulk_query:
       query_params.append(('target', target))
