@@ -147,6 +147,7 @@ def dashboard(request, name=None):
     try:
       dashboard = Dashboard.objects.get(name=name)
     except Dashboard.DoesNotExist:
+      name = name.replace('"', '')
       context['initialError'] = "Dashboard '%s' does not exist." % name
     else:
       context['initialState'] = dashboard.state
