@@ -84,6 +84,7 @@ try:
         'graphite.dashboard',
         'graphite.events',
         'graphite.finders',
+        'graphite.readers',
         'graphite.metrics',
         'graphite.render',
         'graphite.url_shortener',
