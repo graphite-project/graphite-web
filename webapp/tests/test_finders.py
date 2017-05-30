@@ -1,24 +1,35 @@
+from __future__ import absolute_import
+
 import gzip
 import os
 from os.path import join, dirname, isdir
 import random
 import shutil
 import time
+import unittest
 
 try:
     from unittest.mock import patch
 except ImportError:
     from mock import patch
 
-from .base import TestCase
+try:
+    import ceres
+except ImportError:
+    ceres = False
+try:
+    import whisper
+except ImportError:
+    whisper = False
+
 from django.conf import settings
 
 from graphite.intervals import Interval, IntervalSet
 from graphite.node import LeafNode, BranchNode
 from graphite.storage import Store, FindQuery, get_finder
 from graphite.finders.standard import scandir
-import ceres
-import whisper
+from tests.base import TestCase
+
 
 class FinderTest(TestCase):
     def test_custom_finder(self):
@@ -35,6 +46,7 @@ class FinderTest(TestCase):
         time_info, series = node.fetch(100, 200)
         self.assertEqual(time_info, (100, 200, 10))
         self.assertEqual(len(series), 10)
+
 
 class DummyReader(object):
     __slots__ = ('path',)
@@ -243,6 +255,7 @@ class CeresFinderTest(TestCase):
     _listdir_counter = 0
     _original_listdir = os.listdir
 
+    unittest.skipIf(not ceres, 'ceres not installed')
     def test_ceres_finder(self):
         test_dir = join(settings.CERES_DIR)
 

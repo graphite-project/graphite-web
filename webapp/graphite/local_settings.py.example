@@ -115,6 +115,15 @@
 # Data directories using the "Standard" metrics finder (i.e. not Ceres)
 #STANDARD_DIRS = [WHISPER_DIR, RRD_DIR] # Default: set from the above variables
 
+## Data finders
+# It is possible to use an alternate storage layer than the default, Whisper,
+# in order to accommodate specific needs.
+# See: http://graphite.readthedocs.io/en/latest/storage-backends.html
+#
+# STORAGE_FINDERS = (
+#    'graphite.finders.standard.StandardFinder',
+#    'graphite.finders.ceres.CeresFinder',
+# )
 
 #####################################
 # Email Configuration #
