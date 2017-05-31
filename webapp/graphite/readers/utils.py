@@ -13,6 +13,7 @@ def CarbonLink():
 
 
 class FetchInProgress(object):
+
     def __init__(self, wait_callback):
         self.wait_callback = wait_callback
 

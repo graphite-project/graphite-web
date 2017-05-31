@@ -41,13 +41,13 @@ def header(request):
 def browser(request):
   "View for the top-level frame of the browser UI"
   context = {
-    'queryString': mark_safe(request.GET.urlencode()),
+      'queryString': mark_safe(request.GET.urlencode()),
     'target': request.GET.get('target')
   }
   if context['queryString']:
-    context['queryString'] = context['queryString'].replace('#','%23')
+    context['queryString'] = context['queryString'].replace('#', '%23')
   if context['target']:
-    context['target'] = context['target'].replace('#','%23') #js libs terminate a querystring on #
+    context['target'] = context['target'].replace('#', '%23')  # js libs terminate a querystring on #
   return render_to_response("browser.html", context)
 
 
@@ -57,7 +57,7 @@ def search(request):
     return HttpResponse("")
 
   patterns = query.split()
-  regexes = [re.compile(p,re.I) for p in patterns]
+  regexes = [re.compile(p, re.I) for p in patterns]
 
   def matches(s):
     for regex in regexes:
@@ -70,7 +70,7 @@ def search(request):
   index_file = open(settings.INDEX_FILE)
   for line in index_file:
     if matches(line):
-      results.append( line.strip() )
+      results.append(line.strip())
     if len(results) >= 100:
       break
 
@@ -81,19 +81,19 @@ def search(request):
 
 def myGraphLookup(request):
   "View for My Graphs navigation"
-  profile = getProfile(request,allowDefault=False)
+  profile = getProfile(request, allowDefault=False)
   assert profile
 
   nodes = []
   leafNode = {
-    'allowChildren' : 0,
-    'expandable' : 0,
-    'leaf' : 1,
+      'allowChildren': 0,
+    'expandable': 0,
+    'leaf': 1,
   }
   branchNode = {
-    'allowChildren' : 1,
-    'expandable' : 1,
-    'leaf' : 0,
+      'allowChildren': 1,
+    'expandable': 1,
+    'leaf': 0,
   }
 
   try:
@@ -109,25 +109,27 @@ def myGraphLookup(request):
     else:
       userpath_prefix = u""
 
-    matches = [ graph for graph in profile.mygraph_set.all().order_by('name') if graph.name.startswith(userpath_prefix) ]
+    matches = [graph for graph in profile.mygraph_set.all().order_by('name') if graph.name.startswith(userpath_prefix)]
 
-    log.info( "myGraphLookup: username=%s, path=%s, userpath_prefix=%s, %ld graph to process" % (profile.user.username, path, userpath_prefix, len(matches)) )
+    log.info("myGraphLookup: username=%s, path=%s, userpath_prefix=%s, %ld graph to process" % (profile.user.username, path, userpath_prefix, len(matches)))
     branch_inserted = set()
     leaf_inserted = set()
 
-    for graph in matches: #Now let's add the matching graph
+    for graph in matches:  # Now let's add the matching graph
       isBranch = False
-      dotPos = graph.name.find( '.', len(userpath_prefix) )
+      dotPos = graph.name.find('.', len(userpath_prefix))
 
       if dotPos >= 0:
         isBranch = True
-        name = graph.name[ len(userpath_prefix) : dotPos ]
-        if name in branch_inserted: continue
+        name = graph.name[len(userpath_prefix): dotPos]
+        if name in branch_inserted:
+          continue
         branch_inserted.add(name)
 
       else:
-         name = graph.name[ len(userpath_prefix): ]
-         if name in leaf_inserted: continue
+         name = graph.name[len(userpath_prefix):]
+         if name in leaf_inserted:
+           continue
          leaf_inserted.add(name)
 
       node = {'text': escape(name)}
@@ -151,7 +153,7 @@ def myGraphLookup(request):
           else:
             graphUrlParams[param[0]].append(escape(param[1]))
         urlEscaped = graphUrl._replace(query=urlencode(graphUrlParams, True)).geturl()
-        node.update( { 'id' : str(userpath_prefix + m.hexdigest()), 'graphUrl' : urlEscaped } )
+        node.update({'id': str(userpath_prefix + m.hexdigest()), 'graphUrl': urlEscaped})
         node.update(leafNode)
 
       nodes.append(node)
@@ -160,11 +162,12 @@ def myGraphLookup(request):
     log.exception("browser.views.myGraphLookup(): could not complete request.")
 
   if not nodes:
-    no_graphs = { 'text' : "No saved graphs", 'id' : 'no-click' }
+    no_graphs = {'text': "No saved graphs", 'id': 'no-click'}
     no_graphs.update(leafNode)
     nodes.append(no_graphs)
 
   return json_response(nodes, request)
+
 
 def userGraphLookup(request):
   "View for User Graphs navigation"
@@ -173,7 +176,7 @@ def userGraphLookup(request):
 
   if user:
     username = user
-    graphPath = path[len(username)+1:]
+    graphPath = path[len(username) + 1:]
   elif '.' in path:
     username, graphPath = path.split('.', 1)
   else:
@@ -182,14 +185,14 @@ def userGraphLookup(request):
   nodes = []
 
   branchNode = {
-    'allowChildren' : 1,
-    'expandable' : 1,
-    'leaf' : 0,
+      'allowChildren': 1,
+    'expandable': 1,
+    'leaf': 0,
   }
   leafNode = {
-    'allowChildren' : 0,
-    'expandable' : 0,
-    'leaf' : 1,
+      'allowChildren': 0,
+    'expandable': 0,
+    'leaf': 1,
   }
 
   try:
@@ -200,8 +203,8 @@ def userGraphLookup(request):
       for profile in profiles:
         if profile.mygraph_set.count():
           node = {
-            'text' : str(profile.user.username),
-            'id' : str(profile.user.username)
+              'text': str(profile.user.username),
+            'id': str(profile.user.username)
           }
 
           node.update(branchNode)
@@ -216,24 +219,24 @@ def userGraphLookup(request):
       else:
         prefix = ''
 
-      matches = [ graph for graph in profile.mygraph_set.all().order_by('name') if graph.name.startswith(prefix) ]
+      matches = [graph for graph in profile.mygraph_set.all().order_by('name') if graph.name.startswith(prefix)]
       inserted = set()
 
       for graph in matches:
-        relativePath = graph.name[ len(prefix): ]
+        relativePath = graph.name[len(prefix):]
         nodeName = relativePath.split('.')[0]
 
         if nodeName in inserted:
           continue
         inserted.add(nodeName)
 
-        if '.' in relativePath: # branch
+        if '.' in relativePath:  # branch
           node = {
-            'text' : escape(str(nodeName)),
-            'id' : str(username + '.' + prefix + nodeName + '.'),
+              'text': escape(str(nodeName)),
+            'id': str(username + '.' + prefix + nodeName + '.'),
           }
           node.update(branchNode)
-        else: # leaf
+        else:  # leaf
           m = md5()
           m.update(nodeName)
 
@@ -250,9 +253,9 @@ def userGraphLookup(request):
           urlEscaped = graphUrl._replace(query=urlencode(graphUrlParams, True)).geturl()
 
           node = {
-            'text' : escape(str(nodeName)),
-            'id' : str(username + '.' + prefix + m.hexdigest()),
-            'graphUrl' : urlEscaped,
+              'text': escape(str(nodeName)),
+            'id': str(username + '.' + prefix + m.hexdigest()),
+            'graphUrl': urlEscaped,
           }
           node.update(leafNode)
 
@@ -262,11 +265,11 @@ def userGraphLookup(request):
     log.exception("browser.views.userLookup(): could not complete request for %s" % username)
 
   if not nodes:
-    no_graphs = { 'text' : "No saved graphs", 'id' : 'no-click' }
+    no_graphs = {'text': "No saved graphs", 'id': 'no-click'}
     no_graphs.update(leafNode)
     nodes.append(no_graphs)
 
-  nodes.sort(key=lambda node: node['allowChildren'], reverse = True)
+  nodes.sort(key=lambda node: node['allowChildren'], reverse=True)
 
   return json_response(nodes, request)
 
@@ -276,7 +279,7 @@ def json_response(nodes, request=None):
     jsonp = request.GET.get('jsonp', False) or request.POST.get('jsonp', False)
   else:
     jsonp = False
-  #json = str(nodes) #poor man's json encoder for simple types
+  # json = str(nodes) #poor man's json encoder for simple types
   json_data = json.dumps(nodes)
   if jsonp:
     response = HttpResponse("%s(%s)" % (jsonp, json_data),

@@ -20,7 +20,9 @@ from graphite.util import timebounds, logtime
 
 from traceback import format_exc
 
+
 class TimeSeries(list):
+
   def __init__(self, name, start, end, step, values, consolidate='average'):
     list.__init__(self, values)
     self.name = name
@@ -31,7 +33,6 @@ class TimeSeries(list):
     self.valuesPerPoint = 1
     self.options = {}
     self.pathExpression = name
-
 
   def __eq__(self, other):
     if isinstance(other, TimeSeries):
@@ -48,38 +49,39 @@ class TimeSeries(list):
               (other.name, other.start, other.end, other.step, other.consolidationFunc, other.valuesPerPoint, other.options)) and list.__eq__(self, other) and color_check
     return False
 
-
   def __iter__(self):
     if self.valuesPerPoint > 1:
-      return self.__consolidatingGenerator( list.__iter__(self) )
+      return self.__consolidatingGenerator(list.__iter__(self))
     else:
       return list.__iter__(self)
 
-
   def consolidate(self, valuesPerPoint):
     self.valuesPerPoint = int(valuesPerPoint)
-
 
   def __consolidatingGenerator(self, gen):
     buf = []
     for x in gen:
       buf.append(x)
       if len(buf) == self.valuesPerPoint:
-        while None in buf: buf.remove(None)
+        while None in buf:
+          buf.remove(None)
         if buf:
           yield self.__consolidate(buf)
           buf = []
         else:
           yield None
-    while None in buf: buf.remove(None)
-    if buf: yield self.__consolidate(buf)
-    else: yield None
+    while None in buf:
+      buf.remove(None)
+    if buf:
+      yield self.__consolidate(buf)
+    else:
+      yield None
     raise StopIteration
-
 
   def __consolidate(self, values):
     usable = [v for v in values if v is not None]
-    if not usable: return None
+    if not usable:
+      return None
     if self.consolidationFunc == 'sum':
       return sum(usable)
     if self.consolidationFunc == 'average':
@@ -90,20 +92,18 @@ class TimeSeries(list):
       return min(usable)
     raise Exception("Invalid consolidation function: '%s'" % self.consolidationFunc)
 
-
   def __repr__(self):
     return 'TimeSeries(name=%s, start=%s, end=%s, step=%s)' % (self.name, self.start, self.end, self.step)
-
 
   def getInfo(self):
     """Pickle-friendly representation of the series"""
     return {
-      'name' : self.name,
-      'start' : self.start,
-      'end' : self.end,
-      'step' : self.step,
-      'values' : list(self),
-      'pathExpression' : self.pathExpression,
+        'name': self.name,
+      'start': self.start,
+      'end': self.end,
+      'step': self.step,
+      'values': list(self),
+      'pathExpression': self.pathExpression,
     }
 
 
@@ -125,12 +125,12 @@ def _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList):
           yield (node.path, node.fetch(startTime, endTime, now, requestContext))
 
       log.info(
-        'render.datalib.fetchData:: result_queue_generator got {count} fetches'
+          'render.datalib.fetchData:: result_queue_generator got {count} fetches'
         .format(count=len(fetches)),
       )
       for key, fetch in fetches.iteritems():
         log.info(
-          'render.datalib.fetchData:: getting results of {host}'
+            'render.datalib.fetchData:: getting results of {host}'
           .format(host=key),
         )
 
@@ -144,10 +144,10 @@ def _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList):
         for result in fetch:
           if result['pathExpression'] == pathExpr:
             yield (
-              result['path'],
+                result['path'],
               (
-                (result['start'], result['end'], result['step']),
-                result['values'],
+                  (result['start'], result['end'], result['step']),
+                  result['values'],
               ),
             )
 
@@ -155,7 +155,7 @@ def _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList):
   else:
     matching_nodes = [node for node in STORE.find(pathExpr, startTime, endTime, local=requestContext['localOnly'])]
     result_queue = [
-      (node.path, node.fetch(startTime, endTime, now, requestContext))
+        (node.path, node.fetch(startTime, endTime, now, requestContext))
       for node in matching_nodes
       if node.is_leaf
     ]
@@ -194,7 +194,7 @@ def _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList):
       candidate_nones = 0
       if not settings.REMOTE_STORE_MERGE_RESULTS:
         candidate_nones = len(
-          [val for val in values if val is None])
+            [val for val in values if val is None])
 
       known = seriesList[series.name]
       # To avoid repeatedly recounting the 'Nones' in series we've already seen,
@@ -256,7 +256,7 @@ def fetchData(requestContext, pathExpr):
   seriesList = {}
   (startTime, endTime, now) = timebounds(requestContext)
 
-  retries = 1 # start counting at one to make log output and settings more readable
+  retries = 1  # start counting at one to make log output and settings more readable
   while True:
     try:
       seriesList = _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList)
@@ -264,11 +264,11 @@ def fetchData(requestContext, pathExpr):
     except Exception:
       if retries >= settings.MAX_FETCH_RETRIES:
         log.exception("Failed after %s retry! Root cause:\n%s" %
-            (settings.MAX_FETCH_RETRIES, format_exc()))
+                      (settings.MAX_FETCH_RETRIES, format_exc()))
         raise
       else:
         log.exception("Got an exception when fetching data! Try: %i of %i. Root cause:\n%s" %
-                     (retries, settings.MAX_FETCH_RETRIES, format_exc()))
+                      (retries, settings.MAX_FETCH_RETRIES, format_exc()))
         retries += 1
 
   return seriesList

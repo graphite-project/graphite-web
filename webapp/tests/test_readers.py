@@ -14,14 +14,14 @@ class ReadersTest(TestCase):
         step = 60           # (1 minute)
 
         # Fill in half the data.  Nones for the rest.
-        values = range(0, window_size/2, step)
-        for i in range(0, window_size/2, step):
+        values = range(0, window_size / 2, step)
+        for i in range(0, window_size / 2, step):
             values.append(None)
 
         # Generate data that would normally come from Carbon.
         # Step will be different since that is what we are testing
         cache_results = []
-        for i in range(start+window_size/2, start+window_size, 1):
+        for i in range(start + window_size / 2, start + window_size, 1):
             cache_results.append((i, 1))
 
         # merge the db results with the cached results
@@ -34,8 +34,8 @@ class ReadersTest(TestCase):
         )
 
         # Generate the expected values
-        expected_values = range(0, window_size/2, step)
-        for i in range(0, window_size/2, step):
+        expected_values = range(0, window_size / 2, step)
+        for i in range(0, window_size / 2, step):
             expected_values.append(60)
 
         self.assertEqual(expected_values, values)

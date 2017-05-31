@@ -48,14 +48,16 @@ except ImportError:
 if hasattr(json, 'read') and not hasattr(json, 'loads'):
   json.loads = json.read
   json.dumps = json.write
-  json.load = lambda file: json.read( file.read() )
-  json.dump = lambda obj, file: file.write( json.write(obj) )
+  json.load = lambda file: json.read(file.read())
+  json.dump = lambda obj, file: file.write(json.write(obj))
+
 
 def epoch(dt):
   """
   Returns the epoch timestamp of a timezone-aware datetime object.
   """
   return calendar.timegm(dt.astimezone(pytz.utc).timetuple())
+
 
 def timebounds(requestContext):
   startTime = int(epoch(requestContext['startTime']))
@@ -64,12 +66,13 @@ def timebounds(requestContext):
 
   return (startTime, endTime, now)
 
+
 def is_local_interface(host):
   is_ipv6 = False
   if ':' in host:
     try:
       if host.find('[', 0, 2) != -1:
-        last_bracket_position  = host.rfind(']')
+        last_bracket_position = host.rfind(']')
         last_colon_position = host.rfind(':')
         if last_colon_position > last_bracket_position:
           host = host.rsplit(':', 1)[0]
@@ -77,14 +80,14 @@ def is_local_interface(host):
       socket.inet_pton(socket.AF_INET6, host)
       is_ipv6 = True
     except socket.error:
-      host = host.split(':',1)[0]
+      host = host.split(':', 1)[0]
 
   try:
     if is_ipv6:
       sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
     else:
       sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.connect( (host, 4242) )
+    sock.connect((host, 4242))
     local_ip = sock.getsockname()[0]
     sock.close()
   except:
@@ -100,17 +103,19 @@ def is_local_interface(host):
 def is_pattern(s):
    return '*' in s or '?' in s or '[' in s or '{' in s
 
+
 def is_escaped_pattern(s):
   for symbol in '*?[{':
     i = s.find(symbol)
     if i > 0:
-      if s[i-1] == '\\':
+      if s[i - 1] == '\\':
         return True
   return False
 
+
 def find_escaped_pattern_fields(pattern_string):
   pattern_parts = pattern_string.split('.')
-  for index,part in enumerate(pattern_parts):
+  for index, part in enumerate(pattern_parts):
     if is_escaped_pattern(part):
       yield index
 
@@ -125,9 +130,11 @@ def load_module(module_path, member=None):
   else:
     return module
 
+
 def timestamp(datetime):
   "Convert a datetime object into epoch time"
-  return time.mktime( datetime.timetuple() )
+  return time.mktime(datetime.timetuple())
+
 
 def deltaseconds(timedelta):
   "Convert a timedelta object into seconds (same as timedelta.total_seconds() in Python 2.7+)"
@@ -141,7 +148,7 @@ def deltaseconds(timedelta):
 if USING_CPICKLE:
   class SafeUnpickler(object):
     PICKLE_SAFE = {
-      'copy_reg': set(['_reconstructor']),
+        'copy_reg': set(['_reconstructor']),
       '__builtin__': set(['object', 'list', 'set']),
       'collections': set(['deque']),
       'graphite.render.datalib': set(['TimeSeries']),
@@ -167,7 +174,7 @@ if USING_CPICKLE:
 else:
   class SafeUnpickler(pickle.Unpickler):
     PICKLE_SAFE = {
-      'copy_reg': set(['_reconstructor']),
+        'copy_reg': set(['_reconstructor']),
       '__builtin__': set(['object', 'list', 'set']),
       'collections': set(['deque']),
       'graphite.render.datalib': set(['TimeSeries']),
@@ -230,12 +237,12 @@ def logtime(custom_msg=False):
       msg = getattr(wrapped_f, 'msg', msg)
 
       log.info(
-        '{module}.{name} :: {msg} {sec:.6}s'.format(
-          module=f.__module__,
-          name=f.__name__,
-          msg=msg,
-          sec=time.time() - t,
-        )
+          '{module}.{name} :: {msg} {sec:.6}s'.format(
+              module=f.__module__,
+              name=f.__name__,
+              msg=msg,
+              sec=time.time() - t,
+          )
       )
       return res
     return wrapped_f

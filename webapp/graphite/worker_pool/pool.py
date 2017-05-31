@@ -11,6 +11,7 @@ is_initialized = False
 # other stuff that always happens
 thread_count = settings.POOL_WORKERS_PER_BACKEND * len(settings.CLUSTER_SERVERS) + settings.POOL_WORKERS
 
+
 def get_pool():
   with init_lock:
     instance = getattr(get_pool, 'instance', None)

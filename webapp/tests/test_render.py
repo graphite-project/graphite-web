@@ -114,7 +114,7 @@ class RenderTest(TestCase):
                     "None,None,None,None,None,None,None,None,None,None,None,"
                     "None,None,None,None,None,None,None,None,None,None,"
                     "0.12345678901234568,0.4,0.6,inf,-inf,nan")
-        raw_response = "test,%d,%d,1|%s\n" % (ts-59, ts+1, raw_data)
+        raw_response = "test,%d,%d,1|%s\n" % (ts - 59, ts + 1, raw_data)
         self.assertEqual(response.content, raw_response)
 
         response = self.client.get(url, {'target': 'test', 'format': 'json'})
@@ -138,36 +138,35 @@ class RenderTest(TestCase):
         data = json.loads(response.content)
         end = data['data'][-7:]
         self.assertEqual(end,
-            [[(ts - 6) * 1000, None],
-            [(ts - 5) * 1000, 0.123456789012],
-            [(ts - 4) * 1000, 0.4],
-            [(ts - 3) * 1000, 0.6],
-            [(ts - 2) * 1000, float('inf')],
-            [(ts - 1) * 1000, float('-inf')],
-            [ts * 1000, None]])
+                         [[(ts - 6) * 1000, None],
+                          [(ts - 5) * 1000, 0.123456789012],
+                             [(ts - 4) * 1000, 0.4],
+                          [(ts - 3) * 1000, 0.6],
+                          [(ts - 2) * 1000, float('inf')],
+                          [(ts - 1) * 1000, float('-inf')],
+                          [ts * 1000, None]])
 
         response = self.client.get(url, {'target': 'test', 'format': 'rickshaw'})
         data = json.loads(response.content)
         end = data[0]['datapoints'][-7:-1]
         self.assertEqual(end,
-            [{'x': ts - 6, 'y': None},
-            {'x': ts - 5, 'y': 0.12345678901234568},
-            {'x': ts - 4, 'y': 0.4},
-            {'x': ts - 3, 'y': 0.6},
-            {'x': ts - 2, 'y': float('inf')},
-            {'x': ts - 1, 'y': float('-inf')}])
+                         [{'x': ts - 6, 'y': None},
+                          {'x': ts - 5, 'y': 0.12345678901234568},
+                             {'x': ts - 4, 'y': 0.4},
+                          {'x': ts - 3, 'y': 0.6},
+                          {'x': ts - 2, 'y': float('inf')},
+                          {'x': ts - 1, 'y': float('-inf')}])
 
         last = data[0]['datapoints'][-1]
         self.assertEqual(last['x'], ts)
         self.assertTrue(math.isnan(last['y']))
 
-
     def test_hash_request(self):
         # Requests with the same parameters should hash to the same values,
         # regardless of HTTP method.
         target_qd = QueryDict('&target=randomWalk(%27random%20walk%27)'
-                       '&target=randomWalk(%27random%20walk2%27)'
-                       '&target=randomWalk(%27random%20walk3%27)')
+                              '&target=randomWalk(%27random%20walk2%27)'
+                              '&target=randomWalk(%27random%20walk3%27)')
         empty_qd = QueryDict('')
         post_request = HttpRequest()
         post_request.POST = target_qd.copy()
@@ -202,19 +201,19 @@ class RenderTest(TestCase):
         reverse_request_params.POST = empty_qd.copy()
 
         self.assertEqual(hashRequest(request_params),
-                        hashRequest(reverse_request_params))
+                         hashRequest(reverse_request_params))
 
     def test_hash_data(self):
         targets = ['foo=1', 'bar=2']
         start_time = datetime.fromtimestamp(0)
         end_time = datetime.fromtimestamp(1000)
         self.assertEqual(hashData(targets, start_time, end_time),
-                        hashData(reversed(targets), start_time, end_time))
+                         hashData(reversed(targets), start_time, end_time))
 
     def test_correct_timezone(self):
         url = reverse('graphite.render.views.renderView')
         response = self.client.get(url, {
-                 'target': 'constantLine(12)',
+            'target': 'constantLine(12)',
                  'format': 'json',
                  'from': '07:01_20140226',
                  'until': '08:01_20140226',
@@ -226,7 +225,7 @@ class RenderTest(TestCase):
         self.assertEqual(data, expected)
 
         response = self.client.get(url, {
-                 'target': 'constantLine(12)',
+            'target': 'constantLine(12)',
                  'format': 'json',
                  'from': '08:01_20140226',
                  'until': '09:01_20140226',
@@ -240,7 +239,7 @@ class RenderTest(TestCase):
     def test_template_numeric_variables(self):
         url = reverse('graphite.render.views.renderView')
         response = self.client.get(url, {
-                 'target': 'template(constantLine($1),12)',
+            'target': 'template(constantLine($1),12)',
                  'format': 'json',
                  'from': '07:01_20140226',
                  'until': '08:01_20140226',
@@ -252,7 +251,7 @@ class RenderTest(TestCase):
 
         url = reverse('graphite.render.views.renderView')
         response = self.client.get(url, {
-                 'target': 'template(constantLine($num),num=12)',
+            'target': 'template(constantLine($num),num=12)',
                  'format': 'json',
                  'from': '07:01_20140226',
                  'until': '08:01_20140226',
@@ -264,7 +263,7 @@ class RenderTest(TestCase):
 
         url = reverse('graphite.render.views.renderView')
         response = self.client.get(url, {
-                 'target': 'template(constantLine($num))',
+            'target': 'template(constantLine($num))',
                  'format': 'json',
                  'from': '07:01_20140226',
                  'until': '08:01_20140226',
@@ -278,7 +277,7 @@ class RenderTest(TestCase):
     def test_template_string_variables(self):
         url = reverse('graphite.render.views.renderView')
         response = self.client.get(url, {
-                 'target': 'template(time($1),"nameOfSeries")',
+            'target': 'template(time($1),"nameOfSeries")',
                  'format': 'json',
                  'from': '07:01_20140226',
                  'until': '08:01_20140226',
@@ -288,7 +287,7 @@ class RenderTest(TestCase):
 
         url = reverse('graphite.render.views.renderView')
         response = self.client.get(url, {
-                 'target': 'template(time($name),name="nameOfSeries")',
+            'target': 'template(time($name),name="nameOfSeries")',
                  'format': 'json',
                  'from': '07:01_20140226',
                  'until': '08:01_20140226',
@@ -298,7 +297,7 @@ class RenderTest(TestCase):
 
         url = reverse('graphite.render.views.renderView')
         response = self.client.get(url, {
-                 'target': 'template(time($name))',
+            'target': 'template(time($name))',
                  'format': 'json',
                  'from': '07:01_20140226',
                  'until': '08:01_20140226',
@@ -313,14 +312,14 @@ class RenderTest(TestCase):
 
         url = reverse('graphite.render.views.renderView')
         response = self.client.get(url, {
-                 'target': 'template(sumSeries(hosts.$1.cpu),"worker1")',
+            'target': 'template(sumSeries(hosts.$1.cpu),"worker1")',
                  'format': 'json',
         })
         data = json.loads(response.content)[0]
         self.assertEqual(data['target'], 'sumSeries(hosts.worker1.cpu)')
 
         response = self.client.get(url, {
-                 'target': 'template(sumSeries(hosts.$1.cpu),"worker1")',
+            'target': 'template(sumSeries(hosts.$1.cpu),"worker1")',
                  'format': 'json',
                  'template[1]': 'worker*'
         })
@@ -328,31 +327,33 @@ class RenderTest(TestCase):
         self.assertEqual(data['target'], 'sumSeries(hosts.worker*.cpu)')
 
         response = self.client.get(url, {
-                 'target': 'template(sumSeries(hosts.$hostname.cpu))',
+            'target': 'template(sumSeries(hosts.$hostname.cpu))',
                  'format': 'json',
                  'template[hostname]': 'worker*'
         })
         data = json.loads(response.content)[0]
         self.assertEqual(data['target'], 'sumSeries(hosts.worker*.cpu)')
 
+
 class ConsistentHashRingTest(TestCase):
+
     def test_chr_compute_ring_position(self):
-        hosts = [("127.0.0.1", "cache0"),("127.0.0.1", "cache1"),("127.0.0.1", "cache2")]
+        hosts = [("127.0.0.1", "cache0"), ("127.0.0.1", "cache1"), ("127.0.0.1", "cache2")]
         hashring = ConsistentHashRing(hosts)
         self.assertEqual(hashring.compute_ring_position('hosts.worker1.cpu'), 64833)
         self.assertEqual(hashring.compute_ring_position('hosts.worker2.cpu'), 38509)
 
     def test_chr_add_node(self):
-        hosts = [("127.0.0.1", "cache0"),("127.0.0.1", "cache1"),("127.0.0.1", "cache2")]
+        hosts = [("127.0.0.1", "cache0"), ("127.0.0.1", "cache1"), ("127.0.0.1", "cache2")]
         hashring = ConsistentHashRing(hosts)
         self.assertEqual(hashring.nodes, set(hosts))
         hashring.add_node(("127.0.0.1", "cache3"))
-        hosts.insert(0,("127.0.0.1", "cache3"))
+        hosts.insert(0, ("127.0.0.1", "cache3"))
         self.assertEqual(hashring.nodes, set(hosts))
         self.assertEqual(hashring.nodes_len, 4)
 
     def test_chr_add_node_duplicate(self):
-        hosts = [("127.0.0.1", "cache0"),("127.0.0.1", "cache1"),("127.0.0.1", "cache2")]
+        hosts = [("127.0.0.1", "cache0"), ("127.0.0.1", "cache1"), ("127.0.0.1", "cache2")]
         hashring = ConsistentHashRing(hosts)
         self.assertEqual(hashring.nodes, set(hosts))
         hashring.add_node(("127.0.0.1", "cache2"))
@@ -360,7 +361,7 @@ class ConsistentHashRingTest(TestCase):
         self.assertEqual(hashring.nodes_len, 3)
 
     def test_chr_remove_node(self):
-        hosts = [("127.0.0.1", "cache0"),("127.0.0.1", "cache1"),("127.0.0.1", "cache2")]
+        hosts = [("127.0.0.1", "cache0"), ("127.0.0.1", "cache1"), ("127.0.0.1", "cache2")]
         hashring = ConsistentHashRing(hosts)
         self.assertEqual(hashring.nodes, set(hosts))
         hashring.remove_node(("127.0.0.1", "cache2"))
@@ -369,7 +370,7 @@ class ConsistentHashRingTest(TestCase):
         self.assertEqual(hashring.nodes_len, 2)
 
     def test_chr_remove_node_missing(self):
-        hosts = [("127.0.0.1", "cache0"),("127.0.0.1", "cache1"),("127.0.0.1", "cache2")]
+        hosts = [("127.0.0.1", "cache0"), ("127.0.0.1", "cache1"), ("127.0.0.1", "cache2")]
         hashring = ConsistentHashRing(hosts)
         self.assertEqual(hashring.nodes, set(hosts))
         hashring.remove_node(("127.0.0.1", "cache4"))
@@ -377,22 +378,23 @@ class ConsistentHashRingTest(TestCase):
         self.assertEqual(hashring.nodes_len, 3)
 
     def test_chr_get_node(self):
-        hosts = [("127.0.0.1", "cache0"),("127.0.0.1", "cache1"),("127.0.0.1", "cache2")]
+        hosts = [("127.0.0.1", "cache0"), ("127.0.0.1", "cache1"), ("127.0.0.1", "cache2")]
         hashring = ConsistentHashRing(hosts)
         node = hashring.get_node('hosts.worker1.cpu')
         self.assertEqual(node, ('127.0.0.1', 'cache2'))
 
     def test_chr_get_nodes(self):
-        hosts = [("127.0.0.1", "cache0"),("127.0.0.1", "cache1"),("127.0.0.1", "cache2")]
+        hosts = [("127.0.0.1", "cache0"), ("127.0.0.1", "cache1"), ("127.0.0.1", "cache2")]
         hashring = ConsistentHashRing(hosts)
         node = hashring.get_nodes('hosts.worker1.cpu')
         self.assertEqual(node, [('127.0.0.1', 'cache2'), ('127.0.0.1', 'cache0'), ('127.0.0.1', 'cache1')])
 
 
 class ConsistentHashRingTestFNV1A(TestCase):
+
     def test_chr_compute_ring_position_fnv1a(self):
-        hosts = [("127.0.0.1", "ba603c36342304ed77953f84ac4d357b"),("127.0.0.2", "5dd63865534f84899c6e5594dba6749a"),
-        ("127.0.0.3", "866a18b81f2dc4649517a1df13e26f28")]
+        hosts = [("127.0.0.1", "ba603c36342304ed77953f84ac4d357b"), ("127.0.0.2", "5dd63865534f84899c6e5594dba6749a"),
+                 ("127.0.0.3", "866a18b81f2dc4649517a1df13e26f28")]
         hashring = ConsistentHashRing(hosts, hash_type='fnv1a_ch')
         self.assertEqual(hashring.compute_ring_position('hosts.worker1.cpu'), 59573)
         self.assertEqual(hashring.compute_ring_position('hosts.worker2.cpu'), 35749)

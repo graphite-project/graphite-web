@@ -10,6 +10,7 @@ class TestSingleton(unittest.TestCase):
     def _test_singleton(self, cls):
         @cls
         class IntSingleton(object):
+
             def __init__(self, default=0):
                 self.i = default
 

@@ -18,6 +18,7 @@ from graphite.render.attime import parseATTime
 
 
 class EventEncoder(json.JSONEncoder):
+
     def default(self, obj):
         if isinstance(obj, datetime.datetime):
             return epoch(obj)
@@ -88,8 +89,8 @@ def get_data(request):
 
     if 'jsonp' in query_params:
         response = HttpResponse(
-          "%s(%s)" % (query_params.get('jsonp'),
-              json.dumps(fetch(request), cls=EventEncoder)),
+            "%s(%s)" % (query_params.get('jsonp'),
+                        json.dumps(fetch(request), cls=EventEncoder)),
           content_type='text/javascript')
     else:
         response = HttpResponse(

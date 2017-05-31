@@ -5,6 +5,7 @@ from .base import TestCase
 from graphite.render import glyph
 from graphite.render.datalib import TimeSeries
 
+
 class glyphStandaloneFunctionTest(TestCase):
     from datetime import datetime, timedelta
     dt = datetime(2016, 6, 16, 15, 55, 38)
@@ -48,26 +49,26 @@ class glyphStandaloneFunctionTest(TestCase):
 
     def test_safeArgs_all_strings(self):
       with self.assertRaises(TypeError):
-        list(glyph.safeArgs(['a','b','c']))
+        list(glyph.safeArgs(['a', 'b', 'c']))
 
     def test_safeArgs_list_with_string(self):
       with self.assertRaises(TypeError):
-        self.assertEqual(list(glyph.safeArgs(['a',5.1,6])), ['a',5.1,6])
+        self.assertEqual(list(glyph.safeArgs(['a', 5.1, 6])), ['a', 5.1, 6])
 
     def test_safeArgs_empty_string(self):
       self.assertEqual(list(glyph.safeArgs('')), [])
 
     def test_safeArgs_list_all_numbers(self):
-      self.assertEqual(list(glyph.safeArgs([1,5.1,6,])), [1,5.1,6])
+      self.assertEqual(list(glyph.safeArgs([1, 5.1, 6, ])), [1, 5.1, 6])
 
     def test_safeArgs_list_with_nan(self):
-      self.assertEqual(list(glyph.safeArgs([1,5.1,6,float('Nan')])), [1,5.1,6])
+      self.assertEqual(list(glyph.safeArgs([1, 5.1, 6, float('Nan')])), [1, 5.1, 6])
 
     def test_safeArgs_list_with_inf(self):
-      self.assertEqual(list(glyph.safeArgs([1,5.1,6,float('inf')])), [1,5.1,6])
+      self.assertEqual(list(glyph.safeArgs([1, 5.1, 6, float('inf')])), [1, 5.1, 6])
 
     def test_safeArgs_list_with_None(self):
-      self.assertEqual(list(glyph.safeArgs([1,5.1,6,None])), [1,5.1,6])
+      self.assertEqual(list(glyph.safeArgs([1, 5.1, 6, None])), [1, 5.1, 6])
 
     #
     # Testing safeMin()
@@ -85,13 +86,13 @@ class glyphStandaloneFunctionTest(TestCase):
 
     def test_safeMin_list_with_string(self):
       with self.assertRaises(TypeError):
-        glyph.safeMin(['a',10,30])
+        glyph.safeMin(['a', 10, 30])
 
     def test_safeMin_list_all_numbers(self):
-      self.assertEqual(glyph.safeMin([1,5.1,6,]), 1)
+      self.assertEqual(glyph.safeMin([1, 5.1, 6, ]), 1)
 
     def test_safeMin_list_with_nan(self):
-      self.assertEqual(glyph.safeMin([1,5.1,6,float('Nan')]), 1)
+      self.assertEqual(glyph.safeMin([1, 5.1, 6, float('Nan')]), 1)
 
     #
     # Testing safeMax()
@@ -109,13 +110,13 @@ class glyphStandaloneFunctionTest(TestCase):
 
     def test_safeMax_list_with_string(self):
       with self.assertRaises(TypeError):
-        glyph.safeMax(['a',10,30])
+        glyph.safeMax(['a', 10, 30])
 
     def test_safeMax_list_all_numbers(self):
-      self.assertEqual(glyph.safeMax([1,5.1,6,]), 6)
+      self.assertEqual(glyph.safeMax([1, 5.1, 6, ]), 6)
 
     def test_safeMax_list_with_nan(self):
-      self.assertEqual(glyph.safeMax([1,5.1,6,float('Nan')]), 6)
+      self.assertEqual(glyph.safeMax([1, 5.1, 6, float('Nan')]), 6)
 
     #
     # Testing safeSum()
@@ -133,13 +134,13 @@ class glyphStandaloneFunctionTest(TestCase):
 
     def test_safeSum_list_with_string(self):
       with self.assertRaises(TypeError):
-        glyph.safeSum(['a',10,30])
+        glyph.safeSum(['a', 10, 30])
 
     def test_safeSum_list_all_numbers(self):
-      self.assertAlmostEqual(glyph.safeSum([1,5.1,6,]), 12.1, places=4)
+      self.assertAlmostEqual(glyph.safeSum([1, 5.1, 6, ]), 12.1, places=4)
 
     def test_safeSum_list_with_nan(self):
-      self.assertAlmostEqual(glyph.safeSum([1,5.1,6,float('Nan')]), 12.1, places=4)
+      self.assertAlmostEqual(glyph.safeSum([1, 5.1, 6, float('Nan')]), 12.1, places=4)
 
     #
     # Testing any()
@@ -162,32 +163,32 @@ class glyphStandaloneFunctionTest(TestCase):
       self.assertFalse(glyph.any([0]))
 
     def test_any_list_with_string(self):
-      self.assertTrue(glyph.any(['a',10,30]))
+      self.assertTrue(glyph.any(['a', 10, 30]))
 
     def test_any_list_all_numbers(self):
-      self.assertTrue(glyph.any([1,5.1,6,]))
+      self.assertTrue(glyph.any([1, 5.1, 6, ]))
 
     def test_any_list_with_nan(self):
-      self.assertTrue(glyph.any([1,5.1,6,float('Nan')]), 12.1)
+      self.assertTrue(glyph.any([1, 5.1, 6, float('Nan')]), 12.1)
 
     #
     # Testing dataLimits
     #
     def test_dataLimits_defaults(self):
         seriesList = self._generate_series_list()
-        self.assertEqual(glyph.dataLimits(seriesList), (0,100))
+        self.assertEqual(glyph.dataLimits(seriesList), (0, 100))
 
     def test_dataLimits_defaults_ymin_positive(self):
         config = [range(10, 101), range(10, 101), [1, None, None, None, None]]
         seriesList = self._generate_series_list(config)
-        self.assertEqual(glyph.dataLimits(seriesList), (1,100))
+        self.assertEqual(glyph.dataLimits(seriesList), (1, 100))
 
     def test_dataLimits_empty_list(self):
         self.assertEqual(glyph.dataLimits([]), (0.0, 1.0))
 
     def test_dataLimits_drawNull(self):
         seriesList = self._generate_series_list()
-        self.assertEqual(glyph.dataLimits(seriesList, True, False), (0,100))
+        self.assertEqual(glyph.dataLimits(seriesList, True, False), (0, 100))
 
     def test_dataLimits_stacked(self):
         seriesList = self._generate_series_list()
@@ -198,7 +199,7 @@ class glyphStandaloneFunctionTest(TestCase):
         self.assertEqual(glyph.dataLimits(seriesList, True, True), (0, 8))
 
     def test_dataLimits_drawNull_stacked_no_missing(self):
-        config = [range(10, 101), range(10, 101), range(100,300)]
+        config = [range(10, 101), range(10, 101), range(100, 300)]
         seriesList = self._generate_series_list(config)
         self.assertEqual(glyph.dataLimits(seriesList, True, True), (10, 390))
 
@@ -234,16 +235,16 @@ class glyphStandaloneFunctionTest(TestCase):
 
     def test_sort_stacked_only_stack(self):
         seriesList = self._generate_series_list()
-        seriesList[0].options='stacked'
-        seriesList[1].options='stacked'
-        seriesList[2].options='stacked'
+        seriesList[0].options = 'stacked'
+        seriesList[1].options = 'stacked'
+        seriesList[2].options = 'stacked'
         self.assertEqual(glyph.sort_stacked(copy.deepcopy(seriesList)), seriesList)
 
     def test_sort_stacked_stack_and_no_stack(self):
         seriesList = self._generate_series_list()
-        seriesList[0].options='stacked'
-        seriesList[2].options='stacked'
-        self.assertEqual(glyph.sort_stacked(copy.deepcopy(seriesList)), [seriesList[0],seriesList[2],seriesList[1]])
+        seriesList[0].options = 'stacked'
+        seriesList[2].options = 'stacked'
+        self.assertEqual(glyph.sort_stacked(copy.deepcopy(seriesList)), [seriesList[0], seriesList[2], seriesList[1]])
 
     #
     # Testing of format_units
@@ -251,73 +252,73 @@ class glyphStandaloneFunctionTest(TestCase):
     def test_format_units_defaults(self):
       # Tests (input, result, prefix, 'Error String')
       tests = [
-               (1, 1, '', 'format_units(1) != 1'),
+          (1, 1, '', 'format_units(1) != 1'),
                (1.0, 1.0, '', 'format_units(1.0) != 1.0'),
                (0.001, 0.001, '', 'format_units(0.001) != 0.001'),
                (1000, 1.0, 'k', 'format_units(1000) != 1.0 k'),
                (1000000, 1.0, 'M', 'format_units(1000000) != 1.0 M'),
-              ]
-      for (t,r,p,e) in tests:
+      ]
+      for (t, r, p, e) in tests:
           self.assertEqual(glyph.format_units(t), (r, p), e)
 
     def test_format_units_val_None_defaults(self):
       # Tests (input, result, prefix, 'Error String')
       tests = [
-               (1, 1, '', 'format_units(1, None) != 1'),
-               (1.0, 1.0,'',  'format_units(1.0, None) != 1.0'),
+          (1, 1, '', 'format_units(1, None) != 1'),
+               (1.0, 1.0, '', 'format_units(1.0, None) != 1.0'),
                (0.001, 0.001, '', 'format_units(0.001, None) != 0.001'),
                (1000, 1.0, 'k', 'format_units(1000, None) != 1.0 k'),
                (1000000, 1.0, 'M', 'format_units(1000000, None) != 1.0 M'),
-              ]
-      for (t,r,p,e) in tests:
+      ]
+      for (t, r, p, e) in tests:
           self.assertEqual(glyph.format_units(t, None), (r, p), e)
 
     def test_format_units_v_None_si(self):
       # Tests (input, result, prefix, 'Error String')
       tests = [
-               (1, 1, '', 'format_units(1, None, \'si\') != 1'),
+          (1, 1, '', 'format_units(1, None, \'si\') != 1'),
                (1.0, 1.0, '', 'format_units(1.0, None, \'si\') != 1.0'),
                (0.001, 0.001, '', 'format_units(0.001, None, \'si\') != 0.001'),
                (1000, 1.0, 'k', 'format_units(1000, None, \'si\') != 1.0 k'),
                (1000000, 1.0, 'M', 'format_units(1000000, None, \'si\') != 1.0 M'),
-              ]
-      for (t,r,p,e) in tests:
+      ]
+      for (t, r, p, e) in tests:
           self.assertEqual(glyph.format_units(t, None, 'si'), (r, p), e)
 
     def test_format_units_v_None_si_units(self):
       # Tests (input, result, prefix, 'Error String')
       tests = [
-               (1, 1, 'b', 'format_units(1, None, \'si\', \'b\') != 1'),
+          (1, 1, 'b', 'format_units(1, None, \'si\', \'b\') != 1'),
                (1.0, 1.0, 'b', 'format_units(1.0, None, \'si\', \'b\') != 1.0'),
                (0.001, 0.001, 'b', 'format_units(0.001, None, \'si\', \'b\') != 0.001'),
                (1000, 1.0, 'kb', 'format_units(1000, None, \'si\', \'b\') != 1.0 kb'),
                (1000000, 1.0, 'Mb', 'format_units(1000000, None, \'si\', \'b\') != 1.0 Mb'),
-              ]
-      for (t,r,p,e) in tests:
+      ]
+      for (t, r, p, e) in tests:
           self.assertEqual(glyph.format_units(t, None, 'si', 'b'), (r, p), e)
 
     def test_format_units_v_step_si(self):
       # Tests (input, step, result, prefix, 'Error String')
       tests = [
-               (1, 100, 1, '', 'format_units(1, 100, \'si\') != 1'),
+          (1, 100, 1, '', 'format_units(1, 100, \'si\') != 1'),
                (1.0, 100, 1.0, '', 'format_units(1.0, 100, \'si\') != 1.0'),
                (0.001, 100, 0.001, '', 'format_units(0.001, 100, \'si\') != 0.001'),
                (1000, 100, 1000.0, '', 'format_units(1000, 100, \'si\') != 1000.0'),
                (1000000, 100, 1000000.0, '', 'format_units(1000000, 100, \'si\') != 1000000.0'),
-              ]
-      for (t,s,r,p,e) in tests:
+      ]
+      for (t, s, r, p, e) in tests:
           self.assertEqual(glyph.format_units(t, s, 'si'), (r, p), e)
 
     def test_format_units_v_step_si_units(self):
       # Tests (input, step, result, prefix, 'Error String')
       tests = [
-               (1, 100, 1, 'b', 'format_units(1, 100, \'si\', \'b\') != 1'),
+          (1, 100, 1, 'b', 'format_units(1, 100, \'si\', \'b\') != 1'),
                (1.0, 100, 1.0, 'b', 'format_units(1.0, 100, \'si\', \'b\') != 1.0'),
                (0.001, 100, 0.001, 'b', 'format_units(0.001, 100, \'si\', \'b\') != 0.001'),
                (1000, 100, 1000.0, 'b', 'format_units(1000, 100, \'si\', \'b\') != 1000.0'),
                (1000000, 100, 1000000.0, 'b', 'format_units(1000000, 100, \'si\', \'b\') != 1000000.0'),
-              ]
-      for (t,s,r,p,e) in tests:
+      ]
+      for (t, s, r, p, e) in tests:
           self.assertEqual(glyph.format_units(t, s, 'si', 'b'), (r, p), e)
 
     #
@@ -332,21 +333,21 @@ class glyphStandaloneFunctionTest(TestCase):
 
     def test_find_x_times_MIN(self):
       (dt_out, delta_out) = glyph.find_x_times(self.dt, glyph.MIN, 1)
-      expected_dt = self.datetime(self.dt.year, self.dt.month, self.dt.day, self.dt.hour, self.dt.minute+1)
+      expected_dt = self.datetime(self.dt.year, self.dt.month, self.dt.day, self.dt.hour, self.dt.minute + 1)
       expected_delta = self.timedelta(0, 60)
       self.assertEquals(dt_out, expected_dt)
       self.assertEquals(delta_out, expected_delta)
 
     def test_find_x_times_HOUR(self):
       (dt_out, delta_out) = glyph.find_x_times(self.dt, glyph.HOUR, 1)
-      expected_dt = self.datetime(self.dt.year, self.dt.month, self.dt.day, self.dt.hour+1, 0)
+      expected_dt = self.datetime(self.dt.year, self.dt.month, self.dt.day, self.dt.hour + 1, 0)
       expected_delta = self.timedelta(0, 3600)
       self.assertEquals(dt_out, expected_dt)
       self.assertEquals(delta_out, expected_delta)
 
     def test_find_x_times_DAY(self):
-      (dt_out, delta_out) =  glyph.find_x_times(self.dt, glyph.DAY, 1)
-      expected_dt = self.datetime(self.dt.year, self.dt.month, self.dt.day+1, 0, 0)
+      (dt_out, delta_out) = glyph.find_x_times(self.dt, glyph.DAY, 1)
+      expected_dt = self.datetime(self.dt.year, self.dt.month, self.dt.day + 1, 0, 0)
       expected_delta = self.timedelta(1)
       self.assertEquals(dt_out, expected_dt)
       self.assertEquals(delta_out, expected_delta)
@@ -541,42 +542,42 @@ class LinearAxisTicsTest(TestCase):
       y = glyph._LinearAxisTics(0.0, 1000.0, unitSystem='si')
       y.applySettings(axisMin=None, axisMax=None, axisLimit=float('inf'))
       self.assertEqual(y.reconcileLimits(), None)
-      y.span=100
+      y.span = 100
       self.assertEqual(y.makeLabel(51234.1234), '51.2 k ')
 
     def test_LinearAxisTics_makeLabel_large_span_int(self):
       y = glyph._LinearAxisTics(0.0, 1000.0, unitSystem='si')
       y.applySettings(axisMin=None, axisMax=None, axisLimit=float('inf'))
       self.assertEqual(y.reconcileLimits(), None)
-      y.span=100
+      y.span = 100
       self.assertEqual(y.makeLabel(int(100000)), '100.0 k ')
 
     def test_LinearAxisTics_makeLabel_med_span_float(self):
       y = glyph._LinearAxisTics(0.0, 1000.0, unitSystem='si')
       y.applySettings(axisMin=None, axisMax=None, axisLimit=float('inf'))
       self.assertEqual(y.reconcileLimits(), None)
-      y.span=5
+      y.span = 5
       self.assertEqual(y.makeLabel(50.1234), '50.1 ')
 
     def test_LinearAxisTics_makeLabel_med_span_int(self):
       y = glyph._LinearAxisTics(0.0, 1000.0, unitSystem='si')
       y.applySettings(axisMin=None, axisMax=None, axisLimit=float('inf'))
       self.assertEqual(y.reconcileLimits(), None)
-      y.span=5
+      y.span = 5
       self.assertEqual(y.makeLabel(int(10)), '10.0 ')
 
     def test_LinearAxisTics_makeLabel_small_span_float(self):
       y = glyph._LinearAxisTics(0.0, 1000.0, unitSystem='si')
       y.applySettings(axisMin=None, axisMax=None, axisLimit=float('inf'))
       self.assertEqual(y.reconcileLimits(), None)
-      y.span=1
+      y.span = 1
       self.assertEqual(y.makeLabel(5.1234), '5.12 ')
 
     def test_LinearAxisTics_makeLabel_small_span_int(self):
       y = glyph._LinearAxisTics(0.0, 1000.0, unitSystem='si')
       y.applySettings(axisMin=None, axisMax=None, axisLimit=float('inf'))
       self.assertEqual(y.reconcileLimits(), None)
-      y.span=1
+      y.span = 1
       self.assertEqual(y.makeLabel(int(5)), '5.00 ')
 
     #
@@ -623,7 +624,7 @@ class LinearAxisTicsTest(TestCase):
 
     def test_LinearAxisTics_generateSteps_binary_1(self):
       y = glyph._LinearAxisTics(0.0, 1000.0, unitSystem='si')
-      y.binary=True
+      y.binary = True
       for (results, expected) in zip(y.generateSteps(1), [1.0, 2.0, 4.0, 8.0, 16.0]):
         self.assertAlmostEqual(results, expected, places=4)
 
@@ -634,13 +635,13 @@ class LinearAxisTicsTest(TestCase):
 
     def test_LinearAxisTics_generateSteps_binary_5(self):
       y = glyph._LinearAxisTics(0.0, 1000.0, unitSystem='si')
-      y.binary=True
+      y.binary = True
       for (results, expected) in zip(y.generateSteps(5), [8.0, 16.0]):
         self.assertAlmostEqual(results, expected, places=4)
 
     def test_LinearAxisTics_generateSteps_0(self):
       y = glyph._LinearAxisTics(0.0, 1000.0, unitSystem='si')
-      #ValueError: math domain error
+      # ValueError: math domain error
       with self.assertRaises(ValueError):
         list(y.generateSteps(0))
 
@@ -675,27 +676,27 @@ class LinearAxisTicsTest(TestCase):
 
     def test_LinearAxisTics_chooseStep_default_divisors(self):
       y = glyph._LinearAxisTics(0.0, 1000.0, unitSystem='si')
-      self.assertEqual(y.chooseStep([4,5,6]), None)
+      self.assertEqual(y.chooseStep([4, 5, 6]), None)
       self.assertAlmostEqual(y.step, 200, places=4)
 
     def test_LinearAxisTics_chooseStep_bad_divisors(self):
       y = glyph._LinearAxisTics(0.0, 1000.0, unitSystem='si')
       with self.assertRaises(glyph.GraphError):
-        y.chooseStep([0,1,2])
+        y.chooseStep([0, 1, 2])
 
     def test_LinearAxisTics_chooseStep_min_max_0_0(self):
       y = glyph._LinearAxisTics(0.0, 0.0, unitSystem='si')
-      self.assertEqual(y.chooseStep([4,5,6]), None)
+      self.assertEqual(y.chooseStep([4, 5, 6]), None)
       self.assertAlmostEqual(y.step, 0.2, places=5)
 
     def test_LinearAxisTics_chooseStep_min_max_1_0(self):
       y = glyph._LinearAxisTics(1.0, 1.0, unitSystem='si')
-      self.assertEqual(y.chooseStep([4,5,6]), None)
+      self.assertEqual(y.chooseStep([4, 5, 6]), None)
       self.assertAlmostEqual(y.step, 0.05, places=6)
 
     def test_LinearAxisTics_chooseStep_min_max_neg_1_0(self):
       y = glyph._LinearAxisTics(-1.0, -1.0, unitSystem='si')
-      self.assertEqual(y.chooseStep([4,5,6]), None)
+      self.assertEqual(y.chooseStep([4, 5, 6]), None)
       self.assertAlmostEqual(y.step, 0.05, places=6)
 
     #
@@ -755,7 +756,7 @@ class LinearAxisTicsTest(TestCase):
       y = glyph._LinearAxisTics(-1000.0, -1.0, unitSystem='si')
       y.applySettings()
       y.chooseStep()
-      y.step=-1
+      y.step = -1
       y.chooseLimits()
       with self.assertRaises(glyph.GraphError):
         y.getLabelValues()
@@ -765,7 +766,7 @@ class LinearAxisTicsTest(TestCase):
       y.applySettings()
       y.chooseStep()
       y.chooseLimits()
-      y.step=0.001
+      y.step = 0.001
       self.assertEqual(y.getLabelValues(), [-1000.0, -800.0, -600.0, -400.0, -200.0, 0.0])
 
 
@@ -861,42 +862,42 @@ class LogAxisTicsTest(TestCase):
       y = glyph._LogAxisTics(0.0, 1000.0, unitSystem='si')
       y.applySettings(axisMin=None, axisMax=None, axisLimit=float('inf'))
       self.assertEqual(y.reconcileLimits(), None)
-      y.span=100
+      y.span = 100
       self.assertEqual(y.makeLabel(51234.1234), '51.2 k ')
 
     def test_LogAxisTics_makeLabel_large_span_int(self):
       y = glyph._LogAxisTics(0.0, 1000.0, unitSystem='si')
       y.applySettings(axisMin=None, axisMax=None, axisLimit=float('inf'))
       self.assertEqual(y.reconcileLimits(), None)
-      y.span=100
+      y.span = 100
       self.assertEqual(y.makeLabel(int(100000)), '100.0 k ')
 
     def test_LogAxisTics_makeLabel_med_span_float(self):
       y = glyph._LogAxisTics(0.0, 1000.0, unitSystem='si')
       y.applySettings(axisMin=None, axisMax=None, axisLimit=float('inf'))
       self.assertEqual(y.reconcileLimits(), None)
-      y.span=5
+      y.span = 5
       self.assertEqual(y.makeLabel(50.1234), '50.1 ')
 
     def test_LogAxisTics_makeLabel_med_span_int(self):
       y = glyph._LogAxisTics(0.0, 1000.0, unitSystem='si')
       y.applySettings(axisMin=None, axisMax=None, axisLimit=float('inf'))
       self.assertEqual(y.reconcileLimits(), None)
-      y.span=5
+      y.span = 5
       self.assertEqual(y.makeLabel(int(10)), '10.0 ')
 
     def test_LogAxisTics_makeLabel_small_span_float(self):
       y = glyph._LogAxisTics(0.0, 1000.0, unitSystem='si')
       y.applySettings(axisMin=None, axisMax=None, axisLimit=float('inf'))
       self.assertEqual(y.reconcileLimits(), None)
-      y.span=1
+      y.span = 1
       self.assertEqual(y.makeLabel(5.1234), '5.12 ')
 
     def test_LogAxisTics_makeLabel_small_span_int(self):
       y = glyph._LogAxisTics(0.0, 1000.0, unitSystem='si')
       y.applySettings(axisMin=None, axisMax=None, axisLimit=float('inf'))
       self.assertEqual(y.reconcileLimits(), None)
-      y.span=1
+      y.span = 1
       self.assertEqual(y.makeLabel(int(5)), '5.00 ')
 
     #
@@ -943,27 +944,27 @@ class LogAxisTicsTest(TestCase):
 
     def test_LogAxisTics_chooseStep_default_divisors(self):
       y = glyph._LogAxisTics(0.0, 1000.0, unitSystem='si')
-      self.assertEqual(y.chooseStep([4,5,6]), None)
+      self.assertEqual(y.chooseStep([4, 5, 6]), None)
       self.assertEqual(y.step, None)
 
     def test_LogAxisTics_chooseStep_bad_divisors(self):
       y = glyph._LogAxisTics(0.0, 1000.0, unitSystem='si')
-      self.assertEqual(y.chooseStep([0,1,2]), None)
+      self.assertEqual(y.chooseStep([0, 1, 2]), None)
       self.assertEqual(y.step, None)
 
     def test_LogAxisTics_chooseStep_min_max_0_0(self):
       y = glyph._LogAxisTics(0.0, 0.0, unitSystem='si')
-      self.assertEqual(y.chooseStep([4,5,6]), None)
+      self.assertEqual(y.chooseStep([4, 5, 6]), None)
       self.assertEqual(y.step, None)
 
     def test_LogAxisTics_chooseStep_min_max_1_0(self):
       y = glyph._LogAxisTics(1.0, 1.0, unitSystem='si')
-      self.assertEqual(y.chooseStep([4,5,6]), None)
+      self.assertEqual(y.chooseStep([4, 5, 6]), None)
       self.assertEqual(y.step, None)
 
     def test_LogAxisTics_chooseStep_min_max_neg_1_0(self):
       y = glyph._LogAxisTics(-1.0, -1.0, unitSystem='si')
-      self.assertEqual(y.chooseStep([4,5,6]), None)
+      self.assertEqual(y.chooseStep([4, 5, 6]), None)
       self.assertEqual(y.step, None)
 
     #

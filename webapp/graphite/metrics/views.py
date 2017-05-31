@@ -24,6 +24,7 @@ from graphite.readers import RRDReader
 from graphite.storage import STORE
 from graphite.carbonlink import CarbonLink
 from graphite.remote_storage import extractForwardHeaders
+from functools import reduce
 
 try:
   import cPickle as pickle
@@ -61,14 +62,14 @@ def index_json(request):
         for basename in files:
           if fnmatch.fnmatch(basename, '*.rrd'):
             absolute_path = os.path.join(settings.RRD_DIR, root, basename)
-            (basename,extension) = os.path.splitext(basename)
+            (basename, extension) = os.path.splitext(basename)
             metric_path = os.path.join(root, basename)
             rrd = RRDReader(absolute_path, metric_path)
             for datasource_name in rrd.get_datasources(absolute_path):
               matches.append(os.path.join(metric_path, datasource_name))
 
     matches = [
-      m
+        m
       .replace('.wsp', '')
       .replace('.rrd', '')
       .replace('/', '.')
@@ -80,9 +81,9 @@ def index_json(request):
   matches = []
   if cluster and len(settings.CLUSTER_SERVERS) >= 1:
     try:
-      matches = reduce( lambda x, y: list(set(x + y)), \
-        [json.loads(urllib.urlopen('http://' + cluster_server + '/metrics/index.json').read()) \
-        for cluster_server in settings.CLUSTER_SERVERS])
+      matches = reduce(lambda x, y: list(set(x + y)),
+                       [json.loads(urllib.urlopen('http://' + cluster_server + '/metrics/index.json').read())
+                        for cluster_server in settings.CLUSTER_SERVERS])
     except urllib.URLError:
       log.exception()
       return json_response_for(request, matches, jsonp=jsonp, status=500)
@@ -98,11 +99,11 @@ def find_view(request):
   queryParams.update(request.POST)
 
   format = queryParams.get('format', 'treejson')
-  local_only = int( queryParams.get('local', 0) )
-  wildcards = int( queryParams.get('wildcards', 0) )
-  fromTime = int( queryParams.get('from', -1) )
-  untilTime = int( queryParams.get('until', -1) )
-  nodePosition = int( queryParams.get('position', -1) )
+  local_only = int(queryParams.get('local', 0))
+  wildcards = int(queryParams.get('wildcards', 0))
+  fromTime = int(queryParams.get('from', -1))
+  untilTime = int(queryParams.get('until', -1))
+  nodePosition = int(queryParams.get('position', -1))
   jsonp = queryParams.get('jsonp', False)
   forward_headers = extractForwardHeaders(request)
 
@@ -111,10 +112,10 @@ def find_view(request):
   if untilTime == -1:
     untilTime = None
 
-  automatic_variants = int( queryParams.get('automatic_variants', 0) )
+  automatic_variants = int(queryParams.get('automatic_variants', 0))
 
   try:
-    query = str( queryParams['query'] )
+    query = str(queryParams['query'])
   except:
     return HttpResponseBadRequest(content="Missing required parameter 'query'",
                                   content_type='text/plain')
@@ -131,13 +132,13 @@ def find_view(request):
 
     if automatic_variants:
       query_parts = query.split('.')
-      for i,part in enumerate(query_parts):
+      for i, part in enumerate(query_parts):
         if ',' in part and '{' not in part:
           query_parts[i] = '{%s}' % part
       query = '.'.join(query_parts)
 
   try:
-    matches = list( STORE.find(query, fromTime, untilTime, local=local_only, headers=forward_headers) )
+    matches = list(STORE.find(query, fromTime, untilTime, local=local_only, headers=forward_headers))
   except:
     log.exception()
     raise
@@ -172,10 +173,10 @@ def find_view(request):
       results.append(node_info)
 
     if len(results) > 1 and wildcards:
-      wildcardNode = {'name' : '*'}
+      wildcardNode = {'name': '*'}
       results.append(wildcardNode)
 
-    response = json_response_for(request, { 'metrics' : results }, jsonp=jsonp)
+    response = json_response_for(request, {'metrics': results}, jsonp=jsonp)
 
   else:
     return HttpResponseBadRequest(
@@ -192,9 +193,9 @@ def expand_view(request):
   queryParams = request.GET.copy()
   queryParams.update(request.POST)
 
-  local_only = int( queryParams.get('local', 0) )
-  group_by_expr = int( queryParams.get('groupByExpr', 0) )
-  leaves_only = int( queryParams.get('leavesOnly', 0) )
+  local_only = int(queryParams.get('local', 0))
+  group_by_expr = int(queryParams.get('groupByExpr', 0))
+  leaves_only = int(queryParams.get('leavesOnly', 0))
   jsonp = queryParams.get('jsonp', False)
   forward_headers = extractForwardHeaders(request)
 
@@ -203,17 +204,17 @@ def expand_view(request):
     results[query] = set()
     for node in STORE.find(query, local=local_only, headers=forward_headers):
       if node.is_leaf or not leaves_only:
-        results[query].add( node.path )
+        results[query].add(node.path)
 
   # Convert our results to sorted lists because sets aren't json-friendly
   if group_by_expr:
     for query, matches in results.items():
       results[query] = sorted(matches)
   else:
-    results = sorted( reduce(set.union, results.values(), set()) )
+    results = sorted(reduce(set.union, results.values(), set()))
 
   result = {
-    'results' : results
+      'results': results
   }
 
   response = json_response_for(request, result, jsonp=jsonp)
@@ -255,9 +256,9 @@ def set_metadata_view(request):
 
   elif request.method == 'POST':
     if request.META.get('CONTENT_TYPE') == 'application/json':
-      operations = json.loads( request.body )
+      operations = json.loads(request.body)
     else:
-      operations = json.loads( request.POST['operations'] )
+      operations = json.loads(request.POST['operations'])
 
     for op in operations:
       metric = None
@@ -279,19 +280,19 @@ def tree_json(nodes, base_path, wildcards=False):
   results = []
 
   branchNode = {
-    'allowChildren': 1,
+      'allowChildren': 1,
     'expandable': 1,
     'leaf': 0,
   }
   leafNode = {
-    'allowChildren': 0,
+      'allowChildren': 0,
     'expandable': 0,
     'leaf': 1,
   }
 
-  #Add a wildcard node if appropriate
+  # Add a wildcard node if appropriate
   if len(nodes) > 1 and wildcards:
-    wildcardNode = {'text' : '*', 'id' : base_path + '*'}
+    wildcardNode = {'text': '*', 'id': base_path + '*'}
 
     if any(not n.is_leaf for n in nodes):
       wildcardNode.update(branchNode)
@@ -304,14 +305,14 @@ def tree_json(nodes, base_path, wildcards=False):
   found = set()
   results_leaf = []
   results_branch = []
-  for node in nodes: #Now let's add the matching children
+  for node in nodes:  # Now let's add the matching children
     if node.name in found:
       continue
 
     found.add(node.name)
     resultNode = {
-      'text' : urllib.unquote_plus(str(node.name)),
-      'id' : base_path + str(node.name),
+        'text': urllib.unquote_plus(str(node.name)),
+      'id': base_path + str(node.name),
     }
 
     if node.is_leaf:
@@ -332,7 +333,7 @@ def nodes_by_position(matches, position):
   for metric in matches:
     nodes = metric.path.split('.')
     found.add(nodes[position])
-  results = { 'nodes' : sorted(found) }
+  results = {'nodes': sorted(found)}
   return results
 
 

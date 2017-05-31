@@ -32,6 +32,7 @@ from tests.base import TestCase
 
 
 class FinderTest(TestCase):
+
     def test_custom_finder(self):
         store = Store(finders=[get_finder('tests.test_finders.DummyFinder')])
         nodes = list(store.find("foo"))
@@ -65,6 +66,7 @@ class DummyReader(object):
 
 
 class DummyFinder(object):
+
     def find_nodes(self, query):
         if query.pattern == 'foo':
             yield BranchNode('foo')
@@ -102,7 +104,7 @@ class StandardFinderTest(TestCase):
             os.makedirs(self.test_dir)
 
     @patch('graphite.finders.standard.scandir', wraps=scandir_mock)
-    def test_standard_finder(self,scandir_mock):
+    def test_standard_finder(self, scandir_mock):
         try:
             self.create_whisper('foo.wsp')
             self.create_whisper(join('foo', 'bar', 'baz.wsp'))
@@ -198,7 +200,7 @@ class StandardFinderTest(TestCase):
     def test_globstar(self):
         self.addCleanup(self.wipe_whisper)
         finder = get_finder('graphite.finders.standard.StandardFinder')
-        store  = Store(finders=[finder])
+        store = Store(finders=[finder])
 
         query = "x.**.x"
         hits = ["x.x", "x._.x", "x._._.x"]
@@ -216,7 +218,7 @@ class StandardFinderTest(TestCase):
     def test_multiple_globstars(self):
         self.addCleanup(self.wipe_whisper)
         finder = get_finder('graphite.finders.standard.StandardFinder')
-        store  = Store(finders=[finder])
+        store = Store(finders=[finder])
 
         query = "x.**.x.**.x"
         hits = ["x.x.x", "x._.x.x", "x.x._.x", "x._.x._.x", "x._._.x.x", "x.x._._.x"]
@@ -234,7 +236,7 @@ class StandardFinderTest(TestCase):
     def test_terminal_globstar(self):
         self.addCleanup(self.wipe_whisper)
         finder = get_finder('graphite.finders.standard.StandardFinder')
-        store  = Store(finders=[finder])
+        store = Store(finders=[finder])
 
         query = "x.**"
         hits = ["x._", "x._._", "x._._._"]
@@ -256,6 +258,7 @@ class CeresFinderTest(TestCase):
     _original_listdir = os.listdir
 
     unittest.skipIf(not ceres, 'ceres not installed')
+
     def test_ceres_finder(self):
         test_dir = join(settings.CERES_DIR)
 

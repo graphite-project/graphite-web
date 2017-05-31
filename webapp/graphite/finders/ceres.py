@@ -12,6 +12,7 @@ from . import get_real_metric_path, extract_variants
 
 
 class CeresFinder:
+
     def __init__(self, directory=None):
         directory = directory or settings.CERES_DIR
         self.directory = directory

@@ -19,31 +19,33 @@ from send_graph import send_graph_email
 
 fieldRegex = re.compile(r'<([^>]+)>')
 defaultScheme = {
-  'name' : 'Everything',
-  'pattern' : '<category>',
-  'fields' : [ dict(name='category', label='Category') ],
+    'name': 'Everything',
+  'pattern': '<category>',
+  'fields': [dict(name='category', label='Category')],
 }
 defaultUIConfig = {
-  'default_graph_width'  : 400,
-  'default_graph_height' : 250,
-  'refresh_interval'     :  60,
-  'autocomplete_delay'   : 375,
-  'merge_hover_delay'    : 700,
-  'theme'                : 'default',
+    'default_graph_width': 400,
+  'default_graph_height': 250,
+  'refresh_interval': 60,
+  'autocomplete_delay': 375,
+  'merge_hover_delay': 700,
+  'theme': 'default',
 }
 defaultKeyboardShortcuts = {
-  'toggle_toolbar' : 'ctrl-z',
-  'toggle_metrics_panel' : 'ctrl-space',
-  'erase_all_graphs' : 'alt-x',
-  'save_dashboard' : 'alt-s',
-  'completer_add_metrics' : 'alt-enter',
-  'completer_del_metrics' : 'alt-backspace',
-  'give_completer_focus' : 'shift-space',
+    'toggle_toolbar': 'ctrl-z',
+  'toggle_metrics_panel': 'ctrl-space',
+  'erase_all_graphs': 'alt-x',
+  'save_dashboard': 'alt-s',
+  'completer_add_metrics': 'alt-enter',
+  'completer_del_metrics': 'alt-backspace',
+  'give_completer_focus': 'shift-space',
 }
 
 ALL_PERMISSIONS = ['change', 'delete']
 
+
 class DashboardConfig:
+
   def __init__(self):
     self.last_read = 0
     self.schemes = [defaultScheme]
@@ -68,13 +70,13 @@ class DashboardConfig:
         self.ui_config[option] = default_value
 
     if parser.has_option('ui', 'automatic_variants'):
-      self.ui_config['automatic_variants']   = parser.getboolean('ui', 'automatic_variants')
+      self.ui_config['automatic_variants'] = parser.getboolean('ui', 'automatic_variants')
     else:
       self.ui_config['automatic_variants'] = True
 
     self.ui_config['keyboard_shortcuts'] = defaultKeyboardShortcuts.copy()
     if parser.has_section('keyboard-shortcuts'):
-      self.ui_config['keyboard_shortcuts'].update( parser.items('keyboard-shortcuts') )
+      self.ui_config['keyboard_shortcuts'].update(parser.items('keyboard-shortcuts'))
 
     for section in parser.sections():
       if section in ('ui', 'keyboard-shortcuts'):
@@ -91,15 +93,15 @@ class DashboardConfig:
           label = field
 
         fields.append({
-          'name' : field,
-          'label' : label
-        })
+                      'name': field,
+                      'label': label
+                      })
 
       schemes.append({
-        'name' : section,
-        'pattern' : scheme,
-        'fields' : fields,
-      })
+                     'name': section,
+                     'pattern': scheme,
+                     'fields': fields,
+                     })
 
     self.schemes = schemes
 
@@ -127,7 +129,7 @@ def dashboard(request, name=None):
     theme = config.ui_config['theme']
 
   context = {
-    'schemes_json': mark_safe(json.dumps(config.schemes)),
+      'schemes_json': mark_safe(json.dumps(config.schemes)),
     'ui_config_json': mark_safe(json.dumps(config.ui_config)),
     'jsdebug': debug or settings.JAVASCRIPT_DEBUG,
     'debug': debug,
@@ -159,7 +161,7 @@ def template(request, name, val):
 
   try:
     config.check()
-  except OSError, e:
+  except OSError as e:
     if e.errno == errno.ENOENT:
       template_conf_missing = True
     else:
@@ -174,14 +176,14 @@ def template(request, name, val):
     theme = config.ui_config['theme']
 
   context = {
-    'schemes_json' : json.dumps(config.schemes),
-    'ui_config_json' : json.dumps(config.ui_config),
-    'jsdebug' : debug or settings.JAVASCRIPT_DEBUG,
-    'debug' : debug,
-    'theme' : theme,
-    'initialError' : initialError,
-    'querystring' : json.dumps( dict( request.GET.items() ) ),
-    'template_conf_missing' : template_conf_missing,
+      'schemes_json': json.dumps(config.schemes),
+    'ui_config_json': json.dumps(config.ui_config),
+    'jsdebug': debug or settings.JAVASCRIPT_DEBUG,
+    'debug': debug,
+    'theme': theme,
+    'initialError': initialError,
+    'querystring': json.dumps(dict(request.GET.items())),
+    'template_conf_missing': template_conf_missing,
     'userName': '',
     'permissions': json.dumps(getPermissions(request.user)),
     'permissionsUnauthenticated': json.dumps(getPermissions(None))
@@ -201,6 +203,7 @@ def template(request, name, val):
     context['initialState'] = json.dumps(state)
   return render_to_response("dashboard.html", context)
 
+
 def getPermissions(user):
   """Return [change, delete] based on authorisation model and user privileges/groups"""
   if user and not user.is_authenticated():
@@ -214,16 +217,16 @@ def getPermissions(user):
   if settings.DASHBOARD_REQUIRE_PERMISSIONS:
     permissions = [permission for permission in ALL_PERMISSIONS if user.has_perm('dashboard.%s_dashboard' % permission)]
   editGroup = settings.DASHBOARD_REQUIRE_EDIT_GROUP
-  if editGroup and len(user.groups.filter(name = editGroup)) == 0:
+  if editGroup and len(user.groups.filter(name=editGroup)) == 0:
     permissions = []
   return permissions
 
 
 def save(request, name):
   if 'change' not in getPermissions(request.user):
-    return json_response( dict(error="Must be logged in with appropriate permissions to save") )
+    return json_response(dict(error="Must be logged in with appropriate permissions to save"))
   # Deserialize and reserialize as a validation step
-  state = str( json.dumps( json.loads( request.POST['state'] ) ) )
+  state = str(json.dumps(json.loads(request.POST['state'])))
 
   try:
     dashboard = Dashboard.objects.get(name=name)
@@ -231,16 +234,16 @@ def save(request, name):
     dashboard = Dashboard.objects.create(name=name, state=state)
   else:
     dashboard.state = state
-    dashboard.save();
+    dashboard.save()
 
-  return json_response( dict(success=True) )
+  return json_response(dict(success=True))
 
 
 def save_template(request, name, key):
   if 'change' not in getPermissions(request.user):
-    return json_response( dict(error="Must be logged in with appropriate permissions to save the template") )
+    return json_response(dict(error="Must be logged in with appropriate permissions to save the template"))
   # Deserialize and reserialize as a validation step
-  state = str( json.dumps( json.loads( request.POST['state'] ) ) )
+  state = str(json.dumps(json.loads(request.POST['state'])))
 
   try:
     template = Template.objects.get(name=name)
@@ -250,55 +253,55 @@ def save_template(request, name, key):
     template.save()
   else:
     template.setState(state, key)
-    template.save();
+    template.save()
 
-  return json_response( dict(success=True) )
+  return json_response(dict(success=True))
 
 
 def load(request, name):
   try:
     dashboard = Dashboard.objects.get(name=name)
   except Dashboard.DoesNotExist:
-    return json_response( dict(error="Dashboard '%s' does not exist. " % name) )
+    return json_response(dict(error="Dashboard '%s' does not exist. " % name))
 
-  return json_response( dict(state=json.loads(dashboard.state)) )
+  return json_response(dict(state=json.loads(dashboard.state)))
 
 
 def load_template(request, name, val):
   try:
     template = Template.objects.get(name=name)
   except Template.DoesNotExist:
-    return json_response( dict(error="Template '%s' does not exist. " % name) )
+    return json_response(dict(error="Template '%s' does not exist. " % name))
 
   state = json.loads(template.loadState(val))
   state['name'] = '%s/%s' % (name, val)
-  return json_response( dict(state=state) )
+  return json_response(dict(state=state))
 
 
 def delete(request, name):
   if 'delete' not in getPermissions(request.user):
-    return json_response( dict(error="Must be logged in with appropriate permissions to delete") )
+    return json_response(dict(error="Must be logged in with appropriate permissions to delete"))
 
   try:
     dashboard = Dashboard.objects.get(name=name)
   except Dashboard.DoesNotExist:
-    return json_response( dict(error="Dashboard '%s' does not exist. " % name) )
+    return json_response(dict(error="Dashboard '%s' does not exist. " % name))
   else:
     dashboard.delete()
-    return json_response( dict(success=True) )
+    return json_response(dict(success=True))
 
 
 def delete_template(request, name):
   if 'delete' not in getPermissions(request.user):
-    return json_response( dict(error="Must be logged in with appropriate permissions to delete the template") )
+    return json_response(dict(error="Must be logged in with appropriate permissions to delete the template"))
 
   try:
     template = Template.objects.get(name=name)
   except Template.DoesNotExist:
-    return json_response( dict(error="Template '%s' does not exist. " % name) )
+    return json_response(dict(error="Template '%s' does not exist. " % name))
   else:
     template.delete()
-    return json_response( dict(success=True) )
+    return json_response(dict(success=True))
 
 
 def find(request):
@@ -306,7 +309,7 @@ def find(request):
   queryParams.update(request.POST)
 
   query = queryParams.get('query', False)
-  query_terms = set( query.lower().split() )
+  query_terms = set(query.lower().split())
   results = []
 
   # Find all dashboard names that contain each of our query terms as a substring
@@ -315,7 +318,7 @@ def find(request):
     if name.startswith('temporary-'):
       continue
 
-    found = True # blank queries return everything
+    found = True  # blank queries return everything
     for term in query_terms:
       if term in name:
         found = True
@@ -324,9 +327,9 @@ def find(request):
         break
 
     if found:
-      results.append( dict(name=dashboard.name) )
+      results.append(dict(name=dashboard.name))
 
-  return json_response( dict(dashboards=results) )
+  return json_response(dict(dashboards=results))
 
 
 def find_template(request):
@@ -334,14 +337,14 @@ def find_template(request):
   queryParams.update(request.POST)
 
   query = queryParams.get('query', False)
-  query_terms = set( query.lower().split() )
+  query_terms = set(query.lower().split())
   results = []
 
   # Find all dashboard names that contain each of our query terms as a substring
   for template in Template.objects.all():
     name = template.name.lower()
 
-    found = True # blank queries return everything
+    found = True  # blank queries return everything
     for term in query_terms:
       if term in name:
         found = True
@@ -350,9 +353,9 @@ def find_template(request):
         break
 
     if found:
-      results.append( dict(name=template.name) )
+      results.append(dict(name=template.name))
 
-  return json_response( dict(templates=results) )
+  return json_response(dict(templates=results))
 
 
 def help(request):
@@ -387,7 +390,7 @@ def email(request):
 
 
 def create_temporary(request):
-  state = str( json.dumps( json.loads( request.POST['state'] ) ) )
+  state = str(json.dumps(json.loads(request.POST['state'])))
   i = 0
   while True:
     name = "temporary-%d" % i
@@ -399,7 +402,7 @@ def create_temporary(request):
     else:
       i += 1
 
-  return json_response( dict(name=dashboard.name) )
+  return json_response(dict(name=dashboard.name))
 
 
 def json_response(obj):

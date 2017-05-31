@@ -31,18 +31,19 @@ class CarbonLinkRequestError(Exception):
 
 
 class CarbonLinkPool(object):
+
   def __init__(self, hosts, timeout):
-    self.hosts = [ (server, instance) for (server, port, instance) in hosts ]
+    self.hosts = [(server, instance) for (server, port, instance) in hosts]
     self.ports = dict(
-      ((server, instance), port) for (server, port, instance) in hosts )
+        ((server, instance), port) for (server, port, instance) in hosts)
     self.timeout = float(timeout)
     servers = set([server for (server, port, instance) in hosts])
     if len(servers) < settings.REPLICATION_FACTOR:
       raise Exception("REPLICATION_FACTOR=%d cannot exceed servers=%d" % (
-        settings.REPLICATION_FACTOR, len(servers)))
+                      settings.REPLICATION_FACTOR, len(servers)))
 
     self.hash_ring = ConsistentHashRing(
-      self.hosts, hash_type=settings.CARBONLINK_HASHING_TYPE)
+        self.hosts, hash_type=settings.CARBONLINK_HASHING_TYPE)
     self.keyfunc = load_keyfunc()
     self.connections = {}
     self.last_failure = {}
@@ -64,7 +65,7 @@ class CarbonLinkPool(object):
       if len(servers) >= settings.REPLICATION_FACTOR:
         break
 
-    available = [ n for n in nodes if self.is_available(n) ]
+    available = [n for n in nodes if self.is_available(n)]
     return random.choice(available or nodes)
 
   def is_available(self, host):
@@ -80,7 +81,7 @@ class CarbonLinkPool(object):
     try:
       return connectionPool.pop()
     except KeyError:
-      pass #nothing left in the pool, gotta make a new connection
+      pass  # nothing left in the pool, gotta make a new connection
 
     log.cache("CarbonLink creating a new socket for %s" % str(host))
     connection = socket.socket()
@@ -98,7 +99,7 @@ class CarbonLinkPool(object):
     request = dict(type='cache-query', metric=metric)
     results = self.send_request(request)
     log.cache("CarbonLink cache-query request for %s returned %d datapoints" % (
-      metric, len(results['datapoints'])))
+              metric, len(results['datapoints'])))
     return results['datapoints']
 
   def get_metadata(self, metric, key):
@@ -134,7 +135,7 @@ class CarbonLinkPool(object):
     try:
       conn.sendall(request_packet)
       result = self.recv_response(conn)
-    except Exception,e:
+    except Exception as e:
       self.last_failure[host] = time.time()
       log.cache("Exception getting data from cache %s: %s" % (str(host), e))
     else:
@@ -159,7 +160,7 @@ class CarbonLinkPool(object):
       try:
         conn.sendall(request_packet)
         result = self.recv_response(conn)
-      except Exception,e:
+      except Exception as e:
         self.last_failure[host] = time.time()
         log.cache("Exception getting data from cache %s: %s" % (str(host), e))
       else:
@@ -192,6 +193,7 @@ class CarbonLinkPool(object):
 
 @ThreadSafeSingleton
 class GlobalCarbonLinkPool(CarbonLinkPool):
+
   def __init__(self):
     hosts = []
     for host in settings.CARBONLINK_HOSTS:

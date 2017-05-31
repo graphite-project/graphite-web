@@ -17,7 +17,7 @@ limitations under the License."""
 from os.path import dirname, join, abspath
 
 
-#Django settings below, do not touch!
+# Django settings below, do not touch!
 APPEND_SLASH = False
 TEMPLATE_DEBUG = False
 CACHES = {
@@ -30,7 +30,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            join(dirname( abspath(__file__) ), 'templates')
+            join(dirname(abspath(__file__)), 'templates')
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -62,7 +62,7 @@ MEDIA_ROOT = ''
 MEDIA_URL = ''
 
 MIDDLEWARE_CLASSES = (
-  'graphite.middleware.LogExceptionsMiddleware',
+    'graphite.middleware.LogExceptionsMiddleware',
   'django.middleware.common.CommonMiddleware',
   'django.middleware.gzip.GZipMiddleware',
   'django.contrib.sessions.middleware.SessionMiddleware',
@@ -73,7 +73,7 @@ MIDDLEWARE_CLASSES = (
 ROOT_URLCONF = 'graphite.urls'
 
 INSTALLED_APPS = (
-  'graphite.metrics',
+    'graphite.metrics',
   'graphite.render',
   'graphite.browser',
   'graphite.composer',

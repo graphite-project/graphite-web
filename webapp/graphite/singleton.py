@@ -3,6 +3,7 @@ from threading import Lock
 
 
 class Singleton(object):
+
     """
     The Singleton class decorator.
     Like:
@@ -61,6 +62,7 @@ class Singleton(object):
 
 
 class ThreadSafeSingleton(object):
+
     def __init__(self, cls):
         self.__cls = cls
         self.__instance = None

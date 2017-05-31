@@ -26,6 +26,7 @@ def get_finder(finder_path):
 
 
 class Store(object):
+
     def __init__(self, finders=None, hosts=None):
         if finders is None:
             finders = [get_finder(finder_path)
@@ -224,6 +225,7 @@ class Store(object):
 
 
 class FindQuery(object):
+
     def __init__(self, pattern, startTime, endTime, local=False):
         self.pattern = pattern
         self.startTime = startTime

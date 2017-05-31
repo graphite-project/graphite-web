@@ -12,12 +12,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
-import ldap, traceback
+import ldap
+import traceback
 from django.conf import settings
 from django.contrib.auth.models import User
 
 
 class LDAPBackend:
+
   def authenticate(self, username=None, password=None):
     if settings.LDAP_USER_DN_TEMPLATE is not None:
       settings.LDAP_BASE_USER = settings.LDAP_USER_DN_TEMPLATE % {'username': username}
@@ -27,18 +29,18 @@ class LDAPBackend:
       conn.protocol_version = ldap.VERSION3
       if settings.LDAP_USE_TLS:
         conn.start_tls_s()
-      conn.simple_bind_s( settings.LDAP_BASE_USER, settings.LDAP_BASE_PASS )
+      conn.simple_bind_s(settings.LDAP_BASE_USER, settings.LDAP_BASE_PASS)
     except ldap.LDAPError:
       traceback.print_exc()
       return None
 
     scope = ldap.SCOPE_SUBTREE
     filter = settings.LDAP_USER_QUERY % username
-    returnFields = ['dn','mail']
+    returnFields = ['dn', 'mail']
     try:
-      resultID = conn.search( settings.LDAP_SEARCH_BASE, scope, filter, returnFields )
-      resultType, resultData = conn.result( resultID, 0 )
-      if len(resultData) != 1: #User does not exist
+      resultID = conn.search(settings.LDAP_SEARCH_BASE, scope, filter, returnFields)
+      resultType, resultData = conn.result(resultID, 0)
+      if len(resultData) != 1:  # User does not exist
         return None
 
       userDN = resultData[0][0]
@@ -47,11 +49,11 @@ class LDAPBackend:
       except:
         userMail = "Unknown"
 
-      conn.simple_bind_s(userDN,password)
+      conn.simple_bind_s(userDN, password)
       try:
         user = User.objects.get(username=username)
-      except: #First time login, not in django's database
-        randomPasswd = User.objects.make_random_password(length=16) #To prevent login from django db user
+      except:  # First time login, not in django's database
+        randomPasswd = User.objects.make_random_password(length=16)  # To prevent login from django db user
         user = User.objects.create_user(username, userMail, randomPasswd)
         user.save()
 
@@ -61,7 +63,7 @@ class LDAPBackend:
       traceback.print_exc()
       return None
 
-  def get_user(self,user_id):
+  def get_user(self, user_id):
     try:
       return User.objects.get(pk=user_id)
     except User.DoesNotExist:

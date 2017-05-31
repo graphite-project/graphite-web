@@ -27,32 +27,35 @@ def loginView(request):
   else:
     nextPage = request.POST.get('nextPage', reverse('browser'))
   if username and password:
-    user = authenticate(username=username,password=password)
+    user = authenticate(username=username, password=password)
     if user is None:
-      return render_to_response("login.html",{'authenticationFailed' : True, 'nextPage' : nextPage})
+      return render_to_response("login.html", {'authenticationFailed': True, 'nextPage': nextPage})
     elif not user.is_active:
-      return render_to_response("login.html",{'accountDisabled' : True, 'nextPage' : nextPage})
+      return render_to_response("login.html", {'accountDisabled': True, 'nextPage': nextPage})
     else:
-      login(request,user)
+      login(request, user)
       return HttpResponseRedirect(nextPage)
   else:
-    return render_to_response("login.html",{'nextPage' : nextPage})
+    return render_to_response("login.html", {'nextPage': nextPage})
+
 
 def logoutView(request):
   nextPage = request.GET.get('nextPage', reverse('browser'))
   logout(request)
   return HttpResponseRedirect(nextPage)
 
+
 def editProfile(request):
   if not request.user.is_authenticated():
     return HttpResponseRedirect(reverse('browser'))
-  context = { 'profile' : getProfile(request) }
-  return render_to_response("editProfile.html",context)
+  context = {'profile': getProfile(request)}
+  return render_to_response("editProfile.html", context)
+
 
 def updateProfile(request):
-  profile = getProfile(request,allowDefault=False)
+  profile = getProfile(request, allowDefault=False)
   if profile:
-    profile.advancedUI = request.POST.get('advancedUI','off') == 'on'
+    profile.advancedUI = request.POST.get('advancedUI', 'off') == 'on'
     profile.save()
   nextPage = request.POST.get('nextPage', reverse('browser'))
   return HttpResponseRedirect(nextPage)

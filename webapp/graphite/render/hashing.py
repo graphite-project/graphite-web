@@ -20,6 +20,7 @@ import bisect
 try:
   import pyhash
   hasher = pyhash.fnv1a_32()
+
   def fnv32a(string, seed=0x811c9dc5):
     return hasher(string, seed=seed)
 except ImportError:
@@ -36,13 +37,14 @@ except ImportError:
       hval = (hval * fnv_32_prime) % uint32_max
     return hval
 
+
 def hashRequest(request):
   # Normalize the request parameters so ensure we're deterministic
   queryParams = ["%s=%s" % (key, '&'.join(values))
-                 for (key,values) in chain(request.POST.lists(), request.GET.lists())
+                 for (key, values) in chain(request.POST.lists(), request.GET.lists())
                  if not key.startswith('_')]
 
-  normalizedParams = ','.join( sorted(queryParams) )
+  normalizedParams = ','.join(sorted(queryParams))
   return compactHash(normalizedParams)
 
 
@@ -61,6 +63,7 @@ def compactHash(string):
 
 
 class ConsistentHashRing:
+
   def __init__(self, nodes, replica_count=100, hash_type='carbon_ch'):
     self.ring = []
     self.ring_len = len(self.ring)
@@ -73,7 +76,7 @@ class ConsistentHashRing:
 
   def compute_ring_position(self, key):
     if self.hash_type == 'fnv1a_ch':
-      big_hash = '{:x}'.format(int(fnv32a( str(key) )))
+      big_hash = '{:x}'.format(int(fnv32a(str(key))))
       small_hash = int(big_hash[:4], 16) ^ int(big_hash[4:], 16)
     else:
       big_hash = md5(str(key)).hexdigest()

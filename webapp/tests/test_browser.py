@@ -11,6 +11,7 @@ from . import DATA_DIR
 
 
 class BrowserTest(TestCase):
+
     def test_browser(self):
         url = reverse('browser')
         response = self.client.get(url)

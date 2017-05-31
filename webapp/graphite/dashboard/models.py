@@ -2,15 +2,18 @@ from django.db import models
 from graphite.account.models import Profile
 from graphite.util import json
 
+
 class Dashboard(models.Model):
   name = models.CharField(primary_key=True, max_length=128)
   owners = models.ManyToManyField(Profile, related_name='dashboards')
   state = models.TextField()
   __str__ = lambda self: "Dashboard [%s]" % self.name
 
+
 class Template(models.Model):
 
-  class Admin: pass
+  class Admin:
+    pass
   name = models.CharField(primary_key=True, max_length=128)
   owners = models.ManyToManyField(Profile, related_name='templates')
   state = models.TextField()
@@ -20,7 +23,7 @@ class Template(models.Model):
     return self.state.replace('__VALUE__', val)
 
   def setState(self, state, key):
-    #XXX Might not need this
+    # XXX Might not need this
     def replace_string(s):
       if isinstance(s, unicode):
         s = s.replace(key, '__VALUE__')

@@ -7,6 +7,7 @@ from django.http import (HttpResponse as BaseHttpResponse,
 
 
 class ContentTypeMixin(object):
+
     def __init__(self, *args, **kwargs):
         if VERSION < (1, 5) and 'content_type' in kwargs:
             kwargs['mimetype'] = kwargs.pop('content_type')
@@ -25,6 +26,7 @@ class JsonResponse(HttpResponse):
     # Django < 1.7 does not have JsonResponse
     # https://github.com/django/django/commit/024213
     # https://github.com/django/django/blob/master/LICENSE
+
     def __init__(self, data, encoder=DjangoJSONEncoder, safe=True,
                  json_dumps_params=None, **kwargs):
         if safe and not isinstance(data, dict):
