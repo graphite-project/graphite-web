@@ -103,3 +103,21 @@ and whisper file sizes due to lower retention policies.
   interval, the values received are aggregated and published to
   ``carbon-cache.py`` as a single metric.
 
+carbon-aggregator-cache.py
+--------------------------
+
+``carbon-aggregator-cache.py`` combines both ``carbon-aggregator.py`` and
+``carbon-cache.py``. This is useful to reduce the resource and administration
+overhead of running both daemons.
+
+``carbon-aggregator-cache.py`` is configured via:
+
+:doc:`carbon.conf </config-carbon>`
+  The ``[aggregator-cache]`` section defines listener and destination host/ports.
+  
+:doc:`relay-rules.conf </config-carbon>`
+  See `carbon-relay.py` section.
+
+:doc:`aggregation-rules.conf </config-carbon>`
+  See `carbon-aggregator.py` section.
+
