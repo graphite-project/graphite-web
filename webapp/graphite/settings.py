@@ -81,16 +81,23 @@ FIND_TOLERANCE = 2 * FIND_CACHE_DURATION
 DEFAULT_CACHE_DURATION = 60 #metric data and graphs are cached for one minute by default
 DEFAULT_CACHE_POLICY = []
 
+# These can also be configured using:
+# https://docs.djangoproject.com/en/1.11/topics/logging/
+LOG_RENDERING_PERFORMANCE = False
 LOG_CACHE_PERFORMANCE = False
 LOG_ROTATION = True
 LOG_ROTATION_COUNT = 1
+
 MAX_FETCH_RETRIES = 2
+
+# This settings limit metrics find to prevent from too large query
+METRICS_FIND_WARNING_THRESHOLD = float('Inf') # Print a warning if more than X metrics are returned
+METRICS_FIND_FAILURE_THRESHOLD = float('Inf') # Fail if more than X metrics are returned
 
 #Remote rendering settings
 REMOTE_RENDERING = False #if True, rendering is delegated to RENDERING_HOSTS
 RENDERING_HOSTS = []
 REMOTE_RENDER_CONNECT_TIMEOUT = 1.0
-LOG_RENDERING_PERFORMANCE = False
 
 #Miscellaneous settings
 SMTP_SERVER = "localhost"
