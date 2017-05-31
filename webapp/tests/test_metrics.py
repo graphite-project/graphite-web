@@ -105,12 +105,12 @@ class MetricsTester(TestCase):
         self.assertEqual(response.content, "Invalid value for 'format' parameter")
 
         def test_find_view_basics(data):
-          response = self.client.post(url, data)
-          self.assertEqual(response.status_code, 200)
-          self.assertTrue(response.has_header('Pragma'))
-          self.assertTrue(response.has_header('Cache-Control'))
+            response = self.client.post(url, data)
+            self.assertEqual(response.status_code, 200)
+            self.assertTrue(response.has_header('Pragma'))
+            self.assertTrue(response.has_header('Cache-Control'))
 
-          return response.content
+            return response.content
 
         #
         # Default values

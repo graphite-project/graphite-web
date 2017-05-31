@@ -25,13 +25,13 @@ aString = quotedString('string')
 afterNumber = FollowedBy(",") ^ FollowedBy(")") ^ FollowedBy(LineEnd())
 number = Group(
     (sciNumber + afterNumber) |
-  (floatNumber + afterNumber) |
-  (intNumber + afterNumber)
+    (floatNumber + afterNumber) |
+    (intNumber + afterNumber)
 )('number')
 
 boolean = Group(
     CaselessKeyword("true") |
-  CaselessKeyword("false")
+    CaselessKeyword("false")
 )('boolean')
 
 argname = Word(alphas + '_', alphanums + '_')('argname')
@@ -57,9 +57,9 @@ backslash = Literal('\\').suppress()
 symbols = '''(){},=.'"\\'''
 arg = Group(
     boolean |
-  number |
-  aString |
-  expression
+    number |
+    aString |
+    expression
 )('args*')
 kwarg = Group(argname + equal + arg)('kwargs*')
 
@@ -68,11 +68,11 @@ kwargs = delimitedList(kwarg)
 
 call = Group(
     funcname + leftParen +
-  Optional(
-      args + Optional(
-          comma + kwargs
-      )
-  ) + rightParen
+    Optional(
+        args + Optional(
+            comma + kwargs
+        )
+    ) + rightParen
 )('call')
 
 # Metric pattern (aka. pathExpression)
@@ -86,13 +86,13 @@ partialPathElem = Combine(
 
 matchEnum = Combine(
     leftBrace +
-  delimitedList(partialPathElem, combine=True) +
-  rightBrace
+    delimitedList(partialPathElem, combine=True) +
+    rightBrace
 )
 
 pathElement = Combine(
     Group(partialPathElem | matchEnum) +
-  ZeroOrMore(matchEnum | partialPathElem)
+    ZeroOrMore(matchEnum | partialPathElem)
 )
 pathExpression = delimitedList(pathElement, delim='.', combine=True)('pathExpression')
 
@@ -105,9 +105,9 @@ litkwargs = delimitedList(litkwarg)
 
 template = Group(
     Literal('template') + leftParen +
-  (call | pathExpression) +
-  Optional(comma + (litargs | litkwargs)) +
-  rightParen
+    (call | pathExpression) +
+    Optional(comma + (litargs | litkwargs)) +
+    rightParen
 )('template')
 
 if __version__.startswith('1.'):
@@ -119,9 +119,9 @@ else:
 
 
 def enableDebug():
-  for name, obj in globals().items():
-    try:
-      obj.setName(name)
-      obj.setDebug(True)
-    except:
-      pass
+    for name, obj in globals().items():
+        try:
+            obj.setName(name)
+            obj.setDebug(True)
+        except:
+            pass

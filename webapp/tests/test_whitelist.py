@@ -33,7 +33,7 @@ class WhitelistTester(TestCase):
     def test_whitelist_show_no_whitelist(self):
         url = reverse('whitelist_show')
         with self.assertRaises(IOError):
-          response = self.client.get(url)
+            response = self.client.get(url)
 
     def test_whitelist_show(self):
         url = reverse('whitelist_show')

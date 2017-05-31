@@ -13,18 +13,18 @@ thread_count = settings.POOL_WORKERS_PER_BACKEND * len(settings.CLUSTER_SERVERS)
 
 
 def get_pool():
-  with init_lock:
-    instance = getattr(get_pool, 'instance', None)
-    if instance is None:
-      instance = ThreadPool(thread_count)
-      setattr(get_pool, 'instance', instance)
-      is_initialized = True
-  return instance
+    with init_lock:
+        instance = getattr(get_pool, 'instance', None)
+        if instance is None:
+            instance = ThreadPool(thread_count)
+            setattr(get_pool, 'instance', instance)
+            is_initialized = True
+    return instance
 
 
 def stop_pool():
-  with init_lock:
-    if not is_initialized:
-      return
+    with init_lock:
+        if not is_initialized:
+            return
 
-    get_pool().close()
+        get_pool().close()

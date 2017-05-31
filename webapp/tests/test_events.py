@@ -168,11 +168,11 @@ class EventTest(TestCase):
         url = reverse('graphite.render.views.renderView')
         response = self.client.get(url, {
             'target': 'timeShift(events("tag1"), "1d")',
-                 'format': 'json',
+            'format': 'json',
         })
         self.assertEqual(response.status_code, 200)
         response = self.client.get(url, {
             'target': 'timeShift(events("tag1", "tag2"), "1d")',
-                 'format': 'json',
+            'format': 'json',
         })
         self.assertEqual(response.status_code, 200)

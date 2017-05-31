@@ -214,10 +214,10 @@ class RenderTest(TestCase):
         url = reverse('graphite.render.views.renderView')
         response = self.client.get(url, {
             'target': 'constantLine(12)',
-                 'format': 'json',
-                 'from': '07:01_20140226',
-                 'until': '08:01_20140226',
-                 # tz is UTC
+            'format': 'json',
+            'from': '07:01_20140226',
+            'until': '08:01_20140226',
+            # tz is UTC
         })
         data = json.loads(response.content)[0]['datapoints']
         # all the from/until/tz combinations lead to the same window
@@ -226,10 +226,10 @@ class RenderTest(TestCase):
 
         response = self.client.get(url, {
             'target': 'constantLine(12)',
-                 'format': 'json',
-                 'from': '08:01_20140226',
-                 'until': '09:01_20140226',
-                 'tz': 'Europe/Berlin',
+            'format': 'json',
+            'from': '08:01_20140226',
+            'until': '09:01_20140226',
+            'tz': 'Europe/Berlin',
         })
         data = json.loads(response.content)[0]['datapoints']
         # all the from/until/tz combinations lead to the same window
@@ -240,9 +240,9 @@ class RenderTest(TestCase):
         url = reverse('graphite.render.views.renderView')
         response = self.client.get(url, {
             'target': 'template(constantLine($1),12)',
-                 'format': 'json',
-                 'from': '07:01_20140226',
-                 'until': '08:01_20140226',
+            'format': 'json',
+            'from': '07:01_20140226',
+            'until': '08:01_20140226',
         })
         data = json.loads(response.content)[0]['datapoints']
         # all the from/until/tz combinations lead to the same window
@@ -252,9 +252,9 @@ class RenderTest(TestCase):
         url = reverse('graphite.render.views.renderView')
         response = self.client.get(url, {
             'target': 'template(constantLine($num),num=12)',
-                 'format': 'json',
-                 'from': '07:01_20140226',
-                 'until': '08:01_20140226',
+            'format': 'json',
+            'from': '07:01_20140226',
+            'until': '08:01_20140226',
         })
         data = json.loads(response.content)[0]['datapoints']
         # all the from/until/tz combinations lead to the same window
@@ -264,10 +264,10 @@ class RenderTest(TestCase):
         url = reverse('graphite.render.views.renderView')
         response = self.client.get(url, {
             'target': 'template(constantLine($num))',
-                 'format': 'json',
-                 'from': '07:01_20140226',
-                 'until': '08:01_20140226',
-                 'template[num]': '12',
+            'format': 'json',
+            'from': '07:01_20140226',
+            'until': '08:01_20140226',
+            'template[num]': '12',
         })
         data = json.loads(response.content)[0]['datapoints']
         # all the from/until/tz combinations lead to the same window
@@ -278,9 +278,9 @@ class RenderTest(TestCase):
         url = reverse('graphite.render.views.renderView')
         response = self.client.get(url, {
             'target': 'template(time($1),"nameOfSeries")',
-                 'format': 'json',
-                 'from': '07:01_20140226',
-                 'until': '08:01_20140226',
+            'format': 'json',
+            'from': '07:01_20140226',
+            'until': '08:01_20140226',
         })
         data = json.loads(response.content)[0]
         self.assertEqual(data['target'], 'nameOfSeries')
@@ -288,9 +288,9 @@ class RenderTest(TestCase):
         url = reverse('graphite.render.views.renderView')
         response = self.client.get(url, {
             'target': 'template(time($name),name="nameOfSeries")',
-                 'format': 'json',
-                 'from': '07:01_20140226',
-                 'until': '08:01_20140226',
+            'format': 'json',
+            'from': '07:01_20140226',
+            'until': '08:01_20140226',
         })
         data = json.loads(response.content)[0]
         self.assertEqual(data['target'], 'nameOfSeries')
@@ -298,10 +298,10 @@ class RenderTest(TestCase):
         url = reverse('graphite.render.views.renderView')
         response = self.client.get(url, {
             'target': 'template(time($name))',
-                 'format': 'json',
-                 'from': '07:01_20140226',
-                 'until': '08:01_20140226',
-                 'template[name]': 'nameOfSeries',
+            'format': 'json',
+            'from': '07:01_20140226',
+            'until': '08:01_20140226',
+            'template[name]': 'nameOfSeries',
         })
         data = json.loads(response.content)[0]
         self.assertEqual(data['target'], 'nameOfSeries')
@@ -313,23 +313,23 @@ class RenderTest(TestCase):
         url = reverse('graphite.render.views.renderView')
         response = self.client.get(url, {
             'target': 'template(sumSeries(hosts.$1.cpu),"worker1")',
-                 'format': 'json',
+            'format': 'json',
         })
         data = json.loads(response.content)[0]
         self.assertEqual(data['target'], 'sumSeries(hosts.worker1.cpu)')
 
         response = self.client.get(url, {
             'target': 'template(sumSeries(hosts.$1.cpu),"worker1")',
-                 'format': 'json',
-                 'template[1]': 'worker*'
+            'format': 'json',
+            'template[1]': 'worker*'
         })
         data = json.loads(response.content)[0]
         self.assertEqual(data['target'], 'sumSeries(hosts.worker*.cpu)')
 
         response = self.client.get(url, {
             'target': 'template(sumSeries(hosts.$hostname.cpu))',
-                 'format': 'json',
-                 'template[hostname]': 'worker*'
+            'format': 'json',
+            'template[hostname]': 'worker*'
         })
         data = json.loads(response.content)[0]
         self.assertEqual(data['target'], 'sumSeries(hosts.worker*.cpu)')

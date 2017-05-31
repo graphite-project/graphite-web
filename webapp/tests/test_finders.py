@@ -90,9 +90,9 @@ class StandardFinderTest(TestCase):
             os.makedirs(dirname(path))
         whisper.create(path, [(1, 60)])
         if gz:
-          with open(path, 'rb') as f_in, gzip.open("%s.gz" % path, 'wb') as f_out:
-             shutil.copyfileobj(f_in, f_out)
-          os.remove(path)
+            with open(path, 'rb') as f_in, gzip.open("%s.gz" % path, 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+            os.remove(path)
 
     def wipe_whisper(self):
         try:

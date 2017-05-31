@@ -96,5 +96,4 @@ class GraphiteLogger:
   def rendering(self, msg, *args, **kwargs):
     return self.renderingLogger.log(30, msg, *args, **kwargs)
 
-
 log = GraphiteLogger()  # import-shared logger instance

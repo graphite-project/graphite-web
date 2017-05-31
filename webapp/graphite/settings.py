@@ -157,13 +157,13 @@ FLUSHRRDCACHED = ''
 
 # Load our local_settings
 try:
-  from graphite.local_settings import *  # noqa
+    from graphite.local_settings import *  # noqa
 except ImportError:
-  print >> sys.stderr, "Could not import graphite.local_settings, using defaults!"
+    print >> sys.stderr, "Could not import graphite.local_settings, using defaults!"
 
 # Load Django settings if they werent picked up in local_settings
 if not GRAPHITE_WEB_APP_SETTINGS_LOADED:
-  from graphite.app_settings import *  # noqa
+    from graphite.app_settings import *  # noqa
 
 STATICFILES_DIRS = (
     join(WEBAPP_DIR, 'content'),
@@ -172,48 +172,48 @@ STATICFILES_DIRS = (
 # Set config dependent on flags set in local_settings
 # Path configuration
 if not STATIC_ROOT:
-  STATIC_ROOT = join(GRAPHITE_ROOT, 'static')
+    STATIC_ROOT = join(GRAPHITE_ROOT, 'static')
 
 if not CONF_DIR:
-  CONF_DIR = os.environ.get('GRAPHITE_CONF_DIR', join(GRAPHITE_ROOT, 'conf'))
+    CONF_DIR = os.environ.get('GRAPHITE_CONF_DIR', join(GRAPHITE_ROOT, 'conf'))
 if not DASHBOARD_CONF:
-  DASHBOARD_CONF = join(CONF_DIR, 'dashboard.conf')
+    DASHBOARD_CONF = join(CONF_DIR, 'dashboard.conf')
 if not GRAPHTEMPLATES_CONF:
-  GRAPHTEMPLATES_CONF = join(CONF_DIR, 'graphTemplates.conf')
+    GRAPHTEMPLATES_CONF = join(CONF_DIR, 'graphTemplates.conf')
 
 if not STORAGE_DIR:
-  STORAGE_DIR = os.environ.get('GRAPHITE_STORAGE_DIR', join(GRAPHITE_ROOT, 'storage'))
+    STORAGE_DIR = os.environ.get('GRAPHITE_STORAGE_DIR', join(GRAPHITE_ROOT, 'storage'))
 if not WHITELIST_FILE:
-  WHITELIST_FILE = join(STORAGE_DIR, 'lists', 'whitelist')
+    WHITELIST_FILE = join(STORAGE_DIR, 'lists', 'whitelist')
 if not INDEX_FILE:
-  INDEX_FILE = join(STORAGE_DIR, 'index')
+    INDEX_FILE = join(STORAGE_DIR, 'index')
 if not LOG_DIR:
-  LOG_DIR = join(STORAGE_DIR, 'log', 'webapp')
+    LOG_DIR = join(STORAGE_DIR, 'log', 'webapp')
 if not WHISPER_DIR:
-  WHISPER_DIR = join(STORAGE_DIR, 'whisper/')
+    WHISPER_DIR = join(STORAGE_DIR, 'whisper/')
 if not CERES_DIR:
-  CERES_DIR = join(STORAGE_DIR, 'ceres/')
+    CERES_DIR = join(STORAGE_DIR, 'ceres/')
 if not RRD_DIR:
-  RRD_DIR = join(STORAGE_DIR, 'rrd/')
+    RRD_DIR = join(STORAGE_DIR, 'rrd/')
 if not STANDARD_DIRS:
-  try:
-    import whisper  # noqa
-    if os.path.exists(WHISPER_DIR):
-      STANDARD_DIRS.append(WHISPER_DIR)
-  except ImportError:
-    print >> sys.stderr, "WARNING: whisper module could not be loaded, whisper support disabled"
-  try:
-    import ceres  # noqa
-    if os.path.exists(CERES_DIR):
-      STANDARD_DIRS.append(CERES_DIR)
-  except ImportError:
-    pass
-  try:
-    import rrdtool  # noqa
-    if os.path.exists(RRD_DIR):
-      STANDARD_DIRS.append(RRD_DIR)
-  except ImportError:
-    pass
+    try:
+        import whisper  # noqa
+        if os.path.exists(WHISPER_DIR):
+            STANDARD_DIRS.append(WHISPER_DIR)
+    except ImportError:
+        print >> sys.stderr, "WARNING: whisper module could not be loaded, whisper support disabled"
+    try:
+        import ceres  # noqa
+        if os.path.exists(CERES_DIR):
+            STANDARD_DIRS.append(CERES_DIR)
+    except ImportError:
+        pass
+    try:
+        import rrdtool  # noqa
+        if os.path.exists(RRD_DIR):
+            STANDARD_DIRS.append(RRD_DIR)
+    except ImportError:
+        pass
 
 if DATABASES is None:
     DATABASES = {
@@ -235,7 +235,7 @@ if URL_PREFIX and not STATIC_URL.startswith(URL_PREFIX):
 # This is set here so that a user-set STORAGE_DIR is available
 if 'sqlite3' in DATABASES.get('default', {}).get('ENGINE', '') \
         and not DATABASES.get('default', {}).get('NAME'):
-  DATABASES['default']['NAME'] = join(STORAGE_DIR, 'graphite.db')
+    DATABASES['default']['NAME'] = join(STORAGE_DIR, 'graphite.db')
 
 # Caching shortcuts
 if MEMCACHE_HOSTS:
@@ -249,19 +249,19 @@ if MEMCACHE_HOSTS:
 
 # Authentication shortcuts
 if USE_LDAP_AUTH and LDAP_URI is None:
-  LDAP_URI = "ldap://%s:%d/" % (LDAP_SERVER, LDAP_PORT)
+    LDAP_URI = "ldap://%s:%d/" % (LDAP_SERVER, LDAP_PORT)
 
 if USE_REMOTE_USER_AUTHENTICATION or REMOTE_USER_BACKEND:
-  MIDDLEWARE_CLASSES += ('django.contrib.auth.middleware.RemoteUserMiddleware',)
-  if REMOTE_USER_BACKEND:
-    AUTHENTICATION_BACKENDS.insert(0, REMOTE_USER_BACKEND)
-  else:
-    AUTHENTICATION_BACKENDS.insert(0, 'django.contrib.auth.backends.RemoteUserBackend')
+    MIDDLEWARE_CLASSES += ('django.contrib.auth.middleware.RemoteUserMiddleware',)
+    if REMOTE_USER_BACKEND:
+        AUTHENTICATION_BACKENDS.insert(0, REMOTE_USER_BACKEND)
+    else:
+        AUTHENTICATION_BACKENDS.insert(0, 'django.contrib.auth.backends.RemoteUserBackend')
 
 if USE_LDAP_AUTH:
-  AUTHENTICATION_BACKENDS.insert(0, 'graphite.account.ldapBackend.LDAPBackend')
+    AUTHENTICATION_BACKENDS.insert(0, 'graphite.account.ldapBackend.LDAPBackend')
 
 if SECRET_KEY == 'UNSAFE_DEFAULT':
-  warn('SECRET_KEY is set to an unsafe default. This should be set in local_settings.py for better security')
+    warn('SECRET_KEY is set to an unsafe default. This should be set in local_settings.py for better security')
 
 USE_TZ = True

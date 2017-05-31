@@ -19,23 +19,23 @@ from graphite.logger import log
 
 
 def getProfile(request, allowDefault=True):
-  if request.user.is_authenticated():
-    return Profile.objects.get_or_create(user=request.user)[0]
-  elif allowDefault:
-    return default_profile()
+    if request.user.is_authenticated():
+        return Profile.objects.get_or_create(user=request.user)[0]
+    elif allowDefault:
+        return default_profile()
 
 
 def getProfileByUsername(username):
-  try:
-    return Profile.objects.get(user__username=username)
-  except Profile.DoesNotExist:
-    return None
+    try:
+        return Profile.objects.get(user__username=username)
+    except Profile.DoesNotExist:
+        return None
 
 
 def default_profile():
-    # '!' is an unusable password. Since the default user never authenticates
-    # this avoids creating a default (expensive!) password hash at every
-    # default_profile() call.
+        # '!' is an unusable password. Since the default user never authenticates
+        # this avoids creating a default (expensive!) password hash at every
+        # default_profile() call.
     user, created = User.objects.get_or_create(
         username='default', defaults={'email': 'default@localhost.localdomain',
                                       'password': '!'})

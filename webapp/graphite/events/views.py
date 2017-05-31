@@ -38,14 +38,14 @@ def view_events(request):
 def detail(request, event_id):
     if request.META['HTTP_ACCEPT'] == 'application/json':
         try:
-           e = Event.objects.get(id=event_id)
-           e.tags = e.tags.split()
-           response = JsonResponse(model_to_dict(e))
-           return response
+            e = Event.objects.get(id=event_id)
+            e.tags = e.tags.split()
+            response = JsonResponse(model_to_dict(e))
+            return response
         except ObjectDoesNotExist:
-           error = {'error': 'Event matching query does not exist'}
-           response = JsonResponse(error, status=404)
-           return response
+            error = {'error': 'Event matching query does not exist'}
+            response = JsonResponse(error, status=404)
+            return response
     else:
         e = get_object_or_404(Event, pk=event_id)
         context = {'event': e}
@@ -91,7 +91,7 @@ def get_data(request):
         response = HttpResponse(
             "%s(%s)" % (query_params.get('jsonp'),
                         json.dumps(fetch(request), cls=EventEncoder)),
-          content_type='text/javascript')
+            content_type='text/javascript')
     else:
         response = HttpResponse(
             json.dumps(fetch(request), cls=EventEncoder),

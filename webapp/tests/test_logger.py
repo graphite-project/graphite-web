@@ -27,7 +27,7 @@ class TestLogger(unittest.TestCase):
         message = 'Test Info Message'
         log.info(message)
         lines = [l for l in open(os.path.join(settings.LOG_DIR,
-                 'info.log')).readlines()]
+                                              'info.log')).readlines()]
         self.assertEqual(message, lines[-1].split('::')[1].strip())
 
     def test_rotate(self):
@@ -36,7 +36,7 @@ class TestLogger(unittest.TestCase):
         handler.doRollover()
         files = glob.glob(os.path.join(settings.LOG_DIR, 'info.log.*'))
         matches = [re.match('info.log.[0-9]{4}-[0-9]{2}-[0-9]{2}',
-                   os.path.basename(f)) for f in files]
+                            os.path.basename(f)) for f in files]
         self.assertTrue(any(matches))
 
     def test_no_rotate(self):

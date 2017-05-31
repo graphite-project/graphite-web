@@ -4,5 +4,5 @@ from graphite.worker_pool.pool import stop_pool
 
 class TestCase(OriginalTestCase):
 
-  def tearDown(self):
-    stop_pool()
+    def tearDown(self):
+        stop_pool()
