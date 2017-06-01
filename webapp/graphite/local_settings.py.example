@@ -1,4 +1,5 @@
 ## Graphite local_settings.py
+
 # Edit this file to customize the default Graphite webapp settings
 #
 # Additional customizations to Django settings can be added to this file as well
