@@ -410,7 +410,7 @@ class MultiReaderTests(TestCase):
         if isinstance(results, FetchInProgress):
           results = results.waitForResults()
 
-        (time_info, values) = results
+        (_, values) = results
         self.assertEqual(values, [None, None, None, None, 1.0])
 
     # Confirm merge works.

@@ -121,7 +121,7 @@ class WhisperReadersTests(TestCase):
         self.addCleanup(self.wipe_whisper_hosts)
 
         reader = WhisperReader(self.worker1, 'hosts.worker1.cpu')
-        (time_info, values) = reader.fetch(self.start_ts-5, self.start_ts)
+        (_, values) = reader.fetch(self.start_ts-5, self.start_ts)
         self.assertEqual(values, [None, None, None, None, 1.0])
 
     # Whisper Reader broken file
