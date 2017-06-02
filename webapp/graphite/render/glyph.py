@@ -660,7 +660,7 @@ class LineGraph(Graph):
     self.setFont()
 
     if not params.get('hideLegend', len(self.data) > settings.LEGEND_MAX_ITEMS):
-      elements = [ (series.name,series.color,series.options.get('secondYAxis')) for series in self.data if series.name ]
+      elements = [ (series.name,series.color,series.options.get('secondYAxis')) for series in self.data if series.name and not all(v is None for v in series) ]
       self.drawLegend(elements, params.get('uniqueLegend', False))
 
     #Setup axes, labels, and grid
