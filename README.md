@@ -2,6 +2,7 @@
 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/5e94ef79c2ea441aaf209cfb2851849e)](https://www.codacy.com/app/graphite-project/graphite-web?utm_source=github.com&utm_medium=referral&utm_content=graphite-project/graphite-web&utm_campaign=badger)
 [![Build Status](https://travis-ci.org/graphite-project/graphite-web.png?branch=master)](https://travis-ci.org/graphite-project/graphite-web)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bhttps%3A%2F%2Fgithub.com%2Fgraphite-project%2Fgraphite-web.svg?type=shield)](https://app.fossa.io/projects/git%2Bhttps%3A%2F%2Fgithub.com%2Fgraphite-project%2Fgraphite-web?ref=badge_shield)
 
 ## Overview
 
