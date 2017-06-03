@@ -1,5 +1,6 @@
 # Graphite-Web
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/5e94ef79c2ea441aaf209cfb2851849e)](https://www.codacy.com/app/graphite-project/graphite-web?utm_source=github.com&utm_medium=referral&utm_content=graphite-project/graphite-web&utm_campaign=badger)
 [![Build Status](https://travis-ci.org/graphite-project/graphite-web.png?branch=master)](https://travis-ci.org/graphite-project/graphite-web)
 
 ## Overview
