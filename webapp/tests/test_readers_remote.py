@@ -6,7 +6,7 @@ import pickle
 from urllib3.response import HTTPResponse
 from StringIO import StringIO
 
-from graphite.storage import Store
+from graphite.finders.remote import RemoteFinder
 from graphite.readers.remote import RemoteReader
 from graphite.wsgi import application  # NOQA makes sure we have a working WSGI app
 
@@ -18,9 +18,9 @@ class RemoteReaderTests(TestCase):
 
     @mock.patch('django.conf.settings.CLUSTER_SERVERS', ['127.0.0.1', '8.8.8.8'])
     def test_RemoteReader_init(self):
-        test_store = Store()
-        store = test_store.remote_stores[0]
-        reader = RemoteReader(store,
+        test_finder = RemoteFinder()
+        finder = test_finder.remote_stores[0]
+        reader = RemoteReader(finder,
                               {'intervals': []},
                               bulk_query='a.b.c.d')
 
@@ -28,9 +28,9 @@ class RemoteReaderTests(TestCase):
 
     @mock.patch('django.conf.settings.CLUSTER_SERVERS', ['127.0.0.1', '8.8.8.8'])
     def test_RemoteReader_repr(self):
-        test_store = Store()
-        store = test_store.remote_stores[0]
-        reader = RemoteReader(store,
+        test_finder = RemoteFinder()
+        finder = test_finder.remote_stores[0]
+        reader = RemoteReader(finder,
                               {'intervals': []},
                               bulk_query='a.b.c.d')
 
@@ -39,9 +39,9 @@ class RemoteReaderTests(TestCase):
 
     @mock.patch('django.conf.settings.CLUSTER_SERVERS', ['127.0.0.1', '8.8.8.8'])
     def test_RemoteReader_get_intervals(self):
-        test_store = Store()
-        store = test_store.remote_stores[0]
-        reader = RemoteReader(store,
+        test_finder = RemoteFinder()
+        finder = test_finder.remote_stores[0]
+        reader = RemoteReader(finder,
                               {'intervals': []},
                               bulk_query='a.b.c.d')
         self.assertEqual(reader.get_intervals(), [])
@@ -64,9 +64,9 @@ class RemoteReaderTests(TestCase):
         ]
         headers = ''
 
-        test_store = Store()
-        store = test_store.remote_stores[0]
-        reader = RemoteReader(store,
+        test_finder = RemoteFinder()
+        finder = test_finder.remote_stores[0]
+        reader = RemoteReader(finder,
                               {'intervals': [], 'path': 'a.b.c.d'},
                               bulk_query='a.b.c.d')
 
@@ -93,9 +93,9 @@ class RemoteReaderTests(TestCase):
     #
     @mock.patch('django.conf.settings.CLUSTER_SERVERS', ['127.0.0.1', '8.8.8.8'])
     def test_RemoteReader_fetch_list_empty_bulk_query(self):
-        test_store = Store()
-        store = test_store.remote_stores[0]
-        reader = RemoteReader(store,
+        test_finder = RemoteFinder()
+        finder = test_finder.remote_stores[0]
+        reader = RemoteReader(finder,
                               {'intervals': []},
                               bulk_query='')
         startTime = 1496262000
@@ -108,9 +108,9 @@ class RemoteReaderTests(TestCase):
     @mock.patch('urllib3.PoolManager.request')
     @mock.patch('django.conf.settings.CLUSTER_SERVERS', ['127.0.0.1', '8.8.8.8'])
     def test_RemoteReader_fetch_list_no_worker_pool(self, http_request):
-        test_store = Store()
-        store = test_store.remote_stores[0]
-        reader = RemoteReader(store,
+        test_finder = RemoteFinder()
+        finder = test_finder.remote_stores[0]
+        reader = RemoteReader(finder,
                               {'intervals': []},
                               bulk_query='a.b.c.d')
         startTime = 1496262000
@@ -135,9 +135,9 @@ class RemoteReaderTests(TestCase):
     @mock.patch('urllib3.PoolManager.request')
     @mock.patch('django.conf.settings.CLUSTER_SERVERS', ['127.0.0.1', '8.8.8.8'])
     def test_RemoteReader_fetch_list(self, http_request):
-        test_store = Store()
-        store = test_store.remote_stores[0]
-        reader = RemoteReader(store,
+        test_finder = RemoteFinder()
+        finder = test_finder.remote_stores[0]
+        reader = RemoteReader(finder,
                               {'intervals': []},
                               bulk_query='a.b.c.d')
         startTime = 1496262000
@@ -163,9 +163,9 @@ class RemoteReaderTests(TestCase):
     @mock.patch('urllib3.PoolManager.request')
     @mock.patch('django.conf.settings.CLUSTER_SERVERS', ['127.0.0.1', '8.8.8.8'])
     def test_RemoteReader_fetch(self, http_request):
-        test_store = Store()
-        store = test_store.remote_stores[0]
-        reader = RemoteReader(store,
+        test_finder = RemoteFinder()
+        finder = test_finder.remote_stores[0]
+        reader = RemoteReader(finder,
                               {'intervals': [], 'path': 'a.b.c.d'},
                               bulk_query='a.b.c.d')
         startTime = 1496262000

@@ -1,12 +1,22 @@
 """Utility functions for finders."""
+import abc
 
-from django.conf import settings
 
+class BaseFinder(object):
+    __metaclass__ = abc.ABCMeta
 
-def extractForwardHeaders(request):
-    headers = {}
-    for name in settings.REMOTE_STORE_FORWARD_HEADERS:
-        value = request.META.get('HTTP_%s' % name.upper().replace('-', '_'))
-        if value is not None:
-            headers[name] = value
-    return headers
+    # Set to 'False' if this is a remote finder.
+    local = True
+
+    def __init__(self):
+        """Initialize the finder."""
+        pass
+
+    @abc.abstractmethod
+    def find_nodes(self, query):
+        """Get the list of nodes matching a query.
+
+        Returns:
+          generator of Node
+        """
+        pass

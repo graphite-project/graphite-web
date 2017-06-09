@@ -106,6 +106,7 @@ ALLOW_ANONYMOUS_CLI = True
 LEGEND_MAX_ITEMS = 10
 RRD_CF = 'AVERAGE'
 STORAGE_FINDERS = (
+    'graphite.finders.remote.RemoteFinder',
     'graphite.finders.standard.StandardFinder',
 )
 MIDDLEWARE_CLASSES=''

@@ -16,9 +16,10 @@ except ImportError:
 
 from django.conf import settings
 from graphite.intervals import Interval, IntervalSet
+from graphite.readers.utils import BaseReader
 
 
-class RRDReader:
+class RRDReader(BaseReader):
     supported = bool(rrdtool)
 
     @staticmethod
@@ -45,8 +46,9 @@ class RRDReader:
             rrdtool.flushcached(self.fs_path, '--daemon',
                                 settings.FLUSHRRDCACHED)
 
-        (timeInfo, columns, rows) = rrdtool.fetch(self.fs_path,
-                                                  settings.RRD_CF, '-s' + startString, '-e' + endString)
+        (timeInfo, columns, rows) = rrdtool.fetch(
+            self.fs_path,
+            settings.RRD_CF, '-s' + startString, '-e' + endString)
         colIndex = list(columns).index(self.datasource_name)
         rows.pop()  # chop off the latest value because RRD returns crazy last values sometimes
         values = (row[colIndex] for row in rows)

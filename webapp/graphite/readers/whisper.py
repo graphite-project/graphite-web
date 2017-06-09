@@ -21,7 +21,7 @@ except ImportError:
 
 from graphite.intervals import Interval, IntervalSet
 from graphite.logger import log
-from graphite.readers.utils import CarbonLink, merge_with_cache
+from graphite.readers.utils import merge_with_carbonlink, BaseReader
 
 # The parser was replacing __readHeader with the <class>__readHeader
 # which was not working.
@@ -29,7 +29,7 @@ if bool(whisper):
     whisper__readHeader = whisper.__readHeader
 
 
-class WhisperReader(object):
+class WhisperReader(BaseReader):
     __slots__ = ('fs_path', 'real_metric_path')
     supported = bool(whisper)
 
@@ -58,23 +58,10 @@ class WhisperReader(object):
         aggregation_method = meta_info['aggregationMethod']
         lowest_step = min([i['secondsPerPoint']
                            for i in meta_info['archives']])
+
         # Merge in data from carbon's cache
-        cached_datapoints = []
-        try:
-            cached_datapoints = CarbonLink().query(self.real_metric_path)
-        except BaseException:
-            log.exception("Failed CarbonLink query '%s'" %
-                          self.real_metric_path)
-            cached_datapoints = []
-
-        if isinstance(cached_datapoints, dict):
-            cached_datapoints = cached_datapoints.items()
-
-        values = merge_with_cache(cached_datapoints,
-                                  start,
-                                  step,
-                                  values,
-                                  aggregation_method)
+        values = merge_with_carbonlink(
+            self.real_metric_path, start, step, values, aggregation_method)
 
         return time_info, values
 

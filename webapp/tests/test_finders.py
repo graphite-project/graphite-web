@@ -28,6 +28,8 @@ from graphite.intervals import Interval, IntervalSet
 from graphite.node import LeafNode, BranchNode
 from graphite.storage import Store, FindQuery, get_finder
 from graphite.finders.standard import scandir
+from graphite.finders.utils import BaseFinder
+from graphite.readers.utils import BaseReader
 from tests.base import TestCase
 
 
@@ -48,7 +50,7 @@ class FinderTest(TestCase):
         self.assertEqual(len(series), 10)
 
 
-class DummyReader(object):
+class DummyReader(BaseReader):
     __slots__ = ('path',)
 
     def __init__(self, path):
@@ -64,7 +66,7 @@ class DummyReader(object):
         return IntervalSet([Interval(time.time() - 3600, time.time())])
 
 
-class DummyFinder(object):
+class DummyFinder(BaseFinder):
     def find_nodes(self, query):
         if query.pattern == 'foo':
             yield BranchNode('foo')

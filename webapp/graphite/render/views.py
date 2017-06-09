@@ -31,7 +31,7 @@ except ImportError:
 from graphite.compat import HttpResponse
 from graphite.user_util import getProfileByUsername
 from graphite.util import json, unpickle
-from graphite.remote_storage import extractForwardHeaders, prefetchRemoteData
+from graphite.storage import extractForwardHeaders
 from graphite.storage import STORE
 from graphite.logger import log
 from graphite.render.evaluator import evaluateTarget, extractPathExpressions
@@ -53,6 +53,7 @@ def renderView(request):
   (graphOptions, requestOptions) = parseOptions(request)
   useCache = 'noCache' not in requestOptions
   cacheTimeout = requestOptions['cacheTimeout']
+  # TODO: Make that a namedtuple or a class.
   requestContext = {
     'startTime' : requestOptions['startTime'],
     'endTime' : requestOptions['endTime'],
@@ -115,7 +116,7 @@ def renderView(request):
       if settings.REMOTE_PREFETCH_DATA and not requestOptions.get('localOnly'):
         log.rendering("Prefetching remote data")
         pathExpressions = extractPathExpressions(targets)
-        prefetchRemoteData(STORE.remote_stores, requestContext, pathExpressions)
+        STORE.prefetch(requestContext, pathExpressions)
 
       for target in targets:
         if not target.strip():

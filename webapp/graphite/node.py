@@ -29,6 +29,7 @@ class LeafNode(Node):
     try:
       result = self.reader.fetch(startTime, endTime, now, requestContext)
     except TypeError:
+      # Support for legacy 3rd party, readers.
       result = self.reader.fetch(startTime, endTime)
 
     return result
