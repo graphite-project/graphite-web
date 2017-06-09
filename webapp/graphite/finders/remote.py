@@ -14,6 +14,7 @@ from graphite.logger import log
 from graphite.node import LeafNode, BranchNode
 from graphite.render.hashing import compactHash
 from graphite.util import unpickle, logtime, is_local_interface
+from graphite.future import FetchInProgress, wait_for_result
 
 from graphite.finders.utils import BaseFinder
 from graphite.readers.remote import RemoteReader
@@ -81,14 +82,39 @@ class RemoteFinder(BaseFinder):
 
         log.debug("Got all find results in %fs" % (time.time() - start))
 
-    def prefetch(self, patterns, startTime, endTime, now, requestContext):
+    def fetch(self, nodes_or_patterns, start_time, end_time, now=None, requestContext=None):
         # Go through all of the remote nodes, and launch a fetch for each one.
         # Each fetch will take place in its own thread, since it's naturally
         # parallel work.
+
+        nodes = []
+        patterns = []
+
+        for v in nodes_or_patterns:
+            if isinstance(v, basestring):
+                patterns.append(v)
+            else:
+                nodes.append(v)
+
+        results = []
         for store in self.remote_stores:
             reader = RemoteReader(
                 store, {'intervals': []}, bulk_query=patterns)
-        reader.fetch_list(startTime, endTime, now, requestContext)
+            result = reader.fetch_list(start_time, end_time, now, requestContext)
+            results.append(result)
+
+        def _extract():
+            for result in results:
+                result = wait_for_result(result)
+                for series in result:
+                    yield {
+                        'pathExpression': series['pathExpression'],
+                        'path': series['path'],
+                        'time_info': (series['start'], series['end'], series['step']),
+                        'values': series['values'],
+                    }
+
+        return FetchInProgress(_extract)
 
 
 class RemoteStore(object):
@@ -134,7 +160,7 @@ class FindRequest(object):
 
     @logtime(custom_msg=True)
     def send(self, headers=None, msg_setter=None):
-        log.info(
+        log.debug(
             "FindRequest.send(host=%s, query=%s) called" %
             (self.store.host, self.query))
 
@@ -143,7 +169,7 @@ class FindRequest(object):
 
         results = cache.get(self.cacheKey)
         if results is not None:
-            log.info(
+            log.debug(
                 "FindRequest.send(host=%s, query=%s) using cached result" %
                 (self.store.host, self.query))
         else:

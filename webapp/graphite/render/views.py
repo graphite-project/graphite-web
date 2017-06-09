@@ -15,6 +15,7 @@ import csv
 import math
 import pytz
 import httplib
+import collections
 from datetime import datetime
 from time import time
 from random import shuffle
@@ -39,6 +40,8 @@ from graphite.render.attime import parseATTime
 from graphite.render.functions import PieFunctions
 from graphite.render.hashing import hashRequest, hashData
 from graphite.render.glyph import GraphTypes
+from graphite.readers.utils import wait_for_result
+from graphite.future import Future
 
 from django.http import HttpResponseServerError, HttpResponseRedirect
 from django.template import Context, loader
@@ -46,6 +49,52 @@ from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.utils.cache import add_never_cache_headers, patch_response_headers
+
+
+class PrefetchedData(Future):
+  def __init__(self, results):
+    self._results = results
+    self._prefetched = None
+
+  def _data(self):
+    if self._prefetched is None:
+      self._fetch_data()
+    return self._prefetched
+
+  def _fetch_data(self):
+    prefetched = collections.defaultdict(list)
+    for result in self._results:
+      fetched = wait_for_result(result)
+
+      if fetched is None:
+        continue
+
+      for result in fetched:
+        prefetched[result['pathExpression']].append((
+          result['path'],
+          (
+            result['time_info'],
+            result['values'],
+          ),
+        ))
+
+    self._prefetched = prefetched
+
+
+def prefetchRemoteData(requestContext, targets):
+  """Prefetch a bunch of path expressions and stores them in the context.
+
+  The idea is that this will allow more batching that doing a query
+  each time evaluateTarget() needs to fetch a path. All the prefetched
+  data is stored in the requestContext, to be accessed later by datalib.
+  """
+  log.rendering("Prefetching remote data")
+  pathExpressions = extractPathExpressions(targets)
+  results = STORE.fetch_remote(pathExpressions, requestContext)
+
+  # TODO: instead of doing that it would be wait better to use
+  # the shared cache to cache pathExpr instead of full queries.
+  requestContext['prefetched'] = PrefetchedData(results)
 
 
 def renderView(request):
@@ -62,7 +111,8 @@ def renderView(request):
     'template' : requestOptions['template'],
     'tzinfo' : requestOptions['tzinfo'],
     'forwardHeaders': extractForwardHeaders(request),
-    'data' : []
+    'data' : [],
+    'prefetched' : collections.defaultdict(list),
   }
   data = requestContext['data']
 
@@ -114,9 +164,8 @@ def renderView(request):
     else: # Have to actually retrieve the data now
       targets = requestOptions['targets']
       if settings.REMOTE_PREFETCH_DATA and not requestOptions.get('localOnly'):
-        log.rendering("Prefetching remote data")
-        pathExpressions = extractPathExpressions(targets)
-        STORE.prefetch(requestContext, pathExpressions)
+        # TODO: This could be used for some local finders too.
+        prefetchRemoteData(requestContext, targets)
 
       for target in targets:
         if not target.strip():

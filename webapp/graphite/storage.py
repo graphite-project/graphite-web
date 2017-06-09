@@ -12,10 +12,11 @@ except ImportError:  # python < 2.7 compatibility
     from django.utils.importlib import import_module
 
 from graphite.logger import log
-from graphite.util import is_pattern, timebounds
+from graphite.util import timebounds
 from graphite.node import LeafNode
 from graphite.intervals import Interval, IntervalSet
-from graphite.readers import MultiReader
+from graphite.finders.utils import FindQuery
+from graphite.readers.utils import MultiReader
 from graphite.worker_pool.pool import get_pool, pool_apply
 
 
@@ -32,27 +33,27 @@ class Store(object):
                        for finder_path in settings.STORAGE_FINDERS]
         self.finders = finders
 
-    def prefetch(self, requestContext, pathExpressions):
-        # This is a hack to batch request, we need to find a better API to allow other
-        # finders to do the same thing.
-
+    def fetch_remote(self, patterns, requestContext):
         if requestContext['localOnly']:
             return
 
-        if requestContext is None:
-            requestContext = {}
-
-        if pathExpressions is None:
+        if patterns is None:
             return
 
         (startTime, endTime, now) = timebounds(requestContext)
         log.debug(
             'prefetchRemoteData:: Starting fetch_list on all backends')
 
+        results = []
         for finder in self.finders:
-            if not hasattr(finder, 'prefetch'):
+            if not hasattr(finder, 'fetch') or finder.local:
                 continue
-            finder.prefetch(pathExpressions, startTime, endTime, now, requestContext)
+            result = finder.fetch(
+                patterns, startTime, endTime,
+                now=now, requestContext=requestContext
+            )
+            results.append(result)
+        return results
 
     def find(self, pattern, startTime=None, endTime=None, local=False, headers=None, leaves_only=False):
         query = FindQuery(
@@ -240,34 +241,6 @@ class Store(object):
         else:
             reader = MultiReader(minimal_node_set)
             return LeafNode(path, reader)
-
-
-class FindQuery(object):
-    def __init__(self, pattern, startTime, endTime, local=False, headers=None, leaves_only=None):
-        self.pattern = pattern
-        self.startTime = startTime
-        self.endTime = endTime
-        self.isExact = is_pattern(pattern)
-        self.interval = Interval(
-            float('-inf') if startTime is None else startTime,
-            float('inf') if endTime is None else endTime)
-        self.local = local
-        self.headers = headers
-        self.leaves_only = leaves_only
-
-    def __repr__(self):
-        if self.startTime is None:
-            startString = '*'
-        else:
-            startString = time.ctime(self.startTime)
-
-        if self.endTime is None:
-            endString = '*'
-        else:
-            endString = time.ctime(self.endTime)
-
-        return '<FindQuery: %s from %s until %s>' % (
-            self.pattern, startString, endString)
 
 
 def extractForwardHeaders(request):

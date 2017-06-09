@@ -32,7 +32,6 @@ class TimeSeries(list):
     self.options = {}
     self.pathExpression = name
 
-
   def __eq__(self, other):
     if isinstance(other, TimeSeries):
       color_check = True
@@ -109,9 +108,10 @@ class TimeSeries(list):
 
 @logtime()
 def _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList):
+  local = settings.REMOTE_PREFETCH_DATA or requestContext['localOnly']
   matching_nodes = STORE.find(
     pathExpr, startTime, endTime,
-    local=requestContext['localOnly'],
+    local=local,
     headers=requestContext['forwardHeaders'],
     leaves_only=True,
   )
@@ -120,6 +120,9 @@ def _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList):
     (node.path, node.fetch(startTime, endTime, now, requestContext))
     for node in matching_nodes
   ]
+  prefetched = requestContext['prefetched']
+  for result in prefetched[pathExpr]:
+    result_queue.append(result)
 
   log.debug("render.datalib.fetchData :: starting to merge")
   for path, results in result_queue:

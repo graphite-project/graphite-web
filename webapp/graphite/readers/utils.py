@@ -3,26 +3,7 @@ import functools
 
 from graphite.intervals import IntervalSet
 from graphite.logger import log
-
-
-def wait_for_result(result):
-    """Helper to read the various result types."""
-    if isinstance(result, FetchInProgress):
-        try:
-            return result.waitForResults()
-        except BaseException:
-            log.exception("Failed to complete subfetch")
-            return None
-    else:
-        return result
-
-
-class FetchInProgress(object):
-    def __init__(self, wait_callback):
-        self.wait_callback = wait_callback
-
-    def waitForResults(self):
-        return self.wait_callback()
+from graphite.future import FetchInProgress, wait_for_result
 
 
 class BaseReader(object):
