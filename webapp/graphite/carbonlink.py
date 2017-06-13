@@ -204,7 +204,6 @@ class GlobalCarbonLinkPool(CarbonLinkPool):
         instance = None
       hosts.append((server, int(port), instance))
     timeout = settings.CARBONLINK_TIMEOUT
-    print ('hosts', hosts)
     CarbonLinkPool.__init__(self, hosts, timeout)
 
 
