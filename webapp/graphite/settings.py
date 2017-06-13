@@ -247,6 +247,13 @@ if MEMCACHE_HOSTS:
         'OPTIONS': MEMCACHE_OPTIONS,
     }
 
+if not CACHES:
+  CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+    },
+  }
+
 # Authentication shortcuts
 if USE_LDAP_AUTH and LDAP_URI is None:
   LDAP_URI = "ldap://%s:%d/" % (LDAP_SERVER, LDAP_PORT)
