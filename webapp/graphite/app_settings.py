@@ -20,11 +20,6 @@ from os.path import dirname, join, abspath
 #Django settings below, do not touch!
 APPEND_SLASH = False
 TEMPLATE_DEBUG = False
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
-    },
-}
 
 TEMPLATES = [
     {
