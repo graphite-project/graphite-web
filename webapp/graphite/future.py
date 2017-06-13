@@ -1,6 +1,6 @@
 """Lightweight Future implementation.
 
-Before doing that we should evalluate the use of concurrent.futures
+Before doing that we should evaluate the use of concurrent.futures
 first, which could also replace FetchInProgress.
 """
 import abc
@@ -9,9 +9,6 @@ from graphite.logger import log
 
 
 class Future(object) :
-    def __init__(self, *args, **kwargs) :
-        super(Future, self).__init__(*args, **kwargs)
-
     def __nonzero__(self) :
         return bool(self._data())
 
