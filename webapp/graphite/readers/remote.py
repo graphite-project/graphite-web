@@ -57,7 +57,7 @@ class RemoteReader(BaseReader):
         self.metric_path = node_info.get(
             'path') or node_info.get('metric_path')
         self.intervals = node_info['intervals']
-        self.bulk_query = bulk_query or (
+        self.bulk_query = set(bulk_query) or (
             [self.metric_path] if self.metric_path else []
         )
         self.connection = None
