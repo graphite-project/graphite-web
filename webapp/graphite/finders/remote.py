@@ -87,14 +87,13 @@ class RemoteFinder(BaseFinder):
         # Each fetch will take place in its own thread, since it's naturally
         # parallel work.
 
-        nodes = []
         patterns = []
 
         for v in nodes_or_patterns:
             if isinstance(v, basestring):
                 patterns.append(v)
             else:
-                nodes.append(v)
+                patterns.append(node.path)
 
         results = []
         for store in self.remote_stores:
