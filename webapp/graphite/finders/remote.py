@@ -93,7 +93,7 @@ class RemoteFinder(BaseFinder):
             if isinstance(v, basestring):
                 patterns.append(v)
             else:
-                patterns.append(node.path)
+                patterns.append(v.path)
 
         results = []
         for store in self.remote_stores:
@@ -107,8 +107,8 @@ class RemoteFinder(BaseFinder):
                 result = wait_for_result(result)
                 for series in result:
                     yield {
-                        'pathExpression': series['pathExpression'],
-                        'path': series['path'],
+                        'pathExpression': series.get('pathExpression', series['name']),
+                        'name': series['name'],
                         'time_info': (series['start'], series['end'], series['step']),
                         'values': series['values'],
                     }

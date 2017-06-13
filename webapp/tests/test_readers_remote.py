@@ -6,6 +6,7 @@ import pickle
 from urllib3.response import HTTPResponse
 from StringIO import StringIO
 
+from graphite.node import LeafNode
 from graphite.finders.remote import RemoteFinder
 from graphite.readers.remote import RemoteReader
 from graphite.wsgi import application  # NOQA makes sure we have a working WSGI app
@@ -184,3 +185,47 @@ class RemoteReaderTests(TestCase):
         ret = reader.fetch(startTime, endTime)
         expected_response = ((1496262000, 1496262060, 60), [1.0, 0.0, 1.0, 0.0, 1.0])
         self.assertEqual(ret.waitForResults(), expected_response)
+
+    #
+    # Test RemoteFinder.fetch()
+    #
+    @mock.patch('urllib3.PoolManager.request')
+    @mock.patch('django.conf.settings.CLUSTER_SERVERS', ['127.0.0.1', '8.8.8.8'])
+    def test_RemoteFinder_fetch(self, http_request):
+        finder = test_finder = RemoteFinder()
+        store = test_finder.remote_stores[0]
+        reader = RemoteReader(store,
+                              {'intervals': [], 'path': 'a.b.c.d'},
+                              bulk_query='a.b.c.d')
+        node = LeafNode('a.b.c.d', reader)
+        startTime = 1496262000
+        endTime   = 1496262060
+
+        data = [
+                {'start': startTime,
+                 'step': 60,
+                 'end': endTime,
+                 'values': [1.0, 0.0, 1.0, 0.0, 1.0],
+                 'name': 'a.b.c.d'
+                }
+               ]
+        responseObject = HTTPResponse(body=StringIO(pickle.dumps(data)), status=200)
+        http_request.return_value = responseObject
+
+        ret = finder.fetch(['a.b.c.d'], startTime, endTime)
+        expected_response = ((1496262000, 1496262060, 60), [1.0, 0.0, 1.0, 0.0, 1.0])
+        expected_response = [
+            {
+                'name': 'a.b.c.d',
+                'values': [1.0, 0.0, 1.0, 0.0, 1.0],
+                'pathExpression': 'a.b.c.d',
+                'time_info': (1496262000, 1496262060, 60)
+            }, {
+                'name': 'a.b.c.d',
+                'values': [1.0, 0.0, 1.0, 0.0, 1.0],
+                'pathExpression': 'a.b.c.d',
+                'time_info': (1496262000, 1496262060, 60)
+            }
+        ]
+        result = list(ret.waitForResults())
+        self.assertEqual(result, expected_response)

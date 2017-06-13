@@ -71,7 +71,7 @@ class PrefetchedData(Future):
 
       for result in fetched:
         prefetched[result['pathExpression']].append((
-          result['path'],
+          result['name'],
           (
             result['time_info'],
             result['values'],
