@@ -24,7 +24,7 @@ from os import environ
 from graphite.logger import log
 from graphite.render.attime import parseTimeOffset, parseATTime
 from graphite.events import models
-from graphite.util import epoch, timestamp, deltaseconds
+from graphite.util import epoch, epoch_to_dt, timestamp, deltaseconds
 from graphite.render.grammar import grammar
 
 # XXX format_units() should go somewhere else
@@ -4071,8 +4071,8 @@ def events(requestContext, *tags):
   end_timestamp = end_timestamp - end_timestamp % step
   points = (end_timestamp - start_timestamp)/step
 
-  events = models.Event.find_events(datetime.fromtimestamp(start_timestamp),
-                                    datetime.fromtimestamp(end_timestamp),
+  events = models.Event.find_events(epoch_to_dt(start_timestamp),
+                                    epoch_to_dt(end_timestamp),
                                     tags=tags)
 
   values = [None] * points
