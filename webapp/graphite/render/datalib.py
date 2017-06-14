@@ -14,7 +14,7 @@ limitations under the License."""
 
 from graphite.logger import log
 from graphite.storage import STORE
-from graphite.readers import FetchInProgress
+from graphite.readers.utils import wait_for_result
 from django.conf import settings
 from graphite.util import timebounds, logtime
 
@@ -31,7 +31,6 @@ class TimeSeries(list):
     self.valuesPerPoint = 1
     self.options = {}
     self.pathExpression = name
-
 
   def __eq__(self, other):
     if isinstance(other, TimeSeries):
@@ -109,64 +108,28 @@ class TimeSeries(list):
 
 @logtime()
 def _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList):
-  if settings.REMOTE_PREFETCH_DATA:
-    matching_nodes = [node for node in STORE.find(pathExpr, startTime, endTime, local=True)]
+  local = settings.REMOTE_PREFETCH_DATA or requestContext['localOnly']
+  matching_nodes = STORE.find(
+    pathExpr, startTime, endTime,
+    local=local,
+    headers=requestContext['forwardHeaders'],
+    leaves_only=True,
+  )
 
-    # inflight_requests is only present if at least one remote store
-    # has been queried
-    if 'inflight_requests' in requestContext:
-      fetches = requestContext['inflight_requests']
-    else:
-      fetches = {}
+  result_queue = [
+    (node.path, node.fetch(startTime, endTime, now, requestContext))
+    for node in matching_nodes
+  ]
+  prefetched = requestContext['prefetched']
+  for result in prefetched[pathExpr]:
+    result_queue.append(result)
 
-    def result_queue_generator():
-      for node in matching_nodes:
-        if node.is_leaf:
-          yield (node.path, node.fetch(startTime, endTime, now, requestContext))
-
-      log.info(
-        'render.datalib.fetchData:: result_queue_generator got {count} fetches'
-        .format(count=len(fetches)),
-      )
-      for key, fetch in fetches.iteritems():
-        log.info(
-          'render.datalib.fetchData:: getting results of {host}'
-          .format(host=key),
-        )
-
-        if isinstance(fetch, FetchInProgress):
-          fetch = fetch.waitForResults()
-
-        if fetch is None:
-          log.info('render.datalib.fetchData:: fetch is None')
-          continue
-
-        for result in fetch:
-          if result['pathExpression'] == pathExpr:
-            yield (
-              result['path'],
-              (
-                (result['start'], result['end'], result['step']),
-                result['values'],
-              ),
-            )
-
-    result_queue = result_queue_generator()
-  else:
-    matching_nodes = [node for node in STORE.find(pathExpr, startTime, endTime, local=requestContext['localOnly'])]
-    result_queue = [
-      (node.path, node.fetch(startTime, endTime, now, requestContext))
-      for node in matching_nodes
-      if node.is_leaf
-    ]
-
-  log.info("render.datalib.fetchData :: starting to merge")
+  log.debug("render.datalib.fetchData :: starting to merge")
   for path, results in result_queue:
-    if isinstance(results, FetchInProgress):
-      results = results.waitForResults()
+    results = wait_for_result(results)
 
     if not results:
-      log.info("render.datalib.fetchData :: no results for %s.fetch(%s, %s)" % (path, startTime, endTime))
+      log.debug("render.datalib.fetchData :: no results for %s.fetch(%s, %s)" % (path, startTime, endTime))
       continue
 
     try:
@@ -209,7 +172,7 @@ def _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList):
           # This series has potential data that might be missing from
           # earlier series.  Attempt to merge in useful data and update
           # the cache count.
-          log.info("Merging multiple TimeSeries for %s" % known.name)
+          log.debug("Merging multiple TimeSeries for %s" % known.name)
           for i, j in enumerate(known):
             if j is None and series[i] is not None:
               known[i] = series[i]

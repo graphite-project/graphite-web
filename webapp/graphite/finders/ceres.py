@@ -7,11 +7,12 @@ from ceres import CeresTree, CeresNode
 from django.conf import settings
 from graphite.node import BranchNode, LeafNode
 from graphite.readers import CeresReader
+from graphite.finders.utils import BaseFinder
 
-from . import get_real_metric_path, extract_variants
+from graphite.finders import get_real_metric_path, extract_variants
 
 
-class CeresFinder:
+class CeresFinder(BaseFinder):
     def __init__(self, directory=None):
         directory = directory or settings.CERES_DIR
         self.directory = directory

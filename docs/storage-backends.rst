@@ -26,6 +26,7 @@ of paths to finder implementations. Its default value is:
 .. code-block:: python
 
     STORAGE_FINDERS = (
+        'graphite.finders.remote.RemoteFinder',
         'graphite.finders.standard.StandardFinder',
     )
 
@@ -45,6 +46,7 @@ Whisper database and a Ceres database:
 .. code-block:: python
 
     STORAGE_FINDERS = (
+        'graphite.finders.remote.RemoteFinder',
         'graphite.finders.standard.StandardFinder',
         'graphite.finders.ceres.CeresFinder',
     )
@@ -69,8 +71,9 @@ query:
 .. code-block:: python
 
     from graphite.node import LeafNode, BranchNode
+    from graphite.readers.utils import BaseFinder
 
-    class CustomFinder(object):
+    class CustomFinder(BaseFinder):
         def find_nodes(self, query):
             # find some paths matching the query, then yield them
             for path in matches:
@@ -87,8 +90,9 @@ methods: ``fetch()`` and ``get_intervals()``:
 .. code-block:: python
 
     from graphite.intervals import IntervalSet, Interval
+    from graphite.readers.utils import BaseReader
 
-    class CustomReader(object):
+    class CustomReader(BaseReader):
         __slots__ = ('path',)  # __slots__ is recommended to save memory on readers
 
         def __init__(self, path):

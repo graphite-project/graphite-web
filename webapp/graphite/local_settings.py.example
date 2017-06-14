@@ -123,6 +123,7 @@
 # See: http://graphite.readthedocs.io/en/latest/storage-backends.html
 #
 # STORAGE_FINDERS = (
+#    'graphite.finders.remote.RemoteFinder',
 #    'graphite.finders.standard.StandardFinder',
 #    'graphite.finders.ceres.CeresFinder',
 # )
