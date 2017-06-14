@@ -78,26 +78,18 @@ class RenderTest(TestCase):
         response = self.client.get(url, {'target': 'test', 'format': 'json'})
         self.assertEqual(json.loads(response.content), [])
         self.assertTrue(response.has_header('Expires'))
-        self.assertTrue(response.has_header('Last-Modified'))
-        self.assertTrue(response.has_header('Cache-Control'))
 
         response = self.client.get(url, {'target': 'test'})
         self.assertEqual(response['Content-Type'], 'image/png')
         self.assertTrue(response.has_header('Expires'))
-        self.assertTrue(response.has_header('Last-Modified'))
-        self.assertTrue(response.has_header('Cache-Control'))
 
         response = self.client.get(url, {'target': 'test', 'format': 'dygraph'})
         self.assertEqual(json.loads(response.content), {})
         self.assertTrue(response.has_header('Expires'))
-        self.assertTrue(response.has_header('Last-Modified'))
-        self.assertTrue(response.has_header('Cache-Control'))
 
         response = self.client.get(url, {'target': 'test', 'format': 'rickshaw'})
         self.assertEqual(json.loads(response.content), [])
         self.assertTrue(response.has_header('Expires'))
-        self.assertTrue(response.has_header('Last-Modified'))
-        self.assertTrue(response.has_header('Cache-Control'))
 
         self.addCleanup(self.wipe_whisper)
         whisper.create(self.db, [(1, 60)])
