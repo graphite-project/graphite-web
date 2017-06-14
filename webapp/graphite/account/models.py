@@ -17,22 +17,22 @@ from django.contrib.auth import models as auth_models
 
 
 class Profile(models.Model):
-  user = models.OneToOneField(auth_models.User)
+  user = models.OneToOneField(auth_models.User, on_delete=models.CASCADE)
   history = models.TextField(default="")
   advancedUI = models.BooleanField(default=False)
   __str__ = lambda self: "Profile for %s" % self.user
 
 class Variable(models.Model):
-  profile = models.ForeignKey(Profile)
+  profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
   name = models.CharField(max_length=64)
   value = models.CharField(max_length=64)
 
 class View(models.Model):
-  profile = models.ForeignKey(Profile)
+  profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
   name = models.CharField(max_length=64)
 
 class Window(models.Model):
-  view = models.ForeignKey(View)
+  view = models.ForeignKey(View, on_delete=models.CASCADE)
   name = models.CharField(max_length=64)
   top = models.IntegerField()
   left = models.IntegerField()
@@ -42,6 +42,6 @@ class Window(models.Model):
   interval = models.IntegerField(null=True)
 
 class MyGraph(models.Model):
-  profile = models.ForeignKey(Profile)
+  profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
   name = models.CharField(max_length=64)
   url = models.TextField()
