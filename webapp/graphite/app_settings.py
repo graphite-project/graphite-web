@@ -15,6 +15,7 @@ limitations under the License."""
 # Django settings for graphite project.
 # DO NOT MODIFY THIS FILE DIRECTLY - use local_settings.py instead
 from os.path import dirname, join, abspath
+from django import VERSION as DJANGO_VERSION
 
 
 #Django settings below, do not touch!
@@ -56,14 +57,17 @@ MEDIA_ROOT = ''
 # Example: "http://media.lawrence.com"
 MEDIA_URL = ''
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = (
   'graphite.middleware.LogExceptionsMiddleware',
   'django.middleware.common.CommonMiddleware',
   'django.middleware.gzip.GZipMiddleware',
   'django.contrib.sessions.middleware.SessionMiddleware',
   'django.contrib.auth.middleware.AuthenticationMiddleware',
+  'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
   'django.contrib.messages.middleware.MessageMiddleware',
 )
+if DJANGO_VERSION < (1, 10):
+    MIDDLEWARE_CLASSES = MIDDLEWARE
 
 ROOT_URLCONF = 'graphite.urls'
 
