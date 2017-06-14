@@ -18,7 +18,7 @@ from graphite.url_shortener.views import shorten, follow
 from graphite.browser.views import browser
 
 graphite_urls = [
-    url('^admin/', include(admin.site.urls)),
+    url('^admin/', admin.site.urls),
     url('^render/?', include('graphite.render.urls')),
     url('^composer/?', include('graphite.composer.urls')),
     url('^metrics/?', include('graphite.metrics.urls')),
