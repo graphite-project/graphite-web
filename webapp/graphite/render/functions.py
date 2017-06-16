@@ -2817,8 +2817,8 @@ def holtWintersForecast(requestContext, seriesList, bootstrapInterval='7d'):
   Performs a Holt-Winters forecast using the series as input data. Data from
   `bootstrapInterval` (one week by default) previous to the series is used to bootstrap the initial forecast.
   """
-  delta = parseTimeOffset(bootstrapInterval)
-  previewSeconds = delta.seconds + (delta.days * 86400)
+  bootstrap = parseTimeOffset(bootstrapInterval)
+  previewSeconds = bootstrap.seconds + (bootstrap.days * 86400)
 
   # ignore original data and pull new, including our preview
   newContext = requestContext.copy()
@@ -2839,8 +2839,8 @@ def holtWintersConfidenceBands(requestContext, seriesList, delta=3, bootstrapInt
   Performs a Holt-Winters forecast using the series as input data and plots
   upper and lower bands with the predicted forecast deviations.
   """
-  delta = parseTimeOffset(bootstrapInterval)
-  previewSeconds = delta.seconds + (delta.days * 86400)
+  bootstrap = parseTimeOffset(bootstrapInterval)
+  previewSeconds = bootstrap.seconds + (bootstrap.days * 86400)
 
   # ignore original data and pull new, including our preview
   newContext = requestContext.copy()
