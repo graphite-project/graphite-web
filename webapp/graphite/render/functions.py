@@ -2812,12 +2812,14 @@ def holtWintersAnalysis(series):
         }
   return results
 
-def holtWintersForecast(requestContext, seriesList):
+def holtWintersForecast(requestContext, seriesList, bootstrapInterval='7d'):
   """
   Performs a Holt-Winters forecast using the series as input data. Data from
-  one week previous to the series is used to bootstrap the initial forecast.
+  `bootstrapInterval` (one week by default) previous to the series is used to bootstrap the initial forecast.
   """
-  previewSeconds = 7 * 86400 # 7 days
+  delta = parseTimeOffset(bootstrapInterval)
+  previewSeconds = delta.seconds + (delta.days * 86400)
+
   # ignore original data and pull new, including our preview
   newContext = requestContext.copy()
   newContext['startTime'] = requestContext['startTime'] -  timedelta(seconds=previewSeconds)
@@ -2832,12 +2834,14 @@ def holtWintersForecast(requestContext, seriesList):
     results.append(result)
   return results
 
-def holtWintersConfidenceBands(requestContext, seriesList, delta=3):
+def holtWintersConfidenceBands(requestContext, seriesList, delta=3, bootstrapInterval='7d'):
   """
   Performs a Holt-Winters forecast using the series as input data and plots
   upper and lower bands with the predicted forecast deviations.
   """
-  previewSeconds = 7 * 86400 # 7 days
+  delta = parseTimeOffset(bootstrapInterval)
+  previewSeconds = delta.seconds + (delta.days * 86400)
+
   # ignore original data and pull new, including our preview
   newContext = requestContext.copy()
   newContext['startTime'] = requestContext['startTime'] -  timedelta(seconds=previewSeconds)
@@ -2884,14 +2888,14 @@ def holtWintersConfidenceBands(requestContext, seriesList, delta=3):
     results.append(upperSeries)
   return results
 
-def holtWintersAberration(requestContext, seriesList, delta=3):
+def holtWintersAberration(requestContext, seriesList, delta=3, bootstrapInterval='7d'):
   """
   Performs a Holt-Winters forecast using the series as input data and plots the
   positive or negative deviation of the series data from the forecast.
   """
   results = []
   for series in seriesList:
-    confidenceBands = holtWintersConfidenceBands(requestContext, [series], delta)
+    confidenceBands = holtWintersConfidenceBands(requestContext, [series], delta, bootstrapInterval)
     lowerBand = confidenceBands[0]
     upperBand = confidenceBands[1]
     aberration = list()
@@ -2910,12 +2914,12 @@ def holtWintersAberration(requestContext, seriesList, delta=3):
             , series.step, aberration))
   return results
 
-def holtWintersConfidenceArea(requestContext, seriesList, delta=3):
+def holtWintersConfidenceArea(requestContext, seriesList, delta=3, bootstrapInterval='7d'):
   """
   Performs a Holt-Winters forecast using the series as input data and plots the
   area between the upper and lower bands of the predicted forecast deviations.
   """
-  bands = holtWintersConfidenceBands(requestContext, seriesList, delta)
+  bands = holtWintersConfidenceBands(requestContext, seriesList, delta, bootstrapInterval)
   results = areaBetween(requestContext, bands)
   for series in results:
     series.name = series.name.replace('areaBetween', 'holtWintersConfidenceArea')
