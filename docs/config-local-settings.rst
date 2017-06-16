@@ -179,7 +179,7 @@ EMAIL_USE_TLS
 
 Authentication Configuration
 ----------------------------
-These settings insert additional backends to the `AUTHENTICATION_BACKENDS <https://docs.djangoproject.com/en/dev/ref/settings/#authentication-backends>`_ and `MIDDLEWARE_CLASSES <https://docs.djangoproject.com/en/dev/ref/settings/#std:setting-MIDDLEWARE_CLASSES>`_ settings. Additional authentication schemes are possible by manipulating these lists directly.
+These settings insert additional backends to the `AUTHENTICATION_BACKENDS <https://docs.djangoproject.com/en/dev/ref/settings/#authentication-backends>`_ and `MIDDLEWARE settings <https://docs.djangoproject.com/en/dev/ref/settings/#std:setting-MIDDLEWARE>`_. Additional authentication schemes are possible by manipulating these lists directly.
 
 LDAP
 ^^^^
@@ -424,5 +424,5 @@ To manipulate these settings, ensure ``app_settings.py`` is imported as such:
 
    from graphite.app_settings import *
 
-The most common settings to manipulate are ``INSTALLED_APPS``, ``MIDDLEWARE_CLASSES``, and ``AUTHENTICATION_BACKENDS``.
+The most common settings to manipulate are ``INSTALLED_APPS``, ``MIDDLEWARE``, and ``AUTHENTICATION_BACKENDS``.
  

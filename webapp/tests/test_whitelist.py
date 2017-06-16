@@ -6,7 +6,10 @@ import pickle
 from . import DATA_DIR
 
 from django.conf import settings
-from django.core.urlresolvers import reverse
+try:
+    from django.urls import reverse
+except ImportError:  # Django < 1.10
+    from django.core.urlresolvers import reverse
 from .base import TestCase
 
 from graphite.whitelist.views import load_whitelist, save_whitelist

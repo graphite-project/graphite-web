@@ -1,5 +1,4 @@
 import datetime
-import pytz
 
 try:
     from django.contrib.sites.requests import RequestSite
@@ -9,10 +8,10 @@ except ImportError:  # Django < 1.9
 from django.core.exceptions import ObjectDoesNotExist
 from django.forms.models import model_to_dict
 from django.shortcuts import render_to_response, get_object_or_404
-from django.utils.timezone import now, make_aware
+from django.utils.timezone import now
 
 from graphite.compat import HttpResponse, JsonResponse
-from graphite.util import json, epoch
+from graphite.util import json, epoch, epoch_to_dt
 from graphite.events.models import Event
 from graphite.render.attime import parseATTime
 
@@ -64,9 +63,7 @@ def post_event(request):
                     status=400)
             tags = ' '.join(tags)
         if 'when' in event:
-            when = make_aware(
-                datetime.datetime.utcfromtimestamp(
-                    event.get('when')), pytz.utc)
+            when = epoch_to_dt(event['when'])
         else:
             when = now()
 
@@ -102,7 +99,7 @@ def fetch(request):
     if request.GET.get('from') is not None:
         time_from = parseATTime(request.GET['from'])
     else:
-        time_from = datetime.datetime.fromtimestamp(0)
+        time_from = epoch_to_dt(0)
 
     if request.GET.get('until') is not None:
         time_until = parseATTime(request.GET['until'])

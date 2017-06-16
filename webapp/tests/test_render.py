@@ -11,7 +11,10 @@ from graphite.render.evaluator import extractPathExpressions
 import whisper
 
 from django.conf import settings
-from django.core.urlresolvers import reverse
+try:
+    from django.urls import reverse
+except ImportError:  # Django < 1.10
+    from django.core.urlresolvers import reverse
 from django.http import HttpRequest, QueryDict
 from .base import TestCase
 
@@ -66,7 +69,7 @@ class RenderTest(TestCase):
         self.assertTrue(all(output in outputs for output in expected_output))
 
     def test_render_view(self):
-        url = reverse('graphite.render.views.renderView')
+        url = reverse('render')
 
         response = self.client.get(url, {'target': 'test', 'format': 'raw'})
         self.assertEqual(response.content, "")
@@ -75,26 +78,18 @@ class RenderTest(TestCase):
         response = self.client.get(url, {'target': 'test', 'format': 'json'})
         self.assertEqual(json.loads(response.content), [])
         self.assertTrue(response.has_header('Expires'))
-        self.assertTrue(response.has_header('Last-Modified'))
-        self.assertTrue(response.has_header('Cache-Control'))
 
         response = self.client.get(url, {'target': 'test'})
         self.assertEqual(response['Content-Type'], 'image/png')
         self.assertTrue(response.has_header('Expires'))
-        self.assertTrue(response.has_header('Last-Modified'))
-        self.assertTrue(response.has_header('Cache-Control'))
 
         response = self.client.get(url, {'target': 'test', 'format': 'dygraph'})
         self.assertEqual(json.loads(response.content), {})
         self.assertTrue(response.has_header('Expires'))
-        self.assertTrue(response.has_header('Last-Modified'))
-        self.assertTrue(response.has_header('Cache-Control'))
 
         response = self.client.get(url, {'target': 'test', 'format': 'rickshaw'})
         self.assertEqual(json.loads(response.content), [])
         self.assertTrue(response.has_header('Expires'))
-        self.assertTrue(response.has_header('Last-Modified'))
-        self.assertTrue(response.has_header('Cache-Control'))
 
         self.addCleanup(self.wipe_whisper)
         whisper.create(self.db, [(1, 60)])
@@ -212,7 +207,7 @@ class RenderTest(TestCase):
                         hashData(reversed(targets), start_time, end_time))
 
     def test_correct_timezone(self):
-        url = reverse('graphite.render.views.renderView')
+        url = reverse('render')
         response = self.client.get(url, {
                  'target': 'constantLine(12)',
                  'format': 'json',
@@ -238,7 +233,7 @@ class RenderTest(TestCase):
         self.assertEqual(data, expected)
 
     def test_template_numeric_variables(self):
-        url = reverse('graphite.render.views.renderView')
+        url = reverse('render')
         response = self.client.get(url, {
                  'target': 'template(constantLine($1),12)',
                  'format': 'json',
@@ -250,7 +245,7 @@ class RenderTest(TestCase):
         expected = [[12, 1393398060], [12, 1393399860], [12, 1393401660]]
         self.assertEqual(data, expected)
 
-        url = reverse('graphite.render.views.renderView')
+        url = reverse('render')
         response = self.client.get(url, {
                  'target': 'template(constantLine($num),num=12)',
                  'format': 'json',
@@ -262,7 +257,7 @@ class RenderTest(TestCase):
         expected = [[12, 1393398060], [12, 1393399860], [12, 1393401660]]
         self.assertEqual(data, expected)
 
-        url = reverse('graphite.render.views.renderView')
+        url = reverse('render')
         response = self.client.get(url, {
                  'target': 'template(constantLine($num))',
                  'format': 'json',
@@ -276,7 +271,7 @@ class RenderTest(TestCase):
         self.assertEqual(data, expected)
 
     def test_template_string_variables(self):
-        url = reverse('graphite.render.views.renderView')
+        url = reverse('render')
         response = self.client.get(url, {
                  'target': 'template(time($1),"nameOfSeries")',
                  'format': 'json',
@@ -286,7 +281,7 @@ class RenderTest(TestCase):
         data = json.loads(response.content)[0]
         self.assertEqual(data['target'], 'nameOfSeries')
 
-        url = reverse('graphite.render.views.renderView')
+        url = reverse('render')
         response = self.client.get(url, {
                  'target': 'template(time($name),name="nameOfSeries")',
                  'format': 'json',
@@ -296,7 +291,7 @@ class RenderTest(TestCase):
         data = json.loads(response.content)[0]
         self.assertEqual(data['target'], 'nameOfSeries')
 
-        url = reverse('graphite.render.views.renderView')
+        url = reverse('render')
         response = self.client.get(url, {
                  'target': 'template(time($name))',
                  'format': 'json',
@@ -311,7 +306,7 @@ class RenderTest(TestCase):
         self.create_whisper_hosts()
         self.addCleanup(self.wipe_whisper_hosts)
 
-        url = reverse('graphite.render.views.renderView')
+        url = reverse('render')
         response = self.client.get(url, {
                  'target': 'template(sumSeries(hosts.$1.cpu),"worker1")',
                  'format': 'json',

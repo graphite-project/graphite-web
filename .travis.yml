@@ -4,6 +4,8 @@ sudo: false
 
 env:
   - TOXENV=py27-django19-pyparsing2
+  - TOXENV=py27-django110-pyparsing2
+  - TOXENV=py27-django111-pyparsing2
   - TOXENV=docs
   - TOXENV=lint
 

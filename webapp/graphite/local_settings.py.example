@@ -369,5 +369,5 @@
 # Additional Django Settings #
 #####################################
 # Uncomment the following line for direct access to Django settings such as
-# MIDDLEWARE_CLASSES or APPS
+# MIDDLEWARE or APPS
 #from graphite.app_settings import *

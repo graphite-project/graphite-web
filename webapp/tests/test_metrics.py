@@ -5,7 +5,10 @@ import shutil
 import time
 
 from django.conf import settings
-from django.core.urlresolvers import reverse
+try:
+    from django.urls import reverse
+except ImportError:  # Django < 1.10
+    from django.core.urlresolvers import reverse
 from .base import TestCase
 
 import whisper
@@ -53,7 +56,7 @@ class MetricsTester(TestCase):
         self.create_whisper_hosts()
         self.addCleanup(self.wipe_whisper_hosts)
 
-        url = reverse('graphite.metrics.views.index_json')
+        url = reverse('metrics_index')
 
         # default
         request = {}
@@ -89,7 +92,7 @@ class MetricsTester(TestCase):
         self.create_whisper_hosts(ts)
         self.addCleanup(self.wipe_whisper_hosts)
 
-        url = reverse('graphite.metrics.views.find_view')
+        url = reverse('metrics_find')
 
         #
         # Missing query param
@@ -386,7 +389,7 @@ class MetricsTester(TestCase):
         self.create_whisper_hosts()
         self.addCleanup(self.wipe_whisper_hosts)
 
-        url = reverse('graphite.metrics.views.expand_view')
+        url = reverse('metrics_expand')
 
         # default
         request = {'query': '*'}
@@ -407,7 +410,7 @@ class MetricsTester(TestCase):
         self.create_whisper_hosts()
         self.addCleanup(self.wipe_whisper_hosts)
 
-        url = reverse('graphite.metrics.views.get_metadata_view')
+        url = reverse('metrics_get_metadata')
 
         # bad key
         request = {'metric': 'hosts.worker1.cpu', 'key': 'a'}
@@ -421,7 +424,7 @@ class MetricsTester(TestCase):
         self.create_whisper_hosts()
         self.addCleanup(self.wipe_whisper_hosts)
 
-        url = reverse('graphite.metrics.views.set_metadata_view')
+        url = reverse('metrics_set_metadata')
 
         # GET
         # bad key

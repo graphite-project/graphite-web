@@ -19,6 +19,7 @@ import time
 import sys
 import calendar
 import pytz
+from datetime import datetime
 from os.path import splitext, basename, relpath
 from shutil import move
 from tempfile import mkstemp
@@ -35,6 +36,7 @@ except ImportError:
   from StringIO import StringIO
 
 from django.conf import settings
+from django.utils.timezone import make_aware
 from graphite.logger import log
 
 
@@ -56,6 +58,13 @@ def epoch(dt):
   Returns the epoch timestamp of a timezone-aware datetime object.
   """
   return calendar.timegm(dt.astimezone(pytz.utc).timetuple())
+
+
+def epoch_to_dt(timestamp):
+    """
+    Returns the timezone-aware datetime of an epoch timestamp.
+    """
+    return make_aware(datetime.utcfromtimestamp(timestamp), pytz.utc)
 
 def timebounds(requestContext):
   startTime = int(epoch(requestContext['startTime']))
@@ -125,9 +134,9 @@ def load_module(module_path, member=None):
   else:
     return module
 
-def timestamp(datetime):
+def timestamp(dt):
   "Convert a datetime object into epoch time"
-  return time.mktime( datetime.timetuple() )
+  return time.mktime(dt.timetuple())
 
 def deltaseconds(timedelta):
   "Convert a timedelta object into seconds (same as timedelta.total_seconds() in Python 2.7+)"

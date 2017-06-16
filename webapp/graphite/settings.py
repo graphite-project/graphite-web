@@ -18,7 +18,11 @@ import sys
 from os.path import abspath, dirname, join
 from warnings import warn
 
-from django.core.urlresolvers import reverse_lazy
+from django import VERSION as DJANGO_VERSION
+try:
+    from django.urls import reverse_lazy
+except ImportError:  # Django < 1.10
+    from django.core.urlresolvers import reverse_lazy
 
 
 GRAPHITE_WEB_APP_SETTINGS_LOADED = False
@@ -109,7 +113,9 @@ STORAGE_FINDERS = (
     'graphite.finders.remote.RemoteFinder',
     'graphite.finders.standard.StandardFinder',
 )
-MIDDLEWARE_CLASSES=''
+MIDDLEWARE = ()
+if DJANGO_VERSION < (1, 10):
+    MIDDLEWARE_CLASSES = MIDDLEWARE
 MAX_TAG_LENGTH = 50
 AUTO_REFRESH_INTERVAL = 60
 
@@ -261,7 +267,9 @@ if USE_LDAP_AUTH and LDAP_URI is None:
   LDAP_URI = "ldap://%s:%d/" % (LDAP_SERVER, LDAP_PORT)
 
 if USE_REMOTE_USER_AUTHENTICATION or REMOTE_USER_BACKEND:
-  MIDDLEWARE_CLASSES += ('django.contrib.auth.middleware.RemoteUserMiddleware',)
+  MIDDLEWARE += ('django.contrib.auth.middleware.RemoteUserMiddleware',)
+  if DJANGO_VERSION < (1, 10):
+      MIDDLEWARE_CLASSES = MIDDLEWARE
   if REMOTE_USER_BACKEND:
     AUTHENTICATION_BACKENDS.insert(0,REMOTE_USER_BACKEND)
   else:
