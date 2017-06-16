@@ -123,6 +123,7 @@ LDAP_BASE_USER = "" # "CN=some_readonly_account,DC=mydomain,DC=com"
 LDAP_BASE_PASS = "" # "my_password"
 LDAP_USER_QUERY = "" # "(username=%s)"  For Active Directory use "(sAMAccountName=%s)"
 LDAP_URI = None
+LDAP_USER_DN_TEMPLATE = None
 
 #Set this to True to delegate authentication to the web server
 USE_REMOTE_USER_AUTHENTICATION = False
