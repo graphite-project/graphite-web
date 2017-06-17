@@ -3,6 +3,7 @@ python: 2.7
 sudo: false
 
 env:
+  - TOXENV=py27-django18-pyparsing2
   - TOXENV=py27-django19-pyparsing2
   - TOXENV=py27-django110-pyparsing2
   - TOXENV=py27-django111-pyparsing2
