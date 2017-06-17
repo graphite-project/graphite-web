@@ -37,7 +37,7 @@
 #   deactivate
 #
 
-Django>=1.9,<1.9.99
+Django>=1.8,<1.9.99
 python-memcached==1.47
 txAMQP==0.4
 simplejson==2.1.6
