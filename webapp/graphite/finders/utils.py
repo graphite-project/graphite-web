@@ -139,6 +139,7 @@ class BaseFinder(object):
                 yield {
                     'pathExpression': pattern,
                     'path': node.path,
+                    'name': node.path,
                     'time_info': time_info,
                     'values': values,
                 }
