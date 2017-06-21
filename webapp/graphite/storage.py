@@ -12,7 +12,6 @@ except ImportError:  # python < 2.7 compatibility
     from django.utils.importlib import import_module
 
 from graphite.logger import log
-from graphite.util import timebounds
 from graphite.node import LeafNode
 from graphite.intervals import Interval, IntervalSet
 from graphite.finders.utils import FindQuery
@@ -33,21 +32,28 @@ class Store(object):
                        for finder_path in settings.STORAGE_FINDERS]
         self.finders = finders
 
-    def fetch_remote(self, patterns, requestContext):
+    def fetch_remote(self, patterns, startTime, endTime, now, requestContext):
+        patterns = set(patterns)
+
+        # TODO: Change this to simply `fetch()` in order to support optimizations
+        # for local finders too. This also require using the thread pool and
+        # limiting the number of results using the warning and failure thresholds.
+        # Also support the nice merging features of MultiReader.
         if requestContext['localOnly']:
-            return
+            return []
 
-        if patterns is None:
-            return
+        if not patterns:
+            return []
 
-        (startTime, endTime, now) = timebounds(requestContext)
         log.debug(
             'prefetchRemoteData:: Starting fetch_list on all backends')
 
         results = []
         for finder in self.finders:
-            if not hasattr(finder, 'fetch') or finder.local:
+            is_local = getattr(finder, 'local', True)
+            if is_local:
                 continue
+
             result = finder.fetch(
                 patterns, startTime, endTime,
                 now=now, requestContext=requestContext

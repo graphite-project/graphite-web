@@ -75,12 +75,12 @@ class RemoteFinder(BaseFinder):
                 else:
                     continue
 
-            log.debug("Got a find result after %fs" % (time.time() - start))
+            log.debug("Got a remote find result after %fs" % (time.time() - start))
             done += 1
             for node in nodes or []:
                 yield node
 
-        log.debug("Got all find results in %fs" % (time.time() - start))
+        log.debug("Got all remote find results in %fs" % (time.time() - start))
 
     def fetch(self, nodes_or_patterns, start_time, end_time, now=None, requestContext=None):
         # Go through all of the remote nodes, and launch a fetch for each one.

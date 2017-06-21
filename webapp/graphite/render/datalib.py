@@ -12,13 +12,19 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
-from graphite.logger import log
-from graphite.storage import STORE
-from graphite.readers.utils import wait_for_result
-from django.conf import settings
-from graphite.util import timebounds, logtime
+import collections
 
 from traceback import format_exc
+
+from django.conf import settings
+
+from graphite.future import Future
+from graphite.logger import log
+from graphite.readers.utils import wait_for_result
+from graphite.storage import STORE
+from graphite.util import timebounds, logtime
+from graphite.render.utils import extractPathExpressions
+
 
 class TimeSeries(list):
   def __init__(self, name, start, end, step, values, consolidate='average'):
@@ -108,7 +114,18 @@ class TimeSeries(list):
 
 @logtime()
 def _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList):
-  local = settings.REMOTE_PREFETCH_DATA or requestContext['localOnly']
+  result_queue = []
+  remote_done = False
+
+  if settings.REMOTE_PREFETCH_DATA:
+    prefetched = requestContext['prefetched'].get((startTime, endTime, now), None)
+    if prefetched is not None:
+      for result in prefetched[pathExpr]:
+        result_queue.append(result)
+      # Since we pre-fetched remote data only, now we can get local data only.
+      remote_done = True
+
+  local = remote_done or requestContext['localOnly']
   matching_nodes = STORE.find(
     pathExpr, startTime, endTime,
     local=local,
@@ -116,14 +133,14 @@ def _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList):
     leaves_only=True,
   )
 
-  result_queue = [
-    (node.path, node.fetch(startTime, endTime, now, requestContext))
-    for node in matching_nodes
-  ]
-  prefetched = requestContext['prefetched']
-  for result in prefetched[pathExpr]:
-    result_queue.append(result)
+  for node in matching_nodes:
+    result_queue.append(
+      (node.path, node.fetch(startTime, endTime, now, requestContext)))
 
+  return _merge_results(pathExpr, startTime, endTime, result_queue, seriesList)
+
+
+def _merge_results(pathExpr, startTime, endTime, result_queue, seriesList):
   log.debug("render.datalib.fetchData :: starting to merge")
   for path, results in result_queue:
     results = wait_for_result(results)
@@ -167,7 +184,7 @@ def _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList):
       else:
         known_nones = len([val for val in known if val is None])
 
-      if known_nones > candidate_nones:
+      if known_nones > candidate_nones and len(series):
         if settings.REMOTE_STORE_MERGE_RESULTS:
           # This series has potential data that might be missing from
           # earlier series.  Attempt to merge in useful data and update
@@ -243,3 +260,50 @@ def nonempty(series):
       return True
 
   return False
+
+
+class PrefetchedData(Future):
+  def __init__(self, results):
+    self._results = results
+    self._prefetched = None
+
+  def _data(self):
+    if self._prefetched is None:
+      self._fetch_data()
+    return self._prefetched
+
+  def _fetch_data(self):
+    prefetched = collections.defaultdict(list)
+    for result in self._results:
+      fetched = wait_for_result(result)
+
+      if fetched is None:
+        continue
+
+      for result in fetched:
+        prefetched[result['pathExpression']].append((
+          result['name'],
+          (
+            result['time_info'],
+            result['values'],
+          ),
+        ))
+
+    self._prefetched = prefetched
+
+
+def prefetchRemoteData(requestContext, targets):
+  """Prefetch a bunch of path expressions and stores them in the context.
+
+  The idea is that this will allow more batching that doing a query
+  each time evaluateTarget() needs to fetch a path. All the prefetched
+  data is stored in the requestContext, to be accessed later by datalib.
+  """
+  log.rendering("Prefetching remote data")
+  pathExpressions = extractPathExpressions(targets)
+
+  (startTime, endTime, now) = timebounds(requestContext)
+
+  results = STORE.fetch_remote(pathExpressions, startTime, endTime, now, requestContext)
+
+  requestContext['prefetched'][(startTime, endTime, now)] = PrefetchedData(results)

@@ -7,7 +7,7 @@ import logging
 import shutil
 
 from graphite.render.hashing import ConsistentHashRing, hashRequest, hashData
-from graphite.render.evaluator import extractPathExpressions
+from graphite.render.utils import extractPathExpressions
 import whisper
 
 from django.conf import settings
