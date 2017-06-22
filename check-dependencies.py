@@ -95,8 +95,8 @@ except ImportError:
   required += 1
 
 
-if django and django.VERSION[:2] < (1,9):
-  sys.stderr.write("[REQUIRED] You have django version %s installed, but version 1.9 or greater is required\n" % django.get_version())
+if django and django.VERSION[:2] < (1,8):
+  sys.stderr.write("[REQUIRED] You have django version %s installed, but version 1.8 or greater is required\n" % django.get_version())
   required += 1
 
 
