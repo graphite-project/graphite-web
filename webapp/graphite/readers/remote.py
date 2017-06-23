@@ -140,7 +140,7 @@ class RemoteReader(BaseReader):
                 return request
 
             data = self._fetch_list_locked(url, query_string, query_params, headers)
-            in_flight.start_request(url, data)
+            in_flight.start_request(url_full, data)
 
         log.debug(
             "RemoteReader:: Returning %s in %fs" % (url_full, time.time() - t))
