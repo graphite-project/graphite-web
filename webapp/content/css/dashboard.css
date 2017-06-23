@@ -40,6 +40,16 @@ img.graph-img {
   -khtml-border-radius:  5px;
 }
 
+img.graph-img-loading {
+  visibility: visible;
+  padding: 3px;
+  border-radius:         5px;
+  -moz-border-radius:    5px;
+  -webkit-border-radius: 5px;
+  -khtml-border-radius:  5px;
+  background-color: rgb(140, 140, 255);
+}
+
 .graph-over img {
   background-color: rgb(140, 140, 255);
 }
