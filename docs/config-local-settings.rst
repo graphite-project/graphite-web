@@ -482,12 +482,6 @@ CARBON_METRIC_PREFIX:
 
   Prefix for internal carbon statistics.
 
-CARBONLINK_QUERY_BULK
-  `Default: False`
-
-  In a clustered Carbon architecture it should improve the performance of graphs with large number of series. 
-  This type of queries depends on Carboon `cache-query-bulk` feature.
-
 INTRACLUSTER_HTTPS
   `Default: False`
 
