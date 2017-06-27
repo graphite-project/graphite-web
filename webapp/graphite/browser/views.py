@@ -200,8 +200,8 @@ def userGraphLookup(request):
       for profile in profiles:
         if profile.mygraph_set.count():
           node = {
-            'text' : str(profile.user.username),
-            'id' : str(profile.user.username)
+            'text' : profile.user.username,
+            'id' : profile.user.username,
           }
 
           node.update(branchNode)
@@ -216,7 +216,7 @@ def userGraphLookup(request):
       else:
         prefix = ''
 
-      matches = [ graph for graph in profile.mygraph_set.all().order_by('name') if graph.name.startswith(prefix) ]
+      matches = [ graph for graph in profile.mygraph_set.order_by('name') if graph.name.startswith(prefix) ]
       inserted = set()
 
       for graph in matches:
@@ -229,13 +229,13 @@ def userGraphLookup(request):
 
         if '.' in relativePath: # branch
           node = {
-            'text' : escape(str(nodeName)),
-            'id' : str(username + '.' + prefix + nodeName + '.'),
+            'text' : escape(nodeName),
+            'id' : username + '.' + prefix + nodeName + '.',
           }
           node.update(branchNode)
         else: # leaf
           m = md5()
-          m.update(nodeName)
+          m.update(nodeName.encode('utf-8'))
 
           # Sanitize target
           urlEscaped = str(graph.url)
@@ -250,8 +250,8 @@ def userGraphLookup(request):
           urlEscaped = graphUrl._replace(query=urlencode(graphUrlParams, True)).geturl()
 
           node = {
-            'text' : escape(str(nodeName)),
-            'id' : str(username + '.' + prefix + m.hexdigest()),
+            'text' : escape(nodeName),
+            'id' : username + '.' + prefix + m.hexdigest(),
             'graphUrl' : urlEscaped,
           }
           node.update(leafNode)
