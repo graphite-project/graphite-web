@@ -310,8 +310,8 @@ def find(request):
   results = []
 
   # Find all dashboard names that contain each of our query terms as a substring
-  for dashboard in Dashboard.objects.order_by('name'):
-    name = dashboard.name.lower()
+  for dashboard in Dashboard.objects.values('name').order_by('name'):
+    name = dashboard['name'].lower()
     if name.startswith('temporary-'):
       continue
 
@@ -324,7 +324,7 @@ def find(request):
         break
 
     if found:
-      results.append( dict(name=dashboard.name) )
+      results.append( dict(name=dashboard['name']) )
 
   return json_response( dict(dashboards=results) )
 
