@@ -1256,7 +1256,7 @@ function createOptionsMenu() {
 
   var yAxisLeftMenu = new Ext.menu.Menu({
     items: [
-      menuInputItem("Left Y Label", "vtitle", "Left Y Label", /^$/),
+          menuInputItem("Left Y Label", "vtitle", "Left Y Label (us-ascii only, no codepage, no UTF-8)", /^$/),
       menuInputItem("Left Y Minimum", "yMinLeft"),
       menuInputItem("Left Y Maximum", "yMaxLeft"),
       menuInputItem("Left Y Limit", "yLimitLeft"),
@@ -1269,7 +1269,7 @@ function createOptionsMenu() {
   });
   var yAxisRightMenu = new Ext.menu.Menu({
     items: [
-      menuInputItem("Right Y Label", "vtitleRight", "Right Y Label", /^$/),
+            menuInputItem("Right Y Label", "vtitleRight", "Right Y Label (us-ascii only, no codepage, no UTF-8)", /^$/),
       menuInputItem("Right Y Minimum", "yMinRight"),
       menuInputItem("Right Y Maximum", "yMaxRight"),
       menuInputItem("Right Y Limit", "yLimitRight"),
@@ -1397,7 +1397,7 @@ function createOptionsMenu() {
   return {
     xtype: 'menu',
     items: [
-      menuInputItem("Graph Title", "title", "Graph Title", /^$/),
+            menuInputItem("Graph Title", "title", "Graph Title (us-ascii only, no codepage, no UTF-8).", /^$/),
       {text: "Display", menu: displayMenu},
       {text: "Line Mode", menu: lineMenu},
       {text: "Area Mode", menu: areaMenu},
