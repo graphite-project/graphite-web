@@ -65,3 +65,25 @@ class BrowserTest(TestCase):
         self.assertEqual(response.status_code, 200)
         [leaf] = json.loads(response.content)
         self.assertEqual(leaf['text'], u'fòo')
+
+    def test_unicode_usergraph(self):
+        url = reverse('browser_usergraph')
+        user = User.objects.create_user('tèst', 'test@example.com', 'pass')
+        self.client.login(username='tèst', password='pass')
+        self.client.get(reverse('browser_header'))  # this creates a profile for the user
+        user.profile.mygraph_set.create(name=u'fòo', url='bar')
+        response = self.client.get(url, {'query': 'tèst.*',
+                                         'format': 'treejson',
+                                         'path': 'tèst',
+                                         'user': 'tèst',
+                                         'node': 'tèst'})
+        self.assertEqual(response.status_code, 200)
+        [leaf] = json.loads(response.content)
+        self.assertEqual(leaf, {
+            u'leaf': 1,
+            u'text': u'fòo',
+            u'allowChildren': 0,
+            u'graphUrl': u'bar',
+            u'id': u'tèst.845aa5781192007e1866648eea9f7355',
+            u'expandable': 0,
+        })
