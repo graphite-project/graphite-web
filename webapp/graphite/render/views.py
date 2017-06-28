@@ -78,6 +78,12 @@ def renderView(request):
 
   # Now we prepare the requested data
   if requestOptions['graphType'] == 'pie':
+    targets = requestOptions['targets']
+    if settings.REMOTE_PREFETCH_DATA and not requestOptions.get('localOnly'):
+      log.rendering("Prefetching remote data")
+      pathExpressions = extractPathExpressions(targets)
+      prefetchRemoteData(STORE.remote_stores, requestContext, pathExpressions)
+
     for target in requestOptions['targets']:
       if target.find(':') >= 0:
         try:
