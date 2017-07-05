@@ -40,6 +40,7 @@ from graphite.render.functions import PieFunctions
 from graphite.render.hashing import hashRequest, hashData
 from graphite.render.glyph import GraphTypes
 from graphite.render.datalib import prefetchRemoteData
+from graphite.tags.models import Series, Tag, TagValue, SeriesTag  # noqa # pylint: disable=unused-import
 
 from django.http import HttpResponseServerError, HttpResponseRedirect
 from django.template import Context, loader
@@ -168,7 +169,7 @@ def renderView(request):
           else:
             timestamps = range(int(series.start), int(series.end) + 1, int(series.step))
           datapoints = zip(series, timestamps)
-          series_data.append(dict(target=series.name, datapoints=datapoints))
+          series_data.append(dict(target=series.name, tags=series.tags, datapoints=datapoints))
       elif 'noNullPoints' in requestOptions and any(data):
         for series in data:
           values = []
@@ -177,12 +178,12 @@ def renderView(request):
               timestamp = series.start + (index * series.step)
               values.append((v,timestamp))
           if len(values) > 0:
-            series_data.append(dict(target=series.name, datapoints=values))
+            series_data.append(dict(target=series.name, tags=series.tags, datapoints=values))
       else:
         for series in data:
           timestamps = range(int(series.start), int(series.end) + 1, int(series.step))
           datapoints = zip(series, timestamps)
-          series_data.append(dict(target=series.name, datapoints=datapoints))
+          series_data.append(dict(target=series.name, tags=series.tags, datapoints=datapoints))
 
       output = json.dumps(series_data).replace('None,', 'null,').replace('NaN,', 'null,').replace('Infinity,', '1e9999,')
 

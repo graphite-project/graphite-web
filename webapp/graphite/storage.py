@@ -17,6 +17,7 @@ from graphite.intervals import Interval, IntervalSet
 from graphite.finders.utils import FindQuery
 from graphite.readers.utils import MultiReader
 from graphite.worker_pool.pool import get_pool, pool_apply
+from graphite.tags.utils import get_tagdb
 
 
 def get_finder(finder_path):
@@ -26,11 +27,15 @@ def get_finder(finder_path):
 
 
 class Store(object):
-    def __init__(self, finders=None):
+    def __init__(self, finders=None, tagdb=None):
         if finders is None:
             finders = [get_finder(finder_path)
                        for finder_path in settings.STORAGE_FINDERS]
         self.finders = finders
+
+        if tagdb is None:
+            tagdb = settings.TAGDB
+        self.tagdb = get_tagdb(tagdb) if tagdb else None
 
     def fetch_remote(self, patterns, startTime, endTime, now, requestContext):
         patterns = set(patterns)

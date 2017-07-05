@@ -27,7 +27,7 @@ from graphite.render.utils import extractPathExpressions
 
 
 class TimeSeries(list):
-  def __init__(self, name, start, end, step, values, consolidate='average'):
+  def __init__(self, name, start, end, step, values, consolidate='average', tags=None):
     list.__init__(self, values)
     self.name = name
     self.start = start
@@ -37,6 +37,7 @@ class TimeSeries(list):
     self.valuesPerPoint = 1
     self.options = {}
     self.pathExpression = name
+    self.tags = tags
 
   def __eq__(self, other):
     if isinstance(other, TimeSeries):
@@ -98,7 +99,6 @@ class TimeSeries(list):
 
   def __repr__(self):
     return 'TimeSeries(name=%s, start=%s, end=%s, step=%s)' % (self.name, self.start, self.end, self.step)
-
 
   def getInfo(self):
     """Pickle-friendly representation of the series"""

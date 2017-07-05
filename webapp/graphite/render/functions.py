@@ -26,6 +26,7 @@ from graphite.render.attime import getUnitString, parseTimeOffset, parseATTime, 
 from graphite.events import models
 from graphite.util import epoch, epoch_to_dt, timestamp, deltaseconds
 from graphite.render.grammar import grammar
+from graphite.storage import STORE
 
 # XXX format_units() should go somewhere else
 if environ.get('READTHEDOCS'):
@@ -4060,6 +4061,37 @@ def randomWalkFunction(requestContext, name, step=60):
             int(epoch(requestContext["endTime"])),
             step, values)]
 
+def seriesByTag(requestContext, *tagExpressions):
+  """
+  Returns a SeriesList of all series matching the specified tag expressions
+
+  Example:
+
+  .. code-block:: none
+
+    &target=seriesByTag("tag1=value1", "tag2!=value2")
+
+  Returns a seriesList containing all matching series
+  """
+
+  if STORE.tagdb is None:
+    return []
+
+  taggedSeries = STORE.tagdb.find_series(tagExpressions)
+  if not taggedSeries:
+    return []
+
+  taggedSeriesQuery = 'group(' + (','.join(taggedSeries)).replace('=','\\=') + ')'
+
+  log.info('taggedSeriesQuery %s' % taggedSeriesQuery)
+
+  seriesList = evaluateTarget(requestContext, taggedSeriesQuery)
+
+  for series in seriesList:
+    series.tags = STORE.tagdb.parse(series.pathExpression).tags
+
+  return seriesList
+
 def events(requestContext, *tags):
   """
   Returns the number of events at this point in time. Usable with
@@ -4286,6 +4318,9 @@ SeriesFunctions = {
   'verticalLine' : verticalLine,
   'identity': identity,
   'aggregateLine': aggregateLine,
+
+  # tag functions
+  'seriesByTag': seriesByTag,
 
   # test functions
   'time': timeFunction,

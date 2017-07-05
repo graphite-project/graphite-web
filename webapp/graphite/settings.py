@@ -113,6 +113,7 @@ STORAGE_FINDERS = (
     'graphite.finders.remote.RemoteFinder',
     'graphite.finders.standard.StandardFinder',
 )
+TAGDB = 'graphite.tags.localdatabase.LocalDatabaseTagDB'
 MIDDLEWARE = ()
 if DJANGO_VERSION < (1, 10):
     MIDDLEWARE_CLASSES = MIDDLEWARE
