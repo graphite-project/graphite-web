@@ -94,17 +94,13 @@ def is_local_interface(host):
       sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
     else:
       sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.connect( (host, 4242) )
-    local_ip = sock.getsockname()[0]
-    sock.close()
+    sock.bind( (host, 0) )
   except:
-    log.exception("Failed to open socket with %s" % host)
-    raise
+    return False
+  finally:
+    sock.close()
 
-  if local_ip == host:
-    return True
-
-  return False
+  return True
 
 
 def is_pattern(s):
