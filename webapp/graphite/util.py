@@ -75,18 +75,19 @@ def timebounds(requestContext):
 
 def is_local_interface(host):
   is_ipv6 = False
-  if ':' in host:
-    try:
-      if host.find('[', 0, 2) != -1:
-        last_bracket_position  = host.rfind(']')
-        last_colon_position = host.rfind(':')
-        if last_colon_position > last_bracket_position:
-          host = host.rsplit(':', 1)[0]
-        host = host.strip('[]')
-      socket.inet_pton(socket.AF_INET6, host)
-      is_ipv6 = True
-    except socket.error:
-      host = host.split(':',1)[0]
+  if ':' not in host:
+    pass
+  elif host.count(':') == 1:
+    host = host.split(':', 1)[0]
+  else:
+    is_ipv6 = True
+
+    if host.find('[', 0, 2) != -1:
+      last_bracket_position  = host.rfind(']')
+      last_colon_position = host.rfind(':')
+      if last_colon_position > last_bracket_position:
+        host = host.rsplit(':', 1)[0]
+      host = host.strip('[]')
 
   try:
     if is_ipv6:
