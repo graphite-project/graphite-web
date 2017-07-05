@@ -1,5 +1,6 @@
 import os
 import shutil
+import socket
 import time
 import whisper
 
@@ -21,6 +22,11 @@ class UtilTest(TestCase):
         addresses = ['::1', '[::1]:8080', '[::1]', '::1:8080']
         results = [ util.is_local_interface(a) for a in addresses ]
         self.assertEqual( results, [True, True, True, False] )
+
+    def test_is_local_interface_dns(self):
+        addresses = ['localhost', socket.gethostname(), 'google.com']
+        results = [ util.is_local_interface(a) for a in addresses ]
+        self.assertEqual( results, [True, True, False] )
 
     def test_is_escaped_pattern(self):
         self.assertFalse( util.is_escaped_pattern('asdf') )
