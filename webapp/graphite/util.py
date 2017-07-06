@@ -75,35 +75,32 @@ def timebounds(requestContext):
 
 def is_local_interface(host):
   is_ipv6 = False
-  if ':' in host:
-    try:
-      if host.find('[', 0, 2) != -1:
-        last_bracket_position  = host.rfind(']')
-        last_colon_position = host.rfind(':')
-        if last_colon_position > last_bracket_position:
-          host = host.rsplit(':', 1)[0]
-        host = host.strip('[]')
-      socket.inet_pton(socket.AF_INET6, host)
-      is_ipv6 = True
-    except socket.error:
-      host = host.split(':',1)[0]
+  if ':' not in host:
+    pass
+  elif host.count(':') == 1:
+    host = host.split(':', 1)[0]
+  else:
+    is_ipv6 = True
+
+    if host.find('[', 0, 2) != -1:
+      last_bracket_position  = host.rfind(']')
+      last_colon_position = host.rfind(':')
+      if last_colon_position > last_bracket_position:
+        host = host.rsplit(':', 1)[0]
+      host = host.strip('[]')
 
   try:
     if is_ipv6:
       sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
     else:
       sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.connect( (host, 4242) )
-    local_ip = sock.getsockname()[0]
-    sock.close()
+    sock.bind( (host, 0) )
   except:
-    log.exception("Failed to open socket with %s" % host)
-    raise
+    return False
+  finally:
+    sock.close()
 
-  if local_ip == host:
-    return True
-
-  return False
+  return True
 
 
 def is_pattern(s):
