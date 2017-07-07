@@ -388,7 +388,7 @@ def parseOptions(request):
   # Get the time interval for time-oriented graph types
   if graphType == 'line' or graphType == 'pie':
     if 'now' in queryParams:
-        now = parseATTime(queryParams['now'])
+        now = parseATTime(queryParams['now'], tzinfo)
     else:
         now = datetime.now(tzinfo)
 

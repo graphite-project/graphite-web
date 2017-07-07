@@ -16,7 +16,9 @@ class MockedDateTime(datetime):
         return datetime.__new__(datetime, *args, **kwargs)
     @classmethod
     def now(cls, tzinfo=None):
-        return cls(2015, 3, 8, 12, 0, 0, tzinfo=tzinfo)
+        if tzinfo:
+          return tzinfo.localize(cls(2015, 3, 8, 12, 0, 0))
+        return cls(2015, 3, 8, 12, 0, 0)
 
 @mock.patch('graphite.render.attime.datetime', MockedDateTime)
 class ATTimeTimezoneTests(TestCase):
@@ -34,29 +36,29 @@ class ATTimeTimezoneTests(TestCase):
         actual_time = parseATTime(time_string, self.specified_tz)
         self.assertEqual(actual_time, expected_time)
 
-    def test_absolute_time_YYMMDD(self):
+    def test_absolute_time_YYYYMMDD(self):
         time_string = '20150110'
-        expected_time = self.default_tz.localize(datetime.strptime(time_string, '%Y%m%d'))
+        expected_time = self.specified_tz.localize(datetime.strptime(time_string, '%Y%m%d'))
         actual_time = parseATTime(time_string, self.specified_tz)
-        self.assertEqual(actual_time, expected_time.astimezone(self.specified_tz))
+        self.assertEqual(actual_time, expected_time)
 
     def test_midnight(self):
-        expected_time = self.default_tz.localize(datetime.strptime("0:00_20150308", '%H:%M_%Y%m%d'))
+        expected_time = self.specified_tz.localize(datetime.strptime("0:00_20150308", '%H:%M_%Y%m%d'))
         actual_time = parseATTime("midnight", self.specified_tz)
-        self.assertEqual(actual_time, expected_time.astimezone(self.specified_tz))
+        self.assertEqual(actual_time, expected_time)
 
     def test_offset_with_tz(self):
-        expected_time = self.default_tz.localize(datetime.strptime("5:00_20150308", '%H:%M_%Y%m%d'))
-        actual_time = parseATTime("midnight+5h", self.specified_tz)
-        self.assertEqual(actual_time, expected_time.astimezone(self.specified_tz))
+        expected_time = self.specified_tz.localize(datetime.strptime("1:00_20150308", '%H:%M_%Y%m%d'))
+        actual_time = parseATTime("midnight+1h", self.specified_tz)
+        self.assertEqual(actual_time, expected_time)
 
     def test_relative_day_with_tz(self):
-        expected_time = self.default_tz.localize(datetime.strptime("0:00_20150309", '%H:%M_%Y%m%d'))
+        expected_time = self.specified_tz.localize(datetime.strptime("0:00_20150309", '%H:%M_%Y%m%d'))
         actual_time = parseATTime("midnight_tomorrow", self.specified_tz)
         self.assertEqual(actual_time, expected_time)
 
     def test_relative_day_and_offset_with_tz(self):
-        expected_time = self.default_tz.localize(datetime.strptime("3:00_20150309", '%H:%M_%Y%m%d'))
+        expected_time = self.specified_tz.localize(datetime.strptime("3:00_20150309", '%H:%M_%Y%m%d'))
         actual_time = parseATTime("midnight_tomorrow+3h", self.specified_tz)
         self.assertEqual(actual_time, expected_time)
 
@@ -66,18 +68,18 @@ class ATTimeTimezoneTests(TestCase):
         self.assertEqual(actual_time, expected_time)
 
     def test_now_should_respect_tz(self):
-        expected_time = self.default_tz.localize(datetime.strptime("12:00_20150308", '%H:%M_%Y%m%d'))
+        expected_time = self.specified_tz.localize(datetime.strptime("12:00_20150308", '%H:%M_%Y%m%d'))
         actual_time = parseATTime("now", self.specified_tz)
         self.assertEqual(actual_time, expected_time)
 
     def test_relative_time_in_alternate_zone(self):
-        expected_time = self.specified_tz.localize(datetime.strptime("04:00_20150308", '%H:%M_%Y%m%d'))
+        expected_time = self.specified_tz.localize(datetime.strptime("11:00_20150308", '%H:%M_%Y%m%d'))
         actual_time = parseATTime("-1h", self.specified_tz)
         self.assertEqual(actual_time.hour, expected_time.hour)
 
     def test_should_handle_dst_boundary(self):
-        expected_time = self.default_tz.localize(datetime.strptime("02:00_20150308", '%H:%M_%Y%m%d'))
-        actual_time = parseATTime("midnight+2h", self.specified_tz)
+        expected_time = self.specified_tz.localize(datetime.strptime("04:00_20150308", '%H:%M_%Y%m%d'))
+        actual_time = parseATTime("midnight+3h", self.specified_tz)
         self.assertEqual(actual_time, expected_time)
 
 class AnotherMockedDateTime(datetime):
