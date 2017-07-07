@@ -138,7 +138,7 @@ Graphite understands messages with this format:
 
 ``value`` is the value that you want to assign to the metric at this time.
 
-``timestamp`` is the unix epoch time.
+``timestamp`` is the number of seconds since unix epoch time.
 
 A simple example of doing this from the unix terminal would look like this:
 
