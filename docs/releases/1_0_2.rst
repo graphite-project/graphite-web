@@ -1,0 +1,87 @@
+.. _1-0-2:
+
+1.0.2
+===========================
+*07/10/2017*
+
+Graphite 1.0.2 is now available for usage. Please note that this is a bugfix release for stable Graphite 1.0.0 branch and it's recommended for production usage. It also contains some improvements backported from master branch.
+
+Source bundles are available from GitHub:
+
+* https://github.com/graphite-project/graphite-web/archive/1.0.2.tar.gz
+* https://github.com/graphite-project/carbon/archive/1.0.2.tar.gz
+* https://github.com/graphite-project/whisper/archive/1.0.2.tar.gz
+* https://github.com/graphite-project/carbonate/archive/1.0.2.tar.gz
+
+Graphite can also be installed from `PyPI <http://pypi.python.org/>`_ via
+`pip <http://www.pip-installer.org/en/latest/index.html>`_. PyPI bundles are here:
+
+* http://pypi.python.org/pypi/graphite-web/
+* http://pypi.python.org/pypi/carbon/
+* http://pypi.python.org/pypi/whisper/
+* http://pypi.python.org/pypi/carbonate/
+
+Upgrading
+---------
+Graphite-web 1.0.2 is compatible with carbon 1.0.0 and whisper 1.0.0, so, you can upgrade only graphite-web package, but please note that carbon package also has valuable bugfixes, so, upgrade is recommended. Also, Graphite-web 1.0.2 now compatible not only with Django 1.9 but also with Django 1.8.
+
+Security Notes
+--------------
+
+None
+
+
+New features
+------------
+
+Graphite-Web
+^^^^^^^^^^^^
+
+* Introducing bootstrapInterval for HoltWinters functions (@deniszh, #1977)
+
+* Dashboard image refresh feedback (@cbowman0, PR #1974)
+
+* Django 1.8 for 1.0.x (#1975)
+
+Carbon
+^^^^^^
+
+* Making queue consuming logs configurable (@deniszh / @iksaif, PR #653)
+
+Whisper
+^^^^^^^
+
+* whisper-info: add --json output option (@piotr1212, PR #217)
+
+* whisper-fetch.py: catch IOError to print a better error message (@piotr1212, PR #210)
+
+* Adding archiveToSelect parameter to fetch() function for explicit archive selection (@adriangalera / @DanCeh, PR #226)
+
+
+Bug Fixes
+---------
+
+Graphite-Web
+^^^^^^^^^^^^
+
+* LDAP broken since Graphite 1.0 (@GLundh, PR #1962)
+
+* Fixing scandir dependency for 1.0.x (@deniszh, PR #1921)
+
+* Changing WEBAPP_VERSION for 1.0.x branch (@deniszh, PR #1963)
+
+Carbon
+^^^^^^
+
+* missing raise keyword (@piotr1212, PR #655)
+
+* aggregator: handle expired values correctly (@iksaif, PR #657)
+
+* protobuf: add missing import and example client (@piotr1212, PR #665)
+
+Whisper
+^^^^^^^
+
+None
+
+
