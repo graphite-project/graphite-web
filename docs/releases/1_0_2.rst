@@ -2,7 +2,7 @@
 
 1.0.2
 ===========================
-*07/11/2017*
+*07/12/2017*
 
 Graphite 1.0.2 is now available for usage. Please note that this is a bugfix release for stable Graphite 1.0.0 branch and it's recommended for production usage. It also contains some improvements backported from master branch.
 
@@ -41,9 +41,11 @@ Graphite-Web
 
 * Dashboard image refresh feedback (@cbowman0, PR #1974)
 
-* Django 1.8 for 1.0.x (#1975)
+* Django 1.8 for 1.0.x (@cbowman0, #1975)
 
 * Introducing bootstrapInterval for HoltWinters functions (@deniszh, #1977)
+
+* Change dashboard find to only query for the name (@cbowman0, #1982)
 
 Carbon
 ^^^^^^
