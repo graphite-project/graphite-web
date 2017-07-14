@@ -1,6 +1,5 @@
 """Utility functions for tag databases."""
 import abc
-import re
 
 try:
     from importlib import import_module
@@ -11,25 +10,20 @@ except ImportError:  # python < 2.7 compatibility
 class TaggedSeries(object):
   @classmethod
   def parse(cls, path):
-    m = re.match('^(.+?)((?:;[^;!=]+=[^;]*)*)$', path)
-    if not m:
-      raise Exception('Cannot parse path')
+    segments = path.split(';')
 
-    metric = m.group(1)
-    tagstring = m.group(2)
+    metric = segments[0]
+    if not metric:
+      raise Exception('Cannot parse path %s, no metric found' % path)
 
     tags = {}
 
-    while True:
-      m = re.match(';([^;]+)=([^;]*)(;.*|$)', tagstring)
-      if m is None:
-        break
+    for segment in segments[1:]:
+      tag = segment.split('=', 1)
+      if len(tag) != 2 or not tag[0]:
+        raise Exception('Cannot parse path %s, invalid segment %s' % (path, segment))
 
-      tags[m.group(1)] = m.group(2)
-
-      tagstring = m.group(3)
-      if tagstring == '':
-        break
+      tags[tag[0]] = tag[1]
 
     tags['name'] = metric
 
