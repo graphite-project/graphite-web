@@ -1,6 +1,7 @@
 import operator
 from os.path import isdir, isfile, join, basename
 from django.conf import settings
+from hashlib import sha256
 # Use the built-in version of scandir/walk if possible, otherwise
 # use the scandir module version
 try:
@@ -26,6 +27,12 @@ class StandardFinder(BaseFinder):
 
     def find_nodes(self, query):
         clean_pattern = query.pattern.replace('\\', '')
+
+        # translate query pattern if it is tagged
+        if ';' in query.pattern:
+          hash = sha256(query.pattern).hexdigest()
+          clean_pattern = '.'.join(['_tagged', hash[0:3], hash[3:6], query.pattern.replace('.', '-')])
+
         pattern_parts = clean_pattern.split('.')
 
         for root_dir in self.directories:
@@ -49,6 +56,10 @@ class StandardFinder(BaseFinder):
                     metric_path_parts[field_index] = pattern_parts[field_index].replace(
                         '\\', '')
                 metric_path = '.'.join(metric_path_parts)
+
+                # if we're finding by tag, return the proper metric path
+                if ';' in query.pattern:
+                  metric_path = query.pattern
 
                 # Now we construct and yield an appropriate Node object
                 if isdir(absolute_path):
