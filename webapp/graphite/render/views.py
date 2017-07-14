@@ -185,7 +185,7 @@ def renderView(request):
           datapoints = zip(series, timestamps)
           series_data.append(dict(target=series.name, tags=series.tags, datapoints=datapoints))
 
-      output = json.dumps(series_data).replace('None,', 'null,').replace('NaN,', 'null,').replace('Infinity,', '1e9999,')
+      output = json.dumps(series_data, indent=(2 if requestOptions['pretty'] else None)).replace('None,', 'null,').replace('NaN,', 'null,').replace('Infinity,', '1e9999,')
 
       if 'jsonp' in requestOptions:
         response = HttpResponse(
@@ -355,6 +355,9 @@ def parseOptions(request):
     requestOptions['format'] = queryParams['format']
     if 'jsonp' in queryParams:
       requestOptions['jsonp'] = queryParams['jsonp']
+
+  requestOptions['pretty'] = bool(queryParams.get('pretty'))
+
   if 'noCache' in queryParams:
     requestOptions['noCache'] = True
   if 'maxDataPoints' in queryParams and queryParams['maxDataPoints'].isdigit():
