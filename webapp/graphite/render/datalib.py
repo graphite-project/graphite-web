@@ -299,8 +299,8 @@ def prefetchRemoteData(requestContext, targets):
   each time evaluateTarget() needs to fetch a path. All the prefetched
   data is stored in the requestContext, to be accessed later by datalib.
   """
-  log.rendering("Prefetching remote data")
   pathExpressions = extractPathExpressions(targets)
+  log.rendering("Prefetching remote data for [%s]" % (', '.join(pathExpressions)))
 
   (startTime, endTime, now) = timebounds(requestContext)
 
