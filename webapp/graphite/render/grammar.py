@@ -54,7 +54,7 @@ comma = Literal(',').suppress()
 equal = Literal('=').suppress()
 backslash = Literal('\\').suppress()
 
-symbols = '''(){},=.'"\\'''
+symbols = '''(){},.'"\\'''
 arg = Group(
   boolean |
   number |
