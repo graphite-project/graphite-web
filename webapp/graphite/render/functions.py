@@ -4081,11 +4081,13 @@ def seriesByTag(requestContext, *tagExpressions):
   if not taggedSeries:
     return []
 
-  taggedSeriesQuery = 'group(' + (','.join(taggedSeries)).replace('=','\\=') + ')'
+  taggedSeriesQuery = 'group(' + (','.join(taggedSeries)) + ')'
 
   log.info('taggedSeriesQuery %s' % taggedSeriesQuery)
 
   seriesList = evaluateTarget(requestContext, taggedSeriesQuery)
+
+  log.info('seriesByTag found [%s]' % ', '.join([series.pathExpression for series in seriesList]))
 
   for series in seriesList:
     series.tags = STORE.tagdb.parse(series.pathExpression).tags
