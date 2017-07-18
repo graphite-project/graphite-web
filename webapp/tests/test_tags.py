@@ -8,13 +8,13 @@ except ImportError:
 """
 
 from graphite.tags.localdatabase import LocalDatabaseTagDB
+from graphite.tags.redis import RedisTagDB
 from graphite.tags.utils import TaggedSeries
+
 from tests.base import TestCase
 
 class TagsTest(TestCase):
-  def test_local_database(self):
-    db = LocalDatabaseTagDB()
-
+  def _test_tagdb(self, db):
     # test path with tags
     parsed = db.parse('test.a;hello=tiger;blah=blah')
     self.assertIsInstance(parsed, TaggedSeries)
@@ -36,6 +36,8 @@ class TagsTest(TestCase):
     self.assertEqual(raw, 'test.a')
 
     # query that shouldn't match anything
+    db.del_series('test.a;blah=blah;hello=tiger')
+
     result = db.get_series('test.a;blah=blah;hello=tiger')
     self.assertEquals(result, None)
 
@@ -73,7 +75,7 @@ class TagsTest(TestCase):
 
     # complex find
     result = db.find_series(['hello=~lion|tiger', 'blah!=foo'])
-    self.assertEqual(result, ['test.a;blah=blah;hello=tiger', 'test.a;blah=blah;hello=lion'])
+    self.assertEqual(result, ['test.a;blah=blah;hello=lion', 'test.a;blah=blah;hello=tiger'])
 
     # add series without 'hello' tag
     result = db.tag_series('test.b;blah=blah')
@@ -82,3 +84,9 @@ class TagsTest(TestCase):
     # find series without tag
     result = db.find_series(['name=test.b', 'hello='])
     self.assertEqual(result, ['test.b;blah=blah'])
+
+  def test_local_tagdb(self):
+    return self._test_tagdb(LocalDatabaseTagDB())
+
+  def test_redis_tagdb(self):
+    return self._test_tagdb(RedisTagDB())

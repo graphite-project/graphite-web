@@ -15,6 +15,9 @@ addons:
     packages:
       - libcairo2-dev
 
+services:
+  - redis-server
+
 install:
   - pip install tox
 

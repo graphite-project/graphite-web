@@ -83,6 +83,8 @@ class LocalDatabaseTagDB(BaseTagDB):
       sql += ' WHERE ' + ' AND '.join(where)
       params.extend(whereparams)
 
+    sql += ' ORDER BY s.path'
+
     return sql, params
 
   def find_series(self, tags):
@@ -115,6 +117,7 @@ class LocalDatabaseTagDB(BaseTagDB):
     with connection.cursor() as cursor:
       sql = 'SELECT t.id, t.tag'
       sql += ' FROM tags_tag AS t'
+      sql += ' ORDER BY t.tag'
       params = []
       cursor.execute(sql, params)
 
@@ -149,6 +152,7 @@ class LocalDatabaseTagDB(BaseTagDB):
       sql += ' JOIN tags_tag AS t ON t.id=st.tag_id'
       sql += ' WHERE t.tag=%s'
       sql += ' GROUP BY v.id, v.value'
+      sql += ' ORDER BY v.value'
       params = [tag]
       cursor.execute(sql, params)
 

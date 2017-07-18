@@ -17,6 +17,7 @@ class RedisTagDB(BaseTagDB):
     series                    # Set of all paths
     series:<path>:tags        # Hash of all tag:value pairs for path
     tags                      # Set of all tags
+    tags:<tag>:series         # Set of paths with entry for tag
     tags:<tag>:values         # Set of values for tag
     tags:<tag>:values:<value> # Set of paths matching tag/value
 
@@ -28,6 +29,8 @@ class RedisTagDB(BaseTagDB):
 
   def find_series(self, tags):
     with self.r.pipeline() as pipe:
+      all_match_empty = True
+
       for tagspec in tags:
         m = re.match('^([^;!=]+)(!?=~?)([^;]*)$', tagspec)
         if m is None:
@@ -37,49 +40,76 @@ class RedisTagDB(BaseTagDB):
         operator = m.group(2)
         spec = m.group(3)
 
+        # find list of values that match the tagspec
         values = None
 
         if operator == '=':
+          matches_empty = spec == ''
+
           values = [spec]
+
         elif operator == '=~':
           pattern = re.compile(spec)
-          values = [value for value in self.r.sscan_iter('tags:' + tag + ':values') if pattern.search(value) is not None]
+          matches_empty = bool(pattern.match(''))
+
+          values = [value for value in self.r.sscan_iter('tags:' + tag + ':values') if pattern.match(value) is not None]
+
         elif operator == '!=':
+          matches_empty = spec != ''
+
           values = [value for value in self.r.sscan_iter('tags:' + tag + ':values') if value != spec]
+
         elif operator == '!=~':
           pattern = re.compile(spec)
-          values = [value for value in self.r.sscan_iter('tags:' + tag + ':values') if pattern.search(value) is None]
+          matches_empty = not pattern.match('')
 
-        if not values:
-          return []
+          values = [value for value in self.r.sscan_iter('tags:' + tag + ':values') if pattern.match(value) is None]
 
-        pipe.sunionstore('temp:' + tagspec, len(values), *['tags:' + tag + ':values:' + value for value in values])
+        else:
+          raise ValueError("Invalid operator %s" % operator)
 
+        # if we're matching the empty value, union with the set of series that don't have the tag
+        if matches_empty:
+          # store series that don't have this tag in a temp key
+          pipe.sdiffstore('temp:' + tag + ':empty', 'series', 'tags:' + tag + ':series')
+
+          # store union of series without this tag and all series that match the spec in a temp key
+          pipe.sunionstore('temp:' + tagspec, 1 + len(values), 'temp:' + tag + ':empty', *['tags:' + tag + ':values:' + value for value in values])
+        # otherwise only return series for matching values
+        else:
+          # if this query matched no values, just short-circuit since the result of the final intersect will be empty
+          if not values:
+            return []
+
+          # store union of all series that match the spec in a temp key
+          pipe.sunionstore('temp:' + tagspec, len(values), *['tags:' + tag + ':values:' + value for value in values])
+
+        all_match_empty = all_match_empty and matches_empty
+
+      if all_match_empty:
+        raise ValueError("At least one tagspec must not match the empty string")
+
+      # get the final result from the intersection of the temp lists we created above
       pipe.sinter(*['temp:' + tagspec for tagspec in tags])
 
       results = pipe.execute()
 
-    return list(results[-1])
+    return sorted(list(results[-1]))
 
   def get_series(self, path):
     tags = {}
 
-    tagvalues = self.r.hgetall('series:' + path + ':tags')
-
-    for i, t in enumerate(tagvalues):
-      if i % 2 == 0:
-        tags[t] = tagvalues[i + 1]
-
+    tags = self.r.hgetall('series:' + path + ':tags')
     if not tags:
       return None
 
     return TaggedSeries(tags['name'], tags)
 
   def list_tags(self):
-    return [
+    return sorted([
       {'tag': tag}
       for tag in self.r.sscan_iter('tags')
-    ]
+    ], key=lambda x: x['tag'])
 
   def get_tag(self, tag):
     if not self.r.sismember('tags', tag):
@@ -91,10 +121,10 @@ class RedisTagDB(BaseTagDB):
     }
 
   def list_values(self, tag):
-    return [
+    return sorted([
       {'value': value, 'count': self.r.scard('tags:' + tag + ':values:' + value)}
       for value in self.r.sscan_iter('tags:' + tag + ':values')
-    ]
+    ], key=lambda x: x['value'])
 
   def tag_series(self, series):
     # extract tags and normalize path
@@ -109,6 +139,7 @@ class RedisTagDB(BaseTagDB):
         pipe.hset('series:' + path + ':tags', tag, value)
 
         pipe.sadd('tags', tag)
+        pipe.sadd('tags:' + tag + ':series', path)
         pipe.sadd('tags:' + tag + ':values', value)
         pipe.sadd('tags:' + tag + ':values:' + value, path)
 
@@ -128,6 +159,7 @@ class RedisTagDB(BaseTagDB):
       pipe.delete('series:' + path + ':tags')
 
       for tag, value in parsed.tags.items():
+        pipe.srem('tags:' + tag + ':series', path)
         pipe.srem('tags:' + tag + ':values:' + value, path)
 
       pipe.execute()
