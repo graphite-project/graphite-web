@@ -180,6 +180,22 @@ STORAGE_FINDERS
   It is possible to use an alternate storage layer than the default, Whisper, in order to accommodate specific needs.
   See: http://graphite.readthedocs.io/en/latest/storage-backends.html
 
+TAGDB
+  `Default: 'graphite.tags.localdatabase.LocalDatabaseTagDB'`
+  Tag database driver to use, other options include `graphite.tags.redis.RedisTagDB`
+
+TAGDB_REDIS_HOST
+  `Default: 'localhost'`
+  Redis host to use with `TAGDB = 'graphite.tags.redis.RedisTagDB'`
+
+TAGDB_REDIS_PORT
+  `Default: 6379`
+  Redis port to use with `TAGDB = 'graphite.tags.redis.RedisTagDB'`
+
+TAGDB_REDIS_DB
+  `Default: 0`
+  Redis database to use with `TAGDB = 'graphite.tags.redis.RedisTagDB'`
+
 Configure Webserver (Apache)
 ----------------------------
 There is an example ``example-graphite-vhost.conf`` file in the examples directory of the graphite web source code. You can use this to configure apache. Different distributions have different ways of configuring Apache. Please refer to your distribution's documentation on the subject.

@@ -2,16 +2,31 @@ from __future__ import absolute_import
 
 import re
 
+from django.conf import settings
+
 from graphite.tags.utils import BaseTagDB, TaggedSeries
 
 class RedisTagDB(BaseTagDB):
+  """
+  Stores tag information in a Redis database.
+
+  Keys used are:
+
+  .. code-block:: none
+
+    series                    # Set of all paths
+    series:<path>:tags        # Hash of all tag:value pairs for path
+    tags                      # Set of all tags
+    tags:<tag>:values         # Set of values for tag
+    tags:<tag>:values:<value> # Set of paths matching tag/value
+
+  """
   def __init__(self):
     from redis import Redis
 
-    self.r = Redis(host='localhost',port=6379,db=0)
+    self.r = Redis(host=settings.TAGDB_REDIS_HOST,port=settings.TAGDB_REDIS_PORT,db=settings.TAGDB_REDIS_DB)
 
   def find_series(self, tags):
-    import pprint
     with self.r.pipeline() as pipe:
       for tagspec in tags:
         m = re.match('^([^;!=]+)(!?=~?)([^;]*)$', tagspec)
@@ -28,12 +43,12 @@ class RedisTagDB(BaseTagDB):
           values = [spec]
         elif operator == '=~':
           pattern = re.compile(spec)
-          values = [value[0] for value in self.r.zscan_iter('tags:' + tag + ':values') if pattern.search(value[0]) is not None]
+          values = [value for value in self.r.sscan_iter('tags:' + tag + ':values') if pattern.search(value) is not None]
         elif operator == '!=':
-          values = [value[0] for value in self.r.zscan_iter('tags:' + tag + ':values') if value[0] != spec]
+          values = [value for value in self.r.sscan_iter('tags:' + tag + ':values') if value != spec]
         elif operator == '!=~':
           pattern = re.compile(spec)
-          values = [value[0] for value in self.r.zscan_iter('tags:' + tag + ':values') if pattern.search(value[0]) is None]
+          values = [value for value in self.r.sscan_iter('tags:' + tag + ':values') if pattern.search(value) is None]
 
         if not values:
           return []
@@ -62,13 +77,12 @@ class RedisTagDB(BaseTagDB):
 
   def list_tags(self):
     return [
-      {'tag': tag[0]}
-      for tag in self.r.zscan_iter('tags')
+      {'tag': tag}
+      for tag in self.r.sscan_iter('tags')
     ]
 
   def get_tag(self, tag):
-    rank = self.r.zrank('tags', tag)
-    if rank is None:
+    if not self.r.sismember('tags', tag):
       return None
 
     return {
@@ -78,8 +92,8 @@ class RedisTagDB(BaseTagDB):
 
   def list_values(self, tag):
     return [
-      {'value': value[0], 'count': self.r.scard('tags:' + tag + ':values:' + value[0])}
-      for value in self.r.zscan_iter('tags:' + tag + ':values')
+      {'value': value, 'count': self.r.scard('tags:' + tag + ':values:' + value)}
+      for value in self.r.sscan_iter('tags:' + tag + ':values')
     ]
 
   def tag_series(self, series):
@@ -89,14 +103,13 @@ class RedisTagDB(BaseTagDB):
     path = parsed.format()
 
     with self.r.pipeline() as pipe:
-      pipe.zadd('series', path, 1)
+      pipe.sadd('series', path)
 
       for tag, value in parsed.tags.items():
         pipe.hset('series:' + path + ':tags', tag, value)
 
-        pipe.zadd('tags', tag, 1)
-        pipe.zadd('tags:' + tag + ':values', value, 1)
-
+        pipe.sadd('tags', tag)
+        pipe.sadd('tags:' + tag + ':values', value)
         pipe.sadd('tags:' + tag + ':values:' + value, path)
 
       pipe.execute()
@@ -110,7 +123,7 @@ class RedisTagDB(BaseTagDB):
     path = parsed.format()
 
     with self.r.pipeline() as pipe:
-      pipe.zrem('series', path)
+      pipe.srem('series', path)
 
       pipe.delete('series:' + path + ':tags')
 
