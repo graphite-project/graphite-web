@@ -1,6 +1,28 @@
 Installing Graphite
 ===================
 
+Docker
+------
+
+Try Graphite in Docker and have it running in seconds:
+
+.. code-block:: none
+
+    docker run -d\
+     --name graphite\
+     --restart=always\
+     -p 80:80\
+     -p 2003-2004:2003-2004\
+     -p 2023-2024:2023-2024\
+     -p 8125:8125/udp\
+     -p 8126:8126\
+     graphiteapp/graphite-statsd
+
+Check `docker_repo`_ for details.
+
+This is portable, fast and easy to use. Or use instructions below for installation.
+
+
 Dependencies
 ------------
 Graphite renders graphs using the Cairo graphics library. This adds dependencies on
@@ -190,3 +212,4 @@ Despair Not!  Even though running Graphite on Windows is completely unsupported 
 .. _simplejson: http://simplejson.readthedocs.io/
 .. _txAMQP: https://launchpad.net/txamqp/
 .. _uWSGI: http://uwsgi-docs.readthedocs.io/
+.. _docker_repo: https://github.com/graphite-project/docker-graphite-statsd
