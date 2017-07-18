@@ -12,6 +12,8 @@ class LocalDatabaseTagDB(BaseTagDB):
     where = []
     whereparams = []
 
+    all_match_empty = True
+
     i = 0
     for tagspec in tags:
       m = re.match('^([^;!=]+)(!?=~?)([^;]*)$', tagspec)
@@ -20,7 +22,7 @@ class LocalDatabaseTagDB(BaseTagDB):
 
       tag = m.group(1)
       operator = m.group(2)
-      value = m.group(3)
+      spec = m.group(3)
 
       i += 1
       s = str(i)
@@ -29,25 +31,53 @@ class LocalDatabaseTagDB(BaseTagDB):
       params.append(tag)
 
       if operator == '=':
-        sql += ' JOIN tags_seriestag AS st' + s + ' ON st' + s + '.series_id=s.id AND st' + s + '.tag_id=t' + s + '.id'
-        sql += ' JOIN tags_tagvalue AS v' + s + ' ON v' + s + '.id=st' + s + '.value_id AND v' + s + '.value=%s'
-        params.append(value)
+        matches_empty = spec == ''
+
+        where.append('v' + s + '.value=%s')
+        whereparams.append(spec)
+
       elif operator == '=~':
-        sql += ' JOIN tags_seriestag AS st' + s + ' ON st' + s + '.series_id=s.id AND st' + s + '.tag_id=t' + s + '.id'
-        sql += ' JOIN tags_tagvalue AS v' + s + ' ON v' + s + '.id=st' + s + '.value_id AND v' + s + '.value REGEXP %s'
-        params.append(value)
+        # make sure regex is anchored
+        if not spec.startswith('^'):
+          spec = '^' + spec
+
+        matches_empty = bool(re.match(spec, ''))
+
+        where.append('v' + s + '.value REGEXP %s')
+        whereparams.append(spec)
+
       elif operator == '!=':
-        sql += ' LEFT JOIN tags_seriestag AS st' + s + ' ON st' + s + '.series_id=s.id AND st' + s + '.tag_id=t' + s + '.id'
-        sql += ' LEFT JOIN tags_tagvalue AS v' + s + ' ON v' + s + '.id=st' + s + '.value_id AND v' + s + '.value=%s'
-        params.append(value)
+        matches_empty = spec != ''
 
-        where.append('v' + s + '.id IS NULL')
+        where.append('v' + s + '.value<>%s')
+        whereparams.append(spec)
+
       elif operator == '!=~':
-        sql += ' LEFT JOIN tags_seriestag AS st' + s + ' ON st' + s + '.series_id=s.id AND st' + s + '.tag_id=t' + s + '.id'
-        sql += ' LEFT JOIN tags_tagvalue AS v' + s + ' ON v' + s + '.id=st' + s + '.value_id AND v' + s + '.value REGEXP %s'
-        params.append(value)
+        # make sure regex is anchored
+        if not spec.startswith('^'):
+          spec = '^' + spec
 
-        where.append('v' + s + '.id IS NULL')
+        matches_empty = not re.match(spec, '')
+
+        where.append('v' + s + '.value NOT REGEXP %s')
+        whereparams.append(spec)
+
+      else:
+        raise ValueError("Invalid operator %s" % operator)
+
+      if matches_empty:
+        sql += ' LEFT JOIN tags_seriestag AS st' + s + ' ON st' + s + '.series_id=s.id AND st' + s + '.tag_id=t' + s + '.id'
+        sql += ' LEFT JOIN tags_tagvalue AS v' + s + ' ON v' + s + '.id=st' + s + '.value_id'
+
+        where[-1] = '(' + where[-1] + ' OR v' + s + '.id IS NULL)'
+      else:
+        sql += ' JOIN tags_seriestag AS st' + s + ' ON st' + s + '.series_id=s.id AND st' + s + '.tag_id=t' + s + '.id'
+        sql += ' JOIN tags_tagvalue AS v' + s + ' ON v' + s + '.id=st' + s + '.value_id'
+
+      all_match_empty = all_match_empty and matches_empty
+
+    if all_match_empty:
+      raise ValueError("At least one tagspec must not match the empty string")
 
     if where:
       sql += ' WHERE ' + ' AND '.join(where)
