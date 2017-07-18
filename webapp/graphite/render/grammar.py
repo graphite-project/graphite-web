@@ -77,7 +77,7 @@ call = Group(
 
 # Metric pattern (aka. pathExpression)
 validMetricChars = ''.join((set(printables) - set(symbols)))
-escapedChar = backslash + Word(symbols, exact=1)
+escapedChar = backslash + Word(symbols + ';=', exact=1)
 partialPathElem = Combine(
   OneOrMore(
     escapedChar | Word(validMetricChars)

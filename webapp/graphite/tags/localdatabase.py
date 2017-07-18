@@ -150,14 +150,8 @@ class LocalDatabaseTagDB(BaseTagDB):
 
     # check if path is already tagged
     curr = self.get_series(path)
-    if curr:
-      match = True
-      for tag, value in parsed.tags.items():
-        if not tag in curr.tags or curr.tags[tag] != value:
-          match = False
-
-      if match:
-        return path
+    if curr and parsed.tags == curr.tags:
+      return path
 
     with connection.cursor() as cursor:
       # tags

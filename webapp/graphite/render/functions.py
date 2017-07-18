@@ -4075,19 +4075,20 @@ def seriesByTag(requestContext, *tagExpressions):
   """
 
   if STORE.tagdb is None:
+    log.info('seriesByTag called but no TagDB configured')
     return []
 
   taggedSeries = STORE.tagdb.find_series(tagExpressions)
   if not taggedSeries:
     return []
 
-  taggedSeriesQuery = 'group(' + (','.join(taggedSeries)) + ')'
+  taggedSeriesQuery = 'group(' + ','.join(taggedSeries) + ')'
 
-  log.info('taggedSeriesQuery %s' % taggedSeriesQuery)
+  log.debug('taggedSeriesQuery %s' % taggedSeriesQuery)
 
   seriesList = evaluateTarget(requestContext, taggedSeriesQuery)
 
-  log.info('seriesByTag found [%s]' % ', '.join([series.pathExpression for series in seriesList]))
+  log.debug('seriesByTag found [%s]' % ', '.join([series.pathExpression for series in seriesList]))
 
   for series in seriesList:
     series.tags = STORE.tagdb.parse(series.pathExpression).tags

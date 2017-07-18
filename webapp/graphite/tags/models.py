@@ -18,6 +18,6 @@ class SeriesTag(models.Model):
   value = models.ForeignKey(TagValue, on_delete=models.CASCADE)
 
   class Meta:
-    unique_together = ("series", "tag", "value")
+    unique_together = ("series", "tag")
 
   __str__ = lambda self: "SeriesTag [%s %s %s]" % (self.series, self.tag, self.value)
