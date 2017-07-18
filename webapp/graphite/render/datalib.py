@@ -39,6 +39,7 @@ class TimeSeries(list):
     self.pathExpression = name
     self.tags = tags
 
+
   def __eq__(self, other):
     if isinstance(other, TimeSeries):
       color_check = True
@@ -99,6 +100,7 @@ class TimeSeries(list):
 
   def __repr__(self):
     return 'TimeSeries(name=%s, start=%s, end=%s, step=%s)' % (self.name, self.start, self.end, self.step)
+
 
   def getInfo(self):
     """Pickle-friendly representation of the series"""
