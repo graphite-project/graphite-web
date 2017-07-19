@@ -27,6 +27,7 @@ from graphite.events import models
 from graphite.util import epoch, epoch_to_dt, timestamp, deltaseconds
 from graphite.render.grammar import grammar
 from graphite.storage import STORE
+from graphite.tags.utils import TaggedSeries
 
 # XXX format_units() should go somewhere else
 if environ.get('READTHEDOCS'):
@@ -845,13 +846,15 @@ def exponentialMovingAverage(requestContext, seriesList, windowSize):
     else:
       windowPoints = int(windowSize)
 
-    if isinstance(windowSize, basestring):
+    if len(series.tags) > 1:
+      series.tags['exponentialMovingAverage'] = windowSize
+      newName = TaggedSeries.format(series.tags)
+    elif isinstance(windowSize, basestring):
       newName = 'exponentialMovingAverage(%s,"%s")' % (series.name, windowSize)
     else:
       newName = "exponentialMovingAverage(%s,%s)" % (series.name, windowSize)
 
     newSeries = TimeSeries(newName, series.start + previewSeconds, series.end, series.step, [])
-    newSeries.pathExpression = newName
     window_sum = safeSum(series[:windowPoints]) or 0
     count = safeLen(series[:windowPoints])
     ema = safeDiv(window_sum, count)
@@ -917,13 +920,15 @@ def movingMedian(requestContext, seriesList, windowSize):
     else:
       windowPoints = int(windowSize)
 
-    if isinstance(windowSize, basestring):
+    if len(series.tags) > 1:
+      series.tags['movingMedian'] = windowSize
+      newName = TaggedSeries.format(series.tags)
+    elif isinstance(windowSize, basestring):
       newName = 'movingMedian(%s,"%s")' % (series.name, windowSize)
     else:
       newName = "movingMedian(%s,%s)" % (series.name, windowSize)
 
     newSeries = TimeSeries(newName, series.start + previewSeconds, series.end, series.step, [])
-    newSeries.pathExpression = newName
 
     for i in range(windowPoints,len(series)):
       window = series[i - windowPoints:i]
@@ -951,7 +956,11 @@ def scale(requestContext, seriesList, factor):
 
   """
   for series in seriesList:
-    series.name = "scale(%s,%g)" % (series.name,float(factor))
+    if len(series.tags) > 1:
+      series.tags['scale'] = factor
+      series.name = TaggedSeries.format(series.tags)
+    else:
+      series.name = "scale(%s,%g)" % (series.name,float(factor))
     series.pathExpression = series.name
     for i,value in enumerate(series):
       series[i] = safeMul(value,factor)
@@ -967,7 +976,11 @@ def scaleToSeconds(requestContext, seriesList, seconds):
   """
 
   for series in seriesList:
-    series.name = "scaleToSeconds(%s,%d)" % (series.name,seconds)
+    if len(series.tags) > 1:
+      series.tags['scaleToSeconds'] = seconds
+      series.name = TaggedSeries.format(series.tags)
+    else:
+      series.name = "scaleToSeconds(%s,%d)" % (series.name,seconds)
     series.pathExpression = series.name
     for i,value in enumerate(series):
       factor = seconds * 1.0 / series.step
@@ -988,7 +1001,11 @@ def pow(requestContext, seriesList, factor):
 
   """
   for series in seriesList:
-    series.name = "pow(%s,%g)" % (series.name,float(factor))
+    if len(series.tags) > 1:
+      series.tags['pow'] = factor
+      series.name = TaggedSeries.format(series.tags)
+    else:
+      series.name = "pow(%s,%g)" % (series.name,float(factor))
     series.pathExpression = series.name
     for i,value in enumerate(series):
       series[i] = safePow(value,factor)
@@ -1026,7 +1043,6 @@ def powSeries(requestContext, *seriesLists):
         tmpVal = safePow(tmpVal, element)
     values.append(tmpVal)
   series = TimeSeries(name,start,end,step,values)
-  series.pathExpression = name
   return [series]
 
 def squareRoot(requestContext, seriesList):
@@ -1041,7 +1057,12 @@ def squareRoot(requestContext, seriesList):
 
   """
   for series in seriesList:
-    series.name = "squareRoot(%s)" % (series.name)
+    if len(series.tags) > 1:
+      series.tags['squareRoot'] = 1
+      series.name = TaggedSeries.format(series.tags)
+    else:
+      series.name = "squareRoot(%s)" % (series.name)
+    series.pathExpression = series.name
     for i,value in enumerate(series):
       series[i] = safePow(value, 0.5)
   return seriesList
@@ -1058,7 +1079,12 @@ def invert(requestContext, seriesList):
 
   """
   for series in seriesList:
-    series.name = "invert(%s)" % (series.name)
+    if len(series.tags) > 1:
+      series.tags['invert'] = 1
+      series.name = TaggedSeries.format(series.tags)
+    else:
+      series.name = "invert(%s)" % (series.name)
+    series.pathExpression = series.name
     for i,value in enumerate(series):
         series[i] = safePow(value, -1)
   return seriesList
@@ -1076,7 +1102,11 @@ def absolute(requestContext, seriesList):
     &target=absolute(Server.instance*.threads.busy)
   """
   for series in seriesList:
-    series.name = "absolute(%s)" % (series.name)
+    if len(series.tags) > 1:
+      series.tags['squareRoot'] = 1
+      series.name = TaggedSeries.format(series.tags)
+    else:
+      series.name = "absolute(%s)" % (series.name)
     series.pathExpression = series.name
     for i,value in enumerate(series):
       series[i] = safeAbs(value)
@@ -1095,7 +1125,11 @@ def offset(requestContext, seriesList, factor):
 
   """
   for series in seriesList:
-    series.name = "offset(%s,%g)" % (series.name,float(factor))
+    if len(series.tags) > 1:
+      series.tags['offset'] = factor
+      series.name = TaggedSeries.format(series.tags)
+    else:
+      series.name = "offset(%s,%g)" % (series.name,float(factor))
     series.pathExpression = series.name
     for i,value in enumerate(series):
       if value is not None:
@@ -1133,8 +1167,13 @@ def offsetToZero(requestContext, seriesList):
 
   """
   for series in seriesList:
-    series.name = "offsetToZero(%s)" % (series.name)
     minimum = safeMin(series)
+    if len(series.tags) > 1:
+      series.tags['offsetToZero'] = minimum
+      series.name = TaggedSeries.format(series.tags)
+    else:
+      series.name = "offsetToZero(%s)" % (series.name)
+    series.pathExpression = series.name
     for i,value in enumerate(series):
       if value is not None:
         series[i] = value - minimum
@@ -1183,13 +1222,15 @@ def movingAverage(requestContext, seriesList, windowSize):
     else:
       windowPoints = int(windowSize)
 
-    if isinstance(windowSize, basestring):
+    if len(series.tags) > 1:
+      series.tags['movingAverage'] = windowSize
+      newName = TaggedSeries.format(series.tags)
+    elif isinstance(windowSize, basestring):
       newName = 'movingAverage(%s,"%s")' % (series.name, windowSize)
     else:
       newName = "movingAverage(%s,%s)" % (series.name, windowSize)
 
     newSeries = TimeSeries(newName, series.start + previewSeconds, series.end, series.step, [])
-    newSeries.pathExpression = newName
 
     window_sum = safeSum(series[:windowPoints]) or 0
     count = safeLen(series[:windowPoints])
@@ -1250,13 +1291,15 @@ def movingSum(requestContext, seriesList, windowSize):
     else:
       windowPoints = int(windowSize)
 
-    if isinstance(windowSize, basestring):
+    if len(series.tags) > 1:
+      series.tags['movingSum'] = windowSize
+      newName = TaggedSeries.format(series.tags)
+    elif isinstance(windowSize, basestring):
       newName = 'movingSum(%s,"%s")' % (series.name, windowSize)
     else:
       newName = "movingSum(%s,%s)" % (series.name, windowSize)
 
     newSeries = TimeSeries(newName, series.start + previewSeconds, series.end, series.step, [])
-    newSeries.pathExpression = newName
 
     window_sum = safeSum(series[:windowPoints])
     newSeries.append(window_sum)
@@ -1314,13 +1357,15 @@ def movingMin(requestContext, seriesList, windowSize):
     else:
       windowPoints = int(windowSize)
 
-    if isinstance(windowSize, basestring):
+    if len(series.tags) > 1:
+      series.tags['movingMin'] = windowSize
+      newName = TaggedSeries.format(series.tags)
+    elif isinstance(windowSize, basestring):
       newName = 'movingMin(%s,"%s")' % (series.name, windowSize)
     else:
       newName = "movingMin(%s,%s)" % (series.name, windowSize)
 
     newSeries = TimeSeries(newName, series.start + previewSeconds, series.end, series.step, [])
-    newSeries.pathExpression = newName
     for i in range(windowPoints,len(series)):
       window = series[i - windowPoints:i]
       newSeries.append(safeMin(window))
@@ -1372,13 +1417,15 @@ def movingMax(requestContext, seriesList, windowSize):
     else:
       windowPoints = int(windowSize)
 
-    if isinstance(windowSize, basestring):
+    if len(series.tags) > 1:
+      series.tags['movingMax'] = windowSize
+      newName = TaggedSeries.format(series.tags)
+    elif isinstance(windowSize, basestring):
       newName = 'movingMax(%s,"%s")' % (series.name, windowSize)
     else:
       newName = "movingMax(%s,%s)" % (series.name, windowSize)
 
     newSeries = TimeSeries(newName, series.start + previewSeconds, series.end, series.step, [])
-    newSeries.pathExpression = newName
     for i in range(windowPoints,len(series)):
       window = series[i - windowPoints:i]
       newSeries.append(safeMax(window))
@@ -1429,7 +1476,11 @@ def consolidateBy(requestContext, seriesList, consolidationFunc):
   for series in seriesList:
     # datalib will throw an exception, so it's not necessary to validate here
     series.consolidationFunc = consolidationFunc
-    series.name = 'consolidateBy(%s,"%s")' % (series.name, series.consolidationFunc)
+    if len(series.tags) > 1:
+      series.tags['consolidateBy'] = consolidationFunc
+      series.name = TaggedSeries.format(series.tags)
+    else:
+      series.name = 'consolidateBy(%s,"%s")' % (series.name, series.consolidationFunc)
     series.pathExpression = series.name
   return seriesList
 
@@ -1463,9 +1514,12 @@ def derivative(requestContext, seriesList):
         continue
       newValues.append(val - prev)
       prev = val
-    newName = "derivative(%s)" % series.name
+    if len(series.tags) > 1:
+      series.tags['derivative'] = 1
+      newName = TaggedSeries.format(series.tags)
+    else:
+      newName = "derivative(%s)" % series.name
     newSeries = TimeSeries(newName, series.start, series.end, series.step, newValues)
-    newSeries.pathExpression = newName
     results.append(newSeries)
   return results
 
@@ -1511,9 +1565,12 @@ def perSecond(requestContext, seriesList, maxValue=None):
 
       step = series.step
       prev = val
-    newName = "perSecond(%s)" % series.name
+    if len(series.tags) > 1:
+      series.tags['perSecond'] = 1
+      newName = TaggedSeries.format(series.tags)
+    else:
+      newName = "perSecond(%s)" % series.name
     newSeries = TimeSeries(newName, series.start, series.end, series.step, newValues)
-    newSeries.pathExpression = newName
     results.append(newSeries)
   return results
 
@@ -1547,9 +1604,12 @@ def delay(requestContext, seriesList, steps):
         continue
       newValues.append(prev.pop(0))
       prev.append(val)
-    newName = "delay(%s,%d)" % (series.name, steps)
+    if len(series.tags) > 1:
+      series.tags['delay'] = steps
+      newName = TaggedSeries.format(series.tags)
+    else:
+      newName = "delay(%s,%d)" % (series.name, steps)
     newSeries = TimeSeries(newName, series.start, series.end, series.step, newValues)
-    newSeries.pathExpression = newName
     results.append(newSeries)
   return results
 
@@ -1578,9 +1638,12 @@ def integral(requestContext, seriesList):
       else:
         current += val
         newValues.append(current)
-    newName = "integral(%s)" % series.name
+    if len(series.tags) > 1:
+      series.tags['integral'] = 1
+      newName = TaggedSeries.format(series.tags)
+    else:
+      newName = "integral(%s)" % series.name
     newSeries = TimeSeries(newName, series.start, series.end, series.step, newValues)
-    newSeries.pathExpression = newName
     results.append(newSeries)
   return results
 
@@ -1618,9 +1681,12 @@ def integralByInterval(requestContext, seriesList, intervalUnit):
         current += val
         newValues.append(current)
       currentTime += series.step
-    newName = "integralByInterval(%s,'%s')" % (series.name, intervalUnit)
+    if len(series.tags) > 1:
+      series.tags['integralByInterval'] = intervalUnit
+      newName = TaggedSeries.format(series.tags)
+    else:
+      newName = "integralByInterval(%s,'%s')" % (series.name, intervalUnit)
     newSeries = TimeSeries(newName, series.start, series.end, series.step, newValues)
-    newSeries.pathExpression = newName
     results.append(newSeries)
   return results
 
@@ -1661,9 +1727,12 @@ def nonNegativeDerivative(requestContext, seriesList, maxValue=None):
 
       prev = val
 
-    newName = "nonNegativeDerivative(%s)" % series.name
+    if len(series.tags) > 1:
+      series.tags['nonNegativeDerivative'] = 1
+      newName = TaggedSeries.format(series.tags)
+    else:
+      newName = "nonNegativeDerivative(%s)" % series.name
     newSeries = TimeSeries(newName, series.start, series.end, series.step, newValues)
-    newSeries.pathExpression = newName
     results.append(newSeries)
 
   return results
@@ -1704,13 +1773,16 @@ def stacked(requestContext,seriesLists,stackName='__DEFAULT__'):
 
     # Work-around for the case when legend is set
     if stackName=='__DEFAULT__':
-      newName = "stacked(%s)" % series.name
+      if len(series.tags) > 1:
+        series.tags['stacked'] = stackName
+        newName = TaggedSeries.format(series.tags)
+      else:
+        newName = "stacked(%s)" % series.name
     else:
       newName = series.name
 
     newSeries = TimeSeries(newName, series.start, series.end, series.step, newValues)
     newSeries.options['stacked'] = True
-    newSeries.pathExpression = newName
     results.append(newSeries)
   requestContext['totalStack'][stackName] = totalStack
   return results
@@ -1752,7 +1824,13 @@ def areaBetween(requestContext, seriesList):
   lower.options['invisible'] = True
 
   upper.options['stacked'] = True
-  lower.name = upper.name = "areaBetween(%s)" % upper.pathExpression
+
+  if len(upper.tags) > 1:
+    upper.tags['areaBetween'] = 1
+    lower.tags = upper.tags
+    lower.name = upper.name = TaggedSeries.format(upper.tags)
+  else:
+    lower.name = upper.name = "areaBetween(%s)" % upper.pathExpression
   return seriesList
 
 def aliasSub(requestContext, seriesList, search, replace):
@@ -2050,9 +2128,12 @@ def logarithm(requestContext, seriesList, base=10):
         newValues.append(None)
       else:
         newValues.append(math.log(val, base))
-    newName = "log(%s, %s)" % (series.name, base)
+    if len(series.tags) > 1:
+      series.tags['log'] = base
+      newName = TaggedSeries.format(series.tags)
+    else:
+      newName = "log(%s, %s)" % (series.name, base)
     newSeries = TimeSeries(newName, series.start, series.end, series.step, newValues)
-    newSeries.pathExpression = newName
     results.append(newSeries)
   return results
 
@@ -2361,7 +2442,11 @@ def nPercentile(requestContext, seriesList, n):
 
     perc_val = _getPercentile(s_copy, n)
     if perc_val is not None:
-      name = 'nPercentile(%s, %g)' % (s_copy.name, n)
+      if len(s_copy.tags) > 1:
+        s_copy.tags['nPercentile'] = n
+        name = TaggedSeries.format(s_copy.tags)
+      else:
+        name = 'nPercentile(%s, %g)' % (s_copy.name, n)
       point_count = int((s.end - s.start)/s.step)
       perc_series = TimeSeries(name, s_copy.start, s_copy.end, s_copy.step, [perc_val] * point_count )
       perc_series.pathExpression = name
@@ -2651,8 +2736,12 @@ def stdev(requestContext, seriesList, points, windowTolerance=0.1):
   # For this we take the standard deviation in terms of the moving average
   # and the moving average of series squares.
   for (seriesIndex,series) in enumerate(seriesList):
-    stdevSeries = TimeSeries("stdev(%s,%d)" % (series.name, int(points)), series.start, series.end, series.step, [])
-    stdevSeries.pathExpression = "stdev(%s,%d)" % (series.name, int(points))
+    if len(series.tags) > 1:
+      series.tags['stdev'] = points
+      name = TaggedSeries.format(series.tags)
+    else:
+      name = "stdev(%s,%d)" % (series.name, int(points))
+    stdevSeries = TimeSeries(name, series.start, series.end, series.step, [])
 
     validPoints = 0
     currentSum = 0
@@ -2703,7 +2792,11 @@ def secondYAxis(requestContext, seriesList):
   """
   for series in seriesList:
     series.options['secondYAxis'] = True
-    series.name= 'secondYAxis(%s)' % series.name
+    if len(series.tags) > 1:
+      series.tags['secondYAxis'] = 1
+      series.name = TaggedSeries.format(series.tags)
+    else:
+      series.name= 'secondYAxis(%s)' % series.name
   return seriesList
 
 def holtWintersIntercept(alpha,actual,last_season,last_intercept,last_slope):
@@ -2794,16 +2887,22 @@ def holtWintersAnalysis(series):
     deviations.append(deviation)
 
   # make the new forecast series
-  forecastName = "holtWintersForecast(%s)" % series.name
+  if len(series.tags) > 1:
+    series.tags['holtWintersForecast'] = 1
+    forecastName = TaggedSeries.format(series.tags)
+  else:
+    forecastName = "holtWintersForecast(%s)" % series.name
   forecastSeries = TimeSeries(forecastName, series.start, series.end
     , series.step, predictions)
-  forecastSeries.pathExpression = forecastName
 
   # make the new deviation series
-  deviationName = "holtWintersDeviation(%s)" % series.name
+  if len(series.tags) > 1:
+    series.tags['holtWintersDeviation'] = 1
+    deviationName = TaggedSeries.format(series.tags)
+  else:
+    deviationName = "holtWintersDeviation(%s)" % series.name
   deviationSeries = TimeSeries(deviationName, series.start, series.end
           , series.step, deviations)
-  deviationSeries.pathExpression = deviationName
 
   results = { 'predictions': forecastSeries
         , 'deviations': deviationSeries
@@ -2830,7 +2929,12 @@ def holtWintersForecast(requestContext, seriesList, bootstrapInterval='7d'):
     analysis = holtWintersAnalysis(series)
     predictions = analysis['predictions']
     windowPoints = previewSeconds / predictions.step
-    result = TimeSeries("holtWintersForecast(%s)" % series.name, predictions.start + previewSeconds, predictions.end, predictions.step, predictions[windowPoints:])
+    if len(series.tags) > 1:
+      series.tags['holtWintersForecast'] = 1
+      forecastName = TaggedSeries.format(series.tags)
+    else:
+      forecastName = "holtWintersForecast(%s)" % series.name
+    result = TimeSeries(forecastName, predictions.start + previewSeconds, predictions.end, predictions.step, predictions[windowPoints:])
     result.pathExpression = result.name
     results.append(result)
   return results
@@ -2877,8 +2981,18 @@ def holtWintersConfidenceBands(requestContext, seriesList, delta=3, bootstrapInt
         upperBand.append(forecast_item + scaled_deviation)
         lowerBand.append(forecast_item - scaled_deviation)
 
-    upperName = "holtWintersConfidenceUpper(%s)" % series.name
-    lowerName = "holtWintersConfidenceLower(%s)" % series.name
+    if len(series.tags) > 1:
+      series.tags['holtWintersConfidenceUpper'] = 1
+      upperName = TaggedSeries.format(series.tags)
+    else:
+      upperName = "holtWintersConfidenceUpper(%s)" % series.name
+
+    if len(series.tags) > 1:
+      series.tags['holtWintersConfidenceLower'] = 1
+      lowerName = TaggedSeries.format(series.tags)
+    else:
+      lowerName = "holtWintersConfidenceLower(%s)" % series.name
+
     upperSeries = TimeSeries(upperName, forecast.start, forecast.end
             , forecast.step, upperBand)
     lowerSeries = TimeSeries(lowerName, forecast.start, forecast.end
@@ -2910,7 +3024,11 @@ def holtWintersAberration(requestContext, seriesList, delta=3, bootstrapInterval
       else:
         aberration.append(0)
 
-    newName = "holtWintersAberration(%s)" % series.name
+    if len(series.tags) > 1:
+      series.tags['holtWintersAberration'] = 1
+      newName = TaggedSeries.format(series.tags)
+    else:
+      newName = "holtWintersAberration(%s)" % series.name
     results.append(TimeSeries(newName, series.start, series.end
             , series.step, aberration))
   return results
@@ -2923,7 +3041,13 @@ def holtWintersConfidenceArea(requestContext, seriesList, delta=3, bootstrapInte
   bands = holtWintersConfidenceBands(requestContext, seriesList, delta, bootstrapInterval)
   results = areaBetween(requestContext, bands)
   for series in results:
-    series.name = series.name.replace('areaBetween', 'holtWintersConfidenceArea')
+    if 'areaBetween' in series.tags:
+      del series.tags['areaBetween']
+      series.tags['holtWintersConfidenceArea'] = 1
+      series.name = TaggedSeries.format(series.tags)
+    else:
+      series.name = series.name.replace('areaBetween', 'holtWintersConfidenceArea')
+    series.pathExpression = series.name
   return results
 
 def linearRegressionAnalysis(series):
@@ -2971,7 +3095,14 @@ def linearRegression(requestContext, seriesList, startSourceAt=None, endSourceAt
     sourceList.extend(source)
 
   for source,series in zip(sourceList, seriesList):
-    newName = 'linearRegression(%s, %s, %s)' % (
+    if len(series.tags) > 1:
+      series.tags['linearRegressions'] = '%s, %s' % (
+        int(time.mktime(sourceContext['startTime'].timetuple())),
+        int(time.mktime(sourceContext['endTime'].timetuple()))
+        )
+      newName = TaggedSeries.format(series.tags)
+    else:
+      newName = 'linearRegression(%s, %s, %s)' % (
         series.name,
         int(time.mktime(sourceContext['startTime'].timetuple())),
         int(time.mktime(sourceContext['endTime'].timetuple()))
@@ -3006,7 +3137,11 @@ def drawAsInfinite(requestContext, seriesList):
   """
   for series in seriesList:
     series.options['drawAsInfinite'] = True
-    series.name = 'drawAsInfinite(%s)' % series.name
+    if len(series.tags) > 1:
+      series.tags['drawAsInfinite'] = 1
+      series.name = TaggedSeries.format(series.tags)
+    else:
+      series.name = 'drawAsInfinite(%s)' % series.name
   return seriesList
 
 def lineWidth(requestContext, seriesList, width):
@@ -3050,7 +3185,11 @@ def dashed(requestContext, *seriesList):
   else:
     dashLength = 5
   for series in seriesList[0]:
-    series.name = 'dashed(%s, %g)' % (series.name, dashLength)
+    if len(series.tags) > 1:
+      series.tags['dashed'] = dashLength
+      series.name = TaggedSeries.format(series.tags)
+    else:
+      series.name = 'dashed(%s, %g)' % (series.name, dashLength)
     series.options['dashed'] = dashLength
   return seriesList[0]
 
@@ -3090,7 +3229,12 @@ def timeStack(requestContext, seriesList, timeShiftUnit, timeShiftStart, timeShi
     myContext['startTime'] = requestContext['startTime'] + innerDelta
     myContext['endTime'] = requestContext['endTime'] + innerDelta
     for shiftedSeries in evaluateTarget(myContext, series.pathExpression):
-      shiftedSeries.name = 'timeShift(%s, %s, %s)' % (shiftedSeries.name, timeShiftUnit,shft)
+      if len(shiftedSeries.tags) > 1:
+        shiftedSeries.tags['timeShiftUnit'] = timeShiftUnit
+        shiftedSeries.tags['timeShift'] = shft
+        shiftedSeries.name = TaggedSeries.format(shiftedSeries.tags)
+      else:
+        shiftedSeries.name = 'timeShift(%s, %s, %s)' % (shiftedSeries.name, timeShiftUnit,shft)
       shiftedSeries.pathExpression = shiftedSeries.name
       shiftedSeries.start = series.start
       shiftedSeries.end = series.end
@@ -3163,7 +3307,11 @@ def timeShift(requestContext, seriesList, timeShift, resetEnd=True, alignDST=Fal
     series = seriesList[0]
 
     for shiftedSeries in evaluateTarget(myContext, series.pathExpression):
-      shiftedSeries.name = 'timeShift(%s, "%s")' % (shiftedSeries.name, timeShift)
+      if len(shiftedSeries.tags) > 1:
+        shiftedSeries.tags['timeShift'] = timeShift
+        shiftedSeries.name = TaggedSeries.format(shiftedSeries.tags)
+      else:
+        shiftedSeries.name = 'timeShift(%s, "%s")' % (shiftedSeries.name, timeShift)
       if resetEnd:
         shiftedSeries.end = series.end
       else:
@@ -3198,7 +3346,12 @@ def timeSlice(requestContext, seriesList, startSliceAt, endSliceAt="now"):
   end = time.mktime(parseATTime(endSliceAt).timetuple())
 
   for slicedSeries in seriesList:
-    slicedSeries.name = 'timeSlice(%s, %s, %s)' % (slicedSeries.name, int(start), int(end))
+    if len(slicedSeries.tags) > 1:
+      slicedSeries.tags['timeSliceStart'] = int(start)
+      slicedSeries.tags['timeSliceEnd'] = int(end)
+      slicedSeries.name = TaggedSeries.format(slicedSeries.tags)
+    else:
+      slicedSeries.name = 'timeSlice(%s, %s, %s)' % (slicedSeries.name, int(start), int(end))
 
     curr = time.mktime(requestContext["startTime"].timetuple())
     for i, v in enumerate(slicedSeries):
@@ -3362,7 +3515,12 @@ def transformNull(requestContext, seriesList, default=0, referenceSeries=None):
     defaults = None
 
   for series in seriesList:
-    if referenceSeries:
+    if len(series.tags) > 1:
+      series.tags['transformNull'] = default
+      if referenceSeries:
+        series.tags['referenceSeries'] = 1
+      series.name = TaggedSeries.format(series.tags)
+    elif referenceSeries:
       series.name = "transformNull(%s,%g,referenceSeries)" % (series.name, default)
     else:
       series.name = "transformNull(%s,%g)" % (series.name, default)
@@ -3396,7 +3554,11 @@ def isNonNull(requestContext, seriesList):
     else: return 1
 
   for series in seriesList:
-    series.name = "isNonNull(%s)" % (series.name)
+    if len(series.tags) > 1:
+      series.tags['isNonNull'] = 1
+      series.name = TaggedSeries.format(series.tags)
+    else:
+      series.name = "isNonNull(%s)" % (series.name)
     series.pathExpression = series.name
     values = [transform(v) for v in series]
     series.extend(values)
@@ -3766,7 +3928,12 @@ def smartSummarize(requestContext, seriesList, intervalString, func='sum', align
       else:
         newValues.append( None )
 
-    newName = "smartSummarize(%s, \"%s\", \"%s\")" % (series.name, intervalString, func)
+    if len(series.tags) > 1:
+      series.tags['smartSummarize'] = intervalString
+      series.tags['smartSummarizeFunction'] = func
+      newName = TaggedSeries.format(series.tags)
+    else:
+      newName = "smartSummarize(%s, \"%s\", \"%s\")" % (series.name, intervalString, func)
     alignedEnd = series.start + (bucketIndex * interval) + interval
     newSeries = TimeSeries(newName, series.start, alignedEnd, interval, newValues)
     newSeries.pathExpression = newName
@@ -3861,7 +4028,12 @@ def summarize(requestContext, seriesList, intervalString, func='sum', alignToFro
     if alignToFrom:
       newEnd += interval
 
-    newName = "summarize(%s, \"%s\", \"%s\"%s)" % (series.name, intervalString, func, alignToFrom and ", true" or "")
+    if len(series.tags) > 1:
+      series.tags['summarize'] = intervalString
+      series.tags['summarizeFunction'] = func
+      newName = TaggedSeries.format(series.tags)
+    else:
+      newName = "summarize(%s, \"%s\", \"%s\"%s)" % (series.name, intervalString, func, alignToFrom and ", true" or "")
     newSeries = TimeSeries(newName, newStart, newEnd, interval, newValues)
     newSeries.pathExpression = newName
     results.append(newSeries)
@@ -3943,7 +4115,11 @@ def hitcount(requestContext, seriesList, intervalString, alignToInterval = False
       else:
         newValues.append(None)
 
-    newName = 'hitcount(%s, "%s"%s)' % (series.name, intervalString, alignToInterval and ", true" or "")
+    if len(series.tags) > 1:
+      series.tags['hitcount'] = intervalString
+      newName = TaggedSeries.format(series.tags)
+    else:
+      newName = 'hitcount(%s, "%s"%s)' % (series.name, intervalString, alignToInterval and ", true" or "")
     newSeries = TimeSeries(newName, newStart, series.end, interval, newValues)
     newSeries.pathExpression = newName
     results.append(newSeries)
@@ -4138,6 +4314,7 @@ def groupByTags(requestContext, seriesList, callback, *tags):
     metaSeries[key] = SeriesFunctions[callback](requestContext, metaSeries[key])[0]
 
     metaSeries[key].name = key
+    metaSeries[key].pathExpressions = key
     metaSeries[key].tags = STORE.tagdb.parse(key).tags
 
   return metaSeries.values()

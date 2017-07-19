@@ -13,6 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 import collections
+import re
 
 from traceback import format_exc
 
@@ -27,7 +28,7 @@ from graphite.render.utils import extractPathExpressions
 
 
 class TimeSeries(list):
-  def __init__(self, name, start, end, step, values, consolidate='average'):
+  def __init__(self, name, start, end, step, values, consolidate='average', tags=None):
     list.__init__(self, values)
     self.name = name
     self.start = start
@@ -38,12 +39,16 @@ class TimeSeries(list):
     self.options = {}
     self.pathExpression = name
 
-    self.tags = {'name': name}
-    if STORE.tagdb:
-      try:
-        self.tags = STORE.tagdb.parse(name).tags
-      except:
-        pass
+    if tags:
+      self.tags = tags
+    else:
+      self.tags = {'name': name}
+      # parse for tags if a tagdb is configured and name doesn't look like a function-wrapped name
+      if STORE.tagdb and not re.match('^[a-z]+[(].+[)]$', name):
+        try:
+          self.tags = STORE.tagdb.parse(name).tags
+        except:
+          pass
 
   def __eq__(self, other):
     if isinstance(other, TimeSeries):
