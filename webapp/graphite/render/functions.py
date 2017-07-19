@@ -4090,10 +4090,57 @@ def seriesByTag(requestContext, *tagExpressions):
 
   log.debug('seriesByTag found [%s]' % ', '.join([series.pathExpression for series in seriesList]))
 
-  for series in seriesList:
-    series.tags = STORE.tagdb.parse(series.pathExpression).tags
-
   return seriesList
+
+def groupByTags(requestContext, seriesList, callback, *tags):
+  """
+  Takes a serieslist and maps a callback to subgroups within as defined by multiple tags
+
+  .. code-block:: none
+
+    &target=groupByTags(seriesByTag("name=cpu"),"averageSeries", "dc")
+
+  Would return multiple series which are each the result of applying the "averageSeries" function
+  to groups joined on the specified tags resulting in a list of targets like
+
+  .. code-block :: none
+
+    averageSeries(seriesByTag("name=cpu", "dc=dc1")),averageSeries(seriesByTag("name=cpu", "dc=dc2")),...
+
+  """
+  if STORE.tagdb is None:
+    log.info('groupByTags called but no TagDB configured')
+    return []
+
+  if not tags:
+    raise ValueError("groupByTags(): no tags specified")
+
+  # if all series have the same "name" tag use that for results, otherwise use the callback
+  # if we're grouping by name, then the name is always used (see below)
+  if 'name' not in tags:
+    names = set([series.tags['name'] for series in seriesList])
+    name = list(names)[0] if len(names) == 1 else callback
+
+  metaSeries = {}
+  for series in seriesList:
+    # key is the metric path for the new series
+    if 'name' not in tags:
+      key = ';'.join([name] + [tag + '=' + series.tags.get(tag, '') for tag in tags] + ['groupFunction=' + callback])
+    else:
+      key = ';'.join([series.tags['name']] + [tag + '=' + series.tags.get(tag, '') for tag in tags if tag <> 'name'] + ['groupFunction=' + callback])
+
+    if key not in metaSeries:
+      metaSeries[key] = [series]
+    else:
+      metaSeries[key].append(series)
+
+  for key in metaSeries.keys():
+    metaSeries[key] = SeriesFunctions[callback](requestContext, metaSeries[key])[0]
+
+    metaSeries[key].name = key
+    metaSeries[key].tags = STORE.tagdb.parse(key).tags
+
+  return metaSeries.values()
 
 def events(requestContext, *tags):
   """
@@ -4324,6 +4371,7 @@ SeriesFunctions = {
 
   # tag functions
   'seriesByTag': seriesByTag,
+  'groupByTags': groupByTags,
 
   # test functions
   'time': timeFunction,

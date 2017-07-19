@@ -27,7 +27,7 @@ from graphite.render.utils import extractPathExpressions
 
 
 class TimeSeries(list):
-  def __init__(self, name, start, end, step, values, consolidate='average', tags=None):
+  def __init__(self, name, start, end, step, values, consolidate='average'):
     list.__init__(self, values)
     self.name = name
     self.start = start
@@ -37,8 +37,13 @@ class TimeSeries(list):
     self.valuesPerPoint = 1
     self.options = {}
     self.pathExpression = name
-    self.tags = tags
 
+    self.tags = {'name': name}
+    if STORE.tagdb:
+      try:
+        self.tags = STORE.tagdb.parse(name).tags
+      except:
+        pass
 
   def __eq__(self, other):
     if isinstance(other, TimeSeries):
