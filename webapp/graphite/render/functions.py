@@ -4125,9 +4125,9 @@ def groupByTags(requestContext, seriesList, callback, *tags):
   for series in seriesList:
     # key is the metric path for the new series
     if 'name' not in tags:
-      key = ';'.join([name] + [tag + '=' + series.tags.get(tag, '') for tag in tags] + ['groupFunction=' + callback])
+      key = ';'.join([name] + sorted([tag + '=' + series.tags.get(tag, '') for tag in tags] + ['groupFunction=' + callback]))
     else:
-      key = ';'.join([series.tags['name']] + [tag + '=' + series.tags.get(tag, '') for tag in tags if tag <> 'name'] + ['groupFunction=' + callback])
+      key = ';'.join([series.tags['name']] + sorted([tag + '=' + series.tags.get(tag, '') for tag in tags if tag <> 'name'] + ['groupFunction=' + callback]))
 
     if key not in metaSeries:
       metaSeries[key] = [series]
