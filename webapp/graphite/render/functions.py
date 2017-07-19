@@ -4142,6 +4142,20 @@ def groupByTags(requestContext, seriesList, callback, *tags):
 
   return metaSeries.values()
 
+def aliasByTags(requestContext, seriesList, *tags):
+  """
+  Takes a seriesList and applies an alias derived from one or more tags
+
+  .. code-block:: none
+
+    &target=aliasByTags(seriesByTag('name=cpu'), 'server', 'name')
+
+  """
+  for series in seriesList:
+    series.name = '.'.join(series.tags.get(tag, '') for tag in tags)
+  return seriesList
+
+
 def events(requestContext, *tags):
   """
   Returns the number of events at this point in time. Usable with
@@ -4372,6 +4386,7 @@ SeriesFunctions = {
   # tag functions
   'seriesByTag': seriesByTag,
   'groupByTags': groupByTags,
+  'aliasByTags': aliasByTags,
 
   # test functions
   'time': timeFunction,
