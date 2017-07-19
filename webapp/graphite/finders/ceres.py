@@ -20,7 +20,12 @@ class CeresFinder(BaseFinder):
 
     def find_nodes(self, query):
 
-        variants = extract_variants(query.pattern)
+        # translate query pattern if it is tagged
+        if ';' in query.pattern and not query.pattern.startswith('_tagged.'):
+          hash = sha256(query.pattern).hexdigest()
+          variants = ['.'.join(['_tagged', hash[0:3], hash[3:6], query.pattern.replace('.', '-')])]
+        else:
+          variants = extract_variants(query.pattern)
 
         for variant in variants:
             for fs_path in glob(self.tree.getFilesystemPath(variant)):
@@ -34,6 +39,9 @@ class CeresFinder(BaseFinder):
                         real_metric_path = get_real_metric_path(
                             fs_path, metric_path)
                         reader = CeresReader(ceres_node, real_metric_path)
+                        # if we're finding by tag, return the proper metric path
+                        if ';' in query.pattern and not query.pattern.startswith('_tagged.'):
+                          metric_path = query.pattern
                         yield LeafNode(metric_path, reader)
 
                 elif os.path.isdir(fs_path):
