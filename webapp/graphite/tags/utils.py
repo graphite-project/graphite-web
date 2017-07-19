@@ -29,17 +29,22 @@ class TaggedSeries(object):
 
     return cls(metric, tags)
 
+  @classmethod
+  def format(cls, tags):
+    return tags.get('name', '') + ''.join(sorted([
+      ';%s=%s' % (tag, value)
+      for tag, value in tags.items()
+      if tag != 'name'
+    ]))
+
   def __init__(self, metric, tags, id=None):
     self.metric = metric
     self.tags = tags
     self.id = id
 
-  def format(self):
-    return self.metric + ''.join(sorted([
-      ';' + tag + '=' + value
-      for tag, value in self.tags.items()
-      if tag != 'name'
-    ]))
+  @property
+  def path(self):
+    return self.__class__.format(self.tags)
 
 
 class BaseTagDB(object):

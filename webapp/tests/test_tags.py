@@ -22,8 +22,7 @@ class TagsTest(TestCase):
     self.assertEqual(parsed.tags, {'blah': 'blah', 'hello': 'tiger', 'name': 'test.a'})
 
     # test formatting
-    raw = parsed.format()
-    self.assertEqual(raw, 'test.a;blah=blah;hello=tiger')
+    self.assertEqual(parsed.path, 'test.a;blah=blah;hello=tiger')
 
     # test path without tags
     parsed = db.parse('test.a')
@@ -32,8 +31,7 @@ class TagsTest(TestCase):
     self.assertEqual(parsed.tags, {'name': 'test.a'})
 
     # test formatting
-    raw = parsed.format()
-    self.assertEqual(raw, 'test.a')
+    self.assertEqual(parsed.path, 'test.a')
 
     # query that shouldn't match anything
     db.del_series('test.a;blah=blah;hello=tiger')

@@ -130,7 +130,7 @@ class RedisTagDB(BaseTagDB):
     # extract tags and normalize path
     parsed = self.parse(series)
 
-    path = parsed.format()
+    path = parsed.path
 
     with self.r.pipeline() as pipe:
       pipe.sadd('series', path)
@@ -151,7 +151,7 @@ class RedisTagDB(BaseTagDB):
     # extract tags and normalize path
     parsed = self.parse(series)
 
-    path = parsed.format()
+    path = parsed.path
 
     with self.r.pipeline() as pipe:
       pipe.srem('series', path)

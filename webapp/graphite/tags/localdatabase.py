@@ -180,7 +180,7 @@ class LocalDatabaseTagDB(BaseTagDB):
     # extract tags and normalize path
     parsed = self.parse(series)
 
-    path = parsed.format()
+    path = parsed.path
 
     # check if path is already tagged
     curr = self.get_series(path)
@@ -224,7 +224,7 @@ class LocalDatabaseTagDB(BaseTagDB):
     # extract tags and normalize path
     parsed = self.parse(series)
 
-    path = parsed.format()
+    path = parsed.path
 
     # check if path is already tagged
     curr = self.get_series(path)
