@@ -1,12 +1,5 @@
 from __future__ import absolute_import
 
-"""
-try:
-    from unittest.mock import patch
-except ImportError:
-    from mock import patch
-"""
-
 from graphite.tags.localdatabase import LocalDatabaseTagDB
 from graphite.tags.redis import RedisTagDB
 from graphite.tags.utils import TaggedSeries

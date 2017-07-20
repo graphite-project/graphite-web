@@ -22,8 +22,8 @@ class CeresFinder(BaseFinder):
 
         # translate query pattern if it is tagged
         if ';' in query.pattern and not query.pattern.startswith('_tagged.'):
-          hash = sha256(query.pattern).hexdigest()
-          variants = ['.'.join(['_tagged', hash[0:3], hash[3:6], query.pattern.replace('.', '-')])]
+          metric_hash = sha256(query.pattern).hexdigest()
+          variants = ['.'.join(['_tagged', metric_hash[0:3], metric_hash[3:6], query.pattern.replace('.', '-')])]
         else:
           variants = extract_variants(query.pattern)
 

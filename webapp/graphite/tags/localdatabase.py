@@ -106,12 +106,14 @@ class LocalDatabaseTagDB(BaseTagDB):
       params = [path]
       cursor.execute(sql, params)
 
-      tags = {tag: value for (id, tag, value) in cursor.fetchall()}
+      series_id = None
+
+      tags = {tag: value for (series_id, tag, value) in cursor.fetchall()}
 
       if not tags:
         return None
 
-      return TaggedSeries(tags['name'], tags, id=id)
+      return TaggedSeries(tags['name'], tags, id=series_id)
 
   def list_tags(self):
     with connection.cursor() as cursor:
@@ -121,7 +123,7 @@ class LocalDatabaseTagDB(BaseTagDB):
       params = []
       cursor.execute(sql, params)
 
-      return [{'id': id, 'tag': tag} for (id, tag) in cursor.fetchall()]
+      return [{'id': tag_id, 'tag': tag} for (tag_id, tag) in cursor.fetchall()]
 
   def get_tag(self, tag):
     with connection.cursor() as cursor:
@@ -136,10 +138,10 @@ class LocalDatabaseTagDB(BaseTagDB):
     if not row:
       return None
 
-    (id, tag) = row
+    (tag_id, tag) = row
 
     return {
-      'id': id,
+      'id': tag_id,
       'tag': tag,
       'values': self.list_values(tag),
     }
@@ -156,7 +158,7 @@ class LocalDatabaseTagDB(BaseTagDB):
       params = [tag]
       cursor.execute(sql, params)
 
-      return [{'id': id, 'value': value, 'count': count} for (id, value, count) in cursor.fetchall()]
+      return [{'id': value_id, 'value': value, 'count': count} for (value_id, value, count) in cursor.fetchall()]
 
   def _insert_ignore(self, table, cols, data):
     if connection.vendor == 'mysql':
@@ -194,7 +196,7 @@ class LocalDatabaseTagDB(BaseTagDB):
       sql = 'SELECT id, tag FROM tags_tag WHERE tag IN (' + ', '.join(['%s'] * len(parsed.tags)) + ')'
       params = list(parsed.tags.keys())
       cursor.execute(sql, params)
-      tag_ids = {tag: id for (id, tag) in cursor.fetchall()}
+      tag_ids = {tag: tag_id for (tag_id, tag) in cursor.fetchall()}
 
       # tag values
       self._insert_ignore('tags_tagvalue', ['value'], [[value] for value in parsed.tags.values()])
@@ -202,7 +204,7 @@ class LocalDatabaseTagDB(BaseTagDB):
       sql = 'SELECT id, value FROM tags_tagvalue WHERE value IN (' + ', '.join(['%s'] * len(parsed.tags)) + ')'
       params = list(parsed.tags.values())
       cursor.execute(sql, params)
-      value_ids = {value: id for (id, value) in cursor.fetchall()}
+      value_ids = {value: value_id for (value_id, value) in cursor.fetchall()}
 
       # series
       if curr:
