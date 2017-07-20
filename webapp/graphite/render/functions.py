@@ -4158,7 +4158,7 @@ def groupByTags(requestContext, seriesList, callback, *tags):
     if 'name' not in tags:
       key = ';'.join([name] + sorted([tag + '=' + series.tags.get(tag, '') for tag in tags]))
     else:
-      key = ';'.join([series.tags['name']] + sorted([tag + '=' + series.tags.get(tag, '') for tag in tags if tag <> 'name']))
+      key = ';'.join([series.tags['name']] + sorted([tag + '=' + series.tags.get(tag, '') for tag in tags if tag != 'name']))
 
     if key not in metaSeries:
       metaSeries[key] = [series]
