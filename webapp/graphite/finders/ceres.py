@@ -5,6 +5,7 @@ import os.path
 from glob import glob
 from ceres import CeresTree, CeresNode
 from django.conf import settings
+from hashlib import sha256
 from graphite.node import BranchNode, LeafNode
 from graphite.readers import CeresReader
 from graphite.finders.utils import BaseFinder
@@ -22,7 +23,7 @@ class CeresFinder(BaseFinder):
 
         # translate query pattern if it is tagged
         if ';' in query.pattern and not query.pattern.startswith('_tagged.'):
-          metric_hash = sha256(query.pattern).hexdigest()
+          metric_hash = sha256(query.pattern.encode('utf8')).hexdigest()
           variants = ['.'.join(['_tagged', metric_hash[0:3], metric_hash[3:6], query.pattern.replace('.', '-')])]
         else:
           variants = extract_variants(query.pattern)
