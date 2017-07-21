@@ -29,7 +29,8 @@ class StandardFinder(BaseFinder):
         clean_pattern = query.pattern.replace('\\', '')
 
         # translate query pattern if it is tagged
-        if ';' in query.pattern and not query.pattern.startswith('_tagged.'):
+        tagged = not query.pattern.startswith('_tagged.') and ';' in query.pattern
+        if tagged:
           metric_hash = sha256(query.pattern.encode('utf8')).hexdigest()
           clean_pattern = '.'.join(['_tagged', metric_hash[0:3], metric_hash[3:6], query.pattern.replace('.', '-')])
 
@@ -58,7 +59,7 @@ class StandardFinder(BaseFinder):
                 metric_path = '.'.join(metric_path_parts)
 
                 # if we're finding by tag, return the proper metric path
-                if ';' in query.pattern and not query.pattern.startswith('_tagged.'):
+                if tagged:
                   metric_path = query.pattern
 
                 # Now we construct and yield an appropriate Node object

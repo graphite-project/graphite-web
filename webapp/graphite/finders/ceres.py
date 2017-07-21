@@ -22,7 +22,8 @@ class CeresFinder(BaseFinder):
     def find_nodes(self, query):
 
         # translate query pattern if it is tagged
-        if ';' in query.pattern and not query.pattern.startswith('_tagged.'):
+        tagged = not query.pattern.startswith('_tagged.') and ';' in query.pattern
+        if tagged:
           metric_hash = sha256(query.pattern.encode('utf8')).hexdigest()
           variants = ['.'.join(['_tagged', metric_hash[0:3], metric_hash[3:6], query.pattern.replace('.', '-')])]
         else:
@@ -41,7 +42,7 @@ class CeresFinder(BaseFinder):
                             fs_path, metric_path)
                         reader = CeresReader(ceres_node, real_metric_path)
                         # if we're finding by tag, return the proper metric path
-                        if ';' in query.pattern and not query.pattern.startswith('_tagged.'):
+                        if tagged:
                           metric_path = query.pattern
                         yield LeafNode(metric_path, reader)
 
