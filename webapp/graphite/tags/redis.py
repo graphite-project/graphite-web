@@ -32,13 +32,7 @@ class RedisTagDB(BaseTagDB):
       all_match_empty = True
 
       for tagspec in tags:
-        m = re.match('^([^;!=]+)(!?=~?)([^;]*)$', tagspec)
-        if m is None:
-          raise ValueError("Invalid tagspec %s" % tagspec)
-
-        tag = m.group(1)
-        operator = m.group(2)
-        spec = m.group(3)
+        (tag, operator, spec) = self.parse_tagspec(tagspec)
 
         # find list of values that match the tagspec
         values = None

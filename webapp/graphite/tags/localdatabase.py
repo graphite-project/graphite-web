@@ -16,13 +16,7 @@ class LocalDatabaseTagDB(BaseTagDB):
 
     i = 0
     for tagspec in tags:
-      m = re.match('^([^;!=]+)(!?=~?)([^;]*)$', tagspec)
-      if m is None:
-        raise ValueError("Invalid tagspec %s" % tagspec)
-
-      tag = m.group(1)
-      operator = m.group(2)
-      spec = m.group(3)
+      (tag, operator, spec) = self.parse_tagspec(tagspec)
 
       i += 1
       s = str(i)

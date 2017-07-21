@@ -1,5 +1,6 @@
 """Utility functions for tag databases."""
 import abc
+import re
 
 try:
     from importlib import import_module
@@ -91,6 +92,17 @@ class BaseTagDB(object):
 
   def parse(self, path):
     return TaggedSeries.parse(path)
+
+  def parse_tagspec(self, tagspec):
+    m = re.match('^([^;!=]+)(!?=~?)([^;]*)$', tagspec)
+    if m is None:
+      raise ValueError("Invalid tagspec %s" % tagspec)
+
+    tag = m.group(1)
+    operator = m.group(2)
+    spec = m.group(3)
+
+    return (tag, operator, spec)
 
 
 def get_tagdb(tagdb_path):
