@@ -142,15 +142,15 @@ class FindRequest(object):
         self.store = store
         self.query = query
 
+        # prevent divide by 0
+        cacheTTL = settings.FIND_CACHE_DURATION or 1
         if query.startTime:
-            start = query.startTime - \
-                (query.startTime % settings.FIND_CACHE_DURATION)
+            start = query.startTime - (query.startTime % cacheTTL)
         else:
             start = ""
 
         if query.endTime:
-            end = query.endTime - (query.endTime %
-                                   settings.FIND_CACHE_DURATION)
+            end = query.endTime - (query.endTime % cacheTTL)
         else:
             end = ""
 
