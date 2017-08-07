@@ -4650,6 +4650,29 @@ class FunctionsTest(TestCase):
 
         self.assertEqual(result, expectedResults)
 
+    # test_minMax
+    def test_minMax(self):
+        seriesList = self._generate_series_list()
+        # get the results from minMax normalization
+        results = functions.minMax({}, copy.deepcopy(seriesList))
+        for i, series in enumerate(results):
+            # loop and check if result value matches formula
+            min_val = functions.safeMin(seriesList[i])
+            max_val = functions.safeMax(seriesList[i])
+            if min_val is None:
+                min_val = 0.0
+            if max_val is None:
+                max_val = 0.0
+            for counter, value in enumerate(series):
+                if value is None:
+                    continue
+                original_value = seriesList[i][counter]
+                try:
+                    expected_value = (original_value - min_val) / (max_val - min_val)
+                except ZeroDivisionError:
+                    expected_value = 0.0
+                self.assertEqual(value, expected_value)
+
     def _build_requestContext(self, startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)), endTime=datetime(1970, 1, 1, 0, 59, 0, 0, pytz.timezone(settings.TIME_ZONE)), data=[], tzinfo=pytz.utc):
         """
         Helper method to create request contexts
