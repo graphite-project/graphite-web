@@ -4168,6 +4168,7 @@ SeriesFunctions = {
   'hitcount': hitcount,
   'absolute': absolute,
   'interpolate': interpolate,
+  'minMax': minMax,
 
   # Calculate functions
   'movingAverage': movingAverage,
