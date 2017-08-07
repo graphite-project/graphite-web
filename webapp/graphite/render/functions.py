@@ -4053,14 +4053,10 @@ def events(requestContext, *tags):
   """
   Returns the number of events at this point in time. Usable with
   drawAsInfinite.
-
   Example:
-
   .. code-block:: none
-
     &target=events("tag-one", "tag-two")
     &target=events("*")
-
   Returns all events tagged as "tag-one" and "tag-two" and the second one
   returns all events.
   """
@@ -4078,6 +4074,20 @@ def events(requestContext, *tags):
   events = models.Event.find_events(epoch_to_dt(start_timestamp),
                                     epoch_to_dt(end_timestamp),
                                     tags=tags)
+
+  values = [None] * points
+  for event in events:
+    event_timestamp = epoch(event.when)
+    value_offset = (event_timestamp - start_timestamp)/step
+
+    if values[value_offset] is None:
+      values[value_offset] = 1
+    else:
+      values[value_offset] += 1
+
+  result_series = TimeSeries(name, start_timestamp, end_timestamp, step, values, 'sum')
+  result_series.pathExpression = name
+  return [result_series]
 
 def minMax(requestContext, seriesList):
   """
