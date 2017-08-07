@@ -4652,26 +4652,25 @@ class FunctionsTest(TestCase):
 
     # test_minMax
     def test_minMax(self):
-        seriesList = self._generate_series_list()
-        # get the results from minMax normalization
-        results = functions.minMax({}, copy.deepcopy(seriesList))
-        for i, series in enumerate(results):
-            # loop and check if result value matches formula
-            min_val = functions.safeMin(seriesList[i])
-            max_val = functions.safeMax(seriesList[i])
-            if min_val is None:
-                min_val = 0.0
-            if max_val is None:
-                max_val = 0.0
-            for counter, value in enumerate(series):
-                if value is None:
-                    continue
-                original_value = seriesList[i][counter]
-                try:
-                    expected_value = (original_value - min_val) / (max_val - min_val)
-                except ZeroDivisionError:
-                    expected_value = 0.0
-                self.assertEqual(value, expected_value)
+        # generate data to test
+        seriesList = self._gen_series_list_with_data(
+            key=[
+                'collectd.test-db4.load.value',
+                'collectd.test-db3.load.value'
+            ],
+            end=1,
+            data=[
+                [10,20,30,40,50],
+                [0,0,0,0,0]
+            ]
+        )
+        # get the expected result (calculated)
+        expectedResult = [
+            TimeSeries('minMax(collectd.test-db4.load.value)',0,1,1,[0.0,0.25,0.50,0.75,1.0]),
+            TimeSeries('minMax(collectd.test-db3.load.value)',0,1,1,[0.0,0.0,0.0,0.0,0.0])
+        ]
+        result = functions.minMax({}, seriesList)
+        self.assertEqual(result, expectedResult)
 
     def _build_requestContext(self, startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)), endTime=datetime(1970, 1, 1, 0, 59, 0, 0, pytz.timezone(settings.TIME_ZONE)), data=[], tzinfo=pytz.utc):
         """
