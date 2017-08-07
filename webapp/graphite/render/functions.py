@@ -4079,19 +4079,36 @@ def events(requestContext, *tags):
                                     epoch_to_dt(end_timestamp),
                                     tags=tags)
 
-  values = [None] * points
-  for event in events:
-    event_timestamp = epoch(event.when)
-    value_offset = (event_timestamp - start_timestamp)/step
+def minMax(requestContext, seriesList):
+  """
+  Applies the popular min max normalization technique, which takes
+  each point and applies the following normalization transformation
+  to it: normalized = (point - min) / (max - min).
 
-    if values[value_offset] is None:
-      values[value_offset] = 1
-    else:
-      values[value_offset] += 1
+  Example:
 
-  result_series = TimeSeries(name, start_timestamp, end_timestamp, step, values, 'sum')
-  result_series.pathExpression = name
-  return [result_series]
+  .. code-block:: none
+
+    &target=minMax(Server.instance01.threads.busy)
+
+  """
+
+  for series in seriesList:
+    series.name = "minMax(%s)" % (series.name)
+    series.pathExpression = series.name
+    min_val = safeMin(series)
+    max_val = safeMax(series)
+    if min_val is None:
+      min_val = 0.0
+    if max_val is None:
+      max_val = 0.0
+    for i, val in enumerate(series):
+      if series[i] is not None:
+        try:
+          series[i] = float(val - min_val) / (max_val - min_val)
+        except ZeroDivisionError:
+          series[i] = 0.0
+  return seriesList
 
 def pieAverage(requestContext, series):
   return safeDiv(safeSum(series),safeLen(series))
