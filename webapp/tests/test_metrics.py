@@ -244,6 +244,17 @@ class MetricsTester(TestCase):
             data['metrics'] = sorted(data['metrics'])
             self.assertEqual(data, {u'metrics': [{u'name': u'hosts', u'is_leaf': u'0', u'path': u'hosts.'}]})
 
+            # Test from/until params
+            request=copy.deepcopy(request_default)
+            request['format']='completer'
+            request['query']='hosts'
+            request['from']='now-1min'
+            request['until']='now'
+            content = test_find_view_basics(request)
+            data = json.loads(content)
+            data['metrics'] = sorted(data['metrics'])
+            self.assertEqual(data, {u'metrics': [{u'name': u'hosts', u'is_leaf': u'0', u'path': u'hosts.'}]})
+
             # automatic_variants
             request=copy.deepcopy(request_default)
             request['format']='completer'

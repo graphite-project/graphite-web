@@ -13,8 +13,10 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 import fnmatch
 import os
+import pytz
 import urllib
 
+from datetime import datetime
 from django.conf import settings
 from graphite.compat import HttpResponse, HttpResponseBadRequest
 from graphite.user_util import getProfile
@@ -24,6 +26,8 @@ from graphite.readers import RRDReader
 from graphite.storage import STORE
 from graphite.carbonlink import CarbonLink
 from graphite.remote_storage import extractForwardHeaders
+from graphite.render.attime import parseATTime
+from graphite.util import epoch
 
 try:
   import cPickle as pickle
@@ -100,8 +104,29 @@ def find_view(request):
   format = queryParams.get('format', 'treejson')
   local_only = int( queryParams.get('local', 0) )
   wildcards = int( queryParams.get('wildcards', 0) )
-  fromTime = int( queryParams.get('from', -1) )
-  untilTime = int( queryParams.get('until', -1) )
+
+  tzinfo = pytz.timezone(settings.TIME_ZONE)
+  if 'tz' in queryParams:
+    try:
+      tzinfo = pytz.timezone(queryParams['tz'])
+    except pytz.UnknownTimeZoneError:
+      pass
+
+  if 'now' in queryParams:
+    now = parseATTime(queryParams['now'], tzinfo)
+  else:
+    now = datetime.now(tzinfo)
+
+  if 'from' in queryParams and str(queryParams['from']) != '-1':
+    fromTime = int(epoch(parseATTime(queryParams['from'], tzinfo, now)))
+  else:
+    fromTime = -1
+
+  if 'until' in queryParams and str(queryParams['from']) != '-1':
+    untilTime = int(epoch(parseATTime(queryParams['until'], tzinfo, now)))
+  else:
+    untilTime = -1
+
   nodePosition = int( queryParams.get('position', -1) )
   jsonp = queryParams.get('jsonp', False)
   forward_headers = extractForwardHeaders(request)
