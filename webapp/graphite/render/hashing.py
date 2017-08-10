@@ -76,7 +76,7 @@ class ConsistentHashRing:
       big_hash = '{:x}'.format(int(fnv32a( str(key) )))
       if len(big_hash) > 4:
           small_hash = int(big_hash[:4], 16) ^ int(big_hash[4:], 16)
-      elif big_hash_length <= 4:
+      else:
           small_hash = int(big_hash, 16) ^ int(big_hash[::-1], 16)
     else:
       big_hash = md5(str(key)).hexdigest()
