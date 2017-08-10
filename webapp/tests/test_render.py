@@ -400,3 +400,6 @@ class ConsistentHashRingTestFNV1A(TestCase):
                          ('127.0.0.1', 'ba603c36342304ed77953f84ac4d357b'))
         self.assertEqual(hashring.get_node('hosts.worker2.cpu'),
                          ('127.0.0.3', '866a18b81f2dc4649517a1df13e26f28'))
+        self.assertEqual(hashring.get_node(
+                        'stats.checkout.cluster.padamski-wro.api.v1.payment-initialize.count'),
+                        ('127.0.0.3', '866a18b81f2dc4649517a1df13e26f28'))
