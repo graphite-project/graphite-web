@@ -4053,10 +4053,14 @@ def events(requestContext, *tags):
   """
   Returns the number of events at this point in time. Usable with
   drawAsInfinite.
+
   Example:
+
   .. code-block:: none
+
     &target=events("tag-one", "tag-two")
     &target=events("*")
+
   Returns all events tagged as "tag-one" and "tag-two" and the second one
   returns all events.
   """
