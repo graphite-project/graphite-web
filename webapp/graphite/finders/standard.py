@@ -31,6 +31,8 @@ class StandardFinder(BaseFinder):
         # translate query pattern if it is tagged
         tagged = not query.pattern.startswith('_tagged.') and ';' in query.pattern
         if tagged:
+          # tagged series are stored in whisper using encoded names, so to retrieve them we need to encode the
+          # query pattern using the same scheme used in carbon when they are written.
           metric_hash = sha256(query.pattern.encode('utf8')).hexdigest()
           clean_pattern = '.'.join(['_tagged', metric_hash[0:3], metric_hash[3:6], query.pattern.replace('.', '-')])
 
