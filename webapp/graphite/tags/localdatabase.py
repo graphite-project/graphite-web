@@ -177,19 +177,19 @@ class LocalDatabaseTagDB(BaseTagDB):
       return [{'id': value_id, 'value': value, 'count': count} for (value_id, value, count) in cursor.fetchall()]
 
   def _insert_ignore(self, table, cols, data):
-    if connection.vendor == 'mysql':
-      sql = 'INSERT IGNORE INTO '
-    elif connection.vendor == 'sqlite':
-      sql = 'INSERT OR IGNORE INTO '
-    elif connection.vendor == 'postgresql':
-      sql = 'INSERT IGNORE INTO '
-    else:
-      raise Exception('Unsupported database vendor ' + connection.vendor)
-
-    sql += table + ' (' + ','.join(cols) + ') VALUES ' + ', '.join(['(' + ', '.join(['%s'] * len(cols)) + ')'] * len(data))
+    sql = table + ' (' + ','.join(cols) + ') VALUES ' + ', '.join(['(' + ', '.join(['%s'] * len(cols)) + ')'] * len(data))
     params = []
     for row in data:
       params.extend(row)
+
+    if connection.vendor == 'mysql':
+      sql = 'INSERT IGNORE INTO ' + sql
+    elif connection.vendor == 'sqlite':
+      sql = 'INSERT OR IGNORE INTO ' + sql
+    elif connection.vendor == 'postgresql':
+      sql = 'INSERT INTO ' + sql + ' ON CONFLICT DO NOTHING'
+    else:
+      raise Exception('Unsupported database vendor ' + connection.vendor)
 
     with connection.cursor() as cursor:
       cursor.execute(sql, params)
