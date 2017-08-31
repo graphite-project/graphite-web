@@ -1,7 +1,9 @@
 import re
 
-from graphite.tags.utils import BaseTagDB, TaggedSeries
 from django.db import connection
+from hashlib import sha256
+
+from graphite.tags.utils import BaseTagDB, TaggedSeries
 
 class LocalDatabaseTagDB(BaseTagDB):
   def find_series_query(self, tags):
@@ -37,7 +39,17 @@ class LocalDatabaseTagDB(BaseTagDB):
 
         matches_empty = bool(re.match(spec, ''))
 
-        where.append('v' + s + '.value REGEXP %s')
+        if connection.vendor == 'mysql':
+          db_operator = 'REGEXP'
+        elif connection.vendor == 'sqlite':
+          # django provides an implementation of REGEXP for sqlite
+          db_operator = 'REGEXP'
+        elif connection.vendor == 'postgresql':
+          db_operator = '~*'
+        else:
+          raise Exception('Database vendor ' + connection.vendor + ' does not support regular expressions')
+
+        where.append('v' + s + '.value ' + db_operator + ' %s')
         whereparams.append(spec)
 
       elif operator == '!=':
@@ -53,7 +65,17 @@ class LocalDatabaseTagDB(BaseTagDB):
 
         matches_empty = not re.match(spec, '')
 
-        where.append('v' + s + '.value NOT REGEXP %s')
+        if connection.vendor == 'mysql':
+          db_operator = 'NOT REGEXP'
+        elif connection.vendor == 'sqlite':
+          # django provides an implementation of REGEXP for sqlite
+          db_operator = 'NOT REGEXP'
+        elif connection.vendor == 'postgresql':
+          db_operator = '!~*'
+        else:
+          raise Exception('Database vendor ' + connection.vendor + ' does not support regular expressions')
+
+        where.append('v' + s + '.value ' + db_operator + ' %s')
         whereparams.append(spec)
 
       else:
@@ -204,7 +226,9 @@ class LocalDatabaseTagDB(BaseTagDB):
       if curr:
         series_id = curr.id
       else:
-        self._insert_ignore('tags_series', ['path'], [[path]])
+        # hash column is used to support a unique index in mysql since path can be longer than 191 characters
+        hash = sha256(path.encode('utf8')).hexdigest()
+        self._insert_ignore('tags_series', ['hash', 'path'], [[hash, path]])
 
         sql = 'SELECT id FROM tags_series WHERE path=%s'
         params = [path]

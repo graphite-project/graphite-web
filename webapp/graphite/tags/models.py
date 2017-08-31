@@ -1,15 +1,16 @@
 from django.db import models
 
 class Series(models.Model):
-  path = models.TextField(unique=True)
+  hash = models.CharField(max_length=64, unique=True)
+  path = models.TextField()
   __str__ = lambda self: "Series [%s]" % self.path
 
 class Tag(models.Model):
-  tag = models.TextField(unique=True)
+  tag = models.CharField(max_length=191, unique=True)
   __str__ = lambda self: "Tag [%s]" % self.tag
 
 class TagValue(models.Model):
-  value = models.TextField(unique=True)
+  value = models.CharField(max_length=191, unique=True)
   __str__ = lambda self: "TagValue [%s]" % self.value
 
 class SeriesTag(models.Model):
