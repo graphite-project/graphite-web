@@ -23,8 +23,8 @@ services:
   - postgresql
 
 before_install:
-  - sh -c "if [[ '$TOXENV' == *mysql* ]]; then mysql -e "'"'"GRANT ALL ON test_graphite.* TO 'graphite'@'localhost' IDENTIFIED BY 'graphite';"'"'"; fi"
-  - sh -c "if [[ '$TOXENV' == *postgresql* ]]; then psql -c "'"'"CREATE USER graphite WITH CREATEDB PASSWORD 'graphite';"'"'" -U postgres; fi"
+  - bash -c "if [[ '$TOXENV' == *mysql* ]]; then mysql -e "'"'"GRANT ALL ON test_graphite.* TO 'graphite'@'localhost' IDENTIFIED BY 'graphite';"'"'"; fi"
+  - bash -c "if [[ '$TOXENV' == *postgresql* ]]; then psql -c "'"'"CREATE USER graphite WITH CREATEDB PASSWORD 'graphite';"'"'" -U postgres; fi"
 
 install:
   - pip install tox
