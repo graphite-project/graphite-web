@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
-from hashlib import md5
+from hashlib import sha256
 from itertools import chain
 import bisect
 
@@ -55,7 +55,7 @@ def hashData(targets, startTime, endTime):
 
 
 def compactHash(string):
-  hash = md5()
+  hash = sha256()
   hash.update(string.encode('utf-8'))
   return hash.hexdigest()
 
@@ -76,7 +76,7 @@ class ConsistentHashRing:
       big_hash = '{:x}'.format(int(fnv32a( str(key) )))
       small_hash = int(big_hash[:4], 16) ^ int(big_hash[4:], 16)
     else:
-      big_hash = md5(str(key)).hexdigest()
+      big_hash = sha256(str(key)).hexdigest()
       small_hash = int(big_hash[:4], 16)
     return small_hash
 
