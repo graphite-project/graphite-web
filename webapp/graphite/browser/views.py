@@ -23,7 +23,7 @@ from graphite.compat import HttpResponse
 from graphite.user_util import getProfile, getProfileByUsername
 from graphite.util import json
 from graphite.logger import log
-from hashlib import md5
+from hashlib import sha256
 from urlparse import urlparse, parse_qsl
 from urllib import urlencode
 
@@ -137,7 +137,7 @@ def myGraphLookup(request):
         node.update(branchNode)
 
       else:
-        m = md5()
+        m = sha256()
         m.update(name.encode('utf-8'))
 
         # Sanitize target
@@ -234,7 +234,7 @@ def userGraphLookup(request):
           }
           node.update(branchNode)
         else: # leaf
-          m = md5()
+          m = sha256()
           m.update(nodeName.encode('utf-8'))
 
           # Sanitize target
