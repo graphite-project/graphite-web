@@ -16,6 +16,7 @@ addons:
   apt:
     packages:
       - libcairo2-dev
+  postgresql: "9.5"
 
 services:
   - redis-server
