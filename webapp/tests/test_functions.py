@@ -4186,204 +4186,312 @@ class FunctionsTest(TestCase):
             )
         self.assertEqual(result, expectedResults)
 
-    def test_smartSummarize_1day(self):
-        endTime=86400
-        seriesList = self._gen_series_list_with_data(
-            key=['servers.s1.disk.bytes_used', 'servers.s1.disk.bytes_free', 'servers.s2.disk.bytes_used', 'servers.s2.disk.bytes_free'],
-            start=0,
-            end=endTime,
-            step=60,
-            data=[range(0, endTime, 60), range(0, -endTime, -60), [None] * 1440, range(0, 1440)]
-        )
+    def test_smartSummarize_alignTo_1year(self):
+        start_time = datetime(1970, 1, 1, 0, 30, 0, 0, pytz.utc)
+        end_time = datetime(1970, 1, 1, 4, 0, 0, 0, pytz.utc)
+        step = 1
+        bucketSize = '1hour'
+        alignTo = 'years'
 
-        expectedResults = {'sum' : [
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1d", "sum")', 0, 86400, 86400, [62164800]),
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1d", "sum")', 0, 86400, 86400, [-62164800]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1d", "sum")', 0, 86400, 86400, [None]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1d", "sum")', 0, 86400, 86400, [1036080])
-        ],
-        'avg' : [
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1d", "avg")', 0, 86400, 86400, [43170.0]),
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1d", "avg")', 0, 86400, 86400, [-43170.0]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1d", "avg")', 0, 86400, 86400, [None]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1d", "avg")', 0, 86400, 86400, [719.5])
-        ],
-        'last' : [
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1d", "last")', 0, 86400, 86400, [86340]),
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1d", "last")', 0, 86400, 86400, [-86340]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1d", "last")', 0, 86400, 86400, [None]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1d", "last")', 0, 86400, 86400, [1439])
-        ],
-        'max' : [
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1d", "max")', 0, 86400, 86400, [86340]),
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1d", "max")', 0, 86400, 86400, [0]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1d", "max")', 0, 86400, 86400, [None]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1d", "max")', 0, 86400, 86400, [1439])
-        ],
-        'min' : [
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1d", "min")', 0, 86400, 86400, [0]),
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1d", "min")', 0, 86400, 86400, [-86340]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1d", "min")', 0, 86400, 86400, [None]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1d", "min")', 0, 86400, 86400, [0])
-        ],
+        expectedResults = {
+            'sum' : [
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1hour", "sum")', 0, 14400, 3600, [6478200, 19438200, 32398200, 45358200]),
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1hour", "sum")', 0, 14400, 3600, [-6478200, -19438200, -32398200, -45358200]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1hour", "sum")', 0, 14400, 3600, [None, None, None, None]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1hour", "sum")', 0, 14400, 3600, [6478200, 19438200, 32398200, 45358200])
+            ],
+            'avg' : [
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1hour", "avg")', 0, 14400, 3600, [1799.5, 5399.5, 8999.5, 12599.5]),
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1hour", "avg")', 0, 14400, 3600, [-1799.5, -5399.5, -8999.5, -12599.5]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1hour", "avg")', 0, 14400, 3600, [None, None, None, None]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1hour", "avg")', 0, 14400, 3600, [1799.5, 5399.5, 8999.5, 12599.5])
+            ],
+            'last' : [
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1hour", "last")', 0, 14400, 3600, [3599, 7199, 10799, 14399]),
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1hour", "last")', 0, 14400, 3600, [-3599, -7199, -10799, -14399]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1hour", "last")', 0, 14400, 3600, [None, None, None, None]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1hour", "last")', 0, 14400, 3600, [3599, 7199, 10799, 14399])
+            ],
+            'max' : [
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1hour", "max")', 0, 14400, 3600, [3599, 7199, 10799, 14399]),
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1hour", "max")', 0, 14400, 3600, [0, -3600, -7200, -10800]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1hour", "max")', 0, 14400, 3600, [None, None, None, None]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1hour", "max")', 0, 14400, 3600, [3599, 7199, 10799, 14399])
+            ],
+            'min' : [
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1hour", "min")', 0, 14400, 3600, [0, 3600, 7200, 10800]),
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1hour", "min")', 0, 14400, 3600, [-3599, -7199, -10799, -14399]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1hour", "min")', 0, 14400, 3600, [None, None, None, None]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1hour", "min")', 0, 14400, 3600, [0, 3600, 7200, 10800])
+            ],
         }
 
-        for func in expectedResults:
-          with patch('graphite.render.functions.evaluateTokens', lambda *_: seriesList):
-              result = functions.smartSummarize(
-                  self._build_requestContext(
-                      endTime=datetime(1970, 1, 2, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE))
-                  ),
-                  seriesList, "1d", func)
-          self.assertEqual(result, expectedResults[func])
+        self._assert_smartsummarize(start_time, end_time, step, bucketSize, alignTo, expectedResults)
 
-    def test_smartSummarize_1hour(self):
-        endTime=14400
-        seriesList = self._gen_series_list_with_data(
-            key=['servers.s1.disk.bytes_used', 'servers.s1.disk.bytes_free', 'servers.s2.disk.bytes_used', 'servers.s2.disk.bytes_free'],
-            start=0,
-            end=endTime,
-            data=[range(0, endTime), range(0, -endTime, -1), [None] * endTime, range(0, endTime*2, 2)]
-        )
+    def test_smartSummarize_alignTo_months(self):
+        start_time = datetime(1970, 1, 1, 0, 30, 0, 0, pytz.utc)
+        end_time = datetime(1970, 1, 1, 4, 0, 0, 0, pytz.utc)
+        step = 1
+        bucketSize = '1hour'
+        alignTo = 'months'
 
-        expectedResults = {'sum' : [
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1hour", "sum")', 0, 14400, 3600, [6478200, 19438200, 32398200, 45358200]),
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1hour", "sum")', 0, 14400, 3600, [-6478200, -19438200, -32398200, -45358200]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1hour", "sum")', 0, 14400, 3600, [None, None, None, None]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1hour", "sum")', 0, 14400, 3600, [12956400, 38876400, 64796400, 90716400])
-        ],
-        'avg' : [
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1hour", "avg")', 0, 14400, 3600, [1799.5, 5399.5, 8999.5, 12599.5]),
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1hour", "avg")', 0, 14400, 3600, [-1799.5, -5399.5, -8999.5, -12599.5]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1hour", "avg")', 0, 14400, 3600, [None, None, None, None]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1hour", "avg")', 0, 14400, 3600, [3599.0, 10799.0, 17999.0, 25199.0])
-        ],
-        'last' : [
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1hour", "last")', 0, 14400, 3600, [3599, 7199, 10799, 14399]),
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1hour", "last")', 0, 14400, 3600, [-3599, -7199, -10799, -14399]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1hour", "last")', 0, 14400, 3600, [None, None, None, None]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1hour", "last")', 0, 14400, 3600, [7198, 14398, 21598, 28798])
-        ],
-        'max' : [
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1hour", "max")', 0, 14400, 3600, [3599, 7199, 10799, 14399]),
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1hour", "max")', 0, 14400, 3600, [0, -3600, -7200, -10800]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1hour", "max")', 0, 14400, 3600, [None, None, None, None]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1hour", "max")', 0, 14400, 3600, [7198, 14398, 21598, 28798])
-        ],
-        'min' : [
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1hour", "min")', 0, 14400, 3600, [0, 3600, 7200, 10800]),
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1hour", "min")', 0, 14400, 3600, [-3599, -7199, -10799, -14399]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1hour", "min")', 0, 14400, 3600, [None, None, None, None]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1hour", "min")', 0, 14400, 3600, [0, 7200, 14400, 21600])
-        ],
+        expectedResults = {
+            'sum' : [
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1hour", "sum")', 0, 14400, 3600, [6478200, 19438200, 32398200, 45358200]),
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1hour", "sum")', 0, 14400, 3600, [-6478200, -19438200, -32398200, -45358200]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1hour", "sum")', 0, 14400, 3600, [None, None, None, None]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1hour", "sum")', 0, 14400, 3600, [6478200, 19438200, 32398200, 45358200])
+            ],
+            'avg' : [
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1hour", "avg")', 0, 14400, 3600, [1799.5, 5399.5, 8999.5, 12599.5]),
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1hour", "avg")', 0, 14400, 3600, [-1799.5, -5399.5, -8999.5, -12599.5]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1hour", "avg")', 0, 14400, 3600, [None, None, None, None]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1hour", "avg")', 0, 14400, 3600, [1799.5, 5399.5, 8999.5, 12599.5])
+            ],
+            'last' : [
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1hour", "last")', 0, 14400, 3600, [3599, 7199, 10799, 14399]),
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1hour", "last")', 0, 14400, 3600, [-3599, -7199, -10799, -14399]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1hour", "last")', 0, 14400, 3600, [None, None, None, None]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1hour", "last")', 0, 14400, 3600, [3599, 7199, 10799, 14399])
+            ],
+            'max' : [
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1hour", "max")', 0, 14400, 3600, [3599, 7199, 10799, 14399]),
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1hour", "max")', 0, 14400, 3600, [0, -3600, -7200, -10800]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1hour", "max")', 0, 14400, 3600, [None, None, None, None]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1hour", "max")', 0, 14400, 3600, [3599, 7199, 10799, 14399])
+            ],
+            'min' : [
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1hour", "min")', 0, 14400, 3600, [0, 3600, 7200, 10800]),
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1hour", "min")', 0, 14400, 3600, [-3599, -7199, -10799, -14399]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1hour", "min")', 0, 14400, 3600, [None, None, None, None]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1hour", "min")', 0, 14400, 3600, [0, 3600, 7200, 10800])
+            ],
         }
 
-        for func in expectedResults:
-          with patch('graphite.render.functions.evaluateTokens', lambda *_: seriesList):
-              result = functions.smartSummarize(
-                  self._build_requestContext(
-                      endTime=datetime(1970, 1, 1, 0, 4, 0, 0, pytz.timezone(settings.TIME_ZONE))
-                  ),
-                  seriesList, "1hour", func)
-          self.assertEqual(result, expectedResults[func])
+        self._assert_smartsummarize(start_time, end_time, step, bucketSize, alignTo, expectedResults)
 
-    def test_smartSummarize_1minute(self):
-        seriesList = self._gen_series_list_with_data(
-            key=['servers.s1.disk.bytes_used', 'servers.s1.disk.bytes_free', 'servers.s2.disk.bytes_used', 'servers.s2.disk.bytes_free'],
-            start=0,
-            end=240,
-            data=[range(0, 240), range(0, -240, -1), [None] * 240, range(0, 480, 2)]
-        )
+    def test_smartSummarize_alignTo_weeks_on_thursday(self):
+        self.maxDiff = None
 
-        expectedResults = {'sum' : [
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1minute", "sum")', 0, 240, 60, [1770, 5370, 8970, 12570]),
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1minute", "sum")', 0, 240, 60, [-1770, -5370, -8970, -12570]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1minute", "sum")', 0, 240, 60, [None, None, None, None]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1minute", "sum")', 0, 240, 60, [3540, 10740, 17940, 25140])
-        ],
-        'avg' : [
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1minute", "avg")', 0, 240, 60, [29.5, 89.5, 149.5, 209.5]),
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1minute", "avg")', 0, 240, 60, [-29.5, -89.5, -149.5, -209.5]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1minute", "avg")', 0, 240, 60, [None, None, None, None]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1minute", "avg")', 0, 240, 60, [59.0, 179.0, 299.0, 419.0])
-        ],
-        'last' : [
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1minute", "last")', 0, 240, 60, [59, 119, 179, 239]),
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1minute", "last")', 0, 240, 60, [-59, -119, -179, -239]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1minute", "last")', 0, 240, 60, [None, None, None, None]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1minute", "last")', 0, 240, 60, [118, 238, 358, 478])
-        ],
-        'max' : [
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1minute", "max")', 0, 240, 60, [59, 119, 179, 239]),
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1minute", "max")', 0, 240, 60, [0, -60, -120, -180]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1minute", "max")', 0, 240, 60, [None, None, None, None]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1minute", "max")', 0, 240, 60, [118, 238, 358, 478])
-        ],
-        'min' : [
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1minute", "min")', 0, 240, 60, [0, 60, 120, 180]),
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1minute", "min")', 0, 240, 60, [-59, -119, -179, -239]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1minute", "min")', 0, 240, 60, [None, None, None, None]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1minute", "min")', 0, 240, 60, [0, 120, 240, 360])
-        ],
+        start_time = datetime(1970, 1, 3, 0, 30, 0, 0, pytz.utc)
+        end_time = datetime(1970, 1, 1, 4, 0, 0, 0, pytz.utc)
+        step = 1
+        bucketSize = '4hours'
+        alignTo = 'weeks4'
+
+        expectedResults = {
+            'sum' : [
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "4hours", "sum")', 0, 14400, 14400, [103672800]),
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "4hours", "sum")', 0, 14400, 14400, [-103672800]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "4hours", "sum")', 0, 14400, 14400, [None]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "4hours", "sum")', 0, 14400, 14400, [103672800])
+            ],
+            'avg' : [
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "4hours", "avg")', 0, 14400, 14400, [7199.5]),
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "4hours", "avg")', 0, 14400, 14400, [-7199.5]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "4hours", "avg")', 0, 14400, 14400, [None]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "4hours", "avg")', 0, 14400, 14400, [7199.5])
+            ],
+            'last' : [
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "4hours", "last")', 0, 14400, 14400, [14399]),
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "4hours", "last")', 0, 14400, 14400, [-14399]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "4hours", "last")', 0, 14400, 14400, [None]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "4hours", "last")', 0, 14400, 14400, [14399])
+            ],
+            'max' : [
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "4hours", "max")', 0, 14400, 14400, [14399]),
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "4hours", "max")', 0, 14400, 14400, [0]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "4hours", "max")', 0, 14400, 14400, [None]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "4hours", "max")', 0, 14400, 14400, [14399])
+            ],
+            'min' : [
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "4hours", "min")', 0, 14400, 14400, [0]),
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "4hours", "min")', 0, 14400, 14400, [-14399]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "4hours", "min")', 0, 14400, 14400, [None]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "4hours", "min")', 0, 14400, 14400, [0])
+            ],
         }
 
-        for func in expectedResults:
-          with patch('graphite.render.functions.evaluateTokens', lambda *_: seriesList):
-              result = functions.smartSummarize(
-                  self._build_requestContext(
-                      endTime=datetime(1970, 1, 1, 0, 4, 0, 0, pytz.timezone(settings.TIME_ZONE))
-                  ),
-                  seriesList, "1minute", func)
-          self.assertEqual(result, expectedResults[func])
+        self._assert_smartsummarize(start_time, end_time, step, bucketSize, alignTo, expectedResults)
 
-    def test_smartSummarize_1minute_alignToFrom(self):
-        seriesList = self._gen_series_list_with_data(
-            key=['servers.s1.disk.bytes_used', 'servers.s1.disk.bytes_free', 'servers.s2.disk.bytes_used', 'servers.s2.disk.bytes_free'],
-            start=0,
-            end=240,
-            data=[range(0, 240), range(0, -240, -1), [None] * 240, range(0, 480, 2)]
-        )
+    def test_smartSummarize_alignTo_days(self):
+        start_time = datetime(1970, 1, 1, 23, 59, 59, 0, pytz.utc)
+        end_time = datetime(1970, 1, 2, 0, 0, 0, 0, pytz.utc)
+        step = 60
+        bucketSize = '1d'
+        alignTo = 'days'
 
-        expectedResults = {'sum' : [
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1minute", "sum")', 0, 240, 60, [1770, 5370, 8970, 12570]),
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1minute", "sum")', 0, 240, 60, [-1770, -5370, -8970, -12570]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1minute", "sum")', 0, 240, 60, [None, None, None, None]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1minute", "sum")', 0, 240, 60, [3540, 10740, 17940, 25140])
-        ],
-        'avg' : [
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1minute", "avg")', 0, 240, 60, [29.5, 89.5, 149.5, 209.5]),
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1minute", "avg")', 0, 240, 60, [-29.5, -89.5, -149.5, -209.5]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1minute", "avg")', 0, 240, 60, [None, None, None, None]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1minute", "avg")', 0, 240, 60, [59.0, 179.0, 299.0, 419.0])
-        ],
-        'last' : [
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1minute", "last")', 0, 240, 60, [59, 119, 179, 239]),
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1minute", "last")', 0, 240, 60, [-59, -119, -179, -239]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1minute", "last")', 0, 240, 60, [None, None, None, None]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1minute", "last")', 0, 240, 60, [118, 238, 358, 478])
-        ],
-        'max' : [
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1minute", "max")', 0, 240, 60, [59, 119, 179, 239]),
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1minute", "max")', 0, 240, 60, [0, -60, -120, -180]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1minute", "max")', 0, 240, 60, [None, None, None, None]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1minute", "max")', 0, 240, 60, [118, 238, 358, 478])
-        ],
-        'min' : [
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1minute", "min")', 0, 240, 60, [0, 60, 120, 180]),
-            TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1minute", "min")', 0, 240, 60, [-59, -119, -179, -239]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1minute", "min")', 0, 240, 60, [None, None, None, None]),
-            TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1minute", "min")', 0, 240, 60, [0, 120, 240, 360])
-        ],
+        expectedResults = {
+            'sum' : [
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1d", "sum")', 0, 86400, 86400, [62164800]),
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1d", "sum")', 0, 86400, 86400, [-62164800]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1d", "sum")', 0, 86400, 86400, [None]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1d", "sum")', 0, 86400, 86400, [1036080])
+            ],
+            'avg' : [
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1d", "avg")', 0, 86400, 86400, [43170.0]),
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1d", "avg")', 0, 86400, 86400, [-43170.0]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1d", "avg")', 0, 86400, 86400, [None]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1d", "avg")', 0, 86400, 86400, [719.5])
+            ],
+            'last' : [
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1d", "last")', 0, 86400, 86400, [86340]),
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1d", "last")', 0, 86400, 86400, [-86340]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1d", "last")', 0, 86400, 86400, [None]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1d", "last")', 0, 86400, 86400, [1439])
+            ],
+            'max' : [
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1d", "max")', 0, 86400, 86400, [86340]),
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1d", "max")', 0, 86400, 86400, [0]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1d", "max")', 0, 86400, 86400, [None]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1d", "max")', 0, 86400, 86400, [1439])
+            ],
+            'min' : [
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1d", "min")', 0, 86400, 86400, [0]),
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1d", "min")', 0, 86400, 86400, [-86340]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1d", "min")', 0, 86400, 86400, [None]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1d", "min")', 0, 86400, 86400, [0])
+            ],
         }
 
-        for func in expectedResults:
-          with patch('graphite.render.functions.evaluateTokens', lambda *_: seriesList):
-              result = functions.smartSummarize(
-                  self._build_requestContext(
-                      endTime=datetime(1970, 1, 1, 0, 4, 0, 0, pytz.timezone(settings.TIME_ZONE))
-                  ),
-                  seriesList, "1minute", func, True)
-          self.assertEqual(result, expectedResults[func])
+        self._assert_smartsummarize(start_time, end_time, step, bucketSize, alignTo, expectedResults)
+
+    def test_smartSummarize_alignTo_hours(self):
+        start_time = datetime(1970, 1, 1, 0, 30, 0, 0, pytz.utc)
+        end_time = datetime(1970, 1, 1, 4, 0, 0, 0, pytz.utc)
+        step = 1
+        bucketSize = '1hour'
+        alignTo = 'hours'
+
+        expectedResults = {
+            'sum' : [
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1hour", "sum")', 0, 14400, 3600, [6478200, 19438200, 32398200, 45358200]),
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1hour", "sum")', 0, 14400, 3600, [-6478200, -19438200, -32398200, -45358200]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1hour", "sum")', 0, 14400, 3600, [None, None, None, None]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1hour", "sum")', 0, 14400, 3600, [6478200, 19438200, 32398200, 45358200])
+            ],
+            'avg' : [
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1hour", "avg")', 0, 14400, 3600, [1799.5, 5399.5, 8999.5, 12599.5]),
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1hour", "avg")', 0, 14400, 3600, [-1799.5, -5399.5, -8999.5, -12599.5]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1hour", "avg")', 0, 14400, 3600, [None, None, None, None]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1hour", "avg")', 0, 14400, 3600, [1799.5, 5399.5, 8999.5, 12599.5])
+            ],
+            'last' : [
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1hour", "last")', 0, 14400, 3600, [3599, 7199, 10799, 14399]),
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1hour", "last")', 0, 14400, 3600, [-3599, -7199, -10799, -14399]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1hour", "last")', 0, 14400, 3600, [None, None, None, None]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1hour", "last")', 0, 14400, 3600, [3599, 7199, 10799, 14399])
+            ],
+            'max' : [
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1hour", "max")', 0, 14400, 3600, [3599, 7199, 10799, 14399]),
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1hour", "max")', 0, 14400, 3600, [0, -3600, -7200, -10800]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1hour", "max")', 0, 14400, 3600, [None, None, None, None]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1hour", "max")', 0, 14400, 3600, [3599, 7199, 10799, 14399])
+            ],
+            'min' : [
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1hour", "min")', 0, 14400, 3600, [0, 3600, 7200, 10800]),
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1hour", "min")', 0, 14400, 3600, [-3599, -7199, -10799, -14399]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1hour", "min")', 0, 14400, 3600, [None, None, None, None]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1hour", "min")', 0, 14400, 3600, [0, 3600, 7200, 10800])
+            ],
+        }
+
+        self._assert_smartsummarize(start_time, end_time, step, bucketSize, alignTo, expectedResults)
+
+    def test_smartSummarize_alignTo_minutes(self):
+        start_time = datetime(1970, 1, 1, 0, 0, 59, 0, pytz.utc)
+        end_time = datetime(1970, 1, 1, 0, 4, 0, 0, pytz.utc)
+        step = 1
+        bucketSize = '1minute'
+        alignTo = 'minutes'
+
+        expectedResults = {
+            'sum' : [
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1minute", "sum")', 0, 240, 60, [1770, 5370, 8970, 12570]),
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1minute", "sum")', 0, 240, 60, [-1770, -5370, -8970, -12570]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1minute", "sum")', 0, 240, 60, [None, None, None, None]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1minute", "sum")', 0, 240, 60, [1770, 5370, 8970, 12570])
+            ],
+            'avg' : [
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1minute", "avg")', 0, 240, 60, [29.5, 89.5, 149.5, 209.5]),
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1minute", "avg")', 0, 240, 60, [-29.5, -89.5, -149.5, -209.5]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1minute", "avg")', 0, 240, 60, [None, None, None, None]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1minute", "avg")', 0, 240, 60, [29.5, 89.5, 149.5, 209.5])
+            ],
+            'last' : [
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1minute", "last")', 0, 240, 60, [59, 119, 179, 239]),
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1minute", "last")', 0, 240, 60, [-59, -119, -179, -239]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1minute", "last")', 0, 240, 60, [None, None, None, None]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1minute", "last")', 0, 240, 60, [59, 119, 179, 239])
+            ],
+            'max' : [
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1minute", "max")', 0, 240, 60, [59, 119, 179, 239]),
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1minute", "max")', 0, 240, 60, [0, -60, -120, -180]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1minute", "max")', 0, 240, 60, [None, None, None, None]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1minute", "max")', 0, 240, 60, [59, 119, 179, 239])
+            ],
+            'min' : [
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1minute", "min")', 0, 240, 60, [0, 60, 120, 180]),
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1minute", "min")', 0, 240, 60, [-59, -119, -179, -239]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1minute", "min")', 0, 240, 60, [None, None, None, None]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1minute", "min")', 0, 240, 60, [0, 60, 120, 180])
+            ],
+        }
+
+        self._assert_smartsummarize(start_time, end_time, step, bucketSize, alignTo, expectedResults)
+
+    def test_smartSummarize_alignTo_seconds(self):
+        start_time = datetime(1970, 1, 1, 0, 0, 0, 579, pytz.utc)
+        end_time = datetime(1970, 1, 1, 0, 4, 0, 0, pytz.utc)
+        step = 1
+        bucketSize = '1minute'
+        alignTo = 'seconds'
+
+        expectedResults = {
+            'sum' : [
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1minute", "sum")', 0, 240, 60, [1770, 5370, 8970, 12570]),
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1minute", "sum")', 0, 240, 60, [-1770, -5370, -8970, -12570]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1minute", "sum")', 0, 240, 60, [None, None, None, None]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1minute", "sum")', 0, 240, 60, [1770, 5370, 8970, 12570])
+            ],
+            'avg' : [
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1minute", "avg")', 0, 240, 60, [29.5, 89.5, 149.5, 209.5]),
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1minute", "avg")', 0, 240, 60, [-29.5, -89.5, -149.5, -209.5]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1minute", "avg")', 0, 240, 60, [None, None, None, None]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1minute", "avg")', 0, 240, 60, [29.5, 89.5, 149.5, 209.5])
+            ],
+            'last' : [
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1minute", "last")', 0, 240, 60, [59, 119, 179, 239]),
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1minute", "last")', 0, 240, 60, [-59, -119, -179, -239]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1minute", "last")', 0, 240, 60, [None, None, None, None]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1minute", "last")', 0, 240, 60, [59, 119, 179, 239])
+            ],
+            'max' : [
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1minute", "max")', 0, 240, 60, [59, 119, 179, 239]),
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1minute", "max")', 0, 240, 60, [0, -60, -120, -180]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1minute", "max")', 0, 240, 60, [None, None, None, None]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1minute", "max")', 0, 240, 60, [59, 119, 179, 239])
+            ],
+            'min' : [
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_used, "1minute", "min")', 0, 240, 60, [0, 60, 120, 180]),
+                TimeSeries('smartSummarize(servers.s1.disk.bytes_free, "1minute", "min")', 0, 240, 60, [-59, -119, -179, -239]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_used, "1minute", "min")', 0, 240, 60, [None, None, None, None]),
+                TimeSeries('smartSummarize(servers.s2.disk.bytes_free, "1minute", "min")', 0, 240, 60, [0, 60, 120, 180])
+            ],
+        }
+
+        self._assert_smartsummarize(start_time, end_time, step, bucketSize, alignTo, expectedResults)
+
+    def test_smartSummarize_alignToFrom(self):
+        start_time = datetime(1970, 1, 1, 3, 30, 30, 0, pytz.utc)
+        end_time = datetime(1970, 1, 1, 4, 0, 0, 0, pytz.utc)
+        bucketSize = '1hour'
+        alignTo = True
+
+        with patch('graphite.render.functions.evaluateTokens', lambda *_: []):
+            request_context = self._build_requestContext(start_time, end_time)
+            with self.assertRaises(TypeError):
+                functions.smartSummarize(request_context, None, bucketSize, 'max', alignTo)
 
     def test_hitcount_1day(self):
         endTime = 86400
@@ -4706,18 +4814,21 @@ class FunctionsTest(TestCase):
         Returns:
             list of TimeSeries objects
 
-        key='key1', data=['data1', 'data2']; returns [TimeSeries(key='key1', start=0, end=59, data['data1', 'data2'])]
+        key='key1', data=['data1', 'data2']; returns
+            [
+                TimeSeries(key='key1', start=0, end=59, step=1, values=['data1', 'data2'])
+            ]
 
         key=['key1', 'key2'], data=['data1', 'data2']; returns
             [
-                TimeSeries(key='key1', start=0, end=59, data['data1', 'data2']),
-                TimeSeries(key='key2', start=0, end=59, data['data1', 'data2'])
+                TimeSeries(key='key1', start=0, end=59, step=1, values=['data1', 'data2']),
+                TimeSeries(key='key2', start=0, end=59, step=1, values=['data1', 'data2'])
             ]
 
-        key=['key1', 'key2'], data=['data1', 'data2', 'data3', 'data4']; returns
+        key=['key1', 'key2'], data=[['data1', 'data2'], ['data3', 'data4']]; returns
             [
-                TimeSeries(key='key1', start=0, end=59, data['data1', 'data2']),
-                TimeSeries(key='key2', start=0, end=59, data['data3', 'data4'])
+                TimeSeries(key='key1', start=0, end=59, step=1, values=['data1', 'data2']),
+                TimeSeries(key='key2', start=0, end=59, step=1, values=['data3', 'data4'])
             ]
 
         """
@@ -4738,6 +4849,34 @@ class FunctionsTest(TestCase):
 
         for series in seriesList:
             series.pathExpression = series.name
+
+        return seriesList
+
+    def _assert_smartsummarize(self, start_time, end_time, step, bucketSize, alignTo, expectedResults):
+        with patch('graphite.render.functions.evaluateTokens', lambda ctx, _: self._gen_smart_summarize_series_list(ctx['startTime'], end_time, step)):
+            for func in expectedResults:
+                request_context = self._build_requestContext(start_time, end_time)
+                result = functions.smartSummarize(request_context, None, bucketSize, func, alignTo)
+                self.assertEqual(result, expectedResults[func])
+
+    def _gen_smart_summarize_series_list(self, start_time, end_time, step):
+        seconds_from_epoch = lambda dt: int((dt - datetime(1970, 1, 1, 0, 0, 0, 0, pytz.utc)).total_seconds())
+        start_secs_from_epoch = seconds_from_epoch(start_time)
+        end_secs_from_epoch = seconds_from_epoch(end_time)
+        end_minus_start_secs = end_secs_from_epoch - start_secs_from_epoch
+
+        seriesList = self._gen_series_list_with_data(
+            key=['servers.s1.disk.bytes_used', 'servers.s1.disk.bytes_free', 'servers.s2.disk.bytes_used', 'servers.s2.disk.bytes_free'],
+            start=start_secs_from_epoch,
+            end=end_secs_from_epoch,
+            step=step,
+            data=[
+                range(start_secs_from_epoch, end_secs_from_epoch, step),
+                range(start_secs_from_epoch, -end_secs_from_epoch, -step),
+                [None] * (end_minus_start_secs / step),
+                range(0, end_minus_start_secs / step)
+            ]
+        )
 
         return seriesList
 

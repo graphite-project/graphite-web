@@ -19,6 +19,14 @@ from django.conf import settings
 
 months = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec']
 weekdays = ['sun','mon','tue','wed','thu','fri','sat']
+SECONDS_STRING = 'seconds'
+MINUTES_STRING = 'minutes'
+HOURS_STRING = 'hours'
+DAYS_STRING = 'days'
+WEEKS_STRING = 'weeks'
+MONTHS_STRING = 'months'
+YEARS_STRING = 'years'
+
 
 def parseATTime(s, tzinfo=None, now=None):
   if tzinfo is None:
@@ -135,11 +143,11 @@ def parseTimeOffset(offset):
     unit = offset[:i-1]
     offset = offset[i-1:]
     unitString = getUnitString(unit)
-    if unitString == 'months':
-      unitString = 'days'
+    if unitString == MONTHS_STRING:
+      unitString = DAYS_STRING
       num = num * 30
-    if unitString == 'years':
-      unitString = 'days'
+    if unitString == YEARS_STRING:
+      unitString = DAYS_STRING
       num = num * 365
     t += timedelta(**{ unitString : sign * num})
 
@@ -147,11 +155,11 @@ def parseTimeOffset(offset):
 
 
 def getUnitString(s):
-  if s.startswith('s'): return 'seconds'
-  if s.startswith('min'): return 'minutes'
-  if s.startswith('h'): return 'hours'
-  if s.startswith('d'): return 'days'
-  if s.startswith('w'): return 'weeks'
-  if s.startswith('mon'): return 'months'
-  if s.startswith('y'): return 'years'
+  if s.startswith('s'): return SECONDS_STRING
+  if s.startswith('min'): return MINUTES_STRING
+  if s.startswith('h'): return HOURS_STRING
+  if s.startswith('d'): return DAYS_STRING
+  if s.startswith('w'): return WEEKS_STRING
+  if s.startswith('mon'): return MONTHS_STRING
+  if s.startswith('y'): return YEARS_STRING
   raise Exception("Invalid offset unit '%s'" % s)

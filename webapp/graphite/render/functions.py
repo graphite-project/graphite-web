@@ -22,7 +22,7 @@ from itertools import izip, imap
 from os import environ
 
 from graphite.logger import log
-from graphite.render.attime import parseTimeOffset, parseATTime
+from graphite.render.attime import getUnitString, parseTimeOffset, parseATTime, SECONDS_STRING, MINUTES_STRING, HOURS_STRING, DAYS_STRING, WEEKS_STRING, MONTHS_STRING, YEARS_STRING
 from graphite.events import models
 from graphite.util import epoch, epoch_to_dt, timestamp, deltaseconds
 from graphite.render.grammar import grammar
@@ -3690,34 +3690,45 @@ def grep(requestContext, seriesList, pattern):
   regex = re.compile(pattern)
   return [s for s in seriesList if regex.search(s.name)]
 
-def smartSummarize(requestContext, seriesList, intervalString, func='sum', alignToFrom=False):
+def smartSummarize(requestContext, seriesList, intervalString, func='sum', alignTo=None):
   """
   Smarter experimental version of summarize.
 
-  The alignToFrom parameter has been deprecated, it no longer has any effect.
-  Alignment happens automatically for days, hours, and minutes.
+  The alignToFrom boolean parameter has been replaced by alignTo and no longer has any effect.
+  Alignment can be to years, months, weeks, days, hours, and minutes.
   """
-  if alignToFrom:
+  if isinstance(alignTo, bool):
     log.info("Deprecated parameter 'alignToFrom' is being ignored.")
+  else:
+    # Adjust the start time aligning it according to interval unit
+    if alignTo is not None:
+      alignToUnit = getUnitString(alignTo)
+      requestContext = requestContext.copy()
+      s = requestContext['startTime']
+      if alignToUnit == YEARS_STRING:
+          requestContext['startTime'] = datetime(s.year, 1, 1, tzinfo = s.tzinfo)
+      elif alignToUnit == MONTHS_STRING:
+          requestContext['startTime'] = datetime(s.year, s.month, 1, tzinfo = s.tzinfo)
+      elif alignToUnit == WEEKS_STRING:
+          isoWeekDayToAlignTo = 1 if alignTo[-1].isalpha() else int(alignTo[-1])
+          daysTosubtract = s.isoweekday() - isoWeekDayToAlignTo
+          if daysTosubtract < 0: daysTosubtract += 7
+          requestContext['startTime'] = datetime(s.year, s.month, s.day, tzinfo = s.tzinfo) - timedelta(days = daysTosubtract)
+      elif alignToUnit == DAYS_STRING:
+          requestContext['startTime'] = datetime(s.year, s.month, s.day, tzinfo = s.tzinfo)
+      elif alignToUnit == HOURS_STRING:
+          requestContext['startTime'] = datetime(s.year, s.month, s.day, s.hour, tzinfo = s.tzinfo)
+      elif alignToUnit == MINUTES_STRING:
+          requestContext['startTime'] = datetime(s.year, s.month, s.day, s.hour, s.minute, tzinfo = s.tzinfo)
+      elif alignToUnit == SECONDS_STRING:
+        requestContext['startTime'] = datetime(s.year, s.month, s.day, s.hour, s.minute, s.second, tzinfo = s.tzinfo)
 
-  results = []
+      # Ignore the originally fetched data and pull new using the modified requestContext
+      seriesList = evaluateTokens(requestContext, requestContext['args'][0])
+
   delta = parseTimeOffset(intervalString)
   interval = delta.seconds + (delta.days * 86400)
-
-  # Adjust the start time to fit an entire day for intervals >= 1 day
-  requestContext = requestContext.copy()
-  s = requestContext['startTime']
-  if interval >= DAY:
-    requestContext['startTime'] = datetime(s.year, s.month, s.day, tzinfo = s.tzinfo)
-  elif interval >= HOUR:
-    requestContext['startTime'] = datetime(s.year, s.month, s.day, s.hour, tzinfo = s.tzinfo)
-  elif interval >= MINUTE:
-    requestContext['startTime'] = datetime(s.year, s.month, s.day, s.hour, s.minute, tzinfo = s.tzinfo)
-
-  # Ignore the originally fetched data and pull new using the
-  # modified requestContext.
-  seriesList = evaluateTokens(requestContext, requestContext['args'][0])
-
+  results = []
   for series in seriesList:
     buckets = {} # { timestamp: [values] }
 
@@ -3726,19 +3737,19 @@ def smartSummarize(requestContext, seriesList, intervalString, func='sum', align
 
     # Populate buckets
     for timestamp_, value in datapoints:
-      bucketInterval = int((timestamp_ - series.start) / interval)
+      targetBucketIndex = (timestamp_ - series.start) // interval
 
-      if bucketInterval not in buckets:
-        buckets[bucketInterval] = []
+      if targetBucketIndex not in buckets:
+        buckets[targetBucketIndex] = []
 
       if value is not None:
-        buckets[bucketInterval].append(value)
+        buckets[targetBucketIndex].append(value)
 
-
+    bucketIndex = 0
     newValues = []
     for timestamp_ in range(series.start, series.end, interval):
-      bucketInterval = int((timestamp_ - series.start) / interval)
-      bucket = buckets.get(bucketInterval, [])
+      bucketIndex = (timestamp_ - series.start) // interval
+      bucket = buckets.get(bucketIndex, [])
 
       if bucket:
         if func == 'avg':
@@ -3755,7 +3766,7 @@ def smartSummarize(requestContext, seriesList, intervalString, func='sum', align
         newValues.append( None )
 
     newName = "smartSummarize(%s, \"%s\", \"%s\")" % (series.name, intervalString, func)
-    alignedEnd = series.start + (bucketInterval * interval) + interval
+    alignedEnd = series.start + (bucketIndex * interval) + interval
     newSeries = TimeSeries(newName, series.start, alignedEnd, interval, newValues)
     newSeries.pathExpression = newName
     results.append(newSeries)
