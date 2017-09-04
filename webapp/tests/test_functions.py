@@ -4650,6 +4650,28 @@ class FunctionsTest(TestCase):
 
         self.assertEqual(result, expectedResults)
 
+    # test_minMax
+    def test_minMax(self):
+        # generate data to test
+        seriesList = self._gen_series_list_with_data(
+            key=[
+                'collectd.test-db4.load.value',
+                'collectd.test-db3.load.value'
+            ],
+            end=1,
+            data=[
+                [10,20,30,40,50],
+                [0,0,0,0,0]
+            ]
+        )
+        # get the expected result (calculated)
+        expectedResult = [
+            TimeSeries('minMax(collectd.test-db4.load.value)',0,1,1,[0.0,0.25,0.50,0.75,1.0]),
+            TimeSeries('minMax(collectd.test-db3.load.value)',0,1,1,[0.0,0.0,0.0,0.0,0.0])
+        ]
+        result = functions.minMax({}, seriesList)
+        self.assertEqual(result, expectedResult)
+
     def _build_requestContext(self, startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)), endTime=datetime(1970, 1, 1, 0, 59, 0, 0, pytz.timezone(settings.TIME_ZONE)), data=[], tzinfo=pytz.utc):
         """
         Helper method to create request contexts

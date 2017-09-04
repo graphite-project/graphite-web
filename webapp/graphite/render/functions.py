@@ -4093,6 +4093,37 @@ def events(requestContext, *tags):
   result_series.pathExpression = name
   return [result_series]
 
+def minMax(requestContext, seriesList):
+  """
+  Applies the popular min max normalization technique, which takes
+  each point and applies the following normalization transformation
+  to it: normalized = (point - min) / (max - min).
+
+  Example:
+
+  .. code-block:: none
+
+    &target=minMax(Server.instance01.threads.busy)
+
+  """
+
+  for series in seriesList:
+    series.name = "minMax(%s)" % (series.name)
+    series.pathExpression = series.name
+    min_val = safeMin(series)
+    max_val = safeMax(series)
+    if min_val is None:
+      min_val = 0.0
+    if max_val is None:
+      max_val = 0.0
+    for i, val in enumerate(series):
+      if series[i] is not None:
+        try:
+          series[i] = float(val - min_val) / (max_val - min_val)
+        except ZeroDivisionError:
+          series[i] = 0.0
+  return seriesList
+
 def pieAverage(requestContext, series):
   return safeDiv(safeSum(series),safeLen(series))
 
@@ -4151,6 +4182,7 @@ SeriesFunctions = {
   'hitcount': hitcount,
   'absolute': absolute,
   'interpolate': interpolate,
+  'minMax': minMax,
 
   # Calculate functions
   'movingAverage': movingAverage,
