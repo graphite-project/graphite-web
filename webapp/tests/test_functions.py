@@ -4441,11 +4441,11 @@ class FunctionsTest(TestCase):
         self._assert_smartsummarize(start_time, end_time, step, bucketSize, alignTo, expectedResults)
 
     def test_smartSummarize_alignTo_seconds(self):
-        start_time = datetime(1970, 1, 1, 0, 0, 59, 579, pytz.utc)
+        start_time = datetime(1970, 1, 1, 0, 0, 0, 579, pytz.utc)
         end_time = datetime(1970, 1, 1, 0, 4, 0, 0, pytz.utc)
         step = 1
         bucketSize = '1minute'
-        alignTo = 'minutes'
+        alignTo = 'seconds'
 
         expectedResults = {
             'sum' : [
