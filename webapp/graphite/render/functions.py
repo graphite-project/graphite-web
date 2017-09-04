@@ -3722,7 +3722,7 @@ def smartSummarize(requestContext, seriesList, intervalString, func='sum', align
           requestContext['startTime'] = datetime(s.year, s.month, s.day, s.hour, s.minute, tzinfo = s.tzinfo)
       elif alignToUnit == SECONDS_STRING:
         requestContext['startTime'] = datetime(s.year, s.month, s.day, s.hour, s.minute, s.second, tzinfo = s.tzinfo)
-    
+
       # Ignore the originally fetched data and pull new using the modified requestContext
       seriesList = evaluateTokens(requestContext, requestContext['args'][0])
 

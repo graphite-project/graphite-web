@@ -1,5 +1,4 @@
 import copy
-import copy
 import math
 import pytz
 
@@ -4772,7 +4771,7 @@ class FunctionsTest(TestCase):
                 range(0, end_minus_start_secs / step)
             ]
         )
-        
+
         return seriesList
 
     def _generate_series_list(self):
