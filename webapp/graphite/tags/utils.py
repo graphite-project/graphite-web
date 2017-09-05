@@ -13,13 +13,32 @@ except ImportError:  # python < 2.7 compatibility
 class TaggedSeries(object):
   @classmethod
   def parse(cls, path):
+    tags = {}
+
+    # if path is in openmetrics format: metric{tag="value",...}
+    # https://github.com/RichiH/OpenMetrics
+    if path[-2:] == '"}' and '{' in path:
+      (metric, rawtags) = path[0:-1].split('{', 2)
+      if not metric:
+        raise Exception('Cannot parse path %s, no metric found' % path)
+
+      while len(rawtags) > 0:
+        m = re.match(r'([^=]+)="((?:[\\]["\\]|[^"\\])+)"(:?,|$)', rawtags)
+        if not m:
+          raise Exception('Cannot parse path %s, invalid segment %s' % (path, rawtags))
+
+        tags[m.group(1)] = m.group(2).replace(r'\"', '"').replace(r'\\', '\\')
+        rawtags = rawtags[len(m.group(0)):]
+
+      tags['name'] = metric
+      return cls(metric, tags)
+
+    # path is a carbon path with optional tags: metric;tag=value;...
     segments = path.split(';')
 
     metric = segments[0]
     if not metric:
       raise Exception('Cannot parse path %s, no metric found' % path)
-
-    tags = {}
 
     for segment in segments[1:]:
       tag = segment.split('=', 1)
@@ -29,7 +48,6 @@ class TaggedSeries(object):
       tags[tag[0]] = tag[1]
 
     tags['name'] = metric
-
     return cls(metric, tags)
 
   @staticmethod

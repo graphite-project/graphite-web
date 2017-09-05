@@ -7,9 +7,9 @@ from graphite.tags.utils import TaggedSeries
 from tests.base import TestCase
 
 class TagsTest(TestCase):
-  def _test_tagdb(self, db):
+  def test_taggedseries(self):
     # test path with tags
-    parsed = db.parse('test.a;hello=tiger;blah=blah')
+    parsed = TaggedSeries.parse('test.a;hello=tiger;blah=blah')
     self.assertIsInstance(parsed, TaggedSeries)
     self.assertEqual(parsed.metric, 'test.a')
     self.assertEqual(parsed.tags, {'blah': 'blah', 'hello': 'tiger', 'name': 'test.a'})
@@ -21,7 +21,7 @@ class TagsTest(TestCase):
     self.assertEqual(TaggedSeries.encode(parsed.path), '_tagged.2b0.2af.test-a;blah=blah;hello=tiger')
 
     # test path without tags
-    parsed = db.parse('test.a')
+    parsed = TaggedSeries.parse('test.a')
     self.assertIsInstance(parsed, TaggedSeries)
     self.assertEqual(parsed.metric, 'test.a')
     self.assertEqual(parsed.tags, {'name': 'test.a'})
@@ -32,6 +32,13 @@ class TagsTest(TestCase):
     # test encoding
     self.assertEqual(TaggedSeries.encode(parsed.path), 'test.a')
 
+    # test parsing openmetrics
+    parsed = TaggedSeries.parse(r'test.a{hello="tiger",blah="bla\"h"}')
+    self.assertIsInstance(parsed, TaggedSeries)
+    self.assertEqual(parsed.metric, 'test.a')
+    self.assertEqual(parsed.tags, {'blah': 'bla"h', 'hello': 'tiger', 'name': 'test.a'})
+
+  def _test_tagdb(self, db):
     # query that shouldn't match anything
     db.del_series('test.a;blah=blah;hello=tiger')
 
