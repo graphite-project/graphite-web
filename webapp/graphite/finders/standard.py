@@ -1,7 +1,7 @@
 import operator
 from os.path import isdir, isfile, join, basename
 from django.conf import settings
-from hashlib import sha256
+
 # Use the built-in version of scandir/walk if possible, otherwise
 # use the scandir module version
 try:
@@ -14,6 +14,7 @@ from graphite.node import BranchNode, LeafNode
 from graphite.readers import WhisperReader, GzippedWhisperReader, RRDReader
 from graphite.util import find_escaped_pattern_fields
 from graphite.finders.utils import BaseFinder
+from graphite.tags.utils import TaggedSeries
 
 from . import fs_to_metric, get_real_metric_path, match_entries
 
@@ -33,8 +34,7 @@ class StandardFinder(BaseFinder):
         if tagged:
           # tagged series are stored in whisper using encoded names, so to retrieve them we need to encode the
           # query pattern using the same scheme used in carbon when they are written.
-          metric_hash = sha256(query.pattern.encode('utf8')).hexdigest()
-          clean_pattern = '.'.join(['_tagged', metric_hash[0:3], metric_hash[3:6], query.pattern.replace('.', '-')])
+          clean_pattern = TaggedSeries.encode(query.pattern)
 
         pattern_parts = clean_pattern.split('.')
 

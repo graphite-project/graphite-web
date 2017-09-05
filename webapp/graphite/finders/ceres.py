@@ -5,13 +5,11 @@ import os.path
 from glob import glob
 from ceres import CeresTree, CeresNode
 from django.conf import settings
-from hashlib import sha256
 from graphite.node import BranchNode, LeafNode
 from graphite.readers import CeresReader
 from graphite.finders.utils import BaseFinder
-
 from graphite.finders import get_real_metric_path, extract_variants
-
+from graphite.tags.utils import TaggedSeries
 
 class CeresFinder(BaseFinder):
     def __init__(self, directory=None):
@@ -26,8 +24,7 @@ class CeresFinder(BaseFinder):
         if tagged:
           # tagged series are stored in ceres using encoded names, so to retrieve them we need to encode the
           # query pattern using the same scheme used in carbon when they are written.
-          metric_hash = sha256(query.pattern.encode('utf8')).hexdigest()
-          variants = ['.'.join(['_tagged', metric_hash[0:3], metric_hash[3:6], query.pattern.replace('.', '-')])]
+          variants = [TaggedSeries.encode(query.pattern)]
         else:
           variants = extract_variants(query.pattern)
 

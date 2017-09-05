@@ -2,6 +2,8 @@
 import abc
 import re
 
+from hashlib import sha256
+
 try:
     from importlib import import_module
 except ImportError:  # python < 2.7 compatibility
@@ -30,13 +32,23 @@ class TaggedSeries(object):
 
     return cls(metric, tags)
 
-  @classmethod
-  def format(cls, tags):
+  @staticmethod
+  def format(tags):
     return tags.get('name', '') + ''.join(sorted([
       ';%s=%s' % (tag, value)
       for tag, value in tags.items()
       if tag != 'name'
     ]))
+
+  @staticmethod
+  def encode(metric, sep='.'):
+    # if metric is tagged, encode it for storage in whisper etc
+    if ';' in metric:
+      metric_hash = sha256(metric.encode('utf8')).hexdigest()
+      return sep.join(['_tagged', metric_hash[0:3], metric_hash[3:6], metric.replace('.', '-')])
+
+    # metric isn't tagged, just replace dots with the separator and trim any leading separator
+    return metric.replace('.', sep).lstrip(sep)
 
   def __init__(self, metric, tags, id=None):
     self.metric = metric
@@ -163,10 +175,12 @@ class BaseTagDB(object):
     """
     pass
 
-  def parse(self, path):
+  @staticmethod
+  def parse(path):
     return TaggedSeries.parse(path)
 
-  def parse_tagspec(self, tagspec):
+  @staticmethod
+  def parse_tagspec(tagspec):
     m = re.match('^([^;!=]+)(!?=~?)([^;]*)$', tagspec)
     if m is None:
       raise ValueError("Invalid tagspec %s" % tagspec)

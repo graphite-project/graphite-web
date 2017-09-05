@@ -17,6 +17,9 @@ class TagsTest(TestCase):
     # test formatting
     self.assertEqual(parsed.path, 'test.a;blah=blah;hello=tiger')
 
+    # test encoding
+    self.assertEqual(TaggedSeries.encode(parsed.path), '_tagged.2b0.2af.test-a;blah=blah;hello=tiger')
+
     # test path without tags
     parsed = db.parse('test.a')
     self.assertIsInstance(parsed, TaggedSeries)
@@ -25,6 +28,9 @@ class TagsTest(TestCase):
 
     # test formatting
     self.assertEqual(parsed.path, 'test.a')
+
+    # test encoding
+    self.assertEqual(TaggedSeries.encode(parsed.path), 'test.a')
 
     # query that shouldn't match anything
     db.del_series('test.a;blah=blah;hello=tiger')
