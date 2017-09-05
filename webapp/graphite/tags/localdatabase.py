@@ -129,7 +129,7 @@ class LocalDatabaseTagDB(BaseTagDB):
       if not tags:
         return None
 
-      return TaggedSeries(tags['name'], tags, id=series_id)
+      return TaggedSeries(tags['name'], tags, series_id=series_id)
 
   def list_tags(self):
     with connection.cursor() as cursor:
@@ -176,7 +176,8 @@ class LocalDatabaseTagDB(BaseTagDB):
 
       return [{'id': value_id, 'value': value, 'count': count} for (value_id, value, count) in cursor.fetchall()]
 
-  def _insert_ignore(self, table, cols, data):
+  @staticmethod
+  def _insert_ignore(table, cols, data):
     sql = table + ' (' + ','.join(cols) + ') VALUES ' + ', '.join(['(' + ', '.join(['%s'] * len(cols)) + ')'] * len(data))
     params = []
     for row in data:
@@ -187,7 +188,7 @@ class LocalDatabaseTagDB(BaseTagDB):
     elif connection.vendor == 'sqlite':
       sql = 'INSERT OR IGNORE INTO ' + sql
     elif connection.vendor == 'postgresql':
-      sql = 'INSERT INTO ' + sql + ' ON CONFLICT DO NOTHING'
+      sql = 'INSERT INTO ' + sql + ' ON CONFLICT DO NOTHING'  # nosec
     else:
       raise Exception('Unsupported database vendor ' + connection.vendor)
 
@@ -209,7 +210,7 @@ class LocalDatabaseTagDB(BaseTagDB):
       # tags
       self._insert_ignore('tags_tag', ['tag'], [[tag] for tag in parsed.tags.keys()])
 
-      sql = 'SELECT id, tag FROM tags_tag WHERE tag IN (' + ', '.join(['%s'] * len(parsed.tags)) + ')'
+      sql = 'SELECT id, tag FROM tags_tag WHERE tag IN (' + ', '.join(['%s'] * len(parsed.tags)) + ')'  # nosec
       params = list(parsed.tags.keys())
       cursor.execute(sql, params)
       tag_ids = {tag: tag_id for (tag_id, tag) in cursor.fetchall()}
@@ -217,7 +218,7 @@ class LocalDatabaseTagDB(BaseTagDB):
       # tag values
       self._insert_ignore('tags_tagvalue', ['value'], [[value] for value in parsed.tags.values()])
 
-      sql = 'SELECT id, value FROM tags_tagvalue WHERE value IN (' + ', '.join(['%s'] * len(parsed.tags)) + ')'
+      sql = 'SELECT id, value FROM tags_tagvalue WHERE value IN (' + ', '.join(['%s'] * len(parsed.tags)) + ')'  # nosec
       params = list(parsed.tags.values())
       cursor.execute(sql, params)
       value_ids = {value: value_id for (value_id, value) in cursor.fetchall()}
@@ -227,8 +228,8 @@ class LocalDatabaseTagDB(BaseTagDB):
         series_id = curr.id
       else:
         # hash column is used to support a unique index in mysql since path can be longer than 191 characters
-        hash = sha256(path.encode('utf8')).hexdigest()
-        self._insert_ignore('tags_series', ['hash', 'path'], [[hash, path]])
+        path_hash = sha256(path.encode('utf8')).hexdigest()
+        self._insert_ignore('tags_series', ['hash', 'path'], [[path_hash, path]])
 
         sql = 'SELECT id FROM tags_series WHERE path=%s'
         params = [path]

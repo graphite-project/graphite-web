@@ -68,10 +68,10 @@ class TaggedSeries(object):
     # metric isn't tagged, just replace dots with the separator and trim any leading separator
     return metric.replace('.', sep).lstrip(sep)
 
-  def __init__(self, metric, tags, id=None):
+  def __init__(self, metric, tags, series_id=None):
     self.metric = metric
     self.tags = tags
-    self.id = id
+    self.id = series_id
 
   @property
   def path(self):
