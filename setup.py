@@ -34,8 +34,10 @@ else:
         cf.add_section('install')
     except ConfigParser.DuplicateSectionError:
         pass
-    cf.set('install', 'prefix', '/opt/graphite')
-    cf.set('install', 'install-lib', '%(prefix)s/webapp')
+    if not cf.has_option('install', 'prefix'):
+        cf.set('install', 'prefix', '/opt/graphite')
+    if not cf.has_option('install', 'install-lib'):
+        cf.set('install', 'install-lib', '%(prefix)s/webapp')
 
 with open('setup.cfg', 'wb') as f:
     cf.write(f)
@@ -67,8 +69,8 @@ examples = [ ('examples', glob('examples/example-*')) ]
 try:
     setup(
       name='graphite-web',
-      version='0.10.0-alpha',
-      url='http://graphite.readthedocs.org',
+      version='1.1.0',
+      url='http://graphiteapp.org/',
       author='Chris Davis',
       author_email='chrismd@gmail.com',
       license='Apache Software License 2.0',
@@ -77,21 +79,37 @@ try:
       packages=[
         'graphite',
         'graphite.account',
+        'graphite.account.migrations',
         'graphite.browser',
         'graphite.composer',
         'graphite.dashboard',
+        'graphite.dashboard.migrations',
         'graphite.events',
+        'graphite.events.migrations',
         'graphite.finders',
+        'graphite.readers',
         'graphite.metrics',
         'graphite.render',
         'graphite.url_shortener',
+        'graphite.url_shortener.migrations',
         'graphite.version',
         'graphite.whitelist',
+        'graphite.worker_pool',
       ],
       package_data={'graphite' :
         ['templates/*', 'local_settings.py.example']},
       scripts=glob('bin/*'),
       data_files=webapp_content.items() + storage_dirs + conf_files + examples,
+      install_requires=['Django>=1.8,<1.11.99', 'django-tagging==0.4.3', 'pytz', 'pyparsing', 'cairocffi', 'urllib3', 'scandir'],
+      classifiers=[
+          'Intended Audience :: Developers',
+          'Natural Language :: English',
+          'License :: OSI Approved :: Apache Software License',
+          'Programming Language :: Python',
+          'Programming Language :: Python :: 2',
+          'Programming Language :: Python :: 2.7',
+          'Programming Language :: Python :: 2 :: Only',
+          ],
       **setup_kwargs
     )
 finally:

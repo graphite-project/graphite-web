@@ -122,6 +122,16 @@ If either ``xFilesFactor`` or ``aggregationMethod`` is left out, the default val
 
 The aggregation parameters are kept separate from the retention parameters because the former depends on the type of data being collected and the latter depends on volume and importance.
 
+If you want to change aggregation methods for existing data, be sure that you update the whisper files as well.
+
+Example:
+
+.. code-block:: none
+
+  /opt/graphite/bin/whisper-set-aggregation-method.py /opt/graphite/storage/whisper/test.wsp max
+
+This example sets the aggregation for the test.wsp to max. (The location of the python script depends on your installation)
+
 
 relay-rules.conf
 ----------------
@@ -180,8 +190,23 @@ As an example, if the following metrics are received:
   prod.applications.apache.www05.requests
 
 They would all go into the same aggregation buffer and after 60 seconds the
-aggregate metric 'prod.applications.apache.all.requests' would be calculated
+aggregate metric ``prod.applications.apache.all.requests`` would be calculated
 by summing their values.
+
+Template components such as <env> will match everything up to the next dot.
+To match metric multiple components including the dots, use <<metric>> in the input template:
+
+.. code-block:: none
+
+  <env>.applications.<app>.all.<app_metric> (60) = sum <env>.applications.<app>.*.<<app_metric>>
+  
+It is also possible to use regular expressions. Following the example above when using:
+
+.. code-block:: none
+
+  <env>.applications.<app>.<domain>.requests (60) = sum <env>.applications.<app>.<domain>\d{2}.requests
+
+You will end up with ``prod.applications.apache.www.requests`` instead of ``prod.applications.apache.all.requests``.
 
 Another common use pattern of ``carbon-aggregator`` is to aggregate several data points
 of the *same metric*. This could come in handy when you have got the same metric coming from

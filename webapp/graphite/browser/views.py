@@ -13,15 +13,19 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 import re
+
 from django.conf import settings
 from django.shortcuts import render_to_response
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
 from graphite.account.models import Profile
 from graphite.compat import HttpResponse
-from graphite.util import getProfile, getProfileByUsername, json
+from graphite.user_util import getProfile, getProfileByUsername
+from graphite.util import json
 from graphite.logger import log
 from hashlib import md5
+from urlparse import urlparse, parse_qsl
+from urllib import urlencode
 
 
 def header(request):
@@ -54,6 +58,7 @@ def search(request):
 
   patterns = query.split()
   regexes = [re.compile(p,re.I) for p in patterns]
+
   def matches(s):
     for regex in regexes:
       if regex.search(s):
@@ -134,7 +139,19 @@ def myGraphLookup(request):
       else:
         m = md5()
         m.update(name.encode('utf-8'))
-        node.update( { 'id' : str(userpath_prefix + m.hexdigest()), 'graphUrl' : str(graph.url) } )
+
+        # Sanitize target
+        urlEscaped = str(graph.url)
+        graphUrl = urlparse(urlEscaped)
+        graphUrlParams = {}
+        graphUrlParams['target'] = []
+        for param in parse_qsl(graphUrl.query):
+          if param[0] != 'target':
+            graphUrlParams[param[0]] = param[1]
+          else:
+            graphUrlParams[param[0]].append(escape(param[1]))
+        urlEscaped = graphUrl._replace(query=urlencode(graphUrlParams, True)).geturl()
+        node.update( { 'id' : str(userpath_prefix + m.hexdigest()), 'graphUrl' : urlEscaped } )
         node.update(leafNode)
 
       nodes.append(node)
@@ -178,13 +195,13 @@ def userGraphLookup(request):
   try:
 
     if not username:
-      profiles = Profile.objects.exclude(user__username='default')
+      profiles = Profile.objects.exclude(user__username='default').order_by('user__username')
 
       for profile in profiles:
         if profile.mygraph_set.count():
           node = {
-            'text' : str(profile.user.username),
-            'id' : str(profile.user.username)
+            'text' : profile.user.username,
+            'id' : profile.user.username,
           }
 
           node.update(branchNode)
@@ -199,7 +216,7 @@ def userGraphLookup(request):
       else:
         prefix = ''
 
-      matches = [ graph for graph in profile.mygraph_set.all().order_by('name') if graph.name.startswith(prefix) ]
+      matches = [ graph for graph in profile.mygraph_set.order_by('name') if graph.name.startswith(prefix) ]
       inserted = set()
 
       for graph in matches:
@@ -212,18 +229,30 @@ def userGraphLookup(request):
 
         if '.' in relativePath: # branch
           node = {
-            'text' : escape(str(nodeName)),
-            'id' : str(username + '.' + prefix + nodeName + '.'),
+            'text' : escape(nodeName),
+            'id' : username + '.' + prefix + nodeName + '.',
           }
           node.update(branchNode)
         else: # leaf
           m = md5()
-          m.update(nodeName)
+          m.update(nodeName.encode('utf-8'))
+
+          # Sanitize target
+          urlEscaped = str(graph.url)
+          graphUrl = urlparse(urlEscaped)
+          graphUrlParams = {}
+          graphUrlParams['target'] = []
+          for param in parse_qsl(graphUrl.query):
+            if param[0] != 'target':
+              graphUrlParams[param[0]] = param[1]
+            else:
+              graphUrlParams[param[0]].append(escape(param[1]))
+          urlEscaped = graphUrl._replace(query=urlencode(graphUrlParams, True)).geturl()
 
           node = {
-            'text' : escape(str(nodeName)),
-            'id' : str(username + '.' + prefix + m.hexdigest()),
-            'graphUrl' : str(graph.url),
+            'text' : escape(nodeName),
+            'id' : username + '.' + prefix + m.hexdigest(),
+            'graphUrl' : urlEscaped,
           }
           node.update(leafNode)
 
@@ -237,14 +266,14 @@ def userGraphLookup(request):
     no_graphs.update(leafNode)
     nodes.append(no_graphs)
 
-  nodes.sort()
+  nodes.sort(key=lambda node: node['allowChildren'], reverse = True)
 
   return json_response(nodes, request)
 
 
 def json_response(nodes, request=None):
   if request:
-    jsonp = request.REQUEST.get('jsonp', False)
+    jsonp = request.GET.get('jsonp', False) or request.POST.get('jsonp', False)
   else:
     jsonp = False
   #json = str(nodes) #poor man's json encoder for simple types

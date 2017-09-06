@@ -36,7 +36,7 @@ terms mean in the context of Graphite.
     series
       A named set of datapoints. A series is identified by a unique name, which is composed of
       elements separated by periods (``.``) which are used to display the collection of series
-      into a heirarchical tree. A series storing system load average on a server called ``apache02``
+      into a hierarchical tree. A series storing system load average on a server called ``apache02``
       in datacenter ``metro_east`` might be named as ``metro_east.servers.apache02.system.load_average``
 
     series list

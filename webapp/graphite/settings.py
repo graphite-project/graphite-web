@@ -18,13 +18,19 @@ import sys
 from os.path import abspath, dirname, join
 from warnings import warn
 
-from django.core.urlresolvers import reverse_lazy
+from django import VERSION as DJANGO_VERSION
+try:
+    from django.urls import reverse_lazy
+except ImportError:  # Django < 1.10
+    from django.core.urlresolvers import reverse_lazy
 
 
 GRAPHITE_WEB_APP_SETTINGS_LOADED = False
-WEBAPP_VERSION = '0.10.0-alpha'
+WEBAPP_VERSION = '1.1.0-dev'
 DEBUG = False
 JAVASCRIPT_DEBUG = False
+
+DATE_FORMAT = '%m/%d'
 
 # Filesystem layout
 WEB_DIR = dirname( abspath(__file__) )
@@ -47,48 +53,71 @@ WHISPER_DIR = ''
 RRD_DIR = ''
 STANDARD_DIRS = []
 
-CLUSTER_SERVERS = []
-
 # Cluster settings
 CLUSTER_SERVERS = []
+USE_WORKER_POOL = True
+POOL_WORKERS_PER_BACKEND = 1
+POOL_WORKERS = 1
+
+# This settings control whether https is used to communicate between cluster members
+INTRACLUSTER_HTTPS = False
 REMOTE_FIND_TIMEOUT = 3.0
-REMOTE_FETCH_TIMEOUT = 6.0
+REMOTE_FETCH_TIMEOUT = 3.0
 REMOTE_RETRY_DELAY = 60.0
 REMOTE_EXCLUDE_LOCAL = False
-REMOTE_READER_CACHE_SIZE_LIMIT = 1000
+REMOTE_STORE_MERGE_RESULTS = True
+REMOTE_STORE_FORWARD_HEADERS = []
+REMOTE_STORE_USE_POST = False
+REMOTE_PREFETCH_DATA = False
 CARBON_METRIC_PREFIX='carbon'
 CARBONLINK_HOSTS = ["127.0.0.1:7002"]
 CARBONLINK_TIMEOUT = 1.0
 CARBONLINK_HASHING_KEYFUNC = None
+CARBONLINK_HASHING_TYPE = 'carbon_ch'
 CARBONLINK_RETRY_DELAY = 15
 REPLICATION_FACTOR = 1
 MEMCACHE_HOSTS = []
 MEMCACHE_KEY_PREFIX = ''
+MEMCACHE_OPTIONS = {}
+CACHES={}
 FIND_CACHE_DURATION = 300
 FIND_TOLERANCE = 2 * FIND_CACHE_DURATION
 DEFAULT_CACHE_DURATION = 60 #metric data and graphs are cached for one minute by default
 DEFAULT_CACHE_POLICY = []
 
+# These can also be configured using:
+# https://docs.djangoproject.com/en/1.11/topics/logging/
+LOG_RENDERING_PERFORMANCE = False
 LOG_CACHE_PERFORMANCE = False
 LOG_ROTATION = True
 LOG_ROTATION_COUNT = 1
+
 MAX_FETCH_RETRIES = 2
+
+# This settings limit metrics find to prevent from too large query
+METRICS_FIND_WARNING_THRESHOLD = float('Inf') # Print a warning if more than X metrics are returned
+METRICS_FIND_FAILURE_THRESHOLD = float('Inf') # Fail if more than X metrics are returned
 
 #Remote rendering settings
 REMOTE_RENDERING = False #if True, rendering is delegated to RENDERING_HOSTS
 RENDERING_HOSTS = []
 REMOTE_RENDER_CONNECT_TIMEOUT = 1.0
-LOG_RENDERING_PERFORMANCE = False
 
 #Miscellaneous settings
 SMTP_SERVER = "localhost"
-DOCUMENTATION_URL = "http://graphite.readthedocs.org/"
+DOCUMENTATION_URL = "http://graphite.readthedocs.io/"
 ALLOW_ANONYMOUS_CLI = True
 LEGEND_MAX_ITEMS = 10
 RRD_CF = 'AVERAGE'
 STORAGE_FINDERS = (
+    'graphite.finders.remote.RemoteFinder',
     'graphite.finders.standard.StandardFinder',
 )
+MIDDLEWARE = ()
+if DJANGO_VERSION < (1, 10):
+    MIDDLEWARE_CLASSES = MIDDLEWARE
+MAX_TAG_LENGTH = 50
+AUTO_REFRESH_INTERVAL = 60
 
 #Authentication settings
 USE_LDAP_AUTH = False
@@ -100,10 +129,12 @@ LDAP_BASE_USER = "" # "CN=some_readonly_account,DC=mydomain,DC=com"
 LDAP_BASE_PASS = "" # "my_password"
 LDAP_USER_QUERY = "" # "(username=%s)"  For Active Directory use "(sAMAccountName=%s)"
 LDAP_URI = None
+LDAP_USER_DN_TEMPLATE = None
 
 #Set this to True to delegate authentication to the web server
 USE_REMOTE_USER_AUTHENTICATION = False
 REMOTE_USER_BACKEND = "" # Provide an alternate or subclassed backend
+AUTHENTICATION_BACKENDS=[]
 
 # Django 1.5 requires this so we set a default but warn the user
 SECRET_KEY = 'UNSAFE_DEFAULT'
@@ -180,6 +211,12 @@ if not STANDARD_DIRS:
   except ImportError:
     print >> sys.stderr, "WARNING: whisper module could not be loaded, whisper support disabled"
   try:
+    import ceres  # noqa
+    if os.path.exists(CERES_DIR):
+      STANDARD_DIRS.append(CERES_DIR)
+  except ImportError:
+    pass
+  try:
     import rrdtool  # noqa
     if os.path.exists(RRD_DIR):
       STANDARD_DIRS.append(RRD_DIR)
@@ -215,14 +252,24 @@ if MEMCACHE_HOSTS:
         'LOCATION': MEMCACHE_HOSTS,
         'TIMEOUT': DEFAULT_CACHE_DURATION,
         'KEY_PREFIX': MEMCACHE_KEY_PREFIX,
+        'OPTIONS': MEMCACHE_OPTIONS,
     }
+
+if not CACHES:
+  CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+    },
+  }
 
 # Authentication shortcuts
 if USE_LDAP_AUTH and LDAP_URI is None:
   LDAP_URI = "ldap://%s:%d/" % (LDAP_SERVER, LDAP_PORT)
 
 if USE_REMOTE_USER_AUTHENTICATION or REMOTE_USER_BACKEND:
-  MIDDLEWARE_CLASSES += ('django.contrib.auth.middleware.RemoteUserMiddleware',)
+  MIDDLEWARE += ('django.contrib.auth.middleware.RemoteUserMiddleware',)
+  if DJANGO_VERSION < (1, 10):
+      MIDDLEWARE_CLASSES = MIDDLEWARE
   if REMOTE_USER_BACKEND:
     AUTHENTICATION_BACKENDS.insert(0,REMOTE_USER_BACKEND)
   else:

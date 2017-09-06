@@ -1,11 +1,13 @@
 # This is a PIP requirements file.
 # To setup a dev environment:
 #
+#   Use Python 2.7
+#
 #   If you use virtualenvwrapper, you can use the misc/virtualenvwrapper hook scripts to
 #   automate most of the following commands
 #
 #   easy_install virtualenv
-#   virtualenv --distribute --no-site-packages --prompt "(graphite venv) " .venv
+#   virtualenv --distribute --no-site-packages --prompt "(graphite venv) " --python=/usr/bin/python2.7 .venv
 #   source .venv/bin/activate
 #
 #   brew install cairo && brew link cairo # on OSX
@@ -23,7 +25,7 @@
 #
 #   mkdir -p .venv/storage/log/webapp /opt/graphite/storage/
 #   sudo chown -R $USER: /opt/graphite
-#   .venv/bin/django-admin.py syncdb --settings=graphite.settings --pythonpath=webapp
+#   .venv/bin/django-admin.py migrate --run-syncdb --settings=graphite.settings --pythonpath=webapp
 #   bin/run-graphite-devel-server.py ./
 #   # or
 #   # cd webapp/graphite && $GRAPHITE_ROOT/.venv/bin/gunicorn_django -b 127.0.0.1:8080
@@ -35,15 +37,18 @@
 #   deactivate
 #
 
-Django>=1.4,<1.9
+Django>=1.8,<1.11.99
 python-memcached==1.47
 txAMQP==0.4
 simplejson==2.1.6
-django-tagging==0.3.6
+django-tagging==0.4.3
 gunicorn
 pytz
-pyparsing==1.5.7
+pyparsing
 cairocffi
 git+git://github.com/graphite-project/whisper.git#egg=whisper
-git+git://github.com/graphite-project/ceres.git#egg=ceres
+# Ceres is optional
+# git+git://github.com/graphite-project/ceres.git#egg=ceres
 whitenoise
+scandir
+urllib3

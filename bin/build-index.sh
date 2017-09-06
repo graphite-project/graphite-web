@@ -1,3 +1,5 @@
 #!/bin/bash
 export PYTHONPATH="/opt/graphite/webapp/:$PYTHONPATH"
-./build-index
+BINDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+${BINDIR}/build-index

@@ -13,35 +13,73 @@ See the License for the specific language governing permissions and
 limitations under the License. */
 
 function GraphiteBrowser () {
-  var treePanel = createTreePanel();
-  var searchPanel = createSearchPanel();
-  var completerPanel = createCompleterPanel();
-  var treeRoot = treePanel.getRootNode();
+  this.rootNode = new Ext.tree.TreeNode({});
+  this.treePanel = createTreePanel( this.rootNode );
+  this.searchPanel = createSearchPanel();
+  this.completerPanel = createCompleterPanel();
+  this.treeRoot = this.treePanel.getRootNode();
 
   this.trees = {
-    graphite: treeRoot.findChild('id', 'GraphiteTree'),
-    mygraphs: treeRoot.findChild('id', 'MyGraphsTree'),
-    usergraphs: treeRoot.findChild('id', 'UserGraphsTree')
+    graphite: this.treeRoot.findChild('id', 'GraphiteTree'),
+    mygraphs: this.treeRoot.findChild('id', 'MyGraphsTree'),
+    usergraphs: this.treeRoot.findChild('id', 'UserGraphsTree')
   };
 
   this.panel = new Ext.TabPanel({
     region: 'west',
-    items: [treePanel, searchPanel, completerPanel],
+    items: [this.treePanel, this.searchPanel, this.completerPanel],
     split: true,
     width: 300,
     collapsible: true,
     collapseMode: 'mini',
-    activeTab: 0
+    activeTab: 0,
+    tools: [ { id: 'refresh', handler : function(event, toolEl, panel) {
+
+      if ( panel.activeTab.id !== 'tree' ) {
+        return;
+      }
+
+      Ext.each(Object.keys(Browser.trees), function(tree) {
+        if ( Browser.trees[tree] !== null ) {
+          Browser.trees[tree].reload();
+        }
+      });
+
+    } } ]
   });
 }
 
-//Tree Tab
-function createTreePanel(){
-  var rootNode = new Ext.tree.TreeNode({});
+function createGraphiteNode() {
+
+  return new Ext.tree.AsyncTreeNode({
+      id: 'GraphiteTree',
+      text: 'Metrics',
+      loader: new Ext.tree.TreeLoader({
+        url: document.body.dataset.baseUrl + 'metrics/find/',
+        requestMethod: 'GET',
+        listeners: {beforeload: setParams}
+      })
+    });
+
+} // createGraphiteNode
+
+function setParams(loader, node) {
+  var node_id = node.id.replace(/^[A-Za-z]+Tree\.?/,"");
+  loader.baseParams.query = (node_id === "") ? "*" : (node_id + ".*");
+  loader.baseParams.format = 'treejson';
+  loader.baseParams.path = node_id;
+
+  if (node.parentNode && node.parentNode.id == "UserGraphsTree") {
+    loader.baseParams.user = node.id;
+  }
+} // setParams
+
+// Tree Tab
+function createTreePanel( rootNode ){
 
   function setParams(loader, node) {
     var node_id = node.id.replace(/^[A-Za-z]+Tree\.?/,"");
-    loader.baseParams.query = (node_id == "") ? "*" : (node_id + ".*");
+    loader.baseParams.query = (node_id === "") ? "*" : (node_id + ".*");
     loader.baseParams.format = 'treejson';
     loader.baseParams.path = node_id;
 
@@ -50,22 +88,8 @@ function createTreePanel(){
     }
   }
 
-  var graphiteNode = new Ext.tree.AsyncTreeNode({
-    id: 'GraphiteTree',
-    text: 'Metrics',
-    loader: new Ext.tree.TreeLoader({
-      url: document.body.dataset.baseUrl + "metrics/find/",
-      requestMethod: "GET",
-      listeners: {beforeload: setParams}
-    })
-  });
+  var graphiteNode = createGraphiteNode();
   rootNode.appendChild(graphiteNode);
-
-  //function reloadOnce (node) {
-  //  node.un('beforeexpand', reloadOnce);
-  //  node.reload();
-  //  setTimeout(function () { node.on('beforeexpand', reloadOnce); }, 1000);
-  //}
 
   if (GraphiteConfig.showMyGraphs) {
     var myGraphsNode = new Ext.tree.AsyncTreeNode({
@@ -75,7 +99,6 @@ function createTreePanel(){
       allowChildren: true,
       expandable: true,
       allowDrag: false,
-      //listeners: {beforeexpand: reloadOnce},
       loader: new Ext.tree.TreeLoader({
         url: document.body.dataset.baseUrl + "browser/mygraph/",
         requestMethod: "GET",
@@ -88,7 +111,6 @@ function createTreePanel(){
   var userGraphsNode = new Ext.tree.AsyncTreeNode({
     id: 'UserGraphsTree',
     text: "User Graphs",
-    //listeners: {beforeexpand: reloadOnce},
     loader: new Ext.tree.TreeLoader({
       url: document.body.dataset.baseUrl + "browser/usergraph/",
       requestMethod: "GET",
@@ -98,6 +120,7 @@ function createTreePanel(){
   rootNode.appendChild(userGraphsNode);
 
   var treePanel = new Ext.tree.TreePanel({
+    id: "tree",
     title: "Tree",
     root: rootNode,
     containerScroll: true,
@@ -119,7 +142,7 @@ function createTreePanel(){
     }
 
     if (node.attributes.graphUrl) {
-      var url = node.attributes.graphUrl
+      var url = node.attributes.graphUrl;
       Composer.loadMyGraph(node.attributes.text, url);
       return;
     }
@@ -130,7 +153,7 @@ function createTreePanel(){
   return treePanel;
 }
 
-//Search Tab
+// Search Tab
 function createSearchPanel() {
   return new Ext.form.FormPanel({
     formId: 'searchForm',
@@ -150,6 +173,42 @@ function createSearchPanel() {
     listeners: {render: setupSearchForm}
   });
 }
+
+var recursiveExpand = {
+
+  parts : false,
+  first : true,
+
+  expand : function( node, nodePath ) {
+
+    if( typeof nodePath != 'undefined' ) {
+      this.parts = nodePath;
+    } else {
+      nodePath = recursiveExpand.parts;
+    }
+
+    if( this.first ) {
+      this.first = false;
+      node.expand(false, false, recursiveExpand.expand);
+      return;
+    }
+
+    var nextPart = nodePath.shift();
+    if (!nextPart) {
+      return;
+    }
+
+    var nextNode = node.findChild('text', nextPart);
+    if (!nextNode) {
+      return;
+    }
+
+    nextNode.expand(false, false, recursiveExpand.expand);
+
+  } // expand
+
+};
+
 
 function setupSearchForm(formEl) {
   var html = '<a id="searchHelpLink" > Help </a> <p id="searchError"></p> <ul id="searchResults"></ul>';
@@ -171,9 +230,9 @@ function sendSearchRequest (searchField, evt) {
   if (evt.getCharCode() != Ext.EventObject.RETURN) {
     return;
   }
-  //Clear any previous errors
+  // Clear any previous errors
   showSearchError("");
-  //Clear the result list
+  // Clear the result list
   var resultList = Ext.getDom('searchResults');
   while (resultList.childNodes[0]) {
     resultList.removeChild( resultList.childNodes[0] );
@@ -207,7 +266,7 @@ function handleSearchFailure (response, options)
   showSearchError("Search request failed");
 }
 
-//Auto-Completer Tab
+// Auto-Completer Tab
 function createCompleterPanel() {
   var metricCompleter = new MetricCompleter({emptyText: "Start typing a metric name..."});
 

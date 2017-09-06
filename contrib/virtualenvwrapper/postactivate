@@ -1,4 +1,4 @@
-# postactivate hook for virtualenvwrapper (http://virtualenvwrapper.readthedocs.org/)
+# postactivate hook for virtualenvwrapper (http://virtualenvwrapper.readthedocs.io/)
 # Put this file on $WORKON_HOME/<name of the virtual env for this project>/bin/postactivate
 # This file is sourced after the virtualenv is activated
 

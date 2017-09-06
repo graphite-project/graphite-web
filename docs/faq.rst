@@ -21,6 +21,7 @@ From an I/O perspective, under load Graphite performs lots of tiny I/O operation
 
 High volume (a few thousand distinct metrics updating every minute) pretty much requires a good RAID array and/or SSDs. Graphite's backend caches incoming data if the disks cannot keep up with the large number of small write operations that occur (each data point is only a few bytes, but most standard disks cannot do more than a few thousand I/O operations per second, even if they are tiny). When this occurs, Graphite's database engine, whisper, allows carbon to write multiple data points at once, thus increasing overall throughput only at the cost of keeping excess data cached in memory until it can be written.
 
+Graphite also supports :doc:`alternative storage backends </storage-backends>` which can greatly change these characteristics.
 
 How real-time are the graphs?
 -----------------------------
@@ -34,7 +35,7 @@ Graphite was internally developed by `Orbitz`_ where it is used to visualize a v
 
 What is Graphite written in?
 ----------------------------
-Python. The Graphite webapp is built on the `Django`_ web framework and uses the ExtJS javascript GUI toolkit. The graph rendering is done using the Cairo graphics library. The backend and database are written in pure Python.
+Python2. The Graphite webapp is built on the `Django`_ web framework and uses the ExtJS javascript GUI toolkit. The graph rendering is done using the Cairo graphics library. The backend and database are written in pure Python.
 
 
 Who writes and maintains Graphite?

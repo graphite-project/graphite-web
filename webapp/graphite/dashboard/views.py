@@ -2,7 +2,7 @@ import json
 import re
 import errno
 
-from os.path import getmtime, join, exists
+from os.path import getmtime
 from urllib import urlencode
 from ConfigParser import ConfigParser
 from django.shortcuts import render_to_response
@@ -168,8 +168,8 @@ def template(request, name, val):
   initialError = None
   debug = request.GET.get('debug', False)
   theme = request.GET.get('theme', config.ui_config['theme'])
-  css_file = join(settings.CSS_DIR, 'dashboard-%s.css' % theme)
-  if not exists(css_file):
+  css_file = finders.find('css/dashboard-%s.css' % theme)
+  if css_file is None:
     initialError = "Invalid theme '%s'" % theme
     theme = config.ui_config['theme']
 
@@ -246,7 +246,7 @@ def save_template(request, name, key):
     template = Template.objects.get(name=name)
   except Template.DoesNotExist:
     template = Template.objects.create(name=name)
-    template.setState(state)
+    template.setState(state, key)
     template.save()
   else:
     template.setState(state, key)
@@ -294,7 +294,7 @@ def delete_template(request, name):
 
   try:
     template = Template.objects.get(name=name)
-  except Dashboard.DoesNotExist:
+  except Template.DoesNotExist:
     return json_response( dict(error="Template '%s' does not exist. " % name) )
   else:
     template.delete()
@@ -302,13 +302,17 @@ def delete_template(request, name):
 
 
 def find(request):
-  query = request.REQUEST['query']
+  queryParams = request.GET.copy()
+  queryParams.update(request.POST)
+
+  query = queryParams.get('query', False)
   query_terms = set( query.lower().split() )
   results = []
 
   # Find all dashboard names that contain each of our query terms as a substring
-  for dashboard in Dashboard.objects.all():
-    name = dashboard.name.lower()
+  for dashboard_name in Dashboard.objects.order_by('name').values_list('name', flat=True):
+    name = dashboard_name.lower()
+
     if name.startswith('temporary-'):
       continue
 
@@ -321,13 +325,16 @@ def find(request):
         break
 
     if found:
-      results.append( dict(name=dashboard.name) )
+      results.append( dict(name=dashboard_name) )
 
   return json_response( dict(dashboards=results) )
 
 
 def find_template(request):
-  query = request.REQUEST['query']
+  queryParams = request.GET.copy()
+  queryParams.update(request.POST)
+
+  query = queryParams.get('query', False)
   query_terms = set( query.lower().split() )
   results = []
 
@@ -362,7 +369,7 @@ def email(request):
 
     # these need to be passed to the render function in an HTTP request.
     graph_params = json.loads(request.POST['graph_params'], parse_int=str)
-    target = QueryDict(graph_params.pop('target'))
+    target = QueryDict(urlencode({'target': graph_params.pop('target')}))
     graph_params = QueryDict(urlencode(graph_params))
 
     new_post = request.POST.copy()

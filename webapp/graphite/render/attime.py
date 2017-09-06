@@ -19,8 +19,16 @@ from django.conf import settings
 
 months = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec']
 weekdays = ['sun','mon','tue','wed','thu','fri','sat']
+SECONDS_STRING = 'seconds'
+MINUTES_STRING = 'minutes'
+HOURS_STRING = 'hours'
+DAYS_STRING = 'days'
+WEEKS_STRING = 'weeks'
+MONTHS_STRING = 'months'
+YEARS_STRING = 'years'
 
-def parseATTime(s, tzinfo=None):
+
+def parseATTime(s, tzinfo=None, now=None):
   if tzinfo is None:
     tzinfo = pytz.timezone(settings.TIME_ZONE)
   s = s.strip().lower().replace('_','').replace(',','').replace(' ','')
@@ -39,20 +47,25 @@ def parseATTime(s, tzinfo=None):
     offset = '-' + offset
   else:
     ref,offset = s,''
-  return tzinfo.localize((parseTimeReference(ref) + parseTimeOffset(offset)), daylight)
+
+  return tzinfo.normalize(parseTimeReference(ref or now,tzinfo) + parseTimeOffset(offset))
 
 
-def parseTimeReference(ref):
-  if not ref or ref == 'now': return datetime.now()
+def parseTimeReference(ref, tzinfo=None):
+  if tzinfo is None:
+    tzinfo = pytz.timezone(settings.TIME_ZONE)
+  if isinstance(ref, datetime): return ref.astimezone(tzinfo)
+  if not ref or ref == 'now': return datetime.now(tzinfo)
 
-  #Time-of-day reference
+  # Time-of-day reference
   i = ref.find(':')
   hour,min = 0,0
   if i != -1:
     hour = int( ref[:i] )
     min = int( ref[i+1:i+3] )
     ref = ref[i+3:]
-    if ref[:2] == 'am': ref = ref[2:]
+    if ref[:2] == 'am':
+      ref = ref[2:]
     elif ref[:2] == 'pm':
       hour = (hour + 12) % 24
       ref = ref[2:]
@@ -66,55 +79,46 @@ def parseTimeReference(ref):
     hour,min = 16,0
     ref = ref[7:]
 
-  refDate = datetime.now().replace(hour=hour,minute=min,second=0)
+  refDate = datetime.now(tzinfo).replace(hour=hour,minute=min,second=0,microsecond=0,tzinfo=None)
 
-  #Day reference
-  if ref in ('yesterday','today','tomorrow'): #yesterday, today, tomorrow
+  # Day reference
+  if ref in ('yesterday','today','tomorrow'): # yesterday, today, tomorrow
     if ref == 'yesterday':
-      refDate = refDate - timedelta(days=1)
-    if ref == 'tomorrow':
-      refDate = refDate + timedelta(days=1)
-  elif ref.count('/') == 2: #MM/DD/YY[YY]
+      refDate -= timedelta(days=1)
+    elif ref == 'tomorrow':
+      refDate += timedelta(days=1)
+
+  elif ref.count('/') == 2: # MM/DD/YY[YY]
     m,d,y = map(int,ref.split('/'))
     if y < 1900: y += 1900
     if y < 1970: y += 100
-    refDate = refDate.replace(year=y)
+    refDate = datetime(year=y,month=m,day=d,hour=hour,minute=min)
 
-    try: # Fix for Bug #551771
-      refDate = refDate.replace(month=m)
-      refDate = refDate.replace(day=d)
-    except:
-      refDate = refDate.replace(day=d)
-      refDate = refDate.replace(month=m)
+  elif len(ref) == 8 and ref.isdigit(): # YYYYMMDD
+    refDate = datetime(year=int(ref[:4]),month=int(ref[4:6]),day=int(ref[6:8]),hour=hour,minute=min)
 
-  elif len(ref) == 8 and ref.isdigit(): #YYYYMMDD
-    refDate = refDate.replace(year= int(ref[:4]))
-
-    try: # Fix for Bug #551771
-      refDate = refDate.replace(month= int(ref[4:6]))
-      refDate = refDate.replace(day= int(ref[6:8]))
-    except:
-      refDate = refDate.replace(day= int(ref[6:8]))
-      refDate = refDate.replace(month= int(ref[4:6]))
-
-  elif ref[:3] in months: #MonthName DayOfMonth
-    refDate = refDate.replace(month= months.index(ref[:3]) + 1)
+  elif ref[:3] in months: # MonthName DayOfMonth
+    d = None
     if ref[-2:].isdigit():
-      refDate = refDate.replace(day= int(ref[-2:]))
+      d = int(ref[-2:])
     elif ref[-1:].isdigit():
-      refDate = refDate.replace(day= int(ref[-1:]))
+      d = int(ref[-1:])
     else:
       raise Exception("Day of month required after month name")
-  elif ref[:3] in weekdays: #DayOfWeek (Monday, etc)
+    refDate = datetime(year=refDate.year,month=months.index(ref[:3]) + 1,day=d,hour=hour,minute=min)
+
+  elif ref[:3] in weekdays: # DayOfWeek (Monday, etc)
     todayDayName = refDate.strftime("%a").lower()[:3]
     today = weekdays.index( todayDayName )
     twoWeeks = weekdays * 2
     dayOffset = today - twoWeeks.index(ref[:3])
     if dayOffset < 0: dayOffset += 7
     refDate -= timedelta(days=dayOffset)
+
   elif ref:
     raise Exception("Unknown day reference")
-  return refDate
+
+  return tzinfo.localize(refDate)
 
 
 def parseTimeOffset(offset):
@@ -139,11 +143,11 @@ def parseTimeOffset(offset):
     unit = offset[:i-1]
     offset = offset[i-1:]
     unitString = getUnitString(unit)
-    if unitString == 'months':
-      unitString = 'days'
+    if unitString == MONTHS_STRING:
+      unitString = DAYS_STRING
       num = num * 30
-    if unitString == 'years':
-      unitString = 'days'
+    if unitString == YEARS_STRING:
+      unitString = DAYS_STRING
       num = num * 365
     t += timedelta(**{ unitString : sign * num})
 
@@ -151,11 +155,11 @@ def parseTimeOffset(offset):
 
 
 def getUnitString(s):
-  if s.startswith('s'): return 'seconds'
-  if s.startswith('min'): return 'minutes'
-  if s.startswith('h'): return 'hours'
-  if s.startswith('d'): return 'days'
-  if s.startswith('w'): return 'weeks'
-  if s.startswith('mon'): return 'months'
-  if s.startswith('y'): return 'years'
+  if s.startswith('s'): return SECONDS_STRING
+  if s.startswith('min'): return MINUTES_STRING
+  if s.startswith('h'): return HOURS_STRING
+  if s.startswith('d'): return DAYS_STRING
+  if s.startswith('w'): return WEEKS_STRING
+  if s.startswith('mon'): return MONTHS_STRING
+  if s.startswith('y'): return YEARS_STRING
   raise Exception("Invalid offset unit '%s'" % s)

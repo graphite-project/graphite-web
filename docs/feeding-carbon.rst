@@ -110,7 +110,7 @@ To determine the best retention configuration, you must answer all of the follow
 2. What is the finest precision you will require?
 3. How far back will you need to look at that level of precision?
 4. What is the coarsest precision you can use?
-5. How far back would you ever need to see data? (yes it has to be finite, and determine ahead of time)
+5. How far back would you ever need to see data? (yes it has to be finite, and determined ahead of time)
 
 Once you have picked your naming scheme and answered all of the retention questions, you need to create a schema by creating/editing the ``/opt/graphite/conf/storage-schemas.conf`` file.
 
@@ -138,7 +138,7 @@ Graphite understands messages with this format:
 
 ``value`` is the value that you want to assign to the metric at this time.
 
-``timestamp`` is the unix epoch time.
+``timestamp`` is the number of seconds since unix epoch time.
 
 A simple example of doing this from the unix terminal would look like this:
 

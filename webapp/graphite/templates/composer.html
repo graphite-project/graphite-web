@@ -98,7 +98,8 @@ limitations under the License. -->
       var Composer;
       var GraphiteConfig = {
         showMyGraphs: {{showMyGraphs}},
-        searchEnabled: {{searchEnabled}}
+        searchEnabled: {{searchEnabled}},
+        refreshInterval: {{refreshInterval}},
       };
 
       function init() {
@@ -130,21 +131,15 @@ limitations under the License. -->
             parts.shift();
           }
 
-          function expandNext(node) {
-            var nextPart = parts.shift();
-            if (!nextPart) {
-              return;
-            }
-            var nextNode = node.findChild('text', nextPart);
-            if (!nextNode) {
-              return;
-            }
-            nextNode.expand(false, false, expandNext);
-          }
+          recursiveExpand.expand(Browser.trees.graphite, parts);
 
-          Browser.trees.graphite.expand(false, false, expandNext);
         }
-      }
+
+      } // init
+
 </script>
+
+  </head>
+  <body onload="init();">
   </body>
 </html>

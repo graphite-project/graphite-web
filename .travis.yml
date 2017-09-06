@@ -3,12 +3,10 @@ python: 2.7
 sudo: false
 
 env:
-  - TOXENV=py27-django14-pyparsing2
-  - TOXENV=py27-django15-pyparsing2
-  - TOXENV=py27-django16-pyparsing2
-  - TOXENV=py27-django17-pyparsing2
   - TOXENV=py27-django18-pyparsing2
-  - TOXENV=py27-django16-pyparsing1
+  - TOXENV=py27-django19-pyparsing2
+  - TOXENV=py27-django110-pyparsing2
+  - TOXENV=py27-django111-pyparsing2
   - TOXENV=docs
   - TOXENV=lint
 
@@ -22,3 +20,7 @@ install:
 
 script:
   - tox -e $TOXENV
+
+after_success:
+  - pip install codecov
+  - codecov

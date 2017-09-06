@@ -32,6 +32,7 @@ def atexit_tmpremover(dirname):
         # if the temp dir was removed already by other means
         pass
 
+
 # create a temporary directory
 TEMP_GRAPHITE_DIR = tempfile.mkdtemp(prefix='graphite-test-')
 atexit.register(atexit_tmpremover, TEMP_GRAPHITE_DIR)
@@ -39,7 +40,7 @@ atexit.register(atexit_tmpremover, TEMP_GRAPHITE_DIR)
 LOG_DIR = os.path.join(TEMP_GRAPHITE_DIR, 'log')
 os.mkdir(LOG_DIR)
 
-WHISPER_DIR = join(TEMP_GRAPHITE_DIR, 'whisper/')
+WHISPER_DIR = os.path.join(TEMP_GRAPHITE_DIR, 'whisper/')
 os.mkdir(WHISPER_DIR)
 
 # Manually add WHISPER_DIR to STANDARD_DIRS

@@ -10,8 +10,8 @@ The default graphite setup consists of:
 * A carbon daemon writing data to the database
 * Graphite-web reading and graphing data from the database
 
-It is possible to switch the storage layer to something different than
-Whisper to accommodate specific needs. The setup above would become:
+It is possible to use an alternate storage layer than the default, Whisper, in
+order to accommodate specific needs. The setup above would become:
 
 * An alternative database
 * A carbon daemon or alternative daemon for writing to the database
@@ -26,6 +26,7 @@ of paths to finder implementations. Its default value is:
 .. code-block:: python
 
     STORAGE_FINDERS = (
+        'graphite.finders.remote.RemoteFinder',
         'graphite.finders.standard.StandardFinder',
     )
 
@@ -45,6 +46,7 @@ Whisper database and a Ceres database:
 .. code-block:: python
 
     STORAGE_FINDERS = (
+        'graphite.finders.remote.RemoteFinder',
         'graphite.finders.standard.StandardFinder',
         'graphite.finders.ceres.CeresFinder',
     )
@@ -69,8 +71,9 @@ query:
 .. code-block:: python
 
     from graphite.node import LeafNode, BranchNode
+    from graphite.readers.utils import BaseFinder
 
-    class CustomFinder(object):
+    class CustomFinder(BaseFinder):
         def find_nodes(self, query):
             # find some paths matching the query, then yield them
             for path in matches:
@@ -87,8 +90,9 @@ methods: ``fetch()`` and ``get_intervals()``:
 .. code-block:: python
 
     from graphite.intervals import IntervalSet, Interval
+    from graphite.readers.utils import BaseReader
 
-    class CustomReader(object):
+    class CustomReader(BaseReader):
         __slots__ = ('path',)  # __slots__ is recommended to save memory on readers
 
         def __init__(self, path):
@@ -123,4 +127,5 @@ a namespace of your choice. Python packaging won't be covered here but you can
 look at third-party finders to get some inspiration:
 
 * `Cyanite finder <https://github.com/brutasse/graphite-cyanite>`_
+* `BigGraphite finder <https://github.com/criteo/biggraphite/blob/master/biggraphite/plugins/graphite.py>`_
 * KairosDB finder
