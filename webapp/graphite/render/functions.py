@@ -1139,7 +1139,7 @@ def offsetToZero(requestContext, seriesList):
         series[i] = value - minimum
   return seriesList
 
-def movingAverage(requestContext, seriesList, windowSize):
+def movingAverage(requestContext, seriesList, windowSize, func='avg'):
   """
   Graphs the moving average of a metric (or metrics) over a fixed number of
   past points, or a time interval.
@@ -1157,6 +1157,8 @@ def movingAverage(requestContext, seriesList, windowSize):
     &target=movingAverage(Server.instance*.threads.idle,'5min')
 
   """
+  t_funcs = {'avg': safeAvg, 'min': safeMin, 'max': safeMax}
+
   if not seriesList:
     return []
   windowInterval = None
