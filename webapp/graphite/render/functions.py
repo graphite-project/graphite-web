@@ -1415,8 +1415,8 @@ def consolidateBy(requestContext, seriesList, consolidationFunc):
   When a graph is drawn where width of the graph size in pixels is smaller than
   the number of datapoints to be graphed, Graphite consolidates the values to
   to prevent line overlap. The consolidateBy() function changes the consolidation
-  function from the default of 'average' to one of 'sum', 'max', or 'min'. This is
-  especially useful in sales graphs, where fractional values make no sense and a 'sum'
+  function from the default of 'average' to one of 'sum', 'max', 'min', 'first', or 'last'.
+  This is especially useful in sales graphs, where fractional values make no sense and a 'sum'
   of consolidated values is appropriate.
 
   .. code-block:: none
