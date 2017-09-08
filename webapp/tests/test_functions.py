@@ -1083,7 +1083,7 @@ class FunctionsTest(TestCase):
     def test_consolidateBy(self):
         seriesList = self._generate_series_list()
         self._verify_series_consolidationFunc(seriesList, "average")
-        avail_funcs = ['sum', 'average', 'min', 'max']
+        avail_funcs = ['sum', 'average', 'min', 'max', 'first', 'last']
         for func in avail_funcs:
             results = functions.consolidateBy({}, seriesList, func)
             self._verify_series_consolidationFunc(results, func)

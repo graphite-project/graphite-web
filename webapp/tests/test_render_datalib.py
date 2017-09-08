@@ -106,6 +106,24 @@ class TimeSeriesTest(TestCase):
       expected = TimeSeries("collectd.test-db.load.value", 0, 5, 1, range(0,100,2)+[None])
       self.assertEqual(list(series), list(expected))
 
+    def test_TimeSeries_iterate_valuesPerPoint_2_first(self):
+      values = range(0,100)
+      series = TimeSeries("collectd.test-db.load.value", 0, 5, 1, values, consolidate='first')
+      self.assertEqual(series.valuesPerPoint, 1)
+      series.consolidate(2)
+      self.assertEqual(series.valuesPerPoint, 2)
+      expected = TimeSeries("collectd.test-db.load.value", 0, 5, 1, range(0,100,2)+[None])
+      self.assertEqual(list(series), list(expected))
+
+    def test_TimeSeries_iterate_valuesPerPoint_2_last(self):
+      values = range(0,100)
+      series = TimeSeries("collectd.test-db.load.value", 0, 5, 1, values, consolidate='last')
+      self.assertEqual(series.valuesPerPoint, 1)
+      series.consolidate(2)
+      self.assertEqual(series.valuesPerPoint, 2)
+      expected = TimeSeries("collectd.test-db.load.value", 0, 5, 1, range(1,100,2)+[None])
+      self.assertEqual(list(series), list(expected))
+
     def test_TimeSeries_iterate_valuesPerPoint_2_invalid(self):
       values = range(0,100)
       series = TimeSeries("collectd.test-db.load.value", 0, 5, 1, values, consolidate='bogus')

@@ -106,6 +106,10 @@ class TimeSeries(list):
       return max(usable)
     if self.consolidationFunc == 'min':
       return min(usable)
+    if self.consolidationFunc == 'first':
+      return usable[0]
+    if self.consolidationFunc == 'last':
+      return usable[-1]
     raise Exception("Invalid consolidation function: '%s'" % self.consolidationFunc)
 
 
