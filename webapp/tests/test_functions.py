@@ -1244,19 +1244,22 @@ class FunctionsTest(TestCase):
         seriesList = self._gen_series_list_with_data(key='test',start=0,end=600,step=60,data=[0, 120, 240, 480, 960, 1920, 3840, 7680, 15360, 30720])
         expected = [TimeSeries('perSecond(test)', 0, 600, 60, [None, 2, 2, 4, 8, 16, 32, 64, 128, 256])]
         result = functions.perSecond({}, seriesList)
-        self.assertEqual(expected, result, 'perSecond result incorrect')
+        self.assertEqual(list(expected[0]), list(result[0]))
+        self.assertEqual(expected, result)
 
     def test_perSecond_nones(self):
-        seriesList = self._gen_series_list_with_data(key='test',start=0,end=600,step=60,data=[0, 60, None, 180, None, 300, None, 420, None, 540])
-        expected = [TimeSeries('perSecond(test)', 0, 600, 60, [None, 1, None, 1, None, 1, None, 1, None, 1])]
+        seriesList = self._gen_series_list_with_data(key='test',start=0,end=600,step=60,data=[0, 60, None, 180, None, None, None, 420, None, 540])
+        expected = [TimeSeries('perSecond(test)', 0, 600, 60, [None, 1, None, 1, None, None, None, 1, None, 1])]
         result = functions.perSecond({}, seriesList)
-        self.assertEqual(expected, result, 'perSecond result incorrect')
+        self.assertEqual(list(expected[0]), list(result[0]))
+        self.assertEqual(expected, result)
 
     def test_perSecond_max(self):
         seriesList = self._gen_series_list_with_data(key='test',start=0,end=600,step=60,data=[0, 120, 240, 480, 960, 900, 120, 240, 120, 0])
         expected = [TimeSeries('perSecond(test)', 0, 600, 60, [None, 2, 2, 4, 8, None, -5, 2, 6, 6])]
         result = functions.perSecond({}, seriesList, 480)
-        self.assertEqual(expected, result, 'perSecond result incorrect')
+        self.assertEqual(list(expected[0]), list(result[0]))
+        self.assertEqual(expected, result)
 
     def test_integral(self):
         seriesList = self._gen_series_list_with_data(key='test',start=0,end=600,step=60,data=[None, 1, 2, 3, 4, 5, None, 6, 7, 8])
