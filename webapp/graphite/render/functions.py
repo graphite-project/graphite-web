@@ -12,6 +12,10 @@
 #See the License for the specific language governing permissions and
 #limitations under the License.
 
+# make / work consistently between python 2.x and 3.x
+# https://www.python.org/dev/peps/pep-0238/
+from __future__ import division
+
 import math
 import random
 import re
@@ -60,7 +64,7 @@ def safeLen(values):
 def safeDiv(a, b):
   if a is None: return None
   if b in (0,None): return None
-  return float(a) / float(b)
+  return a / b
 
 def safePow(a, b):
   if a is None: return None
@@ -134,7 +138,7 @@ def gcd(a, b):
 def lcm(a, b):
   if a == b: return a
   if a < b: (a, b) = (b, a) #ensure a > b
-  return a / gcd(a,b) * b
+  return a // gcd(a,b) * b
 
 def normalize(seriesLists):
   if seriesLists:
@@ -142,7 +146,7 @@ def normalize(seriesLists):
     if seriesList:
       step = reduce(lcm,[s.step for s in seriesList])
       for s in seriesList:
-        s.consolidate( step / s.step )
+        s.consolidate( step // s.step )
       start = min([s.start for s in seriesList])
       end = max([s.end for s in seriesList])
       end -= (end - start) % step
@@ -628,7 +632,7 @@ def divideSeriesLists(requestContext, dividendSeriesList, divisorSeriesList):
     step = reduce(lcm,[s.step for s in bothSeries])
 
     for s in bothSeries:
-      s.consolidate( step / s.step )
+      s.consolidate( step // s.step )
 
     start = min([s.start for s in bothSeries])
     end = max([s.end for s in bothSeries])
@@ -675,7 +679,7 @@ def divideSeries(requestContext, dividendSeriesList, divisorSeries):
     step = reduce(lcm,[s.step for s in bothSeries])
 
     for s in bothSeries:
-      s.consolidate( step / s.step )
+      s.consolidate( step // s.step )
 
     start = min([s.start for s in bothSeries])
     end = max([s.end for s in bothSeries])
@@ -826,7 +830,7 @@ def exponentialMovingAverage(requestContext, seriesList, windowSize):
 
   for series in previewList:
     if windowInterval:
-      windowPoints = windowInterval / series.step
+      windowPoints = windowInterval // series.step
     else:
       windowPoints = int(windowSize)
 
@@ -898,7 +902,7 @@ def movingMedian(requestContext, seriesList, windowSize):
 
   for series in previewList:
     if windowInterval:
-      windowPoints = windowInterval / series.step
+      windowPoints = windowInterval // series.step
     else:
       windowPoints = int(windowSize)
 
@@ -914,7 +918,7 @@ def movingMedian(requestContext, seriesList, windowSize):
       window = series[i - windowPoints:i]
       nonNull = [v for v in window if v is not None]
       if nonNull:
-        m_index = len(nonNull) / 2
+        m_index = len(nonNull) // 2
         newSeries.append(sorted(nonNull)[m_index])
       else:
         newSeries.append(None)
@@ -1174,7 +1178,7 @@ def movingAverage(requestContext, seriesList, windowSize):
 
   for series in previewList:
     if windowInterval:
-      windowPoints = windowInterval / series.step
+      windowPoints = windowInterval // series.step
     else:
       windowPoints = int(windowSize)
 
@@ -1241,7 +1245,7 @@ def movingSum(requestContext, seriesList, windowSize):
 
   for series in previewList:
     if windowInterval:
-      windowPoints = windowInterval / series.step
+      windowPoints = windowInterval // series.step
     else:
       windowPoints = int(windowSize)
 
@@ -1305,7 +1309,7 @@ def movingMin(requestContext, seriesList, windowSize):
 
   for series in previewList:
     if windowInterval:
-      windowPoints = windowInterval / series.step
+      windowPoints = windowInterval // series.step
     else:
       windowPoints = int(windowSize)
 
@@ -1363,7 +1367,7 @@ def movingMax(requestContext, seriesList, windowSize):
 
   for series in previewList:
     if windowInterval:
-      windowPoints = windowInterval / series.step
+      windowPoints = windowInterval // series.step
     else:
       windowPoints = int(windowSize)
 
@@ -1494,14 +1498,14 @@ def perSecond(requestContext, seriesList, maxValue=None):
         continue
       if val is None:
         newValues.append(None)
-        step = step * 2
+        step += series.step
         continue
 
       diff = val - prev
       if diff >= 0:
-        newValues.append(diff / step)
+        newValues.append(diff // step)
       elif maxValue is not None and maxValue >= val:
-        newValues.append( ((maxValue - prev) + val  + 1) / step )
+        newValues.append( ((maxValue - prev) + val  + 1) // step )
       else:
         newValues.append(None)
 
@@ -1605,7 +1609,7 @@ def integralByInterval(requestContext, seriesList, intervalUnit):
     current = 0.0 # current accumulated value
     for val in series:
       # reset integral value if crossing an interval boundary
-      if (currentTime - startTime)/intervalDuration != (currentTime - startTime - series.step)/intervalDuration:
+      if (currentTime - startTime)//intervalDuration != (currentTime - startTime - series.step)//intervalDuration:
         current = 0.0
       if val is None:
         # keep previous value since val can be None when resetting current to 0.0
@@ -2726,7 +2730,7 @@ def holtWintersAnalysis(series):
   alpha = gamma = 0.1
   beta = 0.0035
   # season is currently one day
-  season_length = (24*60*60) / series.step
+  season_length = (24*60*60) // series.step
   intercept = 0
   slope = 0
   pred = 0
@@ -2832,7 +2836,7 @@ def holtWintersForecast(requestContext, seriesList, bootstrapInterval='7d'):
   for series in previewList:
     analysis = holtWintersAnalysis(series)
     predictions = analysis['predictions']
-    windowPoints = previewSeconds / predictions.step
+    windowPoints = previewSeconds // predictions.step
     series.tags['holtWintersForecast'] = 1
     forecastName = "holtWintersForecast(%s)" % series.name
     result = TimeSeries(forecastName, predictions.start + previewSeconds, predictions.end, predictions.step, predictions[windowPoints:], tags=series.tags)
@@ -2856,12 +2860,12 @@ def holtWintersConfidenceBands(requestContext, seriesList, delta=3, bootstrapInt
     analysis = holtWintersAnalysis(series)
 
     data = analysis['predictions']
-    windowPoints = previewSeconds / data.step
+    windowPoints = previewSeconds // data.step
     forecast = TimeSeries(data.name, data.start + previewSeconds, data.end, data.step, data[windowPoints:])
     forecast.pathExpression = data.pathExpression
 
     data = analysis['deviations']
-    windowPoints = previewSeconds / data.step
+    windowPoints = previewSeconds // data.step
     deviation = TimeSeries(data.name, data.start + previewSeconds, data.end, data.step, data[windowPoints:])
     deviation.pathExpression = data.pathExpression
 
@@ -2955,7 +2959,7 @@ def linearRegressionAnalysis(series):
     return None
   else:
     factor = (n * sumIV - sumI * sumV) / denominator / series.step
-    offset = (sumII * sumV - sumIV * sumI) /denominator - factor * series.start
+    offset = (sumII * sumV - sumIV * sumI) / denominator - factor * series.start
     return factor, offset
 
 def linearRegression(requestContext, seriesList, startSourceAt=None, endSourceAt=None):
@@ -3848,7 +3852,7 @@ def summarize(requestContext, seriesList, intervalString, func='sum', alignToFro
 
     for timestamp_, value in datapoints:
       if alignToFrom:
-        bucketInterval = int((timestamp_ - series.start) / interval)
+        bucketInterval = int((timestamp_ - series.start) // interval)
       else:
         bucketInterval = timestamp_ - (timestamp_ % interval)
 
@@ -3869,7 +3873,7 @@ def summarize(requestContext, seriesList, intervalString, func='sum', alignToFro
     for timestamp_ in range(newStart, newEnd, interval):
       if alignToFrom:
         newEnd = timestamp_
-        bucketInterval = int((timestamp_ - series.start) / interval)
+        bucketInterval = int((timestamp_ - series.start) // interval)
       else:
         bucketInterval = timestamp_ - (timestamp_ % interval)
 
@@ -3930,13 +3934,13 @@ def hitcount(requestContext, seriesList, intervalString, alignToInterval = False
     # the modified requestContext.
     seriesList = evaluateTokens(requestContext, requestContext['args'][0])
     for series in seriesList:
-      intervalCount = int((series.end - series.start) / interval)
+      intervalCount = int((series.end - series.start) // interval)
       series.end = series.start + (intervalCount * interval) + interval
 
   for series in seriesList:
     length = len(series)
     step = int(series.step)
-    bucket_count = int(math.ceil(float(series.end - series.start) / interval))
+    bucket_count = int(math.ceil(float(series.end - series.start) // interval))
     buckets = [[] for _ in range(bucket_count)]
     newStart = int(series.end - bucket_count * interval)
 
@@ -4212,7 +4216,7 @@ def events(requestContext, *tags):
   start_timestamp = start_timestamp - start_timestamp % step
   end_timestamp = epoch(requestContext["endTime"])
   end_timestamp = end_timestamp - end_timestamp % step
-  points = (end_timestamp - start_timestamp)/step
+  points = (end_timestamp - start_timestamp) // step
 
   events = models.Event.find_events(epoch_to_dt(start_timestamp),
                                     epoch_to_dt(end_timestamp),
@@ -4221,7 +4225,7 @@ def events(requestContext, *tags):
   values = [None] * points
   for event in events:
     event_timestamp = epoch(event.when)
-    value_offset = (event_timestamp - start_timestamp)/step
+    value_offset = (event_timestamp - start_timestamp) // step
 
     if values[value_offset] is None:
       values[value_offset] = 1
