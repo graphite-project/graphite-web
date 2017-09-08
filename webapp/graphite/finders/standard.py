@@ -1,6 +1,7 @@
 import operator
 from os.path import isdir, isfile, join, basename
 from django.conf import settings
+
 # Use the built-in version of scandir/walk if possible, otherwise
 # use the scandir module version
 try:
@@ -13,6 +14,7 @@ from graphite.node import BranchNode, LeafNode
 from graphite.readers import WhisperReader, GzippedWhisperReader, RRDReader
 from graphite.util import find_escaped_pattern_fields
 from graphite.finders.utils import BaseFinder
+from graphite.tags.utils import TaggedSeries
 
 from . import fs_to_metric, get_real_metric_path, match_entries
 
@@ -26,6 +28,14 @@ class StandardFinder(BaseFinder):
 
     def find_nodes(self, query):
         clean_pattern = query.pattern.replace('\\', '')
+
+        # translate query pattern if it is tagged
+        tagged = not query.pattern.startswith('_tagged.') and ';' in query.pattern
+        if tagged:
+          # tagged series are stored in whisper using encoded names, so to retrieve them we need to encode the
+          # query pattern using the same scheme used in carbon when they are written.
+          clean_pattern = TaggedSeries.encode(query.pattern)
+
         pattern_parts = clean_pattern.split('.')
 
         for root_dir in self.directories:
@@ -49,6 +59,10 @@ class StandardFinder(BaseFinder):
                     metric_path_parts[field_index] = pattern_parts[field_index].replace(
                         '\\', '')
                 metric_path = '.'.join(metric_path_parts)
+
+                # if we're finding by tag, return the proper metric path
+                if tagged:
+                  metric_path = query.pattern
 
                 # Now we construct and yield an appropriate Node object
                 if isdir(absolute_path):

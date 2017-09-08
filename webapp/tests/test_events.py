@@ -146,18 +146,26 @@ class EventTest(TestCase):
         event = {
             'what': 'Something happened',
             'data': 'more info',
-            'tags': ['foo', 'bar'],
+            'tags': ['foo', 'bar', 'baz'],
         }
         response = self.client.post(creation_url, json.dumps(event),
                                     content_type='application/json')
         self.assertEqual(response.status_code, 200)
 
-        url = reverse('events_detail', args=[1])
+        url = reverse('events_get_data')
+
+        # should match two events using old set logic
+        response = self.client.get(url, {'tags': 'foo bar baz'})
+        self.assertEqual(response.status_code, 200)
+        events = json.loads(response.content)
+        self.assertEqual(len(events), 1)
+
+        url = reverse('events_detail', args=[events[0]['id']])
         response = self.client.get(url, {}, HTTP_ACCEPT='application/json')
         self.assertEqual(response.status_code, 200)
         event = json.loads(response.content)
         self.assertEqual(event['what'], 'Something happened')
-        self.assertEqual(event['tags'], ['foo', 'bar'])
+        self.assertEqual(event['tags'], ['foo', 'bar', 'baz'])
 
     def test_get_detail_json_object_does_not_exist(self):
         url = reverse('events_detail', args=[1])

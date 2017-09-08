@@ -95,6 +95,7 @@ try:
         'graphite.version',
         'graphite.whitelist',
         'graphite.worker_pool',
+        'graphite.tags',
       ],
       package_data={'graphite' :
         ['templates/*', 'local_settings.py.example']},

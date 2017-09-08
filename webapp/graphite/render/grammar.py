@@ -54,7 +54,7 @@ comma = Literal(',').suppress()
 equal = Literal('=').suppress()
 backslash = Literal('\\').suppress()
 
-symbols = '''(){},=.'"\\'''
+symbols = '''(){},.'"\\'''
 arg = Group(
   boolean |
   number |
@@ -77,7 +77,7 @@ call = Group(
 
 # Metric pattern (aka. pathExpression)
 validMetricChars = ''.join((set(printables) - set(symbols)))
-escapedChar = backslash + Word(symbols, exact=1)
+escapedChar = backslash + Word(symbols + '=', exact=1)
 partialPathElem = Combine(
   OneOrMore(
     escapedChar | Word(validMetricChars)

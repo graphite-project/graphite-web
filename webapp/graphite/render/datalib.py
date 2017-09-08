@@ -13,6 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 import collections
+import re
 
 from traceback import format_exc
 
@@ -27,7 +28,7 @@ from graphite.render.utils import extractPathExpressions
 
 
 class TimeSeries(list):
-  def __init__(self, name, start, end, step, values, consolidate='average'):
+  def __init__(self, name, start, end, step, values, consolidate='average', tags=None):
     list.__init__(self, values)
     self.name = name
     self.start = start
@@ -37,6 +38,18 @@ class TimeSeries(list):
     self.valuesPerPoint = 1
     self.options = {}
     self.pathExpression = name
+
+    if tags:
+      self.tags = tags
+    else:
+      self.tags = {'name': name}
+      # parse for tags if a tagdb is configured and name doesn't look like a function-wrapped name
+      if STORE.tagdb and not re.match('^[a-z]+[(].+[)]$', name, re.IGNORECASE):
+        try:
+          self.tags = STORE.tagdb.parse(name).tags
+        except Exception as err:
+          # tags couldn't be parsed, just use "name" tag
+          log.debug("Couldn't parse tags for %s: %s" % (name, err))
 
   def __eq__(self, other):
     if isinstance(other, TimeSeries):
@@ -299,8 +312,8 @@ def prefetchRemoteData(requestContext, targets):
   each time evaluateTarget() needs to fetch a path. All the prefetched
   data is stored in the requestContext, to be accessed later by datalib.
   """
-  log.rendering("Prefetching remote data")
   pathExpressions = extractPathExpressions(targets)
+  log.rendering("Prefetching remote data for [%s]" % (', '.join(pathExpressions)))
 
   (startTime, endTime, now) = timebounds(requestContext)
 

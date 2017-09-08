@@ -81,6 +81,7 @@ INSTALLED_APPS = (
   'graphite.whitelist',
   'graphite.events',
   'graphite.url_shortener',
+  'graphite.tags',
   'django.contrib.auth',
   'django.contrib.sessions',
   'django.contrib.admin',
