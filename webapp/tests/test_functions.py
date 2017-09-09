@@ -3329,7 +3329,7 @@ class FunctionsTest(TestCase):
             key='collectd.test-db0.load.value',
             start=20,
             end=25,
-            data=range(10, 25)
+            data=range(20, 25)
         )
 
         def mock_evaluateTokens(reqCtx, tokens, replacements=None):
@@ -3337,11 +3337,12 @@ class FunctionsTest(TestCase):
                 key='collectd.test-db0.load.value',
                 start=10,
                 end=25,
-                data=[None, None, None, None, None, None, None, None, None, None, None, None, None, None, None]
+                data=range(10, 25)
             )
 
-        with self.assertRaises(Exception):
-            functions.movingWindow(request_context, seriesList, 5, 'invalid')
+        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+            with self.assertRaisesRegexp(Exception, '^Unsupported window function: invalid$'):
+                functions.movingWindow(request_context, seriesList, 5, 'invalid')
 
     def test_movingWindow_xFilesFactor(self):
         seriesList = self._gen_series_list_with_data(
