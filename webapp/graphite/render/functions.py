@@ -4109,7 +4109,22 @@ def seriesByTag(requestContext, *tagExpressions):
 
     &target=seriesByTag("tag1=value1", "tag2!=value2")
 
-  Returns a seriesList containing all matching series
+  Returns a seriesList containing all matching series.
+
+  Tags specifiers are strings, and may have the following formats:
+
+  .. code-block:: none
+
+    tag=spec    tag value exactly matches spec
+    tag!=spec   tag value does not exactly match spec
+    tag=~value  tag value matches the regular expression spec
+    tag!=~spec  tag value does not match the regular expression spec
+
+  Any tag spec that matches an empty value is considered to match series that don't have that tag.
+
+  At least one tag spec must require a non-empty value.
+
+  Regular expression conditions are treated as being anchored at the start of the value.
   """
 
   if STORE.tagdb is None:

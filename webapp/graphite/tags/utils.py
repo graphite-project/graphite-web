@@ -137,7 +137,7 @@ class BaseTagDB(object):
       tag=~value  tag value matches the regular expression spec
       tag!=~spec  tag value does not match the regular expression spec
 
-    Any tag spec that matches an empty value is consindered to match series that don't have that tag.
+    Any tag spec that matches an empty value is considered to match series that don't have that tag.
 
     At least one tag spec must require a non-empty value.
 
