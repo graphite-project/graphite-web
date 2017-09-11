@@ -131,6 +131,10 @@ class TagsTest(TestCase):
     result = db.find_series(['name=test.b', 'hello='])
     self.assertEqual(result, ['test.b;blah=blah'])
 
+    # delete series we added
+    self.assertTrue(db.del_series('test.a;blah=blah;hello=tiger'))
+    self.assertTrue(db.del_series('test.a;blah=blah;hello=lion'))
+
   def test_local_tagdb(self):
     return self._test_tagdb(LocalDatabaseTagDB())
 
