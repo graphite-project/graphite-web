@@ -157,7 +157,7 @@ class BaseTagDB(object):
     pass
 
   @abc.abstractmethod
-  def list_tags(self, filter=None):
+  def list_tags(self, tagFilter=None):
     """
     List defined tags, returns a list of dictionaries describing the tags stored in the TagDB.
 
@@ -176,7 +176,7 @@ class BaseTagDB(object):
     pass
 
   @abc.abstractmethod
-  def get_tag(self, tag, filter=None):
+  def get_tag(self, tag, valueFilter=None):
     """
     Get details of a particular tag, accepts a tag name and returns a dict describing the tag.
 
@@ -200,7 +200,7 @@ class BaseTagDB(object):
     pass
 
   @abc.abstractmethod
-  def list_values(self, tag, filter=None):
+  def list_values(self, tag, valueFilter=None):
     """
     List values for a particular tag, returns a list of dictionaries describing the values stored in the TagDB.
 

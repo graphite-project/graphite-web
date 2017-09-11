@@ -111,25 +111,25 @@ class LocalDatabaseTagDB(BaseTagDB):
 
       return TaggedSeries(tags['name'], tags, series_id=series_id)
 
-  def list_tags(self, filter=None):
+  def list_tags(self, tagFilter=None):
     with connection.cursor() as cursor:
       sql = 'SELECT t.id, t.tag'
       sql += ' FROM tags_tag AS t'
       params = []
 
-      if filter:
+      if tagFilter:
         # make sure regex is anchored
-        if not filter.startswith('^'):
-          filter = '^' + filter
+        if not tagFilter.startswith('^'):
+          tagFilter = '^' + tagFilter
         sql += ' WHERE t.tag ' + self._regexp_operator(connection) + ' %s'
-        params.append(filter)
+        params.append(tagFilter)
 
       sql += ' ORDER BY t.tag'
       cursor.execute(sql, params)
 
       return [{'id': tag_id, 'tag': tag} for (tag_id, tag) in cursor.fetchall()]
 
-  def get_tag(self, tag, filter=None):
+  def get_tag(self, tag, valueFilter=None):
     with connection.cursor() as cursor:
       sql = 'SELECT t.id, t.tag'
       sql += ' FROM tags_tag AS t'
@@ -147,10 +147,10 @@ class LocalDatabaseTagDB(BaseTagDB):
     return {
       'id': tag_id,
       'tag': tag,
-      'values': self.list_values(tag, filter=filter),
+      'values': self.list_values(tag, valueFilter=valueFilter),
     }
 
-  def list_values(self, tag, filter=None ):
+  def list_values(self, tag, valueFilter=None ):
     with connection.cursor() as cursor:
       sql = 'SELECT v.id, v.value, COUNT(st.id)'
       sql += ' FROM tags_tagvalue AS v'
@@ -159,12 +159,12 @@ class LocalDatabaseTagDB(BaseTagDB):
       sql += ' WHERE t.tag=%s'
       params = [tag]
 
-      if filter:
+      if valueFilter:
         # make sure regex is anchored
-        if not filter.startswith('^'):
-          filter = '^' + filter
+        if not valueFilter.startswith('^'):
+          valueFilter = '^' + valueFilter
         sql += ' AND v.value ' + self._regexp_operator(connection) + ' %s'
-        params.append(filter)
+        params.append(valueFilter)
 
       sql += ' GROUP BY v.id, v.value'
       sql += ' ORDER BY v.value'

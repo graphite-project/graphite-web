@@ -69,7 +69,7 @@ def tagList(request):
     return HttpResponse(status=405)
 
   return HttpResponse(
-    json.dumps(STORE.tagdb.list_tags(filter=request.GET.get('filter')) if STORE.tagdb else [],
+    json.dumps(STORE.tagdb.list_tags(tagFilter=request.GET.get('filter')) if STORE.tagdb else [],
                indent=(2 if request.GET.get('pretty') else None)),
     content_type='application/json'
   )
@@ -79,7 +79,7 @@ def tagDetails(request, tag):
     return HttpResponse(status=405)
 
   return HttpResponse(
-    json.dumps(STORE.tagdb.get_tag(tag, filter=request.GET.get('filter')) if STORE.tagdb else None,
+    json.dumps(STORE.tagdb.get_tag(tag, valueFilter=request.GET.get('filter')) if STORE.tagdb else None,
                indent=(2 if request.GET.get('pretty') else None)),
     content_type='application/json'
   )

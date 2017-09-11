@@ -72,28 +72,32 @@ class TagsTest(TestCase):
     self.assertEquals(tagList[2]['tag'], 'name')
 
     # get filtered list of tags
-    result = db.list_tags(filter='hello|bla')
+    result = db.list_tags(tagFilter='hello|bla')
     tagList = [tag for tag in result if tag['tag'] in ['name', 'hello', 'blah']]
     self.assertEquals(len(tagList), 2)
     self.assertEquals(tagList[0]['tag'], 'blah')
     self.assertEquals(tagList[1]['tag'], 'hello')
 
-    # get list of values
-    result = db.list_values('hello')
-    valueList = [value for value in result if value['value'] in ['tiger', 'lion']]
+
+    # get tag & list of values
+    result = db.get_tag('hello')
+    self.assertEquals(result['tag'], 'hello')
+    valueList = [value for value in result['values'] if value['value'] in ['tiger', 'lion']]
     self.assertEquals(len(valueList), 2)
     self.assertEquals(valueList[0]['value'], 'lion')
     self.assertEquals(valueList[1]['value'], 'tiger')
 
-    # get filtered list of values (match)
-    result = db.list_values('hello', filter='tig')
-    valueList = [value for value in result if value['value'] in ['tiger', 'lion']]
+    # get tag & filtered list of values (match)
+    result = db.get_tag('hello', valueFilter='tig')
+    self.assertEquals(result['tag'], 'hello')
+    valueList = [value for value in result['values'] if value['value'] in ['tiger', 'lion']]
     self.assertEquals(len(valueList), 1)
     self.assertEquals(valueList[0]['value'], 'tiger')
 
-    # get filtered list of values (no match)
-    result = db.list_values('hello', filter='tigr')
-    valueList = [value for value in result if value['value'] in ['tiger', 'lion']]
+    # get tag & filtered list of values (no match)
+    result = db.get_tag('hello', valueFilter='tigr')
+    self.assertEquals(result['tag'], 'hello')
+    valueList = [value for value in result['values'] if value['value'] in ['tiger', 'lion']]
     self.assertEquals(len(valueList), 0)
 
     # basic find
@@ -102,6 +106,10 @@ class TagsTest(TestCase):
 
     # find with regex
     result = db.find_series(['hello=tiger', 'blah=~b.*'])
+    self.assertEqual(result, ['test.a;blah=blah;hello=tiger'])
+
+    # find with not regex
+    result = db.find_series(['hello=tiger', 'blah!=~l.*'])
     self.assertEqual(result, ['test.a;blah=blah;hello=tiger'])
 
     # find with not equal
