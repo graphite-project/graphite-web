@@ -157,7 +157,7 @@ class BaseTagDB(object):
     pass
 
   @abc.abstractmethod
-  def list_tags(self):
+  def list_tags(self, filter=None):
     """
     List defined tags, returns a list of dictionaries describing the tags stored in the TagDB.
 
@@ -171,11 +171,12 @@ class BaseTagDB(object):
         },
       ]
 
+    Accepts an optional filter parameter which is a regular expression used to filter the list of returned tags
     """
     pass
 
   @abc.abstractmethod
-  def get_tag(self, tag):
+  def get_tag(self, tag, filter=None):
     """
     Get details of a particular tag, accepts a tag name and returns a dict describing the tag.
 
@@ -194,11 +195,12 @@ class BaseTagDB(object):
         ],
       }
 
+    Accepts an optional filter parameter which is a regular expression used to filter the list of returned tags
     """
     pass
 
   @abc.abstractmethod
-  def list_values(self, tag):
+  def list_values(self, tag, filter=None):
     """
     List values for a particular tag, returns a list of dictionaries describing the values stored in the TagDB.
 
@@ -214,6 +216,7 @@ class BaseTagDB(object):
         },
       ]
 
+    Accepts an optional filter parameter which is a regular expression used to filter the list of returned tags
     """
     pass
 

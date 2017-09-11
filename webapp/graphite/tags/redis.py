@@ -99,25 +99,27 @@ class RedisTagDB(BaseTagDB):
 
     return TaggedSeries(tags['name'], tags)
 
-  def list_tags(self):
+  def list_tags(self, filter=None):
     return sorted([
       {'tag': tag}
       for tag in self.r.sscan_iter('tags')
+      if not filter or re.match(filter, tag) is not None
     ], key=lambda x: x['tag'])
 
-  def get_tag(self, tag):
+  def get_tag(self, tag, filter=None):
     if not self.r.sismember('tags', tag):
       return None
 
     return {
       'tag': tag,
-      'values': self.list_values(tag),
+      'values': self.list_values(tag, filter=filter),
     }
 
-  def list_values(self, tag):
+  def list_values(self, tag, filter=None):
     return sorted([
       {'value': value, 'count': self.r.scard('tags:' + tag + ':values:' + value)}
       for value in self.r.sscan_iter('tags:' + tag + ':values')
+      if not filter or re.match(filter, value) is not None
     ], key=lambda x: x['value'])
 
   def tag_series(self, series):

@@ -39,17 +39,7 @@ class LocalDatabaseTagDB(BaseTagDB):
 
         matches_empty = bool(re.match(spec, ''))
 
-        if connection.vendor == 'mysql':
-          db_operator = 'REGEXP'
-        elif connection.vendor == 'sqlite':
-          # django provides an implementation of REGEXP for sqlite
-          db_operator = 'REGEXP'
-        elif connection.vendor == 'postgresql':
-          db_operator = '~*'
-        else:
-          raise Exception('Database vendor ' + connection.vendor + ' does not support regular expressions')
-
-        where.append('v' + s + '.value ' + db_operator + ' %s')
+        where.append('v' + s + '.value ' + self._regexp_operator(connection) + ' %s')
         whereparams.append(spec)
 
       elif operator == '!=':
@@ -65,17 +55,7 @@ class LocalDatabaseTagDB(BaseTagDB):
 
         matches_empty = not re.match(spec, '')
 
-        if connection.vendor == 'mysql':
-          db_operator = 'NOT REGEXP'
-        elif connection.vendor == 'sqlite':
-          # django provides an implementation of REGEXP for sqlite
-          db_operator = 'NOT REGEXP'
-        elif connection.vendor == 'postgresql':
-          db_operator = '!~*'
-        else:
-          raise Exception('Database vendor ' + connection.vendor + ' does not support regular expressions')
-
-        where.append('v' + s + '.value ' + db_operator + ' %s')
+        where.append('v' + s + '.value ' + self._regexp_not_operator(connection) + ' %s')
         whereparams.append(spec)
 
       else:
@@ -131,17 +111,25 @@ class LocalDatabaseTagDB(BaseTagDB):
 
       return TaggedSeries(tags['name'], tags, series_id=series_id)
 
-  def list_tags(self):
+  def list_tags(self, filter=None):
     with connection.cursor() as cursor:
       sql = 'SELECT t.id, t.tag'
       sql += ' FROM tags_tag AS t'
-      sql += ' ORDER BY t.tag'
       params = []
+
+      if filter:
+        # make sure regex is anchored
+        if not filter.startswith('^'):
+          filter = '^' + filter
+        sql += ' WHERE t.tag ' + self._regexp_operator(connection) + ' %s'
+        params.append(filter)
+
+      sql += ' ORDER BY t.tag'
       cursor.execute(sql, params)
 
       return [{'id': tag_id, 'tag': tag} for (tag_id, tag) in cursor.fetchall()]
 
-  def get_tag(self, tag):
+  def get_tag(self, tag, filter=None):
     with connection.cursor() as cursor:
       sql = 'SELECT t.id, t.tag'
       sql += ' FROM tags_tag AS t'
@@ -159,19 +147,27 @@ class LocalDatabaseTagDB(BaseTagDB):
     return {
       'id': tag_id,
       'tag': tag,
-      'values': self.list_values(tag),
+      'values': self.list_values(tag, filter=filter),
     }
 
-  def list_values(self, tag):
+  def list_values(self, tag, filter=None ):
     with connection.cursor() as cursor:
       sql = 'SELECT v.id, v.value, COUNT(st.id)'
       sql += ' FROM tags_tagvalue AS v'
       sql += ' JOIN tags_seriestag AS st ON st.value_id=v.id'
       sql += ' JOIN tags_tag AS t ON t.id=st.tag_id'
       sql += ' WHERE t.tag=%s'
+      params = [tag]
+
+      if filter:
+        # make sure regex is anchored
+        if not filter.startswith('^'):
+          filter = '^' + filter
+        sql += ' AND v.value ' + self._regexp_operator(connection) + ' %s'
+        params.append(filter)
+
       sql += ' GROUP BY v.id, v.value'
       sql += ' ORDER BY v.value'
-      params = [tag]
       cursor.execute(sql, params)
 
       return [{'id': value_id, 'value': value, 'count': count} for (value_id, value, count) in cursor.fetchall()]
@@ -194,6 +190,28 @@ class LocalDatabaseTagDB(BaseTagDB):
 
     with connection.cursor() as cursor:
       cursor.execute(sql, params)
+
+  @staticmethod
+  def _regexp_operator(connection):
+    if connection.vendor == 'mysql':
+      return 'REGEXP'
+    if connection.vendor == 'sqlite':
+      # django provides an implementation of REGEXP for sqlite
+      return 'REGEXP'
+    if connection.vendor == 'postgresql':
+      return '~*'
+    raise Exception('Database vendor ' + connection.vendor + ' does not support regular expressions')
+
+  @staticmethod
+  def _regexp_not_operator(connection):
+    if connection.vendor == 'mysql':
+      return 'NOT REGEXP'
+    if connection.vendor == 'sqlite':
+      # django provides an implementation of REGEXP for sqlite
+      return 'NOT REGEXP'
+    if connection.vendor == 'postgresql':
+      return '!~*'
+    raise Exception('Database vendor ' + connection.vendor + ' does not support regular expressions')
 
   def tag_series(self, series):
     # extract tags and normalize path
@@ -237,7 +255,11 @@ class LocalDatabaseTagDB(BaseTagDB):
         series_id = cursor.fetchone()[0]
 
       # series tags
-      self._insert_ignore('tags_seriestag', ['series_id', 'tag_id', 'value_id'], [[series_id, tag_ids[tag], value_ids[value]] for tag, value in parsed.tags.items()])
+      self._insert_ignore(
+        'tags_seriestag',
+        ['series_id', 'tag_id', 'value_id'],
+        [[series_id, tag_ids[tag], value_ids[value]] for tag, value in parsed.tags.items()]
+      )
 
     return path
 
