@@ -781,6 +781,79 @@ def weightedAverage(requestContext, seriesListAvg, seriesListWeight, *nodes):
   resultSeries = TimeSeries(name,sumProducts.start,sumProducts.end,sumProducts.step,resultValues)
   return [resultSeries]
 
+def movingWindow(requestContext, seriesList, windowSize, func='average', xFilesFactor=None):
+  """
+  Graphs a moving window function of a metric (or metrics) over a fixed number of
+  past points, or a time interval.
+
+  Takes one metric or a wildcard seriesList, a number N of datapoints
+  or a quoted string with a length of time like '1hour' or '5min' (See ``from /
+  until`` in the render\_api_ for examples of time formats), a function to apply to the points
+  in the window to produce the output, and an xFilesFactor value to specify how many points in the
+  window must be non-null for the output to be considered valid. Graphs the
+  output of the function for the preceeding datapoints for each point on the graph.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=movingWindow(Server.instance01.threads.busy,10)
+    &target=movingWindow(Server.instance*.threads.idle,'5min','median',0.5)
+
+  """
+  if not seriesList:
+    return []
+
+  if isinstance(windowSize, basestring):
+    delta = parseTimeOffset(windowSize)
+    previewSeconds = abs(delta.seconds + (delta.days * 86400))
+  else:
+    previewSeconds = max([s.step for s in seriesList]) * int(windowSize)
+
+  # ignore original data and pull new, including our preview
+  # data from earlier is needed to calculate the early results
+  newContext = requestContext.copy()
+  newContext['startTime'] = requestContext['startTime'] -  timedelta(seconds=previewSeconds)
+  previewList = evaluateTokens(newContext, requestContext['args'][0])
+  result = []
+
+  tagName = 'moving' + func.capitalize()
+
+  for series in previewList:
+    if isinstance(windowSize, basestring):
+      newName = '%s(%s,"%s")' % (tagName, series.name, windowSize)
+      windowPoints = previewSeconds // series.step
+    else:
+      newName = '%s(%s,%s)' % (tagName, series.name, windowSize)
+      windowPoints = int(windowSize)
+
+    series.tags[tagName] = windowSize
+    newSeries = TimeSeries(newName, series.start + previewSeconds, series.end, series.step, [], tags=series.tags)
+
+    for i in range(windowPoints, len(series)):
+      nonNull = [v for v in series[i - windowPoints:i] if v is not None]
+
+      if not nonNull or (xFilesFactor and len(nonNull) / windowPoints < xFilesFactor):
+        val = None
+      elif func == 'average':
+        val = sum(nonNull) / len(nonNull)
+      elif func == 'median':
+        m_index = len(nonNull) // 2
+        val = sorted(nonNull)[m_index]
+      elif func == 'sum':
+        val = sum(nonNull)
+      elif func == 'min':
+        val = min(nonNull)
+      elif func == 'max':
+        val = max(nonNull)
+      else:
+        raise Exception('Unsupported window function: %s' % (func))
+      newSeries.append(val)
+
+    result.append(newSeries)
+
+  return result
+
 def exponentialMovingAverage(requestContext, seriesList, windowSize):
   """
   Takes a series of values and a window size and produces an exponential moving
@@ -808,15 +881,11 @@ def exponentialMovingAverage(requestContext, seriesList, windowSize):
   # The following was copied from movingAverage, and altered for ema
   if not seriesList:
     return []
-  windowInterval = None
+  # set previewSeconds and constant based on windowSize string or integer
   if isinstance(windowSize, basestring):
     delta = parseTimeOffset(windowSize)
-    windowInterval = abs(delta.seconds + (delta.days * 86400))
-
-  # set previewSeconds and constant based on windowSize string or integer
-  if windowInterval:
-    previewSeconds = windowInterval
-    constant = (float(2) / (int(windowInterval) + 1))
+    previewSeconds = abs(delta.seconds + (delta.days * 86400))
+    constant = (float(2) / (int(previewSeconds) + 1))
   else:
     previewSeconds = max([s.step for s in seriesList]) * int(windowSize)
     constant = (float(2) / (int(windowSize) + 1))
@@ -829,33 +898,23 @@ def exponentialMovingAverage(requestContext, seriesList, windowSize):
   result = []
 
   for series in previewList:
-    if windowInterval:
-      windowPoints = windowInterval // series.step
+    if isinstance(windowSize, basestring):
+      newName = 'exponentialMovingAverage(%s,"%s")' % (series.name, windowSize)
+      windowPoints = previewSeconds // series.step
     else:
+      newName = "exponentialMovingAverage(%s,%s)" % (series.name, windowSize)
       windowPoints = int(windowSize)
 
     series.tags['exponentialMovingAverage'] = windowSize
-    if isinstance(windowSize, basestring):
-      newName = 'exponentialMovingAverage(%s,"%s")' % (series.name, windowSize)
-    else:
-      newName = "exponentialMovingAverage(%s,%s)" % (series.name, windowSize)
+    newSeries = TimeSeries(newName, series.start + previewSeconds, series.end, series.step, [], tags=series.tags)
 
-    newSeries = TimeSeries(newName, series.start + previewSeconds, series.end, series.step, [])
-    window_sum = safeSum(series[:windowPoints]) or 0
-    count = safeLen(series[:windowPoints])
-    ema = safeDiv(window_sum, count)
-
-    if ema is None:
-        ema = 0
-    else:
-        ema = float(ema)
-
-    newSeries.append(ema)
+    ema = safeAvg(series[:windowPoints]) or 0
+    newSeries.append(round(ema, 6))
 
     for i in range(windowPoints, len(series)):
       if series[i] is not None:
-        ema = float(constant) * float(series[i]) + (1 - float(constant)) * float(ema)
-        newSeries.append(round(ema, 3))
+        ema = constant * series[i] + (1 - constant) * ema
+        newSeries.append(round(ema, 6))
       else:
         newSeries.append(None)
 
@@ -863,14 +922,15 @@ def exponentialMovingAverage(requestContext, seriesList, windowSize):
 
   return result
 
-def movingMedian(requestContext, seriesList, windowSize):
+def movingMedian(requestContext, seriesList, windowSize, xFilesFactor=None):
   """
   Graphs the moving median of a metric (or metrics) over a fixed number of
   past points, or a time interval.
 
   Takes one metric or a wildcard seriesList followed by a number N of datapoints
   or a quoted string with a length of time like '1hour' or '5min' (See ``from /
-  until`` in the render\_api_ for examples of time formats). Graphs the
+  until`` in the render\_api_ for examples of time formats), and an xFilesFactor value to specify
+  how many points in the window must be non-null for the output to be considered valid. Graphs the
   median of the preceeding datapoints for each point on the graph.
 
   Example:
@@ -881,50 +941,7 @@ def movingMedian(requestContext, seriesList, windowSize):
     &target=movingMedian(Server.instance*.threads.idle,'5min')
 
   """
-  if not seriesList:
-    return []
-  windowInterval = None
-  if isinstance(windowSize, basestring):
-    delta = parseTimeOffset(windowSize)
-    windowInterval = abs(delta.seconds + (delta.days * 86400))
-
-  if windowInterval:
-    previewSeconds = windowInterval
-  else:
-    previewSeconds = max([s.step for s in seriesList]) * int(windowSize)
-
-  # ignore original data and pull new, including our preview
-  # data from earlier is needed to calculate the early results
-  newContext = requestContext.copy()
-  newContext['startTime'] = requestContext['startTime'] -  timedelta(seconds=previewSeconds)
-  previewList = evaluateTokens(newContext, requestContext['args'][0])
-  result = []
-
-  for series in previewList:
-    if windowInterval:
-      windowPoints = windowInterval // series.step
-    else:
-      windowPoints = int(windowSize)
-
-    series.tags['movingMedian'] = windowSize
-    if isinstance(windowSize, basestring):
-      newName = 'movingMedian(%s,"%s")' % (series.name, windowSize)
-    else:
-      newName = "movingMedian(%s,%s)" % (series.name, windowSize)
-
-    newSeries = TimeSeries(newName, series.start + previewSeconds, series.end, series.step, [])
-
-    for i in range(windowPoints,len(series)):
-      window = series[i - windowPoints:i]
-      nonNull = [v for v in window if v is not None]
-      if nonNull:
-        m_index = len(nonNull) // 2
-        newSeries.append(sorted(nonNull)[m_index])
-      else:
-        newSeries.append(None)
-    result.append(newSeries)
-
-  return result
+  return movingWindow(requestContext, seriesList, windowSize, 'median', xFilesFactor)
 
 def scale(requestContext, seriesList, factor):
   """
@@ -1139,14 +1156,40 @@ def offsetToZero(requestContext, seriesList):
         series[i] = value - minimum
   return seriesList
 
-def movingAverage(requestContext, seriesList, windowSize):
+def roundFunction(requestContext, seriesList, precision=None):
+  """
+  Takes one metric or a wildcard seriesList optionally followed by a precision, and rounds each
+  datapoint to the specified precision.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=round(Server.instance01.threads.busy)
+    &target=round(Server.instance01.threads.busy,2)
+
+  """
+  for series in seriesList:
+    series.tags['round'] = precision or 0
+    if precision is None:
+      series.name = "round(%s)" % (series.name)
+    else:
+      series.name = "round(%s,%g)" % (series.name,int(precision))
+    series.pathExpression = series.name
+    for i,value in enumerate(series):
+      if value is not None:
+        series[i] = round(value, precision or 0)
+  return seriesList
+
+def movingAverage(requestContext, seriesList, windowSize, xFilesFactor=None):
   """
   Graphs the moving average of a metric (or metrics) over a fixed number of
   past points, or a time interval.
 
   Takes one metric or a wildcard seriesList followed by a number N of datapoints
   or a quoted string with a length of time like '1hour' or '5min' (See ``from /
-  until`` in the render\_api_ for examples of time formats). Graphs the
+  until`` in the render\_api_ for examples of time formats), and an xFilesFactor value to specify
+  how many points in the window must be non-null for the output to be considered valid. Graphs the
   average of the preceeding datapoints for each point on the graph.
 
   Example:
@@ -1157,63 +1200,17 @@ def movingAverage(requestContext, seriesList, windowSize):
     &target=movingAverage(Server.instance*.threads.idle,'5min')
 
   """
-  if not seriesList:
-    return []
-  windowInterval = None
-  if isinstance(windowSize, basestring):
-    delta = parseTimeOffset(windowSize)
-    windowInterval = abs(delta.seconds + (delta.days * 86400))
+  return movingWindow(requestContext, seriesList, windowSize, 'average', xFilesFactor)
 
-  if windowInterval:
-    previewSeconds = windowInterval
-  else:
-    previewSeconds = max([s.step for s in seriesList]) * int(windowSize)
-
-  # ignore original data and pull new, including our preview
-  # data from earlier is needed to calculate the early results
-  newContext = requestContext.copy()
-  newContext['startTime'] = requestContext['startTime'] -  timedelta(seconds=previewSeconds)
-  previewList = evaluateTokens(newContext, requestContext['args'][0])
-  result = []
-
-  for series in previewList:
-    if windowInterval:
-      windowPoints = windowInterval // series.step
-    else:
-      windowPoints = int(windowSize)
-
-    series.tags['movingAverage'] = windowSize
-    if isinstance(windowSize, basestring):
-      newName = 'movingAverage(%s,"%s")' % (series.name, windowSize)
-    else:
-      newName = "movingAverage(%s,%s)" % (series.name, windowSize)
-
-    newSeries = TimeSeries(newName, series.start + previewSeconds, series.end, series.step, [], tags=series.tags)
-
-    window_sum = safeSum(series[:windowPoints]) or 0
-    count = safeLen(series[:windowPoints])
-    newSeries.append(safeDiv(window_sum, count))
-    for n, last in enumerate(series[windowPoints:-1]):
-      if series[n] is not None:
-        window_sum -= series[n]
-        count      -= 1
-      if last is not None:
-        window_sum += last
-        count      += 1
-      newSeries.append(safeDiv(window_sum, count))
-
-    result.append(newSeries)
-
-  return result
-
-def movingSum(requestContext, seriesList, windowSize):
+def movingSum(requestContext, seriesList, windowSize, xFilesFactor=None):
   """
   Graphs the moving sum of a metric (or metrics) over a fixed number of
   past points, or a time interval.
 
   Takes one metric or a wildcard seriesList followed by a number N of datapoints
   or a quoted string with a length of time like '1hour' or '5min' (See ``from /
-  until`` in the render\_api_ for examples of time formats). Graphs the
+  until`` in the render\_api_ for examples of time formats), and an xFilesFactor value to specify
+  how many points in the window must be non-null for the output to be considered valid. Graphs the
   sum of the preceeding datapoints for each point on the graph.
 
   Example:
@@ -1224,60 +1221,17 @@ def movingSum(requestContext, seriesList, windowSize):
     &target=movingSum(Server.instance*.errors,'5min')
 
   """
-  if not seriesList:
-    return []
-  windowInterval = None
-  if isinstance(windowSize, basestring):
-    delta = parseTimeOffset(windowSize)
-    windowInterval = abs(delta.seconds + (delta.days * 86400))
+  return movingWindow(requestContext, seriesList, windowSize, 'sum', xFilesFactor)
 
-  if windowInterval:
-    previewSeconds = windowInterval
-  else:
-    previewSeconds = max([s.step for s in seriesList]) * int(windowSize)
-
-  # ignore original data and pull new, including our preview
-  # data from earlier is needed to calculate the early results
-  newContext = requestContext.copy()
-  newContext['startTime'] = requestContext['startTime'] -  timedelta(seconds=previewSeconds)
-  previewList = evaluateTokens(newContext, requestContext['args'][0])
-  result = []
-
-  for series in previewList:
-    if windowInterval:
-      windowPoints = windowInterval // series.step
-    else:
-      windowPoints = int(windowSize)
-
-    series.tags['movingSum'] = windowSize
-    if isinstance(windowSize, basestring):
-      newName = 'movingSum(%s,"%s")' % (series.name, windowSize)
-    else:
-      newName = "movingSum(%s,%s)" % (series.name, windowSize)
-
-    newSeries = TimeSeries(newName, series.start + previewSeconds, series.end, series.step, [], tags=series.tags)
-
-    window_sum = safeSum(series[:windowPoints])
-    newSeries.append(window_sum)
-    for n, last in enumerate(series[windowPoints:-1]):
-      if series[n] is not None:
-        window_sum -= series[n]
-      if last is not None:
-        window_sum = (window_sum or 0) + last
-      newSeries.append(window_sum)
-
-    result.append(newSeries)
-
-  return result
-
-def movingMin(requestContext, seriesList, windowSize):
+def movingMin(requestContext, seriesList, windowSize, xFilesFactor=None):
   """
   Graphs the moving minimum of a metric (or metrics) over a fixed number of
   past points, or a time interval.
 
   Takes one metric or a wildcard seriesList followed by a number N of datapoints
   or a quoted string with a length of time like '1hour' or '5min' (See ``from /
-  until`` in the render\_api_ for examples of time formats). Graphs the
+  until`` in the render\_api_ for examples of time formats), and an xFilesFactor value to specify
+  how many points in the window must be non-null for the output to be considered valid. Graphs the
   minimum of the preceeding datapoints for each point on the graph.
 
   Example:
@@ -1288,54 +1242,17 @@ def movingMin(requestContext, seriesList, windowSize):
     &target=movingMin(Server.instance*.errors,'5min')
 
   """
-  if not seriesList:
-    return []
-  windowInterval = None
-  if isinstance(windowSize, basestring):
-    delta = parseTimeOffset(windowSize)
-    windowInterval = abs(delta.seconds + (delta.days * 86400))
+  return movingWindow(requestContext, seriesList, windowSize, 'min', xFilesFactor)
 
-  if windowInterval:
-    previewSeconds = windowInterval
-  else:
-    previewSeconds = max([s.step for s in seriesList]) * int(windowSize)
-
-  # ignore original data and pull new, including our preview
-  # data from earlier is needed to calculate the early results
-  newContext = requestContext.copy()
-  newContext['startTime'] = requestContext['startTime'] -  timedelta(seconds=previewSeconds)
-  previewList = evaluateTokens(newContext, requestContext['args'][0])
-  result = []
-
-  for series in previewList:
-    if windowInterval:
-      windowPoints = windowInterval // series.step
-    else:
-      windowPoints = int(windowSize)
-
-    series.tags['movingMin'] = windowSize
-    if isinstance(windowSize, basestring):
-      newName = 'movingMin(%s,"%s")' % (series.name, windowSize)
-    else:
-      newName = "movingMin(%s,%s)" % (series.name, windowSize)
-
-    newSeries = TimeSeries(newName, series.start + previewSeconds, series.end, series.step, [], tags=series.tags)
-    for i in range(windowPoints,len(series)):
-      window = series[i - windowPoints:i]
-      newSeries.append(safeMin(window))
-
-    result.append(newSeries)
-
-  return result
-
-def movingMax(requestContext, seriesList, windowSize):
+def movingMax(requestContext, seriesList, windowSize, xFilesFactor=None):
   """
   Graphs the moving maximum of a metric (or metrics) over a fixed number of
   past points, or a time interval.
 
   Takes one metric or a wildcard seriesList followed by a number N of datapoints
   or a quoted string with a length of time like '1hour' or '5min' (See ``from /
-  until`` in the render\_api_ for examples of time formats). Graphs the
+  until`` in the render\_api_ for examples of time formats), and an xFilesFactor value to specify
+  how many points in the window must be non-null for the output to be considered valid. Graphs the
   maximum of the preceeding datapoints for each point on the graph.
 
   Example:
@@ -1346,45 +1263,7 @@ def movingMax(requestContext, seriesList, windowSize):
     &target=movingMax(Server.instance*.errors,'5min')
 
   """
-  if not seriesList:
-    return []
-  windowInterval = None
-  if isinstance(windowSize, basestring):
-    delta = parseTimeOffset(windowSize)
-    windowInterval = abs(delta.seconds + (delta.days * 86400))
-
-  if windowInterval:
-    previewSeconds = windowInterval
-  else:
-    previewSeconds = max([s.step for s in seriesList]) * int(windowSize)
-
-  # ignore original data and pull new, including our preview
-  # data from earlier is needed to calculate the early results
-  newContext = requestContext.copy()
-  newContext['startTime'] = requestContext['startTime'] -  timedelta(seconds=previewSeconds)
-  previewList = evaluateTokens(newContext, requestContext['args'][0])
-  result = []
-
-  for series in previewList:
-    if windowInterval:
-      windowPoints = windowInterval // series.step
-    else:
-      windowPoints = int(windowSize)
-
-    series.tags['movingMax'] = windowSize
-    if isinstance(windowSize, basestring):
-      newName = 'movingMax(%s,"%s")' % (series.name, windowSize)
-    else:
-      newName = "movingMax(%s,%s)" % (series.name, windowSize)
-
-    newSeries = TimeSeries(newName, series.start + previewSeconds, series.end, series.step, [], tags=series.tags)
-    for i in range(windowPoints,len(series)):
-      window = series[i - windowPoints:i]
-      newSeries.append(safeMax(window))
-
-    result.append(newSeries)
-
-  return result
+  return movingWindow(requestContext, seriesList, windowSize, 'max', xFilesFactor)
 
 def cumulative(requestContext, seriesList):
   """
@@ -4334,6 +4213,7 @@ SeriesFunctions = {
   'nonNegativeDerivative': nonNegativeDerivative,
   'log': logarithm,
   'invert': invert,
+  'round': roundFunction,
   'timeStack': timeStack,
   'timeShift': timeShift,
   'timeSlice': timeSlice,
@@ -4350,6 +4230,7 @@ SeriesFunctions = {
   'movingSum': movingSum,
   'movingMin': movingMin,
   'movingMax': movingMax,
+  'movingWindow': movingWindow,
   'stdev': stdev,
   'holtWintersForecast': holtWintersForecast,
   'holtWintersConfidenceBands': holtWintersConfidenceBands,

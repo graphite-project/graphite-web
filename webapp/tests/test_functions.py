@@ -3105,6 +3105,30 @@ class FunctionsTest(TestCase):
                 expected_value = math.pow(original_value, -1)
                 self.assertEqual(value, expected_value)
 
+    def test_round(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,1,1,[1.111,2.222,3.333,4.444,5.555,6.666,7.777,8.888,9.999,0,None]),
+        ]
+        expectedResult = [
+            TimeSeries('round(collectd.test-db1.load.value)',0,1,1,[1,2,3,4,6,7,8,9,10,0,None]),
+        ]
+
+        result = functions.roundFunction({}, seriesList)
+        self.assertEqual(list(result[0]), list(expectedResult[0]))
+        self.assertEqual(result, expectedResult)
+
+    def test_round_precision(self):
+        seriesList = [
+            TimeSeries('collectd.test-db1.load.value',0,1,1,[1.111,2.222,3.333,4.444,5.555,6.666,7.777,8.888,9.999,0,None]),
+        ]
+        expectedResult = [
+            TimeSeries('round(collectd.test-db1.load.value,2)',0,1,1,[1.11,2.22,3.33,4.44,5.55,6.67,7.78,8.89,10.0,0.0,None]),
+        ]
+
+        result = functions.roundFunction({}, seriesList, 2)
+        self.assertEqual(list(result[0]), list(expectedResult[0]))
+        self.assertEqual(result, expectedResult)
+
     def test_timeSlice(self):
         # series starts at 60 seconds past the epoch and continues for 600 seconds (ten minutes)
         # steps are every 60 seconds
@@ -3293,6 +3317,62 @@ class FunctionsTest(TestCase):
                 'divideSeries(%.disk.bytes_used, sumSeries(%.disk.bytes_*))',
                 '%.disk.pct_used'
             )
+        self.assertEqual(result, expectedResults)
+
+    def test_movingWindow_invalidFunc(self):
+        request_context = self._build_requestContext(
+            startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+            endTime=datetime(1970, 1, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE))
+        )
+
+        seriesList = self._gen_series_list_with_data(
+            key='collectd.test-db0.load.value',
+            start=20,
+            end=25,
+            data=range(20, 25)
+        )
+
+        def mock_evaluateTokens(reqCtx, tokens, replacements=None):
+            return self._gen_series_list_with_data(
+                key='collectd.test-db0.load.value',
+                start=10,
+                end=25,
+                data=range(10, 25)
+            )
+
+        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+            with self.assertRaisesRegexp(Exception, '^Unsupported window function: invalid$'):
+                functions.movingWindow(request_context, seriesList, 5, 'invalid')
+
+    def test_movingWindow_xFilesFactor(self):
+        seriesList = self._gen_series_list_with_data(
+            key='collectd.test-db0.load.value',
+            start=20,
+            end=30,
+            data=range(0, 10)
+        )
+
+        def mock_evaluateTokens(reqCtx, tokens, replacements=None):
+            return self._gen_series_list_with_data(
+                key='collectd.test-db0.load.value',
+                start=10,
+                end=30,
+                data=[None] * 10 + range(0, 10)
+            )
+
+        expectedResults = [
+            TimeSeries('movingAverage(collectd.test-db0.load.value,10)', 20, 30, 1, [None, None, None, None, None, 2.0, 2.5, 3.0, 3.5, 4.0])
+        ]
+
+        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+            result = functions.movingWindow(
+                self._build_requestContext(
+                    startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    endTime=datetime(1970, 1, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE))
+                ),
+                seriesList, 10, 'average', 0.5
+            )
+        self.assertEqual(list(result[0]), list(expectedResults[0]))
         self.assertEqual(result, expectedResults)
 
     def test_movingMedian_emptySeriesList(self):
@@ -4697,6 +4777,9 @@ class FunctionsTest(TestCase):
         )
         self.assertEqual(result, expectedResults[func])
 
+    def test_exponentialMovingAverage_emptySeriesList(self):
+        self.assertEqual(functions.exponentialMovingAverage({},[],""), [])
+
     def test_exponentialMovingAverage_integerWindowSize(self):
         seriesList = self._gen_series_list_with_data(start=0, end=60, data=range(0, 60))
         expectedResults = self._gen_series_list_with_data(
@@ -4712,6 +4795,7 @@ class FunctionsTest(TestCase):
         with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
             result = functions.exponentialMovingAverage(self._build_requestContext(), seriesList, 30)
 
+        self.assertEqual(list(result[0]), list(expectedResults[0]))
         self.assertEqual(result, expectedResults)
 
     def test_exponentialMovingAverage_stringWindowSize(self):
@@ -4729,6 +4813,7 @@ class FunctionsTest(TestCase):
         with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
             result = functions.exponentialMovingAverage(self._build_requestContext(), seriesList, "-30s")
 
+        self.assertEqual(list(result[0]), list(expectedResults[0]))
         self.assertEqual(result, expectedResults)
 
     def test_exponentialMovingAverage_evaluateTokens_returns_empty_list(self):
@@ -4750,15 +4835,16 @@ class FunctionsTest(TestCase):
             key='exponentialMovingAverage(collectd.test-db0.load.value,10)',
             start=20,
             end=30,
-            data=[0, 0.0, 0.182, 0.512, 0.965, 1.517, 2.15, 2.85, 3.604, 4.404, 5.239]
+            data=[0, 0.0, 0.181818, 0.512397, 0.964688, 1.516563, None, 2.149915, 2.849931, 3.604489, 4.403673]
         )
 
         def mock_evaluateTokens(reqCtx, tokens, replacements=None):
-            return self._gen_series_list_with_data(key='collectd.test-db0.load.value',start=10, end=30, data=([None] * 10 + range(0, 10)))
+            return self._gen_series_list_with_data(key='collectd.test-db0.load.value',start=10, end=30, data=([None] * 10 + range(0, 5) + [None] + range(5, 9)))
 
         with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
             result = functions.exponentialMovingAverage(self._build_requestContext(endTime=datetime(1970, 1, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE))), seriesList, 10)
 
+        self.assertEqual(list(result[0]), list(expectedResults[0]))
         self.assertEqual(result, expectedResults)
 
     # test_minMax
