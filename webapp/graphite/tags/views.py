@@ -60,7 +60,8 @@ def findSeries(request):
 
   return HttpResponse(
     json.dumps(STORE.tagdb.find_series(exprs) if STORE.tagdb else [],
-               indent=(2 if queryParams.get('pretty') else None)),
+               indent=(2 if queryParams.get('pretty') else None),
+               sort_keys=bool(request.GET.get('pretty'))),
     content_type='application/json'
   )
 
@@ -70,7 +71,8 @@ def tagList(request):
 
   return HttpResponse(
     json.dumps(STORE.tagdb.list_tags(tagFilter=request.GET.get('filter')) if STORE.tagdb else [],
-               indent=(2 if request.GET.get('pretty') else None)),
+               indent=(2 if request.GET.get('pretty') else None),
+               sort_keys=bool(request.GET.get('pretty'))),
     content_type='application/json'
   )
 
@@ -80,6 +82,7 @@ def tagDetails(request, tag):
 
   return HttpResponse(
     json.dumps(STORE.tagdb.get_tag(tag, valueFilter=request.GET.get('filter')) if STORE.tagdb else None,
-               indent=(2 if request.GET.get('pretty') else None)),
+               indent=(2 if request.GET.get('pretty') else None),
+               sort_keys=bool(request.GET.get('pretty'))),
     content_type='application/json'
   )

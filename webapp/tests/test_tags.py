@@ -1,8 +1,14 @@
 from __future__ import absolute_import
 
+try:
+  from django.urls import reverse
+except ImportError:  # Django < 1.10
+  from django.core.urlresolvers import reverse
+
 from graphite.tags.localdatabase import LocalDatabaseTagDB
 from graphite.tags.redis import RedisTagDB
 from graphite.tags.utils import TaggedSeries
+from graphite.util import json
 
 from tests.base import TestCase
 
@@ -140,3 +146,49 @@ class TagsTest(TestCase):
 
   def test_redis_tagdb(self):
     return self._test_tagdb(RedisTagDB())
+
+  def test_tag_views(self):
+    url = reverse('tagList')
+    expected = [{"tag": "hello"}]
+
+    response = self.client.get(url, {'filter': 'hello$'})
+    self.assertEqual(response['Content-Type'], 'application/json')
+    self.assertEqual(json.loads(response.content), expected)
+
+    response = self.client.get(url, {'filter': 'hello$', 'pretty': 1})
+    self.assertEqual(response['Content-Type'], 'application/json')
+    self.assertEqual(response.content, json.dumps(expected, indent=2, sort_keys=True))
+
+    expected = {"tag": "hello", "values": [{"count": 0, "value": "tiger"}]}
+
+    response = self.client.get(url + '/hello', {'filter': 'tiger$'})
+    self.assertEqual(response['Content-Type'], 'application/json')
+    self.assertEqual(json.loads(response.content), expected)
+
+    response = self.client.get(url + '/hello', {'filter': 'tiger$', 'pretty': 1})
+    self.assertEqual(response['Content-Type'], 'application/json')
+    self.assertEqual(response.content, json.dumps(expected, indent=2, sort_keys=True))
+
+    expected = []
+
+    response = self.client.get(url + '/findSeries?expr=name=test.a&expr=hello=tiger&expr=blah=blah&pretty=1')
+    self.assertEqual(response['Content-Type'], 'application/json')
+    self.assertEqual(response.content, json.dumps(expected, indent=2, sort_keys=True))
+
+    expected = 'test.a;blah=blah;hello=tiger'
+
+    response = self.client.post(url + '/tagSeries', {'path': 'test.a;hello=tiger;blah=blah'})
+    self.assertEqual(response['Content-Type'], 'application/json')
+    self.assertEqual(response.content, json.dumps(expected, indent=2, sort_keys=True))
+
+    expected = ['test.a;blah=blah;hello=tiger']
+
+    response = self.client.get(url + '/findSeries?expr[]=name=test.a&expr[]=hello=tiger&expr[]=blah=blah&pretty=1')
+    self.assertEqual(response['Content-Type'], 'application/json')
+    self.assertEqual(response.content, json.dumps(expected, indent=2, sort_keys=True))
+
+    expected = True
+
+    response = self.client.post(url + '/delSeries', {'path': 'test.a;hello=tiger;blah=blah'})
+    self.assertEqual(response['Content-Type'], 'application/json')
+    self.assertEqual(response.content, json.dumps(expected))

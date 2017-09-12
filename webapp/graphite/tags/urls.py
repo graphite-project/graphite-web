@@ -20,5 +20,5 @@ urlpatterns = [
   url('delSeries', views.delSeries, name='delSeries'),
   url('findSeries', views.findSeries, name='findSeries'),
   url('^(.+)$', views.tagDetails, name='tagDetails'),
-  url('^$', views.tagList, name='tagList'),
+  url('', views.tagList, name='tagList'),
 ]
