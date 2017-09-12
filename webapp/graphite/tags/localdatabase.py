@@ -282,11 +282,11 @@ class LocalDatabaseTagDB(BaseTagDB):
 
       (series_id, ) = row
 
-      sql = 'DELETE FROM tags_series WHERE id=%s'
+      sql = 'DELETE FROM tags_seriestag WHERE series_id=%s'
       params = [series_id]
       cursor.execute(sql, params)
 
-      sql = 'DELETE FROM tags_seriestag WHERE series_id=%s'
+      sql = 'DELETE FROM tags_series WHERE id=%s'
       params = [series_id]
       cursor.execute(sql, params)
 
