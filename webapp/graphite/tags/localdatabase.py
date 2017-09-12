@@ -269,18 +269,25 @@ class LocalDatabaseTagDB(BaseTagDB):
 
     path = parsed.path
 
-    # check if path is already tagged
-    curr = self.get_series(path)
-    if not curr:
-      return True
-
     with connection.cursor() as cursor:
+      sql = 'SELECT id'
+      sql += ' FROM tags_series'
+      sql += ' WHERE path=%s'
+      params = [path]
+      cursor.execute(sql, params)
+
+      row = cursor.fetchone()
+      if not row:
+        return True
+
+      (series_id, ) = row
+
       sql = 'DELETE FROM tags_series WHERE id=%s'
-      params = [curr.id]
+      params = [series_id]
       cursor.execute(sql, params)
 
       sql = 'DELETE FROM tags_seriestag WHERE series_id=%s'
-      params = [curr.id]
+      params = [series_id]
       cursor.execute(sql, params)
 
     return True
