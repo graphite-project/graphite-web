@@ -28,7 +28,7 @@ graphite_urls = [
     url('^whitelist/?', include('graphite.whitelist.urls')),
     url('^version/', include('graphite.version.urls')),
     url('^events/', include('graphite.events.urls')),
-    url('^tags(?:/|$)', include('graphite.tags.urls')),
+    url('^tags/?', include('graphite.tags.urls')),
     url('^s/(?P<path>.*)', shorten, name='shorten'),
     url('^S/(?P<link_id>[a-zA-Z0-9]+)/?$', follow, name='follow'),
     url('^$', browser, name='browser'),
