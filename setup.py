@@ -96,6 +96,7 @@ try:
         'graphite.whitelist',
         'graphite.worker_pool',
         'graphite.tags',
+        'graphite.tags.migrations',
       ],
       package_data={'graphite' :
         ['templates/*', 'local_settings.py.example']},
