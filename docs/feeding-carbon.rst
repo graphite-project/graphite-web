@@ -105,7 +105,7 @@ The disadvantage of a purely hierarchical system is that it is very difficult to
 
 To address these issues, Graphite also supports using tags to describe your metrics, which makes it much simpler to design the initial structure and to evolve it over time.  A tagged series is made up of a name and a set of tags, like "disk.used;datacenter=dc1;rack=a1;server=web01".  In that example, the series name is "disk.used" and the tags are "datacenter" = "dc1", "rack" = "a1", and "server" = "web01".  When series are named this way they can be selected using the `seriesByTag <functions.html#graphite.render.functions.seriesByTag>`_ function as described in :doc:`Graphite Tag Support </tags>`.
 
-When using a tagged naming scheme it is much easier to add or alter individual tags as needed.  It is important however to be aware that changing the number of tags reported for a given stat or the value of a tag will create a new database file on disk, so tags should not be used for data that changes over the lifetime of a particular stat.
+When using a tagged naming scheme it is much easier to add or alter individual tags as needed.  It is important however to be aware that changing the number of tags reported for a given metric or the value of a tag will create a new database file on disk, so tags should not be used for data that changes over the lifetime of a particular metric.
 
 
 Step 2 - Configure your Data Retention
