@@ -30,7 +30,7 @@ This function returns a `seriesList` that can then be used by any other Graphite
     # find all series that have tag1 set to value1, sorted by total
     sortByTotal(seriesByTag('tag1=value1'))
 
-The `seriesByTag <functions.html#graphite.render.functions.seriesByTag>`_ function supports specifying any number of tag expressions to refine the list of matches.
+The `seriesByTag <functions.html#graphite.render.functions.seriesByTag>`_ function supports specifying any number of tag expressions to refine the list of matches.  When multiple tag expressions are specified, only series that match all the expressions will be returned.
 
 Tags expressions are strings, and may have the following formats:
 
@@ -49,7 +49,7 @@ A more complex example:
 
 .. code-block:: none
 
-    # find all series where name matches the regular expression cpu\..*, and tag1 is not value1
+    # find all series where name matches the regular expression cpu\..*, AND tag1 is not value1
     seriesByTag('name=~cpu\..*', 'tag1!=value1')
 
 Once you have selected a seriesList, it is possible to group series together using the `groupByTags <functions.html#graphite.render.functions.groupByTags>`_ function, which operates on tags in the same way that `groupByNodes <functions.html#graphite.render.functions.groupByNodes>`_ works on nodes within a traditional naming hierarchy.

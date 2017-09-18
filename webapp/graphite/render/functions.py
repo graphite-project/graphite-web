@@ -3980,7 +3980,7 @@ def randomWalkFunction(requestContext, name, step=60):
 
 def seriesByTag(requestContext, *tagExpressions):
   """
-  Returns a SeriesList of all series matching the specified tag expressions
+  Returns a SeriesList of series matching all the specified tag expressions.
 
   Example:
 
@@ -3988,7 +3988,7 @@ def seriesByTag(requestContext, *tagExpressions):
 
     &target=seriesByTag("tag1=value1", "tag2!=value2")
 
-  Returns a seriesList containing all matching series.
+  Returns a seriesList of all series that have tag1 set to value1, AND do not have tag2 set to value2.
 
   Tags specifiers are strings, and may have the following formats:
 
