@@ -23,6 +23,7 @@ Graphite Documentation
    ceres
    storage-backends
    events
+   tags
    terminology
    tools
    development
