@@ -173,13 +173,13 @@ class RemoteReader(BaseReader):
             if result.status != 200:
                 self.store.fail()
                 self.log_error("ReadResult:: Error response %d from %s" % (result.status, url_full))
-                data = []
+                return Exception("ReadResult:: Error response %d from %s" % (result.status, url_full))
             else:
                 data = unpickle.loads(result.data)
         except Exception as err:
             self.store.fail()
             self.log_error("ReadResult:: Error requesting %s: %s" % (url_full, err))
-            data = []
+            return err
 
         log.debug("RemoteReader:: Completed _fetch %s" % url_full)
         return data
@@ -198,6 +198,9 @@ class _Results(object):
 
     def read_locked(self):
         if self.results is not None:
+            if isinstance(self.results, BaseException):
+                return self.results
+
             log.debug(
                 'RemoteReader:: retrieve completed (cached) %s' %
                 (', '.join([result['path'] for result in self.results])),
@@ -206,6 +209,10 @@ class _Results(object):
 
         # otherwise we get it from the queue and keep it for later
         results = self.queue.get(block=True)
+
+        if isinstance(results, BaseException):
+            self.results = results
+            return results
 
         for i in range(len(results)):
             results[i]['path'] = results[i]['name']

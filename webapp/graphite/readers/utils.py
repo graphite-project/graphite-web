@@ -70,7 +70,10 @@ class MultiReader(BaseReader):
             for i, result in enumerate(fetches):
                 results[i] = wait_for_result(result)
 
-            results = [r for r in results.values() if r is not None]
+            results = [
+              r for r in results.values()
+              if r is not None and not isinstance(r, BaseException)
+            ]
             if not results:
                 raise Exception("All sub-fetches failed")
 

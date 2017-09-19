@@ -105,7 +105,13 @@ class RemoteFinder(BaseFinder):
 
         def _extract():
             for result in results:
-                result = wait_for_result(result)
+                try:
+                    result = wait_for_result(result)
+                except BaseException as err:
+                    yield err
+                    continue
+
+                log.info("Extracting result %s %s" % (type(result), result))
                 for series in result:
                     yield {
                         'pathExpression': series.get('pathExpression', series['name']),

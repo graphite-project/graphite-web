@@ -36,12 +36,15 @@ def wait_for_result(result):
     """Helper to read the various result types."""
     if isinstance(result, FetchInProgress):
         try:
-            return result.waitForResults()
+            result = result.waitForResults()
         except BaseException:
             log.exception("Failed to complete subfetch")
-            return None
-    else:
-        return result
+            raise
+
+    if isinstance(result, BaseException):
+        raise result
+
+    return result
 
 
 class FetchInProgress(object):
