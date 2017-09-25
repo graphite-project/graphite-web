@@ -7,14 +7,15 @@ EXPAND_BRACES_RE = re.compile(r'.*(\{.*?[^\\]?\})')
 
 def get_real_metric_path(absolute_path, metric_path):
     # Support symbolic links (real_metric_path ensures proper cache queries)
-    real_fs_path = os.path.realpath(absolute_path)
-    if absolute_path != real_fs_path:
+    real_absolute_path = os.path.realpath(absolute_path)
+    if absolute_path != real_absolute_path:
+        # replace left side base_fs_path that contains sym link with real fs path
         relative_fs_path = metric_path.replace('.', os.sep)
-        base_fs_path = os.path.dirname(absolute_path[:-len(relative_fs_path)])
+        absolute_path_no_ext, _ext = os.path.splitext(absolute_path)
+        base_fs_path = os.path.dirname(absolute_path_no_ext[:-len(relative_fs_path)])
         real_base_fs_path = os.path.realpath(base_fs_path)
-        relative_real_fs_path = real_fs_path[len(
-            real_base_fs_path):].lstrip('/')
-        return fs_to_metric(relative_real_fs_path)
+        real_relative_fs_path = real_absolute_path[len(real_base_fs_path):].lstrip(os.sep)
+        return fs_to_metric(real_relative_fs_path)
 
     return metric_path
 
