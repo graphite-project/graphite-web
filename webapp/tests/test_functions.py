@@ -2218,12 +2218,12 @@ class FunctionsTest(TestCase):
         # Additiona tests
         seriesList = []
         names = [
-            "collectd.test-db:#|.load.value",
-            "sum(collectd.test-db:#|.load.value)",
-            "sum(sum(collectd.test-db:#|.load.value))",
-            "divide(collectd.test-db:#|.load.value, 5)",
+            "collectd.test-db1.load.value",
+            "sum(collectd.test-db1.load.value)",
+            "sum(sum(collectd.test-db1.load.value))",
+            "divide(collectd.test-db1.load.value, 5)",
         ]
-        expected = ["test-db:#|"] * len(names)
+        expected = ["test-db1"] * len(names)
         for name in names:
             series = TimeSeries(name, 0, 1, 1, [1])
             series.pathExpression = series.name

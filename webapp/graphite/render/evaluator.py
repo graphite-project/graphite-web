@@ -14,7 +14,7 @@ def evaluateTarget(requestContext, target):
     return result
 
 
-def evaluateTokens(requestContext, tokens, replacements=None):
+def evaluateTokens(requestContext, tokens, replacements=None, pipedArg=None):
   if tokens.template:
     arglist = dict()
     if tokens.template.kwargs:
@@ -26,6 +26,10 @@ def evaluateTokens(requestContext, tokens, replacements=None):
     return evaluateTokens(requestContext, tokens.template, arglist)
 
   elif tokens.expression:
+    if tokens.expression.pipedCalls:
+      rightMost = tokens.expression.pipedCalls.pop()
+      return evaluateTokens(requestContext, rightMost, replacements, tokens)
+
     return evaluateTokens(requestContext, tokens.expression, replacements)
 
   elif tokens.pathExpression:
@@ -51,8 +55,11 @@ def evaluateTokens(requestContext, tokens, replacements=None):
       raise ValueError("invalid template() syntax, only string/numeric arguments are allowed")
 
     func = SeriesFunctions[tokens.call.funcname]
-    args = [evaluateTokens(requestContext, arg, replacements) for arg in tokens.call.args]
-    requestContext['args'] = tokens.call.args
+    rawArgs = tokens.call.args or []
+    if pipedArg is not None:
+      rawArgs.insert(0, pipedArg)
+    args = [evaluateTokens(requestContext, arg, replacements) for arg in rawArgs]
+    requestContext['args'] = rawArgs
     kwargs = dict([(kwarg.argname, evaluateTokens(requestContext, kwarg.args[0], replacements))
                    for kwarg in tokens.call.kwargs])
     try:
