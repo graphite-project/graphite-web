@@ -12,6 +12,7 @@ from django.conf import settings
 from graphite.render.datalib import TimeSeries
 from graphite.render import functions
 from graphite.render.functions import NormalizeEmptyResultError
+from graphite.render.evaluator import evaluateTarget
 
 def return_greater(series, value):
     return [i for i in series if i is not None and i > value]
@@ -4994,3 +4995,45 @@ class FunctionsTest(TestCase):
             [seriesList[2],seriesList[3]]
         ]
         return (seriesList,mappedResult)
+
+    def test_pipedCall(self):
+        queries = [
+          'aliasByNode(sortByName(servers.*.disk.*),1,3)'
+          'servers.*.disk.*|sortByName()|aliasByNode(1,3)',
+          'sortByName(servers.*.disk.*)|aliasByNode(1,3)',
+          'aliasByNode(servers.*.disk.*|sortByName(),1,3)',
+          'servers.*.disk.* | sortByName() | aliasByNode(1,3)',
+        ]
+
+        expectedResults = [
+            TimeSeries('s1.bytes_free', 0, 3, 1, [90, 80, 70]),
+            TimeSeries('s1.bytes_used', 0, 3, 1, [10, 20, 30]),
+            TimeSeries('s2.bytes_free', 0, 3, 1, [99, 98, 97]),
+            TimeSeries('s2.bytes_used', 0, 3, 1, [1, 2, 3])
+        ]
+
+        seriesList = []
+
+        def mock_data_fetcher(reqCtx, path_expression):
+            rv = []
+            for s in seriesList:
+                if s.name == path_expression or fnmatch(s.name, path_expression):
+                    rv.append(s)
+            if rv:
+                return rv
+            raise KeyError('{} not found!'.format(path_expression))
+
+        request_context = self._build_requestContext(0, 3)
+
+        for query in queries:
+            seriesList = self._gen_series_list_with_data(
+                key=['servers.s1.disk.bytes_used', 'servers.s1.disk.bytes_free','servers.s2.disk.bytes_used','servers.s2.disk.bytes_free'],
+                start=0,
+                end=3,
+                data=[[10, 20, 30], [90, 80, 70], [1, 2, 3], [99, 98, 97]]
+            )
+
+            with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
+                result = evaluateTarget(request_context, query)
+
+            self.assertEqual(result, expectedResults)
