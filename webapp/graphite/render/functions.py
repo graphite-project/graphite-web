@@ -3986,7 +3986,7 @@ def seriesByTag(requestContext, *tagExpressions):
 
   .. code-block:: none
 
-    &target=seriesByTag("tag1=value1", "tag2!=value2")
+    &target=seriesByTag("tag1=value1","tag2!=value2")
 
   Returns a seriesList of all series that have tag1 set to value1, AND do not have tag2 set to value2.
 
@@ -4004,6 +4004,8 @@ def seriesByTag(requestContext, *tagExpressions):
   At least one tag spec must require a non-empty value.
 
   Regular expression conditions are treated as being anchored at the start of the value.
+
+  See :ref:`querying tagged series <querying-tagged-series>` for more detail.
   """
 
   if STORE.tagdb is None:
@@ -4030,14 +4032,14 @@ def groupByTags(requestContext, seriesList, callback, *tags):
 
   .. code-block:: none
 
-    &target=groupByTags(seriesByTag("name=cpu"),"averageSeries", "dc")
+    &target=seriesByTag("name=cpu")|groupByTags("averageSeries","dc")
 
   Would return multiple series which are each the result of applying the "averageSeries" function
   to groups joined on the specified tags resulting in a list of targets like
 
   .. code-block :: none
 
-    averageSeries(seriesByTag("name=cpu", "dc=dc1")),averageSeries(seriesByTag("name=cpu", "dc=dc2")),...
+    averageSeries(seriesByTag("name=cpu","dc=dc1")),averageSeries(seriesByTag("name=cpu","dc=dc2")),...
 
   """
   if STORE.tagdb is None:
@@ -4081,7 +4083,7 @@ def aliasByTags(requestContext, seriesList, *tags):
 
   .. code-block:: none
 
-    &target=aliasByTags(seriesByTag('name=cpu'), 'server', 'name')
+    &target=seriesByTag("name=cpu")|aliasByTags("server","name")
 
   """
   for series in seriesList:
