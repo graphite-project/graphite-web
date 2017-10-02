@@ -816,11 +816,11 @@ def movingWindow(requestContext, seriesList, windowSize, func='average', xFilesF
   elif func == 'median':
     consolidateFunc = lambda nonNull: sorted(nonNull)[len(nonNull) // 2]
   elif func == 'sum':
-    consolidateFunc = lambda nonNull: sum(nonNull)
+    consolidateFunc = sum
   elif func == 'min':
-    consolidateFunc = lambda nonNull: min(nonNull)
+    consolidateFunc = min
   elif func == 'max':
-    consolidateFunc = lambda nonNull: max(nonNull)
+    consolidateFunc = max
   else:
     raise Exception('Unsupported window function: %s' % (func))
 
