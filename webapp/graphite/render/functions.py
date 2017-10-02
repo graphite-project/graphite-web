@@ -217,24 +217,7 @@ def sumSeriesWithWildcards(requestContext, seriesList, *position): #XXX
   ``target=sumSeries(host.cpu-[0-7].cpu-user.value)&target=sumSeries(host.cpu-[0-7].cpu-system.value)``
 
   """
-  if isinstance(position, int):
-    positions = [position]
-  else:
-    positions = position
-
-  newSeries = {}
-  newNames = list()
-
-  for series in seriesList:
-    newname = '.'.join(map(lambda x: x[1], filter(lambda i: i[0] not in positions, enumerate(series.name.split('.')))))
-    if newname in newSeries:
-      newSeries[newname] = sumSeries(requestContext, (series, newSeries[newname]))[0]
-    else:
-      newSeries[newname] = series
-      newNames.append(newname)
-    newSeries[newname].name = newname
-
-  return [newSeries[name] for name in newNames]
+  return aggregateSeriesWithWildcards(requestContext, seriesList, 'sumSeries', *position)
 
 def averageSeriesWithWildcards(requestContext, seriesList, *position): #XXX
   """
@@ -250,21 +233,7 @@ def averageSeriesWithWildcards(requestContext, seriesList, *position): #XXX
   ``target=averageSeries(host.*.cpu-user.value)&target=averageSeries(host.*.cpu-system.value)``
 
   """
-  if isinstance(position, int):
-    positions = [position]
-  else:
-    positions = position
-  result = []
-  matchedList = {}
-  for series in seriesList:
-    newname = '.'.join(map(lambda x: x[1], filter(lambda i: i[0] not in positions, enumerate(series.name.split('.')))))
-    if newname not in matchedList:
-      matchedList[newname] = []
-    matchedList[newname].append(series)
-  for name in matchedList.keys():
-    result.append( averageSeries(requestContext, (matchedList[name]))[0] )
-    result[-1].name = name
-  return result
+  return aggregateSeriesWithWildcards(requestContext, seriesList, 'averageSeries', *position)
 
 def multiplySeriesWithWildcards(requestContext, seriesList, *position): #XXX
   """
@@ -283,7 +252,31 @@ def multiplySeriesWithWildcards(requestContext, seriesList, *position): #XXX
     &target=multiplySeries(web.host-0.{avg-response,total-request}.value)&target=multiplySeries(web.host-1.{avg-response,total-request}.value)...
 
   """
-  if type(position) is int:
+  return aggregateSeriesWithWildcards(requestContext, seriesList, 'multiplySeries', *position)
+
+def aggregateSeriesWithWildcards(requestContext, seriesList, func, *position):
+  """
+  Call aggregator after inserting wildcards at the given position(s).
+
+  Example:
+
+  .. code-block:: none
+
+    &target=aggregateWithWildcards(host.cpu-[0-7].cpu-{user,system}.value, "sumSeries", 1)
+
+  This would be the equivalent of
+
+  .. code-block:: none
+
+    &target=sumSeries(host.cpu-[0-7].cpu-user.value)&target=sumSeries(host.cpu-[0-7].cpu-system.value)
+
+  This function can be used with :py:func:`sumSeries <sumSeries>`,
+  :py:func:`averageSeries <averageSeries>`, :py:func:`multiplySeries <multiplySeries>`,
+  :py:func:`diffSeries <diffSeries>`, :py:func:`stddevSeries <stddevSeries>`,
+  :py:func:`minSeries <minSeries>`, :py:func:`maxSeries <maxSeries>` &
+  :py:func:`rangeOfSeries <rangeOfSeries>`.
+  """
+  if isinstance(position, int):
     positions = [position]
   else:
     positions = position
@@ -294,12 +287,20 @@ def multiplySeriesWithWildcards(requestContext, seriesList, *position): #XXX
   for series in seriesList:
     newname = '.'.join(map(lambda x: x[1], filter(lambda i: i[0] not in positions, enumerate(series.name.split('.')))))
     if newname in newSeries:
-      newSeries[newname] = multiplySeries(requestContext, (newSeries[newname], series))[0]
+      newSeries[newname].append(series)
     else:
-      newSeries[newname] = series
+      newSeries[newname] = [series]
       newNames.append(newname)
-    newSeries[newname].name = newname
-  return [newSeries[name] for name in newNames]
+
+  result = []
+
+  for name in newNames:
+    resultSeries = SeriesFunctions[func](requestContext, newSeries[name])[0]
+    resultSeries.name = name
+
+    result.append(resultSeries)
+
+  return result
 
 def diffSeries(requestContext, *seriesLists):
   """
@@ -810,6 +811,19 @@ def movingWindow(requestContext, seriesList, windowSize, func='average', xFilesF
   else:
     previewSeconds = max([s.step for s in seriesList]) * int(windowSize)
 
+  if func == 'average':
+    consolidateFunc = lambda nonNull: sum(nonNull) / len(nonNull)
+  elif func == 'median':
+    consolidateFunc = lambda nonNull: sorted(nonNull)[len(nonNull) // 2]
+  elif func == 'sum':
+    consolidateFunc = lambda nonNull: sum(nonNull)
+  elif func == 'min':
+    consolidateFunc = lambda nonNull: min(nonNull)
+  elif func == 'max':
+    consolidateFunc = lambda nonNull: max(nonNull)
+  else:
+    raise Exception('Unsupported window function: %s' % (func))
+
   # ignore original data and pull new, including our preview
   # data from earlier is needed to calculate the early results
   newContext = requestContext.copy()
@@ -835,19 +849,8 @@ def movingWindow(requestContext, seriesList, windowSize, func='average', xFilesF
 
       if not nonNull or (xFilesFactor and len(nonNull) / windowPoints < xFilesFactor):
         val = None
-      elif func == 'average':
-        val = sum(nonNull) / len(nonNull)
-      elif func == 'median':
-        m_index = len(nonNull) // 2
-        val = sorted(nonNull)[m_index]
-      elif func == 'sum':
-        val = sum(nonNull)
-      elif func == 'min':
-        val = min(nonNull)
-      elif func == 'max':
-        val = max(nonNull)
       else:
-        raise Exception('Unsupported window function: %s' % (func))
+        val = consolidateFunc(nonNull)
       newSeries.append(val)
 
     result.append(newSeries)
@@ -4192,6 +4195,7 @@ SeriesFunctions = {
   'sumSeriesWithWildcards': sumSeriesWithWildcards,
   'averageSeriesWithWildcards': averageSeriesWithWildcards,
   'multiplySeriesWithWildcards': multiplySeriesWithWildcards,
+  'aggregateSeriesWithWildcards': aggregateSeriesWithWildcards,
   'minSeries': minSeries,
   'maxSeries': maxSeries,
   'rangeOfSeries': rangeOfSeries,
