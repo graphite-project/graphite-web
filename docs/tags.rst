@@ -13,6 +13,8 @@ To enter tagged series into Graphite, they should be passed to Carbon by appendi
 
 Carbon will automatically decode the tags, normalize the tag order, and register the series in the tag database.
 
+.. _querying-tagged-series:
+
 Querying
 --------
 
@@ -28,7 +30,7 @@ This function returns a `seriesList` that can then be used by any other Graphite
 .. code-block:: none
 
     # find all series that have tag1 set to value1, sorted by total
-    sortByTotal(seriesByTag('tag1=value1'))
+    seriesByTag('tag1=value1') | sortByTotal()
 
 The `seriesByTag <functions.html#graphite.render.functions.seriesByTag>`_ function supports specifying any number of tag expressions to refine the list of matches.  When multiple tag expressions are specified, only series that match all the expressions will be returned.
 
@@ -57,7 +59,7 @@ Once you have selected a seriesList, it is possible to group series together usi
 .. code-block:: none
 
     # get a list of disk space used per datacenter for all webheads
-    groupByTags(seriesByTag('name=disk.used', 'server=~web.*'), 'sumSeries', 'datacenter')
+    seriesByTag('name=disk.used', 'server=~web.*') | groupByTags('sumSeries', 'datacenter')
 
     # given series like:
     # disk.used;datacenter=dc1;rack=a1;server=web01
@@ -78,7 +80,7 @@ Finally, the `aliasByTags <functions.html#graphite.render.functions.aliasByTags>
     # disk.used;datacenter=dc1;rack=b2;server=web02
 
     # format series name using datacenter tag:
-    aliasByTags(seriesByTag('name=disk.used', 'datacenter=dc1'), 'server', 'name')
+    seriesByTag('name=disk.used','datacenter=dc1') | aliasByTags('server', 'name')
 
     # will return
     # web01.disk.used

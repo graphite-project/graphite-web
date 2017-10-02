@@ -2,7 +2,7 @@ from pyparsing import (
     Forward, Combine, Optional, Word, Literal, CaselessKeyword,
     CaselessLiteral, Group, FollowedBy, LineEnd, OneOrMore, ZeroOrMore,
     alphas, alphanums, printables, delimitedList, quotedString, Regex,
-    __version__,
+    __version__, Suppress
 )
 
 grammar = Forward()
@@ -54,7 +54,7 @@ comma = Literal(',').suppress()
 equal = Literal('=').suppress()
 backslash = Literal('\\').suppress()
 
-symbols = '''(){},.'"\\'''
+symbols = '''(){},.'"\\|'''
 arg = Group(
   boolean |
   number |
@@ -110,11 +110,18 @@ template = Group(
   rightParen
 )('template')
 
+pipeSep = ZeroOrMore(Literal(' ')) + Literal('|') + ZeroOrMore(Literal(' '))
+
+pipedExpression = Group(
+  (template | call | pathExpression) +
+  Group(ZeroOrMore(Suppress(pipeSep) + Group(call)('pipedCall')))('pipedCalls')
+)('expression')
+
 if __version__.startswith('1.'):
-    expression << Group(template | call | pathExpression)('expression')
+    expression << pipedExpression
     grammar << expression
 else:
-    expression <<= Group(template | call | pathExpression)('expression')
+    expression <<= pipedExpression
     grammar <<= expression
 
 

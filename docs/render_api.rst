@@ -89,7 +89,18 @@ Paths also support the following wildcards, which allows you to identify more th
   All wildcards apply only within a single path element.  In other words, they do not include or cross dots (``.``).
   Therefore, ``servers.*`` will not match ``servers.ix02ehssvc04v.cpu.total.user``, while ``servers.*.*.*.*`` will.
 
-  
+Tagged Series
+^^^^^^^^^^^^^
+
+When querying tagged series, we start with the `seriesByTag <functions.html#graphite.render.functions.seriesByTag>`_ function:
+
+.. code-block:: none
+
+    # find all series that have tag1 set to value1
+    seriesByTag('tag1=value1')
+
+See :ref:`querying tagged series <querying-tagged-series>` for more detail on using `seriesByTag <functions.html#graphite.render.functions.seriesByTag>`_.
+
 Examples
 ^^^^^^^^
 
@@ -122,6 +133,16 @@ You can also run any number of :doc:`functions </functions>` on the various metr
 
   &target=averageSeries(company.server*.applicationInstance.requestsHandled)
   (draws 1 aggregate line)
+
+Multiple function calls can be chained together either by nesting them or by piping the result into another function (it will be passed to the piped function as its first parameter):
+
+.. code-block:: none
+
+  &target=movingAverage(aliasByNode(company.server*.applicationInstance.requestsHandled,1),"5min")
+  &target=aliasByNode(company.server*.applicationInstance.requestsHandled,1)|movingAverage("5min")
+  &target=company.server*.applicationInstance.requestsHandled|aliasByNode(1)|movingAverage("5min")
+  &target=movingAverage(company.server*.applicationInstance.requestsHandled|aliasByNode(1),"5min")
+  (these are all equivalent)
 
 The target param can also be repeated to graph multiple related metrics.
 
