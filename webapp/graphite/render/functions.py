@@ -214,8 +214,12 @@ def sumSeriesWithWildcards(requestContext, seriesList, *position): #XXX
     &target=sumSeriesWithWildcards(host.cpu-[0-7].cpu-{user,system}.value, 1)
 
   This would be the equivalent of
-  ``target=sumSeries(host.cpu-[0-7].cpu-user.value)&target=sumSeries(host.cpu-[0-7].cpu-system.value)``
 
+  .. code-block:: none
+
+    &target=sumSeries(host.cpu-[0-7].cpu-user.value)&target=sumSeries(host.cpu-[0-7].cpu-system.value)
+
+  This is an alias for :py:func:`aggregateWithWildcards <aggregateWithWildcards>` with callback :py:func:`sumSeries <sumSeries>`.
   """
   return aggregateWithWildcards(requestContext, seriesList, 'sumSeries', *position)
 
@@ -230,8 +234,12 @@ def averageSeriesWithWildcards(requestContext, seriesList, *position): #XXX
     &target=averageSeriesWithWildcards(host.cpu-[0-7].cpu-{user,system}.value, 1)
 
   This would be the equivalent of
-  ``target=averageSeries(host.*.cpu-user.value)&target=averageSeries(host.*.cpu-system.value)``
 
+  .. code-block:: none
+
+    &target=averageSeries(host.*.cpu-user.value)&target=averageSeries(host.*.cpu-system.value)
+
+  This is an alias for :py:func:`aggregateWithWildcards <aggregateWithWildcards>` with callback :py:func:`averageSeries <averageSeries>`.
   """
   return aggregateWithWildcards(requestContext, seriesList, 'averageSeries', *position)
 
@@ -251,6 +259,7 @@ def multiplySeriesWithWildcards(requestContext, seriesList, *position): #XXX
 
     &target=multiplySeries(web.host-0.{avg-response,total-request}.value)&target=multiplySeries(web.host-1.{avg-response,total-request}.value)...
 
+  This is an alias for :py:func:`aggregateWithWildcards <aggregateWithWildcards>` with callback :py:func:`multiplySeries <multiplySeries>`.
   """
   return aggregateWithWildcards(requestContext, seriesList, 'multiplySeries', *position)
 
@@ -275,6 +284,8 @@ def aggregateWithWildcards(requestContext, seriesList, callback, *positions):
   :py:func:`diffSeries <diffSeries>`, :py:func:`stddevSeries <stddevSeries>`,
   :py:func:`minSeries <minSeries>`, :py:func:`maxSeries <maxSeries>` &
   :py:func:`rangeOfSeries <rangeOfSeries>`.
+
+  This complements :py:func:`groupByNodes <groupByNodes>` which takes a list of nodes that must match in each group.
   """
   metaSeries = {}
   keys = []
@@ -3525,6 +3536,7 @@ def groupByNode(requestContext, seriesList, nodeNum, callback):
 
     sumSeries(ganglia.by-function.server1.*.cpu.load5),sumSeries(ganglia.by-function.server2.*.cpu.load5),...
 
+  This is an alias for using :py:func:`groupByNodes <groupByNodes>` with a single node.
   """
   return groupByNodes(requestContext, seriesList, callback, nodeNum)
 
@@ -3543,6 +3555,13 @@ def groupByNodes(requestContext, seriesList, callback, *nodes):
 
     sumSeries(ganglia.server1.*.cpu.load5),sumSeries(ganglia.server1.*.cpu.load10),sumSeries(ganglia.server1.*.cpu.load15),sumSeries(ganglia.server2.*.cpu.load5),sumSeries(ganglia.server2.*.cpu.load10),sumSeries(ganglia.server2.*.cpu.load15),...
 
+  This function can be used with :py:func:`sumSeries <sumSeries>`,
+  :py:func:`averageSeries <averageSeries>`, :py:func:`multiplySeries <multiplySeries>`,
+  :py:func:`diffSeries <diffSeries>`, :py:func:`stddevSeries <stddevSeries>`,
+  :py:func:`minSeries <minSeries>`, :py:func:`maxSeries <maxSeries>` &
+  :py:func:`rangeOfSeries <rangeOfSeries>`.
+
+  This complements :py:func:`aggregateWithWildcards <aggregateWithWildcards>` which takes a list of wildcard nodes.
   """
   metaSeries = {}
   keys = []
