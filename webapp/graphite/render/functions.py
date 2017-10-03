@@ -276,9 +276,6 @@ def aggregateWithWildcards(requestContext, seriesList, callback, *positions):
   :py:func:`minSeries <minSeries>`, :py:func:`maxSeries <maxSeries>` &
   :py:func:`rangeOfSeries <rangeOfSeries>`.
   """
-  if isinstance(positions, int):
-    positions = [positions]
-
   metaSeries = {}
   keys = []
   for series in seriesList:
@@ -723,10 +720,6 @@ def weightedAverage(requestContext, seriesListAvg, seriesListWeight, *nodes):
 
 
   """
-
-  if isinstance(nodes, int):
-    nodes=[nodes]
-
   sortedSeries={}
 
   for seriesAvg, seriesWeight in izip(seriesListAvg , seriesListWeight):
@@ -1782,8 +1775,6 @@ def aliasByNode(requestContext, seriesList, *nodes):
     &target=aliasByNode(ganglia.*.cpu.load5,1)
 
   """
-  if isinstance(nodes, int):
-    nodes=[nodes]
   for series in seriesList:
     pathExpression = _getFirstPathExpression(series.name)
     metric_pieces = pathExpression.split('.')
@@ -3553,9 +3544,6 @@ def groupByNodes(requestContext, seriesList, callback, *nodes):
     sumSeries(ganglia.server1.*.cpu.load5),sumSeries(ganglia.server1.*.cpu.load10),sumSeries(ganglia.server1.*.cpu.load15),sumSeries(ganglia.server2.*.cpu.load5),sumSeries(ganglia.server2.*.cpu.load10),sumSeries(ganglia.server2.*.cpu.load15),...
 
   """
-  if isinstance(nodes, int):
-    nodes = [nodes]
-
   metaSeries = {}
   keys = []
   for series in seriesList:
