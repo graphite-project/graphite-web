@@ -217,7 +217,7 @@ def sumSeriesWithWildcards(requestContext, seriesList, *position): #XXX
   ``target=sumSeries(host.cpu-[0-7].cpu-user.value)&target=sumSeries(host.cpu-[0-7].cpu-system.value)``
 
   """
-  return aggregateSeriesWithWildcards(requestContext, seriesList, 'sumSeries', *position)
+  return aggregateWithWildcards(requestContext, seriesList, 'sumSeries', *position)
 
 def averageSeriesWithWildcards(requestContext, seriesList, *position): #XXX
   """
@@ -233,7 +233,7 @@ def averageSeriesWithWildcards(requestContext, seriesList, *position): #XXX
   ``target=averageSeries(host.*.cpu-user.value)&target=averageSeries(host.*.cpu-system.value)``
 
   """
-  return aggregateSeriesWithWildcards(requestContext, seriesList, 'averageSeries', *position)
+  return aggregateWithWildcards(requestContext, seriesList, 'averageSeries', *position)
 
 def multiplySeriesWithWildcards(requestContext, seriesList, *position): #XXX
   """
@@ -252,9 +252,9 @@ def multiplySeriesWithWildcards(requestContext, seriesList, *position): #XXX
     &target=multiplySeries(web.host-0.{avg-response,total-request}.value)&target=multiplySeries(web.host-1.{avg-response,total-request}.value)...
 
   """
-  return aggregateSeriesWithWildcards(requestContext, seriesList, 'multiplySeries', *position)
+  return aggregateWithWildcards(requestContext, seriesList, 'multiplySeries', *position)
 
-def aggregateSeriesWithWildcards(requestContext, seriesList, func, *position):
+def aggregateWithWildcards(requestContext, seriesList, callback, *positions):
   """
   Call aggregator after inserting wildcards at the given position(s).
 
@@ -276,31 +276,22 @@ def aggregateSeriesWithWildcards(requestContext, seriesList, func, *position):
   :py:func:`minSeries <minSeries>`, :py:func:`maxSeries <maxSeries>` &
   :py:func:`rangeOfSeries <rangeOfSeries>`.
   """
-  if isinstance(position, int):
-    positions = [position]
-  else:
-    positions = position
+  if isinstance(positions, int):
+    positions = [positions]
 
-  newSeries = {}
-  newNames = list()
-
+  metaSeries = {}
+  keys = []
   for series in seriesList:
-    newname = '.'.join(map(lambda x: x[1], filter(lambda i: i[0] not in positions, enumerate(series.name.split('.')))))
-    if newname in newSeries:
-      newSeries[newname].append(series)
+    key = '.'.join(map(lambda x: x[1], filter(lambda i: i[0] not in positions, enumerate(series.name.split('.')))))
+    if key not in metaSeries:
+      metaSeries[key] = [series]
+      keys.append(key)
     else:
-      newSeries[newname] = [series]
-      newNames.append(newname)
-
-  result = []
-
-  for name in newNames:
-    resultSeries = SeriesFunctions[func](requestContext, newSeries[name])[0]
-    resultSeries.name = name
-
-    result.append(resultSeries)
-
-  return result
+      metaSeries[key].append(series)
+  for key in metaSeries.keys():
+    metaSeries[key] = SeriesFunctions[callback](requestContext, metaSeries[key])[0]
+    metaSeries[key].name = key
+  return [ metaSeries[key] for key in keys ]
 
 def diffSeries(requestContext, *seriesLists):
   """
@@ -3562,10 +3553,11 @@ def groupByNodes(requestContext, seriesList, callback, *nodes):
     sumSeries(ganglia.server1.*.cpu.load5),sumSeries(ganglia.server1.*.cpu.load10),sumSeries(ganglia.server1.*.cpu.load15),sumSeries(ganglia.server2.*.cpu.load5),sumSeries(ganglia.server2.*.cpu.load10),sumSeries(ganglia.server2.*.cpu.load15),...
 
   """
+  if isinstance(nodes, int):
+    nodes = [nodes]
+
   metaSeries = {}
   keys = []
-  if isinstance(nodes, int):
-    nodes=[nodes]
   for series in seriesList:
     key = '.'.join(series.name.split(".")[n] for n in nodes)
     if key not in metaSeries:
@@ -3574,8 +3566,7 @@ def groupByNodes(requestContext, seriesList, callback, *nodes):
     else:
       metaSeries[key].append(series)
   for key in metaSeries.keys():
-    metaSeries[key] = SeriesFunctions[callback](requestContext,
-        metaSeries[key])[0]
+    metaSeries[key] = SeriesFunctions[callback](requestContext, metaSeries[key])[0]
     metaSeries[key].name = key
   return [ metaSeries[key] for key in keys ]
 
@@ -4195,7 +4186,7 @@ SeriesFunctions = {
   'sumSeriesWithWildcards': sumSeriesWithWildcards,
   'averageSeriesWithWildcards': averageSeriesWithWildcards,
   'multiplySeriesWithWildcards': multiplySeriesWithWildcards,
-  'aggregateSeriesWithWildcards': aggregateSeriesWithWildcards,
+  'aggregateWithWildcards': aggregateWithWildcards,
   'minSeries': minSeries,
   'maxSeries': maxSeries,
   'rangeOfSeries': rangeOfSeries,
