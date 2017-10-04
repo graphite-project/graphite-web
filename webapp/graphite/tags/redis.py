@@ -34,7 +34,7 @@ class RedisTagDB(BaseTagDB):
     selector_cnt = None
     filters = []
 
-    # loop through tagspecs, look for best = or =~ match
+    # loop through tagspecs, look for best spec to use as selector
     for tagspec in tags:
       (tag, operator, spec) = self.parse_tagspec(tagspec)
 
