@@ -214,27 +214,14 @@ def sumSeriesWithWildcards(requestContext, seriesList, *position): #XXX
     &target=sumSeriesWithWildcards(host.cpu-[0-7].cpu-{user,system}.value, 1)
 
   This would be the equivalent of
-  ``target=sumSeries(host.cpu-[0-7].cpu-user.value)&target=sumSeries(host.cpu-[0-7].cpu-system.value)``
 
+  .. code-block:: none
+
+    &target=sumSeries(host.cpu-[0-7].cpu-user.value)&target=sumSeries(host.cpu-[0-7].cpu-system.value)
+
+  This is an alias for :py:func:`aggregateWithWildcards <aggregateWithWildcards>` with callback :py:func:`sumSeries <sumSeries>`.
   """
-  if isinstance(position, int):
-    positions = [position]
-  else:
-    positions = position
-
-  newSeries = {}
-  newNames = list()
-
-  for series in seriesList:
-    newname = '.'.join(map(lambda x: x[1], filter(lambda i: i[0] not in positions, enumerate(series.name.split('.')))))
-    if newname in newSeries:
-      newSeries[newname] = sumSeries(requestContext, (series, newSeries[newname]))[0]
-    else:
-      newSeries[newname] = series
-      newNames.append(newname)
-    newSeries[newname].name = newname
-
-  return [newSeries[name] for name in newNames]
+  return aggregateWithWildcards(requestContext, seriesList, 'sumSeries', *position)
 
 def averageSeriesWithWildcards(requestContext, seriesList, *position): #XXX
   """
@@ -247,24 +234,14 @@ def averageSeriesWithWildcards(requestContext, seriesList, *position): #XXX
     &target=averageSeriesWithWildcards(host.cpu-[0-7].cpu-{user,system}.value, 1)
 
   This would be the equivalent of
-  ``target=averageSeries(host.*.cpu-user.value)&target=averageSeries(host.*.cpu-system.value)``
 
+  .. code-block:: none
+
+    &target=averageSeries(host.*.cpu-user.value)&target=averageSeries(host.*.cpu-system.value)
+
+  This is an alias for :py:func:`aggregateWithWildcards <aggregateWithWildcards>` with callback :py:func:`averageSeries <averageSeries>`.
   """
-  if isinstance(position, int):
-    positions = [position]
-  else:
-    positions = position
-  result = []
-  matchedList = {}
-  for series in seriesList:
-    newname = '.'.join(map(lambda x: x[1], filter(lambda i: i[0] not in positions, enumerate(series.name.split('.')))))
-    if newname not in matchedList:
-      matchedList[newname] = []
-    matchedList[newname].append(series)
-  for name in matchedList.keys():
-    result.append( averageSeries(requestContext, (matchedList[name]))[0] )
-    result[-1].name = name
-  return result
+  return aggregateWithWildcards(requestContext, seriesList, 'averageSeries', *position)
 
 def multiplySeriesWithWildcards(requestContext, seriesList, *position): #XXX
   """
@@ -282,24 +259,47 @@ def multiplySeriesWithWildcards(requestContext, seriesList, *position): #XXX
 
     &target=multiplySeries(web.host-0.{avg-response,total-request}.value)&target=multiplySeries(web.host-1.{avg-response,total-request}.value)...
 
+  This is an alias for :py:func:`aggregateWithWildcards <aggregateWithWildcards>` with callback :py:func:`multiplySeries <multiplySeries>`.
   """
-  if type(position) is int:
-    positions = [position]
-  else:
-    positions = position
+  return aggregateWithWildcards(requestContext, seriesList, 'multiplySeries', *position)
 
-  newSeries = {}
-  newNames = list()
+def aggregateWithWildcards(requestContext, seriesList, callback, *positions):
+  """
+  Call aggregator after inserting wildcards at the given position(s).
 
+  Example:
+
+  .. code-block:: none
+
+    &target=aggregateWithWildcards(host.cpu-[0-7].cpu-{user,system}.value, "sumSeries", 1)
+
+  This would be the equivalent of
+
+  .. code-block:: none
+
+    &target=sumSeries(host.cpu-[0-7].cpu-user.value)&target=sumSeries(host.cpu-[0-7].cpu-system.value)
+
+  This function can be used with :py:func:`sumSeries <sumSeries>`,
+  :py:func:`averageSeries <averageSeries>`, :py:func:`multiplySeries <multiplySeries>`,
+  :py:func:`diffSeries <diffSeries>`, :py:func:`stddevSeries <stddevSeries>`,
+  :py:func:`minSeries <minSeries>`, :py:func:`maxSeries <maxSeries>` &
+  :py:func:`rangeOfSeries <rangeOfSeries>`.
+
+  This complements :py:func:`groupByNodes <groupByNodes>` which takes a list of nodes that must match in each group.
+  """
+  metaSeries = {}
+  keys = []
   for series in seriesList:
-    newname = '.'.join(map(lambda x: x[1], filter(lambda i: i[0] not in positions, enumerate(series.name.split('.')))))
-    if newname in newSeries:
-      newSeries[newname] = multiplySeries(requestContext, (newSeries[newname], series))[0]
+    key = '.'.join(map(lambda x: x[1], filter(lambda i: i[0] not in positions, enumerate(series.name.split('.')))))
+    if key not in metaSeries:
+      metaSeries[key] = [series]
+      keys.append(key)
     else:
-      newSeries[newname] = series
-      newNames.append(newname)
-    newSeries[newname].name = newname
-  return [newSeries[name] for name in newNames]
+      metaSeries[key].append(series)
+  for key in metaSeries.keys():
+    metaSeries[key] = SeriesFunctions[callback](requestContext, metaSeries[key])[0]
+    metaSeries[key].name = key
+  return [ metaSeries[key] for key in keys ]
 
 def diffSeries(requestContext, *seriesLists):
   """
@@ -731,10 +731,6 @@ def weightedAverage(requestContext, seriesListAvg, seriesListWeight, *nodes):
 
 
   """
-
-  if isinstance(nodes, int):
-    nodes=[nodes]
-
   sortedSeries={}
 
   for seriesAvg, seriesWeight in izip(seriesListAvg , seriesListWeight):
@@ -810,6 +806,19 @@ def movingWindow(requestContext, seriesList, windowSize, func='average', xFilesF
   else:
     previewSeconds = max([s.step for s in seriesList]) * int(windowSize)
 
+  if func == 'average':
+    consolidateFunc = lambda nonNull: sum(nonNull) / len(nonNull)
+  elif func == 'median':
+    consolidateFunc = lambda nonNull: sorted(nonNull)[len(nonNull) // 2]
+  elif func == 'sum':
+    consolidateFunc = sum
+  elif func == 'min':
+    consolidateFunc = min
+  elif func == 'max':
+    consolidateFunc = max
+  else:
+    raise Exception('Unsupported window function: %s' % (func))
+
   # ignore original data and pull new, including our preview
   # data from earlier is needed to calculate the early results
   newContext = requestContext.copy()
@@ -835,19 +844,8 @@ def movingWindow(requestContext, seriesList, windowSize, func='average', xFilesF
 
       if not nonNull or (xFilesFactor and len(nonNull) / windowPoints < xFilesFactor):
         val = None
-      elif func == 'average':
-        val = sum(nonNull) / len(nonNull)
-      elif func == 'median':
-        m_index = len(nonNull) // 2
-        val = sorted(nonNull)[m_index]
-      elif func == 'sum':
-        val = sum(nonNull)
-      elif func == 'min':
-        val = min(nonNull)
-      elif func == 'max':
-        val = max(nonNull)
       else:
-        raise Exception('Unsupported window function: %s' % (func))
+        val = consolidateFunc(nonNull)
       newSeries.append(val)
 
     result.append(newSeries)
@@ -1788,8 +1786,6 @@ def aliasByNode(requestContext, seriesList, *nodes):
     &target=aliasByNode(ganglia.*.cpu.load5,1)
 
   """
-  if isinstance(nodes, int):
-    nodes=[nodes]
   for series in seriesList:
     pathExpression = _getFirstPathExpression(series.name)
     metric_pieces = pathExpression.split('.')
@@ -3540,6 +3536,7 @@ def groupByNode(requestContext, seriesList, nodeNum, callback):
 
     sumSeries(ganglia.by-function.server1.*.cpu.load5),sumSeries(ganglia.by-function.server2.*.cpu.load5),...
 
+  This is an alias for using :py:func:`groupByNodes <groupByNodes>` with a single node.
   """
   return groupByNodes(requestContext, seriesList, callback, nodeNum)
 
@@ -3558,11 +3555,16 @@ def groupByNodes(requestContext, seriesList, callback, *nodes):
 
     sumSeries(ganglia.server1.*.cpu.load5),sumSeries(ganglia.server1.*.cpu.load10),sumSeries(ganglia.server1.*.cpu.load15),sumSeries(ganglia.server2.*.cpu.load5),sumSeries(ganglia.server2.*.cpu.load10),sumSeries(ganglia.server2.*.cpu.load15),...
 
+  This function can be used with :py:func:`sumSeries <sumSeries>`,
+  :py:func:`averageSeries <averageSeries>`, :py:func:`multiplySeries <multiplySeries>`,
+  :py:func:`diffSeries <diffSeries>`, :py:func:`stddevSeries <stddevSeries>`,
+  :py:func:`minSeries <minSeries>`, :py:func:`maxSeries <maxSeries>` &
+  :py:func:`rangeOfSeries <rangeOfSeries>`.
+
+  This complements :py:func:`aggregateWithWildcards <aggregateWithWildcards>` which takes a list of wildcard nodes.
   """
   metaSeries = {}
   keys = []
-  if isinstance(nodes, int):
-    nodes=[nodes]
   for series in seriesList:
     key = '.'.join(series.name.split(".")[n] for n in nodes)
     if key not in metaSeries:
@@ -3571,8 +3573,7 @@ def groupByNodes(requestContext, seriesList, callback, *nodes):
     else:
       metaSeries[key].append(series)
   for key in metaSeries.keys():
-    metaSeries[key] = SeriesFunctions[callback](requestContext,
-        metaSeries[key])[0]
+    metaSeries[key] = SeriesFunctions[callback](requestContext, metaSeries[key])[0]
     metaSeries[key].name = key
   return [ metaSeries[key] for key in keys ]
 
@@ -4192,6 +4193,7 @@ SeriesFunctions = {
   'sumSeriesWithWildcards': sumSeriesWithWildcards,
   'averageSeriesWithWildcards': averageSeriesWithWildcards,
   'multiplySeriesWithWildcards': multiplySeriesWithWildcards,
+  'aggregateWithWildcards': aggregateWithWildcards,
   'minSeries': minSeries,
   'maxSeries': maxSeries,
   'rangeOfSeries': rangeOfSeries,
