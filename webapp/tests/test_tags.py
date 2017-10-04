@@ -84,7 +84,6 @@ class TagsTest(TestCase):
     self.assertEquals(tagList[0]['tag'], 'blah')
     self.assertEquals(tagList[1]['tag'], 'hello')
 
-
     # get tag & list of values
     result = db.get_tag('hello')
     self.assertEquals(result['tag'], 'hello')
@@ -111,12 +110,15 @@ class TagsTest(TestCase):
     self.assertEqual(result, ['test.a;blah=blah;hello=tiger'])
 
     # find with regex
-    result = db.find_series(['hello=tiger', 'blah=~b.*'])
+    result = db.find_series(['blah=~b.*', 'hello=~tiger'])
     self.assertEqual(result, ['test.a;blah=blah;hello=tiger'])
 
     # find with not regex
-    result = db.find_series(['hello=tiger', 'blah!=~l.*'])
+    result = db.find_series(['blah!=~l.*', 'hello=tiger'])
     self.assertEqual(result, ['test.a;blah=blah;hello=tiger'])
+
+    result = db.find_series(['hello=~lion', 'blah!=~l.*'])
+    self.assertEqual(result, ['test.a;blah=blah;hello=lion'])
 
     # find with not equal
     result = db.find_series(['hello=tiger', 'blah!=blah'])
@@ -124,6 +126,12 @@ class TagsTest(TestCase):
 
     result = db.find_series(['hello=tiger', 'blah!=foo'])
     self.assertEqual(result, ['test.a;blah=blah;hello=tiger'])
+
+    result = db.find_series(['hello=tiger', 'blah!='])
+    self.assertEqual(result, ['test.a;blah=blah;hello=tiger'])
+
+    result = db.find_series(['blah!=', 'hello!='])
+    self.assertEqual(result, ['test.a;blah=blah;hello=lion', 'test.a;blah=blah;hello=tiger'])
 
     # complex find
     result = db.find_series(['hello=~lion|tiger', 'blah!=foo'])
@@ -136,6 +144,18 @@ class TagsTest(TestCase):
     # find series without tag
     result = db.find_series(['name=test.b', 'hello='])
     self.assertEqual(result, ['test.b;blah=blah'])
+
+    # find that results in no matched values
+    result = db.find_series(['blah=~foo'])
+    self.assertEqual(result, [])
+
+    # find with invalid tagspec
+    with self.assertRaises(ValueError):
+      db.find_series('test')
+
+    # find with no specs that require non-empty match
+    with self.assertRaises(ValueError):
+      db.find_series('test=')
 
     # delete series we added
     self.assertTrue(db.del_series('test.a;blah=blah;hello=tiger'))
