@@ -7,6 +7,7 @@ from graphite.tags.utils import BaseTagDB, TaggedSeries
 
 class LocalDatabaseTagDB(BaseTagDB):
   def find_series_query(self, tags):
+    # sql will select series that match all tag expressions that don't match empty tags
     sql = 'SELECT s.path'
     sql += ' FROM tags_series AS s'
     params = []
@@ -16,6 +17,7 @@ class LocalDatabaseTagDB(BaseTagDB):
 
     all_match_empty = True
 
+    # expressions that do match empty tags will be used to filter the result
     filters = []
 
     i = 0
