@@ -4,7 +4,6 @@ import re
 
 from django.conf import settings
 from graphite.util import logtime
-from graphite.logger import log
 
 from graphite.tags.utils import BaseTagDB, TaggedSeries
 
