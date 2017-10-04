@@ -923,6 +923,80 @@ class FunctionsTest(TestCase):
 
         self.assertEqual(result, expectedResult)
 
+    def test_asPercent_seriesList2_nodes(self):
+        self.maxDiff = None
+
+        seriesList = self._gen_series_list_with_data(
+            key=[
+                'collectd.test-db1.load.value',
+                'collectd.test-db2.load.value',
+                'collectd.test-db3.load.value',
+                'collectd.test-db4.load.value',
+                'collectd.test-db5.load.value',
+                'collectd.test-db1.load.avg',
+                'collectd.test-db2.load.avg',
+                'collectd.test-db3.load.avg',
+                'collectd.test-db4.load.avg',
+                'collectd.test-db6.load.avg',
+            ],
+            end=1,
+            data=[
+                [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20],
+                [None,2,None,4,None,6,None,8,None,10,None,12,None,14,None,16,None,18,None,20],
+                [1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,None,None,None],
+                [1,2,3,4,None,6,None,None,9,10,11,None,13,None,None,None,None,18,19,20],
+                [1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,18,None,None],
+                [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20],
+                [None,2,None,4,None,6,None,8,None,10,None,12,None,14,None,16,None,18,None,20],
+                [1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,None,None,None],
+                [1,2,3,4,None,6,None,None,9,10,11,None,13,None,None,None,None,18,19,20],
+                [1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,18,None,None],
+            ]
+        )
+
+        seriesList2 = self._gen_series_list_with_data(
+            key=[
+                'collectd.test-db1.load.total',
+                'collectd.test-db2.load.total',
+                'collectd.test-db3.load.total',
+                'collectd.test-db4.load.total',
+                'collectd.test-db5.load.total',
+                'collectd.test-db7.load.total',
+            ],
+            end=1,
+            data=[
+                [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20],
+                [None,2,None,4,None,6,None,8,None,10,None,12,None,14,None,16,None,18,None,20],
+                [1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,None,None,None],
+                [1,2,3,4,None,6,None,None,9,10,11,None,13,None,None,None,None,18,19,20],
+                [1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,18,None,None],
+                [1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,18,None,None],
+            ]
+        )
+
+        expectedResult = [
+            TimeSeries('asPercent(collectd.test-db1.load.value,collectd.test-db1.load.total)',0,1,1,[100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0]),
+            TimeSeries('asPercent(collectd.test-db1.load.avg,collectd.test-db1.load.total)',0,1,1,[100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0]),
+            TimeSeries('asPercent(collectd.test-db2.load.value,collectd.test-db2.load.total)',0,1,1,[None, 100.0, None, 100.0, None, 100.0, None, 100.0, None, 100.0, None, 100.0, None, 100.0, None, 100.0, None, 100.0, None, 100.0]),
+            TimeSeries('asPercent(collectd.test-db2.load.avg,collectd.test-db2.load.total)',0,1,1,[None, 100.0, None, 100.0, None, 100.0, None, 100.0, None, 100.0, None, 100.0, None, 100.0, None, 100.0, None, 100.0, None, 100.0]),
+            TimeSeries('asPercent(collectd.test-db3.load.value,collectd.test-db3.load.total)',0,1,1,[100.0, 100.0, None, None, None, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, None, None, None]),
+            TimeSeries('asPercent(collectd.test-db3.load.avg,collectd.test-db3.load.total)',0,1,1,[100.0, 100.0, None, None, None, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, None, None, None]),
+            TimeSeries('asPercent(collectd.test-db4.load.value,collectd.test-db4.load.total)',0,1,1,[100.0, 100.0, 100.0, 100.0, None, 100.0, None, None, 100.0, 100.0, 100.0, None, 100.0, None, None, None, None, 100.0, 100.0, 100.0]),
+            TimeSeries('asPercent(collectd.test-db4.load.avg,collectd.test-db4.load.total)',0,1,1,[100.0, 100.0, 100.0, 100.0, None, 100.0, None, None, 100.0, 100.0, 100.0, None, 100.0, None, None, None, None, 100.0, 100.0, 100.0]),
+            TimeSeries('asPercent(collectd.test-db5.load.value,collectd.test-db5.load.total)',0,1,1,[100.0, 100.0, None, None, None, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, None, None]),
+            TimeSeries('asPercent(collectd.test-db6.load.avg,MISSING)',0,1,1,[None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None]),
+            TimeSeries('asPercent(MISSING,collectd.test-db7.load.total)',0,1,1,[None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None]),
+        ]
+
+        result = functions.asPercent({}, seriesList, seriesList2, 1)
+
+        for i, series in enumerate(result):
+          for k, v in enumerate(series):
+            if type(v) is float:
+              series[k] = round(v,2)
+
+        self.assertEqual(result, expectedResult)
+
     def test_divideSeries_error(self):
         seriesList = self._gen_series_list_with_data(
             key=[

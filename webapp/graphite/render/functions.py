@@ -556,7 +556,7 @@ def changed(requestContext, seriesList):
         series[i] = 0
   return seriesList
 
-def asPercent(requestContext, seriesList, total=None):
+def asPercent(requestContext, seriesList, total=None, *nodes):
   """
 
   Calculates a percentage of the total of a wildcard series. If `total` is specified,
@@ -577,6 +577,50 @@ def asPercent(requestContext, seriesList, total=None):
   """
 
   normalize([seriesList])
+
+  if nodes:
+    if not isinstance(total, list):
+      raise ValueError('total must be a seriesList')
+
+    keys = []
+    metaSeries = {}
+    for series in seriesList:
+      key = '.'.join(series.name.split(".")[n] for n in nodes)
+      if key not in metaSeries:
+        metaSeries[key] = [[series], None]
+        keys.append(key)
+      else:
+        metaSeries[key][0].append(series)
+    for series in total:
+      key = '.'.join(series.name.split(".")[n] for n in nodes)
+      if key not in metaSeries:
+        metaSeries[key] = [[None], series]
+        keys.append(key)
+      else:
+        metaSeries[key][1] = series
+
+    resultList = []
+    for key in keys:
+      series2 = metaSeries[key][1]
+      for series1 in metaSeries[key][0]:
+        if series1 and series2:
+          name = "asPercent(%s,%s)" % (series1.name,series2.name)
+          (seriesList,start,end,step) = normalize([(series1, series2)])
+          resultValues = [ safeMul(safeDiv(v1, v2), 100.0) for v1,v2 in izip(series1,series2) ]
+          resultSeries = TimeSeries(name,start,end,step,resultValues)
+          resultList.append(resultSeries)
+        elif series1:
+          name = "asPercent(%s,%s)" % (series1.name, 'MISSING')
+          resultValues = [ None for v1 in series1 ]
+          resultSeries = TimeSeries(name,start,end,step,resultValues)
+          resultList.append(resultSeries)
+        elif series2:
+          name = "asPercent(%s,%s)" % ('MISSING', series2.name)
+          resultValues = [ None for v1 in series2 ]
+          resultSeries = TimeSeries(name,start,end,step,resultValues)
+          resultList.append(resultSeries)
+
+    return resultList
 
   if total is None:
     totalValues = [ safeSum(row) for row in izip(*seriesList) ]
