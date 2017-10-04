@@ -3,6 +3,8 @@ from __future__ import absolute_import
 import re
 
 from django.conf import settings
+from graphite.util import logtime
+from graphite.logger import log
 
 from graphite.tags.utils import BaseTagDB, TaggedSeries
 
@@ -27,68 +29,119 @@ class RedisTagDB(BaseTagDB):
 
     self.r = Redis(host=settings.TAGDB_REDIS_HOST,port=settings.TAGDB_REDIS_PORT,db=settings.TAGDB_REDIS_DB)
 
+  @logtime()
   def find_series(self, tags):
-    with self.r.pipeline() as pipe:
-      all_match_empty = True
+    selector = None
+    selector_cnt = None
+    filters = []
 
-      for tagspec in tags:
-        (tag, operator, spec) = self.parse_tagspec(tagspec)
+    # loop through tagspecs, look for best = or =~ match
+    for tagspec in tags:
+      (tag, operator, spec) = self.parse_tagspec(tagspec)
 
-        # find list of values that match the tagspec
-        values = None
+      if operator == '=':
+        matches_empty = spec == ''
+        if not matches_empty and (not selector or selector[1] != '='):
+          cnt = self.r.scard('tags:' + tag + ':values:' + spec)
+          if not selector or selector_cnt > cnt:
+            if selector:
+              filters.append(selector)
+            selector = (tag, operator, spec)
+            selector_cnt = cnt
+            continue
+        filters.append((tag, operator, spec))
 
-        if operator == '=':
-          matches_empty = spec == ''
+      elif operator == '=~':
+        pattern = re.compile(spec)
+        matches_empty = bool(pattern.match(''))
+        if not matches_empty and (not selector or selector[1] != '='):
+          cnt = self.r.scard('tags:' + tag + ':values')
+          if not selector or selector_cnt > cnt:
+            if selector:
+              filters.append(selector)
+            selector = (tag, operator, pattern)
+            selector_cnt = cnt
+            continue
+        filters.append((tag, operator, pattern))
 
-          values = [spec]
+      elif operator == '!=':
+        matches_empty = spec != ''
+        if not matches_empty and (not selector or selector[1] != '='):
+          cnt = self.r.scard('tags:' + tag + ':values')
+          if not selector or selector_cnt > cnt:
+            if selector:
+              filters.append(selector)
+            selector = (tag, operator, spec)
+            selector_cnt = cnt
+            continue
+        filters.append((tag, operator, spec))
 
-        elif operator == '=~':
-          pattern = re.compile(spec)
-          matches_empty = bool(pattern.match(''))
+      elif operator == '!=~':
+        pattern = re.compile(spec)
+        matches_empty = not pattern.match('')
+        if not matches_empty and (not selector or selector[1] != '='):
+          cnt = self.r.scard('tags:' + tag + ':values')
+          if not selector or selector_cnt > cnt:
+            if selector:
+              filters.append(selector)
+            selector = (tag, operator, pattern)
+            selector_cnt = cnt
+            continue
+        filters.append((tag, operator, pattern))
 
-          values = [value for value in self.r.sscan_iter('tags:' + tag + ':values') if pattern.match(value) is not None]
+      else:
+        raise ValueError("Invalid operator %s" % operator)
 
-        elif operator == '!=':
-          matches_empty = spec != ''
+    if not selector:
+      raise ValueError("At least one tagspec must not match the empty string")
 
-          values = [value for value in self.r.sscan_iter('tags:' + tag + ':values') if value != spec]
+    # get initial list of series
+    (tag, operator, spec) = selector
 
-        elif operator == '!=~':
-          pattern = re.compile(spec)
-          matches_empty = not pattern.match('')
+    # find list of values that match the tagspec
+    values = None
+    if operator == '=':
+      values = [spec]
+    elif operator == '=~':
+      # see if we can identify a literal prefix to filter by in redis
+      match = None
+      m = re.match('([a-z0-9]+)([^*][^|]*)?$', spec.pattern)
+      if m:
+        match = m.group(1) + '*'
+      values = [value for value in self.r.sscan_iter('tags:' + tag + ':values', match=match) if spec.match(value) is not None]
+    elif operator == '!=':
+      values = [value for value in self.r.sscan_iter('tags:' + tag + ':values') if value != spec]
+    elif operator == '!=~':
+      values = [value for value in self.r.sscan_iter('tags:' + tag + ':values') if spec.match(value) is None]
 
-          values = [value for value in self.r.sscan_iter('tags:' + tag + ':values') if pattern.match(value) is None]
+    # if this query matched no values, just short-circuit since the result of the final intersect will be empty
+    if not values:
+      return []
 
-        else:
-          raise ValueError("Invalid operator %s" % operator)
+    log.info("Searching %s values for tag %s" % (selector_cnt, tag))
 
-        # if we're matching the empty value, union with the set of series that don't have the tag
-        if matches_empty:
-          # store series that don't have this tag in a temp key
-          pipe.sdiffstore('temp:' + tag + ':empty', 'series', 'tags:' + tag + ':series')
+    results = []
 
-          # store union of series without this tag and all series that match the spec in a temp key
-          pipe.sunionstore('temp:' + tagspec, 1 + len(values), 'temp:' + tag + ':empty', *['tags:' + tag + ':values:' + value for value in values])
-        # otherwise only return series for matching values
-        else:
-          # if this query matched no values, just short-circuit since the result of the final intersect will be empty
-          if not values:
-            return []
+    # apply filters
+    for series in self.r.sunion(*['tags:' + tag + ':values:' + value for value in values]):
+      parsed = self.parse(series)
+      matched = True
 
-          # store union of all series that match the spec in a temp key
-          pipe.sunionstore('temp:' + tagspec, len(values), *['tags:' + tag + ':values:' + value for value in values])
+      for (tag, operator, spec) in filters:
+        value = parsed.tags.get(tag, '')
+        if (
+          (operator == '=' and value != spec) or
+          (operator == '=~' and spec.match(value) is None) or
+          (operator == '!=' and value == spec) or
+          (operator == '!=~' and spec.match(value) is not None)
+        ):
+          matched = False
+          break
 
-        all_match_empty = all_match_empty and matches_empty
+      if matched:
+        results.append(series)
 
-      if all_match_empty:
-        raise ValueError("At least one tagspec must not match the empty string")
-
-      # get the final result from the intersection of the temp lists we created above
-      pipe.sinter(*['temp:' + tagspec for tagspec in tags])
-
-      results = pipe.execute()
-
-    return sorted(list(results[-1]))
+    return sorted(results)
 
   def get_series(self, path):
     tags = {}
