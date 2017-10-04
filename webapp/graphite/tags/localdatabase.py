@@ -16,6 +16,8 @@ class LocalDatabaseTagDB(BaseTagDB):
 
     all_match_empty = True
 
+    filters = []
+
     i = 0
     for tagspec in tags:
       (tag, operator, spec) = self.parse_tagspec(tagspec)
@@ -23,14 +25,12 @@ class LocalDatabaseTagDB(BaseTagDB):
       i += 1
       s = str(i)
 
-      sql += ' JOIN tags_tag AS t' + s + ' ON t' + s + '.tag=%s'
-      params.append(tag)
-
       if operator == '=':
         matches_empty = spec == ''
 
-        where.append('v' + s + '.value=%s')
-        whereparams.append(spec)
+        if not matches_empty:
+          where.append('v' + s + '.value=%s')
+          whereparams.append(spec)
 
       elif operator == '=~':
         # make sure regex is anchored
@@ -39,14 +39,16 @@ class LocalDatabaseTagDB(BaseTagDB):
 
         matches_empty = bool(re.match(spec, ''))
 
-        where.append('v' + s + '.value ' + self._regexp_operator(connection) + ' %s')
-        whereparams.append(spec)
+        if not matches_empty:
+          where.append('v' + s + '.value ' + self._regexp_operator(connection) + ' %s')
+          whereparams.append(spec)
 
       elif operator == '!=':
         matches_empty = spec != ''
 
-        where.append('v' + s + '.value<>%s')
-        whereparams.append(spec)
+        if not matches_empty:
+          where.append('v' + s + '.value<>%s')
+          whereparams.append(spec)
 
       elif operator == '!=~':
         # make sure regex is anchored
@@ -55,18 +57,18 @@ class LocalDatabaseTagDB(BaseTagDB):
 
         matches_empty = not re.match(spec, '')
 
-        where.append('v' + s + '.value ' + self._regexp_not_operator(connection) + ' %s')
-        whereparams.append(spec)
+        if not matches_empty:
+          where.append('v' + s + '.value ' + self._regexp_not_operator(connection) + ' %s')
+          whereparams.append(spec)
 
       else:
         raise ValueError("Invalid operator %s" % operator)
 
       if matches_empty:
-        sql += ' LEFT JOIN tags_seriestag AS st' + s + ' ON st' + s + '.series_id=s.id AND st' + s + '.tag_id=t' + s + '.id'
-        sql += ' LEFT JOIN tags_tagvalue AS v' + s + ' ON v' + s + '.id=st' + s + '.value_id'
-
-        where[-1] = '(' + where[-1] + ' OR v' + s + '.id IS NULL)'
+        filters.append((tag, operator, spec))
       else:
+        sql += ' JOIN tags_tag AS t' + s + ' ON t' + s + '.tag=%s'
+        params.append(tag)
         sql += ' JOIN tags_seriestag AS st' + s + ' ON st' + s + '.series_id=s.id AND st' + s + '.tag_id=t' + s + '.id'
         sql += ' JOIN tags_tagvalue AS v' + s + ' ON v' + s + '.id=st' + s + '.value_id'
 
@@ -81,15 +83,33 @@ class LocalDatabaseTagDB(BaseTagDB):
 
     sql += ' ORDER BY s.path'
 
-    return sql, params
+    return sql, params, filters
 
   def find_series(self, tags):
-    sql, params = self.find_series_query(tags)
+    sql, params, filters = self.find_series_query(tags)
+
+    def matches_filters(path):
+      if not filters:
+        return True
+
+      parsed = self.parse(path)
+
+      for (tag, operator, spec) in filters:
+        value = parsed.tags.get(tag, '')
+        if (
+          (operator == '=' and value != spec) or
+          (operator == '=~' and re.match(spec, value) is None) or
+          (operator == '!=' and value == spec) or
+          (operator == '!=~' and re.match(spec, value) is not None)
+        ):
+          return False
+
+      return True
 
     with connection.cursor() as cursor:
       cursor.execute(sql, params)
 
-      return [row[0] for row in cursor.fetchall()]
+      return [row[0] for row in cursor.fetchall() if matches_filters(row[0])]
 
   def get_series(self, path):
     with connection.cursor() as cursor:

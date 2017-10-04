@@ -110,14 +110,14 @@ class TagsTest(TestCase):
     self.assertEqual(result, ['test.a;blah=blah;hello=tiger'])
 
     # find with regex
-    result = db.find_series(['blah=~b.*', 'hello=~tiger'])
+    result = db.find_series(['blah=~b.*', 'hello=~tiger', 'test=~.*'])
     self.assertEqual(result, ['test.a;blah=blah;hello=tiger'])
 
     # find with not regex
-    result = db.find_series(['blah!=~l.*', 'hello=tiger'])
+    result = db.find_series(['blah!=~$', 'hello=~tiger', 'test!=~.+'])
     self.assertEqual(result, ['test.a;blah=blah;hello=tiger'])
 
-    result = db.find_series(['hello=~lion', 'blah!=~l.*'])
+    result = db.find_series(['hello=~lion', 'blah!=~$'])
     self.assertEqual(result, ['test.a;blah=blah;hello=lion'])
 
     # find with not equal
