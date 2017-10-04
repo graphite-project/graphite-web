@@ -41,9 +41,9 @@ class RedisTagDB(BaseTagDB):
 
       if operator == '=':
         matches_empty = spec == ''
-        if not matches_empty and (not selector or selector[1] != '='):
+        if not matches_empty:
           cnt = self.r.scard('tags:' + tag + ':values:' + spec)
-          if not selector or selector_cnt > cnt:
+          if not selector or selector[1] != '=' or selector_cnt > cnt:
             if selector:
               filters.append(selector)
             selector = (tag, operator, spec)
@@ -105,7 +105,7 @@ class RedisTagDB(BaseTagDB):
     elif operator == '=~':
       # see if we can identify a literal prefix to filter by in redis
       match = None
-      m = re.match('([a-z0-9]+)([^*][^|]*)?$', spec.pattern)
+      m = re.match('([a-z0-9]+)([^*?|][^|]*)?$', spec.pattern)
       if m:
         match = m.group(1) + '*'
       values = [value for value in self.r.sscan_iter('tags:' + tag + ':values', match=match) if spec.match(value) is not None]
@@ -118,11 +118,12 @@ class RedisTagDB(BaseTagDB):
     if not values:
       return []
 
-    log.info("Searching %s values for tag %s" % (selector_cnt, tag))
-
     results = []
 
     # apply filters
+    operators = ['=','!=','=~','!=~']
+    filters.sort(lambda a, b: operators.index(a[1]) - operators.index(b[1]))
+
     for series in self.r.sunion(*['tags:' + tag + ':values:' + value for value in values]):
       parsed = self.parse(series)
       matched = True
