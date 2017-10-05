@@ -563,19 +563,39 @@ def asPercent(requestContext, seriesList, total=None, *nodes):
   each series will be calculated as a percentage of that total. If `total` is not specified,
   the sum of all points in the wildcard series will be used instead.
 
-  The `total` parameter may be a single series, reference the same number of series as `seriesList` or a numeric value.
+  A list of nodes can optionally be provided, if so they will be used to match series with their
+  corresponding totals following the same logic as :py:func:`groupByNodes <groupByNodes>`.
+
+  When passing `nodes` the `total` parameter may be a series list or `None`.  If it is `None` then
+  for each series in `seriesList` the percentage of the sum of series in that group will be returned.
+
+  When not passing `nodes`, the `total` parameter may be a single series, reference the same number
+  of series as `seriesList` or be a numeric value.
 
   Example:
 
   .. code-block:: none
 
+    # Server01 connections failed and succeeded as a percentage of Server01 connections attempted
     &target=asPercent(Server01.connections.{failed,succeeded}, Server01.connections.attempted)
-    &target=asPercent(Server*.connections.{failed,succeeded}, Server*.connections.attempted)
+
+    # For each server, its connections failed as a percentage of its connections attempted
+    &target=asPercent(Server*.connections.failed, Server*.connections.attempted)
+
+    # For each server, its connections failed and succeeded as a percentage of its connections attemped
+    &target=asPercent(Server*.connections.{failed,succeeded}, Server*.connections.attempted, 0)
+
+    # apache01.threads.busy as a percentage of 1500
     &target=asPercent(apache01.threads.busy,1500)
+
+    # Server01 cpu stats as a percentage of its total
     &target=asPercent(Server01.cpu.*.jiffies)
 
-  """
+    # cpu stats for each server as a percentage of its total
+    &target=asPercent(Server*.cpu.*.jiffies, None, 0)
 
+  .. note:: When `total` is a seriesList, specifying `nodes` to match series with the corresponding total series will increase reliability.
+  """
   normalize([seriesList])
 
   # if nodes are specified, use them to match series & total

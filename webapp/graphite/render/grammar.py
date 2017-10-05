@@ -34,6 +34,10 @@ boolean = Group(
   CaselessKeyword("false")
 )('boolean')
 
+none = Group(
+  CaselessKeyword('none')
+)('none')
+
 argname = Word(alphas + '_', alphanums + '_')('argname')
 funcname = Word(alphas + '_', alphanums + '_')('funcname')
 
@@ -58,6 +62,7 @@ symbols = '''(){},.'"\\|'''
 arg = Group(
   boolean |
   number |
+  none |
   aString |
   expression
 )('args*')

@@ -83,6 +83,9 @@ def evaluateTokens(requestContext, tokens, replacements=None, pipedArg=None):
   elif tokens.boolean:
     return tokens.boolean[0] == 'true'
 
+  elif tokens.none:
+    return None
+
   else:
     raise ValueError("unknown token in target evaluator")
 

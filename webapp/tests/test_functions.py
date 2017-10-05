@@ -961,6 +961,7 @@ class FunctionsTest(TestCase):
                 'collectd.test-db3.load.total',
                 'collectd.test-db4.load.total',
                 'collectd.test-db5.load.total',
+                'collectd.test-db5.load.total2',
                 'collectd.test-db7.load.total',
             ],
             end=1,
@@ -969,6 +970,7 @@ class FunctionsTest(TestCase):
                 [None,2,None,4,None,6,None,8,None,10,None,12,None,14,None,16,None,18,None,20],
                 [1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,None,None,None],
                 [1,2,3,4,None,6,None,None,9,10,11,None,13,None,None,None,None,18,19,20],
+                [1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,18,None,None],
                 [1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,18,None,None],
                 [1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,18,None,None],
             ]
@@ -983,7 +985,7 @@ class FunctionsTest(TestCase):
             TimeSeries('asPercent(collectd.test-db3.load.avg,collectd.test-db3.load.total)',0,1,1,[100.0, 100.0, None, None, None, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, None, None, None]),
             TimeSeries('asPercent(collectd.test-db4.load.value,collectd.test-db4.load.total)',0,1,1,[100.0, 100.0, 100.0, 100.0, None, 100.0, None, None, 100.0, 100.0, 100.0, None, 100.0, None, None, None, None, 100.0, 100.0, 100.0]),
             TimeSeries('asPercent(collectd.test-db4.load.avg,collectd.test-db4.load.total)',0,1,1,[100.0, 100.0, 100.0, 100.0, None, 100.0, None, None, 100.0, 100.0, 100.0, None, 100.0, None, None, None, None, 100.0, 100.0, 100.0]),
-            TimeSeries('asPercent(collectd.test-db5.load.value,collectd.test-db5.load.total)',0,1,1,[100.0, 100.0, None, None, None, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, None, None]),
+            TimeSeries('asPercent(collectd.test-db5.load.value,sumSeries(collectd.test-db5.load.total,collectd.test-db5.load.total2))',0,1,1,[50.0, 50.0, None, None, None, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0, None, None]),
         ]
 
         result = functions.asPercent({}, seriesList, seriesList2, 1)
@@ -1047,6 +1049,22 @@ class FunctionsTest(TestCase):
               series[k] = round(v,2)
 
         self.assertEqual(result, expectedResult)
+
+    def test_asPercent_seriesList2_nodes_invalid_total(self):
+        self.maxDiff = None
+
+        seriesList = self._gen_series_list_with_data(
+            key=[
+                'collectd.test-db1.load.value',
+            ],
+            end=1,
+            data=[
+                [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20],
+            ]
+        )
+
+        with self.assertRaises(ValueError):
+            functions.asPercent({}, seriesList, 1000, 1)
 
     def test_divideSeries_error(self):
         seriesList = self._gen_series_list_with_data(
@@ -5162,3 +5180,36 @@ class FunctionsTest(TestCase):
                 result = evaluateTarget(request_context, query)
 
             self.assertEqual(result, expectedResults)
+
+    def test_none_arg(self):
+        def mock_data_fetcher(reqCtx, path_expression):
+            if path_expression != 'servers.*.disk.*':
+                raise Exception('Unexpected fetchData call with pathExpression: %s' % path_expression)
+
+            return self._gen_series_list_with_data(
+                key=['servers.s1.disk.bytes_used', 'servers.s1.disk.bytes_free','servers.s2.disk.bytes_used','servers.s2.disk.bytes_free'],
+                start=0,
+                end=3,
+                data=[[10, 20, 30], [90, 80, 70], [1, 2, 3], [99, 98, 97]]
+            )
+
+        request_context = self._build_requestContext(0, 3)
+
+        query = 'asPercent(servers.*.disk.*, None, 1)'
+
+        expectedResult = [
+            TimeSeries('asPercent(servers.s1.disk.bytes_used,sumSeries(servers.s1.disk.bytes_used,servers.s1.disk.bytes_free))',0,3,1,[10.0, 20.0, 30.0]),
+            TimeSeries('asPercent(servers.s1.disk.bytes_free,sumSeries(servers.s1.disk.bytes_used,servers.s1.disk.bytes_free))',0,3,1,[90.0, 80.0, 70.0]),
+            TimeSeries('asPercent(servers.s2.disk.bytes_used,sumSeries(servers.s2.disk.bytes_used,servers.s2.disk.bytes_free))',0,3,1,[1.0, 2.0, 3.0]),
+            TimeSeries('asPercent(servers.s2.disk.bytes_free,sumSeries(servers.s2.disk.bytes_used,servers.s2.disk.bytes_free))',0,3,1,[99.0, 98.0, 97.0]),
+        ]
+
+        with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
+            result = evaluateTarget(request_context, query)
+
+        for i, series in enumerate(result):
+          for k, v in enumerate(series):
+            if type(v) is float:
+              series[k] = round(v,2)
+
+        self.assertEqual(result, expectedResult)
