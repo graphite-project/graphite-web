@@ -36,6 +36,7 @@ class RemoteFinder(BaseFinder):
             remote_hosts.append(host)
 
         self.remote_stores = [RemoteStore(self, host) for host in remote_hosts]
+        self.disabled = len(self.remote_stores) < 1
 
     def worker_pool(self):
         # The number of workers should increase linear with the number of
