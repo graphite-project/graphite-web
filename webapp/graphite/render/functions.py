@@ -578,47 +578,65 @@ def asPercent(requestContext, seriesList, total=None, *nodes):
 
   normalize([seriesList])
 
+  # if nodes are specified, use them to match series & total
   if nodes:
-    if not isinstance(total, list):
-      raise ValueError('total must be a seriesList')
-
     keys = []
+
+    # group series together by key
     metaSeries = {}
     for series in seriesList:
       key = '.'.join(series.name.split(".")[n] for n in nodes)
       if key not in metaSeries:
-        metaSeries[key] = [[series], None]
+        metaSeries[key] = [series]
         keys.append(key)
       else:
-        metaSeries[key][0].append(series)
-    for series in total:
-      key = '.'.join(series.name.split(".")[n] for n in nodes)
-      if key not in metaSeries:
-        metaSeries[key] = [[None], series]
-        keys.append(key)
-      else:
-        metaSeries[key][1] = series
+        metaSeries[key].append(series)
+
+    # make list of totals
+    totalSeries = {}
+    # no total seriesList was specified, sum the values for each group of series
+    if total is None:
+      for key in keys:
+        if len(metaSeries[key]) == 1:
+          totalSeries[key] = metaSeries[key][0]
+        else:
+          name = 'sumSeries(%s)' % formatPathExpressions(metaSeries[key])
+          (seriesList,start,end,step) = normalize([metaSeries[key]])
+          totalValues = [ safeSum(row) for row in izip(*metaSeries[key]) ]
+          totalSeries[key] = TimeSeries(name,start,end,step,totalValues)
+    # total seriesList was specified, sum the values for each group of totals
+    elif isinstance(total, list):
+      for series in total:
+        key = '.'.join(series.name.split(".")[n] for n in nodes)
+        if key not in keys:
+          continue
+        if key not in totalSeries:
+          totalSeries[key] = [series]
+        else:
+          totalSeries[key].append(series)
+      for key in keys:
+        if key not in totalSeries:
+          keys.remove(key)
+        elif len(totalSeries[key]) == 1:
+          totalSeries[key] = totalSeries[key][0]
+        else:
+          name = 'sumSeries(%s)' % formatPathExpressions(totalSeries[key])
+          (seriesList,start,end,step) = normalize([totalSeries[key]])
+          totalValues = [ safeSum(row) for row in izip(*totalSeries[key]) ]
+          totalSeries[key] = TimeSeries(name,start,end,step,totalValues)
+    # trying to use nodes with a total value, which isn't supported because it has no effect
+    else:
+      raise ValueError('total must be None or a seriesList')
 
     resultList = []
     for key in keys:
-      series2 = metaSeries[key][1]
-      for series1 in metaSeries[key][0]:
-        if series1 and series2:
-          name = "asPercent(%s,%s)" % (series1.name,series2.name)
-          (seriesList,start,end,step) = normalize([(series1, series2)])
-          resultValues = [ safeMul(safeDiv(v1, v2), 100.0) for v1,v2 in izip(series1,series2) ]
-          resultSeries = TimeSeries(name,start,end,step,resultValues)
-          resultList.append(resultSeries)
-        elif series1:
-          name = "asPercent(%s,%s)" % (series1.name, 'MISSING')
-          resultValues = [ None for v1 in series1 ]
-          resultSeries = TimeSeries(name,start,end,step,resultValues)
-          resultList.append(resultSeries)
-        elif series2:
-          name = "asPercent(%s,%s)" % ('MISSING', series2.name)
-          resultValues = [ None for v1 in series2 ]
-          resultSeries = TimeSeries(name,start,end,step,resultValues)
-          resultList.append(resultSeries)
+      series2 = totalSeries[key]
+      for series1 in metaSeries[key]:
+        name = "asPercent(%s,%s)" % (series1.name,series2.name)
+        (seriesList,start,end,step) = normalize([(series1, series2)])
+        resultValues = [ safeMul(safeDiv(v1, v2), 100.0) for v1,v2 in izip(series1,series2) ]
+        resultSeries = TimeSeries(name,start,end,step,resultValues)
+        resultList.append(resultSeries)
 
     return resultList
 
