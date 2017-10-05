@@ -986,6 +986,8 @@ class FunctionsTest(TestCase):
             TimeSeries('asPercent(collectd.test-db4.load.value,collectd.test-db4.load.total)',0,1,1,[100.0, 100.0, 100.0, 100.0, None, 100.0, None, None, 100.0, 100.0, 100.0, None, 100.0, None, None, None, None, 100.0, 100.0, 100.0]),
             TimeSeries('asPercent(collectd.test-db4.load.avg,collectd.test-db4.load.total)',0,1,1,[100.0, 100.0, 100.0, 100.0, None, 100.0, None, None, 100.0, 100.0, 100.0, None, 100.0, None, None, None, None, 100.0, 100.0, 100.0]),
             TimeSeries('asPercent(collectd.test-db5.load.value,sumSeries(collectd.test-db5.load.total,collectd.test-db5.load.total2))',0,1,1,[50.0, 50.0, None, None, None, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0, None, None]),
+            TimeSeries('asPercent(collectd.test-db6.load.avg,MISSING)',0,1,1,[None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None]),
+            TimeSeries('asPercent(MISSING,collectd.test-db7.load.total)',0,1,1,[None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None]),
         ]
 
         result = functions.asPercent({}, seriesList, seriesList2, 1)

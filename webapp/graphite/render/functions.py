@@ -628,16 +628,15 @@ def asPercent(requestContext, seriesList, total=None, *nodes):
     elif isinstance(total, list):
       for series in total:
         key = '.'.join(series.name.split(".")[n] for n in nodes)
-        if key not in keys:
-          continue
         if key not in totalSeries:
           totalSeries[key] = [series]
+          if key not in keys:
+            keys.append(key)
         else:
           totalSeries[key].append(series)
-      for key in keys:
-        if key not in totalSeries:
-          keys.remove(key)
-        elif len(totalSeries[key]) == 1:
+
+      for key in totalSeries.keys():
+        if len(totalSeries[key]) == 1:
           totalSeries[key] = totalSeries[key][0]
         else:
           name = 'sumSeries(%s)' % formatPathExpressions(totalSeries[key])
@@ -650,11 +649,27 @@ def asPercent(requestContext, seriesList, total=None, *nodes):
 
     resultList = []
     for key in keys:
-      series2 = totalSeries[key]
+      # no series, must have total only
+      if key not in metaSeries:
+        series2 = totalSeries[key]
+        name = "asPercent(%s,%s)" % ('MISSING', series2.name)
+        resultValues = [ None for v1 in series2 ]
+        resultSeries = TimeSeries(name,start,end,step,resultValues)
+        resultList.append(resultSeries)
+        continue
+
       for series1 in metaSeries[key]:
-        name = "asPercent(%s,%s)" % (series1.name,series2.name)
-        (seriesList,start,end,step) = normalize([(series1, series2)])
-        resultValues = [ safeMul(safeDiv(v1, v2), 100.0) for v1,v2 in izip(series1,series2) ]
+        # no total
+        if key not in totalSeries:
+          name = "asPercent(%s,%s)" % (series1.name, 'MISSING')
+          resultValues = [ None for v1 in series1 ]
+        # series and total
+        else:
+          series2 = totalSeries[key]
+          name = "asPercent(%s,%s)" % (series1.name, series2.name)
+          (seriesList,start,end,step) = normalize([(series1, series2)])
+          resultValues = [ safeMul(safeDiv(v1, v2), 100.0) for v1,v2 in izip(series1,series2) ]
+
         resultSeries = TimeSeries(name,start,end,step,resultValues)
         resultList.append(resultSeries)
 
