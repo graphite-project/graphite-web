@@ -24,7 +24,6 @@ from graphite.worker_pool.pool import get_pool, pool_apply
 
 class RemoteFinder(BaseFinder):
     local = False
-    disabled = False
 
     def __init__(self, hosts=None):
         if hosts is None:

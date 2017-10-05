@@ -56,7 +56,7 @@ class Store(object):
         results = []
         for finder in self.finders:
             is_local = getattr(finder, 'local', True)
-            if is_local:
+            if is_local or getattr(finder, 'disabled'):
                 continue
 
             result = finder.fetch(
@@ -104,6 +104,8 @@ class Store(object):
             # Support legacy finders by defaulting to 'local = True'
             is_local = not hasattr(finder, 'local') or finder.local
             if query.local and not is_local:
+                continue
+            if getattr(finder, 'disabled'):
                 continue
             jobs.append((finder.find_nodes, query))
 

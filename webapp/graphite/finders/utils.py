@@ -39,8 +39,10 @@ class FindQuery(object):
 class BaseFinder(object):
     __metaclass__ = abc.ABCMeta
 
-    # Set to 'False' if this is a remote finder.
+    # Set to False if this is a remote finder.
     local = True
+    # set to True if this finder shouldn't be used
+    disabled = False
 
     def __init__(self):
         """Initialize the finder."""
