@@ -238,7 +238,11 @@ def aggregate(requestContext, seriesList, func, xFilesFactor=None):
   else:
     raise Exception('Unsupported aggregation function: %s' % (rawFunc))
 
-  # if seriesLists is actually a single series then wrap it for normalize
+  # if seriesList is empty then just short-circuit
+  if not seriesList:
+    return []
+
+  # if seriesList is a single series then wrap it for normalize
   if isinstance(seriesList[0], TimeSeries):
     seriesList = [seriesList]
 

@@ -591,6 +591,10 @@ class FunctionsTest(TestCase):
         with self.assertRaisesRegexp(Exception, "Unsupported aggregation function: blahSeries"):
             functions.aggregate({}, [], 'blahSeries')
 
+    def test_aggregate_emptySeries(self):
+        result = functions.aggregate({}, [], 'sum')
+        self.assertEqual(result, [])
+
     def test_averageSeries(self):
         seriesList = self._generate_series_list()
         data = range(0,101)
