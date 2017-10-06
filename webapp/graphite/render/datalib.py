@@ -107,7 +107,7 @@ class TimeSeries(list):
           yield None
     if buf:
       yield cf(buf)
-    else:
+    elif valcnt > 0:
       yield None
     raise StopIteration
 
