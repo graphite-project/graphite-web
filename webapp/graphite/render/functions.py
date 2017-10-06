@@ -594,7 +594,30 @@ def asPercent(requestContext, seriesList, total=None, *nodes):
     # cpu stats for each server as a percentage of its total
     &target=asPercent(Server*.cpu.*.jiffies, None, 0)
 
-  .. note:: When `total` is a seriesList, specifying `nodes` to match series with the corresponding total series will increase reliability.
+  When using `nodes`, any series or totals that can't be matched will create output series with
+  names like ``asPercent(someSeries,MISSING)`` or ``asPercent(MISSING,someTotalSeries)`` and all
+  values set to None. If desired these series can be filtered out by piping the result through
+  ``|exclude("MISSING")`` as shown below:
+
+  .. code-block:: none
+
+    &target=asPercent(Server{1,2}.memory.used,Server{1,3}.memory.total,0)
+
+    # will produce 3 output series:
+    # asPercent(Server1.memory.used,Server1.memory.total) [values will be as expected]
+    # asPercent(Server2.memory.used,MISSING) [all values will be None]
+    # asPercent(MISSING,Server3.memory.total) [all values will be None]
+
+    &target=asPercent(Server{1,2}.memory.used,Server{1,3}.memory.total,0)|exclude("MISSING")
+
+    # will produce 1 output series:
+    # asPercent(Server1.memory.used,Server1.memory.total) [values will be as expected]
+
+  .. note::
+
+    When `total` is a seriesList, specifying `nodes` to match series with the corresponding total
+    series will increase reliability.
+
   """
   normalize([seriesList])
 
