@@ -78,39 +78,38 @@ class TimeSeries(list):
     self.valuesPerPoint = int(valuesPerPoint)
 
 
+  __consolidation_functions = {
+    'sum': sum,
+    'average': lambda buf: float(sum(buf)) / len(buf),
+    'max': max,
+    'min': min,
+    'first': lambda buf: buf[0],
+    'last': lambda buf: buf[-1],
+  }
+
   def __consolidatingGenerator(self, gen):
-    buf = []
+    try:
+      cf = self.__consolidation_functions[self.consolidationFunc]
+    except KeyError:
+      raise Exception("Invalid consolidation function: '%s'" % self.consolidationFunc)
+    buf = []    # only the not-None values
+    valcnt = 0
     for x in gen:
-      buf.append(x)
-      if len(buf) == self.valuesPerPoint:
-        while None in buf: buf.remove(None)
+      valcnt += 1
+      if x is not None:
+        buf.append(x)
+      if valcnt == self.valuesPerPoint:
+        valcnt = 0
         if buf:
-          yield self.__consolidate(buf)
+          yield cf(buf)
           buf = []
         else:
           yield None
-    while None in buf: buf.remove(None)
-    if buf: yield self.__consolidate(buf)
-    else: yield None
+    if buf:
+      yield cf(buf)
+    else:
+      yield None
     raise StopIteration
-
-
-  def __consolidate(self, values):
-    usable = [v for v in values if v is not None]
-    if not usable: return None
-    if self.consolidationFunc == 'sum':
-      return sum(usable)
-    if self.consolidationFunc == 'average':
-      return float(sum(usable)) / len(usable)
-    if self.consolidationFunc == 'max':
-      return max(usable)
-    if self.consolidationFunc == 'min':
-      return min(usable)
-    if self.consolidationFunc == 'first':
-      return usable[0]
-    if self.consolidationFunc == 'last':
-      return usable[-1]
-    raise Exception("Invalid consolidation function: '%s'" % self.consolidationFunc)
 
 
   def __repr__(self):
