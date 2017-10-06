@@ -556,27 +556,147 @@ def changed(requestContext, seriesList):
         series[i] = 0
   return seriesList
 
-def asPercent(requestContext, seriesList, total=None):
+def asPercent(requestContext, seriesList, total=None, *nodes):
   """
 
   Calculates a percentage of the total of a wildcard series. If `total` is specified,
   each series will be calculated as a percentage of that total. If `total` is not specified,
   the sum of all points in the wildcard series will be used instead.
 
-  The `total` parameter may be a single series, reference the same number of series as `seriesList` or a numeric value.
+  A list of nodes can optionally be provided, if so they will be used to match series with their
+  corresponding totals following the same logic as :py:func:`groupByNodes <groupByNodes>`.
+
+  When passing `nodes` the `total` parameter may be a series list or `None`.  If it is `None` then
+  for each series in `seriesList` the percentage of the sum of series in that group will be returned.
+
+  When not passing `nodes`, the `total` parameter may be a single series, reference the same number
+  of series as `seriesList` or be a numeric value.
 
   Example:
 
   .. code-block:: none
 
+    # Server01 connections failed and succeeded as a percentage of Server01 connections attempted
     &target=asPercent(Server01.connections.{failed,succeeded}, Server01.connections.attempted)
-    &target=asPercent(Server*.connections.{failed,succeeded}, Server*.connections.attempted)
+
+    # For each server, its connections failed as a percentage of its connections attempted
+    &target=asPercent(Server*.connections.failed, Server*.connections.attempted)
+
+    # For each server, its connections failed and succeeded as a percentage of its connections attemped
+    &target=asPercent(Server*.connections.{failed,succeeded}, Server*.connections.attempted, 0)
+
+    # apache01.threads.busy as a percentage of 1500
     &target=asPercent(apache01.threads.busy,1500)
+
+    # Server01 cpu stats as a percentage of its total
     &target=asPercent(Server01.cpu.*.jiffies)
 
-  """
+    # cpu stats for each server as a percentage of its total
+    &target=asPercent(Server*.cpu.*.jiffies, None, 0)
 
+  When using `nodes`, any series or totals that can't be matched will create output series with
+  names like ``asPercent(someSeries,MISSING)`` or ``asPercent(MISSING,someTotalSeries)`` and all
+  values set to None. If desired these series can be filtered out by piping the result through
+  ``|exclude("MISSING")`` as shown below:
+
+  .. code-block:: none
+
+    &target=asPercent(Server{1,2}.memory.used,Server{1,3}.memory.total,0)
+
+    # will produce 3 output series:
+    # asPercent(Server1.memory.used,Server1.memory.total) [values will be as expected]
+    # asPercent(Server2.memory.used,MISSING) [all values will be None]
+    # asPercent(MISSING,Server3.memory.total) [all values will be None]
+
+    &target=asPercent(Server{1,2}.memory.used,Server{1,3}.memory.total,0)|exclude("MISSING")
+
+    # will produce 1 output series:
+    # asPercent(Server1.memory.used,Server1.memory.total) [values will be as expected]
+
+  .. note::
+
+    When `total` is a seriesList, specifying `nodes` to match series with the corresponding total
+    series will increase reliability.
+
+  """
   normalize([seriesList])
+
+  # if nodes are specified, use them to match series & total
+  if nodes:
+    keys = []
+
+    # group series together by key
+    metaSeries = {}
+    for series in seriesList:
+      key = '.'.join(series.name.split(".")[n] for n in nodes)
+      if key not in metaSeries:
+        metaSeries[key] = [series]
+        keys.append(key)
+      else:
+        metaSeries[key].append(series)
+
+    # make list of totals
+    totalSeries = {}
+    # no total seriesList was specified, sum the values for each group of series
+    if total is None:
+      for key in keys:
+        if len(metaSeries[key]) == 1:
+          totalSeries[key] = metaSeries[key][0]
+        else:
+          name = 'sumSeries(%s)' % formatPathExpressions(metaSeries[key])
+          (seriesList,start,end,step) = normalize([metaSeries[key]])
+          totalValues = [ safeSum(row) for row in izip(*metaSeries[key]) ]
+          totalSeries[key] = TimeSeries(name,start,end,step,totalValues)
+    # total seriesList was specified, sum the values for each group of totals
+    elif isinstance(total, list):
+      for series in total:
+        key = '.'.join(series.name.split(".")[n] for n in nodes)
+        if key not in totalSeries:
+          totalSeries[key] = [series]
+          if key not in keys:
+            keys.append(key)
+        else:
+          totalSeries[key].append(series)
+
+      for key in totalSeries.keys():
+        if len(totalSeries[key]) == 1:
+          totalSeries[key] = totalSeries[key][0]
+        else:
+          name = 'sumSeries(%s)' % formatPathExpressions(totalSeries[key])
+          (seriesList,start,end,step) = normalize([totalSeries[key]])
+          totalValues = [ safeSum(row) for row in izip(*totalSeries[key]) ]
+          totalSeries[key] = TimeSeries(name,start,end,step,totalValues)
+    # trying to use nodes with a total value, which isn't supported because it has no effect
+    else:
+      raise ValueError('total must be None or a seriesList')
+
+    resultList = []
+    for key in keys:
+      # no series, must have total only
+      if key not in metaSeries:
+        series2 = totalSeries[key]
+        name = "asPercent(%s,%s)" % ('MISSING', series2.name)
+        resultValues = [ None for v1 in series2 ]
+        resultSeries = TimeSeries(name,start,end,step,resultValues)
+        resultList.append(resultSeries)
+        continue
+
+      for series1 in metaSeries[key]:
+        # no total
+        if key not in totalSeries:
+          name = "asPercent(%s,%s)" % (series1.name, 'MISSING')
+          resultValues = [ None for v1 in series1 ]
+        # series and total
+        else:
+          series2 = totalSeries[key]
+          name = "asPercent(%s,%s)" % (series1.name, series2.name)
+          (seriesList,start,end,step) = normalize([(series1, series2)])
+          resultValues = [ safeMul(safeDiv(v1, v2), 100.0) for v1,v2 in izip(series1,series2) ]
+
+        resultSeries = TimeSeries(name,start,end,step,resultValues)
+        resultList.append(resultSeries)
+
+    return resultList
 
   if total is None:
     totalValues = [ safeSum(row) for row in izip(*seriesList) ]
