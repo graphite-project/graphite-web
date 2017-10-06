@@ -80,15 +80,18 @@ class TimeSeries(list):
 
   __consolidation_functions = {
     'sum': sum,
-    'average': lambda usable: float(sum(usable) / len(usable)),
+    'average': lambda buf: float(sum(buf)) / len(buf),
     'max': max,
     'min': min,
+    'first': lambda buf: buf[0],
+    'last': lambda buf: buf[-1],
   }
+
   def __consolidatingGenerator(self, gen):
     try:
       cf = self.__consolidation_functions[self.consolidationFunc]
     except KeyError:
-      raise Exception, "Invalid consolidation function!"
+      raise Exception("Invalid consolidation function: '%s'" % self.consolidationFunc)
     buf = []    # only the not-None values
     valcnt = 0
     for x in gen:
