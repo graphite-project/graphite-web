@@ -29,7 +29,7 @@ from graphite.render.utils import extractPathExpressions
 
 
 class TimeSeries(list):
-  def __init__(self, name, start, end, step, values, consolidate='average', tags=None):
+  def __init__(self, name, start, end, step, values, consolidate='average', tags=None, xFilesFactor=None):
     list.__init__(self, values)
     self.name = name
     self.start = start
@@ -39,6 +39,7 @@ class TimeSeries(list):
     self.valuesPerPoint = 1
     self.options = {}
     self.pathExpression = name
+    self.xFilesFactor = xFilesFactor if xFilesFactor is not None else 0
 
     if tags:
       self.tags = tags
@@ -53,19 +54,17 @@ class TimeSeries(list):
           log.debug("Couldn't parse tags for %s: %s" % (name, err))
 
   def __eq__(self, other):
-    if isinstance(other, TimeSeries):
-      color_check = True
-      if hasattr(self, 'color'):
-        if hasattr(other, 'color'):
-          color_check = (self.color == other.color)
-        else:
-          color_check = False
-      elif hasattr(other, 'color'):
-        color_check = False
+    if not isinstance(other, TimeSeries):
+      return False
 
-      return ((self.name, self.start, self.end, self.step, self.consolidationFunc, self.valuesPerPoint, self.options) ==
-              (other.name, other.start, other.end, other.step, other.consolidationFunc, other.valuesPerPoint, other.options)) and list.__eq__(self, other) and color_check
-    return False
+    if hasattr(self, 'color'):
+      if not hasattr(other, 'color') or (self.color != other.color):
+        return False
+    elif hasattr(other, 'color'):
+      return False
+
+    return ((self.name, self.start, self.end, self.step, self.consolidationFunc, self.valuesPerPoint, self.options, self.xFilesFactor) ==
+      (other.name, other.start, other.end, other.step, other.consolidationFunc, other.valuesPerPoint, other.options, other.xFilesFactor)) and list.__eq__(self, other)
 
 
   def __iter__(self):
@@ -92,28 +91,35 @@ class TimeSeries(list):
       cf = self.__consolidation_functions[self.consolidationFunc]
     except KeyError:
       raise Exception("Invalid consolidation function: '%s'" % self.consolidationFunc)
-    buf = []    # only the not-None values
+
+    buf = []  # only the not-None values
     valcnt = 0
+
     for x in gen:
       valcnt += 1
       if x is not None:
         buf.append(x)
+
       if valcnt == self.valuesPerPoint:
-        valcnt = 0
-        if buf:
+        if buf and (len(buf) / self.valuesPerPoint) >= self.xFilesFactor:
           yield cf(buf)
-          buf = []
         else:
           yield None
-    if buf:
-      yield cf(buf)
-    elif valcnt > 0:
-      yield None
+        buf = []
+        valcnt = 0
+
+    if valcnt > 0:
+      if buf and (len(buf) / self.valuesPerPoint) >= self.xFilesFactor:
+        yield cf(buf)
+      else:
+        yield None
+
     raise StopIteration
 
 
   def __repr__(self):
-    return 'TimeSeries(name=%s, start=%s, end=%s, step=%s)' % (self.name, self.start, self.end, self.step)
+    return 'TimeSeries(name=%s, start=%s, end=%s, step=%s, valuesPerPoint=%s, consolidationFunc=%s, xFilesFactor=%s)' % (
+      self.name, self.start, self.end, self.step, self.valuesPerPoint, self.consolidationFunc, self.xFilesFactor)
 
 
   def getInfo(self):
@@ -125,7 +131,23 @@ class TimeSeries(list):
       'step' : self.step,
       'values' : list(self),
       'pathExpression' : self.pathExpression,
+      'valuesPerPoint' : self.valuesPerPoint,
+      'consolidationFunc': self.consolidationFunc,
+      'xFilesFactor' : self.xFilesFactor,
     }
+
+
+  def copy(self, name=None, start=None, end=None, step=None, values=None, consolidate=None, tags=None, xFilesFactor=None):
+    return TimeSeries(
+      name if name is not None else self.name,
+      start if start is not None else self.start,
+      end if end is not None else self.end,
+      step if step is not None else self.step,
+      values if values is not None else self.values,
+      consolidate=consolidate if consolidate is not None else self.consolidationFunc,
+      tags=tags if tags is not None else self.tags,
+      xFilesFactor=xFilesFactor if xFilesFactor is not None else self.xFilesFactor
+    )
 
 
 @logtime()

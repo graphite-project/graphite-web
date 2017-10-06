@@ -13,6 +13,14 @@ class TimeSeriesTest(TestCase):
       expected = TimeSeries("collectd.test-db.load.value", 0, 2, 1, ["a","b"])
       self.assertEqual(series, expected)
 
+    def test_TimeSeries_init_tag_parse(self):
+      series = TimeSeries("collectd.test-db.load.value;tag=value", 0, 2, 1, [1, 2])
+      self.assertEqual(series.tags, {'name': 'collectd.test-db.load.value', 'tag': 'value'})
+
+    def test_TimeSeries_init_tag_parse_fail(self):
+      series = TimeSeries("collectd.test-db.load.value;", 0, 2, 1, [1, 2])
+      self.assertEqual(series.tags, {'name': 'collectd.test-db.load.value;'})
+
     def test_TimeSeries_equal_list(self):
       values = range(0,100)
       series = TimeSeries("collectd.test-db.load.value", 0, len(values), 1, values)
@@ -46,7 +54,17 @@ class TimeSeriesTest(TestCase):
     def test_TimeSeries_getInfo(self):
       values = range(0,100)
       series = TimeSeries("collectd.test-db.load.value", 0, len(values), 1, values)
-      self.assertEqual(series.getInfo(), {'name': 'collectd.test-db.load.value', 'values': values, 'start': 0, 'step': 1, 'end': len(values), 'pathExpression': 'collectd.test-db.load.value'} )
+      self.assertEqual(series.getInfo(), {
+        'name': 'collectd.test-db.load.value',
+        'values': values,
+        'start': 0,
+        'step': 1,
+        'end': len(values),
+        'pathExpression': 'collectd.test-db.load.value',
+        'valuesPerPoint': 1,
+        'consolidationFunc': 'average',
+        'xFilesFactor': 0,
+      })
 
     def test_TimeSeries_consolidate(self):
       values = range(0,100)
@@ -72,6 +90,27 @@ class TimeSeriesTest(TestCase):
       series.consolidate(2)
       self.assertEqual(series.valuesPerPoint, 2)
       expected = TimeSeries("collectd.test-db.load.value", 0, 5, 1, [None, None, None])
+
+      values = [None, None, None, None, None, 1, 2, 3, 4]
+
+      series = TimeSeries("collectd.test-db.load.value", 0, len(values)/2, 1, values, xFilesFactor=0.1)
+      self.assertEqual(series.valuesPerPoint, 1)
+      self.assertEqual(series.xFilesFactor, 0.1)
+
+      series.consolidate(2)
+      self.assertEqual(series.valuesPerPoint, 2)
+
+      expected = TimeSeries("collectd.test-db.load.value", 0, 5, 1, [None, None, 1, 2.5, 4])
+      self.assertEqual(list(series), list(expected))
+
+      series.xFilesFactor = 0.5
+      self.assertEqual(list(series), list(expected))
+
+      series.xFilesFactor = 0.500001
+      expected = TimeSeries("collectd.test-db.load.value", 0, 5, 1, [None, None, None, 2.5, None])
+      self.assertEqual(list(series), list(expected))
+
+      series.xFilesFactor = 1
       self.assertEqual(list(series), list(expected))
 
     def test_TimeSeries_iterate_valuesPerPoint_2_avg(self):
@@ -104,6 +143,10 @@ class TimeSeriesTest(TestCase):
       series.consolidate(3)
       self.assertEqual(series.valuesPerPoint, 3)
       expected = TimeSeries("collectd.test-db.load.value", 0, 5, 1, range(3,300,9) + [99])
+      self.assertEqual(list(series), list(expected))
+
+      series.xFilesFactor = 0.4
+      expected = TimeSeries("collectd.test-db.load.value", 0, 5, 1, range(3,300,9) + [None])
       self.assertEqual(list(series), list(expected))
 
     def test_TimeSeries_iterate_valuesPerPoint_2_max(self):

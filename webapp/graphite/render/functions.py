@@ -22,7 +22,7 @@ import re
 import time
 
 from datetime import datetime, timedelta
-from itertools import izip, imap
+from itertools import izip
 from os import environ
 
 from graphite.logger import log
@@ -87,8 +87,15 @@ def safeSubtract(a,b):
     if a is None or b is None: return None
     return float(a) - float(b)
 
-def safeAvg(a):
-  return safeDiv(safeSum(a),safeLen(a))
+def safeAvg(values):
+  safeValues = [v for v in values if v is not None]
+  if safeValues:
+    return sum(safeValues) / len(safeValues)
+
+def safeMedian(values):
+  safeValues = [v for v in values if v is not None]
+  if safeValues:
+    return sorted(safeValues)[len(safeValues) // 2]
 
 def safeStdDev(a):
   sm = safeSum(a)
@@ -140,6 +147,17 @@ def lcm(a, b):
   if a < b: (a, b) = (b, a) #ensure a > b
   return a // gcd(a,b) * b
 
+# check list of values against xFilesFactor
+def xffValues(values, xFilesFactor):
+  if not values:
+    return False
+  return xff(len([v for v in values if v is not None]), len(values), xFilesFactor)
+
+def xff(nonNull, total, xFilesFactor):
+  if not total:
+    return False
+  return nonNull / total >= (xFilesFactor or 0)
+
 def normalize(seriesLists):
   if seriesLists:
     seriesList = reduce(lambda L1,L2: L1+L2,seriesLists)
@@ -175,6 +193,65 @@ def formatPathExpressions(seriesList):
 #in practice this *shouldn't* matter because all series will cover
 #the same interval, despite having possibly different steps...
 
+def aggregate(requestContext, seriesList, func, xFilesFactor=None):
+  """
+  Aggregate series using the specified function.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=aggregate(host.cpu-[0-7].cpu-{user,system}.value, "sum")
+
+  This would be the equivalent of
+
+  .. code-block:: none
+
+    &target=sumSeries(host.cpu-[0-7].cpu-{user,system}.value)
+
+  This function can be used with aggregation functions ``average``, ``median``, ``sum``, ``min``,
+  ``max``, ``diff``, ``stddev``, ``range`` & ``multiply``.
+  """
+  # strip Series from func if func was passed like sumSeries
+  rawFunc = func
+  if func[-6:] == 'Series':
+    func = func[:-6]
+
+  if func == 'average':
+    consolidateFunc = safeAvg
+  elif func == 'median':
+    consolidateFunc = safeMedian
+  elif func == 'sum':
+    consolidateFunc = safeSum
+  elif func == 'min':
+    consolidateFunc = safeMin
+  elif func == 'max':
+    consolidateFunc = safeMax
+  elif func == 'diff':
+    consolidateFunc = safeDiff
+  elif func == 'stddev':
+    consolidateFunc = safeStdDev
+  elif func == 'rangeOf' or func == 'range':
+    consolidateFunc = lambda row: safeSubtract(max(row), min(row))
+  elif func == 'multiply':
+    consolidateFunc = lambda row: safeMul(*row)
+  else:
+    raise Exception('Unsupported aggregation function: %s' % (rawFunc))
+
+  # if seriesLists is actually a single series then wrap it for normalize
+  if isinstance(seriesList[0], TimeSeries):
+    seriesList = [seriesList]
+
+  try:
+    (seriesList,start,end,step) = normalize(seriesList)
+  except:
+    return []
+  xFilesFactor = xFilesFactor if xFilesFactor is not None else requestContext.get('xFilesFactor', 0)
+  name = "%sSeries(%s)" % (func, formatPathExpressions(seriesList))
+  values = ( consolidateFunc(row) if xffValues(row, xFilesFactor) else None for row in izip(*seriesList) )
+  series = TimeSeries(name,start,end,step,values)
+  return [series]
+
 def sumSeries(requestContext, *seriesLists):
   """
   Short form: sum()
@@ -193,15 +270,9 @@ def sumSeries(requestContext, *seriesLists):
   retention rates are combined, the coarsest metric is graphed, and the sum
   of the other metrics is averaged for the metrics with finer retention rates.
 
+  This is an alias for :py:func:`aggregate <aggregate>` with aggregation ``sum``.
   """
-  try:
-    (seriesList,start,end,step) = normalize(seriesLists)
-  except:
-    return []
-  name = "sumSeries(%s)" % formatPathExpressions(seriesList)
-  values = ( safeSum(row) for row in izip(*seriesList) )
-  series = TimeSeries(name,start,end,step,values)
-  return [series]
+  return aggregate(requestContext, seriesLists, 'sum')
 
 def sumSeriesWithWildcards(requestContext, seriesList, *position): #XXX
   """
@@ -219,9 +290,9 @@ def sumSeriesWithWildcards(requestContext, seriesList, *position): #XXX
 
     &target=sumSeries(host.cpu-[0-7].cpu-user.value)&target=sumSeries(host.cpu-[0-7].cpu-system.value)
 
-  This is an alias for :py:func:`aggregateWithWildcards <aggregateWithWildcards>` with callback :py:func:`sumSeries <sumSeries>`.
+  This is an alias for :py:func:`aggregateWithWildcards <aggregateWithWildcards>` with aggregation ``sum``.
   """
-  return aggregateWithWildcards(requestContext, seriesList, 'sumSeries', *position)
+  return aggregateWithWildcards(requestContext, seriesList, 'sum', *position)
 
 def averageSeriesWithWildcards(requestContext, seriesList, *position): #XXX
   """
@@ -239,9 +310,9 @@ def averageSeriesWithWildcards(requestContext, seriesList, *position): #XXX
 
     &target=averageSeries(host.*.cpu-user.value)&target=averageSeries(host.*.cpu-system.value)
 
-  This is an alias for :py:func:`aggregateWithWildcards <aggregateWithWildcards>` with callback :py:func:`averageSeries <averageSeries>`.
+  This is an alias for :py:func:`aggregateWithWildcards <aggregateWithWildcards>` with aggregation ``average``.
   """
-  return aggregateWithWildcards(requestContext, seriesList, 'averageSeries', *position)
+  return aggregateWithWildcards(requestContext, seriesList, 'average', *position)
 
 def multiplySeriesWithWildcards(requestContext, seriesList, *position): #XXX
   """
@@ -259,11 +330,11 @@ def multiplySeriesWithWildcards(requestContext, seriesList, *position): #XXX
 
     &target=multiplySeries(web.host-0.{avg-response,total-request}.value)&target=multiplySeries(web.host-1.{avg-response,total-request}.value)...
 
-  This is an alias for :py:func:`aggregateWithWildcards <aggregateWithWildcards>` with callback :py:func:`multiplySeries <multiplySeries>`.
+  This is an alias for :py:func:`aggregateWithWildcards <aggregateWithWildcards>` with aggregation ``multiply``.
   """
-  return aggregateWithWildcards(requestContext, seriesList, 'multiplySeries', *position)
+  return aggregateWithWildcards(requestContext, seriesList, 'multiply', *position)
 
-def aggregateWithWildcards(requestContext, seriesList, callback, *positions):
+def aggregateWithWildcards(requestContext, seriesList, func, *positions):
   """
   Call aggregator after inserting wildcards at the given position(s).
 
@@ -271,19 +342,19 @@ def aggregateWithWildcards(requestContext, seriesList, callback, *positions):
 
   .. code-block:: none
 
-    &target=aggregateWithWildcards(host.cpu-[0-7].cpu-{user,system}.value, "sumSeries", 1)
+    &target=aggregateWithWildcards(host.cpu-[0-7].cpu-{user,system}.value, "sum", 1)
 
   This would be the equivalent of
 
   .. code-block:: none
 
     &target=sumSeries(host.cpu-[0-7].cpu-user.value)&target=sumSeries(host.cpu-[0-7].cpu-system.value)
+    # or
+    &target=aggregate(host.cpu-[0-7].cpu-user.value,"sum")&target=aggregate(host.cpu-[0-7].cpu-system.value,"sum")
 
-  This function can be used with :py:func:`sumSeries <sumSeries>`,
-  :py:func:`averageSeries <averageSeries>`, :py:func:`multiplySeries <multiplySeries>`,
-  :py:func:`diffSeries <diffSeries>`, :py:func:`stddevSeries <stddevSeries>`,
-  :py:func:`minSeries <minSeries>`, :py:func:`maxSeries <maxSeries>` &
-  :py:func:`rangeOfSeries <rangeOfSeries>`.
+  This function can be used with all aggregation functions supported by
+  :py:func:`aggregate <aggregate>`: ``average``, ``median``, ``sum``, ``min``, ``max``, ``diff``,
+  ``stddev``, ``range`` & ``multiply``.
 
   This complements :py:func:`groupByNodes <groupByNodes>` which takes a list of nodes that must match in each group.
   """
@@ -297,7 +368,7 @@ def aggregateWithWildcards(requestContext, seriesList, callback, *positions):
     else:
       metaSeries[key].append(series)
   for key in metaSeries.keys():
-    metaSeries[key] = SeriesFunctions[callback](requestContext, metaSeries[key])[0]
+    metaSeries[key] = aggregate(requestContext, metaSeries[key], func)[0]
     metaSeries[key].name = key
   return [ metaSeries[key] for key in keys ]
 
@@ -322,12 +393,9 @@ def diffSeries(requestContext, *seriesLists):
 
     &target=offset(diffSeries(service.connections.total,service.connections.failed),-4)
 
+  This is an alias for :py:func:`aggregate <aggregate>` with aggregation ``diff``.
   """
-  (seriesList,start,end,step) = normalize(seriesLists)
-  name = "diffSeries(%s)" % formatPathExpressions(seriesList)
-  values = ( safeDiff(row) for row in izip(*seriesList) )
-  series = TimeSeries(name,start,end,step,values)
-  return [series]
+  return aggregate(requestContext, seriesLists, 'diff')
 
 def averageSeries(requestContext, *seriesLists):
   """
@@ -342,12 +410,9 @@ def averageSeries(requestContext, *seriesLists):
 
     &target=averageSeries(company.server.*.threads.busy)
 
+  This is an alias for :py:func:`aggregate <aggregate>` with aggregation ``average``.
   """
-  (seriesList,start,end,step) = normalize(seriesLists)
-  name = "averageSeries(%s)" % formatPathExpressions(seriesList)
-  values = ( safeDiv(safeSum(row),safeLen(row)) for row in izip(*seriesList) )
-  series = TimeSeries(name,start,end,step,values)
-  return [series]
+  return aggregate(requestContext, seriesLists, 'average')
 
 def stddevSeries(requestContext, *seriesLists):
   """
@@ -361,12 +426,9 @@ def stddevSeries(requestContext, *seriesLists):
 
     &target=stddevSeries(company.server.*.threads.busy)
 
+  This is an alias for :py:func:`aggregate <aggregate>` with aggregation ``stddev``.
   """
-  (seriesList,start,end,step) = normalize(seriesLists)
-  name = "stddevSeries(%s)" % formatPathExpressions(seriesList)
-  values = ( safeStdDev(row) for row in izip(*seriesList) )
-  series = TimeSeries(name,start,end,step,values)
-  return [series]
+  return aggregate(requestContext, seriesLists, 'stddev')
 
 def minSeries(requestContext, *seriesLists):
   """
@@ -378,12 +440,10 @@ def minSeries(requestContext, *seriesLists):
   .. code-block:: none
 
     &target=minSeries(Server*.connections.total)
+
+  This is an alias for :py:func:`aggregate <aggregate>` with aggregation ``min``.
   """
-  (seriesList, start, end, step) = normalize(seriesLists)
-  name = "minSeries(%s)" % formatPathExpressions(seriesList)
-  values = ( safeMin(row) for row in izip(*seriesList) )
-  series = TimeSeries(name, start, end, step, values)
-  return [series]
+  return aggregate(requestContext, seriesLists, 'min')
 
 def maxSeries(requestContext, *seriesLists):
   """
@@ -396,30 +456,24 @@ def maxSeries(requestContext, *seriesLists):
 
     &target=maxSeries(Server*.connections.total)
 
+  This is an alias for :py:func:`aggregate <aggregate>` with aggregation ``max``.
   """
-  (seriesList, start, end, step) = normalize(seriesLists)
-  name = "maxSeries(%s)" % formatPathExpressions(seriesList)
-  values = ( safeMax(row) for row in izip(*seriesList) )
-  series = TimeSeries(name, start, end, step, values)
-  return [series]
+  return aggregate(requestContext, seriesLists, 'max')
 
 def rangeOfSeries(requestContext, *seriesLists):
-    """
-    Takes a wildcard seriesList.
-    Distills down a set of inputs into the range of the series
+  """
+  Takes a wildcard seriesList.
+  Distills down a set of inputs into the range of the series
 
-    Example:
+  Example:
 
-    .. code-block:: none
+  .. code-block:: none
 
-        &target=rangeOfSeries(Server*.connections.total)
+      &target=rangeOfSeries(Server*.connections.total)
 
-    """
-    (seriesList,start,end,step) = normalize(seriesLists)
-    name = "rangeOfSeries(%s)" % formatPathExpressions(seriesList)
-    values = ( safeSubtract(max(row), min(row)) for row in izip(*seriesList) )
-    series = TimeSeries(name,start,end,step,values)
-    return [series]
+  This is an alias for :py:func:`aggregate <aggregate>` with aggregation ``rangeOf``.
+  """
+  return aggregate(requestContext, seriesLists, 'rangeOf')
 
 def percentileOfSeries(requestContext, seriesList, n, interpolate=False):
   """
@@ -823,18 +877,13 @@ def multiplySeries(requestContext, *seriesLists):
 
     &target=multiplySeries(Series.dividends,Series.divisors)
 
-
+  This is an alias for :py:func:`aggregate <aggregate>` with aggregation ``multiply``.
   """
+  # special handling for legacy multiplySeries behavior with a single series
+  if len(seriesLists) == 1 and len(seriesLists[0]) == 1:
+    return seriesLists[0]
 
-  (seriesList,start,end,step) = normalize(seriesLists)
-
-  if len(seriesList) == 1:
-    return seriesList
-
-  name = "multiplySeries(%s)" % ','.join([s.name for s in seriesList])
-  product = imap(lambda x: safeMul(*x), izip(*seriesList))
-  resultSeries = TimeSeries(name, start, end, step, product)
-  return [ resultSeries ]
+  return aggregate(requestContext, seriesLists, 'multiply')
 
 def weightedAverage(requestContext, seriesListAvg, seriesListWeight, *nodes):
   """
@@ -916,6 +965,12 @@ def movingWindow(requestContext, seriesList, windowSize, func='average', xFilesF
     &target=movingWindow(Server.instance01.threads.busy,10)
     &target=movingWindow(Server.instance*.threads.idle,'5min','median',0.5)
 
+  .. note::
+
+    `xFilesFactor` follows the same semantics as in Whisper storage schemas.  Setting it to 0 (the
+    default) means that only a single value in a given interval needs to be non-null, setting it to
+    1 means that all values in the interval must be non-null.  A setting of 0.5 means that at least
+    half the values in the interval must be non-null.
   """
   if not seriesList:
     return []
@@ -957,15 +1012,17 @@ def movingWindow(requestContext, seriesList, windowSize, func='average', xFilesF
       windowPoints = int(windowSize)
 
     series.tags[tagName] = windowSize
-    newSeries = TimeSeries(newName, series.start + previewSeconds, series.end, series.step, [], tags=series.tags)
+    newSeries = series.copy(name=newName, start=series.start + previewSeconds, values=[])
+
+    effectiveXFF = xFilesFactor if xFilesFactor is not None else series.xFilesFactor
 
     for i in range(windowPoints, len(series)):
       nonNull = [v for v in series[i - windowPoints:i] if v is not None]
 
-      if not nonNull or (xFilesFactor and len(nonNull) / windowPoints < xFilesFactor):
-        val = None
-      else:
+      if nonNull and xff(len(nonNull), windowPoints, effectiveXFF):
         val = consolidateFunc(nonNull)
+      else:
+        val = None
       newSeries.append(val)
 
     result.append(newSeries)
@@ -1024,7 +1081,7 @@ def exponentialMovingAverage(requestContext, seriesList, windowSize):
       windowPoints = int(windowSize)
 
     series.tags['exponentialMovingAverage'] = windowSize
-    newSeries = TimeSeries(newName, series.start + previewSeconds, series.end, series.step, [], tags=series.tags)
+    newSeries = series.copy(name=newName, start=series.start + previewSeconds, values=[])
 
     ema = safeAvg(series[:windowPoints]) or 0
     newSeries.append(round(ema, 6))
@@ -1407,7 +1464,7 @@ def consolidateBy(requestContext, seriesList, consolidationFunc):
   """
   Takes one metric or a wildcard seriesList and a consolidation function name.
 
-  Valid function names are 'sum', 'average', 'min', and 'max'.
+  Valid function names are 'sum', 'average', 'min', 'max', 'first' & 'last'.
 
   When a graph is drawn where width of the graph size in pixels is smaller than
   the number of datapoints to be graphed, Graphite consolidates the values to
@@ -1428,6 +1485,37 @@ def consolidateBy(requestContext, seriesList, consolidationFunc):
     series.tags['consolidateBy'] = consolidationFunc
     series.name = 'consolidateBy(%s,"%s")' % (series.name, series.consolidationFunc)
     series.pathExpression = series.name
+  return seriesList
+
+def setXFilesFactor(requestContext, seriesList, xFilesFactor):
+  """
+  Short form: xFilesFactor()
+
+  Takes one metric or a wildcard seriesList and an xFilesFactor value between 0 and 1
+
+  When a series needs to be consolidated, this sets the fraction of values in an interval that must
+  not be null for the consolidation to be considered valid.  If there are not enough values then
+  None will be returned for that interval.
+
+  .. code-block:: none
+
+    &target=xFilesFactor(Sales.widgets.largeBlue, 0.5)
+    &target=Servers.web01.sda1.free_space|consolidateBy('max')|xFilesFactor(0.5)
+
+  The `xFilesFactor` set via this function is used as the default for all functions that accept an
+  `xFilesFactor` parameter, all functions that aggregate data across multiple
+
+  .. note::
+
+    `xFilesFactor` follows the same semantics as in Whisper storage schemas.  Setting it to 0 (the
+    default) means that only a single value in a given interval needs to be non-null, setting it to
+    1 means that all values in the interval must be non-null.  A setting of 0.5 means that at least
+    half the values in the interval must be non-null.
+  """
+  requestContext['xFilesFactor'] = xFilesFactor
+  for series in seriesList:
+    series.xFilesFactor = xFilesFactor
+    series.tags['xFilesFactor'] = xFilesFactor
   return seriesList
 
 def derivative(requestContext, seriesList):
@@ -1462,7 +1550,7 @@ def derivative(requestContext, seriesList):
       prev = val
     series.tags['derivative'] = 1
     newName = "derivative(%s)" % series.name
-    newSeries = TimeSeries(newName, series.start, series.end, series.step, newValues, tags=series.tags)
+    newSeries = series.copy(name=newName, values=newValues)
     results.append(newSeries)
   return results
 
@@ -1510,7 +1598,7 @@ def perSecond(requestContext, seriesList, maxValue=None):
       prev = val
     series.tags['perSecond'] = 1
     newName = "perSecond(%s)" % series.name
-    newSeries = TimeSeries(newName, series.start, series.end, series.step, newValues, tags=series.tags)
+    newSeries = series.copy(name=newName, values=newValues)
     results.append(newSeries)
   return results
 
@@ -1546,7 +1634,7 @@ def delay(requestContext, seriesList, steps):
       prev.append(val)
     series.tags['delay'] = steps
     newName = "delay(%s,%d)" % (series.name, steps)
-    newSeries = TimeSeries(newName, series.start, series.end, series.step, newValues, tags=series.tags)
+    newSeries = series.copy(name=newName, values=newValues)
     results.append(newSeries)
   return results
 
@@ -1577,7 +1665,7 @@ def integral(requestContext, seriesList):
         newValues.append(current)
     series.tags['integral'] = 1
     newName = "integral(%s)" % series.name
-    newSeries = TimeSeries(newName, series.start, series.end, series.step, newValues, tags=series.tags)
+    newSeries = series.copy(name=newName, values=newValues)
     results.append(newSeries)
   return results
 
@@ -1617,7 +1705,7 @@ def integralByInterval(requestContext, seriesList, intervalUnit):
       currentTime += series.step
     series.tags['integralByInterval'] = intervalUnit
     newName = "integralByInterval(%s,'%s')" % (series.name, intervalUnit)
-    newSeries = TimeSeries(newName, series.start, series.end, series.step, newValues, tags=series.tags)
+    newSeries = series.copy(name=newName, values=newValues)
     results.append(newSeries)
   return results
 
@@ -1660,7 +1748,7 @@ def nonNegativeDerivative(requestContext, seriesList, maxValue=None):
 
     series.tags['nonNegativeDerivative'] = 1
     newName = "nonNegativeDerivative(%s)" % series.name
-    newSeries = TimeSeries(newName, series.start, series.end, series.step, newValues, tags=series.tags)
+    newSeries = series.copy(name=newName, values=newValues)
     results.append(newSeries)
 
   return results
@@ -1706,7 +1794,7 @@ def stacked(requestContext,seriesLists,stackName='__DEFAULT__'):
     else:
       newName = series.name
 
-    newSeries = TimeSeries(newName, series.start, series.end, series.step, newValues, tags=series.tags)
+    newSeries = series.copy(name=newName, values=newValues)
     newSeries.options['stacked'] = True
     results.append(newSeries)
   requestContext['totalStack'][stackName] = totalStack
@@ -2050,7 +2138,7 @@ def logarithm(requestContext, seriesList, base=10):
         newValues.append(math.log(val, base))
     series.tags['log'] = base
     newName = "log(%s, %s)" % (series.name, base)
-    newSeries = TimeSeries(newName, series.start, series.end, series.step, newValues, tags=series.tags)
+    newSeries = series.copy(name=newName, values=newValues)
     results.append(newSeries)
   return results
 
@@ -2353,7 +2441,7 @@ def nPercentile(requestContext, seriesList, n):
   results = []
   for s in seriesList:
     # Create a sorted copy of the TimeSeries excluding None values in the values list.
-    s_copy = TimeSeries( s.name, s.start, s.end, s.step, sorted( [item for item in s if item is not None] ), tags=s.tags)
+    s_copy = s.copy(values=sorted( [item for item in s if item is not None] ))
     if not s_copy:
       continue  # Skip this series because it is empty.
 
@@ -2362,7 +2450,7 @@ def nPercentile(requestContext, seriesList, n):
       s_copy.tags['nPercentile'] = n
       name = 'nPercentile(%s, %g)' % (s_copy.name, n)
       point_count = int((s.end - s.start)/s.step)
-      perc_series = TimeSeries(name, s_copy.start, s_copy.end, s_copy.step, [perc_val] * point_count, tags=s_copy.tags)
+      perc_series = s_copy.copy(name=name, values=[perc_val] * point_count)
       results.append(perc_series)
   return results
 
@@ -2651,7 +2739,7 @@ def stdev(requestContext, seriesList, points, windowTolerance=0.1):
   for (seriesIndex,series) in enumerate(seriesList):
     series.tags['stdev'] = points
     name = "stdev(%s,%d)" % (series.name, int(points))
-    stdevSeries = TimeSeries(name, series.start, series.end, series.step, [], tags=series.tags)
+    stdevSeries = series.copy(name=name, values=[])
 
     validPoints = 0
     currentSum = 0
@@ -3666,20 +3754,18 @@ def groupByNodes(requestContext, seriesList, callback, *nodes):
 
   .. code-block:: none
 
-    &target=groupByNodes(ganglia.server*.*.cpu.load*,"sumSeries",1,4)
+    &target=groupByNodes(ganglia.server*.*.cpu.load*,"sum",1,4)
 
-  Would return multiple series which are each the result of applying the "sumSeries" function
+  Would return multiple series which are each the result of applying the "sum" aggregation
   to groups joined on the nodes' list (0 indexed) resulting in a list of targets like
 
   .. code-block :: none
 
     sumSeries(ganglia.server1.*.cpu.load5),sumSeries(ganglia.server1.*.cpu.load10),sumSeries(ganglia.server1.*.cpu.load15),sumSeries(ganglia.server2.*.cpu.load5),sumSeries(ganglia.server2.*.cpu.load10),sumSeries(ganglia.server2.*.cpu.load15),...
 
-  This function can be used with :py:func:`sumSeries <sumSeries>`,
-  :py:func:`averageSeries <averageSeries>`, :py:func:`multiplySeries <multiplySeries>`,
-  :py:func:`diffSeries <diffSeries>`, :py:func:`stddevSeries <stddevSeries>`,
-  :py:func:`minSeries <minSeries>`, :py:func:`maxSeries <maxSeries>` &
-  :py:func:`rangeOfSeries <rangeOfSeries>`.
+  This function can be used with all aggregation functions supported by
+  :py:func:`aggregate <aggregate>`: ``average``, ``median``, ``sum``, ``min``, ``max``, ``diff``,
+  ``stddev``, ``range`` & ``multiply``.
 
   This complements :py:func:`aggregateWithWildcards <aggregateWithWildcards>` which takes a list of wildcard nodes.
   """
@@ -3693,7 +3779,10 @@ def groupByNodes(requestContext, seriesList, callback, *nodes):
     else:
       metaSeries[key].append(series)
   for key in metaSeries.keys():
-    metaSeries[key] = SeriesFunctions[callback](requestContext, metaSeries[key])[0]
+    if callback in SeriesFunctions:
+      metaSeries[key] = SeriesFunctions[callback](requestContext, metaSeries[key])[0]
+    else:
+      metaSeries[key] = aggregate(requestContext, metaSeries[key], callback)[0]
     metaSeries[key].name = key
   return [ metaSeries[key] for key in keys ]
 
@@ -3761,55 +3850,17 @@ def smartSummarize(requestContext, seriesList, intervalString, func='sum', align
       # Ignore the originally fetched data and pull new using the modified requestContext
       seriesList = evaluateTokens(requestContext, requestContext['args'][0])
 
+  results = []
   delta = parseTimeOffset(intervalString)
   interval = delta.seconds + (delta.days * 86400)
-  results = []
+
   for series in seriesList:
-    timestamps = range( int(series.start), int(series.end), int(series.step) )
-    datapoints = list(series)
-
-    i = 0
-    numPoints = len(timestamps)
-
-    bucketIndex = 0
-    newValues = []
-    timestamp_ = series.start
-    while timestamp_ < series.end:
-      newValue = None
-
-      while i < numPoints and timestamps[i] < timestamp_ + interval:
-        if timestamps[i] >= timestamp_ and datapoints[i] is not None:
-          if func == 'avg':
-            if newValue:
-              newValue[0] += datapoints[i]
-              newValue[1] += 1
-            else:
-              newValue = [datapoints[i], 1]
-          elif func == 'last':
-            newValue = datapoints[i]
-          elif func == 'max':
-            if newValue is None or datapoints[i] > newValue:
-              newValue = datapoints[i]
-          elif func == 'min':
-            if newValue is None or datapoints[i] < newValue:
-              newValue = datapoints[i]
-          else:
-            newValue = (newValue or 0) + datapoints[i]
-
-        i += 1
-
-      if func == 'avg' and newValue:
-        newValue = float(newValue[0]) / float(newValue[1])
-
-      newValues.append(newValue)
-
-      timestamp_ += interval
+    (newValues, alignedEnd) = _summarizeValues(series, func, interval)
 
     series.tags['smartSummarize'] = intervalString
     series.tags['smartSummarizeFunction'] = func
     newName = "smartSummarize(%s, \"%s\", \"%s\")" % (series.name, intervalString, func)
-    alignedEnd = timestamp_
-    newSeries = TimeSeries(newName, series.start, alignedEnd, interval, newValues, tags=series.tags)
+    newSeries = series.copy(name=newName, end=alignedEnd, step=interval, values=newValues)
     results.append(newSeries)
 
   return results
@@ -3850,9 +3901,6 @@ def summarize(requestContext, seriesList, intervalString, func='sum', alignToFro
   interval = delta.seconds + (delta.days * 86400)
 
   for series in seriesList:
-    timestamps = range( int(series.start), int(series.end), int(series.step) )
-    datapoints = list(series)
-
     if alignToFrom:
       newStart = series.start
       newEnd = series.end
@@ -3860,52 +3908,72 @@ def summarize(requestContext, seriesList, intervalString, func='sum', alignToFro
       newStart = series.start - (series.start % interval)
       newEnd = series.end - (series.end % interval) + interval
 
-    i = 0
-    numPoints = len(timestamps)
-
-    newValues = []
-    timestamp_ = newStart
-    while timestamp_ < newEnd:
-      newValue = None
-
-      while i < numPoints and timestamps[i] < timestamp_ + interval:
-        if timestamps[i] >= timestamp_ and datapoints[i] is not None:
-          if func == 'avg':
-            if newValue:
-              newValue[0] += datapoints[i]
-              newValue[1] += 1
-            else:
-              newValue = [datapoints[i], 1]
-          elif func == 'last':
-            newValue = datapoints[i]
-          elif func == 'max':
-            if newValue is None or datapoints[i] > newValue:
-              newValue = datapoints[i]
-          elif func == 'min':
-            if newValue is None or datapoints[i] < newValue:
-              newValue = datapoints[i]
-          else:
-            newValue = (newValue or 0) + datapoints[i]
-
-        i += 1
-
-      if func == 'avg' and newValue:
-        newValue = float(newValue[0]) / float(newValue[1])
-
-      newValues.append(newValue)
-
-      timestamp_ += interval
+    (newValues, alignedEnd) = _summarizeValues(series, func, interval, newStart, newEnd)
 
     if alignToFrom:
-      newEnd = timestamp_
+      newEnd = alignedEnd
 
     series.tags['summarize'] = intervalString
     series.tags['summarizeFunction'] = func
     newName = "summarize(%s, \"%s\", \"%s\"%s)" % (series.name, intervalString, func, alignToFrom and ", true" or "")
-    newSeries = TimeSeries(newName, newStart, newEnd, interval, newValues, tags=series.tags)
+    newSeries = series.copy(name=newName, start=newStart, end=newEnd, step=interval, values=newValues)
     results.append(newSeries)
 
   return results
+
+def _summarizeValues(series, func, interval, newStart=None, newEnd=None):
+  if newStart is None:
+    newStart = series.start
+  if newEnd is None:
+    newEnd = series.end
+
+  timestamps = range( int(series.start), int(series.end), int(series.step) )
+  datapoints = list(series)
+  intervalPoints = interval / series.step
+
+  i = 0
+  numPoints = len(timestamps)
+
+  newValues = []
+  timestamp_ = newStart
+  while timestamp_ < newEnd:
+    newValue = None
+    nonNull = 0
+
+    while i < numPoints and timestamps[i] < timestamp_ + interval:
+      if timestamps[i] >= timestamp_ and datapoints[i] is not None:
+        nonNull += 1
+
+        if func == 'avg':
+          if newValue:
+            newValue[0] += datapoints[i]
+            newValue[1] += 1
+          else:
+            newValue = [datapoints[i], 1]
+        elif func == 'last':
+          newValue = datapoints[i]
+        elif func == 'max':
+          if newValue is None or datapoints[i] > newValue:
+            newValue = datapoints[i]
+        elif func == 'min':
+          if newValue is None or datapoints[i] < newValue:
+            newValue = datapoints[i]
+        else:
+          newValue = (newValue or 0) + datapoints[i]
+
+      i += 1
+
+    if func == 'avg' and newValue:
+      newValue = float(newValue[0]) / float(newValue[1])
+
+    if xff(nonNull, intervalPoints, series.xFilesFactor):
+      newValues.append(newValue)
+    else:
+      newValues.append(None)
+
+    timestamp_ += interval
+
+  return (newValues, timestamp_)
 
 def hitcount(requestContext, seriesList, intervalString, alignToInterval = False):
   """
@@ -3984,7 +4052,7 @@ def hitcount(requestContext, seriesList, intervalString, alignToInterval = False
 
     series.tags['hitcount'] = intervalString
     newName = 'hitcount(%s, "%s"%s)' % (series.name, intervalString, alignToInterval and ", true" or "")
-    newSeries = TimeSeries(newName, newStart, series.end, interval, newValues, tags=series.tags)
+    newSeries = series.copy(name=newName, start=newStart, step=interval, values=newValues)
     results.append(newSeries)
 
   return results
@@ -4153,7 +4221,7 @@ def groupByTags(requestContext, seriesList, callback, *tags):
 
   .. code-block:: none
 
-    &target=seriesByTag("name=cpu")|groupByTags("averageSeries","dc")
+    &target=seriesByTag("name=cpu")|groupByTags("average","dc")
 
   Would return multiple series which are each the result of applying the "averageSeries" function
   to groups joined on the specified tags resulting in a list of targets like
@@ -4162,6 +4230,9 @@ def groupByTags(requestContext, seriesList, callback, *tags):
 
     averageSeries(seriesByTag("name=cpu","dc=dc1")),averageSeries(seriesByTag("name=cpu","dc=dc2")),...
 
+  This function can be used with all aggregation functions supported by
+  :py:func:`aggregate <aggregate>`: ``average``, ``median``, ``sum``, ``min``, ``max``, ``diff``,
+  ``stddev``, ``range`` & ``multiply``.
   """
   if STORE.tagdb is None:
     log.info('groupByTags called but no TagDB configured')
@@ -4190,8 +4261,10 @@ def groupByTags(requestContext, seriesList, callback, *tags):
       metaSeries[key].append(series)
 
   for key in metaSeries.keys():
-    metaSeries[key] = SeriesFunctions[callback](requestContext, metaSeries[key])[0]
-
+    if callback in SeriesFunctions:
+      metaSeries[key] = SeriesFunctions[callback](requestContext, metaSeries[key])[0]
+    else:
+      metaSeries[key] = aggregate(requestContext, metaSeries[key], callback)[0]
     metaSeries[key].name = key
     metaSeries[key].pathExpression = key
     metaSeries[key].tags = STORE.tagdb.parse(key).tags
@@ -4313,6 +4386,7 @@ SeriesFunctions = {
   'sumSeriesWithWildcards': sumSeriesWithWildcards,
   'averageSeriesWithWildcards': averageSeriesWithWildcards,
   'multiplySeriesWithWildcards': multiplySeriesWithWildcards,
+  'aggregate': aggregate,
   'aggregateWithWildcards': aggregateWithWildcards,
   'minSeries': minSeries,
   'maxSeries': maxSeries,
@@ -4415,6 +4489,8 @@ SeriesFunctions = {
   'alpha': alpha,
   'cumulative': cumulative,
   'consolidateBy': consolidateBy,
+  'setXFilesFactor': setXFilesFactor,
+  'xFilesFactor': setXFilesFactor,
   'keepLastValue': keepLastValue,
   'changed': changed,
   'drawAsInfinite': drawAsInfinite,

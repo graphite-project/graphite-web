@@ -180,6 +180,26 @@ class FunctionsTest(TestCase):
         self.assertEqual(functions.safeAvg([10,None,5,None]), 7.5)
 
     #
+    # Test safeMedian()
+    #
+
+    def test_safeMedian_None(self):
+        with self.assertRaises(TypeError):
+            functions.safeMedian(None)
+
+    def test_safeMedian_empty_list(self):
+        self.assertEqual(functions.safeMedian([]), None)
+
+    def test_safeMedian_all_numbers(self):
+        self.assertEqual(functions.safeMedian([1,2,3,4]), 3)
+
+    def test_safeMedian_all_None(self):
+        self.assertEqual(functions.safeMedian([None,None,None,None]), None)
+
+    def test_safeMedian_mixed(self):
+        self.assertEqual(functions.safeMedian([10,None,5,None]), 10)
+
+    #
     # Test safeStdDev()
     #
 
@@ -340,6 +360,35 @@ class FunctionsTest(TestCase):
 
     def test_lcm_10_5(self):
         self.assertEqual(functions.lcm(10,5), 10)
+
+    #
+    # Test xffValues()
+    #
+
+    def test_xffValues_None(self):
+        self.assertEqual(functions.xffValues(None, 0.5), False)
+
+    def test_xffValues_empty_list(self):
+        self.assertEqual(functions.xffValues([], 0.5), False)
+
+    def test_xffValues_all_numbers(self):
+        self.assertEqual(functions.xffValues([1,2,3,4], 0.5), True)
+
+    def test_xffValues_all_None(self):
+        self.assertEqual(functions.xffValues([None,None,None,None], 0.5), False)
+
+    def test_xffValues_mixed(self):
+        self.assertEqual(functions.xffValues([10,None,5,None], 0.5), True)
+
+    #
+    # Test xff()
+    #
+
+    def test_xff_None(self):
+        self.assertEqual(functions.xff(None, None, 0.5), False)
+
+    def test_xff(self):
+        self.assertEqual(functions.xff(1, 2, 0.5), True)
 
     #
     # Test normalize()
@@ -521,6 +570,26 @@ class FunctionsTest(TestCase):
         expectedList = [TimeSeries(expected_name, 0, len(data), 1, data)]
         result = functions.diffSeries({}, [seriesList[0], seriesList[1]])
         self.assertEqual(result, expectedList)
+
+    def test_aggregate_median(self):
+        seriesList = self._generate_series_list()
+        data = range(0,101)
+        expected_name = "medianSeries(collectd.test-db1.load.value,collectd.test-db2.load.value)"
+        expectedList = [TimeSeries(expected_name, 0, len(data), 1, data)]
+        result = functions.aggregate({}, [seriesList[0], seriesList[1]], 'median')
+        self.assertEqual(result, expectedList)
+
+    def test_aggregate_stripSeries(self):
+        seriesList = self._generate_series_list()
+        data = range(0,101)
+        expected_name = "medianSeries(collectd.test-db1.load.value,collectd.test-db2.load.value)"
+        expectedList = [TimeSeries(expected_name, 0, len(data), 1, data)]
+        result = functions.aggregate({}, [seriesList[0], seriesList[1]], 'medianSeries')
+        self.assertEqual(result, expectedList)
+
+    def test_aggregate_invalidFunc(self):
+        with self.assertRaisesRegexp(Exception, "Unsupported aggregation function: blahSeries"):
+            functions.aggregate({}, [], 'blahSeries')
 
     def test_averageSeries(self):
         seriesList = self._generate_series_list()
@@ -1233,6 +1302,21 @@ class FunctionsTest(TestCase):
         for func in avail_funcs:
             results = functions.consolidateBy({}, seriesList, func)
             self._verify_series_consolidationFunc(results, func)
+
+    def _verify_series_xFilesFactor(self, seriesList, value):
+        """
+        Verify the consolidationFunc is set to the specified value
+        """
+        for series in seriesList:
+            self.assertEqual(series.xFilesFactor, value)
+
+    def test_xFilesFactor(self):
+        seriesList = self._generate_series_list()
+        self._verify_series_xFilesFactor(seriesList, 0)
+        requestContext = {}
+        results = functions.setXFilesFactor(requestContext, seriesList, 0.5)
+        self._verify_series_xFilesFactor(results, 0.5)
+        self.assertEqual(requestContext['xFilesFactor'], 0.5)
 
     def test_weightedAverage(self):
         seriesList = self._gen_series_list_with_data(
@@ -3728,6 +3812,7 @@ class FunctionsTest(TestCase):
                 ),
                 seriesList, 10
             )
+        self.assertEqual(list(result[0]), list(expectedResults[0]))
         self.assertEqual(result, expectedResults)
 
     def test_movingAverage_evaluateTokens_returns_empty_list(self):
@@ -4922,6 +5007,36 @@ class FunctionsTest(TestCase):
           True
         )
         self.assertEqual(result, expectedResults[func])
+
+    def test_summarize_xFilesFactor(self):
+        seriesList = self._gen_series_list_with_data(
+            key='collectd.test-db0.load.value',
+            start=0,
+            end=250,
+            data=[1] * 100 + [None] * 60 + [1] * 90,
+        )
+
+        tests = [
+            (0, TimeSeries('summarize(collectd.test-db0.load.value, "1minute", "sum", true)', 0, 300, 60, [60, 40, 20, 60, 10], xFilesFactor=0)),
+            (0.1, TimeSeries('summarize(collectd.test-db0.load.value, "1minute", "sum", true)', 0, 300, 60, [60, 40, 20, 60, 10], xFilesFactor=0.1)),
+            (0.25, TimeSeries('summarize(collectd.test-db0.load.value, "1minute", "sum", true)', 0, 300, 60, [60, 40, 20, 60, None], xFilesFactor=0.25)),
+            (0.5, TimeSeries('summarize(collectd.test-db0.load.value, "1minute", "sum", true)', 0, 300, 60, [60, 40, None, 60, None], xFilesFactor=0.5)),
+            (0.75, TimeSeries('summarize(collectd.test-db0.load.value, "1minute", "sum", true)', 0, 300, 60, [60, None, None, 60, None], xFilesFactor=0.75)),
+            (1, TimeSeries('summarize(collectd.test-db0.load.value, "1minute", "sum", true)', 0, 300, 60, [60, None, None, 60, None], xFilesFactor=1)),
+        ]
+
+        for test in tests:
+            seriesList[0].xFilesFactor = test[0]
+            result = functions.summarize(
+              {},
+              seriesList,
+              "1minute",
+              'sum',
+              True
+            )
+            expectedResult = [test[1]]
+            self.assertEqual(list(result[0]), list(expectedResult[0]))
+            self.assertEqual(result, expectedResult)
 
     def test_exponentialMovingAverage_emptySeriesList(self):
         self.assertEqual(functions.exponentialMovingAverage({},[],""), [])
