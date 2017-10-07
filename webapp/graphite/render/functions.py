@@ -4251,6 +4251,7 @@ def groupByTags(requestContext, seriesList, callback, *tags):
     names = set([series.tags['name'] for series in seriesList])
     name = list(names)[0] if len(names) == 1 else callback
 
+  keys = []
   metaSeries = {}
   for series in seriesList:
     # key is the metric path for the new series
@@ -4261,10 +4262,11 @@ def groupByTags(requestContext, seriesList, callback, *tags):
 
     if key not in metaSeries:
       metaSeries[key] = [series]
+      keys.append(key)
     else:
       metaSeries[key].append(series)
 
-  for key in metaSeries.keys():
+  for key in keys:
     if callback in SeriesFunctions:
       metaSeries[key] = SeriesFunctions[callback](requestContext, metaSeries[key])[0]
     else:
@@ -4273,7 +4275,7 @@ def groupByTags(requestContext, seriesList, callback, *tags):
     metaSeries[key].pathExpression = key
     metaSeries[key].tags = STORE.tagdb.parse(key).tags
 
-  return metaSeries.values()
+  return [metaSeries[key] for key in keys]
 
 def aliasByTags(requestContext, seriesList, *tags):
   """

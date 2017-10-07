@@ -13,6 +13,8 @@ from graphite.render.datalib import TimeSeries
 from graphite.render import functions
 from graphite.render.functions import NormalizeEmptyResultError
 from graphite.render.evaluator import evaluateTarget
+from graphite.tags.utils import TaggedSeries
+
 
 def return_greater(series, value):
     return [i for i in series if i is not None and i > value]
@@ -5334,3 +5336,94 @@ class FunctionsTest(TestCase):
               series[k] = round(v,2)
 
         self.assertEqual(result, expectedResult)
+
+    def test_seriesByTag(self):
+        class MockTagDB(object):
+            def find_series(self, tagExpressions):
+                if tagExpressions == ('name=disk.bytes_used', 'server=server1'):
+                    return ['disk.bytes_used;server=server1']
+
+                if tagExpressions == ('name=disk.bytes_used', 'server=server2'):
+                    return []
+
+                raise Exception('Unexpected find_series call with tagExpressions: %s' % str(tagExpressions))
+
+
+        def mock_data_fetcher(reqCtx, path_expression):
+            if path_expression != 'disk.bytes_used;server=server1':
+                raise Exception('Unexpected fetchData call with pathExpression: %s' % path_expression)
+
+            return self._gen_series_list_with_data(
+                key=['disk.bytes_used;server=server1'],
+                start=0,
+                end=3,
+                data=[[10, 20, 30]]
+            )
+
+        request_context = self._build_requestContext(0, 3)
+
+        with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
+            with patch('graphite.storage.STORE.tagdb', None):
+                query = 'seriesByTag("name=disk.bytes_used","server=server1")'
+                result = evaluateTarget(request_context, query)
+                self.assertEqual(result, [])
+
+            with patch('graphite.storage.STORE.tagdb', MockTagDB()):
+                query = 'seriesByTag("name=disk.bytes_used","server=server1")'
+                result = evaluateTarget(request_context, query)
+                self.assertEqual(result, [
+                    TimeSeries('disk.bytes_used;server=server1',0,3,1,[10, 20, 30]),
+                ])
+
+                query = 'seriesByTag("name=disk.bytes_used","server=server2")'
+                result = evaluateTarget(request_context, query)
+                self.assertEqual(result, [])
+
+    def test_groupByTags(self):
+        class MockTagDB(object):
+            @staticmethod
+            def parse(path):
+                return TaggedSeries.parse(path)
+
+        seriesList = self._gen_series_list_with_data(
+            key=['disk.bytes_used;server=server1', 'disk.bytes_free;server=server1', 'disk.bytes_used;server=server2','disk.bytes_free;server=server2'],
+            start=0,
+            end=3,
+            data=[[10, 20, 30], [90, 80, 70], [1, 2, 3], [99, 98, 97]]
+        )
+
+        with patch('graphite.storage.STORE.tagdb', None):
+            result = functions.groupByTags({}, [], 'sum')
+            self.assertEqual(result, [])
+
+        with patch('graphite.storage.STORE.tagdb', MockTagDB()):
+            with self.assertRaisesRegexp(ValueError, 'groupByTags\\(\\): no tags specified'):
+                functions.groupByTags({}, [], 'sum')
+
+            result = functions.groupByTags({}, seriesList, 'sum', 'server')
+            self.assertEqual(result, [
+                TimeSeries('sum;server=server1', 0, 3, 1, [100, 100, 100]),
+                TimeSeries('sum;server=server2', 0, 3, 1, [100, 100, 100]),
+            ])
+
+            result = functions.groupByTags({}, seriesList, 'min', 'name')
+            self.assertEqual(result, [
+                TimeSeries('disk.bytes_used', 0, 3, 1, [1, 2, 3]),
+                TimeSeries('disk.bytes_free', 0, 3, 1, [90, 80, 70]),
+            ])
+
+    def test_aliasByTags(self):
+        seriesList = self._gen_series_list_with_data(
+            key=['disk.bytes_used;server=server1', 'disk.bytes_free;server=server1', 'disk.bytes_used;server=server2','disk.bytes_free;server=server2'],
+            start=0,
+            end=3,
+            data=[[10, 20, 30], [90, 80, 70], [1, 2, 3], [99, 98, 97]]
+        )
+
+        result = functions.aliasByTags({}, seriesList, 'server', 'name')
+        self.assertEqual(result, [
+            TimeSeries('server1.disk.bytes_used', 0, 3, 1, [10, 20, 30]),
+            TimeSeries('server1.disk.bytes_free', 0, 3, 1, [90, 80, 70]),
+            TimeSeries('server2.disk.bytes_used', 0, 3, 1, [1, 2, 3]),
+            TimeSeries('server2.disk.bytes_free', 0, 3, 1, [99, 98, 97]),
+        ])
