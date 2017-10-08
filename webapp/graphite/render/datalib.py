@@ -39,7 +39,7 @@ class TimeSeries(list):
     self.valuesPerPoint = 1
     self.options = {}
     self.pathExpression = name
-    self.xFilesFactor = xFilesFactor if xFilesFactor is not None else 0
+    self.xFilesFactor = xFilesFactor if xFilesFactor is not None else settings.DEFAULT_XFILES_FACTOR
 
     if tags:
       self.tags = tags
@@ -175,10 +175,10 @@ def _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList):
     result_queue.append(
       (node.path, node.fetch(startTime, endTime, now, requestContext)))
 
-  return _merge_results(pathExpr, startTime, endTime, result_queue, seriesList)
+  return _merge_results(pathExpr, startTime, endTime, result_queue, seriesList, requestContext)
 
 
-def _merge_results(pathExpr, startTime, endTime, result_queue, seriesList):
+def _merge_results(pathExpr, startTime, endTime, result_queue, seriesList, requestContext):
   log.debug("render.datalib.fetchData :: starting to merge")
   for path, results in result_queue:
     results = wait_for_result(results)
@@ -193,7 +193,7 @@ def _merge_results(pathExpr, startTime, endTime, result_queue, seriesList):
       raise Exception("could not parse timeInfo/values from metric '%s': %s" % (path, e))
     (start, end, step) = timeInfo
 
-    series = TimeSeries(path, start, end, step, values)
+    series = TimeSeries(path, start, end, step, values, xFilesFactor=requestContext.get('xFilesFactor'))
 
     # hack to pass expressions through to render functions
     series.pathExpression = pathExpr

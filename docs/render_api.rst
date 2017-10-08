@@ -903,6 +903,8 @@ Set the maximum numbers of datapoints returned when using json content.
 
 If the number of datapoints in a selected range exceeds the maxDataPoints value then the datapoints over the whole period are consolidated.
 
+The function used to consolidate points can be set using the `consolidateBy <functions.html#graphite.render.functions.consolidateBy>`_ function.
+
 .. _param-minorGridLineColor:
 
 minorGridLineColor
@@ -1003,6 +1005,14 @@ One of:
   The maximum of non-null points in the series
 ``minimum``
   THe minimum of non-null points in the series
+
+.. _param-pretty:
+
+pretty
+------
+*Default: <unset>*
+
+If set to 1 and combined with ``format=json``, outputs human-friendly json.
 
 .. _param-rightColor:
 
@@ -1167,6 +1177,19 @@ Example:
 .. code-block:: none
 
   &width=650&height=250
+
+.. _param-xFilesFactor:
+
+xFilesFactor
+------------
+*Default: DEFAULT_XFILES_FACTOR specified in local_settings.py or 0*
+
+Sets the default `xFilesFactor` value used when performing runtime aggregation across multiple
+series and/or intervals.
+
+See the `xFilesFactor <functions.html#graphite.render.functions.setXFilesFactor>`_ function for
+more information on the `xFilesFactor` value and how the default can be overridden for specific
+targets or series.
 
 .. _param-xFormat:
 

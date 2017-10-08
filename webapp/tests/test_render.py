@@ -203,8 +203,9 @@ class RenderTest(TestCase):
         targets = ['foo=1', 'bar=2']
         start_time = datetime.fromtimestamp(0)
         end_time = datetime.fromtimestamp(1000)
-        self.assertEqual(hashData(targets, start_time, end_time),
-                        hashData(reversed(targets), start_time, end_time))
+        xFilesFactor = 1
+        self.assertEqual(hashData(targets, start_time, end_time, xFilesFactor), '1b3f369c2473cd151fd450d953f41d2a')
+        self.assertEqual(hashData(reversed(targets), start_time, end_time, xFilesFactor), '1b3f369c2473cd151fd450d953f41d2a')
 
     def test_correct_timezone(self):
         url = reverse('render')

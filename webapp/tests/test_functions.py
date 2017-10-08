@@ -2533,11 +2533,11 @@ class FunctionsTest(TestCase):
     def test_groupByNodes(self):
         seriesList, inputList = self._generate_mr_series()
 
-        def verify_groupByNodes(expectedResult, *nodes):
+        def verify_groupByNodes(expectedResult, func, *nodes):
             if isinstance(nodes, int):
                 node_number = [nodes]
 
-            results = functions.groupByNodes({}, copy.deepcopy(seriesList), "keepLastValue", *nodes)
+            results = functions.groupByNodes({}, copy.deepcopy(seriesList), func, *nodes)
 
             self.assertEqual(results, expectedResult)
 
@@ -2545,7 +2545,7 @@ class FunctionsTest(TestCase):
             TimeSeries('server1',0,1,1,[None]),
             TimeSeries('server2',0,1,1,[None]),
         ]
-        verify_groupByNodes(expectedResult, 1)
+        verify_groupByNodes(expectedResult, "keepLastValue", 1)
 
         expectedResult = [
             TimeSeries('server1.metric1',0,1,1,[None]),
@@ -2553,13 +2553,19 @@ class FunctionsTest(TestCase):
             TimeSeries('server2.metric1',0,1,1,[None]),
             TimeSeries('server2.metric2',0,1,1,[None]),
         ]
-        verify_groupByNodes(expectedResult, 1, 2)
+        verify_groupByNodes(expectedResult, "keepLastValue", 1, 2)
 
         expectedResult = [
             TimeSeries('server1.group',0,1,1,[None]),
             TimeSeries('server2.group',0,1,1,[None]),
         ]
-        verify_groupByNodes(expectedResult, 1, 0)
+        verify_groupByNodes(expectedResult, "keepLastValue", 1, 0)
+
+        expectedResult = [
+            TimeSeries('server1.group',0,1,1,[None]),
+            TimeSeries('server2.group',0,1,1,[None]),
+        ]
+        verify_groupByNodes(expectedResult, "range",  1, 0)
 
     def test_exclude(self):
         seriesList = self._gen_series_list_with_data(

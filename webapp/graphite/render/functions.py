@@ -25,6 +25,8 @@ from datetime import datetime, timedelta
 from itertools import izip
 from os import environ
 
+from django.conf import settings
+
 from graphite.logger import log
 from graphite.render.attime import getUnitString, parseTimeOffset, parseATTime, SECONDS_STRING, MINUTES_STRING, HOURS_STRING, DAYS_STRING, WEEKS_STRING, MONTHS_STRING, YEARS_STRING
 from graphite.events import models
@@ -153,10 +155,10 @@ def xffValues(values, xFilesFactor):
     return False
   return xff(len([v for v in values if v is not None]), len(values), xFilesFactor)
 
-def xff(nonNull, total, xFilesFactor):
+def xff(nonNull, total, xFilesFactor=None):
   if not total:
     return False
-  return nonNull / total >= (xFilesFactor or 0)
+  return nonNull / total >= (xFilesFactor if xFilesFactor is not None else settings.DEFAULT_XFILES_FACTOR)
 
 def normalize(seriesLists):
   if seriesLists:
@@ -250,10 +252,10 @@ def aggregate(requestContext, seriesList, func, xFilesFactor=None):
     (seriesList,start,end,step) = normalize(seriesList)
   except:
     return []
-  xFilesFactor = xFilesFactor if xFilesFactor is not None else requestContext.get('xFilesFactor', 0)
+  xFilesFactor = xFilesFactor if xFilesFactor is not None else requestContext.get('xFilesFactor')
   name = "%sSeries(%s)" % (func, formatPathExpressions(seriesList))
   values = ( consolidateFunc(row) if xffValues(row, xFilesFactor) else None for row in izip(*seriesList) )
-  series = TimeSeries(name,start,end,step,values)
+  series = TimeSeries(name, start, end, step, values, xFilesFactor=xFilesFactor)
   return [series]
 
 def sumSeries(requestContext, *seriesLists):
@@ -492,7 +494,7 @@ def percentileOfSeries(requestContext, seriesList, n, interpolate=False):
   name = 'percentileOfSeries(%s,%g)' % (seriesList[0].pathExpression, n)
   (start, end, step) = normalize([seriesList])[1:]
   values = [ _getPercentile(row, n, interpolate) for row in izip(*seriesList) ]
-  resultSeries = TimeSeries(name, start, end, step, values)
+  resultSeries = TimeSeries(name, start, end, step, values, xFilesFactor=requestContext.get('xFilesFactor'))
 
   return [resultSeries]
 
@@ -678,6 +680,7 @@ def asPercent(requestContext, seriesList, total=None, *nodes):
 
   """
   normalize([seriesList])
+  xFilesFactor=requestContext.get('xFilesFactor')
 
   # if nodes are specified, use them to match series & total
   if nodes:
@@ -704,7 +707,7 @@ def asPercent(requestContext, seriesList, total=None, *nodes):
           name = 'sumSeries(%s)' % formatPathExpressions(metaSeries[key])
           (seriesList,start,end,step) = normalize([metaSeries[key]])
           totalValues = [ safeSum(row) for row in izip(*metaSeries[key]) ]
-          totalSeries[key] = TimeSeries(name,start,end,step,totalValues)
+          totalSeries[key] = TimeSeries(name,start,end,step,totalValues,xFilesFactor=xFilesFactor)
     # total seriesList was specified, sum the values for each group of totals
     elif isinstance(total, list):
       for series in total:
@@ -723,7 +726,7 @@ def asPercent(requestContext, seriesList, total=None, *nodes):
           name = 'sumSeries(%s)' % formatPathExpressions(totalSeries[key])
           (seriesList,start,end,step) = normalize([totalSeries[key]])
           totalValues = [ safeSum(row) for row in izip(*totalSeries[key]) ]
-          totalSeries[key] = TimeSeries(name,start,end,step,totalValues)
+          totalSeries[key] = TimeSeries(name,start,end,step,totalValues,xFilesFactor=xFilesFactor)
     # trying to use nodes with a total value, which isn't supported because it has no effect
     else:
       raise ValueError('total must be None or a seriesList')
@@ -735,7 +738,7 @@ def asPercent(requestContext, seriesList, total=None, *nodes):
         series2 = totalSeries[key]
         name = "asPercent(%s,%s)" % ('MISSING', series2.name)
         resultValues = [ None for v1 in series2 ]
-        resultSeries = TimeSeries(name,start,end,step,resultValues)
+        resultSeries = TimeSeries(name,start,end,step,resultValues,xFilesFactor=xFilesFactor)
         resultList.append(resultSeries)
         continue
 
@@ -751,7 +754,7 @@ def asPercent(requestContext, seriesList, total=None, *nodes):
           (seriesList,start,end,step) = normalize([(series1, series2)])
           resultValues = [ safeMul(safeDiv(v1, v2), 100.0) for v1,v2 in izip(series1,series2) ]
 
-        resultSeries = TimeSeries(name,start,end,step,resultValues)
+        resultSeries = TimeSeries(name,start,end,step,resultValues,xFilesFactor=xFilesFactor)
         resultList.append(resultSeries)
 
     return resultList
@@ -777,14 +780,14 @@ def asPercent(requestContext, seriesList, total=None, *nodes):
       name = "asPercent(%s,%s)" % (series1.name,series2.name)
       (seriesList,start,end,step) = normalize([(series1, series2)])
       resultValues = [ safeMul(safeDiv(v1, v2), 100.0) for v1,v2 in izip(series1,series2) ]
-      resultSeries = TimeSeries(name,start,end,step,resultValues)
+      resultSeries = TimeSeries(name,start,end,step,resultValues,xFilesFactor=xFilesFactor)
       resultList.append(resultSeries)
   else:
     for series in seriesList:
       resultValues = [ safeMul(safeDiv(val, totalVal), 100.0) for val,totalVal in izip(series,totalValues) ]
 
       name = "asPercent(%s,%s)" % (series.name, totalText or series.pathExpression)
-      resultSeries = TimeSeries(name,series.start,series.end,series.step,resultValues)
+      resultSeries = TimeSeries(name,series.start,series.end,series.step,resultValues,xFilesFactor=xFilesFactor)
       resultList.append(resultSeries)
 
   return resultList
@@ -818,7 +821,7 @@ def divideSeriesLists(requestContext, dividendSeriesList, divisorSeriesList):
 
     values = ( safeDiv(v1,v2) for v1,v2 in izip(*bothSeries) )
 
-    quotientSeries = TimeSeries(name, start, end, step, values)
+    quotientSeries = TimeSeries(name, start, end, step, values, xFilesFactor=requestContext.get('xFilesFactor'))
     results.append(quotientSeries)
 
   return results
@@ -865,7 +868,7 @@ def divideSeries(requestContext, dividendSeriesList, divisorSeries):
 
     values = ( safeDiv(v1,v2) for v1,v2 in izip(*bothSeries) )
 
-    quotientSeries = TimeSeries(name, start, end, step, values)
+    quotientSeries = TimeSeries(name, start, end, step, values, xFilesFactor=requestContext.get('xFilesFactor'))
     results.append(quotientSeries)
 
   return results
@@ -936,7 +939,7 @@ def weightedAverage(requestContext, seriesListAvg, seriesListWeight, *nodes):
 
     productValues = [ safeMul(val1, val2) for val1,val2 in izip(seriesAvg,seriesWeight) ]
     name='product(%s,%s)' % (seriesWeight.name, seriesAvg.name)
-    productSeries = TimeSeries(name,seriesAvg.start,seriesAvg.end,seriesAvg.step,productValues)
+    productSeries = TimeSeries(name,seriesAvg.start,seriesAvg.end,seriesAvg.step,productValues,xFilesFactor=requestContext.get('xFilesFactor'))
     productList.append(productSeries)
 
   if not productList:
@@ -947,7 +950,7 @@ def weightedAverage(requestContext, seriesListAvg, seriesListWeight, *nodes):
 
   resultValues = [ safeDiv(val1, val2) for val1,val2 in izip(sumProducts,sumWeights) ]
   name = "weightedAverage(%s, %s, %s)" % (','.join(sorted(set(s.pathExpression for s in seriesListAvg))) ,','.join(sorted(set(s.pathExpression for s in sorted(seriesListWeight)))), ','.join(map(str,nodes)))
-  resultSeries = TimeSeries(name,sumProducts.start,sumProducts.end,sumProducts.step,resultValues)
+  resultSeries = TimeSeries(name,sumProducts.start,sumProducts.end,sumProducts.step,resultValues,xFilesFactor=requestContext.get('xFilesFactor'))
   return [resultSeries]
 
 def movingWindow(requestContext, seriesList, windowSize, func='average', xFilesFactor=None):
@@ -1213,7 +1216,7 @@ def powSeries(requestContext, *seriesLists):
       else:
         tmpVal = safePow(tmpVal, element)
     values.append(tmpVal)
-  series = TimeSeries(name,start,end,step,values)
+  series = TimeSeries(name,start,end,step,values,xFilesFactor=requestContext.get('xFilesFactor'))
   return [series]
 
 def squareRoot(requestContext, seriesList):
@@ -1507,7 +1510,11 @@ def setXFilesFactor(requestContext, seriesList, xFilesFactor):
     &target=Servers.web01.sda1.free_space|consolidateBy('max')|xFilesFactor(0.5)
 
   The `xFilesFactor` set via this function is used as the default for all functions that accept an
-  `xFilesFactor` parameter, all functions that aggregate data across multiple
+  `xFilesFactor` parameter, all functions that aggregate data across multiple series and/or
+  intervals, and `maxDataPoints <render_api.html#maxdatapoints>`_ consolidation.
+
+  A default for the entire render request can also be set using the
+  `xFilesFactor <render_api.html#xfilesfactor>`_ query parameter.
 
   .. note::
 
@@ -2890,14 +2897,14 @@ def holtWintersAnalysis(series):
   forecastTags['holtWintersForecast'] = 1
   forecastName = "holtWintersForecast(%s)" % series.name
   forecastSeries = TimeSeries(forecastName, series.start, series.end
-    , series.step, predictions, tags=forecastTags)
+    , series.step, predictions, tags=forecastTags, xFilesFactor=series.xFilesFactor)
 
   # make the new deviation series
   deviationTags = series.tags
   deviationTags['holtWintersDeviation'] = 1
   deviationName = "holtWintersDeviation(%s)" % series.name
   deviationSeries = TimeSeries(deviationName, series.start, series.end
-          , series.step, deviations, tags=deviationTags)
+          , series.step, deviations, tags=deviationTags, xFilesFactor=series.xFilesFactor)
 
   results = { 'predictions': forecastSeries
         , 'deviations': deviationSeries
@@ -2926,7 +2933,9 @@ def holtWintersForecast(requestContext, seriesList, bootstrapInterval='7d'):
     windowPoints = previewSeconds // predictions.step
     series.tags['holtWintersForecast'] = 1
     forecastName = "holtWintersForecast(%s)" % series.name
-    result = TimeSeries(forecastName, predictions.start + previewSeconds, predictions.end, predictions.step, predictions[windowPoints:], tags=series.tags)
+    result = TimeSeries(forecastName, predictions.start + previewSeconds, predictions.end,
+                        predictions.step, predictions[windowPoints:], tags=series.tags,
+                        xFilesFactor=series.xFilesFactor)
     results.append(result)
   return results
 
@@ -2948,12 +2957,12 @@ def holtWintersConfidenceBands(requestContext, seriesList, delta=3, bootstrapInt
 
     data = analysis['predictions']
     windowPoints = previewSeconds // data.step
-    forecast = TimeSeries(data.name, data.start + previewSeconds, data.end, data.step, data[windowPoints:])
+    forecast = TimeSeries(data.name, data.start + previewSeconds, data.end, data.step, data[windowPoints:], xFilesFactor=series.xFilesFactor)
     forecast.pathExpression = data.pathExpression
 
     data = analysis['deviations']
     windowPoints = previewSeconds // data.step
-    deviation = TimeSeries(data.name, data.start + previewSeconds, data.end, data.step, data[windowPoints:])
+    deviation = TimeSeries(data.name, data.start + previewSeconds, data.end, data.step, data[windowPoints:], xFilesFactor=series.xFilesFactor)
     deviation.pathExpression = data.pathExpression
 
     seriesLength = len(forecast)
@@ -2981,9 +2990,9 @@ def holtWintersConfidenceBands(requestContext, seriesList, delta=3, bootstrapInt
     lowerName = "holtWintersConfidenceLower(%s)" % series.name
 
     upperSeries = TimeSeries(upperName, forecast.start, forecast.end
-            , forecast.step, upperBand, tags=upperTags)
+            , forecast.step, upperBand, tags=upperTags, xFilesFactor=series.xFilesFactor)
     lowerSeries = TimeSeries(lowerName, forecast.start, forecast.end
-            , forecast.step, lowerBand, tags=lowerTags)
+            , forecast.step, lowerBand, tags=lowerTags, xFilesFactor=series.xFilesFactor)
     upperSeries.pathExpression = series.pathExpression
     lowerSeries.pathExpression = series.pathExpression
     results.append(lowerSeries)
@@ -3014,7 +3023,7 @@ def holtWintersAberration(requestContext, seriesList, delta=3, bootstrapInterval
     series.tags['holtWintersAberration'] = 1
     newName = "holtWintersAberration(%s)" % series.name
     results.append(TimeSeries(newName, series.start, series.end
-            , series.step, aberration, tags=series.tags))
+            , series.step, aberration, tags=series.tags, xFilesFactor=series.xFilesFactor))
   return results
 
 def holtWintersConfidenceArea(requestContext, seriesList, delta=3, bootstrapInterval='7d'):
@@ -3091,7 +3100,7 @@ def linearRegression(requestContext, seriesList, startSourceAt=None, endSourceAt
       continue
     factor, offset = forecast
     values = [ offset + (series.start + i * series.step) * factor for i in range(len(series)) ]
-    newSeries = TimeSeries(newName, series.start, series.end, series.step, values, tags=series.tags)
+    newSeries = TimeSeries(newName, series.start, series.end, series.step, values, tags=series.tags, xFilesFactor=series.xFilesFactor)
     newSeries.pathExpression = newSeries.name
     results.append(newSeries)
   return results
@@ -3345,7 +3354,7 @@ def constantLine(requestContext, value):
   start = int(epoch( requestContext['startTime'] ) )
   end = int(epoch( requestContext['endTime'] ) )
   step = int((end - start) / 2.0)
-  series = TimeSeries(str(value), start, end, step, [value, value, value])
+  series = TimeSeries(str(value), start, end, step, [value, value, value], xFilesFactor=requestContext.get('xFilesFactor'))
   series.pathExpression = name
   return [series]
 
@@ -3421,7 +3430,7 @@ def verticalLine(requestContext, ts, label=None, color=None):
     raise ValueError("verticalLine(): timestamp %s exists after end of range" % ts)
   start = end = ts
   step = 1.0
-  series = TimeSeries(label, start, end, step, [1.0, 1.0])
+  series = TimeSeries(label, start, end, step, [1.0, 1.0], xFilesFactor=requestContext.get('xFilesFactor'))
   series.options['drawAsInfinite'] = True
   if color:
     series.color = color
@@ -3545,7 +3554,7 @@ def identity(requestContext, name):
   start = int(epoch(requestContext["startTime"]))
   end = int(epoch(requestContext["endTime"]))
   values = range(start, end, step)
-  series = TimeSeries(name, start, end, step, values)
+  series = TimeSeries(name, start, end, step, values, xFilesFactor=requestContext.get('xFilesFactor'))
   series.pathExpression = 'identity("%s")' % name
 
   return [series]
@@ -3563,7 +3572,7 @@ def countSeries(requestContext, *seriesLists):
     (seriesList,start,end,step) = normalize(seriesLists)
     name = "countSeries(%s)" % formatPathExpressions(seriesList)
     values = ( int(len(row)) for row in izip(*seriesList) )
-    series = TimeSeries(name,start,end,step,values)
+    series = TimeSeries(name,start,end,step,values, xFilesFactor=requestContext.get('xFilesFactor'))
     series.pathExpression = name
   else:
     series = constantLine(requestContext, 0).pop()
@@ -4090,7 +4099,7 @@ def timeFunction(requestContext, name, step=60):
   series = TimeSeries(name,
             int(time.mktime(requestContext["startTime"].timetuple())),
             int(time.mktime(requestContext["endTime"].timetuple())),
-            step, values)
+            step, values, xFilesFactor=requestContext.get('xFilesFactor'))
 
   return [series]
 
@@ -4122,7 +4131,7 @@ def sinFunction(requestContext, name, amplitude=1, step=60):
   return [TimeSeries(name,
             int(epoch(requestContext["startTime"])),
             int(epoch(requestContext["endTime"])),
-            step, values)]
+            step, values, xFilesFactor=requestContext.get('xFilesFactor'))]
 
 def removeEmptySeries(requestContext, seriesList):
     """
@@ -4169,7 +4178,7 @@ def randomWalkFunction(requestContext, name, step=60):
   return [TimeSeries(name,
             int(epoch(requestContext["startTime"])),
             int(epoch(requestContext["endTime"])),
-            step, values)]
+            step, values, xFilesFactor=requestContext.get('xFilesFactor'))]
 
 def seriesByTag(requestContext, *tagExpressions):
   """
@@ -4331,7 +4340,7 @@ def events(requestContext, *tags):
     else:
       values[value_offset] += 1
 
-  result_series = TimeSeries(name, start_timestamp, end_timestamp, step, values, 'sum')
+  result_series = TimeSeries(name, start_timestamp, end_timestamp, step, values, 'sum', xFilesFactor=requestContext.get('xFilesFactor'))
   return [result_series]
 
 def minMax(requestContext, seriesList):
