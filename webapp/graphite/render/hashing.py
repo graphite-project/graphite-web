@@ -46,11 +46,11 @@ def hashRequest(request):
   return compactHash(normalizedParams)
 
 
-def hashData(targets, startTime, endTime):
+def hashData(targets, startTime, endTime, xFilesFactor):
   targetsString = ','.join(sorted(targets))
   startTimeString = startTime.strftime("%Y%m%d_%H%M")
   endTimeString = endTime.strftime("%Y%m%d_%H%M")
-  myHash = targetsString + '@' + startTimeString + ':' + endTimeString
+  myHash = targetsString + '@' + startTimeString + ':' + endTimeString + ':' + str(xFilesFactor)
   return compactHash(myHash)
 
 

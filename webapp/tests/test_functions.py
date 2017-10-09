@@ -13,6 +13,8 @@ from graphite.render.datalib import TimeSeries
 from graphite.render import functions
 from graphite.render.functions import NormalizeEmptyResultError
 from graphite.render.evaluator import evaluateTarget
+from graphite.tags.utils import TaggedSeries
+
 
 def return_greater(series, value):
     return [i for i in series if i is not None and i > value]
@@ -180,6 +182,26 @@ class FunctionsTest(TestCase):
         self.assertEqual(functions.safeAvg([10,None,5,None]), 7.5)
 
     #
+    # Test safeMedian()
+    #
+
+    def test_safeMedian_None(self):
+        with self.assertRaises(TypeError):
+            functions.safeMedian(None)
+
+    def test_safeMedian_empty_list(self):
+        self.assertEqual(functions.safeMedian([]), None)
+
+    def test_safeMedian_all_numbers(self):
+        self.assertEqual(functions.safeMedian([1,2,3,4]), 3)
+
+    def test_safeMedian_all_None(self):
+        self.assertEqual(functions.safeMedian([None,None,None,None]), None)
+
+    def test_safeMedian_mixed(self):
+        self.assertEqual(functions.safeMedian([10,None,5,None]), 10)
+
+    #
     # Test safeStdDev()
     #
 
@@ -340,6 +362,35 @@ class FunctionsTest(TestCase):
 
     def test_lcm_10_5(self):
         self.assertEqual(functions.lcm(10,5), 10)
+
+    #
+    # Test xffValues()
+    #
+
+    def test_xffValues_None(self):
+        self.assertEqual(functions.xffValues(None, 0.5), False)
+
+    def test_xffValues_empty_list(self):
+        self.assertEqual(functions.xffValues([], 0.5), False)
+
+    def test_xffValues_all_numbers(self):
+        self.assertEqual(functions.xffValues([1,2,3,4], 0.5), True)
+
+    def test_xffValues_all_None(self):
+        self.assertEqual(functions.xffValues([None,None,None,None], 0.5), False)
+
+    def test_xffValues_mixed(self):
+        self.assertEqual(functions.xffValues([10,None,5,None], 0.5), True)
+
+    #
+    # Test xff()
+    #
+
+    def test_xff_None(self):
+        self.assertEqual(functions.xff(None, None, 0.5), False)
+
+    def test_xff(self):
+        self.assertEqual(functions.xff(1, 2, 0.5), True)
 
     #
     # Test normalize()
@@ -521,6 +572,30 @@ class FunctionsTest(TestCase):
         expectedList = [TimeSeries(expected_name, 0, len(data), 1, data)]
         result = functions.diffSeries({}, [seriesList[0], seriesList[1]])
         self.assertEqual(result, expectedList)
+
+    def test_aggregate_median(self):
+        seriesList = self._generate_series_list()
+        data = range(0,101)
+        expected_name = "medianSeries(collectd.test-db1.load.value,collectd.test-db2.load.value)"
+        expectedList = [TimeSeries(expected_name, 0, len(data), 1, data)]
+        result = functions.aggregate({}, [seriesList[0], seriesList[1]], 'median')
+        self.assertEqual(result, expectedList)
+
+    def test_aggregate_stripSeries(self):
+        seriesList = self._generate_series_list()
+        data = range(0,101)
+        expected_name = "medianSeries(collectd.test-db1.load.value,collectd.test-db2.load.value)"
+        expectedList = [TimeSeries(expected_name, 0, len(data), 1, data)]
+        result = functions.aggregate({}, [seriesList[0], seriesList[1]], 'medianSeries')
+        self.assertEqual(result, expectedList)
+
+    def test_aggregate_invalidFunc(self):
+        with self.assertRaisesRegexp(Exception, "Unsupported aggregation function: blahSeries"):
+            functions.aggregate({}, [], 'blahSeries')
+
+    def test_aggregate_emptySeries(self):
+        result = functions.aggregate({}, [], 'sum')
+        self.assertEqual(result, [])
 
     def test_averageSeries(self):
         seriesList = self._generate_series_list()
@@ -1233,6 +1308,21 @@ class FunctionsTest(TestCase):
         for func in avail_funcs:
             results = functions.consolidateBy({}, seriesList, func)
             self._verify_series_consolidationFunc(results, func)
+
+    def _verify_series_xFilesFactor(self, seriesList, value):
+        """
+        Verify the consolidationFunc is set to the specified value
+        """
+        for series in seriesList:
+            self.assertEqual(series.xFilesFactor, value)
+
+    def test_xFilesFactor(self):
+        seriesList = self._generate_series_list()
+        self._verify_series_xFilesFactor(seriesList, 0)
+        requestContext = {}
+        results = functions.setXFilesFactor(requestContext, seriesList, 0.5)
+        self._verify_series_xFilesFactor(results, 0.5)
+        self.assertEqual(requestContext['xFilesFactor'], 0.5)
 
     def test_weightedAverage(self):
         seriesList = self._gen_series_list_with_data(
@@ -2443,11 +2533,11 @@ class FunctionsTest(TestCase):
     def test_groupByNodes(self):
         seriesList, inputList = self._generate_mr_series()
 
-        def verify_groupByNodes(expectedResult, *nodes):
+        def verify_groupByNodes(expectedResult, func, *nodes):
             if isinstance(nodes, int):
                 node_number = [nodes]
 
-            results = functions.groupByNodes({}, copy.deepcopy(seriesList), "keepLastValue", *nodes)
+            results = functions.groupByNodes({}, copy.deepcopy(seriesList), func, *nodes)
 
             self.assertEqual(results, expectedResult)
 
@@ -2455,7 +2545,7 @@ class FunctionsTest(TestCase):
             TimeSeries('server1',0,1,1,[None]),
             TimeSeries('server2',0,1,1,[None]),
         ]
-        verify_groupByNodes(expectedResult, 1)
+        verify_groupByNodes(expectedResult, "keepLastValue", 1)
 
         expectedResult = [
             TimeSeries('server1.metric1',0,1,1,[None]),
@@ -2463,13 +2553,19 @@ class FunctionsTest(TestCase):
             TimeSeries('server2.metric1',0,1,1,[None]),
             TimeSeries('server2.metric2',0,1,1,[None]),
         ]
-        verify_groupByNodes(expectedResult, 1, 2)
+        verify_groupByNodes(expectedResult, "keepLastValue", 1, 2)
 
         expectedResult = [
             TimeSeries('server1.group',0,1,1,[None]),
             TimeSeries('server2.group',0,1,1,[None]),
         ]
-        verify_groupByNodes(expectedResult, 1, 0)
+        verify_groupByNodes(expectedResult, "keepLastValue", 1, 0)
+
+        expectedResult = [
+            TimeSeries('server1.group',0,1,1,[None]),
+            TimeSeries('server2.group',0,1,1,[None]),
+        ]
+        verify_groupByNodes(expectedResult, "range",  1, 0)
 
     def test_exclude(self):
         seriesList = self._gen_series_list_with_data(
@@ -3728,6 +3824,7 @@ class FunctionsTest(TestCase):
                 ),
                 seriesList, 10
             )
+        self.assertEqual(list(result[0]), list(expectedResults[0]))
         self.assertEqual(result, expectedResults)
 
     def test_movingAverage_evaluateTokens_returns_empty_list(self):
@@ -4923,6 +5020,36 @@ class FunctionsTest(TestCase):
         )
         self.assertEqual(result, expectedResults[func])
 
+    def test_summarize_xFilesFactor(self):
+        seriesList = self._gen_series_list_with_data(
+            key='collectd.test-db0.load.value',
+            start=0,
+            end=250,
+            data=[1] * 100 + [None] * 60 + [1] * 90,
+        )
+
+        tests = [
+            (0, TimeSeries('summarize(collectd.test-db0.load.value, "1minute", "sum", true)', 0, 300, 60, [60, 40, 20, 60, 10], xFilesFactor=0)),
+            (0.1, TimeSeries('summarize(collectd.test-db0.load.value, "1minute", "sum", true)', 0, 300, 60, [60, 40, 20, 60, 10], xFilesFactor=0.1)),
+            (0.25, TimeSeries('summarize(collectd.test-db0.load.value, "1minute", "sum", true)', 0, 300, 60, [60, 40, 20, 60, None], xFilesFactor=0.25)),
+            (0.5, TimeSeries('summarize(collectd.test-db0.load.value, "1minute", "sum", true)', 0, 300, 60, [60, 40, None, 60, None], xFilesFactor=0.5)),
+            (0.75, TimeSeries('summarize(collectd.test-db0.load.value, "1minute", "sum", true)', 0, 300, 60, [60, None, None, 60, None], xFilesFactor=0.75)),
+            (1, TimeSeries('summarize(collectd.test-db0.load.value, "1minute", "sum", true)', 0, 300, 60, [60, None, None, 60, None], xFilesFactor=1)),
+        ]
+
+        for test in tests:
+            seriesList[0].xFilesFactor = test[0]
+            result = functions.summarize(
+              {},
+              seriesList,
+              "1minute",
+              'sum',
+              True
+            )
+            expectedResult = [test[1]]
+            self.assertEqual(list(result[0]), list(expectedResult[0]))
+            self.assertEqual(result, expectedResult)
+
     def test_exponentialMovingAverage_emptySeriesList(self):
         self.assertEqual(functions.exponentialMovingAverage({},[],""), [])
 
@@ -5215,3 +5342,94 @@ class FunctionsTest(TestCase):
               series[k] = round(v,2)
 
         self.assertEqual(result, expectedResult)
+
+    def test_seriesByTag(self):
+        class MockTagDB(object):
+            def find_series(self, tagExpressions):
+                if tagExpressions == ('name=disk.bytes_used', 'server=server1'):
+                    return ['disk.bytes_used;server=server1']
+
+                if tagExpressions == ('name=disk.bytes_used', 'server=server2'):
+                    return []
+
+                raise Exception('Unexpected find_series call with tagExpressions: %s' % str(tagExpressions))
+
+
+        def mock_data_fetcher(reqCtx, path_expression):
+            if path_expression != 'disk.bytes_used;server=server1':
+                raise Exception('Unexpected fetchData call with pathExpression: %s' % path_expression)
+
+            return self._gen_series_list_with_data(
+                key=['disk.bytes_used;server=server1'],
+                start=0,
+                end=3,
+                data=[[10, 20, 30]]
+            )
+
+        request_context = self._build_requestContext(0, 3)
+
+        with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
+            with patch('graphite.storage.STORE.tagdb', None):
+                query = 'seriesByTag("name=disk.bytes_used","server=server1")'
+                result = evaluateTarget(request_context, query)
+                self.assertEqual(result, [])
+
+            with patch('graphite.storage.STORE.tagdb', MockTagDB()):
+                query = 'seriesByTag("name=disk.bytes_used","server=server1")'
+                result = evaluateTarget(request_context, query)
+                self.assertEqual(result, [
+                    TimeSeries('disk.bytes_used;server=server1',0,3,1,[10, 20, 30]),
+                ])
+
+                query = 'seriesByTag("name=disk.bytes_used","server=server2")'
+                result = evaluateTarget(request_context, query)
+                self.assertEqual(result, [])
+
+    def test_groupByTags(self):
+        class MockTagDB(object):
+            @staticmethod
+            def parse(path):
+                return TaggedSeries.parse(path)
+
+        seriesList = self._gen_series_list_with_data(
+            key=['disk.bytes_used;server=server1', 'disk.bytes_free;server=server1', 'disk.bytes_used;server=server2','disk.bytes_free;server=server2'],
+            start=0,
+            end=3,
+            data=[[10, 20, 30], [90, 80, 70], [1, 2, 3], [99, 98, 97]]
+        )
+
+        with patch('graphite.storage.STORE.tagdb', None):
+            result = functions.groupByTags({}, [], 'sum')
+            self.assertEqual(result, [])
+
+        with patch('graphite.storage.STORE.tagdb', MockTagDB()):
+            with self.assertRaisesRegexp(ValueError, 'groupByTags\\(\\): no tags specified'):
+                functions.groupByTags({}, [], 'sum')
+
+            result = functions.groupByTags({}, seriesList, 'sum', 'server')
+            self.assertEqual(result, [
+                TimeSeries('sum;server=server1', 0, 3, 1, [100, 100, 100]),
+                TimeSeries('sum;server=server2', 0, 3, 1, [100, 100, 100]),
+            ])
+
+            result = functions.groupByTags({}, seriesList, 'min', 'name')
+            self.assertEqual(result, [
+                TimeSeries('disk.bytes_used', 0, 3, 1, [1, 2, 3]),
+                TimeSeries('disk.bytes_free', 0, 3, 1, [90, 80, 70]),
+            ])
+
+    def test_aliasByTags(self):
+        seriesList = self._gen_series_list_with_data(
+            key=['disk.bytes_used;server=server1', 'disk.bytes_free;server=server1', 'disk.bytes_used;server=server2','disk.bytes_free;server=server2'],
+            start=0,
+            end=3,
+            data=[[10, 20, 30], [90, 80, 70], [1, 2, 3], [99, 98, 97]]
+        )
+
+        result = functions.aliasByTags({}, seriesList, 'server', 'name')
+        self.assertEqual(result, [
+            TimeSeries('server1.disk.bytes_used', 0, 3, 1, [10, 20, 30]),
+            TimeSeries('server1.disk.bytes_free', 0, 3, 1, [90, 80, 70]),
+            TimeSeries('server2.disk.bytes_used', 0, 3, 1, [1, 2, 3]),
+            TimeSeries('server2.disk.bytes_free', 0, 3, 1, [99, 98, 97]),
+        ])

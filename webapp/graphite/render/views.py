@@ -66,6 +66,7 @@ def renderView(request):
     'forwardHeaders': extractForwardHeaders(request),
     'data' : [],
     'prefetched' : {},
+    'xFilesFactor' : requestOptions['xFilesFactor'],
   }
   data = requestContext['data']
 
@@ -103,7 +104,7 @@ def renderView(request):
       targets = requestOptions['targets']
       startTime = requestOptions['startTime']
       endTime = requestOptions['endTime']
-      dataKey = hashData(targets, startTime, endTime)
+      dataKey = hashData(targets, startTime, endTime, requestOptions['xFilesFactor'])
       cachedData = cache.get(dataKey)
       if cachedData:
         log.cache("Data-Cache hit [%s]" % dataKey)
@@ -421,6 +422,8 @@ def parseOptions(request):
   if cacheTimeout == 0:
     requestOptions['noCache'] = True
   requestOptions['cacheTimeout'] = cacheTimeout
+
+  requestOptions['xFilesFactor'] = float( queryParams.get('xFilesFactor', settings.DEFAULT_XFILES_FACTOR) )
 
   return (graphOptions, requestOptions)
 
