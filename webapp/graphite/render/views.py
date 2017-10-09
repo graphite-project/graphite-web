@@ -63,23 +63,25 @@ def renderView(request):
     'localOnly' : requestOptions['localOnly'],
     'template' : requestOptions['template'],
     'tzinfo' : requestOptions['tzinfo'],
-    'forwardHeaders': extractForwardHeaders(request),
+    'forwardHeaders': requestOptions['forwardHeaders'],
     'data' : [],
     'prefetched' : {},
     'xFilesFactor' : requestOptions['xFilesFactor'],
   }
   data = requestContext['data']
 
+  response = None
+
   # First we check the request cache
   if useCache:
     requestKey = hashRequest(request)
-    cachedResponse = cache.get(requestKey)
-    if cachedResponse:
+    response = cache.get(requestKey)
+    if response:
       log.cache('Request-Cache hit [%s]' % requestKey)
       log.rendering('Returned cached response in %.6f' % (time() - start))
-      return cachedResponse
-    else:
-      log.cache('Request-Cache miss [%s]' % requestKey)
+      return response
+
+    log.cache('Request-Cache miss [%s]' % requestKey)
 
   # Now we prepare the requested data
   if requestOptions['graphType'] == 'pie':
@@ -100,6 +102,7 @@ def renderView(request):
 
   elif requestOptions['graphType'] == 'line':
     # Let's see if at least our data is cached
+    cachedData = None
     if useCache:
       targets = requestOptions['targets']
       startTime = requestOptions['startTime']
@@ -110,8 +113,6 @@ def renderView(request):
         log.cache("Data-Cache hit [%s]" % dataKey)
       else:
         log.cache("Data-Cache miss [%s]" % dataKey)
-    else:
-      cachedData = None
 
     if cachedData is not None:
       requestContext['data'] = data = cachedData
@@ -131,173 +132,27 @@ def renderView(request):
       if useCache:
         cache.add(dataKey, data, cacheTimeout)
 
-    # If data is all we needed, we're done
+    renderStart = time()
+
     format = requestOptions.get('format')
     if format == 'csv':
-      response = HttpResponse(content_type='text/csv')
-      writer = csv.writer(response, dialect='excel')
+      response = renderViewCsv(requestOptions, data)
+    elif format == 'json':
+      response = renderViewJson(requestOptions, data)
+    elif format == 'dygraph':
+      response = renderViewDygraph(requestOptions, data)
+    elif format == 'rickshaw':
+      response = renderViewRickshaw(requestOptions, data)
+    elif format == 'raw':
+      response = renderViewRaw(requestOptions, data)
+    elif format == 'pickle':
+      response = renderViewPickle(requestOptions, data)
 
-      for series in data:
-        for i, value in enumerate(series):
-          timestamp = datetime.fromtimestamp(series.start + (i * series.step), requestOptions['tzinfo'])
-          writer.writerow((series.name, timestamp.strftime("%Y-%m-%d %H:%M:%S"), value))
-
-      return response
-
-    if format == 'json':
-      jsonStart = time()
-
-      series_data = []
-      if 'maxDataPoints' in requestOptions and any(data):
-        startTime = min([series.start for series in data])
-        endTime = max([series.end for series in data])
-        timeRange = endTime - startTime
-        maxDataPoints = requestOptions['maxDataPoints']
-        for series in data:
-          numberOfDataPoints = timeRange/series.step
-          if maxDataPoints < numberOfDataPoints:
-            valuesPerPoint = math.ceil(float(numberOfDataPoints) / float(maxDataPoints))
-            secondsPerPoint = int(valuesPerPoint * series.step)
-            # Nudge start over a little bit so that the consolidation bands align with each call
-            # removing 'jitter' seen when refreshing.
-            nudge = secondsPerPoint + (series.start % series.step) - (series.start % secondsPerPoint)
-            series.start = series.start + nudge
-            valuesToLose = int(nudge/series.step)
-            for r in range(1, valuesToLose):
-              del series[0]
-            series.consolidate(valuesPerPoint)
-            timestamps = range(int(series.start), int(series.end) + 1, int(secondsPerPoint))
-          else:
-            timestamps = range(int(series.start), int(series.end) + 1, int(series.step))
-          datapoints = zip(series, timestamps)
-          series_data.append(dict(target=series.name, tags=series.tags, datapoints=datapoints))
-      elif 'noNullPoints' in requestOptions and any(data):
-        for series in data:
-          values = []
-          for (index,v) in enumerate(series):
-            if v is not None:
-              timestamp = series.start + (index * series.step)
-              values.append((v,timestamp))
-          if len(values) > 0:
-            series_data.append(dict(target=series.name, tags=series.tags, datapoints=values))
-      else:
-        for series in data:
-          timestamps = range(int(series.start), int(series.end) + 1, int(series.step))
-          datapoints = zip(series, timestamps)
-          series_data.append(dict(target=series.name, tags=series.tags, datapoints=datapoints))
-
-      output = json.dumps(series_data, indent=(2 if requestOptions['pretty'] else None)).replace('None,', 'null,').replace('NaN,', 'null,').replace('Infinity,', '1e9999,')
-
-      if 'jsonp' in requestOptions:
-        response = HttpResponse(
-          content="%s(%s)" % (requestOptions['jsonp'], output),
-          content_type='text/javascript')
-      else:
-        response = HttpResponse(
-          content=output,
-          content_type='application/json')
-
-      if useCache:
-        cache.add(requestKey, response, cacheTimeout)
-        patch_response_headers(response, cache_timeout=cacheTimeout)
-      else:
-        add_never_cache_headers(response)
-      log.rendering('JSON rendering time %6f' % (time() - jsonStart))
-      log.rendering('Total request processing time %6f' % (time() - start))
-      return response
-
-    if format == 'dygraph':
-      labels = ['Time']
-      result = '{}'
-      if data:
-        datapoints = [[ts] for ts in range(data[0].start, data[0].end, data[0].step)]
-        for series in data:
-          labels.append(series.name)
-          for i, point in enumerate(series):
-            if point is None:
-              point = 'null'
-            elif point == float('inf'):
-              point = 'Infinity'
-            elif point == float('-inf'):
-              point = '-Infinity'
-            elif math.isnan(point):
-              point = 'null'
-            datapoints[i].append(point)
-        line_template = '[%%s000%s]' % ''.join([', %s'] * len(data))
-        lines = [line_template % tuple(points) for points in datapoints]
-        result = '{"labels" : %s, "data" : [%s]}' % (json.dumps(labels), ', '.join(lines))
-      response = HttpResponse(content=result, content_type='application/json')
-
-      if useCache:
-        cache.add(requestKey, response, cacheTimeout)
-        patch_response_headers(response, cache_timeout=cacheTimeout)
-      else:
-        add_never_cache_headers(response)
-      log.rendering('Total dygraph rendering time %.6f' % (time() - start))
-      return response
-
-    if format == 'rickshaw':
-      series_data = []
-      for series in data:
-        timestamps = range(series.start, series.end, series.step)
-        datapoints = [{'x' : x, 'y' : y} for x, y in zip(timestamps, series)]
-        series_data.append( dict(target=series.name, datapoints=datapoints) )
-      if 'jsonp' in requestOptions:
-        response = HttpResponse(
-          content="%s(%s)" % (requestOptions['jsonp'], json.dumps(series_data)),
-          mimetype='text/javascript')
-      else:
-        response = HttpResponse(content=json.dumps(series_data),
-                                content_type='application/json')
-
-      if useCache:
-        cache.add(requestKey, response, cacheTimeout)
-        patch_response_headers(response, cache_timeout=cacheTimeout)
-      else:
-        add_never_cache_headers(response)
-      log.rendering('Total rickshaw rendering time %.6f' % (time() - start))
-      return response
-
-    if format == 'raw':
-      response = HttpResponse(content_type='text/plain')
-      for series in data:
-        response.write( "%s,%d,%d,%d|" % (series.name, series.start, series.end, series.step) )
-        response.write( ','.join(map(repr,series)) )
-        response.write('\n')
-
-      log.rendering('Total rawData rendering time %.6f' % (time() - start))
-      return response
-
-    if format == 'svg':
-      graphOptions['outputFormat'] = 'svg'
-    elif format == 'pdf':
-      graphOptions['outputFormat'] = 'pdf'
-
-    if format == 'pickle':
-      response = HttpResponse(content_type='application/pickle')
-      seriesInfo = [series.getInfo() for series in data]
-      pickle.dump(seriesInfo, response, protocol=-1)
-
-      log.rendering('Total pickle rendering time %.6f' % (time() - start))
-      return response
-
-
-  # We've got the data, now to render it
-  graphOptions['data'] = data
-  if settings.REMOTE_RENDERING: # Rendering on other machines is faster in some situations
-    image = delegateRendering(requestOptions['graphType'], graphOptions, requestContext['forwardHeaders'])
-  else:
-    image = doImageRender(requestOptions['graphClass'], graphOptions)
-
-  useSVG = graphOptions.get('outputFormat') == 'svg'
-  if useSVG and 'jsonp' in requestOptions:
-    response = HttpResponse(
-      content="%s(%s)" % (requestOptions['jsonp'], json.dumps(image)),
-      content_type='text/javascript')
-  elif graphOptions.get('outputFormat') == 'pdf':
-    response = buildResponse(image, 'application/x-pdf')
-  else:
-    response = buildResponse(image, 'image/svg+xml' if useSVG else 'image/png')
+  # if response wasn't generated above, render a graph image
+  if not response:
+    format = 'image'
+    renderStart = time()
+    response = renderViewGraph(graphOptions, requestOptions, data)
 
   if useCache:
     cache.add(requestKey, response, cacheTimeout)
@@ -305,7 +160,169 @@ def renderView(request):
   else:
     add_never_cache_headers(response)
 
-  log.rendering('Total rendering time %.6f seconds' % (time() - start))
+  log.rendering('%s rendering time %6f' % (format, time() - renderStart))
+  log.rendering('Total request processing time %6f' % (time() - start))
+
+  return response
+
+
+def renderViewGraph(graphOptions, requestOptions, data):
+  # We've got the data, now to render it
+  graphOptions['data'] = data
+  if settings.REMOTE_RENDERING: # Rendering on other machines is faster in some situations
+    image = delegateRendering(requestOptions['graphType'], graphOptions, requestOptions['forwardHeaders'])
+  else:
+    image = doImageRender(requestOptions['graphClass'], graphOptions)
+
+  if graphOptions['outputFormat'] == 'pdf':
+    return buildResponse(image, 'application/x-pdf')
+
+  if graphOptions['outputFormat'] == 'svg':
+    if 'jsonp' in requestOptions:
+      return HttpResponse(
+        content="%s(%s)" % (requestOptions['jsonp'], json.dumps(image)),
+        content_type='text/javascript')
+
+    return buildResponse(image, 'image/svg+xml')
+
+  return buildResponse(image, 'image/png')
+
+
+def renderViewCsv(requestOptions, data):
+  response = HttpResponse(content_type='text/csv')
+  writer = csv.writer(response, dialect='excel')
+
+  for series in data:
+    for i, value in enumerate(series):
+      timestamp = datetime.fromtimestamp(series.start + (i * series.step), requestOptions['tzinfo'])
+      writer.writerow((series.name, timestamp.strftime("%Y-%m-%d %H:%M:%S"), value))
+
+  return response
+
+
+def renderViewJson(requestOptions, data):
+  series_data = []
+  if 'maxDataPoints' in requestOptions and any(data):
+    maxDataPoints = requestOptions['maxDataPoints']
+    startTime = min([series.start for series in data])
+    endTime = max([series.end for series in data])
+    timeRange = endTime - startTime
+    for series in data:
+      numberOfDataPoints = timeRange/series.step
+      if maxDataPoints < numberOfDataPoints:
+        valuesPerPoint = math.ceil(float(numberOfDataPoints) / float(maxDataPoints))
+        secondsPerPoint = int(valuesPerPoint * series.step)
+        # Nudge start over a little bit so that the consolidation bands align with each call
+        # removing 'jitter' seen when refreshing.
+        nudge = secondsPerPoint + (series.start % series.step) - (series.start % secondsPerPoint)
+        series.start = series.start + nudge
+        valuesToLose = int(nudge/series.step)
+        for r in range(1, valuesToLose):
+          del series[0]
+        series.consolidate(valuesPerPoint)
+        timestamps = range(int(series.start), int(series.end) + 1, int(secondsPerPoint))
+      else:
+        timestamps = range(int(series.start), int(series.end) + 1, int(series.step))
+      datapoints = zip(series, timestamps)
+      series_data.append(dict(target=series.name, tags=series.tags, datapoints=datapoints))
+  elif 'noNullPoints' in requestOptions and any(data):
+    for series in data:
+      values = []
+      for (index,v) in enumerate(series):
+        if v is not None and not math.isnan(v):
+          timestamp = series.start + (index * series.step)
+          values.append((v,timestamp))
+      if len(values) > 0:
+        series_data.append(dict(target=series.name, tags=series.tags, datapoints=values))
+  else:
+    for series in data:
+      timestamps = range(int(series.start), int(series.end) + 1, int(series.step))
+      datapoints = zip(series, timestamps)
+      series_data.append(dict(target=series.name, tags=series.tags, datapoints=datapoints))
+
+  output = json.dumps(series_data, indent=(2 if requestOptions.get('pretty') else None)).replace('None,', 'null,').replace('NaN,', 'null,').replace('Infinity,', '1e9999,')
+
+  if 'jsonp' in requestOptions:
+    response = HttpResponse(
+      content="%s(%s)" % (requestOptions['jsonp'], output),
+      content_type='text/javascript')
+  else:
+    response = HttpResponse(
+      content=output,
+      content_type='application/json')
+
+  return response
+
+
+def renderViewDygraph(requestOptions, data):
+  labels = ['Time']
+  output = '{}'
+  if data:
+    datapoints = [[ts] for ts in range(data[0].start, data[0].end, data[0].step)]
+    for series in data:
+      labels.append(series.name)
+      for i, point in enumerate(series):
+        if point is None:
+          point = 'null'
+        elif point == float('inf'):
+          point = 'Infinity'
+        elif point == float('-inf'):
+          point = '-Infinity'
+        elif math.isnan(point):
+          point = 'null'
+        datapoints[i].append(point)
+    line_template = '[%%s000%s]' % ''.join([', %s'] * len(data))
+    lines = [line_template % tuple(points) for points in datapoints]
+    output = '{"labels" : %s, "data" : [%s]}' % (json.dumps(labels), ', '.join(lines))
+
+  if 'jsonp' in requestOptions:
+    response = HttpResponse(
+      content="%s(%s)" % (requestOptions['jsonp'], output),
+      content_type='text/javascript')
+  else:
+    response = HttpResponse(
+      content=output,
+      content_type='application/json')
+
+  return response
+
+
+def renderViewRickshaw(requestOptions, data):
+  series_data = []
+  for series in data:
+    timestamps = range(series.start, series.end, series.step)
+    datapoints = [{'x' : x, 'y' : y} for x, y in zip(timestamps, series)]
+    series_data.append( dict(target=series.name, datapoints=datapoints) )
+
+  output = json.dumps(series_data, indent=(2 if requestOptions.get('pretty') else None))
+
+  if 'jsonp' in requestOptions:
+    response = HttpResponse(
+      content="%s(%s)" % (requestOptions['jsonp'], output),
+      content_type='text/javascript')
+  else:
+    response = HttpResponse(
+      content=output,
+      content_type='application/json')
+
+  return response
+
+
+def renderViewRaw(requestOptions, data):
+  response = HttpResponse(content_type='text/plain')
+
+  for series in data:
+    response.write( "%s,%d,%d,%d|" % (series.name, series.start, series.end, series.step) )
+    response.write( ','.join(map(repr,series)) )
+    response.write('\n')
+
+  return response
+
+
+def renderViewPickle(requestOptions, data):
+  response = HttpResponse(content_type='application/pickle')
+  seriesInfo = [series.getInfo() for series in data]
+  pickle.dump(seriesInfo, response, protocol=-1)
   return response
 
 
@@ -327,6 +344,7 @@ def parseOptions(request):
   requestOptions['pieMode'] = queryParams.get('pieMode', 'average')
   cacheTimeout = int( queryParams.get('cacheTimeout', settings.DEFAULT_CACHE_DURATION) )
   requestOptions['targets'] = []
+  requestOptions['forwardHeaders'] = extractForwardHeaders(request)
 
   # Extract the targets out of the queryParams
   mytargets = []
@@ -369,6 +387,14 @@ def parseOptions(request):
   requestOptions['localOnly'] = queryParams.get('local') == '1'
 
   # Fill in the graphOptions
+  format = requestOptions.get('format')
+  if format == 'svg':
+    graphOptions['outputFormat'] = 'svg'
+  elif format == 'pdf':
+    graphOptions['outputFormat'] = 'pdf'
+  else:
+    graphOptions['outputFormat'] = 'png'
+
   for opt in graphClass.customizable:
     if opt in queryParams:
       val = queryParams[opt]
