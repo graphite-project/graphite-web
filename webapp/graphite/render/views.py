@@ -204,27 +204,33 @@ def renderViewJson(requestOptions, data):
   series_data = []
   if 'maxDataPoints' in requestOptions and any(data):
     maxDataPoints = requestOptions['maxDataPoints']
-    startTime = min([series.start for series in data])
-    endTime = max([series.end for series in data])
-    timeRange = endTime - startTime
-    for series in data:
-      numberOfDataPoints = timeRange/series.step
-      if maxDataPoints < numberOfDataPoints:
-        valuesPerPoint = math.ceil(float(numberOfDataPoints) / float(maxDataPoints))
-        secondsPerPoint = int(valuesPerPoint * series.step)
-        # Nudge start over a little bit so that the consolidation bands align with each call
-        # removing 'jitter' seen when refreshing.
-        nudge = secondsPerPoint + (series.start % series.step) - (series.start % secondsPerPoint)
-        series.start = series.start + nudge
-        valuesToLose = int(nudge/series.step)
-        for r in range(1, valuesToLose):
-          del series[0]
-        series.consolidate(valuesPerPoint)
-        timestamps = range(int(series.start), int(series.end) + 1, int(secondsPerPoint))
-      else:
-        timestamps = range(int(series.start), int(series.end) + 1, int(series.step))
-      datapoints = zip(series, timestamps)
-      series_data.append(dict(target=series.name, tags=series.tags, datapoints=datapoints))
+    if maxDataPoints == 1:
+      for series in data:
+        series.consolidate(len(series))
+        datapoints = zip(series, [int(series.start)])
+        series_data.append(dict(target=series.name, tags=series.tags, datapoints=datapoints))
+    else:
+      startTime = min([series.start for series in data])
+      endTime = max([series.end for series in data])
+      timeRange = endTime - startTime
+      for series in data:
+        numberOfDataPoints = timeRange/series.step
+        if maxDataPoints < numberOfDataPoints:
+          valuesPerPoint = math.ceil(float(numberOfDataPoints) / float(maxDataPoints))
+          secondsPerPoint = int(valuesPerPoint * series.step)
+          # Nudge start over a little bit so that the consolidation bands align with each call
+          # removing 'jitter' seen when refreshing.
+          nudge = secondsPerPoint + (series.start % series.step) - (series.start % secondsPerPoint)
+          series.start = series.start + nudge
+          valuesToLose = int(nudge/series.step)
+          for r in range(1, valuesToLose):
+            del series[0]
+          series.consolidate(valuesPerPoint)
+          timestamps = range(int(series.start), int(series.end) + 1, int(secondsPerPoint))
+        else:
+          timestamps = range(int(series.start), int(series.end) + 1, int(series.step))
+        datapoints = zip(series, timestamps)
+        series_data.append(dict(target=series.name, tags=series.tags, datapoints=datapoints))
   elif 'noNullPoints' in requestOptions and any(data):
     for series in data:
       values = []

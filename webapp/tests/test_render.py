@@ -404,7 +404,7 @@ class RenderTest(TestCase):
             (4, [ [30, 5], [55, 10], [80, 15], [39, 20] ]),
             (3, [ [63, 7], [112, 14], [20, 21] ]),
             (2, [ [135, 10], [39, 20] ]),
-            (1, [ [39, 20] ]),
+            (1, [ [210, 1] ]),
         ]
 
         self.verify_maxDataPoints(data, tests)
@@ -435,7 +435,7 @@ class RenderTest(TestCase):
             (4, [ [30, 5], [55, 10], [80, 15], [82, 20] ]),
             (3, [ [63, 7], [112, 14], [63, 21] ]),
             (2, [ [135, 10], [82, 20] ]),
-            (1, [ [82, 20] ]),
+            (1, [ [250, 3] ]),
         ]
 
         self.verify_maxDataPoints(data, tests)
@@ -466,7 +466,7 @@ class RenderTest(TestCase):
             (4, [ [55, 10], [80, 15], [105, 20], [24, 25] ]),
             (3, [ [63, 7], [112, 14], [110, 21] ]),
             (2, [ [135, 10], [129, 20] ]),
-            (1, [ [129, 20] ]),
+            (1, [ [290, 5] ]),
         ]
 
         self.verify_maxDataPoints(data, tests)
@@ -497,7 +497,7 @@ class RenderTest(TestCase):
             (4, [ [30, 5], [55, 10], [80, 15], [None, 20] ]),
             (3, [ [63, 7], [112, 14], [None, 21] ]),
             (2, [ [135, 10], [None, 20] ]),
-            (1, [ [None, 20] ]),
+            (1, [ [210, 1] ]),
         ]
 
         self.verify_maxDataPoints(data, tests)
@@ -528,7 +528,7 @@ class RenderTest(TestCase):
             (4, [ [30, 5], [55, 10], [80, 15], [None, 20] ]),
             (3, [ [63, 7], [112, 14], [None, 21] ]),
             (2, [ [135, 10], [None, 20] ]),
-            (1, [ [None, 20] ]),
+            (1, [ [250, 3] ]),
         ]
 
         self.verify_maxDataPoints(data, tests)
@@ -559,7 +559,7 @@ class RenderTest(TestCase):
             (4, [ [55, 10], [80, 15], [105, 20], [None, 25] ]),
             (3, [ [63, 7], [112, 14], [None, 21] ]),
             (2, [ [135, 10], [None, 20] ]),
-            (1, [ [None, 20] ]),
+            (1, [ [290, 5] ]),
         ]
 
         self.verify_maxDataPoints(data, tests)
@@ -590,7 +590,7 @@ class RenderTest(TestCase):
             (4, [ [80, 15], [105, 20], [130, 25], [None, 30] ]),
             (3, [ [112, 14], [161, 21], [None, 28] ]),
             (2, [ [235, 20], [None, 30] ]),
-            (1, [ [None, 20] ]),
+            (1, [ [410, 11] ]),
         ]
 
         self.verify_maxDataPoints(data, tests)
