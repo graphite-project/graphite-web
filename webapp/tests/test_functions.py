@@ -486,6 +486,44 @@ class FunctionsTest(TestCase):
         self.assertEqual(functions.formatPathExpressions(seriesList), "collectd.test-db1.load.value,collectd.test-db2.load.value,collectd.test-db3.load.value")
 
     #
+    # test aggregate()
+    #
+
+    def test_aggregate_tags(self):
+        seriesList = self._gen_series_list_with_data(
+            key=['disk.bytes_used;server=server1', 'disk.bytes_free;server=server1'],
+            start=0,
+            end=3,
+            data=[[10, 20, 30], [90, 80, 70]]
+        )
+
+        result = functions.aggregate({}, seriesList, 'sum')
+        self.assertEqual(result, [
+            TimeSeries('sumSeries(disk.bytes_used;server=server1,disk.bytes_free;server=server1)', 0, 3, 1, [100, 100, 100]),
+        ])
+        self.assertEqual(result[0].tags, {
+          'name': 'sumSeries(disk.bytes_used;server=server1,disk.bytes_free;server=server1)',
+          'server': 'server1',
+          'aggregatedBy': 'sum',
+        })
+
+        seriesList = self._gen_series_list_with_data(
+            key=['disk.bytes_used;server=server1', 'disk.bytes_used;server=server2'],
+            start=0,
+            end=3,
+            data=[[10, 20, 30], [90, 80, 70]]
+        )
+
+        result = functions.aggregate({}, seriesList, 'sum')
+        self.assertEqual(result, [
+            TimeSeries('sumSeries(disk.bytes_used;server=server1,disk.bytes_used;server=server2)', 0, 3, 1, [100, 100, 100]),
+        ])
+        self.assertEqual(result[0].tags, {
+          'name': 'disk.bytes_used',
+          'aggregatedBy': 'sum',
+        })
+
+    #
     # Test sumSeries()
     #
 
@@ -1404,6 +1442,32 @@ class FunctionsTest(TestCase):
         expectedResult = [
             TimeSeries('weightedAverage(collectd.test-db1.load.value,collectd.test-db2.load.value,collectd.test-db3.load.value,collectd.test-db5.load.value, collectd.test-db1.load.value,collectd.test-db3.load.value,collectd.test-db4.load.value,collectd.test-db5.load.value, 1)',0,1,1,[0.75,1.5,1.5,2.0,5.0,4.5,7.0,8.0,6.75,7.5,8.25,12.0,9.75,14.0,15.0,16.0,17.0,12.0,9.5,10.0]),
         ]
+
+        result = functions.weightedAverage({}, seriesList, seriesList2, 1)
+        self.assertEqual(result, expectedResult)
+
+    def test_weightedAverage_empty_productlist(self):
+        seriesList = self._gen_series_list_with_data(
+            key=[
+                'collectd.test-db1.load.value',
+            ],
+            end=1,
+            data=[
+                [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20],
+            ]
+        )
+
+        seriesList2 = self._gen_series_list_with_data(
+            key=[
+                'collectd.test-db2.load.value',
+            ],
+            end=1,
+            data=[
+                [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20],
+            ]
+        )
+
+        expectedResult = []
 
         result = functions.weightedAverage({}, seriesList, seriesList2, 1)
         self.assertEqual(result, expectedResult)
