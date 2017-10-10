@@ -160,6 +160,15 @@ def xff(nonNull, total, xFilesFactor=None):
     return False
   return nonNull / total >= (xFilesFactor if xFilesFactor is not None else settings.DEFAULT_XFILES_FACTOR)
 
+def getNodeOrTag(series, n, pathExpression=None):
+  try:
+    return (pathExpression or series.name).split('.')[n]
+  except (IndexError, TypeError):
+    return series.tags.get(n, '')
+
+def aggKey(series, nodes, pathExpression=None):
+  return '.'.join([getNodeOrTag(series, n, pathExpression) for n in nodes])
+
 def normalize(seriesLists):
   if seriesLists:
     seriesList = reduce(lambda L1,L2: L1+L2,seriesLists)
@@ -255,7 +264,11 @@ def aggregate(requestContext, seriesList, func, xFilesFactor=None):
   xFilesFactor = xFilesFactor if xFilesFactor is not None else requestContext.get('xFilesFactor')
   name = "%sSeries(%s)" % (func, formatPathExpressions(seriesList))
   values = ( consolidateFunc(row) if xffValues(row, xFilesFactor) else None for row in izip(*seriesList) )
-  series = TimeSeries(name, start, end, step, values, xFilesFactor=xFilesFactor)
+  tags = seriesList[0].tags
+  for series in seriesList:
+    tags = {tag: tags[tag] for tag in tags if tag in series.tags and tags[tag] == series.tags[tag]}
+  series = TimeSeries(name, start, end, step, values, xFilesFactor=xFilesFactor, tags=tags)
+
   return [series]
 
 def sumSeries(requestContext, *seriesLists):
@@ -673,6 +686,8 @@ def asPercent(requestContext, seriesList, total=None, *nodes):
     # will produce 1 output series:
     # asPercent(Server1.memory.used,Server1.memory.total) [values will be as expected]
 
+  Each node may be an integer referencing a node in the series name or a string identifying a tag.
+
   .. note::
 
     When `total` is a seriesList, specifying `nodes` to match series with the corresponding total
@@ -689,7 +704,7 @@ def asPercent(requestContext, seriesList, total=None, *nodes):
     # group series together by key
     metaSeries = {}
     for series in seriesList:
-      key = '.'.join(series.name.split(".")[n] for n in nodes)
+      key = aggKey(series, nodes)
       if key not in metaSeries:
         metaSeries[key] = [series]
         keys.append(key)
@@ -711,7 +726,7 @@ def asPercent(requestContext, seriesList, total=None, *nodes):
     # total seriesList was specified, sum the values for each group of totals
     elif isinstance(total, list):
       for series in total:
-        key = '.'.join(series.name.split(".")[n] for n in nodes)
+        key = aggKey(series, nodes)
         if key not in totalSeries:
           totalSeries[key] = [series]
           if key not in keys:
@@ -910,17 +925,13 @@ def weightedAverage(requestContext, seriesListAvg, seriesListWeight, *nodes):
   sortedSeries={}
 
   for seriesAvg, seriesWeight in izip(seriesListAvg , seriesListWeight):
-    key = ''
-    for node in nodes:
-      key += seriesAvg.name.split(".")[node]
+    key = aggKey(seriesAvg, nodes)
 
     if key not in sortedSeries:
       sortedSeries[key]={}
     sortedSeries[key]['avg']=seriesAvg
 
-    key = ''
-    for node in nodes:
-      key += seriesWeight.name.split(".")[node]
+    key = aggKey(seriesWeight, nodes)
 
     if key not in sortedSeries:
       sortedSeries[key]={}
@@ -1998,17 +2009,24 @@ def _getFirstPathExpression(name):
 def aliasByNode(requestContext, seriesList, *nodes):
   """
   Takes a seriesList and applies an alias derived from one or more "node"
-  portion/s of the target name. Node indices are 0 indexed.
+  portion/s of the target name or tags. Node indices are 0 indexed.
 
   .. code-block:: none
 
     &target=aliasByNode(ganglia.*.cpu.load5,1)
 
+  Each node may be an integer referencing a node in the series name or a string identifying a tag.
+
+  .. code-block :: none
+
+    &target=seriesByTag("name=~cpu.load.*", "server=~server[1-9]+", "datacenter=dc1")|aliasByNode("datacenter", "server", 1)
+
+    # will produce output series like
+    # dc1.server1.load5, dc1.server2.load5, dc1.server1.load10, dc1.server2.load10
   """
   for series in seriesList:
     pathExpression = _getFirstPathExpression(series.name)
-    metric_pieces = pathExpression.split('.')
-    series.name = '.'.join(metric_pieces[n] for n in nodes)
+    series.name = aggKey(series, nodes, pathExpression)
   return seriesList
 
 def aliasByMetric(requestContext, seriesList):
@@ -3591,12 +3609,12 @@ def group(requestContext, *seriesLists):
 
   return seriesGroup
 
-def mapSeries(requestContext, seriesList, mapNode):
+def mapSeries(requestContext, seriesList, *mapNodes):
   """
   Short form: ``map()``
 
   Takes a seriesList and maps it to a list of seriesList. Each seriesList has the
-  given mapNode in common.
+  given mapNodes in common.
 
   .. note:: This function is not very useful alone. It should be used with :py:func:`reduceSeries`
 
@@ -3610,11 +3628,13 @@ def mapSeries(requestContext, seriesList, mapNode):
         ...
         servers.serverN.cpu.*
       ]
+
+  Each node may be an integer referencing a node in the series name or a string identifying a tag.
   """
   metaSeries = {}
   keys = []
   for series in seriesList:
-    key = series.name.split(".")[mapNode]
+    key = aggKey(series, mapNodes)
     if key not in metaSeries:
       metaSeries[key] = [series]
       keys.append(key)
@@ -3757,6 +3777,8 @@ def groupByNode(requestContext, seriesList, nodeNum, callback):
 
     sumSeries(ganglia.by-function.server1.*.cpu.load5),sumSeries(ganglia.by-function.server2.*.cpu.load5),...
 
+  Node may be an integer referencing a node in the series name or a string identifying a tag.
+
   This is an alias for using :py:func:`groupByNodes <groupByNodes>` with a single node.
   """
   return groupByNodes(requestContext, seriesList, callback, nodeNum)
@@ -3780,12 +3802,21 @@ def groupByNodes(requestContext, seriesList, callback, *nodes):
   :py:func:`aggregate <aggregate>`: ``average``, ``median``, ``sum``, ``min``, ``max``, ``diff``,
   ``stddev``, ``range`` & ``multiply``.
 
+  Each node may be an integer referencing a node in the series name or a string identifying a tag.
+
+  .. code-block :: none
+
+    &target=seriesByTag("name=~cpu.load.*", "server=~server[1-9]+", "datacenter=~dc[1-9]+")|groupByNodes("average", "datacenter", 1)
+
+    # will produce output series like
+    # dc1.load5, dc2.load5, dc1.load10, dc2.load10
+
   This complements :py:func:`aggregateWithWildcards <aggregateWithWildcards>` which takes a list of wildcard nodes.
   """
   metaSeries = {}
   keys = []
   for series in seriesList:
-    key = '.'.join(series.name.split(".")[n] for n in nodes)
+    key = aggKey(series, nodes)
     if key not in metaSeries:
       metaSeries[key] = [series]
       keys.append(key)
@@ -4246,6 +4277,9 @@ def groupByTags(requestContext, seriesList, callback, *tags):
   This function can be used with all aggregation functions supported by
   :py:func:`aggregate <aggregate>`: ``average``, ``median``, ``sum``, ``min``, ``max``, ``diff``,
   ``stddev``, ``range`` & ``multiply``.
+
+  This is very similar to :py:func:`groupByNodes <groupByNodes>`, except that the generated series
+  names are formatted with tags.
   """
   if STORE.tagdb is None:
     log.info('groupByTags called but no TagDB configured')
@@ -4288,16 +4322,15 @@ def groupByTags(requestContext, seriesList, callback, *tags):
 
 def aliasByTags(requestContext, seriesList, *tags):
   """
-  Takes a seriesList and applies an alias derived from one or more tags
+  Takes a seriesList and applies an alias derived from one or more tags and/or nodes
 
   .. code-block:: none
 
     &target=seriesByTag("name=cpu")|aliasByTags("server","name")
 
+  This is an alias for :py:func:`aliasByNode <aliasByNode>`.
   """
-  for series in seriesList:
-    series.name = '.'.join(series.tags.get(tag, '') for tag in tags)
-  return seriesList
+  return aliasByNode(requestContext, seriesList, *tags)
 
 
 def events(requestContext, *tags):

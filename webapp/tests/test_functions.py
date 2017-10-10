@@ -1408,6 +1408,32 @@ class FunctionsTest(TestCase):
         result = functions.weightedAverage({}, seriesList, seriesList2, 1)
         self.assertEqual(result, expectedResult)
 
+    def test_weightedAverage_empty_productlist(self):
+        seriesList = self._gen_series_list_with_data(
+            key=[
+                'collectd.test-db1.load.value',
+            ],
+            end=1,
+            data=[
+                [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20],
+            ]
+        )
+
+        seriesList2 = self._gen_series_list_with_data(
+            key=[
+                'collectd.test-db2.load.value',
+            ],
+            end=1,
+            data=[
+                [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20],
+            ]
+        )
+
+        expectedResult = []
+
+        result = functions.weightedAverage({}, seriesList, seriesList2, 1)
+        self.assertEqual(result, expectedResult)
+
     def test_scaleToSeconds(self):
         seriesList = self._gen_series_list_with_data(
             key=[
