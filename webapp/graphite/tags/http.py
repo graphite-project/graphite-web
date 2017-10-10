@@ -39,7 +39,7 @@ class HttpTagDB(BaseTagDB):
 
     seriesList = self.find_series([('%s=%s' % (tag, parsed.tags[tag])) for tag in parsed.tags])
 
-    if path in seriesList:
+    if parsed.path in seriesList:
       return parsed
 
   def list_tags(self, tagFilter=None):
