@@ -122,9 +122,8 @@ class RenderTest(TestCase):
         whisper.update(self.db2, 5, ts - 1)
         whisper.update(self.db2, 6, ts)
 
-        response = self.client.get(url, {'target': 'test', 'format': 'csv'})
         csv_response = ""
-        for i in range(ts-59, ts-5):
+        for i in range(ts-49, ts-5):
             csv_response += "test," + datetime.fromtimestamp(i).strftime("%Y-%m-%d %H:%M:%S") + ",\r\n"
         csv_response += (
             "test," + datetime.fromtimestamp(ts-5).strftime("%Y-%m-%d %H:%M:%S") + ",0.12345678901234568\r\n"
@@ -134,24 +133,26 @@ class RenderTest(TestCase):
             "test," + datetime.fromtimestamp(ts-1).strftime("%Y-%m-%d %H:%M:%S") + ",-inf\r\n"
             "test," + datetime.fromtimestamp(ts).strftime("%Y-%m-%d %H:%M:%S") + ",nan\r\n"
         )
+
+        response = self.client.get(url, {'target': 'test', 'format': 'csv', 'from': ts-50, 'now': ts})
         self.assertEqual(response['content-type'], 'text/csv')
         self.assertEqual(sorted(response['cache-control'].split(', ')), ['max-age=60'])
         self.assertEqual(response.content, csv_response)
 
         # test noCache flag
-        response = self.client.get(url, {'target': 'test', 'format': 'csv', 'noCache': 1})
+        response = self.client.get(url, {'target': 'test', 'format': 'csv', 'noCache': 1, 'from': ts-50, 'now': ts})
         self.assertEqual(response['content-type'], 'text/csv')
         self.assertEqual(sorted(response['cache-control'].split(', ')), ['max-age=0', 'must-revalidate', 'no-cache', 'no-store'])
         self.assertEqual(response.content, csv_response)
 
         # test cacheTimeout=0 flag
-        response = self.client.get(url, {'target': 'test', 'format': 'csv', 'cacheTimeout': 0})
+        response = self.client.get(url, {'target': 'test', 'format': 'csv', 'cacheTimeout': 0, 'from': ts-50, 'now': ts})
         self.assertEqual(response['content-type'], 'text/csv')
         self.assertEqual(sorted(response['cache-control'].split(', ')), ['max-age=0', 'must-revalidate', 'no-cache', 'no-store'])
         self.assertEqual(response.content, csv_response)
 
         # test alternative target syntax
-        response = self.client.get(url, {'target[]': 'test', 'format': 'csv'})
+        response = self.client.get(url, {'target[]': 'test', 'format': 'csv', 'from': ts-50, 'now': ts})
         self.assertEqual(response['content-type'], 'text/csv')
         self.assertEqual(sorted(response['cache-control'].split(', ')), ['max-age=60'])
         self.assertEqual(response.content, csv_response)
