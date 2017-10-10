@@ -193,7 +193,7 @@ class RenderTest(TestCase):
         self.assertEqual(response.content, csv_response)
 
         # test no targets
-        response = self.client.get(url + '?format=csv')
+        response = self.client.get(url, {'format': 'csv'})
         self.assertEqual(response['content-type'], 'text/csv')
         self.assertEqual(sorted(response['cache-control'].split(', ')), ['max-age=60'])
         self.assertEqual(response.content, '')
@@ -205,13 +205,13 @@ class RenderTest(TestCase):
                     "None,None,None,None,None,None,None,None,None,None,None,"
                     "0.12345678901234568,0.4,0.6,inf,-inf,nan")
         raw_response = "test,%d,%d,1|%s\n" % (ts-49, ts+1, raw_data)
-        response = self.client.get(url, {'target': 'test', 'format': 'raw', 'from': ts-50})
+        response = self.client.get(url, {'target': 'test', 'format': 'raw', 'from': ts-50, 'now': ts})
         self.assertEqual(response.content, raw_response)
 
         response = self.client.get(url, {'target': 'test', 'format': 'raw', 'from': ts-50, 'until': ts})
         self.assertEqual(response.content, raw_response)
 
-        response = self.client.get(url, {'target': 'test', 'rawData': 1, 'from': ts-50})
+        response = self.client.get(url, {'target': 'test', 'rawData': 1, 'from': ts-50, 'now': ts})
         self.assertEqual(response.content, raw_response)
 
         # test pickle format
