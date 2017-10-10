@@ -13,7 +13,7 @@ class HttpTagDB(BaseTagDB):
   """
   Stores tag information using an external http service that implements the graphite tags API.
   """
-  def request(self, method, url, fields=None, headers={}):
+  def request(self, method, url, fields={}, headers={}):
     if 'Authorization' not in headers and settings.TAGDB_HTTP_USER and settings.TAGDB_HTTP_PASSWORD:
       headers['Authorization'] = 'Basic ' + ('%s:%s' % (settings.TAGDB_HTTP_USER, settings.TAGDB_HTTP_PASSWORD)).encode('base64')
 
@@ -32,7 +32,6 @@ class HttpTagDB(BaseTagDB):
 
   @logtime()
   def find_series(self, tags):
-    print tags
     return self.request('POST', '/tags/findSeries?' + '&'.join([('expr=%s' % quote(tag)) for tag in tags]))
 
   def get_series(self, path):
