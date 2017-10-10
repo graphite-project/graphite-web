@@ -13,7 +13,13 @@ class HttpTagDB(BaseTagDB):
   """
   Stores tag information using an external http service that implements the graphite tags API.
   """
-  def request(self, method, url, fields={}, headers={}):
+  @staticmethod
+  def request(method, url, fields=None, headers=None):
+    if not fields:
+      fields = {}
+    if not headers:
+      headers = {}
+
     if 'Authorization' not in headers and settings.TAGDB_HTTP_USER and settings.TAGDB_HTTP_PASSWORD:
       headers['Authorization'] = 'Basic ' + ('%s:%s' % (settings.TAGDB_HTTP_USER, settings.TAGDB_HTTP_PASSWORD)).encode('base64')
 
