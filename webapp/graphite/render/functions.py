@@ -267,6 +267,9 @@ def aggregate(requestContext, seriesList, func, xFilesFactor=None):
   tags = seriesList[0].tags
   for series in seriesList:
     tags = {tag: tags[tag] for tag in tags if tag in series.tags and tags[tag] == series.tags[tag]}
+  if 'name' not in tags:
+    tags['name'] = name
+  tags['aggregatedBy'] = func
   series = TimeSeries(name, start, end, step, values, xFilesFactor=xFilesFactor, tags=tags)
 
   return [series]
@@ -4277,9 +4280,6 @@ def groupByTags(requestContext, seriesList, callback, *tags):
   This function can be used with all aggregation functions supported by
   :py:func:`aggregate <aggregate>`: ``average``, ``median``, ``sum``, ``min``, ``max``, ``diff``,
   ``stddev``, ``range`` & ``multiply``.
-
-  This is very similar to :py:func:`groupByNodes <groupByNodes>`, except that the generated series
-  names are formatted with tags.
   """
   if STORE.tagdb is None:
     log.info('groupByTags called but no TagDB configured')

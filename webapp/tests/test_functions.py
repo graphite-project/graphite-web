@@ -486,6 +486,44 @@ class FunctionsTest(TestCase):
         self.assertEqual(functions.formatPathExpressions(seriesList), "collectd.test-db1.load.value,collectd.test-db2.load.value,collectd.test-db3.load.value")
 
     #
+    # test aggregate()
+    #
+
+    def test_aggregate_tags(self):
+        seriesList = self._gen_series_list_with_data(
+            key=['disk.bytes_used;server=server1', 'disk.bytes_free;server=server1'],
+            start=0,
+            end=3,
+            data=[[10, 20, 30], [90, 80, 70]]
+        )
+
+        result = functions.aggregate({}, seriesList, 'sum')
+        self.assertEqual(result, [
+            TimeSeries('sumSeries(disk.bytes_used;server=server1,disk.bytes_free;server=server1)', 0, 3, 1, [100, 100, 100]),
+        ])
+        self.assertEqual(result[0].tags, {
+          'name': 'sumSeries(disk.bytes_used;server=server1,disk.bytes_free;server=server1)',
+          'server': 'server1',
+          'aggregatedBy': 'sum',
+        })
+
+        seriesList = self._gen_series_list_with_data(
+            key=['disk.bytes_used;server=server1', 'disk.bytes_used;server=server2'],
+            start=0,
+            end=3,
+            data=[[10, 20, 30], [90, 80, 70]]
+        )
+
+        result = functions.aggregate({}, seriesList, 'sum')
+        self.assertEqual(result, [
+            TimeSeries('sumSeries(disk.bytes_used;server=server1,disk.bytes_used;server=server2)', 0, 3, 1, [100, 100, 100]),
+        ])
+        self.assertEqual(result[0].tags, {
+          'name': 'disk.bytes_used',
+          'aggregatedBy': 'sum',
+        })
+
+    #
     # Test sumSeries()
     #
 
