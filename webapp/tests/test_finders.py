@@ -28,6 +28,7 @@ from graphite.intervals import Interval, IntervalSet
 from graphite.node import LeafNode, BranchNode
 from graphite.storage import Store, FindQuery, get_finder
 from graphite.finders.standard import scandir
+from graphite.finders import get_real_metric_path
 from graphite.finders.utils import BaseFinder
 from graphite.readers.utils import BaseReader
 from tests.base import TestCase
@@ -252,6 +253,24 @@ class StandardFinderTest(TestCase):
             self.assertNotIn(miss, paths)
             self.wipe_whisper()
 
+    def dummy_realpath(path):
+        return path.replace("some/symbolic/path", "this/is/the/real/path")
+
+    @patch('os.path.realpath', wraps=dummy_realpath)
+    def test_get_real_metric_path_symlink_outside(self, dummy_realpath):
+        input_abs_path='/some/symbolic/path/graphite/whisper/Env/HTTP/NumConnections.wsp'
+        input_metric_path='Env.HTTP.NumConnections'
+        expected_metric_path='Env.HTTP.NumConnections'
+        output_metric_path = get_real_metric_path(input_abs_path, input_metric_path)
+        self.assertEqual(output_metric_path, expected_metric_path)
+
+    @patch('os.path.realpath', wraps=dummy_realpath)
+    def test_get_real_metric_path_symlink_inside(self, dummy_realpath):
+        input_abs_path='/opt/graphite/storage/whisper/some/symbolic/path/NumConnections.wsp'
+        input_metric_path='some.symbolic.path.NumConnections'
+        expected_metric_path='this.is.the.real.path.NumConnections'
+        output_metric_path = get_real_metric_path(input_abs_path, input_metric_path)
+        self.assertEqual(output_metric_path, expected_metric_path)
 
 class CeresFinderTest(TestCase):
     _listdir_counter = 0
