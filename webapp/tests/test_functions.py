@@ -3452,6 +3452,104 @@ class FunctionsTest(TestCase):
         self.assertEqual(list(result[0]), list(expectedResult[0]))
         self.assertEqual(result, expectedResult)
 
+    def test_timeShift(self):
+        original = functions.evaluateTarget
+        try:
+            # Series in the past
+            savedSeries = TimeSeries('test.value',0,600,60,[None,None,None,3,None,5,6,None,7,None,None]),
+            functions.evaluateTarget = lambda x, y: savedSeries
+
+            # input values will be ignored and replaced by regression function
+            inputSeries = TimeSeries('test.value',600,1200,60,[0,1,2,3,4,5,6,7,8,9])
+            inputSeries.pathExpression = 'test.value'
+            results = functions.timeShift(
+                self._build_requestContext(
+                    startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+                ),
+                [ inputSeries ],
+                "-10minutes"
+            )
+
+            # we're going to slice such that we only include minutes 3 to 8 (of 0 to 9)
+            expectedResult = [
+                TimeSeries('timeShift(test.value, "-10minutes")',600,1200,60,[None,None,None,3,None,5,6,None,7,None,None])
+            ]
+
+            self.assertEqual(results, expectedResult)
+        finally:
+            functions.evaluateTarget = original
+
+    def test_timeShift_emptySeries(self):
+        results = functions.timeShift(
+            self._build_requestContext(
+                startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+            ),
+            [ ],
+            "-10minutes"
+        )
+        expectedResult = [ ]
+        self.assertEqual(results, expectedResult)
+
+    def test_timeShift_resetEnd_False(self):
+        original = functions.evaluateTarget
+        try:
+            # Series in the past
+            savedSeries = TimeSeries('test.value',0,600,60,[None,None,None,3,None,5,6,None,7,None,None]),
+            functions.evaluateTarget = lambda x, y: savedSeries
+
+            # input values will be ignored and replaced by regression function
+            inputSeries = TimeSeries('test.value',600,1200,60,[0,1,2,3,4,5,6,7,8,9])
+            inputSeries.pathExpression = 'test.value'
+            results = functions.timeShift(
+                self._build_requestContext(
+                    startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+                ),
+                [ inputSeries ],
+                "-10minutes",
+                False
+            )
+
+            expectedResult = [
+                TimeSeries('timeShift(test.value, "-10minutes")',600,1200,60,[None,None,None,3,None,5,6,None,7,None,None])
+            ]
+
+            self.assertEqual(results, expectedResult)
+        finally:
+            functions.evaluateTarget = original
+
+    def test_timeShift_alignDST(self):
+        original = functions.evaluateTarget
+        with self.settings(TIME_ZONE='Europe/Berlin'):
+            try:
+                # Series in the past
+                savedSeries = TimeSeries('test.value',0,600,60,[None,None,None,3,None,5,6,None,7,None,None]),
+                functions.evaluateTarget = lambda x, y: savedSeries
+
+                # input values will be ignored and replaced by regression function
+                inputSeries = TimeSeries('test.value',600,1200,60,[0,1,2,3,4,5,6,7,8,9])
+                inputSeries.pathExpression = 'test.value'
+                results = functions.timeShift(
+                    self._build_requestContext(
+                        startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                        endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+                    ),
+                    [ inputSeries ],
+                    "-10minutes",
+                    True,
+                    True
+                )
+
+                expectedResult = [
+                    TimeSeries('timeShift(test.value, "-10minutes")',600,1200,60,[None,None,None,3,None,5,6,None,7,None,None])
+                ]
+
+                self.assertEqual(results, expectedResult)
+            finally:
+                functions.evaluateTarget = original
+
     def test_timeSlice(self):
         # series starts at 60 seconds past the epoch and continues for 600 seconds (ten minutes)
         # steps are every 60 seconds
