@@ -339,7 +339,7 @@ def prefetchRemoteData(requestContext, targets):
   """
   # only prefetch if there is at least one active remote finder
   # this is to avoid the overhead of tagdb lookups in extractPathExpressions
-  if len([finder for finder in STORE.finders if not getattr(finder, 'local', True) and not getattr(finder, 'disabled')]) < 1:
+  if len([finder for finder in STORE.finders if not getattr(finder, 'local', True) and not getattr(finder, 'disabled', False)]) < 1:
     return
 
   pathExpressions = extractPathExpressions(targets)
