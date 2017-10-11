@@ -94,6 +94,33 @@ As Whisper and other storage backends are designed to hold simple time-series da
 
   Tag support requires Graphite webapp & carbon version 1.1.0 or newer.
 
+Local Database TagDB
+^^^^^^^^^^^^^^^^^^^^
+
+The Local TagDB stores tag information in tables inside the graphite-web database.  It supports SQLite, MySQL and Postgres, and is enabled by default.
+
+Redis TagDB
+^^^^^^^^^^^
+
+The Redis TagDB will store the tag information on a Redis server, and is selected by setting ``TAGDB='graphite.tags.redis.RedisTagDB'`` in `local_settings.py`.  There are 3 additional config settings for the Redis TagDB::
+
+    TAGDB_REDIS_HOST = 'localhost'
+    TAGDB_REDIS_PORT = 6379
+    TAGDB_REDIS_DB = 0
+
+The default settings (above) will connect to a local Redis server on the default port, and use the default database.
+
+HTTP(S) TagDB
+^^^^^^^^^^^^^
+
+The HTTP(S) TagDB is used to delegate all tag operations to an external server that implements the Graphite tagging HTTP API.  It can be used in clustered graphite scenarios, or with custom data stores.  It is selected by setting ``TAGDB='graphite.tags.http.HttpTagDB'`` in `local_settings.py`.  There are 3 additional config settings for the HTTP(S) TagDB::
+
+    TAGDB_HTTP_URL = 'https://another.server'
+    TAGDB_HTTP_USER = ''
+    TAGDB_HTTP_PASSWORD = ''
+
+The ``TAGDB_HTTP_URL`` is required. ``TAGDB_HTTP_USER`` and ``TAGDB_HTTP_PASSWORD`` are optional and if specified will be used to send a Basic Authorization header in all requests.
+
 Adding Series to the TagDB
 --------------------------
 Normally `carbon` will take care of this, it submits all new series to the TagDB, and periodically re-submits all series to ensure that the TagDB is kept up to date.  There are 2 `carbon` configuration settings related to tagging; the `GRAPHITE_URL` setting specifies the url of your graphite-web installation (default `http://127.0.0.1:8000`), and the `TAG_UPDATE_INTERVAL` setting specifies how often each series should be re-submitted to the TagDB (default is every 100th update).

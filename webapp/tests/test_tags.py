@@ -103,7 +103,7 @@ class TagsTest(TestCase):
     self.assertEquals(valueList[0]['value'], 'tiger')
 
     # get tag & filtered list of values (no match)
-    result = db.get_tag('hello', valueFilter='tigr')
+    result = db.get_tag('hello', valueFilter='^tigr')
     self.assertEquals(result['tag'], 'hello')
     valueList = [value for value in result['values'] if value['value'] in ['tiger', 'lion']]
     self.assertEquals(len(valueList), 0)
@@ -113,7 +113,7 @@ class TagsTest(TestCase):
     self.assertEqual(result, ['test.a;blah=blah;hello=tiger'])
 
     # find with regex
-    result = db.find_series(['blah=~b.*', 'hello=~tiger', 'test=~.*'])
+    result = db.find_series(['blah=~b.*', 'hello=~^tiger', 'test=~.*'])
     self.assertEqual(result, ['test.a;blah=blah;hello=tiger'])
 
     # find with not regex
