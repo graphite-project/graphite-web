@@ -172,7 +172,7 @@ class RemoteReader(BaseReader):
 
             if result.status != 200:
                 self.store.fail()
-                self.log_error("ReadResult:: Error response %d from %s" % url_full)
+                self.log_error("ReadResult:: Error response %d from %s" % (result.status, url_full))
                 data = []
             else:
                 data = unpickle.loads(result.data)

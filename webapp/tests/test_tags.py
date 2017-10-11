@@ -5,8 +5,11 @@ try:
 except ImportError:  # Django < 1.10
   from django.core.urlresolvers import reverse
 
+from mock import patch
+
 from graphite.tags.localdatabase import LocalDatabaseTagDB
 from graphite.tags.redis import RedisTagDB
+from graphite.tags.http import HttpTagDB
 from graphite.tags.utils import TaggedSeries
 from graphite.util import json
 
@@ -100,7 +103,7 @@ class TagsTest(TestCase):
     self.assertEquals(valueList[0]['value'], 'tiger')
 
     # get tag & filtered list of values (no match)
-    result = db.get_tag('hello', valueFilter='tigr')
+    result = db.get_tag('hello', valueFilter='^tigr')
     self.assertEquals(result['tag'], 'hello')
     valueList = [value for value in result['values'] if value['value'] in ['tiger', 'lion']]
     self.assertEquals(len(valueList), 0)
@@ -110,7 +113,7 @@ class TagsTest(TestCase):
     self.assertEqual(result, ['test.a;blah=blah;hello=tiger'])
 
     # find with regex
-    result = db.find_series(['blah=~b.*', 'hello=~tiger', 'test=~.*'])
+    result = db.find_series(['blah=~b.*', 'hello=~^tiger', 'test=~.*'])
     self.assertEqual(result, ['test.a;blah=blah;hello=tiger'])
 
     # find with not regex
@@ -166,6 +169,58 @@ class TagsTest(TestCase):
 
   def test_redis_tagdb(self):
     return self._test_tagdb(RedisTagDB())
+
+  def test_http_tagdb(self):
+    # test http tagdb using django client
+    db = HttpTagDB()
+    db.base_url = reverse('tagList').replace('/tags', '')
+    db.username = ''
+    db.password = ''
+
+    # helper class to mock urllib3 response object
+    class mockResponse(object):
+      def __init__(self, status, data):
+        self.status = status
+        self.data = data
+
+    # mock http request that forwards requests using django client
+    def mockRequest(method, url, fields=None, headers=None, timeout=None):
+      if db.username and db.password:
+        self.assertEqual(headers, {'Authorization': 'Basic dGVzdDp0ZXN0\n'})
+      else:
+        self.assertEqual(headers, {})
+
+      if method == 'POST':
+        result = self.client.post(url, fields)
+      elif method == 'GET':
+        result = self.client.get(url, fields)
+      else:
+        raise Exception('Invalid HTTP method %s' % method)
+
+      return mockResponse(result.status_code, result.content)
+
+    # use mockRequest to send http requests to live django running configured tagdb
+    with patch('graphite.http_pool.http.request', mockRequest):
+      self._test_tagdb(db)
+
+      with self.assertRaisesRegexp(Exception, 'HTTP Error from remote tagdb: 405'):
+        db.get_tag('delSeries')
+
+      db.username = 'test'
+      db.password = 'test'
+
+      result = db.tag_series('test.a;hello=tiger;blah=blah')
+      self.assertEquals(result, 'test.a;blah=blah;hello=tiger')
+
+      result = db.list_values('hello')
+      valueList = [value for value in result if value['value'] in ['tiger', 'lion']]
+      self.assertEquals(len(valueList), 1)
+      self.assertEquals(valueList[0]['value'], 'tiger')
+
+      result = db.list_values('notarealtag')
+      self.assertEquals(result, [])
+
+      self.assertTrue(db.del_series('test.a;blah=blah;hello=tiger'))
 
   def test_tag_views(self):
     url = reverse('tagList')

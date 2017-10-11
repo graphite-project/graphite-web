@@ -117,9 +117,15 @@ STORAGE_FINDERS = (
     'graphite.finders.standard.StandardFinder',
 )
 TAGDB = 'graphite.tags.localdatabase.LocalDatabaseTagDB'
-TAGDB_REDIS_HOST='localhost'
-TAGDB_REDIS_PORT=6379
-TAGDB_REDIS_DB=0
+
+TAGDB_REDIS_HOST = 'localhost'
+TAGDB_REDIS_PORT = 6379
+TAGDB_REDIS_DB = 0
+
+TAGDB_HTTP_URL = ''
+TAGDB_HTTP_USER = ''
+TAGDB_HTTP_PASSWORD = ''
+
 MIDDLEWARE = ()
 if DJANGO_VERSION < (1, 10):
     MIDDLEWARE_CLASSES = MIDDLEWARE
