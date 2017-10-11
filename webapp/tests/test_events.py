@@ -1,5 +1,6 @@
 import time
 import json
+import re
 
 from datetime import timedelta
 
@@ -76,6 +77,10 @@ class EventTest(TestCase):
         self.assertEqual(event['what'], 'Something happened')
         self.assertEqual(event['tags'], ['foo', 'bar'])
 
+        response = self.client.get(creation_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertRegexpMatches(response.content, re.compile('^<html>.+<title>Events</title>.+Something happened.+<td>\\[u&#39;foo&#39;, u&#39;bar&#39;\\]</td>.+</html>$', re.DOTALL))
+
     def test_tag_as_str(self):
         creation_url = reverse('events')
         event = {
@@ -85,10 +90,46 @@ class EventTest(TestCase):
         }
         response = self.client.post(creation_url, json.dumps(event),
                                     content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+
+        event = Event.objects.get()
+        self.assertEqual(event.what, 'Something happened')
+        self.assertEqual(event.tags, 'other')
+
+        url = reverse('events_get_data')
+        response = self.client.get(url, {'until': 'now+5min', 'jsonp': 'test'})
+        self.assertEqual(response.status_code, 200)
+        self.assertRegexpMatches(response.content, '^test[(].+[)]$')
+        events = json.loads(response.content[5:-1])
+        self.assertEqual(len(events), 1)
+        event = events[0]
+        self.assertEqual(event['what'], 'Something happened')
+        self.assertEqual(event['tags'], ['other'])
+
+    def test_tag_invalid(self):
+        creation_url = reverse('events')
+        event = {
+            'what': 'Something happened',
+            'data': 'more info',
+            'tags': {},
+        }
+        response = self.client.post(creation_url, json.dumps(event),
+                                    content_type='application/json')
         self.assertEqual(response.status_code, 400)
         error = json.loads(response.content)
-        self.assertEqual(error, {'error': '"tags" must be an array'})
+        self.assertEqual(error, {'error': '"tags" must be an array or space-separated string'})
         self.assertEqual(Event.objects.count(), 0)
+
+    def test_tag_invalid_method(self):
+        creation_url = reverse('events')
+        event = {
+            'what': 'Something happened',
+            'data': 'more info',
+            'tags': {},
+        }
+        response = self.client.delete(creation_url, json.dumps(event),
+                                    content_type='application/json')
+        self.assertEqual(response.status_code, 405)
 
     def test_tag_sets(self):
         creation_url = reverse('events')
@@ -141,7 +182,7 @@ class EventTest(TestCase):
         events = json.loads(response.content)
         self.assertEqual(len(events), 3)
 
-    def test_get_detail_json(self):
+    def test_get_detail_json_html(self):
         creation_url = reverse('events')
         event = {
             'what': 'Something happened',
@@ -167,12 +208,22 @@ class EventTest(TestCase):
         self.assertEqual(event['what'], 'Something happened')
         self.assertEqual(event['tags'], ['foo', 'bar', 'baz'])
 
+        url = reverse('events_detail', args=[events[0]['id']])
+        response = self.client.get(url, {})
+        self.assertEqual(response.status_code, 200)
+        self.assertRegexpMatches(response.content, re.compile('^<html>.+<title>Something happened</title>.+<h1>Something happened</h1>.+<td>tags</td><td>foo bar baz</td>.+</html>$', re.DOTALL))
+
     def test_get_detail_json_object_does_not_exist(self):
         url = reverse('events_detail', args=[1])
         response = self.client.get(url, {}, HTTP_ACCEPT='application/json')
         self.assertEqual(response.status_code, 404)
         event = json.loads(response.content)
         self.assertEqual(event['error'], 'Event matching query does not exist')
+
+        url = reverse('events_detail', args=[1])
+        response = self.client.get(url, {})
+        self.assertEqual(response.status_code, 404)
+        self.assertRegexpMatches(response.content, '<h1>Not Found</h1>')
 
     def test_render_events_issue_1749(self):
         url = reverse('render')

@@ -34,7 +34,7 @@ def view_events(request):
 
 
 def detail(request, event_id):
-    if request.META['HTTP_ACCEPT'] == 'application/json':
+    if request.META.get('HTTP_ACCEPT') == 'application/json':
         try:
            e = Event.objects.get(id=event_id)
            e.tags = e.tags.split()
@@ -56,12 +56,15 @@ def post_event(request):
         assert isinstance(event, dict)
 
         tags = event.get('tags')
-        if tags:
-            if not isinstance(tags, list):
+        if tags is not None:
+            if isinstance(tags, list):
+                tags = ' '.join(tags)
+            elif not isinstance(tags, basestring):
                 return HttpResponse(
-                    json.dumps({'error': '"tags" must be an array'}),
+                    json.dumps({'error': '"tags" must be an array or space-separated string'}),
                     status=400)
-            tags = ' '.join(tags)
+        else:
+            tags = None
         if 'when' in event:
             when = epoch_to_dt(event['when'])
         else:
