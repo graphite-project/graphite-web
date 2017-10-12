@@ -121,11 +121,16 @@ def autoComplete(request):
         value = tags[tag]
         if tag not in result:
           result[tag] = [value]
-        elif value not in result[tag]:
+          continue
+        if value in result[tag]:
+          continue
+        if len(result[tag]) >= 100:
+          if value >= result[tag][-1]:
+            continue
+          result[tag][-1] = value
+        else:
           result[tag].append(value)
-          result[tag].sort()
-          if len(result[tag]) > 100:
-            del result[tag][-1]
+        result[tag].sort()
 
     result = {tag: result[tag] for tag in sorted(result.keys())[:100]}
 
