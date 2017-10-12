@@ -61,7 +61,7 @@ def findSeries(request):
   return HttpResponse(
     json.dumps(STORE.tagdb.find_series(exprs) if STORE.tagdb else [],
                indent=(2 if queryParams.get('pretty') else None),
-               sort_keys=bool(request.GET.get('pretty'))),
+               sort_keys=bool(queryParams.get('pretty'))),
     content_type='application/json'
   )
 
@@ -123,10 +123,15 @@ def autoComplete(request):
           result[tag] = [value]
         elif value not in result[tag]:
           result[tag].append(value)
+          result[tag].sort()
+          if len(result[tag]) > 100:
+            del result[tag][-1]
+
+    result = {tag: result[tag] for tag in sorted(result.keys())[:100]}
 
   return HttpResponse(
     json.dumps(result,
                indent=(2 if queryParams.get('pretty') else None),
-               sort_keys=bool(request.GET.get('pretty'))),
+               sort_keys=bool(queryParams.get('pretty'))),
     content_type='application/json'
   )
