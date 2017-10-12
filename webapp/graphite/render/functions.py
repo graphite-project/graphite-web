@@ -4182,6 +4182,28 @@ def removeEmptySeries(requestContext, seriesList):
     """
     return [ series for series in seriesList if safeIsNotEmpty(series) ]
 
+def unique(requestContext, *seriesLists):
+  """
+  Takes an arbitrary number of seriesLists and returns unique series, filtered by name.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=unique(mostDeviant(server.*.disk_free,5),lowestCurrent(server.*.disk_free,5))
+
+  Draws servers with low disk space, and servers with highly deviant disk space, but never the same series twice.
+
+  """
+  newList = []
+  seenNames = set()
+  for seriesList in seriesLists:
+    for series in seriesList:
+      if series.name not in seenNames:
+        seenNames.add(series.name)
+        newList.append(series)
+  return newList
+
 def randomWalkFunction(requestContext, name, step=60):
   """
   Short Alias: randomWalk()
@@ -4517,6 +4539,7 @@ SeriesFunctions = {
   'exclude': exclude,
   'grep': grep,
   'removeEmptySeries': removeEmptySeries,
+  'unique': unique,
 
   # Data Filter functions
   'removeAbovePercentile': removeAbovePercentile,
