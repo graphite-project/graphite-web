@@ -153,11 +153,11 @@ function createToolbarButton(tip, icon, handler) {
     listeners: {
       render: function (button) {
         button.el.toolTip = new Ext.ToolTip({
-	  html: tip,
-	  showDelay: 100,
-	  dismissDelay: 10000,
-	  target: button.el
-	});
+          html: tip,
+          showDelay: 100,
+          dismissDelay: 10000,
+          target: button.el
+        });
       }
     }
   });
@@ -412,7 +412,7 @@ function saveMyGraph(button, e) {
 
       if (!text) {
         Ext.Msg.alert("You must enter a graph name!");
-	return;
+        return;
       }
 
       if (text.charAt(text.length - 1) == '.') {
@@ -465,7 +465,7 @@ function deleteMyGraph() {
 
       if (!text) {
         Ext.Msg.alert("Invalid My Graph name!");
-	return;
+        return;
       }
 
       //Send the request
@@ -755,7 +755,7 @@ var GraphDataWindow = {
 
     Ext.each(this.getSelectedTargets(),
       function (target) {
-	var args = [];
+        var args = [];
         var i, c;
         var lastArg = 0;
         var depth = 0;
@@ -1090,9 +1090,9 @@ function createFunctionsMenu() {
         {text: 'Power Series', handler: applyFuncToEachWithInput('powSeries', 'Please enter at least 2 series')},
         {text: 'Square Root', handler: applyFuncToEach('squareRoot')},
         {text: 'Time-adjusted Derivative', handler: applyFuncToEachWithInput('perSecond', "Please enter a maximum value if this metric is a wrapping counter (or just leave this blank)", {allowBlank: true})},
-	{text: 'Delay', handler: applyFuncToEachWithInput('delay', 'Please enter the number of steps to delay')},
+        {text: 'Delay', handler: applyFuncToEachWithInput('delay', 'Please enter the number of steps to delay')},
         {text: 'Integral', handler: applyFuncToEach('integral')},
-	{text: 'Integral by Interval', handler: applyFuncToEachWithInput('integralByInterval', 'Integral this metric with a reset every ___ (examples: 1d, 1h, 10min)', {quote: true})},
+        {text: 'Integral by Interval', handler: applyFuncToEachWithInput('integralByInterval', 'Integral this metric with a reset every ___ (examples: 1d, 1h, 10min)', {quote: true})},
         {text: 'Percentile Values', handler: applyFuncToEachWithInput('percentileOfSeries', "Please enter the percentile to use")},
         {text: 'Non-negative Derivative', handler: applyFuncToEachWithInput('nonNegativeDerivative', "Please enter a maximum value if this metric is a wrapping counter (or just leave this blank)", {allowBlank: true})},
         {text: 'Log', handler: applyFuncToEachWithInput('log', 'Please enter a base')},
@@ -1159,7 +1159,7 @@ function createFunctionsMenu() {
         {text: 'Exclude', handler: applyFuncToEachWithInput('exclude', 'Exclude metrics that match a regular expression')},
         {text: 'Grep', handler: applyFuncToEachWithInput('grep', 'Exclude metrics that don\'t match a regular expression')},
         {text: 'Remove Empty Series', handler: applyFuncToEachWithInput('removeEmptySeries', 'Removes series with no data from graph')},
-        {text: 'Remove Duplicates By Name', handler: applyFuncToAll('uniqueNames')}
+        {text: 'Remove Duplicates By Name', handler: applyFuncToAll('unique')}
       ]
     }, {
       text: 'Special',
@@ -1168,14 +1168,14 @@ function createFunctionsMenu() {
         {text: 'Set Legend Name By Metric', handler: applyFuncToEach('aliasByMetric')},
         {text: 'Set Legend Name By Node', handler: applyFuncToEachWithInput('aliasByNode', 'Enter the 0-indexed node to display')},
         {text: 'Add Values to Legend Name',
-	      	 menu: [
+                menu: [
                         {text: "Cacti Style Legend", handler: applyFuncToEach('cactiStyle')},
-        		{text: "Last Value", handler: applyFuncToEach('legendValue', '"last"')},
-        		{text: "Average Value", handler: applyFuncToEach('legendValue', '"avg"')},
-        		{text: "Total Value", handler: applyFuncToEach('legendValue', '"total"')},
-        		{text: "Min Value", handler: applyFuncToEach('legendValue', '"min"')},
-        		{text: "Max Value", handler: applyFuncToEach('legendValue', '"max"')}
-        		]},
+                        {text: "Last Value", handler: applyFuncToEach('legendValue', '"last"')},
+                        {text: "Average Value", handler: applyFuncToEach('legendValue', '"avg"')},
+                        {text: "Total Value", handler: applyFuncToEach('legendValue', '"total"')},
+                        {text: "Min Value", handler: applyFuncToEach('legendValue', '"min"')},
+                        {text: "Max Value", handler: applyFuncToEach('legendValue', '"max"')}
+                      ]},
         {text: 'Color', handler: applyFuncToEachWithInput('color', 'Set the color for this graph target', {quote: true})},
         {text: 'Alpha', handler: applyFuncToEachWithInput('alpha', 'Set the alpha (transparency) for this graph target (between 0.0 and 1.0)')},
         {text: 'Consolidate By',

@@ -2059,7 +2059,7 @@ class FunctionsTest(TestCase):
 
         self.assertEqual(1, len(result))
 
-    def test_unique_names(self):
+    def test_unique(self):
         seriesList = [
             TimeSeries('collectd.test-db3.load.value',0,100,1,[10]*100),
             TimeSeries('collectd.test-db2.load.value',0,100,1,[5]*100),
@@ -2073,7 +2073,7 @@ class FunctionsTest(TestCase):
             TimeSeries('collectd.test-db4.load.value',0,100,1,[1]*100),
         ]
 
-        result = functions.uniqueNames({}, seriesList)
+        result = functions.unique({}, seriesList)
         self.assertEqual(result, expectedResult)
 
     def test_remove_above_percentile(self):

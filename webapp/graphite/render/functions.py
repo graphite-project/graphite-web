@@ -4182,7 +4182,7 @@ def removeEmptySeries(requestContext, seriesList):
     """
     return [ series for series in seriesList if safeIsNotEmpty(series) ]
 
-def uniqueNames(requestContext, *seriesLists):
+def unique(requestContext, *seriesLists):
   """
   Takes an arbitrary number of seriesLists and returns unique series, filtered by name.
 
@@ -4190,7 +4190,7 @@ def uniqueNames(requestContext, *seriesLists):
 
   .. code-block:: none
 
-    &target=uniqueNames(mostDeviant(server.*.disk_free,5),lowestCurrent(server.*.disk_free,5))
+    &target=unique(mostDeviant(server.*.disk_free,5),lowestCurrent(server.*.disk_free,5))
 
   Draws servers with low disk space, and servers with highly deviant disk space, but never the same series twice.
 
@@ -4539,7 +4539,7 @@ SeriesFunctions = {
   'exclude': exclude,
   'grep': grep,
   'removeEmptySeries': removeEmptySeries,
-  'uniqueNames': uniqueNames,
+  'unique': unique,
 
   # Data Filter functions
   'removeAbovePercentile': removeAbovePercentile,
