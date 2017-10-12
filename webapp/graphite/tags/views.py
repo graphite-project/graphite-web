@@ -1,3 +1,5 @@
+import bisect
+
 from graphite.compat import HttpResponse
 from graphite.util import json
 from graphite.storage import STORE
@@ -124,13 +126,14 @@ def autoComplete(request):
           continue
         if value in result[tag]:
           continue
-        if len(result[tag]) >= 100:
-          if value >= result[tag][-1]:
+        if value >= result[tag][-1]:
+          if len(result[tag]) >= 100:
             continue
-          result[tag][-1] = value
-        else:
           result[tag].append(value)
-        result[tag].sort()
+        else:
+          bisect.insort_left(result[tag], value)
+        if len(result[tag]) > 100:
+          del result[tag][-1]
 
     result = {tag: result[tag] for tag in sorted(result.keys())[:100]}
 
