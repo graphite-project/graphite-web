@@ -37,7 +37,7 @@ def parseATTime(s, tzinfo=None, now=None):
       pass #Fall back because its not a timestamp, its YYYYMMDD form
     else:
       return datetime.fromtimestamp(int(s),tzinfo)
-  elif ':' in s and len(s) == 13:
+  elif ':' in s and s.replace(':','').isdigit():
     return tzinfo.localize(datetime.strptime(s,'%H:%M%Y%m%d'), daylight)
   if '+' in s:
     ref,offset = s.split('+',1)
