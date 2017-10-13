@@ -2046,6 +2046,210 @@ class FunctionsTest(TestCase):
         result = functions.sortByMinima({}, seriesList)
         self.assertEqual(result, expectedResult)
 
+    def test_useSeriesAbove(self):
+        seriesList = self._gen_series_list_with_data(
+            key=['test.foo'],
+            start=0,
+            end=600,
+            step=60,
+            data=[10,10,10,3,10,5,6,10,7,10,10]
+        )
+
+        def mock_data_fetcher(reqCtx, path_expression):
+            rv = []
+            for s in seriesList:
+                if s.name == path_expression or fnmatch(s.name, path_expression):
+                    rv.append(s)
+            if rv:
+                return rv
+            raise KeyError('{} not found!'.format(path_expression))
+
+
+        with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
+            inputSeries = TimeSeries('test.value',600,1200,60,[0,1,2,3,4,5,6,7,8,9])
+            inputSeries.pathExpression = 'test.value'
+            results = functions.useSeriesAbove(
+                self._build_requestContext(
+                    startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+                ),
+                [ inputSeries ],
+                8,
+                "value",
+                "foo"
+            )
+
+        expectedResults = [
+            TimeSeries('test.foo',0,600,60,[10, 10, 10, 3, 10, 5, 6, 10, 7, 10, 10])
+        ]
+
+        self.assertEqual(results, expectedResults)
+
+    def test_useSeriesAbove_no_match(self):
+        inputSeries = TimeSeries('test.value',600,1200,60,[0,1,2,3,4,5,6,7,8,9])
+        inputSeries.pathExpression = 'test.value'
+        results = functions.useSeriesAbove(
+            self._build_requestContext(
+                startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+            ),
+            [ inputSeries ],
+            20,
+            "value",
+            "foo"
+        )
+
+        expectedResults = []
+
+        self.assertEqual(results, expectedResults)
+
+    def test_useSeriesAbove_fetch_returns_None(self):
+        def mock_data_fetcher(reqCtx, path_expression):
+            return []
+
+        with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
+            inputSeries = TimeSeries('test.value',600,1200,60,[0,1,2,3,4,5,6,7,8,9])
+            inputSeries.pathExpression = 'test.value'
+            results = functions.useSeriesAbove(
+                self._build_requestContext(
+                    startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+                ),
+                [ inputSeries ],
+                8,
+                "value",
+                "foo"
+            )
+
+        expectedResults = []
+
+        self.assertEqual(results, expectedResults)
+
+    def test_fallbackSeries(self):
+        inputSeries = self._gen_series_list_with_data(
+            key=['test.foo', 'test.bar'],
+            start=0,
+            end=600,
+            step=60,
+            data=[[10,10,10,3,10,5,6,10,7,10,10], [0,1,2,3,4,5,6,7,8,9]]
+        )
+
+        results = functions.fallbackSeries(
+            self._build_requestContext(
+                startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+            ),
+            [ inputSeries[0] ],
+            [ inputSeries[1] ]
+        )
+
+        self.assertEqual(results, [inputSeries[0]])
+
+    def test_fallbackSeries_empty(self):
+        inputSeries = self._gen_series_list_with_data(
+            key=['test.foo', 'test.bar'],
+            start=0,
+            end=600,
+            step=60,
+            data=[[10,10,10,3,10,5,6,10,7,10,10], [0,1,2,3,4,5,6,7,8,9]]
+        )
+
+        results = functions.fallbackSeries(
+            self._build_requestContext(
+                startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+            ),
+            [ ],
+            [ inputSeries[1] ]
+        )
+
+        self.assertEqual(results, [inputSeries[1]])
+
+    def test_mostDeviant(self):
+        inputSeries = self._gen_series_list_with_data(
+            key=['test.foo', 'test.bar', 'test.baz', 'test.blah'],
+            start=0,
+            end=600,
+            step=60,
+            data=[[10,10,10,3,10,5,6,10,7,10,10], [0,1,2,3,4,5,6,7,8,9], [1,1,1,1,1,1,1,1,1,1], [5,5,5,5,5,5,5,5,5,5]]
+        )
+
+        results = functions.mostDeviant(
+            self._build_requestContext(
+                startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+            ),
+            inputSeries,
+            2
+        )
+
+        self.assertEqual(results, [inputSeries[1], inputSeries[0]])
+
+    def test_stdev(self):
+        inputSeries = self._gen_series_list_with_data(
+            key=['test.foo'],
+            start=0,
+            end=600,
+            step=60,
+            data=[0,1,2,3,4,5,6,7,8,9]
+        )
+
+        results = functions.stdev(
+            self._build_requestContext(
+                startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+            ),
+            inputSeries,
+            2
+        )
+
+        expectedResults = [
+            TimeSeries('stdev(test.foo,2)',0,600,60,[0.0, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5])
+        ]
+
+        self.assertEqual(results, expectedResults)
+
+    def test_stdev_Nones(self):
+        inputSeries = self._gen_series_list_with_data(
+            key=['test.foo'],
+            start=0,
+            end=600,
+            step=60,
+            data=[None]*10
+        )
+
+        results = functions.stdev(
+            self._build_requestContext(
+                startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+            ),
+            inputSeries,
+            2
+        )
+
+        expectedResults = [
+            TimeSeries('stdev(test.foo,2)',0,600,60,[None, None, None, None, None, None, None, None, None, None])
+        ]
+
+        self.assertEqual(results, expectedResults)
+
+    def test_sinFunction(self):
+
+        results = functions.sinFunction(
+            self._build_requestContext(
+                startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+            ),
+            "sine test",
+            10
+        )
+
+        expectedResults = [
+            TimeSeries('sine test',600,1200,60,[0.4418244833187319, 2.624330297809573, -5.440716964379951, 7.73928862147125, -9.301280920157128, 9.978032744219705, -9.705134889047493, 8.508560145797974, -6.502191365954637, 3.876982770359131])
+        ]
+
+        self.assertEqual(results, expectedResults)
+
     def test_check_empty_lists(self):
         seriesList = []
         config = [[1000, 100, 10, 0], []]
@@ -2075,6 +2279,26 @@ class FunctionsTest(TestCase):
 
         result = functions.unique({}, seriesList)
         self.assertEqual(result, expectedResult)
+
+    def test_randomWalkFunction(self):
+        # mock randomWalk's random.random() call to always return 1
+        def not_random():
+            return 1
+
+        with patch('graphite.render.functions.random.random', not_random):
+            results = functions.randomWalkFunction(
+                self._build_requestContext(
+                    startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+                ),
+                "The.time.series"
+            )
+
+        expectedResults = [
+            TimeSeries('The.time.series',600,1200,60,[0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5])
+        ]
+
+        self.assertEqual(results, expectedResults)
 
     def test_remove_above_percentile(self):
         seriesList = self._generate_series_list()
@@ -3437,6 +3661,49 @@ class FunctionsTest(TestCase):
         self.assertEqual(list(result[0]), list(expectedResult[0]))
         self.assertEqual(result, expectedResult)
 
+    def test_timeStack(self):
+        self.maxDiff = None
+
+        def mock_data_fetcher(reqCtx, path_expression):
+            seriesList = self._gen_series_list_with_data(
+                key=['test.value'],
+                start=reqCtx['startTime'],
+                end=reqCtx['endTime'],
+                step=60,
+                data=[None,None,None,3,None,5,6,None,7,None,None]
+            )
+            rv = []
+            for s in seriesList:
+                if s.name == path_expression or fnmatch(s.name, path_expression):
+                    rv.append(s)
+            if rv:
+                return rv
+            raise KeyError('{} not found!'.format(path_expression))
+
+
+        with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
+            #Input data is ignored and replaced with subsequent calls to evaluateTarget to get new data
+            inputSeries = TimeSeries('test.value',600,1200,60,[0,1,2,3,4,5,6,7,8,9])
+            inputSeries.pathExpression = 'test.value'
+            results = functions.timeStack(
+                self._build_requestContext(
+                    startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+                ),
+                [ inputSeries ],
+                "10minutes",
+                0,
+                3
+            )
+
+        expectedResults = [
+            TimeSeries('timeShift(test.value, -10minutes, 0)',600,1200,60,[None,None,None,3,None,5,6,None,7,None,None]),
+            TimeSeries('timeShift(test.value, -10minutes, 1)',600,1200,60,[None,None,None,3,None,5,6,None,7,None,None]),
+            TimeSeries('timeShift(test.value, -10minutes, 2)',600,1200,60,[None,None,None,3,None,5,6,None,7,None,None]),
+        ]
+
+        self.assertEqual(results, expectedResults)
+
     def test_timeShift(self):
         seriesList = self._gen_series_list_with_data(
             key=['test.value'],
@@ -3457,7 +3724,7 @@ class FunctionsTest(TestCase):
 
 
         with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
-            # input values will be ignored and replaced by regression function
+            # input values will be ignored and replaced by mocked timeshifted values
             inputSeries = TimeSeries('test.value',600,1200,60,[0,1,2,3,4,5,6,7,8,9])
             inputSeries.pathExpression = 'test.value'
             results = functions.timeShift(
@@ -3469,7 +3736,6 @@ class FunctionsTest(TestCase):
                 "-10minutes"
             )
 
-        # we're going to slice such that we only include minutes 3 to 8 (of 0 to 9)
         expectedResults = [
             TimeSeries('timeShift(test.value, "-10minutes")',600,1200,60,[None,None,None,3,None,5,6,None,7,None,None])
         ]
@@ -3477,6 +3743,7 @@ class FunctionsTest(TestCase):
         self.assertEqual(results, expectedResults)
 
     def test_timeShift_emptySeries(self):
+        # Input of an empty series will result in no timeshifting attempted
         results = functions.timeShift(
             self._build_requestContext(
                 startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
@@ -3489,12 +3756,14 @@ class FunctionsTest(TestCase):
         self.assertEqual(results, expectedResult)
 
     def test_timeShift_resetEnd_False(self):
+        # Test if the timeseries returns data past the end of the original end-time is kept
+        # with resetEnd set to False
         seriesList = self._gen_series_list_with_data(
             key=['test.value'],
-            start=0,
-            end=600,
+            start=1200,
+            end=1860,
             step=60,
-            data=[None,None,None,3,None,5,6,None,7,None,None]
+            data=[None,None,None,3,None,5,6,None,7,None,None,8]
         )
 
         def mock_data_fetcher(reqCtx, path_expression):
@@ -3508,7 +3777,7 @@ class FunctionsTest(TestCase):
 
 
         with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
-            # input values will be ignored and replaced by regression function
+            # Intput data is replaced with calls to evaluateTarget with new start/end times set
             inputSeries = TimeSeries('test.value',600,1200,60,[0,1,2,3,4,5,6,7,8,9])
             inputSeries.pathExpression = 'test.value'
             results = functions.timeShift(
@@ -3517,13 +3786,12 @@ class FunctionsTest(TestCase):
                     endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
                 ),
                 [ inputSeries ],
-                "-10minutes",
+                "+10minutes",
                 False
             )
 
-        # we're going to slice such that we only include minutes 3 to 8 (of 0 to 9)
         expectedResults = [
-            TimeSeries('timeShift(test.value, "-10minutes")',600,1200,60,[None,None,None,3,None,5,6,None,7,None,None])
+            TimeSeries('timeShift(test.value, "+10minutes")',600,1260,60,[None,None,None,3,None,5,6,None,7,None,None,8])
         ]
 
         self.assertEqual(results, expectedResults)
@@ -3549,7 +3817,6 @@ class FunctionsTest(TestCase):
 
         with self.settings(TIME_ZONE='Europe/Berlin'):
             with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
-                # input values will be ignored and replaced by regression function
                 inputSeries = TimeSeries('test.value',600,1200,60,[0,1,2,3,4,5,6,7,8,9])
                 inputSeries.pathExpression = 'test.value'
                 results = functions.timeShift(
@@ -3563,7 +3830,6 @@ class FunctionsTest(TestCase):
                     True
                 )
 
-        # we're going to slice such that we only include minutes 3 to 8 (of 0 to 9)
         expectedResults = [
             TimeSeries('timeShift(test.value, "-10minutes")',600,1200,60,[None,None,None,3,None,5,6,None,7,None,None])
         ]
