@@ -2462,18 +2462,13 @@ class FunctionsTest(TestCase):
             TimeSeries("Channel 103 MHz", 0, 1, 1, [20, 50])
         ]
 
-        # Temporarily replace evaluateTarget() function
-        originalEvaluate = functions.evaluateTarget
-        try:
+        def mock_evaluateTarget(requestContext, target):
+            for series in lookupSeries:
+                if series.name == target:
+                    return [series]
+            return []
 
-            # Custom evaluateTarget() function
-            def lookup(context, query):
-                for series in lookupSeries:
-                    if series.name == query:
-                        return [series]
-                return []
-            functions.evaluateTarget = lookup
-
+        with patch('graphite.render.functions.evaluateTarget', mock_evaluateTarget):
             # Perform query - this one will not find a matching metric
             with self.assertRaises(Exception):
                 functions.aliasQuery({}, seriesList, 'chan\.pow\.([0-9]+)', 'chan.fred.\\1', 'Channel %d MHz')
@@ -2484,24 +2479,14 @@ class FunctionsTest(TestCase):
             # Check results
             self.assertEqual(results, expectedResult)
 
-            # Temporarily replace safeLast() function
-            originalSafeLast = functions.safeLast
-            try:
-
-                # Custom safeLast() function
-                def noneSafeLast(x):
-                    return None
-                functions.safeLast = noneSafeLast
+            # Custom safeLast() function
+            def noneSafeLast(x):
+                return None
+            with patch('graphite.render.functions.safeLast', noneSafeLast):
 
                 # Perform query - this one will fail to return a current value for the matched metric
                 with self.assertRaises(Exception):
                     functions.aliasQuery({}, seriesList, 'chan\.pow\.([0-9]+)', 'chan.freq.\\1', 'Channel %d MHz')
-
-            finally:
-                functions.safeLast = originalSafeLast
-
-        finally:
-            functions.evaluateTarget = originalEvaluate
 
     # TODO: Add tests for * globbing and {} matching to this
     def test_alias_by_node(self):
@@ -3452,6 +3437,139 @@ class FunctionsTest(TestCase):
         self.assertEqual(list(result[0]), list(expectedResult[0]))
         self.assertEqual(result, expectedResult)
 
+    def test_timeShift(self):
+        seriesList = self._gen_series_list_with_data(
+            key=['test.value'],
+            start=0,
+            end=600,
+            step=60,
+            data=[None,None,None,3,None,5,6,None,7,None,None]
+        )
+
+        def mock_data_fetcher(reqCtx, path_expression):
+            rv = []
+            for s in seriesList:
+                if s.name == path_expression or fnmatch(s.name, path_expression):
+                    rv.append(s)
+            if rv:
+                return rv
+            raise KeyError('{} not found!'.format(path_expression))
+
+
+        with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
+            # input values will be ignored and replaced by regression function
+            inputSeries = TimeSeries('test.value',600,1200,60,[0,1,2,3,4,5,6,7,8,9])
+            inputSeries.pathExpression = 'test.value'
+            results = functions.timeShift(
+                self._build_requestContext(
+                    startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+                ),
+                [ inputSeries ],
+                "-10minutes"
+            )
+
+        # we're going to slice such that we only include minutes 3 to 8 (of 0 to 9)
+        expectedResults = [
+            TimeSeries('timeShift(test.value, "-10minutes")',600,1200,60,[None,None,None,3,None,5,6,None,7,None,None])
+        ]
+
+        self.assertEqual(results, expectedResults)
+
+    def test_timeShift_emptySeries(self):
+        results = functions.timeShift(
+            self._build_requestContext(
+                startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+            ),
+            [ ],
+            "-10minutes"
+        )
+        expectedResult = [ ]
+        self.assertEqual(results, expectedResult)
+
+    def test_timeShift_resetEnd_False(self):
+        seriesList = self._gen_series_list_with_data(
+            key=['test.value'],
+            start=0,
+            end=600,
+            step=60,
+            data=[None,None,None,3,None,5,6,None,7,None,None]
+        )
+
+        def mock_data_fetcher(reqCtx, path_expression):
+            rv = []
+            for s in seriesList:
+                if s.name == path_expression or fnmatch(s.name, path_expression):
+                    rv.append(s)
+            if rv:
+                return rv
+            raise KeyError('{} not found!'.format(path_expression))
+
+
+        with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
+            # input values will be ignored and replaced by regression function
+            inputSeries = TimeSeries('test.value',600,1200,60,[0,1,2,3,4,5,6,7,8,9])
+            inputSeries.pathExpression = 'test.value'
+            results = functions.timeShift(
+                self._build_requestContext(
+                    startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+                ),
+                [ inputSeries ],
+                "-10minutes",
+                False
+            )
+
+        # we're going to slice such that we only include minutes 3 to 8 (of 0 to 9)
+        expectedResults = [
+            TimeSeries('timeShift(test.value, "-10minutes")',600,1200,60,[None,None,None,3,None,5,6,None,7,None,None])
+        ]
+
+        self.assertEqual(results, expectedResults)
+
+    def test_timeShift_alignDST(self):
+        seriesList = self._gen_series_list_with_data(
+            key=['test.value'],
+            start=0,
+            end=600,
+            step=60,
+            data=[None,None,None,3,None,5,6,None,7,None,None]
+        )
+
+        def mock_data_fetcher(reqCtx, path_expression):
+            rv = []
+            for s in seriesList:
+                if s.name == path_expression or fnmatch(s.name, path_expression):
+                    rv.append(s)
+            if rv:
+                return rv
+            raise KeyError('{} not found!'.format(path_expression))
+
+
+        with self.settings(TIME_ZONE='Europe/Berlin'):
+            with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
+                # input values will be ignored and replaced by regression function
+                inputSeries = TimeSeries('test.value',600,1200,60,[0,1,2,3,4,5,6,7,8,9])
+                inputSeries.pathExpression = 'test.value'
+                results = functions.timeShift(
+                    self._build_requestContext(
+                        startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                        endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+                    ),
+                    [ inputSeries ],
+                    "-10minutes",
+                    True,
+                    True
+                )
+
+        # we're going to slice such that we only include minutes 3 to 8 (of 0 to 9)
+        expectedResults = [
+            TimeSeries('timeShift(test.value, "-10minutes")',600,1200,60,[None,None,None,3,None,5,6,None,7,None,None])
+        ]
+
+        self.assertEqual(results, expectedResults)
+
     def test_timeSlice(self):
         # series starts at 60 seconds past the epoch and continues for 600 seconds (ten minutes)
         # steps are every 60 seconds
@@ -3546,13 +3664,25 @@ class FunctionsTest(TestCase):
 
 
     def test_linearRegression(self):
-        original = functions.evaluateTarget
-        try:
-            # series starts at 60 seconds past the epoch and continues for 600 seconds (ten minutes)
-            # steps are every 60 seconds
-            savedSeries = TimeSeries('test.value',180,480,60,[3,None,5,6,None,8]),
-            functions.evaluateTarget = lambda x, y: savedSeries
+        seriesList = self._gen_series_list_with_data(
+            key=['test.value'],
+            start=180,
+            end=480,
+            step=60,
+            data=[3,None,5,6,None,8]
+        )
 
+        def mock_data_fetcher(reqCtx, path_expression):
+            rv = []
+            for s in seriesList:
+                if s.name == path_expression or fnmatch(s.name, path_expression):
+                    rv.append(s)
+            if rv:
+                return rv
+            raise KeyError('{} not found!'.format(path_expression))
+
+
+        with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
             # input values will be ignored and replaced by regression function
             inputSeries = TimeSeries('test.value',1200,1500,60,[123,None,None,456,None,None,None])
             inputSeries.pathExpression = 'test.value'
@@ -3566,14 +3696,12 @@ class FunctionsTest(TestCase):
                 '00:08 19700101'
             )
 
-            # regression function calculated from datapoints on minutes 3 to 8
-            expectedResult = [
-                TimeSeries('linearRegression(test.value, 180, 480)',1200,1500,60,[20.0,21.0,22.0,23.0,24.0,25.0,26.0])
-            ]
+        # regression function calculated from datapoints on minutes 3 to 8
+        expectedResult = [
+            TimeSeries('linearRegression(test.value, 180, 480)',1200,1500,60,[20.0,21.0,22.0,23.0,24.0,25.0,26.0])
+        ]
 
-            self.assertEqual(results, expectedResult)
-        finally:
-            functions.evaluateTarget = original
+        self.assertEqual(results, expectedResult)
 
     def test_applyByNode(self):
         seriesList = self._gen_series_list_with_data(
