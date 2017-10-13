@@ -215,7 +215,7 @@ Examples:
   &from=noon+yesterday
   (shows data since 12:00pm on the previous day)
 
-  &from=6pm+today
+  &from=6:00pm+today
   (shows data since 6:00pm on the same day)
 
   &from=january+1
