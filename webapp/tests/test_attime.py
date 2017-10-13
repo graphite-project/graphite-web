@@ -41,6 +41,18 @@ class ATTimeTimezoneTests(TestCase):
         actual_time = parseATTime(time_string, self.specified_tz)
         self.assertEqual(actual_time, expected_time)
 
+    def test_should_return_absolute_time_short(self):
+        time_string = '9:0020150308'
+        expected_time = self.default_tz.localize(datetime.strptime(time_string,'%H:%M%Y%m%d'))
+        actual_time = parseATTime(time_string)
+        self.assertEqual(actual_time, expected_time)
+
+    def test_absolute_time_should_respect_tz_short(self):
+        time_string = '9:0020150308'
+        expected_time = self.specified_tz.localize(datetime.strptime(time_string, '%H:%M%Y%m%d'))
+        actual_time = parseATTime(time_string, self.specified_tz)
+        self.assertEqual(actual_time, expected_time)
+
     def test_absolute_time_YYYYMMDD(self):
         time_string = '20150110'
         expected_time = self.specified_tz.localize(datetime.strptime(time_string, '%Y%m%d'))
@@ -459,6 +471,18 @@ class parseATTimeTestNow(TestCase):
 
     def test_absolute_time_should_respect_tz(self):
         time_string = '12:0020150308'
+        expected_time = self.specified_tz.localize(datetime.strptime(time_string, '%H:%M%Y%m%d'))
+        actual_time = parseATTime(time_string, self.specified_tz, now=self.now)
+        self.assertEqual(actual_time, expected_time)
+
+    def test_should_return_absolute_time_short(self):
+        time_string = '9:0020150308'
+        expected_time = self.default_tz.localize(datetime.strptime(time_string,'%H:%M%Y%m%d'))
+        actual_time = parseATTime(time_string, now=self.now)
+        self.assertEqual(actual_time, expected_time)
+
+    def test_absolute_time_should_respect_tz_short(self):
+        time_string = '9:0020150308'
         expected_time = self.specified_tz.localize(datetime.strptime(time_string, '%H:%M%Y%m%d'))
         actual_time = parseATTime(time_string, self.specified_tz, now=self.now)
         self.assertEqual(actual_time, expected_time)

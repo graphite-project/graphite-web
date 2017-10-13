@@ -14,7 +14,6 @@ limitations under the License."""
 
 import pytz
 from datetime import datetime, timedelta, datetime as datetimetype
-from time import daylight
 from django.conf import settings
 
 months = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec']
@@ -42,8 +41,6 @@ def parseATTime(s, tzinfo=None, now=None):
       pass #Fall back because its not a timestamp, its YYYYMMDD form
     else:
       return datetime.fromtimestamp(int(s),tzinfo)
-  elif ':' in s and len(s) == 13:
-    return tzinfo.localize(datetime.strptime(s,'%H:%M%Y%m%d'), daylight)
   if '+' in s:
     ref,offset = s.split('+',1)
     offset = '+' + offset
