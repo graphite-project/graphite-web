@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 import pytz
-from datetime import datetime,timedelta
+from datetime import datetime, timedelta, datetime as datetimetype
 from time import daylight
 from django.conf import settings
 
@@ -31,6 +31,11 @@ YEARS_STRING = 'years'
 def parseATTime(s, tzinfo=None, now=None):
   if tzinfo is None:
     tzinfo = pytz.timezone(settings.TIME_ZONE)
+  if isinstance(s, datetimetype):
+    if s.tzinfo:
+      return s.astimezone(tzinfo)
+    return tzinfo.localize(s)
+
   s = s.strip().lower().replace('_','').replace(',','').replace(' ','')
   if s.isdigit():
     if len(s) == 8 and int(s[:4]) > 1900 and int(s[4:6]) < 13 and int(s[6:]) < 32:
@@ -48,14 +53,23 @@ def parseATTime(s, tzinfo=None, now=None):
   else:
     ref,offset = s,''
 
-  return tzinfo.normalize(parseTimeReference(ref or now,tzinfo) + parseTimeOffset(offset))
+  return tzinfo.normalize(parseTimeReference(ref, tzinfo, now) + parseTimeOffset(offset))
 
 
-def parseTimeReference(ref, tzinfo=None):
+def parseTimeReference(ref, tzinfo=None, now=None):
   if tzinfo is None:
     tzinfo = pytz.timezone(settings.TIME_ZONE)
-  if isinstance(ref, datetime): return ref.astimezone(tzinfo)
-  if not ref or ref == 'now': return datetime.now(tzinfo)
+  if isinstance(ref, datetimetype):
+    if ref.tzinfo:
+      return ref.astimezone(tzinfo)
+    return tzinfo.localize(ref)
+
+  if now is None:
+    now = datetime.now(tzinfo)
+  else:
+    now = parseATTime(now, tzinfo)
+
+  if not ref or ref == 'now': return now
 
   # Time-of-day reference
   i = ref.find(':')
@@ -79,7 +93,7 @@ def parseTimeReference(ref, tzinfo=None):
     hour,min = 16,0
     ref = ref[7:]
 
-  refDate = datetime.now(tzinfo).replace(hour=hour,minute=min,second=0,microsecond=0,tzinfo=None)
+  refDate = now.replace(hour=hour,minute=min,second=0,microsecond=0,tzinfo=None)
 
   # Day reference
   if ref in ('yesterday','today','tomorrow'): # yesterday, today, tomorrow
