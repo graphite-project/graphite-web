@@ -72,10 +72,10 @@ def parseTimeReference(ref, tzinfo=None, now=None):
 
   # Time-of-day reference
   i = ref.find(':')
-  hour,min = 0,0
+  hour,minute = 0,0
   if 0 < i < 3:
     hour = int( ref[:i] )
-    min = int( ref[i+1:i+3] )
+    minute = int( ref[i+1:i+3] )
     ref = ref[i+3:]
     if ref[:2] == 'am':
       ref = ref[2:]
@@ -96,16 +96,16 @@ def parseTimeReference(ref, tzinfo=None, now=None):
     ref = ref[i+2:]
 
   if ref.startswith('noon'):
-    hour,min = 12,0
+    hour,minute = 12,0
     ref = ref[4:]
   elif ref.startswith('midnight'):
-    hour,min = 0,0
+    hour,minute = 0,0
     ref = ref[8:]
   elif ref.startswith('teatime'):
-    hour,min = 16,0
+    hour,minute = 16,0
     ref = ref[7:]
 
-  refDate = now.replace(hour=hour,minute=min,second=0,microsecond=0,tzinfo=None)
+  refDate = now.replace(hour=hour,minute=minute,second=0,microsecond=0,tzinfo=None)
 
   # Day reference
   if ref in ('yesterday','today','tomorrow'): # yesterday, today, tomorrow
@@ -118,10 +118,10 @@ def parseTimeReference(ref, tzinfo=None, now=None):
     m,d,y = map(int,ref.split('/'))
     if y < 1900: y += 1900
     if y < 1970: y += 100
-    refDate = datetime(year=y,month=m,day=d,hour=hour,minute=min)
+    refDate = datetime(year=y,month=m,day=d,hour=hour,minute=minute)
 
   elif len(ref) == 8 and ref.isdigit(): # YYYYMMDD
-    refDate = datetime(year=int(ref[:4]),month=int(ref[4:6]),day=int(ref[6:8]),hour=hour,minute=min)
+    refDate = datetime(year=int(ref[:4]),month=int(ref[4:6]),day=int(ref[6:8]),hour=hour,minute=minute)
 
   elif ref[:3] in months: # MonthName DayOfMonth
     d = None
@@ -131,7 +131,7 @@ def parseTimeReference(ref, tzinfo=None, now=None):
       d = int(ref[-1:])
     else:
       raise Exception("Day of month required after month name")
-    refDate = datetime(year=refDate.year,month=months.index(ref[:3]) + 1,day=d,hour=hour,minute=min)
+    refDate = datetime(year=refDate.year,month=months.index(ref[:3]) + 1,day=d,hour=hour,minute=minute)
 
   elif ref[:3] in weekdays: # DayOfWeek (Monday, etc)
     todayDayName = refDate.strftime("%a").lower()[:3]
