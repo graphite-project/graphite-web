@@ -24,7 +24,6 @@ def return_less(series, value):
 
 
 class FunctionsTest(TestCase):
-
     #
     # Test safeSum()
     #
@@ -3436,6 +3435,50 @@ class FunctionsTest(TestCase):
         result = functions.roundFunction({}, seriesList, 2)
         self.assertEqual(list(result[0]), list(expectedResult[0]))
         self.assertEqual(result, expectedResult)
+
+    def test_timeStack(self):
+        self.maxDiff = None
+
+        def mock_data_fetcher(reqCtx, path_expression):
+            seriesList = self._gen_series_list_with_data(
+                key=['test.value'],
+                start=reqCtx['startTime'],
+                end=reqCtx['endTime'],
+                step=60,
+                data=[None,None,None,3,None,5,6,None,7,None,None]
+            )
+            rv = []
+            for s in seriesList:
+                if s.name == path_expression or fnmatch(s.name, path_expression):
+                    rv.append(s)
+            if rv:
+                return rv
+            raise KeyError('{} not found!'.format(path_expression))
+
+
+        with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
+            # input values will be ignored and replaced by regression function
+            inputSeries = TimeSeries('test.value',600,1200,60,[0,1,2,3,4,5,6,7,8,9])
+            inputSeries.pathExpression = 'test.value'
+            results = functions.timeStack(
+                self._build_requestContext(
+                    startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+                ),
+                [ inputSeries ],
+                "10minutes",
+                0,
+                3
+            )
+
+        # we're going to slice such that we only include minutes 3 to 8 (of 0 to 9)
+        expectedResults = [
+            TimeSeries('timeShift(test.value, -10minutes, 0)',600,1200,60,[None,None,None,3,None,5,6,None,7,None,None]),
+            TimeSeries('timeShift(test.value, -10minutes, 1)',600,1200,60,[None,None,None,3,None,5,6,None,7,None,None]),
+            TimeSeries('timeShift(test.value, -10minutes, 2)',600,1200,60,[None,None,None,3,None,5,6,None,7,None,None]),
+        ]
+
+        self.assertEqual(results, expectedResults)
 
     def test_timeShift(self):
         seriesList = self._gen_series_list_with_data(
