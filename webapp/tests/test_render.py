@@ -317,7 +317,7 @@ class RenderTest(TestCase):
         self.assertEqual(len(data[0]['datapoints']), 10)
 
         # test dygraph
-        response = self.client.get(url, {'target': 'test', 'format': 'dygraph', 'now': ts})
+        response = self.client.get(url, {'target': 'test', 'format': 'dygraph', 'from': ts-50, 'now': ts})
         self.assertEqual(response['content-type'], 'application/json')
         self.assertIn('[' + str((ts - 2) * 1000) + ', Infinity]', response.content)
         self.assertIn('[' + str((ts - 1) * 1000) + ', -Infinity]', response.content)
@@ -332,12 +332,12 @@ class RenderTest(TestCase):
             [(ts - 1) * 1000, float('-inf')],
             [ts * 1000, None]])
 
-        responsejsonp = self.client.get(url, {'target': 'test', 'format': 'dygraph', 'jsonp': 'test', 'now': ts})
+        responsejsonp = self.client.get(url, {'target': 'test', 'format': 'dygraph', 'jsonp': 'test', 'from': ts-50, 'now': ts})
         self.assertEqual(responsejsonp['content-type'], 'text/javascript')
         self.assertEqual(responsejsonp.content, 'test(' + response.content + ')')
 
         # test rickshaw
-        response = self.client.get(url, {'target': 'test', 'format': 'rickshaw', 'now': ts})
+        response = self.client.get(url, {'target': 'test', 'format': 'rickshaw', 'from': ts-50, 'now': ts})
         self.assertEqual(response['content-type'], 'application/json')
         data = json.loads(response.content)
         end = data[0]['datapoints'][-7:-1]
@@ -353,7 +353,7 @@ class RenderTest(TestCase):
         self.assertEqual(last['x'], ts)
         self.assertTrue(math.isnan(last['y']))
 
-        responsejsonp = self.client.get(url, {'target': 'test', 'format': 'rickshaw', 'jsonp': 'test', 'now': ts})
+        responsejsonp = self.client.get(url, {'target': 'test', 'format': 'rickshaw', 'jsonp': 'test', 'from': ts-50, 'now': ts})
         self.assertEqual(responsejsonp['content-type'], 'text/javascript')
         self.assertEqual(responsejsonp.content, 'test(' + response.content + ')')
 
