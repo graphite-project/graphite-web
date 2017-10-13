@@ -126,7 +126,7 @@ class parseTimeReferenceTest(TestCase):
 
     def test_parse_random_string_raise_Exception(self):
         with self.assertRaises(Exception):
-            time_ref = parseTimeReference("random")
+            parseTimeReference("random")
 
     def test_parse_now_return_now(self):
         time_ref = parseTimeReference("now")
@@ -134,7 +134,7 @@ class parseTimeReferenceTest(TestCase):
 
     def test_parse_colon_raises_ValueError(self):
         with self.assertRaises(ValueError):
-            time_ref = parseTimeReference(":")
+            parseTimeReference(":")
 
     def test_parse_naive_datetime(self):
         time_ref = parseTimeReference(datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 8, 50))
@@ -228,11 +228,11 @@ class parseTimeReferenceTest(TestCase):
 
     def test_parse_MonthName_DayOfMonth_threedigits_raise_ValueError(self):
         with self.assertRaises(ValueError):
-            time_ref = parseTimeReference("january800")
+            parseTimeReference("january800")
 
     def test_parse_MonthName_without_DayOfMonth_raise_Exception(self):
         with self.assertRaises(Exception):
-            time_ref = parseTimeReference("january")
+            parseTimeReference("january")
 
     def test_parse_monday_return_monday_before_now(self):
         time_ref = parseTimeReference("monday")
@@ -264,23 +264,23 @@ class parseTimeOffsetTest(TestCase):
 
     def test_parse_integer_raises_TypeError(self):
         with self.assertRaises(TypeError):
-            time_ref = parseTimeOffset(1)
+            parseTimeOffset(1)
 
     def test_parse_string_starting_neither_with_minus_nor_digit_raises_KeyError(self):
         with self.assertRaises(KeyError):
-            time_ref = parseTimeOffset("Something")
+            parseTimeOffset("Something")
 
     def test_parse_m_as_unit_raises_Exception(self):
         with self.assertRaises(Exception):
-            time_ref = parseTimeOffset("1m")
+            parseTimeOffset("1m")
 
     def test_parse_digits_only_raises_exception(self):
         with self.assertRaises(Exception):
-            time_ref = parseTimeOffset("10")
+            parseTimeOffset("10")
 
     def test_parse_alpha_only_raises_KeyError(self):
         with self.assertRaises(KeyError):
-            time_ref = parseTimeOffset("month")
+            parseTimeOffset("month")
 
     def test_parse_minus_only_returns_zero(self):
         time_ref = parseTimeOffset("-")
@@ -555,7 +555,7 @@ class parseTimeReferenceTestNow(TestCase):
 
     def test_parse_random_string_raise_Exception(self):
         with self.assertRaises(Exception):
-            time_ref = parseTimeReference("random", now=self.now)
+            parseTimeReference("random", now=self.now)
 
     def test_parse_now_return_now(self):
         time_ref = parseTimeReference("now", now=self.now)
@@ -563,7 +563,7 @@ class parseTimeReferenceTestNow(TestCase):
 
     def test_parse_colon_raises_ValueError(self):
         with self.assertRaises(ValueError):
-            time_ref = parseTimeReference(":", now=self.now)
+            parseTimeReference(":", now=self.now)
 
     def test_parse_naive_datetime(self):
         time_ref = parseTimeReference(datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 8, 50), now=self.now)
@@ -657,11 +657,11 @@ class parseTimeReferenceTestNow(TestCase):
 
     def test_parse_MonthName_DayOfMonth_threedigits_raise_ValueError(self):
         with self.assertRaises(ValueError):
-            time_ref = parseTimeReference("january800", now=self.now)
+            parseTimeReference("january800", now=self.now)
 
     def test_parse_MonthName_without_DayOfMonth_raise_Exception(self):
         with self.assertRaises(Exception):
-            time_ref = parseTimeReference("january", now=self.now)
+            parseTimeReference("january", now=self.now)
 
     def test_parse_monday_return_monday_before_now(self):
         time_ref = parseTimeReference("monday", now=self.now)
