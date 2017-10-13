@@ -3682,6 +3682,7 @@ class FunctionsTest(TestCase):
 
 
         with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
+            #Input data is ignored and replaced with subsequent calls to evaluateTarget to get new data
             inputSeries = TimeSeries('test.value',600,1200,60,[0,1,2,3,4,5,6,7,8,9])
             inputSeries.pathExpression = 'test.value'
             results = functions.timeStack(
@@ -3723,6 +3724,7 @@ class FunctionsTest(TestCase):
 
 
         with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
+            # input values will be ignored and replaced by mocked timeshifted values
             inputSeries = TimeSeries('test.value',600,1200,60,[0,1,2,3,4,5,6,7,8,9])
             inputSeries.pathExpression = 'test.value'
             results = functions.timeShift(
@@ -3741,6 +3743,7 @@ class FunctionsTest(TestCase):
         self.assertEqual(results, expectedResults)
 
     def test_timeShift_emptySeries(self):
+        # Input of an empty series will result in no timeshifting attempted
         results = functions.timeShift(
             self._build_requestContext(
                 startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
@@ -3753,12 +3756,14 @@ class FunctionsTest(TestCase):
         self.assertEqual(results, expectedResult)
 
     def test_timeShift_resetEnd_False(self):
+        # Test if the timeseries returns data past the end of the original end-time is kept
+        # with resetEnd set to False
         seriesList = self._gen_series_list_with_data(
             key=['test.value'],
-            start=0,
-            end=600,
+            start=1200,
+            end=1860,
             step=60,
-            data=[None,None,None,3,None,5,6,None,7,None,None]
+            data=[None,None,None,3,None,5,6,None,7,None,None,8]
         )
 
         def mock_data_fetcher(reqCtx, path_expression):
@@ -3772,6 +3777,7 @@ class FunctionsTest(TestCase):
 
 
         with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
+            # Intput data is replaced with calls to evaluateTarget with new start/end times set
             inputSeries = TimeSeries('test.value',600,1200,60,[0,1,2,3,4,5,6,7,8,9])
             inputSeries.pathExpression = 'test.value'
             results = functions.timeShift(
@@ -3780,12 +3786,12 @@ class FunctionsTest(TestCase):
                     endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
                 ),
                 [ inputSeries ],
-                "-10minutes",
+                "+10minutes",
                 False
             )
 
         expectedResults = [
-            TimeSeries('timeShift(test.value, "-10minutes")',600,1200,60,[None,None,None,3,None,5,6,None,7,None,None])
+            TimeSeries('timeShift(test.value, "+10minutes")',600,1260,60,[None,None,None,3,None,5,6,None,7,None,None,8])
         ]
 
         self.assertEqual(results, expectedResults)
