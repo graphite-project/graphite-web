@@ -2233,6 +2233,27 @@ class FunctionsTest(TestCase):
 
         self.assertEqual(results, expectedResults)
 
+    def test_sinFunction(self):
+
+        results = functions.sinFunction(
+            self._build_requestContext(
+                startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+            ),
+            "sine test",
+            10
+        )
+
+        expectedResults = [
+            TimeSeries('sine test',600,1200,60,[0.4418244833187319, 2.624330297809573, -5.440716964379951, 7.73928862147125, -9.301280920157128, 9.978032744219705, -9.705134889047493, 8.508560145797974, -6.502191365954637, 3.876982770359131])
+        ]
+
+        for index, series in enumerate(results):
+          print series.getInfo()
+          print expectedResults[index].getInfo()
+
+        self.assertEqual(results, expectedResults)
+
     def test_check_empty_lists(self):
         seriesList = []
         config = [[1000, 100, 10, 0], []]
