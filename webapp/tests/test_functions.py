@@ -2045,6 +2045,85 @@ class FunctionsTest(TestCase):
         result = functions.sortByMinima({}, seriesList)
         self.assertEqual(result, expectedResult)
 
+    def test_useSeriesAbove(self):
+        seriesList = self._gen_series_list_with_data(
+            key=['test.foo'],
+            start=0,
+            end=600,
+            step=60,
+            data=[10,10,10,3,10,5,6,10,7,10,10]
+        )
+
+        def mock_data_fetcher(reqCtx, path_expression):
+            rv = []
+            for s in seriesList:
+                if s.name == path_expression or fnmatch(s.name, path_expression):
+                    rv.append(s)
+            if rv:
+                return rv
+            raise KeyError('{} not found!'.format(path_expression))
+
+
+        with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
+            inputSeries = TimeSeries('test.value',600,1200,60,[0,1,2,3,4,5,6,7,8,9])
+            inputSeries.pathExpression = 'test.value'
+            results = functions.useSeriesAbove(
+                self._build_requestContext(
+                    startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+                ),
+                [ inputSeries ],
+                8,
+                "value",
+                "foo"
+            )
+
+        expectedResults = [
+            TimeSeries('test.foo',0,600,60,[10, 10, 10, 3, 10, 5, 6, 10, 7, 10, 10])
+        ]
+
+        self.assertEqual(results, expectedResults)
+
+    def test_useSeriesAbove_no_match(self):
+        inputSeries = TimeSeries('test.value',600,1200,60,[0,1,2,3,4,5,6,7,8,9])
+        inputSeries.pathExpression = 'test.value'
+        results = functions.useSeriesAbove(
+            self._build_requestContext(
+                startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+            ),
+            [ inputSeries ],
+            20,
+            "value",
+            "foo"
+        )
+
+        expectedResults = []
+
+        self.assertEqual(results, expectedResults)
+
+    def test_useSeriesAbove_fetch_returns_None(self):
+        def mock_data_fetcher(reqCtx, path_expression):
+            return []
+
+        with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
+            inputSeries = TimeSeries('test.value',600,1200,60,[0,1,2,3,4,5,6,7,8,9])
+            inputSeries.pathExpression = 'test.value'
+            results = functions.useSeriesAbove(
+                self._build_requestContext(
+                    startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                    endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+                ),
+                [ inputSeries ],
+                8,
+                "value",
+                "foo"
+            )
+
+        expectedResults = []
+
+        self.assertEqual(results, expectedResults)
+
     def test_check_empty_lists(self):
         seriesList = []
         config = [[1000, 100, 10, 0], []]
@@ -3457,7 +3536,6 @@ class FunctionsTest(TestCase):
 
 
         with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
-            # input values will be ignored and replaced by regression function
             inputSeries = TimeSeries('test.value',600,1200,60,[0,1,2,3,4,5,6,7,8,9])
             inputSeries.pathExpression = 'test.value'
             results = functions.timeStack(
@@ -3471,7 +3549,6 @@ class FunctionsTest(TestCase):
                 3
             )
 
-        # we're going to slice such that we only include minutes 3 to 8 (of 0 to 9)
         expectedResults = [
             TimeSeries('timeShift(test.value, -10minutes, 0)',600,1200,60,[None,None,None,3,None,5,6,None,7,None,None]),
             TimeSeries('timeShift(test.value, -10minutes, 1)',600,1200,60,[None,None,None,3,None,5,6,None,7,None,None]),
@@ -3500,7 +3577,6 @@ class FunctionsTest(TestCase):
 
 
         with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
-            # input values will be ignored and replaced by regression function
             inputSeries = TimeSeries('test.value',600,1200,60,[0,1,2,3,4,5,6,7,8,9])
             inputSeries.pathExpression = 'test.value'
             results = functions.timeShift(
@@ -3512,7 +3588,6 @@ class FunctionsTest(TestCase):
                 "-10minutes"
             )
 
-        # we're going to slice such that we only include minutes 3 to 8 (of 0 to 9)
         expectedResults = [
             TimeSeries('timeShift(test.value, "-10minutes")',600,1200,60,[None,None,None,3,None,5,6,None,7,None,None])
         ]
@@ -3551,7 +3626,6 @@ class FunctionsTest(TestCase):
 
 
         with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
-            # input values will be ignored and replaced by regression function
             inputSeries = TimeSeries('test.value',600,1200,60,[0,1,2,3,4,5,6,7,8,9])
             inputSeries.pathExpression = 'test.value'
             results = functions.timeShift(
@@ -3564,7 +3638,6 @@ class FunctionsTest(TestCase):
                 False
             )
 
-        # we're going to slice such that we only include minutes 3 to 8 (of 0 to 9)
         expectedResults = [
             TimeSeries('timeShift(test.value, "-10minutes")',600,1200,60,[None,None,None,3,None,5,6,None,7,None,None])
         ]
@@ -3592,7 +3665,6 @@ class FunctionsTest(TestCase):
 
         with self.settings(TIME_ZONE='Europe/Berlin'):
             with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
-                # input values will be ignored and replaced by regression function
                 inputSeries = TimeSeries('test.value',600,1200,60,[0,1,2,3,4,5,6,7,8,9])
                 inputSeries.pathExpression = 'test.value'
                 results = functions.timeShift(
@@ -3606,7 +3678,6 @@ class FunctionsTest(TestCase):
                     True
                 )
 
-        # we're going to slice such that we only include minutes 3 to 8 (of 0 to 9)
         expectedResults = [
             TimeSeries('timeShift(test.value, "-10minutes")',600,1200,60,[None,None,None,3,None,5,6,None,7,None,None])
         ]
