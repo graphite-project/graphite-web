@@ -3664,13 +3664,25 @@ class FunctionsTest(TestCase):
 
 
     def test_linearRegression(self):
-        original = functions.evaluateTarget
-        try:
-            # series starts at 60 seconds past the epoch and continues for 600 seconds (ten minutes)
-            # steps are every 60 seconds
-            savedSeries = TimeSeries('test.value',180,480,60,[3,None,5,6,None,8]),
-            functions.evaluateTarget = lambda x, y: savedSeries
+        seriesList = self._gen_series_list_with_data(
+            key=['test.value'],
+            start=180,
+            end=480,
+            step=60,
+            data=[3,None,5,6,None,8]
+        )
 
+        def mock_data_fetcher(reqCtx, path_expression):
+            rv = []
+            for s in seriesList:
+                if s.name == path_expression or fnmatch(s.name, path_expression):
+                    rv.append(s)
+            if rv:
+                return rv
+            raise KeyError('{} not found!'.format(path_expression))
+
+
+        with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
             # input values will be ignored and replaced by regression function
             inputSeries = TimeSeries('test.value',1200,1500,60,[123,None,None,456,None,None,None])
             inputSeries.pathExpression = 'test.value'
@@ -3684,14 +3696,12 @@ class FunctionsTest(TestCase):
                 '00:08 19700101'
             )
 
-            # regression function calculated from datapoints on minutes 3 to 8
-            expectedResult = [
-                TimeSeries('linearRegression(test.value, 180, 480)',1200,1500,60,[20.0,21.0,22.0,23.0,24.0,25.0,26.0])
-            ]
+        # regression function calculated from datapoints on minutes 3 to 8
+        expectedResult = [
+            TimeSeries('linearRegression(test.value, 180, 480)',1200,1500,60,[20.0,21.0,22.0,23.0,24.0,25.0,26.0])
+        ]
 
-            self.assertEqual(results, expectedResult)
-        finally:
-            functions.evaluateTarget = original
+        self.assertEqual(results, expectedResult)
 
     def test_applyByNode(self):
         seriesList = self._gen_series_list_with_data(
