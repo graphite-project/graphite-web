@@ -11,16 +11,21 @@ from .base import TestCase
 import pytz
 import mock
 
-class MockedDateTime(datetime):
-    def __new__(cls, *args, **kwargs):
-        return datetime.__new__(datetime, *args, **kwargs)
-    @classmethod
-    def now(cls, tzinfo=None):
-        if tzinfo:
-          return tzinfo.localize(cls(2015, 3, 8, 12, 0, 0))
-        return cls(2015, 3, 8, 12, 0, 0)
 
-@mock.patch('graphite.render.attime.datetime', MockedDateTime)
+def mockDateTime(year, month, day, hour, minute, second):
+  class MockedDateTime(datetime):
+      def __new__(cls, *args, **kwargs):
+          return datetime.__new__(datetime, *args, **kwargs)
+      @classmethod
+      def now(cls, tzinfo=None):
+          if tzinfo:
+            return tzinfo.localize(cls(year, month, day, hour, minute, second))
+          return cls(year, month, day, hour, minute, second)
+
+  return MockedDateTime
+
+
+@mock.patch('graphite.render.attime.datetime', mockDateTime(2015, 3, 8, 12, 0, 0))
 class ATTimeTimezoneTests(TestCase):
     default_tz = timezone.get_current_timezone()
     specified_tz = pytz.timezone("America/Los_Angeles")
@@ -82,15 +87,8 @@ class ATTimeTimezoneTests(TestCase):
         actual_time = parseATTime("midnight+3h", self.specified_tz)
         self.assertEqual(actual_time, expected_time)
 
-class AnotherMockedDateTime(datetime):
-    def __new__(cls, *args, **kwargs):
-        return datetime.__new__(datetime, *args, **kwargs)
-    @classmethod
-    def now(cls, tzinfo=None):
-        return cls(2015, 1, 1, 11, 0, 0, tzinfo=tzinfo)
 
-
-@mock.patch('graphite.render.attime.datetime', AnotherMockedDateTime)
+@mock.patch('graphite.render.attime.datetime', mockDateTime(2015, 1, 1, 11, 0, 0))
 class parseTimeReferenceTest(TestCase):
 
     zone = pytz.utc
@@ -194,14 +192,8 @@ class parseTimeReferenceTest(TestCase):
         expected = self.zone.localize(datetime(2014, 12, 29, 0, 0))
         self.assertEquals(time_ref, expected)
 
-class Bug551771MockedDateTime(datetime):
-    def __new__(cls, *args, **kwargs):
-        return datetime.__new__(datetime, *args, **kwargs)
-    @classmethod
-    def now(cls, tzinfo=None):
-        return cls(2010, 3, 30, 00, 0, 0, tzinfo=tzinfo)
 
-@mock.patch('graphite.render.attime.datetime', Bug551771MockedDateTime)
+@mock.patch('graphite.render.attime.datetime', mockDateTime(2010, 3, 30, 00, 0, 0))
 class parseTimeReferenceTestBug551771(TestCase):
     zone = pytz.utc
 
@@ -214,6 +206,7 @@ class parseTimeReferenceTestBug551771(TestCase):
         time_ref = parseTimeReference("20100223")
         expected = self.zone.localize(datetime(2010, 2, 23, 0, 0))
         self.assertEquals(time_ref, expected)
+
 
 class parseTimeOffsetTest(TestCase):
 
@@ -365,14 +358,8 @@ class getUnitStringTest(TestCase):
         with self.assertRaises(Exception):
             result = getUnitString(1)
 
-class LeapYearMockedDateTime(datetime):
-    def __new__(cls, *args, **kwargs):
-        return datetime.__new__(datetime, *args, **kwargs)
-    @classmethod
-    def now(cls, tzinfo=None):
-        return cls(2016, 2, 29, 00, 0, 0, tzinfo=tzinfo)
 
-@mock.patch('graphite.render.attime.datetime', LeapYearMockedDateTime)
+@mock.patch('graphite.render.attime.datetime', mockDateTime(2016, 2, 29, 00, 0, 0))
 class parseATTimeTestLeapYear(TestCase):
     zone = pytz.utc
 
@@ -391,14 +378,8 @@ class parseATTimeTestLeapYear(TestCase):
         expected = self.zone.localize(datetime(2016, 1, 30, 0, 0))
         self.assertEquals(time_ref, expected)
 
-class LeapYearMockedDateTime2(datetime):
-    def __new__(cls, *args, **kwargs):
-        return datetime.__new__(datetime, *args, **kwargs)
-    @classmethod
-    def now(cls, tzinfo=None):
-        return cls(2013, 2, 28, 00, 0, 0, tzinfo=tzinfo)
 
-@mock.patch('graphite.render.attime.datetime', LeapYearMockedDateTime2)
+@mock.patch('graphite.render.attime.datetime',mockDateTime(2013, 2, 28, 00, 0, 0))
 class parseATTimeTestLeapYear2(TestCase):
     zone = pytz.utc
 
@@ -416,6 +397,7 @@ class parseATTimeTestLeapYear2(TestCase):
         time_ref = parseATTime("-1month")
         expected = self.zone.localize(datetime(2013, 1, 29, 0, 0))
         self.assertEquals(time_ref, expected)
+
 
 class parseATTimeTest(TestCase):
     zone = pytz.utc
