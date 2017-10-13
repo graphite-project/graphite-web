@@ -782,6 +782,10 @@ class LogAxisTicsTest(TestCase):
       with self.assertRaises(glyph.GraphError):
           glyph._LogAxisTics(0.0, float('inf'), unitSystem='binary')
 
+    def test_LogAxisTics_invalid_base_value(self):
+      with self.assertRaises(glyph.GraphError):
+          glyph._LogAxisTics(0.0, 100.0, base=1.0, unitSystem='binary')
+
     #
     # Testing _LogAxisTics.applySettings()
     #

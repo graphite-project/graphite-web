@@ -1769,6 +1769,14 @@ class PieGraph(Graph):
     self.pieLabels = params.get('pieLabels', 'horizontal')
     self.total = sum( [t[1] for t in self.data] )
 
+    if not self.data:
+      x = self.width / 2
+      y = self.height / 2
+      self.setColor('red')
+      self.setFont(size=math.log(self.width * self.height) )
+      self.drawText("No Data", x, y, align='center')
+      return
+
     if self.params.get('areaAlpha'):
       try:
         self.alpha = float(self.params['areaAlpha'])
@@ -1797,7 +1805,8 @@ class PieGraph(Graph):
 
     if not params.get('hideLegend',False):
       elements = [ (slice['name'],slice['color'],None) for slice in self.slices ]
-      self.drawLegend(elements)
+      if len(elements) > 0:
+        self.drawLegend(elements)
 
     self.drawSlices()
 

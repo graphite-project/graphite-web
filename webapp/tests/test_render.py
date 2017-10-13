@@ -81,18 +81,35 @@ class RenderTest(TestCase):
     def test_render_view(self):
         url = reverse('render')
 
+        # Very very basic tests of the render view responding to input params
+        # The test target does not exist, so there is no data to return
+        # These do not check any graphs are drawn properly.
+
+        # Raw format
         response = self.client.get(url, {'target': 'test', 'format': 'raw'})
         self.assertEqual(response.content, "")
         self.assertEqual(response['Content-Type'], 'text/plain')
 
+        # json format
         response = self.client.get(url, {'target': 'test', 'format': 'json'})
         self.assertEqual(json.loads(response.content), [])
         self.assertTrue(response.has_header('Expires'))
 
+        # no format returns image/png
         response = self.client.get(url, {'target': 'test'})
         self.assertEqual(response['Content-Type'], 'image/png')
         self.assertTrue(response.has_header('Expires'))
 
+        # Verify graphType=pie returns
+        response = self.client.get(url, {'target': 'a:50', 'graphType': 'pie'})
+        self.assertEqual(response['Content-Type'], 'image/png')
+        self.assertTrue(response.has_header('Expires'))
+
+        response = self.client.get(url, {'target': 'test', 'graphType': 'pie'})
+        self.assertEqual(response['Content-Type'], 'image/png')
+        self.assertTrue(response.has_header('Expires'))
+
+        # dygraph format
         response = self.client.get(url, {'target': 'test', 'format': 'dygraph'})
         self.assertEqual(json.loads(response.content), {})
         self.assertTrue(response.has_header('Expires'))
@@ -101,6 +118,7 @@ class RenderTest(TestCase):
         self.assertEqual(json.loads(response.content), [])
         self.assertTrue(response.has_header('Expires'))
 
+        # More invasive tests
         self.addCleanup(self.wipe_whisper)
         whisper.create(self.db, [(1, 60)])
 
