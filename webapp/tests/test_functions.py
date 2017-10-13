@@ -2184,6 +2184,54 @@ class FunctionsTest(TestCase):
 
         self.assertEqual(results, [inputSeries[1], inputSeries[0]])
 
+    def test_stdev(self):
+        inputSeries = self._gen_series_list_with_data(
+            key=['test.foo'],
+            start=0,
+            end=600,
+            step=60,
+            data=[0,1,2,3,4,5,6,7,8,9]
+        )
+
+        results = functions.stdev(
+            self._build_requestContext(
+                startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+            ),
+            inputSeries,
+            2
+        )
+
+        expectedResults = [
+            TimeSeries('stdev(test.foo,2)',0,600,60,[0.0, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5])
+        ]
+
+        self.assertEqual(results, expectedResults)
+
+    def test_stdev_Nones(self):
+        inputSeries = self._gen_series_list_with_data(
+            key=['test.foo'],
+            start=0,
+            end=600,
+            step=60,
+            data=[None]*10
+        )
+
+        results = functions.stdev(
+            self._build_requestContext(
+                startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+            ),
+            inputSeries,
+            2
+        )
+
+        expectedResults = [
+            TimeSeries('stdev(test.foo,2)',0,600,60,[None, None, None, None, None, None, None, None, None, None])
+        ]
+
+        self.assertEqual(results, expectedResults)
+
     def test_check_empty_lists(self):
         seriesList = []
         config = [[1000, 100, 10, 0], []]
