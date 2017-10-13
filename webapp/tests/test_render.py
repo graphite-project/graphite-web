@@ -311,7 +311,7 @@ class RenderTest(TestCase):
         self.assertEqual(data, expected)
 
         # test maxDataPoints is respected, testing the returned values is done in test_maxDataPoints
-        response = self.client.get(url, {'target': 'test', 'format': 'json', 'maxDataPoints': 10, 'until': ts-10})
+        response = self.client.get(url, {'target': 'test', 'format': 'json', 'maxDataPoints': 10, 'from': ts-50, 'until': ts-10})
         self.assertEqual(response['content-type'], 'application/json')
         data = json.loads(response.content)
         self.assertEqual(len(data[0]['datapoints']), 10)
