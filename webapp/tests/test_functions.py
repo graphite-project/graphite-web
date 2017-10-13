@@ -24,6 +24,7 @@ def return_less(series, value):
 
 
 class FunctionsTest(TestCase):
+
     #
     # Test safeSum()
     #
