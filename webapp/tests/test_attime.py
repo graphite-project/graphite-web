@@ -149,6 +149,16 @@ class parseTimeReferenceTest(TestCase):
         expected = self.zone.localize(datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 20, 50))
         self.assertEquals(time_ref, expected)
 
+    def test_parse_hour_only_am(self):
+        time_ref = parseTimeReference("8am")
+        expected = self.zone.localize(datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 8, 0))
+        self.assertEquals(time_ref, expected)
+
+    def test_parse_hour_only_pm(self):
+        time_ref = parseTimeReference("10pm")
+        expected = self.zone.localize(datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 22, 0))
+        self.assertEquals(time_ref, expected)
+
     def test_parse_noon(self):
         time_ref = parseTimeReference("noon")
         expected = self.zone.localize(datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 12, 0))
@@ -554,6 +564,16 @@ class parseTimeReferenceTestNow(TestCase):
     def test_parse_hour_pm(self):
         time_ref = parseTimeReference("8:50pm", now=self.now)
         expected = self.zone.localize(datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 20, 50))
+        self.assertEquals(time_ref, expected)
+
+    def test_parse_hour_only_am(self):
+        time_ref = parseTimeReference("8am", now=self.now)
+        expected = self.zone.localize(datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 8, 0))
+        self.assertEquals(time_ref, expected)
+
+    def test_parse_hour_only_pm(self):
+        time_ref = parseTimeReference("10pm", now=self.now)
+        expected = self.zone.localize(datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 22, 0))
         self.assertEquals(time_ref, expected)
 
     def test_parse_noon(self):

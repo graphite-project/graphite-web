@@ -71,10 +71,12 @@ def parseTimeReference(ref, tzinfo=None, now=None):
 
   if not ref or ref == 'now': return now
 
+  rawRef = ref
+
   # Time-of-day reference
   i = ref.find(':')
   hour,min = 0,0
-  if i != -1:
+  if 0 < i < 3:
     hour = int( ref[:i] )
     min = int( ref[i+1:i+3] )
     ref = ref[i+3:]
@@ -83,6 +85,19 @@ def parseTimeReference(ref, tzinfo=None, now=None):
     elif ref[:2] == 'pm':
       hour = (hour + 12) % 24
       ref = ref[2:]
+
+  # Xam or XXam
+  i = ref.find('am')
+  if 0 < i < 3:
+    hour = int( ref[:i] )
+    ref = ref[i+2:]
+
+  # Xpm or XXpm
+  i = ref.find('pm')
+  if 0 < i < 3:
+    hour = (int( ref[:i] ) + 12) % 24
+    ref = ref[i+2:]
+
   if ref.startswith('noon'):
     hour,min = 12,0
     ref = ref[4:]
@@ -130,7 +145,7 @@ def parseTimeReference(ref, tzinfo=None, now=None):
     refDate -= timedelta(days=dayOffset)
 
   elif ref:
-    raise Exception("Unknown day reference")
+    raise ValueError("Unknown day reference: %s" % rawRef)
 
   return tzinfo.localize(refDate)
 
