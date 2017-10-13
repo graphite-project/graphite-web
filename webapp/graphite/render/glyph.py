@@ -1797,7 +1797,8 @@ class PieGraph(Graph):
 
     if not params.get('hideLegend',False):
       elements = [ (slice['name'],slice['color'],None) for slice in self.slices ]
-      self.drawLegend(elements)
+      if len(elements) > 0:
+        self.drawLegend(elements)
 
     self.drawSlices()
 
