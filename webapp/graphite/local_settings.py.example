@@ -37,6 +37,12 @@
 #LOG_RENDERING_PERFORMANCE = True
 #LOG_CACHE_PERFORMANCE = True
 
+# Filenames for log output, set to '-' to log to stderr
+#LOG_FILE_INFO = 'info.log'
+#LOG_FILE_EXCEPTION = 'exception.log'
+#LOG_FILE_CACHE = 'cache.log'
+#LOG_FILE_RENDERING = 'rendering.log'
+
 # Enable full debug page display on exceptions (Internal Server Error pages)
 #DEBUG = True
 

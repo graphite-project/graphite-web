@@ -95,6 +95,11 @@ LOG_CACHE_PERFORMANCE = False
 LOG_ROTATION = True
 LOG_ROTATION_COUNT = 1
 
+LOG_FILE_INFO = 'info.log'
+LOG_FILE_EXCEPTION = 'exception.log'
+LOG_FILE_CACHE = 'cache.log'
+LOG_FILE_RENDERING = 'rendering.log'
+
 MAX_FETCH_RETRIES = 2
 
 # This settings limit metrics find to prevent from too large query
