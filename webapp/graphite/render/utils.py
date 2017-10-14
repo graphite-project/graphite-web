@@ -9,7 +9,10 @@ def extractPathExpressions(targets):
 
   def extractPathExpression(tokens):
     if tokens.expression:
-      return extractPathExpression(tokens.expression)
+      extractPathExpression(tokens.expression)
+      if tokens.expression.pipedCalls:
+        for token in tokens.expression.pipedCalls:
+          extractPathExpression(token)
     elif tokens.pathExpression:
       pathExpressions.add(tokens.pathExpression)
     elif tokens.call:
@@ -23,7 +26,10 @@ def extractPathExpressions(targets):
           extractPathExpression(a)
 
   for target in targets:
-    tokens = grammar.parseString(target)
-    extractPathExpression(tokens)
+    if isinstance(target, basestring):
+      if not target.strip():
+        continue
+      target = grammar.parseString(target)
+    extractPathExpression(target)
 
   return list(pathExpressions)

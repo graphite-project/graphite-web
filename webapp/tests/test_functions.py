@@ -3706,6 +3706,21 @@ class FunctionsTest(TestCase):
 
         self.assertEqual(results, expectedResults)
 
+    def test_timeStack_emptySeries(self):
+        # Input of an empty series will result in no timeshifting attempted
+        results = functions.timeStack(
+            self._build_requestContext(
+                startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+            ),
+            [ ],
+            "-10minutes",
+            0,
+            3
+        )
+        expectedResult = [ ]
+        self.assertEqual(results, expectedResult)
+
     def test_timeShift(self):
         seriesList = self._gen_series_list_with_data(
             key=['test.value'],
@@ -4064,7 +4079,7 @@ class FunctionsTest(TestCase):
                 data=range(10, 25)
             )
 
-        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+        with patch('graphite.render.evaluator.evaluateTokens', mock_evaluateTokens):
             with self.assertRaisesRegexp(Exception, '^Unsupported window function: invalid$'):
                 functions.movingWindow(request_context, seriesList, 5, 'invalid')
 
@@ -4088,7 +4103,7 @@ class FunctionsTest(TestCase):
             TimeSeries('movingAverage(collectd.test-db0.load.value,10)', 20, 30, 1, [None, None, None, None, None, 2.0, 2.5, 3.0, 3.5, 4.0])
         ]
 
-        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+        with patch('graphite.render.evaluator.evaluateTokens', mock_evaluateTokens):
             result = functions.movingWindow(
                 self._build_requestContext(
                     startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
@@ -4122,7 +4137,7 @@ class FunctionsTest(TestCase):
             TimeSeries('movingMedian(collectd.test-db0.load.value,10)', 20, 25, 1, [None, None, None, None, None])
         ]
 
-        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+        with patch('graphite.render.evaluator.evaluateTokens', mock_evaluateTokens):
             result = functions.movingMedian(
                 self._build_requestContext(
                     startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
@@ -4152,7 +4167,7 @@ class FunctionsTest(TestCase):
             TimeSeries('movingMedian(collectd.test-db0.load.value,10)', 20, 30, 1, [None, 0, 1, 1, 2, 2, 3, 3, 4, 4])
         ]
 
-        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+        with patch('graphite.render.evaluator.evaluateTokens', mock_evaluateTokens):
             result = functions.movingMedian(
                 self._build_requestContext(
                     startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
@@ -4175,7 +4190,7 @@ class FunctionsTest(TestCase):
 
         expectedResults = []
 
-        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+        with patch('graphite.render.evaluator.evaluateTokens', mock_evaluateTokens):
             result = functions.movingMedian(
                 self._build_requestContext(
                     startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
@@ -4205,7 +4220,7 @@ class FunctionsTest(TestCase):
             TimeSeries('movingMedian(collectd.test-db0.load.value,60)', 660, 700, 1, range(30, 70)),
         ]
 
-        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+        with patch('graphite.render.evaluator.evaluateTokens', mock_evaluateTokens):
             result = functions.movingMedian(
                 self._build_requestContext(
                     startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
@@ -4235,7 +4250,7 @@ class FunctionsTest(TestCase):
             TimeSeries('movingMedian(collectd.test-db0.load.value,"-1min")', 660, 700, 1, range(30, 70)),
         ]
 
-        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+        with patch('graphite.render.evaluator.evaluateTokens', mock_evaluateTokens):
             result = functions.movingMedian(
                 self._build_requestContext(
                     startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
@@ -4268,7 +4283,7 @@ class FunctionsTest(TestCase):
             TimeSeries('movingAverage(collectd.test-db0.load.value,10)', 20, 25, 1, [None, None, None, None, None])
         ]
 
-        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+        with patch('graphite.render.evaluator.evaluateTokens', mock_evaluateTokens):
             result = functions.movingAverage(
                 self._build_requestContext(
                     startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
@@ -4298,7 +4313,7 @@ class FunctionsTest(TestCase):
             TimeSeries('movingAverage(collectd.test-db0.load.value,10)', 20, 30, 1, [None, 0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0])
         ]
 
-        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+        with patch('graphite.render.evaluator.evaluateTokens', mock_evaluateTokens):
             result = functions.movingAverage(
                 self._build_requestContext(
                     startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
@@ -4322,7 +4337,7 @@ class FunctionsTest(TestCase):
 
         expectedResults = []
 
-        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+        with patch('graphite.render.evaluator.evaluateTokens', mock_evaluateTokens):
             result = functions.movingAverage(
                 self._build_requestContext(
                     startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
@@ -4356,7 +4371,7 @@ class FunctionsTest(TestCase):
             TimeSeries('movingAverage(collectd.test-db0.load.value,60)', 660, 700, 1, frange(29.5, 69.5, 1)),
         ]
 
-        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+        with patch('graphite.render.evaluator.evaluateTokens', mock_evaluateTokens):
             result = functions.movingAverage(
                 self._build_requestContext(
                     startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
@@ -4391,7 +4406,7 @@ class FunctionsTest(TestCase):
             TimeSeries('movingAverage(collectd.test-db0.load.value,"-1min")', 660, 700, 1, frange(29.5, 69.5, 1)),
         ]
 
-        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+        with patch('graphite.render.evaluator.evaluateTokens', mock_evaluateTokens):
             result = functions.movingAverage(
                 self._build_requestContext(
                     startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
@@ -4426,7 +4441,7 @@ class FunctionsTest(TestCase):
             TimeSeries('movingMin(collectd.test-db0.load.value,10)', 20, 25, 1, [None, None, None, None, None])
         ]
 
-        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+        with patch('graphite.render.evaluator.evaluateTokens', mock_evaluateTokens):
             result = functions.movingMin(
                 self._build_requestContext(
                     startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
@@ -4456,7 +4471,7 @@ class FunctionsTest(TestCase):
             TimeSeries('movingMin(collectd.test-db0.load.value,10)', 20, 30, 1, [None, 2, 1, 1, 1, 1, 1, 1, 1, 1] )
         ]
 
-        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+        with patch('graphite.render.evaluator.evaluateTokens', mock_evaluateTokens):
             result = functions.movingMin(
                 self._build_requestContext(
                     startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
@@ -4479,7 +4494,7 @@ class FunctionsTest(TestCase):
 
         expectedResults = []
 
-        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+        with patch('graphite.render.evaluator.evaluateTokens', mock_evaluateTokens):
             result = functions.movingMin(
                 self._build_requestContext(
                     startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
@@ -4509,7 +4524,7 @@ class FunctionsTest(TestCase):
             TimeSeries('movingMin(collectd.test-db0.load.value,10)', 20, 30, 1, [None, 10] + [1] * 8)
         ]
 
-        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+        with patch('graphite.render.evaluator.evaluateTokens', mock_evaluateTokens):
             result = functions.movingMin(
                 self._build_requestContext(
                     startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
@@ -4539,7 +4554,7 @@ class FunctionsTest(TestCase):
             TimeSeries('movingMin(collectd.test-db0.load.value,"-1min")', 660, 700, 1, [1]*40),
         ]
 
-        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+        with patch('graphite.render.evaluator.evaluateTokens', mock_evaluateTokens):
             result = functions.movingMin(
                 self._build_requestContext(
                     startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
@@ -4574,7 +4589,7 @@ class FunctionsTest(TestCase):
             TimeSeries('movingMax(collectd.test-db0.load.value,10)', 20, 25, 1, [None, None, None, None, None])
         ]
 
-        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+        with patch('graphite.render.evaluator.evaluateTokens', mock_evaluateTokens):
             result = functions.movingMax(
                 self._build_requestContext(
                     startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
@@ -4604,7 +4619,7 @@ class FunctionsTest(TestCase):
             TimeSeries('movingMax(collectd.test-db0.load.value,10)', 20, 30, 1, [None, 1, 2, 2, 2, 2, 2, 2, 2, 2])
         ]
 
-        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+        with patch('graphite.render.evaluator.evaluateTokens', mock_evaluateTokens):
             result = functions.movingMax(
                 self._build_requestContext(
                     startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
@@ -4627,7 +4642,7 @@ class FunctionsTest(TestCase):
 
         expectedResults = []
 
-        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+        with patch('graphite.render.evaluator.evaluateTokens', mock_evaluateTokens):
             result = functions.movingMax(
                 self._build_requestContext(
                     startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
@@ -4657,7 +4672,7 @@ class FunctionsTest(TestCase):
             TimeSeries('movingMax(collectd.test-db0.load.value,10)', 20, 30, 1, [None, 1, 2, 2, 2, 2, 2, 2, 2, 2])
         ]
 
-        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+        with patch('graphite.render.evaluator.evaluateTokens', mock_evaluateTokens):
             result = functions.movingMax(
                 self._build_requestContext(
                     startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
@@ -4687,7 +4702,7 @@ class FunctionsTest(TestCase):
             TimeSeries('movingMax(collectd.test-db0.load.value,"-1min")', 660, 700, 1, [10] * 40),
         ]
 
-        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+        with patch('graphite.render.evaluator.evaluateTokens', mock_evaluateTokens):
             result = functions.movingMax(
                 self._build_requestContext(
                     startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
@@ -4735,7 +4750,7 @@ class FunctionsTest(TestCase):
             TimeSeries('movingSum(collectd.test-db0.load.value,10)', 20, 25, 1, [None, None, None, None, None])
         ]
 
-        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+        with patch('graphite.render.evaluator.evaluateTokens', mock_evaluateTokens):
             result = functions.movingSum(
                 self._build_requestContext(
                     startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
@@ -4765,7 +4780,7 @@ class FunctionsTest(TestCase):
             TimeSeries('movingSum(collectd.test-db0.load.value,10)', 20, 30, 1, [None, 0.0, 1.0, 3.0, 6.0, 10.0, 15.0, 21.0, 28.0, 36.0])
         ]
 
-        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+        with patch('graphite.render.evaluator.evaluateTokens', mock_evaluateTokens):
             result = functions.movingSum(
                 self._build_requestContext(
                     startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
@@ -4788,7 +4803,7 @@ class FunctionsTest(TestCase):
 
         expectedResults = []
 
-        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+        with patch('graphite.render.evaluator.evaluateTokens', mock_evaluateTokens):
             result = functions.movingSum(
                 self._build_requestContext(
                     startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
@@ -4813,7 +4828,7 @@ class FunctionsTest(TestCase):
             TimeSeries('movingSum(collectd.test-db0.load.value,60)', 660, 700, 1, [60.0]*40)
         ]
 
-        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+        with patch('graphite.render.evaluator.evaluateTokens', mock_evaluateTokens):
             result = functions.movingSum(
                 self._build_requestContext(
                     startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
@@ -4838,7 +4853,7 @@ class FunctionsTest(TestCase):
             TimeSeries('movingSum(collectd.test-db0.load.value,"-1min")', 660, 700, 1, [60.0]*40),
         ]
 
-        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+        with patch('graphite.render.evaluator.evaluateTokens', mock_evaluateTokens):
             result = functions.movingSum(
                 self._build_requestContext(
                     startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
@@ -4866,7 +4881,7 @@ class FunctionsTest(TestCase):
             TimeSeries('holtWintersForecast(collectd.test-db0.load.value)', 605400, 700, 1, [])
         ]
 
-        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+        with patch('graphite.render.evaluator.evaluateTokens', mock_evaluateTokens):
             result = functions.holtWintersForecast(
                 self._build_requestContext(
                     startTime=datetime(1970, 2, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
@@ -4905,7 +4920,7 @@ class FunctionsTest(TestCase):
             TimeSeries('holtWintersConfidenceUpper(collectd.test-db0.load.value)', start_time, start_time+(points*step), step, [8.424944558327624, 9.409422251880809, 10.607070189221787, 10.288439865038768, 9.491556863132963, 9.474595784593738, 8.572310478053845, 8.897670449095346, 8.941566968508148, 9.409728797779282])
         ]
 
-        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+        with patch('graphite.render.evaluator.evaluateTokens', mock_evaluateTokens):
             result = functions.holtWintersConfidenceBands(
                 self._build_requestContext(
                     startTime=datetime(1970, 2, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
@@ -4946,7 +4961,7 @@ class FunctionsTest(TestCase):
         expectedResults[0].options = {'invisible': True, 'stacked': True}
         expectedResults[1].options = {'stacked': True}
 
-        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+        with patch('graphite.render.evaluator.evaluateTokens', mock_evaluateTokens):
             result = functions.holtWintersConfidenceArea(
                 self._build_requestContext(
                     startTime=datetime(1970, 2, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
@@ -4984,7 +4999,7 @@ class FunctionsTest(TestCase):
             TimeSeries('holtWintersAberration(collectd.test-db0.load.value)', start_time, start_time+(points*step), step, [-0.2841206166091448, -0.05810270987744115, 0, 0, 0, 0, 0, 0, 0, 0])
         ]
 
-        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+        with patch('graphite.render.evaluator.evaluateTokens', mock_evaluateTokens):
             result = functions.holtWintersAberration(
                 self._build_requestContext(
                     startTime=datetime(1970, 2, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
@@ -5296,7 +5311,7 @@ class FunctionsTest(TestCase):
         bucketSize = '1hour'
         alignTo = True
 
-        with patch('graphite.render.functions.evaluateTokens', lambda *_: []):
+        with patch('graphite.render.evaluator.evaluateTokens', lambda *_: []):
             request_context = self._build_requestContext(start_time, end_time)
             with self.assertRaises(TypeError):
                 functions.smartSummarize(request_context, None, bucketSize, 'max', alignTo)
@@ -5318,7 +5333,7 @@ class FunctionsTest(TestCase):
             TimeSeries('hitcount(servers.s2.disk.bytes_free, "1d", true)', 0, 172800, 86400, [62164800, None])
         ]
 
-        with patch('graphite.render.functions.evaluateTokens', lambda *_: seriesList):
+        with patch('graphite.render.evaluator.evaluateTokens', lambda *_: seriesList):
             result = functions.hitcount(
                 self._build_requestContext(endTime=datetime(1970, 1, 2, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE))),
                 seriesList, "1d", True)
@@ -5341,7 +5356,7 @@ class FunctionsTest(TestCase):
             TimeSeries('hitcount(servers.s2.disk.bytes_free, "1hour", true)', 0, 18000, 3600, [12956400, 38876400, 64796400, 90716400, None])
         ]
 
-        with patch('graphite.render.functions.evaluateTokens', lambda *_: seriesList):
+        with patch('graphite.render.evaluator.evaluateTokens', lambda *_: seriesList):
             result = functions.hitcount(
                 self._build_requestContext(endTime=datetime(1970, 1, 1, 0, 4, 0, 0, pytz.timezone(settings.TIME_ZONE))),
                 seriesList,
@@ -5365,7 +5380,7 @@ class FunctionsTest(TestCase):
             TimeSeries('hitcount(servers.s2.disk.bytes_free, "1minute", true)', 0, 300, 60, [3540, 10740, 17940, 25140, None])
         ]
 
-        with patch('graphite.render.functions.evaluateTokens', lambda *_: seriesList):
+        with patch('graphite.render.evaluator.evaluateTokens', lambda *_: seriesList):
             result = functions.hitcount(
                 self._build_requestContext(endTime=datetime(1970, 1, 1, 0, 4, 0, 0, pytz.timezone(settings.TIME_ZONE))),
                 seriesList,
@@ -5389,7 +5404,7 @@ class FunctionsTest(TestCase):
             TimeSeries('hitcount(servers.s2.disk.bytes_free, "1minute")', 0, 240, 60, [3540, 10740, 17940, 25140])
         ]
 
-        with patch('graphite.render.functions.evaluateTokens', lambda *_: seriesList):
+        with patch('graphite.render.evaluator.evaluateTokens', lambda *_: seriesList):
             result = functions.hitcount(
                 self._build_requestContext(endTime=datetime(1970, 1, 1, 0, 4, 0, 0, pytz.timezone(settings.TIME_ZONE))),
                 seriesList,
@@ -5547,7 +5562,7 @@ class FunctionsTest(TestCase):
         def mock_evaluateTokens(reqCtx, tokens, replacements=None):
             return seriesList
 
-        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+        with patch('graphite.render.evaluator.evaluateTokens', mock_evaluateTokens):
             result = functions.exponentialMovingAverage(self._build_requestContext(), seriesList, 30)
 
         self.assertEqual(list(result[0]), list(expectedResults[0]))
@@ -5565,7 +5580,7 @@ class FunctionsTest(TestCase):
         def mock_evaluateTokens(reqCtx, tokens, replacements=None):
             return seriesList
 
-        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+        with patch('graphite.render.evaluator.evaluateTokens', mock_evaluateTokens):
             result = functions.exponentialMovingAverage(self._build_requestContext(), seriesList, "-30s")
 
         self.assertEqual(list(result[0]), list(expectedResults[0]))
@@ -5578,7 +5593,7 @@ class FunctionsTest(TestCase):
         def mock_evaluateTokens(reqCtx, tokens, replacements=None):
             return []
 
-        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+        with patch('graphite.render.evaluator.evaluateTokens', mock_evaluateTokens):
             result = functions.exponentialMovingAverage(self._build_requestContext(endTime=datetime(1970, 1, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE))), seriesList, 60)
 
         self.assertEqual(result, expectedResults)
@@ -5596,7 +5611,7 @@ class FunctionsTest(TestCase):
         def mock_evaluateTokens(reqCtx, tokens, replacements=None):
             return self._gen_series_list_with_data(key='collectd.test-db0.load.value',start=10, end=30, data=([None] * 10 + range(0, 5) + [None] + range(5, 9)))
 
-        with patch('graphite.render.functions.evaluateTokens', mock_evaluateTokens):
+        with patch('graphite.render.evaluator.evaluateTokens', mock_evaluateTokens):
             result = functions.exponentialMovingAverage(self._build_requestContext(endTime=datetime(1970, 1, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE))), seriesList, 10)
 
         self.assertEqual(list(result[0]), list(expectedResults[0]))
@@ -5697,7 +5712,7 @@ class FunctionsTest(TestCase):
         return seriesList
 
     def _assert_smartsummarize(self, start_time, end_time, step, bucketSize, alignTo, expectedResults):
-        with patch('graphite.render.functions.evaluateTokens', lambda ctx, _: self._gen_smart_summarize_series_list(ctx['startTime'], end_time, step)):
+        with patch('graphite.render.evaluator.evaluateTokens', lambda ctx, _: self._gen_smart_summarize_series_list(ctx['startTime'], end_time, step)):
             for func in expectedResults:
                 request_context = self._build_requestContext(start_time, end_time)
                 result = functions.smartSummarize(request_context, None, bucketSize, func, alignTo)
