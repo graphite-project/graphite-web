@@ -150,8 +150,10 @@ class TimeSeries(list):
     )
 
 
-@logtime()
-def _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList):
+@logtime(custom_msg=True)
+def _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList, msg_setter=None):
+  msg_setter("retrieval of \"%s\" took" % str(pathExpr))
+
   result_queue = []
   remote_done = False
 
@@ -269,8 +271,10 @@ def _merge_results(pathExpr, startTime, endTime, result_queue, seriesList, reque
 
 
 # Data retrieval API
-@logtime()
-def fetchData(requestContext, pathExpr):
+@logtime(custom_msg=True)
+def fetchData(requestContext, pathExpr, msg_setter=None):
+  msg_setter("retrieval of \"%s\" took" % str(pathExpr))
+
   seriesList = {}
   (startTime, endTime, now) = timebounds(requestContext)
 
