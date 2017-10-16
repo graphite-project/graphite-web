@@ -37,7 +37,7 @@ class LocalDatabaseTagDB(BaseTagDB):
       elif operator == '=~':
         # make sure regex is anchored
         if not spec.startswith('^'):
-          spec = '^' + spec
+          spec = '^(' + spec + ')'
 
         matches_empty = bool(re.match(spec, ''))
 
@@ -55,7 +55,7 @@ class LocalDatabaseTagDB(BaseTagDB):
       elif operator == '!=~':
         # make sure regex is anchored
         if not spec.startswith('^'):
-          spec = '^' + spec
+          spec = '^(' + spec + ')'
 
         matches_empty = not re.match(spec, '')
 
