@@ -82,6 +82,12 @@ class WhisperReadersTests(TestCase):
           self.assertEqual(int(interval.start), ts-60)
           self.assertEqual(int(interval.end), ts)
 
+        # read it again to validate cache works
+        intervals = reader.get_intervals()
+        for interval in intervals:
+          self.assertEqual(int(interval.start),ts-60)
+          self.assertEqual(int(interval.end), ts)
+
     # Confirm fetch works.
     def test_GzippedWhisperReader_fetch(self):
         self.create_whisper_hosts()
@@ -112,6 +118,12 @@ class WhisperReadersTests(TestCase):
 
         reader = WhisperReader(self.worker1, 'hosts.worker1.cpu')
         ts = int(time.time())
+        intervals = reader.get_intervals()
+        for interval in intervals:
+          self.assertEqual(int(interval.start),ts-60)
+          self.assertEqual(int(interval.end), ts)
+
+        # read it again to validate cache works
         intervals = reader.get_intervals()
         for interval in intervals:
           self.assertEqual(int(interval.start),ts-60)
@@ -153,6 +165,15 @@ class WhisperReadersTests(TestCase):
 
         with self.assertRaises(Exception):
             reader.fetch(self.start_ts-5, self.start_ts)
+
+    # Whisper Reader missing file
+    @mock.patch('graphite.logger.log.exception')
+    def test_WhisperReader_missing_file(self, log_exception):
+        path = 'missing/file.wsp'
+        reader = WhisperReader(path, 'hosts.worker2.cpu')
+
+        self.assertEqual(reader.fetch(self.start_ts-5, self.start_ts), None)
+        log_exception.assert_called_with("Failed fetch of whisper file '%s'" % path)
 
     # Whisper Reader CarbonLink Query returns a dict
     @mock.patch('graphite.carbonlink.CarbonLinkPool.query')
