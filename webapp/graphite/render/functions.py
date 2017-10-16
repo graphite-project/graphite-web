@@ -4278,7 +4278,7 @@ def seriesByTag(requestContext, *tagExpressions):
 
   log.debug('taggedSeriesQuery %s' % taggedSeriesQuery)
 
-  seriesList = evaluateTarget(requestContext, taggedSeriesQuery)
+  seriesList = evaluateTarget(requestContext, taggedSeriesQuery, noPrefetch=True)
 
   log.debug('seriesByTag found [%s]' % ', '.join([series.pathExpression for series in seriesList]))
 

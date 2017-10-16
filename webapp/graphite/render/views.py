@@ -118,7 +118,7 @@ def renderView(request):
     else: # Have to actually retrieve the data now
       targets = requestOptions['targets']
 
-      data.extend(evaluateTarget(requestContext, *targets))
+      data.extend(evaluateTarget(requestContext, targets))
 
       if useCache:
         cache.add(dataKey, data, cacheTimeout)

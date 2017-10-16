@@ -6,8 +6,11 @@ from graphite.logger import log
 from graphite.render.grammar import grammar
 from graphite.render.datalib import fetchData, TimeSeries, prefetchRemoteData
 
-def evaluateTarget(requestContext, *targets):
-  if settings.REMOTE_PREFETCH_DATA and not requestContext.get('localOnly'):
+def evaluateTarget(requestContext, targets, noPrefetch=False):
+  if not isinstance(targets, list):
+    targets = [targets]
+
+  if settings.REMOTE_PREFETCH_DATA and not requestContext.get('localOnly') and not noPrefetch:
     prefetchRemoteData(requestContext, targets)
 
   seriesList = []
