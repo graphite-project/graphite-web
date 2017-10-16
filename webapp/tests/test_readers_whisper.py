@@ -76,10 +76,11 @@ class WhisperReadersTests(TestCase):
         self.addCleanup(self.wipe_whisper_hosts)
 
         reader = GzippedWhisperReader(self.worker4, 'hosts.worker4.cpu')
+        ts = int(time.time())
         intervals = reader.get_intervals()
         for interval in intervals:
-          self.assertEqual(int(interval.start), self.start_ts-60)
-          self.assertEqual(int(interval.end), self.start_ts)
+          self.assertEqual(int(interval.start), ts-60)
+          self.assertEqual(int(interval.end), ts)
 
     # Confirm fetch works.
     def test_GzippedWhisperReader_fetch(self):
@@ -110,10 +111,11 @@ class WhisperReadersTests(TestCase):
         self.addCleanup(self.wipe_whisper_hosts)
 
         reader = WhisperReader(self.worker1, 'hosts.worker1.cpu')
+        ts = int(time.time())
         intervals = reader.get_intervals()
         for interval in intervals:
-          self.assertEqual(int(interval.start), self.start_ts-60)
-          self.assertEqual(int(interval.end), self.start_ts)
+          self.assertEqual(int(interval.start),ts-60)
+          self.assertEqual(int(interval.end), ts)
 
     # Confirm fetch works.
     def test_WhisperReader_fetch(self):
