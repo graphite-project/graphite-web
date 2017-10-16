@@ -1,8 +1,6 @@
 import re
-from time import time
 
 from django.conf import settings
-from graphite.logger import log
 from graphite.render.grammar import grammar
 from graphite.render.datalib import fetchData, TimeSeries, prefetchRemoteData
 
