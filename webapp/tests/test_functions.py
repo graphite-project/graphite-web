@@ -14,6 +14,7 @@ from graphite.render import functions
 from graphite.render.functions import NormalizeEmptyResultError
 from graphite.render.evaluator import evaluateTarget
 from graphite.tags.utils import TaggedSeries
+from graphite.render.grammar import grammar
 
 
 def return_greater(series, value):
@@ -3680,16 +3681,17 @@ class FunctionsTest(TestCase):
                 return rv
             raise KeyError('{} not found!'.format(path_expression))
 
+        requestContext = self._build_requestContext(
+            startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+            endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+        )
+        requestContext['args'] = [grammar.parseString('test.value')]
 
         with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
             #Input data is ignored and replaced with subsequent calls to evaluateTarget to get new data
             inputSeries = TimeSeries('test.value',600,1200,60,[0,1,2,3,4,5,6,7,8,9])
-            inputSeries.pathExpression = 'test.value'
             results = functions.timeStack(
-                self._build_requestContext(
-                    startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
-                    endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
-                ),
+                requestContext,
                 [ inputSeries ],
                 "10minutes",
                 0,
@@ -3722,16 +3724,17 @@ class FunctionsTest(TestCase):
                 return rv
             raise KeyError('{} not found!'.format(path_expression))
 
+        requestContext = self._build_requestContext(
+            startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+            endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+        )
+        requestContext['args'] = [grammar.parseString('test.value')]
 
         with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
             # input values will be ignored and replaced by mocked timeshifted values
             inputSeries = TimeSeries('test.value',600,1200,60,[0,1,2,3,4,5,6,7,8,9])
-            inputSeries.pathExpression = 'test.value'
             results = functions.timeShift(
-                self._build_requestContext(
-                    startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
-                    endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
-                ),
+                requestContext,
                 [ inputSeries ],
                 "-10minutes"
             )
@@ -3775,16 +3778,17 @@ class FunctionsTest(TestCase):
                 return rv
             raise KeyError('{} not found!'.format(path_expression))
 
+        requestContext = self._build_requestContext(
+            startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+            endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+        )
+        requestContext['args'] = [grammar.parseString('test.value')]
 
         with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
-            # Intput data is replaced with calls to evaluateTarget with new start/end times set
+            # Input data is replaced with calls to evaluateTarget with new start/end times set
             inputSeries = TimeSeries('test.value',600,1200,60,[0,1,2,3,4,5,6,7,8,9])
-            inputSeries.pathExpression = 'test.value'
             results = functions.timeShift(
-                self._build_requestContext(
-                    startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
-                    endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
-                ),
+                requestContext,
                 [ inputSeries ],
                 "+10minutes",
                 False
@@ -3814,16 +3818,18 @@ class FunctionsTest(TestCase):
                 return rv
             raise KeyError('{} not found!'.format(path_expression))
 
+        requestContext = self._build_requestContext(
+            startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+            endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+        )
+        requestContext['args'] = [grammar.parseString('test.value')]
 
         with self.settings(TIME_ZONE='Europe/Berlin'):
             with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
                 inputSeries = TimeSeries('test.value',600,1200,60,[0,1,2,3,4,5,6,7,8,9])
                 inputSeries.pathExpression = 'test.value'
                 results = functions.timeShift(
-                    self._build_requestContext(
-                        startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
-                        endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
-                    ),
+                    requestContext,
                     [ inputSeries ],
                     "-10minutes",
                     True,
@@ -3947,16 +3953,17 @@ class FunctionsTest(TestCase):
                 return rv
             raise KeyError('{} not found!'.format(path_expression))
 
+        requestContext = self._build_requestContext(
+            startTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+            endTime=datetime(1970, 1, 1, 0, 25, 0, 0, pytz.timezone(settings.TIME_ZONE))
+        )
+        requestContext['args'] = [grammar.parseString('test.value')]
 
         with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
             # input values will be ignored and replaced by regression function
             inputSeries = TimeSeries('test.value',1200,1500,60,[123,None,None,456,None,None,None])
-            inputSeries.pathExpression = 'test.value'
             results = functions.linearRegression(
-                self._build_requestContext(
-                    startTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE)),
-                    endTime=datetime(1970, 1, 1, 0, 25, 0, 0, pytz.timezone(settings.TIME_ZONE))
-                ),
+                requestContext,
                 [ inputSeries ],
                 '00:03 19700101',
                 '00:08 19700101'

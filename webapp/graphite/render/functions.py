@@ -2689,16 +2689,19 @@ def useSeriesAbove(requestContext, seriesList, value, search, replace):
 
     &target=useSeriesAbove(ganglia.metric1.reqs,10,"reqs","time")
   """
-  newSeries = []
+  newNames = []
 
   for series in seriesList:
     newname = re.sub(search, replace, series.name)
     if max(series) > value:
-      n = evaluateTarget(requestContext, newname)
-      if n is not None and len(n) > 0:
-        newSeries.append(n[0])
+      newNames.append(newname)
 
-  return newSeries
+  if not newNames:
+    return []
+
+  newSeries = evaluateTarget(requestContext, 'group(%s)' % ','.join(newNames))
+
+  return [n for n in newSeries if n is not None and len(n) > 0]
 
 def fallbackSeries(requestContext, seriesList, fallback):
     """
@@ -3100,10 +3103,7 @@ def linearRegression(requestContext, seriesList, startSourceAt=None, endSourceAt
   if startSourceAt is not None: sourceContext['startTime'] = parseATTime(startSourceAt)
   if endSourceAt is not None: sourceContext['endTime'] = parseATTime(endSourceAt)
 
-  sourceList = []
-  for series in seriesList:
-    source = evaluateTarget(sourceContext, series.pathExpression)
-    sourceList.extend(source)
+  sourceList = evaluateTokens(sourceContext, requestContext['args'][0])
 
   for source,series in zip(sourceList, seriesList):
     series.tags['linearRegressions'] = '%s, %s' % (
@@ -3218,7 +3218,8 @@ def timeStack(requestContext, seriesList, timeShiftUnit, timeShiftStart, timeShi
     timeShiftUnit = '-' + timeShiftUnit
   delta = parseTimeOffset(timeShiftUnit)
 
-  # if len(seriesList) > 1, they will all have the same pathExpression, which is all we care about.
+  if len(seriesList) < 1:
+    return []
   series = seriesList[0]
 
   results = []
@@ -3230,14 +3231,16 @@ def timeStack(requestContext, seriesList, timeShiftUnit, timeShiftStart, timeShi
     innerDelta = delta * shft
     myContext['startTime'] = requestContext['startTime'] + innerDelta
     myContext['endTime'] = requestContext['endTime'] + innerDelta
-    for shiftedSeries in evaluateTarget(myContext, series.pathExpression):
-      shiftedSeries.tags['timeShiftUnit'] = timeShiftUnit
-      shiftedSeries.tags['timeShift'] = shft
-      shiftedSeries.name = 'timeShift(%s, %s, %s)' % (shiftedSeries.name, timeShiftUnit,shft)
-      shiftedSeries.pathExpression = shiftedSeries.name
-      shiftedSeries.start = series.start
-      shiftedSeries.end = series.end
-      results.append(shiftedSeries)
+    shiftedSeriesList = evaluateTokens(myContext, requestContext['args'][0])
+    if isinstance(shiftedSeriesList, list):
+      for shiftedSeries in shiftedSeriesList:
+        shiftedSeries.tags['timeShiftUnit'] = timeShiftUnit
+        shiftedSeries.tags['timeShift'] = shft
+        shiftedSeries.name = 'timeShift(%s, %s, %s)' % (shiftedSeries.name, timeShiftUnit,shft)
+        shiftedSeries.pathExpression = shiftedSeries.name
+        shiftedSeries.start = series.start
+        shiftedSeries.end = series.end
+        results.append(shiftedSeries)
 
   return results
 
@@ -3301,11 +3304,13 @@ def timeShift(requestContext, seriesList, timeShift, resetEnd=True, alignDST=Fal
     myContext['endTime'] += dstOffset
 
   results = []
-  if len(seriesList) > 0:
-    # if len(seriesList) > 1, they will all have the same pathExpression, which is all we care about.
-    series = seriesList[0]
+  if len(seriesList) < 1:
+    return []
+  series = seriesList[0]
 
-    for shiftedSeries in evaluateTarget(myContext, series.pathExpression):
+  shiftedSeriesList = evaluateTokens(myContext, requestContext['args'][0])
+  if isinstance(shiftedSeriesList, list):
+    for shiftedSeries in shiftedSeriesList:
       shiftedSeries.tags['timeShift'] = timeShift
       shiftedSeries.name = 'timeShift(%s, "%s")' % (shiftedSeries.name, timeShift)
       if resetEnd:
