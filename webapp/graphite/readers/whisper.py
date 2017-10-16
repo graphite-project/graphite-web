@@ -32,19 +32,28 @@ if bool(whisper):
 class WhisperReader(BaseReader):
     __slots__ = ('fs_path', 'real_metric_path')
     supported = bool(whisper)
+    meta_info = None
 
     def __init__(self, fs_path, real_metric_path):
         self.fs_path = fs_path
         self.real_metric_path = real_metric_path
 
+    def info(self):
+        if not self.meta_info:
+            self.meta_info = whisper.info(self.fs_path)
+        return self.meta_info
+
     def get_intervals(self):
-        start = time.time() - whisper.info(self.fs_path)['maxRetention']
+        start = time.time() - self.info()['maxRetention']
         end = max(stat(self.fs_path).st_mtime, start)
         return IntervalSet([Interval(start, end)])
 
+    def fetch_data(self, startTime, endTime):
+        return whisper.fetch(self.fs_path, startTime, endTime)
+
     def fetch(self, startTime, endTime):
         try:
-            data = whisper.fetch(self.fs_path, startTime, endTime)
+            data = self.fetch_data(startTime, endTime)
         except IOError:
             log.exception("Failed fetch of whisper file '%s'" % self.fs_path)
             return None
@@ -54,7 +63,7 @@ class WhisperReader(BaseReader):
         time_info, values = data
         (start, end, step) = time_info
 
-        meta_info = whisper.info(self.fs_path)
+        meta_info = self.info()
         aggregation_method = meta_info['aggregationMethod']
         lowest_step = min([i['secondsPerPoint']
                            for i in meta_info['archives']])
@@ -69,18 +78,16 @@ class WhisperReader(BaseReader):
 class GzippedWhisperReader(WhisperReader):
     supported = bool(whisper and gzip)
 
-    def get_intervals(self):
-        fh = gzip.GzipFile(self.fs_path, 'rb')
-        try:
-            info = whisper__readHeader(fh)  # evil, but necessary.
-        finally:
-            fh.close()
+    def info(self):
+        if not self.meta_info:
+            fh = gzip.GzipFile(self.fs_path, 'rb')
+            try:
+                self.meta_info = whisper__readHeader(fh)  # evil, but necessary.
+            finally:
+                fh.close()
+        return self.meta_info
 
-        start = time.time() - info['maxRetention']
-        end = max(stat(self.fs_path).st_mtime, start)
-        return IntervalSet([Interval(start, end)])
-
-    def fetch(self, startTime, endTime):
+    def fetch_data(self, startTime, endTime):
         fh = gzip.GzipFile(self.fs_path, 'rb')
         try:
             return whisper.file_fetch(fh, startTime, endTime)
