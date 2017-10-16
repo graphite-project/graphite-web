@@ -1,6 +1,11 @@
-from .base import TestCase
+import pytz
 
-from graphite.render.datalib import TimeSeries, nonempty
+from datetime import datetime
+
+from .base import TestCase
+from django.conf import settings
+
+from graphite.render.datalib import TimeSeries, nonempty, _merge_results
 
 class TimeSeriesTest(TestCase):
 
@@ -225,6 +230,27 @@ class TimeSeriesTest(TestCase):
         result = list(series)
 
 class DatalibFunctionTest(TestCase):
+    def _build_requestContext(self, startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)), endTime=datetime(1970, 1, 1, 0, 59, 0, 0, pytz.timezone(settings.TIME_ZONE)), data=[], tzinfo=pytz.utc):
+        """
+        Helper method to create request contexts
+        Args:
+            startTime: datetime
+            endTime: datetime
+            data: list
+
+        Returns:
+
+        """
+        return {
+            'template': {},
+            'args': ({}, {}),
+            'startTime': startTime,
+            'endTime': endTime,
+            'localOnly': False,
+            'data': data,
+            'tzinfo': tzinfo
+        }
+
     def test_nonempty_true(self):
       values = range(0,100)
       series = TimeSeries("collectd.test-db.load.value", 0, len(values), 1, values)
@@ -237,3 +263,67 @@ class DatalibFunctionTest(TestCase):
     def test_nonempty_false_nones(self):
       series = TimeSeries("collectd.test-db.load.value", 0, 4, 1, [None, None, None, None])
       self.assertFalse(nonempty(series))
+
+    def test__merge_results(self):
+      pathExpr = 'collectd.test-db.load.value'
+      startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+      endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+      timeInfo = [startTime, endTime, 60]
+      result_queue = [
+                      [pathExpr, [timeInfo, [0,1,2,3,4,None,None,None,None,None]]],
+                      [pathExpr, [timeInfo, [None,None,None,None,None,5,6,7,8,9]]],
+                      [pathExpr, [timeInfo, [None,None,None,None,None,None,None,7,8,9]]],
+                      [pathExpr, [timeInfo, [0,1,2,3,4,None,None,7,8,9]]]
+                     ]
+
+      seriesList = {}
+      requestContext = self._build_requestContext(startTime, endTime)
+      results = _merge_results(pathExpr, startTime, endTime, result_queue, seriesList, requestContext)
+      expectedResults = [
+          TimeSeries("collectd.test-db.load.value", startTime, endTime, 60, [0,1,2,3,4,5,6,7,8,9]),
+      ]
+      self.assertEqual(results, expectedResults)
+
+    def test__merge_results_multiple_series(self):
+      pathExpr = 'collectd.test-db.load.value'
+      startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+      endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+      timeInfo = [startTime, endTime, 60]
+      result_queue = [
+                      [pathExpr, [timeInfo, [0,1,2,3,4,None,None,None,None,None]]],
+                      [pathExpr, [timeInfo, [None,None,None,None,None,5,6,7,8,9]]],
+                      [pathExpr, [timeInfo, [None,None,None,None,None,None,None,7,8,9]]],
+                      [pathExpr, [timeInfo, [0,1,2,3,4,None,None,7,8,9]]]
+                     ]
+
+      seriesList = {
+                      'collectd.test-db.cpu.value': TimeSeries("collectd.test-db.cpu.value", startTime, endTime, 60, [0,1,2,3,4,5,6,7,8,9])
+                   }
+      requestContext = self._build_requestContext(startTime, endTime)
+      results = _merge_results(pathExpr, startTime, endTime, result_queue, seriesList, requestContext)
+      expectedResults = [
+          TimeSeries("collectd.test-db.cpu.value", startTime, endTime, 60, [0,1,2,3,4,5,6,7,8,9]),
+          TimeSeries("collectd.test-db.load.value", startTime, endTime, 60, [0,1,2,3,4,5,6,7,8,9]),
+      ]
+      self.assertEqual(results, expectedResults)
+
+
+    def test__merge_results_no_remote_store_merge_results(self):
+      pathExpr = 'collectd.test-db.load.value'
+      startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+      endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+      timeInfo = [startTime, endTime, 60]
+      result_queue = [
+                      [pathExpr, [timeInfo, [0,1,2,3,4,None,None,None,None,None]]],
+                      [pathExpr, [timeInfo, [None,None,None,3,4,5,6,7,8,9]]],
+                      [pathExpr, [timeInfo, [None,None,None,None,None,None,None,7,8,9]]]
+                     ]
+
+      seriesList = {}
+      requestContext = self._build_requestContext(startTime, endTime)
+      with self.settings(REMOTE_STORE_MERGE_RESULTS=False):
+          results = _merge_results(pathExpr, startTime, endTime, result_queue, seriesList, requestContext)
+      expectedResults = [
+          TimeSeries("collectd.test-db.load.value", startTime, endTime, 60, [None,None,None,3,4,5,6,7,8,9]),
+      ]
+      self.assertEqual(results, expectedResults)
