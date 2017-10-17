@@ -1,11 +1,12 @@
 import pytz
 
 from datetime import datetime
+from mock import mock, patch
 
 from .base import TestCase
 from django.conf import settings
 
-from graphite.render.datalib import TimeSeries, PrefetchedData, nonempty, _merge_results
+from graphite.render.datalib import TimeSeries, PrefetchedData, nonempty, fetchData, _merge_results
 
 class TimeSeriesTest(TestCase):
 
@@ -361,3 +362,33 @@ class DatalibFunctionTest(TestCase):
           TimeSeries("collectd.test-db.load.value", startTime, endTime, 60, [None,None,None,3,4,5,6,7,8,9]),
       ]
       self.assertEqual(results, expectedResults)
+
+    def test_fetchData(self):
+      pathExpr = 'collectd.test-db.load.value'
+      startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE))
+      endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+      requestContext = self._build_requestContext(startTime, endTime)
+      requestContext['now'] = endTime
+      requestContext['forwardHeaders'] = None
+
+      results = fetchData(requestContext, pathExpr)
+      expectedResults = []
+      self.assertEqual(results, expectedResults)
+
+    @mock.patch('graphite.logger.log.exception')
+    def test_fetchData_failed_fetch(self, log_exception):
+      pathExpr = 'collectd.test-db.load.value'
+      startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE))
+      endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+      requestContext = self._build_requestContext(startTime, endTime)
+      requestContext['now'] = endTime
+      requestContext['forwardHeaders'] = None
+
+      def mock__fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList):
+        raise Exception('mock failure')
+
+      with self.assertRaises(Exception):
+        with patch('graphite.render.datalib._fetchData', mock__fetchData):
+          results = fetchData(requestContext, pathExpr)
+      #Unsure how to check this because it includes file paths
+      #log_exception.assert_called_with('Failed after 2 retry!')
