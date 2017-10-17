@@ -211,7 +211,7 @@ Others use an Include directive in the ``httpd.conf`` file like this:
 
 The configuration files must then all be added to ``/usr/local/apache2/conf/vhosts.d/``. Still others may not help handle this at all and you must add the configuration to your http.conf file directly.
 
-Graphite will be in the DocumentRoot of your webserver, and will not allow you to access plain-HTML in subdirectories without addition configuration. You may want to edit the ``example-graphite-vhosts.conf`` file to change port numbers or use additional ``"SetHandler None"`` directives to allow access to other directories.
+Graphite will be in the DocumentRoot of your webserver, and will not allow you to access plain-HTML in subdirectories without addition configuration. You may want to edit the ``example-graphite-vhost.conf`` file to change port numbers or use additional ``"SetHandler None"`` directives to allow access to other directories.
 
 Be sure to reload your Apache configuration by running ``sudo /etc/init.d/apache2 reload`` or ``sudo /etc/init.d/httpd reload``.
 
