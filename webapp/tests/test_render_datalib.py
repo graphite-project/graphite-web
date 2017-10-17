@@ -1,11 +1,12 @@
 import pytz
+import collections
 
 from datetime import datetime
 
 from .base import TestCase
 from django.conf import settings
 
-from graphite.render.datalib import TimeSeries, nonempty, _merge_results
+from graphite.render.datalib import TimeSeries, PrefetchedData, nonempty, _merge_results
 
 class TimeSeriesTest(TestCase):
 
@@ -228,6 +229,40 @@ class TimeSeriesTest(TestCase):
       self.assertEqual(series.valuesPerPoint, 2)
       with self.assertRaisesRegexp(Exception, "Invalid consolidation function: 'bogus'"):
         result = list(series)
+
+class PrefetchedDataTest(TestCase):
+    def test_PrefetchedData_init_no_args(self):
+      with self.assertRaisesRegexp(TypeError, '__init__\(\) takes exactly 2 arguments \(1 given\)'):
+        PrefetchedData()
+
+    def test_PrefetchedData(self):
+        startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE))
+        endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+        now = None
+        # First item in list is a proper fetched response
+        # Second item is None, which is what happens if there is no data back from wait_for_results
+        prefetched_results = [
+                              [{'pathExpression': 'collectd.test-db.load.value',
+                                'name': 'collectd.test-db.load.value',
+                                'time_info': (startTime, endTime, now),
+                                'step': 60,
+                                'values': [0,1,2,3,4,5,6,7,8,9]
+                              }],
+                              None
+                             ]
+        # Simulates the use case with request_context:
+        results = {}
+        results[(startTime, endTime, now)] = PrefetchedData(prefetched_results)
+        prefetched = results.get((startTime, endTime, now), None)
+        # Response should  not be None
+        self.assertNotEqual(prefetched, None)
+        expectedResults = ('collectd.test-db.load.value', ((startTime, endTime, None), [0,1,2,3,4,5,6,7,8,9]))
+        # Tests requesting of data when it hasn't been fetched
+        for result in prefetched['collectd.test-db.load.value']:
+            self.assertEqual(result, expectedResults)
+        # Tests requesting of data after it has been fetched
+        for result in prefetched['collectd.test-db.load.value']:
+            self.assertEqual(result, expectedResults)
 
 class DatalibFunctionTest(TestCase):
     def _build_requestContext(self, startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)), endTime=datetime(1970, 1, 1, 0, 59, 0, 0, pytz.timezone(settings.TIME_ZONE)), data=[], tzinfo=pytz.utc):
