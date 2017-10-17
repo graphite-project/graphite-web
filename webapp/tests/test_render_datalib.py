@@ -1,5 +1,4 @@
 import pytz
-import collections
 
 from datetime import datetime
 from mock import mock, patch
