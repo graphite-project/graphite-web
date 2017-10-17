@@ -39,7 +39,6 @@ from graphite.render.attime import parseATTime
 from graphite.render.functions import PieFunctions
 from graphite.render.hashing import hashRequest, hashData
 from graphite.render.glyph import GraphTypes
-from graphite.render.datalib import prefetchRemoteData
 from graphite.tags.models import Series, Tag, TagValue, SeriesTag  # noqa # pylint: disable=unused-import
 
 from django.http import HttpResponseServerError, HttpResponseRedirect
@@ -118,16 +117,8 @@ def renderView(request):
       requestContext['data'] = data = cachedData
     else: # Have to actually retrieve the data now
       targets = requestOptions['targets']
-      if settings.REMOTE_PREFETCH_DATA and not requestOptions.get('localOnly'):
-        prefetchRemoteData(requestContext, targets)
 
-      for target in targets:
-        if not target.strip():
-          continue
-        t = time()
-        seriesList = evaluateTarget(requestContext, target)
-        log.rendering("Retrieval of %s took %.6f" % (target, time() - t))
-        data.extend(seriesList)
+      data.extend(evaluateTarget(requestContext, targets))
 
       if useCache:
         cache.add(dataKey, data, cacheTimeout)

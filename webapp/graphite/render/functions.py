@@ -1018,7 +1018,7 @@ def movingWindow(requestContext, seriesList, windowSize, func='average', xFilesF
   # data from earlier is needed to calculate the early results
   newContext = requestContext.copy()
   newContext['startTime'] = requestContext['startTime'] -  timedelta(seconds=previewSeconds)
-  previewList = evaluateTokens(newContext, requestContext['args'][0])
+  previewList = evaluateTarget(newContext, requestContext['args'][0])
   result = []
 
   tagName = 'moving' + func.capitalize()
@@ -1089,7 +1089,7 @@ def exponentialMovingAverage(requestContext, seriesList, windowSize):
   # data from earlier is needed to calculate the early results
   newContext = requestContext.copy()
   newContext['startTime'] = requestContext['startTime'] -  timedelta(seconds=previewSeconds)
-  previewList = evaluateTokens(newContext, requestContext['args'][0])
+  previewList = evaluateTarget(newContext, requestContext['args'][0])
   result = []
 
   for series in previewList:
@@ -2948,7 +2948,7 @@ def holtWintersForecast(requestContext, seriesList, bootstrapInterval='7d'):
   # ignore original data and pull new, including our preview
   newContext = requestContext.copy()
   newContext['startTime'] = requestContext['startTime'] -  timedelta(seconds=previewSeconds)
-  previewList = evaluateTokens(newContext, requestContext['args'][0])
+  previewList = evaluateTarget(newContext, requestContext['args'][0])
   results = []
   for series in previewList:
     analysis = holtWintersAnalysis(series)
@@ -2973,7 +2973,7 @@ def holtWintersConfidenceBands(requestContext, seriesList, delta=3, bootstrapInt
   # ignore original data and pull new, including our preview
   newContext = requestContext.copy()
   newContext['startTime'] = requestContext['startTime'] -  timedelta(seconds=previewSeconds)
-  previewList = evaluateTokens(newContext, requestContext['args'][0])
+  previewList = evaluateTarget(newContext, requestContext['args'][0])
   results = []
   for series in previewList:
     analysis = holtWintersAnalysis(series)
@@ -3103,7 +3103,7 @@ def linearRegression(requestContext, seriesList, startSourceAt=None, endSourceAt
   if startSourceAt is not None: sourceContext['startTime'] = parseATTime(startSourceAt)
   if endSourceAt is not None: sourceContext['endTime'] = parseATTime(endSourceAt)
 
-  sourceList = evaluateTokens(sourceContext, requestContext['args'][0])
+  sourceList = evaluateTarget(sourceContext, requestContext['args'][0])
 
   for source,series in zip(sourceList, seriesList):
     series.tags['linearRegressions'] = '%s, %s' % (
@@ -3231,16 +3231,14 @@ def timeStack(requestContext, seriesList, timeShiftUnit, timeShiftStart, timeShi
     innerDelta = delta * shft
     myContext['startTime'] = requestContext['startTime'] + innerDelta
     myContext['endTime'] = requestContext['endTime'] + innerDelta
-    shiftedSeriesList = evaluateTokens(myContext, requestContext['args'][0])
-    if isinstance(shiftedSeriesList, list):
-      for shiftedSeries in shiftedSeriesList:
-        shiftedSeries.tags['timeShiftUnit'] = timeShiftUnit
-        shiftedSeries.tags['timeShift'] = shft
-        shiftedSeries.name = 'timeShift(%s, %s, %s)' % (shiftedSeries.name, timeShiftUnit,shft)
-        shiftedSeries.pathExpression = shiftedSeries.name
-        shiftedSeries.start = series.start
-        shiftedSeries.end = series.end
-        results.append(shiftedSeries)
+    for shiftedSeries in evaluateTarget(myContext, requestContext['args'][0]):
+      shiftedSeries.tags['timeShiftUnit'] = timeShiftUnit
+      shiftedSeries.tags['timeShift'] = shft
+      shiftedSeries.name = 'timeShift(%s, %s, %s)' % (shiftedSeries.name, timeShiftUnit,shft)
+      shiftedSeries.pathExpression = shiftedSeries.name
+      shiftedSeries.start = series.start
+      shiftedSeries.end = series.end
+      results.append(shiftedSeries)
 
   return results
 
@@ -3308,17 +3306,15 @@ def timeShift(requestContext, seriesList, timeShift, resetEnd=True, alignDST=Fal
     return []
   series = seriesList[0]
 
-  shiftedSeriesList = evaluateTokens(myContext, requestContext['args'][0])
-  if isinstance(shiftedSeriesList, list):
-    for shiftedSeries in shiftedSeriesList:
-      shiftedSeries.tags['timeShift'] = timeShift
-      shiftedSeries.name = 'timeShift(%s, "%s")' % (shiftedSeries.name, timeShift)
-      if resetEnd:
-        shiftedSeries.end = series.end
-      else:
-        shiftedSeries.end = shiftedSeries.end - shiftedSeries.start + series.start
-      shiftedSeries.start = series.start
-      results.append(shiftedSeries)
+  for shiftedSeries in evaluateTarget(myContext, requestContext['args'][0]):
+    shiftedSeries.tags['timeShift'] = timeShift
+    shiftedSeries.name = 'timeShift(%s, "%s")' % (shiftedSeries.name, timeShift)
+    if resetEnd:
+      shiftedSeries.end = series.end
+    else:
+      shiftedSeries.end = shiftedSeries.end - shiftedSeries.start + series.start
+    shiftedSeries.start = series.start
+    results.append(shiftedSeries)
 
   return results
 
@@ -3899,7 +3895,7 @@ def smartSummarize(requestContext, seriesList, intervalString, func='sum', align
         requestContext['startTime'] = datetime(s.year, s.month, s.day, s.hour, s.minute, s.second, tzinfo = s.tzinfo)
 
       # Ignore the originally fetched data and pull new using the modified requestContext
-      seriesList = evaluateTokens(requestContext, requestContext['args'][0])
+      seriesList = evaluateTarget(requestContext, requestContext['args'][0])
 
   results = []
   delta = parseTimeOffset(intervalString)
@@ -4054,7 +4050,7 @@ def hitcount(requestContext, seriesList, intervalString, alignToInterval = False
 
     # Ignore the originally fetched data and pull new using
     # the modified requestContext.
-    seriesList = evaluateTokens(requestContext, requestContext['args'][0])
+    seriesList = evaluateTarget(requestContext, requestContext['args'][0])
     for series in seriesList:
       intervalCount = int((series.end - series.start) // interval)
       series.end = series.start + (intervalCount * interval) + interval
@@ -4282,7 +4278,7 @@ def seriesByTag(requestContext, *tagExpressions):
 
   log.debug('taggedSeriesQuery %s' % taggedSeriesQuery)
 
-  seriesList = evaluateTarget(requestContext, taggedSeriesQuery)
+  seriesList = evaluateTarget(requestContext, taggedSeriesQuery, noPrefetch=True)
 
   log.debug('seriesByTag found [%s]' % ', '.join([series.pathExpression for series in seriesList]))
 
@@ -4612,4 +4608,4 @@ SeriesFunctions = {
 
 # Avoid import circularity
 if not environ.get('READTHEDOCS'):
-  from graphite.render.evaluator import evaluateTarget, evaluateTokens
+  from graphite.render.evaluator import evaluateTarget

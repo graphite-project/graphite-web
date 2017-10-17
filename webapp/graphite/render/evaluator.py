@@ -1,18 +1,33 @@
 import re
+
+from django.conf import settings
 from graphite.render.grammar import grammar
-from graphite.render.datalib import fetchData, TimeSeries
+from graphite.render.datalib import fetchData, TimeSeries, prefetchRemoteData
 
+def evaluateTarget(requestContext, targets, noPrefetch=False):
+  if not isinstance(targets, list):
+    targets = [targets]
 
-def evaluateTarget(requestContext, target):
-  tokens = grammar.parseString(target)
-  result = evaluateTokens(requestContext, tokens)
+  if settings.REMOTE_PREFETCH_DATA and not requestContext.get('localOnly') and not noPrefetch:
+    prefetchRemoteData(requestContext, targets)
 
-  if type(result) is TimeSeries:
-    return [result] #we have to return a list of TimeSeries objects
+  seriesList = []
 
-  else:
-    return result
+  for target in targets:
+    if isinstance(target, basestring):
+      if not target.strip():
+        continue
+      target = grammar.parseString(target)
 
+    result = evaluateTokens(requestContext, target)
+
+    # we have to return a list of TimeSeries objects
+    if isinstance(result, TimeSeries):
+      seriesList.append(result)
+    elif result:
+      seriesList.extend(result)
+
+  return seriesList
 
 def evaluateTokens(requestContext, tokens, replacements=None, pipedArg=None):
   if tokens.template:
