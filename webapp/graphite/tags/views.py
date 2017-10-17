@@ -111,6 +111,9 @@ def autoComplete(request):
       status=400
     )
 
+  tagPrefix = queryParams.get('tagPrefix')
+  valuePrefix = queryParams.get('valuePrefix')
+
   result = {}
 
   if STORE.tagdb:
@@ -120,7 +123,11 @@ def autoComplete(request):
       for tag in tags:
         if tag in searchedTags:
           continue
+        if tagPrefix and not tag.startswith(tagPrefix):
+          continue
         value = tags[tag]
+        if valuePrefix and not value.startswith(valuePrefix):
+          continue
         if tag not in result:
           result[tag] = [value]
           continue
