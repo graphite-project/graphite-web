@@ -159,7 +159,7 @@ def merge_with_cache(cached_datapoints, start, step, values, func=None, default_
                 consolidated_dict[interval].append(value)
             else:
                 consolidated_dict[interval] = [value]
-        consolidated = [(interval, consolidate(func, consolidated_dict[interval])) for interval in consolidated_dict]
+        consolidated = [(i, consolidate(func, consolidated_dict[i])) for i in consolidated_dict]
     # otherwise just use the points
     else:
         consolidated = cached_datapoints
