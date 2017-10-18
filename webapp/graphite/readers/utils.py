@@ -143,7 +143,7 @@ def merge_with_cache(cached_datapoints, start, step, values, func=None, default_
         raise Exception("Invalid consolidation function: '%s'" % func)
 
     # if we have a default_retention, start by taking only the last data point for each interval to match what whisper will do
-    if default_retention is not None:
+    if default_retention > 1:
         consolidated_dict = {}
         for (timestamp, value) in cached_datapoints:
             interval = timestamp - (timestamp % default_retention)
