@@ -142,39 +142,25 @@ def merge_with_cache(cached_datapoints, start, step, values, func=None, default_
             return usable[-1]
         raise Exception("Invalid consolidation function: '%s'" % func)
 
-    if func:
+    # if we have a default_retention, start by taking only the last data point for each interval to match what whisper will do
+    if default_retention is not None:
         consolidated_dict = {}
-        if default_retention is not None:
-            # Similar to what happens in whisper update_many() , verify that the dencity in cached_datapoints
-            # does not exceed minimum retention step.
-            aligned_cached_dp = [(timestamp - (timestamp % default_retention), value)
-                       for (timestamp, value) in cached_datapoints]
-            lenaligned_cached_dp = len(aligned_cached_dp)
-            cached_datapoints = []
-            for i in xrange(0,lenaligned_cached_dp):
-                # Take last point in run of points with duplicate intervals
-                if i + 1 < lenaligned_cached_dp and aligned_cached_dp[i][0] == aligned_cached_dp[i + 1][0]:
-                  continue
-                # when default_retention equals to step, we don't need iterate through cached_datapoints 2nd time
-                if default_retention == step:
-                    (interval, value) = aligned_cached_dp[i]
-                    if interval in consolidated_dict:
-                        consolidated_dict[interval].append(value)
-                    else:
-                        consolidated_dict[interval] = [value]
-                # otherwise we will out cached_datapoints from aligned_cached_dp
-                else:
-                    cached_datapoints.append(aligned_cached_dp[i])
-        if default_retention != step:
-            for (timestamp, value) in cached_datapoints:
-                interval = timestamp - (timestamp % step)
-                if interval in consolidated_dict:
-                    consolidated_dict[interval].append(value)
-                else:
-                    consolidated_dict[interval] = [value]
-        for interval in consolidated_dict:
-            value = consolidate(func, consolidated_dict[interval])
-            consolidated.append((interval, value))
+        for (timestamp, value) in cached_datapoints:
+            interval = timestamp - (timestamp % default_retention)
+            consolidated_dict[interval] = value
+        cached_datapoints = consolidated_dict.items()
+
+    # if we have a consolidation function and the step is not the default interval, consolidate to the requested step
+    if func and step != default_retention:
+        consolidated_dict = {}
+        for (timestamp, value) in cached_datapoints:
+            interval = timestamp - (timestamp % step)
+            if interval in consolidated_dict:
+                consolidated_dict[interval].append(value)
+            else:
+                consolidated_dict[interval] = [value]
+        consolidated = [(interval, consolidate(func, consolidated_dict[interval])) for interval in consolidated_dict]
+    # otherwise just use the points
     else:
         consolidated = cached_datapoints
 
