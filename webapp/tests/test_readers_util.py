@@ -84,6 +84,7 @@ class MergeWithCacheTests(TestCase):
             expected_values.append(60)
 
         self.assertEqual(expected_values, values)
+
     def test_merge_with_cache_with_different_step_sum_no_default_retention(self):
         # Data values from the Reader:
         start = 1465844460  # (Mon Jun 13 19:01:00 UTC 2016)
