@@ -184,7 +184,7 @@ mon            30 Days (month)
 y              365 Days (year)
 ============== ===============
 
-ABSOLUTE_TIME is in the format HH:MM_YYMMDD, YYYYMMDD, MM/DD/YY, or any other
+ABSOLUTE_TIME is in the format HH:MM_YYYYMMDD, YYYYMMDD, MM/DD/YY, or any other
 ``at(1)``-compatible time format.
 
 ============= =======
