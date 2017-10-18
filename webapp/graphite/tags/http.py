@@ -7,7 +7,8 @@ from django.conf import settings
 from graphite.util import logtime
 from graphite.http_pool import http
 
-from graphite.tags.utils import BaseTagDB
+from graphite.tags.base import BaseTagDB
+
 
 class HttpTagDB(BaseTagDB):
   """

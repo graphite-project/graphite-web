@@ -5,7 +5,8 @@ import re
 from django.conf import settings
 from graphite.util import logtime
 
-from graphite.tags.utils import BaseTagDB, TaggedSeries
+from graphite.tags.base import BaseTagDB, TaggedSeries
+
 
 class RedisTagDB(BaseTagDB):
   """
