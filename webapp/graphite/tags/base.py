@@ -5,7 +5,6 @@ import re
 from django.conf import settings
 from django.core.cache import cache
 
-from graphite.logger import log
 from graphite.tags.utils import TaggedSeries
 from graphite.util import logtime
 
