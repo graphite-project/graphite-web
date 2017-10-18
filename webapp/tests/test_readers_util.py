@@ -75,7 +75,7 @@ class MergeWithCacheTests(TestCase):
             step=step,
             values=values,
             func='sum',
-            default_retention=1
+            raw_step=1
         )
 
         # Generate the expected values
@@ -85,7 +85,7 @@ class MergeWithCacheTests(TestCase):
 
         self.assertEqual(expected_values, values)
 
-    def test_merge_with_cache_with_different_step_sum_no_default_retention(self):
+    def test_merge_with_cache_with_different_step_sum_no_raw_step(self):
         # Data values from the Reader:
         start = 1465844460  # (Mon Jun 13 19:01:00 UTC 2016)
         window_size = 7200  # (2 hour)
@@ -116,7 +116,7 @@ class MergeWithCacheTests(TestCase):
         for i in range(0, window_size/2, step):
             expected_values.append(60)
 
-    def test_merge_with_cache_with_different_step_sum_same_default_retention(self):
+    def test_merge_with_cache_with_different_step_sum_same_raw_step(self):
         # Data values from the Reader:
         start = 1465844460  # (Mon Jun 13 19:01:00 UTC 2016)
         window_size = 7200  # (2 hour)
@@ -147,7 +147,7 @@ class MergeWithCacheTests(TestCase):
         for i in range(0, window_size/2, step):
             expected_values.append(60)
 
-    def test_merge_with_cache_with_different_step_sum_and_default_retention(self):
+    def test_merge_with_cache_with_different_step_sum_and_raw_step(self):
         # Data values from the Reader:
         start = 1465844460  # (Mon Jun 13 19:01:00 UTC 2016)
         window_size = 7200  # (2 hour)
@@ -171,7 +171,7 @@ class MergeWithCacheTests(TestCase):
             step=step,
             values=values,
             func='sum',
-            default_retention=30
+            raw_step=30
         )
 
         # Generate the expected values

@@ -129,18 +129,18 @@ class WhisperReadersTests(TestCase):
           self.assertEqual(int(interval.start),ts-60)
           self.assertEqual(int(interval.end), ts)
 
-    # Confirm get_default_retention works
-    def test_WhisperReader_get_default_retention(self):
+    # Confirm get_raw_step works
+    def test_WhisperReader_get_raw_step(self):
         self.create_whisper_hosts()
         self.addCleanup(self.wipe_whisper_hosts)
 
         reader = WhisperReader(self.worker1, 'hosts.worker1.cpu')
-        default_retention = reader.get_default_retention()
-        self.assertEqual(int(default_retention),1)
+        raw_step = reader.get_raw_step()
+        self.assertEqual(int(raw_step),1)
 
         # read it again to validate cache works
-        default_retention = reader.get_default_retention()
-        self.assertEqual(int(default_retention),1)
+        raw_step = reader.get_raw_step()
+        self.assertEqual(int(raw_step),1)
 
     # Confirm fetch works.
     def test_WhisperReader_fetch(self):
