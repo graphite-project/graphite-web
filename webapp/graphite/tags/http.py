@@ -4,7 +4,6 @@ from urllib import quote
 import json
 
 from django.conf import settings
-from graphite.util import logtime
 from graphite.http_pool import http
 
 from graphite.tags.base import BaseTagDB
@@ -40,8 +39,7 @@ class HttpTagDB(BaseTagDB):
 
     return json.loads(result.data.decode('utf-8'))
 
-  @logtime()
-  def find_series(self, tags):
+  def _find_series(self, tags):
     return self.request('POST', '/tags/findSeries?' + '&'.join([('expr=%s' % quote(tag)) for tag in tags]))
 
   def get_series(self, path):

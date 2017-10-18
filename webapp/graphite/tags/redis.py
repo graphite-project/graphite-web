@@ -3,7 +3,6 @@ from __future__ import absolute_import
 import re
 
 from django.conf import settings
-from graphite.util import logtime
 
 from graphite.tags.base import BaseTagDB, TaggedSeries
 
@@ -29,8 +28,7 @@ class RedisTagDB(BaseTagDB):
 
     self.r = Redis(host=settings.TAGDB_REDIS_HOST,port=settings.TAGDB_REDIS_PORT,db=settings.TAGDB_REDIS_DB)
 
-  @logtime()
-  def find_series(self, tags):
+  def _find_series(self, tags):
     selector = None
     selector_cnt = None
     filters = []

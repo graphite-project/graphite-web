@@ -220,10 +220,11 @@ def write_index(whisper_dir=None, ceres_dir=None, index=None):
   return None
 
 
-def logtime(custom_msg=False):
+def logtime(custom_msg=False, custom_name=False):
   def wrap(f):
     def wrapped_f(*args, **kwargs):
       msg = 'completed in'
+      name = f.__module__ + '.' + f.__name__
 
       t = time.time()
       if custom_msg:
@@ -231,18 +232,29 @@ def logtime(custom_msg=False):
           wrapped_f.msg = msg
 
         kwargs['msg_setter'] = set_msg
+      if custom_name:
+        def set_name(name):
+          wrapped_f.name = name
 
-      res = f(*args, **kwargs)
-      msg = getattr(wrapped_f, 'msg', msg)
+        kwargs['name_setter'] = set_name
 
-      log.info(
-        '{module}.{name} :: {msg} {sec:.6}s'.format(
-          module=f.__module__,
-          name=f.__name__,
-          msg=msg,
-          sec=time.time() - t,
+      try:
+        res = f(*args, **kwargs)
+      except:
+        msg = 'failed in'
+        raise
+      finally:
+        msg = getattr(wrapped_f, 'msg', msg)
+        name = getattr(wrapped_f, 'name', name)
+
+        log.info(
+          '{name} :: {msg} {sec:.6}s'.format(
+            name=name,
+            msg=msg,
+            sec=time.time() - t,
+          )
         )
-      )
+
       return res
     return wrapped_f
   return wrap

@@ -88,7 +88,7 @@ class LocalDatabaseTagDB(BaseTagDB):
 
     return sql, params, filters
 
-  def find_series(self, tags):
+  def _find_series(self, tags):
     sql, params, filters = self.find_series_query(tags)
 
     def matches_filters(path):
