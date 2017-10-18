@@ -121,7 +121,7 @@ class MultiReader(BaseReader):
         return (time_info, values)
 
 
-def merge_with_cache(cached_datapoints, start, step, values, func=None):
+def merge_with_cache(cached_datapoints, start, step, values, func=None, default_retention=None):
     """Merge values with datapoints from a buffer/cache."""
     consolidated = []
 
@@ -144,16 +144,37 @@ def merge_with_cache(cached_datapoints, start, step, values, func=None):
 
     if func:
         consolidated_dict = {}
-        for (timestamp, value) in cached_datapoints:
-            interval = timestamp - (timestamp % step)
-            if interval in consolidated_dict:
-                consolidated_dict[interval].append(value)
-            else:
-                consolidated_dict[interval] = [value]
+        if default_retention is not None:
+            # Similar to what happens in whisper update_many() , verify that the dencity in cached_datapoints
+            # does not exceed minimum retention step.
+            aligned_cached_dp = [(timestamp - (timestamp % default_retention), value)
+                       for (timestamp, value) in cached_datapoints]
+            lenaligned_cached_dp = len(aligned_cached_dp)
+            cached_datapoints = []
+            for i in xrange(0,lenaligned_cached_dp):
+                # Take last point in run of points with duplicate intervals
+                if i + 1 < lenaligned_cached_dp and aligned_cached_dp[i][0] == aligned_cached_dp[i + 1][0]:
+                  continue
+                # when default_retention equals to step, we don't need iterate through cached_datapoints 2nd time
+                if default_retention == step:
+                    (interval, value) = aligned_cached_dp[i]
+                    if interval in consolidated_dict:
+                        consolidated_dict[interval].append(value)
+                    else:
+                        consolidated_dict[interval] = [value]
+                # otherwise we will out cached_datapoints from aligned_cached_dp
+                else:
+                    cached_datapoints.append(aligned_cached_dp[i])
+        if default_retention != step:
+            for (timestamp, value) in cached_datapoints:
+                interval = timestamp - (timestamp % step)
+                if interval in consolidated_dict:
+                    consolidated_dict[interval].append(value)
+                else:
+                    consolidated_dict[interval] = [value]
         for interval in consolidated_dict:
             value = consolidate(func, consolidated_dict[interval])
             consolidated.append((interval, value))
-
     else:
         consolidated = cached_datapoints
 
@@ -182,7 +203,7 @@ def CarbonLink():
     return CarbonLink()
 
 
-def merge_with_carbonlink(metric, start, step, values, aggregation_method=None):
+def merge_with_carbonlink(metric, start, step, values, aggregation_method=None, default_retention=None):
     """Get points from carbonlink and merge them with existing values."""
     cached_datapoints = []
     try:
@@ -196,4 +217,4 @@ def merge_with_carbonlink(metric, start, step, values, aggregation_method=None):
 
     return merge_with_cache(
         cached_datapoints, start, step, values,
-        func=aggregation_method)
+        func=aggregation_method, default_retention=default_retention)
