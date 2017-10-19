@@ -116,6 +116,8 @@ class MergeWithCacheTests(TestCase):
         for i in range(0, window_size/2, step):
             expected_values.append(60)
 
+        self.assertEqual(expected_values, values)
+
     def test_merge_with_cache_with_different_step_sum_same_raw_step(self):
         # Data values from the Reader:
         start = 1465844460  # (Mon Jun 13 19:01:00 UTC 2016)
@@ -146,6 +148,8 @@ class MergeWithCacheTests(TestCase):
         expected_values = range(0, window_size/2, step)
         for i in range(0, window_size/2, step):
             expected_values.append(60)
+
+        self.assertEqual(expected_values, values)
 
     def test_merge_with_cache_with_different_step_sum_and_raw_step(self):
         # Data values from the Reader:
@@ -178,6 +182,8 @@ class MergeWithCacheTests(TestCase):
         expected_values = range(0, window_size/2, step)
         for i in range(0, window_size/2, step):
             expected_values.append(2)
+
+        self.assertEqual(expected_values, values)
 
     def test_merge_with_cache_with_different_step_average(self):
         # Data values from the Reader:
