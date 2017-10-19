@@ -1,5 +1,3 @@
-import bisect
-
 from graphite.compat import HttpResponse
 from graphite.util import json
 from graphite.storage import STORE
@@ -114,35 +112,7 @@ def autoComplete(request):
   tagPrefix = queryParams.get('tagPrefix')
   valuePrefix = queryParams.get('valuePrefix')
 
-  result = {}
-
-  if STORE.tagdb:
-    searchedTags = set([STORE.tagdb.parse_tagspec(expr)[0] for expr in exprs])
-    for path in STORE.tagdb.find_series(exprs):
-      tags = STORE.tagdb.parse(path).tags
-      for tag in tags:
-        if tag in searchedTags:
-          continue
-        if tagPrefix and not tag.startswith(tagPrefix):
-          continue
-        value = tags[tag]
-        if valuePrefix and not value.startswith(valuePrefix):
-          continue
-        if tag not in result:
-          result[tag] = [value]
-          continue
-        if value in result[tag]:
-          continue
-        if value >= result[tag][-1]:
-          if len(result[tag]) >= 100:
-            continue
-          result[tag].append(value)
-        else:
-          bisect.insort_left(result[tag], value)
-        if len(result[tag]) > 100:
-          del result[tag][-1]
-
-    result = {tag: result[tag] for tag in sorted(result.keys())[:100]}
+  result = STORE.tagdb.auto_complete(exprs, tagPrefix, valuePrefix)
 
   return HttpResponse(
     json.dumps(result,

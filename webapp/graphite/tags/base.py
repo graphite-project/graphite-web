@@ -1,5 +1,6 @@
 """Base tag database"""
 import abc
+import bisect
 import re
 
 from django.conf import settings
@@ -143,6 +144,40 @@ class BaseTagDB(object):
     Remove series from database.  Accepts a series string and returns True
     """
     pass
+
+  def auto_complete(self, exprs, tagPrefix=None, valuePrefix=None):
+    """
+    Return auto-complete suggestions for tags and values based on the matches for the specified expressions, optionally filtered by tag and/or value prefix
+    """
+    result = {}
+
+    searchedTags = set([self.parse_tagspec(expr)[0] for expr in exprs])
+
+    for path in self.find_series(exprs):
+      tags = self.parse(path).tags
+      for tag in tags:
+        if tag in searchedTags:
+          continue
+        if tagPrefix and not tag.startswith(tagPrefix):
+          continue
+        value = tags[tag]
+        if valuePrefix and not value.startswith(valuePrefix):
+          continue
+        if tag not in result:
+          result[tag] = [value]
+          continue
+        if value in result[tag]:
+          continue
+        if value >= result[tag][-1]:
+          if len(result[tag]) >= 100:
+            continue
+          result[tag].append(value)
+        else:
+          bisect.insort_left(result[tag], value)
+        if len(result[tag]) > 100:
+          del result[tag][-1]
+
+    return {tag: result[tag] for tag in sorted(result.keys())[:100]}
 
   @staticmethod
   def parse(path):
