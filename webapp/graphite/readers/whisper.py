@@ -43,6 +43,9 @@ class WhisperReader(BaseReader):
             self.meta_info = whisper.info(self.fs_path)
         return self.meta_info
 
+    def get_raw_step(self):
+        return self.info()['archives'][0]['secondsPerPoint']
+
     def get_intervals(self):
         start = time.time() - self.info()['maxRetention']
         end = max(stat(self.fs_path).st_mtime, start)
@@ -65,12 +68,10 @@ class WhisperReader(BaseReader):
 
         meta_info = self.info()
         aggregation_method = meta_info['aggregationMethod']
-        lowest_step = min([i['secondsPerPoint']
-                           for i in meta_info['archives']])
 
         # Merge in data from carbon's cache
         values = merge_with_carbonlink(
-            self.real_metric_path, start, step, values, aggregation_method)
+            self.real_metric_path, start, step, values, aggregation_method, self.get_raw_step())
 
         return time_info, values
 

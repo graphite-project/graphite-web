@@ -121,7 +121,7 @@ class MultiReader(BaseReader):
         return (time_info, values)
 
 
-def merge_with_cache(cached_datapoints, start, step, values, func=None):
+def merge_with_cache(cached_datapoints, start, step, values, func=None, raw_step=None):
     """Merge values with datapoints from a buffer/cache."""
     consolidated = []
 
@@ -142,7 +142,16 @@ def merge_with_cache(cached_datapoints, start, step, values, func=None):
             return usable[-1]
         raise Exception("Invalid consolidation function: '%s'" % func)
 
-    if func:
+    # if we have a raw_step, start by taking only the last data point for each interval to match what whisper will do
+    if raw_step > 1:
+        consolidated_dict = {}
+        for (timestamp, value) in cached_datapoints:
+            interval = timestamp - (timestamp % raw_step)
+            consolidated_dict[interval] = value
+        cached_datapoints = consolidated_dict.items()
+
+    # if we have a consolidation function and the step is not the default interval, consolidate to the requested step
+    if func and step != raw_step:
         consolidated_dict = {}
         for (timestamp, value) in cached_datapoints:
             interval = timestamp - (timestamp % step)
@@ -150,10 +159,8 @@ def merge_with_cache(cached_datapoints, start, step, values, func=None):
                 consolidated_dict[interval].append(value)
             else:
                 consolidated_dict[interval] = [value]
-        for interval in consolidated_dict:
-            value = consolidate(func, consolidated_dict[interval])
-            consolidated.append((interval, value))
-
+        consolidated = [(i, consolidate(func, consolidated_dict[i])) for i in consolidated_dict]
+    # otherwise just use the points
     else:
         consolidated = cached_datapoints
 
@@ -182,7 +189,7 @@ def CarbonLink():
     return CarbonLink()
 
 
-def merge_with_carbonlink(metric, start, step, values, aggregation_method=None):
+def merge_with_carbonlink(metric, start, step, values, aggregation_method=None, raw_step=None):
     """Get points from carbonlink and merge them with existing values."""
     cached_datapoints = []
     try:
@@ -196,4 +203,4 @@ def merge_with_carbonlink(metric, start, step, values, aggregation_method=None):
 
     return merge_with_cache(
         cached_datapoints, start, step, values,
-        func=aggregation_method)
+        func=aggregation_method, raw_step=raw_step)

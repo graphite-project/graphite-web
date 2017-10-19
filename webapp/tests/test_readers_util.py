@@ -74,6 +74,40 @@ class MergeWithCacheTests(TestCase):
             start=start,
             step=step,
             values=values,
+            func='sum',
+            raw_step=1
+        )
+
+        # Generate the expected values
+        expected_values = range(0, window_size/2, step)
+        for i in range(0, window_size/2, step):
+            expected_values.append(60)
+
+        self.assertEqual(expected_values, values)
+
+    def test_merge_with_cache_with_different_step_sum_no_raw_step(self):
+        # Data values from the Reader:
+        start = 1465844460  # (Mon Jun 13 19:01:00 UTC 2016)
+        window_size = 7200  # (2 hour)
+        step = 60           # (1 minute)
+
+        # Fill in half the data.  Nones for the rest.
+        values = range(0, window_size/2, step)
+        for i in range(0, window_size/2, step):
+            values.append(None)
+
+        # Generate data that would normally come from Carbon.
+        # Step will be different since that is what we are testing
+        cache_results = []
+        for i in range(start+window_size/2, start+window_size, 1):
+            cache_results.append((i, 1))
+
+        # merge the db results with the cached results
+        values = merge_with_cache(
+            cached_datapoints=cache_results,
+            start=start,
+            step=step,
+            values=values,
             func='sum'
         )
 
@@ -81,6 +115,73 @@ class MergeWithCacheTests(TestCase):
         expected_values = range(0, window_size/2, step)
         for i in range(0, window_size/2, step):
             expected_values.append(60)
+
+        self.assertEqual(expected_values, values)
+
+    def test_merge_with_cache_with_different_step_sum_same_raw_step(self):
+        # Data values from the Reader:
+        start = 1465844460  # (Mon Jun 13 19:01:00 UTC 2016)
+        window_size = 7200  # (2 hour)
+        step = 60           # (1 minute)
+
+        # Fill in half the data.  Nones for the rest.
+        values = range(0, window_size/2, step)
+        for i in range(0, window_size/2, step):
+            values.append(None)
+
+        # Generate data that would normally come from Carbon.
+        # Step will be different since that is what we are testing
+        cache_results = []
+        for i in range(start+window_size/2, start+window_size, 1):
+            cache_results.append((i, 1))
+
+        # merge the db results with the cached results
+        values = merge_with_cache(
+            cached_datapoints=cache_results,
+            start=start,
+            step=step,
+            values=values,
+            func='sum'
+        )
+
+        # Generate the expected values
+        expected_values = range(0, window_size/2, step)
+        for i in range(0, window_size/2, step):
+            expected_values.append(60)
+
+        self.assertEqual(expected_values, values)
+
+    def test_merge_with_cache_with_different_step_sum_and_raw_step(self):
+        # Data values from the Reader:
+        start = 1465844460  # (Mon Jun 13 19:01:00 UTC 2016)
+        window_size = 7200  # (2 hour)
+        step = 60           # (1 minute)
+
+        # Fill in half the data.  Nones for the rest.
+        values = range(0, window_size/2, step)
+        for i in range(0, window_size/2, step):
+            values.append(None)
+
+        # Generate data that would normally come from Carbon.
+        # Step will be different since that is what we are testing
+        cache_results = []
+        for i in range(start+window_size/2, start+window_size, 1):
+            cache_results.append((i, 1))
+
+        # merge the db results with the cached results
+        values = merge_with_cache(
+            cached_datapoints=cache_results,
+            start=start,
+            step=step,
+            values=values,
+            func='sum',
+            raw_step=30
+        )
+
+        # Generate the expected values
+        expected_values = range(0, window_size/2, step)
+        for i in range(0, window_size/2, step):
+            expected_values.append(2)
 
         self.assertEqual(expected_values, values)
 
