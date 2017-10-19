@@ -3,7 +3,8 @@ import re
 from django.db import connection
 from hashlib import sha256
 
-from graphite.tags.utils import BaseTagDB, TaggedSeries
+from graphite.tags.base import BaseTagDB, TaggedSeries
+
 
 class LocalDatabaseTagDB(BaseTagDB):
   def find_series_query(self, tags):
@@ -87,7 +88,7 @@ class LocalDatabaseTagDB(BaseTagDB):
 
     return sql, params, filters
 
-  def find_series(self, tags):
+  def _find_series(self, tags):
     sql, params, filters = self.find_series_query(tags)
 
     def matches_filters(path):

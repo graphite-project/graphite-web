@@ -121,7 +121,11 @@ STORAGE_FINDERS = (
     'graphite.finders.remote.RemoteFinder',
     'graphite.finders.standard.StandardFinder',
 )
+
+# TagDB settings
 TAGDB = 'graphite.tags.localdatabase.LocalDatabaseTagDB'
+
+TAGDB_CACHE_DURATION = 60
 
 TAGDB_REDIS_HOST = 'localhost'
 TAGDB_REDIS_PORT = 6379

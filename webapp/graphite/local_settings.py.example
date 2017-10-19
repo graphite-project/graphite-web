@@ -372,6 +372,24 @@ DEFAULT_XFILES_FACTOR = 0
 # This should usually match the value configured in Carbon.
 #REPLICATION_FACTOR = 1
 
+#####################################
+# TagDB Settings #
+#####################################
+# Tag Database
+#TAGDB = 'graphite.tags.localdatabase.LocalDatabaseTagDB'
+
+# Time to cache seriesByTag results
+#TAGDB_CACHE_DURATION = 60
+
+# Settings for Redis TagDB
+#TAGDB_REDIS_HOST = 'localhost'
+#TAGDB_REDIS_PORT = 6379
+#TAGDB_REDIS_DB = 0
+
+# Settings for HTTP TagDB
+#TAGDB_HTTP_URL = ''
+#TAGDB_HTTP_USER = ''
+#TAGDB_HTTP_PASSWORD = ''
 
 #####################################
 # Additional Django Settings #
