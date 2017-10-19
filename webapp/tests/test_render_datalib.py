@@ -1,11 +1,12 @@
 import pytz
 
 from datetime import datetime
+from mock import mock, patch
 
 from .base import TestCase
 from django.conf import settings
 
-from graphite.render.datalib import TimeSeries, PrefetchedData, nonempty, _merge_results
+from graphite.render.datalib import TimeSeries, PrefetchedData, nonempty, fetchData, _merge_results
 
 class TimeSeriesTest(TestCase):
 
@@ -318,6 +319,39 @@ class DatalibFunctionTest(TestCase):
       ]
       self.assertEqual(results, expectedResults)
 
+    @mock.patch('graphite.logger.log.debug')
+    def test__merge_results_no_results(self, log_debug):
+      pathExpr = 'collectd.test-db.load.value'
+      startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+      endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+      timeInfo = [startTime, endTime, 60]
+      result_queue = [
+                      [pathExpr, None],
+                     ]
+
+      seriesList = {}
+      requestContext = self._build_requestContext(startTime, endTime)
+      results = _merge_results(pathExpr, startTime, endTime, result_queue, seriesList, requestContext)
+      expectedResults = []
+      self.assertEqual(results, expectedResults)
+      log_debug.assert_called_with("render.datalib.fetchData :: no results for %s.fetch(%s, %s)" % (pathExpr, startTime, endTime))
+
+    @mock.patch('graphite.logger.log.exception')
+    def test__merge_results_bad_results(self, log_exception):
+      pathExpr = 'collectd.test-db.load.value'
+      startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+      endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+      timeInfo = [startTime, endTime, 60]
+      result_queue = [
+                      [pathExpr, ['invalid input']],
+                     ]
+
+      seriesList = {}
+      requestContext = self._build_requestContext(startTime, endTime)
+      with self.assertRaises(Exception):
+        _merge_results(pathExpr, startTime, endTime, result_queue, seriesList, requestContext)
+        log_exception.assert_called_with("could not parse timeInfo/values from metric '%s': %s" % (pathExpr, 'need more than 1 value to unpack'))
+
     def test__merge_results_multiple_series(self):
       pathExpr = 'collectd.test-db.load.value'
       startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
@@ -341,6 +375,29 @@ class DatalibFunctionTest(TestCase):
       ]
       self.assertEqual(results, expectedResults)
 
+    def test__merge_results_multiple_series_remote_prefetch_data(self):
+      pathExpr = 'collectd.test-db.load.value'
+      startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+      endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+      timeInfo = [startTime, endTime, 60]
+      result_queue = [
+                      [pathExpr, [timeInfo, [0,1,2,3,4,None,None,None,None,None]]],
+                      [pathExpr, [timeInfo, [None,None,None,None,None,5,6,7,8,9]]],
+                      [pathExpr, [timeInfo, [None,None,None,None,None,None,None,7,8,9]]],
+                      [pathExpr, [timeInfo, [0,1,2,3,4,None,None,7,8,9]]]
+                     ]
+
+      seriesList = {
+                      'collectd.test-db.cpu.value': TimeSeries("collectd.test-db.cpu.value", startTime, endTime, 60, [0,1,2,3,4,5,6,7,8,9])
+                   }
+      requestContext = self._build_requestContext(startTime, endTime)
+      with self.settings(REMOTE_PREFETCH_DATA=True):
+        results = _merge_results(pathExpr, startTime, endTime, result_queue, seriesList, requestContext)
+      expectedResults = [
+          TimeSeries("collectd.test-db.cpu.value", startTime, endTime, 60, [0,1,2,3,4,5,6,7,8,9]),
+          TimeSeries("collectd.test-db.load.value", startTime, endTime, 60, [0,1,2,3,4,5,6,7,8,9]),
+      ]
+      self.assertEqual(results, expectedResults)
 
     def test__merge_results_no_remote_store_merge_results(self):
       pathExpr = 'collectd.test-db.load.value'
@@ -361,3 +418,33 @@ class DatalibFunctionTest(TestCase):
           TimeSeries("collectd.test-db.load.value", startTime, endTime, 60, [None,None,None,3,4,5,6,7,8,9]),
       ]
       self.assertEqual(results, expectedResults)
+
+    def test_fetchData(self):
+      pathExpr = 'collectd.test-db.load.value'
+      startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE))
+      endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+      requestContext = self._build_requestContext(startTime, endTime)
+      requestContext['now'] = endTime
+      requestContext['forwardHeaders'] = None
+
+      results = fetchData(requestContext, pathExpr)
+      expectedResults = []
+      self.assertEqual(results, expectedResults)
+
+    @mock.patch('graphite.logger.log.exception')
+    def test_fetchData_failed_fetch(self, log_exception):
+      pathExpr = 'collectd.test-db.load.value'
+      startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE))
+      endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+      requestContext = self._build_requestContext(startTime, endTime)
+      requestContext['now'] = endTime
+      requestContext['forwardHeaders'] = None
+
+      def mock__fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList):
+        raise Exception('mock failure')
+
+      with self.assertRaises(Exception):
+        with patch('graphite.render.datalib._fetchData', mock__fetchData):
+          results = fetchData(requestContext, pathExpr)
+      #Unsure how to check this because it includes file paths
+      #log_exception.assert_called_with('Failed after 2 retry!')
