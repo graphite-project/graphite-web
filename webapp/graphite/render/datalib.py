@@ -182,6 +182,10 @@ def _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList, ms
 
 def _merge_results(pathExpr, startTime, endTime, result_queue, seriesList, requestContext):
   log.debug("render.datalib.fetchData :: starting to merge")
+
+  # Used as a cache to avoid recounting series None values below.
+  series_best_nones = {}
+
   for path, results in result_queue:
     results = wait_for_result(results)
 
@@ -199,9 +203,6 @@ def _merge_results(pathExpr, startTime, endTime, result_queue, seriesList, reque
 
     # hack to pass expressions through to render functions
     series.pathExpression = pathExpr
-
-    # Used as a cache to avoid recounting series None values below.
-    series_best_nones = {}
 
     if series.name in seriesList:
       # This counts the Nones in each series, and is unfortunately O(n) for each
@@ -223,6 +224,7 @@ def _merge_results(pathExpr, startTime, endTime, result_queue, seriesList, reque
         known_nones = series_best_nones[known.name]
       else:
         known_nones = len([val for val in known if val is None])
+        series_best_nones[known.name] = known_nones
 
       if known_nones > candidate_nones and len(series):
         if settings.REMOTE_STORE_MERGE_RESULTS:
