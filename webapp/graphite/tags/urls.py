@@ -19,7 +19,9 @@ urlpatterns = [
   url('tagSeries', views.tagSeries, name='tagSeries'),
   url('delSeries', views.delSeries, name='delSeries'),
   url('findSeries', views.findSeries, name='findSeries'),
-  url('autoComplete', views.autoComplete, name='autoCompleteTags'),
+  url('autoComplete/tags', views.autoCompleteTags, name='tagAutoCompleteTags'),
+  url('autoComplete/values', views.autoCompleteValues, name='tagAutoCompleteValues'),
+  url('autoComplete', views.autoComplete, name='tagAutoComplete'),
   url('^(.+)$', views.tagDetails, name='tagDetails'),
   url('', views.tagList, name='tagList'),
 ]

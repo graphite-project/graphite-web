@@ -102,17 +102,70 @@ def autoComplete(request):
   elif len(queryParams.getlist('expr[]')) > 0:
     exprs = queryParams.getlist('expr[]')
 
-  if not exprs:
-    return HttpResponse(
-      json.dumps({'error': 'no tag expressions specified'}),
-      content_type='application/json',
-      status=400
-    )
-
   tagPrefix = queryParams.get('tagPrefix')
   valuePrefix = queryParams.get('valuePrefix')
 
   result = STORE.tagdb.auto_complete(exprs, tagPrefix, valuePrefix)
+
+  return HttpResponse(
+    json.dumps(result,
+               indent=(2 if queryParams.get('pretty') else None),
+               sort_keys=bool(queryParams.get('pretty'))),
+    content_type='application/json'
+  )
+
+def autoCompleteTags(request):
+  if request.method not in ['GET', 'POST']:
+    return HttpResponse(status=405)
+
+  queryParams = request.GET.copy()
+  queryParams.update(request.POST)
+
+  exprs = []
+  # Normal format: ?expr=tag1=value1&expr=tag2=value2
+  if len(queryParams.getlist('expr')) > 0:
+    exprs = queryParams.getlist('expr')
+  # Rails/PHP/jQuery common practice format: ?expr[]=tag1=value1&expr[]=tag2=value2
+  elif len(queryParams.getlist('expr[]')) > 0:
+    exprs = queryParams.getlist('expr[]')
+
+  tagPrefix = queryParams.get('tagPrefix')
+
+  result = STORE.tagdb.auto_complete_tags(exprs, tagPrefix)
+
+  return HttpResponse(
+    json.dumps(result,
+               indent=(2 if queryParams.get('pretty') else None),
+               sort_keys=bool(queryParams.get('pretty'))),
+    content_type='application/json'
+  )
+
+def autoCompleteValues(request):
+  if request.method not in ['GET', 'POST']:
+    return HttpResponse(status=405)
+
+  queryParams = request.GET.copy()
+  queryParams.update(request.POST)
+
+  exprs = []
+  # Normal format: ?expr=tag1=value1&expr=tag2=value2
+  if len(queryParams.getlist('expr')) > 0:
+    exprs = queryParams.getlist('expr')
+  # Rails/PHP/jQuery common practice format: ?expr[]=tag1=value1&expr[]=tag2=value2
+  elif len(queryParams.getlist('expr[]')) > 0:
+    exprs = queryParams.getlist('expr[]')
+
+  tag = queryParams.get('tag')
+  if not tag:
+    return HttpResponse(
+      json.dumps({'error': 'no tag specified'}),
+      content_type='application/json',
+      status=400
+    )
+
+  valuePrefix = queryParams.get('valuePrefix')
+
+  result = STORE.tagdb.auto_complete_values(exprs, tag, valuePrefix)
 
   return HttpResponse(
     json.dumps(result,

@@ -151,6 +151,12 @@ class BaseTagDB(object):
     """
     result = {}
 
+    if not exprs:
+      for tagInfo in self.list_tags(tagFilter=tagPrefix)[:100]:
+        result[tagInfo['tag']] = [v['value'] for v in self.list_values(tagInfo['tag'], valueFilter=valuePrefix)[:100]]
+
+      return result
+
     searchedTags = set([self.parse_tagspec(expr)[0] for expr in exprs])
 
     for path in self.find_series(exprs):
@@ -178,6 +184,67 @@ class BaseTagDB(object):
           del result[tag][-1]
 
     return {tag: result[tag] for tag in sorted(result.keys())[:100]}
+
+  def auto_complete_tags(self, exprs, tagPrefix=None):
+    """
+    Return auto-complete suggestions for tags based on the matches for the specified expressions, optionally filtered by tag prefix
+    """
+    if not exprs:
+      return [tagInfo['tag'] for tagInfo in self.list_tags(tagFilter=('^(' + tagPrefix + ')' if tagPrefix else None))[:100]]
+
+    result = []
+
+    searchedTags = set([self.parse_tagspec(expr)[0] for expr in exprs])
+
+    for path in self.find_series(exprs):
+      tags = self.parse(path).tags
+      for tag in tags:
+        if tag in searchedTags:
+          continue
+        if tagPrefix and not tag.startswith(tagPrefix):
+          continue
+        if tag in result:
+          continue
+        if len(result) == 0 or tag >= result[-1]:
+          if len(result) >= 100:
+            continue
+          result.append(tag)
+        else:
+          bisect.insort_left(result, tag)
+        if len(result) > 100:
+          del result[-1]
+
+    return result
+
+  def auto_complete_values(self, exprs, tag, valuePrefix=None):
+    """
+    Return auto-complete suggestions for tags and values based on the matches for the specified expressions, optionally filtered by tag and/or value prefix
+    """
+    if not exprs:
+      return [v['value'] for v in self.list_values(tag, valueFilter=('^(' + valuePrefix + ')' if valuePrefix else None))[:100]]
+
+    result = []
+
+    for path in self.find_series(exprs):
+      tags = self.parse(path).tags
+      if tag not in tags:
+        continue
+      value = tags[tag]
+      if valuePrefix and not value.startswith(valuePrefix):
+        continue
+      if value in result:
+        continue
+      if len(result) == 0 or value >= result[-1]:
+        if len(result) >= 100:
+          continue
+        result.append(value)
+      else:
+        bisect.insort_left(result, value)
+      if len(result) > 100:
+        del result[-1]
+
+    return result
+
 
   @staticmethod
   def parse(path):
