@@ -75,13 +75,15 @@ class RemoteReaderTests(TestCase):
         responseObject = HTTPResponse(status=400)
         http_request.return_value = responseObject
         ret = reader._fetch(url, query_string, query_params, headers)
-        self.assertEqual(ret, [])
+        self.assertIsInstance(ret, Exception)
+        self.assertEqual(ret.message, 'ReadResult:: Error response 400 from http://127.0.0.1/render/?a.b.c.d')
 
         # 200 response with bad result.data
         responseObject = HTTPResponse(status=200)
         http_request.return_value = responseObject
         ret = reader._fetch(url, query_string, query_params, headers)
-        self.assertEqual(ret, [])
+        self.assertIsInstance(ret, TypeError)
+        self.assertEqual(ret.message, 'StringIO() argument 1 must be string or buffer, not None')
 
         # 200 response with good result.data
         responseObject = HTTPResponse(body=StringIO(pickle.dumps(['a'])), status=200)

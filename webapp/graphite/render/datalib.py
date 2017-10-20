@@ -149,6 +149,32 @@ class TimeSeries(list):
     )
 
 
+# Data retrieval API
+@logtime(custom_msg=True)
+def fetchData(requestContext, pathExpr, msg_setter=None):
+  msg_setter("retrieval of \"%s\" took" % str(pathExpr))
+
+  seriesList = {}
+  (startTime, endTime, now) = timebounds(requestContext)
+
+  retries = 1 # start counting at one to make log output and settings more readable
+  while True:
+    try:
+      seriesList = _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList)
+      break
+    except Exception:
+      if retries >= settings.MAX_FETCH_RETRIES:
+        log.exception("Failed after %s retry! Root cause:\n%s" %
+            (settings.MAX_FETCH_RETRIES, format_exc()))
+        raise
+      else:
+        log.exception("Got an exception when fetching data! Try: %i of %i. Root cause:\n%s" %
+                     (retries, settings.MAX_FETCH_RETRIES, format_exc()))
+        retries += 1
+
+  return seriesList
+
+
 @logtime(custom_msg=True)
 def _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList, msg_setter=None):
   msg_setter("retrieval of \"%s\" took" % str(pathExpr))
@@ -276,40 +302,6 @@ def _merge_results(pathExpr, startTime, endTime, result_queue, seriesList, reque
   # Stabilize the order of the results by ordering the resulting series by name.
   # This returns the result ordering to the behavior observed pre PR#1010.
   return [seriesList[k] for k in sorted(seriesList)]
-
-
-# Data retrieval API
-@logtime(custom_msg=True)
-def fetchData(requestContext, pathExpr, msg_setter=None):
-  msg_setter("retrieval of \"%s\" took" % str(pathExpr))
-
-  seriesList = {}
-  (startTime, endTime, now) = timebounds(requestContext)
-
-  retries = 1 # start counting at one to make log output and settings more readable
-  while True:
-    try:
-      seriesList = _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList)
-      break
-    except Exception:
-      if retries >= settings.MAX_FETCH_RETRIES:
-        log.exception("Failed after %s retry! Root cause:\n%s" %
-            (settings.MAX_FETCH_RETRIES, format_exc()))
-        raise
-      else:
-        log.exception("Got an exception when fetching data! Try: %i of %i. Root cause:\n%s" %
-                     (retries, settings.MAX_FETCH_RETRIES, format_exc()))
-        retries += 1
-
-  return seriesList
-
-
-def nonempty(series):
-  for value in series:
-    if value is not None:
-      return True
-
-  return False
 
 
 class PrefetchedData(Future):

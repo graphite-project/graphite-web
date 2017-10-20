@@ -6,7 +6,7 @@ from mock import mock, patch
 from .base import TestCase
 from django.conf import settings
 
-from graphite.render.datalib import TimeSeries, PrefetchedData, nonempty, _fetchData, fetchData, _merge_results, prefetchRemoteData
+from graphite.render.datalib import TimeSeries, PrefetchedData, _fetchData, fetchData, _merge_results, prefetchRemoteData
 from graphite.util import timebounds
 
 class TimeSeriesTest(TestCase):
@@ -286,19 +286,6 @@ class DatalibFunctionTest(TestCase):
             'data': data,
             'tzinfo': tzinfo
         }
-
-    def test_nonempty_true(self):
-      values = range(0,100)
-      series = TimeSeries("collectd.test-db.load.value", 0, len(values), 1, values)
-      self.assertTrue(nonempty(series))
-
-    def test_nonempty_false_empty(self):
-      series = TimeSeries("collectd.test-db.load.value", 0, 1, 1, [])
-      self.assertFalse(nonempty(series))
-
-    def test_nonempty_false_nones(self):
-      series = TimeSeries("collectd.test-db.load.value", 0, 4, 1, [None, None, None, None])
-      self.assertFalse(nonempty(series))
 
     def test__merge_results(self):
       pathExpr = 'collectd.test-db.load.value'

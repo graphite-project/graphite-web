@@ -51,7 +51,7 @@ class Store(object):
             return []
 
         log.debug(
-            'prefetchRemoteData:: Starting fetch_list on all backends')
+            'graphite.storage.Store.fetch_remote :: Starting fetch on all backends')
 
         results = []
         for finder in self.finders:
