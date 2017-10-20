@@ -3,7 +3,7 @@ import time
 import abc
 
 from graphite.util import is_pattern
-from graphite.readers.utils import wait_for_result, FetchInProgress
+from graphite.future import wait_for_result, FetchInProgress
 from graphite.intervals import Interval
 
 

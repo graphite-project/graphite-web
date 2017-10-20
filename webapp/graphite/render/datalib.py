@@ -20,9 +20,8 @@ from traceback import format_exc
 
 from django.conf import settings
 
-from graphite.future import Future
+from graphite.future import Future, wait_for_result
 from graphite.logger import log
-from graphite.readers.utils import wait_for_result
 from graphite.storage import STORE
 from graphite.util import timebounds, logtime
 from graphite.render.utils import extractPathExpressions

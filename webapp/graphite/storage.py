@@ -15,7 +15,7 @@ from graphite.logger import log
 from graphite.node import LeafNode
 from graphite.intervals import Interval, IntervalSet
 from graphite.finders.utils import FindQuery
-from graphite.readers.utils import MultiReader
+from graphite.readers import MultiReader
 from graphite.worker_pool.pool import get_pool, pool_apply
 from graphite.tags.utils import get_tagdb
 
