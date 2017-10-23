@@ -57,6 +57,8 @@ def epoch(dt):
   """
   Returns the epoch timestamp of a timezone-aware datetime object.
   """
+  if not dt.tzinfo:
+    return calendar.timegm(make_aware(dt, pytz.timezone(settings.TIME_ZONE)).astimezone(pytz.utc).timetuple())
   return calendar.timegm(dt.astimezone(pytz.utc).timetuple())
 
 

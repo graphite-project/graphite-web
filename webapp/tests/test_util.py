@@ -3,6 +3,8 @@ import shutil
 import socket
 import time
 import whisper
+import pytz
+from datetime import datetime
 
 from .base import TestCase
 
@@ -12,6 +14,26 @@ from graphite.wsgi import application  # NOQA makes sure we have a working WSGI 
 
 
 class UtilTest(TestCase):
+
+    def test_epoch_tz_aware(self):
+        dt = pytz.utc.localize(datetime(1970, 1, 1, 0, 10, 0, 0))
+        self.assertEqual(util.epoch(dt), 600)
+
+        dt = pytz.timezone('Europe/Berlin').localize(datetime(1970, 1, 1, 1, 10, 0, 0))
+        self.assertEqual(util.epoch(dt), 600)
+
+    def test_epoch_naive(self):
+        with self.settings(TIME_ZONE='UTC'):
+            dt = datetime(1970, 1, 1, 0, 10, 0, 0)
+            self.assertEqual(util.epoch(dt), 600)
+
+        with self.settings(TIME_ZONE='Europe/Berlin'):
+            dt = datetime(1970, 1, 1, 1, 10, 0, 0)
+            self.assertEqual(util.epoch(dt), 600)
+
+    def test_epoch_to_dt(self):
+        dt = pytz.utc.localize(datetime(1970, 1, 1, 0, 10, 0, 0))
+        self.assertEqual(util.epoch_to_dt(600), dt)
 
     def test_is_local_interface_ipv4(self):
         addresses = ['127.0.0.1', '127.0.0.1:8080', '8.8.8.8']

@@ -4042,11 +4042,11 @@ def hitcount(requestContext, seriesList, intervalString, alignToInterval = False
     requestContext = requestContext.copy()
     s = requestContext['startTime']
     if interval >= DAY:
-      requestContext['startTime'] = datetime(s.year, s.month, s.day)
+      requestContext['startTime'] = datetime(s.year, s.month, s.day, tzinfo = s.tzinfo)
     elif interval >= HOUR:
-      requestContext['startTime'] = datetime(s.year, s.month, s.day, s.hour)
+      requestContext['startTime'] = datetime(s.year, s.month, s.day, s.hour, tzinfo = s.tzinfo)
     elif interval >= MINUTE:
-      requestContext['startTime'] = datetime(s.year, s.month, s.day, s.hour, s.minute)
+      requestContext['startTime'] = datetime(s.year, s.month, s.day, s.hour, s.minute, tzinfo = s.tzinfo)
 
     # Ignore the originally fetched data and pull new using
     # the modified requestContext.
