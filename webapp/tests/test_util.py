@@ -5,6 +5,7 @@ import time
 import whisper
 import pytz
 from datetime import datetime
+from mock import patch
 
 from .base import TestCase
 
@@ -22,14 +23,21 @@ class UtilTest(TestCase):
         dt = pytz.timezone('Europe/Berlin').localize(datetime(1970, 1, 1, 1, 10, 0, 0))
         self.assertEqual(util.epoch(dt), 600)
 
-    def test_epoch_naive(self):
+    @patch('graphite.logger.log.warning')
+    def test_epoch_naive(self, mock_log):
         with self.settings(TIME_ZONE='UTC'):
             dt = datetime(1970, 1, 1, 0, 10, 0, 0)
             self.assertEqual(util.epoch(dt), 600)
+            self.assertEqual(mock_log.call_count, 1)
+            self.assertEqual(len(mock_log.call_args[0]), 1)
+            self.assertRegexpMatches(mock_log.call_args[0][0], 'epoch\(\) called with non-timezone-aware datetime in test_epoch_naive at .+/webapp/tests/test_util\.py:[0-9]+')
 
         with self.settings(TIME_ZONE='Europe/Berlin'):
             dt = datetime(1970, 1, 1, 1, 10, 0, 0)
             self.assertEqual(util.epoch(dt), 600)
+            self.assertEqual(mock_log.call_count, 2)
+            self.assertEqual(len(mock_log.call_args[0]), 1)
+            self.assertRegexpMatches(mock_log.call_args[0][0], 'epoch\(\) called with non-timezone-aware datetime in test_epoch_naive at .+/webapp/tests/test_util\.py:[0-9]+')
 
     def test_epoch_to_dt(self):
         dt = pytz.utc.localize(datetime(1970, 1, 1, 0, 10, 0, 0))
