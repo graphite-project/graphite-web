@@ -8,6 +8,30 @@ __init_lock = Lock()
 __pools = {}
 
 
+class Job(object):
+  __slots__ = ('func', 'args', 'kwargs')
+
+  def __init__(self, func, *args, **kwargs):
+    self.func = func
+    self.args = args
+    self.kwargs = kwargs
+
+  def run(self):
+    try:
+      return Result(self, result=self.func(*self.args, **self.kwargs))
+    except Exception as err:
+      return Result(self, exception=err)
+
+
+class Result(object):
+  __slots__ = ('job', 'result', 'exception')
+
+  def __init__(self, job, result=None, exception=None):
+    self.job = job
+    self.result = result
+    self.exception = exception
+
+
 def get_pool(name="default", thread_count=settings.POOL_WORKERS):
   """Get (and initialize) a Thread pool.
 
@@ -49,10 +73,15 @@ def pool_apply(pool, jobs):
   if pool:
     def return_result(x):
       return queue.put(x)
+
     for job in jobs:
       pool.apply_async(
-        func=job[0], args=job[1:], callback=return_result)
+        func=pool_executor, args=[job], callback=return_result)
   else:
     for job in jobs:
-      queue.put(job[0](*job[1:]))
+      queue.put(job.run())
   return queue
+
+
+def pool_executor(job):
+  return job.run()

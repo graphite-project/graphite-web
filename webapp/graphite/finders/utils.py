@@ -3,7 +3,6 @@ import time
 import abc
 
 from graphite.util import is_pattern
-from graphite.future import wait_for_result, FetchInProgress
 from graphite.intervals import Interval
 
 
@@ -61,14 +60,18 @@ class BaseFinder(object):
         pass
 
 
-    # The methods bellow are fully optional and BaseFinder provides
+    # The methods below are fully optional and BaseFinder provides
     # a default implementation. They can be re-implemented by finders
     # that could provide a more efficient way of doing it.
     #
     # The API isn't fully finalized yet and can be subject to change
     # until it's documented.
 
-    def find_nodes_multi(self, queries):
+    @classmethod
+    def factory(cls):
+        return [cls()]
+
+    def find_multi(self, queries):
         """Executes multiple find queries.
 
         Works like multiple find_node(), this gives the ability to remote
@@ -79,9 +82,9 @@ class BaseFinder(object):
         """
         for query in queries:
             for node in self.find_nodes(query):
-                yield node
+                yield (node, query)
 
-    def fetch(self, nodes_or_patterns, start_time, end_time,
+    def fetch(self, patterns, start_time, end_time,
               now=None, requestContext=None):
         """Fetch multiple nodes or patterns at once.
 
@@ -101,49 +104,43 @@ class BaseFinder(object):
         """
         requestContext = requestContext or {}
 
-        nodes = []
-        patterns = []
-
-        for v in nodes_or_patterns:
-            if isinstance(v, basestring):
-                patterns.append(v)
-            else:
-                nodes.append(v)
-
-        nodes_and_patterns = []
-        for node in nodes:
-            nodes_and_patterns.append((node, node.path))
-
-        for pattern in patterns:
-            query = FindQuery(
-                pattern, start_time, end_time,
-                local=requestContext.get('localOnly'),
-                headers=requestContext.get('forwardHeaders'),
-                leaves_only=True,
-            )
-            for node in self.find_nodes(query):
-                nodes_and_patterns.append((node, pattern))
-
         # TODO: We could add Graphite-API's 'find_multi' support here.
-        results_nodes_and_patterns = []
+        nodes_and_patterns = []
+
+        queries = []
+
+        for v in patterns:
+            # if isinstance(v, Node):
+            #     nodes_and_patterns.append((v, v.path))
+            #     continue
+
+            if isinstance(v, basestring):
+                queries.append(FindQuery(
+                    v, start_time, end_time,
+                    local=requestContext.get('localOnly'),
+                    headers=requestContext.get('forwardHeaders'),
+                    leaves_only=True,
+                ))
+                continue
+
+        if queries:
+            for node, query in self.find_multi(queries):
+                nodes_and_patterns.append((node, query.pattern))
+
+        result = []
 
         for node, pattern in nodes_and_patterns:
-            result = node.fetch(
+            time_info, values = node.fetch(
                 start_time, end_time,
                 now=now, requestContext=requestContext
             )
-            results_nodes_and_patterns.append((result, node, pattern))
 
-        def _extract():
-            for result, node, pattern in results_nodes_and_patterns:
-                time_info, values = wait_for_result(result)
+            result.append({
+                'pathExpression': pattern,
+                'path': node.path,
+                'name': node.path,
+                'time_info': time_info,
+                'values': values,
+            })
 
-                yield {
-                    'pathExpression': pattern,
-                    'path': node.path,
-                    'name': node.path,
-                    'time_info': time_info,
-                    'values': values,
-                }
-
-        return FetchInProgress(_extract)
+        return result

@@ -73,7 +73,7 @@ class RenderTest(TestCase):
     def test_render_evaluator(self):
         test_input = ['somefunc(my.metri[cz].{one,two})=123', 'target1,target2']
         expected_output = ['my.metri[cz].{one,two}', 'target1']
-        outputs = extractPathExpressions(test_input)
+        outputs = extractPathExpressions({}, test_input)
 
         self.assertTrue(all(output in expected_output for output in outputs))
         self.assertTrue(all(output in outputs for output in expected_output))

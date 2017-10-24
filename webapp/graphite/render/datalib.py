@@ -20,7 +20,6 @@ from traceback import format_exc
 
 from django.conf import settings
 
-from graphite.future import Future, wait_for_result
 from graphite.logger import log
 from graphite.storage import STORE
 from graphite.util import timebounds, logtime
@@ -157,50 +156,12 @@ def fetchData(requestContext, pathExpr, msg_setter=None):
   seriesList = {}
   (startTime, endTime, now) = timebounds(requestContext)
 
-  retries = 1 # start counting at one to make log output and settings more readable
-  while True:
-    try:
-      seriesList = _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList)
-      break
-    except Exception:
-      if retries >= settings.MAX_FETCH_RETRIES:
-        log.exception("Failed after %s retry! Root cause:\n%s" %
-            (settings.MAX_FETCH_RETRIES, format_exc()))
-        raise
-      else:
-        log.exception("Got an exception when fetching data! Try: %i of %i. Root cause:\n%s" %
-                     (retries, settings.MAX_FETCH_RETRIES, format_exc()))
-        retries += 1
-
-  return seriesList
-
-
-@logtime(custom_msg=True)
-def _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList, msg_setter=None):
-  msg_setter("retrieval of \"%s\" took" % str(pathExpr))
-
   result_queue = []
-  remote_done = False
 
-  if settings.REMOTE_PREFETCH_DATA:
-    prefetched = requestContext['prefetched'].get((startTime, endTime, now), None)
-    if prefetched is not None:
-      for result in prefetched[pathExpr]:
-        result_queue.append(result)
-      # Since we pre-fetched remote data only, now we can get local data only.
-      remote_done = True
-
-  local = remote_done or requestContext['localOnly']
-  matching_nodes = STORE.find(
-    pathExpr, startTime, endTime,
-    local=local,
-    headers=requestContext['forwardHeaders'],
-    leaves_only=True,
-  )
-
-  for node in matching_nodes:
-    result_queue.append(
-      (node.path, node.fetch(startTime, endTime, now, requestContext)))
+  prefetched = requestContext.get('prefetched', {}).get((startTime, endTime, now), None)
+  if prefetched is not None:
+    for result in prefetched[pathExpr]:
+      result_queue.append(result)
 
   return _merge_results(pathExpr, startTime, endTime, result_queue, seriesList, requestContext)
 
@@ -214,13 +175,6 @@ def _merge_results(pathExpr, startTime, endTime, result_queue, seriesList, reque
   errors = []
 
   for path, results in result_queue:
-    try:
-      results = wait_for_result(results)
-    except Exception as err:
-      log.exception("render.datalib.fetchData :: exception for %s.fetch(%s, %s)" % (path, startTime, endTime))
-      errors.push(err)
-      continue
-
     if not results:
       log.debug("render.datalib.fetchData :: no results for %s.fetch(%s, %s)" % (path, startTime, endTime))
       continue
@@ -304,57 +258,50 @@ def _merge_results(pathExpr, startTime, endTime, result_queue, seriesList, reque
   return [seriesList[k] for k in sorted(seriesList)]
 
 
-class PrefetchedData(Future):
-  def __init__(self, results):
-    self._results = results
-    self._prefetched = None
-
-  def _data(self):
-    if self._prefetched is None:
-      self._fetch_data()
-    return self._prefetched
-
-  def _fetch_data(self):
-    prefetched = collections.defaultdict(list)
-    for result in self._results:
-      fetched = wait_for_result(result)
-
-      if fetched is None:
-        continue
-
-      for result in fetched:
-        if isinstance(result, BaseException):
-          log.info('Prefetch failed: %s' % (result))
-          continue
-
-        prefetched[result['pathExpression']].append((
-          result['name'],
-          (
-            result['time_info'],
-            result['values'],
-          ),
-        ))
-
-    self._prefetched = prefetched
-
-
-def prefetchRemoteData(requestContext, targets):
+def prefetchData(requestContext, targets):
   """Prefetch a bunch of path expressions and stores them in the context.
 
   The idea is that this will allow more batching that doing a query
   each time evaluateTarget() needs to fetch a path. All the prefetched
-  data is stored in the requestContext, to be accessed later by datalib.
+  data is stored in the requestContext, to be accessed later by fetchData.
   """
-  # only prefetch if there is at least one active remote finder
-  # this is to avoid the overhead of tagdb lookups in extractPathExpressions
-  if len([finder for finder in STORE.finders if not getattr(finder, 'local', True) and not getattr(finder, 'disabled', False)]) < 1:
+  pathExpressions = extractPathExpressions(requestContext, targets)
+  if not pathExpressions:
     return
 
-  pathExpressions = extractPathExpressions(targets)
-  log.rendering("Prefetching remote data for [%s]" % (', '.join(pathExpressions)))
+  log.rendering("Fetching data for [%s]" % (', '.join(pathExpressions)))
 
   (startTime, endTime, now) = timebounds(requestContext)
 
-  results = STORE.fetch_remote(pathExpressions, startTime, endTime, now, requestContext)
+  retries = 1 # start counting at one to make log output and settings more readable
+  while True:
+    try:
+      results = STORE.fetch(pathExpressions, startTime, endTime, now, requestContext)
+      break
+    except Exception:
+      if retries >= settings.MAX_FETCH_RETRIES:
+        log.exception("Failed after %s retry! Root cause:\n%s" %
+            (settings.MAX_FETCH_RETRIES, format_exc()))
+        raise
+      else:
+        log.exception("Got an exception when fetching data! Try: %i of %i. Root cause:\n%s" %
+                     (retries, settings.MAX_FETCH_RETRIES, format_exc()))
+        retries += 1
 
-  requestContext['prefetched'][(startTime, endTime, now)] = PrefetchedData(results)
+  prefetched = collections.defaultdict(list)
+  for result in results:
+    if result is None:
+      continue
+
+    prefetched[result['pathExpression']].append((
+      result['name'],
+      (
+        result['time_info'],
+        result['values'],
+      ),
+    ))
+
+  if not requestContext.get('prefetched'):
+    requestContext['prefetched'] = {}
+
+  requestContext['prefetched'][(startTime, endTime, now)] = prefetched

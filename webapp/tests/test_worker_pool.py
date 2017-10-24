@@ -25,9 +25,9 @@ class TestPool(unittest.TestCase):
 
         self.assertNotEqual(default, p)
 
-        q = pool.pool_apply(p, [(lambda v: v, 'a')])
+        q = pool.pool_apply(p, [pool.Job(lambda v: v, 'a')])
 
-        self.assertEqual(q.get(True, 1), 'a')
+        self.assertEqual(q.get(True, 1).result, 'a')
 
     @mock.patch('django.conf.settings.USE_WORKER_POOL', False)
     def test_named_no_worker_pool(self):
@@ -37,9 +37,9 @@ class TestPool(unittest.TestCase):
         self.assertIsNone(p)
         self.assertIsNone(default)
 
-        q = pool.pool_apply(p, [(lambda v: v, 'a')])
+        q = pool.pool_apply(p, [pool.Job(lambda v: v, 'a')])
 
-        self.assertEqual(q.get_nowait(), 'a')
+        self.assertEqual(q.get_nowait().result, 'a')
 
 
 if __name__ == '__main__':
