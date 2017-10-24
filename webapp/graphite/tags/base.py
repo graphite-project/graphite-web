@@ -145,46 +145,6 @@ class BaseTagDB(object):
     """
     pass
 
-  def auto_complete(self, exprs, tagPrefix=None, valuePrefix=None):
-    """
-    Return auto-complete suggestions for tags and values based on the matches for the specified expressions, optionally filtered by tag and/or value prefix
-    """
-    result = {}
-
-    if not exprs:
-      for tagInfo in self.list_tags(tagFilter=tagPrefix)[:100]:
-        result[tagInfo['tag']] = [v['value'] for v in self.list_values(tagInfo['tag'], valueFilter=valuePrefix)[:100]]
-
-      return result
-
-    searchedTags = set([self.parse_tagspec(expr)[0] for expr in exprs])
-
-    for path in self.find_series(exprs):
-      tags = self.parse(path).tags
-      for tag in tags:
-        if tag in searchedTags:
-          continue
-        if tagPrefix and not tag.startswith(tagPrefix):
-          continue
-        value = tags[tag]
-        if valuePrefix and not value.startswith(valuePrefix):
-          continue
-        if tag not in result:
-          result[tag] = [value]
-          continue
-        if value in result[tag]:
-          continue
-        if value >= result[tag][-1]:
-          if len(result[tag]) >= 100:
-            continue
-          result[tag].append(value)
-        else:
-          bisect.insort_left(result[tag], value)
-        if len(result[tag]) > 100:
-          del result[tag][-1]
-
-    return {tag: result[tag] for tag in sorted(result.keys())[:100]}
-
   def auto_complete_tags(self, exprs, tagPrefix=None):
     """
     Return auto-complete suggestions for tags based on the matches for the specified expressions, optionally filtered by tag prefix
@@ -244,7 +204,6 @@ class BaseTagDB(object):
         del result[-1]
 
     return result
-
 
   @staticmethod
   def parse(path):

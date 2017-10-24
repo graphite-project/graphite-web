@@ -184,27 +184,6 @@ class TagsTest(TestCase):
       return [('test.a;tag1=value1.%3d;tag2=value2.%3d' % (i, 201 - i)) for i in range(1,201)]
 
     with patch('graphite.tags.localdatabase.LocalDatabaseTagDB.find_series', mock_find_series):
-      result = db.auto_complete(search_exprs)
-      self.assertEqual(result, {
-        'tag1': [('value1.%3d' % i) for i in range(1,101)],
-        'tag2': [('value2.%3d' % i) for i in range(1,101)],
-      })
-
-      result = db.auto_complete(search_exprs, 'tag1')
-      self.assertEqual(result, {
-        'tag1': [('value1.%3d' % i) for i in range(1,101)],
-      })
-
-      result = db.auto_complete(search_exprs, 'tag1', 'value1.1')
-      self.assertEqual(result, {
-        'tag1': [('value1.%3d' % i) for i in range(100,200)],
-      })
-
-      result = db.auto_complete(search_exprs, None, 'value1')
-      self.assertEqual(result, {
-        'tag1': [('value1.%3d' % i) for i in range(1,101)],
-      })
-
       result = db.auto_complete_tags(search_exprs)
       self.assertEqual(result, [
         'tag1',
@@ -379,37 +358,6 @@ class TagsTest(TestCase):
     expected = 'test.a;blah=blah;hello=lion'
 
     response = self.client.post(url + '/tagSeries', {'path': 'test.a;hello=lion;blah=blah'})
-    self.assertEqual(response.status_code, 200)
-    self.assertEqual(response['Content-Type'], 'application/json')
-    self.assertEqual(response.content, json.dumps(expected, indent=2, sort_keys=True))
-
-    ## autocomplete
-
-    response = self.client.put(url + '/autoComplete', {})
-    self.assertEqual(response.status_code, 405)
-
-    expected = {
-      'hello': ['lion','tiger'],
-    }
-
-    response = self.client.get(url + '/autoComplete?tagPrefix=hello&pretty=1')
-    self.assertEqual(response['Content-Type'], 'application/json')
-    self.assertEqual(response.content, json.dumps(expected, indent=2, sort_keys=True))
-
-    expected = {
-      'blah': ['blah'],
-      'hello': ['lion','tiger'],
-    }
-
-    response = self.client.get(url + '/autoComplete?expr[]=name=test.a&pretty=1')
-    self.assertEqual(response['Content-Type'], 'application/json')
-    self.assertEqual(response.content, json.dumps(expected, indent=2, sort_keys=True))
-
-    expected = {
-      'hello': ['lion'],
-    }
-
-    response = self.client.get(url + '/autoComplete?expr=name=test.a&tagPrefix=hell&valuePrefix=li&pretty=1')
     self.assertEqual(response.status_code, 200)
     self.assertEqual(response['Content-Type'], 'application/json')
     self.assertEqual(response.content, json.dumps(expected, indent=2, sort_keys=True))
