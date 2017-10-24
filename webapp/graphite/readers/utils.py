@@ -50,7 +50,7 @@ class BaseReader(object):
           requestContext: RequestContext
 
         Returns:
-          FetchInProgress() or (time_info, values)
+          (time_info, values)
         """
         pass
 

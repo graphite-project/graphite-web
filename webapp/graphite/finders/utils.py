@@ -74,11 +74,11 @@ class BaseFinder(object):
     def find_multi(self, queries):
         """Executes multiple find queries.
 
-        Works like multiple find_node(), this gives the ability to remote
+        Works like multiple find_node(), this gives the ability for
         finders to parallelize the work.
 
         Returns:
-          generator of Node
+          generator of (Node, query)
         """
         for query in queries:
             for node in self.find_nodes(query):
@@ -91,20 +91,17 @@ class BaseFinder(object):
         This method is used to fetch multiple nodes or pattern at once, this
         allows alternate finders to do batching on their side when they can.
 
-        The remote finder implements find API and uses it when
-        settings.REMOTE_PREFETCH_DATA is set.
-
         Returns:
-          FetchInProgress returning and iterable or {
-                    'pathExpression': pattern,
-                    'path': node.path,
-                    'time_info': time_info,
-                    'values': values,
+          an iterable of
+          {
+            'pathExpression': pattern,
+            'path': node.path,
+            'time_info': time_info,
+            'values': values,
           }
         """
         requestContext = requestContext or {}
 
-        # TODO: We could add Graphite-API's 'find_multi' support here.
         nodes_and_patterns = []
 
         queries = []

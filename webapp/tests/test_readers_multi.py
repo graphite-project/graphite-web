@@ -9,7 +9,7 @@ from django.conf import settings
 import whisper
 import gzip
 
-from graphite.readers import WhisperReader, FetchInProgress, MultiReader
+from graphite.readers import WhisperReader, MultiReader
 from graphite.wsgi import application  # NOQA makes sure we have a working WSGI app
 from graphite.node import LeafNode
 
@@ -104,11 +104,6 @@ class MultiReaderTests(TestCase):
         reader = MultiReader([node1, node2])
 
         results = reader.fetch(self.start_ts-5, self.start_ts)
-
-        self.assertIsInstance(results, FetchInProgress)
-
-        if isinstance(results, FetchInProgress):
-          results = results.waitForResults()
 
         (_, values) = results
         self.assertEqual(values, [None, None, None, None, 1.0])

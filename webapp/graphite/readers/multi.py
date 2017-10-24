@@ -1,6 +1,5 @@
 import functools
 
-from graphite.future import FetchInProgress, wait_for_result
 from graphite.intervals import IntervalSet
 from graphite.logger import log
 from graphite.readers.utils import BaseReader
@@ -24,28 +23,19 @@ class MultiReader(BaseReader):
 
         for n in self.nodes:
             try:
-                fetches.append(
-                    n.fetch(startTime, endTime, now, requestContext))
+                fetches.append(n.fetch(startTime, endTime, now, requestContext))
             except BaseException:
                 log.exception("Failed to initiate subfetch for %s" % str(n))
 
-        def merge_results():
-            results = {}
+        results = [
+          r for r in fetches
+          if r is not None
+        ]
+        if not results:
+            raise Exception("All sub-fetches failed")
 
-            # Wait for any asynchronous operations to complete
-            for i, result in enumerate(fetches):
-                results[i] = wait_for_result(result)
+        return functools.reduce(self.merge, results)
 
-            results = [
-              r for r in results.values()
-              if r is not None and not isinstance(r, BaseException)
-            ]
-            if not results:
-                raise Exception("All sub-fetches failed")
-
-            return functools.reduce(self.merge, results)
-
-        return FetchInProgress(merge_results)
 
     def merge(self, results1, results2):
         # Ensure results1 is finer than results2
