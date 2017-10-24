@@ -1,5 +1,3 @@
-import re
-
 from graphite.render.grammar import grammar
 from graphite.storage import STORE
 
@@ -18,7 +16,7 @@ def extractPathExpressions(requestContext, targets):
         arglist.update(dict([(str(i+1), evaluateScalarTokens(arg)) for i, arg in enumerate(tokens.template.args)]))
       if 'template' in requestContext:
         arglist.update(requestContext['template'])
-      return extractPathExpression(requestContext, tokens.template, arglist)
+      extractPathExpression(requestContext, tokens.template, arglist)
     elif tokens.expression:
       extractPathExpression(requestContext, tokens.expression, replacements)
       if tokens.expression.pipedCalls:
@@ -28,15 +26,7 @@ def extractPathExpressions(requestContext, targets):
       expression = tokens.pathExpression
       if replacements:
         for name in replacements:
-          if expression == '$'+name:
-            val = replacements[name]
-            if not isinstance(val, str) and not isinstance(val, basestring):
-              return val
-            elif re.match('^-?[\d.]+$', val):
-              return float(val)
-            else:
-              return val
-          else:
+          if expression != '$'+name:
             expression = expression.replace('$'+name, str(replacements[name]))
       pathExpressions.add(expression)
     elif tokens.call:

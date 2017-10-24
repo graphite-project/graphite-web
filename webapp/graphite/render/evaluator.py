@@ -43,7 +43,7 @@ def evaluateTokens(requestContext, tokens, replacements=None, pipedArg=None):
       arglist.update(requestContext['template'])
     return evaluateTokens(requestContext, tokens.template, arglist)
 
-  elif tokens.expression:
+  if tokens.expression:
     if tokens.expression.pipedCalls:
       # when the expression has piped calls, we pop the right-most call and pass the remaining
       # expression into it via pipedArg, to get the same result as a nested call
@@ -52,7 +52,7 @@ def evaluateTokens(requestContext, tokens, replacements=None, pipedArg=None):
 
     return evaluateTokens(requestContext, tokens.expression, replacements)
 
-  elif tokens.pathExpression:
+  if tokens.pathExpression:
     expression = tokens.pathExpression
     if replacements:
       for name in replacements:
@@ -68,7 +68,7 @@ def evaluateTokens(requestContext, tokens, replacements=None, pipedArg=None):
           expression = expression.replace('$'+name, str(replacements[name]))
     return fetchData(requestContext, expression)
 
-  elif tokens.call:
+  if tokens.call:
     if tokens.call.funcname == 'template':
       # if template propagates down here, it means the grammar didn't match the invocation
       # as tokens.template. this generally happens if you try to pass non-numeric/string args
