@@ -680,6 +680,12 @@ class FunctionsTest(TestCase):
         with self.assertRaisesRegexp(ValueError, 'The requested percent is required to be greater than 0'):
             functions.percentileOfSeries({}, [], 0)
 
+    def test_percentileOfSeries_empty_series(self):
+        series = []
+        expected = []
+        result = functions.percentileOfSeries({}, series, 90)
+        self.assertEqual(result, expected)
+
     def test_percentileOfSeries(self):
         seriesList = self._generate_series_list()
         data = range(0,101)
