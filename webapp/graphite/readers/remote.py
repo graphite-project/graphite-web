@@ -34,15 +34,15 @@ class RemoteReader(BaseReader):
             ('format', 'pickle'),
             ('local', '1'),
             ('noCache', '1'),
-            ('from', str(int(startTime))),
-            ('until', str(int(endTime)))
+            ('from', int(startTime)),
+            ('until', int(endTime))
         ]
 
         for target in self.bulk_query:
             query_params.append(('target', target))
 
         if now is not None:
-            query_params.append(('now', str(int(now))))
+            query_params.append(('now', int(now)))
 
         headers = requestContext.get('forwardHeaders') if requestContext else None
 
@@ -57,8 +57,8 @@ class RemoteReader(BaseReader):
             data = unpickle.loads(result.data)
         except Exception as err:
             self.finder.fail()
-            self.log_error("RemoteReader:: Error requesting %s: %s" % (result.url_full, err))
-            raise Exception("Error requesting %s: %s" % (result.url_full, err))
+            self.log_error("RemoteReader:: Error decoding render response from %s: %s" % (result.url_full, err))
+            raise Exception("Error decoding render response from %s: %s" % (result.url_full, err))
 
         for i in range(len(data)):
             data[i]['path'] = data[i]['name']

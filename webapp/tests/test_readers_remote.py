@@ -88,8 +88,8 @@ class RemoteReaderTests(TestCase):
             ('format', 'pickle'),
             ('local', '1'),
             ('noCache', '1'),
-            ('from', str(int(startTime))),
-            ('until', str(int(endTime))),
+            ('from', startTime),
+            ('until', endTime),
             ('target', 'a.b.c.d'),
           ],
           'headers': None,
@@ -120,10 +120,10 @@ class RemoteReaderTests(TestCase):
             ('format', 'pickle'),
             ('local', '1'),
             ('noCache', '1'),
-            ('from', str(int(startTime))),
-            ('until', str(int(endTime))),
+            ('from', startTime),
+            ('until', endTime),
             ('target', 'a.b.c.d'),
-            ('now', str(int(endTime))),
+            ('now', endTime),
           ],
           'headers': {'Authorization': 'Basic xxxx'},
           'timeout': 10,
@@ -133,7 +133,7 @@ class RemoteReaderTests(TestCase):
         responseObject = HTTPResponse(body='error', status=200)
         http_request.return_value = responseObject
 
-        with self.assertRaisesRegexp(Exception, 'Error requesting http://[^ ]+: .+'):
+        with self.assertRaisesRegexp(Exception, 'Error decoding render response from http://[^ ]+: .+'):
           reader.fetch(startTime, endTime)
 
         # non-200 response
@@ -148,57 +148,3 @@ class RemoteReaderTests(TestCase):
 
         with self.assertRaisesRegexp(Exception, 'Error requesting http://[^ ]+: error'):
           reader.fetch(startTime, endTime)
-
-    #
-    # Test RemoteFinder.fetch()
-    #
-    @mock.patch('urllib3.PoolManager.request')
-    @mock.patch('django.conf.settings.CLUSTER_SERVERS', ['127.0.0.1', '8.8.8.8'])
-    @mock.patch('django.conf.settings.INTRACLUSTER_HTTPS', True)
-    @mock.patch('django.conf.settings.REMOTE_STORE_USE_POST', True)
-    @mock.patch('django.conf.settings.REMOTE_FETCH_TIMEOUT', 10)
-    def test_RemoteFinder_fetch(self, http_request):
-        test_finders = RemoteFinder.factory()
-        finder = test_finders[0]
-        startTime = 1496262000
-        endTime   = 1496262060
-
-        data = [
-                {'start': startTime,
-                 'step': 60,
-                 'end': endTime,
-                 'values': [1.0, 0.0, 1.0, 0.0, 1.0],
-                 'name': 'a.b.c.d'
-                }
-               ]
-        responseObject = HTTPResponse(body=StringIO(pickle.dumps(data)), status=200)
-        http_request.return_value = responseObject
-
-        result = finder.fetch(['a.b.c.d'], startTime, endTime)
-        expected_response = [
-            {
-                'name': 'a.b.c.d',
-                'values': [1.0, 0.0, 1.0, 0.0, 1.0],
-                'path': 'a.b.c.d',
-                'start': 1496262000,
-                'end': 1496262060,
-                'step': 60,
-            }
-        ]
-        self.assertEqual(result, expected_response)
-        self.assertEqual(http_request.call_args[0], (
-          'POST',
-          'https://127.0.0.1/render/',
-        ))
-        self.assertEqual(http_request.call_args[1], {
-          'fields': [
-            ('format', 'pickle'),
-            ('local', '1'),
-            ('noCache', '1'),
-            ('from', str(int(startTime))),
-            ('until', str(int(endTime))),
-            ('target', 'a.b.c.d'),
-          ],
-          'headers': None,
-          'timeout': 10,
-        })

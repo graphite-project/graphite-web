@@ -76,10 +76,10 @@ class RemoteFinder(BaseFinder):
                 ('query', query.pattern),
             ]
             if query.startTime:
-                query_params.append(('from', query.startTime))
+                query_params.append(('from', int(query.startTime)))
 
             if query.endTime:
-                query_params.append(('until', query.endTime))
+                query_params.append(('until', int(query.endTime)))
 
             result = self.request(
                 url,
@@ -89,12 +89,12 @@ class RemoteFinder(BaseFinder):
 
             try:
                 results = unpickle.loads(result.data)
-            except BaseException:
+            except Exception as err:
                 self.fail()
                 log.exception(
-                    "RemoteFinder.find_nodes(host=%s, query=%s) exception processing response" %
-                    (self.host, query))
-                raise Exception("Error decoding find response from %s" % (self.host))
+                    "RemoteFinder.find_nodes(host=%s, query=%s) Error decoding render response from %s: %s" %
+                    (self.host, query, result.url_full, err))
+                raise Exception("Error decoding find response from %s: %s" % (result.url_full, err))
 
             cache.set(cacheKey, results, settings.FIND_CACHE_DURATION)
 
