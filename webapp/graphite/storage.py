@@ -20,12 +20,6 @@ from graphite.worker_pool.pool import get_pool, pool_apply, Job
 from graphite.tags.utils import get_tagdb
 
 
-def get_finder(finder_path):
-    module_name, class_name = finder_path.rsplit('.', 1)
-    module = import_module(module_name)
-    return getattr(module, class_name)()
-
-
 def get_finders(finder_path):
     module_name, class_name = finder_path.rsplit('.', 1)
     module = import_module(module_name)
