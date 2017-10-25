@@ -28,7 +28,7 @@ class RemoteFinder(BaseFinder):
             finders.append(cls(host))
         return finders
 
-    def __init__(self, host=None):
+    def __init__(self, host):
         self.host = host
         self.last_failure = 0
 
@@ -40,7 +40,7 @@ class RemoteFinder(BaseFinder):
         self.last_failure = time.time()
 
     @logtime(custom_msg=True)
-    def find_nodes(self, query, msg_setter=None):
+    def find_nodes(self, query, msg_setter):
         msg_setter(
             'host: {host}, query: {query}'.format(
                 host=self.host,
