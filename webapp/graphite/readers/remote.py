@@ -1,8 +1,5 @@
-from urllib import urlencode
-
 from django.conf import settings
 
-from graphite.http_pool import http
 from graphite.util import unpickle
 from graphite.readers.utils import BaseReader
 
@@ -33,11 +30,6 @@ class RemoteReader(BaseReader):
         if not self.bulk_query:
             return []
 
-        url = "%s://%s/render/" % (
-            'https' if settings.INTRACLUSTER_HTTPS else 'http',
-            self.finder.host,
-        )
-
         query_params = [
             ('format', 'pickle'),
             ('local', '1'),
@@ -54,30 +46,20 @@ class RemoteReader(BaseReader):
 
         headers = requestContext.get('forwardHeaders') if requestContext else None
 
-        url_full = "%s?%s" % (url, urlencode(query_params))
+        result = self.finder.request(
+          '/render/',
+          fields=query_params,
+          headers=headers,
+          timeout=settings.REMOTE_FETCH_TIMEOUT,
+        )
 
-        self.log_debug("RemoteReader:: Requesting %s" % url_full)
         try:
-            result = http.request(
-                'POST' if settings.REMOTE_STORE_USE_POST else 'GET',
-                url,
-                fields=query_params,
-                headers=headers,
-                timeout=settings.REMOTE_FETCH_TIMEOUT,
-            )
-
-            if result.status != 200:
-                self.finder.fail()
-                self.log_error("RemoteReader:: Error response %d from %s" % (result.status, url_full))
-                raise Exception("Error response %d from %s" % (result.status, url_full))
-
             data = unpickle.loads(result.data)
         except Exception as err:
             self.finder.fail()
-            self.log_error("RemoteReader:: Error requesting %s: %s" % (url_full, err))
-            raise Exception("Error requesting %s: %s" % (url_full, err))
+            self.log_error("RemoteReader:: Error requesting %s: %s" % (result.url_full, err))
+            raise Exception("Error requesting %s: %s" % (result.url_full, err))
 
-        self.log_debug("RemoteReader:: Fetched %s" % url_full)
         for i in range(len(data)):
             data[i]['path'] = data[i]['name']
 

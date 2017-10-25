@@ -19,6 +19,15 @@ from graphite.readers.remote import RemoteReader
 class RemoteFinder(BaseFinder):
     local = False
 
+    @classmethod
+    def factory(cls):
+        finders = []
+        for host in settings.CLUSTER_SERVERS:
+            if settings.REMOTE_EXCLUDE_LOCAL and is_local_interface(host):
+                continue
+            finders.append(cls(host))
+        return finders
+
     def __init__(self, host=None):
         self.host = host
         self.last_failure = 0
@@ -30,29 +39,14 @@ class RemoteFinder(BaseFinder):
     def fail(self):
         self.last_failure = time.time()
 
-    def find_nodes(self, query):
-        return list(FindRequest(self, query).send(query.headers))
+    @logtime(custom_msg=True)
+    def find_nodes(self, query, msg_setter=None):
+        msg_setter(
+            'host: {host}, query: {query}'.format(
+                host=self.host,
+                query=query))
 
-    @classmethod
-    def factory(cls):
-      finders = []
-      for host in settings.CLUSTER_SERVERS:
-          if settings.REMOTE_EXCLUDE_LOCAL and is_local_interface(host):
-              continue
-          finders.append(cls(host))
-      return finders
-
-    def fetch(self, patterns, start_time, end_time, now=None, requestContext=None):
-        reader = RemoteReader(self, {}, bulk_query=patterns)
-        return reader.fetch(start_time, end_time, now, requestContext)
-
-
-class FindRequest(object):
-    __slots__ = ('finder', 'query', 'cacheKey')
-
-    def __init__(self, finder, query):
-        self.finder = finder
-        self.query = query
+        log.debug("RemoteFinder.find_nodes(host=%s, query=%s) called" % (self.host, query))
 
         # prevent divide by 0
         cacheTTL = settings.FIND_CACHE_DURATION or 1
@@ -66,74 +60,43 @@ class FindRequest(object):
         else:
             end = ""
 
-        self.cacheKey = "find:%s:%s:%s:%s" % (
-            finder.host, compactHash(query.pattern), start, end)
+        cacheKey = "find:%s:%s:%s:%s" % (self.host, compactHash(query.pattern), start, end)
 
-    @logtime(custom_msg=True)
-    def send(self, headers=None, msg_setter=None):
-        log.debug(
-            "FindRequest.send(host=%s, query=%s) called" %
-            (self.finder.host, self.query))
-
-        if headers is None:
-            headers = {}
-
-        results = cache.get(self.cacheKey)
+        results = cache.get(cacheKey)
         if results is not None:
             log.debug(
-                "FindRequest.send(host=%s, query=%s) using cached result" %
-                (self.finder.host, self.query))
+                "RemoteFinder.find_nodes(host=%s, query=%s) using cached result" %
+                (self.host, query))
         else:
-            url = "%s://%s/metrics/find/" % (
-                'https' if settings.INTRACLUSTER_HTTPS else 'http', self.finder.host)
+            url = '/metrics/find/'
 
             query_params = [
                 ('local', '1'),
                 ('format', 'pickle'),
-                ('query', self.query.pattern),
+                ('query', query.pattern),
             ]
-            if self.query.startTime:
-                query_params.append(('from', self.query.startTime))
+            if query.startTime:
+                query_params.append(('from', query.startTime))
 
-            if self.query.endTime:
-                query_params.append(('until', self.query.endTime))
+            if query.endTime:
+                query_params.append(('until', query.endTime))
 
-            try:
-                result = http.request(
-                    'POST' if settings.REMOTE_STORE_USE_POST else 'GET',
-                    url,
-                    fields=query_params,
-                    headers=headers,
-                    timeout=settings.REMOTE_FIND_TIMEOUT)
-            except BaseException:
-                log.exception(
-                    "FindRequest.send(host=%s, query=%s) exception during request" %
-                    (self.finder.host, self.query))
-                self.finder.fail()
-                return
-
-            if result.status != 200:
-                log.exception(
-                    "FindRequest.send(host=%s, query=%s) error response %d from %s?%s" %
-                    (self.finder.host, self.query, result.status, url, urlencode(query_params)))
-                self.finder.fail()
-                return
+            result = self.request(
+                url,
+                fields=query_params,
+                headers=query.headers,
+                timeout=settings.REMOTE_FIND_TIMEOUT)
 
             try:
                 results = unpickle.loads(result.data)
             except BaseException:
+                self.fail()
                 log.exception(
-                    "FindRequest.send(host=%s, query=%s) exception processing response" %
-                    (self.finder.host, self.query))
-                self.finder.fail()
-                return
+                    "RemoteFinder.find_nodes(host=%s, query=%s) exception processing response" %
+                    (self.host, query))
+                raise Exception("Error decoding find response from %s" % (self.host))
 
-            cache.set(self.cacheKey, results, settings.FIND_CACHE_DURATION)
-
-        msg_setter(
-            'host: {host}, query: {query}'.format(
-                host=self.finder.host,
-                query=self.query))
+            cache.set(cacheKey, results, settings.FIND_CACHE_DURATION)
 
         for node_info in results:
             # handle both 1.x and 0.9.x output
@@ -151,12 +114,43 @@ class FindRequest(object):
             }
 
             if is_leaf:
-                reader = RemoteReader(
-                    self.finder, node_info, bulk_query=[
-                        self.query.pattern])
+                reader = RemoteReader(self, node_info, bulk_query=[query.pattern])
                 node = LeafNode(path, reader)
             else:
                 node = BranchNode(path)
 
             node.local = False
             yield node
+
+    def fetch(self, patterns, start_time, end_time, now=None, requestContext=None):
+        reader = RemoteReader(self, {}, bulk_query=patterns)
+        return reader.fetch(start_time, end_time, now, requestContext)
+
+    def request(self, url, fields=None, headers=None, timeout=None):
+        url = "%s://%s%s" % (
+            'https' if settings.INTRACLUSTER_HTTPS else 'http', self.host, url)
+        url_full = "%s?%s" % (url, urlencode(fields))
+
+        try:
+            result = http.request(
+                'POST' if settings.REMOTE_STORE_USE_POST else 'GET',
+                url,
+                fields=fields,
+                headers=headers,
+                timeout=timeout)
+        except BaseException as err:
+            self.fail()
+            log.exception("RemoteFinder[%s] Error requesting %s: %s" % (self.host, url_full, err))
+            raise Exception("Error requesting %s: %s" % (url_full, err))
+
+        if result.status != 200:
+            self.fail()
+            url_full = "%s?%s" % (url, urlencode(fields))
+            log.exception(
+                "RemoteFinder[%s] Error response %d from %s" % (self.host, result.status, url_full))
+            raise Exception("Error response %d from %s" % (result.status, url_full))
+
+        result.url_full = url_full
+
+        log.debug("RemoteFinder[%s] Fetched %s" % (self.host, url_full))
+        return result
