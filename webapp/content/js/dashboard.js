@@ -2697,7 +2697,24 @@ function applyState(state) {
   defaultGraphParams = state.defaultGraphParams || originalDefaultGraphParams;
 
   //state.graphs = [ [id, target, params, url], ... ]
-  graphStore.loadData(state.graphs);
+  //Fix url param to be correct for this document.body.dataset.baseUrl
+  var graphs = [];
+  for (var i = 0; i < state.graphs.length; i++) {
+    var myParams = {};
+    var render_type = state.graphs[i][3];
+    Ext.apply(myParams, state.graphs[i][1]);
+    var urlParams = {};
+    Ext.apply(urlParams, defaultGraphParams);
+    Ext.apply(urlParams, GraphSize);
+    Ext.apply(urlParams, myParams);
+    graphs.push([
+      Ext.urlEncode({target: state.graphs[i][0]}),
+      myParams,
+      document.body.dataset.baseUrl + 'render?' + Ext.urlEncode(urlParams),
+      render_type
+    ]);
+  }
+  graphStore.loadData(graphs);
 
   refreshGraphs();
 }
