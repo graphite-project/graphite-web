@@ -129,17 +129,24 @@ class RemoteReaderTests(TestCase):
           'timeout': 10,
         })
 
+        # non-pickle response
+        responseObject = HTTPResponse(body='error', status=200)
+        http_request.return_value = responseObject
+
+        with self.assertRaisesRegexp(Exception, 'Error requesting http://[^ ]+: .+'):
+          reader.fetch(startTime, endTime)
+
         # non-200 response
         responseObject = HTTPResponse(body='error', status=500)
         http_request.return_value = responseObject
 
-        with self.assertRaisesRegexp(Exception, 'Error response 500 from http://.+'):
+        with self.assertRaisesRegexp(Exception, 'Error response 500 from http://[^ ]+'):
           reader.fetch(startTime, endTime)
 
         # exception raised by request()
         http_request.side_effect = Exception('error')
 
-        with self.assertRaisesRegexp(Exception, 'Error requesting http://.+: error'):
+        with self.assertRaisesRegexp(Exception, 'Error requesting http://[^ ]+: error'):
           reader.fetch(startTime, endTime)
 
     #
