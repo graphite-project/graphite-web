@@ -19,7 +19,7 @@ class RemoteReader(BaseReader):
         self.finder = finder
         self.metric_path = node_info.get('path') or node_info.get('metric_path')
         self.intervals = node_info.get('intervals', [])
-        self.bulk_query = set(bulk_query) or (
+        self.bulk_query = set(bulk_query) if bulk_query else (
             [self.metric_path] if self.metric_path else []
         )
 
