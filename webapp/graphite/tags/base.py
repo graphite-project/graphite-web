@@ -18,7 +18,7 @@ class BaseTagDB(object):
     pass
 
   @logtime(custom_msg=True, custom_name=True)
-  def find_series(self, tags, msg_setter, name_setter):
+  def find_series(self, tags, msg_setter=None, name_setter=None):
     """
     Find series by tag, accepts a list of tag specifiers and returns a list of matching paths.
 
