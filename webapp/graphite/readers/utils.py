@@ -1,9 +1,4 @@
 import abc
-import time
-
-from threading import current_thread
-
-from django.conf import settings
 
 from graphite.logger import log
 

@@ -1,5 +1,4 @@
 import time
-import Queue
 import random
 
 from collections import defaultdict
