@@ -5,30 +5,11 @@ from threading import current_thread
 
 from django.conf import settings
 
-from graphite.logger import log
-
 
 class BaseReader(object):
     __metaclass__ = abc.ABCMeta
 
     supported = True
-
-    @staticmethod
-    def _log(msg, logger):
-        logger(('thread %s at %fs ' % (current_thread().name, time.time())) + msg)
-
-    @classmethod
-    def log_debug(cls, msg):
-        if settings.DEBUG:
-            cls._log(msg, log.info)
-
-    @classmethod
-    def log_error(cls, msg):
-        cls._log(msg, log.exception)
-
-    def __init__(self):
-        """Initialize the reader."""
-        pass
 
     @abc.abstractmethod
     def get_intervals(self):
@@ -37,7 +18,6 @@ class BaseReader(object):
         Returns:
           IntervalSet(): set of supported intervals.
         """
-        pass
 
     @abc.abstractmethod
     def fetch(self, startTime, endTime, now=None, requestContext=None):
@@ -52,7 +32,6 @@ class BaseReader(object):
         Returns:
           (time_info, values)
         """
-        pass
 
 
 def merge_with_cache(cached_datapoints, start, step, values, func=None, raw_step=None):

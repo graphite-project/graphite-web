@@ -1,7 +1,8 @@
 from django.conf import settings
 
-from graphite.util import unpickle
+from graphite.logger import log
 from graphite.readers.utils import BaseReader
+from graphite.util import unpickle
 
 
 class RemoteReader(BaseReader):
@@ -57,7 +58,9 @@ class RemoteReader(BaseReader):
             data = unpickle.loads(result.data)
         except Exception as err:
             self.finder.fail()
-            self.log_error("RemoteReader:: Error decoding render response from %s: %s" % (result.url_full, err))
+            log.exception(
+                "RemoteReader[%s] Error decoding render response from %s: %s" %
+                (self.finder.host, result.url_full, err))
             raise Exception("Error decoding render response from %s: %s" % (result.url_full, err))
 
         for i in range(len(data)):

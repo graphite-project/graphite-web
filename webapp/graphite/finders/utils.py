@@ -45,7 +45,6 @@ class BaseFinder(object):
 
     def __init__(self):
         """Initialize the finder."""
-        pass
 
     @abc.abstractmethod
     def find_nodes(self, query):
@@ -57,8 +56,6 @@ class BaseFinder(object):
         Returns:
           generator of Node
         """
-        pass
-
 
     # The methods below are fully optional and BaseFinder provides
     # a default implementation. They can be re-implemented by finders
@@ -102,38 +99,26 @@ class BaseFinder(object):
         """
         requestContext = requestContext or {}
 
-        nodes_and_patterns = []
-
-        queries = []
-
-        for v in patterns:
-            # if isinstance(v, Node):
-            #     nodes_and_patterns.append((v, v.path))
-            #     continue
-
-            if isinstance(v, basestring):
-                queries.append(FindQuery(
-                    v, start_time, end_time,
-                    local=requestContext.get('localOnly'),
-                    headers=requestContext.get('forwardHeaders'),
-                    leaves_only=True,
-                ))
-                continue
-
-        if queries:
-            for node, query in self.find_multi(queries):
-                nodes_and_patterns.append((node, query.pattern))
+        queries = [
+            FindQuery(
+                pattern, start_time, end_time,
+                local=requestContext.get('localOnly'),
+                headers=requestContext.get('forwardHeaders'),
+                leaves_only=True,
+            )
+            for pattern in patterns
+        ]
 
         result = []
 
-        for node, pattern in nodes_and_patterns:
+        for node, query in self.find_multi(queries):
             time_info, values = node.fetch(
                 start_time, end_time,
                 now=now, requestContext=requestContext
             )
 
             result.append({
-                'pathExpression': pattern,
+                'pathExpression': query.pattern,
                 'path': node.path,
                 'name': node.path,
                 'time_info': time_info,

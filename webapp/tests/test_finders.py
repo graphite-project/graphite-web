@@ -50,6 +50,21 @@ class FinderTest(TestCase):
         self.assertEqual(time_info, (100, 200, 10))
         self.assertEqual(len(series), 10)
 
+    def test_legacy_finder(self):
+        store = Store(finders=get_finders('tests.test_finders.LegacyFinder'))
+        nodes = list(store.find("foo"))
+        self.assertEqual(len(nodes), 1)
+        self.assertEqual(nodes[0].path, 'foo')
+
+        nodes = list(store.find('bar.*'))
+        self.assertEqual(len(nodes), 10)
+        node = nodes[0]
+        self.assertEqual(node.path.split('.')[0], 'bar')
+
+        time_info, series = node.fetch(100, 200)
+        self.assertEqual(time_info, (100, 200, 10))
+        self.assertEqual(len(series), 10)
+
 
 class DummyReader(BaseReader):
     __slots__ = ('path',)
@@ -68,6 +83,17 @@ class DummyReader(BaseReader):
 
 
 class DummyFinder(BaseFinder):
+    def find_nodes(self, query):
+        if query.pattern == 'foo':
+            yield BranchNode('foo')
+
+        elif query.pattern == 'bar.*':
+            for i in xrange(10):
+                path = 'bar.{0}'.format(i)
+                yield LeafNode(path, DummyReader(path))
+
+
+class LegacyFinder(object):
     def find_nodes(self, query):
         if query.pattern == 'foo':
             yield BranchNode('foo')

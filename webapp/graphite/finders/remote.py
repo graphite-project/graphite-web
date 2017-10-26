@@ -92,8 +92,8 @@ class RemoteFinder(BaseFinder):
             except Exception as err:
                 self.fail()
                 log.exception(
-                    "RemoteFinder.find_nodes(host=%s, query=%s) Error decoding render response from %s: %s" %
-                    (self.host, query, result.url_full, err))
+                    "RemoteFinder[%s] Error decoding find response from %s: %s" %
+                    (self.host, result.url_full, err))
                 raise Exception("Error decoding find response from %s: %s" % (result.url_full, err))
 
             cache.set(cacheKey, results, settings.FIND_CACHE_DURATION)
