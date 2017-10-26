@@ -5,6 +5,8 @@ from threading import current_thread
 
 from django.conf import settings
 
+from graphite.logger import log
+
 
 class BaseReader(object):
     __metaclass__ = abc.ABCMeta

@@ -15,6 +15,7 @@ from __future__ import division
 
 import collections
 import re
+import time
 
 from traceback import format_exc
 
@@ -151,22 +152,19 @@ class TimeSeries(list):
 # Data retrieval API
 @logtime(custom_msg=True)
 def fetchData(requestContext, pathExpr, msg_setter=None):
-  msg_setter("retrieval of \"%s\" took" % str(pathExpr))
+  msg_setter("lookup and merge of \"%s\" took" % str(pathExpr))
 
   seriesList = {}
   (startTime, endTime, now) = timebounds(requestContext)
 
-  result_queue = []
+  prefetched = requestContext.get('prefetched', {}).get((startTime, endTime, now), {}).get(pathExpr)
+  if not prefetched:
+    return []
 
-  prefetched = requestContext.get('prefetched', {}).get((startTime, endTime, now), None)
-  if prefetched is not None:
-    for result in prefetched[pathExpr]:
-      result_queue.append(result)
-
-  return _merge_results(pathExpr, startTime, endTime, result_queue, seriesList, requestContext)
+  return _merge_results(pathExpr, startTime, endTime, prefetched, seriesList, requestContext)
 
 
-def _merge_results(pathExpr, startTime, endTime, result_queue, seriesList, requestContext):
+def _merge_results(pathExpr, startTime, endTime, prefetched, seriesList, requestContext):
   log.debug("render.datalib.fetchData :: starting to merge")
 
   # Used as a cache to avoid recounting series None values below.
@@ -174,7 +172,7 @@ def _merge_results(pathExpr, startTime, endTime, result_queue, seriesList, reque
 
   errors = []
 
-  for path, results in result_queue:
+  for path, results in prefetched:
     if not results:
       log.debug("render.datalib.fetchData :: no results for %s.fetch(%s, %s)" % (path, startTime, endTime))
       continue
@@ -269,7 +267,8 @@ def prefetchData(requestContext, targets):
   if not pathExpressions:
     return
 
-  log.rendering("Fetching data for [%s]" % (', '.join(pathExpressions)))
+  start = time.time()
+  log.debug("Fetching data for [%s]" % (', '.join(pathExpressions)))
 
   (startTime, endTime, now) = timebounds(requestContext)
 
@@ -305,3 +304,5 @@ def prefetchData(requestContext, targets):
     requestContext['prefetched'] = {}
 
   requestContext['prefetched'][(startTime, endTime, now)] = prefetched
+
+  log.rendering("Fetched data for [%s] in %fs" % (', '.join(pathExpressions), time.time() - start))
