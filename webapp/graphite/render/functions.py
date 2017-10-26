@@ -507,6 +507,10 @@ def percentileOfSeries(requestContext, seriesList, n, interpolate=False):
   if n <= 0:
     raise ValueError('The requested percent is required to be greater than 0')
 
+  # if seriesList is empty then just short-circuit
+  if not seriesList:
+    return []
+
   name = 'percentileOfSeries(%s,%g)' % (seriesList[0].pathExpression, n)
   (start, end, step) = normalize([seriesList])[1:]
   values = [ _getPercentile(row, n, interpolate) for row in izip(*seriesList) ]
