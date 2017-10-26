@@ -28,6 +28,11 @@ class RemoteReader(BaseReader):
         return self.intervals
 
     def fetch(self, startTime, endTime, now=None, requestContext=None):
+        for series in self.fetch_multi(startTime, endTime, now, requestContext):
+            if series['name'] == self.metric_path:
+                return (series['time_info'], series['values'])
+
+    def fetch_multi(self, startTime, endTime, now=None, requestContext=None):
         if not self.bulk_query:
             return []
 

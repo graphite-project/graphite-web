@@ -33,14 +33,14 @@ class RemoteReaderTests(TestCase):
         self.assertEqual(reader.get_intervals(), [])
 
     #
-    # Test RemoteReader.fetch()
+    # Test RemoteReader.fetch_multi()
     #
     @mock.patch('urllib3.PoolManager.request')
     @mock.patch('django.conf.settings.CLUSTER_SERVERS', ['127.0.0.1', '8.8.8.8'])
     @mock.patch('django.conf.settings.INTRACLUSTER_HTTPS', False)
     @mock.patch('django.conf.settings.REMOTE_STORE_USE_POST', False)
     @mock.patch('django.conf.settings.REMOTE_FETCH_TIMEOUT', 10)
-    def test_RemoteReader_fetch(self, http_request):
+    def test_RemoteReader_fetch_multi(self, http_request):
         test_finders = RemoteFinder.factory()
         finder = test_finders[0]
 
@@ -50,7 +50,7 @@ class RemoteReaderTests(TestCase):
         # no path or bulk_query
         reader = RemoteReader(finder,{})
         self.assertEqual(reader.bulk_query, [])
-        result = reader.fetch(startTime, endTime)
+        result = reader.fetch_multi(startTime, endTime)
         self.assertEqual(result, [])
         self.assertEqual(http_request.call_count, 0)
 
@@ -67,15 +67,13 @@ class RemoteReaderTests(TestCase):
                ]
         responseObject = HTTPResponse(body=StringIO(pickle.dumps(data)), status=200)
         http_request.return_value = responseObject
-        result = reader.fetch(startTime, endTime)
+        result = reader.fetch_multi(startTime, endTime)
         expected_response = [
             {
+                'pathExpression': 'a.b.c.d',
                 'name': 'a.b.c.d',
+                'time_info': (1496262000, 1496262060, 60),
                 'values': [1.0, 0.0, 1.0, 0.0, 1.0],
-                'path': 'a.b.c.d',
-                'start': 1496262000,
-                'end': 1496262060,
-                'step': 60,
             }
         ]
         self.assertEqual(result, expected_response)
@@ -99,15 +97,13 @@ class RemoteReaderTests(TestCase):
         # bulk_query & now
         reader = RemoteReader(finder, {'intervals': [], 'path': 'a.b.c.d'}, bulk_query=['a.b.c.d'])
 
-        result = reader.fetch(startTime, endTime, now=endTime, requestContext={'forwardHeaders': {'Authorization': 'Basic xxxx'}})
+        result = reader.fetch_multi(startTime, endTime, now=endTime, requestContext={'forwardHeaders': {'Authorization': 'Basic xxxx'}})
         expected_response = [
             {
+                'pathExpression': 'a.b.c.d',
                 'name': 'a.b.c.d',
+                'time_info': (1496262000, 1496262060, 60),
                 'values': [1.0, 0.0, 1.0, 0.0, 1.0],
-                'path': 'a.b.c.d',
-                'start': 1496262000,
-                'end': 1496262060,
-                'step': 60,
             }
         ]
         self.assertEqual(result, expected_response)
@@ -148,3 +144,64 @@ class RemoteReaderTests(TestCase):
 
         with self.assertRaisesRegexp(Exception, 'Error requesting http://[^ ]+: error'):
           reader.fetch(startTime, endTime)
+
+    #
+    # Test RemoteReader.fetch()
+    #
+    @mock.patch('urllib3.PoolManager.request')
+    @mock.patch('django.conf.settings.CLUSTER_SERVERS', ['127.0.0.1', '8.8.8.8'])
+    @mock.patch('django.conf.settings.INTRACLUSTER_HTTPS', False)
+    @mock.patch('django.conf.settings.REMOTE_STORE_USE_POST', False)
+    @mock.patch('django.conf.settings.REMOTE_FETCH_TIMEOUT', 10)
+    def test_RemoteReader_fetch(self, http_request):
+        test_finders = RemoteFinder.factory()
+        finder = test_finders[0]
+
+        startTime = 1496262000
+        endTime   = 1496262060
+
+        # no path or bulk_query
+        reader = RemoteReader(finder,{})
+        self.assertEqual(reader.bulk_query, [])
+        result = reader.fetch(startTime, endTime)
+        self.assertEqual(result, None)
+        self.assertEqual(http_request.call_count, 0)
+
+        # path & bulk_query
+        reader = RemoteReader(finder, {'intervals': [], 'path': 'a.b.c.d'}, bulk_query=['a.b.c.*'])
+
+        data = [
+                {'start': startTime,
+                 'step': 60,
+                 'end': endTime,
+                 'values': [1.0, 0.0, 1.0, 0.0, 1.0],
+                 'name': 'a.b.c.c'
+                },
+                {'start': startTime,
+                 'step': 60,
+                 'end': endTime,
+                 'values': [1.0, 0.0, 1.0, 0.0, 1.0],
+                 'name': 'a.b.c.d'
+                }
+               ]
+        responseObject = HTTPResponse(body=StringIO(pickle.dumps(data)), status=200)
+        http_request.return_value = responseObject
+        result = reader.fetch(startTime, endTime)
+        expected_response = ((1496262000, 1496262060, 60), [1.0, 0.0, 1.0, 0.0, 1.0])
+        self.assertEqual(result, expected_response)
+        self.assertEqual(http_request.call_args[0], (
+          'GET',
+          'http://127.0.0.1/render/',
+        ))
+        self.assertEqual(http_request.call_args[1], {
+          'fields': [
+            ('format', 'pickle'),
+            ('local', '1'),
+            ('noCache', '1'),
+            ('from', startTime),
+            ('until', endTime),
+            ('target', 'a.b.c.*'),
+          ],
+          'headers': None,
+          'timeout': 10,
+        })

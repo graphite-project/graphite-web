@@ -179,12 +179,10 @@ class RemoteFinderTest(TestCase):
       result = finder.fetch(['a.b.c.d'], startTime, endTime)
       expected_response = [
         {
+          'pathExpression': 'a.b.c.d',
           'name': 'a.b.c.d',
+          'time_info': (1496262000, 1496262060, 60),
           'values': [1.0, 0.0, 1.0, 0.0, 1.0],
-          'path': 'a.b.c.d',
-          'start': 1496262000,
-          'end': 1496262060,
-          'step': 60,
         },
       ]
       self.assertEqual(result, expected_response)

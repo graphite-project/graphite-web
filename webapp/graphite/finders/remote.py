@@ -114,7 +114,7 @@ class RemoteFinder(BaseFinder):
             }
 
             if is_leaf:
-                reader = RemoteReader(self, node_info, bulk_query=[query.pattern])
+                reader = RemoteReader(self, node_info)
                 node = LeafNode(path, reader)
             else:
                 node = BranchNode(path)
@@ -124,7 +124,7 @@ class RemoteFinder(BaseFinder):
 
     def fetch(self, patterns, start_time, end_time, now=None, requestContext=None):
         reader = RemoteReader(self, {}, bulk_query=patterns)
-        return reader.fetch(start_time, end_time, now, requestContext)
+        return reader.fetch_multi(start_time, end_time, now, requestContext)
 
     def request(self, url, fields=None, headers=None, timeout=None):
         url = "%s://%s%s" % (
