@@ -145,12 +145,14 @@ class RemoteFinder(BaseFinder):
 
         if result.status != 200:
             self.fail()
-            url_full = "%s?%s" % (url, urlencode(fields))
             log.exception(
                 "RemoteFinder[%s] Error response %d from %s" % (self.host, result.status, url_full))
             raise Exception("Error response %d from %s" % (result.status, url_full))
 
         result.url_full = url_full
+
+        # reset last failure time so that retried fetches can re-enable a remote
+        self.last_failure = 0
 
         log.debug("RemoteFinder[%s] Fetched %s" % (self.host, url_full))
         return result

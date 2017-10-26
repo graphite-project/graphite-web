@@ -83,16 +83,16 @@ class Store(object):
         # Start fetches
         start = time.time()
         try:
-          for result in pool_exec(get_pool(), jobs, settings.REMOTE_FETCH_TIMEOUT):
+          for job in pool_exec(get_pool(), jobs, settings.REMOTE_FETCH_TIMEOUT):
             done += 1
 
-            if result.exception:
+            if job.exception:
               errors += 1
-              log.debug("Fetch for %s failed after %fs: %s" % (str(patterns), time.time() - start, str(result.exception)))
+              log.debug("Fetch for %s failed after %fs: %s" % (str(patterns), time.time() - start, str(job.exception)))
               continue
 
             log.debug("Got a fetch result for %s after %fs" % (str(patterns), time.time() - start))
-            results.extend(result.result)
+            results.extend(job.result)
         except PoolTimeoutError:
           log.debug("Timed out in fetch after %fs" % (time.time() - start))
 
@@ -148,17 +148,17 @@ class Store(object):
         # Start finds
         start = time.time()
         try:
-          for result in pool_exec(get_pool(), jobs, settings.REMOTE_FIND_TIMEOUT):
+          for job in pool_exec(get_pool(), jobs, settings.REMOTE_FIND_TIMEOUT):
             done += 1
 
-            if result.exception:
+            if job.exception:
               errors += 1
-              log.debug("Find for %s failed after %fs: %s" % (str(query), time.time() - start, str(result.exception)))
+              log.debug("Find for %s failed after %fs: %s" % (str(query), time.time() - start, str(job.exception)))
               continue
 
             log.debug("Got a find result for %s after %fs" % (str(query), time.time() - start))
-            for node in result.result or []:
-                nodes_by_path[node.path].append(node)
+            for node in job.result or []:
+              nodes_by_path[node.path].append(node)
         except PoolTimeoutError:
           log.debug("Timed out in find after %fs" % (time.time() - start))
 

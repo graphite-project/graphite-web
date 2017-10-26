@@ -1,3 +1,5 @@
+from traceback import format_exc
+
 from django.conf import settings
 
 from graphite.logger import log
@@ -52,12 +54,25 @@ class RemoteReader(BaseReader):
 
         headers = requestContext.get('forwardHeaders') if requestContext else None
 
-        result = self.finder.request(
-            '/render/',
-            fields=query_params,
-            headers=headers,
-            timeout=settings.REMOTE_FETCH_TIMEOUT,
-        )
+        retries = 1 # start counting at one to make log output and settings more readable
+        while True:
+          try:
+            result = self.finder.request(
+                '/render/',
+                fields=query_params,
+                headers=headers,
+                timeout=settings.REMOTE_FETCH_TIMEOUT,
+            )
+            break
+          except Exception:
+            if retries >= settings.MAX_FETCH_RETRIES:
+              log.exception("Failed after %s attempts! Root cause:\n%s" %
+                  (settings.MAX_FETCH_RETRIES, format_exc()))
+              raise
+            else:
+              log.exception("Got an exception when fetching data! Try: %i of %i. Root cause:\n%s" %
+                           (retries, settings.MAX_FETCH_RETRIES, format_exc()))
+              retries += 1
 
         try:
             data = unpickle.loads(result.data)
