@@ -62,7 +62,7 @@ class RemoteFinderTest(TestCase):
     @patch('urllib3.PoolManager.request')
     @override_settings(INTRACLUSTER_HTTPS=False)
     @override_settings(REMOTE_STORE_USE_POST=True)
-    @override_settings(REMOTE_FETCH_TIMEOUT=10)
+    @override_settings(REMOTE_FIND_TIMEOUT=10)
     def test_find_nodes(self, http_request):
       finder = RemoteFinder('127.0.0.1')
 
