@@ -16,7 +16,7 @@ from graphite.node import LeafNode
 from graphite.intervals import Interval, IntervalSet
 from graphite.finders.utils import FindQuery, BaseFinder
 from graphite.readers import MultiReader
-from graphite.worker_pool.pool import get_pool, pool_apply, Job
+from graphite.worker_pool.pool import get_pool, pool_exec, Job, PoolTimeoutError
 from graphite.tags.utils import get_tagdb
 
 
@@ -70,37 +70,21 @@ class Store(object):
 
         log.debug(
             'graphite.storage.Store.fetch :: Starting fetch on all backends')
-        start = time.time()
 
-        # Start fetches
         jobs = [
             Job(finder.fetch, patterns, startTime, endTime, now=now, requestContext=requestContext)
             for finder in self.get_finders(requestContext.get('localOnly'))
         ]
 
-        result_queue = pool_apply(get_pool(), jobs)
-
-        timeout = settings.REMOTE_FETCH_TIMEOUT
-        deadline = start + timeout
-        done = 0
-        errors = 0
-        total = len(jobs)
-
         results = []
 
-        while done < total:
-            wait_time = deadline - time.time()
-            try:
-                result = result_queue.get(True, wait_time)
-            # ValueError could happen if due to really unlucky timing wait_time
-            # is negative
-            except (Queue.Empty, ValueError):
-                if time.time() > deadline:
-                    log.debug("Timed out in fetch after %fs" % timeout)
-                    break
-                else:
-                    continue
+        done = 0
+        errors = 0
 
+        # Start fetches
+        start = time.time()
+        try:
+          for result in pool_exec(get_pool(), jobs, settings.REMOTE_FETCH_TIMEOUT):
             done += 1
 
             if result.exception:
@@ -110,6 +94,8 @@ class Store(object):
 
             log.debug("Got a fetch result for %s after %fs" % (str(patterns), time.time() - start))
             results.extend(result.result)
+        except PoolTimeoutError:
+          log.debug("Timed out in fetch after %fs" % (time.time() - start))
 
         if errors == done:
           raise Exception('All fetches failed for %s' % (str(patterns)))
@@ -148,41 +134,22 @@ class Store(object):
                      pattern, matched_leafs, warn_threshold))
 
     def _find(self, query):
-        start = time.time()
 
-        # Start finds
         jobs = [
             Job(finder.find_nodes, query)
             for finder in self.get_finders(query.local)
         ]
 
-        result_queue = pool_apply(get_pool(), jobs)
-
         # Group matching nodes by their path
         nodes_by_path = defaultdict(list)
 
-        timeout = settings.REMOTE_FIND_TIMEOUT
-        deadline = start + timeout
         done = 0
         errors = 0
-        total = len(jobs)
 
-        while done < total:
-            wait_time = deadline - time.time()
-            nodes = []
-
-            try:
-                result = result_queue.get(True, wait_time)
-
-            # ValueError could happen if due to really unlucky timing wait_time
-            # is negative
-            except (Queue.Empty, ValueError):
-                if time.time() > deadline:
-                    log.debug("Timed out in find_nodes after %fs" % timeout)
-                    break
-                else:
-                    continue
-
+        # Start finds
+        start = time.time()
+        try:
+          for result in pool_exec(get_pool(), jobs, settings.REMOTE_FIND_TIMEOUT):
             done += 1
 
             if result.exception:
@@ -193,6 +160,8 @@ class Store(object):
             log.debug("Got a find result for %s after %fs" % (str(query), time.time() - start))
             for node in result.result or []:
                 nodes_by_path[node.path].append(node)
+        except PoolTimeoutError:
+          log.debug("Timed out in find after %fs" % (time.time() - start))
 
         if errors == done:
           raise Exception('All finds failed for %s' % (str(query)))

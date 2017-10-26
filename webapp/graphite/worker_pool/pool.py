@@ -1,4 +1,5 @@
 import Queue
+import time
 
 from threading import Lock
 from django.conf import settings
@@ -9,27 +10,20 @@ __pools = {}
 
 
 class Job(object):
-  __slots__ = ('func', 'args', 'kwargs')
+  __slots__ = ('func', 'args', 'kwargs', 'result', 'exception')
 
   def __init__(self, func, *args, **kwargs):
     self.func = func
     self.args = args
     self.kwargs = kwargs
+    self.result = None
+    self.exception = None
 
   def run(self):
     try:
-      return Result(self, result=self.func(*self.args, **self.kwargs))
+      self.result = self.func(*self.args, **self.kwargs)
     except Exception as err:
-      return Result(self, exception=err)
-
-
-class Result(object):
-  __slots__ = ('job', 'result', 'exception')
-
-  def __init__(self, job, result=None, exception=None):
-    self.job = job
-    self.result = result
-    self.exception = exception
+      self.exception = err
 
 
 def get_pool(name="default", thread_count=settings.POOL_WORKERS):
@@ -79,9 +73,47 @@ def pool_apply(pool, jobs):
         func=pool_executor, args=[job], callback=return_result)
   else:
     for job in jobs:
-      queue.put(job.run())
+      job.run()
+      queue.put(job)
   return queue
 
 
+class PoolTimeoutError(Exception):
+  pass
+
+
+def pool_exec(pool, jobs, timeout):
+  start = time.time()
+  deadline = start + timeout
+  if pool:
+    done = 0
+    total = len(jobs)
+
+    queue = pool_apply(pool, jobs)
+
+    while done < total:
+      wait_time = deadline - time.time()
+      try:
+        result = queue.get(True, wait_time)
+      # ValueError could happen if due to really unlucky timing wait_time
+      # is negative
+      except (Queue.Empty, ValueError):
+        if time.time() > deadline:
+          raise PoolTimeoutError("Timed out after %fs" % (time.time() - start))
+
+        continue
+
+      done += 1
+      yield result
+  else:
+    for job in jobs:
+      job.run()
+
+      if time.time() > deadline:
+        raise PoolTimeoutError("Timed out after %fs" % (time.time() - start))
+
+      yield job
+
 def pool_executor(job):
-  return job.run()
+  job.run()
+  return job
