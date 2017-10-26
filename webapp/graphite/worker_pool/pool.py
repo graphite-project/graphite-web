@@ -5,11 +5,21 @@ from threading import Lock
 from django.conf import settings
 from multiprocessing.pool import ThreadPool
 
-__init_lock = Lock()
-__pools = {}
+_init_lock = Lock()
+_pools = {}
 
 
 class Job(object):
+  """A job to be executed by a pool
+
+  The job accepts a function and arguments.
+
+  When it is run, it will execute the function with the specified arguments.
+
+  The return value of the function will be stored in the result property of the job.
+
+  If the function raises an exception, it will be stored in the exception property of the job.
+  """
   __slots__ = ('func', 'args', 'kwargs', 'result', 'exception')
 
   def __init__(self, func, *args, **kwargs):
@@ -29,53 +39,34 @@ class Job(object):
 def get_pool(name="default", thread_count=settings.POOL_WORKERS):
   """Get (and initialize) a Thread pool.
 
+  If settings.USE_WORKER_POOL is False or thread_count (default: settings.POOL_WORKERS)
+  is 0, then None is returned.
+
   If the thread pool had already been initialized, thread_count will
   be ignored.
   """
   if not settings.USE_WORKER_POOL or not thread_count:
     return None
 
-  with __init_lock:
-    pool = __pools.get(name, None)
+  with _init_lock:
+    pool = _pools.get(name, None)
     if pool is None:
       pool = ThreadPool(thread_count)
-      __pools[name] = pool
+      _pools[name] = pool
   return pool
 
 
 def stop_pools():
-  with __init_lock:
-    for name in list(__pools.keys()):
-      pool = __pools.pop(name)
+  with _init_lock:
+    for name in list(_pools.keys()):
+      pool = _pools.pop(name)
       pool.close()
 
 
 def stop_pool(name="default"):
-  with __init_lock:
-    __pools[name].close()
-    del __pools[name]
-
-
-def pool_apply(pool, jobs):
-  """Return a queue that will contain results of jobs.
-
-  A list of jobs is passed in arguments and a queue of
-  results is returned. If settings.USE_WORKER_POOL is
-  True, then the jobs will be applied asynchronously.
-  """
-  queue = Queue.Queue()
-  if pool:
-    def return_result(x):
-      return queue.put(x)
-
-    for job in jobs:
-      pool.apply_async(
-        func=pool_executor, args=[job], callback=return_result)
-  else:
-    for job in jobs:
-      job.run()
-      queue.put(job)
-  return queue
+  with _init_lock:
+    _pools[name].close()
+    del _pools[name]
 
 
 class PoolTimeoutError(Exception):
@@ -83,28 +74,39 @@ class PoolTimeoutError(Exception):
 
 
 def pool_exec(pool, jobs, timeout):
+  """Execute a list of jobs, yielding each one as it completes.
+
+  If a pool is specified then the jobs will be executed asynchronously,
+  otherwise they are executed in order.
+
+  If not all jobs have been executed after the specified timeout a
+  PoolTimeoutError will be raised. When operating synchronously the
+  timeout is checked after each job is run.
+  """
   start = time.time()
   deadline = start + timeout
   if pool:
+    queue = Queue.Queue()
+
+    def pool_executor(job):
+      job.run()
+      queue.put(job)
+
+    for job in jobs:
+      pool.apply_async(func=pool_executor, args=[job])
+
     done = 0
     total = len(jobs)
 
-    queue = pool_apply(pool, jobs)
-
     while done < total:
-      wait_time = deadline - time.time()
+      wait_time = max(0, deadline - time.time())
       try:
-        result = queue.get(True, wait_time)
-      # ValueError could happen if due to really unlucky timing wait_time
-      # is negative
-      except (Queue.Empty, ValueError):
-        if time.time() > deadline:
-          raise PoolTimeoutError("Timed out after %fs" % (time.time() - start))
-
-        continue
+        job = queue.get(True, wait_time)
+      except Queue.Empty:
+        raise PoolTimeoutError("Timed out after %fs" % (time.time() - start))
 
       done += 1
-      yield result
+      yield job
   else:
     for job in jobs:
       job.run()
@@ -113,7 +115,3 @@ def pool_exec(pool, jobs, timeout):
         raise PoolTimeoutError("Timed out after %fs" % (time.time() - start))
 
       yield job
-
-def pool_executor(job):
-  job.run()
-  return job
