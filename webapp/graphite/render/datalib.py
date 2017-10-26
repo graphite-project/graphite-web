@@ -261,7 +261,7 @@ def _merge_results(pathExpr, startTime, endTime, result_queue, seriesList, reque
 def prefetchData(requestContext, targets):
   """Prefetch a bunch of path expressions and stores them in the context.
 
-  The idea is that this will allow more batching that doing a query
+  The idea is that this will allow more batching than doing a query
   each time evaluateTarget() needs to fetch a path. All the prefetched
   data is stored in the requestContext, to be accessed later by fetchData.
   """
