@@ -40,7 +40,7 @@ class RemoteFinder(BaseFinder):
         self.last_failure = time.time()
 
     @logtime(custom_msg=True)
-    def find_nodes(self, query, msg_setter):
+    def find_nodes(self, query, msg_setter=None):
         msg_setter(
             'host: {host}, query: {query}'.format(
                 host=self.host,
