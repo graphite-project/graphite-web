@@ -48,10 +48,10 @@ class RemoteReader(BaseReader):
         headers = requestContext.get('forwardHeaders') if requestContext else None
 
         result = self.finder.request(
-          '/render/',
-          fields=query_params,
-          headers=headers,
-          timeout=settings.REMOTE_FETCH_TIMEOUT,
+            '/render/',
+            fields=query_params,
+            headers=headers,
+            timeout=settings.REMOTE_FETCH_TIMEOUT,
         )
 
         try:
@@ -63,7 +63,12 @@ class RemoteReader(BaseReader):
                 (self.finder.host, result.url_full, err))
             raise Exception("Error decoding render response from %s: %s" % (result.url_full, err))
 
-        for i in range(len(data)):
-            data[i]['path'] = data[i]['name']
-
-        return data
+        return [
+            {
+                'pathExpression': series.get('pathExpression', series['name']),
+                'name': series['name'],
+                'time_info': (series['start'], series['end'], series['step']),
+                'values': series['values'],
+            }
+            for series in data
+        ]
