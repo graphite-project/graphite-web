@@ -21,6 +21,7 @@ import calendar
 import pytz
 import traceback
 from datetime import datetime
+from functools import wraps
 from os.path import splitext, basename, relpath
 from shutil import move
 from tempfile import mkstemp
@@ -225,47 +226,49 @@ def write_index(whisper_dir=None, ceres_dir=None, index=None):
   return None
 
 
-def logtime(custom_msg=False, custom_name=False):
-  def wrap(f):
-    def wrapped_f(*args, **kwargs):
-      logmsg = {
-        'msg': 'completed in',
-        'name': f.__module__ + '.' + f.__name__,
-      }
+class Timer(object):
+  __slots__ = ('msg', 'name', 'start_time')
 
-      t = time.time()
-      if custom_msg:
-        def set_msg(msg):
-          logmsg['msg'] = msg
+  def __init__(self, name):
+    self.name = name
+    self.msg = 'completed in'
+    self.start_time = time.time()
 
-        kwargs['msg_setter'] = set_msg
-      if custom_name:
-        def set_name(name):
-          logmsg['name'] = name
+  def set_msg(self, msg):
+    self.msg = msg
 
-        kwargs['name_setter'] = set_name
+  def set_name(self, name):
+    self.name = name
 
-      try:
-        res = f(*args, **kwargs)
-      except:
-        logmsg['msg'] = 'failed in'
-        raise
-      finally:
-        log.info(
-          '{name} :: {msg} {sec:.6}s'.format(
-            name=logmsg['name'],
-            msg=logmsg['msg'],
-            sec=time.time() - t,
-          )
-        )
-
-      return res
-    return wrapped_f
-  return wrap
+  def stop(self):
+    log.info(
+      '{name} :: {msg} {sec:.6}s'.format(
+        name=self.name,
+        msg=self.msg,
+        sec=time.time() - self.start_time,
+      )
+    )
 
 
-@logtime(custom_msg=True)
-def build_index(base_path, extension, fd, msg_setter=None):
+def logtime(f):
+  @wraps(f)
+  def wrapped_f(*args, **kwargs):
+    timer = Timer(f.__module__ + '.' + f.__name__)
+    kwargs['timer'] = timer
+
+    try:
+      return f(*args, **kwargs)
+    except:
+      timer.msg = 'failed in'
+      raise
+    finally:
+      timer.stop()
+
+  return wrapped_f
+
+
+@logtime
+def build_index(base_path, extension, fd, timer=None):
   t = time.time()
   total_entries = 0
   contents = os.walk(base_path, followlinks=True)
@@ -281,5 +284,5 @@ def build_index(base_path, extension, fd, msg_setter=None):
       total_entries += 1
       fd.write(line)
   fd.flush()
-  msg_setter("[IndexSearcher] index rebuild of \"%s\" took" % base_path)
+  timer.set_msg("[IndexSearcher] index rebuild of \"%s\" took" % base_path)
   return None

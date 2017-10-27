@@ -148,9 +148,9 @@ class TimeSeries(list):
 
 
 # Data retrieval API
-@logtime(custom_msg=True)
-def fetchData(requestContext, pathExpr, msg_setter=None):
-  msg_setter("lookup and merge of \"%s\" took" % str(pathExpr))
+@logtime
+def fetchData(requestContext, pathExpr, timer=None):
+  timer.set_msg("lookup and merge of \"%s\" took" % str(pathExpr))
 
   seriesList = {}
   (startTime, endTime, now) = timebounds(requestContext)

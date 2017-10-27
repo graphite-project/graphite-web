@@ -17,8 +17,8 @@ class BaseTagDB(object):
     """Initialize the tag db."""
     pass
 
-  @logtime(custom_msg=True, custom_name=True)
-  def find_series(self, tags, msg_setter=None, name_setter=None):
+  @logtime
+  def find_series(self, tags, timer=None):
     """
     Find series by tag, accepts a list of tag specifiers and returns a list of matching paths.
 
@@ -39,12 +39,12 @@ class BaseTagDB(object):
 
     Matching paths are returned as a list of strings.
     """
-    name_setter('%s.%s.find_series' % (self.__module__, self.__class__.__name__))
+    timer.set_name('%s.%s.find_series' % (self.__module__, self.__class__.__name__))
 
     cacheKey = 'TagDB.find_series:' + ':'.join(sorted(tags))
     result = cache.get(cacheKey)
     if result is not None:
-      msg_setter('completed (cached) in')
+      timer.set_msg('completed (cached) in')
     else:
       result = self._find_series(tags)
       cache.set(cacheKey, result, settings.TAGDB_CACHE_DURATION)
