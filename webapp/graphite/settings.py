@@ -156,6 +156,7 @@ LDAP_USER_DN_TEMPLATE = None
 #Set this to True to delegate authentication to the web server
 USE_REMOTE_USER_AUTHENTICATION = False
 REMOTE_USER_BACKEND = "" # Provide an alternate or subclassed backend
+REMOTE_USER_MIDDLEWARE = "" # Provide an alternate or subclassed middleware
 AUTHENTICATION_BACKENDS=[]
 
 # Django 1.5 requires this so we set a default but warn the user
@@ -289,7 +290,10 @@ if USE_LDAP_AUTH and LDAP_URI is None:
   LDAP_URI = "ldap://%s:%d/" % (LDAP_SERVER, LDAP_PORT)
 
 if USE_REMOTE_USER_AUTHENTICATION or REMOTE_USER_BACKEND:
-  MIDDLEWARE += ('django.contrib.auth.middleware.RemoteUserMiddleware',)
+  if REMOTE_USER_MIDDLEWARE:
+    MIDDLEWARE += (REMOTE_USER_MIDDLEWARE,)
+  else:
+    MIDDLEWARE += ('django.contrib.auth.middleware.RemoteUserMiddleware',)
   if DJANGO_VERSION < (1, 10):
       MIDDLEWARE_CLASSES = MIDDLEWARE
   if REMOTE_USER_BACKEND:
