@@ -28,12 +28,11 @@ def get_finders(finder_path):
         return cls.factory()
 
     # monkey patch so legacy finders will work
-    if not getattr(cls, 'fetch', None):
-      cls.fetch = BaseFinder.fetch
-    if not getattr(cls, 'find_multi', None):
-      cls.find_multi = BaseFinder.find_multi
+    finder = cls()
+    finder.fetch = BaseFinder.fetch
+    finder.find_multi = BaseFinder.find_multi
 
-    return [cls()]
+    return [finder]
 
 
 class Store(object):
@@ -62,7 +61,8 @@ class Store(object):
             yield finder
 
     def fetch(self, patterns, startTime, endTime, now, requestContext):
-        patterns = set(patterns)
+        # deduplicate patterns
+        patterns = list(set(patterns))
 
         if not patterns:
             return []
