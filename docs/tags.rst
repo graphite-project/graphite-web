@@ -148,10 +148,10 @@ To get a list of defined tags:
 
     [
       {
-        "tag": "name"
+        "tag": "datacenter"
       },
       {
-        "tag": "datacenter"
+        "tag": "name"
       },
       {
         "tag": "rack"
@@ -217,6 +217,82 @@ Finally, to search for series matching a set of tag expressions:
 
     [
       "disk.used;datacenter=dc1;rack=a1;server=web01"
+    ]
+
+Auto-complete Support
+---------------------
+The HTTP api provides 2 endpoints to support auto-completion of tags and values based on the series which match a provided set of tag expressions.
+
+Each of these endpoints accepts an optional list of tag expressions using the same syntax as the `/tags/findSeries` endpoint.
+
+The provided expressions are used to filter the results, so that the suggested list of tags will only include tags that occur in series matching the expressions.
+
+To get an auto-complete list of tags (results are limited to 100):
+
+.. code-block:: none
+
+    $ curl -s "http://graphite/tags/autoComplete/tags?pretty=1"
+
+    [
+      "datacenter",
+      "name",
+      "rack",
+      "server"
+    ]
+
+To filter by prefix:
+
+.. code-block:: none
+
+    $ curl -s "http://graphite/tags/autoComplete/tags?pretty=1&tagPrefix=d"
+
+    [
+      "datacenter"
+    ]
+
+If you provide a list of tag expressions, the specified tags are excluded and the result is filtered to only tags that occur in series matching those expressions:
+
+.. code-block:: none
+
+    $ curl -s "http://graphite/tags/autoComplete/tags?pretty=1&expr=datacenter=dc1&expr=server=web01"
+
+    [
+      "name",
+      "rack"
+    ]
+
+To get an auto-complete list of values for a specified tag (results are limited to 100):
+
+.. code-block:: none
+
+    $ curl -s "http://graphite/tags/autoComplete/values?pretty=1&tag=rack"
+
+    [
+      "a1",
+      "a2",
+      "b1",
+      "b2"
+    ]
+
+To filter by prefix:
+
+.. code-block:: none
+
+    $ curl -s "http://graphite/tags/autoComplete/values?pretty=1&tag=rack&valuePrefix=a"
+
+    [
+      "a1",
+      "a2"
+    ]
+
+If you provide a list of tag expressions, the result is filtered to only values that occur for the specified tag in series matching those expressions:
+
+.. code-block:: none
+
+    $ curl -s "http://graphite/tags/autoComplete/values?pretty=1&tag=rack&expr=datacenter=dc1&expr=server=web01"
+
+    [
+      "a1"
     ]
 
 Removing Series from the TagDB
