@@ -22,7 +22,6 @@ from django.conf import settings
 from graphite.logger import log
 from graphite.storage import STORE
 from graphite.util import timebounds, logtime
-from graphite.render.utils import extractPathExpressions
 
 
 class TimeSeries(list):
@@ -238,14 +237,13 @@ def _merge_results(pathExpr, startTime, endTime, prefetched, seriesList, request
   return [seriesList[k] for k in sorted(seriesList)]
 
 
-def prefetchData(requestContext, targets):
+def prefetchData(requestContext, pathExpressions):
   """Prefetch a bunch of path expressions and stores them in the context.
 
   The idea is that this will allow more batching than doing a query
   each time evaluateTarget() needs to fetch a path. All the prefetched
   data is stored in the requestContext, to be accessed later by fetchData.
   """
-  pathExpressions = extractPathExpressions(requestContext, targets)
   if not pathExpressions:
     return
 

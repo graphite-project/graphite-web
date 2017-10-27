@@ -14,7 +14,7 @@ except ImportError:
 
 from graphite.render.datalib import TimeSeries
 from graphite.render.hashing import ConsistentHashRing, hashRequest, hashData
-from graphite.render.utils import extractPathExpressions
+from graphite.render.evaluator import extractPathExpressions
 from graphite.render.views import renderViewJson
 import whisper
 
