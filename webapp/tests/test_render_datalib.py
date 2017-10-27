@@ -1,12 +1,14 @@
 import pytz
 
 from datetime import datetime
-from mock import mock
+from mock import mock, patch
 
 from .base import TestCase
 from django.conf import settings
 
 from graphite.render.datalib import TimeSeries, fetchData, _merge_results, prefetchData
+from graphite.util import timebounds
+
 
 class TimeSeriesTest(TestCase):
 
@@ -255,7 +257,7 @@ class DatalibFunctionTest(TestCase):
 
     def test__merge_results(self):
       pathExpr = 'collectd.test-db.load.value'
-      startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+      startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE))
       endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
       timeInfo = [startTime, endTime, 60]
       result_queue = [
@@ -276,7 +278,7 @@ class DatalibFunctionTest(TestCase):
     @mock.patch('graphite.logger.log.debug')
     def test__merge_results_no_results(self, log_debug):
       pathExpr = 'collectd.test-db.load.value'
-      startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+      startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE))
       endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
       timeInfo = [startTime, endTime, 60]
       result_queue = [
@@ -293,7 +295,7 @@ class DatalibFunctionTest(TestCase):
     @mock.patch('graphite.logger.log.exception')
     def test__merge_results_bad_results(self, log_exception):
       pathExpr = 'collectd.test-db.load.value'
-      startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+      startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE))
       endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
       timeInfo = [startTime, endTime, 60]
       result_queue = [
@@ -308,7 +310,7 @@ class DatalibFunctionTest(TestCase):
 
     def test__merge_results_multiple_series(self):
       pathExpr = 'collectd.test-db.load.value'
-      startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+      startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE))
       endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
       timeInfo = [startTime, endTime, 60]
       result_queue = [
@@ -331,7 +333,7 @@ class DatalibFunctionTest(TestCase):
 
     def test__merge_results_no_remote_store_merge_results(self):
       pathExpr = 'collectd.test-db.load.value'
-      startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+      startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE))
       endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
       timeInfo = [startTime, endTime, 60]
       result_queue = [
@@ -365,3 +367,22 @@ class DatalibFunctionTest(TestCase):
       # STORE.finders has no non-local finders
       results = prefetchData({}, [])
       self.assertEqual(results, None)
+
+      # STORE.fetch returns list with None value
+      with patch('graphite.render.datalib.STORE.fetch', lambda *_: [None]):
+        startTime = datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE))
+        endTime = datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+        now = datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
+
+        requestContext = {
+          'startTime': startTime,
+          'endTime': endTime,
+          'now': now,
+          'prefetched': {
+            'somekey': 'somedata',
+          },
+        }
+
+        prefetchData(requestContext, ['test'])
+
+        self.assertEqual(requestContext['prefetched'][timebounds(requestContext)], {})
