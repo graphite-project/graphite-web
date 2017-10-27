@@ -7,6 +7,8 @@ import math
 import logging
 import shutil
 
+from mock import patch
+
 try:
   import cPickle as pickle
 except ImportError:
@@ -14,7 +16,9 @@ except ImportError:
 
 from graphite.render.datalib import TimeSeries
 from graphite.render.hashing import ConsistentHashRing, hashRequest, hashData
-from graphite.render.evaluator import extractPathExpressions
+from graphite.render.evaluator import evaluateTarget, extractPathExpressions, evaluateScalarTokens
+from graphite.render.functions import NormalizeEmptyResultError
+from graphite.render.grammar import grammar
 from graphite.render.views import renderViewJson
 import whisper
 
@@ -70,13 +74,112 @@ class RenderTest(TestCase):
         except OSError:
             pass
 
-    def test_render_evaluator(self):
-        test_input = ['somefunc(my.metri[cz].{one,two})=123', 'target1,target2']
+    def test_render_extractPathExpressions(self):
+        test_input = ['somefunc(my.metri[cz].{one,two})|anotherfunc()=123', 'target1,target2', '']
         expected_output = ['my.metri[cz].{one,two}', 'target1']
         outputs = extractPathExpressions({}, test_input)
 
-        self.assertTrue(all(output in expected_output for output in outputs))
-        self.assertTrue(all(output in outputs for output in expected_output))
+        self.assertEqual(sorted(outputs), sorted(expected_output))
+
+    def test_render_extractPathExpressions_template(self):
+        test_input = [
+          'template(target.$test)',
+          'template(target.$test, test="foo")',
+          'template(target.$1)',
+          'template(target.$1, "bar")'
+        ]
+
+        # no template in request context, use values from expression
+        expected_output = ['target.$test', 'target.foo', 'target.$1', 'target.bar']
+        outputs = extractPathExpressions({}, test_input)
+        self.assertEqual(sorted(outputs), sorted(expected_output))
+
+        # template in request context, use those values
+        expected_output = ['target.blah', 'target.baz']
+        outputs = extractPathExpressions({'template': {'test': 'blah', '1': 'baz'}}, test_input)
+        self.assertEqual(sorted(outputs), sorted(expected_output))
+
+    @patch('graphite.render.evaluator.prefetchData', lambda *_: None)
+    @patch('graphite.render.evaluator.fetchData', lambda requestContext, expression: [expression])
+    def test_render_evaluateTokens_template(self):
+        test_input = [
+          'template(target.$test)',
+          'template(target.$test, test="foo")',
+          'template(target.$1)',
+          'template(target.$1, "bar")'
+          '',
+          None,
+        ]
+
+        # no template in request context, use values from expression
+        expected_output = ['target.$test', 'target.foo', 'target.$1', 'target.bar']
+        outputs = evaluateTarget({}, test_input)
+        self.assertEqual(sorted(outputs), sorted(expected_output))
+
+        # template in request context, use those values
+        expected_output = ['target.blah', 'target.blah', 'target.baz', 'target.baz']
+        outputs = evaluateTarget({'template': {'test': 'blah', '1': 'baz'}}, test_input)
+        self.assertEqual(sorted(outputs), sorted(expected_output))
+
+        # invalid template call
+        test_input = [
+          'template(target.$test, test=foo.bar)',
+        ]
+
+        with self.assertRaisesRegexp(ValueError, 'invalid template\(\) syntax, only string/numeric arguments are allowed'):
+          evaluateTarget({}, test_input)
+
+    @patch('graphite.render.evaluator.prefetchData', lambda *_: None)
+    def test_render_evaluateTokens_NormalizeEmptyResultError(self):
+        def raiseError(requestContext):
+          raise NormalizeEmptyResultError
+
+        with patch('graphite.render.evaluator.SeriesFunctions', {'test': raiseError}):
+          outputs = evaluateTarget({}, 'test()')
+          self.assertEqual(outputs, [])
+
+    @patch('graphite.render.evaluator.prefetchData', lambda *_: None)
+    def test_render_evaluateTokens_TimeSeries(self):
+        timeseries = TimeSeries('test', 0, 1, 1, [1])
+
+        def returnTimeSeries(requestContext):
+          return timeseries
+
+        with patch('graphite.render.evaluator.SeriesFunctions', {'test': returnTimeSeries}):
+          outputs = evaluateTarget({}, 'test()')
+          self.assertEqual(outputs, [timeseries])
+
+    def test_render_evaluateScalarTokens(self):
+        # test parsing numeric arguments
+        tokens = grammar.parseString('test(1, 1.0, 1e3, True, false, None, none)')
+        self.assertEqual(evaluateScalarTokens(tokens.expression.call.args[0]), 1)
+        self.assertEqual(evaluateScalarTokens(tokens.expression.call.args[1]), 1.0)
+        self.assertEqual(evaluateScalarTokens(tokens.expression.call.args[2]), 1e3)
+        self.assertEqual(evaluateScalarTokens(tokens.expression.call.args[3]), True)
+        self.assertEqual(evaluateScalarTokens(tokens.expression.call.args[4]), False)
+        self.assertIsNone(evaluateScalarTokens(tokens.expression.call.args[5]))
+        self.assertIsNone(evaluateScalarTokens(tokens.expression.call.args[6]))
+
+        # test invalid tokens
+        class ScalarToken(object):
+          number = None
+          string = None
+          boolean = None
+          none = None
+
+        class ScalarTokenNumber(object):
+          integer = None
+          float = None
+          scientific = None
+
+        with self.assertRaisesRegexp(ValueError, 'unknown token in target evaluator'):
+          tokens = ScalarToken()
+          evaluateScalarTokens(tokens)
+
+        with self.assertRaisesRegexp(ValueError, 'unknown numeric type in target evaluator'):
+          tokens = ScalarToken()
+          tokens.number = ScalarTokenNumber()
+          evaluateScalarTokens(tokens)
 
     def test_render_view(self):
         url = reverse('render')

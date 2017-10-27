@@ -97,22 +97,23 @@ def evaluateScalarTokens(tokens):
   if tokens.number:
     if tokens.number.integer:
       return int(tokens.number.integer)
-    elif tokens.number.float:
+    if tokens.number.float:
       return float(tokens.number.float)
-    elif tokens.number.scientific:
+    if tokens.number.scientific:
       return float(tokens.number.scientific[0])
 
-  elif tokens.string:
+    raise ValueError("unknown numeric type in target evaluator")
+
+  if tokens.string:
     return tokens.string[1:-1]
 
-  elif tokens.boolean:
+  if tokens.boolean:
     return tokens.boolean[0] == 'true'
 
-  elif tokens.none:
+  if tokens.none:
     return None
 
-  else:
-    raise ValueError("unknown token in target evaluator")
+  raise ValueError("unknown token in target evaluator")
 
 
 def extractPathExpressions(requestContext, targets):
