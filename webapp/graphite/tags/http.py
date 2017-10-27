@@ -40,7 +40,7 @@ class HttpTagDB(BaseTagDB):
     return json.loads(result.data.decode('utf-8'))
 
   def _find_series(self, tags):
-    return self.request('POST', '/tags/findSeries?' + '&'.join([('expr=%s' % quote(tag)) for tag in tags]))
+    return self.request('GET', '/tags/findSeries?' + '&'.join([('expr=%s' % quote(tag)) for tag in tags]))
 
   def get_series(self, path):
     parsed = self.parse(path)
