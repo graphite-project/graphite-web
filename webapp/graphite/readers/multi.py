@@ -36,8 +36,8 @@ class MultiReader(BaseReader):
 
         return functools.reduce(self.merge, results)
 
-
-    def merge(self, results1, results2):
+    @staticmethod
+    def merge(results1, results2):
         # Ensure results1 is finer than results2
         if results1[0][2] > results2[0][2]:
             results1, results2 = results2, results1

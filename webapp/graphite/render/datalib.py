@@ -167,8 +167,6 @@ def _merge_results(pathExpr, startTime, endTime, prefetched, seriesList, request
   # Used as a cache to avoid recounting series None values below.
   series_best_nones = {}
 
-  errors = []
-
   for path, results in prefetched:
     if not results:
       log.debug("render.datalib.fetchData :: no results for %s.fetch(%s, %s)" % (path, startTime, endTime))

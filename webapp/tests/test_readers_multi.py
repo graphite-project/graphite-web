@@ -10,7 +10,6 @@ import whisper
 import gzip
 
 from graphite.readers import WhisperReader, MultiReader
-from graphite.wsgi import application  # NOQA makes sure we have a working WSGI app
 from graphite.node import LeafNode
 
 
