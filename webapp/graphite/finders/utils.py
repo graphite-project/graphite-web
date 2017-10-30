@@ -82,9 +82,9 @@ class BaseFinder(object):
                 yield (node, query)
 
     def fetch(self, patterns, start_time, end_time, now=None, requestContext=None):
-        """Fetch multiple nodes or patterns at once.
+        """Fetch multiple patterns at once.
 
-        This method is used to fetch multiple nodes or pattern at once, this
+        This method is used to fetch multiple patterns at once, this
         allows alternate finders to do batching on their side when they can.
 
         Returns:
