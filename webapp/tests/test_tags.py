@@ -170,6 +170,46 @@ class TagsTest(TestCase):
   def test_redis_tagdb(self):
     return self._test_tagdb(RedisTagDB())
 
+  def test_tagdb_autocomplete(self):
+    self.maxDiff = None
+
+    search_exprs = ['name=test.a']
+
+    db = LocalDatabaseTagDB()
+
+    def mock_find_series(self, exprs):
+      if exprs != search_exprs:
+        raise Exception('Unexpected exprs %s' % str(exprs))
+
+      return [('test.a;tag1=value1.%3d;tag2=value2.%3d' % (i, 201 - i)) for i in range(1,201)]
+
+    with patch('graphite.tags.localdatabase.LocalDatabaseTagDB.find_series', mock_find_series):
+      result = db.auto_complete_tags(search_exprs)
+      self.assertEqual(result, [
+        'tag1',
+        'tag2',
+      ])
+
+      result = db.auto_complete_values(search_exprs, 'tag2')
+      self.assertEqual(result, [('value2.%3d' % i) for i in range(1,101)])
+
+      result = db.auto_complete_values(search_exprs, 'tag1', 'value1.1')
+      self.assertEqual(result, [('value1.%3d' % i) for i in range(100,200)])
+
+      result = db.auto_complete_values(search_exprs, 'nonexistenttag1', 'value1.1')
+      self.assertEqual(result, [])
+
+  def test_find_series_cached(self):
+      def mock_cache_get(cacheKey):
+        if cacheKey != 'TagDB.find_series:hello=tiger:name=test.a':
+          raise Exception('Unexpected cacheKey %s' % cacheKey)
+
+        return ['test.a;blah=blah;hello=tiger']
+
+      with patch('django.core.cache.cache.get', mock_cache_get):
+        result = LocalDatabaseTagDB().find_series(['name=test.a','hello=tiger'])
+        self.assertEqual(result, ['test.a;blah=blah;hello=tiger'])
+
   def test_http_tagdb(self):
     # test http tagdb using django client
     db = HttpTagDB()
@@ -225,29 +265,59 @@ class TagsTest(TestCase):
   def test_tag_views(self):
     url = reverse('tagList')
 
+    ## tagSeries
+
+    # get should fail
+    response = self.client.get(url + '/tagSeries', {'path': 'test.a;hello=tiger;blah=blah'})
+    self.assertEqual(response.status_code, 405)
+
+    # post without path should fail
+    response = self.client.post(url + '/tagSeries', {})
+    self.assertEqual(response.status_code, 400)
+    self.assertEqual(response['Content-Type'], 'application/json')
+
+    # tagging a series should succeed
     expected = 'test.a;blah=blah;hello=tiger'
 
     response = self.client.post(url + '/tagSeries', {'path': 'test.a;hello=tiger;blah=blah'})
+    self.assertEqual(response.status_code, 200)
     self.assertEqual(response['Content-Type'], 'application/json')
     self.assertEqual(response.content, json.dumps(expected, indent=2, sort_keys=True))
 
+    ## list tags
+
+    # put should fail
+    response = self.client.put(url, {})
+    self.assertEqual(response.status_code, 405)
+
+    # filtered list
     expected = [{"tag": "hello"}]
 
     response = self.client.get(url, {'filter': 'hello$'})
+    self.assertEqual(response.status_code, 200)
     self.assertEqual(response['Content-Type'], 'application/json')
     result = json.loads(response.content)
     self.assertEqual(len(result), len(expected))
     self.assertEqual(result[0]['tag'], expected[0]['tag'])
 
+    # pretty output
     response = self.client.get(url, {'filter': 'hello$', 'pretty': 1})
+    self.assertEqual(response.status_code, 200)
     self.assertEqual(response['Content-Type'], 'application/json')
     result = json.loads(response.content)
     self.assertEqual(len(result), len(expected))
     self.assertEqual(result[0]['tag'], expected[0]['tag'])
+
+    ## tag details
+
+    # put should fail
+    response = self.client.put(url + '/hello', {})
+    self.assertEqual(response.status_code, 405)
 
     expected = {"tag": "hello", "values": [{"count": 1, "value": "tiger"}]}
 
     response = self.client.get(url + '/hello', {'filter': 'tiger$'})
+    self.assertEqual(response.status_code, 200)
     self.assertEqual(response['Content-Type'], 'application/json')
     result = json.loads(response.content)
     self.assertEqual(result['tag'], expected['tag'])
@@ -255,7 +325,9 @@ class TagsTest(TestCase):
     self.assertEqual(result['values'][0]['count'], expected['values'][0]['count'])
     self.assertEqual(result['values'][0]['value'], expected['values'][0]['value'])
 
+    # pretty output
     response = self.client.get(url + '/hello', {'filter': 'tiger$', 'pretty': 1})
+    self.assertEqual(response.status_code, 200)
     self.assertEqual(response['Content-Type'], 'application/json')
     result = json.loads(response.content)
     self.assertEqual(result['tag'], expected['tag'])
@@ -263,20 +335,133 @@ class TagsTest(TestCase):
     self.assertEqual(result['values'][0]['count'], expected['values'][0]['count'])
     self.assertEqual(result['values'][0]['value'], expected['values'][0]['value'])
 
+    ## findSeries
+
+    # put should fail
+    response = self.client.put(url + '/findSeries', {})
+    self.assertEqual(response.status_code, 405)
+
+    # expr is required
+    response = self.client.post(url + '/findSeries', {})
+    self.assertEqual(response.status_code, 400)
+    self.assertEqual(response['Content-Type'], 'application/json')
+
+    # basic find
     expected = ['test.a;blah=blah;hello=tiger']
 
     response = self.client.get(url + '/findSeries?expr[]=name=test.a&expr[]=hello=tiger&expr[]=blah=blah&pretty=1')
+    self.assertEqual(response.status_code, 200)
     self.assertEqual(response['Content-Type'], 'application/json')
     self.assertEqual(response.content, json.dumps(expected, indent=2, sort_keys=True))
 
+    # tag another series
+    expected = 'test.a;blah=blah;hello=lion'
+
+    response = self.client.post(url + '/tagSeries', {'path': 'test.a;hello=lion;blah=blah'})
+    self.assertEqual(response.status_code, 200)
+    self.assertEqual(response['Content-Type'], 'application/json')
+    self.assertEqual(response.content, json.dumps(expected, indent=2, sort_keys=True))
+
+    ## autocomplete tags
+
+    response = self.client.put(url + '/autoComplete/tags', {})
+    self.assertEqual(response.status_code, 405)
+
+    expected = [
+      'hello',
+    ]
+
+    response = self.client.get(url + '/autoComplete/tags?tagPrefix=hello&pretty=1')
+    self.assertEqual(response['Content-Type'], 'application/json')
+    self.assertEqual(response.content, json.dumps(expected, indent=2, sort_keys=True))
+
+    expected = [
+      'blah',
+      'hello',
+    ]
+
+    response = self.client.get(url + '/autoComplete/tags?expr[]=name=test.a&pretty=1')
+    self.assertEqual(response['Content-Type'], 'application/json')
+    self.assertEqual(response.content, json.dumps(expected, indent=2, sort_keys=True))
+
+    expected = [
+      'hello',
+    ]
+
+    response = self.client.get(url + '/autoComplete/tags?expr=name=test.a&tagPrefix=hell&pretty=1')
+    self.assertEqual(response.status_code, 200)
+    self.assertEqual(response['Content-Type'], 'application/json')
+    self.assertEqual(response.content, json.dumps(expected, indent=2, sort_keys=True))
+
+    ## autocomplete values
+
+    response = self.client.put(url + '/autoComplete/values', {})
+    self.assertEqual(response.status_code, 405)
+
+    response = self.client.get(url + '/autoComplete/values', {})
+    self.assertEqual(response.status_code, 400)
+    self.assertEqual(response['Content-Type'], 'application/json')
+    self.assertEqual(response.content, json.dumps({'error': 'no tag specified'}))
+
+    expected = ['lion','tiger']
+
+    response = self.client.get(url + '/autoComplete/values?tag=hello&pretty=1')
+    self.assertEqual(response['Content-Type'], 'application/json')
+    self.assertEqual(response.content, json.dumps(expected, indent=2, sort_keys=True))
+
+    expected = ['lion','tiger']
+
+    response = self.client.get(url + '/autoComplete/values?expr[]=name=test.a&tag=hello&pretty=1')
+    self.assertEqual(response['Content-Type'], 'application/json')
+    self.assertEqual(response.content, json.dumps(expected, indent=2, sort_keys=True))
+
+    expected = ['lion']
+
+    response = self.client.get(url + '/autoComplete/values?expr=name=test.a&tag=hello&valuePrefix=li&pretty=1')
+    self.assertEqual(response.status_code, 200)
+    self.assertEqual(response['Content-Type'], 'application/json')
+    self.assertEqual(response.content, json.dumps(expected, indent=2, sort_keys=True))
+
+    ## delSeries
+
+    # PUT should fail
+    response = self.client.put(url + '/delSeries', {})
+    self.assertEqual(response.status_code, 405)
+
+    # path is required
+    response = self.client.post(url + '/delSeries', {})
+    self.assertEqual(response.status_code, 400)
+    self.assertEqual(response['Content-Type'], 'application/json')
+
+    # delete first series we added
     expected = True
 
     response = self.client.post(url + '/delSeries', {'path': 'test.a;blah=blah;hello=tiger'})
+    self.assertEqual(response.status_code, 200)
     self.assertEqual(response['Content-Type'], 'application/json')
     self.assertEqual(response.content, json.dumps(expected))
 
+    # delete second series
+    expected = True
+
+    response = self.client.post(url + '/delSeries', {'path': 'test.a;blah=blah;hello=lion'})
+    self.assertEqual(response.status_code, 200)
+    self.assertEqual(response['Content-Type'], 'application/json')
+    self.assertEqual(response.content, json.dumps(expected))
+
+    # delete nonexistent series
+
+    expected = True
+
+    response = self.client.post(url + '/delSeries', {'path': 'test.a;blah=blah;hello=lion'})
+    self.assertEqual(response.status_code, 200)
+    self.assertEqual(response['Content-Type'], 'application/json')
+    self.assertEqual(response.content, json.dumps(expected))
+
+    # find nonexistent series
     expected = []
 
     response = self.client.get(url + '/findSeries?expr=name=test.a&expr=hello=tiger&expr=blah=blah')
+    self.assertEqual(response.status_code, 200)
     self.assertEqual(response['Content-Type'], 'application/json')
     self.assertEqual(response.content, json.dumps(expected, indent=2, sort_keys=True))

@@ -112,7 +112,7 @@ class LocalDatabaseTagDB(BaseTagDB):
     with connection.cursor() as cursor:
       cursor.execute(sql, params)
 
-      return [row[0] for row in cursor.fetchall() if matches_filters(row[0])]
+      return [row[0] for row in cursor if matches_filters(row[0])]
 
   def get_series(self, path):
     with connection.cursor() as cursor:
@@ -127,7 +127,7 @@ class LocalDatabaseTagDB(BaseTagDB):
 
       series_id = None
 
-      tags = {tag: value for (series_id, tag, value) in cursor.fetchall()}
+      tags = {tag: value for (series_id, tag, value) in cursor}
 
       if not tags:
         return None
@@ -150,7 +150,7 @@ class LocalDatabaseTagDB(BaseTagDB):
       sql += ' ORDER BY t.tag'
       cursor.execute(sql, params)
 
-      return [{'id': tag_id, 'tag': tag} for (tag_id, tag) in cursor.fetchall()]
+      return [{'id': tag_id, 'tag': tag} for (tag_id, tag) in cursor]
 
   def get_tag(self, tag, valueFilter=None):
     with connection.cursor() as cursor:
@@ -193,7 +193,7 @@ class LocalDatabaseTagDB(BaseTagDB):
       sql += ' ORDER BY v.value'
       cursor.execute(sql, params)
 
-      return [{'id': value_id, 'value': value, 'count': count} for (value_id, value, count) in cursor.fetchall()]
+      return [{'id': value_id, 'value': value, 'count': count} for (value_id, value, count) in cursor]
 
   @staticmethod
   def _insert_ignore(table, cols, data):
@@ -254,7 +254,7 @@ class LocalDatabaseTagDB(BaseTagDB):
       sql = 'SELECT id, tag FROM tags_tag WHERE tag IN (' + ', '.join(['%s'] * len(parsed.tags)) + ')'  # nosec
       params = list(parsed.tags.keys())
       cursor.execute(sql, params)
-      tag_ids = {tag: tag_id for (tag_id, tag) in cursor.fetchall()}
+      tag_ids = {tag: tag_id for (tag_id, tag) in cursor}
 
       # tag values
       self._insert_ignore('tags_tagvalue', ['value'], [[value] for value in parsed.tags.values()])
@@ -262,7 +262,7 @@ class LocalDatabaseTagDB(BaseTagDB):
       sql = 'SELECT id, value FROM tags_tagvalue WHERE value IN (' + ', '.join(['%s'] * len(parsed.tags)) + ')'  # nosec
       params = list(parsed.tags.values())
       cursor.execute(sql, params)
-      value_ids = {value: value_id for (value_id, value) in cursor.fetchall()}
+      value_ids = {value: value_id for (value_id, value) in cursor}
 
       # series
       if curr:
