@@ -19,6 +19,7 @@ import time
 import sys
 import calendar
 import pytz
+import traceback
 from datetime import datetime
 from os.path import splitext, basename, relpath
 from shutil import move
@@ -57,6 +58,10 @@ def epoch(dt):
   """
   Returns the epoch timestamp of a timezone-aware datetime object.
   """
+  if not dt.tzinfo:
+    tb = traceback.extract_stack(None, 2)
+    log.warning('epoch() called with non-timezone-aware datetime in %s at %s:%d' % (tb[0][2], tb[0][0], tb[0][1]))
+    return calendar.timegm(make_aware(dt, pytz.timezone(settings.TIME_ZONE)).astimezone(pytz.utc).timetuple())
   return calendar.timegm(dt.astimezone(pytz.utc).timetuple())
 
 
