@@ -4,6 +4,7 @@ import socket
 import time
 import whisper
 import pytz
+
 from datetime import datetime
 from mock import patch
 
@@ -49,9 +50,21 @@ class UtilTest(TestCase):
         self.assertEqual( results, [True, True, False] )
 
     def test_is_local_interface_ipv6(self):
+        # we need to know whether the host provides an ipv6 callback address
+        ipv6_support = True
+        try:
+            sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
+            sock.bind( ('::1', 0) )
+            sock.close()
+        except Exception:
+            ipv6_support = False
+
         addresses = ['::1', '[::1]:8080', '[::1]', '::1:8080']
         results = [ util.is_local_interface(a) for a in addresses ]
-        self.assertEqual( results, [True, True, True, False] )
+        if ipv6_support:
+            self.assertEqual( results, [True, True, True, False] )
+        else:
+            self.assertEqual( results, [False, False, False, False] )
 
     def test_is_local_interface_dns(self):
         addresses = ['localhost', socket.gethostname(), 'google.com']
