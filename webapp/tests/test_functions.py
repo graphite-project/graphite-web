@@ -2259,16 +2259,56 @@ class FunctionsTest(TestCase):
 
     def test_check_empty_lists(self):
         seriesList = []
-        config = [[1000, 100, 10, 0], []]
+        config = [[1000, 100, 10, 0], [2000, 200, None, None], [None, None, None, None]]
         for i, c in enumerate(config):
-            seriesList.append(TimeSeries('Test(%d)' % i, 0, 0, 0, c))
+            seriesList.append(TimeSeries('Test(%d)' % i, 0, 3, 1, c))
 
-        self.assertTrue(functions.safeIsNotEmpty(seriesList[0]))
-        self.assertFalse(functions.safeIsNotEmpty(seriesList[1]))
+        self.assertTrue(functions.xffValues(seriesList[0], 0))
+        self.assertTrue(functions.xffValues(seriesList[0], 0.25))
+        self.assertTrue(functions.xffValues(seriesList[0], 0.5))
+        self.assertTrue(functions.xffValues(seriesList[0], 0.75))
+        self.assertTrue(functions.xffValues(seriesList[0], 1))
+
+        self.assertTrue(functions.xffValues(seriesList[1], 0))
+        self.assertTrue(functions.xffValues(seriesList[1], 0.25))
+        self.assertTrue(functions.xffValues(seriesList[1], 0.5))
+        self.assertFalse(functions.xffValues(seriesList[1], 0.75))
+        self.assertFalse(functions.xffValues(seriesList[1], 1))
+
+        self.assertFalse(functions.xffValues(seriesList[2], 0))
+        self.assertFalse(functions.xffValues(seriesList[2], 0.25))
+        self.assertFalse(functions.xffValues(seriesList[2], 0.5))
+        self.assertFalse(functions.xffValues(seriesList[2], 0.75))
+        self.assertFalse(functions.xffValues(seriesList[2], 1))
 
         result = functions.removeEmptySeries({}, seriesList)
+        self.assertEqual(len(result), 2)
+        self.assertEqual(result[0][0], 1000)
+        self.assertEqual(result[1][0], 2000)
 
-        self.assertEqual(1, len(result))
+        result = functions.removeEmptySeries({}, seriesList, 0)
+        self.assertEqual(len(result), 2)
+        self.assertEqual(result[0][0], 1000)
+        self.assertEqual(result[1][0], 2000)
+
+        result = functions.removeEmptySeries({}, seriesList, 0.25)
+        self.assertEqual(len(result), 2)
+        self.assertEqual(result[0][0], 1000)
+        self.assertEqual(result[1][0], 2000)
+
+        result = functions.removeEmptySeries({}, seriesList, 0.5)
+        self.assertEqual(len(result), 2)
+        self.assertEqual(result[0][0], 1000)
+        self.assertEqual(result[1][0], 2000)
+
+        result = functions.removeEmptySeries({}, seriesList, 0.75)
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0][0], 1000)
+
+        result = functions.removeEmptySeries({}, seriesList, 1)
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0][0], 1000)
+
 
     def test_unique(self):
         seriesList = [
