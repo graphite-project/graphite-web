@@ -133,10 +133,6 @@ def safeAbs(value):
   if value is None: return None
   return abs(value)
 
-def safeIsNotEmpty(values):
-    safeValues = [v for v in values if v is not None]
-    return len(safeValues) > 0
-
 # Greatest common divisor
 def gcd(a, b):
   if b == 0:
@@ -156,7 +152,7 @@ def xffValues(values, xFilesFactor):
   return xff(len([v for v in values if v is not None]), len(values), xFilesFactor)
 
 def xff(nonNull, total, xFilesFactor=None):
-  if not total:
+  if not nonNull or not total:
     return False
   return nonNull / total >= (xFilesFactor if xFilesFactor is not None else settings.DEFAULT_XFILES_FACTOR)
 
@@ -4171,21 +4167,26 @@ def sinFunction(requestContext, name, amplitude=1, step=60):
             int(epoch(requestContext["endTime"])),
             step, values, xFilesFactor=requestContext.get('xFilesFactor'))]
 
-def removeEmptySeries(requestContext, seriesList):
-    """
-    Takes one metric or a wildcard seriesList.
-    Out of all metrics passed, draws only the metrics with not empty data
+def removeEmptySeries(requestContext, seriesList, xFilesFactor=None):
+  """
+  Takes one metric or a wildcard seriesList.
+  Out of all metrics passed, draws only the metrics with not empty data
 
-    Example:
+  Example:
 
-    .. code-block:: none
+  .. code-block:: none
 
-      &target=removeEmptySeries(server*.instance*.threads.busy)
+    &target=removeEmptySeries(server*.instance*.threads.busy)
 
-    Draws only live servers with not empty data.
+  Draws only live servers with not empty data.
 
-    """
-    return [ series for series in seriesList if safeIsNotEmpty(series) ]
+  `xFilesFactor` follows the same semantics as in Whisper storage schemas.  Setting it to 0 (the
+  default) means that only a single value in the series needs to be non-null for it to be
+  considered non-empty, setting it to 1 means that all values in the series must be non-null.
+  A setting of 0.5 means that at least half the values in the series must be non-null.
+  """
+  xFilesFactor = xFilesFactor if xFilesFactor is not None else 0
+  return [ series for series in seriesList if xffValues(series, xFilesFactor) ]
 
 def unique(requestContext, *seriesLists):
   """
