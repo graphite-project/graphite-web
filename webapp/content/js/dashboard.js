@@ -2708,7 +2708,7 @@ function applyState(state) {
     Ext.apply(urlParams, GraphSize);
     Ext.apply(urlParams, myParams);
     graphs.push([
-      Ext.urlEncode({target: state.graphs[i][0]}),
+      state.graphs[i][0],
       myParams,
       document.body.dataset.baseUrl + 'render?' + Ext.urlEncode(urlParams),
       render_type
