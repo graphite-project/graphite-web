@@ -2428,7 +2428,6 @@ function historyGraph(record){
         '<div class="graph-container">',
           '<div class="graph-overlay">',
             '<img class="graph-img" src="{url}" width="{width}" height="{height}" id="graph{index}">',
-            '<div class="overlay-close-button" onclick="javascript: graphStore.removeAt(\'{index}\'); updateGraphRecords(); justClosedGraph = true;">X</div>',
           '</div>',
         '</div>',
       '</tpl>',
