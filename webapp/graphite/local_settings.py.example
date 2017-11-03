@@ -72,8 +72,8 @@
 #MEMCACHE_KEY_PREFIX = 'graphite'
 
 # This lists the memcached options. Default is an empty dict.
-# Accepted options depend on the Memcached implementation and the Django version. 
-# Until Django 1.10, options are used only for pylibmc. 
+# Accepted options depend on the Memcached implementation and the Django version.
+# Until Django 1.10, options are used only for pylibmc.
 # Starting from 1.11, options are used for both python-memcached and pylibmc.
 #MEMCACHE_OPTIONS = { 'socket_timeout': 0.5 }
 
@@ -381,6 +381,9 @@ DEFAULT_XFILES_FACTOR = 0
 # Time to cache seriesByTag results
 #TAGDB_CACHE_DURATION = 60
 
+# Autocomplete default result limit
+#TAGDB_AUTOCOMPLETE_LIMIT = 100
+
 # Settings for Redis TagDB
 #TAGDB_REDIS_HOST = 'localhost'
 #TAGDB_REDIS_PORT = 6379
@@ -390,6 +393,8 @@ DEFAULT_XFILES_FACTOR = 0
 #TAGDB_HTTP_URL = ''
 #TAGDB_HTTP_USER = ''
 #TAGDB_HTTP_PASSWORD = ''
+# Does the remote TagDB support autocomplete?
+#TAGDB_HTTP_AUTOCOMPLETE = False
 
 #####################################
 # Additional Django Settings #

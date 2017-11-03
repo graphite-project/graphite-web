@@ -68,3 +68,33 @@ class HttpTagDB(BaseTagDB):
 
   def del_series(self, series):
     return self.request('POST', '/tags/delSeries', {'path': series})
+
+  def auto_complete_tags(self, exprs, tagPrefix=None, limit=None):
+    """
+    Return auto-complete suggestions for tags based on the matches for the specified expressions, optionally filtered by tag prefix
+    """
+    if not settings.TAGDB_HTTP_AUTOCOMPLETE:
+      return super(HttpTagDB, self).auto_complete_tags(exprs, tagPrefix=tagPrefix, limit=limit)
+
+    if limit is None:
+      limit = settings.TAGDB_AUTOCOMPLETE_LIMIT
+
+    url = '/tags/autoComplete/tags?tagPrefix=' + quote(tagPrefix or '') + '&limit=' + quote(str(limit)) + \
+      '&' + '&'.join([('expr=%s' % quote(expr or '')) for expr in exprs])
+
+    return self.request('GET', url)
+
+  def auto_complete_values(self, exprs, tag, valuePrefix=None, limit=None):
+    """
+    Return auto-complete suggestions for tags and values based on the matches for the specified expressions, optionally filtered by tag and/or value prefix
+    """
+    if not settings.TAGDB_HTTP_AUTOCOMPLETE:
+      return super(HttpTagDB, self).auto_complete_values(exprs, tag, valuePrefix=valuePrefix, limit=limit)
+
+    if limit is None:
+      limit = settings.TAGDB_AUTOCOMPLETE_LIMIT
+
+    url = '/tags/autoComplete/values?tag=' + quote(tag or '') + '&valuePrefix=' + quote(valuePrefix or '') + \
+      '&limit=' + quote(str(limit)) + '&' + '&'.join([('expr=%s' % quote(expr or '')) for expr in exprs])
+
+    return self.request('GET', url)

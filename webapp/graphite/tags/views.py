@@ -104,7 +104,7 @@ def autoCompleteTags(request):
 
   tagPrefix = queryParams.get('tagPrefix')
 
-  result = STORE.tagdb.auto_complete_tags(exprs, tagPrefix)
+  result = STORE.tagdb.auto_complete_tags(exprs, tagPrefix, limit=queryParams.get('limit'))
 
   return HttpResponse(
     json.dumps(result,
@@ -138,7 +138,7 @@ def autoCompleteValues(request):
 
   valuePrefix = queryParams.get('valuePrefix')
 
-  result = STORE.tagdb.auto_complete_values(exprs, tag, valuePrefix)
+  result = STORE.tagdb.auto_complete_values(exprs, tag, valuePrefix, limit=queryParams.get('limit'))
 
   return HttpResponse(
     json.dumps(result,

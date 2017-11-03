@@ -145,12 +145,17 @@ class BaseTagDB(object):
     """
     pass
 
-  def auto_complete_tags(self, exprs, tagPrefix=None):
+  def auto_complete_tags(self, exprs, tagPrefix=None, limit=None):
     """
     Return auto-complete suggestions for tags based on the matches for the specified expressions, optionally filtered by tag prefix
     """
+    if limit is None:
+      limit = settings.TAGDB_AUTOCOMPLETE_LIMIT
+    else:
+      limit = int(limit)
+
     if not exprs:
-      return [tagInfo['tag'] for tagInfo in self.list_tags(tagFilter=('^(' + tagPrefix + ')' if tagPrefix else None))[:100]]
+      return [tagInfo['tag'] for tagInfo in self.list_tags(tagFilter=('^(' + tagPrefix + ')' if tagPrefix else None))[:limit]]
 
     result = []
 
@@ -166,22 +171,27 @@ class BaseTagDB(object):
         if tag in result:
           continue
         if len(result) == 0 or tag >= result[-1]:
-          if len(result) >= 100:
+          if len(result) >= limit:
             continue
           result.append(tag)
         else:
           bisect.insort_left(result, tag)
-        if len(result) > 100:
+        if len(result) > limit:
           del result[-1]
 
     return result
 
-  def auto_complete_values(self, exprs, tag, valuePrefix=None):
+  def auto_complete_values(self, exprs, tag, valuePrefix=None, limit=None):
     """
     Return auto-complete suggestions for tags and values based on the matches for the specified expressions, optionally filtered by tag and/or value prefix
     """
+    if limit is None:
+      limit = settings.TAGDB_AUTOCOMPLETE_LIMIT
+    else:
+      limit = int(limit)
+
     if not exprs:
-      return [v['value'] for v in self.list_values(tag, valueFilter=('^(' + valuePrefix + ')' if valuePrefix else None))[:100]]
+      return [v['value'] for v in self.list_values(tag, valueFilter=('^(' + valuePrefix + ')' if valuePrefix else None))[:limit]]
 
     result = []
 
@@ -195,12 +205,12 @@ class BaseTagDB(object):
       if value in result:
         continue
       if len(result) == 0 or value >= result[-1]:
-        if len(result) >= 100:
+        if len(result) >= limit:
           continue
         result.append(value)
       else:
         bisect.insort_left(result, value)
-      if len(result) > 100:
+      if len(result) > limit:
         del result[-1]
 
     return result

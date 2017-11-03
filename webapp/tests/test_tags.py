@@ -5,6 +5,7 @@ try:
 except ImportError:  # Django < 1.10
   from django.core.urlresolvers import reverse
 
+from django.conf import settings
 from mock import patch
 
 from graphite.tags.localdatabase import LocalDatabaseTagDB
@@ -173,9 +174,12 @@ class TagsTest(TestCase):
   def test_tagdb_autocomplete(self):
     self.maxDiff = None
 
-    search_exprs = ['name=test.a']
-
     db = LocalDatabaseTagDB()
+
+    self._test_autocomplete(db, 'graphite.tags.localdatabase.LocalDatabaseTagDB.find_series')
+
+  def _test_autocomplete(self, db, patch_target):
+    search_exprs = ['name=test.a']
 
     def mock_find_series(self, exprs):
       if exprs != search_exprs:
@@ -183,15 +187,23 @@ class TagsTest(TestCase):
 
       return [('test.a;tag1=value1.%3d;tag2=value2.%3d' % (i, 201 - i)) for i in range(1,201)]
 
-    with patch('graphite.tags.localdatabase.LocalDatabaseTagDB.find_series', mock_find_series):
+    with patch(patch_target, mock_find_series):
       result = db.auto_complete_tags(search_exprs)
       self.assertEqual(result, [
         'tag1',
         'tag2',
       ])
 
+      result = db.auto_complete_tags(search_exprs, limit=1)
+      self.assertEqual(result, [
+        'tag1',
+      ])
+
       result = db.auto_complete_values(search_exprs, 'tag2')
       self.assertEqual(result, [('value2.%3d' % i) for i in range(1,101)])
+
+      result = db.auto_complete_values(search_exprs, 'tag2', limit=50)
+      self.assertEqual(result, [('value2.%3d' % i) for i in range(1,51)])
 
       result = db.auto_complete_values(search_exprs, 'tag1', 'value1.1')
       self.assertEqual(result, [('value1.%3d' % i) for i in range(100,200)])
@@ -261,6 +273,15 @@ class TagsTest(TestCase):
       self.assertEquals(result, [])
 
       self.assertTrue(db.del_series('test.a;blah=blah;hello=tiger'))
+
+      # test auto complete forwarding to remote host
+      with self.settings(TAGDB_HTTP_AUTOCOMPLETE=True):
+        self.maxDiff = None
+        self._test_autocomplete(db, settings.TAGDB + '.find_series')
+
+      # test auto complete using find_series
+      with self.settings(TAGDB_HTTP_AUTOCOMPLETE=False):
+        self._test_autocomplete(db, settings.TAGDB + '.find_series')
 
   def test_tag_views(self):
     url = reverse('tagList')
