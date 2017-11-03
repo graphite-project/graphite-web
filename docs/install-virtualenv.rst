@@ -28,8 +28,10 @@ Carbon may be run within Virtualenv by `activating virtualenv`_ before Carbon is
 
 Running Graphite-web Within Virtualenv
 --------------------------------------
-Running Django's manage.py within virtualenv requires `activating virtualenv`_ before executing
-as normal.
+Running Django's ``django-admin.py`` within a virtualenv requires using the
+full path of the virtualenv::
+
+    /path/to/env/bin/django-admin.py <command> --settings=graphite.settings
 
 The method of running Graphite-web within Virtualenv depends on the WSGI server used:
 

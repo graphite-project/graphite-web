@@ -12,21 +12,23 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
-from django.shortcuts import render_to_response
-from django.http import HttpResponseRedirect
 from django.contrib.auth import authenticate, login, logout
-from graphite.util import getProfile
-from graphite.logger import log
-from graphite.account.models import Profile
+try:
+    from django.urls import reverse
+except ImportError:  # Django < 1.10
+    from django.core.urlresolvers import reverse
+from django.http import HttpResponseRedirect
+from django.shortcuts import render_to_response
+from graphite.user_util import getProfile
 
 
 def loginView(request):
   username = request.POST.get('username')
   password = request.POST.get('password')
   if request.method == 'GET':
-    nextPage = request.GET.get('nextPage','/')
+    nextPage = request.GET.get('nextPage', reverse('browser'))
   else:
-    nextPage = request.POST.get('nextPage','/')
+    nextPage = request.POST.get('nextPage', reverse('browser'))
   if username and password:
     user = authenticate(username=username,password=password)
     if user is None:
@@ -40,13 +42,13 @@ def loginView(request):
     return render_to_response("login.html",{'nextPage' : nextPage})
 
 def logoutView(request):
-  nextPage = request.GET.get('nextPage','/')
+  nextPage = request.GET.get('nextPage', reverse('browser'))
   logout(request)
   return HttpResponseRedirect(nextPage)
 
 def editProfile(request):
   if not request.user.is_authenticated():
-    return HttpResponseRedirect('../..')
+    return HttpResponseRedirect(reverse('browser'))
   context = { 'profile' : getProfile(request) }
   return render_to_response("editProfile.html",context)
 
@@ -55,5 +57,5 @@ def updateProfile(request):
   if profile:
     profile.advancedUI = request.POST.get('advancedUI','off') == 'on'
     profile.save()
-  nextPage = request.POST.get('nextPage','/')
+  nextPage = request.POST.get('nextPage', reverse('browser'))
   return HttpResponseRedirect(nextPage)

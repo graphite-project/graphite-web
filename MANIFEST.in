@@ -1,4 +1,3 @@
-include INSTALL
 include LICENSE
 include MANIFEST.in
 include check-dependencies.py

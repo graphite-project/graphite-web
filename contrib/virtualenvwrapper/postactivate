@@ -1,0 +1,21 @@
+# postactivate hook for virtualenvwrapper (http://virtualenvwrapper.readthedocs.io/)
+# Put this file on $WORKON_HOME/<name of the virtual env for this project>/bin/postactivate
+# This file is sourced after the virtualenv is activated
+
+PROJECT_DIR=$(cat $VIRTUAL_ENV/$VIRTUALENVWRAPPER_PROJECT_FILENAME)
+
+cd $PROJECT_DIR
+
+pip install -r requirements.txt
+
+mkdir -p $VIRTUAL_ENV/storage/log/webapp $VIRTUAL_ENV/conf
+touch $VIRTUAL_ENV/conf/carbon.conf $VIRTUAL_ENV/conf/storage-schemas.conf
+[[ ! -f $VIRTUAL_ENV/conf/graphTemplates.conf ]] && cp conf/graphTemplates.conf.example $VIRTUAL_ENV/conf/graphTemplates.conf
+
+export GRAPHITE_ROOT=$PROJECT_DIR
+export GRAPHITE_STORAGE_DIR=$VIRTUAL_ENV/storage/
+export GRAPHITE_CONF_DIR=$VIRTUAL_ENV/conf/
+
+unset PROJECT_DIR
+
+$VIRTUAL_ENV/bin/django-admin.py syncdb --settings=graphite.settings --pythonpath=webapp

@@ -20,12 +20,28 @@ var NOT_EDITABLE = ['from', 'until', 'width', 'height', 'target', 'uniq', '_uniq
 var editor = null;
 
 var cookieProvider = new Ext.state.CookieProvider({
-  path: "/dashboard"
+  path: document.body.dataset.baseUrl + "dashboard"
 });
 
 var NAV_BAR_REGION = cookieProvider.get('navbar-region') || 'north';
 
 var CONFIRM_REMOVE_ALL = cookieProvider.get('confirm-remove-all') != 'false';
+
+var currently_setting_hash = false;
+
+function changeHash(hash){
+    currently_setting_hash = true;
+    window.location.hash = hash;
+}
+
+if ("onhashchange" in window) // does the browser support the hashchange event?
+  window.onhashchange = function () {
+    if (currently_setting_hash){
+      currently_setting_hash = false;
+      return;
+    }
+    location.reload();
+  }
 
 /* Nav Bar configuration */
 var navBarNorthConfig = {
@@ -34,6 +50,7 @@ var navBarNorthConfig = {
   layoutConfig: { align: 'stretch' },
   collapsible: true,
   collapseMode: 'mini',
+  collapsed: false,
   split: true,
   title: "untitled",
   height: 350,
@@ -69,7 +86,7 @@ var ContextFieldValueRecord = Ext.data.Record.create([
 ]);
 
 var contextFieldStore = new Ext.data.JsonStore({
-  url: '/metrics/find/',
+  url: document.body.dataset.baseUrl + 'metrics/find/',
   root: 'metrics',
   idProperty: 'name',
   fields: ContextFieldValueRecord,
@@ -82,7 +99,8 @@ var GraphRecord = new Ext.data.Record.create([
   {name: 'params', type: 'auto'},
   {name: 'url'},
   {name: 'width', type: 'auto'},
-  {name: 'height', type: 'auto'}
+  {name: 'height', type: 'auto'},
+  {name: 'loading'},
 ]);
 
 var graphStore;
@@ -299,7 +317,7 @@ function initDashboard () {
       }),
       store: new Ext.data.JsonStore({
         method: 'GET',
-        url: '/metrics/find/',
+        url: document.body.dataset.baseUrl + 'metrics/find/',
         autoLoad: true,
         baseParams: {
           query: '',
@@ -362,7 +380,7 @@ function initDashboard () {
     '<tpl for=".">',
       '<div class="graph-container">',
         '<div class="graph-overlay">',
-          '<img class="graph-img" src="{url}" width="{width}" height="{height}" id="graph{index}">',
+          '<img class="graph-img{loading}" src="{url}" width="{width}" height="{height}" id="graph{index}">',
           '<div class="overlay-close-button" onclick="javascript: graphStore.removeAt(\'{index}\'); updateGraphRecords(); justClosedGraph = true;">X</div>',
         '</div>',
       '</div>',
@@ -540,6 +558,13 @@ function initDashboard () {
           text: "Finder",
           handler: showDashboardFinder
         }, {
+          text: "Template Finder",
+          handler: showTemplateFinder
+        }, {
+          text: "Save As Template",
+          handler: saveTemplate,
+          disabled: !hasPermission('change')
+        }, {
           id: 'dashboard-save-button',
           text: "Save",
           handler: function (item, e) {
@@ -579,14 +604,17 @@ function initDashboard () {
         { text: "New Graph",
           menu: {
             items: [
-//              { text: "Empty Graph",
-//                handler: newEmptyGraph
-//              },
+              { text: "Empty Graph",
+                handler: newEmptyGraph
+              },
               { text: "From URL",
                 handler: newFromUrl
               },
               { text: "From Saved Graph",
                 handler: newFromSavedGraph
+              },
+              { text: "From Metric",
+                handler: newFromMetric
               }
             ]
           }
@@ -673,7 +701,9 @@ function initDashboard () {
       change: function (field, newValue) { updateAutoRefresh(newValue); },
       specialkey: function (field, e) {
                     if (e.getKey() == e.ENTER) {
-                      updateAutoRefresh( field.getValue() );
+                      if (field.getValue() >= 1) {
+                        updateAutoRefresh( field.getValue() );
+                      }
                     }
                   }
     }
@@ -742,12 +772,18 @@ function initDashboard () {
   // Load initial dashboard state if it was passed in
   if (initialState) {
     applyState(initialState);
-    navBar.collapse();
+    navBar.collapse(false);
   }
 
   if(window.location.hash != '')
   {
-    sendLoadRequest(window.location.hash.substr(1));
+    if (window.location.hash.indexOf("/") != -1) {
+      var name_val = window.location.hash.substr(1).split('#');
+      sendLoadTemplateRequest(name_val[0],name_val[1]);
+    } else {
+      sendLoadRequest(window.location.hash.substr(1));
+    }
+    navBar.collapse(false);
   }
 
   if (initialError) {
@@ -761,7 +797,7 @@ function showHelp() {
     modal: true,
     width: 550,
     height: 300,
-    autoLoad: "/dashboard/help/"
+    autoLoad: document.body.dataset.baseUrl + "dashboard/help/"
   });
   win.show();
 }
@@ -893,7 +929,7 @@ function metricTreeSelectorShow(pattern) {
   }
 
   var loader = new Ext.tree.TreeLoader({
-    url: '/metrics/find/',
+    url: document.body.dataset.baseUrl + 'metrics/find/',
     requestMethod: 'GET',
     listeners: {beforeload: setParams}
   });
@@ -921,7 +957,12 @@ function metricTextSelectorShow(pattern) {
 
 function metricTreeSelectorNodeClicked (node, e) {
   if (!node.leaf) {
-    node.toggle();
+    if (node.expanded) {
+      node.collapse();
+    } else {
+      node.loaded = false;
+      node.expand();
+    }
     return;
   }
 
@@ -967,7 +1008,7 @@ function graphAreaToggle(target, options) {
     var record = new GraphRecord({
       target: graphTargetString,
       params: myParams,
-      url: '/render?' + Ext.urlEncode(urlParams)
+      url: document.body.dataset.baseUrl + 'render?' + Ext.urlEncode(urlParams)
     });
     graphStore.add([record]);
     updateGraphRecords();
@@ -993,7 +1034,7 @@ function importGraphUrl(targetUrl, options) {
   if (graphTargetList.length == 0) {
     return;
   }
- 
+
   var graphTargetString = Ext.urlEncode({target: graphTargetList});
   var existingIndex = graphStore.findExact('target', graphTargetString);
 
@@ -1010,7 +1051,7 @@ function importGraphUrl(targetUrl, options) {
     var record = new GraphRecord({
       target: graphTargetString,
       params: params,
-      url: '/render?' + Ext.urlEncode(urlParams)
+      url: document.body.dataset.baseUrl + 'render?' + Ext.urlEncode(urlParams)
       });
       graphStore.add([record]);
       updateGraphRecords();
@@ -1030,7 +1071,16 @@ function updateGraphRecords() {
     if (!params.uniq === undefined) {
         delete params["uniq"];
     }
-    item.set('url', '/render?' + Ext.urlEncode(params));
+
+    //Preload the image and set it into the UI once it is available.
+    item.set('loading','-loading');
+    var img = new Image();
+    img.onload = function() {
+      item.set('url',img.src);
+      item.set('loading','');
+    };
+    img.src = document.body.dataset.baseUrl + 'render?' + Ext.urlEncode(params);
+
     item.set('width', GraphSize.width);
     item.set('height', GraphSize.height);
     item.set('index', index);
@@ -1317,9 +1367,34 @@ var GraphSize = {
 };
 
 
-//XXX Add once graph controls allow better +/-
-//function newEmptyGraph() {
-//}
+// New empty Graph
+function newEmptyGraph() {
+
+  var myParams = {
+    target: []
+  };
+
+  var graphTargetString = Ext.urlEncode({target: ""});
+
+  var urlParams = {};
+  Ext.apply(urlParams, defaultGraphParams);
+  Ext.apply(urlParams, myParams);
+  Ext.apply(urlParams, GraphSize);
+  myParams['from'] = urlParams.from;
+  myParams['until'] = urlParams.until;
+
+  var record = new GraphRecord({
+   target: graphTargetString,
+    params: myParams,
+    url: '/render?' + Ext.urlEncode(urlParams),
+   'width': GraphSize.width,
+   'height': GraphSize.height,
+    });
+  graphStore.add([record]);
+  canvasId = graphStore.indexOf(record);
+  graphStore.getAt(canvasId).data.index = canvasId;
+  updateGraphRecords();
+}
 
 function newFromUrl() {
   function applyUrl() {
@@ -1385,7 +1460,7 @@ function newFromSavedGraph() {
     expandable: true,
     allowDrag: false,
     loader: new Ext.tree.TreeLoader({
-      url: "../browser/usergraph/",
+      url: document.body.dataset.baseUrl + "browser/usergraph/",
       requestMethod: "GET",
       listeners: {beforeload: setParams}
     })
@@ -1456,6 +1531,71 @@ function newFromSavedGraph() {
   });
   win.show();
 }
+
+function newFromMetric() {
+  function applyMetric() {
+    var inputMetric = Ext.getCmp('import-metric-field').getValue();
+    if (inputMetric == "") {
+      return;
+    }
+    var graphTargetString = Ext.urlEncode({target: inputMetric});
+
+    var myParams = {
+      target: [inputMetric]
+    };
+
+    var urlParams = {};
+    Ext.apply(urlParams, defaultGraphParams);
+    Ext.apply(urlParams, myParams);
+    Ext.apply(urlParams, GraphSize);
+
+    var record = new GraphRecord({
+      target: graphTargetString,
+      params: myParams,
+      url: '/render?' + Ext.urlEncode(urlParams)
+      });
+    graphStore.add([record]);
+    updateGraphRecords();
+    win.close();
+  }
+
+  var urlField = new Ext.form.TextField({
+    id: 'import-metric-field',
+    fieldLabel: "Metric",
+    region: 'center',
+    width: '100%',
+    listeners: {
+      specialkey: function (field, e) {
+                    if (e.getKey() == e.ENTER) {
+                      applyMetric();
+                    }
+                  },
+      afterrender: function (field) { field.focus(false, 100); }
+    }
+  });
+
+  var win = new Ext.Window({
+    title: "Import Graph From Metric",
+    width: 470,
+    height: 87,
+    layout: 'form',
+    resizable: true,
+    modal: true,
+    items: [urlField],
+    buttonAlign: 'center',
+    buttons: [
+      {
+        text: 'OK',
+        handler: applyMetric
+      }, {
+        text: 'Cancel',
+        handler: function () { win.close(); }
+      }
+    ]
+  });
+  win.show();
+}
+
 
 function editDefaultGraphParameters() {
   var editParams = Ext.apply({}, defaultGraphParams);
@@ -1589,7 +1729,7 @@ function selectGraphSize() {
 function doShare() {
   if (dashboardName == null) {
     Ext.Ajax.request({
-      url: "/dashboard/create-temporary/",
+      url: document.body.dataset.baseUrl + "dashboard/create-temporary/",
       method: 'POST',
       params: {
         state: Ext.encode( getState() )
@@ -1706,6 +1846,15 @@ function graphClicked(graphView, graphIndex, element, evt) {
     menu.destroy();
   }
 
+  function syncGraphs(thisStore, record, operation) {
+    var targets = [];
+    thisStore.each(function (rec) { targets.push(rec.data.target.replace(/'/g, '"')); });
+    selectedRecord.data.params.target = targets;
+    selectedRecord.data.target = Ext.urlEncode({target: targets});
+    refreshGraphs();
+  }
+
+
   /* Inline store definition hackery*/
   var functionsButton;
   var targets = record.data.params.target;
@@ -1714,21 +1863,17 @@ function graphClicked(graphView, graphIndex, element, evt) {
     fields: ['target'],
     data: targets,
     listeners: {
-      update: function (thisStore, record, operation) {
-        var targets = [];
-        thisStore.each(function (rec) { targets.push(rec.data.target); });
-        selectedRecord.data.params.target = targets;
-        selectedRecord.data.target = Ext.urlEncode({target: targets});
-        refreshGraphs();
-      }
+      update: syncGraphs,
+      remove: syncGraphs,
+      add: syncGraphs,
     }
   });
 
-  var buttonWidth = 150;
+  var buttonWidth = 115;
   var rowHeight = 21;
   var maxRows = 6;
   var frameHeight = 5;
-  var gridWidth = (buttonWidth * 3) + 2;
+  var gridWidth = (buttonWidth * 4) + 2;
   var gridHeight = (rowHeight * Math.min(targets.length, maxRows)) + frameHeight;
 
   targetGrid = new Ext.grid.EditorGridPanel({
@@ -1737,16 +1882,74 @@ function graphClicked(graphView, graphIndex, element, evt) {
     height: gridHeight,
     store: targetStore,
     hideHeaders: true,
-    viewConfig: {markDirty: false},
+    viewConfig: {
+                  markDirty: false,
+                  forceFit: true,
+                  autoFill: true,
+                  scrollOffset: 0
+                },
     colModel: new Ext.grid.ColumnModel({
       columns: [
         {
           id: 'target',
           header: 'Target',
           dataIndex: 'target',
-          width: gridWidth - 22,
+          width: gridWidth - 90,
           editor: {xtype: 'textfield'}
-        }
+        },
+        {
+            xtype: 'actioncolumn',
+            width: 30,
+            sortable: false,
+            items: [{
+                icon: '/static/img/move_up.png',
+                tooltip: 'Move Up',
+                handler: function(grid, rowIndex, colIndex) {
+                    var record = targetStore.getAt(rowIndex);
+                    var target = record.data.target;
+                    targetStore.remove(record);
+                    if(rowIndex > 0) {
+                        targetStore.insert(rowIndex-1, record);
+                    } else {
+                        targetStore.add(record);
+                    }
+                }
+            }]
+        },
+        {
+            xtype: 'actioncolumn',
+            width: 30,
+            sortable: false,
+            items: [{
+                icon: '/static/img/move_down.png',
+                tooltip: 'Move Down',
+                handler: function(grid, rowIndex, colIndex) {
+                    var record = targetStore.getAt(rowIndex);
+                    var target = record.data.target;
+                    targetStore.remove(record);
+                    if(rowIndex < targetStore.getTotalCount()-1) {
+                        targetStore.insert(rowIndex+1, record);
+                    } else {
+                        targetStore.insert(0, record);
+                    }
+                }
+            }]
+        },
+        {
+            xtype: 'actioncolumn',
+            width: 30,
+            sortable: false,
+            items: [{
+                icon: '/static/img/trash.png',
+                tooltip: 'Delete Row',
+                handler: function(grid, rowIndex, colIndex) {
+                    var record = targetStore.getAt(rowIndex);
+                    var target = record.data.target;
+                    targetStore.remove(record);
+                    targets.remove(target);
+                }
+            }]
+        },
       ]
     }),
     selModel: new Ext.grid.RowSelectionModel({
@@ -1761,6 +1964,9 @@ function graphClicked(graphView, graphIndex, element, evt) {
     listeners: {
       afterrender: function (thisGrid) {
         thisGrid.getSelectionModel().selectFirstRow.defer(50, thisGrid.getSelectionModel());
+      },
+      resize: function (thisGrid) {
+        thisGrid.findParentByType('menu').doLayout();
       }
     }
   });
@@ -1852,12 +2058,57 @@ function graphClicked(graphView, graphIndex, element, evt) {
         win.show();
       },
     }, {
+      xtype: 'button',
+      fieldLabel: "<span style='visibility: hidden'>",
+      text: "Short Direct URL",
+      width: 100,
+      handler: function () {
+        menu.destroy();
+        showUrl = function(options, success, response) {
+            if(success) {
+              var win = new Ext.Window({
+                title: "Graph URL",
+                width: 600,
+                height: 125,
+                layout: 'border',
+                modal: true,
+                items: [
+                  {
+                    xtype: "label",
+                    region: 'north',
+                    style: "text-align: center;",
+                    text: "Short Direct URL to this graph"
+                  }, {
+                    xtype: 'textfield',
+                    region: 'center',
+                    value:  window.location.origin + response.responseText,
+                    editable: false,
+                    style: "text-align: center; font-size: large;",
+                    listeners: {
+                      focus: function (field) { field.selectText(); }
+                    }
+                  }
+                ],
+                buttonAlign: 'center',
+                buttons: [
+                  {text: "Close", handler: function () { win.close(); } }
+                ]
+              });
+              win.show();
+           }
+        }
+        Ext.Ajax.request({
+          method: 'GET',
+          url: document.body.dataset.baseUrl + 's' + record.data.url,
+          callback: showUrl,
+        });
+      }
+    }, {
         xtype: 'button',
         text: 'History',
         width: 100,
         handler: function () { menu.destroy(); historyGraph(record);}
-      }
-    ]
+    }]
   });
 
   var buttons = [functionsButton];
@@ -1891,6 +2142,24 @@ function graphClicked(graphView, graphIndex, element, evt) {
                }
              }
   });
+
+  //create new row
+  buttons.push({
+    xtype: 'button',
+    text: 'Add Target',
+    width: buttonWidth,
+    handler: function() {
+               // Hide the other menus
+               operationsMenu.hide();
+               optionsMenu.doHide(); // private method... yuck
+               functionsMenu.hide();
+
+               targetStore.add([ new targetStore.recordType({target: 'Edit to save'}) ]);
+               targets.push('Edit to save');
+               targetGrid.setHeight((rowHeight * Math.min(targets.length, maxRows)) + frameHeight);
+    }
+  });
+
 
   menuItems.push({
     xtype: 'panel',
@@ -1983,7 +2252,7 @@ function breakoutGraph(record) {
   }
 
   Ext.Ajax.request({
-    url: '/metrics/expand/',
+    url: document.body.dataset.baseUrl + 'metrics/expand/',
     params: {
       groupByExpr: '1',
       leavesOnly: '1',
@@ -2005,9 +2274,8 @@ function breakoutGraph(record) {
 }
 
 function mailGraph(record) {
-  mygraphParams = record.get('params');
-  mygraphParams['target'] = record.data['target'];
-  newparams = Ext.encode(Ext.apply(mygraphParams, defaultGraphParams));
+  var mygraphParams = record.get('params');
+  var newparams = Ext.encode(Ext.apply(mygraphParams, defaultGraphParams));
 
   var fromField = new Ext.form.TextField({
     fieldLabel: "From",
@@ -2055,7 +2323,7 @@ function mailGraph(record) {
          handler: function(){
            if(contactForm.getForm().isValid()){
              contactForm.getForm().submit({
-               url: '/dashboard/email',
+               url: document.body.dataset.baseUrl + 'dashboard/email',
                waitMsg: 'Processing Request',
                success: function (contactForm, response) {
                  win.close();
@@ -2392,6 +2660,7 @@ function editDashboard() {
     var graphString = editor.getSession().getValue();
     var targets = JSON.parse(graphString);
     graphStore.removeAll();
+    var graphs = [];
     for (var i = 0; i < targets.length; i++) {
       var myParams = {};
       Ext.apply(myParams, targets[i]);
@@ -2399,13 +2668,14 @@ function editDashboard() {
       Ext.apply(urlParams, defaultGraphParams);
       Ext.apply(urlParams, GraphSize);
       Ext.apply(urlParams, myParams);
-      var record = new GraphRecord({
-        target: targets[i].target,
-        params: myParams,
-        url: '/render?' + Ext.urlEncode(urlParams)
-      });
-      graphStore.add([record]);
+      graphs.push([
+        Ext.urlEncode({target: targets[i].target}),
+        myParams,
+        document.body.dataset.baseUrl + 'render?' + Ext.urlEncode(urlParams)
+      ]);
     }
+    graphStore.loadData(graphs);
+    refreshGraphs();
     edit_dashboard_win.close();
   }
   function getInitialState() {
@@ -2447,9 +2717,69 @@ function saveDashboard() {
   );
 }
 
+function saveTemplate() {
+  var nameField = new Ext.form.TextField({
+    id: 'dashboard-save-template-name',
+    fieldLabel: "Template Name",
+    width: 240,
+    allowBlank: false,
+    align: 'center',
+    value: dashboardName ? dashboardName.split('/')[0]: '',
+  });
+
+  var keyField = new Ext.form.TextField({
+    id: 'dashboard-save-template-key',
+    fieldLabel: "String to replace",
+    width: 240,
+    allowBlank: false,
+    align: 'center',
+  });
+
+  var win;
+
+  function save() {
+    sendSaveTemplateRequest(nameField.getValue(), keyField.getValue());
+    win.close();
+  }
+
+  win = new Ext.Window({
+    title: "Save dashboard as a template",
+    width: 400,
+    height: 120,
+    resizable: false,
+    layout: 'form',
+    labelAlign: 'right',
+    labelWidth: 120,
+    items: [nameField,keyField],
+    buttonAlign: 'center',
+    buttons: [
+      {text: 'Ok', handler: save},
+      {text: 'Cancel', handler: function () { win.close(); } }
+    ]
+  });
+  win.show();
+}
+
+function sendSaveTemplateRequest(name, key) {
+  Ext.Ajax.request({
+    url: document.body.dataset.baseUrl + "dashboard/save_template/" + name + "/" + key,
+    method: 'POST',
+    params: {
+      state: Ext.encode( getState() )
+    },
+    success: function (response) {
+               var result = Ext.decode(response.responseText);
+               if (result.error) {
+                 Ext.Msg.alert("Error", "There was an error saving this dashboard as a template: " + result.error);
+               }
+             },
+    failure: failedAjaxCall
+  });
+}
+
 function sendSaveRequest(name) {
   Ext.Ajax.request({
-    url: "/dashboard/save/" + name,
+    url: document.body.dataset.baseUrl + "dashboard/save/" + name,
     method: 'POST',
     params: {
       state: Ext.encode( getState() )
@@ -2459,6 +2789,11 @@ function sendSaveRequest(name) {
                if (result.error) {
                  Ext.Msg.alert("Error", "There was an error saving this dashboard: " + result.error);
                }
+               if(newURL) {
+                 window.location = newURL;
+               } else {
+                 changeHash(name);
+               }
              },
     failure: failedAjaxCall
   });
@@ -2466,17 +2801,40 @@ function sendSaveRequest(name) {
 
 function sendLoadRequest(name) {
   Ext.Ajax.request({
-    url: "/dashboard/load/" + name,
+    url: document.body.dataset.baseUrl + "dashboard/load/" + name,
     success: function (response) {
                var result = Ext.decode(response.responseText);
                if (result.error) {
                  Ext.Msg.alert("Error Loading Dashboard", result.error);
                } else {
                  applyState(result.state);
+                 navBar.collapse(false);
                }
              },
     failure: failedAjaxCall
   });
+}
+
+function sendLoadTemplateRequest(name, value) {
+  urlparts = window.location.href.split('#')
+  if(urlparts[0].split('?')[1]) {
+    new_location = urlparts[0].split('?')[0] + '#'+name+'/'+value;
+    window.location.href = new_location;
+  } else {
+    Ext.Ajax.request({
+      url: document.body.dataset.baseUrl + "dashboard/load_template/" + name + "/" + value,
+      success: function (response) {
+               var result = Ext.decode(response.responseText);
+               if (result.error) {
+                 Ext.Msg.alert("Error Loading Template", result.error);
+               } else {
+                 applyState(result.state);
+                 navBar.collapse(false);
+               }
+             },
+      failure: failedAjaxCall
+    });
+  }
 }
 
 function getState() {
@@ -2519,6 +2877,24 @@ function applyState(state) {
   TimeRange.startTime = timeConfig.startTime;
   TimeRange.endDate = new Date(timeConfig.endDate);
   TimeRange.endTime = timeConfig.endTime;
+
+  if (queryString.from && queryString.until) {
+    // The URL contains a "from" and "until" parameters (format "YYYY-MM-DDThh:mm:ss") => use the timestamps as default absolute range of the dashboard
+    var from = new Date(queryString.from);
+    var until = new Date(queryString.until);
+
+    TimeRange.startDate = from;
+    TimeRange.startTime = from.format("H:m");
+    TimeRange.endDate = until;
+    TimeRange.endTime = until.format("H:m");
+    TimeRange.type = 'absolute';
+
+    state.timeConfig = TimeRange;
+
+    state.defaultGraphParams.from = from.format('H:i_Ymd');
+    state.defaultGraphParams.until = until.format('H:i_Ymd');
+  }
+
   updateTimeText();
 
 
@@ -2545,20 +2921,52 @@ function applyState(state) {
   defaultGraphParams = state.defaultGraphParams || originalDefaultGraphParams;
 
   //state.graphs = [ [id, target, params, url], ... ]
-  graphStore.loadData(state.graphs);
+  //Fix url param to be correct for this document.body.dataset.baseUrl
+  var graphs = [];
+  for (var i = 0; i < state.graphs.length; i++) {
+    var myParams = {};
+    var render_type = state.graphs[i][3];
+    Ext.apply(myParams, state.graphs[i][1]);
+    var urlParams = {};
+    Ext.apply(urlParams, defaultGraphParams);
+    Ext.apply(urlParams, GraphSize);
+    Ext.apply(urlParams, myParams);
+    graphs.push([
+      state.graphs[i][0],
+      myParams,
+      document.body.dataset.baseUrl + 'render?' + Ext.urlEncode(urlParams),
+      render_type
+    ]);
+  }
+  graphStore.loadData(graphs);
 
   refreshGraphs();
 }
 
 function deleteDashboard(name) {
   Ext.Ajax.request({
-    url: "/dashboard/delete/" + name,
+    url: document.body.dataset.baseUrl + "dashboard/delete/" + name,
     success: function (response) {
       var result = Ext.decode(response.responseText);
       if (result.error) {
         Ext.Msg.alert("Error", "Failed to delete dashboard '" + name + "': " + result.error);
       } else {
         Ext.Msg.alert("Dashboard Deleted", "The " + name + " dashboard was deleted successfully.");
+      }
+    },
+    failure: failedAjaxCall
+  });
+}
+
+function deleteTemplate(name) {
+  Ext.Ajax.request({
+    url: document.body.dataset.baseUrl + "dashboard/delete_template/" + name,
+    success: function (response) {
+      var result = Ext.decode(response.responseText);
+      if (result.error) {
+        Ext.Msg.alert("Error", "Failed to delete template '" + name + "': " + result.error);
+      } else {
+        Ext.Msg.alert("Template Deleted", "The " + name + " template was deleted successfully.");
       }
     },
     failure: failedAjaxCall
@@ -2587,7 +2995,7 @@ function setDashboardName(name) {
     dashboardURL = urlparts.join('/');
 
     document.title = name + " - Graphite Dashboard";
-    window.location.hash = name;
+    changeHash(name);
     navBar.setTitle(name + " - (" + dashboardURL + ")");
     saveButton.setText('Save "' + name + '"');
     saveButton.enable();
@@ -2674,15 +3082,25 @@ function showDashboardFinder() {
   var dashboardsList;
   var queryField;
   var dashboardsStore = new Ext.data.JsonStore({
-    url: "/dashboard/find/",
+    url: document.body.dataset.baseUrl + "dashboard/find/",
     method: 'GET',
     params: {query: "e"},
-    fields: ['name'],
+    fields: [{
+      name: 'name',
+      sortType: function(value) {
+	// Make sorting case-insensitive
+        return value.toLowerCase();
+      }
+    }],
     root: 'dashboards',
+    sortInfo: {
+      field: 'name',
+      direction: 'ASC'
+    },
     listeners: {
       beforeload: function (store) {
                     store.setBaseParam('query', queryField.getValue());
-                  }
+      }
     }
   });
 
@@ -2808,6 +3226,146 @@ function showDashboardFinder() {
   win.show();
 }
 
+// Template Finder
+function showTemplateFinder() {
+  var win;
+  var templatesList;
+  var queryField;
+  var valueField;
+  var templatesStore = new Ext.data.JsonStore({
+    url: document.body.dataset.baseUrl + "dashboard/find_template/",
+    method: 'GET',
+    params: {query: "e"},
+    fields: ['name'],
+    root: 'templates',
+    listeners: {
+      beforeload: function (store) {
+                    store.setBaseParam('query', queryField.getValue());
+                  }
+    }
+  });
+
+  function openSelected() {
+    var selected = templatesList.getSelectedRecords();
+    if (selected.length > 0) {
+      sendLoadTemplateRequest(selected[0].data.name, valueField.getValue());
+    }
+    win.close();
+  }
+
+  function deleteSelected() {
+    var selected = templatesList.getSelectedRecords();
+    if (selected.length > 0) {
+      var record = selected[0];
+      var name = record.data.name;
+
+      Ext.Msg.confirm(
+       "Delete Template",
+        "Are you sure you want to delete the " + name + " template?",
+        function (button) {
+          if (button == 'yes') {
+            deleteTemplate(name);
+            templatesStore.remove(record);
+            templatesList.refresh();
+          }
+        }
+      );
+    }
+  }
+
+  templatesList = new Ext.list.ListView({
+    columns: [
+      {header: 'Template', width: 1.0, dataIndex: 'name', sortable: false}
+    ],
+    columnSort: false,
+    emptyText: "No templates found",
+    hideHeaders: true,
+    listeners: {
+      selectionchange: function (listView, selections) {
+                         if (listView.getSelectedRecords().length == 0) {
+                           Ext.getCmp('finder-open-button').disable();
+                           Ext.getCmp('finder-delete-button').disable();
+                         } else {
+                           if (valueField.getValue()) {
+                             Ext.getCmp('finder-open-button').enable();
+                           }
+                           Ext.getCmp('finder-delete-button').enable();
+                         }
+                       },
+
+    },
+    overClass: '',
+    region: 'center',
+    reserveScrollOffset: true,
+    singleSelect: true,
+    store: templatesStore,
+    style: "background-color: white;"
+  });
+
+  var lastQuery = null;
+  var queryUpdateTask = new Ext.util.DelayedTask(
+    function () {
+      var currentQuery = queryField.getValue();
+      if (lastQuery != currentQuery) {
+        templatesStore.load();
+      }
+      lastQuery = currentQuery;
+    }
+  );
+
+  queryField = new Ext.form.TextField({
+    region: 'south',
+    emptyText: "filter template listing",
+    enableKeyEvents: true,
+    listeners: {
+      keyup: function (field, e) {
+                  if (e.getKey() == e.ENTER) {
+                    sendLoadRequest(field.getValue(), reset_params=true);
+                    win.close();
+                  } else {
+                    queryUpdateTask.delay(FINDER_QUERY_DELAY);
+                  }
+                }
+    }
+  });
+
+  valueField = new Ext.form.TextField({
+    region: 'north',
+    emptyText: "Value to use"
+  });
+
+  win = new Ext.Window({
+    title: "Template Finder",
+    width: 400,
+    height: 500,
+    layout: 'border',
+    modal: true,
+    items: [
+      valueField,
+      templatesList,
+      queryField,
+    ],
+    buttons: [
+      {
+        id: 'finder-open-button',
+        text: "Open",
+        disabled: true,
+        handler: openSelected
+      }, {
+        id: 'finder-delete-button',
+        text: "Delete",
+        disabled: true,
+        handler: deleteSelected
+      }, {
+        text: "Close",
+        handler: function () { win.close(); }
+      }
+    ]
+  });
+  templatesStore.load();
+  win.show();
+}
+
 /* Graph Options API (to reuse createOptionsMenu from composer_widgets.js) */
 function updateGraph() {
   refreshGraphs();
@@ -2833,12 +3391,6 @@ function removeParam(param) {
   selectedRecord.commit();
 }
 
-
-/* Target Functions API (super-ghetto) */
-function addTargetToSelectedGraph(target) {
-  selectedRecord.data.params.target.push(target);
-  selectedRecord.data.target = Ext.urlEncode({target: selectedRecord.data.params.target});
-}
 
 function removeTargetFromSelectedGraph(target) {
   selectedRecord.data.params.target.remove(target);
@@ -2874,7 +3426,6 @@ function applyFuncToEach(funcName, extraArg) {
 
         // Add newTarget to selectedRecord
         targetStore.add([ new targetStore.recordType({target: newTarget}, newTarget) ]);
-        addTargetToSelectedGraph(newTarget);
         targetGrid.getSelectionModel().selectRow(targetStore.findExact('target', newTarget), true);
       }
     );
@@ -2922,7 +3473,6 @@ function applyFuncToAll (funcName) {
       }
     );
     targetStore.add([ new targetStore.recordType({target: newTarget}, newTarget) ]);
-    addTargetToSelectedGraph(newTarget);
     targetGrid.getSelectionModel().selectRow(targetStore.findExact('target', newTarget), true);
     refreshGraphs();
   }
@@ -2943,7 +3493,9 @@ function removeOuterCall() { // blatantly repurposed from composer_widgets.js (d
     for (i = 0; i < argString.length; i++) {
       switch (argString.charAt(i)) {
         case '(': depth += 1; break;
+        case '{': depth += 1; break;
         case ')': depth -= 1; break;
+        case '}': depth -= 1; break;
         case ',':
           if (depth > 0) { continue; }
           if (depth < 0) { Ext.Msg.alert("Malformed target, cannot remove outer call."); return; }
@@ -2960,7 +3512,6 @@ function removeOuterCall() { // blatantly repurposed from composer_widgets.js (d
     Ext.each(args, function (arg) {
       if (!arg.match(/^([0123456789\.]+|".+")$/)) { //Skip string and number literals
         targetStore.add([ new targetStore.recordType({target: arg}) ]);
-        selectedRecord.data.params.target.push(arg);
         targetGrid.getSelectionModel().selectRow(targetStore.findExact('target', arg), true);
       }
     });
@@ -3043,11 +3594,11 @@ function showLoginForm() {
       {text: 'Cancel', handler: function () { win.close(); } }
     ]
   });
-  
+
   function doLogin() {
     login.getForm().submit({
       method: 'POST',
-      url: '/dashboard/login',
+      url: document.body.dataset.baseUrl + 'dashboard/login',
       waitMsg: 'Authenticating...',
       success: function(form, action) {
         userName = form.findField('username').getValue();
@@ -3082,7 +3633,7 @@ function showLoginForm() {
 
 function logout() {
   Ext.Ajax.request({
-    url: '/dashboard/logout',
+    url: document.body.dataset.baseUrl + 'dashboard/logout',
     method: 'POST',
     success: function() {
       userName = null;

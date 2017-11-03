@@ -1,18 +1,19 @@
-from pyparsing import *
+from pyparsing import (
+    Forward, Combine, Optional, Word, Literal, CaselessKeyword,
+    CaselessLiteral, Group, FollowedBy, LineEnd, OneOrMore, ZeroOrMore,
+    alphas, alphanums, printables, delimitedList, quotedString, Regex,
+    __version__, Suppress
+)
 
-ParserElement.enablePackrat()
 grammar = Forward()
 
 expression = Forward()
 
 # Literals
-intNumber = Combine(
-  Optional('-') + Word(nums)
-)('integer')
 
-floatNumber = Combine(
-  Optional('-') + Word(nums) + Literal('.') + Word(nums)
-)('float')
+intNumber = Regex(r'-?\d+')('integer')
+
+floatNumber = Regex(r'-?\d+\.\d+')('float')
 
 sciNumber = Combine(
   (floatNumber | intNumber) + CaselessLiteral('e') + intNumber
@@ -33,39 +34,101 @@ boolean = Group(
   CaselessKeyword("false")
 )('boolean')
 
+none = Group(
+  CaselessKeyword('none')
+)('none')
+
+argname = Word(alphas + '_', alphanums + '_')('argname')
+funcname = Word(alphas + '_', alphanums + '_')('funcname')
+
+## Symbols
+leftParen = Literal('(').suppress()
+rightParen = Literal(')').suppress()
+comma = Literal(',').suppress()
+equal = Literal('=').suppress()
+
 # Function calls
+
+## Symbols
+leftBrace = Literal('{')
+rightBrace = Literal('}')
+leftParen = Literal('(').suppress()
+rightParen = Literal(')').suppress()
+comma = Literal(',').suppress()
+equal = Literal('=').suppress()
+backslash = Literal('\\').suppress()
+
+symbols = '''(){},.'"\\|'''
 arg = Group(
   boolean |
   number |
+  none |
   aString |
   expression
-)
-args = delimitedList(arg)('args')
+)('args*')
+kwarg = Group(argname + equal + arg)('kwargs*')
 
-func = Word(alphas+'_', alphanums+'_')('func')
+args = delimitedList(~kwarg + arg)  # lookahead to prevent failing on equals
+kwargs = delimitedList(kwarg)
+
 call = Group(
-  func + Literal('(').suppress() +
-  args + Literal(')').suppress()
+  funcname + leftParen +
+  Optional(
+    args + Optional(
+      comma + kwargs
+    )
+  ) + rightParen
 )('call')
 
 # Metric pattern (aka. pathExpression)
-validMetricChars = alphanums + r'''!#$%&"'*+-.:;<=>?@[\]^_`|~'''
-pathExpression = Combine(
-  Optional(Word(validMetricChars)) +
-  Combine(
-    ZeroOrMore(
-      Group(
-        Literal('{') +
-        Word(validMetricChars + ',') +
-        Literal('}') + Optional( Word(validMetricChars) )
-      )
-    )
+validMetricChars = ''.join((set(printables) - set(symbols)))
+escapedChar = backslash + Word(symbols + '=', exact=1)
+partialPathElem = Combine(
+  OneOrMore(
+    escapedChar | Word(validMetricChars)
   )
-)('pathExpression')
+)
 
-expression << Group(call | pathExpression)('expression')
+matchEnum = Combine(
+  leftBrace +
+  delimitedList(partialPathElem, combine=True) +
+  rightBrace
+)
 
-grammar << expression
+pathElement = Combine(
+  Group(partialPathElem | matchEnum) +
+  ZeroOrMore(matchEnum | partialPathElem)
+)
+pathExpression = delimitedList(pathElement, delim='.', combine=True)('pathExpression')
+
+litarg = Group(
+  number | aString
+)('args*')
+litkwarg = Group(argname + equal + litarg)('kwargs*')
+litargs = delimitedList(~litkwarg + litarg)  # lookahead to prevent failing on equals
+litkwargs = delimitedList(litkwarg)
+
+template = Group(
+  Literal('template') + leftParen +
+  (call | pathExpression) +
+  Optional(comma + (litargs | litkwargs)) +
+  rightParen
+)('template')
+
+pipeSep = ZeroOrMore(Literal(' ')) + Literal('|') + ZeroOrMore(Literal(' '))
+
+pipedExpression = Group(
+  (template | call | pathExpression) +
+  Group(ZeroOrMore(Suppress(pipeSep) + Group(call)('pipedCall')))('pipedCalls')
+)('expression')
+
+if __version__.startswith('1.'):
+    expression << pipedExpression
+    grammar << expression
+else:
+    expression <<= pipedExpression
+    grammar <<= expression
+
 
 def enableDebug():
   for name,obj in globals().items():

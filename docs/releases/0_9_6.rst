@@ -1,0 +1,28 @@
+0.9.6
+=====
+*2/26/10*
+
+This has probably been the most active month of Graphite development since the project was open
+sourced. Lots of community members have contributed code and ideas to help move Graphite forward.
+I'm really excited about this, the project is gaining momentum and I hope we can keep that up by
+continuing with the new monthly release cycle. To give credit where it is due, here is a list of
+this month's most active users and what they've been working on (in no particular order):
+
+* Lucio Torre - AMQP support
+* jdugan - beautification of the Y-axis labels via the yUnitSystem option
+* Nick Leskiw - the YAxis=right rendering option
+* Kraig Amador - tons of rendering options/functions such as yLimit, timeShift(), log(), sumSeriesWithWildcard(), new filtering functions, and much more! (Kraig you're the man!)
+* Arthur Gautier - debian packaging
+* Elliot Murphy - packaging, inclusion in Ubuntu
+* fp - RHEL / CentOS RPM packaging
+* and many more...
+
+Thanks to everyone who has gotten involved with Graphite, your support helps motivate others
+(especially me).
+
+Many of these new features are really great but unfortunately undocumented, but the good news is
+that my focus for March is going to be 100% on *documentation*. There may not be an actual code
+release in March but I hope to get a substantial amount of documentation written right here on this
+wiki. Stay tuned.
+
+\- ChrisMD

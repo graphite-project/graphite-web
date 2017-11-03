@@ -36,7 +36,7 @@ terms mean in the context of Graphite.
     series
       A named set of datapoints. A series is identified by a unique name, which is composed of
       elements separated by periods (``.``) which are used to display the collection of series
-      into a heirarchical tree. A series storing system load average on a server called ``apache02``
+      into a hierarchical tree. A series storing system load average on a server called ``apache02``
       in datacenter ``metro_east`` might be named as ``metro_east.servers.apache02.system.load_average``
 
     series list
@@ -62,6 +62,6 @@ terms mean in the context of Graphite.
     value
       A numeric or null value. Values are stored as double-precision floats. Values are parsed using
       the python :py:func:`float` constructor and can also be None (null). The range and precision of
-      values is system dependant and can be found by executing (with Python 2.6 or later)::
+      values is system dependent and can be found by executing (with Python 2.6 or later)::
       python -c 'import sys; print sys.float_info'
 

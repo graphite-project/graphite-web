@@ -1,0 +1,38 @@
+language: python
+python: 2.7
+sudo: false
+
+env:
+  - TOXENV=py27-django18-pyparsing2
+  - TOXENV=py27-django19-pyparsing2
+  - TOXENV=py27-django110-pyparsing2
+  - TOXENV=py27-django111-pyparsing2
+  - TOXENV=py27-django111-pyparsing2-mysql TEST_MYSQL_PASSWORD=graphite
+  - TOXENV=py27-django111-pyparsing2-postgresql TEST_POSTGRESQL_PASSWORD=graphite
+  - TOXENV=docs
+  - TOXENV=lint
+
+addons:
+  apt:
+    packages:
+      - libcairo2-dev
+  postgresql: "9.5"
+
+services:
+  - redis-server
+  - mysql
+  - postgresql
+
+before_install:
+  - bash -c "if [[ '$TOXENV' == *mysql* ]]; then mysql -e "'"'"GRANT ALL ON test_graphite.* TO 'graphite'@'localhost' IDENTIFIED BY 'graphite';"'"'"; fi"
+  - bash -c "if [[ '$TOXENV' == *postgresql* ]]; then psql -c "'"'"CREATE USER graphite WITH CREATEDB PASSWORD 'graphite';"'"'" -U postgres; fi"
+
+install:
+  - pip install tox
+
+script:
+  - tox -e $TOXENV
+
+after_success:
+  - pip install codecov
+  - codecov

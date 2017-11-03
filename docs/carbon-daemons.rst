@@ -3,20 +3,23 @@ The Carbon Daemons
 
 When we talk about "Carbon" we mean one or more of various daemons that make up the
 storage backend of a Graphite installation. In simple installations, there is typically
-only one daemon, ``carbon-cache.py``. This document gives a brief overview of what
-each daemon does and how you can use them to build a more sophisticated storage backend.
+only one daemon, ``carbon-cache.py``. As an installation grows, the ``carbon-relay.py``
+and ``carbon-aggregator.py`` daemons can be introduced to distribute metrics load and
+perform custom aggregations, respectively.
 
 All of the carbon daemons listen for time-series data and can accept it over a common
 set of :doc:`protocols </feeding-carbon>`. However, they differ in what they do with
-the data once they receive it.
+the data once they receive it. This document gives a brief overview of what each daemon
+does and how you can use them to build a more sophisticated storage backend.
 
 
 carbon-cache.py
 ---------------
 
 ``carbon-cache.py`` accepts metrics over various protocols and writes them to disk as efficiently as
-possible. This requires caching metric values in RAM as they are received, and
-flushing them to disk on an interval using the underlying `whisper` library.
+possible. This requires caching metric values in RAM as they are received, and flushing them to disk
+on an interval using the underlying `whisper` library. It also provides a query service for in-memory
+metric datapoints, used by the Graphite webapp to retrieve "hot data".
 
 ``carbon-cache.py`` requires some basic configuration files to run:
 
@@ -66,7 +69,7 @@ When running with ``RELAY_METHOD = rules``, a ``carbon-relay.py`` instance can
 run in place of a ``carbon-cache.py`` server and relay all incoming metrics to
 multiple backend ``carbon-cache.py``'s running on different ports or hosts.
 
-In ``RELAY_METHOD = consistent-hashing`` mode, a ``CH_HOST_LIST`` setting defines a
+In ``RELAY_METHOD = consistent-hashing`` mode, a ``DESTINATIONS`` setting defines a
 sharding strategy across multiple ``carbon-cache.py`` backends. The same
 consistent hashing list can be provided to the graphite webapp via ``CARBONLINK_HOSTS`` to
 spread reads across the multiple backends.
@@ -77,8 +80,8 @@ spread reads across the multiple backends.
   The ``[relay]`` section defines listener host/ports and a ``RELAY_METHOD``
 
 :doc:`relay-rules.conf </config-carbon>`
-  In ``RELAY_METHOD = rules``, pattern/servers tuples define what servers
-  metrics matching certain regex rules are forwarded to.
+  With ``RELAY_METHOD = rules`` set, pattern/servers tuples in this file define which
+  metrics matching certain regex rules are forwarded to which hosts.
 
 
 carbon-aggregator.py
@@ -99,4 +102,22 @@ and whisper file sizes due to lower retention policies.
   average) for incoming metrics matching a certain pattern. At the end of each
   interval, the values received are aggregated and published to
   ``carbon-cache.py`` as a single metric.
+
+carbon-aggregator-cache.py
+--------------------------
+
+``carbon-aggregator-cache.py`` combines both ``carbon-aggregator.py`` and
+``carbon-cache.py``. This is useful to reduce the resource and administration
+overhead of running both daemons.
+
+``carbon-aggregator-cache.py`` is configured via:
+
+:doc:`carbon.conf </config-carbon>`
+  The ``[aggregator-cache]`` section defines listener and destination host/ports.
+  
+:doc:`relay-rules.conf </config-carbon>`
+  See `carbon-relay.py` section.
+
+:doc:`aggregation-rules.conf </config-carbon>`
+  See `carbon-aggregator.py` section.
 

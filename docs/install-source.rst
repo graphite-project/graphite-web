@@ -6,12 +6,18 @@ project `download page`_ or the latest development branches may be cloned from t
 * Graphite-web: ``git clone https://github.com/graphite-project/graphite-web.git``
 * Carbon: ``git clone https://github.com/graphite-project/carbon.git``
 * Whisper: ``git clone https://github.com/graphite-project/whisper.git``
+* Ceres: ``git clone https://github.com/graphite-project/ceres.git``
+
+.. note::
+
+  There currently is no tarball available for Ceres, it must be cloned from the
+  `Github project page`_
 
 
 Installing in the Default Location
 ----------------------------------
 To install Graphite in the :ref:`default location <default-installation-layout>`, ``/opt/graphite/``, simply execute
-``python setup.py install`` as root in each of the project directories for Graphite-web, Carbon, and Whisper.
+``python setup.py install`` as root in each of the project directories for Graphite-web, Carbon, Whisper, and Ceres.
 
 .. _carbon-custom-location-source:
 

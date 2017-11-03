@@ -1,0 +1,5 @@
+# postdeactivate hook for virtualenvwrapper (http://virtualenvwrapper.readthedocs.io/)
+# Put this file on $WORKON_HOME/<name of the virtual env for this project>/bin/postdeactivate
+# This file is sourced after the virtualenv is deactivated
+
+unset GRAPHITE_ROOT GRAPHITE_STORAGE_DIR GRAPHITE_CONF_DIR

@@ -1,0 +1,12 @@
+0.9.4
+=====
+*1/30/09*
+
+It's been a good 6 months since the last release. Not much has changed aside from a few minor
+enhancements and some good bug fixes, unfortunately I've not had nearly as much time as I'd like to
+dedicate to working on Graphite. Regardless, it is getting more mature slowly but surely. In the
+next few months I may be in a better position to get more real work done on it, but we shall see.
+For now I'd just like to thank everyone who has given me great questions and bug reports, your
+feedback is what keeps this project moving. Thanks.
+
+\- ChrisMD

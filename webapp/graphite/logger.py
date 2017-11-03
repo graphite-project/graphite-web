@@ -14,62 +14,93 @@ limitations under the License."""
 
 import os, logging
 from logging.handlers import TimedRotatingFileHandler as Rotater
+try:
+    from logging import NullHandler
+except ImportError as ie:  # py2.6
+    from logging import Handler
+
+    class NullHandler(Handler):
+
+        def emit(self, record):
+            pass
+try:
+    from logging import FileHandler, StreamHandler
+except ImportError as ie:  # py2.6
+    from logging.handlers import FileHandler, StreamHandler
 from django.conf import settings
 
-logging.addLevelName(30,"rendering")
-logging.addLevelName(30,"cache")
-logging.addLevelName(30,"metric_access")
 
 class GraphiteLogger:
   def __init__(self):
-    #Setup log files
-    self.infoLogFile = os.path.join(settings.LOG_DIR,"info.log")
-    self.exceptionLogFile = os.path.join(settings.LOG_DIR,"exception.log")
-    self.cacheLogFile = os.path.join(settings.LOG_DIR,"cache.log")
-    self.renderingLogFile = os.path.join(settings.LOG_DIR,"rendering.log")
-    self.metricAccessLogFile = os.path.join(settings.LOG_DIR,"metricaccess.log")
-    #Setup loggers
-    self.infoLogger = logging.getLogger("info")
-    self.infoLogger.setLevel(logging.INFO)
-    self.exceptionLogger = logging.getLogger("exception")
-    self.cacheLogger = logging.getLogger("cache")
-    self.renderingLogger = logging.getLogger("rendering")
-    self.metricAccessLogger = logging.getLogger("metric_access")
-    #Setup formatter & handlers
-    self.formatter = logging.Formatter("%(asctime)s :: %(message)s","%a %b %d %H:%M:%S %Y")
-    self.infoHandler = Rotater(self.infoLogFile,when="midnight",backupCount=1)
-    self.infoHandler.setFormatter(self.formatter)
-    self.infoLogger.addHandler(self.infoHandler)
-    self.exceptionHandler = Rotater(self.exceptionLogFile,when="midnight",backupCount=1)
-    self.exceptionHandler.setFormatter(self.formatter)
-    self.exceptionLogger.addHandler(self.exceptionHandler)
-    if settings.LOG_CACHE_PERFORMANCE:
-      self.cacheHandler = Rotater(self.cacheLogFile,when="midnight",backupCount=1)
-      self.cacheHandler.setFormatter(self.formatter)
-      self.cacheLogger.addHandler(self.cacheHandler)
-    if settings.LOG_RENDERING_PERFORMANCE:
-      self.renderingHandler = Rotater(self.renderingLogFile,when="midnight",backupCount=1)
-      self.renderingHandler.setFormatter(self.formatter)
-      self.renderingLogger.addHandler(self.renderingHandler)
-    if settings.LOG_METRIC_ACCESS:
-      self.metricAccessHandler = Rotater(self.metricAccessLogFile,when="midnight",backupCount=10)
-      self.metricAccessHandler.setFormatter(self.formatter)
-      self.metricAccessLogger.addHandler(self.metricAccessHandler)
+    self.infoLogger = self._config_logger(
+        settings.LOG_FILE_INFO,
+        'info',
+        True,
+        level = logging.INFO,
+    )
+    self.exceptionLogger = self._config_logger(
+        settings.LOG_FILE_EXCEPTION,
+        'exception',
+        True,
+    )
+    self.cacheLogger = self._config_logger(
+        settings.LOG_FILE_CACHE,
+        'cache',
+        settings.LOG_CACHE_PERFORMANCE,
+        level = logging.INFO,
+    )
+    self.renderingLogger = self._config_logger(
+        settings.LOG_FILE_RENDERING,
+        'rendering',
+        settings.LOG_RENDERING_PERFORMANCE,
+        level = logging.INFO,
+    )
+
+  @staticmethod
+  def _config_logger(log_file_name, name, activate,
+                     level=None, when='midnight',
+                     backupCount=settings.LOG_ROTATION_COUNT):
+    logger = logging.getLogger(name)
+    if level is not None:
+        logger.setLevel(level)
+    if activate:  # if want to log this one
+        if log_file_name == '-':
+            formatter = logging.Formatter(
+                fmt='[%(asctime)s.%(msecs)03d] %(name)s %(levelname)s %(message)s',
+                datefmt='%d/%b/%Y %H:%M:%S')
+            handler = StreamHandler()
+        else:
+            formatter = logging.Formatter(
+                fmt='%(asctime)s.%(msecs)03d :: %(message)s',
+                datefmt='%Y-%m-%d,%H:%M:%S')
+            log_file = os.path.join(settings.LOG_DIR, log_file_name)
+            if settings.LOG_ROTATION:  # if we want to rotate logs
+                handler = Rotater(log_file, when=when, backupCount=backupCount)
+            else:  # let someone else, e.g. logrotate, rotate the logs
+                handler = FileHandler(log_file)
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+    else:
+        logger.addHandler(NullHandler())
+    return logger
 
   def info(self,msg,*args,**kwargs):
     return self.infoLogger.info(msg,*args,**kwargs)
+
+  def debug(self,msg,*args,**kwargs):
+    return self.infoLogger.debug(msg,*args,**kwargs)
+
+  def warning(self,msg,*args,**kwargs):
+    return self.infoLogger.warn(msg,*args,**kwargs)
 
   def exception(self,msg="Exception Caught",**kwargs):
     return self.exceptionLogger.exception(msg,**kwargs)
 
   def cache(self,msg,*args,**kwargs):
-    return self.cacheLogger.log(30,msg,*args,**kwargs)
+    return self.cacheLogger.info(msg,*args,**kwargs)
 
   def rendering(self,msg,*args,**kwargs):
-    return self.renderingLogger.log(30,msg,*args,**kwargs)
-
-  def metric_access(self,msg,*args,**kwargs):
-    return self.metricAccessLogger.log(30,msg,*args,**kwargs)
+    return self.renderingLogger.info(msg,*args,**kwargs)
 
 
 log = GraphiteLogger() # import-shared logger instance

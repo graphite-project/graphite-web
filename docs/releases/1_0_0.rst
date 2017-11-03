@@ -1,0 +1,361 @@
+.. _1-0-0:
+
+1.0.0
+===========================
+*04/12/2017*
+
+Graphite 1.0.0 is now available for usage. This marks the first release of Graphite's main line in many years. Also, there's a new *optional* component available: Carbonate, a suite of tools for managing and rebalancing Whisper files.
+
+Most users will only need to install the Graphite-Web, Carbon, and Whisper components.
+
+Source bundles are available from GitHub:
+
+* https://github.com/graphite-project/graphite-web/archive/1.0.0.tar.gz
+* https://github.com/graphite-project/carbon/archive/1.0.0.tar.gz
+* https://github.com/graphite-project/whisper/archive/1.0.0.tar.gz
+* https://github.com/graphite-project/carbonate/archive/1.0.0.tar.gz
+
+Graphite can also be installed from `PyPI <http://pypi.python.org/>`_ via
+`pip <http://www.pip-installer.org/en/latest/index.html>`_. PyPI bundles are here:
+
+* http://pypi.python.org/pypi/graphite-web/
+* http://pypi.python.org/pypi/carbon/
+* http://pypi.python.org/pypi/whisper/
+* http://pypi.python.org/pypi/carbonate/
+
+Upgrading
+---------
+Graphite-Web requires Python 2.7 or newer and Django version 1.9. Carbon requires Twisted version 13.2 or newer. There are a number of new features in this release, but we've been careful to avoid any behaviorial regressions in the default settings files. You'll want to review the new Graphite-Web and Carbon service options in the ``local_settings.py.example`` and ``carbon.conf.example`` files, respectively, before merging those into your production configurations.
+
+If you're not already running from the *master* branch, Graphite-Web's application database will need to be upgraded . It's a good idea to backup the database before proceeding with the migration. The following steps will upgrade a SQLite database:
+
+.. code-block:: none
+
+  sudo cp /opt/graphite/storage/graphite.db \
+        /opt/graphite/storage/graphite.db.backup-`date +%Y%m%d_%H%M%S`
+  sudo PYTHONPATH=/opt/graphite/webapp django-admin.py migrate \
+        --noinput --settings=graphite.settings --run-syncdb
+
+A new document is available for :doc:`developers and contributors <../development>` that covers how to setup your own development environment, and running & writing tests.
+
+We're also happy to publish a new document for :doc:`Graphite Events <../events>`. It covers the storage, creation, retrieval, and management of events used for annotation or tracking release-style events.
+
+
+Security Notes
+--------------
+
+* XSS issue affecting saved graph definitions. Targets are now properly sanitized before being handed back to the user.
+
+
+New Render Functions
+--------------------
+
+See the :doc:`functions documentation <../functions>` for more information.
+
+* ``aggregateLine``
+* ``applyByNode``
+* ``averageOutsidePercentile``
+* ``delay``
+* ``exponentialMovingAverage``
+* ``fallbackSeries``
+* ``grep``
+* ``groupByNodes``
+* ``integralByInterval``
+* ``interpolate``
+* ``invert``
+* ``isNonNull``
+* ``linearRegression``
+* ``linearRegressionAnalysis``
+* ``mapSeries``
+* ``movingMin``
+* ``movingMax``
+* ``movingSum``
+* ``multiplySeriesWithWildcards``
+* ``offsetToZero``
+* ``pow``
+* ``powSeries``
+* ``reduceSeries``
+* ``removeBetweenPercentile``
+* ``removeEmptySeries``
+* ``sortByTotal``
+* ``squareRoot``
+* ``timeSlice``
+* ``verticalLine``
+* ``weightedAverage``
+
+
+New Display Formats
+-------------------
+
+* ``pdf``
+* ``dygraph``
+* ``rickshaw``
+
+
+New Graph Parameters
+--------------------
+
+* ``hideNullFromLegend``
+* ``hideXAxis``
+* ``noNullPoints``
+* ``pieLabels``
+* ``valueLabels``
+* ``valueLabelsColor``
+* ``valueLabelsMin``
+
+
+Bug Fixes
+---------
+
+Graphite-Web
+^^^^^^^^^^^^
+
+* Render infinite values correctly for compatibility with JSON consumers (e.g. Grafana).
+
+* Fix for ``aliasByMetric`` to handle trailing parentheses properly.
+
+* Some functions would not handle ``event`` tags formatting. The format for these strings has been fixed.
+
+* Improved data extraction from CarbonLink cache when crossing archive boundaries.
+
+* Follow symlinks for RRD files.
+
+* Unicode fixes for RRD paths.
+
+* Support for the FNV1a_ch hashing algorithm used by the `carbon-c-relay <https://github.com/grobian/carbon-c-relay>`_ project.
+
+* Fix for ``smartSummarize`` where it would discard timezone information, sometimes resulting in an exception due to broken intervals.
+
+* Better handling for missing data in the divisor series for ``divideSeries``.
+
+* Fix function name reported in path expression for ``stdev``.
+
+* The ``countSeries`` function will now return zeroes instead of an empty series.
+
+* The ``constantLine`` function can now be rendered without any other series.
+
+* Incorrect float format across a variety of functions.
+
+* Fix "thousands" unit for y-axis.
+
+* Average/current/max/min Above/Below functions not fails if there is no data.
+
+* Fix blank space below the legend
+
+* Update the command to setup a new database
+
+* aliasByNode(): support all chars allowed by the grammar
+
+Carbon
+^^^^^^
+
+* Avoid duplication of aggregator statistics by using a dedicated pipeline.
+
+* Log incorrect schemas missing the ``retentions`` attribute.
+
+* Improved logging for writer create or update failures.
+
+* Fix long-standing issue with negative cache size statistic.
+
+* Use the correct ``AGGREGATION_RULES`` configuration file.
+
+* Fix race condition possible when queue is full and destinations reconnect.
+
+* Fix ``--profile`` option for recording performance data.
+
+* Improved help documentation in the Composer.
+
+* Compute seconds_left rightly in util.
+
+* Better handling for failed creates.
+
+* Import manhole and amqp correctly
+
+* Fix CacheManagementHandler() and associated tests
+
+Whisper
+^^^^^^^
+
+* remove xFilesFactor float comparison, use whisper-resize if whisper-resize.py is not available
+
+* (fix) [FreeBSD-i386] correct size of off_t in posix_fallocate call
+
+* whisper-auto-resize.py: error fix
+
+* double-fix bad commit to whisper-resize
+
+* whisper-auto-resize: fix default values for xFilesFactor and aggregationMethod
+
+* Fix indentation on CACHE_HEADERS, not related to AUTOFLUSH
+
+* rrd2whisper: fix relative destinationpaths
+
+Other Changes
+-------------
+
+Graphite-Web
+^^^^^^^^^^^^
+
+* Brand new clustering implementation using a pool of worker threads and persistent connections to backends
+
+* New Graphite logo in the Composer banner.
+
+* Pluggable storage finders have been added. This allows graphite to fetch data from other datastores than Whisper or Ceres. See the :doc:`storage finder docs <../storage-backends>` for more information.
+
+* The search index file is now generated with the ``build-index`` command that has been rewritten in Python. ``build-index.sh`` is still available but is just an alias to ``build-index``.
+
+* The ``CONTENT_DIR`` setting has been replaced with ``STATIC_ROOT`` and now allows to easily serve non-graphite static files such as Django admin's. See the :doc:`configuration docs <../config-local-settings>` for usage instructions.
+
+* `Tox <https://testrun.org/tox/latest/>`_ is now used for running the tests locally across the supported Django and Python version combinations. A :doc:`section about working on graphite-web <../development>` has been added to the documentation.
+
+* Python's own log rotation can be disabled using the `LOG_ROTATION` setting. This is useful when running multiple WSGI workers.
+
+* The events API now requires ``tags`` to be an array when creating tagged events. Previous versions only accepted string attributes. Tags are also serialized as arrays.
+
+* Enhancements and optimizations to brace expansion for wildcards.
+
+* Graphite Dashboards support absolute time ranges passed in the URL.
+
+* Dumping the known metrics list with ``/metrics/index.json`` now includes RRD metrics.
+
+* Improved support for special characters in metric names.
+
+* Support for jsonp requests in the metrics view.
+
+* New "refresh" button in the metrics tree navigation panel.
+
+* Refresh all visible nodes in the metrics tree navigation view, not just the current node level.
+
+* Support for globstar matching in target paths.
+
+* Introduce the ``MAX_TAG_LENGTH`` setting for overriding the maximum tag length for events.
+
+* Ability to retrieve a single event via the API. Previously you would have to dump the entire events database to inspect any events.
+
+* Configurable ``DATE_FORMAT`` setting for overriding the short date format.
+
+* New ``nodelist`` format for the metrics find view. This mode makes it easier for clients to query metric node information from the API.
+
+* Ability to pass units suffix string (e.g. "Kb") to ``cactiStyle``.
+
+* Interpolate across null values in ``perSecond`` function.
+
+* Dashboards are now sorted alphabetically in the finder.
+
+* Support for unicode in rendered graph text.
+
+* Improved sorting of saved graphs.
+
+* Event times are now converted to local time to align with query times.
+
+* Faster calculation algorithm for ``movingAverage``.
+
+* Automatically close the Dashboard's upper navigation panel if the dashboard was loaded by a parameterized URL.
+
+* Cluster servers can now communicate over HTTPS when ``INTRACLUSTER_HTTPS`` is enabled.
+
+* Readers are more resilient to the loss of a single backend
+
+* Support whisper aggregation method "last"
+
+* Improve json rendering performance
+
+* Allow to override Memcache options easily
+
+* Make readers.py more easilly importable by moving away models
+
+* Support 0.9.x backends in 1.0.0 cluster
+
+* hange deprecated request.REQUEST
+
+* Decreasing number of stat syscalls dramatically using `scandir` module
+
+* Add json format option for find api
+
+* Forward HTTP request headers to CLUSTER_HOSTS
+
+* Pre-load each graph image before updating the dashboard UI
+
+* Fix incorrect display of 'title' URI parameter
+
+* prevent repeated series evaluations for hitcount and smartSummarize
+
+Carbon
+^^^^^^
+
+* Support for pluggable protocols and clients. Support for protobuf was added, existing protocols have been ported over to use the new design.
+
+* Support for pluggable routers, including new ``fast-hashing`` and ``fast-aggregated-hashing`` relay methods based on MurmurHash3.
+
+* Introduced ``CERES_NODE_CACHING_BEHAVIOR`` for tuning Ceres' caching behavior.
+
+* Aggregators now report ``destinations`` statistics.
+
+* Remove unused ``list`` and ``match-all`` schema options.
+
+* Introduced ``WHISPER_FADVISE_RANDOM`` as an option to avoid disk thrashing in certain scenarios.
+
+* Support for ``MAX_RECEIVER_CONNECTIONS`` to limit the number of TCP connections to the intended Carbon service.
+
+* Listeners will include metric path details when logging due to invalid line submission.
+
+* Support logging to syslog with the ``--syslog`` runtime option.
+
+* Allow Manhole to operate with no passphrase.
+
+* New ``--profiler`` runtime option for specifying the profiler.
+
+* Improved ``HUP`` signal handling.
+
+* Add support for IPv6 addresses enclosed in square brackets in the destination parser.
+
+* Add LOG_CREATES to disable creation logs
+
+* Enforce better syslog tag
+
+* Update carbon.amqp.conf.example
+
+* Add protobuf support
+
+* Add MIN_TIMESTAMP_RESOLUTION
+
+* Fix CACHE_WRITE_STRATEGY and add TimeSortedStrategy
+
+Whisper
+^^^^^^^
+
+* Add fallocate and sparse support in whisper-create
+
+* use whisper-resize if whisper-resize.py is not available
+
+* Support FADVISE_RANDOM for create/update/update_many
+
+* rrd2whisper.py: Only suffix wsp files if required
+
+* whisper-fill: move to optparse, add whisper file locking
+
+* whisper-auto-resize.py: allow subdir to be a single file
+
+* Faster evaluation for 'last' aggregation method
+
+* Add update-storage-times.py - a  tool to change storage schemas for whisper files and update the data. Threaded to vastly improve speed over whisper-auto-resize.py
+
+* whisper: disable buffering for update operations
+
+* whisper-diff improvement: new until param
+
+* Add optional destinationPath for rrd2whisper
+
+* added json output to whisper-diff.py script
+
+* setup: install contrib scripts
+
+* Make indentation consistent in files with mixed indentation
+
+* Add whisper-set-xfilesfactor.py utility
+
+* parseRetentionDef: raise more descriptive exception on wrong retention
+
+* whisper resize: don't attempt to merge empty files
+
+* whisper-fetch whisper-auto-update: validate if whisper.fetch() returned data

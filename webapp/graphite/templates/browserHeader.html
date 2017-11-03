@@ -1,3 +1,4 @@
+{% load staticfiles %}<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <!-- Copyright 2008 Orbitz WorldWide
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,34 +17,34 @@ limitations under the License. -->
     <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
     <title>Graphite Browser Header</title>
     <style>
+      html {
+        height: 100%;
+      }
       body {
         background-color: #000;
-        background: url('/content/img/carbon-fiber.png');
-        background: url('/content/img/carbon-fiber.png'), -webkit-linear-gradient(top, #000 55%, #333);
-        background: url('/content/img/carbon-fiber.png'),    -moz-linear-gradient(top, #000, #000);
-        background: url('/content/img/carbon-fiber.png'),     -ms-linear-gradient(top, #000 55%, #333);
-        background: url('/content/img/carbon-fiber.png'),      -o-linear-gradient(top, #000 55%, #333);
-        background: url('/content/img/carbon-fiber.png'),         linear-gradient(top, #000 55%, #333);
+        background: #000 url('{% static "img/carbon-fiber.png" %}');
+        background: url('{% static "img/carbon-fiber.png" %}'), -webkit-linear-gradient(top, #000 55%, #333);
+        background: url('{% static "img/carbon-fiber.png" %}'),    -moz-linear-gradient(top, #000, #000);
+        background: url('{% static "img/carbon-fiber.png" %}'),     -ms-linear-gradient(top, #000 55%, #333);
+        background: url('{% static "img/carbon-fiber.png" %}'),      -o-linear-gradient(top, #000 55%, #333);
+        background: url('{% static "img/carbon-fiber.png" %}'),         linear-gradient(top, #000 55%, #333);
       }
       div.header {
-        margin-top: 13px;
-      }
-      .header span.title {
-        font-family: "HelveticaNeue-UltraLight", "Helvetica Neue", "Helvetica";
-        font-size: 1.6em;
-        font-weight: 100;
-        margin-left: 50px;
-        color: #fff;
+        background-image: url('{% static "img/graphite-logo.png" %}');
+        background-repeat: no-repeat;
+        background-size: 12%;
+        min-height: 60px;
+        margin: 22px 0 0 50px;
       }
       .header div.nav {
         float: right;
       }
       .header .nav * {
-        font: 12px Helvetica, Arial, Tahoma, sans-serif;
+        font: 0.96em Helvetica, Arial, Tahoma, sans-serif;
         color: rgb(173, 173, 173);
       }
       .header .nav ul {
-        margin-top: 10px;
+        margin: 14px 30px 0 0;
         list-style: none;
       }
       .header .nav ul li {
@@ -53,27 +54,34 @@ limitations under the License. -->
       .header .nav ul li a {
         text-decoration: none;
       }
-      .header .nav ul li a:hover {
+      .header .nav ul li.login a {
+        color: #66B3CF;
+      }
+      .header .nav ul li a:hover, .header .nav ul li a.logout:hover {
         color: #fff;
+      }
+      .header .nav ul li a.logout {
+        color: rgb(228, 133, 126);
+      }
+      .header .nav ul li.user_state {
+        margin-left: 20px;
       }
     </style>
   </head>
   <body>
     <div class="header">
-      <span class="title">Graphite</span>
       <div class="nav">
         <ul>
-        {% if user.is_authenticated %}
-          <li>Logged in as <b>{{ user.username }}</b>, <a href="/account/logout/" target="_top">logout</a> (<a href="/account/edit/" target="_top">edit profile</a>)</li>
-        {% else %}
-          <li><a href="{{login_url}}" target="_top">Login</a></li>
-        {% endif %}
         {% if documentation_url %}
           <li><a href="{{documentation_url}}" target="_newWindow">Documentation</a></li>
         {% endif %}
-          <li><a href="/dashboard/" target="_top">Dashboard</a></li>
-          <li><a href="/graphlot/" target="_top">flot</a></li>
-          <li><a href="/events/" target="_top">events</a></li>
+        <li><a href="{% url "dashboard" %}" target="_top">Dashboard</a></li>
+        <li><a href="{% url "events" %}" target="_top">Events</a></li>
+        {% if user.is_authenticated %}
+          <li class="user_state"><a href="{% url "account_logout" %}" class="logout" target="_top">Logout</a> <b>{{ user.username }}</b> (<a href="{% url "account_edit" %}" target="_top">profile</a>)</li>
+        {% else %}
+          <li class="user_state login"><a href="{{login_url}}" target="_top">Login</a></li>
+        {% endif %}
         </ul>
       </div>
     </div>

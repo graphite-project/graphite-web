@@ -1,0 +1,204 @@
+.. _0-9-14:
+
+0.9.14
+===========================
+*11/7/2015*
+
+Graphite 0.9.14 is now available for usage. Source bundles are available from GitHub:
+
+* https://github.com/graphite-project/graphite-web/archive/0.9.14.tar.gz
+* https://github.com/graphite-project/carbon/archive/0.9.14.tar.gz
+* https://github.com/graphite-project/whisper/archive/0.9.14.tar.gz
+
+Graphite can also be installed from `PyPI <http://pypi.python.org/>`_ via
+`pip <http://www.pip-installer.org/en/latest/index.html>`_. PyPI bundles are here:
+
+* http://pypi.python.org/pypi/graphite-web/
+* http://pypi.python.org/pypi/carbon/
+* http://pypi.python.org/pypi/whisper/
+
+Upgrading
+---------
+Graphite 0.9.14 now requires a Django version of at least 1.4. Ensure this dependency is satisfied before updating *graphite-web*.
+
+As always, comparing the example config files with existing ones is recommended to ensure awareness of any new features.
+
+Graphite-web's application database will need to be upgraded for a new Django fixture. It's a good idea to backup the database before proceeding with the migration. The following will upgrade a SQLite database:
+
+.. code-block:: none
+
+  sudo cp /opt/graphite/storage/graphite.db \
+        /opt/graphite/storage/graphite.db.backup-`date +%Y%m%d_%H%M%S`
+  sudo PYTHONPATH=/opt/graphite/webapp django-admin.py syncdb \
+        --noinput --no-initial-data --settings=graphite.settings
+
+Security Notes
+--------------
+No known security issues.
+
+
+New Features
+------------
+
+Graphite-web
+^^^^^^^^^^^^
+* New ``minimumBelow()`` function (ojilles)
+* Add ``margin()`` function to Composer menu (obfuscurity)
+* Sort "User Graphs" by creator's username (ciranor)
+* New ``changed()`` function (kamaradclimber, obfuscurity)
+* Use ``query_bulk`` for improved cache query performance (huy, deniszh)
+* A URL shortener has been added to the composer toolbar (seveas, cbowman0, deniszh)
+* Allow metric finder to return jsonp objects (kali-hernandez-sociomantic)
+* Document use of alpha color values in ``colorList`` and ``bgcolor`` (ojilles)
+* Improved documentation for ``areaBetween()`` (ojilles, gwaldo)
+* Improved documentation for ``cactiStyle()`` (ojilles)
+* Document installation via Synthesize (gwaldo)
+* Mention the Synthensize installation method for Windows users (gwaldo)
+* Massive cleanup across all of our documentation pages (gwaldo)
+* Support for custom remote authentication backends (steve-dave)
+* Improvements to the cache hash function (rmca, esc)
+* Improved logging on CarbonLink failed queries (jamesjuran)
+* Add navigation elements to reorder metrics in Composer (justino)
+* Use Django's native TZ method (jcsp)
+* New test suite and TravisCI integration (brutasse, esc)
+* Rename the metrics node from "Graphite" to "Metrics" (obfuscurity)
+* New ``perSecond()`` function (cbowman0, pcn)
+* Add Composer button to load existing graph url (justino)
+* Add ``maxDataPoints`` to limit number of returned datapoints for json requests (philiphoy, gingerlime)
+* Refactor json responses for clarity (whilp)
+* New `grafana` color scheme (lainSR)
+* Add optional 'now' parameter to remote node fetch (Kixeye)
+* Graphlot was completely removed (obfuscurity)
+* Use cairocffi instead of pycairo (brutasse, esc)
+* New icons converted from Font Awesome project (obfuscurity)
+* Adding tests for Django 1.7 (brutasse, syepes)
+* Bulk-fetch metrics from remote hosts (bmhatfield, deniszh, favoretti)
+* Perform all remote fetches in parallel (bmhatfield)
+* Perform ``/metrics/find`` queries in parallel (jraby)
+* New prefetch cache for remote queries (jraby)
+* New ``REMOTE_STORE_USE_POST`` setting for remote requests (steve-dave)
+* New single-hue color templates (obfuscurity)
+* New ``sortByName()`` function (jssjr, Krylon360)
+* Namespace request-cache data with the local node (jssjr)
+* Support for retrieving static assets with whitenoise (brutasse, deniszh)
+* Enable buffering in HTTPResponse objects (jjneely, deniszh)
+* Merge TimeSeries when more than one returned per key, making this feature optional (jjneely, deniszh)
+
+Carbon
+^^^^^^
+* Record the blacklist and whitelist metrics (jssjr, deniszh)
+* Ability to run in the foreground without debug (jib, deniszh)
+* Introduce ``QUEUE_LOW_WATERMARK_PCT`` and ``TIME_TO_DEFER_SENDING`` to improve batching (pcn, steve-dave)
+* Configurable files for aggregation and rewrite rules (drawks)
+* New bulk cache query type (huy)
+* Bulk cache query instrumentation (mleinart)
+* Require Twisted >= 13.2.0, adds IPv6 support (obfuscurity)
+* Document how to disable individual listeners (steve-dave)
+* Support backlogs for TCP listeners (jssjr)
+* Improved cache tests (jssjr)
+* New ``--profiler`` option (tail, deniszh)
+* Support for ``DIVERSE_REPLICAS`` (deniszh, dctrwatson)
+
+Whisper
+^^^^^^^
+* New whisper-fill utility imported from Carbonate project (jssjr, grobian, deniszh)
+* Add ``--estimate`` option to whisper-create (steve-dave)
+* New whisper-diff utility (bheilman, deniszh)
+
+Bug fixes
+---------
+
+Graphite-web
+^^^^^^^^^^^^
+* Missing ``pathExpression`` in ``constantLine()`` function (markolson)
+* Fix for ``CLUSTER_SERVERS`` when ``ip_nonlocal_bind`` is enabled (PrFalken)
+* Missing ExtJS gif in Dashboard when viewed in tree configuration (obfuscurity)
+* Fix docs builds for the `render function list <http://graphite.readthedocs.org/en/0.9.x/functions.html>`_ (obfuscurity, gwaldo)
+* ``aliasByMetric()`` was including trailing arguments (obfuscurity)
+* Fix ``initialState`` for Dashboard (cbownman0, jamesjuran)
+* Broken ``series.name`` in ``percentileOfSeries`` (simm42)
+* Refresh "My Graphs" *after* graph is saved or deleted (obfuscurity)
+* Remove superfluous grid line with log scale (ralphm)
+* Fix ``holtWintersAberration()`` when bands have ``None`` values (aaronfc)
+* Number of results from cache query was incorrectly logged (steve-dave)
+* Dashboard should only refresh on positive values (linkslice)
+* Fix ``logBase()`` when value between 0 and 1 (wellle)
+* Fix ``PICKLE_SAFE`` for remote rendering (deniszh)
+* Fix ``yMaxValue`` when ``areaMode=stacked`` (bitprophet)
+* Convert ``time.mktime`` to int to fix ``identity()`` function (dpkp)
+* Compatibility fix in Graphlot (steve-dave)
+* Off-by-one bug that broke JSON output for ``constantLine`` (steve-dave)
+* Minor documentation fix for ``sumSeriesWithWildcards()`` (steve-dave)
+* Fix TypeError with ``sum()`` function (macolu)
+* Remote storage should return ``None`` when ``seriesList`` is empty (steve-dave)
+* Fix project url in ``setup.py`` (esc)
+* Fix condition where missing ``until`` parameter caused TypeError (steve-dave)
+* Remove old jQuery workaround in Graphlot (steve-dave)
+* Fix ``now`` handling in render queries (jcsp)
+* Fix ``PICKLE_SAFE`` for CarbonLink queries (Dieterbe)
+* Decimals not printed for ``cactiStyle()`` (SuminAndrew, drawks)
+* Typo in exception name (also)
+* Fix assumption that RemoteNode inherits from Node (mleinart)
+* Updating the copyright notice (gwaldo)
+* CACHE_* settings are deprecated in Django 1.3, so, was replaced with CACHES setting (brutasse, deniszh)
+* Fix data cache invalidation (esc, deniszh)
+* Fix documentation for divideSeries (gwaldo)
+* Make HTTP clients only cache graphs as long as we keep them in memcached (aroben, deniszh)
+* DST fixes, backport from graphite-api (brutasse, deniszh)
+* HttpRequest.raw_post_data was deprecated in Django 1.4 (obfuscurity)
+* XSS fixes for browser and composer (illicium, piotr1212, deniszh)
+* Docs: Python Dev Headers needed for custom install location (gwaldo)
+* Fix pytz install dependency (deniszh)
+* Javascript compatibility fixes for Internet Explorer (piotr1212)
+* Timezone fixes and tests (brutasse, MFAnderson, deniszh)
+* Fix for remote fetch threads (deniszh)
+* Fixes for ``normalize()`` (g76r, jstangroome)
+* Avoid exceptions when ``CARBONLINK_HOSTS`` is an empty list (jstangroome)
+* Lock django-tagging to fix Travis CI (jstangroome)
+* Set default timezone (jjneely)
+* Never attempt to write empty data to request-cache (apg-pk)
+* Never merge CarbonLink results with Whisper rollups (penpen, obfuscurity)
+* Fix for SVG graphs (grobian, obfuscurity)
+* Skip empty target parameters (obfuscurity)
+* Remove unnecessary dependencies (obfuscurity)
+
+Carbon
+^^^^^^
+* Restore recursive mkdir on ``LOG_DIR`` (jamesjuran)
+* More accurate queue length reporting (pcn, bitprophet)
+* Set ownership on log subdirectories if ``USER`` is defined (jamesjuran)
+* Improved documentation for ``FORWARD_ALL`` (hdoshi)
+* Fix whisper directory umask (alexandreboisvert, steve-dave)
+* Unable to load ``AGGREGATION_RULES`` (drawks)
+* Compatibility with Twisted 13.2.0 (esc, drawks)
+* Incorrect log rotation documentation (mleinart)
+* Fix carbon-cache cpu usage 100% when sent metric with too big name (jssjr, deniszh)
+* Fix aggregator replication factor setting (jssjr, deniszh)
+* Change the max update on shutdown (f80)
+* Document the fact that one can use regexps in the aggregation-rules (ctavan)
+* Move tests to tox (jssjr)
+* Add hup signal handler (jssjr)
+* Fix instrumentation (avishai-ish-shalom, jssjr)
+* Fix exception handling (steve-dave)
+* Fix CACHE_WRITE_STRATEGY (jssjr)
+* Fix aggregated metrics (pgul, ctavan)
+* Logging fixes (obfuscurity, piotr1212)
+* Fix race condition for full queues (mleinart)
+* Default value for ``MAX_UPDATES_PER_SECOND_ON_SHUTDOWN`` (jssjr)
+* Never cache empty aggregation results (mleinart)
+* Fixes for MetricsCache size leak (jssjr, deniszh)
+* Documentation fix for relay-rules (obfuscurity)
+* Fix test assertions (obfuscurity)
+* Fix for ``--profile`` arg (tail, deniszh)
+* Move Red Hat initscripts to examples (deniszh, bmhatfield)
+
+Whisper
+^^^^^^^
+* Write optimization in ``update_many`` (timob, deniszh)
+* Add optional ``now`` parameter to fetch for graphite-web compatibility (jcsp, steve-dave)
+* Remove unused Tox configuration (steve-dave)
+* TravisCI no longer supports Python 2.5 (steve-dave)
+* Unlink Whisper file if empty/corrupted (jraby)
+* Enforce closing of Whisper files (AstromechZA, jjneely)
+* Handle zero length time ranges by returning the next valid point (jjneely)
+* Used wrong ``until`` boundary for selecting archive (obfuscurity)

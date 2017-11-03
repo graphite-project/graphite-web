@@ -1,6 +1,28 @@
 Installing Graphite
 ===================
 
+Docker
+------
+
+Try Graphite in Docker and have it running in seconds:
+
+.. code-block:: none
+
+    docker run -d\
+     --name graphite\
+     --restart=always\
+     -p 80:80\
+     -p 2003-2004:2003-2004\
+     -p 2023-2024:2023-2024\
+     -p 8125:8125/udp\
+     -p 8126:8126\
+     graphiteapp/graphite-statsd
+
+Check `docker_repo`_ for details.
+
+This is portable, fast and easy to use. Or use instructions below for installation.
+
+
 Dependencies
 ------------
 Graphite renders graphs using the Cairo graphics library. This adds dependencies on
@@ -10,24 +32,23 @@ been met or not.
 
 Basic Graphite requirements:
 
-* Python 2.4 or greater (2.6+ recommended)
-* `Pycairo`_
-* `Django`_ 1.0 or greater
-* `django-tagging`_ 0.3.1 or greater
-* `Twisted`_ 8.0 or greater (10.0+ recommended)
-* `zope-interface`_ (often included in Twisted package dependency)
+* a UNIX-like Operating System
+* Python 2.7 or greater but `NOT Python 3` (yet)
+* `cairocffi`_
+* `Django`_ 1.8 - 1.11
+* `django-tagging`_ 0.4.3 (not `django-taggit` yet)
+* `pytz`_
+* `scandir`_
 * `fontconfig`_ and at least one font package (a system package usually)
 * A WSGI server and web server. Popular choices are:
-  - `Apache`_ with `mod_wsgi`_ and `mod_python`_
+
+  - `Apache`_ with `mod_wsgi`_
+
   - `gunicorn`_ with `nginx`_
+
   - `uWSGI`_ with `nginx`_
 
-Python 2.4 and 2.5 have extra requirements:
-
-* `simplejson`_
-* `python-sqlite2`_ or another Django-supported database module
-
-Additionally, the Graphite webapp and Carbon require the whisper database library which
+Additionally, the Graphite webapp and Carbon require the Whisper database library which
 is part of the Graphite project.
 
 There are also several other dependencies required for additional features:
@@ -36,7 +57,7 @@ There are also several other dependencies required for additional features:
 * LDAP authentication: `python-ldap`_ (for LDAP authentication support in the webapp)
 * AMQP support: `txamqp`_
 * RRD support: `python-rrdtool`_
-* Dependant modules for additional database support (MySQL, PostgreSQL, etc). See `Django database install`_ instructions and the `Django database`_ documentation for details
+* Dependent modules for additional database support (MySQL, PostgreSQL, etc). See `Django database install`_ instructions and the `Django database`_ documentation for details
 
 .. seealso:: On some systems it is necessary to install fonts for Cairo to use. If the
              webapp is running but all graphs return as broken images, this may be why.
@@ -48,7 +69,7 @@ There are also several other dependencies required for additional features:
 Fulfilling Dependencies
 -----------------------
 Most current Linux distributions have all of the requirements available in the base packages.
-RHEL based distributions may require the `EPEL`_ repository for requirements. 
+RHEL based distributions may require the `EPEL`_ repository for requirements.
 Python module dependencies can be install with `pip`_ rather than system packages if desired or if using
 a Python version that differs from the system default. Some modules (such as Cairo) may require
 library development headers to be available.
@@ -89,13 +110,17 @@ Carbon and Graphite-web are installed in ``/opt/graphite/`` with the following l
 
     Location for Whisper data files to be stored and read
 
+  - ``ceres``
+
+    Location for Ceres data files to be stored and read
+
 - ``webapp/``
 
   Graphite-web ``PYTHONPATH``
 
   - ``graphite/``
 
-    Location of ``manage.py`` and ``local_settings.py``
+    Location of ``local_settings.py``
 
   - ``content/``
 
@@ -107,23 +132,31 @@ Installing Graphite
 Several installation options exist:
 
 .. toctree::
+   :maxdepth: 2
+
    install-source
    install-pip
    install-virtualenv
+   install-synthesize
 
 
 Initial Configuration
 ---------------------
+
 .. toctree::
-   configure-webapp
-   configure-carbon
+   :maxdepth: 2
+   
+   config-database-setup
+   config-webapp
+   config-local-settings
+   config-carbon
 
 
 Help! It didn't work!
 ---------------------
 If you run into any issues with Graphite, please to post a question to our
 `Questions forum on Launchpad <https://answers.launchpad.net/graphite>`_
-or join us on IRC in #graphite on FreeNode
+or join us on IRC in #graphite on FreeNode.
 
 
 Post-Install Tasks
@@ -150,26 +183,33 @@ Post-Install Tasks
 :doc:`Using the Composer </composer>`
     Now that the webapp is running, you probably want to learn how to use it.
 
-.. _Apache: http://projects.apache.org/projects/http_server.html
+
+Windows Users
+-------------
+Despair Not!  Even though running Graphite on Windows is completely unsupported (we fear that handling the escaping of paths in the regexes would result only in jibbering madness, and life is just too short; pull requests happily considered!), you are not completely out of luck.  There are some solutions that make it easier for you to run a UNIX VM within your Windows box.  The :doc:`Installing via Synthesize </install-synthesize>` article will help you set up a Vagrant VM that will run Graphite.  In order to leverage this, you will need to install `Vagrant <https://www.vagrantup.com/>`_.
+
+
+.. _Apache: https://projects.apache.org/project.html?httpd-http_server
+.. _cairocffi: https://pythonhosted.org/cairocffi/
 .. _Django: http://www.djangoproject.com/
-.. _django-tagging: http://code.google.com/p/django-tagging/
+.. _django-tagging: http://django-tagging.readthedocs.io/
 .. _Django database install: https://docs.djangoproject.com/en/dev/topics/install/#get-your-database-running
 .. _Django database: https://docs.djangoproject.com/en/dev/ref/databases/
-.. _EPEL: http://fedoraproject.org/wiki/EPEL/
+.. _EPEL: http://fedoraproject.org/wiki/EPEL
 .. _fontconfig: http://www.freedesktop.org/wiki/Software/fontconfig/
 .. _gunicorn: http://gunicorn.org/
 .. _memcached: http://memcached.org/
-.. _mod_python: http://www.modpython.org/
-.. _mod_wsgi: http://code.google.com/p/modwsgi/
+.. _mod_wsgi: https://modwsgi.readthedocs.io/
 .. _nginx: http://nginx.org/
-.. _pip: http://www.pip-installer.org/
-.. _Pycairo: http://www.cairographics.org/pycairo/
-.. _python-ldap: http://www.python-ldap.org/
-.. _python-memcache: http://www.tummy.com/Community/software/python-memcached/
+.. _NOT Python 3: https://python3wos.appspot.com/
+.. _pip: https://pip.pypa.io/
+.. _python-ldap: https://www.python-ldap.org/
+.. _python-memcache: https://www.tummy.com/software/python-memcached/
 .. _python-rrdtool: http://oss.oetiker.ch/rrdtool/prog/rrdpython.en.html
-.. _python-sqlite2: http://code.google.com/p/pysqlite/
-.. _simplejson: http://pypi.python.org/pypi/simplejson/
-.. _Twisted: http://twistedmatrix.com/
+.. _python-sqlite2: https://github.com/ghaering/pysqlite
+.. _pytz: https://pypi.python.org/pypi/pytz/
+.. _scandir: https://pypi.python.org/pypi/scandir
+.. _simplejson: http://simplejson.readthedocs.io/
 .. _txAMQP: https://launchpad.net/txamqp/
-.. _uWSGI: http://projects.unbit.it/uwsgi/
-.. _zope-interface: http://pypi.python.org/pypi/zope.interface/
+.. _uWSGI: http://uwsgi-docs.readthedocs.io/
+.. _docker_repo: https://github.com/graphite-project/docker-graphite-statsd

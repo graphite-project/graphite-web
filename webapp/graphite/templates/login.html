@@ -28,7 +28,7 @@ limitations under the License. -->
 </div>
 {% endif %}
 
-<form method='POST' action='/account/login/'>
+<form method='POST' action="{% url "account_login" %}">
 {% if nextPage %}
 <input type='hidden' name='nextPage' value='{{nextPage}}'/>
 {% endif %}

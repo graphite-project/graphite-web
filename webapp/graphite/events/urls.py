@@ -12,10 +12,11 @@ You may obtain a copy of the License at
    See the License for the specific language governing permissions and
    limitations under the License."""
 
-from django.conf.urls.defaults import *
+from django.conf.urls import url
+from . import views
 
-urlpatterns = patterns('graphite.events.views',
-  ('^get_data?$', 'get_data'),
-  (r'(?P<event_id>\d+)/$', 'detail'),
-  ('^$', 'view_events'),
-)
+urlpatterns = [
+    url('^get_data?$', views.get_data, name='events_get_data'),
+    url(r'(?P<event_id>\d+)/$', views.detail, name='events_detail'),
+    url('^$', views.view_events, name='events'),
+]

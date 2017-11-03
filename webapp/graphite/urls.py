@@ -10,29 +10,36 @@ Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
-limitations under the License."""
-
-from django.conf.urls.defaults import *
+limitations under the License"""
 from django.conf import settings
+from django.conf.urls import include, url
 from django.contrib import admin
+from graphite.url_shortener.views import shorten, follow
+from graphite.browser.views import browser
 
-admin.autodiscover()
+graphite_urls = [
+    url('^admin/', admin.site.urls),
+    url('^render/?', include('graphite.render.urls')),
+    url('^composer/?', include('graphite.composer.urls')),
+    url('^metrics/?', include('graphite.metrics.urls')),
+    url('^browser/?', include('graphite.browser.urls')),
+    url('^account/', include('graphite.account.urls')),
+    url('^dashboard/?', include('graphite.dashboard.urls')),
+    url('^whitelist/?', include('graphite.whitelist.urls')),
+    url('^version/', include('graphite.version.urls')),
+    url('^events/', include('graphite.events.urls')),
+    url('^tags/?', include('graphite.tags.urls')),
+    url('^s/(?P<path>.*)', shorten, name='shorten'),
+    url('^S/(?P<link_id>[a-zA-Z0-9]+)/?$', follow, name='follow'),
+    url('^$', browser, name='browser'),
+]
 
-urlpatterns = patterns('',
-  ('^admin/', include(admin.site.urls)),
-  ('^render/?', include('graphite.render.urls')),
-  ('^cli/?', include('graphite.cli.urls')),
-  ('^composer/?', include('graphite.composer.urls')),
-  ('^metrics/?', include('graphite.metrics.urls')),
-  ('^browser/?', include('graphite.browser.urls')),
-  ('^account/?', include('graphite.account.urls')),
-  ('^dashboard/?', include('graphite.dashboard.urls')),
-  ('^whitelist/?', include('graphite.whitelist.urls')),
-  ('^content/(?P<path>.*)$', 'django.views.static.serve', {'document_root' : settings.CONTENT_DIR}),
-  ('graphlot/', include('graphite.graphlot.urls')),
-  ('^version/', include('graphite.version.urls')),
-  ('^events/', include('graphite.events.urls')),
-  ('', 'graphite.browser.views.browser'),
-)
+url_prefix = ''
+if settings.URL_PREFIX.strip('/'):
+    url_prefix = '{0}/'.format(settings.URL_PREFIX.strip('/'))
+
+urlpatterns = [
+    url(r'^{0}'.format(url_prefix), include(graphite_urls)),
+]
 
 handler500 = 'graphite.views.server_error'

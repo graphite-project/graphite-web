@@ -19,9 +19,14 @@ from django.contrib.auth.models import User
 
 class LDAPBackend:
   def authenticate(self, username=None, password=None):
+    if settings.LDAP_USER_DN_TEMPLATE is not None:
+      settings.LDAP_BASE_USER = settings.LDAP_USER_DN_TEMPLATE % {'username': username}
+      settings.LDAP_BASE_PASS = password
     try:
       conn = ldap.initialize(settings.LDAP_URI)
       conn.protocol_version = ldap.VERSION3
+      if settings.LDAP_USE_TLS:
+        conn.start_tls_s()
       conn.simple_bind_s( settings.LDAP_BASE_USER, settings.LDAP_BASE_PASS )
     except ldap.LDAPError:
       traceback.print_exc()

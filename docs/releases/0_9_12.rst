@@ -1,0 +1,24 @@
+.. _0-9-12:
+
+0.9.12
+======
+*8/22/2013*
+
+This is a patch release to fix a couple of critical regressions that made it into :ref:`0.9.11 <0-9-11>`:
+
+* Usage of django.utils.timezone breaks Django 1.3 compatibility
+* Missing import in graphite.util breaks cache-queries
+
+Source bundles are available from GitHub:
+
+* https://github.com/graphite-project/graphite-web/archive/0.9.12.tar.gz
+* https://github.com/graphite-project/carbon/archive/0.9.12.tar.gz
+* https://github.com/graphite-project/whisper/archive/0.9.12.tar.gz
+
+Graphite can also be installed from `Pypi <http://pypi.python.org/>`_ via
+`pip <http://www.pip-installer.org/en/latest/index.html>`_. Pypi bundles are here:
+
+* http://pypi.python.org/pypi/graphite-web/
+* http://pypi.python.org/pypi/carbon/
+* http://pypi.python.org/pypi/whisper/
+

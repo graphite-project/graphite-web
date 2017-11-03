@@ -11,17 +11,23 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
+import fnmatch
+import os
+import pytz
+import urllib
 
-import traceback
-from django.http import HttpResponse, HttpResponseBadRequest
+from datetime import datetime
 from django.conf import settings
-from graphite.account.models import Profile
-from graphite.util import getProfile, getProfileByUsername, defaultUser, json
+from graphite.compat import HttpResponse, HttpResponseBadRequest
+from graphite.user_util import getProfile
+from graphite.util import json
 from graphite.logger import log
+from graphite.readers import RRDReader
 from graphite.storage import STORE
-from graphite.metrics.search import searcher
 from graphite.carbonlink import CarbonLink
-import fnmatch, os
+from graphite.remote_storage import extractForwardHeaders
+from graphite.render.attime import parseATTime
+from graphite.util import epoch
 
 try:
   import cPickle as pickle
@@ -30,69 +36,113 @@ except ImportError:
 
 
 def index_json(request):
-  jsonp = request.REQUEST.get('jsonp', False)
+  queryParams = request.GET.copy()
+  queryParams.update(request.POST)
+
+  jsonp = queryParams.get('jsonp', False)
+  cluster = queryParams.get('cluster', False)
+
+  def find_matches():
+    matches = []
+
+    for root, dirs, files in os.walk(settings.WHISPER_DIR):
+      root = root.replace(settings.WHISPER_DIR, '')
+      for basename in files:
+        if fnmatch.fnmatch(basename, '*.wsp'):
+          matches.append(os.path.join(root, basename))
+
+    for root, dirs, files in os.walk(settings.CERES_DIR):
+      root = root.replace(settings.CERES_DIR, '')
+      for filename in files:
+        if filename == '.ceres-node':
+          matches.append(root)
+
+    # unlike 0.9.x, we're going to use os.walk with followlinks
+    # since we require Python 2.7 and newer that supports it
+    if RRDReader.supported:
+      for root, dirs, files in os.walk(settings.RRD_DIR, followlinks=True):
+        root = root.replace(settings.RRD_DIR, '')
+        for basename in files:
+          if fnmatch.fnmatch(basename, '*.rrd'):
+            absolute_path = os.path.join(settings.RRD_DIR, root, basename)
+            (basename,extension) = os.path.splitext(basename)
+            metric_path = os.path.join(root, basename)
+            rrd = RRDReader(absolute_path, metric_path)
+            for datasource_name in rrd.get_datasources(absolute_path):
+              matches.append(os.path.join(metric_path, datasource_name))
+
+    matches = [
+      m
+      .replace('.wsp', '')
+      .replace('.rrd', '')
+      .replace('/', '.')
+      .lstrip('.')
+      for m in sorted(matches)
+    ]
+    return matches
+
   matches = []
-
-  for root, dirs, files in os.walk(settings.WHISPER_DIR):
-    root = root.replace(settings.WHISPER_DIR, '')
-    for basename in files:
-      if fnmatch.fnmatch(basename, '*.wsp'):
-        matches.append(os.path.join(root, basename))
-
-  for root, dirs, files in os.walk(settings.CERES_DIR):
-    root = root.replace(settings.CERES_DIR, '')
-    for filename in files:
-      if filename == '.ceres-node':
-        matches.append(root)
-
-  matches = [
-    m
-    .replace('.wsp', '')
-    .replace('.rrd', '')
-    .replace('/', '.')
-    .lstrip('.')
-    for m in sorted(matches)
-  ]
+  if cluster and len(settings.CLUSTER_SERVERS) >= 1:
+    try:
+      matches = reduce( lambda x, y: list(set(x + y)), \
+        [json.loads(urllib.urlopen('http://' + cluster_server + '/metrics/index.json').read()) \
+        for cluster_server in settings.CLUSTER_SERVERS])
+    except urllib.URLError:
+      log.exception()
+      return json_response_for(request, matches, jsonp=jsonp, status=500)
+  else:
+    matches = find_matches()
   return json_response_for(request, matches, jsonp=jsonp)
-
-
-def search_view(request):
-  try:
-    query = str( request.REQUEST['query'] )
-  except:
-    return HttpResponseBadRequest(content="Missing required parameter 'query'", mimetype="text/plain")
-  search_request = {
-    'query' : query,
-    'max_results' : int( request.REQUEST.get('max_results', 25) ),
-    'keep_query_pattern' : int(request.REQUEST.get('keep_query_pattern', 0)),
-  }
-  #if not search_request['query'].endswith('*'):
-  #  search_request['query'] += '*'
-
-  results = sorted(searcher.search(**search_request))
-  return json_response_for(request, dict(metrics=results))
 
 
 def find_view(request):
   "View for finding metrics matching a given pattern"
-  profile = getProfile(request)
-  format = request.REQUEST.get('format', 'treejson')
-  local_only = int( request.REQUEST.get('local', 0) )
-  wildcards = int( request.REQUEST.get('wildcards', 0) )
-  fromTime = int( request.REQUEST.get('from', -1) )
-  untilTime = int( request.REQUEST.get('until', -1) )
+
+  queryParams = request.GET.copy()
+  queryParams.update(request.POST)
+
+  format = queryParams.get('format', 'treejson')
+  local_only = int( queryParams.get('local', 0) )
+  wildcards = int( queryParams.get('wildcards', 0) )
+
+  tzinfo = pytz.timezone(settings.TIME_ZONE)
+  if 'tz' in queryParams:
+    try:
+      tzinfo = pytz.timezone(queryParams['tz'])
+    except pytz.UnknownTimeZoneError:
+      pass
+
+  if 'now' in queryParams:
+    now = parseATTime(queryParams['now'], tzinfo)
+  else:
+    now = datetime.now(tzinfo)
+
+  if 'from' in queryParams and str(queryParams['from']) != '-1':
+    fromTime = int(epoch(parseATTime(queryParams['from'], tzinfo, now)))
+  else:
+    fromTime = -1
+
+  if 'until' in queryParams and str(queryParams['from']) != '-1':
+    untilTime = int(epoch(parseATTime(queryParams['until'], tzinfo, now)))
+  else:
+    untilTime = -1
+
+  nodePosition = int( queryParams.get('position', -1) )
+  jsonp = queryParams.get('jsonp', False)
+  forward_headers = extractForwardHeaders(request)
 
   if fromTime == -1:
     fromTime = None
   if untilTime == -1:
     untilTime = None
 
-  automatic_variants = int( request.REQUEST.get('automatic_variants', 0) )
+  automatic_variants = int( queryParams.get('automatic_variants', 0) )
 
   try:
-    query = str( request.REQUEST['query'] )
+    query = str( queryParams['query'] )
   except:
-    return HttpResponseBadRequest(content="Missing required parameter 'query'", mimetype="text/plain")
+    return HttpResponseBadRequest(content="Missing required parameter 'query'",
+                                  content_type='text/plain')
 
   if '.' in query:
     base_path = query.rsplit('.', 1)[0] + '.'
@@ -112,7 +162,7 @@ def find_view(request):
       query = '.'.join(query_parts)
 
   try:
-    matches = list( STORE.find(query, fromTime, untilTime, local=local_only) )
+    matches = list( STORE.find(query, fromTime, untilTime, local=local_only, headers=forward_headers) )
   except:
     log.exception()
     raise
@@ -122,12 +172,21 @@ def find_view(request):
   log.info("received remote find request: pattern=%s from=%s until=%s local_only=%s format=%s matches=%d" % (query, fromTime, untilTime, local_only, format, len(matches)))
 
   if format == 'treejson':
+    profile = getProfile(request)
     content = tree_json(matches, base_path, wildcards=profile.advancedUI or wildcards)
-    response = json_response_for(request, content)
+    response = json_response_for(request, content, jsonp=jsonp)
+
+  elif format == 'nodelist':
+    content = nodes_by_position(matches, nodePosition)
+    response = json_response_for(request, content, jsonp=jsonp)
 
   elif format == 'pickle':
     content = pickle_nodes(matches)
-    response = HttpResponse(content, mimetype='application/pickle')
+    response = HttpResponse(content, content_type='application/pickle')
+
+  elif format == 'json':
+    content = json_nodes(matches)
+    response = json_response_for(request, content, jsonp=jsonp)
 
   elif format == 'completer':
     results = []
@@ -141,10 +200,12 @@ def find_view(request):
       wildcardNode = {'name' : '*'}
       results.append(wildcardNode)
 
-    response = json_response_for(request, { 'metrics' : results})
+    response = json_response_for(request, { 'metrics' : results }, jsonp=jsonp)
 
   else:
-    return HttpResponseBadRequest(content="Invalid value for 'format' parameter", mimetype="text/plain")
+    return HttpResponseBadRequest(
+        content="Invalid value for 'format' parameter",
+        content_type='text/plain')
 
   response['Pragma'] = 'no-cache'
   response['Cache-Control'] = 'no-cache'
@@ -153,14 +214,19 @@ def find_view(request):
 
 def expand_view(request):
   "View for expanding a pattern into matching metric paths"
-  local_only    = int( request.REQUEST.get('local', 0) )
-  group_by_expr = int( request.REQUEST.get('groupByExpr', 0) )
-  leaves_only   = int( request.REQUEST.get('leavesOnly', 0) )
+  queryParams = request.GET.copy()
+  queryParams.update(request.POST)
+
+  local_only = int( queryParams.get('local', 0) )
+  group_by_expr = int( queryParams.get('groupByExpr', 0) )
+  leaves_only = int( queryParams.get('leavesOnly', 0) )
+  jsonp = queryParams.get('jsonp', False)
+  forward_headers = extractForwardHeaders(request)
 
   results = {}
-  for query in request.REQUEST.getlist('query'):
+  for query in queryParams.getlist('query'):
     results[query] = set()
-    for node in STORE.find(query, local=local_only):
+    for node in STORE.find(query, local=local_only, headers=forward_headers):
       if node.is_leaf or not leaves_only:
         results[query].add( node.path )
 
@@ -175,15 +241,19 @@ def expand_view(request):
     'results' : results
   }
 
-  response = json_response_for(request, result)
+  response = json_response_for(request, result, jsonp=jsonp)
   response['Pragma'] = 'no-cache'
   response['Cache-Control'] = 'no-cache'
   return response
 
 
 def get_metadata_view(request):
-  key = request.REQUEST['key']
-  metrics = request.REQUEST.getlist('metric')
+  queryParams = request.GET.copy()
+  queryParams.update(request.POST)
+
+  key = queryParams.get('key')
+  metrics = queryParams.getlist('metric')
+  jsonp = queryParams.get('jsonp', False)
   results = {}
   for metric in metrics:
     try:
@@ -192,7 +262,7 @@ def get_metadata_view(request):
       log.exception()
       results[metric] = dict(error="Unexpected error occurred in CarbonLink.get_metadata(%s, %s)" % (metric, key))
 
-  return json_response_for(request, results)
+  return json_response_for(request, results, jsonp=jsonp)
 
 
 def set_metadata_view(request):
@@ -210,7 +280,7 @@ def set_metadata_view(request):
 
   elif request.method == 'POST':
     if request.META.get('CONTENT_TYPE') == 'application/json':
-      operations = json.loads( request.raw_post_data )
+      operations = json.loads( request.body )
     else:
       operations = json.loads( request.POST['operations'] )
 
@@ -225,7 +295,7 @@ def set_metadata_view(request):
           results[metric] = dict(error="Unexpected error occurred in bulk CarbonLink.set_metadata(%s)" % metric)
 
   else:
-    results = dict(error="Invalid request method")
+    results = dict(error='Invalid request method')
 
   return json_response_for(request, results)
 
@@ -265,7 +335,7 @@ def tree_json(nodes, base_path, wildcards=False):
 
     found.add(node.name)
     resultNode = {
-      'text' : str(node.name),
+      'text' : urllib.unquote_plus(str(node.name)),
       'id' : base_path + str(node.name),
     }
 
@@ -278,6 +348,16 @@ def tree_json(nodes, base_path, wildcards=False):
 
   results.extend(results_branch)
   results.extend(results_leaf)
+  return results
+
+
+def nodes_by_position(matches, position):
+  found = set()
+
+  for metric in matches:
+    nodes = metric.path.split('.')
+    found.add(nodes[position])
+  results = { 'nodes' : sorted(found) }
   return results
 
 
@@ -294,21 +374,29 @@ def pickle_nodes(nodes):
   return pickle.dumps(nodes_info, protocol=-1)
 
 
-def any(iterable): #python2.4 compatibility
-  for i in iterable:
-    if i:
-      return True
-  return False
+def json_nodes(nodes):
+  nodes_info = []
 
-def json_response_for(request, data, mimetype='application/json', jsonp=False, **kwargs):
+  for node in nodes:
+    info = dict(path=node.path, is_leaf=node.is_leaf)
+    if node.is_leaf:
+      info['intervals'] = [{'start': i.start, 'end': i.end} for i in node.intervals]
+
+    nodes_info.append(info)
+
+  return sorted(nodes_info, key=lambda item: item['path'])
+
+
+def json_response_for(request, data, content_type='application/json',
+                      jsonp=False, **kwargs):
   accept = request.META.get('HTTP_ACCEPT', 'application/json')
   ensure_ascii = accept == 'application/json'
 
   content = json.dumps(data, ensure_ascii=ensure_ascii)
   if jsonp:
-    content = "%s(%)" % (jsonp, content)
-    mimetype = 'text/javascript'
+    content = "%s(%s)" % (jsonp, content)
+    content_type = 'text/javascript'
   if not ensure_ascii:
-    mimetype += ';charset=utf-8'
+    content_type += ';charset=utf-8'
 
-  return HttpResponse(content, mimetype=mimetype, **kwargs)
+  return HttpResponse(content, content_type=content_type, **kwargs)

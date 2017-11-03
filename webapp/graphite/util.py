@@ -13,13 +13,31 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 import imp
-from os.path import splitext, basename
+import os
 import socket
-import errno
 import time
-from django.core.exceptions import ObjectDoesNotExist
-from django.contrib.auth.models import User
-from graphite.account.models import Profile
+import sys
+import calendar
+import pytz
+import traceback
+from datetime import datetime
+from os.path import splitext, basename, relpath
+from shutil import move
+from tempfile import mkstemp
+try:
+  import cPickle as pickle
+  USING_CPICKLE = True
+except:
+  import pickle
+  USING_CPICKLE = False
+
+try:
+  from cStringIO import StringIO
+except ImportError:
+  from StringIO import StringIO
+
+from django.conf import settings
+from django.utils.timezone import make_aware
 from graphite.logger import log
 
 
@@ -36,46 +54,58 @@ if hasattr(json, 'read') and not hasattr(json, 'loads'):
   json.load = lambda file: json.read( file.read() )
   json.dump = lambda obj, file: file.write( json.write(obj) )
 
+def epoch(dt):
+  """
+  Returns the epoch timestamp of a timezone-aware datetime object.
+  """
+  if not dt.tzinfo:
+    tb = traceback.extract_stack(None, 2)
+    log.warning('epoch() called with non-timezone-aware datetime in %s at %s:%d' % (tb[0][2], tb[0][0], tb[0][1]))
+    return calendar.timegm(make_aware(dt, pytz.timezone(settings.TIME_ZONE)).astimezone(pytz.utc).timetuple())
+  return calendar.timegm(dt.astimezone(pytz.utc).timetuple())
 
-def getProfile(request,allowDefault=True):
-  if request.user.is_authenticated():
-    try:
-      return request.user.profile
-    except ObjectDoesNotExist:
-      profile = Profile(user=request.user)
-      profile.save()
-      return profile
-  elif allowDefault:
-    return defaultProfile
 
-def getProfileByUsername(username):
-  try:
-    user = User.objects.get(username=username)
-    return Profile.objects.get(user=user)
-  except ObjectDoesNotExist:
-    return None
+def epoch_to_dt(timestamp):
+    """
+    Returns the timezone-aware datetime of an epoch timestamp.
+    """
+    return make_aware(datetime.utcfromtimestamp(timestamp), pytz.utc)
 
+def timebounds(requestContext):
+  startTime = int(epoch(requestContext['startTime']))
+  endTime = int(epoch(requestContext['endTime']))
+  now = int(epoch(requestContext['now']))
+
+  return (startTime, endTime, now)
 
 def is_local_interface(host):
-  if ':' in host:
-    host = host.split(':',1)[0]
+  is_ipv6 = False
+  if ':' not in host:
+    pass
+  elif host.count(':') == 1:
+    host = host.split(':', 1)[0]
+  else:
+    is_ipv6 = True
 
-  for port in xrange(1025, 65535):
-    try:
-      sock = socket.socket()
-      sock.bind( (host,port) )
-      sock.close()
+    if host.find('[', 0, 2) != -1:
+      last_bracket_position  = host.rfind(']')
+      last_colon_position = host.rfind(':')
+      if last_colon_position > last_bracket_position:
+        host = host.rsplit(':', 1)[0]
+      host = host.strip('[]')
 
-    except socket.error, e:
-      if e.args[0] == errno.EADDRNOTAVAIL:
-        return False
-      else:
-        continue
-
+  try:
+    if is_ipv6:
+      sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
     else:
-      return True
+      sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.bind( (host, 0) )
+  except:
+    return False
+  finally:
+    sock.close()
 
-  raise Exception("Failed all attempts at binding to interface %s, last exception was %s" % (host, e))
+  return True
 
 
 def is_pattern(s):
@@ -96,22 +126,6 @@ def find_escaped_pattern_fields(pattern_string):
       yield index
 
 
-try:
-  defaultUser = User.objects.get(username='default')
-except User.DoesNotExist:
-  log.info("Default user does not exist, creating it...")
-  randomPassword = User.objects.make_random_password(length=16)
-  defaultUser = User.objects.create_user('default','default@localhost.localdomain',randomPassword)
-  defaultUser.save()
-
-try:
-  defaultProfile = Profile.objects.get(user=defaultUser)
-except Profile.DoesNotExist:
-  log.info("Default profile does not exist, creating it...")
-  defaultProfile = Profile(user=defaultUser)
-  defaultProfile.save()
-
-
 def load_module(module_path, member=None):
   module_name = splitext(basename(module_path))[0]
   module_file = open(module_path, 'U')
@@ -122,6 +136,151 @@ def load_module(module_path, member=None):
   else:
     return module
 
-def timestamp(datetime):
+def timestamp(dt):
   "Convert a datetime object into epoch time"
-  return time.mktime( datetime.timetuple() )
+  return time.mktime(dt.timetuple())
+
+def deltaseconds(timedelta):
+  "Convert a timedelta object into seconds (same as timedelta.total_seconds() in Python 2.7+)"
+  return (timedelta.microseconds + (timedelta.seconds + timedelta.days * 24 * 3600) * 10**6) / 10**6
+
+
+# This whole song & dance is due to pickle being insecure
+# The SafeUnpickler classes were largely derived from
+# http://nadiana.com/python-pickle-insecure
+# This code also lives in carbon.util
+if USING_CPICKLE:
+  class SafeUnpickler(object):
+    PICKLE_SAFE = {
+      'copy_reg': set(['_reconstructor']),
+      '__builtin__': set(['object', 'list', 'set']),
+      'collections': set(['deque']),
+      'graphite.render.datalib': set(['TimeSeries']),
+      'graphite.intervals': set(['Interval', 'IntervalSet']),
+    }
+
+    @classmethod
+    def find_class(cls, module, name):
+      if not module in cls.PICKLE_SAFE:
+        raise pickle.UnpicklingError('Attempting to unpickle unsafe module %s' % module)
+      __import__(module)
+      mod = sys.modules[module]
+      if not name in cls.PICKLE_SAFE[module]:
+        raise pickle.UnpicklingError('Attempting to unpickle unsafe class %s' % name)
+      return getattr(mod, name)
+
+    @classmethod
+    def loads(cls, pickle_string):
+      pickle_obj = pickle.Unpickler(StringIO(pickle_string))
+      pickle_obj.find_global = cls.find_class
+      return pickle_obj.load()
+
+else:
+  class SafeUnpickler(pickle.Unpickler):
+    PICKLE_SAFE = {
+      'copy_reg': set(['_reconstructor']),
+      '__builtin__': set(['object', 'list', 'set']),
+      'collections': set(['deque']),
+      'graphite.render.datalib': set(['TimeSeries']),
+      'graphite.intervals': set(['Interval', 'IntervalSet']),
+    }
+
+    def find_class(self, module, name):
+      if not module in self.PICKLE_SAFE:
+        raise pickle.UnpicklingError('Attempting to unpickle unsafe module %s' % module)
+      __import__(module)
+      mod = sys.modules[module]
+      if not name in self.PICKLE_SAFE[module]:
+        raise pickle.UnpicklingError('Attempting to unpickle unsafe class %s' % name)
+      return getattr(mod, name)
+
+    @classmethod
+    def loads(cls, pickle_string):
+      return cls(StringIO(pickle_string)).load()
+
+unpickle = SafeUnpickler
+
+
+def write_index(whisper_dir=None, ceres_dir=None, index=None):
+  if not whisper_dir:
+    whisper_dir = settings.WHISPER_DIR
+  if not ceres_dir:
+    ceres_dir = settings.CERES_DIR
+  if not index:
+    index = settings.INDEX_FILE
+  try:
+    fd, tmp = mkstemp()
+    try:
+      tmp_index = os.fdopen(fd, 'wt')
+      build_index(whisper_dir, ".wsp", tmp_index)
+      build_index(ceres_dir, ".ceres-node", tmp_index)
+    finally:
+      tmp_index.close()
+    move(tmp, index)
+  finally:
+    try:
+      os.unlink(tmp)
+    except:
+      pass
+  return None
+
+
+def logtime(custom_msg=False, custom_name=False):
+  def wrap(f):
+    def wrapped_f(*args, **kwargs):
+      msg = 'completed in'
+      name = f.__module__ + '.' + f.__name__
+
+      t = time.time()
+      if custom_msg:
+        def set_msg(msg):
+          wrapped_f.msg = msg
+
+        kwargs['msg_setter'] = set_msg
+      if custom_name:
+        def set_name(name):
+          wrapped_f.name = name
+
+        kwargs['name_setter'] = set_name
+
+      try:
+        res = f(*args, **kwargs)
+      except:
+        msg = 'failed in'
+        raise
+      finally:
+        msg = getattr(wrapped_f, 'msg', msg)
+        name = getattr(wrapped_f, 'name', name)
+
+        log.info(
+          '{name} :: {msg} {sec:.6}s'.format(
+            name=name,
+            msg=msg,
+            sec=time.time() - t,
+          )
+        )
+
+      return res
+    return wrapped_f
+  return wrap
+
+
+@logtime(custom_msg=True)
+def build_index(base_path, extension, fd, msg_setter=None):
+  t = time.time()
+  total_entries = 0
+  contents = os.walk(base_path, followlinks=True)
+  extension_len = len(extension)
+  for (dirpath, dirnames, filenames) in contents:
+    path = relpath(dirpath, base_path).replace('/', '.')
+    for metric in filenames:
+      if metric.endswith(extension):
+        metric = metric[:-extension_len]
+      else:
+        continue
+      line = "{0}.{1}\n".format(path, metric)
+      total_entries += 1
+      fd.write(line)
+  fd.flush()
+  msg_setter("[IndexSearcher] index rebuild of \"%s\" took" % base_path)
+  return None

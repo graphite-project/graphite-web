@@ -1,3 +1,0 @@
-[servers]
-pypes = localhost:2002, localhost:3002
-agents = localhost:2003
