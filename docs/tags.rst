@@ -227,11 +227,13 @@ Each of these endpoints accepts an optional list of tag expressions using the sa
 
 The provided expressions are used to filter the results, so that the suggested list of tags will only include tags that occur in series matching the expressions.
 
-To get an auto-complete list of tags (results are limited to 100):
+Results are limited to 100 by default, this can be overridden by passing `limit=X` in the request parameters.  The returned JSON is a compact representation by default, if `pretty=1` is passed in the request parameters the returned JSON will be formatted with newlines and indentation.
+
+To get an auto-complete list of tags:
 
 .. code-block:: none
 
-    $ curl -s "http://graphite/tags/autoComplete/tags?pretty=1"
+    $ curl -s "http://graphite/tags/autoComplete/tags?pretty=1&limit=100"
 
     [
       "datacenter",
@@ -261,7 +263,7 @@ If you provide a list of tag expressions, the specified tags are excluded and th
       "rack"
     ]
 
-To get an auto-complete list of values for a specified tag (results are limited to 100):
+To get an auto-complete list of values for a specified tag:
 
 .. code-block:: none
 
