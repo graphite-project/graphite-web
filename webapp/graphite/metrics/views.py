@@ -11,23 +11,20 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
-import fnmatch
-import os
 import pytz
 import urllib
 
 from datetime import datetime
 from django.conf import settings
-from graphite.compat import HttpResponse, HttpResponseBadRequest
-from graphite.user_util import getProfile
-from graphite.util import json
-from graphite.logger import log
-from graphite.readers import RRDReader
-from graphite.storage import STORE
+
 from graphite.carbonlink import CarbonLink
-from graphite.storage import extractForwardHeaders
+from graphite.compat import HttpResponse, HttpResponseBadRequest
+from graphite.logger import log
 from graphite.render.attime import parseATTime
+from graphite.storage import STORE, extractForwardHeaders
+from graphite.user_util import getProfile
 from graphite.util import epoch
+from graphite.util import json
 
 try:
   import cPickle as pickle
@@ -39,59 +36,19 @@ def index_json(request):
   queryParams = request.GET.copy()
   queryParams.update(request.POST)
 
-  jsonp = queryParams.get('jsonp', False)
-  cluster = queryParams.get('cluster', False)
+  try:
+    jsonp = queryParams.get('jsonp', False)
 
-  def find_matches():
-    matches = []
+    requestContext = {
+      'localOnly': int( queryParams.get('local', 0) ),
+      'forwardHeaders': extractForwardHeaders(request),
+    }
 
-    for root, dirs, files in os.walk(settings.WHISPER_DIR):
-      root = root.replace(settings.WHISPER_DIR, '')
-      for basename in files:
-        if fnmatch.fnmatch(basename, '*.wsp'):
-          matches.append(os.path.join(root, basename))
+    matches = STORE.get_index(requestContext)
+  except Exception as err:
+    log.exception()
+    return json_response_for(request, [], jsonp=jsonp, status=500)
 
-    for root, dirs, files in os.walk(settings.CERES_DIR):
-      root = root.replace(settings.CERES_DIR, '')
-      for filename in files:
-        if filename == '.ceres-node':
-          matches.append(root)
-
-    # unlike 0.9.x, we're going to use os.walk with followlinks
-    # since we require Python 2.7 and newer that supports it
-    if RRDReader.supported:
-      for root, dirs, files in os.walk(settings.RRD_DIR, followlinks=True):
-        root = root.replace(settings.RRD_DIR, '')
-        for basename in files:
-          if fnmatch.fnmatch(basename, '*.rrd'):
-            absolute_path = os.path.join(settings.RRD_DIR, root, basename)
-            (basename,extension) = os.path.splitext(basename)
-            metric_path = os.path.join(root, basename)
-            rrd = RRDReader(absolute_path, metric_path)
-            for datasource_name in rrd.get_datasources(absolute_path):
-              matches.append(os.path.join(metric_path, datasource_name))
-
-    matches = [
-      m
-      .replace('.wsp', '')
-      .replace('.rrd', '')
-      .replace('/', '.')
-      .lstrip('.')
-      for m in sorted(matches)
-    ]
-    return matches
-
-  matches = []
-  if cluster and len(settings.CLUSTER_SERVERS) >= 1:
-    try:
-      matches = reduce( lambda x, y: list(set(x + y)), \
-        [json.loads(urllib.urlopen('http://' + cluster_server + '/metrics/index.json').read()) \
-        for cluster_server in settings.CLUSTER_SERVERS])
-    except urllib.URLError:
-      log.exception()
-      return json_response_for(request, matches, jsonp=jsonp, status=500)
-  else:
-    matches = find_matches()
   return json_response_for(request, matches, jsonp=jsonp)
 
 
@@ -387,12 +344,13 @@ def json_nodes(nodes):
   return sorted(nodes_info, key=lambda item: item['path'])
 
 
-def json_response_for(request, data, content_type='application/json',
-                      jsonp=False, **kwargs):
+def json_response_for(request, data, content_type='application/json', jsonp=False, **kwargs):
   accept = request.META.get('HTTP_ACCEPT', 'application/json')
   ensure_ascii = accept == 'application/json'
 
-  content = json.dumps(data, ensure_ascii=ensure_ascii)
+  pretty = bool(request.POST.get('pretty', request.GET.get('pretty')))
+
+  content = json.dumps(data, ensure_ascii=ensure_ascii, indent=(2 if pretty else None))
   if jsonp:
     content = "%s(%s)" % (jsonp, content)
     content_type = 'text/javascript'

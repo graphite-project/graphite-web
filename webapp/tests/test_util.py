@@ -1,8 +1,5 @@
 import os
-import shutil
 import socket
-import time
-import whisper
 import pytz
 
 from datetime import datetime
@@ -88,43 +85,6 @@ class UtilTest(TestCase):
         self.assertEqual( list(util.find_escaped_pattern_fields('a.b.\[c].d')), [2])
 
     hostcpu = os.path.join(settings.WHISPER_DIR, 'hosts/hostname/cpu.wsp')
-
-    def create_whisper_hosts(self):
-        worker1 = self.hostcpu.replace('hostname', 'worker1')
-        worker2 = self.hostcpu.replace('hostname', 'worker2')
-        bogus_file = os.path.join(settings.WHISPER_DIR, 'a/b/c/bogus_file.txt')
-
-        try:
-            os.makedirs(worker1.replace('cpu.wsp', ''))
-            os.makedirs(worker2.replace('cpu.wsp', ''))
-            os.makedirs(bogus_file.replace('bogus_file.txt', ''))
-        except OSError:
-            pass
-
-        open(bogus_file, 'a').close()
-        whisper.create(worker1, [(1, 60)])
-        whisper.create(worker2, [(1, 60)])
-
-        ts = int(time.time())
-        whisper.update(worker1, 1, ts)
-        whisper.update(worker2, 2, ts)
-
-    def wipe_whisper_hosts(self):
-        try:
-            os.remove(self.hostcpu.replace('hostname', 'worker1'))
-            os.remove(self.hostcpu.replace('hostname', 'worker2'))
-            os.remove(os.path.join(settings.WHISPER_DIR, 'a/b/c/bogus_file.txt'))
-            shutil.rmtree(self.hostcpu.replace('hostname/cpu.wsp', ''))
-            shutil.rmtree(os.path.join(settings.WHISPER_DIR, 'a'))
-        except OSError:
-            pass
-
-    def test_write_index(self):
-        self.create_whisper_hosts()
-        self.addCleanup(self.wipe_whisper_hosts)
-
-        self.assertEqual(None, util.write_index() )
-        self.assertEqual(None, util.write_index(settings.WHISPER_DIR, settings.CERES_DIR, settings.INDEX_FILE) )
 
     def test_load_module(self):
         with self.assertRaises(IOError):

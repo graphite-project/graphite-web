@@ -1,5 +1,6 @@
+import fnmatch
 import operator
-from os.path import isdir, isfile, join, basename
+from os.path import isdir, isfile, join, basename, splitext
 from django.conf import settings
 
 # Use the built-in version of scandir/walk if possible, otherwise
@@ -166,3 +167,31 @@ class StandardFinder(BaseFinder):
 
             for base_name in matching_files + matching_subdirs:
                 yield join(current_dir, base_name)
+
+    def get_index(self, requestContext=None):
+        matches = []
+
+        for root, dirs, files in walk(settings.WHISPER_DIR):
+          root = root.replace(settings.WHISPER_DIR, '')
+          for base_name in files:
+            if fnmatch.fnmatch(base_name, '*.wsp'):
+              matches.append(join(root, base_name).replace('.wsp', ''))
+
+        # unlike 0.9.x, we're going to use os.walk with followlinks
+        # since we require Python 2.7 and newer that supports it
+        if RRDReader.supported:
+          for root, dirs, files in walk(settings.RRD_DIR, followlinks=True):
+            root = root.replace(settings.RRD_DIR, '')
+            for base_name in files:
+              if fnmatch.fnmatch(base_name, '*.rrd'):
+                absolute_path = join(settings.RRD_DIR, root, base_name)
+                (base_name,extension) = splitext(base_name)
+                metric_path = join(root, base_name)
+                rrd = RRDReader(absolute_path, metric_path)
+                for datasource_name in rrd.get_datasources(absolute_path):
+                  matches.append(join(metric_path, datasource_name).replace('.rrd', ''))
+
+        return sorted([
+          m.replace('/', '.').lstrip('.')
+          for m in matches
+        ])

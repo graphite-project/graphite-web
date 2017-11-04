@@ -31,6 +31,7 @@ def get_finders(finder_path):
     finder = cls()
     finder.fetch = BaseFinder.fetch
     finder.find_multi = BaseFinder.find_multi
+    finder.get_index = BaseFinder.get_index
 
     return [finder]
 
@@ -102,6 +103,40 @@ class Store(object):
         log.debug("Got all fetch results for %s in %fs" % (str(patterns), time.time() - start))
         return results
 
+    def get_index(self, requestContext):
+        log.debug('graphite.storage.Store.get_index :: Starting get_index on all backends')
+
+        jobs = [
+            Job(finder.get_index, requestContext=requestContext)
+            for finder in self.get_finders(requestContext.get('localOnly'))
+        ]
+
+        results = []
+
+        done = 0
+        errors = 0
+
+        # Start index lookups
+        start = time.time()
+        try:
+          for job in pool_exec(get_pool(), jobs, settings.REMOTE_FETCH_TIMEOUT):
+            done += 1
+
+            if job.exception:
+              errors += 1
+              log.debug("get_index failed after %fs: %s" % (time.time() - start, str(job.exception)))
+              continue
+
+            log.debug("Got an index result after %fs" % (time.time() - start))
+            results.extend(job.result)
+        except PoolTimeoutError:
+          log.debug("Timed out in get_index after %fs" % (time.time() - start))
+
+        if errors == done:
+          raise Exception('All index lookups failed')
+
+        log.debug("Got all index results in %fs" % (time.time() - start))
+        return sorted(list(set(results)))
 
     def find(self, pattern, startTime=None, endTime=None, local=False, headers=None, leaves_only=False):
         query = FindQuery(

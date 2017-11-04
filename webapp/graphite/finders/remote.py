@@ -10,7 +10,7 @@ from graphite.intervals import Interval, IntervalSet
 from graphite.logger import log
 from graphite.node import LeafNode, BranchNode
 from graphite.render.hashing import compactHash
-from graphite.util import unpickle, logtime, is_local_interface
+from graphite.util import unpickle, logtime, is_local_interface, json
 
 from graphite.finders.utils import BaseFinder
 from graphite.readers.remote import RemoteReader
@@ -125,6 +125,30 @@ class RemoteFinder(BaseFinder):
     def fetch(self, patterns, start_time, end_time, now=None, requestContext=None):
         reader = RemoteReader(self, {}, bulk_query=patterns)
         return reader.fetch_multi(start_time, end_time, now, requestContext)
+
+    def get_index(self, requestContext=None):
+        url = '/metrics/index.json'
+
+        headers = requestContext.get('forwardHeaders') if requestContext else None
+
+        result = self.request(
+            url,
+            fields=[
+              ('local', '1'),
+            ],
+            headers=headers,
+            timeout=settings.REMOTE_FIND_TIMEOUT)
+
+        try:
+            results = json.loads(result.data)
+        except Exception as err:
+            self.fail()
+            log.exception(
+                "RemoteFinder[%s] Error decoding index response from %s: %s" %
+                (self.host, result.url_full, err))
+            raise Exception("Error decoding index response from %s: %s" % (result.url_full, err))
+
+        return results
 
     def request(self, url, fields=None, headers=None, timeout=None):
         url = "%s://%s%s" % (
