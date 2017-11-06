@@ -112,7 +112,8 @@ REMOTE_RENDER_CONNECT_TIMEOUT = 1.0
 
 #Miscellaneous settings
 SMTP_SERVER = "localhost"
-DOCUMENTATION_URL = "http://graphite.readthedocs.io/"
+DOCUMENTATION_VERSION = 'latest' if 'dev' in WEBAPP_VERSION else WEBAPP_VERSION
+DOCUMENTATION_URL = 'https://graphite.readthedocs.io/en/{}/'.format(DOCUMENTATION_VERSION)
 ALLOW_ANONYMOUS_CLI = True
 LEGEND_MAX_ITEMS = 10
 RRD_CF = 'AVERAGE'
