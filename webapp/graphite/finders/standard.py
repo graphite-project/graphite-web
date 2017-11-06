@@ -118,7 +118,7 @@ class StandardFinder(BaseFinder):
                 entry for entry in entries if isdir(
                     join(
                         current_dir,
-                        entry))]
+                        str(entry)))]
             matching_subdirs = match_entries(subdirs, pattern)
 
         # if this is a terminal globstar, add a pattern for all files in
@@ -147,7 +147,7 @@ class StandardFinder(BaseFinder):
         if patterns:  # we've still got more directories to traverse
             for subdir in matching_subdirs:
 
-                absolute_path = join(current_dir, subdir)
+                absolute_path = join(current_dir, str(subdir))
                 for match in self._find_paths(absolute_path, patterns):
                     yield match
 
@@ -161,8 +161,8 @@ class StandardFinder(BaseFinder):
                 entry for entry in entries if isfile(
                     join(
                         current_dir,
-                        entry))]
+                        str(entry)))]
             matching_files = match_entries(files, pattern + '.*')
 
             for base_name in matching_files + matching_subdirs:
-                yield join(current_dir, base_name)
+                yield join(current_dir, str(base_name))
