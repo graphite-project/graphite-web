@@ -1,5 +1,4 @@
 import time
-import Queue
 import random
 
 from collections import defaultdict
@@ -14,57 +13,95 @@ except ImportError:  # python < 2.7 compatibility
 from graphite.logger import log
 from graphite.node import LeafNode
 from graphite.intervals import Interval, IntervalSet
-from graphite.finders.utils import FindQuery
-from graphite.readers.utils import MultiReader
-from graphite.worker_pool.pool import get_pool, pool_apply
+from graphite.finders.utils import FindQuery, BaseFinder
+from graphite.readers import MultiReader
+from graphite.worker_pool.pool import get_pool, pool_exec, Job, PoolTimeoutError
 from graphite.tags.utils import get_tagdb
 
 
-def get_finder(finder_path):
+def get_finders(finder_path):
     module_name, class_name = finder_path.rsplit('.', 1)
     module = import_module(module_name)
-    return getattr(module, class_name)()
+    cls = getattr(module, class_name)
+
+    if getattr(cls, 'factory', None):
+        return cls.factory()
+
+    # monkey patch so legacy finders will work
+    finder = cls()
+    finder.fetch = BaseFinder.fetch
+    finder.find_multi = BaseFinder.find_multi
+
+    return [finder]
 
 
 class Store(object):
     def __init__(self, finders=None, tagdb=None):
         if finders is None:
-            finders = [get_finder(finder_path)
-                       for finder_path in settings.STORAGE_FINDERS]
+            finders = []
+            for finder_path in settings.STORAGE_FINDERS:
+                finders.extend(get_finders(finder_path))
+
         self.finders = finders
 
         if tagdb is None:
             tagdb = settings.TAGDB
         self.tagdb = get_tagdb(tagdb) if tagdb else None
 
-    def fetch_remote(self, patterns, startTime, endTime, now, requestContext):
-        patterns = set(patterns)
+    def get_finders(self, local=False):
+        for finder in self.finders:
+            # Support legacy finders by defaulting to 'disabled = False'
+            if getattr(finder, 'disabled', False):
+                continue
 
-        # TODO: Change this to simply `fetch()` in order to support optimizations
-        # for local finders too. This also require using the thread pool and
-        # limiting the number of results using the warning and failure thresholds.
-        # Also support the nice merging features of MultiReader.
-        if requestContext['localOnly']:
-            return []
+            # Support legacy finders by defaulting to 'local = True'
+            if local and not getattr(finder, 'local', True):
+                continue
+
+            yield finder
+
+    def fetch(self, patterns, startTime, endTime, now, requestContext):
+        # deduplicate patterns
+        patterns = list(set(patterns))
 
         if not patterns:
             return []
 
         log.debug(
-            'prefetchRemoteData:: Starting fetch_list on all backends')
+            'graphite.storage.Store.fetch :: Starting fetch on all backends')
+
+        jobs = [
+            Job(finder.fetch, patterns, startTime, endTime, now=now, requestContext=requestContext)
+            for finder in self.get_finders(requestContext.get('localOnly'))
+        ]
 
         results = []
-        for finder in self.finders:
-            is_local = getattr(finder, 'local', True)
-            if is_local or getattr(finder, 'disabled', False):
-                continue
 
-            result = finder.fetch(
-                patterns, startTime, endTime,
-                now=now, requestContext=requestContext
-            )
-            results.append(result)
+        done = 0
+        errors = 0
+
+        # Start fetches
+        start = time.time()
+        try:
+          for job in pool_exec(get_pool(), jobs, settings.REMOTE_FETCH_TIMEOUT):
+            done += 1
+
+            if job.exception:
+              errors += 1
+              log.debug("Fetch for %s failed after %fs: %s" % (str(patterns), time.time() - start, str(job.exception)))
+              continue
+
+            log.debug("Got a fetch result for %s after %fs" % (str(patterns), time.time() - start))
+            results.extend(job.result)
+        except PoolTimeoutError:
+          log.debug("Timed out in fetch after %fs" % (time.time() - start))
+
+        if errors == done:
+          raise Exception('All fetches failed for %s' % (str(patterns)))
+
+        log.debug("Got all fetch results for %s in %fs" % (str(patterns), time.time() - start))
         return results
+
 
     def find(self, pattern, startTime=None, endTime=None, local=False, headers=None, leaves_only=False):
         query = FindQuery(
@@ -78,7 +115,7 @@ class Store(object):
         fail_threshold = settings.METRICS_FIND_FAILURE_THRESHOLD
 
         matched_leafs = 0
-        for match in self.find_all(query):
+        for match in self._find(query):
             if isinstance(match, LeafNode):
                 matched_leafs += 1
             elif leaves_only:
@@ -95,52 +132,40 @@ class Store(object):
                  "(warning threshold is %d)") % (
                      pattern, matched_leafs, warn_threshold))
 
-    def find_all(self, query):
-        start = time.time()
-        jobs = []
+    def _find(self, query):
 
-        # Start local searches
-        for finder in self.finders:
-            # Support legacy finders by defaulting to 'local = True'
-            is_local = not hasattr(finder, 'local') or finder.local
-            if query.local and not is_local:
-                continue
-            if getattr(finder, 'disabled', False):
-                continue
-            jobs.append((finder.find_nodes, query))
-
-        result_queue = pool_apply(get_pool(), jobs)
+        jobs = [
+            Job(finder.find_nodes, query)
+            for finder in self.get_finders(query.local)
+        ]
 
         # Group matching nodes by their path
         nodes_by_path = defaultdict(list)
 
-        timeout = settings.REMOTE_FIND_TIMEOUT
-        deadline = start + timeout
         done = 0
-        total = len(jobs)
+        errors = 0
 
-        while done < total:
-            wait_time = deadline - time.time()
-            nodes = []
-
-            try:
-                nodes = result_queue.get(True, wait_time)
-
-            # ValueError could happen if due to really unlucky timing wait_time
-            # is negative
-            except (Queue.Empty, ValueError):
-                if time.time() > deadline:
-                    log.debug("Timed out in find_nodes after %fs" % timeout)
-                    break
-                else:
-                    continue
-
-            log.debug("Got a find result after %fs" % (time.time() - start))
+        # Start finds
+        start = time.time()
+        try:
+          for job in pool_exec(get_pool(), jobs, settings.REMOTE_FIND_TIMEOUT):
             done += 1
-            for node in nodes or []:
-                nodes_by_path[node.path].append(node)
 
-        log.debug("Got all find results in %fs" % (time.time() - start))
+            if job.exception:
+              errors += 1
+              log.debug("Find for %s failed after %fs: %s" % (str(query), time.time() - start, str(job.exception)))
+              continue
+
+            log.debug("Got a find result for %s after %fs" % (str(query), time.time() - start))
+            for node in job.result or []:
+              nodes_by_path[node.path].append(node)
+        except PoolTimeoutError:
+          log.debug("Timed out in find after %fs" % (time.time() - start))
+
+        if errors == done:
+          raise Exception('All finds failed for %s' % (str(query)))
+
+        log.debug("Got all find results for %s in %fs" % (str(query), time.time() - start))
         return self._list_nodes(query, nodes_by_path)
 
     def _list_nodes(self, query, nodes_by_path):

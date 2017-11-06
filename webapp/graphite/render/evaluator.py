@@ -1,19 +1,24 @@
 import re
 
-from django.conf import settings
 from graphite.render.grammar import grammar
-from graphite.render.datalib import fetchData, TimeSeries, prefetchRemoteData
+from graphite.render.datalib import fetchData, TimeSeries, prefetchData
+from graphite.storage import STORE
+
 
 def evaluateTarget(requestContext, targets, noPrefetch=False):
   if not isinstance(targets, list):
     targets = [targets]
 
-  if settings.REMOTE_PREFETCH_DATA and not requestContext.get('localOnly') and not noPrefetch:
-    prefetchRemoteData(requestContext, targets)
+  if not noPrefetch:
+    pathExpressions = extractPathExpressions(requestContext, targets)
+    prefetchData(requestContext, pathExpressions)
 
   seriesList = []
 
   for target in targets:
+    if not target:
+      continue
+
     if isinstance(target, basestring):
       if not target.strip():
         continue
@@ -29,18 +34,19 @@ def evaluateTarget(requestContext, targets, noPrefetch=False):
 
   return seriesList
 
+
 def evaluateTokens(requestContext, tokens, replacements=None, pipedArg=None):
   if tokens.template:
     arglist = dict()
     if tokens.template.kwargs:
-      arglist.update(dict([(kwarg.argname, evaluateTokens(requestContext, kwarg.args[0])) for kwarg in tokens.template.kwargs]))
+      arglist.update(dict([(kwarg.argname, evaluateScalarTokens(kwarg.args[0])) for kwarg in tokens.template.kwargs]))
     if tokens.template.args:
-      arglist.update(dict([(str(i+1), evaluateTokens(requestContext, arg)) for i, arg in enumerate(tokens.template.args)]))
+      arglist.update(dict([(str(i+1), evaluateScalarTokens(arg)) for i, arg in enumerate(tokens.template.args)]))
     if 'template' in requestContext:
       arglist.update(requestContext['template'])
     return evaluateTokens(requestContext, tokens.template, arglist)
 
-  elif tokens.expression:
+  if tokens.expression:
     if tokens.expression.pipedCalls:
       # when the expression has piped calls, we pop the right-most call and pass the remaining
       # expression into it via pipedArg, to get the same result as a nested call
@@ -49,7 +55,7 @@ def evaluateTokens(requestContext, tokens, replacements=None, pipedArg=None):
 
     return evaluateTokens(requestContext, tokens.expression, replacements)
 
-  elif tokens.pathExpression:
+  if tokens.pathExpression:
     expression = tokens.pathExpression
     if replacements:
       for name in replacements:
@@ -65,7 +71,7 @@ def evaluateTokens(requestContext, tokens, replacements=None, pipedArg=None):
           expression = expression.replace('$'+name, str(replacements[name]))
     return fetchData(requestContext, expression)
 
-  elif tokens.call:
+  if tokens.call:
     if tokens.call.funcname == 'template':
       # if template propagates down here, it means the grammar didn't match the invocation
       # as tokens.template. this generally happens if you try to pass non-numeric/string args
@@ -84,25 +90,80 @@ def evaluateTokens(requestContext, tokens, replacements=None, pipedArg=None):
     except NormalizeEmptyResultError:
       return []
 
-  elif tokens.number:
+  return evaluateScalarTokens(tokens)
+
+
+def evaluateScalarTokens(tokens):
+  if tokens.number:
     if tokens.number.integer:
       return int(tokens.number.integer)
-    elif tokens.number.float:
+    if tokens.number.float:
       return float(tokens.number.float)
-    elif tokens.number.scientific:
+    if tokens.number.scientific:
       return float(tokens.number.scientific[0])
 
-  elif tokens.string:
+    raise ValueError("unknown numeric type in target evaluator")
+
+  if tokens.string:
     return tokens.string[1:-1]
 
-  elif tokens.boolean:
+  if tokens.boolean:
     return tokens.boolean[0] == 'true'
 
-  elif tokens.none:
+  if tokens.none:
     return None
 
-  else:
-    raise ValueError("unknown token in target evaluator")
+  raise ValueError("unknown token in target evaluator")
+
+
+def extractPathExpressions(requestContext, targets):
+  # Returns a list of unique pathExpressions found in the targets list
+
+  pathExpressions = set()
+
+  def extractPathExpression(requestContext, tokens, replacements=None):
+    if tokens.template:
+      arglist = dict()
+      if tokens.template.kwargs:
+        arglist.update(dict([(kwarg.argname, evaluateScalarTokens(kwarg.args[0])) for kwarg in tokens.template.kwargs]))
+      if tokens.template.args:
+        arglist.update(dict([(str(i+1), evaluateScalarTokens(arg)) for i, arg in enumerate(tokens.template.args)]))
+      if 'template' in requestContext:
+        arglist.update(requestContext['template'])
+      extractPathExpression(requestContext, tokens.template, arglist)
+    elif tokens.expression:
+      extractPathExpression(requestContext, tokens.expression, replacements)
+      if tokens.expression.pipedCalls:
+        for token in tokens.expression.pipedCalls:
+          extractPathExpression(requestContext, token, replacements)
+    elif tokens.pathExpression:
+      expression = tokens.pathExpression
+      if replacements:
+        for name in replacements:
+          if expression != '$'+name:
+            expression = expression.replace('$'+name, str(replacements[name]))
+      pathExpressions.add(expression)
+    elif tokens.call:
+      # if we're prefetching seriesByTag, look up the matching series and prefetch those
+      if tokens.call.funcname == 'seriesByTag':
+        if STORE.tagdb:
+          for series in STORE.tagdb.find_series(tuple([t.string[1:-1] for t in tokens.call.args if t.string])):
+            pathExpressions.add(series)
+      else:
+        for a in tokens.call.args:
+          extractPathExpression(requestContext, a, replacements)
+
+  for target in targets:
+    if not target:
+      continue
+
+    if isinstance(target, basestring):
+      if not target.strip():
+        continue
+      target = grammar.parseString(target)
+    extractPathExpression(requestContext, target)
+
+  return list(pathExpressions)
 
 
 # Avoid import circularities

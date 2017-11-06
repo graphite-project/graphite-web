@@ -222,6 +222,23 @@ class TagsTest(TestCase):
         result = LocalDatabaseTagDB().find_series(['name=test.a','hello=tiger'])
         self.assertEqual(result, ['test.a;blah=blah;hello=tiger'])
 
+  @patch('graphite.util.log.info')
+  @patch('graphite.tags.base.cache.get')
+  def test_tagdb_cached(self, cache_get, log_info):
+    cache_get.return_value = []
+
+    result = LocalDatabaseTagDB().find_series(['tag2=value2', 'tag1=value1'])
+
+    self.assertEqual(cache_get.call_count, 1)
+    self.assertEqual(cache_get.call_args[0][0], 'TagDB.find_series:tag1=value1:tag2=value2')
+    self.assertEqual(result, [])
+
+    self.assertEqual(log_info.call_count, 1)
+    self.assertRegexpMatches(
+      log_info.call_args[0][0],
+      'graphite\.tags\.localdatabase\.LocalDatabaseTagDB\.find_series :: completed \(cached\) in [-.e0-9]+s'
+    )
+
   def test_http_tagdb(self):
     # test http tagdb using django client
     db = HttpTagDB()

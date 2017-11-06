@@ -26,7 +26,7 @@ from django.conf import settings
 
 from graphite.intervals import Interval, IntervalSet
 from graphite.node import LeafNode, BranchNode
-from graphite.storage import Store, FindQuery, get_finder
+from graphite.storage import Store, FindQuery, get_finders
 from graphite.finders.standard import scandir
 from graphite.finders import get_real_metric_path
 from graphite.finders.utils import BaseFinder
@@ -36,7 +36,22 @@ from tests.base import TestCase
 
 class FinderTest(TestCase):
     def test_custom_finder(self):
-        store = Store(finders=[get_finder('tests.test_finders.DummyFinder')])
+        store = Store(finders=get_finders('tests.test_finders.DummyFinder'))
+        nodes = list(store.find("foo"))
+        self.assertEqual(len(nodes), 1)
+        self.assertEqual(nodes[0].path, 'foo')
+
+        nodes = list(store.find('bar.*'))
+        self.assertEqual(len(nodes), 10)
+        node = nodes[0]
+        self.assertEqual(node.path.split('.')[0], 'bar')
+
+        time_info, series = node.fetch(100, 200)
+        self.assertEqual(time_info, (100, 200, 10))
+        self.assertEqual(len(series), 10)
+
+    def test_legacy_finder(self):
+        store = Store(finders=get_finders('tests.test_finders.LegacyFinder'))
         nodes = list(store.find("foo"))
         self.assertEqual(len(nodes), 1)
         self.assertEqual(nodes[0].path, 'foo')
@@ -68,6 +83,17 @@ class DummyReader(BaseReader):
 
 
 class DummyFinder(BaseFinder):
+    def find_nodes(self, query):
+        if query.pattern == 'foo':
+            yield BranchNode('foo')
+
+        elif query.pattern == 'bar.*':
+            for i in xrange(10):
+                path = 'bar.{0}'.format(i)
+                yield LeafNode(path, DummyReader(path))
+
+
+class LegacyFinder(object):
     def find_nodes(self, query):
         if query.pattern == 'foo':
             yield BranchNode('foo')
@@ -110,7 +136,7 @@ class StandardFinderTest(TestCase):
             self.create_whisper('foo.wsp')
             self.create_whisper(join('foo', 'bar', 'baz.wsp'))
             self.create_whisper(join('bar', 'baz', 'foo.wsp'))
-            finder = get_finder('graphite.finders.standard.StandardFinder')
+            finder = get_finders('graphite.finders.standard.StandardFinder')[0]
 
             scandir_mock.call_count = 0
             nodes = finder.find_nodes(FindQuery('foo', None, None))
@@ -182,7 +208,7 @@ class StandardFinderTest(TestCase):
             self.create_whisper('foo.wsp', True)
             self.create_whisper(join('foo', 'bar', 'baz.wsp'), True)
             self.create_whisper(join('bar', 'baz', 'foo.wsp'))
-            finder = get_finder('graphite.finders.standard.StandardFinder')
+            finder = get_finders('graphite.finders.standard.StandardFinder')[0]
 
             scandir_mock.call_count = 0
             nodes = finder.find_nodes(FindQuery('foo', None, None))
@@ -200,8 +226,7 @@ class StandardFinderTest(TestCase):
 
     def test_globstar(self):
         self.addCleanup(self.wipe_whisper)
-        finder = get_finder('graphite.finders.standard.StandardFinder')
-        store  = Store(finders=[finder])
+        store  = Store(finders=get_finders('graphite.finders.standard.StandardFinder'))
 
         query = "x.**.x"
         hits = ["x.x", "x._.x", "x._._.x"]
@@ -218,8 +243,7 @@ class StandardFinderTest(TestCase):
 
     def test_multiple_globstars(self):
         self.addCleanup(self.wipe_whisper)
-        finder = get_finder('graphite.finders.standard.StandardFinder')
-        store  = Store(finders=[finder])
+        store  = Store(finders=get_finders('graphite.finders.standard.StandardFinder'))
 
         query = "x.**.x.**.x"
         hits = ["x.x.x", "x._.x.x", "x.x._.x", "x._.x._.x", "x._._.x.x", "x.x._._.x"]
@@ -236,8 +260,7 @@ class StandardFinderTest(TestCase):
 
     def test_terminal_globstar(self):
         self.addCleanup(self.wipe_whisper)
-        finder = get_finder('graphite.finders.standard.StandardFinder')
-        store  = Store(finders=[finder])
+        store  = Store(finders=get_finders('graphite.finders.standard.StandardFinder'))
 
         query = "x.**"
         hits = ["x._", "x._._", "x._._._"]
@@ -306,7 +329,7 @@ class CeresFinderTest(TestCase):
             create_ceres('foo.bar.baz')
             create_ceres('bar.baz.foo')
 
-            finder = get_finder('graphite.finders.ceres.CeresFinder')
+            finder = get_finders('graphite.finders.ceres.CeresFinder')[0]
 
             self._listdir_counter = 0
             nodes = finder.find_nodes(FindQuery('foo', None, None))

@@ -25,7 +25,7 @@ from graphite.logger import log
 from graphite.readers import RRDReader
 from graphite.storage import STORE
 from graphite.carbonlink import CarbonLink
-from graphite.remote_storage import extractForwardHeaders
+from graphite.storage import extractForwardHeaders
 from graphite.render.attime import parseATTime
 from graphite.util import epoch
 

@@ -318,13 +318,6 @@ DEFAULT_XFILES_FACTOR = 0
 # when making a request to a remote webapp server in CLUSTER_SERVERS
 #REMOTE_STORE_FORWARD_HEADERS = [] # An iterable of HTTP header names
 
-## Prefetch cache
-# set to True to fetch all metrics using a single http request per remote server
-# instead of one http request per target, per remote server.
-# Especially useful when generating graphs with more than 4-5 targets or if
-# there's significant latency between this server and the backends.
-#REMOTE_PREFETCH_DATA = False
-
 ## Remote rendering settings
 # Set to True to enable rendering of Graphs on a remote webapp
 #REMOTE_RENDERING = True

@@ -15,17 +15,13 @@ from __future__ import division
 
 import collections
 import re
-
-from traceback import format_exc
+import time
 
 from django.conf import settings
 
-from graphite.future import Future
 from graphite.logger import log
-from graphite.readers.utils import wait_for_result
 from graphite.storage import STORE
 from graphite.util import timebounds, logtime
-from graphite.render.utils import extractPathExpressions
 
 
 class TimeSeries(list):
@@ -150,45 +146,28 @@ class TimeSeries(list):
     )
 
 
-@logtime(custom_msg=True)
-def _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList, msg_setter=None):
-  msg_setter("retrieval of \"%s\" took" % str(pathExpr))
+# Data retrieval API
+@logtime
+def fetchData(requestContext, pathExpr, timer=None):
+  timer.set_msg("lookup and merge of \"%s\" took" % str(pathExpr))
 
-  result_queue = []
-  remote_done = False
+  seriesList = {}
+  (startTime, endTime, now) = timebounds(requestContext)
 
-  if settings.REMOTE_PREFETCH_DATA:
-    prefetched = requestContext['prefetched'].get((startTime, endTime, now), None)
-    if prefetched is not None:
-      for result in prefetched[pathExpr]:
-        result_queue.append(result)
-      # Since we pre-fetched remote data only, now we can get local data only.
-      remote_done = True
+  prefetched = requestContext.get('prefetched', {}).get((startTime, endTime, now), {}).get(pathExpr)
+  if not prefetched:
+    return []
 
-  local = remote_done or requestContext['localOnly']
-  matching_nodes = STORE.find(
-    pathExpr, startTime, endTime,
-    local=local,
-    headers=requestContext['forwardHeaders'],
-    leaves_only=True,
-  )
-
-  for node in matching_nodes:
-    result_queue.append(
-      (node.path, node.fetch(startTime, endTime, now, requestContext)))
-
-  return _merge_results(pathExpr, startTime, endTime, result_queue, seriesList, requestContext)
+  return _merge_results(pathExpr, startTime, endTime, prefetched, seriesList, requestContext)
 
 
-def _merge_results(pathExpr, startTime, endTime, result_queue, seriesList, requestContext):
+def _merge_results(pathExpr, startTime, endTime, prefetched, seriesList, requestContext):
   log.debug("render.datalib.fetchData :: starting to merge")
 
   # Used as a cache to avoid recounting series None values below.
   series_best_nones = {}
 
-  for path, results in result_queue:
-    results = wait_for_result(results)
-
+  for path, results in prefetched:
     if not results:
       log.debug("render.datalib.fetchData :: no results for %s.fetch(%s, %s)" % (path, startTime, endTime))
       continue
@@ -244,22 +223,6 @@ def _merge_results(pathExpr, startTime, endTime, result_queue, seriesList, reque
           # the count cache and replace the given series in the array.
           series_best_nones[known.name] = candidate_nones
           seriesList[known.name] = series
-      else:
-        if settings.REMOTE_PREFETCH_DATA:
-          # if we're using REMOTE_PREFETCH_DATA we can save some time by skipping
-          # find, but that means we don't know how many nodes to expect so we
-          # have to iterate over all returned results
-          continue
-
-        # In case if we are merging data - the existing series has no gaps and
-        # there is nothing to merge together.  Save ourselves some work here.
-        #
-        # OR - if we picking best serie:
-        #
-        # We already have this series in the seriesList, and the
-        # candidate is 'worse' than what we already have, we don't need
-        # to compare anything else. Save ourselves some work here.
-        break
 
     else:
       # If we looked at this series above, and it matched a 'known'
@@ -272,87 +235,38 @@ def _merge_results(pathExpr, startTime, endTime, result_queue, seriesList, reque
   return [seriesList[k] for k in sorted(seriesList)]
 
 
-# Data retrieval API
-@logtime(custom_msg=True)
-def fetchData(requestContext, pathExpr, msg_setter=None):
-  msg_setter("retrieval of \"%s\" took" % str(pathExpr))
-
-  seriesList = {}
-  (startTime, endTime, now) = timebounds(requestContext)
-
-  retries = 1 # start counting at one to make log output and settings more readable
-  while True:
-    try:
-      seriesList = _fetchData(pathExpr, startTime, endTime, now, requestContext, seriesList)
-      break
-    except Exception:
-      if retries >= settings.MAX_FETCH_RETRIES:
-        log.exception("Failed after %s retry! Root cause:\n%s" %
-            (settings.MAX_FETCH_RETRIES, format_exc()))
-        raise
-      else:
-        log.exception("Got an exception when fetching data! Try: %i of %i. Root cause:\n%s" %
-                     (retries, settings.MAX_FETCH_RETRIES, format_exc()))
-        retries += 1
-
-  return seriesList
-
-
-def nonempty(series):
-  for value in series:
-    if value is not None:
-      return True
-
-  return False
-
-
-class PrefetchedData(Future):
-  def __init__(self, results):
-    self._results = results
-    self._prefetched = None
-
-  def _data(self):
-    if self._prefetched is None:
-      self._fetch_data()
-    return self._prefetched
-
-  def _fetch_data(self):
-    prefetched = collections.defaultdict(list)
-    for result in self._results:
-      fetched = wait_for_result(result)
-
-      if fetched is None:
-        continue
-
-      for result in fetched:
-        prefetched[result['pathExpression']].append((
-          result['name'],
-          (
-            result['time_info'],
-            result['values'],
-          ),
-        ))
-
-    self._prefetched = prefetched
-
-
-def prefetchRemoteData(requestContext, targets):
+def prefetchData(requestContext, pathExpressions):
   """Prefetch a bunch of path expressions and stores them in the context.
 
-  The idea is that this will allow more batching that doing a query
+  The idea is that this will allow more batching than doing a query
   each time evaluateTarget() needs to fetch a path. All the prefetched
-  data is stored in the requestContext, to be accessed later by datalib.
+  data is stored in the requestContext, to be accessed later by fetchData.
   """
-  # only prefetch if there is at least one active remote finder
-  # this is to avoid the overhead of tagdb lookups in extractPathExpressions
-  if len([finder for finder in STORE.finders if not getattr(finder, 'local', True) and not getattr(finder, 'disabled', False)]) < 1:
+  if not pathExpressions:
     return
 
-  pathExpressions = extractPathExpressions(targets)
-  log.rendering("Prefetching remote data for [%s]" % (', '.join(pathExpressions)))
+  start = time.time()
+  log.debug("Fetching data for [%s]" % (', '.join(pathExpressions)))
 
   (startTime, endTime, now) = timebounds(requestContext)
 
-  results = STORE.fetch_remote(pathExpressions, startTime, endTime, now, requestContext)
+  prefetched = collections.defaultdict(list)
 
-  requestContext['prefetched'][(startTime, endTime, now)] = PrefetchedData(results)
+  for result in STORE.fetch(pathExpressions, startTime, endTime, now, requestContext):
+    if result is None:
+      continue
+
+    prefetched[result['pathExpression']].append((
+      result['name'],
+      (
+        result['time_info'],
+        result['values'],
+      ),
+    ))
+
+  if not requestContext.get('prefetched'):
+    requestContext['prefetched'] = {}
+
+  requestContext['prefetched'][(startTime, endTime, now)] = prefetched
+
+  log.rendering("Fetched data for [%s] in %fs" % (', '.join(pathExpressions), time.time() - start))
