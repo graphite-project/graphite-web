@@ -45,7 +45,7 @@ def index_json(request):
     }
 
     matches = STORE.get_index(requestContext)
-  except Exception as err:
+  except Exception:
     log.exception()
     return json_response_for(request, [], jsonp=jsonp, status=500)
 

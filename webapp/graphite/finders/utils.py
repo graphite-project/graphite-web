@@ -57,7 +57,7 @@ class BaseFinder(object):
           generator of Node
         """
 
-    def get_index(self, requestContext=None):
+    def get_index(self, requestContext):
         """Get a list of all series
 
         Args:

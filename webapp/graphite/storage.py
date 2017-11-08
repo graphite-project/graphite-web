@@ -1,5 +1,6 @@
 import time
 import random
+import types
 
 from collections import defaultdict
 
@@ -29,9 +30,9 @@ def get_finders(finder_path):
 
     # monkey patch so legacy finders will work
     finder = cls()
-    finder.fetch = BaseFinder.fetch
-    finder.find_multi = BaseFinder.find_multi
-    finder.get_index = BaseFinder.get_index
+    finder.fetch = types.MethodType(BaseFinder.fetch.__func__, finder)
+    finder.find_multi = types.MethodType(BaseFinder.find_multi.__func__, finder)
+    finder.get_index = types.MethodType(BaseFinder.get_index.__func__, finder)
 
     return [finder]
 
@@ -103,12 +104,15 @@ class Store(object):
         log.debug("Got all fetch results for %s in %fs" % (str(patterns), time.time() - start))
         return results
 
-    def get_index(self, requestContext):
+    def get_index(self, requestContext=None):
         log.debug('graphite.storage.Store.get_index :: Starting get_index on all backends')
+
+        if not requestContext:
+          requestContext = {}
 
         jobs = [
             Job(finder.get_index, requestContext=requestContext)
-            for finder in self.get_finders(requestContext.get('localOnly'))
+            for finder in self.get_finders(local=requestContext.get('localOnly'))
         ]
 
         results = []

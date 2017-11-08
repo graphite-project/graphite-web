@@ -55,7 +55,7 @@ class CeresFinder(BaseFinder):
                 elif os.path.isdir(fs_path):
                     yield BranchNode(metric_path)
 
-    def get_index(self, requestContext=None):
+    def get_index(self, requestContext):
         matches = []
 
         for root, _, files in walk(settings.CERES_DIR):

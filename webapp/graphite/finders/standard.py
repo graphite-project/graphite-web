@@ -168,7 +168,7 @@ class StandardFinder(BaseFinder):
             for base_name in matching_files + matching_subdirs:
                 yield join(current_dir, base_name)
 
-    def get_index(self, requestContext=None):
+    def get_index(self, requestContext):
         matches = []
 
         # unlike 0.9.x, we're going to use os.walk with followlinks

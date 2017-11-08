@@ -126,10 +126,10 @@ class RemoteFinder(BaseFinder):
         reader = RemoteReader(self, {}, bulk_query=patterns)
         return reader.fetch_multi(start_time, end_time, now, requestContext)
 
-    def get_index(self, requestContext=None):
+    def get_index(self, requestContext):
         url = '/metrics/index.json'
 
-        headers = requestContext.get('forwardHeaders') if requestContext else None
+        headers = requestContext.get('forwardHeaders')
 
         result = self.request(
             url,
