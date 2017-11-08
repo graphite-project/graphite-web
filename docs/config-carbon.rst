@@ -49,6 +49,7 @@ Frequencies and histories are specified using the following suffixes:
 * m - minute
 * h - hour
 * d - day
+* w - week
 * y - year
 
 
