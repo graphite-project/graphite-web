@@ -18,11 +18,11 @@ class HttpTagDB(BaseTagDB):
     self.username = settings.TAGDB_HTTP_USER
     self.password = settings.TAGDB_HTTP_PASSWORD
 
-  def request(self, method, url, fields=None):
+  def request(self, requestContext, method, url, fields=None):
     if not fields:
       fields = {}
 
-    headers = {}
+    headers = requestContext.get('forwardHeaders') if requestContext else {}
     if 'Authorization' not in headers and self.username and self.password:
       headers['Authorization'] = 'Basic ' + ('%s:%s' % (self.username, self.password)).encode('base64')
 
@@ -39,32 +39,35 @@ class HttpTagDB(BaseTagDB):
 
     return json.loads(result.data.decode('utf-8'))
 
-  def _find_series(self, tags):
-    return self.request('GET', '/tags/findSeries?' + '&'.join([('expr=%s' % quote(tag)) for tag in tags]))
+  def _find_series(self, requestContext, tags):
+    return self.request(requestContext, 'GET', '/tags/findSeries?' + '&'.join([('expr=%s' % quote(tag)) for tag in tags]))
 
-  def get_series(self, path):
+  def get_series(self, requestContext, path):
     parsed = self.parse(path)
 
-    seriesList = self.find_series([('%s=%s' % (tag, parsed.tags[tag])) for tag in parsed.tags])
+    seriesList = self.find_series(
+      requestContext,
+      [('%s=%s' % (tag, parsed.tags[tag])) for tag in parsed.tags],
+    )
 
     if parsed.path in seriesList:
       return parsed
 
-  def list_tags(self, tagFilter=None):
-    return self.request('GET', '/tags', {'filter': tagFilter})
+  def list_tags(self, requestContext, tagFilter=None):
+    return self.request(requestContext, 'GET', '/tags', {'filter': tagFilter})
 
-  def get_tag(self, tag, valueFilter=None):
-    return self.request('GET', '/tags/' + tag, {'filter': valueFilter})
+  def get_tag(self, requestContext, tag, valueFilter=None):
+    return self.request(requestContext, 'GET', '/tags/' + tag, {'filter': valueFilter})
 
-  def list_values(self, tag, valueFilter=None):
-    tagInfo = self.get_tag(tag, valueFilter)
+  def list_values(self, requestContext, tag, valueFilter=None):
+    tagInfo = self.get_tag(requestContext, tag, valueFilter)
     if not tagInfo:
       return []
 
     return tagInfo['values']
 
-  def tag_series(self, series):
-    return self.request('POST', '/tags/tagSeries', {'path': series})
+  def tag_series(self, requestContext, series):
+    return self.request(requestContext, 'POST', '/tags/tagSeries', {'path': series})
 
-  def del_series(self, series):
-    return self.request('POST', '/tags/delSeries', {'path': series})
+  def del_series(self, requestContext, series):
+    return self.request(requestContext, 'POST', '/tags/delSeries', {'path': series})

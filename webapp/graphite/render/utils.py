@@ -2,7 +2,7 @@ from graphite.render.grammar import grammar
 from graphite.storage import STORE
 
 
-def extractPathExpressions(targets):
+def extractPathExpressions(requestContext, targets):
   # Returns a list of unique pathExpressions found in the targets list
 
   pathExpressions = set()
@@ -19,7 +19,7 @@ def extractPathExpressions(targets):
       # if we're prefetching seriesByTag, look up the matching series and prefetch those
       if tokens.call.funcname == 'seriesByTag':
         if STORE.tagdb:
-          for series in STORE.tagdb.find_series([t.string[1:-1] for t in tokens.call.args if t.string]):
+          for series in STORE.tagdb.find_series(requestContext, [t.string[1:-1] for t in tokens.call.args if t.string]):
             pathExpressions.add(series)
       else:
         for a in tokens.call.args:
