@@ -147,7 +147,10 @@ def extractPathExpressions(requestContext, targets):
       # if we're prefetching seriesByTag, look up the matching series and prefetch those
       if tokens.call.funcname == 'seriesByTag':
         if STORE.tagdb:
-          for series in STORE.tagdb.find_series(tuple([t.string[1:-1] for t in tokens.call.args if t.string])):
+          for series in STORE.tagdb.find_series(
+              tuple([t.string[1:-1] for t in tokens.call.args if t.string]),
+              requestContext=requestContext,
+          ):
             pathExpressions.add(series)
       else:
         for a in tokens.call.args:

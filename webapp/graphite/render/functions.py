@@ -4270,7 +4270,7 @@ def seriesByTag(requestContext, *tagExpressions):
     log.info('seriesByTag called but no TagDB configured')
     return []
 
-  taggedSeries = STORE.tagdb.find_series(tagExpressions)
+  taggedSeries = STORE.tagdb.find_series(tagExpressions, requestContext=requestContext)
   if not taggedSeries:
     return []
 
