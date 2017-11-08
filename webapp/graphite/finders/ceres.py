@@ -58,7 +58,7 @@ class CeresFinder(BaseFinder):
     def get_index(self, requestContext=None):
         matches = []
 
-        for root, dirs, files in walk(settings.CERES_DIR):
+        for root, _, files in walk(settings.CERES_DIR):
           root = root.replace(settings.CERES_DIR, '')
           for filename in files:
             if filename == '.ceres-node':

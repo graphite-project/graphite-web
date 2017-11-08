@@ -20,8 +20,6 @@ class MetricsTester(TestCase):
     db = os.path.join(settings.WHISPER_DIR, 'test.wsp')
     hostcpu = os.path.join(settings.WHISPER_DIR, 'hosts/hostname/cpu.wsp')
 
-    settings.CLUSTER_SERVERS = ['127.1.1.1', '127.1.1.2']
-
     def wipe_whisper(self):
         try:
             os.remove(self.db)

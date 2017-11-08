@@ -171,21 +171,21 @@ class StandardFinder(BaseFinder):
     def get_index(self, requestContext=None):
         matches = []
 
-        for root, dirs, files in walk(settings.WHISPER_DIR):
+        # unlike 0.9.x, we're going to use os.walk with followlinks
+        # since we require Python 2.7 and newer that supports it
+        for root, _, files in walk(settings.WHISPER_DIR):
           root = root.replace(settings.WHISPER_DIR, '')
           for base_name in files:
             if fnmatch.fnmatch(base_name, '*.wsp'):
               matches.append(join(root, base_name).replace('.wsp', ''))
 
-        # unlike 0.9.x, we're going to use os.walk with followlinks
-        # since we require Python 2.7 and newer that supports it
         if RRDReader.supported:
-          for root, dirs, files in walk(settings.RRD_DIR, followlinks=True):
+          for root, _, files in walk(settings.RRD_DIR, followlinks=True):
             root = root.replace(settings.RRD_DIR, '')
             for base_name in files:
               if fnmatch.fnmatch(base_name, '*.rrd'):
                 absolute_path = join(settings.RRD_DIR, root, base_name)
-                (base_name,extension) = splitext(base_name)
+                base_name = splitext(base_name)[0]
                 metric_path = join(root, base_name)
                 rrd = RRDReader(absolute_path, metric_path)
                 for datasource_name in rrd.get_datasources(absolute_path):
