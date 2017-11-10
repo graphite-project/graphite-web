@@ -4,12 +4,14 @@ import random
 from collections import defaultdict
 
 from django.conf import settings
+from django.core.cache import cache
 
 try:
     from importlib import import_module
 except ImportError:  # python < 2.7 compatibility
     from django.utils.importlib import import_module
 
+from graphite.util import logtime
 from graphite.logger import log
 from graphite.node import LeafNode
 from graphite.intervals import Interval, IntervalSet
@@ -102,6 +104,24 @@ class Store(object):
         log.debug("Got all fetch results for %s in %fs" % (str(patterns), time.time() - start))
         return results
 
+
+    @logtime
+    def find_series(self, tags, timer=None):
+        """Wrapper for tagdb.find_series()."""
+        if not self.tagdb:
+            return []
+
+        timer.set_name('%s.%s.find_series' % (self.__module__, self.__class__.__name__))
+
+        cacheKey = 'TagDB.find_series:' + ':'.join(sorted(tags))
+        result = cache.get(cacheKey)
+        if result is not None:
+            timer.set_msg('completed (cached) in')
+        else:
+            result = self._find_series(tags)
+            cache.set(cacheKey, result, settings.TAGDB_CACHE_DURATION)
+
+        return result
 
     def find(self, pattern, startTime=None, endTime=None, local=False, headers=None, leaves_only=False):
         query = FindQuery(

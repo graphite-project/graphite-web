@@ -5,6 +5,7 @@ import re
 from django.conf import settings
 
 from graphite.tags.base import BaseTagDB, TaggedSeries
+from graphite.tags import autocomplete
 
 
 class RedisTagDB(BaseTagDB):
@@ -28,7 +29,7 @@ class RedisTagDB(BaseTagDB):
 
     self.r = Redis(host=settings.TAGDB_REDIS_HOST,port=settings.TAGDB_REDIS_PORT,db=settings.TAGDB_REDIS_DB)
 
-  def _find_series(self, tags):
+  def find_series(self, tags):
     selector = None
     selector_cnt = None
     filters = []
@@ -213,3 +214,9 @@ class RedisTagDB(BaseTagDB):
       pipe.execute()
 
     return True
+
+  def auto_complete_tags(self, exprs, tagPrefix=None, limit=None):
+    return autocomplete.auto_complete_tags(self, exprs, tagPrefix=tagPrefix, limit=limit)
+
+  def auto_complete_values(self, exprs, tag, valuePrefix=None, limit=None):
+    return autocomplete.auto_complete_values(self, exprs, tag, valuePrefix=valuePrefix, limit=limit)

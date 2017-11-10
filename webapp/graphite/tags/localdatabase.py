@@ -4,6 +4,7 @@ from django.db import connection
 from hashlib import sha256
 
 from graphite.tags.base import BaseTagDB, TaggedSeries
+from graphite.tags import autocomplete
 
 
 class LocalDatabaseTagDB(BaseTagDB):
@@ -88,7 +89,7 @@ class LocalDatabaseTagDB(BaseTagDB):
 
     return sql, params, filters
 
-  def _find_series(self, tags):
+  def find_series(self, tags):
     sql, params, filters = self.find_series_query(tags)
 
     def matches_filters(path):
@@ -314,3 +315,9 @@ class LocalDatabaseTagDB(BaseTagDB):
       cursor.execute(sql, params)
 
     return True
+
+  def auto_complete_tags(self, exprs, tagPrefix=None, limit=None):
+    return autocomplete.auto_complete_tags(self, exprs, tagPrefix=tagPrefix, limit=limit)
+
+  def auto_complete_values(self, exprs, tag, valuePrefix=None, limit=None):
+    return autocomplete.auto_complete_values(self, exprs, tag, valuePrefix=valuePrefix, limit=limit)
