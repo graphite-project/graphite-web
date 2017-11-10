@@ -1,3 +1,4 @@
+import bisect
 import fnmatch
 import operator
 from os.path import isdir, isfile, join, basename, splitext
@@ -171,14 +172,15 @@ class StandardFinder(BaseFinder):
     def get_index(self, requestContext):
         matches = []
 
-        # unlike 0.9.x, we're going to use os.walk with followlinks
-        # since we require Python 2.7 and newer that supports it
         for root, _, files in walk(settings.WHISPER_DIR):
           root = root.replace(settings.WHISPER_DIR, '')
           for base_name in files:
             if fnmatch.fnmatch(base_name, '*.wsp'):
-              matches.append(join(root, base_name).replace('.wsp', ''))
+              match = join(root, base_name).replace('.wsp', '').replace('/', '.').lstrip('.')
+              bisect.insort_left(matches, match)
 
+        # unlike 0.9.x, we're going to use os.walk with followlinks
+        # since we require Python 2.7 and newer that supports it
         if RRDReader.supported:
           for root, _, files in walk(settings.RRD_DIR, followlinks=True):
             root = root.replace(settings.RRD_DIR, '')
@@ -189,9 +191,8 @@ class StandardFinder(BaseFinder):
                 metric_path = join(root, base_name)
                 rrd = RRDReader(absolute_path, metric_path)
                 for datasource_name in rrd.get_datasources(absolute_path):
-                  matches.append(join(metric_path, datasource_name).replace('.rrd', ''))
+                  match = join(metric_path, datasource_name).replace('.rrd', '').replace('/', '.').lstrip('.')
+                  if match not in matches:
+                    bisect.insort_left(matches, match)
 
-        return sorted([
-          m.replace('/', '.').lstrip('.')
-          for m in matches
-        ])
+        return matches
