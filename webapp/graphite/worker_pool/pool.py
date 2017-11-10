@@ -79,7 +79,7 @@ def pool_exec(pool, jobs, timeout):
 
   If not all jobs have been executed after the specified timeout a
   PoolTimeoutError will be raised. When operating synchronously the
-  timeout is checked after each job is run.
+  timeout is checked before each job is run.
   """
   start = time.time()
   deadline = start + timeout
