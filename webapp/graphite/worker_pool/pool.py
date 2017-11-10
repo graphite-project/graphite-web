@@ -35,7 +35,7 @@ class Job(object):
       self.exception = err
 
 
-def get_pool(name="default", thread_count=0):
+def get_pool(name="default", thread_count=1):
   """Get (and initialize) a Thread pool.
 
   If thread_count is 0, then None is returned.

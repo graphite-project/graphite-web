@@ -1,4 +1,3 @@
-import mock
 import time
 import unittest
 
@@ -9,14 +8,12 @@ class TestPool(unittest.TestCase):
     def tearDown(self):
         pool.stop_pools()
 
-    @mock.patch('django.conf.settings.USE_WORKER_POOL', True)
     def test_basic(self):
         p = pool.get_pool()
         results = pool.pool_exec(p, [], 1)
 
         self.assertEqual(list(results), [])
 
-    @mock.patch('django.conf.settings.USE_WORKER_POOL', True)
     def test_exception(self):
         p = pool.get_pool()
 
@@ -29,7 +26,6 @@ class TestPool(unittest.TestCase):
 
         self.assertEqual(list(results)[0].exception, err)
 
-    @mock.patch('django.conf.settings.USE_WORKER_POOL', True)
     def test_named(self):
         default = pool.get_pool()
         p = pool.get_pool(name='test')
@@ -46,10 +42,9 @@ class TestPool(unittest.TestCase):
 
         self.assertNotIn('test', pool._pools)
 
-    @mock.patch('django.conf.settings.USE_WORKER_POOL', False)
     def test_named_no_worker_pool(self):
-        default = pool.get_pool()
-        p = pool.get_pool(name='test')
+        default = pool.get_pool(thread_count=0)
+        p = pool.get_pool(name='test', thread_count=0)
 
         self.assertIsNone(p)
         self.assertIsNone(default)
@@ -58,20 +53,18 @@ class TestPool(unittest.TestCase):
 
         self.assertEqual(list(results)[0].result, 'a')
 
-    @mock.patch('django.conf.settings.USE_WORKER_POOL', True)
     def test_timeout(self):
-        p = pool.get_pool()
+        p = pool.get_pool(thread_count=4)
 
-        jobs = [pool.Job(lambda v: time.sleep(2) and v, i) for i in range(1, 5)]
+        jobs = [pool.Job(lambda v: time.sleep(1) and v, i) for i in range(1, 5)]
 
         with self.assertRaises(pool.PoolTimeoutError):
           results = pool.pool_exec(p, jobs, 1)
 
           list(results)
 
-    @mock.patch('django.conf.settings.USE_WORKER_POOL', False)
     def test_timeout_sync(self):
-        p = pool.get_pool()
+        p = pool.get_pool(thread_count=0)
 
         jobs = [pool.Job(lambda v: time.sleep(1) and v, i) for i in range(1, 5)]
 
