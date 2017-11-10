@@ -90,7 +90,8 @@ def pool_exec(pool, jobs, timeout):
       job.run()
       queue.put(job)
 
-    pool.map_async(pool_executor, jobs)
+    for job in jobs:
+      pool.apply_async(func=pool_executor, args=[job])
 
     done = 0
     total = len(jobs)
