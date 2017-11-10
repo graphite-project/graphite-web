@@ -3979,7 +3979,7 @@ def _summarizeValues(series, func, interval, newStart=None, newEnd=None):
   intervalPoints = interval / series.step
 
   i = 0
-  numPoints = len(timestamps)
+  numPoints = min(len(timestamps), len(datapoints))
 
   newValues = []
   timestamp_ = newStart
