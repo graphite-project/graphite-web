@@ -410,6 +410,39 @@ class FunctionsTest(TestCase):
         seriesList = self._generate_series_list()
         self.assertEqual(functions.normalize([seriesList]), (seriesList, 0, 101, 1))
 
+    def test_normalize_different_steps(self):
+        seriesList = [
+          TimeSeries("test.1", 0, 120 * 31, 120, values=range(1, 32)),
+          TimeSeries("test.2", 0, 30 * 120, 30, values=range(1, 121)),
+        ]
+
+        self.assertEqual(seriesList[0].start, 0)
+        self.assertEqual(seriesList[0].end, 120 * 31)
+        self.assertEqual(seriesList[0].step, 120)
+        self.assertEqual(seriesList[0].valuesPerPoint, 1)
+        self.assertEqual(len(list(seriesList[0])), 31)
+
+        self.assertEqual(seriesList[1].start, 0)
+        self.assertEqual(seriesList[1].end, 30 * 120)
+        self.assertEqual(seriesList[1].step, 30)
+        self.assertEqual(seriesList[1].valuesPerPoint, 1)
+        self.assertEqual(len(list(seriesList[1])), 120)
+
+        # normalize seriesList
+        self.assertEqual(functions.normalize([seriesList]), (seriesList, 0, 3720, 120))
+
+        self.assertEqual(seriesList[0].start, 0)
+        self.assertEqual(seriesList[0].end, 120 * 31)
+        self.assertEqual(seriesList[0].step, 120)
+        self.assertEqual(seriesList[0].valuesPerPoint, 1)
+        self.assertEqual(len(list(seriesList[0])), 31)
+
+        self.assertEqual(seriesList[1].start, 0)
+        self.assertEqual(seriesList[1].end, 30 * 120)
+        self.assertEqual(seriesList[1].step, 30)
+        self.assertEqual(seriesList[1].valuesPerPoint, 4)
+        self.assertEqual(len(list(seriesList[1])), 30)
+
     #
     # Test matchSeries()
     #
