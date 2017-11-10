@@ -1591,8 +1591,8 @@ def perSecond(requestContext, seriesList, maxValue=None):
     &target=perSecond(company.server.application01.ifconfig.TXPackets)
 
   Each time you run ifconfig, the RX and TXPackets are higher (assuming there
-  is network traffic.) By applying the nonNegativeDerivative function, you can get an
-  idea of the packets per minute sent or received, even though you're only
+  is network traffic.) By applying the perSecond function, you can get an
+  idea of the packets per second sent or received, even though you're only
   recording the total.
   """
   results = []
@@ -1612,9 +1612,9 @@ def perSecond(requestContext, seriesList, maxValue=None):
 
       diff = val - prev
       if diff >= 0:
-        newValues.append(diff // step)
+        newValues.append(round(diff / step, 6))
       elif maxValue is not None and maxValue >= val:
-        newValues.append( ((maxValue - prev) + val  + 1) // step )
+        newValues.append(round((maxValue + diff) / step, 6))
       else:
         newValues.append(None)
 

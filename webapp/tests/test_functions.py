@@ -1554,6 +1554,13 @@ class FunctionsTest(TestCase):
         self.assertEqual(list(expected[0]), list(result[0]))
         self.assertEqual(expected, result)
 
+    def test_perSecond_float(self):
+        seriesList = self._gen_series_list_with_data(key='test',start=0,end=600,step=60,data=[0, 90, 186, 291, 411, 561, 747, 939, 137, 337])
+        expected = [TimeSeries('perSecond(test)', 0, 600, 60, [None, 1.5, 1.6, 1.75, 2, 2.5, 3.1, 3.2, 3.3, 3.333333])]
+        result = functions.perSecond({}, seriesList, maxValue=1000)
+        self.assertEqual(list(expected[0]), list(result[0]))
+        self.assertEqual(expected, result)
+
     def test_perSecond_nones(self):
         seriesList = self._gen_series_list_with_data(key='test',start=0,end=600,step=60,data=[0, 60, None, 180, None, None, None, 420, None, 540])
         expected = [TimeSeries('perSecond(test)', 0, 600, 60, [None, 1, None, 1, None, None, None, 1, None, 1])]
