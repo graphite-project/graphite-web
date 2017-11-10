@@ -2,7 +2,6 @@ import Queue
 import time
 
 from threading import Lock
-from django.conf import settings
 from multiprocessing.pool import ThreadPool
 
 _init_lock = Lock()
@@ -36,16 +35,15 @@ class Job(object):
       self.exception = err
 
 
-def get_pool(name="default", thread_count=settings.POOL_WORKERS):
+def get_pool(name="default", thread_count=0):
   """Get (and initialize) a Thread pool.
 
-  If settings.USE_WORKER_POOL is False or thread_count (default: settings.POOL_WORKERS)
-  is 0, then None is returned.
+  If thread_count is 0, then None is returned.
 
   If the thread pool had already been initialized, thread_count will
   be ignored.
   """
-  if not settings.USE_WORKER_POOL or not thread_count:
+  if not thread_count:
     return None
 
   with _init_lock:
@@ -92,8 +90,7 @@ def pool_exec(pool, jobs, timeout):
       job.run()
       queue.put(job)
 
-    for job in jobs:
-      pool.apply_async(func=pool_executor, args=[job])
+    pool.map_async(pool_executor, jobs)
 
     done = 0
     total = len(jobs)
@@ -109,9 +106,9 @@ def pool_exec(pool, jobs, timeout):
       yield job
   else:
     for job in jobs:
-      job.run()
-
       if time.time() > deadline:
         raise PoolTimeoutError("Timed out after %fs" % (time.time() - start))
+
+      job.run()
 
       yield job
