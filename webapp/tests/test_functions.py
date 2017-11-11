@@ -1587,26 +1587,42 @@ class FunctionsTest(TestCase):
         self.assertEqual(list(expected[0]), list(result[0]))
         self.assertEqual(expected, result)
 
+        # verify against scaleToSeconds(nonNegativeDerivative(<series>, <maxValue>), 1)
+        result = functions.scaleToSeconds({}, functions.nonNegativeDerivative({}, seriesList), 1)
+        self.assertEqual(list(expected[0]), list(result[0]))
+
     def test_perSecond_float(self):
-        seriesList = self._gen_series_list_with_data(key='test',start=0,end=600,step=60,data=[0, 90, 186, 291, 411, 561, 747, 939, 137, 337])
+        seriesList = self._gen_series_list_with_data(key='test',start=0,end=600,step=60,data=[0, 90, 186, 291, 411, 561, 747, 939, 136, 336])
         expected = [TimeSeries('perSecond(test)', 0, 600, 60, [None, 1.5, 1.6, 1.75, 2, 2.5, 3.1, 3.2, 3.3, 3.333333])]
         result = functions.perSecond({}, seriesList, maxValue=1000)
         self.assertEqual(list(expected[0]), list(result[0]))
         self.assertEqual(expected, result)
 
+        # verify against scaleToSeconds(nonNegativeDerivative(<series>, <maxValue>), 1)
+        result = functions.scaleToSeconds({}, functions.nonNegativeDerivative({}, seriesList, maxValue=1000), 1)
+        self.assertEqual(list(expected[0]), list(result[0]))
+
     def test_perSecond_nones(self):
-        seriesList = self._gen_series_list_with_data(key='test',start=0,end=600,step=60,data=[0, 60, None, 180, None, None, None, 420, None, 540])
-        expected = [TimeSeries('perSecond(test)', 0, 600, 60, [None, 1, None, 1, None, None, None, 1, None, 1])]
+        seriesList = self._gen_series_list_with_data(key='test',start=0,end=600,step=60,data=[0, 60, None, 180, None, None, 360, 420, None, 540])
+        expected = [TimeSeries('perSecond(test)', 0, 600, 60, [None, 1, None, None, None, None, None, 1, None, None])]
         result = functions.perSecond({}, seriesList)
         self.assertEqual(list(expected[0]), list(result[0]))
         self.assertEqual(expected, result)
 
+        # verify against scaleToSeconds(nonNegativeDerivative(<series>, <maxValue>), 1)
+        result = functions.scaleToSeconds({}, functions.nonNegativeDerivative({}, seriesList), 1)
+        self.assertEqual(list(expected[0]), list(result[0]))
+
     def test_perSecond_max(self):
-        seriesList = self._gen_series_list_with_data(key='test',start=0,end=600,step=60,data=[0, 120, 240, 480, 960, 900, 120, 240, 120, 0])
-        expected = [TimeSeries('perSecond(test)', 0, 600, 60, [None, 2, 2, 4, 8, None, -5, 2, 6, 6])]
+        seriesList = self._gen_series_list_with_data(key='test',start=0,end=600,step=60,data=[0, 120, 240, 480, 960, 900, 120, 240, 119, 479])
+        expected = [TimeSeries('perSecond(test)', 0, 600, 60, [None, 2, 2, 4, None, None, None, 2, 6, 6])]
         result = functions.perSecond({}, seriesList, 480)
         self.assertEqual(list(expected[0]), list(result[0]))
         self.assertEqual(expected, result)
+
+        # verify against scaleToSeconds(nonNegativeDerivative(<series>, <maxValue>), 1)
+        result = functions.scaleToSeconds({}, functions.nonNegativeDerivative({}, seriesList, 480), 1)
+        self.assertEqual(list(expected[0]), list(result[0]))
 
     def test_integral(self):
         seriesList = self._gen_series_list_with_data(key='test',start=0,end=600,step=60,data=[None, 1, 2, 3, 4, 5, None, 6, 7, 8])

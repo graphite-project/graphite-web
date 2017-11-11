@@ -1167,9 +1167,12 @@ def scaleToSeconds(requestContext, seriesList, seconds):
     series.tags['scaleToSeconds'] = seconds
     series.name = "scaleToSeconds(%s,%d)" % (series.name,seconds)
     series.pathExpression = series.name
+    factor = seconds / series.step
+
     for i,value in enumerate(series):
-      factor = seconds * 1.0 / series.step
-      series[i] = safeMul(value,factor)
+      if value is not None:
+        series[i] = round(value * factor, 6)
+
   return seriesList
 
 def pow(requestContext, seriesList, factor):
@@ -1595,30 +1598,20 @@ def perSecond(requestContext, seriesList, maxValue=None):
     newValues = []
     prev = None
     step = series.step
-    for val in series:
-      if prev is None:
-        newValues.append(None)
-        prev = val
-        continue
-      if val is None:
-        newValues.append(None)
-        step += series.step
-        continue
 
-      diff = val - prev
-      if diff >= 0:
-        newValues.append(round(diff / step, 6))
-      elif maxValue is not None and maxValue >= val:
-        newValues.append(round((maxValue + diff) / step, 6))
+    for val in series:
+      delta, prev = _nonNegativeDelta(val, prev, maxValue)
+
+      if delta is not None:
+        newValues.append(round(delta / step, 6))
       else:
         newValues.append(None)
 
-      step = series.step
-      prev = val
     series.tags['perSecond'] = 1
     newName = "perSecond(%s)" % series.name
     newSeries = series.copy(name=newName, values=newValues)
     results.append(newSeries)
+
   return results
 
 def delay(requestContext, seriesList, steps):
@@ -1750,20 +1743,9 @@ def nonNegativeDerivative(requestContext, seriesList, maxValue=None):
     prev = None
 
     for val in series:
-      if None in (prev, val):
-        newValues.append(None)
-        prev = val
-        continue
+      delta, prev = _nonNegativeDelta(val, prev, maxValue)
 
-      diff = val - prev
-      if diff >= 0:
-        newValues.append(diff)
-      elif maxValue is not None and maxValue >= val:
-        newValues.append( (maxValue - prev) + val  + 1 )
-      else:
-        newValues.append(None)
-
-      prev = val
+      newValues.append(delta)
 
     series.tags['nonNegativeDerivative'] = 1
     newName = "nonNegativeDerivative(%s)" % series.name
@@ -1771,6 +1753,28 @@ def nonNegativeDerivative(requestContext, seriesList, maxValue=None):
     results.append(newSeries)
 
   return results
+
+def _nonNegativeDelta(val, prev, maxValue):
+  # ignore values larger than maxValue
+  if maxValue is not None and val > maxValue:
+    return None, None
+
+  # first reading
+  if None in (prev, val):
+    return None, val
+
+  # counter increased, use the difference
+  if val >= prev:
+    return val - prev, val
+
+  # counter wrapped and we have maxValue
+  # calculate delta based on maxValue + 1 + val - prev
+  if maxValue is not None:
+    return maxValue + 1 + val - prev, val
+
+  # counter wrapped or reset and we don't have maxValue
+  # just use None
+  return None, val
 
 def stacked(requestContext,seriesLists,stackName='__DEFAULT__'):
   """
