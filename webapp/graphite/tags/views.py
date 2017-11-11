@@ -59,7 +59,7 @@ def findSeries(request):
     )
 
   return HttpResponse(
-    json.dumps(STORE.tagdb.find_series(exprs) if STORE.tagdb else [],
+    json.dumps(STORE.find_series(exprs) if STORE.tagdb else [],
                indent=(2 if queryParams.get('pretty') else None),
                sort_keys=bool(queryParams.get('pretty'))),
     content_type='application/json'

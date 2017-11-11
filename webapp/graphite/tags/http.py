@@ -7,6 +7,7 @@ from django.conf import settings
 from graphite.http_pool import http
 
 from graphite.tags.base import BaseTagDB
+from graphite.tags import autocomplete
 
 
 class HttpTagDB(BaseTagDB):
@@ -39,7 +40,7 @@ class HttpTagDB(BaseTagDB):
 
     return json.loads(result.data.decode('utf-8'))
 
-  def _find_series(self, tags):
+  def find_series(self, tags):
     return self.request('GET', '/tags/findSeries?' + '&'.join([('expr=%s' % quote(tag)) for tag in tags]))
 
   def get_series(self, path):
@@ -74,7 +75,7 @@ class HttpTagDB(BaseTagDB):
     Return auto-complete suggestions for tags based on the matches for the specified expressions, optionally filtered by tag prefix
     """
     if not settings.TAGDB_HTTP_AUTOCOMPLETE:
-      return super(HttpTagDB, self).auto_complete_tags(exprs, tagPrefix=tagPrefix, limit=limit)
+      return autocomplete.auto_complete_tags(self, exprs, tagPrefix=tagPrefix, limit=limit)
 
     if limit is None:
       limit = settings.TAGDB_AUTOCOMPLETE_LIMIT
@@ -89,7 +90,7 @@ class HttpTagDB(BaseTagDB):
     Return auto-complete suggestions for tags and values based on the matches for the specified expressions, optionally filtered by tag and/or value prefix
     """
     if not settings.TAGDB_HTTP_AUTOCOMPLETE:
-      return super(HttpTagDB, self).auto_complete_values(exprs, tag, valuePrefix=valuePrefix, limit=limit)
+      return autocomplete.auto_complete_values(self, exprs, tag, valuePrefix=valuePrefix, limit=limit)
 
     if limit is None:
       limit = settings.TAGDB_AUTOCOMPLETE_LIMIT
@@ -98,3 +99,4 @@ class HttpTagDB(BaseTagDB):
       '&limit=' + quote(str(limit)) + '&' + '&'.join([('expr=%s' % quote(expr or '')) for expr in exprs])
 
     return self.request('GET', url)
+

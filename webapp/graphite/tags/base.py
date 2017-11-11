@@ -1,13 +1,8 @@
 """Base tag database"""
 import abc
-import bisect
 import re
 
-from django.conf import settings
-from django.core.cache import cache
-
 from graphite.tags.utils import TaggedSeries
-from graphite.util import logtime
 
 
 class BaseTagDB(object):
@@ -16,8 +11,8 @@ class BaseTagDB(object):
   def __init__(self):
     """Initialize the tag db."""
 
-  @logtime
-  def find_series(self, tags, timer=None):
+  @abc.abstractmethod
+  def find_series(self, tags):
     """
     Find series by tag, accepts a list of tag specifiers and returns a list of matching paths.
 
@@ -37,23 +32,6 @@ class BaseTagDB(object):
     Regular expression conditions are treated as being anchored at the start of the value.
 
     Matching paths are returned as a list of strings.
-    """
-    timer.set_name('%s.%s.find_series' % (self.__module__, self.__class__.__name__))
-
-    cacheKey = 'TagDB.find_series:' + ':'.join(sorted(tags))
-    result = cache.get(cacheKey)
-    if result is not None:
-      timer.set_msg('completed (cached) in')
-    else:
-      result = self._find_series(tags)
-      cache.set(cacheKey, result, settings.TAGDB_CACHE_DURATION)
-
-    return result
-
-  @abc.abstractmethod
-  def _find_series(self, tags):
-    """
-    Internal function called by find_series, follows the same semantics allowing base class to implement caching
     """
 
   @abc.abstractmethod
@@ -137,75 +115,27 @@ class BaseTagDB(object):
     Remove series from database.  Accepts a series string and returns True
     """
 
+  @abc.abstractmethod
   def auto_complete_tags(self, exprs, tagPrefix=None, limit=None):
     """
     Return auto-complete suggestions for tags based on the matches for the specified expressions, optionally filtered by tag prefix
+
+    A default implementation can be:
+    ```
+    autocomplete.auto_complete_tags(self, exprs, tagPrefix=tagPrefix, limit=limit)
+    ```
     """
-    if limit is None:
-      limit = settings.TAGDB_AUTOCOMPLETE_LIMIT
-    else:
-      limit = int(limit)
 
-    if not exprs:
-      return [tagInfo['tag'] for tagInfo in self.list_tags(tagFilter=('^(' + tagPrefix + ')' if tagPrefix else None))[:limit]]
-
-    result = []
-
-    searchedTags = set([self.parse_tagspec(expr)[0] for expr in exprs])
-
-    for path in self.find_series(exprs):
-      tags = self.parse(path).tags
-      for tag in tags:
-        if tag in searchedTags:
-          continue
-        if tagPrefix and not tag.startswith(tagPrefix):
-          continue
-        if tag in result:
-          continue
-        if len(result) == 0 or tag >= result[-1]:
-          if len(result) >= limit:
-            continue
-          result.append(tag)
-        else:
-          bisect.insort_left(result, tag)
-        if len(result) > limit:
-          del result[-1]
-
-    return result
-
+  @abc.abstractmethod
   def auto_complete_values(self, exprs, tag, valuePrefix=None, limit=None):
-    """
-    Return auto-complete suggestions for tags and values based on the matches for the specified expressions, optionally filtered by tag and/or value prefix
-    """
-    if limit is None:
-      limit = settings.TAGDB_AUTOCOMPLETE_LIMIT
-    else:
-      limit = int(limit)
+      """
+      Return auto-complete suggestions for tags based on the matches for the specified expressions, optionally filtered by tag prefix
 
-    if not exprs:
-      return [v['value'] for v in self.list_values(tag, valueFilter=('^(' + valuePrefix + ')' if valuePrefix else None))[:limit]]
-
-    result = []
-
-    for path in self.find_series(exprs):
-      tags = self.parse(path).tags
-      if tag not in tags:
-        continue
-      value = tags[tag]
-      if valuePrefix and not value.startswith(valuePrefix):
-        continue
-      if value in result:
-        continue
-      if len(result) == 0 or value >= result[-1]:
-        if len(result) >= limit:
-          continue
-        result.append(value)
-      else:
-        bisect.insort_left(result, value)
-      if len(result) > limit:
-        del result[-1]
-
-    return result
+      A default implementation can be:
+      ```
+      autocomplete.auto_complete_values(self, exprs, tag, valuePrefix=valuePrefix, limit=limit)
+      ```
+      """
 
   @staticmethod
   def parse(path):
