@@ -63,7 +63,9 @@ class Store(object):
             yield finder
 
     def pool_exec(self, jobs, timeout):
-        thread_count = len(self.finders) if settings.USE_WORKER_POOL else 0
+        thread_count = 0
+        if settings.USE_WORKER_POOL:
+            thread_count = min(len(self.finders), settings.POOL_MAX_WORKERS)
 
         return pool_exec(get_pool('finders', thread_count), jobs, timeout)
 
