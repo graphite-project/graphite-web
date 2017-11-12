@@ -5939,7 +5939,7 @@ class FunctionsTest(TestCase):
     @patch('graphite.render.evaluator.prefetchData', lambda *_: None)
     def test_seriesByTag(self):
         class MockTagDB(object):
-            def find_series(self, tagExpressions):
+            def find_series(self, tagExpressions, requestContext=None):
                 if tagExpressions == ('name=disk.bytes_used', 'server=server1'):
                     return ['disk.bytes_used;server=server1']
 
