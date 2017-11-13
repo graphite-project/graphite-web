@@ -1,6 +1,11 @@
 from graphite.compat import HttpResponse
 from graphite.util import json
-from graphite.storage import STORE
+from graphite.storage import STORE, extractForwardHeaders
+
+def _requestContext(request):
+  return {
+    'forwardHeaders': extractForwardHeaders(request),
+  }
 
 def tagSeries(request):
   if request.method != 'POST':
@@ -15,7 +20,9 @@ def tagSeries(request):
     )
 
   return HttpResponse(
-    json.dumps(STORE.tagdb.tag_series(path)) if STORE.tagdb else 'null',
+    json.dumps(
+      STORE.tagdb.tag_series(path, requestContext=_requestContext(request)),
+    ) if STORE.tagdb else 'null',
     content_type='application/json'
   )
 
@@ -32,7 +39,9 @@ def delSeries(request):
     )
 
   return HttpResponse(
-    json.dumps(STORE.tagdb.del_series(path)) if STORE.tagdb else 'null',
+    json.dumps(
+      STORE.tagdb.del_series(path, requestContext=_requestContext(request)),
+    ) if STORE.tagdb else 'null',
     content_type='application/json'
   )
 
@@ -59,9 +68,13 @@ def findSeries(request):
     )
 
   return HttpResponse(
-    json.dumps(STORE.tagdb.find_series(exprs) if STORE.tagdb else [],
-               indent=(2 if queryParams.get('pretty') else None),
-               sort_keys=bool(queryParams.get('pretty'))),
+    json.dumps(
+      STORE.tagdb.find_series(
+        exprs,
+        requestContext=_requestContext(request),
+      ) if STORE.tagdb else [],
+      indent=(2 if queryParams.get('pretty') else None),
+      sort_keys=bool(queryParams.get('pretty'))),
     content_type='application/json'
   )
 
@@ -70,9 +83,13 @@ def tagList(request):
     return HttpResponse(status=405)
 
   return HttpResponse(
-    json.dumps(STORE.tagdb.list_tags(tagFilter=request.GET.get('filter')) if STORE.tagdb else [],
-               indent=(2 if request.GET.get('pretty') else None),
-               sort_keys=bool(request.GET.get('pretty'))),
+    json.dumps(
+      STORE.tagdb.list_tags(
+        tagFilter=request.GET.get('filter'),
+        requestContext=_requestContext(request),
+      ) if STORE.tagdb else [],
+      indent=(2 if request.GET.get('pretty') else None),
+      sort_keys=bool(request.GET.get('pretty'))),
     content_type='application/json'
   )
 
@@ -81,9 +98,14 @@ def tagDetails(request, tag):
     return HttpResponse(status=405)
 
   return HttpResponse(
-    json.dumps(STORE.tagdb.get_tag(tag, valueFilter=request.GET.get('filter')) if STORE.tagdb else None,
-               indent=(2 if request.GET.get('pretty') else None),
-               sort_keys=bool(request.GET.get('pretty'))),
+    json.dumps(
+      STORE.tagdb.get_tag(
+        tag,
+        valueFilter=request.GET.get('filter'),
+        requestContext=_requestContext(request),
+      ) if STORE.tagdb else None,
+      indent=(2 if request.GET.get('pretty') else None),
+      sort_keys=bool(request.GET.get('pretty'))),
     content_type='application/json'
   )
 
@@ -104,7 +126,8 @@ def autoCompleteTags(request):
 
   tagPrefix = queryParams.get('tagPrefix')
 
-  result = STORE.tagdb.auto_complete_tags(exprs, tagPrefix, limit=queryParams.get('limit'))
+  result = STORE.tagdb.auto_complete_tags(
+    exprs, tagPrefix, limit=queryParams.get('limit'), requestContext=_requestContext(request))
 
   return HttpResponse(
     json.dumps(result,
@@ -138,7 +161,8 @@ def autoCompleteValues(request):
 
   valuePrefix = queryParams.get('valuePrefix')
 
-  result = STORE.tagdb.auto_complete_values(exprs, tag, valuePrefix, limit=queryParams.get('limit'))
+  result = STORE.tagdb.auto_complete_values(
+    exprs, tag, valuePrefix, limit=queryParams.get('limit'), requestContext=_requestContext(request))
 
   return HttpResponse(
     json.dumps(result,

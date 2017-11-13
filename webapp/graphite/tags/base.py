@@ -17,7 +17,7 @@ class BaseTagDB(object):
     """Initialize the tag db."""
 
   @logtime
-  def find_series(self, tags, timer=None):
+  def find_series(self, tags, timer=None, requestContext=None):
     """
     Find series by tag, accepts a list of tag specifiers and returns a list of matching paths.
 
@@ -45,19 +45,19 @@ class BaseTagDB(object):
     if result is not None:
       timer.set_msg('completed (cached) in')
     else:
-      result = self._find_series(tags)
+      result = self._find_series(tags, requestContext)
       cache.set(cacheKey, result, settings.TAGDB_CACHE_DURATION)
 
     return result
 
   @abc.abstractmethod
-  def _find_series(self, tags):
+  def _find_series(self, tags, requestContext=None):
     """
     Internal function called by find_series, follows the same semantics allowing base class to implement caching
     """
 
   @abc.abstractmethod
-  def get_series(self, path):
+  def get_series(self, path, requestContext=None):
     """
     Get series by path, accepts a path string and returns a TaggedSeries object describing the series.
 
@@ -65,7 +65,7 @@ class BaseTagDB(object):
     """
 
   @abc.abstractmethod
-  def list_tags(self, tagFilter=None):
+  def list_tags(self, tagFilter=None, requestContext=None):
     """
     List defined tags, returns a list of dictionaries describing the tags stored in the TagDB.
 
@@ -83,7 +83,7 @@ class BaseTagDB(object):
     """
 
   @abc.abstractmethod
-  def get_tag(self, tag, valueFilter=None):
+  def get_tag(self, tag, valueFilter=None, requestContext=None):
     """
     Get details of a particular tag, accepts a tag name and returns a dict describing the tag.
 
@@ -106,7 +106,7 @@ class BaseTagDB(object):
     """
 
   @abc.abstractmethod
-  def list_values(self, tag, valueFilter=None):
+  def list_values(self, tag, valueFilter=None, requestContext=None):
     """
     List values for a particular tag, returns a list of dictionaries describing the values stored in the TagDB.
 
@@ -126,18 +126,18 @@ class BaseTagDB(object):
     """
 
   @abc.abstractmethod
-  def tag_series(self, series):
+  def tag_series(self, series, requestContext=None):
     """
     Enter series into database.  Accepts a series string, upserts into the TagDB and returns the canonicalized series name.
     """
 
   @abc.abstractmethod
-  def del_series(self, series):
+  def del_series(self, series, requestContext=None):
     """
     Remove series from database.  Accepts a series string and returns True
     """
 
-  def auto_complete_tags(self, exprs, tagPrefix=None, limit=None):
+  def auto_complete_tags(self, exprs, tagPrefix=None, limit=None, requestContext=None):
     """
     Return auto-complete suggestions for tags based on the matches for the specified expressions, optionally filtered by tag prefix
     """
@@ -147,13 +147,18 @@ class BaseTagDB(object):
       limit = int(limit)
 
     if not exprs:
-      return [tagInfo['tag'] for tagInfo in self.list_tags(tagFilter=('^(' + tagPrefix + ')' if tagPrefix else None))[:limit]]
+      return [
+        tagInfo['tag'] for tagInfo in self.list_tags(
+          tagFilter='^(' + tagPrefix + ')' if tagPrefix else None,
+          requestContext=requestContext,
+        )[:limit]
+      ]
 
     result = []
 
     searchedTags = set([self.parse_tagspec(expr)[0] for expr in exprs])
 
-    for path in self.find_series(exprs):
+    for path in self.find_series(exprs, requestContext=requestContext):
       tags = self.parse(path).tags
       for tag in tags:
         if tag in searchedTags:
@@ -173,7 +178,7 @@ class BaseTagDB(object):
 
     return result
 
-  def auto_complete_values(self, exprs, tag, valuePrefix=None, limit=None):
+  def auto_complete_values(self, exprs, tag, valuePrefix=None, limit=None, requestContext=None):
     """
     Return auto-complete suggestions for tags and values based on the matches for the specified expressions, optionally filtered by tag and/or value prefix
     """
@@ -183,11 +188,17 @@ class BaseTagDB(object):
       limit = int(limit)
 
     if not exprs:
-      return [v['value'] for v in self.list_values(tag, valueFilter=('^(' + valuePrefix + ')' if valuePrefix else None))[:limit]]
+      return [
+        v['value'] for v in self.list_values(
+          tag,
+          valueFilter='^(' + valuePrefix + ')' if valuePrefix else None,
+          requestContext=requestContext,
+        )[:limit]
+      ]
 
     result = []
 
-    for path in self.find_series(exprs):
+    for path in self.find_series(exprs, requestContext=requestContext):
       tags = self.parse(path).tags
       if tag not in tags:
         continue

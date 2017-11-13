@@ -181,7 +181,7 @@ class TagsTest(TestCase):
   def _test_autocomplete(self, db, patch_target):
     search_exprs = ['name=test.a']
 
-    def mock_find_series(self, exprs):
+    def mock_find_series(self, exprs, requestContext=None):
       if exprs != search_exprs:
         raise Exception('Unexpected exprs %s' % str(exprs))
 

@@ -28,7 +28,7 @@ class RedisTagDB(BaseTagDB):
 
     self.r = Redis(host=settings.TAGDB_REDIS_HOST,port=settings.TAGDB_REDIS_PORT,db=settings.TAGDB_REDIS_DB)
 
-  def _find_series(self, tags):
+  def _find_series(self, tags, requestContext=None):
     selector = None
     selector_cnt = None
     filters = []
@@ -142,7 +142,7 @@ class RedisTagDB(BaseTagDB):
 
     return sorted(results)
 
-  def get_series(self, path):
+  def get_series(self, path, requestContext=None):
     tags = {}
 
     tags = self.r.hgetall('series:' + path + ':tags')
@@ -151,14 +151,14 @@ class RedisTagDB(BaseTagDB):
 
     return TaggedSeries(tags['name'], tags)
 
-  def list_tags(self, tagFilter=None):
+  def list_tags(self, tagFilter=None, requestContext=None):
     return sorted([
       {'tag': tag}
       for tag in self.r.sscan_iter('tags')
       if not tagFilter or re.match(tagFilter, tag) is not None
     ], key=lambda x: x['tag'])
 
-  def get_tag(self, tag, valueFilter=None):
+  def get_tag(self, tag, valueFilter=None, requestContext=None):
     if not self.r.sismember('tags', tag):
       return None
 
@@ -167,14 +167,14 @@ class RedisTagDB(BaseTagDB):
       'values': self.list_values(tag, valueFilter=valueFilter),
     }
 
-  def list_values(self, tag, valueFilter=None):
+  def list_values(self, tag, valueFilter=None, requestContext=None):
     return sorted([
       {'value': value, 'count': self.r.scard('tags:' + tag + ':values:' + value)}
       for value in self.r.sscan_iter('tags:' + tag + ':values')
       if not valueFilter or re.match(valueFilter, value) is not None
     ], key=lambda x: x['value'])
 
-  def tag_series(self, series):
+  def tag_series(self, series, requestContext=None):
     # extract tags and normalize path
     parsed = self.parse(series)
 
@@ -195,7 +195,7 @@ class RedisTagDB(BaseTagDB):
 
     return path
 
-  def del_series(self, series):
+  def del_series(self, series, requestContext=None):
     # extract tags and normalize path
     parsed = self.parse(series)
 

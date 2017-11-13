@@ -88,7 +88,7 @@ class LocalDatabaseTagDB(BaseTagDB):
 
     return sql, params, filters
 
-  def _find_series(self, tags):
+  def _find_series(self, tags, requestContext=None):
     sql, params, filters = self.find_series_query(tags)
 
     def matches_filters(path):
@@ -114,7 +114,7 @@ class LocalDatabaseTagDB(BaseTagDB):
 
       return [row[0] for row in cursor if matches_filters(row[0])]
 
-  def get_series(self, path):
+  def get_series(self, path, requestContext=None):
     with connection.cursor() as cursor:
       sql = 'SELECT s.id, t.tag, v.value'
       sql += ' FROM tags_series AS s'
@@ -134,7 +134,7 @@ class LocalDatabaseTagDB(BaseTagDB):
 
       return TaggedSeries(tags['name'], tags, series_id=series_id)
 
-  def list_tags(self, tagFilter=None):
+  def list_tags(self, tagFilter=None, requestContext=None):
     with connection.cursor() as cursor:
       sql = 'SELECT t.id, t.tag'
       sql += ' FROM tags_tag AS t'
@@ -152,7 +152,7 @@ class LocalDatabaseTagDB(BaseTagDB):
 
       return [{'id': tag_id, 'tag': tag} for (tag_id, tag) in cursor]
 
-  def get_tag(self, tag, valueFilter=None):
+  def get_tag(self, tag, valueFilter=None, requestContext=None):
     with connection.cursor() as cursor:
       sql = 'SELECT t.id, t.tag'
       sql += ' FROM tags_tag AS t'
@@ -173,7 +173,7 @@ class LocalDatabaseTagDB(BaseTagDB):
       'values': self.list_values(tag, valueFilter=valueFilter),
     }
 
-  def list_values(self, tag, valueFilter=None ):
+  def list_values(self, tag, valueFilter=None, requestContext=None):
     with connection.cursor() as cursor:
       sql = 'SELECT v.id, v.value, COUNT(st.id)'
       sql += ' FROM tags_tagvalue AS v'
@@ -236,7 +236,7 @@ class LocalDatabaseTagDB(BaseTagDB):
       return '!~*'
     raise Exception('Database vendor ' + connection.vendor + ' does not support regular expressions')
 
-  def tag_series(self, series):
+  def tag_series(self, series, requestContext=None):
     # extract tags and normalize path
     parsed = self.parse(series)
 
@@ -286,7 +286,7 @@ class LocalDatabaseTagDB(BaseTagDB):
 
     return path
 
-  def del_series(self, series):
+  def del_series(self, series, requestContext=None):
     # extract tags and normalize path
     parsed = self.parse(series)
 
