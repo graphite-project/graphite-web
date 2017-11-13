@@ -365,6 +365,10 @@ class CeresFinderTest(TestCase):
             self.assertEqual(len(list(nodes)), 0)
             self.assertEqual(self._listdir_counter, 0)
 
+            # get index
+            result = finder.get_index({})
+            self.assertEqual(result, ['bar.baz.foo', 'foo', 'foo.bar.baz'])
+
         finally:
             os.listdir = self._original_listdir
             wipe_ceres()

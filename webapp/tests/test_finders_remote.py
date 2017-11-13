@@ -11,6 +11,7 @@ from mock import patch
 from graphite.finders.remote import RemoteFinder
 from graphite.finders.utils import FindQuery
 from graphite.node import BranchNode, LeafNode
+from graphite.util import json
 
 from .base import TestCase
 
@@ -202,3 +203,45 @@ class RemoteFinderTest(TestCase):
         'headers': None,
         'timeout': 10,
       })
+
+    @patch('urllib3.PoolManager.request')
+    @override_settings(INTRACLUSTER_HTTPS=False)
+    @override_settings(REMOTE_STORE_USE_POST=True)
+    @override_settings(REMOTE_FIND_TIMEOUT=10)
+    def test_get_index(self, http_request):
+      finder = RemoteFinder('127.0.0.1')
+
+      data = [
+        'a.b.c',
+        'a.b.c.d',
+      ]
+      responseObject = HTTPResponse(body=StringIO(json.dumps(data)), status=200)
+      http_request.return_value = responseObject
+
+      result = finder.get_index({})
+
+      self.assertIsInstance(result, list)
+
+      self.assertEqual(http_request.call_args[0], (
+        'POST',
+        'http://127.0.0.1/metrics/index.json',
+      ))
+      self.assertEqual(http_request.call_args[1], {
+        'fields': [
+          ('local', '1'),
+        ],
+        'headers': None,
+        'timeout': 10,
+      })
+
+      self.assertEqual(len(result), 2)
+
+      self.assertEqual(result[0], 'a.b.c')
+      self.assertEqual(result[1], 'a.b.c.d')
+
+      # non-json response
+      responseObject = HTTPResponse(body='error', status=200)
+      http_request.return_value = responseObject
+
+      with self.assertRaisesRegexp(Exception, 'Error decoding index response from http://[^ ]+: .+'):
+        result = finder.get_index({})

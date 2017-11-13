@@ -4,6 +4,8 @@ import os
 import shutil
 import time
 
+from mock import patch
+
 from django.conf import settings
 try:
     from django.urls import reverse
@@ -19,8 +21,6 @@ from graphite.util import unpickle
 class MetricsTester(TestCase):
     db = os.path.join(settings.WHISPER_DIR, 'test.wsp')
     hostcpu = os.path.join(settings.WHISPER_DIR, 'hosts/hostname/cpu.wsp')
-
-    settings.CLUSTER_SERVERS = ['127.1.1.1', '127.1.1.2']
 
     def wipe_whisper(self):
         try:
@@ -83,6 +83,16 @@ class MetricsTester(TestCase):
         self.assertEqual(data[0], 'hosts.worker1.cpu')
         self.assertEqual(data[1], 'hosts.worker2.cpu')
 
+        # failure
+        def mock_STORE_get_index(self, requestContext=None):
+          raise Exception('test')
+
+        with patch('graphite.metrics.views.STORE.get_index', mock_STORE_get_index):
+          request = {}
+          response = self.client.post(url, request)
+          self.assertEqual(response.status_code, 500)
+          data = json.loads(response.content)
+          self.assertEqual(data, [])
 
     def test_find_view(self):
         ts = int(time.time())

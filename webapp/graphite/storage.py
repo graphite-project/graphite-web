@@ -1,5 +1,6 @@
 import time
 import random
+import types
 
 from collections import defaultdict
 
@@ -29,8 +30,9 @@ def get_finders(finder_path):
 
     # monkey patch so legacy finders will work
     finder = cls()
-    finder.fetch = BaseFinder.fetch
-    finder.find_multi = BaseFinder.find_multi
+    finder.fetch = types.MethodType(BaseFinder.fetch.__func__, finder)
+    finder.find_multi = types.MethodType(BaseFinder.find_multi.__func__, finder)
+    finder.get_index = types.MethodType(BaseFinder.get_index.__func__, finder)
 
     return [finder]
 
@@ -60,6 +62,13 @@ class Store(object):
 
             yield finder
 
+    def pool_exec(self, jobs, timeout):
+        thread_count = 0
+        if settings.USE_WORKER_POOL:
+            thread_count = min(len(self.finders), settings.POOL_MAX_WORKERS)
+
+        return pool_exec(get_pool('finders', thread_count), jobs, timeout)
+
     def fetch(self, patterns, startTime, endTime, now, requestContext):
         # deduplicate patterns
         patterns = list(set(patterns))
@@ -83,18 +92,18 @@ class Store(object):
         # Start fetches
         start = time.time()
         try:
-          for job in pool_exec(get_pool(), jobs, settings.REMOTE_FETCH_TIMEOUT):
+          for job in self.pool_exec(jobs, settings.REMOTE_FETCH_TIMEOUT):
             done += 1
 
             if job.exception:
               errors += 1
-              log.debug("Fetch for %s failed after %fs: %s" % (str(patterns), time.time() - start, str(job.exception)))
+              log.info("Fetch for %s failed after %fs: %s" % (str(patterns), time.time() - start, str(job.exception)))
               continue
 
             log.debug("Got a fetch result for %s after %fs" % (str(patterns), time.time() - start))
             results.extend(job.result)
         except PoolTimeoutError:
-          log.debug("Timed out in fetch after %fs" % (time.time() - start))
+          log.info("Timed out in fetch after %fs" % (time.time() - start))
 
         if errors == done:
           raise Exception('All fetches failed for %s' % (str(patterns)))
@@ -102,6 +111,43 @@ class Store(object):
         log.debug("Got all fetch results for %s in %fs" % (str(patterns), time.time() - start))
         return results
 
+    def get_index(self, requestContext=None):
+        log.debug('graphite.storage.Store.get_index :: Starting get_index on all backends')
+
+        if not requestContext:
+          requestContext = {}
+
+        jobs = [
+            Job(finder.get_index, requestContext=requestContext)
+            for finder in self.get_finders(local=requestContext.get('localOnly'))
+        ]
+
+        results = []
+
+        done = 0
+        errors = 0
+
+        # Start index lookups
+        start = time.time()
+        try:
+          for job in self.pool_exec(jobs, settings.REMOTE_FETCH_TIMEOUT):
+            done += 1
+
+            if job.exception:
+              errors += 1
+              log.info("get_index failed after %fs: %s" % (time.time() - start, str(job.exception)))
+              continue
+
+            log.debug("Got an index result after %fs" % (time.time() - start))
+            results.extend(job.result)
+        except PoolTimeoutError:
+          log.info("Timed out in get_index after %fs" % (time.time() - start))
+
+        if errors == done:
+          raise Exception('All index lookups failed')
+
+        log.debug("Got all index results in %fs" % (time.time() - start))
+        return sorted(list(set(results)))
 
     def find(self, pattern, startTime=None, endTime=None, local=False, headers=None, leaves_only=False):
         query = FindQuery(
@@ -133,7 +179,6 @@ class Store(object):
                      pattern, matched_leafs, warn_threshold))
 
     def _find(self, query):
-
         jobs = [
             Job(finder.find_nodes, query)
             for finder in self.get_finders(query.local)
@@ -148,19 +193,19 @@ class Store(object):
         # Start finds
         start = time.time()
         try:
-          for job in pool_exec(get_pool(), jobs, settings.REMOTE_FIND_TIMEOUT):
+          for job in self.pool_exec(jobs, settings.REMOTE_FIND_TIMEOUT):
             done += 1
 
             if job.exception:
               errors += 1
-              log.debug("Find for %s failed after %fs: %s" % (str(query), time.time() - start, str(job.exception)))
+              log.info("Find for %s failed after %fs: %s" % (str(query), time.time() - start, str(job.exception)))
               continue
 
             log.debug("Got a find result for %s after %fs" % (str(query), time.time() - start))
             for node in job.result or []:
               nodes_by_path[node.path].append(node)
         except PoolTimeoutError:
-          log.debug("Timed out in find after %fs" % (time.time() - start))
+          log.info("Timed out in find after %fs" % (time.time() - start))
 
         if errors == done:
           raise Exception('All finds failed for %s' % (str(query)))

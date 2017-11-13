@@ -6,7 +6,7 @@ env:
   - TOXENV=py27-django18-pyparsing2
   - TOXENV=py27-django19-pyparsing2
   - TOXENV=py27-django110-pyparsing2
-  - TOXENV=py27-django111-pyparsing2
+  - TOXENV=py27-django111-pyparsing2-rrdtool
   - TOXENV=py27-django111-pyparsing2-mysql TEST_MYSQL_PASSWORD=graphite
   - TOXENV=py27-django111-pyparsing2-postgresql TEST_POSTGRESQL_PASSWORD=graphite
   - TOXENV=docs
@@ -16,6 +16,7 @@ addons:
   apt:
     packages:
       - libcairo2-dev
+      - librrd-dev
   postgresql: "9.5"
 
 services:

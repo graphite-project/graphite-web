@@ -2,6 +2,13 @@ from __future__ import absolute_import
 
 import os.path
 
+# Use the built-in version of walk if possible, otherwise
+# use the scandir module version
+try:
+    from os import walk
+except ImportError:
+    from scandir import walk
+
 from glob import glob
 from ceres import CeresTree, CeresNode
 from django.conf import settings
@@ -47,3 +54,17 @@ class CeresFinder(BaseFinder):
 
                 elif os.path.isdir(fs_path):
                     yield BranchNode(metric_path)
+
+    def get_index(self, requestContext):
+        matches = []
+
+        for root, _, files in walk(settings.CERES_DIR):
+          root = root.replace(settings.CERES_DIR, '')
+          for filename in files:
+            if filename == '.ceres-node':
+              matches.append(root)
+
+        return sorted([
+          m.replace('/', '.').lstrip('.')
+          for m in matches
+        ])

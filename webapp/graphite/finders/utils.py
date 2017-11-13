@@ -57,6 +57,24 @@ class BaseFinder(object):
           generator of Node
         """
 
+    def get_index(self, requestContext):
+        """Get a list of all series
+
+        Args:
+          requestContext
+
+        Returns:
+          list of series
+        """
+        query = FindQuery(
+            '**', None, None,
+            local=requestContext.get('localOnly'),
+            headers=requestContext.get('forwardHeaders'),
+            leaves_only=True,
+        )
+
+        return sorted([node.path for node in self.find_nodes(query) if node.is_leaf])
+
     # The methods below are fully optional and BaseFinder provides
     # a default implementation. They can be re-implemented by finders
     # that could provide a more efficient way of doing it.

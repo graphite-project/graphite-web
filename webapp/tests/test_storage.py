@@ -10,7 +10,7 @@ from graphite.finders.utils import BaseFinder
 from graphite.intervals import Interval, IntervalSet
 from graphite.node import LeafNode, BranchNode
 from graphite.readers.utils import BaseReader
-from graphite.storage import Store, extractForwardHeaders
+from graphite.storage import Store, extractForwardHeaders, get_finders
 from graphite.tags.localdatabase import LocalDatabaseTagDB
 from graphite.worker_pool.pool import PoolTimeoutError
 
@@ -153,6 +153,54 @@ class StorageTest(TestCase):
 
     headers = extractForwardHeaders(DummyRequest())
     self.assertEqual(headers, {'X-Test1': 'test'})
+
+  def test_get_index(self):
+    disabled_finder = DisabledFinder()
+    # use get_finders so legacy_finder is patched with get_index
+    legacy_finder = get_finders('tests.test_storage.LegacyFinder')[0]
+    test_finder = TestFinder()
+    remote_finder = RemoteFinder()
+
+    store = Store(
+      finders=[disabled_finder, legacy_finder, test_finder, remote_finder],
+      tagdb='graphite.tags.localdatabase.LocalDatabaseTagDB'
+    )
+
+    # get index
+    result = store.get_index()
+    self.assertEqual(result, ['a.b.c.d', 'a.b.c.e'])
+
+    # get local index
+    result = store.get_index({'localOnly': True})
+    self.assertEqual(result, ['a.b.c.d'])
+
+  def test_get_index_pool_timeout(self):
+    # pool timeout
+    store = Store(
+      finders=[RemoteFinder()]
+    )
+
+    def mock_pool_exec(pool, jobs, timeout):
+      raise PoolTimeoutError()
+
+    with patch('graphite.storage.pool_exec', mock_pool_exec):
+      with patch('graphite.storage.log.debug') as log_debug:
+        with self.assertRaisesRegexp(Exception, 'All index lookups failed'):
+          store.get_index()
+          self.assertEqual(log_debug.call_count, 1)
+          self.assertRegexpMatches(log_debug.call_args[0][0], 'Timed out in get_index after [-.e0-9]+s')
+
+  def test_get_index_all_failed(self):
+    # all finders failed
+    store = Store(
+      finders=[TestFinder()]
+    )
+
+    with patch('graphite.storage.log.debug') as log_debug:
+      with self.assertRaisesRegexp(Exception, 'All index lookups failed'):
+        store.get_index()
+        self.assertEqual(log_debug.call_count, 1)
+        self.assertRegexpMatches(log_debug.call_args[0][0], 'Find for <FindQuery: a from \* until \*> failed after [-.e0-9]+s: TestFinder.find_nodes')
 
 
 class DisabledFinder(object):
