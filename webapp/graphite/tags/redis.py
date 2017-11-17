@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 import re
+import bisect
 
 from django.conf import settings
 
@@ -138,9 +139,9 @@ class RedisTagDB(BaseTagDB):
           break
 
       if matched:
-        results.append(series)
+        bisect.insort_left(results, series)
 
-    return sorted(results)
+    return results
 
   def get_series(self, path, requestContext=None):
     tags = {}
@@ -151,28 +152,43 @@ class RedisTagDB(BaseTagDB):
 
     return TaggedSeries(tags['name'], tags)
 
-  def list_tags(self, tagFilter=None, requestContext=None):
-    return sorted([
+  def list_tags(self, tagFilter=None, limit=None, requestContext=None):
+    results = sorted([
       {'tag': tag}
       for tag in self.r.sscan_iter('tags')
       if not tagFilter or re.match(tagFilter, tag) is not None
     ], key=lambda x: x['tag'])
 
-  def get_tag(self, tag, valueFilter=None, requestContext=None):
+    if limit:
+      return results[:limit]
+
+    return results
+
+  def get_tag(self, tag, valueFilter=None, valueLimit=None, requestContext=None):
     if not self.r.sismember('tags', tag):
       return None
 
     return {
       'tag': tag,
-      'values': self.list_values(tag, valueFilter=valueFilter),
+      'values': self.list_values(
+        tag,
+        valueFilter=valueFilter,
+        limit=valueLimit,
+        requestContext=requestContext
+      ),
     }
 
-  def list_values(self, tag, valueFilter=None, requestContext=None):
-    return sorted([
+  def list_values(self, tag, valueFilter=None, limit=None, requestContext=None):
+    results = sorted([
       {'value': value, 'count': self.r.scard('tags:' + tag + ':values:' + value)}
       for value in self.r.sscan_iter('tags:' + tag + ':values')
       if not valueFilter or re.match(valueFilter, value) is not None
     ], key=lambda x: x['value'])
+
+    if limit:
+      return results[:limit]
+
+    return results
 
   def tag_series(self, series, requestContext=None):
     # extract tags and normalize path

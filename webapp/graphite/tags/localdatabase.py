@@ -134,7 +134,7 @@ class LocalDatabaseTagDB(BaseTagDB):
 
       return TaggedSeries(tags['name'], tags, series_id=series_id)
 
-  def list_tags(self, tagFilter=None, requestContext=None):
+  def list_tags(self, tagFilter=None, limit=None, requestContext=None):
     with connection.cursor() as cursor:
       sql = 'SELECT t.id, t.tag'
       sql += ' FROM tags_tag AS t'
@@ -148,11 +148,16 @@ class LocalDatabaseTagDB(BaseTagDB):
         params.append(tagFilter)
 
       sql += ' ORDER BY t.tag'
+
+      if limit:
+        sql += ' LIMIT %s'
+        params.append(int(limit))
+
       cursor.execute(sql, params)
 
       return [{'id': tag_id, 'tag': tag} for (tag_id, tag) in cursor]
 
-  def get_tag(self, tag, valueFilter=None, requestContext=None):
+  def get_tag(self, tag, valueFilter=None, valueLimit=None, requestContext=None):
     with connection.cursor() as cursor:
       sql = 'SELECT t.id, t.tag'
       sql += ' FROM tags_tag AS t'
@@ -170,10 +175,15 @@ class LocalDatabaseTagDB(BaseTagDB):
     return {
       'id': tag_id,
       'tag': tag,
-      'values': self.list_values(tag, valueFilter=valueFilter),
+      'values': self.list_values(
+        tag,
+        valueFilter=valueFilter,
+        limit=valueLimit,
+        requestContext=requestContext
+      ),
     }
 
-  def list_values(self, tag, valueFilter=None, requestContext=None):
+  def list_values(self, tag, valueFilter=None, limit=None, requestContext=None):
     with connection.cursor() as cursor:
       sql = 'SELECT v.id, v.value, COUNT(st.id)'
       sql += ' FROM tags_tagvalue AS v'
@@ -191,6 +201,11 @@ class LocalDatabaseTagDB(BaseTagDB):
 
       sql += ' GROUP BY v.id, v.value'
       sql += ' ORDER BY v.value'
+
+      if limit:
+        sql += ' LIMIT %s'
+        params.append(int(limit))
+
       cursor.execute(sql, params)
 
       return [{'id': value_id, 'value': value, 'count': count} for (value_id, value, count) in cursor]

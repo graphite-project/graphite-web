@@ -65,7 +65,7 @@ class BaseTagDB(object):
     """
 
   @abc.abstractmethod
-  def list_tags(self, tagFilter=None, requestContext=None):
+  def list_tags(self, tagFilter=None, limit=None, requestContext=None):
     """
     List defined tags, returns a list of dictionaries describing the tags stored in the TagDB.
 
@@ -83,7 +83,7 @@ class BaseTagDB(object):
     """
 
   @abc.abstractmethod
-  def get_tag(self, tag, valueFilter=None, requestContext=None):
+  def get_tag(self, tag, valueFilter=None, valueLimit=None, requestContext=None):
     """
     Get details of a particular tag, accepts a tag name and returns a dict describing the tag.
 
@@ -106,7 +106,7 @@ class BaseTagDB(object):
     """
 
   @abc.abstractmethod
-  def list_values(self, tag, valueFilter=None, requestContext=None):
+  def list_values(self, tag, valueFilter=None, limit=None, requestContext=None):
     """
     List values for a particular tag, returns a list of dictionaries describing the values stored in the TagDB.
 
@@ -149,9 +149,10 @@ class BaseTagDB(object):
     if not exprs:
       return [
         tagInfo['tag'] for tagInfo in self.list_tags(
-          tagFilter='^(' + tagPrefix + ')' if tagPrefix else None,
+          tagFilter='^(' + re.escape(tagPrefix) + ')' if tagPrefix else None,
+          limit=limit,
           requestContext=requestContext,
-        )[:limit]
+        )
       ]
 
     result = []
@@ -191,14 +192,15 @@ class BaseTagDB(object):
       return [
         v['value'] for v in self.list_values(
           tag,
-          valueFilter='^(' + valuePrefix + ')' if valuePrefix else None,
+          valueFilter='^(' + re.escape(valuePrefix) + ')' if valuePrefix else None,
+          limit=limit,
           requestContext=requestContext,
-        )[:limit]
+        )
       ]
 
     result = []
 
-    for path in self.find_series(exprs, requestContext=requestContext):
+    for path in self.find_series(exprs + [tag + '!='], requestContext=requestContext):
       tags = self.parse(path).tags
       if tag not in tags:
         continue

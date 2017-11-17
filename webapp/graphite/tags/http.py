@@ -57,14 +57,14 @@ class HttpTagDB(BaseTagDB):
     if parsed.path in seriesList:
       return parsed
 
-  def list_tags(self, tagFilter=None, requestContext=None):
-    return self.request('GET', '/tags', {'filter': tagFilter}, requestContext)
+  def list_tags(self, tagFilter=None, limit=None, requestContext=None):
+    return self.request('GET', '/tags', {'filter': tagFilter, 'limit': limit}, requestContext)
 
-  def get_tag(self, tag, valueFilter=None, requestContext=None):
-    return self.request('GET', '/tags/' + tag, {'filter': valueFilter}, requestContext)
+  def get_tag(self, tag, valueFilter=None, valueLimit=None, requestContext=None):
+    return self.request('GET', '/tags/' + tag, {'filter': valueFilter, 'limit': valueLimit}, requestContext)
 
-  def list_values(self, tag, valueFilter=None, requestContext=None):
-    tagInfo = self.get_tag(tag, valueFilter, requestContext)
+  def list_values(self, tag, valueFilter=None, limit=None, requestContext=None):
+    tagInfo = self.get_tag(tag, valueFilter, valueLimit=limit, requestContext=requestContext)
     if not tagInfo:
       return []
 
