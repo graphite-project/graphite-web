@@ -157,16 +157,23 @@ class RedisTagDB(BaseTagDB):
     return TaggedSeries(tags['name'], tags)
 
   def list_tags(self, tagFilter=None, limit=None, requestContext=None):
-    results = sorted([
+    result = []
+
+    for tag in self.r.sscan_iter('tags'):
+      if not tagFilter or re.match(tagFilter, tag) is not None:
+        if len(result) == 0 or tag >= result[-1]:
+          if limit and len(result) >= limit:
+            continue
+          result.append(tag)
+        else:
+          bisect.insort_left(result, tag)
+        if limit and len(result) > limit:
+          del result[-1]
+
+    return [
       {'tag': tag}
-      for tag in self.r.sscan_iter('tags')
-      if not tagFilter or re.match(tagFilter, tag) is not None
-    ], key=lambda x: x['tag'])
-
-    if limit:
-      return results[:limit]
-
-    return results
+      for tag in result
+    ]
 
   def get_tag(self, tag, valueFilter=None, limit=None, requestContext=None):
     if not self.r.sismember('tags', tag):
@@ -183,16 +190,23 @@ class RedisTagDB(BaseTagDB):
     }
 
   def list_values(self, tag, valueFilter=None, limit=None, requestContext=None):
-    results = sorted([
+    result = []
+
+    for value in self.r.sscan_iter('tags:' + tag + ':values'):
+      if not valueFilter or re.match(valueFilter, value) is not None:
+        if len(result) == 0 or value >= result[-1]:
+          if limit and len(result) >= limit:
+            continue
+          result.append(value)
+        else:
+          bisect.insort_left(result, value)
+        if limit and len(result) > limit:
+          del result[-1]
+
+    return [
       {'value': value, 'count': self.r.scard('tags:' + tag + ':values:' + value)}
-      for value in self.r.sscan_iter('tags:' + tag + ':values')
-      if not valueFilter or re.match(valueFilter, value) is not None
-    ], key=lambda x: x['value'])
-
-    if limit:
-      return results[:limit]
-
-    return results
+      for value in result
+    ]
 
   def tag_series(self, series, requestContext=None):
     # extract tags and normalize path
