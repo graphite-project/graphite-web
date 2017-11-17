@@ -5,6 +5,7 @@ import types
 from collections import defaultdict
 
 from django.conf import settings
+from django.core.cache import cache
 
 try:
     from importlib import import_module
@@ -17,7 +18,6 @@ from graphite.intervals import Interval, IntervalSet
 from graphite.finders.utils import FindQuery, BaseFinder
 from graphite.readers import MultiReader
 from graphite.worker_pool.pool import get_pool, pool_exec, Job, PoolTimeoutError
-from graphite.tags.utils import get_tagdb
 
 
 def get_finders(finder_path):
@@ -35,6 +35,12 @@ def get_finders(finder_path):
     finder.get_index = types.MethodType(BaseFinder.get_index.__func__, finder)
 
     return [finder]
+
+
+def get_tagdb(tagdb_path):
+    module_name, class_name = tagdb_path.rsplit('.', 1)
+    module = import_module(module_name)
+    return getattr(module, class_name)(settings, cache=cache, log=log)
 
 
 class Store(object):

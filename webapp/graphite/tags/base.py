@@ -2,21 +2,20 @@
 import abc
 import bisect
 import re
-
-from django.conf import settings
-from django.core.cache import cache
+import time
 
 from graphite.tags.utils import TaggedSeries
-from graphite.util import logtime
 
 
 class BaseTagDB(object):
   __metaclass__ = abc.ABCMeta
 
-  def __init__(self):
+  def __init__(self, settings, *args, **kwargs):
     """Initialize the tag db."""
+    self.settings = settings
+    self.cache = kwargs.get('cache')
+    self.log = kwargs.get('log')
 
-  @logtime
   def find_series(self, tags, timer=None, requestContext=None):
     """
     Find series by tag, accepts a list of tag specifiers and returns a list of matching paths.
@@ -38,15 +37,29 @@ class BaseTagDB(object):
 
     Matching paths are returned as a list of strings.
     """
-    timer.set_name('%s.%s.find_series' % (self.__module__, self.__class__.__name__))
+    start_time = time.time()
+    log_msg = 'completed in'
 
-    cacheKey = 'TagDB.find_series:' + ':'.join(sorted(tags))
-    result = cache.get(cacheKey)
-    if result is not None:
-      timer.set_msg('completed (cached) in')
-    else:
-      result = self._find_series(tags, requestContext)
-      cache.set(cacheKey, result, settings.TAGDB_CACHE_DURATION)
+    try:
+      cacheKey = 'TagDB.find_series:' + ':'.join(sorted(tags))
+      result = self.cache.get(cacheKey) if self.cache else None
+      if result is not None:
+        log_msg = 'completed (cached) in'
+      else:
+        result = self._find_series(tags, requestContext)
+        if self.cache:
+          self.cache.set(cacheKey, result, self.settings.TAGDB_CACHE_DURATION)
+    except:
+      log_msg = 'failed in'
+      raise
+    finally:
+      self.log_info(
+        'find_series',
+        '{msg} {sec:.6}s'.format(
+          msg=log_msg,
+          sec=time.time() - start_time,
+        )
+      )
 
     return result
 
@@ -142,7 +155,7 @@ class BaseTagDB(object):
     Return auto-complete suggestions for tags based on the matches for the specified expressions, optionally filtered by tag prefix
     """
     if limit is None:
-      limit = settings.TAGDB_AUTOCOMPLETE_LIMIT
+      limit = self.settings.TAGDB_AUTOCOMPLETE_LIMIT
     else:
       limit = int(limit)
 
@@ -184,7 +197,7 @@ class BaseTagDB(object):
     Return auto-complete suggestions for tags and values based on the matches for the specified expressions, optionally filtered by tag and/or value prefix
     """
     if limit is None:
-      limit = settings.TAGDB_AUTOCOMPLETE_LIMIT
+      limit = self.settings.TAGDB_AUTOCOMPLETE_LIMIT
     else:
       limit = int(limit)
 
@@ -219,6 +232,10 @@ class BaseTagDB(object):
         del result[-1]
 
     return result
+
+  def log_info(self, func, msg):
+    if self.log:
+      self.log.info('%s.%s.%s :: %s' % (self.__module__, self.__class__.__name__, func, msg))
 
   @staticmethod
   def parse(path):

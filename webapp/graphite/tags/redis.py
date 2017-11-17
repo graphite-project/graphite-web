@@ -3,8 +3,6 @@ from __future__ import absolute_import
 import re
 import bisect
 
-from django.conf import settings
-
 from graphite.tags.base import BaseTagDB, TaggedSeries
 
 
@@ -24,10 +22,16 @@ class RedisTagDB(BaseTagDB):
     tags:<tag>:values:<value> # Set of paths matching tag/value
 
   """
-  def __init__(self):
+  def __init__(self, settings, *args, **kwargs):
+    super(RedisTagDB, self).__init__(settings, *args, **kwargs)
+
     from redis import Redis
 
-    self.r = Redis(host=settings.TAGDB_REDIS_HOST,port=settings.TAGDB_REDIS_PORT,db=settings.TAGDB_REDIS_DB)
+    self.r = Redis(
+      host=settings.TAGDB_REDIS_HOST,
+      port=settings.TAGDB_REDIS_PORT,
+      db=settings.TAGDB_REDIS_DB
+    )
 
   def _find_series(self, tags, requestContext=None):
     selector = None

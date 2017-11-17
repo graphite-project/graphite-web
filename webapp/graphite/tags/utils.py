@@ -3,17 +3,6 @@ import re
 
 from hashlib import sha256
 
-try:
-    from importlib import import_module
-except ImportError:  # python < 2.7 compatibility
-    from django.utils.importlib import import_module
-
-
-def get_tagdb(tagdb_path):
-    module_name, class_name = tagdb_path.rsplit('.', 1)
-    module = import_module(module_name)
-    return getattr(module, class_name)()
-
 
 class TaggedSeries(object):
   @classmethod

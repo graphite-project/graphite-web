@@ -6,7 +6,7 @@ except ImportError:  # Django < 1.10
   from django.core.urlresolvers import reverse
 
 from django.conf import settings
-from mock import patch
+from mock import patch, Mock
 
 from graphite.tags.localdatabase import LocalDatabaseTagDB
 from graphite.tags.redis import RedisTagDB
@@ -183,15 +183,15 @@ class TagsTest(TestCase):
     self.assertTrue(db.del_series('test.a;blah=blah;hello=lion'))
 
   def test_local_tagdb(self):
-    return self._test_tagdb(LocalDatabaseTagDB())
+    return self._test_tagdb(LocalDatabaseTagDB(settings))
 
   def test_redis_tagdb(self):
-    return self._test_tagdb(RedisTagDB())
+    return self._test_tagdb(RedisTagDB(settings))
 
   def test_tagdb_autocomplete(self):
     self.maxDiff = None
 
-    db = LocalDatabaseTagDB()
+    db = LocalDatabaseTagDB(settings)
 
     self._test_autocomplete(db, 'graphite.tags.localdatabase.LocalDatabaseTagDB.find_series')
 
@@ -239,36 +239,35 @@ class TagsTest(TestCase):
       self.assertEqual(result, [('value1.%3d' % i) for i in range(1,51)])
 
   def test_find_series_cached(self):
-      def mock_cache_get(cacheKey):
-        if cacheKey != 'TagDB.find_series:hello=tiger:name=test.a':
-          raise Exception('Unexpected cacheKey %s' % cacheKey)
+    mockCache = Mock()
+    mockCache.get.return_value = ['test.a;blah=blah;hello=tiger']
 
-        return ['test.a;blah=blah;hello=tiger']
+    result = LocalDatabaseTagDB(settings, cache=mockCache).find_series(['name=test.a','hello=tiger'])
+    self.assertEqual(mockCache.get.call_count, 1)
+    self.assertEqual(mockCache.get.call_args[0][0], 'TagDB.find_series:hello=tiger:name=test.a')
+    self.assertEqual(result, ['test.a;blah=blah;hello=tiger'])
 
-      with patch('django.core.cache.cache.get', mock_cache_get):
-        result = LocalDatabaseTagDB().find_series(['name=test.a','hello=tiger'])
-        self.assertEqual(result, ['test.a;blah=blah;hello=tiger'])
+  def test_tagdb_cached(self):
+    mockCache = Mock()
+    mockCache.get.return_value = []
 
-  @patch('graphite.util.log.info')
-  @patch('graphite.tags.base.cache.get')
-  def test_tagdb_cached(self, cache_get, log_info):
-    cache_get.return_value = []
+    mockLog = Mock()
 
-    result = LocalDatabaseTagDB().find_series(['tag2=value2', 'tag1=value1'])
+    result = LocalDatabaseTagDB(settings, cache=mockCache, log=mockLog).find_series(['tag2=value2', 'tag1=value1'])
 
-    self.assertEqual(cache_get.call_count, 1)
-    self.assertEqual(cache_get.call_args[0][0], 'TagDB.find_series:tag1=value1:tag2=value2')
+    self.assertEqual(mockCache.get.call_count, 1)
+    self.assertEqual(mockCache.get.call_args[0][0], 'TagDB.find_series:tag1=value1:tag2=value2')
     self.assertEqual(result, [])
 
-    self.assertEqual(log_info.call_count, 1)
+    self.assertEqual(mockLog.info.call_count, 1)
     self.assertRegexpMatches(
-      log_info.call_args[0][0],
+      mockLog.info.call_args[0][0],
       'graphite\.tags\.localdatabase\.LocalDatabaseTagDB\.find_series :: completed \(cached\) in [-.e0-9]+s'
     )
 
   def test_http_tagdb(self):
     # test http tagdb using django client
-    db = HttpTagDB()
+    db = HttpTagDB(settings)
     db.base_url = reverse('tagList').replace('/tags', '')
     db.username = ''
     db.password = ''
