@@ -40,6 +40,15 @@ class HttpTagDB(BaseTagDB):
 
     return json.loads(result.data.decode('utf-8'))
 
+  def find_series_cachekey(self, tags, requestContext=None):
+    headers = [
+      header + '=' + value
+      for (header, value)
+      in (requestContext.get('forwardHeaders', {}) if requestContext else {}).items()
+    ]
+
+    return 'TagDB.find_series:' + ':'.join(sorted(tags)) + ':' + ':'.join(sorted(headers))
+
   def _find_series(self, tags, requestContext=None):
     return self.request(
       'GET',

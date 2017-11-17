@@ -16,7 +16,7 @@ class BaseTagDB(object):
     self.cache = kwargs.get('cache')
     self.log = kwargs.get('log')
 
-  def find_series(self, tags, timer=None, requestContext=None):
+  def find_series(self, tags, requestContext=None):
     """
     Find series by tag, accepts a list of tag specifiers and returns a list of matching paths.
 
@@ -41,7 +41,7 @@ class BaseTagDB(object):
     log_msg = 'completed in'
 
     try:
-      cacheKey = 'TagDB.find_series:' + ':'.join(sorted(tags))
+      cacheKey = self.find_series_cachekey(tags, requestContext=requestContext)
       result = self.cache.get(cacheKey) if self.cache else None
       if result is not None:
         log_msg = 'completed (cached) in'
@@ -62,6 +62,9 @@ class BaseTagDB(object):
       )
 
     return result
+
+  def find_series_cachekey(self, tags, requestContext=None):
+    return 'TagDB.find_series:' + ':'.join(sorted(tags))
 
   @abc.abstractmethod
   def _find_series(self, tags, requestContext=None):
