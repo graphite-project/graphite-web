@@ -143,7 +143,7 @@ class LocalDatabaseTagDB(BaseTagDB):
       if tagFilter:
         # make sure regex is anchored
         if not tagFilter.startswith('^'):
-          tagFilter = '^' + tagFilter
+          tagFilter = '^(' + tagFilter + ')'
         sql += ' WHERE t.tag ' + self._regexp_operator(connection) + ' %s'
         params.append(tagFilter)
 
@@ -157,7 +157,7 @@ class LocalDatabaseTagDB(BaseTagDB):
 
       return [{'id': tag_id, 'tag': tag} for (tag_id, tag) in cursor]
 
-  def get_tag(self, tag, valueFilter=None, valueLimit=None, requestContext=None):
+  def get_tag(self, tag, valueFilter=None, limit=None, requestContext=None):
     with connection.cursor() as cursor:
       sql = 'SELECT t.id, t.tag'
       sql += ' FROM tags_tag AS t'
@@ -178,7 +178,7 @@ class LocalDatabaseTagDB(BaseTagDB):
       'values': self.list_values(
         tag,
         valueFilter=valueFilter,
-        limit=valueLimit,
+        limit=limit,
         requestContext=requestContext
       ),
     }
@@ -195,7 +195,7 @@ class LocalDatabaseTagDB(BaseTagDB):
       if valueFilter:
         # make sure regex is anchored
         if not valueFilter.startswith('^'):
-          valueFilter = '^' + valueFilter
+          valueFilter = '^(' + valueFilter + ')'
         sql += ' AND v.value ' + self._regexp_operator(connection) + ' %s'
         params.append(valueFilter)
 

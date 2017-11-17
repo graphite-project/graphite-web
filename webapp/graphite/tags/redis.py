@@ -164,7 +164,7 @@ class RedisTagDB(BaseTagDB):
 
     return results
 
-  def get_tag(self, tag, valueFilter=None, valueLimit=None, requestContext=None):
+  def get_tag(self, tag, valueFilter=None, limit=None, requestContext=None):
     if not self.r.sismember('tags', tag):
       return None
 
@@ -173,7 +173,7 @@ class RedisTagDB(BaseTagDB):
       'values': self.list_values(
         tag,
         valueFilter=valueFilter,
-        limit=valueLimit,
+        limit=limit,
         requestContext=requestContext
       ),
     }

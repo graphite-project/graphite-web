@@ -79,11 +79,11 @@ class BaseTagDB(object):
         },
       ]
 
-    Accepts an optional filter parameter which is a regular expression used to filter the list of returned tags
+    Accepts an optional tagFilter parameter which is a regular expression used to filter the list of returned tags.
     """
 
   @abc.abstractmethod
-  def get_tag(self, tag, valueFilter=None, valueLimit=None, requestContext=None):
+  def get_tag(self, tag, valueFilter=None, limit=None, requestContext=None):
     """
     Get details of a particular tag, accepts a tag name and returns a dict describing the tag.
 
@@ -102,7 +102,7 @@ class BaseTagDB(object):
         ],
       }
 
-    Accepts an optional filter parameter which is a regular expression used to filter the list of returned tags
+    Accepts an optional valueFilter parameter which is a regular expression used to filter the list of returned values.
     """
 
   @abc.abstractmethod
@@ -122,7 +122,7 @@ class BaseTagDB(object):
         },
       ]
 
-    Accepts an optional filter parameter which is a regular expression used to filter the list of returned tags
+    Accepts an optional valueFilter parameter which is a regular expression used to filter the list of returned values.
     """
 
   @abc.abstractmethod

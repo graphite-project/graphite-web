@@ -60,11 +60,11 @@ class HttpTagDB(BaseTagDB):
   def list_tags(self, tagFilter=None, limit=None, requestContext=None):
     return self.request('GET', '/tags', {'filter': tagFilter, 'limit': limit}, requestContext)
 
-  def get_tag(self, tag, valueFilter=None, valueLimit=None, requestContext=None):
-    return self.request('GET', '/tags/' + tag, {'filter': valueFilter, 'limit': valueLimit}, requestContext)
+  def get_tag(self, tag, valueFilter=None, limit=None, requestContext=None):
+    return self.request('GET', '/tags/' + tag, {'filter': valueFilter, 'limit': limit}, requestContext)
 
   def list_values(self, tag, valueFilter=None, limit=None, requestContext=None):
-    tagInfo = self.get_tag(tag, valueFilter, valueLimit=limit, requestContext=requestContext)
+    tagInfo = self.get_tag(tag, valueFilter=valueFilter, limit=limit, requestContext=requestContext)
     if not tagInfo:
       return []
 

@@ -105,7 +105,7 @@ def tagDetails(request, tag):
       STORE.tagdb.get_tag(
         tag,
         valueFilter=request.GET.get('filter'),
-        valueLimit=request.GET.get('limit'),
+        limit=request.GET.get('limit'),
         requestContext=_requestContext(request),
       ) if STORE.tagdb else None,
       indent=(2 if request.GET.get('pretty') else None),

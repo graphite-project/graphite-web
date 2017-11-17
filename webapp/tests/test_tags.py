@@ -103,7 +103,7 @@ class TagsTest(TestCase):
     self.assertEqual(valueList[1]['value'], 'tiger')
 
     # get tag & limited list of values
-    result = db.get_tag('hello', valueLimit=1)
+    result = db.get_tag('hello', limit=1)
     self.assertEqual(result['tag'], 'hello')
     valueList = [value for value in result['values'] if value['value'] in ['tiger', 'lion']]
     self.assertEqual(len(valueList), 1)
