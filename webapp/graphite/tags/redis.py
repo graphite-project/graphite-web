@@ -159,16 +159,20 @@ class RedisTagDB(BaseTagDB):
   def list_tags(self, tagFilter=None, limit=None, requestContext=None):
     result = []
 
+    if tagFilter:
+      tagFilter = re.compile(tagFilter)
+
     for tag in self.r.sscan_iter('tags'):
-      if not tagFilter or re.match(tagFilter, tag) is not None:
-        if len(result) == 0 or tag >= result[-1]:
-          if limit and len(result) >= limit:
-            continue
-          result.append(tag)
-        else:
-          bisect.insort_left(result, tag)
-        if limit and len(result) > limit:
-          del result[-1]
+      if tagFilter and tagFilter.match(tag) is None:
+        continue
+      if len(result) == 0 or tag >= result[-1]:
+        if limit and len(result) >= limit:
+          continue
+        result.append(tag)
+      else:
+        bisect.insort_left(result, tag)
+      if limit and len(result) > limit:
+        del result[-1]
 
     return [
       {'tag': tag}
@@ -192,16 +196,20 @@ class RedisTagDB(BaseTagDB):
   def list_values(self, tag, valueFilter=None, limit=None, requestContext=None):
     result = []
 
+    if valueFilter:
+      valueFilter = re.compile(valueFilter)
+
     for value in self.r.sscan_iter('tags:' + tag + ':values'):
-      if not valueFilter or re.match(valueFilter, value) is not None:
-        if len(result) == 0 or value >= result[-1]:
-          if limit and len(result) >= limit:
-            continue
-          result.append(value)
-        else:
-          bisect.insort_left(result, value)
-        if limit and len(result) > limit:
-          del result[-1]
+      if valueFilter and valueFilter.match(value) is None:
+        continue
+      if len(result) == 0 or value >= result[-1]:
+        if limit and len(result) >= limit:
+          continue
+        result.append(value)
+      else:
+        bisect.insort_left(result, value)
+      if limit and len(result) > limit:
+        del result[-1]
 
     return [
       {'value': value, 'count': self.r.scard('tags:' + tag + ':values:' + value)}

@@ -54,7 +54,7 @@ class TestPool(unittest.TestCase):
         self.assertEqual(list(results)[0].result, 'a')
 
     def test_timeout(self):
-        p = pool.get_pool(thread_count=4)
+        p = pool.get_pool(thread_count=2)
 
         jobs = [pool.Job(lambda v: time.sleep(1) and v, i) for i in range(1, 5)]
 
