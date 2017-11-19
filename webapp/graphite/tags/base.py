@@ -2,22 +2,21 @@
 import abc
 import bisect
 import re
-
-from django.conf import settings
-from django.core.cache import cache
+import time
 
 from graphite.tags.utils import TaggedSeries
-from graphite.util import logtime
 
 
 class BaseTagDB(object):
   __metaclass__ = abc.ABCMeta
 
-  def __init__(self):
+  def __init__(self, settings, *args, **kwargs):
     """Initialize the tag db."""
+    self.settings = settings
+    self.cache = kwargs.get('cache')
+    self.log = kwargs.get('log')
 
-  @logtime
-  def find_series(self, tags, timer=None, requestContext=None):
+  def find_series(self, tags, requestContext=None):
     """
     Find series by tag, accepts a list of tag specifiers and returns a list of matching paths.
 
@@ -38,17 +37,34 @@ class BaseTagDB(object):
 
     Matching paths are returned as a list of strings.
     """
-    timer.set_name('%s.%s.find_series' % (self.__module__, self.__class__.__name__))
+    start_time = time.time()
+    log_msg = 'completed in'
 
-    cacheKey = 'TagDB.find_series:' + ':'.join(sorted(tags))
-    result = cache.get(cacheKey)
-    if result is not None:
-      timer.set_msg('completed (cached) in')
-    else:
-      result = self._find_series(tags, requestContext)
-      cache.set(cacheKey, result, settings.TAGDB_CACHE_DURATION)
+    try:
+      cacheKey = self.find_series_cachekey(tags, requestContext=requestContext)
+      result = self.cache.get(cacheKey) if self.cache else None
+      if result is not None:
+        log_msg = 'completed (cached) in'
+      else:
+        result = self._find_series(tags, requestContext)
+        if self.cache:
+          self.cache.set(cacheKey, result, self.settings.TAGDB_CACHE_DURATION)
+    except:
+      log_msg = 'failed in'
+      raise
+    finally:
+      self.log_info(
+        'find_series',
+        '{msg} {sec:.6}s'.format(
+          msg=log_msg,
+          sec=time.time() - start_time,
+        )
+      )
 
     return result
+
+  def find_series_cachekey(self, tags, requestContext=None):
+    return 'TagDB.find_series:' + ':'.join(sorted(tags))
 
   @abc.abstractmethod
   def _find_series(self, tags, requestContext=None):
@@ -65,7 +81,7 @@ class BaseTagDB(object):
     """
 
   @abc.abstractmethod
-  def list_tags(self, tagFilter=None, requestContext=None):
+  def list_tags(self, tagFilter=None, limit=None, requestContext=None):
     """
     List defined tags, returns a list of dictionaries describing the tags stored in the TagDB.
 
@@ -79,11 +95,11 @@ class BaseTagDB(object):
         },
       ]
 
-    Accepts an optional filter parameter which is a regular expression used to filter the list of returned tags
+    Accepts an optional tagFilter parameter which is a regular expression used to filter the list of returned tags.
     """
 
   @abc.abstractmethod
-  def get_tag(self, tag, valueFilter=None, requestContext=None):
+  def get_tag(self, tag, valueFilter=None, limit=None, requestContext=None):
     """
     Get details of a particular tag, accepts a tag name and returns a dict describing the tag.
 
@@ -102,11 +118,11 @@ class BaseTagDB(object):
         ],
       }
 
-    Accepts an optional filter parameter which is a regular expression used to filter the list of returned tags
+    Accepts an optional valueFilter parameter which is a regular expression used to filter the list of returned values.
     """
 
   @abc.abstractmethod
-  def list_values(self, tag, valueFilter=None, requestContext=None):
+  def list_values(self, tag, valueFilter=None, limit=None, requestContext=None):
     """
     List values for a particular tag, returns a list of dictionaries describing the values stored in the TagDB.
 
@@ -122,7 +138,7 @@ class BaseTagDB(object):
         },
       ]
 
-    Accepts an optional filter parameter which is a regular expression used to filter the list of returned tags
+    Accepts an optional valueFilter parameter which is a regular expression used to filter the list of returned values.
     """
 
   @abc.abstractmethod
@@ -142,16 +158,17 @@ class BaseTagDB(object):
     Return auto-complete suggestions for tags based on the matches for the specified expressions, optionally filtered by tag prefix
     """
     if limit is None:
-      limit = settings.TAGDB_AUTOCOMPLETE_LIMIT
+      limit = self.settings.TAGDB_AUTOCOMPLETE_LIMIT
     else:
       limit = int(limit)
 
     if not exprs:
       return [
         tagInfo['tag'] for tagInfo in self.list_tags(
-          tagFilter='^(' + tagPrefix + ')' if tagPrefix else None,
+          tagFilter='^(' + re.escape(tagPrefix) + ')' if tagPrefix else None,
+          limit=limit,
           requestContext=requestContext,
-        )[:limit]
+        )
       ]
 
     result = []
@@ -183,7 +200,7 @@ class BaseTagDB(object):
     Return auto-complete suggestions for tags and values based on the matches for the specified expressions, optionally filtered by tag and/or value prefix
     """
     if limit is None:
-      limit = settings.TAGDB_AUTOCOMPLETE_LIMIT
+      limit = self.settings.TAGDB_AUTOCOMPLETE_LIMIT
     else:
       limit = int(limit)
 
@@ -191,14 +208,15 @@ class BaseTagDB(object):
       return [
         v['value'] for v in self.list_values(
           tag,
-          valueFilter='^(' + valuePrefix + ')' if valuePrefix else None,
+          valueFilter='^(' + re.escape(valuePrefix) + ')' if valuePrefix else None,
+          limit=limit,
           requestContext=requestContext,
-        )[:limit]
+        )
       ]
 
     result = []
 
-    for path in self.find_series(exprs, requestContext=requestContext):
+    for path in self.find_series(exprs + [tag + '!='], requestContext=requestContext):
       tags = self.parse(path).tags
       if tag not in tags:
         continue
@@ -217,6 +235,10 @@ class BaseTagDB(object):
         del result[-1]
 
     return result
+
+  def log_info(self, func, msg):
+    if self.log:
+      self.log.info('%s.%s.%s :: %s' % (self.__module__, self.__class__.__name__, func, msg))
 
   @staticmethod
   def parse(path):

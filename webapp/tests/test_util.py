@@ -89,3 +89,27 @@ class UtilTest(TestCase):
     def test_load_module(self):
         with self.assertRaises(IOError):
             module = util.load_module('test', member=None)
+
+    @patch('graphite.util.log')
+    def test_logtime(self, log):
+      @util.logtime
+      def test_logtime(ok, custom=None, timer=None):
+        timer.set_name('test')
+        if custom:
+          timer.set_msg(custom)
+        if ok:
+          return True
+        raise Exception('testException')
+
+      test_logtime(True)
+      self.assertEqual(log.info.call_count, 1)
+      self.assertRegexpMatches(log.info.call_args[0][0], r'test :: completed in [-.e0-9]+s')
+
+      test_logtime(True, 'custom')
+      self.assertEqual(log.info.call_count, 2)
+      self.assertRegexpMatches(log.info.call_args[0][0], r'test :: custom [-.e0-9]+s')
+
+      with self.assertRaisesRegexp(Exception, 'testException'):
+        test_logtime(False)
+      self.assertEqual(log.info.call_count, 3)
+      self.assertRegexpMatches(log.info.call_args[0][0], r'test :: failed in [-.e0-9]+s')

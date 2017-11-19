@@ -1,8 +1,7 @@
 from __future__ import absolute_import
 
 import re
-
-from django.conf import settings
+import bisect
 
 from graphite.tags.base import BaseTagDB, TaggedSeries
 
@@ -23,10 +22,16 @@ class RedisTagDB(BaseTagDB):
     tags:<tag>:values:<value> # Set of paths matching tag/value
 
   """
-  def __init__(self):
+  def __init__(self, settings, *args, **kwargs):
+    super(RedisTagDB, self).__init__(settings, *args, **kwargs)
+
     from redis import Redis
 
-    self.r = Redis(host=settings.TAGDB_REDIS_HOST,port=settings.TAGDB_REDIS_PORT,db=settings.TAGDB_REDIS_DB)
+    self.r = Redis(
+      host=settings.TAGDB_REDIS_HOST,
+      port=settings.TAGDB_REDIS_PORT,
+      db=settings.TAGDB_REDIS_DB
+    )
 
   def _find_series(self, tags, requestContext=None):
     selector = None
@@ -138,9 +143,9 @@ class RedisTagDB(BaseTagDB):
           break
 
       if matched:
-        results.append(series)
+        bisect.insort_left(results, series)
 
-    return sorted(results)
+    return results
 
   def get_series(self, path, requestContext=None):
     tags = {}
@@ -151,28 +156,65 @@ class RedisTagDB(BaseTagDB):
 
     return TaggedSeries(tags['name'], tags)
 
-  def list_tags(self, tagFilter=None, requestContext=None):
-    return sorted([
-      {'tag': tag}
-      for tag in self.r.sscan_iter('tags')
-      if not tagFilter or re.match(tagFilter, tag) is not None
-    ], key=lambda x: x['tag'])
+  def list_tags(self, tagFilter=None, limit=None, requestContext=None):
+    result = []
 
-  def get_tag(self, tag, valueFilter=None, requestContext=None):
+    if tagFilter:
+      tagFilter = re.compile(tagFilter)
+
+    for tag in self.r.sscan_iter('tags'):
+      if tagFilter and tagFilter.match(tag) is None:
+        continue
+      if len(result) == 0 or tag >= result[-1]:
+        if limit and len(result) >= limit:
+          continue
+        result.append(tag)
+      else:
+        bisect.insort_left(result, tag)
+      if limit and len(result) > limit:
+        del result[-1]
+
+    return [
+      {'tag': tag}
+      for tag in result
+    ]
+
+  def get_tag(self, tag, valueFilter=None, limit=None, requestContext=None):
     if not self.r.sismember('tags', tag):
       return None
 
     return {
       'tag': tag,
-      'values': self.list_values(tag, valueFilter=valueFilter),
+      'values': self.list_values(
+        tag,
+        valueFilter=valueFilter,
+        limit=limit,
+        requestContext=requestContext
+      ),
     }
 
-  def list_values(self, tag, valueFilter=None, requestContext=None):
-    return sorted([
+  def list_values(self, tag, valueFilter=None, limit=None, requestContext=None):
+    result = []
+
+    if valueFilter:
+      valueFilter = re.compile(valueFilter)
+
+    for value in self.r.sscan_iter('tags:' + tag + ':values'):
+      if valueFilter and valueFilter.match(value) is None:
+        continue
+      if len(result) == 0 or value >= result[-1]:
+        if limit and len(result) >= limit:
+          continue
+        result.append(value)
+      else:
+        bisect.insort_left(result, value)
+      if limit and len(result) > limit:
+        del result[-1]
+
+    return [
       {'value': value, 'count': self.r.scard('tags:' + tag + ':values:' + value)}
-      for value in self.r.sscan_iter('tags:' + tag + ':values')
-      if not valueFilter or re.match(valueFilter, value) is not None
-    ], key=lambda x: x['value'])
+      for value in result
+    ]
 
   def tag_series(self, series, requestContext=None):
     # extract tags and normalize path

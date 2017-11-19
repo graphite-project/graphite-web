@@ -3,7 +3,6 @@ from __future__ import absolute_import
 from urllib import quote
 import json
 
-from django.conf import settings
 from graphite.http_pool import http
 
 from graphite.tags.base import BaseTagDB
@@ -13,7 +12,9 @@ class HttpTagDB(BaseTagDB):
   """
   Stores tag information using an external http service that implements the graphite tags API.
   """
-  def __init__(self):
+  def __init__(self, settings, *args, **kwargs):
+    super(HttpTagDB, self).__init__(settings, *args, **kwargs)
+
     self.base_url = settings.TAGDB_HTTP_URL
     self.username = settings.TAGDB_HTTP_USER
     self.password = settings.TAGDB_HTTP_PASSWORD
@@ -31,13 +32,22 @@ class HttpTagDB(BaseTagDB):
       self.base_url + url,
       fields={field: value for (field, value) in fields.items() if value is not None},
       headers=headers,
-      timeout=settings.REMOTE_FIND_TIMEOUT,
+      timeout=self.settings.REMOTE_FIND_TIMEOUT,
     )
 
     if result.status != 200:
       raise Exception('HTTP Error from remote tagdb: %s' % result.status)
 
     return json.loads(result.data.decode('utf-8'))
+
+  def find_series_cachekey(self, tags, requestContext=None):
+    headers = [
+      header + '=' + value
+      for (header, value)
+      in (requestContext.get('forwardHeaders', {}) if requestContext else {}).items()
+    ]
+
+    return 'TagDB.find_series:' + ':'.join(sorted(tags)) + ':' + ':'.join(sorted(headers))
 
   def _find_series(self, tags, requestContext=None):
     return self.request(
@@ -57,14 +67,14 @@ class HttpTagDB(BaseTagDB):
     if parsed.path in seriesList:
       return parsed
 
-  def list_tags(self, tagFilter=None, requestContext=None):
-    return self.request('GET', '/tags', {'filter': tagFilter}, requestContext)
+  def list_tags(self, tagFilter=None, limit=None, requestContext=None):
+    return self.request('GET', '/tags', {'filter': tagFilter, 'limit': limit}, requestContext)
 
-  def get_tag(self, tag, valueFilter=None, requestContext=None):
-    return self.request('GET', '/tags/' + tag, {'filter': valueFilter}, requestContext)
+  def get_tag(self, tag, valueFilter=None, limit=None, requestContext=None):
+    return self.request('GET', '/tags/' + tag, {'filter': valueFilter, 'limit': limit}, requestContext)
 
-  def list_values(self, tag, valueFilter=None, requestContext=None):
-    tagInfo = self.get_tag(tag, valueFilter, requestContext)
+  def list_values(self, tag, valueFilter=None, limit=None, requestContext=None):
+    tagInfo = self.get_tag(tag, valueFilter=valueFilter, limit=limit, requestContext=requestContext)
     if not tagInfo:
       return []
 
@@ -80,12 +90,12 @@ class HttpTagDB(BaseTagDB):
     """
     Return auto-complete suggestions for tags based on the matches for the specified expressions, optionally filtered by tag prefix
     """
-    if not settings.TAGDB_HTTP_AUTOCOMPLETE:
+    if not self.settings.TAGDB_HTTP_AUTOCOMPLETE:
       return super(HttpTagDB, self).auto_complete_tags(
         exprs, tagPrefix=tagPrefix, limit=limit, requestContext=requestContext)
 
     if limit is None:
-      limit = settings.TAGDB_AUTOCOMPLETE_LIMIT
+      limit = self.settings.TAGDB_AUTOCOMPLETE_LIMIT
 
     url = '/tags/autoComplete/tags?tagPrefix=' + quote(tagPrefix or '') + '&limit=' + quote(str(limit)) + \
       '&' + '&'.join([('expr=%s' % quote(expr or '')) for expr in exprs])
@@ -96,12 +106,12 @@ class HttpTagDB(BaseTagDB):
     """
     Return auto-complete suggestions for tags and values based on the matches for the specified expressions, optionally filtered by tag and/or value prefix
     """
-    if not settings.TAGDB_HTTP_AUTOCOMPLETE:
+    if not self.settings.TAGDB_HTTP_AUTOCOMPLETE:
       return super(HttpTagDB, self).auto_complete_values(
         exprs, tag, valuePrefix=valuePrefix, limit=limit, requestContext=requestContext)
 
     if limit is None:
-      limit = settings.TAGDB_AUTOCOMPLETE_LIMIT
+      limit = self.settings.TAGDB_AUTOCOMPLETE_LIMIT
 
     url = '/tags/autoComplete/values?tag=' + quote(tag or '') + '&valuePrefix=' + quote(valuePrefix or '') + \
       '&limit=' + quote(str(limit)) + '&' + '&'.join([('expr=%s' % quote(expr or '')) for expr in exprs])

@@ -74,7 +74,8 @@ def findSeries(request):
         requestContext=_requestContext(request),
       ) if STORE.tagdb else [],
       indent=(2 if queryParams.get('pretty') else None),
-      sort_keys=bool(queryParams.get('pretty'))),
+      sort_keys=bool(queryParams.get('pretty'))
+    ),
     content_type='application/json'
   )
 
@@ -86,10 +87,12 @@ def tagList(request):
     json.dumps(
       STORE.tagdb.list_tags(
         tagFilter=request.GET.get('filter'),
+        limit=request.GET.get('limit'),
         requestContext=_requestContext(request),
       ) if STORE.tagdb else [],
       indent=(2 if request.GET.get('pretty') else None),
-      sort_keys=bool(request.GET.get('pretty'))),
+      sort_keys=bool(request.GET.get('pretty'))
+    ),
     content_type='application/json'
   )
 
@@ -102,10 +105,12 @@ def tagDetails(request, tag):
       STORE.tagdb.get_tag(
         tag,
         valueFilter=request.GET.get('filter'),
+        limit=request.GET.get('limit'),
         requestContext=_requestContext(request),
       ) if STORE.tagdb else None,
       indent=(2 if request.GET.get('pretty') else None),
-      sort_keys=bool(request.GET.get('pretty'))),
+      sort_keys=bool(request.GET.get('pretty'))
+    ),
     content_type='application/json'
   )
 
@@ -124,15 +129,17 @@ def autoCompleteTags(request):
   elif len(queryParams.getlist('expr[]')) > 0:
     exprs = queryParams.getlist('expr[]')
 
-  tagPrefix = queryParams.get('tagPrefix')
-
-  result = STORE.tagdb.auto_complete_tags(
-    exprs, tagPrefix, limit=queryParams.get('limit'), requestContext=_requestContext(request))
-
   return HttpResponse(
-    json.dumps(result,
-               indent=(2 if queryParams.get('pretty') else None),
-               sort_keys=bool(queryParams.get('pretty'))),
+    json.dumps(
+      STORE.tagdb.auto_complete_tags(
+        exprs,
+        tagPrefix=queryParams.get('tagPrefix'),
+        limit=queryParams.get('limit'),
+        requestContext=_requestContext(request)
+      ) if STORE.tagdb else [],
+      indent=(2 if queryParams.get('pretty') else None),
+      sort_keys=bool(queryParams.get('pretty'))
+    ),
     content_type='application/json'
   )
 
@@ -159,14 +166,17 @@ def autoCompleteValues(request):
       status=400
     )
 
-  valuePrefix = queryParams.get('valuePrefix')
-
-  result = STORE.tagdb.auto_complete_values(
-    exprs, tag, valuePrefix, limit=queryParams.get('limit'), requestContext=_requestContext(request))
-
   return HttpResponse(
-    json.dumps(result,
-               indent=(2 if queryParams.get('pretty') else None),
-               sort_keys=bool(queryParams.get('pretty'))),
+    json.dumps(
+      STORE.tagdb.auto_complete_values(
+        exprs,
+        tag,
+        valuePrefix=queryParams.get('valuePrefix'),
+        limit=queryParams.get('limit'),
+        requestContext=_requestContext(request)
+      ) if STORE.tagdb else [],
+      indent=(2 if queryParams.get('pretty') else None),
+      sort_keys=bool(queryParams.get('pretty'))
+    ),
     content_type='application/json'
   )
