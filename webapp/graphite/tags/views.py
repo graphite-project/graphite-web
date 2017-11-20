@@ -26,6 +26,31 @@ def tagSeries(request):
     content_type='application/json'
   )
 
+def tagMultiSeries(request):
+  if request.method != 'POST':
+    return HttpResponse(status=405)
+
+  paths = []
+  # Normal format: ?path=name;tag1=value1;tag2=value2&path=name;tag1=value2;tag2=value2
+  if len(request.POST.getlist('path')) > 0:
+    paths = request.POST.getlist('path')
+  # Rails/PHP/jQuery common practice format: ?path[]=...&path[]=...
+  elif len(request.POST.getlist('path[]')) > 0:
+    paths = request.POST.getlist('path[]')
+  else:
+    return HttpResponse(
+      json.dumps({'error': 'no paths specified'}),
+      content_type='application/json',
+      status=400
+    )
+
+  return HttpResponse(
+    json.dumps(
+      STORE.tagdb.tag_multi_series(paths, requestContext=_requestContext(request)),
+    ) if STORE.tagdb else 'null',
+    content_type='application/json'
+  )
+
 def delSeries(request):
   if request.method != 'POST':
     return HttpResponse(status=405)
