@@ -174,6 +174,12 @@ if USING_CPICKLE:
       pickle_obj.find_global = cls.find_class
       return pickle_obj.load()
 
+    @classmethod
+    def load(cls, file):
+      pickle_obj = pickle.Unpickler(file)
+      pickle_obj.find_global = cls.find_class
+      return pickle_obj.load()
+
 else:
   class SafeUnpickler(pickle.Unpickler):
     PICKLE_SAFE = {
@@ -196,6 +202,10 @@ else:
     @classmethod
     def loads(cls, pickle_string):
       return cls(StringIO(pickle_string)).load()
+
+    @classmethod
+    def load(cls, file):
+      return cls(file).load()
 
 unpickle = SafeUnpickler
 

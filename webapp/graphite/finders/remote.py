@@ -1,3 +1,4 @@
+import codecs
 import time
 
 from urllib import urlencode
@@ -88,13 +89,15 @@ class RemoteFinder(BaseFinder):
                 timeout=settings.REMOTE_FIND_TIMEOUT)
 
             try:
-                results = unpickle.loads(result.data)
+                results = unpickle.load(result)
             except Exception as err:
                 self.fail()
                 log.exception(
                     "RemoteFinder[%s] Error decoding find response from %s: %s" %
                     (self.host, result.url_full, err))
                 raise Exception("Error decoding find response from %s: %s" % (result.url_full, err))
+            finally:
+                result.release_conn()
 
             cache.set(cacheKey, results, settings.FIND_CACHE_DURATION)
 
@@ -140,13 +143,16 @@ class RemoteFinder(BaseFinder):
             timeout=settings.REMOTE_FIND_TIMEOUT)
 
         try:
-            results = json.loads(result.data)
+            reader = codecs.getreader('utf-8')
+            results = json.load(reader(result))
         except Exception as err:
             self.fail()
             log.exception(
                 "RemoteFinder[%s] Error decoding index response from %s: %s" %
                 (self.host, result.url_full, err))
             raise Exception("Error decoding index response from %s: %s" % (result.url_full, err))
+        finally:
+            result.release_conn()
 
         return results
 
@@ -161,13 +167,15 @@ class RemoteFinder(BaseFinder):
                 url,
                 fields=fields,
                 headers=headers,
-                timeout=timeout)
+                timeout=timeout,
+                preload_content=False)
         except BaseException as err:
             self.fail()
             log.exception("RemoteFinder[%s] Error requesting %s: %s" % (self.host, url_full, err))
             raise Exception("Error requesting %s: %s" % (url_full, err))
 
         if result.status != 200:
+            result.release_conn()
             self.fail()
             log.exception(
                 "RemoteFinder[%s] Error response %d from %s" % (self.host, result.status, url_full))

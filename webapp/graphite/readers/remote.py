@@ -75,13 +75,15 @@ class RemoteReader(BaseReader):
               retries += 1
 
         try:
-            data = unpickle.loads(result.data)
+            data = unpickle.load(result)
         except Exception as err:
             self.finder.fail()
             log.exception(
                 "RemoteReader[%s] Error decoding render response from %s: %s" %
                 (self.finder.host, result.url_full, err))
             raise Exception("Error decoding render response from %s: %s" % (result.url_full, err))
+        finally:
+            result.release_conn()
 
         return [
             {
