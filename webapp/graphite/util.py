@@ -187,6 +187,8 @@ if USING_CPICKLE:
       pickle_obj.find_global = cls.find_class
       return pickle_obj.load()
 
+  unpickle = SafeUnpickler
+
 else:
   class SafeUnpickler(pickle.Unpickler):
     PICKLE_SAFE = {
@@ -206,15 +208,14 @@ else:
         raise pickle.UnpicklingError('Attempting to unpickle unsafe class %s' % name)
       return getattr(mod, name)
 
-    @classmethod
-    def loads(cls, pickle_string):
-      return cls(StringIO(pickle_string)).load()
+  class unpickle(object):
+    @staticmethod
+    def loads(pickle_string):
+      return SafeUnpickler(StringIO(pickle_string)).load()
 
-    @classmethod
-    def load(cls, file):
-      return cls(file).load()
-
-unpickle = SafeUnpickler
+    @staticmethod
+    def load(file):
+      return SafeUnpickler(file).load()
 
 
 class Timer(object):
