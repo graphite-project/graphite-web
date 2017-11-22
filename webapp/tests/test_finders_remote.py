@@ -1,9 +1,7 @@
 import logging
-import pickle
 import types
 
 from urllib3.response import HTTPResponse
-from StringIO import StringIO
 
 from django.test import override_settings
 from mock import patch
@@ -11,7 +9,7 @@ from mock import patch
 from graphite.finders.remote import RemoteFinder
 from graphite.finders.utils import FindQuery
 from graphite.node import BranchNode, LeafNode
-from graphite.util import json
+from graphite.util import json, pickle, StringIO, msgpack
 
 from .base import TestCase
 
@@ -115,6 +113,8 @@ class RemoteFinderTest(TestCase):
       self.assertIsInstance(nodes[1], LeafNode)
       self.assertEqual(nodes[1].path, 'a.b.c.d')
 
+      finder = RemoteFinder('https://127.0.0.1?format=msgpack')
+
       data = [
         {
           'path': 'a.b.c',
@@ -125,7 +125,12 @@ class RemoteFinderTest(TestCase):
           'is_leaf': True,
         },
       ]
-      responseObject = HTTPResponse(body=StringIO(pickle.dumps(data)), status=200, preload_content=False)
+      responseObject = HTTPResponse(
+        body=StringIO(msgpack.dumps(data)),
+        status=200,
+        preload_content=False,
+        headers={'Content-Type': 'application/x-msgpack'}
+      )
       http_request.return_value = responseObject
 
       query = FindQuery('a.b.c', None, None)
@@ -137,12 +142,12 @@ class RemoteFinderTest(TestCase):
 
       self.assertEqual(http_request.call_args[0], (
         'POST',
-        'http://127.0.0.1/metrics/find/',
+        'https://127.0.0.1/metrics/find/',
       ))
       self.assertEqual(http_request.call_args[1], {
         'fields': [
           ('local', '1'),
-          ('format', 'pickle'),
+          ('format', 'msgpack'),
           ('query', 'a.b.c'),
         ],
         'headers': None,
@@ -164,8 +169,50 @@ class RemoteFinderTest(TestCase):
 
       result = finder.find_nodes(query)
 
-      with self.assertRaisesRegexp(Exception, 'Error decoding find response from http://[^ ]+: .+'):
+      with self.assertRaisesRegexp(Exception, 'Error decoding find response from https://[^ ]+: .+'):
         list(result)
+
+    @patch('graphite.finders.remote.cache.get')
+    @patch('urllib3.PoolManager.request')
+    def test_find_nodes_cached(self, http_request, cache_get):
+      finder = RemoteFinder('127.0.0.1')
+
+      startTime = 1496262000
+      endTime   = 1496262060
+
+      data = [
+        {
+          'path': 'a.b.c',
+          'is_leaf': False,
+        },
+        {
+          'path': 'a.b.c.d',
+          'is_leaf': True,
+        },
+      ]
+      cache_get.return_value = data
+
+      query = FindQuery('a.b.c', startTime, endTime)
+      result = finder.find_nodes(query)
+
+      self.assertIsInstance(result, types.GeneratorType)
+
+      nodes = list(result)
+
+      self.assertEqual(http_request.call_count, 0)
+
+      self.assertEqual(cache_get.call_count, 1)
+      self.assertEqual(cache_get.call_args[0], (
+        'find:127.0.0.1:553f764f7b436175c0387e22b4a19213:1496262000:1496262000',
+      ))
+
+      self.assertEqual(len(nodes), 2)
+
+      self.assertIsInstance(nodes[0], BranchNode)
+      self.assertEqual(nodes[0].path, 'a.b.c')
+
+      self.assertIsInstance(nodes[1], LeafNode)
+      self.assertEqual(nodes[1].path, 'a.b.c.d')
 
     #
     # Test RemoteFinder.fetch()

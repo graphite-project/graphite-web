@@ -4,7 +4,7 @@ from django.conf import settings
 
 from graphite.logger import log
 from graphite.readers.utils import BaseReader
-from graphite.util import unpickle
+from graphite.util import unpickle, msgpack
 
 
 class RemoteReader(BaseReader):
@@ -39,8 +39,8 @@ class RemoteReader(BaseReader):
             return []
 
         query_params = [
-            ('format', 'pickle'),
-            ('local', '1'),
+            ('format', self.finder.params.get('format', 'pickle')),
+            ('local', self.finder.params.get('local', '1')),
             ('noCache', '1'),
             ('from', int(startTime)),
             ('until', int(endTime))
@@ -75,7 +75,10 @@ class RemoteReader(BaseReader):
               retries += 1
 
         try:
-            data = unpickle.load(result)
+            if result.getheader('content-type') == 'application/x-msgpack':
+              data = msgpack.load(result)
+            else:
+              data = unpickle.load(result)
         except Exception as err:
             self.finder.fail()
             log.exception(

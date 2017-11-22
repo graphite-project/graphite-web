@@ -1,13 +1,12 @@
 from .base import TestCase
 
 import mock
-import pickle
 
 from urllib3.response import HTTPResponse
-from StringIO import StringIO
 
 from graphite.finders.remote import RemoteFinder
 from graphite.readers.remote import RemoteReader
+from graphite.util import pickle, StringIO, msgpack
 from graphite.wsgi import application  # NOQA makes sure we have a working WSGI app
 
 
@@ -36,7 +35,7 @@ class RemoteReaderTests(TestCase):
     # Test RemoteReader.fetch_multi()
     #
     @mock.patch('urllib3.PoolManager.request')
-    @mock.patch('django.conf.settings.CLUSTER_SERVERS', ['127.0.0.1', '8.8.8.8'])
+    @mock.patch('django.conf.settings.CLUSTER_SERVERS', ['127.0.0.1', 'http://8.8.8.8/graphite?format=msgpack&local=0'])
     @mock.patch('django.conf.settings.INTRACLUSTER_HTTPS', False)
     @mock.patch('django.conf.settings.REMOTE_STORE_USE_POST', False)
     @mock.patch('django.conf.settings.REMOTE_FETCH_TIMEOUT', 10)
@@ -97,6 +96,7 @@ class RemoteReaderTests(TestCase):
         })
 
         # bulk_query & now
+        finder = test_finders[1]
         reader = RemoteReader(finder, {'intervals': [], 'path': 'a.b.c.d'}, bulk_query=['a.b.c.d'])
 
         data = [
@@ -107,7 +107,12 @@ class RemoteReaderTests(TestCase):
                  'name': 'a.b.c.d'
                 }
                ]
-        responseObject = HTTPResponse(body=StringIO(pickle.dumps(data)), status=200, preload_content=False)
+        responseObject = HTTPResponse(
+          body=StringIO(msgpack.dumps(data)),
+          status=200,
+          preload_content=False,
+          headers={'Content-Type': 'application/x-msgpack'}
+        )
         http_request.return_value = responseObject
 
         result = reader.fetch_multi(startTime, endTime, now=endTime, requestContext={'forwardHeaders': {'Authorization': 'Basic xxxx'}})
@@ -122,12 +127,12 @@ class RemoteReaderTests(TestCase):
         self.assertEqual(result, expected_response)
         self.assertEqual(http_request.call_args[0], (
           'GET',
-          'http://127.0.0.1/render/',
+          'http://8.8.8.8/graphite/render/',
         ))
         self.assertEqual(http_request.call_args[1], {
           'fields': [
-            ('format', 'pickle'),
-            ('local', '1'),
+            ('format', 'msgpack'),
+            ('local', '0'),
             ('noCache', '1'),
             ('from', startTime),
             ('until', endTime),
