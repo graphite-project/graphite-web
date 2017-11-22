@@ -11,19 +11,19 @@ Config File Location
 General Settings
 ----------------
 URL_PREFIX
-  `Default: /` 
+  `Default: /`
 
   Set the URL_PREFIX when deploying graphite-web to a non-root location.
 
 SECRET_KEY
   `Default: UNSAFE_DEFAULT`
-  
+
   This key is used for salting of hashes used in auth tokens, CRSF middleware, cookie storage, etc. This should be set identically among all nodes if used behind a load balancer.
 
 ALLOWED_HOSTS
   `Default: *`
-  
-  In Django 1.5+ set the list of hosts from where your graphite instances is accessible. 
+
+  In Django 1.5+ set the list of hosts from where your graphite instances is accessible.
   See: https://docs.djangoproject.com/en/dev/ref/settings/#std:setting-ALLOWED_HOSTS
 
 TIME_ZONE
@@ -33,7 +33,7 @@ TIME_ZONE
 
 DATE_FORMAT
   `Default: %m/%d`
-  
+
   Set the default short date format. See strftime(3) for supported sequences.
 
 DOCUMENTATION_URL
@@ -75,9 +75,9 @@ MEMCACHE_KEY_PREFIX
 
 MEMCACHE_OPTIONS
   `Default: {}`
-  
-  Accepted options depend on the Memcached implementation and the Django version. 
-  Until Django 1.10, options are used only for pylibmc. 
+
+  Accepted options depend on the Memcached implementation and the Django version.
+  Until Django 1.10, options are used only for pylibmc.
   Starting from 1.11, options are used for both python-memcached and pylibmc.
 
 DEFAULT_CACHE_DURATION
@@ -99,12 +99,12 @@ DEFAULT_CACHE_POLICY
 
 AUTO_REFRESH_INTERVAL
   `Default: 60`
-  
+
   Interval for the Auto-Refresh feature in the Composer, measured in seconds.
 
 MAX_TAG_LENGTH
   `Default: 50`
-  
+
   Graphite uses Django Tagging to support tags in Events. By default each tag is limited to 50 characters.
 
 Filesystem Paths
@@ -383,30 +383,31 @@ If you're using the default SQLite database, your webserver will need permission
 
 Cluster Configuration
 ---------------------
-These settings configure the Graphite webapp for clustered use. When ``CLUSTER_SERVERS`` is set, metric browse and render requests will cause the webapp to query other webapps in CLUSTER_SERVERS for matching metrics. Graphite will use only one successfully matching response to render data. This means that metrics may only live on a single server in the cluster unless the data is consistent on both sources (e.g. with shared SAN storage). Duplicate metric data existing in multiple locations will *not* be combined.
+These settings configure the Graphite webapp for clustered use. When ``CLUSTER_SERVERS`` is set, metric browse and render requests will cause the webapp to query other webapps in CLUSTER_SERVERS for matching metrics. Graphite can either merge responses or choose the best response if more than one cluster server returns the same series.
 
 CLUSTER_SERVERS
   `Default: []`
 
-  The list of IP addresses and ports of remote Graphite webapps in a cluster. Each of these servers should have local access to metric data to serve. The first server to return a match for a query will be used to serve that data. Ex: ["10.0.2.2:80", "10.0.2.3:80"]
+  The list of IP addresses and ports of remote Graphite webapps in a cluster. Each of these servers should have local access to metric data to serve. Ex: ["10.0.2.2:80", "http://10.0.2.3:80?format=pickle&local=1"]
+
+  Cluster server definitions can optionally include a protocol (http:// or https://) and/or additional config parameters.
+
+  The `format` parameter can be set to `pickle` (the default) or `msgpack` to control the encoding used for intra-cluster find and render requests.
+
+  The `local` parameter can be set to `1` (the default) or `0` to control whether cluster servers should only return results from local finders, or fan the request out to their remote finders.
 
 USE_WORKER_POOL
   `Default: True`
-  
-  Creates a pool of worker threads to which tasks can be dispatched. This makes sense if there are multiple CLUSTER_SERVERS because then the communication with them can be parallelized
-  The number of threads is equal to: POOL_WORKERS_PER_BACKEND * len(CLUSTER_SERVERS) + POOL_WORKERS
-  
-  Be careful when increasing the number of threads, in particular if your start multiple graphite-web processes (with uwsgi or similar) as this will increase memory consumption (and number of connections to memcached).
-  
-  POOL_WORKERS_PER_BACKEND
-  `Default: 1`
-  
-   The number of worker threads that should be created per backend server. It makes sense to have more than one thread per backend server if the graphite-web web server itself is multi threaded and can handle multiple incoming requests at once.
 
-  POOL_WORKERS
-  `Default: 1`
-  
-   A baseline number of workers that should always be created, no matter how many cluster servers are configured. These are used for other tasks that can be off-loaded from the request handling threads.
+  Creates a pool of worker threads to which tasks can be dispatched. This makes sense if there are multiple CLUSTER_SERVERS and/or STORAGE_FINDERS because then the communication with them can be parallelized.
+  The number of threads is equal to: min(number of finders, POOL_MAX_WORKERS)
+
+  Be careful when increasing the number of threads, in particular if your start multiple graphite-web processes (with uwsgi or similar) as this will increase memory consumption (and number of connections to memcached).
+
+POOL_MAX_WORKERS
+  `Default: 10`
+
+   The maximum number of worker threads that should be created.
 
 REMOTE_FETCH_TIMEOUT
   `Default: 6`
@@ -427,22 +428,22 @@ FIND_CACHE_DURATION
   `Default: 300`
 
   Time to cache remote metric find results in seconds.
-  
+
 MAX_FETCH_RETRIES
   `Default: 2`
-  
+
   Number of retries for a specific remote data fetch.
 
 FIND_TOLERANCE
   `Default: FIND_TOLERANCE = 2 * FIND_CACHE_DURATION`
-  
+
   If the query doesn't fall entirely within the FIND_TOLERANCE window we disregard the window. This prevents unnecessary remote fetches
   caused when carbon's cache skews node.intervals, giving the appearance remote systems have data we don't have locally, which we probably do.
 
 REMOTE_STORE_MERGE_RESULTS
   `Default: True`
-  
-  During a rebalance of a consistent hash cluster, after a partition event on a replication > 1 cluster or in other cases we might receive multiple TimeSeries data for a metric key.  
+
+  During a rebalance of a consistent hash cluster, after a partition event on a replication > 1 cluster or in other cases we might receive multiple TimeSeries data for a metric key.
   Merge them together rather than choosing the "most complete" one (pre-0.9.14 behaviour).
 
 REMOTE_STORE_USE_POST
@@ -455,15 +456,9 @@ REMOTE_STORE_FORWARD_HEADERS
 
   Provide a list of HTTP headers that you want forwarded on from this host when making a request to a remote webapp server in CLUSTER_SERVERS.
 
-REMOTE_PREFETCH_DATA
-  `Default: False`
-
-  If enabled it will fetch all metrics using a single http request per remote server instead of one http request per target, per remote server.
-  This is especially useful when generating graphs with more than 4-5 targets or if there's significant latency between this server and the backends.
-
 REMOTE_EXCLUDE_LOCAL
   `Default: False`
-  
+
   Try to detect when a cluster server is localhost and don't forward queries
 
 REMOTE_RENDERING
@@ -506,7 +501,7 @@ CARBON_METRIC_PREFIX:
 INTRACLUSTER_HTTPS
   `Default: False`
 
-  This setting controls whether https is used to communicate between cluster members.
+  This setting controls whether https is used to communicate between cluster members that don't have an explicit protocol specified.
 
 
 Additional Django Settings
@@ -520,4 +515,4 @@ To manipulate these settings, ensure ``app_settings.py`` is imported as such:
    from graphite.app_settings import *
 
 The most common settings to manipulate are ``INSTALLED_APPS``, ``MIDDLEWARE``, and ``AUTHENTICATION_BACKENDS``.
- 
+
