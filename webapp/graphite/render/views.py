@@ -22,16 +22,10 @@ from random import shuffle
 from urllib import urlencode
 from urlparse import urlsplit, urlunsplit
 from cgi import parse_qs
-from cStringIO import StringIO
-
-try:
-  import cPickle as pickle
-except ImportError:
-  import pickle
 
 from graphite.compat import HttpResponse
 from graphite.user_util import getProfileByUsername
-from graphite.util import json, unpickle
+from graphite.util import json, unpickle, pickle, msgpack, StringIO
 from graphite.storage import extractForwardHeaders
 from graphite.logger import log
 from graphite.render.evaluator import evaluateTarget
@@ -138,6 +132,8 @@ def renderView(request):
       response = renderViewRaw(requestOptions, data)
     elif format == 'pickle':
       response = renderViewPickle(requestOptions, data)
+    elif format == 'msgpack':
+      response = renderViewMsgPack(requestOptions, data)
 
   # if response wasn't generated above, render a graph image
   if not response:
@@ -320,6 +316,13 @@ def renderViewPickle(requestOptions, data):
   response = HttpResponse(content_type='application/pickle')
   seriesInfo = [series.getInfo() for series in data]
   pickle.dump(seriesInfo, response, protocol=-1)
+  return response
+
+
+def renderViewMsgPack(requestOptions, data):
+  response = HttpResponse(content_type='application/x-msgpack')
+  seriesInfo = [series.getInfo() for series in data]
+  msgpack.dump(seriesInfo, response)
   return response
 
 

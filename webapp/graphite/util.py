@@ -35,6 +35,13 @@ try:
 except ImportError:
   from StringIO import StringIO
 
+# use https://github.com/msgpack/msgpack-python if available
+try:
+  import msgpack  # NOQA
+# otherwise fall back to bundled https://github.com/vsergeev/u-msgpack-python
+except ImportError:
+  import graphite.umsgpack as msgpack  # NOQA
+
 from django.conf import settings
 from django.utils.timezone import make_aware
 from graphite.logger import log

@@ -1,6 +1,5 @@
 from datetime import datetime
 import copy
-import json
 import os
 import time
 import math
@@ -9,17 +8,13 @@ import shutil
 
 from mock import patch
 
-try:
-  import cPickle as pickle
-except ImportError:
-  import pickle
-
 from graphite.render.datalib import TimeSeries
 from graphite.render.hashing import ConsistentHashRing, hashRequest, hashData
 from graphite.render.evaluator import evaluateTarget, extractPathExpressions, evaluateScalarTokens
 from graphite.render.functions import NormalizeEmptyResultError
 from graphite.render.grammar import grammar
 from graphite.render.views import renderViewJson
+from graphite.util import pickle, msgpack, json
 import whisper
 
 from django.conf import settings
@@ -362,6 +357,15 @@ class RenderTest(TestCase):
         response = self.client.get(url, {'target': 'test', 'pickle': 1, 'from': ts-50, 'now': ts})
         self.assertEqual(response['content-type'], 'application/pickle')
         unpickled = pickle.loads(response.content)
+        # special handling for NaN value, otherwise assertEqual fails
+        self.assertTrue(math.isnan(unpickled[0]['values'][-1]))
+        unpickled[0]['values'][-1] = 'NaN'
+        self.assertEqual(unpickled, expected)
+
+        # test msgpack format
+        response = self.client.get(url, {'target': 'test', 'format': 'msgpack', 'from': ts-50, 'now': ts})
+        self.assertEqual(response['content-type'], 'application/x-msgpack')
+        unpickled = msgpack.loads(response.content)
         # special handling for NaN value, otherwise assertEqual fails
         self.assertTrue(math.isnan(unpickled[0]['values'][-1]))
         unpickled[0]['values'][-1] = 'NaN'
