@@ -158,9 +158,15 @@ def xff(nonNull, total, xFilesFactor=None):
 
 def getNodeOrTag(series, n, pathExpression=None):
   try:
-    return (pathExpression or series.name).split('.')[n]
-  except (IndexError, TypeError):
-    return series.tags.get(n, '')
+    # if n is an integer use it as a node, otherwise catch ValueError and treat it as a tag
+    if n == int(n):
+      # first split off any tags, then list of nodes is name split on .
+      return (pathExpression or series.name).split(';', 2)[0].split('.')[n]
+  except (ValueError, IndexError):
+    # if node isn't an integer or isn't found then try it as a tag name
+    pass
+  # return tag value, default to '' if not found
+  return series.tags.get(str(n), '')
 
 def aggKey(series, nodes, pathExpression=None):
   return '.'.join([getNodeOrTag(series, n, pathExpression) for n in nodes])
@@ -1281,7 +1287,7 @@ def absolute(requestContext, seriesList):
     &target=absolute(Server.instance*.threads.busy)
   """
   for series in seriesList:
-    series.tags['squareRoot'] = 1
+    series.tags['absolute'] = 1
     series.name = "absolute(%s)" % (series.name)
     series.pathExpression = series.name
     for i,value in enumerate(series):
@@ -4284,7 +4290,11 @@ def seriesByTag(requestContext, *tagExpressions):
 
   seriesList = evaluateTarget(requestContext, taggedSeriesQuery, noPrefetch=True)
 
-  log.debug('seriesByTag found [%s]' % ', '.join([series.pathExpression for series in seriesList]))
+  pathExpr = 'seriesByTag(%s)' % ','.join(['"%s"' % expr for expr in tagExpressions])
+  for series in seriesList:
+    series.pathExpression = pathExpr
+
+  log.debug('seriesByTag found [%s]' % ', '.join([series.name for series in seriesList]))
 
   return seriesList
 

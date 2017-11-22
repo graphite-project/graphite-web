@@ -2856,10 +2856,19 @@ class FunctionsTest(TestCase):
         expected = ["test-db1"] * len(names)
         for name in names:
             series = TimeSeries(name, 0, 1, 1, [1])
-            series.pathExpression = series.name
             seriesList.append(series)
 
         verify_node_name(seriesList, expected, 1)
+
+        series = TimeSeries('collectd.load;host=test-db1;instance=value', 0, 1, 1, [1])
+        series.pathExpression = 'seriesByTag("name=collectd.load", "host=test-db1")'
+
+        verify_node_name([series], ['load'], 1)
+        verify_node_name([series], ['test-db1'], 'host')
+        verify_node_name([series], ['test-db1.load'], 'host', 1)
+        verify_node_name([series], ['test-db1.load.'], 'host', 1, 2)
+        verify_node_name([series], ['test-db1.load.'], 'host', 1, 'foo')
+        verify_node_name([series], ['test-db1.'], 'host', '1')
 
     def test_aliasByMetric(self):
         seriesList = self._gen_series_list_with_data(
@@ -5990,6 +5999,7 @@ class FunctionsTest(TestCase):
                 self.assertEqual(result, [
                     TimeSeries('disk.bytes_used;server=server1',0,3,1,[10, 20, 30]),
                 ])
+                self.assertEqual(result[0].pathExpression, query)
 
                 query = 'seriesByTag("name=disk.bytes_used","server=server2")'
                 result = evaluateTarget(request_context, query)
