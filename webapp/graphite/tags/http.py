@@ -89,6 +89,9 @@ class HttpTagDB(BaseTagDB):
   def del_series(self, series, requestContext=None):
     return self.request('POST', '/tags/delSeries', {'path': series}, requestContext)
 
+  def del_multi_series(self, seriesList, requestContext=None):
+    return self.request('POST', '/tags/delSeries', {'path': seriesList}, requestContext)
+
   def auto_complete_tags(self, exprs, tagPrefix=None, limit=None, requestContext=None):
     """
     Return auto-complete suggestions for tags based on the matches for the specified expressions, optionally filtered by tag prefix
