@@ -113,13 +113,18 @@ The default settings (above) will connect to a local Redis server on the default
 HTTP(S) TagDB
 ^^^^^^^^^^^^^
 
-The HTTP(S) TagDB is used to delegate all tag operations to an external server that implements the Graphite tagging HTTP API.  It can be used in clustered graphite scenarios, or with custom data stores.  It is selected by setting ``TAGDB='graphite.tags.http.HttpTagDB'`` in `local_settings.py`.  There are 3 additional config settings for the HTTP(S) TagDB::
+The HTTP(S) TagDB is used to delegate all tag operations to an external server that implements the Graphite tagging HTTP API.  It can be used in clustered graphite scenarios, or with custom data stores.  It is selected by setting ``TAGDB='graphite.tags.http.HttpTagDB'`` in `local_settings.py`.  There are 4 additional config settings for the HTTP(S) TagDB::
 
     TAGDB_HTTP_URL = 'https://another.server'
     TAGDB_HTTP_USER = ''
     TAGDB_HTTP_PASSWORD = ''
+    TAGDB_HTTP_AUTOCOMPLETE = False
 
 The ``TAGDB_HTTP_URL`` is required. ``TAGDB_HTTP_USER`` and ``TAGDB_HTTP_PASSWORD`` are optional and if specified will be used to send a Basic Authorization header in all requests.
+
+``TAGDB_HTTP_AUTOCOMPLETE`` is also optional, if set to ``True`` auto-complete requests will be forwarded to the remote TagDB, otherwise calls to `/tags/findSeries`, `/tags` & `/tags/<tag>` will be used to provide auto-complete functionality.
+
+If ``REMOTE_STORE_FORWARD_HEADERS`` is defined, those headers will also be forwarded to the remote TagDB.
 
 Adding Series to the TagDB
 --------------------------
@@ -135,6 +140,22 @@ Series can be submitted via HTTP POST using command-line tools such as ``curl`` 
     "disk.used;datacenter=dc1;rack=a1;server=web01"
 
 This endpoint returns the canonicalized version of the path, with the tags sorted in alphabetical order.
+
+To add multiple series with a single HTTP request, use the ``/tags/tagMultiSeries`` endpoint, which support multiple ``path`` parameters:
+
+.. code-block:: none
+
+    $ curl -X POST "http://graphite/tags/tagMultiSeries" \
+      --data-urlencode 'path=disk.used;rack=a1;datacenter=dc1;server=web01' \
+      --data-urlencode 'path=disk.used;rack=a1;datacenter=dc1;server=web02' \
+      --data-urlencode 'pretty=1'
+
+    [
+      "disk.used;datacenter=dc1;rack=a1;server=web01",
+      "disk.used;datacenter=dc1;rack=a1;server=web02"
+    ]
+
+This endpoint returns a list of the canonicalized paths, in the same order they are specified.
 
 Exploring Tags
 --------------
@@ -307,5 +328,15 @@ Series can be deleted via HTTP POST to the `/tags/delSeries` endpoint:
 
     $ curl -X POST "http://graphite/tags/delSeries" \
       --data-urlencode 'path=disk.used;datacenter=dc1;rack=a1;server=web01'
+
+    true
+
+To delete multiple series at once pass multiple ``path`` parameters:
+
+.. code-block:: none
+
+    $ curl -X POST "http://graphite/tags/delSeries" \
+      --data-urlencode 'path=disk.used;datacenter=dc1;rack=a1;server=web01' \
+      --data-urlencode 'path=disk.used;datacenter=dc1;rack=a1;server=web02'
 
     true
