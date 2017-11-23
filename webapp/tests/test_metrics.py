@@ -15,7 +15,7 @@ from .base import TestCase
 
 import whisper
 
-from graphite.util import unpickle
+from graphite.util import unpickle, msgpack
 
 
 class MetricsTester(TestCase):
@@ -193,6 +193,37 @@ class MetricsTester(TestCase):
             self.assertEqual(len(data[1]['intervals']), 1)
             #self.assertEqual(int(data[1]['intervals'][0].start), ts_minus_sixty_seconds)
             self.assertEqual(int(data[1]['intervals'][0].end), ts)
+
+            #
+            # format=msgpack
+            #
+            request=copy.deepcopy(request_default)
+            request['format']='msgpack'
+            request['query']='*'
+            content = test_find_view_basics(request)
+            data = msgpack.loads(content)
+            self.assertEqual(len(data), 1)
+            self.assertEqual(data[0]['path'], 'hosts')
+            self.assertEqual(data[0]['is_leaf'], False)
+
+            request['query']='hosts.*.cpu'
+            content = test_find_view_basics(request)
+            data = msgpack.loads(content)
+            self.assertEqual(len(data), 2)
+
+            data = sorted(data, key=lambda item: item['path'])
+
+            self.assertEqual(data[0]['path'], 'hosts.worker1.cpu')
+            self.assertEqual(data[0]['is_leaf'], True)
+            self.assertEqual(len(data[0]['intervals']), 1)
+            #self.assertEqual(int(data[0]['intervals'][0].start), ts_minus_sixty_seconds)
+            self.assertEqual(int(data[0]['intervals'][0][1]), ts)
+
+            self.assertEqual(data[1]['path'], 'hosts.worker2.cpu')
+            self.assertEqual(data[1]['is_leaf'], True)
+            self.assertEqual(len(data[1]['intervals']), 1)
+            #self.assertEqual(int(data[1]['intervals'][0].start), ts_minus_sixty_seconds)
+            self.assertEqual(int(data[1]['intervals'][0][1]), ts)
 
             #
             # format=completer

@@ -23,13 +23,7 @@ from graphite.logger import log
 from graphite.render.attime import parseATTime
 from graphite.storage import STORE, extractForwardHeaders
 from graphite.user_util import getProfile
-from graphite.util import epoch
-from graphite.util import json
-
-try:
-  import cPickle as pickle
-except ImportError:
-  import pickle
+from graphite.util import epoch, json, pickle, msgpack
 
 
 def index_json(request):
@@ -140,6 +134,10 @@ def find_view(request):
   elif format == 'pickle':
     content = pickle_nodes(matches)
     response = HttpResponse(content, content_type='application/pickle')
+
+  elif format == 'msgpack':
+    content = msgpack_nodes(matches)
+    response = HttpResponse(content, content_type='application/x-msgpack')
 
   elif format == 'json':
     content = json_nodes(matches)
@@ -329,6 +327,19 @@ def pickle_nodes(nodes):
     nodes_info.append(info)
 
   return pickle.dumps(nodes_info, protocol=-1)
+
+
+def msgpack_nodes(nodes):
+  nodes_info = []
+
+  for node in nodes:
+    info = dict(path=node.path, is_leaf=node.is_leaf)
+    if node.is_leaf:
+      info['intervals'] = [interval.tuple for interval in node.intervals]
+
+    nodes_info.append(info)
+
+  return msgpack.dumps(nodes_info)
 
 
 def json_nodes(nodes):

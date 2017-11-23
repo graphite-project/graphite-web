@@ -7,6 +7,7 @@ env:
   - TOXENV=py27-django19-pyparsing2
   - TOXENV=py27-django110-pyparsing2
   - TOXENV=py27-django111-pyparsing2-rrdtool
+  - TOXENV=py27-django111-pyparsing2-msgpack
   - TOXENV=py27-django111-pyparsing2-mysql TEST_MYSQL_PASSWORD=graphite
   - TOXENV=py27-django111-pyparsing2-postgresql TEST_POSTGRESQL_PASSWORD=graphite
   - TOXENV=docs

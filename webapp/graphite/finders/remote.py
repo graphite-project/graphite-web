@@ -1,6 +1,8 @@
+import codecs
 import time
 
 from urllib import urlencode
+from urlparse import urlsplit, parse_qs
 
 from django.conf import settings
 from django.core.cache import cache
@@ -10,7 +12,7 @@ from graphite.intervals import Interval, IntervalSet
 from graphite.logger import log
 from graphite.node import LeafNode, BranchNode
 from graphite.render.hashing import compactHash
-from graphite.util import unpickle, logtime, is_local_interface, json
+from graphite.util import unpickle, logtime, is_local_interface, json, msgpack
 
 from graphite.finders.utils import BaseFinder
 from graphite.readers.remote import RemoteReader
@@ -23,13 +25,30 @@ class RemoteFinder(BaseFinder):
     def factory(cls):
         finders = []
         for host in settings.CLUSTER_SERVERS:
-            if settings.REMOTE_EXCLUDE_LOCAL and is_local_interface(host):
+            if settings.REMOTE_EXCLUDE_LOCAL and is_local_interface(cls.parse_host(host)['host']):
                 continue
             finders.append(cls(host))
         return finders
 
+    @staticmethod
+    def parse_host(host):
+        if host.startswith('http://') or host.startswith('https://'):
+            parsed = urlsplit(host)
+        else:
+            scheme = 'https' if settings.INTRACLUSTER_HTTPS else 'http'
+            parsed = urlsplit(scheme + '://' + host)
+
+        return {
+          'host': parsed.netloc,
+          'url': '%s://%s%s' % (parsed.scheme, parsed.netloc, parsed.path),
+          'params': {key: value[-1] for (key, value) in parse_qs(parsed.query).items()},
+        }
+
     def __init__(self, host):
-        self.host = host
+        parsed = self.parse_host(host)
+        self.host = parsed['host']
+        self.url = parsed['url']
+        self.params = parsed['params']
         self.last_failure = 0
 
     @property
@@ -71,8 +90,8 @@ class RemoteFinder(BaseFinder):
             url = '/metrics/find/'
 
             query_params = [
-                ('local', '1'),
-                ('format', 'pickle'),
+                ('local', self.params.get('local', '1')),
+                ('format', self.params.get('format', 'pickle')),
                 ('query', query.pattern),
             ]
             if query.startTime:
@@ -88,13 +107,18 @@ class RemoteFinder(BaseFinder):
                 timeout=settings.REMOTE_FIND_TIMEOUT)
 
             try:
-                results = unpickle.loads(result.data)
+                if result.getheader('content-type') == 'application/x-msgpack':
+                  results = msgpack.load(result)
+                else:
+                  results = unpickle.load(result)
             except Exception as err:
                 self.fail()
                 log.exception(
                     "RemoteFinder[%s] Error decoding find response from %s: %s" %
                     (self.host, result.url_full, err))
                 raise Exception("Error decoding find response from %s: %s" % (result.url_full, err))
+            finally:
+                result.release_conn()
 
             cache.set(cacheKey, results, settings.FIND_CACHE_DURATION)
 
@@ -134,25 +158,27 @@ class RemoteFinder(BaseFinder):
         result = self.request(
             url,
             fields=[
-              ('local', '1'),
+              ('local', self.params.get('local', '1')),
             ],
             headers=headers,
             timeout=settings.REMOTE_FIND_TIMEOUT)
 
         try:
-            results = json.loads(result.data)
+            reader = codecs.getreader('utf-8')
+            results = json.load(reader(result))
         except Exception as err:
             self.fail()
             log.exception(
                 "RemoteFinder[%s] Error decoding index response from %s: %s" %
                 (self.host, result.url_full, err))
             raise Exception("Error decoding index response from %s: %s" % (result.url_full, err))
+        finally:
+            result.release_conn()
 
         return results
 
-    def request(self, url, fields=None, headers=None, timeout=None):
-        url = "%s://%s%s" % (
-            'https' if settings.INTRACLUSTER_HTTPS else 'http', self.host, url)
+    def request(self, path, fields=None, headers=None, timeout=None):
+        url = "%s%s" % (self.url, path)
         url_full = "%s?%s" % (url, urlencode(fields))
 
         try:
@@ -161,13 +187,15 @@ class RemoteFinder(BaseFinder):
                 url,
                 fields=fields,
                 headers=headers,
-                timeout=timeout)
+                timeout=timeout,
+                preload_content=False)
         except BaseException as err:
             self.fail()
             log.exception("RemoteFinder[%s] Error requesting %s: %s" % (self.host, url_full, err))
             raise Exception("Error requesting %s: %s" % (url_full, err))
 
         if result.status != 200:
+            result.release_conn()
             self.fail()
             log.exception(
                 "RemoteFinder[%s] Error response %d from %s" % (self.host, result.status, url_full))

@@ -35,6 +35,13 @@ try:
 except ImportError:
   from StringIO import StringIO
 
+# use https://github.com/msgpack/msgpack-python if available
+try:
+  import msgpack  # NOQA
+# otherwise fall back to bundled https://github.com/vsergeev/u-msgpack-python
+except ImportError:
+  import graphite.umsgpack as msgpack  # NOQA
+
 from django.conf import settings
 from django.utils.timezone import make_aware
 from graphite.logger import log
@@ -174,6 +181,14 @@ if USING_CPICKLE:
       pickle_obj.find_global = cls.find_class
       return pickle_obj.load()
 
+    @classmethod
+    def load(cls, file):
+      pickle_obj = pickle.Unpickler(file)
+      pickle_obj.find_global = cls.find_class
+      return pickle_obj.load()
+
+  unpickle = SafeUnpickler
+
 else:
   class SafeUnpickler(pickle.Unpickler):
     PICKLE_SAFE = {
@@ -193,11 +208,14 @@ else:
         raise pickle.UnpicklingError('Attempting to unpickle unsafe class %s' % name)
       return getattr(mod, name)
 
-    @classmethod
-    def loads(cls, pickle_string):
-      return cls(StringIO(pickle_string)).load()
+  class unpickle(object):
+    @staticmethod
+    def loads(pickle_string):
+      return SafeUnpickler(StringIO(pickle_string)).load()
 
-unpickle = SafeUnpickler
+    @staticmethod
+    def load(file):
+      return SafeUnpickler(file).load()
 
 
 class Timer(object):
