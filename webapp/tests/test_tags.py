@@ -178,9 +178,26 @@ class TagsTest(TestCase):
     with self.assertRaises(ValueError):
       db.find_series('test=')
 
+    # tag multiple series
+    result = db.tag_multi_series([
+      'test.a;blah=blah;hello=lion',
+      'test.b;hello=lion;blah=blah',
+      'test.c;blah=blah;hello=lion',
+    ])
+    self.assertEqual(result, [
+      'test.a;blah=blah;hello=lion',
+      'test.b;blah=blah;hello=lion',
+      'test.c;blah=blah;hello=lion',
+    ])
+
     # delete series we added
     self.assertTrue(db.del_series('test.a;blah=blah;hello=tiger'))
     self.assertTrue(db.del_series('test.a;blah=blah;hello=lion'))
+
+    self.assertTrue(db.del_multi_series([
+      'test.b;blah=blah;hello=lion',
+      'test.c;blah=blah;hello=lion',
+    ]))
 
   def test_local_tagdb(self):
     return self._test_tagdb(LocalDatabaseTagDB(settings))
@@ -526,6 +543,78 @@ class TagsTest(TestCase):
     expected = []
 
     response = self.client.get(url + '/findSeries?expr=name=test.a&expr=hello=tiger&expr=blah=blah')
+    self.assertEqual(response.status_code, 200)
+    self.assertEqual(response['Content-Type'], 'application/json')
+    self.assertEqual(response.content, json.dumps(expected, indent=2, sort_keys=True))
+
+    # tag multiple series
+
+    # get should fail
+    response = self.client.get(url + '/tagMultiSeries', {'path': 'test.a;hello=tiger;blah=blah'})
+    self.assertEqual(response.status_code, 405)
+
+    # post without path should fail
+    response = self.client.post(url + '/tagMultiSeries', {})
+    self.assertEqual(response.status_code, 400)
+    self.assertEqual(response['Content-Type'], 'application/json')
+
+    # multiple path should succeed
+    expected = [
+      'test.a;blah=blah;hello=tiger',
+      'test.b;blah=blah;hello=tiger',
+    ]
+
+    response = self.client.post(url + '/tagMultiSeries', {
+      'path': [
+        'test.a;hello=tiger;blah=blah',
+        'test.b;hello=tiger;blah=blah',
+      ],
+      'pretty': '1',
+    })
+    self.assertEqual(response.status_code, 200)
+    self.assertEqual(response['Content-Type'], 'application/json')
+    self.assertEqual(response.content, json.dumps(expected, indent=2, sort_keys=True))
+
+    # multiple path[] should succeed
+    expected = [
+      'test.a;blah=blah;hello=tiger',
+      'test.b;blah=blah;hello=tiger',
+    ]
+
+    response = self.client.post(url + '/tagMultiSeries', {
+      'path[]': [
+        'test.a;hello=tiger;blah=blah',
+        'test.b;hello=tiger;blah=blah',
+      ],
+      'pretty': '1',
+    })
+    self.assertEqual(response.status_code, 200)
+    self.assertEqual(response['Content-Type'], 'application/json')
+    self.assertEqual(response.content, json.dumps(expected, indent=2, sort_keys=True))
+
+    # remove multiple series
+    expected = True
+
+    response = self.client.post(url + '/delSeries', {
+      'path': [
+        'test.a;hello=tiger;blah=blah',
+        'test.b;hello=tiger;blah=blah',
+      ],
+      'pretty': '1',
+    })
+    self.assertEqual(response.status_code, 200)
+    self.assertEqual(response['Content-Type'], 'application/json')
+    self.assertEqual(response.content, json.dumps(expected, indent=2, sort_keys=True))
+
+    expected = True
+
+    response = self.client.post(url + '/delSeries', {
+      'path[]': [
+        'test.a;hello=tiger;blah=blah',
+        'test.b;hello=tiger;blah=blah',
+      ],
+      'pretty': '1',
+    })
     self.assertEqual(response.status_code, 200)
     self.assertEqual(response['Content-Type'], 'application/json')
     self.assertEqual(response.content, json.dumps(expected, indent=2, sort_keys=True))

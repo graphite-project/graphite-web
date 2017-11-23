@@ -159,6 +159,14 @@ class BaseTagDB(object):
     Remove series from database.  Accepts a series string and returns True
     """
 
+  def del_multi_series(self, seriesList, requestContext=None):
+    """
+    Remove series from database.  Accepts a list of series strings, removes them from the TagDB and returns True
+    """
+    for series in seriesList:
+      self.del_series(series, requestContext)
+    return True
+
   def auto_complete_tags(self, exprs, tagPrefix=None, limit=None, requestContext=None):
     """
     Return auto-complete suggestions for tags based on the matches for the specified expressions, optionally filtered by tag prefix

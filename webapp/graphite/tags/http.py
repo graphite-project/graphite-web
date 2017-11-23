@@ -18,10 +18,7 @@ class HttpTagDB(BaseTagDB):
     self.username = settings.TAGDB_HTTP_USER
     self.password = settings.TAGDB_HTTP_PASSWORD
 
-  def request(self, method, url, fields=None, requestContext=None):
-    if not fields:
-      fields = {}
-
+  def request(self, method, url, fields, requestContext=None):
     headers = requestContext.get('forwardHeaders') if requestContext else {}
     if 'Authorization' not in headers and self.username and self.password:
       headers['Authorization'] = 'Basic ' + ('%s:%s' % (self.username, self.password)).encode('base64')
@@ -33,6 +30,9 @@ class HttpTagDB(BaseTagDB):
       headers=headers,
       timeout=self.settings.REMOTE_FIND_TIMEOUT,
     )
+
+    if result.status == 400:
+      raise ValueError(json.loads(result.data.decode('utf-8')).get('error'))
 
     if result.status != 200:
       raise Exception('HTTP Error from remote tagdb: %s %s' % (result.status, result.data))
@@ -84,7 +84,7 @@ class HttpTagDB(BaseTagDB):
     return self.request('POST', '/tags/tagSeries', {'path': series}, requestContext)
 
   def tag_multi_series(self, seriesList, requestContext=None):
-    return self.request('POST', '/tags/tagMultiSeries', {'path', seriesList}, requestContext)
+    return self.request('POST', '/tags/tagMultiSeries', {'path': seriesList}, requestContext)
 
   def del_series(self, series, requestContext=None):
     return self.request('POST', '/tags/delSeries', {'path': series}, requestContext)
