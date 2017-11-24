@@ -54,7 +54,7 @@ class Store(object):
 
         if tagdb is None:
             tagdb = settings.TAGDB
-        self.tagdb = get_tagdb(tagdb) if tagdb else None
+        self.tagdb = get_tagdb(tagdb)
 
     def get_finders(self, local=False):
         for finder in self.finders:

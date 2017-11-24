@@ -147,11 +147,25 @@ class BaseTagDB(object):
     Enter series into database.  Accepts a series string, upserts into the TagDB and returns the canonicalized series name.
     """
 
+  def tag_multi_series(self, seriesList, requestContext=None):
+    """
+    Enter series into database.  Accepts a list of series strings, upserts into the TagDB and returns a list of canonicalized series names.
+    """
+    return [self.tag_series(series, requestContext) for series in seriesList]
+
   @abc.abstractmethod
   def del_series(self, series, requestContext=None):
     """
     Remove series from database.  Accepts a series string and returns True
     """
+
+  def del_multi_series(self, seriesList, requestContext=None):
+    """
+    Remove series from database.  Accepts a list of series strings, removes them from the TagDB and returns True
+    """
+    for series in seriesList:
+      self.del_series(series, requestContext)
+    return True
 
   def auto_complete_tags(self, exprs, tagPrefix=None, limit=None, requestContext=None):
     """

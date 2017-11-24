@@ -1,6 +1,5 @@
 from __future__ import absolute_import
 
-from urllib import quote
 import json
 
 from graphite.http_pool import http
@@ -19,10 +18,7 @@ class HttpTagDB(BaseTagDB):
     self.username = settings.TAGDB_HTTP_USER
     self.password = settings.TAGDB_HTTP_PASSWORD
 
-  def request(self, method, url, fields=None, requestContext=None):
-    if not fields:
-      fields = {}
-
+  def request(self, method, url, fields, requestContext=None):
     headers = requestContext.get('forwardHeaders') if requestContext else {}
     if 'Authorization' not in headers and self.username and self.password:
       headers['Authorization'] = 'Basic ' + ('%s:%s' % (self.username, self.password)).encode('base64')
@@ -35,8 +31,11 @@ class HttpTagDB(BaseTagDB):
       timeout=self.settings.REMOTE_FIND_TIMEOUT,
     )
 
+    if result.status == 400:
+      raise ValueError(json.loads(result.data.decode('utf-8')).get('error'))
+
     if result.status != 200:
-      raise Exception('HTTP Error from remote tagdb: %s' % result.status)
+      raise Exception('HTTP Error from remote tagdb: %s %s' % (result.status, result.data))
 
     return json.loads(result.data.decode('utf-8'))
 
@@ -51,8 +50,9 @@ class HttpTagDB(BaseTagDB):
 
   def _find_series(self, tags, requestContext=None):
     return self.request(
-      'GET',
-      '/tags/findSeries?' + '&'.join([('expr=%s' % quote(tag)) for tag in tags]),
+      'POST',
+      '/tags/findSeries',
+      {'expr': tags},
       requestContext=requestContext,
     )
 
@@ -83,8 +83,14 @@ class HttpTagDB(BaseTagDB):
   def tag_series(self, series, requestContext=None):
     return self.request('POST', '/tags/tagSeries', {'path': series}, requestContext)
 
+  def tag_multi_series(self, seriesList, requestContext=None):
+    return self.request('POST', '/tags/tagMultiSeries', {'path': seriesList}, requestContext)
+
   def del_series(self, series, requestContext=None):
     return self.request('POST', '/tags/delSeries', {'path': series}, requestContext)
+
+  def del_multi_series(self, seriesList, requestContext=None):
+    return self.request('POST', '/tags/delSeries', {'path': seriesList}, requestContext)
 
   def auto_complete_tags(self, exprs, tagPrefix=None, limit=None, requestContext=None):
     """
@@ -97,10 +103,13 @@ class HttpTagDB(BaseTagDB):
     if limit is None:
       limit = self.settings.TAGDB_AUTOCOMPLETE_LIMIT
 
-    url = '/tags/autoComplete/tags?tagPrefix=' + quote(tagPrefix or '') + '&limit=' + quote(str(limit)) + \
-      '&' + '&'.join([('expr=%s' % quote(expr or '')) for expr in exprs])
+    fields = {
+      'tagPrefix': tagPrefix or '',
+      'limit': str(limit),
+      'expr': exprs,
+    }
 
-    return self.request('GET', url)
+    return self.request('POST', '/tags/autoComplete/tags', fields, requestContext)
 
   def auto_complete_values(self, exprs, tag, valuePrefix=None, limit=None, requestContext=None):
     """
@@ -113,7 +122,11 @@ class HttpTagDB(BaseTagDB):
     if limit is None:
       limit = self.settings.TAGDB_AUTOCOMPLETE_LIMIT
 
-    url = '/tags/autoComplete/values?tag=' + quote(tag or '') + '&valuePrefix=' + quote(valuePrefix or '') + \
-      '&limit=' + quote(str(limit)) + '&' + '&'.join([('expr=%s' % quote(expr or '')) for expr in exprs])
+    fields = {
+      'tag': tag or '',
+      'valuePrefix': valuePrefix or '',
+      'limit': str(limit),
+      'expr': exprs,
+    }
 
-    return self.request('GET', url)
+    return self.request('POST', '/tags/autoComplete/values', fields, requestContext)
