@@ -1,9 +1,9 @@
 import re
+import six
 
 from graphite.render.grammar import grammar
 from graphite.render.datalib import fetchData, TimeSeries, prefetchData
 from graphite.storage import STORE
-import six
 
 
 def evaluateTarget(requestContext, targets, noPrefetch=False):
@@ -78,6 +78,9 @@ def evaluateTokens(requestContext, tokens, replacements=None, pipedArg=None):
       # as tokens.template. this generally happens if you try to pass non-numeric/string args
       raise ValueError("invalid template() syntax, only string/numeric arguments are allowed")
 
+    if tokens.call.funcname == 'seriesByTag':
+      return fetchData(requestContext, tokens.call.raw)
+
     func = SeriesFunctions[tokens.call.funcname]
     rawArgs = tokens.call.args or []
     if pipedArg is not None:
@@ -145,14 +148,9 @@ def extractPathExpressions(requestContext, targets):
             expression = expression.replace('$'+name, str(replacements[name]))
       pathExpressions.add(expression)
     elif tokens.call:
-      # if we're prefetching seriesByTag, look up the matching series and prefetch those
+      # if we're prefetching seriesByTag, pass the entire call back as a path expression
       if tokens.call.funcname == 'seriesByTag':
-        if STORE.tagdb:
-          for series in STORE.tagdb.find_series(
-              tuple([t.string[1:-1] for t in tokens.call.args if t.string]),
-              requestContext=requestContext,
-          ):
-            pathExpressions.add(series)
+        pathExpressions.add(tokens.call.raw)
       else:
         for a in tokens.call.args:
           extractPathExpression(requestContext, a, replacements)

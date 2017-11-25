@@ -49,6 +49,7 @@ class RemoteFinder(BaseFinder):
         self.url = parsed['url']
         self.params = parsed['params']
         self.last_failure = 0
+        self.tags = not self.params.get('noTags')
 
     @property
     def disabled(self):

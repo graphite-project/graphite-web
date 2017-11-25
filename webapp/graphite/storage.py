@@ -21,6 +21,7 @@ from graphite.intervals import Interval, IntervalSet
 from graphite.finders.utils import FindQuery, BaseFinder
 from graphite.readers import MultiReader
 from graphite.worker_pool.pool import get_pool, pool_exec, Job, PoolTimeoutError
+from graphite.render.grammar import grammar
 
 
 def get_finders(finder_path):
@@ -93,10 +94,34 @@ class Store(object):
         log.debug(
             'graphite.storage.Store.fetch :: Starting fetch on all backends')
 
-        jobs = [
-            Job(finder.fetch, patterns, startTime, endTime, now=now, requestContext=requestContext)
-            for finder in self.get_finders(requestContext.get('localOnly'))
-        ]
+        jobs = []
+        tag_patterns = None
+        pattern_aliases = {}
+        for finder in self.get_finders(requestContext.get('localOnly')):
+          if getattr(finder, 'tags', False):
+            job_patterns = patterns
+          else:
+            if tag_patterns is None:
+              tag_patterns = []
+              for pattern in patterns:
+                if not pattern.startswith('seriesByTag('):
+                  tag_patterns.append(pattern)
+                  continue
+
+                exprs = tuple([
+                  t.string[1:-1]
+                  for t in grammar.parseString(pattern).expression.call.args
+                  if t.string
+                ])
+                taggedSeries = self.tagdb.find_series(exprs, requestContext=requestContext)
+                if not taggedSeries:
+                  continue
+
+                tag_pattern = 'group(' + ','.join(taggedSeries) + ')'
+                tag_patterns.append(tag_pattern)
+                pattern_aliases[tag_pattern] = pattern
+            job_patterns = tag_patterns
+          jobs.append(Job(finder.fetch, job_patterns, startTime, endTime, now=now, requestContext=requestContext))
 
         results = []
 
@@ -121,6 +146,11 @@ class Store(object):
 
         if errors == done:
           raise Exception('All fetches failed for %s' % (str(patterns)))
+
+        # translate path expressions for seriesByTag calls
+        for result in results:
+          if result['pathExpression'] in pattern_aliases:
+            result['pathExpression'] = pattern_aliases[result['pathExpression']]
 
         log.debug("Got all fetch results for %s in %fs" % (str(patterns), time.time() - start))
         return results

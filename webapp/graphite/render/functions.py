@@ -4303,28 +4303,7 @@ def seriesByTag(requestContext, *tagExpressions):
 
   See :ref:`querying tagged series <querying-tagged-series>` for more detail.
   """
-
-  if STORE.tagdb is None:
-    log.info('seriesByTag called but no TagDB configured')
-    return []
-
-  taggedSeries = STORE.tagdb.find_series(tagExpressions, requestContext=requestContext)
-  if not taggedSeries:
-    return []
-
-  taggedSeriesQuery = 'group(' + ','.join(taggedSeries) + ')'
-
-  log.debug('taggedSeriesQuery %s' % taggedSeriesQuery)
-
-  seriesList = evaluateTarget(requestContext, taggedSeriesQuery, noPrefetch=True)
-
-  pathExpr = 'seriesByTag(%s)' % ','.join(['"%s"' % expr for expr in tagExpressions])
-  for series in seriesList:
-    series.pathExpression = pathExpr
-
-  log.debug('seriesByTag found [%s]' % ', '.join([series.name for series in seriesList]))
-
-  return seriesList
+  # the handling of seriesByTag is implemented in STORE.fetch
 
 def groupByTags(requestContext, seriesList, callback, *tags):
   """

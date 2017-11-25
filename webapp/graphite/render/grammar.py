@@ -2,7 +2,7 @@ from pyparsing import (
     Forward, Combine, Optional, Word, Literal, CaselessKeyword,
     CaselessLiteral, Group, FollowedBy, LineEnd, OneOrMore, ZeroOrMore,
     alphas, alphanums, printables, delimitedList, quotedString, Regex,
-    __version__, Suppress
+    __version__, Suppress, Empty
 )
 
 grammar = Forward()
@@ -71,14 +71,19 @@ kwarg = Group(argname + equal + arg)('kwargs*')
 args = delimitedList(~kwarg + arg)  # lookahead to prevent failing on equals
 kwargs = delimitedList(kwarg)
 
+def setRaw(s, loc, toks):
+  toks[0].raw = s[toks[0].start:toks[0].end]
+
 call = Group(
+  Empty().setParseAction(lambda s, l, t: l)('start') +
   funcname + leftParen +
   Optional(
     args + Optional(
       comma + kwargs
     )
-  ) + rightParen
-)('call')
+  ) + rightParen +
+  Empty().leaveWhitespace().setParseAction(lambda s, l, t: l)('end')
+).setParseAction(setRaw)('call')
 
 # Metric pattern (aka. pathExpression)
 validMetricChars = ''.join((set(printables) - set(symbols)))

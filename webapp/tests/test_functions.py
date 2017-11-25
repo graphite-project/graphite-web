@@ -5966,50 +5966,6 @@ class FunctionsTest(TestCase):
 
         self.assertEqual(result, expectedResult)
 
-    @patch('graphite.render.evaluator.prefetchData', lambda *_: None)
-    def test_seriesByTag(self):
-        class MockTagDB(object):
-            def find_series(self, tagExpressions, requestContext=None):
-                if tagExpressions == ('name=disk.bytes_used', 'server=server1'):
-                    return ['disk.bytes_used;server=server1']
-
-                if tagExpressions == ('name=disk.bytes_used', 'server=server2'):
-                    return []
-
-                raise Exception('Unexpected find_series call with tagExpressions: %s' % str(tagExpressions))
-
-
-        def mock_data_fetcher(reqCtx, path_expression):
-            if path_expression != 'disk.bytes_used;server=server1':
-                raise Exception('Unexpected fetchData call with pathExpression: %s' % path_expression)
-
-            return self._gen_series_list_with_data(
-                key=['disk.bytes_used;server=server1'],
-                start=0,
-                end=3,
-                data=[[10, 20, 30]]
-            )
-
-        request_context = self._build_requestContext(0, 3)
-
-        with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
-            with patch('graphite.storage.STORE.tagdb', None):
-                query = 'seriesByTag("name=disk.bytes_used","server=server1")'
-                result = evaluateTarget(request_context, query)
-                self.assertEqual(result, [])
-
-            with patch('graphite.storage.STORE.tagdb', MockTagDB()):
-                query = 'seriesByTag("name=disk.bytes_used","server=server1")'
-                result = evaluateTarget(request_context, query)
-                self.assertEqual(result, [
-                    TimeSeries('disk.bytes_used;server=server1',0,3,1,[10, 20, 30]),
-                ])
-                self.assertEqual(result[0].pathExpression, query)
-
-                query = 'seriesByTag("name=disk.bytes_used","server=server2")'
-                result = evaluateTarget(request_context, query)
-                self.assertEqual(result, [])
-
     def test_groupByTags(self):
         class MockTagDB(object):
             @staticmethod

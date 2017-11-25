@@ -43,6 +43,8 @@ class BaseFinder(object):
     local = True
     # set to True if this finder shouldn't be used
     disabled = False
+    # set to True if this finder supports seriesByTag
+    tags = False
 
     def __init__(self):
         """Initialize the finder."""
