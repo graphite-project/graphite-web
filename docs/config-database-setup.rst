@@ -20,7 +20,7 @@ To set up a new database and create the initial schema, run:
 
 .. code-block:: none
 
-  PYTHONPATH=$GRAPHITE_ROOT/webapp django-admin.py migrate --settings=graphite.settings --run-syncdb
+  PYTHONPATH=$GRAPHITE_ROOT/webapp django-admin.py migrate --settings=graphite.settings
 
 If you are experiencing problems, uncomment the following line in /opt/graphite/webapp/graphite/local_settings.py:
 
