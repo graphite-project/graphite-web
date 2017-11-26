@@ -369,6 +369,121 @@ class Store(object):
             reader = MultiReader(minimal_node_set)
             return LeafNode(path, reader)
 
+    def tagdb_auto_complete_tags(self, exprs, tagPrefix=None, limit=None, requestContext=None):
+        log.debug(
+            'graphite.storage.Store.auto_complete_tags :: Starting lookup on all backends')
+
+        jobs = []
+        use_tagdb = False
+        for finder in self.get_finders(requestContext.get('localOnly')):
+          if getattr(finder, 'tags', False):
+            jobs.append(Job(finder.auto_complete_tags, exprs, tagPrefix=tagPrefix, limit=limit, requestContext=requestContext))
+          else:
+            use_tagdb = True
+
+        if not jobs:
+          if not use_tagdb:
+            return []
+
+          return self.tagdb.auto_complete_tags(exprs, tagPrefix=tagPrefix, limit=limit, requestContext=requestContext)
+
+        # start finder jobs
+        jobs = self.pool_exec(jobs, settings.REMOTE_FIND_TIMEOUT)
+
+        results = set()
+
+        # if we're using the local tagdb then execute it
+        if use_tagdb:
+          results.update(self.tagdb.auto_complete_tags(exprs, tagPrefix=tagPrefix, limit=limit, requestContext=requestContext))
+
+        done = 0
+        errors = 0
+
+        # Start fetches
+        start = time.time()
+        try:
+          for job in jobs:
+            done += 1
+
+            if job.exception:
+              errors += 1
+              raise Exception('%s %s %s %s' % (job.func, job.args, job.kwargs, job.exception))
+              log.info("Autocomplete tags for %s %s failed after %fs: %s" % (str(exprs), tagPrefix or '', time.time() - start, str(job.exception)))
+              continue
+
+            log.debug("Got an autocomplete result for %s %s after %fs" % (str(exprs), tagPrefix or '', time.time() - start))
+            results.update(job.result)
+        except PoolTimeoutError:
+          log.info("Timed out in autocomplete tags after %fs" % (time.time() - start))
+
+        if errors == done:
+          raise Exception('All autocomplete tag requests failed for %s %s' % (str(exprs), tagPrefix or ''))
+
+        # sort & limit results
+        results = sorted(results)
+        if limit:
+          results = results[:int(limit)]
+
+        log.debug("Got all autocomplete tag results for %s %s in %fs" % (str(exprs), tagPrefix or '', time.time() - start))
+        return results
+
+    def tagdb_auto_complete_values(self, exprs, tag, valuePrefix=None, limit=None, requestContext=None):
+        log.debug(
+            'graphite.storage.Store.auto_complete_values :: Starting lookup on all backends')
+
+        jobs = []
+        use_tagdb = False
+        for finder in self.get_finders(requestContext.get('localOnly')):
+          if getattr(finder, 'tags', False):
+            jobs.append(Job(finder.auto_complete_values, exprs, tag, valuePrefix=valuePrefix, limit=limit, requestContext=requestContext))
+          else:
+            use_tagdb = True
+
+        if not jobs:
+          if not use_tagdb:
+            return []
+
+          return self.tagdb.auto_complete_values(exprs, tag, valuePrefix=valuePrefix, limit=limit, requestContext=requestContext)
+
+        # start finder jobs
+        jobs = self.pool_exec(jobs, settings.REMOTE_FIND_TIMEOUT)
+
+        results = set()
+
+        # if we're using the local tagdb then execute it
+        if use_tagdb:
+          results.update(self.tagdb.auto_complete_values(exprs, tag, valuePrefix=valuePrefix, limit=limit, requestContext=requestContext))
+
+        done = 0
+        errors = 0
+
+        # Start fetches
+        start = time.time()
+        try:
+          for job in jobs:
+            done += 1
+
+            if job.exception:
+              errors += 1
+              log.info("Autocomplete values for %s %s %s failed after %fs: %s" % (str(exprs), tag, valuePrefix or '', time.time() - start, str(job.exception)))
+              continue
+
+            log.debug("Got an autocomplete result for %s %s %s after %fs" % (str(exprs), tag, valuePrefix or '', time.time() - start))
+            results.update(job.result)
+        except PoolTimeoutError:
+          log.info("Timed out in autocomplete values after %fs" % (time.time() - start))
+
+        if errors == done:
+          raise Exception('All autocomplete value requests failed for %s %s %s' % (str(exprs), tag, valuePrefix or ''))
+
+        # sort & limit results
+        results = sorted(results)
+        if limit:
+          results = results[:int(limit)]
+
+        log.debug("Got all autocomplete value results for %s %s %s in %fs" % (str(exprs), tag, valuePrefix or '', time.time() - start))
+        return results
+
 
 def extractForwardHeaders(request):
     headers = {}

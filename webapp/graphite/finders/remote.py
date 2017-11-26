@@ -179,6 +179,65 @@ class RemoteFinder(BaseFinder):
 
         return results
 
+    def auto_complete_tags(self, exprs, tagPrefix=None, limit=None, requestContext=None):
+        """
+        Return auto-complete suggestions for tags based on the matches for the specified expressions, optionally filtered by tag prefix
+        """
+        if limit is None:
+            limit = settings.TAGDB_AUTOCOMPLETE_LIMIT
+
+        fields = [
+            ('tagPrefix', tagPrefix or ''),
+            ('limit', str(limit)),
+        ]
+        for expr in exprs:
+          fields.append(('expr', expr))
+
+        result = self.request('/tags/autoComplete/tags', fields, requestContext)
+        try:
+            reader = codecs.getreader('utf-8')
+            results = json.load(reader(result))
+        except Exception as err:
+            self.fail()
+            log.exception(
+                "RemoteFinder[%s] Error decoding autocomplete tags response from %s: %s" %
+                (self.host, result.url_full, err))
+            raise Exception("Error decoding autocomplete tags response from %s: %s" % (result.url_full, err))
+        finally:
+            result.release_conn()
+
+        return results
+
+    def auto_complete_values(self, exprs, tag, valuePrefix=None, limit=None, requestContext=None):
+        """
+        Return auto-complete suggestions for tags and values based on the matches for the specified expressions, optionally filtered by tag and/or value prefix
+        """
+        if limit is None:
+            limit = self.settings.TAGDB_AUTOCOMPLETE_LIMIT
+
+        fields = [
+            ('tag', tag or ''),
+            ('valuePrefix', valuePrefix or ''),
+            ('limit', str(limit)),
+        ]
+        for expr in exprs:
+          fields.append(('expr', expr))
+
+        result = self.request('/tags/autoComplete/values', fields, requestContext)
+        try:
+            reader = codecs.getreader('utf-8')
+            results = json.load(reader(result))
+        except Exception as err:
+            self.fail()
+            log.exception(
+                "RemoteFinder[%s] Error decoding autocomplete values response from %s: %s" %
+                (self.host, result.url_full, err))
+            raise Exception("Error decoding autocomplete values response from %s: %s" % (result.url_full, err))
+        finally:
+            result.release_conn()
+
+        return results
+
     def request(self, path, fields=None, headers=None, timeout=None):
         url = "%s%s" % (self.url, path)
         url_full = "%s?%s" % (url, urlencode(fields))
