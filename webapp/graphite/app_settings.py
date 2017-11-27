@@ -16,7 +16,10 @@ limitations under the License."""
 # DO NOT MODIFY THIS FILE DIRECTLY - use local_settings.py instead
 from os.path import dirname, join, abspath
 from django import VERSION as DJANGO_VERSION
-
+try:
+    import raven
+except ImportError:
+    raven = None
 
 #Django settings below, do not touch!
 APPEND_SLASH = False
@@ -89,6 +92,9 @@ INSTALLED_APPS = (
   'django.contrib.staticfiles',
   'tagging',
 )
+if raven is not None:
+    INSTALLED_APPS.append('raven.contrib.django.raven_compat')
+
 
 AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend']
 
