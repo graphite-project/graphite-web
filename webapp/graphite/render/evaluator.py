@@ -6,13 +6,12 @@ from graphite.render.datalib import fetchData, TimeSeries, prefetchData
 from graphite.storage import STORE
 
 
-def evaluateTarget(requestContext, targets, noPrefetch=False):
+def evaluateTarget(requestContext, targets):
   if not isinstance(targets, list):
     targets = [targets]
 
-  if not noPrefetch:
-    pathExpressions = extractPathExpressions(requestContext, targets)
-    prefetchData(requestContext, pathExpressions)
+  pathExpressions = extractPathExpressions(requestContext, targets)
+  prefetchData(requestContext, pathExpressions)
 
   seriesList = []
 
