@@ -149,3 +149,9 @@ class BaseFinder(object):
             })
 
         return result
+
+    def auto_complete_tags(self, exprs, tagPrefix=None, limit=None, requestContext=None):
+        return []
+
+    def auto_complete_values(self, exprs, tag, valuePrefix=None, limit=None, requestContext=None):
+        return []

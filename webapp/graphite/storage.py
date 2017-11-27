@@ -5,6 +5,7 @@ import sys
 import types
 
 from collections import defaultdict
+from copy import deepcopy
 
 from django.conf import settings
 from django.core.cache import cache
@@ -62,8 +63,8 @@ class Store(object):
         self.finders = finders
 
         if tagdb is None:
-            tagdb = settings.TAGDB or 'graphite.tags.localdatabase.LocalDatabaseTagDB'
-        self.tagdb = get_tagdb(tagdb)
+            tagdb = get_tagdb(settings.TAGDB or 'graphite.tags.localdatabase.LocalDatabaseTagDB')
+        self.tagdb = tagdb
 
     def get_finders(self, local=False):
         for finder in self.finders:
@@ -86,7 +87,7 @@ class Store(object):
 
     def fetch(self, patterns, startTime, endTime, now, requestContext):
         # deduplicate patterns
-        patterns = list(set(patterns))
+        patterns = sorted(set(patterns))
 
         if not patterns:
             return []
@@ -96,7 +97,7 @@ class Store(object):
 
         jobs = []
         tag_patterns = None
-        pattern_aliases = {}
+        pattern_aliases = defaultdict(list)
         for finder in self.get_finders(requestContext.get('localOnly')):
           if getattr(finder, 'tags', False):
             job_patterns = patterns
@@ -117,10 +118,10 @@ class Store(object):
                 if not taggedSeries:
                   continue
 
-                tag_pattern = 'group(' + ','.join(taggedSeries) + ')'
-                tag_patterns.append(tag_pattern)
-                pattern_aliases[tag_pattern] = pattern
-            job_patterns = tag_patterns
+                tag_patterns.extend(taggedSeries)
+                for series in taggedSeries:
+                  pattern_aliases[series].append(pattern)
+            job_patterns = sorted(set(tag_patterns))
           jobs.append(Job(finder.fetch, job_patterns, startTime, endTime, now=now, requestContext=requestContext))
 
         results = []
@@ -145,12 +146,17 @@ class Store(object):
           log.info("Timed out in fetch after %fs" % (time.time() - start))
 
         if errors == done:
+          if errors == 1:
+            raise Exception("Fetch for %s failed: %s" % (str(patterns), str(job.exception)))
           raise Exception('All fetches failed for %s' % (str(patterns)))
 
         # translate path expressions for seriesByTag calls
         for result in results:
-          if result['pathExpression'] in pattern_aliases:
-            result['pathExpression'] = pattern_aliases[result['pathExpression']]
+          if result['name'] == result['pathExpression'] and result['pathExpression'] in pattern_aliases:
+            for pathExpr in pattern_aliases[result['pathExpression']]:
+              newresult = deepcopy(result)
+              newresult['pathExpression'] = pathExpr
+              results.append(newresult)
 
         log.debug("Got all fetch results for %s in %fs" % (str(patterns), time.time() - start))
         return results
@@ -188,6 +194,8 @@ class Store(object):
           log.info("Timed out in get_index after %fs" % (time.time() - start))
 
         if errors == done:
+          if errors == 1:
+            raise Exception("get_index failed: %s" % (str(job.exception)))
           raise Exception('All index lookups failed')
 
         log.debug("Got all index results in %fs" % (time.time() - start))
@@ -252,6 +260,8 @@ class Store(object):
           log.info("Timed out in find after %fs" % (time.time() - start))
 
         if errors == done:
+          if errors == 1:
+            raise Exception("Find for %s failed: %s" % (str(query), str(job.exception)))
           raise Exception('All finds failed for %s' % (str(query)))
 
         log.debug("Got all find results for %s in %fs" % (str(query), time.time() - start))
@@ -373,6 +383,9 @@ class Store(object):
         log.debug(
             'graphite.storage.Store.auto_complete_tags :: Starting lookup on all backends')
 
+        if requestContext is None:
+          requestContext = {}
+
         jobs = []
         use_tagdb = False
         for finder in self.get_finders(requestContext.get('localOnly')):
@@ -430,6 +443,9 @@ class Store(object):
     def tagdb_auto_complete_values(self, exprs, tag, valuePrefix=None, limit=None, requestContext=None):
         log.debug(
             'graphite.storage.Store.auto_complete_values :: Starting lookup on all backends')
+
+        if requestContext is None:
+          requestContext = {}
 
         jobs = []
         use_tagdb = False

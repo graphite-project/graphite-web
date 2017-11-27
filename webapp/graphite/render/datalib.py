@@ -25,7 +25,7 @@ from graphite.util import timebounds, logtime
 
 
 class TimeSeries(list):
-  def __init__(self, name, start, end, step, values, consolidate='average', tags=None, xFilesFactor=None):
+  def __init__(self, name, start, end, step, values, consolidate='average', tags=None, xFilesFactor=None, pathExpression=None):
     list.__init__(self, values)
     self.name = name
     self.start = start
@@ -34,7 +34,7 @@ class TimeSeries(list):
     self.consolidationFunc = consolidate
     self.valuesPerPoint = 1
     self.options = {}
-    self.pathExpression = name
+    self.pathExpression = pathExpression or name
     self.xFilesFactor = xFilesFactor if xFilesFactor is not None else settings.DEFAULT_XFILES_FACTOR
 
     if tags:
