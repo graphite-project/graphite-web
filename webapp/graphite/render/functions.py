@@ -1177,7 +1177,11 @@ def scaleToSeconds(requestContext, seriesList, seconds):
 
     for i,value in enumerate(series):
       if value is not None:
-        series[i] = round(value * factor, 6)
+        # Division long by float cause OverflowError
+        try:
+          series[i] = round(value * factor, 6)
+        except OverflowError:
+          series[i] = (value // series.step) * seconds
 
   return seriesList
 
@@ -1609,7 +1613,11 @@ def perSecond(requestContext, seriesList, maxValue=None):
       delta, prev = _nonNegativeDelta(val, prev, maxValue)
 
       if delta is not None:
-        newValues.append(round(delta / step, 6))
+        # Division long by float cause OverflowError
+        try:
+          newValues.append(round(delta / step, 6))
+        except OverflowError:
+          newValues.append(delta // step)
       else:
         newValues.append(None)
 

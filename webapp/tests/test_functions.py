@@ -1581,8 +1581,8 @@ class FunctionsTest(TestCase):
         self.assertEqual(expected, result, 'nonNegativeDerivative result incorrect')
 
     def test_perSecond(self):
-        seriesList = self._gen_series_list_with_data(key='test',start=0,end=600,step=60,data=[0, 120, 240, 480, 960, 1920, 3840, 7680, 15360, 30720])
-        expected = [TimeSeries('perSecond(test)', 0, 600, 60, [None, 2, 2, 4, 8, 16, 32, 64, 128, 256])]
+        seriesList = self._gen_series_list_with_data(key='test',start=0,end=600,step=60,data=[0, 120, 240, 480, 960, 1920, 3840, 7680, 15360, 60 ** 256 + 15360 ])
+        expected = [TimeSeries('perSecond(test)', 0, 600, 60, [None, 2, 2, 4, 8, 16, 32, 64, 128, 60 ** 255])]
         result = functions.perSecond({}, seriesList)
         self.assertEqual(list(expected[0]), list(result[0]))
         self.assertEqual(expected, result)
@@ -1592,8 +1592,8 @@ class FunctionsTest(TestCase):
         self.assertEqual(list(expected[0]), list(result[0]))
 
     def test_perSecond_float(self):
-        seriesList = self._gen_series_list_with_data(key='test',start=0,end=600,step=60,data=[0, 90, 186, 291, 411, 561, 747, 939, 136, 336])
-        expected = [TimeSeries('perSecond(test)', 0, 600, 60, [None, 1.5, 1.6, 1.75, 2, 2.5, 3.1, 3.2, 3.3, 3.333333])]
+        seriesList = self._gen_series_list_with_data(key='test',start=0,end=600,step=60,data=[0, 90, 186, 291, 411, 561, 747, 136, 336, 60**256 + 336])
+        expected = [TimeSeries('perSecond(test)', 0, 600, 60, [None, 1.5, 1.6, 1.75, 2, 2.5, 3.1, 6.5, 3.333333, None])]
         result = functions.perSecond({}, seriesList, maxValue=1000)
         self.assertEqual(list(expected[0]), list(result[0]))
         self.assertEqual(expected, result)
