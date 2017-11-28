@@ -100,6 +100,17 @@ class TaggedSeries(object):
     # metric isn't tagged, just replace dots with the separator and trim any leading separator
     return metric.replace('.', sep).lstrip(sep)
 
+  @staticmethod
+  def decode(path, sep='.'):
+    """
+    Helper function to decode tagged series from storage in whisper etc
+    """
+    if path.startswith('_tagged'):
+      return path.split(sep, 3)[-1].replace('_DOT_', '.')
+
+    # metric isn't tagged, just replace the separator with dots
+    return path.replace(sep, '.')
+
   def __init__(self, metric, tags, series_id=None):
     self.metric = metric
     self.tags = tags
