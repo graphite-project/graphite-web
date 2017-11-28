@@ -28,7 +28,7 @@ class TagsTest(TestCase):
     self.assertEqual(parsed.path, 'test.a;blah=blah;hello=tiger')
 
     # test encoding
-    self.assertEqual(TaggedSeries.encode(parsed.path), '_tagged.2b0.2af.test-a;blah=blah;hello=tiger')
+    self.assertEqual(TaggedSeries.encode(parsed.path), '_tagged.2b0.2af.test_DOT_a;blah=blah;hello=tiger')
 
     # test path without tags
     parsed = TaggedSeries.parse('test.a')
