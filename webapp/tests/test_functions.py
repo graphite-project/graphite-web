@@ -193,14 +193,17 @@ class FunctionsTest(TestCase):
     def test_safeMedian_empty_list(self):
         self.assertEqual(functions.safeMedian([]), None)
 
-    def test_safeMedian_all_numbers(self):
-        self.assertEqual(functions.safeMedian([1,2,3,4]), 3)
+    def test_safeMedian_all_numbers_odd_len(self):
+        self.assertEqual(functions.safeMedian([1,2,3,4,5]), 3)
+
+    def test_safeMedian_all_numbers_even_len(self):
+        self.assertAlmostEqual(functions.safeMedian([1,2,3,4]), 2.5)
 
     def test_safeMedian_all_None(self):
         self.assertEqual(functions.safeMedian([None,None,None,None]), None)
 
     def test_safeMedian_mixed(self):
-        self.assertEqual(functions.safeMedian([10,None,5,None]), 10)
+        self.assertAlmostEqual(functions.safeMedian([10,None,5,None]), 7.5)
 
     #
     # Test safeStdDev()

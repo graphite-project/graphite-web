@@ -97,7 +97,12 @@ def safeAvg(values):
 def safeMedian(values):
   safeValues = [v for v in values if v is not None]
   if safeValues:
-    return sorted(safeValues)[len(safeValues) // 2]
+    sortedVals = sorted(safeValues)
+    mid = len(sortedVals) // 2
+    if len(sortedVals) % 2 == 0:
+      return float(sortedVals[mid-1] + sortedVals[mid]) / 2
+    else:
+      return sortedVals[mid]
 
 def safeStdDev(a):
   sm = safeSum(a)
