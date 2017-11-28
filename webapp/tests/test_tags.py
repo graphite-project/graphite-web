@@ -28,7 +28,10 @@ class TagsTest(TestCase):
     self.assertEqual(parsed.path, 'test.a;blah=blah;hello=tiger')
 
     # test encoding
-    self.assertEqual(TaggedSeries.encode(parsed.path), '_tagged.2b0.2af.test-a;blah=blah;hello=tiger')
+    self.assertEqual(TaggedSeries.encode(parsed.path), '_tagged.2b0.2af.test_DOT_a;blah=blah;hello=tiger')
+
+    # test decoding
+    self.assertEqual(TaggedSeries.decode('_tagged.2b0.2af.test_DOT_a;blah=blah;hello=tiger'), parsed.path)
 
     # test path without tags
     parsed = TaggedSeries.parse('test.a')
@@ -40,7 +43,10 @@ class TagsTest(TestCase):
     self.assertEqual(parsed.path, 'test.a')
 
     # test encoding
-    self.assertEqual(TaggedSeries.encode(parsed.path), 'test.a')
+    self.assertEqual(TaggedSeries.encode('test.a', sep='/'), 'test/a')
+
+    # test encoding
+    self.assertEqual(TaggedSeries.decode('test/a', sep='/'), 'test.a')
 
     # test parsing openmetrics
     parsed = TaggedSeries.parse(r'test.a{hello="tiger",blah="bla\"h"}')

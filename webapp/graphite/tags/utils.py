@@ -95,10 +95,21 @@ class TaggedSeries(object):
     """
     if ';' in metric:
       metric_hash = sha256(metric.encode('utf8')).hexdigest()
-      return sep.join(['_tagged', metric_hash[0:3], metric_hash[3:6], metric.replace('.', '-')])
+      return sep.join(['_tagged', metric_hash[0:3], metric_hash[3:6], metric.replace('.', '_DOT_')])
 
     # metric isn't tagged, just replace dots with the separator and trim any leading separator
     return metric.replace('.', sep).lstrip(sep)
+
+  @staticmethod
+  def decode(path, sep='.'):
+    """
+    Helper function to decode tagged series from storage in whisper etc
+    """
+    if path.startswith('_tagged'):
+      return path.split(sep, 3)[-1].replace('_DOT_', '.')
+
+    # metric isn't tagged, just replace the separator with dots
+    return path.replace(sep, '.')
 
   def __init__(self, metric, tags, series_id=None):
     self.metric = metric
