@@ -36,7 +36,7 @@ class GraphiteLogger:
         settings.LOG_FILE_INFO,
         'info',
         True,
-        level = logging.INFO,
+        level = logging.DEBUG if settings.DEBUG else logging.INFO,
     )
     self.exceptionLogger = self._config_logger(
         settings.LOG_FILE_EXCEPTION,
@@ -47,13 +47,13 @@ class GraphiteLogger:
         settings.LOG_FILE_CACHE,
         'cache',
         settings.LOG_CACHE_PERFORMANCE,
-        level = logging.INFO,
+        level = logging.DEBUG if settings.DEBUG else logging.INFO,
     )
     self.renderingLogger = self._config_logger(
         settings.LOG_FILE_RENDERING,
         'rendering',
         settings.LOG_RENDERING_PERFORMANCE,
-        level = logging.INFO,
+        level = logging.DEBUG if settings.DEBUG else logging.INFO,
     )
 
   @staticmethod
