@@ -294,6 +294,9 @@ DEFAULT_XFILES_FACTOR = 0
 
 #REMOTE_STORE_USE_POST = False    # Use POST instead of GET for remote requests
 
+# Size of the buffer used for streaming remote cluster responses
+#REMOTE_BUFFER_SIZE = 1024 * 1024
+
 # During a rebalance of a consistent hash cluster, after a partition event on a replication > 1 cluster,
 # or in other cases we might receive multiple TimeSeries data for a metric key.  Merge them together rather
 # that choosing the "most complete" one (pre-0.9.14 behaviour).

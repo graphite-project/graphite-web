@@ -4,7 +4,7 @@ from django.conf import settings
 
 from graphite.logger import log
 from graphite.readers.utils import BaseReader
-from graphite.util import unpickle, msgpack
+from graphite.util import unpickle, msgpack, BufferedHTTPReader
 
 
 class RemoteReader(BaseReader):
@@ -76,9 +76,11 @@ class RemoteReader(BaseReader):
 
         try:
             if result.getheader('content-type') == 'application/x-msgpack':
-              data = msgpack.load(result)
+              data = msgpack.load(BufferedHTTPReader(
+                result, buffer_size=settings.REMOTE_BUFFER_SIZE))
             else:
-              data = unpickle.load(result)
+              data = unpickle.load(BufferedHTTPReader(
+                result, buffer_size=settings.REMOTE_BUFFER_SIZE))
         except Exception as err:
             self.finder.fail()
             log.exception(
