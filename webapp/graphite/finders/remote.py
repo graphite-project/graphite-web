@@ -12,7 +12,7 @@ from graphite.intervals import Interval, IntervalSet
 from graphite.logger import log
 from graphite.node import LeafNode, BranchNode
 from graphite.render.hashing import compactHash
-from graphite.util import unpickle, logtime, is_local_interface, json, msgpack
+from graphite.util import unpickle, logtime, is_local_interface, json, msgpack, BufferedHTTPReader
 
 from graphite.finders.utils import BaseFinder
 from graphite.readers.remote import RemoteReader
@@ -108,9 +108,11 @@ class RemoteFinder(BaseFinder):
 
             try:
                 if result.getheader('content-type') == 'application/x-msgpack':
-                  results = msgpack.load(result)
+                  results = msgpack.load(BufferedHTTPReader(
+                    result, buffer_size=settings.REMOTE_BUFFER_SIZE))
                 else:
-                  results = unpickle.load(result)
+                  results = unpickle.load(BufferedHTTPReader(
+                    result, buffer_size=settings.REMOTE_BUFFER_SIZE))
             except Exception as err:
                 self.fail()
                 log.exception(

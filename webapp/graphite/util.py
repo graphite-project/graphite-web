@@ -13,6 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 import imp
+import io
 import socket
 import time
 import sys
@@ -257,3 +258,25 @@ def logtime(f):
       timer.stop()
 
   return wrapped_f
+
+
+class BufferedHTTPReader(io.IOBase):
+  def __init__(self, response, buffer_size=1048576):
+    self.response = response
+    self.buffer_size = buffer_size
+    self.buffer = ''
+    self.pos = 0
+
+  def read(self, amt=None):
+    if amt is None:
+      return self.response.read()
+    if len(self.buffer) - self.pos < amt:
+      self.buffer = self.buffer[self.pos:]
+      self.pos = 0
+      self.buffer += self.response.read(self.buffer_size)
+    data = self.buffer[self.pos:self.pos + amt]
+    self.pos += amt
+    if self.pos >= len(self.buffer):
+      self.pos = 0
+      self.buffer = ''
+    return data
