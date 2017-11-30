@@ -18,10 +18,10 @@ from graphite.worker_pool.pool import PoolTimeoutError
 class StorageTest(TestCase):
 
   def test_fetch(self):
-    disabled_finder = DisabledFinder()
-    legacy_finder = LegacyFinder()
-    test_finder = TestFinder()
-    remote_finder = RemoteFinder()
+    disabled_finder = get_finders('tests.test_storage.DisabledFinder')[0]
+    legacy_finder = get_finders('tests.test_storage.LegacyFinder')[0]
+    test_finder = get_finders('tests.test_storage.TestFinder')[0]
+    remote_finder = get_finders('tests.test_storage.RemoteFinder')[0]
 
     store = Store(
       finders=[disabled_finder, legacy_finder, test_finder, remote_finder],
@@ -42,6 +42,17 @@ class StorageTest(TestCase):
     # fetch with empty patterns
     result = store.fetch([], 1, 2, 3, {})
     self.assertEqual(result, [])
+
+    # fetch
+    result = store.fetch(['a.**'], 1, 2, 3, {})
+    self.assertEqual(len(result), 3)
+    result.sort(key=lambda node: node['name'])
+    self.assertEqual(result[0]['name'], 'a.b.c.d')
+    self.assertEqual(result[0]['pathExpression'], 'a.**')
+    self.assertEqual(result[1]['name'], 'a.b.c.d')
+    self.assertEqual(result[1]['pathExpression'], 'a.**')
+    self.assertEqual(result[2]['name'], 'a.b.c.e')
+    self.assertEqual(result[2]['pathExpression'], 'a.**')
 
   def test_fetch_pool_timeout(self):
     # pool timeout

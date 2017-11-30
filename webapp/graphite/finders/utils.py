@@ -2,6 +2,7 @@
 import time
 import abc
 
+from graphite.node import BranchNode, LeafNode  # noqa
 from graphite.util import is_pattern
 from graphite.intervals import Interval
 
@@ -129,6 +130,9 @@ class BaseFinder(object):
         result = []
 
         for node, query in self.find_multi(queries):
+            if not isinstance(node, LeafNode):
+                continue
+
             time_info, values = node.fetch(
                 start_time, end_time,
                 now=now, requestContext=requestContext
