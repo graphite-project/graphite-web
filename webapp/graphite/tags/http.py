@@ -23,10 +23,20 @@ class HttpTagDB(BaseTagDB):
     if 'Authorization' not in headers and self.username and self.password:
       headers['Authorization'] = 'Basic ' + ('%s:%s' % (self.username, self.password)).encode('base64')
 
+    req_fields = []
+    for (field, value) in fields.items():
+      if value is None:
+        continue
+
+      if isinstance(value, list) or isinstance(value, tuple):
+        req_fields.extend([(field, v) for v in value if v is not None])
+      else:
+        req_fields.append((field, value))
+
     result = http.request(
       method,
       self.base_url + url,
-      fields={field: value for (field, value) in fields.items() if value is not None},
+      fields=req_fields,
       headers=headers,
       timeout=self.settings.REMOTE_FIND_TIMEOUT,
     )
