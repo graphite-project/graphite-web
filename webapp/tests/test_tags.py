@@ -308,10 +308,17 @@ class TagsTest(TestCase):
       else:
         self.assertEqual(headers, {})
 
+      req_fields = {}
+      for (field, value) in fields:
+        if field in req_fields:
+          req_fields[field].append(value)
+        else:
+          req_fields[field] = [value]
+
       if method == 'POST':
-        result = self.client.post(url, fields)
+        result = self.client.post(url, req_fields)
       elif method == 'GET':
-        result = self.client.get(url, fields)
+        result = self.client.get(url, req_fields)
       else:
         raise Exception('Invalid HTTP method %s' % method)
 
