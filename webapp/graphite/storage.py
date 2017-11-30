@@ -405,7 +405,7 @@ class Store(object):
 
         results = set()
 
-        # if we're using the local tagdb then execute it
+        # if we're using the local tagdb then execute it (in the main thread so that LocalDatabaseTagDB will work)
         if use_tagdb:
           results.update(self.tagdb.auto_complete_tags(exprs, tagPrefix=tagPrefix, limit=limit, requestContext=requestContext))
 
@@ -420,16 +420,17 @@ class Store(object):
 
             if job.exception:
               errors += 1
-              raise Exception('%s %s %s %s' % (job.func, job.args, job.kwargs, job.exception))
               log.info("Autocomplete tags for %s %s failed after %fs: %s" % (str(exprs), tagPrefix or '', time.time() - start, str(job.exception)))
               continue
 
             log.debug("Got an autocomplete result for %s %s after %fs" % (str(exprs), tagPrefix or '', time.time() - start))
             results.update(job.result)
         except PoolTimeoutError:
-          log.info("Timed out in autocomplete tags after %fs" % (time.time() - start))
+          raise Exception("Timed out in autocomplete tags for %s %s after %fs" % (str(exprs), tagPrefix or '', time.time() - start))
 
         if errors == done:
+          if errors == 1:
+            raise Exception("Autocomplete tags for %s %s failed: %s" % (str(exprs), tagPrefix or '', str(job.exception)))
           raise Exception('All autocomplete tag requests failed for %s %s' % (str(exprs), tagPrefix or ''))
 
         # sort & limit results
@@ -466,7 +467,7 @@ class Store(object):
 
         results = set()
 
-        # if we're using the local tagdb then execute it
+        # if we're using the local tagdb then execute it (in the main thread so that LocalDatabaseTagDB will work)
         if use_tagdb:
           results.update(self.tagdb.auto_complete_values(exprs, tag, valuePrefix=valuePrefix, limit=limit, requestContext=requestContext))
 
@@ -487,9 +488,11 @@ class Store(object):
             log.debug("Got an autocomplete result for %s %s %s after %fs" % (str(exprs), tag, valuePrefix or '', time.time() - start))
             results.update(job.result)
         except PoolTimeoutError:
-          log.info("Timed out in autocomplete values after %fs" % (time.time() - start))
+          raise Exception("Timed out in autocomplete values for %s %s %s after %fs" % (str(exprs), tag, valuePrefix or '', time.time() - start))
 
         if errors == done:
+          if errors == 1:
+            raise Exception("Autocomplete values for %s %s %s failed: %s" % (str(exprs), tag, valuePrefix or '', str(job.exception)))
           raise Exception('All autocomplete value requests failed for %s %s %s' % (str(exprs), tag, valuePrefix or ''))
 
         # sort & limit results

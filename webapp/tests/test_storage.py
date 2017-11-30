@@ -299,8 +299,6 @@ class StorageTest(TestCase):
         TimeSeries('testtags;hello=tiger', 0, 60, 1, [], pathExpression='seriesByTag("name=testtags")'),
       ])
 
-    results = store.tagdb_auto_complete_tags([])
-
   @override_settings(USE_WORKER_POOL=True)
   def test_fetch_no_tag_support(self):
     class TestFinderNoTags(BaseFinder):
@@ -334,16 +332,6 @@ class StorageTest(TestCase):
 
     tagdb.find_series.side_effect = mockFindSeries
 
-    def mockAutoCompleteTags(exprs, tagPrefix=None, limit=None, requestContext=None):
-      pass
-
-    tagdb.auto_complete_tags.side_effect = mockAutoCompleteTags
-
-    def mockAutoCompleteValues(exprs, tag, valuePrefix=None, limit=None, requestContext=None):
-      pass
-
-    tagdb.auto_complete_values.side_effect = mockAutoCompleteValues
-
     store = Store(
       finders=[TestFinderNoTags()],
       tagdb=tagdb
@@ -363,6 +351,172 @@ class StorageTest(TestCase):
         TimeSeries('notags;hello=tiger', 0, 60, 1, [], pathExpression='seriesByTag("hello=tiger")'),
         TimeSeries('notags;hello=tiger', 0, 60, 1, [], pathExpression='seriesByTag("name=notags")'),
       ])
+
+  def test_autocomplete(self):
+    test = self
+
+    class TestFinderTags(BaseFinder):
+      tags = True
+
+      def __init__(self, request_limit=100, request_context=None):
+        self.limit = request_limit
+        self.context = request_context or {}
+
+      def find_nodes(self, query):
+        pass
+
+      def auto_complete_tags(self, exprs, tagPrefix=None, limit=None, requestContext=None):
+        test.assertEqual(exprs, ['tag1=value1'])
+        test.assertEqual(tagPrefix, 'test')
+        test.assertEqual(limit, self.limit)
+        test.assertEqual(requestContext, self.context)
+        return ['testtags']
+
+      def auto_complete_values(self, exprs, tag, valuePrefix=None, limit=None, requestContext=None):
+        test.assertEqual(exprs, ['tag1=value1'])
+        test.assertEqual(tag, 'tag2')
+        test.assertEqual(valuePrefix, 'test')
+        test.assertEqual(limit, self.limit)
+        test.assertEqual(requestContext, self.context)
+        return ['testtags']
+
+
+    class TestFinderNoTags(BaseFinder):
+      tags = False
+
+      def find_nodes(self, query):
+        pass
+
+
+    class TestFinderTagsException(TestFinderTags):
+      def auto_complete_tags(self, exprs, tagPrefix=None, limit=None, requestContext=None):
+        raise Exception('TestFinderTagsException.auto_complete_tags')
+
+      def auto_complete_values(self, exprs, tag, valuePrefix=None, limit=None, requestContext=None):
+        raise Exception('TestFinderTagsException.auto_complete_values')
+
+
+    class TestFinderTagsTimeout(TestFinderTags):
+      def auto_complete_tags(self, exprs, tagPrefix=None, limit=None, requestContext=None):
+        time.sleep(0.1)
+        return ['testtags']
+
+      def auto_complete_values(self, exprs, tag, valuePrefix=None, limit=None, requestContext=None):
+        time.sleep(0.1)
+        return ['testtags']
+
+
+    def mockStore(finders, request_limit=100, request_context=None):
+      tagdb = Mock()
+
+      def mockAutoCompleteTags(exprs, tagPrefix=None, limit=None, requestContext=None):
+        self.assertEqual(exprs, ['tag1=value1'])
+        self.assertEqual(tagPrefix, 'test')
+        self.assertEqual(limit, request_limit)
+        self.assertEqual(requestContext, request_context or {})
+        return ['testnotags']
+
+      tagdb.auto_complete_tags.side_effect = mockAutoCompleteTags
+
+      def mockAutoCompleteValues(exprs, tag, valuePrefix=None, limit=None, requestContext=None):
+        self.assertEqual(exprs, ['tag1=value1'])
+        self.assertEqual(tag, 'tag2')
+        self.assertEqual(valuePrefix, 'test')
+        self.assertEqual(limit, request_limit)
+        self.assertEqual(requestContext, request_context or {})
+        return ['testnotags']
+
+      tagdb.auto_complete_values.side_effect = mockAutoCompleteValues
+
+      return Store(
+        finders=finders,
+        tagdb=tagdb,
+      )
+
+    request_context = {}
+
+    # test with both tag-enabled and non-tag-enabled finders
+    store = mockStore([TestFinderTags(), TestFinderNoTags()])
+
+    result = store.tagdb_auto_complete_tags(['tag1=value1'], 'test', 100, request_context)
+    self.assertEqual(store.tagdb.auto_complete_tags.call_count, 1)
+    self.assertEqual(result, ['testnotags', 'testtags'])
+
+    result = store.tagdb_auto_complete_values(['tag1=value1'], 'tag2', 'test', 100, request_context)
+    self.assertEqual(store.tagdb.auto_complete_values.call_count, 1)
+    self.assertEqual(result, ['testnotags', 'testtags'])
+
+    # test with no limit & no requestContext
+    store = mockStore([TestFinderTags(None, {}), TestFinderNoTags()], None, {})
+
+    result = store.tagdb_auto_complete_tags(['tag1=value1'], 'test')
+    self.assertEqual(store.tagdb.auto_complete_tags.call_count, 1)
+    self.assertEqual(result, ['testnotags', 'testtags'])
+
+    result = store.tagdb_auto_complete_values(['tag1=value1'], 'tag2', 'test')
+    self.assertEqual(store.tagdb.auto_complete_values.call_count, 1)
+    self.assertEqual(result, ['testnotags', 'testtags'])
+
+    # test with only tag-enabled finder
+    store = mockStore([TestFinderTags()])
+
+    result = store.tagdb_auto_complete_tags(['tag1=value1'], 'test', 100, request_context)
+    self.assertEqual(store.tagdb.auto_complete_tags.call_count, 0)
+    self.assertEqual(result, ['testtags'])
+
+    result = store.tagdb_auto_complete_values(['tag1=value1'], 'tag2', 'test', 100, request_context)
+    self.assertEqual(store.tagdb.auto_complete_values.call_count, 0)
+    self.assertEqual(result, ['testtags'])
+
+    # test with only non-tag-enabled finder
+    store = mockStore([TestFinderNoTags()])
+
+    result = store.tagdb_auto_complete_tags(['tag1=value1'], 'test', 100, request_context)
+    self.assertEqual(store.tagdb.auto_complete_tags.call_count, 1)
+    self.assertEqual(result, ['testnotags'])
+
+    result = store.tagdb_auto_complete_values(['tag1=value1'], 'tag2', 'test', 100, request_context)
+    self.assertEqual(store.tagdb.auto_complete_values.call_count, 1)
+    self.assertEqual(result, ['testnotags'])
+
+    # test with no finders
+    store = mockStore([])
+
+    result = store.tagdb_auto_complete_tags(['tag1=value1'], 'test', 100, request_context)
+    self.assertEqual(store.tagdb.auto_complete_tags.call_count, 0)
+    self.assertEqual(result, [])
+
+    result = store.tagdb_auto_complete_values(['tag1=value1'], 'tag2', 'test', 100, request_context)
+    self.assertEqual(store.tagdb.auto_complete_values.call_count, 0)
+    self.assertEqual(result, [])
+
+    # test exception handling with one finder
+    store = mockStore([TestFinderTagsException()])
+
+    with self.assertRaisesRegexp(Exception, 'Autocomplete tags for \[\'tag1=value1\'\] test failed: TestFinderTagsException\.auto_complete_tags'):
+      store.tagdb_auto_complete_tags(['tag1=value1'], 'test', 100, request_context)
+
+    with self.assertRaisesRegexp(Exception, 'Autocomplete values for \[\'tag1=value1\'\] tag2 test failed: TestFinderTagsException\.auto_complete_values'):
+      store.tagdb_auto_complete_values(['tag1=value1'], 'tag2', 'test', 100, request_context)
+
+    # test exception handling with more than one finder
+    store = mockStore([TestFinderTagsException(), TestFinderTagsException()])
+
+    with self.assertRaisesRegexp(Exception, 'All autocomplete tag requests failed for \[\'tag1=value1\'\] test'):
+      store.tagdb_auto_complete_tags(['tag1=value1'], 'test', 100, request_context)
+
+    with self.assertRaisesRegexp(Exception, 'All autocomplete value requests failed for \[\'tag1=value1\'\] tag2 test'):
+      store.tagdb_auto_complete_values(['tag1=value1'], 'tag2', 'test', 100, request_context)
+
+    # test pool timeout handling
+    store = mockStore([TestFinderTagsTimeout()])
+
+    with self.settings(USE_WORKER_POOL=True, REMOTE_FIND_TIMEOUT=0):
+      with self.assertRaisesRegexp(Exception, 'Timed out in autocomplete tags for \[\'tag1=value1\'\] test after [-.e0-9]+s'):
+        store.tagdb_auto_complete_tags(['tag1=value1'], 'test', 100, request_context)
+
+      with self.assertRaisesRegexp(Exception, 'Timed out in autocomplete values for \[\'tag1=value1\'\] tag2 test after [-.e0-9]+s'):
+        store.tagdb_auto_complete_values(['tag1=value1'], 'tag2', 'test', 100, request_context)
 
 
 class DisabledFinder(object):
