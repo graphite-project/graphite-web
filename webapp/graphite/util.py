@@ -19,6 +19,7 @@ import sys
 import calendar
 import pytz
 import traceback
+import io
 from datetime import datetime
 from functools import wraps
 from os.path import splitext, basename
@@ -150,7 +151,6 @@ def deltaseconds(timedelta):
   "Convert a timedelta object into seconds (same as timedelta.total_seconds() in Python 2.7+)"
   return (timedelta.microseconds + (timedelta.seconds + timedelta.days * 24 * 3600) * 10**6) / 10**6
 
-
 # This whole song & dance is due to pickle being insecure
 # The SafeUnpickler classes were largely derived from
 # http://nadiana.com/python-pickle-insecure
@@ -257,3 +257,24 @@ def logtime(f):
       timer.stop()
 
   return wrapped_f
+
+
+class BufferedHTTPResponse(io.IOBase):
+    def __init__(self, response, buffersize=1048576):
+        self.response=response
+        self.buffersize = buffersize
+        self.buffer = ''
+        self.pos = 0
+    def read(self, amt=None):
+        if amt is None:
+            return self.response.read()
+        if len(self.buffer) - self.pos < amt:
+            self.buffer = self.buffer[self.pos:]
+            self.pos = 0
+            self.buffer += self.response.read(self.buffersize)
+        data = self.buffer[self.pos:self.pos+amt]
+        self.pos += amt
+        if self.pos == len(self.buffer):
+            self.pos=0
+            self.buffer = ''
+        return data
