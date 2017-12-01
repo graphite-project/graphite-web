@@ -191,9 +191,13 @@ class RemoteFinder(BaseFinder):
             ('limit', str(limit)),
         ]
         for expr in exprs:
-          fields.append(('expr', expr))
+            fields.append(('expr', expr))
 
-        result = self.request('/tags/autoComplete/tags', fields, requestContext)
+        result = self.request(
+            '/tags/autoComplete/tags',
+            fields,
+            headers=requestContext.get('forwardHeaders') if requestContext else None,
+            timeout=settings.REMOTE_FIND_TIMEOUT)
         try:
             reader = codecs.getreader('utf-8')
             results = json.load(reader(result))
@@ -213,7 +217,7 @@ class RemoteFinder(BaseFinder):
         Return auto-complete suggestions for tags and values based on the matches for the specified expressions, optionally filtered by tag and/or value prefix
         """
         if limit is None:
-            limit = self.settings.TAGDB_AUTOCOMPLETE_LIMIT
+            limit = settings.TAGDB_AUTOCOMPLETE_LIMIT
 
         fields = [
             ('tag', tag or ''),
@@ -221,9 +225,13 @@ class RemoteFinder(BaseFinder):
             ('limit', str(limit)),
         ]
         for expr in exprs:
-          fields.append(('expr', expr))
+            fields.append(('expr', expr))
 
-        result = self.request('/tags/autoComplete/values', fields, requestContext)
+        result = self.request(
+            '/tags/autoComplete/values',
+            fields,
+            headers=requestContext.get('forwardHeaders') if requestContext else None,
+            timeout=settings.REMOTE_FIND_TIMEOUT)
         try:
             reader = codecs.getreader('utf-8')
             results = json.load(reader(result))
