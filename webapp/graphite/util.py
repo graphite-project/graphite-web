@@ -25,7 +25,7 @@ from functools import wraps
 from os.path import splitext, basename
 
 try:
-  import cPickle as pickle
+  import six.moves.cPickle as pickle
   USING_CPICKLE = True
 except:
   import pickle

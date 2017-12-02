@@ -14,13 +14,13 @@ limitations under the License."""
 import csv
 import math
 import pytz
-import httplib
+import six.moves.http_client
 
 from datetime import datetime
 from time import time
 from random import shuffle
 from six.moves.urllib.parse import urlencode
-from urlparse import urlsplit, urlunsplit
+from six.moves.urllib.parse import urlsplit, urlunsplit
 from cgi import parse_qs
 
 from graphite.compat import HttpResponse
@@ -458,7 +458,7 @@ connectionPools = {}
 
 
 def connector_class_selector(https_support=False):
-    return httplib.HTTPSConnection if https_support else httplib.HTTPConnection
+    return six.moves.http_client.HTTPSConnection if https_support else six.moves.http_client.HTTPConnection
 
 
 def delegateRendering(graphType, graphOptions, headers=None):
@@ -485,7 +485,7 @@ def delegateRendering(graphType, graphOptions, headers=None):
       # Send the request
       try:
         connection.request('POST','/render/local/', postData, headers)
-      except httplib.CannotSendRequest:
+      except six.moves.http_client.CannotSendRequest:
         connection = connector_class(server) #retry once
         connection.timeout = settings.REMOTE_RENDER_CONNECT_TIMEOUT
         connection.request('POST', '/render/local/', postData, headers)

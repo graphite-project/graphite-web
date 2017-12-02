@@ -12,7 +12,7 @@ from graphite.singleton import ThreadSafeSingleton
 
 
 try:
-  import cPickle as pickle
+  import six.moves.cPickle as pickle
 except ImportError:
   import pickle
 

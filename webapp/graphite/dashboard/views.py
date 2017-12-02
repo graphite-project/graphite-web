@@ -4,7 +4,7 @@ import errno
 
 from os.path import getmtime
 from six.moves.urllib.parse import urlencode
-from ConfigParser import ConfigParser
+from six.moves.configparser import ConfigParser
 from django.shortcuts import render_to_response
 from django.http import QueryDict
 from django.conf import settings

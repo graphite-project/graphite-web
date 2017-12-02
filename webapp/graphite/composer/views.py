@@ -18,8 +18,8 @@ from socket import gethostname
 from email.MIMEMultipart import MIMEMultipart
 from email.MIMEText import MIMEText
 from email.MIMEImage import MIMEImage
-from httplib import HTTPConnection
-from urlparse import urlsplit
+from six.moves.http_client import HTTPConnection
+from six.moves.urllib.parse import urlsplit
 from time import ctime, strftime
 from traceback import format_exc
 from graphite.user_util import getProfile
