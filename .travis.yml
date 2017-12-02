@@ -10,6 +10,7 @@ env:
   - TOXENV=py27-django111-pyparsing2-msgpack
   - TOXENV=py27-django111-pyparsing2-mysql TEST_MYSQL_PASSWORD=graphite
   - TOXENV=py27-django111-pyparsing2-postgresql TEST_POSTGRESQL_PASSWORD=graphite
+  - TOXENV=py36-django111-pyparsing2
   - TOXENV=docs
   - TOXENV=lint
 
