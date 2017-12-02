@@ -25,6 +25,7 @@ from datetime import datetime, timedelta
 from functools import reduce
 from six.moves import range
 import six
+from six.moves import zip
 try:
   from itertools import izip, izip_longest
 except ImportError:
@@ -2535,7 +2536,7 @@ def removeBetweenPercentile(requestContext, seriesList, n):
   if n < 50:
     n = 100 - n
 
-  transposed = zip(*seriesList)
+  transposed = list(zip(*seriesList))
 
   lowPercentiles = [_getPercentile(col, 100-n) for col in transposed]
   highPercentiles = [_getPercentile(col, n) for col in transposed]

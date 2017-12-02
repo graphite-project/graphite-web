@@ -14,6 +14,7 @@ limitations under the License."""
 
 import math, itertools, re, sys
 from six.moves import range
+from six.moves import zip
 try:
     import cairocffi as cairo
 except ImportError:

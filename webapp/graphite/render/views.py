@@ -41,6 +41,7 @@ from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.utils.cache import add_never_cache_headers, patch_response_headers
+from six.moves import zip
 
 
 def renderView(request):
@@ -194,7 +195,7 @@ def renderViewJson(requestOptions, data):
     if maxDataPoints == 1:
       for series in data:
         series.consolidate(len(series))
-        datapoints = zip(series, [int(series.start)])
+        datapoints = list(zip(series, [int(series.start)]))
         series_data.append(dict(target=series.name, tags=series.tags, datapoints=datapoints))
     else:
       startTime = min([series.start for series in data])
@@ -216,7 +217,7 @@ def renderViewJson(requestOptions, data):
           timestamps = range(int(series.start), int(series.end) + 1, int(secondsPerPoint))
         else:
           timestamps = range(int(series.start), int(series.end) + 1, int(series.step))
-        datapoints = zip(series, timestamps)
+        datapoints = list(zip(series, timestamps))
         series_data.append(dict(target=series.name, tags=series.tags, datapoints=datapoints))
   elif 'noNullPoints' in requestOptions and any(data):
     for series in data:
@@ -230,7 +231,7 @@ def renderViewJson(requestOptions, data):
   else:
     for series in data:
       timestamps = range(int(series.start), int(series.end) + 1, int(series.step))
-      datapoints = zip(series, timestamps)
+      datapoints = list(zip(series, timestamps))
       series_data.append(dict(target=series.name, tags=series.tags, datapoints=datapoints))
 
   output = json.dumps(series_data, indent=(2 if requestOptions.get('pretty') else None)).replace('None,', 'null,').replace('NaN,', 'null,').replace('Infinity,', '1e9999,')
