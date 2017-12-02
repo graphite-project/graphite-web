@@ -109,14 +109,14 @@ class MetricsTester(TestCase):
         #
         response = self.client.post(url, {})
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.content, "Missing required parameter 'query'")
+        self.assertEqual(response.content, b"Missing required parameter 'query'")
 
         #
         # format=invalid_format
         #
         response = self.client.post(url, {'format': 'invalid_format', 'query': '*'})
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.content, "Invalid value for 'format' parameter")
+        self.assertEqual(response.content, b"Invalid value for 'format' parameter")
 
 
         def test_find_view_basics(data):
