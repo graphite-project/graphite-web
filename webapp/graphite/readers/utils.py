@@ -76,7 +76,7 @@ def merge_with_cache(cached_datapoints, start, step, values, func=None, raw_step
 
     for (interval, value) in consolidated:
         try:
-            i = int(interval - start) / step
+            i = int(interval - start) // step
             if i < 0:
                 # cached data point is earlier then the requested data point.
                 # meaning we can definitely ignore the cache result.
