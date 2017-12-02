@@ -274,7 +274,7 @@ class BufferedHTTPReader(io.IOBase):
   def __init__(self, response, buffer_size=1048576):
     self.response = response
     self.buffer_size = buffer_size
-    self.buffer = ''
+    self.buffer = b''
     self.pos = 0
 
   def read(self, amt=None):
@@ -288,5 +288,5 @@ class BufferedHTTPReader(io.IOBase):
     self.pos += amt
     if self.pos >= len(self.buffer):
       self.pos = 0
-      self.buffer = ''
+      self.buffer = b''
     return data
