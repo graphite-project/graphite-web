@@ -74,7 +74,7 @@ class DummyReader(BaseReader):
         self.path = path
 
     def fetch(self, start_time, end_time):
-        npoints = (end_time - start_time) / 10
+        npoints = (end_time - start_time) // 10
         return (start_time, end_time, 10), [
             random.choice([None, 1, 2, 3]) for i in range(npoints)
         ]
