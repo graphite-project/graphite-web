@@ -24,6 +24,7 @@ import time
 from datetime import datetime, timedelta
 from functools import reduce
 from six.moves import range
+import six
 try:
   from itertools import izip, izip_longest
 except ImportError:
@@ -1008,7 +1009,7 @@ def movingWindow(requestContext, seriesList, windowSize, func='average', xFilesF
   if not seriesList:
     return []
 
-  if isinstance(windowSize, basestring):
+  if isinstance(windowSize, six.string_types):
     delta = parseTimeOffset(windowSize)
     previewSeconds = abs(delta.seconds + (delta.days * 86400))
   else:
@@ -1037,7 +1038,7 @@ def movingWindow(requestContext, seriesList, windowSize, func='average', xFilesF
   tagName = 'moving' + func.capitalize()
 
   for series in previewList:
-    if isinstance(windowSize, basestring):
+    if isinstance(windowSize, six.string_types):
       newName = '%s(%s,"%s")' % (tagName, series.name, windowSize)
       windowPoints = previewSeconds // series.step
     else:
@@ -1090,7 +1091,7 @@ def exponentialMovingAverage(requestContext, seriesList, windowSize):
   if not seriesList:
     return []
   # set previewSeconds and constant based on windowSize string or integer
-  if isinstance(windowSize, basestring):
+  if isinstance(windowSize, six.string_types):
     delta = parseTimeOffset(windowSize)
     previewSeconds = abs(delta.seconds + (delta.days * 86400))
     constant = (float(2) / (int(previewSeconds) + 1))
@@ -1106,7 +1107,7 @@ def exponentialMovingAverage(requestContext, seriesList, windowSize):
   result = []
 
   for series in previewList:
-    if isinstance(windowSize, basestring):
+    if isinstance(windowSize, six.string_types):
       newName = 'exponentialMovingAverage(%s,"%s")' % (series.name, windowSize)
       windowPoints = previewSeconds // series.step
     else:

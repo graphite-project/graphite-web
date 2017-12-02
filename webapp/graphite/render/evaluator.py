@@ -3,6 +3,7 @@ import re
 from graphite.render.grammar import grammar
 from graphite.render.datalib import fetchData, TimeSeries, prefetchData
 from graphite.storage import STORE
+import six
 
 
 def evaluateTarget(requestContext, targets, noPrefetch=False):
@@ -19,7 +20,7 @@ def evaluateTarget(requestContext, targets, noPrefetch=False):
     if not target:
       continue
 
-    if isinstance(target, basestring):
+    if isinstance(target, six.string_types):
       if not target.strip():
         continue
       target = grammar.parseString(target)
@@ -61,7 +62,7 @@ def evaluateTokens(requestContext, tokens, replacements=None, pipedArg=None):
       for name in replacements:
         if expression == '$'+name:
           val = replacements[name]
-          if not isinstance(val, str) and not isinstance(val, basestring):
+          if not isinstance(val, six.string_types):
             return val
           elif re.match('^-?[\d.]+$', val):
             return float(val)
@@ -160,7 +161,7 @@ def extractPathExpressions(requestContext, targets):
     if not target:
       continue
 
-    if isinstance(target, basestring):
+    if isinstance(target, six.string_types):
       if not target.strip():
         continue
       target = grammar.parseString(target)
