@@ -65,7 +65,7 @@ class TimeSeriesTest(TestCase):
         self.assertEqual(series1, series2)
 
     def test_TimeSeries_getInfo(self):
-      values = range(0,100)
+      values = list(range(0,100))
       series = TimeSeries("collectd.test-db.load.value", 0, len(values), 1, values)
       self.assertEqual(series.getInfo(), {
         'name': 'collectd.test-db.load.value',
