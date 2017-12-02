@@ -121,7 +121,7 @@ class DashboardTest(TestCase):
         request = {"query": ""}
         response = self.client.get(url, request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, '{"dashboards": []}')
+        self.assertEqual(response.content, b'{"dashboards": []}')
 
     def test_dashboard_save_empty(self):
         url = reverse('dashboard_save', args=['testdashboard'])
@@ -148,7 +148,7 @@ class DashboardTest(TestCase):
         request = {"query": "test"}
         response = self.client.get(url, request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, '{"dashboards": [{"name": "testdashboard"}]}')
+        self.assertEqual(response.content, b'{"dashboards": [{"name": "testdashboard"}]}')
 
     def test_dashboard_find_not_existing(self):
         url = reverse('dashboard_save', args=['testdashboard'])
@@ -160,13 +160,13 @@ class DashboardTest(TestCase):
         request = {"query": "not here"}
         response = self.client.get(url, request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, '{"dashboards": []}')
+        self.assertEqual(response.content, b'{"dashboards": []}')
 
     def test_dashboard_load_not_existing(self):
         url = reverse('dashboard_load', args=['bogusdashboard'])
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, '{"error": "Dashboard \'bogusdashboard\' does not exist. "}')
+        self.assertEqual(response.content, b'{"error": "Dashboard \'bogusdashboard\' does not exist. "}')
 
     def test_dashboard_load_existing(self):
         url = reverse('dashboard_save', args=['testdashboard'])
@@ -177,13 +177,13 @@ class DashboardTest(TestCase):
         url = reverse('dashboard_load', args=['testdashboard'])
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, '{"state": {}}')
+        self.assertEqual(response.content, b'{"state": {}}')
 
     def test_dashboard_delete_nonexisting(self):
         url = reverse('dashboard_delete', args=['bogusdashboard'])
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, '{"error": "Dashboard \'bogusdashboard\' does not exist. "}')
+        self.assertEqual(response.content, b'{"error": "Dashboard \'bogusdashboard\' does not exist. "}')
 
     def test_dashboard_delete_existing(self):
         # Create a dashboard entry
@@ -196,31 +196,31 @@ class DashboardTest(TestCase):
         url = reverse('dashboard_delete', args=['testdashboard'])
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, '{"success": true}')
+        self.assertEqual(response.content, b'{"success": true}')
 
         # Confirm it was deleted
         url = reverse('dashboard_find')
         request = {"query": ""}
         response = self.client.get(url, request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, '{"dashboards": []}')
+        self.assertEqual(response.content, b'{"dashboards": []}')
 
     def test_dashboard_create_temporary(self):
         url = reverse('dashboard_create_temporary')
         request = {"state": '{}'}
         response = self.client.post(url, request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, '{"name": "temporary-0"}')
+        self.assertEqual(response.content, b'{"name": "temporary-0"}')
 
         response = self.client.post(url, request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, '{"name": "temporary-1"}')
+        self.assertEqual(response.content, b'{"name": "temporary-1"}')
 
         url = reverse('dashboard_find')
         request = {"query": ""}
         response = self.client.get(url, request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, '{"dashboards": []}')
+        self.assertEqual(response.content, b'{"dashboards": []}')
 
     def test_dashboard_template_pass_invalid(self):
         url = reverse('dashboard_template', args=['bogustemplate', 'testkey'])
@@ -242,7 +242,7 @@ class DashboardTest(TestCase):
         request = {"query": ""}
         response = self.client.get(url, request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, '{"templates": []}')
+        self.assertEqual(response.content, b'{"templates": []}')
 
     def test_dashboard_save_template(self):
         url = reverse('dashboard_save_template', args=['testtemplate', 'testkey'])
@@ -272,7 +272,7 @@ class DashboardTest(TestCase):
         request = {"query": "test"}
         response = self.client.get(url, request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, '{"templates": [{"name": "testtemplate"}]}')
+        self.assertEqual(response.content, b'{"templates": [{"name": "testtemplate"}]}')
 
     def test_dashboard_find_template_nonexistent(self):
         url = reverse('dashboard_save_template', args=['testtemplate', 'testkey'])
@@ -284,7 +284,7 @@ class DashboardTest(TestCase):
         request = {"query": "not here"}
         response = self.client.get(url, request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, '{"templates": []}')
+        self.assertEqual(response.content, b'{"templates": []}')
 
     def test_dashboard_load_template_nonexistent(self):
         url = reverse('dashboard_save_template', args=['testtemplate', 'testkey'])
@@ -295,7 +295,7 @@ class DashboardTest(TestCase):
         url = reverse('dashboard_load_template', args=['bogustemplate', 'testkey'])
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, '{"error": "Template \'bogustemplate\' does not exist. "}')
+        self.assertEqual(response.content, b'{"error": "Template \'bogustemplate\' does not exist. "}')
 
     def test_dashboard_load_template_existing(self):
         url = reverse('dashboard_save_template', args=['testtemplate', 'testkey'])
@@ -315,7 +315,7 @@ class DashboardTest(TestCase):
         url = reverse('dashboard_delete_template', args=['bogustemplate'])
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, '{"error": "Template \'bogustemplate\' does not exist. "}')
+        self.assertEqual(response.content, b'{"error": "Template \'bogustemplate\' does not exist. "}')
 
     def test_dashboard_delete_template_existing(self):
         url = reverse('dashboard_save_template', args=['testtemplate', 'testkey'])
@@ -332,7 +332,7 @@ class DashboardTest(TestCase):
         request = {"query": ""}
         response = self.client.get(url, request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, '{"templates": []}')
+        self.assertEqual(response.content, b'{"templates": []}')
 
     def test_dashboard_help(self):
         url = reverse('dashboard_help')
@@ -348,7 +348,7 @@ class DashboardTest(TestCase):
                    "message": "Here is the test graph",
                    "graph_params": '{"target":["sumSeries(a.b.c.d)"],"title":"Test","width":"500","from":"-55minutes","until":"now","height":"400"}'}
         response = self.client.post(url, request)
-        self.assertEqual(response.content, '{"success": true}')
+        self.assertEqual(response.content, b'{"success": true}')
 
     @mock.patch('graphite.dashboard.views.renderView')
     def test_dashboard_email_mock_renderView(self, rv):
@@ -362,7 +362,7 @@ class DashboardTest(TestCase):
         responseObject.content = ''
         rv.return_value = responseObject
         response = self.client.post(url, request)
-        self.assertEqual(response.content, '{"success": true}')
+        self.assertEqual(response.content, b'{"success": true}')
 
     def test_dashboard_login_invalid_authenticate(self):
         url = reverse('dashboard_login')
@@ -411,7 +411,7 @@ class DashboardTest(TestCase):
         request = {"state": '{}'}
         response = self.client.post(url, request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, '{"error": "Must be logged in with appropriate permissions to save"}')
+        self.assertEqual(response.content, b'{"error": "Must be logged in with appropriate permissions to save"}')
 
     @mock.patch('graphite.dashboard.views.getPermissions')
     def test_dashboard_delete_no_permissions(self, gp):
@@ -419,7 +419,7 @@ class DashboardTest(TestCase):
         url = reverse('dashboard_delete', args=['testdashboard'])
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, '{"error": "Must be logged in with appropriate permissions to delete"}')
+        self.assertEqual(response.content, b'{"error": "Must be logged in with appropriate permissions to delete"}')
 
     @mock.patch('graphite.dashboard.views.getPermissions')
     def test_dashboard_save_template_no_permissions(self, gp):
@@ -428,7 +428,7 @@ class DashboardTest(TestCase):
         request = copy.deepcopy(self.testtemplate)
         response = self.client.post(url, request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, '{"error": "Must be logged in with appropriate permissions to save the template"}')
+        self.assertEqual(response.content, b'{"error": "Must be logged in with appropriate permissions to save the template"}')
 
     @mock.patch('graphite.dashboard.views.getPermissions')
     def test_dashboard_delete_template_no_permissions(self, gp):
@@ -436,7 +436,7 @@ class DashboardTest(TestCase):
         url = reverse('dashboard_delete_template', args=['testtemplate'])
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, '{"error": "Must be logged in with appropriate permissions to delete the template"}')
+        self.assertEqual(response.content, b'{"error": "Must be logged in with appropriate permissions to delete the template"}')
 
     def test_getPermissions_no_user(self):
         settings.DASHBOARD_REQUIRE_AUTHENTICATION=False
