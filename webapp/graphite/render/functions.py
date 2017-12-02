@@ -22,6 +22,7 @@ import re
 import time
 
 from datetime import datetime, timedelta
+from functools import reduce
 try:
   from itertools import izip, izip_longest
 except ImportError:
