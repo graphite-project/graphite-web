@@ -1,6 +1,7 @@
 from django.db import models
 from graphite.account.models import Profile
 from graphite.util import json
+import six
 
 class Dashboard(models.Model):
   name = models.CharField(primary_key=True, max_length=128)
@@ -22,7 +23,7 @@ class Template(models.Model):
   def setState(self, state, key):
     #XXX Might not need this
     def replace_string(s):
-      if isinstance(s, unicode):
+      if isinstance(s, six.text_type):
         s = s.replace(key, '__VALUE__')
       return s
 

@@ -1,6 +1,7 @@
 import copy
 import math
 import pytz
+import six
 
 from datetime import datetime
 from fnmatch import fnmatch
@@ -5815,7 +5816,7 @@ class FunctionsTest(TestCase):
 
         """
         seriesList = []
-        if isinstance(key, (str, unicode)):
+        if isinstance(key, six.string_types):
             seriesList = [
                 TimeSeries(key, start, end, step, data)
             ]
