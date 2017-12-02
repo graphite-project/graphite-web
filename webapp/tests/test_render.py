@@ -5,6 +5,7 @@ import time
 import math
 import logging
 import shutil
+import sys
 
 from mock import patch
 
@@ -32,6 +33,12 @@ LOGGER = logging.getLogger()
 if hasattr(logging, "NullHandler"):
     LOGGER.addHandler(logging.NullHandler())
 
+if sys.version_info[0] >= 3:
+    def resp_text(r):
+        return r.content.decode('utf-8')
+else:
+    def resp_text(r):
+        return r.content
 
 class RenderTest(TestCase):
     db = os.path.join(settings.WHISPER_DIR, 'test.wsp')
@@ -253,25 +260,25 @@ class RenderTest(TestCase):
         response = self.client.get(url, {'target': 'test', 'format': 'csv', 'from': ts-50, 'now': ts})
         self.assertEqual(response['content-type'], 'text/csv')
         self.assertEqual(sorted(response['cache-control'].split(', ')), ['max-age=60'])
-        self.assertEqual(response.content, csv_response)
+        self.assertEqual(resp_text(response), csv_response)
 
         # test noCache flag
         response = self.client.get(url, {'target': 'test', 'format': 'csv', 'noCache': 1, 'from': ts-50, 'now': ts})
         self.assertEqual(response['content-type'], 'text/csv')
         self.assertEqual(sorted(response['cache-control'].split(', ')), ['max-age=0', 'must-revalidate', 'no-cache', 'no-store'])
-        self.assertEqual(response.content, csv_response)
+        self.assertEqual(resp_text(response), csv_response)
 
         # test cacheTimeout=0 flag
         response = self.client.get(url, {'target': 'test', 'format': 'csv', 'cacheTimeout': 0, 'from': ts-50, 'now': ts})
         self.assertEqual(response['content-type'], 'text/csv')
         self.assertEqual(sorted(response['cache-control'].split(', ')), ['max-age=0', 'must-revalidate', 'no-cache', 'no-store'])
-        self.assertEqual(response.content, csv_response)
+        self.assertEqual(resp_text(response), csv_response)
 
         # test alternative target syntax
         response = self.client.get(url, {'target[]': 'test', 'format': 'csv', 'from': ts-50, 'now': ts})
         self.assertEqual(response['content-type'], 'text/csv')
         self.assertEqual(sorted(response['cache-control'].split(', ')), ['max-age=60'])
-        self.assertEqual(response.content, csv_response)
+        self.assertEqual(resp_text(response), csv_response)
 
         # test multiple targets & empty targets
         csv_response = ""
@@ -299,20 +306,20 @@ class RenderTest(TestCase):
         response = self.client.get(url + '?target=test&target=%20test2&target=%20&format=csv&from=' + str(ts - 50) + '&now=' + str(ts))
         self.assertEqual(response['content-type'], 'text/csv')
         self.assertEqual(sorted(response['cache-control'].split(', ')), ['max-age=60'])
-        self.assertEqual(response.content.split("\r\n"), csv_response.split("\r\n"))
-        self.assertEqual(response.content, csv_response)
+        self.assertEqual(resp_text(response).split("\r\n"), csv_response.split("\r\n"))
+        self.assertEqual(resp_text(response), csv_response)
 
         response = self.client.get(url + '?target[]=test&target[]=%20test2&target[]=%20&format=csv&from=' + str(ts - 50) + '&now=' + str(ts))
         self.assertEqual(response['content-type'], 'text/csv')
         self.assertEqual(sorted(response['cache-control'].split(', ')), ['max-age=60'])
-        self.assertEqual(response.content.split("\r\n"), csv_response.split("\r\n"))
-        self.assertEqual(response.content, csv_response)
+        self.assertEqual(resp_text(response).split("\r\n"), csv_response.split("\r\n"))
+        self.assertEqual(resp_text(response), csv_response)
 
         # test no targets
         response = self.client.get(url, {'format': 'csv'})
         self.assertEqual(response['content-type'], 'text/csv')
         self.assertEqual(sorted(response['cache-control'].split(', ')), ['max-age=60'])
-        self.assertEqual(response.content, '')
+        self.assertEqual(response.content, b'')
 
         # test raw format
         raw_data = ("None,None,None,None,None,None,None,None,None,None,None,"
@@ -322,13 +329,13 @@ class RenderTest(TestCase):
                     "0.12345678901234568,0.4,0.6,inf,-inf,nan")
         raw_response = "test,%d,%d,1|%s\n" % (ts-49, ts+1, raw_data)
         response = self.client.get(url, {'target': 'test', 'format': 'raw', 'from': ts-50, 'now': ts})
-        self.assertEqual(response.content, raw_response)
+        self.assertEqual(resp_text(response), raw_response)
 
         response = self.client.get(url, {'target': 'test', 'format': 'raw', 'from': ts-50, 'until': ts})
-        self.assertEqual(response.content, raw_response)
+        self.assertEqual(resp_text(response), raw_response)
 
         response = self.client.get(url, {'target': 'test', 'rawData': 1, 'from': ts-50, 'now': ts})
-        self.assertEqual(response.content, raw_response)
+        self.assertEqual(resp_text(response), raw_response)
 
         # test pickle format
         expected = [
@@ -374,9 +381,9 @@ class RenderTest(TestCase):
         # test json format
         response = self.client.get(url, {'target': 'test', 'format': 'json', 'from': ts-50, 'now': ts})
         self.assertEqual(response['content-type'], 'application/json')
-        self.assertIn('[1e9999, ' + str(ts - 2) + ']', response.content)
-        self.assertIn('[-1e9999, ' + str(ts - 1) + ']', response.content)
-        self.assertIn('[null, ' + str(ts) + ']', response.content)
+        self.assertIn('[1e9999, ' + str(ts - 2) + ']', resp_text(response))
+        self.assertIn('[-1e9999, ' + str(ts - 1) + ']', resp_text(response))
+        self.assertIn('[null, ' + str(ts) + ']', resp_text(response))
         data = json.loads(response.content)
         expected = [
             {
@@ -402,14 +409,14 @@ class RenderTest(TestCase):
         # test jsonp
         responsejsonp = self.client.get(url, {'target': 'test', 'format': 'json', 'jsonp': 'test', 'from': ts-50, 'now': ts})
         self.assertEqual(responsejsonp['content-type'], 'text/javascript')
-        self.assertEqual(responsejsonp.content, 'test(' + response.content + ')')
+        self.assertEqual(resp_text(responsejsonp), 'test(' + resp_text(response) + ')')
 
         # test noNullPoints
         response = self.client.get(url, {'target': 'test', 'format': 'json', 'noNullPoints': 1, 'now': ts})
         self.assertEqual(response['content-type'], 'application/json')
-        self.assertIn('[1e9999, ' + str(ts - 2) + ']', response.content)
-        self.assertIn('[-1e9999, ' + str(ts - 1) + ']', response.content)
-        self.assertNotIn('[null, ' + str(ts) + ']', response.content)
+        self.assertIn('[1e9999, ' + str(ts - 2) + ']', resp_text(response))
+        self.assertIn('[-1e9999, ' + str(ts - 1) + ']', resp_text(response))
+        self.assertNotIn('[null, ' + str(ts) + ']', resp_text(response))
         data = json.loads(response.content)
         expected = [
             {
@@ -444,13 +451,13 @@ class RenderTest(TestCase):
         # test dygraph
         response = self.client.get(url, {'target': 'test', 'format': 'dygraph', 'from': ts-50, 'now': ts})
         self.assertEqual(response['content-type'], 'application/json')
-        self.assertIn('[' + str((ts - 2) * 1000) + ', Infinity]', response.content)
-        self.assertIn('[' + str((ts - 1) * 1000) + ', -Infinity]', response.content)
+        self.assertIn('[' + str((ts - 2) * 1000) + ', Infinity]', resp_text(response))
+        self.assertIn('[' + str((ts - 1) * 1000) + ', -Infinity]', resp_text(response))
         data = json.loads(response.content)
         end = data['data'][-7:]
         self.assertEqual(end,
             [[(ts - 6) * 1000, None],
-            [(ts - 5) * 1000, 0.123456789012],
+            [(ts - 5) * 1000, 0.12345678901234568],
             [(ts - 4) * 1000, 0.4],
             [(ts - 3) * 1000, 0.6],
             [(ts - 2) * 1000, float('inf')],
@@ -459,7 +466,7 @@ class RenderTest(TestCase):
 
         responsejsonp = self.client.get(url, {'target': 'test', 'format': 'dygraph', 'jsonp': 'test', 'from': ts-50, 'now': ts})
         self.assertEqual(responsejsonp['content-type'], 'text/javascript')
-        self.assertEqual(responsejsonp.content, 'test(' + response.content + ')')
+        self.assertEqual(resp_text(responsejsonp), 'test(' + resp_text(response) + ')')
 
         # test rickshaw
         response = self.client.get(url, {'target': 'test', 'format': 'rickshaw', 'from': ts-50, 'now': ts})
@@ -480,7 +487,7 @@ class RenderTest(TestCase):
 
         responsejsonp = self.client.get(url, {'target': 'test', 'format': 'rickshaw', 'jsonp': 'test', 'from': ts-50, 'now': ts})
         self.assertEqual(responsejsonp['content-type'], 'text/javascript')
-        self.assertEqual(responsejsonp.content, 'test(' + response.content + ')')
+        self.assertEqual(resp_text(responsejsonp), 'test(' + resp_text(response) + ')')
 
 
     def verify_maxDataPoints(self, data, tests):
