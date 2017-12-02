@@ -457,7 +457,8 @@ class RenderTest(TestCase):
         end = data['data'][-7:]
         self.assertEqual(end,
             [[(ts - 6) * 1000, None],
-            [(ts - 5) * 1000, 0.12345678901234568],
+             # Floats lose some precision on Py2. str() makes it match the tested code
+            [(ts - 5) * 1000, float(str(0.12345678901234568))],
             [(ts - 4) * 1000, 0.4],
             [(ts - 3) * 1000, 0.6],
             [(ts - 2) * 1000, float('inf')],
