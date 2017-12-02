@@ -18,9 +18,9 @@ def jsonResponse(f):
     try:
       return _jsonResponse(f(request, queryParams, *args, **kwargs), queryParams)
     except ValueError as err:
-      return _jsonError(err.message, queryParams, getattr(err, 'status', 400))
+      return _jsonError(str(err), queryParams, getattr(err, 'status', 400))
     except Exception as err:
-      return _jsonError(err.message, queryParams, getattr(err, 'status', 500))
+      return _jsonError(str(err), queryParams, getattr(err, 'status', 500))
 
   return wrapped_f
 
