@@ -5,8 +5,8 @@ sudo: false
 matrix:
   include:
     - python: 3.6
-    - env:
-      - TOXENV=py36-django111-pyparsing2
+      env:
+        - TOXENV=py36-django111-pyparsing2
 
 env:
   - TOXENV=py27-django18-pyparsing2
