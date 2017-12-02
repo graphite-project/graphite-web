@@ -1049,7 +1049,7 @@ class LineGraph(Graph):
 
     for series in self.data:
       if not hasattr(series, 'color'):
-        series.color = self.colors.next()
+        series.color = next(self.colors)
 
     titleSize = self.defaultFontParams['size'] + math.floor( math.log(self.defaultFontParams['size']) )
     self.setFont( size=titleSize )
@@ -1802,7 +1802,7 @@ class PieGraph(Graph):
         'name' : name,
         'value' : value,
         'percent' : value / self.total,
-        'color' : self.colors.next(),
+        'color' : next(self.colors),
         'alpha' : self.alpha,
       })
 
