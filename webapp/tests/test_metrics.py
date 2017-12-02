@@ -79,7 +79,7 @@ class MetricsTester(TestCase):
         request = {'jsonp': 'callback'}
         response = self.client.post(url, request)
         self.assertEqual(response.status_code, 200)
-        data = json.loads(response.content.split("(")[1].strip(")"))
+        data = json.loads(response.content.split(b"(")[1].strip(b")"))
         self.assertEqual(data[0], 'hosts.worker1.cpu')
         self.assertEqual(data[1], 'hosts.worker2.cpu')
 
