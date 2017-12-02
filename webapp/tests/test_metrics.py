@@ -153,7 +153,7 @@ class MetricsTester(TestCase):
         request['format']='treejson'
         request['query']='other'
         content = test_find_view_basics(request)
-        self.assertEqual(content, '[]')
+        self.assertEqual(content, b'[]')
 
         request['query']='*'
         request['wildcards']=1
