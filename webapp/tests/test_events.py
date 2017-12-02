@@ -1,6 +1,7 @@
 import time
 import json
 import re
+import sys
 
 from datetime import timedelta
 
@@ -79,7 +80,13 @@ class EventTest(TestCase):
 
         response = self.client.get(creation_url)
         self.assertEqual(response.status_code, 200)
-        self.assertRegexpMatches(response.content, re.compile(b'^<html>.+<title>Events</title>.+Something happened.+<td>\\[u&#39;foo&#39;, u&#39;bar&#39;\\]</td>.+</html>$', re.DOTALL))
+        if sys.version_info[0] >= 3:
+            # Python 3: 'strings'
+            expected_re = b'^<html>.+<title>Events</title>.+Something happened.+<td>\\[&#39;foo&#39;, &#39;bar&#39;\\]</td>.+</html>$'
+        else:
+            # Python 2: u'strings'
+            expected_re = b'^<html>.+<title>Events</title>.+Something happened.+<td>\\[u&#39;foo&#39;, u&#39;bar&#39;\\]</td>.+</html>$'
+        self.assertRegexpMatches(response.content, re.compile(expected_re, re.DOTALL))
 
     def test_tag_as_str(self):
         creation_url = reverse('events')
