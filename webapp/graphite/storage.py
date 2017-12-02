@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import time
 import random
 import sys
@@ -7,6 +8,7 @@ from collections import defaultdict
 
 from django.conf import settings
 from django.core.cache import cache
+import six
 
 try:
     from importlib import import_module
@@ -229,7 +231,7 @@ class Store(object):
         # Reduce matching nodes for each path to a minimal set
         found_branch_nodes = set()
 
-        items = list(nodes_by_path.iteritems())
+        items = list(six.iteritems(nodes_by_path))
         random.shuffle(items)
 
         for path, nodes in items:
