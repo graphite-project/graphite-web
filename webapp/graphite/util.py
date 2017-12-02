@@ -24,6 +24,10 @@ from datetime import datetime
 from functools import wraps
 from os.path import splitext, basename
 
+from django.conf import settings
+from django.utils.timezone import make_aware
+from graphite.logger import log
+
 try:
   import cPickle as pickle
   USING_CPICKLE = True
@@ -47,10 +51,6 @@ try:
 # otherwise fall back to bundled https://github.com/vsergeev/u-msgpack-python
 except ImportError:
   import graphite.umsgpack as msgpack  # NOQA
-
-from django.conf import settings
-from django.utils.timezone import make_aware
-from graphite.logger import log
 
 
 # There are a couple different json modules floating around out there with

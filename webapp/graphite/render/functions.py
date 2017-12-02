@@ -23,9 +23,8 @@ import time
 
 from datetime import datetime, timedelta
 from functools import reduce
-from six.moves import range
+from six.moves import range, zip
 import six
-from six.moves import zip
 try:
   from itertools import izip, izip_longest
 except ImportError:

@@ -13,8 +13,16 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 import math, itertools, re, sys
-from six.moves import range
-from six.moves import zip
+from datetime import datetime, timedelta
+from six.moves import range, zip
+from six.moves.urllib.parse import unquote_plus
+from six.moves.configparser import SafeConfigParser
+from django.conf import settings
+import pytz
+
+from graphite.render.datalib import TimeSeries
+from graphite.util import json
+
 try:
     import cairocffi as cairo
 except ImportError:
@@ -29,14 +37,7 @@ else:
     from cStringIO import StringIO
   except ImportError:
     from StringIO import StringIO
-from datetime import datetime, timedelta
-from six.moves.urllib.parse import unquote_plus
-from six.moves.configparser import SafeConfigParser
-from django.conf import settings
-from graphite.render.datalib import TimeSeries
-from graphite.util import json
 
-import pytz
 
 INFINITY = float('inf')
 
