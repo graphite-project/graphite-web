@@ -12,7 +12,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 import pytz
-import urllib
+from six.moves.urllib.parse import unquote_plus
 
 from datetime import datetime
 from django.conf import settings
@@ -290,7 +290,7 @@ def tree_json(nodes, base_path, wildcards=False):
 
     found.add(node.name)
     resultNode = {
-      'text' : urllib.unquote_plus(str(node.name)),
+      'text' : unquote_plus(str(node.name)),
       'id' : base_path + str(node.name),
     }
 

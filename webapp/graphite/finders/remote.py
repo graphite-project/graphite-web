@@ -1,7 +1,7 @@
 import codecs
 import time
 
-from urllib import urlencode
+from six.moves.urllib.parse import urlencode
 from urlparse import urlsplit, parse_qs
 
 from django.conf import settings

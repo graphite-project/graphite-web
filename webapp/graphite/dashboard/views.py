@@ -3,7 +3,7 @@ import re
 import errno
 
 from os.path import getmtime
-from urllib import urlencode
+from six.moves.urllib.parse import urlencode
 from ConfigParser import ConfigParser
 from django.shortcuts import render_to_response
 from django.http import QueryDict

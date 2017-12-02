@@ -20,7 +20,7 @@ except ImportError:
 
 import StringIO
 from datetime import datetime, timedelta
-from urllib import unquote_plus
+from six.moves.urllib.parse import unquote_plus
 from ConfigParser import SafeConfigParser
 from django.conf import settings
 from graphite.render.datalib import TimeSeries

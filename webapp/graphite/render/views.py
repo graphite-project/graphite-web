@@ -19,7 +19,7 @@ import httplib
 from datetime import datetime
 from time import time
 from random import shuffle
-from urllib import urlencode
+from six.moves.urllib.parse import urlencode
 from urlparse import urlsplit, urlunsplit
 from cgi import parse_qs
 
