@@ -326,7 +326,7 @@ class DashboardTest(TestCase):
         url = reverse('dashboard_delete_template', args=['testtemplate'])
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, '{"success": true}')
+        self.assertEqual(response.content, b'{"success": true}')
 
         url = reverse('dashboard_find_template')
         request = {"query": ""}
