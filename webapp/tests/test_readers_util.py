@@ -16,14 +16,14 @@ class MergeWithCacheTests(TestCase):
         step = 60           # (1 minute)
 
         # Fill in half the data.  Nones for the rest.
-        values = list(range(0, window_size/2, step))
-        for i in range(0, window_size/2, step):
+        values = list(range(0, window_size//2, step))
+        for i in range(0, window_size//2, step):
             values.append(None)
 
         # Generate data that would normally come from Carbon.
         # Step will be different since that is what we are testing
         cache_results = []
-        for i in range(start+window_size/2, start+window_size, 1):
+        for i in range(start+window_size//2, start+window_size, 1):
             cache_results.append((i, None))
 
         # merge the db results with the cached results
@@ -36,8 +36,8 @@ class MergeWithCacheTests(TestCase):
         )
 
         # Generate the expected values
-        expected_values = list(range(0, window_size/2, step))
-        for i in range(0, window_size/2, step):
+        expected_values = list(range(0, window_size//2, step))
+        for i in range(0, window_size//2, step):
             expected_values.append(None)
 
         self.assertEqual(expected_values, values)
@@ -49,14 +49,14 @@ class MergeWithCacheTests(TestCase):
         step = 60           # (1 minute)
 
         # Fill in half the data.  Nones for the rest.
-        values = list(range(0, window_size/2, step))
-        for i in range(0, window_size/2, step):
+        values = list(range(0, window_size//2, step))
+        for i in range(0, window_size//2, step):
             values.append(None)
 
         # Generate data that would normally come from Carbon.
         # Step will be different since that is what we are testing
         cache_results = []
-        for i in range(start+window_size/2, start+window_size, 1):
+        for i in range(start+window_size//2, start+window_size, 1):
             cache_results.append((i, 1))
 
         # merge the db results with the cached results
@@ -70,8 +70,8 @@ class MergeWithCacheTests(TestCase):
         )
 
         # Generate the expected values
-        expected_values = list(range(0, window_size/2, step))
-        for i in range(0, window_size/2, step):
+        expected_values = list(range(0, window_size//2, step))
+        for i in range(0, window_size//2, step):
             expected_values.append(60)
 
         self.assertEqual(expected_values, values)
@@ -83,14 +83,14 @@ class MergeWithCacheTests(TestCase):
         step = 60           # (1 minute)
 
         # Fill in half the data.  Nones for the rest.
-        values = list(range(0, window_size/2, step))
-        for i in range(0, window_size/2, step):
+        values = list(range(0, window_size//2, step))
+        for i in range(0, window_size//2, step):
             values.append(None)
 
         # Generate data that would normally come from Carbon.
         # Step will be different since that is what we are testing
         cache_results = []
-        for i in range(start+window_size/2, start+window_size, 1):
+        for i in range(start+window_size//2, start+window_size, 1):
             cache_results.append((i, 1))
 
         # merge the db results with the cached results
@@ -103,8 +103,8 @@ class MergeWithCacheTests(TestCase):
         )
 
         # Generate the expected values
-        expected_values = list(range(0, window_size/2, step))
-        for i in range(0, window_size/2, step):
+        expected_values = list(range(0, window_size//2, step))
+        for i in range(0, window_size//2, step):
             expected_values.append(60)
 
         self.assertEqual(expected_values, values)
@@ -116,14 +116,14 @@ class MergeWithCacheTests(TestCase):
         step = 60           # (1 minute)
 
         # Fill in half the data.  Nones for the rest.
-        values = list(range(0, window_size/2, step))
-        for i in range(0, window_size/2, step):
+        values = list(range(0, window_size//2, step))
+        for i in range(0, window_size//2, step):
             values.append(None)
 
         # Generate data that would normally come from Carbon.
         # Step will be different since that is what we are testing
         cache_results = []
-        for i in range(start+window_size/2, start+window_size, 1):
+        for i in range(start+window_size//2, start+window_size, 1):
             cache_results.append((i, 1))
 
         # merge the db results with the cached results
@@ -136,8 +136,8 @@ class MergeWithCacheTests(TestCase):
         )
 
         # Generate the expected values
-        expected_values = list(range(0, window_size/2, step))
-        for i in range(0, window_size/2, step):
+        expected_values = list(range(0, window_size//2, step))
+        for i in range(0, window_size//2, step):
             expected_values.append(60)
 
         self.assertEqual(expected_values, values)
@@ -149,14 +149,14 @@ class MergeWithCacheTests(TestCase):
         step = 60           # (1 minute)
 
         # Fill in half the data.  Nones for the rest.
-        values = list(range(0, window_size/2, step))
-        for i in range(0, window_size/2, step):
+        values = list(range(0, window_size//2, step))
+        for i in range(0, window_size//2, step):
             values.append(None)
 
         # Generate data that would normally come from Carbon.
         # Step will be different since that is what we are testing
         cache_results = []
-        for i in range(start+window_size/2, start+window_size, 1):
+        for i in range(start+window_size//2, start+window_size, 1):
             cache_results.append((i, 1))
 
         # merge the db results with the cached results
@@ -170,8 +170,8 @@ class MergeWithCacheTests(TestCase):
         )
 
         # Generate the expected values
-        expected_values = list(range(0, window_size/2, step))
-        for i in range(0, window_size/2, step):
+        expected_values = list(range(0, window_size//2, step))
+        for i in range(0, window_size//2, step):
             expected_values.append(2)
 
         self.assertEqual(expected_values, values)
@@ -183,14 +183,14 @@ class MergeWithCacheTests(TestCase):
         step = 60           # (1 minute)
 
         # Fill in half the data.  Nones for the rest.
-        values = list(range(0, window_size/2, step))
-        for i in range(0, window_size/2, step):
+        values = list(range(0, window_size//2, step))
+        for i in range(0, window_size//2, step):
             values.append(None)
 
         # Generate data that would normally come from Carbon.
         # Step will be different since that is what we are testing
         cache_results = []
-        for i in range(start+window_size/2, start+window_size, 1):
+        for i in range(start+window_size//2, start+window_size, 1):
             cache_results.append((i, 1))
 
         # merge the db results with the cached results
@@ -203,8 +203,8 @@ class MergeWithCacheTests(TestCase):
         )
 
         # Generate the expected values
-        expected_values = list(range(0, window_size/2, step))
-        for i in range(0, window_size/2, step):
+        expected_values = list(range(0, window_size//2, step))
+        for i in range(0, window_size//2, step):
             expected_values.append(1)
 
         self.assertEqual(expected_values, values)
@@ -216,14 +216,14 @@ class MergeWithCacheTests(TestCase):
         step = 60           # (1 minute)
 
         # Fill in half the data.  Nones for the rest.
-        values = list(range(0, window_size/2, step))
-        for i in range(0, window_size/2, step):
+        values = list(range(0, window_size//2, step))
+        for i in range(0, window_size//2, step):
             values.append(None)
 
         # Generate data that would normally come from Carbon.
         # Step will be different since that is what we are testing
         cache_results = []
-        for i in range(start+window_size/2, start+window_size, 1):
+        for i in range(start+window_size//2, start+window_size, 1):
             cache_results.append((i, 1))
 
         # merge the db results with the cached results
@@ -236,8 +236,8 @@ class MergeWithCacheTests(TestCase):
         )
 
         # Generate the expected values
-        expected_values = list(range(0, window_size/2, step))
-        for i in range(0, window_size/2, step):
+        expected_values = list(range(0, window_size//2, step))
+        for i in range(0, window_size//2, step):
             expected_values.append(1)
 
         self.assertEqual(expected_values, values)
@@ -249,14 +249,14 @@ class MergeWithCacheTests(TestCase):
         step = 60           # (1 minute)
 
         # Fill in half the data.  Nones for the rest.
-        values = list(range(0, window_size/2, step))
-        for i in range(0, window_size/2, step):
+        values = list(range(0, window_size//2, step))
+        for i in range(0, window_size//2, step):
             values.append(None)
 
         # Generate data that would normally come from Carbon.
         # Step will be different since that is what we are testing
         cache_results = []
-        for i in range(start+window_size/2, start+window_size, 1):
+        for i in range(start+window_size//2, start+window_size, 1):
             cache_results.append((i, 1))
 
         # merge the db results with the cached results
@@ -269,8 +269,8 @@ class MergeWithCacheTests(TestCase):
         )
 
         # Generate the expected values
-        expected_values = list(range(0, window_size/2, step))
-        for i in range(0, window_size/2, step):
+        expected_values = list(range(0, window_size//2, step))
+        for i in range(0, window_size//2, step):
             expected_values.append(1)
 
         self.assertEqual(expected_values, values)
@@ -282,14 +282,14 @@ class MergeWithCacheTests(TestCase):
         step = 60           # (1 minute)
 
         # Fill in half the data.  Nones for the rest.
-        values = list(range(0, window_size/2, step))
-        for i in range(0, window_size/2, step):
+        values = list(range(0, window_size//2, step))
+        for i in range(0, window_size//2, step):
             values.append(None)
 
         # Generate data that would normally come from Carbon.
         # Step will be different since that is what we are testing
         cache_results = []
-        for i in range(start+window_size/2, start+window_size, 1):
+        for i in range(start+window_size//2, start+window_size, 1):
             cache_results.append((i, 1))
 
         # merge the db results with the cached results
@@ -302,8 +302,8 @@ class MergeWithCacheTests(TestCase):
         )
 
         # Generate the expected values
-        expected_values = list(range(0, window_size/2, step))
-        for i in range(0, window_size/2, step):
+        expected_values = list(range(0, window_size//2, step))
+        for i in range(0, window_size//2, step):
             expected_values.append(1)
 
         self.assertEqual(expected_values, values)
@@ -315,14 +315,14 @@ class MergeWithCacheTests(TestCase):
         step = 60           # (1 minute)
 
         # Fill in half the data.  Nones for the rest.
-        values = list(range(0, window_size/2, step))
-        for i in range(0, window_size/2, step):
+        values = list(range(0, window_size//2, step))
+        for i in range(0, window_size//2, step):
             values.append(None)
 
         # Generate data that would normally come from Carbon.
         # Step will be different since that is what we are testing
         cache_results = []
-        for i in range(start+window_size/2, start+window_size, 1):
+        for i in range(start+window_size//2, start+window_size, 1):
             cache_results.append((i, 1))
 
         # merge the db results with the cached results
@@ -345,8 +345,8 @@ class MergeWithCacheTests(TestCase):
         step = 60           # (1 minute)
 
         # Fill in half the data.  Nones for the rest.
-        values = list(range(0, window_size/2, step))
-        for i in range(0, window_size/2, step):
+        values = list(range(0, window_size//2, step))
+        for i in range(0, window_size//2, step):
             values.append(None)
 
         # Generate data that would normally come from Carbon.
@@ -365,8 +365,8 @@ class MergeWithCacheTests(TestCase):
         )
 
         # Generate the expected values
-        expected_values = list(range(0, window_size/2, step))
-        for i in range(0, window_size/2, step):
+        expected_values = list(range(0, window_size//2, step))
+        for i in range(0, window_size//2, step):
             expected_values.append(None)
 
         self.assertEqual(expected_values, values)
