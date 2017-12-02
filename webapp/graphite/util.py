@@ -25,7 +25,7 @@ from functools import wraps
 from os.path import splitext, basename
 
 try:
-  import six.moves.cPickle as pickle
+  import cPickle as pickle
   USING_CPICKLE = True
 except:
   import pickle
@@ -196,10 +196,15 @@ if USING_CPICKLE:
   unpickle = SafeUnpickler
 
 else:
+  if sys.version_info[0] >= 3:
+    builtins_mod = 'builtins'
+  else:
+    builtins_mod = '__builtin__'
+
   class SafeUnpickler(pickle.Unpickler):
     PICKLE_SAFE = {
       'copy_reg': set(['_reconstructor']),
-      '__builtin__': set(['object', 'list', 'set']),
+      builtins_mod: set(['object', 'list', 'set']),
       'collections': set(['deque']),
       'graphite.render.datalib': set(['TimeSeries']),
       'graphite.intervals': set(['Interval', 'IntervalSet']),
