@@ -145,14 +145,14 @@ class RemoteReaderTests(TestCase):
         })
 
         # non-pickle response
-        responseObject = HTTPResponse(body=StringIO('error'), status=200, preload_content=False)
+        responseObject = HTTPResponse(body=StringIO(b'error'), status=200, preload_content=False)
         http_request.return_value = responseObject
 
         with self.assertRaisesRegexp(Exception, 'Error decoding render response from http://[^ ]+: .+'):
           reader.fetch(startTime, endTime)
 
         # non-200 response
-        responseObject = HTTPResponse(body=StringIO('error'), status=500, preload_content=False)
+        responseObject = HTTPResponse(body=StringIO(b'error'), status=500, preload_content=False)
         http_request.return_value = responseObject
 
         with self.assertRaisesRegexp(Exception, 'Error response 500 from http://[^ ]+'):
