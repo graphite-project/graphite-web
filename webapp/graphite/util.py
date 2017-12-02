@@ -31,10 +31,15 @@ except:
   import pickle
   USING_CPICKLE = False
 
-try:
-  from cStringIO import StringIO
-except ImportError:
-  from StringIO import StringIO
+# BytesIO is needed on py3 as StringIO does not operate on byte input anymore
+# We could use BytesIO on py2 as well but it is slower than StringIO
+if sys.version_info >= (3, 0):
+  from io import BytesIO as StringIO
+else:
+  try:
+    from cStringIO import StringIO
+  except ImportError:
+    from StringIO import StringIO
 
 # use https://github.com/msgpack/msgpack-python if available
 try:
