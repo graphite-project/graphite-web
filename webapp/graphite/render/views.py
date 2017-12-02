@@ -336,7 +336,9 @@ def parseOptions(request):
   requestOptions = {}
 
   graphType = queryParams.get('graphType','line')
-  assert graphType in GraphTypes, "Invalid graphType '%s', must be one of %s" % (graphType,list(GraphTypes.keys()))
+  if graphType not in GraphTypes:
+    raise AssertionError("Invalid graphType '%s', must be one of %s"
+                         % (graphType,list(GraphTypes)))
   graphClass = GraphTypes[graphType]
 
   # Fill in the requestOptions
