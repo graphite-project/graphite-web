@@ -4,6 +4,7 @@ from .base import TestCase
 
 from graphite.render import glyph
 from graphite.render.datalib import TimeSeries
+from six.moves import range
 
 class glyphStandaloneFunctionTest(TestCase):
     from datetime import datetime, timedelta
@@ -14,7 +15,7 @@ class glyphStandaloneFunctionTest(TestCase):
     def _generate_series_list(self, config=None):
         seriesList = []
         if not config:
-            config = [range(101), range(101), [1, None, None, None, None]]
+            config = [list(range(101)), list(range(101)), [1, None, None, None, None]]
 
         for i, c in enumerate(config):
             name = "collectd.test-db{0}.load.value".format(i + 1)
@@ -178,7 +179,7 @@ class glyphStandaloneFunctionTest(TestCase):
         self.assertEqual(glyph.dataLimits(seriesList), (0,100))
 
     def test_dataLimits_defaults_ymin_positive(self):
-        config = [range(10, 101), range(10, 101), [1, None, None, None, None]]
+        config = [list(range(10, 101)), list(range(10, 101)), [1, None, None, None, None]]
         seriesList = self._generate_series_list(config)
         self.assertEqual(glyph.dataLimits(seriesList), (1,100))
 
@@ -198,17 +199,17 @@ class glyphStandaloneFunctionTest(TestCase):
         self.assertEqual(glyph.dataLimits(seriesList, True, True), (0, 8))
 
     def test_dataLimits_drawNull_stacked_no_missing(self):
-        config = [range(10, 101), range(10, 101), range(100,300)]
+        config = [list(range(10, 101)), list(range(10, 101)), list(range(100,300))]
         seriesList = self._generate_series_list(config)
         self.assertEqual(glyph.dataLimits(seriesList, True, True), (10, 390))
 
     def test_dataLimits_drawNull_ymin_positive_missing_data(self):
-        config = [range(10, 101), range(10, 101), [1, None, None, None, None]]
+        config = [list(range(10, 101)), list(range(10, 101)), [1, None, None, None, None]]
         seriesList = self._generate_series_list(config)
         self.assertEqual(glyph.dataLimits(seriesList, True, False), (0.0, 100))
 
     def test_dataLimits_drawNull_ymax_negative_missing_data(self):
-        config = [range(-10, -101), range(-10, -101), [-50, None, None, None, None]]
+        config = [list(range(-10, -101)), list(range(-10, -101)), [-50, None, None, None, None]]
         seriesList = self._generate_series_list(config)
         self.assertEqual(glyph.dataLimits(seriesList, True, False), (-50, 0.0))
 

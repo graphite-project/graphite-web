@@ -7,6 +7,7 @@ import random
 import shutil
 import time
 import unittest
+from six.moves import range
 
 try:
     from unittest.mock import patch
@@ -88,7 +89,7 @@ class DummyFinder(BaseFinder):
             yield BranchNode('foo')
 
         elif query.pattern == 'bar.*':
-            for i in xrange(10):
+            for i in range(10):
                 path = 'bar.{0}'.format(i)
                 yield LeafNode(path, DummyReader(path))
 
@@ -99,7 +100,7 @@ class LegacyFinder(object):
             yield BranchNode('foo')
 
         elif query.pattern == 'bar.*':
-            for i in xrange(10):
+            for i in range(10):
                 path = 'bar.{0}'.format(i)
                 yield LeafNode(path, DummyReader(path))
 

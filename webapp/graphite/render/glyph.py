@@ -13,6 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 import math, itertools, re, sys
+from six.moves import range
 try:
     import cairocffi as cairo
 except ImportError:
@@ -1940,7 +1941,7 @@ def dataLimits(data, drawNullAsZero=False, stacked=False):
     length = safeMin(len(series) for series in finiteData)
     sumSeries = []
 
-    for i in xrange(0, length):
+    for i in range(0, length):
       sumSeries.append( safeSum(series[i] for series in finiteData) )
     yMaxValue = safeMax( sumSeries )
   else:

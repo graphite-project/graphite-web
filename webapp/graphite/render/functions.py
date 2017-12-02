@@ -23,6 +23,7 @@ import time
 
 from datetime import datetime, timedelta
 from functools import reduce
+from six.moves import range
 try:
   from itertools import izip, izip_longest
 except ImportError:
@@ -557,14 +558,14 @@ def keepLastValue(requestContext, seriesList, limit = INF):
          if 0 < consecutiveNones <= limit:
            # If a non-None value is seen before the limit of Nones is hit,
            # backfill all the missing datapoints with the last known value.
-           for index in xrange(i - consecutiveNones, i):
+           for index in range(i - consecutiveNones, i):
              series[index] = series[i - consecutiveNones - 1]
 
          consecutiveNones = 0
 
     # If the series ends with some None values, try to backfill a bit to cover it.
     if 0 < consecutiveNones <= limit:
-      for index in xrange(len(series) - consecutiveNones, len(series)):
+      for index in range(len(series) - consecutiveNones, len(series)):
         series[index] = series[len(series) - consecutiveNones - 1]
 
   return seriesList
@@ -605,7 +606,7 @@ def interpolate(requestContext, seriesList, limit = INF):
         # If a non-None value is seen before the limit of Nones is hit,
         # backfill all the missing datapoints with the last known value.
         if 0 < consecutiveNones <= limit:
-          for index in xrange(i - consecutiveNones, i):
+          for index in range(i - consecutiveNones, i):
             series[index] = series[i - consecutiveNones - 1] + (index - (i - consecutiveNones -1)) * (value - series[i - consecutiveNones - 1]) / (consecutiveNones + 1)
 
         consecutiveNones = 0
@@ -3598,7 +3599,7 @@ def identity(requestContext, name):
   delta = timedelta(seconds=step)
   start = int(epoch(requestContext["startTime"]))
   end = int(epoch(requestContext["endTime"]))
-  values = range(start, end, step)
+  values = list(range(start, end, step))
   series = TimeSeries(name, start, end, step, values, xFilesFactor=requestContext.get('xFilesFactor'))
   series.pathExpression = 'identity("%s")' % name
 
@@ -3998,7 +3999,7 @@ def _summarizeValues(series, func, interval, newStart=None, newEnd=None):
   if newEnd is None:
     newEnd = series.end
 
-  timestamps = range( int(series.start), int(series.end), int(series.step) )
+  timestamps = list(range( int(series.start), int(series.end), int(series.step)))
   datapoints = list(series)
   intervalPoints = interval / series.step
 

@@ -15,6 +15,7 @@ from graphite.render.functions import NormalizeEmptyResultError
 from graphite.render.evaluator import evaluateTarget
 from graphite.tags.utils import TaggedSeries
 from graphite.render.grammar import grammar
+from six.moves import range
 
 
 def return_greater(series, value):
@@ -415,8 +416,8 @@ class FunctionsTest(TestCase):
 
     def test_normalize_different_steps(self):
         seriesList = [
-          TimeSeries("test.1", 0, 120 * 31, 120, values=range(1, 32)),
-          TimeSeries("test.2", 0, 30 * 120, 30, values=range(1, 121)),
+          TimeSeries("test.1", 0, 120 * 31, 120, values=list(range(1, 32))),
+          TimeSeries("test.2", 0, 30 * 120, 30, values=list(range(1, 121))),
         ]
 
         self.assertEqual(seriesList[0].start, 0)
@@ -569,7 +570,7 @@ class FunctionsTest(TestCase):
 
     def test_sumSeries(self):
         seriesList = self._generate_series_list()
-        data = range(0,202,2)
+        data = list(range(0,202,2))
         expected_name = "sumSeries(collectd.test-db1.load.value,collectd.test-db2.load.value)"
         expectedList = [TimeSeries(expected_name, 0, len(data), 1, data)]
         result = functions.sumSeries({}, [seriesList[0], seriesList[1]])
@@ -580,7 +581,7 @@ class FunctionsTest(TestCase):
 
     def test_sumSeriesWithWildcards(self):
         seriesList = self._generate_series_list()
-        data = range(0,202,2)
+        data = list(range(0,202,2))
         expected_name = "load.value"
         expectedList = [TimeSeries(expected_name, 0, len(data), 1, data)]
         result = functions.sumSeriesWithWildcards({}, [seriesList[0], seriesList[1]], 0,1)
@@ -591,7 +592,7 @@ class FunctionsTest(TestCase):
 
     def test_averageSeriesWithWildcards(self):
         seriesList = self._generate_series_list()
-        data = range(0,101,1)
+        data = list(range(0,101,1))
         expected_name = "load.value"
         expectedList = [TimeSeries(expected_name, 0, len(data), 1, data)]
         result = functions.averageSeriesWithWildcards({}, [seriesList[0], seriesList[1]], 0,1)
@@ -650,7 +651,7 @@ class FunctionsTest(TestCase):
 
     def test_aggregate_median(self):
         seriesList = self._generate_series_list()
-        data = range(0,101)
+        data = list(range(0,101))
         expected_name = "medianSeries(collectd.test-db1.load.value,collectd.test-db2.load.value)"
         expectedList = [TimeSeries(expected_name, 0, len(data), 1, data)]
         result = functions.aggregate({}, [seriesList[0], seriesList[1]], 'median')
@@ -658,7 +659,7 @@ class FunctionsTest(TestCase):
 
     def test_aggregate_stripSeries(self):
         seriesList = self._generate_series_list()
-        data = range(0,101)
+        data = list(range(0,101))
         expected_name = "medianSeries(collectd.test-db1.load.value,collectd.test-db2.load.value)"
         expectedList = [TimeSeries(expected_name, 0, len(data), 1, data)]
         result = functions.aggregate({}, [seriesList[0], seriesList[1]], 'medianSeries')
@@ -674,7 +675,7 @@ class FunctionsTest(TestCase):
 
     def test_averageSeries(self):
         seriesList = self._generate_series_list()
-        data = range(0,101)
+        data = list(range(0,101))
         expected_name = "averageSeries(collectd.test-db1.load.value,collectd.test-db2.load.value)"
         expectedList = [TimeSeries(expected_name, 0, len(data), 1, data)]
         result = functions.averageSeries({}, [seriesList[0], seriesList[1]])
@@ -690,7 +691,7 @@ class FunctionsTest(TestCase):
 
     def test_minSeries(self):
         seriesList = self._generate_series_list()
-        data = range(0,101)
+        data = list(range(0,101))
         expected_name = "minSeries(collectd.test-db1.load.value,collectd.test-db2.load.value)"
         expectedList = [TimeSeries(expected_name, 0, len(data), 1, data)]
         result = functions.minSeries({}, [seriesList[0], seriesList[1]])
@@ -698,7 +699,7 @@ class FunctionsTest(TestCase):
 
     def test_maxSeries(self):
         seriesList = self._generate_series_list()
-        data = range(0,101)
+        data = list(range(0,101))
         expected_name = "maxSeries(collectd.test-db1.load.value,collectd.test-db2.load.value)"
         expectedList = [TimeSeries(expected_name, 0, len(data), 1, data)]
         result = functions.maxSeries({}, [seriesList[0], seriesList[1]])
@@ -724,7 +725,7 @@ class FunctionsTest(TestCase):
 
     def test_percentileOfSeries(self):
         seriesList = self._generate_series_list()
-        data = range(0,101)
+        data = list(range(0,101))
         expected_name = "percentileOfSeries(collectd.test-db1.load.value,90)"
         expectedList = [TimeSeries(expected_name, 0, len(data), 1, data)]
         result = functions.percentileOfSeries({}, [seriesList[0], seriesList[1]], 90)
@@ -736,15 +737,15 @@ class FunctionsTest(TestCase):
     def testGetPercentile_percentile_0(self):
         seriesList = [
             ([None, None, 15, 20, 35, 40, 50], 15),
-            (range(100), 0),
-            (range(200), 0),
-            (range(300), 0),
-            (range(1, 101), 1),
-            (range(1, 201), 1),
-            (range(1, 301), 1),
-            (range(0, 102), 0),
-            (range(1, 203), 1),
-            (range(1, 303), 1),
+            (list(range(100)), 0),
+            (list(range(200)), 0),
+            (list(range(300)), 0),
+            (list(range(1, 101)), 1),
+            (list(range(1, 201)), 1),
+            (list(range(1, 301)), 1),
+            (list(range(0, 102)), 0),
+            (list(range(1, 203)), 1),
+            (list(range(1, 303)), 1),
         ]
         for index, conf in enumerate(seriesList):
             series, expected = conf
@@ -755,15 +756,15 @@ class FunctionsTest(TestCase):
     def testGetPercentile_interpolated(self):
         seriesList = [
             ([None, None, 15, 20, 35, 40, 50], 19.0),
-            (range(100), 29.3),
-            (range(200), 59.3),
-            (range(300), 89.3),
-            (range(1, 101), 30.3),
-            (range(1, 201), 60.3),
-            (range(1, 301), 90.3),
-            (range(0, 102), 29.9),
-            (range(1, 203), 60.9),
-            (range(1, 303), 90.9),
+            (list(range(100)), 29.3),
+            (list(range(200)), 59.3),
+            (list(range(300)), 89.3),
+            (list(range(1, 101)), 30.3),
+            (list(range(1, 201)), 60.3),
+            (list(range(1, 301)), 90.3),
+            (list(range(0, 102)), 29.9),
+            (list(range(1, 203)), 60.9),
+            (list(range(1, 303)), 90.9),
         ]
         for index, conf in enumerate(seriesList):
             series, expected = conf
@@ -773,15 +774,15 @@ class FunctionsTest(TestCase):
     def testGetPercentile(self):
         seriesList = [
             ([None, None, 15, 20, 35, 40, 50], 20),
-            (range(100), 30),
-            (range(200), 60),
-            (range(300), 90),
-            (range(1, 101), 31),
-            (range(1, 201), 61),
-            (range(1, 301), 91),
-            (range(0, 102), 30),
-            (range(1, 203), 61),
-            (range(1, 303), 91),
+            (list(range(100)), 30),
+            (list(range(200)), 60),
+            (list(range(300)), 90),
+            (list(range(1, 101)), 31),
+            (list(range(1, 201)), 61),
+            (list(range(1, 301)), 91),
+            (list(range(0, 102)), 30),
+            (list(range(1, 203)), 61),
+            (list(range(1, 303)), 91),
         ]
         for index, conf in enumerate(seriesList):
             series, expected = conf
@@ -860,11 +861,11 @@ class FunctionsTest(TestCase):
 
     def test_delay(self):
         source = [
-            TimeSeries('collectd.test-db1.load.value',0,1,1,[range(18)] + [None, None]),
+            TimeSeries('collectd.test-db1.load.value',0,1,1,[list(range(18))] + [None, None]),
         ]
         delay = 2
         expectedList = [
-            TimeSeries('delay(collectd.test-db1.load.value,2)',0,1,1,[None, None] + [range(18)]),
+            TimeSeries('delay(collectd.test-db1.load.value,2)',0,1,1,[None, None] + [list(range(18))]),
         ]
         gotList = functions.delay({}, source, delay)
         self.assertEqual(len(gotList), len(expectedList))
@@ -1864,14 +1865,14 @@ class FunctionsTest(TestCase):
     def test_n_percentile(self):
         config = [
             [15, 35, 20, 40, 50],
-            range(1, 101),
-            range(1, 201),
-            range(1, 301),
-            range(0, 100),
-            range(0, 200),
-            range(0, 300),
+            list(range(1, 101)),
+            list(range(1, 201)),
+            list(range(1, 301)),
+            list(range(0, 100)),
+            list(range(0, 200)),
+            list(range(0, 300)),
             # Ensure None values in list has no effect.
-            [None, None, None] + range(0, 300),
+            [None, None, None] + list(range(0, 300)),
         ]
 
         def n_percentile(perc, expect):
@@ -3297,7 +3298,7 @@ class FunctionsTest(TestCase):
 
     def test_highest_max(self):
         config = [20, 50, 30, 40]
-        seriesList = [range(max_val) for max_val in config]
+        seriesList = [list(range(max_val)) for max_val in config]
 
         # Expect the test results to be returned in descending order
         expected = [
@@ -4190,7 +4191,7 @@ class FunctionsTest(TestCase):
             key='collectd.test-db0.load.value',
             start=20,
             end=25,
-            data=range(20, 25)
+            data=list(range(20, 25))
         )
 
         def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
@@ -4198,7 +4199,7 @@ class FunctionsTest(TestCase):
                 key='collectd.test-db0.load.value',
                 start=10,
                 end=25,
-                data=range(10, 25)
+                data=list(range(10, 25))
             )
 
         with patch('graphite.render.functions.evaluateTarget', mock_evaluateTarget):
@@ -4210,7 +4211,7 @@ class FunctionsTest(TestCase):
             key='collectd.test-db0.load.value',
             start=20,
             end=30,
-            data=range(0, 10)
+            data=list(range(0, 10))
         )
 
         def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
@@ -4218,7 +4219,7 @@ class FunctionsTest(TestCase):
                 key='collectd.test-db0.load.value',
                 start=10,
                 end=30,
-                data=[None] * 10 + range(0, 10)
+                data=[None] * 10 + list(range(0, 10))
             )
 
         expectedResults = [
@@ -4244,7 +4245,7 @@ class FunctionsTest(TestCase):
             key='collectd.test-db0.load.value',
             start=20,
             end=25,
-            data=range(10, 25)
+            data=list(range(10, 25))
         )
 
         def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
@@ -4274,7 +4275,7 @@ class FunctionsTest(TestCase):
             key='collectd.test-db0.load.value',
             start=20,
             end=30,
-            data=range(10, 110)
+            data=list(range(10, 110))
         )
 
         def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
@@ -4282,7 +4283,7 @@ class FunctionsTest(TestCase):
                 key='collectd.test-db0.load.value',
                 start=10,
                 end=30,
-                data=[None] * 10 + range(0, 10)
+                data=[None] * 10 + list(range(0, 10))
             )
 
         expectedResults = [
@@ -4304,7 +4305,7 @@ class FunctionsTest(TestCase):
             key='collectd.test-db0.load.value',
             start=610,
             end=710,
-            data=range(10, 110)
+            data=list(range(10, 110))
         )
 
         def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
@@ -4327,7 +4328,7 @@ class FunctionsTest(TestCase):
             key='collectd.test-db0.load.value',
             start=610,
             end=710,
-            data=range(10, 110)
+            data=list(range(10, 110))
         )
 
         def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
@@ -4335,11 +4336,11 @@ class FunctionsTest(TestCase):
                 key='collectd.test-db0.load.value',
                 start=600,
                 end=700,
-                data=range(0, 100)
+                data=list(range(0, 100))
             )
 
         expectedResults = [
-            TimeSeries('movingMedian(collectd.test-db0.load.value,60)', 660, 700, 1, range(30, 70)),
+            TimeSeries('movingMedian(collectd.test-db0.load.value,60)', 660, 700, 1, list(range(30, 70))),
         ]
 
         with patch('graphite.render.functions.evaluateTarget', mock_evaluateTarget):
@@ -4357,7 +4358,7 @@ class FunctionsTest(TestCase):
             key='collectd.test-db0.load.value',
             start=610,
             end=710,
-            data=range(10, 610)
+            data=list(range(10, 610))
         )
 
         def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
@@ -4365,11 +4366,11 @@ class FunctionsTest(TestCase):
                 key='collectd.test-db0.load.value',
                 start=600,
                 end=700,
-                data=range(0, 100)
+                data=list(range(0, 100))
             )
 
         expectedResults = [
-            TimeSeries('movingMedian(collectd.test-db0.load.value,"-1min")', 660, 700, 1, range(30, 70)),
+            TimeSeries('movingMedian(collectd.test-db0.load.value,"-1min")', 660, 700, 1, list(range(30, 70))),
         ]
 
         with patch('graphite.render.functions.evaluateTarget', mock_evaluateTarget):
@@ -4390,7 +4391,7 @@ class FunctionsTest(TestCase):
             key='collectd.test-db0.load.value',
             start=20,
             end=25,
-            data=range(0, 25)
+            data=list(range(0, 25))
         )
 
         def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
@@ -4420,7 +4421,7 @@ class FunctionsTest(TestCase):
             key='collectd.test-db0.load.value',
             start=20,
             end=30,
-            data=range(0, 10)
+            data=list(range(0, 10))
         )
 
         def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
@@ -4428,7 +4429,7 @@ class FunctionsTest(TestCase):
                 key='collectd.test-db0.load.value',
                 start=10,
                 end=30,
-                data=[None] * 10 + range(0, 10)
+                data=[None] * 10 + list(range(0, 10))
             )
 
         expectedResults = [
@@ -4451,7 +4452,7 @@ class FunctionsTest(TestCase):
             key='collectd.test-db0.load.value',
             start=610,
             end=710,
-            data=range(10, 110)
+            data=list(range(10, 110))
         )
 
         def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
@@ -4474,7 +4475,7 @@ class FunctionsTest(TestCase):
             key='collectd.test-db0.load.value',
             start=610,
             end=710,
-            data=range(10, 110)
+            data=list(range(10, 110))
         )
 
         def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
@@ -4482,7 +4483,7 @@ class FunctionsTest(TestCase):
                 key='collectd.test-db0.load.value',
                 start=600,
                 end=700,
-                data=range(0, 100)
+                data=list(range(0, 100))
             )
 
         def frange(x,y,jump):
@@ -4508,7 +4509,7 @@ class FunctionsTest(TestCase):
             key='collectd.test-db0.load.value',
             start=610,
             end=710,
-            data=range(10, 110)
+            data=list(range(10, 110))
         )
 
         def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
@@ -4516,7 +4517,7 @@ class FunctionsTest(TestCase):
                 key='collectd.test-db0.load.value',
                 start=600,
                 end=700,
-                data=range(0, 100)
+                data=list(range(0, 100))
             )
 
         def frange(x,y,jump):
@@ -4548,7 +4549,7 @@ class FunctionsTest(TestCase):
             key='collectd.test-db0.load.value',
             start=start + 10,
             end=end,
-            data=range(start, end)
+            data=list(range(start, end))
         )
 
         def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
@@ -4608,7 +4609,7 @@ class FunctionsTest(TestCase):
             key='collectd.test-db0.load.value',
             start=610,
             end=710,
-            data=range(10, 10 + 100)
+            data=list(range(10, 10 + 100))
         )
 
         def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
@@ -4696,7 +4697,7 @@ class FunctionsTest(TestCase):
             key='collectd.test-db0.load.value',
             start=start + 10,
             end=end,
-            data=range(start, end)
+            data=list(range(start, end))
         )
 
         def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
@@ -4756,7 +4757,7 @@ class FunctionsTest(TestCase):
             key='collectd.test-db0.load.value',
             start=610,
             end=710,
-            data=range(10, 10 + 100)
+            data=list(range(10, 10 + 100))
         )
 
         def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
@@ -4857,7 +4858,7 @@ class FunctionsTest(TestCase):
             key='collectd.test-db0.load.value',
             start=start + 10,
             end=end,
-            data=range(start, end)
+            data=list(range(start, end))
         )
 
         def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
@@ -4887,12 +4888,12 @@ class FunctionsTest(TestCase):
             key='collectd.test-db0.load.value',
             start=20,
             end=30,
-            data=range(0, 10)
+            data=list(range(0, 10))
         )
 
         def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
             seriesList = [
-                TimeSeries('collectd.test-db0.load.value', 10, 30, 1, [None] * 10 + range(0, 10))
+                TimeSeries('collectd.test-db0.load.value', 10, 30, 1, [None] * 10 + list(range(0, 10)))
             ]
             for series in seriesList:
                 series.pathExpression = series.name
@@ -4917,7 +4918,7 @@ class FunctionsTest(TestCase):
             key='collectd.test-db0.load.value',
             start=610,
             end=710,
-            data=range(10, 10 + 100)
+            data=list(range(10, 10 + 100))
         )
 
         def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
@@ -4988,7 +4989,7 @@ class FunctionsTest(TestCase):
     def test_holtWintersForecast(self):
         def gen_seriesList(start=0):
             seriesList = [
-                TimeSeries('collectd.test-db0.load.value', start+600, start+700, 1, range(start, start+100)),
+                TimeSeries('collectd.test-db0.load.value', start+600, start+700, 1, list(range(start, start+100))),
             ]
             for series in seriesList:
                 series.pathExpression = series.name
@@ -5445,7 +5446,7 @@ class FunctionsTest(TestCase):
             start=0,
             end=endTime,
             step=60,
-            data=[range(0, endTime, 60), range(0, -endTime, -60), [None] * 1440, range(0, 1440)]
+            data=[list(range(0, endTime, 60)), list(range(0, -endTime, -60)), [None] * 1440, list(range(0, 1440))]
         )
 
         expectedResults = [
@@ -5468,7 +5469,7 @@ class FunctionsTest(TestCase):
             key=['servers.s1.disk.bytes_used', 'servers.s1.disk.bytes_free', 'servers.s2.disk.bytes_used', 'servers.s2.disk.bytes_free'],
             start=0,
             end=endTime,
-            data=[range(0, endTime), range(0, -endTime, -1), [None] * endTime, range(0, endTime*2, 2)]
+            data=[list(range(0, endTime)), list(range(0, -endTime, -1)), [None] * endTime, list(range(0, endTime*2, 2))]
         )
 
         expectedResults = [
@@ -5492,7 +5493,7 @@ class FunctionsTest(TestCase):
             key=['servers.s1.disk.bytes_used', 'servers.s1.disk.bytes_free', 'servers.s2.disk.bytes_used', 'servers.s2.disk.bytes_free'],
             start=0,
             end=240,
-            data=[range(0, 240), range(0, -240, -1), [None] * 240, range(0, 480, 2)]
+            data=[list(range(0, 240)), list(range(0, -240, -1)), [None] * 240, list(range(0, 480, 2))]
         )
 
         expectedResults = [
@@ -5516,7 +5517,7 @@ class FunctionsTest(TestCase):
             key=['servers.s1.disk.bytes_used', 'servers.s1.disk.bytes_free', 'servers.s2.disk.bytes_used', 'servers.s2.disk.bytes_free'],
             start=0,
             end=240,
-            data=[range(0, 240), range(0, -240, -1), [None] * 240, range(0, 480, 2)]
+            data=[list(range(0, 240)), list(range(0, -240, -1)), [None] * 240, list(range(0, 480, 2))]
         )
 
         expectedResults = [
@@ -5540,7 +5541,7 @@ class FunctionsTest(TestCase):
             key=['servers.s1.disk.bytes_used', 'servers.s1.disk.bytes_free', 'servers.s2.disk.bytes_used', 'servers.s2.disk.bytes_free'],
             start=0,
             end=240,
-            data=[range(0, 240), range(0, -240, -1), [None] * 240, range(0, 480, 2)]
+            data=[list(range(0, 240)), list(range(0, -240, -1)), [None] * 240, list(range(0, 480, 2))]
         )
 
         expectedResults = {'sum' : [
@@ -5591,7 +5592,7 @@ class FunctionsTest(TestCase):
             key=['servers.s1.disk.bytes_used', 'servers.s1.disk.bytes_free', 'servers.s2.disk.bytes_used', 'servers.s2.disk.bytes_free'],
             start=0,
             end=240,
-            data=[range(0, 240), range(0, -240, -1), [None] * 240, range(0, 480, 2)]
+            data=[list(range(0, 240)), list(range(0, -240, -1)), [None] * 240, list(range(0, 480, 2))]
         )
 
         expectedResults = {'sum' : [
@@ -5673,7 +5674,7 @@ class FunctionsTest(TestCase):
         self.assertEqual(functions.exponentialMovingAverage({},[],""), [])
 
     def test_exponentialMovingAverage_integerWindowSize(self):
-        seriesList = self._gen_series_list_with_data(start=0, end=60, data=range(0, 60))
+        seriesList = self._gen_series_list_with_data(start=0, end=60, data=list(range(0, 60)))
         expectedResults = self._gen_series_list_with_data(
             key='exponentialMovingAverage(collectd.test-db0.load.value,30)',
             start=30,
@@ -5691,7 +5692,7 @@ class FunctionsTest(TestCase):
         self.assertEqual(result, expectedResults)
 
     def test_exponentialMovingAverage_stringWindowSize(self):
-        seriesList = self._gen_series_list_with_data(start=0, end=60, data=range(0, 60))
+        seriesList = self._gen_series_list_with_data(start=0, end=60, data=list(range(0, 60)))
         expectedResults = self._gen_series_list_with_data(
             key='exponentialMovingAverage(collectd.test-db0.load.value,"-30s")',
             start=30,
@@ -5709,7 +5710,7 @@ class FunctionsTest(TestCase):
         self.assertEqual(result, expectedResults)
 
     def test_exponentialMovingAverage_evaluateTarget_returns_empty_list(self):
-        seriesList = self._gen_series_list_with_data(start=600, end=700, data=range(0, 100))
+        seriesList = self._gen_series_list_with_data(start=600, end=700, data=list(range(0, 100)))
         expectedResults = []
 
         def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
@@ -5731,7 +5732,7 @@ class FunctionsTest(TestCase):
         )
 
         def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
-            return self._gen_series_list_with_data(key='collectd.test-db0.load.value',start=10, end=30, data=([None] * 10 + range(0, 5) + [None] + range(5, 9)))
+            return self._gen_series_list_with_data(key='collectd.test-db0.load.value',start=10, end=30, data=([None] * 10 + list(range(0, 5)) + [None] + list(range(5, 9))))
 
         with patch('graphite.render.functions.evaluateTarget', mock_evaluateTarget):
             result = functions.exponentialMovingAverage(self._build_requestContext(endTime=datetime(1970, 1, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE))), seriesList, 10)
@@ -5852,10 +5853,10 @@ class FunctionsTest(TestCase):
             end=end_secs_from_epoch,
             step=step,
             data=[
-                range(start_secs_from_epoch, end_secs_from_epoch, step),
-                range(start_secs_from_epoch, -end_secs_from_epoch, -step),
+                list(range(start_secs_from_epoch, end_secs_from_epoch, step)),
+                list(range(start_secs_from_epoch, -end_secs_from_epoch, -step)),
                 [None] * (end_minus_start_secs / step),
-                range(0, end_minus_start_secs / step)
+                list(range(0, end_minus_start_secs / step))
             ]
         )
 
@@ -5863,7 +5864,7 @@ class FunctionsTest(TestCase):
 
     def _generate_series_list(self):
         seriesList = []
-        config = [range(101), range(101), [1, None, None, None, None]]
+        config = [list(range(101)), list(range(101)), [1, None, None, None, None]]
 
         for i, c in enumerate(config):
             name = "collectd.test-db{0}.load.value".format(i + 1)
