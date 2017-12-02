@@ -2,6 +2,7 @@ import pytz
 
 from datetime import datetime
 from mock import mock, patch
+import sys
 
 from .base import TestCase
 from django.conf import settings
@@ -13,7 +14,11 @@ from graphite.util import timebounds
 class TimeSeriesTest(TestCase):
 
     def test_TimeSeries_init_no_args(self):
-      with self.assertRaisesRegexp(TypeError, '__init__\(\) takes at least 6 arguments \(1 given\)'):
+      if sys.version_info[0] >= 3:
+          msg = '__init__\(\) missing 5 required positional arguments'
+      else:
+          msg = '__init__\(\) takes at least 6 arguments \(1 given\)'
+      with self.assertRaisesRegexp(TypeError, msg):
         TimeSeries()
 
     def test_TimeSeries_init_string_values(self):
