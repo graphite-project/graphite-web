@@ -22,7 +22,12 @@ import re
 import time
 
 from datetime import datetime, timedelta
-from itertools import izip, izip_longest
+try:
+  from itertools import izip, izip_longest
+except ImportError:
+  # Python 3
+  from itertools import zip_longest as izip_longest
+  izip = zip
 from os import environ
 
 from django.conf import settings
