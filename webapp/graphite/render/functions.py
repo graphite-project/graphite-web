@@ -2653,7 +2653,7 @@ def sortByTotal(requestContext, seriesList):
   Sorts the list of metrics by the sum of values across the time period
   specified.
   """
-  seriesList.sort(key=safeSum)
+  seriesList.sort(key=safeSum, reverse=True)
   return seriesList
 
 def sortByMaxima(requestContext, seriesList):
@@ -2671,7 +2671,7 @@ def sortByMaxima(requestContext, seriesList):
     &target=sortByMaxima(server*.instance*.memory.free)
 
   """
-  seriesList.sort(key=max)
+  seriesList.sort(key=max, reverse=True)
   return seriesList
 
 def sortByMinima(requestContext, seriesList):
