@@ -1980,13 +1980,13 @@ def format_units(v, step=None, system='si', units=None):
     if condition(size):
       v2 = v / size
       if (v2 - math.floor(v2)) < 0.00000000001 and v > 1:
-        v2 = math.floor(v2)
+        v2 = float(math.floor(v2))
       if units:
         prefix = "%s%s" % (prefix, units)
       return v2, prefix
 
   if (v - math.floor(v)) < 0.00000000001 and v > 1 :
-    v = math.floor(v)
+    v = float(math.floor(v))
   if units:
     prefix = units
   else:
