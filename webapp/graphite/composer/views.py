@@ -15,9 +15,9 @@ limitations under the License."""
 import os
 from smtplib import SMTP
 from socket import gethostname
-from email.MIMEMultipart import MIMEMultipart
-from email.MIMEText import MIMEText
-from email.MIMEImage import MIMEImage
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.image import MIMEImage
 from six.moves.http_client import HTTPConnection
 from six.moves.urllib.parse import urlsplit
 from time import ctime, strftime
