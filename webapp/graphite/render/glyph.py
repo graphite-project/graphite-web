@@ -299,14 +299,14 @@ class _AxisTics:
       return "%g %s" % (float(value), prefix)
     elif value < 1.0:
       return "%.2f %s" % (float(value), prefix)
-    if span > 10 or spanPrefix != prefix:
+    if (span is not None and span > 10) or spanPrefix != prefix:
       if type(value) is float:
         return "%.1f %s" % (value, prefix)
       else:
         return "%d %s" % (int(value), prefix)
-    elif span > 3:
+    elif span is not None and span > 3:
       return "%.1f %s" % (float(value), prefix)
-    elif span > 0.1:
+    elif span is not None and span > 0.1:
       return "%.2f %s" % (float(value), prefix)
     else:
       return "%g %s" % (float(value), prefix)
