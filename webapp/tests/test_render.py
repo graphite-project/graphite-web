@@ -185,7 +185,7 @@ class RenderTest(TestCase):
 
         # Raw format
         response = self.client.get(url, {'target': 'test', 'format': 'raw'})
-        self.assertEqual(response.content, "")
+        self.assertEqual(response.content, b"")
         self.assertEqual(response['Content-Type'], 'text/plain')
 
         # json format
