@@ -205,7 +205,7 @@ class NormalizeEmptyResultError(Exception):
 
 def matchSeries(seriesList1, seriesList2):
   assert len(seriesList2) == len(seriesList1), "The number of series in each argument must be the same"
-  return izip(sorted(seriesList1, lambda a,b: cmp(a.name, b.name)), sorted(seriesList2, lambda a,b: cmp(a.name, b.name)))
+  return izip(sorted(seriesList1, key=lambda a: a.name), sorted(seriesList2, key=lambda a: a.name))
 
 def formatPathExpressions(seriesList):
    # remove duplicates
@@ -2636,16 +2636,13 @@ def sortByName(requestContext, seriesList, natural=False):
   def paddedName(name):
     return re.sub("(\d+)", lambda x: "{0:010}".format(int(x.group(0))), name)
 
-  def compare(x,y):
-    return cmp(x.name, y.name)
-
-  def natSortCompare(x,y):
-    return cmp(paddedName(x.name), paddedName(y.name))
+  def natSortKey(x):
+    return paddedName(x.name)
 
   if natural:
-    seriesList.sort(natSortCompare)
+    seriesList.sort(key=natSortKey)
   else:
-    seriesList.sort(compare)
+    seriesList.sort(key=lambda x: x.name)
 
   return seriesList
 
@@ -2656,10 +2653,7 @@ def sortByTotal(requestContext, seriesList):
   Sorts the list of metrics by the sum of values across the time period
   specified.
   """
-  def compare(x,y):
-    return cmp(safeSum(y), safeSum(x))
-
-  seriesList.sort(compare)
+  seriesList.sort(key=safeSum)
   return seriesList
 
 def sortByMaxima(requestContext, seriesList):
@@ -2677,9 +2671,7 @@ def sortByMaxima(requestContext, seriesList):
     &target=sortByMaxima(server*.instance*.memory.free)
 
   """
-  def compare(x,y):
-    return cmp(max(y), max(x))
-  seriesList.sort(compare)
+  seriesList.sort(key=max)
   return seriesList
 
 def sortByMinima(requestContext, seriesList):
@@ -2696,10 +2688,8 @@ def sortByMinima(requestContext, seriesList):
     &target=sortByMinima(server*.instance*.memory.free)
 
   """
-  def compare(x,y):
-    return cmp(min(x), min(y))
   newSeries = [series for series in seriesList if max(series) > 0]
-  newSeries.sort(compare)
+  newSeries.sort(key=min)
   return newSeries
 
 def useSeriesAbove(requestContext, seriesList, value, search, replace):
