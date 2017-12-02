@@ -2,6 +2,12 @@ language: python
 python: 2.7
 sudo: false
 
+matrix:
+  include:
+    - python: 3.6
+    - env:
+      - TOXENV=py36-django111-pyparsing2
+
 env:
   - TOXENV=py27-django18-pyparsing2
   - TOXENV=py27-django19-pyparsing2
@@ -10,7 +16,6 @@ env:
   - TOXENV=py27-django111-pyparsing2-msgpack
   - TOXENV=py27-django111-pyparsing2-mysql TEST_MYSQL_PASSWORD=graphite
   - TOXENV=py27-django111-pyparsing2-postgresql TEST_POSTGRESQL_PASSWORD=graphite
-  - TOXENV=py36-django111-pyparsing2
   - TOXENV=docs
   - TOXENV=lint
 
