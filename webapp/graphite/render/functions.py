@@ -65,7 +65,7 @@ def safeSum(values):
 def safeDiff(values):
   safeValues = [v for v in values if v is not None]
   if safeValues:
-    values = map(lambda x: x*-1, safeValues[1:])
+    values = list(map(lambda x: x*-1, safeValues[1:]))
     values.insert(0, safeValues[0])
     return sum(values)
 
