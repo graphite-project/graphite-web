@@ -1,3 +1,4 @@
+from __future__ import print_function
 import atexit
 import os
 import shutil
@@ -57,7 +58,7 @@ def atexit_tmpremover(dirname):
     """ Utility to remove a temporary directory during program exit. """
     try:
         shutil.rmtree(dirname)
-        print("Removed temporary directory: %s" % dirname)
+        print(("Removed temporary directory: %s" % dirname))
     except OSError:
         # if the temp dir was removed already by other means
         pass
