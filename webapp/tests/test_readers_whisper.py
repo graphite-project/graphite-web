@@ -171,7 +171,7 @@ class WhisperReadersTests(TestCase):
         # Test broken whisper file
         f = open(self.worker2, 'rb+')
         f.seek(10)
-        f.write('Bad Data')
+        f.write(b'Bad Data')
         f.close()
 
         reader = WhisperReader(self.worker2, 'hosts.worker2.cpu')
