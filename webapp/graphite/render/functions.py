@@ -77,6 +77,12 @@ def safeDiv(a, b):
   if b in (0,None): return None
   return a / b
 
+# In Py2, None < (any integer) . Use -inf for same sorting on Python 3
+def _safeDiv_key(a, b):
+  if a is None or b in (0, None):
+    return -INF
+  return a / b
+
 def safePow(a, b):
   if a is None: return None
   if b is None: return None
@@ -128,10 +134,24 @@ def safeLast(values):
   for v in reversed(values):
     if v is not None: return v
 
+# In Py2, None < (any integer) . Use -inf for same sorting on Python 3
+def _safeLast_key(values):
+  r = safeLast(values)
+  if r is None:
+    return -INF
+  return r
+
 def safeMin(values):
   safeValues = [v for v in values if v is not None]
   if safeValues:
     return min(safeValues)
+
+# In Py2, None < (any integer) . Use -inf for same sorting on Python 3
+def _safeMin_key(values):
+  r = safeMin(values)
+  if r is None:
+    return -INF
+  return r
 
 def safeMax(values):
   safeValues = [v for v in values if v is not None]
@@ -977,7 +997,8 @@ def weightedAverage(requestContext, seriesListAvg, seriesListWeight, *nodes):
   sumWeights=sumSeries(requestContext, seriesListWeight)[0]
 
   resultValues = [ safeDiv(val1, val2) for val1,val2 in izip_longest(sumProducts,sumWeights) ]
-  name = "weightedAverage(%s, %s, %s)" % (','.join(sorted(set(s.pathExpression for s in seriesListAvg))) ,','.join(sorted(set(s.pathExpression for s in sorted(seriesListWeight)))), ','.join(map(str,nodes)))
+  _sorted_weights = sorted(seriesListWeight, key=lambda v: [(x if x is not None else -1) for x in v])
+  name = "weightedAverage(%s, %s, %s)" % (','.join(sorted(set(s.pathExpression for s in seriesListAvg))) ,','.join(sorted(set(s.pathExpression for s in _sorted_weights))), ','.join(map(str,nodes)))
   resultSeries = TimeSeries(name,sumProducts.start,sumProducts.end,sumProducts.step,resultValues,xFilesFactor=requestContext.get('xFilesFactor'))
   return [resultSeries]
 
@@ -2297,7 +2318,7 @@ def highestCurrent(requestContext, seriesList, n):
   Draws the 5 servers with the highest busy threads.
 
   """
-  return sorted( seriesList, key=safeLast )[-n:]
+  return sorted( seriesList, key=_safeLast_key )[-n:]
 
 def highestMax(requestContext, seriesList, n):
   """
@@ -2336,7 +2357,7 @@ def lowestCurrent(requestContext, seriesList, n):
 
   """
 
-  return sorted( seriesList, key=safeLast )[:n]
+  return sorted( seriesList, key=_safeLast_key)[:n]
 
 def currentAbove(requestContext, seriesList, n):
   """
@@ -2398,7 +2419,7 @@ def highestAverage(requestContext, seriesList, n):
 
   """
 
-  return sorted( seriesList, key=lambda s: safeDiv(safeSum(s),safeLen(s)) )[-n:]
+  return sorted( seriesList, key=lambda s: _safeDiv_key(safeSum(s),safeLen(s)) )[-n:]
 
 def lowestAverage(requestContext, seriesList, n):
   """
@@ -2416,7 +2437,7 @@ def lowestAverage(requestContext, seriesList, n):
 
   """
 
-  return sorted( seriesList, key=lambda s: safeDiv(safeSum(s),safeLen(s)) )[:n]
+  return sorted( seriesList, key=lambda s: _safeDiv_key(safeSum(s),safeLen(s)) )[:n]
 
 def averageAbove(requestContext, seriesList, n):
   """
