@@ -1,5 +1,6 @@
 import time
 import random
+import sys
 import types
 
 from collections import defaultdict
@@ -30,9 +31,14 @@ def get_finders(finder_path):
 
     # monkey patch so legacy finders will work
     finder = cls()
-    finder.fetch = types.MethodType(BaseFinder.fetch.__func__, finder)
-    finder.find_multi = types.MethodType(BaseFinder.find_multi.__func__, finder)
-    finder.get_index = types.MethodType(BaseFinder.get_index.__func__, finder)
+    if sys.version_info[0] >= 3:
+        finder.fetch = types.MethodType(BaseFinder.fetch, finder)
+        finder.find_multi = types.MethodType(BaseFinder.find_multi, finder)
+        finder.get_index = types.MethodType(BaseFinder.get_index, finder)
+    else:
+        finder.fetch = types.MethodType(BaseFinder.fetch.__func__, finder)
+        finder.find_multi = types.MethodType(BaseFinder.find_multi.__func__, finder)
+        finder.get_index = types.MethodType(BaseFinder.get_index.__func__, finder)
 
     return [finder]
 
