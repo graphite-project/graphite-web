@@ -5856,8 +5856,8 @@ class FunctionsTest(TestCase):
             data=[
                 list(range(start_secs_from_epoch, end_secs_from_epoch, step)),
                 list(range(start_secs_from_epoch, -end_secs_from_epoch, -step)),
-                [None] * (end_minus_start_secs / step),
-                list(range(0, end_minus_start_secs / step))
+                [None] * (end_minus_start_secs // step),
+                list(range(0, end_minus_start_secs // step))
             ]
         )
 
