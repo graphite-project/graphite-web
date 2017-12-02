@@ -159,7 +159,7 @@ def template(request, name, val):
 
   try:
     config.check()
-  except OSError, e:
+  except OSError as e:
     if e.errno == errno.ENOENT:
       template_conf_missing = True
     else:
