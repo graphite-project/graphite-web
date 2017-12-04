@@ -297,9 +297,6 @@ class StandardFinderTest(TestCase):
         self.assertEqual(output_metric_path, expected_metric_path)
 
 class CeresFinderTest(TestCase):
-    _listdir_counter = 0
-    _original_listdir = os.listdir
-
     unittest.skipIf(not ceres, 'ceres not installed')
     def test_ceres_finder(self):
         test_dir = join(settings.CERES_DIR)
@@ -326,47 +323,30 @@ class CeresFinderTest(TestCase):
         create_ceres('foo.bar.baz')
         create_ceres('bar.baz.foo')
 
-        def listdir_mock(d):
-            self._listdir_counter += 1
-            return self._original_listdir(d)
+        finder = get_finders('graphite.finders.ceres.CeresFinder')[0]
 
-        with patch('ceres.os.listdir', listdir_mock):
-            finder = get_finders('graphite.finders.ceres.CeresFinder')[0]
+        nodes = finder.find_nodes(FindQuery('foo', None, None))
+        self.assertEqual(len(list(nodes)), 1)
 
-            self._listdir_counter = 0
-            nodes = finder.find_nodes(FindQuery('foo', None, None))
-            self.assertEqual(len(list(nodes)), 1)
-            self.assertEqual(self._listdir_counter, 1)
+        nodes = finder.find_nodes(FindQuery('foo.bar.baz', None, None))
+        self.assertEqual(len(list(nodes)), 1)
 
-            self._listdir_counter = 0
-            nodes = finder.find_nodes(FindQuery('foo.bar.baz', None, None))
-            self.assertEqual(len(list(nodes)), 1)
-            self.assertEqual(self._listdir_counter, 1)
+        # No data in the expected time period
+        nodes = finder.find_nodes(FindQuery('foo.bar.baz', 10000, 10060))
+        self.assertEqual(len(list(nodes)), 0)
 
-            # No data in the expected time period
-            self._listdir_counter = 0
-            nodes = finder.find_nodes(FindQuery('foo.bar.baz', 10000, 10060))
-            self.assertEqual(len(list(nodes)), 0)
-            self.assertEqual(self._listdir_counter, 1)
+        nodes = finder.find_nodes(FindQuery('foo.bar', None, None))
+        self.assertEqual(len(list(nodes)), 1)
 
-            self._listdir_counter = 0
-            nodes = finder.find_nodes(FindQuery('foo.bar', None, None))
-            self.assertEqual(len(list(nodes)), 1)
-            self.assertEqual(self._listdir_counter, 0)
+        nodes = finder.find_nodes(FindQuery('*.ba?.{baz,foo}', None, None))
+        self.assertEqual(len(list(nodes)), 2)
 
-            self._listdir_counter = 0
-            nodes = finder.find_nodes(FindQuery('*.ba?.{baz,foo}', None, None))
-            self.assertEqual(len(list(nodes)), 2)
-            self.assertEqual(self._listdir_counter, 8)
+        # Search for something that isn't valid Ceres content
+        fh = open(join(test_dir, 'foo', 'blah'), 'wb')
+        fh.close()
+        nodes = finder.find_nodes(FindQuery('foo.blah', None, None))
+        self.assertEqual(len(list(nodes)), 0)
 
-            # Search for something that isn't valid Ceres content
-            fh = open(join(test_dir, 'foo', 'blah'), 'wb')
-            fh.close()
-            self._listdir_counter = 0
-            nodes = finder.find_nodes(FindQuery('foo.blah', None, None))
-            self.assertEqual(len(list(nodes)), 0)
-            self.assertEqual(self._listdir_counter, 0)
-
-            # get index
-            result = finder.get_index({})
-            self.assertEqual(result, ['bar.baz.foo', 'foo', 'foo.bar.baz'])
+        # get index
+        result = finder.get_index({})
+        self.assertEqual(result, ['bar.baz.foo', 'foo', 'foo.bar.baz'])
