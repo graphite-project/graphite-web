@@ -1,6 +1,5 @@
 import copy
 import errno
-import json
 import mock
 import os
 
@@ -14,6 +13,7 @@ except ImportError:  # Django < 1.10
 from django.http import HttpResponse
 from .base import TestCase
 from django.test.utils import override_settings
+from graphite.util import json
 try:
     from django.contrib.auth import get_user_model
     User = get_user_model()

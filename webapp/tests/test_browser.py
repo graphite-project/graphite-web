@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import json
 import os
 
 from django.contrib.auth.models import User
@@ -9,6 +8,7 @@ except ImportError:  # Django < 1.10
     from django.core.urlresolvers import reverse
 from .base import TestCase
 from django.test.utils import override_settings
+from graphite.util import json
 
 from . import DATA_DIR
 

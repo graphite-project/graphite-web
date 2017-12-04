@@ -1,10 +1,10 @@
 from __future__ import absolute_import
 
 from binascii import b2a_base64
-import json
 import sys
 
 from graphite.http_pool import http
+from graphite.util import json
 
 from graphite.tags.base import BaseTagDB
 

@@ -1,9 +1,9 @@
-import json
 
 from django import VERSION
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import (HttpResponse as BaseHttpResponse,
                          HttpResponseBadRequest as Base400)
+from graphite.util import json
 
 
 class ContentTypeMixin(object):

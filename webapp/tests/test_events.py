@@ -1,5 +1,4 @@
 import time
-import json
 import re
 import sys
 
@@ -13,6 +12,7 @@ from .base import TestCase
 from django.utils import timezone
 
 from graphite.events.models import Event
+from graphite.util import json
 
 
 class EventTest(TestCase):

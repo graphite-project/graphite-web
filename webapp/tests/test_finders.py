@@ -320,16 +320,17 @@ class CeresFinderTest(TestCase):
             except OSError:
                 pass
 
+        self.addCleanup(wipe_ceres)
+
+        create_ceres('foo')
+        create_ceres('foo.bar.baz')
+        create_ceres('bar.baz.foo')
+
         def listdir_mock(d):
             self._listdir_counter += 1
             return self._original_listdir(d)
 
-        try:
-            os.listdir = listdir_mock
-            create_ceres('foo')
-            create_ceres('foo.bar.baz')
-            create_ceres('bar.baz.foo')
-
+        with patch('ceres.os.listdir', listdir_mock):
             finder = get_finders('graphite.finders.ceres.CeresFinder')[0]
 
             self._listdir_counter = 0
@@ -369,7 +370,3 @@ class CeresFinderTest(TestCase):
             # get index
             result = finder.get_index({})
             self.assertEqual(result, ['bar.baz.foo', 'foo', 'foo.bar.baz'])
-
-        finally:
-            os.listdir = self._original_listdir
-            wipe_ceres()

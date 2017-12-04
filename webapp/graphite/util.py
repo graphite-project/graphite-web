@@ -14,13 +14,15 @@ limitations under the License."""
 
 import imp
 import io
-import json
+import json as _json
 import socket
 import time
 import sys
 import calendar
 import pytz
+import six
 import traceback
+
 from datetime import datetime
 from functools import wraps
 from os.path import splitext, basename
@@ -211,6 +213,29 @@ else:
     @staticmethod
     def load(file):
       return SafeUnpickler(file).load()
+
+
+class json(object):
+  JSONEncoder = _json.JSONEncoder
+  JSONDecoder = _json.JSONDecoder
+
+  @staticmethod
+  def dump(*args, **kwargs):
+    return _json.dump(*args, **kwargs)
+
+  @staticmethod
+  def dumps(*args, **kwargs):
+    return _json.dumps(*args, **kwargs)
+
+  @staticmethod
+  def load(fp, *args, **kwargs):
+    return _json.load(fp, *args, **kwargs)
+
+  @staticmethod
+  def loads(s, *args, **kwargs):
+    if isinstance(s, six.binary_type):
+      return _json.loads(s.decode('utf-8'), *args, **kwargs)
+    return _json.loads(s, *args, **kwargs)
 
 
 class Timer(object):
