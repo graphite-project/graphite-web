@@ -2013,7 +2013,6 @@ def cactiStyle(requestContext, seriesList, system=None, units=None):
   maxLen = max([0] + [len(fmt(int(safeMax(series) or 3))) for series in seriesList]) + 3
   minLen = max([0] + [len(fmt(int(safeMin(series) or 3))) for series in seriesList]) + 3
   for series in seriesList:
-      name = series.name
       last = safeLast(series)
       maximum = safeMax(series)
       minimum = safeMin(series)
@@ -2887,7 +2886,6 @@ def holtWintersAnalysis(series):
   season_length = (24*60*60) // series.step
   intercept = 0
   slope = 0
-  pred = 0
   intercepts = list()
   slopes = list()
   seasonals = list()
@@ -3608,7 +3606,6 @@ def identity(requestContext, name):
   x(t) == t.
   """
   step = 60
-  delta = timedelta(seconds=step)
   start = int(epoch(requestContext["startTime"]))
   end = int(epoch(requestContext["endTime"]))
   values = list(range(start, end, step))
@@ -4093,7 +4090,6 @@ def hitcount(requestContext, seriesList, intervalString, alignToInterval = False
       series.end = series.start + (intervalCount * interval) + interval
 
   for series in seriesList:
-    length = len(series)
     step = int(series.step)
     bucket_count = int(math.ceil(float(series.end - series.start) // interval))
     buckets = [[] for _ in range(bucket_count)]
