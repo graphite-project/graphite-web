@@ -33,11 +33,7 @@ except ImportError:
 if sys.version_info >= (3, 0):
   from io import BytesIO as StringIO
 else:
-  try:
-    from cStringIO import StringIO
-  except ImportError:
-    from StringIO import StringIO
-
+  from cStringIO import StringIO
 
 INFINITY = float('inf')
 

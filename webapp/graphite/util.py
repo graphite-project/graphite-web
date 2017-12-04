@@ -41,10 +41,7 @@ except:
 if sys.version_info >= (3, 0):
   from io import BytesIO as StringIO
 else:
-  try:
-    from cStringIO import StringIO
-  except ImportError:
-    from StringIO import StringIO
+  from cStringIO import StringIO
 
 # use https://github.com/msgpack/msgpack-python if available
 try:
