@@ -31,18 +31,15 @@ from django.conf import settings
 from django.utils.timezone import make_aware
 from graphite.logger import log
 
-try:
-  import cPickle as pickle
-  USING_CPICKLE = True
-except:
-  import pickle
-  USING_CPICKLE = False
-
 # BytesIO is needed on py3 as StringIO does not operate on byte input anymore
 # We could use BytesIO on py2 as well but it is slower than StringIO
 if sys.version_info >= (3, 0):
+  PY3 = True
+  import pickle
   from io import BytesIO as StringIO
 else:
+  PY3 = False
+  import cPickle as pickle
   from cStringIO import StringIO
 
 # use https://github.com/msgpack/msgpack-python if available
@@ -147,7 +144,7 @@ def deltaseconds(timedelta):
 # The SafeUnpickler classes were largely derived from
 # http://nadiana.com/python-pickle-insecure
 # This code also lives in carbon.util
-if USING_CPICKLE:
+if not PY3:
   class SafeUnpickler(object):
     PICKLE_SAFE = {
       'copy_reg': set(['_reconstructor']),
@@ -182,15 +179,10 @@ if USING_CPICKLE:
   unpickle = SafeUnpickler
 
 else:
-  if sys.version_info[0] >= 3:
-    builtins_mod = 'builtins'
-  else:
-    builtins_mod = '__builtin__'
-
   class SafeUnpickler(pickle.Unpickler):
     PICKLE_SAFE = {
       'copy_reg': set(['_reconstructor']),
-      builtins_mod: set(['object', 'list', 'set']),
+      'builtins': set(['object', 'list', 'set']),
       'collections': set(['deque']),
       'graphite.render.datalib': set(['TimeSeries']),
       'graphite.intervals': set(['Interval', 'IntervalSet']),
