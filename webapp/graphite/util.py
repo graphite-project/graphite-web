@@ -14,6 +14,7 @@ limitations under the License."""
 
 import imp
 import io
+import json
 import socket
 import time
 import sys
@@ -51,20 +52,6 @@ try:
 # otherwise fall back to bundled https://github.com/vsergeev/u-msgpack-python
 except ImportError:
   import graphite.umsgpack as msgpack  # NOQA
-
-
-# There are a couple different json modules floating around out there with
-# different APIs. Hide the ugliness here.
-try:
-  import json
-except ImportError:
-  import simplejson as json
-
-if hasattr(json, 'read') and not hasattr(json, 'loads'):
-  json.loads = json.read
-  json.dumps = json.write
-  json.load = lambda file: json.read( file.read() )
-  json.dump = lambda obj, file: file.write( json.write(obj) )
 
 def epoch(dt):
   """

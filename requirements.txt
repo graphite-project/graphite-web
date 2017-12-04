@@ -40,7 +40,6 @@
 Django>=1.8,<1.11.99
 python-memcached==1.58
 txAMQP==0.7
-simplejson==3.13.2
 django-tagging==0.4.6
 gunicorn
 pytz

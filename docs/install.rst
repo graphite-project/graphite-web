@@ -209,7 +209,6 @@ Despair Not!  Even though running Graphite on Windows is completely unsupported 
 .. _python-sqlite2: https://github.com/ghaering/pysqlite
 .. _pytz: https://pypi.python.org/pypi/pytz/
 .. _scandir: https://pypi.python.org/pypi/scandir
-.. _simplejson: http://simplejson.readthedocs.io/
 .. _txAMQP: https://launchpad.net/txamqp/
 .. _uWSGI: http://uwsgi-docs.readthedocs.io/
 .. _docker_repo: https://github.com/graphite-project/docker-graphite-statsd
