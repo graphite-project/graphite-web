@@ -11,6 +11,8 @@ except ImportError:
 from glob import glob
 from collections import defaultdict
 
+# io.StringIO is strictly unicode only. Python 2 StringIO.StringIO accepts
+# bytes, so we'll conveniently ignore decoding and reencoding the file there.
 try:
     from StringIO import StringIO  # Python 2
 except ImportError:
