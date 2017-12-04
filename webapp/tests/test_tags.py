@@ -383,7 +383,7 @@ class TagsTest(TestCase):
     response = self.client.post(url + '/tagSeries', {'path': 'test.a;hello=tiger;blah=blah'})
     self.assertEqual(response.status_code, 200)
     self.assertEqual(response['Content-Type'], 'application/json')
-    self.assertEqual(response.content, json_bytes(expected, indent=2, sort_keys=True))
+    self.assertEqual(response.content, json_bytes(expected, sort_keys=True))
 
     ## list tags
 
@@ -461,7 +461,7 @@ class TagsTest(TestCase):
     response = self.client.post(url + '/tagSeries', {'path': 'test.a;hello=lion;blah=blah'})
     self.assertEqual(response.status_code, 200)
     self.assertEqual(response['Content-Type'], 'application/json')
-    self.assertEqual(response.content, json_bytes(expected, indent=2, sort_keys=True))
+    self.assertEqual(response.content, json_bytes(expected, sort_keys=True))
 
     ## autocomplete tags
 
@@ -542,7 +542,7 @@ class TagsTest(TestCase):
     response = self.client.post(url + '/delSeries', {'path': 'test.a;blah=blah;hello=tiger'})
     self.assertEqual(response.status_code, 200)
     self.assertEqual(response['Content-Type'], 'application/json')
-    self.assertEqual(response.content, json_bytes(expected, indent=2, sort_keys=True))
+    self.assertEqual(response.content, json_bytes(expected, sort_keys=True))
 
     # delete second series
     expected = True
@@ -550,7 +550,7 @@ class TagsTest(TestCase):
     response = self.client.post(url + '/delSeries', {'path': 'test.a;blah=blah;hello=lion'})
     self.assertEqual(response.status_code, 200)
     self.assertEqual(response['Content-Type'], 'application/json')
-    self.assertEqual(response.content, json_bytes(expected, indent=2, sort_keys=True))
+    self.assertEqual(response.content, json_bytes(expected, sort_keys=True))
 
     # delete nonexistent series
 
@@ -559,7 +559,7 @@ class TagsTest(TestCase):
     response = self.client.post(url + '/delSeries', {'path': 'test.a;blah=blah;hello=lion'})
     self.assertEqual(response.status_code, 200)
     self.assertEqual(response['Content-Type'], 'application/json')
-    self.assertEqual(response.content, json_bytes(expected, indent=2, sort_keys=True))
+    self.assertEqual(response.content, json_bytes(expected, sort_keys=True))
 
     # find nonexistent series
     expected = []
@@ -567,7 +567,7 @@ class TagsTest(TestCase):
     response = self.client.get(url + '/findSeries?expr=name=test.a&expr=hello=tiger&expr=blah=blah')
     self.assertEqual(response.status_code, 200)
     self.assertEqual(response['Content-Type'], 'application/json')
-    self.assertEqual(response.content, json_bytes(expected, indent=2, sort_keys=True))
+    self.assertEqual(response.content, json_bytes(expected, sort_keys=True))
 
     # tag multiple series
 
