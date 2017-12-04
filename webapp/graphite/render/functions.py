@@ -4629,7 +4629,6 @@ SeriesFunctions = {
   'threshold': threshold,
   'transformNull': transformNull,
   'isNonNull': isNonNull,
-  'threshold' : threshold,
   'verticalLine' : verticalLine,
   'identity': identity,
   'aggregateLine': aggregateLine,
