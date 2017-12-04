@@ -1,5 +1,4 @@
 import copy
-import json
 import os
 import shutil
 import time
@@ -15,7 +14,7 @@ from .base import TestCase
 
 import whisper
 
-from graphite.util import unpickle, msgpack
+from graphite.util import unpickle, msgpack, json
 
 
 class MetricsTester(TestCase):

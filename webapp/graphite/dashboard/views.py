@@ -1,4 +1,3 @@
-import json
 import re
 import errno
 
@@ -13,9 +12,9 @@ from django.contrib.staticfiles import finders
 from django.utils.safestring import mark_safe
 from graphite.compat import HttpResponse
 from graphite.dashboard.models import Dashboard, Template
-from graphite.render.views import renderView
 from graphite.dashboard.send_graph import send_graph_email
-
+from graphite.render.views import renderView
+from graphite.util import json
 
 fieldRegex = re.compile(r'<([^>]+)>')
 defaultScheme = {
