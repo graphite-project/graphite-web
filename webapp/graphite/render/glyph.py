@@ -427,7 +427,6 @@ class _LinearAxisTics(_AxisTics):
 
     bestSlop = None
     bestStep = None
-    bestDivisor = None
     for step in self.generateSteps(variance / float(max(divisors))):
       if bestSlop is not None and step * min(divisors) >= 2 * bestSlop + variance:
         break
@@ -436,7 +435,6 @@ class _LinearAxisTics(_AxisTics):
         if slop is not None and (bestSlop is None or slop < bestSlop):
           bestSlop = slop
           bestStep = step
-          bestDivisor = divisor
 
     self.step = bestStep
 
@@ -1860,7 +1858,6 @@ class PieGraph(Graph):
           label = "%.2f" % slice['value']
         else:
           label = unicode(int(slice['value']))
-      extents = self.getExtents(label)
       theta = slice['midAngle']
       x = self.x0 + (self.radius / 2.0 * math.cos(theta))
       y = self.y0 + (self.radius / 2.0 * math.sin(theta))
