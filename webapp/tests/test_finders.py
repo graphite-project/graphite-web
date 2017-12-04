@@ -7,6 +7,7 @@ import random
 import shutil
 import time
 import unittest
+from six.moves import range
 
 try:
     from unittest.mock import patch
@@ -73,7 +74,7 @@ class DummyReader(BaseReader):
         self.path = path
 
     def fetch(self, start_time, end_time):
-        npoints = (end_time - start_time) / 10
+        npoints = (end_time - start_time) // 10
         return (start_time, end_time, 10), [
             random.choice([None, 1, 2, 3]) for i in range(npoints)
         ]
@@ -88,7 +89,7 @@ class DummyFinder(BaseFinder):
             yield BranchNode('foo')
 
         elif query.pattern == 'bar.*':
-            for i in xrange(10):
+            for i in range(10):
                 path = 'bar.{0}'.format(i)
                 yield LeafNode(path, DummyReader(path))
 
@@ -99,7 +100,7 @@ class LegacyFinder(object):
             yield BranchNode('foo')
 
         elif query.pattern == 'bar.*':
-            for i in xrange(10):
+            for i in range(10):
                 path = 'bar.{0}'.format(i)
                 yield LeafNode(path, DummyReader(path))
 
@@ -296,9 +297,6 @@ class StandardFinderTest(TestCase):
         self.assertEqual(output_metric_path, expected_metric_path)
 
 class CeresFinderTest(TestCase):
-    _listdir_counter = 0
-    _original_listdir = os.listdir
-
     unittest.skipIf(not ceres, 'ceres not installed')
     def test_ceres_finder(self):
         test_dir = join(settings.CERES_DIR)
@@ -319,56 +317,36 @@ class CeresFinderTest(TestCase):
             except OSError:
                 pass
 
-        def listdir_mock(d):
-            self._listdir_counter += 1
-            return self._original_listdir(d)
+        self.addCleanup(wipe_ceres)
 
-        try:
-            os.listdir = listdir_mock
-            create_ceres('foo')
-            create_ceres('foo.bar.baz')
-            create_ceres('bar.baz.foo')
+        create_ceres('foo')
+        create_ceres('foo.bar.baz')
+        create_ceres('bar.baz.foo')
 
-            finder = get_finders('graphite.finders.ceres.CeresFinder')[0]
+        finder = get_finders('graphite.finders.ceres.CeresFinder')[0]
 
-            self._listdir_counter = 0
-            nodes = finder.find_nodes(FindQuery('foo', None, None))
-            self.assertEqual(len(list(nodes)), 1)
-            self.assertEqual(self._listdir_counter, 1)
+        nodes = finder.find_nodes(FindQuery('foo', None, None))
+        self.assertEqual(len(list(nodes)), 1)
 
-            self._listdir_counter = 0
-            nodes = finder.find_nodes(FindQuery('foo.bar.baz', None, None))
-            self.assertEqual(len(list(nodes)), 1)
-            self.assertEqual(self._listdir_counter, 1)
+        nodes = finder.find_nodes(FindQuery('foo.bar.baz', None, None))
+        self.assertEqual(len(list(nodes)), 1)
 
-            # No data in the expected time period
-            self._listdir_counter = 0
-            nodes = finder.find_nodes(FindQuery('foo.bar.baz', 10000, 10060))
-            self.assertEqual(len(list(nodes)), 0)
-            self.assertEqual(self._listdir_counter, 1)
+        # No data in the expected time period
+        nodes = finder.find_nodes(FindQuery('foo.bar.baz', 10000, 10060))
+        self.assertEqual(len(list(nodes)), 0)
 
-            self._listdir_counter = 0
-            nodes = finder.find_nodes(FindQuery('foo.bar', None, None))
-            self.assertEqual(len(list(nodes)), 1)
-            self.assertEqual(self._listdir_counter, 0)
+        nodes = finder.find_nodes(FindQuery('foo.bar', None, None))
+        self.assertEqual(len(list(nodes)), 1)
 
-            self._listdir_counter = 0
-            nodes = finder.find_nodes(FindQuery('*.ba?.{baz,foo}', None, None))
-            self.assertEqual(len(list(nodes)), 2)
-            self.assertEqual(self._listdir_counter, 8)
+        nodes = finder.find_nodes(FindQuery('*.ba?.{baz,foo}', None, None))
+        self.assertEqual(len(list(nodes)), 2)
 
-            # Search for something that isn't valid Ceres content
-            fh = open(join(test_dir, 'foo', 'blah'), 'wb')
-            fh.close()
-            self._listdir_counter = 0
-            nodes = finder.find_nodes(FindQuery('foo.blah', None, None))
-            self.assertEqual(len(list(nodes)), 0)
-            self.assertEqual(self._listdir_counter, 0)
+        # Search for something that isn't valid Ceres content
+        fh = open(join(test_dir, 'foo', 'blah'), 'wb')
+        fh.close()
+        nodes = finder.find_nodes(FindQuery('foo.blah', None, None))
+        self.assertEqual(len(list(nodes)), 0)
 
-            # get index
-            result = finder.get_index({})
-            self.assertEqual(result, ['bar.baz.foo', 'foo', 'foo.bar.baz'])
-
-        finally:
-            os.listdir = self._original_listdir
-            wipe_ceres()
+        # get index
+        result = finder.get_index({})
+        self.assertEqual(result, ['bar.baz.foo', 'foo', 'foo.bar.baz'])

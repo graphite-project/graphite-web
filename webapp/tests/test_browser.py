@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import json
 import os
 
 from django.contrib.auth.models import User
@@ -9,6 +8,7 @@ except ImportError:  # Django < 1.10
     from django.core.urlresolvers import reverse
 from .base import TestCase
 from django.test.utils import override_settings
+from graphite.util import json
 
 from . import DATA_DIR
 
@@ -36,22 +36,22 @@ class BrowserTest(TestCase):
         url = reverse('browser_search')
 
         response = self.client.post(url)
-        self.assertEqual(response.content, '')
+        self.assertEqual(response.content, b'')
 
         # simple query
         response = self.client.post(url, {'query': 'collectd'})
-        self.assertEqual(response.content.split(',')[0],
-                         'collectd.test.df-root.df_complex-free')
+        self.assertEqual(response.content.split(b',')[0],
+                         b'collectd.test.df-root.df_complex-free')
 
         # No match
         response = self.client.post(url, {'query': 'other'})
-        self.assertEqual(response.content, '')
+        self.assertEqual(response.content, b'')
 
         # Multiple terms (OR)
         response = self.client.post(url, {'query': 'midterm shortterm'})
-        self.assertEqual(response.content.split(','),
-                         ['collectd.test.load.load.midterm',
-                          'collectd.test.load.load.shortterm'])
+        self.assertEqual(response.content.split(b','),
+                         [b'collectd.test.load.load.midterm',
+                          b'collectd.test.load.load.shortterm'])
 
     def test_unicode_graph_name(self):
         url = reverse('browser_my_graph')

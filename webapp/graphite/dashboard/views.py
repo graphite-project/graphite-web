@@ -1,10 +1,9 @@
-import json
 import re
 import errno
 
 from os.path import getmtime
-from urllib import urlencode
-from ConfigParser import ConfigParser
+from six.moves.urllib.parse import urlencode
+from six.moves.configparser import ConfigParser
 from django.shortcuts import render_to_response
 from django.http import QueryDict
 from django.conf import settings
@@ -13,9 +12,9 @@ from django.contrib.staticfiles import finders
 from django.utils.safestring import mark_safe
 from graphite.compat import HttpResponse
 from graphite.dashboard.models import Dashboard, Template
+from graphite.dashboard.send_graph import send_graph_email
 from graphite.render.views import renderView
-from send_graph import send_graph_email
-
+from graphite.util import json
 
 fieldRegex = re.compile(r'<([^>]+)>')
 defaultScheme = {
@@ -159,7 +158,7 @@ def template(request, name, val):
 
   try:
     config.check()
-  except OSError, e:
+  except OSError as e:
     if e.errno == errno.ENOENT:
       template_conf_missing = True
     else:

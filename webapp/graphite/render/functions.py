@@ -22,7 +22,15 @@ import re
 import time
 
 from datetime import datetime, timedelta
-from itertools import izip, izip_longest
+from functools import reduce
+from six.moves import range, zip
+import six
+try:
+  from itertools import izip, izip_longest
+except ImportError:
+  # Python 3
+  from itertools import zip_longest as izip_longest
+  izip = zip
 from os import environ
 
 from django.conf import settings
@@ -56,7 +64,7 @@ def safeSum(values):
 def safeDiff(values):
   safeValues = [v for v in values if v is not None]
   if safeValues:
-    values = map(lambda x: x*-1, safeValues[1:])
+    values = list(map(lambda x: x*-1, safeValues[1:]))
     values.insert(0, safeValues[0])
     return sum(values)
 
@@ -66,6 +74,12 @@ def safeLen(values):
 def safeDiv(a, b):
   if a is None: return None
   if b in (0,None): return None
+  return a / b
+
+# In Py2, None < (any integer) . Use -inf for same sorting on Python 3
+def _safeDiv_key(a, b):
+  if a is None or b in (0, None):
+    return -INF
   return a / b
 
 def safePow(a, b):
@@ -119,10 +133,24 @@ def safeLast(values):
   for v in reversed(values):
     if v is not None: return v
 
+# In Py2, None < (any integer) . Use -inf for same sorting on Python 3
+def _safeLast_key(values):
+  r = safeLast(values)
+  if r is None:
+    return -INF
+  return r
+
 def safeMin(values):
   safeValues = [v for v in values if v is not None]
   if safeValues:
     return min(safeValues)
+
+# In Py2, None < (any integer) . Use -inf for same sorting on Python 3
+def _safeMin_key(values):
+  r = safeMin(values)
+  if r is None:
+    return -INF
+  return r
 
 def safeMax(values):
   safeValues = [v for v in values if v is not None]
@@ -196,7 +224,7 @@ class NormalizeEmptyResultError(Exception):
 
 def matchSeries(seriesList1, seriesList2):
   assert len(seriesList2) == len(seriesList1), "The number of series in each argument must be the same"
-  return izip(sorted(seriesList1, lambda a,b: cmp(a.name, b.name)), sorted(seriesList2, lambda a,b: cmp(a.name, b.name)))
+  return izip(sorted(seriesList1, key=lambda a: a.name), sorted(seriesList2, key=lambda a: a.name))
 
 def formatPathExpressions(seriesList):
    # remove duplicates
@@ -551,14 +579,14 @@ def keepLastValue(requestContext, seriesList, limit = INF):
          if 0 < consecutiveNones <= limit:
            # If a non-None value is seen before the limit of Nones is hit,
            # backfill all the missing datapoints with the last known value.
-           for index in xrange(i - consecutiveNones, i):
+           for index in range(i - consecutiveNones, i):
              series[index] = series[i - consecutiveNones - 1]
 
          consecutiveNones = 0
 
     # If the series ends with some None values, try to backfill a bit to cover it.
     if 0 < consecutiveNones <= limit:
-      for index in xrange(len(series) - consecutiveNones, len(series)):
+      for index in range(len(series) - consecutiveNones, len(series)):
         series[index] = series[len(series) - consecutiveNones - 1]
 
   return seriesList
@@ -599,7 +627,7 @@ def interpolate(requestContext, seriesList, limit = INF):
         # If a non-None value is seen before the limit of Nones is hit,
         # backfill all the missing datapoints with the last known value.
         if 0 < consecutiveNones <= limit:
-          for index in xrange(i - consecutiveNones, i):
+          for index in range(i - consecutiveNones, i):
             series[index] = series[i - consecutiveNones - 1] + (index - (i - consecutiveNones -1)) * (value - series[i - consecutiveNones - 1]) / (consecutiveNones + 1)
 
         consecutiveNones = 0
@@ -968,7 +996,8 @@ def weightedAverage(requestContext, seriesListAvg, seriesListWeight, *nodes):
   sumWeights=sumSeries(requestContext, seriesListWeight)[0]
 
   resultValues = [ safeDiv(val1, val2) for val1,val2 in izip_longest(sumProducts,sumWeights) ]
-  name = "weightedAverage(%s, %s, %s)" % (','.join(sorted(set(s.pathExpression for s in seriesListAvg))) ,','.join(sorted(set(s.pathExpression for s in sorted(seriesListWeight)))), ','.join(map(str,nodes)))
+  _sorted_weights = sorted(seriesListWeight, key=lambda v: [(x if x is not None else -1) for x in v])
+  name = "weightedAverage(%s, %s, %s)" % (','.join(sorted(set(s.pathExpression for s in seriesListAvg))) ,','.join(sorted(set(s.pathExpression for s in _sorted_weights))), ','.join(map(str,nodes)))
   resultSeries = TimeSeries(name,sumProducts.start,sumProducts.end,sumProducts.step,resultValues,xFilesFactor=requestContext.get('xFilesFactor'))
   return [resultSeries]
 
@@ -1001,7 +1030,7 @@ def movingWindow(requestContext, seriesList, windowSize, func='average', xFilesF
   if not seriesList:
     return []
 
-  if isinstance(windowSize, basestring):
+  if isinstance(windowSize, six.string_types):
     delta = parseTimeOffset(windowSize)
     previewSeconds = abs(delta.seconds + (delta.days * 86400))
   else:
@@ -1030,7 +1059,7 @@ def movingWindow(requestContext, seriesList, windowSize, func='average', xFilesF
   tagName = 'moving' + func.capitalize()
 
   for series in previewList:
-    if isinstance(windowSize, basestring):
+    if isinstance(windowSize, six.string_types):
       newName = '%s(%s,"%s")' % (tagName, series.name, windowSize)
       windowPoints = previewSeconds // series.step
     else:
@@ -1083,7 +1112,7 @@ def exponentialMovingAverage(requestContext, seriesList, windowSize):
   if not seriesList:
     return []
   # set previewSeconds and constant based on windowSize string or integer
-  if isinstance(windowSize, basestring):
+  if isinstance(windowSize, six.string_types):
     delta = parseTimeOffset(windowSize)
     previewSeconds = abs(delta.seconds + (delta.days * 86400))
     constant = (float(2) / (int(previewSeconds) + 1))
@@ -1099,7 +1128,7 @@ def exponentialMovingAverage(requestContext, seriesList, windowSize):
   result = []
 
   for series in previewList:
-    if isinstance(windowSize, basestring):
+    if isinstance(windowSize, six.string_types):
       newName = 'exponentialMovingAverage(%s,"%s")' % (series.name, windowSize)
       windowPoints = previewSeconds // series.step
     else:
@@ -2288,7 +2317,7 @@ def highestCurrent(requestContext, seriesList, n):
   Draws the 5 servers with the highest busy threads.
 
   """
-  return sorted( seriesList, key=safeLast )[-n:]
+  return sorted( seriesList, key=_safeLast_key )[-n:]
 
 def highestMax(requestContext, seriesList, n):
   """
@@ -2327,7 +2356,7 @@ def lowestCurrent(requestContext, seriesList, n):
 
   """
 
-  return sorted( seriesList, key=safeLast )[:n]
+  return sorted( seriesList, key=_safeLast_key)[:n]
 
 def currentAbove(requestContext, seriesList, n):
   """
@@ -2389,7 +2418,7 @@ def highestAverage(requestContext, seriesList, n):
 
   """
 
-  return sorted( seriesList, key=lambda s: safeDiv(safeSum(s),safeLen(s)) )[-n:]
+  return sorted( seriesList, key=lambda s: _safeDiv_key(safeSum(s),safeLen(s)) )[-n:]
 
 def lowestAverage(requestContext, seriesList, n):
   """
@@ -2407,7 +2436,7 @@ def lowestAverage(requestContext, seriesList, n):
 
   """
 
-  return sorted( seriesList, key=lambda s: safeDiv(safeSum(s),safeLen(s)) )[:n]
+  return sorted( seriesList, key=lambda s: _safeDiv_key(safeSum(s),safeLen(s)) )[:n]
 
 def averageAbove(requestContext, seriesList, n):
   """
@@ -2527,7 +2556,7 @@ def removeBetweenPercentile(requestContext, seriesList, n):
   if n < 50:
     n = 100 - n
 
-  transposed = zip(*seriesList)
+  transposed = list(zip(*seriesList))
 
   lowPercentiles = [_getPercentile(col, 100-n) for col in transposed]
   highPercentiles = [_getPercentile(col, n) for col in transposed]
@@ -2548,7 +2577,7 @@ def removeAbovePercentile(requestContext, seriesList, n):
     except IndexError:
       continue
     for (index, val) in enumerate(s):
-      if val > percentile:
+      if val is not None and val > percentile:
         s[index] = None
 
   return seriesList
@@ -2562,7 +2591,7 @@ def removeAboveValue(requestContext, seriesList, n):
     s.name = 'removeAboveValue(%s, %g)' % (s.name, n)
     s.pathExpression = s.name
     for (index, val) in enumerate(s):
-      if val > n:
+      if val is not None and val > n:
         s[index] = None
 
   return seriesList
@@ -2580,7 +2609,7 @@ def removeBelowPercentile(requestContext, seriesList, n):
     except IndexError:
       continue
     for (index, val) in enumerate(s):
-      if val < percentile:
+      if val is None or val < percentile:
         s[index] = None
 
   return seriesList
@@ -2594,7 +2623,7 @@ def removeBelowValue(requestContext, seriesList, n):
     s.name = 'removeBelowValue(%s, %g)' % (s.name, n)
     s.pathExpression = s.name
     for (index, val) in enumerate(s):
-      if val < n:
+      if val is None or val < n:
         s[index] = None
 
   return seriesList
@@ -2627,16 +2656,13 @@ def sortByName(requestContext, seriesList, natural=False):
   def paddedName(name):
     return re.sub("(\d+)", lambda x: "{0:010}".format(int(x.group(0))), name)
 
-  def compare(x,y):
-    return cmp(x.name, y.name)
-
-  def natSortCompare(x,y):
-    return cmp(paddedName(x.name), paddedName(y.name))
+  def natSortKey(x):
+    return paddedName(x.name)
 
   if natural:
-    seriesList.sort(natSortCompare)
+    seriesList.sort(key=natSortKey)
   else:
-    seriesList.sort(compare)
+    seriesList.sort(key=lambda x: x.name)
 
   return seriesList
 
@@ -2647,10 +2673,7 @@ def sortByTotal(requestContext, seriesList):
   Sorts the list of metrics by the sum of values across the time period
   specified.
   """
-  def compare(x,y):
-    return cmp(safeSum(y), safeSum(x))
-
-  seriesList.sort(compare)
+  seriesList.sort(key=safeSum, reverse=True)
   return seriesList
 
 def sortByMaxima(requestContext, seriesList):
@@ -2668,9 +2691,7 @@ def sortByMaxima(requestContext, seriesList):
     &target=sortByMaxima(server*.instance*.memory.free)
 
   """
-  def compare(x,y):
-    return cmp(max(y), max(x))
-  seriesList.sort(compare)
+  seriesList.sort(key=max, reverse=True)
   return seriesList
 
 def sortByMinima(requestContext, seriesList):
@@ -2687,10 +2708,8 @@ def sortByMinima(requestContext, seriesList):
     &target=sortByMinima(server*.instance*.memory.free)
 
   """
-  def compare(x,y):
-    return cmp(min(x), min(y))
   newSeries = [series for series in seriesList if max(series) > 0]
-  newSeries.sort(compare)
+  newSeries.sort(key=min)
   return newSeries
 
 def useSeriesAbove(requestContext, seriesList, value, search, replace):
@@ -3592,7 +3611,7 @@ def identity(requestContext, name):
   delta = timedelta(seconds=step)
   start = int(epoch(requestContext["startTime"]))
   end = int(epoch(requestContext["endTime"]))
-  values = range(start, end, step)
+  values = list(range(start, end, step))
   series = TimeSeries(name, start, end, step, values, xFilesFactor=requestContext.get('xFilesFactor'))
   series.pathExpression = 'identity("%s")' % name
 
@@ -3992,7 +4011,7 @@ def _summarizeValues(series, func, interval, newStart=None, newEnd=None):
   if newEnd is None:
     newEnd = series.end
 
-  timestamps = range( int(series.start), int(series.end), int(series.step) )
+  timestamps = list(range( int(series.start), int(series.end), int(series.step)))
   datapoints = list(series)
   intervalPoints = interval / series.step
 

@@ -100,17 +100,6 @@ if django and django.VERSION[:2] < (1,8):
   required += 1
 
 
-# Test for a json module
-try:
-  import json
-except ImportError:
-  try:
-    import simplejson
-  except ImportError:
-    sys.stderr.write("[REQUIRED] Unable to import either the 'json' or 'simplejson' module, at least one is required.\n")
-    required += 1
-
-
 # Test for python-memcached
 try:
   import memcache

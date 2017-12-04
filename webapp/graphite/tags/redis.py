@@ -2,6 +2,7 @@ from __future__ import absolute_import
 
 import re
 import bisect
+import sys
 
 from graphite.tags.base import BaseTagDB, TaggedSeries
 
@@ -30,7 +31,8 @@ class RedisTagDB(BaseTagDB):
     self.r = Redis(
       host=settings.TAGDB_REDIS_HOST,
       port=settings.TAGDB_REDIS_PORT,
-      db=settings.TAGDB_REDIS_DB
+      db=settings.TAGDB_REDIS_DB,
+      decode_responses=(sys.version_info[0] >= 3),
     )
 
   def _find_series(self, tags, requestContext=None):
@@ -125,7 +127,7 @@ class RedisTagDB(BaseTagDB):
 
     # apply filters
     operators = ['=','!=','=~','!=~']
-    filters.sort(lambda a, b: operators.index(a[1]) - operators.index(b[1]))
+    filters.sort(key=lambda a: operators.index(a[1]))
 
     for series in self.r.sunion(*['tags:' + tag + ':values:' + value for value in values]):
       parsed = self.parse(series)

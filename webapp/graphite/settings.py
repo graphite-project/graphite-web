@@ -13,6 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 # Django settings for graphite project.
 # DO NOT MODIFY THIS FILE DIRECTLY - use local_settings.py instead
+from __future__ import print_function
 import os
 import sys
 from os.path import abspath, dirname, join
@@ -196,7 +197,7 @@ FLUSHRRDCACHED = ''
 try:
   from graphite.local_settings import *  # noqa
 except ImportError:
-  print >> sys.stderr, "Could not import graphite.local_settings, using defaults!"
+  print("Could not import graphite.local_settings, using defaults!", file=sys.stderr)
 
 ## Load Django settings if they werent picked up in local_settings
 if not GRAPHITE_WEB_APP_SETTINGS_LOADED:
@@ -238,7 +239,7 @@ if not STANDARD_DIRS:
     if os.path.exists(WHISPER_DIR):
       STANDARD_DIRS.append(WHISPER_DIR)
   except ImportError:
-    print >> sys.stderr, "WARNING: whisper module could not be loaded, whisper support disabled"
+    print("WARNING: whisper module could not be loaded, whisper support disabled", file=sys.stderr)
   try:
     import ceres  # noqa
     if os.path.exists(CERES_DIR):

@@ -12,21 +12,28 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
-import math, itertools, re
+import math, itertools, re, sys
+from datetime import datetime, timedelta
+from six.moves import range, zip
+from six.moves.urllib.parse import unquote_plus
+from six.moves.configparser import SafeConfigParser
+from django.conf import settings
+import pytz
+
+from graphite.render.datalib import TimeSeries
+from graphite.util import json
+
 try:
     import cairocffi as cairo
 except ImportError:
     import cairo
 
-import StringIO
-from datetime import datetime, timedelta
-from urllib import unquote_plus
-from ConfigParser import SafeConfigParser
-from django.conf import settings
-from graphite.render.datalib import TimeSeries
-from graphite.util import json
-
-import pytz
+# BytesIO is needed on py3 as StringIO does not operate on byte input anymore
+# We could use BytesIO on py2 as well but it is slower than StringIO
+if sys.version_info >= (3, 0):
+  from io import BytesIO as StringIO
+else:
+  from cStringIO import StringIO
 
 INFINITY = float('inf')
 
@@ -289,14 +296,14 @@ class _AxisTics:
       return "%g %s" % (float(value), prefix)
     elif value < 1.0:
       return "%.2f %s" % (float(value), prefix)
-    if span > 10 or spanPrefix != prefix:
+    if (span is not None and span > 10) or spanPrefix != prefix:
       if type(value) is float:
         return "%.1f %s" % (value, prefix)
       else:
         return "%d %s" % (int(value), prefix)
-    elif span > 3:
+    elif span is not None and span > 3:
       return "%.1f %s" % (float(value), prefix)
-    elif span > 0.1:
+    elif span is not None and span > 0.1:
       return "%.2f %s" % (float(value), prefix)
     else:
       return "%g %s" % (float(value), prefix)
@@ -988,7 +995,7 @@ class LineGraph(Graph):
       params['yUnitSystem'] = 'si'
     else:
       params['yUnitSystem'] = unicode(params['yUnitSystem']).lower()
-      if params['yUnitSystem'] not in UnitSystems.keys():
+      if params['yUnitSystem'] not in UnitSystems:
         params['yUnitSystem'] = 'si'
 
     self.params = params
@@ -1039,7 +1046,7 @@ class LineGraph(Graph):
 
     for series in self.data:
       if not hasattr(series, 'color'):
-        series.color = self.colors.next()
+        series.color = next(self.colors)
 
     titleSize = self.defaultFontParams['size'] + math.floor( math.log(self.defaultFontParams['size']) )
     self.setFont( size=titleSize )
@@ -1792,7 +1799,7 @@ class PieGraph(Graph):
         'name' : name,
         'value' : value,
         'percent' : value / self.total,
-        'color' : self.colors.next(),
+        'color' : next(self.colors),
         'alpha' : self.alpha,
       })
 
@@ -1932,7 +1939,7 @@ def dataLimits(data, drawNullAsZero=False, stacked=False):
     length = safeMin(len(series) for series in finiteData)
     sumSeries = []
 
-    for i in xrange(0, length):
+    for i in range(0, length):
       sumSeries.append( safeSum(series[i] for series in finiteData) )
     yMaxValue = safeMax( sumSeries )
   else:
@@ -1972,13 +1979,13 @@ def format_units(v, step=None, system='si', units=None):
     if condition(size):
       v2 = v / size
       if (v2 - math.floor(v2)) < 0.00000000001 and v > 1:
-        v2 = math.floor(v2)
+        v2 = float(math.floor(v2))
       if units:
         prefix = "%s%s" % (prefix, units)
       return v2, prefix
 
   if (v - math.floor(v)) < 0.00000000001 and v > 1 :
-    v = math.floor(v)
+    v = float(math.floor(v))
   if units:
     prefix = units
   else:

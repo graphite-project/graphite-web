@@ -236,7 +236,7 @@ class DummyReader(BaseReader):
         self.path = path
 
     def fetch(self, startTime, endTime, now=None, requestContext=None):
-        npoints = (endTime - startTime) / 10
+        npoints = (endTime - startTime) // 10
         return (startTime, endTime, 10), [
             random.choice([None, 1, 2, 3]) for i in range(npoints)
         ]

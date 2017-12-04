@@ -336,7 +336,7 @@ points is a list of (timestamp,value) points
   header = __readHeader(fh)
   now = int( time.time() )
   archives = iter( header['archives'] )
-  currentArchive = archives.next()
+  currentArchive = next(archives)
   #debug('  update_many currentArchive=%s' % str(currentArchive))
   currentPoints = []
   for point in points:
@@ -349,7 +349,7 @@ points is a list of (timestamp,value) points
         __archive_update_many(fh,header,currentArchive,currentPoints)
         currentPoints = []
       try:
-        currentArchive = archives.next()
+        currentArchive = next(archives)
         #debug('  update_many using next archive %s' % str(currentArchive))
       except StopIteration:
         #debug('  update_many no more archives!')

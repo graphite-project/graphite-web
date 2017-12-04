@@ -1,11 +1,14 @@
+from __future__ import absolute_import
 import time
 import random
+import sys
 import types
 
 from collections import defaultdict
 
 from django.conf import settings
 from django.core.cache import cache
+import six
 
 try:
     from importlib import import_module
@@ -30,9 +33,14 @@ def get_finders(finder_path):
 
     # monkey patch so legacy finders will work
     finder = cls()
-    finder.fetch = types.MethodType(BaseFinder.fetch.__func__, finder)
-    finder.find_multi = types.MethodType(BaseFinder.find_multi.__func__, finder)
-    finder.get_index = types.MethodType(BaseFinder.get_index.__func__, finder)
+    if sys.version_info[0] >= 3:
+        finder.fetch = types.MethodType(BaseFinder.fetch, finder)
+        finder.find_multi = types.MethodType(BaseFinder.find_multi, finder)
+        finder.get_index = types.MethodType(BaseFinder.get_index, finder)
+    else:
+        finder.fetch = types.MethodType(BaseFinder.fetch.__func__, finder)
+        finder.find_multi = types.MethodType(BaseFinder.find_multi.__func__, finder)
+        finder.get_index = types.MethodType(BaseFinder.get_index.__func__, finder)
 
     return [finder]
 
@@ -223,7 +231,7 @@ class Store(object):
         # Reduce matching nodes for each path to a minimal set
         found_branch_nodes = set()
 
-        items = list(nodes_by_path.iteritems())
+        items = list(six.iteritems(nodes_by_path))
         random.shuffle(items)
 
         for path, nodes in items:

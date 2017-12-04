@@ -12,7 +12,7 @@ from graphite.singleton import ThreadSafeSingleton
 
 
 try:
-  import cPickle as pickle
+  import six.moves.cPickle as pickle
 except ImportError:
   import pickle
 
@@ -134,7 +134,7 @@ class CarbonLinkPool(object):
     try:
       conn.sendall(request_packet)
       result = self.recv_response(conn)
-    except Exception,e:
+    except Exception as e:
       self.last_failure[host] = time.time()
       log.cache("Exception getting data from cache %s: %s" % (str(host), e))
     else:
@@ -159,7 +159,7 @@ class CarbonLinkPool(object):
       try:
         conn.sendall(request_packet)
         result = self.recv_response(conn)
-      except Exception,e:
+      except Exception as e:
         self.last_failure[host] = time.time()
         log.cache("Exception getting data from cache %s: %s" % (str(host), e))
       else:

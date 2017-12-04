@@ -1,5 +1,4 @@
 import copy
-import json
 import os
 import shutil
 import time
@@ -15,7 +14,7 @@ from .base import TestCase
 
 import whisper
 
-from graphite.util import unpickle, msgpack
+from graphite.util import unpickle, msgpack, json
 
 
 class MetricsTester(TestCase):
@@ -79,7 +78,7 @@ class MetricsTester(TestCase):
         request = {'jsonp': 'callback'}
         response = self.client.post(url, request)
         self.assertEqual(response.status_code, 200)
-        data = json.loads(response.content.split("(")[1].strip(")"))
+        data = json.loads(response.content.split(b"(")[1].strip(b")"))
         self.assertEqual(data[0], 'hosts.worker1.cpu')
         self.assertEqual(data[1], 'hosts.worker2.cpu')
 
@@ -109,14 +108,14 @@ class MetricsTester(TestCase):
         #
         response = self.client.post(url, {})
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.content, "Missing required parameter 'query'")
+        self.assertEqual(response.content, b"Missing required parameter 'query'")
 
         #
         # format=invalid_format
         #
         response = self.client.post(url, {'format': 'invalid_format', 'query': '*'})
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.content, "Invalid value for 'format' parameter")
+        self.assertEqual(response.content, b"Invalid value for 'format' parameter")
 
 
         def test_find_view_basics(data):
@@ -153,7 +152,7 @@ class MetricsTester(TestCase):
         request['format']='treejson'
         request['query']='other'
         content = test_find_view_basics(request)
-        self.assertEqual(content, '[]')
+        self.assertEqual(content, b'[]')
 
         request['query']='*'
         request['wildcards']=1
@@ -180,7 +179,10 @@ class MetricsTester(TestCase):
             data = unpickle.loads(content)
             self.assertEqual(len(data), 2)
 
-            data = sorted(data, key=lambda item: item['path'])
+            def _path_key(metrics_dict):
+                return metrics_dict.get('path', '')
+
+            data = sorted(data, key=_path_key)
 
             self.assertEqual(data[0]['path'], 'hosts.worker1.cpu')
             self.assertEqual(data[0]['is_leaf'], True)
@@ -211,7 +213,7 @@ class MetricsTester(TestCase):
             data = msgpack.loads(content)
             self.assertEqual(len(data), 2)
 
-            data = sorted(data, key=lambda item: item['path'])
+            data = sorted(data, key=_path_key)
 
             self.assertEqual(data[0]['path'], 'hosts.worker1.cpu')
             self.assertEqual(data[0]['is_leaf'], True)
@@ -233,25 +235,25 @@ class MetricsTester(TestCase):
             request['query']='*'
             content = test_find_view_basics(request)
             data = json.loads(content)
-            data['metrics'] = sorted(data['metrics'])
+            data['metrics'] = sorted(data['metrics'], key=_path_key)
             self.assertEqual(data, {u'metrics': [{u'name': u'hosts', u'is_leaf': u'0', u'path': u'hosts.'}]})
 
             request['query']='hosts'
             content = test_find_view_basics(request)
             data = json.loads(content)
-            data['metrics'] = sorted(data['metrics'])
+            data['metrics'] = sorted(data['metrics'], key=_path_key)
             self.assertEqual(data, {u'metrics': [{u'name': u'hosts', u'is_leaf': u'0', u'path': u'hosts.'}]})
 
             request['query']='hosts.*.*'
             content = test_find_view_basics(request)
             data = json.loads(content)
-            data['metrics'] = sorted(data['metrics'])
+            data['metrics'] = sorted(data['metrics'], key=_path_key)
             self.assertEqual(data, {u'metrics': [{u'path': u'hosts.worker1.cpu', u'is_leaf': u'1', u'name': u'cpu'}, {u'path': u'hosts.worker2.cpu', u'is_leaf': u'1', u'name': u'cpu'}]})
 
             request['query']='hosts.'
             content = test_find_view_basics(request)
             data = json.loads(content)
-            data['metrics'] = sorted(data['metrics'])
+            data['metrics'] = sorted(data['metrics'], key=_path_key)
             self.assertEqual(data, {u'metrics': [{u'is_leaf': u'0', u'name': u'worker1', u'path': u'hosts.worker1.'}, {u'is_leaf': u'0', u'name': u'worker2', u'path': u'hosts.worker2.'}]})
 
             # No match
@@ -271,7 +273,7 @@ class MetricsTester(TestCase):
             request['query']='hosts.*.'
             content = test_find_view_basics(request)
             data = json.loads(content)
-            data['metrics'] = sorted(data['metrics'])
+            data['metrics'] = sorted(data['metrics'], key=_path_key)
             self.assertEqual(data, {u'metrics': [{u'name': u'*'}, {u'is_leaf': u'1', u'path': u'hosts.worker1.cpu', u'name': u'cpu'}, {u'is_leaf': u'1', u'path': u'hosts.worker2.cpu', u'name': u'cpu'}]})
 
             # Test from/until params
@@ -282,7 +284,7 @@ class MetricsTester(TestCase):
             request['until']=int(time.time())
             content = test_find_view_basics(request)
             data = json.loads(content)
-            data['metrics'] = sorted(data['metrics'])
+            data['metrics'] = sorted(data['metrics'], key=_path_key)
             self.assertEqual(data, {u'metrics': [{u'name': u'hosts', u'is_leaf': u'0', u'path': u'hosts.'}]})
 
             # Test from/until params
@@ -293,7 +295,7 @@ class MetricsTester(TestCase):
             request['until']='now'
             content = test_find_view_basics(request)
             data = json.loads(content)
-            data['metrics'] = sorted(data['metrics'])
+            data['metrics'] = sorted(data['metrics'], key=_path_key)
             self.assertEqual(data, {u'metrics': [{u'name': u'hosts', u'is_leaf': u'0', u'path': u'hosts.'}]})
 
             # automatic_variants
@@ -303,21 +305,21 @@ class MetricsTester(TestCase):
             request['query']='hosts.'
             content = test_find_view_basics(request)
             data = json.loads(content)
-            data['metrics'] = sorted(data['metrics'])
+            data['metrics'] = sorted(data['metrics'], key=_path_key)
             self.assertEqual(data, {u'metrics': [{u'is_leaf': u'0', u'name': u'worker1', u'path': u'hosts.worker1.'}, {u'is_leaf': u'0', u'name': u'worker2', u'path': u'hosts.worker2.'}]})
 
             request['automatic_variants']=1
             request['query']='{hosts,blah}.'
             content = test_find_view_basics(request)
             data = json.loads(content)
-            data['metrics'] = sorted(data['metrics'])
+            data['metrics'] = sorted(data['metrics'], key=_path_key)
             self.assertEqual(data, {u'metrics': [{u'path': u'hosts.worker1.', u'is_leaf': u'0', u'name': u'worker1'}, {u'path': u'hosts.worker2.', u'is_leaf': u'0', u'name': u'worker2'}]})
 
             request['automatic_variants']=1
             request['query']='hosts,blah.'
             content = test_find_view_basics(request)
             data = json.loads(content)
-            data['metrics'] = sorted(data['metrics'])
+            data['metrics'] = sorted(data['metrics'], key=_path_key)
             self.assertEqual(data, {u'metrics': [{u'name': u'worker1', u'path': u'hosts.worker1.', u'is_leaf': u'0'}, {u'name': u'worker2', u'path': u'hosts.worker2.', u'is_leaf': u'0'}]})
 
             # format=completer+jsonp
@@ -326,13 +328,13 @@ class MetricsTester(TestCase):
             request['jsonp']='asdf'
             request['query']='*'
             content = test_find_view_basics(request)
-            data = json.loads(content.split("(")[1].strip(")"))
+            data = json.loads(content.split(b"(")[1].strip(b")"))
             self.assertEqual(data, {u'metrics': [{u'name': u'hosts', u'path': u'hosts.', u'is_leaf': u'0'}]})
 
             # No match
             request['query']='other'
             content = test_find_view_basics(request)
-            data = json.loads(content.split("(")[1].strip(")"))
+            data = json.loads(content.split(b"(")[1].strip(b")"))
             self.assertEqual(data['metrics'], [])
 
             #
@@ -410,13 +412,13 @@ class MetricsTester(TestCase):
             # branch
             request['query']='*'
             content = test_find_view_basics(request)
-            data = json.loads(content.split("(")[1].strip(")"))
+            data = json.loads(content.split(b"(")[1].strip(b")"))
             self.assertEqual(data, [{u'path': u'hosts', u'is_leaf': False}])
 
             # leaf
             request['query']='hosts.*.cpu'
             content = test_find_view_basics(request)
-            data = json.loads(content.split("(")[1].strip(")"))
+            data = json.loads(content.split(b"(")[1].strip(b")"))
             self.assertEqual(len(data), 2)
 
             self.assertEqual(data[0]['path'], 'hosts.worker1.cpu')
@@ -434,7 +436,7 @@ class MetricsTester(TestCase):
             # No match
             request['query']='other'
             content = test_find_view_basics(request)
-            data = json.loads(content.split("(")[1].strip(")"))
+            data = json.loads(content.split(b"(")[1].strip(b")"))
             self.assertEqual(data, [])
 
     def test_expand_view(self):

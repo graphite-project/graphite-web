@@ -1,4 +1,5 @@
 import datetime
+import six
 
 try:
     from django.contrib.sites.requests import RequestSite
@@ -59,7 +60,7 @@ def post_event(request):
         if tags is not None:
             if isinstance(tags, list):
                 tags = ' '.join(tags)
-            elif not isinstance(tags, basestring):
+            elif not isinstance(tags, six.string_types):
                 return HttpResponse(
                     json.dumps({'error': '"tags" must be an array or space-separated string'}),
                     status=400)

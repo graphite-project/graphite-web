@@ -14,13 +14,12 @@ limitations under the License."""
 import csv
 import math
 import pytz
-import httplib
+import six.moves.http_client
 
 from datetime import datetime
 from time import time
 from random import shuffle
-from urllib import urlencode
-from urlparse import urlsplit, urlunsplit
+from six.moves.urllib.parse import urlencode, urlsplit, urlunsplit
 from cgi import parse_qs
 
 from graphite.compat import HttpResponse
@@ -41,6 +40,7 @@ from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.utils.cache import add_never_cache_headers, patch_response_headers
+from six.moves import zip
 
 
 def renderView(request):
@@ -194,7 +194,7 @@ def renderViewJson(requestOptions, data):
     if maxDataPoints == 1:
       for series in data:
         series.consolidate(len(series))
-        datapoints = zip(series, [int(series.start)])
+        datapoints = list(zip(series, [int(series.start)]))
         series_data.append(dict(target=series.name, tags=series.tags, datapoints=datapoints))
     else:
       startTime = min([series.start for series in data])
@@ -216,7 +216,7 @@ def renderViewJson(requestOptions, data):
           timestamps = range(int(series.start), int(series.end) + 1, int(secondsPerPoint))
         else:
           timestamps = range(int(series.start), int(series.end) + 1, int(series.step))
-        datapoints = zip(series, timestamps)
+        datapoints = list(zip(series, timestamps))
         series_data.append(dict(target=series.name, tags=series.tags, datapoints=datapoints))
   elif 'noNullPoints' in requestOptions and any(data):
     for series in data:
@@ -230,7 +230,7 @@ def renderViewJson(requestOptions, data):
   else:
     for series in data:
       timestamps = range(int(series.start), int(series.end) + 1, int(series.step))
-      datapoints = zip(series, timestamps)
+      datapoints = list(zip(series, timestamps))
       series_data.append(dict(target=series.name, tags=series.tags, datapoints=datapoints))
 
   output = json.dumps(series_data, indent=(2 if requestOptions.get('pretty') else None)).replace('None,', 'null,').replace('NaN,', 'null,').replace('Infinity,', '1e9999,')
@@ -335,7 +335,9 @@ def parseOptions(request):
   requestOptions = {}
 
   graphType = queryParams.get('graphType','line')
-  assert graphType in GraphTypes, "Invalid graphType '%s', must be one of %s" % (graphType,GraphTypes.keys())
+  if graphType not in GraphTypes:
+    raise AssertionError("Invalid graphType '%s', must be one of %s"
+                         % (graphType,list(GraphTypes)))
   graphClass = GraphTypes[graphType]
 
   # Fill in the requestOptions
@@ -458,7 +460,7 @@ connectionPools = {}
 
 
 def connector_class_selector(https_support=False):
-    return httplib.HTTPSConnection if https_support else httplib.HTTPConnection
+    return six.moves.http_client.HTTPSConnection if https_support else six.moves.http_client.HTTPConnection
 
 
 def delegateRendering(graphType, graphOptions, headers=None):
@@ -485,7 +487,7 @@ def delegateRendering(graphType, graphOptions, headers=None):
       # Send the request
       try:
         connection.request('POST','/render/local/', postData, headers)
-      except httplib.CannotSendRequest:
+      except six.moves.http_client.CannotSendRequest:
         connection = connector_class(server) #retry once
         connection.timeout = settings.REMOTE_RENDER_CONNECT_TIMEOUT
         connection.request('POST', '/render/local/', postData, headers)

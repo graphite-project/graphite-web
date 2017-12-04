@@ -53,12 +53,12 @@ def merge_with_cache(cached_datapoints, start, step, values, func=None, raw_step
         raise Exception("Invalid consolidation function: '%s'" % func)
 
     # if we have a raw_step, start by taking only the last data point for each interval to match what whisper will do
-    if raw_step > 1:
+    if raw_step is not None and raw_step > 1:
         consolidated_dict = {}
         for (timestamp, value) in cached_datapoints:
             interval = timestamp - (timestamp % raw_step)
             consolidated_dict[interval] = value
-        cached_datapoints = consolidated_dict.items()
+        cached_datapoints = list(consolidated_dict.items())
 
     # if we have a consolidation function and the step is not the default interval, consolidate to the requested step
     if func and step != raw_step:
@@ -76,7 +76,7 @@ def merge_with_cache(cached_datapoints, start, step, values, func=None, raw_step
 
     for (interval, value) in consolidated:
         try:
-            i = int(interval - start) / step
+            i = int(interval - start) // step
             if i < 0:
                 # cached data point is earlier then the requested data point.
                 # meaning we can definitely ignore the cache result.
@@ -109,7 +109,7 @@ def merge_with_carbonlink(metric, start, step, values, aggregation_method=None, 
         cached_datapoints = []
 
     if isinstance(cached_datapoints, dict):
-        cached_datapoints = cached_datapoints.items()
+        cached_datapoints = list(cached_datapoints.items())
 
     return merge_with_cache(
         cached_datapoints, start, step, values,

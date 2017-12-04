@@ -26,7 +26,7 @@
                       <tr>
                           <td>{{event.when|date:"H:i:s D d M Y" }}</td>
                           <td><a href="{% url "events_detail" event.id %}">{{event.what}}</a></td>
-                          <td>{{event.tags}}</td>
+                          <td>[&#39;{{ event.tags|join:"&#39;, &#39;"}}&#39;]</td>
                       </tr>
                   {% endfor %}
               {% else %}

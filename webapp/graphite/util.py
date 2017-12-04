@@ -14,27 +14,33 @@ limitations under the License."""
 
 import imp
 import io
+import json as _json
 import socket
 import time
 import sys
 import calendar
 import pytz
+import six
 import traceback
+
 from datetime import datetime
 from functools import wraps
 from os.path import splitext, basename
 
-try:
-  import cPickle as pickle
-  USING_CPICKLE = True
-except:
-  import pickle
-  USING_CPICKLE = False
+from django.conf import settings
+from django.utils.timezone import make_aware
+from graphite.logger import log
 
-try:
+# BytesIO is needed on py3 as StringIO does not operate on byte input anymore
+# We could use BytesIO on py2 as well but it is slower than StringIO
+if sys.version_info >= (3, 0):
+  PY3 = True
+  import pickle
+  from io import BytesIO as StringIO
+else:
+  PY3 = False
+  import cPickle as pickle
   from cStringIO import StringIO
-except ImportError:
-  from StringIO import StringIO
 
 # use https://github.com/msgpack/msgpack-python if available
 try:
@@ -42,24 +48,6 @@ try:
 # otherwise fall back to bundled https://github.com/vsergeev/u-msgpack-python
 except ImportError:
   import graphite.umsgpack as msgpack  # NOQA
-
-from django.conf import settings
-from django.utils.timezone import make_aware
-from graphite.logger import log
-
-
-# There are a couple different json modules floating around out there with
-# different APIs. Hide the ugliness here.
-try:
-  import json
-except ImportError:
-  import simplejson as json
-
-if hasattr(json, 'read') and not hasattr(json, 'loads'):
-  json.loads = json.read
-  json.dumps = json.write
-  json.load = lambda file: json.read( file.read() )
-  json.dump = lambda obj, file: file.write( json.write(obj) )
 
 def epoch(dt):
   """
@@ -156,7 +144,7 @@ def deltaseconds(timedelta):
 # The SafeUnpickler classes were largely derived from
 # http://nadiana.com/python-pickle-insecure
 # This code also lives in carbon.util
-if USING_CPICKLE:
+if not PY3:
   class SafeUnpickler(object):
     PICKLE_SAFE = {
       'copy_reg': set(['_reconstructor']),
@@ -194,7 +182,7 @@ else:
   class SafeUnpickler(pickle.Unpickler):
     PICKLE_SAFE = {
       'copy_reg': set(['_reconstructor']),
-      '__builtin__': set(['object', 'list', 'set']),
+      'builtins': set(['object', 'list', 'set']),
       'collections': set(['deque']),
       'graphite.render.datalib': set(['TimeSeries']),
       'graphite.intervals': set(['Interval', 'IntervalSet']),
@@ -217,6 +205,29 @@ else:
     @staticmethod
     def load(file):
       return SafeUnpickler(file).load()
+
+
+class json(object):
+  JSONEncoder = _json.JSONEncoder
+  JSONDecoder = _json.JSONDecoder
+
+  @staticmethod
+  def dump(*args, **kwargs):
+    return _json.dump(*args, **kwargs)
+
+  @staticmethod
+  def dumps(*args, **kwargs):
+    return _json.dumps(*args, **kwargs)
+
+  @staticmethod
+  def load(fp, *args, **kwargs):
+    return _json.load(fp, *args, **kwargs)
+
+  @staticmethod
+  def loads(s, *args, **kwargs):
+    if isinstance(s, six.binary_type):
+      return _json.loads(s.decode('utf-8'), *args, **kwargs)
+    return _json.loads(s, *args, **kwargs)
 
 
 class Timer(object):
@@ -264,7 +275,7 @@ class BufferedHTTPReader(io.IOBase):
   def __init__(self, response, buffer_size=1048576):
     self.response = response
     self.buffer_size = buffer_size
-    self.buffer = ''
+    self.buffer = b''
     self.pos = 0
 
   def read(self, amt=None):
@@ -278,5 +289,5 @@ class BufferedHTTPReader(io.IOBase):
     self.pos += amt
     if self.pos >= len(self.buffer):
       self.pos = 0
-      self.buffer = ''
+      self.buffer = b''
     return data

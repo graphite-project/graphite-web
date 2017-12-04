@@ -38,10 +38,9 @@
 #
 
 Django>=1.8,<1.11.99
-python-memcached==1.47
-txAMQP==0.4
-simplejson==2.1.6
-django-tagging==0.4.3
+python-memcached==1.58
+txAMQP==0.7
+django-tagging==0.4.6
 gunicorn
 pytz
 pyparsing
@@ -52,3 +51,4 @@ git+git://github.com/graphite-project/whisper.git#egg=whisper
 whitenoise
 scandir
 urllib3
+six

@@ -2,18 +2,24 @@ import pytz
 
 from datetime import datetime
 from mock import mock, patch
+import sys
 
 from .base import TestCase
 from django.conf import settings
 
 from graphite.render.datalib import TimeSeries, fetchData, _merge_results, prefetchData
 from graphite.util import timebounds
+from six.moves import range
 
 
 class TimeSeriesTest(TestCase):
 
     def test_TimeSeries_init_no_args(self):
-      with self.assertRaisesRegexp(TypeError, '__init__\(\) takes at least 6 arguments \(1 given\)'):
+      if sys.version_info[0] >= 3:
+          msg = '__init__\(\) missing 5 required positional arguments'
+      else:
+          msg = '__init__\(\) takes at least 6 arguments \(1 given\)'
+      with self.assertRaisesRegexp(TypeError, msg):
         TimeSeries()
 
     def test_TimeSeries_init_string_values(self):
@@ -30,13 +36,13 @@ class TimeSeriesTest(TestCase):
       self.assertEqual(series.tags, {'name': 'collectd.test-db.load.value;'})
 
     def test_TimeSeries_equal_list(self):
-      values = range(0,100)
+      values = list(range(0,100))
       series = TimeSeries("collectd.test-db.load.value", 0, len(values), 1, values)
       with self.assertRaises(AssertionError):
         self.assertEqual(values, series)
 
     def test_TimeSeries_equal_list_color(self):
-      values = range(0,100)
+      values = list(range(0,100))
       series1 = TimeSeries("collectd.test-db.load.value", 0, len(values), 1, values)
       series1.color = 'white'
       series2 = TimeSeries("collectd.test-db.load.value", 0, len(values), 1, values)
@@ -44,7 +50,7 @@ class TimeSeriesTest(TestCase):
       self.assertEqual(series1, series2)
 
     def test_TimeSeries_equal_list_color_bad(self):
-      values = range(0,100)
+      values = list(range(0,100))
       series1 = TimeSeries("collectd.test-db.load.value", 0, len(values), 1, values)
       series2 = TimeSeries("collectd.test-db.load.value", 0, len(values), 1, values)
       series2.color = 'white'
@@ -52,7 +58,7 @@ class TimeSeriesTest(TestCase):
         self.assertEqual(series1, series2)
 
     def test_TimeSeries_equal_list_color_bad2(self):
-      values = range(0,100)
+      values = list(range(0,100))
       series1 = TimeSeries("collectd.test-db.load.value", 0, len(values), 1, values)
       series2 = TimeSeries("collectd.test-db.load.value", 0, len(values), 1, values)
       series1.color = 'white'
@@ -60,7 +66,7 @@ class TimeSeriesTest(TestCase):
         self.assertEqual(series1, series2)
 
     def test_TimeSeries_getInfo(self):
-      values = range(0,100)
+      values = list(range(0,100))
       series = TimeSeries("collectd.test-db.load.value", 0, len(values), 1, values)
       self.assertEqual(series.getInfo(), {
         'name': 'collectd.test-db.load.value',
@@ -75,7 +81,7 @@ class TimeSeriesTest(TestCase):
       })
 
     def test_TimeSeries_consolidate(self):
-      values = range(0,100)
+      values = list(range(0,100))
 
       series = TimeSeries("collectd.test-db.load.value", 0, len(values)/2, 1, values)
       self.assertEqual(series.valuesPerPoint, 1)
@@ -84,7 +90,7 @@ class TimeSeriesTest(TestCase):
       self.assertEqual(series.valuesPerPoint, 2)
 
     def test_TimeSeries_iterate(self):
-      values = range(0,100)
+      values = list(range(0,100))
       series = TimeSeries("collectd.test-db.load.value", 0, len(values), 1, values)
       for i, val in enumerate(series):
         self.assertEqual(val, values[i])
@@ -122,7 +128,7 @@ class TimeSeriesTest(TestCase):
       self.assertEqual(list(series), list(expected))
 
     def test_TimeSeries_iterate_valuesPerPoint_2_avg(self):
-      values = range(0,100)
+      values = list(range(0,100))
 
       series = TimeSeries("collectd.test-db.load.value", 0, len(values)/2, 1, values)
       self.assertEqual(series.valuesPerPoint, 1)
@@ -134,95 +140,95 @@ class TimeSeriesTest(TestCase):
 
       series.consolidate(3)
       self.assertEqual(series.valuesPerPoint, 3)
-      expected = TimeSeries("collectd.test-db.load.value", 0, 5, 1, map(float, range(1, 100, 3) + [99]))
+      expected = TimeSeries("collectd.test-db.load.value", 0, 5, 1, map(float, list(range(1, 100, 3)) + [99]))
       self.assertEqual(list(series), list(expected))
 
     def test_TimeSeries_iterate_valuesPerPoint_2_sum(self):
-      values = range(0,100)
+      values = list(range(0,100))
 
       series = TimeSeries("collectd.test-db.load.value", 0, 5, 1, values, consolidate='sum')
       self.assertEqual(series.valuesPerPoint, 1)
 
       series.consolidate(2)
       self.assertEqual(series.valuesPerPoint, 2)
-      expected = TimeSeries("collectd.test-db.load.value", 0, 5, 1, range(1,200,4))
+      expected = TimeSeries("collectd.test-db.load.value", 0, 5, 1, list(range(1,200,4)))
       self.assertEqual(list(series), list(expected))
 
       series.consolidate(3)
       self.assertEqual(series.valuesPerPoint, 3)
-      expected = TimeSeries("collectd.test-db.load.value", 0, 5, 1, range(3,300,9) + [99])
+      expected = TimeSeries("collectd.test-db.load.value", 0, 5, 1, list(range(3,300,9)) + [99])
       self.assertEqual(list(series), list(expected))
 
       series.xFilesFactor = 0.4
-      expected = TimeSeries("collectd.test-db.load.value", 0, 5, 1, range(3,300,9) + [None])
+      expected = TimeSeries("collectd.test-db.load.value", 0, 5, 1, list(range(3,300,9)) + [None])
       self.assertEqual(list(series), list(expected))
 
     def test_TimeSeries_iterate_valuesPerPoint_2_max(self):
-      values = range(0,100)
+      values = list(range(0,100))
 
       series = TimeSeries("collectd.test-db.load.value", 0, 5, 1, values, consolidate='max')
       self.assertEqual(series.valuesPerPoint, 1)
 
       series.consolidate(2)
       self.assertEqual(series.valuesPerPoint, 2)
-      expected = TimeSeries("collectd.test-db.load.value", 0, 5, 1, range(1,100,2))
+      expected = TimeSeries("collectd.test-db.load.value", 0, 5, 1, list(range(1,100,2)))
       self.assertEqual(list(series), list(expected))
 
       series.consolidate(3)
       self.assertEqual(series.valuesPerPoint, 3)
-      expected = TimeSeries("collectd.test-db.load.value", 0, 5, 1, range(2,100,3) + [99])
+      expected = TimeSeries("collectd.test-db.load.value", 0, 5, 1, list(range(2,100,3)) + [99])
       self.assertEqual(list(series), list(expected))
 
     def test_TimeSeries_iterate_valuesPerPoint_2_min(self):
-      values = range(0,100)
+      values = list(range(0,100))
 
       series = TimeSeries("collectd.test-db.load.value", 0, 5, 1, values, consolidate='min')
       self.assertEqual(series.valuesPerPoint, 1)
 
       series.consolidate(2)
       self.assertEqual(series.valuesPerPoint, 2)
-      expected = TimeSeries("collectd.test-db.load.value", 0, 5, 1, range(0,100,2))
+      expected = TimeSeries("collectd.test-db.load.value", 0, 5, 1, list(range(0,100,2)))
       self.assertEqual(list(series), list(expected))
 
       series.consolidate(3)
       self.assertEqual(series.valuesPerPoint, 3)
-      expected = TimeSeries("collectd.test-db.load.value", 0, 5, 1, range(0,100,3))
+      expected = TimeSeries("collectd.test-db.load.value", 0, 5, 1, list(range(0,100,3)))
       self.assertEqual(list(series), list(expected))
 
     def test_TimeSeries_iterate_valuesPerPoint_2_first(self):
-      values = range(0,100)
+      values = list(range(0,100))
 
       series = TimeSeries("collectd.test-db.load.value", 0, 5, 1, values, consolidate='first')
       self.assertEqual(series.valuesPerPoint, 1)
 
       series.consolidate(2)
       self.assertEqual(series.valuesPerPoint, 2)
-      expected = TimeSeries("collectd.test-db.load.value", 0, 5, 1, range(0,100,2))
+      expected = TimeSeries("collectd.test-db.load.value", 0, 5, 1, list(range(0,100,2)))
       self.assertEqual(list(series), list(expected))
 
       series.consolidate(3)
       self.assertEqual(series.valuesPerPoint, 3)
-      expected = TimeSeries("collectd.test-db.load.value", 0, 5, 1, range(0,100,3))
+      expected = TimeSeries("collectd.test-db.load.value", 0, 5, 1, list(range(0,100,3)))
       self.assertEqual(list(series), list(expected))
 
     def test_TimeSeries_iterate_valuesPerPoint_2_last(self):
-      values = range(0,100)
+      values = list(range(0,100))
 
       series = TimeSeries("collectd.test-db.load.value", 0, 5, 1, values, consolidate='last')
       self.assertEqual(series.valuesPerPoint, 1)
 
       series.consolidate(2)
       self.assertEqual(series.valuesPerPoint, 2)
-      expected = TimeSeries("collectd.test-db.load.value", 0, 5, 1, range(1,100,2))
+      expected = TimeSeries("collectd.test-db.load.value", 0, 5, 1, list(range(1,100,2)))
       self.assertEqual(list(series), list(expected))
 
       series.consolidate(3)
       self.assertEqual(series.valuesPerPoint, 3)
-      expected = TimeSeries("collectd.test-db.load.value", 0, 5, 1, range(2,100,3) + [99])
+      expected = TimeSeries("collectd.test-db.load.value", 0, 5, 1, list(range(2,100,3)) + [99])
       self.assertEqual(list(series), list(expected))
 
     def test_TimeSeries_iterate_valuesPerPoint_2_invalid(self):
-      values = range(0,100)
+      values = list(range(0,100))
 
       series = TimeSeries("collectd.test-db.load.value", 0, 5, 1, values, consolidate='bogus')
       self.assertEqual(series.valuesPerPoint, 1)

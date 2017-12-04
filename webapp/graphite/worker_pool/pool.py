@@ -1,4 +1,4 @@
-import Queue
+import six.moves.queue
 import time
 
 from threading import Lock
@@ -84,7 +84,7 @@ def pool_exec(pool, jobs, timeout):
   start = time.time()
   deadline = start + timeout
   if pool:
-    queue = Queue.Queue()
+    queue = six.moves.queue.Queue()
 
     def pool_executor(job):
       job.run()
@@ -100,7 +100,7 @@ def pool_exec(pool, jobs, timeout):
       wait_time = max(0, deadline - time.time())
       try:
         job = queue.get(True, wait_time)
-      except Queue.Empty:
+      except six.moves.queue.Empty:
         raise PoolTimeoutError("Timed out after %fs" % (time.time() - start))
 
       done += 1

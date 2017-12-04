@@ -1,5 +1,4 @@
 import time
-import json
 import re
 
 from datetime import timedelta
@@ -12,6 +11,7 @@ from .base import TestCase
 from django.utils import timezone
 
 from graphite.events.models import Event
+from graphite.util import json
 
 
 class EventTest(TestCase):
@@ -79,7 +79,8 @@ class EventTest(TestCase):
 
         response = self.client.get(creation_url)
         self.assertEqual(response.status_code, 200)
-        self.assertRegexpMatches(response.content, re.compile('^<html>.+<title>Events</title>.+Something happened.+<td>\\[u&#39;foo&#39;, u&#39;bar&#39;\\]</td>.+</html>$', re.DOTALL))
+        expected_re = b'^<html>.+<title>Events</title>.+Something happened.+<td>\\[&#39;foo&#39;, &#39;bar&#39;\\]</td>.+</html>$'
+        self.assertRegexpMatches(response.content, re.compile(expected_re, re.DOTALL))
 
     def test_tag_as_str(self):
         creation_url = reverse('events')
@@ -99,7 +100,7 @@ class EventTest(TestCase):
         url = reverse('events_get_data')
         response = self.client.get(url, {'until': 'now+5min', 'jsonp': 'test'})
         self.assertEqual(response.status_code, 200)
-        self.assertRegexpMatches(response.content, '^test[(].+[)]$')
+        self.assertRegexpMatches(response.content, b'^test[(].+[)]$')
         events = json.loads(response.content[5:-1])
         self.assertEqual(len(events), 1)
         event = events[0]
@@ -211,7 +212,7 @@ class EventTest(TestCase):
         url = reverse('events_detail', args=[events[0]['id']])
         response = self.client.get(url, {})
         self.assertEqual(response.status_code, 200)
-        self.assertRegexpMatches(response.content, re.compile('^<html>.+<title>Something happened</title>.+<h1>Something happened</h1>.+<td>tags</td><td>foo bar baz</td>.+</html>$', re.DOTALL))
+        self.assertRegexpMatches(response.content, re.compile(b'^<html>.+<title>Something happened</title>.+<h1>Something happened</h1>.+<td>tags</td><td>foo bar baz</td>.+</html>$', re.DOTALL))
 
     def test_get_detail_json_object_does_not_exist(self):
         url = reverse('events_detail', args=[1])
@@ -223,7 +224,7 @@ class EventTest(TestCase):
         url = reverse('events_detail', args=[1])
         response = self.client.get(url, {})
         self.assertEqual(response.status_code, 404)
-        self.assertRegexpMatches(response.content, '<h1>Not Found</h1>')
+        self.assertRegexpMatches(response.content, b'<h1>Not Found</h1>')
 
     def test_render_events_issue_1749(self):
         url = reverse('render')

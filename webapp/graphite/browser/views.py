@@ -24,8 +24,7 @@ from graphite.user_util import getProfile, getProfileByUsername
 from graphite.util import json
 from graphite.logger import log
 from hashlib import md5
-from urlparse import urlparse, parse_qsl
-from urllib import urlencode
+from six.moves.urllib.parse import urlencode, urlparse, parse_qsl
 
 
 def header(request):

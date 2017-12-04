@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division
+import sys
 
 try:
   from django.urls import reverse
@@ -15,6 +16,12 @@ from graphite.tags.utils import TaggedSeries
 from graphite.util import json
 
 from tests.base import TestCase
+
+def json_bytes(obj, *args, **kwargs):
+  s = json.dumps(obj, *args, **kwargs)
+  if sys.version_info[0] >= 3:
+    return s.encode('utf-8')
+  return s
 
 class TagsTest(TestCase):
   def test_taggedseries(self):
@@ -376,7 +383,7 @@ class TagsTest(TestCase):
     response = self.client.post(url + '/tagSeries', {'path': 'test.a;hello=tiger;blah=blah'})
     self.assertEqual(response.status_code, 200)
     self.assertEqual(response['Content-Type'], 'application/json')
-    self.assertEqual(response.content, json.dumps(expected, indent=2, sort_keys=True))
+    self.assertEqual(response.content, json_bytes(expected, sort_keys=True))
 
     ## list tags
 
@@ -446,7 +453,7 @@ class TagsTest(TestCase):
     response = self.client.get(url + '/findSeries?expr[]=name=test.a&expr[]=hello=tiger&expr[]=blah=blah&pretty=1')
     self.assertEqual(response.status_code, 200)
     self.assertEqual(response['Content-Type'], 'application/json')
-    self.assertEqual(response.content, json.dumps(expected, indent=2, sort_keys=True))
+    self.assertEqual(response.content, json_bytes(expected, indent=2, sort_keys=True))
 
     # tag another series
     expected = 'test.a;blah=blah;hello=lion'
@@ -454,7 +461,7 @@ class TagsTest(TestCase):
     response = self.client.post(url + '/tagSeries', {'path': 'test.a;hello=lion;blah=blah'})
     self.assertEqual(response.status_code, 200)
     self.assertEqual(response['Content-Type'], 'application/json')
-    self.assertEqual(response.content, json.dumps(expected, indent=2, sort_keys=True))
+    self.assertEqual(response.content, json_bytes(expected, sort_keys=True))
 
     ## autocomplete tags
 
@@ -467,7 +474,7 @@ class TagsTest(TestCase):
 
     response = self.client.get(url + '/autoComplete/tags?tagPrefix=hello&pretty=1')
     self.assertEqual(response['Content-Type'], 'application/json')
-    self.assertEqual(response.content, json.dumps(expected, indent=2, sort_keys=True))
+    self.assertEqual(response.content, json_bytes(expected, indent=2, sort_keys=True))
 
     expected = [
       'blah',
@@ -476,7 +483,7 @@ class TagsTest(TestCase):
 
     response = self.client.get(url + '/autoComplete/tags?expr[]=name=test.a&pretty=1')
     self.assertEqual(response['Content-Type'], 'application/json')
-    self.assertEqual(response.content, json.dumps(expected, indent=2, sort_keys=True))
+    self.assertEqual(response.content, json_bytes(expected, indent=2, sort_keys=True))
 
     expected = [
       'hello',
@@ -485,36 +492,38 @@ class TagsTest(TestCase):
     response = self.client.get(url + '/autoComplete/tags?expr=name=test.a&tagPrefix=hell&pretty=1')
     self.assertEqual(response.status_code, 200)
     self.assertEqual(response['Content-Type'], 'application/json')
-    self.assertEqual(response.content, json.dumps(expected, indent=2, sort_keys=True))
+    self.assertEqual(response.content, json_bytes(expected, indent=2, sort_keys=True))
 
     ## autocomplete values
 
     response = self.client.put(url + '/autoComplete/values', {})
     self.assertEqual(response.status_code, 405)
 
+    expected = {'error': 'no tag specified'}
+
     response = self.client.get(url + '/autoComplete/values', {})
     self.assertEqual(response.status_code, 400)
     self.assertEqual(response['Content-Type'], 'application/json')
-    self.assertEqual(response.content, json.dumps({'error': 'no tag specified'}))
+    self.assertEqual(response.content, json_bytes(expected))
 
     expected = ['lion','tiger']
 
     response = self.client.get(url + '/autoComplete/values?tag=hello&pretty=1')
     self.assertEqual(response['Content-Type'], 'application/json')
-    self.assertEqual(response.content, json.dumps(expected, indent=2, sort_keys=True))
+    self.assertEqual(response.content, json_bytes(expected, indent=2, sort_keys=True))
 
     expected = ['lion','tiger']
 
     response = self.client.get(url + '/autoComplete/values?expr[]=name=test.a&tag=hello&pretty=1')
     self.assertEqual(response['Content-Type'], 'application/json')
-    self.assertEqual(response.content, json.dumps(expected, indent=2, sort_keys=True))
+    self.assertEqual(response.content, json_bytes(expected, indent=2, sort_keys=True))
 
     expected = ['lion']
 
     response = self.client.get(url + '/autoComplete/values?expr=name=test.a&tag=hello&valuePrefix=li&pretty=1')
     self.assertEqual(response.status_code, 200)
     self.assertEqual(response['Content-Type'], 'application/json')
-    self.assertEqual(response.content, json.dumps(expected, indent=2, sort_keys=True))
+    self.assertEqual(response.content, json_bytes(expected, indent=2, sort_keys=True))
 
     ## delSeries
 
@@ -533,7 +542,7 @@ class TagsTest(TestCase):
     response = self.client.post(url + '/delSeries', {'path': 'test.a;blah=blah;hello=tiger'})
     self.assertEqual(response.status_code, 200)
     self.assertEqual(response['Content-Type'], 'application/json')
-    self.assertEqual(response.content, json.dumps(expected))
+    self.assertEqual(response.content, json_bytes(expected, sort_keys=True))
 
     # delete second series
     expected = True
@@ -541,7 +550,7 @@ class TagsTest(TestCase):
     response = self.client.post(url + '/delSeries', {'path': 'test.a;blah=blah;hello=lion'})
     self.assertEqual(response.status_code, 200)
     self.assertEqual(response['Content-Type'], 'application/json')
-    self.assertEqual(response.content, json.dumps(expected))
+    self.assertEqual(response.content, json_bytes(expected, sort_keys=True))
 
     # delete nonexistent series
 
@@ -550,7 +559,7 @@ class TagsTest(TestCase):
     response = self.client.post(url + '/delSeries', {'path': 'test.a;blah=blah;hello=lion'})
     self.assertEqual(response.status_code, 200)
     self.assertEqual(response['Content-Type'], 'application/json')
-    self.assertEqual(response.content, json.dumps(expected))
+    self.assertEqual(response.content, json_bytes(expected, sort_keys=True))
 
     # find nonexistent series
     expected = []
@@ -558,7 +567,7 @@ class TagsTest(TestCase):
     response = self.client.get(url + '/findSeries?expr=name=test.a&expr=hello=tiger&expr=blah=blah')
     self.assertEqual(response.status_code, 200)
     self.assertEqual(response['Content-Type'], 'application/json')
-    self.assertEqual(response.content, json.dumps(expected, indent=2, sort_keys=True))
+    self.assertEqual(response.content, json_bytes(expected, sort_keys=True))
 
     # tag multiple series
 
@@ -586,7 +595,7 @@ class TagsTest(TestCase):
     })
     self.assertEqual(response.status_code, 200)
     self.assertEqual(response['Content-Type'], 'application/json')
-    self.assertEqual(response.content, json.dumps(expected, indent=2, sort_keys=True))
+    self.assertEqual(response.content, json_bytes(expected, indent=2, sort_keys=True))
 
     # multiple path[] should succeed
     expected = [
@@ -603,7 +612,7 @@ class TagsTest(TestCase):
     })
     self.assertEqual(response.status_code, 200)
     self.assertEqual(response['Content-Type'], 'application/json')
-    self.assertEqual(response.content, json.dumps(expected, indent=2, sort_keys=True))
+    self.assertEqual(response.content, json_bytes(expected, indent=2, sort_keys=True))
 
     # remove multiple series
     expected = True
@@ -617,7 +626,7 @@ class TagsTest(TestCase):
     })
     self.assertEqual(response.status_code, 200)
     self.assertEqual(response['Content-Type'], 'application/json')
-    self.assertEqual(response.content, json.dumps(expected, indent=2, sort_keys=True))
+    self.assertEqual(response.content, json_bytes(expected, indent=2, sort_keys=True))
 
     expected = True
 
@@ -630,4 +639,4 @@ class TagsTest(TestCase):
     })
     self.assertEqual(response.status_code, 200)
     self.assertEqual(response['Content-Type'], 'application/json')
-    self.assertEqual(response.content, json.dumps(expected, indent=2, sort_keys=True))
+    self.assertEqual(response.content, json_bytes(expected, indent=2, sort_keys=True))
