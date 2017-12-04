@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 import json
 import re
 import errno
@@ -15,7 +14,7 @@ from django.utils.safestring import mark_safe
 from graphite.compat import HttpResponse
 from graphite.dashboard.models import Dashboard, Template
 from graphite.render.views import renderView
-from .send_graph import send_graph_email
+from graphite.dashboard.send_graph import send_graph_email
 
 
 fieldRegex = re.compile(r'<([^>]+)>')
