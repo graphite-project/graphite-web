@@ -164,7 +164,7 @@ class RemoteFinderTest(TestCase):
       self.assertEqual(nodes[1].path, 'a.b.c.d')
 
       # non-pickle response
-      responseObject = HTTPResponse(body=StringIO(b'error'), status=200, preload_content=False)
+      responseObject = HTTPResponse(body=StringIO('error'), status=200, preload_content=False)
       http_request.return_value = responseObject
 
       result = finder.find_nodes(query)
@@ -278,7 +278,7 @@ class RemoteFinderTest(TestCase):
         'a.b.c',
         'a.b.c.d',
       ]
-      responseObject = HTTPResponse(body=StringIO(json.dumps(data).encode('ascii')), status=200, preload_content=False)
+      responseObject = HTTPResponse(body=StringIO(json.dumps(data)), status=200, preload_content=False)
       http_request.return_value = responseObject
 
       result = finder.get_index({})
@@ -304,7 +304,7 @@ class RemoteFinderTest(TestCase):
       self.assertEqual(result[1], 'a.b.c.d')
 
       # non-json response
-      responseObject = HTTPResponse(body=StringIO(b'error'), status=200, preload_content=False)
+      responseObject = HTTPResponse(body=StringIO('error'), status=200, preload_content=False)
       http_request.return_value = responseObject
 
       with self.assertRaisesRegexp(Exception, 'Error decoding index response from http://[^ ]+: .+'):

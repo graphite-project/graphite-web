@@ -36,7 +36,18 @@ from graphite.logger import log
 if sys.version_info >= (3, 0):
   PY3 = True
   import pickle
-  from io import BytesIO as StringIO
+  from io import BytesIO
+
+
+  class StringIO(BytesIO):
+    def __init__(self, buffer=None):
+      if buffer is None:
+        super().__init__()
+      elif isinstance(buffer, six.string_types):
+        super().__init__(buffer.encode('utf-8'))
+      else:
+        super().__init__(buffer)
+
 else:
   PY3 = False
   import cPickle as pickle
