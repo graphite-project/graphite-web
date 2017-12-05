@@ -12,7 +12,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
-import math, itertools, re, sys
+import math, itertools, re
 from datetime import datetime, timedelta
 from six.moves import range, zip
 from six.moves.urllib.parse import unquote_plus
