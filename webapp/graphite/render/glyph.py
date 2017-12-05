@@ -21,19 +21,12 @@ from django.conf import settings
 import pytz
 
 from graphite.render.datalib import TimeSeries
-from graphite.util import json
+from graphite.util import json, BytesIO
 
 try:
     import cairocffi as cairo
 except ImportError:
     import cairo
-
-# BytesIO is needed on py3 as StringIO does not operate on byte input anymore
-# We could use BytesIO on py2 as well but it is slower than StringIO
-if sys.version_info >= (3, 0):
-  from io import BytesIO as StringIO
-else:
-  from cStringIO import StringIO
 
 INFINITY = float('inf')
 
@@ -585,10 +578,10 @@ class Graph:
     if outputFormat == 'png':
       self.surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, self.width, self.height)
     elif outputFormat == 'svg':
-      self.surfaceData = StringIO.StringIO()
+      self.surfaceData = BytesIO()
       self.surface = cairo.SVGSurface(self.surfaceData, self.width, self.height)
     elif outputFormat == 'pdf':
-      self.surfaceData = StringIO.StringIO()
+      self.surfaceData = BytesIO()
       self.surface = cairo.PDFSurface(self.surfaceData, self.width, self.height)
       res_x, res_y = self.surface.get_fallback_resolution()
       self.width = float(self.width / res_x) * 72

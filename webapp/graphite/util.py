@@ -37,21 +37,10 @@ if sys.version_info >= (3, 0):
   PY3 = True
   import pickle
   from io import BytesIO
-
-
-  class StringIO(BytesIO):
-    def __init__(self, buffer=None):
-      if buffer is None:
-        super().__init__()
-      elif isinstance(buffer, six.string_types):
-        super().__init__(buffer.encode('utf-8'))
-      else:
-        super().__init__(buffer)
-
 else:
   PY3 = False
   import cPickle as pickle
-  from cStringIO import StringIO
+  from cStringIO import StringIO as BytesIO
 
 # use https://github.com/msgpack/msgpack-python if available
 try:
@@ -177,7 +166,7 @@ if not PY3:
 
     @classmethod
     def loads(cls, pickle_string):
-      pickle_obj = pickle.Unpickler(StringIO(pickle_string))
+      pickle_obj = pickle.Unpickler(BytesIO(pickle_string))
       pickle_obj.find_global = cls.find_class
       return pickle_obj.load()
 
@@ -211,7 +200,7 @@ else:
   class unpickle(object):
     @staticmethod
     def loads(pickle_string):
-      return SafeUnpickler(StringIO(pickle_string)).load()
+      return SafeUnpickler(BytesIO(pickle_string)).load()
 
     @staticmethod
     def load(file):

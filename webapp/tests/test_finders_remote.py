@@ -9,7 +9,7 @@ from mock import patch
 from graphite.finders.remote import RemoteFinder
 from graphite.finders.utils import FindQuery
 from graphite.node import BranchNode, LeafNode
-from graphite.util import json, pickle, StringIO, msgpack
+from graphite.util import json, pickle, BytesIO, msgpack
 
 from .base import TestCase
 
@@ -78,7 +78,7 @@ class RemoteFinderTest(TestCase):
           'is_leaf': True,
         },
       ]
-      responseObject = HTTPResponse(body=StringIO(pickle.dumps(data)), status=200, preload_content=False)
+      responseObject = HTTPResponse(body=BytesIO(pickle.dumps(data)), status=200, preload_content=False)
       http_request.return_value = responseObject
 
       query = FindQuery('a.b.c', startTime, endTime)
@@ -126,7 +126,7 @@ class RemoteFinderTest(TestCase):
         },
       ]
       responseObject = HTTPResponse(
-        body=StringIO(msgpack.dumps(data)),
+        body=BytesIO(msgpack.dumps(data)),
         status=200,
         preload_content=False,
         headers={'Content-Type': 'application/x-msgpack'}
@@ -164,7 +164,7 @@ class RemoteFinderTest(TestCase):
       self.assertEqual(nodes[1].path, 'a.b.c.d')
 
       # non-pickle response
-      responseObject = HTTPResponse(body=StringIO('error'), status=200, preload_content=False)
+      responseObject = HTTPResponse(body=BytesIO(b'error'), status=200, preload_content=False)
       http_request.return_value = responseObject
 
       result = finder.find_nodes(query)
@@ -236,7 +236,7 @@ class RemoteFinderTest(TestCase):
           'name': 'a.b.c.d',
         },
       ]
-      responseObject = HTTPResponse(body=StringIO(pickle.dumps(data)), status=200, preload_content=False)
+      responseObject = HTTPResponse(body=BytesIO(pickle.dumps(data)), status=200, preload_content=False)
       http_request.return_value = responseObject
 
       result = finder.fetch(['a.b.c.d'], startTime, endTime)
@@ -278,7 +278,7 @@ class RemoteFinderTest(TestCase):
         'a.b.c',
         'a.b.c.d',
       ]
-      responseObject = HTTPResponse(body=StringIO(json.dumps(data)), status=200, preload_content=False)
+      responseObject = HTTPResponse(body=BytesIO(json.dumps(data).encode('utf-8')), status=200, preload_content=False)
       http_request.return_value = responseObject
 
       result = finder.get_index({})
@@ -304,7 +304,7 @@ class RemoteFinderTest(TestCase):
       self.assertEqual(result[1], 'a.b.c.d')
 
       # non-json response
-      responseObject = HTTPResponse(body=StringIO('error'), status=200, preload_content=False)
+      responseObject = HTTPResponse(body=BytesIO(b'error'), status=200, preload_content=False)
       http_request.return_value = responseObject
 
       with self.assertRaisesRegexp(Exception, 'Error decoding index response from http://[^ ]+: .+'):
@@ -324,7 +324,7 @@ class RemoteFinderTest(TestCase):
         'tag2',
       ]
 
-      responseObject = HTTPResponse(body=StringIO(json.dumps(data)), status=200, preload_content=False)
+      responseObject = HTTPResponse(body=BytesIO(json.dumps(data).encode('utf-8')), status=200, preload_content=False)
       http_request.return_value = responseObject
 
       result = finder.auto_complete_tags(['name=test'], 'tag')
@@ -352,7 +352,7 @@ class RemoteFinderTest(TestCase):
       self.assertEqual(result[1], 'tag2')
 
       # explicit limit & forward headers
-      responseObject = HTTPResponse(body=StringIO(json.dumps(data)), status=200, preload_content=False)
+      responseObject = HTTPResponse(body=BytesIO(json.dumps(data).encode('utf-8')), status=200, preload_content=False)
       http_request.return_value = responseObject
 
       result = finder.auto_complete_tags(['name=test', 'tag3=value3'], 'tag', limit=5, requestContext={'forwardHeaders': {'X-Test': 'test'}})
@@ -381,7 +381,7 @@ class RemoteFinderTest(TestCase):
       self.assertEqual(result[1], 'tag2')
 
       # non-json response
-      responseObject = HTTPResponse(body=StringIO('error'), status=200, preload_content=False)
+      responseObject = HTTPResponse(body=BytesIO(b'error'), status=200, preload_content=False)
       http_request.return_value = responseObject
 
       with self.assertRaisesRegexp(Exception, 'Error decoding autocomplete tags response from http://[^ ]+: .+'):
@@ -401,7 +401,7 @@ class RemoteFinderTest(TestCase):
         'value2',
       ]
 
-      responseObject = HTTPResponse(body=StringIO(json.dumps(data)), status=200, preload_content=False)
+      responseObject = HTTPResponse(body=BytesIO(json.dumps(data).encode('utf-8')), status=200, preload_content=False)
       http_request.return_value = responseObject
 
       result = finder.auto_complete_values(['name=test'], 'tag1', 'value')
@@ -430,7 +430,7 @@ class RemoteFinderTest(TestCase):
       self.assertEqual(result[1], 'value2')
 
       # explicit limit & forward headers
-      responseObject = HTTPResponse(body=StringIO(json.dumps(data)), status=200, preload_content=False)
+      responseObject = HTTPResponse(body=BytesIO(json.dumps(data).encode('utf-8')), status=200, preload_content=False)
       http_request.return_value = responseObject
 
       result = finder.auto_complete_values(['name=test', 'tag3=value3'], 'tag1', 'value', limit=5, requestContext={'forwardHeaders': {'X-Test': 'test'}})
@@ -460,7 +460,7 @@ class RemoteFinderTest(TestCase):
       self.assertEqual(result[1], 'value2')
 
       # non-json response
-      responseObject = HTTPResponse(body=StringIO('error'), status=200, preload_content=False)
+      responseObject = HTTPResponse(body=BytesIO(b'error'), status=200, preload_content=False)
       http_request.return_value = responseObject
 
       with self.assertRaisesRegexp(Exception, 'Error decoding autocomplete values response from http://[^ ]+: .+'):

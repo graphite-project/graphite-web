@@ -205,6 +205,21 @@ class RenderTest(TestCase):
         self.assertEqual(response['Content-Type'], 'image/png')
         self.assertTrue(response.has_header('Expires'))
 
+        # png format returns image/png
+        response = self.client.get(url, {'target': 'test', 'format': 'png'})
+        self.assertEqual(response['Content-Type'], 'image/png')
+        self.assertTrue(response.has_header('Expires'))
+
+        # svg format returns image/svg+xml
+        response = self.client.get(url, {'target': 'test', 'format': 'svg'})
+        self.assertEqual(response['Content-Type'], 'image/svg+xml')
+        self.assertTrue(response.has_header('Expires'))
+
+        # pdf format returns application/x-pdf
+        response = self.client.get(url, {'target': 'test', 'format': 'pdf'})
+        self.assertEqual(response['Content-Type'], 'application/x-pdf')
+        self.assertTrue(response.has_header('Expires'))
+
         # Verify graphType=pie returns
         response = self.client.get(url, {'target': 'a:50', 'graphType': 'pie'})
         self.assertEqual(response['Content-Type'], 'image/png')
