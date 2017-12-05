@@ -3,7 +3,6 @@ import six
 
 from graphite.render.grammar import grammar
 from graphite.render.datalib import fetchData, TimeSeries, prefetchData
-from graphite.storage import STORE
 
 
 def evaluateTarget(requestContext, targets):

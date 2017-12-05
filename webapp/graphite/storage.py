@@ -100,29 +100,32 @@ class Store(object):
         pattern_aliases = defaultdict(list)
         for finder in self.get_finders(requestContext.get('localOnly')):
           if getattr(finder, 'tags', False):
-            job_patterns = patterns
-          else:
-            if tag_patterns is None:
-              tag_patterns = []
-              for pattern in patterns:
-                if not pattern.startswith('seriesByTag('):
-                  tag_patterns.append(pattern)
-                  continue
+            jobs.append(Job(finder.fetch, patterns, startTime, endTime, now=now, requestContext=requestContext))
+            continue
 
-                exprs = tuple([
-                  t.string[1:-1]
-                  for t in grammar.parseString(pattern).expression.call.args
-                  if t.string
-                ])
-                taggedSeries = self.tagdb.find_series(exprs, requestContext=requestContext)
-                if not taggedSeries:
-                  continue
+          if tag_patterns is None:
+            tag_patterns = []
+            for pattern in patterns:
+              if not pattern.startswith('seriesByTag('):
+                tag_patterns.append(pattern)
+                continue
 
-                tag_patterns.extend(taggedSeries)
-                for series in taggedSeries:
-                  pattern_aliases[series].append(pattern)
-            job_patterns = sorted(set(tag_patterns))
-          jobs.append(Job(finder.fetch, job_patterns, startTime, endTime, now=now, requestContext=requestContext))
+              exprs = tuple([
+                t.string[1:-1]
+                for t in grammar.parseString(pattern).expression.call.args
+                if t.string
+              ])
+              taggedSeries = self.tagdb.find_series(exprs, requestContext=requestContext)
+              if not taggedSeries:
+                continue
+
+              for series in taggedSeries:
+                pattern_aliases[series].append(pattern)
+
+              tag_patterns.extend(taggedSeries)
+            tag_patterns = sorted(set(tag_patterns))
+
+          jobs.append(Job(finder.fetch, tag_patterns, startTime, endTime, now=now, requestContext=requestContext))
 
         results = []
 
