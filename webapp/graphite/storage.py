@@ -99,32 +99,16 @@ class Store(object):
         tag_patterns = None
         pattern_aliases = defaultdict(list)
         for finder in self.get_finders(requestContext.get('localOnly')):
+          # if the finder supports tags, just pass the patterns through
           if getattr(finder, 'tags', False):
             jobs.append(Job(finder.fetch, patterns, startTime, endTime, now=now, requestContext=requestContext))
             continue
 
+          # if we haven't resolved the seriesByTag calls, build resolved patterns and translation table
           if tag_patterns is None:
-            tag_patterns = []
-            for pattern in patterns:
-              if not pattern.startswith('seriesByTag('):
-                tag_patterns.append(pattern)
-                continue
+            tag_patterns, pattern_aliases = self._tag_patterns(patterns, requestContext)
 
-              exprs = tuple([
-                t.string[1:-1]
-                for t in grammar.parseString(pattern).expression.call.args
-                if t.string
-              ])
-              taggedSeries = self.tagdb.find_series(exprs, requestContext=requestContext)
-              if not taggedSeries:
-                continue
-
-              for series in taggedSeries:
-                pattern_aliases[series].append(pattern)
-
-              tag_patterns.extend(taggedSeries)
-            tag_patterns = sorted(set(tag_patterns))
-
+          # dispatch resolved patterns to finder
           jobs.append(Job(finder.fetch, tag_patterns, startTime, endTime, now=now, requestContext=requestContext))
 
         results = []
@@ -153,7 +137,7 @@ class Store(object):
             raise Exception("Fetch for %s failed: %s" % (str(patterns), str(job.exception)))
           raise Exception('All fetches failed for %s' % (str(patterns)))
 
-        # translate path expressions for seriesByTag calls
+        # translate path expressions for responses from resolved seriesByTag patterns
         for result in results:
           if result['name'] == result['pathExpression'] and result['pathExpression'] in pattern_aliases:
             for pathExpr in pattern_aliases[result['pathExpression']]:
@@ -163,6 +147,35 @@ class Store(object):
 
         log.debug("Got all fetch results for %s in %fs" % (str(patterns), time.time() - start))
         return results
+
+    def _tag_patterns(self, patterns, requestContext):
+      tag_patterns = []
+      pattern_aliases = defaultdict(list)
+
+      for pattern in patterns:
+        # if pattern isn't a seriesByTag call, just add it to the list
+        if not pattern.startswith('seriesByTag('):
+          tag_patterns.append(pattern)
+          continue
+
+        # perform the tagdb lookup
+        exprs = tuple([
+          t.string[1:-1]
+          for t in grammar.parseString(pattern).expression.call.args
+          if t.string
+        ])
+        taggedSeries = self.tagdb.find_series(exprs, requestContext=requestContext)
+        if not taggedSeries:
+          continue
+
+        # add to translation table for path matching
+        for series in taggedSeries:
+          pattern_aliases[series].append(pattern)
+
+        # add to list of resolved patterns
+        tag_patterns.extend(taggedSeries)
+
+      return sorted(set(tag_patterns)), pattern_aliases
 
     def get_index(self, requestContext=None):
         log.debug('graphite.storage.Store.get_index :: Starting get_index on all backends')
