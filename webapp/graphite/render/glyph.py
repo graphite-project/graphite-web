@@ -882,7 +882,7 @@ class Graph:
         metaData = { }
 
       self.surface.finish()
-      svgData = self.surfaceData.getvalue()
+      svgData = str(self.surfaceData.getvalue())
       self.surfaceData.close()
 
       svgData = svgData.replace('pt"', 'px"', 2) # we expect height/width in pixels, not points
@@ -905,13 +905,13 @@ class Graph:
           svgData += "</g>"
         svgData = svgData.replace(' data-header="true"','')
 
-      fileObj.write(svgData)
-      fileObj.write("""<script>
+      fileObj.write(svgData.encode('utf-8'))
+      fileObj.write(("""<script>
   <![CDATA[
     metadata = %s
   ]]>
 </script>
-</svg>""" % json.dumps(metaData))
+</svg>""" % json.dumps(metaData)).encode('utf-8'))
 
 
 class LineGraph(Graph):
