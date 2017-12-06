@@ -29,7 +29,7 @@ from graphite.storage import extractForwardHeaders
 from graphite.logger import log
 from graphite.render.evaluator import evaluateTarget
 from graphite.render.attime import parseATTime
-from graphite.render.functions import PieFunctions
+from graphite.functions import PieFunction
 from graphite.render.hashing import hashRequest, hashData
 from graphite.render.glyph import GraphTypes
 from graphite.tags.models import Series, Tag, TagValue, SeriesTag  # noqa # pylint: disable=unused-import
@@ -90,7 +90,7 @@ def renderView(request):
         seriesList = evaluateTarget(requestContext, target)
 
         for series in seriesList:
-          func = PieFunctions[requestOptions['pieMode']]
+          func = PieFunction(requestOptions['pieMode'])
           data.append( (series.name, func(requestContext, series) or 0 ))
 
   elif requestOptions['graphType'] == 'line':

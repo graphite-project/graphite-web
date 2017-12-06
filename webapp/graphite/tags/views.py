@@ -1,53 +1,5 @@
-from functools import wraps
-
-from graphite.compat import HttpResponse
-from graphite.util import json
+from graphite.util import jsonResponse, HttpResponse, HttpError
 from graphite.storage import STORE, extractForwardHeaders
-
-def jsonResponse(f):
-  @wraps(f)
-  def wrapped_f(request, *args, **kwargs):
-    if request.method == 'GET':
-      queryParams = request.GET.copy()
-    elif request.method == 'POST':
-      queryParams = request.GET.copy()
-      queryParams.update(request.POST)
-    else:
-      queryParams = {}
-
-    try:
-      return _jsonResponse(f(request, queryParams, *args, **kwargs), queryParams)
-    except ValueError as err:
-      return _jsonError(str(err), queryParams, getattr(err, 'status', 400))
-    except Exception as err:
-      return _jsonError(str(err), queryParams, getattr(err, 'status', 500))
-
-  return wrapped_f
-
-class HttpError(Exception):
-  def __init__(self, message, status=500):
-    super(HttpError, self).__init__(message)
-    self.status=status
-
-def _jsonResponse(data, queryParams, status=200):
-  if isinstance(data, HttpResponse):
-    return data
-
-  if not queryParams:
-    queryParams = {}
-
-  return HttpResponse(
-    json.dumps(
-      data,
-      indent=(2 if queryParams.get('pretty') else None),
-      sort_keys=bool(queryParams.get('pretty'))
-    ) if data is not None else 'null',
-    content_type='application/json',
-    status=status
-  )
-
-def _jsonError(message, queryParams, status=500):
-  return _jsonResponse({'error': message}, queryParams, status=status)
 
 def _requestContext(request):
   return {

@@ -29,6 +29,8 @@ from os.path import splitext, basename
 
 from django.conf import settings
 from django.utils.timezone import make_aware
+
+from graphite.compat import HttpResponse
 from graphite.logger import log
 
 # BytesIO is needed on py3 as StringIO does not operate on byte input anymore
@@ -291,3 +293,63 @@ class BufferedHTTPReader(io.IOBase):
       self.pos = 0
       self.buffer = b''
     return data
+
+
+def jsonResponse(*args, **kwargs):
+  encoder = kwargs.get('encoder')
+
+  def decorator(f):
+    @wraps(f)
+    def wrapped_f(request, *args, **kwargs):
+      if request.method == 'GET':
+        queryParams = request.GET.copy()
+      elif request.method == 'POST':
+        queryParams = request.GET.copy()
+        queryParams.update(request.POST)
+      else:
+        queryParams = {}
+
+      try:
+        return _jsonResponse(f(request, queryParams, *args, **kwargs), queryParams, encoder=encoder)
+      except ValueError as err:
+        return _jsonError(str(err), queryParams, status=getattr(err, 'status', 400), encoder=encoder)
+      except Exception as err:
+        return _jsonError(str(err), queryParams, status=getattr(err, 'status', 500), encoder=encoder)
+
+    return wrapped_f
+
+  # used like @jsonResponse
+  if args:
+    return decorator(args[0])
+
+  # used like @jsonResponse(encoder=DjangoJSONEncoder)
+  return decorator
+
+
+class HttpError(Exception):
+  def __init__(self, message, status=500):
+    super(HttpError, self).__init__(message)
+    self.status=status
+
+
+def _jsonResponse(data, queryParams, status=200, encoder=None):
+  if isinstance(data, HttpResponse):
+    return data
+
+  if not queryParams:
+    queryParams = {}
+
+  return HttpResponse(
+    json.dumps(
+      data,
+      indent=(2 if queryParams.get('pretty') else None),
+      sort_keys=bool(queryParams.get('pretty')),
+      cls=encoder,
+    ) if data is not None else 'null',
+    content_type='application/json',
+    status=status
+  )
+
+
+def _jsonError(message, queryParams, status=500, encoder=None):
+  return _jsonResponse({'error': message}, queryParams, status=status, encoder=encoder)

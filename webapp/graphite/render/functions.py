@@ -35,12 +35,14 @@ from os import environ
 
 from django.conf import settings
 
+from graphite.errors import NormalizeEmptyResultError
+from graphite.events import models
 from graphite.logger import log
 from graphite.render.attime import getUnitString, parseTimeOffset, parseATTime, SECONDS_STRING, MINUTES_STRING, HOURS_STRING, DAYS_STRING, WEEKS_STRING, MONTHS_STRING, YEARS_STRING
-from graphite.events import models
-from graphite.util import epoch, epoch_to_dt, timestamp, deltaseconds
+from graphite.render.evaluator import evaluateTarget
 from graphite.render.grammar import grammar
 from graphite.storage import STORE
+from graphite.util import epoch, epoch_to_dt, timestamp, deltaseconds
 
 # XXX format_units() should go somewhere else
 if environ.get('READTHEDOCS'):
@@ -216,11 +218,6 @@ def normalize(seriesLists):
       end -= (end - start) % step
       return (seriesList,start,end,step)
   raise NormalizeEmptyResultError()
-
-class NormalizeEmptyResultError(Exception):
-  # throw error for normalize() when empty
-  pass
-
 
 def matchSeries(seriesList1, seriesList2):
   assert len(seriesList2) == len(seriesList1), "The number of series in each argument must be the same"
@@ -4624,8 +4621,3 @@ SeriesFunctions = {
   # events
   'events': events,
 }
-
-
-# Avoid import circularity
-if not environ.get('READTHEDOCS'):
-  from graphite.render.evaluator import evaluateTarget

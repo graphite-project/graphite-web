@@ -6,17 +6,23 @@ import six
 from datetime import datetime
 from fnmatch import fnmatch
 from mock import patch, call, MagicMock
+from six.moves import range
 
 from .base import TestCase
 from django.conf import settings
 
+try:
+  from django.urls import reverse
+except ImportError:  # Django < 1.10
+  from django.core.urlresolvers import reverse
+
+from graphite.errors import NormalizeEmptyResultError
 from graphite.render.datalib import TimeSeries
 from graphite.render import functions
-from graphite.render.functions import NormalizeEmptyResultError
 from graphite.render.evaluator import evaluateTarget
-from graphite.tags.utils import TaggedSeries
 from graphite.render.grammar import grammar
-from six.moves import range
+from graphite.tags.utils import TaggedSeries
+from graphite.util import json
 
 
 def return_greater(series, value):
@@ -6014,3 +6020,90 @@ class FunctionsTest(TestCase):
             TimeSeries('server2.disk.bytes_used', 0, 3, 1, [1, 2, 3]),
             TimeSeries('server2.disk.bytes_free', 0, 3, 1, [99, 98, 97]),
         ])
+
+    def test_functions_views(self):
+        url = reverse('functionList')
+
+        # list
+
+        # post should fail
+        response = self.client.post(url, {'test': 'test'})
+        self.assertEqual(response.status_code, 405)
+
+        # get list of series functions
+        response = self.client.get(url, {})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/json')
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertTrue(isinstance(result, dict))
+        self.assertEqual(result['asPercent'], {
+            "description": "Calculates a percentage of the total of a wildcard series. If `total` is specified,\neach series will be calculated as a percentage of that total. If `total` is not specified,\nthe sum of all points in the wildcard series will be used instead.\n\nA list of nodes can optionally be provided, if so they will be used to match series with their\ncorresponding totals following the same logic as :py:func:`groupByNodes <groupByNodes>`.\n\nWhen passing `nodes` the `total` parameter may be a series list or `None`.  If it is `None` then\nfor each series in `seriesList` the percentage of the sum of series in that group will be returned.\n\nWhen not passing `nodes`, the `total` parameter may be a single series, reference the same number\nof series as `seriesList` or be a numeric value.\n\nExample:\n\n.. code-block:: none\n\n  # Server01 connections failed and succeeded as a percentage of Server01 connections attempted\n  &target=asPercent(Server01.connections.{failed,succeeded}, Server01.connections.attempted)\n\n  # For each server, its connections failed as a percentage of its connections attempted\n  &target=asPercent(Server*.connections.failed, Server*.connections.attempted)\n\n  # For each server, its connections failed and succeeded as a percentage of its connections attemped\n  &target=asPercent(Server*.connections.{failed,succeeded}, Server*.connections.attempted, 0)\n\n  # apache01.threads.busy as a percentage of 1500\n  &target=asPercent(apache01.threads.busy,1500)\n\n  # Server01 cpu stats as a percentage of its total\n  &target=asPercent(Server01.cpu.*.jiffies)\n\n  # cpu stats for each server as a percentage of its total\n  &target=asPercent(Server*.cpu.*.jiffies, None, 0)\n\nWhen using `nodes`, any series or totals that can't be matched will create output series with\nnames like ``asPercent(someSeries,MISSING)`` or ``asPercent(MISSING,someTotalSeries)`` and all\nvalues set to None. If desired these series can be filtered out by piping the result through\n``|exclude(\"MISSING\")`` as shown below:\n\n.. code-block:: none\n\n  &target=asPercent(Server{1,2}.memory.used,Server{1,3}.memory.total,0)\n\n  # will produce 3 output series:\n  # asPercent(Server1.memory.used,Server1.memory.total) [values will be as expected]\n  # asPercent(Server2.memory.used,MISSING) [all values will be None]\n  # asPercent(MISSING,Server3.memory.total) [all values will be None]\n\n  &target=asPercent(Server{1,2}.memory.used,Server{1,3}.memory.total,0)|exclude(\"MISSING\")\n\n  # will produce 1 output series:\n  # asPercent(Server1.memory.used,Server1.memory.total) [values will be as expected]\n\nEach node may be an integer referencing a node in the series name or a string identifying a tag.\n\n.. note::\n\n  When `total` is a seriesList, specifying `nodes` to match series with the corresponding total\n  series will increase reliability.",
+            "function": "asPercent(seriesList, total=None, *nodes)",
+            "group": None,
+            "module": "graphite.render.functions",
+            "name": "asPercent"
+        })
+
+        # get list of pie functions
+        response = self.client.get(url, {'type': 'pie'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/json')
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertTrue(isinstance(result, dict))
+        self.assertEqual(result['average'], {
+          "description": None,
+          "function": "average(series)",
+          "group": None,
+          "module": "graphite.render.functions",
+          "name": "average"
+        })
+
+        # details
+
+        # post should fail
+        response = self.client.post(url + '/asPercent', {'test': 'test'})
+        self.assertEqual(response.status_code, 405)
+
+        # get details of asPercent function
+        response = self.client.get(url + '/asPercent', {})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/json')
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertTrue(isinstance(result, dict))
+        self.assertEqual(result, {
+            "description": "Calculates a percentage of the total of a wildcard series. If `total` is specified,\neach series will be calculated as a percentage of that total. If `total` is not specified,\nthe sum of all points in the wildcard series will be used instead.\n\nA list of nodes can optionally be provided, if so they will be used to match series with their\ncorresponding totals following the same logic as :py:func:`groupByNodes <groupByNodes>`.\n\nWhen passing `nodes` the `total` parameter may be a series list or `None`.  If it is `None` then\nfor each series in `seriesList` the percentage of the sum of series in that group will be returned.\n\nWhen not passing `nodes`, the `total` parameter may be a single series, reference the same number\nof series as `seriesList` or be a numeric value.\n\nExample:\n\n.. code-block:: none\n\n  # Server01 connections failed and succeeded as a percentage of Server01 connections attempted\n  &target=asPercent(Server01.connections.{failed,succeeded}, Server01.connections.attempted)\n\n  # For each server, its connections failed as a percentage of its connections attempted\n  &target=asPercent(Server*.connections.failed, Server*.connections.attempted)\n\n  # For each server, its connections failed and succeeded as a percentage of its connections attemped\n  &target=asPercent(Server*.connections.{failed,succeeded}, Server*.connections.attempted, 0)\n\n  # apache01.threads.busy as a percentage of 1500\n  &target=asPercent(apache01.threads.busy,1500)\n\n  # Server01 cpu stats as a percentage of its total\n  &target=asPercent(Server01.cpu.*.jiffies)\n\n  # cpu stats for each server as a percentage of its total\n  &target=asPercent(Server*.cpu.*.jiffies, None, 0)\n\nWhen using `nodes`, any series or totals that can't be matched will create output series with\nnames like ``asPercent(someSeries,MISSING)`` or ``asPercent(MISSING,someTotalSeries)`` and all\nvalues set to None. If desired these series can be filtered out by piping the result through\n``|exclude(\"MISSING\")`` as shown below:\n\n.. code-block:: none\n\n  &target=asPercent(Server{1,2}.memory.used,Server{1,3}.memory.total,0)\n\n  # will produce 3 output series:\n  # asPercent(Server1.memory.used,Server1.memory.total) [values will be as expected]\n  # asPercent(Server2.memory.used,MISSING) [all values will be None]\n  # asPercent(MISSING,Server3.memory.total) [all values will be None]\n\n  &target=asPercent(Server{1,2}.memory.used,Server{1,3}.memory.total,0)|exclude(\"MISSING\")\n\n  # will produce 1 output series:\n  # asPercent(Server1.memory.used,Server1.memory.total) [values will be as expected]\n\nEach node may be an integer referencing a node in the series name or a string identifying a tag.\n\n.. note::\n\n  When `total` is a seriesList, specifying `nodes` to match series with the corresponding total\n  series will increase reliability.",
+            "function": "asPercent(seriesList, total=None, *nodes)",
+            "group": None,
+            "module": "graphite.render.functions",
+            "name": "asPercent"
+        })
+
+        # get details of average pie function
+        response = self.client.get(url + '/average', {'type': 'pie'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/json')
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertTrue(isinstance(result, dict))
+        self.assertEqual(result, {
+          "description": None,
+          "function": "average(series)",
+          "group": None,
+          "module": "graphite.render.functions",
+          "name": "average"
+        })
+
+        # get details of nonexistent function
+        response = self.client.get(url + '/nonExistent', {})
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response['Content-Type'], 'application/json')
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertTrue(isinstance(result, dict))
+        self.assertEqual(result, {'error': 'Function not found: nonExistent'})
+
+        # get details of nonexistent pie function
+        response = self.client.get(url + '/nonExistent', {'type': 'pie'})
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response['Content-Type'], 'application/json')
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertTrue(isinstance(result, dict))
+        self.assertEqual(result, {'error': 'Function not found: nonExistent'})
