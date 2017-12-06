@@ -12,6 +12,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. */
 
+// From Ext library
+/*global Ext*/
+// Defined in composer.html
+/*global Browser Composer GraphiteConfig*/
+// Defined in composer.js
+/*global MetricCompleter*/
+
 function GraphiteBrowser () {
   this.rootNode = new Ext.tree.TreeNode({});
   this.treePanel = createTreePanel( this.rootNode );
