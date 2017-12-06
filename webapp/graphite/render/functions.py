@@ -37,6 +37,7 @@ from django.conf import settings
 
 from graphite.errors import NormalizeEmptyResultError
 from graphite.events import models
+from graphite.functions import SeriesFunction
 from graphite.logger import log
 from graphite.render.attime import getUnitString, parseTimeOffset, parseATTime, SECONDS_STRING, MINUTES_STRING, HOURS_STRING, DAYS_STRING, WEEKS_STRING, MONTHS_STRING, YEARS_STRING
 from graphite.render.evaluator import evaluateTarget
@@ -3741,7 +3742,7 @@ def reduceSeries(requestContext, seriesLists, reduceFunction, reduceNode, *reduc
         i = reduceMatchers.index(node)
         metaSeries[reduceSeriesName][i] = series
   for key in keys:
-    metaSeries[key] = SeriesFunctions[reduceFunction](requestContext,*[[l] for l in metaSeries[key]])[0]
+    metaSeries[key] = SeriesFunction(reduceFunction)(requestContext,*[[l] for l in metaSeries[key]])[0]
     metaSeries[key].name = key
   return [ metaSeries[key] for key in keys ]
 

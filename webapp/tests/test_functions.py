@@ -17,6 +17,7 @@ except ImportError:  # Django < 1.10
   from django.core.urlresolvers import reverse
 
 from graphite.errors import NormalizeEmptyResultError
+from graphite.functions import _SeriesFunctions
 from graphite.render.datalib import TimeSeries
 from graphite.render import functions
 from graphite.render.evaluator import evaluateTarget
@@ -3686,7 +3687,7 @@ class FunctionsTest(TestCase):
         ]
         resultSeriesList = [TimeSeries('mock(series)',0,1,1,[None])]
         mock = MagicMock(return_value = resultSeriesList)
-        with patch.dict(functions.SeriesFunctions,{ 'mock': mock }):
+        with patch.dict(_SeriesFunctions,{ 'mock': mock }):
             results = functions.reduceSeries({}, copy.deepcopy(inputList), "mock", 2, "metric1","metric2" )
             self.assertEqual(results,expectedResult)
         self.assertEqual(mock.mock_calls,

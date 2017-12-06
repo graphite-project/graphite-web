@@ -17,8 +17,6 @@ List of functions
 .. automodule:: graphite.render.functions
    :members:
 
-.. _plugins :
-
 Function Plugins
 ----------------
 

@@ -381,7 +381,7 @@ DEFAULT_XFILES_FACTOR = 0
 # Function plugins #
 #####################################
 # List of custom function plugin modules
-# See: http://graphite.readthedocs.io/en/latest/functions.html#plugins
+# See: http://graphite.readthedocs.io/en/latest/functions.html#function-plugins
 FUNCTION_PLUGINS = []
 
 #####################################
