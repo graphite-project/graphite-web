@@ -59,5 +59,6 @@ def functionInfo(name, func):
     'function': name + inspect.formatargspec(argspec[0][1:], argspec[1], argspec[2], argspec[3]),
     'description': inspect.getdoc(func),
     'module': inspect.getmodule(func).__name__,
-    'group': getattr(func, 'group', None),
+    'group': getattr(func, 'group', 'Ungrouped'),
+    'params': getattr(func, 'params', None),
   }

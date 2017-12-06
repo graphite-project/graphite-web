@@ -302,6 +302,25 @@ def aggregate(requestContext, seriesList, func, xFilesFactor=None):
 
   return [series]
 
+aggregate.group = 'Combine'
+aggregate.params = [
+  {
+    'name': 'seriesList',
+    'type': 'seriesList',
+    'required': True,
+    'multiple': True,
+  },
+  {
+    'name': 'func',
+    'type': 'aggFunc',
+    'required': True,
+  },
+  {
+    'name': 'xFilesFactor',
+    'type': 'float',
+  },
+]
+
 def sumSeries(requestContext, *seriesLists):
   """
   Short form: sum()
@@ -324,6 +343,16 @@ def sumSeries(requestContext, *seriesLists):
   """
   return aggregate(requestContext, seriesLists, 'sum')
 
+sumSeries.group = 'Combine'
+sumSeries.params = [
+  {
+    'name': 'seriesLists',
+    'type': 'seriesList',
+    'required': True,
+    'multiple': True,
+  },
+]
+
 def sumSeriesWithWildcards(requestContext, seriesList, *position): #XXX
   """
   Call sumSeries after inserting wildcards at the given position(s).
@@ -343,6 +372,20 @@ def sumSeriesWithWildcards(requestContext, seriesList, *position): #XXX
   This is an alias for :py:func:`aggregateWithWildcards <aggregateWithWildcards>` with aggregation ``sum``.
   """
   return aggregateWithWildcards(requestContext, seriesList, 'sum', *position)
+
+sumSeriesWithWildcards.group = 'Combine'
+sumSeriesWithWildcards.params = [
+  {
+    'name': 'seriesList',
+    'type': 'seriesList',
+    'required': True,
+  },
+  {
+    'name': 'position',
+    'type': 'node',
+    'multiple': True,
+  },
+]
 
 def averageSeriesWithWildcards(requestContext, seriesList, *position): #XXX
   """
@@ -364,6 +407,20 @@ def averageSeriesWithWildcards(requestContext, seriesList, *position): #XXX
   """
   return aggregateWithWildcards(requestContext, seriesList, 'average', *position)
 
+averageSeriesWithWildcards.group = 'Combine'
+averageSeriesWithWildcards.params = [
+  {
+    'name': 'seriesList',
+    'type': 'seriesList',
+    'required': True,
+  },
+  {
+    'name': 'position',
+    'type': 'node',
+    'multiple': True,
+  },
+]
+
 def multiplySeriesWithWildcards(requestContext, seriesList, *position): #XXX
   """
   Call multiplySeries after inserting wildcards at the given position(s).
@@ -383,6 +440,20 @@ def multiplySeriesWithWildcards(requestContext, seriesList, *position): #XXX
   This is an alias for :py:func:`aggregateWithWildcards <aggregateWithWildcards>` with aggregation ``multiply``.
   """
   return aggregateWithWildcards(requestContext, seriesList, 'multiply', *position)
+
+multiplySeriesWithWildcards.group = 'Combine'
+multiplySeriesWithWildcards.params = [
+  {
+    'name': 'seriesList',
+    'type': 'seriesList',
+    'required': True,
+  },
+  {
+    'name': 'position',
+    'type': 'node',
+    'multiple': True,
+  },
+]
 
 def aggregateWithWildcards(requestContext, seriesList, func, *positions):
   """
@@ -422,6 +493,25 @@ def aggregateWithWildcards(requestContext, seriesList, func, *positions):
     metaSeries[key].name = key
   return [ metaSeries[key] for key in keys ]
 
+aggregateWithWildcards.group = 'Combine'
+aggregateWithWildcards.params = [
+  {
+    'name': 'seriesList',
+    'type': 'seriesList',
+    'required': True,
+  },
+  {
+    'name': 'func',
+    'type': 'aggFunc',
+    'required': True,
+  },
+  {
+    'name': 'position',
+    'type': 'node',
+    'multiple': True,
+  },
+]
+
 def diffSeries(requestContext, *seriesLists):
   """
   Subtracts series 2 through n from series 1.
@@ -447,6 +537,16 @@ def diffSeries(requestContext, *seriesLists):
   """
   return aggregate(requestContext, seriesLists, 'diff')
 
+diffSeries.group = 'Combine'
+diffSeries.params = [
+  {
+    'name': 'seriesLists',
+    'type': 'seriesList',
+    'required': True,
+    'multiple': True,
+  },
+]
+
 def averageSeries(requestContext, *seriesLists):
   """
   Short Alias: avg()
@@ -464,6 +564,16 @@ def averageSeries(requestContext, *seriesLists):
   """
   return aggregate(requestContext, seriesLists, 'average')
 
+averageSeries.group = 'Combine'
+averageSeries.params = [
+  {
+    'name': 'seriesLists',
+    'type': 'seriesList',
+    'required': True,
+    'multiple': True,
+  },
+]
+
 def stddevSeries(requestContext, *seriesLists):
   """
 
@@ -480,6 +590,16 @@ def stddevSeries(requestContext, *seriesLists):
   """
   return aggregate(requestContext, seriesLists, 'stddev')
 
+stddevSeries.group = 'Combine'
+stddevSeries.params = [
+  {
+    'name': 'seriesLists',
+    'type': 'seriesList',
+    'required': True,
+    'multiple': True,
+  },
+]
+
 def minSeries(requestContext, *seriesLists):
   """
   Takes one metric or a wildcard seriesList.
@@ -494,6 +614,16 @@ def minSeries(requestContext, *seriesLists):
   This is an alias for :py:func:`aggregate <aggregate>` with aggregation ``min``.
   """
   return aggregate(requestContext, seriesLists, 'min')
+
+minSeries.group = 'Combine'
+minSeries.params = [
+  {
+    'name': 'seriesLists',
+    'type': 'seriesList',
+    'required': True,
+    'multiple': True,
+  },
+]
 
 def maxSeries(requestContext, *seriesLists):
   """
@@ -510,6 +640,16 @@ def maxSeries(requestContext, *seriesLists):
   """
   return aggregate(requestContext, seriesLists, 'max')
 
+maxSeries.group = 'Combine'
+maxSeries.params = [
+  {
+    'name': 'seriesLists',
+    'type': 'seriesList',
+    'required': True,
+    'multiple': True,
+  },
+]
+
 def rangeOfSeries(requestContext, *seriesLists):
   """
   Takes a wildcard seriesList.
@@ -524,6 +664,16 @@ def rangeOfSeries(requestContext, *seriesLists):
   This is an alias for :py:func:`aggregate <aggregate>` with aggregation ``rangeOf``.
   """
   return aggregate(requestContext, seriesLists, 'rangeOf')
+
+rangeOfSeries.group = 'Combine'
+rangeOfSeries.params = [
+  {
+    'name': 'seriesLists',
+    'type': 'seriesList',
+    'required': True,
+    'multiple': True,
+  },
+]
 
 def percentileOfSeries(requestContext, seriesList, n, interpolate=False):
   """
@@ -545,6 +695,25 @@ def percentileOfSeries(requestContext, seriesList, n, interpolate=False):
   resultSeries = TimeSeries(name, start, end, step, values, xFilesFactor=requestContext.get('xFilesFactor'))
 
   return [resultSeries]
+
+percentileOfSeries.group = 'Transform'
+percentileOfSeries.params = [
+  {
+    'name': 'seriesList',
+    'type': 'seriesList',
+    'required': True,
+  },
+  {
+    'name': 'n',
+    'type': 'int',
+    'required': True,
+  },
+  {
+    'name': 'interpolate',
+    'type': 'bool',
+    'default': False,
+  },
+]
 
 def keepLastValue(requestContext, seriesList, limit = INF):
   """
@@ -588,6 +757,20 @@ def keepLastValue(requestContext, seriesList, limit = INF):
         series[index] = series[len(series) - consecutiveNones - 1]
 
   return seriesList
+
+keepLastValue.group = 'Transform'
+keepLastValue.params = [
+  {
+    'name': 'seriesList',
+    'type': 'seriesList',
+    'required': True,
+  },
+  {
+    'name': 'limit',
+    'type': 'int',
+    'default': 'INF',
+  },
+]
 
 def interpolate(requestContext, seriesList, limit = INF):
   """
@@ -637,6 +820,20 @@ def interpolate(requestContext, seriesList, limit = INF):
 
   return seriesList
 
+interpolate.group = 'Transform'
+interpolate.params = [
+  {
+    'name': 'seriesList',
+    'type': 'seriesList',
+    'required': True,
+  },
+  {
+    'name': 'limit',
+    'type': 'int',
+    'default': 'INF',
+  },
+]
+
 def changed(requestContext, seriesList):
   """
   Takes one metric or a wildcard seriesList.
@@ -663,6 +860,15 @@ def changed(requestContext, seriesList):
       else:
         series[i] = 0
   return seriesList
+
+changed.group = 'Special'
+changed.params = [
+  {
+    'name': 'seriesList',
+    'type': 'seriesList',
+    'required': True,
+  },
+]
 
 def asPercent(requestContext, seriesList, total=None, *nodes):
   """
@@ -842,6 +1048,24 @@ def asPercent(requestContext, seriesList, total=None, *nodes):
 
   return resultList
 
+asPercent.group = 'Combine'
+asPercent.params = [
+  {
+    'name': 'seriesList',
+    'type': 'seriesList',
+    'required': True,
+  },
+  {
+    'name': 'total',
+    'type': 'seriesList',
+  },
+  {
+    'name': 'nodes',
+    'type': 'nodeOrTag',
+    'multiple': True,
+  },
+]
+
 def divideSeriesLists(requestContext, dividendSeriesList, divisorSeriesList):
   """
   Iterates over a two lists and divides list1[0] by list2[0], list1[1] by list2[1] and so on.
@@ -875,6 +1099,20 @@ def divideSeriesLists(requestContext, dividendSeriesList, divisorSeriesList):
     results.append(quotientSeries)
 
   return results
+
+divideSeriesLists.group = 'Combine'
+divideSeriesLists.params = [
+  {
+    'name': 'dividendSeriesList',
+    'type': 'seriesList',
+    'required': True,
+  },
+  {
+    'name': 'divisorSeriesList',
+    'type': 'seriesList',
+    'required': True,
+  },
+]
 
 def divideSeries(requestContext, dividendSeriesList, divisorSeries):
   """
@@ -923,6 +1161,20 @@ def divideSeries(requestContext, dividendSeriesList, divisorSeries):
 
   return results
 
+divideSeries.group = 'Combine'
+divideSeries.params = [
+  {
+    'name': 'dividendSeriesList',
+    'type': 'seriesList',
+    'required': True,
+  },
+  {
+    'name': 'divisorSeries',
+    'type': 'seriesList',
+    'required': True,
+  },
+]
+
 def multiplySeries(requestContext, *seriesLists):
   """
   Takes two or more series and multiplies their points. A constant may not be
@@ -941,6 +1193,16 @@ def multiplySeries(requestContext, *seriesLists):
     return seriesLists[0]
 
   return aggregate(requestContext, seriesLists, 'multiply')
+
+multiplySeries.group = 'Combine'
+multiplySeries.params = [
+  {
+    'name': 'seriesLists',
+    'type': 'seriesList',
+    'required': True,
+    'multiple': True,
+  },
+]
 
 def weightedAverage(requestContext, seriesListAvg, seriesListWeight, *nodes):
   """
