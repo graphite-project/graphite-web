@@ -2,7 +2,7 @@ import random
 import time
 
 from django.test import override_settings
-from mock import patch
+from mock import patch, Mock
 
 from .base import TestCase
 
@@ -10,10 +10,12 @@ from graphite.finders.utils import BaseFinder
 from graphite.intervals import Interval, IntervalSet
 from graphite.node import LeafNode, BranchNode
 from graphite.readers.utils import BaseReader
-from graphite.storage import Store, extractForwardHeaders, get_finders
+from graphite.storage import Store, extractForwardHeaders, get_finders, get_tagdb
 from graphite.tags.localdatabase import LocalDatabaseTagDB
 from graphite.worker_pool.pool import PoolTimeoutError
-
+from graphite.render.datalib import TimeSeries
+from graphite.render.evaluator import evaluateTarget
+from graphite.util import epoch_to_dt
 
 class StorageTest(TestCase):
 
@@ -25,7 +27,7 @@ class StorageTest(TestCase):
 
     store = Store(
       finders=[disabled_finder, legacy_finder, test_finder, remote_finder],
-      tagdb='graphite.tags.localdatabase.LocalDatabaseTagDB'
+      tagdb=get_tagdb('graphite.tags.localdatabase.LocalDatabaseTagDB')
     )
 
     # tagb is properly initialized
@@ -64,11 +66,11 @@ class StorageTest(TestCase):
       raise PoolTimeoutError()
 
     with patch('graphite.storage.pool_exec', mock_pool_exec):
-      with patch('graphite.storage.log.debug') as log_debug:
+      with patch('graphite.storage.log.info') as log_info:
         with self.assertRaisesRegexp(Exception, 'All fetches failed for \[\'a\'\]'):
           list(store.fetch(['a'], 1, 2, 3, {}))
-          self.assertEqual(log_debug.call_count, 1)
-          self.assertRegexpMatches(log_debug.call_args[0][0], 'Timed out in fetch after [-.e0-9]+s')
+        self.assertEqual(log_info.call_count, 1)
+        self.assertRegexpMatches(log_info.call_args[0][0], 'Timed out in fetch after [-.e0-9]+s')
 
   def test_fetch_all_failed(self):
     # all finds failed
@@ -76,11 +78,21 @@ class StorageTest(TestCase):
       finders=[TestFinder()]
     )
 
-    with patch('graphite.storage.log.debug') as log_debug:
+    with patch('graphite.storage.log.info') as log_info:
+      with self.assertRaisesRegexp(Exception, 'Fetch for \[\'a\'\] failed: TestFinder.find_nodes'):
+        list(store.fetch(['a'], 1, 2, 3, {}))
+      self.assertEqual(log_info.call_count, 1)
+      self.assertRegexpMatches(log_info.call_args[0][0], 'Fetch for \[\'a\'\] failed after [-.e0-9]+s: TestFinder.find_nodes')
+
+    store = Store(
+      finders=[TestFinder(), TestFinder()]
+    )
+
+    with patch('graphite.storage.log.info') as log_info:
       with self.assertRaisesRegexp(Exception, 'All fetches failed for \[\'a\'\]'):
         list(store.fetch(['a'], 1, 2, 3, {}))
-        self.assertEqual(log_debug.call_count, 1)
-        self.assertRegexpMatches(log_debug.call_args[0][0], 'Fetch for \[\'a\'\] failed after [-.e0-9]+s: TestFinder.find_nodes')
+      self.assertEqual(log_info.call_count, 2)
+      self.assertRegexpMatches(log_info.call_args[0][0], 'Fetch for \[\'a\'\] failed after [-.e0-9]+s: TestFinder.find_nodes')
 
   def test_find(self):
     disabled_finder = DisabledFinder()
@@ -90,7 +102,7 @@ class StorageTest(TestCase):
 
     store = Store(
       finders=[disabled_finder, legacy_finder, test_finder, remote_finder],
-      tagdb='graphite.tags.localdatabase.LocalDatabaseTagDB'
+      tagdb=get_tagdb('graphite.tags.localdatabase.LocalDatabaseTagDB')
     )
 
     # find nodes
@@ -137,11 +149,11 @@ class StorageTest(TestCase):
       raise PoolTimeoutError()
 
     with patch('graphite.storage.pool_exec', mock_pool_exec):
-      with patch('graphite.storage.log.debug') as log_debug:
+      with patch('graphite.storage.log.info') as log_info:
         with self.assertRaisesRegexp(Exception, 'All finds failed for <FindQuery: a from \* until \*>'):
           list(store.find('a'))
-          self.assertEqual(log_debug.call_count, 1)
-          self.assertRegexpMatches(log_debug.call_args[0][0], 'Timed out in find after [-.e0-9]+s')
+        self.assertEqual(log_info.call_count, 1)
+        self.assertRegexpMatches(log_info.call_args[0][0], 'Timed out in find after [-.e0-9]+s')
 
   def test_find_all_failed(self):
     # all finds failed
@@ -149,11 +161,21 @@ class StorageTest(TestCase):
       finders=[TestFinder()]
     )
 
-    with patch('graphite.storage.log.debug') as log_debug:
+    with patch('graphite.storage.log.info') as log_info:
+      with self.assertRaisesRegexp(Exception, 'Find for <FindQuery: a from \* until \*> failed: TestFinder.find_nodes'):
+        list(store.find('a'))
+      self.assertEqual(log_info.call_count, 1)
+      self.assertRegexpMatches(log_info.call_args[0][0], 'Find for <FindQuery: a from \* until \*> failed after [-.e0-9]+s: TestFinder.find_nodes')
+
+    store = Store(
+      finders=[TestFinder(), TestFinder()]
+    )
+
+    with patch('graphite.storage.log.info') as log_info:
       with self.assertRaisesRegexp(Exception, 'All finds failed for <FindQuery: a from \* until \*>'):
         list(store.find('a'))
-        self.assertEqual(log_debug.call_count, 1)
-        self.assertRegexpMatches(log_debug.call_args[0][0], 'Find for <FindQuery: a from \* until \*> failed after [-.e0-9]+s: TestFinder.find_nodes')
+      self.assertEqual(log_info.call_count, 2)
+      self.assertRegexpMatches(log_info.call_args[0][0], 'Find for <FindQuery: a from \* until \*> failed after [-.e0-9]+s: TestFinder.find_nodes')
 
   @override_settings(REMOTE_STORE_FORWARD_HEADERS=['X-Test1', 'X-Test2'])
   def test_extractForwardHeaders(self):
@@ -174,7 +196,7 @@ class StorageTest(TestCase):
 
     store = Store(
       finders=[disabled_finder, legacy_finder, test_finder, remote_finder],
-      tagdb='graphite.tags.localdatabase.LocalDatabaseTagDB'
+      tagdb=get_tagdb('graphite.tags.localdatabase.LocalDatabaseTagDB')
     )
 
     # get index
@@ -195,11 +217,11 @@ class StorageTest(TestCase):
       raise PoolTimeoutError()
 
     with patch('graphite.storage.pool_exec', mock_pool_exec):
-      with patch('graphite.storage.log.debug') as log_debug:
+      with patch('graphite.storage.log.info') as log_info:
         with self.assertRaisesRegexp(Exception, 'All index lookups failed'):
           store.get_index()
-          self.assertEqual(log_debug.call_count, 1)
-          self.assertRegexpMatches(log_debug.call_args[0][0], 'Timed out in get_index after [-.e0-9]+s')
+        self.assertEqual(log_info.call_count, 1)
+        self.assertRegexpMatches(log_info.call_args[0][0], 'Timed out in get_index after [-.e0-9]+s')
 
   def test_get_index_all_failed(self):
     # all finders failed
@@ -207,11 +229,294 @@ class StorageTest(TestCase):
       finders=[TestFinder()]
     )
 
-    with patch('graphite.storage.log.debug') as log_debug:
+    with patch('graphite.storage.log.info') as log_info:
+      with self.assertRaisesRegexp(Exception, 'get_index failed: TestFinder.find_nodes'):
+        store.get_index()
+      self.assertEqual(log_info.call_count, 1)
+      self.assertRegexpMatches(log_info.call_args[0][0], 'get_index failed after [-.e0-9]+s: TestFinder.find_nodes')
+
+    store = Store(
+      finders=[TestFinder(), TestFinder()]
+    )
+
+    with patch('graphite.storage.log.info') as log_info:
       with self.assertRaisesRegexp(Exception, 'All index lookups failed'):
         store.get_index()
-        self.assertEqual(log_debug.call_count, 1)
-        self.assertRegexpMatches(log_debug.call_args[0][0], 'Find for <FindQuery: a from \* until \*> failed after [-.e0-9]+s: TestFinder.find_nodes')
+      self.assertEqual(log_info.call_count, 2)
+      self.assertRegexpMatches(log_info.call_args[0][0], 'get_index failed after [-.e0-9]+s: TestFinder.find_nodes')
+
+  @override_settings(USE_WORKER_POOL=False)
+  def test_fetch_tag_support(self):
+    class TestFinderTags(BaseFinder):
+      tags = True
+
+      def find_nodes(self, query):
+        pass
+
+      def fetch(self, patterns, start_time, end_time, now=None, requestContext=None):
+        if patterns != ['seriesByTag("hello=tiger")', 'seriesByTag("name=notags")', 'seriesByTag("name=testtags")', 'testtags;hello=tiger']:
+          raise Exception('Unexpected patterns %s' % str(patterns))
+
+        return [
+          {
+            'pathExpression': 'testtags;hello=tiger',
+            'name': 'testtags;hello=tiger',
+            'time_info': (0, 60, 1),
+            'values': [],
+          },
+          {
+            'pathExpression': 'seriesByTag("hello=tiger")',
+            'name': 'testtags;hello=tiger',
+            'time_info': (0, 60, 1),
+            'values': [],
+          },
+          {
+            'pathExpression': 'seriesByTag("name=testtags")',
+            'name': 'testtags;hello=tiger',
+            'time_info': (0, 60, 1),
+            'values': [],
+          },
+        ]
+
+    tagdb = Mock()
+
+    store = Store(
+      finders=[TestFinderTags()],
+      tagdb=tagdb
+    )
+
+    request_context = {
+      'startTime': epoch_to_dt(0),
+      'endTime': epoch_to_dt(60),
+      'now': epoch_to_dt(60),
+    }
+
+    with patch('graphite.render.datalib.STORE', store):
+      results = evaluateTarget(request_context, ['testtags;hello=tiger', 'seriesByTag("hello=tiger")', 'seriesByTag("name=testtags")', 'seriesByTag("name=notags")'])
+      self.assertEqual(results, [
+        TimeSeries('testtags;hello=tiger', 0, 60, 1, []),
+        TimeSeries('testtags;hello=tiger', 0, 60, 1, [], pathExpression='seriesByTag("hello=tiger")'),
+        TimeSeries('testtags;hello=tiger', 0, 60, 1, [], pathExpression='seriesByTag("name=testtags")'),
+      ])
+
+  @override_settings(USE_WORKER_POOL=True)
+  def test_fetch_no_tag_support(self):
+    class TestFinderNoTags(BaseFinder):
+      tags = False
+
+      def find_nodes(self, query):
+        pass
+
+      def fetch(self, patterns, start_time, end_time, now=None, requestContext=None):
+        if patterns != ['notags;hello=tiger']:
+          raise Exception('Unexpected patterns %s' % str(patterns))
+
+        return [
+          {
+            'pathExpression': 'notags;hello=tiger',
+            'name': 'notags;hello=tiger',
+            'time_info': (0, 60, 1),
+            'values': [],
+          }
+        ]
+
+    tagdb = Mock()
+
+    def mockFindSeries(exprs, requestContext=None):
+      self.assertEqual(requestContext, request_context)
+      if exprs == ('hello=tiger',) or exprs == ('name=notags',):
+        return ['notags;hello=tiger']
+      if exprs == ('name=testtags',):
+        return []
+      raise Exception('Unexpected exprs %s' % str(exprs))
+
+    tagdb.find_series.side_effect = mockFindSeries
+
+    store = Store(
+      finders=[TestFinderNoTags()],
+      tagdb=tagdb
+    )
+
+    with patch('graphite.render.datalib.STORE', store):
+      request_context = {
+        'startTime': epoch_to_dt(0),
+        'endTime': epoch_to_dt(60),
+        'now': epoch_to_dt(60),
+      }
+
+      results = evaluateTarget(request_context, ['notags;hello=tiger', 'seriesByTag("hello=tiger")', 'seriesByTag("name=testtags")', 'seriesByTag("name=notags")'])
+      self.assertEqual(tagdb.find_series.call_count, 3)
+      self.assertEqual(results, [
+        TimeSeries('notags;hello=tiger', 0, 60, 1, []),
+        TimeSeries('notags;hello=tiger', 0, 60, 1, [], pathExpression='seriesByTag("hello=tiger")'),
+        TimeSeries('notags;hello=tiger', 0, 60, 1, [], pathExpression='seriesByTag("name=notags")'),
+      ])
+
+  def test_autocomplete(self):
+    test = self
+
+    class TestFinderTags(BaseFinder):
+      tags = True
+
+      def __init__(self, request_limit=100, request_context=None):
+        self.limit = request_limit
+        self.context = request_context or {}
+
+      def find_nodes(self, query):
+        pass
+
+      def auto_complete_tags(self, exprs, tagPrefix=None, limit=None, requestContext=None):
+        test.assertEqual(exprs, ['tag1=value1'])
+        test.assertEqual(tagPrefix, 'test')
+        test.assertEqual(limit, self.limit)
+        test.assertEqual(requestContext, self.context)
+        return ['testtags']
+
+      def auto_complete_values(self, exprs, tag, valuePrefix=None, limit=None, requestContext=None):
+        test.assertEqual(exprs, ['tag1=value1'])
+        test.assertEqual(tag, 'tag2')
+        test.assertEqual(valuePrefix, 'test')
+        test.assertEqual(limit, self.limit)
+        test.assertEqual(requestContext, self.context)
+        return ['testtags']
+
+
+    class TestFinderNoTags(BaseFinder):
+      tags = False
+
+      def find_nodes(self, query):
+        pass
+
+
+    class TestFinderTagsException(TestFinderTags):
+      def auto_complete_tags(self, exprs, tagPrefix=None, limit=None, requestContext=None):
+        raise Exception('TestFinderTagsException.auto_complete_tags')
+
+      def auto_complete_values(self, exprs, tag, valuePrefix=None, limit=None, requestContext=None):
+        raise Exception('TestFinderTagsException.auto_complete_values')
+
+
+    class TestFinderTagsTimeout(TestFinderTags):
+      def auto_complete_tags(self, exprs, tagPrefix=None, limit=None, requestContext=None):
+        time.sleep(0.1)
+        return ['testtags']
+
+      def auto_complete_values(self, exprs, tag, valuePrefix=None, limit=None, requestContext=None):
+        time.sleep(0.1)
+        return ['testtags']
+
+
+    def mockStore(finders, request_limit=100, request_context=None):
+      tagdb = Mock()
+
+      def mockAutoCompleteTags(exprs, tagPrefix=None, limit=None, requestContext=None):
+        self.assertEqual(exprs, ['tag1=value1'])
+        self.assertEqual(tagPrefix, 'test')
+        self.assertEqual(limit, request_limit)
+        self.assertEqual(requestContext, request_context or {})
+        return ['testnotags']
+
+      tagdb.auto_complete_tags.side_effect = mockAutoCompleteTags
+
+      def mockAutoCompleteValues(exprs, tag, valuePrefix=None, limit=None, requestContext=None):
+        self.assertEqual(exprs, ['tag1=value1'])
+        self.assertEqual(tag, 'tag2')
+        self.assertEqual(valuePrefix, 'test')
+        self.assertEqual(limit, request_limit)
+        self.assertEqual(requestContext, request_context or {})
+        return ['testnotags']
+
+      tagdb.auto_complete_values.side_effect = mockAutoCompleteValues
+
+      return Store(
+        finders=finders,
+        tagdb=tagdb,
+      )
+
+    request_context = {}
+
+    # test with both tag-enabled and non-tag-enabled finders
+    store = mockStore([TestFinderTags(), TestFinderNoTags()])
+
+    result = store.tagdb_auto_complete_tags(['tag1=value1'], 'test', 100, request_context)
+    self.assertEqual(store.tagdb.auto_complete_tags.call_count, 1)
+    self.assertEqual(result, ['testnotags', 'testtags'])
+
+    result = store.tagdb_auto_complete_values(['tag1=value1'], 'tag2', 'test', 100, request_context)
+    self.assertEqual(store.tagdb.auto_complete_values.call_count, 1)
+    self.assertEqual(result, ['testnotags', 'testtags'])
+
+    # test with no limit & no requestContext
+    store = mockStore([TestFinderTags(None, {}), TestFinderNoTags()], None, {})
+
+    result = store.tagdb_auto_complete_tags(['tag1=value1'], 'test')
+    self.assertEqual(store.tagdb.auto_complete_tags.call_count, 1)
+    self.assertEqual(result, ['testnotags', 'testtags'])
+
+    result = store.tagdb_auto_complete_values(['tag1=value1'], 'tag2', 'test')
+    self.assertEqual(store.tagdb.auto_complete_values.call_count, 1)
+    self.assertEqual(result, ['testnotags', 'testtags'])
+
+    # test with only tag-enabled finder
+    store = mockStore([TestFinderTags()])
+
+    result = store.tagdb_auto_complete_tags(['tag1=value1'], 'test', 100, request_context)
+    self.assertEqual(store.tagdb.auto_complete_tags.call_count, 0)
+    self.assertEqual(result, ['testtags'])
+
+    result = store.tagdb_auto_complete_values(['tag1=value1'], 'tag2', 'test', 100, request_context)
+    self.assertEqual(store.tagdb.auto_complete_values.call_count, 0)
+    self.assertEqual(result, ['testtags'])
+
+    # test with only non-tag-enabled finder
+    store = mockStore([TestFinderNoTags()])
+
+    result = store.tagdb_auto_complete_tags(['tag1=value1'], 'test', 100, request_context)
+    self.assertEqual(store.tagdb.auto_complete_tags.call_count, 1)
+    self.assertEqual(result, ['testnotags'])
+
+    result = store.tagdb_auto_complete_values(['tag1=value1'], 'tag2', 'test', 100, request_context)
+    self.assertEqual(store.tagdb.auto_complete_values.call_count, 1)
+    self.assertEqual(result, ['testnotags'])
+
+    # test with no finders
+    store = mockStore([])
+
+    result = store.tagdb_auto_complete_tags(['tag1=value1'], 'test', 100, request_context)
+    self.assertEqual(store.tagdb.auto_complete_tags.call_count, 0)
+    self.assertEqual(result, [])
+
+    result = store.tagdb_auto_complete_values(['tag1=value1'], 'tag2', 'test', 100, request_context)
+    self.assertEqual(store.tagdb.auto_complete_values.call_count, 0)
+    self.assertEqual(result, [])
+
+    # test exception handling with one finder
+    store = mockStore([TestFinderTagsException()])
+
+    with self.assertRaisesRegexp(Exception, 'Autocomplete tags for \[\'tag1=value1\'\] test failed: TestFinderTagsException\.auto_complete_tags'):
+      store.tagdb_auto_complete_tags(['tag1=value1'], 'test', 100, request_context)
+
+    with self.assertRaisesRegexp(Exception, 'Autocomplete values for \[\'tag1=value1\'\] tag2 test failed: TestFinderTagsException\.auto_complete_values'):
+      store.tagdb_auto_complete_values(['tag1=value1'], 'tag2', 'test', 100, request_context)
+
+    # test exception handling with more than one finder
+    store = mockStore([TestFinderTagsException(), TestFinderTagsException()])
+
+    with self.assertRaisesRegexp(Exception, 'All autocomplete tag requests failed for \[\'tag1=value1\'\] test'):
+      store.tagdb_auto_complete_tags(['tag1=value1'], 'test', 100, request_context)
+
+    with self.assertRaisesRegexp(Exception, 'All autocomplete value requests failed for \[\'tag1=value1\'\] tag2 test'):
+      store.tagdb_auto_complete_values(['tag1=value1'], 'tag2', 'test', 100, request_context)
+
+    # test pool timeout handling
+    store = mockStore([TestFinderTagsTimeout()])
+
+    with self.settings(USE_WORKER_POOL=True, REMOTE_FIND_TIMEOUT=0):
+      with self.assertRaisesRegexp(Exception, 'Timed out in autocomplete tags for \[\'tag1=value1\'\] test after [-.e0-9]+s'):
+        store.tagdb_auto_complete_tags(['tag1=value1'], 'test', 100, request_context)
+
+      with self.assertRaisesRegexp(Exception, 'Timed out in autocomplete values for \[\'tag1=value1\'\] tag2 test after [-.e0-9]+s'):
+        store.tagdb_auto_complete_values(['tag1=value1'], 'tag2', 'test', 100, request_context)
 
 
 class DisabledFinder(object):

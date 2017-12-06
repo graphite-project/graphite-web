@@ -24,7 +24,7 @@ from cgi import parse_qs
 
 from graphite.compat import HttpResponse
 from graphite.user_util import getProfileByUsername
-from graphite.util import json, unpickle, pickle, msgpack, StringIO
+from graphite.util import json, unpickle, pickle, msgpack, BytesIO
 from graphite.storage import extractForwardHeaders
 from graphite.logger import log
 from graphite.render.evaluator import evaluateTarget
@@ -515,7 +515,7 @@ def delegateRendering(graphType, graphOptions, headers=None):
 def renderLocalView(request):
   try:
     start = time()
-    reqParams = StringIO(request.body)
+    reqParams = BytesIO(request.body)
     graphType = reqParams.readline().strip()
     optionsPickle = reqParams.read()
     reqParams.close()
@@ -569,7 +569,7 @@ def renderMyGraphView(request,username,graphName):
 
 
 def doImageRender(graphClass, graphOptions):
-  pngData = StringIO()
+  pngData = BytesIO()
   t = time()
   img = graphClass(**graphOptions)
   img.output(pngData)

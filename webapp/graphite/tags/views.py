@@ -153,7 +153,7 @@ def autoCompleteTags(request, queryParams):
   elif len(queryParams.getlist('expr[]')) > 0:
     exprs = queryParams.getlist('expr[]')
 
-  return STORE.tagdb.auto_complete_tags(
+  return STORE.tagdb_auto_complete_tags(
     exprs,
     tagPrefix=queryParams.get('tagPrefix'),
     limit=queryParams.get('limit'),
@@ -177,7 +177,7 @@ def autoCompleteValues(request, queryParams):
   if not tag:
     raise HttpError('no tag specified', status=400)
 
-  return STORE.tagdb.auto_complete_values(
+  return STORE.tagdb_auto_complete_values(
     exprs,
     tag,
     valuePrefix=queryParams.get('valuePrefix'),

@@ -871,7 +871,7 @@ class FunctionsTest(TestCase):
         gotList = functions.delay({}, source, delay)
         self.assertEqual(len(gotList), len(expectedList))
         for got, expected in zip(gotList, expectedList):
-            self.assertListEqual(got, expected)
+            self.assertEqual(got, expected)
 
     def test_asPercent_error(self):
         seriesList = self._gen_series_list_with_data(
@@ -4195,7 +4195,7 @@ class FunctionsTest(TestCase):
             data=list(range(20, 25))
         )
 
-        def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
+        def mock_evaluateTarget(requestContext, targets):
             return self._gen_series_list_with_data(
                 key='collectd.test-db0.load.value',
                 start=10,
@@ -4215,7 +4215,7 @@ class FunctionsTest(TestCase):
             data=list(range(0, 10))
         )
 
-        def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
+        def mock_evaluateTarget(requestContext, targets):
             return self._gen_series_list_with_data(
                 key='collectd.test-db0.load.value',
                 start=10,
@@ -4249,7 +4249,7 @@ class FunctionsTest(TestCase):
             data=list(range(10, 25))
         )
 
-        def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
+        def mock_evaluateTarget(requestContext, targets):
             return self._gen_series_list_with_data(
                 key='collectd.test-db0.load.value',
                 start=10,
@@ -4279,7 +4279,7 @@ class FunctionsTest(TestCase):
             data=list(range(10, 110))
         )
 
-        def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
+        def mock_evaluateTarget(requestContext, targets):
             return self._gen_series_list_with_data(
                 key='collectd.test-db0.load.value',
                 start=10,
@@ -4309,7 +4309,7 @@ class FunctionsTest(TestCase):
             data=list(range(10, 110))
         )
 
-        def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
+        def mock_evaluateTarget(requestContext, targets):
             return []
 
         expectedResults = []
@@ -4332,7 +4332,7 @@ class FunctionsTest(TestCase):
             data=list(range(10, 110))
         )
 
-        def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
+        def mock_evaluateTarget(requestContext, targets):
             return self._gen_series_list_with_data(
                 key='collectd.test-db0.load.value',
                 start=600,
@@ -4362,7 +4362,7 @@ class FunctionsTest(TestCase):
             data=list(range(10, 610))
         )
 
-        def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
+        def mock_evaluateTarget(requestContext, targets):
             return self._gen_series_list_with_data(
                 key='collectd.test-db0.load.value',
                 start=600,
@@ -4395,7 +4395,7 @@ class FunctionsTest(TestCase):
             data=list(range(0, 25))
         )
 
-        def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
+        def mock_evaluateTarget(requestContext, targets):
             return self._gen_series_list_with_data(
                 key='collectd.test-db0.load.value',
                 start=10,
@@ -4425,7 +4425,7 @@ class FunctionsTest(TestCase):
             data=list(range(0, 10))
         )
 
-        def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
+        def mock_evaluateTarget(requestContext, targets):
             return self._gen_series_list_with_data(
                 key='collectd.test-db0.load.value',
                 start=10,
@@ -4456,7 +4456,7 @@ class FunctionsTest(TestCase):
             data=list(range(10, 110))
         )
 
-        def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
+        def mock_evaluateTarget(requestContext, targets):
             return []
 
         expectedResults = []
@@ -4479,7 +4479,7 @@ class FunctionsTest(TestCase):
             data=list(range(10, 110))
         )
 
-        def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
+        def mock_evaluateTarget(requestContext, targets):
             return self._gen_series_list_with_data(
                 key='collectd.test-db0.load.value',
                 start=600,
@@ -4513,7 +4513,7 @@ class FunctionsTest(TestCase):
             data=list(range(10, 110))
         )
 
-        def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
+        def mock_evaluateTarget(requestContext, targets):
             return self._gen_series_list_with_data(
                 key='collectd.test-db0.load.value',
                 start=600,
@@ -4553,7 +4553,7 @@ class FunctionsTest(TestCase):
             data=list(range(start, end))
         )
 
-        def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
+        def mock_evaluateTarget(requestContext, targets):
             seriesList = [
                 TimeSeries('collectd.test-db0.load.value', 10, 25, 1, [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None])
             ]
@@ -4583,7 +4583,7 @@ class FunctionsTest(TestCase):
             data=[2, 1] * 5
         )
 
-        def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
+        def mock_evaluateTarget(requestContext, targets):
             seriesList = [
                 TimeSeries('collectd.test-db0.load.value', 10, 30, 1, [None] * 10 + [2, 1] * 5)
             ]
@@ -4613,7 +4613,7 @@ class FunctionsTest(TestCase):
             data=list(range(10, 10 + 100))
         )
 
-        def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
+        def mock_evaluateTarget(requestContext, targets):
             return []
 
         expectedResults = []
@@ -4636,7 +4636,7 @@ class FunctionsTest(TestCase):
             data=[10, 1] * 5
         )
 
-        def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
+        def mock_evaluateTarget(requestContext, targets):
             return self._gen_series_list_with_data(
                 key='collectd.test-db0.load.value',
                 start=10,
@@ -4666,7 +4666,7 @@ class FunctionsTest(TestCase):
             data=[10, 1] * 50
         )
 
-        def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
+        def mock_evaluateTarget(requestContext, targets):
             return self._gen_series_list_with_data(
                 key='collectd.test-db0.load.value',
                 start=600,
@@ -4701,7 +4701,7 @@ class FunctionsTest(TestCase):
             data=list(range(start, end))
         )
 
-        def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
+        def mock_evaluateTarget(requestContext, targets):
             seriesList = [
                 TimeSeries('collectd.test-db0.load.value', 10, 25, 1, [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None])
             ]
@@ -4731,7 +4731,7 @@ class FunctionsTest(TestCase):
             data=[1, 2] * 5
         )
 
-        def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
+        def mock_evaluateTarget(requestContext, targets):
             seriesList = [
                 TimeSeries('collectd.test-db0.load.value', 10, 30, 1, [None] * 10 + [1, 2] * 5)
             ]
@@ -4761,7 +4761,7 @@ class FunctionsTest(TestCase):
             data=list(range(10, 10 + 100))
         )
 
-        def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
+        def mock_evaluateTarget(requestContext, targets):
             return []
 
         expectedResults = []
@@ -4784,7 +4784,7 @@ class FunctionsTest(TestCase):
             data=[1, 2] * 5
         )
 
-        def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
+        def mock_evaluateTarget(requestContext, targets):
             return self._gen_series_list_with_data(
                 key='collectd.test-db0.load.value',
                 start=10,
@@ -4814,7 +4814,7 @@ class FunctionsTest(TestCase):
             data=[1, 10] * 50
         )
 
-        def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
+        def mock_evaluateTarget(requestContext, targets):
             return self._gen_series_list_with_data(
                 key='collectd.test-db0.load.value',
                 start=600,
@@ -4862,7 +4862,7 @@ class FunctionsTest(TestCase):
             data=list(range(start, end))
         )
 
-        def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
+        def mock_evaluateTarget(requestContext, targets):
             seriesList = [
                 TimeSeries('collectd.test-db0.load.value', 10, 25, 1, [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None])
             ]
@@ -4892,7 +4892,7 @@ class FunctionsTest(TestCase):
             data=list(range(0, 10))
         )
 
-        def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
+        def mock_evaluateTarget(requestContext, targets):
             seriesList = [
                 TimeSeries('collectd.test-db0.load.value', 10, 30, 1, [None] * 10 + list(range(0, 10)))
             ]
@@ -4922,7 +4922,7 @@ class FunctionsTest(TestCase):
             data=list(range(10, 10 + 100))
         )
 
-        def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
+        def mock_evaluateTarget(requestContext, targets):
             return []
 
         expectedResults = []
@@ -4945,7 +4945,7 @@ class FunctionsTest(TestCase):
             data=[1] * 100
         )
 
-        def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
+        def mock_evaluateTarget(requestContext, targets):
             return self._gen_series_list_with_data(key='collectd.test-db0.load.value', start=600, end=700, step=1, data=[1] * 100)
 
         expectedResults = [
@@ -4970,7 +4970,7 @@ class FunctionsTest(TestCase):
             data=[1] * 100
         )
 
-        def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
+        def mock_evaluateTarget(requestContext, targets):
             return self._gen_series_list_with_data(key='collectd.test-db0.load.value', start=600, end=700, step=1, data=[1] * 100)
 
         expectedResults = [
@@ -4998,7 +4998,7 @@ class FunctionsTest(TestCase):
 
         seriesList = gen_seriesList(10)
 
-        def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
+        def mock_evaluateTarget(requestContext, targets):
             return gen_seriesList()
 
         expectedResults = [
@@ -5036,7 +5036,7 @@ class FunctionsTest(TestCase):
 
         seriesList = gen_seriesList(start_time, points)
 
-        def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
+        def mock_evaluateTarget(requestContext, targets):
             return gen_seriesList(start_time-week_seconds, (week_seconds/step)+points)
 
         expectedResults = [
@@ -5075,7 +5075,7 @@ class FunctionsTest(TestCase):
 
         seriesList = gen_seriesList(start_time, points)
 
-        def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
+        def mock_evaluateTarget(requestContext, targets):
             return gen_seriesList(start_time-week_seconds, (week_seconds/step)+points)
 
         expectedResults = [
@@ -5116,7 +5116,7 @@ class FunctionsTest(TestCase):
 
         seriesList = gen_seriesList(start_time, points)
 
-        def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
+        def mock_evaluateTarget(requestContext, targets):
             return gen_seriesList(start_time-week_seconds, (week_seconds/step)+points)
 
         expectedResults = [
@@ -5683,7 +5683,7 @@ class FunctionsTest(TestCase):
             data=[14.5, 15.5, 16.5, 17.5, 18.5, 19.5, 20.5, 21.5, 22.5, 23.5, 24.5, 25.5, 26.5, 27.5, 28.5, 29.5, 30.5, 31.5, 32.5, 33.5, 34.5, 35.5, 36.5, 37.5, 38.5, 39.5, 40.5, 41.5, 42.5, 43.5, 44.5]
         )
 
-        def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
+        def mock_evaluateTarget(requestContext, targets):
             return seriesList
 
         with patch('graphite.render.functions.evaluateTarget', mock_evaluateTarget):
@@ -5701,7 +5701,7 @@ class FunctionsTest(TestCase):
             data=[14.5, 15.5, 16.5, 17.5, 18.5, 19.5, 20.5, 21.5, 22.5, 23.5, 24.5, 25.5, 26.5, 27.5, 28.5, 29.5, 30.5, 31.5, 32.5, 33.5, 34.5, 35.5, 36.5, 37.5, 38.5, 39.5, 40.5, 41.5, 42.5, 43.5, 44.5]
         )
 
-        def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
+        def mock_evaluateTarget(requestContext, targets):
             return seriesList
 
         with patch('graphite.render.functions.evaluateTarget', mock_evaluateTarget):
@@ -5714,7 +5714,7 @@ class FunctionsTest(TestCase):
         seriesList = self._gen_series_list_with_data(start=600, end=700, data=list(range(0, 100)))
         expectedResults = []
 
-        def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
+        def mock_evaluateTarget(requestContext, targets):
             return []
 
         with patch('graphite.render.functions.evaluateTarget', mock_evaluateTarget):
@@ -5732,7 +5732,7 @@ class FunctionsTest(TestCase):
             data=[0, 0.0, 0.181818, 0.512397, 0.964688, 1.516563, None, 2.149915, 2.849931, 3.604489, 4.403673]
         )
 
-        def mock_evaluateTarget(requestContext, targets, noPrefetch=False):
+        def mock_evaluateTarget(requestContext, targets):
             return self._gen_series_list_with_data(key='collectd.test-db0.load.value',start=10, end=30, data=([None] * 10 + list(range(0, 5)) + [None] + list(range(5, 9))))
 
         with patch('graphite.render.functions.evaluateTarget', mock_evaluateTarget):
@@ -5965,50 +5965,6 @@ class FunctionsTest(TestCase):
               series[k] = round(v,2)
 
         self.assertEqual(result, expectedResult)
-
-    @patch('graphite.render.evaluator.prefetchData', lambda *_: None)
-    def test_seriesByTag(self):
-        class MockTagDB(object):
-            def find_series(self, tagExpressions, requestContext=None):
-                if tagExpressions == ('name=disk.bytes_used', 'server=server1'):
-                    return ['disk.bytes_used;server=server1']
-
-                if tagExpressions == ('name=disk.bytes_used', 'server=server2'):
-                    return []
-
-                raise Exception('Unexpected find_series call with tagExpressions: %s' % str(tagExpressions))
-
-
-        def mock_data_fetcher(reqCtx, path_expression):
-            if path_expression != 'disk.bytes_used;server=server1':
-                raise Exception('Unexpected fetchData call with pathExpression: %s' % path_expression)
-
-            return self._gen_series_list_with_data(
-                key=['disk.bytes_used;server=server1'],
-                start=0,
-                end=3,
-                data=[[10, 20, 30]]
-            )
-
-        request_context = self._build_requestContext(0, 3)
-
-        with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
-            with patch('graphite.storage.STORE.tagdb', None):
-                query = 'seriesByTag("name=disk.bytes_used","server=server1")'
-                result = evaluateTarget(request_context, query)
-                self.assertEqual(result, [])
-
-            with patch('graphite.storage.STORE.tagdb', MockTagDB()):
-                query = 'seriesByTag("name=disk.bytes_used","server=server1")'
-                result = evaluateTarget(request_context, query)
-                self.assertEqual(result, [
-                    TimeSeries('disk.bytes_used;server=server1',0,3,1,[10, 20, 30]),
-                ])
-                self.assertEqual(result[0].pathExpression, query)
-
-                query = 'seriesByTag("name=disk.bytes_used","server=server2")'
-                result = evaluateTarget(request_context, query)
-                self.assertEqual(result, [])
 
     def test_groupByTags(self):
         class MockTagDB(object):

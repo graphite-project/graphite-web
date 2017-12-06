@@ -6,7 +6,7 @@ from urllib3.response import HTTPResponse
 
 from graphite.finders.remote import RemoteFinder
 from graphite.readers.remote import RemoteReader
-from graphite.util import pickle, StringIO, msgpack
+from graphite.util import pickle, BytesIO, msgpack
 from graphite.wsgi import application  # NOQA makes sure we have a working WSGI app
 
 
@@ -64,7 +64,7 @@ class RemoteReaderTests(TestCase):
                  'name': 'a.b.c.d'
                 }
                ]
-        responseObject = HTTPResponse(body=StringIO(pickle.dumps(data)), status=200, preload_content=False)
+        responseObject = HTTPResponse(body=BytesIO(pickle.dumps(data)), status=200, preload_content=False)
         http_request.return_value = responseObject
 
         result = reader.fetch_multi(startTime, endTime)
@@ -108,7 +108,7 @@ class RemoteReaderTests(TestCase):
                 }
                ]
         responseObject = HTTPResponse(
-          body=StringIO(msgpack.dumps(data)),
+          body=BytesIO(msgpack.dumps(data)),
           status=200,
           preload_content=False,
           headers={'Content-Type': 'application/x-msgpack'}
@@ -145,14 +145,14 @@ class RemoteReaderTests(TestCase):
         })
 
         # non-pickle response
-        responseObject = HTTPResponse(body=StringIO(b'error'), status=200, preload_content=False)
+        responseObject = HTTPResponse(body=BytesIO(b'error'), status=200, preload_content=False)
         http_request.return_value = responseObject
 
         with self.assertRaisesRegexp(Exception, 'Error decoding render response from http://[^ ]+: .+'):
           reader.fetch(startTime, endTime)
 
         # non-200 response
-        responseObject = HTTPResponse(body=StringIO(b'error'), status=500, preload_content=False)
+        responseObject = HTTPResponse(body=BytesIO(b'error'), status=500, preload_content=False)
         http_request.return_value = responseObject
 
         with self.assertRaisesRegexp(Exception, 'Error response 500 from http://[^ ]+'):
@@ -203,7 +203,7 @@ class RemoteReaderTests(TestCase):
                  'name': 'a.b.c.d'
                 }
                ]
-        responseObject = HTTPResponse(body=StringIO(pickle.dumps(data)), status=200, preload_content=False)
+        responseObject = HTTPResponse(body=BytesIO(pickle.dumps(data)), status=200, preload_content=False)
         http_request.return_value = responseObject
         result = reader.fetch(startTime, endTime)
         expected_response = ((1496262000, 1496262060, 60), [1.0, 0.0, 1.0, 0.0, 1.0])

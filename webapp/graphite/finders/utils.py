@@ -43,6 +43,8 @@ class BaseFinder(object):
     local = True
     # set to True if this finder shouldn't be used
     disabled = False
+    # set to True if this finder supports seriesByTag
+    tags = False
 
     def __init__(self):
         """Initialize the finder."""
@@ -147,3 +149,9 @@ class BaseFinder(object):
             })
 
         return result
+
+    def auto_complete_tags(self, exprs, tagPrefix=None, limit=None, requestContext=None):
+        return []
+
+    def auto_complete_values(self, exprs, tag, valuePrefix=None, limit=None, requestContext=None):
+        return []

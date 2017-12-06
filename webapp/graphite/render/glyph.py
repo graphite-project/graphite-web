@@ -12,7 +12,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
-import math, itertools, re, sys
+import math, itertools, re
 from datetime import datetime, timedelta
 from six.moves import range, zip
 from six.moves.urllib.parse import unquote_plus
@@ -21,19 +21,12 @@ from django.conf import settings
 import pytz
 
 from graphite.render.datalib import TimeSeries
-from graphite.util import json
+from graphite.util import json, BytesIO
 
 try:
     import cairocffi as cairo
 except ImportError:
     import cairo
-
-# BytesIO is needed on py3 as StringIO does not operate on byte input anymore
-# We could use BytesIO on py2 as well but it is slower than StringIO
-if sys.version_info >= (3, 0):
-  from io import BytesIO as StringIO
-else:
-  from cStringIO import StringIO
 
 INFINITY = float('inf')
 
@@ -585,10 +578,10 @@ class Graph:
     if outputFormat == 'png':
       self.surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, self.width, self.height)
     elif outputFormat == 'svg':
-      self.surfaceData = StringIO.StringIO()
+      self.surfaceData = BytesIO()
       self.surface = cairo.SVGSurface(self.surfaceData, self.width, self.height)
     elif outputFormat == 'pdf':
-      self.surfaceData = StringIO.StringIO()
+      self.surfaceData = BytesIO()
       self.surface = cairo.PDFSurface(self.surfaceData, self.width, self.height)
       res_x, res_y = self.surface.get_fallback_resolution()
       self.width = float(self.width / res_x) * 72
@@ -889,7 +882,7 @@ class Graph:
         metaData = { }
 
       self.surface.finish()
-      svgData = self.surfaceData.getvalue()
+      svgData = str(self.surfaceData.getvalue())
       self.surfaceData.close()
 
       svgData = svgData.replace('pt"', 'px"', 2) # we expect height/width in pixels, not points
@@ -912,13 +905,13 @@ class Graph:
           svgData += "</g>"
         svgData = svgData.replace(' data-header="true"','')
 
-      fileObj.write(svgData)
-      fileObj.write("""<script>
+      fileObj.write(svgData.encode('utf-8'))
+      fileObj.write(("""<script>
   <![CDATA[
     metadata = %s
   ]]>
 </script>
-</svg>""" % json.dumps(metaData))
+</svg>""" % json.dumps(metaData)).encode('utf-8'))
 
 
 class LineGraph(Graph):

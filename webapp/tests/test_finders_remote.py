@@ -9,7 +9,7 @@ from mock import patch
 from graphite.finders.remote import RemoteFinder
 from graphite.finders.utils import FindQuery
 from graphite.node import BranchNode, LeafNode
-from graphite.util import json, pickle, StringIO, msgpack
+from graphite.util import json, pickle, BytesIO, msgpack
 
 from .base import TestCase
 
@@ -78,7 +78,7 @@ class RemoteFinderTest(TestCase):
           'is_leaf': True,
         },
       ]
-      responseObject = HTTPResponse(body=StringIO(pickle.dumps(data)), status=200, preload_content=False)
+      responseObject = HTTPResponse(body=BytesIO(pickle.dumps(data)), status=200, preload_content=False)
       http_request.return_value = responseObject
 
       query = FindQuery('a.b.c', startTime, endTime)
@@ -126,7 +126,7 @@ class RemoteFinderTest(TestCase):
         },
       ]
       responseObject = HTTPResponse(
-        body=StringIO(msgpack.dumps(data)),
+        body=BytesIO(msgpack.dumps(data)),
         status=200,
         preload_content=False,
         headers={'Content-Type': 'application/x-msgpack'}
@@ -164,7 +164,7 @@ class RemoteFinderTest(TestCase):
       self.assertEqual(nodes[1].path, 'a.b.c.d')
 
       # non-pickle response
-      responseObject = HTTPResponse(body=StringIO(b'error'), status=200, preload_content=False)
+      responseObject = HTTPResponse(body=BytesIO(b'error'), status=200, preload_content=False)
       http_request.return_value = responseObject
 
       result = finder.find_nodes(query)
@@ -236,7 +236,7 @@ class RemoteFinderTest(TestCase):
           'name': 'a.b.c.d',
         },
       ]
-      responseObject = HTTPResponse(body=StringIO(pickle.dumps(data)), status=200, preload_content=False)
+      responseObject = HTTPResponse(body=BytesIO(pickle.dumps(data)), status=200, preload_content=False)
       http_request.return_value = responseObject
 
       result = finder.fetch(['a.b.c.d'], startTime, endTime)
@@ -278,7 +278,7 @@ class RemoteFinderTest(TestCase):
         'a.b.c',
         'a.b.c.d',
       ]
-      responseObject = HTTPResponse(body=StringIO(json.dumps(data).encode('ascii')), status=200, preload_content=False)
+      responseObject = HTTPResponse(body=BytesIO(json.dumps(data).encode('utf-8')), status=200, preload_content=False)
       http_request.return_value = responseObject
 
       result = finder.get_index({})
@@ -304,8 +304,164 @@ class RemoteFinderTest(TestCase):
       self.assertEqual(result[1], 'a.b.c.d')
 
       # non-json response
-      responseObject = HTTPResponse(body=StringIO(b'error'), status=200, preload_content=False)
+      responseObject = HTTPResponse(body=BytesIO(b'error'), status=200, preload_content=False)
       http_request.return_value = responseObject
 
       with self.assertRaisesRegexp(Exception, 'Error decoding index response from http://[^ ]+: .+'):
         result = finder.get_index({})
+
+    @patch('urllib3.PoolManager.request')
+    @override_settings(
+      INTRACLUSTER_HTTPS=False,
+      REMOTE_STORE_USE_POST=True,
+      REMOTE_FIND_TIMEOUT=10,
+      TAGDB_AUTOCOMPLETE_LIMIT=100)
+    def test_auto_complete_tags(self, http_request):
+      finder = RemoteFinder('127.0.0.1')
+
+      data = [
+        'tag1',
+        'tag2',
+      ]
+
+      responseObject = HTTPResponse(body=BytesIO(json.dumps(data).encode('utf-8')), status=200, preload_content=False)
+      http_request.return_value = responseObject
+
+      result = finder.auto_complete_tags(['name=test'], 'tag')
+
+      self.assertIsInstance(result, list)
+
+      self.assertEqual(http_request.call_args[0], (
+        'POST',
+        'http://127.0.0.1/tags/autoComplete/tags',
+      ))
+      self.assertEqual(http_request.call_args[1], {
+        'fields': [
+          ('tagPrefix', 'tag'),
+          ('limit', '100'),
+          ('expr', 'name=test'),
+        ],
+        'headers': None,
+        'preload_content': False,
+        'timeout': 10,
+      })
+
+      self.assertEqual(len(result), 2)
+
+      self.assertEqual(result[0], 'tag1')
+      self.assertEqual(result[1], 'tag2')
+
+      # explicit limit & forward headers
+      responseObject = HTTPResponse(body=BytesIO(json.dumps(data).encode('utf-8')), status=200, preload_content=False)
+      http_request.return_value = responseObject
+
+      result = finder.auto_complete_tags(['name=test', 'tag3=value3'], 'tag', limit=5, requestContext={'forwardHeaders': {'X-Test': 'test'}})
+
+      self.assertIsInstance(result, list)
+
+      self.assertEqual(http_request.call_args[0], (
+        'POST',
+        'http://127.0.0.1/tags/autoComplete/tags',
+      ))
+      self.assertEqual(http_request.call_args[1], {
+        'fields': [
+          ('tagPrefix', 'tag'),
+          ('limit', '5'),
+          ('expr', 'name=test'),
+          ('expr', 'tag3=value3'),
+        ],
+        'headers': {'X-Test': 'test'},
+        'preload_content': False,
+        'timeout': 10,
+      })
+
+      self.assertEqual(len(result), 2)
+
+      self.assertEqual(result[0], 'tag1')
+      self.assertEqual(result[1], 'tag2')
+
+      # non-json response
+      responseObject = HTTPResponse(body=BytesIO(b'error'), status=200, preload_content=False)
+      http_request.return_value = responseObject
+
+      with self.assertRaisesRegexp(Exception, 'Error decoding autocomplete tags response from http://[^ ]+: .+'):
+        result = finder.auto_complete_tags(['name=test'], 'tag')
+
+    @patch('urllib3.PoolManager.request')
+    @override_settings(
+      INTRACLUSTER_HTTPS=False,
+      REMOTE_STORE_USE_POST=True,
+      REMOTE_FIND_TIMEOUT=10,
+      TAGDB_AUTOCOMPLETE_LIMIT=100)
+    def test_auto_complete_values(self, http_request):
+      finder = RemoteFinder('127.0.0.1')
+
+      data = [
+        'value1',
+        'value2',
+      ]
+
+      responseObject = HTTPResponse(body=BytesIO(json.dumps(data).encode('utf-8')), status=200, preload_content=False)
+      http_request.return_value = responseObject
+
+      result = finder.auto_complete_values(['name=test'], 'tag1', 'value')
+
+      self.assertIsInstance(result, list)
+
+      self.assertEqual(http_request.call_args[0], (
+        'POST',
+        'http://127.0.0.1/tags/autoComplete/values',
+      ))
+      self.assertEqual(http_request.call_args[1], {
+        'fields': [
+          ('tag', 'tag1'),
+          ('valuePrefix', 'value'),
+          ('limit', '100'),
+          ('expr', 'name=test'),
+        ],
+        'headers': None,
+        'preload_content': False,
+        'timeout': 10,
+      })
+
+      self.assertEqual(len(result), 2)
+
+      self.assertEqual(result[0], 'value1')
+      self.assertEqual(result[1], 'value2')
+
+      # explicit limit & forward headers
+      responseObject = HTTPResponse(body=BytesIO(json.dumps(data).encode('utf-8')), status=200, preload_content=False)
+      http_request.return_value = responseObject
+
+      result = finder.auto_complete_values(['name=test', 'tag3=value3'], 'tag1', 'value', limit=5, requestContext={'forwardHeaders': {'X-Test': 'test'}})
+
+      self.assertIsInstance(result, list)
+
+      self.assertEqual(http_request.call_args[0], (
+        'POST',
+        'http://127.0.0.1/tags/autoComplete/values',
+      ))
+      self.assertEqual(http_request.call_args[1], {
+        'fields': [
+          ('tag', 'tag1'),
+          ('valuePrefix', 'value'),
+          ('limit', '5'),
+          ('expr', 'name=test'),
+          ('expr', 'tag3=value3'),
+        ],
+        'headers': {'X-Test': 'test'},
+        'preload_content': False,
+        'timeout': 10,
+      })
+
+      self.assertEqual(len(result), 2)
+
+      self.assertEqual(result[0], 'value1')
+      self.assertEqual(result[1], 'value2')
+
+      # non-json response
+      responseObject = HTTPResponse(body=BytesIO(b'error'), status=200, preload_content=False)
+      http_request.return_value = responseObject
+
+      with self.assertRaisesRegexp(Exception, 'Error decoding autocomplete values response from http://[^ ]+: .+'):
+        result = finder.auto_complete_values(['name=test'], 'tag1', 'value')

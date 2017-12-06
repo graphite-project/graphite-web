@@ -5,6 +5,7 @@ import sys
 import types
 
 from collections import defaultdict
+from copy import deepcopy
 
 from django.conf import settings
 from django.core.cache import cache
@@ -21,6 +22,7 @@ from graphite.intervals import Interval, IntervalSet
 from graphite.finders.utils import FindQuery, BaseFinder
 from graphite.readers import MultiReader
 from graphite.worker_pool.pool import get_pool, pool_exec, Job, PoolTimeoutError
+from graphite.render.grammar import grammar
 
 
 def get_finders(finder_path):
@@ -61,8 +63,8 @@ class Store(object):
         self.finders = finders
 
         if tagdb is None:
-            tagdb = settings.TAGDB or 'graphite.tags.localdatabase.LocalDatabaseTagDB'
-        self.tagdb = get_tagdb(tagdb)
+            tagdb = get_tagdb(settings.TAGDB or 'graphite.tags.localdatabase.LocalDatabaseTagDB')
+        self.tagdb = tagdb
 
     def get_finders(self, local=False):
         for finder in self.finders:
@@ -85,7 +87,7 @@ class Store(object):
 
     def fetch(self, patterns, startTime, endTime, now, requestContext):
         # deduplicate patterns
-        patterns = list(set(patterns))
+        patterns = sorted(set(patterns))
 
         if not patterns:
             return []
@@ -93,10 +95,21 @@ class Store(object):
         log.debug(
             'graphite.storage.Store.fetch :: Starting fetch on all backends')
 
-        jobs = [
-            Job(finder.fetch, patterns, startTime, endTime, now=now, requestContext=requestContext)
-            for finder in self.get_finders(requestContext.get('localOnly'))
-        ]
+        jobs = []
+        tag_patterns = None
+        pattern_aliases = defaultdict(list)
+        for finder in self.get_finders(requestContext.get('localOnly')):
+          # if the finder supports tags, just pass the patterns through
+          if getattr(finder, 'tags', False):
+            jobs.append(Job(finder.fetch, patterns, startTime, endTime, now=now, requestContext=requestContext))
+            continue
+
+          # if we haven't resolved the seriesByTag calls, build resolved patterns and translation table
+          if tag_patterns is None:
+            tag_patterns, pattern_aliases = self._tag_patterns(patterns, requestContext)
+
+          # dispatch resolved patterns to finder
+          jobs.append(Job(finder.fetch, tag_patterns, startTime, endTime, now=now, requestContext=requestContext))
 
         results = []
 
@@ -120,10 +133,49 @@ class Store(object):
           log.info("Timed out in fetch after %fs" % (time.time() - start))
 
         if errors == done:
+          if errors == 1:
+            raise Exception("Fetch for %s failed: %s" % (str(patterns), str(job.exception)))
           raise Exception('All fetches failed for %s' % (str(patterns)))
+
+        # translate path expressions for responses from resolved seriesByTag patterns
+        for result in results:
+          if result['name'] == result['pathExpression'] and result['pathExpression'] in pattern_aliases:
+            for pathExpr in pattern_aliases[result['pathExpression']]:
+              newresult = deepcopy(result)
+              newresult['pathExpression'] = pathExpr
+              results.append(newresult)
 
         log.debug("Got all fetch results for %s in %fs" % (str(patterns), time.time() - start))
         return results
+
+    def _tag_patterns(self, patterns, requestContext):
+      tag_patterns = []
+      pattern_aliases = defaultdict(list)
+
+      for pattern in patterns:
+        # if pattern isn't a seriesByTag call, just add it to the list
+        if not pattern.startswith('seriesByTag('):
+          tag_patterns.append(pattern)
+          continue
+
+        # perform the tagdb lookup
+        exprs = tuple([
+          t.string[1:-1]
+          for t in grammar.parseString(pattern).expression.call.args
+          if t.string
+        ])
+        taggedSeries = self.tagdb.find_series(exprs, requestContext=requestContext)
+        if not taggedSeries:
+          continue
+
+        # add to translation table for path matching
+        for series in taggedSeries:
+          pattern_aliases[series].append(pattern)
+
+        # add to list of resolved patterns
+        tag_patterns.extend(taggedSeries)
+
+      return sorted(set(tag_patterns)), pattern_aliases
 
     def get_index(self, requestContext=None):
         log.debug('graphite.storage.Store.get_index :: Starting get_index on all backends')
@@ -158,6 +210,8 @@ class Store(object):
           log.info("Timed out in get_index after %fs" % (time.time() - start))
 
         if errors == done:
+          if errors == 1:
+            raise Exception("get_index failed: %s" % (str(job.exception)))
           raise Exception('All index lookups failed')
 
         log.debug("Got all index results in %fs" % (time.time() - start))
@@ -222,6 +276,8 @@ class Store(object):
           log.info("Timed out in find after %fs" % (time.time() - start))
 
         if errors == done:
+          if errors == 1:
+            raise Exception("Find for %s failed: %s" % (str(query), str(job.exception)))
           raise Exception('All finds failed for %s' % (str(query)))
 
         log.debug("Got all find results for %s in %fs" % (str(query), time.time() - start))
@@ -338,6 +394,130 @@ class Store(object):
         else:
             reader = MultiReader(minimal_node_set)
             return LeafNode(path, reader)
+
+    def tagdb_auto_complete_tags(self, exprs, tagPrefix=None, limit=None, requestContext=None):
+        log.debug(
+            'graphite.storage.Store.auto_complete_tags :: Starting lookup on all backends')
+
+        if requestContext is None:
+          requestContext = {}
+
+        jobs = []
+        use_tagdb = False
+        for finder in self.get_finders(requestContext.get('localOnly')):
+          if getattr(finder, 'tags', False):
+            jobs.append(Job(finder.auto_complete_tags, exprs, tagPrefix=tagPrefix, limit=limit, requestContext=requestContext))
+          else:
+            use_tagdb = True
+
+        if not jobs:
+          if not use_tagdb:
+            return []
+
+          return self.tagdb.auto_complete_tags(exprs, tagPrefix=tagPrefix, limit=limit, requestContext=requestContext)
+
+        # start finder jobs
+        jobs = self.pool_exec(jobs, settings.REMOTE_FIND_TIMEOUT)
+
+        results = set()
+
+        # if we're using the local tagdb then execute it (in the main thread so that LocalDatabaseTagDB will work)
+        if use_tagdb:
+          results.update(self.tagdb.auto_complete_tags(exprs, tagPrefix=tagPrefix, limit=limit, requestContext=requestContext))
+
+        done = 0
+        errors = 0
+
+        # Start fetches
+        start = time.time()
+        try:
+          for job in jobs:
+            done += 1
+
+            if job.exception:
+              errors += 1
+              log.info("Autocomplete tags for %s %s failed after %fs: %s" % (str(exprs), tagPrefix or '', time.time() - start, str(job.exception)))
+              continue
+
+            log.debug("Got an autocomplete result for %s %s after %fs" % (str(exprs), tagPrefix or '', time.time() - start))
+            results.update(job.result)
+        except PoolTimeoutError:
+          raise Exception("Timed out in autocomplete tags for %s %s after %fs" % (str(exprs), tagPrefix or '', time.time() - start))
+
+        if errors == done:
+          if errors == 1:
+            raise Exception("Autocomplete tags for %s %s failed: %s" % (str(exprs), tagPrefix or '', str(job.exception)))
+          raise Exception('All autocomplete tag requests failed for %s %s' % (str(exprs), tagPrefix or ''))
+
+        # sort & limit results
+        results = sorted(results)
+        if limit:
+          results = results[:int(limit)]
+
+        log.debug("Got all autocomplete tag results for %s %s in %fs" % (str(exprs), tagPrefix or '', time.time() - start))
+        return results
+
+    def tagdb_auto_complete_values(self, exprs, tag, valuePrefix=None, limit=None, requestContext=None):
+        log.debug(
+            'graphite.storage.Store.auto_complete_values :: Starting lookup on all backends')
+
+        if requestContext is None:
+          requestContext = {}
+
+        jobs = []
+        use_tagdb = False
+        for finder in self.get_finders(requestContext.get('localOnly')):
+          if getattr(finder, 'tags', False):
+            jobs.append(Job(finder.auto_complete_values, exprs, tag, valuePrefix=valuePrefix, limit=limit, requestContext=requestContext))
+          else:
+            use_tagdb = True
+
+        if not jobs:
+          if not use_tagdb:
+            return []
+
+          return self.tagdb.auto_complete_values(exprs, tag, valuePrefix=valuePrefix, limit=limit, requestContext=requestContext)
+
+        # start finder jobs
+        jobs = self.pool_exec(jobs, settings.REMOTE_FIND_TIMEOUT)
+
+        results = set()
+
+        # if we're using the local tagdb then execute it (in the main thread so that LocalDatabaseTagDB will work)
+        if use_tagdb:
+          results.update(self.tagdb.auto_complete_values(exprs, tag, valuePrefix=valuePrefix, limit=limit, requestContext=requestContext))
+
+        done = 0
+        errors = 0
+
+        # Start fetches
+        start = time.time()
+        try:
+          for job in jobs:
+            done += 1
+
+            if job.exception:
+              errors += 1
+              log.info("Autocomplete values for %s %s %s failed after %fs: %s" % (str(exprs), tag, valuePrefix or '', time.time() - start, str(job.exception)))
+              continue
+
+            log.debug("Got an autocomplete result for %s %s %s after %fs" % (str(exprs), tag, valuePrefix or '', time.time() - start))
+            results.update(job.result)
+        except PoolTimeoutError:
+          raise Exception("Timed out in autocomplete values for %s %s %s after %fs" % (str(exprs), tag, valuePrefix or '', time.time() - start))
+
+        if errors == done:
+          if errors == 1:
+            raise Exception("Autocomplete values for %s %s %s failed: %s" % (str(exprs), tag, valuePrefix or '', str(job.exception)))
+          raise Exception('All autocomplete value requests failed for %s %s %s' % (str(exprs), tag, valuePrefix or ''))
+
+        # sort & limit results
+        results = sorted(results)
+        if limit:
+          results = results[:int(limit)]
+
+        log.debug("Got all autocomplete value results for %s %s %s in %fs" % (str(exprs), tag, valuePrefix or '', time.time() - start))
+        return results
 
 
 def extractForwardHeaders(request):

@@ -49,6 +49,7 @@ class RemoteFinder(BaseFinder):
         self.url = parsed['url']
         self.params = parsed['params']
         self.last_failure = 0
+        self.tags = not self.params.get('noTags')
 
     @property
     def disabled(self):
@@ -173,6 +174,73 @@ class RemoteFinder(BaseFinder):
                 "RemoteFinder[%s] Error decoding index response from %s: %s" %
                 (self.host, result.url_full, err))
             raise Exception("Error decoding index response from %s: %s" % (result.url_full, err))
+        finally:
+            result.release_conn()
+
+        return results
+
+    def auto_complete_tags(self, exprs, tagPrefix=None, limit=None, requestContext=None):
+        """
+        Return auto-complete suggestions for tags based on the matches for the specified expressions, optionally filtered by tag prefix
+        """
+        if limit is None:
+            limit = settings.TAGDB_AUTOCOMPLETE_LIMIT
+
+        fields = [
+            ('tagPrefix', tagPrefix or ''),
+            ('limit', str(limit)),
+        ]
+        for expr in exprs:
+            fields.append(('expr', expr))
+
+        result = self.request(
+            '/tags/autoComplete/tags',
+            fields,
+            headers=requestContext.get('forwardHeaders') if requestContext else None,
+            timeout=settings.REMOTE_FIND_TIMEOUT)
+        try:
+            reader = codecs.getreader('utf-8')
+            results = json.load(reader(result))
+        except Exception as err:
+            self.fail()
+            log.exception(
+                "RemoteFinder[%s] Error decoding autocomplete tags response from %s: %s" %
+                (self.host, result.url_full, err))
+            raise Exception("Error decoding autocomplete tags response from %s: %s" % (result.url_full, err))
+        finally:
+            result.release_conn()
+
+        return results
+
+    def auto_complete_values(self, exprs, tag, valuePrefix=None, limit=None, requestContext=None):
+        """
+        Return auto-complete suggestions for tags and values based on the matches for the specified expressions, optionally filtered by tag and/or value prefix
+        """
+        if limit is None:
+            limit = settings.TAGDB_AUTOCOMPLETE_LIMIT
+
+        fields = [
+            ('tag', tag or ''),
+            ('valuePrefix', valuePrefix or ''),
+            ('limit', str(limit)),
+        ]
+        for expr in exprs:
+            fields.append(('expr', expr))
+
+        result = self.request(
+            '/tags/autoComplete/values',
+            fields,
+            headers=requestContext.get('forwardHeaders') if requestContext else None,
+            timeout=settings.REMOTE_FIND_TIMEOUT)
+        try:
+            reader = codecs.getreader('utf-8')
+            results = json.load(reader(result))
+        except Exception as err:
+            self.fail()
+            log.exception(
+                "RemoteFinder[%s] Error decoding autocomplete values response from %s: %s" %
+                (self.host, result.url_full, err))
+            raise Exception("Error decoding autocomplete values response from %s: %s" % (result.url_full, err))
         finally:
             result.release_conn()
 
