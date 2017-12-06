@@ -24,7 +24,12 @@
  *
 */
 
-
+// From Ext library
+/*global Ext*/
+// Defined in composer.html
+/*global addTarget Browser GraphiteConfig indexOfTarget insertTarget removeTarget replaceTarget TargetStore*/
+// Defined in composer.js
+/*global MetricCompleter*/
 
 var DEFAULT_WINDOW_WIDTH = 600;
 var DEFAULT_WINDOW_HEIGHT = 400;
@@ -185,14 +190,14 @@ function createCalendarWindow() {
   startDateControl.on('select', calendarSelectionMade);
   endDateControl.on('select', calendarSelectionMade);
   // Time controls
-  startTimeControl = new Ext.form.TimeField({
+  var startTimeControl = new Ext.form.TimeField({
     id: 'start-time',
     increment: 30,
     allowBlank: false,
     value: '12:00 AM',
     listeners: {select: calendarSelectionMade, specialkey: ifEnter(calendarSelectionMade)}
   });
-  endTimeControl = new Ext.form.TimeField({
+  var endTimeControl = new Ext.form.TimeField({
     id: 'end-time',
     allowBlank: false,
     value: '11:59 PM',
@@ -261,7 +266,7 @@ function asDateString(dateObj) {
 
 /* Short url window */
 function showShortUrl() {
-    showUrl = function(options, success, response) {
+    var showUrl = function(options, success, response) {
         if(success) {
             var win = new Ext.Window({
               title: 'Graph URL',
@@ -968,13 +973,13 @@ var GraphDataWindow = {
   },
 
   _moveTarget: function(direction) {
-    store = this.targetList.getStore();
-    selectedRecords = this.targetList.getSelectedRecords();
+    var store = this.targetList.getStore();
+    var selectedRecords = this.targetList.getSelectedRecords();
 
     // Don't move past boundaries
-    exit = false;
+    var exit = false;
     Ext.each(selectedRecords, function(record) {
-      index = store.indexOf(record);
+      var index = store.indexOf(record);
 
       if (direction == -1 && index == 0) {
         exit = true;
@@ -988,11 +993,11 @@ var GraphDataWindow = {
     if (exit)
       return;
 
-    newSelections = [];
+    var newSelections = [];
     Ext.each(selectedRecords, function(recordA) {
-      indexA = store.indexOf( recordA );
-      valueA = recordA.get('value');
-      recordB = store.getAt( indexA + direction );
+      var indexA = store.indexOf( recordA );
+      var valueA = recordA.get('value');
+      var recordB = store.getAt( indexA + direction );
 
       // swap
       recordA.set('value', recordB.get('value'));
@@ -1009,14 +1014,14 @@ var GraphDataWindow = {
   },
 
   _swapTargets: function() {
-    selectedRecords = this.targetList.getSelectedRecords();
+    var selectedRecords = this.targetList.getSelectedRecords();
     if (selectedRecords.length != 2)
       return;
 
-    recordA = selectedRecords[0];
-    recordB = selectedRecords[1];
+    var recordA = selectedRecords[0];
+    var recordB = selectedRecords[1];
 
-    valueA = recordA.get('value');
+    var valueA = recordA.get('value');
     recordA.set('value', recordB.get('value'));
     recordB.set('value', valueA);
 

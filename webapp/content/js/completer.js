@@ -1,3 +1,6 @@
+// From Ext library
+/*global Ext*/
+
 var MetricCompleter;
 
 MetricCompleter = Ext.extend(Ext.form.ComboBox, {

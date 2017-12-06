@@ -12,6 +12,13 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License. */
 
+// From Ext library
+/*global Ext*/
+// Defined in composer_widgets.js
+/*global createComposerWindow*/
+// Defined in composer.html
+/*global addTarget getTargetRecord TargetStore*/
+
 var RENDER_BASE_URL = window.location.protocol + '//' + window.location.host + document.body.dataset.baseUrl + 'render/?';
 
 /* GraphiteComposer encapsulates a set of Ext UI Panels,
