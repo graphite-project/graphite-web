@@ -1,8 +1,19 @@
+// From Ext library
+/*global Ext*/
+// Defined in dashboard.html
+/*global AUTOCOMPLETE_DELAY CALENDAR_ICON CLOCK_ICON CONTEXT_FIELD_WIDTH FINDER_QUERY_DELAY*/
+/*global HELP_ICON NEW_DASHBOARD_REMOVE_GRAPHS REFRESH_ICON REMOVE_ICON RESIZE_ICON*/
+/*global SHARE_ICON UI_CONFIG initialState initialError permissions queryString userName*/
+/*global permissionsUnauthenticated schemes*/
+// Defined in composer_widgets.js
+/*global createFunctionsMenu createOptionsMenu updateCheckItems*/
+
 // Global object names
 var viewport;
 var contextSelector;
 var contextSelectorFields = [];
 var selectedScheme = null;
+var selectedRecord = null;
 var metricSelector;
 var metricSelectorMode;
 var metricSelectorGrid;
@@ -138,7 +149,7 @@ function isLoggedIn() {
 }
 
 function hasPermission(permission) {
-  for (i in permissions) {
+  for (const i in permissions) {
     if (permissions[i] === permission) {
       return true;
     }
@@ -1391,7 +1402,7 @@ function newEmptyGraph() {
    'height': GraphSize.height,
     });
   graphStore.add([record]);
-  canvasId = graphStore.indexOf(record);
+  var canvasId = graphStore.indexOf(record);
   graphStore.getAt(canvasId).data.index = canvasId;
   updateGraphRecords();
 }
@@ -2064,7 +2075,7 @@ function graphClicked(graphView, graphIndex, element, evt) {
       width: 100,
       handler: function () {
         menu.destroy();
-        showUrl = function(options, success, response) {
+        var showUrl = function(options, success, response) {
             if(success) {
               var win = new Ext.Window({
                 title: 'Graph URL',
@@ -2457,7 +2468,7 @@ function historyGraph(record){
         });
     }
 
-    graphHistoryView = new Ext.DataView({
+    var graphHistoryView = new Ext.DataView({
       store: graphHistoryStore,
       tpl: graphTemplate,
       overClass: 'graph-over',
@@ -2468,7 +2479,7 @@ function historyGraph(record){
       }
     });
 
-    win = new Ext.Window({
+    var win = new Ext.Window({
       title: 'Graph History',
       width: 800,
       height: 800,
@@ -2815,9 +2826,9 @@ function sendLoadRequest(name) {
 }
 
 function sendLoadTemplateRequest(name, value) {
-  urlparts = window.location.href.split('#')
+  var urlparts = window.location.href.split('#')
   if(urlparts[0].split('?')[1]) {
-    new_location = urlparts[0].split('?')[0] + '#'+name+'/'+value;
+    var new_location = urlparts[0].split('?')[0] + '#'+name+'/'+value;
     window.location.href = new_location;
   } else {
     Ext.Ajax.request({
