@@ -36,7 +36,7 @@ function createComposerWindow(myComposer) {
   Composer = myComposer;
 
   //Can't define this inline because I need a reference in a closure below
-  var timeDisplay = new Ext.Toolbar.TextItem({text: "Now showing the past 24 hours"});
+  var timeDisplay = new Ext.Toolbar.TextItem({text: 'Now showing the past 24 hours'});
 
   var topToolbar = [
     createToolbarButton('Update Graph', 'refresh.png', updateGraph),
@@ -54,23 +54,23 @@ function createComposerWindow(myComposer) {
   }
 
   var bottomToolbar = [
-    { text: "Graph Options", menu: createOptionsMenu() },
-    { text: "Graph Data", handler: toggleWindow(GraphDataWindow.create.createDelegate(GraphDataWindow)) },
-    { text: "Auto-Refresh", id: 'autorefresh_button', enableToggle: true, toggleHandler: toggleAutoRefresh }
+    { text: 'Graph Options', menu: createOptionsMenu() },
+    { text: 'Graph Data', handler: toggleWindow(GraphDataWindow.create.createDelegate(GraphDataWindow)) },
+    { text: 'Auto-Refresh', id: 'autorefresh_button', enableToggle: true, toggleHandler: toggleAutoRefresh }
   ];
 
   var win = new Ext.Window({
     width: DEFAULT_WINDOW_WIDTH,
     height: DEFAULT_WINDOW_HEIGHT,
-    title: "Graphite Composer",
-    layout: "border",
-    region: "center",
+    title: 'Graphite Composer',
+    layout: 'border',
+    region: 'center',
     maximizable: true,
     closable: false,
     tbar: topToolbar,
     buttons: bottomToolbar,
     buttonAlign: 'left',
-    items: { html: "<img id='image-viewer' src='" + document.body.dataset.baseUrl + "render'/>", region: "center" },
+    items: { html: '<img id=\'image-viewer\' src=\'' + document.body.dataset.baseUrl + 'render\'/>', region: 'center' },
     listeners: {
       activate: keepDataWindowOnTop,
       show: fitImageToWindow,
@@ -82,11 +82,11 @@ function createComposerWindow(myComposer) {
   win.updateTimeDisplay = function (time) {
     var text;
     if (time.mode == 'date-range') {
-      text = "<b>From</b> " + time.startDate.toLocaleString();
-      text += " <b>Until</b> " + time.endDate.toLocaleString();
-      text = text.replace(/:00 /g, " "); // Strip out the seconds
+      text = '<b>From</b> ' + time.startDate.toLocaleString();
+      text += ' <b>Until</b> ' + time.endDate.toLocaleString();
+      text = text.replace(/:00 /g, ' '); // Strip out the seconds
     } else if (time.mode == 'recent') {
-      text = "Now showing the past " + time.quantity + " " + time.units;
+      text = 'Now showing the past ' + time.quantity + ' ' + time.units;
     }
     timeDisplay.getEl().dom.innerHTML = text;
   };
@@ -146,10 +146,10 @@ function fitImageToWindow(win) {
 /* Toolbar stuff */
 function createToolbarButton(tip, icon, handler) {
   return new Ext.Toolbar.Button({
-    style: "margin: 0 5px; background:transparent url(" + document.body.dataset.staticRoot + "img/" + icon + ") no-repeat scroll 0% 50%",
+    style: 'margin: 0 5px; background:transparent url(' + document.body.dataset.staticRoot + 'img/' + icon + ') no-repeat scroll 0% 50%',
     handler: handler,
     handleMouseEvents: false,
-    text: "&nbsp; &nbsp;",
+    text: '&nbsp; &nbsp;',
     listeners: {
       render: function (button) {
         button.el.toolTip = new Ext.ToolTip({
@@ -166,12 +166,12 @@ function createToolbarButton(tip, icon, handler) {
 /* "Date Range" Calendar */
 function createCalendarWindow() {
   // Start/End labels
-  var style = "font-family: tahoma,arial,verdana,sans-serif; font-size:11px;";
+  var style = 'font-family: tahoma,arial,verdana,sans-serif; font-size:11px;';
   var startDateHeader = {
-    html: "<center><span id='startDate' style=\"" + style + "\">Start Date</span></center>"
+    html: '<center><span id=\'startDate\' style="' + style + '">Start Date</span></center>'
   };
   var endDateHeader = {
-    html: "<center><span id='endDate' style=\"" + style + "\">End Date</span></center>"
+    html: '<center><span id=\'endDate\' style="' + style + '">End Date</span></center>'
   };
   // Date controls
   var startDateControl = new Ext.DatePicker({
@@ -189,13 +189,13 @@ function createCalendarWindow() {
     id: 'start-time',
     increment: 30,
     allowBlank: false,
-    value: "12:00 AM",
+    value: '12:00 AM',
     listeners: {select: calendarSelectionMade, specialkey: ifEnter(calendarSelectionMade)}
   });
   endTimeControl = new Ext.form.TimeField({
     id: 'end-time',
     allowBlank: false,
-    value: "11:59 PM",
+    value: '11:59 PM',
     listeners: {select: calendarSelectionMade, specialkey: ifEnter(calendarSelectionMade)}
   });
 
@@ -208,7 +208,7 @@ function createCalendarWindow() {
   };
 
   myWindow = new Ext.Window({
-    title: "Select Date Range",
+    title: 'Select Date Range',
     layout: 'table',
     height: 300,
     width: 400,
@@ -264,23 +264,23 @@ function showShortUrl() {
     showUrl = function(options, success, response) {
         if(success) {
             var win = new Ext.Window({
-              title: "Graph URL",
+              title: 'Graph URL',
               width: 600,
               height: 125,
               layout: 'border',
               modal: true,
               items: [
                 {
-                  xtype: "label",
+                  xtype: 'label',
                   region: 'north',
-                  style: "text-align: center;",
-                  text: "Short Direct URL to this graph"
+                  style: 'text-align: center;',
+                  text: 'Short Direct URL to this graph'
                 }, {
                   xtype: 'textfield',
                   region: 'center',
                   value:  window.location.origin + response.responseText,
                   editable: false,
-                  style: "text-align: center; font-size: large;",
+                  style: 'text-align: center; font-size: large;',
                   listeners: {
                     focus: function (field) { field.selectText(); }
                   }
@@ -288,7 +288,7 @@ function showShortUrl() {
               ],
               buttonAlign: 'center',
               buttons: [
-                {text: "Close", handler: function () { win.close(); } }
+                {text: 'Close', handler: function () { win.close(); } }
               ]
             });
             win.show();
@@ -325,7 +325,7 @@ function createURLWindow() {
   });
 
   return new Ext.Window({
-      title: "Enter a URL to build graph from",
+      title: 'Enter a URL to build graph from',
       layout: 'fit',
       height: 60,
       width: 450,
@@ -338,7 +338,7 @@ function createURLWindow() {
 
 function urlChosen() {
   var url = Ext.getCmp('from-url').getValue();
-  Composer.loadMyGraph("temp", decodeURIComponent(url))
+  Composer.loadMyGraph('temp', decodeURIComponent(url))
 }
 
 function createRecentWindow() {
@@ -360,7 +360,7 @@ function createRecentWindow() {
   });
 
   return new Ext.Window({
-    title: "Select a Recent Time Range",
+    title: 'Select a Recent Time Range',
     layout: 'table',
     height: 60, //there's gotta be a way to auto-size these windows!
     width: 235,
@@ -368,8 +368,8 @@ function createRecentWindow() {
     closeAction: 'hide',
     items: [
       {
-        html: "<div style=\"border: none; background-color: rgb(223,232,246)\">View the past</div>",
-        style: "border: none; background-color: rgb(223,232,246)"
+        html: '<div style="border: none; background-color: rgb(223,232,246)">View the past</div>',
+        style: 'border: none; background-color: rgb(223,232,246)'
       },
       quantityField,
       unitSelector
@@ -393,7 +393,7 @@ function recentSelectionMade(combo, record, index) {
 
 /* "Save to MyGraphs" */
 function saveMyGraph(button, e) {
-  var myGraphName = "";
+  var myGraphName = '';
   if (Composer.state.myGraphName) {
     myGraphName = Composer.state.myGraphName;
     var tmpArray = myGraphName.split('.');
@@ -403,20 +403,20 @@ function saveMyGraph(button, e) {
     }
   }
   Ext.MessageBox.prompt(
-    "Save to My Graphs", //title
-    "Please enter a name for your Graph", //prompt message
+    'Save to My Graphs', //title
+    'Please enter a name for your Graph', //prompt message
     function (button, text) { //handler
       if (button != 'ok') {
         return;
       }
 
       if (!text) {
-        Ext.Msg.alert("You must enter a graph name!");
+        Ext.Msg.alert('You must enter a graph name!');
         return;
       }
 
       if (text.charAt(text.length - 1) == '.') {
-        Ext.Msg.alert("Graph names cannot end in a period.");
+        Ext.Msg.alert('Graph names cannot end in a period.');
         return;
       }
 
@@ -433,7 +433,7 @@ function saveMyGraph(button, e) {
     },
     this,   //scope
     false,  //multiline
-    myGraphName ? myGraphName : "" //default value
+    myGraphName ? myGraphName : '' //default value
   );
 }
 
@@ -441,12 +441,12 @@ function handleSaveMyGraphResponse(options, success, response) {
   var message;
   if (success) {
     Browser.trees.mygraphs.reload();
-    message = "Graph saved successfully";
+    message = 'Graph saved successfully';
   } else {
-    message = "There was an error saving your Graph, please try again later.";
+    message = 'There was an error saving your Graph, please try again later.';
   }
   Ext.MessageBox.show({
-    title: "Save to My Graphs - Result",
+    title: 'Save to My Graphs - Result',
     msg: message,
     buttons: Ext.MessageBox.OK
   });
@@ -456,15 +456,15 @@ function handleSaveMyGraphResponse(options, success, response) {
 function deleteMyGraph() {
 
   Ext.MessageBox.prompt(
-    "Delete a saved My Graph", //title
-    "Please enter the name of the My Graph you wish to delete", //prompt message
+    'Delete a saved My Graph', //title
+    'Please enter the name of the My Graph you wish to delete', //prompt message
     function (button, text) { //handler
       if (button != 'ok') {
         return;
       }
 
       if (!text) {
-        Ext.Msg.alert("Invalid My Graph name!");
+        Ext.Msg.alert('Invalid My Graph name!');
         return;
       }
 
@@ -477,9 +477,9 @@ function deleteMyGraph() {
           var message;
           if (success) {
             Browser.trees.mygraphs.reload();
-            message = "Graph deleted successfully";
+            message = 'Graph deleted successfully';
           } else {
-            message = "There was an error performing the operation.";
+            message = 'There was an error performing the operation.';
           }
           Ext.Msg.show({
             title: 'Delete My Graph',
@@ -491,7 +491,7 @@ function deleteMyGraph() {
     },
     this,   //scope
     false,  //multiline
-    Composer.state.myGraphName ? Composer.state.myGraphName : "" //default value
+    Composer.state.myGraphName ? Composer.state.myGraphName : '' //default value
   );
 
 }
@@ -504,13 +504,13 @@ var GraphDataWindow = {
     this.targetList = new Ext.ListView({
       store: TargetStore,
       multiSelect: true,
-      emptyText: "No graph targets",
+      emptyText: 'No graph targets',
       reserveScrollOffset: true,
       columnSort: false,
       hideHeaders: true,
       width: 385,
       height: 140,
-      columns: [ {header: "Graph Targets", width: 1.0, dataIndex: "value"} ],
+      columns: [ {header: 'Graph Targets', width: 1.0, dataIndex: 'value'} ],
       listeners: {
         contextmenu: this.targetContextMenu,
         afterrender: this.targetChanged,
@@ -589,7 +589,7 @@ var GraphDataWindow = {
     });
 
     this.window = new Ext.Window({
-      title: "Graph Data",
+      title: 'Graph Data',
       height: 200,
       width: 600,
       closeAction: 'hide',
@@ -647,14 +647,14 @@ var GraphDataWindow = {
       targetList.select(index);
     }
 
-    var removeItem = {text: "Remove", handler: this.removeTarget.createDelegate(this)};
-    var editItem = {text: "Edit", handler: this.editTarget.createDelegate(this)};
+    var removeItem = {text: 'Remove', handler: this.removeTarget.createDelegate(this)};
+    var editItem = {text: 'Edit', handler: this.editTarget.createDelegate(this)};
     var moveMenu = {
-      text: "Move",
+      text: 'Move',
       menu: [
-        { text: "Move Up", handler: this.moveTargetUp.createDelegate(this) },
-        { text: "Move Down", handler: this.moveTargetDown.createDelegate(this) },
-        { text: "Swap", handler: this.swapTargets.createDelegate(this), disabled: true }
+        { text: 'Move Up', handler: this.moveTargetUp.createDelegate(this) },
+        { text: 'Move Down', handler: this.moveTargetDown.createDelegate(this) },
+        { text: 'Swap', handler: this.swapTargets.createDelegate(this), disabled: true }
       ]
     };
 
@@ -704,7 +704,7 @@ var GraphDataWindow = {
 
     function applyFunc() {
       Ext.MessageBox.prompt(
-        "Input Required", //title
+        'Input Required', //title
         question, //message
         function (button, inputValue) { //handler
           if (button == 'ok' && (options.allowBlank || inputValue != '')) {
@@ -716,7 +716,7 @@ var GraphDataWindow = {
         },
         this, //scope
         false, //multiline
-        "" //initial value
+        '' //initial value
       );
     }
     applyFunc = applyFunc.createDelegate(this);
@@ -759,7 +759,7 @@ var GraphDataWindow = {
         var i, c;
         var lastArg = 0;
         var depth = 0;
-        var argString = target.replace(/^[^(]+\((.+)\)/, "$1"); //First we strip it down to just args
+        var argString = target.replace(/^[^(]+\((.+)\)/, '$1'); //First we strip it down to just args
 
         for (i = 0; i < argString.length; i++) {
           switch (argString.charAt(i)) {
@@ -769,7 +769,7 @@ var GraphDataWindow = {
             case '}': depth -= 1; break;
             case ',':
               if (depth > 0) { continue; }
-              if (depth < 0) { Ext.Msg.alert("Malformed target, cannot remove outer call."); return; }
+              if (depth < 0) { Ext.Msg.alert('Malformed target, cannot remove outer call.'); return; }
               args.push( argString.substring(lastArg, i).replace(/^\s+/, '').replace(/\s+$/, '') );
               lastArg = i + 1;
               break;
@@ -818,7 +818,7 @@ var GraphDataWindow = {
     });
 
     win = new Ext.Window({
-      title: "Add a new Graph Target",
+      title: 'Add a new Graph Target',
       id: 'addTargetWindow',
       modal: true,
       width: 400,
@@ -829,7 +829,7 @@ var GraphDataWindow = {
         pack: 'center'
       },
       items: [
-        {xtype: 'label', text: "Type the path of your new Graph Target."},
+        {xtype: 'label', text: 'Type the path of your new Graph Target.'},
         metricCompleter
       ],
       buttonAlign: 'center',
@@ -871,8 +871,8 @@ var GraphDataWindow = {
 
     if (selected.length != 1) {
       Ext.MessageBox.show({
-        title: "Error",
-        msg: "You must select exactly one target to edit.",
+        title: 'Error',
+        msg: 'You must select exactly one target to edit.',
         icon: Ext.MessageBox.ERROR,
         buttons: Ext.MessageBox.OK
       });
@@ -922,7 +922,7 @@ var GraphDataWindow = {
     editHandler = editHandler.createDelegate(this); //dynamic scoping can really be a bitch
 
     win = new Ext.Window({
-      title: "Edit Graph Target",
+      title: 'Edit Graph Target',
       id: 'editTargetWindow',
       modal: true,
       width: 400,
@@ -933,7 +933,7 @@ var GraphDataWindow = {
         pack: 'center'
       },
       items: [
-        {xtype: 'label', text: "Edit the path of your Graph Target."},
+        {xtype: 'label', text: 'Edit the path of your Graph Target.'},
         metricCompleter
       ],
       buttonAlign: 'center',
@@ -1029,21 +1029,21 @@ var GraphDataWindow = {
 
   addWlSelected: function (item, e) {
     Ext.Ajax.request({
-      url: document.body.dataset.baseUrl + "whitelist/add",
-      method: "POST",
-      success: function () { Ext.Msg.alert("Result", "Successfully added metrics to whitelist."); },
-      failure: function () { Ext.Msg.alert("Result", "Failed to add metrics to whitelist.");   },
-      params: {metrics: this.getSelectedTargets().join("\n") }
+      url: document.body.dataset.baseUrl + 'whitelist/add',
+      method: 'POST',
+      success: function () { Ext.Msg.alert('Result', 'Successfully added metrics to whitelist.'); },
+      failure: function () { Ext.Msg.alert('Result', 'Failed to add metrics to whitelist.');   },
+      params: {metrics: this.getSelectedTargets().join('\n') }
     });
   },
 
   removeWlSelected: function (item, e) {
     Ext.Ajax.request({
-      url: document.body.dataset.baseUrl + "whitelist/remove",
-      method: "POST",
-      success: function () { Ext.Msg.alert("Result", "Successfully removed metrics from whitelist."); },
-      failure: function () { Ext.Msg.alert("Result", "Failed to remove metrics from whitelist.");   },
-      params: {metrics: this.getSelectedTargets().join("\n") }
+      url: document.body.dataset.baseUrl + 'whitelist/remove',
+      method: 'POST',
+      success: function () { Ext.Msg.alert('Result', 'Successfully removed metrics from whitelist.'); },
+      failure: function () { Ext.Msg.alert('Result', 'Failed to remove metrics from whitelist.');   },
+      params: {metrics: this.getSelectedTargets().join('\n') }
     });
   },
 
@@ -1089,12 +1089,12 @@ function createFunctionsMenu() {
         {text: 'Power', handler: applyFuncToEachWithInput('pow', 'Please enter a power factor')},
         {text: 'Power Series', handler: applyFuncToEachWithInput('powSeries', 'Please enter at least 2 series')},
         {text: 'Square Root', handler: applyFuncToEach('squareRoot')},
-        {text: 'Time-adjusted Derivative', handler: applyFuncToEachWithInput('perSecond', "Please enter a maximum value if this metric is a wrapping counter (or just leave this blank)", {allowBlank: true})},
+        {text: 'Time-adjusted Derivative', handler: applyFuncToEachWithInput('perSecond', 'Please enter a maximum value if this metric is a wrapping counter (or just leave this blank)', {allowBlank: true})},
         {text: 'Delay', handler: applyFuncToEachWithInput('delay', 'Please enter the number of steps to delay')},
         {text: 'Integral', handler: applyFuncToEach('integral')},
         {text: 'Integral by Interval', handler: applyFuncToEachWithInput('integralByInterval', 'Integral this metric with a reset every ___ (examples: 1d, 1h, 10min)', {quote: true})},
-        {text: 'Percentile Values', handler: applyFuncToEachWithInput('percentileOfSeries', "Please enter the percentile to use")},
-        {text: 'Non-negative Derivative', handler: applyFuncToEachWithInput('nonNegativeDerivative', "Please enter a maximum value if this metric is a wrapping counter (or just leave this blank)", {allowBlank: true})},
+        {text: 'Percentile Values', handler: applyFuncToEachWithInput('percentileOfSeries', 'Please enter the percentile to use')},
+        {text: 'Non-negative Derivative', handler: applyFuncToEachWithInput('nonNegativeDerivative', 'Please enter a maximum value if this metric is a wrapping counter (or just leave this blank)', {allowBlank: true})},
         {text: 'Log', handler: applyFuncToEachWithInput('log', 'Please enter a base')},
         {text: 'Invert', handler: applyFuncToEach('invert')},
         {text: 'Absolute Value', handler: applyFuncToEach('absolute')},
@@ -1169,20 +1169,20 @@ function createFunctionsMenu() {
         {text: 'Set Legend Name By Node', handler: applyFuncToEachWithInput('aliasByNode', 'Enter the 0-indexed node to display')},
         {text: 'Add Values to Legend Name',
                 menu: [
-                        {text: "Cacti Style Legend", handler: applyFuncToEach('cactiStyle')},
-                        {text: "Last Value", handler: applyFuncToEach('legendValue', '"last"')},
-                        {text: "Average Value", handler: applyFuncToEach('legendValue', '"avg"')},
-                        {text: "Total Value", handler: applyFuncToEach('legendValue', '"total"')},
-                        {text: "Min Value", handler: applyFuncToEach('legendValue', '"min"')},
-                        {text: "Max Value", handler: applyFuncToEach('legendValue', '"max"')}
+                        {text: 'Cacti Style Legend', handler: applyFuncToEach('cactiStyle')},
+                        {text: 'Last Value', handler: applyFuncToEach('legendValue', '"last"')},
+                        {text: 'Average Value', handler: applyFuncToEach('legendValue', '"avg"')},
+                        {text: 'Total Value', handler: applyFuncToEach('legendValue', '"total"')},
+                        {text: 'Min Value', handler: applyFuncToEach('legendValue', '"min"')},
+                        {text: 'Max Value', handler: applyFuncToEach('legendValue', '"max"')}
                       ]},
         {text: 'Color', handler: applyFuncToEachWithInput('color', 'Set the color for this graph target', {quote: true})},
         {text: 'Alpha', handler: applyFuncToEachWithInput('alpha', 'Set the alpha (transparency) for this graph target (between 0.0 and 1.0)')},
         {text: 'Consolidate By',
                 menu: [
-                        {text: "Sum", handler: applyFuncToEach('consolidateBy', '"sum"')},
-                        {text: "Max", handler: applyFuncToEach('consolidateBy', '"max"')},
-                        {text: "Min", handler: applyFuncToEach('consolidateBy', '"min"')}
+                        {text: 'Sum', handler: applyFuncToEach('consolidateBy', '"sum"')},
+                        {text: 'Max', handler: applyFuncToEach('consolidateBy', '"max"')},
+                        {text: 'Min', handler: applyFuncToEach('consolidateBy', '"min"')}
                       ]},
         {text: 'Draw non-zero As Infinite', handler: applyFuncToEach('drawAsInfinite')},
         {text: 'Line Width', handler: applyFuncToEachWithInput('lineWidth', 'Please enter a line width for this graph target')},
@@ -1200,9 +1200,9 @@ function createFunctionsMenu() {
         {text: 'Draw in Second Y Axis', handler: applyFuncToEach('secondYAxis')},
         {text: 'Aggregate Line',
          menu: [
-           {text: "Avg", handler: applyFuncToEach('aggregateLine', '"avg"')},
-           {text: "Max", handler: applyFuncToEach('aggregateLine', '"max"')},
-           {text: "Min", handler: applyFuncToEach('aggregateLine', '"min"')}
+           {text: 'Avg', handler: applyFuncToEach('aggregateLine', '"avg"')},
+           {text: 'Max', handler: applyFuncToEach('aggregateLine', '"max"')},
+           {text: 'Min', handler: applyFuncToEach('aggregateLine', '"min"')}
          ]
         }
       ]
@@ -1240,170 +1240,170 @@ function toggleAutoRefresh(button, pressed) {
 function createOptionsMenu() {
   var yAxisUnitMenu = new Ext.menu.Menu({
     items: [
-      menuRadioItem("yUnit", "Standard", "yUnitSystem", "si"),
-      menuRadioItem("yUnit", "Binary", "yUnitSystem", "binary"),
-      menuRadioItem("yUnit", "Seconds", "yUnitSystem", "sec"),
-      menuRadioItem("yUnit", "Milliseconds", "yUnitSystem", "msec"),
-      menuRadioItem("yUnit", "None", "yUnitSystem", "none")
+      menuRadioItem('yUnit', 'Standard', 'yUnitSystem', 'si'),
+      menuRadioItem('yUnit', 'Binary', 'yUnitSystem', 'binary'),
+      menuRadioItem('yUnit', 'Seconds', 'yUnitSystem', 'sec'),
+      menuRadioItem('yUnit', 'Milliseconds', 'yUnitSystem', 'msec'),
+      menuRadioItem('yUnit', 'None', 'yUnitSystem', 'none')
 
     ]
   });
   var yAxisSideMenu = new Ext.menu.Menu({
     items: [
-      menuRadioItem("yAxis", "Left", "yAxisSide", "left"),
-      menuRadioItem("yAxis", "Right", "yAxisSide", "right")
+      menuRadioItem('yAxis', 'Left', 'yAxisSide', 'left'),
+      menuRadioItem('yAxis', 'Right', 'yAxisSide', 'right')
     ]
   });
 
   var yAxisLeftMenu = new Ext.menu.Menu({
     items: [
-      menuInputItem("Left Y Label", "vtitle", "Left Y Label", /^$/),
-      menuInputItem("Left Y Minimum", "yMinLeft"),
-      menuInputItem("Left Y Maximum", "yMaxLeft"),
-      menuInputItem("Left Y Limit", "yLimitLeft"),
-      menuInputItem("Left Y Step", "yStepLeft"),
-      menuInputItem("Left Line Width", "leftWidth"),
-      menuInputItem("Left Line Color", "leftColor"),
-      menuInputItem("Left Line Dashed (length, in px)", "leftDashed")
+      menuInputItem('Left Y Label', 'vtitle', 'Left Y Label', /^$/),
+      menuInputItem('Left Y Minimum', 'yMinLeft'),
+      menuInputItem('Left Y Maximum', 'yMaxLeft'),
+      menuInputItem('Left Y Limit', 'yLimitLeft'),
+      menuInputItem('Left Y Step', 'yStepLeft'),
+      menuInputItem('Left Line Width', 'leftWidth'),
+      menuInputItem('Left Line Color', 'leftColor'),
+      menuInputItem('Left Line Dashed (length, in px)', 'leftDashed')
 
     ]
   });
   var yAxisRightMenu = new Ext.menu.Menu({
     items: [
-      menuInputItem("Right Y Label", "vtitleRight", "Right Y Label", /^$/),
-      menuInputItem("Right Y Minimum", "yMinRight"),
-      menuInputItem("Right Y Maximum", "yMaxRight"),
-      menuInputItem("Right Y Limit", "yLimitRight"),
-      menuInputItem("Right Y Step", "yStepRight"),
-      menuInputItem("Right Line Width", "rightWidth"),
-      menuInputItem("Right Line Color", "rightColor"),
-      menuInputItem("Right Line Dashed (length, in px)", "rightDashed")
+      menuInputItem('Right Y Label', 'vtitleRight', 'Right Y Label', /^$/),
+      menuInputItem('Right Y Minimum', 'yMinRight'),
+      menuInputItem('Right Y Maximum', 'yMaxRight'),
+      menuInputItem('Right Y Limit', 'yLimitRight'),
+      menuInputItem('Right Y Step', 'yStepRight'),
+      menuInputItem('Right Line Width', 'rightWidth'),
+      menuInputItem('Right Line Color', 'rightColor'),
+      menuInputItem('Right Line Dashed (length, in px)', 'rightDashed')
 
     ]
   });
 
   var SecondYAxisMenu = new Ext.menu.Menu({
     items: [
-      {text: "Left Y-Axis", menu: yAxisLeftMenu},
-      {text: "Right Y-Axis", menu: yAxisRightMenu}
+      {text: 'Left Y-Axis', menu: yAxisLeftMenu},
+      {text: 'Right Y-Axis', menu: yAxisRightMenu}
     ]
   });
 
   var yAxisMenu = new Ext.menu.Menu({
     items: [
-      menuInputItem("Label", "vtitle", "Y-Axis Label", /^$/),
-      menuInputItem("Minimum", "yMin"),
-      menuInputItem("Maximum", "yMax"),
-      menuInputItem("Minor Lines", "minorY", "Enter the number of minor lines to draw", /^[a-zA-Z]/),
-      menuInputItem("Logarithmic Scale", "logBase", "Enter the logarithmic base to use (ie. 10, e, etc...)"),
-      menuInputItem("Step", "yStep", "Enter the Y-axis step to use (e.g. 0.2)"),
-      menuInputItem("Divisors", "yDivisors", "Enter the target number of intermediate Y-axis values (e.g. 4,5,6)", /^[a-zA-Z]/),
-      {text: "Unit", menu: yAxisUnitMenu},
-      {text: "Side", menu: yAxisSideMenu},
-      {text: "Dual Y-Axis Options", menu: SecondYAxisMenu},
-      menuHelpItem("Dual Y-Axis Help", "To select metrics to associate with the second (right-side) y-axis, go into the Graph Data dialog box, highlight a metric, click Apply Functions, Special, Second Y Axis.")
+      menuInputItem('Label', 'vtitle', 'Y-Axis Label', /^$/),
+      menuInputItem('Minimum', 'yMin'),
+      menuInputItem('Maximum', 'yMax'),
+      menuInputItem('Minor Lines', 'minorY', 'Enter the number of minor lines to draw', /^[a-zA-Z]/),
+      menuInputItem('Logarithmic Scale', 'logBase', 'Enter the logarithmic base to use (ie. 10, e, etc...)'),
+      menuInputItem('Step', 'yStep', 'Enter the Y-axis step to use (e.g. 0.2)'),
+      menuInputItem('Divisors', 'yDivisors', 'Enter the target number of intermediate Y-axis values (e.g. 4,5,6)', /^[a-zA-Z]/),
+      {text: 'Unit', menu: yAxisUnitMenu},
+      {text: 'Side', menu: yAxisSideMenu},
+      {text: 'Dual Y-Axis Options', menu: SecondYAxisMenu},
+      menuHelpItem('Dual Y-Axis Help', 'To select metrics to associate with the second (right-side) y-axis, go into the Graph Data dialog box, highlight a metric, click Apply Functions, Special, Second Y Axis.')
     ]
   });
 
   var xAxisMenu = new Ext.menu.Menu({
     items: [
-      menuInputItem("Time Format", "xFormat", "Enter the time format (see Python's datetime.strftime())", /^$/),
-      menuInputItem("Timezone", "tz", "Enter the timezone to display (e.g. UTC or America/Chicago)", /^$/),
-      menuInputItem("Point-width Consolidation Threshold", "minXStep", "Enter the closest number of pixels between points before consolidation")
+      menuInputItem('Time Format', 'xFormat', 'Enter the time format (see Python\'s datetime.strftime())', /^$/),
+      menuInputItem('Timezone', 'tz', 'Enter the timezone to display (e.g. UTC or America/Chicago)', /^$/),
+      menuInputItem('Point-width Consolidation Threshold', 'minXStep', 'Enter the closest number of pixels between points before consolidation')
     ]
   });
 
   var areaMenu = new Ext.menu.Menu({
     items: [
-      menuRadioItem("area", "None", "areaMode", ""),
-      menuRadioItem("area", "First Only", "areaMode", "first"),
-      menuRadioItem("area", "Stacked", "areaMode", "stacked"),
-      menuRadioItem("area", "All", "areaMode", "all")
+      menuRadioItem('area', 'None', 'areaMode', ''),
+      menuRadioItem('area', 'First Only', 'areaMode', 'first'),
+      menuRadioItem('area', 'Stacked', 'areaMode', 'stacked'),
+      menuRadioItem('area', 'All', 'areaMode', 'all')
     ]
   });
 
   var lineMenu = new Ext.menu.Menu({
     items: [
-        menuRadioItem("line", "Slope Line (default)", "lineMode", ""),
-        menuRadioItem("line", "Staircase Line", "lineMode", "staircase"),
-        menuRadioItem("line", "Connected Line", "lineMode", "connected"),
-        menuInputItem("Connected Line Limit", "connectedLimit", "The number of consecutive None values to jump over when in connected line mode. (default: no limit, leave empty)"),
-        menuCheckItem("Draw Null as Zero", "drawNullAsZero")
+        menuRadioItem('line', 'Slope Line (default)', 'lineMode', ''),
+        menuRadioItem('line', 'Staircase Line', 'lineMode', 'staircase'),
+        menuRadioItem('line', 'Connected Line', 'lineMode', 'connected'),
+        menuInputItem('Connected Line Limit', 'connectedLimit', 'The number of consecutive None values to jump over when in connected line mode. (default: no limit, leave empty)'),
+        menuCheckItem('Draw Null as Zero', 'drawNullAsZero')
     ]
   });
 
   var fontFacesMenu = new Ext.menu.Menu({
     items: [
-      menuRadioItem("fontFace", "Sans", "fontName", "Sans"),
-      menuRadioItem("fontFace", "Times", "fontName", "Times"),
-      menuRadioItem("fontFace", "Courier", "fontName", "Courier"),
-      menuRadioItem("fontFace", "Helvetica", "fontName", "Helvetica")
+      menuRadioItem('fontFace', 'Sans', 'fontName', 'Sans'),
+      menuRadioItem('fontFace', 'Times', 'fontName', 'Times'),
+      menuRadioItem('fontFace', 'Courier', 'fontName', 'Courier'),
+      menuRadioItem('fontFace', 'Helvetica', 'fontName', 'Helvetica')
     ]
   });
 
   var fontMenu = new Ext.menu.Menu({
     items: [
-      {text: "Face", menu: fontFacesMenu},
+      {text: 'Face', menu: fontFacesMenu},
       {
-        text: "Style",
+        text: 'Style',
         menu: {
           items: [
-            menuCheckItem("Italics", "fontItalic"),
-            menuCheckItem("Bold", "fontBold")
+            menuCheckItem('Italics', 'fontItalic'),
+            menuCheckItem('Bold', 'fontBold')
           ]
         }
       },
-      menuInputItem("Size", "fontSize", "Enter the font size in pt"),
-      {text: "Color", menu: createColorMenu('fgcolor')}
+      menuInputItem('Size', 'fontSize', 'Enter the font size in pt'),
+      {text: 'Color', menu: createColorMenu('fgcolor')}
     ]
   });
 
   var displayMenu = new Ext.menu.Menu({
     items: [
-      {text: "Font", menu: fontMenu},
+      {text: 'Font', menu: fontMenu},
       {
-        text: "Color",
+        text: 'Color',
         menu: {
           items: [
-            menuInputItem("Line Colors", "colorList", "Enter an ordered list of comma-separated colors (name or hex values)", /^$/),
-            {text: "Background", menu: createColorMenu('bgcolor')},
-            {text: "Major Grid Line", menu: createColorMenu('majorGridLineColor')},
-            {text: "Minor Grid Line", menu: createColorMenu('minorGridLineColor')},
-            menuInputItem("Filled Area Alpha Value", "areaAlpha", "Enter the alpha value (between 0.0 and 1.0)")
+            menuInputItem('Line Colors', 'colorList', 'Enter an ordered list of comma-separated colors (name or hex values)', /^$/),
+            {text: 'Background', menu: createColorMenu('bgcolor')},
+            {text: 'Major Grid Line', menu: createColorMenu('majorGridLineColor')},
+            {text: 'Minor Grid Line', menu: createColorMenu('minorGridLineColor')},
+            menuInputItem('Filled Area Alpha Value', 'areaAlpha', 'Enter the alpha value (between 0.0 and 1.0)')
           ]
         }
       },
       {
-        text: "Graph Legend",
+        text: 'Graph Legend',
         menu: {
           items: [
-            menuRadioItem("legend", "Hide If Too Many", "hideLegend"),
-            menuRadioItem("legend", "Always Hide", "hideLegend", "true"),
-            menuRadioItem("legend", "Never Hide", "hideLegend", "false"),
-            menuCheckItem("Hide Duplicate Items", "uniqueLegend"),
-            menuCheckItem("Hide Null Series", "hideNullFromLegend")
+            menuRadioItem('legend', 'Hide If Too Many', 'hideLegend'),
+            menuRadioItem('legend', 'Always Hide', 'hideLegend', 'true'),
+            menuRadioItem('legend', 'Never Hide', 'hideLegend', 'false'),
+            menuCheckItem('Hide Duplicate Items', 'uniqueLegend'),
+            menuCheckItem('Hide Null Series', 'hideNullFromLegend')
           ]
         }
       },
-      menuInputItem("Line Thickness", "lineWidth", "Enter the line thickness in pixels"),
-      menuInputItem("Margin", "margin", "Enter the margin width in pixels"),
-      menuCheckItem("Graph Only", "graphOnly"),
-      menuCheckItem("Hide Axes", "hideAxes"),
-      menuCheckItem("Hide Y-Axis", "hideYAxis"),
-      menuCheckItem("Hide Grid", "hideGrid"),
-      menuInputItem("Apply Template", "template", "Enter the name of a template defined in graphTemplates.conf", /^$/)
+      menuInputItem('Line Thickness', 'lineWidth', 'Enter the line thickness in pixels'),
+      menuInputItem('Margin', 'margin', 'Enter the margin width in pixels'),
+      menuCheckItem('Graph Only', 'graphOnly'),
+      menuCheckItem('Hide Axes', 'hideAxes'),
+      menuCheckItem('Hide Y-Axis', 'hideYAxis'),
+      menuCheckItem('Hide Grid', 'hideGrid'),
+      menuInputItem('Apply Template', 'template', 'Enter the name of a template defined in graphTemplates.conf', /^$/)
     ]
   });
 
   return {
     xtype: 'menu',
     items: [
-      menuInputItem("Graph Title", "title", "Graph Title", /^$/),
-      {text: "Display", menu: displayMenu},
-      {text: "Line Mode", menu: lineMenu},
-      {text: "Area Mode", menu: areaMenu},
-      {text: "X-Axis", menu: xAxisMenu},
-      {text: "Y-Axis", menu: yAxisMenu}
+      menuInputItem('Graph Title', 'title', 'Graph Title', /^$/),
+      {text: 'Display', menu: displayMenu},
+      {text: 'Line Mode', menu: lineMenu},
+      {text: 'Area Mode', menu: areaMenu},
+      {text: 'X-Axis', menu: xAxisMenu},
+      {text: 'Y-Axis', menu: yAxisMenu}
     ]
   };
 }
@@ -1453,16 +1453,16 @@ function paramPrompt(question, param, regexp) {
 
   return function (menuItem, e) {
     Ext.MessageBox.prompt(
-      "Input Required",
+      'Input Required',
       question,
       function (button, value) {
         if (value.search(regexp) != -1) {
-          Ext.Msg.alert("Input can only contain letters, numbers, underscores, or periods.");
+          Ext.Msg.alert('Input can only contain letters, numbers, underscores, or periods.');
           return;
         }
 
         if (value.charAt(value.length - 1) == '.') {
-          Ext.Msg.alert("Input cannot end in a period.");
+          Ext.Msg.alert('Input cannot end in a period.');
           return;
         }
 
@@ -1471,7 +1471,7 @@ function paramPrompt(question, param, regexp) {
       },
       this, //scope
       false, //multiline
-      getParam(param) || "" //default value
+      getParam(param) || '' //default value
     );
   };
 }
