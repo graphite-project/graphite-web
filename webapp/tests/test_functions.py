@@ -6,6 +6,7 @@ import six
 from datetime import datetime
 from fnmatch import fnmatch
 from mock import patch, call, MagicMock
+from os.path import dirname, join
 from six.moves import range
 
 from .base import TestCase
@@ -17,7 +18,7 @@ except ImportError:  # Django < 1.10
   from django.core.urlresolvers import reverse
 
 from graphite.errors import NormalizeEmptyResultError
-from graphite.functions import _SeriesFunctions
+from graphite.functions import _SeriesFunctions, loadFunctions
 from graphite.render.datalib import TimeSeries
 from graphite.render import functions
 from graphite.render.evaluator import evaluateTarget
@@ -6134,3 +6135,27 @@ class FunctionsTest(TestCase):
         result = json.loads(response.content.decode('utf-8'))
         self.assertTrue(isinstance(result, dict))
         self.assertEqual(result, {'error': 'Function not found: nonExistent'})
+
+    def test_function_custom_plugins(self):
+        loadFunctions(force=True)
+        self.assertNotIn('testFunc', _SeriesFunctions)
+
+        # load plugins from custom directory
+        with patch.multiple(
+            'graphite.functions',
+            customDir=join(dirname(__file__), 'funcplugins'),
+            customModPrefix='tests.funcplugins.',
+        ):
+            loadFunctions(force=True)
+            self.assertIn('testFunc', _SeriesFunctions)
+
+        loadFunctions(force=True)
+        self.assertNotIn('testFunc', _SeriesFunctions)
+
+        #load plugins from config setting
+        with self.settings(FUNCTION_PLUGINS=['tests.funcplugins.test']):
+            loadFunctions(force=True)
+            self.assertIn('testFunc', _SeriesFunctions)
+
+        loadFunctions(force=True)
+        self.assertNotIn('testFunc', _SeriesFunctions)

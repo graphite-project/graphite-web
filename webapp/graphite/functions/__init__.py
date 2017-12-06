@@ -6,24 +6,30 @@ from os.path import dirname, join, splitext
 
 from django.conf import settings
 
+customDir = join(dirname(__file__), 'custom')
+customModPrefix = 'graphite.functions.custom.'
+
 _SeriesFunctions = {}
 _PieFunctions = {}
 
-def loadFunctions():
-  if _SeriesFunctions:
+def loadFunctions(force=False):
+  if _SeriesFunctions and not force:
     return
 
   from graphite.render import functions
 
+  _SeriesFunctions.clear()
   _SeriesFunctions.update(functions.SeriesFunctions)
+
+  _PieFunctions.clear()
   _PieFunctions.update(functions.PieFunctions)
 
   custom_modules = []
-  for filename in listdir(join(dirname(__file__), 'custom')):
+  for filename in listdir(customDir):
     module_name, extension = splitext(filename)
     if extension != '.py' or module_name == '__init__':
       continue
-    custom_modules.append('graphite.functions.custom.' + module_name)
+    custom_modules.append(customModPrefix + module_name)
 
   for module_name in custom_modules + settings.FUNCTION_PLUGINS:
     module = import_module(module_name)
