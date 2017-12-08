@@ -71,10 +71,10 @@ function createGraphiteNode() {
 } // createGraphiteNode
 
 function setParams(loader, node) {
-  var node_id = node.id.replace(/^[A-Za-z]+Tree\.?/,'');
-  loader.baseParams.query = (node_id === '') ? '*' : (node_id + '.*');
+  var nodeId = node.id.replace(/^[A-Za-z]+Tree\.?/,'');
+  loader.baseParams.query = (nodeId === '') ? '*' : (nodeId + '.*');
   loader.baseParams.format = 'treejson';
-  loader.baseParams.path = node_id;
+  loader.baseParams.path = nodeId;
 
   if (node.parentNode && node.parentNode.id == 'UserGraphsTree') {
     loader.baseParams.user = node.id;
@@ -85,10 +85,10 @@ function setParams(loader, node) {
 function createTreePanel( rootNode ){
 
   function setParams(loader, node) {
-    var node_id = node.id.replace(/^[A-Za-z]+Tree\.?/,'');
-    loader.baseParams.query = (node_id === '') ? '*' : (node_id + '.*');
+    var nodeId = node.id.replace(/^[A-Za-z]+Tree\.?/,'');
+    loader.baseParams.query = (nodeId === '') ? '*' : (nodeId + '.*');
     loader.baseParams.format = 'treejson';
-    loader.baseParams.path = node_id;
+    loader.baseParams.path = nodeId;
 
     if (node.parentNode && node.parentNode.id == 'UserGraphsTree') {
       loader.baseParams.user = node.id;

@@ -38,17 +38,17 @@ var NAV_BAR_REGION = cookieProvider.get('navbar-region') || 'north';
 
 var CONFIRM_REMOVE_ALL = cookieProvider.get('confirm-remove-all') != 'false';
 
-var currently_setting_hash = false;
+var currentlySettingHash = false;
 
 function changeHash(hash){
-    currently_setting_hash = true;
+    currentlySettingHash = true;
     window.location.hash = hash;
 }
 
 if ('onhashchange' in window) // does the browser support the hashchange event?
   window.onhashchange = function () {
-    if (currently_setting_hash){
-      currently_setting_hash = false;
+    if (currentlySettingHash){
+      currentlySettingHash = false;
       return;
     }
     location.reload();
@@ -160,15 +160,15 @@ function hasPermission(permission) {
 function initDashboard () {
 
   // Populate naming-scheme based datastructures
-  Ext.each(schemes, function (scheme_info) {
-    scheme_info.id = scheme_info.name;
-    schemeRecords.push( new SchemeRecord(scheme_info) );
+  Ext.each(schemes, function (schemeInfo) {
+    schemeInfo.id = schemeInfo.name;
+    schemeRecords.push( new SchemeRecord(schemeInfo) );
 
-    Ext.each(scheme_info.fields, function (field) {
+    Ext.each(schemeInfo.fields, function (field) {
 
       // Context Field configuration
       contextSelectorFields.push( new Ext.form.ComboBox({
-        id: scheme_info.name + '-' + field.name,
+        id: schemeInfo.name + '-' + field.name,
         fieldLabel: field.label,
         width: CONTEXT_FIELD_WIDTH,
         mode: 'remote',
@@ -789,8 +789,8 @@ function initDashboard () {
   if(window.location.hash != '')
   {
     if (window.location.hash.indexOf('/') != -1) {
-      var name_val = window.location.hash.substr(1).split('#');
-      sendLoadTemplateRequest(name_val[0],name_val[1]);
+      var nameVal = window.location.hash.substr(1).split('#');
+      sendLoadTemplateRequest(nameVal[0],nameVal[1]);
     } else {
       sendLoadRequest(window.location.hash.substr(1));
     }
@@ -886,7 +886,7 @@ function getContextFieldsPattern() {
   var schemeName = selectedScheme.get('name');
   var pattern = selectedScheme.get('pattern');
   var fields = selectedScheme.get('fields');
-  var missing_fields = false;
+  var missingFields = false;
 
   Ext.each(fields, function (field) {
     var id = schemeName + '-' + field.name;
@@ -902,13 +902,13 @@ function getContextFieldsPattern() {
     }
 
     if (value.trim() == '') {
-      missing_fields = true;
+      missingFields = true;
     } else {
       pattern = pattern.replace('<' + field.name + '>', value);
     }
   });
 
-  if (missing_fields) {
+  if (missingFields) {
     return;
   }
 
@@ -924,7 +924,7 @@ function metricSelectorShow(pattern) {
 }
 
 function metricTreeSelectorShow(pattern) {
-  var base_parts = pattern.split('.');
+  var baseParts = pattern.split('.');
 
   function setParams (loader, node, callback) {
     loader.baseParams.format = 'treejson';
@@ -932,10 +932,10 @@ function metricTreeSelectorShow(pattern) {
     if (node.id == 'rootMetricSelectorNode') {
       loader.baseParams.query = pattern + '.*';
     } else {
-      var id_parts = node.id.split('.');
-      id_parts.splice(0, base_parts.length); //make it relative
-      var relative_id = id_parts.join('.');
-      loader.baseParams.query = pattern + '.' + relative_id + '.*';
+      var idParts = node.id.split('.');
+      idParts.splice(0, baseParts.length); //make it relative
+      var relativeId = idParts.join('.');
+      loader.baseParams.query = pattern + '.' + relativeId + '.*';
     }
   }
 
@@ -1454,11 +1454,11 @@ function newFromUrl() {
 
 function newFromSavedGraph() {
   function setParams(loader, node) {
-    var node_id = node.id.replace(/^[A-Za-z]+Tree\.?/,'');
-    loader.baseParams.query = (node_id == '') ? '*' : (node_id + '.*');
+    var nodeId = node.id.replace(/^[A-Za-z]+Tree\.?/,'');
+    loader.baseParams.query = (nodeId == '') ? '*' : (nodeId + '.*');
     loader.baseParams.format = 'treejson';
     loader.baseParams.contexts = '1';
-    loader.baseParams.path = node_id;
+    loader.baseParams.path = nodeId;
     if (node.parentNode && node.parentNode.id == 'UserGraphsTree') {
       loader.baseParams.user = node.id;
     }
@@ -2638,7 +2638,7 @@ var keyMap = new Ext.KeyMap(document, keyMapConfigs);
 
 /* Dashboard functions */
 function editDashboard() {
-  var edit_dashboard_win = new Ext.Window({
+  var editDashboardWin = new Ext.Window({
     title: 'Edit Dashboard',
     id: 'editor-window',
     width: 700,
@@ -2663,7 +2663,7 @@ function editDashboard() {
     },
     buttons: [
       {text: 'Update (doesn\'t save)', handler: updateAfterEdit},
-      {text: 'Cancel', handler: function () { edit_dashboard_win.close(); } }
+      {text: 'Cancel', handler: function () { editDashboardWin.close(); } }
     ]
   });
   function updateAfterEdit(btn, target) {
@@ -2686,7 +2686,7 @@ function editDashboard() {
     }
     graphStore.loadData(graphs);
     refreshGraphs();
-    edit_dashboard_win.close();
+    editDashboardWin.close();
   }
   function getInitialState() {
     var graphs = [];
@@ -2708,7 +2708,7 @@ function editDashboard() {
     session.setUseSoftTabs(true);
     session.setTabSize(2);
   }
-  edit_dashboard_win.show();
+  editDashboardWin.show();
 }
 
 function saveDashboard() {
@@ -2828,8 +2828,8 @@ function sendLoadRequest(name) {
 function sendLoadTemplateRequest(name, value) {
   var urlparts = window.location.href.split('#')
   if(urlparts[0].split('?')[1]) {
-    var new_location = urlparts[0].split('?')[0] + '#'+name+'/'+value;
-    window.location.href = new_location;
+    var newLocation = urlparts[0].split('?')[0] + '#'+name+'/'+value;
+    window.location.href = newLocation;
   } else {
     Ext.Ajax.request({
       url: document.body.dataset.baseUrl + 'dashboard/load_template/' + name + '/' + value,
@@ -2935,7 +2935,7 @@ function applyState(state) {
   var graphs = [];
   for (var i = 0; i < state.graphs.length; i++) {
     var myParams = {};
-    var render_type = state.graphs[i][3];
+    var renderType = state.graphs[i][3];
     Ext.apply(myParams, state.graphs[i][1]);
     var urlParams = {};
     Ext.apply(urlParams, defaultGraphParams);
@@ -2945,7 +2945,7 @@ function applyState(state) {
       state.graphs[i][0],
       myParams,
       document.body.dataset.baseUrl + 'render?' + Ext.urlEncode(urlParams),
-      render_type
+      renderType
     ]);
   }
   graphStore.loadData(graphs);
@@ -3019,11 +3019,11 @@ function failedAjaxCall(response, options) {
   );
 }
 
-var configure_ui_win;
+var configureUIWin;
 function configureUI() {
 
-  if (configure_ui_win) {
-    configure_ui_win.close();
+  if (configureUIWin) {
+    configureUIWin.close();
   }
 
   function updateOrientation() {
@@ -3032,11 +3032,11 @@ function configureUI() {
     } else {
       updateNavBar('north');
     }
-    configure_ui_win.close();
-    configure_ui_win = null;
+    configureUIWin.close();
+    configureUIWin = null;
   }
 
-  configure_ui_win = new Ext.Window({
+  configureUIWin = new Ext.Window({
     title: 'Configure UI',
     layout: 'form',
     width: 300,
@@ -3064,10 +3064,10 @@ function configureUI() {
     ],
     buttons: [
       {text: 'Ok', handler: updateOrientation},
-      {text: 'Cancel', handler: function () { configure_ui_win.close(); configure_ui_win = null; } }
+      {text: 'Cancel', handler: function () { configureUIWin.close(); configureUIWin = null; } }
     ]
   });
-  configure_ui_win.show();
+  configureUIWin.show();
 }
 
 function updateNavBar(region) {
