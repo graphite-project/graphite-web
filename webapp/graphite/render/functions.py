@@ -1275,7 +1275,7 @@ weightedAverage.params = [
   },
 ]
 
-movingIntervalSuggestions = [5, 7, 10, '1min', '5min', '10min', '30min', '1hour']
+intOrIntervalSuggestions = [5, 7, 10, '1min', '5min', '10min', '30min', '1hour']
 
 def movingWindow(requestContext, seriesList, windowSize, func='average', xFilesFactor=None):
   """
@@ -1365,7 +1365,7 @@ movingWindow.params = [
     'name': 'windowSize',
     'type': 'intOrInterval',
     'required': True,
-    'suggestions': movingIntervalSuggestions,
+    'suggestions': intOrIntervalSuggestions,
   },
   {
     'name': 'func',
@@ -1458,7 +1458,7 @@ exponentialMovingAverage.params = [
     'name': 'windowSize',
     'type': 'intOrInterval',
     'required': True,
-    'suggestions': movingIntervalSuggestions,
+    'suggestions': intOrIntervalSuggestions,
   },
 ]
 
@@ -1494,7 +1494,7 @@ movingMedian.params = [
     'name': 'windowSize',
     'type': 'intOrInterval',
     'required': True,
-    'suggestions': movingIntervalSuggestions,
+    'suggestions': intOrIntervalSuggestions,
   },
   {
     'name': 'xFilesFactor',
@@ -1895,7 +1895,7 @@ movingAverage.params = [
     'name': 'windowSize',
     'type': 'intOrInterval',
     'required': True,
-    'suggestions': movingIntervalSuggestions,
+    'suggestions': intOrIntervalSuggestions,
   },
   {
     'name': 'xFilesFactor',
@@ -1935,7 +1935,7 @@ movingSum.params = [
     'name': 'windowSize',
     'type': 'intOrInterval',
     'required': True,
-    'suggestions': movingIntervalSuggestions,
+    'suggestions': intOrIntervalSuggestions,
   },
   {
     'name': 'xFilesFactor',
@@ -1975,7 +1975,7 @@ movingMin.params = [
     'name': 'windowSize',
     'type': 'intOrInterval',
     'required': True,
-    'suggestions': movingIntervalSuggestions,
+    'suggestions': intOrIntervalSuggestions,
   },
   {
     'name': 'xFilesFactor',
@@ -2015,7 +2015,7 @@ movingMax.params = [
     'name': 'windowSize',
     'type': 'intOrInterval',
     'required': True,
-    'suggestions': movingIntervalSuggestions,
+    'suggestions': intOrIntervalSuggestions,
   },
   {
     'name': 'xFilesFactor',
@@ -2895,7 +2895,7 @@ def alpha(requestContext, seriesList, alpha):
     series.options['alpha'] = alpha
   return seriesList
 
-alpha.group = 'Special'
+alpha.group = 'Graph'
 alpha.params = [
   {
     'name': 'seriesList',
@@ -2927,7 +2927,7 @@ def color(requestContext, seriesList, theColor):
     series.color = theColor
   return seriesList
 
-color.group = 'Special'
+color.group = 'Graph'
 color.params = [
   {
     'name': 'seriesList',
@@ -3491,7 +3491,6 @@ def averageBelow(requestContext, seriesList, n):
     &target=averageBelow(server*.instance*.threads.busy,25)
 
   Draws the servers with average values below 25.
-
   """
   return filterSeries(requestContext, seriesList, 'average', '<=', n)
 
@@ -4121,6 +4120,15 @@ def secondYAxis(requestContext, seriesList):
     series.name= 'secondYAxis(%s)' % series.name
   return seriesList
 
+secondYAxis.group = 'Graph'
+secondYAxis.params = [
+  {
+    'name': 'seriesList',
+    'type': 'seriesList',
+    'required': True,
+  },
+]
+
 def holtWintersIntercept(alpha,actual,last_season,last_intercept,last_slope):
   return alpha * (actual - last_season) \
           + (1 - alpha) * (last_intercept + last_slope)
@@ -4254,6 +4262,21 @@ def holtWintersForecast(requestContext, seriesList, bootstrapInterval='7d'):
     results.append(result)
   return results
 
+holtWintersForecast.group = 'Calculate'
+holtWintersForecast.params = [
+  {
+    'name': 'seriesList',
+    'type': 'seriesList',
+    'required': True,
+  },
+  {
+    'name': 'bootstrapInterval',
+    'type': 'interval',
+    'default': '7d',
+    'suggestions': ['7d', '30d'],
+  },
+]
+
 def holtWintersConfidenceBands(requestContext, seriesList, delta=3, bootstrapInterval='7d'):
   """
   Performs a Holt-Winters forecast using the series as input data and plots
@@ -4314,6 +4337,26 @@ def holtWintersConfidenceBands(requestContext, seriesList, delta=3, bootstrapInt
     results.append(upperSeries)
   return results
 
+holtWintersConfidenceBands.group = 'Calculate'
+holtWintersConfidenceBands.params = [
+  {
+    'name': 'seriesList',
+    'type': 'seriesList',
+    'required': True,
+  },
+  {
+    'name': 'delta',
+    'type': 'integer',
+    'default': 3,
+  },
+  {
+    'name': 'bootstrapInterval',
+    'type': 'interval',
+    'default': '7d',
+    'suggestions': ['7d', '30d'],
+  },
+]
+
 def holtWintersAberration(requestContext, seriesList, delta=3, bootstrapInterval='7d'):
   """
   Performs a Holt-Winters forecast using the series as input data and plots the
@@ -4341,6 +4384,26 @@ def holtWintersAberration(requestContext, seriesList, delta=3, bootstrapInterval
             , series.step, aberration, tags=series.tags, xFilesFactor=series.xFilesFactor))
   return results
 
+holtWintersAberration.group = 'Calculate'
+holtWintersAberration.params = [
+  {
+    'name': 'seriesList',
+    'type': 'seriesList',
+    'required': True,
+  },
+  {
+    'name': 'delta',
+    'type': 'integer',
+    'default': 3,
+  },
+  {
+    'name': 'bootstrapInterval',
+    'type': 'interval',
+    'default': '7d',
+    'suggestions': ['7d', '30d'],
+  },
+]
+
 def holtWintersConfidenceArea(requestContext, seriesList, delta=3, bootstrapInterval='7d'):
   """
   Performs a Holt-Winters forecast using the series as input data and plots the
@@ -4355,6 +4418,26 @@ def holtWintersConfidenceArea(requestContext, seriesList, delta=3, bootstrapInte
     series.name = series.name.replace('areaBetween', 'holtWintersConfidenceArea')
     series.pathExpression = series.name
   return results
+
+holtWintersConfidenceArea.group = 'Calculate'
+holtWintersConfidenceArea.params = [
+  {
+    'name': 'seriesList',
+    'type': 'seriesList',
+    'required': True,
+  },
+  {
+    'name': 'delta',
+    'type': 'integer',
+    'default': 3,
+  },
+  {
+    'name': 'bootstrapInterval',
+    'type': 'interval',
+    'default': '7d',
+    'suggestions': ['7d', '30d'],
+  },
+]
 
 def linearRegressionAnalysis(series):
   """
@@ -4417,6 +4500,22 @@ def linearRegression(requestContext, seriesList, startSourceAt=None, endSourceAt
     results.append(newSeries)
   return results
 
+linearRegression.group = 'Calculate'
+linearRegression.params = [
+  {
+    'name': 'seriesList',
+    'type': 'seriesList',
+    'required': True,
+  },
+  {
+    'name': 'startSourceAt',
+    'type': 'date',
+  },
+  {
+    'name': 'endSourceAt',
+    'type': 'date',
+  },
+]
 
 def drawAsInfinite(requestContext, seriesList):
   """
@@ -4441,6 +4540,15 @@ def drawAsInfinite(requestContext, seriesList):
     series.name = 'drawAsInfinite(%s)' % series.name
   return seriesList
 
+drawAsInfinite.group = 'Graph'
+drawAsInfinite.params = [
+  {
+    'name': 'seriesList',
+    'type': 'seriesList',
+    'required': True,
+  },
+]
+
 def lineWidth(requestContext, seriesList, width):
   """
   Takes one metric or a wildcard seriesList, followed by a float F.
@@ -4462,7 +4570,21 @@ def lineWidth(requestContext, seriesList, width):
     series.options['lineWidth'] = width
   return seriesList
 
-def dashed(requestContext, *seriesList):
+lineWidth.group = 'Graph'
+lineWidth.params = [
+  {
+    'name': 'seriesList',
+    'type': 'seriesList',
+    'required': True,
+  },
+  {
+    'name': 'width',
+    'type': 'float',
+    'required': True,
+  },
+]
+
+def dashed(requestContext, seriesList, dashLength=5):
   """
   Takes one metric or a wildcard seriesList, followed by a float F.
 
@@ -4476,18 +4598,26 @@ def dashed(requestContext, *seriesList):
     &target=dashed(server01.instance01.memory.free,2.5)
 
   """
-
-  if len(seriesList) == 2:
-    dashLength = seriesList[1]
-  else:
-    dashLength = 5
-  for series in seriesList[0]:
+  for series in seriesList:
     series.tags['dashed'] = dashLength
     series.name = 'dashed(%s, %g)' % (series.name, dashLength)
     series.options['dashed'] = dashLength
-  return seriesList[0]
+  return seriesList
 
-def timeStack(requestContext, seriesList, timeShiftUnit, timeShiftStart, timeShiftEnd):
+dashed.group = 'Graph'
+dashed.params = [
+  {
+    'name': 'seriesList',
+    'type': 'seriesList',
+    'required': True,
+  },
+  {
+    'name': 'dashLength',
+    'type': 'integer',
+  }
+]
+
+def timeStack(requestContext, seriesList, timeShiftUnit='1d', timeShiftStart=0, timeShiftEnd=7):
   """
   Takes one metric or a wildcard seriesList, followed by a quoted string with the
   length of time (See ``from / until`` in the render\_api_ for examples of time formats).
@@ -4533,6 +4663,31 @@ def timeStack(requestContext, seriesList, timeShiftUnit, timeShiftStart, timeShi
       results.append(shiftedSeries)
 
   return results
+
+timeStack.group = 'Transform'
+timeStack.params = [
+  {
+    'name': 'seriesList',
+    'type': 'seriesList',
+    'required': True,
+  },
+  {
+    'name': 'timeShiftUnit',
+    'type': 'interval',
+    'default': '1d',
+    'suggestions': ['1h', '6h', '12h', '1d', '2d', '7d', '14d', '30d'],
+  },
+  {
+    'name': 'timeShiftStart',
+    'type': 'integer',
+    'default': 0,
+  },
+  {
+    'name': 'timeShiftEnd',
+    'type': 'integer',
+    'default': 7,
+  },
+]
 
 def timeShift(requestContext, seriesList, timeShift, resetEnd=True, alignDST=False):
   """
@@ -4610,6 +4765,30 @@ def timeShift(requestContext, seriesList, timeShift, resetEnd=True, alignDST=Fal
 
   return results
 
+timeShift.group = 'Transform'
+timeShift.params = [
+  {
+    'name': 'seriesList',
+    'type': 'seriesList',
+    'required': True,
+  },
+  {
+    'name': 'timeShift',
+    'type': 'interval',
+    'required': True,
+    'suggestions': ['1h', '6h', '12h', '1d', '2d', '7d', '14d', '30d'],
+  },
+  {
+    'name': 'resetEnd',
+    'type': 'boolean',
+    'default': True,
+  },
+  {
+    'name': 'alignDst',
+    'type': 'boolean',
+    'default': False,
+  },
+]
 
 def timeSlice(requestContext, seriesList, startSliceAt, endSliceAt="now"):
   """
@@ -4649,6 +4828,24 @@ def timeSlice(requestContext, seriesList, startSliceAt, endSliceAt="now"):
 
   return results
 
+timeSlice.group = 'Transform'
+timeSlice.params = [
+  {
+    'name': 'seriesList',
+    'type': 'seriesList',
+    'required': True,
+  },
+  {
+    'name': 'startSliceAt',
+    'type': 'date',
+    'required': True,
+  },
+  {
+    'name': 'endSliceAt',
+    'type': 'date',
+    'default': 'now',
+  },
+]
 
 def constantLine(requestContext, value):
   """
@@ -4671,7 +4868,16 @@ def constantLine(requestContext, value):
   series.pathExpression = name
   return [series]
 
-def aggregateLine(requestContext, seriesList, func='avg'):
+constantLine.group = 'Graph'
+constantLine.params = [
+  {
+    'name': 'value',
+    'type': 'float',
+    'required': True,
+  },
+]
+
+def aggregateLine(requestContext, seriesList, func='average'):
   """
   Takes a metric or wildcard seriesList and draws a horizontal line
   based on the function applied to each series.
@@ -4693,14 +4899,16 @@ def aggregateLine(requestContext, seriesList, func='avg'):
     &target=aggregateLine(server*.connections.total, 'avg')
 
   """
-  t_funcs = { 'avg': safeAvg, 'min': safeMin, 'max': safeMax }
-
-  if func not in t_funcs:
+  if func in aggFuncs:
+    aggFunc = aggFuncs[func]
+  elif func in aggFuncAliases:
+    aggFunc = aggFuncAliases[func]
+  else:
     raise ValueError("Invalid function %s" % func)
 
   results = []
   for series in seriesList:
-    value = t_funcs[func](series)
+    value = aggFunc(series)
     if value is not None:
         name = 'aggregateLine(%s, %g)' % (series.name, value)
     else:
@@ -4708,9 +4916,24 @@ def aggregateLine(requestContext, seriesList, func='avg'):
 
     [series] = constantLine(requestContext, value)
     series.name = name
-    series.pathExpression = series.name
+    series.pathExpression = name
     results.append(series)
   return results
+
+aggregateLine.group = 'Combine'
+aggregateLine.params = [
+  {
+    'name': 'seriesList',
+    'type': 'seriesList',
+    'required': True,
+  },
+  {
+    'name': 'func',
+    'type': 'aggFunc',
+    'default': 'average',
+    'options': list(aggFuncs.keys()),
+  },
+]
 
 def verticalLine(requestContext, ts, label=None, color=None):
   """
@@ -4749,6 +4972,22 @@ def verticalLine(requestContext, ts, label=None, color=None):
     series.color = color
   return [series]
 
+verticalLine.group = 'Graph'
+verticalLine.params = [
+  {
+    'name': 'ts',
+    'type': 'date',
+    'required': True,
+  },
+  {
+    'name': 'label',
+    'type': 'string',
+  },
+  {
+    'name': 'color',
+    'type': 'string',
+  },
+]
 
 def threshold(requestContext, value, label=None, color=None):
   """
@@ -4771,6 +5010,22 @@ def threshold(requestContext, value, label=None, color=None):
     series.color = color
   return [series]
 
+threshold.group = 'Graph'
+threshold.params = [
+  {
+    'name': 'value',
+    'type': 'float',
+    'required': True,
+  },
+  {
+    'name': 'label',
+    'type': 'string',
+  },
+  {
+    'name': 'color',
+    'type': 'string',
+  },
+]
 
 def transformNull(requestContext, seriesList, default=0, referenceSeries=None):
   """
@@ -4817,6 +5072,24 @@ def transformNull(requestContext, seriesList, default=0, referenceSeries=None):
     del series[:len(values)]
   return seriesList
 
+transformNull.group = 'Transform'
+transformNull.params = [
+  {
+    'name': 'seriesList',
+    'type': 'seriesList',
+    'required': True,
+  },
+  {
+    'name': 'default',
+    'type': 'float',
+    'default': 0,
+  },
+  {
+    'name': 'referenceSeries',
+    'type': 'seriesList',
+  },
+]
+
 def isNonNull(requestContext, seriesList):
   """
   Takes a metric or wildcard seriesList and counts up the number of non-null
@@ -4845,6 +5118,15 @@ def isNonNull(requestContext, seriesList):
     series.extend(values)
     del series[:len(values)]
   return seriesList
+
+isNonNull.group = 'Combine'
+isNonNull.params = [
+  {
+    'name': 'seriesList',
+    'type': 'seriesList',
+    'required': True,
+  },
+]
 
 def identity(requestContext, name):
   """
