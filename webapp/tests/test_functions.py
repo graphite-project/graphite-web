@@ -4296,7 +4296,7 @@ class FunctionsTest(TestCase):
             )
 
         expectedResults = [
-            TimeSeries('movingMedian(collectd.test-db0.load.value,10)', 20, 30, 1, [None, 0, 1, 1, 2, 2, 3, 3, 4, 4])
+            TimeSeries('movingMedian(collectd.test-db0.load.value,10)', 20, 30, 1, [None, 0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4])
         ]
 
         with patch('graphite.render.functions.evaluateTarget', mock_evaluateTarget):
@@ -4307,6 +4307,7 @@ class FunctionsTest(TestCase):
                 ),
                 seriesList, 10
             )
+        self.assertEqual(list(result[0]), list(expectedResults[0]))
         self.assertEqual(result, expectedResults)
 
     def test_movingMedian_evaluateTarget_returns_empty_list(self):
@@ -4349,7 +4350,7 @@ class FunctionsTest(TestCase):
             )
 
         expectedResults = [
-            TimeSeries('movingMedian(collectd.test-db0.load.value,60)', 660, 700, 1, list(range(30, 70))),
+            TimeSeries('movingMedian(collectd.test-db0.load.value,60)', 660, 700, 1, [x - 0.5 for x in range(30, 70)]),
         ]
 
         with patch('graphite.render.functions.evaluateTarget', mock_evaluateTarget):
@@ -4360,6 +4361,7 @@ class FunctionsTest(TestCase):
                 ),
                 seriesList, 60
             )
+        self.assertEqual(list(result[0]), list(expectedResults[0]))
         self.assertEqual(result, expectedResults)
 
     def test_movingMedian_stringWindowSize(self):
@@ -4379,7 +4381,7 @@ class FunctionsTest(TestCase):
             )
 
         expectedResults = [
-            TimeSeries('movingMedian(collectd.test-db0.load.value,"-1min")', 660, 700, 1, list(range(30, 70))),
+            TimeSeries('movingMedian(collectd.test-db0.load.value,"-1min")', 660, 700, 1, [x - 0.5 for x in range(30, 70)]),
         ]
 
         with patch('graphite.render.functions.evaluateTarget', mock_evaluateTarget):
@@ -4390,6 +4392,7 @@ class FunctionsTest(TestCase):
                 ),
                 seriesList, "-1min"
             )
+        self.assertEqual(list(result[0]), list(expectedResults[0]))
         self.assertEqual(result, expectedResults)
 
     def test_movingAverage_emptySeriesList(self):
