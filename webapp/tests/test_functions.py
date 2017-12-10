@@ -1,4 +1,5 @@
 import copy
+import inspect
 import math
 import pytz
 import six
@@ -5597,6 +5598,8 @@ class FunctionsTest(TestCase):
               "1minute",
               func
           )
+          self.maxDiff = None
+          self.assertEqual(list(result[0]), list(expectedResults[func][0]))
           self.assertEqual(result, expectedResults[func])
 
     def test_summarize_1minute_alignToFrom(self):
@@ -6030,36 +6033,42 @@ class FunctionsTest(TestCase):
         url = reverse('functionList')
 
         asPercentExpected = {
-            "description": "Calculates a percentage of the total of a wildcard series. If `total` is specified,\neach series will be calculated as a percentage of that total. If `total` is not specified,\nthe sum of all points in the wildcard series will be used instead.\n\nA list of nodes can optionally be provided, if so they will be used to match series with their\ncorresponding totals following the same logic as :py:func:`groupByNodes <groupByNodes>`.\n\nWhen passing `nodes` the `total` parameter may be a series list or `None`.  If it is `None` then\nfor each series in `seriesList` the percentage of the sum of series in that group will be returned.\n\nWhen not passing `nodes`, the `total` parameter may be a single series, reference the same number\nof series as `seriesList` or be a numeric value.\n\nExample:\n\n.. code-block:: none\n\n  # Server01 connections failed and succeeded as a percentage of Server01 connections attempted\n  &target=asPercent(Server01.connections.{failed,succeeded}, Server01.connections.attempted)\n\n  # For each server, its connections failed as a percentage of its connections attempted\n  &target=asPercent(Server*.connections.failed, Server*.connections.attempted)\n\n  # For each server, its connections failed and succeeded as a percentage of its connections attemped\n  &target=asPercent(Server*.connections.{failed,succeeded}, Server*.connections.attempted, 0)\n\n  # apache01.threads.busy as a percentage of 1500\n  &target=asPercent(apache01.threads.busy,1500)\n\n  # Server01 cpu stats as a percentage of its total\n  &target=asPercent(Server01.cpu.*.jiffies)\n\n  # cpu stats for each server as a percentage of its total\n  &target=asPercent(Server*.cpu.*.jiffies, None, 0)\n\nWhen using `nodes`, any series or totals that can't be matched will create output series with\nnames like ``asPercent(someSeries,MISSING)`` or ``asPercent(MISSING,someTotalSeries)`` and all\nvalues set to None. If desired these series can be filtered out by piping the result through\n``|exclude(\"MISSING\")`` as shown below:\n\n.. code-block:: none\n\n  &target=asPercent(Server{1,2}.memory.used,Server{1,3}.memory.total,0)\n\n  # will produce 3 output series:\n  # asPercent(Server1.memory.used,Server1.memory.total) [values will be as expected]\n  # asPercent(Server2.memory.used,MISSING) [all values will be None]\n  # asPercent(MISSING,Server3.memory.total) [all values will be None]\n\n  &target=asPercent(Server{1,2}.memory.used,Server{1,3}.memory.total,0)|exclude(\"MISSING\")\n\n  # will produce 1 output series:\n  # asPercent(Server1.memory.used,Server1.memory.total) [values will be as expected]\n\nEach node may be an integer referencing a node in the series name or a string identifying a tag.\n\n.. note::\n\n  When `total` is a seriesList, specifying `nodes` to match series with the corresponding total\n  series will increase reliability.",
-            "function": "asPercent(seriesList, total=None, *nodes)",
-            "group": "Combine",
-            "module": "graphite.render.functions",
-            "name": "asPercent",
-            "params": [
+            'description': inspect.getdoc(functions.asPercent),
+            'function': 'asPercent(seriesList, total=None, *nodes)',
+            'group': 'Combine',
+            'module': 'graphite.render.functions',
+            'name': 'asPercent',
+            'params': [
                 {
-                    "name": "seriesList",
-                    "required": True,
-                    "type": "seriesList"
+                    'name': 'seriesList',
+                    'required': True,
+                    'type': 'seriesList'
                 },
                 {
-                    "name": "total",
-                    "type": "seriesList"
+                    'name': 'total',
+                    'type': 'seriesList'
                 },
                 {
-                    "multiple": True,
-                    "name": "nodes",
-                    "type": "nodeOrTag"
+                    'multiple': True,
+                    'name': 'nodes',
+                    'type': 'nodeOrTag'
                 }
             ],
         }
 
         averageExpected = {
-            "description": None,
-            "function": "average(series)",
-            "group": "Ungrouped",
-            "module": "graphite.render.functions",
-            "name": "average",
-            "params": None,
+            'description': 'Return the average',
+            'function': 'average(series)',
+            'group': 'Pie',
+            'module': 'graphite.render.functions',
+            'name': 'average',
+            'params': [
+                {
+                    'name': 'series',
+                    'required': True,
+                    'type': 'series',
+                }
+            ],
         }
 
         # list

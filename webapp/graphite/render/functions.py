@@ -2500,7 +2500,7 @@ def stacked(requestContext,seriesLists,stackName='__DEFAULT__'):
   requestContext['totalStack'][stackName] = totalStack
   return results
 
-stacked.group = 'Special'
+stacked.group = 'Graph'
 stacked.params = [
   {
     'name': 'seriesList',
@@ -2556,7 +2556,7 @@ def areaBetween(requestContext, seriesList):
   lower.name = upper.name = "areaBetween(%s)" % upper.pathExpression
   return seriesList
 
-areaBetween.group = 'Special'
+areaBetween.group = 'Graph'
 areaBetween.params = [
   {
     'name': 'seriesList',
@@ -2812,6 +2812,7 @@ aliasByNode.params = [
   {
     'name': 'nodes',
     'type': 'nodeOrTag',
+    'required': True,
     'multiple': True,
   },
 ]
@@ -5153,6 +5154,15 @@ def identity(requestContext, name):
 
   return [series]
 
+identity.group = 'Calculate'
+identity.params = [
+  {
+    'name': 'name',
+    'type': 'string',
+    'required': True,
+  },
+]
+
 def countSeries(requestContext, *seriesLists):
   """
   Draws a horizontal line representing the number of nodes found in the seriesList.
@@ -5174,6 +5184,15 @@ def countSeries(requestContext, *seriesLists):
 
   return [series]
 
+countSeries.group = 'Combine'
+countSeries.params = [
+  {
+    'name': 'seriesLists',
+    'type': 'seriesList',
+    'multiple': True,
+  },
+]
+
 def group(requestContext, *seriesLists):
   """
   Takes an arbitrary number of seriesLists and adds them to a single seriesList. This is used
@@ -5184,6 +5203,15 @@ def group(requestContext, *seriesLists):
     seriesGroup.extend(s)
 
   return seriesGroup
+
+group.group = 'Combine'
+group.params = [
+  {
+    'name': 'seriesLists',
+    'type': 'seriesList',
+    'multiple': True,
+  },
+]
 
 def mapSeries(requestContext, seriesList, *mapNodes):
   """
@@ -5217,6 +5245,21 @@ def mapSeries(requestContext, seriesList, *mapNodes):
     else:
       metaSeries[key].append(series)
   return [ metaSeries[k] for k in keys ]
+
+mapSeries.group = 'Combine'
+mapSeries.params = [
+  {
+    'name': 'seriesList',
+    'type': 'seriesList',
+    'required': True,
+  },
+  {
+    'name': 'mapNodes',
+    'type': 'nodeOrTag',
+    'required': True,
+    'multiple': True,
+  },
+]
 
 def reduceSeries(requestContext, seriesLists, reduceFunction, reduceNode, *reduceMatchers):
   """
@@ -5287,6 +5330,31 @@ def reduceSeries(requestContext, seriesLists, reduceFunction, reduceNode, *reduc
     metaSeries[key].name = key
   return [ metaSeries[key] for key in keys ]
 
+reduceSeries.group = 'Combine'
+reduceSeries.params = [
+  {
+    'name': 'seriesLists',
+    'type': 'seriesLists',
+    'required': True,
+  },
+  {
+    'name': 'reduceFunction',
+    'type': 'string',
+    'required': True,
+  },
+  {
+    'name': 'reduceNode',
+    'type': 'node',
+    'required': True,
+  },
+  {
+    'name': 'reduceMatchers',
+    'type': 'string',
+    'required': True,
+    'multiple': True,
+  },
+]
+
 def applyByNode(requestContext, seriesList, nodeNum, templateFunction, newName=None):
   """
   Takes a seriesList and applies some complicated function (described by a string), replacing templates with unique
@@ -5338,7 +5406,30 @@ def applyByNode(requestContext, seriesList, nodeNum, templateFunction, newName=N
       results.append(resultSeries)
   return results
 
-def groupByNode(requestContext, seriesList, nodeNum, callback):
+applyByNode.group = 'Combine'
+applyByNode.params = [
+  {
+    'name': 'seriesList',
+    'type': 'seriesList',
+    'required': True,
+  },
+  {
+    'name': 'nodeNum',
+    'type': 'node',
+    'required': True,
+  },
+  {
+    'name': 'templateFunction',
+    'type': 'string',
+    'required': True,
+  },
+  {
+    'name': 'newName',
+    'type': 'string',
+  },
+]
+
+def groupByNode(requestContext, seriesList, nodeNum, callback='average'):
   """
   Takes a serieslist and maps a callback to subgroups within as defined by a common node
 
@@ -5358,6 +5449,27 @@ def groupByNode(requestContext, seriesList, nodeNum, callback):
   This is an alias for using :py:func:`groupByNodes <groupByNodes>` with a single node.
   """
   return groupByNodes(requestContext, seriesList, callback, nodeNum)
+
+groupByNode.group = 'Combine'
+groupByNode.params = [
+  {
+    'name': 'seriesList',
+    'type': 'seriesList',
+    'required': True,
+  },
+  {
+    'name': 'nodeNum',
+    'type': 'nodeOrTag',
+    'required': True,
+  },
+  {
+    'name': 'callback',
+    'type': 'aggFunc',
+    'default': 'average',
+    'options': list(aggFuncs.keys()),
+    'required': True,
+  },
+]
 
 def groupByNodes(requestContext, seriesList, callback, *nodes):
   """
@@ -5406,6 +5518,27 @@ def groupByNodes(requestContext, seriesList, callback, *nodes):
     metaSeries[key].name = key
   return [ metaSeries[key] for key in keys ]
 
+groupByNodes.group = 'Combine'
+groupByNodes.params = [
+  {
+    'name': 'seriesList',
+    'type': 'seriesList',
+    'required': True,
+  },
+  {
+    'name': 'callback',
+    'type': 'aggFunc',
+    'required': True,
+    'options': list(aggFuncs.keys()),
+  },
+  {
+    'name': 'nodes',
+    'type': 'nodeOrTag',
+    'required': True,
+    'multiple': True,
+  },
+]
+
 def exclude(requestContext, seriesList, pattern):
   """
   Takes a metric or a wildcard seriesList, followed by a regular expression
@@ -5419,6 +5552,20 @@ def exclude(requestContext, seriesList, pattern):
   """
   regex = re.compile(pattern)
   return [s for s in seriesList if not regex.search(s.name)]
+
+exclude.group = 'Filter'
+exclude.params = [
+  {
+    'name': 'seriesList',
+    'type': 'seriesList',
+    'required': True,
+  },
+  {
+    'name': 'pattern',
+    'type': 'string',
+    'required': True,
+  },
+]
 
 def grep(requestContext, seriesList, pattern):
   """
@@ -5434,12 +5581,29 @@ def grep(requestContext, seriesList, pattern):
   regex = re.compile(pattern)
   return [s for s in seriesList if regex.search(s.name)]
 
+grep.group = 'Filter'
+grep.params = [
+  {
+    'name': 'seriesList',
+    'type': 'seriesList',
+    'required': True,
+  },
+  {
+    'name': 'pattern',
+    'type': 'string',
+    'required': True,
+  },
+]
+
 def smartSummarize(requestContext, seriesList, intervalString, func='sum', alignTo=None):
   """
-  Smarter experimental version of summarize.
+  Smarter version of summarize.
 
   The alignToFrom boolean parameter has been replaced by alignTo and no longer has any effect.
   Alignment can be to years, months, weeks, days, hours, and minutes.
+
+  This function can be used with aggregation functions ``average``, ``median``, ``sum``, ``min``,
+  ``max``, ``diff``, ``stddev``, ``count``, ``range``, ``multiply`` & ``last``.
   """
   if isinstance(alignTo, bool):
     log.info("Deprecated parameter 'alignToFrom' is being ignored.")
@@ -5485,6 +5649,32 @@ def smartSummarize(requestContext, seriesList, intervalString, func='sum', align
 
   return results
 
+smartSummarize.group = 'Transform'
+smartSummarize.params = [
+  {
+    'name': 'seriesList',
+    'type': 'seriesList',
+    'required': True,
+  },
+  {
+    'name': 'intervalString',
+    'type': 'interval',
+    'required': True,
+    'suggestions': ['10min', '1h', '1d'],
+  },
+  {
+    'name': 'func',
+    'type': 'aggFunc',
+    'default': 'sum',
+    'options': list(aggFuncs.keys()),
+  },
+  {
+    'name': 'alignTo',
+    'type': 'string',
+    'options': [None, YEARS_STRING, MONTHS_STRING, WEEKS_STRING, DAYS_STRING, HOURS_STRING, MINUTES_STRING, SECONDS_STRING],
+  },
+]
+
 def summarize(requestContext, seriesList, intervalString, func='sum', alignToFrom=False):
   """
   Summarize the data into interval buckets of a certain size.
@@ -5493,10 +5683,11 @@ def summarize(requestContext, seriesList, intervalString, func='sum', alignToFro
   useful for counters where each increment represents a discrete event and
   retrieving a "per X" value requires summing all the events in that interval.
 
-  Specifying 'avg' instead will return the mean for each bucket, which can be more
+  Specifying 'average' instead will return the mean for each bucket, which can be more
   useful when the value is a gauge that represents a certain value in time.
 
-  'max', 'min' or 'last' can also be specified.
+  This function can be used with aggregation functions ``average``, ``median``, ``sum``, ``min``,
+  ``max``, ``diff``, ``stddev``, ``count``, ``range``, ``multiply`` & ``last``.
 
   By default, buckets are calculated by rounding to the nearest interval. This
   works well for intervals smaller than a day. For example, 22:32 will end up
@@ -5541,11 +5732,44 @@ def summarize(requestContext, seriesList, intervalString, func='sum', alignToFro
 
   return results
 
+summarize.group = 'Transform'
+summarize.params = [
+  {
+    'name': 'seriesList',
+    'type': 'seriesList',
+    'required': True,
+  },
+  {
+    'name': 'intervalString',
+    'type': 'interval',
+    'required': True,
+    'suggestions': ['10min', '1h', '1d'],
+  },
+  {
+    'name': 'func',
+    'type': 'aggFunc',
+    'default': 'sum',
+    'options': list(aggFuncs.keys()),
+  },
+  {
+    'name': 'alignToFrom',
+    'type': 'boolean',
+    'default': False,
+  },
+]
+
 def _summarizeValues(series, func, interval, newStart=None, newEnd=None):
   if newStart is None:
     newStart = series.start
   if newEnd is None:
     newEnd = series.end
+
+  if func in aggFuncs:
+    aggFunc = aggFuncs[func]
+  elif func in aggFuncAliases:
+    aggFunc = aggFuncAliases[func]
+  else:
+    raise Exception('Unsupported aggregation function: %s' % (func))
 
   timestamps = list(range( int(series.start), int(series.end), int(series.step)))
   datapoints = list(series)
@@ -5557,37 +5781,18 @@ def _summarizeValues(series, func, interval, newStart=None, newEnd=None):
   newValues = []
   timestamp_ = newStart
   while timestamp_ < newEnd:
-    newValue = None
+    s = i
     nonNull = 0
 
     while i < numPoints and timestamps[i] < timestamp_ + interval:
+      if timestamps[i] <= timestamp_:
+        s = i
       if timestamps[i] >= timestamp_ and datapoints[i] is not None:
         nonNull += 1
-
-        if func == 'avg':
-          if newValue:
-            newValue[0] += datapoints[i]
-            newValue[1] += 1
-          else:
-            newValue = [datapoints[i], 1]
-        elif func == 'last':
-          newValue = datapoints[i]
-        elif func == 'max':
-          if newValue is None or datapoints[i] > newValue:
-            newValue = datapoints[i]
-        elif func == 'min':
-          if newValue is None or datapoints[i] < newValue:
-            newValue = datapoints[i]
-        else:
-          newValue = (newValue or 0) + datapoints[i]
-
       i += 1
 
-    if func == 'avg' and newValue:
-      newValue = float(newValue[0]) / float(newValue[1])
-
     if xff(nonNull, intervalPoints, series.xFilesFactor):
-      newValues.append(newValue)
+      newValues.append(aggFunc(datapoints[s:i]))
     else:
       newValues.append(None)
 
@@ -5676,6 +5881,25 @@ def hitcount(requestContext, seriesList, intervalString, alignToInterval = False
 
   return results
 
+hitcount.group = 'Transform'
+hitcount.params = [
+  {
+    'name': 'seriesList',
+    'type': 'seriesList',
+    'required': True,
+  },
+  {
+    'name': 'intervalString',
+    'type': 'interval',
+    'required': True,
+    'suggestions': ['10min', '1h', '1d'],
+  },
+  {
+    'name': 'alignToInterval',
+    'type': 'boolean',
+    'default': False,
+  },
+]
 
 def timeFunction(requestContext, name, step=60):
   """
@@ -5709,6 +5933,20 @@ def timeFunction(requestContext, name, step=60):
 
   return [series]
 
+timeFunction.group = 'Transform'
+timeFunction.params = [
+  {
+    'name': 'name',
+    'type': 'string',
+    'required': True,
+  },
+  {
+    'name': 'step',
+    'type': 'integer',
+    'default': 60,
+  },
+]
+
 def sinFunction(requestContext, name, amplitude=1, step=60):
   """
   Short Alias: sin()
@@ -5739,6 +5977,25 @@ def sinFunction(requestContext, name, amplitude=1, step=60):
             int(epoch(requestContext["endTime"])),
             step, values, xFilesFactor=requestContext.get('xFilesFactor'))]
 
+sinFunction.group = 'Transform'
+sinFunction.params = [
+  {
+    'name': 'name',
+    'type': 'string',
+    'required': True,
+  },
+  {
+    'name': 'amplitude',
+    'type': 'integer',
+    'default': 1,
+  },
+  {
+    'name': 'step',
+    'type': 'integer',
+    'default': 60,
+  },
+]
+
 def removeEmptySeries(requestContext, seriesList, xFilesFactor=None):
   """
   Takes one metric or a wildcard seriesList.
@@ -5759,6 +6016,20 @@ def removeEmptySeries(requestContext, seriesList, xFilesFactor=None):
   """
   xFilesFactor = xFilesFactor if xFilesFactor is not None else 0
   return [ series for series in seriesList if xffValues(series, xFilesFactor) ]
+
+removeEmptySeries.group = 'Filter'
+removeEmptySeries.params = [
+  {
+    'name': 'seriesList',
+    'type': 'seriesList',
+    'required': True,
+  },
+  {
+    'name': 'xFilesFactor',
+    'type': 'float',
+    'required': True,
+  },
+]
 
 def unique(requestContext, *seriesLists):
   """
@@ -5781,6 +6052,16 @@ def unique(requestContext, *seriesLists):
         seenNames.add(series.name)
         newList.append(series)
   return newList
+
+unique.group = 'Filter'
+unique.params = [
+  {
+    'name': 'seriesLists',
+    'type': 'seriesList',
+    'required': True,
+    'multiple': True,
+  },
+]
 
 def randomWalkFunction(requestContext, name, step=60):
   """
@@ -5813,6 +6094,20 @@ def randomWalkFunction(requestContext, name, step=60):
             int(epoch(requestContext["endTime"])),
             step, values, xFilesFactor=requestContext.get('xFilesFactor'))]
 
+randomWalkFunction.group = 'Special'
+randomWalkFunction.params = [
+  {
+    'name': 'name',
+    'type': 'string',
+    'required': True,
+  },
+  {
+    'name': 'step',
+    'type': 'integer',
+    'default': 60,
+  },
+]
+
 def seriesByTag(requestContext, *tagExpressions):
   """
   Returns a SeriesList of series matching all the specified tag expressions.
@@ -5843,6 +6138,16 @@ def seriesByTag(requestContext, *tagExpressions):
   See :ref:`querying tagged series <querying-tagged-series>` for more detail.
   """
   # the handling of seriesByTag is implemented in STORE.fetch
+
+seriesByTag.group = 'Special'
+seriesByTag.params = [
+  {
+    'name': 'tagExpressions',
+    'type': 'string',
+    'required': True,
+    'multiple': True,
+  },
+]
 
 def groupByTags(requestContext, seriesList, callback, *tags):
   """
@@ -5902,6 +6207,27 @@ def groupByTags(requestContext, seriesList, callback, *tags):
 
   return [metaSeries[key] for key in keys]
 
+groupByTags.group = 'Combine'
+groupByTags.params = [
+  {
+    'name': 'seriesList',
+    'type': 'seriesList',
+    'required': True,
+  },
+  {
+    'name': 'callback',
+    'type': 'aggFunc',
+    'required': True,
+    'options': list(aggFuncs.keys()),
+  },
+  {
+    'name': 'tags',
+    'type': 'tag',
+    'required': True,
+    'multiple': True,
+  },
+]
+
 def aliasByTags(requestContext, seriesList, *tags):
   """
   Takes a seriesList and applies an alias derived from one or more tags and/or nodes
@@ -5914,6 +6240,20 @@ def aliasByTags(requestContext, seriesList, *tags):
   """
   return aliasByNode(requestContext, seriesList, *tags)
 
+aliasByTags.group = 'Special'
+aliasByTags.params = [
+  {
+    'name': 'seriesList',
+    'type': 'seriesList',
+    'required': True,
+  },
+  {
+    'name': 'tags',
+    'type': 'nodeOrTag',
+    'required': True,
+    'multiple': True,
+  },
+]
 
 def events(requestContext, *tags):
   """
@@ -5958,6 +6298,16 @@ def events(requestContext, *tags):
   result_series = TimeSeries(name, start_timestamp, end_timestamp, step, values, 'sum', xFilesFactor=requestContext.get('xFilesFactor'))
   return [result_series]
 
+events.group = 'Special'
+events.params = [
+  {
+    'name': 'tags',
+    'type': 'string',
+    'required': True,
+    'multiple': True,
+  },
+]
+
 def minMax(requestContext, seriesList):
   """
   Applies the popular min max normalization technique, which takes
@@ -5989,15 +6339,53 @@ def minMax(requestContext, seriesList):
           series[i] = 0.0
   return seriesList
 
+minMax.group = 'Transform'
+minMax.params = [
+  {
+    'name': 'seriesList',
+    'type': 'seriesList',
+    'required': True,
+  },
+]
+
 def pieAverage(requestContext, series):
-  return safeDiv(safeSum(series),safeLen(series))
+  """Return the average"""
+  return safeDiv(safeSum(series), safeLen(series))
+
+pieAverage.group = 'Pie'
+pieAverage.params = [
+  {
+    'name': 'series',
+    'type': 'series',
+    'required': True,
+  },
+]
 
 def pieMaximum(requestContext, series):
-  return max(series)
+  """Return the maximum"""
+  return safeMax(series)
+
+pieMaximum.group = 'Pie'
+pieMaximum.params = [
+  {
+    'name': 'series',
+    'type': 'series',
+    'required': True,
+  },
+]
 
 def pieMinimum(requestContext, series):
-  return min(series)
+  """Return the minimum"""
+  return safeMin(series)
 
+pieMinimum.group = 'Pie'
+pieMinimum.params = [
+  {
+    'name': 'series',
+    'type': 'series',
+    'required': True,
+  },
+]
 
 PieFunctions = {
   'average': pieAverage,
