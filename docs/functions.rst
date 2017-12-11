@@ -38,10 +38,57 @@ Each exposed function must accept at least a ``requestContext`` and ``seriesList
 
     # optionally set the group attribute
     toUpperCase.group = 'Custom'
+    toUpperCase.params = [
+      {
+        'name': 'seriesList',
+        'type': 'seriesList',
+        'required': True,
+      },
+    ]
 
     SeriesFunctions = {
       'upper': toUpperCase,
     }
+
+Each function can have a docstring, ``.group``, and ``.params`` attributes defined, these are used in the function API output as hints for query builders.
+
+The ``.group`` attribute is the group name as a string, the ``.params`` attribute is a list of parameter definitions.
+
+Each parameter definition is a dict with the following attributes:
+
+``name``
+  The name of the parameter
+
+``type``
+  - ``aggFunc`` An aggregation function name
+  - ``boolean`` True/False
+  - ``date`` A date specification
+  - ``float`` A float value
+  - ``integer`` An integer value
+  - ``interval`` An interval specifier like ``1h``, ``1d``, etc
+  - ``intOrInterval`` An integer or interval specifier
+  - ``node`` A node number
+  - ``nodeOrTag`` A node number or tag name
+  - ``series`` A single series
+  - ``seriesList`` A list of series
+  - ``seriesLists`` A list of seriesLists
+  - ``string`` A string value
+  - ``tag`` A tag name
+
+``required``
+  Set to ``True`` for required parameters
+
+``default``
+  Default value for optional parameters
+
+``multiple``
+  Set to ``True`` for parameters that accept multiple instances (defined with `*` in Python)
+
+``options``
+  A list of available values for parameters that accept only a defined list
+
+``suggestions``
+  A list of suggested values for parameters that accept free-form values
 
 Custom plugin files may be placed in the ``/opt/graphite/webapp/graphite/functions/custom`` folder and will be loaded automatically when graphite starts.
 
