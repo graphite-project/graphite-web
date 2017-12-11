@@ -3294,8 +3294,8 @@ class FunctionsTest(TestCase):
             ]
         )
         expectedResult = [
-            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,4,3,5,6,7]),
             TimeSeries('collectd.test-db4.load.value',0,600,60,[10,9,8,7,6,7,8,9,10,None]),
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,4,3,5,6,7]),
         ]
 
         requestContext = {}
@@ -3420,8 +3420,8 @@ class FunctionsTest(TestCase):
         )
 
         expectedResult = [
-            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,4,3,5,6,7]),
             TimeSeries('collectd.test-db4.load.value',0,600,60,[10,9,8,7,6,7,8,9,10,None]),
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,4,3,5,6,7]),
         ]
 
         requestContext = {}
