@@ -212,10 +212,10 @@ def matchSeries(seriesList1, seriesList2):
   return izip(sorted(seriesList1, key=lambda a: a.name), sorted(seriesList2, key=lambda a: a.name))
 
 def formatPathExpressions(seriesList):
-   # remove duplicates
-   pathExpressions = []
-   [pathExpressions.append(s.pathExpression) for s in seriesList if not pathExpressions.count(s.pathExpression)]
-   return ','.join(pathExpressions)
+  # remove duplicates
+  pathExpressions = []
+  [pathExpressions.append(s.pathExpression) for s in seriesList if not pathExpressions.count(s.pathExpression)]
+  return ','.join(pathExpressions)
 
 # Series Functions
 
@@ -228,7 +228,7 @@ aggFuncs = {
   'diff': safeDiff,
   'stddev': safeStdDev,
   'count': safeLen,
-  'range': lambda row: safeSubtract(max(row), min(row)),
+  'range': lambda row: safeSubtract(safeMax(row), safeMin(row)),
   'multiply': lambda row: safeMul(*row),
   'last': safeLast,
 }
@@ -239,6 +239,15 @@ aggFuncAliases = {
   'total': aggFuncs['sum'],
   'current': aggFuncs['last'],
 }
+
+aggFuncNames = sorted(aggFuncs.keys())
+
+def getAggFunc(func, rawFunc=None):
+  if func in aggFuncs:
+    return aggFuncs[func]
+  if func in aggFuncAliases:
+    return aggFuncAliases[func]
+  raise ValueError('Unsupported aggregation function: %s' % (rawFunc or func))
 
 def aggregate(requestContext, seriesList, func, xFilesFactor=None):
   """
@@ -264,12 +273,7 @@ def aggregate(requestContext, seriesList, func, xFilesFactor=None):
   if func[-6:] == 'Series':
     func = func[:-6]
 
-  if func in aggFuncs:
-    consolidationFunc = aggFuncs[func]
-  elif func in aggFuncAliases:
-    consolidationFunc = aggFuncAliases[func]
-  else:
-    raise Exception('Unsupported aggregation function: %s' % (rawFunc))
+  consolidationFunc = getAggFunc(func, rawFunc)
 
   # if seriesList is empty then just short-circuit
   if not seriesList:
@@ -308,7 +312,7 @@ aggregate.params = [
     'name': 'func',
     'type': 'aggFunc',
     'required': True,
-    'options': list(aggFuncs.keys()),
+    'options': aggFuncNames,
   },
   {
     'name': 'xFilesFactor',
@@ -499,7 +503,7 @@ aggregateWithWildcards.params = [
     'name': 'func',
     'type': 'aggFunc',
     'required': True,
-    'options': list(aggFuncs.keys()),
+    'options': aggFuncNames,
   },
   {
     'name': 'position',
@@ -1312,12 +1316,7 @@ def movingWindow(requestContext, seriesList, windowSize, func='average', xFilesF
   else:
     previewSeconds = max([s.step for s in seriesList]) * int(windowSize)
 
-  if func in aggFuncs:
-    consolidateFunc = aggFuncs[func]
-  elif func in aggFuncAliases:
-    consolidateFunc = aggFuncAliases[func]
-  else:
-    raise Exception('Unsupported window function: %s' % (func))
+  consolidateFunc = getAggFunc(func)
 
   # ignore original data and pull new, including our preview
   # data from earlier is needed to calculate the early results
@@ -1370,7 +1369,7 @@ movingWindow.params = [
   {
     'name': 'func',
     'type': 'string',
-    'options': list(aggFuncs.keys()),
+    'options': aggFuncNames,
     'default': 'average',
   },
   {
@@ -1571,7 +1570,7 @@ scaleToSeconds.params = [
   },
   {
     'name': 'seconds',
-    'type': 'int',
+    'type': 'integer',
     'required': True,
   },
 ]
@@ -2288,7 +2287,7 @@ delay.params = [
   },
   {
     'name': 'steps',
-    'type': 'int',
+    'type': 'integer',
     'required': True,
   },
 ]
@@ -2884,7 +2883,7 @@ legendValue.params = [
     'name': 'valuesTypes',
     'type': 'string',
     'multiple': True,
-    'options': list(aggFuncs.keys()) + ['si', 'binary'],
+    'options': aggFuncNames + ['si', 'binary'],
   },
 ]
 
@@ -3062,12 +3061,7 @@ def filterSeries(requestContext, seriesList, func, operator, threshold):
 
   Supported operators: ``=``, ``!=``, ``>``, ``>=``, ``<`` & ``<=``.
   """
-  if func in aggFuncs:
-    consolidationFunc = aggFuncs[func]
-  elif func in aggFuncAliases:
-    consolidationFunc = aggFuncAliases[func]
-  else:
-    raise Exception('Unsupported aggregation function: %s' % (func))
+  consolidationFunc = getAggFunc(func)
 
   if operator in operatorFuncs:
     operatorFunc = operatorFuncs[operator]
@@ -3091,13 +3085,13 @@ filterSeries.params = [
     'name': 'func',
     'type': 'string',
     'required': True,
-    'options': list(aggFuncs.keys()),
+    'options': aggFuncNames,
   },
   {
     'name': 'operator',
     'type': 'string',
     'required': True,
-    'options': list(operatorFuncs.keys()),
+    'options': sorted(operatorFuncs.keys()),
   },
   {
     'name': 'threshold',
@@ -4900,12 +4894,7 @@ def aggregateLine(requestContext, seriesList, func='average'):
     &target=aggregateLine(server*.connections.total, 'avg')
 
   """
-  if func in aggFuncs:
-    aggFunc = aggFuncs[func]
-  elif func in aggFuncAliases:
-    aggFunc = aggFuncAliases[func]
-  else:
-    raise ValueError("Invalid function %s" % func)
+  aggFunc = getAggFunc(func)
 
   results = []
   for series in seriesList:
@@ -4932,7 +4921,7 @@ aggregateLine.params = [
     'name': 'func',
     'type': 'aggFunc',
     'default': 'average',
-    'options': list(aggFuncs.keys()),
+    'options': aggFuncNames,
   },
 ]
 
@@ -5466,7 +5455,7 @@ groupByNode.params = [
     'name': 'callback',
     'type': 'aggFunc',
     'default': 'average',
-    'options': list(aggFuncs.keys()),
+    'options': aggFuncNames,
     'required': True,
   },
 ]
@@ -5529,7 +5518,7 @@ groupByNodes.params = [
     'name': 'callback',
     'type': 'aggFunc',
     'required': True,
-    'options': list(aggFuncs.keys()),
+    'options': aggFuncNames,
   },
   {
     'name': 'nodes',
@@ -5666,7 +5655,7 @@ smartSummarize.params = [
     'name': 'func',
     'type': 'aggFunc',
     'default': 'sum',
-    'options': list(aggFuncs.keys()),
+    'options': aggFuncNames,
   },
   {
     'name': 'alignTo',
@@ -5749,7 +5738,7 @@ summarize.params = [
     'name': 'func',
     'type': 'aggFunc',
     'default': 'sum',
-    'options': list(aggFuncs.keys()),
+    'options': aggFuncNames,
   },
   {
     'name': 'alignToFrom',
@@ -5764,12 +5753,7 @@ def _summarizeValues(series, func, interval, newStart=None, newEnd=None):
   if newEnd is None:
     newEnd = series.end
 
-  if func in aggFuncs:
-    aggFunc = aggFuncs[func]
-  elif func in aggFuncAliases:
-    aggFunc = aggFuncAliases[func]
-  else:
-    raise Exception('Unsupported aggregation function: %s' % (func))
+  aggFunc = getAggFunc(func)
 
   timestamps = list(range( int(series.start), int(series.end), int(series.step)))
   datapoints = list(series)
@@ -6218,7 +6202,7 @@ groupByTags.params = [
     'name': 'callback',
     'type': 'aggFunc',
     'required': True,
-    'options': list(aggFuncs.keys()),
+    'options': aggFuncNames,
   },
   {
     'name': 'tags',
