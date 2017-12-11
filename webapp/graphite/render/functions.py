@@ -3936,11 +3936,6 @@ sortByTotal.params = [
     'type': 'seriesList',
     'required': True,
   },
-  {
-    'name': 'natural',
-    'type': 'boolean',
-    'default': False,
-  },
 ]
 
 def sortByMaxima(requestContext, seriesList):
