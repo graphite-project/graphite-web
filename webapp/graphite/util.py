@@ -297,6 +297,7 @@ class BufferedHTTPReader(io.IOBase):
 
 def jsonResponse(*args, **kwargs):
   encoder = kwargs.get('encoder')
+  default = kwargs.get('default')
 
   def decorator(f):
     @wraps(f)
@@ -310,11 +311,14 @@ def jsonResponse(*args, **kwargs):
         queryParams = {}
 
       try:
-        return _jsonResponse(f(request, queryParams, *args, **kwargs), queryParams, encoder=encoder)
+        return _jsonResponse(
+          f(request, queryParams, *args, **kwargs), queryParams, encoder=encoder, default=default)
       except ValueError as err:
-        return _jsonError(str(err), queryParams, status=getattr(err, 'status', 400), encoder=encoder)
+        return _jsonError(
+          str(err), queryParams, status=getattr(err, 'status', 400), encoder=encoder, default=default)
       except Exception as err:
-        return _jsonError(str(err), queryParams, status=getattr(err, 'status', 500), encoder=encoder)
+        return _jsonError(
+          str(err), queryParams, status=getattr(err, 'status', 500), encoder=encoder, default=default)
 
     return wrapped_f
 
@@ -332,7 +336,7 @@ class HttpError(Exception):
     self.status=status
 
 
-def _jsonResponse(data, queryParams, status=200, encoder=None):
+def _jsonResponse(data, queryParams, status=200, encoder=None, default=None):
   if isinstance(data, HttpResponse):
     return data
 
@@ -345,11 +349,13 @@ def _jsonResponse(data, queryParams, status=200, encoder=None):
       indent=(2 if queryParams.get('pretty') else None),
       sort_keys=bool(queryParams.get('pretty')),
       cls=encoder,
+      default=default
     ) if data is not None else 'null',
     content_type='application/json',
     status=status
   )
 
 
-def _jsonError(message, queryParams, status=500, encoder=None):
-  return _jsonResponse({'error': message}, queryParams, status=status, encoder=encoder)
+def _jsonError(message, queryParams, status=500, encoder=None, default=None):
+  return _jsonResponse(
+    {'error': message}, queryParams, status=status, encoder=encoder, default=default)

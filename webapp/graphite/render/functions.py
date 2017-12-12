@@ -37,7 +37,7 @@ from django.conf import settings
 
 from graphite.errors import NormalizeEmptyResultError
 from graphite.events import models
-from graphite.functions import SeriesFunction
+from graphite.functions import SeriesFunction, ParamTypes, Param
 from graphite.logger import log
 from graphite.render.attime import getUnitString, parseTimeOffset, parseATTime, SECONDS_STRING, MINUTES_STRING, HOURS_STRING, DAYS_STRING, WEEKS_STRING, MONTHS_STRING, YEARS_STRING
 from graphite.render.evaluator import evaluateTarget
@@ -302,22 +302,9 @@ def aggregate(requestContext, seriesList, func, xFilesFactor=None):
 
 aggregate.group = 'Combine'
 aggregate.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-    'multiple': True,
-  },
-  {
-    'name': 'func',
-    'type': 'aggFunc',
-    'required': True,
-    'options': aggFuncNames,
-  },
-  {
-    'name': 'xFilesFactor',
-    'type': 'float',
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True, multiple=True),
+  Param('func', ParamTypes.aggFunc, required=True, options=aggFuncNames),
+  Param('xFilesFactor', ParamTypes.float),
 ]
 
 def sumSeries(requestContext, *seriesLists):
@@ -344,12 +331,7 @@ def sumSeries(requestContext, *seriesLists):
 
 sumSeries.group = 'Combine'
 sumSeries.params = [
-  {
-    'name': 'seriesLists',
-    'type': 'seriesList',
-    'required': True,
-    'multiple': True,
-  },
+  Param('seriesLists', ParamTypes.seriesList, required=True, multiple=True),
 ]
 
 def sumSeriesWithWildcards(requestContext, seriesList, *position): #XXX
@@ -374,16 +356,8 @@ def sumSeriesWithWildcards(requestContext, seriesList, *position): #XXX
 
 sumSeriesWithWildcards.group = 'Combine'
 sumSeriesWithWildcards.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'position',
-    'type': 'node',
-    'multiple': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('position', ParamTypes.node, multiple=True),
 ]
 
 def averageSeriesWithWildcards(requestContext, seriesList, *position): #XXX
@@ -408,16 +382,8 @@ def averageSeriesWithWildcards(requestContext, seriesList, *position): #XXX
 
 averageSeriesWithWildcards.group = 'Combine'
 averageSeriesWithWildcards.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'position',
-    'type': 'node',
-    'multiple': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('position', ParamTypes.node, multiple=True),
 ]
 
 def multiplySeriesWithWildcards(requestContext, seriesList, *position): #XXX
@@ -442,16 +408,8 @@ def multiplySeriesWithWildcards(requestContext, seriesList, *position): #XXX
 
 multiplySeriesWithWildcards.group = 'Combine'
 multiplySeriesWithWildcards.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'position',
-    'type': 'node',
-    'multiple': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('position', ParamTypes.node, multiple=True),
 ]
 
 def aggregateWithWildcards(requestContext, seriesList, func, *positions):
@@ -494,22 +452,9 @@ def aggregateWithWildcards(requestContext, seriesList, func, *positions):
 
 aggregateWithWildcards.group = 'Combine'
 aggregateWithWildcards.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'func',
-    'type': 'aggFunc',
-    'required': True,
-    'options': aggFuncNames,
-  },
-  {
-    'name': 'position',
-    'type': 'node',
-    'multiple': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('func', ParamTypes.aggFunc, required=True, options=aggFuncNames),
+  Param('position', ParamTypes.node, multiple=True),
 ]
 
 def diffSeries(requestContext, *seriesLists):
@@ -539,12 +484,7 @@ def diffSeries(requestContext, *seriesLists):
 
 diffSeries.group = 'Combine'
 diffSeries.params = [
-  {
-    'name': 'seriesLists',
-    'type': 'seriesList',
-    'required': True,
-    'multiple': True,
-  },
+  Param('seriesLists', ParamTypes.seriesList, required=True, multiple=True),
 ]
 
 def averageSeries(requestContext, *seriesLists):
@@ -566,12 +506,7 @@ def averageSeries(requestContext, *seriesLists):
 
 averageSeries.group = 'Combine'
 averageSeries.params = [
-  {
-    'name': 'seriesLists',
-    'type': 'seriesList',
-    'required': True,
-    'multiple': True,
-  },
+  Param('seriesLists', ParamTypes.seriesList, required=True, multiple=True),
 ]
 
 def stddevSeries(requestContext, *seriesLists):
@@ -592,12 +527,7 @@ def stddevSeries(requestContext, *seriesLists):
 
 stddevSeries.group = 'Combine'
 stddevSeries.params = [
-  {
-    'name': 'seriesLists',
-    'type': 'seriesList',
-    'required': True,
-    'multiple': True,
-  },
+  Param('seriesLists', ParamTypes.seriesList, required=True, multiple=True),
 ]
 
 def minSeries(requestContext, *seriesLists):
@@ -617,12 +547,7 @@ def minSeries(requestContext, *seriesLists):
 
 minSeries.group = 'Combine'
 minSeries.params = [
-  {
-    'name': 'seriesLists',
-    'type': 'seriesList',
-    'required': True,
-    'multiple': True,
-  },
+  Param('seriesLists', ParamTypes.seriesList, required=True, multiple=True),
 ]
 
 def maxSeries(requestContext, *seriesLists):
@@ -642,12 +567,7 @@ def maxSeries(requestContext, *seriesLists):
 
 maxSeries.group = 'Combine'
 maxSeries.params = [
-  {
-    'name': 'seriesLists',
-    'type': 'seriesList',
-    'required': True,
-    'multiple': True,
-  },
+  Param('seriesLists', ParamTypes.seriesList, required=True, multiple=True),
 ]
 
 def rangeOfSeries(requestContext, *seriesLists):
@@ -667,12 +587,7 @@ def rangeOfSeries(requestContext, *seriesLists):
 
 rangeOfSeries.group = 'Combine'
 rangeOfSeries.params = [
-  {
-    'name': 'seriesLists',
-    'type': 'seriesList',
-    'required': True,
-    'multiple': True,
-  },
+  Param('seriesLists', ParamTypes.seriesList, required=True, multiple=True),
 ]
 
 def percentileOfSeries(requestContext, seriesList, n, interpolate=False):
@@ -698,21 +613,9 @@ def percentileOfSeries(requestContext, seriesList, n, interpolate=False):
 
 percentileOfSeries.group = 'Combine'
 percentileOfSeries.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'n',
-    'type': 'integer',
-    'required': True,
-  },
-  {
-    'name': 'interpolate',
-    'type': 'boolean',
-    'default': False,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
+  Param('interpolate', ParamTypes.boolean, default=False),
 ]
 
 def keepLastValue(requestContext, seriesList, limit = INF):
@@ -760,16 +663,8 @@ def keepLastValue(requestContext, seriesList, limit = INF):
 
 keepLastValue.group = 'Transform'
 keepLastValue.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'limit',
-    'type': 'integer',
-    'default': 'INF',
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('limit', ParamTypes.integer, default='INF'),
 ]
 
 def interpolate(requestContext, seriesList, limit = INF):
@@ -822,16 +717,8 @@ def interpolate(requestContext, seriesList, limit = INF):
 
 interpolate.group = 'Transform'
 interpolate.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'limit',
-    'type': 'integer',
-    'default': 'INF',
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('limit', ParamTypes.integer, default='INF'),
 ]
 
 def changed(requestContext, seriesList):
@@ -863,11 +750,7 @@ def changed(requestContext, seriesList):
 
 changed.group = 'Special'
 changed.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
 ]
 
 def asPercent(requestContext, seriesList, total=None, *nodes):
@@ -1050,20 +933,9 @@ def asPercent(requestContext, seriesList, total=None, *nodes):
 
 asPercent.group = 'Combine'
 asPercent.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'total',
-    'type': 'seriesList',
-  },
-  {
-    'name': 'nodes',
-    'type': 'nodeOrTag',
-    'multiple': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('total', ParamTypes.seriesList),
+  Param('nodes', ParamTypes.nodeOrTag, multiple=True),
 ]
 
 def divideSeriesLists(requestContext, dividendSeriesList, divisorSeriesList):
@@ -1102,16 +974,8 @@ def divideSeriesLists(requestContext, dividendSeriesList, divisorSeriesList):
 
 divideSeriesLists.group = 'Combine'
 divideSeriesLists.params = [
-  {
-    'name': 'dividendSeriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'divisorSeriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
+  Param('dividendSeriesList', ParamTypes.seriesList, required=True),
+  Param('divisorSeriesList', ParamTypes.seriesList, required=True),
 ]
 
 def divideSeries(requestContext, dividendSeriesList, divisorSeries):
@@ -1163,16 +1027,8 @@ def divideSeries(requestContext, dividendSeriesList, divisorSeries):
 
 divideSeries.group = 'Combine'
 divideSeries.params = [
-  {
-    'name': 'dividendSeriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'divisorSeries',
-    'type': 'seriesList',
-    'required': True,
-  },
+  Param('dividendSeriesList', ParamTypes.seriesList, required=True),
+  Param('divisorSeries', ParamTypes.seriesList, required=True),
 ]
 
 def multiplySeries(requestContext, *seriesLists):
@@ -1196,12 +1052,7 @@ def multiplySeries(requestContext, *seriesLists):
 
 multiplySeries.group = 'Combine'
 multiplySeries.params = [
-  {
-    'name': 'seriesLists',
-    'type': 'seriesList',
-    'required': True,
-    'multiple': True,
-  },
+  Param('seriesLists', ParamTypes.seriesList, required=True, multiple=True),
 ]
 
 def weightedAverage(requestContext, seriesListAvg, seriesListWeight, *nodes):
@@ -1262,21 +1113,9 @@ def weightedAverage(requestContext, seriesListAvg, seriesListWeight, *nodes):
 
 weightedAverage.group = 'Combine'
 weightedAverage.params = [
-  {
-    'name': 'seriesListAvg',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'seriesListWeight',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'nodes',
-    'type': 'nodeOrTag',
-    'multiple': True,
-  },
+  Param('seriesListAvg', ParamTypes.seriesList, required=True),
+  Param('seriesListWeight', ParamTypes.seriesList, required=True),
+  Param('nodes', ParamTypes.nodeOrTag, multiple=True),
 ]
 
 intOrIntervalSuggestions = [5, 7, 10, '1min', '5min', '10min', '30min', '1hour']
@@ -1355,27 +1194,10 @@ def movingWindow(requestContext, seriesList, windowSize, func='average', xFilesF
 
 movingWindow.group = 'Calculate'
 movingWindow.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'windowSize',
-    'type': 'intOrInterval',
-    'required': True,
-    'suggestions': intOrIntervalSuggestions,
-  },
-  {
-    'name': 'func',
-    'type': 'string',
-    'options': aggFuncNames,
-    'default': 'average',
-  },
-  {
-    'name': 'xFilesFactor',
-    'type': 'float',
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('windowSize', ParamTypes.intOrInterval, required=True, suggestions=intOrIntervalSuggestions),
+  Param('func', ParamTypes.string, options=aggFuncNames, default='average'),
+  Param('xFilesFactor', ParamTypes.float),
 ]
 
 def exponentialMovingAverage(requestContext, seriesList, windowSize):
@@ -1448,17 +1270,8 @@ def exponentialMovingAverage(requestContext, seriesList, windowSize):
 
 exponentialMovingAverage.group = 'Calculate'
 exponentialMovingAverage.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'windowSize',
-    'type': 'intOrInterval',
-    'required': True,
-    'suggestions': intOrIntervalSuggestions,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('windowSize', ParamTypes.intOrInterval, required=True, suggestions=intOrIntervalSuggestions),
 ]
 
 def movingMedian(requestContext, seriesList, windowSize, xFilesFactor=None):
@@ -1484,21 +1297,9 @@ def movingMedian(requestContext, seriesList, windowSize, xFilesFactor=None):
 
 movingMedian.group = 'Calculate'
 movingMedian.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'windowSize',
-    'type': 'intOrInterval',
-    'required': True,
-    'suggestions': intOrIntervalSuggestions,
-  },
-  {
-    'name': 'xFilesFactor',
-    'type': 'float',
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('windowSize', ParamTypes.intOrInterval, required=True, suggestions=intOrIntervalSuggestions),
+  Param('xFilesFactor', ParamTypes.float),
 ]
 
 def scale(requestContext, seriesList, factor):
@@ -1524,16 +1325,8 @@ def scale(requestContext, seriesList, factor):
 
 scale.group = 'Transform'
 scale.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'factor',
-    'type': 'float',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('factor', ParamTypes.float, required=True),
 ]
 
 def scaleToSeconds(requestContext, seriesList, seconds):
@@ -1563,16 +1356,8 @@ def scaleToSeconds(requestContext, seriesList, seconds):
 
 scaleToSeconds.group = 'Transform'
 scaleToSeconds.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'seconds',
-    'type': 'integer',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('seconds', ParamTypes.integer, required=True),
 ]
 
 def pow(requestContext, seriesList, factor):
@@ -1598,16 +1383,8 @@ def pow(requestContext, seriesList, factor):
 
 pow.group = 'Transform'
 pow.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'factor',
-    'type': 'float',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('factor', ParamTypes.float, required=True),
 ]
 
 def powSeries(requestContext, *seriesLists):
@@ -1646,12 +1423,7 @@ def powSeries(requestContext, *seriesLists):
 
 powSeries.group = 'Transform'
 powSeries.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-    'multiple': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True, multiple=True),
 ]
 
 def squareRoot(requestContext, seriesList):
@@ -1675,11 +1447,7 @@ def squareRoot(requestContext, seriesList):
 
 squareRoot.group = 'Transform'
 squareRoot.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
 ]
 
 def invert(requestContext, seriesList):
@@ -1703,11 +1471,7 @@ def invert(requestContext, seriesList):
 
 invert.group = 'Transform'
 invert.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
 ]
 
 def absolute(requestContext, seriesList):
@@ -1732,11 +1496,7 @@ def absolute(requestContext, seriesList):
 
 absolute.group = 'Transform'
 absolute.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
 ]
 
 def offset(requestContext, seriesList, factor):
@@ -1762,16 +1522,8 @@ def offset(requestContext, seriesList, factor):
 
 offset.group = 'Transform'
 offset.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'factor',
-    'type': 'float',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('factor', ParamTypes.float, required=True),
 ]
 
 def offsetToZero(requestContext, seriesList):
@@ -1816,11 +1568,7 @@ def offsetToZero(requestContext, seriesList):
 
 offsetToZero.group = 'Transform'
 offsetToZero.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
 ]
 
 def roundFunction(requestContext, seriesList, precision=None):
@@ -1850,16 +1598,8 @@ def roundFunction(requestContext, seriesList, precision=None):
 
 roundFunction.group = 'Transform'
 roundFunction.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'precision',
-    'type': 'integer',
-    'default': 0,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('precision', ParamTypes.integer, default=0),
 ]
 
 def movingAverage(requestContext, seriesList, windowSize, xFilesFactor=None):
@@ -1885,21 +1625,9 @@ def movingAverage(requestContext, seriesList, windowSize, xFilesFactor=None):
 
 movingAverage.group = 'Calculate'
 movingAverage.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'windowSize',
-    'type': 'intOrInterval',
-    'required': True,
-    'suggestions': intOrIntervalSuggestions,
-  },
-  {
-    'name': 'xFilesFactor',
-    'type': 'float',
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('windowSize', ParamTypes.intOrInterval, required=True, suggestions=intOrIntervalSuggestions),
+  Param('xFilesFactor', ParamTypes.float),
 ]
 
 def movingSum(requestContext, seriesList, windowSize, xFilesFactor=None):
@@ -1925,21 +1653,9 @@ def movingSum(requestContext, seriesList, windowSize, xFilesFactor=None):
 
 movingSum.group = 'Calculate'
 movingSum.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'windowSize',
-    'type': 'intOrInterval',
-    'required': True,
-    'suggestions': intOrIntervalSuggestions,
-  },
-  {
-    'name': 'xFilesFactor',
-    'type': 'float',
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('windowSize', ParamTypes.intOrInterval, required=True, suggestions=intOrIntervalSuggestions),
+  Param('xFilesFactor', ParamTypes.float),
 ]
 
 def movingMin(requestContext, seriesList, windowSize, xFilesFactor=None):
@@ -1965,21 +1681,9 @@ def movingMin(requestContext, seriesList, windowSize, xFilesFactor=None):
 
 movingMin.group = 'Calculate'
 movingMin.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'windowSize',
-    'type': 'intOrInterval',
-    'required': True,
-    'suggestions': intOrIntervalSuggestions,
-  },
-  {
-    'name': 'xFilesFactor',
-    'type': 'float',
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('windowSize', ParamTypes.intOrInterval, required=True, suggestions=intOrIntervalSuggestions),
+  Param('xFilesFactor', ParamTypes.float),
 ]
 
 def movingMax(requestContext, seriesList, windowSize, xFilesFactor=None):
@@ -2005,21 +1709,9 @@ def movingMax(requestContext, seriesList, windowSize, xFilesFactor=None):
 
 movingMax.group = 'Calculate'
 movingMax.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'windowSize',
-    'type': 'intOrInterval',
-    'required': True,
-    'suggestions': intOrIntervalSuggestions,
-  },
-  {
-    'name': 'xFilesFactor',
-    'type': 'float',
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('windowSize', ParamTypes.intOrInterval, required=True, suggestions=intOrIntervalSuggestions),
+  Param('xFilesFactor', ParamTypes.float),
 ]
 
 def cumulative(requestContext, seriesList):
@@ -2044,11 +1736,7 @@ def cumulative(requestContext, seriesList):
 
 cumulative.group = 'Special'
 cumulative.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
 ]
 
 def consolidateBy(requestContext, seriesList, consolidationFunc):
@@ -2080,17 +1768,8 @@ def consolidateBy(requestContext, seriesList, consolidationFunc):
 
 consolidateBy.group = 'Special'
 consolidateBy.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'consolidationFunc',
-    'type': 'string',
-    'required': True,
-    'options': ['sum', 'average', 'min', 'max', 'first', 'last'],
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('consolidationFunc', ParamTypes.string, required=True, options=['sum', 'average', 'min', 'max', 'first', 'last']),
 ]
 
 def setXFilesFactor(requestContext, seriesList, xFilesFactor):
@@ -2130,16 +1809,8 @@ def setXFilesFactor(requestContext, seriesList, xFilesFactor):
 
 setXFilesFactor.group = 'Special'
 setXFilesFactor.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'xFilesFactor',
-    'type': 'float',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('xFilesFactor', ParamTypes.float, required=True),
 ]
 
 def derivative(requestContext, seriesList):
@@ -2180,11 +1851,7 @@ def derivative(requestContext, seriesList):
 
 derivative.group = 'Transform'
 derivative.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
 ]
 
 def perSecond(requestContext, seriesList, maxValue=None):
@@ -2231,15 +1898,8 @@ def perSecond(requestContext, seriesList, maxValue=None):
 
 perSecond.group = 'Transform'
 perSecond.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'maxValue',
-    'type': 'float',
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('maxValue', ParamTypes.float),
 ]
 
 def delay(requestContext, seriesList, steps):
@@ -2280,16 +1940,8 @@ def delay(requestContext, seriesList, steps):
 
 delay.group = 'Transform'
 delay.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'steps',
-    'type': 'integer',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('steps', ParamTypes.integer, required=True),
 ]
 
 def integral(requestContext, seriesList):
@@ -2325,11 +1977,7 @@ def integral(requestContext, seriesList):
 
 integral.group = 'Transform'
 integral.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
 ]
 
 def integralByInterval(requestContext, seriesList, intervalUnit):
@@ -2373,16 +2021,8 @@ def integralByInterval(requestContext, seriesList, intervalUnit):
 
 integralByInterval.group = 'Transform'
 integralByInterval.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'intervalUnit',
-    'type': 'string',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('intervalUnit', ParamTypes.string, required=True),
 ]
 
 def nonNegativeDerivative(requestContext, seriesList, maxValue=None):
@@ -2419,15 +2059,8 @@ def nonNegativeDerivative(requestContext, seriesList, maxValue=None):
 
 nonNegativeDerivative.group = 'Transform'
 nonNegativeDerivative.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'maxValue',
-    'type': 'float',
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('maxValue', ParamTypes.float),
 ]
 
 def _nonNegativeDelta(val, prev, maxValue):
@@ -2501,15 +2134,8 @@ def stacked(requestContext,seriesLists,stackName='__DEFAULT__'):
 
 stacked.group = 'Graph'
 stacked.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'stack',
-    'type': 'string',
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('stack', ParamTypes.string),
 ]
 
 def areaBetween(requestContext, seriesList):
@@ -2557,11 +2183,7 @@ def areaBetween(requestContext, seriesList):
 
 areaBetween.group = 'Graph'
 areaBetween.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
 ]
 
 def aliasSub(requestContext, seriesList, search, replace):
@@ -2581,21 +2203,9 @@ def aliasSub(requestContext, seriesList, search, replace):
 
 aliasSub.group = 'Alias'
 aliasSub.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'search',
-    'type': 'string',
-    'required': True,
-  },
-  {
-    'name': 'replace',
-    'type': 'string',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('search', ParamTypes.string, required=True),
+  Param('replace', ParamTypes.string, required=True),
 ]
 
 def aliasQuery(requestContext, seriesList, search, replace, newName):
@@ -2623,26 +2233,10 @@ def aliasQuery(requestContext, seriesList, search, replace, newName):
 
 aliasQuery.group = 'Alias'
 aliasQuery.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'search',
-    'type': 'string',
-    'required': True,
-  },
-  {
-    'name': 'replace',
-    'type': 'string',
-    'required': True,
-  },
-  {
-    'name': 'newName',
-    'type': 'string',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('search', ParamTypes.string, required=True),
+  Param('replace', ParamTypes.string, required=True),
+  Param('newName', ParamTypes.string, required=True),
 ]
 
 def alias(requestContext, seriesList, newName):
@@ -2664,16 +2258,8 @@ def alias(requestContext, seriesList, newName):
 
 alias.group = 'Alias'
 alias.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'newName',
-    'type': 'string',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('newName', ParamTypes.string, required=True),
 ]
 
 def cactiStyle(requestContext, seriesList, system=None, units=None):
@@ -2746,20 +2332,9 @@ def cactiStyle(requestContext, seriesList, system=None, units=None):
 
 cactiStyle.group = 'Special'
 cactiStyle.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'system',
-    'type': 'string',
-    'options': ['si', 'binary'],
-  },
-  {
-    'name': 'units',
-    'type': 'string',
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('system', ParamTypes.string, options=['si', 'binary']),
+  Param('units', ParamTypes.string),
 ]
 
 def _getFirstPathExpression(name):
@@ -2803,17 +2378,8 @@ def aliasByNode(requestContext, seriesList, *nodes):
 
 aliasByNode.group = 'Alias'
 aliasByNode.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'nodes',
-    'type': 'nodeOrTag',
-    'required': True,
-    'multiple': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('nodes', ParamTypes.nodeOrTag, required=True, multiple=True),
 ]
 
 def aliasByMetric(requestContext, seriesList):
@@ -2829,11 +2395,7 @@ def aliasByMetric(requestContext, seriesList):
 
 aliasByMetric.group = 'Alias'
 aliasByMetric.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
 ]
 
 def legendValue(requestContext, seriesList, *valueTypes):
@@ -2874,17 +2436,8 @@ def legendValue(requestContext, seriesList, *valueTypes):
 
 legendValue.group = 'Alias'
 legendValue.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'valuesTypes',
-    'type': 'string',
-    'multiple': True,
-    'options': aggFuncNames + ['si', 'binary'],
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('valuesTypes', ParamTypes.string, multiple=True, options=aggFuncNames + ['si', 'binary']),
 ]
 
 def alpha(requestContext, seriesList, alpha):
@@ -2897,16 +2450,8 @@ def alpha(requestContext, seriesList, alpha):
 
 alpha.group = 'Graph'
 alpha.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'alpha',
-    'type': 'float',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('alpha', ParamTypes.float, required=True),
 ]
 
 def color(requestContext, seriesList, theColor):
@@ -2929,16 +2474,8 @@ def color(requestContext, seriesList, theColor):
 
 color.group = 'Graph'
 color.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'theColor',
-    'type': 'string',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('theColor', ParamTypes.string, required=True),
 ]
 
 def substr(requestContext, seriesList, start=0, stop=0):
@@ -2975,21 +2512,9 @@ def substr(requestContext, seriesList, start=0, stop=0):
 
 substr.group = 'Special'
 substr.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'start',
-    'type': 'node',
-    'default': 0,
-  },
-  {
-    'name': 'stop',
-    'type': 'node',
-    'default': 0,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('start', ParamTypes.node, default=0),
+  Param('stop', ParamTypes.node, default=0),
 ]
 
 def logarithm(requestContext, seriesList, base=10):
@@ -3022,16 +2547,8 @@ def logarithm(requestContext, seriesList, base=10):
 
 logarithm.group = 'Transform'
 logarithm.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'base',
-    'type': 'integer',
-    'default': 10,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('base', ParamTypes.integer, default=10),
 ]
 
 operatorFuncs = {
@@ -3075,28 +2592,10 @@ def filterSeries(requestContext, seriesList, func, operator, threshold):
 
 filterSeries.group = 'Filter Series'
 filterSeries.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'func',
-    'type': 'string',
-    'required': True,
-    'options': aggFuncNames,
-  },
-  {
-    'name': 'operator',
-    'type': 'string',
-    'required': True,
-    'options': sorted(operatorFuncs.keys()),
-  },
-  {
-    'name': 'threshold',
-    'type': 'float',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('func', ParamTypes.string, required=True, options=aggFuncNames),
+  Param('operator', ParamTypes.string, required=True, options=sorted(operatorFuncs.keys())),
+  Param('threshold', ParamTypes.float, required=True),
 ]
 
 def maximumAbove(requestContext, seriesList, n):
@@ -3116,16 +2615,8 @@ def maximumAbove(requestContext, seriesList, n):
 
 maximumAbove.group = 'Filter Series'
 maximumAbove.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'n',
-    'type': 'integer',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
 ]
 
 def minimumAbove(requestContext, seriesList, n):
@@ -3145,16 +2636,8 @@ def minimumAbove(requestContext, seriesList, n):
 
 minimumAbove.group = 'Filter Series'
 minimumAbove.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'n',
-    'type': 'integer',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
 ]
 
 def maximumBelow(requestContext, seriesList, n):
@@ -3174,16 +2657,8 @@ def maximumBelow(requestContext, seriesList, n):
 
 maximumBelow.group = 'Filter Series'
 maximumBelow.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'n',
-    'type': 'integer',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
 ]
 
 def minimumBelow(requestContext, seriesList, n):
@@ -3203,16 +2678,8 @@ def minimumBelow(requestContext, seriesList, n):
 
 minimumBelow.group = 'Filter Series'
 minimumBelow.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'n',
-    'type': 'integer',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
 ]
 
 def highest(requestContext, seriesList, n=1, func='average'):
@@ -3234,22 +2701,9 @@ def highest(requestContext, seriesList, n=1, func='average'):
 
 highest.group = 'Filter Series'
 highest.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'n',
-    'type': 'integer',
-    'required': True,
-  },
-  {
-    'name': 'func',
-    'type': 'string',
-    'options': aggFuncNames,
-    'default': 'average',
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
+  Param('func', ParamTypes.string, options=aggFuncNames, default='average'),
 ]
 
 def lowest(requestContext, seriesList, n=1, func='average'):
@@ -3271,22 +2725,9 @@ def lowest(requestContext, seriesList, n=1, func='average'):
 
 lowest.group = 'Filter Series'
 lowest.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'n',
-    'type': 'integer',
-    'required': True,
-  },
-  {
-    'name': 'func',
-    'type': 'string',
-    'options': aggFuncNames,
-    'default': 'average',
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
+  Param('func', ParamTypes.string, options=aggFuncNames, default='average'),
 ]
 
 def highestCurrent(requestContext, seriesList, n):
@@ -3309,16 +2750,8 @@ def highestCurrent(requestContext, seriesList, n):
 
 highestCurrent.group = 'Filter Series'
 highestCurrent.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'n',
-    'type': 'integer',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
 ]
 
 def highestMax(requestContext, seriesList, n):
@@ -3343,16 +2776,8 @@ def highestMax(requestContext, seriesList, n):
 
 highestMax.group = 'Filter Series'
 highestMax.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'n',
-    'type': 'integer',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
 ]
 
 def lowestCurrent(requestContext, seriesList, n):
@@ -3375,16 +2800,8 @@ def lowestCurrent(requestContext, seriesList, n):
 
 lowestCurrent.group = 'Filter Series'
 lowestCurrent.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'n',
-    'type': 'integer',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
 ]
 
 def currentAbove(requestContext, seriesList, n):
@@ -3406,16 +2823,8 @@ def currentAbove(requestContext, seriesList, n):
 
 currentAbove.group = 'Filter Series'
 currentAbove.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'n',
-    'type': 'integer',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
 ]
 
 def currentBelow(requestContext, seriesList, n):
@@ -3437,16 +2846,8 @@ def currentBelow(requestContext, seriesList, n):
 
 currentBelow.group = 'Filter Series'
 currentBelow.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'n',
-    'type': 'integer',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
 ]
 
 def highestAverage(requestContext, seriesList, n):
@@ -3469,16 +2870,8 @@ def highestAverage(requestContext, seriesList, n):
 
 highestAverage.group = 'Filter Series'
 highestAverage.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'n',
-    'type': 'integer',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
 ]
 
 def lowestAverage(requestContext, seriesList, n):
@@ -3501,16 +2894,8 @@ def lowestAverage(requestContext, seriesList, n):
 
 lowestAverage.group = 'Filter Series'
 lowestAverage.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'n',
-    'type': 'integer',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
 ]
 
 def averageAbove(requestContext, seriesList, n):
@@ -3531,16 +2916,8 @@ def averageAbove(requestContext, seriesList, n):
 
 averageAbove.group = 'Filter Series'
 averageAbove.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'n',
-    'type': 'integer',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
 ]
 
 def averageBelow(requestContext, seriesList, n):
@@ -3561,16 +2938,8 @@ def averageBelow(requestContext, seriesList, n):
 
 averageBelow.group = 'Filter Series'
 averageBelow.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'n',
-    'type': 'integer',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
 ]
 
 def _getPercentile(points, n, interpolate=False):
@@ -3625,16 +2994,8 @@ def nPercentile(requestContext, seriesList, n):
 
 nPercentile.group = 'Calculate'
 nPercentile.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'n',
-    'type': 'integer',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
 ]
 
 def averageOutsidePercentile(requestContext, seriesList, n):
@@ -3653,16 +3014,8 @@ def averageOutsidePercentile(requestContext, seriesList, n):
 
 averageOutsidePercentile.group = 'Filter Series'
 averageOutsidePercentile.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'n',
-    'type': 'integer',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
 ]
 
 def removeBetweenPercentile(requestContext, seriesList, n):
@@ -3682,16 +3035,8 @@ def removeBetweenPercentile(requestContext, seriesList, n):
 
 removeBetweenPercentile.group = 'Filter Series'
 removeBetweenPercentile.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'n',
-    'type': 'integer',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
 ]
 
 def removeAbovePercentile(requestContext, seriesList, n):
@@ -3714,16 +3059,8 @@ def removeAbovePercentile(requestContext, seriesList, n):
 
 removeAbovePercentile.group = 'Filter Data'
 removeAbovePercentile.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'n',
-    'type': 'integer',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
 ]
 
 def removeAboveValue(requestContext, seriesList, n):
@@ -3742,16 +3079,8 @@ def removeAboveValue(requestContext, seriesList, n):
 
 removeAboveValue.group = 'Filter Data'
 removeAboveValue.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'n',
-    'type': 'integer',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
 ]
 
 def removeBelowPercentile(requestContext, seriesList, n):
@@ -3774,16 +3103,8 @@ def removeBelowPercentile(requestContext, seriesList, n):
 
 removeBelowPercentile.group = 'Filter Data'
 removeBelowPercentile.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'n',
-    'type': 'integer',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
 ]
 
 def removeBelowValue(requestContext, seriesList, n):
@@ -3802,16 +3123,8 @@ def removeBelowValue(requestContext, seriesList, n):
 
 removeBelowValue.group = 'Filter Data'
 removeBelowValue.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'n',
-    'type': 'integer',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
 ]
 
 def limit(requestContext, seriesList, n):
@@ -3833,16 +3146,8 @@ def limit(requestContext, seriesList, n):
 
 limit.group = 'Filter Series'
 limit.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'n',
-    'type': 'integer',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
 ]
 
 def sortBy(requestContext, seriesList, func='average', reverse=False):
@@ -3865,22 +3170,9 @@ def sortBy(requestContext, seriesList, func='average', reverse=False):
 
 sortBy.group = 'Sorting'
 sortBy.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'func',
-    'type': 'string',
-    'options': aggFuncNames,
-    'default': 'average',
-  },
-  {
-    'name': 'reverse',
-    'type': 'boolean',
-    'default': False,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('func', ParamTypes.string, options=aggFuncNames, default='average'),
+  Param('reverse', ParamTypes.boolean, default=False),
 ]
 
 def sortByName(requestContext, seriesList, natural=False, reverse=False):
@@ -3903,21 +3195,9 @@ def sortByName(requestContext, seriesList, natural=False, reverse=False):
 
 sortByName.group = 'Sorting'
 sortByName.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'natural',
-    'type': 'boolean',
-    'default': False,
-  },
-  {
-    'name': 'reverse',
-    'type': 'boolean',
-    'default': False,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('natural', ParamTypes.boolean, default=False),
+  Param('reverse', ParamTypes.boolean, default=False),
 ]
 
 def sortByTotal(requestContext, seriesList):
@@ -3931,11 +3211,7 @@ def sortByTotal(requestContext, seriesList):
 
 sortByTotal.group = 'Sorting'
 sortByTotal.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
 ]
 
 def sortByMaxima(requestContext, seriesList):
@@ -3958,11 +3234,7 @@ def sortByMaxima(requestContext, seriesList):
 
 sortByMaxima.group = 'Sorting'
 sortByMaxima.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
 ]
 
 def sortByMinima(requestContext, seriesList):
@@ -3985,11 +3257,7 @@ def sortByMinima(requestContext, seriesList):
 
 sortByMinima.group = 'Sorting'
 sortByMinima.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
 ]
 
 def useSeriesAbove(requestContext, seriesList, value, search, replace):
@@ -4022,26 +3290,10 @@ def useSeriesAbove(requestContext, seriesList, value, search, replace):
 
 useSeriesAbove.group = 'Filter Series'
 useSeriesAbove.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'value',
-    'type': 'string',
-    'required': True,
-  },
-  {
-    'name': 'search',
-    'type': 'string',
-    'required': True,
-  },
-  {
-    'name': 'replace',
-    'type': 'string',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('value', ParamTypes.string, required=True),
+  Param('search', ParamTypes.string, required=True),
+  Param('replace', ParamTypes.string, required=True),
 ]
 
 def fallbackSeries(requestContext, seriesList, fallback):
@@ -4065,16 +3317,8 @@ def fallbackSeries(requestContext, seriesList, fallback):
 
 fallbackSeries.group = 'Special'
 fallbackSeries.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'fallback',
-    'type': 'seriesList',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('fallback', ParamTypes.seriesList, required=True),
 ]
 
 def mostDeviant(requestContext, seriesList, n):
@@ -4107,16 +3351,8 @@ def mostDeviant(requestContext, seriesList, n):
 
 mostDeviant.group = 'Filter Series'
 mostDeviant.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'n',
-    'type': 'integer',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
 ]
 
 def stdev(requestContext, seriesList, points, windowTolerance=0.1):
@@ -4189,21 +3425,9 @@ def stdev(requestContext, seriesList, points, windowTolerance=0.1):
 
 stdev.group = 'Calculate'
 stdev.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'points',
-    'type': 'integer',
-    'required': True,
-  },
-  {
-    'name': 'windowTolerance',
-    'type': 'float',
-    'default': 0.1,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('points', ParamTypes.integer, required=True),
+  Param('windowTolerance', ParamTypes.float, default=0.1),
 ]
 
 def secondYAxis(requestContext, seriesList):
@@ -4218,11 +3442,7 @@ def secondYAxis(requestContext, seriesList):
 
 secondYAxis.group = 'Graph'
 secondYAxis.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
 ]
 
 def holtWintersIntercept(alpha,actual,last_season,last_intercept,last_slope):
@@ -4360,17 +3580,8 @@ def holtWintersForecast(requestContext, seriesList, bootstrapInterval='7d'):
 
 holtWintersForecast.group = 'Calculate'
 holtWintersForecast.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'bootstrapInterval',
-    'type': 'interval',
-    'default': '7d',
-    'suggestions': ['7d', '30d'],
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('bootstrapInterval', ParamTypes.interval, default='7d', suggestions=['7d', '30d']),
 ]
 
 def holtWintersConfidenceBands(requestContext, seriesList, delta=3, bootstrapInterval='7d'):
@@ -4435,22 +3646,9 @@ def holtWintersConfidenceBands(requestContext, seriesList, delta=3, bootstrapInt
 
 holtWintersConfidenceBands.group = 'Calculate'
 holtWintersConfidenceBands.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'delta',
-    'type': 'integer',
-    'default': 3,
-  },
-  {
-    'name': 'bootstrapInterval',
-    'type': 'interval',
-    'default': '7d',
-    'suggestions': ['7d', '30d'],
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('delta', ParamTypes.integer, default=3),
+  Param('bootstrapInterval', ParamTypes.interval, default='7d', suggestions=['7d', '30d']),
 ]
 
 def holtWintersAberration(requestContext, seriesList, delta=3, bootstrapInterval='7d'):
@@ -4482,22 +3680,9 @@ def holtWintersAberration(requestContext, seriesList, delta=3, bootstrapInterval
 
 holtWintersAberration.group = 'Calculate'
 holtWintersAberration.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'delta',
-    'type': 'integer',
-    'default': 3,
-  },
-  {
-    'name': 'bootstrapInterval',
-    'type': 'interval',
-    'default': '7d',
-    'suggestions': ['7d', '30d'],
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('delta', ParamTypes.integer, default=3),
+  Param('bootstrapInterval', ParamTypes.interval, default='7d', suggestions=['7d', '30d']),
 ]
 
 def holtWintersConfidenceArea(requestContext, seriesList, delta=3, bootstrapInterval='7d'):
@@ -4517,22 +3702,9 @@ def holtWintersConfidenceArea(requestContext, seriesList, delta=3, bootstrapInte
 
 holtWintersConfidenceArea.group = 'Calculate'
 holtWintersConfidenceArea.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'delta',
-    'type': 'integer',
-    'default': 3,
-  },
-  {
-    'name': 'bootstrapInterval',
-    'type': 'interval',
-    'default': '7d',
-    'suggestions': ['7d', '30d'],
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('delta', ParamTypes.integer, default=3),
+  Param('bootstrapInterval', ParamTypes.interval, default='7d', suggestions=['7d', '30d']),
 ]
 
 def linearRegressionAnalysis(series):
@@ -4598,19 +3770,9 @@ def linearRegression(requestContext, seriesList, startSourceAt=None, endSourceAt
 
 linearRegression.group = 'Calculate'
 linearRegression.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'startSourceAt',
-    'type': 'date',
-  },
-  {
-    'name': 'endSourceAt',
-    'type': 'date',
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('startSourceAt', ParamTypes.date),
+  Param('endSourceAt', ParamTypes.date),
 ]
 
 def drawAsInfinite(requestContext, seriesList):
@@ -4638,11 +3800,7 @@ def drawAsInfinite(requestContext, seriesList):
 
 drawAsInfinite.group = 'Graph'
 drawAsInfinite.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
 ]
 
 def lineWidth(requestContext, seriesList, width):
@@ -4668,16 +3826,8 @@ def lineWidth(requestContext, seriesList, width):
 
 lineWidth.group = 'Graph'
 lineWidth.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'width',
-    'type': 'float',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('width', ParamTypes.float, required=True),
 ]
 
 def dashed(requestContext, seriesList, dashLength=5):
@@ -4702,15 +3852,8 @@ def dashed(requestContext, seriesList, dashLength=5):
 
 dashed.group = 'Graph'
 dashed.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'dashLength',
-    'type': 'integer',
-  }
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('dashLength', ParamTypes.integer, default=5),
 ]
 
 def timeStack(requestContext, seriesList, timeShiftUnit='1d', timeShiftStart=0, timeShiftEnd=7):
@@ -4762,27 +3905,10 @@ def timeStack(requestContext, seriesList, timeShiftUnit='1d', timeShiftStart=0, 
 
 timeStack.group = 'Transform'
 timeStack.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'timeShiftUnit',
-    'type': 'interval',
-    'default': '1d',
-    'suggestions': ['1h', '6h', '12h', '1d', '2d', '7d', '14d', '30d'],
-  },
-  {
-    'name': 'timeShiftStart',
-    'type': 'integer',
-    'default': 0,
-  },
-  {
-    'name': 'timeShiftEnd',
-    'type': 'integer',
-    'default': 7,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('timeShiftUnit', ParamTypes.interval, default='1d', suggestions=['1h', '6h', '12h', '1d', '2d', '7d', '14d', '30d']),
+  Param('timeShiftStart', ParamTypes.integer, default=0),
+  Param('timeShiftEnd', ParamTypes.integer, default=7),
 ]
 
 def timeShift(requestContext, seriesList, timeShift, resetEnd=True, alignDST=False):
@@ -4863,27 +3989,10 @@ def timeShift(requestContext, seriesList, timeShift, resetEnd=True, alignDST=Fal
 
 timeShift.group = 'Transform'
 timeShift.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'timeShift',
-    'type': 'interval',
-    'required': True,
-    'suggestions': ['1h', '6h', '12h', '1d', '2d', '7d', '14d', '30d'],
-  },
-  {
-    'name': 'resetEnd',
-    'type': 'boolean',
-    'default': True,
-  },
-  {
-    'name': 'alignDst',
-    'type': 'boolean',
-    'default': False,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('timeShift', ParamTypes.interval, required=True, suggestions=['1h', '6h', '12h', '1d', '2d', '7d', '14d', '30d']),
+  Param('resetEnd', ParamTypes.boolean, default=True),
+  Param('alignDst', ParamTypes.boolean, default=False),
 ]
 
 def timeSlice(requestContext, seriesList, startSliceAt, endSliceAt="now"):
@@ -4926,21 +4035,9 @@ def timeSlice(requestContext, seriesList, startSliceAt, endSliceAt="now"):
 
 timeSlice.group = 'Transform'
 timeSlice.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'startSliceAt',
-    'type': 'date',
-    'required': True,
-  },
-  {
-    'name': 'endSliceAt',
-    'type': 'date',
-    'default': 'now',
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('startSliceAt', ParamTypes.date, required=True),
+  Param('endSliceAt', ParamTypes.date, default='now'),
 ]
 
 def constantLine(requestContext, value):
@@ -4966,11 +4063,7 @@ def constantLine(requestContext, value):
 
 constantLine.group = 'Special'
 constantLine.params = [
-  {
-    'name': 'value',
-    'type': 'float',
-    'required': True,
-  },
+  Param('value', ParamTypes.float, required=True),
 ]
 
 def aggregateLine(requestContext, seriesList, func='average'):
@@ -5013,17 +4106,8 @@ def aggregateLine(requestContext, seriesList, func='average'):
 
 aggregateLine.group = 'Calculate'
 aggregateLine.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'func',
-    'type': 'aggFunc',
-    'default': 'average',
-    'options': aggFuncNames,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('func', ParamTypes.aggFunc, default='average', options=aggFuncNames),
 ]
 
 def verticalLine(requestContext, ts, label=None, color=None):
@@ -5065,19 +4149,9 @@ def verticalLine(requestContext, ts, label=None, color=None):
 
 verticalLine.group = 'Graph'
 verticalLine.params = [
-  {
-    'name': 'ts',
-    'type': 'date',
-    'required': True,
-  },
-  {
-    'name': 'label',
-    'type': 'string',
-  },
-  {
-    'name': 'color',
-    'type': 'string',
-  },
+  Param('ts', ParamTypes.date, required=True),
+  Param('label', ParamTypes.string),
+  Param('color', ParamTypes.string),
 ]
 
 def threshold(requestContext, value, label=None, color=None):
@@ -5103,19 +4177,9 @@ def threshold(requestContext, value, label=None, color=None):
 
 threshold.group = 'Graph'
 threshold.params = [
-  {
-    'name': 'value',
-    'type': 'float',
-    'required': True,
-  },
-  {
-    'name': 'label',
-    'type': 'string',
-  },
-  {
-    'name': 'color',
-    'type': 'string',
-  },
+  Param('value', ParamTypes.float, required=True),
+  Param('label', ParamTypes.string),
+  Param('color', ParamTypes.string),
 ]
 
 def transformNull(requestContext, seriesList, default=0, referenceSeries=None):
@@ -5165,20 +4229,9 @@ def transformNull(requestContext, seriesList, default=0, referenceSeries=None):
 
 transformNull.group = 'Transform'
 transformNull.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'default',
-    'type': 'float',
-    'default': 0,
-  },
-  {
-    'name': 'referenceSeries',
-    'type': 'seriesList',
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('default', ParamTypes.float, default=0),
+  Param('referenceSeries', ParamTypes.seriesList),
 ]
 
 def isNonNull(requestContext, seriesList):
@@ -5212,11 +4265,7 @@ def isNonNull(requestContext, seriesList):
 
 isNonNull.group = 'Combine'
 isNonNull.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
 ]
 
 def identity(requestContext, name):
@@ -5246,11 +4295,7 @@ def identity(requestContext, name):
 
 identity.group = 'Calculate'
 identity.params = [
-  {
-    'name': 'name',
-    'type': 'string',
-    'required': True,
-  },
+  Param('name', ParamTypes.string, required=True),
 ]
 
 def countSeries(requestContext, *seriesLists):
@@ -5276,11 +4321,7 @@ def countSeries(requestContext, *seriesLists):
 
 countSeries.group = 'Combine'
 countSeries.params = [
-  {
-    'name': 'seriesLists',
-    'type': 'seriesList',
-    'multiple': True,
-  },
+  Param('seriesLists', ParamTypes.seriesList, multiple=True),
 ]
 
 def group(requestContext, *seriesLists):
@@ -5296,11 +4337,7 @@ def group(requestContext, *seriesLists):
 
 group.group = 'Combine'
 group.params = [
-  {
-    'name': 'seriesLists',
-    'type': 'seriesList',
-    'multiple': True,
-  },
+  Param('seriesLists', ParamTypes.seriesList, multiple=True),
 ]
 
 def mapSeries(requestContext, seriesList, *mapNodes):
@@ -5338,17 +4375,8 @@ def mapSeries(requestContext, seriesList, *mapNodes):
 
 mapSeries.group = 'Combine'
 mapSeries.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'mapNodes',
-    'type': 'nodeOrTag',
-    'required': True,
-    'multiple': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('mapNodes', ParamTypes.nodeOrTag, required=True, multiple=True),
 ]
 
 def reduceSeries(requestContext, seriesLists, reduceFunction, reduceNode, *reduceMatchers):
@@ -5422,27 +4450,10 @@ def reduceSeries(requestContext, seriesLists, reduceFunction, reduceNode, *reduc
 
 reduceSeries.group = 'Combine'
 reduceSeries.params = [
-  {
-    'name': 'seriesLists',
-    'type': 'seriesLists',
-    'required': True,
-  },
-  {
-    'name': 'reduceFunction',
-    'type': 'string',
-    'required': True,
-  },
-  {
-    'name': 'reduceNode',
-    'type': 'node',
-    'required': True,
-  },
-  {
-    'name': 'reduceMatchers',
-    'type': 'string',
-    'required': True,
-    'multiple': True,
-  },
+  Param('seriesLists', ParamTypes.seriesLists, required=True),
+  Param('reduceFunction', ParamTypes.string, required=True),
+  Param('reduceNode', ParamTypes.node, required=True),
+  Param('reduceMatchers', ParamTypes.string, required=True, multiple=True),
 ]
 
 def applyByNode(requestContext, seriesList, nodeNum, templateFunction, newName=None):
@@ -5498,25 +4509,10 @@ def applyByNode(requestContext, seriesList, nodeNum, templateFunction, newName=N
 
 applyByNode.group = 'Combine'
 applyByNode.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'nodeNum',
-    'type': 'node',
-    'required': True,
-  },
-  {
-    'name': 'templateFunction',
-    'type': 'string',
-    'required': True,
-  },
-  {
-    'name': 'newName',
-    'type': 'string',
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('nodeNum', ParamTypes.node, required=True),
+  Param('templateFunction', ParamTypes.string, required=True),
+  Param('newName', ParamTypes.string),
 ]
 
 def groupByNode(requestContext, seriesList, nodeNum, callback='average'):
@@ -5542,23 +4538,9 @@ def groupByNode(requestContext, seriesList, nodeNum, callback='average'):
 
 groupByNode.group = 'Combine'
 groupByNode.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'nodeNum',
-    'type': 'nodeOrTag',
-    'required': True,
-  },
-  {
-    'name': 'callback',
-    'type': 'aggFunc',
-    'default': 'average',
-    'options': aggFuncNames,
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('nodeNum', ParamTypes.nodeOrTag, required=True),
+  Param('callback', ParamTypes.aggFunc, default='average', options=aggFuncNames, required=True),
 ]
 
 def groupByNodes(requestContext, seriesList, callback, *nodes):
@@ -5610,23 +4592,9 @@ def groupByNodes(requestContext, seriesList, callback, *nodes):
 
 groupByNodes.group = 'Combine'
 groupByNodes.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'callback',
-    'type': 'aggFunc',
-    'required': True,
-    'options': aggFuncNames,
-  },
-  {
-    'name': 'nodes',
-    'type': 'nodeOrTag',
-    'required': True,
-    'multiple': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('callback', ParamTypes.aggFunc, required=True, options=aggFuncNames),
+  Param('nodes', ParamTypes.nodeOrTag, required=True, multiple=True),
 ]
 
 def exclude(requestContext, seriesList, pattern):
@@ -5645,16 +4613,8 @@ def exclude(requestContext, seriesList, pattern):
 
 exclude.group = 'Filter Series'
 exclude.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'pattern',
-    'type': 'string',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('pattern', ParamTypes.string, required=True),
 ]
 
 def grep(requestContext, seriesList, pattern):
@@ -5673,16 +4633,8 @@ def grep(requestContext, seriesList, pattern):
 
 grep.group = 'Filter Series'
 grep.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'pattern',
-    'type': 'string',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('pattern', ParamTypes.string, required=True),
 ]
 
 def smartSummarize(requestContext, seriesList, intervalString, func='sum', alignTo=None):
@@ -5741,28 +4693,10 @@ def smartSummarize(requestContext, seriesList, intervalString, func='sum', align
 
 smartSummarize.group = 'Transform'
 smartSummarize.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'intervalString',
-    'type': 'interval',
-    'required': True,
-    'suggestions': ['10min', '1h', '1d'],
-  },
-  {
-    'name': 'func',
-    'type': 'aggFunc',
-    'default': 'sum',
-    'options': aggFuncNames,
-  },
-  {
-    'name': 'alignTo',
-    'type': 'string',
-    'options': [None, YEARS_STRING, MONTHS_STRING, WEEKS_STRING, DAYS_STRING, HOURS_STRING, MINUTES_STRING, SECONDS_STRING],
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('intervalString', ParamTypes.interval, required=True, suggestions=['10min', '1h', '1d']),
+  Param('func', ParamTypes.aggFunc, default='sum', options=aggFuncNames),
+  Param('alignTo', ParamTypes.string, options=[None, YEARS_STRING, MONTHS_STRING, WEEKS_STRING, DAYS_STRING, HOURS_STRING, MINUTES_STRING, SECONDS_STRING]),
 ]
 
 def summarize(requestContext, seriesList, intervalString, func='sum', alignToFrom=False):
@@ -5824,28 +4758,10 @@ def summarize(requestContext, seriesList, intervalString, func='sum', alignToFro
 
 summarize.group = 'Transform'
 summarize.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'intervalString',
-    'type': 'interval',
-    'required': True,
-    'suggestions': ['10min', '1h', '1d'],
-  },
-  {
-    'name': 'func',
-    'type': 'aggFunc',
-    'default': 'sum',
-    'options': aggFuncNames,
-  },
-  {
-    'name': 'alignToFrom',
-    'type': 'boolean',
-    'default': False,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('intervalString', ParamTypes.interval, required=True, suggestions=['10min', '1h', '1d']),
+  Param('func', ParamTypes.aggFunc, default='sum', options=aggFuncNames),
+  Param('alignToFrom', ParamTypes.boolean, default=False),
 ]
 
 def _summarizeValues(series, func, interval, newStart=None, newEnd=None):
@@ -5968,22 +4884,9 @@ def hitcount(requestContext, seriesList, intervalString, alignToInterval = False
 
 hitcount.group = 'Transform'
 hitcount.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'intervalString',
-    'type': 'interval',
-    'required': True,
-    'suggestions': ['10min', '1h', '1d'],
-  },
-  {
-    'name': 'alignToInterval',
-    'type': 'boolean',
-    'default': False,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('intervalString', ParamTypes.interval, required=True, suggestions=['10min', '1h', '1d']),
+  Param('alignToInterval', ParamTypes.boolean, default=False),
 ]
 
 def timeFunction(requestContext, name, step=60):
@@ -6020,16 +4923,8 @@ def timeFunction(requestContext, name, step=60):
 
 timeFunction.group = 'Transform'
 timeFunction.params = [
-  {
-    'name': 'name',
-    'type': 'string',
-    'required': True,
-  },
-  {
-    'name': 'step',
-    'type': 'integer',
-    'default': 60,
-  },
+  Param('name', ParamTypes.string, required=True),
+  Param('step', ParamTypes.integer, default=60),
 ]
 
 def sinFunction(requestContext, name, amplitude=1, step=60):
@@ -6064,21 +4959,9 @@ def sinFunction(requestContext, name, amplitude=1, step=60):
 
 sinFunction.group = 'Transform'
 sinFunction.params = [
-  {
-    'name': 'name',
-    'type': 'string',
-    'required': True,
-  },
-  {
-    'name': 'amplitude',
-    'type': 'integer',
-    'default': 1,
-  },
-  {
-    'name': 'step',
-    'type': 'integer',
-    'default': 60,
-  },
+  Param('name', ParamTypes.string, required=True),
+  Param('amplitude', ParamTypes.integer, default=1),
+  Param('step', ParamTypes.integer, default=60),
 ]
 
 def removeEmptySeries(requestContext, seriesList, xFilesFactor=None):
@@ -6104,16 +4987,8 @@ def removeEmptySeries(requestContext, seriesList, xFilesFactor=None):
 
 removeEmptySeries.group = 'Filter Series'
 removeEmptySeries.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'xFilesFactor',
-    'type': 'float',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('xFilesFactor', ParamTypes.float, required=True),
 ]
 
 def unique(requestContext, *seriesLists):
@@ -6140,12 +5015,7 @@ def unique(requestContext, *seriesLists):
 
 unique.group = 'Filter Series'
 unique.params = [
-  {
-    'name': 'seriesLists',
-    'type': 'seriesList',
-    'required': True,
-    'multiple': True,
-  },
+  Param('seriesLists', ParamTypes.seriesList, required=True, multiple=True),
 ]
 
 def randomWalkFunction(requestContext, name, step=60):
@@ -6181,16 +5051,8 @@ def randomWalkFunction(requestContext, name, step=60):
 
 randomWalkFunction.group = 'Special'
 randomWalkFunction.params = [
-  {
-    'name': 'name',
-    'type': 'string',
-    'required': True,
-  },
-  {
-    'name': 'step',
-    'type': 'integer',
-    'default': 60,
-  },
+  Param('name', ParamTypes.string, required=True),
+  Param('step', ParamTypes.integer, default=60),
 ]
 
 def seriesByTag(requestContext, *tagExpressions):
@@ -6226,12 +5088,7 @@ def seriesByTag(requestContext, *tagExpressions):
 
 seriesByTag.group = 'Special'
 seriesByTag.params = [
-  {
-    'name': 'tagExpressions',
-    'type': 'string',
-    'required': True,
-    'multiple': True,
-  },
+  Param('tagExpressions', ParamTypes.string, required=True, multiple=True),
 ]
 
 def groupByTags(requestContext, seriesList, callback, *tags):
@@ -6294,23 +5151,9 @@ def groupByTags(requestContext, seriesList, callback, *tags):
 
 groupByTags.group = 'Combine'
 groupByTags.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'callback',
-    'type': 'aggFunc',
-    'required': True,
-    'options': aggFuncNames,
-  },
-  {
-    'name': 'tags',
-    'type': 'tag',
-    'required': True,
-    'multiple': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('callback', ParamTypes.aggFunc, required=True, options=aggFuncNames),
+  Param('tags', ParamTypes.tag, required=True, multiple=True),
 ]
 
 def aliasByTags(requestContext, seriesList, *tags):
@@ -6327,17 +5170,8 @@ def aliasByTags(requestContext, seriesList, *tags):
 
 aliasByTags.group = 'Alias'
 aliasByTags.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
-  {
-    'name': 'tags',
-    'type': 'nodeOrTag',
-    'required': True,
-    'multiple': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('tags', ParamTypes.nodeOrTag, required=True, multiple=True),
 ]
 
 def events(requestContext, *tags):
@@ -6385,12 +5219,7 @@ def events(requestContext, *tags):
 
 events.group = 'Special'
 events.params = [
-  {
-    'name': 'tags',
-    'type': 'string',
-    'required': True,
-    'multiple': True,
-  },
+  Param('tags', ParamTypes.string, required=True, multiple=True),
 ]
 
 def minMax(requestContext, seriesList):
@@ -6426,11 +5255,7 @@ def minMax(requestContext, seriesList):
 
 minMax.group = 'Transform'
 minMax.params = [
-  {
-    'name': 'seriesList',
-    'type': 'seriesList',
-    'required': True,
-  },
+  Param('seriesList', ParamTypes.seriesList, required=True),
 ]
 
 def pieAverage(requestContext, series):
@@ -6439,11 +5264,7 @@ def pieAverage(requestContext, series):
 
 pieAverage.group = 'Pie'
 pieAverage.params = [
-  {
-    'name': 'series',
-    'type': 'series',
-    'required': True,
-  },
+  Param('series', ParamTypes.series, required=True),
 ]
 
 def pieMaximum(requestContext, series):
@@ -6452,11 +5273,7 @@ def pieMaximum(requestContext, series):
 
 pieMaximum.group = 'Pie'
 pieMaximum.params = [
-  {
-    'name': 'series',
-    'type': 'series',
-    'required': True,
-  },
+  Param('series', ParamTypes.series, required=True),
 ]
 
 def pieMinimum(requestContext, series):
@@ -6465,11 +5282,7 @@ def pieMinimum(requestContext, series):
 
 pieMinimum.group = 'Pie'
 pieMinimum.params = [
-  {
-    'name': 'series',
-    'type': 'series',
-    'required': True,
-  },
+  Param('series', ParamTypes.series, required=True),
 ]
 
 PieFunctions = {

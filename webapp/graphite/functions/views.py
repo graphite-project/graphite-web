@@ -1,7 +1,12 @@
 from graphite.util import jsonResponse, HttpResponse, HttpError
 from graphite.functions import SeriesFunctions, SeriesFunction, PieFunctions, PieFunction, functionInfo
 
-@jsonResponse
+def jsonEncoder(obj):
+  if hasattr(obj, 'toJSON'):
+    return obj.toJSON()
+  return obj.__dict__
+
+@jsonResponse(default=jsonEncoder)
 def functionList(request, queryParams):
   if request.method != 'GET':
     return HttpResponse(status=405)
@@ -29,7 +34,7 @@ def functionList(request, queryParams):
 
   return result
 
-@jsonResponse
+@jsonResponse(default=jsonEncoder)
 def functionDetails(request, queryParams, name):
   if request.method != 'GET':
     return HttpResponse(status=405)

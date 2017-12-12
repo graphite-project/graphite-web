@@ -6,6 +6,9 @@ from os.path import dirname, join, splitext
 
 from django.conf import settings
 
+from graphite.functions.params import Param, ParamTypes  # noqa
+from graphite.logger import log
+
 customDir = join(dirname(__file__), 'custom')
 customModPrefix = 'graphite.functions.custom.'
 
@@ -32,9 +35,35 @@ def loadFunctions(force=False):
     custom_modules.append(customModPrefix + module_name)
 
   for module_name in custom_modules + settings.FUNCTION_PLUGINS:
-    module = import_module(module_name)
-    _SeriesFunctions.update(getattr(module, 'SeriesFunctions', {}))
-    _PieFunctions.update(getattr(module, 'PieFunctions', {}))
+    try:
+      module = import_module(module_name)
+    except Exception as e:
+      log.warning('Error loading function plugin %s: %s' % (module_name, e))
+      continue
+
+    for func_name, func in getattr(module, 'SeriesFunctions', {}).items():
+      try:
+        addFunction(_SeriesFunctions, func, func_name)
+      except Exception as e:
+        log.warning('Error loading function plugin %s: %s' % (module_name, e))
+
+    for func_name, func in getattr(module, 'PieFunctions', {}).items():
+      try:
+        addFunction(_PieFunctions, func, func_name)
+      except Exception as e:
+        log.warning('Error loading function plugin %s: %s' % (module_name, e))
+
+def addFunction(dest, func, func_name):
+  if not hasattr(func, 'group'):
+    func.group = 'Ungrouped'
+
+  if not hasattr(func, 'params'):
+    raise Exception('No params defined for %s' % func_name)
+
+  for param in func.params:
+    if not isinstance(param, Param):
+      raise Exception('Invalid param specified for %s' % func_name)
+    dest[func_name] = func
 
 def SeriesFunctions():
   loadFunctions()

@@ -29,7 +29,7 @@ from graphite.storage import extractForwardHeaders
 from graphite.logger import log
 from graphite.render.evaluator import evaluateTarget
 from graphite.render.attime import parseATTime
-from graphite.functions import PieFunction
+from graphite.functions import loadFunctions, PieFunction
 from graphite.render.hashing import hashRequest, hashData
 from graphite.render.glyph import GraphTypes
 from graphite.tags.models import Series, Tag, TagValue, SeriesTag  # noqa # pylint: disable=unused-import
@@ -42,6 +42,8 @@ from django.conf import settings
 from django.utils.cache import add_never_cache_headers, patch_response_headers
 from six.moves import zip
 
+
+loadFunctions()
 
 def renderView(request):
   start = time()

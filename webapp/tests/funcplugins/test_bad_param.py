@@ -7,6 +7,7 @@ def test(seriesList):
 test.group = 'Test'
 test.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
+  'bad param',
 ]
 
 SeriesFunctions = {
@@ -20,6 +21,7 @@ def pieTest(series):
 pieTest.group = 'Test'
 pieTest.params = [
   Param('series', ParamTypes.series, required=True),
+  'bad param',
 ]
 
 PieFunctions = {

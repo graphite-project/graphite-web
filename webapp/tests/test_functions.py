@@ -6164,7 +6164,7 @@ class FunctionsTest(TestCase):
         loadFunctions(force=True)
         self.assertNotIn('testFunc', _SeriesFunctions)
 
-        #load plugins from config setting
+        # load plugins from config setting
         with self.settings(FUNCTION_PLUGINS=['tests.funcplugins.test']):
             loadFunctions(force=True)
             self.assertIn('testFunc', _SeriesFunctions)
