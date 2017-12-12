@@ -22,12 +22,12 @@ for paramType in [
 class Param(object):
   __slots__ = ('name', 'type', 'required', 'default', 'multiple', 'options', 'suggestions')
 
-  def __init__(self, name, type, required=False, default=None, multiple=False, options=None,
+  def __init__(self, name, paramtype, required=False, default=None, multiple=False, options=None,
                suggestions=None):
     self.name = name
-    if not hasattr(ParamTypes, type):
-      raise Exception('Invalid type %s for parameter %s' % (type, name))
-    self.type = type
+    if not hasattr(ParamTypes, paramtype):
+      raise Exception('Invalid type %s for parameter %s' % (paramtype, name))
+    self.type = paramtype
     self.required = bool(required)
     self.default = default
     self.multiple = bool(multiple)

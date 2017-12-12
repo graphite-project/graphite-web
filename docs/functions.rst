@@ -30,6 +30,8 @@ Each exposed function must accept at least a ``requestContext`` and ``seriesList
 
 .. code-block:: python
 
+    from graphite.functions.params import Param, ParamTypes
+
     def toUpperCase(requestContext, seriesList):
       """Custom function that changes series names to UPPERCASE"""
       for series in seriesList:
@@ -39,11 +41,7 @@ Each exposed function must accept at least a ``requestContext`` and ``seriesList
     # optionally set the group attribute
     toUpperCase.group = 'Custom'
     toUpperCase.params = [
-      {
-        'name': 'seriesList',
-        'type': 'seriesList',
-        'required': True,
-      },
+      Param('seriesList', ParamTypes.seriesList', required=True),
     ]
 
     SeriesFunctions = {
@@ -54,25 +52,25 @@ Each function can have a docstring, ``.group``, and ``.params`` attributes defin
 
 The ``.group`` attribute is the group name as a string, the ``.params`` attribute is a list of parameter definitions.
 
-Each parameter definition is a dict with the following attributes (note that `requestContext` is not included):
+Each parameter definition is ``Param`` object, the ``Param`` constructor accepts the following arguments (note that `requestContext` is not included in the list of parameters):
 
 - **name**: The name of the parameter
-- **type**: The parameter type, one of:
+- **paramtype**: The parameter type, one of:
 
-  - **aggFunc**: An aggregation function name
-  - **boolean**: True/False
-  - **date**: A date specification
-  - **float**: A float value
-  - **integer**: An integer value
-  - **interval**: An interval specifier like ``1h``, ``1d``, etc
-  - **intOrInterval**: An integer or interval specifier
-  - **node**: A node number
-  - **nodeOrTag**: A node number or tag name
-  - **series**: A single series
-  - **seriesList**: A list of series
-  - **seriesLists**: A list of seriesLists
-  - **string**: A string value
-  - **tag**: A tag name
+  - **ParamTypes.aggFunc**: An aggregation function name
+  - **ParamTypes.boolean**: True/False
+  - **ParamTypes.date**: A date specification
+  - **ParamTypes.float**: A float value
+  - **ParamTypes.integer**: An integer value
+  - **ParamTypes.interval**: An interval specifier like ``1h``, ``1d``, etc
+  - **ParamTypes.intOrInterval**: An integer or interval specifier
+  - **ParamTypes.node**: A node number
+  - **ParamTypes.nodeOrTag**: A node number or tag name
+  - **ParamTypes.series**: A single series
+  - **ParamTypes.seriesList**: A list of series
+  - **ParamTypes.seriesLists**: A list of seriesLists
+  - **ParamTypes.string**: A string value
+  - **ParamTypes.tag**: A tag name
 
 - **required**: Set to ``True`` for required parameters
 - **default**: Default value for optional parameters
@@ -89,3 +87,66 @@ To load a packaged function plugin module, add it to the ``FUNCTION_PLUGINS`` se
     FUNCTION_PLUGINS = [
       'some.function_plugin',
     ]
+
+Function API
+------------
+
+You can use the HTTP api to get a list of available functions, or the details of a specific function.
+
+To get a list of available functions:
+
+.. code-block:: none
+
+    $ curl -s "http://graphite/functions?pretty=1"
+
+    {
+      "absolute": {
+        "description": "<function description>",
+        "function": "absolute(seriesList)",
+        "group": "Transform",
+        "module": "graphite.render.functions",
+        "name": "absolute",
+        "params": [
+          {
+            "name": "seriesList",
+            "required": true,
+            "type": "seriesList"
+          }
+        ]
+      },
+      <more functions...>
+    }
+
+If the parameter ``grouped=1`` is passed, the returned list will be organized by group:
+
+.. code-block:: none
+
+    $ curl -s "http://graphite/functions?pretty=1&grouped=1"
+
+    {
+      "Alias": {
+        <alias functions...>
+      },
+      <more groups...>
+    }
+
+To get the definition of a specific function:
+
+.. code-block:: none
+
+    $ curl -s "http://graphite/functions/absolute?pretty=1"
+
+    {
+      "description": "<function description>",
+      "function": "absolute(seriesList)",
+      "group": "Transform",
+      "module": "graphite.render.functions",
+      "name": "absolute",
+      "params": [
+        {
+          "name": "seriesList",
+          "required": true,
+          "type": "seriesList"
+        }
+      ]
+    }
