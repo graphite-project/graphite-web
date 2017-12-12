@@ -41,7 +41,7 @@ Each exposed function must accept at least a ``requestContext`` and ``seriesList
     # optionally set the group attribute
     toUpperCase.group = 'Custom'
     toUpperCase.params = [
-      Param('seriesList', ParamTypes.seriesList', required=True),
+      Param('seriesList', ParamTypes.seriesList, required=True),
     ]
 
     SeriesFunctions = {
