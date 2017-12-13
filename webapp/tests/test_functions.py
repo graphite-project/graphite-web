@@ -1,4 +1,5 @@
 import copy
+import inspect
 import math
 import pytz
 import six
@@ -6,17 +7,25 @@ import six
 from datetime import datetime
 from fnmatch import fnmatch
 from mock import patch, call, MagicMock
+from os.path import dirname, join
+from six.moves import range
 
 from .base import TestCase
 from django.conf import settings
 
+try:
+  from django.urls import reverse
+except ImportError:  # Django < 1.10
+  from django.core.urlresolvers import reverse
+
+from graphite.errors import NormalizeEmptyResultError
+from graphite.functions import _SeriesFunctions, loadFunctions
 from graphite.render.datalib import TimeSeries
 from graphite.render import functions
-from graphite.render.functions import NormalizeEmptyResultError
 from graphite.render.evaluator import evaluateTarget
-from graphite.tags.utils import TaggedSeries
 from graphite.render.grammar import grammar
-from six.moves import range
+from graphite.tags.utils import TaggedSeries
+from graphite.util import json
 
 
 def return_greater(series, value):
@@ -3285,8 +3294,8 @@ class FunctionsTest(TestCase):
             ]
         )
         expectedResult = [
-            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,4,3,5,6,7]),
             TimeSeries('collectd.test-db4.load.value',0,600,60,[10,9,8,7,6,7,8,9,10,None]),
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,4,3,5,6,7]),
         ]
 
         requestContext = {}
@@ -3411,8 +3420,8 @@ class FunctionsTest(TestCase):
         )
 
         expectedResult = [
-            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,4,3,5,6,7]),
             TimeSeries('collectd.test-db4.load.value',0,600,60,[10,9,8,7,6,7,8,9,10,None]),
+            TimeSeries('collectd.test-db1.load.value',0,600,60,[1,2,3,4,5,4,3,5,6,7]),
         ]
 
         requestContext = {}
@@ -3629,7 +3638,7 @@ class FunctionsTest(TestCase):
             ]
         )
 
-        with self.assertRaisesRegexp(ValueError, 'Invalid function bad'):
+        with self.assertRaisesRegexp(ValueError, '^Unsupported aggregation function: bad$'):
           result = functions.aggregateLine(
             self._build_requestContext(
                 startTime=datetime(1970,1,1,1,0,0,0,pytz.timezone(settings.TIME_ZONE)),
@@ -3680,7 +3689,7 @@ class FunctionsTest(TestCase):
         ]
         resultSeriesList = [TimeSeries('mock(series)',0,1,1,[None])]
         mock = MagicMock(return_value = resultSeriesList)
-        with patch.dict(functions.SeriesFunctions,{ 'mock': mock }):
+        with patch.dict(_SeriesFunctions,{ 'mock': mock }):
             results = functions.reduceSeries({}, copy.deepcopy(inputList), "mock", 2, "metric1","metric2" )
             self.assertEqual(results,expectedResult)
         self.assertEqual(mock.mock_calls,
@@ -4204,7 +4213,7 @@ class FunctionsTest(TestCase):
             )
 
         with patch('graphite.render.functions.evaluateTarget', mock_evaluateTarget):
-            with self.assertRaisesRegexp(Exception, '^Unsupported window function: invalid$'):
+            with self.assertRaisesRegexp(ValueError, '^Unsupported aggregation function: invalid$'):
                 functions.movingWindow(request_context, seriesList, 5, 'invalid')
 
     def test_movingWindow_xFilesFactor(self):
@@ -4288,7 +4297,7 @@ class FunctionsTest(TestCase):
             )
 
         expectedResults = [
-            TimeSeries('movingMedian(collectd.test-db0.load.value,10)', 20, 30, 1, [None, 0, 1, 1, 2, 2, 3, 3, 4, 4])
+            TimeSeries('movingMedian(collectd.test-db0.load.value,10)', 20, 30, 1, [None, 0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4])
         ]
 
         with patch('graphite.render.functions.evaluateTarget', mock_evaluateTarget):
@@ -4299,6 +4308,7 @@ class FunctionsTest(TestCase):
                 ),
                 seriesList, 10
             )
+        self.assertEqual(list(result[0]), list(expectedResults[0]))
         self.assertEqual(result, expectedResults)
 
     def test_movingMedian_evaluateTarget_returns_empty_list(self):
@@ -4341,7 +4351,7 @@ class FunctionsTest(TestCase):
             )
 
         expectedResults = [
-            TimeSeries('movingMedian(collectd.test-db0.load.value,60)', 660, 700, 1, list(range(30, 70))),
+            TimeSeries('movingMedian(collectd.test-db0.load.value,60)', 660, 700, 1, [x - 0.5 for x in range(30, 70)]),
         ]
 
         with patch('graphite.render.functions.evaluateTarget', mock_evaluateTarget):
@@ -4352,6 +4362,7 @@ class FunctionsTest(TestCase):
                 ),
                 seriesList, 60
             )
+        self.assertEqual(list(result[0]), list(expectedResults[0]))
         self.assertEqual(result, expectedResults)
 
     def test_movingMedian_stringWindowSize(self):
@@ -4371,7 +4382,7 @@ class FunctionsTest(TestCase):
             )
 
         expectedResults = [
-            TimeSeries('movingMedian(collectd.test-db0.load.value,"-1min")', 660, 700, 1, list(range(30, 70))),
+            TimeSeries('movingMedian(collectd.test-db0.load.value,"-1min")', 660, 700, 1, [x - 0.5 for x in range(30, 70)]),
         ]
 
         with patch('graphite.render.functions.evaluateTarget', mock_evaluateTarget):
@@ -4382,6 +4393,7 @@ class FunctionsTest(TestCase):
                 ),
                 seriesList, "-1min"
             )
+        self.assertEqual(list(result[0]), list(expectedResults[0]))
         self.assertEqual(result, expectedResults)
 
     def test_movingAverage_emptySeriesList(self):
@@ -5586,6 +5598,8 @@ class FunctionsTest(TestCase):
               "1minute",
               func
           )
+          self.maxDiff = None
+          self.assertEqual(list(result[0]), list(expectedResults[func][0]))
           self.assertEqual(result, expectedResults[func])
 
     def test_summarize_1minute_alignToFrom(self):
@@ -6014,3 +6028,146 @@ class FunctionsTest(TestCase):
             TimeSeries('server2.disk.bytes_used', 0, 3, 1, [1, 2, 3]),
             TimeSeries('server2.disk.bytes_free', 0, 3, 1, [99, 98, 97]),
         ])
+
+    def test_functions_views(self):
+        url = reverse('functionList')
+
+        asPercentExpected = {
+            'description': inspect.getdoc(functions.asPercent),
+            'function': 'asPercent(seriesList, total=None, *nodes)',
+            'group': 'Combine',
+            'module': 'graphite.render.functions',
+            'name': 'asPercent',
+            'params': [
+                {
+                    'name': 'seriesList',
+                    'required': True,
+                    'type': 'seriesList'
+                },
+                {
+                    'name': 'total',
+                    'type': 'seriesList'
+                },
+                {
+                    'multiple': True,
+                    'name': 'nodes',
+                    'type': 'nodeOrTag'
+                }
+            ],
+        }
+
+        averageExpected = {
+            'description': 'Return the average',
+            'function': 'average(series)',
+            'group': 'Pie',
+            'module': 'graphite.render.functions',
+            'name': 'average',
+            'params': [
+                {
+                    'name': 'series',
+                    'required': True,
+                    'type': 'series',
+                }
+            ],
+        }
+
+        # list
+
+        # post should fail
+        response = self.client.post(url, {'test': 'test'})
+        self.assertEqual(response.status_code, 405)
+
+        # get list of series functions
+        response = self.client.get(url, {})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/json')
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertTrue(isinstance(result, dict))
+        self.assertEqual(result['asPercent'], asPercentExpected)
+
+        # get grouped list of series functions
+        response = self.client.get(url, {'grouped': 1})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/json')
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertTrue(isinstance(result, dict))
+        self.assertEqual(result['Combine']['asPercent'], asPercentExpected)
+
+        # get filtered list of series functions
+        response = self.client.get(url, {'group': 'Combine'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/json')
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertTrue(isinstance(result, dict))
+        self.assertTrue('asPercent' in result)
+        self.assertFalse('interpolate' in result)
+
+        # get list of pie functions
+        response = self.client.get(url, {'type': 'pie'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/json')
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertTrue(isinstance(result, dict))
+        self.assertEqual(result['average'], averageExpected)
+
+        # details
+
+        # post should fail
+        response = self.client.post(url + '/asPercent', {'test': 'test'})
+        self.assertEqual(response.status_code, 405)
+
+        # get details of asPercent function
+        response = self.client.get(url + '/asPercent', {})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/json')
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertTrue(isinstance(result, dict))
+        self.assertEqual(result, asPercentExpected)
+
+        # get details of average pie function
+        response = self.client.get(url + '/average', {'type': 'pie'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/json')
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertTrue(isinstance(result, dict))
+        self.assertEqual(result, averageExpected)
+
+        # get details of nonexistent function
+        response = self.client.get(url + '/nonExistent', {})
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response['Content-Type'], 'application/json')
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertTrue(isinstance(result, dict))
+        self.assertEqual(result, {'error': 'Function not found: nonExistent'})
+
+        # get details of nonexistent pie function
+        response = self.client.get(url + '/nonExistent', {'type': 'pie'})
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response['Content-Type'], 'application/json')
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertTrue(isinstance(result, dict))
+        self.assertEqual(result, {'error': 'Function not found: nonExistent'})
+
+    def test_function_custom_plugins(self):
+        loadFunctions(force=True)
+        self.assertNotIn('testFunc', _SeriesFunctions)
+
+        # load plugins from custom directory
+        with patch.multiple(
+            'graphite.functions',
+            customDir=join(dirname(__file__), 'funcplugins'),
+            customModPrefix='tests.funcplugins.',
+        ):
+            loadFunctions(force=True)
+            self.assertIn('testFunc', _SeriesFunctions)
+
+        loadFunctions(force=True)
+        self.assertNotIn('testFunc', _SeriesFunctions)
+
+        # load plugins from config setting
+        with self.settings(FUNCTION_PLUGINS=['tests.funcplugins.plugin']):
+            loadFunctions(force=True)
+            self.assertIn('testFunc', _SeriesFunctions)
+
+        loadFunctions(force=True)
+        self.assertNotIn('testFunc', _SeriesFunctions)

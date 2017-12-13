@@ -1,6 +1,8 @@
 import re
 import six
 
+from graphite.errors import NormalizeEmptyResultError
+from graphite.functions import SeriesFunction
 from graphite.render.grammar import grammar
 from graphite.render.datalib import fetchData, TimeSeries, prefetchData
 
@@ -79,7 +81,7 @@ def evaluateTokens(requestContext, tokens, replacements=None, pipedArg=None):
     if tokens.call.funcname == 'seriesByTag':
       return fetchData(requestContext, tokens.call.raw)
 
-    func = SeriesFunctions[tokens.call.funcname]
+    func = SeriesFunction(tokens.call.funcname)
     rawArgs = tokens.call.args or []
     if pipedArg is not None:
       rawArgs.insert(0, pipedArg)
@@ -164,8 +166,3 @@ def extractPathExpressions(requestContext, targets):
     extractPathExpression(requestContext, target)
 
   return list(pathExpressions)
-
-
-# Avoid import circularities
-from graphite.render.functions import (SeriesFunctions,
-                                       NormalizeEmptyResultError)  # noqa

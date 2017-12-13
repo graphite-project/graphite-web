@@ -35,12 +35,15 @@ from os import environ
 
 from django.conf import settings
 
+from graphite.errors import NormalizeEmptyResultError
+from graphite.events import models
+from graphite.functions import SeriesFunction, ParamTypes, Param
 from graphite.logger import log
 from graphite.render.attime import getUnitString, parseTimeOffset, parseATTime, SECONDS_STRING, MINUTES_STRING, HOURS_STRING, DAYS_STRING, WEEKS_STRING, MONTHS_STRING, YEARS_STRING
-from graphite.events import models
-from graphite.util import epoch, epoch_to_dt, timestamp, deltaseconds
+from graphite.render.evaluator import evaluateTarget
 from graphite.render.grammar import grammar
 from graphite.storage import STORE
+from graphite.util import epoch, epoch_to_dt, timestamp, deltaseconds
 
 # XXX format_units() should go somewhere else
 if environ.get('READTHEDOCS'):
@@ -74,12 +77,6 @@ def safeLen(values):
 def safeDiv(a, b):
   if a is None: return None
   if b in (0,None): return None
-  return a / b
-
-# In Py2, None < (any integer) . Use -inf for same sorting on Python 3
-def _safeDiv_key(a, b):
-  if a is None or b in (0, None):
-    return -INF
   return a / b
 
 def safePow(a, b):
@@ -133,24 +130,10 @@ def safeLast(values):
   for v in reversed(values):
     if v is not None: return v
 
-# In Py2, None < (any integer) . Use -inf for same sorting on Python 3
-def _safeLast_key(values):
-  r = safeLast(values)
-  if r is None:
-    return -INF
-  return r
-
 def safeMin(values):
   safeValues = [v for v in values if v is not None]
   if safeValues:
     return min(safeValues)
-
-# In Py2, None < (any integer) . Use -inf for same sorting on Python 3
-def _safeMin_key(values):
-  r = safeMin(values)
-  if r is None:
-    return -INF
-  return r
 
 def safeMax(values):
   safeValues = [v for v in values if v is not None]
@@ -165,6 +148,13 @@ def safeMap(function, values):
 def safeAbs(value):
   if value is None: return None
   return abs(value)
+
+# In Py2, None < (any integer) . Use -inf for same sorting on Python 3
+def keyFunc(func):
+  def safeFunc(values):
+    val = func(values)
+    return val if val is not None else -INF
+  return safeFunc
 
 # Greatest common divisor
 def gcd(a, b):
@@ -217,22 +207,47 @@ def normalize(seriesLists):
       return (seriesList,start,end,step)
   raise NormalizeEmptyResultError()
 
-class NormalizeEmptyResultError(Exception):
-  # throw error for normalize() when empty
-  pass
-
-
 def matchSeries(seriesList1, seriesList2):
   assert len(seriesList2) == len(seriesList1), "The number of series in each argument must be the same"
   return izip(sorted(seriesList1, key=lambda a: a.name), sorted(seriesList2, key=lambda a: a.name))
 
 def formatPathExpressions(seriesList):
-   # remove duplicates
-   pathExpressions = []
-   [pathExpressions.append(s.pathExpression) for s in seriesList if not pathExpressions.count(s.pathExpression)]
-   return ','.join(pathExpressions)
+  # remove duplicates
+  pathExpressions = []
+  [pathExpressions.append(s.pathExpression) for s in seriesList if not pathExpressions.count(s.pathExpression)]
+  return ','.join(pathExpressions)
 
 # Series Functions
+
+aggFuncs = {
+  'average': safeAvg,
+  'median': safeMedian,
+  'sum': safeSum,
+  'min': safeMin,
+  'max': safeMax,
+  'diff': safeDiff,
+  'stddev': safeStdDev,
+  'count': safeLen,
+  'range': lambda row: safeSubtract(safeMax(row), safeMin(row)),
+  'multiply': lambda row: safeMul(*row),
+  'last': safeLast,
+}
+
+aggFuncAliases = {
+  'rangeOf': aggFuncs['range'],
+  'avg': aggFuncs['average'],
+  'total': aggFuncs['sum'],
+  'current': aggFuncs['last'],
+}
+
+aggFuncNames = sorted(aggFuncs.keys())
+
+def getAggFunc(func, rawFunc=None):
+  if func in aggFuncs:
+    return aggFuncs[func]
+  if func in aggFuncAliases:
+    return aggFuncAliases[func]
+  raise ValueError('Unsupported aggregation function: %s' % (rawFunc or func))
 
 def aggregate(requestContext, seriesList, func, xFilesFactor=None):
   """
@@ -251,33 +266,14 @@ def aggregate(requestContext, seriesList, func, xFilesFactor=None):
     &target=sumSeries(host.cpu-[0-7].cpu-{user,system}.value)
 
   This function can be used with aggregation functions ``average``, ``median``, ``sum``, ``min``,
-  ``max``, ``diff``, ``stddev``, ``range`` & ``multiply``.
+  ``max``, ``diff``, ``stddev``, ``count``, ``range``, ``multiply`` & ``last``.
   """
   # strip Series from func if func was passed like sumSeries
   rawFunc = func
   if func[-6:] == 'Series':
     func = func[:-6]
 
-  if func == 'average':
-    consolidateFunc = safeAvg
-  elif func == 'median':
-    consolidateFunc = safeMedian
-  elif func == 'sum':
-    consolidateFunc = safeSum
-  elif func == 'min':
-    consolidateFunc = safeMin
-  elif func == 'max':
-    consolidateFunc = safeMax
-  elif func == 'diff':
-    consolidateFunc = safeDiff
-  elif func == 'stddev':
-    consolidateFunc = safeStdDev
-  elif func == 'rangeOf' or func == 'range':
-    consolidateFunc = lambda row: safeSubtract(max(row), min(row))
-  elif func == 'multiply':
-    consolidateFunc = lambda row: safeMul(*row)
-  else:
-    raise Exception('Unsupported aggregation function: %s' % (rawFunc))
+  consolidationFunc = getAggFunc(func, rawFunc)
 
   # if seriesList is empty then just short-circuit
   if not seriesList:
@@ -293,7 +289,7 @@ def aggregate(requestContext, seriesList, func, xFilesFactor=None):
     return []
   xFilesFactor = xFilesFactor if xFilesFactor is not None else requestContext.get('xFilesFactor')
   name = "%sSeries(%s)" % (func, formatPathExpressions(seriesList))
-  values = ( consolidateFunc(row) if xffValues(row, xFilesFactor) else None for row in izip_longest(*seriesList) )
+  values = ( consolidationFunc(row) if xffValues(row, xFilesFactor) else None for row in izip_longest(*seriesList) )
   tags = seriesList[0].tags
   for series in seriesList:
     tags = {tag: tags[tag] for tag in tags if tag in series.tags and tags[tag] == series.tags[tag]}
@@ -303,6 +299,13 @@ def aggregate(requestContext, seriesList, func, xFilesFactor=None):
   series = TimeSeries(name, start, end, step, values, xFilesFactor=xFilesFactor, tags=tags)
 
   return [series]
+
+aggregate.group = 'Combine'
+aggregate.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True, multiple=True),
+  Param('func', ParamTypes.aggFunc, required=True, options=aggFuncNames),
+  Param('xFilesFactor', ParamTypes.float),
+]
 
 def sumSeries(requestContext, *seriesLists):
   """
@@ -326,6 +329,11 @@ def sumSeries(requestContext, *seriesLists):
   """
   return aggregate(requestContext, seriesLists, 'sum')
 
+sumSeries.group = 'Combine'
+sumSeries.params = [
+  Param('seriesLists', ParamTypes.seriesList, required=True, multiple=True),
+]
+
 def sumSeriesWithWildcards(requestContext, seriesList, *position): #XXX
   """
   Call sumSeries after inserting wildcards at the given position(s).
@@ -345,6 +353,12 @@ def sumSeriesWithWildcards(requestContext, seriesList, *position): #XXX
   This is an alias for :py:func:`aggregateWithWildcards <aggregateWithWildcards>` with aggregation ``sum``.
   """
   return aggregateWithWildcards(requestContext, seriesList, 'sum', *position)
+
+sumSeriesWithWildcards.group = 'Combine'
+sumSeriesWithWildcards.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('position', ParamTypes.node, multiple=True),
+]
 
 def averageSeriesWithWildcards(requestContext, seriesList, *position): #XXX
   """
@@ -366,6 +380,12 @@ def averageSeriesWithWildcards(requestContext, seriesList, *position): #XXX
   """
   return aggregateWithWildcards(requestContext, seriesList, 'average', *position)
 
+averageSeriesWithWildcards.group = 'Combine'
+averageSeriesWithWildcards.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('position', ParamTypes.node, multiple=True),
+]
+
 def multiplySeriesWithWildcards(requestContext, seriesList, *position): #XXX
   """
   Call multiplySeries after inserting wildcards at the given position(s).
@@ -385,6 +405,12 @@ def multiplySeriesWithWildcards(requestContext, seriesList, *position): #XXX
   This is an alias for :py:func:`aggregateWithWildcards <aggregateWithWildcards>` with aggregation ``multiply``.
   """
   return aggregateWithWildcards(requestContext, seriesList, 'multiply', *position)
+
+multiplySeriesWithWildcards.group = 'Combine'
+multiplySeriesWithWildcards.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('position', ParamTypes.node, multiple=True),
+]
 
 def aggregateWithWildcards(requestContext, seriesList, func, *positions):
   """
@@ -424,6 +450,13 @@ def aggregateWithWildcards(requestContext, seriesList, func, *positions):
     metaSeries[key].name = key
   return [ metaSeries[key] for key in keys ]
 
+aggregateWithWildcards.group = 'Combine'
+aggregateWithWildcards.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('func', ParamTypes.aggFunc, required=True, options=aggFuncNames),
+  Param('position', ParamTypes.node, multiple=True),
+]
+
 def diffSeries(requestContext, *seriesLists):
   """
   Subtracts series 2 through n from series 1.
@@ -449,6 +482,11 @@ def diffSeries(requestContext, *seriesLists):
   """
   return aggregate(requestContext, seriesLists, 'diff')
 
+diffSeries.group = 'Combine'
+diffSeries.params = [
+  Param('seriesLists', ParamTypes.seriesList, required=True, multiple=True),
+]
+
 def averageSeries(requestContext, *seriesLists):
   """
   Short Alias: avg()
@@ -466,6 +504,11 @@ def averageSeries(requestContext, *seriesLists):
   """
   return aggregate(requestContext, seriesLists, 'average')
 
+averageSeries.group = 'Combine'
+averageSeries.params = [
+  Param('seriesLists', ParamTypes.seriesList, required=True, multiple=True),
+]
+
 def stddevSeries(requestContext, *seriesLists):
   """
 
@@ -482,6 +525,11 @@ def stddevSeries(requestContext, *seriesLists):
   """
   return aggregate(requestContext, seriesLists, 'stddev')
 
+stddevSeries.group = 'Combine'
+stddevSeries.params = [
+  Param('seriesLists', ParamTypes.seriesList, required=True, multiple=True),
+]
+
 def minSeries(requestContext, *seriesLists):
   """
   Takes one metric or a wildcard seriesList.
@@ -496,6 +544,11 @@ def minSeries(requestContext, *seriesLists):
   This is an alias for :py:func:`aggregate <aggregate>` with aggregation ``min``.
   """
   return aggregate(requestContext, seriesLists, 'min')
+
+minSeries.group = 'Combine'
+minSeries.params = [
+  Param('seriesLists', ParamTypes.seriesList, required=True, multiple=True),
+]
 
 def maxSeries(requestContext, *seriesLists):
   """
@@ -512,6 +565,11 @@ def maxSeries(requestContext, *seriesLists):
   """
   return aggregate(requestContext, seriesLists, 'max')
 
+maxSeries.group = 'Combine'
+maxSeries.params = [
+  Param('seriesLists', ParamTypes.seriesList, required=True, multiple=True),
+]
+
 def rangeOfSeries(requestContext, *seriesLists):
   """
   Takes a wildcard seriesList.
@@ -526,6 +584,11 @@ def rangeOfSeries(requestContext, *seriesLists):
   This is an alias for :py:func:`aggregate <aggregate>` with aggregation ``rangeOf``.
   """
   return aggregate(requestContext, seriesLists, 'rangeOf')
+
+rangeOfSeries.group = 'Combine'
+rangeOfSeries.params = [
+  Param('seriesLists', ParamTypes.seriesList, required=True, multiple=True),
+]
 
 def percentileOfSeries(requestContext, seriesList, n, interpolate=False):
   """
@@ -547,6 +610,13 @@ def percentileOfSeries(requestContext, seriesList, n, interpolate=False):
   resultSeries = TimeSeries(name, start, end, step, values, xFilesFactor=requestContext.get('xFilesFactor'))
 
   return [resultSeries]
+
+percentileOfSeries.group = 'Combine'
+percentileOfSeries.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
+  Param('interpolate', ParamTypes.boolean, default=False),
+]
 
 def keepLastValue(requestContext, seriesList, limit = INF):
   """
@@ -590,6 +660,12 @@ def keepLastValue(requestContext, seriesList, limit = INF):
         series[index] = series[len(series) - consecutiveNones - 1]
 
   return seriesList
+
+keepLastValue.group = 'Transform'
+keepLastValue.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('limit', ParamTypes.integer, default='INF'),
+]
 
 def interpolate(requestContext, seriesList, limit = INF):
   """
@@ -639,6 +715,12 @@ def interpolate(requestContext, seriesList, limit = INF):
 
   return seriesList
 
+interpolate.group = 'Transform'
+interpolate.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('limit', ParamTypes.integer, default='INF'),
+]
+
 def changed(requestContext, seriesList):
   """
   Takes one metric or a wildcard seriesList.
@@ -665,6 +747,11 @@ def changed(requestContext, seriesList):
       else:
         series[i] = 0
   return seriesList
+
+changed.group = 'Special'
+changed.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+]
 
 def asPercent(requestContext, seriesList, total=None, *nodes):
   """
@@ -844,6 +931,13 @@ def asPercent(requestContext, seriesList, total=None, *nodes):
 
   return resultList
 
+asPercent.group = 'Combine'
+asPercent.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('total', ParamTypes.seriesList),
+  Param('nodes', ParamTypes.nodeOrTag, multiple=True),
+]
+
 def divideSeriesLists(requestContext, dividendSeriesList, divisorSeriesList):
   """
   Iterates over a two lists and divides list1[0] by list2[0], list1[1] by list2[1] and so on.
@@ -877,6 +971,12 @@ def divideSeriesLists(requestContext, dividendSeriesList, divisorSeriesList):
     results.append(quotientSeries)
 
   return results
+
+divideSeriesLists.group = 'Combine'
+divideSeriesLists.params = [
+  Param('dividendSeriesList', ParamTypes.seriesList, required=True),
+  Param('divisorSeriesList', ParamTypes.seriesList, required=True),
+]
 
 def divideSeries(requestContext, dividendSeriesList, divisorSeries):
   """
@@ -925,6 +1025,12 @@ def divideSeries(requestContext, dividendSeriesList, divisorSeries):
 
   return results
 
+divideSeries.group = 'Combine'
+divideSeries.params = [
+  Param('dividendSeriesList', ParamTypes.seriesList, required=True),
+  Param('divisorSeries', ParamTypes.seriesList, required=True),
+]
+
 def multiplySeries(requestContext, *seriesLists):
   """
   Takes two or more series and multiplies their points. A constant may not be
@@ -943,6 +1049,11 @@ def multiplySeries(requestContext, *seriesLists):
     return seriesLists[0]
 
   return aggregate(requestContext, seriesLists, 'multiply')
+
+multiplySeries.group = 'Combine'
+multiplySeries.params = [
+  Param('seriesLists', ParamTypes.seriesList, required=True, multiple=True),
+]
 
 def weightedAverage(requestContext, seriesListAvg, seriesListWeight, *nodes):
   """
@@ -996,10 +1107,18 @@ def weightedAverage(requestContext, seriesListAvg, seriesListWeight, *nodes):
   sumWeights=sumSeries(requestContext, seriesListWeight)[0]
 
   resultValues = [ safeDiv(val1, val2) for val1,val2 in izip_longest(sumProducts,sumWeights) ]
-  _sorted_weights = sorted(seriesListWeight, key=lambda v: [(x if x is not None else -1) for x in v])
-  name = "weightedAverage(%s, %s, %s)" % (','.join(sorted(set(s.pathExpression for s in seriesListAvg))) ,','.join(sorted(set(s.pathExpression for s in _sorted_weights))), ','.join(map(str,nodes)))
+  name = "weightedAverage(%s, %s, %s)" % (','.join(sorted(set(s.pathExpression for s in seriesListAvg))) ,','.join(sorted(set(s.pathExpression for s in seriesListWeight))), ','.join(map(str,nodes)))
   resultSeries = TimeSeries(name,sumProducts.start,sumProducts.end,sumProducts.step,resultValues,xFilesFactor=requestContext.get('xFilesFactor'))
   return [resultSeries]
+
+weightedAverage.group = 'Combine'
+weightedAverage.params = [
+  Param('seriesListAvg', ParamTypes.seriesList, required=True),
+  Param('seriesListWeight', ParamTypes.seriesList, required=True),
+  Param('nodes', ParamTypes.nodeOrTag, multiple=True),
+]
+
+intOrIntervalSuggestions = [5, 7, 10, '1min', '5min', '10min', '30min', '1hour']
 
 def movingWindow(requestContext, seriesList, windowSize, func='average', xFilesFactor=None):
   """
@@ -1036,18 +1155,7 @@ def movingWindow(requestContext, seriesList, windowSize, func='average', xFilesF
   else:
     previewSeconds = max([s.step for s in seriesList]) * int(windowSize)
 
-  if func == 'average':
-    consolidateFunc = lambda nonNull: sum(nonNull) / len(nonNull)
-  elif func == 'median':
-    consolidateFunc = lambda nonNull: sorted(nonNull)[len(nonNull) // 2]
-  elif func == 'sum':
-    consolidateFunc = sum
-  elif func == 'min':
-    consolidateFunc = min
-  elif func == 'max':
-    consolidateFunc = max
-  else:
-    raise Exception('Unsupported window function: %s' % (func))
+  consolidateFunc = getAggFunc(func)
 
   # ignore original data and pull new, including our preview
   # data from earlier is needed to calculate the early results
@@ -1083,6 +1191,14 @@ def movingWindow(requestContext, seriesList, windowSize, func='average', xFilesF
     result.append(newSeries)
 
   return result
+
+movingWindow.group = 'Calculate'
+movingWindow.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('windowSize', ParamTypes.intOrInterval, required=True, suggestions=intOrIntervalSuggestions),
+  Param('func', ParamTypes.string, options=aggFuncNames, default='average'),
+  Param('xFilesFactor', ParamTypes.float),
+]
 
 def exponentialMovingAverage(requestContext, seriesList, windowSize):
   """
@@ -1152,6 +1268,12 @@ def exponentialMovingAverage(requestContext, seriesList, windowSize):
 
   return result
 
+exponentialMovingAverage.group = 'Calculate'
+exponentialMovingAverage.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('windowSize', ParamTypes.intOrInterval, required=True, suggestions=intOrIntervalSuggestions),
+]
+
 def movingMedian(requestContext, seriesList, windowSize, xFilesFactor=None):
   """
   Graphs the moving median of a metric (or metrics) over a fixed number of
@@ -1173,6 +1295,13 @@ def movingMedian(requestContext, seriesList, windowSize, xFilesFactor=None):
   """
   return movingWindow(requestContext, seriesList, windowSize, 'median', xFilesFactor)
 
+movingMedian.group = 'Calculate'
+movingMedian.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('windowSize', ParamTypes.intOrInterval, required=True, suggestions=intOrIntervalSuggestions),
+  Param('xFilesFactor', ParamTypes.float),
+]
+
 def scale(requestContext, seriesList, factor):
   """
   Takes one metric or a wildcard seriesList followed by a constant, and multiplies the datapoint
@@ -1193,6 +1322,12 @@ def scale(requestContext, seriesList, factor):
     for i,value in enumerate(series):
       series[i] = safeMul(value,factor)
   return seriesList
+
+scale.group = 'Transform'
+scale.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('factor', ParamTypes.float, required=True),
+]
 
 def scaleToSeconds(requestContext, seriesList, seconds):
   """
@@ -1219,6 +1354,12 @@ def scaleToSeconds(requestContext, seriesList, seconds):
 
   return seriesList
 
+scaleToSeconds.group = 'Transform'
+scaleToSeconds.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('seconds', ParamTypes.integer, required=True),
+]
+
 def pow(requestContext, seriesList, factor):
   """
   Takes one metric or a wildcard seriesList followed by a constant, and raises the datapoint
@@ -1234,11 +1375,17 @@ def pow(requestContext, seriesList, factor):
   """
   for series in seriesList:
     series.tags['pow'] = factor
-    series.name = "pow(%s,%g)" % (series.name,float(factor))
+    series.name = "pow(%s,%g)" % (series.name, float(factor))
     series.pathExpression = series.name
     for i,value in enumerate(series):
-      series[i] = safePow(value,factor)
+      series[i] = safePow(value, factor)
   return seriesList
+
+pow.group = 'Transform'
+pow.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('factor', ParamTypes.float, required=True),
+]
 
 def powSeries(requestContext, *seriesLists):
   """
@@ -1274,6 +1421,11 @@ def powSeries(requestContext, *seriesLists):
   series = TimeSeries(name,start,end,step,values,xFilesFactor=requestContext.get('xFilesFactor'))
   return [series]
 
+powSeries.group = 'Transform'
+powSeries.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True, multiple=True),
+]
+
 def squareRoot(requestContext, seriesList):
   """
   Takes one metric or a wildcard seriesList, and computes the square root of each datapoint.
@@ -1293,6 +1445,11 @@ def squareRoot(requestContext, seriesList):
       series[i] = safePow(value, 0.5)
   return seriesList
 
+squareRoot.group = 'Transform'
+squareRoot.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+]
+
 def invert(requestContext, seriesList):
   """
   Takes one metric or a wildcard seriesList, and inverts each datapoint (i.e. 1/x).
@@ -1311,6 +1468,11 @@ def invert(requestContext, seriesList):
     for i,value in enumerate(series):
         series[i] = safePow(value, -1)
   return seriesList
+
+invert.group = 'Transform'
+invert.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+]
 
 def absolute(requestContext, seriesList):
   """
@@ -1332,6 +1494,11 @@ def absolute(requestContext, seriesList):
       series[i] = safeAbs(value)
   return seriesList
 
+absolute.group = 'Transform'
+absolute.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+]
+
 def offset(requestContext, seriesList, factor):
   """
   Takes one metric or a wildcard seriesList followed by a constant, and adds the constant to
@@ -1352,6 +1519,12 @@ def offset(requestContext, seriesList, factor):
       if value is not None:
         series[i] = value + factor
   return seriesList
+
+offset.group = 'Transform'
+offset.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('factor', ParamTypes.float, required=True),
+]
 
 def offsetToZero(requestContext, seriesList):
   """
@@ -1393,6 +1566,11 @@ def offsetToZero(requestContext, seriesList):
         series[i] = value - minimum
   return seriesList
 
+offsetToZero.group = 'Transform'
+offsetToZero.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+]
+
 def roundFunction(requestContext, seriesList, precision=None):
   """
   Takes one metric or a wildcard seriesList optionally followed by a precision, and rounds each
@@ -1418,6 +1596,12 @@ def roundFunction(requestContext, seriesList, precision=None):
         series[i] = round(value, precision or 0)
   return seriesList
 
+roundFunction.group = 'Transform'
+roundFunction.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('precision', ParamTypes.integer, default=0),
+]
+
 def movingAverage(requestContext, seriesList, windowSize, xFilesFactor=None):
   """
   Graphs the moving average of a metric (or metrics) over a fixed number of
@@ -1438,6 +1622,13 @@ def movingAverage(requestContext, seriesList, windowSize, xFilesFactor=None):
 
   """
   return movingWindow(requestContext, seriesList, windowSize, 'average', xFilesFactor)
+
+movingAverage.group = 'Calculate'
+movingAverage.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('windowSize', ParamTypes.intOrInterval, required=True, suggestions=intOrIntervalSuggestions),
+  Param('xFilesFactor', ParamTypes.float),
+]
 
 def movingSum(requestContext, seriesList, windowSize, xFilesFactor=None):
   """
@@ -1460,6 +1651,13 @@ def movingSum(requestContext, seriesList, windowSize, xFilesFactor=None):
   """
   return movingWindow(requestContext, seriesList, windowSize, 'sum', xFilesFactor)
 
+movingSum.group = 'Calculate'
+movingSum.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('windowSize', ParamTypes.intOrInterval, required=True, suggestions=intOrIntervalSuggestions),
+  Param('xFilesFactor', ParamTypes.float),
+]
+
 def movingMin(requestContext, seriesList, windowSize, xFilesFactor=None):
   """
   Graphs the moving minimum of a metric (or metrics) over a fixed number of
@@ -1480,6 +1678,13 @@ def movingMin(requestContext, seriesList, windowSize, xFilesFactor=None):
 
   """
   return movingWindow(requestContext, seriesList, windowSize, 'min', xFilesFactor)
+
+movingMin.group = 'Calculate'
+movingMin.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('windowSize', ParamTypes.intOrInterval, required=True, suggestions=intOrIntervalSuggestions),
+  Param('xFilesFactor', ParamTypes.float),
+]
 
 def movingMax(requestContext, seriesList, windowSize, xFilesFactor=None):
   """
@@ -1502,6 +1707,13 @@ def movingMax(requestContext, seriesList, windowSize, xFilesFactor=None):
   """
   return movingWindow(requestContext, seriesList, windowSize, 'max', xFilesFactor)
 
+movingMax.group = 'Calculate'
+movingMax.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('windowSize', ParamTypes.intOrInterval, required=True, suggestions=intOrIntervalSuggestions),
+  Param('xFilesFactor', ParamTypes.float),
+]
+
 def cumulative(requestContext, seriesList):
   """
   Takes one metric or a wildcard seriesList.
@@ -1521,6 +1733,11 @@ def cumulative(requestContext, seriesList):
 
   """
   return consolidateBy(requestContext, seriesList, 'sum')
+
+cumulative.group = 'Special'
+cumulative.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+]
 
 def consolidateBy(requestContext, seriesList, consolidationFunc):
   """
@@ -1548,6 +1765,12 @@ def consolidateBy(requestContext, seriesList, consolidationFunc):
     series.name = 'consolidateBy(%s,"%s")' % (series.name, series.consolidationFunc)
     series.pathExpression = series.name
   return seriesList
+
+consolidateBy.group = 'Special'
+consolidateBy.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('consolidationFunc', ParamTypes.string, required=True, options=['sum', 'average', 'min', 'max', 'first', 'last']),
+]
 
 def setXFilesFactor(requestContext, seriesList, xFilesFactor):
   """
@@ -1584,6 +1807,12 @@ def setXFilesFactor(requestContext, seriesList, xFilesFactor):
     series.tags['xFilesFactor'] = xFilesFactor
   return seriesList
 
+setXFilesFactor.group = 'Special'
+setXFilesFactor.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('xFilesFactor', ParamTypes.float, required=True),
+]
+
 def derivative(requestContext, seriesList):
   """
   This is the opposite of the integral function.  This is useful for taking a
@@ -1619,6 +1848,11 @@ def derivative(requestContext, seriesList):
     newSeries = series.copy(name=newName, values=newValues)
     results.append(newSeries)
   return results
+
+derivative.group = 'Transform'
+derivative.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+]
 
 def perSecond(requestContext, seriesList, maxValue=None):
   """
@@ -1662,6 +1896,12 @@ def perSecond(requestContext, seriesList, maxValue=None):
 
   return results
 
+perSecond.group = 'Transform'
+perSecond.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('maxValue', ParamTypes.float),
+]
+
 def delay(requestContext, seriesList, steps):
   """
   This shifts all samples later by an integer number of steps. This can be
@@ -1698,6 +1938,12 @@ def delay(requestContext, seriesList, steps):
     results.append(newSeries)
   return results
 
+delay.group = 'Transform'
+delay.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('steps', ParamTypes.integer, required=True),
+]
+
 def integral(requestContext, seriesList):
   """
   This will show the sum over time, sort of like a continuous addition function.
@@ -1729,6 +1975,10 @@ def integral(requestContext, seriesList):
     results.append(newSeries)
   return results
 
+integral.group = 'Transform'
+integral.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+]
 
 def integralByInterval(requestContext, seriesList, intervalUnit):
   """
@@ -1769,6 +2019,11 @@ def integralByInterval(requestContext, seriesList, intervalUnit):
     results.append(newSeries)
   return results
 
+integralByInterval.group = 'Transform'
+integralByInterval.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('intervalUnit', ParamTypes.string, required=True),
+]
 
 def nonNegativeDerivative(requestContext, seriesList, maxValue=None):
   """
@@ -1801,6 +2056,12 @@ def nonNegativeDerivative(requestContext, seriesList, maxValue=None):
     results.append(newSeries)
 
   return results
+
+nonNegativeDerivative.group = 'Transform'
+nonNegativeDerivative.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('maxValue', ParamTypes.float),
+]
 
 def _nonNegativeDelta(val, prev, maxValue):
   # ignore values larger than maxValue
@@ -1871,6 +2132,12 @@ def stacked(requestContext,seriesLists,stackName='__DEFAULT__'):
   requestContext['totalStack'][stackName] = totalStack
   return results
 
+stacked.group = 'Graph'
+stacked.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('stack', ParamTypes.string),
+]
+
 def areaBetween(requestContext, seriesList):
   """
   Draws the vertical area in between the two series in seriesList. Useful for
@@ -1914,6 +2181,11 @@ def areaBetween(requestContext, seriesList):
   lower.name = upper.name = "areaBetween(%s)" % upper.pathExpression
   return seriesList
 
+areaBetween.group = 'Graph'
+areaBetween.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+]
+
 def aliasSub(requestContext, seriesList, search, replace):
   """
   Runs series names through a regex search/replace.
@@ -1928,6 +2200,13 @@ def aliasSub(requestContext, seriesList, search, replace):
     for series in seriesList:
       series.name = re.sub(search, replace, series.name)
   return seriesList
+
+aliasSub.group = 'Alias'
+aliasSub.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('search', ParamTypes.string, required=True),
+  Param('replace', ParamTypes.string, required=True),
+]
 
 def aliasQuery(requestContext, seriesList, search, replace, newName):
   """
@@ -1952,6 +2231,14 @@ def aliasQuery(requestContext, seriesList, search, replace, newName):
     series.name = newName % current
   return seriesList
 
+aliasQuery.group = 'Alias'
+aliasQuery.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('search', ParamTypes.string, required=True),
+  Param('replace', ParamTypes.string, required=True),
+  Param('newName', ParamTypes.string, required=True),
+]
+
 def alias(requestContext, seriesList, newName):
   """
   Takes one metric or a wildcard seriesList and a string in quotes.
@@ -1968,6 +2255,12 @@ def alias(requestContext, seriesList, newName):
     for series in seriesList:
       series.name = newName
   return seriesList
+
+alias.group = 'Alias'
+alias.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('newName', ParamTypes.string, required=True),
+]
 
 def cactiStyle(requestContext, seriesList, system=None, units=None):
   """
@@ -2037,6 +2330,12 @@ def cactiStyle(requestContext, seriesList, system=None, units=None):
             -minLen, minimum)
   return seriesList
 
+cactiStyle.group = 'Special'
+cactiStyle.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('system', ParamTypes.string, options=['si', 'binary']),
+  Param('units', ParamTypes.string),
+]
 
 def _getFirstPathExpression(name):
   """Returns the first metric path in an expression."""
@@ -2077,6 +2376,12 @@ def aliasByNode(requestContext, seriesList, *nodes):
     series.name = aggKey(series, nodes, pathExpression)
   return seriesList
 
+aliasByNode.group = 'Alias'
+aliasByNode.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('nodes', ParamTypes.nodeOrTag, required=True, multiple=True),
+]
+
 def aliasByMetric(requestContext, seriesList):
   """
   Takes a seriesList and applies an alias derived from the base metric name.
@@ -2087,6 +2392,11 @@ def aliasByMetric(requestContext, seriesList):
 
   """
   return substr(requestContext, seriesList, -1, 0)
+
+aliasByMetric.group = 'Alias'
+aliasByMetric.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+]
 
 def legendValue(requestContext, seriesList, *valueTypes):
   """
@@ -2101,26 +2411,15 @@ def legendValue(requestContext, seriesList, *valueTypes):
     &target=legendValue(Sales.widgets.largeBlue, 'avg', 'max', 'si')
 
   """
-  def last(s):
-    "Work-around for the missing last point"
-    v = s[-1]
-    if v is None:
-      return s[-2]
-    return v
-
-  valueFuncs = {
-    'avg':   lambda s: safeDiv(safeSum(s), safeLen(s)),
-    'total': safeSum,
-    'min':   safeMin,
-    'max':   safeMax,
-    'last':  last
-  }
   system = None
   if valueTypes[-1] in ('si', 'binary'):
     system = valueTypes[-1]
     valueTypes = valueTypes[:-1]
   for valueType in valueTypes:
-    valueFunc = valueFuncs.get(valueType, lambda s: '(?)')
+    if valueType in aggFuncs:
+      valueFunc = aggFuncs[valueType]
+    else:
+      valueFunc = aggFuncAliases.get(valueType, lambda s: '(?)')
     if system is None:
       for series in seriesList:
         series.name += " (%s: %s)" % (valueType, valueFunc(series))
@@ -2128,10 +2427,18 @@ def legendValue(requestContext, seriesList, *valueTypes):
       for series in seriesList:
         value = valueFunc(series)
         formatted = None
-        if value is not None:
+        if isinstance(value, six.string_types):
+          formatted = value
+        elif value is not None:
           formatted = "%.2f%s" % format_units(value, system=system)
         series.name = "%-20s%-5s%-10s" % (series.name, valueType, formatted)
   return seriesList
+
+legendValue.group = 'Alias'
+legendValue.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('valuesTypes', ParamTypes.string, multiple=True, options=aggFuncNames + ['si', 'binary']),
+]
 
 def alpha(requestContext, seriesList, alpha):
   """
@@ -2140,6 +2447,12 @@ def alpha(requestContext, seriesList, alpha):
   for series in seriesList:
     series.options['alpha'] = alpha
   return seriesList
+
+alpha.group = 'Graph'
+alpha.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('alpha', ParamTypes.float, required=True),
+]
 
 def color(requestContext, seriesList, theColor):
   """
@@ -2158,6 +2471,12 @@ def color(requestContext, seriesList, theColor):
   for series in seriesList:
     series.color = theColor
   return seriesList
+
+color.group = 'Graph'
+color.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('theColor', ParamTypes.string, required=True),
+]
 
 def substr(requestContext, seriesList, start=0, stop=0):
   """
@@ -2191,6 +2510,13 @@ def substr(requestContext, seriesList, start=0, stop=0):
     series.name = re.sub(',.*$', '', series.name)
   return seriesList
 
+substr.group = 'Special'
+substr.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('start', ParamTypes.node, default=0),
+  Param('stop', ParamTypes.node, default=0),
+]
+
 def logarithm(requestContext, seriesList, base=10):
   """
   Takes one metric or a wildcard seriesList, a base, and draws the y-axis in logarithmic
@@ -2219,6 +2545,59 @@ def logarithm(requestContext, seriesList, base=10):
     results.append(newSeries)
   return results
 
+logarithm.group = 'Transform'
+logarithm.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('base', ParamTypes.integer, default=10),
+]
+
+operatorFuncs = {
+  '=': (lambda val, threshold: val is not None and val == threshold),
+  '!=': (lambda val, threshold: val is None or val != threshold),
+  '>': (lambda val, threshold: val is not None and val > threshold),
+  '>=': (lambda val, threshold: val is not None and val >= threshold),
+  '<': (lambda val, threshold: val is None or val < threshold),
+  '<=': (lambda val, threshold: val is None or val <= threshold),
+}
+
+def filterSeries(requestContext, seriesList, func, operator, threshold):
+  """
+  Takes one metric or a wildcard seriesList followed by a consolidation function, an operator and a threshold.
+  Draws only the metrics which match the filter expression.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=filterSeries(system.interface.eth*.packetsSent, 'max', '>', 1000)
+
+  This would only display interfaces which has a peak throughput higher than 1000 packets/min.
+
+  Supported aggregation functions: ``average``, ``median``, ``sum``, ``min``,
+  ``max``, ``diff``, ``stddev``, ``range``, ``multiply`` & ``last``.
+
+  Supported operators: ``=``, ``!=``, ``>``, ``>=``, ``<`` & ``<=``.
+  """
+  consolidationFunc = getAggFunc(func)
+
+  if operator not in operatorFuncs:
+    raise Exception('Unsupported operator: %s' % (operator))
+  operatorFunc = operatorFuncs[operator]
+
+  # if seriesList is empty then just short-circuit
+  if not seriesList:
+    return []
+
+  return [series for series in seriesList if operatorFunc(consolidationFunc(series), threshold)]
+
+filterSeries.group = 'Filter Series'
+filterSeries.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('func', ParamTypes.string, required=True, options=aggFuncNames),
+  Param('operator', ParamTypes.string, required=True, options=sorted(operatorFuncs.keys())),
+  Param('threshold', ParamTypes.float, required=True),
+]
+
 def maximumAbove(requestContext, seriesList, n):
   """
   Takes one metric or a wildcard seriesList followed by a constant n.
@@ -2232,12 +2611,13 @@ def maximumAbove(requestContext, seriesList, n):
 
   This would only display interfaces which sent more than 1000 packets/min.
   """
-  results = []
-  for series in seriesList:
-    val = safeMax(series)
-    if val is not None and val > n:
-      results.append(series)
-  return results
+  return filterSeries(requestContext, seriesList, 'max', '>', n)
+
+maximumAbove.group = 'Filter Series'
+maximumAbove.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
+]
 
 def minimumAbove(requestContext, seriesList, n):
   """
@@ -2252,12 +2632,13 @@ def minimumAbove(requestContext, seriesList, n):
 
   This would only display interfaces which sent more than 1000 packets/min.
   """
-  results = []
-  for series in seriesList:
-    val = safeMin(series)
-    if val is not None and val > n:
-      results.append(series)
-  return results
+  return filterSeries(requestContext, seriesList, 'min', '>', n)
+
+minimumAbove.group = 'Filter Series'
+minimumAbove.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
+]
 
 def maximumBelow(requestContext, seriesList, n):
   """
@@ -2272,13 +2653,13 @@ def maximumBelow(requestContext, seriesList, n):
 
   This would only display interfaces which sent less than 1000 packets/min.
   """
+  return filterSeries(requestContext, seriesList, 'max', '<=', n)
 
-  result = []
-  for series in seriesList:
-    val = safeMax(series)
-    if val is None or val <= n:
-      result.append(series)
-  return result
+maximumBelow.group = 'Filter Series'
+maximumBelow.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
+]
 
 def minimumBelow(requestContext, seriesList, n):
   """
@@ -2293,13 +2674,61 @@ def minimumBelow(requestContext, seriesList, n):
 
   This would only display interfaces which at one point sent less than 1000 packets/min.
   """
+  return filterSeries(requestContext, seriesList, 'min', '<=', n)
 
-  result = []
-  for series in seriesList:
-    val = safeMin(series)
-    if val is None or val <= n:
-      result.append(series)
-  return result
+minimumBelow.group = 'Filter Series'
+minimumBelow.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
+]
+
+def highest(requestContext, seriesList, n=1, func='average'):
+  """
+  Takes one metric or a wildcard seriesList followed by an integer N and an aggregation function.
+  Out of all metrics passed, draws only the N metrics with the highest aggregated value over the
+  time period specified.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=highest(server*.instance*.threads.busy,5,'max')
+
+  Draws the 5 servers with the highest number of busy threads.
+  """
+  seriesList.sort(key=keyFunc(getAggFunc(func)), reverse=True)
+  return seriesList[:n]
+
+highest.group = 'Filter Series'
+highest.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
+  Param('func', ParamTypes.string, options=aggFuncNames, default='average'),
+]
+
+def lowest(requestContext, seriesList, n=1, func='average'):
+  """
+  Takes one metric or a wildcard seriesList followed by an integer N and an aggregation function.
+  Out of all metrics passed, draws only the N metrics with the lowest aggregated value over the
+  time period specified.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=lowest(server*.instance*.threads.busy,5,'min')
+
+  Draws the 5 servers with the lowest number of busy threads.
+  """
+  seriesList.sort(key=keyFunc(getAggFunc(func)))
+  return seriesList[:n]
+
+lowest.group = 'Filter Series'
+lowest.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
+  Param('func', ParamTypes.string, options=aggFuncNames, default='average'),
+]
 
 def highestCurrent(requestContext, seriesList, n):
   """
@@ -2315,8 +2744,15 @@ def highestCurrent(requestContext, seriesList, n):
 
   Draws the 5 servers with the highest busy threads.
 
+  This is an alias for :py:func:`highest <highest>` with aggregation ``current``.
   """
-  return sorted( seriesList, key=_safeLast_key )[-n:]
+  return highest(requestContext, seriesList, n, 'current')
+
+highestCurrent.group = 'Filter Series'
+highestCurrent.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
+]
 
 def highestMax(requestContext, seriesList, n):
   """
@@ -2334,10 +2770,15 @@ def highestMax(requestContext, seriesList, n):
   Draws the top 5 servers who have had the most busy threads during the time
   period specified.
 
+  This is an alias for :py:func:`highest <highest>` with aggregation ``max``.
   """
-  result_list = sorted( seriesList, key=lambda s: safeMax(s) )[-n:]
+  return highest(requestContext, seriesList, n, 'max')
 
-  return sorted(result_list, key=lambda s: max(s), reverse=True)
+highestMax.group = 'Filter Series'
+highestMax.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
+]
 
 def lowestCurrent(requestContext, seriesList, n):
   """
@@ -2353,9 +2794,15 @@ def lowestCurrent(requestContext, seriesList, n):
 
   Draws the 5 servers with the least busy threads right now.
 
+  This is an alias for :py:func:`lowest <lowest>` with aggregation ``current``.
   """
+  return lowest(requestContext, seriesList, n, 'current')
 
-  return sorted( seriesList, key=_safeLast_key)[:n]
+lowestCurrent.group = 'Filter Series'
+lowestCurrent.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
+]
 
 def currentAbove(requestContext, seriesList, n):
   """
@@ -2372,12 +2819,13 @@ def currentAbove(requestContext, seriesList, n):
   Draws the servers with more than 50 busy threads.
 
   """
-  results = []
-  for series in seriesList:
-    val = safeLast(series)
-    if val is not None and val >= n:
-      results.append(series)
-  return results
+  return filterSeries(requestContext, seriesList, 'last', '>', n)
+
+currentAbove.group = 'Filter Series'
+currentAbove.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
+]
 
 def currentBelow(requestContext, seriesList, n):
   """
@@ -2394,12 +2842,13 @@ def currentBelow(requestContext, seriesList, n):
   Draws the servers with less than 3 busy threads.
 
   """
-  results = []
-  for series in seriesList:
-    val = safeLast(series)
-    if val is None or val <= n:
-      results.append(series)
-  return results
+  return filterSeries(requestContext, seriesList, 'last', '<=', n)
+
+currentBelow.group = 'Filter Series'
+currentBelow.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
+]
 
 def highestAverage(requestContext, seriesList, n):
   """
@@ -2415,9 +2864,15 @@ def highestAverage(requestContext, seriesList, n):
 
   Draws the top 5 servers with the highest average value.
 
+  This is an alias for :py:func:`highest <highest>` with aggregation ``average``.
   """
+  return highest(requestContext, seriesList, n, 'average')
 
-  return sorted( seriesList, key=lambda s: _safeDiv_key(safeSum(s),safeLen(s)) )[-n:]
+highestAverage.group = 'Filter Series'
+highestAverage.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
+]
 
 def lowestAverage(requestContext, seriesList, n):
   """
@@ -2433,9 +2888,15 @@ def lowestAverage(requestContext, seriesList, n):
 
   Draws the bottom 5 servers with the lowest average value.
 
+  This is an alias for :py:func:`lowest <lowest>` with aggregation ``average``.
   """
+  return lowest(requestContext, seriesList, n, 'average')
 
-  return sorted( seriesList, key=lambda s: _safeDiv_key(safeSum(s),safeLen(s)) )[:n]
+lowestAverage.group = 'Filter Series'
+lowestAverage.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
+]
 
 def averageAbove(requestContext, seriesList, n):
   """
@@ -2450,14 +2911,14 @@ def averageAbove(requestContext, seriesList, n):
     &target=averageAbove(server*.instance*.threads.busy,25)
 
   Draws the servers with average values above 25.
-
   """
-  results = []
-  for series in seriesList:
-    val = safeAvg(series)
-    if val is not None and val >= n:
-      results.append(series)
-  return results
+  return filterSeries(requestContext, seriesList, 'average', '>', n)
+
+averageAbove.group = 'Filter Series'
+averageAbove.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
+]
 
 def averageBelow(requestContext, seriesList, n):
   """
@@ -2472,14 +2933,14 @@ def averageBelow(requestContext, seriesList, n):
     &target=averageBelow(server*.instance*.threads.busy,25)
 
   Draws the servers with average values below 25.
-
   """
-  results = []
-  for series in seriesList:
-    val = safeAvg(series)
-    if val is None or val <= n:
-      results.append(series)
-  return results
+  return filterSeries(requestContext, seriesList, 'average', '<=', n)
+
+averageBelow.group = 'Filter Series'
+averageBelow.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
+]
 
 def _getPercentile(points, n, interpolate=False):
   """
@@ -2531,14 +2992,17 @@ def nPercentile(requestContext, seriesList, n):
       results.append(perc_series)
   return results
 
+nPercentile.group = 'Calculate'
+nPercentile.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
+]
+
 def averageOutsidePercentile(requestContext, seriesList, n):
   """
-  Removes functions lying inside an average percentile interval
+  Removes series lying inside an average percentile interval
   """
-  averages = []
-
-  for s in seriesList:
-    averages.append(safeDiv(safeSum(s), safeLen(s)))
+  averages = [safeAvg(s) for s in seriesList]
 
   if n < 50:
     n = 100 - n;
@@ -2546,11 +3010,17 @@ def averageOutsidePercentile(requestContext, seriesList, n):
   lowPercentile = _getPercentile(averages, 100 - n)
   highPercentile = _getPercentile(averages, n)
 
-  return [s for s in seriesList if not lowPercentile < safeDiv(safeSum(s), safeLen(s)) < highPercentile]
+  return [s for s in seriesList if not lowPercentile < safeAvg(s) < highPercentile]
+
+averageOutsidePercentile.group = 'Filter Series'
+averageOutsidePercentile.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
+]
 
 def removeBetweenPercentile(requestContext, seriesList, n):
   """
-  Removes lines who do not have an value lying in the x-percentile of all the values at a moment
+  Removes series that do not have an value lying in the x-percentile of all the values at a moment
   """
   if n < 50:
     n = 100 - n
@@ -2562,6 +3032,12 @@ def removeBetweenPercentile(requestContext, seriesList, n):
 
   return [l for l in seriesList if sum([not lowPercentiles[val_i] < val < highPercentiles[val_i]
     for (val_i, val) in enumerate(l)]) > 0]
+
+removeBetweenPercentile.group = 'Filter Series'
+removeBetweenPercentile.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
+]
 
 def removeAbovePercentile(requestContext, seriesList, n):
   """
@@ -2581,6 +3057,12 @@ def removeAbovePercentile(requestContext, seriesList, n):
 
   return seriesList
 
+removeAbovePercentile.group = 'Filter Data'
+removeAbovePercentile.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
+]
+
 def removeAboveValue(requestContext, seriesList, n):
   """
   Removes data above the given threshold from the series or list of series provided.
@@ -2594,6 +3076,12 @@ def removeAboveValue(requestContext, seriesList, n):
         s[index] = None
 
   return seriesList
+
+removeAboveValue.group = 'Filter Data'
+removeAboveValue.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
+]
 
 def removeBelowPercentile(requestContext, seriesList, n):
   """
@@ -2613,6 +3101,12 @@ def removeBelowPercentile(requestContext, seriesList, n):
 
   return seriesList
 
+removeBelowPercentile.group = 'Filter Data'
+removeBelowPercentile.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
+]
+
 def removeBelowValue(requestContext, seriesList, n):
   """
   Removes data below the given threshold from the series or list of series provided.
@@ -2626,6 +3120,12 @@ def removeBelowValue(requestContext, seriesList, n):
         s[index] = None
 
   return seriesList
+
+removeBelowValue.group = 'Filter Data'
+removeBelowValue.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
+]
 
 def limit(requestContext, seriesList, n):
   """
@@ -2644,7 +3144,38 @@ def limit(requestContext, seriesList, n):
   """
   return seriesList[0:n]
 
-def sortByName(requestContext, seriesList, natural=False):
+limit.group = 'Filter Series'
+limit.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
+]
+
+def sortBy(requestContext, seriesList, func='average', reverse=False):
+  """
+  Takes one metric or a wildcard seriesList followed by an aggregation function and an
+  optional ``reverse`` parameter.
+
+  Returns the metrics sorted according to the specified function.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=sortBy(server*.instance*.threads.busy,'max')
+
+  Draws the servers in ascending order by maximum.
+  """
+  seriesList.sort(key=keyFunc(getAggFunc(func)), reverse=reverse)
+  return seriesList
+
+sortBy.group = 'Sorting'
+sortBy.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('func', ParamTypes.string, options=aggFuncNames, default='average'),
+  Param('reverse', ParamTypes.boolean, default=False),
+]
+
+def sortByName(requestContext, seriesList, natural=False, reverse=False):
   """
   Takes one metric or a wildcard seriesList.
   Sorts the list of metrics by the metric name using either alphabetical order or natural sorting.
@@ -2652,34 +3183,42 @@ def sortByName(requestContext, seriesList, natural=False):
   - Alphabetical sorting: server1, server11, server12, server2
   - Natural sorting: server1, server2, server11, server12
   """
-  def paddedName(name):
-    return re.sub("(\d+)", lambda x: "{0:010}".format(int(x.group(0))), name)
-
-  def natSortKey(x):
-    return paddedName(x.name)
+  def natSortKey(series):
+    return re.sub("(\d+)", lambda x: "{0:010}".format(int(x.group(0))), series.name)
 
   if natural:
-    seriesList.sort(key=natSortKey)
+    seriesList.sort(key=natSortKey, reverse=reverse)
   else:
-    seriesList.sort(key=lambda x: x.name)
+    seriesList.sort(key=lambda x: x.name, reverse=reverse)
 
   return seriesList
+
+sortByName.group = 'Sorting'
+sortByName.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('natural', ParamTypes.boolean, default=False),
+  Param('reverse', ParamTypes.boolean, default=False),
+]
 
 def sortByTotal(requestContext, seriesList):
   """
   Takes one metric or a wildcard seriesList.
 
-  Sorts the list of metrics by the sum of values across the time period
+  Sorts the list of metrics in descending order by the sum of values across the time period
   specified.
   """
-  seriesList.sort(key=safeSum, reverse=True)
-  return seriesList
+  return sortBy(requestContext, seriesList, 'sum', reverse=True)
+
+sortByTotal.group = 'Sorting'
+sortByTotal.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+]
 
 def sortByMaxima(requestContext, seriesList):
   """
   Takes one metric or a wildcard seriesList.
 
-  Sorts the list of metrics by the maximum value across the time period
+  Sorts the list of metrics in descending order by the maximum value across the time period
   specified.  Useful with the &areaMode=all parameter, to keep the
   lowest value lines visible.
 
@@ -2690,15 +3229,20 @@ def sortByMaxima(requestContext, seriesList):
     &target=sortByMaxima(server*.instance*.memory.free)
 
   """
-  seriesList.sort(key=max, reverse=True)
+  seriesList.sort(key=keyFunc(safeMax), reverse=True)
   return seriesList
+
+sortByMaxima.group = 'Sorting'
+sortByMaxima.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+]
 
 def sortByMinima(requestContext, seriesList):
   """
   Takes one metric or a wildcard seriesList.
 
   Sorts the list of metrics by the lowest value across the time period
-  specified.
+  specified, including only series that have a maximum value greater than 0.
 
   Example:
 
@@ -2707,9 +3251,14 @@ def sortByMinima(requestContext, seriesList):
     &target=sortByMinima(server*.instance*.memory.free)
 
   """
-  newSeries = [series for series in seriesList if max(series) > 0]
-  newSeries.sort(key=min)
+  newSeries = [series for series in seriesList if safeMax(series) > 0]
+  newSeries.sort(key=keyFunc(safeMin))
   return newSeries
+
+sortByMinima.group = 'Sorting'
+sortByMinima.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+]
 
 def useSeriesAbove(requestContext, seriesList, value, search, replace):
   """
@@ -2739,6 +3288,14 @@ def useSeriesAbove(requestContext, seriesList, value, search, replace):
 
   return [n for n in newSeries if n is not None and len(n) > 0]
 
+useSeriesAbove.group = 'Filter Series'
+useSeriesAbove.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('value', ParamTypes.string, required=True),
+  Param('search', ParamTypes.string, required=True),
+  Param('replace', ParamTypes.string, required=True),
+]
+
 def fallbackSeries(requestContext, seriesList, fallback):
     """
     Takes a wildcard seriesList, and a second fallback metric.
@@ -2757,6 +3314,12 @@ def fallbackSeries(requestContext, seriesList, fallback):
         return seriesList
     else:
         return fallback
+
+fallbackSeries.group = 'Special'
+fallbackSeries.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('fallback', ParamTypes.seriesList, required=True),
+]
 
 def mostDeviant(requestContext, seriesList, n):
   """
@@ -2777,14 +3340,20 @@ def mostDeviant(requestContext, seriesList, n):
 
   deviants = []
   for series in seriesList:
-    mean = safeDiv( safeSum(series), safeLen(series) )
+    mean = safeAvg(series)
     if mean is None: continue
     square_sum = sum([ (value - mean) ** 2 for value in series if value is not None ])
     sigma = safeDiv(square_sum, safeLen(series))
     if sigma is None: continue
     deviants.append( (sigma, series) )
-  deviants.sort(key=lambda i: i[0], reverse=True) #sort by sigma
+  deviants.sort(key=keyFunc(lambda i: i[0]), reverse=True) #sort by sigma
   return [ series for (_, series) in deviants ][:n] #return the n most deviant series
+
+mostDeviant.group = 'Filter Series'
+mostDeviant.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('n', ParamTypes.integer, required=True),
+]
 
 def stdev(requestContext, seriesList, points, windowTolerance=0.1):
   """
@@ -2854,6 +3423,13 @@ def stdev(requestContext, seriesList, points, windowTolerance=0.1):
 
   return seriesList
 
+stdev.group = 'Calculate'
+stdev.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('points', ParamTypes.integer, required=True),
+  Param('windowTolerance', ParamTypes.float, default=0.1),
+]
+
 def secondYAxis(requestContext, seriesList):
   """
   Graph the series on the secondary Y axis.
@@ -2863,6 +3439,11 @@ def secondYAxis(requestContext, seriesList):
     series.tags['secondYAxis'] = 1
     series.name= 'secondYAxis(%s)' % series.name
   return seriesList
+
+secondYAxis.group = 'Graph'
+secondYAxis.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+]
 
 def holtWintersIntercept(alpha,actual,last_season,last_intercept,last_slope):
   return alpha * (actual - last_season) \
@@ -2997,6 +3578,12 @@ def holtWintersForecast(requestContext, seriesList, bootstrapInterval='7d'):
     results.append(result)
   return results
 
+holtWintersForecast.group = 'Calculate'
+holtWintersForecast.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('bootstrapInterval', ParamTypes.interval, default='7d', suggestions=['7d', '30d']),
+]
+
 def holtWintersConfidenceBands(requestContext, seriesList, delta=3, bootstrapInterval='7d'):
   """
   Performs a Holt-Winters forecast using the series as input data and plots
@@ -3057,6 +3644,13 @@ def holtWintersConfidenceBands(requestContext, seriesList, delta=3, bootstrapInt
     results.append(upperSeries)
   return results
 
+holtWintersConfidenceBands.group = 'Calculate'
+holtWintersConfidenceBands.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('delta', ParamTypes.integer, default=3),
+  Param('bootstrapInterval', ParamTypes.interval, default='7d', suggestions=['7d', '30d']),
+]
+
 def holtWintersAberration(requestContext, seriesList, delta=3, bootstrapInterval='7d'):
   """
   Performs a Holt-Winters forecast using the series as input data and plots the
@@ -3084,6 +3678,13 @@ def holtWintersAberration(requestContext, seriesList, delta=3, bootstrapInterval
             , series.step, aberration, tags=series.tags, xFilesFactor=series.xFilesFactor))
   return results
 
+holtWintersAberration.group = 'Calculate'
+holtWintersAberration.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('delta', ParamTypes.integer, default=3),
+  Param('bootstrapInterval', ParamTypes.interval, default='7d', suggestions=['7d', '30d']),
+]
+
 def holtWintersConfidenceArea(requestContext, seriesList, delta=3, bootstrapInterval='7d'):
   """
   Performs a Holt-Winters forecast using the series as input data and plots the
@@ -3098,6 +3699,13 @@ def holtWintersConfidenceArea(requestContext, seriesList, delta=3, bootstrapInte
     series.name = series.name.replace('areaBetween', 'holtWintersConfidenceArea')
     series.pathExpression = series.name
   return results
+
+holtWintersConfidenceArea.group = 'Calculate'
+holtWintersConfidenceArea.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('delta', ParamTypes.integer, default=3),
+  Param('bootstrapInterval', ParamTypes.interval, default='7d', suggestions=['7d', '30d']),
+]
 
 def linearRegressionAnalysis(series):
   """
@@ -3160,6 +3768,12 @@ def linearRegression(requestContext, seriesList, startSourceAt=None, endSourceAt
     results.append(newSeries)
   return results
 
+linearRegression.group = 'Calculate'
+linearRegression.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('startSourceAt', ParamTypes.date),
+  Param('endSourceAt', ParamTypes.date),
+]
 
 def drawAsInfinite(requestContext, seriesList):
   """
@@ -3184,6 +3798,11 @@ def drawAsInfinite(requestContext, seriesList):
     series.name = 'drawAsInfinite(%s)' % series.name
   return seriesList
 
+drawAsInfinite.group = 'Graph'
+drawAsInfinite.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+]
+
 def lineWidth(requestContext, seriesList, width):
   """
   Takes one metric or a wildcard seriesList, followed by a float F.
@@ -3205,7 +3824,13 @@ def lineWidth(requestContext, seriesList, width):
     series.options['lineWidth'] = width
   return seriesList
 
-def dashed(requestContext, *seriesList):
+lineWidth.group = 'Graph'
+lineWidth.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('width', ParamTypes.float, required=True),
+]
+
+def dashed(requestContext, seriesList, dashLength=5):
   """
   Takes one metric or a wildcard seriesList, followed by a float F.
 
@@ -3219,18 +3844,19 @@ def dashed(requestContext, *seriesList):
     &target=dashed(server01.instance01.memory.free,2.5)
 
   """
-
-  if len(seriesList) == 2:
-    dashLength = seriesList[1]
-  else:
-    dashLength = 5
-  for series in seriesList[0]:
+  for series in seriesList:
     series.tags['dashed'] = dashLength
     series.name = 'dashed(%s, %g)' % (series.name, dashLength)
     series.options['dashed'] = dashLength
-  return seriesList[0]
+  return seriesList
 
-def timeStack(requestContext, seriesList, timeShiftUnit, timeShiftStart, timeShiftEnd):
+dashed.group = 'Graph'
+dashed.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('dashLength', ParamTypes.integer, default=5),
+]
+
+def timeStack(requestContext, seriesList, timeShiftUnit='1d', timeShiftStart=0, timeShiftEnd=7):
   """
   Takes one metric or a wildcard seriesList, followed by a quoted string with the
   length of time (See ``from / until`` in the render\_api_ for examples of time formats).
@@ -3276,6 +3902,14 @@ def timeStack(requestContext, seriesList, timeShiftUnit, timeShiftStart, timeShi
       results.append(shiftedSeries)
 
   return results
+
+timeStack.group = 'Transform'
+timeStack.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('timeShiftUnit', ParamTypes.interval, default='1d', suggestions=['1h', '6h', '12h', '1d', '2d', '7d', '14d', '30d']),
+  Param('timeShiftStart', ParamTypes.integer, default=0),
+  Param('timeShiftEnd', ParamTypes.integer, default=7),
+]
 
 def timeShift(requestContext, seriesList, timeShift, resetEnd=True, alignDST=False):
   """
@@ -3353,6 +3987,13 @@ def timeShift(requestContext, seriesList, timeShift, resetEnd=True, alignDST=Fal
 
   return results
 
+timeShift.group = 'Transform'
+timeShift.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('timeShift', ParamTypes.interval, required=True, suggestions=['1h', '6h', '12h', '1d', '2d', '7d', '14d', '30d']),
+  Param('resetEnd', ParamTypes.boolean, default=True),
+  Param('alignDst', ParamTypes.boolean, default=False),
+]
 
 def timeSlice(requestContext, seriesList, startSliceAt, endSliceAt="now"):
   """
@@ -3392,6 +4033,12 @@ def timeSlice(requestContext, seriesList, startSliceAt, endSliceAt="now"):
 
   return results
 
+timeSlice.group = 'Transform'
+timeSlice.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('startSliceAt', ParamTypes.date, required=True),
+  Param('endSliceAt', ParamTypes.date, default='now'),
+]
 
 def constantLine(requestContext, value):
   """
@@ -3414,7 +4061,12 @@ def constantLine(requestContext, value):
   series.pathExpression = name
   return [series]
 
-def aggregateLine(requestContext, seriesList, func='avg'):
+constantLine.group = 'Special'
+constantLine.params = [
+  Param('value', ParamTypes.float, required=True),
+]
+
+def aggregateLine(requestContext, seriesList, func='average'):
   """
   Takes a metric or wildcard seriesList and draws a horizontal line
   based on the function applied to each series.
@@ -3436,14 +4088,11 @@ def aggregateLine(requestContext, seriesList, func='avg'):
     &target=aggregateLine(server*.connections.total, 'avg')
 
   """
-  t_funcs = { 'avg': safeAvg, 'min': safeMin, 'max': safeMax }
-
-  if func not in t_funcs:
-    raise ValueError("Invalid function %s" % func)
+  aggFunc = getAggFunc(func)
 
   results = []
   for series in seriesList:
-    value = t_funcs[func](series)
+    value = aggFunc(series)
     if value is not None:
         name = 'aggregateLine(%s, %g)' % (series.name, value)
     else:
@@ -3451,9 +4100,15 @@ def aggregateLine(requestContext, seriesList, func='avg'):
 
     [series] = constantLine(requestContext, value)
     series.name = name
-    series.pathExpression = series.name
+    series.pathExpression = name
     results.append(series)
   return results
+
+aggregateLine.group = 'Calculate'
+aggregateLine.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('func', ParamTypes.aggFunc, default='average', options=aggFuncNames),
+]
 
 def verticalLine(requestContext, ts, label=None, color=None):
   """
@@ -3492,6 +4147,12 @@ def verticalLine(requestContext, ts, label=None, color=None):
     series.color = color
   return [series]
 
+verticalLine.group = 'Graph'
+verticalLine.params = [
+  Param('ts', ParamTypes.date, required=True),
+  Param('label', ParamTypes.string),
+  Param('color', ParamTypes.string),
+]
 
 def threshold(requestContext, value, label=None, color=None):
   """
@@ -3514,6 +4175,12 @@ def threshold(requestContext, value, label=None, color=None):
     series.color = color
   return [series]
 
+threshold.group = 'Graph'
+threshold.params = [
+  Param('value', ParamTypes.float, required=True),
+  Param('label', ParamTypes.string),
+  Param('color', ParamTypes.string),
+]
 
 def transformNull(requestContext, seriesList, default=0, referenceSeries=None):
   """
@@ -3560,6 +4227,13 @@ def transformNull(requestContext, seriesList, default=0, referenceSeries=None):
     del series[:len(values)]
   return seriesList
 
+transformNull.group = 'Transform'
+transformNull.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('default', ParamTypes.float, default=0),
+  Param('referenceSeries', ParamTypes.seriesList),
+]
+
 def isNonNull(requestContext, seriesList):
   """
   Takes a metric or wildcard seriesList and counts up the number of non-null
@@ -3589,6 +4263,11 @@ def isNonNull(requestContext, seriesList):
     del series[:len(values)]
   return seriesList
 
+isNonNull.group = 'Combine'
+isNonNull.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+]
+
 def identity(requestContext, name):
   """
   Identity function:
@@ -3614,6 +4293,11 @@ def identity(requestContext, name):
 
   return [series]
 
+identity.group = 'Calculate'
+identity.params = [
+  Param('name', ParamTypes.string, required=True),
+]
+
 def countSeries(requestContext, *seriesLists):
   """
   Draws a horizontal line representing the number of nodes found in the seriesList.
@@ -3635,6 +4319,11 @@ def countSeries(requestContext, *seriesLists):
 
   return [series]
 
+countSeries.group = 'Combine'
+countSeries.params = [
+  Param('seriesLists', ParamTypes.seriesList, multiple=True),
+]
+
 def group(requestContext, *seriesLists):
   """
   Takes an arbitrary number of seriesLists and adds them to a single seriesList. This is used
@@ -3645,6 +4334,11 @@ def group(requestContext, *seriesLists):
     seriesGroup.extend(s)
 
   return seriesGroup
+
+group.group = 'Combine'
+group.params = [
+  Param('seriesLists', ParamTypes.seriesList, multiple=True),
+]
 
 def mapSeries(requestContext, seriesList, *mapNodes):
   """
@@ -3678,6 +4372,12 @@ def mapSeries(requestContext, seriesList, *mapNodes):
     else:
       metaSeries[key].append(series)
   return [ metaSeries[k] for k in keys ]
+
+mapSeries.group = 'Combine'
+mapSeries.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('mapNodes', ParamTypes.nodeOrTag, required=True, multiple=True),
+]
 
 def reduceSeries(requestContext, seriesLists, reduceFunction, reduceNode, *reduceMatchers):
   """
@@ -3744,9 +4444,17 @@ def reduceSeries(requestContext, seriesLists, reduceFunction, reduceNode, *reduc
         i = reduceMatchers.index(node)
         metaSeries[reduceSeriesName][i] = series
   for key in keys:
-    metaSeries[key] = SeriesFunctions[reduceFunction](requestContext,*[[l] for l in metaSeries[key]])[0]
+    metaSeries[key] = SeriesFunction(reduceFunction)(requestContext,*[[l] for l in metaSeries[key]])[0]
     metaSeries[key].name = key
   return [ metaSeries[key] for key in keys ]
+
+reduceSeries.group = 'Combine'
+reduceSeries.params = [
+  Param('seriesLists', ParamTypes.seriesLists, required=True),
+  Param('reduceFunction', ParamTypes.string, required=True),
+  Param('reduceNode', ParamTypes.node, required=True),
+  Param('reduceMatchers', ParamTypes.string, required=True, multiple=True),
+]
 
 def applyByNode(requestContext, seriesList, nodeNum, templateFunction, newName=None):
   """
@@ -3799,7 +4507,15 @@ def applyByNode(requestContext, seriesList, nodeNum, templateFunction, newName=N
       results.append(resultSeries)
   return results
 
-def groupByNode(requestContext, seriesList, nodeNum, callback):
+applyByNode.group = 'Combine'
+applyByNode.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('nodeNum', ParamTypes.node, required=True),
+  Param('templateFunction', ParamTypes.string, required=True),
+  Param('newName', ParamTypes.string),
+]
+
+def groupByNode(requestContext, seriesList, nodeNum, callback='average'):
   """
   Takes a serieslist and maps a callback to subgroups within as defined by a common node
 
@@ -3819,6 +4535,13 @@ def groupByNode(requestContext, seriesList, nodeNum, callback):
   This is an alias for using :py:func:`groupByNodes <groupByNodes>` with a single node.
   """
   return groupByNodes(requestContext, seriesList, callback, nodeNum)
+
+groupByNode.group = 'Combine'
+groupByNode.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('nodeNum', ParamTypes.nodeOrTag, required=True),
+  Param('callback', ParamTypes.aggFunc, default='average', options=aggFuncNames, required=True),
+]
 
 def groupByNodes(requestContext, seriesList, callback, *nodes):
   """
@@ -3867,6 +4590,13 @@ def groupByNodes(requestContext, seriesList, callback, *nodes):
     metaSeries[key].name = key
   return [ metaSeries[key] for key in keys ]
 
+groupByNodes.group = 'Combine'
+groupByNodes.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('callback', ParamTypes.aggFunc, required=True, options=aggFuncNames),
+  Param('nodes', ParamTypes.nodeOrTag, required=True, multiple=True),
+]
+
 def exclude(requestContext, seriesList, pattern):
   """
   Takes a metric or a wildcard seriesList, followed by a regular expression
@@ -3880,6 +4610,12 @@ def exclude(requestContext, seriesList, pattern):
   """
   regex = re.compile(pattern)
   return [s for s in seriesList if not regex.search(s.name)]
+
+exclude.group = 'Filter Series'
+exclude.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('pattern', ParamTypes.string, required=True),
+]
 
 def grep(requestContext, seriesList, pattern):
   """
@@ -3895,12 +4631,21 @@ def grep(requestContext, seriesList, pattern):
   regex = re.compile(pattern)
   return [s for s in seriesList if regex.search(s.name)]
 
+grep.group = 'Filter Series'
+grep.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('pattern', ParamTypes.string, required=True),
+]
+
 def smartSummarize(requestContext, seriesList, intervalString, func='sum', alignTo=None):
   """
-  Smarter experimental version of summarize.
+  Smarter version of summarize.
 
   The alignToFrom boolean parameter has been replaced by alignTo and no longer has any effect.
   Alignment can be to years, months, weeks, days, hours, and minutes.
+
+  This function can be used with aggregation functions ``average``, ``median``, ``sum``, ``min``,
+  ``max``, ``diff``, ``stddev``, ``count``, ``range``, ``multiply`` & ``last``.
   """
   if isinstance(alignTo, bool):
     log.info("Deprecated parameter 'alignToFrom' is being ignored.")
@@ -3946,6 +4691,14 @@ def smartSummarize(requestContext, seriesList, intervalString, func='sum', align
 
   return results
 
+smartSummarize.group = 'Transform'
+smartSummarize.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('intervalString', ParamTypes.interval, required=True, suggestions=['10min', '1h', '1d']),
+  Param('func', ParamTypes.aggFunc, default='sum', options=aggFuncNames),
+  Param('alignTo', ParamTypes.string, options=[None, YEARS_STRING, MONTHS_STRING, WEEKS_STRING, DAYS_STRING, HOURS_STRING, MINUTES_STRING, SECONDS_STRING]),
+]
+
 def summarize(requestContext, seriesList, intervalString, func='sum', alignToFrom=False):
   """
   Summarize the data into interval buckets of a certain size.
@@ -3954,10 +4707,11 @@ def summarize(requestContext, seriesList, intervalString, func='sum', alignToFro
   useful for counters where each increment represents a discrete event and
   retrieving a "per X" value requires summing all the events in that interval.
 
-  Specifying 'avg' instead will return the mean for each bucket, which can be more
+  Specifying 'average' instead will return the mean for each bucket, which can be more
   useful when the value is a gauge that represents a certain value in time.
 
-  'max', 'min' or 'last' can also be specified.
+  This function can be used with aggregation functions ``average``, ``median``, ``sum``, ``min``,
+  ``max``, ``diff``, ``stddev``, ``count``, ``range``, ``multiply`` & ``last``.
 
   By default, buckets are calculated by rounding to the nearest interval. This
   works well for intervals smaller than a day. For example, 22:32 will end up
@@ -4002,11 +4756,21 @@ def summarize(requestContext, seriesList, intervalString, func='sum', alignToFro
 
   return results
 
+summarize.group = 'Transform'
+summarize.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('intervalString', ParamTypes.interval, required=True, suggestions=['10min', '1h', '1d']),
+  Param('func', ParamTypes.aggFunc, default='sum', options=aggFuncNames),
+  Param('alignToFrom', ParamTypes.boolean, default=False),
+]
+
 def _summarizeValues(series, func, interval, newStart=None, newEnd=None):
   if newStart is None:
     newStart = series.start
   if newEnd is None:
     newEnd = series.end
+
+  aggFunc = getAggFunc(func)
 
   timestamps = list(range( int(series.start), int(series.end), int(series.step)))
   datapoints = list(series)
@@ -4018,37 +4782,18 @@ def _summarizeValues(series, func, interval, newStart=None, newEnd=None):
   newValues = []
   timestamp_ = newStart
   while timestamp_ < newEnd:
-    newValue = None
+    s = i
     nonNull = 0
 
     while i < numPoints and timestamps[i] < timestamp_ + interval:
+      if timestamps[i] <= timestamp_:
+        s = i
       if timestamps[i] >= timestamp_ and datapoints[i] is not None:
         nonNull += 1
-
-        if func == 'avg':
-          if newValue:
-            newValue[0] += datapoints[i]
-            newValue[1] += 1
-          else:
-            newValue = [datapoints[i], 1]
-        elif func == 'last':
-          newValue = datapoints[i]
-        elif func == 'max':
-          if newValue is None or datapoints[i] > newValue:
-            newValue = datapoints[i]
-        elif func == 'min':
-          if newValue is None or datapoints[i] < newValue:
-            newValue = datapoints[i]
-        else:
-          newValue = (newValue or 0) + datapoints[i]
-
       i += 1
 
-    if func == 'avg' and newValue:
-      newValue = float(newValue[0]) / float(newValue[1])
-
     if xff(nonNull, intervalPoints, series.xFilesFactor):
-      newValues.append(newValue)
+      newValues.append(aggFunc(datapoints[s:i]))
     else:
       newValues.append(None)
 
@@ -4137,6 +4882,12 @@ def hitcount(requestContext, seriesList, intervalString, alignToInterval = False
 
   return results
 
+hitcount.group = 'Transform'
+hitcount.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('intervalString', ParamTypes.interval, required=True, suggestions=['10min', '1h', '1d']),
+  Param('alignToInterval', ParamTypes.boolean, default=False),
+]
 
 def timeFunction(requestContext, name, step=60):
   """
@@ -4170,6 +4921,12 @@ def timeFunction(requestContext, name, step=60):
 
   return [series]
 
+timeFunction.group = 'Transform'
+timeFunction.params = [
+  Param('name', ParamTypes.string, required=True),
+  Param('step', ParamTypes.integer, default=60),
+]
+
 def sinFunction(requestContext, name, amplitude=1, step=60):
   """
   Short Alias: sin()
@@ -4200,6 +4957,13 @@ def sinFunction(requestContext, name, amplitude=1, step=60):
             int(epoch(requestContext["endTime"])),
             step, values, xFilesFactor=requestContext.get('xFilesFactor'))]
 
+sinFunction.group = 'Transform'
+sinFunction.params = [
+  Param('name', ParamTypes.string, required=True),
+  Param('amplitude', ParamTypes.integer, default=1),
+  Param('step', ParamTypes.integer, default=60),
+]
+
 def removeEmptySeries(requestContext, seriesList, xFilesFactor=None):
   """
   Takes one metric or a wildcard seriesList.
@@ -4220,6 +4984,12 @@ def removeEmptySeries(requestContext, seriesList, xFilesFactor=None):
   """
   xFilesFactor = xFilesFactor if xFilesFactor is not None else 0
   return [ series for series in seriesList if xffValues(series, xFilesFactor) ]
+
+removeEmptySeries.group = 'Filter Series'
+removeEmptySeries.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('xFilesFactor', ParamTypes.float, required=True),
+]
 
 def unique(requestContext, *seriesLists):
   """
@@ -4242,6 +5012,11 @@ def unique(requestContext, *seriesLists):
         seenNames.add(series.name)
         newList.append(series)
   return newList
+
+unique.group = 'Filter Series'
+unique.params = [
+  Param('seriesLists', ParamTypes.seriesList, required=True, multiple=True),
+]
 
 def randomWalkFunction(requestContext, name, step=60):
   """
@@ -4274,6 +5049,12 @@ def randomWalkFunction(requestContext, name, step=60):
             int(epoch(requestContext["endTime"])),
             step, values, xFilesFactor=requestContext.get('xFilesFactor'))]
 
+randomWalkFunction.group = 'Special'
+randomWalkFunction.params = [
+  Param('name', ParamTypes.string, required=True),
+  Param('step', ParamTypes.integer, default=60),
+]
+
 def seriesByTag(requestContext, *tagExpressions):
   """
   Returns a SeriesList of series matching all the specified tag expressions.
@@ -4304,6 +5085,11 @@ def seriesByTag(requestContext, *tagExpressions):
   See :ref:`querying tagged series <querying-tagged-series>` for more detail.
   """
   # the handling of seriesByTag is implemented in STORE.fetch
+
+seriesByTag.group = 'Special'
+seriesByTag.params = [
+  Param('tagExpressions', ParamTypes.string, required=True, multiple=True),
+]
 
 def groupByTags(requestContext, seriesList, callback, *tags):
   """
@@ -4363,6 +5149,13 @@ def groupByTags(requestContext, seriesList, callback, *tags):
 
   return [metaSeries[key] for key in keys]
 
+groupByTags.group = 'Combine'
+groupByTags.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('callback', ParamTypes.aggFunc, required=True, options=aggFuncNames),
+  Param('tags', ParamTypes.tag, required=True, multiple=True),
+]
+
 def aliasByTags(requestContext, seriesList, *tags):
   """
   Takes a seriesList and applies an alias derived from one or more tags and/or nodes
@@ -4375,6 +5168,11 @@ def aliasByTags(requestContext, seriesList, *tags):
   """
   return aliasByNode(requestContext, seriesList, *tags)
 
+aliasByTags.group = 'Alias'
+aliasByTags.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('tags', ParamTypes.nodeOrTag, required=True, multiple=True),
+]
 
 def events(requestContext, *tags):
   """
@@ -4419,6 +5217,11 @@ def events(requestContext, *tags):
   result_series = TimeSeries(name, start_timestamp, end_timestamp, step, values, 'sum', xFilesFactor=requestContext.get('xFilesFactor'))
   return [result_series]
 
+events.group = 'Special'
+events.params = [
+  Param('tags', ParamTypes.string, required=True, multiple=True),
+]
+
 def minMax(requestContext, seriesList):
   """
   Applies the popular min max normalization technique, which takes
@@ -4450,15 +5253,37 @@ def minMax(requestContext, seriesList):
           series[i] = 0.0
   return seriesList
 
+minMax.group = 'Transform'
+minMax.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+]
+
 def pieAverage(requestContext, series):
-  return safeDiv(safeSum(series),safeLen(series))
+  """Return the average"""
+  return safeDiv(safeSum(series), safeLen(series))
+
+pieAverage.group = 'Pie'
+pieAverage.params = [
+  Param('series', ParamTypes.series, required=True),
+]
 
 def pieMaximum(requestContext, series):
-  return max(series)
+  """Return the maximum"""
+  return safeMax(series)
+
+pieMaximum.group = 'Pie'
+pieMaximum.params = [
+  Param('series', ParamTypes.series, required=True),
+]
 
 def pieMinimum(requestContext, series):
-  return min(series)
+  """Return the minimum"""
+  return safeMin(series)
 
+pieMinimum.group = 'Pie'
+pieMinimum.params = [
+  Param('series', ParamTypes.series, required=True),
+]
 
 PieFunctions = {
   'average': pieAverage,
@@ -4468,100 +5293,111 @@ PieFunctions = {
 
 SeriesFunctions = {
   # Combine functions
-  'sumSeries': sumSeries,
-  'sum': sumSeries,
-  'multiplySeries': multiplySeries,
-  'averageSeries': averageSeries,
-  'stddevSeries': stddevSeries,
-  'avg': averageSeries,
-  'sumSeriesWithWildcards': sumSeriesWithWildcards,
-  'averageSeriesWithWildcards': averageSeriesWithWildcards,
-  'multiplySeriesWithWildcards': multiplySeriesWithWildcards,
   'aggregate': aggregate,
   'aggregateWithWildcards': aggregateWithWildcards,
-  'minSeries': minSeries,
-  'maxSeries': maxSeries,
-  'rangeOfSeries': rangeOfSeries,
-  'percentileOfSeries': percentileOfSeries,
-  'countSeries': countSeries,
-  'weightedAverage': weightedAverage,
-
-  # Transform functions
-  'scale': scale,
-  'scaleToSeconds': scaleToSeconds,
-  'offset': offset,
-  'offsetToZero': offsetToZero,
-  'derivative': derivative,
-  'delay': delay,
-  'squareRoot': squareRoot,
-  'pow': pow,
-  'powSeries': powSeries,
-  'perSecond': perSecond,
-  'integral': integral,
-  'integralByInterval' : integralByInterval,
-  'nonNegativeDerivative': nonNegativeDerivative,
-  'log': logarithm,
-  'invert': invert,
-  'round': roundFunction,
-  'timeStack': timeStack,
-  'timeShift': timeShift,
-  'timeSlice': timeSlice,
-  'summarize': summarize,
-  'smartSummarize': smartSummarize,
-  'hitcount': hitcount,
-  'absolute': absolute,
-  'interpolate': interpolate,
-  'minMax': minMax,
-
-  # Calculate functions
-  'movingAverage': movingAverage,
-  'movingMedian': movingMedian,
-  'movingSum': movingSum,
-  'movingMin': movingMin,
-  'movingMax': movingMax,
-  'movingWindow': movingWindow,
-  'stdev': stdev,
-  'holtWintersForecast': holtWintersForecast,
-  'holtWintersConfidenceBands': holtWintersConfidenceBands,
-  'holtWintersConfidenceArea': holtWintersConfidenceArea,
-  'holtWintersAberration': holtWintersAberration,
-  'linearRegression': linearRegression,
+  'applyByNode': applyByNode,
   'asPercent': asPercent,
-  'pct': asPercent,
+  'averageSeries': averageSeries,
+  'averageSeriesWithWildcards': averageSeriesWithWildcards,
+  'avg': averageSeries,
+  'countSeries': countSeries,
   'diffSeries': diffSeries,
   'divideSeries': divideSeries,
   'divideSeriesLists': divideSeriesLists,
+  'group': group,
+  'groupByNode': groupByNode,
+  'groupByNodes' : groupByNodes,
+  'groupByTags': groupByTags,
+  'isNonNull': isNonNull,
+  'map': mapSeries,
+  'mapSeries': mapSeries,
+  'maxSeries': maxSeries,
+  'minSeries': minSeries,
+  'multiplySeries': multiplySeries,
+  'multiplySeriesWithWildcards': multiplySeriesWithWildcards,
+  'pct': asPercent,
+  'percentileOfSeries': percentileOfSeries,
+  'rangeOfSeries': rangeOfSeries,
+  'reduce': reduceSeries,
+  'reduceSeries': reduceSeries,
+  'stddevSeries': stddevSeries,
+  'sum': sumSeries,
+  'sumSeries': sumSeries,
+  'sumSeriesWithWildcards': sumSeriesWithWildcards,
+  'weightedAverage': weightedAverage,
+
+  # Transform functions
+  'absolute': absolute,
+  'delay': delay,
+  'derivative': derivative,
+  'hitcount': hitcount,
+  'integral': integral,
+  'integralByInterval' : integralByInterval,
+  'interpolate': interpolate,
+  'invert': invert,
+  'keepLastValue': keepLastValue,
+  'log': logarithm,
+  'minMax': minMax,
+  'nonNegativeDerivative': nonNegativeDerivative,
+  'offset': offset,
+  'offsetToZero': offsetToZero,
+  'perSecond': perSecond,
+  'pow': pow,
+  'powSeries': powSeries,
+  'round': roundFunction,
+  'scale': scale,
+  'scaleToSeconds': scaleToSeconds,
+  'smartSummarize': smartSummarize,
+  'squareRoot': squareRoot,
+  'summarize': summarize,
+  'timeShift': timeShift,
+  'timeSlice': timeSlice,
+  'timeStack': timeStack,
+  'transformNull': transformNull,
+
+  # Calculate functions
+  'aggregateLine': aggregateLine,
   'exponentialMovingAverage': exponentialMovingAverage,
+  'holtWintersAberration': holtWintersAberration,
+  'holtWintersConfidenceArea': holtWintersConfidenceArea,
+  'holtWintersConfidenceBands': holtWintersConfidenceBands,
+  'holtWintersForecast': holtWintersForecast,
+  'linearRegression': linearRegression,
+  'movingAverage': movingAverage,
+  'movingMax': movingMax,
+  'movingMedian': movingMedian,
+  'movingMin': movingMin,
+  'movingSum': movingSum,
+  'movingWindow': movingWindow,
+  'nPercentile': nPercentile,
+  'stdev': stdev,
 
   # Series Filter functions
-  'fallbackSeries': fallbackSeries,
-  'mostDeviant': mostDeviant,
-  'highestCurrent': highestCurrent,
-  'lowestCurrent': lowestCurrent,
-  'highestMax': highestMax,
-  'currentAbove': currentAbove,
-  'currentBelow': currentBelow,
-  'highestAverage': highestAverage,
-  'lowestAverage': lowestAverage,
   'averageAbove': averageAbove,
   'averageBelow': averageBelow,
-  'maximumAbove': maximumAbove,
-  'minimumAbove': minimumAbove,
-  'maximumBelow': maximumBelow,
-  'minimumBelow': minimumBelow,
-  'nPercentile': nPercentile,
-  'limit': limit,
-  'sortByTotal': sortByTotal,
-  'sortByName': sortByName,
   'averageOutsidePercentile': averageOutsidePercentile,
-  'removeBetweenPercentile': removeBetweenPercentile,
-  'sortByMaxima': sortByMaxima,
-  'sortByMinima': sortByMinima,
-  'useSeriesAbove': useSeriesAbove,
+  'currentAbove': currentAbove,
+  'currentBelow': currentBelow,
   'exclude': exclude,
+  'filterSeries': filterSeries,
   'grep': grep,
+  'highest': highest,
+  'highestAverage': highestAverage,
+  'highestCurrent': highestCurrent,
+  'highestMax': highestMax,
+  'limit': limit,
+  'lowest': lowest,
+  'lowestAverage': lowestAverage,
+  'lowestCurrent': lowestCurrent,
+  'maximumAbove': maximumAbove,
+  'maximumBelow': maximumBelow,
+  'minimumAbove': minimumAbove,
+  'minimumBelow': minimumBelow,
+  'mostDeviant': mostDeviant,
+  'removeBetweenPercentile': removeBetweenPercentile,
   'removeEmptySeries': removeEmptySeries,
   'unique': unique,
+  'useSeriesAbove': useSeriesAbove,
 
   # Data Filter functions
   'removeAbovePercentile': removeAbovePercentile,
@@ -4569,63 +5405,51 @@ SeriesFunctions = {
   'removeBelowPercentile': removeBelowPercentile,
   'removeBelowValue': removeBelowValue,
 
-  # Special functions
-  'legendValue': legendValue,
+  # Sorting functions
+  'sortBy': sortBy,
+  'sortByMaxima': sortByMaxima,
+  'sortByMinima': sortByMinima,
+  'sortByName': sortByName,
+  'sortByTotal': sortByTotal,
+
+  # Alias functions
   'alias': alias,
-  'aliasSub': aliasSub,
-  'aliasQuery': aliasQuery,
-  'aliasByNode': aliasByNode,
   'aliasByMetric': aliasByMetric,
-  'cactiStyle': cactiStyle,
-  'color': color,
-  'alpha': alpha,
-  'cumulative': cumulative,
-  'consolidateBy': consolidateBy,
-  'setXFilesFactor': setXFilesFactor,
-  'xFilesFactor': setXFilesFactor,
-  'keepLastValue': keepLastValue,
-  'changed': changed,
-  'drawAsInfinite': drawAsInfinite,
-  'secondYAxis': secondYAxis,
-  'lineWidth': lineWidth,
-  'dashed': dashed,
-  'substr': substr,
-  'group': group,
-  'map': mapSeries,
-  'mapSeries': mapSeries,
-  'reduce': reduceSeries,
-  'reduceSeries': reduceSeries,
-  'applyByNode': applyByNode,
-  'groupByNode': groupByNode,
-  'groupByNodes' : groupByNodes,
-  'constantLine': constantLine,
-  'stacked': stacked,
-  'areaBetween': areaBetween,
-  'threshold': threshold,
-  'transformNull': transformNull,
-  'isNonNull': isNonNull,
-  'verticalLine' : verticalLine,
-  'identity': identity,
-  'aggregateLine': aggregateLine,
-
-  # tag functions
-  'seriesByTag': seriesByTag,
-  'groupByTags': groupByTags,
+  'aliasByNode': aliasByNode,
   'aliasByTags': aliasByTags,
+  'aliasQuery': aliasQuery,
+  'aliasSub': aliasSub,
+  'legendValue': legendValue,
 
-  # test functions
-  'time': timeFunction,
-  "sin": sinFunction,
-  "randomWalk": randomWalkFunction,
-  'timeFunction': timeFunction,
-  "sinFunction": sinFunction,
-  "randomWalkFunction": randomWalkFunction,
+  # Graph functions
+  'alpha': alpha,
+  'areaBetween': areaBetween,
+  'color': color,
+  'dashed': dashed,
+  'drawAsInfinite': drawAsInfinite,
+  'lineWidth': lineWidth,
+  'secondYAxis': secondYAxis,
+  'stacked': stacked,
+  'threshold': threshold,
+  'verticalLine' : verticalLine,
 
-  # events
+  # Special functions
+  'cactiStyle': cactiStyle,
+  'changed': changed,
+  'consolidateBy': consolidateBy,
+  'constantLine': constantLine,
   'events': events,
+  'cumulative': cumulative,
+  'fallbackSeries': fallbackSeries,
+  'identity': identity,
+  "randomWalk": randomWalkFunction,
+  "randomWalkFunction": randomWalkFunction,
+  'setXFilesFactor': setXFilesFactor,
+  "sin": sinFunction,
+  "sinFunction": sinFunction,
+  'seriesByTag': seriesByTag,
+  'substr': substr,
+  'time': timeFunction,
+  'timeFunction': timeFunction,
+  'xFilesFactor': setXFilesFactor,
 }
-
-
-# Avoid import circularity
-if not environ.get('READTHEDOCS'):
-  from graphite.render.evaluator import evaluateTarget

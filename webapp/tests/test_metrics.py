@@ -188,13 +188,13 @@ class MetricsTester(TestCase):
             self.assertEqual(data[0]['is_leaf'], True)
             self.assertEqual(len(data[0]['intervals']), 1)
             #self.assertEqual(int(data[0]['intervals'][0].start), ts_minus_sixty_seconds)
-            self.assertEqual(int(data[0]['intervals'][0].end), ts)
+            self.assertIn(int(data[0]['intervals'][0].end), [ts, ts - 1])
 
             self.assertEqual(data[1]['path'], 'hosts.worker2.cpu')
             self.assertEqual(data[1]['is_leaf'], True)
             self.assertEqual(len(data[1]['intervals']), 1)
             #self.assertEqual(int(data[1]['intervals'][0].start), ts_minus_sixty_seconds)
-            self.assertEqual(int(data[1]['intervals'][0].end), ts)
+            self.assertIn(int(data[1]['intervals'][0].end), [ts, ts - 1])
 
             #
             # format=msgpack
@@ -390,13 +390,13 @@ class MetricsTester(TestCase):
             self.assertEqual(data[0]['is_leaf'], True)
             self.assertEqual(len(data[0]['intervals']), 1)
             #self.assertEqual(int(data[0]['intervals'][0]['start']), ts_minus_sixty_seconds)
-            self.assertEqual(int(data[0]['intervals'][0]['end']), ts)
+            self.assertIn(int(data[0]['intervals'][0]['end']), [ts, ts - 1])
 
             self.assertEqual(data[1]['path'], 'hosts.worker2.cpu')
             self.assertEqual(data[1]['is_leaf'], True)
             self.assertEqual(len(data[1]['intervals']), 1)
             #self.assertEqual(int(data[1]['intervals'][0]['start']), ts_minus_sixty_seconds)
-            self.assertEqual(int(data[1]['intervals'][0]['end']), ts)
+            self.assertIn(int(data[1]['intervals'][0]['end']), [ts, ts - 1])
 
             # No match
             request['query']='other'
@@ -425,13 +425,13 @@ class MetricsTester(TestCase):
             self.assertEqual(data[0]['is_leaf'], True)
             self.assertEqual(len(data[0]['intervals']), 1)
             #self.assertEqual(int(data[0]['intervals'][0]['start']), ts_minus_sixty_seconds)
-            self.assertEqual(int(data[0]['intervals'][0]['end']), ts)
+            self.assertIn(int(data[0]['intervals'][0]['end']), [ts, ts - 1])
 
             self.assertEqual(data[1]['path'], 'hosts.worker2.cpu')
             self.assertEqual(data[1]['is_leaf'], True)
             self.assertEqual(len(data[1]['intervals']), 1)
             #self.assertEqual(int(data[1]['intervals'][0]['start']), ts_minus_sixty_seconds)
-            self.assertEqual(int(data[1]['intervals'][0]['end']), ts)
+            self.assertIn(int(data[1]['intervals'][0]['end']), [ts, ts - 1])
 
             # No match
             request['query']='other'

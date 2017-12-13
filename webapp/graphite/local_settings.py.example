@@ -378,6 +378,13 @@ DEFAULT_XFILES_FACTOR = 0
 #TAGDB_HTTP_AUTOCOMPLETE = False
 
 #####################################
+# Function plugins #
+#####################################
+# List of custom function plugin modules
+# See: http://graphite.readthedocs.io/en/latest/functions.html#function-plugins
+FUNCTION_PLUGINS = []
+
+#####################################
 # Additional Django Settings #
 #####################################
 # Uncomment the following line for direct access to Django settings such as

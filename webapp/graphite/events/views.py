@@ -7,12 +7,12 @@ except ImportError:  # Django < 1.9
     from django.contrib.sites.models import RequestSite
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.serializers.json import DjangoJSONEncoder
 from django.forms.models import model_to_dict
 from django.shortcuts import render_to_response, get_object_or_404
 from django.utils.timezone import now
 
-from graphite.compat import HttpResponse, JsonResponse
-from graphite.util import json, epoch, epoch_to_dt
+from graphite.util import json, epoch, epoch_to_dt, jsonResponse, HttpError, HttpResponse
 from graphite.events.models import Event
 from graphite.render.attime import parseATTime
 
@@ -34,21 +34,23 @@ def view_events(request):
         return post_event(request)
 
 
+@jsonResponse(encoder=DjangoJSONEncoder)
+def jsonDetail(request, queryParams, event_id):
+    try:
+       e = Event.objects.get(id=event_id)
+       e.tags = e.tags.split()
+       return model_to_dict(e)
+    except ObjectDoesNotExist:
+       raise HttpError('Event matching query does not exist', status=404)
+
+
 def detail(request, event_id):
     if request.META.get('HTTP_ACCEPT') == 'application/json':
-        try:
-           e = Event.objects.get(id=event_id)
-           e.tags = e.tags.split()
-           response = JsonResponse(model_to_dict(e))
-           return response
-        except ObjectDoesNotExist:
-           error = {'error': 'Event matching query does not exist'}
-           response = JsonResponse(error, status=404)
-           return response
-    else:
-        e = get_object_or_404(Event, pk=event_id)
-        context = {'event': e}
-        return render_to_response('event.html', context)
+        return jsonDetail(request, event_id)
+
+    e = get_object_or_404(Event, pk=event_id)
+    context = {'event': e}
+    return render_to_response('event.html', context)
 
 
 def post_event(request):

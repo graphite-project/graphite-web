@@ -156,7 +156,10 @@ def parseTimeOffset(offset):
   if offset[0].isdigit():
     sign = 1
   else:
-    sign = { '+' : 1, '-' : -1 }[offset[0]]
+    try:
+      sign = { '+' : 1, '-' : -1 }[offset[0]]
+    except KeyError:
+      raise KeyError('Invalid offset: %s' % offset)
     offset = offset[1:]
 
   while offset:

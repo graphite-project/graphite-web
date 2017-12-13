@@ -136,7 +136,7 @@ class RenderTest(TestCase):
         def raiseError(requestContext):
           raise NormalizeEmptyResultError
 
-        with patch('graphite.render.evaluator.SeriesFunctions', {'test': raiseError}):
+        with patch('graphite.functions._SeriesFunctions', {'test': raiseError}):
           outputs = evaluateTarget({}, 'test()')
           self.assertEqual(outputs, [])
 
@@ -147,7 +147,7 @@ class RenderTest(TestCase):
         def returnTimeSeries(requestContext):
           return timeseries
 
-        with patch('graphite.render.evaluator.SeriesFunctions', {'test': returnTimeSeries}):
+        with patch('graphite.functions._SeriesFunctions', {'test': returnTimeSeries}):
           outputs = evaluateTarget({}, 'test()')
           self.assertEqual(outputs, [timeseries])
 
