@@ -16,7 +16,7 @@ from django.conf.urls import url
 from . import views
 
 urlpatterns = [
-    url('^get_data?$', views.get_data, name='events_get_data'),
-    url(r'(?P<event_id>\d+)/$', views.detail, name='events_detail'),
-    url('^$', views.view_events, name='events'),
+    url(r'^/get_data?$', views.get_data, name='events_get_data'),
+    url(r'^/(?P<event_id>\d+)/?$', views.detail, name='events_detail'),
+    url(r'^/?$', views.view_events, name='events'),
 ]

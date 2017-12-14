@@ -16,8 +16,8 @@ from django.conf.urls import url
 from . import views
 
 urlpatterns = [
-    url('local/?$', views.renderLocalView, name='render_local'),
-    url('~(?P<username>[^/]+)/(?P<graphName>[^/]+)/?',
-        views.renderMyGraphView, name='render_my_graph'),
-    url('', views.renderView, name='render'),
+    url(r'^/local/?$', views.renderLocalView, name='render_local'),
+    url(r'^/~(?P<username>[^/]+)/(?P<graphName>[^/]+)/?$', views.renderMyGraphView,
+        name='render_my_graph'),
+    url(r'^/?$', views.renderView, name='render'),
 ]

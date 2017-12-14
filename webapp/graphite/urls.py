@@ -19,28 +19,27 @@ from graphite.browser.views import browser
 
 graphite_urls = [
     url('^admin/', admin.site.urls),
-    url('^render/?', include('graphite.render.urls')),
-    url('^composer/?', include('graphite.composer.urls')),
-    url('^metrics/?', include('graphite.metrics.urls')),
-    url('^browser/?', include('graphite.browser.urls')),
-    url('^account/', include('graphite.account.urls')),
-    url('^dashboard/?', include('graphite.dashboard.urls')),
-    url('^whitelist/?', include('graphite.whitelist.urls')),
-    url('^version/', include('graphite.version.urls')),
-    url('^events/', include('graphite.events.urls')),
-    url('^tags/?', include('graphite.tags.urls')),
-    url('^functions/?', include('graphite.functions.urls')),
+    url('^render', include('graphite.render.urls')),
+    url('^composer', include('graphite.composer.urls')),
+    url('^metrics', include('graphite.metrics.urls')),
+    url('^browser', include('graphite.browser.urls')),
+    url('^account', include('graphite.account.urls')),
+    url('^dashboard', include('graphite.dashboard.urls')),
+    url('^whitelist', include('graphite.whitelist.urls')),
+    url('^version', include('graphite.version.urls')),
+    url('^events', include('graphite.events.urls')),
+    url('^tags', include('graphite.tags.urls')),
+    url('^functions', include('graphite.functions.urls')),
     url('^s/(?P<path>.*)', shorten, name='shorten'),
     url('^S/(?P<link_id>[a-zA-Z0-9]+)/?$', follow, name='follow'),
     url('^$', browser, name='browser'),
 ]
 
-url_prefix = ''
 if settings.URL_PREFIX.strip('/'):
-    url_prefix = '{0}/'.format(settings.URL_PREFIX.strip('/'))
-
-urlpatterns = [
-    url(r'^{0}'.format(url_prefix), include(graphite_urls)),
-]
+    urlpatterns = [
+        url(r'^{0}/'.format(settings.URL_PREFIX.strip('/')), include(graphite_urls)),
+    ]
+else:
+    urlpatterns = graphite_urls
 
 handler500 = 'graphite.views.server_error'

@@ -16,7 +16,7 @@ from django.conf.urls import url
 from . import views
 
 urlpatterns = [
-    url('add', views.add, name='whitelist_add'),
-    url('remove', views.remove, name='whitelist_remove'),
-    url('', views.show, name='whitelist_show'),
+    url(r'^/add$', views.add, name='whitelist_add'),
+    url(r'^/remove$', views.remove, name='whitelist_remove'),
+    url(r'^/?$', views.show, name='whitelist_show'),
 ]
