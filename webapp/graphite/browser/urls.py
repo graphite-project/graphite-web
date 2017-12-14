@@ -16,9 +16,9 @@ from django.conf.urls import url
 from . import views
 
 urlpatterns = [
-    url('^header/?$', views.header, name='browser_header'),
-    url('^search/?$', views.search, name='browser_search'),
-    url('^mygraph/?$', views.myGraphLookup, name='browser_my_graph'),
-    url('^usergraph/?$', views.userGraphLookup, name='browser_usergraph'),
-    url('^$', views.browser, name='browser'),
+    url(r'^/header/?$', views.header, name='browser_header'),
+    url(r'^/search/?$', views.search, name='browser_search'),
+    url(r'^/mygraph/?$', views.myGraphLookup, name='browser_my_graph'),
+    url(r'^/usergraph/?$', views.userGraphLookup, name='browser_usergraph'),
+    url(r'^/?$', views.browser, name='browser'),
 ]
