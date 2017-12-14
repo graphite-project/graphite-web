@@ -1,4 +1,6 @@
 MANIFEST
+.vagrant/
+.venv/
 _trial_temp
 build
 dist
@@ -7,6 +9,14 @@ dropin.cache
 *.egg-info
 docs/_build
 *.log
+*.pyc
+.tox
+*.swp
+.idea
 *.iml
 storage
-*.pyc
+webapp/coverage.xml
+webapp/.coverage
+webapp/htmlcov
+webapp/static
+webapp/static/**/*
