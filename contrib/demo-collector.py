@@ -19,7 +19,7 @@ class Carbon:
         try:
             self.s.connect((self.hostname, self.port))
         except IOError, e:
-            print "connect: ", e
+            print("connect: ", e)
             return
     def disconnect(self): self.s.close()
     def send(self, data):
@@ -166,7 +166,7 @@ def main():
         data = host.get_all()
         for datum in data:
             metric = "system.%s.%s" % (hostname, datum)
-            if "-debug" in argv: print metric
+            if "-debug" in argv: print(metric)
             graphite.send(metric)
         sleep(DELAY)
 

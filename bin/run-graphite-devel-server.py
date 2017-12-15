@@ -25,10 +25,10 @@ python_path = os.path.join(graphite_root, 'webapp')
 
 if options.libs:
   libdir = os.path.expanduser(options.libs)
-  print 'Adding %s to your PYTHONPATH' % libdir
+  print('Adding %s to your PYTHONPATH' % libdir)
   os.environ['PYTHONPATH'] = libdir + ':' + os.environ.get('PYTHONPATH','')
 
-print "Running Graphite from %s under django development server\n" % graphite_root
+print("Running Graphite from %s under django development server\n" % graphite_root)
 
 command = [
   'django-admin.py',
@@ -41,6 +41,6 @@ command = [
 if options.noreload:
   command.append('--noreload')
 
-print ' '.join(command)
+print(' '.join(command))
 
 management.execute_from_command_line(command)
