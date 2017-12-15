@@ -110,7 +110,7 @@ def enableDebug():
       return file.read(self,bytes)
 
   def debug(message):
-    print 'DEBUG :: %s' % message
+    print('DEBUG :: %s' % message)
 
   __timingBlocks = {}
 

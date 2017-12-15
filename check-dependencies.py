@@ -2,12 +2,10 @@
 
 import sys
 
-# Simple python version test
-major,minor = sys.version_info[:2]
-py_version = sys.version.split()[0]
-if major != 2 or minor < 7:
+if sys.version_info <= (2,7):
   # SystemExit defaults to returning 1 when printing a string to stderr
-  raise SystemExit("You are using python %s, but version 2.7 or greater is required" % py_version)
+  raise SystemExit("You are using python %s, but version 2.7 or greater is "
+                   "required" % sys.version_info)
 
 required = 0
 optional = 0
@@ -36,7 +34,7 @@ except ImportError:
   try:
     import cairo
   except ImportError:
-    sys.stderr.write("[REQUIRED] Unable to import the 'cairo' module, do you have pycairo installed for python %s?\n" % py_version)
+    sys.stderr.write("[REQUIRED] Unable to import the 'cairo' module, do you have pycairo installed for python %s?\n" % sys.version_info.major)
     cairo = None
     required += 1
 
@@ -66,7 +64,7 @@ except Exception:
 try:
   import django
 except ImportError:
-  sys.stderr.write("[REQUIRED] Unable to import the 'django' module, do you have Django installed for python %s?\n" % py_version)
+  sys.stderr.write("[REQUIRED] Unable to import the 'django' module, do you have Django installed for python %s?\n" % sys.version_info.major)
   django = None
   required += 1
 
@@ -75,7 +73,7 @@ except ImportError:
 try:
   import pytz
 except ImportError:
-  sys.stderr.write("[REQUIRED] Unable to import the 'pytz' module, do you have pytz module installed for python %s?\n" % py_version)
+  sys.stderr.write("[REQUIRED] Unable to import the 'pytz' module, do you have pytz module installed for python %s?\n" % sys.version_info.major)
   required += 1
 
 
@@ -83,7 +81,7 @@ except ImportError:
 try:
   import pyparsing
 except ImportError:
-  sys.stderr.write("[REQUIRED] Unable to import the 'pyparsing' module, do you have pyparsing module installed for python %s?\n" % py_version)
+  sys.stderr.write("[REQUIRED] Unable to import the 'pyparsing' module, do you have pyparsing module installed for python %s?\n" % sys.version_info.major)
   required += 1
 
 
@@ -91,7 +89,7 @@ except ImportError:
 try:
   import tagging
 except ImportError:
-  sys.stderr.write("[REQUIRED] Unable to import the 'tagging' module, do you have django-tagging installed for python %s?\n" % py_version)
+  sys.stderr.write("[REQUIRED] Unable to import the 'tagging' module, do you have django-tagging installed for python %s?\n" % sys.version_info.major)
   required += 1
 
 
@@ -104,7 +102,7 @@ if django and django.VERSION[:2] < (1,8):
 try:
   import memcache
 except ImportError:
-  sys.stderr.write("[OPTIONAL] Unable to import the 'memcache' module, do you have python-memcached installed for python %s? This feature is not required but greatly improves performance.\n" % py_version)
+  sys.stderr.write("[OPTIONAL] Unable to import the 'memcache' module, do you have python-memcached installed for python %s? This feature is not required but greatly improves performance.\n" % sys.version_info.major)
   optional += 1
 
 
@@ -112,7 +110,7 @@ except ImportError:
 try:
   import ldap
 except ImportError:
-  sys.stderr.write("[OPTIONAL] Unable to import the 'ldap' module, do you have python-ldap installed for python %s? Without python-ldap, you will not be able to use LDAP authentication in the graphite webapp.\n" % py_version)
+  sys.stderr.write("[OPTIONAL] Unable to import the 'ldap' module, do you have python-ldap installed for python %s? Without python-ldap, you will not be able to use LDAP authentication in the graphite webapp.\n" % sys.version_info.major)
   optional += 1
 
 
@@ -151,10 +149,10 @@ except ImportError:
 if optional:
   sys.stderr.write("%d optional dependencies not met. Please consider the optional items before proceeding.\n" % optional)
 else:
-  print "All optional dependencies are met."
+  print("All optional dependencies are met.")
 
 if required:
   sys.stderr.write("%d necessary dependencies not met. Graphite will not function until these dependencies are fulfilled.\n" % required)
   sys.exit(1)
 else:
-  print "All necessary dependencies are met."
+  print("All necessary dependencies are met.")

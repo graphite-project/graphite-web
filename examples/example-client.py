@@ -43,7 +43,7 @@ sock = socket()
 try:
   sock.connect( (CARBON_SERVER,CARBON_PORT) )
 except:
-  print "Couldn't connect to %(server)s on port %(port)d, is carbon-agent.py running?" % { 'server':CARBON_SERVER, 'port':CARBON_PORT }
+  print("Couldn't connect to %(server)s on port %(port)d, is carbon-agent.py running?" % { 'server':CARBON_SERVER, 'port':CARBON_PORT })
   sys.exit(1)
 
 while True:
@@ -55,9 +55,9 @@ while True:
   lines.append("system.loadavg_5min %s %d" % (loadavg[1],now))
   lines.append("system.loadavg_15min %s %d" % (loadavg[2],now))
   message = '\n'.join(lines) + '\n' #all lines must end in a newline
-  print "sending message\n"
-  print '-' * 80
-  print message
-  print
+  print("sending message\n")
+  print('-' * 80)
+  print(message)
+  print()
   sock.sendall(message)
   time.sleep(delay)
