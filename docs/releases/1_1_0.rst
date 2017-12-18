@@ -26,7 +26,7 @@ The main feature of this release is :ref:`tag support <tags>` in Carbon and Grap
 
 All components of Graphite stack now support Python 3. Python 3 support is however considered experimental, as this is the first release with complete Python 3 support.
 
-Another long-awaited feature is :ref:`Custom functions <function-plugins>` - you can write your own functions and load them into Graphite. There's also the :ref:`Function API <function-api>` to get a list of available functions, or the details of a specific function. Please note that the built-in frontend code does not yet use the Functions API, so your functions will not be present in the Graphite-web interface.
+Another long-awaited feature is :ref:`custom functions <function-plugins>` - you can write your own functions and load them into Graphite. There's also the :ref:`Function API <function-api>` to get a list of available functions, or the details of a specific function. Please note that the built-in frontend code does not yet use the Functions API, so your functions will not be present in the Graphite-web interface.
 
 Graphite 1.1.0 also has completely refactored clustering code - for example, now clustering can use `msgpack`_ format for intra-cluster communications and supports buffering HTTP when talking to cluster servers, which should `increase the reading speed`_. If you're using custom finders you can use :ref:`new documentation <advanced-finders>` to make your code use the new features too.
 
@@ -70,15 +70,15 @@ Functions
 
 * Implement ``unique()`` (PR#2063, @DanCech)
 
-* Support using tags in functions that accept nodes (#2055, @DanCech)
+* Support using tags in functions that accept nodes (PR#2055, @DanCech)
 
 * "Pipe" function chaining syntax (`PR#2042`_, @DanCech)
 
 * xFilesFactor support, add aggregate function (`PR#2053`_, @DanCech)
 
-* Support matching series by node in asPercent (PR#2050, @DanCech)
+* Support matching series by node in ``asPercent`` (PR#2050, @DanCech)
 
-* Add ``aggregateWithWildcards`` function, minor refactor for movingWindow (PR#2044, @DanCech)
+* Add ``aggregateWithWildcards`` function, minor refactor for ``movingWindow`` (PR#2044, @DanCech)
 
 * Add ``/tags/findSeries``, add filter and pretty parameters to tag list/details endpoints (PR#2034, @DanCech)
 
@@ -100,9 +100,9 @@ Functions
 Frontend changes
 ----------------
 
-* Add a history button to the dashboard kind of like Cacti (@cbowman)
+* Add a history button to the dashboard kind of like Cacti (PR#2100, @cbowman0)
 
-* Manipulate graph targets and implement New Graph -> New Empty Graph (@cbowman)
+* Manipulate graph targets and implement New Graph -> New Empty Graph (PR#424, @cbowman0)
 
 * JS linting (@cbowman)
 
@@ -116,11 +116,9 @@ Other new features
 
 * Use ``WEBAPP_VERSION`` in documentation link (@wridgers)
 
-* Add a history button to the dashboard kind of like Cacti (#2100, @cbowman0)
+* Add a history button to the dashboard kind of like Cacti (PR#2100, @cbowman0)
 
-* Manipulate graph targets and implement New Graph -> New Empty Graph (PR#424, @cbowman0)
-
-* Support sending logs to stderr (#2066, @DanCech)
+* Support sending logs to stderr (PR#2066, @DanCech)
 
 * Improve parseATTime (PR#2070, @DanCech)
 
@@ -132,27 +130,27 @@ Other new features
 Bug Fixes
 ---------
 
-* Add median adjustment for even length arrays (#2132, @shanson7)
+* Add median adjustment for even length arrays (PR#2132, @shanson7)
 
 * Use default tagdb if ``TAGDB`` setting is not set (@woodsaj)
 
-* Get rid of OverflowError in perSecond and scaleToSeconds (#2127, @Felixoid)
+* Get rid of OverflowError in perSecond and scaleToSeconds (PR#2127, @Felixoid)
 
-* Document week / w suffix (#2107, @mcv21)
+* Document week / w suffix (PR#2107, @mcv21)
 
-* Add ``REMOTE_USER_MIDDLEWARE`` configuration option and fix ``REMOTE_USER_BACKEND`` documentation (#2091, @wridgers)
+* Add ``REMOTE_USER_MIDDLEWARE`` configuration option and fix ``REMOTE_USER_BACKEND`` documentation (PR#2091, @wridgers)
 
-* Fix the url values to match the current document.body.dataset.baseUrl (#2087, @cbowman0)
+* Fix the url values to match the current document.body.dataset.baseUrl (PR#2087, @cbowman0)
 
 * Whisper reader strange results for counters after merge_with_carbonlink (PR#2082, @olevchyk / @DanCech)
 
-* Handle no data with graphType=pie (#2071, @cbowman0)
+* Handle no data with graphType=pie (PR#2071, @cbowman0)
 
 * CarbonLink cache-query return 0 datapoints in some cases (PR#2012, @leochen4891)
 
-* MaxDataPoints=1 fix (PR#2054, @DanCech)
+* Render view refactor & maxDataPoints=1 (PR#2054, @DanCech)
 
-* Fix consolidation (PR#2052, @DanCech/@powo)
+* Fix consolidation (PR#2052, @DanCech / @powo)
 
 * Add median adjustment for even length arrays (@shanson7)
 
@@ -161,10 +159,6 @@ Bug Fixes
 * Clean up perSecond and nonNegativeDerivative maxValue and None handling (@DanCech)
 
 * Use ``WEBAPP_VERSION`` in documentation link (@wridgers)
-
-* Handle no data with graphType=pie
-
-* When maxDataPoints=1, consolidate over entire interval
 
 * Fnv1a fixes (PR#2014, @olevchuk)
 
@@ -191,21 +185,21 @@ Other Changes
 Graphite-Web
 ^^^^^^^^^^^^
 
-* Clean up a few codacy issues (#2140, @cboman0)
+* Clean up a few codacy issues (PR#2140, @cboman0)
 
-* Add more tests for render/datalib.py (#2086, @cbowman0)
+* Add more tests for render/datalib.py (PR#2086, @cbowman0)
 
-* Fix caching in _merge_results and add tests (#2085, @cbowman0)
+* Fix caching in _merge_results and add tests (PR#2085, @cbowman0)
 
 * Update render_api.rst (@r3cgm)
 
 * Use prefetch logic for sub-requests (PR#2076, @DanCech)
 
-* Test class PrefetchedData (#2079)
+* Test class PrefetchedData (PR#2079, @cbowman0)
 
 * Fix example vhost filename (@rednixon)
 
-* Basic tests for render/datalib's _merge_results() (#2075, @cbowman0)
+* Basic tests for render/datalib's ``_merge_results()`` (PR#2075, @cbowman0)
 
 * Whisper reader updates (PR#2074, @DanCech)
 
@@ -213,7 +207,7 @@ Graphite-Web
 
 * Add more test coverage for render/functions (PR#2068, @cbowman0)
 
-* Add timeshift test coverage (PR#2065, @cbowman0)
+* Add ``timeshift`` test coverage (PR#2065, @cbowman0)
 
 * Increasing test coverage for functions (PR#2011, @msk610)
 
