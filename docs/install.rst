@@ -186,7 +186,7 @@ Post-Install Tasks
 
 Windows Users
 -------------
-Unfortunately, native Graphite on Windows is completely unsupported, but you can run Graphite on Windows in `Docker`_ or :doc:`Installing via Synthesize </install-synthesize>` article will help you set up a Vagrant VM that will run Graphite.  In order to leverage this, you will need to install `Vagrant <https://www.vagrantup.com/>`_.
+Unfortunately, native Graphite on Windows is completely unsupported, but you can run Graphite on Windows in `Docker`_ or the :doc:`Installing via Synthesize </install-synthesize>` article will help you set up a Vagrant VM that will run Graphite.  In order to leverage this, you will need to install `Vagrant <https://www.vagrantup.com/>`_.
 
 
 .. _Apache: https://projects.apache.org/project.html?httpd-http_server
