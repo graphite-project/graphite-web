@@ -4,7 +4,7 @@
 ===========================
 *12/21/2017*
 
-Graphite 1.1.0 is now available for usage. This marks another major milestone on Graphite's releases.
+Graphite 1.1.0 is now available! This marks another major milestone on Graphite's releases.
 
 Source bundles are available from GitHub:
 
@@ -22,17 +22,17 @@ Graphite can also be installed from `PyPI <http://pypi.python.org/>`_ via
 * http://pypi.python.org/pypi/carbonate/
 
 
-Main feature of this release is :doc:`Tagging support </tags>` in Carbon and Graphite-web. From the release of the 1.1.x series, Graphite supports storing data using tags to identify each series. This allows for much more flexibility than the traditional hierarchical layout. When using tag support, each series is uniquely identified by its name and set of tag/value pairs. We also have new functions (``seriesByTags``,``groupByTags`` and ``aliasByTags``) for querying tagged series.
+The main feature of this release is :doc:`Tagging support </tags>` in Carbon and Graphite-web. From the release of the 1.1.x series, Graphite supports storing data using tags to identify each series. This allows for much more flexibility than the traditional hierarchical layout. When using tag support, each series is uniquely identified by its name and set of tag/value pairs. We also have new functions (``seriesByTags``,``groupByTags`` and ``aliasByTags``) for querying tagged series.
 
-Also, all components of Graphite stack are supporting Python 3 now. Python 3 support considering experimental, this is a first release with a complete Python 3 support.
+Also, all components of Graphite stack now support Python 3. Python 3 support is however considered experimental, as this is the first release with complete Python 3 support.
 
-Another long-awaited feature is :doc:`Custom functions </functions#function-plugins>` - you can write your own functions and load them to Graphite. There's also :doc:`Function API </functions#function-api` to get a list of available functions, or the details of a specific function. Please note that current frontend code is not using Functions API, so, your functions will not be present in Graphite-web functions interface.
+Another long-awaited feature is :doc:`Custom functions </functions#function-plugins>` - you can write your own functions and load them into Graphite. There's also the :doc:`Function API </functions#function-api` to get a list of available functions, or the details of a specific function. Please note that the built-in frontend code does not yet use the Functions API, so your functions will not be present in the Graphite-web interface.
 
-Graphite 1.1.0 has completely refactored clustering code - for example, now clustering can use `msgpack`_ format for intra-cluster communications and supports buffering HTTP when talking to cluster servers, which should `increase the reading speed`_. If you're using custom finders you can use :doc:`new documentation </storage-backends#advanced-finders>` to make your code use new features too.
+Graphite 1.1.0 also has completely refactored clustering code - for example, now clustering can use `msgpack`_ format for intra-cluster communications and supports buffering HTTP when talking to cluster servers, which should `increase the reading speed`_. If you're using custom finders you can use :doc:`new documentation </storage-backends#advanced-finders>` to make your code use the new features too.
 
 Graphite now supports "pipe" chaining syntax for functions. With this update the following query ``aliasByNode(movingAverage(sortByName(test.*),"5min"),1)`` can be written as ``test.*|sortByName()|movingAverage("5min")|aliasByNode(1)``.  See `PR#2042`_ for details.
 
-New function ``xFilesFactor`` which sets the xFilesFactor on the series it operates, also aggregation functions (`moving*` and new ``aggregate`` functions) are now supporting ``xFilesFactor`` explicitly - see `PR#2053`_ for details.
+New function ``xFilesFactor`` which sets the xFilesFactor for runtime aggregation and consolidation, also aggregation functions (`moving*` and new ``aggregate`` function) now supporting ``xFilesFactor`` explicitly - see `PR#2053`_ for details.
 
 Please check other new features, bug fixes and changes in list below.
 
@@ -94,7 +94,7 @@ Functions
 
 * Enable advanced alignment for ``smartSummarize`` (PR#2021, @luigiberrettini)
 
-
+* add ``filterSeries``, ``highest``, ``lowest`` & ``sortBy`` functions (PR#2146, @DanCech)
 
 
 Frontend changes
@@ -105,6 +105,7 @@ Frontend changes
 * Manipulate graph targets and implement New Graph -> New Empty Graph (@cbowman)
 
 * JS linting (@cbowman)
+
 
 Other new features
 ------------------
@@ -126,6 +127,7 @@ Other new features
 * Update metrics/find to support the same from/until specifications as render (@DanCech)
 
 * Improve rendering performance dramatically in certain situations (upstream issue #770) (@powo)
+
 
 Bug Fixes
 ---------
@@ -167,6 +169,7 @@ Bug Fixes
 * Fnv1a fixes (PR#2014, @olevchuk)
 
 * Fix divideByZero when FIND_CACHE_DURATION=0 (@woodsaj)
+
 
 Upgrading
 ---------
