@@ -44,7 +44,7 @@ New features
 
 * Python3 support (PR#2139, @takluyver)
 
-* Custom functions (@DanCech)
+* Custom functions (PR#2146, @DanCech)
 
 * Buffering support in clustering (PR#2136, @woodsaj / @DanCech)
 
@@ -52,7 +52,7 @@ New features
 
 * New ``CLUSTER_SERVERS`` format (proto, format and local parameters (PR#2123, @DanCech)
 
-* New custom storage backends mechanics (@DanCech)
+* New custom storage backends mechanics (PR#2093 / PR#2103 / PR#2128, @DanCech)
 
 * Move /metrics/index.json handling into finders & use worker pool (PR#2103, @DanCech)
 
@@ -60,7 +60,7 @@ New features
 Functions
 ---------
 
-* :doc:`Custom functions </functions#function-plugins>`
+* :doc:`Custom functions </functions#function-plugins>` (PR#2146, @DanCech)
 
 * Use timezone-aware dates in ``hitcount``, update epoch to handle naive dates (PR#2088, @DanCech)
 
@@ -229,7 +229,7 @@ Carbon
 
 * Added '--logger' and '--logfile' option (Du Zheng/@deniszh)
 
-* Fixing lint (@DnCech)
+* Fixing lint (@DanCech)
 
 * Fix listening on IPv6 interfaces (PR#683, @mk-fg)
 
