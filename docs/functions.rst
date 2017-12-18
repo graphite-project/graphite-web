@@ -10,12 +10,14 @@ Most functions are applied to one :term:`series list`. Functions with the parame
 ``*seriesLists`` can take an arbitrary number of series lists. To pass multiple series lists
 to a function which only takes one, use the :py:func:`group` function.
 
-.. _list-of-functions :
+.. _list-of-functions:
 
 List of functions
 -----------------
 .. automodule:: graphite.render.functions
    :members:
+
+.. _function-plugins:
 
 Function Plugins
 ----------------
@@ -87,6 +89,8 @@ To load a packaged function plugin module, add it to the ``FUNCTION_PLUGINS`` se
     FUNCTION_PLUGINS = [
       'some.function_plugin',
     ]
+
+.. _function-api:
 
 Function API
 ------------

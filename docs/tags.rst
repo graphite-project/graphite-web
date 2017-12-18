@@ -1,3 +1,5 @@
+.. _tags:
+
 Graphite Tag Support
 ====================
 From the release of the 1.1.x series, Graphite supports storing data using tags to identify each series.  This allows for much more flexibility than the traditional hierarchical layout.  When using tag support, each series is uniquely identified by its name and set of tag/value pairs.
