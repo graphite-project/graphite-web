@@ -1,0 +1,257 @@
+.. _1-1-0:
+
+1.1.0
+===========================
+*12/21/2017*
+
+Graphite 1.1.0 is now available for usage. This marks another major milestone on Graphite's releases.
+
+Source bundles are available from GitHub:
+
+* https://github.com/graphite-project/graphite-web/archive/1.1.0.tar.gz
+* https://github.com/graphite-project/carbon/archive/1.1.0.tar.gz
+* https://github.com/graphite-project/whisper/archive/1.1.0.tar.gz
+* https://github.com/graphite-project/carbonate/archive/1.1.0.tar.gz
+
+Graphite can also be installed from `PyPI <http://pypi.python.org/>`_ via
+`pip <http://www.pip-installer.org/en/latest/index.html>`_. PyPI bundles are here:
+
+* http://pypi.python.org/pypi/graphite-web/
+* http://pypi.python.org/pypi/carbon/
+* http://pypi.python.org/pypi/whisper/
+* http://pypi.python.org/pypi/carbonate/
+
+
+Main feature of this release is :doc:`Tagging support </tags>` in Carbon and Graphite-web. From the release of the 1.1.x series, Graphite supports storing data using tags to identify each series. This allows for much more flexibility than the traditional hierarchical layout. When using tag support, each series is uniquely identified by its name and set of tag/value pairs. We also have new functions (``seriesByTags``,``groupByTags`` and ``aliasByTags``) for querying tagged series.
+
+Also, all components of Graphite stack are supporting Python 3 now. Python 3 support considering experimental, this is a first release with a complete Python 3 support.
+
+Another long-awaited feature is :doc:`Custom functions </functions#function-plugins>` - you can write your own functions and load them to Graphite. There's also :doc:`Function API </functions#function-api` to get a list of available functions, or the details of a specific function. Please note that current frontend code is not using Functions API, so, your functions will not be present in Graphite-web functions interface.
+
+Graphite 1.1.0 has completely refactored clustering code - for example, now clustering can use `msgpack`_ format for intra-cluster communications and supports buffering HTTP when talking to cluster servers, which should `increase the reading speed`_. If you're using custom finders you can use :doc:`new documentation </storage-backends#advanced-finders>` to make your code use new features too.
+
+Graphite now supports "pipe" chaining syntax for functions. With this update the following query ``aliasByNode(movingAverage(sortByName(test.*),"5min"),1)`` can be written as ``test.*|sortByName()|movingAverage("5min")|aliasByNode(1)``.  See `PR#2042`_ for details.
+
+New function ``xFilesFactor`` which sets the xFilesFactor on the series it operates, also aggregation functions (`moving*` and new ``aggregate`` functions) are now supporting ``xFilesFactor`` explicitly - see `PR#2053`_ for details.
+
+Please check other new features, bug fixes and changes in list below.
+
+
+New features
+------------
+
+* Tagging support / Tags Autocompletion / TagDB Federation (@DanCech)
+
+* Python3 support (PR#2139, @takluyver)
+
+* Custom functions (@DanCech)
+
+* Buffering support in clustering (PR#2136, @woodsaj / @DanCech)
+
+* Msgpack support for clustering (PR#2123, @DanCech)
+
+* New ``CLUSTER_SERVERS`` format (proto, format and local parameters (PR#2123, @DanCech)
+
+* New custom storage backends mechanics (@DanCech)
+
+* Move /metrics/index.json handling into finders & use worker pool (PR#2103, @DanCech)
+
+
+Functions
+---------
+
+* :doc:`Custom functions </functions#function-plugins>`
+
+* Use timezone-aware dates in ``hitcount``, update epoch to handle naive dates (PR#2088, @DanCech)
+
+* Added check for empty series list on ``percentileOfSeries`` (PR#2089, @melnikk)
+
+* Improve efficiency of ``linearRegression``, ``timeShift``, ``timeStack`` & ``useSeriesAbove`` (PR#2072, @DanCech)
+
+* Implement ``unique()`` (PR#2063, @DanCech)
+
+* Support using tags in functions that accept nodes (#2055, @DanCech)
+
+* "Pipe" function chaining syntax (`PR#2042`_, @DanCech)
+
+* xFilesFactor support, add aggregate function (`PR#2053`_, @DanCech)
+
+* Support matching series by node in asPercent (PR#2050, @DanCech)
+
+* Add ``aggregateWithWildcards`` function, minor refactor for movingWindow (PR#2044, @DanCech)
+
+* Add ``/tags/findSeries``, add filter and pretty parameters to tag list/details endpoints (PR#2034, @DanCech)
+
+* Implement ``movingWindow`` & round functions, tidy up other "moving" functions (PR#2032, @DanCech)
+
+* Improve efficiency of ``summarize`` and ``smartSummarize`` functions (PR#1916, @DanCech)
+
+* Add first and last to ``consolidateBy`` functions (PR#2030, @DanCech)
+
+* Fix ``perSecond`` null handling, use explicit integer division (PR#2029, @DanCech)
+
+* ``Min-Max`` Normalization Function (PR#2011, @msk610)
+
+* Enable advanced alignment for ``smartSummarize`` (PR#2021, @luigiberrettini)
+
+
+
+
+Frontend changes
+----------------
+
+* Add a history button to the dashboard kind of like Cacti (@cbowman)
+
+* Manipulate graph targets and implement New Graph -> New Empty Graph (@cbowman)
+
+* JS linting (@cbowman)
+
+Other new features
+------------------
+
+* Set pathExpression on ``seriesByTag`` results (PR#2124, @DanCech)
+
+* Aggregate points from carbon cache like whisper (PR#2082, @DanCech)
+
+* Use ``WEBAPP_VERSION`` in documentation link (@wridgers)
+
+* Add a history button to the dashboard kind of like Cacti (#2100, @cbowman0)
+
+* Manipulate graph targets and implement New Graph -> New Empty Graph (PR#424, @cbowman0)
+
+* Support sending logs to stderr (#2066, @DanCech)
+
+* Improve parseATTime (PR#2070, @DanCech)
+
+* Update metrics/find to support the same from/until specifications as render (@DanCech)
+
+* Improve rendering performance dramatically in certain situations (upstream issue #770) (@powo)
+
+Bug Fixes
+---------
+
+* Add median adjustment for even length arrays (#2132, @shanson7)
+
+* Use default tagdb if ``TAGDB`` setting is not set (@woodsaj)
+
+* Get rid of OverflowError in perSecond and scaleToSeconds (#2127, @Felixoid)
+
+* Document week / w suffix (#2107, @mcv21)
+
+* Add ``REMOTE_USER_MIDDLEWARE`` configuration option and fix ``REMOTE_USER_BACKEND`` documentation (#2091, @wridgers)
+
+* Fix the url values to match the current document.body.dataset.baseUrl (#2087, @cbowman0)
+
+* Whisper reader strange results for counters after merge_with_carbonlink (PR#2082, @olevchyk / @DanCech)
+
+* Handle no data with graphType=pie (#2071, @cbowman0)
+
+* CarbonLink cache-query return 0 datapoints in some cases (PR#2012, @leochen4891)
+
+* MaxDataPoints=1 fix (PR#2054, @DanCech)
+
+* Fix consolidation (PR#2052, @DanCech/@powo)
+
+* Add median adjustment for even length arrays (@shanson7)
+
+* Get rid of OverflowError in perSecond and scaleToSeconds (@Felixoid)
+
+* Clean up perSecond and nonNegativeDerivative maxValue and None handling (@DacCech)
+
+* Use ``WEBAPP_VERSION`` in documentation link (@wridgers)
+
+* Handle no data with graphType=pie
+
+* When maxDataPoints=1, consolidate over entire interval
+
+* Fnv1a fixes (PR#2014, @olevchuk)
+
+* Fix divideByZero when FIND_CACHE_DURATION=0 (@woodsaj)
+
+Upgrading
+---------
+Graphite-Web requires Python 2.7 or newer and Django version 1.8 - 1.11 (Python3 supported only in Django 1.11). Carbon requires Twisted version 13.2 or newer. For AMQP support txAMQP version 0.8 is required now. There are a number of new features in this release, but we've been careful to avoid any behaviorial regressions in the default settings files. You'll want to review the new Graphite-Web and Carbon service options in the ``local_settings.py.example`` and ``carbon.conf.example`` files, respectively, before merging those into your production configurations. Please also check :doc:`config file documentation </config-local-settings>`
+
+If you're not already running from the *master* branch, Graphite-Web's application database will need to be upgraded . It's a good idea to backup the database before proceeding with the migration. The following steps will upgrade a SQLite database:
+
+.. code-block:: none
+
+  sudo cp /opt/graphite/storage/graphite.db \
+        /opt/graphite/storage/graphite.db.backup-`date +%Y%m%d_%H%M%S`
+  sudo PYTHONPATH=/opt/graphite/webapp django-admin.py migrate \
+        --noinput --settings=graphite.settings --run-syncdb
+
+
+Other Changes
+-------------
+
+Graphite-Web
+^^^^^^^^^^^^
+
+* Clean up a few codacy issues (#2140, @cboman0)
+
+* Add more tests for render/datalib.py (#2086, @cbowman0)
+
+* Fix caching in _merge_results and add tests (#2085, @cbowman0)
+
+* Update render_api.rst (@r3cgm)
+
+* Use prefetch logic for sub-requests (PR#2076, @DanCech)
+
+* Test class PrefetchedData (#2079)
+
+* Fix example vhost filename (@rednixon)
+
+* Basic tests for render/datalib's _merge_results() (#2075, @cbowman0)
+
+* Whisper reader updates (PR#2074, @DanCech)
+
+* Improve test reliability (PR#2056, @DanCech)
+
+* Add more test coverage for render/functions (PR#2068, @cbowman0)
+
+* Add timeshift test coverage (PR#2065, @cbowman0)
+
+* Increasing test coverage for functions (PR#2011, @msk610)
+
+* Update metrics/find to support the same from/until specifications as render (@DanCech)
+
+
+Carbon
+^^^^^^
+
+* Py3 compatibility fixes (@piotr1212)
+
+* Catch TypeError exception from None data value (@retzkek)
+
+* Added '--logger' and '--logfile' option (Du Zheng/@deniszh)
+
+* Fixing lint (@DnCech)
+
+* Fix listening on IPv6 interfaces (PR#683, @mk-fg)
+
+* Tags support (@DanCech)
+
+* Fix fnv1a support (PR#679, @olevchyk)
+
+
+Whisper
+^^^^^^^
+
+* Whisper-fetch: add --time-format option (PR#235, @xavierog)
+
+* Added test and fix for broken assert in whisper.__archive_update_many (@wk86 / @DanCech)
+
+* Don't use shell for whisper-resize.py calls (PR#241, @eserte)
+
+
+Carbonate
+^^^^^^^^^
+
+* Passing empty list for nodes seems to work (PR#87, @olevchyk)
+
+
+.. _msgpack: https://msgpack.org/
+.. _increase the reading speed: https://github.com/graphite-project/graphite-web/issues/2142#issuecomment-349249348
+.. _PR#2042: https://github.com/graphite-project/graphite-web/pull/2042
+.. _PR#2053: https://github.com/graphite-project/graphite-web/pull/2053
