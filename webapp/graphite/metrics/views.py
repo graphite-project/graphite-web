@@ -56,6 +56,7 @@ def find_view(request):
   queryParams.update(request.POST)
 
   format = queryParams.get('format', 'treejson')
+  leaves_only = int( queryParams.get('leavesOnly', 0) )
   local_only = int( queryParams.get('local', 0) )
   wildcards = int( queryParams.get('wildcards', 0) )
 
@@ -116,7 +117,12 @@ def find_view(request):
       query = '.'.join(query_parts)
 
   try:
-    matches = list( STORE.find(query, fromTime, untilTime, local=local_only, headers=forward_headers) )
+    matches = list(STORE.find(
+      query, fromTime, untilTime,
+      local=local_only,
+      headers=forward_headers,
+      leaves_only=leaves_only,
+    ))
   except:
     log.exception()
     raise
