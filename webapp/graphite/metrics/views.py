@@ -14,6 +14,7 @@ limitations under the License."""
 
 from functools import reduce
 import pytz
+from six import text_type
 from six.moves.urllib.parse import unquote_plus
 
 from datetime import datetime
@@ -335,18 +336,13 @@ def msgpack_nodes(nodes):
   nodes_info = []
 
   # make sure everything is unicode in python 2.x and 3.x
-  try:
-    unicode = str
-  except:
-    pass
-
   for node in nodes:
     info = {
-      unicode('path'): unicode(node.path),
-      unicode('is_leaf'): node.is_leaf,
+      text_type('path'): text_type(node.path),
+      text_type('is_leaf'): node.is_leaf,
     }
     if node.is_leaf:
-      info[unicode('intervals')] = [interval.tuple for interval in node.intervals]
+      info[text_type('intervals')] = [interval.tuple for interval in node.intervals]
 
     nodes_info.append(info)
 
