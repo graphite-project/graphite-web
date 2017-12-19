@@ -109,7 +109,7 @@ class RemoteFinder(BaseFinder):
             try:
                 if result.getheader('content-type') == 'application/x-msgpack':
                   results = msgpack.load(BufferedHTTPReader(
-                    result, buffer_size=settings.REMOTE_BUFFER_SIZE))
+                    result, buffer_size=settings.REMOTE_BUFFER_SIZE), encoding='utf-8')
                 else:
                   results = unpickle.load(BufferedHTTPReader(
                     result, buffer_size=settings.REMOTE_BUFFER_SIZE))
