@@ -108,7 +108,7 @@ class RemoteReaderTests(TestCase):
                 }
                ]
         responseObject = HTTPResponse(
-          body=BytesIO(msgpack.dumps(data)),
+          body=BytesIO(msgpack.dumps(data, use_bin_type=True)),
           status=200,
           preload_content=False,
           headers={'Content-Type': 'application/x-msgpack'}
@@ -149,6 +149,21 @@ class RemoteReaderTests(TestCase):
         http_request.return_value = responseObject
 
         with self.assertRaisesRegexp(Exception, 'Error decoding render response from http://[^ ]+: .+'):
+          reader.fetch(startTime, endTime)
+
+        # invalid response data
+        data = [
+          {},
+        ]
+        responseObject = HTTPResponse(
+          body=BytesIO(msgpack.dumps(data, use_bin_type=True)),
+          status=200,
+          preload_content=False,
+          headers={'Content-Type': 'application/x-msgpack'}
+        )
+        http_request.return_value = responseObject
+
+        with self.assertRaisesRegexp(Exception, 'Invalid render response from http://[^ ]+: KeyError\(\'name\',\)'):
           reader.fetch(startTime, endTime)
 
         # non-200 response

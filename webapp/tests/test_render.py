@@ -387,7 +387,7 @@ class RenderTest(TestCase):
         # test msgpack format
         response = self.client.get(url, {'target': 'test', 'format': 'msgpack', 'from': ts-50, 'now': ts})
         self.assertEqual(response['content-type'], 'application/x-msgpack')
-        unpickled = msgpack.loads(response.content)
+        unpickled = msgpack.loads(response.content, encoding='utf-8')
         # special handling for NaN value, otherwise assertEqual fails
         self.assertTrue(math.isnan(unpickled[0]['values'][-1]))
         unpickled[0]['values'][-1] = 'NaN'
