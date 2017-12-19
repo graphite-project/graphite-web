@@ -51,6 +51,8 @@ Whisper database and a Ceres database:
         'graphite.finders.ceres.CeresFinder',
     )
 
+.. _custom-finders:
+
 Custom finders
 ^^^^^^^^^^^^^^
 
@@ -118,6 +120,8 @@ the database has gaps: gaps can be filled with ``None`` values.
 ``get_intervals()`` is a method that hints graphite-web about the time range
 available for this given metric in the database. It must return an
 ``IntervalSet`` of one or more ``Interval`` objects.
+
+.. _advanced-finders:
 
 Advanced finders
 ^^^^^^^^^^^^^^^^

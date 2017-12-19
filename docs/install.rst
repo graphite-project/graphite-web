@@ -18,7 +18,7 @@ Try Graphite in Docker and have it running in seconds:
      -p 8126:8126\
      graphiteapp/graphite-statsd
 
-Check `docker_repo`_ for details.
+Check `docker repo`_ for details.
 
 This is portable, fast and easy to use. Or use instructions below for installation.
 
@@ -33,10 +33,10 @@ been met or not.
 Basic Graphite requirements:
 
 * a UNIX-like Operating System
-* Python 2.7 or greater but `NOT Python 3` (yet)
+* Python 2.7 or greater (including experimental Python3 support)
 * `cairocffi`_
-* `Django`_ 1.8 - 1.11
-* `django-tagging`_ 0.4.3 (not `django-taggit` yet)
+* `Django`_ 1.8 - 1.11 (for Python3 - 1.11 only)
+* `django-tagging`_ 0.4.6 (not `django-taggit` yet)
 * `pytz`_
 * `scandir`_
 * `fontconfig`_ and at least one font package (a system package usually)
@@ -55,7 +55,7 @@ There are also several other dependencies required for additional features:
 
 * Render caching: `memcached`_ and `python-memcache`_
 * LDAP authentication: `python-ldap`_ (for LDAP authentication support in the webapp)
-* AMQP support: `txamqp`_
+* AMQP support: `txamqp`_ (version 0.8 is required)
 * RRD support: `python-rrdtool`_
 * Dependent modules for additional database support (MySQL, PostgreSQL, etc). See `Django database install`_ instructions and the `Django database`_ documentation for details
 
@@ -186,7 +186,7 @@ Post-Install Tasks
 
 Windows Users
 -------------
-Despair Not!  Even though running Graphite on Windows is completely unsupported (we fear that handling the escaping of paths in the regexes would result only in jibbering madness, and life is just too short; pull requests happily considered!), you are not completely out of luck.  There are some solutions that make it easier for you to run a UNIX VM within your Windows box.  The :doc:`Installing via Synthesize </install-synthesize>` article will help you set up a Vagrant VM that will run Graphite.  In order to leverage this, you will need to install `Vagrant <https://www.vagrantup.com/>`_.
+Unfortunately, native Graphite on Windows is completely unsupported, but you can run Graphite on Windows in `Docker`_ or the :doc:`Installing via Synthesize </install-synthesize>` article will help you set up a Vagrant VM that will run Graphite.  In order to leverage this, you will need to install `Vagrant <https://www.vagrantup.com/>`_.
 
 
 .. _Apache: https://projects.apache.org/project.html?httpd-http_server
@@ -211,4 +211,5 @@ Despair Not!  Even though running Graphite on Windows is completely unsupported 
 .. _scandir: https://pypi.python.org/pypi/scandir
 .. _txAMQP: https://launchpad.net/txamqp/
 .. _uWSGI: http://uwsgi-docs.readthedocs.io/
-.. _docker_repo: https://github.com/graphite-project/docker-graphite-statsd
+.. _Docker: https://www.docker.com/
+.. _docker repo: https://github.com/graphite-project/docker-graphite-statsd
