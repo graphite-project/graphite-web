@@ -1,17 +1,17 @@
-.. _1-1-0:
+.. _1-1-1:
 
-1.1.0
+1.1.1
 ===========================
 *12/21/2017*
 
-Graphite 1.1.0 is now available! This marks another major milestone on Graphite's releases.
+Graphite 1.1.1 is now available! This marks another major milestone on Graphite's releases.
 
 Source bundles are available from GitHub:
 
-* https://github.com/graphite-project/graphite-web/archive/1.1.0.tar.gz
-* https://github.com/graphite-project/carbon/archive/1.1.0.tar.gz
-* https://github.com/graphite-project/whisper/archive/1.1.0.tar.gz
-* https://github.com/graphite-project/carbonate/archive/1.1.0.tar.gz
+* https://github.com/graphite-project/graphite-web/archive/1.1.1.tar.gz
+* https://github.com/graphite-project/carbon/archive/1.1.1.tar.gz
+* https://github.com/graphite-project/whisper/archive/1.1.1.tar.gz
+* https://github.com/graphite-project/carbonate/archive/1.1.1.tar.gz
 
 Graphite can also be installed from `PyPI <http://pypi.python.org/>`_ via
 `pip <http://www.pip-installer.org/en/latest/index.html>`_. PyPI bundles are here:
