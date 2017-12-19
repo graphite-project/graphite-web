@@ -120,16 +120,22 @@ class TimeSeries(list):
 
   def getInfo(self):
     """Pickle-friendly representation of the series"""
+    # make sure everything is unicode in python 2.x and 3.x
+    try:
+      unicode = str
+    except:
+      pass
+
     return {
-      'name' : self.name,
-      'start' : self.start,
-      'end' : self.end,
-      'step' : self.step,
-      'values' : list(self),
-      'pathExpression' : self.pathExpression,
-      'valuesPerPoint' : self.valuesPerPoint,
-      'consolidationFunc': self.consolidationFunc,
-      'xFilesFactor' : self.xFilesFactor,
+      unicode('name') : unicode(self.name),
+      unicode('start') : self.start,
+      unicode('end') : self.end,
+      unicode('step') : self.step,
+      unicode('values') : list(self),
+      unicode('pathExpression') : unicode(self.pathExpression),
+      unicode('valuesPerPoint') : self.valuesPerPoint,
+      unicode('consolidationFunc'): unicode(self.consolidationFunc),
+      unicode('xFilesFactor') : self.xFilesFactor,
     }
 
 

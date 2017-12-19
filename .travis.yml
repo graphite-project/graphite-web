@@ -19,6 +19,9 @@ matrix:
         - TOXENV=py36-django111-pyparsing2
     - python: 3.6
       env:
+        - TOXENV=py36-django111-pyparsing2-msgpack
+    - python: 3.6
+      env:
         - TOXENV=lint
 
 env:

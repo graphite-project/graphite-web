@@ -77,7 +77,7 @@ class RemoteReader(BaseReader):
         try:
             if result.getheader('content-type') == 'application/x-msgpack':
               data = msgpack.load(BufferedHTTPReader(
-                result, buffer_size=settings.REMOTE_BUFFER_SIZE))
+                result, buffer_size=settings.REMOTE_BUFFER_SIZE), encoding='utf-8')
             else:
               data = unpickle.load(BufferedHTTPReader(
                 result, buffer_size=settings.REMOTE_BUFFER_SIZE))
@@ -90,12 +90,19 @@ class RemoteReader(BaseReader):
         finally:
             result.release_conn()
 
-        return [
-            {
-                'pathExpression': series.get('pathExpression', series['name']),
-                'name': series['name'],
-                'time_info': (series['start'], series['end'], series['step']),
-                'values': series['values'],
-            }
-            for series in data
-        ]
+        try:
+            return [
+                {
+                    'pathExpression': series.get('pathExpression', series['name']),
+                    'name': series['name'],
+                    'time_info': (series['start'], series['end'], series['step']),
+                    'values': series['values'],
+                }
+                for series in data
+            ]
+        except Exception as err:
+            self.finder.fail()
+            log.exception(
+                "RemoteReader[%s] Invalid render response from %s: %s" %
+                (self.finder.host, result.url_full, repr(err)))
+            raise Exception("Invalid render response from %s: %s" % (result.url_full, repr(err)))
