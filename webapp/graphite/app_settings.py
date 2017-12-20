@@ -22,6 +22,8 @@ from django import VERSION as DJANGO_VERSION
 APPEND_SLASH = False
 TEMPLATE_DEBUG = False
 
+SILENCED_SYSTEM_CHECKS = ['urls.W002']
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -72,16 +74,17 @@ if DJANGO_VERSION < (1, 10):
 ROOT_URLCONF = 'graphite.urls'
 
 INSTALLED_APPS = (
-  'graphite.metrics',
-  'graphite.render',
+  'graphite.account',
   'graphite.browser',
   'graphite.composer',
-  'graphite.account',
   'graphite.dashboard',
-  'graphite.whitelist',
   'graphite.events',
-  'graphite.url_shortener',
+  'graphite.functions',
+  'graphite.metrics',
+  'graphite.render',
   'graphite.tags',
+  'graphite.url_shortener',
+  'graphite.whitelist',
   'django.contrib.auth',
   'django.contrib.sessions',
   'django.contrib.admin',
