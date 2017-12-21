@@ -94,7 +94,7 @@ As Whisper and other storage backends are designed to hold simple time-series da
 
 .. note::
 
-  Tag support requires Graphite webapp & carbon version 1.1.0 or newer.
+  Tag support requires Graphite webapp & carbon version 1.1.1 or newer.
 
 Local Database TagDB
 ^^^^^^^^^^^^^^^^^^^^

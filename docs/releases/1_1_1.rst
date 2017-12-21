@@ -28,7 +28,7 @@ All components of Graphite stack now support Python 3. Python 3 support is howev
 
 Another long-awaited feature is :ref:`custom functions <function-plugins>` - you can write your own functions and load them into Graphite. There's also the :ref:`Function API <function-api>` to get a list of available functions, or the details of a specific function. Please note that the built-in frontend code does not yet use the Functions API, so your functions will not be present in the Graphite-web interface.
 
-Graphite 1.1.0 also has completely refactored clustering code - for example, now clustering can use `msgpack`_ format for intra-cluster communications and supports buffering HTTP when talking to cluster servers, which should `increase the reading speed`_. If you're using custom finders you can use :ref:`new documentation <advanced-finders>` to make your code use the new features too.
+Graphite 1.1.1 also has completely refactored clustering code - for example, now clustering can use `msgpack`_ format for intra-cluster communications and supports buffering HTTP when talking to cluster servers, which should `increase the reading speed`_. If you're using custom finders you can use :ref:`new documentation <advanced-finders>` to make your code use the new features too.
 
 Graphite now supports "pipe" chaining syntax for functions. With this update the following query ``aliasByNode(movingAverage(sortByName(test.*),"5min"),1)`` can be written as ``test.*|sortByName()|movingAverage("5min")|aliasByNode(1)``.  See `PR#2042`_ for details.
 
