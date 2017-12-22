@@ -22,6 +22,9 @@ matrix:
         - TOXENV=py36-django111-pyparsing2-msgpack
     - python: 3.6
       env:
+        - TOXENV=py36-django111-pyparsing2-pyhash
+    - python: 3.6
+      env:
         - TOXENV=lint
 
 env:
@@ -30,6 +33,7 @@ env:
   - TOXENV=py27-django110-pyparsing2
   - TOXENV=py27-django111-pyparsing2-rrdtool
   - TOXENV=py27-django111-pyparsing2-msgpack
+  - TOXENV=py27-django111-pyparsing2-pyhash
   - TOXENV=py27-django111-pyparsing2-mysql TEST_MYSQL_PASSWORD=graphite
   - TOXENV=py27-django111-pyparsing2-postgresql TEST_POSTGRESQL_PASSWORD=graphite
   - TOXENV=docs
@@ -50,6 +54,7 @@ services:
 before_install:
   - bash -c "if [[ '$TOXENV' == *mysql* ]]; then mysql -e "'"'"GRANT ALL ON test_graphite.* TO 'graphite'@'localhost' IDENTIFIED BY 'graphite';"'"'"; fi"
   - bash -c "if [[ '$TOXENV' == *postgresql* ]]; then psql -c "'"'"CREATE USER graphite WITH CREATEDB PASSWORD 'graphite';"'"'" -U postgres; fi"
+  - bash -c "if [[ '$TOXENV' == *pyhash* ]]; then sudo apt-get -qq update; sudo apt-get install -y libboost-python-dev; fi"
 
 install:
   - pip install tox
