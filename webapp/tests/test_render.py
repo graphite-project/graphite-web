@@ -984,6 +984,7 @@ class ConsistentHashRingTestFNV1A(TestCase):
         self.assertEqual(hashring.compute_ring_position('hosts.worker2.network'), 43584)
         self.assertEqual(hashring.compute_ring_position('hosts.worker3.cpu'), 12600)
         self.assertEqual(hashring.compute_ring_position('hosts.worker3.irq'), 10052)
+        self.assertEqual(hashring.compute_ring_position(u'a\xac\u1234\u20ac\U00008000'), 38658)
 
     def test_chr_get_node_fnv1a(self):
         hosts = [("127.0.0.1", "ba603c36342304ed77953f84ac4d357b"), ("127.0.0.2", "5dd63865534f84899c6e5594dba6749a"),

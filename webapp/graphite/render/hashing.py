@@ -16,14 +16,15 @@ limitations under the License."""
 from hashlib import md5
 from itertools import chain
 import bisect
+import sys
 
 try:
   import pyhash
   hasher = pyhash.fnv1a_32()
-  def fnv32a(string, seed=0x811c9dc5):
-    return hasher(string, seed=seed)
+  def fnv32a(data, seed=0x811c9dc5):
+    return hasher(data, seed=seed)
 except ImportError:
-  def fnv32a(string, seed=0x811c9dc5):
+  def fnv32a(data, seed=0x811c9dc5):
     """
     FNV-1a Hash (http://isthe.com/chongo/tech/comp/fnv/) in Python.
     Taken from https://gist.github.com/vaiorabbit/5670985
@@ -31,9 +32,16 @@ except ImportError:
     hval = seed
     fnv_32_prime = 0x01000193
     uint32_max = 2 ** 32
-    for s in string:
-      hval = hval ^ ord(s)
-      hval = (hval * fnv_32_prime) % uint32_max
+    if sys.version_info >= (3, 0):
+      # data is a bytes object, s is an integer
+      for s in data:
+        hval = hval ^ s
+        hval = (hval * fnv_32_prime) % uint32_max
+    else:
+      # data is an str object, s is a single character
+      for s in data:
+        hval = hval ^ ord(s)
+        hval = (hval * fnv_32_prime) % uint32_max
     return hval
 
 def hashRequest(request):
@@ -73,7 +81,7 @@ class ConsistentHashRing:
 
   def compute_ring_position(self, key):
     if self.hash_type == 'fnv1a_ch':
-      big_hash = int(fnv32a(str(key)))
+      big_hash = int(fnv32a(key.encode('utf-8')))
       small_hash = (big_hash >> 16) ^ (big_hash & 0xffff)
     else:
       big_hash = compactHash(str(key))
