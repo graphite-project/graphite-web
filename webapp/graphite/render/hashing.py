@@ -21,6 +21,7 @@ import sys
 try:
   import pyhash
   hasher = pyhash.fnv1a_32()
+
   def fnv32a(data, seed=0x811c9dc5):
     return hasher(data, seed=seed)
 except ImportError:
@@ -44,12 +45,14 @@ except ImportError:
         hval = (hval * fnv_32_prime) % uint32_max
     return hval
 
-def hashRequest(request):
-  # Normalize the request parameters so ensure we're deterministic
-  queryParams = ["%s=%s" % (key, '&'.join(values))
-                 for (key,values) in chain(request.POST.lists(), request.GET.lists())
-                 if not key.startswith('_')]
 
+def hashRequest(request):
+  # Normalize the request parameters to ensure we're deterministic
+  queryParams = [
+    "%s=%s" % (key, '&'.join(values))
+    for (key,values) in chain(request.POST.lists(), request.GET.lists())
+    if not key.startswith('_')
+  ]
   normalizedParams = ','.join( sorted(queryParams) )
   return compactHash(normalizedParams)
 
@@ -97,6 +100,8 @@ class ConsistentHashRing:
       else:
         replica_key = "%s:%d" % (key, i)
       position = self.compute_ring_position(replica_key)
+      while position in [r[0] for r in self.ring]:
+        position = position + 1
       entry = (position, key)
       bisect.insort(self.ring, entry)
     self.ring_len = len(self.ring)
@@ -117,6 +122,10 @@ class ConsistentHashRing:
 
   def get_nodes(self, key):
     nodes = []
+    if not self.ring:
+      return nodes
+    if self.nodes_len == 1:
+      return list(self.nodes)
     position = self.compute_ring_position(key)
     search_entry = (position, None)
     index = bisect.bisect_left(self.ring, search_entry) % self.ring_len
