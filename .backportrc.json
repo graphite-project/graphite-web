@@ -1,0 +1,22 @@
+{
+  "upstream": "graphite-project/graphite-web",
+
+  // You can pre-select branches you use often
+  "branches": [
+    { "name": "1.1.x", "checked": true },
+    { "name": "1.0.x", "checked": false },
+    { "name": "0.9.x", "checked": false }
+  ],
+
+  // Only allow picking own commits to backport
+  "own": false,
+
+  // Backport multiple commits
+  "multipleCommits": true,
+
+  // Backport to multiple branches
+  "multipleBranches": true,
+
+  // Labels will be added to the PR
+  "labels": ["backport"]
+}
