@@ -1205,13 +1205,17 @@ def exponentialMovingAverage(requestContext, seriesList, windowSize):
   Takes a series of values and a window size and produces an exponential moving
   average utilizing the following formula:
 
+  .. code-block:: none
+
     ema(current) = constant * (Current Value) + (1 - constant) * ema(previous)
 
-    The Constant is calculated as:
+  The Constant is calculated as:
 
-        constant = 2 / (windowSize + 1)
+  .. code-block:: none
 
-    The first period EMA uses a simple moving average for its value.
+    constant = 2 / (windowSize + 1)
+
+  The first period EMA uses a simple moving average for its value.
 
   Example:
 
@@ -2364,7 +2368,7 @@ def aliasByNode(requestContext, seriesList, *nodes):
 
   Each node may be an integer referencing a node in the series name or a string identifying a tag.
 
-  .. code-block :: none
+  .. code-block:: none
 
     &target=seriesByTag("name=~cpu.load.*", "server=~server[1-9]+", "datacenter=dc1")|aliasByNode("datacenter", "server", 1)
 
@@ -4468,7 +4472,7 @@ def applyByNode(requestContext, seriesList, nodeNum, templateFunction, newName=N
 
   .. code-block:: none
 
-     &target=applyByNode(servers.*.disk.bytes_free,1,"divideSeries(%.disk.bytes_free,sumSeries(%.disk.bytes_*))")
+    &target=applyByNode(servers.*.disk.bytes_free,1,"divideSeries(%.disk.bytes_free,sumSeries(%.disk.bytes_*))")
 
   Would find all series which match `servers.*.disk.bytes_free`, then trim them down to unique series up to the node
   given by nodeNum, then fill them into the template function provided (replacing % by the prefixes).
@@ -4477,12 +4481,12 @@ def applyByNode(requestContext, seriesList, nodeNum, templateFunction, newName=N
 
   Given keys of
 
-    - `stats.counts.haproxy.web.2XX`
-    - `stats.counts.haproxy.web.3XX`
-    - `stats.counts.haproxy.web.5XX`
-    - `stats.counts.haproxy.microservice.2XX`
-    - `stats.counts.haproxy.microservice.3XX`
-    - `stats.counts.haproxy.microservice.5XX`
+  - `stats.counts.haproxy.web.2XX`
+  - `stats.counts.haproxy.web.3XX`
+  - `stats.counts.haproxy.web.5XX`
+  - `stats.counts.haproxy.microservice.2XX`
+  - `stats.counts.haproxy.microservice.3XX`
+  - `stats.counts.haproxy.microservice.5XX`
 
   The following will return the rate of 5XX's per service:
 
@@ -4526,7 +4530,7 @@ def groupByNode(requestContext, seriesList, nodeNum, callback='average'):
   Would return multiple series which are each the result of applying the "sumSeries" function
   to groups joined on the second node (0 indexed) resulting in a list of targets like
 
-  .. code-block :: none
+  .. code-block:: none
 
     sumSeries(ganglia.by-function.server1.*.cpu.load5),sumSeries(ganglia.by-function.server2.*.cpu.load5),...
 
@@ -4554,7 +4558,7 @@ def groupByNodes(requestContext, seriesList, callback, *nodes):
   Would return multiple series which are each the result of applying the "sum" aggregation
   to groups joined on the nodes' list (0 indexed) resulting in a list of targets like
 
-  .. code-block :: none
+  .. code-block:: none
 
     sumSeries(ganglia.server1.*.cpu.load5),sumSeries(ganglia.server1.*.cpu.load10),sumSeries(ganglia.server1.*.cpu.load15),sumSeries(ganglia.server2.*.cpu.load5),sumSeries(ganglia.server2.*.cpu.load10),sumSeries(ganglia.server2.*.cpu.load15),...
 
@@ -4564,7 +4568,7 @@ def groupByNodes(requestContext, seriesList, callback, *nodes):
 
   Each node may be an integer referencing a node in the series name or a string identifying a tag.
 
-  .. code-block :: none
+  .. code-block:: none
 
     &target=seriesByTag("name=~cpu.load.*", "server=~server[1-9]+", "datacenter=~dc[1-9]+")|groupByNodes("average", "datacenter", 1)
 
