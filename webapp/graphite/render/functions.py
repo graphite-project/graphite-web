@@ -302,7 +302,7 @@ def aggregate(requestContext, seriesList, func, xFilesFactor=None):
 
 aggregate.group = 'Combine'
 aggregate.params = [
-  Param('seriesList', ParamTypes.seriesList, required=True, multiple=True),
+  Param('seriesList', ParamTypes.seriesList, required=True),
   Param('func', ParamTypes.aggFunc, required=True, options=aggFuncNames),
   Param('xFilesFactor', ParamTypes.float),
 ]
