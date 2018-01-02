@@ -24,7 +24,8 @@ Function Plugins
 
 Function plugins can define additional functions for use in render calls.
 
-A function plugin is simply a file defining one or more functions and exporting ``SeriesFunctions`` and/or ``PieFunctions``
+A function plugin is simply a file defining one or more functions and exporting dictionaries of ``SeriesFunctions`` and/or ``PieFunctions``.
+When Graphite loads the plugin it will add functions in ``SeriesFunctions`` and/or ``PieFunctions`` to the list of available functions.
 
 Each exposed function must accept at least a ``requestContext`` and ``seriesList`` parameter, and may accept additional parameters as needed.
 
