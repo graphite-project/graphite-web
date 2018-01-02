@@ -23,7 +23,7 @@ Passing multiple environments to tox can be done by separating with commas:
 `tox -e py27-django111-pyparsing2,py35-django111-pyparsing2,lint`
 
 To run only a specific test suite run (aka. run the file tests/test_finders.py):
-`tox -e py27-django111-pyparsing2,py35-django111-pyparsing2,lint-- tests.test_finders`
+`tox -e py27-django111-pyparsing2,py35-django111-pyparsing2,lint -- tests.test_finders`
 
 To run only a specific class in a test suite run (aka. run the MetricsTester class inside of test/test_metrics.py):
 
