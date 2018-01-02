@@ -7,7 +7,7 @@ import django
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "graphite.settings")
 django.setup()
 
-from graphite.util import write_index
+from graphite.storage import write_index
 
 
 if __name__ == "__main__":
@@ -20,11 +20,7 @@ if __name__ == "__main__":
         " defaults."
     parser = OptionParser(description=description, prog=prog, version=version,
         epilog=epilog)
-    parser.add_option("-c", "--ceres_dir", default=settings.CERES_DIR,
-        help="default: %default")
-    parser.add_option("-w", "--whisper_dir", default=settings.WHISPER_DIR,
-        help="default: %default")
     parser.add_option("-i", "--index", default=settings.INDEX_FILE,
         help="default: %default")
     (options, args) = parser.parse_args()
-    write_index(options.whisper_dir, options.ceres_dir, options.index)
+    write_index(options.index)
