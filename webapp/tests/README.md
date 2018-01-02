@@ -4,7 +4,7 @@
 
 These Graphite-Web unit tests are for the Django portions of the graphite-web code base.  They utilize the Django test framework and run via `manage.py test`.
 
-For pull-requests, the tests run inside of Travic-ci using Python tox (https://pypi.python.org/pypi/tox) to invoke the tests across all the environments defined in tox.ini.
+For pull-requests, the tests run inside of Travis-ci using Python tox (https://pypi.python.org/pypi/tox) to invoke the tests across all the environments defined in tox.ini.
 
 The current tox.ini configuration uses Python coverage (http://coverage.readthedocs.io/en/latest/) to invoke `manage.py` and capture the code coverage levels.
 
@@ -18,7 +18,7 @@ Invoke `tox` in the root of the tree and all tests across all environments will 
 To run only a specific test suite run (aka. run the file tests/test_finders.py):
 `tox -- tests.test_finders`
 
-To run only a specific class in that test suite run:
+To run only a specific class in a test suite run:
 
 `tox -- tests.test_metrics.MetricsTester`
 
