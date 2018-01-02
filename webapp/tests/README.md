@@ -41,7 +41,7 @@ Run `coverage html` from the webapp directory.  Afterwards, the webapp/htmlcov/i
 
 ### Setting up an environment to test
 
-There may need to be additional system packages or python dependencies installed in order for tox to successfully install the required packages for the tests.  Additionally, there may be additional system services needed to be running locally for the unit tests to complete successfully.
+There may need to be additional system packages or python dependencies installed in order for tox to successfully install the required packages for the tests.  Also, there may be system services running locally that are needed for the unit tests to complete successfully.
 
 ## License
 
