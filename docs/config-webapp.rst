@@ -3,9 +3,9 @@ Configuring The Webapp
 
 There are multiple ways to expose the Graphite webapp. The following stack configurations exist:
 
-* `Apache` with `mod_wsgi`_
-* `nginx` with `gunicorn`_
-* `nginx` with `uWSGI`_
+* `Apache`_ with `mod_wsgi`_
+* `nginx`_ with `gunicorn`_
+* `nginx`_ with `uWSGI`_
 
 Depending on the configuration you choose, the webapp configuration is slightly different.
 
