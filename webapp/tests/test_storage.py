@@ -69,12 +69,13 @@ class StorageTest(TestCase):
     def mock_pool_exec(pool, jobs, timeout):
       raise PoolTimeoutError()
 
+    message = 'Timed out after [-.e0-9]+s for fetch for \[\'a\'\]'
     with patch('graphite.storage.pool_exec', mock_pool_exec):
       with patch('graphite.storage.log.info') as log_info:
-        with self.assertRaisesRegexp(Exception, 'All fetches failed for \[\'a\'\]'):
+        with self.assertRaisesRegexp(Exception, message):
           list(store.fetch(['a'], 1, 2, 3, {}))
         self.assertEqual(log_info.call_count, 1)
-        self.assertRegexpMatches(log_info.call_args[0][0], 'Timed out in fetch after [-.e0-9]+s')
+        self.assertRegexpMatches(log_info.call_args[0][0], message)
 
   def test_fetch_all_failed(self):
     # all finds failed
@@ -83,20 +84,20 @@ class StorageTest(TestCase):
     )
 
     with patch('graphite.storage.log.info') as log_info:
-      with self.assertRaisesRegexp(Exception, 'Fetch for \[\'a\'\] failed: TestFinder.find_nodes'):
+      with self.assertRaisesRegexp(Exception, 'All requests failed for fetch for \[\'a\'\] \(1\)'):
         list(store.fetch(['a'], 1, 2, 3, {}))
       self.assertEqual(log_info.call_count, 1)
-      self.assertRegexpMatches(log_info.call_args[0][0], 'Fetch for \[\'a\'\] failed after [-.e0-9]+s: TestFinder.find_nodes')
+      self.assertRegexpMatches(log_info.call_args[0][0], 'Exception during fetch for \[\'a\'\] after [-.e0-9]+s: TestFinder.find_nodes')
 
     store = Store(
       finders=[TestFinder(), TestFinder()]
     )
 
     with patch('graphite.storage.log.info') as log_info:
-      with self.assertRaisesRegexp(Exception, 'All fetches failed for \[\'a\'\]'):
+      with self.assertRaisesRegexp(Exception, 'All requests failed for fetch for \[\'a\'\] \(2\)'):
         list(store.fetch(['a'], 1, 2, 3, {}))
       self.assertEqual(log_info.call_count, 2)
-      self.assertRegexpMatches(log_info.call_args[0][0], 'Fetch for \[\'a\'\] failed after [-.e0-9]+s: TestFinder.find_nodes')
+      self.assertRegexpMatches(log_info.call_args[0][0], 'Exception during fetch for \[\'a\'\] after [-.e0-9]+s: TestFinder.find_nodes')
 
   def test_find(self):
     disabled_finder = DisabledFinder()
@@ -152,12 +153,13 @@ class StorageTest(TestCase):
     def mock_pool_exec(pool, jobs, timeout):
       raise PoolTimeoutError()
 
+    message = 'Timed out after [-.e0-9]+s for find <FindQuery: a from \* until \*>'
     with patch('graphite.storage.pool_exec', mock_pool_exec):
       with patch('graphite.storage.log.info') as log_info:
-        with self.assertRaisesRegexp(Exception, 'All finds failed for <FindQuery: a from \* until \*>'):
+        with self.assertRaisesRegexp(Exception, message):
           list(store.find('a'))
         self.assertEqual(log_info.call_count, 1)
-        self.assertRegexpMatches(log_info.call_args[0][0], 'Timed out in find after [-.e0-9]+s')
+        self.assertRegexpMatches(log_info.call_args[0][0], message)
 
   def test_find_all_failed(self):
     # all finds failed
@@ -165,21 +167,28 @@ class StorageTest(TestCase):
       finders=[TestFinder()]
     )
 
+    message = 'All requests failed for find <FindQuery: a from \* until \*>'
     with patch('graphite.storage.log.info') as log_info:
-      with self.assertRaisesRegexp(Exception, 'Find for <FindQuery: a from \* until \*> failed: TestFinder.find_nodes'):
+      with self.assertRaisesRegexp(Exception, message):
         list(store.find('a'))
       self.assertEqual(log_info.call_count, 1)
-      self.assertRegexpMatches(log_info.call_args[0][0], 'Find for <FindQuery: a from \* until \*> failed after [-.e0-9]+s: TestFinder.find_nodes')
+      self.assertRegexpMatches(
+        log_info.call_args[0][0],
+        'Exception during find <FindQuery: a from \* until \*> after [-.e0-9]+s: TestFinder.find_nodes'
+      )
 
     store = Store(
       finders=[TestFinder(), TestFinder()]
     )
 
     with patch('graphite.storage.log.info') as log_info:
-      with self.assertRaisesRegexp(Exception, 'All finds failed for <FindQuery: a from \* until \*>'):
+      with self.assertRaisesRegexp(Exception, message):
         list(store.find('a'))
       self.assertEqual(log_info.call_count, 2)
-      self.assertRegexpMatches(log_info.call_args[0][0], 'Find for <FindQuery: a from \* until \*> failed after [-.e0-9]+s: TestFinder.find_nodes')
+      self.assertRegexpMatches(
+        log_info.call_args[0][0],
+        'Exception during find <FindQuery: a from \* until \*> after [-.e0-9]+s: TestFinder.find_nodes'
+      )
 
   @override_settings(REMOTE_STORE_FORWARD_HEADERS=['X-Test1', 'X-Test2'])
   def test_extractForwardHeaders(self):
@@ -222,10 +231,10 @@ class StorageTest(TestCase):
 
     with patch('graphite.storage.pool_exec', mock_pool_exec):
       with patch('graphite.storage.log.info') as log_info:
-        with self.assertRaisesRegexp(Exception, 'All index lookups failed'):
+        with self.assertRaisesRegexp(Exception, 'Timed out after .*'):
           store.get_index()
         self.assertEqual(log_info.call_count, 1)
-        self.assertRegexpMatches(log_info.call_args[0][0], 'Timed out in get_index after [-.e0-9]+s')
+        self.assertRegexpMatches(log_info.call_args[0][0], 'Timed out after [-.e0-9]+s')
 
   def test_get_index_all_failed(self):
     # all finders failed
@@ -234,20 +243,20 @@ class StorageTest(TestCase):
     )
 
     with patch('graphite.storage.log.info') as log_info:
-      with self.assertRaisesRegexp(Exception, 'get_index failed: TestFinder.find_nodes'):
+      with self.assertRaisesRegexp(Exception, 'All requests failed for get_index'):
         store.get_index()
       self.assertEqual(log_info.call_count, 1)
-      self.assertRegexpMatches(log_info.call_args[0][0], 'get_index failed after [-.e0-9]+s: TestFinder.find_nodes')
+      self.assertRegexpMatches(log_info.call_args[0][0], 'Exception during get_index after [-.e0-9]+s: TestFinder.find_nodes')
 
     store = Store(
       finders=[TestFinder(), TestFinder()]
     )
 
     with patch('graphite.storage.log.info') as log_info:
-      with self.assertRaisesRegexp(Exception, 'All index lookups failed'):
+      with self.assertRaisesRegexp(Exception, 'All requests failed for get_index \(2\)'):
         store.get_index()
       self.assertEqual(log_info.call_count, 2)
-      self.assertRegexpMatches(log_info.call_args[0][0], 'get_index failed after [-.e0-9]+s: TestFinder.find_nodes')
+      self.assertRegexpMatches(log_info.call_args[0][0], 'Exception during get_index after [-.e0-9]+s: TestFinder.find_nodes')
 
   @override_settings(USE_WORKER_POOL=False)
   def test_fetch_tag_support(self):
@@ -497,29 +506,29 @@ class StorageTest(TestCase):
     # test exception handling with one finder
     store = mockStore([TestFinderTagsException()])
 
-    with self.assertRaisesRegexp(Exception, 'Autocomplete tags for \[\'tag1=value1\'\] test failed: TestFinderTagsException\.auto_complete_tags'):
+    with self.assertRaisesRegexp(Exception, 'All requests failed for tags for \[\'tag1=value1\'\] test.*'):
       store.tagdb_auto_complete_tags(['tag1=value1'], 'test', 100, request_context)
 
-    with self.assertRaisesRegexp(Exception, 'Autocomplete values for \[\'tag1=value1\'\] tag2 test failed: TestFinderTagsException\.auto_complete_values'):
+    with self.assertRaisesRegexp(Exception, 'All requests failed for values for \[\'tag1=value1\'\] tag2 test.*'):
       store.tagdb_auto_complete_values(['tag1=value1'], 'tag2', 'test', 100, request_context)
 
     # test exception handling with more than one finder
     store = mockStore([TestFinderTagsException(), TestFinderTagsException()])
 
-    with self.assertRaisesRegexp(Exception, 'All autocomplete tag requests failed for \[\'tag1=value1\'\] test'):
+    with self.assertRaisesRegexp(Exception, 'All requests failed for tags for \[\'tag1=value1\'\] test'):
       store.tagdb_auto_complete_tags(['tag1=value1'], 'test', 100, request_context)
 
-    with self.assertRaisesRegexp(Exception, 'All autocomplete value requests failed for \[\'tag1=value1\'\] tag2 test'):
+    with self.assertRaisesRegexp(Exception, 'All requests failed for values for \[\'tag1=value1\'\] tag2 test'):
       store.tagdb_auto_complete_values(['tag1=value1'], 'tag2', 'test', 100, request_context)
 
     # test pool timeout handling
     store = mockStore([TestFinderTagsTimeout()])
 
     with self.settings(USE_WORKER_POOL=True, FIND_TIMEOUT=0):
-      with self.assertRaisesRegexp(Exception, 'Timed out in autocomplete tags for \[\'tag1=value1\'\] test after [-.e0-9]+s'):
+      with self.assertRaisesRegexp(Exception, 'Timed out after [-.e0-9]+s for tags for \[\'tag1=value1\'\]'):
         store.tagdb_auto_complete_tags(['tag1=value1'], 'test', 100, request_context)
 
-      with self.assertRaisesRegexp(Exception, 'Timed out in autocomplete values for \[\'tag1=value1\'\] tag2 test after [-.e0-9]+s'):
+      with self.assertRaisesRegexp(Exception, 'Timed out after [-.e0-9]+s for values for \[\'tag1=value1\'\] tag2 test'):
         store.tagdb_auto_complete_values(['tag1=value1'], 'tag2', 'test', 100, request_context)
 
   # test write_index
