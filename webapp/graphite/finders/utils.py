@@ -1,10 +1,18 @@
 """Utility functions for finders."""
-import time
 import abc
+import time
 
 from graphite.node import BranchNode, LeafNode  # noqa
 from graphite.util import is_pattern
 from graphite.intervals import Interval
+
+
+class FetchInProgress(object):
+    def __init__(self, wait_callback):
+        self.wait_callback = wait_callback
+
+    def waitForResults(self):
+        return self.wait_callback()
 
 
 class FindQuery(object):
@@ -129,26 +137,41 @@ class BaseFinder(object):
             for pattern in patterns
         ]
 
-        result = []
+        results = []
 
         for node, query in self.find_multi(queries):
             if not isinstance(node, LeafNode):
                 continue
 
-            time_info, values = node.fetch(
+            result = node.fetch(
                 start_time, end_time,
                 now=now, requestContext=requestContext
             )
 
-            result.append({
+            results.append({
                 'pathExpression': query.pattern,
                 'path': node.path,
                 'name': node.path,
-                'time_info': time_info,
-                'values': values,
+                'result': result,
             })
 
-        return result
+        # Allow finders to return callables. That would allow
+        # them to easilly start things in the background without having to
+        # implement their own thread-pool.
+        for r in results:
+            result = r['result']
+            if isinstance(result, FetchInProgress):
+                time_info, values = result.waitForResults()
+            elif callable(result):
+                time_info, values = result()
+            else:
+                time_info, values = result
+
+            r['time_info'] =  time_info
+            r['values'] = values
+            del r['result']
+
+        return results
 
     def auto_complete_tags(self, exprs, tagPrefix=None, limit=None, requestContext=None):
         return []
