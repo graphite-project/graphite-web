@@ -203,14 +203,14 @@ class MetricsTester(TestCase):
             request['format']='msgpack'
             request['query']='*'
             content = test_find_view_basics(request)
-            data = msgpack.loads(content)
+            data = msgpack.loads(content, encoding='utf-8')
             self.assertEqual(len(data), 1)
             self.assertEqual(data[0]['path'], 'hosts')
             self.assertEqual(data[0]['is_leaf'], False)
 
             request['query']='hosts.*.cpu'
             content = test_find_view_basics(request)
-            data = msgpack.loads(content)
+            data = msgpack.loads(content, encoding='utf-8')
             self.assertEqual(len(data), 2)
 
             data = sorted(data, key=_path_key)

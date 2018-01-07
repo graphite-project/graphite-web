@@ -324,7 +324,7 @@ def renderViewPickle(requestOptions, data):
 def renderViewMsgPack(requestOptions, data):
   response = HttpResponse(content_type='application/x-msgpack')
   seriesInfo = [series.getInfo() for series in data]
-  msgpack.dump(seriesInfo, response)
+  msgpack.dump(seriesInfo, response, use_bin_type=True)
   return response
 
 
