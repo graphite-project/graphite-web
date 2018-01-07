@@ -1,6 +1,10 @@
+import os
 import random
+import shutil
 import time
+import whisper
 
+from django.conf import settings
 from django.test import override_settings
 from mock import patch, Mock
 
@@ -10,7 +14,7 @@ from graphite.finders.utils import BaseFinder
 from graphite.intervals import Interval, IntervalSet
 from graphite.node import LeafNode, BranchNode
 from graphite.readers.utils import BaseReader
-from graphite.storage import Store, extractForwardHeaders, get_finders, get_tagdb
+from graphite.storage import Store, extractForwardHeaders, get_finders, get_tagdb, write_index
 from graphite.tags.localdatabase import LocalDatabaseTagDB
 from graphite.worker_pool.pool import PoolTimeoutError
 from graphite.render.datalib import TimeSeries
@@ -517,6 +521,46 @@ class StorageTest(TestCase):
 
       with self.assertRaisesRegexp(Exception, 'Timed out in autocomplete values for \[\'tag1=value1\'\] tag2 test after [-.e0-9]+s'):
         store.tagdb_auto_complete_values(['tag1=value1'], 'tag2', 'test', 100, request_context)
+
+  # test write_index
+  hostcpu = os.path.join(settings.WHISPER_DIR, 'hosts/hostname/cpu.wsp')
+
+  def create_whisper_hosts(self):
+    worker1 = self.hostcpu.replace('hostname', 'worker1')
+    worker2 = self.hostcpu.replace('hostname', 'worker2')
+    bogus_file = os.path.join(settings.WHISPER_DIR, 'a/b/c/bogus_file.txt')
+
+    try:
+      os.makedirs(worker1.replace('cpu.wsp', ''))
+      os.makedirs(worker2.replace('cpu.wsp', ''))
+      os.makedirs(bogus_file.replace('bogus_file.txt', ''))
+    except OSError:
+      pass
+
+    open(bogus_file, 'a').close()
+    whisper.create(worker1, [(1, 60)])
+    whisper.create(worker2, [(1, 60)])
+
+    ts = int(time.time())
+    whisper.update(worker1, 1, ts)
+    whisper.update(worker2, 2, ts)
+
+  def wipe_whisper_hosts(self):
+    try:
+      os.remove(self.hostcpu.replace('hostname', 'worker1'))
+      os.remove(self.hostcpu.replace('hostname', 'worker2'))
+      os.remove(os.path.join(settings.WHISPER_DIR, 'a/b/c/bogus_file.txt'))
+      shutil.rmtree(self.hostcpu.replace('hostname/cpu.wsp', ''))
+      shutil.rmtree(os.path.join(settings.WHISPER_DIR, 'a'))
+    except OSError:
+      pass
+
+  def test_write_index(self):
+    self.create_whisper_hosts()
+    self.addCleanup(self.wipe_whisper_hosts)
+
+    self.assertEqual(None, write_index() )
+    self.assertEqual(None, write_index(settings.INDEX_FILE) )
 
 
 class DisabledFinder(object):

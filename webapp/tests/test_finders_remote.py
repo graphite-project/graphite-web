@@ -126,7 +126,7 @@ class RemoteFinderTest(TestCase):
         },
       ]
       responseObject = HTTPResponse(
-        body=BytesIO(msgpack.dumps(data)),
+        body=BytesIO(msgpack.dumps(data, use_bin_type=True)),
         status=200,
         preload_content=False,
         headers={'Content-Type': 'application/x-msgpack'}
