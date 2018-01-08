@@ -96,7 +96,7 @@ INSTALLED_APPS = (
   'tagging',
 )
 if raven is not None:
-    INSTALLED_APPS.append('raven.contrib.django.raven_compat')
+    INSTALLED_APPS = INSTALLED_APPS + ('raven.contrib.django.raven_compat',)
 
 
 AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend']
