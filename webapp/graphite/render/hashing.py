@@ -119,7 +119,7 @@ class ConsistentHashRing:
     return entry[1]
 
   def get_nodes(self, key):
-    nodes = []
+    nodes = set()
     if not self.ring:
       return nodes
     if self.nodes_len == 1:
@@ -133,7 +133,7 @@ class ConsistentHashRing:
       next_entry = self.ring[index]
       (position, next_node) = next_entry
       if next_node not in nodes:
-        nodes.append(next_node)
+        nodes.add(next_node)
         nodes_len += 1
 
       index = (index + 1) % self.ring_len
