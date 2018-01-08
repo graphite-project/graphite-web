@@ -4,3 +4,4 @@ from graphite.readers.multi import MultiReader  # noqa # pylint: disable=unused-
 from graphite.readers.whisper import WhisperReader, GzippedWhisperReader  # noqa # pylint: disable=unused-import
 from graphite.readers.ceres import CeresReader  # noqa # pylint: disable=unused-import
 from graphite.readers.rrd import RRDReader  # noqa # pylint: disable=unused-import
+from graphite.finders.utils import FetchInProgress  # noqa # pylint: disable=unused-import
