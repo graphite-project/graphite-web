@@ -16,14 +16,16 @@ limitations under the License."""
 from hashlib import md5
 from itertools import chain
 import bisect
+import sys
 
 try:
   import pyhash
   hasher = pyhash.fnv1a_32()
-  def fnv32a(string, seed=0x811c9dc5):
-    return hasher(string, seed=seed)
+
+  def fnv32a(data, seed=0x811c9dc5):
+    return hasher(data, seed=seed)
 except ImportError:
-  def fnv32a(string, seed=0x811c9dc5):
+  def fnv32a(data, seed=0x811c9dc5):
     """
     FNV-1a Hash (http://isthe.com/chongo/tech/comp/fnv/) in Python.
     Taken from https://gist.github.com/vaiorabbit/5670985
@@ -31,17 +33,26 @@ except ImportError:
     hval = seed
     fnv_32_prime = 0x01000193
     uint32_max = 2 ** 32
-    for s in string:
-      hval = hval ^ ord(s)
-      hval = (hval * fnv_32_prime) % uint32_max
+    if sys.version_info >= (3, 0):
+      # data is a bytes object, s is an integer
+      for s in data:
+        hval = hval ^ s
+        hval = (hval * fnv_32_prime) % uint32_max
+    else:
+      # data is an str object, s is a single character
+      for s in data:
+        hval = hval ^ ord(s)
+        hval = (hval * fnv_32_prime) % uint32_max
     return hval
 
-def hashRequest(request):
-  # Normalize the request parameters so ensure we're deterministic
-  queryParams = ["%s=%s" % (key, '&'.join(values))
-                 for (key,values) in chain(request.POST.lists(), request.GET.lists())
-                 if not key.startswith('_')]
 
+def hashRequest(request):
+  # Normalize the request parameters to ensure we're deterministic
+  queryParams = [
+    "%s=%s" % (key, '&'.join(values))
+    for (key,values) in chain(request.POST.lists(), request.GET.lists())
+    if not key.startswith('_')
+  ]
   normalizedParams = ','.join( sorted(queryParams) )
   return compactHash(normalizedParams)
 
@@ -55,9 +66,7 @@ def hashData(targets, startTime, endTime, xFilesFactor):
 
 
 def compactHash(string):
-  hash = md5()
-  hash.update(string.encode('utf-8'))
-  return hash.hexdigest()
+  return md5(string.encode('utf-8')).hexdigest()
 
 
 class ConsistentHashRing:
@@ -73,13 +82,10 @@ class ConsistentHashRing:
 
   def compute_ring_position(self, key):
     if self.hash_type == 'fnv1a_ch':
-      big_hash = '{:x}'.format(int(fnv32a( str(key) )))
-      if len(big_hash) > 4:
-          small_hash = int(big_hash[:4], 16) ^ int(big_hash[4:], 16)
-      else:
-          small_hash = int(big_hash, 16)
+      big_hash = int(fnv32a(key.encode('utf-8')))
+      small_hash = (big_hash >> 16) ^ (big_hash & 0xffff)
     else:
-      big_hash = compactHash(str(key))
+      big_hash = compactHash(key)
       small_hash = int(big_hash[:4], 16)
     return small_hash
 
@@ -92,6 +98,8 @@ class ConsistentHashRing:
       else:
         replica_key = "%s:%d" % (key, i)
       position = self.compute_ring_position(replica_key)
+      while position in [r[0] for r in self.ring]:
+        position = position + 1
       entry = (position, key)
       bisect.insort(self.ring, entry)
     self.ring_len = len(self.ring)
@@ -112,6 +120,10 @@ class ConsistentHashRing:
 
   def get_nodes(self, key):
     nodes = []
+    if not self.ring:
+      return nodes
+    if self.nodes_len == 1:
+      return list(self.nodes)
     position = self.compute_ring_position(key)
     search_entry = (position, None)
     index = bisect.bisect_left(self.ring, search_entry) % self.ring_len

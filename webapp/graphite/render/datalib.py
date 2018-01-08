@@ -16,6 +16,7 @@ from __future__ import division
 import collections
 import re
 import time
+from six import text_type
 
 from django.conf import settings
 
@@ -120,16 +121,17 @@ class TimeSeries(list):
 
   def getInfo(self):
     """Pickle-friendly representation of the series"""
+    # make sure everything is unicode in python 2.x and 3.x
     return {
-      'name' : self.name,
-      'start' : self.start,
-      'end' : self.end,
-      'step' : self.step,
-      'values' : list(self),
-      'pathExpression' : self.pathExpression,
-      'valuesPerPoint' : self.valuesPerPoint,
-      'consolidationFunc': self.consolidationFunc,
-      'xFilesFactor' : self.xFilesFactor,
+      text_type('name') : text_type(self.name),
+      text_type('start') : self.start,
+      text_type('end') : self.end,
+      text_type('step') : self.step,
+      text_type('values') : list(self),
+      text_type('pathExpression') : text_type(self.pathExpression),
+      text_type('valuesPerPoint') : self.valuesPerPoint,
+      text_type('consolidationFunc'): text_type(self.consolidationFunc),
+      text_type('xFilesFactor') : self.xFilesFactor,
     }
 
 

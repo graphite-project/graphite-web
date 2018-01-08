@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+import os
 import time
 import random
 import sys
@@ -6,6 +7,8 @@ import types
 
 from collections import defaultdict
 from copy import deepcopy
+from shutil import move
+from tempfile import mkstemp
 
 from django.conf import settings
 from django.core.cache import cache
@@ -527,6 +530,26 @@ def extractForwardHeaders(request):
         if value is not None:
             headers[name] = value
     return headers
+
+
+def write_index(index=None):
+  if not index:
+    index = settings.INDEX_FILE
+  try:
+    fd, tmp = mkstemp()
+    try:
+      tmp_index = os.fdopen(fd, 'wt')
+      for metric in STORE.get_index():
+        tmp_index.write("{0}\n".format(metric))
+    finally:
+      tmp_index.close()
+    move(tmp, index)
+  finally:
+    try:
+      os.unlink(tmp)
+    except:
+      pass
+  return None
 
 
 STORE = Store()

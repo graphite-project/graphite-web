@@ -16,11 +16,16 @@ limitations under the License."""
 # DO NOT MODIFY THIS FILE DIRECTLY - use local_settings.py instead
 from os.path import dirname, join, abspath
 from django import VERSION as DJANGO_VERSION
-
+try:
+    import raven
+except ImportError:
+    raven = None
 
 #Django settings below, do not touch!
 APPEND_SLASH = False
 TEMPLATE_DEBUG = False
+
+SILENCED_SYSTEM_CHECKS = ['urls.W002']
 
 TEMPLATES = [
     {
@@ -72,16 +77,17 @@ if DJANGO_VERSION < (1, 10):
 ROOT_URLCONF = 'graphite.urls'
 
 INSTALLED_APPS = (
-  'graphite.metrics',
-  'graphite.render',
+  'graphite.account',
   'graphite.browser',
   'graphite.composer',
-  'graphite.account',
   'graphite.dashboard',
-  'graphite.whitelist',
   'graphite.events',
-  'graphite.url_shortener',
+  'graphite.functions',
+  'graphite.metrics',
+  'graphite.render',
   'graphite.tags',
+  'graphite.url_shortener',
+  'graphite.whitelist',
   'django.contrib.auth',
   'django.contrib.sessions',
   'django.contrib.admin',
@@ -89,6 +95,9 @@ INSTALLED_APPS = (
   'django.contrib.staticfiles',
   'tagging',
 )
+if raven is not None:
+    INSTALLED_APPS.append('raven.contrib.django.raven_compat')
+
 
 AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend']
 

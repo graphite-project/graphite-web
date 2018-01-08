@@ -14,6 +14,7 @@ limitations under the License."""
 
 from functools import reduce
 import pytz
+from six import text_type
 from six.moves.urllib.parse import unquote_plus
 
 from datetime import datetime
@@ -334,14 +335,18 @@ def pickle_nodes(nodes):
 def msgpack_nodes(nodes):
   nodes_info = []
 
+  # make sure everything is unicode in python 2.x and 3.x
   for node in nodes:
-    info = dict(path=node.path, is_leaf=node.is_leaf)
+    info = {
+      text_type('path'): text_type(node.path),
+      text_type('is_leaf'): node.is_leaf,
+    }
     if node.is_leaf:
-      info['intervals'] = [interval.tuple for interval in node.intervals]
+      info[text_type('intervals')] = [interval.tuple for interval in node.intervals]
 
     nodes_info.append(info)
 
-  return msgpack.dumps(nodes_info)
+  return msgpack.dumps(nodes_info, use_bin_type=True)
 
 
 def json_nodes(nodes):
