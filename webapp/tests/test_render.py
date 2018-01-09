@@ -969,7 +969,7 @@ class ConsistentHashRingTest(TestCase):
     def test_chr_get_nodes(self):
         hosts = [("127.0.0.1", "cache0"),("127.0.0.1", "cache1"),("127.0.0.1", "cache2")]
         hashring = ConsistentHashRing(hosts)
-        node = hashring.get_nodes('hosts.worker1.cpu')
+        node = list(hashring.get_nodes('hosts.worker1.cpu'))
         self.assertEqual(node, [('127.0.0.1', 'cache2'), ('127.0.0.1', 'cache0'), ('127.0.0.1', 'cache1')])
 
 

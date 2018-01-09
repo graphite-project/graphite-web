@@ -19,6 +19,11 @@ import bisect
 import sys
 
 try:
+  import mmh3
+except ImportError:
+  mmh3 = None
+
+try:
   import pyhash
   hasher = pyhash.fnv1a_32()
 
@@ -69,6 +74,20 @@ def compactHash(string):
   return md5(string.encode('utf-8')).hexdigest()
 
 
+def carbonHash(key, hash_type):
+  if hash_type == 'fnv1a_ch':
+    big_hash = int(fnv32a(key.encode('utf-8')))
+    small_hash = (big_hash >> 16) ^ (big_hash & 0xffff)
+  elif hash_type == 'mmh3_ch':
+    if mmh3 is None:
+      raise Exception('Install "mmh3" to use this hashing function.')
+    small_hash = mmh3.hash(key)
+  else:
+    big_hash = compactHash(key)
+    small_hash = int(big_hash[:4], 16)
+  return small_hash
+
+
 class ConsistentHashRing:
   def __init__(self, nodes, replica_count=100, hash_type='carbon_ch'):
     self.ring = []
@@ -81,13 +100,7 @@ class ConsistentHashRing:
       self.add_node(node)
 
   def compute_ring_position(self, key):
-    if self.hash_type == 'fnv1a_ch':
-      big_hash = int(fnv32a(key.encode('utf-8')))
-      small_hash = (big_hash >> 16) ^ (big_hash & 0xffff)
-    else:
-      big_hash = compactHash(key)
-      small_hash = int(big_hash[:4], 16)
-    return small_hash
+    return carbonHash(key, self.hash_type)
 
   def add_node(self, key):
     self.nodes.add(key)
@@ -119,11 +132,12 @@ class ConsistentHashRing:
     return entry[1]
 
   def get_nodes(self, key):
-    nodes = []
+    nodes = set()
     if not self.ring:
-      return nodes
+      raise StopIteration
     if self.nodes_len == 1:
-      return list(self.nodes)
+      for node in self.nodes:
+        yield node
     position = self.compute_ring_position(key)
     search_entry = (position, None)
     index = bisect.bisect_left(self.ring, search_entry) % self.ring_len
@@ -133,9 +147,8 @@ class ConsistentHashRing:
       next_entry = self.ring[index]
       (position, next_node) = next_entry
       if next_node not in nodes:
-        nodes.append(next_node)
+        nodes.add(next_node)
         nodes_len += 1
+        yield next_node
 
       index = (index + 1) % self.ring_len
-
-    return nodes
