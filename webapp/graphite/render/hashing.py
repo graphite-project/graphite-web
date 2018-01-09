@@ -134,9 +134,10 @@ class ConsistentHashRing:
   def get_nodes(self, key):
     nodes = set()
     if not self.ring:
-      return nodes
+      raise StopIteration
     if self.nodes_len == 1:
-      return list(self.nodes)
+      for node in self.nodes:
+        yield node
     position = self.compute_ring_position(key)
     search_entry = (position, None)
     index = bisect.bisect_left(self.ring, search_entry) % self.ring_len
@@ -148,7 +149,6 @@ class ConsistentHashRing:
       if next_node not in nodes:
         nodes.add(next_node)
         nodes_len += 1
+        yield next_node
 
       index = (index + 1) % self.ring_len
-
-    return nodes
