@@ -61,7 +61,7 @@ class RemoteReader(BaseReader):
                 '/render/',
                 fields=query_params,
                 headers=headers,
-                timeout=settings.REMOTE_FETCH_TIMEOUT,
+                timeout=settings.FETCH_TIMEOUT,
             )
             break
           except Exception:

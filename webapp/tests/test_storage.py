@@ -515,7 +515,7 @@ class StorageTest(TestCase):
     # test pool timeout handling
     store = mockStore([TestFinderTagsTimeout()])
 
-    with self.settings(USE_WORKER_POOL=True, REMOTE_FIND_TIMEOUT=0):
+    with self.settings(USE_WORKER_POOL=True, FIND_TIMEOUT=0):
       with self.assertRaisesRegexp(Exception, 'Timed out in autocomplete tags for \[\'tag1=value1\'\] test after [-.e0-9]+s'):
         store.tagdb_auto_complete_tags(['tag1=value1'], 'test', 100, request_context)
 

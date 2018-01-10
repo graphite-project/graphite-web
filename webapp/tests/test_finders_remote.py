@@ -61,7 +61,7 @@ class RemoteFinderTest(TestCase):
     @patch('urllib3.PoolManager.request')
     @override_settings(INTRACLUSTER_HTTPS=False)
     @override_settings(REMOTE_STORE_USE_POST=True)
-    @override_settings(REMOTE_FIND_TIMEOUT=10)
+    @override_settings(FIND_TIMEOUT=10)
     def test_find_nodes(self, http_request):
       finder = RemoteFinder('127.0.0.1')
 
@@ -220,7 +220,7 @@ class RemoteFinderTest(TestCase):
     @patch('urllib3.PoolManager.request')
     @override_settings(INTRACLUSTER_HTTPS=True)
     @override_settings(REMOTE_STORE_USE_POST=True)
-    @override_settings(REMOTE_FETCH_TIMEOUT=10)
+    @override_settings(FETCH_TIMEOUT=10)
     def test_RemoteFinder_fetch(self, http_request):
       test_finders = RemoteFinder.factory()
       finder = test_finders[0]
@@ -270,7 +270,7 @@ class RemoteFinderTest(TestCase):
     @patch('urllib3.PoolManager.request')
     @override_settings(INTRACLUSTER_HTTPS=False)
     @override_settings(REMOTE_STORE_USE_POST=True)
-    @override_settings(REMOTE_FIND_TIMEOUT=10)
+    @override_settings(FIND_TIMEOUT=10)
     def test_get_index(self, http_request):
       finder = RemoteFinder('127.0.0.1')
 
@@ -314,7 +314,7 @@ class RemoteFinderTest(TestCase):
     @override_settings(
       INTRACLUSTER_HTTPS=False,
       REMOTE_STORE_USE_POST=True,
-      REMOTE_FIND_TIMEOUT=10,
+      FIND_TIMEOUT=10,
       TAGDB_AUTOCOMPLETE_LIMIT=100)
     def test_auto_complete_tags(self, http_request):
       finder = RemoteFinder('127.0.0.1')
@@ -391,7 +391,7 @@ class RemoteFinderTest(TestCase):
     @override_settings(
       INTRACLUSTER_HTTPS=False,
       REMOTE_STORE_USE_POST=True,
-      REMOTE_FIND_TIMEOUT=10,
+      FIND_TIMEOUT=10,
       TAGDB_AUTOCOMPLETE_LIMIT=100)
     def test_auto_complete_values(self, http_request):
       finder = RemoteFinder('127.0.0.1')
