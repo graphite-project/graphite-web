@@ -83,7 +83,7 @@ class Store(object):
 
     def pool_exec(self, jobs, timeout):
         thread_count = 0
-        if settings.USE_WORKER_POOL:
+        if settings.USE_WORKER_POOL and len(settings.CLUSTER_SERVERS):
             thread_count = min(len(self.finders), settings.POOL_MAX_WORKERS)
 
         return pool_exec(get_pool('finders', thread_count), jobs, timeout)
