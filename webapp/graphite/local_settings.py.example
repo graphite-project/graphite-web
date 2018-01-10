@@ -90,6 +90,10 @@ DEFAULT_XFILES_FACTOR = 0
 # Interval for the Auto-Refresh feature in the Composer, measured in seconds.
 #AUTO_REFRESH_INTERVAL = 60
 
+# Timeouts for find and render requests
+#FIND_TIMEOUT = 3.0  # Timeout for metric find requests
+#FETCH_TIMEOUT = 3.0  # Timeout to fetch series data
+
 #####################################
 # Filesystem Paths #
 #####################################
@@ -274,10 +278,8 @@ DEFAULT_XFILES_FACTOR = 0
 # This setting controls whether https is used to communicate between cluster members
 #INTRACLUSTER_HTTPS = False
 
-# These are timeout values (in seconds) for requests to remote webapps
-#REMOTE_FIND_TIMEOUT = 3.0           # Timeout for metric find requests
-#REMOTE_FETCH_TIMEOUT = 3.0          # Timeout to fetch series data
-#REMOTE_RETRY_DELAY = 60.0           # Time before retrying a failed remote webapp
+# Time before retrying a failed remote webapp
+#REMOTE_RETRY_DELAY = 60.0
 
 # Try to detect when a cluster server is localhost and don't forward queries
 #REMOTE_EXCLUDE_LOCAL = False
