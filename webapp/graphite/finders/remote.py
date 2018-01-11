@@ -104,7 +104,7 @@ class RemoteFinder(BaseFinder):
                 url,
                 fields=query_params,
                 headers=query.headers,
-                timeout=settings.REMOTE_FIND_TIMEOUT)
+                timeout=settings.FIND_TIMEOUT)
 
             try:
                 if result.getheader('content-type') == 'application/x-msgpack':
@@ -163,7 +163,7 @@ class RemoteFinder(BaseFinder):
               ('local', self.params.get('local', '1')),
             ],
             headers=headers,
-            timeout=settings.REMOTE_FIND_TIMEOUT)
+            timeout=settings.FIND_TIMEOUT)
 
         try:
             reader = codecs.getreader('utf-8')
@@ -197,7 +197,7 @@ class RemoteFinder(BaseFinder):
             '/tags/autoComplete/tags',
             fields,
             headers=requestContext.get('forwardHeaders') if requestContext else None,
-            timeout=settings.REMOTE_FIND_TIMEOUT)
+            timeout=settings.FIND_TIMEOUT)
         try:
             reader = codecs.getreader('utf-8')
             results = json.load(reader(result))
@@ -231,7 +231,7 @@ class RemoteFinder(BaseFinder):
             '/tags/autoComplete/values',
             fields,
             headers=requestContext.get('forwardHeaders') if requestContext else None,
-            timeout=settings.REMOTE_FIND_TIMEOUT)
+            timeout=settings.FIND_TIMEOUT)
         try:
             reader = codecs.getreader('utf-8')
             results = json.load(reader(result))

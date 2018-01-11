@@ -54,6 +54,10 @@ WHISPER_DIR = ''
 RRD_DIR = ''
 STANDARD_DIRS = []
 
+# Timeout settings
+FIND_TIMEOUT = None  # default 3.0 see below
+FETCH_TIMEOUT = None  # default 6.0 see below
+
 # Cluster settings
 CLUSTER_SERVERS = []
 
@@ -63,8 +67,8 @@ POOL_MAX_WORKERS = 10
 
 # This settings control whether https is used to communicate between cluster members
 INTRACLUSTER_HTTPS = False
-REMOTE_FIND_TIMEOUT = 3.0
-REMOTE_FETCH_TIMEOUT = 3.0
+REMOTE_FIND_TIMEOUT = None  # Replaced by FIND_TIMEOUT
+REMOTE_FETCH_TIMEOUT = None  # Replaced by FETCH_TIMEOUT
 REMOTE_RETRY_DELAY = 60.0
 REMOTE_EXCLUDE_LOCAL = False
 REMOTE_STORE_MERGE_RESULTS = True
@@ -209,6 +213,10 @@ if not GRAPHITE_WEB_APP_SETTINGS_LOADED:
 STATICFILES_DIRS = (
     join(WEBAPP_DIR, 'content'),
 )
+
+# Handle renamed timeout settings
+FIND_TIMEOUT = FIND_TIMEOUT or REMOTE_FIND_TIMEOUT or 3.0
+FETCH_TIMEOUT = FETCH_TIMEOUT or REMOTE_FETCH_TIMEOUT or 6.0
 
 ## Set config dependent on flags set in local_settings
 # Path configuration

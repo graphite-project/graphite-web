@@ -122,7 +122,7 @@ class Store(object):
         # Start fetches
         start = time.time()
         try:
-          for job in self.pool_exec(jobs, settings.REMOTE_FETCH_TIMEOUT):
+          for job in self.pool_exec(jobs, settings.FETCH_TIMEOUT):
             done += 1
 
             if job.exception:
@@ -199,7 +199,7 @@ class Store(object):
         # Start index lookups
         start = time.time()
         try:
-          for job in self.pool_exec(jobs, settings.REMOTE_FETCH_TIMEOUT):
+          for job in self.pool_exec(jobs, settings.FETCH_TIMEOUT):
             done += 1
 
             if job.exception:
@@ -264,7 +264,7 @@ class Store(object):
         # Start finds
         start = time.time()
         try:
-          for job in self.pool_exec(jobs, settings.REMOTE_FIND_TIMEOUT):
+          for job in self.pool_exec(jobs, settings.FIND_TIMEOUT):
             done += 1
 
             if job.exception:
@@ -420,7 +420,7 @@ class Store(object):
           return self.tagdb.auto_complete_tags(exprs, tagPrefix=tagPrefix, limit=limit, requestContext=requestContext)
 
         # start finder jobs
-        jobs = self.pool_exec(jobs, settings.REMOTE_FIND_TIMEOUT)
+        jobs = self.pool_exec(jobs, settings.FIND_TIMEOUT)
 
         results = set()
 
@@ -482,7 +482,7 @@ class Store(object):
           return self.tagdb.auto_complete_values(exprs, tag, valuePrefix=valuePrefix, limit=limit, requestContext=requestContext)
 
         # start finder jobs
-        jobs = self.pool_exec(jobs, settings.REMOTE_FIND_TIMEOUT)
+        jobs = self.pool_exec(jobs, settings.FIND_TIMEOUT)
 
         results = set()
 

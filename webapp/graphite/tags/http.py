@@ -45,7 +45,7 @@ class HttpTagDB(BaseTagDB):
       self.base_url + url,
       fields=req_fields,
       headers=headers,
-      timeout=self.settings.REMOTE_FIND_TIMEOUT,
+      timeout=self.settings.FIND_TIMEOUT,
     )
 
     if result.status == 400:

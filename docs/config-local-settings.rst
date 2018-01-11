@@ -180,6 +180,16 @@ STORAGE_FINDERS
   It is possible to use an alternate storage layer than the default, Whisper, in order to accommodate specific needs.
   See: http://graphite.readthedocs.io/en/latest/storage-backends.html
 
+FETCH_TIMEOUT
+  `Default: 6`
+
+  Timeout for data fetches in seconds.
+
+FIND_TIMEOUT
+  `Default: 3`
+
+  Timeout for find requests (metric browsing) in seconds.
+
 TAGDB
   `Default: 'graphite.tags.localdatabase.LocalDatabaseTagDB'`
   Tag database driver to use, other options include `graphite.tags.redis.RedisTagDB`
@@ -408,16 +418,6 @@ POOL_MAX_WORKERS
   `Default: 10`
 
    The maximum number of worker threads that should be created.
-
-REMOTE_FETCH_TIMEOUT
-  `Default: 6`
-
-  Timeout for remote data fetches in seconds.
-
-REMOTE_FIND_TIMEOUT
-  `Default: 2.5`
-
-  Timeout for remote find requests (metric browsing) in seconds.
 
 REMOTE_RETRY_DELAY
   `Default: 60`
