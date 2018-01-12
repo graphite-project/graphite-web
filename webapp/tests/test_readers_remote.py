@@ -38,7 +38,7 @@ class RemoteReaderTests(TestCase):
     @mock.patch('django.conf.settings.CLUSTER_SERVERS', ['127.0.0.1', 'http://8.8.8.8/graphite?format=msgpack&local=0'])
     @mock.patch('django.conf.settings.INTRACLUSTER_HTTPS', False)
     @mock.patch('django.conf.settings.REMOTE_STORE_USE_POST', False)
-    @mock.patch('django.conf.settings.REMOTE_FETCH_TIMEOUT', 10)
+    @mock.patch('django.conf.settings.FETCH_TIMEOUT', 10)
     def test_RemoteReader_fetch_multi(self, http_request):
         test_finders = RemoteFinder.factory()
         finder = test_finders[0]
@@ -186,7 +186,7 @@ class RemoteReaderTests(TestCase):
     @mock.patch('django.conf.settings.CLUSTER_SERVERS', ['127.0.0.1', '8.8.8.8'])
     @mock.patch('django.conf.settings.INTRACLUSTER_HTTPS', False)
     @mock.patch('django.conf.settings.REMOTE_STORE_USE_POST', False)
-    @mock.patch('django.conf.settings.REMOTE_FETCH_TIMEOUT', 10)
+    @mock.patch('django.conf.settings.FETCH_TIMEOUT', 10)
     def test_RemoteReader_fetch(self, http_request):
         test_finders = RemoteFinder.factory()
         finder = test_finders[0]
