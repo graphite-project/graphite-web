@@ -264,6 +264,9 @@ If you wish to use a backend to graphite other than Whisper, there are some opti
 `go-carbon`_
   Golang implementation of Graphite/Carbon server with classic architecture: Agent -> Cache -> Persister.
 
+`Graphouse`_
+  Graphouse allows you to use `ClickHouse`_ as a Graphite storage.
+
 `influxgraph`_
   Graphite `InfluxDB`_ backend. `InfluxDB`_ storage finder / plugin for Graphite API.
 
@@ -350,6 +353,7 @@ Other
 .. _Graphiti: https://github.com/paperlesspost/graphiti
 .. _Graphitoid: https://market.android.com/details?id=com.tnc.android.graphite
 .. _graphitus: https://github.com/ezbz/graphitus
+.. _Graphouse: https://github.com/yandex/graphouse
 .. _Graphout: http://shamil.github.io/graphout
 .. _Graphsky: https://github.com/hyves-org/graphsky
 .. _Graph-Explorer: http://vimeo.github.io/graph-explorer
