@@ -249,6 +249,9 @@ If you wish to use a backend to graphite other than Whisper, there are some opti
 `carbon-clickhouse`_
   Graphite metrics receiver with `ClickHouse`_ as storage. You will also need `graphite-clickhouse`_ as backend for Graphite-web.
 
+`cassabon`_
+  Carbon daemon using Cassandra as the backend, implemented in Go. It also acts as an API for Graphite (using the `Cyanite`_ reader) to retrieve the stats to display.
+
 `Ceres`_
   An alternate storage backend provided by the Graphite Project.  It it intended to be a distributable time-series database.  It is currently in a pre-release status.
 
@@ -311,6 +314,7 @@ Other
 .. _carbon-relay-ng: https://github.com/graphite-ng/carbon-relay-ng
 .. _carbonapi: https://github.com/go-graphite/carbonapi
 .. _carbonate: https://github.com/graphite-project/carbonate
+.. _cassabon: https://github.com/jeffpierce/cassabon
 .. _Ceres: https://github.com/graphite-project/ceres
 .. _ClickHouse: https://clickhouse.yandex
 .. _Charcoal: https://github.com/cebailey59/charcoal
