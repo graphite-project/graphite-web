@@ -95,6 +95,7 @@ try:
         'graphite.functions',
         'graphite.functions.custom',
         'graphite.metrics',
+        'graphite.prometheus',
         'graphite.readers',
         'graphite.render',
         'graphite.tags',

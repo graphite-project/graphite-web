@@ -17,7 +17,6 @@ from . import views
 
 urlpatterns = [
     url(r'^/local/?$', views.renderLocalView, name='render_local'),
-    url(r'^/prometheus/?$', views.renderPrometheus, name='render_prometheus'),
     url(r'^/~(?P<username>[^/]+)/(?P<graphName>[^/]+)/?$', views.renderMyGraphView,
         name='render_my_graph'),
     url(r'^/?$', views.renderView, name='render'),
