@@ -66,7 +66,7 @@ class Store(object):
         self.finders = finders
 
         if tagdb is None:
-            tagdb = get_tagdb(settings.TAGDB or 'graphite.tags.localdatabase.LocalDatabaseTagDB')
+            tagdb = get_tagdb(settings.TAGDB or 'graphite.tags.base.DummyTagDB')
         self.tagdb = tagdb
 
     def get_finders(self, local=False):
