@@ -88,7 +88,7 @@ class GzippedWhisperReader(WhisperReader):
                 fh.close()
         return self.meta_info
 
-    def fetch_data(self, startTime, endTime, now=None, requestContext=None):
+    def fetch_data(self, startTime, endTime, now=None):
         fh = gzip.GzipFile(self.fs_path, 'rb')
         try:
             return whisper.file_fetch(fh, startTime, endTime, now=now)
