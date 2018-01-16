@@ -261,11 +261,11 @@ If you wish to use a backend to graphite other than Whisper, there are some opti
 `graphite-clickhouse`_
   Graphite-web backend with `ClickHouse`_ support. Please also see `carbon-clickhouse`_.
 
-`go-carbon`_
-  Golang implementation of Graphite/Carbon server with classic architecture: Agent -> Cache -> Persister.
-
 `Graphouse`_
   Graphouse allows you to use `ClickHouse`_ as a Graphite storage.
+
+`go-carbon`_
+  Golang implementation of Graphite/Carbon server with classic architecture: Agent -> Cache -> Persister.
 
 `influxgraph`_
   Graphite `InfluxDB`_ backend. `InfluxDB`_ storage finder / plugin for Graphite API.
