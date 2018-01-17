@@ -51,12 +51,12 @@ class WhisperReader(BaseReader):
         end = max(stat(self.fs_path).st_mtime, start)
         return IntervalSet([Interval(start, end)])
 
-    def fetch_data(self, startTime, endTime):
-        return whisper.fetch(self.fs_path, startTime, endTime)
+    def fetch_data(self, startTime, endTime, now=None):
+        return whisper.fetch(self.fs_path, startTime, endTime, now=now)
 
-    def fetch(self, startTime, endTime):
+    def fetch(self, startTime, endTime, now=None, requestContext=None):
         try:
-            data = self.fetch_data(startTime, endTime)
+            data = self.fetch_data(startTime, endTime, now=now)
         except IOError:
             log.exception("Failed fetch of whisper file '%s'" % self.fs_path)
             return None
@@ -88,9 +88,9 @@ class GzippedWhisperReader(WhisperReader):
                 fh.close()
         return self.meta_info
 
-    def fetch_data(self, startTime, endTime):
+    def fetch_data(self, startTime, endTime, now=None):
         fh = gzip.GzipFile(self.fs_path, 'rb')
         try:
-            return whisper.file_fetch(fh, startTime, endTime)
+            return whisper.file_fetch(fh, startTime, endTime, now=now)
         finally:
             fh.close()
