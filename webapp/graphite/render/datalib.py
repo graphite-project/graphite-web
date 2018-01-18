@@ -43,12 +43,12 @@ class TimeSeries(list):
     else:
       self.tags = {'name': name}
       # parse for tags if a tagdb is configured and name doesn't look like a function-wrapped name
-      if STORE.tagdb and not re.match('^[a-z]+[(].+[)]$', name, re.IGNORECASE):
-        try:
+      try:
+        if STORE.tagdb and not re.match('^[a-z]+[(].+[)]$', name, re.IGNORECASE):
           self.tags = STORE.tagdb.parse(name).tags
-        except Exception as err:
-          # tags couldn't be parsed, just use "name" tag
-          log.debug("Couldn't parse tags for %s: %s" % (name, err))
+      except Exception as err:
+        # tags couldn't be parsed, just use "name" tag
+        log.debug("Couldn't parse tags for %s: %s" % (name, err))
 
   def __eq__(self, other):
     if not isinstance(other, TimeSeries):
