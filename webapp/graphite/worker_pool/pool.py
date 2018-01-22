@@ -1,5 +1,7 @@
-import six.moves.queue
 import time
+import sys
+
+import six.moves.queue
 
 from threading import Lock
 from multiprocessing.pool import ThreadPool
@@ -19,20 +21,29 @@ class Job(object):
 
   If the function raises an exception, it will be stored in the exception property of the job.
   """
-  __slots__ = ('func', 'args', 'kwargs', 'result', 'exception')
+  __slots__ = (
+    'func', 'description',
+    'args', 'kwargs', 'result',
+    'exception', 'exception_info',
+  )
 
-  def __init__(self, func, *args, **kwargs):
+  def __init__(self, func, description, *args, **kwargs):
     self.func = func
     self.args = args
+    self.description = description
     self.kwargs = kwargs
     self.result = None
     self.exception = None
 
+  def __str__(self):
+    return self.description
+
   def run(self):
     try:
       self.result = self.func(*self.args, **self.kwargs)
-    except Exception as err:
-      self.exception = err
+    except Exception as e:
+      self.exception_info = sys.exc_info()
+      self.exception = e
 
 
 def get_pool(name="default", thread_count=1):
