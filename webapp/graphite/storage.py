@@ -1,8 +1,9 @@
 from __future__ import absolute_import
 import os
-import time
 import random
 import sys
+import time
+import traceback
 import types
 
 from collections import defaultdict
@@ -66,7 +67,7 @@ class Store(object):
         self.finders = finders
 
         if tagdb is None:
-            tagdb = get_tagdb(settings.TAGDB or 'graphite.tags.localdatabase.LocalDatabaseTagDB')
+            tagdb = get_tagdb(settings.TAGDB or 'graphite.tags.base.DummyTagDB')
         self.tagdb = tagdb
 
     def get_finders(self, local=False):
@@ -82,11 +83,55 @@ class Store(object):
             yield finder
 
     def pool_exec(self, jobs, timeout):
+        if not jobs:
+            return []
+
         thread_count = 0
         if settings.USE_WORKER_POOL:
             thread_count = min(len(self.finders), settings.POOL_MAX_WORKERS)
 
         return pool_exec(get_pool('finders', thread_count), jobs, timeout)
+
+    def wait_jobs(self, jobs, timeout, context):
+        if not jobs:
+            return []
+
+        start = time.time()
+        results = []
+        failed = []
+        done = 0
+        try:
+            for job in self.pool_exec(jobs, timeout):
+                elapsed = time.time() - start
+                done += 1
+                if job.exception:
+                    failed.append(job)
+                    log.info("Exception during %s after %fs: %s" % (
+                        job, elapsed, str(job.exception))
+                    )
+                else:
+                    log.debug("Got a result for %s after %fs" % (job, elapsed))
+                    results.append(job.result)
+        except PoolTimeoutError:
+            message = "Timed out after %fs for %s" % (
+                time.time() - start, context
+            )
+            log.info(message)
+            if done == 0:
+                raise Exception(message)
+
+        if len(failed) == done:
+            message = "All requests failed for %s (%d)" % (
+                context, len(failed)
+            )
+            for job in failed:
+                message += "\n\n%s: %s: %s" % (
+                    job, job.exception,
+                    '\n'.join(traceback.format_exception(*job.exception_info))
+                )
+            raise Exception(message)
+
+        return results
 
     def fetch(self, patterns, startTime, endTime, now, requestContext):
         # deduplicate patterns
@@ -104,7 +149,12 @@ class Store(object):
         for finder in self.get_finders(requestContext.get('localOnly')):
           # if the finder supports tags, just pass the patterns through
           if getattr(finder, 'tags', False):
-            jobs.append(Job(finder.fetch, patterns, startTime, endTime, now=now, requestContext=requestContext))
+            job = Job(
+                finder.fetch, 'fetch for %s' % patterns,
+                patterns, startTime, endTime,
+                now=now, requestContext=requestContext
+            )
+            jobs.append(job)
             continue
 
           # if we haven't resolved the seriesByTag calls, build resolved patterns and translation table
@@ -112,33 +162,22 @@ class Store(object):
             tag_patterns, pattern_aliases = self._tag_patterns(patterns, requestContext)
 
           # dispatch resolved patterns to finder
-          jobs.append(Job(finder.fetch, tag_patterns, startTime, endTime, now=now, requestContext=requestContext))
-
-        results = []
+          job = Job(
+              finder.fetch,
+              'fetch for %s' % tag_patterns,
+              tag_patterns, startTime, endTime,
+              now=now, requestContext=requestContext
+          )
+          jobs.append(job)
 
         done = 0
         errors = 0
 
         # Start fetches
         start = time.time()
-        try:
-          for job in self.pool_exec(jobs, settings.FETCH_TIMEOUT):
-            done += 1
-
-            if job.exception:
-              errors += 1
-              log.info("Fetch for %s failed after %fs: %s" % (str(patterns), time.time() - start, str(job.exception)))
-              continue
-
-            log.debug("Got a fetch result for %s after %fs" % (str(patterns), time.time() - start))
-            results.extend(job.result)
-        except PoolTimeoutError:
-          log.info("Timed out in fetch after %fs" % (time.time() - start))
-
-        if errors == done:
-          if errors == 1:
-            raise Exception("Fetch for %s failed: %s" % (str(patterns), str(job.exception)))
-          raise Exception('All fetches failed for %s' % (str(patterns)))
+        results = self.wait_jobs(jobs, settings.FETCH_TIMEOUT,
+                                 'fetch for %s' % str(patterns))
+        results = [i for l in results for i in l]  # flatten
 
         # translate path expressions for responses from resolved seriesByTag patterns
         for result in results:
@@ -186,36 +225,15 @@ class Store(object):
         if not requestContext:
           requestContext = {}
 
+        context = 'get_index'
         jobs = [
-            Job(finder.get_index, requestContext=requestContext)
+            Job(finder.get_index, context, requestContext=requestContext)
             for finder in self.get_finders(local=requestContext.get('localOnly'))
         ]
 
-        results = []
-
-        done = 0
-        errors = 0
-
-        # Start index lookups
         start = time.time()
-        try:
-          for job in self.pool_exec(jobs, settings.FETCH_TIMEOUT):
-            done += 1
-
-            if job.exception:
-              errors += 1
-              log.info("get_index failed after %fs: %s" % (time.time() - start, str(job.exception)))
-              continue
-
-            log.debug("Got an index result after %fs" % (time.time() - start))
-            results.extend(job.result)
-        except PoolTimeoutError:
-          log.info("Timed out in get_index after %fs" % (time.time() - start))
-
-        if errors == done:
-          if errors == 1:
-            raise Exception("get_index failed: %s" % (str(job.exception)))
-          raise Exception('All index lookups failed')
+        results = self.wait_jobs(jobs, settings.FETCH_TIMEOUT, context)
+        results = [i for l in results if l is not None for i in l]  # flatten
 
         log.debug("Got all index results in %fs" % (time.time() - start))
         return sorted(list(set(results)))
@@ -250,40 +268,25 @@ class Store(object):
                      pattern, matched_leafs, warn_threshold))
 
     def _find(self, query):
+        context = 'find %s' % query
         jobs = [
-            Job(finder.find_nodes, query)
+            Job(finder.find_nodes, context, query)
             for finder in self.get_finders(query.local)
         ]
 
         # Group matching nodes by their path
         nodes_by_path = defaultdict(list)
 
-        done = 0
-        errors = 0
-
         # Start finds
         start = time.time()
-        try:
-          for job in self.pool_exec(jobs, settings.FIND_TIMEOUT):
-            done += 1
+        results = self.wait_jobs(jobs, settings.FIND_TIMEOUT, context)
+        for result in results:
+            for node in result or []:
+                nodes_by_path[node.path].append(node)
 
-            if job.exception:
-              errors += 1
-              log.info("Find for %s failed after %fs: %s" % (str(query), time.time() - start, str(job.exception)))
-              continue
-
-            log.debug("Got a find result for %s after %fs" % (str(query), time.time() - start))
-            for node in job.result or []:
-              nodes_by_path[node.path].append(node)
-        except PoolTimeoutError:
-          log.info("Timed out in find after %fs" % (time.time() - start))
-
-        if errors == done:
-          if errors == 1:
-            raise Exception("Find for %s failed: %s" % (str(query), str(job.exception)))
-          raise Exception('All finds failed for %s' % (str(query)))
-
-        log.debug("Got all find results for %s in %fs" % (str(query), time.time() - start))
+        log.debug("Got all find results for %s in %fs" % (
+            str(query), time.time() - start)
+        )
         return self._list_nodes(query, nodes_by_path)
 
     def _list_nodes(self, query, nodes_by_path):
@@ -405,59 +408,44 @@ class Store(object):
         if requestContext is None:
           requestContext = {}
 
+        context = 'tags for %s %s' % (str(exprs), tagPrefix or '')
         jobs = []
         use_tagdb = False
         for finder in self.get_finders(requestContext.get('localOnly')):
           if getattr(finder, 'tags', False):
-            jobs.append(Job(finder.auto_complete_tags, exprs, tagPrefix=tagPrefix, limit=limit, requestContext=requestContext))
+            job = Job(
+                finder.auto_complete_tags, context,
+                exprs, tagPrefix=tagPrefix,
+                limit=limit, requestContext=requestContext
+            )
+            jobs.append(job)
           else:
             use_tagdb = True
 
-        if not jobs:
-          if not use_tagdb:
-            return []
-
-          return self.tagdb.auto_complete_tags(exprs, tagPrefix=tagPrefix, limit=limit, requestContext=requestContext)
-
-        # start finder jobs
-        jobs = self.pool_exec(jobs, settings.FIND_TIMEOUT)
 
         results = set()
 
-        # if we're using the local tagdb then execute it (in the main thread so that LocalDatabaseTagDB will work)
+        # if we're using the local tagdb then execute it (in the main thread
+        # so that LocalDatabaseTagDB will work)
         if use_tagdb:
-          results.update(self.tagdb.auto_complete_tags(exprs, tagPrefix=tagPrefix, limit=limit, requestContext=requestContext))
-
-        done = 0
-        errors = 0
+          results.update(self.tagdb.auto_complete_tags(
+              exprs, tagPrefix=tagPrefix,
+              limit=limit, requestContext=requestContext
+          ))
 
         # Start fetches
         start = time.time()
-        try:
-          for job in jobs:
-            done += 1
-
-            if job.exception:
-              errors += 1
-              log.info("Autocomplete tags for %s %s failed after %fs: %s" % (str(exprs), tagPrefix or '', time.time() - start, str(job.exception)))
-              continue
-
-            log.debug("Got an autocomplete result for %s %s after %fs" % (str(exprs), tagPrefix or '', time.time() - start))
-            results.update(job.result)
-        except PoolTimeoutError:
-          raise Exception("Timed out in autocomplete tags for %s %s after %fs" % (str(exprs), tagPrefix or '', time.time() - start))
-
-        if errors == done:
-          if errors == 1:
-            raise Exception("Autocomplete tags for %s %s failed: %s" % (str(exprs), tagPrefix or '', str(job.exception)))
-          raise Exception('All autocomplete tag requests failed for %s %s' % (str(exprs), tagPrefix or ''))
+        for result in self.wait_jobs(jobs, settings.FIND_TIMEOUT, context):
+            results.update(result)
 
         # sort & limit results
         results = sorted(results)
         if limit:
           results = results[:int(limit)]
 
-        log.debug("Got all autocomplete tag results for %s %s in %fs" % (str(exprs), tagPrefix or '', time.time() - start))
+        log.debug("Got all autocomplete %s in %fs" % (
+            context, time.time() - start)
+        )
         return results
 
     def tagdb_auto_complete_values(self, exprs, tag, valuePrefix=None, limit=None, requestContext=None):
@@ -467,59 +455,43 @@ class Store(object):
         if requestContext is None:
           requestContext = {}
 
+        context = 'values for %s %s %s' % (str(exprs), tag, valuePrefix or '')
         jobs = []
         use_tagdb = False
         for finder in self.get_finders(requestContext.get('localOnly')):
           if getattr(finder, 'tags', False):
-            jobs.append(Job(finder.auto_complete_values, exprs, tag, valuePrefix=valuePrefix, limit=limit, requestContext=requestContext))
+            job = Job(
+                finder.auto_complete_values, context,
+                exprs, tag, valuePrefix=valuePrefix,
+                limit=limit, requestContext=requestContext
+            )
+            jobs.append(job)
           else:
             use_tagdb = True
 
-        if not jobs:
-          if not use_tagdb:
-            return []
-
-          return self.tagdb.auto_complete_values(exprs, tag, valuePrefix=valuePrefix, limit=limit, requestContext=requestContext)
-
         # start finder jobs
-        jobs = self.pool_exec(jobs, settings.FIND_TIMEOUT)
-
+        start = time.time()
         results = set()
 
-        # if we're using the local tagdb then execute it (in the main thread so that LocalDatabaseTagDB will work)
+        # if we're using the local tagdb then execute it (in the main thread
+        # so that LocalDatabaseTagDB will work)
         if use_tagdb:
-          results.update(self.tagdb.auto_complete_values(exprs, tag, valuePrefix=valuePrefix, limit=limit, requestContext=requestContext))
+          results.update(self.tagdb.auto_complete_values(
+              exprs, tag, valuePrefix=valuePrefix,
+              limit=limit, requestContext=requestContext
+          ))
 
-        done = 0
-        errors = 0
-
-        # Start fetches
-        start = time.time()
-        try:
-          for job in jobs:
-            done += 1
-
-            if job.exception:
-              errors += 1
-              log.info("Autocomplete values for %s %s %s failed after %fs: %s" % (str(exprs), tag, valuePrefix or '', time.time() - start, str(job.exception)))
-              continue
-
-            log.debug("Got an autocomplete result for %s %s %s after %fs" % (str(exprs), tag, valuePrefix or '', time.time() - start))
-            results.update(job.result)
-        except PoolTimeoutError:
-          raise Exception("Timed out in autocomplete values for %s %s %s after %fs" % (str(exprs), tag, valuePrefix or '', time.time() - start))
-
-        if errors == done:
-          if errors == 1:
-            raise Exception("Autocomplete values for %s %s %s failed: %s" % (str(exprs), tag, valuePrefix or '', str(job.exception)))
-          raise Exception('All autocomplete value requests failed for %s %s %s' % (str(exprs), tag, valuePrefix or ''))
+        for result in self.wait_jobs(jobs, settings.FIND_TIMEOUT, context):
+            results.update(result)
 
         # sort & limit results
         results = sorted(results)
         if limit:
           results = results[:int(limit)]
 
-        log.debug("Got all autocomplete value results for %s %s %s in %fs" % (str(exprs), tag, valuePrefix or '', time.time() - start))
+        log.debug("Got all autocomplete %s in %fs" % (
+            context, time.time() - start)
+        )
         return results
 
 
