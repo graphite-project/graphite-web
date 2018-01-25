@@ -37,6 +37,11 @@ def return_less(series, value):
 
 class FunctionsTest(TestCase):
 
+    def setUp(self):
+      super(FunctionsTest, self).setUp()
+      # Display more diff.
+      self.maxDiff = 1024
+
     #
     # Test safeSum()
     #
@@ -2931,7 +2936,7 @@ class FunctionsTest(TestCase):
     def test_groupByNode(self):
         seriesList, inputList = self._generate_mr_series()
 
-        def verify_groupByNode(expectedResult, nodeNum):
+        def verify_groupByNode(expectedResult, nodeNum, seriesList):
             results = functions.groupByNode({}, copy.deepcopy(seriesList), nodeNum, "keepLastValue")
 
             self.assertEqual(results, expectedResult)
@@ -2939,13 +2944,33 @@ class FunctionsTest(TestCase):
         expectedResult   = [
             TimeSeries('group',0,1,1,[None]),
         ]
-        verify_groupByNode(expectedResult, 0)
+        verify_groupByNode(expectedResult, 0, seriesList)
 
         expectedResult   = [
             TimeSeries('server1',0,1,1,[None]),
             TimeSeries('server2',0,1,1,[None]),
         ]
-        verify_groupByNode(expectedResult, 1)
+        verify_groupByNode(expectedResult, 1, seriesList)
+
+        # Additiona tests
+        seriesList = []
+        names = [
+            "collectd.test-db1.load.value",
+            "sum(collectd.test-db1.load.value)",
+            "sum(sum(collectd.test-db1.load.value))",
+            "divide(collectd.test-db1.load.value, 5)",
+            "scaleToSeconds(divide(collectd.test-db1.load.value, 5),1)",
+        ]
+        expectedResult = []
+        for name in names:
+            series = TimeSeries(name, 0, 1, 1, [1])
+            seriesList.append(series)
+        for expected in ["value"] * len(names):
+            series = TimeSeries(expected, 0, 1, 1, [1])
+            expectedResult.append(series)
+        for i, series in enumerate(seriesList):
+          verify_groupByNode([expectedResult[i]], 3, [series])
+
 
     def test_groupByNodes(self):
         seriesList, inputList = self._generate_mr_series()
