@@ -99,8 +99,8 @@ This file defines how to aggregate data to lower-precision retentions.  The form
 Important notes before continuing:
 
 * This file is optional.  If it is not present, defaults will be used.
-* The sections are applied in order from the top (first) and bottom (last).
-* The first pattern that matches the metric name is used.
+* The sections are applied in order from the top (first) and bottom (last), similar to ``storage-schemas.conf``.
+* The first pattern that matches the metric name is used, similar to ``storage-schemas.conf``.
 * There is no ``retentions`` line.  Instead, there are ``xFilesFactor`` and/or ``aggregationMethod`` lines.
 * ``xFilesFactor`` should be a floating point number between 0 and 1, and specifies what fraction of the previous retention level's slots must have non-null values in order to aggregate to a non-null value.  The default is 0.5.
 * ``aggregationMethod`` specifies the function used to aggregate values for the next retention level.  Legal methods are ``average``, ``sum``, ``min``, ``max``, and ``last``. The default is ``average``.
