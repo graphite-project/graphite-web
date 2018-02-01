@@ -67,7 +67,7 @@ class TaggedSeries(object):
     ]))
 
   @staticmethod
-  def encode(metric, sep='.'):
+  def encode(metric, sep='.', hash_only=False):
     """
     Helper function to encode tagged series for storage in whisper etc
 
@@ -80,6 +80,10 @@ class TaggedSeries(object):
     up creating further subfolders. This helper is used by both whisper and ceres, but by design
     each carbon database and graphite-web finder is responsible for handling its own encoding so
     that different backends can create their own schemes if desired.
+
+    The hash_only parameter can be set to True to use the hash as the filename instead of a
+    human-readable name.  This avoids issues with filename length restrictions, at the expense of
+    being unable to decode the filename and determine the original metric name.
 
     A concrete example:
 
@@ -95,7 +99,12 @@ class TaggedSeries(object):
     """
     if ';' in metric:
       metric_hash = sha256(metric.encode('utf8')).hexdigest()
-      return sep.join(['_tagged', metric_hash[0:3], metric_hash[3:6], metric.replace('.', '_DOT_')])
+      return sep.join([
+        '_tagged',
+        metric_hash[0:3],
+        metric_hash[3:6],
+        metric_hash if hash_only else metric.replace('.', '_DOT_')
+      ])
 
     # metric isn't tagged, just replace dots with the separator and trim any leading separator
     return metric.replace('.', sep).lstrip(sep)
