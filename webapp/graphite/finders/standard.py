@@ -1,6 +1,5 @@
 import bisect
 import fnmatch
-import operator
 import os
 from os.path import isdir, isfile, join, basename, splitext
 from django.conf import settings
