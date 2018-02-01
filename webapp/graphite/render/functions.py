@@ -192,6 +192,9 @@ def getNodeOrTag(series, n, pathExpression=None):
   return series.tags.get(str(n), '')
 
 def aggKey(series, nodes, pathExpression=None):
+  # if series.name looks like it includes a function, use the first path expression
+  if pathExpression is None and series.name[-1] == ')':
+    pathExpression = _getFirstPathExpression(series.name)
   return '.'.join([getNodeOrTag(series, n, pathExpression) for n in nodes])
 
 def normalize(seriesLists):
@@ -2376,8 +2379,7 @@ def aliasByNode(requestContext, seriesList, *nodes):
     # dc1.server1.load5, dc1.server2.load5, dc1.server1.load10, dc1.server2.load10
   """
   for series in seriesList:
-    pathExpression = _getFirstPathExpression(series.name)
-    series.name = aggKey(series, nodes, pathExpression)
+    series.name = aggKey(series, nodes)
   return seriesList
 
 aliasByNode.group = 'Alias'
