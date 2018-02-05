@@ -199,6 +199,9 @@ class StandardFinderTest(TestCase):
             self.assertEqual(len(list(nodes)), 1)
             self.assertEqual(scandir_mock.call_count, 1)
 
+            results = finder.fetch(['foo'], 0, 1)
+            self.assertEqual(results, [])
+
         finally:
             scandir_mock.call_count = 0
             self.wipe_whisper()
