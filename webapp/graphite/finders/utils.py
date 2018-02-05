@@ -129,18 +129,23 @@ class BaseFinder(object):
             for pattern in patterns
         ]
 
-        result = []
+        results = []
 
         for node, query in self.find_multi(queries):
             if not isinstance(node, LeafNode):
                 continue
 
-            time_info, values = node.fetch(
+            result = node.fetch(
                 start_time, end_time,
                 now=now, requestContext=requestContext
             )
 
-            result.append({
+            if result is None:
+                continue
+
+            time_info, values = result
+
+            results.append({
                 'pathExpression': query.pattern,
                 'path': node.path,
                 'name': node.path,
@@ -148,7 +153,7 @@ class BaseFinder(object):
                 'values': values,
             })
 
-        return result
+        return results
 
     def auto_complete_tags(self, exprs, tagPrefix=None, limit=None, requestContext=None):
         return []
