@@ -3692,7 +3692,7 @@ holtWintersAberration.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
   Param('delta', ParamTypes.integer, default=3),
   Param('bootstrapInterval', ParamTypes.interval, default='7d', suggestions=['7d', '30d']),
-Param('seasonality', ParamTypes.interval, default='1d', suggestions=['1d', '7d']),
+  Param('seasonality', ParamTypes.interval, default='1d', suggestions=['1d', '7d']),
 ]
 
 def holtWintersConfidenceArea(requestContext, seriesList, delta=3, bootstrapInterval='7d', seasonality='1d'):
