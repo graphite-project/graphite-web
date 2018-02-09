@@ -3607,7 +3607,6 @@ def holtWintersConfidenceBands(requestContext, seriesList, delta=3, bootstrapInt
   results = []
   for series in previewList:
     analysis = holtWintersAnalysis(series, seasonality)
-
     data = analysis['predictions']
     windowPoints = previewSeconds // data.step
     forecast = TimeSeries(data.name, data.start + previewSeconds, data.end, data.step, data[windowPoints:], xFilesFactor=series.xFilesFactor)
@@ -3666,10 +3665,12 @@ def holtWintersAberration(requestContext, seriesList, delta=3, bootstrapInterval
   positive or negative deviation of the series data from the forecast.
   """
   results = []
+  confidenceBands = holtWintersConfidenceBands(requestContext, seriesList, delta, bootstrapInterval, seasonality)
+  confidenceBands = {s.name: s for s in confidenceBands}
+
   for series in seriesList:
-    confidenceBands = holtWintersConfidenceBands(requestContext, [series], delta, bootstrapInterval, seasonality)
-    lowerBand = confidenceBands[0]
-    upperBand = confidenceBands[1]
+    lowerBand = confidenceBands['holtWintersConfidenceLower(%s)' % series.name]
+    upperBand = confidenceBands['holtWintersConfidenceUpper(%s)' % series.name]
     aberration = list()
     for i, actual in enumerate(series):
       if series[i] is None:
@@ -4917,6 +4918,7 @@ def timeFunction(requestContext, name, step=60):
   Accepts optional second argument as 'step' parameter (default step is 60 sec)
 
   """
+  # TODO: align both startTime and endTime when creating the TimeSeries.
   delta = timedelta(seconds=step)
   when = requestContext["startTime"]
   values = []
