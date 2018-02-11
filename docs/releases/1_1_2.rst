@@ -1,0 +1,164 @@
+.. _1-1-2:
+
+1.1.2
+===========================
+*02/13/2017*
+
+Graphite 1.1.2 is now available for usage. Please note that this is a bugfix release for stable Graphite 1.1.x branch and it's recommended for production usage. It also contains some improvements backported from master branch.
+
+Source bundles are available from GitHub:
+
+* https://github.com/graphite-project/graphite-web/archive/1.1.2.tar.gz
+* https://github.com/graphite-project/carbon/archive/1.1.2.tar.gz
+* https://github.com/graphite-project/whisper/archive/1.1.2.tar.gz
+* https://github.com/graphite-project/carbonate/archive/1.1.2.tar.gz
+
+Graphite can also be installed from `PyPI <http://pypi.python.org/>`_ via
+`pip <http://www.pip-installer.org/en/latest/index.html>`_. PyPI bundles are here:
+
+* http://pypi.python.org/pypi/graphite-web/
+* http://pypi.python.org/pypi/carbon/
+* http://pypi.python.org/pypi/whisper/
+* http://pypi.python.org/pypi/carbonate/
+
+Upgrading
+---------
+Please upgrage carbon and graphite-web - they're contain valuable bugfixes and improvements. Whisper package was not changed.
+
+
+Incompatible changes
+--------------------
+
+* REMOTE_FIND_TIMEOUT and REMOTE_FETCH_TIMEOUT are renamed to FIND_TIMEOUT and FETCH_TIMEOUT. Default FETCH_TIMEOUT increased from 3 to 6 seconds.
+
+* Default GRAPHITE_URL is set to "http://127.0.0.1:80"
+
+
+Security Notes
+--------------
+None
+
+
+New features
+------------
+
+Graphite-Web
+^^^^^^^^^^^^
+
+* Add seasonality parameter for holt-winters functions (@LTMXcitrus, #2225)
+
+* Percentile aggregation documentation (@wridgers, #2204)
+
+* Clarifying documentation for storage-aggregation.conf (@wfhu, #2215)
+
+* functions: fix groupByNode() output (@iksaif, #2213)
+
+* Some cleanups for storage.py (@iksaif, #2181)
+
+* Make it possible to fully disable tags (@iksaif, #2206)
+
+* Adding Graphouse to the Tools page (@denish, #2208)
+
+* Rename timeout settings (@DanCech, #2196)
+
+* hashing: better performances (@iksaif, #2191)
+
+* Added doc for nginx+gunicorn stack (configuration and deployment) (@Serphentas, #2179)
+
+* improve efficiency of standard finder (@DanCech, #2185)
+
+* graphite: add support for raven/sentry.io (optional) (@iksaif, #2180)
+
+Carbon
+^^^^^^
+
+* Changing default GRAPHITE_URL to http://127.0.0.1:80 (@deniszh, #747)
+
+* Percentile aggregation methods in aggregator (@wridgers, #696)
+
+* fnv1a_ch and mmh3_ch hashes can be used in all routers (@iksaif, #727)
+
+* Add support for TCP_KEEPALIVE, enabled by default (@iksaif, #722)
+
+* log: add raven/sentry support (@iksaif, #724)
+
+* Add a README and examples for invoking test harness by hand (@cbowman0, #2176)
+
+Whisper
+^^^^^^^
+
+* None
+
+Carbonate
+^^^^^^^^^
+
+* carbon-sync: expose --overwrite to copy all non-null datapoints (#89, @jehiah)
+
+Bug Fixes
+---------
+
+Graphite-Web
+^^^^^^^^^^^^
+
+* functions: fix holtWinterAberration with multiple targets (@iksaif, #2226)
+
+* handle case when node.fetch returns None (@DanCech, #2223)
+
+* Propagate `now` parameter for whisper reader (@deniszh, #2207)
+
+* Documentation fixes (@deniszh, #2201)
+
+* Do not try merge series with different length (@deniszh, #2198)
+
+* app_settings: append() doesn't work on tuples (@iksaif, #2190)
+
+* Fixing build-index tool (@DanCech, #2178)
+
+* clarify function plugin docs (@DanCech, #2177)
+
+* Tweak function docs (@DanCech, #2172)
+
+* fix typo in aggregate arg definition (@DanCech, #2169)
+
+* Fix hash position computation of fnv1a_ch (@DanCech, #2168)
+
+* fix interval end test error (@DanCech, #2164)
+
+* ignore bogus url warnings, update INSTALLED_APPS (@DanCech, #2163)
+
+
+
+Carbon
+^^^^^^
+
+* client: make sure the line client doesn't loose precision (@iksaif, #723)
+
+* carbon line format float handling (@DanCech, #740)
+
+* writers run synchronously in separate threads (@DanCech, #738)
+
+* Fix leaks in writeForever and writeTagsForever (@cevans-uk, #733)
+
+* run whisper and tag writers in separate threads (@DanCech, #731)
+
+* carbon: use a generator in routers instead of returning the full set (@iksaif, #728)
+
+* hashing: fix performance regression (@iksaif, #726)
+
+* Don't require six in setup.py (@iksaif, #725)
+
+* Fix hash position computation of fnv1a_ch (@DanCech, #717)
+
+* restore droppedCreates metric (@fessyfoo, #710)
+
+
+Whisper
+^^^^^^^
+
+* None
+
+
+Carbonate
+^^^^^^^^^
+
+* fill: fix bugs causing some data points not to be copied (#90, @jehiah)
