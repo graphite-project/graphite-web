@@ -74,7 +74,7 @@ examples = [ ('examples', glob('examples/example-*')) ]
 try:
     setup(
       name='graphite-web',
-      version='1.1.1',
+      version='1.1.2',
       url='http://graphiteapp.org/',
       author='Chris Davis',
       author_email='chrismd@gmail.com',
