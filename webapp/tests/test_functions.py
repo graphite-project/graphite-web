@@ -5138,14 +5138,15 @@ class FunctionsTest(TestCase):
         start_time=2678400 # 1970-02-01
         week_seconds=7*86400
 
-        def hw_range(x,y,jump):
+        def hw_range(x,y,jump,t=0):
             while x<y:
-              yield (x/jump)%10
+              yield t+(x/jump)%10
               x+=jump
 
         def gen_seriesList(start=0, points=10):
             seriesList = [
-                TimeSeries('collectd.test-db0.load.value', start, start+(points*step), step, hw_range(0, points*step, step)),
+              TimeSeries('collectd.test-db0.load.value', start, start+(points*step), step, hw_range(0, points*step, step)),
+              TimeSeries('collectd.test-db1.load.value', start, start+(points*step), step, hw_range(0, points*step, step, t=10)),
             ]
             for series in seriesList:
                 series.pathExpression = series.name
@@ -5157,7 +5158,8 @@ class FunctionsTest(TestCase):
             return gen_seriesList(start_time-week_seconds, (week_seconds/step)+points)
 
         expectedResults = [
-            TimeSeries('holtWintersAberration(collectd.test-db0.load.value)', start_time, start_time+(points*step), step, [-0.2841206166091448, -0.05810270987744115, 0, 0, 0, 0, 0, 0, 0, 0])
+            TimeSeries('holtWintersAberration(collectd.test-db0.load.value)', start_time, start_time+(points*step), step, [-0.2841206166091448, -0.05810270987744115, 0, 0, 0, 0, 0, 0, 0, 0]),
+            TimeSeries('holtWintersAberration(collectd.test-db1.load.value)', start_time, start_time+(points*step), step, [-0.284120616609151, -0.05810270987744737, 0, 0, 0, 0, 0, 0, 0, 0]),
         ]
 
         with patch('graphite.render.functions.evaluateTarget', mock_evaluateTarget):

@@ -3466,11 +3466,12 @@ def holtWintersDeviation(gamma,actual,prediction,last_seasonal_dev):
     prediction = 0
   return gamma * math.fabs(actual - prediction) + (1 - gamma) * last_seasonal_dev
 
-def holtWintersAnalysis(series):
+def holtWintersAnalysis(series, seasonality='1d'):
   alpha = gamma = 0.1
   beta = 0.0035
   # season is currently one day
-  season_length = (24*60*60) // series.step
+  seasonality_time = parseTimeOffset(seasonality)
+  season_length = (seasonality_time.seconds + (seasonality_time.days * 86400)) // series.step
   intercept = 0
   slope = 0
   intercepts = list()
@@ -3559,7 +3560,7 @@ def holtWintersAnalysis(series):
         }
   return results
 
-def holtWintersForecast(requestContext, seriesList, bootstrapInterval='7d'):
+def holtWintersForecast(requestContext, seriesList, bootstrapInterval='7d', seasonality='1d'):
   """
   Performs a Holt-Winters forecast using the series as input data. Data from
   `bootstrapInterval` (one week by default) previous to the series is used to bootstrap the initial forecast.
@@ -3573,7 +3574,7 @@ def holtWintersForecast(requestContext, seriesList, bootstrapInterval='7d'):
   previewList = evaluateTarget(newContext, requestContext['args'][0])
   results = []
   for series in previewList:
-    analysis = holtWintersAnalysis(series)
+    analysis = holtWintersAnalysis(series, seasonality)
     predictions = analysis['predictions']
     windowPoints = previewSeconds // predictions.step
     series.tags['holtWintersForecast'] = 1
@@ -3588,9 +3589,10 @@ holtWintersForecast.group = 'Calculate'
 holtWintersForecast.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
   Param('bootstrapInterval', ParamTypes.interval, default='7d', suggestions=['7d', '30d']),
+  Param('seasonality', ParamTypes.interval, default='1d', suggestions=['1d', '7d']),
 ]
 
-def holtWintersConfidenceBands(requestContext, seriesList, delta=3, bootstrapInterval='7d'):
+def holtWintersConfidenceBands(requestContext, seriesList, delta=3, bootstrapInterval='7d', seasonality='1d'):
   """
   Performs a Holt-Winters forecast using the series as input data and plots
   upper and lower bands with the predicted forecast deviations.
@@ -3604,8 +3606,7 @@ def holtWintersConfidenceBands(requestContext, seriesList, delta=3, bootstrapInt
   previewList = evaluateTarget(newContext, requestContext['args'][0])
   results = []
   for series in previewList:
-    analysis = holtWintersAnalysis(series)
-
+    analysis = holtWintersAnalysis(series, seasonality)
     data = analysis['predictions']
     windowPoints = previewSeconds // data.step
     forecast = TimeSeries(data.name, data.start + previewSeconds, data.end, data.step, data[windowPoints:], xFilesFactor=series.xFilesFactor)
@@ -3655,18 +3656,21 @@ holtWintersConfidenceBands.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
   Param('delta', ParamTypes.integer, default=3),
   Param('bootstrapInterval', ParamTypes.interval, default='7d', suggestions=['7d', '30d']),
+  Param('seasonality', ParamTypes.interval, default='1d', suggestions=['1d', '7d']),
 ]
 
-def holtWintersAberration(requestContext, seriesList, delta=3, bootstrapInterval='7d'):
+def holtWintersAberration(requestContext, seriesList, delta=3, bootstrapInterval='7d', seasonality='1d'):
   """
   Performs a Holt-Winters forecast using the series as input data and plots the
   positive or negative deviation of the series data from the forecast.
   """
   results = []
+  confidenceBands = holtWintersConfidenceBands(requestContext, seriesList, delta, bootstrapInterval, seasonality)
+  confidenceBands = {s.name: s for s in confidenceBands}
+
   for series in seriesList:
-    confidenceBands = holtWintersConfidenceBands(requestContext, [series], delta, bootstrapInterval)
-    lowerBand = confidenceBands[0]
-    upperBand = confidenceBands[1]
+    lowerBand = confidenceBands['holtWintersConfidenceLower(%s)' % series.name]
+    upperBand = confidenceBands['holtWintersConfidenceUpper(%s)' % series.name]
     aberration = list()
     for i, actual in enumerate(series):
       if series[i] is None:
@@ -3689,14 +3693,15 @@ holtWintersAberration.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
   Param('delta', ParamTypes.integer, default=3),
   Param('bootstrapInterval', ParamTypes.interval, default='7d', suggestions=['7d', '30d']),
+  Param('seasonality', ParamTypes.interval, default='1d', suggestions=['1d', '7d']),
 ]
 
-def holtWintersConfidenceArea(requestContext, seriesList, delta=3, bootstrapInterval='7d'):
+def holtWintersConfidenceArea(requestContext, seriesList, delta=3, bootstrapInterval='7d', seasonality='1d'):
   """
   Performs a Holt-Winters forecast using the series as input data and plots the
   area between the upper and lower bands of the predicted forecast deviations.
   """
-  bands = holtWintersConfidenceBands(requestContext, seriesList, delta, bootstrapInterval)
+  bands = holtWintersConfidenceBands(requestContext, seriesList, delta, bootstrapInterval, seasonality)
   results = areaBetween(requestContext, bands)
   for series in results:
     if 'areaBetween' in series.tags:
@@ -3711,6 +3716,7 @@ holtWintersConfidenceArea.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
   Param('delta', ParamTypes.integer, default=3),
   Param('bootstrapInterval', ParamTypes.interval, default='7d', suggestions=['7d', '30d']),
+  Param('seasonality', ParamTypes.interval, default='1d', suggestions=['1d', '7d']),
 ]
 
 def linearRegressionAnalysis(series):
@@ -4912,6 +4918,7 @@ def timeFunction(requestContext, name, step=60):
   Accepts optional second argument as 'step' parameter (default step is 60 sec)
 
   """
+  # TODO: align both startTime and endTime when creating the TimeSeries.
   delta = timedelta(seconds=step)
   when = requestContext["startTime"]
   values = []
