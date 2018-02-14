@@ -4114,14 +4114,13 @@ def aggregateLine(requestContext, seriesList, func='average', keepStep=False):
         name = 'aggregateLine(%s, None)' % (series.name)
 
     if keepStep:
-      for i, _ in enumerate(series):
-        series[i] = value
+      aggSeries = series.copy(name=name, values=[value] * len(series))
     else:
-      [series] = constantLine(requestContext, value)
+      [aggSeries] = constantLine(requestContext, value)
+      aggSeries.name = name
+      aggSeries.pathExpression = name
 
-    series.name = name
-    series.pathExpression = name
-    results.append(series)
+    results.append(aggSeries)
   return results
 
 aggregateLine.group = 'Calculate'
