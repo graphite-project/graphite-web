@@ -3577,10 +3577,10 @@ class FunctionsTest(TestCase):
         )
 
         expectedResult = [
-            TimeSeries('aggregateLine(collectd.test-db1.load.value, 4)', 3600, 3600, 0, [4.0, 4.0, 4.0]),
-            TimeSeries('aggregateLine(collectd.test-db2.load.value, None)', 3600, 3600, 0, [None, None, None]),
-            TimeSeries('aggregateLine(collectd.test-db3.load.value, 1.85714)', 3600, 3600, 0, [1.8571428571428572, 1.8571428571428572, 1.8571428571428572]),
-            TimeSeries('aggregateLine(collectd.test-db4.load.value, 8.22222)', 3600, 3600, 0, [8.222222222222221, 8.222222222222221, 8.222222222222221]),
+            TimeSeries('aggregateLine(collectd.test-db1.load.value, 4)', 0, 600, 60, [4.0] * 10),
+            TimeSeries('aggregateLine(collectd.test-db2.load.value, None)', 0, 600, 60, [None] * 10),
+            TimeSeries('aggregateLine(collectd.test-db3.load.value, 1.85714)', 0, 600, 60, [1.8571428571428572] * 10),
+            TimeSeries('aggregateLine(collectd.test-db4.load.value, 8.22222)', 0, 600, 60, [8.222222222222221] * 10),
         ]
         result = functions.aggregateLine(
             self._build_requestContext(
@@ -3588,7 +3588,8 @@ class FunctionsTest(TestCase):
                 endTime=datetime(1970,1,1,1,0,0,0,pytz.timezone(settings.TIME_ZONE))
             ),
             seriesList,
-            'avg'
+            'avg',
+            keepStep=True
         )
         self.assertEqual(result, expectedResult)
 
@@ -3635,10 +3636,10 @@ class FunctionsTest(TestCase):
         )
 
         expectedResult = [
-            TimeSeries('aggregateLine(collectd.test-db1.load.value, 7)', 3600, 3600, 0, [7.0, 7.0, 7.0]),
-            TimeSeries('aggregateLine(collectd.test-db2.load.value, None)', 3600, 3600, 0, [None, None, None]),
-            TimeSeries('aggregateLine(collectd.test-db3.load.value, 4)', 3600, 3600, 0, [4.0, 4.0, 4.0]),
-            TimeSeries('aggregateLine(collectd.test-db4.load.value, 10)', 3600, 3600, 0, [10.0, 10.0, 10.0]),
+            TimeSeries('aggregateLine(collectd.test-db1.load.value, 7)', 0, 600, 60, [7.0] * 10),
+            TimeSeries('aggregateLine(collectd.test-db2.load.value, None)', 0, 600, 60, [None] * 10),
+            TimeSeries('aggregateLine(collectd.test-db3.load.value, 4)', 0, 600, 60, [4.0] * 10),
+            TimeSeries('aggregateLine(collectd.test-db4.load.value, 10)', 0, 600, 60, [10.0] * 10),
         ]
         result = functions.aggregateLine(
             self._build_requestContext(
@@ -3646,7 +3647,8 @@ class FunctionsTest(TestCase):
                 endTime=datetime(1970,1,1,1,0,0,0,pytz.timezone(settings.TIME_ZONE))
             ),
             seriesList,
-            'max'
+            'max',
+            keepStep=True
         )
         self.assertEqual(result, expectedResult)
 

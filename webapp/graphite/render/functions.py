@@ -4078,10 +4078,13 @@ constantLine.params = [
   Param('value', ParamTypes.float, required=True),
 ]
 
-def aggregateLine(requestContext, seriesList, func='average'):
+def aggregateLine(requestContext, seriesList, func='average', keepStep=False):
   """
   Takes a metric or wildcard seriesList and draws a horizontal line
   based on the function applied to each series.
+
+  If the optional keepStep parameter is set to True, the result will
+  have the same time period and step as the source series.
 
   Note: By default, the graphite renderer consolidates data points by
   averaging data points over time. If you are using the 'min' or 'max'
@@ -4110,16 +4113,21 @@ def aggregateLine(requestContext, seriesList, func='average'):
     else:
         name = 'aggregateLine(%s, None)' % (series.name)
 
-    [series] = constantLine(requestContext, value)
-    series.name = name
-    series.pathExpression = name
-    results.append(series)
+    if keepStep:
+      aggSeries = series.copy(name=name, values=[value] * len(series))
+    else:
+      [aggSeries] = constantLine(requestContext, value)
+      aggSeries.name = name
+      aggSeries.pathExpression = name
+
+    results.append(aggSeries)
   return results
 
 aggregateLine.group = 'Calculate'
 aggregateLine.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
   Param('func', ParamTypes.aggFunc, default='average', options=aggFuncNames),
+  Param('keepStep', ParamTypes.boolean, default=False),
 ]
 
 def verticalLine(requestContext, ts, label=None, color=None):
