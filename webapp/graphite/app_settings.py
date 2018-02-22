@@ -20,6 +20,11 @@ try:
     import raven
 except ImportError:
     raven = None
+try:
+    import django_prometheus
+except ImportError:
+    django_prometheus = None
+
 
 #Django settings below, do not touch!
 APPEND_SLASH = False
@@ -71,6 +76,14 @@ MIDDLEWARE = (
   'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
   'django.contrib.messages.middleware.MessageMiddleware',
 )
+if django_prometheus:
+    MIDDLEWARE = (
+        ('django_prometheus.middleware.PrometheusBeforeMiddleware',) +
+        MIDDLEWARE +
+        ('django_prometheus.middleware.PrometheusAfterMiddleware',)
+    )
+
+
 if DJANGO_VERSION < (1, 10):
     MIDDLEWARE_CLASSES = MIDDLEWARE
 
@@ -84,6 +97,7 @@ INSTALLED_APPS = (
   'graphite.events',
   'graphite.functions',
   'graphite.metrics',
+  'graphite.prometheus',
   'graphite.render',
   'graphite.tags',
   'graphite.url_shortener',
@@ -97,6 +111,8 @@ INSTALLED_APPS = (
 )
 if raven is not None:
     INSTALLED_APPS = INSTALLED_APPS + ('raven.contrib.django.raven_compat',)
+if django_prometheus:
+    INSTALLED_APPS = ('django_prometheus',) + INSTALLED_APPS
 
 
 AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend']
