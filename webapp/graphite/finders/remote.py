@@ -189,6 +189,7 @@ class RemoteFinder(BaseFinder):
         fields = [
             ('tagPrefix', tagPrefix or ''),
             ('limit', str(limit)),
+            ('local', self.params.get('local', '1')),
         ]
         for expr in exprs:
             fields.append(('expr', expr))
@@ -223,6 +224,7 @@ class RemoteFinder(BaseFinder):
             ('tag', tag or ''),
             ('valuePrefix', valuePrefix or ''),
             ('limit', str(limit)),
+            ('local', self.params.get('local', '1')),
         ]
         for expr in exprs:
             fields.append(('expr', expr))
