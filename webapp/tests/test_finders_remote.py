@@ -339,6 +339,7 @@ class RemoteFinderTest(TestCase):
         'fields': [
           ('tagPrefix', 'tag'),
           ('limit', '100'),
+          ('local', '1'),
           ('expr', 'name=test'),
         ],
         'headers': None,
@@ -367,6 +368,7 @@ class RemoteFinderTest(TestCase):
         'fields': [
           ('tagPrefix', 'tag'),
           ('limit', '5'),
+          ('local', '1'),
           ('expr', 'name=test'),
           ('expr', 'tag3=value3'),
         ],
@@ -417,6 +419,7 @@ class RemoteFinderTest(TestCase):
           ('tag', 'tag1'),
           ('valuePrefix', 'value'),
           ('limit', '100'),
+          ('local', '1'),
           ('expr', 'name=test'),
         ],
         'headers': None,
@@ -446,6 +449,7 @@ class RemoteFinderTest(TestCase):
           ('tag', 'tag1'),
           ('valuePrefix', 'value'),
           ('limit', '5'),
+          ('local', '1'),
           ('expr', 'name=test'),
           ('expr', 'tag3=value3'),
         ],
