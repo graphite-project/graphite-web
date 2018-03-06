@@ -4856,7 +4856,7 @@ def hitcount(requestContext, seriesList, intervalString, alignToInterval = False
 
   for series in seriesList:
     step = int(series.step)
-    bucket_count = int(math.ceil(float(series.end - series.start) // interval))
+    bucket_count = int(math.ceil(float(series.end - series.start) / interval))
     buckets = [[] for _ in range(bucket_count)]
     newStart = int(series.end - bucket_count * interval)
 
