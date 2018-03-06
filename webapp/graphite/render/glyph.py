@@ -595,7 +595,7 @@ class Graph:
       r,g,b = value
     elif value in colorAliases:
       r,g,b = colorAliases[value]
-    elif type(value) in six.string_types and len(value) >= 6:
+    elif isinstance(value, six.string_types) and len(value) >= 6:
       s = value
       if s[0] == '#': s = s[1:]
       if s[0:3] == '%23': s = s[3:]
