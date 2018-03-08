@@ -191,48 +191,41 @@ def renderViewCsv(requestOptions, data):
 
 def renderViewJson(requestOptions, data):
   series_data = []
-  if 'maxDataPoints' in requestOptions and any(data):
-    maxDataPoints = requestOptions['maxDataPoints']
-    if maxDataPoints == 1:
-      for series in data:
-        series.consolidate(len(series))
-        datapoints = list(zip(series, [int(series.start)]))
-        series_data.append(dict(target=series.name, tags=series.tags, datapoints=datapoints))
-    else:
-      startTime = min([series.start for series in data])
-      endTime = max([series.end for series in data])
-      timeRange = endTime - startTime
-      for series in data:
-        numberOfDataPoints = timeRange/series.step
-        if maxDataPoints < numberOfDataPoints:
-          valuesPerPoint = math.ceil(float(numberOfDataPoints) / float(maxDataPoints))
-          secondsPerPoint = int(valuesPerPoint * series.step)
-          # Nudge start over a little bit so that the consolidation bands align with each call
-          # removing 'jitter' seen when refreshing.
-          nudge = secondsPerPoint + (series.start % series.step) - (series.start % secondsPerPoint)
-          series.start = series.start + nudge
-          valuesToLose = int(nudge/series.step)
-          for r in range(1, valuesToLose):
-            del series[0]
-          series.consolidate(valuesPerPoint)
-          timestamps = range(int(series.start), int(series.end) + 1, int(secondsPerPoint))
+
+  if any(data):
+    startTime = min([series.start for series in data])
+    endTime = max([series.end for series in data])
+    timeRange = endTime - startTime
+
+    for series in data:
+      if 'maxDataPoints' in requestOptions:
+        maxDataPoints = requestOptions['maxDataPoints']
+        if maxDataPoints == 1:
+          series.consolidate(len(series))
         else:
-          timestamps = range(int(series.start), int(series.end) + 1, int(series.step))
-        datapoints = list(zip(series, timestamps))
-        series_data.append(dict(target=series.name, tags=series.tags, datapoints=datapoints))
-  elif 'noNullPoints' in requestOptions and any(data):
-    for series in data:
-      values = []
-      for (index,v) in enumerate(series):
-        if v is not None and not math.isnan(v):
-          timestamp = series.start + (index * series.step)
-          values.append((v,timestamp))
-      if len(values) > 0:
-        series_data.append(dict(target=series.name, tags=series.tags, datapoints=values))
-  else:
-    for series in data:
-      timestamps = range(int(series.start), int(series.end) + 1, int(series.step))
-      datapoints = list(zip(series, timestamps))
+          numberOfDataPoints = timeRange/series.step
+          if maxDataPoints < numberOfDataPoints:
+            valuesPerPoint = math.ceil(float(numberOfDataPoints) / float(maxDataPoints))
+            secondsPerPoint = int(valuesPerPoint * series.step)
+            # Nudge start over a little bit so that the consolidation bands align with each call
+            # removing 'jitter' seen when refreshing.
+            nudge = secondsPerPoint + (series.start % series.step) - (series.start % secondsPerPoint)
+            series.start = series.start + nudge
+            valuesToLose = int(nudge/series.step)
+            for r in range(1, valuesToLose):
+              del series[0]
+            series.consolidate(valuesPerPoint)
+
+      datapoints = series.datapoints()
+
+      if 'noNullPoints' in requestOptions:
+        datapoints = [
+          point for point in datapoints
+          if point[0] is not None and not math.isnan(point[0])
+        ]
+        if not datapoints:
+          continue
+
       series_data.append(dict(target=series.name, tags=series.tags, datapoints=datapoints))
 
   output = json.dumps(series_data, indent=(2 if requestOptions.get('pretty') else None)).replace('None,', 'null,').replace('NaN,', 'null,').replace('Infinity,', '1e9999,')
