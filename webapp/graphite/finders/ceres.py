@@ -25,15 +25,17 @@ class CeresFinder(BaseFinder):
         self.tree = CeresTree(directory)
 
     def find_nodes(self, query):
-
         # translate query pattern if it is tagged
         tagged = not query.pattern.startswith('_tagged.') and ';' in query.pattern
         if tagged:
-          # tagged series are stored in ceres using encoded names, so to retrieve them we need to encode the
-          # query pattern using the same scheme used in carbon when they are written.
-          variants = [TaggedSeries.encode(query.pattern)]
+            # tagged series are stored in ceres using encoded names, so to retrieve them we need to
+            # encode the query pattern using the same scheme used in carbon when they are written.
+            variants = [
+                TaggedSeries.encode(query.pattern, hash_only=True),
+                TaggedSeries.encode(query.pattern, hash_only=False),
+            ]
         else:
-          variants = extract_variants(query.pattern)
+            variants = extract_variants(query.pattern)
 
         for variant in variants:
             for fs_path in glob(self.tree.getFilesystemPath(variant)):
@@ -42,14 +44,12 @@ class CeresFinder(BaseFinder):
                 if CeresNode.isNodeDir(fs_path):
                     ceres_node = self.tree.getNode(metric_path)
 
-                    if ceres_node.hasDataForInterval(
-                            query.startTime, query.endTime):
-                        real_metric_path = get_real_metric_path(
-                            fs_path, metric_path)
+                    if ceres_node.hasDataForInterval(query.startTime, query.endTime):
+                        real_metric_path = get_real_metric_path(fs_path, metric_path)
                         reader = CeresReader(ceres_node, real_metric_path)
                         # if we're finding by tag, return the proper metric path
                         if tagged:
-                          metric_path = query.pattern
+                            metric_path = query.pattern
                         yield LeafNode(metric_path, reader)
 
                 elif os.path.isdir(fs_path):
@@ -59,12 +59,12 @@ class CeresFinder(BaseFinder):
         matches = []
 
         for root, _, files in walk(settings.CERES_DIR):
-          root = root.replace(settings.CERES_DIR, '')
-          for filename in files:
-            if filename == '.ceres-node':
-              matches.append(root)
+            root = root.replace(settings.CERES_DIR, '')
+            for filename in files:
+                if filename == '.ceres-node':
+                    matches.append(root)
 
         return sorted([
-          m.replace('/', '.').lstrip('.')
-          for m in matches
+            m.replace('/', '.').lstrip('.')
+            for m in matches
         ])

@@ -148,6 +148,11 @@ class TimeSeries(list):
     )
 
 
+  def datapoints(self):
+    timestamps = range(int(self.start), int(self.end) + 1, int(self.step * self.valuesPerPoint))
+    return list(zip(self, timestamps))
+
+
 # Data retrieval API
 @logtime
 def fetchData(requestContext, pathExpr, timer=None):
