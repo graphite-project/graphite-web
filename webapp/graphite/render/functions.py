@@ -1930,15 +1930,7 @@ def delay(requestContext, seriesList, steps):
   """
   results = []
   for series in seriesList:
-    newValues = []
-    prev = []
-    for val in series:
-      if len(prev) < steps:
-        newValues.append(None)
-        prev.append(val)
-        continue
-      newValues.append(prev.pop(0))
-      prev.append(val)
+    newValues = [None] * min(steps, len(series)) + series[:-steps]
     series.tags['delay'] = steps
     newName = "delay(%s,%d)" % (series.name, steps)
     newSeries = series.copy(name=newName, values=newValues)
