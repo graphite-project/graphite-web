@@ -876,11 +876,11 @@ class FunctionsTest(TestCase):
 
     def test_delay(self):
         source = [
-            TimeSeries('collectd.test-db1.load.value',0,1,1,[list(range(18))] + [None, None]),
+            TimeSeries('collectd.test-db1.load.value',0,1,1,list(range(18)) + [None, None]),
         ]
         delay = 2
         expectedList = [
-            TimeSeries('delay(collectd.test-db1.load.value,2)',0,1,1,[None, None] + [list(range(18))]),
+            TimeSeries('delay(collectd.test-db1.load.value,2)',0,1,1,[None, None] + list(range(18))),
         ]
         gotList = functions.delay({}, source, delay)
         self.assertEqual(len(gotList), len(expectedList))
