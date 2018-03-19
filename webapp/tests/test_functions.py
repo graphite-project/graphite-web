@@ -900,6 +900,32 @@ class FunctionsTest(TestCase):
         for got, expected in zip(gotList, expectedList):
             self.assertEqual(got, expected)
 
+    def test_delay_negative(self):
+        source = [
+            TimeSeries('collectd.test-db1.load.value',0,1,1,[None,None] + list(range(2,20))),
+        ]
+        delay = -2
+        expectedList = [
+            TimeSeries('delay(collectd.test-db1.load.value,-2)',0,1,1,list(range(2,20)) + [None,None]),
+        ]
+        gotList = functions.delay({}, source, delay)
+        self.assertEqual(len(gotList), len(expectedList))
+        for got, expected in zip(gotList, expectedList):
+            self.assertEqual(got, expected)
+
+    def test_delay_negative_too_many_steps(self):
+        source = [
+            TimeSeries('collectd.test-db1.load.value',0,1,1,list(range(20))),
+        ]
+        delay = -25
+        expectedList = [
+            TimeSeries('delay(collectd.test-db1.load.value,-25)',0,1,1,[None]*20),
+        ]
+        gotList = functions.delay({}, source, delay)
+        self.assertEqual(len(gotList), len(expectedList))
+        for got, expected in zip(gotList, expectedList):
+            self.assertEqual(got, expected)
+
     def test_asPercent_error(self):
         seriesList = self._gen_series_list_with_data(
             key=[
