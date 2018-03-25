@@ -253,6 +253,10 @@ Finally, configure the nginx vhost:
     server {
         listen 80;
 
+        location /static/ {
+            alias /opt/graphite/webapp/content/;
+        }
+
         location / {
             include uwsgi_params;
             uwsgi_pass localhost:8080;
