@@ -25,7 +25,7 @@ Upgrading
 ---------
 Please upgrade carbon and graphite-web - they contain valuable bugfixes and improvements. Whisper package was not changed. If you using carbonate it also should be upgraded.
 
-Please also note that previous versions of graphite-web and carbon packages under some circumstances can delete your whisper directories during `pip uninstall`. It's dixed in 1.1.3, but before upgrade please remove all `/opt/graphite/storage` entries from pip installation files (usually located in `/opt/graphite/lib/carbon-X.X.X-pyY.Y.egg-info/installed-files.txt` and `/opt/graphite/lib/graphite-web-X.X.X-pyY.Y.egg-info/installed-files.txt`, where `X.X.X` is Graphite version and `Y.Y` is Python version)
+Please also note that previous versions of graphite-web and carbon packages under some circumstances can delete your whisper directories during `pip uninstall`. It's fixed in 1.1.3, but before upgrade please remove all `/opt/graphite/storage` entries from pip installation files (usually located in `/opt/graphite/lib/carbon-X.X.X-pyY.Y.egg-info/installed-files.txt` and `/opt/graphite/lib/graphite-web-X.X.X-pyY.Y.egg-info/installed-files.txt`, where `X.X.X` is Graphite version and `Y.Y` is Python version)
 
 Incompatible changes
 --------------------
