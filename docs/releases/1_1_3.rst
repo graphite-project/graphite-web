@@ -1,0 +1,107 @@
+.. _1-1-3:
+
+1.1.3
+===========================
+*04/04/2018*
+
+Graphite 1.1.3 is now available for usage. Please note that this is a bugfix release for stable Graphite 1.1.x branch and it's recommended for production usage. It also contains some improvements backported from master branch.
+
+Source bundles are available from GitHub:
+
+* https://github.com/graphite-project/graphite-web/archive/1.1.3.tar.gz
+* https://github.com/graphite-project/carbon/archive/1.1.3.tar.gz
+* https://github.com/graphite-project/whisper/archive/1.1.3.tar.gz
+* https://github.com/graphite-project/carbonate/archive/1.1.3.tar.gz
+
+Graphite can also be installed from `PyPI <http://pypi.python.org/>`_ via
+`pip <http://www.pip-installer.org/en/latest/index.html>`_. PyPI bundles are here:
+
+* http://pypi.python.org/pypi/graphite-web/
+* http://pypi.python.org/pypi/carbon/
+* http://pypi.python.org/pypi/whisper/
+* http://pypi.python.org/pypi/carbonate/
+
+Upgrading
+---------
+Please upgrade carbon and graphite-web - they contain valuable bugfixes and improvements. Whisper package was not changed. If you using carbonate it also should be upgraded.
+
+Please also note that previous versions of graphite-web and carbon packages under some circumstances can delete your whisper directories during `pip uninstall`. It's fixed in 1.1.3, but before upgrade please remove all `/opt/graphite/storage` entries from pip installation files (usually located in `/opt/graphite/lib/carbon-X.X.X-pyY.Y.egg-info/installed-files.txt` and `/opt/graphite/lib/graphite-web-X.X.X-pyY.Y.egg-info/installed-files.txt`, where `X.X.X` is Graphite version and `Y.Y` is Python version)
+
+Incompatible changes
+--------------------
+
+This version of carbon adds support for naming tagged metric filenames using only the hash of the metric name, which avoids issues with filename length limits when multiple tags are used.
+
+The hashed naming scheme is now the default, to return to the old scheme the user can add TAG_HASH_FILENAMES = False to their config. Graphite-web will look for both variants so there isn't a need for a configuration option in graphite-web.
+
+
+Security Notes
+--------------
+None
+
+
+New features
+------------
+
+Graphite-Web
+^^^^^^^^^^^^
+
+* add optional keepStep parameter to aggregateLine (@DanCech, #2234)
+
+* Support for storing tagged series in hashed filenames (@DanCech, #2221)
+
+* support specifying noNullPoints and maxDataPoints together (@DanCech, #2257)
+
+* Support negative steps in `delay` render function (@dimrozakis, #2262)
+
+Carbon
+^^^^^^
+
+* Support for storing tagged series in hashed filenames (@DanCech, #743)
+
+
+Whisper
+^^^^^^^
+
+* None
+
+Carbonate
+^^^^^^^^^
+
+* Adding LICENSE file to pypi package (@deniszh, #97)
+
+Bug Fixes
+---------
+
+Graphite-Web
+^^^^^^^^^^^^
+
+* w/g/f/remote.py: add missing local field to auto_complete_{tags,values} (@Quentin-M, #2244)
+
+* fix hitcount bucket calculation (@DanCech, #2252)
+
+* fix usage of "unicode" in glyph.py for Python 3 (@JelleZijlstra , #2254)
+
+* Adding dummy.txt to storage dirs (@deniszh, #2259)
+
+* missing static location for nginx-uwsgi in documentation (@bitfur, #2260)
+
+* graphite functions: handle max on empty sequences better (@JelleZijlstra, #2266)
+
+
+Carbon
+^^^^^^
+
+* Adding dummy.txt to storage dirs (@deniszh, #753)
+
+
+Whisper
+^^^^^^^
+
+* None
+
+
+Carbonate
+^^^^^^^^^
+
+* Fixing carbon router hash (@deniszh, #93)
