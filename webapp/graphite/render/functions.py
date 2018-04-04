@@ -130,15 +130,19 @@ def safeLast(values):
   for v in reversed(values):
     if v is not None: return v
 
-def safeMin(values):
+def safeMin(values, default=None):
   safeValues = [v for v in values if v is not None]
   if safeValues:
     return min(safeValues)
+  else:
+    return default
 
-def safeMax(values):
+def safeMax(values, default=None):
   safeValues = [v for v in values if v is not None]
   if safeValues:
     return max(safeValues)
+  else:
+    return default
 
 def safeMap(function, values):
   safeValues = [v for v in values if v is not None]
@@ -1930,15 +1934,10 @@ def delay(requestContext, seriesList, steps):
   """
   results = []
   for series in seriesList:
-    newValues = []
-    prev = []
-    for val in series:
-      if len(prev) < steps:
-        newValues.append(None)
-        prev.append(val)
-        continue
-      newValues.append(prev.pop(0))
-      prev.append(val)
+    if steps < 0:
+      newValues = series[-steps:] + [None] * min(-steps, len(series))
+    else:
+      newValues = [None] * min(steps, len(series)) + series[:-steps]
     series.tags['delay'] = steps
     newName = "delay(%s,%d)" % (series.name, steps)
     newSeries = series.copy(name=newName, values=newValues)
@@ -3257,7 +3256,7 @@ def sortByMinima(requestContext, seriesList):
     &target=sortByMinima(server*.instance*.memory.free)
 
   """
-  newSeries = [series for series in seriesList if safeMax(series) > 0]
+  newSeries = [series for series in seriesList if safeMax(series, default=0) > 0]
   newSeries.sort(key=keyFunc(safeMin))
   return newSeries
 
@@ -5260,12 +5259,8 @@ def minMax(requestContext, seriesList):
   for series in seriesList:
     series.name = "minMax(%s)" % (series.name)
     series.pathExpression = series.name
-    min_val = safeMin(series)
-    max_val = safeMax(series)
-    if min_val is None:
-      min_val = 0.0
-    if max_val is None:
-      max_val = 0.0
+    min_val = safeMin(series, default=0.0)
+    max_val = safeMax(series, default=0.0)
     for i, val in enumerate(series):
       if series[i] is not None:
         try:
