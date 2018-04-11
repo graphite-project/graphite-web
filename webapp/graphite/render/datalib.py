@@ -18,11 +18,18 @@ import re
 import time
 from six import text_type
 
+import prometheus_client
+
 from django.conf import settings
 
 from graphite.logger import log
 from graphite.storage import STORE
 from graphite.util import timebounds, logtime
+
+
+PREFETCHED_SERIES = prometheus_client.Summary(
+  'prefetched_series', 'Number of prefetched series'
+)
 
 
 class TimeSeries(list):
@@ -270,6 +277,8 @@ def prefetchData(requestContext, pathExpressions):
         result['values'],
       ),
     ))
+
+  PREFETCHED_SERIES.observe(len(prefetched[result['pathExpression']]))
 
   if not requestContext.get('prefetched'):
     requestContext['prefetched'] = {}

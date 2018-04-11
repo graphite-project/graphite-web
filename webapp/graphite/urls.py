@@ -18,22 +18,24 @@ from graphite.url_shortener.views import shorten, follow
 from graphite.browser.views import browser
 
 graphite_urls = [
-    url('^admin/', admin.site.urls),
-    url('^render', include('graphite.render.urls')),
-    url('^composer', include('graphite.composer.urls')),
-    url('^metrics', include('graphite.metrics.urls')),
-    url('^browser', include('graphite.browser.urls')),
     url('^account', include('graphite.account.urls')),
+    url('^admin/', admin.site.urls),
+    url('^browser', include('graphite.browser.urls')),
+    url('^composer', include('graphite.composer.urls')),
     url('^dashboard', include('graphite.dashboard.urls')),
-    url('^whitelist', include('graphite.whitelist.urls')),
-    url('^version', include('graphite.version.urls')),
     url('^events', include('graphite.events.urls')),
-    url('^tags', include('graphite.tags.urls')),
     url('^functions', include('graphite.functions.urls')),
+    url('^metrics', include('graphite.metrics.urls')),
+    url('^prometheus', include('graphite.prometheus.urls')),
+    url('^render', include('graphite.render.urls')),
+    url('^tags', include('graphite.tags.urls')),
+    url('^version', include('graphite.version.urls')),
+    url('^whitelist', include('graphite.whitelist.urls')),
     url('^s/(?P<path>.*)', shorten, name='shorten'),
     url('^S/(?P<link_id>[a-zA-Z0-9]+)/?$', follow, name='follow'),
     url('^$', browser, name='browser'),
 ]
+
 
 if settings.URL_PREFIX.strip('/'):
     urlpatterns = [

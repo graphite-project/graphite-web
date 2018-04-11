@@ -52,3 +52,7 @@ whitenoise
 scandir
 urllib3
 six
+
+# For internal metrics.
+django-prometheus
+prometheus_client

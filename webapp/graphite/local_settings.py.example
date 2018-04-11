@@ -387,6 +387,22 @@ DEFAULT_XFILES_FACTOR = 0
 FUNCTION_PLUGINS = []
 
 #####################################
+# Graphite Web Metrics #
+#####################################
+# If django-prometheus is install, graphite-web will expose
+# prometheus metrics on /prometheus/metrics, you can also
+# send them to graphite itself by setting `CARBON_ADDRESS`.
+# CARBON_ADDRESS = 'localhost:2003'
+# CARBON_INTERVAL = 60
+
+# This allows you to override the graphite prefix, the default is
+# 'graphite' but if run a multi-process / multi-host setup, consider
+# using this:
+#
+# import socket, os
+# CARBON_PREFIX = 'graphite.%s.%s.' % (socket.gethostname(), os.getpid())
+
+#####################################
 # Additional Django Settings #
 #####################################
 # Uncomment the following line for direct access to Django settings such as

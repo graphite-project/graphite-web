@@ -11,6 +11,8 @@ from copy import deepcopy
 from shutil import move
 from tempfile import mkstemp
 
+import prometheus_client
+
 from django.conf import settings
 from django.core.cache import cache
 import six
@@ -27,6 +29,18 @@ from graphite.finders.utils import FindQuery, BaseFinder
 from graphite.readers import MultiReader
 from graphite.worker_pool.pool import get_pool, pool_exec, Job, PoolTimeoutError
 from graphite.render.grammar import grammar
+
+
+FETCH_LATENCY = prometheus_client.Histogram(
+    'storage_fetch_latency_seconds', 'Histogram of latencies for `fetch()`',
+    ['finder']
+)
+FIND_LATENCY = prometheus_client.Histogram(
+    'storage_find_latency_seconds', 'Histogram of latencies for `find()`',
+    ['finder']
+)
+STORE_FETCH_LATENCY = FETCH_LATENCY.labels('STORE')
+STORE_FIND_LATENCY = FIND_LATENCY.labels('STORE')
 
 
 def get_finders(finder_path):
@@ -133,6 +147,14 @@ class Store(object):
 
         return results
 
+    @staticmethod
+    def _observed_fetch(finder, *args, **kwargs):
+        name = type(finder).__name__
+
+        with FETCH_LATENCY.labels(name).time():
+            return finder.fetch(*args, **kwargs)
+
+    @STORE_FETCH_LATENCY.time()
     def fetch(self, patterns, startTime, endTime, now, requestContext):
         # deduplicate patterns
         patterns = sorted(set(patterns))
@@ -150,7 +172,9 @@ class Store(object):
           # if the finder supports tags, just pass the patterns through
           if getattr(finder, 'tags', False):
             job = Job(
-                finder.fetch, 'fetch for %s' % patterns,
+                self._observed_fetch,
+                'fetch for %s' % patterns,
+                finder,
                 patterns, startTime, endTime,
                 now=now, requestContext=requestContext
             )
@@ -163,8 +187,9 @@ class Store(object):
 
           # dispatch resolved patterns to finder
           job = Job(
-              finder.fetch,
+              self._observed_fetch,
               'fetch for %s' % tag_patterns,
+              finder,
               tag_patterns, startTime, endTime,
               now=now, requestContext=requestContext
           )
@@ -238,6 +263,7 @@ class Store(object):
         log.debug("Got all index results in %fs" % (time.time() - start))
         return sorted(list(set(results)))
 
+    @STORE_FIND_LATENCY.time()
     def find(self, pattern, startTime=None, endTime=None, local=False, headers=None, leaves_only=False):
         query = FindQuery(
             pattern, startTime, endTime,
@@ -267,10 +293,18 @@ class Store(object):
                  "(warning threshold is %d)") % (
                      pattern, matched_leafs, warn_threshold))
 
+    @staticmethod
+    def _observed_find(finder, *args, **kwargs):
+        name = type(finder).__name__
+
+        with FIND_LATENCY.labels(name).time():
+            return finder.find_nodes(*args, **kwargs)
+
     def _find(self, query):
         context = 'find %s' % query
+
         jobs = [
-            Job(finder.find_nodes, context, query)
+            Job(self._observed_find, context, finder, query)
             for finder in self.get_finders(query.local)
         ]
 
