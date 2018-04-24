@@ -811,7 +811,8 @@ class FunctionsTest(TestCase):
                 'collectd.test-db2.load.value',
                 'collectd.test-db3.load.value',
                 'collectd.test-db4.load.value',
-                'collectd.test-db5.load.value'
+                'collectd.test-db5.load.value',
+                'collectd.test-db6.load.value',
             ],
             end=1,
             data=[
@@ -819,7 +820,8 @@ class FunctionsTest(TestCase):
                 [None,2,None,4,None,6,None,8,None,10,None,12,None,14,None,16,None,18,None,20],
                 [1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,None,None,None],
                 [1,2,3,4,None,6,None,None,9,10,11,None,13,None,None,None,None,18,19,20],
-                [1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,18,None,None]
+                [1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,18,None,None],
+                [1,None,3,None,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,None],
             ]
         )
 
@@ -829,6 +831,7 @@ class FunctionsTest(TestCase):
             TimeSeries('keepLastValue(collectd.test-db3.load.value)',0,1,1,[1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,None,None,None]),
             TimeSeries('keepLastValue(collectd.test-db4.load.value)',0,1,1,[1,2,3,4,4,6,6,6,9,10,11,11,13,None,None,None,None,18,19,20]),
             TimeSeries('keepLastValue(collectd.test-db5.load.value)',0,1,1,[1,2,None,None,None,6,7,8,9,10,11,12,13,14,15,16,17,18,18,18]),
+            TimeSeries('keepLastValue(collectd.test-db6.load.value)',0,1,1,[1,1,3,3,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,19]),
         ]
         results = functions.keepLastValue({}, seriesList, 2)
         self.assertEqual(results, expectedResult)
