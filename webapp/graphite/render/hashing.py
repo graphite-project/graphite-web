@@ -126,7 +126,7 @@ class ConsistentHashRing:
   def get_node(self, key):
     assert self.ring
     position = self.compute_ring_position(key)
-    search_entry = (position, None)
+    search_entry = (position, ())
     index = bisect.bisect_left(self.ring, search_entry) % self.ring_len
     entry = self.ring[index]
     return entry[1]
@@ -139,7 +139,7 @@ class ConsistentHashRing:
       for node in self.nodes:
         yield node
     position = self.compute_ring_position(key)
-    search_entry = (position, None)
+    search_entry = (position, ())
     index = bisect.bisect_left(self.ring, search_entry) % self.ring_len
     last_index = (index - 1) % self.ring_len
     nodes_len = len(nodes)
