@@ -2697,7 +2697,7 @@ def highest(requestContext, seriesList, n=1, func='average'):
   Draws the 5 servers with the highest number of busy threads.
   """
   seriesList.sort(key=keyFunc(getAggFunc(func)), reverse=True)
-  return seriesList[:n]
+  return seriesList[:int(n)]
 
 highest.group = 'Filter Series'
 highest.params = [
@@ -2721,7 +2721,7 @@ def lowest(requestContext, seriesList, n=1, func='average'):
   Draws the 5 servers with the lowest number of busy threads.
   """
   seriesList.sort(key=keyFunc(getAggFunc(func)))
-  return seriesList[:n]
+  return seriesList[:int(n)]
 
 lowest.group = 'Filter Series'
 lowest.params = [
