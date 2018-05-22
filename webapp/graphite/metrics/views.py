@@ -99,6 +99,10 @@ def find_view(request):
     return HttpResponseBadRequest(content="Missing required parameter 'query'",
                                   content_type='text/plain')
 
+  if query == '':
+    return HttpResponseBadRequest(content="Required parameter 'query' is empty",
+                                  content_type='text/plain')
+
   if '.' in query:
     base_path = query.rsplit('.', 1)[0] + '.'
   else:
