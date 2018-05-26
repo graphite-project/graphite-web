@@ -134,7 +134,7 @@ class ConsistentHashRing:
   def get_nodes(self, key):
     nodes = set()
     if not self.ring:
-      raise StopIteration
+      return
     if self.nodes_len == 1:
       for node in self.nodes:
         yield node
