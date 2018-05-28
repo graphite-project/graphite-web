@@ -180,7 +180,7 @@ class CarbonLinkPool(object):
 
   @staticmethod
   def recv_exactly(conn, num_bytes):
-    buf = ''
+    buf = b''
     while len(buf) < num_bytes:
       data = conn.recv(num_bytes - len(buf))
       if not data:
