@@ -899,9 +899,9 @@ max
 
 maxDataPoints
 -------------
-Set the maximum numbers of datapoints returned when using json content. 
+Set the maximum numbers of datapoints for each series returned when using json content.
 
-If the number of datapoints in a selected range exceeds the maxDataPoints value then the datapoints over the whole period are consolidated.
+If for any output series the number of datapoints in a selected range exceeds the maxDataPoints value then the datapoints over the whole period are consolidated.
 
 The function used to consolidate points can be set using the `consolidateBy <functions.html#graphite.render.functions.consolidateBy>`_ function.
 
