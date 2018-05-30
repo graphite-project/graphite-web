@@ -120,9 +120,20 @@ class Store(object):
             if done == 0:
                 raise Exception(message)
 
-        if len(failed) == done or (len(failed) > 0 and settings.REMOTE_STORE_HARD_FAILURES):
+        if len(failed) == done:
             message = "All requests failed for %s (%d)" % (
                 context, len(failed)
+            )
+            for job in failed:
+                message += "\n\n%s: %s: %s" % (
+                    job, job.exception,
+                    '\n'.join(traceback.format_exception(*job.exception_info))
+                )
+            raise Exception(message)
+
+        if len(failed) > 0 and settings.REMOTE_STORE_HARD_FAILURES:
+            message = "%s request(s) failed for %s (%d)" % (
+                len(failed), context, len(jobs)
             )
             for job in failed:
                 message += "\n\n%s: %s: %s" % (
