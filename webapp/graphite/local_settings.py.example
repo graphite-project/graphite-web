@@ -281,6 +281,9 @@ DEFAULT_XFILES_FACTOR = 0
 # Time before retrying a failed remote webapp
 #REMOTE_RETRY_DELAY = 60.0
 
+# Fail all requests if any remote webapp call fails
+#REMOTE_STORE_HARD_FAILURES = True
+
 # Try to detect when a cluster server is localhost and don't forward queries
 #REMOTE_EXCLUDE_LOCAL = False
 
