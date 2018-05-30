@@ -120,7 +120,7 @@ class Store(object):
             if done == 0:
                 raise Exception(message)
 
-        if len(failed) == done:
+        if len(failed) == done or (len(failed) > 0 and settings.REMOTE_STORE_HARD_FAILURES):
             message = "All requests failed for %s (%d)" % (
                 context, len(failed)
             )
