@@ -120,7 +120,7 @@ class StorageTest(TestCase):
       self.assertEqual(log_info.call_count, 2)
       self.assertRegexpMatches(log_info.call_args[0][0], 'Exception during fetch for \[\'a\'\] after [-.e0-9]+s: TestFinder.find_nodes')
 
-  @override_settings(REMOTE_STORE_HARD_FAILURES=True)
+  @override_settings(STORE_FAIL_ON_ERROR=True)
   def test_fetch_some_failed_hard_fail_enabled(self):
     # all finds failed
     store = Store(

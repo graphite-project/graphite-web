@@ -131,7 +131,7 @@ class Store(object):
                 )
             raise Exception(message)
 
-        if len(failed) > 0 and settings.REMOTE_STORE_HARD_FAILURES:
+        if len(failed) > 0 and settings.STORE_FAIL_ON_ERROR:
             message = "%s request(s) failed for %s (%d)" % (
                 len(failed), context, len(jobs)
             )
