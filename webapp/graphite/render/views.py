@@ -16,7 +16,7 @@ import math
 import pytz
 import six.moves.http_client
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from time import time
 from random import shuffle
 from six.moves.urllib.parse import urlencode, urlsplit, urlunsplit
@@ -64,6 +64,7 @@ def renderView(request):
     'xFilesFactor' : requestOptions['xFilesFactor'],
   }
   data = requestContext['data']
+  assert requestContext['endTime'] - requestContext['startTime'] < timedelta(365), 'Time range too long'
 
   response = None
 
