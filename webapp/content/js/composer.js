@@ -126,7 +126,7 @@ GraphiteComposer.prototype = {
     if (topWindow.history && topWindow.history.pushState) {
       this.topWindow = topWindow;
       var that = this;
-      topWindow.onpopstate = function(e) {
+      topWindow.onpopstate = function() {
         that.loadURL(topWindow.location.href);
       };
     }
