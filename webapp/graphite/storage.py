@@ -131,9 +131,9 @@ class Store(object):
                 )
             raise Exception(message)
 
-        if len(failed) > 0 and settings.STORE_FAIL_ON_ERROR:
+        if len(results) < len(jobs) and settings.STORE_FAIL_ON_ERROR:
             message = "%s request(s) failed for %s (%d)" % (
-                len(failed), context, len(jobs)
+                len(jobs) - len(results), context, len(jobs)
             )
             for job in failed:
                 message += "\n\n%s: %s: %s" % (
