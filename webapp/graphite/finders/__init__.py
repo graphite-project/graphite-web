@@ -32,10 +32,9 @@ def extract_variants(pattern):
     if v1 > -1 and v2 > v1:
         variations = pattern[v1 + 1:v2].split(',')
         variants = [pattern[:v1] + v + pattern[v2 + 1:] for v in variations]
-
+        return list({r for v in variants for r in extract_variants(v)})
     else:
-        variants = [pattern]
-    return list(set(variants))
+        return [pattern]
 
 
 def match_entries(entries, pattern):
