@@ -7,6 +7,23 @@ from graphite.readers.utils import BaseReader
 from graphite.util import unpickle, msgpack, BufferedHTTPReader
 
 
+class MeasuredReader(object):
+    def __init__(self, reader):
+        self.reader = reader
+        self.bytes_read = 0
+
+    def read(self, amt=None):
+        b = b''
+        try:
+            if amt:
+                b = self.reader.read(amt)
+            else:
+                b = self.reader.read()
+            return b
+        finally:
+            self.bytes_read += len(b)
+
+
 class RemoteReader(BaseReader):
     __slots__ = (
         'finder',
@@ -74,21 +91,7 @@ class RemoteReader(BaseReader):
                            (retries, settings.MAX_FETCH_RETRIES, format_exc()))
               retries += 1
 
-        try:
-            if result.getheader('content-type') == 'application/x-msgpack':
-              data = msgpack.load(BufferedHTTPReader(
-                result, buffer_size=settings.REMOTE_BUFFER_SIZE), encoding='utf-8')
-            else:
-              data = unpickle.load(BufferedHTTPReader(
-                result, buffer_size=settings.REMOTE_BUFFER_SIZE))
-        except Exception as err:
-            self.finder.fail()
-            log.exception(
-                "RemoteReader[%s] Error decoding render response from %s: %s" %
-                (self.finder.host, result.url_full, err))
-            raise Exception("Error decoding render response from %s: %s" % (result.url_full, err))
-        finally:
-            result.release_conn()
+        data = self.deserialize(result)
 
         try:
             return [
@@ -106,3 +109,42 @@ class RemoteReader(BaseReader):
                 "RemoteReader[%s] Invalid render response from %s: %s" %
                 (self.finder.host, result.url_full, repr(err)))
             raise Exception("Invalid render response from %s: %s" % (result.url_full, repr(err)))
+
+    #
+    # Here be Snap monkey-patch code
+    #
+    def deserialize(self, result):
+        # avoid buffered reader if possible, instead using in-memory unpacking for small->REMOTE_BUFFER_SIZE payloads
+        try:
+            measured_reader = MeasuredReader(BufferedHTTPReader(result, settings.REMOTE_BUFFER_SIZE))
+            first_chunk = measured_reader.read(settings.REMOTE_BUFFER_SIZE)
+            if len(first_chunk) < settings.REMOTE_BUFFER_SIZE:
+                return self._deserialize_buffer(first_chunk, result.getheader('content-type'))
+            else:
+                reader = BufferedHTTPReader(measured_reader, settings.REMOTE_BUFFER_SIZE)
+                reader.buffer = first_chunk
+                return self._deserialize_stream(reader, result.getheader('content-type'))
+        except Exception as err:
+            self.finder.fail()
+            log.exception(
+                "RemoteReader[%s] Error decoding render response from %s: %s" %
+                (self.finder.host, result.url_full, err))
+            raise Exception("Error decoding render response from %s: %s" % (result.url_full, err))
+        finally:
+            result.release_conn()
+
+    def _deserialize_buffer(self, byte_buffer, content_type):
+        if content_type == 'application/x-msgpack':
+            data = msgpack.unpackb(byte_buffer, encoding='utf-8')
+        else:
+            data = unpickle.loads(byte_buffer)
+
+        return data
+
+    def _deserialize_stream(self, stream, content_type):
+        if content_type == 'application/x-msgpack':
+            data = msgpack.load(stream, encoding='utf-8')
+        else:
+            data = unpickle.load(stream)
+
+        return data
