@@ -6,6 +6,8 @@ from graphite.logger import log
 from graphite.readers.utils import BaseReader
 from graphite.util import unpickle, msgpack, BufferedHTTPReader
 
+import time
+
 
 class MeasuredReader(object):
     def __init__(self, reader):
@@ -115,14 +117,19 @@ class RemoteReader(BaseReader):
     #
     def deserialize(self, result):
         # avoid buffered reader if possible, instead using in-memory unpacking for small->REMOTE_BUFFER_SIZE payloads
+        download_time = 0
         try:
+            download_start = serialization_start = time.time()
             measured_reader = MeasuredReader(BufferedHTTPReader(result, settings.REMOTE_BUFFER_SIZE))
-            first_chunk = measured_reader.read(settings.REMOTE_BUFFER_SIZE)
+            first_chunk = self._fill_first_buffer(measured_reader, settings.REMOTE_BUFFER_SIZE)
             if len(first_chunk) < settings.REMOTE_BUFFER_SIZE:
+                download_time = time.time() - download_start
+                serialization_start = time.time()
                 return self._deserialize_buffer(first_chunk, result.getheader('content-type'))
             else:
                 reader = BufferedHTTPReader(measured_reader, settings.REMOTE_BUFFER_SIZE)
                 reader.buffer = first_chunk
+                serialization_start = time.time()
                 return self._deserialize_stream(reader, result.getheader('content-type'))
         except Exception as err:
             self.finder.fail()
@@ -131,7 +138,18 @@ class RemoteReader(BaseReader):
                 (self.finder.host, result.url_full, err))
             raise Exception("Error decoding render response from %s: %s" % (result.url_full, err))
         finally:
+            serialization_time = time.time() - serialization_start
+            log.info("Read %d bytes in %f seconds." % (measured_reader.bytes_read, download_time))
+            log.info("Deserialized %d bytes in %f seconds." % (measured_reader.bytes_read, serialization_time))
             result.release_conn()
+
+    def _fill_first_buffer(self, reader, max_buffer_size):
+        payload = b''
+        cur = reader.read(max_buffer_size)
+        while len(payload) < max_buffer_size and len(cur) > 0:
+            payload += cur
+            cur = reader.read(max_buffer_size - len(payload))
+        return payload
 
     def _deserialize_buffer(self, byte_buffer, content_type):
         if content_type == 'application/x-msgpack':
