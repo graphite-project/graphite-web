@@ -123,10 +123,12 @@ class RemoteReader(BaseReader):
             measured_reader = MeasuredReader(BufferedHTTPReader(result, settings.REMOTE_BUFFER_SIZE))
             first_chunk = self._fill_first_buffer(measured_reader, settings.REMOTE_BUFFER_SIZE)
             if len(first_chunk) < settings.REMOTE_BUFFER_SIZE:
+                log.info("Using inline deserializer for small payload")
                 download_time = time.time() - download_start
                 serialization_start = time.time()
                 return self._deserialize_buffer(first_chunk, result.getheader('content-type'))
             else:
+                log.info("Using streaming deserializer for large payload")
                 reader = BufferedHTTPReader(measured_reader, settings.REMOTE_BUFFER_SIZE)
                 reader.buffer = first_chunk
                 serialization_start = time.time()
@@ -166,3 +168,4 @@ class RemoteReader(BaseReader):
             data = unpickle.load(stream)
 
         return data
+
