@@ -371,6 +371,9 @@ class CeresFinderTest(TestCase):
         nodes = finder.find_nodes(FindQuery('*.ba?.{baz,foo}', None, None))
         self.assertEqual(len(list(nodes)), 2)
 
+        nodes = finder.find_nodes(FindQuery('{bar,foo}.{bar,baz}.{baz,foo}', None, None))
+        self.assertEqual(len(list(nodes)), 2)
+
         nodes = finder.find_nodes(FindQuery('foo;bar=baz', None, None))
         self.assertEqual(len(list(nodes)), 1)
 

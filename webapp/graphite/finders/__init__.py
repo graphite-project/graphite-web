@@ -26,24 +26,15 @@ def fs_to_metric(path):
     return os.path.join(dirpath, filename.split('.')[0]).replace(os.sep, '.')
 
 
-def _deduplicate(entries):
-    yielded = set()
-    for entry in entries:
-        if entry not in yielded:
-            yielded.add(entry)
-            yield entry
-
-
 def extract_variants(pattern):
     """Extract the pattern variants (ie. {foo,bar}baz = foobaz or barbaz)."""
     v1, v2 = pattern.find('{'), pattern.find('}')
     if v1 > -1 and v2 > v1:
         variations = pattern[v1 + 1:v2].split(',')
         variants = [pattern[:v1] + v + pattern[v2 + 1:] for v in variations]
-
+        return list({r for v in variants for r in extract_variants(v)})
     else:
-        variants = [pattern]
-    return list(_deduplicate(variants))
+        return [pattern]
 
 
 def match_entries(entries, pattern):
@@ -53,7 +44,7 @@ def match_entries(entries, pattern):
     for variant in expand_braces(pattern):
         matching.extend(fnmatch.filter(entries, variant))
 
-    return list(_deduplicate(matching))
+    return list(set(matching))
 
 
 """
