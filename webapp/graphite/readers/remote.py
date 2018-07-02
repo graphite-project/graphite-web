@@ -117,22 +117,28 @@ class RemoteReader(BaseReader):
     #
     def deserialize(self, result):
         # avoid buffered reader if possible, instead using in-memory unpacking for small->REMOTE_BUFFER_SIZE payloads
-        download_time = 0
         try:
-            download_start = serialization_start = time.time()
+            start = time.time()
             measured_reader = MeasuredReader(BufferedHTTPReader(result, settings.REMOTE_BUFFER_SIZE))
             first_chunk = self._fill_first_buffer(measured_reader, settings.REMOTE_BUFFER_SIZE)
             if len(first_chunk) < settings.REMOTE_BUFFER_SIZE:
                 log.info("Using inline deserializer for small payload")
-                download_time = time.time() - download_start
+                download_time = time.time() - start
                 serialization_start = time.time()
-                return self._deserialize_buffer(first_chunk, result.getheader('content-type'))
+                deserialized = self._deserialize_buffer(first_chunk, result.getheader('content-type'))
+
+                serialization_time = time.time() - serialization_start
+                log.info("Read %d bytes in %f seconds." % (measured_reader.bytes_read, download_time))
+                log.info("Deserialized %d bytes in %f seconds." % (measured_reader.bytes_read, serialization_time))
+                return deserialized
             else:
                 log.info("Using streaming deserializer for large payload")
                 reader = BufferedHTTPReader(measured_reader, settings.REMOTE_BUFFER_SIZE)
                 reader.buffer = first_chunk
-                serialization_start = time.time()
-                return self._deserialize_stream(reader, result.getheader('content-type'))
+                deserialized = self._deserialize_stream(reader, result.getheader('content-type'))
+                
+                log.info("Processed %d bytes in %f seconds." % (measured_reader.bytes_read, time.time() - start))
+                return deserialized
         except Exception as err:
             self.finder.fail()
             log.exception(
@@ -140,9 +146,7 @@ class RemoteReader(BaseReader):
                 (self.finder.host, result.url_full, err))
             raise Exception("Error decoding render response from %s: %s" % (result.url_full, err))
         finally:
-            serialization_time = time.time() - serialization_start
-            log.info("Read %d bytes in %f seconds." % (measured_reader.bytes_read, download_time))
-            log.info("Deserialized %d bytes in %f seconds." % (measured_reader.bytes_read, serialization_time))
+
             result.release_conn()
 
     def _fill_first_buffer(self, reader, max_buffer_size):
