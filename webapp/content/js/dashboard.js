@@ -157,6 +157,12 @@ function hasPermission(permission) {
   return false;
 }
 
+function htmlEncode(input) {
+  return input.replace(/[^a-zA-Z0-9 ]/g, function (chr) {
+    return '&#' + chr.charCodeAt() + ';';
+  });
+}
+
 function initDashboard () {
 
   // Populate naming-scheme based datastructures
@@ -800,7 +806,7 @@ function initDashboard () {
   }
 
   if (initialError) {
-    Ext.Msg.alert('Error', initialError);
+    Ext.Msg.alert('Error', htmlEncode(initialError));
   }
 }
 
@@ -874,7 +880,7 @@ function buildQuery (queryEvent) {
     }
   }
 
-  Ext.Msg.alert('Error', 'Failed to build query, could not find "' + queryEvent.combo.getId() + '" field');
+  Ext.Msg.alert('Error', htmlEncode('Failed to build query, could not find "' + queryEvent.combo.getId() + '" field'));
   queryEvent.cancel = true;
 }
 
@@ -1750,7 +1756,7 @@ function doShare() {
       callback: function (options, success, response) {
                   var result = Ext.decode(response.responseText);
                   if (result.error) {
-                    Ext.Msg.alert('Error', 'There was an error saving this dashboard: ' + result.error);
+                    Ext.Msg.alert('Error', htmlEncode('There was an error saving this dashboard: ' + result.error));
                   } else {
                     setDashboardName(result.name);
                     sendSaveRequest(result.name); // Resave the state with the proper dashboardName now
@@ -2783,7 +2789,7 @@ function sendSaveTemplateRequest(name, key) {
     success: function (response) {
                var result = Ext.decode(response.responseText);
                if (result.error) {
-                 Ext.Msg.alert('Error', 'There was an error saving this dashboard as a template: ' + result.error);
+                 Ext.Msg.alert('Error', htmlEncode('There was an error saving this dashboard as a template: ' + result.error));
                }
              },
     failure: failedAjaxCall
@@ -2800,7 +2806,7 @@ function sendSaveRequest(name) {
     success: function (response) {
                var result = Ext.decode(response.responseText);
                if (result.error) {
-                 Ext.Msg.alert('Error', 'There was an error saving this dashboard: ' + result.error);
+                 Ext.Msg.alert('Error', htmlEncode('There was an error saving this dashboard: ' + result.error));
                }
                if(newURL) {
                  window.location = newURL;
@@ -2818,7 +2824,7 @@ function sendLoadRequest(name) {
     success: function (response) {
                var result = Ext.decode(response.responseText);
                if (result.error) {
-                 Ext.Msg.alert('Error Loading Dashboard', result.error);
+                 Ext.Msg.alert('Error Loading Dashboard', htmlEncode(result.error));
                } else {
                  applyState(result.state);
                  navBar.collapse(false);
@@ -2839,7 +2845,7 @@ function sendLoadTemplateRequest(name, value) {
       success: function (response) {
                var result = Ext.decode(response.responseText);
                if (result.error) {
-                 Ext.Msg.alert('Error Loading Template', result.error);
+                 Ext.Msg.alert('Error Loading Template', htmlEncode(result.error));
                } else {
                  applyState(result.state);
                  navBar.collapse(false);
@@ -2962,9 +2968,9 @@ function deleteDashboard(name) {
     success: function (response) {
       var result = Ext.decode(response.responseText);
       if (result.error) {
-        Ext.Msg.alert('Error', 'Failed to delete dashboard \'' + name + '\': ' + result.error);
+        Ext.Msg.alert('Error', htmlEncode('Failed to delete dashboard \'' + name + '\': ' + result.error));
       } else {
-        Ext.Msg.alert('Dashboard Deleted', 'The ' + name + ' dashboard was deleted successfully.');
+        Ext.Msg.alert('Dashboard Deleted', htmlEncode('The ' + name + ' dashboard was deleted successfully.'));
       }
     },
     failure: failedAjaxCall
@@ -2977,9 +2983,9 @@ function deleteTemplate(name) {
     success: function (response) {
       var result = Ext.decode(response.responseText);
       if (result.error) {
-        Ext.Msg.alert('Error', 'Failed to delete template \'' + name + '\': ' + result.error);
+        Ext.Msg.alert('Error', htmlEncode('Failed to delete template \'' + name + '\': ' + result.error));
       } else {
-        Ext.Msg.alert('Template Deleted', 'The ' + name + ' template was deleted successfully.');
+        Ext.Msg.alert('Template Deleted', htmlEncode('The ' + name + ' template was deleted successfully.'));
       }
     },
     failure: failedAjaxCall
@@ -3000,7 +3006,7 @@ function setDashboardName(name) {
     var urlparts = location.href.split('#')[0].split('/');
     var i = urlparts.indexOf('dashboard');
     if (i == -1) {
-      Ext.Msg.alert('Error', 'urlparts = ' + Ext.encode(urlparts) + ' and indexOf(dashboard) = ' + i);
+      Ext.Msg.alert('Error', htmlEncode('urlparts = ' + Ext.encode(urlparts) + ' and indexOf(dashboard) = ' + i));
       return;
     }
     urlparts = urlparts.slice(0, i+1);
@@ -3018,7 +3024,7 @@ function setDashboardName(name) {
 function failedAjaxCall(response, options) {
   Ext.Msg.alert(
     'Ajax Error',
-    'Ajax call failed, response was :' + response.responseText
+    htmlEncode('Ajax call failed, response was :' + response.responseText)
   );
 }
 
@@ -3101,7 +3107,7 @@ function showDashboardFinder() {
     fields: [{
       name: 'name',
       sortType: function(value) {
-	// Make sorting case-insensitive
+        // Make sorting case-insensitive
         return value.toLowerCase();
       }
     }],
@@ -3133,7 +3139,7 @@ function showDashboardFinder() {
 
       Ext.Msg.confirm(
        'Delete Dashboard',
-        'Are you sure you want to delete the ' + name + ' dashboard?',
+        htmlEncode('Are you sure you want to delete the ' + name + ' dashboard?'),
         function (button) {
           if (button == 'yes') {
             deleteDashboard(name);
@@ -3273,8 +3279,8 @@ function showTemplateFinder() {
       var name = record.data.name;
 
       Ext.Msg.confirm(
-       'Delete Template',
-        'Are you sure you want to delete the ' + name + ' template?',
+        'Delete Template',
+        htmlEncode('Are you sure you want to delete the ' + name + ' template?'),
         function (button) {
           if (button == 'yes') {
             deleteTemplate(name);
@@ -3622,9 +3628,9 @@ function showLoginForm() {
       failure: function(form, action) {
         if (action.failureType == 'server') {
           var obj = Ext.util.JSON.decode(action.response.responseText);
-          Ext.Msg.alert('Login Failed!', obj.errors.reason);
+          Ext.Msg.alert('Login Failed!', htmlEncode(obj.errors.reason));
         } else {
-          Ext.Msg.alert('Warning!', 'Authentication server is unreachable : ' + action.response.responseText);
+          Ext.Msg.alert('Warning!', htmlEncode('Authentication server is unreachable : ' + action.response.responseText));
         }
         login.getForm().reset();
       }
@@ -3661,5 +3667,3 @@ function logout() {
     }
   });
 }
-
-
