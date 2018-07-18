@@ -239,6 +239,9 @@ Monitoring
 `Shinken`_
   A system monitoring solution compatible with Nagios which emphasizes scalability, flexibility, and ease of setup. Shinken provides complete integration with Graphite for processing and display of performance data.
 
+`Skyline`_
+  An anomaly detection/deflection system that receives all Graphite metrics data in real time via a carbon-relay pickle and analyses each time series to detect anomalies, drops off cliffs, user defined thresholds, handles multiple seasonality, records all anomalies and cross correlates all metrics to anomalies for the purpose of root cause analysis.  Skyline can also be trained on what is not anomalous and thereafter it can independently learn what is not anomalous using a time series similarities comparison method.  It can alert via smtp, hipchat and pagerduty.
+
 Storage Backend Alternates
 --------------------------
 If you wish to use a backend to graphite other than Whisper, there are some options available to you.
@@ -391,6 +394,7 @@ Other
 .. _Sensu: http://sensuapp.org
 .. _Seyren: https://github.com/scobal/seyren
 .. _Shinken: http://www.shinken-monitoring.org
+.. _Skyline: https://github.com/earthgecko/skyline
 .. _snort2graphite: https://github.com/gregvolk/snort2graphite
 .. _SqlToGraphite: https://github.com/perryofpeek/SqlToGraphite
 .. _SSC Serv: https://ssc-serv.com
