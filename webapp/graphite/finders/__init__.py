@@ -11,8 +11,8 @@ def get_real_metric_path(absolute_path, metric_path):
     if absolute_path != real_absolute_path:
         # replace left side base_fs_path that contains sym link with real fs path
         relative_fs_path = metric_path.replace('.', os.sep)
-        absolute_path_no_ext, _ext = os.path.splitext(absolute_path)
-        base_fs_path = os.path.dirname(absolute_path_no_ext[:-len(relative_fs_path)])
+        real_absolute_path_no_ext, _ext = os.path.splitext(real_absolute_path)
+        base_fs_path = os.path.dirname(real_absolute_path_no_ext[:-len(relative_fs_path)])
         real_base_fs_path = os.path.realpath(base_fs_path)
         real_relative_fs_path = real_absolute_path[len(real_base_fs_path):].lstrip(os.sep)
         return fs_to_metric(real_relative_fs_path)
