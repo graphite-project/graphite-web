@@ -16,6 +16,7 @@ from __future__ import division
 import collections
 import re
 import time
+import types
 from six import text_type
 
 from django.conf import settings
@@ -270,6 +271,13 @@ def prefetchData(requestContext, pathExpressions):
         result['values'],
       ),
     ))
+
+  # Several third-party readers including rrdtool and biggraphite return values in a
+  # generator which can only be iterated on once. These must be converted to a list.
+  for pathExpression, items in prefetched.items():
+    for i, (name, (time_info, values)) in enumerate(items):
+      if isinstance(values, types.GeneratorType):
+        prefetched[pathExpression][i] = (name, (time_info, list(values)))
 
   if not requestContext.get('prefetched'):
     requestContext['prefetched'] = {}
