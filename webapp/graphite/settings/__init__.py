@@ -210,7 +210,7 @@ FLUSHRRDCACHED = ''
 ## Load our local_settings
 try:
   SETTINGS_MODULE = os.environ['GRAPHITE_SETTINGS_MODULE']
-except:
+except KeyError:
   SETTINGS_MODULE = 'graphite.local_settings'
 
 try:
