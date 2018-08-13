@@ -1,4 +1,8 @@
 import sys
 sys.path.append('/opt/graphite/webapp')
 
+# uncomment and set appropriate name in case of multi-instance graphite
+# import os
+# os.environ['GRAPHITE_SETTINGS_MODULE'] = 'graphite.settings.instance_1'
+
 from graphite.wsgi import application

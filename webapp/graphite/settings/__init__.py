@@ -25,6 +25,8 @@ try:
 except ImportError:  # Django < 1.10
     from django.core.urlresolvers import reverse_lazy
 
+from importlib import import_module
+
 
 GRAPHITE_WEB_APP_SETTINGS_LOADED = False
 WEBAPP_VERSION = '1.2.0-dev'
@@ -207,7 +209,12 @@ FLUSHRRDCACHED = ''
 
 ## Load our local_settings
 try:
-  from graphite.local_settings import *  # noqa
+  SETTINGS_MODULE = os.environ['GRAPHITE_SETTINGS_MODULE']
+except:
+  SETTINGS_MODULE = 'graphite.local_settings'
+
+try:
+  globals().update(import_module(SETTINGS_MODULE).__dict__)
 except ImportError:
   print("Could not import graphite.local_settings, using defaults!", file=sys.stderr)
 
