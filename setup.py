@@ -97,6 +97,7 @@ try:
         'graphite.metrics',
         'graphite.readers',
         'graphite.render',
+        'graphite.settings',
         'graphite.tags',
         'graphite.tags.migrations',
         'graphite.url_shortener',
