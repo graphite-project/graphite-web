@@ -106,8 +106,10 @@ try:
         'graphite.whitelist',
         'graphite.worker_pool',
       ],
-      package_data={'graphite' :
-        ['templates/*', 'local_settings.py.example']},
+      package_data={
+        'graphite' : ['templates/*', 'local_settings.py.example'],
+        'graphite.settings' : ['instance_1.py.example']
+      },
       scripts=glob('bin/*'),
       data_files=list(webapp_content.items()) + storage_dirs + conf_files + examples,
       install_requires=['Django>=1.8,<2.1', 'django-tagging==0.4.3', 'pytz', 'pyparsing', 'cairocffi', 'urllib3', 'scandir', 'six'],
