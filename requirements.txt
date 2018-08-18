@@ -48,7 +48,7 @@ cairocffi
 git+git://github.com/graphite-project/whisper.git#egg=whisper
 # Ceres is optional
 # git+git://github.com/graphite-project/ceres.git#egg=ceres
-whitenoise==3.3.1
+whitenoise
 scandir
 urllib3
 six
