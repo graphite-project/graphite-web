@@ -45,6 +45,7 @@ from six.moves import zip
 
 loadFunctions()
 
+
 def renderView(request):
   start = time()
   (graphOptions, requestOptions) = parseOptions(request)

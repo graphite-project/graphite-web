@@ -22,14 +22,17 @@ class Profile(models.Model):
   advancedUI = models.BooleanField(default=False)
   __str__ = lambda self: "Profile for %s" % self.user
 
+
 class Variable(models.Model):
   profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
   name = models.CharField(max_length=64)
   value = models.CharField(max_length=64)
 
+
 class View(models.Model):
   profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
   name = models.CharField(max_length=64)
+
 
 class Window(models.Model):
   view = models.ForeignKey(View, on_delete=models.CASCADE)
@@ -40,6 +43,7 @@ class Window(models.Model):
   height = models.IntegerField()
   url = models.TextField()
   interval = models.IntegerField(null=True)
+
 
 class MyGraph(models.Model):
   profile = models.ForeignKey(Profile, on_delete=models.CASCADE)

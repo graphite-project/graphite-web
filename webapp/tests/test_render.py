@@ -40,6 +40,7 @@ else:
     def resp_text(r):
         return r.content
 
+
 class RenderTest(TestCase):
     db = os.path.join(settings.WHISPER_DIR, 'test.wsp')
     db2 = os.path.join(settings.WHISPER_DIR, 'test2.wsp')
@@ -505,7 +506,6 @@ class RenderTest(TestCase):
         self.assertEqual(responsejsonp['content-type'], 'text/javascript')
         self.assertEqual(resp_text(responsejsonp), 'test(' + resp_text(response) + ')')
 
-
     def verify_maxDataPoints(self, data, tests):
         requestOptions = {}
         for (maxDataPoints, expectedData) in tests:
@@ -524,7 +524,6 @@ class RenderTest(TestCase):
             result = json.loads(response.content)
             self.assertEqual(result[0]['datapoints'], expected[0]['datapoints'])
             self.assertEqual(result, expected)
-
 
     def test_maxDataPoints(self):
         # regular consolidate
@@ -744,7 +743,6 @@ class RenderTest(TestCase):
 
         self.verify_maxDataPoints(data, tests)
 
-
     def test_hash_request(self):
         # Requests with the same parameters should hash to the same values,
         # regardless of HTTP method.
@@ -918,6 +916,7 @@ class RenderTest(TestCase):
         })
         data = json.loads(response.content)[0]
         self.assertEqual(data['target'], 'sumSeries(hosts.worker*.cpu)')
+
 
 class ConsistentHashRingTest(TestCase):
     def test_chr_compute_ring_position(self):

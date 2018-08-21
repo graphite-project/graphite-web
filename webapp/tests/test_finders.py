@@ -329,6 +329,7 @@ class StandardFinderTest(TestCase):
         output_metric_path = get_real_metric_path(input_abs_path, input_metric_path)
         self.assertEqual(output_metric_path, expected_metric_path)
 
+
 class CeresFinderTest(TestCase):
     @unittest.skipIf(not ceres, 'ceres not installed')
     def test_ceres_finder(self):

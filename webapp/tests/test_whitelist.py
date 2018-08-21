@@ -14,6 +14,7 @@ from .base import TestCase
 
 from graphite.whitelist.views import load_whitelist, save_whitelist
 
+
 class WhitelistTester(TestCase):
     settings.WHITELIST_FILE = os.path.join(DATA_DIR, 'lists/whitelist')
 

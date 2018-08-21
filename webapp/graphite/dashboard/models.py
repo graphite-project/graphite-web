@@ -3,11 +3,13 @@ from graphite.account.models import Profile
 from graphite.util import json
 import six
 
+
 class Dashboard(models.Model):
   name = models.CharField(primary_key=True, max_length=128)
   owners = models.ManyToManyField(Profile, related_name='dashboards')
   state = models.TextField()
   __str__ = lambda self: "Dashboard [%s]" % self.name
+
 
 class Template(models.Model):
 
