@@ -49,7 +49,7 @@ class BaseTagDB(object):
         result = self._find_series(tags, requestContext)
         if self.cache:
           self.cache.set(cacheKey, result, self.settings.TAGDB_CACHE_DURATION)
-    except:
+    except Exception:
       log_msg = 'failed in'
       raise
     finally:

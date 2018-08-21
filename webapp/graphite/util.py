@@ -100,7 +100,7 @@ def is_local_interface(host):
     else:
       sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.bind( (host, 0) )
-  except:
+  except socket.error:
     return False
   finally:
     sock.close()
@@ -271,7 +271,7 @@ def logtime(f):
 
     try:
       return f(*args, **kwargs)
-    except:
+    except Exception:
       timer.msg = 'failed in'
       raise
     finally:

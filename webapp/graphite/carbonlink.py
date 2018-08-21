@@ -87,7 +87,7 @@ class CarbonLinkPool(object):
     connection.settimeout(self.timeout)
     try:
       connection.connect((server, port))
-    except:
+    except socket.error:
       self.last_failure[host] = time.time()
       raise
     else:
