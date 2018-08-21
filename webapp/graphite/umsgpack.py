@@ -412,15 +412,15 @@ def _pack2(obj, fp, **options):
         _pack_ext(ext_handlers[obj.__class__](obj), fp, options)
     elif isinstance(obj, bool):
         _pack_boolean(obj, fp, options)
-    elif isinstance(obj, int) or isinstance(obj, long):
+    elif isinstance(obj, int) or isinstance(obj, long):  # noqa: F821 Py2 only
         _pack_integer(obj, fp, options)
     elif isinstance(obj, float):
         _pack_float(obj, fp, options)
-    elif compatibility and isinstance(obj, unicode):
+    elif compatibility and isinstance(obj, unicode):  # noqa: F821 Py2 only
         _pack_oldspec_raw(bytes(obj), fp, options)
     elif compatibility and isinstance(obj, bytes):
         _pack_oldspec_raw(obj, fp, options)
-    elif isinstance(obj, unicode):
+    elif isinstance(obj, unicode):  # noqa: F821 Py2 only
         _pack_string(obj, fp, options)
     elif isinstance(obj, str):
         _pack_binary(obj, fp, options)
