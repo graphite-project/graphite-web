@@ -84,11 +84,11 @@ def renderView(request):
     for target in requestOptions['targets']:
       if target.find(':') >= 0:
         try:
-          name,value = target.split(':',1)
+          name, value = target.split(':', 1)
           value = float(value)
-        except:
+        except ValueError:
           raise ValueError("Invalid target '%s'" % target)
-        data.append( (name,value) )
+        data.append((name, value))
       else:
         seriesList = evaluateTarget(requestContext, target)
 
@@ -502,7 +502,7 @@ def delegateRendering(graphType, graphOptions, headers=None):
       log.rendering('Spent a total of %.6f seconds doing remote rendering work' % (time() - start))
       pool.add(connection)
       return imageData
-    except:
+    except Exception:
       log.exception("Exception while attempting remote rendering request on %s" % server)
       log.rendering('Exception while remotely rendering on %s wasted %.6f' % (server,time() - start2))
       continue
@@ -522,7 +522,7 @@ def renderLocalView(request):
     response = buildResponse(image)
     add_never_cache_headers(response)
     return response
-  except:
+  except Exception:
     log.exception("Exception in graphite.render.views.rawrender")
     return HttpResponseServerError()
 

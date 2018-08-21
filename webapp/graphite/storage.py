@@ -529,7 +529,7 @@ def write_index(index=None):
   finally:
     try:
       os.unlink(tmp)
-    except:
+    except OSError:
       pass
   return None
 

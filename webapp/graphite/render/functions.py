@@ -90,7 +90,7 @@ def safePow(a, b):
   if b is None: return None
   try:
     result = math.pow(a, b)
-  except:
+  except (ValueError, OverflowError):
     return None
   return result
 
@@ -320,8 +320,8 @@ def aggregate(requestContext, seriesList, func, xFilesFactor=None):
     seriesList = [seriesList]
 
   try:
-    (seriesList,start,end,step) = normalize(seriesList)
-  except:
+    (seriesList, start, end, step) = normalize(seriesList)
+  except NormalizeEmptyResultError:
     return []
   xFilesFactor = xFilesFactor if xFilesFactor is not None else requestContext.get('xFilesFactor')
   name = "%sSeries(%s)" % (func, formatPathExpressions(seriesList))
@@ -1491,8 +1491,8 @@ def powSeries(requestContext, *seriesLists):
   """
 
   try:
-    (seriesList,start,end,step) = normalize(seriesLists)
-  except:
+    (seriesList, start, end, step) = normalize(seriesLists)
+  except NormalizeEmptyResultError:
     return []
   name = "powSeries(%s)" % ','.join([s.name for s in seriesList])
   values = []

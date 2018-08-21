@@ -72,8 +72,7 @@ def mygraph(request):
       try:
         newGraph = MyGraph(profile=profile,name=graphName,url=url)
         newGraph.save()
-
-      except:
+      except Exception:
         log.exception("Failed to create new MyGraph in /composer/mygraph/, graphName=%s" % graphName)
         return HttpResponse("Failed to save graph %s" % graphName)
 
@@ -121,5 +120,5 @@ def send_email(request):
     s.sendmail('composer@%s' % gethostname(),recipients,message.as_string())
     s.quit()
     return HttpResponse( "OK" )
-  except:
-    return HttpResponse( format_exc() )
+  except Exception:
+    return HttpResponse(format_exc())
