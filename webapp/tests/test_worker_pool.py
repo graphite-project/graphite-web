@@ -73,5 +73,6 @@ class TestPool(unittest.TestCase):
 
           list(results)
 
+
 if __name__ == '__main__':
     unittest.main()

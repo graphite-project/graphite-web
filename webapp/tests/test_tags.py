@@ -17,11 +17,13 @@ from graphite.util import json
 
 from tests.base import TestCase
 
+
 def json_bytes(obj, *args, **kwargs):
   s = json.dumps(obj, *args, **kwargs)
   if sys.version_info[0] >= 3:
     return s.encode('utf-8')
   return s
+
 
 class TagsTest(TestCase):
   def test_taggedseries(self):

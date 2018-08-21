@@ -28,6 +28,7 @@ def add(request):
   save_whitelist(new_whitelist)
   return HttpResponse(content_type="text/plain", content="OK")
 
+
 def remove(request):
   metrics = set( request.POST['metrics'].split() )
   whitelist = load_whitelist()
@@ -35,15 +36,18 @@ def remove(request):
   save_whitelist(new_whitelist)
   return HttpResponse(content_type="text/plain", content="OK")
 
+
 def show(request):
   whitelist = load_whitelist()
   members = '\n'.join( sorted(whitelist) )
   return HttpResponse(content_type="text/plain", content=members)
 
+
 def load_whitelist():
   buffer = open(settings.WHITELIST_FILE, 'rb').read()
   whitelist = unpickle.loads(buffer)
   return whitelist
+
 
 def save_whitelist(whitelist):
   serialized = pickle.dumps(whitelist, protocol=-1) #do this instead of dump() to raise potential exceptions before open()

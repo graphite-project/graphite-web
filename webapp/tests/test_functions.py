@@ -31,6 +31,7 @@ from graphite.util import json
 def return_greater(series, value):
     return [i for i in series if i is not None and i > value]
 
+
 def return_less(series, value):
     return [i for i in series if i is not None and i < value]
 
@@ -300,7 +301,6 @@ class FunctionsTest(TestCase):
 
     def test_safeMax_mixed(self):
         self.assertEqual(functions.safeMax([10,None,5,None]), 10)
-
 
     #
     # Test safeAbs()
@@ -767,7 +767,6 @@ class FunctionsTest(TestCase):
             result = functions._getPercentile(series, 0, True)
             self.assertEqual(expected, result, 'For series index <%s> the 0th percentile ordinal is not %d, but %d ' % (index, expected, result))
 
-
     def testGetPercentile_interpolated(self):
         seriesList = [
             ([None, None, 15, 20, 35, 40, 50], 19.0),
@@ -960,7 +959,6 @@ class FunctionsTest(TestCase):
             ]
         )
 
-
         with self.assertRaisesRegexp(ValueError, "asPercent second argument must be missing, a single digit, reference exactly 1 series or reference the same number of series as the first argument"):
             functions.asPercent({}, seriesList, seriesList2)
 
@@ -1064,7 +1062,6 @@ class FunctionsTest(TestCase):
                 [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
             ]
         )
-
 
         expectedResult = [
             TimeSeries('asPercent(collectd.test-db1.load.value,collectd.test-db1.load.value)',0,1,1,[100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0]),
@@ -1315,7 +1312,6 @@ class FunctionsTest(TestCase):
 
         with self.assertRaisesRegexp(ValueError, "divideSeries second argument must reference exactly 1 series \(got 2\)"):
             functions.divideSeries({}, seriesList, seriesList2)
-
 
     def test_divideSeries_seriesList2_single(self):
         seriesList = self._gen_series_list_with_data(
@@ -1851,7 +1847,6 @@ class FunctionsTest(TestCase):
         result = functions.cactiStyle(requestContext, seriesList, units="b")
         self.assertEqual(result, expectedResult)
 
-
     def test_cactiStyle_emptyList(self):
         result = functions.cactiStyle({}, [])
         self.assertEqual(result, [])
@@ -1917,7 +1912,6 @@ class FunctionsTest(TestCase):
         requestContext = {}
         result = functions.cactiStyle(requestContext, seriesList, "binary", "b")
         self.assertEqual(result, expectedResult)
-
 
     def test_n_percentile(self):
         config = [
@@ -2426,7 +2420,6 @@ class FunctionsTest(TestCase):
         result = functions.removeEmptySeries({}, seriesList, 1)
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0][0], 1000)
-
 
     def test_unique(self):
         seriesList = [
@@ -3013,7 +3006,6 @@ class FunctionsTest(TestCase):
         for i, series in enumerate(seriesList):
           verify_groupByNode([expectedResult[i]], 3, [series])
 
-
     def test_groupByNodes(self):
         seriesList, inputList = self._generate_mr_series()
 
@@ -3240,7 +3232,6 @@ class FunctionsTest(TestCase):
             if type(v) is float:
               series[k] = round(v,7)
         self.assertEqual(result, expectedResult)
-
 
     def test_maximumAbove(self):
         seriesList = self._gen_series_list_with_data(
@@ -4147,7 +4138,6 @@ class FunctionsTest(TestCase):
 
         result = functions.legendValue({}, seriesList, "avg", "bogus")
         self.assertEqual(result, expectedResult)
-
 
     @patch('graphite.render.evaluator.prefetchData', lambda *_: None)
     def test_linearRegression(self):

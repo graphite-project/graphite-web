@@ -165,6 +165,7 @@ def myGraphLookup(request):
 
   return json_response(nodes, request)
 
+
 def userGraphLookup(request):
   "View for User Graphs navigation"
   user = request.GET.get('user')

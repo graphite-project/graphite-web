@@ -371,9 +371,7 @@ class MergeWithCacheTests(TestCase):
 
         self.assertEqual(expected_values, values)
 
-
     def test_merge_with_cache_when_previous_window_in_cache(self):
-
         start = 1465844460  # (Mon Jun 13 19:01:00 UTC 2016)
         window_size = 3600  # (1 hour)
         step = 60           # (1 minute)
