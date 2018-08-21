@@ -107,7 +107,7 @@ class Interval:
     return self.start >= self.start
 
   def __cmp__(self, other):
-    return cmp(self.start, other.start)
+    return (self.start > other.start) - (self.start < other.start)
 
   def __len__(self):
     raise TypeError("len() doesn't support infinite values, use the 'size' attribute instead")
