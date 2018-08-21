@@ -3,6 +3,7 @@ language: python
 python: 2.7
 sudo: false
 
+# Python 3.7 needs dist: xenial and sudo: true
 matrix:
   include:
     - python: pypy
@@ -10,34 +11,50 @@ matrix:
         - TOXENV=pypy-django111-pyparsing2
     - python: 3.4
       env:
-        - TOXENV=py34-django200-pyparsing2
+        - TOXENV=py34-django20-pyparsing2
     - python: 3.5
       env:
-        - TOXENV=py35-django200-pyparsing2
+        - TOXENV=py35-django21-pyparsing2
+    - python: 3.5
+      env:
+        - TOXENV=py35-django21-pyparsing2
     - python: 3.6
       env:
-        - TOXENV=py36-django200-pyparsing2
-    - python: 3.6
+        - TOXENV=py36-django21-pyparsing2
+    - python: 3.7
+      sudo: true
+      dist: xenial
       env:
-        - TOXENV=py36-django200-pyparsing2-msgpack
-    - python: 3.6
+        - TOXENV=py37-django21-pyparsing2-msgpack
+    - python: 3.7
+      sudo: true
+      dist: xenial
       env:
-        - TOXENV=py36-django200-pyparsing2-pyhash
-    - python: 3.6
+        - TOXENV=py37-django21-pyparsing2-pyhash
+    - python: 3.7
+      sudo: true
+      dist: xenial
+      env:
+        - TOXENV=py37-django21-pyparsing2-mysql TEST_MYSQL_PASSWORD=graphite
+    - python: 3.7
+      sudo: true
+      dist: xenial
+      env:
+        - TOXENV=py37-django21-pyparsing2-postgresql TEST_POSTGRESQL_PASSWORD=graphite
+    - python: 3.7
+      sudo: true
+      dist: xenial
       env:
         - TOXENV=lint
 
 env:
   - TOXENV=py27-django18-pyparsing2
-  - TOXENV=py27-django19-pyparsing2
-  - TOXENV=py27-django110-pyparsing2
   - TOXENV=py27-django111-pyparsing2-rrdtool
   - TOXENV=py27-django111-pyparsing2-msgpack
   - TOXENV=py27-django111-pyparsing2-pyhash
   - TOXENV=py27-django111-pyparsing2-mysql TEST_MYSQL_PASSWORD=graphite
   - TOXENV=py27-django111-pyparsing2-postgresql TEST_POSTGRESQL_PASSWORD=graphite
   - TOXENV=docs
-  - TOXENV=lint
 
 addons:
   apt:
