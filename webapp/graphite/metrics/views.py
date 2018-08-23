@@ -94,8 +94,8 @@ def find_view(request):
   automatic_variants = int( queryParams.get('automatic_variants', 0) )
 
   try:
-    query = str( queryParams['query'] )
-  except:
+    query = str(queryParams['query'])
+  except KeyError:
     return HttpResponseBadRequest(content="Missing required parameter 'query'",
                                   content_type='text/plain')
 
@@ -127,7 +127,7 @@ def find_view(request):
       headers=forward_headers,
       leaves_only=leaves_only,
     ))
-  except:
+  except Exception:
     log.exception()
     raise
 
@@ -226,7 +226,7 @@ def get_metadata_view(request):
   for metric in metrics:
     try:
       results[metric] = CarbonLink.get_metadata(metric, key)
-    except:
+    except Exception:
       log.exception()
       results[metric] = dict(error="Unexpected error occurred in CarbonLink.get_metadata(%s, %s)" % (metric, key))
 
@@ -242,7 +242,7 @@ def set_metadata_view(request):
     value = request.GET['value']
     try:
       results[metric] = CarbonLink.set_metadata(metric, key, value)
-    except:
+    except Exception:
       log.exception()
       results[metric] = dict(error="Unexpected error occurred in CarbonLink.set_metadata(%s, %s)" % (metric, key))
 
@@ -257,7 +257,7 @@ def set_metadata_view(request):
       try:
         metric, key, value = op['metric'], op['key'], op['value']
         results[metric] = CarbonLink.set_metadata(metric, key, value)
-      except:
+      except Exception:
         log.exception()
         if metric:
           results[metric] = dict(error="Unexpected error occurred in bulk CarbonLink.set_metadata(%s)" % metric)

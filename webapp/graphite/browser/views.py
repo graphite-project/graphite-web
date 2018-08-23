@@ -155,7 +155,7 @@ def myGraphLookup(request):
 
       nodes.append(node)
 
-  except:
+  except Exception:
     log.exception("browser.views.myGraphLookup(): could not complete request.")
 
   if not nodes:
@@ -164,6 +164,7 @@ def myGraphLookup(request):
     nodes.append(no_graphs)
 
   return json_response(nodes, request)
+
 
 def userGraphLookup(request):
   "View for User Graphs navigation"
@@ -257,7 +258,7 @@ def userGraphLookup(request):
 
         nodes.append(node)
 
-  except:
+  except Exception:
     log.exception("browser.views.userLookup(): could not complete request for %s" % username)
 
   if not nodes:

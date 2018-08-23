@@ -15,6 +15,7 @@ customModPrefix = 'graphite.functions.custom.'
 _SeriesFunctions = {}
 _PieFunctions = {}
 
+
 def loadFunctions(force=False):
   if _SeriesFunctions and not force:
     return
@@ -53,6 +54,7 @@ def loadFunctions(force=False):
       except Exception as e:
         log.warning('Error loading function plugin %s: %s' % (module_name, e))
 
+
 def addFunction(dest, func, func_name):
   if not hasattr(func, 'group'):
     func.group = 'Ungrouped'
@@ -65,9 +67,11 @@ def addFunction(dest, func, func_name):
       raise Exception('Invalid param specified for %s' % func_name)
     dest[func_name] = func
 
+
 def SeriesFunctions():
   loadFunctions()
   return _SeriesFunctions
+
 
 def SeriesFunction(name):
   loadFunctions()
@@ -76,9 +80,11 @@ def SeriesFunction(name):
   except KeyError:
     raise KeyError('Function "%s" not found' % name)
 
+
 def PieFunctions():
   loadFunctions()
   return _PieFunctions
+
 
 def PieFunction(name):
   loadFunctions()
@@ -86,6 +92,7 @@ def PieFunction(name):
     return _PieFunctions[name]
   except KeyError:
     raise KeyError('Function "%s" not found' % name)
+
 
 def functionInfo(name, func):
   argspec = inspect.getargspec(func)

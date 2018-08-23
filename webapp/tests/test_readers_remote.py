@@ -163,7 +163,7 @@ class RemoteReaderTests(TestCase):
         )
         http_request.return_value = responseObject
 
-        with self.assertRaisesRegexp(Exception, 'Invalid render response from http://[^ ]+: KeyError\(\'name\',\)'):
+        with self.assertRaisesRegexp(Exception, 'Invalid render response from http://[^ ]+: KeyError\(\'name\',?\)'):
           reader.fetch(startTime, endTime)
 
         # non-200 response

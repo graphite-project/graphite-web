@@ -1,6 +1,7 @@
 class ParamTypes(object):
   pass
 
+
 for paramType in [
   'aggFunc',
   'boolean',
@@ -18,6 +19,7 @@ for paramType in [
   'tag',
 ]:
   setattr(ParamTypes, paramType, paramType)
+
 
 class Param(object):
   __slots__ = ('name', 'type', 'required', 'default', 'multiple', 'options', 'suggestions')

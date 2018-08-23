@@ -41,16 +41,19 @@ def loginView(request):
   else:
     return render_to_response("login.html",{'nextPage' : nextPage})
 
+
 def logoutView(request):
   nextPage = request.GET.get('nextPage', reverse('browser'))
   logout(request)
   return HttpResponseRedirect(nextPage)
+
 
 def editProfile(request):
   if not isAuthenticated(request.user):
     return HttpResponseRedirect(reverse('browser'))
   context = { 'profile' : getProfile(request) }
   return render_to_response("editProfile.html",context)
+
 
 def updateProfile(request):
   profile = getProfile(request,allowDefault=False)
