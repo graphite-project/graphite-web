@@ -259,6 +259,9 @@ For example:
 These rules would strip off a suffix of _sum or _avg from any metric names after
 aggregation.
 
+**Note:** if you plan to use the ``=`` sign in your rewrite rules. Use its octal value: ``\075``.
+For example ``foo=bar = foo.bar`` would be ``foo\075bar = foo.bar``
+
 whitelist and blacklist
 -----------------------
 The whitelist functionality allows any of the carbon daemons to only accept metrics that are explicitly
