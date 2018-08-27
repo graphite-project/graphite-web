@@ -3965,7 +3965,7 @@ def linearRegressionAnalysis(series):
 
 def linearRegression(requestContext, seriesList, startSourceAt=None, endSourceAt=None):
   """
-  Graphs the liner regression function by least squares method.
+  Graphs the linear regression function by least squares method.
 
   Takes one metric or a wildcard seriesList, followed by a quoted string with the
   time to start the line and another quoted string with the time to end the line.
