@@ -8,9 +8,6 @@
     { "name": "0.9.x", "checked": false }
   ],
 
-  // Only allow picking own commits to backport
-  "own": false,
-
   // Backport multiple commits
   "multipleCommits": true,
 
