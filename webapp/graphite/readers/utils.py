@@ -44,7 +44,10 @@ def merge_with_cache(cached_datapoints, start, step, values, func=None, raw_step
             return sum(usable)
         if func == 'average':
             return float(sum(usable)) / len(usable)
-        if func == 'max':
+        if func == 'avg_zero':
+            usable = [v or 0 for v in values]
+            return float(sum(usable)) / len(usable)
+         if func == 'max':
             return max(usable)
         if func == 'min':
             return min(usable)
