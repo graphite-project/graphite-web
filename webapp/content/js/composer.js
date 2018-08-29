@@ -97,7 +97,7 @@ GraphiteComposer.prototype = {
     }
     this.window.updateTimeDisplay(timeInfo);
     this.window.updateUI();
-    this.updateImage();
+    this.updateImage(true);
   },
 
   syncTargetList: function () {
@@ -107,7 +107,7 @@ GraphiteComposer.prototype = {
     }, this);
   },
 
-  updateImage: function () {
+  updateImage: function (urlLoad) {
     /* Set the image's url to reflect this.url's current params */
     var img = this.window.getImage();
     if (img) {
@@ -115,6 +115,20 @@ GraphiteComposer.prototype = {
       var unixTime = now.valueOf() / 1000;
       this.url.setParam('_salt', unixTime.toString() );
       img.src = this.url.getURL();
+      if (this.topWindow && !urlLoad) {
+        this.url.removeParam('_salt');
+        this.topWindow.history.pushState('', '', '?' + this.url.queryString);
+      }
+    }
+  },
+
+  enableHistory: function (topWindow) {
+    if (topWindow.history && topWindow.history.pushState) {
+      this.topWindow = topWindow;
+      var that = this;
+      topWindow.onpopstate = function() {
+        that.loadURL(topWindow.location.href);
+      };
     }
   },
 
