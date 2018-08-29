@@ -75,23 +75,23 @@ class RemoteReader(BaseReader):
 
         retries = 1 # start counting at one to make log output and settings more readable
         while True:
-          try:
-            result = self.finder.request(
-                '/render/',
-                fields=query_params,
-                headers=headers,
-                timeout=settings.FETCH_TIMEOUT,
-            )
-            break
-          except Exception:
-            if retries >= settings.MAX_FETCH_RETRIES:
-              log.exception("Failed after %s attempts! Root cause:\n%s" %
-                  (settings.MAX_FETCH_RETRIES, format_exc()))
-              raise
-            else:
-              log.exception("Got an exception when fetching data! Try: %i of %i. Root cause:\n%s" %
+            try:
+                result = self.finder.request(
+                    '/render/',
+                    fields=query_params,
+                    headers=headers,
+                    timeout=settings.FETCH_TIMEOUT,
+                )
+                break
+            except Exception:
+                if retries >= settings.MAX_FETCH_RETRIES:
+                    log.exception("Failed after %s attempts! Root cause:\n%s" %
+                        (settings.MAX_FETCH_RETRIES, format_exc()))
+                    raise
+                else:
+                    log.exception("Got an exception when fetching data! Try: %i of %i. Root cause:\n%s" %
                            (retries, settings.MAX_FETCH_RETRIES, format_exc()))
-              retries += 1
+                retries += 1
 
         data = self.deserialize(result)
 
@@ -112,32 +112,26 @@ class RemoteReader(BaseReader):
                 (self.finder.host, result.url_full, repr(err)))
             raise Exception("Invalid render response from %s: %s" % (result.url_full, repr(err)))
 
-    #
-    # Here be Snap monkey-patch code
-    #
     def deserialize(self, result):
-        # avoid buffered reader if possible, instead using in-memory unpacking for small->REMOTE_BUFFER_SIZE payloads
+        """
+        Based on configuration, either stream-deserialize a response in settings.REMOTE_BUFFER_SIZE chunks,
+        or read the entire payload and use inline deserialization.
+        :param result: an http response object
+        :return: deserialized response payload from cluster server
+        """
+        start = time.time()
         try:
-            start = time.time()
+            should_buffer = settings.REMOTE_BUFFER_SIZE > 0
             measured_reader = MeasuredReader(BufferedHTTPReader(result, settings.REMOTE_BUFFER_SIZE))
-            first_chunk = self._fill_first_buffer(measured_reader, settings.REMOTE_BUFFER_SIZE)
-            if len(first_chunk) < settings.REMOTE_BUFFER_SIZE:
-                log.info("Using inline deserializer for small payload")
-                download_time = time.time() - start
-                serialization_start = time.time()
-                deserialized = self._deserialize_buffer(first_chunk, result.getheader('content-type'))
 
-                serialization_time = time.time() - serialization_start
-                log.info("Read %d bytes in %f seconds." % (measured_reader.bytes_read, download_time))
-                log.info("Deserialized %d bytes in %f seconds." % (measured_reader.bytes_read, serialization_time))
+            if should_buffer:
+                log.debug("Using streaming deserializer.")
+                reader = BufferedHTTPReader(measured_reader, settings.REMOTE_BUFFER_SIZE)
+                deserialized = self._deserialize_stream(reader, result.getheader('content-type'))
                 return deserialized
             else:
-                log.info("Using streaming deserializer for large payload")
-                reader = BufferedHTTPReader(measured_reader, settings.REMOTE_BUFFER_SIZE)
-                reader.buffer = first_chunk
-                deserialized = self._deserialize_stream(reader, result.getheader('content-type'))
-                
-                log.info("Processed %d bytes in %f seconds." % (measured_reader.bytes_read, time.time() - start))
+                log.debug("Using inline deserializer for small payload")
+                deserialized = self._deserialize_buffer(measured_reader.read(), result.getheader('content-type'))
                 return deserialized
         except Exception as err:
             self.finder.fail()
@@ -146,18 +140,11 @@ class RemoteReader(BaseReader):
                 (self.finder.host, result.url_full, err))
             raise Exception("Error decoding render response from %s: %s" % (result.url_full, err))
         finally:
-
+            log.debug("Processed %d bytes in %f seconds." % (measured_reader.bytes_read, time.time() - start))
             result.release_conn()
 
-    def _fill_first_buffer(self, reader, max_buffer_size):
-        payload = b''
-        cur = reader.read(max_buffer_size)
-        while len(payload) < max_buffer_size and len(cur) > 0:
-            payload += cur
-            cur = reader.read(max_buffer_size - len(payload))
-        return payload
-
-    def _deserialize_buffer(self, byte_buffer, content_type):
+    @staticmethod
+    def _deserialize_buffer(byte_buffer, content_type):
         if content_type == 'application/x-msgpack':
             data = msgpack.unpackb(byte_buffer, encoding='utf-8')
         else:
@@ -165,7 +152,8 @@ class RemoteReader(BaseReader):
 
         return data
 
-    def _deserialize_stream(self, stream, content_type):
+    @staticmethod
+    def _deserialize_stream(stream, content_type):
         if content_type == 'application/x-msgpack':
             data = msgpack.load(stream, encoding='utf-8')
         else:
