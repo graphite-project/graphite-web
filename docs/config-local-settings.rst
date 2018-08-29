@@ -1,11 +1,18 @@
 Graphite-web's local_settings.py
 ================================
-Graphite-web uses the convention of importing a ``local_settings.py`` file from the webapp ``settings.py`` module. This is where Graphite-web's runtime configuration is loaded from.
+Graphite-web uses the convention of importing a ``local_settings.py`` file from the webapp ``settings/__init__.py`` module. But it is also allowed to import settings from ``settings/<custom_name>.py`` instead, foremost for multi-instance way. This is where Graphite-web's runtime configuration is loaded from.
 
 
 Config File Location
 --------------------
-``local_settings.py`` is generally located within the main ``graphite`` module where the webapp's code lives. In the :ref:`default installation layout <default-installation-layout>` this is ``/opt/graphite/webapp/graphite/local_settings.py``. Alternative locations can be used by symlinking to this path or by ensuring the module can be found within the Python module search path.
+``local_settings.py`` is generally located within the main ``graphite`` module where the webapp's code lives. In the :ref:`default installation layout <default-installation-layout>` this is ``/opt/graphite/webapp/graphite/local_settings.py``. In addition, local settings module can have a custom name, but the following conditions must be met:
+
+1. it must be located within the ``graphite.settings`` module
+2. ``GRAPHITE_SETTINGS_MODULE`` environment variable must be defined at the wsgi file and point to this module
+
+Otherwise it will fallback to ``local_settings.py``.
+
+Alternative locations can be used by symlinking to this paths or by ensuring the module can be found within the Python module search path.
 
 
 General Settings
@@ -205,6 +212,7 @@ TAGDB_REDIS_PORT
 TAGDB_REDIS_DB
   `Default: 0`
   Redis database to use with `TAGDB = 'graphite.tags.redis.RedisTagDB'`
+
 
 Configure Webserver (Apache)
 ----------------------------
