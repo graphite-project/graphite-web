@@ -157,7 +157,7 @@ Finally, configure the apache vhost. (You can find example of Graphite vhost con
         WSGIDaemonProcess graphite-web processes=5 threads=5 display-name='%{GROUP}' inactivity-timeout=120
         WSGIProcessGroup graphite-web
         WSGIApplicationGroup %{GLOBAL}
-        WSGIImportScript /opt/graphite/conf/graphite.wsgi process-group=graphite-api application-group=%{GLOBAL}
+        WSGIImportScript /opt/graphite/conf/graphite.wsgi process-group=graphite-web application-group=%{GLOBAL}
 
         WSGIScriptAlias / /opt/graphite/conf/graphite.wsgi
 

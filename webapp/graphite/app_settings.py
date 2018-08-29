@@ -68,11 +68,13 @@ MIDDLEWARE = (
   'django.middleware.gzip.GZipMiddleware',
   'django.contrib.sessions.middleware.SessionMiddleware',
   'django.contrib.auth.middleware.AuthenticationMiddleware',
-  'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
   'django.contrib.messages.middleware.MessageMiddleware',
 )
+# SessionAuthenticationMiddleware is enabled by default since 1.10 and
+# deprecated since 2.0
 if DJANGO_VERSION < (1, 10):
-    MIDDLEWARE_CLASSES = MIDDLEWARE
+    MIDDLEWARE_CLASSES = MIDDLEWARE + \
+        ('django.contrib.auth.middleware.SessionAuthenticationMiddleware',)
 
 ROOT_URLCONF = 'graphite.urls'
 

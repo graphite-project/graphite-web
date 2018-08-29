@@ -43,7 +43,7 @@ class LDAPBackend:
 
       userDN = resultData[0][0]
       try:
-        userMail = resultData[0][1]['mail'][0]
+        userMail = resultData[0][1]['mail'][0].decode("utf-8")
       except:
         userMail = "Unknown"
 

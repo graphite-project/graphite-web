@@ -642,29 +642,24 @@ def keepLastValue(requestContext, seriesList, limit = INF):
     series.name = "keepLastValue(%s)" % (series.name)
     series.pathExpression = series.name
     consecutiveNones = 0
+    lastVal = None
     for i,value in enumerate(series):
-      series[i] = value
-
-      # No 'keeping' can be done on the first value because we have no idea
-      # what came before it.
-      if i == 0:
-         continue
-
       if value is None:
         consecutiveNones += 1
       else:
-         if 0 < consecutiveNones <= limit:
+         if 0 < consecutiveNones <= limit and lastVal is not None:
            # If a non-None value is seen before the limit of Nones is hit,
            # backfill all the missing datapoints with the last known value.
            for index in range(i - consecutiveNones, i):
-             series[index] = series[i - consecutiveNones - 1]
+             series[index] = lastVal
 
          consecutiveNones = 0
+         lastVal = value
 
     # If the series ends with some None values, try to backfill a bit to cover it.
-    if 0 < consecutiveNones <= limit:
+    if 0 < consecutiveNones <= limit and lastVal is not None:
       for index in range(len(series) - consecutiveNones, len(series)):
-        series[index] = series[len(series) - consecutiveNones - 1]
+        series[index] = lastVal
 
   return seriesList
 
@@ -2702,7 +2697,7 @@ def highest(requestContext, seriesList, n=1, func='average'):
   Draws the 5 servers with the highest number of busy threads.
   """
   seriesList.sort(key=keyFunc(getAggFunc(func)), reverse=True)
-  return seriesList[:n]
+  return seriesList[:int(n)]
 
 highest.group = 'Filter Series'
 highest.params = [
@@ -2726,7 +2721,7 @@ def lowest(requestContext, seriesList, n=1, func='average'):
   Draws the 5 servers with the lowest number of busy threads.
   """
   seriesList.sort(key=keyFunc(getAggFunc(func)))
-  return seriesList[:n]
+  return seriesList[:int(n)]
 
 lowest.group = 'Filter Series'
 lowest.params = [
