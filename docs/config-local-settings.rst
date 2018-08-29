@@ -213,11 +213,6 @@ TAGDB_REDIS_DB
   `Default: 0`
   Redis database to use with `TAGDB = 'graphite.tags.redis.RedisTagDB'`
 
-Multi-instance configuration
-----------------------------
-1. Create configuration files in the settings /
-2. Create files with the definition of the variable GRAPHITE_SETTINGS_MODULE
-3. Configure the web browser in the required manner
 
 Configure Webserver (Apache)
 ----------------------------
