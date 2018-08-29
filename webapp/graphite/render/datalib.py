@@ -16,6 +16,7 @@ from __future__ import division
 import collections
 import re
 import time
+import types
 from six import text_type
 
 from django.conf import settings
@@ -63,17 +64,14 @@ class TimeSeries(list):
     return ((self.name, self.start, self.end, self.step, self.consolidationFunc, self.valuesPerPoint, self.options, self.xFilesFactor) ==
       (other.name, other.start, other.end, other.step, other.consolidationFunc, other.valuesPerPoint, other.options, other.xFilesFactor)) and list.__eq__(self, other)
 
-
   def __iter__(self):
     if self.valuesPerPoint > 1:
       return self.__consolidatingGenerator( list.__iter__(self) )
     else:
       return list.__iter__(self)
 
-
   def consolidate(self, valuesPerPoint):
     self.valuesPerPoint = int(valuesPerPoint)
-
 
   __consolidation_functions = {
     'sum': sum,
@@ -83,6 +81,7 @@ class TimeSeries(list):
     'first': lambda usable: usable[0],
     'last': lambda usable: usable[-1],
   }
+
   def __consolidatingGenerator(self, gen):
     try:
       cf = self.__consolidation_functions[self.consolidationFunc]
@@ -113,11 +112,9 @@ class TimeSeries(list):
 
     return
 
-
   def __repr__(self):
     return 'TimeSeries(name=%s, start=%s, end=%s, step=%s, valuesPerPoint=%s, consolidationFunc=%s, xFilesFactor=%s)' % (
       self.name, self.start, self.end, self.step, self.valuesPerPoint, self.consolidationFunc, self.xFilesFactor)
-
 
   def getInfo(self):
     """Pickle-friendly representation of the series"""
@@ -134,7 +131,6 @@ class TimeSeries(list):
       text_type('xFilesFactor') : self.xFilesFactor,
     }
 
-
   def copy(self, name=None, start=None, end=None, step=None, values=None, consolidate=None, tags=None, xFilesFactor=None):
     return TimeSeries(
       name if name is not None else self.name,
@@ -146,7 +142,6 @@ class TimeSeries(list):
       tags=tags if tags is not None else self.tags,
       xFilesFactor=xFilesFactor if xFilesFactor is not None else self.xFilesFactor
     )
-
 
   def datapoints(self):
     timestamps = range(int(self.start), int(self.end) + 1, int(self.step * self.valuesPerPoint))
@@ -270,6 +265,13 @@ def prefetchData(requestContext, pathExpressions):
         result['values'],
       ),
     ))
+
+  # Several third-party readers including rrdtool and biggraphite return values in a
+  # generator which can only be iterated on once. These must be converted to a list.
+  for pathExpression, items in prefetched.items():
+    for i, (name, (time_info, values)) in enumerate(items):
+      if isinstance(values, types.GeneratorType):
+        prefetched[pathExpression][i] = (name, (time_info, list(values)))
 
   if not requestContext.get('prefetched'):
     requestContext['prefetched'] = {}

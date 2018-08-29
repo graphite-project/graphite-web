@@ -38,20 +38,21 @@ class LDAPBackend:
     try:
       resultID = conn.search( settings.LDAP_SEARCH_BASE, scope, filter, returnFields )
       resultType, resultData = conn.result( resultID, 0 )
-      if len(resultData) != 1: #User does not exist
+      if len(resultData) != 1: # User does not exist
         return None
 
       userDN = resultData[0][0]
       try:
         userMail = resultData[0][1]['mail'][0].decode("utf-8")
-      except:
+      except Exception:
         userMail = "Unknown"
 
       conn.simple_bind_s(userDN,password)
       try:
         user = User.objects.get(username=username)
-      except: #First time login, not in django's database
-        randomPasswd = User.objects.make_random_password(length=16) #To prevent login from django db user
+      except Exception:  # First time login, not in django's database
+        # To prevent login from django db user
+        randomPasswd = User.objects.make_random_password(length=16)
         user = User.objects.create_user(username, userMail, randomPasswd)
         user.save()
 

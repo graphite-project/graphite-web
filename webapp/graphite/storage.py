@@ -433,7 +433,6 @@ class Store(object):
           else:
             use_tagdb = True
 
-
         results = set()
 
         # if we're using the local tagdb then execute it (in the main thread
@@ -530,7 +529,7 @@ def write_index(index=None):
   finally:
     try:
       os.unlink(tmp)
-    except:
+    except OSError:
       pass
   return None
 

@@ -51,6 +51,7 @@ try:
 except ImportError:
   import graphite.umsgpack as msgpack  # NOQA
 
+
 def epoch(dt):
   """
   Returns the epoch timestamp of a timezone-aware datetime object.
@@ -68,12 +69,14 @@ def epoch_to_dt(timestamp):
     """
     return make_aware(datetime.utcfromtimestamp(timestamp), pytz.utc)
 
+
 def timebounds(requestContext):
   startTime = int(epoch(requestContext['startTime']))
   endTime = int(epoch(requestContext['endTime']))
   now = int(epoch(requestContext['now']))
 
   return (startTime, endTime, now)
+
 
 def is_local_interface(host):
   is_ipv6 = False
@@ -97,7 +100,7 @@ def is_local_interface(host):
     else:
       sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.bind( (host, 0) )
-  except:
+  except socket.error:
     return False
   finally:
     sock.close()
@@ -108,6 +111,7 @@ def is_local_interface(host):
 def is_pattern(s):
    return '*' in s or '?' in s or '[' in s or '{' in s
 
+
 def is_escaped_pattern(s):
   for symbol in '*?[{':
     i = s.find(symbol)
@@ -115,6 +119,7 @@ def is_escaped_pattern(s):
       if s[i-1] == '\\':
         return True
   return False
+
 
 def find_escaped_pattern_fields(pattern_string):
   pattern_parts = pattern_string.split('.')
@@ -133,9 +138,11 @@ def load_module(module_path, member=None):
   else:
     return module
 
+
 def timestamp(dt):
   "Convert a datetime object into epoch time"
   return time.mktime(dt.timetuple())
+
 
 def deltaseconds(timedelta):
   "Convert a timedelta object into seconds (same as timedelta.total_seconds() in Python 2.7+)"
@@ -264,7 +271,7 @@ def logtime(f):
 
     try:
       return f(*args, **kwargs)
-    except:
+    except Exception:
       timer.msg = 'failed in'
       raise
     finally:

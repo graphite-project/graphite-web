@@ -690,7 +690,6 @@ class Graph:
     else:
       self.area['ymin'] = y + self.margin
 
-
   def drawLegend(self, elements, unique=False): #elements is [ (name,color,rightSide), (name,color,rightSide), ... ]
     self.encodeHeader('legend')
 
@@ -1167,7 +1166,6 @@ class LineGraph(Graph):
     valueInPixels = pixelToValueRatio * relativeValue
     return self.area['ymax'] - valueInPixels
 
-
   def drawLines(self, width=None, dash=None, linecap='butt', linejoin='miter'):
     if not width: width = self.lineWidth
     self.ctx.set_line_width(width)
@@ -1593,7 +1591,6 @@ class LineGraph(Graph):
     self.xMinorGridStep = self.xConf['minorGridUnit'] * self.xConf['minorGridStep']
     self.xMajorGridStep = self.xConf['majorGridUnit'] * self.xConf['majorGridStep']
 
-
   def drawLabels(self):
     # Draw the Y-labels
     if not self.params.get('hideYAxis'):
@@ -1756,7 +1753,6 @@ class LineGraph(Graph):
     self.ctx.move_to(self.area['xmin'], bottom)
     self.ctx.line_to(self.area['xmin'], top)
     self.ctx.stroke()
-
 
 
 class PieGraph(Graph):

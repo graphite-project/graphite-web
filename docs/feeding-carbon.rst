@@ -146,7 +146,7 @@ Graphite understands messages with this format:
 
 ``value`` is the value that you want to assign to the metric at this time.
 
-``timestamp`` is the number of seconds since unix epoch time.
+``timestamp`` is the number of seconds since unix epoch time. Carbon-cache will use the time of arrival if the ``timestamp`` is set to ``-1``.
 
 A simple example of doing this from the unix terminal would look like this:
 

@@ -6,6 +6,7 @@ from graphite.render import glyph
 from graphite.render.datalib import TimeSeries
 from six.moves import range
 
+
 class glyphStandaloneFunctionTest(TestCase):
     from datetime import datetime, timedelta
     dt = datetime(2016, 6, 16, 15, 55, 38)

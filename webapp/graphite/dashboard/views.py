@@ -43,6 +43,7 @@ defaultKeyboardShortcuts = {
 
 ALL_PERMISSIONS = ['change', 'delete']
 
+
 class DashboardConfig:
   def __init__(self):
     self.last_read = 0
@@ -200,6 +201,7 @@ def template(request, name, val):
     state['name'] = '%s/%s' % (name, val)
     context['initialState'] = json.dumps(state)
   return render_to_response("dashboard.html", context)
+
 
 def getPermissions(user):
   """Return [change, delete] based on authorisation model and user privileges/groups"""

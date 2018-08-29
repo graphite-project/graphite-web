@@ -1,11 +1,13 @@
 from graphite.util import jsonResponse, HttpResponse, HttpError
 from graphite.storage import STORE, extractForwardHeaders
 
+
 def _requestContext(request, queryParams):
   return {
     'forwardHeaders': extractForwardHeaders(request),
     'localOnly': queryParams.get('local') == '1',
   }
+
 
 @jsonResponse
 def tagSeries(request, queryParams):
@@ -17,6 +19,7 @@ def tagSeries(request, queryParams):
     raise HttpError('no path specified', status=400)
 
   return STORE.tagdb.tag_series(path, requestContext=_requestContext(request, queryParams))
+
 
 @jsonResponse
 def tagMultiSeries(request, queryParams):
@@ -35,6 +38,7 @@ def tagMultiSeries(request, queryParams):
 
   return STORE.tagdb.tag_multi_series(paths, requestContext=_requestContext(request, queryParams))
 
+
 @jsonResponse
 def delSeries(request, queryParams):
   if request.method != 'POST':
@@ -51,6 +55,7 @@ def delSeries(request, queryParams):
     raise HttpError('no path specified', status=400)
 
   return STORE.tagdb.del_multi_series(paths, requestContext=_requestContext(request, queryParams))
+
 
 @jsonResponse
 def findSeries(request, queryParams):
@@ -70,6 +75,7 @@ def findSeries(request, queryParams):
 
   return STORE.tagdb.find_series(exprs, requestContext=_requestContext(request, queryParams))
 
+
 @jsonResponse
 def tagList(request, queryParams):
   if request.method != 'GET':
@@ -80,6 +86,7 @@ def tagList(request, queryParams):
     limit=request.GET.get('limit'),
     requestContext=_requestContext(request, queryParams),
   )
+
 
 @jsonResponse
 def tagDetails(request, queryParams, tag):
@@ -92,6 +99,7 @@ def tagDetails(request, queryParams, tag):
     limit=queryParams.get('limit'),
     requestContext=_requestContext(request, queryParams),
   )
+
 
 @jsonResponse
 def autoCompleteTags(request, queryParams):
@@ -112,6 +120,7 @@ def autoCompleteTags(request, queryParams):
     limit=queryParams.get('limit'),
     requestContext=_requestContext(request, queryParams)
   )
+
 
 @jsonResponse
 def autoCompleteValues(request, queryParams):
