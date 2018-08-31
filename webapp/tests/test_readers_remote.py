@@ -1,6 +1,7 @@
 from .base import TestCase
 
 import mock
+import json
 
 from urllib3.response import HTTPResponse
 
@@ -178,6 +179,75 @@ class RemoteReaderTests(TestCase):
 
         with self.assertRaisesRegexp(Exception, 'Error requesting http://[^ ]+: error'):
           reader.fetch(startTime, endTime)
+
+    @mock.patch('urllib3.PoolManager.request')
+    @mock.patch('django.conf.settings.CLUSTER_SERVERS', ['127.0.0.1', 'http://8.8.8.8/graphite?format=json&local=0'])
+    @mock.patch('django.conf.settings.INTRACLUSTER_HTTPS', False)
+    @mock.patch('django.conf.settings.REMOTE_STORE_USE_POST', False)
+    @mock.patch('django.conf.settings.FETCH_TIMEOUT', 10)
+    def test_RemoteReader_fetch_multi_json(self, http_request):
+        test_finders = RemoteFinder.factory()
+
+        # In test_RemoteReader_fetch_multi_json, we assert on the response start/end timestampes matching
+        # the requested timestamps, even though the data doesn't line up (i.e. this test requests data in
+        # a time range that is 1 step wide, and happily accepts 5 data points). Is this intentional, or can
+        # I safely infer start/end timestamp by looking at the data itself on the json payload from remote?
+        startTime = 1496262000
+        endTime   = 1496262240
+
+        finder = test_finders[1]
+        reader = RemoteReader(finder, {'intervals': [], 'path': 'a.b.c.d'}, bulk_query=['a.b.c.d'])
+
+        data = [
+                {
+                  "datapoints": [
+                    [1.0, 1496262000],
+                    [0.0, 1496262060],
+                    [1.0, 1496262120],
+                    [0.0, 1496262180],
+                    [1.0, 1496262240],
+                  ],
+                  "target": "a.b.c.d"
+                }
+               ]
+        responseObject = HTTPResponse(
+          body=BytesIO(json.dumps(data)),
+          status=200,
+          preload_content=False,
+          headers={'Content-Type': 'application/json'}
+        )
+        http_request.return_value = responseObject
+
+        result = reader.fetch_multi(startTime, endTime, now=endTime, requestContext={'forwardHeaders': {'Authorization': 'Basic xxxx'}})
+        expected_response = [
+            {
+                'pathExpression': 'a.b.c.d',
+                'name': 'a.b.c.d',
+                'time_info': (startTime, endTime, 60),
+                'values': [1.0, 0.0, 1.0, 0.0, 1.0],
+            }
+        ]
+        self.assertEqual(result, expected_response)
+        self.assertEqual(http_request.call_args[0], (
+          'GET',
+          'http://8.8.8.8/graphite/render/',
+        ))
+        self.assertEqual(http_request.call_args[1], {
+          'fields': [
+            ('format', 'json'),
+            ('local', '0'),
+            ('noCache', '1'),
+            ('from', startTime),
+            ('until', endTime),
+            ('target', 'a.b.c.d'),
+            ('now', endTime),
+          ],
+          'headers': {'Authorization': 'Basic xxxx'},
+          'preload_content': False,
+          'timeout': 10,
+        })
+
+
 
     #
     # Test RemoteReader.fetch()

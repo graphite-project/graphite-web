@@ -107,7 +107,11 @@ class RemoteFinder(BaseFinder):
                 timeout=settings.FIND_TIMEOUT)
 
             try:
-                if result.getheader('content-type') == 'application/x-msgpack':
+                content_type = result.getheader('content-type')
+                if content_type == 'application/json':
+                  results = json.load(BufferedHTTPReader(
+                    result, buffer_size=settings.REMOTE_BUFFER_SIZE))
+                elif content_type == 'application/x-msgpack':
                   results = msgpack.load(BufferedHTTPReader(
                     result, buffer_size=settings.REMOTE_BUFFER_SIZE), encoding='utf-8')
                 else:

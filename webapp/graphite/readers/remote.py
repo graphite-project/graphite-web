@@ -7,6 +7,7 @@ from graphite.readers.utils import BaseReader
 from graphite.util import unpickle, msgpack, BufferedHTTPReader
 
 import time
+import json
 
 
 class MeasuredReader(object):
@@ -93,24 +94,7 @@ class RemoteReader(BaseReader):
                         (retries, settings.MAX_FETCH_RETRIES, format_exc()))
         retries += 1
 
-    data = self.deserialize(result)
-
-    try:
-      return [
-        {
-          'pathExpression': series.get('pathExpression', series['name']),
-          'name': series['name'],
-          'time_info': (series['start'], series['end'], series['step']),
-          'values': series['values'],
-        }
-        for series in data
-      ]
-    except Exception as err:
-      self.finder.fail()
-      log.exception(
-        "RemoteReader[%s] Invalid render response from %s: %s" %
-        (self.finder.host, result.url_full, repr(err)))
-      raise Exception("Invalid render response from %s: %s" % (result.url_full, repr(err)))
+    return self.deserialize(result)
 
   def deserialize(self, result):
     """
@@ -124,28 +108,42 @@ class RemoteReader(BaseReader):
       should_buffer = settings.REMOTE_BUFFER_SIZE > 0
       measured_reader = MeasuredReader(BufferedHTTPReader(result, settings.REMOTE_BUFFER_SIZE))
 
+      content_type = result.getheader('content-type')
       if should_buffer:
         log.debug("Using streaming deserializer.")
         reader = BufferedHTTPReader(measured_reader, settings.REMOTE_BUFFER_SIZE)
-        deserialized = self._deserialize_stream(reader, result.getheader('content-type'))
-        return deserialized
+        deserialized = self._deserialize_stream(reader, content_type)
       else:
         log.debug("Using inline deserializer for small payload")
-        deserialized = self._deserialize_buffer(measured_reader.read(), result.getheader('content-type'))
-        return deserialized
+        deserialized = self._deserialize_buffer(measured_reader.read(), content_type)
     except Exception as err:
       self.finder.fail()
       log.exception(
         "RemoteReader[%s] Error decoding render response from %s: %s" %
         (self.finder.host, result.url_full, err))
-      raise Exception("Error decoding render response from %s: %s" % (result.url_full, err))
+      raise Exception("Error decoding render response from %s: %s" % (result.url_full, repr(err)))
     finally:
       log.debug("Processed %d bytes in %f seconds." % (measured_reader.bytes_read, time.time() - start))
       result.release_conn()
 
+    try:
+      if content_type == "application/json":
+        return self._create_fetch_response_from_json(deserialized)
+      else:
+        return self._create_fetch_response_from_object(deserialized)
+      return self._create_fetch_response_from_json()
+    except Exception as err:
+      self.finder.fail()
+      log.exception(
+        "RemoteReader[%s] Invalid render response from %s: %s" %
+        (self.finder.host, result.url_full, repr(err)))
+      raise Exception("Invalid render response from %s: %s" % (result.url_full, repr(err)))
+
   @staticmethod
   def _deserialize_buffer(byte_buffer, content_type):
-    if content_type == 'application/x-msgpack':
+    if content_type == 'application/json':
+      data = json.loads(byte_buffer)
+    elif content_type == 'application/x-msgpack':
       data = msgpack.unpackb(byte_buffer, encoding='utf-8')
     else:
       data = unpickle.loads(byte_buffer)
@@ -154,9 +152,46 @@ class RemoteReader(BaseReader):
 
   @staticmethod
   def _deserialize_stream(stream, content_type):
-    if content_type == 'application/x-msgpack':
+    if content_type == 'application/json':
+      data = json.load(stream)
+    elif content_type == 'application/x-msgpack':
       data = msgpack.load(stream, encoding='utf-8')
     else:
       data = unpickle.load(stream)
 
     return data
+
+  @staticmethod
+  def _create_fetch_response_from_json(data):
+    # infer step, as it's not part of a json response
+    step = 60
+    start_time = 0
+    end_time = 0
+
+    if len(data) > 0 and len(data[0].get('datapoints', [])) > 1:
+      example_series_datapoints = data[0]['datapoints']
+      step = example_series_datapoints[1][1] - example_series_datapoints[0][1]
+      start_time = example_series_datapoints[0][1]
+      end_time = example_series_datapoints[-1][1]
+
+    return [
+      {
+        'pathExpression': str(series.get('target')),
+        'name': str(series.get('target')),
+        'time_info': (start_time, end_time, step),
+        'values': [d[0] for d in series.get('datapoints', [])],
+      }
+      for series in data
+    ]
+
+  @staticmethod
+  def _create_fetch_response_from_object(data):
+    return [
+      {
+        'pathExpression': series.get('pathExpression', series['name']),
+        'name': series['name'],
+        'time_info': (series['start'], series['end'], series['step']),
+        'values': series['values'],
+      }
+      for series in data
+    ]

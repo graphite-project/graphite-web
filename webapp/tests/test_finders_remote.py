@@ -5,6 +5,7 @@ from urllib3.response import HTTPResponse
 
 from django.test import override_settings
 from mock import patch
+import json
 
 from graphite.finders.remote import RemoteFinder
 from graphite.finders.utils import FindQuery
@@ -172,6 +173,65 @@ class RemoteFinderTest(TestCase):
       with self.assertRaisesRegexp(Exception, 'Error decoding find response from https://[^ ]+: .+'):
         list(result)
 
+    @patch('urllib3.PoolManager.request')
+    @override_settings(INTRACLUSTER_HTTPS=False)
+    @override_settings(REMOTE_STORE_USE_POST=True)
+    @override_settings(FIND_TIMEOUT=10)
+    def test_find_nodes_json(self, http_request):
+      finder = RemoteFinder('http://127.0.0.1?format=json')
+
+      startTime = 1496262000
+      endTime = 1496262060
+
+      data = [
+        {
+          'path': 'a.b.c',
+          'is_leaf': False,
+        },
+        {
+          'path': 'a.b.c.d',
+          'is_leaf': True,
+        },
+      ]
+      responseObject = HTTPResponse(
+        body=BytesIO(json.dumps(data)),
+        status=200,
+        preload_content=False,
+        headers={'Content-Type': 'application/json'})
+      http_request.return_value = responseObject
+
+      query = FindQuery('a.b.c', startTime, endTime)
+      result = finder.find_nodes(query)
+
+      self.assertIsInstance(result, types.GeneratorType)
+
+      nodes = list(result)
+
+      self.assertEqual(http_request.call_args[0], (
+        'POST',
+        'http://127.0.0.1/metrics/find/',
+      ))
+      self.assertEqual(http_request.call_args[1], {
+        'fields': [
+          ('local', '1'),
+          ('format', 'json'),
+          ('query', 'a.b.c'),
+          ('from', startTime),
+          ('until', endTime),
+        ],
+        'headers': None,
+        'preload_content': False,
+        'timeout': 10,
+      })
+
+      self.assertEqual(len(nodes), 2)
+
+      self.assertIsInstance(nodes[0], BranchNode)
+      self.assertEqual(nodes[0].path, 'a.b.c')
+
+      self.assertIsInstance(nodes[1], LeafNode)
+      self.assertEqual(nodes[1].path, 'a.b.c.d')
+
     @patch('graphite.finders.remote.cache.get')
     @patch('urllib3.PoolManager.request')
     def test_find_nodes_cached(self, http_request, cache_get):
@@ -256,6 +316,64 @@ class RemoteFinderTest(TestCase):
       self.assertEqual(http_request.call_args[1], {
         'fields': [
           ('format', 'pickle'),
+          ('local', '1'),
+          ('noCache', '1'),
+          ('from', startTime),
+          ('until', endTime),
+          ('target', 'a.b.c.d'),
+        ],
+        'headers': None,
+        'preload_content': False,
+        'timeout': 10,
+      })
+
+    #
+    # Test RemoteFinder.fetch()
+    #
+    @patch('urllib3.PoolManager.request')
+    @override_settings(REMOTE_STORE_USE_POST=True)
+    @override_settings(FETCH_TIMEOUT=10)
+    def test_RemoteFinder_fetch_json(self, http_request):
+      finder = RemoteFinder('http://127.0.0.1?format=json')
+      startTime = 1496262000
+      endTime = 1496262240
+
+      data = [
+        {
+          "datapoints": [
+            [1.0, 1496262000],
+            [0.0, 1496262060],
+            [1.0, 1496262120],
+            [0.0, 1496262180],
+            [1.0, 1496262240],
+          ],
+          "target": "a.b.c.d"
+        }
+      ]
+      responseObject = HTTPResponse(
+        body=BytesIO(json.dumps(data)),
+        status=200,
+        preload_content=False,
+        headers={'Content-Type': 'application/json'})
+      http_request.return_value = responseObject
+
+      result = finder.fetch(['a.b.c.d'], startTime, endTime)
+      expected_response = [
+        {
+          'pathExpression': 'a.b.c.d',
+          'name': 'a.b.c.d',
+          'time_info': (startTime, endTime, 60),
+          'values': [1.0, 0.0, 1.0, 0.0, 1.0],
+        },
+      ]
+      self.assertEqual(result, expected_response)
+      self.assertEqual(http_request.call_args[0], (
+        'POST',
+        'http://127.0.0.1/render/',
+      ))
+      self.assertEqual(http_request.call_args[1], {
+        'fields': [
+          ('format', 'json'),
           ('local', '1'),
           ('noCache', '1'),
           ('from', startTime),
