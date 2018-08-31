@@ -194,7 +194,7 @@ class RemoteFinderTest(TestCase):
         },
       ]
       responseObject = HTTPResponse(
-        body=BytesIO(json.dumps(data)),
+        body=BytesIO(json.dumps(data).encode("UTF-8")),
         status=200,
         preload_content=False,
         headers={'Content-Type': 'application/json'})
@@ -351,7 +351,7 @@ class RemoteFinderTest(TestCase):
         }
       ]
       responseObject = HTTPResponse(
-        body=BytesIO(json.dumps(data)),
+        body=BytesIO(json.dumps(data).encode("UTF-8")),
         status=200,
         preload_content=False,
         headers={'Content-Type': 'application/json'})
