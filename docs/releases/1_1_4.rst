@@ -1,0 +1,127 @@
+.. _1-1-4:
+
+1.1.4
+===========================
+*09/04/2018*
+
+Graphite 1.1.4 is now available for usage. Please note that this is a bugfix release for the stable Graphite 1.1.x branch and it's recommended for production usage. It also contains some improvements backported from the master branch.
+
+Main features
+-------------
+* Django 2 and Python 3.7 support for carbon and graphite-web
+* SSL transport for carbon (carbon-c-relay compatible)
+* new parameters DESTINATIONS_POOL_REPLICAS, MAX_RECEIVER_CONNECTIONS for carbon
+* improving performance for big responses from cluster hosts (see REMOTE_BUFFER_SIZE in config) for graphite-web
+* many other improvements and bug fixes, please see full list below (with PR number and contributor name)
+
+Thanks a lot for all Graphite contributors and users! You are the best!
+
+Source bundles are available from GitHub:
+
+* https://github.com/graphite-project/graphite-web/archive/1.1.4.tar.gz
+* https://github.com/graphite-project/carbon/archive/1.1.4.tar.gz
+* https://github.com/graphite-project/whisper/archive/1.1.4.tar.gz
+* https://github.com/graphite-project/carbonate/archive/1.1.4.tar.gz
+
+Graphite can also be installed from `PyPI <http://pypi.python.org/>`_ via
+`pip <http://www.pip-installer.org/en/latest/index.html>`_. PyPI bundles are here:
+
+* http://pypi.python.org/pypi/graphite-web/
+* http://pypi.python.org/pypi/carbon/
+* http://pypi.python.org/pypi/whisper/
+* http://pypi.python.org/pypi/carbonate/
+
+Upgrading
+---------
+Please upgrade whisper, carbon and graphite-web - they contain valuable bugfixes and improvements. If you are using carbonate it also should be upgraded.
+
+Incompatible changes
+--------------------
+None
+
+Security Notes
+--------------
+None
+
+
+New features
+------------
+
+Graphite-Web
+^^^^^^^^^^^^
+* Django 2 support (@piotr1212 #2278)
+* improve performance of keepLastValue (@DanCech #2285)
+* handle highest/lowest thresholds specified as numeric strings (@DanCech #2294)
+* Fail hard (@clusterfudge #2303)
+* Allow history tracking in composer (@yuzawa-san #2304)
+* Better support for variant in ceres (@tharvik #2307)
+* Document timestamp -1 in carbon protocol (@piotr1212 #2309)
+* Efficient reading (@clusterfudge #2314)
+* Added Skyline to the Monitoring section (@earthgekko #2319)
+* Add support for WhiteNoise 4 (@piotr1212 #2333)
+* Add Django 2.1 and Python 3.7 to Travis tests (@piotr1212 #2336 )
+* add doc note about equal sign in rewrite rule's pattern (@YevhenLukomskyi #2339)
+
+Carbon
+^^^^^^
+* Add hint about whisper-resize.py near retention settings, (@helmo #775 #777)
+* Improve error message for parse errors in storage-schemas (@piotr1212 #780)
+* Support two new config options to enable SSL transport. (@postwait #793)
+* Add Python 3.7 testing to Travis (@piotr1212 #795)
+* carbon.conf.example: add more TCP_KEEPALIVE (@iksaif #798)
+* Allow strategies to return None (@iksaif #799)
+* Add stop accept() when we reach MAX_RECEIVER_CONNECTIONS (@iksaif #800)
+* Add DESTINATIONS_POOL_REPLICAS (@iksaif #801)
+
+Whisper
+^^^^^^^
+* Include tests in PyPI distributions (@sbraz, #253)
+* Add Python 3.7 testing to Travis (@piotr1212 #257)
+
+Carbonate
+^^^^^^^^^
+* Use the scandir version of os.walk if possible (@deejay1, PR#99)
+* Include LICENSE in MANIFEST.in (@deejay1, PR#100)
+
+Bug Fixes
+---------
+
+Graphite-Web
+^^^^^^^^^^^^
+* skip ceres tests if not installed (@piotr1212 #2276)
+* Fix LDAP email address (@kajla #2277)
+* fix typo: matric -> metric in feeding-carbon.rst (@ngash #2281)
+* Fixing typo in docs (@deniszh #2284)
+* hashing: bisect fix for py3 (@piotr1212 #2291)
+* Generate error when find query is empty (@deniszh #2295)
+* replace raise StopIteration with return pep-0479 (@piotr1212 #2300)
+* carbonlink: set the type of the recv buffer explicitly to bytes (@piotr1212 #2301)
+* clarify 'maxDataPoints' (@Dieterbe #2302)
+* Fix get_real_metric_path for paths where an intermediate directory is a symlink (@yadsirhc #2326)
+* Latest whitenoise is not supported by graphite (@ellisvlad #2331)
+* convert prefetched values generator to reusable iterator (@TimWhalen #2322)
+* backport v4 compatibility (@deniszh #2340)
+
+
+Carbon
+^^^^^^
+* Don't leak file descriptors in instrumentation (@deejay1, #770)
+* Fix logging on py3 Twisted > 16 (@piotr1212, #774)
+* hashing, fix bisect on py3 (@piotr1212 #778)
+* replace raise StopIteration with return pep-0479 (@piotr1212, #779)
+* rewrite is handled in pipeline now (@DanCech, #790)
+* aggregator: hide "Allocating new metric" (@iksaif @796)
+* Fix compatibility issues (@deniszh #802)
+* import setUpRandomResolver only for new Twisted (@deniszh, #806)
+
+
+Whisper
+^^^^^^^
+* Make rrd2whisper.py run with Python 3 (@msk, #254)
+* E722 do not use bare except (@piotr1212, #255)
+* backport v4 compatibility (@deniszh #259)
+
+
+Carbonate
+^^^^^^^^^
+* None
