@@ -4,7 +4,7 @@
 ===========================
 *09/04/2018*
 
-Graphite 1.1.4 is now available for usage. Please note that this is a bugfix release for stable Graphite 1.1.x branch and it's recommended for production usage. It also contains some improvements backported from master branch.
+Graphite 1.1.4 is now available for usage. Please note that this is a bugfix release for the stable Graphite 1.1.x branch and it's recommended for production usage. It also contains some improvements backported from the master branch.
 
 Main features
 -------------
@@ -33,7 +33,7 @@ Graphite can also be installed from `PyPI <http://pypi.python.org/>`_ via
 
 Upgrading
 ---------
-Please upgrade whisper, carbon and graphite-web - they contain valuable bugfixes and improvements. If you using carbonate it also should be upgraded.
+Please upgrade whisper, carbon and graphite-web - they contain valuable bugfixes and improvements. If you are using carbonate it also should be upgraded.
 
 Incompatible changes
 --------------------
