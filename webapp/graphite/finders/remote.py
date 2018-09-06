@@ -124,6 +124,11 @@ class RemoteFinder(BaseFinder):
 
             cache.set(cacheKey, results, settings.FIND_CACHE_DURATION)
 
+        # We don't use generator here, this function may be run as a job in a thread pool, using a generator has the following risks:
+        # 1. Generators are lazy, if we don't iterator the returned generator in the job, the real execution(network operations,
+        #    time-consuming) are very likely be triggered in the calling thread, losing the effect of thread pool;
+        # 2. As function execution is delayed, the job manager can not catch job runtime exception as expected/designed;
+        nodes = []
         for node_info in results:
             # handle both 1.x and 0.9.x output
             path = node_info.get('path') or node_info.get('metric_path')
@@ -146,7 +151,9 @@ class RemoteFinder(BaseFinder):
                 node = BranchNode(path)
 
             node.local = False
-            yield node
+            nodes.append(node)
+
+        return nodes
 
     def fetch(self, patterns, start_time, end_time, now=None, requestContext=None):
         reader = RemoteReader(self, {}, bulk_query=patterns)

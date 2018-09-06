@@ -84,8 +84,6 @@ class RemoteFinderTest(TestCase):
       query = FindQuery('a.b.c', startTime, endTime)
       result = finder.find_nodes(query)
 
-      self.assertIsInstance(result, types.GeneratorType)
-
       nodes = list(result)
 
       self.assertEqual(http_request.call_args[0], (
@@ -135,8 +133,6 @@ class RemoteFinderTest(TestCase):
 
       query = FindQuery('a.b.c', None, None)
       result = finder.find_nodes(query)
-
-      self.assertIsInstance(result, types.GeneratorType)
 
       nodes = list(result)
 
@@ -194,8 +190,6 @@ class RemoteFinderTest(TestCase):
 
       query = FindQuery('a.b.c', startTime, endTime)
       result = finder.find_nodes(query)
-
-      self.assertIsInstance(result, types.GeneratorType)
 
       nodes = list(result)
 
