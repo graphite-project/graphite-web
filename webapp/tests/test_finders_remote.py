@@ -1,5 +1,4 @@
 import logging
-import types
 
 from urllib3.response import HTTPResponse
 
