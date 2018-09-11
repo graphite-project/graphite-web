@@ -106,21 +106,7 @@ class RemoteFinder(BaseFinder):
                 headers=query.headers,
                 timeout=settings.FIND_TIMEOUT)
 
-            try:
-                if result.getheader('content-type') == 'application/x-msgpack':
-                  results = msgpack.load(BufferedHTTPReader(
-                    result, buffer_size=settings.REMOTE_BUFFER_SIZE), encoding='utf-8')
-                else:
-                  results = unpickle.load(BufferedHTTPReader(
-                    result, buffer_size=settings.REMOTE_BUFFER_SIZE))
-            except Exception as err:
-                self.fail()
-                log.exception(
-                    "RemoteFinder[%s] Error decoding find response from %s: %s" %
-                    (self.host, result.url_full, err))
-                raise Exception("Error decoding find response from %s: %s" % (result.url_full, err))
-            finally:
-                result.release_conn()
+            results = self.deserialize(result)
 
             cache.set(cacheKey, results, settings.FIND_CACHE_DURATION)
 
@@ -279,3 +265,67 @@ class RemoteFinder(BaseFinder):
 
         log.debug("RemoteFinder[%s] Fetched %s" % (self.host, url_full))
         return result
+
+    def deserialize(self, result):
+        """
+        Based on configuration, either stream-deserialize a response in settings.REMOTE_BUFFER_SIZE chunks,
+        or read the entire payload and use inline deserialization.
+        :param result: an http response object
+        :return: deserialized response payload from cluster server
+        """
+        start = time.time()
+        try:
+            should_buffer = settings.REMOTE_BUFFER_SIZE > 0
+            measured_reader = MeasuredReader(BufferedHTTPReader(result, settings.REMOTE_BUFFER_SIZE))
+
+            if should_buffer:
+                log.debug("Using streaming deserializer.")
+                reader = BufferedHTTPReader(measured_reader, settings.REMOTE_BUFFER_SIZE)
+                return self._deserialize_stream(reader, result.getheader('content-type'))
+
+            log.debug("Using inline deserializer for small payload")
+            return self._deserialize_buffer(measured_reader.read(), result.getheader('content-type'))
+        except Exception as err:
+            self.fail()
+            log.exception(
+                "RemoteFinder[%s] Error decoding response from %s: %s" %
+                (self.host, result.url_full, err))
+            raise Exception("Error decoding response from %s: %s" % (result.url_full, err))
+        finally:
+            log.debug("Processed %d bytes in %f seconds." % (measured_reader.bytes_read, time.time() - start))
+            result.release_conn()
+
+    @staticmethod
+    def _deserialize_buffer(byte_buffer, content_type):
+        if content_type == 'application/x-msgpack':
+            data = msgpack.unpackb(byte_buffer, encoding='utf-8')
+        else:
+            data = unpickle.loads(byte_buffer)
+
+        return data
+
+    @staticmethod
+    def _deserialize_stream(stream, content_type):
+        if content_type == 'application/x-msgpack':
+            data = msgpack.load(stream, encoding='utf-8')
+        else:
+            data = unpickle.load(stream)
+
+        return data
+
+
+class MeasuredReader(object):
+    def __init__(self, reader):
+        self.reader = reader
+        self.bytes_read = 0
+
+    def read(self, amt=None):
+        b = b''
+        try:
+            if amt:
+                b = self.reader.read(amt)
+            else:
+                b = self.reader.read()
+            return b
+        finally:
+            self.bytes_read += len(b)

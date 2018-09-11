@@ -4,26 +4,6 @@ from django.conf import settings
 
 from graphite.logger import log
 from graphite.readers.utils import BaseReader
-from graphite.util import unpickle, msgpack, BufferedHTTPReader
-
-import time
-
-
-class MeasuredReader(object):
-  def __init__(self, reader):
-    self.reader = reader
-    self.bytes_read = 0
-
-  def read(self, amt=None):
-    b = b''
-    try:
-      if amt:
-        b = self.reader.read(amt)
-      else:
-        b = self.reader.read()
-      return b
-    finally:
-      self.bytes_read += len(b)
 
 
 class RemoteReader(BaseReader):
@@ -93,7 +73,7 @@ class RemoteReader(BaseReader):
                         (retries, settings.MAX_FETCH_RETRIES, format_exc()))
         retries += 1
 
-    data = self.deserialize(result)
+    data = self.finder.deserialize(result)
 
     try:
       return [
@@ -111,52 +91,3 @@ class RemoteReader(BaseReader):
         "RemoteReader[%s] Invalid render response from %s: %s" %
         (self.finder.host, result.url_full, repr(err)))
       raise Exception("Invalid render response from %s: %s" % (result.url_full, repr(err)))
-
-  def deserialize(self, result):
-    """
-    Based on configuration, either stream-deserialize a response in settings.REMOTE_BUFFER_SIZE chunks,
-    or read the entire payload and use inline deserialization.
-    :param result: an http response object
-    :return: deserialized response payload from cluster server
-    """
-    start = time.time()
-    try:
-      should_buffer = settings.REMOTE_BUFFER_SIZE > 0
-      measured_reader = MeasuredReader(BufferedHTTPReader(result, settings.REMOTE_BUFFER_SIZE))
-
-      if should_buffer:
-        log.debug("Using streaming deserializer.")
-        reader = BufferedHTTPReader(measured_reader, settings.REMOTE_BUFFER_SIZE)
-        deserialized = self._deserialize_stream(reader, result.getheader('content-type'))
-        return deserialized
-      else:
-        log.debug("Using inline deserializer for small payload")
-        deserialized = self._deserialize_buffer(measured_reader.read(), result.getheader('content-type'))
-        return deserialized
-    except Exception as err:
-      self.finder.fail()
-      log.exception(
-        "RemoteReader[%s] Error decoding render response from %s: %s" %
-        (self.finder.host, result.url_full, err))
-      raise Exception("Error decoding render response from %s: %s" % (result.url_full, err))
-    finally:
-      log.debug("Processed %d bytes in %f seconds." % (measured_reader.bytes_read, time.time() - start))
-      result.release_conn()
-
-  @staticmethod
-  def _deserialize_buffer(byte_buffer, content_type):
-    if content_type == 'application/x-msgpack':
-      data = msgpack.unpackb(byte_buffer, encoding='utf-8')
-    else:
-      data = unpickle.loads(byte_buffer)
-
-    return data
-
-  @staticmethod
-  def _deserialize_stream(stream, content_type):
-    if content_type == 'application/x-msgpack':
-      data = msgpack.load(stream, encoding='utf-8')
-    else:
-      data = unpickle.load(stream)
-
-    return data
