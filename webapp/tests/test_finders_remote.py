@@ -158,7 +158,7 @@ class RemoteFinderTest(TestCase):
       responseObject = HTTPResponse(body=BytesIO(b'error'), status=200, preload_content=False)
       http_request.return_value = responseObject
 
-      with self.assertRaisesRegexp(Exception, 'Error decoding find response from https://[^ ]+: .+'):
+      with self.assertRaisesRegexp(Exception, 'Error decoding response from https://[^ ]+: .+'):
         finder.find_nodes(query)
 
     @patch('graphite.finders.remote.cache.get')
