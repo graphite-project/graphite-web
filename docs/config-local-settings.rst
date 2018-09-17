@@ -1,6 +1,6 @@
 Graphite-web's local_settings.py
 ================================
-Graphite-web uses the convention of importing a ``local_settings.py`` file from the webapp ``settings.py`` module. This is where Graphite-web's runtime configuration is loaded from. Also alternate local settings module can be set. This may be usable for multi-instance way.
+Graphite-web uses the convention of importing a ``local_settings.py`` file from the webapp ``settings.py`` module. This is where Graphite-web's runtime configuration is loaded from. Also alternate local settings module can be set (see below). This may be usable for multi-instance deployments.
 
 
 Config File Location
