@@ -207,7 +207,7 @@ DATABASES = None
 FLUSHRRDCACHED = ''
 
 ## Load our local_settings
-SETTINGS_MODULE = os.environ['GRAPHITE_SETTINGS_MODULE']
+SETTINGS_MODULE = os.environ.get('GRAPHITE_SETTINGS_MODULE', 'graphite.local_settings')
 try:
   globals().update(import_module(SETTINGS_MODULE).__dict__)
 except ImportError:
