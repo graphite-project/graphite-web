@@ -161,6 +161,111 @@ class RemoteFinderTest(TestCase):
       with self.assertRaisesRegexp(Exception, 'Error decoding find response from https://[^ ]+: .+'):
         finder.find_nodes(query)
 
+    @patch('urllib3.PoolManager.request')
+    @override_settings(INTRACLUSTER_HTTPS=False)
+    @override_settings(REMOTE_STORE_USE_POST=True)
+    @override_settings(FIND_TIMEOUT=10)
+    @override_settings(REMOTE_BUFFER_SIZE=0)
+    def test_find_nodes_without_buffering(self, http_request):
+      finder = RemoteFinder('127.0.0.1')
+
+      startTime = 1496262000
+      endTime = 1496262060
+
+      data = [
+        {
+          'path': 'a.b.c',
+          'is_leaf': False,
+        },
+        {
+          'path': 'a.b.c.d',
+          'is_leaf': True,
+        },
+      ]
+      responseObject = HTTPResponse(body=BytesIO(pickle.dumps(data)), status=200, preload_content=False)
+      http_request.return_value = responseObject
+
+      query = FindQuery('a.b.c', startTime, endTime)
+      nodes = finder.find_nodes(query)
+
+      self.assertEqual(http_request.call_args[0], (
+        'POST',
+        'http://127.0.0.1/metrics/find/',
+      ))
+      self.assertEqual(http_request.call_args[1], {
+        'fields': [
+          ('local', '1'),
+          ('format', 'pickle'),
+          ('query', 'a.b.c'),
+          ('from', startTime),
+          ('until', endTime),
+        ],
+        'headers': None,
+        'preload_content': False,
+        'timeout': 10,
+      })
+
+      self.assertEqual(len(nodes), 2)
+
+      self.assertIsInstance(nodes[0], BranchNode)
+      self.assertEqual(nodes[0].path, 'a.b.c')
+
+      self.assertIsInstance(nodes[1], LeafNode)
+      self.assertEqual(nodes[1].path, 'a.b.c.d')
+
+      finder = RemoteFinder('https://127.0.0.1?format=msgpack')
+
+      data = [
+        {
+          'path': 'a.b.c',
+          'is_leaf': False,
+        },
+        {
+          'path': 'a.b.c.d',
+          'is_leaf': True,
+        },
+      ]
+      responseObject = HTTPResponse(
+        body=BytesIO(msgpack.dumps(data, use_bin_type=True)),
+        status=200,
+        preload_content=False,
+        headers={'Content-Type': 'application/x-msgpack'}
+      )
+      http_request.return_value = responseObject
+
+      query = FindQuery('a.b.c', None, None)
+      nodes = finder.find_nodes(query)
+
+      self.assertEqual(http_request.call_args[0], (
+        'POST',
+        'https://127.0.0.1/metrics/find/',
+      ))
+      self.assertEqual(http_request.call_args[1], {
+        'fields': [
+          ('local', '1'),
+          ('format', 'msgpack'),
+          ('query', 'a.b.c'),
+        ],
+        'headers': None,
+        'preload_content': False,
+        'timeout': 10,
+      })
+
+      self.assertEqual(len(nodes), 2)
+
+      self.assertIsInstance(nodes[0], BranchNode)
+      self.assertEqual(nodes[0].path, 'a.b.c')
+
+      self.assertIsInstance(nodes[1], LeafNode)
+      self.assertEqual(nodes[1].path, 'a.b.c.d')
+
+      # non-pickle response
+      responseObject = HTTPResponse(body=BytesIO(b'error'), status=200, preload_content=False)
+      http_request.return_value = responseObject
+
+      with self.assertRaisesRegexp(Exception, 'Error decoding find response from https://[^ ]+: .+'):
+        finder.find_nodes(query)
+
     @patch('graphite.finders.remote.cache.get')
     @patch('urllib3.PoolManager.request')
     def test_find_nodes_cached(self, http_request, cache_get):

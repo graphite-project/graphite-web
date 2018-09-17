@@ -107,12 +107,15 @@ class RemoteFinder(BaseFinder):
                 timeout=settings.FIND_TIMEOUT)
 
             try:
-                if result.getheader('content-type') == 'application/x-msgpack':
-                  results = msgpack.load(BufferedHTTPReader(
-                    result, buffer_size=settings.REMOTE_BUFFER_SIZE), encoding='utf-8')
+                should_buffer = settings.REMOTE_BUFFER_SIZE > 0
+                content_type = result.getheader('content-type')
+                if should_buffer:
+                    log.debug("Using streaming deserializer.")
+                    stream = BufferedHTTPReader(
+                      result, buffer_size=settings.REMOTE_BUFFER_SIZE)
+                    results = self._deserialize_stream(stream, content_type)
                 else:
-                  results = unpickle.load(BufferedHTTPReader(
-                    result, buffer_size=settings.REMOTE_BUFFER_SIZE))
+                    results = self._deserialize_buffer(result.read(), content_type)
             except Exception as err:
                 self.fail()
                 log.exception(
@@ -154,6 +157,24 @@ class RemoteFinder(BaseFinder):
             nodes.append(node)
 
         return nodes
+
+    @staticmethod
+    def _deserialize_buffer(byte_buffer, content_type):
+        if content_type == 'application/x-msgpack':
+            data = msgpack.unpackb(byte_buffer, encoding='utf-8')
+        else:
+            data = unpickle.loads(byte_buffer)
+
+        return data
+
+    @staticmethod
+    def _deserialize_stream(stream, content_type):
+        if content_type == 'application/x-msgpack':
+            data = msgpack.load(stream, encoding='utf-8')
+        else:
+            data = unpickle.load(stream)
+
+        return data
 
     def fetch(self, patterns, start_time, end_time, now=None, requestContext=None):
         reader = RemoteReader(self, {}, bulk_query=patterns)
