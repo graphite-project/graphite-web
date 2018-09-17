@@ -7,6 +7,7 @@ except ImportError:
     from django.utils.importlib import import_module
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'graphite.settings')  # noqa
+os.environ.setdefault('GRAPHITE_SETTINGS_MODULE', 'graphite.local_settings')  # noqa
 
 from django.conf import settings
 from django.core.wsgi import get_wsgi_application
