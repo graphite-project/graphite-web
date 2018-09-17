@@ -18,6 +18,7 @@ import os
 import sys
 from os.path import abspath, dirname, join
 from warnings import warn
+from importlib import import_module
 
 from django import VERSION as DJANGO_VERSION
 try:
@@ -206,10 +207,11 @@ DATABASES = None
 FLUSHRRDCACHED = ''
 
 ## Load our local_settings
+SETTINGS_MODULE = os.environ.get('GRAPHITE_SETTINGS_MODULE', 'graphite.local_settings')
 try:
-  from graphite.local_settings import *  # noqa
+  globals().update(import_module(SETTINGS_MODULE).__dict__)
 except ImportError:
-  print("Could not import graphite.local_settings, using defaults!", file=sys.stderr)
+  print("Could not import {0}, using defaults!".format(SETTINGS_MODULE), file=sys.stderr)
 
 ## Load Django settings if they werent picked up in local_settings
 if not GRAPHITE_WEB_APP_SETTINGS_LOADED:
