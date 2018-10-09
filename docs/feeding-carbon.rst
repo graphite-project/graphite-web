@@ -29,25 +29,15 @@ The data sent must be in the following format: ``<metric path> <metric value> <m
 
 On Unix, the ``nc`` program (``netcat``) can be used to create a socket and send data to Carbon (by default, 'plaintext' runs on port 2003):
 
-If you use the OpenBSD implementation of ``netcat``, please follow this example:
-
   .. code-block:: none
 
    PORT=2003
    SERVER=graphite.your.org
-   echo "local.random.diceroll 4 `date +%s`" | nc -q0 ${SERVER} ${PORT}
-
-  The ``-q0`` parameter instructs ``nc`` to close socket once data is sent. Without this option, some ``nc`` versions would keep the connection open.
-
-If you use the GNU implementation of ``netcat``, please follow this example:
-
-  .. code-block:: none
-
-   PORT=2003
-   SERVER=graphite.your.org
-   echo "local.random.diceroll 4 `date +%s`" | nc -c ${SERVER} ${PORT}
-
-  The ``-c`` parameter instructs ``nc`` to close socket once data is sent. Without this option, ``nc`` will keep the connection open and won't end.
+   echo "local.random.diceroll 4 `date +%s`" | nc ${SERVER} ${PORT}
+  
+  As many ``netcat`` implementations exist, a parameter may be needed to instruct ``nc`` to close the socket once data is sent. Such param will usually be ``-q0``, ``-c`` or ``-N``. Refer to your ``nc`` implementation man page to determine it.
+  
+  Note that if your Carbon instance is listening using the UDP protocol, you also need the ``-u`` parameter.
 
 The pickle protocol
 -------------------
