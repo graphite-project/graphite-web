@@ -114,10 +114,14 @@ class LocalDatabaseTagDB(BaseTagDB):
 
       return [row[0] for row in cursor if matches_filters(row[0])]
 
-  def get_series(self, path, requestContext=None, path_hash=None):
-    if path_hash is None:
-      path_hash = sha256(path.encode('utf8')).hexdigest()
+  @staticmethod
+  def _path_hash(path):
+    return sha256(path.encode('utf8')).hexdigest()
 
+  def get_series(self, path, requestContext=None):
+    return self._get_series(self._path_hash(path))
+
+  def _get_series(self, path_hash):
     with connection.cursor() as cursor:
       sql = 'SELECT s.id, t.tag, v.value'
       sql += ' FROM tags_series AS s'
@@ -259,10 +263,10 @@ class LocalDatabaseTagDB(BaseTagDB):
     parsed = self.parse(series)
 
     path = parsed.path
-    path_hash = sha256(path.encode('utf8')).hexdigest()
+    path_hash = self._path_hash(path)
 
     # check if path is already tagged
-    curr = self.get_series(path, path_hash=path_hash)
+    curr = self._get_series(path_hash)
     if curr and parsed.tags == curr.tags:
       return path
 
@@ -307,14 +311,10 @@ class LocalDatabaseTagDB(BaseTagDB):
   def del_series(self, series, requestContext=None):
     # extract tags and normalize path
     parsed = self.parse(series)
-
-    path = parsed.path
-    path_hash = sha256(path.encode('utf8')).hexdigest()
+    path_hash = self._path_hash(parsed.path)
 
     with connection.cursor() as cursor:
-      sql = 'SELECT id'
-      sql += ' FROM tags_series'
-      sql += ' WHERE hash=%s'
+      sql = 'SELECT id FROM tags_series WHERE hash=%s'
       params = [path_hash]
       cursor.execute(sql, params)
 
