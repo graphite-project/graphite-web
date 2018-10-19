@@ -121,7 +121,8 @@ class LocalDatabaseTagDB(BaseTagDB):
   def get_series(self, path, requestContext=None):
     return self._get_series(self._path_hash(path))
 
-  def _get_series(self, path_hash):
+  @staticmethod
+  def _get_series(path_hash):
     with connection.cursor() as cursor:
       sql = 'SELECT s.id, t.tag, v.value'
       sql += ' FROM tags_series AS s'
