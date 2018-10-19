@@ -114,15 +114,18 @@ class LocalDatabaseTagDB(BaseTagDB):
 
       return [row[0] for row in cursor if matches_filters(row[0])]
 
-  def get_series(self, path, requestContext=None):
+  def get_series(self, path, requestContext=None, path_hash=None):
+    if path_hash is None:
+      path_hash = sha256(path.encode('utf8')).hexdigest()
+
     with connection.cursor() as cursor:
       sql = 'SELECT s.id, t.tag, v.value'
       sql += ' FROM tags_series AS s'
       sql += ' JOIN tags_seriestag AS st ON st.series_id=s.id'
       sql += ' JOIN tags_tag AS t ON t.id=st.tag_id'
       sql += ' JOIN tags_tagvalue AS v ON v.id=st.value_id'
-      sql += ' WHERE s.path=%s'
-      params = [path]
+      sql += ' WHERE s.hash=%s'
+      params = [path_hash]
       cursor.execute(sql, params)
 
       series_id = None
@@ -256,9 +259,10 @@ class LocalDatabaseTagDB(BaseTagDB):
     parsed = self.parse(series)
 
     path = parsed.path
+    path_hash = sha256(path.encode('utf8')).hexdigest()
 
     # check if path is already tagged
-    curr = self.get_series(path)
+    curr = self.get_series(path, path_hash=path_hash)
     if curr and parsed.tags == curr.tags:
       return path
 
@@ -284,11 +288,10 @@ class LocalDatabaseTagDB(BaseTagDB):
         series_id = curr.id
       else:
         # hash column is used to support a unique index in mysql since path can be longer than 191 characters
-        path_hash = sha256(path.encode('utf8')).hexdigest()
         self._insert_ignore('tags_series', ['hash', 'path'], [[path_hash, path]])
 
-        sql = 'SELECT id FROM tags_series WHERE path=%s'
-        params = [path]
+        sql = 'SELECT id FROM tags_series WHERE hash=%s'
+        params = [path_hash]
         cursor.execute(sql, params)
         series_id = cursor.fetchone()[0]
 
@@ -306,12 +309,13 @@ class LocalDatabaseTagDB(BaseTagDB):
     parsed = self.parse(series)
 
     path = parsed.path
+    path_hash = sha256(path.encode('utf8')).hexdigest()
 
     with connection.cursor() as cursor:
       sql = 'SELECT id'
       sql += ' FROM tags_series'
-      sql += ' WHERE path=%s'
-      params = [path]
+      sql += ' WHERE hash=%s'
+      params = [path_hash]
       cursor.execute(sql, params)
 
       row = cursor.fetchone()
