@@ -57,11 +57,19 @@ class RemoteFinderTest(TestCase):
       with patch('graphite.finders.remote.time.time', lambda: 110):
         self.assertFalse(finder.disabled)
 
+    @override_settings(REMOTE_BUFFER_SIZE=1024 * 1024)
+    def test_find_nodes_with_buffering(self):
+      self._test_find_nodes()
+
+    @override_settings(REMOTE_BUFFER_SIZE=0)
+    def test_find_nodes_without_buffering(self):
+      self._test_find_nodes()
+
     @patch('urllib3.PoolManager.request')
     @override_settings(INTRACLUSTER_HTTPS=False)
     @override_settings(REMOTE_STORE_USE_POST=True)
     @override_settings(FIND_TIMEOUT=10)
-    def test_find_nodes(self, http_request):
+    def _test_find_nodes(self, http_request):
       finder = RemoteFinder('127.0.0.1')
 
       startTime = 1496262000
@@ -158,7 +166,7 @@ class RemoteFinderTest(TestCase):
       responseObject = HTTPResponse(body=BytesIO(b'error'), status=200, preload_content=False)
       http_request.return_value = responseObject
 
-      with self.assertRaisesRegexp(Exception, 'Error decoding find response from https://[^ ]+: .+'):
+      with self.assertRaisesRegexp(Exception, 'Error decoding response from https://[^ ]+: .+'):
         finder.find_nodes(query)
 
     @patch('graphite.finders.remote.cache.get')
