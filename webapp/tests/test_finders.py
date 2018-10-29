@@ -247,6 +247,25 @@ class StandardFinderTest(TestCase):
             scandir_mock.call_count = 0
             self.wipe_whisper()
 
+    def test_standard_finder_tagged_whisper_carbonlink(self):
+        try:
+            self.create_whisper(join(
+              '_tagged',
+              'b34',
+              '2de',
+              # foo;bar=baz2
+              'b342defa10cb579981c63ef78be5ac248f681f4bd2c35bc0209d3a7b9eb99346.wsp'
+            ))
+
+            finder = get_finders('graphite.finders.standard.StandardFinder')[0]
+
+            nodes = list(finder.find_nodes(FindQuery('foo;bar=baz2', None, None)))
+            self.assertEqual(len(nodes), 1)
+            self.assertEqual(nodes[0].reader.real_metric_path, 'foo;bar=baz2')
+
+        finally:
+            self.wipe_whisper()
+
     def test_globstar(self):
         self.addCleanup(self.wipe_whisper)
         store  = Store(finders=get_finders('graphite.finders.standard.StandardFinder'))
