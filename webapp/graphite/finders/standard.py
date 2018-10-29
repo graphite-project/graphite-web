@@ -69,13 +69,14 @@ class StandardFinder(BaseFinder):
                     datasource_pattern = None
 
                 absolute_path = join(root_dir, relative_path)
-                metric_path = fs_to_metric(relative_path)
-                real_metric_path = get_real_metric_path(absolute_path, metric_path)
 
                 # if we're finding by tag, return the proper metric path
                 if tagged:
                   metric_path = query.pattern
+                  real_metric_path = query.pattern
                 else:
+                  metric_path = fs_to_metric(relative_path)
+                  real_metric_path = get_real_metric_path(absolute_path, metric_path)
                   metric_path_parts = metric_path.split('.')
                   for field_index in find_escaped_pattern_fields(query.pattern):
                       metric_path_parts[field_index] = pattern_parts[field_index].replace('\\', '')
