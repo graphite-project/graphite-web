@@ -331,7 +331,7 @@ function initDashboard () {
         url: document.body.dataset.baseUrl + 'metrics/find/',
         autoLoad: true,
         baseParams: {
-          query: '',
+          query: '*',
           format: 'completer',
           automatic_variants: (UI_CONFIG.automatic_variants) ? '1' : '0'
         },
