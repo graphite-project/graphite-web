@@ -383,6 +383,9 @@ function initDashboard () {
   var autocompleteTask = new Ext.util.DelayedTask(function () {
     var query = metricSelectorTextField.getValue();
     var store = metricSelectorGrid.getStore();
+    if (query === '') {
+      query = '*'
+    }
     store.setBaseParam('query', query);
     store.load();
   });
