@@ -1200,7 +1200,7 @@ def movingWindow(requestContext, seriesList, windowSize, func='average', xFilesF
 
   Takes one metric or a wildcard seriesList, a number N of datapoints
   or a quoted string with a length of time like '1hour' or '5min' (See ``from /
-  until`` in the render\_api_ for examples of time formats), a function to apply to the points
+  until`` in the :doc:`Render API <render_api>` for examples of time formats), a function to apply to the points
   in the window to produce the output, and an xFilesFactor value to specify how many points in the
   window must be non-null for the output to be considered valid. Graphs the
   output of the function for the preceeding datapoints for each point on the graph.
@@ -1362,7 +1362,7 @@ def movingMedian(requestContext, seriesList, windowSize, xFilesFactor=None):
 
   Takes one metric or a wildcard seriesList followed by a number N of datapoints
   or a quoted string with a length of time like '1hour' or '5min' (See ``from /
-  until`` in the render\_api_ for examples of time formats), and an xFilesFactor value to specify
+  until`` in the :doc:`Render API <render_api>` for examples of time formats), and an xFilesFactor value to specify
   how many points in the window must be non-null for the output to be considered valid. Graphs the
   median of the preceeding datapoints for each point on the graph.
 
@@ -1712,7 +1712,7 @@ def movingAverage(requestContext, seriesList, windowSize, xFilesFactor=None):
 
   Takes one metric or a wildcard seriesList followed by a number N of datapoints
   or a quoted string with a length of time like '1hour' or '5min' (See ``from /
-  until`` in the render\_api_ for examples of time formats), and an xFilesFactor value to specify
+  until`` in the :doc:`Render API <render_api>` for examples of time formats), and an xFilesFactor value to specify
   how many points in the window must be non-null for the output to be considered valid. Graphs the
   average of the preceeding datapoints for each point on the graph.
 
@@ -1742,7 +1742,7 @@ def movingSum(requestContext, seriesList, windowSize, xFilesFactor=None):
 
   Takes one metric or a wildcard seriesList followed by a number N of datapoints
   or a quoted string with a length of time like '1hour' or '5min' (See ``from /
-  until`` in the render\_api_ for examples of time formats), and an xFilesFactor value to specify
+  until`` in the :doc:`Render API <render_api>` for examples of time formats), and an xFilesFactor value to specify
   how many points in the window must be non-null for the output to be considered valid. Graphs the
   sum of the preceeding datapoints for each point on the graph.
 
@@ -1772,7 +1772,7 @@ def movingMin(requestContext, seriesList, windowSize, xFilesFactor=None):
 
   Takes one metric or a wildcard seriesList followed by a number N of datapoints
   or a quoted string with a length of time like '1hour' or '5min' (See ``from /
-  until`` in the render\_api_ for examples of time formats), and an xFilesFactor value to specify
+  until`` in the :doc:`Render API <render_api>` for examples of time formats), and an xFilesFactor value to specify
   how many points in the window must be non-null for the output to be considered valid. Graphs the
   minimum of the preceeding datapoints for each point on the graph.
 
@@ -1802,7 +1802,7 @@ def movingMax(requestContext, seriesList, windowSize, xFilesFactor=None):
 
   Takes one metric or a wildcard seriesList followed by a number N of datapoints
   or a quoted string with a length of time like '1hour' or '5min' (See ``from /
-  until`` in the render\_api_ for examples of time formats), and an xFilesFactor value to specify
+  until`` in the :doc:`Render API <render_api>` for examples of time formats), and an xFilesFactor value to specify
   how many points in the window must be non-null for the output to be considered valid. Graphs the
   maximum of the preceeding datapoints for each point on the graph.
 
@@ -3385,7 +3385,7 @@ def sortByName(requestContext, seriesList, natural=False, reverse=False):
   - Natural sorting: server1, server2, server11, server12
   """
   def natSortKey(series):
-    return re.sub("(\d+)", lambda x: "{0:010}".format(int(x.group(0))), series.name)
+    return re.sub(r"(\d+)", lambda x: "{0:010}".format(int(x.group(0))), series.name)
 
   if natural:
     seriesList.sort(key=natSortKey, reverse=reverse)
@@ -3970,7 +3970,7 @@ def linearRegression(requestContext, seriesList, startSourceAt=None, endSourceAt
   Takes one metric or a wildcard seriesList, followed by a quoted string with the
   time to start the line and another quoted string with the time to end the line.
   The start and end times are inclusive (default range is from to until). See
-  ``from / until`` in the render\_api_ for examples of time formats. Datapoints
+  ``from / until`` in the :doc:`Render API <render_api>` for examples of time formats. Datapoints
   in the range is used to regression.
 
   Example:
@@ -4106,7 +4106,7 @@ dashed.params = [
 def timeStack(requestContext, seriesList, timeShiftUnit='1d', timeShiftStart=0, timeShiftEnd=7):
   """
   Takes one metric or a wildcard seriesList, followed by a quoted string with the
-  length of time (See ``from / until`` in the render\_api_ for examples of time formats).
+  length of time (See ``from / until`` in the :doc:`Render API <render_api>` for examples of time formats).
   Also takes a start multiplier and end multiplier for the length of time
 
   create a seriesList which is composed the original metric series stacked with time shifts
@@ -4163,7 +4163,7 @@ timeStack.params = [
 def timeShift(requestContext, seriesList, timeShift, resetEnd=True, alignDST=False):
   """
   Takes one metric or a wildcard seriesList, followed by a quoted string with the
-  length of time (See ``from / until`` in the render\_api_ for examples of time formats).
+  length of time (See ``from / until`` in the :doc:`Render API <render_api>` for examples of time formats).
 
   Draws the selected metrics shifted in time. If no sign is given, a minus sign ( - ) is
   implied which will shift the metric back in time. If a plus sign ( + ) is given, the
@@ -4250,7 +4250,7 @@ def timeSlice(requestContext, seriesList, startSliceAt, endSliceAt="now"):
   """
   Takes one metric or a wildcard metric, followed by a quoted string with the
   time to start the line and another quoted string with the time to end the line.
-  The start and end times are inclusive. See ``from / until`` in the render\_api_
+  The start and end times are inclusive. See ``from / until`` in the :doc:`Render API <render_api>`
   for examples of time formats.
 
   Useful for filtering out a part of a series of data from a wider range of
@@ -4424,7 +4424,7 @@ verticalLine.params = [
 def threshold(requestContext, value, label=None, color=None):
   """
   Takes a float F, followed by a label (in double quotes) and a color.
-  (See ``bgcolor`` in the render\_api_ for valid color names & formats.)
+  (See ``bgcolor`` in the :doc:`Render API <render_api>` for valid color names & formats.)
 
   Draws a horizontal line at value F across the graph.
 
