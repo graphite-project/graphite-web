@@ -473,7 +473,7 @@ areaAlpha
 ---------
 *Default: 1.0*
 
-Takes a floating point number between 0.0 and 1.0 
+Takes a floating point number between 0.0 and 1.0
 
 Sets the alpha (transparency) value of filled areas when using an areaMode_
 
@@ -484,7 +484,7 @@ areaMode
 *Default: none*
 
 Enables filling of the area below the graphed lines. Fill area is the same color as
-the line color associated with it. See areaAlpha_ to make this area transparent. 
+the line color associated with it. See areaAlpha_ to make this area transparent.
 Takes one of the following parameters which determines the fill mode to use:
 
 ``none``
@@ -498,7 +498,7 @@ Takes one of the following parameters which determines the fill mode to use:
   Each target line is displayed as the sum of all previous lines plus the value of the current line.
 
 .. _param-bgcolor:
-  
+
 bgcolor
 -------
 *Default: value from the [default] template in graphTemplates.conf*
@@ -573,7 +573,7 @@ drawNullAsZero
 
 Converts any None (null) values in the displayed metrics to zero at render time.
 
-.. _param-fgcolor: 
+.. _param-fgcolor:
 
 fgcolor
 -------
@@ -1076,7 +1076,7 @@ Example:
   &title=Apache Busy Threads, All Servers, Past 24h
 
 .. _param-tz:
-  
+
 tz
 --
 *Default: The timezone specified in local_settings.py*
@@ -1202,7 +1202,7 @@ Sets the time format used when displaying the X-axis. See
 for format specification details.
 
 .. _param-yAxisSide:
-  
+
 yAxisSide
 ---------
 *Default: left*
@@ -1210,15 +1210,15 @@ yAxisSide
 Sets the side of the graph on which to render the Y-axis. Accepts values of ``left`` or ``right``
 
 .. _param-yDivisors:
-  
+
 yDivisors
 ---------
 *Default: 4,5,6*
 
 Sets the preferred number of intermediate values to display on the Y-axis (Y values between the
-minimum and maximum).  Note that Graphite will ultimately choose what values (and how many) to 
-display based on a 'pretty' factor, which tries to maintain a sensible scale (e.g. preferring 
-intermediary values like 25%,50%,75% over 33.3%,66.6%).  To explicitly set the Y-axis values, 
+minimum and maximum).  Note that Graphite will ultimately choose what values (and how many) to
+display based on a 'pretty' factor, which tries to maintain a sensible scale (e.g. preferring
+intermediary values like 25%,50%,75% over 33.3%,66.6%).  To explicitly set the Y-axis values,
 see `yStep`_
 
 .. _param-yLimit:
@@ -1295,7 +1295,7 @@ yMinRight
 In dual Y-axis mode, sets the lower bound of the right Y-Axis (See: `yMin`_)
 
 .. _param-yStep:
-  
+
 yStep
 -----
 *Default: Calculated automatically*
