@@ -1979,11 +1979,14 @@ derivative.params = [
 ]
 
 
-def perSecond(requestContext, seriesList, maxValue=None):
+def perSecond(requestContext, seriesList, maxValue=None, minValue=None):
   """
   NonNegativeDerivative adjusted for the series time interval
   This is useful for taking a running total metric and showing how many requests
   per second were handled.
+
+  The optional ``minValue`` and ``maxValue`` parameters have the same
+  meaning as in ``nonNegativeDerivative``.
 
   Example:
 
@@ -2003,7 +2006,7 @@ def perSecond(requestContext, seriesList, maxValue=None):
     step = series.step
 
     for val in series:
-      delta, prev = _nonNegativeDelta(val, prev, maxValue)
+      delta, prev = _nonNegativeDelta(val, prev, maxValue, minValue)
 
       if delta is not None:
         # Division long by float cause OverflowError
@@ -2026,6 +2029,7 @@ perSecond.group = 'Transform'
 perSecond.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
   Param('maxValue', ParamTypes.float),
+  Param('minValue', ParamTypes.float),
 ]
 
 
@@ -2153,12 +2157,17 @@ integralByInterval.params = [
 ]
 
 
-def nonNegativeDerivative(requestContext, seriesList, maxValue=None):
+def nonNegativeDerivative(requestContext, seriesList, maxValue=None, minValue=None):
   """
   Same as the derivative function above, but ignores datapoints that trend
   down.  Useful for counters that increase for a long time, then wrap or
   reset. (Such as if a network interface is destroyed and recreated by unloading
   and re-loading a kernel module, common with USB / WiFi cards.
+
+  By default, a null value is returned in place of negative datapoints. When
+  ``maxValue`` is supplied, the missing value is computed as if the counter
+  had wrapped at ``maxValue``. When ``minValue`` is supplied, the missing
+  value is computed as if the counter had wrapped to ``minValue``.
 
   Example:
 
@@ -2174,7 +2183,7 @@ def nonNegativeDerivative(requestContext, seriesList, maxValue=None):
     prev = None
 
     for val in series:
-      delta, prev = _nonNegativeDelta(val, prev, maxValue)
+      delta, prev = _nonNegativeDelta(val, prev, maxValue, minValue)
 
       newValues.append(delta)
 
@@ -2190,12 +2199,15 @@ nonNegativeDerivative.group = 'Transform'
 nonNegativeDerivative.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
   Param('maxValue', ParamTypes.float),
+  Param('minValue', ParamTypes.float),
 ]
 
 
-def _nonNegativeDelta(val, prev, maxValue):
+def _nonNegativeDelta(val, prev, maxValue, minValue):
   # ignore values larger than maxValue
   if maxValue is not None and val > maxValue:
+    return None, None
+  if minValue is not None and val < minValue:
     return None, None
 
   # first reading
@@ -2206,12 +2218,16 @@ def _nonNegativeDelta(val, prev, maxValue):
   if val >= prev:
     return val - prev, val
 
-  # counter wrapped and we have maxValue
-  # calculate delta based on maxValue + 1 + val - prev
+  # counter wrapped and we have maxValue (and optionally minValue)
+  # calculate delta based on maxValue + 1 + val - prev - minValue
   if maxValue is not None:
-    return maxValue + 1 + val - prev, val
+    return maxValue + 1 + val - prev - (minValue or 0), val
+  # counter wrapped and we have maxValue
+  # calculate delta based on val - minValue
+  if minValue is not None:
+    return val - minValue, val
 
-  # counter wrapped or reset and we don't have maxValue
+  # counter wrapped or reset and we don't have minValue/maxValue
   # just use None
   return None, val
 
