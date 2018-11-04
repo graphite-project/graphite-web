@@ -25,9 +25,13 @@ class RRDReader(BaseReader):
 
     @staticmethod
     def _convert_fs_path(fs_path):
-        if isinstance(fs_path, six.text_type):
-            fs_path = fs_path.encode(sys.getfilesystemencoding())
-        return os.path.realpath(fs_path).decode(sys.getfilesystemencoding())
+        # Only Python 2 'unioode' needs to be converted to str/bytes
+        try:
+            if isinstance(fs_path, unicode):
+                fs_path = fs_path.encode(sys.getfilesystemencoding())
+        except NameError:
+            pass
+        return os.path.realpath(fs_path)
 
     def __init__(self, fs_path, datasource_name):
         self.fs_path = RRDReader._convert_fs_path(fs_path)
