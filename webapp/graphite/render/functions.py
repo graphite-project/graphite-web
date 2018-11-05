@@ -115,6 +115,11 @@ def safeAvg(values):
     return sum(safeValues) / len(safeValues)
 
 
+def safeAvgZero(values):
+  if values:
+    return sum([0 if v is None else v for v in values]) / len(values)
+
+
 def safeMedian(values):
   safeValues = [v for v in values if v is not None]
   if safeValues:
@@ -255,6 +260,7 @@ def formatPathExpressions(seriesList):
 
 aggFuncs = {
   'average': safeAvg,
+  'avg_zero': safeAvgZero,
   'median': safeMedian,
   'sum': safeSum,
   'min': safeMin,
@@ -1883,7 +1889,7 @@ def consolidateBy(requestContext, seriesList, consolidationFunc):
 consolidateBy.group = 'Special'
 consolidateBy.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
-  Param('consolidationFunc', ParamTypes.string, required=True, options=['sum', 'average', 'min', 'max', 'first', 'last']),
+  Param('consolidationFunc', ParamTypes.string, required=True, options=['sum', 'average', 'avg_zero', 'min', 'max', 'first', 'last']),
 ]
 
 
