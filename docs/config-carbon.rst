@@ -30,7 +30,7 @@ Important notes before continuing:
 
 * There can be many sections in this file.
 * The sections are applied in order from the top (first) and bottom (last).
-* The patterns are regular expressions, as opposed to the wildcards used in the URL API.
+* The patterns are `regular expressions <https://docs.python.org/3/library/re.html#regular-expression-syntax>`_, as opposed to the wildcards used in the URL API.
 * The first pattern that matches the metric name is used.
 * This retention is set at the time the first metric is sent.
 * Changing this file will not affect already-created .wsp files. Use whisper-resize.py to change those.
@@ -41,7 +41,7 @@ A given rule is made up of 3 lines:
 * A regex, specified after "pattern="
 * A retention rate line, specified after "retentions="
 
-The retentions line can specify multiple retentions. Each retention of ``frequency:history`` is separated by a comma. 
+The retentions line can specify multiple retentions. Each retention of ``frequency:history`` is separated by a comma.
 
 Frequencies and histories are specified using the following suffixes:
 
@@ -61,9 +61,9 @@ Here's a simple, single retention example:
  pattern = garbageCollections$
  retentions = 10s:14d
 
-The name ``[garbage_collection]`` is mainly for documentation purposes, and will show up in ``creates.log`` when metrics matching this section are created. 
+The name ``[garbage_collection]`` is mainly for documentation purposes, and will show up in ``creates.log`` when metrics matching this section are created.
 
-The regular expression pattern will match any metric that ends with ``garbageCollections``. For example, ``com.acmeCorp.instance01.jvm.memory.garbageCollections`` would match, but ``com.acmeCorp.instance01.jvm.memory.garbageCollections.full`` would not.
+The regular expression ``pattern`` will match any metric that ends with ``garbageCollections``. For example, ``com.acmeCorp.instance01.jvm.memory.garbageCollections`` would match, but ``com.acmeCorp.instance01.jvm.memory.garbageCollections.full`` would not. Graphite is using the `Python Regular Expression Syntax <https://docs.python.org/3/library/re.html#regular-expression-syntax>`_, for an introduction to regular expressions consult the `Regular Expression HOWTO <https://docs.python.org/3/howto/regex.html#regex-howto>`_.
 
 The ``retentions`` line is saying that each datapoint represents 10 seconds, and we want to keep enough datapoints so that they add up to 14 days of data.
 
