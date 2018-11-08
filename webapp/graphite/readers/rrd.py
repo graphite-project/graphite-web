@@ -1,7 +1,6 @@
 import sys
 import os
 import time
-import six
 
 # Use the built-in version of scandir/stat if possible, otherwise
 # use the scandir module version
