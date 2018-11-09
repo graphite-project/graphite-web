@@ -24,7 +24,7 @@ class RRDReader(BaseReader):
 
     @staticmethod
     def _convert_fs_path(fs_path):
-        # Only Python 2 'unioode' needs to be converted to str/bytes
+        # Only Python 2 'unicode' needs to be converted to str/bytes
         try:
             if isinstance(fs_path, unicode):
                 fs_path = fs_path.encode(sys.getfilesystemencoding())
