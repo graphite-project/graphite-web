@@ -31,4 +31,4 @@ class ComposerTest(TestCase):
         instance.sendmail.return_value = {}
 
         response = self.client.get(url, request)
-        self.assertEqual(response.content, 'OK')
+        self.assertEqual(response.content, b'OK')
