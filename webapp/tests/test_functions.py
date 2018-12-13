@@ -1637,6 +1637,18 @@ class FunctionsTest(TestCase):
         result = functions.nonNegativeDerivative({}, seriesList,5)
         self.assertEqual(expected, result, 'nonNegativeDerivative result incorrect')
 
+    def test_nonNegativeDerivative_min(self):
+        seriesList = self._gen_series_list_with_data(key='test',start=0,end=600,step=60,data=[0, 1, 2, 3, 4, 5, 2, 3, 4, 5])
+        expected = [TimeSeries('nonNegativeDerivative(test)', 0, 600, 60, [None, None, 1, 1, 1, 1, 1, 1, 1, 1])]
+        result = functions.nonNegativeDerivative({}, seriesList,None,1)
+        self.assertEqual(expected, result, 'nonNegativeDerivative result incorrect')
+
+    def test_nonNegativeDerivative_min_max(self):
+        seriesList = self._gen_series_list_with_data(key='test',start=0,end=600,step=60,data=[0, 1, 2, 3, 4, 5, 2, 3, 4, 5])
+        expected = [TimeSeries('nonNegativeDerivative(test)', 0, 600, 60, [None, None, 1, 1, 1, 1, 3, 1, 1, 1])]
+        result = functions.nonNegativeDerivative({}, seriesList,6,1)
+        self.assertEqual(expected, result, 'nonNegativeDerivative result incorrect')
+
     def test_perSecond(self):
         seriesList = self._gen_series_list_with_data(key='test',start=0,end=600,step=60,data=[0, 120, 240, 480, 960, 1920, 3840, 7680, 15360, 60 ** 256 + 15360 ])
         expected = [TimeSeries('perSecond(test)', 0, 600, 60, [None, 2, 2, 4, 8, 16, 32, 64, 128, 60 ** 255])]
