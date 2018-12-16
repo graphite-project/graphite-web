@@ -331,7 +331,7 @@ function initDashboard () {
         url: document.body.dataset.baseUrl + 'metrics/find/',
         autoLoad: true,
         baseParams: {
-          query: '',
+          query: '*',
           format: 'completer',
           automatic_variants: (UI_CONFIG.automatic_variants) ? '1' : '0'
         },
@@ -383,6 +383,9 @@ function initDashboard () {
   var autocompleteTask = new Ext.util.DelayedTask(function () {
     var query = metricSelectorTextField.getValue();
     var store = metricSelectorGrid.getStore();
+    if (query === '') {
+      query = '*'
+    }
     store.setBaseParam('query', query);
     store.load();
   });

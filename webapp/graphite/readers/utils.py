@@ -1,3 +1,5 @@
+from __future__ import division
+
 import abc
 
 from graphite.logger import log
@@ -40,10 +42,12 @@ def merge_with_cache(cached_datapoints, start, step, values, func=None, raw_step
         usable = [v for v in values if v is not None]
         if not usable:
             return None
+        if func == 'avg_zero':
+            return sum([0 if v is None else v for v in values]) / len(values)
         if func == 'sum':
             return sum(usable)
         if func == 'average':
-            return float(sum(usable)) / len(usable)
+            return sum(usable) / len(usable)
         if func == 'max':
             return max(usable)
         if func == 'min':

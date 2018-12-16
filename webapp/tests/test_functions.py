@@ -1439,7 +1439,7 @@ class FunctionsTest(TestCase):
     def test_consolidateBy(self):
         seriesList = self._generate_series_list()
         self._verify_series_consolidationFunc(seriesList, "average")
-        avail_funcs = ['sum', 'average', 'min', 'max', 'first', 'last']
+        avail_funcs = ['sum', 'average', 'avg_zero', 'min', 'max', 'first', 'last']
         for func in avail_funcs:
             results = functions.consolidateBy({}, seriesList, func)
             self._verify_series_consolidationFunc(results, func)
@@ -1635,6 +1635,18 @@ class FunctionsTest(TestCase):
         seriesList = self._gen_series_list_with_data(key='test',start=0,end=600,step=60,data=[0, 1, 2, 3, 4, 5, 0, 1, 2, 3])
         expected = [TimeSeries('nonNegativeDerivative(test)', 0, 600, 60, [None, 1, 1, 1, 1, 1, 1, 1, 1, 1])]
         result = functions.nonNegativeDerivative({}, seriesList,5)
+        self.assertEqual(expected, result, 'nonNegativeDerivative result incorrect')
+
+    def test_nonNegativeDerivative_min(self):
+        seriesList = self._gen_series_list_with_data(key='test',start=0,end=600,step=60,data=[0, 1, 2, 3, 4, 5, 2, 3, 4, 5])
+        expected = [TimeSeries('nonNegativeDerivative(test)', 0, 600, 60, [None, None, 1, 1, 1, 1, 1, 1, 1, 1])]
+        result = functions.nonNegativeDerivative({}, seriesList,None,1)
+        self.assertEqual(expected, result, 'nonNegativeDerivative result incorrect')
+
+    def test_nonNegativeDerivative_min_max(self):
+        seriesList = self._gen_series_list_with_data(key='test',start=0,end=600,step=60,data=[0, 1, 2, 3, 4, 5, 2, 3, 4, 5])
+        expected = [TimeSeries('nonNegativeDerivative(test)', 0, 600, 60, [None, None, 1, 1, 1, 1, 3, 1, 1, 1])]
+        result = functions.nonNegativeDerivative({}, seriesList,6,1)
         self.assertEqual(expected, result, 'nonNegativeDerivative result incorrect')
 
     def test_perSecond(self):

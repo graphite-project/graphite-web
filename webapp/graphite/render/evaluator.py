@@ -64,7 +64,7 @@ def evaluateTokens(requestContext, tokens, replacements=None, pipedArg=None):
           val = replacements[name]
           if not isinstance(val, six.string_types):
             return val
-          elif re.match('^-?[\d.]+$', val):
+          elif re.match(r'^-?[\d.]+$', val):
             return float(val)
           else:
             return val

@@ -76,6 +76,7 @@ class TimeSeries(list):
   __consolidation_functions = {
     'sum': sum,
     'average': lambda usable: sum(usable) / len(usable),
+    'avg_zero': lambda usable: sum(usable) / len(usable),
     'max': max,
     'min': min,
     'first': lambda usable: usable[0],
@@ -88,24 +89,29 @@ class TimeSeries(list):
     except KeyError:
       raise Exception("Invalid consolidation function: '%s'" % self.consolidationFunc)
 
-    buf = []  # only the not-None values
+    buf = []
     valcnt = 0
+    nonNull = 0
 
     for x in gen:
       valcnt += 1
       if x is not None:
         buf.append(x)
+        nonNull += 1
+      elif self.consolidationFunc == 'avg_zero':
+        buf.append(0)
 
       if valcnt == self.valuesPerPoint:
-        if buf and (len(buf) / self.valuesPerPoint) >= self.xFilesFactor:
+        if nonNull and (nonNull / self.valuesPerPoint) >= self.xFilesFactor:
           yield cf(buf)
         else:
           yield None
         buf = []
         valcnt = 0
+        nonNull = 0
 
     if valcnt > 0:
-      if buf and (len(buf) / self.valuesPerPoint) >= self.xFilesFactor:
+      if nonNull and (nonNull / self.valuesPerPoint) >= self.xFilesFactor:
         yield cf(buf)
       else:
         yield None
