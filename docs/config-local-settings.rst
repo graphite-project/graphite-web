@@ -1,11 +1,13 @@
 Graphite-web's local_settings.py
 ================================
-Graphite-web uses the convention of importing a ``local_settings.py`` file from the webapp ``settings.py`` module. This is where Graphite-web's runtime configuration is loaded from.
+Graphite-web uses the convention of importing a ``local_settings.py`` file from the webapp ``settings.py`` module. This is where Graphite-web's runtime configuration is loaded from. Also alternate local settings module can be set (see below). This may be usable for multi-instance deployments.
 
 
 Config File Location
 --------------------
-``local_settings.py`` is generally located within the main ``graphite`` module where the webapp's code lives. In the :ref:`default installation layout <default-installation-layout>` this is ``/opt/graphite/webapp/graphite/local_settings.py``. Alternative locations can be used by symlinking to this path or by ensuring the module can be found within the Python module search path.
+By default settings module is ``local_settings.py`` and it is generally located within the main ``graphite`` module where the webapp's code lives. In the :ref:`default installation layout <default-installation-layout>` this is ``/opt/graphite/webapp/graphite/local_settings.py``. Alternative locations can be used by symlinking to this path or by ensuring the module can be found within the Python module search path.
+
+This can be change by setting ``GRAPHITE_SETTINGS_MODULE`` environment variable. For example in a wsgi file.
 
 
 General Settings

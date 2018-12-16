@@ -1,5 +1,4 @@
 import logging
-import types
 
 from urllib3.response import HTTPResponse
 
@@ -58,11 +57,19 @@ class RemoteFinderTest(TestCase):
       with patch('graphite.finders.remote.time.time', lambda: 110):
         self.assertFalse(finder.disabled)
 
+    @override_settings(REMOTE_BUFFER_SIZE=1024 * 1024)
+    def test_find_nodes_with_buffering(self):
+      self._test_find_nodes()
+
+    @override_settings(REMOTE_BUFFER_SIZE=0)
+    def test_find_nodes_without_buffering(self):
+      self._test_find_nodes()
+
     @patch('urllib3.PoolManager.request')
     @override_settings(INTRACLUSTER_HTTPS=False)
     @override_settings(REMOTE_STORE_USE_POST=True)
     @override_settings(FIND_TIMEOUT=10)
-    def test_find_nodes(self, http_request):
+    def _test_find_nodes(self, http_request):
       finder = RemoteFinder('127.0.0.1')
 
       startTime = 1496262000
@@ -82,11 +89,7 @@ class RemoteFinderTest(TestCase):
       http_request.return_value = responseObject
 
       query = FindQuery('a.b.c', startTime, endTime)
-      result = finder.find_nodes(query)
-
-      self.assertIsInstance(result, types.GeneratorType)
-
-      nodes = list(result)
+      nodes = finder.find_nodes(query)
 
       self.assertEqual(http_request.call_args[0], (
         'POST',
@@ -134,11 +137,7 @@ class RemoteFinderTest(TestCase):
       http_request.return_value = responseObject
 
       query = FindQuery('a.b.c', None, None)
-      result = finder.find_nodes(query)
-
-      self.assertIsInstance(result, types.GeneratorType)
-
-      nodes = list(result)
+      nodes = finder.find_nodes(query)
 
       self.assertEqual(http_request.call_args[0], (
         'POST',
@@ -167,10 +166,8 @@ class RemoteFinderTest(TestCase):
       responseObject = HTTPResponse(body=BytesIO(b'error'), status=200, preload_content=False)
       http_request.return_value = responseObject
 
-      result = finder.find_nodes(query)
-
-      with self.assertRaisesRegexp(Exception, 'Error decoding find response from https://[^ ]+: .+'):
-        list(result)
+      with self.assertRaisesRegexp(Exception, 'Error decoding response from https://[^ ]+: .+'):
+        finder.find_nodes(query)
 
     @patch('graphite.finders.remote.cache.get')
     @patch('urllib3.PoolManager.request')
@@ -193,11 +190,7 @@ class RemoteFinderTest(TestCase):
       cache_get.return_value = data
 
       query = FindQuery('a.b.c', startTime, endTime)
-      result = finder.find_nodes(query)
-
-      self.assertIsInstance(result, types.GeneratorType)
-
-      nodes = list(result)
+      nodes = finder.find_nodes(query)
 
       self.assertEqual(http_request.call_count, 0)
 
