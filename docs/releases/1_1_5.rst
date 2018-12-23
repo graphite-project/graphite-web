@@ -1,0 +1,107 @@
+.. _1-1-5:
+
+1.1.5
+===========================
+*12/24/2018*
+
+Graphite 1.1.5 is now available for usage. Please note that this is a bugfix release for the stable Graphite 1.1.x branch and it's recommended for production usage. It also contains some improvements backported from the master branch.
+
+Main features
+-------------
+* Python 3.x support fixes for whisper, carbon and graphite-web
+* REMOTE_BUFFER_SIZE = 0 now works properly
+* Multi-instance settings support (see #2358)
+* Increase performance of localdatabase tag db
+* avg_zero consolidation function fully supported now
+* Carbonlink queries working now for tagged series
+* Docker image migrated to Alpine, reducing the image size from ~530MB to 188MB
+
+Thanks a lot for all Graphite contributors and users! You are the best!
+
+Source bundles are available from GitHub:
+
+* https://github.com/graphite-project/graphite-web/archive/1.1.5.tar.gz
+* https://github.com/graphite-project/carbon/archive/1.1.5.tar.gz
+* https://github.com/graphite-project/whisper/archive/1.1.5.tar.gz
+* https://github.com/graphite-project/carbonate/archive/1.1.5.tar.gz
+
+Graphite can also be installed from `PyPI <http://pypi.python.org/>`_ via
+`pip <http://www.pip-installer.org/en/latest/index.html>`_. PyPI bundles are here:
+
+* http://pypi.python.org/pypi/graphite-web/
+* http://pypi.python.org/pypi/carbon/
+* http://pypi.python.org/pypi/whisper/
+* http://pypi.python.org/pypi/carbonate/
+
+You can also use docker image from https://hub.docker.com/r/graphiteapp/graphite-statsd/
+
+Upgrading
+---------
+Please upgrade whisper, carbon and graphite-web - they contain valuable bugfixes and improvements.
+
+Incompatible changes
+--------------------
+In Docker image mount point for statsd config was changed from `/opt/statsd/` to `/opt/statsd/config`.
+
+Security Notes
+--------------
+None
+
+New features
+------------
+
+Graphite-Web
+^^^^^^^^^^^^
+* Add coverage for composer's send_email function #2174 @cbowman0
+* Multi-instance settings support [light version] #2358 @zasca
+* Update FreeBSD/OpenBSD netcat switch #2366 @vroman
+* Increase performance of localdatabase tag db #2368 @DanCech
+* Add a minValue option to nonNegativeDerivative and perSecond #2375 @mbarbon
+* Consolidation support avg zero #2380 @DanCech
+* docs: add link to regex documentation #2381 @piotr1212
+
+Carbon
+^^^^^^
+* Add optional normalization when relaying tagged metrics (#820 @andreasferber)
+* Update default storage schema in storage-schemas.conf.example (#824 @piotr1212)
+* Make max pickle string length configurable (#826 @semyonslepov)
+* PickleReceiver handle EOFError and add log message (#827 @piotr1212)
+
+Whisper
+^^^^^^^
+* Use uname from platform instead of os (#262 @piotr1212)
+* Raise CorruptWhisperFileException when reading datapoints fails (#263 @piotr1212)
+* update-storage-times.py enhancements (#265 @n0coast)
+
+Carbonate
+^^^^^^^^^
+* None
+
+Bug Fixes
+---------
+
+Graphite-Web
+^^^^^^^^^^^^
+* added avg_zero support for consolidate function #2338 @eachirei
+* Do not use generator for jobs need to be run in pool #2350 @fengyehong
+* move deserialize into remote finder #2354 @DanCech
+* Fix carbonlink queries for tagged series. #2370 @andreasferber
+* flake8 cleanup #2371 @DanCech
+* Fix Dashboard Completer UI to work with changes to /metrics/find #2372 @cbowman0
+* RRD path fix and tests #2383 @piotr1212
+
+Carbon
+^^^^^^
+* WHISPER_FALLOCATE_CREATE documentation improved #812 @haron
+* fix flake8 errors #819 @DanCech
+* Add locking in cache.py #825 @piotr1212
+* Fix carbon cache locking #829 @piotr1212
+
+Whisper
+^^^^^^^
+* whisper-resize.py: Python3 fixes #268 @piotr1212
+* whisper-resize: Don't throw when trying to aggregate a null interval #266 @jfsimoneau
+
+Carbonate
+^^^^^^^^^
+* None
