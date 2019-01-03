@@ -71,6 +71,10 @@ for root, dirs, files in os.walk('webapp/content'):
 conf_files = [ ('conf', glob('conf/*.example')) ]
 examples = [ ('examples', glob('examples/example-*')) ]
 
+def read(fname):
+    with open(os.path.join(os.path.dirname(__file__), fname)) as f:
+        return f.read()
+
 try:
     setup(
       name='graphite-web',
@@ -80,6 +84,8 @@ try:
       author_email='chrismd@gmail.com',
       license='Apache Software License 2.0',
       description='Enterprise scalable realtime graphing',
+      long_description=read('README.md'),
+      long_description_content_type='text/markdown',
       package_dir={'' : 'webapp'},
       packages=[
         'graphite',
