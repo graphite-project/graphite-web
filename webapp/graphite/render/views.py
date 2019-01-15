@@ -214,7 +214,8 @@ def renderViewJson(requestOptions, data):
             series.start = series.start + nudge
             valuesToLose = int(nudge/series.step)
             for r in range(1, valuesToLose):
-              del series[0]
+              if series:
+                del series[0]
             series.consolidate(valuesPerPoint)
 
       datapoints = series.datapoints()
