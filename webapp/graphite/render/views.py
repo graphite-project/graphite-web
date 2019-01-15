@@ -204,7 +204,7 @@ def renderViewJson(requestOptions, data):
         if maxDataPoints == 1:
           series.consolidate(len(series))
         else:
-          numberOfDataPoints = timeRange/series.step
+          numberOfDataPoints = len(series)
           if maxDataPoints < numberOfDataPoints:
             valuesPerPoint = math.ceil(float(numberOfDataPoints) / float(maxDataPoints))
             secondsPerPoint = int(valuesPerPoint * series.step)
@@ -214,8 +214,7 @@ def renderViewJson(requestOptions, data):
             series.start = series.start + nudge
             valuesToLose = int(nudge/series.step)
             for r in range(1, valuesToLose):
-              if series:
-                del series[0]
+              del series[0]
             series.consolidate(valuesPerPoint)
 
       datapoints = series.datapoints()
