@@ -137,7 +137,6 @@ Several installation options exist:
    install-source
    install-pip
    install-virtualenv
-   install-synthesize
 
 
 Initial Configuration
@@ -145,7 +144,7 @@ Initial Configuration
 
 .. toctree::
    :maxdepth: 2
-   
+
    config-database-setup
    config-webapp
    config-local-settings
@@ -186,7 +185,7 @@ Post-Install Tasks
 
 Windows Users
 -------------
-Unfortunately, native Graphite on Windows is completely unsupported, but you can run Graphite on Windows in `Docker`_ or the :doc:`Installing via Synthesize </install-synthesize>` article will help you set up a Vagrant VM that will run Graphite.  In order to leverage this, you will need to install `Vagrant <https://www.vagrantup.com/>`_.
+Unfortunately, native Graphite on Windows is unsupported, but you can run Graphite on Windows in `Docker`_.
 
 
 .. _Apache: https://projects.apache.org/project.html?httpd-http_server
