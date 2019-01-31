@@ -10,14 +10,7 @@ storage_dirs = []
 
 for subdir in ('whisper/dummy.txt', 'ceres/dummy.txt', 'rrd/dummy.txt',
                'log/dummy.txt', 'log/webapp/dummy.txt'):
-    storage_dirs.append( ('storage/%s' % subdir, []) )
-
-webapp_content = defaultdict(list)
-
-for root, dirs, files in os.walk('webapp/content'):
-    for filename in files:
-        filepath = os.path.join(root, filename)
-        webapp_content[root].append(filepath)
+    storage_dirs.append(('storage/%s' % subdir, []))
 
 conf_files = [('conf', glob('conf/*.example'))]
 examples = [('examples', glob('examples/example-*'))]
@@ -63,11 +56,12 @@ setup(
         'graphite.whitelist',
         'graphite.worker_pool',
     ],
-    package_data={'graphite': ['templates/*', 'local_settings.py.example']},
     scripts=glob('bin/*'),
-    data_files=list(webapp_content.items()) + storage_dirs + conf_files + examples,
+    include_package_data=True,
+    data_files=storage_dirs + conf_files + examples,
     install_requires=['Django>=1.8,<2.2', 'django-tagging==0.4.3', 'pytz',
-                      'pyparsing', 'cairocffi', 'urllib3', 'scandir', 'six'],
+                      'pyparsing', 'cairocffi', 'urllib3', 'scandir', 'six',
+                      'whitenoise'],
     classifiers=[
         'Intended Audience :: Developers',
         'Natural Language :: English',

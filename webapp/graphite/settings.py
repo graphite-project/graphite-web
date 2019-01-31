@@ -36,7 +36,6 @@ DATE_FORMAT = '%m/%d'
 
 # Filesystem layout
 WEB_DIR = dirname(abspath(__file__))
-WEBAPP_DIR = dirname(WEB_DIR)
 GRAPHITE_ROOT = sys.prefix
 # Initialize additional path variables
 # Defaults for these are set after local_settings is imported
@@ -219,7 +218,7 @@ if not GRAPHITE_WEB_APP_SETTINGS_LOADED:
 
 
 STATICFILES_DIRS = (
-    join(WEBAPP_DIR, 'content'),
+    join(WEB_DIR, 'static'),
 )
 
 # Handle renamed timeout settings
@@ -229,7 +228,7 @@ FETCH_TIMEOUT = FETCH_TIMEOUT or REMOTE_FETCH_TIMEOUT or 6.0
 ## Set config dependent on flags set in local_settings
 # Path configuration
 if not STATIC_ROOT:
-  STATIC_ROOT = join(GRAPHITE_ROOT, 'static')
+  STATIC_ROOT = join(WEB_DIR, 'static')
 
 if not CONF_DIR:
   CONF_DIR = os.environ.get('GRAPHITE_CONF_DIR', join(GRAPHITE_ROOT, 'conf'))

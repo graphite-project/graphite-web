@@ -7,6 +7,6 @@ include conf/*.example
 include webapp/graphite/local_settings.py.example
 recursive-include distro/ *
 recursive-include webapp/graphite/ *.html
-recursive-include webapp/content/ *
+recursive-include webapp/graphite/static/ *
 exclude webapp/graphite/local_settings.py
 exclude conf/*.conf
