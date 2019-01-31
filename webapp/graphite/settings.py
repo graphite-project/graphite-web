@@ -35,9 +35,9 @@ JAVASCRIPT_DEBUG = False
 DATE_FORMAT = '%m/%d'
 
 # Filesystem layout
-WEB_DIR = dirname( abspath(__file__) )
+WEB_DIR = dirname(abspath(__file__))
 WEBAPP_DIR = dirname(WEB_DIR)
-GRAPHITE_ROOT = dirname(WEBAPP_DIR)
+GRAPHITE_ROOT = sys.prefix
 # Initialize additional path variables
 # Defaults for these are set after local_settings is imported
 STATIC_ROOT = ''
