@@ -161,9 +161,9 @@ Finally, configure the apache vhost. (You can find example of Graphite vhost con
 
         WSGIScriptAlias / /opt/graphite/conf/graphite.wsgi
 
-        Alias /static/ /opt/graphite/static/
+        Alias /static/ /opt/graphite/webapp/content/
 
-        <Directory /opt/graphite/static/>
+        <Directory /opt/graphite/webapp/content/>
                 <IfVersion < 2.4>
                         Order deny,allow
                         Allow from all
