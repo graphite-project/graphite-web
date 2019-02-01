@@ -216,11 +216,6 @@ except ImportError:
 if not GRAPHITE_WEB_APP_SETTINGS_LOADED:
   from graphite.app_settings import *  # noqa
 
-
-STATICFILES_DIRS = (
-    join(WEB_DIR, 'static'),
-)
-
 # Handle renamed timeout settings
 FIND_TIMEOUT = FIND_TIMEOUT or REMOTE_FIND_TIMEOUT or 3.0
 FETCH_TIMEOUT = FETCH_TIMEOUT or REMOTE_FETCH_TIMEOUT or 6.0

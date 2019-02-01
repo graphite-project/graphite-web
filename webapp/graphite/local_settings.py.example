@@ -94,6 +94,28 @@ DEFAULT_XFILES_FACTOR = 0
 #FIND_TIMEOUT = 3.0  # Timeout for metric find requests
 #FETCH_TIMEOUT = 3.0  # Timeout to fetch series data
 
+
+#####################################
+# Static Files #
+#####################################
+#
+# Graphite servers static files (.html, .css, .js) directly from the
+# application by using whitenoise. If you want to serve the files from a
+# webserver instead:
+#  - Uncomment following lines
+#  - Point STATIC_ROOT to the directory which is served by your webserver
+#  - Run `django-admin collectstatic --noinput --settings=graphite.settings`
+#  - Disable whitenoise in wsgi.py and app_settings.py
+#  - Configure your webserver accordingly
+
+# from os.path import abspath, dirname, join
+# STATICFILES_DIRS = (
+#     join(dirname(abspath(__file__)), 'static'),
+# )
+
+# STATIC_ROOT = '/path/to/your/webservers/shared/directory'
+
+
 #####################################
 # Filesystem Paths #
 #####################################
@@ -139,6 +161,7 @@ DEFAULT_XFILES_FACTOR = 0
 #    'graphite.finders.standard.StandardFinder',
 #    'graphite.finders.ceres.CeresFinder',
 # )
+
 
 #####################################
 # Email Configuration #
@@ -358,6 +381,7 @@ DEFAULT_XFILES_FACTOR = 0
 # This should usually match the value configured in Carbon.
 #REPLICATION_FACTOR = 1
 
+
 #####################################
 # TagDB Settings #
 #####################################
@@ -382,12 +406,14 @@ DEFAULT_XFILES_FACTOR = 0
 # Does the remote TagDB support autocomplete?
 #TAGDB_HTTP_AUTOCOMPLETE = False
 
+
 #####################################
 # Function plugins #
 #####################################
 # List of custom function plugin modules
 # See: http://graphite.readthedocs.io/en/latest/functions.html#function-plugins
 FUNCTION_PLUGINS = []
+
 
 #####################################
 # Additional Django Settings #
