@@ -1,12 +1,18 @@
 Installing Graphite
 ===================
 
+There are several ways to install Graphite. Docker is the easiest way and is recommended for new
+users. If you need to install Graphite directly on your system (not using Docker) then using
+`Virtualenv`_ with `pip`_ would be recommended. With virtualenv all dependencies are installed
+isolated so they will not interfere with your system Python. Installation from source should
+only be used in specific cases (e.g. installing a development release).
+
 Docker
 ------
 
 Try Graphite in Docker and have it running in seconds:
 
-.. code-block:: none
+.. code-block:: bash
 
     docker run -d\
      --name graphite\
@@ -33,18 +39,18 @@ been met or not.
 Basic Graphite requirements:
 
 * a UNIX-like Operating System
-* Python 2.7 or greater (including experimental Python3 support)
+* Python 2.7 or greater (including Python 3)
 * `cairocffi`_
-* `Django`_ 1.8 - 1.11 (for Python3 - 1.11 only)
+* `Django`_ 1.8 - 2.1
 * `django-tagging`_ 0.4.6 (not `django-taggit` yet)
 * `pytz`_
 * `scandir`_
 * `fontconfig`_ and at least one font package (a system package usually)
 * A WSGI server and web server. Popular choices are:
 
-  - `Apache`_ with `mod_wsgi`_
-
   - `gunicorn`_ with `nginx`_
+
+  - `Apache`_ with `mod_wsgi`_
 
   - `uWSGI`_ with `nginx`_
 
@@ -57,7 +63,9 @@ There are also several other dependencies required for additional features:
 * LDAP authentication: `python-ldap`_ (for LDAP authentication support in the webapp)
 * AMQP support: `txamqp`_ (version 0.8 is required)
 * RRD support: `python-rrdtool`_
-* Dependent modules for additional database support (MySQL, PostgreSQL, etc). See `Django database install`_ instructions and the `Django database`_ documentation for details
+* Dependent modules for additional database support (MySQL, PostgreSQL, etc). See
+  `Django database install`_ instructions and the `Django database`_ documentation for details
+* `pyhash`_ fnv1_ch hashing support
 
 .. seealso:: On some systems it is necessary to install fonts for Cairo to use. If the
              webapp is running but all graphs return as broken images, this may be why.
@@ -69,75 +77,123 @@ There are also several other dependencies required for additional features:
 Fulfilling Dependencies
 -----------------------
 Most current Linux distributions have all of the requirements available in the base packages.
-RHEL based distributions may require the `EPEL`_ repository for requirements.
-Python module dependencies can be install with `pip`_ rather than system packages if desired or if using
-a Python version that differs from the system default. Some modules (such as Cairo) may require
-library development headers to be available.
+Python module dependencies can be install with `pip`_ rather than system packages if desired
+or if using a Python version that differs from the system default. Some modules (such as Cairo)
+may require library development headers to be available.
+
+
+RHEL/Centos 7
+^^^^^^^^^^^^^
+For RHEL based distributions enable the `EPEL`_ repository.
+
+.. code-block:: bash
+
+   yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+   yum install dejavu-sans-fonts dejavu-serif-fonts python-pip python-virtualenv cairo
+
+Debian-based distributions
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. code-block:: bash
+
+   apt-get install python-dev libcairo2-dev libffi-dev build-essential
 
 .. _default-installation-layout :
 
 Default Installation Layout
 ---------------------------
 
-Graphite defaults to an installation layout that puts the entire install in its own directory: ``/opt/graphite``
+Graphite traditionally installed all components in ``/opt/graphite``, since release 1.2.0
+Graphite's installation location depends on your `Python prefix`_. If you are using `Virtualenv`_
+the ``prefix`` is set to the root of your virtualenv. You can find your ``prefix`` by running:
 
-Whisper
-^^^^^^^
-Whisper is installed Python's system-wide site-packages directory with Whisper's utilities installed
-in the bin dir of the system's default prefix (generally ``/usr/bin/``).
+.. code-block:: bash
 
-Carbon and Graphite-web
-^^^^^^^^^^^^^^^^^^^^^^^
-Carbon and Graphite-web are installed in ``/opt/graphite/`` with the following layout:
+   python -c 'import sys; print(sys.prefix)'
 
-- ``bin/``
-- ``conf/``
-- ``lib/``
+Directory layout:
 
-  Carbon ``PYTHONPATH``
+- ``PREFIX/`` Usually ``/opt/graphite/``
 
-- ``storage/``
+  - ``conf/`` Carbon configuration files
 
-  - ``log``
+  - ``storage/``
 
-    Log directory for Carbon and Graphite-web
+    - ``log`` Log directory for Carbon and Graphite-web
 
-  - ``rrd``
+    - ``rrd`` Location for RRD files to be read
 
-    Location for RRD files to be read
+    - ``whisper`` Location for Whisper data files to be stored and read
 
-  - ``whisper``
-
-    Location for Whisper data files to be stored and read
-
-  - ``ceres``
-
-    Location for Ceres data files to be stored and read
-
-- ``webapp/``
-
-  Graphite-web ``PYTHONPATH``
-
-  - ``graphite/``
-
-    Location of ``local_settings.py``
-
-  - ``content/``
-
-    Graphite-web static content directory
+    - ``ceres`` Location for Ceres data files to be stored and read
 
 
-Installing Graphite
+.. note:: Graphite-web's config file `local_settings.py` is located in the project
+          :doc:`directory </config-local-settings>`
+
+Using Virtualenv
+----------------
+`Virtualenv`_ provides an isolated Python environment to run Graphite in. It is recommended to
+install Graphite in Virtualenv so that dependent libraries will not interfere with other
+applications.
+
+Create a virtualenv in ``/opt/graphite`` and activate it:
+
+.. code-block:: bash
+
+    virtualenv /opt/graphite
+    source /opt/graphite/bin/activate
+
+Once the virtualenv is activated, Graphite and Carbon can be installed the regular way
+:ref:`via pip <install-pip>` or :ref:`from source <install-source>`.
+
+.. note:: Before installing dependencies or running Graphite the virtualenv needs to be
+   activated. Deactivating virtualenv can be done by running ``deactivate``.
+
+.. _install-pip :
+
+Installing From Pip
 -------------------
-Several installation options exist:
 
-.. toctree::
-   :maxdepth: 2
+Versioned Graphite releases can be installed via `pip`_. When installing with pip,
+installation of Python package dependencies will automatically be attempted.
 
-   install-source
-   install-pip
-   install-virtualenv
+To install Graphite execute:
 
+.. code-block:: bash
+
+    pip install whisper
+    pip install carbon
+    pip install graphite-web
+
+.. _install-source :
+
+Installing From Source
+----------------------
+
+The latest source tarballs for Graphite-web, Carbon, and Whisper may be fetched from the
+Graphite project `download page`_ or the latest development branches may be cloned from
+the `Github project page`_:
+
+.. code-block:: bash
+
+   git clone https://github.com/graphite-project/whisper.git
+   git clone https://github.com/graphite-project/carbon.git
+   git clone https://github.com/graphite-project/graphite-web.git
+
+
+To install with pip (which will automatically install dependent Python libraries):
+
+.. code-block:: bash
+
+   pip install ./whisper/
+   pip install ./carbon/
+   pip install ./graphite-web/
+
+Or without using pip, run from every directory:
+
+.. code-block:: bash
+
+   python setup.py install --single-version-externally-managed
 
 Initial Configuration
 ---------------------
@@ -145,7 +201,7 @@ Initial Configuration
 .. toctree::
    :maxdepth: 2
 
-   config-database-setup
+   config-webapp-setup
    config-webapp
    config-local-settings
    config-carbon
@@ -166,18 +222,12 @@ Post-Install Tasks
     Initially none of the config files are created by the installer but example files
     are provided. Simply copy the ``.example`` files and customize.
 
-:doc:`Administering Carbon </admin-carbon>`
-    Once Carbon is configured, you need to start it up.
-
 :doc:`Feeding In Your Data </feeding-carbon>`
     Once it's up and running, you need to feed it some data.
 
 :doc:`Configuring The Webapp </config-webapp>`
     With data getting into carbon, you probably want to look at graphs of it.
     So now we turn our attention to the webapp.
-
-:doc:`Administering The Webapp </admin-webapp>`
-    Once its configured you'll need to get it running.
 
 :doc:`Using the Composer </composer>`
     Now that the webapp is running, you probably want to learn how to use it.
@@ -201,7 +251,7 @@ Unfortunately, native Graphite on Windows is unsupported, but you can run Graphi
 .. _mod_wsgi: https://modwsgi.readthedocs.io/
 .. _nginx: http://nginx.org/
 .. _NOT Python 3: https://python3wos.appspot.com/
-.. _pip: https://pip.pypa.io/
+.. _pip: https://pypi.org/project/pip/
 .. _python-ldap: https://www.python-ldap.org/
 .. _python-memcache: https://www.tummy.com/software/python-memcached/
 .. _python-rrdtool: http://oss.oetiker.ch/rrdtool/prog/rrdpython.en.html
@@ -212,3 +262,8 @@ Unfortunately, native Graphite on Windows is unsupported, but you can run Graphi
 .. _uWSGI: http://uwsgi-docs.readthedocs.io/
 .. _Docker: https://www.docker.com/
 .. _docker repo: https://github.com/graphite-project/docker-graphite-statsd
+.. _Virtualenv: http://virtualenv.org/
+.. _Github project page: http://github.com/graphite-project
+.. _download page: https://launchpad.net/graphite/+download
+.. _pyhash: https://pypi.org/project/pyhash/
+.. _Python prefix: https://docs.python.org/3/library/sys.html#sys.prefix

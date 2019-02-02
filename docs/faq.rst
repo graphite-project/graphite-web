@@ -3,7 +3,7 @@ FAQ
 
 What is Graphite?
 -----------------
-Graphite is a highly scalable real-time graphing system. As a user, you write an application that collects numeric time-series data that you are interested in graphing, and send it to Graphite's processing backend, :doc:`carbon </carbon-daemons>`, which stores the data in Graphite's specialized database. The data can then be visualized through graphite's web interfaces.
+Graphite is a highly scalable real-time graphing system. As a user, you write an application that collects numeric time-series data that you are interested in graphing, and send it to Graphite's processing backend, :doc:`carbon </carbon-daemons>`, which stores the data in Graphite's specialized database. The data can then be visualized through Graphite's web interfaces.
 
 
 Who should use Graphite?
@@ -35,7 +35,7 @@ Graphite was internally developed by `Orbitz`_ where it is used to visualize a v
 
 What is Graphite written in?
 ----------------------------
-Python2. The Graphite webapp is built on the `Django`_ web framework and uses the ExtJS javascript GUI toolkit. The graph rendering is done using the Cairo graphics library. The backend and database are written in pure Python.
+Python. The Graphite webapp is built on the `Django`_ web framework and uses the ExtJS javascript GUI toolkit. The graph rendering is done using the Cairo graphics library. The backend and database are written in pure Python.
 
 
 Who writes and maintains Graphite?
@@ -76,7 +76,7 @@ Is there a diagram of Graphite's architecture?
 ----------------------------------------------
 There sure is! Here it is:
 
-.. image:: ../webapp/content/img/overview.png
+.. image:: ../webapp/graphite/static/img/overview.png
 
 
 .. _Django: http://www.djangoproject.com/

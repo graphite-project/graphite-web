@@ -11,10 +11,8 @@ Graphite Documentation
    carbon-daemons
    config-carbon
    feeding-carbon
-   admin-carbon
    config-local-settings
    config-webapp
-   admin-webapp
    composer
    render_api
    functions
