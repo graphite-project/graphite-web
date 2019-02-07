@@ -373,7 +373,7 @@ The following configures the Django database settings. Graphite uses the databas
 See the `Django documentation <https://docs.djangoproject.com/en/dev/ref/settings/#databases>`_ for full documentation of the DATABASES setting.
 
 .. note ::
-  Remember, setting up a new database requires running ``PYTHONPATH=$GRAPHITE_ROOT/webapp django-admin.py migrate --settings=graphite.settings --run-syncdb`` to create the initial schema.
+  Remember, setting up a new database requires running ``PYTHONPATH=$GRAPHITE_ROOT/webapp django-admin.py migrate --settings=graphite.settings`` to create the initial schema.
 
 .. note ::
   If you are using a custom database backend (other than SQLite) you must first create a $GRAPHITE_ROOT/webapp/graphite/local_settings.py file that overrides the database related settings from settings.py. Use $GRAPHITE_ROOT/webapp/graphite/local_settings.py.example as a template.
