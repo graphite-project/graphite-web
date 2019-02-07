@@ -20,7 +20,10 @@ To set up a new database and create the initial schema, run:
 
 .. code-block:: none
 
-  PYTHONPATH=$GRAPHITE_ROOT/webapp django-admin.py migrate --settings=graphite.settings --run-syncdb
+  PYTHONPATH=$GRAPHITE_ROOT/webapp django-admin.py migrate --settings=graphite.settings
+
+.. note ::
+  Graphite-Web 1.0 and earlier had some models without migrations, and with Django 1.9 or later, the ``--run-syncdb`` option was needed for migrate to create tables for these models. (Django 1.8 and earlier did not have this option, but always exhibited this behavior.) In Graphite-Web 1.1 and later all models have migrations, so ``--run-syncdb`` is no longer needed. If upgrading a database created by Graphite-Web 1.0 or earlier, you need to use the ``--fake-initial`` option for migrate: it considers an initial migration to already be applied if the tables it creates already exist.
 
 If you are experiencing problems, uncomment the following line in /opt/graphite/webapp/graphite/local_settings.py:
 
