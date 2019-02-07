@@ -6,19 +6,18 @@ Graphite Documentation
    :maxdepth: 1
 
    overview
-   faq
+   FAQ
    install
    carbon-daemons
    config-carbon
    feeding-carbon
    config-local-settings
    config-webapp
-   composer
    render_api
    functions
    dashboard
-   whisper
-   ceres
+   Whisper
+   Ceres
    storage-backends
    events
    tags

@@ -99,7 +99,7 @@ DEFAULT_XFILES_FACTOR = 0
 # Static Files #
 #####################################
 #
-# Graphite servers static files (.html, .css, .js) directly from the
+# Graphite serves static files (.html, .css, .js) directly from the
 # application by using whitenoise. If you want to serve the files from a
 # webserver instead:
 #  - Uncomment following lines

@@ -1,0 +1,132 @@
+.. _1-2-0:
+
+1.2.0-pre
+===========================
+*02/03/2018*
+
+Graphite 1.2.0-pre is now available for usage. This release changes the installation procedure.
+Graphite does not install in ``/opt/graphite`` by default anymore. See the
+:ref:`upgrading <install-pip>` section for migration instructions.
+
+Main features
+-------------
+* Removed hardcoded ``/opt/graphite installation`` prefix
+* Static files are served by whitenoise by default, no need webserver configuration and ``collectstatic`` anymore
+* TODO:
+
+Thanks a lot for all Graphite contributors and users! You are the best!
+
+Source bundles are available from GitHub:
+
+* https://github.com/graphite-project/graphite-web/archive/1.1.5.tar.gz
+* https://github.com/graphite-project/carbon/archive/1.1.5.tar.gz
+* https://github.com/graphite-project/whisper/archive/1.1.5.tar.gz
+* https://github.com/graphite-project/carbonate/archive/1.1.5.tar.gz
+
+Graphite can also be installed from `PyPI <http://pypi.python.org/>`_ via
+`pip <http://www.pip-installer.org/en/latest/index.html>`_. PyPI bundles are here:
+
+* http://pypi.python.org/pypi/graphite-web/
+* http://pypi.python.org/pypi/carbon/
+* http://pypi.python.org/pypi/whisper/
+* http://pypi.python.org/pypi/carbonate/
+
+You can also use docker image from https://hub.docker.com/r/graphiteapp/graphite-statsd/
+
+.. _upgrading :
+
+Upgrading
+---------
+Create a virtualenv (skip if you already are using one), activate it and install the packages.
+
+.. code-block:: bash
+
+   virtualenv /opt/graphite
+   source /opt/graphite/bin/activate
+
+   pip install --upgrade whisper
+   pip install --upgrade carbon
+   pip install --upgrade graphite-web
+
+Then copy your local_settings.py to the new directory. If you don't have a local_settings.py
+then you can copy the local_settings.py.example or skip this step.
+
+.. code-block:: bash
+
+   cp /opt/graphite/webapp/graphite/local_settings.py /opt/graphite/lib/python2.7/site-packages/graphite/local_settings.py
+
+
+Backup and remove old files:
+
+.. code-block:: bash
+
+   cd /opt/graphite
+   mkdir backup
+   mv lib/carbon* lib/twisted/ webapp/ backup/
+
+Depending on your webserver you will have to configure your wsgi.py and or webserver config.
+Configuration for static files can be removed as they is now served from the application
+directly.
+
+Gunicorn
+^^^^^^^^
+Install gunicorn in the virtualenv ``pip install gunicorn`` with the virtualenv activated.
+Gunicorn then automatically picks up the virtualenv when run from ``/opt/graphite/bin/gunicorn``
+(no need to activate the virtualenv.
+
+Apache+mod_wsgi
+^^^^^^^^^^^^^^^
+Add ``WSGIPythonHome /opt/graphite`` to your apache httpd config. You can remove
+``sys.path.append('/opt/graphite/webapp')`` from your wsgi.conf.
+
+uWSGI
+^^^^^
+Add ``virtualenv = /opt/graphite`` to your ``graphite.ini`` config file. You can remove
+``sys.path.append('/opt/graphite/webapp')`` from your wsgi.conf.
+
+Incompatible changes
+--------------------
+Default installation prefix is removed, be careful with upgrading, check if the correct libraries
+and configurations are being loaded.
+
+Security Notes
+--------------
+None
+
+New features
+------------
+
+Graphite-Web
+^^^^^^^^^^^^
+* TODO:
+
+Carbon
+^^^^^^
+* TODO:
+
+Whisper
+^^^^^^^
+* TODO:
+
+Carbonate
+^^^^^^^^^
+* None
+
+Bug Fixes
+---------
+
+Graphite-Web
+^^^^^^^^^^^^
+* TODO
+
+Carbon
+^^^^^^
+* TODO
+
+Whisper
+^^^^^^^
+* TODO
+
+Carbonate
+^^^^^^^^^
+kA None

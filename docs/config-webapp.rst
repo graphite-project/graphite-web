@@ -3,13 +3,13 @@ Configuring The Webapp
 
 There are multiple ways to expose the Graphite webapp. The following stack configurations exist:
 
-* nginx + gunicorn
+* nginx + Gunicorn
 * Apache + mod_wsgi
 * nginx + uWSGI
 
 Depending on the configuration you choose, the webapp configuration is slightly different.
 
-nginx + gunicorn
+nginx + Gunicorn
 ----------------
 
 In this setup, nginx will proxy requests for Gunicorn, which will itself listen locally on port 8080 and serve the webapp (Django application).
@@ -169,7 +169,6 @@ Then create the graphite.wsgi. (You can find example of graphite.wsgi file on th
     # /opt/graphite/conf/graphite.wsgi
 
     import sys
-    sys.path.append('/opt/graphite/webapp')
     from graphite.wsgi import application
 
 Finally, configure the apache vhost. (You can find example of Graphite vhost configuration in the `contrib`_ directory of source ditribution):
@@ -266,7 +265,6 @@ Then create the file ``wsgi.py``:
     # /opt/graphite/conf/wsgi.py
 
     import sys
-    sys.path.append('/opt/graphite/webapp')
     from graphite.wsgi import application
 
 Enable ``graphite.ini`` and restart uWSGI:
@@ -303,8 +301,8 @@ Enable the vhost and restart nginx:
     $ service nginx restart
 
 
-Acnowlegments
--------------
+Acknowledgments
+---------------
 
 Portions of that manual are based on `Graphite-API deployment manual`_.
 

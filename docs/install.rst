@@ -3,7 +3,7 @@ Installing Graphite
 
 There are several ways to install Graphite. Docker is the easiest way and is recommended for new
 users. If you need to install Graphite directly on your system (not using Docker) then using
-`Virtualenv`_ with `pip`_ would be recommended. With virtualenv all dependencies are installed
+`Virtualenv`_ with `pip`_ would be recommended. With Virtualenv all dependencies are installed
 isolated so they will not interfere with your system Python. Installation from source should
 only be used in specific cases (e.g. installing a development release).
 
@@ -48,7 +48,7 @@ Basic Graphite requirements:
 * `fontconfig`_ and at least one font package (a system package usually)
 * A WSGI server and web server. Popular choices are:
 
-  - `gunicorn`_ with `nginx`_
+  - `Gunicorn`_ with `nginx`_
 
   - `Apache`_ with `mod_wsgi`_
 
@@ -91,11 +91,19 @@ For RHEL based distributions enable the `EPEL`_ repository.
    yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
    yum install dejavu-sans-fonts dejavu-serif-fonts python-pip python-virtualenv cairo
 
-Debian-based distributions
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+Debian
+^^^^^^
 .. code-block:: bash
 
    apt-get install python-dev libcairo2-dev libffi-dev build-essential
+
+.. note:: This might be outdated
+
+Ubuntu 18.04
+^^^^^^^^^^^^
+.. code-block:: bash
+
+   apt-get install python-pip libcairo2
 
 .. _default-installation-layout :
 
@@ -104,7 +112,10 @@ Default Installation Layout
 
 Graphite traditionally installed all components in ``/opt/graphite``, since release 1.2.0
 Graphite's installation location depends on your `Python prefix`_. If you are using `Virtualenv`_
-the ``prefix`` is set to the root of your virtualenv. You can find your ``prefix`` by running:
+the ``prefix`` is set to the root of your virtualenv. For more information on custom prefixes
+see `Custom Installation Locations`_. See the release notes for :doc:`upgrading </releases/1_2_0>`
+
+You can find your ``prefix`` by running:
 
 .. code-block:: bash
 
@@ -170,9 +181,14 @@ To install Graphite execute:
 Installing From Source
 ----------------------
 
-The latest source tarballs for Graphite-web, Carbon, and Whisper may be fetched from the
-Graphite project `download page`_ or the latest development branches may be cloned from
-the `Github project page`_:
+The latest source releases for Graphite-web, Carbon, and Whisper may be fetched from the
+GitHub release pages:
+
+* `Whisper releases <https://github.com/graphite-project/whisper/releases>`_
+* `Carbon releases <https://github.com/graphite-project/carbon/releases>`_
+* `Graphite-web releases <https://github.com/graphite-project/graphite-web/releases>`_
+
+The latest development branches may be cloned from the `GitHub project page`_:
 
 .. code-block:: bash
 
@@ -229,10 +245,6 @@ Post-Install Tasks
     With data getting into carbon, you probably want to look at graphs of it.
     So now we turn our attention to the webapp.
 
-:doc:`Using the Composer </composer>`
-    Now that the webapp is running, you probably want to learn how to use it.
-
-
 Windows Users
 -------------
 Unfortunately, native Graphite on Windows is unsupported, but you can run Graphite on Windows in `Docker`_.
@@ -263,7 +275,7 @@ Unfortunately, native Graphite on Windows is unsupported, but you can run Graphi
 .. _Docker: https://www.docker.com/
 .. _docker repo: https://github.com/graphite-project/docker-graphite-statsd
 .. _Virtualenv: http://virtualenv.org/
-.. _Github project page: http://github.com/graphite-project
-.. _download page: https://launchpad.net/graphite/+download
+.. _GitHub project page: http://github.com/graphite-project
 .. _pyhash: https://pypi.org/project/pyhash/
 .. _Python prefix: https://docs.python.org/3/library/sys.html#sys.prefix
+.. _Custom Installation Locations: https://setuptools.readthedocs.io/en/latest/easy_install.html#custom-installation-locations
