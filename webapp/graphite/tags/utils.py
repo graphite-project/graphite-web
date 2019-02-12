@@ -5,6 +5,22 @@ from hashlib import sha256
 
 
 class TaggedSeries(object):
+  prohibitedTagChars = ';!^='
+  prohibitedValueChars = ';~'
+
+  @classmethod
+  def validateCharacters(cls, tag, value):
+    """validate that there are no prohibited characters in given tag/value"""
+    for char in cls.prohibitedTagChars:
+      if char in tag:
+        return False
+
+    for char in cls.prohibitedValueChars:
+      if char in value:
+        return False
+
+    return True
+
   @classmethod
   def parse(cls, path):
     # if path is in openmetrics format: metric{tag="value",...}
@@ -31,7 +47,13 @@ class TaggedSeries(object):
       if not m:
         raise Exception('Cannot parse path %s, invalid segment %s' % (path, rawtags))
 
-      tags[m.group(1)] = m.group(2).replace(r'\"', '"').replace(r'\\', '\\')
+      tag = m.group(1)
+      value = m.group(2).replace(r'\"', '"').replace(r'\\', '\\')
+
+      if not cls.validateCharacters(tag, value):
+        raise Exception('Tag/Value contains invalid characters: %s/%s' % (tag, value))
+
+      tags[tag] = value
       rawtags = rawtags[len(m.group(0)):]
 
     tags['name'] = metric
@@ -52,6 +74,9 @@ class TaggedSeries(object):
       tag = segment.split('=', 1)
       if len(tag) != 2 or not tag[0]:
         raise Exception('Cannot parse path %s, invalid segment %s' % (path, segment))
+
+      if not cls.validateCharacters(*tag):
+        raise Exception('Tag/Value contains invalid characters: %s/%s' % (tag[0], tag[1]))
 
       tags[tag[0]] = tag[1]
 
