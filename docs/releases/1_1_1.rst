@@ -176,7 +176,9 @@ If you're not already running from the *master* branch, Graphite-Web's applicati
   sudo cp /opt/graphite/storage/graphite.db \
         /opt/graphite/storage/graphite.db.backup-`date +%Y%m%d_%H%M%S`
   sudo PYTHONPATH=/opt/graphite/webapp django-admin.py migrate \
-        --noinput --settings=graphite.settings --run-syncdb
+        --noinput --settings=graphite.settings --fake-initial
+
+In this release of Graphite-Web, migrations have been added for any Django models that did not have them. Previously, if using Django 1.9 or later, one needed the ``--run-syncdb`` option for migrate to create tables for Graphite-Web models without migrations (and Django 1.8 or earlier did not have this option but always exhibited this behavior). Django keeps track of which migrations have been applied and attempts to run any that have not, and these new initial migrations try to create tables that already exist from previous versions of Graphite-Web, and fail. This common Django situation is resolved by the ``--fake-initial`` option for migrate: it considers an initial migration to already be applied if the tables it creates already exist.
 
 
 Other Changes
