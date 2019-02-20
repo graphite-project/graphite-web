@@ -1,16 +1,14 @@
 #!/usr/bin/env python
 
 from glob import glob
-from collections import defaultdict
 from setuptools import setup
 import os
 
 
+# Needed to prevent pip from deleting data dirs when uninstalling
 storage_dirs = []
-
-for subdir in ('whisper/dummy.txt', 'ceres/dummy.txt', 'rrd/dummy.txt',
-               'log/dummy.txt', 'log/webapp/dummy.txt'):
-    storage_dirs.append(('storage/%s' % subdir, []))
+for subdir in ('whisper', 'ceres', 'rrd', 'log', 'log/webapp'):
+    storage_dirs.append(('storage/%s/dummy.txt' % subdir, []))
 
 conf_files = [('conf', glob('conf/*.example'))]
 examples = [('examples', glob('examples/example-*'))]
