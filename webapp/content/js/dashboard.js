@@ -792,7 +792,7 @@ function initDashboard () {
   if(window.location.hash != '')
   {
     if (window.location.hash.indexOf('/') != -1) {
-      var nameVal = window.location.hash.substr(1).split('#');
+      var nameVal = window.location.hash.substr(1).split('/');
       sendLoadTemplateRequest(nameVal[0],nameVal[1]);
     } else {
       sendLoadRequest(window.location.hash.substr(1));
