@@ -1406,7 +1406,7 @@ function newEmptyGraph() {
   var record = new GraphRecord({
    target: graphTargetString,
     params: myParams,
-    url: '/render?' + Ext.urlEncode(urlParams),
+    url: document.body.dataset.baseUrl + 'render?' + Ext.urlEncode(urlParams),
    'width': GraphSize.width,
    'height': GraphSize.height,
     });
@@ -1572,7 +1572,7 @@ function newFromMetric() {
     var record = new GraphRecord({
       target: graphTargetString,
       params: myParams,
-      url: '/render?' + Ext.urlEncode(urlParams)
+      url: document.body.dataset.baseUrl + 'render?' + Ext.urlEncode(urlParams)
       });
     graphStore.add([record]);
     updateGraphRecords();
