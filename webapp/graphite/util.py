@@ -367,6 +367,7 @@ def _jsonError(message, queryParams, status=500, encoder=None, default=None):
   return _jsonResponse(
     {'error': message}, queryParams, status=status, encoder=encoder, default=default)
 
+
 def parseHost(host_string):
     s = host_string.strip()
     bidx = s.rfind(']:')    # find closing bracket and following colon.
