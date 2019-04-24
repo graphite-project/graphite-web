@@ -531,7 +531,7 @@ darkgray     111,111,111
 darkgrey     111,111,111
 ============ =============
 
-RGB can be passed directly in the format #RRGGBB[AA] where RR, GG, and BB are 2-digit hex vaules for red, green and blue, respectively. AA is an optional addition describing the opacity ("alpha"). Where FF is fully opaque, 00 fully transparent.
+RGB can be passed directly in the format #RRGGBB[AA] where RR, GG, and BB are 2-digit hex values for red, green and blue, respectively. AA is an optional addition describing the opacity ("alpha"). Where FF is fully opaque, 00 fully transparent.
 
 Examples:
 
