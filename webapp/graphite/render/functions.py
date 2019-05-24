@@ -3515,7 +3515,10 @@ def useSeriesAbove(requestContext, seriesList, value, search, replace):
   if not newNames:
     return []
 
-  newSeries = evaluateTarget(requestContext, 'group(%s)' % ','.join(newNames))
+  newContext = requestContext.copy()
+  newContext['prefetched'] = {}
+
+  newSeries = evaluateTarget(newContext, 'group(%s)' % ','.join(newNames))
 
   return [n for n in newSeries if n is not None and len(n) > 0]
 
