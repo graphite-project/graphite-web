@@ -1239,6 +1239,7 @@ def movingWindow(requestContext, seriesList, windowSize, func='average', xFilesF
   # ignore original data and pull new, including our preview
   # data from earlier is needed to calculate the early results
   newContext = requestContext.copy()
+  newContext['prefetch'] = {}
   newContext['startTime'] = requestContext['startTime'] -  timedelta(seconds=previewSeconds)
   previewList = evaluateTarget(newContext, requestContext['args'][0])
   result = []
@@ -1324,6 +1325,7 @@ def exponentialMovingAverage(requestContext, seriesList, windowSize):
   # ignore original data and pull new, including our preview
   # data from earlier is needed to calculate the early results
   newContext = requestContext.copy()
+  newContext['prefetch'] = {}
   newContext['startTime'] = requestContext['startTime'] -  timedelta(seconds=previewSeconds)
   previewList = evaluateTarget(newContext, requestContext['args'][0])
   result = []
@@ -2375,7 +2377,9 @@ def aliasQuery(requestContext, seriesList, search, replace, newName):
   """
   for series in seriesList:
     newQuery = re.sub(search, replace, series.name)
-    newSeriesList = evaluateTarget(requestContext, newQuery)
+    newContext = requestContext.copy()
+    newContext['prefetch'] = {}
+    newSeriesList = evaluateTarget(newContext, newQuery)
     if newSeriesList is None or len(newSeriesList) == 0:
       raise Exception('No series found with query: ' + newQuery)
     current = safeLast(newSeriesList[0])
@@ -3517,7 +3521,6 @@ def useSeriesAbove(requestContext, seriesList, value, search, replace):
 
   newContext = requestContext.copy()
   newContext['prefetched'] = {}
-
   newSeries = evaluateTarget(newContext, 'group(%s)' % ','.join(newNames))
 
   return [n for n in newSeries if n is not None and len(n) > 0]
@@ -3813,6 +3816,7 @@ def holtWintersForecast(requestContext, seriesList, bootstrapInterval='7d', seas
 
   # ignore original data and pull new, including our preview
   newContext = requestContext.copy()
+  newContext['prefetch'] = {}
   newContext['startTime'] = requestContext['startTime'] -  timedelta(seconds=previewSeconds)
   previewList = evaluateTarget(newContext, requestContext['args'][0])
   results = []
@@ -3847,6 +3851,7 @@ def holtWintersConfidenceBands(requestContext, seriesList, delta=3, bootstrapInt
 
   # ignore original data and pull new, including our preview
   newContext = requestContext.copy()
+  newContext['prefetch'] = {}
   newContext['startTime'] = requestContext['startTime'] -  timedelta(seconds=previewSeconds)
   previewList = evaluateTarget(newContext, requestContext['args'][0])
   results = []
@@ -4007,6 +4012,7 @@ def linearRegression(requestContext, seriesList, startSourceAt=None, endSourceAt
   """
   results = []
   sourceContext = requestContext.copy()
+  sourceContext['prefetch'] = {}
   if startSourceAt is not None: sourceContext['startTime'] = parseATTime(startSourceAt)
   if endSourceAt is not None: sourceContext['endTime'] = parseATTime(endSourceAt)
 
@@ -4161,6 +4167,7 @@ def timeStack(requestContext, seriesList, timeShiftUnit='1d', timeShiftStart=0, 
 
   for shft in range(timeShiftStartint,timeShiftEndint):
     myContext = requestContext.copy()
+    myContext['prefetch'] = {}
     innerDelta = delta * shft
     myContext['startTime'] = requestContext['startTime'] + innerDelta
     myContext['endTime'] = requestContext['endTime'] + innerDelta
@@ -4221,6 +4228,7 @@ def timeShift(requestContext, seriesList, timeShift, resetEnd=True, alignDST=Fal
     timeShift = '-' + timeShift
   delta = parseTimeOffset(timeShift)
   myContext = requestContext.copy()
+  myContext['prefetch'] = {}
   myContext['startTime'] = requestContext['startTime'] + delta
   myContext['endTime'] = requestContext['endTime'] + delta
 
@@ -4805,8 +4813,10 @@ def applyByNode(requestContext, seriesList, nodeNum, templateFunction, newName=N
     prefix = '.'.join(series.name.split('.')[:nodeNum + 1])
     prefixes.add(prefix)
   results = []
+  newContext = requestContext.copy()
+  newContext['prefetch'] = {}
   for prefix in sorted(prefixes):
-    for resultSeries in evaluateTarget(requestContext, templateFunction.replace('%', prefix)):
+    for resultSeries in evaluateTarget(newContext, templateFunction.replace('%', prefix)):
       if newName:
         resultSeries.name = newName.replace('%', prefix)
       resultSeries.pathExpression = prefix
@@ -4972,6 +4982,7 @@ def smartSummarize(requestContext, seriesList, intervalString, func='sum', align
     if alignTo is not None:
       alignToUnit = getUnitString(alignTo)
       requestContext = requestContext.copy()
+      requestContext['prefetch'] = {}
       s = requestContext['startTime']
       if alignToUnit == YEARS_STRING:
           requestContext['startTime'] = datetime(s.year, 1, 1, tzinfo = s.tzinfo)
@@ -5142,6 +5153,7 @@ def hitcount(requestContext, seriesList, intervalString, alignToInterval = False
 
   if alignToInterval:
     requestContext = requestContext.copy()
+    requestContext['prefetch'] = {}
     s = requestContext['startTime']
     if interval >= DAY:
       requestContext['startTime'] = datetime(s.year, s.month, s.day, tzinfo = s.tzinfo)
