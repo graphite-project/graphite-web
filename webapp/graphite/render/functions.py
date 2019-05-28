@@ -307,8 +307,9 @@ def aggregate(requestContext, seriesList, func, xFilesFactor=None):
 
     &target=sumSeries(host.cpu-[0-7].cpu-{user,system}.value)
 
-  This function can be used with aggregation functions ``average``, ``median``, ``sum``, ``min``,
-  ``max``, ``diff``, ``stddev``, ``count``, ``range``, ``multiply`` & ``last``.
+  This function can be used with aggregation functions ``average`` (or ``avg``), ``avg_zero``,
+  ``median``, ``sum`` (or ``total``), ``min``, ``max``, ``diff``, ``stddev``, ``count``,
+  ``range`` (or ``rangeOf``) , ``multiply`` & ``last`` (or ``current``).
   """
   # strip Series from func if func was passed like sumSeries
   rawFunc = func
@@ -5442,8 +5443,9 @@ def groupByTags(requestContext, seriesList, callback, *tags):
     averageSeries(seriesByTag("name=cpu","dc=dc1")),averageSeries(seriesByTag("name=cpu","dc=dc2")),...
 
   This function can be used with all aggregation functions supported by
-  :py:func:`aggregate <aggregate>`: ``average``, ``median``, ``sum``, ``min``, ``max``, ``diff``,
-  ``stddev``, ``range`` & ``multiply``.
+  :py:func:`aggregate <aggregate>`: ``average`` (or ``avg``), ``avg_zero``,
+  ``median``, ``sum`` (or ``total``), ``min``, ``max``, ``diff``, ``stddev``, ``count``,
+  ``range`` (or ``rangeOf``) , ``multiply`` & ``last`` (or ``current``).
   """
   if STORE.tagdb is None:
     log.info('groupByTags called but no TagDB configured')
