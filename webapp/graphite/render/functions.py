@@ -252,15 +252,17 @@ def matchSeries(seriesList1, seriesList2):
 def trimRecent(seriesList):
   # trim right side of the graph to avoid dip when only part of most recent metrics has entered the system
   for s in seriesList:
-    if (s[-1] is None) and (s[-2] is not None):
-      for sl in seriesList:
-        sl[-1] = None
-      break
+    if len(s) > 1:
+      if (s[-1] is None) and (s[-2] is not None):
+        for sl in seriesList:
+          sl[-1] = None
+        break
   for s in seriesList:
-    if (s[-2] is None) and (s[-3] is not None):
-      for sl in seriesList:
-        sl[-2] = None
-      break
+    if len(s) > 2:
+      if (s[-2] is None) and (s[-3] is not None):
+        for sl in seriesList:
+          sl[-2] = None
+        break
   return (seriesList)
 
 
