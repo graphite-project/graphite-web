@@ -125,7 +125,7 @@ Forwarding
 `statsd`_
   A simple daemon for easy stats aggregation, developed by the folks at Etsy. A list of forks and alternative implementations can be found at <http://joemiller.me/2011/09/21/list-of-statsd-server-implementations/>
 
-`_Statusengine`_
+`Statusengine`_
   A daemon written in PHP to store Nagios and Naemon performance data to Graphite.
 
 Visualization
