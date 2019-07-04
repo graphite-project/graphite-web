@@ -10,12 +10,18 @@ matrix:
       env:
         - TOXENV=pypy-django111-pyparsing2
     - python: 3.5
+      sudo: true
+      dist: xenial
       env:
         - TOXENV=py35-django21-pyparsing2
     - python: 3.5
+      sudo: true
+      dist: xenial
       env:
         - TOXENV=py35-django22-pyparsing2
     - python: 3.6
+      sudo: true
+      dist: xenial
       env:
         - TOXENV=py36-django22-pyparsing2
     - python: 3.7
