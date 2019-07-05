@@ -7,7 +7,7 @@ from django.conf import settings
 
 from graphite.render.hashing import ConsistentHashRing
 from graphite.logger import log
-from graphite.util import load_module, unpickle
+from graphite.util import load_module, unpickle, parseHosts
 from graphite.singleton import ThreadSafeSingleton
 
 
@@ -83,10 +83,8 @@ class CarbonLinkPool(object):
       pass #nothing left in the pool, gotta make a new connection
 
     log.cache("CarbonLink creating a new socket for %s" % str(host))
-    connection = socket.socket()
-    connection.settimeout(self.timeout)
     try:
-      connection.connect((server, port))
+      connection = socket.create_connection((server, port), self.timeout)
     except socket.error:
       self.last_failure[host] = time.time()
       raise
@@ -193,16 +191,7 @@ class CarbonLinkPool(object):
 @ThreadSafeSingleton
 class GlobalCarbonLinkPool(CarbonLinkPool):
   def __init__(self):
-    hosts = []
-    for host in settings.CARBONLINK_HOSTS:
-      parts = host.split(':')
-      server = parts[0]
-      port = int(parts[1])
-      if len(parts) > 2:
-        instance = parts[2]
-      else:
-        instance = None
-      hosts.append((server, int(port), instance))
+    hosts = parseHosts(settings.CARBONLINK_HOSTS)
     timeout = settings.CARBONLINK_TIMEOUT
     CarbonLinkPool.__init__(self, hosts, timeout)
 

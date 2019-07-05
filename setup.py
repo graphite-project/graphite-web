@@ -57,7 +57,7 @@ setup(
     scripts=glob('bin/*'),
     include_package_data=True,
     data_files=storage_dirs + conf_files + examples,
-    install_requires=['Django>=1.8,<2.2', 'django-tagging==0.4.3', 'pytz',
+    install_requires=['Django>=1.8,<2.3', 'django-tagging==0.4.3', 'pytz',
                       'pyparsing', 'cairocffi', 'urllib3', 'scandir', 'six',
                       'whitenoise'],
     classifiers=[
