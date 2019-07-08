@@ -19,8 +19,7 @@ import six.moves.http_client
 from datetime import datetime
 from time import time
 from random import shuffle
-from six.moves.urllib.parse import urlencode, urlsplit, urlunsplit
-from cgi import parse_qs
+from six.moves.urllib.parse import urlencode, urlsplit, urlunsplit, parse_qs
 
 from graphite.compat import HttpResponse
 from graphite.user_util import getProfileByUsername
