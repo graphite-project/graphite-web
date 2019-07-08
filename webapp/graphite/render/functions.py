@@ -2341,12 +2341,12 @@ areaBetween.params = [
 
 
 def aliasSub(requestContext, seriesList, search, replace):
-  """
+  r"""
   Runs series names through a regex search/replace.
 
   .. code-block:: none
 
-    &target=aliasSub(ip.*TCP*,"^.*TCP(\d+)","\\1")
+    &target=aliasSub(ip.*TCP*,"^.*TCP(\d+)","\1")
   """
   try:
     seriesList.name = re.sub(search, replace, seriesList.name)
@@ -2365,12 +2365,12 @@ aliasSub.params = [
 
 
 def aliasQuery(requestContext, seriesList, search, replace, newName):
-  """
+  r"""
   Performs a query to alias the metrics in seriesList.
 
   .. code-block:: none
 
-    &target=aliasQuery(channel.power.*,"channel\.power\.([0-9]+)","channel.frequency.\\1", "Channel %d MHz")
+    &target=aliasQuery(channel.power.*,"channel\.power\.([0-9]+)","channel.frequency.\1", "Channel %d MHz")
 
   The series in seriesList will be aliased by first translating the series names using
   the search & replace parameters, then using the last value of the resulting series

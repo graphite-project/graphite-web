@@ -294,7 +294,7 @@ class TagsTest(TestCase):
     self.assertEqual(mockLog.info.call_count, 1)
     self.assertRegexpMatches(
       mockLog.info.call_args[0][0],
-      'graphite\.tags\.localdatabase\.LocalDatabaseTagDB\.find_series :: completed \(cached\) in [-.e0-9]+s'
+      r'graphite\.tags\.localdatabase\.LocalDatabaseTagDB\.find_series :: completed \(cached\) in [-.e0-9]+s'
     )
 
   def test_http_tagdb(self):
