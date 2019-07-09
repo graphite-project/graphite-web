@@ -129,7 +129,8 @@ class RenderTest(TestCase):
           'template(target.$test, test=foo.bar)',
         ]
 
-        with self.assertRaisesRegexp(ValueError, 'invalid template\(\) syntax, only string/numeric arguments are allowed'):
+        message = r'invalid template\(\) syntax, only string/numeric arguments are allowed'
+        with self.assertRaisesRegexp(ValueError, message):
           evaluateTarget({}, test_input)
 
     @patch('graphite.render.evaluator.prefetchData', lambda *_: None)
