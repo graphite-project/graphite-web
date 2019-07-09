@@ -1310,7 +1310,8 @@ class FunctionsTest(TestCase):
             ]
         )
 
-        with self.assertRaisesRegexp(ValueError, "divideSeries second argument must reference exactly 1 series \(got 2\)"):
+        message = r"divideSeries second argument must reference exactly 1 series \(got 2\)"
+        with self.assertRaisesRegexp(ValueError, message):
             functions.divideSeries({}, seriesList, seriesList2)
 
     def test_divideSeries_seriesList2_single(self):
@@ -2609,7 +2610,8 @@ class FunctionsTest(TestCase):
             endTime=datetime(1971,1,1,1,2,0,0,pytz.timezone(settings.TIME_ZONE)),
             tzinfo=pytz.utc
         )
-        with self.assertRaisesRegexp(ValueError, "verticalLine\(\): timestamp 3600 exists before start of range"):
+        message = r"verticalLine\(\): timestamp 3600 exists before start of range"
+        with self.assertRaisesRegexp(ValueError, message):
             result = functions.verticalLine(requestContext, "01:0019700101", "foo")
 
     def test_vertical_line_after_end(self):
@@ -2618,7 +2620,8 @@ class FunctionsTest(TestCase):
             endTime=datetime(1970,1,1,1,2,0,0,pytz.timezone(settings.TIME_ZONE)),
             tzinfo=pytz.utc
         )
-        with self.assertRaisesRegexp(ValueError, "verticalLine\(\): timestamp 31539600 exists after end of range"):
+        message = r"verticalLine\(\): timestamp 31539600 exists after end of range"
+        with self.assertRaisesRegexp(ValueError, message):
             result = functions.verticalLine(requestContext, "01:0019710101", "foo")
 
     def test_line_width(self):
@@ -2821,7 +2824,7 @@ class FunctionsTest(TestCase):
     def test_alias_sub(self):
         seriesList = self._generate_series_list()
         substitution = "Shrubbery"
-        results = functions.aliasSub({}, seriesList, "^\w+", substitution)
+        results = functions.aliasSub({}, seriesList, r"^\w+", substitution)
         for series in results:
             self.assertTrue(series.name.startswith(substitution),
                     "aliasSub should replace the name with {0}".format(substitution),
@@ -2865,10 +2868,10 @@ class FunctionsTest(TestCase):
         with patch('graphite.render.functions.evaluateTarget', mock_evaluateTarget):
             # Perform query - this one will not find a matching metric
             with self.assertRaises(Exception):
-                functions.aliasQuery({}, seriesList, 'chan\.pow\.([0-9]+)', 'chan.fred.\\1', 'Channel %d MHz')
+                functions.aliasQuery({}, seriesList, r'chan\.pow\.([0-9]+)', 'chan.fred.\\1', 'Channel %d MHz')
 
             # Perform query - this one will find a matching metric
-            results = functions.aliasQuery({}, seriesList, 'chan\.pow\.([0-9]+)', 'chan.freq.\\1', 'Channel %d MHz')
+            results = functions.aliasQuery({}, seriesList, r'chan\.pow\.([0-9]+)', 'chan.freq.\\1', 'Channel %d MHz')
 
             # Check results
             self.assertEqual(results, expectedResult)
@@ -2880,7 +2883,7 @@ class FunctionsTest(TestCase):
 
                 # Perform query - this one will fail to return a current value for the matched metric
                 with self.assertRaises(Exception):
-                    functions.aliasQuery({}, seriesList, 'chan\.pow\.([0-9]+)', 'chan.freq.\\1', 'Channel %d MHz')
+                    functions.aliasQuery({}, seriesList, r'chan\.pow\.([0-9]+)', 'chan.freq.\\1', 'Channel %d MHz')
 
     # TODO: Add tests for * globbing and {} matching to this
     def test_alias_by_node(self):

@@ -16,9 +16,9 @@ class TimeSeriesTest(TestCase):
 
     def test_TimeSeries_init_no_args(self):
       if sys.version_info[0] >= 3:
-          msg = '__init__\(\) missing 5 required positional arguments'
+          msg = r'__init__\(\) missing 5 required positional arguments'
       else:
-          msg = '__init__\(\) takes at least 6 arguments \(1 given\)'
+          msg = r'__init__\(\) takes at least 6 arguments \(1 given\)'
       with self.assertRaisesRegexp(TypeError, msg):
         TimeSeries()
 

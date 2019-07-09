@@ -28,7 +28,7 @@ class RemoteReaderTests(TestCase):
                               bulk_query=['a.b.c.d'])
 
         self.assertIsNotNone(reader)
-        self.assertRegexpMatches(str(reader), "<RemoteReader\[.*\]: 127.0.0.1 a.b.c.d>")
+        self.assertRegexpMatches(str(reader), r"<RemoteReader\[.*\]: 127.0.0.1 a.b.c.d>")
         self.assertEqual(reader.get_intervals(), [])
 
     #
@@ -163,7 +163,7 @@ class RemoteReaderTests(TestCase):
         )
         http_request.return_value = responseObject
 
-        with self.assertRaisesRegexp(Exception, 'Invalid render response from http://[^ ]+: KeyError\(\'name\',?\)'):
+        with self.assertRaisesRegexp(Exception, r'Invalid render response from http://[^ ]+: KeyError\(\'name\',?\)'):
           reader.fetch(startTime, endTime)
 
         # non-200 response

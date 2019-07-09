@@ -44,11 +44,16 @@ matrix:
       dist: xenial
       env:
         - TOXENV=py37-django22-pyparsing2-postgresql TEST_POSTGRESQL_PASSWORD=graphite
-    - python: 3.7
+    - python: "3.8-dev"
       sudo: true
       dist: xenial
       env:
         - TOXENV=lint
+    - python: "3.8-dev"
+      sudo: true
+      dist: xenial
+      env:
+        - TOXENV=py38-django22-pyparsing2
 
 env:
   - TOXENV=py27-django111-pyparsing2-msgpack

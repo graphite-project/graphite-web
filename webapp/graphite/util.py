@@ -280,7 +280,7 @@ def logtime(f):
   return wrapped_f
 
 
-class BufferedHTTPReader(io.IOBase):
+class BufferedHTTPReader(io.FileIO):
   def __init__(self, response, buffer_size=1048576):
     self.response = response
     self.buffer_size = buffer_size
