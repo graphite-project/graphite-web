@@ -3789,6 +3789,60 @@ class FunctionsTest(TestCase):
         results = functions.reduceSeries({}, copy.deepcopy(mappedResult), "asPercent", 2, "bytes_used", "total_bytes")
         self.assertEqual(results,expectedResult)
 
+    def test_add(self):
+        seriesList = self._generate_series_list()
+        # Leave the original seriesList undisturbed for verification
+        results = functions.add({}, copy.deepcopy(seriesList), 1.23)
+        for i, series in enumerate(results):
+            for counter, value in enumerate(series):
+                if value is None:
+                    continue
+                original_value = seriesList[i][counter]
+                expected_value = original_value + 1.23
+                self.assertEqual(value, expected_value)
+
+    def test_sigmoid(self):
+        seriesList = self._generate_series_list()
+        # Leave the original seriesList undisturbed for verification
+        results = functions.sigmoid({}, copy.deepcopy(seriesList))
+        for i, series in enumerate(results):
+            for counter, value in enumerate(series):
+                if value is None:
+                    continue
+                original_value = seriesList[i][counter]
+                try:
+                    expected_value = 1 / (1 + math.exp(-original_value))
+                except (TypeError, ValueError, ZeroDivisionError):
+                    expected_value = None
+                self.assertEqual(value, expected_value)
+
+    def test_logit(self):
+        seriesList = self._generate_series_list()
+        # Leave the original seriesList undisturbed for verification
+        results = functions.logit({}, copy.deepcopy(seriesList))
+        for i, series in enumerate(results):
+            for counter, value in enumerate(series):
+                if value is None:
+                    continue
+                original_value = seriesList[i][counter]
+                try:
+                    expected_value = math.log(original_value / (1 - original_value))
+                except (TypeError, ValueError, ZeroDivisionError):
+                    expected_value = None
+                self.assertEqual(value, expected_value)
+
+    def test_exp(self):
+        seriesList = self._generate_series_list()
+        # Leave the original seriesList undisturbed for verification
+        results = functions.exp({}, copy.deepcopy(seriesList))
+        for i, series in enumerate(results):
+            for counter, value in enumerate(series):
+                if value is None:
+                    continue
+                original_value = seriesList[i][counter]
+                expected_value = math.exp(original_value)
+                self.assertEqual(value, expected_value)
+
     def test_pow(self):
         seriesList = self._generate_series_list()
         factor = 2
