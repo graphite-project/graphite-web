@@ -1,10 +1,11 @@
 import re
 import six
 
-from graphite.errors import NormalizeEmptyResultError
+from graphite.errors import NormalizeEmptyResultError, InputParameterError
 from graphite.functions import SeriesFunction
 from graphite.render.grammar import grammar
 from graphite.render.datalib import fetchData, TimeSeries, prefetchData
+from graphite.functions.params import satisfiesParams
 
 
 def evaluateTarget(requestContext, targets):
@@ -76,7 +77,7 @@ def evaluateTokens(requestContext, tokens, replacements=None, pipedArg=None):
     if tokens.call.funcname == 'template':
       # if template propagates down here, it means the grammar didn't match the invocation
       # as tokens.template. this generally happens if you try to pass non-numeric/string args
-      raise ValueError("invalid template() syntax, only string/numeric arguments are allowed")
+      raise InputParameterError("invalid template() syntax, only string/numeric arguments are allowed")
 
     if tokens.call.funcname == 'seriesByTag':
       return fetchData(requestContext, tokens.call.raw)
@@ -89,6 +90,10 @@ def evaluateTokens(requestContext, tokens, replacements=None, pipedArg=None):
     requestContext['args'] = rawArgs
     kwargs = dict([(kwarg.argname, evaluateTokens(requestContext, kwarg.args[0], replacements))
                    for kwarg in tokens.call.kwargs])
+
+    if hasattr(func, 'params') and not satisfiesParams(func.params, args, kwargs):
+      raise InputParameterError('Invalid parameters for function "{func}"'.format(func=tokens.call.funcname))
+
     try:
       return func(requestContext, *args, **kwargs)
     except NormalizeEmptyResultError:
@@ -106,7 +111,7 @@ def evaluateScalarTokens(tokens):
     if tokens.number.scientific:
       return float(tokens.number.scientific[0])
 
-    raise ValueError("unknown numeric type in target evaluator")
+    raise InputParameterError("unknown numeric type in target evaluator")
 
   if tokens.string:
     return tokens.string[1:-1]
@@ -117,7 +122,7 @@ def evaluateScalarTokens(tokens):
   if tokens.none:
     return None
 
-  raise ValueError("unknown token in target evaluator")
+  raise InputParameterError("unknown token in target evaluator")
 
 
 def extractPathExpressions(requestContext, targets):
