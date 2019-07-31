@@ -34,8 +34,7 @@ except ImportError:
 from os import environ
 
 from django.conf import settings
-
-from graphite.errors import NormalizeEmptyResultError
+from graphite.errors import NormalizeEmptyResultError, InputParameterError
 from graphite.events import models
 from graphite.functions import SeriesFunction, ParamTypes, Param
 from graphite.logger import log
@@ -295,7 +294,7 @@ def getAggFunc(func, rawFunc=None):
     return aggFuncs[func]
   if func in aggFuncAliases:
     return aggFuncAliases[func]
-  raise ValueError('Unsupported aggregation function: %s' % (rawFunc or func))
+  raise InputParameterError('Unsupported aggregation function: %s' % (rawFunc or func))
 
 
 def aggregate(requestContext, seriesList, func, xFilesFactor=None):
@@ -672,7 +671,7 @@ def percentileOfSeries(requestContext, seriesList, n, interpolate=False):
   supplied series.
   """
   if n <= 0:
-    raise ValueError('The requested percent is required to be greater than 0')
+    raise InputParameterError('The requested percent is required to be greater than 0')
 
   # if seriesList is empty then just short-circuit
   if not seriesList:
@@ -945,7 +944,7 @@ def asPercent(requestContext, seriesList, total=None, *nodes):
           totalSeries[key] = TimeSeries(name,start,end,step,totalValues,xFilesFactor=xFilesFactor)
     # trying to use nodes with a total value, which isn't supported because it has no effect
     else:
-      raise ValueError('total must be None or a seriesList')
+      raise InputParameterError('total must be None or a seriesList')
 
     resultList = []
     for key in keys:
@@ -980,7 +979,7 @@ def asPercent(requestContext, seriesList, total=None, *nodes):
     totalText = "sumSeries(%s)" % formatPathExpressions(seriesList)
   elif type(total) is list:
     if len(total) != 1 and len(total) != len(seriesList):
-      raise ValueError("asPercent second argument must be missing, a single digit, reference exactly 1 series or reference the same number of series as the first argument")
+      raise InputParameterError("asPercent second argument must be missing, a single digit, reference exactly 1 series or reference the same number of series as the first argument")
 
     if len(total) == 1:
       normalize([seriesList, total])
@@ -1024,7 +1023,7 @@ def divideSeriesLists(requestContext, dividendSeriesList, divisorSeriesList):
   """
 
   if len(dividendSeriesList) != len(divisorSeriesList):
-    raise ValueError("dividendSeriesList and divisorSeriesList argument must have equal length")
+    raise InputParameterError("dividendSeriesList and divisorSeriesList argument must have equal length")
 
   results = []
 
@@ -1081,7 +1080,7 @@ def divideSeries(requestContext, dividendSeriesList, divisorSeries):
         series[i] = None
     return dividendSeriesList
   if len(divisorSeries) > 1:
-    raise ValueError("divideSeries second argument must reference exactly 1 series (got {0})".format(len(divisorSeries)))
+    raise InputParameterError("divideSeries second argument must reference exactly 1 series (got {0})".format(len(divisorSeries)))
 
   divisorSeries = divisorSeries[0]
   results = []
@@ -2514,10 +2513,10 @@ def aliasQuery(requestContext, seriesList, search, replace, newName):
     newContext['prefetch'] = {}
     newSeriesList = evaluateTarget(newContext, newQuery)
     if newSeriesList is None or len(newSeriesList) == 0:
-      raise Exception('No series found with query: ' + newQuery)
+      raise InputParameterError('No series found with query: ' + newQuery)
     current = safeLast(newSeriesList[0])
     if current is None:
-      raise Exception('Cannot get last value of series: ' + newSeriesList[0])
+      raise InputParameterError('Cannot get last value of series: ' + newSeriesList[0])
     series.name = newName % current
   return seriesList
 
@@ -2890,7 +2889,7 @@ def filterSeries(requestContext, seriesList, func, operator, threshold):
   consolidationFunc = getAggFunc(func)
 
   if operator not in operatorFuncs:
-    raise Exception('Unsupported operator: %s' % (operator))
+    raise InputParameterError('Unsupported operator: %s' % (operator))
   operatorFunc = operatorFuncs[operator]
 
   # if seriesList is empty then just short-circuit
@@ -4567,9 +4566,9 @@ def verticalLine(requestContext, ts, label=None, color=None):
   start = int(timestamp( requestContext['startTime'] ))
   end = int(timestamp( requestContext['endTime'] ))
   if ts < start:
-    raise ValueError("verticalLine(): timestamp %s exists before start of range" % ts)
+    raise InputParameterError("verticalLine(): timestamp %s exists before start of range" % ts)
   elif ts > end:
-    raise ValueError("verticalLine(): timestamp %s exists after end of range" % ts)
+    raise InputParameterError("verticalLine(): timestamp %s exists after end of range" % ts)
   start = end = ts
   step = 1.0
   series = TimeSeries(label, start, end, step, [1.0, 1.0], xFilesFactor=requestContext.get('xFilesFactor'))
@@ -5599,7 +5598,7 @@ def groupByTags(requestContext, seriesList, callback, *tags):
     return []
 
   if not tags:
-    raise ValueError("groupByTags(): no tags specified")
+    raise InputParameterError("groupByTags(): no tags specified")
 
   # if all series have the same "name" tag use that for results, otherwise use the callback
   # if we're grouping by name, then the name is always used (see below)
