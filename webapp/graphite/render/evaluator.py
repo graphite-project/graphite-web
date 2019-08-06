@@ -5,7 +5,7 @@ from graphite.errors import NormalizeEmptyResultError, InputParameterError
 from graphite.functions import SeriesFunction
 from graphite.render.grammar import grammar
 from graphite.render.datalib import fetchData, TimeSeries, prefetchData
-from graphite.functions.params import satisfiesParams
+from graphite.functions.params import validateParams
 
 
 def evaluateTarget(requestContext, targets):
@@ -91,8 +91,8 @@ def evaluateTokens(requestContext, tokens, replacements=None, pipedArg=None):
     kwargs = dict([(kwarg.argname, evaluateTokens(requestContext, kwarg.args[0], replacements))
                    for kwarg in tokens.call.kwargs])
 
-    if hasattr(func, 'params') and not satisfiesParams(func.params, args, kwargs):
-      raise InputParameterError('Invalid parameters for function "{func}"'.format(func=tokens.call.funcname))
+    if hasattr(func, 'params'):
+      validateParams(tokens.call.funcname, func.params, args, kwargs)
 
     try:
       return func(requestContext, *args, **kwargs)
