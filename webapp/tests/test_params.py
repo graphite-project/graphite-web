@@ -1,6 +1,7 @@
 import unittest
 
-from graphite.functions.params import Param, ParamTypes, satisfiesParams
+from graphite.errors import InputParameterError
+from graphite.functions.params import Param, ParamTypes, validateParams
 
 
 class TestParam(unittest.TestCase):
@@ -11,96 +12,131 @@ class TestParam(unittest.TestCase):
     ]
 
     def test_simple_args(self):
-        self.assertTrue(satisfiesParams(
+        self.assertTrue(validateParams(
+            'TestParam',
             self.params,
             ['arg1', 'arg2', 'arg3'],
             {},
         ))
 
-        self.assertFalse(satisfiesParams(
+        self.assertRaises(
+            InputParameterError,
+            validateParams,
+            'TestParam',
             self.params,
             ['arg1', 'arg2'],
             {},
-        ))
+        )
 
     def test_simple_kwargs(self):
-        self.assertTrue(satisfiesParams(
+        self.assertTrue(validateParams(
+            'TestParam',
             self.params,
             [],
             {'one': '1', 'two': '2', 'three': '3'},
         ))
 
-        self.assertFalse(satisfiesParams(
+        self.assertRaises(
+            InputParameterError,
+            validateParams,
+            'TestParam',
             self.params,
             [],
             {'one': '1', 'two': '2'},
-        ))
+        )
 
-        self.assertFalse(satisfiesParams(
+        self.assertRaises(
+            InputParameterError,
+            validateParams,
+            'TestParam',
             self.params,
             [],
             {'one': '1', 'two': '2', 'four': '4'},
-        ))
+        )
 
     def test_mixed_cases(self):
-        self.assertTrue(satisfiesParams(
+        self.assertTrue(validateParams(
+            'TestParam',
             self.params,
             ['one', 'two'],
             {'three': '3'},
         ))
 
-        self.assertTrue(satisfiesParams(
+        self.assertTrue(validateParams(
+            'TestParam',
             self.params,
             ['one'],
             {'three': '3', 'two': '2'},
         ))
 
         # positional args don't check the name
-        self.assertTrue(satisfiesParams(
+        self.assertTrue(validateParams(
+            'TestParam',
             self.params,
             ['one', 'two', 'four'],
             {},
         ))
 
-        self.assertFalse(satisfiesParams(
+        self.assertRaises(
+            InputParameterError,
+            validateParams,
+            'TestParam',
             self.params,
             [],
             {'three': '3', 'two': '2'},
-        ))
+        )
 
-        self.assertFalse(satisfiesParams(
+        self.assertRaises(
+            InputParameterError,
+            validateParams,
+            'TestParam',
             self.params,
             ['one', 'three'],
             {'two': '2'},
-        ))
+        )
 
-        self.assertFalse(satisfiesParams(
+        self.assertRaises(
+            InputParameterError,
+            validateParams,
+            'TestParam',
             self.params,
             ['three'],
             {'one': '1', 'two': '2'},
-        ))
+        )
 
     def test_repeated_args(self):
-        self.assertFalse(satisfiesParams(
+        self.assertRaises(
+            InputParameterError,
+            validateParams,
+            'TestParam',
             self.params,
             ['one'],
             {'three': '3', 'one': '1'},
-        ))
+        )
 
-        self.assertFalse(satisfiesParams(
+        self.assertRaises(
+            InputParameterError,
+            validateParams,
+            'TestParam',
             self.params,
             ['one', 'two'],
             {'three': '3', 'two': '2'},
-        ))
+        )
 
-        self.assertFalse(satisfiesParams(
+        self.assertRaises(
+            InputParameterError,
+            validateParams,
+            'TestParam',
             self.params,
             ['one', 'two', 'three'],
             {'one': '1'},
-        ))
+        )
 
     def test_multiple_property(self):
-        self.assertFalse(satisfiesParams(
+        self.assertRaises(
+            InputParameterError,
+            validateParams,
+            'TestParam',
             [
                 Param('one', ParamTypes.string, required=True),
                 Param('two', ParamTypes.string, required=True),
@@ -108,9 +144,10 @@ class TestParam(unittest.TestCase):
             ],
             ['one', 'two', 'three', 'four'],
             {},
-        ))
+        )
 
-        self.assertTrue(satisfiesParams(
+        self.assertTrue(validateParams(
+            'TestParam',
             [
                 Param('one', ParamTypes.string, required=True),
                 Param('two', ParamTypes.string, required=True),
@@ -121,7 +158,8 @@ class TestParam(unittest.TestCase):
         ))
 
     def test_options_property(self):
-        self.assertTrue(satisfiesParams(
+        self.assertTrue(validateParams(
+            'TestParam',
             [
                 Param('one', ParamTypes.string, required=True),
                 Param('two', ParamTypes.string, required=True),
@@ -131,7 +169,8 @@ class TestParam(unittest.TestCase):
             {},
         ))
 
-        self.assertTrue(satisfiesParams(
+        self.assertTrue(validateParams(
+            'TestParam',
             [
                 Param('one', ParamTypes.string, required=True),
                 Param('two', ParamTypes.string, required=True),
@@ -141,7 +180,10 @@ class TestParam(unittest.TestCase):
             {},
         ))
 
-        self.assertFalse(satisfiesParams(
+        self.assertRaises(
+            InputParameterError,
+            validateParams,
+            'TestParam',
             [
                 Param('one', ParamTypes.string, required=True),
                 Param('two', ParamTypes.string, required=True),
@@ -149,4 +191,4 @@ class TestParam(unittest.TestCase):
             ],
             ['one', 'two', 'foud'],
             {},
-        ))
+        )

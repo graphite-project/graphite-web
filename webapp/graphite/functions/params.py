@@ -1,5 +1,6 @@
 import six
 
+from graphite.errors import InputParameterError
 from graphite.render.attime import parseTimeOffset
 
 
@@ -31,7 +32,7 @@ def validateBoolean(value):
 
 
 def validateFloat(value):
-  return isinstance(value, float)
+  return isinstance(value, float) or validateInteger(value)
 
 
 def validateInteger(value):
@@ -94,20 +95,25 @@ class Param(object):
     return jsonVal
 
   def validateValue(self, value):
+    # None is ok for optional params
+    if not self.required and value is None:
+      return True
+
     validator = typeValidators.get(self.type, None)
-    if validator is not None:
-      return validator(value)
-
     # if there's no validator for the type we assume True
-    return True
+    if validator is None:
+      return True
+
+    return validator(value)
 
 
-def satisfiesParams(params, args, kwargs):
+def validateParams(func, params, args, kwargs):
   valid_args = []
 
   if len(params) == 0 or params[len(params)-1].multiple is False:
     if len(args) + len(kwargs) > len(params):
-      return False
+      raise InputParameterError(
+        'Too many parameters specified for function "{func}"'.format(func=func))
 
   for i in range(len(params)):
     if len(args) <= i:
@@ -116,20 +122,29 @@ def satisfiesParams(params, args, kwargs):
       if value is None:
         if params[i].required:
           # required parameter is missing
-          return False
+          raise InputParameterError(
+            'Missing required parameter "{param}" for function "{func}"'.format(
+              param=params[i].name, func=func))
         else:
           # got multiple values for keyword argument
           if params[i].name in valid_args:
-            return False
+            raise InputParameterError(
+              'Keyword parameter "{param}" specified multiple times for function "{func}"'.format(
+                param=params[i].name, func=func))
     else:
       # requirement is satisfied from "args"
       value = args[i]
 
     # parameter is restricted to a defined set of values, but value is not in it
     if params[i].options and value not in params[i].options:
-      return False
+      raise InputParameterError(
+        'Invalid option specified for function "{func}" parameter "{param}"'.format(
+          param=params[i].name, func=func))
 
-    params[i].validateValue(value)
+    if not params[i].validateValue(value):
+      raise InputParameterError(
+        'Invalid {type} value specified for function "{func}" parameter "{param}"'.format(
+          type=params[i].type, param=params[i].name, func=func))
 
     valid_args.append(params[i].name)
 
