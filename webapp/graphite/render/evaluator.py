@@ -3,9 +3,12 @@ import six
 
 from graphite.errors import NormalizeEmptyResultError, InputParameterError
 from graphite.functions import SeriesFunction
+from graphite.logger import log
 from graphite.render.grammar import grammar
 from graphite.render.datalib import fetchData, TimeSeries, prefetchData
 from graphite.functions.params import validateParams
+
+from django.conf import settings
 
 
 def evaluateTarget(requestContext, targets):
@@ -91,13 +94,39 @@ def evaluateTokens(requestContext, tokens, replacements=None, pipedArg=None):
     kwargs = dict([(kwarg.argname, evaluateTokens(requestContext, kwarg.args[0], replacements))
                    for kwarg in tokens.call.kwargs])
 
+    def handleInvalidParameters(e):
+      if not getattr(handleInvalidParameters, 'alreadyLogged', False):
+        log.warning(
+          'Received invalid parameters ({msg}): {func} ({args})'.format(
+            msg=str(e.message),
+            func=tokens.call.funcname,
+            args=', '.join(
+              argList
+              for argList in [
+                ', '.join(str(arg) for arg in args),
+                ', '.join('{k}={v}'.format(k=str(k), v=str(v)) for k, v in kwargs.items()),
+              ] if argList
+            )
+          ))
+
+        # only log invalid parameters once
+        setattr(handleInvalidParameters, 'alreadyLogged', True)
+
+      if settings.ENFORCE_INPUT_VALIDATION:
+        raise
+
     if hasattr(func, 'params'):
-      validateParams(tokens.call.funcname, func.params, args, kwargs)
+      try:
+        validateParams(tokens.call.funcname, func.params, args, kwargs)
+      except InputParameterError as e:
+        handleInvalidParameters(e)
 
     try:
       return func(requestContext, *args, **kwargs)
     except NormalizeEmptyResultError:
       return []
+    except InputParameterError as e:
+      handleInvalidParameters(e)
 
   return evaluateScalarTokens(tokens)
 
