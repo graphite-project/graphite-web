@@ -85,7 +85,15 @@ def evaluateTokens(requestContext, tokens, replacements=None, pipedArg=None):
     if tokens.call.funcname == 'seriesByTag':
       return fetchData(requestContext, tokens.call.raw)
 
-    func = SeriesFunction(tokens.call.funcname)
+    try:
+      func = SeriesFunction(tokens.call.funcname)
+    except KeyError:
+      msg = 'Received request for unknown function: {func}'.format(func=tokens.call.funcname)
+      log.warning(msg)
+
+      # even if input validation enforcement is disabled, there's nothing else we can do here
+      raise InputParameterError(msg)
+
     rawArgs = tokens.call.args or []
     if pipedArg is not None:
       rawArgs.insert(0, pipedArg)
