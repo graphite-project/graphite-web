@@ -85,6 +85,13 @@ def safeDiv(a, b):
   return a / b
 
 
+def safeExp(a):
+    try:
+        return math.exp(a)
+    except TypeError:
+        return None
+
+
 def safePow(a, b):
   if a is None: return None
   if b is None: return None
@@ -1021,7 +1028,6 @@ def divideSeriesLists(requestContext, dividendSeriesList, divisorSeriesList):
 
   results = []
 
-  #for dividendSeries in dividendSeriesList:
   for i in range(0, len(dividendSeriesList)):
     dividendSeries = dividendSeriesList[i]
     divisorSeries = divisorSeriesList[i]
@@ -1453,6 +1459,132 @@ scaleToSeconds.group = 'Transform'
 scaleToSeconds.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
   Param('seconds', ParamTypes.integer, required=True),
+]
+
+
+def exp(requestContext, seriesList):
+    """
+    Raise e to the power of the datapoint,
+    where e = 2.718281... is the base of natural logarithms.
+
+    Example:
+
+    .. code-block:: none
+
+        &target=exp(Server.instance01.threads.busy)
+
+    """
+    for series in seriesList:
+        series.tags['exp'] = 'e'
+        series.name = "exp(%s)" % (series.name)
+        series.pathExpression = series.name
+        for i, value in enumerate(series):
+            series[i] = safeExp(value)
+
+    return seriesList
+
+
+exp.group = 'Transform'
+exp.params = [
+    Param('seriesList', ParamTypes.seriesList, required=True),
+]
+
+
+def add(requestContext, seriesList, constant):
+    """
+    Takes one metric or a wildcard seriesList followed by a constant, and adds the
+    constant to each datapoint. Also works for negative numbers.
+
+    Example:
+
+    .. code-block:: none
+
+      &target=add(Server.instance01.threads.busy, 10)
+      &target=add(Server.instance*.threads.busy, 10)
+
+    """
+    for series in seriesList:
+        series.tags['add'] = constant
+        series.name = "add(%s,%d)" % (series.name, constant)
+        series.pathExpression = series.name
+        for i, value in enumerate(series):
+            try:
+                series[i] = value + constant
+            except TypeError:
+                series[i] = None
+
+    return seriesList
+
+
+add.group = 'Transform'
+add.params = [
+    Param('seriesList', ParamTypes.seriesList, required=True),
+    Param('constant', ParamTypes.float, required=True),
+]
+
+
+def sigmoid(requestContext, seriesList):
+    """
+    Takes one metric or a wildcard seriesList and applies the sigmoid
+    function `1 / (1 + exp(-x))` to each datapoint.
+
+    Example:
+
+    .. code-block:: none
+
+      &target=sigmoid(Server.instance01.threads.busy)
+      &target=sigmoid(Server.instance*.threads.busy)
+
+    """
+    for series in seriesList:
+        series.tags['sigmoid'] = 'sigmoid'
+        series.name = "sigmoid(%s)" % series.name
+        series.pathExpression = series.name
+        for i, value in enumerate(series):
+            try:
+                log.info(value)
+                series[i] = 1 / (1 + safeExp(-value))
+            except (TypeError, ValueError, ZeroDivisionError):
+                series[i] = None
+
+    return seriesList
+
+
+sigmoid.group = 'Transform'
+sigmoid.params = [
+    Param('seriesList', ParamTypes.seriesList, required=True),
+]
+
+
+def logit(requestContext, seriesList):
+    """
+    Takes one metric or a wildcard seriesList and applies the logit
+    function `log(x / (1 - x))` to each datapoint.
+
+    Example:
+
+    .. code-block:: none
+
+      &target=logit(Server.instance01.threads.busy)
+      &target=logit(Server.instance*.threads.busy)
+
+    """
+    for series in seriesList:
+        series.tags['logit'] = 'logit'
+        series.name = "logit(%s)" % series.name
+        series.pathExpression = series.name
+        for i, value in enumerate(series):
+            try:
+                series[i] = math.log(value / (1 - value))
+            except (TypeError, ValueError, ZeroDivisionError):
+                series[i] = None
+
+    return seriesList
+
+
+logit.group = 'Transform'
+logit.params = [
+    Param('seriesList', ParamTypes.seriesList, required=True),
 ]
 
 
@@ -5688,9 +5820,11 @@ SeriesFunctions = {
   'weightedAverage': weightedAverage,
 
   # Transform functions
+  'add': add,
   'absolute': absolute,
   'delay': delay,
   'derivative': derivative,
+  'exp': exp,
   'hitcount': hitcount,
   'integral': integral,
   'integralByInterval' : integralByInterval,
@@ -5698,6 +5832,7 @@ SeriesFunctions = {
   'invert': invert,
   'keepLastValue': keepLastValue,
   'log': logarithm,
+  'logit': logit,
   'minMax': minMax,
   'nonNegativeDerivative': nonNegativeDerivative,
   'offset': offset,
@@ -5708,6 +5843,7 @@ SeriesFunctions = {
   'round': roundFunction,
   'scale': scale,
   'scaleToSeconds': scaleToSeconds,
+  'sigmoid': sigmoid,
   'smartSummarize': smartSummarize,
   'squareRoot': squareRoot,
   'summarize': summarize,
