@@ -182,6 +182,13 @@ AUTHENTICATION_BACKENDS=[]
 # Django 1.5 requires this so we set a default but warn the user
 SECRET_KEY = 'UNSAFE_DEFAULT'
 
+# Input validation
+# - When False we still validate the received input parameters, but if validation
+#   detects an issue it only logs an error and doesn't directly reject the request
+# - When True we reject requests of which the input validation detected an issue with the
+#   provided arguments and return an error message to the user
+ENFORCE_INPUT_VALIDATION = False
+
 # Django 1.5 requires this to be set. Here we default to prior behavior and allow all
 ALLOWED_HOSTS = [ '*' ]
 
