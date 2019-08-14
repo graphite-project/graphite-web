@@ -74,6 +74,7 @@ def renderView(request):
     'data' : [],
     'prefetched' : {},
     'xFilesFactor' : requestOptions['xFilesFactor'],
+    'maxDataPoints' : requestOptions.get('maxDataPoints', None),
   }
   data = requestContext['data']
 
