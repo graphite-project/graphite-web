@@ -6,18 +6,22 @@ from hashlib import sha256
 
 class TaggedSeries(object):
   prohibitedTagChars = ';!^='
-  prohibitedValueChars = ';~'
 
   @classmethod
-  def validateCharacters(cls, tag, value):
-    """validate that there are no prohibited characters in given tag/value"""
+  def validateTagAndValue(cls, tag, value):
+    """validate the given tag / value based on the specs in the documentation"""
+    if len(tag) == 0 or len(value) == 0:
+      return False
+
     for char in cls.prohibitedTagChars:
       if char in tag:
         return False
 
-    for char in cls.prohibitedValueChars:
-      if char in value:
-        return False
+    if ';' in value:
+      return False
+
+    if value[0] == '~':
+      return False
 
     return True
 
@@ -50,7 +54,7 @@ class TaggedSeries(object):
       tag = m.group(1)
       value = m.group(2).replace(r'\"', '"').replace(r'\\', '\\')
 
-      if not cls.validateCharacters(tag, value):
+      if not cls.validateTagAndValue(tag, value):
         raise Exception('Tag/Value contains invalid characters: %s/%s' % (tag, value))
 
       tags[tag] = value
@@ -75,7 +79,7 @@ class TaggedSeries(object):
       if len(tag) != 2 or not tag[0]:
         raise Exception('Cannot parse path %s, invalid segment %s' % (path, segment))
 
-      if not cls.validateCharacters(*tag):
+      if not cls.validateTagAndValue(*tag):
         raise Exception('Tag/Value contains invalid characters: %s/%s' % (tag[0], tag[1]))
 
       tags[tag[0]] = tag[1]
