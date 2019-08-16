@@ -11,19 +11,17 @@ class TaggedSeries(object):
   def validateTagAndValue(cls, tag, value):
     """validate the given tag / value based on the specs in the documentation"""
     if len(tag) == 0 or len(value) == 0:
-      return False
+      raise Exception('Tag/Value may not be empty')
 
     for char in cls.prohibitedTagChars:
       if char in tag:
-        return False
+        raise Exception('Prohibited char "{char}" in tag "{tag}"'.format(char=char, tag=tag))
 
     if ';' in value:
-      return False
+      raise Exception('Character ";" is not allowed in tag value "{value}"'.format(value=value))
 
     if value[0] == '~':
-      return False
-
-    return True
+      raise Exception('Tags are not allowed to start with "~" in tag "{tag}"'.format(tag=tag))
 
   @classmethod
   def parse(cls, path):
@@ -54,8 +52,7 @@ class TaggedSeries(object):
       tag = m.group(1)
       value = m.group(2).replace(r'\"', '"').replace(r'\\', '\\')
 
-      if not cls.validateTagAndValue(tag, value):
-        raise Exception('Tag/Value contains invalid characters: %s/%s' % (tag, value))
+      cls.validateTagAndValue(tag, value)
 
       tags[tag] = value
       rawtags = rawtags[len(m.group(0)):]
@@ -79,8 +76,7 @@ class TaggedSeries(object):
       if len(tag) != 2 or not tag[0]:
         raise Exception('Cannot parse path %s, invalid segment %s' % (path, segment))
 
-      if not cls.validateTagAndValue(*tag):
-        raise Exception('Tag/Value contains invalid characters: %s/%s' % (tag[0], tag[1]))
+      cls.validateTagAndValue(*tag)
 
       tags[tag[0]] = tag[1]
 
