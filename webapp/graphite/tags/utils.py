@@ -60,7 +60,7 @@ class TaggedSeries(object):
       tags[tag] = value
       rawtags = rawtags[len(m.group(0)):]
 
-    tags['name'] = metric
+    tags['name'] = cls.sanitize_name_as_tag_value(metric)
     return cls(metric, tags)
 
   @classmethod
@@ -84,8 +84,18 @@ class TaggedSeries(object):
 
       tags[tag[0]] = tag[1]
 
-    tags['name'] = metric
+    tags['name'] = cls.sanitize_name_as_tag_value(metric)
     return cls(metric, tags)
+
+  @staticmethod
+  def sanitize_name_as_tag_value(name):
+    """take a metric name and sanitize it so it is guaranteed to be a valid tag value"""
+    sanitized = name.lstrip('~')
+
+    if len(sanitized) == 0:
+      raise Exception('Cannot use metric name %s as tag value, results in emptry string' % (name))
+
+    return sanitized
 
   @staticmethod
   def format(tags):

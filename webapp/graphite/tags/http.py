@@ -74,7 +74,10 @@ class HttpTagDB(BaseTagDB):
     )
 
   def get_series(self, path, requestContext=None):
-    parsed = self.parse(path)
+    try:
+      parsed = self.parse(path)
+    except Exception:
+      return None
 
     seriesList = self.find_series(
       [('%s=%s' % (tag, parsed.tags[tag])) for tag in parsed.tags],
