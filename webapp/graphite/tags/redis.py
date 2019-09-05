@@ -32,6 +32,7 @@ class RedisTagDB(BaseTagDB):
       host=settings.TAGDB_REDIS_HOST,
       port=settings.TAGDB_REDIS_PORT,
       db=settings.TAGDB_REDIS_DB,
+      password=settings.TAGDB_REDIS_PASSWORD,
       decode_responses=(sys.version_info[0] >= 3),
     )
 
