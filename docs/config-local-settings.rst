@@ -208,6 +208,10 @@ TAGDB_REDIS_DB
   `Default: 0`
   Redis database to use with `TAGDB = 'graphite.tags.redis.RedisTagDB'`
 
+TAGDB_REDIS_PASSWORD
+  `Default: ''`
+  Redis password to use with `TAGDB = 'graphite.tags.redis.RedisTagDB'`
+
 Configure Webserver (Apache)
 ----------------------------
 There is an example ``example-graphite-vhost.conf`` file in the examples directory of the graphite web source code. You can use this to configure apache. Different distributions have different ways of configuring Apache. Please refer to your distribution's documentation on the subject.

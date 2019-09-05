@@ -108,13 +108,14 @@ The Local TagDB stores tag information in tables inside the graphite-web databas
 Redis TagDB
 ^^^^^^^^^^^
 
-The Redis TagDB will store the tag information on a Redis server, and is selected by setting ``TAGDB='graphite.tags.redis.RedisTagDB'`` in `local_settings.py`.  There are 3 additional config settings for the Redis TagDB::
+The Redis TagDB will store the tag information on a Redis server, and is selected by setting ``TAGDB='graphite.tags.redis.RedisTagDB'`` in `local_settings.py`.  There are 4 additional config settings for the Redis TagDB::
 
     TAGDB_REDIS_HOST = 'localhost'
     TAGDB_REDIS_PORT = 6379
     TAGDB_REDIS_DB = 0
+    TAGDB_REDIS_PASSWORD = ''
 
-The default settings (above) will connect to a local Redis server on the default port, and use the default database.
+The default settings (above) will connect to a local Redis server on the default port, and use the default database without password.
 
 HTTP(S) TagDB
 ^^^^^^^^^^^^^
