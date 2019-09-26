@@ -58,7 +58,7 @@ Collection
   A java program which regularly queries metrics from a configured set of inputs, selects and renames them using regular expressions and sends them to a configured set of outputs. It supports JMX and JDBC as inputs and Graphite as output out of the box.
 
 `netdata`_
-  A fast and efficient monitoring agent that supports graphite backends. It has collection, forwarding, visualization and and monitoring features. Netdata collects common system metrics and a variety of other sources through plugins. 
+  A fast and efficient monitoring agent that supports graphite backends. It has collection, forwarding, visualization and monitoring features. Netdata collects common system metrics and a variety of other sources through plugins. 
 
 `Sensu`_
   A monitoring framework that can route metrics to Graphite. Servers subscribe to sets of checks, so getting metrics from a new server to Graphite is as simple as installing the Sensu client and subscribing.
