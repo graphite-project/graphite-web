@@ -2980,7 +2980,7 @@ maximumBelow.params = [
 def minimumBelow(requestContext, seriesList, n):
   """
   Takes one metric or a wildcard seriesList followed by a constant n.
-  Draws only the metrics with a minimum value below n.
+  Draws only the metrics with a minimum value below or equal to n.
 
   Example:
 
