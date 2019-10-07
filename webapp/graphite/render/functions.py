@@ -5463,7 +5463,7 @@ def removeEmptySeries(requestContext, seriesList, xFilesFactor=None):
 removeEmptySeries.group = 'Filter Series'
 removeEmptySeries.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
-  Param('xFilesFactor', ParamTypes.float, required=True),
+  Param('xFilesFactor', ParamTypes.float),
 ]
 
 
