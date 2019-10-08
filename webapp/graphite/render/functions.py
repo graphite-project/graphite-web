@@ -4993,7 +4993,7 @@ groupByNode.group = 'Combine'
 groupByNode.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
   Param('nodeNum', ParamTypes.nodeOrTag, required=True),
-  Param('callback', ParamTypes.aggFunc, default='average', options=aggFuncNames, required=True),
+  Param('callback', ParamTypes.aggFunc, default='average', options=aggFuncNames),
 ]
 
 
