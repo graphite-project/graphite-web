@@ -286,7 +286,7 @@ aggFuncAliases = {
   'current': aggFuncs['last'],
 }
 
-aggFuncNames = sorted(list(aggFuncs.keys()) + list(aggFuncAliases.keys()))
+aggFuncNames = sorted(aggFuncs.keys()) + sorted(aggFuncAliases.keys())
 
 
 def getAggFunc(func, rawFunc=None):
