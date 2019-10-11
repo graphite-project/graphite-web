@@ -13,15 +13,6 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 import os
-from smtplib import SMTP
-from socket import gethostname
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from email.mime.image import MIMEImage
-from six.moves.http_client import HTTPConnection
-from six.moves.urllib.parse import urlsplit
-from time import ctime, strftime
-from traceback import format_exc
 from graphite.user_util import getProfile
 from graphite.logger import log
 from graphite.account.models import MyGraph
