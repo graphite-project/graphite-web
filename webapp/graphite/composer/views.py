@@ -90,4 +90,3 @@ def mygraph(request):
 
   else:
     return HttpResponse("Invalid operation '%s'" % action)
-
