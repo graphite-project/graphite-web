@@ -93,7 +93,6 @@ REMOTE_RENDER_CONNECT_TIMEOUT = 1.0
 LOG_RENDERING_PERFORMANCE = False
 
 #Miscellaneous settings
-SMTP_SERVER = "localhost"
 DOCUMENTATION_URL = "http://graphite.readthedocs.io/"
 ALLOW_ANONYMOUS_CLI = True
 LEGEND_MAX_ITEMS = 10
