@@ -16,7 +16,6 @@ from django.conf.urls import url
 from . import views
 
 urlpatterns = [
-    url('send_email', views.send_email, name='composer_send_email'),
     url('mygraph', views.mygraph, name='composer_mygraph'),
     url('', views.composer, name='composer'),
 ]
