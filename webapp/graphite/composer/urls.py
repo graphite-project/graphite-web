@@ -18,7 +18,6 @@ except ImportError:
     from django.conf.urls import *
 
 urlpatterns = patterns('graphite.composer.views',
-  ('send_email','send_email'),
   ('mygraph', 'mygraph'),
   ('', 'composer'),
 )
