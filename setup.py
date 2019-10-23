@@ -71,6 +71,10 @@ for root, dirs, files in os.walk('webapp/content'):
 conf_files = [ ('conf', glob('conf/*.example')) ]
 examples = [ ('examples', glob('examples/example-*')) ]
 
+def read(fname):
+    with open(os.path.join(os.path.dirname(__file__), fname)) as f:
+        return f.read()
+
 try:
     setup(
       name='graphite-web',
@@ -80,6 +84,8 @@ try:
       author_email='chrismd@gmail.com',
       license='Apache Software License 2.0',
       description='Enterprise scalable realtime graphing',
+      long_description=read('README.md'),
+      long_description_content_type='text/markdown',
       package_dir={'' : 'webapp'},
       packages=[
         'graphite',
@@ -109,7 +115,7 @@ try:
         ['templates/*', 'local_settings.py.example']},
       scripts=glob('bin/*'),
       data_files=list(webapp_content.items()) + storage_dirs + conf_files + examples,
-      install_requires=['Django>=1.8,<2.1', 'django-tagging==0.4.3', 'pytz', 'pyparsing', 'cairocffi', 'urllib3', 'scandir', 'six'],
+      install_requires=['Django>=1.8,<2.3', 'django-tagging==0.4.3', 'pytz', 'pyparsing', 'cairocffi', 'urllib3', 'scandir', 'six'],
       classifiers=[
           'Intended Audience :: Developers',
           'Natural Language :: English',
@@ -122,6 +128,7 @@ try:
           'Programming Language :: Python :: 3.5',
           'Programming Language :: Python :: 3.6',
           'Programming Language :: Python :: 3.7',
+          'Programming Language :: Python :: 3.8',
           'Programming Language :: Python :: Implementation :: CPython',
           'Programming Language :: Python :: Implementation :: PyPy',
           ],

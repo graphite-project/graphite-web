@@ -4,7 +4,7 @@
 /*global AUTOCOMPLETE_DELAY CALENDAR_ICON CLOCK_ICON CONTEXT_FIELD_WIDTH FINDER_QUERY_DELAY*/
 /*global HELP_ICON NEW_DASHBOARD_REMOVE_GRAPHS REFRESH_ICON REMOVE_ICON RESIZE_ICON*/
 /*global SHARE_ICON UI_CONFIG initialState initialError permissions queryString userName*/
-/*global permissionsUnauthenticated schemes*/
+/*global UP_ICON DOWN_ICON TRASH_ICON permissionsUnauthenticated schemes*/
 // Defined in composer_widgets.js
 /*global createFunctionsMenu createOptionsMenu updateCheckItems*/
 
@@ -792,7 +792,7 @@ function initDashboard () {
   if(window.location.hash != '')
   {
     if (window.location.hash.indexOf('/') != -1) {
-      var nameVal = window.location.hash.substr(1).split('#');
+      var nameVal = window.location.hash.substr(1).split('/');
       sendLoadTemplateRequest(nameVal[0],nameVal[1]);
     } else {
       sendLoadRequest(window.location.hash.substr(1));
@@ -1400,7 +1400,7 @@ function newEmptyGraph() {
   var record = new GraphRecord({
    target: graphTargetString,
     params: myParams,
-    url: '/render?' + Ext.urlEncode(urlParams),
+    url: document.body.dataset.baseUrl + 'render?' + Ext.urlEncode(urlParams),
    'width': GraphSize.width,
    'height': GraphSize.height,
     });
@@ -1566,7 +1566,7 @@ function newFromMetric() {
     var record = new GraphRecord({
       target: graphTargetString,
       params: myParams,
-      url: '/render?' + Ext.urlEncode(urlParams)
+      url: document.body.dataset.baseUrl + 'render?' + Ext.urlEncode(urlParams)
       });
     graphStore.add([record]);
     updateGraphRecords();
@@ -1916,7 +1916,7 @@ function graphClicked(graphView, graphIndex, element, evt) {
             width: 30,
             sortable: false,
             items: [{
-                icon: '/static/img/move_up.png',
+                icon: UP_ICON,
                 tooltip: 'Move Up',
                 handler: function(grid, rowIndex, colIndex) {
                     var record = targetStore.getAt(rowIndex);
@@ -1935,7 +1935,7 @@ function graphClicked(graphView, graphIndex, element, evt) {
             width: 30,
             sortable: false,
             items: [{
-                icon: '/static/img/move_down.png',
+                icon: DOWN_ICON,
                 tooltip: 'Move Down',
                 handler: function(grid, rowIndex, colIndex) {
                     var record = targetStore.getAt(rowIndex);
@@ -1954,7 +1954,7 @@ function graphClicked(graphView, graphIndex, element, evt) {
             width: 30,
             sortable: false,
             items: [{
-                icon: '/static/img/trash.png',
+                icon: TRASH_ICON,
                 tooltip: 'Delete Row',
                 handler: function(grid, rowIndex, colIndex) {
                     var record = targetStore.getAt(rowIndex);

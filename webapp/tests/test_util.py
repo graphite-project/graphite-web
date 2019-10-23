@@ -28,14 +28,20 @@ class UtilTest(TestCase):
             self.assertEqual(util.epoch(dt), 600)
             self.assertEqual(mock_log.call_count, 1)
             self.assertEqual(len(mock_log.call_args[0]), 1)
-            self.assertRegexpMatches(mock_log.call_args[0][0], 'epoch\(\) called with non-timezone-aware datetime in test_epoch_naive at .+/webapp/tests/test_util\.py:[0-9]+')
+            self.assertRegexpMatches(
+                    mock_log.call_args[0][0],
+                    r'epoch\(\) called with non-timezone-aware datetime in test_epoch_naive at .+/webapp/tests/test_util\.py:[0-9]+'
+            )
 
         with self.settings(TIME_ZONE='Europe/Berlin'):
             dt = datetime(1970, 1, 1, 1, 10, 0, 0)
             self.assertEqual(util.epoch(dt), 600)
             self.assertEqual(mock_log.call_count, 2)
             self.assertEqual(len(mock_log.call_args[0]), 1)
-            self.assertRegexpMatches(mock_log.call_args[0][0], 'epoch\(\) called with non-timezone-aware datetime in test_epoch_naive at .+/webapp/tests/test_util\.py:[0-9]+')
+            self.assertRegexpMatches(
+                    mock_log.call_args[0][0],
+                    r'epoch\(\) called with non-timezone-aware datetime in test_epoch_naive at .+/webapp/tests/test_util\.py:[0-9]+'
+            )
 
     def test_epoch_to_dt(self):
         dt = pytz.utc.localize(datetime(1970, 1, 1, 0, 10, 0, 0))
@@ -43,8 +49,8 @@ class UtilTest(TestCase):
 
     def test_is_local_interface_ipv4(self):
         addresses = ['127.0.0.1', '127.0.0.1:8080', '8.8.8.8']
-        results = [ util.is_local_interface(a) for a in addresses ]
-        self.assertEqual( results, [True, True, False] )
+        results = [util.is_local_interface(a) for a in addresses]
+        self.assertEqual(results, [True, True, False])
 
     def test_is_local_interface_ipv6(self):
         # we need to know whether the host provides an ipv6 callback address
@@ -69,20 +75,20 @@ class UtilTest(TestCase):
         self.assertEqual( results, [True, True, False] )
 
     def test_is_escaped_pattern(self):
-        self.assertFalse( util.is_escaped_pattern('asdf') )
-        self.assertTrue( util.is_escaped_pattern('a\*b') )
-        self.assertTrue( util.is_escaped_pattern('a\?b') )
-        self.assertTrue( util.is_escaped_pattern('a\[b') )
-        self.assertTrue( util.is_escaped_pattern('a\{b') )
-        self.assertFalse( util.is_escaped_pattern('a*b') )
-        self.assertFalse( util.is_escaped_pattern('a?b') )
-        self.assertFalse( util.is_escaped_pattern('a[b') )
-        self.assertFalse( util.is_escaped_pattern('a{b') )
+        self.assertFalse(util.is_escaped_pattern(r'asdf'))
+        self.assertTrue(util.is_escaped_pattern(r'a\*b'))
+        self.assertTrue(util.is_escaped_pattern(r'a\?b'))
+        self.assertTrue(util.is_escaped_pattern(r'a\[b'))
+        self.assertTrue(util.is_escaped_pattern(r'a\{b'))
+        self.assertFalse(util.is_escaped_pattern(r'a*b'))
+        self.assertFalse(util.is_escaped_pattern(r'a?b'))
+        self.assertFalse(util.is_escaped_pattern(r'a[b'))
+        self.assertFalse(util.is_escaped_pattern(r'a{b'))
 
     def test_find_escaped_pattern_fields(self):
-        self.assertEqual( list(util.find_escaped_pattern_fields('a.b.c.d')), [])
-        self.assertEqual( list(util.find_escaped_pattern_fields('a\*.b.c.d')), [0])
-        self.assertEqual( list(util.find_escaped_pattern_fields('a.b.\[c].d')), [2])
+        self.assertEqual(list(util.find_escaped_pattern_fields(r'a.b.c.d')), [])
+        self.assertEqual(list(util.find_escaped_pattern_fields(r'a\*.b.c.d')), [0])
+        self.assertEqual(list(util.find_escaped_pattern_fields(r'a.b.\[c].d')), [2])
 
     hostcpu = os.path.join(settings.WHISPER_DIR, 'hosts/hostname/cpu.wsp')
 

@@ -57,6 +57,9 @@ Collection
 `metrics-sampler`_
   A java program which regularly queries metrics from a configured set of inputs, selects and renames them using regular expressions and sends them to a configured set of outputs. It supports JMX and JDBC as inputs and Graphite as output out of the box.
 
+`netdata`_
+  A fast and efficient monitoring agent that supports graphite backends. It has collection, forwarding, visualization and monitoring features. Netdata collects common system metrics and a variety of other sources through plugins. 
+
 `Sensu`_
   A monitoring framework that can route metrics to Graphite. Servers subscribe to sets of checks, so getting metrics from a new server to Graphite is as simple as installing the Sensu client and subscribing.
 
@@ -124,6 +127,9 @@ Forwarding
 
 `statsd`_
   A simple daemon for easy stats aggregation, developed by the folks at Etsy. A list of forks and alternative implementations can be found at <http://joemiller.me/2011/09/21/list-of-statsd-server-implementations/>
+
+`Statusengine`_
+  A daemon written in PHP to store Nagios and Naemon performance data to Graphite.
 
 Visualization
 -------------
@@ -381,6 +387,7 @@ Other
 .. _metrics-sampler: https://github.com/dimovelev/metrics-sampler
 .. _metrictank: https://github.com/grafana/metrictank
 .. _Moira: http://moira.readthedocs.io
+.. _netdata: https://github.com/netdata/netdata
 .. _New Relic: https://newrelic.com/platform
 .. _Pencil: https://github.com/fetep/pencil
 .. _pipe-to-graphite: https://github.com/iFixit/pipe-to-graphite
@@ -399,6 +406,7 @@ Other
 .. _SqlToGraphite: https://github.com/perryofpeek/SqlToGraphite
 .. _SSC Serv: https://ssc-serv.com
 .. _statsd: https://github.com/etsy/statsd
+.. _Statusengine: https://github.com/statusengine/worker
 .. _Tasseo: https://github.com/obfuscurity/tasseo
 .. _Targets-io: https://github.com/dmoll1974/targets-io
 .. _telegraf: https://github.com/influxdata/telegraf

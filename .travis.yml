@@ -9,46 +9,53 @@ matrix:
     - python: pypy
       env:
         - TOXENV=pypy-django111-pyparsing2
-    - python: 3.4
-      env:
-        - TOXENV=py34-django20-pyparsing2
     - python: 3.5
+      sudo: true
+      dist: xenial
       env:
         - TOXENV=py35-django21-pyparsing2
     - python: 3.5
+      sudo: true
+      dist: xenial
       env:
-        - TOXENV=py35-django21-pyparsing2
+        - TOXENV=py35-django22-pyparsing2
     - python: 3.6
+      sudo: true
+      dist: xenial
       env:
-        - TOXENV=py36-django21-pyparsing2
+        - TOXENV=py36-django22-pyparsing2
     - python: 3.7
       sudo: true
       dist: xenial
       env:
-        - TOXENV=py37-django21-pyparsing2-msgpack
+        - TOXENV=py37-django22-pyparsing2-msgpack
     - python: 3.7
       sudo: true
       dist: xenial
       env:
-        - TOXENV=py37-django21-pyparsing2-pyhash
+        - TOXENV=py37-django22-pyparsing2-pyhash
     - python: 3.7
       sudo: true
       dist: xenial
       env:
-        - TOXENV=py37-django21-pyparsing2-mysql TEST_MYSQL_PASSWORD=graphite
+        - TOXENV=py37-django22-pyparsing2-mysql TEST_MYSQL_PASSWORD=graphite
     - python: 3.7
       sudo: true
       dist: xenial
       env:
-        - TOXENV=py37-django21-pyparsing2-postgresql TEST_POSTGRESQL_PASSWORD=graphite
-    - python: 3.7
+        - TOXENV=py37-django22-pyparsing2-postgresql TEST_POSTGRESQL_PASSWORD=graphite
+    - python: "3.8-dev"
       sudo: true
       dist: xenial
       env:
         - TOXENV=lint
+    - python: "3.8-dev"
+      sudo: true
+      dist: xenial
+      env:
+        - TOXENV=py38-django22-pyparsing2
 
 env:
-  - TOXENV=py27-django18-pyparsing2
   - TOXENV=py27-django111-pyparsing2-msgpack
   - TOXENV=py27-django111-pyparsing2-pyhash
   - TOXENV=py27-django111-pyparsing2-mysql TEST_MYSQL_PASSWORD=graphite

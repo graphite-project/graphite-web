@@ -19,14 +19,12 @@
     var REMOVE_ICON   = '{% static "js/ext/resources/icons/fam/cross.gif" %}';
     var REFRESH_ICON  = '{% static "js/ext/resources/icons/fam/table_refresh.png" %}';
     var SHARE_ICON    = '{% static "js/ext/resources/icons/fam/application_go.png" %}';
+    var HELP_ICON     = '{% static "js/ext/resources/icons/fam/information.png" %}';
     var CALENDAR_ICON = '{% static "js/ext/resources/images/default/shared/calendar.gif" %}';
     var CLOCK_ICON    = '{% static "img/clock_16.png" %}';
-    var HELP_ICON     = '{% static "js/ext/resources/icons/fam/information.png" %}';
-
-    // Prefetch images for use in Target grid
-    (new Image()).src = '{% static "img/move_up.png" %}';
-    (new Image()).src = '{% static "img/move_down.png" %}';
-    (new Image()).src = '{% static "img/trash.png" %}';
+    var UP_ICON       = '{% static "img/move_up.png" %}';
+    var DOWN_ICON     = '{% static "img/move_down.png" %}';
+    var TRASH_ICON    = '{% static "img/trash.png" %}';
 
     {% if initialState %}
     var initialState = JSON.parse('{{ initialState|escapejs }}');

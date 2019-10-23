@@ -280,7 +280,7 @@ def logtime(f):
   return wrapped_f
 
 
-class BufferedHTTPReader(io.IOBase):
+class BufferedHTTPReader(io.FileIO):
   def __init__(self, response, buffer_size=1048576):
     self.response = response
     self.buffer_size = buffer_size
@@ -366,3 +366,28 @@ def _jsonResponse(data, queryParams, status=200, encoder=None, default=None):
 def _jsonError(message, queryParams, status=500, encoder=None, default=None):
   return _jsonResponse(
     {'error': message}, queryParams, status=status, encoder=encoder, default=default)
+
+
+def parseHost(host_string):
+    s = host_string.strip()
+    bidx = s.rfind(']:')    # find closing bracket and following colon.
+    cidx = s.find(':')
+    if s.startswith('[') and bidx is not None:
+        server = s[1:bidx]
+        port = s[bidx + 2:]
+    elif cidx is not None:
+        server = s[:cidx]
+        port = s[cidx + 1:]
+    else:
+        raise ValueError("Invalid host string \"%s\"" % host_string)
+
+    if ':' in port:
+        port, _, instance = port.partition(':')
+    else:
+        instance = None
+
+    return server, int(port), instance
+
+
+def parseHosts(host_strings):
+    return [parseHost(host_string) for host_string in host_strings]

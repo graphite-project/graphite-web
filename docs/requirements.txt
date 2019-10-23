@@ -1,6 +1,6 @@
 ## Requirements for documentation
-Django>=1.4,<1.8
-django-tagging==0.3.1
+Django>=1.11.19,<2.3
+django-tagging==0.4.6
 sphinx
 sphinx_rtd_theme
 pytz

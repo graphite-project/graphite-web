@@ -124,7 +124,6 @@ RENDERING_HOSTS = []
 REMOTE_RENDER_CONNECT_TIMEOUT = 1.0
 
 #Miscellaneous settings
-SMTP_SERVER = "localhost"
 DOCUMENTATION_VERSION = 'latest' if 'dev' in WEBAPP_VERSION else WEBAPP_VERSION
 DOCUMENTATION_URL = 'https://graphite.readthedocs.io/en/{}/'.format(DOCUMENTATION_VERSION)
 ALLOW_ANONYMOUS_CLI = True
@@ -145,6 +144,7 @@ TAGDB_AUTOCOMPLETE_LIMIT = 100
 TAGDB_REDIS_HOST = 'localhost'
 TAGDB_REDIS_PORT = 6379
 TAGDB_REDIS_DB = 0
+TAGDB_REDIS_PASSWORD = ''
 
 TAGDB_HTTP_URL = ''
 TAGDB_HTTP_USER = ''
@@ -181,6 +181,13 @@ AUTHENTICATION_BACKENDS=[]
 
 # Django 1.5 requires this so we set a default but warn the user
 SECRET_KEY = 'UNSAFE_DEFAULT'
+
+# Input validation
+# - When False we still validate the received input parameters, but if validation
+#   detects an issue it only logs an error and doesn't directly reject the request
+# - When True we reject requests of which the input validation detected an issue with the
+#   provided arguments and return an error message to the user
+ENFORCE_INPUT_VALIDATION = False
 
 # Django 1.5 requires this to be set. Here we default to prior behavior and allow all
 ALLOWED_HOSTS = [ '*' ]

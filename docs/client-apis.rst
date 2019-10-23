@@ -27,5 +27,5 @@ txCarbonClient
 .. _Cubism.js: http://square.github.io/cubism/
 .. _Graphitejs: https://github.com/prestontimmons/graphitejs
 .. _Scales: https://github.com/Cue/scales
-.. _structured_metrics: https://github.com/vimeo/graph-explorer/tree/master/structured_metrics
+.. _structured_metrics: https://github.com/vimeo/graph-explorer/tree/master/graph_explorer/structured_metrics
 .. _txCarbonClient: https://github.com/fdChasm/txCarbonClient

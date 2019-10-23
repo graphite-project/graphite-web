@@ -17,6 +17,8 @@ Carbon will automatically decode the tags, normalize the tag order, and register
 
 .. _querying-tagged-series:
 
+Tag names must have a length >= 1 and may contain any ascii characters except ``;!^=``. Tag values must also have a length >= 1, and they may contain any ascii characters except ``;~``. UTF-8 characters may work for names and values, but they are not well tested and it is not recommended to use non-ascii characters in metric names or tags.
+
 Querying
 --------
 
@@ -88,6 +90,8 @@ Finally, the `aliasByTags <functions.html#graphite.render.functions.aliasByTags>
     # web01.disk.used
     # web02.disk.used
 
+If a tag name or value contains quotes (``'"``), then they will need to be escaped properly. For example a series with a tag ``tagName='quotedValue'`` could be queried with ``seriesByTag('tagName=\'quotedValue\'')`` or alternatively ``seriesByTag("tagName='quotedValue'")``.
+
 Database Storage
 ----------------
 As Whisper and other storage backends are designed to hold simple time-series data (metric key, value, and timestamp), Graphite stores tag information in a separate tag database (TagDB).  The TagDB is a pluggable store, by default it uses the Graphite SQLite, MySQL or PostgreSQL database, but it can also be configured to use an external Redis server or a custom plugin.
@@ -104,13 +108,14 @@ The Local TagDB stores tag information in tables inside the graphite-web databas
 Redis TagDB
 ^^^^^^^^^^^
 
-The Redis TagDB will store the tag information on a Redis server, and is selected by setting ``TAGDB='graphite.tags.redis.RedisTagDB'`` in `local_settings.py`.  There are 3 additional config settings for the Redis TagDB::
+The Redis TagDB will store the tag information on a Redis server, and is selected by setting ``TAGDB='graphite.tags.redis.RedisTagDB'`` in `local_settings.py`.  There are 4 additional config settings for the Redis TagDB::
 
     TAGDB_REDIS_HOST = 'localhost'
     TAGDB_REDIS_PORT = 6379
     TAGDB_REDIS_DB = 0
+    TAGDB_REDIS_PASSWORD = ''
 
-The default settings (above) will connect to a local Redis server on the default port, and use the default database.
+The default settings (above) will connect to a local Redis server on the default port, and use the default database without password.
 
 HTTP(S) TagDB
 ^^^^^^^^^^^^^
