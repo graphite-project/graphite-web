@@ -8,7 +8,8 @@ Graphite 1.1.6 is now available for usage. Please note that this is a bugfix / s
 
 Highlights
 -------------
-* Better error handling (return 4XX instead of 5XX in case of wrong function parameters)
+* Function parameters validation (disabled by default, can be enabled through ENFORCE_INPUT_VALIDATION variable)
+* Better error handling (return 4XX instead of 5XX in case of wrong function parameters) if input validation enabled
 * Python 3.8 and Django 2.x support
 * New functions: add, sigmoid, logit, exp
 * Python 3 fixes for Whisper and Carbon
@@ -54,34 +55,22 @@ New features
 Graphite-Web
 ^^^^^^^^^^^^
 * set package long description (#2407, @YevhenLukomskyi)
-* fix dashboard graph metric list icon paths with URL_PREFIX (#2424, @ploxiln)
-* docs: for sql db migration to 1.1 recommend --fake-initial (#2425, @ploxiln)
 * add tag formatting docs (#2426, @replay)
-* Fix dashboard template loading from URL (#2431, @cbowman0)
-* Dashboard render urls missing document.body.dataset.baseUrl (#2433, @cbowman0)
 * Accept IPv6 addresses in CARBONLINK_HOSTS (#2436, @RoEdAl)
-* fixed small errors in docs (#2443, 0xflotus)
-* Copy requestContext() and empty prefetch (#2450, @cbowman0)
 * update aggregation function docs for aggregate and groupbytags (#2451, @Dieterbe)
 * Add Statusengine to list of integrations (Forwarding) (#2452, @nook24)
 * Django22 compatibility (#2462, @piotr1212)
-* Fix a broken link to structured_metrics in doc (#2463, @izeye)
 * Python 3.8 support (#2464, @piotr1212)
 * New functions: add, sigmoid, logit, exp (#2466, @piotr1212)
 * Better error handling (return 4XX instead of 5XX in case of wrong function parameters) (#2467, @replay)
 * Pass maxDataPoints to the requestContext for Finder (#2479, @Felixoid)
-* Add redis password support for tagdb (#2483)
-* added space before \ (#2487)
-* Created issue template (#2488)
-* docs: add netdata to 'tools that work with graphite' (#2490)
-* Updated minimumBelow() docstring (#2493)
-* xFilesFactor is an optional parameter for removeEmptySeries (#2495)
-* fix functions that aggregate to include the aliases in their params (#2496)
-* the callback parameter for groupByNode is optional (#2497)
-* fix order (#2496)
-* Fix for CVE-2017-18638 (#2499, @deniszh)
-* Upgrading minimal Django version (#2502, @deniszh)
-
+* Add redis password support for tagdb (#2483, @ahmet2mir)
+* Created issue template (#2488, @bigpythonimish)
+* docs: add netdata to 'tools that work with graphite' (#2490, @sbasgall)
+* Updated minimumBelow() docstring (#2493, @bigpythonimish)
+* xFilesFactor is an optional parameter for removeEmptySeries (#2495, @DanCech)
+* fix functions that aggregate to include the aliases in their params (#2496, @Dieterbe)
+* the callback parameter for groupByNode is optional (#2497, @DanCech)
 
 Carbon
 ^^^^^^
@@ -103,7 +92,16 @@ Bug Fixes
 
 Graphite-Web
 ^^^^^^^^^^^^
-* 
+* fix dashboard graph metric list icon paths with URL_PREFIX (#2424, @ploxiln)
+* docs: for sql db migration to 1.1 recommend --fake-initial (#2425, @ploxiln)
+* Fix dashboard template loading from URL (#2431, @cbowman0)
+* Dashboard render urls missing document.body.dataset.baseUrl (#2433, @cbowman0)
+* fixed small errors in docs (#2443, 0xflotus)
+* Copy requestContext() and empty prefetch (#2450, @cbowman0)
+* Fix a broken link to structured_metrics in doc (#2463, @izeye)
+* added space before \ (#2487, @saikek)
+* Fix for CVE-2017-18638 (#2499, @deniszh)
+* Upgrading minimal Django version (#2502, @deniszh)
 
 Carbon
 ^^^^^^
