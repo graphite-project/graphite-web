@@ -1,0 +1,124 @@
+.. _1-1-6:
+
+1.1.6
+===========================
+*10/24/2019*
+
+Graphite 1.1.6 is now available for usage. Please note that this is a bugfix / securityfix release for the stable Graphite 1.1.x branch and it's recommended for production usage. It also contains some improvements backported from the master branch.
+
+Highlights
+-------------
+* Function parameters validation (disabled by default, can be enabled through ENFORCE_INPUT_VALIDATION variable)
+* Better error handling (return 4XX instead of 5XX in case of wrong function parameters) if input validation enabled
+* Python 3.8 and Django 2.x support
+* New functions: add, sigmoid, logit, exp
+* Python 3 fixes for Whisper and Carbon
+* Carbonate have Python 3 support now
+* Many improvements for Docker image, check its `release page <https://github.com/graphite-project/docker-graphite-statsd/releases>`_ for details 
+
+Thanks a lot for all Graphite contributors and users! You are the best!
+
+Source bundles are available from GitHub:
+
+* https://github.com/graphite-project/graphite-web/archive/1.1.6.tar.gz
+* https://github.com/graphite-project/carbon/archive/1.1.6.tar.gz
+* https://github.com/graphite-project/whisper/archive/1.1.6.tar.gz
+* https://github.com/graphite-project/carbonate/archive/1.1.6.tar.gz
+
+Graphite can also be installed from `PyPI <http://pypi.python.org/>`_ via
+`pip <http://www.pip-installer.org/en/latest/index.html>`_. PyPI bundles are here:
+
+* http://pypi.python.org/pypi/graphite-web/
+* http://pypi.python.org/pypi/carbon/
+* http://pypi.python.org/pypi/whisper/
+* http://pypi.python.org/pypi/carbonate/
+
+You can also use docker image from https://hub.docker.com/r/graphiteapp/graphite-statsd/
+
+Upgrading
+---------
+Please upgrade whisper, carbon and graphite-web - they contain valuable bugfixes and improvements.
+
+Incompatible changes
+--------------------
+WHISPER_FALLOCATE_CREATE set to `False` by default in docker image (because True often causing issues in Docker).
+
+Security Notes
+--------------
+SSRF vulnerability `CVE-2017-18638 <https://nvd.nist.gov/vuln/detail/CVE-2017-18638>`_ was fixed in this release. Please check `security advisory <https://github.com/graphite-project/graphite-web/security/advisories/GHSA-vfj6-275q-4pvm>`_ for details.
+Also patches was released for graphite-web `1.0.x <https://github.com/graphite-project/graphite-web/pull/2501>`_ and `0.9.x <https://github.com/graphite-project/graphite-web/pull/2500>`_, and we'll discuss releases of non-supported branches later.
+Check `issue 2008 <https://github.com/graphite-project/graphite-web/issues/2008>`_ for discussion.
+Also, recommended Django version was increased to 1.11.19 because previous Django versions are vulnerable to `CVE-2019-6975 <https://nvd.nist.gov/vuln/detail/CVE-2019-6975>`_ and `CVE-2019-3498 <https://nvd.nist.gov/vuln/detail/CVE-2019-3498>`_.
+Despite that, Graphite 1.1.6 functionally still supports Django >= 1.8.
+
+New features
+------------
+
+Graphite-Web
+^^^^^^^^^^^^
+* set package long description (#2407, @YevhenLukomskyi)
+* add tag formatting docs (#2426, @replay)
+* Accept IPv6 addresses in CARBONLINK_HOSTS (#2436, @RoEdAl)
+* update aggregation function docs for aggregate and groupbytags (#2451, @Dieterbe)
+* Add Statusengine to list of integrations (Forwarding) (#2452, @nook24)
+* Django22 compatibility (#2462, @piotr1212)
+* Python 3.8 support (#2464, @piotr1212)
+* New functions: add, sigmoid, logit, exp (#2466, @piotr1212)
+* Better error handling (return 4XX instead of 5XX in case of wrong function parameters) (#2467, @replay)
+* Pass maxDataPoints to the requestContext for Finder (#2479, @Felixoid)
+* Add redis password support for tagdb (#2483, @ahmet2mir)
+* Created issue template (#2488, @bigpythonimish)
+* docs: add netdata to 'tools that work with graphite' (#2490, @sbasgall)
+* Updated minimumBelow() docstring (#2493, @bigpythonimish)
+* xFilesFactor is an optional parameter for removeEmptySeries (#2495, @DanCech)
+* fix functions that aggregate to include the aliases in their params (#2496, @Dieterbe)
+* the callback parameter for groupByNode is optional (#2497, @DanCech)
+
+Carbon
+^^^^^^
+* Add testing for Python 3.8 (#859, @piotr1212)
+
+Whisper
+^^^^^^^
+* set package long description (#271, @YevhenLukomskyi)
+* Dump as raw values (#282, @Glandos)
+
+Carbonate
+^^^^^^^^^
+* Python 3 support (PR#107, @piotr1212)
+* Use --copy-dest, enabling the rsync algorithm when copying from remote to staging (PR#106, @luke-heberling)
+
+
+Bug Fixes
+---------
+
+Graphite-Web
+^^^^^^^^^^^^
+* fix dashboard graph metric list icon paths with URL_PREFIX (#2424, @ploxiln)
+* docs: for sql db migration to 1.1 recommend --fake-initial (#2425, @ploxiln)
+* Fix dashboard template loading from URL (#2431, @cbowman0)
+* Dashboard render urls missing document.body.dataset.baseUrl (#2433, @cbowman0)
+* fixed small errors in docs (#2443, 0xflotus)
+* Copy requestContext() and empty prefetch (#2450, @cbowman0)
+* Fix a broken link to structured_metrics in doc (#2463, @izeye)
+* added space before \ (#2487, @saikek)
+* Fix for CVE-2017-18638 (#2499, @deniszh)
+* Upgrading minimal Django version (#2502, @deniszh)
+
+Carbon
+^^^^^^
+* set package long description (#834, @YevhenLukomskyi)
+* Remove pidfile on ValueError exception (#853, @albang)
+
+Whisper
+^^^^^^^
+* Switch to setuptools (#272, @piotr1212)
+* adding appropriate 'type' to sleep variable (#273, @piotr1212)
+* Add testing for Python 3.8, remove 3.4 (eol)(#277, @piotr1212)
+* Altering rrd2whisper.py for py3 compatibility (#280, @FliesLikeABrick)
+
+Carbonate
+^^^^^^^^^
+* fix lint errors (PR#105, @YevhenLukomskyi)
+* specify long_description_content_type, so that package description is properly rendered on pypi.org (PR#104, @YevhenLukomskyi)
+
