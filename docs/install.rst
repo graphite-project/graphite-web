@@ -35,7 +35,7 @@ Basic Graphite requirements:
 * a UNIX-like Operating System
 * Python 2.7 or greater (including experimental Python3 support)
 * `cairocffi`_
-* `Django`_ 1.8 - 1.11 (for Python3 - 1.11 only)
+* `Django`_ 1.8 - 2.2 (for Python3 - 1.11 and newer), 1.11.19 or newer is recommended 
 * `django-tagging`_ 0.4.6 (not `django-taggit` yet)
 * `pytz`_
 * `scandir`_
