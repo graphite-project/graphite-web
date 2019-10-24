@@ -46,6 +46,8 @@ WHISPER_FALLOCATE_CREATE set to `False` by default in docker image (because True
 Security Notes
 --------------
 SSRF vulnerability `CVE-2017-18638 <https://nvd.nist.gov/vuln/detail/CVE-2017-18638>`_ was fixed in this release. Please check `security advisory <https://github.com/graphite-project/graphite-web/security/advisories/GHSA-vfj6-275q-4pvm>`_ for details.
+Also patches was released for graphite-web `1.0.x <https://github.com/graphite-project/graphite-web/pull/2501>`_ and `0.9.x <https://github.com/graphite-project/graphite-web/pull/2500>`_, and we'll discuss releases of non-supported branches later.
+Check `issue 2008 <https://github.com/graphite-project/graphite-web/issues/2008>`_ for discussion.
 Also, recommended Django version was increased to 1.11.19 because previous Django versions are vulnerable to `CVE-2019-6975 <https://nvd.nist.gov/vuln/detail/CVE-2019-6975>`_ and `CVE-2019-3498 <https://nvd.nist.gov/vuln/detail/CVE-2019-3498>`_.
 Despite that, Graphite 1.1.6 functionally still supports Django >= 1.8.
 
