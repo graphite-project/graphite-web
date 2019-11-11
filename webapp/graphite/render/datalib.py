@@ -281,7 +281,10 @@ def prefetchData(requestContext, pathExpressions):
 
   if not requestContext.get('prefetched'):
     requestContext['prefetched'] = {}
-
-  requestContext['prefetched'][(startTime, endTime, now)] = prefetched
+  
+  if (startTime, endTime, now) in requestContext['prefetched']:
+      requestContext['prefetched'][(startTime, endTime, now)].update(prefetched)
+  else:
+      requestContext['prefetched'][(startTime, endTime, now)] = prefetched
 
   log.rendering("Fetched data for [%s] in %fs" % (', '.join(pathExpressions), time.time() - start))
