@@ -281,7 +281,7 @@ def prefetchData(requestContext, pathExpressions):
 
   if not requestContext.get('prefetched'):
     requestContext['prefetched'] = {}
-  
+
   if (startTime, endTime, now) in requestContext['prefetched']:
     for k in prefetched:
       requestContext['prefetched'][(startTime, endTime, now)][k] = prefetched[k]
