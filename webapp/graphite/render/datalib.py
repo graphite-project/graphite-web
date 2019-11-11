@@ -281,7 +281,7 @@ def prefetchData(requestContext, pathExpressions):
 
   if not requestContext.get('prefetched'):
     requestContext['prefetched'] = {}
-  
+
   if (startTime, endTime, now) in requestContext['prefetched']:
       requestContext['prefetched'][(startTime, endTime, now)].update(prefetched)
   else:
