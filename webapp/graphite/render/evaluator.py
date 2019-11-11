@@ -106,7 +106,7 @@ def evaluateTokens(requestContext, tokens, replacements=None, pipedArg=None):
       if not getattr(handleInvalidParameters, 'alreadyLogged', False):
         log.warning(
           'Received invalid parameters ({msg}): {func} ({args})'.format(
-            msg=str(e.message),
+            msg=str(e),
             func=tokens.call.funcname,
             args=', '.join(
               argList
