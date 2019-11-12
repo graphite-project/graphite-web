@@ -1,6 +1,7 @@
 import six
 
 from graphite.errors import InputParameterError
+from graphite.logger import log
 from graphite.render.attime import parseTimeOffset
 
 
@@ -135,11 +136,12 @@ def validateParams(func, params, args, kwargs):
       # requirement is satisfied from "args"
       value = args[i]
 
-    # parameter is restricted to a defined set of values, but value is not in it
+    # parameter is restricted to a defined set of possible values, but given value is not in it.
+    # possibly it's a deprecated but still accepted value.
     if params[i].options and value not in params[i].options:
-      raise InputParameterError(
-        'Invalid option specified for function "{func}" parameter "{param}"'.format(
-          param=params[i].name, func=func))
+      log.warning(
+        'given option "{option}" in function "{func}" is not in list of valid options, it may be deprecated but still accepted'
+        .format(option=value, func=func))
 
     if not params[i].validateValue(value):
       raise InputParameterError(

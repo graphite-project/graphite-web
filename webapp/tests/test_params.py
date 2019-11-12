@@ -180,15 +180,13 @@ class TestParam(unittest.TestCase):
             {},
         ))
 
-        self.assertRaises(
-            InputParameterError,
-            validateParams,
+        self.assertTrue(validateParams(
             'TestParam',
             [
                 Param('one', ParamTypes.string, required=True),
                 Param('two', ParamTypes.string, required=True),
                 Param('three', ParamTypes.string, required=True, options=['3', 'three']),
             ],
-            ['one', 'two', 'foud'],
+            ['one', 'two', 'four'],
             {},
-        )
+        ))
