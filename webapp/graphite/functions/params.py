@@ -140,8 +140,8 @@ def validateParams(func, params, args, kwargs):
     # possibly it's a deprecated but still accepted value.
     if params[i].options and value not in params[i].options:
       log.warning(
-        'given option "{option}" in function "{func}" is not in list of valid options, it may be deprecated but still accepted'
-        .format(option=value, func=func))
+        'Deprecated or invalid value "{value}" specified for parameter "{param}" of function "{func}"'
+        .format(value=value, param=params[i].name, func=func))
 
     if not params[i].validateValue(value):
       raise InputParameterError(
