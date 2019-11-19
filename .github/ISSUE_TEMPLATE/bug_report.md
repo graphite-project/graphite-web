@@ -21,6 +21,7 @@ If applicable, add screenshots to help explain your problem.
 
 **Environment (please complete the following information):**
  - OS flavor: [e.g. Ubuntu, CentOS, Debian etc]
+ - Graphite-web version [e.g. 1.1.2, 1.0.1, etc]
  - Django/Python version [e.g. 1.11/2.7, 2.1/3.8 etc]
  - Setup type [e.g. pip, from sources, from OS packages etc]
 
