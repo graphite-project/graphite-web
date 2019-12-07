@@ -311,6 +311,12 @@ Other
 `Therry`_
   A simple web service that caches Graphite metrics and exposes an endpoint for dumping or searching against them by substring.
 
+`graphite-dl4j`_
+  Experimental: Train a model for predictions. Machine learning using data from graphite.
+
+`carbon-proxy`_
+  Relay metrics to a carbon daemon, using kafka as middleware. Payload windowing, transformation, duplication, or other custom functions.
+
 
 .. _Backbone.js: http://documentcloud.github.com/backbone
 .. _Backstop: https://github.com/obfuscurity/backstop
@@ -324,6 +330,7 @@ Other
 .. _carbon-c-relay: https://github.com/grobian/carbon-c-relay
 .. _carbon-clickhouse: https://github.com/lomik/carbon-clickhouse
 .. _carbon-relay-ng: https://github.com/graphite-ng/carbon-relay-ng
+.. _carbon-proxy: https://github.com/savantly-net/carbon-proxy
 .. _carbonapi: https://github.com/go-graphite/carbonapi
 .. _carbonate: https://github.com/graphite-project/carbonate
 .. _cassabon: https://github.com/jeffpierce/cassabon
@@ -354,6 +361,7 @@ Other
 .. _graphite-beacon: https://github.com/klen/graphite-beacon
 .. _graphite-clickhouse: https://github.com/lomik/graphite-clickhouse
 .. _graphite-dashboardcli: https://github.com/blacked/graphite-dashboardcli
+.. _graphite-dl4j: https://github.com/savantly-net/graphite-dl4j
 .. _Graphite-Newrelic: https://github.com/gingerlime/graphite-newrelic
 .. _Graphite-relay: https://github.com/markchadwick/graphite-relay
 .. _graphite-remote-adapter: https://github.com/criteo/graphite-remote-adapter
