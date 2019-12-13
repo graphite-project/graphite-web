@@ -1,31 +1,31 @@
 import six
 
 from graphite.errors import InputParameterError
-from graphite.logger import log
 from graphite.render.attime import parseTimeOffset
+from graphite.logger import log
 
 
 class ParamTypes(object):
   pass
 
 
-for paramType in [
-  'aggFunc',
-  'boolean',
-  'date',
-  'float',
-  'integer',
-  'interval',
-  'intOrInterval',
-  'node',
-  'nodeOrTag',
-  'series',
-  'seriesList',
-  'seriesLists',
-  'string',
-  'tag',
-]:
-  setattr(ParamTypes, paramType, paramType)
+class ParamType(object):
+  name = 'undefined'
+
+  def __init__(self, name, validator=None):
+    self.name = name
+    self.validator = validator
+
+  @classmethod
+  def register(cls, name, *args):
+    setattr(ParamTypes, name, cls(name, *args))
+
+  def isValid(self, value):
+    if self.validator is None:
+      # if there's no validator for the type we assume True
+      return True
+
+    return self.validator(value)
 
 
 def validateBoolean(value):
@@ -52,15 +52,52 @@ def validateSeriesList(value):
   return isinstance(value, list)
 
 
-typeValidators = {
-  'boolean': validateBoolean,
-  'float': validateFloat,
-  'integer': validateInteger,
-  'interval': validateInterval,
-  'node': validateInteger,
-  'seriesList': validateSeriesList,
-  'seriesLists': validateSeriesList,
-}
+ParamType.register('boolean', validateBoolean)
+ParamType.register('date')
+ParamType.register('float')
+ParamType.register('integer', validateInteger)
+ParamType.register('interval', validateInterval)
+ParamType.register('intOrInterval')
+ParamType.register('node', validateInteger)
+ParamType.register('nodeOrTag')
+ParamType.register('series')
+ParamType.register('seriesList', validateSeriesList)
+ParamType.register('seriesLists', validateSeriesList)
+ParamType.register('string')
+ParamType.register('tag')
+
+
+class ParamTypeAggFunc(ParamType):
+  aggFuncNames = []
+  aggFuncAliases = []
+  deprecatedFuncStrings = []
+
+  def __init__(self, name):
+    super(ParamTypeAggFunc, self).__init__(name=name, validator=self.validateAggFuncs)
+
+  @classmethod
+  def setValidAggFuncs(cls, aggFuncNames, aggFuncAliases):
+    cls.aggFuncNames = aggFuncNames
+    cls.aggFuncAliases = aggFuncAliases
+    cls.deprecatedFuncStrings = [
+      name + 'Series' for name in aggFuncNames + aggFuncAliases]
+
+  @classmethod
+  def getValidAggFuncs(cls):
+    return cls.aggFuncNames + cls.aggFuncAliases + cls.deprecatedFuncStrings
+
+  def validateAggFuncs(self, value):
+    if value in self.aggFuncNames or value in self.aggFuncAliases:
+      return True
+
+    if value in self.deprecatedFuncStrings:
+      log.warning('Deprecated name for aggregation function "{value}"'.format(value=value))
+      return True
+
+    return False
+
+
+ParamTypeAggFunc.register('aggFunc')
 
 
 class Param(object):
@@ -69,7 +106,7 @@ class Param(object):
   def __init__(self, name, paramtype, required=False, default=None, multiple=False, options=None,
                suggestions=None):
     self.name = name
-    if not hasattr(ParamTypes, paramtype):
+    if not isinstance(paramtype, ParamType):
       raise Exception('Invalid type %s for parameter %s' % (paramtype, name))
     self.type = paramtype
     self.required = bool(required)
@@ -81,7 +118,7 @@ class Param(object):
   def toJSON(self):
     jsonVal = {
       'name': self.name,
-      'type': self.type,
+      'type': self.type.name,
     }
     if self.required:
       jsonVal['required'] = True
@@ -96,16 +133,14 @@ class Param(object):
     return jsonVal
 
   def validateValue(self, value):
+    if value is None and self.default is not None:
+      value = self.default
+
     # None is ok for optional params
     if not self.required and value is None:
       return True
 
-    validator = typeValidators.get(self.type, None)
-    # if there's no validator for the type we assume True
-    if validator is None:
-      return True
-
-    return validator(value)
+    return self.type.isValid(value)
 
 
 def validateParams(func, params, args, kwargs):
@@ -136,17 +171,16 @@ def validateParams(func, params, args, kwargs):
       # requirement is satisfied from "args"
       value = args[i]
 
-    # parameter is restricted to a defined set of possible values, but given value is not in it.
-    # possibly it's a deprecated but still accepted value.
+    # parameter is restricted to a defined set of values, but value is not in it
     if params[i].options and value not in params[i].options:
-      log.warning(
-        'Deprecated or invalid value "{value}" specified for parameter "{param}" of function "{func}"'
-        .format(value=value, param=params[i].name, func=func))
+      raise InputParameterError(
+        'Invalid option specified for function "{func}" parameter "{param}"'.format(
+          param=params[i].name, func=func))
 
     if not params[i].validateValue(value):
       raise InputParameterError(
-        'Invalid {type} value specified for function "{func}" parameter "{param}"'.format(
-          type=params[i].type, param=params[i].name, func=func))
+        'Invalid {type} value specified for function "{func}" parameter "{param}": {value}'.format(
+          type=params[i].type.name, func=func, param=params[i].name, value=value))
 
     valid_args.append(params[i].name)
 

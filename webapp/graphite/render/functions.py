@@ -36,7 +36,7 @@ from os import environ
 from django.conf import settings
 from graphite.errors import NormalizeEmptyResultError, InputParameterError
 from graphite.events import models
-from graphite.functions import SeriesFunction, ParamTypes, Param
+from graphite.functions import SeriesFunction, ParamTypes, Param, ParamTypeAggFunc
 from graphite.logger import log
 from graphite.render.attime import getUnitString, parseTimeOffset, parseATTime, SECONDS_STRING, MINUTES_STRING, HOURS_STRING, DAYS_STRING, WEEKS_STRING, MONTHS_STRING, YEARS_STRING
 from graphite.render.evaluator import evaluateTarget
@@ -286,7 +286,7 @@ aggFuncAliases = {
   'current': aggFuncs['last'],
 }
 
-aggFuncNames = sorted(aggFuncs.keys()) + sorted(aggFuncAliases.keys())
+ParamTypeAggFunc.setValidAggFuncs(list(aggFuncs.keys()), list(aggFuncAliases.keys()))
 
 
 def getAggFunc(func, rawFunc=None):
@@ -353,7 +353,7 @@ def aggregate(requestContext, seriesList, func, xFilesFactor=None):
 aggregate.group = 'Combine'
 aggregate.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
-  Param('func', ParamTypes.aggFunc, required=True, options=aggFuncNames),
+  Param('func', ParamTypes.aggFunc, required=True),
   Param('xFilesFactor', ParamTypes.float),
 ]
 
@@ -513,7 +513,7 @@ def aggregateWithWildcards(requestContext, seriesList, func, *positions):
 aggregateWithWildcards.group = 'Combine'
 aggregateWithWildcards.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
-  Param('func', ParamTypes.aggFunc, required=True, options=aggFuncNames),
+  Param('func', ParamTypes.aggFunc, required=True),
   Param('position', ParamTypes.node, multiple=True),
 ]
 
@@ -1283,7 +1283,7 @@ movingWindow.group = 'Calculate'
 movingWindow.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
   Param('windowSize', ParamTypes.intOrInterval, required=True, suggestions=intOrIntervalSuggestions),
-  Param('func', ParamTypes.string, options=aggFuncNames, default='average'),
+  Param('func', ParamTypes.aggFunc, default='average'),
   Param('xFilesFactor', ParamTypes.float),
 ]
 
@@ -2736,7 +2736,7 @@ def legendValue(requestContext, seriesList, *valueTypes):
 legendValue.group = 'Alias'
 legendValue.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
-  Param('valuesTypes', ParamTypes.string, multiple=True, options=aggFuncNames + ['si', 'binary']),
+  Param('valuesTypes', ParamTypes.string, multiple=True, options=ParamTypeAggFunc.getValidAggFuncs() + ['si', 'binary']),
 ]
 
 
@@ -2902,7 +2902,7 @@ def filterSeries(requestContext, seriesList, func, operator, threshold):
 filterSeries.group = 'Filter Series'
 filterSeries.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
-  Param('func', ParamTypes.string, required=True, options=aggFuncNames),
+  Param('func', ParamTypes.aggFunc, required=True),
   Param('operator', ParamTypes.string, required=True, options=sorted(operatorFuncs.keys())),
   Param('threshold', ParamTypes.float, required=True),
 ]
@@ -3022,7 +3022,7 @@ highest.group = 'Filter Series'
 highest.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
   Param('n', ParamTypes.integer, required=True),
-  Param('func', ParamTypes.string, options=aggFuncNames, default='average'),
+  Param('func', ParamTypes.aggFunc, default='average'),
 ]
 
 
@@ -3048,7 +3048,7 @@ lowest.group = 'Filter Series'
 lowest.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
   Param('n', ParamTypes.integer, required=True),
-  Param('func', ParamTypes.string, options=aggFuncNames, default='average'),
+  Param('func', ParamTypes.aggFunc, default='average'),
 ]
 
 
@@ -3529,7 +3529,7 @@ def sortBy(requestContext, seriesList, func='average', reverse=False):
 sortBy.group = 'Sorting'
 sortBy.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
-  Param('func', ParamTypes.string, options=aggFuncNames, default='average'),
+  Param('func', ParamTypes.aggFunc, default='average'),
   Param('reverse', ParamTypes.boolean, default=False),
 ]
 
@@ -4535,7 +4535,7 @@ def aggregateLine(requestContext, seriesList, func='average', keepStep=False):
 aggregateLine.group = 'Calculate'
 aggregateLine.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
-  Param('func', ParamTypes.aggFunc, default='average', options=aggFuncNames),
+  Param('func', ParamTypes.aggFunc, default='average'),
   Param('keepStep', ParamTypes.boolean, default=False),
 ]
 
@@ -4993,7 +4993,7 @@ groupByNode.group = 'Combine'
 groupByNode.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
   Param('nodeNum', ParamTypes.nodeOrTag, required=True),
-  Param('callback', ParamTypes.aggFunc, default='average', options=aggFuncNames),
+  Param('callback', ParamTypes.aggFunc, default='average'),
 ]
 
 
@@ -5048,7 +5048,7 @@ def groupByNodes(requestContext, seriesList, callback, *nodes):
 groupByNodes.group = 'Combine'
 groupByNodes.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
-  Param('callback', ParamTypes.aggFunc, required=True, options=aggFuncNames),
+  Param('callback', ParamTypes.aggFunc, required=True),
   Param('nodes', ParamTypes.nodeOrTag, required=True, multiple=True),
 ]
 
@@ -5157,7 +5157,7 @@ smartSummarize.group = 'Transform'
 smartSummarize.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
   Param('intervalString', ParamTypes.interval, required=True, suggestions=['10min', '1h', '1d']),
-  Param('func', ParamTypes.aggFunc, default='sum', options=aggFuncNames),
+  Param('func', ParamTypes.aggFunc, default='sum'),
   Param('alignTo', ParamTypes.string, options=[None, YEARS_STRING, MONTHS_STRING, WEEKS_STRING, DAYS_STRING, HOURS_STRING, MINUTES_STRING, SECONDS_STRING]),
 ]
 
@@ -5224,7 +5224,7 @@ summarize.group = 'Transform'
 summarize.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
   Param('intervalString', ParamTypes.interval, required=True, suggestions=['10min', '1h', '1d']),
-  Param('func', ParamTypes.aggFunc, default='sum', options=aggFuncNames),
+  Param('func', ParamTypes.aggFunc, default='sum'),
   Param('alignToFrom', ParamTypes.boolean, default=False),
 ]
 
@@ -5636,7 +5636,7 @@ def groupByTags(requestContext, seriesList, callback, *tags):
 groupByTags.group = 'Combine'
 groupByTags.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
-  Param('callback', ParamTypes.aggFunc, required=True, options=aggFuncNames),
+  Param('callback', ParamTypes.aggFunc, required=True),
   Param('tags', ParamTypes.tag, required=True, multiple=True),
 ]
 

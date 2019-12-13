@@ -180,7 +180,9 @@ class TestParam(unittest.TestCase):
             {},
         ))
 
-        self.assertTrue(validateParams(
+        self.assertRaises(
+            InputParameterError,
+            validateParams,
             'TestParam',
             [
                 Param('one', ParamTypes.string, required=True),
@@ -189,4 +191,4 @@ class TestParam(unittest.TestCase):
             ],
             ['one', 'two', 'four'],
             {},
-        ))
+        )
