@@ -3,6 +3,7 @@ import six
 from graphite.errors import InputParameterError
 from graphite.render.attime import parseTimeOffset
 from graphite.logger import log
+from graphite.functions.aggfuncs import aggFuncs, aggFuncAliases
 
 
 class ParamTypes(object):
@@ -10,7 +11,6 @@ class ParamTypes(object):
 
 
 class ParamType(object):
-  name = 'undefined'
 
   def __init__(self, name, validator=None):
     self.name = name
@@ -68,29 +68,27 @@ ParamType.register('tag')
 
 
 class ParamTypeAggFunc(ParamType):
-  aggFuncNames = []
-  aggFuncAliases = []
-  deprecatedFuncStrings = []
 
   def __init__(self, name):
     super(ParamTypeAggFunc, self).__init__(name=name, validator=self.validateAggFuncs)
 
   @classmethod
-  def setValidAggFuncs(cls, aggFuncNames, aggFuncAliases):
-    cls.aggFuncNames = aggFuncNames
-    cls.aggFuncAliases = aggFuncAliases
-    cls.deprecatedFuncStrings = [
-      name + 'Series' for name in aggFuncNames + aggFuncAliases]
+  def getValidAggFuncs(cls):
+    return list(aggFuncs.keys()) + list(aggFuncAliases.keys())
 
   @classmethod
-  def getValidAggFuncs(cls):
-    return cls.aggFuncNames + cls.aggFuncAliases + cls.deprecatedFuncStrings
+  def getDeprecatedAggFuncs(cls):
+    return [name + 'Series' for name in cls.getValidAggFuncs()]
+
+  @classmethod
+  def getAllValidAggFuncs(cls):
+    return cls.getValidAggFuncs() + cls.getDeprecatedAggFuncs()
 
   def validateAggFuncs(self, value):
-    if value in self.aggFuncNames or value in self.aggFuncAliases:
+    if value in self.getValidAggFuncs():
       return True
 
-    if value in self.deprecatedFuncStrings:
+    if value in self.getDeprecatedAggFuncs():
       log.warning('Deprecated name for aggregation function "{value}"'.format(value=value))
       return True
 
@@ -174,8 +172,8 @@ def validateParams(func, params, args, kwargs):
     # parameter is restricted to a defined set of values, but value is not in it
     if params[i].options and value not in params[i].options:
       raise InputParameterError(
-        'Invalid option specified for function "{func}" parameter "{param}"'.format(
-          param=params[i].name, func=func))
+        'Invalid option "{value}" specified for function "{func}" parameter "{param}"'.format(
+          value=value, param=params[i].name, func=func))
 
     if not params[i].validateValue(value):
       raise InputParameterError(

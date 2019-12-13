@@ -19,7 +19,7 @@ except ImportError:  # Django < 1.10
   from django.core.urlresolvers import reverse
 
 from graphite.errors import NormalizeEmptyResultError
-from graphite.functions import _SeriesFunctions, loadFunctions
+from graphite.functions import _SeriesFunctions, loadFunctions, safe
 from graphite.render.datalib import TimeSeries
 from graphite.render import functions
 from graphite.render.evaluator import evaluateTarget
@@ -49,19 +49,19 @@ class FunctionsTest(TestCase):
 
     def test_safeSum_None(self):
         with self.assertRaises(TypeError):
-            functions.safeSum(None)
+            safe.safeSum(None)
 
     def test_safeSum_empty_list(self):
-        self.assertEqual(functions.safeSum([]), None)
+        self.assertEqual(safe.safeSum([]), None)
 
     def test_safeSum_all_numbers(self):
-        self.assertEqual(functions.safeSum([1,2,3,4]), 10)
+        self.assertEqual(safe.safeSum([1,2,3,4]), 10)
 
     def test_safeSum_all_None(self):
-        self.assertEqual(functions.safeSum([None,None,None,None]), None)
+        self.assertEqual(safe.safeSum([None,None,None,None]), None)
 
     def test_safeSum_mixed(self):
-        self.assertEqual(functions.safeSum([10,None,5,None]), 15)
+        self.assertEqual(safe.safeSum([10,None,5,None]), 15)
 
     #
     # Test safeDiff()
@@ -69,19 +69,19 @@ class FunctionsTest(TestCase):
 
     def test_safeDiff_None(self):
         with self.assertRaises(TypeError):
-            functions.safeDiff(None)
+            safe.safeDiff(None)
 
     def test_safeDiff_empty_list(self):
-        self.assertEqual(functions.safeDiff([]), None)
+        self.assertEqual(safe.safeDiff([]), None)
 
     def test_safeDiff_all_numbers(self):
-        self.assertEqual(functions.safeDiff([1,2,3,4]), -8)
+        self.assertEqual(safe.safeDiff([1,2,3,4]), -8)
 
     def test_safeDiff_all_None(self):
-        self.assertEqual(functions.safeDiff([None,None,None,None]), None)
+        self.assertEqual(safe.safeDiff([None,None,None,None]), None)
 
     def test_safeDiff_mixed(self):
-        self.assertEqual(functions.safeDiff([10,None,5,None]), 5)
+        self.assertEqual(safe.safeDiff([10,None,5,None]), 5)
 
     #
     # Test safeLen()
@@ -89,95 +89,95 @@ class FunctionsTest(TestCase):
 
     def test_safeLen_None(self):
         with self.assertRaises(TypeError):
-            functions.safeLen(None)
+            safe.safeLen(None)
 
     def test_safeLen_empty_list(self):
-        self.assertEqual(functions.safeLen([]), 0)
+        self.assertEqual(safe.safeLen([]), 0)
 
     def test_safeLen_all_numbers(self):
-        self.assertEqual(functions.safeLen([1,2,3,4]), 4)
+        self.assertEqual(safe.safeLen([1,2,3,4]), 4)
 
     def test_safeLen_all_None(self):
-        self.assertEqual(functions.safeLen([None,None,None,None]), 0)
+        self.assertEqual(safe.safeLen([None,None,None,None]), 0)
 
     def test_safeLen_mixed(self):
-        self.assertEqual(functions.safeLen([10,None,5,None]), 2)
+        self.assertEqual(safe.safeLen([10,None,5,None]), 2)
 
     #
     # Test safeDiv()
     #
 
     def test_safeDiv_None_None(self):
-        self.assertEqual(functions.safeDiv(None, None), None)
+        self.assertEqual(safe.safeDiv(None, None), None)
 
     def test_safeDiv_5_None(self):
-        self.assertEqual(functions.safeDiv(5, None), None)
+        self.assertEqual(safe.safeDiv(5, None), None)
 
     def test_safeDiv_5_0(self):
-        self.assertEqual(functions.safeDiv(5, 0), None)
+        self.assertEqual(safe.safeDiv(5, 0), None)
 
     def test_safeDiv_0_10(self):
-        self.assertEqual(functions.safeDiv(0,10), 0)
+        self.assertEqual(safe.safeDiv(0,10), 0)
 
     def test_safeDiv_10_5(self):
-        self.assertEqual(functions.safeDiv(10,5), 2)
+        self.assertEqual(safe.safeDiv(10,5), 2)
 
     #
     # Test safePow()
     #
 
     def test_safePow_None_None(self):
-        self.assertEqual(functions.safePow(None, None), None)
+        self.assertEqual(safe.safePow(None, None), None)
 
     def test_safePow_5_None(self):
-        self.assertEqual(functions.safePow(5, None), None)
+        self.assertEqual(safe.safePow(5, None), None)
 
     def test_safePow_5_0(self):
-        self.assertEqual(functions.safePow(5, 0), 1.0)
+        self.assertEqual(safe.safePow(5, 0), 1.0)
 
     def test_safePow_0_10(self):
-        self.assertEqual(functions.safePow(0,10), 0)
+        self.assertEqual(safe.safePow(0,10), 0)
 
     def test_safePow_10_5(self):
-        self.assertEqual(functions.safePow(10,5), 100000.0)
+        self.assertEqual(safe.safePow(10,5), 100000.0)
 
     #
     # Test safeMul()
     #
 
     def test_safeMul_None_None(self):
-        self.assertEqual(functions.safeMul(None, None), None)
+        self.assertEqual(safe.safeMul(None, None), None)
 
     def test_safeMul_5_None(self):
-        self.assertEqual(functions.safeMul(5, None), None)
+        self.assertEqual(safe.safeMul(5, None), None)
 
     def test_safeMul_5_0(self):
-        self.assertEqual(functions.safeMul(5, 0), 0.0)
+        self.assertEqual(safe.safeMul(5, 0), 0.0)
 
     def test_safeMul_0_10(self):
-        self.assertEqual(functions.safeMul(0,10), 0)
+        self.assertEqual(safe.safeMul(0,10), 0)
 
     def test_safeMul_10_5(self):
-        self.assertEqual(functions.safeMul(10,5), 50.0)
+        self.assertEqual(safe.safeMul(10,5), 50.0)
 
     #
     # Test safeSubtract()
     #
 
     def test_safeSubtract_None_None(self):
-        self.assertEqual(functions.safeSubtract(None, None), None)
+        self.assertEqual(safe.safeSubtract(None, None), None)
 
     def test_safeSubtract_5_None(self):
-        self.assertEqual(functions.safeSubtract(5, None), None)
+        self.assertEqual(safe.safeSubtract(5, None), None)
 
     def test_safeSubtract_5_0(self):
-        self.assertEqual(functions.safeSubtract(5, 0), 5.0)
+        self.assertEqual(safe.safeSubtract(5, 0), 5.0)
 
     def test_safeSubtract_0_10(self):
-        self.assertEqual(functions.safeSubtract(0,10), -10)
+        self.assertEqual(safe.safeSubtract(0,10), -10)
 
     def test_safeSubtract_10_5(self):
-        self.assertEqual(functions.safeSubtract(10,5), 5)
+        self.assertEqual(safe.safeSubtract(10,5), 5)
 
     #
     # Test safeAvg()
@@ -185,19 +185,19 @@ class FunctionsTest(TestCase):
 
     def test_safeAvg_None(self):
         with self.assertRaises(TypeError):
-            functions.safeAvg(None)
+            safe.safeAvg(None)
 
     def test_safeAvg_empty_list(self):
-        self.assertEqual(functions.safeAvg([]), None)
+        self.assertEqual(safe.safeAvg([]), None)
 
     def test_safeAvg_all_numbers(self):
-        self.assertEqual(functions.safeAvg([1,2,3,4]), 2.5)
+        self.assertEqual(safe.safeAvg([1,2,3,4]), 2.5)
 
     def test_safeAvg_all_None(self):
-        self.assertEqual(functions.safeAvg([None,None,None,None]), None)
+        self.assertEqual(safe.safeAvg([None,None,None,None]), None)
 
     def test_safeAvg_mixed(self):
-        self.assertEqual(functions.safeAvg([10,None,5,None]), 7.5)
+        self.assertEqual(safe.safeAvg([10,None,5,None]), 7.5)
 
     #
     # Test safeMedian()
@@ -205,22 +205,22 @@ class FunctionsTest(TestCase):
 
     def test_safeMedian_None(self):
         with self.assertRaises(TypeError):
-            functions.safeMedian(None)
+            safe.safeMedian(None)
 
     def test_safeMedian_empty_list(self):
-        self.assertEqual(functions.safeMedian([]), None)
+        self.assertEqual(safe.safeMedian([]), None)
 
     def test_safeMedian_all_numbers_odd_len(self):
-        self.assertEqual(functions.safeMedian([1,2,3,4,5]), 3)
+        self.assertEqual(safe.safeMedian([1,2,3,4,5]), 3)
 
     def test_safeMedian_all_numbers_even_len(self):
-        self.assertAlmostEqual(functions.safeMedian([1,2,3,4]), 2.5)
+        self.assertAlmostEqual(safe.safeMedian([1,2,3,4]), 2.5)
 
     def test_safeMedian_all_None(self):
-        self.assertEqual(functions.safeMedian([None,None,None,None]), None)
+        self.assertEqual(safe.safeMedian([None,None,None,None]), None)
 
     def test_safeMedian_mixed(self):
-        self.assertAlmostEqual(functions.safeMedian([10,None,5,None]), 7.5)
+        self.assertAlmostEqual(safe.safeMedian([10,None,5,None]), 7.5)
 
     #
     # Test safeStdDev()
@@ -228,19 +228,19 @@ class FunctionsTest(TestCase):
 
     def test_safeStdDev_None(self):
         with self.assertRaises(TypeError):
-            functions.safeStdDev(None)
+            safe.safeStdDev(None)
 
     def test_safeStdDev_empty_list(self):
-        self.assertEqual(functions.safeStdDev([]), None)
+        self.assertEqual(safe.safeStdDev([]), None)
 
     def test_safeStdDev_all_numbers(self):
-        self.assertEqual(functions.safeStdDev([1,2,3,4]), 1.118033988749895)
+        self.assertEqual(safe.safeStdDev([1,2,3,4]), 1.118033988749895)
 
     def test_safeStdDev_all_None(self):
-        self.assertEqual(functions.safeStdDev([None,None,None,None]), None)
+        self.assertEqual(safe.safeStdDev([None,None,None,None]), None)
 
     def test_safeStdDev_mixed(self):
-        self.assertEqual(functions.safeStdDev([10,None,5,None]), 2.5)
+        self.assertEqual(safe.safeStdDev([10,None,5,None]), 2.5)
 
     #
     # Test safeLast()
@@ -248,19 +248,19 @@ class FunctionsTest(TestCase):
 
     def test_safeLast_None(self):
         with self.assertRaises(TypeError):
-            functions.safeLast(None)
+            safe.safeLast(None)
 
     def test_safeLast_empty_list(self):
-        self.assertEqual(functions.safeLast([]), None)
+        self.assertEqual(safe.safeLast([]), None)
 
     def test_safeLast_all_numbers(self):
-        self.assertEqual(functions.safeLast([1,2,3,4]), 4)
+        self.assertEqual(safe.safeLast([1,2,3,4]), 4)
 
     def test_safeLast_all_None(self):
-        self.assertEqual(functions.safeLast([None,None,None,None]), None)
+        self.assertEqual(safe.safeLast([None,None,None,None]), None)
 
     def test_safeLast_mixed(self):
-        self.assertEqual(functions.safeLast([10,None,5,None]), 5)
+        self.assertEqual(safe.safeLast([10,None,5,None]), 5)
 
     #
     # Test safeMin()
@@ -268,19 +268,19 @@ class FunctionsTest(TestCase):
 
     def test_safeMin_None(self):
         with self.assertRaises(TypeError):
-            functions.safeMin(None)
+            safe.safeMin(None)
 
     def test_safeMin_empty_list(self):
-        self.assertEqual(functions.safeMin([]), None)
+        self.assertEqual(safe.safeMin([]), None)
 
     def test_safeMin_all_numbers(self):
-        self.assertEqual(functions.safeMin([1,2,3,4]), 1)
+        self.assertEqual(safe.safeMin([1,2,3,4]), 1)
 
     def test_safeMin_all_None(self):
-        self.assertEqual(functions.safeMin([None,None,None,None]), None)
+        self.assertEqual(safe.safeMin([None,None,None,None]), None)
 
     def test_safeMin_mixed(self):
-        self.assertEqual(functions.safeMin([10,None,5,None]), 5)
+        self.assertEqual(safe.safeMin([10,None,5,None]), 5)
 
     #
     # Test safeMax()
@@ -288,39 +288,39 @@ class FunctionsTest(TestCase):
 
     def test_safeMax_None(self):
         with self.assertRaises(TypeError):
-            functions.safeMax(None)
+            safe.safeMax(None)
 
     def test_safeMax_empty_list(self):
-        self.assertEqual(functions.safeMax([]), None)
+        self.assertEqual(safe.safeMax([]), None)
 
     def test_safeMax_all_numbers(self):
-        self.assertEqual(functions.safeMax([1,2,3,4]), 4)
+        self.assertEqual(safe.safeMax([1,2,3,4]), 4)
 
     def test_safeMax_all_None(self):
-        self.assertEqual(functions.safeMax([None,None,None,None]), None)
+        self.assertEqual(safe.safeMax([None,None,None,None]), None)
 
     def test_safeMax_mixed(self):
-        self.assertEqual(functions.safeMax([10,None,5,None]), 10)
+        self.assertEqual(safe.safeMax([10,None,5,None]), 10)
 
     #
     # Test safeAbs()
     #
 
     def test_safeAbs_None(self):
-        self.assertEqual(functions.safeAbs(None), None)
+        self.assertEqual(safe.safeAbs(None), None)
 
     def test_safeAbs_empty_list(self):
         with self.assertRaises(TypeError):
-          functions.safeAbs([])
+          safe.safeAbs([])
 
     def test_safeAbs_pos_number(self):
-        self.assertEqual(functions.safeAbs(1), 1)
+        self.assertEqual(safe.safeAbs(1), 1)
 
     def test_safeAbs_neg_numbers(self):
-        self.assertEqual(functions.safeAbs(-1), 1)
+        self.assertEqual(safe.safeAbs(-1), 1)
 
     def test_safeAbs_zero(self):
-        self.assertEqual(functions.safeAbs(0), 0)
+        self.assertEqual(safe.safeAbs(0), 0)
 
     #
     # Test safeMap()
@@ -328,19 +328,19 @@ class FunctionsTest(TestCase):
 
     def test_safeMap_None(self):
         with self.assertRaises(TypeError):
-            functions.safeMap(abs, None)
+            safe.safeMap(abs, None)
 
     def test_safeMap_empty_list(self):
-        self.assertEqual(functions.safeMap(abs, []), None)
+        self.assertEqual(safe.safeMap(abs, []), None)
 
     def test_safeMap_all_numbers(self):
-        self.assertEqual(functions.safeMap(abs, [1,2,3,4]), [1,2,3,4])
+        self.assertEqual(safe.safeMap(abs, [1,2,3,4]), [1,2,3,4])
 
     def test_safeMap_all_None(self):
-        self.assertEqual(functions.safeMap(abs, [None,None,None,None]), None)
+        self.assertEqual(safe.safeMap(abs, [None,None,None,None]), None)
 
     def test_safeMap_mixed(self):
-        self.assertEqual(functions.safeMap(abs, [10,None,5,None]), [10,5])
+        self.assertEqual(safe.safeMap(abs, [10,None,5,None]), [10,5])
 
     #
     # Test gcd()
@@ -2116,12 +2116,12 @@ class FunctionsTest(TestCase):
         for i, c in enumerate(config):
             seriesList.append(TimeSeries('Test(%d)' % i, 0, 0, 0, c))
 
-        self.assertEqual(1110, functions.safeSum(seriesList[0]))
+        self.assertEqual(1110, safe.safeSum(seriesList[0]))
 
         result = functions.sortByTotal({}, seriesList)
 
-        self.assertEqual(1111, functions.safeSum(result[0]))
-        self.assertEqual(1110, functions.safeSum(result[1]))
+        self.assertEqual(1111, safe.safeSum(result[0]))
+        self.assertEqual(1110, safe.safeSum(result[1]))
 
     def test_sortByMaxima(self):
         seriesList = self._gen_series_list_with_data(
@@ -2879,7 +2879,7 @@ class FunctionsTest(TestCase):
             # Custom safeLast() function
             def noneSafeLast(x):
                 return None
-            with patch('graphite.render.functions.safeLast', noneSafeLast):
+            with patch('graphite.functions.safe.safeLast', noneSafeLast):
 
                 # Perform query - this one will fail to return a current value for the matched metric
                 with self.assertRaises(Exception):
