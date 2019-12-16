@@ -89,7 +89,7 @@ class ParamTypeAggFunc(ParamType):
       return True
 
     if value in self.getDeprecatedAggFuncs():
-      log.warning('Deprecated name for aggregation function "{value}"'.format(value=value))
+      log.warning('Deprecated aggregation function "{value}" used'.format(value=value))
       return True
 
     return False
