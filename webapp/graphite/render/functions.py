@@ -4840,7 +4840,7 @@ groupByNode.group = 'Combine'
 groupByNode.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
   Param('nodeNum', ParamTypes.nodeOrTag, required=True),
-  Param('callback', ParamTypes.aggFunc, default='average'),
+  Param('callback', ParamTypes.aggOrSeriesFunc, default='average'),
 ]
 
 
@@ -4895,7 +4895,7 @@ def groupByNodes(requestContext, seriesList, callback, *nodes):
 groupByNodes.group = 'Combine'
 groupByNodes.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
-  Param('callback', ParamTypes.aggFunc, required=True),
+  Param('callback', ParamTypes.aggOrSeriesFunc, required=True),
   Param('nodes', ParamTypes.nodeOrTag, required=True, multiple=True),
 ]
 
@@ -5483,7 +5483,7 @@ def groupByTags(requestContext, seriesList, callback, *tags):
 groupByTags.group = 'Combine'
 groupByTags.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
-  Param('callback', ParamTypes.aggFunc, required=True),
+  Param('callback', ParamTypes.aggOrSeriesFunc, required=True),
   Param('tags', ParamTypes.tag, required=True, multiple=True),
 ]
 
@@ -5796,3 +5796,6 @@ SeriesFunctions = {
   'timeFunction': timeFunction,
   'xFilesFactor': setXFilesFactor,
 }
+
+
+ParamTypes.aggOrSeriesFunc.setSeriesFuncs(SeriesFunctions)
