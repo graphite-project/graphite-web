@@ -189,6 +189,6 @@ class TestParam(unittest.TestCase):
                 Param('two', ParamTypes.string, required=True),
                 Param('three', ParamTypes.string, required=True, options=['3', 'three']),
             ],
-            ['one', 'two', 'foud'],
+            ['one', 'two', 'four'],
             {},
         )

@@ -36,7 +36,7 @@ from os import environ
 from django.conf import settings
 from graphite.errors import NormalizeEmptyResultError, InputParameterError
 from graphite.events import models
-from graphite.functions import SeriesFunction, ParamTypes, Param
+from graphite.functions import SeriesFunction, ParamTypes, Param, ParamTypeAggFunc, getAggFunc, safe
 from graphite.logger import log
 from graphite.render.attime import getUnitString, parseTimeOffset, parseATTime, SECONDS_STRING, MINUTES_STRING, HOURS_STRING, DAYS_STRING, WEEKS_STRING, MONTHS_STRING, YEARS_STRING
 from graphite.render.evaluator import evaluateTarget
@@ -58,127 +58,6 @@ HOUR = 3600
 MINUTE = 60
 
 #Utility functions
-
-
-def safeSum(values):
-  safeValues = [v for v in values if v is not None]
-  if safeValues:
-    return sum(safeValues)
-
-
-def safeDiff(values):
-  safeValues = [v for v in values if v is not None]
-  if safeValues:
-    values = list(map(lambda x: x*-1, safeValues[1:]))
-    values.insert(0, safeValues[0])
-    return sum(values)
-
-
-def safeLen(values):
-  return len([v for v in values if v is not None])
-
-
-def safeDiv(a, b):
-  if a is None: return None
-  if b in (0,None): return None
-  return a / b
-
-
-def safeExp(a):
-    try:
-        return math.exp(a)
-    except TypeError:
-        return None
-
-
-def safePow(a, b):
-  if a is None: return None
-  if b is None: return None
-  try:
-    result = math.pow(a, b)
-  except (ValueError, OverflowError):
-    return None
-  return result
-
-
-def safeMul(*factors):
-  if None in factors:
-    return None
-
-  factors = [float(x) for x in factors]
-  product = reduce(lambda x,y: x*y, factors)
-  return product
-
-
-def safeSubtract(a,b):
-    if a is None or b is None: return None
-    return float(a) - float(b)
-
-
-def safeAvg(values):
-  safeValues = [v for v in values if v is not None]
-  if safeValues:
-    return sum(safeValues) / len(safeValues)
-
-
-def safeAvgZero(values):
-  if values:
-    return sum([0 if v is None else v for v in values]) / len(values)
-
-
-def safeMedian(values):
-  safeValues = [v for v in values if v is not None]
-  if safeValues:
-    sortedVals = sorted(safeValues)
-    mid = len(sortedVals) // 2
-    if len(sortedVals) % 2 == 0:
-      return float(sortedVals[mid-1] + sortedVals[mid]) / 2
-    else:
-      return sortedVals[mid]
-
-
-def safeStdDev(a):
-  sm = safeSum(a)
-  ln = safeLen(a)
-  avg = safeDiv(sm,ln)
-  if avg is None: return None
-  sum = 0
-  safeValues = [v for v in a if v is not None]
-  for val in safeValues:
-     sum = sum + (val - avg) * (val - avg)
-  return math.sqrt(sum/ln)
-
-
-def safeLast(values):
-  for v in reversed(values):
-    if v is not None: return v
-
-
-def safeMin(values, default=None):
-  safeValues = [v for v in values if v is not None]
-  if safeValues:
-    return min(safeValues)
-  else:
-    return default
-
-
-def safeMax(values, default=None):
-  safeValues = [v for v in values if v is not None]
-  if safeValues:
-    return max(safeValues)
-  else:
-    return default
-
-
-def safeMap(function, values):
-  safeValues = [v for v in values if v is not None]
-  if safeValues:
-    return [function(x) for x in safeValues]
-
-
-def safeAbs(value):
-  if value is None: return None
-  return abs(value)
 
 
 # In Py2, None < (any integer) . Use -inf for same sorting on Python 3
@@ -264,38 +143,6 @@ def formatPathExpressions(seriesList):
 
 # Series Functions
 
-aggFuncs = {
-  'average': safeAvg,
-  'avg_zero': safeAvgZero,
-  'median': safeMedian,
-  'sum': safeSum,
-  'min': safeMin,
-  'max': safeMax,
-  'diff': safeDiff,
-  'stddev': safeStdDev,
-  'count': safeLen,
-  'range': lambda row: safeSubtract(safeMax(row), safeMin(row)),
-  'multiply': lambda row: safeMul(*row),
-  'last': safeLast,
-}
-
-aggFuncAliases = {
-  'rangeOf': aggFuncs['range'],
-  'avg': aggFuncs['average'],
-  'total': aggFuncs['sum'],
-  'current': aggFuncs['last'],
-}
-
-aggFuncNames = sorted(aggFuncs.keys()) + sorted(aggFuncAliases.keys())
-
-
-def getAggFunc(func, rawFunc=None):
-  if func in aggFuncs:
-    return aggFuncs[func]
-  if func in aggFuncAliases:
-    return aggFuncAliases[func]
-  raise InputParameterError('Unsupported aggregation function: %s' % (rawFunc or func))
-
 
 def aggregate(requestContext, seriesList, func, xFilesFactor=None):
   """
@@ -353,7 +200,7 @@ def aggregate(requestContext, seriesList, func, xFilesFactor=None):
 aggregate.group = 'Combine'
 aggregate.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
-  Param('func', ParamTypes.aggFunc, required=True, options=aggFuncNames),
+  Param('func', ParamTypes.aggFunc, required=True),
   Param('xFilesFactor', ParamTypes.float),
 ]
 
@@ -513,7 +360,7 @@ def aggregateWithWildcards(requestContext, seriesList, func, *positions):
 aggregateWithWildcards.group = 'Combine'
 aggregateWithWildcards.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
-  Param('func', ParamTypes.aggFunc, required=True, options=aggFuncNames),
+  Param('func', ParamTypes.aggFunc, required=True),
   Param('position', ParamTypes.node, multiple=True),
 ]
 
@@ -921,7 +768,7 @@ def asPercent(requestContext, seriesList, total=None, *nodes):
         else:
           name = 'sumSeries(%s)' % formatPathExpressions(metaSeries[key])
           (seriesList,start,end,step) = normalize([metaSeries[key]])
-          totalValues = [ safeSum(row) for row in izip_longest(*metaSeries[key]) ]
+          totalValues = [ safe.safeSum(row) for row in izip_longest(*metaSeries[key]) ]
           totalSeries[key] = TimeSeries(name,start,end,step,totalValues,xFilesFactor=xFilesFactor)
     # total seriesList was specified, sum the values for each group of totals
     elif isinstance(total, list):
@@ -940,7 +787,7 @@ def asPercent(requestContext, seriesList, total=None, *nodes):
         else:
           name = 'sumSeries(%s)' % formatPathExpressions(totalSeries[key])
           (seriesList,start,end,step) = normalize([totalSeries[key]])
-          totalValues = [ safeSum(row) for row in izip_longest(*totalSeries[key]) ]
+          totalValues = [ safe.safeSum(row) for row in izip_longest(*totalSeries[key]) ]
           totalSeries[key] = TimeSeries(name,start,end,step,totalValues,xFilesFactor=xFilesFactor)
     # trying to use nodes with a total value, which isn't supported because it has no effect
     else:
@@ -967,7 +814,7 @@ def asPercent(requestContext, seriesList, total=None, *nodes):
           series2 = totalSeries[key]
           name = "asPercent(%s,%s)" % (series1.name, series2.name)
           (seriesList,start,end,step) = normalize([(series1, series2)])
-          resultValues = [ safeMul(safeDiv(v1, v2), 100.0) for v1,v2 in izip_longest(series1,series2) ]
+          resultValues = [ safe.safeMul(safe.safeDiv(v1, v2), 100.0) for v1,v2 in izip_longest(series1,series2) ]
 
         resultSeries = TimeSeries(name,start,end,step,resultValues,xFilesFactor=xFilesFactor)
         resultList.append(resultSeries)
@@ -975,7 +822,7 @@ def asPercent(requestContext, seriesList, total=None, *nodes):
     return resultList
 
   if total is None:
-    totalValues = [ safeSum(row) for row in izip_longest(*seriesList) ]
+    totalValues = [ safe.safeSum(row) for row in izip_longest(*seriesList) ]
     totalText = "sumSeries(%s)" % formatPathExpressions(seriesList)
   elif type(total) is list:
     if len(total) != 1 and len(total) != len(seriesList):
@@ -994,12 +841,12 @@ def asPercent(requestContext, seriesList, total=None, *nodes):
     for series1, series2 in matchSeries(seriesList, total):
       name = "asPercent(%s,%s)" % (series1.name,series2.name)
       (seriesList,start,end,step) = normalize([(series1, series2)])
-      resultValues = [ safeMul(safeDiv(v1, v2), 100.0) for v1,v2 in izip_longest(series1,series2) ]
+      resultValues = [ safe.safeMul(safe.safeDiv(v1, v2), 100.0) for v1,v2 in izip_longest(series1,series2) ]
       resultSeries = TimeSeries(name,start,end,step,resultValues,xFilesFactor=xFilesFactor)
       resultList.append(resultSeries)
   else:
     for series in seriesList:
-      resultValues = [ safeMul(safeDiv(val, totalVal), 100.0) for val,totalVal in izip_longest(series,totalValues) ]
+      resultValues = [ safe.safeMul(safe.safeDiv(val, totalVal), 100.0) for val,totalVal in izip_longest(series,totalValues) ]
 
       name = "asPercent(%s,%s)" % (series.name, totalText or series.pathExpression)
       resultSeries = TimeSeries(name,series.start,series.end,series.step,resultValues,xFilesFactor=xFilesFactor)
@@ -1042,7 +889,7 @@ def divideSeriesLists(requestContext, dividendSeriesList, divisorSeriesList):
     end = max([s.end for s in bothSeries])
     end -= (end - start) % step
 
-    values = ( safeDiv(v1,v2) for v1,v2 in izip_longest(*bothSeries) )
+    values = ( safe.safeDiv(v1,v2) for v1,v2 in izip_longest(*bothSeries) )
 
     quotientSeries = TimeSeries(name, start, end, step, values, xFilesFactor=requestContext.get('xFilesFactor'))
     results.append(quotientSeries)
@@ -1097,7 +944,7 @@ def divideSeries(requestContext, dividendSeriesList, divisorSeries):
     end = max([s.end for s in bothSeries])
     end -= (end - start) % step
 
-    values = ( safeDiv(v1,v2) for v1,v2 in izip_longest(*bothSeries) )
+    values = ( safe.safeDiv(v1,v2) for v1,v2 in izip_longest(*bothSeries) )
 
     quotientSeries = TimeSeries(name, start, end, step, values, xFilesFactor=requestContext.get('xFilesFactor'))
     results.append(quotientSeries)
@@ -1178,7 +1025,7 @@ def weightedAverage(requestContext, seriesListAvg, seriesListWeight, *nodes):
     seriesWeight = sortedSeries[key]['weight']
     seriesAvg = sortedSeries[key]['avg']
 
-    productValues = [ safeMul(val1, val2) for val1,val2 in izip_longest(seriesAvg,seriesWeight) ]
+    productValues = [ safe.safeMul(val1, val2) for val1,val2 in izip_longest(seriesAvg,seriesWeight) ]
     name='product(%s,%s)' % (seriesWeight.name, seriesAvg.name)
     productSeries = TimeSeries(name,seriesAvg.start,seriesAvg.end,seriesAvg.step,productValues,xFilesFactor=requestContext.get('xFilesFactor'))
     productList.append(productSeries)
@@ -1189,7 +1036,7 @@ def weightedAverage(requestContext, seriesListAvg, seriesListWeight, *nodes):
   sumProducts=sumSeries(requestContext, productList)[0]
   sumWeights=sumSeries(requestContext, seriesListWeight)[0]
 
-  resultValues = [ safeDiv(val1, val2) for val1,val2 in izip_longest(sumProducts,sumWeights) ]
+  resultValues = [ safe.safeDiv(val1, val2) for val1,val2 in izip_longest(sumProducts,sumWeights) ]
   name = "weightedAverage(%s, %s, %s)" % (','.join(sorted(set(s.pathExpression for s in seriesListAvg))) ,','.join(sorted(set(s.pathExpression for s in seriesListWeight))), ','.join(map(str,nodes)))
   resultSeries = TimeSeries(name,sumProducts.start,sumProducts.end,sumProducts.step,resultValues,xFilesFactor=requestContext.get('xFilesFactor'))
   return [resultSeries]
@@ -1283,7 +1130,7 @@ movingWindow.group = 'Calculate'
 movingWindow.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
   Param('windowSize', ParamTypes.intOrInterval, required=True, suggestions=intOrIntervalSuggestions),
-  Param('func', ParamTypes.string, options=aggFuncNames, default='average'),
+  Param('func', ParamTypes.aggFunc, default='average'),
   Param('xFilesFactor', ParamTypes.float),
 ]
 
@@ -1347,7 +1194,7 @@ def exponentialMovingAverage(requestContext, seriesList, windowSize):
     series.tags['exponentialMovingAverage'] = windowSize
     newSeries = series.copy(name=newName, start=series.start + previewSeconds, values=[])
 
-    ema = safeAvg(series[:windowPoints]) or 0
+    ema = safe.safeAvg(series[:windowPoints]) or 0
     newSeries.append(round(ema, 6))
 
     for i in range(windowPoints, len(series)):
@@ -1417,7 +1264,7 @@ def scale(requestContext, seriesList, factor):
     series.name = "scale(%s,%g)" % (series.name,float(factor))
     series.pathExpression = series.name
     for i,value in enumerate(series):
-      series[i] = safeMul(value,factor)
+      series[i] = safe.safeMul(value,factor)
   return seriesList
 
 
@@ -1478,7 +1325,7 @@ def exp(requestContext, seriesList):
         series.name = "exp(%s)" % (series.name)
         series.pathExpression = series.name
         for i, value in enumerate(series):
-            series[i] = safeExp(value)
+            series[i] = safe.safeExp(value)
 
     return seriesList
 
@@ -1542,7 +1389,7 @@ def sigmoid(requestContext, seriesList):
         for i, value in enumerate(series):
             try:
                 log.info(value)
-                series[i] = 1 / (1 + safeExp(-value))
+                series[i] = 1 / (1 + safe.safeExp(-value))
             except (TypeError, ValueError, ZeroDivisionError):
                 series[i] = None
 
@@ -1605,7 +1452,7 @@ def pow(requestContext, seriesList, factor):
     series.name = "pow(%s,%g)" % (series.name, float(factor))
     series.pathExpression = series.name
     for i,value in enumerate(series):
-      series[i] = safePow(value, factor)
+      series[i] = safe.safePow(value, factor)
   return seriesList
 
 
@@ -1645,7 +1492,7 @@ def powSeries(requestContext, *seriesLists):
         tmpVal = element
         first = False
       else:
-        tmpVal = safePow(tmpVal, element)
+        tmpVal = safe.safePow(tmpVal, element)
     values.append(tmpVal)
   series = TimeSeries(name,start,end,step,values,xFilesFactor=requestContext.get('xFilesFactor'))
   return [series]
@@ -1673,7 +1520,7 @@ def squareRoot(requestContext, seriesList):
     series.name = "squareRoot(%s)" % (series.name)
     series.pathExpression = series.name
     for i,value in enumerate(series):
-      series[i] = safePow(value, 0.5)
+      series[i] = safe.safePow(value, 0.5)
   return seriesList
 
 
@@ -1699,7 +1546,7 @@ def invert(requestContext, seriesList):
     series.name = "invert(%s)" % (series.name)
     series.pathExpression = series.name
     for i,value in enumerate(series):
-        series[i] = safePow(value, -1)
+        series[i] = safe.safePow(value, -1)
   return seriesList
 
 
@@ -1726,7 +1573,7 @@ def absolute(requestContext, seriesList):
     series.name = "absolute(%s)" % (series.name)
     series.pathExpression = series.name
     for i,value in enumerate(series):
-      series[i] = safeAbs(value)
+      series[i] = safe.safeAbs(value)
   return seriesList
 
 
@@ -1796,7 +1643,7 @@ def offsetToZero(requestContext, seriesList):
 
   """
   for series in seriesList:
-    minimum = safeMin(series)
+    minimum = safe.safeMin(series)
     series.tags['offsetToZero'] = minimum
     series.name = "offsetToZero(%s)" % (series.name)
     series.pathExpression = series.name
@@ -2514,7 +2361,7 @@ def aliasQuery(requestContext, seriesList, search, replace, newName):
     newSeriesList = evaluateTarget(newContext, newQuery)
     if newSeriesList is None or len(newSeriesList) == 0:
       raise InputParameterError('No series found with query: ' + newQuery)
-    current = safeLast(newSeriesList[0])
+    current = safe.safeLast(newSeriesList[0])
     if current is None:
       raise InputParameterError('Cannot get last value of series: ' + newSeriesList[0])
     series.name = newName % current
@@ -2595,13 +2442,13 @@ def cactiStyle(requestContext, seriesList, system=None, units=None):
       else:
           fmt = lambda x:"%.2f"%x
   nameLen = max([0] + [len(getattr(series,"name")) for series in seriesList])
-  lastLen = max([0] + [len(fmt(int(safeLast(series) or 3))) for series in seriesList]) + 3
-  maxLen = max([0] + [len(fmt(int(safeMax(series) or 3))) for series in seriesList]) + 3
-  minLen = max([0] + [len(fmt(int(safeMin(series) or 3))) for series in seriesList]) + 3
+  lastLen = max([0] + [len(fmt(int(safe.safeLast(series) or 3))) for series in seriesList]) + 3
+  maxLen = max([0] + [len(fmt(int(safe.safeMax(series) or 3))) for series in seriesList]) + 3
+  minLen = max([0] + [len(fmt(int(safe.safeMin(series) or 3))) for series in seriesList]) + 3
   for series in seriesList:
-      last = safeLast(series)
-      maximum = safeMax(series)
-      minimum = safeMin(series)
+      last = safe.safeLast(series)
+      maximum = safe.safeMax(series)
+      minimum = safe.safeMin(series)
       if last is None:
         last = NAN
       else:
@@ -2714,10 +2561,10 @@ def legendValue(requestContext, seriesList, *valueTypes):
     system = valueTypes[-1]
     valueTypes = valueTypes[:-1]
   for valueType in valueTypes:
-    if valueType in aggFuncs:
-      valueFunc = aggFuncs[valueType]
-    else:
-      valueFunc = aggFuncAliases.get(valueType, lambda s: '(?)')
+    try:
+      valueFunc = getAggFunc(valueType)
+    except InputParameterError:
+      valueFunc = lambda s: '(?)'
     if system is None:
       for series in seriesList:
         series.name += " (%s: %s)" % (valueType, valueFunc(series))
@@ -2736,7 +2583,7 @@ def legendValue(requestContext, seriesList, *valueTypes):
 legendValue.group = 'Alias'
 legendValue.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
-  Param('valuesTypes', ParamTypes.string, multiple=True, options=aggFuncNames + ['si', 'binary']),
+  Param('valuesTypes', ParamTypes.string, multiple=True, options=ParamTypeAggFunc.getAllValidAggFuncs() + ['si', 'binary']),
 ]
 
 
@@ -2902,7 +2749,7 @@ def filterSeries(requestContext, seriesList, func, operator, threshold):
 filterSeries.group = 'Filter Series'
 filterSeries.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
-  Param('func', ParamTypes.string, required=True, options=aggFuncNames),
+  Param('func', ParamTypes.aggFunc, required=True),
   Param('operator', ParamTypes.string, required=True, options=sorted(operatorFuncs.keys())),
   Param('threshold', ParamTypes.float, required=True),
 ]
@@ -3022,7 +2869,7 @@ highest.group = 'Filter Series'
 highest.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
   Param('n', ParamTypes.integer, required=True),
-  Param('func', ParamTypes.string, options=aggFuncNames, default='average'),
+  Param('func', ParamTypes.aggFunc, default='average'),
 ]
 
 
@@ -3048,7 +2895,7 @@ lowest.group = 'Filter Series'
 lowest.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
   Param('n', ParamTypes.integer, required=True),
-  Param('func', ParamTypes.string, options=aggFuncNames, default='average'),
+  Param('func', ParamTypes.aggFunc, default='average'),
 ]
 
 
@@ -3345,7 +3192,7 @@ def averageOutsidePercentile(requestContext, seriesList, n):
   """
   Removes series lying inside an average percentile interval
   """
-  averages = [safeAvg(s) for s in seriesList]
+  averages = [safe.safeAvg(s) for s in seriesList]
 
   if n < 50:
     n = 100 - n;
@@ -3353,7 +3200,7 @@ def averageOutsidePercentile(requestContext, seriesList, n):
   lowPercentile = _getPercentile(averages, 100 - n)
   highPercentile = _getPercentile(averages, n)
 
-  return [s for s in seriesList if not lowPercentile < safeAvg(s) < highPercentile]
+  return [s for s in seriesList if not lowPercentile < safe.safeAvg(s) < highPercentile]
 
 
 averageOutsidePercentile.group = 'Filter Series'
@@ -3529,7 +3376,7 @@ def sortBy(requestContext, seriesList, func='average', reverse=False):
 sortBy.group = 'Sorting'
 sortBy.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
-  Param('func', ParamTypes.string, options=aggFuncNames, default='average'),
+  Param('func', ParamTypes.aggFunc, default='average'),
   Param('reverse', ParamTypes.boolean, default=False),
 ]
 
@@ -3592,7 +3439,7 @@ def sortByMaxima(requestContext, seriesList):
     &target=sortByMaxima(server*.instance*.memory.free)
 
   """
-  seriesList.sort(key=keyFunc(safeMax), reverse=True)
+  seriesList.sort(key=keyFunc(safe.safeMax), reverse=True)
   return seriesList
 
 
@@ -3616,8 +3463,8 @@ def sortByMinima(requestContext, seriesList):
     &target=sortByMinima(server*.instance*.memory.free)
 
   """
-  newSeries = [series for series in seriesList if safeMax(series, default=0) > 0]
-  newSeries.sort(key=keyFunc(safeMin))
+  newSeries = [series for series in seriesList if safe.safeMax(series, default=0) > 0]
+  newSeries.sort(key=keyFunc(safe.safeMin))
   return newSeries
 
 
@@ -3713,10 +3560,10 @@ def mostDeviant(requestContext, seriesList, n):
 
   deviants = []
   for series in seriesList:
-    mean = safeAvg(series)
+    mean = safe.safeAvg(series)
     if mean is None: continue
     square_sum = sum([ (value - mean) ** 2 for value in series if value is not None ])
-    sigma = safeDiv(square_sum, safeLen(series))
+    sigma = safe.safeDiv(square_sum, safe.safeLen(series))
     if sigma is None: continue
     deviants.append( (sigma, series) )
   deviants.sort(key=keyFunc(lambda i: i[0]), reverse=True) #sort by sigma
@@ -4111,7 +3958,7 @@ def linearRegressionAnalysis(series):
   """
   Returns factor and offset of linear regression function by least squares method.
   """
-  n = safeLen(series)
+  n = safe.safeLen(series)
   sumI = sum([i for i,v in enumerate(series) if v is not None])
   sumV = sum([v for i,v in enumerate(series) if v is not None])
   sumII = sum([i*i for i,v in enumerate(series) if v is not None])
@@ -4535,7 +4382,7 @@ def aggregateLine(requestContext, seriesList, func='average', keepStep=False):
 aggregateLine.group = 'Calculate'
 aggregateLine.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
-  Param('func', ParamTypes.aggFunc, default='average', options=aggFuncNames),
+  Param('func', ParamTypes.aggFunc, default='average'),
   Param('keepStep', ParamTypes.boolean, default=False),
 ]
 
@@ -4993,7 +4840,7 @@ groupByNode.group = 'Combine'
 groupByNode.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
   Param('nodeNum', ParamTypes.nodeOrTag, required=True),
-  Param('callback', ParamTypes.aggFunc, default='average', options=aggFuncNames),
+  Param('callback', ParamTypes.aggFunc, default='average'),
 ]
 
 
@@ -5048,7 +4895,7 @@ def groupByNodes(requestContext, seriesList, callback, *nodes):
 groupByNodes.group = 'Combine'
 groupByNodes.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
-  Param('callback', ParamTypes.aggFunc, required=True, options=aggFuncNames),
+  Param('callback', ParamTypes.aggFunc, required=True),
   Param('nodes', ParamTypes.nodeOrTag, required=True, multiple=True),
 ]
 
@@ -5157,7 +5004,7 @@ smartSummarize.group = 'Transform'
 smartSummarize.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
   Param('intervalString', ParamTypes.interval, required=True, suggestions=['10min', '1h', '1d']),
-  Param('func', ParamTypes.aggFunc, default='sum', options=aggFuncNames),
+  Param('func', ParamTypes.aggFunc, default='sum'),
   Param('alignTo', ParamTypes.string, options=[None, YEARS_STRING, MONTHS_STRING, WEEKS_STRING, DAYS_STRING, HOURS_STRING, MINUTES_STRING, SECONDS_STRING]),
 ]
 
@@ -5224,7 +5071,7 @@ summarize.group = 'Transform'
 summarize.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
   Param('intervalString', ParamTypes.interval, required=True, suggestions=['10min', '1h', '1d']),
-  Param('func', ParamTypes.aggFunc, default='sum', options=aggFuncNames),
+  Param('func', ParamTypes.aggFunc, default='sum'),
   Param('alignToFrom', ParamTypes.boolean, default=False),
 ]
 
@@ -5636,7 +5483,7 @@ def groupByTags(requestContext, seriesList, callback, *tags):
 groupByTags.group = 'Combine'
 groupByTags.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
-  Param('callback', ParamTypes.aggFunc, required=True, options=aggFuncNames),
+  Param('callback', ParamTypes.aggFunc, required=True),
   Param('tags', ParamTypes.tag, required=True, multiple=True),
 ]
 
@@ -5728,8 +5575,8 @@ def minMax(requestContext, seriesList):
   for series in seriesList:
     series.name = "minMax(%s)" % (series.name)
     series.pathExpression = series.name
-    min_val = safeMin(series, default=0.0)
-    max_val = safeMax(series, default=0.0)
+    min_val = safe.safeMin(series, default=0.0)
+    max_val = safe.safeMax(series, default=0.0)
     for i, val in enumerate(series):
       if series[i] is not None:
         try:
@@ -5747,7 +5594,7 @@ minMax.params = [
 
 def pieAverage(requestContext, series):
   """Return the average"""
-  return safeDiv(safeSum(series), safeLen(series))
+  return safe.safeDiv(safe.safeSum(series), safe.safeLen(series))
 
 
 pieAverage.group = 'Pie'
@@ -5758,7 +5605,7 @@ pieAverage.params = [
 
 def pieMaximum(requestContext, series):
   """Return the maximum"""
-  return safeMax(series)
+  return safe.safeMax(series)
 
 
 pieMaximum.group = 'Pie'
@@ -5769,7 +5616,7 @@ pieMaximum.params = [
 
 def pieMinimum(requestContext, series):
   """Return the minimum"""
-  return safeMin(series)
+  return safe.safeMin(series)
 
 
 pieMinimum.group = 'Pie'
