@@ -10,18 +10,22 @@ class TaggedSeries(object):
   @classmethod
   def validateTagAndValue(cls, tag, value):
     """validate the given tag / value based on the specs in the documentation"""
-    if len(tag) == 0 or len(value) == 0:
-      raise Exception('Tag/Value may not be empty')
+    if len(tag) == 0:
+      raise Exception('Tag may not be empty')
+    if len(value) == 0:
+      raise Exception('Value for tag "{tag}" may not be empty'.format(tag=tag))
 
     for char in cls.prohibitedTagChars:
       if char in tag:
-        raise Exception('Prohibited char "{char}" in tag "{tag}"'.format(char=char, tag=tag))
+        raise Exception(
+          'Character "{char}" is not allowed in tag "{tag}"'.format(char=char, tag=tag))
 
     if ';' in value:
-      raise Exception('Character ";" is not allowed in tag value "{value}"'.format(value=value))
+      raise Exception(
+        'Character ";" is not allowed in value "{value}" of tag {tag}'.format(value=value, tag=tag))
 
     if value[0] == '~':
-      raise Exception('Tags are not allowed to start with "~" in tag "{tag}"'.format(tag=tag))
+      raise Exception('Tag values are not allowed to start with "~" in tag "{tag}"'.format(tag=tag))
 
   @classmethod
   def parse(cls, path):
