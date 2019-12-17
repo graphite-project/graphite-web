@@ -11,6 +11,7 @@ class ParamTypes(object):
 
 
 class ParamType(object):
+  options = []
 
   def __init__(self, name, validator=None):
     self.name = name
@@ -69,8 +70,12 @@ ParamType.register('tag')
 
 class ParamTypeAggFunc(ParamType):
 
-  def __init__(self, name):
-    super(ParamTypeAggFunc, self).__init__(name=name, validator=self.validateAggFuncs)
+  def __init__(self, name, validator=None):
+    if validator is None:
+      validator = self.validateAggFuncs
+
+    super(ParamTypeAggFunc, self).__init__(name=name, validator=validator)
+    self.options = self.getValidAggFuncs()
 
   @classmethod
   def getValidAggFuncs(cls):
@@ -98,10 +103,50 @@ class ParamTypeAggFunc(ParamType):
 ParamTypeAggFunc.register('aggFunc')
 
 
-class Param(object):
-  __slots__ = ('name', 'type', 'required', 'default', 'multiple', 'options', 'suggestions')
+class ParamTypeAggOrSeriesFunc(ParamTypeAggFunc):
+  options = []
 
-  def __init__(self, name, paramtype, required=False, default=None, multiple=False, options=None,
+  def __init__(self, name, validator=None):
+    if validator is None:
+      validator = self.validateAggOrSeriesFuncs
+    super(ParamTypeAggOrSeriesFunc, self).__init__(name=name, validator=validator)
+
+  def setSeriesFuncs(self, funcs):
+    # check for each of the series functions whether their param types
+    # define that they could be used to aggregate a list of series, those
+    # which can get appended to seriesFuncsForMergingSeries
+    for name, func in funcs.items():
+      if len(getattr(func, 'params', [])) == 0:
+        continue
+
+      if func.params[0].type not in [
+        ParamTypes.seriesList,
+        ParamTypes.seriesLists,
+      ]:
+        continue
+
+      if any(param.required for param in func.params[1:]):
+        continue
+
+      self.options.append(name)
+
+  def validateAggOrSeriesFuncs(self, value):
+    if self.validateAggFuncs(value):
+      return True
+
+    if value in self.options:
+      return True
+
+    return False
+
+
+ParamTypeAggOrSeriesFunc.register('aggOrSeriesFunc')
+
+
+class Param(object):
+  __slots__ = ('name', 'type', 'required', 'default', 'multiple', '_options', 'suggestions')
+
+  def __init__(self, name, paramtype, required=False, default=None, multiple=False, options=[],
                suggestions=None):
     self.name = name
     if not isinstance(paramtype, ParamType):
@@ -110,8 +155,14 @@ class Param(object):
     self.required = bool(required)
     self.default = default
     self.multiple = bool(multiple)
-    self.options = options
+    self._options = options
     self.suggestions = suggestions
+
+  @property
+  def options(self):
+    options = list(set(getattr(self, '_options', []) + getattr(self.type, 'options', [])))
+    options.sort()
+    return options
 
   def toJSON(self):
     jsonVal = {
