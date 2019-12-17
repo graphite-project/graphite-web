@@ -54,7 +54,7 @@ def validateSeriesList(value):
 
 ParamType.register('boolean', validateBoolean)
 ParamType.register('date')
-ParamType.register('float')
+ParamType.register('float', validateFloat)
 ParamType.register('integer', validateInteger)
 ParamType.register('interval', validateInterval)
 ParamType.register('intOrInterval')
