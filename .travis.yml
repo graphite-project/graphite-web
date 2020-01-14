@@ -6,9 +6,6 @@ sudo: false
 # Python 3.7 needs dist: xenial and sudo: true
 matrix:
   include:
-    - python: 2.7
-      env:
-        - TOX_SKIP_ENV=pyhash
     - python: pypy
       env:
         - TOXENV=pypy-django111-pyparsing2
@@ -60,7 +57,6 @@ matrix:
 
 env:
   - TOXENV=py27-django111-pyparsing2-msgpack
-  - TOXENV=py27-django111-pyparsing2-pyhash
   - TOXENV=py27-django111-pyparsing2-mysql TEST_MYSQL_PASSWORD=graphite
   - TOXENV=py27-django111-pyparsing2-postgresql TEST_POSTGRESQL_PASSWORD=graphite
   - TOXENV=docs
