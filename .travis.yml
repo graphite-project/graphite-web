@@ -6,6 +6,9 @@ sudo: false
 # Python 3.7 needs dist: xenial and sudo: true
 matrix:
   include:
+    - python: 2.7
+      env:
+        - TOX_SKIP_ENV=pyhash
     - python: pypy
       env:
         - TOXENV=pypy-django111-pyparsing2
