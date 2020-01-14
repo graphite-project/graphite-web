@@ -161,7 +161,7 @@ class Param(object):
   @property
   def options(self):
     options = list(set(getattr(self, '_options', []) + getattr(self.type, 'options', [])))
-    options.sort()
+    options.sort(key=str)
     return options
 
   def toJSON(self):
