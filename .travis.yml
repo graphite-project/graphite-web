@@ -77,10 +77,10 @@ services:
 before_install:
   - bash -c "if [[ '$TOXENV' == *mysql* ]]; then mysql -e "'"'"GRANT ALL ON test_graphite.* TO 'graphite'@'localhost' IDENTIFIED BY 'graphite';"'"'"; fi"
   - bash -c "if [[ '$TOXENV' == *postgresql* ]]; then psql -c "'"'"CREATE USER graphite WITH CREATEDB PASSWORD 'graphite';"'"'" -U postgres; fi"
-  - bash -c "if [[ '$TOXENV' == *pyhash* ]]; then sudo apt-get -qq update; sudo apt-get install -y libboost-python-dev; fi"
+  - bash -c "if [[ '$TOXENV' == *pyhash* ]]; then sudo apt-get -qq update; sudo apt-get install -y libboost-python-dev; pip install 'more-itertools<=5.0.0' 'pytest<=5.0.0' pytest-runner pytest-benchmark; fi"
 
 install:
-  - pip install tox pytest pytest-runner pytest-benchmark
+  - pip install tox
 
 script:
   - tox -e $TOXENV
