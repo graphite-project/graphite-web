@@ -112,20 +112,10 @@ class ParamTypeAggOrSeriesFunc(ParamTypeAggFunc):
     super(ParamTypeAggOrSeriesFunc, self).__init__(name=name, validator=validator)
 
   def setSeriesFuncs(self, funcs):
-    # check for each of the series functions whether their param types
-    # define that they could be used to aggregate a list of series, those
-    # which can get appended to seriesFuncsForMergingSeries
+    # check for each of the series functions whether they have an 'aggregator'
+    # property being set to 'True'. If so we consider them valid aggregators.
     for name, func in funcs.items():
-      if len(getattr(func, 'params', [])) == 0:
-        continue
-
-      if func.params[0].type not in [
-        ParamTypes.seriesList,
-        ParamTypes.seriesLists,
-      ]:
-        continue
-
-      if any(param.required for param in func.params[1:]):
+      if getattr(func, 'aggregator', False) is not True:
         continue
 
       self.options.append(name)
