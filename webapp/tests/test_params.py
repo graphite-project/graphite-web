@@ -192,3 +192,26 @@ class TestParam(unittest.TestCase):
             ['one', 'two', 'four'],
             {},
         )
+
+    def test_use_series_function_as_aggregator(self):
+        # powSeries is a series function which is marked as a valid aggregator
+        self.assertTrue(validateParams(
+            'TestParam',
+            [
+                Param('func', ParamTypes.aggOrSeriesFunc, required=True),
+            ],
+            ['powSeries'],
+            {},
+        ))
+
+        # squareRoot is a series function which is not marked as a valid aggregator
+        self.assertRaises(
+            InputParameterError,
+            validateParams,
+            'TestParam',
+            [
+                Param('func', ParamTypes.aggOrSeriesFunc, required=True),
+            ],
+            ['squareRoot'],
+            {},
+        )
