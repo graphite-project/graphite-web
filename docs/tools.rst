@@ -84,6 +84,9 @@ Forwarding
 `carbon-c-relay`_
   Enhanced C implementation of Carbon relay, aggregator and rewriter.
 
+`carbon-proxy`_
+  Relay metrics to a carbon daemon, using kafka as middleware. Payload windowing, transformation, duplication, or other custom functions.
+
 `carbon-relay-ng`_
   Fast carbon relay+aggregator with admin interfaces for making changes online - production ready.
 
@@ -302,6 +305,9 @@ Other
 `carbonate`_
   Utilities for managing graphite clusters.
 
+`graphite-dl4j`_
+  Experimental: Train a model for predictions. Machine learning using data from graphite.
+
 `graphite-remote-adapter`_
   Fully featured graphite remote adapter for `Prometheus`_.
 
@@ -310,12 +316,6 @@ Other
 
 `Therry`_
   A simple web service that caches Graphite metrics and exposes an endpoint for dumping or searching against them by substring.
-
-`graphite-dl4j`_
-  Experimental: Train a model for predictions. Machine learning using data from graphite.
-
-`carbon-proxy`_
-  Relay metrics to a carbon daemon, using kafka as middleware. Payload windowing, transformation, duplication, or other custom functions.
 
 
 .. _Backbone.js: http://documentcloud.github.com/backbone
