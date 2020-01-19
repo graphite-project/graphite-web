@@ -75,7 +75,7 @@ services:
   - postgresql
 
 before_install:
-  - bash -c "if [[ $TOXENV == py2* ]]; then pip install --upgrade pip virtualenv; fi"
+  - bash -c "if [[ '$TOXENV' == py2* ]]; then pip install --upgrade pip virtualenv; fi"
   - bash -c "if [[ '$TOXENV' == *mysql* ]]; then mysql -e "'"'"GRANT ALL ON test_graphite.* TO 'graphite'@'localhost' IDENTIFIED BY 'graphite';"'"'"; fi"
   - bash -c "if [[ '$TOXENV' == *postgresql* ]]; then psql -c "'"'"CREATE USER graphite WITH CREATEDB PASSWORD 'graphite';"'"'" -U postgres; fi"
   - bash -c "if [[ '$TOXENV' == *pyhash* ]]; then sudo apt-get -qq update; sudo apt-get install -y libboost-python-dev; fi"
