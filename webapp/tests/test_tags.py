@@ -214,6 +214,38 @@ class TagsTest(TestCase):
       'test.c;blah=blah;hello=lion',
     ]))
 
+    # sanitize name that isn't a valid tag value
+    result = db.tag_series('~~~my~~~.~~~weird~~~.~~~metric~~~.~~~name~~~')
+    self.assertEqual(result, 'my~~~.~~~weird~~~.~~~metric~~~.~~~name~~~')
+    result = db.find_series(['name=my~~~.~~~weird~~~.~~~metric~~~.~~~name~~~'])
+    self.assertEqual(result, ['my~~~.~~~weird~~~.~~~metric~~~.~~~name~~~'])
+    self.assertTrue(db.del_series('my~~~.~~~weird~~~.~~~metric~~~.~~~name~~~'))
+
+    # assert that it raises exception when sanitized name is still not valid
+    with self.assertRaises(Exception):
+      # sanitized name is going to be '', which is not a valid tag value
+      db.tag_series('~~~~')
+
+    with self.assertRaises(Exception):
+      # given tag value is invalid because it has length 0
+      db.parse('metric.name;tag=')
+
+    with self.assertRaises(Exception):
+      # given tag key is invalid because it has length 0
+      db.parse('metric.name;=value')
+
+    with self.assertRaises(Exception):
+      # given tag is missing =
+      db.parse('metric.name;tagvalue')
+
+    with self.assertRaises(Exception):
+      # given tag value is invalid because it starts with ~
+      db.parse('metric.name;tag=~value')
+
+    with self.assertRaises(Exception):
+      # given tag key is invalid because it contains !
+      db.parse('metric.name;ta!g=value')
+
   def test_local_tagdb(self):
     return self._test_tagdb(LocalDatabaseTagDB(settings))
 

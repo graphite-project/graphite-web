@@ -6,20 +6,26 @@ from hashlib import sha256
 
 class TaggedSeries(object):
   prohibitedTagChars = ';!^='
-  prohibitedValueChars = ';~'
 
   @classmethod
-  def validateCharacters(cls, tag, value):
-    """validate that there are no prohibited characters in given tag/value"""
+  def validateTagAndValue(cls, tag, value):
+    """validate the given tag / value based on the specs in the documentation"""
+    if len(tag) == 0:
+      raise Exception('Tag may not be empty')
+    if len(value) == 0:
+      raise Exception('Value for tag "{tag}" may not be empty'.format(tag=tag))
+
     for char in cls.prohibitedTagChars:
       if char in tag:
-        return False
+        raise Exception(
+          'Character "{char}" is not allowed in tag "{tag}"'.format(char=char, tag=tag))
 
-    for char in cls.prohibitedValueChars:
-      if char in value:
-        return False
+    if ';' in value:
+      raise Exception(
+        'Character ";" is not allowed in value "{value}" of tag {tag}'.format(value=value, tag=tag))
 
-    return True
+    if value[0] == '~':
+      raise Exception('Tag values are not allowed to start with "~" in tag "{tag}"'.format(tag=tag))
 
   @classmethod
   def parse(cls, path):
@@ -50,13 +56,12 @@ class TaggedSeries(object):
       tag = m.group(1)
       value = m.group(2).replace(r'\"', '"').replace(r'\\', '\\')
 
-      if not cls.validateCharacters(tag, value):
-        raise Exception('Tag/Value contains invalid characters: %s/%s' % (tag, value))
+      cls.validateTagAndValue(tag, value)
 
       tags[tag] = value
       rawtags = rawtags[len(m.group(0)):]
 
-    tags['name'] = metric
+    tags['name'] = cls.sanitize_name_as_tag_value(metric)
     return cls(metric, tags)
 
   @classmethod
@@ -75,13 +80,22 @@ class TaggedSeries(object):
       if len(tag) != 2 or not tag[0]:
         raise Exception('Cannot parse path %s, invalid segment %s' % (path, segment))
 
-      if not cls.validateCharacters(*tag):
-        raise Exception('Tag/Value contains invalid characters: %s/%s' % (tag[0], tag[1]))
+      cls.validateTagAndValue(*tag)
 
       tags[tag[0]] = tag[1]
 
-    tags['name'] = metric
+    tags['name'] = cls.sanitize_name_as_tag_value(metric)
     return cls(metric, tags)
+
+  @staticmethod
+  def sanitize_name_as_tag_value(name):
+    """take a metric name and sanitize it so it is guaranteed to be a valid tag value"""
+    sanitized = name.lstrip('~')
+
+    if len(sanitized) == 0:
+      raise Exception('Cannot use metric name %s as tag value, results in emptry string' % (name))
+
+    return sanitized
 
   @staticmethod
   def format(tags):

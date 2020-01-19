@@ -17,7 +17,7 @@ Carbon will automatically decode the tags, normalize the tag order, and register
 
 .. _querying-tagged-series:
 
-Tag names must have a length >= 1 and may contain any ascii characters except ``;!^=``. Tag values must also have a length >= 1, and they may contain any ascii characters except ``;~``. UTF-8 characters may work for names and values, but they are not well tested and it is not recommended to use non-ascii characters in metric names or tags.
+Tag names must have a length >= 1 and may contain any ascii characters except ``;!^=``. Tag values must also have a length >= 1, they may contain any ascii characters except ``;`` and the first character must not be ``~``. UTF-8 characters may work for names and values, but they are not well tested and it is not recommended to use non-ascii characters in metric names or tags. Metric names get indexed under the special tag `name`, if a metric name starts with one or multiple `~` they simply get removed from the derived tag value because the `~` character is not allowed to be in the first position of the tag value. If a metric name consists of no other characters than `~`, then it is considered invalid and may get dropped.
 
 Querying
 --------
