@@ -374,8 +374,7 @@ function initDashboard () {
       enableKeyEvents: true,
       cls: 'completer-input-field',
       listeners: {
-        keypress: completerKeyPress,
-        specialkey: completerKeyPress,
+        keydown: completerKeyPress,
         afterrender: focusCompleter
       }
     });
