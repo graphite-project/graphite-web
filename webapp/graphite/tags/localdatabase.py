@@ -95,7 +95,10 @@ class LocalDatabaseTagDB(BaseTagDB):
       if not filters:
         return True
 
-      parsed = self.parse(path)
+      try:
+        parsed = self.parse(path)
+      except Exception:
+        return False
 
       for (tag, operator, spec) in filters:
         value = parsed.tags.get(tag, '')

@@ -190,7 +190,11 @@ class BaseTagDB(object):
     searchedTags = set([self.parse_tagspec(expr)[0] for expr in exprs])
 
     for path in self.find_series(exprs, requestContext=requestContext):
-      tags = self.parse(path).tags
+      try:
+        tags = self.parse(path).tags
+      except Exception:
+        continue
+
       for tag in tags:
         if tag in searchedTags:
           continue
@@ -231,7 +235,11 @@ class BaseTagDB(object):
     result = []
 
     for path in self.find_series(exprs + [tag + '!='], requestContext=requestContext):
-      tags = self.parse(path).tags
+      try:
+        tags = self.parse(path).tags
+      except Exception:
+        continue
+
       if tag not in tags:
         continue
       value = tags[tag]
