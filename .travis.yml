@@ -1,57 +1,38 @@
 # http://travis-ci.org/#!/graphite-project/graphite-web
+dist: xenial
 language: python
 python: 2.7
-sudo: false
 
-# Python 3.7 needs dist: xenial and sudo: true
 matrix:
   include:
     - python: pypy
       env:
         - TOXENV=pypy-django111-pyparsing2
     - python: 3.5
-      sudo: true
-      dist: xenial
       env:
         - TOXENV=py35-django21-pyparsing2
     - python: 3.5
-      sudo: true
-      dist: xenial
       env:
         - TOXENV=py35-django22-pyparsing2
     - python: 3.6
-      sudo: true
-      dist: xenial
       env:
         - TOXENV=py36-django22-pyparsing2
     - python: 3.7
-      sudo: true
-      dist: xenial
       env:
         - TOXENV=py37-django22-pyparsing2-msgpack
     - python: 3.7
-      sudo: true
-      dist: xenial
       env:
         - TOXENV=py37-django22-pyparsing2-pyhash
     - python: 3.7
-      sudo: true
-      dist: xenial
       env:
         - TOXENV=py37-django22-pyparsing2-mysql TEST_MYSQL_PASSWORD=graphite
     - python: 3.7
-      sudo: true
-      dist: xenial
       env:
         - TOXENV=py37-django22-pyparsing2-postgresql TEST_POSTGRESQL_PASSWORD=graphite
-    - python: "3.8-dev"
-      sudo: true
-      dist: xenial
+    - python: 3.8
       env:
         - TOXENV=lint
-    - python: "3.8-dev"
-      sudo: true
-      dist: xenial
+    - python: 3.8
       env:
         - TOXENV=py38-django22-pyparsing2
 
@@ -67,6 +48,7 @@ addons:
     packages:
       - libcairo2-dev
       - librrd-dev
+      - libboost-python-dev  # for pyhash
   postgresql: "9.5"
 
 services:
@@ -74,13 +56,10 @@ services:
   - mysql
   - postgresql
 
-before_install:
-  - bash -c "if [[ '$TOXENV' == py2* ]]; then pip install --upgrade pip virtualenv; fi"
-  - bash -c "if [[ '$TOXENV' == *mysql* ]]; then mysql -e "'"'"GRANT ALL ON test_graphite.* TO 'graphite'@'localhost' IDENTIFIED BY 'graphite';"'"'"; fi"
-  - bash -c "if [[ '$TOXENV' == *postgresql* ]]; then psql -c "'"'"CREATE USER graphite WITH CREATEDB PASSWORD 'graphite';"'"'" -U postgres; fi"
-  - bash -c "if [[ '$TOXENV' == *pyhash* ]]; then sudo apt-get -qq update; sudo apt-get install -y libboost-python-dev; fi"
-
 install:
+  - if echo "$TOXENV" | grep -q 'mysql'      ; then mysql -e "GRANT ALL ON test_graphite.* TO 'graphite'@'localhost' IDENTIFIED BY 'graphite';"; fi
+  - if echo "$TOXENV" | grep -q 'postgresql' ; then psql -c "CREATE USER graphite WITH CREATEDB PASSWORD 'graphite';" -U postgres; fi
+  - if echo "$TOXENV" | grep -q '^py2'       ; then pip install --upgrade pip virtualenv; fi
   - pip install tox
 
 script:
