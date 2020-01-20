@@ -232,6 +232,7 @@ sumSeries.group = 'Combine'
 sumSeries.params = [
   Param('seriesLists', ParamTypes.seriesList, required=True, multiple=True),
 ]
+sumSeries.aggregator = True
 
 
 def sumSeriesWithWildcards(requestContext, seriesList, *position): #XXX
@@ -260,6 +261,7 @@ sumSeriesWithWildcards.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
   Param('position', ParamTypes.node, multiple=True),
 ]
+sumSeriesWithWildcards.aggregator = True
 
 
 def averageSeriesWithWildcards(requestContext, seriesList, *position): #XXX
@@ -288,6 +290,7 @@ averageSeriesWithWildcards.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
   Param('position', ParamTypes.node, multiple=True),
 ]
+averageSeriesWithWildcards.aggregator = True
 
 
 def multiplySeriesWithWildcards(requestContext, seriesList, *position): #XXX
@@ -316,6 +319,7 @@ multiplySeriesWithWildcards.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
   Param('position', ParamTypes.node, multiple=True),
 ]
+multiplySeriesWithWildcards.aggregator = True
 
 
 def aggregateWithWildcards(requestContext, seriesList, func, *positions):
@@ -395,6 +399,7 @@ diffSeries.group = 'Combine'
 diffSeries.params = [
   Param('seriesLists', ParamTypes.seriesList, required=True, multiple=True),
 ]
+diffSeries.aggregator = True
 
 
 def averageSeries(requestContext, *seriesLists):
@@ -419,6 +424,7 @@ averageSeries.group = 'Combine'
 averageSeries.params = [
   Param('seriesLists', ParamTypes.seriesList, required=True, multiple=True),
 ]
+averageSeries.aggregator = True
 
 
 def stddevSeries(requestContext, *seriesLists):
@@ -442,6 +448,7 @@ stddevSeries.group = 'Combine'
 stddevSeries.params = [
   Param('seriesLists', ParamTypes.seriesList, required=True, multiple=True),
 ]
+stddevSeries.aggregator = True
 
 
 def minSeries(requestContext, *seriesLists):
@@ -464,6 +471,7 @@ minSeries.group = 'Combine'
 minSeries.params = [
   Param('seriesLists', ParamTypes.seriesList, required=True, multiple=True),
 ]
+minSeries.aggregator = True
 
 
 def maxSeries(requestContext, *seriesLists):
@@ -486,6 +494,7 @@ maxSeries.group = 'Combine'
 maxSeries.params = [
   Param('seriesLists', ParamTypes.seriesList, required=True, multiple=True),
 ]
+maxSeries.aggregator = True
 
 
 def rangeOfSeries(requestContext, *seriesLists):
@@ -508,6 +517,7 @@ rangeOfSeries.group = 'Combine'
 rangeOfSeries.params = [
   Param('seriesLists', ParamTypes.seriesList, required=True, multiple=True),
 ]
+rangeOfSeries.aggregator = True
 
 
 def percentileOfSeries(requestContext, seriesList, n, interpolate=False):
@@ -983,6 +993,7 @@ multiplySeries.group = 'Combine'
 multiplySeries.params = [
   Param('seriesLists', ParamTypes.seriesList, required=True, multiple=True),
 ]
+multiplySeries.aggregator = True
 
 
 def weightedAverage(requestContext, seriesListAvg, seriesListWeight, *nodes):
@@ -1502,6 +1513,7 @@ powSeries.group = 'Transform'
 powSeries.params = [
   Param('seriesList', ParamTypes.seriesList, required=True, multiple=True),
 ]
+powSeries.aggregator = True
 
 
 def squareRoot(requestContext, seriesList):
@@ -4611,6 +4623,7 @@ countSeries.group = 'Combine'
 countSeries.params = [
   Param('seriesLists', ParamTypes.seriesList, multiple=True),
 ]
+countSeries.aggregator = True
 
 
 def group(requestContext, *seriesLists):
