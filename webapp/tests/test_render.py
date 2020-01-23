@@ -6,6 +6,7 @@ import math
 import logging
 import shutil
 import sys
+import django
 
 from mock import patch
 
@@ -280,15 +281,18 @@ class RenderTest(TestCase):
         self.assertEqual(resp_text(response), csv_response)
 
         # test noCache flag
+        expected_flags = ['max-age=0', 'must-revalidate', 'no-cache', 'no-store']
+        if django.VERSION[0] >= 3:
+            expected_flags.append('private')
         response = self.client.get(url, {'target': 'test', 'format': 'csv', 'noCache': 1, 'from': ts-50, 'now': ts})
         self.assertEqual(response['content-type'], 'text/csv')
-        self.assertEqual(sorted(response['cache-control'].split(', ')), ['max-age=0', 'must-revalidate', 'no-cache', 'no-store'])
+        self.assertEqual(sorted(response['cache-control'].split(', ')), expected_flags)
         self.assertEqual(resp_text(response), csv_response)
 
         # test cacheTimeout=0 flag
         response = self.client.get(url, {'target': 'test', 'format': 'csv', 'cacheTimeout': 0, 'from': ts-50, 'now': ts})
         self.assertEqual(response['content-type'], 'text/csv')
-        self.assertEqual(sorted(response['cache-control'].split(', ')), ['max-age=0', 'must-revalidate', 'no-cache', 'no-store'])
+        self.assertEqual(sorted(response['cache-control'].split(', ')), expected_flags)
         self.assertEqual(resp_text(response), csv_response)
 
         # test alternative target syntax

@@ -10,31 +10,31 @@ matrix:
         - TOXENV=pypy-django111-pyparsing2
     - python: 3.5
       env:
-        - TOXENV=py35-django21-pyparsing2
-    - python: 3.5
-      env:
         - TOXENV=py35-django22-pyparsing2
     - python: 3.6
       env:
         - TOXENV=py36-django22-pyparsing2
     - python: 3.7
       env:
-        - TOXENV=py37-django22-pyparsing2-msgpack
-    - python: 3.7
-      env:
-        - TOXENV=py37-django22-pyparsing2-pyhash
-    - python: 3.7
-      env:
-        - TOXENV=py37-django22-pyparsing2-mysql TEST_MYSQL_PASSWORD=graphite
-    - python: 3.7
-      env:
-        - TOXENV=py37-django22-pyparsing2-postgresql TEST_POSTGRESQL_PASSWORD=graphite
-    - python: 3.8
-      env:
-        - TOXENV=lint
+        - TOXENV=py37-django22-pyparsing2
     - python: 3.8
       env:
         - TOXENV=py38-django22-pyparsing2
+    - python: 3.8
+      env:
+        - TOXENV=py38-django30-pyparsing2-msgpack
+    - python: 3.8
+      env:
+        - TOXENV=py38-django30-pyparsing2-pyhash
+    - python: 3.8
+      env:
+        - TOXENV=py38-django30-pyparsing2-mysql TEST_MYSQL_PASSWORD=graphite
+    - python: 3.8
+      env:
+        - TOXENV=py38-django30-pyparsing2-postgresql TEST_POSTGRESQL_PASSWORD=graphite
+    - python: 3.8
+      env:
+        - TOXENV=lint
 
 env:
   - TOXENV=py27-django111-pyparsing2-msgpack
