@@ -1,9 +1,15 @@
 import os
 
 from django.db import models
-from tagging.models import Tag
 
-from graphite.events.compat import ModelTaggedItemManager
+# Monkeypatching so that django-tagging can import python_2_unicode_compatible
+import django.utils.encoding
+import six
+django.utils.encoding.python_2_unicode_compatible = six.python_2_unicode_compatible
+django.utils.six = six
+from tagging.models import Tag  # noqa: E402
+
+from graphite.events.compat import ModelTaggedItemManager  # noqa: E402
 
 if os.environ.get('READTHEDOCS'):
     TagField = lambda *args, **kwargs: None
