@@ -9,7 +9,7 @@ except ImportError:  # Django < 1.9
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.serializers.json import DjangoJSONEncoder
 from django.forms.models import model_to_dict
-from django.shortcuts import render_to_response, get_object_or_404
+from django.shortcuts import render, get_object_or_404
 from django.utils.timezone import now
 
 from graphite.util import json, epoch, epoch_to_dt, jsonResponse, HttpError, HttpResponse
@@ -29,7 +29,7 @@ def view_events(request):
         context = {'events': fetch(request),
                    'site': RequestSite(request),
                    'protocol': 'https' if request.is_secure() else 'http'}
-        return render_to_response('events.html', context)
+        return render(request, 'events.html', context)
     else:
         return post_event(request)
 
@@ -50,7 +50,7 @@ def detail(request, event_id):
 
     e = get_object_or_404(Event, pk=event_id)
     context = {'event': e}
-    return render_to_response('event.html', context)
+    return render(request, 'event.html', context)
 
 
 def post_event(request):

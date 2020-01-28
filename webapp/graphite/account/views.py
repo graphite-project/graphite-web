@@ -18,7 +18,7 @@ try:
 except ImportError:  # Django < 1.10
     from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from graphite.user_util import getProfile, isAuthenticated
 
 
@@ -32,14 +32,14 @@ def loginView(request):
   if username and password:
     user = authenticate(username=username,password=password)
     if user is None:
-      return render_to_response("login.html",{'authenticationFailed' : True, 'nextPage' : nextPage})
+      return render(request, "login.html",{'authenticationFailed' : True, 'nextPage' : nextPage})
     elif not user.is_active:
-      return render_to_response("login.html",{'accountDisabled' : True, 'nextPage' : nextPage})
+      return render(request, "login.html",{'accountDisabled' : True, 'nextPage' : nextPage})
     else:
       login(request,user)
       return HttpResponseRedirect(nextPage)
   else:
-    return render_to_response("login.html",{'nextPage' : nextPage})
+    return render(request, "login.html",{'nextPage' : nextPage})
 
 
 def logoutView(request):
@@ -52,7 +52,7 @@ def editProfile(request):
   if not isAuthenticated(request.user):
     return HttpResponseRedirect(reverse('browser'))
   context = { 'profile' : getProfile(request) }
-  return render_to_response("editProfile.html",context)
+  return render(request, "editProfile.html",context)
 
 
 def updateProfile(request):
