@@ -545,7 +545,7 @@ def percentileOfSeries(requestContext, seriesList, n, interpolate=False):
 percentileOfSeries.group = 'Combine'
 percentileOfSeries.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
-  Param('n', ParamTypes.integer, required=True),
+  Param('n', ParamTypes.float, required=True),
   Param('interpolate', ParamTypes.boolean, default=False),
 ]
 
@@ -2786,7 +2786,7 @@ def maximumAbove(requestContext, seriesList, n):
 maximumAbove.group = 'Filter Series'
 maximumAbove.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
-  Param('n', ParamTypes.integer, required=True),
+  Param('n', ParamTypes.float, required=True),
 ]
 
 
@@ -2809,7 +2809,7 @@ def minimumAbove(requestContext, seriesList, n):
 minimumAbove.group = 'Filter Series'
 minimumAbove.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
-  Param('n', ParamTypes.integer, required=True),
+  Param('n', ParamTypes.float, required=True),
 ]
 
 
@@ -2832,7 +2832,7 @@ def maximumBelow(requestContext, seriesList, n):
 maximumBelow.group = 'Filter Series'
 maximumBelow.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
-  Param('n', ParamTypes.integer, required=True),
+  Param('n', ParamTypes.float, required=True),
 ]
 
 
@@ -2855,7 +2855,7 @@ def minimumBelow(requestContext, seriesList, n):
 minimumBelow.group = 'Filter Series'
 minimumBelow.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
-  Param('n', ParamTypes.integer, required=True),
+  Param('n', ParamTypes.float, required=True),
 ]
 
 
@@ -2993,7 +2993,7 @@ lowestCurrent.params = [
 
 def currentAbove(requestContext, seriesList, n):
   """
-  Takes one metric or a wildcard seriesList followed by an integer N.
+  Takes one metric or a wildcard seriesList followed by a constant N.
   Out of all metrics passed, draws only the  metrics whose value is above N
   at the end of the time period specified.
 
@@ -3012,13 +3012,13 @@ def currentAbove(requestContext, seriesList, n):
 currentAbove.group = 'Filter Series'
 currentAbove.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
-  Param('n', ParamTypes.integer, required=True),
+  Param('n', ParamTypes.float, required=True),
 ]
 
 
 def currentBelow(requestContext, seriesList, n):
   """
-  Takes one metric or a wildcard seriesList followed by an integer N.
+  Takes one metric or a wildcard seriesList followed by a constant N.
   Out of all metrics passed, draws only the  metrics whose value is below N
   at the end of the time period specified.
 
@@ -3037,7 +3037,7 @@ def currentBelow(requestContext, seriesList, n):
 currentBelow.group = 'Filter Series'
 currentBelow.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
-  Param('n', ParamTypes.integer, required=True),
+  Param('n', ParamTypes.float, required=True),
 ]
 
 
@@ -3095,7 +3095,7 @@ lowestAverage.params = [
 
 def averageAbove(requestContext, seriesList, n):
   """
-  Takes one metric or a wildcard seriesList followed by an integer N.
+  Takes one metric or a wildcard seriesList followed by a constant N.
   Out of all metrics passed, draws only the metrics with an average value
   above N for the time period specified.
 
@@ -3113,13 +3113,13 @@ def averageAbove(requestContext, seriesList, n):
 averageAbove.group = 'Filter Series'
 averageAbove.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
-  Param('n', ParamTypes.integer, required=True),
+  Param('n', ParamTypes.float, required=True),
 ]
 
 
 def averageBelow(requestContext, seriesList, n):
   """
-  Takes one metric or a wildcard seriesList followed by an integer N.
+  Takes one metric or a wildcard seriesList followed by a constant N.
   Out of all metrics passed, draws only the metrics with an average value
   below N for the time period specified.
 
@@ -3137,7 +3137,7 @@ def averageBelow(requestContext, seriesList, n):
 averageBelow.group = 'Filter Series'
 averageBelow.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
-  Param('n', ParamTypes.integer, required=True),
+  Param('n', ParamTypes.float, required=True),
 ]
 
 
@@ -3196,7 +3196,7 @@ def nPercentile(requestContext, seriesList, n):
 nPercentile.group = 'Calculate'
 nPercentile.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
-  Param('n', ParamTypes.integer, required=True),
+  Param('n', ParamTypes.float, required=True),
 ]
 
 
@@ -3218,7 +3218,7 @@ def averageOutsidePercentile(requestContext, seriesList, n):
 averageOutsidePercentile.group = 'Filter Series'
 averageOutsidePercentile.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
-  Param('n', ParamTypes.integer, required=True),
+  Param('n', ParamTypes.float, required=True),
 ]
 
 
@@ -3241,7 +3241,7 @@ def removeBetweenPercentile(requestContext, seriesList, n):
 removeBetweenPercentile.group = 'Filter Series'
 removeBetweenPercentile.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
-  Param('n', ParamTypes.integer, required=True),
+  Param('n', ParamTypes.float, required=True),
 ]
 
 
@@ -3267,7 +3267,7 @@ def removeAbovePercentile(requestContext, seriesList, n):
 removeAbovePercentile.group = 'Filter Data'
 removeAbovePercentile.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
-  Param('n', ParamTypes.integer, required=True),
+  Param('n', ParamTypes.float, required=True),
 ]
 
 
@@ -3289,7 +3289,7 @@ def removeAboveValue(requestContext, seriesList, n):
 removeAboveValue.group = 'Filter Data'
 removeAboveValue.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
-  Param('n', ParamTypes.integer, required=True),
+  Param('n', ParamTypes.float, required=True),
 ]
 
 
@@ -3315,7 +3315,7 @@ def removeBelowPercentile(requestContext, seriesList, n):
 removeBelowPercentile.group = 'Filter Data'
 removeBelowPercentile.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
-  Param('n', ParamTypes.integer, required=True),
+  Param('n', ParamTypes.float, required=True),
 ]
 
 
@@ -3337,7 +3337,7 @@ def removeBelowValue(requestContext, seriesList, n):
 removeBelowValue.group = 'Filter Data'
 removeBelowValue.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
-  Param('n', ParamTypes.integer, required=True),
+  Param('n', ParamTypes.float, required=True),
 ]
 
 
@@ -3520,7 +3520,7 @@ def useSeriesAbove(requestContext, seriesList, value, search, replace):
 useSeriesAbove.group = 'Filter Series'
 useSeriesAbove.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
-  Param('value', ParamTypes.string, required=True),
+  Param('value', ParamTypes.float, required=True),
   Param('search', ParamTypes.string, required=True),
   Param('replace', ParamTypes.string, required=True),
 ]
