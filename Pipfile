@@ -1,0 +1,21 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+python-memcached = "==1.58"
+django-tagging = "==0.4.6"
+gunicorn = "*"
+pytz = "*"
+pyparsing = "*"
+cairocffi = "*"
+whisper = {git = "git://github.com/graphite-project/whisper.git"}
+whitenoise = "*"
+scandir = "*"
+urllib3 = "*"
+six = "*"
+Django = ">=1.11,<3.1"
+txAMQP = "==0.8"
