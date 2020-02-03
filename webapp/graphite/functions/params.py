@@ -41,6 +41,10 @@ def validateInteger(value):
   return isinstance(value, six.integer_types)
 
 
+def validateIntOrInf(value):
+  return validateInteger(value) or value == float('inf')
+
+
 def validateInterval(value):
   try:
     parseTimeOffset(value)
@@ -59,6 +63,7 @@ ParamType.register('float', validateFloat)
 ParamType.register('integer', validateInteger)
 ParamType.register('interval', validateInterval)
 ParamType.register('intOrInterval')
+ParamType.register('intOrInf', validateIntOrInf)
 ParamType.register('node', validateInteger)
 ParamType.register('nodeOrTag')
 ParamType.register('series')

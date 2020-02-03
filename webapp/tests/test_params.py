@@ -215,3 +215,27 @@ class TestParam(unittest.TestCase):
             ['squareRoot'],
             {},
         )
+
+    def test_param_type_int_or_inf(self):
+        self.assertTrue(validateParams(
+            'TestParam',
+            [Param('param', ParamTypes.intOrInf)],
+            [1],
+            {},
+        ))
+
+        self.assertTrue(validateParams(
+            'TestParam',
+            [Param('param', ParamTypes.intOrInf)],
+            [float('inf')],
+            {},
+        ))
+
+        self.assertRaises(
+            InputParameterError,
+            validateParams,
+            'TestParam',
+            [Param('param', ParamTypes.intOrInf)],
+            [1.2],
+            {},
+        )
