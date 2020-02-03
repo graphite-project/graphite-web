@@ -592,7 +592,7 @@ def keepLastValue(requestContext, seriesList, limit = INF):
 keepLastValue.group = 'Transform'
 keepLastValue.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
-  Param('limit', ParamTypes.integer, default='INF'),
+  Param('limit', ParamTypes.intOrInf, default=INF),
 ]
 
 
@@ -648,7 +648,7 @@ def interpolate(requestContext, seriesList, limit = INF):
 interpolate.group = 'Transform'
 interpolate.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
-  Param('limit', ParamTypes.integer, default='INF'),
+  Param('limit', ParamTypes.intOrInf, default=INF),
 ]
 
 
