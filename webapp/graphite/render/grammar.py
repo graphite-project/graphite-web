@@ -38,6 +38,10 @@ none = Group(
   CaselessKeyword('none')
 )('none')
 
+infinity = Group(
+  CaselessKeyword('inf')
+)('infinity')
+
 argname = Word(alphas + '_', alphanums + '_')('argname')
 funcname = Word(alphas + '_', alphanums + '_')('funcname')
 
@@ -64,6 +68,7 @@ arg = Group(
   number |
   none |
   aString |
+  infinity |
   expression
 )('args*')
 kwarg = Group(argname + equal + arg)('kwargs*')

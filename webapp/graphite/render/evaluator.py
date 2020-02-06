@@ -159,6 +159,9 @@ def evaluateScalarTokens(tokens):
   if tokens.none:
     return None
 
+  if tokens.infinity:
+    return float('inf')
+
   raise InputParameterError("unknown token in target evaluator")
 
 

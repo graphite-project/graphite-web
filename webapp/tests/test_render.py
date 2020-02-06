@@ -171,6 +171,7 @@ class RenderTest(TestCase):
           string = None
           boolean = None
           none = None
+          infinity = None
 
         class ScalarTokenNumber(object):
           integer = None
