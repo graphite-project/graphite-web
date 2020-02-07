@@ -156,7 +156,7 @@ class RenderTest(TestCase):
 
     def test_render_evaluateScalarTokens(self):
         # test parsing numeric arguments
-        tokens = grammar.parseString('test(1, 1.0, 1e3, True, false, None, none)')
+        tokens = grammar.parseString('test(1, 1.0, 1e3, True, false, None, none, inf, INF)')
         self.assertEqual(evaluateScalarTokens(tokens.expression.call.args[0]), 1)
         self.assertEqual(evaluateScalarTokens(tokens.expression.call.args[1]), 1.0)
         self.assertEqual(evaluateScalarTokens(tokens.expression.call.args[2]), 1e3)
@@ -164,6 +164,8 @@ class RenderTest(TestCase):
         self.assertEqual(evaluateScalarTokens(tokens.expression.call.args[4]), False)
         self.assertIsNone(evaluateScalarTokens(tokens.expression.call.args[5]))
         self.assertIsNone(evaluateScalarTokens(tokens.expression.call.args[6]))
+        self.assertEqual(evaluateScalarTokens(tokens.expression.call.args[7]), float('inf'))
+        self.assertEqual(evaluateScalarTokens(tokens.expression.call.args[8]), float('inf'))
 
         # test invalid tokens
         class ScalarToken(object):
@@ -171,6 +173,7 @@ class RenderTest(TestCase):
           string = None
           boolean = None
           none = None
+          infinity = None
 
         class ScalarTokenNumber(object):
           integer = None
