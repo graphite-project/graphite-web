@@ -218,13 +218,13 @@ def validateParams(func, params, args, kwargs):
     # parameter is restricted to a defined set of values, but value is not in it
     if params[i].options and value not in params[i].options:
       raise InputParameterError(
-        'Invalid option "{value}" specified for function "{func}" parameter "{param}"'.format(
-          value=value, param=params[i].name, func=func))
+        'Invalid option specified for function "{func}" parameter "{param}": {value}'.format(
+          func=func, param=params[i].name, value=repr(value)))
 
     if not params[i].validateValue(value):
       raise InputParameterError(
-        'Invalid {type} value specified for function "{func}" parameter "{param}": {value}'.format(
-          type=params[i].type.name, func=func, param=params[i].name, value=value))
+        'Invalid "{type}" value specified for function "{func}" parameter "{param}": {value}'.format(
+          type=params[i].type.name, func=func, param=params[i].name, value=repr(value)))
 
     valid_args.append(params[i].name)
 

@@ -111,8 +111,8 @@ def evaluateTokens(requestContext, tokens, replacements=None, pipedArg=None):
             args=', '.join(
               argList
               for argList in [
-                ', '.join(str(arg) for arg in args),
-                ', '.join('{k}={v}'.format(k=str(k), v=str(v)) for k, v in kwargs.items()),
+                ', '.join(repr(arg) for arg in args),
+                ', '.join('{k}={v}'.format(k=str(k), v=repr(v)) for k, v in kwargs.items()),
               ] if argList
             )
           ))
