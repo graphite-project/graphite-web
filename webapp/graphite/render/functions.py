@@ -868,7 +868,7 @@ def asPercent(requestContext, seriesList, total=None, *nodes):
 asPercent.group = 'Combine'
 asPercent.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
-  Param('total', ParamTypes.seriesList),
+  Param('total', ParamTypes.any),
   Param('nodes', ParamTypes.nodeOrTag, multiple=True),
 ]
 
