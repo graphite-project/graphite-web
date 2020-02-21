@@ -3271,17 +3271,17 @@ removeAbovePercentile.params = [
 ]
 
 
-def removeAboveValue(requestContext, seriesList, n):
+def removeAboveValue(requestContext, seriesList, n, replacement=None):
   """
   Removes data above the given threshold from the series or list of series provided.
-  Values above this threshold are assigned a value of None.
+  Values above this threshold are assigned the replacement value (defaults to None).
   """
   for s in seriesList:
-    s.name = 'removeAboveValue(%s, %g)' % (s.name, n)
+    s.name = 'removeAboveValue(%s, %g, %g)' % (s.name, n, replacement)
     s.pathExpression = s.name
     for (index, val) in enumerate(s):
       if val is not None and val > n:
-        s[index] = None
+        s[index] = replacement
 
   return seriesList
 
@@ -3290,6 +3290,7 @@ removeAboveValue.group = 'Filter Data'
 removeAboveValue.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
   Param('n', ParamTypes.float, required=True),
+  Param('replacement', ParamTypes.float, required=False),
 ]
 
 

@@ -36,6 +36,10 @@ def return_less(series, value):
     return [i for i in series if i is not None and i < value]
 
 
+def return_equal(series, value):
+    return [i for i in series if i is not None and i == value]
+
+
 class FunctionsTest(TestCase):
 
     def setUp(self):
@@ -2530,6 +2534,16 @@ class FunctionsTest(TestCase):
             self.assertEqual(return_greater(result, value), [])
             expected_name = "removeAboveValue(collectd.test-db{0}.load.value, 0.1)".format(i + 1)
             self.assertEqual(expected_name, result.name)
+
+    def test_remove_above_value_replace(self):
+        seriesList = self._generate_series_list()
+        value = 5
+        results = functions.removeAboveValue({}, seriesList, value, value)
+        for i, result in enumerate(results):
+            self.assertEqual(return_greater(result, value), [])
+            expected_name = "removeAboveValue(collectd.test-db{0}.load.value, 5, 5)".format(i + 1)
+            self.assertEqual(expected_name, result.name)
+            self.assertEqual(len(return_equal(result, value)), len(return_greater(seriesList[i], value-1)))
 
     def test_remove_below_value(self):
         seriesList = self._generate_series_list()
