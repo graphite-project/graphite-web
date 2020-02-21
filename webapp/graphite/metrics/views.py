@@ -22,6 +22,7 @@ from django.conf import settings
 
 from graphite.carbonlink import CarbonLink
 from graphite.compat import HttpResponse, HttpResponseBadRequest
+from graphite.errors import InputParameterError, handleInputParameterError
 from graphite.logger import log
 from graphite.render.attime import parseATTime
 from graphite.storage import STORE, extractForwardHeaders
@@ -49,6 +50,20 @@ def index_json(request):
   return json_response_for(request, matches, jsonp=jsonp)
 
 
+def queryParamAsInt(queryParams, name, default):
+  if name not in queryParams:
+    return default
+
+  try:
+    return int(queryParams[name])
+  except Exception as e:
+    raise InputParameterError('Invalid int value {value} for {name}: {err}'.format(
+      value=repr(queryParams[name]),
+      name=name,
+      err=str(e)))
+
+
+@handleInputParameterError
 def find_view(request):
   "View for finding metrics matching a given pattern"
 
@@ -56,33 +71,56 @@ def find_view(request):
   queryParams.update(request.POST)
 
   format = queryParams.get('format', 'treejson')
-  leaves_only = int( queryParams.get('leavesOnly', 0) )
-  local_only = int( queryParams.get('local', 0) )
-  wildcards = int( queryParams.get('wildcards', 0) )
+  leaves_only = queryParamAsInt(queryParams, 'leavesOnly', 0)
+  local_only = queryParamAsInt(queryParams, 'local', 0)
+  wildcards = queryParamAsInt(queryParams, 'wildcards', 0)
 
   tzinfo = pytz.timezone(settings.TIME_ZONE)
   if 'tz' in queryParams:
     try:
-      tzinfo = pytz.timezone(queryParams['tz'])
+      value = queryParams['tz']
+      tzinfo = pytz.timezone(value)
     except pytz.UnknownTimeZoneError:
       pass
+    except Exception as e:
+      raise InputParameterError(
+        'Invalid value {value} for param tz: {err}'
+        .format(value=repr(value), err=str(e)))
 
   if 'now' in queryParams:
-    now = parseATTime(queryParams['now'], tzinfo)
+    try:
+      value = queryParams['now']
+      now = parseATTime(value, tzinfo)
+    except Exception as e:
+      raise InputParameterError(
+        'Invalid value {value} for param now: {err}'
+        .format(value=repr(value), err=str(e)))
   else:
     now = datetime.now(tzinfo)
 
   if 'from' in queryParams and str(queryParams['from']) != '-1':
-    fromTime = int(epoch(parseATTime(queryParams['from'], tzinfo, now)))
+    try:
+      value = queryParams['from']
+      fromTime = int(epoch(parseATTime(value, tzinfo, now)))
+    except Exception as e:
+      raise InputParameterError(
+        'Invalid value {value} for param from: {err}'
+        .format(value=repr(value), err=str(e)))
   else:
     fromTime = -1
 
   if 'until' in queryParams and str(queryParams['from']) != '-1':
-    untilTime = int(epoch(parseATTime(queryParams['until'], tzinfo, now)))
+    try:
+      value = queryParams['until']
+      untilTime = int(epoch(parseATTime(value, tzinfo, now)))
+    except Exception as e:
+      raise InputParameterError(
+        'Invalid value {value} for param until: {err}'
+        .format(value=repr(value), err=str(e)))
   else:
     untilTime = -1
 
-  nodePosition = int( queryParams.get('position', -1) )
+  nodePosition = queryParamAsInt(queryParams, 'position', -1)
   jsonp = queryParams.get('jsonp', False)
   forward_headers = extractForwardHeaders(request)
 
@@ -91,17 +129,15 @@ def find_view(request):
   if untilTime == -1:
     untilTime = None
 
-  automatic_variants = int( queryParams.get('automatic_variants', 0) )
+  automatic_variants = queryParamAsInt(queryParams, 'automatic_variants', 0)
 
   try:
     query = str(queryParams['query'])
   except KeyError:
-    return HttpResponseBadRequest(content="Missing required parameter 'query'",
-                                  content_type='text/plain')
+    raise InputParameterError('Missing required parameter \'query\'')
 
   if query == '':
-    return HttpResponseBadRequest(content="Required parameter 'query' is empty",
-                                  content_type='text/plain')
+    raise InputParameterError('Required parameter \'query\' is empty')
 
   if '.' in query:
     base_path = query.rsplit('.', 1)[0] + '.'
