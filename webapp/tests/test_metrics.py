@@ -108,7 +108,7 @@ class MetricsTester(TestCase):
         #
         response = self.client.post(url, {})
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.content, b"Missing required parameter 'query'")
+        self.assertEqual(response.content, b"Bad Request: Missing required parameter 'query'")
 
         #
         # format=invalid_format
