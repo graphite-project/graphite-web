@@ -6176,7 +6176,7 @@ class FunctionsTest(TestCase):
                 },
                 {
                     'name': 'total',
-                    'type': 'seriesList'
+                    'type': 'any'
                 },
                 {
                     'multiple': True,

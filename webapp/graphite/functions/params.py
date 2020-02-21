@@ -72,6 +72,9 @@ ParamType.register('seriesLists', validateSeriesList)
 ParamType.register('string')
 ParamType.register('tag')
 
+# special type that accepts everything
+ParamType.register('any')
+
 
 class ParamTypeAggFunc(ParamType):
 
