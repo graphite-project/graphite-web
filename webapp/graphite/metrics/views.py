@@ -109,7 +109,7 @@ def find_view(request):
   else:
     fromTime = -1
 
-  if 'until' in queryParams and str(queryParams['from']) != '-1':
+  if 'until' in queryParams and str(queryParams['until']) != '-1':
     try:
       value = queryParams['until']
       untilTime = int(epoch(parseATTime(value, tzinfo, now)))
