@@ -111,6 +111,41 @@ class MetricsTester(TestCase):
         self.assertEqual(response.content, b"Bad Request: Missing required parameter 'query'")
 
         #
+        # invalid from/until params
+        #
+        response = self.client.post(url, {
+            'query': '*',
+            'from': 'now-1h',
+            'until': 'now-2h',
+        })
+        self.assertEqual(response.status_code, 400)
+        # response contains timestamps such as:
+        # Bad Request: Failed to instantiate find query: Invalid interval start=1582801589 end=1582797989
+        self.assertRegex(response.content, b"^Bad Request: Failed to instantiate find query: Invalid interval start=[0-9]+ end=[0-9]+$")
+
+        #
+        # Wrong type for param 'wildcards'
+        #
+        response = self.client.post(url, {
+            'query': '*',
+            'wildcards': '123a',
+        })
+        self.assertEqual(response.status_code, 400)
+        # the output in Python 2/3 slightly varies because repr() shows unicode strings differently, that's why the "u?"
+        self.assertRegex(response.content, b"^Bad Request: Invalid int value u?'123a' for param wildcards: invalid literal for int\(\) with base 10: u?'123a'$")
+
+        #
+        # Invalid 'from' timestamp
+        #
+        response = self.client.post(url, {
+            'query': '*',
+            'from': 'now-1mmminute', # "mmminute" is misspelled
+        })
+        self.assertEqual(response.status_code, 400)
+        # the output in Python 2/3 slightly varies because repr() shows unicode strings differently, that's why the "u?"
+        self.assertRegex(response.content, b"^Bad Request: Invalid value u?'now-1mmminute' for param from: Invalid offset unit u?'mmminute'$")
+
+        #
         # format=invalid_format
         #
         response = self.client.post(url, {'format': 'invalid_format', 'query': '*'})

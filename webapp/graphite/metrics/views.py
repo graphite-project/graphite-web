@@ -57,7 +57,7 @@ def queryParamAsInt(queryParams, name, default):
   try:
     return int(queryParams[name])
   except Exception as e:
-    raise InputParameterError('Invalid int value {value} for {name}: {err}'.format(
+    raise InputParameterError('Invalid int value {value} for param {name}: {err}'.format(
       value=repr(queryParams[name]),
       name=name,
       err=str(e)))
