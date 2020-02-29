@@ -270,6 +270,9 @@ If you wish to use a backend to graphite other than Whisper, there are some opti
 `Cyanite`_
   A highly available, elastic, and low-latency time-series storage wirtten on top of Cassandra
 
+`hisser`_
+  Time series database, backend for graphite, fast alternative to carbon + whisper.
+
 `graphite-clickhouse`_
   Graphite-web backend with `ClickHouse`_ support. Please also see `carbon-clickhouse`_.
 
@@ -304,6 +307,9 @@ Other
 
 `carbonate`_
   Utilities for managing graphite clusters.
+
+`go-graphite buckytools`_
+  Fork of `buckytools`_, with more features.
 
 `graphite-dl4j`_
   Experimental: Train a model for predictions. Machine learning using data from graphite.
@@ -354,6 +360,7 @@ Other
 .. _Gdash: https://github.com/ripienaar/gdash.git
 .. _Giraffe: http://kenhub.github.com/giraffe
 .. _go-carbon: https://github.com/lomik/go-carbon
+.. _go-graphite buckytools: https://github.com/go-graphite/buckytools
 .. _Grafana: http://grafana.org
 .. _Grafsy: https://github.com/leoleovich/grafsy
 .. _Graphene: http://jondot.github.com/graphene
@@ -378,6 +385,7 @@ Other
 .. _Grockets: https://github.com/disqus/grockets
 .. _Gruffalo: https://github.com/outbrain/gruffalo
 .. _HoardD: https://github.com/coredump/hoardd
+.. _hisser: https://github.com/baverman/hisser
 .. _Host sFlow: http://host-sflow.sourceforge.net
 .. _Hubot: https://github.com/github/hubot
 .. _hubot-scripts: https://github.com/github/hubot-scripts
