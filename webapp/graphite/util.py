@@ -130,7 +130,10 @@ def find_escaped_pattern_fields(pattern_string):
 
 def load_module(module_path, member=None):
   module_name = splitext(basename(module_path))[0]
-  module_file = open(module_path, 'U')
+  try:  # 'U' is default from Python 3.0 and deprecated since 3.9
+    module_file = open(module_path, 'U')
+  except ValueError:
+    module_file = open(module_path, 'rt')
   description = ('.py', 'U', imp.PY_SOURCE)
   module = imp.load_module(module_name, module_file, module_path, description)
   if member:

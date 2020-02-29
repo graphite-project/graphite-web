@@ -189,6 +189,53 @@ class TestParam(unittest.TestCase):
                 Param('two', ParamTypes.string, required=True),
                 Param('three', ParamTypes.string, required=True, options=['3', 'three']),
             ],
-            ['one', 'two', 'foud'],
+            ['one', 'two', 'four'],
+            {},
+        )
+
+    def test_use_series_function_as_aggregator(self):
+        # powSeries is a series function which is marked as a valid aggregator
+        self.assertTrue(validateParams(
+            'TestParam',
+            [
+                Param('func', ParamTypes.aggOrSeriesFunc, required=True),
+            ],
+            ['powSeries'],
+            {},
+        ))
+
+        # squareRoot is a series function which is not marked as a valid aggregator
+        self.assertRaises(
+            InputParameterError,
+            validateParams,
+            'TestParam',
+            [
+                Param('func', ParamTypes.aggOrSeriesFunc, required=True),
+            ],
+            ['squareRoot'],
+            {},
+        )
+
+    def test_param_type_int_or_inf(self):
+        self.assertTrue(validateParams(
+            'TestParam',
+            [Param('param', ParamTypes.intOrInf)],
+            [1],
+            {},
+        ))
+
+        self.assertTrue(validateParams(
+            'TestParam',
+            [Param('param', ParamTypes.intOrInf)],
+            [float('inf')],
+            {},
+        ))
+
+        self.assertRaises(
+            InputParameterError,
+            validateParams,
+            'TestParam',
+            [Param('param', ParamTypes.intOrInf)],
+            [1.2],
             {},
         )

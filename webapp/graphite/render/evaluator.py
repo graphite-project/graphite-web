@@ -106,13 +106,13 @@ def evaluateTokens(requestContext, tokens, replacements=None, pipedArg=None):
       if not getattr(handleInvalidParameters, 'alreadyLogged', False):
         log.warning(
           'Received invalid parameters ({msg}): {func} ({args})'.format(
-            msg=str(e.message),
+            msg=str(e),
             func=tokens.call.funcname,
             args=', '.join(
               argList
               for argList in [
-                ', '.join(str(arg) for arg in args),
-                ', '.join('{k}={v}'.format(k=str(k), v=str(v)) for k, v in kwargs.items()),
+                ', '.join(repr(arg) for arg in args),
+                ', '.join('{k}={v}'.format(k=str(k), v=repr(v)) for k, v in kwargs.items()),
               ] if argList
             )
           ))
@@ -158,6 +158,9 @@ def evaluateScalarTokens(tokens):
 
   if tokens.none:
     return None
+
+  if tokens.infinity:
+    return float('inf')
 
   raise InputParameterError("unknown token in target evaluator")
 

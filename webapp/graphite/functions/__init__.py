@@ -6,7 +6,8 @@ from os.path import dirname, join, splitext
 
 from django.conf import settings
 
-from graphite.functions.params import Param, ParamTypes  # noqa
+from graphite.functions.params import Param, ParamTypes, ParamTypeAggFunc  # noqa
+from graphite.functions.aggfuncs import getAggFunc  # noqa
 from graphite.logger import log
 
 customDir = join(dirname(__file__), 'custom')

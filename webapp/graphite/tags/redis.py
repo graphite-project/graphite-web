@@ -131,7 +131,11 @@ class RedisTagDB(BaseTagDB):
     filters.sort(key=lambda a: operators.index(a[1]))
 
     for series in self.r.sunion(*['tags:' + tag + ':values:' + value for value in values]):
-      parsed = self.parse(series)
+      try:
+        parsed = self.parse(series)
+      except Exception:
+        continue
+
       matched = True
 
       for (tag, operator, spec) in filters:
