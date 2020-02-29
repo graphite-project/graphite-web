@@ -11,7 +11,14 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys, os
+import os
+import re
+import sys
+
+from sphinx.ext import autodoc
+
+# Bring in the new ReadTheDocs sphinx theme
+import sphinx_rtd_theme
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -22,7 +29,7 @@ sys.path.append(os.path.abspath('../carbon'))
 os.environ['DJANGO_SETTINGS_MODULE'] = "graphite.settings"
 
 # Prevent graphite logger from complaining about missing log dir.
-from graphite import settings
+from graphite import settings  # noqa: E402
 settings.LOG_DIR = os.path.abspath('.')
 
 try:
@@ -32,13 +39,9 @@ except ImportError:
 else:
     setup()
 
-# Bring in the new ReadTheDocs sphinx theme
-import sphinx_rtd_theme
 
 # Define a custom autodoc documenter for the render.functions module
 # This will remove the requestContext parameter which doesnt make sense in the context of the docs
-import re
-from sphinx.ext import autodoc
 class RenderFunctionDocumenter(autodoc.FunctionDocumenter):
   priority = 10 # Override FunctionDocumenter
 
@@ -53,8 +56,10 @@ class RenderFunctionDocumenter(autodoc.FunctionDocumenter):
       # Really, a regex sub here is by far the easiest way
       return re.sub('requestContext, ','',args)
 
+
 def setup(app):
   app.add_autodocumenter(RenderFunctionDocumenter)
+
 
 # -- General configuration -----------------------------------------------------
 
