@@ -2662,7 +2662,7 @@ class FunctionsTest(TestCase):
         results = functions.transformNull({}, copy.deepcopy(seriesList), transform)
 
         for counter, series in enumerate(seriesList):
-            if not None in series:
+            if None not in series:
                 continue
             # If the None values weren't transformed, there is a problem
             self.assertNotIn(None, results[counter],
@@ -2688,7 +2688,7 @@ class FunctionsTest(TestCase):
         results = functions.transformNull({}, copy.deepcopy(seriesList), transform, [referenceSeries])
 
         for counter, series in enumerate(seriesList):
-            if not None in series:
+            if None not in series:
                 continue
 
             # Anywhere a None was in the original series, verify it
@@ -2709,7 +2709,7 @@ class FunctionsTest(TestCase):
         results = functions.transformNull({}, copy.deepcopy(seriesList), transform, [referenceSeries])
 
         for counter, series in enumerate(seriesList):
-            if not None in series:
+            if None not in series:
                 continue
             # If the None values weren't transformed, there is a problem
             self.assertNotIn(None, results[counter],
