@@ -2,12 +2,13 @@
 from commands import getstatusoutput
 from platform import node
 from socket import socket, AF_INET, SOCK_STREAM
-from sys import argv, exit
+from sys import argv
 from time import sleep, time
 
 DELAY = 60
 CARBON_SERVER = 'localhost'
 CARBON_PORT = 2003
+
 
 class Carbon:
     def __init__(self, hostname, port):
@@ -15,19 +16,24 @@ class Carbon:
         self.hostname = hostname
         self.port = int(port)
         self.connect()
+
     def connect(self):
         try:
             self.s.connect((self.hostname, self.port))
-        except IOError, e:
+        except IOError as e:
             print("connect: ", e)
             return
-    def disconnect(self): self.s.close()
+
+    def disconnect(self):
+        self.s.close()
+
     def send(self, data):
         try:
             self.s.sendall(data + "\n")
-        except:
+        except Exception:
             self.connect()
             self.s.sendall(data + "\n")
+
 
 class Host:
     def __init__(self):
@@ -53,9 +59,11 @@ class Host:
         for line in data:
             for measurement, loc in measurements.iteritems():
                 metric_name = "%s.%s" % (line[0], measurement)
-                try: value = line[loc]
-                except: continue
-                if self.historical.has_key(metric_name):
+                try:
+                    value = line[loc]
+                except Exception:
+                    continue
+                if metric_name in self.historical:
                     current = value
                     delta = int(value) - int(self.historical[metric_name][1])
                     timedelta = time() - self.historical[metric_name][0]
@@ -147,7 +155,7 @@ class Host:
         for i, block in enumerate(raw_data.split("\n\n")):
             if i not in measurements.keys(): continue
             raw_data = block.split("\n")
-            if this_node is not None: 
+            if this_node is not None:
                 this_node_count = [line.startswith(this_node + ":") for line in raw_data].count(True)
             else:
                 this_node_count = len(raw_data) - 4
@@ -160,7 +168,7 @@ def main():
     host = Host()
     hostname = node().split('.')[0]
 
-    graphite = Carbon(CARBON_SERVER, CARBON_PORT);
+    graphite = Carbon(CARBON_SERVER, CARBON_PORT)
 
     while True:
         data = host.get_all()
@@ -170,6 +178,6 @@ def main():
             graphite.send(metric)
         sleep(DELAY)
 
+
 if __name__ == '__main__':
     main()
-
