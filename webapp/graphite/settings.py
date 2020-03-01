@@ -298,7 +298,7 @@ if URL_PREFIX and not STATIC_URL.startswith(URL_PREFIX):
 # Default sqlite db file
 # This is set here so that a user-set STORAGE_DIR is available
 if 'sqlite3' in DATABASES.get('default',{}).get('ENGINE','') \
-    and not DATABASES.get('default',{}).get('NAME'):
+        and not DATABASES.get('default',{}).get('NAME'):
   DATABASES['default']['NAME'] = join(STORAGE_DIR, 'graphite.db')
 
 # Caching shortcuts

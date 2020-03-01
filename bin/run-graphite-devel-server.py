@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-import sys, os
+import os
+import sys
 from optparse import OptionParser
 
 from django.core import management

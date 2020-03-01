@@ -224,7 +224,7 @@ class MergeWithCacheTests(TestCase):
         # Step will be different since that is what we are testing
         cache_results = []
         for i in range(start+window_size//2, start+window_size, 1):
-            cache_results.append((i, 1 if i%2==0 else None))
+            cache_results.append((i, 1 if i % 2 == 0 else None))
 
         # merge the db results with the cached results
         values = merge_with_cache(

@@ -5163,7 +5163,7 @@ class FunctionsTest(TestCase):
 
         def hw_range(x,y,jump):
             while x<y:
-              yield (x/jump)%10
+              yield (x/jump) % 10
               x+=jump
 
         def gen_seriesList(start=0, points=10):
@@ -5202,7 +5202,7 @@ class FunctionsTest(TestCase):
 
         def hw_range(x,y,jump):
             while x<y:
-              yield (x/jump)%10
+              yield (x/jump) % 10
               x+=jump
 
         def gen_seriesList(start=0, points=10):
@@ -5243,7 +5243,7 @@ class FunctionsTest(TestCase):
 
         def hw_range(x,y,jump,t=0):
             while x<y:
-              yield t+(x/jump)%10
+              yield t + (x/jump) % 10
               x+=jump
 
         def gen_seriesList(start=0, points=10):
