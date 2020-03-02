@@ -132,7 +132,7 @@ class MetricsTester(TestCase):
         })
         self.assertEqual(response.status_code, 400)
         # the output in Python 2/3 slightly varies because repr() shows unicode strings differently, that's why the "u?"
-        self.assertRegex(response.content, b"^Bad Request: Invalid int value u?'123a' for param wildcards: invalid literal for int\(\) with base 10: u?'123a'$")
+        self.assertRegex(response.content, b"^Bad Request: Invalid int value u?'123a' for param wildcards: invalid literal for int\\(\\) with base 10: u?'123a'$")
 
         #
         # Invalid 'from' timestamp
