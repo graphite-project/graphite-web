@@ -156,3 +156,21 @@ if required:
   sys.exit(1)
 else:
   print("All necessary dependencies are met.")
+
+
+# suppress unused-import warnings
+__all__ = [
+    'whisper',
+    'ceres',
+    'cairo',
+    'django',
+    'pytz',
+    'pyparsing',
+    'tagging',
+    'memcache',
+    'ldap',
+    'txamqp',
+    'rrdtool',
+    'whitenoise',
+    'pyhash',
+]

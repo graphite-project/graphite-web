@@ -72,7 +72,7 @@ def keyFunc(func):
 def gcd(a, b):
   if b == 0:
     return a
-  return gcd(b, a%b)
+  return gcd(b, a % b)
 
 
 # Least common multiple
@@ -2246,7 +2246,7 @@ def stacked(requestContext,seriesLists,stackName='__DEFAULT__'):
     totalStack = requestContext['totalStack'].get(stackName, [])
   else:
     requestContext['totalStack'] = {}
-    totalStack = [];
+    totalStack = []
   results = []
   for series in seriesLists:
     newValues = []
@@ -2450,9 +2450,10 @@ def cactiStyle(requestContext, seriesList, system=None, units=None):
           fmt = lambda x:"%.2f%s" % format_units(x,system=system)
   else:
       if units:
-          fmt = lambda x:"%.2f %s"%(x,units)
+          fmt = lambda x: "%.2f %s" % (x, units)
       else:
-          fmt = lambda x:"%.2f"%x
+          fmt = lambda x: "%.2f" % x
+
   nameLen = max([0] + [len(getattr(series,"name")) for series in seriesList])
   lastLen = max([0] + [len(fmt(int(safe.safeLast(series) or 3))) for series in seriesList]) + 3
   maxLen = max([0] + [len(fmt(int(safe.safeMax(series) or 3))) for series in seriesList]) + 3
@@ -2477,9 +2478,9 @@ def cactiStyle(requestContext, seriesList, system=None, units=None):
 
       series.name = "%*s Current:%*s Max:%*s Min:%*s " % \
           (-nameLen, series.name,
-            -lastLen, last,
-            -maxLen, maximum,
-            -minLen, minimum)
+           -lastLen, last,
+           -maxLen, maximum,
+           -minLen, minimum)
   return seriesList
 
 
@@ -3207,7 +3208,7 @@ def averageOutsidePercentile(requestContext, seriesList, n):
   averages = [safe.safeAvg(s) for s in seriesList]
 
   if n < 50:
-    n = 100 - n;
+    n = 100 - n
 
   lowPercentile = _getPercentile(averages, 100 - n)
   highPercentile = _getPercentile(averages, n)
@@ -3642,9 +3643,7 @@ def stdev(requestContext, seriesList, points, windowTolerance=0.1):
         currentSum += newValue
         currentSumOfSquares += newValue**2
 
-      if validPoints > 0 and \
-        float(validPoints)/points >= windowTolerance:
-
+      if validPoints > 0 and float(validPoints)/points >= windowTolerance:
         try:
           deviation = math.sqrt(validPoints * currentSumOfSquares - currentSum**2)/validPoints
         except ValueError:
@@ -4013,12 +4012,12 @@ def linearRegression(requestContext, seriesList, startSourceAt=None, endSourceAt
     series.tags['linearRegressions'] = '%s, %s' % (
       int(time.mktime(sourceContext['startTime'].timetuple())),
       int(time.mktime(sourceContext['endTime'].timetuple()))
-      )
+    )
     newName = 'linearRegression(%s, %s, %s)' % (
       series.name,
       int(time.mktime(sourceContext['startTime'].timetuple())),
       int(time.mktime(sourceContext['endTime'].timetuple()))
-      )
+    )
     forecast = linearRegressionAnalysis(source)
     if forecast is None:
       continue
