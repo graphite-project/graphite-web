@@ -239,3 +239,15 @@ class TestParam(unittest.TestCase):
             [1.2],
             {},
         )
+
+    def test_default_value(self):
+        # if no value is specified, but there is a default value, we don't
+        # want the validator to raise an exception because 'None' is invalid
+        self.assertTrue(validateParams(
+            'TestParam',
+            [
+                Param('one', ParamTypes.aggFunc, default='sum'),
+            ],
+            [],
+            {},
+        ))
