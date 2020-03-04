@@ -22,7 +22,7 @@ from random import shuffle
 from six.moves.urllib.parse import urlencode, urlsplit, urlunsplit, parse_qs
 
 from graphite.compat import HttpResponse
-from graphite.errors import InputParameterError
+from graphite.errors import InputParameterError, handleInputParameterError
 from graphite.user_util import getProfileByUsername
 from graphite.util import json, unpickle, pickle, msgpack, BytesIO
 from graphite.storage import extractForwardHeaders
@@ -34,7 +34,7 @@ from graphite.render.hashing import hashRequest, hashData
 from graphite.render.glyph import GraphTypes
 from graphite.tags.models import Series, Tag, TagValue, SeriesTag  # noqa # pylint: disable=unused-import
 
-from django.http import HttpResponseServerError, HttpResponseRedirect, HttpResponseBadRequest
+from django.http import HttpResponseServerError, HttpResponseRedirect
 from django.template import Context, loader
 from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
@@ -46,20 +46,17 @@ from six.moves import zip
 loadFunctions()
 
 
-def handleInputParameterError(f):
-    def new_f(*args, **kwargs):
-      try:
-        return f(*args, **kwargs)
-      except InputParameterError as e:
-        return HttpResponseBadRequest('Bad Request: {err}'.format(err=e))
-
-    return new_f
-
-
 @handleInputParameterError
 def renderView(request):
   start = time()
-  (graphOptions, requestOptions) = parseOptions(request)
+
+  try:
+    # we consider exceptions thrown by the option
+    # parsing to be due to user input error
+    (graphOptions, requestOptions) = parseOptions(request)
+  except Exception as e:
+    raise InputParameterError(str(e))
+
   useCache = 'noCache' not in requestOptions
   cacheTimeout = requestOptions['cacheTimeout']
   # TODO: Make that a namedtuple or a class.

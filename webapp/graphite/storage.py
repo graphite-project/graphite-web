@@ -21,6 +21,7 @@ except ImportError:  # python < 2.7 compatibility
     from django.utils.importlib import import_module
 
 from graphite.logger import log
+from graphite.errors import InputParameterError
 from graphite.node import LeafNode
 from graphite.intervals import Interval, IntervalSet
 from graphite.finders.utils import FindQuery, BaseFinder
@@ -250,12 +251,17 @@ class Store(object):
         return sorted(list(set(results)))
 
     def find(self, pattern, startTime=None, endTime=None, local=False, headers=None, leaves_only=False):
-        query = FindQuery(
-            pattern, startTime, endTime,
-            local=local,
-            headers=headers,
-            leaves_only=leaves_only
-        )
+        try:
+            query = FindQuery(
+                pattern, startTime, endTime,
+                local=local,
+                headers=headers,
+                leaves_only=leaves_only
+            )
+        except Exception as e:
+            raise InputParameterError(
+                'Failed to instantiate find query: {err}'
+                .format(err=str(e)))
 
         warn_threshold = settings.METRICS_FIND_WARNING_THRESHOLD
         fail_threshold = settings.METRICS_FIND_FAILURE_THRESHOLD
