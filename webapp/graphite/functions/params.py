@@ -180,9 +180,6 @@ class Param(object):
     return jsonVal
 
   def validateValue(self, value):
-    if value is None and self.default is not None:
-      value = self.default
-
     # None is ok for optional params
     if not self.required and value is None:
       return True
@@ -217,6 +214,11 @@ def validateParams(func, params, args, kwargs):
     else:
       # requirement is satisfied from "args"
       value = args[i]
+
+    if value is None and params[i].default is not None:
+      # if value isn't specified and there's a default, then the default will be used
+      # we don't need to validate the default value because we trust that it is valid
+      continue
 
     # parameter is restricted to a defined set of values, but value is not in it
     if params[i].options and value not in params[i].options:
