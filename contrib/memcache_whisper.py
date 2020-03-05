@@ -30,12 +30,21 @@ NOTE: This is a modified version of whisper.py
 For details on the modification, read https://bugs.launchpad.net/graphite/+bug/245835
 """
 
-import os, struct, time
+import os
+import struct
+import sys
+import time
 try:
   import fcntl
   CAN_LOCK = True
 except ImportError:
   CAN_LOCK = False
+
+if sys.version_info[0] == 3:
+    xrange = range
+    # This `file` hack avoids linter warnings under Python-3,
+    # but this code likely only works with Python-2.
+    file = None
 
 LOCK = False
 CACHE_HEADERS = False
@@ -58,11 +67,14 @@ archiveInfoSize = struct.calcsize(archiveInfoFormat)
 
 debug = startBlock = endBlock = lambda *a,**k: None
 
+
 def exists(path):
   return os.path.exists(path)
 
+
 def drop(path):
   os.remove(path)
+
 
 def enableMemcache(servers = ['127.0.0.1:11211'], min_compress_len = 0):
   from StringIO import StringIO
@@ -84,15 +96,17 @@ def enableMemcache(servers = ['127.0.0.1:11211'], min_compress_len = 0):
       if self.mode == "r+b" or self.mode == "wb":
         MC.set(self.name, self.getvalue(), min_compress_len = min_compress_len)
       StringIO.close(self)
-      
+
   def exists(path):
-    return MC.get(path) != None
+    return MC.get(path) is not None
 
   def drop(path):
     MC.delete(path)
 
+
 def enableDebug():
   global open, debug, startBlock, endBlock
+
   class open(file):
     def __init__(self,*args,**kwargs):
       file.__init__(self,*args,**kwargs)
