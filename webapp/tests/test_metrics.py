@@ -95,8 +95,7 @@ class MetricsTester(TestCase):
 
     def test_find_view(self):
         ts = int(time.time())
-        #create a minus 60 variable to test with, otherwise the build could fail the longer the test runs
-        ts_minus_sixty_seconds = ts - 60
+        # ts_minus_sixty_seconds = ts - 60  # usage always commented-out below?
 
         self.create_whisper_hosts(ts)
         self.addCleanup(self.wipe_whisper_hosts)

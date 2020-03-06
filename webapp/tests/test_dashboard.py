@@ -45,14 +45,14 @@ class DashboardTest(TestCase):
         check.side_effect = OSError(errno.EPERM, 'Operation not permitted')
         url = reverse('dashboard')
         with self.assertRaises(Exception):
-            response = self.client.get(url)
+            _ = self.client.get(url)
 
     @mock.patch('graphite.dashboard.views.DashboardConfig.check')
     def test_dashboard_template_conf_read_failure(self, check):
         check.side_effect = OSError(errno.EPERM, 'Operation not permitted')
         url = reverse('dashboard_template', args=['bogustemplate', 'testkey'])
         with self.assertRaises(Exception):
-            response = self.client.get(url)
+            _ = self.client.get(url)
 
     @override_settings(DASHBOARD_CONF=os.path.join(TEST_CONF_DIR, 'dashboard.conf.missing_ui'))
     def test_dashboard_conf_missing_ui(self):

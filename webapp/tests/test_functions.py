@@ -2612,7 +2612,7 @@ class FunctionsTest(TestCase):
         )
         message = r"verticalLine\(\): timestamp 3600 exists before start of range"
         with self.assertRaisesRegexp(ValueError, message):
-            result = functions.verticalLine(requestContext, "01:0019700101", "foo")
+            _ = functions.verticalLine(requestContext, "01:0019700101", "foo")
 
     def test_vertical_line_after_end(self):
         requestContext = self._build_requestContext(
@@ -2622,7 +2622,7 @@ class FunctionsTest(TestCase):
         )
         message = r"verticalLine\(\): timestamp 31539600 exists after end of range"
         with self.assertRaisesRegexp(ValueError, message):
-            result = functions.verticalLine(requestContext, "01:0019710101", "foo")
+            _ = functions.verticalLine(requestContext, "01:0019710101", "foo")
 
     def test_line_width(self):
         seriesList = self._generate_series_list()
@@ -2890,9 +2890,6 @@ class FunctionsTest(TestCase):
         seriesList = self._generate_series_list()
 
         def verify_node_name(cases, expected, *nodes):
-            if isinstance(nodes, int):
-                node_number = [nodes]
-
             # Use deepcopy so the original seriesList is unmodified
             results = functions.aliasByNode({}, copy.deepcopy(cases), *nodes)
 
@@ -3025,11 +3022,7 @@ class FunctionsTest(TestCase):
         seriesList, inputList = self._generate_mr_series()
 
         def verify_groupByNodes(expectedResult, func, *nodes):
-            if isinstance(nodes, int):
-                node_number = [nodes]
-
             results = functions.groupByNodes({}, copy.deepcopy(seriesList), func, *nodes)
-
             self.assertEqual(results, expectedResult)
 
         expectedResult = [
@@ -3577,7 +3570,7 @@ class FunctionsTest(TestCase):
 
     def test_constantLine(self):
         requestContext = {'startTime': datetime(2014,3,12,2,0,0,2,pytz.timezone(settings.TIME_ZONE)), 'endTime':datetime(2014,3,12,3,0,0,2,pytz.timezone(settings.TIME_ZONE))}
-        results = functions.constantLine(requestContext, [1])
+        _ = functions.constantLine(requestContext, [1])
 
     def test_aggregateLine_default(self):
         seriesList = self._gen_series_list_with_data(
@@ -3712,7 +3705,7 @@ class FunctionsTest(TestCase):
         )
 
         with self.assertRaisesRegexp(ValueError, '^Unsupported aggregation function: bad$'):
-          result = functions.aggregateLine(
+          functions.aggregateLine(
             self._build_requestContext(
                 startTime=datetime(1970,1,1,1,0,0,0,pytz.timezone(settings.TIME_ZONE)),
                 endTime=datetime(1970,1,1,1,0,0,0,pytz.timezone(settings.TIME_ZONE))

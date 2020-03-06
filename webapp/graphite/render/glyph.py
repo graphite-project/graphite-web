@@ -90,7 +90,7 @@ try:
         percent_l_supported = True
     else:
         percent_l_supported = False
-except ValueError as e:
+except ValueError:
     percent_l_supported = False
 
 DATE_FORMAT = settings.DATE_FORMAT
