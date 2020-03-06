@@ -3787,12 +3787,13 @@ def holtWintersAnalysis(series, seasonality='1d'):
   deviationSeries = TimeSeries(deviationName, series.start, series.end
           , series.step, deviations, tags=deviationTags, xFilesFactor=series.xFilesFactor)
 
-  results = { 'predictions': forecastSeries
-        , 'deviations': deviationSeries
-        , 'intercepts': intercepts
-        , 'slopes': slopes
-        , 'seasonals': seasonals
-        }
+  results = {
+      'predictions': forecastSeries,
+      'deviations' : deviationSeries,
+      'intercepts' : intercepts,
+      'slopes'     : slopes,
+      'seasonals'  : seasonals,
+  }
   return results
 
 
