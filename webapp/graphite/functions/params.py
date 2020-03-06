@@ -185,20 +185,22 @@ class Param(object):
     if value is None and self.default is not None:
       return True
 
+    # None is ok for optional params
+    if not self.required and value is None:
+      return True
+
     # parameter is restricted to a defined set of values, but value is not in it
     if self.options and value not in self.options:
       raise InputParameterError(
         'Invalid option specified for function "{func}" parameter "{param}": {value}'.format(
           func=func, param=self.name, value=repr(value)))
 
-    # None is ok for optional params
-    if not self.required and value is None:
-      return True
-
     if not self.type.isValid(value):
       raise InputParameterError(
         'Invalid "{type}" value specified for function "{func}" parameter "{param}": {value}'.format(
           type=self.type.name, func=func, param=self.name, value=repr(value)))
+
+    return True
 
 
 def validateParams(func, params, args, kwargs):
