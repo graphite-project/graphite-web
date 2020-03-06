@@ -1816,7 +1816,7 @@ class PieGraph(Graph):
     self.valueLabelsMin = float( params.get('valueLabelsMin',5) )
     self.valueLabels = params.get('valueLabels','percent')
     assert self.valueLabels in self.validValueLabels, \
-    "valueLabels=%s must be one of %s" % (self.valueLabels,self.validValueLabels)
+        "valueLabels=%s must be one of %s" % (self.valueLabels,self.validValueLabels)
     if self.valueLabels != 'none':
       self.drawLabels()
 

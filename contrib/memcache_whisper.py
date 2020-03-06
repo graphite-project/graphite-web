@@ -194,13 +194,13 @@ xFilesFactor specifies the fraction of data points in a propagation interval tha
     if i == len(archiveList) - 1: break
     next = archiveList[i+1]
     assert archive[0] < next[0],\
-    "You cannot configure two archives with the same precision %s,%s" % (archive,next)
+        "You cannot configure two archives with the same precision %s,%s" % (archive,next)
     assert (next[0] % archive[0]) == 0,\
-    "Higher precision archives' precision must evenly divide all lower precision archives' precision %s,%s" % (archive[0],next[0])
+        "Higher precision archives' precision must evenly divide all lower precision archives' precision %s,%s" % (archive[0],next[0])
     retention = archive[0] * archive[1]
     nextRetention = next[0] * next[1]
     assert nextRetention > retention,\
-    "Lower precision archives must cover larger time intervals than higher precision archives %s,%s" % (archive,next)
+        "Lower precision archives must cover larger time intervals than higher precision archives %s,%s" % (archive,next)
   #Looks good, now we create the file and write the header
   assert not exists(path), "File %s already exists!" % path
   fh = open(path,'wb')
