@@ -182,9 +182,6 @@ class Store(object):
           )
           jobs.append(job)
 
-        done = 0
-        errors = 0
-
         # Start fetches
         start = time.time()
         results = self.wait_jobs(jobs, settings.FETCH_TIMEOUT,

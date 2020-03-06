@@ -225,7 +225,7 @@ xFilesFactor specifies the fraction of data points in a propagation interval tha
 
 def __propagate(fh,timestamp,xff,higher,lower):
   lowerIntervalStart = timestamp - (timestamp % lower['secondsPerPoint'])
-  lowerIntervalEnd = lowerIntervalStart + lower['secondsPerPoint']
+  # lowerIntervalEnd = lowerIntervalStart + lower['secondsPerPoint']
   fh.seek(higher['offset'])
   packedPoint = fh.read(pointSize)
   (higherBaseInterval,higherBaseValue) = struct.unpack(pointFormat,packedPoint)
@@ -315,7 +315,7 @@ timestamp is either an int or float
   if baseInterval == 0: #This file's first update
     fh.seek(archive['offset'])
     fh.write(myPackedPoint)
-    baseInterval,baseValue = myInterval,value
+    baseInterval,baseValue = myInterval,value  # noqa: F841
   else: #Not our first update
     timeDistance = myInterval - baseInterval
     pointDistance = timeDistance / archive['secondsPerPoint']

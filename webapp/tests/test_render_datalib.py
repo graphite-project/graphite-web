@@ -253,7 +253,7 @@ class TimeSeriesTest(TestCase):
       series.consolidate(2)
       self.assertEqual(series.valuesPerPoint, 2)
       with self.assertRaisesRegexp(Exception, "Invalid consolidation function: 'bogus'"):
-        result = list(series)
+        _ = list(series)
 
 
 class DatalibFunctionTest(TestCase):
@@ -303,7 +303,7 @@ class DatalibFunctionTest(TestCase):
       pathExpr = 'collectd.test-db.load.value'
       startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE))
       endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
-      timeInfo = [startTime, endTime, 60]
+      # timeInfo = [startTime, endTime, 60]
       result_queue = [
                       [pathExpr, None],
                      ]
@@ -320,7 +320,7 @@ class DatalibFunctionTest(TestCase):
       pathExpr = 'collectd.test-db.load.value'
       startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE))
       endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
-      timeInfo = [startTime, endTime, 60]
+      # timeInfo = [startTime, endTime, 60]
       result_queue = [
                       [pathExpr, ['invalid input']],
                      ]
