@@ -94,7 +94,7 @@ class UtilTest(TestCase):
 
     def test_load_module(self):
         with self.assertRaises(IOError):
-            module = util.load_module('test', member=None)
+            _ = util.load_module('test', member=None)
 
     @patch('graphite.util.log')
     def test_logtime(self, log):
