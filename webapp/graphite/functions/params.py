@@ -179,12 +179,28 @@ class Param(object):
       jsonVal['suggestions'] = self.suggestions
     return jsonVal
 
-  def validateValue(self, value):
+  def validateValue(self, value, func):
+    # if value isn't specified and there's a default then the default will be used,
+    # we don't need to validate the default value because we trust that it is valid
+    if value is None and self.default is not None:
+      return True
+
     # None is ok for optional params
     if not self.required and value is None:
       return True
 
-    return self.type.isValid(value)
+    # parameter is restricted to a defined set of values, but value is not in it
+    if self.options and value not in self.options:
+      raise InputParameterError(
+        'Invalid option specified for function "{func}" parameter "{param}": {value}'.format(
+          func=func, param=self.name, value=repr(value)))
+
+    if not self.type.isValid(value):
+      raise InputParameterError(
+        'Invalid "{type}" value specified for function "{func}" parameter "{param}": {value}'.format(
+          type=self.type.name, func=func, param=self.name, value=repr(value)))
+
+    return True
 
 
 def validateParams(func, params, args, kwargs):
@@ -215,22 +231,7 @@ def validateParams(func, params, args, kwargs):
       # requirement is satisfied from "args"
       value = args[i]
 
-    if value is None and params[i].default is not None:
-      # if value isn't specified and there's a default, then the default will be used
-      # we don't need to validate the default value because we trust that it is valid
-      continue
-
-    # parameter is restricted to a defined set of values, but value is not in it
-    if params[i].options and value not in params[i].options:
-      raise InputParameterError(
-        'Invalid option specified for function "{func}" parameter "{param}": {value}'.format(
-          func=func, param=params[i].name, value=repr(value)))
-
-    if not params[i].validateValue(value):
-      raise InputParameterError(
-        'Invalid "{type}" value specified for function "{func}" parameter "{param}": {value}'.format(
-          type=params[i].type.name, func=func, param=params[i].name, value=repr(value)))
-
+    params[i].validateValue(value, func)
     valid_args.append(params[i].name)
 
   return True
