@@ -104,18 +104,7 @@ def evaluateTokens(requestContext, tokens, replacements=None, pipedArg=None):
 
     def handleInvalidParameters(e):
       if not getattr(handleInvalidParameters, 'alreadyLogged', False):
-        log.warning(
-          'Received invalid parameters ({msg}): {func} ({args})'.format(
-            msg=str(e),
-            func=tokens.call.funcname,
-            args=', '.join(
-              argList
-              for argList in [
-                ', '.join(repr(arg) for arg in args),
-                ', '.join('{k}={v}'.format(k=str(k), v=repr(v)) for k, v in kwargs.items()),
-              ] if argList
-            )
-          ))
+        log.warning(invalidParamLogMsg(requestContext, str(e), tokens.call.funcname, args, kwargs))
 
         # only log invalid parameters once
         setattr(handleInvalidParameters, 'alreadyLogged', True)
@@ -137,6 +126,42 @@ def evaluateTokens(requestContext, tokens, replacements=None, pipedArg=None):
       handleInvalidParameters(e)
 
   return evaluateScalarTokens(tokens)
+
+
+def invalidParamLogMsg(requestContext, exception, func, args, kwargs):
+  source = ''
+
+  if 'sourceIdHeaders' in requestContext:
+    if 'HTTP_X_GRAFANA_ORG_ID' in requestContext['sourceIdHeaders']:
+      source += 'org-id: {id}'.format(
+        id=requestContext['sourceIdHeaders']['HTTP_X_GRAFANA_ORG_ID'])
+    if 'HTTP_X_DASHBOARD_ID' in requestContext['sourceIdHeaders']:
+      if source:
+        source += ', '
+      source += 'dashboard-id: {id}'.format(
+        id=requestContext['sourceIdHeaders']['HTTP_X_DASHBOARD_ID'])
+    if 'HTTP_X_PANEL_ID' in requestContext['sourceIdHeaders']:
+      if source:
+        source += ', '
+      source += 'panel-id: {id}'.format(
+        id=requestContext['sourceIdHeaders']['HTTP_X_PANEL_ID'])
+
+  logMsg = 'Received invalid parameters ({msg}): {func} ({args})'.format(
+      msg=exception,
+      func=func,
+      args=', '.join(
+        argList
+        for argList in [
+          ', '.join(repr(arg) for arg in args),
+          ', '.join('{k}={v}'.format(k=str(k), v=repr(v)) for k, v in kwargs.items()),
+        ] if argList
+      ))
+
+  if not source:
+    return logMsg
+
+  logMsg += '; source: ({source})'.format(source=source)
+  return logMsg
 
 
 def evaluateScalarTokens(tokens):
