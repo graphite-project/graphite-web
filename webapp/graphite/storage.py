@@ -517,6 +517,17 @@ def extractForwardHeaders(request):
     return headers
 
 
+# headers which get set by Grafana when issuing queries, identifying where the query came from
+def extractSourceIdHeaders(request):
+    source_id_headers = ['HTTP_X_GRAFANA_ORG_ID', 'HTTP_X_DASHBOARD_ID', 'HTTP_X_PANEL_ID']
+    headers = {}
+    for header in source_id_headers:
+        value = request.META.get(header)
+        if value is not None:
+            headers[header] = value
+    return headers
+
+
 def write_index(index=None):
   if not index:
     index = settings.INDEX_FILE

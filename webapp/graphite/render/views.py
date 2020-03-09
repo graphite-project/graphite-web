@@ -25,7 +25,7 @@ from graphite.compat import HttpResponse
 from graphite.errors import InputParameterError, handleInputParameterError
 from graphite.user_util import getProfileByUsername
 from graphite.util import json, unpickle, pickle, msgpack, BytesIO
-from graphite.storage import extractForwardHeaders
+from graphite.storage import extractForwardHeaders, extractSourceIdHeaders
 from graphite.logger import log
 from graphite.render.evaluator import evaluateTarget
 from graphite.render.attime import parseATTime
@@ -68,6 +68,7 @@ def renderView(request):
     'template' : requestOptions['template'],
     'tzinfo' : requestOptions['tzinfo'],
     'forwardHeaders': requestOptions['forwardHeaders'],
+    'sourceIdHeaders': requestOptions['sourceIdHeaders'],
     'data' : [],
     'prefetched' : {},
     'xFilesFactor' : requestOptions['xFilesFactor'],
@@ -352,6 +353,7 @@ def parseOptions(request):
   cacheTimeout = int( queryParams.get('cacheTimeout', settings.DEFAULT_CACHE_DURATION) )
   requestOptions['targets'] = []
   requestOptions['forwardHeaders'] = extractForwardHeaders(request)
+  requestOptions['sourceIdHeaders'] = extractSourceIdHeaders(request)
 
   # Extract the targets out of the queryParams
   mytargets = []
