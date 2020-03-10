@@ -25,7 +25,7 @@ from graphite.compat import HttpResponse
 from graphite.errors import InputParameterError, handleInputParameterError
 from graphite.user_util import getProfileByUsername
 from graphite.util import json, unpickle, pickle, msgpack, BytesIO
-from graphite.storage import extractForwardHeaders, extractSourceIdHeaders
+from graphite.storage import extractForwardHeaders
 from graphite.logger import log
 from graphite.render.evaluator import evaluateTarget
 from graphite.render.attime import parseATTime
@@ -461,6 +461,17 @@ def parseOptions(request):
   requestOptions['xFilesFactor'] = float( queryParams.get('xFilesFactor', settings.DEFAULT_XFILES_FACTOR) )
 
   return (graphOptions, requestOptions)
+
+
+# headers which get set by Grafana when issuing queries, identifying where the query came from
+def extractSourceIdHeaders(request):
+    source_id_headers = ['HTTP_X_GRAFANA_ORG_ID', 'HTTP_X_DASHBOARD_ID', 'HTTP_X_PANEL_ID']
+    headers = {}
+    for header in source_id_headers:
+        value = request.META.get(header)
+        if value is not None:
+            headers[header] = value
+    return headers
 
 
 connectionPools = {}
