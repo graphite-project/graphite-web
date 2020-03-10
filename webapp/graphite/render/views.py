@@ -467,21 +467,18 @@ def parseOptions(request):
 # user-defined headers from settings.INPUT_VALIDATION_SOURCE_ID_HEADERS also get extracted and mixed
 # with the standard Grafana headers.
 def extractSourceIdHeaders(request):
+    source_headers = {
+        'X-Grafana-Org-ID': 'grafana-org-id',
+        'X-Dashboard-ID': 'dashboard-id',
+        'X-Panel-ID': 'panel-id',
+    }
+    source_headers.update(settings.INPUT_VALIDATION_SOURCE_ID_HEADERS)
+
     headers = {}
-
-    if 'HTTP_X_GRAFANA_ORG_ID' in request.META:
-        headers['grafana-org-id'] = request.META['HTTP_X_GRAFANA_ORG_ID']
-
-    if 'HTTP_X_DASHBOARD_ID' in request.META:
-        headers['dashboard-id'] = request.META['HTTP_X_DASHBOARD_ID']
-
-    if 'HTTP_X_PANEL_ID' in request.META:
-        headers['panel-id'] = request.META['HTTP_X_PANEL_ID']
-
-    for name in settings.INPUT_VALIDATION_SOURCE_ID_HEADERS:
-        value = request.META.get('HTTP_%s' % name.upper().replace('-', '_'))
-        if value is not None:
-            headers[settings.INPUT_VALIDATION_SOURCE_ID_HEADERS[name]] = value
+    for hdr_name, log_name in source_headers.items():
+        value = request.META.get('HTTP_' + hdr_name.upper().replace('-', '_'))
+        if value:
+            headers[log_name] = value
 
     return headers
 
