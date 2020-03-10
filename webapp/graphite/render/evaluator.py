@@ -132,19 +132,14 @@ def invalidParamLogMsg(requestContext, exception, func, args, kwargs):
   source = ''
 
   if 'sourceIdHeaders' in requestContext:
-    if 'HTTP_X_GRAFANA_ORG_ID' in requestContext['sourceIdHeaders']:
-      source += 'org-id: {id}'.format(
-        id=requestContext['sourceIdHeaders']['HTTP_X_GRAFANA_ORG_ID'])
-    if 'HTTP_X_DASHBOARD_ID' in requestContext['sourceIdHeaders']:
+    headers = list(requestContext['sourceIdHeaders'].keys())
+    headers.sort()
+    for name in headers:
       if source:
         source += ', '
-      source += 'dashboard-id: {id}'.format(
-        id=requestContext['sourceIdHeaders']['HTTP_X_DASHBOARD_ID'])
-    if 'HTTP_X_PANEL_ID' in requestContext['sourceIdHeaders']:
-      if source:
-        source += ', '
-      source += 'panel-id: {id}'.format(
-        id=requestContext['sourceIdHeaders']['HTTP_X_PANEL_ID'])
+      source += '{name}: {value}'.format(
+        name=name,
+        value=requestContext['sourceIdHeaders'][name])
 
   logMsg = 'Received invalid parameters ({msg}): {func} ({args})'.format(
       msg=exception,
