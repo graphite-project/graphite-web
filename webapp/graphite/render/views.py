@@ -463,14 +463,26 @@ def parseOptions(request):
   return (graphOptions, requestOptions)
 
 
-# headers which get set by Grafana when issuing queries, identifying where the query came from
+# extract headers which get set by Grafana when issuing queries, to help identifying where a query came from.
+# user-defined headers from settings.INPUT_VALIDATION_SOURCE_ID_HEADERS also get extracted and mixed
+# with the standard Grafana headers.
 def extractSourceIdHeaders(request):
-    source_id_headers = ['HTTP_X_GRAFANA_ORG_ID', 'HTTP_X_DASHBOARD_ID', 'HTTP_X_PANEL_ID']
     headers = {}
-    for header in source_id_headers:
-        value = request.META.get(header)
+
+    if 'HTTP_X_GRAFANA_ORG_ID' in request.META:
+        headers['grafana-org-id'] = request.META['HTTP_X_GRAFANA_ORG_ID']
+
+    if 'HTTP_X_DASHBOARD_ID' in request.META:
+        headers['dashboard-id'] = request.META['HTTP_X_DASHBOARD_ID']
+
+    if 'HTTP_X_PANEL_ID' in request.META:
+        headers['panel-id'] = request.META['HTTP_X_PANEL_ID']
+
+    for name in settings.INPUT_VALIDATION_SOURCE_ID_HEADERS:
+        value = request.META.get('HTTP_%s' % name.upper().replace('-', '_'))
         if value is not None:
-            headers[header] = value
+            headers[settings.INPUT_VALIDATION_SOURCE_ID_HEADERS[name]] = value
+
     return headers
 
 

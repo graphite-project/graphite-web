@@ -965,23 +965,23 @@ class RenderTest(TestCase):
         args = [1]
         kwargs = {}
         requestContext['sourceIdHeaders'] = {
-            'HTTP_X_GRAFANA_ORG_ID': 123,
+            'grafana-org-id': 123,
         }
         msg = invalidParamLogMsg(requestContext, exception, func, args, kwargs)
         self.assertEqual(
             msg,
-            'Received invalid parameters (exception details): test_func (1); source: (org-id: 123)'
+            'Received invalid parameters (exception details): test_func (1); source: (grafana-org-id: 123)'
         )
 
         requestContext['sourceIdHeaders'] = {
-            'HTTP_X_GRAFANA_ORG_ID': 123,
-            'HTTP_X_DASHBOARD_ID': 9,
-            'HTTP_X_PANEL_ID': 38,
+            'grafana-org-id': 123,
+            'dashboard-id': 9,
+            'panel-id': 38,
         }
         msg = invalidParamLogMsg(requestContext, exception, func, args, kwargs)
         self.assertEqual(
             msg,
-            'Received invalid parameters (exception details): test_func (1); source: (org-id: 123, dashboard-id: 9, panel-id: 38)'
+            'Received invalid parameters (exception details): test_func (1); source: (dashboard-id: 9, grafana-org-id: 123, panel-id: 38)'
         )
 
 
