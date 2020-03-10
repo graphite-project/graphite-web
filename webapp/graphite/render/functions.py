@@ -1855,7 +1855,7 @@ def consolidateBy(requestContext, seriesList, consolidationFunc):
   """
   Takes one metric or a wildcard seriesList and a consolidation function name.
 
-  Valid function names are 'sum', 'average', 'min', 'max', 'first' & 'last'.
+  Valid function names are 'sum', 'average'/'avg', 'min', 'max', 'first' & 'last'.
 
   When a graph is drawn where width of the graph size in pixels is smaller than
   the number of datapoints to be graphed, Graphite consolidates the values to
@@ -1882,7 +1882,7 @@ def consolidateBy(requestContext, seriesList, consolidationFunc):
 consolidateBy.group = 'Special'
 consolidateBy.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
-  Param('consolidationFunc', ParamTypes.string, required=True, options=['sum', 'average', 'avg_zero', 'min', 'max', 'first', 'last']),
+  Param('consolidationFunc', ParamTypes.string, required=True, options=['sum', 'average', 'avg', 'avg_zero', 'min', 'max', 'first', 'last']),
 ]
 
 
@@ -3787,12 +3787,13 @@ def holtWintersAnalysis(series, seasonality='1d'):
   deviationSeries = TimeSeries(deviationName, series.start, series.end
           , series.step, deviations, tags=deviationTags, xFilesFactor=series.xFilesFactor)
 
-  results = { 'predictions': forecastSeries
-        , 'deviations': deviationSeries
-        , 'intercepts': intercepts
-        , 'slopes': slopes
-        , 'seasonals': seasonals
-        }
+  results = {
+      'predictions': forecastSeries,
+      'deviations' : deviationSeries,
+      'intercepts' : intercepts,
+      'slopes'     : slopes,
+      'seasonals'  : seasonals,
+  }
   return results
 
 

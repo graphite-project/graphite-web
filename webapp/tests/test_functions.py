@@ -510,18 +510,19 @@ class FunctionsTest(TestCase):
         )
 
         expectedResult = [
-        [
-            TimeSeries('collectd.test-db1.load.value',0,1,1,[1,10,11]),
-            TimeSeries('collectd.test-db2.load.value',0,1,1,[2,20,21]),
-            TimeSeries('collectd.test-db3.load.value',0,1,1,[3,30,31]),
-            TimeSeries('collectd.test-db4.load.value',0,1,1,[4,40,41]),
-        ],
-        [
-            TimeSeries('collectd.test-db1.load.value',0,1,1,[1,5,9]),
-            TimeSeries('collectd.test-db2.load.value',0,1,1,[2,6,10]),
-            TimeSeries('collectd.test-db3.load.value',0,1,1,[3,7,11]),
-            TimeSeries('collectd.test-db4.load.value',0,1,1,[4,8,12]),
-        ]]
+            [
+                TimeSeries('collectd.test-db1.load.value',0,1,1,[1,10,11]),
+                TimeSeries('collectd.test-db2.load.value',0,1,1,[2,20,21]),
+                TimeSeries('collectd.test-db3.load.value',0,1,1,[3,30,31]),
+                TimeSeries('collectd.test-db4.load.value',0,1,1,[4,40,41]),
+            ],
+            [
+                TimeSeries('collectd.test-db1.load.value',0,1,1,[1,5,9]),
+                TimeSeries('collectd.test-db2.load.value',0,1,1,[2,6,10]),
+                TimeSeries('collectd.test-db3.load.value',0,1,1,[3,7,11]),
+                TimeSeries('collectd.test-db4.load.value',0,1,1,[4,8,12]),
+            ],
+        ]
         results = functions.matchSeries(copy.deepcopy(seriesList1), copy.deepcopy(seriesList2))
         for i, (series1, series2) in enumerate(results):
             self.assertEqual(series1, expectedResult[0][i])
@@ -2554,8 +2555,7 @@ class FunctionsTest(TestCase):
         limit = len(seriesList) - 1
         results = functions.limit({}, seriesList, limit)
         self.assertEqual(len(results), limit,
-            "More than {0} results returned".format(limit),
-        )
+                         "More than {0} results returned".format(limit))
 
     def _verify_series_options(self, seriesList, name, value):
         """
@@ -2612,7 +2612,7 @@ class FunctionsTest(TestCase):
         )
         message = r"verticalLine\(\): timestamp 3600 exists before start of range"
         with self.assertRaisesRegexp(ValueError, message):
-            result = functions.verticalLine(requestContext, "01:0019700101", "foo")
+            _ = functions.verticalLine(requestContext, "01:0019700101", "foo")
 
     def test_vertical_line_after_end(self):
         requestContext = self._build_requestContext(
@@ -2622,7 +2622,7 @@ class FunctionsTest(TestCase):
         )
         message = r"verticalLine\(\): timestamp 31539600 exists after end of range"
         with self.assertRaisesRegexp(ValueError, message):
-            result = functions.verticalLine(requestContext, "01:0019710101", "foo")
+            _ = functions.verticalLine(requestContext, "01:0019710101", "foo")
 
     def test_line_width(self):
         seriesList = self._generate_series_list()
@@ -2662,18 +2662,18 @@ class FunctionsTest(TestCase):
         results = functions.transformNull({}, copy.deepcopy(seriesList), transform)
 
         for counter, series in enumerate(seriesList):
-            if not None in series:
+            if None not in series:
                 continue
             # If the None values weren't transformed, there is a problem
             self.assertNotIn(None, results[counter],
-                "tranformNull should remove all None values",
-            )
+                             "tranformNull should remove all None values")
             # Anywhere a None was in the original series, verify it
             # was transformed to the given value it should be.
             for i, value in enumerate(series):
                 if value is None:
                     result_val = results[counter][i]
-                    self.assertEqual(transform, result_val,
+                    self.assertEqual(
+                        transform, result_val,
                         "Transformed value should be {0}, not {1}".format(transform, result_val),
                     )
 
@@ -2688,7 +2688,7 @@ class FunctionsTest(TestCase):
         results = functions.transformNull({}, copy.deepcopy(seriesList), transform, [referenceSeries])
 
         for counter, series in enumerate(seriesList):
-            if not None in series:
+            if None not in series:
                 continue
 
             # Anywhere a None was in the original series, verify it
@@ -2697,7 +2697,8 @@ class FunctionsTest(TestCase):
             for i, value in enumerate(series):
                 if value is None and referenceSeries[i] is not None:
                     result_val = results[counter][i]
-                    self.assertEqual(transform, result_val,
+                    self.assertEqual(
+                        transform, result_val,
                         "Transformed value should be {0}, not {1}".format(transform, result_val),
                     )
 
@@ -2709,18 +2710,18 @@ class FunctionsTest(TestCase):
         results = functions.transformNull({}, copy.deepcopy(seriesList), transform, [referenceSeries])
 
         for counter, series in enumerate(seriesList):
-            if not None in series:
+            if None not in series:
                 continue
             # If the None values weren't transformed, there is a problem
             self.assertNotIn(None, results[counter],
-                "tranformNull should remove all None values",
-            )
+                             "tranformNull should remove all None values")
             # Anywhere a None was in the original series, verify it
             # was transformed to the given value if a value existed
             for i, value in enumerate(series):
                 if value is None:
                     result_val = results[counter][i]
-                    self.assertEqual(transform, result_val,
+                    self.assertEqual(
+                        transform, result_val,
                         "Transformed value should be {0}, not {1}".format(transform, result_val),
                     )
 
@@ -2827,8 +2828,7 @@ class FunctionsTest(TestCase):
         results = functions.aliasSub({}, seriesList, r"^\w+", substitution)
         for series in results:
             self.assertTrue(series.name.startswith(substitution),
-                    "aliasSub should replace the name with {0}".format(substitution),
-            )
+                            "aliasSub should replace the name with {0}".format(substitution))
 
     def test_alias_query(self):
 
@@ -2890,9 +2890,6 @@ class FunctionsTest(TestCase):
         seriesList = self._generate_series_list()
 
         def verify_node_name(cases, expected, *nodes):
-            if isinstance(nodes, int):
-                node_number = [nodes]
-
             # Use deepcopy so the original seriesList is unmodified
             results = functions.aliasByNode({}, copy.deepcopy(cases), *nodes)
 
@@ -3025,11 +3022,7 @@ class FunctionsTest(TestCase):
         seriesList, inputList = self._generate_mr_series()
 
         def verify_groupByNodes(expectedResult, func, *nodes):
-            if isinstance(nodes, int):
-                node_number = [nodes]
-
             results = functions.groupByNodes({}, copy.deepcopy(seriesList), func, *nodes)
-
             self.assertEqual(results, expectedResult)
 
         expectedResult = [
@@ -3116,11 +3109,9 @@ class FunctionsTest(TestCase):
 
         for i, series in enumerate(results):
             self.assertTrue(hasattr(series, "color"),
-                "The transformed seriesList is missing the 'color' attribute",
-            )
+                            "The transformed seriesList is missing the 'color' attribute")
             self.assertFalse(hasattr(seriesList[i], "color"),
-                "The original seriesList shouldn't have a 'color' attribute",
-            )
+                             "The original seriesList shouldn't have a 'color' attribute")
             self.assertEqual(series.color, color)
 
     def test_substr(self):
@@ -3579,7 +3570,7 @@ class FunctionsTest(TestCase):
 
     def test_constantLine(self):
         requestContext = {'startTime': datetime(2014,3,12,2,0,0,2,pytz.timezone(settings.TIME_ZONE)), 'endTime':datetime(2014,3,12,3,0,0,2,pytz.timezone(settings.TIME_ZONE))}
-        results = functions.constantLine(requestContext, [1])
+        _ = functions.constantLine(requestContext, [1])
 
     def test_aggregateLine_default(self):
         seriesList = self._gen_series_list_with_data(
@@ -3714,14 +3705,14 @@ class FunctionsTest(TestCase):
         )
 
         with self.assertRaisesRegexp(ValueError, '^Unsupported aggregation function: bad$'):
-          result = functions.aggregateLine(
+          functions.aggregateLine(
             self._build_requestContext(
                 startTime=datetime(1970,1,1,1,0,0,0,pytz.timezone(settings.TIME_ZONE)),
                 endTime=datetime(1970,1,1,1,0,0,0,pytz.timezone(settings.TIME_ZONE))
             ),
             seriesList,
             'bad'
-        )
+          )
 
     def test_threshold_default(self):
         expectedResult = [
@@ -5687,36 +5678,37 @@ class FunctionsTest(TestCase):
             data=[list(range(0, 240)), list(range(0, -240, -1)), [None] * 240, list(range(0, 480, 2))]
         )
 
-        expectedResults = {'sum' : [
-            TimeSeries('summarize(servers.s1.disk.bytes_used, "1minute", "sum")', 0, 300, 60, [1770, 5370, 8970, 12570, None]),
-            TimeSeries('summarize(servers.s1.disk.bytes_free, "1minute", "sum")', 0, 300, 60, [-1770, -5370, -8970, -12570, None]),
-            TimeSeries('summarize(servers.s2.disk.bytes_used, "1minute", "sum")', 0, 300, 60, [None, None, None, None, None]),
-            TimeSeries('summarize(servers.s2.disk.bytes_free, "1minute", "sum")', 0, 300, 60, [3540, 10740, 17940, 25140, None])
-        ],
-        'avg' : [
-            TimeSeries('summarize(servers.s1.disk.bytes_used, "1minute", "avg")', 0, 300, 60, [29.5, 89.5, 149.5, 209.5, None]),
-            TimeSeries('summarize(servers.s1.disk.bytes_free, "1minute", "avg")', 0, 300, 60, [-29.5, -89.5, -149.5, -209.5, None]),
-            TimeSeries('summarize(servers.s2.disk.bytes_used, "1minute", "avg")', 0, 300, 60, [None, None, None, None, None]),
-            TimeSeries('summarize(servers.s2.disk.bytes_free, "1minute", "avg")', 0, 300, 60, [59.0, 179.0, 299.0, 419.0, None])
-        ],
-        'last' : [
-            TimeSeries('summarize(servers.s1.disk.bytes_used, "1minute", "last")', 0, 300, 60, [59, 119, 179, 239, None]),
-            TimeSeries('summarize(servers.s1.disk.bytes_free, "1minute", "last")', 0, 300, 60, [-59, -119, -179, -239, None]),
-            TimeSeries('summarize(servers.s2.disk.bytes_used, "1minute", "last")', 0, 300, 60, [None, None, None, None, None]),
-            TimeSeries('summarize(servers.s2.disk.bytes_free, "1minute", "last")', 0, 300, 60, [118, 238, 358, 478, None])
-        ],
-        'max' : [
-            TimeSeries('summarize(servers.s1.disk.bytes_used, "1minute", "max")', 0, 300, 60, [59, 119, 179, 239, None]),
-            TimeSeries('summarize(servers.s1.disk.bytes_free, "1minute", "max")', 0, 300, 60, [0, -60, -120, -180, None]),
-            TimeSeries('summarize(servers.s2.disk.bytes_used, "1minute", "max")', 0, 300, 60, [None, None, None, None, None]),
-            TimeSeries('summarize(servers.s2.disk.bytes_free, "1minute", "max")', 0, 300, 60, [118, 238, 358, 478, None])
-        ],
-        'min' : [
-            TimeSeries('summarize(servers.s1.disk.bytes_used, "1minute", "min")', 0, 300, 60, [0, 60, 120, 180, None]),
-            TimeSeries('summarize(servers.s1.disk.bytes_free, "1minute", "min")', 0, 300, 60, [-59, -119, -179, -239, None]),
-            TimeSeries('summarize(servers.s2.disk.bytes_used, "1minute", "min")', 0, 300, 60, [None, None, None, None, None]),
-            TimeSeries('summarize(servers.s2.disk.bytes_free, "1minute", "min")', 0, 300, 60, [0, 120, 240, 360, None])
-        ],
+        expectedResults = {
+            'sum' : [
+                TimeSeries('summarize(servers.s1.disk.bytes_used, "1minute", "sum")', 0, 300, 60, [1770, 5370, 8970, 12570, None]),
+                TimeSeries('summarize(servers.s1.disk.bytes_free, "1minute", "sum")', 0, 300, 60, [-1770, -5370, -8970, -12570, None]),
+                TimeSeries('summarize(servers.s2.disk.bytes_used, "1minute", "sum")', 0, 300, 60, [None, None, None, None, None]),
+                TimeSeries('summarize(servers.s2.disk.bytes_free, "1minute", "sum")', 0, 300, 60, [3540, 10740, 17940, 25140, None])
+            ],
+            'avg' : [
+                TimeSeries('summarize(servers.s1.disk.bytes_used, "1minute", "avg")', 0, 300, 60, [29.5, 89.5, 149.5, 209.5, None]),
+                TimeSeries('summarize(servers.s1.disk.bytes_free, "1minute", "avg")', 0, 300, 60, [-29.5, -89.5, -149.5, -209.5, None]),
+                TimeSeries('summarize(servers.s2.disk.bytes_used, "1minute", "avg")', 0, 300, 60, [None, None, None, None, None]),
+                TimeSeries('summarize(servers.s2.disk.bytes_free, "1minute", "avg")', 0, 300, 60, [59.0, 179.0, 299.0, 419.0, None])
+            ],
+            'last' : [
+                TimeSeries('summarize(servers.s1.disk.bytes_used, "1minute", "last")', 0, 300, 60, [59, 119, 179, 239, None]),
+                TimeSeries('summarize(servers.s1.disk.bytes_free, "1minute", "last")', 0, 300, 60, [-59, -119, -179, -239, None]),
+                TimeSeries('summarize(servers.s2.disk.bytes_used, "1minute", "last")', 0, 300, 60, [None, None, None, None, None]),
+                TimeSeries('summarize(servers.s2.disk.bytes_free, "1minute", "last")', 0, 300, 60, [118, 238, 358, 478, None])
+            ],
+            'max' : [
+                TimeSeries('summarize(servers.s1.disk.bytes_used, "1minute", "max")', 0, 300, 60, [59, 119, 179, 239, None]),
+                TimeSeries('summarize(servers.s1.disk.bytes_free, "1minute", "max")', 0, 300, 60, [0, -60, -120, -180, None]),
+                TimeSeries('summarize(servers.s2.disk.bytes_used, "1minute", "max")', 0, 300, 60, [None, None, None, None, None]),
+                TimeSeries('summarize(servers.s2.disk.bytes_free, "1minute", "max")', 0, 300, 60, [118, 238, 358, 478, None])
+            ],
+            'min' : [
+                TimeSeries('summarize(servers.s1.disk.bytes_used, "1minute", "min")', 0, 300, 60, [0, 60, 120, 180, None]),
+                TimeSeries('summarize(servers.s1.disk.bytes_free, "1minute", "min")', 0, 300, 60, [-59, -119, -179, -239, None]),
+                TimeSeries('summarize(servers.s2.disk.bytes_used, "1minute", "min")', 0, 300, 60, [None, None, None, None, None]),
+                TimeSeries('summarize(servers.s2.disk.bytes_free, "1minute", "min")', 0, 300, 60, [0, 120, 240, 360, None])
+            ],
         }
 
         for func in expectedResults:
@@ -5740,36 +5732,37 @@ class FunctionsTest(TestCase):
             data=[list(range(0, 240)), list(range(0, -240, -1)), [None] * 240, list(range(0, 480, 2))]
         )
 
-        expectedResults = {'sum' : [
-            TimeSeries('summarize(servers.s1.disk.bytes_used, "1minute", "sum", true)', 0, 240, 60, [1770, 5370, 8970, 12570]),
-            TimeSeries('summarize(servers.s1.disk.bytes_free, "1minute", "sum", true)', 0, 240, 60, [-1770, -5370, -8970, -12570]),
-            TimeSeries('summarize(servers.s2.disk.bytes_used, "1minute", "sum", true)', 0, 240, 60, [None, None, None, None]),
-            TimeSeries('summarize(servers.s2.disk.bytes_free, "1minute", "sum", true)', 0, 240, 60, [3540, 10740, 17940, 25140])
-        ],
-        'avg' : [
-            TimeSeries('summarize(servers.s1.disk.bytes_used, "1minute", "avg", true)', 0, 240, 60, [29.5, 89.5, 149.5, 209.5]),
-            TimeSeries('summarize(servers.s1.disk.bytes_free, "1minute", "avg", true)', 0, 240, 60, [-29.5, -89.5, -149.5, -209.5]),
-            TimeSeries('summarize(servers.s2.disk.bytes_used, "1minute", "avg", true)', 0, 240, 60, [None, None, None, None]),
-            TimeSeries('summarize(servers.s2.disk.bytes_free, "1minute", "avg", true)', 0, 240, 60, [59.0, 179.0, 299.0, 419.0])
-        ],
-        'last' : [
-            TimeSeries('summarize(servers.s1.disk.bytes_used, "1minute", "last", true)', 0, 240, 60, [59, 119, 179, 239]),
-            TimeSeries('summarize(servers.s1.disk.bytes_free, "1minute", "last", true)', 0, 240, 60, [-59, -119, -179, -239]),
-            TimeSeries('summarize(servers.s2.disk.bytes_used, "1minute", "last", true)', 0, 240, 60, [None, None, None, None]),
-            TimeSeries('summarize(servers.s2.disk.bytes_free, "1minute", "last", true)', 0, 240, 60, [118, 238, 358, 478])
-        ],
-        'max' : [
-            TimeSeries('summarize(servers.s1.disk.bytes_used, "1minute", "max", true)', 0, 240, 60, [59, 119, 179, 239]),
-            TimeSeries('summarize(servers.s1.disk.bytes_free, "1minute", "max", true)', 0, 240, 60, [0, -60, -120, -180]),
-            TimeSeries('summarize(servers.s2.disk.bytes_used, "1minute", "max", true)', 0, 240, 60, [None, None, None, None]),
-            TimeSeries('summarize(servers.s2.disk.bytes_free, "1minute", "max", true)', 0, 240, 60, [118, 238, 358, 478])
-        ],
-        'min' : [
-            TimeSeries('summarize(servers.s1.disk.bytes_used, "1minute", "min", true)', 0, 240, 60, [0, 60, 120, 180]),
-            TimeSeries('summarize(servers.s1.disk.bytes_free, "1minute", "min", true)', 0, 240, 60, [-59, -119, -179, -239]),
-            TimeSeries('summarize(servers.s2.disk.bytes_used, "1minute", "min", true)', 0, 240, 60, [None, None, None, None]),
-            TimeSeries('summarize(servers.s2.disk.bytes_free, "1minute", "min", true)', 0, 240, 60, [0, 120, 240, 360])
-        ],
+        expectedResults = {
+            'sum' : [
+                TimeSeries('summarize(servers.s1.disk.bytes_used, "1minute", "sum", true)', 0, 240, 60, [1770, 5370, 8970, 12570]),
+                TimeSeries('summarize(servers.s1.disk.bytes_free, "1minute", "sum", true)', 0, 240, 60, [-1770, -5370, -8970, -12570]),
+                TimeSeries('summarize(servers.s2.disk.bytes_used, "1minute", "sum", true)', 0, 240, 60, [None, None, None, None]),
+                TimeSeries('summarize(servers.s2.disk.bytes_free, "1minute", "sum", true)', 0, 240, 60, [3540, 10740, 17940, 25140])
+            ],
+            'avg' : [
+                TimeSeries('summarize(servers.s1.disk.bytes_used, "1minute", "avg", true)', 0, 240, 60, [29.5, 89.5, 149.5, 209.5]),
+                TimeSeries('summarize(servers.s1.disk.bytes_free, "1minute", "avg", true)', 0, 240, 60, [-29.5, -89.5, -149.5, -209.5]),
+                TimeSeries('summarize(servers.s2.disk.bytes_used, "1minute", "avg", true)', 0, 240, 60, [None, None, None, None]),
+                TimeSeries('summarize(servers.s2.disk.bytes_free, "1minute", "avg", true)', 0, 240, 60, [59.0, 179.0, 299.0, 419.0])
+            ],
+            'last' : [
+                TimeSeries('summarize(servers.s1.disk.bytes_used, "1minute", "last", true)', 0, 240, 60, [59, 119, 179, 239]),
+                TimeSeries('summarize(servers.s1.disk.bytes_free, "1minute", "last", true)', 0, 240, 60, [-59, -119, -179, -239]),
+                TimeSeries('summarize(servers.s2.disk.bytes_used, "1minute", "last", true)', 0, 240, 60, [None, None, None, None]),
+                TimeSeries('summarize(servers.s2.disk.bytes_free, "1minute", "last", true)', 0, 240, 60, [118, 238, 358, 478])
+            ],
+            'max' : [
+                TimeSeries('summarize(servers.s1.disk.bytes_used, "1minute", "max", true)', 0, 240, 60, [59, 119, 179, 239]),
+                TimeSeries('summarize(servers.s1.disk.bytes_free, "1minute", "max", true)', 0, 240, 60, [0, -60, -120, -180]),
+                TimeSeries('summarize(servers.s2.disk.bytes_used, "1minute", "max", true)', 0, 240, 60, [None, None, None, None]),
+                TimeSeries('summarize(servers.s2.disk.bytes_free, "1minute", "max", true)', 0, 240, 60, [118, 238, 358, 478])
+            ],
+            'min' : [
+                TimeSeries('summarize(servers.s1.disk.bytes_used, "1minute", "min", true)', 0, 240, 60, [0, 60, 120, 180]),
+                TimeSeries('summarize(servers.s1.disk.bytes_free, "1minute", "min", true)', 0, 240, 60, [-59, -119, -179, -239]),
+                TimeSeries('summarize(servers.s2.disk.bytes_used, "1minute", "min", true)', 0, 240, 60, [None, None, None, None]),
+                TimeSeries('summarize(servers.s2.disk.bytes_free, "1minute", "min", true)', 0, 240, 60, [0, 120, 240, 360])
+            ],
         }
 
         for func in expectedResults:

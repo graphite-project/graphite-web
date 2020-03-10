@@ -399,11 +399,11 @@ class getUnitStringTest(TestCase):
 
     def test_m_raises_Exception(self):
         with self.assertRaises(Exception):
-            result = getUnitString("m")
+            _ = getUnitString("m")
 
     def test_integer_raises_Exception(self):
         with self.assertRaises(Exception):
-            result = getUnitString(1)
+            _ = getUnitString(1)
 
 
 @mock.patch('graphite.render.attime.datetime', mockDateTime(2016, 2, 29, 00, 0, 0))

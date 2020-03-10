@@ -82,11 +82,16 @@ class TimeSeries(list):
     'first': lambda usable: usable[0],
     'last': lambda usable: usable[-1],
   }
+  __consolidation_function_aliases = {
+    'avg': 'average',
+  }
 
   def __consolidatingGenerator(self, gen):
-    try:
+    if self.consolidationFunc in self.__consolidation_functions:
       cf = self.__consolidation_functions[self.consolidationFunc]
-    except KeyError:
+    elif self.consolidationFunc in self.__consolidation_function_aliases:
+      cf = self.__consolidation_functions[self.__consolidation_function_aliases[self.consolidationFunc]]
+    else:
       raise Exception("Invalid consolidation function: '%s'" % self.consolidationFunc)
 
     buf = []

@@ -57,7 +57,8 @@ class RemoteReaderTests(TestCase):
         reader = RemoteReader(finder, {'intervals': [], 'path': 'a.b.c.d'})
 
         data = [
-                {'start': startTime,
+                {
+                 'start': startTime,
                  'step': 60,
                  'end': endTime,
                  'values': [1.0, 0.0, 1.0, 0.0, 1.0],
@@ -100,7 +101,8 @@ class RemoteReaderTests(TestCase):
         reader = RemoteReader(finder, {'intervals': [], 'path': 'a.b.c.d'}, bulk_query=['a.b.c.d'])
 
         data = [
-                {'start': startTime,
+                {
+                 'start': startTime,
                  'step': 60,
                  'end': endTime,
                  'values': [1.0, 0.0, 1.0, 0.0, 1.0],
@@ -205,13 +207,15 @@ class RemoteReaderTests(TestCase):
         reader = RemoteReader(finder, {'intervals': [], 'path': 'a.b.c.d'}, bulk_query=['a.b.c.*'])
 
         data = [
-                {'start': startTime,
+                {
+                 'start': startTime,
                  'step': 60,
                  'end': endTime,
                  'values': [1.0, 0.0, 1.0, 0.0, 1.0],
                  'name': 'a.b.c.c'
                 },
-                {'start': startTime,
+                {
+                 'start': startTime,
                  'step': 60,
                  'end': endTime,
                  'values': [1.0, 0.0, 1.0, 0.0, 1.0],

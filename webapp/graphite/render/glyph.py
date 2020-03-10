@@ -90,7 +90,7 @@ try:
         percent_l_supported = True
     else:
         percent_l_supported = False
-except ValueError as e:
+except ValueError:
     percent_l_supported = False
 
 DATE_FORMAT = settings.DATE_FORMAT
@@ -1816,7 +1816,7 @@ class PieGraph(Graph):
     self.valueLabelsMin = float( params.get('valueLabelsMin',5) )
     self.valueLabels = params.get('valueLabels','percent')
     assert self.valueLabels in self.validValueLabels, \
-    "valueLabels=%s must be one of %s" % (self.valueLabels,self.validValueLabels)
+        "valueLabels=%s must be one of %s" % (self.valueLabels,self.validValueLabels)
     if self.valueLabels != 'none':
       self.drawLabels()
 

@@ -8,12 +8,12 @@ ROOT_DIR = dirname(dirname(abspath(__file__)))
 LIB_DIR = join(ROOT_DIR, 'graphite', 'lib')
 sys.path.insert(0, LIB_DIR)
 
-from carbon.aggregator.rules import RuleManager
+from carbon.aggregator.rules import RuleManager  # noqa: E402
 
 ### Basic usage
 if len(sys.argv) != 3:
   print("Usage: %s 'aggregator rule' 'line item'" % (__file__))
-  print("\nSample invocation: %s %s %s" % \
+  print("\nSample invocation: %s %s %s" %
     (__file__, "'<prefix>.<env>.<key>.sum.all (10) = sum <prefix>.<env>.<<key>>.sum.<node>'", 'stats.prod.js.ktime_sum.sum.host2' ))
   sys.exit(42)
 

@@ -127,7 +127,7 @@ class TimeSeriesTest(TestCase):
       series.xFilesFactor = 1
       self.assertEqual(list(series), list(expected))
 
-    def test_TimeSeries_iterate_valuesPerPoint_2_avg(self):
+    def test_TimeSeries_iterate_valuesPerPoint_2_average(self):
       values = list(range(0,100))
 
       series = TimeSeries("collectd.test-db.load.value", 0, len(values)/2, 1, values)
@@ -227,6 +227,23 @@ class TimeSeriesTest(TestCase):
       expected = TimeSeries("collectd.test-db.load.value", 0, 5, 1, list(range(2,100,3)) + [99])
       self.assertEqual(list(series), list(expected))
 
+    # avg is an alias for average
+    def test_TimeSeries_iterate_valuesPerPoint_2_avg_alias(self):
+      values = list(range(0,100))
+
+      series = TimeSeries("collectd.test-db.load.value", 0, len(values)/2, 1, values, consolidate='avg')
+      self.assertEqual(series.valuesPerPoint, 1)
+
+      series.consolidate(2)
+      self.assertEqual(series.valuesPerPoint, 2)
+      expected = TimeSeries("collectd.test-db.load.value", 0, 5, 1, [0.5, 2.5, 4.5, 6.5, 8.5, 10.5, 12.5, 14.5, 16.5, 18.5, 20.5, 22.5, 24.5, 26.5, 28.5, 30.5, 32.5, 34.5, 36.5, 38.5, 40.5, 42.5, 44.5, 46.5, 48.5, 50.5, 52.5, 54.5, 56.5, 58.5, 60.5, 62.5, 64.5, 66.5, 68.5, 70.5, 72.5, 74.5, 76.5, 78.5, 80.5, 82.5, 84.5, 86.5, 88.5, 90.5, 92.5, 94.5, 96.5, 98.5])
+      self.assertEqual(list(series), list(expected))
+
+      series.consolidate(3)
+      self.assertEqual(series.valuesPerPoint, 3)
+      expected = TimeSeries("collectd.test-db.load.value", 0, 5, 1, map(float, list(range(1, 100, 3)) + [99]))
+      self.assertEqual(list(series), list(expected))
+
     def test_TimeSeries_iterate_valuesPerPoint_2_invalid(self):
       values = list(range(0,100))
 
@@ -236,7 +253,7 @@ class TimeSeriesTest(TestCase):
       series.consolidate(2)
       self.assertEqual(series.valuesPerPoint, 2)
       with self.assertRaisesRegexp(Exception, "Invalid consolidation function: 'bogus'"):
-        result = list(series)
+        _ = list(series)
 
 
 class DatalibFunctionTest(TestCase):
@@ -286,7 +303,7 @@ class DatalibFunctionTest(TestCase):
       pathExpr = 'collectd.test-db.load.value'
       startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE))
       endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
-      timeInfo = [startTime, endTime, 60]
+      # timeInfo = [startTime, endTime, 60]
       result_queue = [
                       [pathExpr, None],
                      ]
@@ -303,7 +320,7 @@ class DatalibFunctionTest(TestCase):
       pathExpr = 'collectd.test-db.load.value'
       startTime=datetime(1970, 1, 1, 0, 10, 0, 0, pytz.timezone(settings.TIME_ZONE))
       endTime=datetime(1970, 1, 1, 0, 20, 0, 0, pytz.timezone(settings.TIME_ZONE))
-      timeInfo = [startTime, endTime, 60]
+      # timeInfo = [startTime, endTime, 60]
       result_queue = [
                       [pathExpr, ['invalid input']],
                      ]

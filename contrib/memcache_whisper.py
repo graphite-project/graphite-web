@@ -30,12 +30,21 @@ NOTE: This is a modified version of whisper.py
 For details on the modification, read https://bugs.launchpad.net/graphite/+bug/245835
 """
 
-import os, struct, time
+import os
+import struct
+import sys
+import time
 try:
   import fcntl
   CAN_LOCK = True
 except ImportError:
   CAN_LOCK = False
+
+if sys.version_info[0] == 3:
+    xrange = range
+    # This `file` hack avoids linter warnings under Python-3,
+    # but this code likely only works with Python-2.
+    file = None
 
 LOCK = False
 CACHE_HEADERS = False
@@ -58,11 +67,14 @@ archiveInfoSize = struct.calcsize(archiveInfoFormat)
 
 debug = startBlock = endBlock = lambda *a,**k: None
 
+
 def exists(path):
   return os.path.exists(path)
 
+
 def drop(path):
   os.remove(path)
+
 
 def enableMemcache(servers = ['127.0.0.1:11211'], min_compress_len = 0):
   from StringIO import StringIO
@@ -84,15 +96,17 @@ def enableMemcache(servers = ['127.0.0.1:11211'], min_compress_len = 0):
       if self.mode == "r+b" or self.mode == "wb":
         MC.set(self.name, self.getvalue(), min_compress_len = min_compress_len)
       StringIO.close(self)
-      
+
   def exists(path):
-    return MC.get(path) != None
+    return MC.get(path) is not None
 
   def drop(path):
     MC.delete(path)
 
+
 def enableDebug():
   global open, debug, startBlock, endBlock
+
   class open(file):
     def __init__(self,*args,**kwargs):
       file.__init__(self,*args,**kwargs)
@@ -180,13 +194,13 @@ xFilesFactor specifies the fraction of data points in a propagation interval tha
     if i == len(archiveList) - 1: break
     next = archiveList[i+1]
     assert archive[0] < next[0],\
-    "You cannot configure two archives with the same precision %s,%s" % (archive,next)
+        "You cannot configure two archives with the same precision %s,%s" % (archive,next)
     assert (next[0] % archive[0]) == 0,\
-    "Higher precision archives' precision must evenly divide all lower precision archives' precision %s,%s" % (archive[0],next[0])
+        "Higher precision archives' precision must evenly divide all lower precision archives' precision %s,%s" % (archive[0],next[0])
     retention = archive[0] * archive[1]
     nextRetention = next[0] * next[1]
     assert nextRetention > retention,\
-    "Lower precision archives must cover larger time intervals than higher precision archives %s,%s" % (archive,next)
+        "Lower precision archives must cover larger time intervals than higher precision archives %s,%s" % (archive,next)
   #Looks good, now we create the file and write the header
   assert not exists(path), "File %s already exists!" % path
   fh = open(path,'wb')
@@ -211,7 +225,7 @@ xFilesFactor specifies the fraction of data points in a propagation interval tha
 
 def __propagate(fh,timestamp,xff,higher,lower):
   lowerIntervalStart = timestamp - (timestamp % lower['secondsPerPoint'])
-  lowerIntervalEnd = lowerIntervalStart + lower['secondsPerPoint']
+  # lowerIntervalEnd = lowerIntervalStart + lower['secondsPerPoint']
   fh.seek(higher['offset'])
   packedPoint = fh.read(pointSize)
   (higherBaseInterval,higherBaseValue) = struct.unpack(pointFormat,packedPoint)
@@ -301,7 +315,7 @@ timestamp is either an int or float
   if baseInterval == 0: #This file's first update
     fh.seek(archive['offset'])
     fh.write(myPackedPoint)
-    baseInterval,baseValue = myInterval,value
+    baseInterval,baseValue = myInterval,value  # noqa: F841
   else: #Not our first update
     timeDistance = myInterval - baseInterval
     pointDistance = timeDistance / archive['secondsPerPoint']
