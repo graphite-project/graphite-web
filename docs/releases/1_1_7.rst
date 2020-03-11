@@ -2,7 +2,7 @@
 
 1.1.7
 ===========================
-*03/09/2020*
+*03/16/2020*
 
 Graphite 1.1.7 is now available for usage. Please note that this is a bugfix release for the stable Graphite 1.1.x branch and it's recommended for production usage. It also contains some improvements backported from the master branch.
 
