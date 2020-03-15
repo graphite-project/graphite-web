@@ -189,6 +189,13 @@ SECRET_KEY = 'UNSAFE_DEFAULT'
 #   provided arguments and return an error message to the user
 ENFORCE_INPUT_VALIDATION = False
 
+# headers which shall be added to log statements informing about invalid queries,
+# this is useful to identify where a query came from.
+# The dict is keyed by the header name and the associated value is a short description
+# of the header which will be used in the log statement, for example:
+# {'X-FORWARD-FOR': 'forwarded-for'}
+INPUT_VALIDATION_SOURCE_ID_HEADERS = {}
+
 # Django 1.5 requires this to be set. Here we default to prior behavior and allow all
 ALLOWED_HOSTS = [ '*' ]
 
