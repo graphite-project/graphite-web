@@ -1315,7 +1315,7 @@ def scaleToSeconds(requestContext, seriesList, seconds):
 scaleToSeconds.group = 'Transform'
 scaleToSeconds.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
-  Param('seconds', ParamTypes.integer, required=True),
+  Param('seconds', ParamTypes.float, required=True),
 ]
 
 
