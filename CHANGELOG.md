@@ -34,7 +34,9 @@
  - move all validation into Param.validateValue (#2557, @replay)
  - handle exceptions if params cannot be type converted (#2547, @replay)
  - better error messages with type indications (#2543, @replay)
-
+ - log grafana dashboard/panel id headers (#2564, @replay)
+ - Allow floats in scaleToSeconds() (#2565, @replay)
+    
 ## carbon
 
 ### Bug Fixes
