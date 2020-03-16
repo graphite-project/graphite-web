@@ -1,0 +1,116 @@
+.. _1-1-7:
+
+1.1.7
+===========================
+*03/16/2020*
+
+Graphite 1.1.7 is now available for usage. Please note that this is a bugfix release for the stable Graphite 1.1.x branch and it's recommended for production usage. It also contains some improvements backported from the master branch.
+
+Highlights
+-------------
+* New experimental Bucketmax write strategy (see #879 for details)
+* Fixes for function parameters validation
+* More fixes for better error handling
+* Python 3.9 and Django 3.x support
+* Python 3 fixes Carbon, Carbonate and Graphite-web
+* Many flake8 fixes for Graphite-web
+
+Thanks a lot for all Graphite contributors and users!
+
+Source bundles are available from GitHub:
+
+* https://github.com/graphite-project/graphite-web/archive/1.1.7.tar.gz
+* https://github.com/graphite-project/carbon/archive/1.1.7.tar.gz
+* https://github.com/graphite-project/whisper/archive/1.1.7.tar.gz
+* https://github.com/graphite-project/carbonate/archive/1.1.7.tar.gz
+
+Graphite can also be installed from `PyPI <http://pypi.python.org/>`_ via
+`pip <http://www.pip-installer.org/en/latest/index.html>`_. PyPI bundles are here:
+
+* http://pypi.python.org/pypi/graphite-web/
+* http://pypi.python.org/pypi/carbon/
+* http://pypi.python.org/pypi/whisper/
+* http://pypi.python.org/pypi/carbonate/
+
+You can also use docker image from https://hub.docker.com/r/graphiteapp/graphite-statsd/
+
+Upgrading
+---------
+Please upgrade carbon and graphite-web - they contain valuable bugfixes and improvements. Whisper package has no changes from previous release.
+
+New features
+------------
+
+Graphite-Web
+^^^^^^^^^^^^
+ * Merge prefetched data. (#2507.  @liyichao)
+ * introduce paramtype for agg or series func (#2523, @replay)
+ * Mark series functions to use as aggregators  (#2528, @replay)
+ * Python 3.9 support: remove deprecated U option to open (#2529, @piotr1212)
+ * remove leading ~ from name when indexing metric names (#2458, @replay)
+ * add graphite-dl4j and carbon-proxy (#2521, @jdbranham)
+ * test docs on Python3 (#2535, @piotr1212)
+ * Django 3.0 compatibility (#2534, @piotr1212)
+ * Parameter type int or inf (#2538, @replay)
+ * Interpret inf (#2539, @replay)
+ * better error messages (#2543, @replay)
+ * Adding Hisser and Go-graphite buckytools in tools documentation (#2549, @deniszh)
+ * make consolidation func `avg` alias for average (#2556, @replay)
+ * move all validation into Param.validateValue (#2557, @replay)
+ * handle exceptions if params cannot be type converted (#2547, @replay)
+ * better error messages with type indications (#2543, @replay)
+ * log grafana dashboard/panel id headers (#2564, @replay)
+ * Allow floats in scaleToSeconds() (#2565, @replay)
+
+Carbon
+^^^^^^
+ * Bucketmax write strategy (#879, @piotr1212)
+ * s390x support for travis (#869, @sangitanalkar)
+ * sanitize names when using them as tag value (#858, @replay)
+ * simplify travis-ci config (#875, @ploxiln)
+
+Whisper
+^^^^^^^
+None
+
+Carbonate
+^^^^^^^^^
+ * Add python3 testing (#110, @hdost)
+ * add codecov (#112, @piotr1212)
+
+Bug Fixes
+---------
+
+Graphite-Web
+^^^^^^^^^^^^
+ * Fix AttributeError if parameter validation fails (#2510, @PhilippWendler)
+ * Taming lint (#2512, @deniszh)
+ * relax enforcement of options sets in validation (#2513, @replay)
+ * Fix tests (#2525, @replay)
+ * Trying to fix tests (#2530, @deniszh)
+ * simplify travis-ci config (#2532, @ploxiln)
+ * fix function parameter types (#2536, @replay)
+ * fixes #2541 (#2542, @replay)
+ * prune flake8 ignore list (#2552, @ploxlin)
+ * flake8: re-enable F841 (local variable assigned but not used) (#2559, @ploxiln)
+ * flake8: re-enable E122,E124 (indent of continuation and closing bracket) (#2558, @ploxiln)
+ * Fix validator when default value is used (#2555, @replay)
+ * flake8: include contrib/ subdir, re-enable rule E713 (#2554, @ploxiln)
+
+Carbon
+^^^^^^
+ * Fix #871: Adjust aggregator-rules input_pattern match greediness to support numeric matching after captured field (#872 @hessu)
+ * Another test fix try (#874, @deniszh)
+ * Fixing tests for S390 (#880, @sangitanalkar)
+ * Trying to fix tests (#881, @deniszh)
+ * Fix the manhole for Twisted > 16 and Python 3 (#882, @piotr1212)
+ * Fix missing encoding for line protocol (#885, @pkruk)
+
+Whisper
+^^^^^^^
+None
+
+Carbonate
+^^^^^^^^^
+ * fixes python3 TypeError (#113, @l4r-s)
+ * Change write mode to non-binary. (#111, @hdost)
