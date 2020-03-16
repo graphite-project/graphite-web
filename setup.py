@@ -80,7 +80,7 @@ def read(fname):
 try:
     setup(
       name='graphite-web',
-      version='1.1.6',
+      version='1.1.7',
       url='http://graphiteapp.org/',
       author='Chris Davis',
       author_email='chrismd@gmail.com',

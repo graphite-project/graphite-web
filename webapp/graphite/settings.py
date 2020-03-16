@@ -28,7 +28,7 @@ except ImportError:  # Django < 1.10
 
 
 GRAPHITE_WEB_APP_SETTINGS_LOADED = False
-WEBAPP_VERSION = '1.1.6'
+WEBAPP_VERSION = '1.1.7'
 DEBUG = False
 JAVASCRIPT_DEBUG = False
 
