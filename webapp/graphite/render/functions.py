@@ -1671,7 +1671,7 @@ offsetToZero.params = [
 ]
 
 
-def roundFunction(requestContext, seriesList, precision=None):
+def round(requestContext, seriesList, precision=None):
   """
   Takes one metric or a wildcard seriesList optionally followed by a precision, and rounds each
   datapoint to the specified precision.
@@ -1697,8 +1697,8 @@ def roundFunction(requestContext, seriesList, precision=None):
   return seriesList
 
 
-roundFunction.group = 'Transform'
-roundFunction.params = [
+round.group = 'Transform'
+round.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
   Param('precision', ParamTypes.integer, default=0),
 ]
@@ -5699,7 +5699,7 @@ SeriesFunctions = {
   'perSecond': perSecond,
   'pow': pow,
   'powSeries': powSeries,
-  'round': roundFunction,
+  'round': round,
   'scale': scale,
   'scaleToSeconds': scaleToSeconds,
   'sigmoid': sigmoid,
