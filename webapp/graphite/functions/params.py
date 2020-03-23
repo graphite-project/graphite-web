@@ -24,37 +24,66 @@ class ParamType(object):
   def isValid(self, value):
     if self.validator is None:
       # if there's no validator for the type we assume True
-      return True
+      return value
 
     return self.validator(value)
 
 
 def validateBoolean(value):
-  return isinstance(value, bool)
+  if isinstance(value, six.string_types):
+    if value.lower() == 'true':
+      return True
+    if value.lower() == 'false':
+      return False
+    raise ValueError('Invalid boolean value: {value}'.format(value=repr(value)))
+
+  if type(value) in [int, float]:
+    if value == 0:
+      return False
+    return True
+
+  return bool(value)
 
 
 def validateFloat(value):
-  return isinstance(value, float) or validateInteger(value)
+  return float(value)
 
 
 def validateInteger(value):
-  return isinstance(value, six.integer_types)
+  # prevent that float values get converted to int, because an
+  # error is better than silently falsifying the result
+  if type(value) is float:
+    raise ValueError('Not a valid integer value: {value}'.format(value=repr(value)))
+
+  return int(value)
 
 
 def validateIntOrInf(value):
-  return validateInteger(value) or value == float('inf')
+  try:
+    return validateInteger(value)
+  except Exception:
+    pass
+
+  try:
+    inf = float('inf')
+    if float(value) == inf:
+      return inf
+  except Exception:
+    pass
+
+  raise ValueError('Not a valid integer nor float value: {value}'.format(value=repr(value)))
 
 
 def validateInterval(value):
   try:
     parseTimeOffset(value)
-  except Exception:
-    return False
-  return True
+  except Exception as e:
+    raise ValueError('Invalid interval value: {value}: {e}'.format(value=repr(value), e=str(e)))
+  return value
 
 
 def validateSeriesList(value):
-  return isinstance(value, list)
+  return list(value)
 
 
 ParamType.register('boolean', validateBoolean)
@@ -99,13 +128,13 @@ class ParamTypeAggFunc(ParamType):
 
   def validateAggFuncs(self, value):
     if value in self.getValidAggFuncs():
-      return True
+      return value
 
     if value in self.getDeprecatedAggFuncs():
-      log.warning('Deprecated aggregation function "{value}" used'.format(value=value))
-      return True
+      log.warning('Deprecated aggregation function: {value}'.format(value=repr(value)))
+      return value
 
-    return False
+    raise ValueError('Invalid aggregation function: {value}'.format(value=repr(value)))
 
 
 ParamTypeAggFunc.register('aggFunc')
@@ -129,11 +158,13 @@ class ParamTypeAggOrSeriesFunc(ParamTypeAggFunc):
       self.options.append(name)
 
   def validateAggOrSeriesFuncs(self, value):
-    if self.validateAggFuncs(value):
-      return True
+    try:
+      return self.validateAggFuncs(value)
+    except Exception:
+      pass
 
     if value in self.options:
-      return True
+      return value
 
     return False
 
@@ -183,11 +214,11 @@ class Param(object):
     # if value isn't specified and there's a default then the default will be used,
     # we don't need to validate the default value because we trust that it is valid
     if value is None and self.default is not None:
-      return True
+      return value
 
     # None is ok for optional params
     if not self.required and value is None:
-      return True
+      return value
 
     # parameter is restricted to a defined set of values, but value is not in it
     if self.options and value not in self.options:
@@ -195,43 +226,69 @@ class Param(object):
         'Invalid option specified for function "{func}" parameter "{param}": {value}'.format(
           func=func, param=self.name, value=repr(value)))
 
-    if not self.type.isValid(value):
+    try:
+      return self.type.isValid(value)
+    except Exception:
       raise InputParameterError(
         'Invalid "{type}" value specified for function "{func}" parameter "{param}": {value}'.format(
           type=self.type.name, func=func, param=self.name, value=repr(value)))
 
-    return True
-
 
 def validateParams(func, params, args, kwargs):
   valid_args = []
+  valid_kwargs = {}
 
-  if len(params) == 0 or params[len(params)-1].multiple is False:
-    if len(args) + len(kwargs) > len(params):
+  # total number of args + kwargs might be larger than number of params if
+  # the last param allows to be specified multiple times
+  if len(args) + len(kwargs) > len(params):
+    if not params[-1].multiple:
       raise InputParameterError(
         'Too many parameters specified for function "{func}"'.format(func=func))
 
-  for i in range(len(params)):
-    if len(args) <= i:
-      # requirement is satisfied from "kwargs"
-      value = kwargs.get(params[i].name, None)
-      if value is None:
-        if params[i].required:
-          # required parameter is missing
-          raise InputParameterError(
-            'Missing required parameter "{param}" for function "{func}"'.format(
-              param=params[i].name, func=func))
-        else:
-          # got multiple values for keyword argument
-          if params[i].name in valid_args:
-            raise InputParameterError(
-              'Keyword parameter "{param}" specified multiple times for function "{func}"'.format(
-                param=params[i].name, func=func))
+    # if args has more values than params and the last param allows multiple values,
+    # then we're going to validate all paramas from the args value list
+    args_params = params
+    kwargs_params = []
+  else:
+    # take the first len(args) params and use them to validate the args values,
+    # use the remaining params to validate the kwargs values
+    args_params = params[:len(args)]
+    kwargs_params = params[len(args):]
+
+  # validate the args
+  for i in range(len(args)):
+    if i >= len(args_params):
+      # last parameter must be allowing multiple,
+      # so we're using it to validate this arg
+      param = args_params[-1]
     else:
-      # requirement is satisfied from "args"
-      value = args[i]
+      param = args_params[i]
 
-    params[i].validateValue(value, func)
-    valid_args.append(params[i].name)
+    valid_args.append(param.validateValue(args[i], func))
 
-  return True
+  # validate the kwargs
+  for param in kwargs_params:
+    value = kwargs.get(param.name, None)
+    if value is None:
+      if param.required:
+        raise InputParameterError(
+          'Missing required parameter "{param}" for function "{func}"'
+          .format(param=param.name, func=func))
+      continue
+
+    valid_kwargs[param.name] = param.validateValue(value, func)
+
+  if len(kwargs) > len(valid_kwargs):
+    unexpected_keys = []
+    for name in kwargs.keys():
+      if name not in valid_kwargs:
+        unexpected_keys.append(name)
+    raise InputParameterError(
+      'Unexpected key word arguments: {keys}'.format(
+        keys=', '.join(
+          key
+          for key in kwargs.keys()
+          if key not in valid_kwargs.keys()
+        )))
+
+  return (valid_args, valid_kwargs)

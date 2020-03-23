@@ -114,7 +114,7 @@ def evaluateTokens(requestContext, tokens, replacements=None, pipedArg=None):
 
     if hasattr(func, 'params'):
       try:
-        validateParams(tokens.call.funcname, func.params, args, kwargs)
+        (args, kwargs) = validateParams(tokens.call.funcname, func.params, args, kwargs)
       except InputParameterError as e:
         handleInvalidParameters(e)
 
