@@ -175,7 +175,7 @@ ParamTypeAggOrSeriesFunc.register('aggOrSeriesFunc')
 class Param(object):
     __slots__ = ('name', 'type', 'required', 'default', 'multiple', '_options', 'suggestions')
 
-    def __init__(self, name, paramtype, required=False, default=None, multiple=False, options=[], suggestions=None):
+    def __init__(self, name, paramtype, required=False, default=None, multiple=False, options=None, suggestions=None):
         self.name = name
         if not isinstance(paramtype, ParamType):
             raise Exception('Invalid type %s for parameter %s' % (paramtype, name))
@@ -183,6 +183,8 @@ class Param(object):
         self.required = bool(required)
         self.default = default
         self.multiple = bool(multiple)
+        if options is None:
+            options = []
         self._options = options
         self.suggestions = suggestions
 
