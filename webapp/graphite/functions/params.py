@@ -40,7 +40,9 @@ def validateBoolean(value):
     if type(value) in [int, float]:
         if value == 0:
             return False
-        return True
+        if value == 1:
+            return True
+        raise ValueError('Invalid boolean value: {value}'.format(value=repr(value)))
 
     return bool(value)
 

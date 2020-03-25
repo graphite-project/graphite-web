@@ -314,11 +314,12 @@ class TestParam(unittest.TestCase):
         self.assertEqual(validateParams(
             'TestParam',
             [
-                Param('bool', ParamTypes.boolean),
+                Param('bool1', ParamTypes.boolean),
+                Param('bool2', ParamTypes.boolean),
             ],
-            [],
-            {'bool': 1}),
-            ([], {'bool': True}),
+            [0],
+            {'bool2': 1}),
+            ([False], {'bool2': True}),
         )
 
         self.assertEqual(validateParams(
@@ -407,5 +408,14 @@ class TestParam(unittest.TestCase):
             'TestParam',
             [Param('param', ParamTypes.boolean)],
             ['1'],
+            {},
+        )
+
+        self.assertRaises(
+            InputParameterError,
+            validateParams,
+            'TestParam',
+            [Param('param', ParamTypes.boolean)],
+            [3],
             {},
         )
