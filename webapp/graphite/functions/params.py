@@ -61,14 +61,14 @@ def validateInteger(value):
 def validateIntOrInf(value):
     try:
         return validateInteger(value)
-    except Exception:
+    except (TypeError, ValueError):
         pass
 
     try:
         inf = float('inf')
         if float(value) == inf:
             return inf
-    except Exception:
+    except (TypeError, ValueError, OverflowError):
         pass
 
     raise ValueError('Not a valid integer nor float value: {value}'.format(value=repr(value)))
@@ -77,7 +77,7 @@ def validateIntOrInf(value):
 def validateInterval(value):
     try:
         parseTimeOffset(value)
-    except Exception as e:
+    except (IndexError, KeyError, TypeError, ValueError) as e:
         raise ValueError('Invalid interval value: {value}: {e}'.format(value=repr(value), e=str(e)))
     return value
 
@@ -160,7 +160,7 @@ class ParamTypeAggOrSeriesFunc(ParamTypeAggFunc):
     def validateAggOrSeriesFuncs(self, value):
         try:
             return self.validateAggFuncs(value)
-        except Exception:
+        except ValueError:
             pass
 
         if value in self.options:
