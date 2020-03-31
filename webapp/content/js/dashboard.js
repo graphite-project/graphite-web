@@ -737,7 +737,7 @@ function initDashboard () {
   var lastRefreshedText = {
     id: 'last-refreshed-text',
     xtype: 'tbtext',
-    text: ( new Date() ).format('g:i:s A')
+    text: ( new Date() ).format('G:i:s')
   };
 
   graphArea = new Ext.Panel({
@@ -1110,7 +1110,7 @@ function updateGraphRecords() {
 function refreshGraphs() {
   updateGraphRecords();
   graphView.refresh();
-  graphArea.getTopToolbar().get('last-refreshed-text').setText( (new Date()).format('g:i:s A') );
+  graphArea.getTopToolbar().get('last-refreshed-text').setText( (new Date()).format('G:i:s') );
 }
 
 /*
@@ -1190,7 +1190,7 @@ function getTimeText() {
     }
     return text;
   } else {
-    var fmt = 'g:ia F jS Y';
+    var fmt = 'G:ia F jS Y';
     return 'Now Showing ' + TimeRange.startDate.format(fmt) + ' through ' + TimeRange.endDate.format(fmt);
   }
 }
