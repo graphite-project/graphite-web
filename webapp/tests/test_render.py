@@ -132,27 +132,27 @@ class RenderTest(TestCase):
 
         message = r'invalid template\(\) syntax, only string/numeric arguments are allowed'
         with self.assertRaisesRegexp(ValueError, message):
-          evaluateTarget({}, test_input)
+            evaluateTarget({}, test_input)
 
     @patch('graphite.render.evaluator.prefetchData', lambda *_: None)
     def test_render_evaluateTokens_NormalizeEmptyResultError(self):
         def raiseError(requestContext):
-          raise NormalizeEmptyResultError
+            raise NormalizeEmptyResultError
 
         with patch('graphite.functions._SeriesFunctions', {'test': raiseError}):
-          outputs = evaluateTarget({}, 'test()')
-          self.assertEqual(outputs, [])
+            outputs = evaluateTarget({}, 'test()')
+            self.assertEqual(outputs, [])
 
     @patch('graphite.render.evaluator.prefetchData', lambda *_: None)
     def test_render_evaluateTokens_TimeSeries(self):
         timeseries = TimeSeries('test', 0, 1, 1, [1])
 
         def returnTimeSeries(requestContext):
-          return timeseries
+            return timeseries
 
         with patch('graphite.functions._SeriesFunctions', {'test': returnTimeSeries}):
-          outputs = evaluateTarget({}, 'test()')
-          self.assertEqual(outputs, [timeseries])
+            outputs = evaluateTarget({}, 'test()')
+            self.assertEqual(outputs, [timeseries])
 
     def test_render_evaluateScalarTokens(self):
         # test parsing numeric arguments
@@ -169,25 +169,25 @@ class RenderTest(TestCase):
 
         # test invalid tokens
         class ScalarToken(object):
-          number = None
-          string = None
-          boolean = None
-          none = None
-          infinity = None
+            number = None
+            string = None
+            boolean = None
+            none = None
+            infinity = None
 
         class ScalarTokenNumber(object):
-          integer = None
-          float = None
-          scientific = None
+            integer = None
+            float = None
+            scientific = None
 
         with self.assertRaisesRegexp(ValueError, 'unknown token in target evaluator'):
-          tokens = ScalarToken()
-          evaluateScalarTokens(tokens)
+            tokens = ScalarToken()
+            evaluateScalarTokens(tokens)
 
         with self.assertRaisesRegexp(ValueError, 'unknown numeric type in target evaluator'):
-          tokens = ScalarToken()
-          tokens.number = ScalarTokenNumber()
-          evaluateScalarTokens(tokens)
+            tokens = ScalarToken()
+            tokens.number = ScalarTokenNumber()
+            evaluateScalarTokens(tokens)
 
     def test_render_view(self):
         url = reverse('render')

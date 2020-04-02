@@ -20,7 +20,7 @@ class TestPool(unittest.TestCase):
         err = Exception('this is a test')
 
         def testfunc():
-          raise err
+            raise err
 
         results = pool.pool_exec(p, [pool.Job(testfunc, 'job')], 1)
 
@@ -59,9 +59,8 @@ class TestPool(unittest.TestCase):
         jobs = [pool.Job(lambda v: time.sleep(1) and v, 'job', i) for i in range(1, 5)]
 
         with self.assertRaises(pool.PoolTimeoutError):
-          results = pool.pool_exec(p, jobs, 1)
-
-          list(results)
+            results = pool.pool_exec(p, jobs, 1)
+            list(results)
 
     def test_timeout_sync(self):
         p = pool.get_pool(thread_count=0)
@@ -69,9 +68,8 @@ class TestPool(unittest.TestCase):
         jobs = [pool.Job(lambda v: time.sleep(1) and v, 'job', i) for i in range(1, 5)]
 
         with self.assertRaises(pool.PoolTimeoutError):
-          results = pool.pool_exec(p, jobs, 1)
-
-          list(results)
+            results = pool.pool_exec(p, jobs, 1)
+            list(results)
 
 
 if __name__ == '__main__':

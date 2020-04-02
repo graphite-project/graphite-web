@@ -48,25 +48,25 @@ with open('setup.cfg', 'w') as f:
     cf.write(f)
 
 if os.environ.get('USE_SETUPTOOLS'):
-  from setuptools import setup
-  setup_kwargs = dict(zip_safe=0)
+    from setuptools import setup
+    setup_kwargs = dict(zip_safe=0)
 
 else:
-  from distutils.core import setup
-  setup_kwargs = dict()
+    from distutils.core import setup
+    setup_kwargs = dict()
 
 
 storage_dirs = []
 
 for subdir in ('whisper/dummy.txt', 'ceres/dummy.txt', 'rrd/dummy.txt', 'log/dummy.txt', 'log/webapp/dummy.txt'):
-  storage_dirs.append( ('storage/%s' % subdir, []) )
+    storage_dirs.append( ('storage/%s' % subdir, []) )
 
 webapp_content = defaultdict(list)
 
 for root, dirs, files in os.walk('webapp/content'):
-  for filename in files:
-    filepath = os.path.join(root, filename)
-    webapp_content[root].append(filepath)
+    for filename in files:
+        filepath = os.path.join(root, filename)
+        webapp_content[root].append(filepath)
 
 conf_files = [ ('conf', glob('conf/*.example')) ]
 examples = [ ('examples', glob('examples/example-*')) ]
