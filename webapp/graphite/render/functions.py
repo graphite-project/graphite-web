@@ -5018,7 +5018,9 @@ smartSummarize.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
   Param('intervalString', ParamTypes.interval, required=True, suggestions=['10min', '1h', '1d']),
   Param('func', ParamTypes.aggFunc, default='sum'),
-  Param('alignTo', ParamTypes.string, options=[None, YEARS_STRING, MONTHS_STRING, WEEKS_STRING, DAYS_STRING, HOURS_STRING, MINUTES_STRING, SECONDS_STRING]),
+
+  # the options True and False are only part of this list for backwards compatibility and get ignored if specified
+  Param('alignTo', ParamTypes.string, options=[None, YEARS_STRING, MONTHS_STRING, WEEKS_STRING, DAYS_STRING, HOURS_STRING, MINUTES_STRING, SECONDS_STRING, True, False]),
 ]
 
 
