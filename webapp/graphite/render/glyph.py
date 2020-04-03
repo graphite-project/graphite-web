@@ -885,12 +885,12 @@ class Graph:
         metaData = { }
 
       self.surface.finish()
-      svgData = str(self.surfaceData.getvalue())
+      svgData = self.surfaceData.getvalue()
       self.surfaceData.close()
 
-      svgData = svgData.replace('pt"', 'px"', 2) # we expect height/width in pixels, not points
-      svgData = svgData.replace('</svg>\n', '', 1)
-      svgData = svgData.replace('</defs>\n<g', '</defs>\n<g class="graphite"', 1)
+      svgData = svgData.replace(b'pt"', b'px"', 2)  # we expect height/width in pixels, not points
+      svgData = svgData.replace(b'</svg>\n', b'', 1)
+      svgData = svgData.replace(b'</defs>\n<g', b'</defs>\n<g class="graphite"', 1)
 
       if hasData:
         # We encode headers using special paths with d^="M -88 -88"
@@ -899,16 +899,16 @@ class Graph:
           name = ''
           for char in re.findall(r'L -(\d+) -\d+', match.group(1)):
             name += chr(int(char))
-          return '</g><g data-header="true" class="%s">' % name
-        (svgData, subsMade) = re.subn(r'<path.+?d="M -88 -88 (.+?)"/>', onHeaderPath, svgData)
+          return b'</g><g data-header="true" class="%s">' % name
+        (svgData, subsMade) = re.subn(b'<path.+?d="M -88 -88 (.+?)"/>', onHeaderPath, svgData)
 
         # Replace the first </g><g> with <g>, and close out the last </g> at the end
-        svgData = svgData.replace('</g><g data-header','<g data-header',1)
+        svgData = svgData.replace(b'</g><g data-header', b'<g data-header', 1)
         if subsMade > 0:
-          svgData += "</g>"
-        svgData = svgData.replace(' data-header="true"','')
+          svgData += b'</g>'
+        svgData = svgData.replace(b' data-header="true"', b'')
 
-      fileObj.write(svgData.encode('utf-8'))
+      fileObj.write(svgData)
       fileObj.write(("""<script>
   <![CDATA[
     metadata = %s
