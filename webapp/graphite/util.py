@@ -162,7 +162,7 @@ if not PY3:
       'copy_reg': set(['_reconstructor']),
       '__builtin__': set(['object', 'list', 'set']),
       'collections': set(['deque']),
-      'graphite.render.datalib': set(['TimeSeries']),
+      'graphite.render.datalib': set(['TimeSeries', 'Tags']),
       'graphite.intervals': set(['Interval', 'IntervalSet']),
     }
 
@@ -196,7 +196,7 @@ else:
       'copy_reg': set(['_reconstructor']),
       'builtins': set(['object', 'list', 'set']),
       'collections': set(['deque']),
-      'graphite.render.datalib': set(['TimeSeries']),
+      'graphite.render.datalib': set(['TimeSeries', 'Tags']),
       'graphite.intervals': set(['Interval', 'IntervalSet']),
     }
 
