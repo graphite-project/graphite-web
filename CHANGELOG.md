@@ -1,6 +1,10 @@
 # 1.2.0 (master/unreleased)
 
-## None
+## graphite-web
+
+ - ensure that all tag values are strings (#2572, @DanCech)
+ - Attempt to convert parameter types in validator (#2574, @replay)
+ - accept deprecated params for bc (#2579, @replay)
 
 # 1.1.7
 
