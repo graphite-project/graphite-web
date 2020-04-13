@@ -13,6 +13,7 @@ option_parser.add_option('--port', default=8080, action='store', type=int, help=
 option_parser.add_option('--interface', default='0.0.0.0', action='store', help='Interface to listen on')
 option_parser.add_option('--libs', default=None, help='Path to the directory containing the graphite python package')
 option_parser.add_option('--noreload', action='store_true', help='Disable monitoring for changes')
+option_parser.add_option('--settings', default='graphite.settings', help='configure alternative settings module')
 
 (options, args) = option_parser.parse_args()
 
@@ -35,7 +36,7 @@ command = [
   'django-admin.py',
   'runserver',
   '--pythonpath', python_path,
-  '--settings', 'graphite.settings',
+  '--settings', options.settings,
   '%s:%d' % (options.interface, options.port)
 ]
 

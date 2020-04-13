@@ -543,7 +543,7 @@ def renderLocalView(request):
   try:
     start = time()
     reqParams = BytesIO(request.body)
-    graphType = reqParams.readline().strip()
+    graphType = reqParams.readline().strip().decode()
     optionsPickle = reqParams.read()
     reqParams.close()
     graphClass = GraphTypes[graphType]
