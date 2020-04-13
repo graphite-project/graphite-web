@@ -494,7 +494,7 @@ def delegateRendering(graphType, graphOptions, headers=None):
   if headers is None:
     headers = {}
   start = time()
-  postData = graphType + '\n' + pickle.dumps(graphOptions)
+  postData = (graphType + '\n').encode() + pickle.dumps(graphOptions)
   servers = settings.RENDERING_HOSTS[:] #make a copy so we can shuffle it safely
   shuffle(servers)
   connector_class = connector_class_selector(settings.INTRACLUSTER_HTTPS)
