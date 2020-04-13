@@ -55,8 +55,8 @@ class CeresReaderTests(TestCase):
         reader = CeresReader(ceres.CeresTree(self.test_dir).getNode('ceres.reader.tests.worker1.cpu'), 'ceres.reader.tests.worker1.cpu')
         intervals = reader.get_intervals()
         for interval in intervals:
-          self.assertEqual(interval.start, self.start_ts)
-          self.assertEqual(interval.end, self.start_ts+1)
+            self.assertEqual(interval.start, self.start_ts)
+            self.assertEqual(interval.end, self.start_ts+1)
 
     # Confirm fetch works.
     def test_CeresReader_fetch(self):

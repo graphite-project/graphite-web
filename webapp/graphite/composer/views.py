@@ -24,60 +24,60 @@ from django.core.exceptions import ObjectDoesNotExist
 
 
 def composer(request):
-  profile = getProfile(request)
-  context = {
-    'queryString' : request.GET.urlencode().replace('+','%20'),
-    'showTarget' : request.GET.get('showTarget',''),
-    'user' : request.user,
-    'profile' : profile,
-    'showMyGraphs' : int( profile.user.username != 'default' ),
-    'searchEnabled' : int( os.access(settings.INDEX_FILE, os.R_OK) ),
-    'refreshInterval': settings.AUTO_REFRESH_INTERVAL,
-    'debug' : settings.DEBUG,
-    'jsdebug' : settings.DEBUG,
-  }
-  return render(request, "composer.html",context)
+    profile = getProfile(request)
+    context = {
+        'queryString' : request.GET.urlencode().replace('+','%20'),
+        'showTarget' : request.GET.get('showTarget',''),
+        'user' : request.user,
+        'profile' : profile,
+        'showMyGraphs' : int( profile.user.username != 'default' ),
+        'searchEnabled' : int( os.access(settings.INDEX_FILE, os.R_OK) ),
+        'refreshInterval': settings.AUTO_REFRESH_INTERVAL,
+        'debug' : settings.DEBUG,
+        'jsdebug' : settings.DEBUG,
+    }
+    return render(request, "composer.html", context)
 
 
 def mygraph(request):
-  profile = getProfile(request, allowDefault=False)
+    profile = getProfile(request, allowDefault=False)
 
-  if not profile:
-    return HttpResponse( "You are not logged in!" )
+    if not profile:
+        return HttpResponse("You are not logged in!")
 
-  action = request.GET['action']
-  graphName = request.GET['graphName']
+    action = request.GET['action']
+    graphName = request.GET['graphName']
 
-  if not graphName:
-    return HttpResponse("You must type in a graph name.")
+    if not graphName:
+        return HttpResponse("You must type in a graph name.")
 
-  if action == 'save':
-    url = request.GET['url']
+    if action == 'save':
+        url = request.GET['url']
 
-    try:
-      existingGraph = profile.mygraph_set.get(name=graphName)
-      existingGraph.url = url
-      existingGraph.save()
+        try:
+            existingGraph = profile.mygraph_set.get(name=graphName)
+            existingGraph.url = url
+            existingGraph.save()
 
-    except ObjectDoesNotExist:
-      try:
-        newGraph = MyGraph(profile=profile,name=graphName,url=url)
-        newGraph.save()
-      except Exception:
-        log.exception("Failed to create new MyGraph in /composer/mygraph/, graphName=%s" % graphName)
-        return HttpResponse("Failed to save graph %s" % graphName)
+        except ObjectDoesNotExist:
+            try:
+                newGraph = MyGraph(profile=profile,name=graphName,url=url)
+                newGraph.save()
+            except Exception:
+                log.exception("Failed to create new MyGraph in /composer/mygraph/, graphName=%s" % graphName)
+                return HttpResponse("Failed to save graph %s" % graphName)
 
-    return HttpResponse("SAVED")
+        return HttpResponse("SAVED")
 
-  elif action == 'delete':
-    try:
-      existingGraph = profile.mygraph_set.get(name=graphName)
-      existingGraph.delete()
+    elif action == 'delete':
+        try:
+            existingGraph = profile.mygraph_set.get(name=graphName)
+            existingGraph.delete()
 
-    except ObjectDoesNotExist:
-      return HttpResponse("No such graph '%s'" % graphName)
+        except ObjectDoesNotExist:
+            return HttpResponse("No such graph '%s'" % graphName)
 
-    return HttpResponse("DELETED")
+        return HttpResponse("DELETED")
 
-  else:
-    return HttpResponse("Invalid operation '%s'" % action)
+    else:
+        return HttpResponse("Invalid operation '%s'" % action)

@@ -78,7 +78,7 @@ kwargs = delimitedList(kwarg)
 
 
 def setRaw(s, loc, toks):
-  toks[0].raw = s[toks[0].start:toks[0].end]
+    toks[0].raw = s[toks[0].start:toks[0].end]
 
 
 call = Group(
@@ -143,9 +143,9 @@ else:
 
 
 def enableDebug():
-  for name, obj in globals().items():
-    try:
-      obj.setName(name)
-      obj.setDebug(True)
-    except Exception:
-      pass
+    for name, obj in globals().items():
+        try:
+            obj.setName(name)
+            obj.setDebug(True)
+        except Exception:
+            pass

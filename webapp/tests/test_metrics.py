@@ -84,14 +84,14 @@ class MetricsTester(TestCase):
 
         # failure
         def mock_STORE_get_index(self, requestContext=None):
-          raise Exception('test')
+            raise Exception('test')
 
         with patch('graphite.metrics.views.STORE.get_index', mock_STORE_get_index):
-          request = {}
-          response = self.client.post(url, request)
-          self.assertEqual(response.status_code, 500)
-          data = json.loads(response.content)
-          self.assertEqual(data, [])
+            request = {}
+            response = self.client.post(url, request)
+            self.assertEqual(response.status_code, 500)
+            data = json.loads(response.content)
+            self.assertEqual(data, [])
 
     def test_find_view(self):
         ts = int(time.time())
@@ -152,12 +152,12 @@ class MetricsTester(TestCase):
         self.assertEqual(response.content, b"Invalid value for 'format' parameter")
 
         def test_find_view_basics(data):
-          response = self.client.post(url, data)
-          self.assertEqual(response.status_code, 200)
-          self.assertTrue(response.has_header('Pragma'))
-          self.assertTrue(response.has_header('Cache-Control'))
+            response = self.client.post(url, data)
+            self.assertEqual(response.status_code, 200)
+            self.assertTrue(response.has_header('Pragma'))
+            self.assertTrue(response.has_header('Cache-Control'))
 
-          return response.content
+            return response.content
 
         #
         # Default values

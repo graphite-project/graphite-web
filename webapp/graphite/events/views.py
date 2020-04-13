@@ -37,11 +37,11 @@ def view_events(request):
 @jsonResponse(encoder=DjangoJSONEncoder)
 def jsonDetail(request, queryParams, event_id):
     try:
-       e = Event.objects.get(id=event_id)
-       e.tags = e.tags.split()
-       return model_to_dict(e)
+        e = Event.objects.get(id=event_id)
+        e.tags = e.tags.split()
+        return model_to_dict(e)
     except ObjectDoesNotExist:
-       raise HttpError('Event matching query does not exist', status=404)
+        raise HttpError('Event matching query does not exist', status=404)
 
 
 def detail(request, event_id):

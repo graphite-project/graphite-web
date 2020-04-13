@@ -14,9 +14,9 @@ from .base import TestCase
 from django.conf import settings
 
 try:
-  from django.urls import reverse
+    from django.urls import reverse
 except ImportError:  # Django < 1.10
-  from django.core.urlresolvers import reverse
+    from django.core.urlresolvers import reverse
 
 from graphite.errors import NormalizeEmptyResultError
 from graphite.functions import _SeriesFunctions, loadFunctions, safe
@@ -39,9 +39,9 @@ def return_less(series, value):
 class FunctionsTest(TestCase):
 
     def setUp(self):
-      super(FunctionsTest, self).setUp()
-      # Display more diff.
-      self.maxDiff = 1024
+        super(FunctionsTest, self).setUp()
+        # Display more diff.
+        self.maxDiff = 1024
 
     #
     # Test safeSum()
@@ -311,7 +311,7 @@ class FunctionsTest(TestCase):
 
     def test_safeAbs_empty_list(self):
         with self.assertRaises(TypeError):
-          safe.safeAbs([])
+            safe.safeAbs([])
 
     def test_safeAbs_pos_number(self):
         self.assertEqual(safe.safeAbs(1), 1)
@@ -993,9 +993,9 @@ class FunctionsTest(TestCase):
         result = functions.asPercent({}, seriesList)
 
         for i, series in enumerate(result):
-          for k, v in enumerate(series):
-            if type(v) is float:
-              series[k] = round(v,2)
+            for k, v in enumerate(series):
+                if type(v) is float:
+                    series[k] = round(v,2)
 
         self.assertEqual(result, expectedResult)
 
@@ -1030,8 +1030,8 @@ class FunctionsTest(TestCase):
 
         for i, series in enumerate(result):
             for k, v in enumerate(series):
-              if type(v) is float:
-                series[k] = round(v,2)
+                if type(v) is float:
+                    series[k] = round(v,2)
 
         self.assertEqual(result, expectedResult)
 
@@ -1075,9 +1075,9 @@ class FunctionsTest(TestCase):
         result = functions.asPercent({}, seriesList, seriesList2)
 
         for i, series in enumerate(result):
-          for k, v in enumerate(series):
-            if type(v) is float:
-              series[k] = round(v,2)
+            for k, v in enumerate(series):
+                if type(v) is float:
+                    series[k] = round(v,2)
 
         self.assertEqual(result, expectedResult)
 
@@ -1129,9 +1129,9 @@ class FunctionsTest(TestCase):
         result = functions.asPercent({}, seriesList, seriesList2)
 
         for i, series in enumerate(result):
-          for k, v in enumerate(series):
-            if type(v) is float:
-              series[k] = round(v,2)
+            for k, v in enumerate(series):
+                if type(v) is float:
+                    series[k] = round(v,2)
 
         self.assertEqual(result, expectedResult)
 
@@ -1205,9 +1205,9 @@ class FunctionsTest(TestCase):
         result = functions.asPercent({}, seriesList, seriesList2, 1)
 
         for i, series in enumerate(result):
-          for k, v in enumerate(series):
-            if type(v) is float:
-              series[k] = round(v,2)
+            for k, v in enumerate(series):
+                if type(v) is float:
+                    series[k] = round(v,2)
 
         self.assertEqual(result, expectedResult)
 
@@ -1258,9 +1258,9 @@ class FunctionsTest(TestCase):
         result = functions.asPercent({}, seriesList, None, 1)
 
         for i, series in enumerate(result):
-          for k, v in enumerate(series):
-            if type(v) is float:
-              series[k] = round(v,2)
+            for k, v in enumerate(series):
+                if type(v) is float:
+                    series[k] = round(v,2)
 
         self.assertEqual(result, expectedResult)
 
@@ -1348,9 +1348,9 @@ class FunctionsTest(TestCase):
         result = functions.divideSeries({}, seriesList, seriesList2)
 
         for i, series in enumerate(result):
-          for k, v in enumerate(series):
-            if type(v) is float:
-              series[k] = round(v,2)
+            for k, v in enumerate(series):
+                if type(v) is float:
+                    series[k] = round(v,2)
 
         self.assertEqual(result, expectedResult)
 
@@ -1387,9 +1387,9 @@ class FunctionsTest(TestCase):
         result = functions.divideSeriesLists({}, seriesList1, seriesList2)
 
         for i, series in enumerate(result):
-          for k, v in enumerate(series):
-            if type(v) is float:
-              series[k] = round(v,2)
+            for k, v in enumerate(series):
+                if type(v) is float:
+                    series[k] = round(v,2)
 
         self.assertEqual(result, expectedResult)
 
@@ -2683,7 +2683,7 @@ class FunctionsTest(TestCase):
         referenceSeries = copy.deepcopy(seriesList[0])
         for k, v in enumerate(referenceSeries):
             if k % 2 != 0:
-              referenceSeries[k] = None
+                referenceSeries[k] = None
 
         results = functions.transformNull({}, copy.deepcopy(seriesList), transform, [referenceSeries])
 
@@ -3016,7 +3016,7 @@ class FunctionsTest(TestCase):
             series = TimeSeries(expected, 0, 1, 1, [1])
             expectedResult.append(series)
         for i, series in enumerate(seriesList):
-          verify_groupByNode([expectedResult[i]], 3, [series])
+            verify_groupByNode([expectedResult[i]], 3, [series])
 
     def test_groupByNodes(self):
         seriesList, inputList = self._generate_mr_series()
@@ -3234,9 +3234,9 @@ class FunctionsTest(TestCase):
         result = functions.logarithm(requestContext, seriesList)
         # Round values to 7 digits for easier equality testing
         for i, series in enumerate(result):
-          for k, v in enumerate(series):
-            if type(v) is float:
-              series[k] = round(v,7)
+            for k, v in enumerate(series):
+                if type(v) is float:
+                    series[k] = round(v,7)
         self.assertEqual(result, expectedResult)
 
     def test_maximumAbove(self):
@@ -3705,14 +3705,14 @@ class FunctionsTest(TestCase):
         )
 
         with self.assertRaisesRegexp(ValueError, '^Unsupported aggregation function: bad$'):
-          functions.aggregateLine(
-            self._build_requestContext(
-                startTime=datetime(1970,1,1,1,0,0,0,pytz.timezone(settings.TIME_ZONE)),
-                endTime=datetime(1970,1,1,1,0,0,0,pytz.timezone(settings.TIME_ZONE))
-            ),
-            seriesList,
-            'bad'
-          )
+            functions.aggregateLine(
+                self._build_requestContext(
+                    startTime=datetime(1970,1,1,1,0,0,0,pytz.timezone(settings.TIME_ZONE)),
+                    endTime=datetime(1970,1,1,1,0,0,0,pytz.timezone(settings.TIME_ZONE))
+                ),
+                seriesList,
+                'bad'
+            )
 
     def test_threshold_default(self):
         expectedResult = [
@@ -4620,8 +4620,8 @@ class FunctionsTest(TestCase):
 
         def frange(x,y,jump):
             while x<y:
-              yield x
-              x+=jump
+                yield x
+                x+=jump
         expectedResults = [
             TimeSeries('movingAverage(collectd.test-db0.load.value,60)', 660, 700, 1, frange(29.5, 69.5, 1)),
         ]
@@ -4654,8 +4654,8 @@ class FunctionsTest(TestCase):
 
         def frange(x,y,jump):
             while x<y:
-              yield x
-              x+=jump
+                yield x
+                x+=jump
 
         expectedResults = [
             TimeSeries('movingAverage(collectd.test-db0.load.value,"-1min")', 660, 700, 1, frange(29.5, 69.5, 1)),
@@ -5154,8 +5154,8 @@ class FunctionsTest(TestCase):
 
         def hw_range(x,y,jump):
             while x<y:
-              yield (x/jump) % 10
-              x+=jump
+                yield (x/jump) % 10
+                x+=jump
 
         def gen_seriesList(start=0, points=10):
             seriesList = [
@@ -5193,8 +5193,8 @@ class FunctionsTest(TestCase):
 
         def hw_range(x,y,jump):
             while x<y:
-              yield (x/jump) % 10
-              x+=jump
+                yield (x/jump) % 10
+                x+=jump
 
         def gen_seriesList(start=0, points=10):
             seriesList = [
@@ -5234,8 +5234,8 @@ class FunctionsTest(TestCase):
 
         def hw_range(x,y,jump,t=0):
             while x<y:
-              yield t + (x/jump) % 10
-              x+=jump
+                yield t + (x/jump) % 10
+                x+=jump
 
         def gen_seriesList(start=0, points=10):
             seriesList = [
@@ -5712,17 +5712,17 @@ class FunctionsTest(TestCase):
         }
 
         for func in expectedResults:
-          for series in expectedResults[func]:
-              series.pathExpression = series.name
-          result = functions.summarize(
-              self._build_requestContext(endTime=datetime(1970, 1, 1, 0, 4, 0, 0, pytz.timezone(settings.TIME_ZONE))),
-              seriesList,
-              "1minute",
-              func
-          )
-          self.maxDiff = None
-          self.assertEqual(list(result[0]), list(expectedResults[func][0]))
-          self.assertEqual(result, expectedResults[func])
+            for series in expectedResults[func]:
+                series.pathExpression = series.name
+            result = functions.summarize(
+                self._build_requestContext(endTime=datetime(1970, 1, 1, 0, 4, 0, 0, pytz.timezone(settings.TIME_ZONE))),
+                seriesList,
+                "1minute",
+                func
+            )
+            self.maxDiff = None
+            self.assertEqual(list(result[0]), list(expectedResults[func][0]))
+            self.assertEqual(result, expectedResults[func])
 
     def test_summarize_1minute_alignToFrom(self):
         seriesList = self._gen_series_list_with_data(
@@ -5766,8 +5766,8 @@ class FunctionsTest(TestCase):
         }
 
         for func in expectedResults:
-          for series in expectedResults[func]:
-              series.pathExpression = series.name
+            for series in expectedResults[func]:
+                series.pathExpression = series.name
 
         result = functions.summarize(
           self._build_requestContext(endTime=datetime(1970, 1, 1, 0, 4, 0, 0, pytz.timezone(settings.TIME_ZONE))),
@@ -6097,9 +6097,9 @@ class FunctionsTest(TestCase):
             result = evaluateTarget(request_context, query)
 
         for i, series in enumerate(result):
-          for k, v in enumerate(series):
-            if type(v) is float:
-              series[k] = round(v,2)
+            for k, v in enumerate(series):
+                if type(v) is float:
+                    series[k] = round(v,2)
 
         self.assertEqual(result, expectedResult)
 

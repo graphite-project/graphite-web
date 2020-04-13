@@ -18,17 +18,17 @@ option_parser.add_option('--settings', default='graphite.settings', help='config
 (options, args) = option_parser.parse_args()
 
 if not args:
-  option_parser.print_usage()
-  sys.exit(1)
+    option_parser.print_usage()
+    sys.exit(1)
 
 graphite_root = args[0]
 
 python_path = os.path.join(graphite_root, 'webapp')
 
 if options.libs:
-  libdir = os.path.expanduser(options.libs)
-  print('Adding %s to your PYTHONPATH' % libdir)
-  os.environ['PYTHONPATH'] = libdir + ':' + os.environ.get('PYTHONPATH','')
+    libdir = os.path.expanduser(options.libs)
+    print('Adding %s to your PYTHONPATH' % libdir)
+    os.environ['PYTHONPATH'] = libdir + ':' + os.environ.get('PYTHONPATH','')
 
 print("Running Graphite from %s under django development server\n" % graphite_root)
 
@@ -41,7 +41,7 @@ command = [
 ]
 
 if options.noreload:
-  command.append('--noreload')
+    command.append('--noreload')
 
 print(' '.join(command))
 

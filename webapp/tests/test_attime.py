@@ -13,14 +13,14 @@ import mock
 
 
 def mockDateTime(year, month, day, hour, minute, second):
-  class MockedDateTime(datetime):
-      @classmethod
-      def now(cls, tzinfo=None):
-          if tzinfo:
-            return tzinfo.localize(cls(year, month, day, hour, minute, second))
-          return cls(year, month, day, hour, minute, second)
+    class MockedDateTime(datetime):
+        @classmethod
+        def now(cls, tzinfo=None):
+            if tzinfo:
+                return tzinfo.localize(cls(year, month, day, hour, minute, second))
+            return cls(year, month, day, hour, minute, second)
 
-  return MockedDateTime
+    return MockedDateTime
 
 
 @mock.patch('graphite.render.attime.datetime', mockDateTime(2015, 3, 8, 12, 0, 0))
