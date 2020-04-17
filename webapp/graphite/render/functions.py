@@ -2615,15 +2615,13 @@ def toUpperCase(requestContext, seriesList, *pos):
     if len(pos) == 0:
       series.name = series.name.upper()
     else:
+      tmpName = list(series.name)
       for i in pos:
-        if (i >= 0 and i >= len(series.name)) or (i < 0 and i*-1 > len(series.name)):
-          continue
-
-        newName = series.name[:i] + series.name[i].upper()
-        if i != -1:
-          newName += series.name[i+1:]
-
-        series.name = newName
+        try:
+          tmpName[i] = tmpName[i].upper()
+        except IndexError:
+          pass
+      series.name = "".join(tmpName)
 
   return seriesList
 
@@ -2650,15 +2648,13 @@ def toLowerCase(requestContext, seriesList, *pos):
     if len(pos) == 0:
       series.name = series.name.lower()
     else:
+      tmpName = list(series.name)
       for i in pos:
-        if (i >= 0 and i >= len(series.name)) or (i < 0 and i*-1 > len(series.name)):
-          continue
-
-        newName = series.name[:i] + series.name[i].lower()
-        if i != -1:
-          newName += series.name[i+1:]
-
-        series.name = newName
+        try:
+          tmpName[i] = tmpName[i].lower()
+        except IndexError:
+          pass
+      series.name = "".join(tmpName)
 
   return seriesList
 
