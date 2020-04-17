@@ -2600,6 +2600,76 @@ legendValue.params = [
 ]
 
 
+def toUpperCase(requestContext, seriesList, *pos):
+  """
+  Takes one metric or a wildcard seriesList and uppers the case of each letter.
+
+  Optionally, a letter position to upper case can be specified, in which case
+  only the letter at the specified position gets upper-cased.
+  The position parameter may be given multiple times.
+  The position parameter may be negative to define a position relative to the
+  end of the metric name.
+  """
+
+  for series in seriesList:
+    if len(pos) == 0:
+      series.name = series.name.upper()
+    else:
+      for i in pos:
+        if (i >= 0 and i >= len(series.name)) or (i < 0 and i*-1 > len(series.name)):
+          continue
+
+        newName = series.name[:i] + series.name[i].upper()
+        if i != -1:
+          newName += series.name[i+1:]
+
+        series.name = newName
+
+  return seriesList
+
+
+toUpperCase.group = 'Alias'
+toUpperCase.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('pos', ParamTypes.integer, multiple=True)
+]
+
+
+def toLowerCase(requestContext, seriesList, *pos):
+  """
+  Takes one metric or a wildcard seriesList and lowers the case of each letter.
+
+  Optionally, a letter position to lower case can be specified, in which case
+  only the letter at the specified position gets lower-cased.
+  The position parameter may be given multiple times.
+  The position parameter may be negative to define a position relative to the
+  end of the metric name.
+  """
+
+  for series in seriesList:
+    if len(pos) == 0:
+      series.name = series.name.lower()
+    else:
+      for i in pos:
+        if (i >= 0 and i >= len(series.name)) or (i < 0 and i*-1 > len(series.name)):
+          continue
+
+        newName = series.name[:i] + series.name[i].lower()
+        if i != -1:
+          newName += series.name[i+1:]
+
+        series.name = newName
+
+  return seriesList
+
+
+toLowerCase.group = 'Alias'
+toLowerCase.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+  Param('pos', ParamTypes.integer, multiple=True)
+]
+
+
 def alpha(requestContext, seriesList, alpha):
   """
   Assigns the given alpha transparency setting to the series. Takes a float value between 0 and 1.
@@ -5779,6 +5849,8 @@ SeriesFunctions = {
   'aliasQuery': aliasQuery,
   'aliasSub': aliasSub,
   'legendValue': legendValue,
+  'upper': toUpperCase,
+  'lower': toLowerCase,
 
   # Graph functions
   'alpha': alpha,
