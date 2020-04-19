@@ -796,6 +796,12 @@ class Graph:
           y += lineHeight
 
   def encodeHeader(self,text):
+    """
+    Puts some metadata in the generated svg xml that is not inside the frame.
+    This can be used to manipulate the svg later on with a framework like d3.
+    """
+    if self.outputFormat != 'svg':
+      return
     self.ctx.save()
     self.setColor( self.backgroundColor )
     self.ctx.move_to(-88,-88) # identifier
