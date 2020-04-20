@@ -20,16 +20,39 @@ def evaluateTarget(requestContext, targets):
 
   seriesList = []
 
+  # if target context has not already been set by a previous call to
+  # evaluateTarget() then we're going to create it now and reuse it in
+  # all sub-sequent calls to evaluateTarget() on a per target basis
+  setTargetContext = 'targetContext' not in requestContext
+
   for target in targets:
     if not target:
       continue
 
+    if setTargetContext:
+      # create new copy of requestContext specifically for this target,
+      # then add a target context to it
+      requestContext = requestContext.copy()
+      requestContext['targetContext'] = {}
+      targetContext = requestContext['targetContext']
+    else:
+      targetContext = requestContext['targetContext']
+
     if isinstance(target, six.string_types):
       if not target.strip():
         continue
+
+      if setTargetContext:
+        targetContext['rawTarget'] = target
+
       target = grammar.parseString(target)
 
-    result = evaluateTokens(requestContext, target)
+    try:
+      result = evaluateTokens(requestContext, target)
+    except InputParameterError as e:
+      e.setTarget(targetContext.get('rawTarget', None))
+      e.setSourceIdHeaders(requestContext.get('sourceIdHeaders', {}))
+      raise
 
     # we have to return a list of TimeSeries objects
     if isinstance(result, TimeSeries):
@@ -88,11 +111,7 @@ def evaluateTokens(requestContext, tokens, replacements=None, pipedArg=None):
     try:
       func = SeriesFunction(tokens.call.funcname)
     except KeyError:
-      msg = 'Received request for unknown function: {func}'.format(func=tokens.call.funcname)
-      log.warning(msg)
-
-      # even if input validation enforcement is disabled, there's nothing else we can do here
-      raise InputParameterError(msg)
+      raise InputParameterError('Received request for unknown function: {func}'.format(func=tokens.call.funcname))
 
     rawArgs = tokens.call.args or []
     if pipedArg is not None:
@@ -103,14 +122,17 @@ def evaluateTokens(requestContext, tokens, replacements=None, pipedArg=None):
                    for kwarg in tokens.call.kwargs])
 
     def handleInvalidParameters(e):
+      e.setFunction(tokens.call.funcname, args, kwargs)
+
+      if settings.ENFORCE_INPUT_VALIDATION:
+        raise e
+
       if not getattr(handleInvalidParameters, 'alreadyLogged', False):
-        log.warning(invalidParamLogMsg(requestContext, str(e), tokens.call.funcname, args, kwargs))
+        e.setTarget(requestContext.get('targetContext', {}).get('rawTarget', None))
+        log.warning(e.describe())
 
         # only log invalid parameters once
         setattr(handleInvalidParameters, 'alreadyLogged', True)
-
-      if settings.ENFORCE_INPUT_VALIDATION:
-        raise
 
     if hasattr(func, 'params'):
       try:
@@ -126,37 +148,6 @@ def evaluateTokens(requestContext, tokens, replacements=None, pipedArg=None):
       handleInvalidParameters(e)
 
   return evaluateScalarTokens(tokens)
-
-
-def invalidParamLogMsg(requestContext, exception, func, args, kwargs):
-  source = ''
-
-  if 'sourceIdHeaders' in requestContext:
-    headers = list(requestContext['sourceIdHeaders'].keys())
-    headers.sort()
-    for name in headers:
-      if source:
-        source += ', '
-      source += '{name}: {value}'.format(
-        name=name,
-        value=requestContext['sourceIdHeaders'][name])
-
-  logMsg = 'Received invalid parameters ({msg}): {func} ({args})'.format(
-      msg=exception,
-      func=func,
-      args=', '.join(
-        argList
-        for argList in [
-          ', '.join(repr(arg) for arg in args),
-          ', '.join('{k}={v}'.format(k=str(k), v=repr(v)) for k, v in kwargs.items()),
-        ] if argList
-      ))
-
-  if not source:
-    return logMsg
-
-  logMsg += '; source: ({source})'.format(source=source)
-  return logMsg
 
 
 def evaluateScalarTokens(tokens):

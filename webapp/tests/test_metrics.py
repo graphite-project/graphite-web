@@ -107,7 +107,7 @@ class MetricsTester(TestCase):
         #
         response = self.client.post(url, {})
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.content, b"Bad Request: Missing required parameter 'query'")
+        self.assertEqual(response.content, b"Invalid parameters (Missing required parameter 'query')")
 
         #
         # invalid from/until params
@@ -119,8 +119,9 @@ class MetricsTester(TestCase):
         })
         self.assertEqual(response.status_code, 400)
         # response contains timestamps such as:
-        # Bad Request: Failed to instantiate find query: Invalid interval start=1582801589 end=1582797989
-        self.assertRegex(response.content, b"^Bad Request: Failed to instantiate find query: Invalid interval start=[0-9]+ end=[0-9]+$")
+        # Invalid parameters (Failed to instantiate find query:
+        # Invalid interval start=1582801589 end=1582797989)
+        self.assertRegex(response.content, b"^Invalid parameters \\(Failed to instantiate find query: Invalid interval start=[0-9]+ end=[0-9]+\\)$")
 
         #
         # Wrong type for param 'wildcards'
@@ -131,7 +132,7 @@ class MetricsTester(TestCase):
         })
         self.assertEqual(response.status_code, 400)
         # the output in Python 2/3 slightly varies because repr() shows unicode strings differently, that's why the "u?"
-        self.assertRegex(response.content, b"^Bad Request: Invalid int value u?'123a' for param wildcards: invalid literal for int\\(\\) with base 10: u?'123a'$")
+        self.assertRegex(response.content, b"^Invalid parameters \\(Invalid int value u?'123a' for param wildcards: invalid literal for int\\(\\) with base 10: u?'123a'\\)$")
 
         #
         # Invalid 'from' timestamp
@@ -142,7 +143,7 @@ class MetricsTester(TestCase):
         })
         self.assertEqual(response.status_code, 400)
         # the output in Python 2/3 slightly varies because repr() shows unicode strings differently, that's why the "u?"
-        self.assertRegex(response.content, b"^Bad Request: Invalid value u?'now-1mmminute' for param from: Invalid offset unit u?'mmminute'$")
+        self.assertRegex(response.content, b"^Invalid parameters \\(Invalid value u?'now-1mmminute' for param from: Invalid offset unit u?'mmminute'\\)$")
 
         #
         # format=invalid_format
