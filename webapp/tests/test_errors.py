@@ -7,7 +7,7 @@ class ErrorTest(TestCase):
     def test_input_parameter_error_basic(self):
         e = InputParameterError('exception details')
         self.assertEqual(
-            e.describe(),
+            str(e),
             'Invalid parameters (exception details)',
         )
 
@@ -15,7 +15,7 @@ class ErrorTest(TestCase):
         e = InputParameterError('exception details')
         e.setFunction('test_func', [], {})
         self.assertEqual(
-            e.describe(),
+            str(e),
             'Invalid parameters (exception details); func: "test_func()"',
         )
 
@@ -23,7 +23,7 @@ class ErrorTest(TestCase):
         e = InputParameterError('exception details')
         e.setFunction('test_func', [1, 'a'], {})
         self.assertEqual(
-            e.describe(),
+            str(e),
             'Invalid parameters (exception details); func: "test_func(1, \'a\')"',
         )
 
@@ -31,7 +31,7 @@ class ErrorTest(TestCase):
         e = InputParameterError('exception details')
         e.setFunction('test_func', [], {'a': 1, 'b': 'b'})
         self.assertEqual(
-            e.describe(),
+            str(e),
             'Invalid parameters (exception details); func: "test_func(a=1, b=\'b\')"',
         )
 
@@ -39,7 +39,7 @@ class ErrorTest(TestCase):
         e = InputParameterError('exception details')
         e.setFunction('test_func', [3, 'd'], {'a': 1, 'b': 'b'})
         self.assertEqual(
-            e.describe(),
+            str(e),
             'Invalid parameters (exception details); func: "test_func(3, \'d\', a=1, b=\'b\')"',
         )
 
@@ -47,7 +47,7 @@ class ErrorTest(TestCase):
         e = InputParameterError('exception details')
         e.setTargets(['some_func(a.b.c)'])
         self.assertEqual(
-            e.describe(),
+            str(e),
             'Invalid parameters (exception details); targets: "some_func(a.b.c)"',
         )
 
@@ -55,7 +55,7 @@ class ErrorTest(TestCase):
         e = InputParameterError('exception details')
         e.setTargets(['some_func(a.b.c)', 'otherfunc(c.b.a)'])
         self.assertEqual(
-            e.describe(),
+            str(e),
             'Invalid parameters (exception details); targets: "some_func(a.b.c), otherfunc(c.b.a)"',
         )
 
@@ -63,7 +63,7 @@ class ErrorTest(TestCase):
         e = InputParameterError('exception details')
         e.setSourceIdHeaders({'X-GRAFANA-ORG-ID': 3})
         self.assertEqual(
-            e.describe(),
+            str(e),
             'Invalid parameters (exception details); source: "X-GRAFANA-ORG-ID: 3"',
         )
 
@@ -71,7 +71,7 @@ class ErrorTest(TestCase):
         e = InputParameterError('exception details')
         e.setSourceIdHeaders({'X-DASHBOARD-ID': 'abcde123'})
         self.assertEqual(
-            e.describe(),
+            str(e),
             'Invalid parameters (exception details); source: "X-DASHBOARD-ID: abcde123"',
         )
 
@@ -79,7 +79,7 @@ class ErrorTest(TestCase):
         e = InputParameterError('exception details')
         e.setSourceIdHeaders({'X-PANEL-ID': 12})
         self.assertEqual(
-            e.describe(),
+            str(e),
             'Invalid parameters (exception details); source: "X-PANEL-ID: 12"',
         )
 
@@ -88,7 +88,7 @@ class ErrorTest(TestCase):
         e.setSourceIdHeaders({'X-GRAFANA-ORG-ID': 25, 'X-DASHBOARD-ID': 12})
         e.setSourceIdHeaders({'X-PANEL-ID': 3})
         self.assertEqual(
-            e.describe(),
+            str(e),
             'Invalid parameters (exception details); source: "X-DASHBOARD-ID: 12, X-GRAFANA-ORG-ID: 25, X-PANEL-ID: 3"',
         )
 
@@ -100,7 +100,7 @@ class ErrorTest(TestCase):
         e.setTargets(['some(target, extra="value")'])
         e.setFunction('some', ['target'], {'extra': 'value'})
         self.assertEqual(
-            e.describe(),
+            str(e),
             'Invalid parameters (exception details)'
             '; targets: "some(target, extra="value")"'
             '; source: "X-DASHBOARD-ID: a, X-GRAFANA-ORG-ID: b, X-PANEL-ID: c"'
