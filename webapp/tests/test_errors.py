@@ -45,10 +45,18 @@ class ErrorTest(TestCase):
 
     def test_input_parameter_error_with_target(self):
         e = InputParameterError('exception details')
-        e.setTarget('some_func(a.b.c)')
+        e.setTargets(['some_func(a.b.c)'])
         self.assertEqual(
             e.describe(),
-            'Invalid parameters (exception details); target: "some_func(a.b.c)"',
+            'Invalid parameters (exception details); targets: "some_func(a.b.c)"',
+        )
+
+    def test_input_parameter_error_with_multiple_targets(self):
+        e = InputParameterError('exception details')
+        e.setTargets(['some_func(a.b.c)', 'otherfunc(c.b.a)'])
+        self.assertEqual(
+            e.describe(),
+            'Invalid parameters (exception details); targets: "some_func(a.b.c), otherfunc(c.b.a)"',
         )
 
     def test_input_parameter_error_with_grafana_org_id(self):
@@ -89,12 +97,12 @@ class ErrorTest(TestCase):
         e.setSourceIdHeaders({'X-DASHBOARD-ID': 'a'})
         e.setSourceIdHeaders({'X-GRAFANA-ORG-ID': 'b'})
         e.setSourceIdHeaders({'X-PANEL-ID': 'c'})
-        e.setTarget('some(target, extra="value")')
+        e.setTargets(['some(target, extra="value")'])
         e.setFunction('some', ['target'], {'extra': 'value'})
         self.assertEqual(
             e.describe(),
             'Invalid parameters (exception details)'
-            '; target: "some(target, extra="value")"'
+            '; targets: "some(target, extra="value")"'
             '; source: "X-DASHBOARD-ID: a, X-GRAFANA-ORG-ID: b, X-PANEL-ID: c"'
             '; func: "some(\'target\', extra=\'value\')"'
         )
