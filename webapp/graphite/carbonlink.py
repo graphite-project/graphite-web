@@ -112,7 +112,7 @@ class CarbonLinkPool(object):
 
     def send_request(self, request):
         metric = request['metric']
-        serialized_request = pickle.dumps(request, protocol=-1)
+        serialized_request = pickle.dumps(request, protocol=settings.CARBONLINK_PICKLE_PROTOCOL)
         len_prefix = struct.pack("!L", len(serialized_request))
         request_packet = len_prefix + serialized_request
         result = {}
@@ -144,7 +144,7 @@ class CarbonLinkPool(object):
 
     def send_request_to_all(self, request):
         metric = request['metric']
-        serialized_request = pickle.dumps(request, protocol=-1)
+        serialized_request = pickle.dumps(request, protocol=settings.CARBONLINK_PICKLE_PROTOCOL)
         len_prefix = struct.pack("!L", len(serialized_request))
         request_packet = len_prefix + serialized_request
         results = {}
