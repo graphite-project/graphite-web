@@ -20,37 +20,20 @@ def evaluateTarget(requestContext, targets):
 
   seriesList = []
 
-  # if target context has not already been set by a previous call to
-  # evaluateTarget() then we're going to create it now and reuse it in
-  # all sub-sequent calls to evaluateTarget() on a per target basis
-  setTargetContext = 'targetContext' not in requestContext
-
   for target in targets:
     if not target:
       continue
 
-    if setTargetContext:
-      # create new copy of requestContext specifically for this target,
-      # then add a target context to it
-      requestContext = requestContext.copy()
-      requestContext['targetContext'] = {}
-      targetContext = requestContext['targetContext']
-    else:
-      targetContext = requestContext['targetContext']
-
     if isinstance(target, six.string_types):
       if not target.strip():
         continue
-
-      if setTargetContext:
-        targetContext['rawTarget'] = target
 
       target = grammar.parseString(target)
 
     try:
       result = evaluateTokens(requestContext, target)
     except InputParameterError as e:
-      e.setTarget(targetContext.get('rawTarget', None))
+      e.setTargets(requestContext.get('targets', []))
       e.setSourceIdHeaders(requestContext.get('sourceIdHeaders', {}))
       raise
 
@@ -128,7 +111,7 @@ def evaluateTokens(requestContext, tokens, replacements=None, pipedArg=None):
         raise e
 
       if not getattr(handleInvalidParameters, 'alreadyLogged', False):
-        e.setTarget(requestContext.get('targetContext', {}).get('rawTarget', None))
+        e.setTargets(requestContext.get('targets', []))
         log.warning(e.describe())
 
         # only log invalid parameters once

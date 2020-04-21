@@ -19,8 +19,8 @@ class InputParameterError(ValueError):
 
         self.context['sourceIdHeaders'].update(sourceIdHeaders)
 
-    def setTarget(self, rawTarget):
-        self.context['target'] = rawTarget
+    def setTargets(self, targets):
+        self.context['targets'] = targets
 
     def setFunction(self, function, args, kwargs):
         self.context['function'] = function
@@ -28,7 +28,7 @@ class InputParameterError(ValueError):
         self.context['kwargs'] = kwargs
 
     def describe(self):
-        target = self.context.get('target', None)
+        targets = ', '.join(self.context.get('targets', []))
         source = ''
         sourceIdHeaders = self.context.get('sourceIdHeaders', None)
 
@@ -61,8 +61,8 @@ class InputParameterError(ValueError):
         )
 
         msg = 'Invalid parameters ({msg})'.format(msg=str(self))
-        if target:
-            msg += '; target: "{target}"'.format(target=target)
+        if targets:
+            msg += '; targets: "{targets}"'.format(targets=targets)
 
         if source:
             msg += '; source: "{source}"'.format(source=source)
