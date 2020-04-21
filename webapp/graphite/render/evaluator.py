@@ -105,14 +105,15 @@ def evaluateTokens(requestContext, tokens, replacements=None, pipedArg=None):
                    for kwarg in tokens.call.kwargs])
 
     def handleInvalidParameters(e):
+      e.setSourceIdHeaders(requestContext.get('sourceIdHeaders', {}))
+      e.setTargets(requestContext.get('targets', []))
       e.setFunction(tokens.call.funcname, args, kwargs)
 
       if settings.ENFORCE_INPUT_VALIDATION:
         raise e
 
       if not getattr(handleInvalidParameters, 'alreadyLogged', False):
-        e.setTargets(requestContext.get('targets', []))
-        log.warning(e.describe())
+        log.warning('%s', str(e))
 
         # only log invalid parameters once
         setattr(handleInvalidParameters, 'alreadyLogged', True)

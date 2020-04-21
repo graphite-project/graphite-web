@@ -13,39 +13,52 @@ class InputParameterError(ValueError):
         super(InputParameterError, self).__init__(*args, **kwargs)
         self.context = {}
 
-    def setSourceIdHeaders(self, sourceIdHeaders):
-        if 'sourceIdHeaders' not in self.context:
-            self.context['sourceIdHeaders'] = {}
+    def setSourceIdHeaders(self, newHeaders):
+        headers = self.context.get('sourceIdHeaders', {})
+        headers.update(newHeaders)
+        self.context['sourceIdHeaders'] = headers
 
-        self.context['sourceIdHeaders'].update(sourceIdHeaders)
+    @property
+    def sourceIdHeaders(self):
+        sourceIdHeaders = self.context.get('sourceIdHeaders', {})
+        headers = list(sourceIdHeaders.keys())
+        headers.sort()
+        source = ''
+
+        for name in headers:
+            if source:
+                source += ', '
+            source += '{name}: {value}'.format(
+                name=name,
+                value=sourceIdHeaders[name])
+
+        return source
 
     def setTargets(self, targets):
         self.context['targets'] = targets
 
-    def setFunction(self, function, args, kwargs):
-        self.context['function'] = function
-        self.context['args'] = args
-        self.context['kwargs'] = kwargs
+    @property
+    def targets(self):
+        return ', '.join(self.context.get('targets', []))
 
-    def describe(self):
-        targets = ', '.join(self.context.get('targets', []))
-        source = ''
-        sourceIdHeaders = self.context.get('sourceIdHeaders', None)
+    def setFunction(self, name, args, kwargs):
+        self.context['function'] = {
+            'name': name,
+            'args': args,
+            'kwargs': kwargs,
+        }
 
-        # generate string describing query source
-        if sourceIdHeaders:
-            headers = list(sourceIdHeaders.keys())
-            headers.sort()
-            for name in headers:
-                if source:
-                    source += ', '
-                source += '{name}: {value}'.format(
-                    name=name,
-                    value=sourceIdHeaders[name])
-
+    @property
+    def function(self):
         func = self.context.get('function', None)
+        if not func:
+            return ''
 
-        kwargs = self.context.get('kwargs', {})
+        funcName = func.get('name', '')
+        if not funcName:
+            return ''
+
+        kwargs = func.get('kwargs', {})
         kwargKeys = list(kwargs.keys())
 
         # keep kwargs sorted in message, for consistency and testability
@@ -55,22 +68,28 @@ class InputParameterError(ValueError):
         args = ', '.join(
             argList
             for argList in [
-                ', '.join(repr(arg) for arg in self.context.get('args', [])),
+                ', '.join(repr(arg) for arg in func.get('args', [])),
                 ', '.join('{k}={v}'.format(k=str(k), v=repr(kwargs[k])) for k in kwargKeys),
             ] if argList
         )
 
-        msg = 'Invalid parameters ({msg})'.format(msg=str(self))
+        return '{func}({args})'.format(func=funcName, args=args)
+
+    def __str__(self):
+        msg = 'Invalid parameters ({msg})'.format(msg=str(super(InputParameterError, self).__str__()))
+        targets = self.targets
         if targets:
             msg += '; targets: "{targets}"'.format(targets=targets)
 
+        source = self.sourceIdHeaders
         if source:
             msg += '; source: "{source}"'.format(source=source)
 
         # needs to be last because the string "args" may potentially be thousands
         # of chars long after expanding the globbing patterns
+        func = self.function
         if func:
-            msg += '; func: "{func}({args})"'.format(func=func, args=args)
+            msg += '; func: "{func}"'.format(func=func)
 
         return msg
 
@@ -81,8 +100,8 @@ def handleInputParameterError(f):
         try:
             return f(*args, **kwargs)
         except InputParameterError as e:
-            msg = e.describe()
-            log.warning(msg)
-            return HttpResponseBadRequest(msg)
+            msgStr = str(e)
+            log.warning('%s', msgStr)
+            return HttpResponseBadRequest(msgStr)
 
     return new_f
