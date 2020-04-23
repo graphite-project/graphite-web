@@ -89,9 +89,9 @@ def validateSeriesList(value):
     if not isinstance(value, list):
         raise ValueError('Invalid value type, it is not a list: {value}'.format(value=repr(value)))
 
-    for serie in value:
-        if not isinstance(serie, TimeSeries):
-            raise ValueError('Invalid type "{type}", should be TimeSeries'.format(type=type(serie)))
+    for series in value:
+        if not isinstance(series, TimeSeries):
+            raise ValueError('Invalid type "{type}", should be TimeSeries'.format(type=type(series)))
 
     return value
 
