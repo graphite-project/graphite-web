@@ -4,6 +4,7 @@ from graphite.errors import InputParameterError
 from graphite.render.attime import parseTimeOffset
 from graphite.logger import log
 from graphite.functions.aggfuncs import aggFuncs, aggFuncAliases
+from graphite.render.datalib import TimeSeries
 
 
 class ParamTypes(object):
@@ -85,7 +86,24 @@ def validateInterval(value):
 
 
 def validateSeriesList(value):
-    return list(value)
+    if not isinstance(value, list):
+        raise ValueError('Invalid value type, it is not a list: {value}'.format(value=repr(value)))
+
+    for serie in value:
+        if not isinstance(serie, TimeSeries):
+            raise ValueError('Invalid type "{type}", should be TimeSeries'.format(type=type(serie)))
+
+    return value
+
+
+def validateSeriesLists(value):
+    if not isinstance(value, list):
+        raise ValueError('Invalid value type, it is not a list: {value}'.format(value=repr(value)))
+
+    for entry in value:
+        validateSeriesList(entry)
+
+    return value
 
 
 ParamType.register('boolean', validateBoolean)
@@ -99,7 +117,7 @@ ParamType.register('node', validateInteger)
 ParamType.register('nodeOrTag')
 ParamType.register('series')
 ParamType.register('seriesList', validateSeriesList)
-ParamType.register('seriesLists', validateSeriesList)
+ParamType.register('seriesLists', validateSeriesLists)
 ParamType.register('string')
 ParamType.register('tag')
 
