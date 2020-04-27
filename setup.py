@@ -59,7 +59,7 @@ setup(
     install_requires=[
         'Django>=1.8,<3.1', 'django-tagging==0.4.3', 'pytz',
         'pyparsing', 'cairocffi', 'urllib3', 'scandir', 'six',
-        'whitenoise'],
+        'whitenoise<5'],
     classifiers=[
         'Intended Audience :: Developers',
         'Natural Language :: English',
