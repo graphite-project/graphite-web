@@ -871,6 +871,7 @@ asPercent.params = [
   Param('total', ParamTypes.any),
   Param('nodes', ParamTypes.nodeOrTag, multiple=True),
 ]
+asPercent.aggregator = True
 
 
 def divideSeriesLists(requestContext, dividendSeriesList, divisorSeriesList):
