@@ -13,112 +13,71 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 import os
-from smtplib import SMTP
-from socket import gethostname
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from email.mime.image import MIMEImage
-from six.moves.http_client import HTTPConnection
-from six.moves.urllib.parse import urlsplit
-from time import ctime, strftime
-from traceback import format_exc
 from graphite.user_util import getProfile
 from graphite.logger import log
 from graphite.account.models import MyGraph
 
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.http import HttpResponse
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 
 
 def composer(request):
-  profile = getProfile(request)
-  context = {
-    'queryString' : request.GET.urlencode().replace('+','%20'),
-    'showTarget' : request.GET.get('showTarget',''),
-    'user' : request.user,
-    'profile' : profile,
-    'showMyGraphs' : int( profile.user.username != 'default' ),
-    'searchEnabled' : int( os.access(settings.INDEX_FILE, os.R_OK) ),
-    'refreshInterval': settings.AUTO_REFRESH_INTERVAL,
-    'debug' : settings.DEBUG,
-    'jsdebug' : settings.DEBUG,
-  }
-  return render_to_response("composer.html",context)
+    profile = getProfile(request)
+    context = {
+        'queryString' : request.GET.urlencode().replace('+','%20'),
+        'showTarget' : request.GET.get('showTarget',''),
+        'user' : request.user,
+        'profile' : profile,
+        'showMyGraphs' : int( profile.user.username != 'default' ),
+        'searchEnabled' : int( os.access(settings.INDEX_FILE, os.R_OK) ),
+        'refreshInterval': settings.AUTO_REFRESH_INTERVAL,
+        'debug' : settings.DEBUG,
+        'jsdebug' : settings.DEBUG,
+    }
+    return render(request, "composer.html", context)
 
 
 def mygraph(request):
-  profile = getProfile(request, allowDefault=False)
+    profile = getProfile(request, allowDefault=False)
 
-  if not profile:
-    return HttpResponse( "You are not logged in!" )
+    if not profile:
+        return HttpResponse("You are not logged in!")
 
-  action = request.GET['action']
-  graphName = request.GET['graphName']
+    action = request.GET['action']
+    graphName = request.GET['graphName']
 
-  if not graphName:
-    return HttpResponse("You must type in a graph name.")
+    if not graphName:
+        return HttpResponse("You must type in a graph name.")
 
-  if action == 'save':
-    url = request.GET['url']
+    if action == 'save':
+        url = request.GET['url']
 
-    try:
-      existingGraph = profile.mygraph_set.get(name=graphName)
-      existingGraph.url = url
-      existingGraph.save()
+        try:
+            existingGraph = profile.mygraph_set.get(name=graphName)
+            existingGraph.url = url
+            existingGraph.save()
 
-    except ObjectDoesNotExist:
-      try:
-        newGraph = MyGraph(profile=profile,name=graphName,url=url)
-        newGraph.save()
-      except Exception:
-        log.exception("Failed to create new MyGraph in /composer/mygraph/, graphName=%s" % graphName)
-        return HttpResponse("Failed to save graph %s" % graphName)
+        except ObjectDoesNotExist:
+            try:
+                newGraph = MyGraph(profile=profile,name=graphName,url=url)
+                newGraph.save()
+            except Exception:
+                log.exception("Failed to create new MyGraph in /composer/mygraph/, graphName=%s" % graphName)
+                return HttpResponse("Failed to save graph %s" % graphName)
 
-    return HttpResponse("SAVED")
+        return HttpResponse("SAVED")
 
-  elif action == 'delete':
-    try:
-      existingGraph = profile.mygraph_set.get(name=graphName)
-      existingGraph.delete()
+    elif action == 'delete':
+        try:
+            existingGraph = profile.mygraph_set.get(name=graphName)
+            existingGraph.delete()
 
-    except ObjectDoesNotExist:
-      return HttpResponse("No such graph '%s'" % graphName)
+        except ObjectDoesNotExist:
+            return HttpResponse("No such graph '%s'" % graphName)
 
-    return HttpResponse("DELETED")
+        return HttpResponse("DELETED")
 
-  else:
-    return HttpResponse("Invalid operation '%s'" % action)
-
-
-def send_email(request):
-  try:
-    recipients = request.GET['to'].split(',')
-    url = request.GET['url']
-    proto, server, path, query, frag = urlsplit(url)
-    if query: path += '?' + query
-    conn = HTTPConnection(server)
-    conn.request('GET',path)
-    try: # Python 2.7+, use buffering of HTTP responses
-      resp = conn.getresponse(buffering=True)
-    except TypeError:  # Python 2.6 and older
-      resp = conn.getresponse()
-    assert resp.status == 200, "Failed HTTP response %s %s" % (resp.status, resp.reason)
-    rawData = resp.read()
-    conn.close()
-    message = MIMEMultipart()
-    message['Subject'] = "Graphite Image"
-    message['To'] = ', '.join(recipients)
-    message['From'] = 'composer@%s' % gethostname()
-    text = MIMEText( "Image generated by the following graphite URL at %s\r\n\r\n%s" % (ctime(),url) )
-    image = MIMEImage( rawData )
-    image.add_header('Content-Disposition', 'attachment', filename="composer_" + strftime("%b%d_%I%M%p.png"))
-    message.attach(text)
-    message.attach(image)
-    s = SMTP(settings.SMTP_SERVER)
-    s.sendmail('composer@%s' % gethostname(),recipients,message.as_string())
-    s.quit()
-    return HttpResponse( "OK" )
-  except Exception:
-    return HttpResponse(format_exc())
+    else:
+        return HttpResponse("Invalid operation '%s'" % action)

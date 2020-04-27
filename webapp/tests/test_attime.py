@@ -13,14 +13,14 @@ import mock
 
 
 def mockDateTime(year, month, day, hour, minute, second):
-  class MockedDateTime(datetime):
-      @classmethod
-      def now(cls, tzinfo=None):
-          if tzinfo:
-            return tzinfo.localize(cls(year, month, day, hour, minute, second))
-          return cls(year, month, day, hour, minute, second)
+    class MockedDateTime(datetime):
+        @classmethod
+        def now(cls, tzinfo=None):
+            if tzinfo:
+                return tzinfo.localize(cls(year, month, day, hour, minute, second))
+            return cls(year, month, day, hour, minute, second)
 
-  return MockedDateTime
+    return MockedDateTime
 
 
 @mock.patch('graphite.render.attime.datetime', mockDateTime(2015, 3, 8, 12, 0, 0))
@@ -399,11 +399,11 @@ class getUnitStringTest(TestCase):
 
     def test_m_raises_Exception(self):
         with self.assertRaises(Exception):
-            result = getUnitString("m")
+            _ = getUnitString("m")
 
     def test_integer_raises_Exception(self):
         with self.assertRaises(Exception):
-            result = getUnitString(1)
+            _ = getUnitString(1)
 
 
 @mock.patch('graphite.render.attime.datetime', mockDateTime(2016, 2, 29, 00, 0, 0))

@@ -4,7 +4,7 @@ import errno
 from os.path import getmtime
 from six.moves.urllib.parse import urlencode
 from six.moves.configparser import ConfigParser
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.http import QueryDict
 from django.conf import settings
 from django.contrib.auth import login, authenticate, logout
@@ -152,7 +152,7 @@ def dashboard(request, name=None):
     else:
       context['initialState'] = dashboard.state
 
-  return render_to_response("dashboard.html", context)
+  return render(request, "dashboard.html", context)
 
 
 def template(request, name, val):
@@ -200,7 +200,7 @@ def template(request, name, val):
     state = json.loads(template.loadState(val))
     state['name'] = '%s/%s' % (name, val)
     context['initialState'] = json.dumps(state)
-  return render_to_response("dashboard.html", context)
+  return render(request, "dashboard.html", context)
 
 
 def getPermissions(user):
@@ -233,7 +233,7 @@ def save(request, name):
     dashboard = Dashboard.objects.create(name=name, state=state)
   else:
     dashboard.state = state
-    dashboard.save();
+    dashboard.save()
 
   return json_response( dict(success=True) )
 
@@ -252,7 +252,7 @@ def save_template(request, name, key):
     template.save()
   else:
     template.setState(state, key)
-    template.save();
+    template.save()
 
   return json_response( dict(success=True) )
 
@@ -360,7 +360,7 @@ def find_template(request):
 
 def help(request):
   context = {}
-  return render_to_response("dashboardHelp.html", context)
+  return render(request, "dashboardHelp.html", context)
 
 
 def email(request):

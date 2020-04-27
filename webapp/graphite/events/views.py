@@ -9,7 +9,7 @@ except ImportError:  # Django < 1.9
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.serializers.json import DjangoJSONEncoder
 from django.forms.models import model_to_dict
-from django.shortcuts import render_to_response, get_object_or_404
+from django.shortcuts import render, get_object_or_404
 from django.utils.timezone import now
 
 from graphite.util import json, epoch, epoch_to_dt, jsonResponse, HttpError, HttpResponse
@@ -29,7 +29,7 @@ def view_events(request):
         context = {'events': fetch(request),
                    'site': RequestSite(request),
                    'protocol': 'https' if request.is_secure() else 'http'}
-        return render_to_response('events.html', context)
+        return render(request, 'events.html', context)
     else:
         return post_event(request)
 
@@ -37,11 +37,11 @@ def view_events(request):
 @jsonResponse(encoder=DjangoJSONEncoder)
 def jsonDetail(request, queryParams, event_id):
     try:
-       e = Event.objects.get(id=event_id)
-       e.tags = e.tags.split()
-       return model_to_dict(e)
+        e = Event.objects.get(id=event_id)
+        e.tags = e.tags.split()
+        return model_to_dict(e)
     except ObjectDoesNotExist:
-       raise HttpError('Event matching query does not exist', status=404)
+        raise HttpError('Event matching query does not exist', status=404)
 
 
 def detail(request, event_id):
@@ -50,7 +50,7 @@ def detail(request, event_id):
 
     e = get_object_or_404(Event, pk=event_id)
     context = {'event': e}
-    return render_to_response('event.html', context)
+    return render(request, 'event.html', context)
 
 
 def post_event(request):

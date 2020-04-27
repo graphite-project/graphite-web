@@ -57,7 +57,8 @@ class RemoteReaderTests(TestCase):
         reader = RemoteReader(finder, {'intervals': [], 'path': 'a.b.c.d'})
 
         data = [
-                {'start': startTime,
+                {
+                 'start': startTime,
                  'step': 60,
                  'end': endTime,
                  'values': [1.0, 0.0, 1.0, 0.0, 1.0],
@@ -100,7 +101,8 @@ class RemoteReaderTests(TestCase):
         reader = RemoteReader(finder, {'intervals': [], 'path': 'a.b.c.d'}, bulk_query=['a.b.c.d'])
 
         data = [
-                {'start': startTime,
+                {
+                 'start': startTime,
                  'step': 60,
                  'end': endTime,
                  'values': [1.0, 0.0, 1.0, 0.0, 1.0],
@@ -149,7 +151,7 @@ class RemoteReaderTests(TestCase):
         http_request.return_value = responseObject
 
         with self.assertRaisesRegexp(Exception, 'Error decoding response from http://[^ ]+: .+'):
-          reader.fetch(startTime, endTime)
+            reader.fetch(startTime, endTime)
 
         # invalid response data
         data = [
@@ -164,20 +166,20 @@ class RemoteReaderTests(TestCase):
         http_request.return_value = responseObject
 
         with self.assertRaisesRegexp(Exception, r'Invalid render response from http://[^ ]+: KeyError\(\'name\',?\)'):
-          reader.fetch(startTime, endTime)
+            reader.fetch(startTime, endTime)
 
         # non-200 response
         responseObject = HTTPResponse(body=BytesIO(b'error'), status=500, preload_content=False)
         http_request.return_value = responseObject
 
         with self.assertRaisesRegexp(Exception, 'Error response 500 from http://[^ ]+'):
-          reader.fetch(startTime, endTime)
+            reader.fetch(startTime, endTime)
 
         # exception raised by request()
         http_request.side_effect = Exception('error')
 
         with self.assertRaisesRegexp(Exception, 'Error requesting http://[^ ]+: error'):
-          reader.fetch(startTime, endTime)
+            reader.fetch(startTime, endTime)
 
     #
     # Test RemoteReader.fetch()
@@ -205,13 +207,15 @@ class RemoteReaderTests(TestCase):
         reader = RemoteReader(finder, {'intervals': [], 'path': 'a.b.c.d'}, bulk_query=['a.b.c.*'])
 
         data = [
-                {'start': startTime,
+                {
+                 'start': startTime,
                  'step': 60,
                  'end': endTime,
                  'values': [1.0, 0.0, 1.0, 0.0, 1.0],
                  'name': 'a.b.c.c'
                 },
-                {'start': startTime,
+                {
+                 'start': startTime,
                  'step': 60,
                  'end': endTime,
                  'values': [1.0, 0.0, 1.0, 0.0, 1.0],

@@ -130,7 +130,10 @@ def find_escaped_pattern_fields(pattern_string):
 
 def load_module(module_path, member=None):
   module_name = splitext(basename(module_path))[0]
-  module_file = open(module_path, 'U')
+  try:  # 'U' is default from Python 3.0 and deprecated since 3.9
+    module_file = open(module_path, 'U')
+  except ValueError:
+    module_file = open(module_path, 'rt')
   description = ('.py', 'U', imp.PY_SOURCE)
   module = imp.load_module(module_name, module_file, module_path, description)
   if member:
@@ -159,17 +162,17 @@ if not PY3:
       'copy_reg': set(['_reconstructor']),
       '__builtin__': set(['object', 'list', 'set']),
       'collections': set(['deque']),
-      'graphite.render.datalib': set(['TimeSeries']),
+      'graphite.render.datalib': set(['TimeSeries', 'Tags']),
       'graphite.intervals': set(['Interval', 'IntervalSet']),
     }
 
     @classmethod
     def find_class(cls, module, name):
-      if not module in cls.PICKLE_SAFE:
+      if module not in cls.PICKLE_SAFE:
         raise pickle.UnpicklingError('Attempting to unpickle unsafe module %s' % module)
       __import__(module)
       mod = sys.modules[module]
-      if not name in cls.PICKLE_SAFE[module]:
+      if name not in cls.PICKLE_SAFE[module]:
         raise pickle.UnpicklingError('Attempting to unpickle unsafe class %s' % name)
       return getattr(mod, name)
 
@@ -193,16 +196,16 @@ else:
       'copy_reg': set(['_reconstructor']),
       'builtins': set(['object', 'list', 'set']),
       'collections': set(['deque']),
-      'graphite.render.datalib': set(['TimeSeries']),
+      'graphite.render.datalib': set(['TimeSeries', 'Tags']),
       'graphite.intervals': set(['Interval', 'IntervalSet']),
     }
 
     def find_class(self, module, name):
-      if not module in self.PICKLE_SAFE:
+      if module not in self.PICKLE_SAFE:
         raise pickle.UnpicklingError('Attempting to unpickle unsafe module %s' % module)
       __import__(module)
       mod = sys.modules[module]
-      if not name in self.PICKLE_SAFE[module]:
+      if name not in self.PICKLE_SAFE[module]:
         raise pickle.UnpicklingError('Attempting to unpickle unsafe class %s' % name)
       return getattr(mod, name)
 

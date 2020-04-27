@@ -57,6 +57,9 @@ Collection
 `metrics-sampler`_
   A java program which regularly queries metrics from a configured set of inputs, selects and renames them using regular expressions and sends them to a configured set of outputs. It supports JMX and JDBC as inputs and Graphite as output out of the box.
 
+`netdata`_
+  A fast and efficient monitoring agent that supports graphite backends. It has collection, forwarding, visualization and monitoring features. Netdata collects common system metrics and a variety of other sources through plugins. 
+
 `Sensu`_
   A monitoring framework that can route metrics to Graphite. Servers subscribe to sets of checks, so getting metrics from a new server to Graphite is as simple as installing the Sensu client and subscribing.
 
@@ -80,6 +83,9 @@ Forwarding
 
 `carbon-c-relay`_
   Enhanced C implementation of Carbon relay, aggregator and rewriter.
+
+`carbon-proxy`_
+  Relay metrics to a carbon daemon, using kafka as middleware. Payload windowing, transformation, duplication, or other custom functions.
 
 `carbon-relay-ng`_
   Fast carbon relay+aggregator with admin interfaces for making changes online - production ready.
@@ -264,6 +270,9 @@ If you wish to use a backend to graphite other than Whisper, there are some opti
 `Cyanite`_
   A highly available, elastic, and low-latency time-series storage wirtten on top of Cassandra
 
+`hisser`_
+  Time series database, backend for graphite, fast alternative to carbon + whisper.
+
 `graphite-clickhouse`_
   Graphite-web backend with `ClickHouse`_ support. Please also see `carbon-clickhouse`_.
 
@@ -299,6 +308,12 @@ Other
 `carbonate`_
   Utilities for managing graphite clusters.
 
+`go-graphite buckytools`_
+  Fork of `buckytools`_, with more features.
+
+`graphite-dl4j`_
+  Experimental: Train a model for predictions. Machine learning using data from graphite.
+
 `graphite-remote-adapter`_
   Fully featured graphite remote adapter for `Prometheus`_.
 
@@ -321,6 +336,7 @@ Other
 .. _carbon-c-relay: https://github.com/grobian/carbon-c-relay
 .. _carbon-clickhouse: https://github.com/lomik/carbon-clickhouse
 .. _carbon-relay-ng: https://github.com/graphite-ng/carbon-relay-ng
+.. _carbon-proxy: https://github.com/savantly-net/carbon-proxy
 .. _carbonapi: https://github.com/go-graphite/carbonapi
 .. _carbonate: https://github.com/graphite-project/carbonate
 .. _cassabon: https://github.com/jeffpierce/cassabon
@@ -344,6 +360,7 @@ Other
 .. _Gdash: https://github.com/ripienaar/gdash.git
 .. _Giraffe: http://kenhub.github.com/giraffe
 .. _go-carbon: https://github.com/lomik/go-carbon
+.. _go-graphite buckytools: https://github.com/go-graphite/buckytools
 .. _Grafana: http://grafana.org
 .. _Grafsy: https://github.com/leoleovich/grafsy
 .. _Graphene: http://jondot.github.com/graphene
@@ -351,6 +368,7 @@ Other
 .. _graphite-beacon: https://github.com/klen/graphite-beacon
 .. _graphite-clickhouse: https://github.com/lomik/graphite-clickhouse
 .. _graphite-dashboardcli: https://github.com/blacked/graphite-dashboardcli
+.. _graphite-dl4j: https://github.com/savantly-net/graphite-dl4j
 .. _Graphite-Newrelic: https://github.com/gingerlime/graphite-newrelic
 .. _Graphite-relay: https://github.com/markchadwick/graphite-relay
 .. _graphite-remote-adapter: https://github.com/criteo/graphite-remote-adapter
@@ -367,6 +385,7 @@ Other
 .. _Grockets: https://github.com/disqus/grockets
 .. _Gruffalo: https://github.com/outbrain/gruffalo
 .. _HoardD: https://github.com/coredump/hoardd
+.. _hisser: https://github.com/baverman/hisser
 .. _Host sFlow: http://host-sflow.sourceforge.net
 .. _Hubot: https://github.com/github/hubot
 .. _hubot-scripts: https://github.com/github/hubot-scripts
@@ -384,6 +403,7 @@ Other
 .. _metrics-sampler: https://github.com/dimovelev/metrics-sampler
 .. _metrictank: https://github.com/grafana/metrictank
 .. _Moira: http://moira.readthedocs.io
+.. _netdata: https://github.com/netdata/netdata
 .. _New Relic: https://newrelic.com/platform
 .. _Pencil: https://github.com/fetep/pencil
 .. _pipe-to-graphite: https://github.com/iFixit/pipe-to-graphite

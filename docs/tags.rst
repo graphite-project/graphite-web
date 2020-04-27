@@ -17,7 +17,7 @@ Carbon will automatically decode the tags, normalize the tag order, and register
 
 .. _querying-tagged-series:
 
-Tag names must have a length >= 1 and may contain any ascii characters except ``;!^=``. Tag values must also have a length >= 1, and they may contain any ascii characters except ``;~``. UTF-8 characters may work for names and values, but they are not well tested and it is not recommended to use non-ascii characters in metric names or tags.
+Tag names must have a length >= 1 and may contain any ascii characters except ``;!^=``. Tag values must also have a length >= 1, they may contain any ascii characters except ``;`` and the first character must not be ``~``. UTF-8 characters may work for names and values, but they are not well tested and it is not recommended to use non-ascii characters in metric names or tags. Metric names get indexed under the special tag `name`, if a metric name starts with one or multiple `~` they simply get removed from the derived tag value because the `~` character is not allowed to be in the first position of the tag value. If a metric name consists of no other characters than `~`, then it is considered invalid and may get dropped.
 
 Querying
 --------
@@ -108,13 +108,14 @@ The Local TagDB stores tag information in tables inside the graphite-web databas
 Redis TagDB
 ^^^^^^^^^^^
 
-The Redis TagDB will store the tag information on a Redis server, and is selected by setting ``TAGDB='graphite.tags.redis.RedisTagDB'`` in `local_settings.py`.  There are 3 additional config settings for the Redis TagDB::
+The Redis TagDB will store the tag information on a Redis server, and is selected by setting ``TAGDB='graphite.tags.redis.RedisTagDB'`` in `local_settings.py`.  There are 4 additional config settings for the Redis TagDB::
 
     TAGDB_REDIS_HOST = 'localhost'
     TAGDB_REDIS_PORT = 6379
     TAGDB_REDIS_DB = 0
+    TAGDB_REDIS_PASSWORD = ''
 
-The default settings (above) will connect to a local Redis server on the default port, and use the default database.
+The default settings (above) will connect to a local Redis server on the default port, and use the default database without password.
 
 HTTP(S) TagDB
 ^^^^^^^^^^^^^

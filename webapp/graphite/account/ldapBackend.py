@@ -12,58 +12,60 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
-import ldap, traceback
+import traceback
+
+import ldap
 from django.conf import settings
 from django.contrib.auth.models import User
 
 
 class LDAPBackend:
-  def authenticate(self, username=None, password=None):
-    if settings.LDAP_USER_DN_TEMPLATE is not None:
-      settings.LDAP_BASE_USER = settings.LDAP_USER_DN_TEMPLATE % {'username': username}
-      settings.LDAP_BASE_PASS = password
-    try:
-      conn = ldap.initialize(settings.LDAP_URI)
-      conn.protocol_version = ldap.VERSION3
-      if settings.LDAP_USE_TLS:
-        conn.start_tls_s()
-      conn.simple_bind_s( settings.LDAP_BASE_USER, settings.LDAP_BASE_PASS )
-    except ldap.LDAPError:
-      traceback.print_exc()
-      return None
+    def authenticate(self, username=None, password=None):
+        if settings.LDAP_USER_DN_TEMPLATE is not None:
+            settings.LDAP_BASE_USER = settings.LDAP_USER_DN_TEMPLATE % {'username': username}
+            settings.LDAP_BASE_PASS = password
+        try:
+            conn = ldap.initialize(settings.LDAP_URI)
+            conn.protocol_version = ldap.VERSION3
+            if settings.LDAP_USE_TLS:
+                conn.start_tls_s()
+            conn.simple_bind_s( settings.LDAP_BASE_USER, settings.LDAP_BASE_PASS )
+        except ldap.LDAPError:
+            traceback.print_exc()
+            return None
 
-    scope = ldap.SCOPE_SUBTREE
-    filter = settings.LDAP_USER_QUERY % username
-    returnFields = ['dn','mail']
-    try:
-      resultID = conn.search( settings.LDAP_SEARCH_BASE, scope, filter, returnFields )
-      resultType, resultData = conn.result( resultID, 0 )
-      if len(resultData) != 1: # User does not exist
-        return None
+        scope = ldap.SCOPE_SUBTREE
+        filter = settings.LDAP_USER_QUERY % username
+        returnFields = ['dn','mail']
+        try:
+            resultID = conn.search( settings.LDAP_SEARCH_BASE, scope, filter, returnFields )
+            resultType, resultData = conn.result( resultID, 0 )
+            if len(resultData) != 1: # User does not exist
+                return None
 
-      userDN = resultData[0][0]
-      try:
-        userMail = resultData[0][1]['mail'][0].decode("utf-8")
-      except Exception:
-        userMail = "Unknown"
+            userDN = resultData[0][0]
+            try:
+                userMail = resultData[0][1]['mail'][0].decode("utf-8")
+            except Exception:
+                userMail = "Unknown"
 
-      conn.simple_bind_s(userDN,password)
-      try:
-        user = User.objects.get(username=username)
-      except Exception:  # First time login, not in django's database
-        # To prevent login from django db user
-        randomPasswd = User.objects.make_random_password(length=16)
-        user = User.objects.create_user(username, userMail, randomPasswd)
-        user.save()
+            conn.simple_bind_s(userDN,password)
+            try:
+                user = User.objects.get(username=username)
+            except Exception:  # First time login, not in django's database
+                # To prevent login from django db user
+                randomPasswd = User.objects.make_random_password(length=16)
+                user = User.objects.create_user(username, userMail, randomPasswd)
+                user.save()
 
-      return user
+            return user
 
-    except ldap.INVALID_CREDENTIALS:
-      traceback.print_exc()
-      return None
+        except ldap.INVALID_CREDENTIALS:
+            traceback.print_exc()
+            return None
 
-  def get_user(self,user_id):
-    try:
-      return User.objects.get(pk=user_id)
-    except User.DoesNotExist:
-      return None
+    def get_user(self,user_id):
+        try:
+            return User.objects.get(pk=user_id)
+        except User.DoesNotExist:
+            return None

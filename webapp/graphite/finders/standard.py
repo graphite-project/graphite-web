@@ -34,12 +34,12 @@ class StandardFinder(BaseFinder):
         # translate query pattern if it is tagged
         tagged = not query.pattern.startswith('_tagged.') and ';' in query.pattern
         if tagged:
-          # tagged series are stored in whisper using encoded names, so to retrieve them we need to
-          # encode the query pattern using the same scheme used in carbon when they are written.
-          encoded_paths = [
-            TaggedSeries.encode(query.pattern, sep=os.sep, hash_only=True),
-            TaggedSeries.encode(query.pattern, sep=os.sep, hash_only=False),
-          ]
+            # tagged series are stored in whisper using encoded names, so to retrieve them we need to
+            # encode the query pattern using the same scheme used in carbon when they are written.
+            encoded_paths = [
+                TaggedSeries.encode(query.pattern, sep=os.sep, hash_only=True),
+                TaggedSeries.encode(query.pattern, sep=os.sep, hash_only=False),
+            ]
 
         pattern_parts = clean_pattern.split('.')
 
@@ -72,15 +72,15 @@ class StandardFinder(BaseFinder):
 
                 # if we're finding by tag, return the proper metric path
                 if tagged:
-                  metric_path = query.pattern
-                  real_metric_path = query.pattern
+                    metric_path = query.pattern
+                    real_metric_path = query.pattern
                 else:
-                  metric_path = fs_to_metric(relative_path)
-                  real_metric_path = get_real_metric_path(absolute_path, metric_path)
-                  metric_path_parts = metric_path.split('.')
-                  for field_index in find_escaped_pattern_fields(query.pattern):
-                      metric_path_parts[field_index] = pattern_parts[field_index].replace('\\', '')
-                  metric_path = '.'.join(metric_path_parts)
+                    metric_path = fs_to_metric(relative_path)
+                    real_metric_path = get_real_metric_path(absolute_path, metric_path)
+                    metric_path_parts = metric_path.split('.')
+                    for field_index in find_escaped_pattern_fields(query.pattern):
+                        metric_path_parts[field_index] = pattern_parts[field_index].replace('\\', '')
+                    metric_path = '.'.join(metric_path_parts)
 
                 # Now we construct and yield an appropriate Node object
                 if isdir(absolute_path):
@@ -180,26 +180,26 @@ class StandardFinder(BaseFinder):
         matches = []
 
         for root, _, files in walk(settings.WHISPER_DIR):
-          root = root.replace(settings.WHISPER_DIR, '')
-          for base_name in files:
-            if fnmatch.fnmatch(base_name, '*.wsp'):
-              match = join(root, base_name).replace('.wsp', '').replace('/', '.').lstrip('.')
-              bisect.insort_left(matches, match)
+            root = root.replace(settings.WHISPER_DIR, '')
+            for base_name in files:
+                if fnmatch.fnmatch(base_name, '*.wsp'):
+                    match = join(root, base_name).replace('.wsp', '').replace('/', '.').lstrip('.')
+                    bisect.insort_left(matches, match)
 
         # unlike 0.9.x, we're going to use os.walk with followlinks
         # since we require Python 2.7 and newer that supports it
         if RRDReader.supported:
-          for root, _, files in walk(settings.RRD_DIR, followlinks=True):
-            root = root.replace(settings.RRD_DIR, '')
-            for base_name in files:
-              if fnmatch.fnmatch(base_name, '*.rrd'):
-                absolute_path = join(settings.RRD_DIR, root, base_name)
-                base_name = splitext(base_name)[0]
-                metric_path = join(root, base_name)
-                rrd = RRDReader(absolute_path, metric_path)
-                for datasource_name in rrd.get_datasources(absolute_path):
-                  match = join(metric_path, datasource_name).replace('.rrd', '').replace('/', '.').lstrip('.')
-                  if match not in matches:
-                    bisect.insort_left(matches, match)
+            for root, _, files in walk(settings.RRD_DIR, followlinks=True):
+                root = root.replace(settings.RRD_DIR, '')
+                for base_name in files:
+                    if fnmatch.fnmatch(base_name, '*.rrd'):
+                        absolute_path = join(settings.RRD_DIR, root, base_name)
+                        base_name = splitext(base_name)[0]
+                        metric_path = join(root, base_name)
+                        rrd = RRDReader(absolute_path, metric_path)
+                        for datasource_name in rrd.get_datasources(absolute_path):
+                            match = join(metric_path, datasource_name).replace('.rrd', '').replace('/', '.').lstrip('.')
+                            if match not in matches:
+                                bisect.insort_left(matches, match)
 
         return matches

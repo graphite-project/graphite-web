@@ -1,10 +1,14 @@
 import re
 import six
 
-from graphite.errors import NormalizeEmptyResultError
+from graphite.errors import NormalizeEmptyResultError, InputParameterError
 from graphite.functions import SeriesFunction
+from graphite.logger import log
 from graphite.render.grammar import grammar
 from graphite.render.datalib import fetchData, TimeSeries, prefetchData
+from graphite.functions.params import validateParams
+
+from django.conf import settings
 
 
 def evaluateTarget(requestContext, targets):
@@ -76,12 +80,20 @@ def evaluateTokens(requestContext, tokens, replacements=None, pipedArg=None):
     if tokens.call.funcname == 'template':
       # if template propagates down here, it means the grammar didn't match the invocation
       # as tokens.template. this generally happens if you try to pass non-numeric/string args
-      raise ValueError("invalid template() syntax, only string/numeric arguments are allowed")
+      raise InputParameterError("invalid template() syntax, only string/numeric arguments are allowed")
 
     if tokens.call.funcname == 'seriesByTag':
       return fetchData(requestContext, tokens.call.raw)
 
-    func = SeriesFunction(tokens.call.funcname)
+    try:
+      func = SeriesFunction(tokens.call.funcname)
+    except KeyError:
+      msg = 'Received request for unknown function: {func}'.format(func=tokens.call.funcname)
+      log.warning(msg)
+
+      # even if input validation enforcement is disabled, there's nothing else we can do here
+      raise InputParameterError(msg)
+
     rawArgs = tokens.call.args or []
     if pipedArg is not None:
       rawArgs.insert(0, pipedArg)
@@ -89,12 +101,62 @@ def evaluateTokens(requestContext, tokens, replacements=None, pipedArg=None):
     requestContext['args'] = rawArgs
     kwargs = dict([(kwarg.argname, evaluateTokens(requestContext, kwarg.args[0], replacements))
                    for kwarg in tokens.call.kwargs])
+
+    def handleInvalidParameters(e):
+      if not getattr(handleInvalidParameters, 'alreadyLogged', False):
+        log.warning(invalidParamLogMsg(requestContext, str(e), tokens.call.funcname, args, kwargs))
+
+        # only log invalid parameters once
+        setattr(handleInvalidParameters, 'alreadyLogged', True)
+
+      if settings.ENFORCE_INPUT_VALIDATION:
+        raise
+
+    if hasattr(func, 'params'):
+      try:
+        (args, kwargs) = validateParams(tokens.call.funcname, func.params, args, kwargs)
+      except InputParameterError as e:
+        handleInvalidParameters(e)
+
     try:
       return func(requestContext, *args, **kwargs)
     except NormalizeEmptyResultError:
       return []
+    except InputParameterError as e:
+      handleInvalidParameters(e)
 
   return evaluateScalarTokens(tokens)
+
+
+def invalidParamLogMsg(requestContext, exception, func, args, kwargs):
+  source = ''
+
+  if 'sourceIdHeaders' in requestContext:
+    headers = list(requestContext['sourceIdHeaders'].keys())
+    headers.sort()
+    for name in headers:
+      if source:
+        source += ', '
+      source += '{name}: {value}'.format(
+        name=name,
+        value=requestContext['sourceIdHeaders'][name])
+
+  logMsg = 'Received invalid parameters ({msg}): {func} ({args})'.format(
+      msg=exception,
+      func=func,
+      args=', '.join(
+        argList
+        for argList in [
+          ', '.join(repr(arg) for arg in args),
+          ', '.join('{k}={v}'.format(k=str(k), v=repr(v)) for k, v in kwargs.items()),
+        ] if argList
+      ))
+
+  if not source:
+    return logMsg
+
+  logMsg += '; source: ({source})'.format(source=source)
+  return logMsg
 
 
 def evaluateScalarTokens(tokens):
@@ -106,7 +168,7 @@ def evaluateScalarTokens(tokens):
     if tokens.number.scientific:
       return float(tokens.number.scientific[0])
 
-    raise ValueError("unknown numeric type in target evaluator")
+    raise InputParameterError("unknown numeric type in target evaluator")
 
   if tokens.string:
     return tokens.string[1:-1]
@@ -117,7 +179,10 @@ def evaluateScalarTokens(tokens):
   if tokens.none:
     return None
 
-  raise ValueError("unknown token in target evaluator")
+  if tokens.infinity:
+    return float('inf')
+
+  raise InputParameterError("unknown token in target evaluator")
 
 
 def extractPathExpressions(requestContext, targets):

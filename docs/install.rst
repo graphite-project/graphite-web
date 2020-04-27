@@ -14,14 +14,14 @@ Try Graphite in Docker and have it running in seconds:
 
 .. code-block:: bash
 
-    docker run -d\
-     --name graphite\
-     --restart=always\
-     -p 80:80\
-     -p 2003-2004:2003-2004\
-     -p 2023-2024:2023-2024\
-     -p 8125:8125/udp\
-     -p 8126:8126\
+    docker run -d \
+     --name graphite \
+     --restart=always \
+     -p 80:80 \
+     -p 2003-2004:2003-2004 \
+     -p 2023-2024:2023-2024 \
+     -p 8125:8125/udp \
+     -p 8126:8126 \
      graphiteapp/graphite-statsd
 
 Check `docker repo`_ for details.
@@ -41,7 +41,7 @@ Basic Graphite requirements:
 * a UNIX-like Operating System
 * Python 2.7 or greater (including Python 3)
 * `cairocffi`_
-* `Django`_ 1.8 - 2.1
+* `Django`_ 1.8 - 3.0 (for Python3 - 1.11 and newer), 1.11.19 or newer is recommended
 * `django-tagging`_ 0.4.6 (not `django-taggit` yet)
 * `pytz`_
 * `scandir`_

@@ -26,6 +26,17 @@ from graphite.storage import STORE
 from graphite.util import timebounds, logtime
 
 
+try:
+  from collections import UserDict
+except ImportError:
+  from UserDict import IterableUserDict as UserDict
+
+
+class Tags(UserDict):
+  def __setitem__(self, key, value):
+    self.data[key] = str(value)
+
+
 class TimeSeries(list):
   def __init__(self, name, start, end, step, values, consolidate='average', tags=None, xFilesFactor=None, pathExpression=None):
     list.__init__(self, values)
@@ -82,11 +93,16 @@ class TimeSeries(list):
     'first': lambda usable: usable[0],
     'last': lambda usable: usable[-1],
   }
+  __consolidation_function_aliases = {
+    'avg': 'average',
+  }
 
   def __consolidatingGenerator(self, gen):
-    try:
+    if self.consolidationFunc in self.__consolidation_functions:
       cf = self.__consolidation_functions[self.consolidationFunc]
-    except KeyError:
+    elif self.consolidationFunc in self.__consolidation_function_aliases:
+      cf = self.__consolidation_functions[self.__consolidation_function_aliases[self.consolidationFunc]]
+    else:
       raise Exception("Invalid consolidation function: '%s'" % self.consolidationFunc)
 
     buf = []
@@ -152,6 +168,19 @@ class TimeSeries(list):
   def datapoints(self):
     timestamps = range(int(self.start), int(self.end) + 1, int(self.step * self.valuesPerPoint))
     return list(zip(self, timestamps))
+
+  @property
+  def tags(self):
+    return self.__tags
+
+  @tags.setter
+  def tags(self, tags):
+    if isinstance(tags, Tags):
+      self.__tags = tags
+    elif isinstance(tags, dict):
+      self.__tags = Tags(tags)
+    else:
+      raise Exception('Invalid tags specified')
 
 
 # Data retrieval API
@@ -282,6 +311,9 @@ def prefetchData(requestContext, pathExpressions):
   if not requestContext.get('prefetched'):
     requestContext['prefetched'] = {}
 
-  requestContext['prefetched'][(startTime, endTime, now)] = prefetched
+  if (startTime, endTime, now) in requestContext['prefetched']:
+      requestContext['prefetched'][(startTime, endTime, now)].update(prefetched)
+  else:
+      requestContext['prefetched'][(startTime, endTime, now)] = prefetched
 
   log.rendering("Fetched data for [%s] in %fs" % (', '.join(pathExpressions), time.time() - start))
