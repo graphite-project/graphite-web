@@ -4976,7 +4976,7 @@ groupByNodes.group = 'Combine'
 groupByNodes.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
   Param('callback', ParamTypes.aggOrSeriesFunc, required=True),
-  Param('nodes', ParamTypes.nodeOrTag, required=True, multiple=True),
+  Param('nodes', ParamTypes.nodeOrTag, multiple=True),
 ]
 
 
