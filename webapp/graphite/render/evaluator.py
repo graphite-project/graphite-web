@@ -1,7 +1,7 @@
 import re
 import six
 
-from graphite.errors import NormalizeEmptyResultError, InputParameterError
+from graphite.errors import NormalizeEmptyResultError, InputParameterError, InputValidationError
 from graphite.functions import SeriesFunction
 from graphite.logger import log
 from graphite.render.grammar import grammar
@@ -109,14 +109,16 @@ def evaluateTokens(requestContext, tokens, replacements=None, pipedArg=None):
       e.setTargets(requestContext.get('targets', []))
       e.setFunction(tokens.call.funcname, args, kwargs)
 
-      if settings.ENFORCE_INPUT_VALIDATION:
+      # if input validation is not enforced and the exception type is InputValidationError
+      # then we only want to log the error, but not re-raise it
+      if not settings.ENFORCE_INPUT_VALIDATION and isinstance(e, InputValidationError):
+        if not getattr(handleInvalidParameters, 'alreadyLogged', False):
+          log.warning('%s', str(e))
+
+          # only log invalid parameters once
+          setattr(handleInvalidParameters, 'alreadyLogged', True)
+      else:
         raise e
-
-      if not getattr(handleInvalidParameters, 'alreadyLogged', False):
-        log.warning('%s', str(e))
-
-        # only log invalid parameters once
-        setattr(handleInvalidParameters, 'alreadyLogged', True)
 
     if hasattr(func, 'params'):
       try:
@@ -130,7 +132,6 @@ def evaluateTokens(requestContext, tokens, replacements=None, pipedArg=None):
       return []
     except InputParameterError as e:
       handleInvalidParameters(e)
-      raise
 
   return evaluateScalarTokens(tokens)
 
