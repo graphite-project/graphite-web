@@ -94,6 +94,11 @@ class InputParameterError(ValueError):
         return msg
 
 
+# subtype of input parameter error which only gets raised by the parameter validation
+class InputValidationError(InputParameterError):
+    pass
+
+
 # decorator which turns InputParameterExceptions into Django's HttpResponseBadRequest
 def handleInputParameterError(f):
     def new_f(*args, **kwargs):

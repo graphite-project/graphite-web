@@ -1,6 +1,6 @@
 import six
 
-from graphite.errors import InputParameterError
+from graphite.errors import InputValidationError
 from graphite.render.attime import parseTimeOffset
 from graphite.logger import log
 from graphite.functions.aggfuncs import aggFuncs, aggFuncAliases
@@ -243,14 +243,14 @@ class Param(object):
 
         # parameter is restricted to a defined set of values, but value is not in it
         if self.options and value not in self.options:
-            raise InputParameterError(
+            raise InputValidationError(
                 'Invalid option specified for function "{func}" parameter "{param}": {value}'.format(
                     func=func, param=self.name, value=repr(value)))
 
         try:
             return self.type.isValid(value)
         except Exception:
-            raise InputParameterError(
+            raise InputValidationError(
                 'Invalid "{type}" value specified for function "{func}" parameter "{param}": {value}'.format(
                     type=self.type.name, func=func, param=self.name, value=repr(value)))
 
@@ -263,7 +263,7 @@ def validateParams(func, params, args, kwargs):
     # the last param allows to be specified multiple times
     if len(args) + len(kwargs) > len(params):
         if not params[-1].multiple:
-            raise InputParameterError(
+            raise InputValidationError(
                 'Too many parameters specified for function "{func}"'.format(func=func))
 
         # if args has more values than params and the last param allows multiple values,
@@ -292,7 +292,7 @@ def validateParams(func, params, args, kwargs):
         value = kwargs.get(param.name, None)
         if value is None:
             if param.required:
-                raise InputParameterError(
+                raise InputValidationError(
                     'Missing required parameter "{param}" for function "{func}"'
                     .format(param=param.name, func=func))
             continue
@@ -304,7 +304,7 @@ def validateParams(func, params, args, kwargs):
         for name in kwargs.keys():
             if name not in valid_kwargs:
                 unexpected_keys.append(name)
-        raise InputParameterError(
+        raise InputValidationError(
             'Unexpected key word arguments: {keys}'.format(
                 keys=', '.join(
                     key
