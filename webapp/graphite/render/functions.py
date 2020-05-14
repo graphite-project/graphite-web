@@ -3967,7 +3967,7 @@ holtWintersConfidenceArea.params = [
 ]
 
 
-def linearRegressionAnalysis(series):
+def _linearRegressionAnalysis(series):
   """
   Returns factor and offset of linear regression function by least squares method.
   """
@@ -4020,7 +4020,7 @@ def linearRegression(requestContext, seriesList, startSourceAt=None, endSourceAt
       int(time.mktime(sourceContext['startTime'].timetuple())),
       int(time.mktime(sourceContext['endTime'].timetuple()))
     )
-    forecast = linearRegressionAnalysis(source)
+    forecast = _linearRegressionAnalysis(source)
     if forecast is None:
       continue
     factor, offset = forecast
