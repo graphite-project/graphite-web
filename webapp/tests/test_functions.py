@@ -3051,6 +3051,11 @@ class FunctionsTest(TestCase):
         ]
         verify_groupByNodes(expectedResult, "range",  1, 0)
 
+        expectedResult = [
+            TimeSeries('',0,1,1,[None]),
+        ]
+        verify_groupByNodes(expectedResult, "average")
+
     def test_exclude(self):
         seriesList = self._gen_series_list_with_data(
             key=['collectd.test-db1.load.value', 'collectd.test-db2.load.value', 'collectd.test-db3.load.value', 'collectd.test-db4.load.value'],

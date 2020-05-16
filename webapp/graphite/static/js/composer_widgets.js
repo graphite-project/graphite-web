@@ -515,7 +515,14 @@ var GraphDataWindow = {
       hideHeaders: true,
       width: 385,
       height: 140,
-      columns: [ {header: 'Graph Targets', width: 1.0, dataIndex: 'value'} ],
+      columns: [
+        {
+          header: 'Graph Targets',
+          width: 1.0,
+          dataIndex: 'value',
+          tpl: '{value:htmlEncode}'
+        }
+      ],
       listeners: {
         contextmenu: this.targetContextMenu,
         afterrender: this.targetChanged,

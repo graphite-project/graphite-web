@@ -871,6 +871,7 @@ asPercent.params = [
   Param('total', ParamTypes.any),
   Param('nodes', ParamTypes.nodeOrTag, multiple=True),
 ]
+asPercent.aggregator = True
 
 
 def divideSeriesLists(requestContext, dividendSeriesList, divisorSeriesList):
@@ -3966,7 +3967,7 @@ holtWintersConfidenceArea.params = [
 ]
 
 
-def linearRegressionAnalysis(series):
+def _linearRegressionAnalysis(series):
   """
   Returns factor and offset of linear regression function by least squares method.
   """
@@ -4019,7 +4020,7 @@ def linearRegression(requestContext, seriesList, startSourceAt=None, endSourceAt
       int(time.mktime(sourceContext['startTime'].timetuple())),
       int(time.mktime(sourceContext['endTime'].timetuple()))
     )
-    forecast = linearRegressionAnalysis(source)
+    forecast = _linearRegressionAnalysis(source)
     if forecast is None:
       continue
     factor, offset = forecast
@@ -4909,7 +4910,7 @@ groupByNodes.group = 'Combine'
 groupByNodes.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
   Param('callback', ParamTypes.aggOrSeriesFunc, required=True),
-  Param('nodes', ParamTypes.nodeOrTag, required=True, multiple=True),
+  Param('nodes', ParamTypes.nodeOrTag, multiple=True),
 ]
 
 

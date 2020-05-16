@@ -374,8 +374,7 @@ function initDashboard () {
       enableKeyEvents: true,
       cls: 'completer-input-field',
       listeners: {
-        keypress: completerKeyPress,
-        specialkey: completerKeyPress,
+        keydown: completerKeyPress,
         afterrender: focusCompleter
       }
     });
@@ -1915,6 +1914,7 @@ function graphClicked(graphView, graphIndex, element, evt) {
           header: 'Target',
           dataIndex: 'target',
           width: gridWidth - 90,
+          renderer: 'htmlEncode',
           editor: {xtype: 'textfield'}
         },
         {
