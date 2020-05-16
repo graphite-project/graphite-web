@@ -110,20 +110,9 @@ Ubuntu 18.04
 Default Installation Layout
 ---------------------------
 
-Graphite traditionally installed all components in ``/opt/graphite``, since release 1.2.0
-Graphite's installation location depends on your `Python prefix`_. If you are using `Virtualenv`_
-the ``prefix`` is set to the root of your virtualenv. For more information on custom prefixes
-see `Custom Installation Locations`_. See the release notes for :doc:`upgrading </releases/1_2_0>`
+The default directory layout:
 
-You can find your ``prefix`` by running:
-
-.. code-block:: bash
-
-   python -c 'import sys; print(sys.prefix)'
-
-Directory layout:
-
-- ``PREFIX/`` Usually ``/opt/graphite/``
+- ``GRAPHITE_ROOT`` configurable in local_settings.py, defaults to ``/opt/graphite/``
 
   - ``conf/`` Carbon configuration files
 
@@ -277,5 +266,4 @@ Unfortunately, native Graphite on Windows is unsupported, but you can run Graphi
 .. _Virtualenv: http://virtualenv.org/
 .. _GitHub project page: http://github.com/graphite-project
 .. _pyhash: https://pypi.org/project/pyhash/
-.. _Python prefix: https://docs.python.org/3/library/sys.html#sys.prefix
 .. _Custom Installation Locations: https://setuptools.readthedocs.io/en/latest/easy_install.html#custom-installation-locations

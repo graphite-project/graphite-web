@@ -36,7 +36,7 @@ DATE_FORMAT = '%m/%d'
 
 # Filesystem layout
 WEB_DIR = dirname(abspath(__file__))
-GRAPHITE_ROOT = sys.prefix
+GRAPHITE_ROOT = '/opt/graphite'
 # Initialize additional path variables
 # Defaults for these are set after local_settings is imported
 STATIC_ROOT = ''
