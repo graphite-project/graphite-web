@@ -7,7 +7,31 @@
  - Attempt to convert parameter types in validator (#2574, @replay)
  - accept deprecated params for bc (#2579, @replay)
  - Remote render fixes (#2582, @piotr1212)
+ - render: only encodeHeader() for svg output (#2584, @ploxiln)
+ - fix composer saved graphs target escaping (#2587, @ploxiln) 
+ - fix dashboard metric completion on backspace in Firefox (#2589, @ploxiln)
+ - seriesList type validation was too permissive (#2593, @replay)
+ - asPercent may be used as an aggregator (#2594, @replay)
+ - Make nodes in group by nodes optional (#2597, @replay)
+ - privatize linearRegressionAnalysis so it will not show in documentation (#2602, @piotr1212)
+ - Revert symlink fix (#2604, @piotrt1212)
 
+### Features / Enhancements
+ - [Settings] Allow pickle protocol to be configurable for carbonlink requests. (#2591, @alikhtag)
+ - List Promitor as a collector tool (#2605, @tomkerkhove)
+
+## carbon
+
+### Bug fixes
+ - remove carbon-client.py, is broken for 4 years (#890, @piotr1212)
+ - spelling (#893, @jsoref)
+ 
+## whisper
+
+### Bug fixes
+ - fix reisze whisper from low retention to high retention will lose some data (#293, @Xu-Wentao) 
+ - Fixing test for python 2.7 (#295, @deniszh)
+ 
 # 1.1.7
 
 ## graphite-web
