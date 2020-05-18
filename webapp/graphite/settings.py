@@ -35,9 +35,8 @@ JAVASCRIPT_DEBUG = False
 DATE_FORMAT = '%m/%d'
 
 # Filesystem layout
-WEB_DIR = dirname( abspath(__file__) )
-WEBAPP_DIR = dirname(WEB_DIR)
-GRAPHITE_ROOT = dirname(WEBAPP_DIR)
+WEB_DIR = dirname(abspath(__file__))
+GRAPHITE_ROOT = '/opt/graphite'
 # Initialize additional path variables
 # Defaults for these are set after local_settings is imported
 STATIC_ROOT = ''
@@ -232,11 +231,6 @@ except ImportError:
 if not GRAPHITE_WEB_APP_SETTINGS_LOADED:
     from graphite.app_settings import *  # noqa
 
-
-STATICFILES_DIRS = (
-    join(WEBAPP_DIR, 'content'),
-)
-
 # Handle renamed timeout settings
 FIND_TIMEOUT = FIND_TIMEOUT or REMOTE_FIND_TIMEOUT or 3.0
 FETCH_TIMEOUT = FETCH_TIMEOUT or REMOTE_FETCH_TIMEOUT or 6.0
@@ -244,7 +238,7 @@ FETCH_TIMEOUT = FETCH_TIMEOUT or REMOTE_FETCH_TIMEOUT or 6.0
 ## Set config dependent on flags set in local_settings
 # Path configuration
 if not STATIC_ROOT:
-    STATIC_ROOT = join(GRAPHITE_ROOT, 'static')
+    STATIC_ROOT = join(WEB_DIR, 'static')
 
 if not CONF_DIR:
     CONF_DIR = os.environ.get('GRAPHITE_CONF_DIR', join(GRAPHITE_ROOT, 'conf'))

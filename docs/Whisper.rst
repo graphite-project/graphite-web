@@ -39,8 +39,8 @@ That is, a pair of archives with retentions of 1 month and 1 year will not provi
 as may be guessed. Instead, it will provide 1 year of storage - the length of its longest archive.
 
 
-Rollup Aggregation
-------------------
+Roll-up Aggregation
+-------------------
 Whisper databases with more than a single archive need a strategy to collapse multiple data points for
 when the data rolls up a lower precision archive. By default, an average function is used.
 Available aggregation methods are:
@@ -56,7 +56,7 @@ Multi-Archive Storage and Retrieval Behavior
 --------------------------------------------
 When Whisper writes to a database with multiple archives, the incoming data point is written to all
 archives at once. The data point will be written to the highest resolution archive as-is, and will be
-aggregated by the configured aggregation method (see `Rollup Aggregation`_) and placed into each
+aggregated by the configured aggregation method (see `Roll-up Aggregation`_) and placed into each
 of the higher-retention archives. If you are in need for aggregation of the highest resolution points,
 please consider using :doc:`carbon-aggregator </carbon-daemons>` for that purpose.
 

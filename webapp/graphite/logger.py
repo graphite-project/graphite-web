@@ -12,12 +12,25 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
+import errno
 import os
 import logging
+
 from logging.handlers import TimedRotatingFileHandler as Rotater
 from logging import NullHandler, FileHandler, StreamHandler
 
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
+
+
+# this can't be put in util.py because of circular depency between log.py
+# and util.py
+def _mkdir_p(path):
+    try:
+        os.makedirs(path)
+    except OSError as exc:  # Directory already exists
+        if not (exc.errno == errno.EEXIST and os.path.isdir(path)):
+            raise
 
 
 class GraphiteLogger:
@@ -63,6 +76,14 @@ class GraphiteLogger:
                 formatter = logging.Formatter(
                     fmt='%(asctime)s.%(msecs)03d :: %(message)s',
                     datefmt='%Y-%m-%d,%H:%M:%S')
+                try:
+                    _mkdir_p(settings.LOG_DIR)
+                except OSError as exc:
+                    raise ImproperlyConfigured((
+                        '\n\nCreation of log directory "{}" failed:\n{}\n'
+                        'Create the directory manually or change `GRAPHITE_ROOT` '
+                        'or `LOG_DIR` in local_settings.py\n').format(
+                        settings.LOG_DIR, exc))
                 log_file = os.path.join(settings.LOG_DIR, log_file_name)
                 if settings.LOG_ROTATION:  # if we want to rotate logs
                     handler = Rotater(log_file, when=when, backupCount=backupCount)
@@ -93,4 +114,4 @@ class GraphiteLogger:
         return self.renderingLogger.info(msg,*args,**kwargs)
 
 
-log = GraphiteLogger() # import-shared logger instance
+log = GraphiteLogger()  # import-shared logger instance

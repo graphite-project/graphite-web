@@ -101,7 +101,7 @@ When using a tagged naming scheme it is much easier to add or alter individual t
 Step 2 - Configure your Data Retention
 --------------------------------------
 
-Graphite is built on fixed-size databases (see :doc:`Whisper. </whisper>`) so we have to configure in advance how much data we intend to store and at what level of precision. For instance you could store your data with 1-minute precision (meaning you will have one data point for each minute) for say 2 hours. Additionally you could store your data with 10-minute precision for 2 weeks, etc. The idea is that the storage cost is determined by the number of data points you want to store, the less fine your precision, the more time you can cover with fewer points.
+Graphite is built on fixed-size databases (see :doc:`Whisper. </Whisper>`) so we have to configure in advance how much data we intend to store and at what level of precision. For instance you could store your data with 1-minute precision (meaning you will have one data point for each minute) for say 2 hours. Additionally you could store your data with 10-minute precision for 2 weeks, etc. The idea is that the storage cost is determined by the number of data points you want to store, the less fine your precision, the more time you can cover with fewer points.
 To determine the best retention configuration, you must answer all of the following questions.
 
 1. How often can you produce your data?

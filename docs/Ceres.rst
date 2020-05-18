@@ -61,12 +61,12 @@ large but allowed gap occurs it has to get filled in, which means instead of a s
 new file we could end up doing an ``(8 * MAX_SLICE_GAP)``-byte write to the latest slice.
 
 
-Rollup Aggregation
-------------------
+Roll-up Aggregation
+-------------------
 Expected features such as roll-up aggregation and data expiration are not provided by Ceres itself, but
 instead are implemented as maintenance plugins.
 
-Such a rollup plugin exists in Ceres that aggregates data points in a way that is similar behavior of
+Such a roll-up plugin exists in Ceres that aggregates data points in a way that is similar behavior of
 Whisper archives. Where multiple data points are collapsed and written to a lower precision slice, and
 data points outside of the set slice retentions are trimmed. By default, an average function is used,
 however alternative methods can be chosen by changing the metadata.

@@ -13,6 +13,32 @@ the data once they receive it. This document gives a brief overview of what each
 does and how you can use them to build a more sophisticated storage backend.
 
 
+Starting and stopping Carbon
+----------------------------
+
+To start the Carbon daemons run:
+
+.. code-block:: bash
+
+   carbon-cache.py start
+   carbon-relay.py start
+   carbon-aggregator.py start
+   carbon-aggregator-cache.py start
+
+
+.. note:: If you are using Virtualenv you must specify the full path
+   ``/opt/graphite/bin/carbon-cache.py start``
+
+To stop the daemons replace ``start`` with ``stop``.
+
+
+Logs
+----
+
+If installed in the :ref:`default location <default-installation-layout>` then the
+Carbon daemons write their logs to ``/opt/graphite/storage/log/``.
+
+
 carbon-cache.py
 ---------------
 

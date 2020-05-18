@@ -3,13 +3,13 @@ Configuring The Webapp
 
 There are multiple ways to expose the Graphite webapp. The following stack configurations exist:
 
-* nginx + gunicorn
+* nginx + Gunicorn
 * Apache + mod_wsgi
 * nginx + uWSGI
 
 Depending on the configuration you choose, the webapp configuration is slightly different.
 
-nginx + gunicorn
+nginx + Gunicorn
 ----------------
 
 In this setup, nginx will proxy requests for Gunicorn, which will itself listen locally on port 8080 and serve the webapp (Django application).
@@ -31,6 +31,53 @@ On Debian-based systems, run:
 
    sudo apt install gunicorn
 
+Next, you will have to create a configuration to start Graphite.
+If your system is using Systemd create following unit files:
+
+``/etc/systemd/system/graphite-web.socket``:
+
+.. code-block:: none
+
+    [Unit]
+    Description=Graphite-web socket
+
+    [Socket]
+    ListenStream=/run/graphite-web.sock
+    ListenStream=127.0.0.1:8080
+
+    [Install]
+    WantedBy=sockets.target
+
+``/etc/systemd/system/graphite-web.service``:
+
+.. code-block:: none
+
+    [Unit]
+    Description=Graphite-web service
+    Requires=graphite-web.socket
+
+    [Service]
+    ExecStart=/usr/bin/gunicorn -w2 graphite.wsgi -b 127.0.0.1:8080
+    # If you are using virtualenv specify the path to gunicorn in virtualenv.
+    # ExecStart=/opt/graphite/bin/gunicorn -w2 graphite.wsgi -b 127.0.0.1:8080
+    Restart=on-failure
+    #User=graphite
+    #Group=graphite
+    ExecReload=/bin/kill -s HUP $MAINPID
+    ExecStop=/bin/kill -s TERM $MAINPID
+    PrivateTmp=true
+
+    [Install]
+    WantedBy=multi-user.target
+
+
+Reload the systemd configuration, the service is socket activated so no need to start it manually.
+
+.. code-block:: none
+
+   systemctl daemon-reload
+
+
 Install nginx
 ^^^^^^^^^^^^^
 
@@ -39,9 +86,6 @@ On Debian-based systems, run:
 .. code-block:: none
 
    sudo apt install nginx
-
-Configure nginx
-^^^^^^^^^^^^^^^
 
 We will use dedicated log files for nginx when serving Graphite:
 
@@ -72,12 +116,6 @@ Write the following configuration in ``/etc/nginx/sites-available/graphite``:
 
         location = /favicon.ico {
             return 204;
-        }
-
-        # serve static content from the "content" directory
-        location /static {
-            alias /opt/graphite/webapp/content;
-            expires max;
         }
 
         location / {
@@ -131,7 +169,6 @@ Then create the graphite.wsgi. (You can find example of graphite.wsgi file on th
     # /opt/graphite/conf/graphite.wsgi
 
     import sys
-    sys.path.append('/opt/graphite/webapp')
     from graphite.wsgi import application
 
 Finally, configure the apache vhost. (You can find example of Graphite vhost configuration in the `contrib`_ directory of source ditribution):
@@ -143,6 +180,9 @@ Finally, configure the apache vhost. (You can find example of Graphite vhost con
     # /etc/httpd/conf.d/graphite-vhost.conf
 
     LoadModule wsgi_module modules/mod_wsgi.so
+
+    # Set WSGIPythonHome when using virtualenv
+    # WSGIPythonHome /opt/graphite
 
     WSGISocketPrefix /var/run/wsgi
 
@@ -161,18 +201,6 @@ Finally, configure the apache vhost. (You can find example of Graphite vhost con
 
         WSGIScriptAlias / /opt/graphite/conf/graphite.wsgi
 
-        Alias /static/ /opt/graphite/static/
-
-        <Directory /opt/graphite/static/>
-                <IfVersion < 2.4>
-                        Order deny,allow
-                        Allow from all
-                </IfVersion>
-                <IfVersion >= 2.4>
-                        Require all granted
-                </IfVersion>
-        </Directory>
-
         <Directory /opt/graphite/conf/>
                 <IfVersion < 2.4>
                         Order deny,allow
@@ -183,6 +211,9 @@ Finally, configure the apache vhost. (You can find example of Graphite vhost con
                 </IfVersion>
         </Directory>
     </VirtualHost>
+
+
+.. note:: You have to configure ``WSGIPythonHome`` if you are using Virtualenv
 
 Adapt the mod_wsgi configuration to your requirements.
 
@@ -234,7 +265,6 @@ Then create the file ``wsgi.py``:
     # /opt/graphite/conf/wsgi.py
 
     import sys
-    sys.path.append('/opt/graphite/webapp')
     from graphite.wsgi import application
 
 Enable ``graphite.ini`` and restart uWSGI:
@@ -271,8 +301,8 @@ Enable the vhost and restart nginx:
     $ service nginx restart
 
 
-Acnowlegments
-------------_
+Acknowledgments
+---------------
 
 Portions of that manual are based on `Graphite-API deployment manual`_.
 
