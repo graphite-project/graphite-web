@@ -269,7 +269,7 @@ def renderViewJson(requestOptions, data):
 
   replace_nan(series_data)
   output = json.dumps(series_data, indent=(2 if requestOptions.get('pretty') else None))
-  output = re.sub(r'"(-?)%s"' % inf_placeholder, r'\1' + '1e9999', output)
+  output = re.sub(r'"(-?)%s"' % inf_placeholder, r'\g<1>1e9999', output)
 
   if 'jsonp' in requestOptions:
     response = HttpResponse(
