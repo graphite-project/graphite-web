@@ -203,6 +203,7 @@ def renderViewCsv(requestOptions, data):
 
 inf_placeholder = "Infinity-vsEGZrnIyKLHfteA"
 
+
 def replace_nan(obj):
     "replace NaN and Infinity which are non-standard and not accepted by browsers"
 
@@ -214,10 +215,11 @@ def replace_nan(obj):
         return
 
     for k, v in iterfunc(obj):
-        if math.isnan(v):
-            obj[k] = None
-        elif math.isinf(v):
-            obj[k] = inf_placeholder
+        if isinstance(v, float):
+            if math.isnan(v):
+                obj[k] = None
+            elif math.isinf(v):
+                obj[k] = inf_placeholder
         else:
             replace_nan(v)
 
