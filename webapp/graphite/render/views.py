@@ -11,6 +11,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
+import re
 import csv
 import math
 from datetime import datetime
@@ -201,7 +202,7 @@ def renderViewCsv(requestOptions, data):
   return response
 
 
-inf_placeholder = "Infinity-vsEGZrnIyKLHfteA"
+inf_placeholder = "Infinity#vsEGZrnIyKLHfteA"  # random, unlikely
 
 
 def replace_nan(obj):
@@ -219,7 +220,7 @@ def replace_nan(obj):
             if math.isnan(v):
                 obj[k] = None
             elif math.isinf(v):
-                obj[k] = inf_placeholder
+                obj[k] = ('-' if v < 0 else '') + inf_placeholder
         else:
             if isinstance(v, tuple):
                 v = list(v)
@@ -268,7 +269,7 @@ def renderViewJson(requestOptions, data):
 
   replace_nan(series_data)
   output = json.dumps(series_data, indent=(2 if requestOptions.get('pretty') else None))
-  output = output.replace('"%s"' % inf_placeholder, '1e9999')
+  output = re.sub(r'"(-?)%s"' % inf_placeholder, r'\1' + '1e9999', output)
 
   if 'jsonp' in requestOptions:
     response = HttpResponse(
