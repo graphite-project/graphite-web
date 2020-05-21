@@ -13,13 +13,15 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 import csv
 import math
-import pytz
-import six.moves.http_client
-
 from datetime import datetime
 from time import time
 from random import shuffle
+
+import pytz
 from six.moves.urllib.parse import urlencode, urlsplit, urlunsplit, parse_qs
+import six.moves.http_client
+from six.moves import zip
+from six import iteritems
 
 from graphite.compat import HttpResponse
 from graphite.errors import InputParameterError, handleInputParameterError
@@ -40,7 +42,6 @@ from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.utils.cache import add_never_cache_headers, patch_response_headers
-from six.moves import zip
 
 
 loadFunctions()
@@ -200,6 +201,27 @@ def renderViewCsv(requestOptions, data):
   return response
 
 
+inf_placeholder = "Infinity-vsEGZrnIyKLHfteA"
+
+def replace_nan(obj):
+    "replace NaN and Infinity which are non-standard and not accepted by browsers"
+
+    if isinstance(obj, dict):
+        iterfunc = iteritems
+    elif isinstance(obj, (list, tuple)):
+        iterfunc = enumerate
+    else:
+        return
+
+    for k, v in iterfunc(obj):
+        if math.isnan(v):
+            obj[k] = None
+        elif math.isinf(v):
+            obj[k] = inf_placeholder
+        else:
+            replace_nan(v)
+
+
 def renderViewJson(requestOptions, data):
   series_data = []
 
@@ -239,7 +261,9 @@ def renderViewJson(requestOptions, data):
 
       series_data.append(dict(target=series.name, tags=dict(series.tags), datapoints=datapoints))
 
-  output = json.dumps(series_data, indent=(2 if requestOptions.get('pretty') else None)).replace('None,', 'null,').replace('NaN,', 'null,').replace('Infinity,', '1e9999,')
+  replace_nan(series_data)
+  output = json.dumps(series_data, indent=(2 if requestOptions.get('pretty') else None))
+  output = output.replace('"%s"' % inf_placeholder, '1e9999')
 
   if 'jsonp' in requestOptions:
     response = HttpResponse(
