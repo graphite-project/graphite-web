@@ -209,7 +209,7 @@ def replace_nan(obj):
 
     if isinstance(obj, dict):
         iterfunc = iteritems
-    elif isinstance(obj, (list, tuple)):
+    elif isinstance(obj, list):
         iterfunc = enumerate
     else:
         return
@@ -221,6 +221,9 @@ def replace_nan(obj):
             elif math.isinf(v):
                 obj[k] = inf_placeholder
         else:
+            if isinstance(v, tuple):
+                v = list(v)
+                obj[k] =  v
             replace_nan(v)
 
 
