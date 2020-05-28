@@ -239,7 +239,8 @@ def renderViewJson(requestOptions, data):
 
       series_data.append(dict(target=series.name, tags=dict(series.tags), datapoints=datapoints))
 
-  output = json.dumps(series_data, indent=(2 if requestOptions.get('pretty') else None)).replace('None,', 'null,').replace('NaN,', 'null,').replace('Infinity,', '1e9999,')
+  output = json.dumps(series_data, indent=(2 if requestOptions.get('pretty') else None)) \
+      .replace('NaN,', 'null,').replace('Infinity,', '1e9999,')
 
   if 'jsonp' in requestOptions:
     response = HttpResponse(

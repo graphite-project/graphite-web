@@ -360,7 +360,7 @@ def _jsonResponse(data, queryParams, status=200, encoder=None, default=None):
       sort_keys=bool(queryParams.get('pretty')),
       cls=encoder,
       default=default
-    ) if data is not None else 'null',
+    ),
     content_type='application/json',
     status=status
   )
