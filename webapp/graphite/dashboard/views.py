@@ -14,7 +14,7 @@ from graphite.compat import HttpResponse
 from graphite.dashboard.models import Dashboard, Template
 from graphite.dashboard.send_graph import send_graph_email
 from graphite.render.views import renderView
-from graphite.util import json
+from graphite.util import json, sanitize
 from graphite.user_util import isAuthenticated
 
 fieldRegex = re.compile(r'<([^>]+)>')
@@ -224,9 +224,15 @@ def getPermissions(user):
 def save(request, name):
   if 'change' not in getPermissions(request.user):
     return json_response( dict(error="Must be logged in with appropriate permissions to save") )
-  # Deserialize and reserialize as a validation step
-  state = str( json.dumps( json.loads( request.POST['state'] ) ) )
 
+  # Deserialize and reserialize as a validation step
+  state = json.loads(request.POST['state'])
+  if state.get("name"):
+    state["name"] = sanitize(state["name"])
+  state = str(json.dumps(state))
+
+  name = sanitize(name)
+  
   try:
     dashboard = Dashboard.objects.get(name=name)
   except Dashboard.DoesNotExist:
