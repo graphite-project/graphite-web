@@ -232,7 +232,6 @@ def save(request, name):
   state = str(json.dumps(state))
 
   name = sanitize(name)
-  
   try:
     dashboard = Dashboard.objects.get(name=name)
   except Dashboard.DoesNotExist:

@@ -397,9 +397,6 @@ def parseHosts(host_strings):
     return [parseHost(host_string) for host_string in host_strings]
 
 
-def sanitize(string):
-  """ 
-  Sanitize input string to prevent XSS vulnerability attack.
-  """
-
-  return strip_tags(string)
+def sanitize(input_string):
+    """Sanitize input string to prevent XSS vulnerability attack."""
+    return strip_tags(input_string)
