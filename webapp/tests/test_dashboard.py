@@ -111,6 +111,20 @@ class DashboardTest(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
 
+    def test_dashboard_for_sanitization_on_save(self):
+        # Saving dashboard
+        url = reverse('dashboard_save', args=['testdashboard<img src=x onerror=alert("Boom")>'])
+        request = {"state": '{}'}
+        response = self.client.post(url, request)
+        self.assertEqual(response.status_code, 200)
+
+        # Verifying dashboard name was sanitized
+        url = reverse('dashboard_find')
+        request = {"query": "test"}
+        response = self.client.get(url, request)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, b'{"dashboards": [{"name": "testdashboard"}]}')
+
     def test_dashboard_pass_invalid_name(self):
         url = reverse('dashboard', args=['bogusdashboard'])
         response = self.client.get(url)
@@ -251,6 +265,7 @@ class DashboardTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
         # Save again after it now exists
+
     def test_dashboard_save_template_overwrite(self):
         url = reverse('dashboard_save_template', args=['testtemplate', 'testkey'])
         request = copy.deepcopy(self.testtemplate)
