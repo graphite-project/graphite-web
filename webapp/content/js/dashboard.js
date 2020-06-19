@@ -3015,8 +3015,8 @@ function setDashboardName(name) {
 
     document.title = name + ' - Graphite Dashboard';
     changeHash(name);
-    navBar.setTitle(htmlEncode(name) + ' - (' + dashboardURL + ')');
-    saveButton.setText('Save "' + htmlEncode(name) + '"');
+    navBar.setTitle(htmlEncode(name + ' - (' + dashboardURL + ')'));
+    saveButton.setText(htmlEncode('Save "' + name + '"'));
     saveButton.enable();
   }
 }
