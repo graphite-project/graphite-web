@@ -29,7 +29,6 @@ from os.path import splitext, basename
 
 from django.conf import settings
 from django.utils.timezone import make_aware
-from django.utils.html import strip_tags
 
 from graphite.compat import HttpResponse
 from graphite.logger import log
@@ -395,11 +394,3 @@ def parseHost(host_string):
 
 def parseHosts(host_strings):
     return [parseHost(host_string) for host_string in host_strings]
-
-
-def sanitize(string):
-  """ 
-  Sanitize input string to prevent XSS vulnerability attack.
-  """
-
-  return strip_tags(string)
