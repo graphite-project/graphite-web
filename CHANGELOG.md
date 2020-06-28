@@ -15,6 +15,8 @@
  - Make nodes in group by nodes optional (#2597, @replay)
  - privatize linearRegressionAnalysis so it will not show in documentation (#2602, @piotr1212)
  - Revert symlink fix (#2604, @piotrt1212)
+ - Lock whitenoise dependency version (#2606, @Carles-Figuerola)
+ - Prevent xss (#2620, @StephenDsouza90)
 
 ### Features / Enhancements
  - [Settings] Allow pickle protocol to be configurable for carbonlink requests. (#2591, @alikhtag)
