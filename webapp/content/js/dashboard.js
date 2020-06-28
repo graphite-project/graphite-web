@@ -3015,8 +3015,8 @@ function setDashboardName(name) {
 
     document.title = name + ' - Graphite Dashboard';
     changeHash(name);
-    navBar.setTitle(name + ' - (' + dashboardURL + ')');
-    saveButton.setText('Save "' + name + '"');
+    navBar.setTitle(htmlEncode(name + ' - (' + dashboardURL + ')'));
+    saveButton.setText(htmlEncode('Save "' + name + '"'));
     saveButton.enable();
   }
 }
@@ -3153,7 +3153,7 @@ function showDashboardFinder() {
 
   dashboardsList = new Ext.list.ListView({
     columns: [
-      {header: 'Dashboard', width: 1.0, dataIndex: 'name', sortable: false}
+      {header: 'Dashboard', width: 1.0, dataIndex: 'name', sortable: false, tpl:'{name:htmlEncode}'}
     ],
     columnSort: false,
     emptyText: 'No dashboards found',
