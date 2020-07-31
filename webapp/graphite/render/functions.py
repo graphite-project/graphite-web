@@ -237,7 +237,10 @@ sumSeries.aggregator = True
 
 def sumSeriesWithWildcards(requestContext, seriesList, *position): #XXX
   """
-  Call sumSeries after inserting wildcards at the given position(s).
+  Categorizes the provided series in groups by name, by ignoring
+  ("wildcarding") the given position(s) and calls sumSeries on each group.
+  Important: the introduction of wildcards only happens *after* retrieving
+  the input.
 
   Example:
 
@@ -266,7 +269,10 @@ sumSeriesWithWildcards.aggregator = True
 
 def averageSeriesWithWildcards(requestContext, seriesList, *position): #XXX
   """
-  Call averageSeries after inserting wildcards at the given position(s).
+  Categorizes the provided series in groups by name, by ignoring
+  ("wildcarding") the given position(s) and calls averageSeries on each group.
+  Important: the introduction of wildcards only happens *after* retrieving
+  the input.
 
   Example:
 
@@ -278,7 +284,7 @@ def averageSeriesWithWildcards(requestContext, seriesList, *position): #XXX
 
   .. code-block:: none
 
-    &target=averageSeries(host.*.cpu-user.value)&target=averageSeries(host.*.cpu-system.value)
+    &target=averageSeries(host.cpu-[0-7].cpu-user.value)&target=averageSeries(host.cpu-[0-7].cpu-system.value)
 
   This is an alias for :py:func:`aggregateWithWildcards <aggregateWithWildcards>` with aggregation ``average``.
   """
@@ -295,7 +301,10 @@ averageSeriesWithWildcards.aggregator = True
 
 def multiplySeriesWithWildcards(requestContext, seriesList, *position): #XXX
   """
-  Call multiplySeries after inserting wildcards at the given position(s).
+  Categorizes the provided series in groups by name, by ignoring
+  ("wildcarding") the given position(s) and calls multiplySeries on each group.
+  Important: the introduction of wildcards only happens *after* retrieving
+  the input.
 
   Example:
 
