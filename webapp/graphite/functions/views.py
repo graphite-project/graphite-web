@@ -1,14 +1,20 @@
+import json
+
 from graphite.util import jsonResponse, HttpResponse, HttpError
 from graphite.functions import SeriesFunctions, SeriesFunction, PieFunctions, PieFunction, functionInfo
 
 
-def jsonEncoder(obj):
-    if hasattr(obj, 'toJSON'):
-        return obj.toJSON()
-    return obj.__dict__
+class jsonInfinityEncoder(json.JSONEncoder):
+    def encode(self, o):
+        return super(jsonInfinityEncoder, self).encode(o).replace('Infinity,', '1e9999,')
+
+    def default(self, o):
+        if hasattr(o, 'toJSON'):
+            return o.toJSON()
+        return o.__dict__
 
 
-@jsonResponse(default=jsonEncoder)
+@jsonResponse(encoder=jsonInfinityEncoder)
 def functionList(request, queryParams):
     if request.method != 'GET':
         return HttpResponse(status=405)
@@ -37,7 +43,7 @@ def functionList(request, queryParams):
     return result
 
 
-@jsonResponse(default=jsonEncoder)
+@jsonResponse(encoder=jsonInfinityEncoder)
 def functionDetails(request, queryParams, name):
     if request.method != 'GET':
         return HttpResponse(status=405)
