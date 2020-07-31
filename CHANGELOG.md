@@ -17,6 +17,8 @@
  - Revert symlink fix (#2604, @piotrt1212)
  - Lock whitenoise dependency version (#2606, @Carles-Figuerola)
  - Prevent xss (#2620, @StephenDsouza90)
+ - fix & improve docs for *WithWildcards functions (#2625, @Dieterbe)
+ - Fix multi-threading issue in render endpoint by making grammar a thread-safe object (fixes #2626) (#2627, @romanek-adam)
 
 ### Features / Enhancements
  - [Settings] Allow pickle protocol to be configurable for carbonlink requests. (#2591, @alikhtag)
