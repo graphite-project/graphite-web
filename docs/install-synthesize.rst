@@ -5,8 +5,8 @@ Installing From Synthesize
 
 For detailed instructions, please refer to the official project documentation on the `Synthesize <https://github.com/obfuscurity/synthesize/>`_ website.
 
-Installing From REsynthesize
-==========================
+Installing From RESynthesize
+============================
 
 `REsynthesize <https://github.com/deividgdt/resynthesize>`_ is a script forked from Synthesize to making Graphite easy to install in CentOS distributions. At the moment just working on CentOS 8.2. It provides Graphite 1.1.7 and Grafana 7.1.3. Users can run the installation script manually, executing:
 
