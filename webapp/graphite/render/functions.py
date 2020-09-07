@@ -109,6 +109,8 @@ def getNodeOrTag(series, n, pathExpression=None):
 
 
 def aggKey(series, nodes, pathExpression=None):
+  if series is None:
+    return None
   # if series.name looks like it includes a function, use the first path expression
   if pathExpression is None and series.name[-1] == ')':
     pathExpression = _getFirstPathExpression(series.name)
