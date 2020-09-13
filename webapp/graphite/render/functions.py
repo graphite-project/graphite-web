@@ -1022,6 +1022,9 @@ def weightedAverage(requestContext, seriesListAvg, seriesListWeight, *nodes):
   """
   sortedSeries={}
 
+  if len(seriesListAvg) != len(seriesListWeight):
+    raise InputParameterError('weightedAverage must receive the same number of series for seriesListAvg and seriesListWeight but received respectively %d and %d' % (len(seriesListAvg), len(seriesListWeight)))
+
   for seriesAvg, seriesWeight in izip_longest(seriesListAvg , seriesListWeight):
     key = aggKey(seriesAvg, nodes)
 
