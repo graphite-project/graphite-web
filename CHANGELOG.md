@@ -19,6 +19,7 @@
  - Prevent xss (#2620, @StephenDsouza90)
  - fix & improve docs for *WithWildcards functions (#2625, @Dieterbe)
  - Fix multi-threading issue in render endpoint by making grammar a thread-safe object (fixes #2626) (#2627, @romanek-adam)
+ - Patch /static/ directory in Apache docs (#2635, @djmetzle)
 
 ### Features / Enhancements
  - [Settings] Allow pickle protocol to be configurable for carbonlink requests. (#2591, @alikhtag)
@@ -32,16 +33,23 @@
  - remove carbon-client.py, is broken for 4 years (#890, @piotr1212)
  - spelling (#893, @jsoref)
  - Update storage-aggregation.conf.example for #768 (#899, @antonsoroko)
-
+ - Provide more complete list of aggregation options (#901, @neul)
+ 
 ### Features / Enhancements
- -  add config option to turn off logging of lost connections (#900, @tbenz9) 
+ - add config option to turn off logging of lost connections (#900, @tbenz9)
+ - Improve carbon performance for non-tagged series (#903, @deniszh)
 
 ## whisper
 
 ### Bug fixes
  - fix reisze whisper from low retention to high retention will lose some data (#293, @Xu-Wentao) 
  - Fixing test for python 2.7 (#295, @deniszh)
- 
+
+## carbonate
+
+### Features / Enhancements
+ - Support for Aggregated-Consistent Hash (#121 / #56, @deniszh / @klynch)
+
 # 1.1.7
 
 ## graphite-web
