@@ -29,6 +29,7 @@ from graphite.storage import STORE, extractForwardHeaders
 from graphite.user_util import getProfile
 from graphite.util import epoch, json, pickle, msgpack
 
+
 def index_json(request):
   queryParams = request.GET.copy()
   queryParams.update(request.POST)
