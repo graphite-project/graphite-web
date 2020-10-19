@@ -132,7 +132,10 @@ def find_view(request):
   automatic_variants = queryParamAsInt(queryParams, 'automatic_variants', 0)
 
   try:
-    query = str(queryParams['query'])
+    if type(queryParams['query']) is unicode:
+      query = queryParams['query'].encode('utf-8')
+    else:
+      query = str(queryParams['query'])
   except KeyError:
     raise InputParameterError('Missing required parameter \'query\'')
 
@@ -167,7 +170,7 @@ def find_view(request):
     log.exception()
     raise
 
-  log.info('find_view query=%s local_only=%s matches=%d' % (query, local_only, len(matches)))
+  log.info('find_view query=%s local_only=%s matches=%d' % (query.decode('utf-8'), local_only, len(matches)))
   matches.sort(key=lambda node: node.name)
   log.info("received remote find request: pattern=%s from=%s until=%s local_only=%s format=%s matches=%d" % (query, fromTime, untilTime, local_only, format, len(matches)))
 
