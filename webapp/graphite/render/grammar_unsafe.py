@@ -5,6 +5,18 @@ from pyparsing import (
     __version__, Suppress, Empty
 )
 
+import sys
+
+try:
+    unichr
+except NameError:
+    unichr = chr
+
+try:
+    xrange
+except NameError:
+    xrange = range
+
 grammar = Forward()
 
 expression = Forward()
