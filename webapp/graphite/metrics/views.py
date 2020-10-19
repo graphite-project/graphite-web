@@ -29,10 +29,6 @@ from graphite.storage import STORE, extractForwardHeaders
 from graphite.user_util import getProfile
 from graphite.util import epoch, json, pickle, msgpack
 
-import sys
-if sys.version_info[0] >= 3:
-  unicode = str
-
 def index_json(request):
   queryParams = request.GET.copy()
   queryParams.update(request.POST)
@@ -141,6 +137,8 @@ def find_view(request):
       query = str(queryParams['query'])
   except KeyError:
     raise InputParameterError('Missing required parameter \'query\'')
+  except NameError:
+    query = str(queryParams['query'])
 
   if query == '':
     raise InputParameterError('Required parameter \'query\' is empty')
@@ -173,7 +171,7 @@ def find_view(request):
     log.exception()
     raise
 
-  log.info('find_view query=%s local_only=%s matches=%d' % (query.decode('utf-8'), local_only, len(matches)))
+  log.info('find_view query=%s local_only=%s matches=%d' % (query, local_only, len(matches)))
   matches.sort(key=lambda node: node.name)
   log.info("received remote find request: pattern=%s from=%s until=%s local_only=%s format=%s matches=%d" % (query, fromTime, untilTime, local_only, format, len(matches)))
 
