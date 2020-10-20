@@ -1522,7 +1522,7 @@ def powSeries(requestContext, *seriesLists):
   return [series]
 
 
-powSeries.group = 'Transform'
+powSeries.group = 'Combine'
 powSeries.params = [
   Param('seriesList', ParamTypes.seriesList, required=True, multiple=True),
 ]
@@ -4572,7 +4572,7 @@ def isNonNull(requestContext, seriesList):
   return seriesList
 
 
-isNonNull.group = 'Combine'
+isNonNull.group = 'Transform'
 isNonNull.params = [
   Param('seriesList', ParamTypes.seriesList, required=True),
 ]
