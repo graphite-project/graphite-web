@@ -1,7 +1,7 @@
 from pyparsing import (
     Forward, Combine, Optional, Word, Literal, CaselessKeyword,
     CaselessLiteral, Group, FollowedBy, LineEnd, OneOrMore, ZeroOrMore,
-    alphas, alphanums, printables, delimitedList, quotedString, Regex,
+    alphas, alphanums, printables, pyparsing_unicode, delimitedList, quotedString, Regex,
     __version__, Suppress, Empty
 )
 
@@ -107,7 +107,7 @@ call = Group(
 
 # Metric pattern (aka. pathExpression)
 if settings.UTF8_METRICS:
-    Printables = u''.join(unichr(c) for c in xrange(sys.maxunicode) if not unichr(c).isspace())
+    Printables = pyparsing_unicode.printables
 else:
     Printables = printables
 validMetricChars = ''.join((set(Printables) - set(symbols)))
