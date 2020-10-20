@@ -5,18 +5,7 @@ from pyparsing import (
     __version__, Suppress, Empty
 )
 
-import sys
 from django.conf import settings
-
-try:
-    unichr
-except NameError:
-    unichr = chr
-
-try:
-    xrange
-except NameError:
-    xrange = range
 
 grammar = Forward()
 
