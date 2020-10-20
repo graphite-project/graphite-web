@@ -94,6 +94,9 @@ DEFAULT_XFILES_FACTOR = 0
 #FIND_TIMEOUT = 3.0  # Timeout for metric find requests
 #FETCH_TIMEOUT = 3.0  # Timeout to fetch series data
 
+# Allow UTF-8 metrics' names (can cause performance issues)
+#UTF8_METRICS = False
+
 #####################################
 # Filesystem Paths #
 #####################################
