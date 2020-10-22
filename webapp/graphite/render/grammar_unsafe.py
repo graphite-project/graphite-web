@@ -1,9 +1,11 @@
 from pyparsing import (
     Forward, Combine, Optional, Word, Literal, CaselessKeyword,
     CaselessLiteral, Group, FollowedBy, LineEnd, OneOrMore, ZeroOrMore,
-    alphas, alphanums, printables, delimitedList, quotedString, Regex,
+    alphas, alphanums, printables, pyparsing_unicode, delimitedList, quotedString, Regex,
     __version__, Suppress, Empty
 )
+
+from django.conf import settings
 
 grammar = Forward()
 
@@ -93,7 +95,11 @@ call = Group(
 ).setParseAction(setRaw)('call')
 
 # Metric pattern (aka. pathExpression)
-validMetricChars = ''.join((set(printables) - set(symbols)))
+if settings.UTF8_METRICS:
+    Printables = pyparsing_unicode.printables
+else:
+    Printables = printables
+validMetricChars = ''.join((set(Printables) - set(symbols)))
 escapedChar = backslash + Word(symbols + '=', exact=1)
 partialPathElem = Combine(
   OneOrMore(
