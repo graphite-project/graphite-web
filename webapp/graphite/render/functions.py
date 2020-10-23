@@ -204,6 +204,40 @@ aggregate.params = [
   Param('xFilesFactor', ParamTypes.float),
 ]
 
+def aggregateLists(
+        requestContext, seriesListFirstPos,
+        seriesListSecondPos, func, xFilesFactor=None
+):
+  """
+  Iterates over a two lists and aggregates using specified function
+  list1[0] by list2[0], list1[1] by list2[1] and so on.
+  The lists will need to be the same length
+
+  Position of seriesList matters. For example using "diff" function
+  aggregateSeriesLists(list1, list2, "diff") it would find diff `list1 - list2`.
+  """
+
+  if len(seriesListFirstPos) != len(seriesListSecondPos):
+    raise InputParameterError(
+      "dividendSeriesList and divisorSeriesList argument must have equal length")
+  results = []
+
+  for i in range(0, len(seriesListFirstPos)):
+    firstSeries = seriesListFirstPos[i]
+    secondSeries = seriesListSecondPos[i]
+    bothSeries = (firstSeries, secondSeries)
+    results.append(aggregate(requestContext, bothSeries, func, xFilesFactor=xFilesFactor))
+
+  return results
+
+aggregateLists.group = 'Combine'
+aggregateLists.params = [
+  Param('seriesListFirstPos', ParamTypes.seriesList, required=True),
+  Param('seriesListSecondPos', ParamTypes.seriesList, required=True),
+  Param('func', ParamTypes.aggFunc, required=True),
+  Param('xFilesFactor', ParamTypes.float),
+]
+
 
 def sumSeries(requestContext, *seriesLists):
   """
