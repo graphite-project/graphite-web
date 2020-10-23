@@ -5696,6 +5696,7 @@ PieFunctions = {
 SeriesFunctions = {
   # Combine functions
   'aggregate': aggregate,
+  'aggregateLists': aggregateLists,
   'aggregateWithWildcards': aggregateWithWildcards,
   'applyByNode': applyByNode,
   'asPercent': asPercent,
