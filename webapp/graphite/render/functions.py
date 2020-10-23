@@ -237,7 +237,7 @@ aggregateLists.params = [
   Param('func', ParamTypes.aggFunc, required=True),
   Param('xFilesFactor', ParamTypes.float),
 ]
-
+aggregateLists.aggregator = True
 
 def sumSeries(requestContext, *seriesLists):
   """
