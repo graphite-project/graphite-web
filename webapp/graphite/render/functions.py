@@ -226,6 +226,7 @@ def aggregateLists(
     firstSeries = seriesListFirstPos[i]
     secondSeries = seriesListSecondPos[i]
     bothSeries = (firstSeries, secondSeries)
+
     results.append(aggregate(requestContext, bothSeries, func, xFilesFactor=xFilesFactor))
 
   return results
@@ -237,7 +238,6 @@ aggregateLists.params = [
   Param('func', ParamTypes.aggFunc, required=True),
   Param('xFilesFactor', ParamTypes.float),
 ]
-aggregateLists.aggregator = True
 
 def sumSeries(requestContext, *seriesLists):
   """
