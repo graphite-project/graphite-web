@@ -36,6 +36,7 @@
  - Update storage-aggregation.conf.example for #768 (#899, @antonsoroko)
  - Provide more complete list of aggregation options (#901, @neul)
  - Fixes #908 (PTC-W0016) Unnecessary comprehension (#909, @rohankhanna)
+ - Fixes #906 (BAN-B101) Assert statement used outside of tests (#907, @rohankhanna)
 
 ### Features / Enhancements
  - add config option to turn off logging of lost connections (#900, @tbenz9)
