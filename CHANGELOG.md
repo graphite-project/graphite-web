@@ -27,7 +27,8 @@
  - List Promitor as a collector tool (#2605, @tomkerkhove)
  - REsynthesize: New script forked from Synthesize to install Graphite on CentOS (#2631, @deividgdt)
  - weightedAverage: raise an InputParameterError exception if the number of series passed for the values is different to the number passed for the weights (#2636, @fkaleo)
-
+ - Find api documentation (Fixing #2616) (#2646, @deniszh)
+ 
 ## carbon
 
 ### Bug fixes
