@@ -17,6 +17,7 @@ Graphite Documentation
    admin-webapp
    composer
    render_api
+   metrics_api
    functions
    dashboard
    whisper
