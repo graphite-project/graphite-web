@@ -204,35 +204,49 @@ aggregate.params = [
   Param('xFilesFactor', ParamTypes.float),
 ]
 
-def aggregateLists(
-        requestContext, seriesListFirstPos,
-        seriesListSecondPos, func, xFilesFactor=None
-):
+def aggregateSeriesLists(requestContext, seriesListFirstPos, seriesListSecondPos, func, xFilesFactor=None):
   """
   Iterates over a two lists and aggregates using specified function
-  list1[0] by list2[0], list1[1] by list2[1] and so on.
+  list1[0] to list2[0], list1[1] to list2[1] and so on.
   The lists will need to be the same length
 
-  Position of seriesList matters. For example using "diff" function
-  aggregateSeriesLists(list1, list2, "diff") it would find diff `list1 - list2`.
+  Position of seriesList matters. For example using "sum" function
+  aggregateSeriesLists(list1[0..n], list2[0..n], "sum")
+   it would find sum for each member
+   r of the list ``list1[0] + list2[0], list1[1] + list2[1], list1[n] + list2[n]``.
+
+    This function can be used with aggregation functions ``average`` (or ``avg``), ``avg_zero``,
+  ``median``, ``sum`` (or ``total``), ``min``, ``max``, ``diff``, ``stddev``, ``count``,
+  ``range`` (or ``rangeOf``) , ``multiply`` & ``last`` (or ``current``).
+
+    Example:
+
+  .. code-block:: none
+
+    &target=aggregateSeriesLists(mining.{carbon,graphite,diamond}.extracted,mining.{carbon,graphite,diamond}.shipped, 'sum')
+
+  An example above would be the same as running :py:func:`aggregate <aggregate>` for each member of the list:
+
+  .. code-block:: none
+
+    ?target=aggregate(mining.carbon.extracted,mining.carbon.shipped, 'sum')
+    &target=aggregate(mining.graphite.extracted,mining.graphite.shipped, 'sum')
+    &target=aggregate(mining.diamond.extracted,mining.diamond.shipped, 'sum')
   """
 
   if len(seriesListFirstPos) != len(seriesListSecondPos):
     raise InputParameterError(
-      "dividendSeriesList and divisorSeriesList argument must have equal length")
+      "seriesListFirstPos and seriesListSecondPos argument must have equal length")
   results = []
 
   for i in range(0, len(seriesListFirstPos)):
-    firstSeries = seriesListFirstPos[i]
-    secondSeries = seriesListSecondPos[i]
-    bothSeries = (firstSeries, secondSeries)
-
-    results.append(aggregate(requestContext, bothSeries, func, xFilesFactor=xFilesFactor))
+    bothSeries = (seriesListFirstPos[i], seriesListSecondPos[i])
+    results.extend(aggregate(requestContext, bothSeries, func, xFilesFactor=xFilesFactor))
 
   return results
 
-aggregateLists.group = 'Combine'
-aggregateLists.params = [
+aggregateSeriesLists.group = 'Combine'
+aggregateSeriesLists.params = [
   Param('seriesListFirstPos', ParamTypes.seriesList, required=True),
   Param('seriesListSecondPos', ParamTypes.seriesList, required=True),
   Param('func', ParamTypes.aggFunc, required=True),
@@ -268,6 +282,37 @@ sumSeries.params = [
 ]
 sumSeries.aggregator = True
 
+def sumSeriesLists(requestContext, seriesListFirstPos, seriesListSecondPos):
+  """
+  Iterates over a two lists and subtracts series lists 2 through n from series 1
+  list1[0] to list2[0], list1[1] to list2[1] and so on.
+  The lists will need to be the same length
+
+  Example:
+
+  .. code-block:: none
+
+    &target=sumSeriesLists(mining.{carbon,graphite,diamond}.extracted,mining.{carbon,graphite,diamond}.shipped)
+
+  An example above would be the same as running :py:func:`sumSeries <sumSeries>` for each member of the list:
+
+  .. code-block:: none
+
+    ?target=sumSeries(mining.carbon.extracted,mining.carbon.shipped)
+    &target=sumSeries(mining.graphite.extracted,mining.graphite.shipped)
+    &target=sumSeries(mining.diamond.extracted,mining.diamond.shipped)
+
+  This is an alias for :py:func:`aggregateSeriesLists <aggregateSeriesLists>` with aggregation ``sum``.
+  """
+  return aggregateSeriesLists(requestContext, seriesListFirstPos, seriesListSecondPos, 'sum')
+
+
+sumSeriesLists.group = 'Combine'
+sumSeriesLists.params = [
+  Param('seriesListFirstPos', ParamTypes.seriesList, required=True),
+  Param('seriesListSecondPos', ParamTypes.seriesList, required=True),
+]
+sumSeriesLists.aggregator = True
 
 def sumSeriesWithWildcards(requestContext, seriesList, *position): #XXX
   """
@@ -443,6 +488,39 @@ diffSeries.params = [
   Param('seriesLists', ParamTypes.seriesList, required=True, multiple=True),
 ]
 diffSeries.aggregator = True
+
+def diffSeriesLists(requestContext, seriesListFirstPos, seriesListSecondPos):
+  """
+  Iterates over a two lists and subtracts series lists 2 through n from series 1
+  list1[0] to list2[0], list1[1] to list2[1] and so on.
+  The lists will need to be the same length
+
+  Example:
+
+  .. code-block:: none
+
+    &target=diffSeriesLists(mining.{carbon,graphite,diamond}.extracted,mining.{carbon,graphite,diamond}.shipped)
+
+  An example above would be the same as running :py:func:`diffSeries <diffSeries>` for each member of the list:
+
+  .. code-block:: none
+
+    ?target=diffSeries(mining.carbon.extracted,mining.carbon.shipped)
+    &target=diffSeries(mining.graphite.extracted,mining.graphite.shipped)
+    &target=diffSeries(mining.diamond.extracted,mining.diamond.shipped)
+
+
+  This is an alias for :py:func:`aggregateSeriesLists <aggregateSeriesLists>` with aggregation ``diff``.
+  """
+  return aggregateSeriesLists(requestContext, seriesListFirstPos, seriesListSecondPos, 'diff')
+
+
+diffSeriesLists.group = 'Combine'
+diffSeriesLists.params = [
+  Param('seriesListFirstPos', ParamTypes.seriesList, required=True),
+  Param('seriesListSecondPos', ParamTypes.seriesList, required=True),
+]
+diffSeriesLists.aggregator = True
 
 
 def averageSeries(requestContext, *seriesLists):
@@ -1038,6 +1116,38 @@ multiplySeries.params = [
   Param('seriesLists', ParamTypes.seriesList, required=True, multiple=True),
 ]
 multiplySeries.aggregator = True
+
+def multiplySeriesLists(requestContext, seriesListFirstPos, seriesListSecondPos):
+  """
+  Iterates over a two lists and subtracts series lists 2 through n from series 1
+  list1[0] to list2[0], list1[1] to list2[1] and so on.
+  The lists will need to be the same length
+
+  Example:
+
+  .. code-block:: none
+
+    &target=multiplySeriesLists(mining.{carbon,graphite,diamond}.extracted,mining.{carbon,graphite,diamond}.shipped)
+
+  An example above would be the same as running :py:func:`multiplySeries <multiplySeries>` for each member of the list:
+
+  .. code-block:: none
+
+    ?target=multiplySeries(mining.carbon.extracted,mining.carbon.shipped)
+    &target=multiplySeries(mining.graphite.extracted,mining.graphite.shipped)
+    &target=multiplySeries(mining.diamond.extracted,mining.diamond.shipped)
+
+  This is an alias for :py:func:`aggregateSeriesLists <aggregateSeriesLists>` with aggregation ``multiply``.
+  """
+  return aggregateSeriesLists(requestContext, seriesListFirstPos, seriesListSecondPos, 'multiply')
+
+
+multiplySeriesLists.group = 'Combine'
+multiplySeriesLists.params = [
+  Param('seriesListFirstPos', ParamTypes.seriesList, required=True),
+  Param('seriesListSecondPos', ParamTypes.seriesList, required=True),
+]
+multiplySeriesLists.aggregator = True
 
 
 def weightedAverage(requestContext, seriesListAvg, seriesListWeight, *nodes):
@@ -5696,7 +5806,7 @@ PieFunctions = {
 SeriesFunctions = {
   # Combine functions
   'aggregate': aggregate,
-  'aggregateLists': aggregateLists,
+  'aggregateSeriesLists': aggregateSeriesLists,
   'aggregateWithWildcards': aggregateWithWildcards,
   'applyByNode': applyByNode,
   'asPercent': asPercent,
@@ -5705,6 +5815,7 @@ SeriesFunctions = {
   'avg': averageSeries,
   'countSeries': countSeries,
   'diffSeries': diffSeries,
+  'diffSeriesLists': diffSeriesLists,
   'divideSeries': divideSeries,
   'divideSeriesLists': divideSeriesLists,
   'group': group,
@@ -5717,6 +5828,7 @@ SeriesFunctions = {
   'maxSeries': maxSeries,
   'minSeries': minSeries,
   'multiplySeries': multiplySeries,
+  'multiplySeriesLists': multiplySeriesLists,
   'multiplySeriesWithWildcards': multiplySeriesWithWildcards,
   'pct': asPercent,
   'percentileOfSeries': percentileOfSeries,
