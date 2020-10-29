@@ -1461,7 +1461,7 @@ class FunctionsTest(TestCase):
         expectedResult = [
             TimeSeries('multiplySeries(mining.other.shipped,mining.other.extracted)',0,1,1, [1,4,9,16,25,36,49,64,81,100,121,144,169,196,225,256,289,324,361,400]),
             TimeSeries('multiplySeries(mining.diamond.shipped,mining.diamond.extracted)',0,1,1, [0,-1,1,4,-9,-25,64,169,-441,-1156,3025,7921,-20736,-54289,142129]),
-            TimeSeries('multiplySeries(mining.graphite.shipped,mining.graphite.extracted)',0,1,1, [None,20.7,None,None,None,None,None,-26.7,None,None,None,12.13,None,-42.45,None,80.85,None,None,None,181.89,None,]),
+            TimeSeries('multiplySeries(mining.graphite.shipped,mining.graphite.extracted)',0,1,1, [None,20.7,None,None,None,None,None,-26.7,None,None,None,12.13,None,-42.45,None,80.85,None,None,None,181.89,None]),
             TimeSeries('multiplySeries(mining.carbon.shipped,mining.carbon.extracted)',0,1,1, [22.68,None,7.39,None,16.95,None,-40.82,-21.42,None,-72.06,None,49.51]),
         ]
         result = functions.multiplySeriesLists({}, seriesList1, seriesList2)
@@ -1471,7 +1471,42 @@ class FunctionsTest(TestCase):
                     series[k] = round(v,2)
         self.assertEqual(result, expectedResult)
 
+    def test_aggregateSeriesLists_max(self):
+        seriesList1, seriesList2 = self._get_aggregateSeriesLists_input_data()
+        expectedResult = [
+            TimeSeries('maxSeries(mining.other.shipped,mining.other.extracted)',0,1,1, [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]),
+            TimeSeries('maxSeries(mining.diamond.shipped,mining.diamond.extracted)',0,1,1, [0,1,-1,2,3,5,-8,13,21,34,-55,89,144,233,-377]),
+            TimeSeries('maxSeries(mining.graphite.shipped,mining.graphite.extracted)',0,1,1, [None,9,8,-4.5,6,6.7,4,3,2,10.111,0,-1,None,14.15,-4,-5,None,18.19,-8,-9,-10]),
+            TimeSeries('maxSeries(mining.carbon.shipped,mining.carbon.extracted)',0,1,1, [7.22,None,2.718,6.022,6.674,-1.234,6.626,1.602,2.067,9.274,0.128,8.912]),
+        ]
+        result = functions.aggregateSeriesLists({}, seriesList1, seriesList2, 'max')
+        self.assertEqual(result, expectedResult)
 
+    def test_aggregateSeriesLists_min(self):
+        seriesList1, seriesList2 = self._get_aggregateSeriesLists_input_data()
+        expectedResult = [
+            TimeSeries('minSeries(mining.other.shipped,mining.other.extracted)',0,1,1, [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]),
+            TimeSeries('minSeries(mining.diamond.shipped,mining.diamond.extracted)',0,1,1, [0,-1,-1,2,-3,-5,-8,13,-21,-34,-55,89,-144,-233,-377]),
+            TimeSeries('minSeries(mining.graphite.shipped,mining.graphite.extracted)',0,1,1, [None,2.3,8,-4.5,6,6.7,4,-8.9,2,10.111,0,-12.13,None,-3,-4,-16.17,None,18.19,-8,-20.21,-10]),
+            TimeSeries('minSeries(mining.carbon.shipped,mining.carbon.extracted)',0,1,1, [3.141,None,2.718,6.022,2.54,-1.234,-6.16,-13.37,2.067,-7.77,0.128,5.555]),
+        ]
+        result = functions.aggregateSeriesLists({}, seriesList1, seriesList2, 'min')
+        self.assertEqual(result, expectedResult)
+
+    def test_aggregateSeriesLists_avg(self):
+        seriesList1, seriesList2 = self._get_aggregateSeriesLists_input_data()
+        expectedResult = [
+            TimeSeries('avgSeries(mining.other.shipped,mining.other.extracted)',0,1,1, [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]),
+            TimeSeries('avgSeries(mining.diamond.shipped,mining.diamond.extracted)',0,1,1, [0.0,0.0,-1.0,2.0,0.0,0.0,-8.0,13.0,0.0,0.0,-55.0,89.0,0.0,0.0,-377.0]),
+            TimeSeries('avgSeries(mining.graphite.shipped,mining.graphite.extracted)',0,1,1, [None,5.65,8.0,-4.5,6.0,6.7,4.0,-2.95,2.0,10.11,0.0,-6.57,None,5.58,-4.0,-10.59,None,18.19,-8.0,-14.61,-10.0]),
+            TimeSeries('avgSeries(mining.carbon.shipped,mining.carbon.extracted)',0,1,1, [5.18,None,2.72,6.02,4.61,-1.23,0.23,-5.88,2.07,0.75,0.13,7.23]),
+        ]
+        result = functions.aggregateSeriesLists({}, seriesList1, seriesList2, 'avg')
+        for i, series in enumerate(result):
+            for k, v in enumerate(series):
+                if type(v) is float:
+                    series[k] = round(v,2)
+        self.assertEqual(result, expectedResult)
 
     def test_multiplySeries_single(self):
         seriesList = [
