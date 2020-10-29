@@ -53,6 +53,7 @@
 
 ### Features / Enhancements
  - Support for Aggregated-Consistent Hash (#121 / #56, @deniszh / @klynch)
+ - Handle transient network failures and support custom staging dir path (#122, @ryangsteele)
 
 # 1.1.7
 
