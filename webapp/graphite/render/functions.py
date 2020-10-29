@@ -212,11 +212,11 @@ def aggregateSeriesLists(requestContext, seriesListFirstPos, seriesListSecondPos
   The lists will need to be the same length
 
   Position of seriesList matters. For example using "sum" function
-  aggregateSeriesLists(list1[0..n], list2[0..n], "sum")
+  ``aggregateSeriesLists(list1[0..n], list2[0..n], "sum")``
   it would find sum for each member
-  r of the list ``list1[0] + list2[0], list1[1] + list2[1], list1[n] + list2[n]``.
+  of the list ``list1[0] + list2[0], list1[1] + list2[1], list1[n] + list2[n]``.
 
-    Example:
+  Example:
 
   .. code-block:: none
 
@@ -230,11 +230,10 @@ def aggregateSeriesLists(requestContext, seriesListFirstPos, seriesListSecondPos
     &target=aggregate(mining.graphite.extracted,mining.graphite.shipped, 'sum')
     &target=aggregate(mining.diamond.extracted,mining.diamond.shipped, 'sum')
 
-    This function can be used with aggregation functions ``average`` (or ``avg``), ``avg_zero``,
+  This function can be used with aggregation functions ``average`` (or ``avg``), ``avg_zero``,
   ``median``, ``sum`` (or ``total``), ``min``, ``max``, ``diff``, ``stddev``, ``count``,
   ``range`` (or ``rangeOf``) , ``multiply`` & ``last`` (or ``current``).
   """
-
   if len(seriesListFirstPos) != len(seriesListSecondPos):
     raise InputParameterError(
       "seriesListFirstPos and seriesListSecondPos argument must have equal length")
