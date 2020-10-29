@@ -204,6 +204,7 @@ aggregate.params = [
   Param('xFilesFactor', ParamTypes.float),
 ]
 
+
 def aggregateSeriesLists(requestContext, seriesListFirstPos, seriesListSecondPos, func, xFilesFactor=None):
   """
   Iterates over a two lists and aggregates using specified function
@@ -212,12 +213,8 @@ def aggregateSeriesLists(requestContext, seriesListFirstPos, seriesListSecondPos
 
   Position of seriesList matters. For example using "sum" function
   aggregateSeriesLists(list1[0..n], list2[0..n], "sum")
-   it would find sum for each member
-   r of the list ``list1[0] + list2[0], list1[1] + list2[1], list1[n] + list2[n]``.
-
-    This function can be used with aggregation functions ``average`` (or ``avg``), ``avg_zero``,
-  ``median``, ``sum`` (or ``total``), ``min``, ``max``, ``diff``, ``stddev``, ``count``,
-  ``range`` (or ``rangeOf``) , ``multiply`` & ``last`` (or ``current``).
+  it would find sum for each member
+  r of the list ``list1[0] + list2[0], list1[1] + list2[1], list1[n] + list2[n]``.
 
     Example:
 
@@ -232,6 +229,10 @@ def aggregateSeriesLists(requestContext, seriesListFirstPos, seriesListSecondPos
     ?target=aggregate(mining.carbon.extracted,mining.carbon.shipped, 'sum')
     &target=aggregate(mining.graphite.extracted,mining.graphite.shipped, 'sum')
     &target=aggregate(mining.diamond.extracted,mining.diamond.shipped, 'sum')
+
+    This function can be used with aggregation functions ``average`` (or ``avg``), ``avg_zero``,
+  ``median``, ``sum`` (or ``total``), ``min``, ``max``, ``diff``, ``stddev``, ``count``,
+  ``range`` (or ``rangeOf``) , ``multiply`` & ``last`` (or ``current``).
   """
 
   if len(seriesListFirstPos) != len(seriesListSecondPos):
@@ -250,6 +251,7 @@ def aggregateSeriesLists(requestContext, seriesListFirstPos, seriesListSecondPos
     results.append(result)
   return results
 
+
 aggregateSeriesLists.group = 'Combine'
 aggregateSeriesLists.params = [
   Param('seriesListFirstPos', ParamTypes.seriesList, required=True),
@@ -257,6 +259,7 @@ aggregateSeriesLists.params = [
   Param('func', ParamTypes.aggFunc, required=True),
   Param('xFilesFactor', ParamTypes.float),
 ]
+
 
 def sumSeries(requestContext, *seriesLists):
   """
@@ -286,6 +289,7 @@ sumSeries.params = [
   Param('seriesLists', ParamTypes.seriesList, required=True, multiple=True),
 ]
 sumSeries.aggregator = True
+
 
 def sumSeriesLists(requestContext, seriesListFirstPos, seriesListSecondPos):
   """
@@ -318,6 +322,7 @@ sumSeriesLists.params = [
   Param('seriesListSecondPos', ParamTypes.seriesList, required=True),
 ]
 sumSeriesLists.aggregator = True
+
 
 def sumSeriesWithWildcards(requestContext, seriesList, *position): #XXX
   """
@@ -493,6 +498,7 @@ diffSeries.params = [
   Param('seriesLists', ParamTypes.seriesList, required=True, multiple=True),
 ]
 diffSeries.aggregator = True
+
 
 def diffSeriesLists(requestContext, seriesListFirstPos, seriesListSecondPos):
   """
@@ -1121,6 +1127,7 @@ multiplySeries.params = [
   Param('seriesLists', ParamTypes.seriesList, required=True, multiple=True),
 ]
 multiplySeries.aggregator = True
+
 
 def multiplySeriesLists(requestContext, seriesListFirstPos, seriesListSecondPos):
   """

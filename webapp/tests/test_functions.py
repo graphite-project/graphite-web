@@ -1390,9 +1390,8 @@ class FunctionsTest(TestCase):
             for k, v in enumerate(series):
                 if type(v) is float:
                     series[k] = round(v,2)
-
         self.assertEqual(result, expectedResult)
-        
+
     def _get_aggregateSeriesLists_input_data(self):
         seriesList1 = self._gen_series_list_with_data(
             key=[
