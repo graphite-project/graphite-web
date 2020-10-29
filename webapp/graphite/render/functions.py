@@ -240,9 +240,14 @@ def aggregateSeriesLists(requestContext, seriesListFirstPos, seriesListSecondPos
   results = []
 
   for i in range(0, len(seriesListFirstPos)):
-    bothSeries = (seriesListFirstPos[i], seriesListSecondPos[i])
-    results.extend(aggregate(requestContext, bothSeries, func, xFilesFactor=xFilesFactor))
-
+    firstSeries = seriesListFirstPos[i]
+    secondSeries = seriesListSecondPos[i]
+    aggregated = aggregate(requestContext, (firstSeries, secondSeries), func, xFilesFactor=xFilesFactor)
+    if not aggregated: # empty list, no data found
+      continue
+    result = aggregated[0]  # aggregate() can only return len 1 list
+    result.name = result.name[:result.name.find('Series(')] + 'Series(%s,%s)' % (firstSeries.name, secondSeries.name)
+    results.append(result)
   return results
 
 aggregateSeriesLists.group = 'Combine'
@@ -5838,6 +5843,7 @@ SeriesFunctions = {
   'stddevSeries': stddevSeries,
   'sum': sumSeries,
   'sumSeries': sumSeries,
+  'sumSeriesLists': sumSeriesLists,
   'sumSeriesWithWildcards': sumSeriesWithWildcards,
   'weightedAverage': weightedAverage,
 
