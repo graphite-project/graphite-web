@@ -20,7 +20,8 @@
  - fix & improve docs for *WithWildcards functions (#2625, @Dieterbe)
  - Fix multi-threading issue in render endpoint by making grammar a thread-safe object (fixes #2626) (#2627, @romanek-adam)
  - Patch /static/ directory in Apache docs (#2635, @djmetzle)
- - Backport unicode fix from piotr1212/graphite-web@17e23ef (#2643, @piotr1212 / @deniszh) 
+ - Backport unicode fix from piotr1212/graphite-web@17e23ef (#2643, @piotr1212 / @deniszh)
+ - Update whisper.rst with Python 3 fix (#2649, @cdeil)
 
 ### Features / Enhancements
  - [Settings] Allow pickle protocol to be configurable for carbonlink requests. (#2591, @alikhtag)
