@@ -15,7 +15,7 @@ Python `float() <http://docs.python.org/library/functions.html#float>`_ function
 in the same way for special strings such as ``'inf'``. Maximum and minimum values are determined by
 the Python interpreter's allowable range for float values which can be found by executing::
 
-    python -c 'import sys; print sys.float_info'
+    python -c 'import sys; print(sys.float_info)'
 
 
 Archives: Retention and Precision
