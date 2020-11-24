@@ -4,6 +4,7 @@ import pytz
 
 from datetime import datetime
 from mock import patch
+from io import BytesIO
 
 from .base import TestCase
 
@@ -119,3 +120,13 @@ class UtilTest(TestCase):
             test_logtime(False)
         self.assertEqual(log.info.call_count, 3)
         self.assertRegexpMatches(log.info.call_args[0][0], r'test :: failed in [-.e0-9]+s')
+
+class SafeUnpicklerTest(TestCase):
+
+    def test_load(self):
+        unpickler = util.unpickle()
+        p = b'\x80\x04\x95\r\x00\x00\x00\x00\x00\x00\x00\x8c\ttest.d\xc3\xb8d\x94.'
+        u = unpickler.load(BytesIO(p))
+        x = 'test.død'
+
+        self.assertEqual(u, x)
