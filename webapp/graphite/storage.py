@@ -26,7 +26,7 @@ except ImportError:
 
 
 DATASOURCE_DELIMETER = '::RRD_DATASOURCE::'
-EXPAND_BRACES_RE = re.compile(r'.*(\{.*?[^\\]?\})')
+EXPAND_BRACES_RE = re.compile(r'(\{(.*[^\\])\})')
 
 
 class Store:
@@ -280,7 +280,7 @@ def expand_braces(s):
 
     m = EXPAND_BRACES_RE.search(s)
     if m is not None:
-        sub = m.group(1)
+        sub = m.group(2)
         open_brace, close_brace = m.span(1)
         if ',' in sub:
             for pat in sub.strip('{}').split(','):
