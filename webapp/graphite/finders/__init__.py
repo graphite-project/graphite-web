@@ -2,7 +2,7 @@ import fnmatch
 import os.path
 import re
 
-EXPAND_BRACES_RE = re.compile(r'(\{([^\}]*[^\\])\})')
+EXPAND_BRACES_RE = re.compile(r'(\{([^\{\}]*)\})')
 
 
 def get_real_metric_path(absolute_path, metric_path):
@@ -63,6 +63,6 @@ def expand_braces(s):
         for pat in sub.split(','):
             res.extend(expand_braces(s[:open_brace] + pat + s[close_brace:]))
     else:
-        res.append(s.replace('\\}', '}'))
+        res.append(s)
 
     return list(set(res))
