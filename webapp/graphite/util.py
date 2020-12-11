@@ -201,7 +201,7 @@ else:
     }
 
     def __init__(self, file):
-        super().__init__(file, encoding='bytes')
+        super().__init__(file, encoding='utf8')
 
     def find_class(self, module, name):
       if module not in self.PICKLE_SAFE:
