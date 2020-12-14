@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 import os
 import socket
 import pytz
@@ -120,6 +121,7 @@ class UtilTest(TestCase):
             test_logtime(False)
         self.assertEqual(log.info.call_count, 3)
         self.assertRegexpMatches(log.info.call_args[0][0], r'test :: failed in [-.e0-9]+s')
+
 
 class SafeUnpicklerTest(TestCase):
 
