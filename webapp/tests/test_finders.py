@@ -158,6 +158,17 @@ class StandardFinderTest(TestCase):
             self.assertEqual(len(list(nodes)), 1)
             self.assertEqual(scandir_mock.call_count, 0)
 
+            # test for https://github.com/grafana/grafana/issues/5936
+            scandir_mock.call_count = 0
+            nodes = finder.find_nodes(FindQuery('foo.{bar}.baz', None, None))
+            self.assertEqual(len(list(nodes)), 1)
+            self.assertEqual(scandir_mock.call_count, 0)
+
+            scandir_mock.call_count = 0
+            nodes = finder.find_nodes(FindQuery('foo.{bar,}.baz', None, None))
+            self.assertEqual(len(list(nodes)), 1)
+            self.assertEqual(scandir_mock.call_count, 0)
+
             scandir_mock.call_count = 0
             nodes = finder.find_nodes(FindQuery('*.ba?.{baz,foo}', None, None))
             self.assertEqual(len(list(nodes)), 2)
