@@ -127,7 +127,7 @@ class SafeUnpicklerTest(TestCase):
 
     def test_load(self):
         unpickler = util.unpickle()
-        p = b'\x80\x04\x95\r\x00\x00\x00\x00\x00\x00\x00\x8c\ttest.d\xc3\xb8d\x94.'
+        p = b"S'test.d\\xc3\\xb8d'\np0\n."
         u = unpickler.load(BytesIO(p))
         x = 'test.død'
 
