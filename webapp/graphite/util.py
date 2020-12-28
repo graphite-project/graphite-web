@@ -200,6 +200,9 @@ else:
       'graphite.intervals': set(['Interval', 'IntervalSet']),
     }
 
+    def __init__(self, file):
+        super().__init__(file, encoding='utf8')
+
     def find_class(self, module, name):
       if module not in self.PICKLE_SAFE:
         raise pickle.UnpicklingError('Attempting to unpickle unsafe module %s' % module)
