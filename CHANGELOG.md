@@ -22,6 +22,8 @@
  - Patch /static/ directory in Apache docs (#2635, @djmetzle)
  - Backport unicode fix from piotr1212/graphite-web@17e23ef (#2643, @piotr1212 / @deniszh)
  - Update whisper.rst with Python 3 fix (#2649, @cdeil)
+ - utf-8 fix in unpickle (#2660, @piotr1212 / @ploxlin)
+ - Fix expand braces (#2661, Aleksandr Cupacenko / @deniszh )
 
 ### Features / Enhancements
  - [Settings] Allow pickle protocol to be configurable for carbonlink requests. (#2591, @alikhtag)
@@ -30,6 +32,7 @@
  - weightedAverage: raise an InputParameterError exception if the number of series passed for the values is different to the number passed for the weights (#2636, @fkaleo)
  - Find api documentation (Fixing #2616) (#2646, @deniszh)
  - Add aggregateSeriesLists() and aliases for diffSeriesLists(), sumSeriesLists(), multiplySeriesLists() (#2647, @alikhtag)
+ - Optionally resolve right hand dip in sums because of lack of current minute in caches (#2659, @cbowman0)
  
 ## carbon
 
