@@ -2,7 +2,7 @@ import fnmatch
 import os.path
 import re
 
-EXPAND_BRACES_RE = re.compile(r'.*(\{.*?[^\\]?\})')
+EXPAND_BRACES_RE = re.compile(r'(\{([^\{\}]*)\})')
 
 
 def get_real_metric_path(absolute_path, metric_path):
@@ -56,25 +56,13 @@ def match_entries(entries, pattern):
 def expand_braces(s):
     res = list()
 
-    # Used instead of s.strip('{}') because strip is greedy.
-    # We want to remove only ONE leading { and ONE trailing }, if both exist
-    def remove_outer_braces(s):
-        if s[0] == '{' and s[-1] == '}':
-            return s[1:-1]
-        return s
-
     m = EXPAND_BRACES_RE.search(s)
     if m is not None:
-        sub = m.group(1)
+        sub = m.group(2)
         open_brace, close_brace = m.span(1)
-        if ',' in sub:
-            for pat in sub.strip('{}').split(','):
-                res.extend(expand_braces(
-                    s[:open_brace] + pat + s[close_brace:]))
-        else:
-            res.extend(expand_braces(
-                s[:open_brace] + remove_outer_braces(sub) + s[close_brace:]))
+        for pat in sub.split(','):
+            res.extend(expand_braces(s[:open_brace] + pat + s[close_brace:]))
     else:
-        res.append(s.replace('\\}', '}'))
+        res.append(s)
 
     return list(set(res))
