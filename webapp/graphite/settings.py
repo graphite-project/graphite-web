@@ -122,6 +122,9 @@ MAX_FETCH_RETRIES = 2
 METRICS_FIND_WARNING_THRESHOLD = float('Inf') # Print a warning if more than X metrics are returned
 METRICS_FIND_FAILURE_THRESHOLD = float('Inf') # Fail if more than X metrics are returned
 
+#Local rendering settings
+RENDER_TRIM_RECENT_IN_AGGREGATE = False #if True, set most recent datapoints to None if prior datapoint was not None
+
 #Remote rendering settings
 REMOTE_RENDERING = False #if True, rendering is delegated to RENDERING_HOSTS
 RENDERING_HOSTS = []
