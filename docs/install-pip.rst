@@ -44,7 +44,7 @@ configuration in ``/usr/share/graphite``:
 
 .. code-block:: none
 
-   pip install https://github.com/graphite-project/carbon/tarball/master --install-option="--install-scripts=/usr/bin" --install-option="--install-lib=/usr/lib/python2.6/site-packages" --install-option="--install-data=/var/lib/graphite"
+   pip install https://github.com/graphite-project/carbon/tarball/master --install-option="--install-scripts=/usr/bin" --install-option="--install-lib=/usr/lib/python2.6/site-packages" --install-option="--install-data=/usr/share/graphite"
 
 Installing Graphite-web in a Custom Location
 --------------------------------------------
@@ -65,7 +65,7 @@ To install the Graphite-web code into the system-wide site-packages directory wi
 
 .. code-block:: none
 
-   pip install https://github.com/graphite-project/graphite-web/tarball/master --install-option="--install-scripts=/usr/bin" --install-option="--install-lib=/usr/lib/python2.6/site-packages" --install-option="--install-data=/var/lib/graphite"
+   pip install https://github.com/graphite-project/graphite-web/tarball/master --install-option="--install-scripts=/usr/bin" --install-option="--install-lib=/usr/lib/python2.6/site-packages" --install-option="--install-data=/usr/share/graphite"
 
 Installing Ceres
 ----------------
