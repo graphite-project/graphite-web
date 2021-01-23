@@ -24,6 +24,7 @@
  - Update whisper.rst with Python 3 fix (#2649, @cdeil)
  - utf-8 fix in unpickle (#2660, @piotr1212 / @ploxlin)
  - Fix expand braces (#2661, Aleksandr Cupacenko / @deniszh )
+ - Fix paths not matching description (@thedoc31)
 
 ### Features / Enhancements
  - [Settings] Allow pickle protocol to be configurable for carbonlink requests. (#2591, @alikhtag)
