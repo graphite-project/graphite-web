@@ -42,10 +42,10 @@ jobs:
           sudo apt-get -y install libcairo2-dev librrd-dev libboost-python-dev
       - name: Verify MariaDB connection
         run: |
-          mysql -h"mariadb" -P"3306" -uroot -proot -e "GRANT ALL ON test_graphite.* TO 'graphite'@'localhost' IDENTIFIED BY 'graphite';"; fi
+          mysql -h"mariadb" -P"3306" -uroot -proot -e "GRANT ALL ON test_graphite.* TO 'graphite'@'localhost' IDENTIFIED BY 'graphite';"
       - name: Verify PostgreSQL connection
         run: |
-          PGPASSWORD=postgres psql -c "CREATE USER graphite WITH CREATEDB PASSWORD 'graphite';" -U postgres; fi
+          PGPASSWORD=postgres psql -h"postgres" -U postgres -c "CREATE USER graphite WITH CREATEDB PASSWORD 'graphite';"
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
