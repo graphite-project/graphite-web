@@ -12,12 +12,12 @@ jobs:
       redis:
         image: redis
         ports:
-          - 6379:6379
+          - 6379/tcp
         options: --health-cmd="redis-cli ping" --health-interval=10s --health-timeout=5s --health-retries=5
       mariadb:
         image: mariadb:latest
         ports:
-          - 3306:3306
+          - 3306/tcp
         env:
           MYSQL_USER: graphite
           MYSQL_PASSWORD: graphite
@@ -27,10 +27,11 @@ jobs:
       postgres:
         image: postgres
         ports:
-          - 5432:5432
+          - 5432/tcp
         env:
           POSTGRES_PASSWORD: postgres
         options: --health-cmd="pg_isready" --health-interval=10s --health-timeout=5s --health-retries=5
+
     strategy:
       matrix:
         python-version: ['2.7', 'pypy-2.7', '3.6', 'pypy-3.6', '3.7', 'pypy-3.7', '3.8', '3.9']
@@ -41,11 +42,15 @@ jobs:
         run: |
           sudo apt-get -y install libcairo2-dev librrd-dev libboost-python-dev
       - name: Verify MariaDB connection
+        env:
+          MYSQL_PORT: ${{ job.services.mariadb.ports[3306] }}
         run: |
-          mysql -h"mariadb" -P"3306" -uroot -proot -e "GRANT ALL ON test_graphite.* TO 'graphite'@'localhost' IDENTIFIED BY 'graphite';"
+          mysql -h"localhost" -P"${MYSQL_PORT}" -uroot -proot -e "GRANT ALL ON test_graphite.* TO 'graphite'@'localhost' IDENTIFIED BY 'graphite';"
       - name: Verify PostgreSQL connection
+        env:
+          POSTGRES_PORT: ${{ job.services.postgres.ports[6379] }}
         run: |
-          PGPASSWORD=postgres psql -h"postgres" -U postgres -c "CREATE USER graphite WITH CREATEDB PASSWORD 'graphite';"
+          PGPASSWORD=postgres psql -h"localhost" -p"${POSTGRES_PORT}" -U postgres -c "CREATE USER graphite WITH CREATEDB PASSWORD 'graphite';"
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
@@ -57,12 +62,12 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Test with tox
         env:
-          REDIS_HOST: redis
-          REDIS_PORT: 6379
-          POSTGRES_HOST: postgres
-          POSTGRES_PORT: 5432
-          MYSQL_HOST: mariadb
-          MYSQL_PORT: 3306
+          REDIS_HOST: localhost
+          REDIS_PORT: ${{ job.services.redis.ports[6379] }}
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: ${{ job.services.postgres.ports[6379] }}
+          MYSQL_HOST: localhost
+          MYSQL_PORT: ${{ job.services.mariadb.ports[3306] }}
           TEST_MYSQL_PASSWORD: graphite
           TEST_POSTGRESQL_PASSWORD: graphite
         run: tox

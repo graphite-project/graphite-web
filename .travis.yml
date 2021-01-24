@@ -5,7 +5,7 @@ python: 3.9
 
 matrix:
   include:
-    - python: pypy
+    - python: pypy2.7
       env:
         - TOXENV=pypy-django111-pyparsing2
     - python: 3.6
@@ -16,7 +16,10 @@ matrix:
         - TOXENV=py37-django22-pyparsing2
     - python: 3.8
       env:
-        - TOXENV=py39-django22-pyparsing2
+        - TOXENV=py38-django22-pyparsing2
+    - python: 3.9
+      env:
+        - TOXENV=py38-django22-pyparsing2
     - python: 3.9
       env:
         - TOXENV=py39-django30-pyparsing2-msgpack
