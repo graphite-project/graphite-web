@@ -45,12 +45,12 @@ jobs:
         env:
           MYSQL_PORT: ${{ job.services.mariadb.ports[3306] }}
         run: |
-          mysql -h"localhost" -P"${MYSQL_PORT}" -uroot -proot -e "GRANT ALL ON test_graphite.* TO 'graphite'@'localhost' IDENTIFIED BY 'graphite';"
+          mysql -h"127.0.0.1" -P"${MYSQL_PORT}" -uroot -proot -e "GRANT ALL ON test_graphite.* TO 'graphite'@'localhost' IDENTIFIED BY 'graphite';"
       - name: Verify PostgreSQL connection
         env:
           POSTGRES_PORT: ${{ job.services.postgres.ports[6379] }}
         run: |
-          PGPASSWORD=postgres psql -h"localhost" -p"${POSTGRES_PORT}" -U postgres -c "CREATE USER graphite WITH CREATEDB PASSWORD 'graphite';"
+          PGPASSWORD=postgres psql -h"127.0.0.1" -p"${POSTGRES_PORT}" -U postgres -c "CREATE USER graphite WITH CREATEDB PASSWORD 'graphite';"
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
@@ -62,11 +62,11 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Test with tox
         env:
-          REDIS_HOST: localhost
+          REDIS_HOST: 127.0.0.1
           REDIS_PORT: ${{ job.services.redis.ports[6379] }}
-          POSTGRES_HOST: localhost
+          POSTGRES_HOST: 127.0.0.1
           POSTGRES_PORT: ${{ job.services.postgres.ports[6379] }}
-          MYSQL_HOST: localhost
+          MYSQL_HOST: 127.0.0.1
           MYSQL_PORT: ${{ job.services.mariadb.ports[3306] }}
           TEST_MYSQL_PASSWORD: graphite
           TEST_POSTGRESQL_PASSWORD: graphite
