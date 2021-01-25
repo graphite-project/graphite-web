@@ -250,7 +250,7 @@ class TagsTest(TestCase):
 
   def test_redis_tagdb(self):
     import os
-    settings.TAGDB_REDIS_HOST = os.environ.get('TEST_REDIS_HOST') or 'localhost'
+    settings.TAGDB_REDIS_HOST = os.environ.get('TEST_REDIS_HOST') or '127.0.0.1'
     settings.TAGDB_REDIS_PORT = os.environ.get('TEST_REDIS_PORT') or 6379
     return self._test_tagdb(RedisTagDB(settings))
 
