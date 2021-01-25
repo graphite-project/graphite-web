@@ -17,7 +17,6 @@ from graphite.util import json
 
 from tests.base import TestCase
 
-
 def json_bytes(obj, *args, **kwargs):
   s = json.dumps(obj, *args, **kwargs)
   if sys.version_info[0] >= 3:
@@ -250,7 +249,11 @@ class TagsTest(TestCase):
     return self._test_tagdb(LocalDatabaseTagDB(settings))
 
   def test_redis_tagdb(self):
-    return self._test_tagdb(RedisTagDB(settings))
+    import os
+    _settings = self.settings
+    _settings.TAGDB_REDIS_HOST = os.environ.get('TEST_REDIS_HOST') or 'localhost'
+    _settings.TAGDB_REDIS_PORT = os.environ.get('TEST_REDIS_PORT') or 6379
+    return self._test_tagdb(RedisTagDB(_settings))
 
   def test_tagdb_autocomplete(self):
     self.maxDiff = None
