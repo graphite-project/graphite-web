@@ -17,6 +17,7 @@ from graphite.util import json
 
 from tests.base import TestCase
 
+
 def json_bytes(obj, *args, **kwargs):
   s = json.dumps(obj, *args, **kwargs)
   if sys.version_info[0] >= 3:
