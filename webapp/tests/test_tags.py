@@ -250,10 +250,9 @@ class TagsTest(TestCase):
 
   def test_redis_tagdb(self):
     import os
-    _settings = self.settings
-    _settings.TAGDB_REDIS_HOST = os.environ.get('TEST_REDIS_HOST') or 'localhost'
-    _settings.TAGDB_REDIS_PORT = os.environ.get('TEST_REDIS_PORT') or 6379
-    return self._test_tagdb(RedisTagDB(_settings))
+    settings.TAGDB_REDIS_HOST = os.environ.get('TEST_REDIS_HOST') or 'localhost'
+    settings.TAGDB_REDIS_PORT = os.environ.get('TEST_REDIS_PORT') or 6379
+    return self._test_tagdb(RedisTagDB(settings))
 
   def test_tagdb_autocomplete(self):
     self.maxDiff = None
