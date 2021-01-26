@@ -8,9 +8,6 @@ matrix:
     - python: pypy
       env:
         - TOXENV=pypy-django111-pyparsing2
-    - python: pypy3
-      env:
-        - TOXENV=pypy3-django22-pyparsing2
     - python: 3.6
       env:
         - TOXENV=py36-django22-pyparsing2
