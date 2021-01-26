@@ -2,10 +2,10 @@ name: Run tests
 
 on:
   push:
-    branches: [ master, 1.1.x ]
+    branches: [ master, 1.0.x, 1.1.x ]
   pull_request:
     # The branches below must be a subset of the branches above
-    branches: [ master ]
+    branches: [ master, 1.0.x, 1.1.x ]
 
 jobs:
   build:
@@ -75,6 +75,7 @@ jobs:
           TEST_POSTGRESQL_PASSWORD: graphite
         run: tox
       - name: Linting
+        if: ${{ matrix.python-version==3.9 }}
         env:
           TOXENV: lint
         run: |
