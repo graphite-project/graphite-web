@@ -1,8 +1,11 @@
 name: Run tests
 
 on:
-  - push
-  - pull_request
+  push:
+    branches: [ master, 1.1.x ]
+  pull_request:
+    # The branches below must be a subset of the branches above
+    branches: [ master ]
 
 jobs:
   build:
@@ -72,9 +75,14 @@ jobs:
           TEST_POSTGRESQL_PASSWORD: graphite
         run: tox
       - name: Linting
-        if: ${{ matrix.python-version==3.9 }}
         env:
           TOXENV: lint
+        run: |
+          tox
+      - name: Testing documentation
+        if: ${{ matrix.python-version==3.9 }}
+        env:
+          TOXENV: docs
         run: |
           tox
       - name: Run Codecov
