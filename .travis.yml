@@ -5,7 +5,7 @@ python: 3.9
 
 matrix:
   include:
-    - python: pypy
+    - python: pypy2
       env:
         - TOXENV=pypy-django111-pyparsing2
     - python: 3.6
