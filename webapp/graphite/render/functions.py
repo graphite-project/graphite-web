@@ -2617,6 +2617,7 @@ def toUpperCase(requestContext, seriesList, *pos):
     else:
       tmpName = list(series.name)
       for i in pos:
+        assert isinstance(i, int)
         try:
           tmpName[i] = tmpName[i].upper()
         except IndexError:
@@ -2650,6 +2651,7 @@ def toLowerCase(requestContext, seriesList, *pos):
     else:
       tmpName = list(series.name)
       for i in pos:
+        assert isinstance(i, int)
         try:
           tmpName[i] = tmpName[i].lower()
         except IndexError:
