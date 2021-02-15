@@ -1312,7 +1312,7 @@ def movingWindow(requestContext, seriesList, windowSize, func='average', xFilesF
 
     effectiveXFF = xFilesFactor if xFilesFactor is not None else series.xFilesFactor
 
-    for i in range(windowPoints + 1, len(series)):
+    for i in range(windowPoints + 1, len(series) + 1):
       nonNull = [v for v in series[i - windowPoints:i] if v is not None]
 
       if nonNull and xff(len(nonNull), windowPoints, effectiveXFF):
