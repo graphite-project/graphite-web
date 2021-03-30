@@ -12,7 +12,7 @@ from mock import patch
 
 from graphite.render.datalib import TimeSeries
 from graphite.render.hashing import ConsistentHashRing, hashRequest, hashData
-from graphite.render.evaluator import evaluateTarget, extractPathExpressions, evaluateScalarTokens, invalidParamLogMsg
+from graphite.render.evaluator import evaluateTarget, extractPathExpressions, evaluateScalarTokens
 from graphite.render.functions import NormalizeEmptyResultError
 from graphite.render.grammar import grammar
 from graphite.render.views import renderViewJson
@@ -924,65 +924,6 @@ class RenderTest(TestCase):
         })
         data = json.loads(response.content)[0]
         self.assertEqual(data['target'], 'sumSeries(hosts.worker*.cpu)')
-
-    def test_invalid_parameter_log_message(self):
-        # first testing without source headers
-        requestContext = {}
-        exception = 'exception details'
-        func = 'test_func'
-        args = ['arg1']
-        kwargs = {}
-
-        msg = invalidParamLogMsg(requestContext, exception, func, args, kwargs)
-        self.assertEqual(
-            msg,
-            'Received invalid parameters (exception details): test_func (\'arg1\')'
-        )
-
-        args = []
-        kwargs = {'arg': 'testvalue'}
-        msg = invalidParamLogMsg(requestContext, exception, func, args, kwargs)
-        self.assertEqual(
-            msg,
-            'Received invalid parameters (exception details): test_func (arg=\'testvalue\')'
-        )
-
-        kwargs = {'arg': '3.3'}
-        msg = invalidParamLogMsg(requestContext, exception, func, args, kwargs)
-        self.assertEqual(
-            msg,
-            'Received invalid parameters (exception details): test_func (arg=\'3.3\')'
-        )
-
-        args = [float('INF')]
-        kwargs = {'kwarg1': True}
-        msg = invalidParamLogMsg(requestContext, exception, func, args, kwargs)
-        self.assertEqual(
-            msg,
-            'Received invalid parameters (exception details): test_func (inf, kwarg1=True)'
-        )
-
-        args = [1]
-        kwargs = {}
-        requestContext['sourceIdHeaders'] = {
-            'grafana-org-id': 123,
-        }
-        msg = invalidParamLogMsg(requestContext, exception, func, args, kwargs)
-        self.assertEqual(
-            msg,
-            'Received invalid parameters (exception details): test_func (1); source: (grafana-org-id: 123)'
-        )
-
-        requestContext['sourceIdHeaders'] = {
-            'grafana-org-id': 123,
-            'dashboard-id': 9,
-            'panel-id': 38,
-        }
-        msg = invalidParamLogMsg(requestContext, exception, func, args, kwargs)
-        self.assertEqual(
-            msg,
-            'Received invalid parameters (exception details): test_func (1); source: (dashboard-id: 9, grafana-org-id: 123, panel-id: 38)'
-        )
 
 
 class ConsistentHashRingTest(TestCase):
