@@ -3823,7 +3823,7 @@ class FunctionsTest(TestCase):
             ]
         )
 
-        with self.assertRaisesRegexp(ValueError, '^Unsupported aggregation function: bad$'):
+        with self.assertRaisesRegexp(ValueError, '^Invalid parameters \\(Unsupported aggregation function: bad\\)$'):
             functions.aggregateLine(
                 self._build_requestContext(
                     startTime=datetime(1970,1,1,1,0,0,0,pytz.timezone(settings.TIME_ZONE)),
@@ -4451,7 +4451,7 @@ class FunctionsTest(TestCase):
             )
 
         with patch('graphite.render.functions.evaluateTarget', mock_evaluateTarget):
-            with self.assertRaisesRegexp(ValueError, '^Unsupported aggregation function: invalid$'):
+            with self.assertRaisesRegexp(ValueError, '^Invalid parameters \\(Unsupported aggregation function: invalid\\)$'):
                 functions.movingWindow(request_context, seriesList, 5, 'invalid')
 
     def test_movingWindow_xFilesFactor(self):
