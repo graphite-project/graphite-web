@@ -25,10 +25,11 @@
  - utf-8 fix in unpickle (#2660, @piotr1212 / @ploxlin)
  - Fix expand braces (#2661, Aleksandr Cupacenko / @deniszh )
  - Fix paths not matching description (@thedoc31)
+ - Amend web install docs (#2677, @deniszh)
 
 ### Features / Enhancements
- - [Settings] Allow pickle protocol to be configurable for carbonlink requests. (#2591, @alikhtag)
  - Better logs on invalid input (#2590, @replay)
+ - [Settings] Allow pickle protocol to be configurable for carbonlink requests. (#2591, @alikhtag)
  - List Promitor as a collector tool (#2605, @tomkerkhove)
  - REsynthesize: New script forked from Synthesize to install Graphite on CentOS (#2631, @deividgdt)
  - weightedAverage: raise an InputParameterError exception if the number of series passed for the values is different to the number passed for the weights (#2636, @fkaleo)
