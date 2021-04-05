@@ -28,6 +28,7 @@
 
 ### Features / Enhancements
  - [Settings] Allow pickle protocol to be configurable for carbonlink requests. (#2591, @alikhtag)
+ - Better logs on invalid input (#2590, @replay)
  - List Promitor as a collector tool (#2605, @tomkerkhove)
  - REsynthesize: New script forked from Synthesize to install Graphite on CentOS (#2631, @deividgdt)
  - weightedAverage: raise an InputParameterError exception if the number of series passed for the values is different to the number passed for the weights (#2636, @fkaleo)
