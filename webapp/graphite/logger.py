@@ -25,7 +25,7 @@ class GraphiteLogger:
         self.infoLogger = self._config_logger(
             settings.LOG_FILE_INFO,
             'info',
-            True,
+            settings.LOG_INFO_PERFORMANCE,
             level = logging.DEBUG if settings.DEBUG else logging.INFO,
         )
         self.exceptionLogger = self._config_logger(
