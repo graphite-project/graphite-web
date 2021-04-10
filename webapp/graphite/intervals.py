@@ -3,7 +3,6 @@ NEGATIVE_INFINITY = -INFINITY
 
 
 class IntervalSet:
-    __slots__ = ('intervals', 'size')
 
     def __init__(self, intervals, disjoint=False):
         self.intervals = intervals
@@ -74,7 +73,6 @@ class IntervalSet:
 
 
 class Interval:
-    __slots__ = ('start', 'end', 'tuple', 'size')
 
     def __init__(self, start, end):
         if end - start < 0:
