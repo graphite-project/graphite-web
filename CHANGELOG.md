@@ -26,6 +26,7 @@
  - Fix expand braces (#2661, Aleksandr Cupacenko / @deniszh )
  - Fix paths not matching description (@thedoc31)
  - Amend web install docs (#2677, @deniszh)
+ - Resolves #2692 can't unpickle Interval/IntervalSet (#2693, @drawks)
 
 ### Features / Enhancements
  - Better logs on invalid input (#2590, @replay)
