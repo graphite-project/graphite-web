@@ -37,6 +37,7 @@
  - Find api documentation (Fixing #2616) (#2646, @deniszh)
  - Add aggregateSeriesLists() and aliases for diffSeriesLists(), sumSeriesLists(), multiplySeriesLists() (#2647, @alikhtag)
  - Optionally resolve right hand dip in sums because of lack of current minute in caches (#2659, @cbowman0)
+ - You can disable info.log now (fixing #1860) (#2691, @deniszh)
  
 ## carbon
 
