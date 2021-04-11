@@ -36,7 +36,7 @@ class BaseConverter(object):
         # make an integer out of the number
         x = 0
         for digit in str(number):
-           x = x * len(fromdigits) + fromdigits.index(digit)
+            x = x * len(fromdigits) + fromdigits.index(digit)
 
         # create the result in base 'len(todigits)'
         if x == 0:

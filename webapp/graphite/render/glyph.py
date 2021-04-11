@@ -796,6 +796,12 @@ class Graph:
           y += lineHeight
 
   def encodeHeader(self,text):
+    """
+    Puts some metadata in the generated svg xml that is not inside the frame.
+    This can be used to manipulate the svg later on with a framework like d3.
+    """
+    if self.outputFormat != 'svg':
+      return
     self.ctx.save()
     self.setColor( self.backgroundColor )
     self.ctx.move_to(-88,-88) # identifier
@@ -885,10 +891,10 @@ class Graph:
         metaData = { }
 
       self.surface.finish()
-      svgData = str(self.surfaceData.getvalue())
+      svgData = self.surfaceData.getvalue().decode('utf-8')
       self.surfaceData.close()
 
-      svgData = svgData.replace('pt"', 'px"', 2) # we expect height/width in pixels, not points
+      svgData = svgData.replace('pt"', 'px"', 2)  # we expect height/width in pixels, not points
       svgData = svgData.replace('</svg>\n', '', 1)
       svgData = svgData.replace('</defs>\n<g', '</defs>\n<g class="graphite"', 1)
 
@@ -903,10 +909,10 @@ class Graph:
         (svgData, subsMade) = re.subn(r'<path.+?d="M -88 -88 (.+?)"/>', onHeaderPath, svgData)
 
         # Replace the first </g><g> with <g>, and close out the last </g> at the end
-        svgData = svgData.replace('</g><g data-header','<g data-header',1)
+        svgData = svgData.replace('</g><g data-header', '<g data-header', 1)
         if subsMade > 0:
-          svgData += "</g>"
-        svgData = svgData.replace(' data-header="true"','')
+          svgData += '</g>'
+        svgData = svgData.replace(' data-header="true"', '')
 
       fileObj.write(svgData.encode('utf-8'))
       fileObj.write(("""<script>

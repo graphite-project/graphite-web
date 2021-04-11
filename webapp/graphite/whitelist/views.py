@@ -22,43 +22,44 @@ from graphite.util import unpickle
 
 
 def add(request):
-  metrics = set( request.POST['metrics'].split() )
-  whitelist = load_whitelist()
-  new_whitelist = whitelist | metrics
-  save_whitelist(new_whitelist)
-  return HttpResponse(content_type="text/plain", content="OK")
+    metrics = set( request.POST['metrics'].split() )
+    whitelist = load_whitelist()
+    new_whitelist = whitelist | metrics
+    save_whitelist(new_whitelist)
+    return HttpResponse(content_type="text/plain", content="OK")
 
 
 def remove(request):
-  metrics = set( request.POST['metrics'].split() )
-  whitelist = load_whitelist()
-  new_whitelist = whitelist - metrics
-  save_whitelist(new_whitelist)
-  return HttpResponse(content_type="text/plain", content="OK")
+    metrics = set( request.POST['metrics'].split() )
+    whitelist = load_whitelist()
+    new_whitelist = whitelist - metrics
+    save_whitelist(new_whitelist)
+    return HttpResponse(content_type="text/plain", content="OK")
 
 
 def show(request):
-  whitelist = load_whitelist()
-  members = '\n'.join( sorted(whitelist) )
-  return HttpResponse(content_type="text/plain", content=members)
+    whitelist = load_whitelist()
+    members = '\n'.join( sorted(whitelist) )
+    return HttpResponse(content_type="text/plain", content=members)
 
 
 def load_whitelist():
-  buffer = open(settings.WHITELIST_FILE, 'rb').read()
-  whitelist = unpickle.loads(buffer)
-  return whitelist
+    buffer = open(settings.WHITELIST_FILE, 'rb').read()
+    whitelist = unpickle.loads(buffer)
+    return whitelist
 
 
 def save_whitelist(whitelist):
-  serialized = pickle.dumps(whitelist, protocol=-1) #do this instead of dump() to raise potential exceptions before open()
-  tmpfile = '%s-%d' % (settings.WHITELIST_FILE, randint(0, 100000))
-  try:
-    fh = open(tmpfile, 'wb')
-    fh.write(serialized)
-    fh.close()
-    if os.path.exists(settings.WHITELIST_FILE):
-      os.unlink(settings.WHITELIST_FILE)
-    os.rename(tmpfile, settings.WHITELIST_FILE)
-  finally:
-    if os.path.exists(tmpfile):
-      os.unlink(tmpfile)
+    # do this instead of dump() to raise potential exceptions before open()
+    serialized = pickle.dumps(whitelist, protocol=-1)
+    tmpfile = '%s-%d' % (settings.WHITELIST_FILE, randint(0, 100000))
+    try:
+        fh = open(tmpfile, 'wb')
+        fh.write(serialized)
+        fh.close()
+        if os.path.exists(settings.WHITELIST_FILE):
+            os.unlink(settings.WHITELIST_FILE)
+        os.rename(tmpfile, settings.WHITELIST_FILE)
+    finally:
+        if os.path.exists(tmpfile):
+            os.unlink(tmpfile)

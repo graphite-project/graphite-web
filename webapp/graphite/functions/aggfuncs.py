@@ -27,8 +27,8 @@ aggFuncAliases = {
 
 
 def getAggFunc(func, rawFunc=None):
-  if func in aggFuncs:
-    return aggFuncs[func]
-  if func in aggFuncAliases:
-    return aggFuncAliases[func]
-  raise InputParameterError('Unsupported aggregation function: %s' % (rawFunc or func))
+    if func in aggFuncs:
+        return aggFuncs[func]
+    if func in aggFuncAliases:
+        return aggFuncAliases[func]
+    raise InputParameterError('Unsupported aggregation function: %s' % (rawFunc or func))

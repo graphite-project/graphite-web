@@ -12,7 +12,7 @@ from mock import patch
 
 from graphite.render.datalib import TimeSeries
 from graphite.render.hashing import ConsistentHashRing, hashRequest, hashData
-from graphite.render.evaluator import evaluateTarget, extractPathExpressions, evaluateScalarTokens, invalidParamLogMsg
+from graphite.render.evaluator import evaluateTarget, extractPathExpressions, evaluateScalarTokens
 from graphite.render.functions import NormalizeEmptyResultError
 from graphite.render.grammar import grammar
 from graphite.render.views import renderViewJson
@@ -132,27 +132,27 @@ class RenderTest(TestCase):
 
         message = r'invalid template\(\) syntax, only string/numeric arguments are allowed'
         with self.assertRaisesRegexp(ValueError, message):
-          evaluateTarget({}, test_input)
+            evaluateTarget({}, test_input)
 
     @patch('graphite.render.evaluator.prefetchData', lambda *_: None)
     def test_render_evaluateTokens_NormalizeEmptyResultError(self):
         def raiseError(requestContext):
-          raise NormalizeEmptyResultError
+            raise NormalizeEmptyResultError
 
         with patch('graphite.functions._SeriesFunctions', {'test': raiseError}):
-          outputs = evaluateTarget({}, 'test()')
-          self.assertEqual(outputs, [])
+            outputs = evaluateTarget({}, 'test()')
+            self.assertEqual(outputs, [])
 
     @patch('graphite.render.evaluator.prefetchData', lambda *_: None)
     def test_render_evaluateTokens_TimeSeries(self):
         timeseries = TimeSeries('test', 0, 1, 1, [1])
 
         def returnTimeSeries(requestContext):
-          return timeseries
+            return timeseries
 
         with patch('graphite.functions._SeriesFunctions', {'test': returnTimeSeries}):
-          outputs = evaluateTarget({}, 'test()')
-          self.assertEqual(outputs, [timeseries])
+            outputs = evaluateTarget({}, 'test()')
+            self.assertEqual(outputs, [timeseries])
 
     def test_render_evaluateScalarTokens(self):
         # test parsing numeric arguments
@@ -169,25 +169,25 @@ class RenderTest(TestCase):
 
         # test invalid tokens
         class ScalarToken(object):
-          number = None
-          string = None
-          boolean = None
-          none = None
-          infinity = None
+            number = None
+            string = None
+            boolean = None
+            none = None
+            infinity = None
 
         class ScalarTokenNumber(object):
-          integer = None
-          float = None
-          scientific = None
+            integer = None
+            float = None
+            scientific = None
 
         with self.assertRaisesRegexp(ValueError, 'unknown token in target evaluator'):
-          tokens = ScalarToken()
-          evaluateScalarTokens(tokens)
+            tokens = ScalarToken()
+            evaluateScalarTokens(tokens)
 
         with self.assertRaisesRegexp(ValueError, 'unknown numeric type in target evaluator'):
-          tokens = ScalarToken()
-          tokens.number = ScalarTokenNumber()
-          evaluateScalarTokens(tokens)
+            tokens = ScalarToken()
+            tokens.number = ScalarTokenNumber()
+            evaluateScalarTokens(tokens)
 
     def test_render_view(self):
         url = reverse('render')
@@ -924,65 +924,6 @@ class RenderTest(TestCase):
         })
         data = json.loads(response.content)[0]
         self.assertEqual(data['target'], 'sumSeries(hosts.worker*.cpu)')
-
-    def test_invalid_parameter_log_message(self):
-        # first testing without source headers
-        requestContext = {}
-        exception = 'exception details'
-        func = 'test_func'
-        args = ['arg1']
-        kwargs = {}
-
-        msg = invalidParamLogMsg(requestContext, exception, func, args, kwargs)
-        self.assertEqual(
-            msg,
-            'Received invalid parameters (exception details): test_func (\'arg1\')'
-        )
-
-        args = []
-        kwargs = {'arg': 'testvalue'}
-        msg = invalidParamLogMsg(requestContext, exception, func, args, kwargs)
-        self.assertEqual(
-            msg,
-            'Received invalid parameters (exception details): test_func (arg=\'testvalue\')'
-        )
-
-        kwargs = {'arg': '3.3'}
-        msg = invalidParamLogMsg(requestContext, exception, func, args, kwargs)
-        self.assertEqual(
-            msg,
-            'Received invalid parameters (exception details): test_func (arg=\'3.3\')'
-        )
-
-        args = [float('INF')]
-        kwargs = {'kwarg1': True}
-        msg = invalidParamLogMsg(requestContext, exception, func, args, kwargs)
-        self.assertEqual(
-            msg,
-            'Received invalid parameters (exception details): test_func (inf, kwarg1=True)'
-        )
-
-        args = [1]
-        kwargs = {}
-        requestContext['sourceIdHeaders'] = {
-            'grafana-org-id': 123,
-        }
-        msg = invalidParamLogMsg(requestContext, exception, func, args, kwargs)
-        self.assertEqual(
-            msg,
-            'Received invalid parameters (exception details): test_func (1); source: (grafana-org-id: 123)'
-        )
-
-        requestContext['sourceIdHeaders'] = {
-            'grafana-org-id': 123,
-            'dashboard-id': 9,
-            'panel-id': 38,
-        }
-        msg = invalidParamLogMsg(requestContext, exception, func, args, kwargs)
-        self.assertEqual(
-            msg,
-            'Received invalid parameters (exception details): test_func (1); source: (dashboard-id: 9, grafana-org-id: 123, panel-id: 38)'
-        )
 
 
 class ConsistentHashRingTest(TestCase):
