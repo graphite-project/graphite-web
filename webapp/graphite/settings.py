@@ -108,6 +108,7 @@ DEFAULT_XFILES_FACTOR = 0
 # https://docs.djangoproject.com/en/1.11/topics/logging/
 LOG_RENDERING_PERFORMANCE = False
 LOG_CACHE_PERFORMANCE = False
+LOG_INFO_PERFORMANCE = True
 LOG_ROTATION = True
 LOG_ROTATION_COUNT = 1
 
