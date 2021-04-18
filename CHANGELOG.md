@@ -1,5 +1,9 @@
 # 1.2.0 (master/unreleased)
 
+None
+
+# 1.1.8
+
 ## graphite-web
 
 ### Bug Fixes
