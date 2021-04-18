@@ -132,9 +132,14 @@ def find_view(request):
   automatic_variants = queryParamAsInt(queryParams, 'automatic_variants', 0)
 
   try:
-    query = str(queryParams['query'])
+    if type(queryParams['query']) is unicode:
+      query = queryParams['query'].encode('utf-8')
+    else:
+      query = str(queryParams['query'])
   except KeyError:
     raise InputParameterError('Missing required parameter \'query\'')
+  except NameError:
+    query = str(queryParams['query'])
 
   if query == '':
     raise InputParameterError('Required parameter \'query\' is empty')

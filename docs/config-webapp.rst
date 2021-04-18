@@ -31,6 +31,75 @@ On Debian-based systems, run:
 
    sudo apt install gunicorn
 
+Next, create the script that will run graphite-web using your process watcher
+of choice.
+
+*Upstart*
+
+::
+
+    description "graphite-web server"
+    start on runlevel [2345]
+    stop on runlevel [!2345]
+
+    respawn
+
+    exec gunicorn wsgi --pythonpath=/opt/graphite/webapp/graphite --bind 127.0.0.1:8080
+
+*Supervisor*
+
+::
+
+    [program:graphite-web]
+    command = gunicorn wsgi --pythonpath=/opt/graphite/webapp/graphite --bind 127.0.0.1:8080
+    autostart = true
+    autorestart = true
+
+*systemd*
+
+::
+
+    # This is /etc/systemd/system/graphite-web.socket
+    [Unit]
+    Description=graphite-web socket
+
+    [Socket]
+    ListenStream=/run/graphite-api.sock
+    ListenStream=127.0.0.1:8080
+
+    [Install]
+    WantedBy=sockets.target
+
+::
+
+    # This is /etc/systemd/system/graphite-web.service
+    [Unit]
+    Description=graphite-web service
+    Requires=graphite-web.socket
+
+    [Service]
+    ExecStart=/usr/bin/gunicorn wsgi --pythonpath=/opt/graphite/webapp/graphite --bind 127.0.0.1:8080
+    Restart=on-failure
+    #User=graphite
+    #Group=graphite
+    ExecReload=/bin/kill -s HUP $MAINPID
+    ExecStop=/bin/kill -s TERM $MAINPID
+    PrivateTmp=true
+
+    [Install]
+    WantedBy=multi-user.target
+
+.. note::
+
+    If you have installed graphite-web and Gunicorn in a virtualenv, you
+    need to use the full path to Gunicorn. Instead of ``gunicorn``, use
+    ``/opt/graphite/bin/gunicorn`` (assuming your virtualenv is
+    at ``/opt/graphite``).
+
+See the `Gunicorn docs`_ for configuration options and command-line flags.
+
+.. _Gunicorn docs: http://docs.gunicorn.org/en/latest/
+
 Install nginx
 ^^^^^^^^^^^^^
 
@@ -161,9 +230,9 @@ Finally, configure the apache vhost. (You can find example of Graphite vhost con
 
         WSGIScriptAlias / /opt/graphite/conf/graphite.wsgi
 
-        Alias /static/ /opt/graphite/static/
+        Alias /static/ /opt/graphite/webapp/content/;
 
-        <Directory /opt/graphite/static/>
+        <Directory /opt/graphite/webapp/content/>
                 <IfVersion < 2.4>
                         Order deny,allow
                         Allow from all
@@ -271,8 +340,8 @@ Enable the vhost and restart nginx:
     $ service nginx restart
 
 
-Acnowlegments
-------------_
+Acknowlegments
+^^^^^^^^^^^^^^
 
 Portions of that manual are based on `Graphite-API deployment manual`_.
 

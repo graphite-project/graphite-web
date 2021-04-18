@@ -53,6 +53,12 @@ LOG_CACHE_PERFORMANCE
 
   Triggers the creation of ``cache.log`` which logs timings for remote calls to `carbon-cache` as well as Request Cache (memcached) hits and misses.
 
+LOG_INFO_PERFORMANCE
+  `Default: True`
+
+  Triggers the creation of ``info.log`` which logs general logs. Enabled by default.
+
+
 DEBUG = True
   `Default: False`
 

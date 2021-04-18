@@ -73,6 +73,7 @@ def renderView(request):
     'prefetched' : {},
     'xFilesFactor' : requestOptions['xFilesFactor'],
     'maxDataPoints' : requestOptions.get('maxDataPoints', None),
+    'targets': requestOptions['targets'],
   }
   data = requestContext['data']
 
@@ -237,9 +238,10 @@ def renderViewJson(requestOptions, data):
         if not datapoints:
           continue
 
-      series_data.append(dict(target=series.name, tags=series.tags, datapoints=datapoints))
+      series_data.append(dict(target=series.name, tags=dict(series.tags), datapoints=datapoints))
 
-  output = json.dumps(series_data, indent=(2 if requestOptions.get('pretty') else None)).replace('None,', 'null,').replace('NaN,', 'null,').replace('Infinity,', '1e9999,')
+  output = json.dumps(series_data, indent=(2 if requestOptions.get('pretty') else None)) \
+      .replace('NaN,', 'null,').replace('Infinity,', '1e9999,')
 
   if 'jsonp' in requestOptions:
     response = HttpResponse(
@@ -494,7 +496,7 @@ def delegateRendering(graphType, graphOptions, headers=None):
   if headers is None:
     headers = {}
   start = time()
-  postData = graphType + '\n' + pickle.dumps(graphOptions)
+  postData = (graphType + '\n').encode() + pickle.dumps(graphOptions)
   servers = settings.RENDERING_HOSTS[:] #make a copy so we can shuffle it safely
   shuffle(servers)
   connector_class = connector_class_selector(settings.INTRACLUSTER_HTTPS)
@@ -543,7 +545,7 @@ def renderLocalView(request):
   try:
     start = time()
     reqParams = BytesIO(request.body)
-    graphType = reqParams.readline().strip()
+    graphType = reqParams.readline().strip().decode()
     optionsPickle = reqParams.read()
     reqParams.close()
     graphClass = GraphTypes[graphType]

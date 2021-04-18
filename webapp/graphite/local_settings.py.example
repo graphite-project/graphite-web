@@ -36,6 +36,7 @@
 #LOG_ROTATION_COUNT = 1
 #LOG_RENDERING_PERFORMANCE = True
 #LOG_CACHE_PERFORMANCE = True
+#LOG_INFO_PERFORMANCE = False
 
 # Filenames for log output, set to '-' to log to stderr
 #LOG_FILE_INFO = 'info.log'
@@ -93,6 +94,9 @@ DEFAULT_XFILES_FACTOR = 0
 # Timeouts for find and render requests
 #FIND_TIMEOUT = 3.0  # Timeout for metric find requests
 #FETCH_TIMEOUT = 3.0  # Timeout to fetch series data
+
+# Allow UTF-8 metrics' names (can cause performance issues)
+#UTF8_METRICS = False
 
 #####################################
 # Filesystem Paths #
@@ -334,7 +338,10 @@ DEFAULT_XFILES_FACTOR = 0
 #CARBONLINK_HOSTS = ["127.0.0.1:7002:a", "127.0.0.1:7102:b", "127.0.0.1:7202:c"]
 #CARBONLINK_TIMEOUT = 1.0
 #CARBONLINK_RETRY_DELAY = 15 # Seconds to blacklist a failed remote server
-#
+# Set pickle protocol to use for Carbonlink requests,
+# (default of -1 is HIGHEST_AVAILABLE for your Python version)
+# see more: https://docs.python.org/3/library/pickle.html#data-stream-format
+#CARBONLINK_PICKLE_PROTOCOL = -1
 
 # Type of metric hashing function.
 # The default `carbon_ch` is Graphite's traditional consistent-hashing implementation.

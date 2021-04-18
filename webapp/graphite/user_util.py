@@ -20,26 +20,26 @@ from graphite.logger import log
 
 
 def isAuthenticated(user):
-  # is_authenticated() is changed to a boolean since 1.10, 2.0 removes the
-  # backwards compatibilty
-  if DJANGO_VERSION >= (1, 10):
-    return user.is_authenticated
-  else:
-    return user.is_authenticated()
+    # is_authenticated() is changed to a boolean since 1.10, 2.0 removes the
+    # backwards compatibilty
+    if DJANGO_VERSION >= (1, 10):
+        return user.is_authenticated
+    else:
+        return user.is_authenticated()
 
 
 def getProfile(request, allowDefault=True):
-  if isAuthenticated(request.user):
-    return Profile.objects.get_or_create(user=request.user)[0]
-  elif allowDefault:
-    return default_profile()
+    if isAuthenticated(request.user):
+        return Profile.objects.get_or_create(user=request.user)[0]
+    elif allowDefault:
+        return default_profile()
 
 
 def getProfileByUsername(username):
-  try:
-    return Profile.objects.get(user__username=username)
-  except Profile.DoesNotExist:
-    return None
+    try:
+        return Profile.objects.get(user__username=username)
+    except Profile.DoesNotExist:
+        return None
 
 
 def default_profile():

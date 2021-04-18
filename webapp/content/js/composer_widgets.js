@@ -515,7 +515,14 @@ var GraphDataWindow = {
       hideHeaders: true,
       width: 385,
       height: 140,
-      columns: [ {header: 'Graph Targets', width: 1.0, dataIndex: 'value'} ],
+      columns: [
+        {
+          header: 'Graph Targets',
+          width: 1.0,
+          dataIndex: 'value',
+          tpl: '{value:htmlEncode}'
+        }
+      ],
       listeners: {
         contextmenu: this.targetContextMenu,
         afterrender: this.targetChanged,
@@ -1074,8 +1081,10 @@ function createFunctionsMenu() {
       text: 'Combine',
       menu: [
         {text: 'Sum', handler: applyFuncToAll('sumSeries')},
+        {text: 'Sum (of series lists)', handler: applyFuncToAll('sumSeriesLists')},
         {text: 'Average', handler: applyFuncToAll('averageSeries')},
         {text: 'Product', handler: applyFuncToAll('multiplySeries')},
+        {text: 'Product (of series lists)', handler: applyFuncToAll('multiplySeriesLists')},
         {text: 'Min Values', handler: applyFuncToAll('minSeries')},
         {text: 'Max Values', handler: applyFuncToAll('maxSeries')},
         {text: 'Group', handler: applyFuncToAll('group')},
@@ -1127,6 +1136,7 @@ function createFunctionsMenu() {
         {text: 'Linear Regression', handler: applyFuncToEachWithInput('linearRegression', 'Start source of regression at (example: 14:57 20150115)', {quote: true})},
         {text: 'As Percent', handler: applyFuncToEachWithInput('asPercent', 'Please enter the value that corresponds to 100% or leave blank to use the total', {allowBlank: true})},
         {text: 'Difference (of 2 series)', handler: applyFuncToAll('diffSeries')},
+        {text: 'Difference (of series lists)', handler: applyFuncToAll('diffSeriesLists')},
         {text: 'Ratio (of 2 series)', handler: applyFuncToAll('divideSeries')},
         {text: 'Ratio (of series lists)', handler: applyFuncToAll('divideSeriesLists')},
         {text: 'Exponential Moving Average', handler: applyFuncToEachWithInput('exponentialMovingAverage', 'EMA for the last __ data points')}

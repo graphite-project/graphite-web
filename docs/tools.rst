@@ -60,6 +60,9 @@ Collection
 `netdata`_
   A fast and efficient monitoring agent that supports graphite backends. It has collection, forwarding, visualization and monitoring features. Netdata collects common system metrics and a variety of other sources through plugins. 
 
+`Promitor`_
+  Bringing Azure Monitor metrics where you need them, allowing you to push Azure Monitor metrics to a variety of metric sinks such as a StatsD server.
+
 `Sensu`_
   A monitoring framework that can route metrics to Graphite. Servers subscribe to sets of checks, so getting metrics from a new server to Graphite is as simple as installing the Sensu client and subscribing.
 
@@ -409,6 +412,7 @@ Other
 .. _pipe-to-graphite: https://github.com/iFixit/pipe-to-graphite
 .. _Polymur: https://github.com/jamiealquiza/polymur
 .. _Prometheus: https://github.com/prometheus/prometheus
+.. _Promitor: https://promitor.io/
 .. _RabbitMQ: http://www.rabbitmq.com
 .. _rearview: http://github.com/livingsocial/rearview
 .. _Rickshaw: http://code.shutterstock.com/rickshaw

@@ -118,9 +118,9 @@ class StandardFinderTest(TestCase):
             os.makedirs(dirname(path))
         whisper.create(path, [(1, 60)])
         if gz:
-          with open(path, 'rb') as f_in, gzip.open("%s.gz" % path, 'wb') as f_out:
-             shutil.copyfileobj(f_in, f_out)
-          os.remove(path)
+            with open(path, 'rb') as f_in, gzip.open("%s.gz" % path, 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+            os.remove(path)
 
     def wipe_whisper(self):
         try:
@@ -155,6 +155,17 @@ class StandardFinderTest(TestCase):
 
             scandir_mock.call_count = 0
             nodes = finder.find_nodes(FindQuery('foo.bar.baz', None, None))
+            self.assertEqual(len(list(nodes)), 1)
+            self.assertEqual(scandir_mock.call_count, 0)
+
+            # test for https://github.com/grafana/grafana/issues/5936
+            scandir_mock.call_count = 0
+            nodes = finder.find_nodes(FindQuery('foo.{bar}.baz', None, None))
+            self.assertEqual(len(list(nodes)), 1)
+            self.assertEqual(scandir_mock.call_count, 0)
+
+            scandir_mock.call_count = 0
+            nodes = finder.find_nodes(FindQuery('foo.{bar,}.baz', None, None))
             self.assertEqual(len(list(nodes)), 1)
             self.assertEqual(scandir_mock.call_count, 0)
 
@@ -321,27 +332,16 @@ class StandardFinderTest(TestCase):
     def dummy_realpath(path):
         return path.replace("some/symbolic/path", "this/is/the/real/path")
 
-    def dummy_realpath2(path):
-        return path.replace("foo/bar", "bar")
-
     @patch('os.path.realpath', wraps=dummy_realpath)
-    def test_get_real_metric_path_symlink_before(self, dummy_realpath):
+    def test_get_real_metric_path_symlink_outside(self, dummy_realpath):
         input_abs_path='/some/symbolic/path/graphite/whisper/Env/HTTP/NumConnections.wsp'
         input_metric_path='Env.HTTP.NumConnections'
         expected_metric_path='Env.HTTP.NumConnections'
         output_metric_path = get_real_metric_path(input_abs_path, input_metric_path)
         self.assertEqual(output_metric_path, expected_metric_path)
 
-    @patch('os.path.realpath', wraps=dummy_realpath2)
-    def test_get_real_metric_path_symlink_inside(self, dummy_realpath2):
-        input_abs_path='/opt/graphite/storage/whisper/foo/bar/Env/HTTP/NumConnections.wsp'
-        input_metric_path='bar.Env.HTTP.NumConnections'
-        expected_metric_path='bar.Env.HTTP.NumConnections'
-        output_metric_path = get_real_metric_path(input_abs_path, input_metric_path)
-        self.assertEqual(output_metric_path, expected_metric_path)
-
     @patch('os.path.realpath', wraps=dummy_realpath)
-    def test_get_real_metric_path_symlink_after(self, dummy_realpath):
+    def test_get_real_metric_path_symlink_inside(self, dummy_realpath):
         input_abs_path='/opt/graphite/storage/whisper/some/symbolic/path/NumConnections.wsp'
         input_metric_path='some.symbolic.path.NumConnections'
         expected_metric_path='this.is.the.real.path.NumConnections'
