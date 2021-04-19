@@ -1,0 +1,116 @@
+.. _1-1-8:
+
+1.1.8
+===========================
+*04/19/2021*
+
+Graphite 1.1.8 is now available for usage. Please note that this is a bugfix release for the stable Graphite 1.1.x branch and it's recommended for production usage. It also contains some improvements backported from the master branch.
+
+Highlights
+-------------
+* Excessive logging can be disabled (in graphite-web and carbon)
+* Tagging can be disabled if not used in carbon (improves performance)
+* New function `aggregateSeriesLists()` and aliases for `diffSeriesLists()`, `sumSeriesLists()`, `multiplySeriesLists()`
+* Support for Aggregated-Consistent Hash in carbonate
+* Multiple bugfixes, especially for Graphite-web (see full list below)
+
+Thanks a lot for all Graphite contributors and users!
+
+Source bundles are available from GitHub:
+
+* https://github.com/graphite-project/graphite-web/archive/1.1.8.tar.gz
+* https://github.com/graphite-project/carbon/archive/1.1.8.tar.gz
+* https://github.com/graphite-project/whisper/archive/1.1.8.tar.gz
+* https://github.com/graphite-project/carbonate/archive/1.1.8.tar.gz
+
+Graphite can also be installed from `PyPI <http://pypi.python.org/>`_ via
+`pip <http://www.pip-installer.org/en/latest/index.html>`_. PyPI bundles are here:
+
+* http://pypi.python.org/pypi/graphite-web/
+* http://pypi.python.org/pypi/carbon/
+* http://pypi.python.org/pypi/whisper/
+* http://pypi.python.org/pypi/carbonate/
+
+You can also use docker image from https://hub.docker.com/r/graphiteapp/graphite-statsd/
+
+Upgrading
+---------
+Please upgrade whisper,carbon and graphite-web - all 3 components contain valuable bugfixes and improvements.
+
+New features
+------------
+
+Graphite-Web
+^^^^^^^^^^^^
+ * Better logs on invalid input (#2590, @replay)
+ * [Settings] Allow pickle protocol to be configurable for carbonlink requests. (#2591, @alikhtag)
+ * List Promitor as a collector tool (#2605, @tomkerkhove)
+ * REsynthesize: New script forked from Synthesize to install Graphite on CentOS (#2631, @deividgdt)
+ * weightedAverage: raise an InputParameterError exception if the number of series passed for the values is different to the number passed for the weights (#2636, @fkaleo)
+ * Find api documentation (Fixing #2616) (#2646, @deniszh)
+ * Add aggregateSeriesLists() and aliases for diffSeriesLists(), sumSeriesLists(), multiplySeriesLists() (#2647, @alikhtag)
+ * Optionally resolve right hand dip in sums because of lack of current minute in caches (#2659, @cbowman0)
+ * You can disable info.log now (fixing #1860) (#2691, @deniszh)
+
+Carbon
+^^^^^^
+ * add config option to turn off logging of lost connections (#900, @tbenz9)
+ * Improve carbon performance for non-tagged series (#903, @deniszh)
+
+Whisper
+^^^^^^^
+None
+
+Carbonate
+^^^^^^^^^
+ * Support for Aggregated-Consistent Hash (#121 / #56, @deniszh / @klynch)
+ * Handle transient network failures and support custom staging dir path (#122, @ryangsteele)
+
+
+Bug Fixes
+---------
+
+Graphite-Web
+^^^^^^^^^^^^
+ * ensure that all tag values are strings (#2572, @DanCech)
+ * Attempt to convert parameter types in validator (#2574, @replay)
+ * accept deprecated params for bc (#2579, @replay)
+ * Remote render fixes (#2582, @piotr1212)
+ * render: only encodeHeader() for svg output (#2584, @ploxiln)
+ * fix composer saved graphs target escaping (#2587, @ploxiln)
+ * fix dashboard metric completion on backspace in Firefox (#2589, @ploxiln)
+ * seriesList type validation was too permissive (#2593, @replay)
+ * asPercent may be used as an aggregator (#2594, @replay)
+ * Make nodes in group by nodes optional (#2597, @replay)
+ * privatize linearRegressionAnalysis so it will not show in documentation (#2602, @piotr1212)
+ * Revert symlink fix (#2604, @piotrt1212)
+ * Lock whitenoise dependency version (#2606, @Carles-Figuerola)
+ * Prevent xss (#2620, @StephenDsouza90)
+ * fix & improve docs for WithWildcards functions (#2625, @Dieterbe)
+ * Fix multi-threading issue in render endpoint by making grammar a thread-safe object (fixes #2626) (#2627, @romanek-adam)
+ * Patch /static/ directory in Apache docs (#2635, @djmetzle)
+ * Backport unicode fix from piotr1212/graphite-web@17e23ef (#2643, @piotr1212 / @deniszh)
+ * Update whisper.rst with Python 3 fix (#2649, @cdeil)
+ * utf-8 fix in unpickle (#2660, @piotr1212 / @ploxlin)
+ * Fix expand braces (#2661, Aleksandr Cupacenko / @deniszh )
+ * Fix paths not matching description (@thedoc31)
+ * Amend web install docs (#2677, @deniszh)
+ * Resolves #2692 can't unpickle Interval/IntervalSet (#2693, @drawks)
+
+Carbon
+^^^^^^
+ * remove carbon-client.py, is broken for 4 years (#890, @piotr1212)
+ * spelling (#893, @jsoref)
+ * Update storage-aggregation.conf.example for #768 (#899, @antonsoroko)
+ * Provide more complete list of aggregation options (#901, @neul)
+ * Fixes #908 (PTC-W0016) Unnecessary comprehension (#909, @rohankhanna)
+ * Fixes #906 (BAN-B101) Assert statement used outside of tests (#907, @rohankhanna)
+
+Whisper
+^^^^^^^
+ * fix reisze whisper from low retention to high retention will lose some data (#293, @Xu-Wentao)
+ * Fixing test for python 2.7 (#295, @deniszh)
+
+Carbonate
+^^^^^^^^^
+None
