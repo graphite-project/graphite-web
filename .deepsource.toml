@@ -4,7 +4,9 @@ test_patterns = ["*/test/**"]
 
 [[analyzers]]
 name = "python"
+enabled = false
+
+[[analyzers]]
+name = "secrets"
 enabled = true
 
-  [analyzers.meta]
-  runtime_version = "3.x.x"
