@@ -5,4 +5,4 @@ sphinx
 sphinx_rtd_theme
 pytz
 git+git://github.com/graphite-project/whisper.git#egg=whisper
-scandir
+scandir;python_version<"3.5"
