@@ -1,6 +1,15 @@
 # 1.2.0 (master/unreleased)
 
-None
+## graphite-web
+### Bug Fixes
+* Depend on third-party scandir only for Python < 3.5 (#2706, @neirbowj)
+* fix shifting of moving* datapoints by one step into the future (#2682, @zivillian)
+
+
+## whisper
+### Features / Enhancements
+
+* whisper-update takes values from stdin (#318, @rowlap)
 
 # 1.1.8
 
