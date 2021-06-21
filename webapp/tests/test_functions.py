@@ -4318,6 +4318,134 @@ class FunctionsTest(TestCase):
         result = functions.legendValue({}, seriesList, "avg", "bogus")
         self.assertEqual(result, expectedResult)
 
+    def test_upper_without_positions(self):
+        seriesList = self._gen_series_list_with_data(
+            key=['', 'a', 'normal.metric.name.with.normal.length', '!@#$%^&*()_+'],
+            start=0,
+            end=4,
+            data=[[], [], [], []],
+        )
+        expectedResult = [
+            TimeSeries('', 0, 4, 1, []),
+            TimeSeries('A', 0, 4, 1, []),
+            TimeSeries('NORMAL.METRIC.NAME.WITH.NORMAL.LENGTH', 0, 4, 1, []),
+            TimeSeries('!@#$%^&*()_+', 0, 4, 1, []),
+        ]
+        result = functions.toUpperCase({}, seriesList)
+        self.assertEqual(result, expectedResult)
+
+    def test_upper_with_one_position(self):
+        seriesList = self._gen_series_list_with_data(
+            key=[
+                '',
+                'normal.metric.name.with.normal.length',
+            ],
+            start=0,
+            end=4,
+            data=[[], [], [], []],
+        )
+
+        expectedResult = [
+            TimeSeries('', 0, 4, 1, []),
+            TimeSeries('normal.metRic.name.with.normal.length', 0, 4, 1, []),
+        ]
+        seriesList = functions.toUpperCase({}, seriesList, 10)
+        self.assertEqual(seriesList, expectedResult)
+
+        expectedResult[1].name = 'Normal.metRic.name.with.normal.length'
+        seriesList = functions.toUpperCase({}, seriesList, 0)
+        self.assertEqual(seriesList, expectedResult)
+
+        expectedResult[1].name = 'Normal.metRic.name.with.normal.lengtH'
+        seriesList = functions.toUpperCase({}, seriesList, -1)
+        self.assertEqual(seriesList, expectedResult)
+
+        expectedResult[1].name = 'Normal.metRic.name.with.normal.lengtH'
+        seriesList = functions.toUpperCase({}, seriesList, 1000)
+        self.assertEqual(seriesList, expectedResult)
+
+    def test_upper_with_multiple_positions(self):
+        seriesList = self._gen_series_list_with_data(
+            key=[
+                '',
+                'normal.metric.name.with.normal.length',
+            ],
+            start=0,
+            end=4,
+            data=[[], [], [], []],
+        )
+
+        expectedResult = [
+            TimeSeries('', 0, 4, 1, []),
+            TimeSeries('Normal.metric.nAme.with.normal.lenGtH', 0, 4, 1, []),
+        ]
+        seriesList = functions.toUpperCase({}, seriesList, 0, 15, 100, -3, -1, -1000)
+        self.assertEqual(seriesList, expectedResult)
+
+    def test_lower_without_positions(self):
+        seriesList = self._gen_series_list_with_data(
+            key=['', 'A', 'NORMAL.METRIC.NAME.WITH.NORMAL.LENGTH', '!@#$%^&*()_+'],
+            start=0,
+            end=4,
+            data=[[], [], [], []],
+        )
+        expectedResult = [
+            TimeSeries('', 0, 4, 1, []),
+            TimeSeries('a', 0, 4, 1, []),
+            TimeSeries('normal.metric.name.with.normal.length', 0, 4, 1, []),
+            TimeSeries('!@#$%^&*()_+', 0, 4, 1, []),
+        ]
+        result = functions.toLowerCase({}, seriesList)
+        self.assertEqual(result, expectedResult)
+
+    def test_lower_with_one_position(self):
+        seriesList = self._gen_series_list_with_data(
+            key=[
+                '',
+                'NORMAL.METRIC.NAME.WITH.NORMAL.LENGTH',
+            ],
+            start=0,
+            end=4,
+            data=[[], [], [], []],
+        )
+
+        expectedResult = [
+            TimeSeries('', 0, 4, 1, []),
+            TimeSeries('NORMAL.METrIC.NAME.WITH.NORMAL.LENGTH', 0, 4, 1, []),
+        ]
+        seriesList = functions.toLowerCase({}, seriesList, 10)
+        self.assertEqual(seriesList, expectedResult)
+
+        expectedResult[1].name = 'nORMAL.METrIC.NAME.WITH.NORMAL.LENGTH'
+        seriesList = functions.toLowerCase({}, seriesList, 0)
+        self.assertEqual(seriesList, expectedResult)
+
+        expectedResult[1].name = 'nORMAL.METrIC.NAME.WITH.NORMAL.LENGTh'
+        seriesList = functions.toLowerCase({}, seriesList, -1)
+        self.assertEqual(seriesList, expectedResult)
+
+        expectedResult[1].name = 'nORMAL.METrIC.NAME.WITH.NORMAL.LENGTh'
+        seriesList = functions.toLowerCase({}, seriesList, 1000)
+        self.assertEqual(seriesList, expectedResult)
+
+    def test_lower_with_multiple_positions(self):
+        seriesList = self._gen_series_list_with_data(
+            key=[
+                '',
+                'NORMAL.METRIC.NAME.WITH.NORMAL.LENGTH',
+            ],
+            start=0,
+            end=4,
+            data=[[], [], [], []],
+        )
+
+        expectedResult = [
+            TimeSeries('', 0, 4, 1, []),
+            TimeSeries('nORMAL.METRIC.NaME.WITH.NORMAL.LENgTh', 0, 4, 1, []),
+        ]
+        seriesList = functions.toLowerCase({}, seriesList, 0, 15, 100, -3, -1, -1000)
+        self.assertEqual(seriesList, expectedResult)
+
     @patch('graphite.render.evaluator.prefetchData', lambda *_: None)
     def test_linearRegression(self):
         seriesList = self._gen_series_list_with_data(
