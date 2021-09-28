@@ -38,7 +38,7 @@ Basic Graphite requirements:
 * `Django`_ 1.8 - 2.2 (for Python3 - 1.11 and newer), 1.11.19 or newer is recommended 
 * `django-tagging`_ 0.4.6 (not `django-taggit` yet)
 * `pytz`_
-* `scandir`_
+* `scandir`_ (for Python older than 3.5)
 * `fontconfig`_ and at least one font package (a system package usually)
 * A WSGI server and web server. Popular choices are:
 
