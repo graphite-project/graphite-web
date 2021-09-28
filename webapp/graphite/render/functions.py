@@ -151,6 +151,41 @@ def trimRecent(seriesList):
   return (seriesList)
 
 
+def _compressPeriodicGaps(series):
+  # removing periodic gaps, using summarize(seriesList, '<desired step>', 'last')
+  # but trying to auto detect step by first three existing values
+  consolidate = series.consolidationFunc
+  tags = series.tags
+  xFilesFactor = series.xFilesFactor
+  pathExpression = series.pathExpression
+  # try to detect interval
+  firstSeen = 0
+  secondSeen = 0
+  interval = None
+  for i, value in enumerate(series):
+    if value:
+      if firstSeen > 0:
+        secondSeen = i
+        break
+      else:
+        firstSeen = i
+  stepGuess = secondSeen - firstSeen
+  thirdSeen = secondSeen + stepGuess
+  if stepGuess > 1 and thirdSeen <= len(series) - 2:  # protecting list boundaries
+    if series[thirdSeen]:  # if we predict value
+      if series[thirdSeen - 1] is None and series[thirdSeen + 1] is None:  # ..and it surrounded by Nones
+        interval = stepGuess * series.step   # we probably guessed interval.
+  if interval:
+    newStart = series.start + firstSeen * series.step  # skipping initial Nones
+    (newValues, _) = _summarizeValues(series, 'last', interval, newStart, series.end)
+    newEnd = newStart + interval * (len(newValues) - 1)  # calculating new end from summarized values
+    return TimeSeries(series.name, newStart, newEnd, interval, newValues,
+                      consolidate=consolidate, tags=tags, xFilesFactor=xFilesFactor, pathExpression=pathExpression)
+  else:
+    # we couldn't detect interval, just return untouched series
+    return series
+
+
 def formatPathExpressions(seriesList):
   # remove duplicates
   pathExpressions = []
@@ -2139,6 +2174,8 @@ def derivative(requestContext, seriesList):
   """
   results = []
   for series in seriesList:
+    if settings.AUTOCOMPRESS_GAPS_IN_DERIVATIVE_FUNCTIONS:
+      series = _compressPeriodicGaps(series)
     newValues = []
     prev = None
     for val in series:
@@ -2183,6 +2220,8 @@ def perSecond(requestContext, seriesList, maxValue=None, minValue=None):
   """
   results = []
   for series in seriesList:
+    if settings.AUTOCOMPRESS_GAPS_IN_DERIVATIVE_FUNCTIONS:
+      series = _compressPeriodicGaps(series)
     newValues = []
     prev = None
     step = series.step
@@ -2361,6 +2400,8 @@ def nonNegativeDerivative(requestContext, seriesList, maxValue=None, minValue=No
   results = []
 
   for series in seriesList:
+    if settings.AUTOCOMPRESS_GAPS_IN_DERIVATIVE_FUNCTIONS:
+      series = _compressPeriodicGaps(series)
     newValues = []
     prev = None
 
@@ -5797,6 +5838,35 @@ minMax.params = [
 ]
 
 
+def compressPeriodicGaps(requestContext, seriesList):
+  """
+  Tries to intelligently remove periodic None's from series, recalculating start, stop and step values.
+  You can use `summarize(seriesList, '<desired step>', 'last')` function for that also, but this function trying to
+  guess desired step automatically. Can be used in case of fix metric with improper resolution.
+  Especially useful for derivative functions, which are not working with series with regular gaps.
+
+  Example:
+
+  .. code-block:: none
+
+    &target=compressPeriodicGaps(Server.instance01.threads.busy)
+  """
+
+  resultList = []
+  for series in seriesList:
+    series.name = "compressPeriodicGaps(%s)" % series.name
+    series.pathExpression = series.name
+    resultList.append(_compressPeriodicGaps(series))
+
+  return resultList
+
+
+compressPeriodicGaps.group = 'Transform'
+compressPeriodicGaps.params = [
+  Param('seriesList', ParamTypes.seriesList, required=True),
+]
+
+
 def pieAverage(requestContext, series):
   """Return the average"""
   return safe.safeDiv(safe.safeSum(series), safe.safeLen(series))
@@ -5877,6 +5947,7 @@ SeriesFunctions = {
   # Transform functions
   'add': add,
   'absolute': absolute,
+  'compressPeriodicGaps': compressPeriodicGaps,
   'delay': delay,
   'derivative': derivative,
   'exp': exp,

@@ -5796,6 +5796,47 @@ class FunctionsTest(TestCase):
             )
         self.assertEqual(result, expectedResults)
 
+    def test_compressPeriodicGaps(self):
+        self.maxDiff = None
+        seriesList = self._gen_series_list_with_data(
+            key=['collectd.test-db0.load.value', 'collectd.test-db1.load.value',
+                 'collectd.test-db2.load.value', 'collectd.test-db3.load.value',
+                 'collectd.test-db4.load.value', 'collectd.test-db5.load.value',],
+            start=100,
+            end=250,
+            step=10,
+            data=[
+                # step = 3x, leading None -> should be properly compressed
+                [None, 1, None, None, 2, None, None, 3, None, None, 4, None, None, 5, None, None],
+                # step = 3x, leading 2 Nones -> should be properly compressed
+                [None, None, 1, None, None, 2, None, None, 3, None, None, 4, None, None, 5, None],
+                # normal series, some leading/trailing Nones -> should be not touched
+                [None, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, None, None],
+                # step = 2x, leading None -> should be properly compressed
+                # it cuts last value - but that how summarize(last) works here, let's live with it
+                [None, 1, None, 3, None, 5, None, 7, None, 9, None, 11, None, 13, None, 15],
+                # non regular gaps series -> should be not touched
+                [None, 1, 2, 3, None, 5, None, 7, None, 9, None, None, None, 13, None, None],
+                # non regular gaps series -> should be not touched
+                [1, 2, 3, None, None, None, None, None, None, None, None, None, 13, 14, 15],
+            ]
+        )
+
+        expectedResults = [
+            TimeSeries('compressPeriodicGaps(collectd.test-db0.load.value)', 110, 230, 30, [1, 2, 3, 4, 5]),
+            TimeSeries('compressPeriodicGaps(collectd.test-db1.load.value)', 120, 240, 30, [1, 2, 3, 4, 5]),
+            TimeSeries('compressPeriodicGaps(collectd.test-db2.load.value)', 100, 250, 10, [None, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, None, None]),
+            TimeSeries('compressPeriodicGaps(collectd.test-db3.load.value)', 110, 230, 20, [1, 3, 5, 7, 9, 11, 13]),
+            TimeSeries('compressPeriodicGaps(collectd.test-db4.load.value)', 100, 250, 10, [None, 1, 2, 3, None, 5, None, 7, None, 9, None, None, None, 13, None, None]),
+            TimeSeries('compressPeriodicGaps(collectd.test-db5.load.value)', 100, 250, 10, [1, 2, 3, None, None, None, None, None, None, None, None, None, 13, 14, 15]),
+        ]
+
+        result = functions.compressPeriodicGaps(
+            self._build_requestContext(),
+            seriesList
+        )
+        self.assertEqual(result, expectedResults)
+
     def test_summarize_1minute(self):
         seriesList = self._gen_series_list_with_data(
             key=['servers.s1.disk.bytes_used', 'servers.s1.disk.bytes_free', 'servers.s2.disk.bytes_used', 'servers.s2.disk.bytes_free'],
