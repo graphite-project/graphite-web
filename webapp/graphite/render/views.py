@@ -75,6 +75,7 @@ def renderView(request):
     'maxDataPoints' : requestOptions.get('maxDataPoints', None),
     'targets': requestOptions['targets'],
     'maxStep': requestOptions.get('maxStep', None),
+    'targets_serialized': requestOptions.get('targets_serialized', None),
   }
   data = requestContext['data']
 
@@ -371,6 +372,9 @@ def parseOptions(request):
   # Collect the targets
   for target in mytargets:
     requestOptions['targets'].append(target)
+  
+  if settings.POPULATE_TARGETS_IN_CONTEXT:
+    requestOptions['targets_serialized'] = pickle.dumps(requestOptions['targets'])
 
   template = dict()
   for key, val in queryParams.items():

@@ -365,6 +365,10 @@ DEFAULT_XFILES_FACTOR = 0
 # This should usually match the value configured in Carbon.
 #REPLICATION_FACTOR = 1
 
+# If True populate parameter 'targets_serialized' with pickled targets' list
+# then it will be transferred to finder class and processed by it.
+#POPULATE_TARGETS_IN_CONTEXT=False
+
 #####################################
 # TagDB Settings #
 #####################################
