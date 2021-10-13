@@ -159,12 +159,12 @@ def _compressPeriodicGaps(series):
   xFilesFactor = series.xFilesFactor
   pathExpression = series.pathExpression
   # try to detect interval
-  firstSeen = 0
-  secondSeen = 0
+  firstSeen = -1
+  secondSeen = -1
   interval = None
   for i, value in enumerate(series):
     if value:
-      if firstSeen > 0:
+      if firstSeen >= 0:
         secondSeen = i
         break
       else:
@@ -175,15 +175,15 @@ def _compressPeriodicGaps(series):
     if series[thirdSeen]:  # if we predict value
       if series[thirdSeen - 1] is None and series[thirdSeen + 1] is None:  # ..and it surrounded by Nones
         interval = stepGuess * series.step   # we probably guessed interval.
-  if interval:
-    newStart = series.start + firstSeen * series.step  # skipping initial Nones
-    (newValues, _) = _summarizeValues(series, 'last', interval, newStart, series.end)
-    newEnd = newStart + interval * (len(newValues) - 1)  # calculating new end from summarized values
-    return TimeSeries(series.name, newStart, newEnd, interval, newValues,
-                      consolidate=consolidate, tags=tags, xFilesFactor=xFilesFactor, pathExpression=pathExpression)
-  else:
+  if interval is None:
     # we couldn't detect interval, just return untouched series
     return series
+
+  newStart = series.start + firstSeen * series.step  # skipping initial Nones
+  (newValues, _) = _summarizeValues(series, 'last', interval, newStart, series.end)
+  newEnd = newStart + interval * (len(newValues) - 1)  # calculating new end from summarized values
+  return TimeSeries(series.name, newStart, newEnd, interval, newValues,
+                    consolidate=consolidate, tags=tags, xFilesFactor=xFilesFactor, pathExpression=pathExpression)
 
 
 def formatPathExpressions(seriesList):
