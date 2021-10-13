@@ -74,6 +74,7 @@ def renderView(request):
     'xFilesFactor' : requestOptions['xFilesFactor'],
     'maxDataPoints' : requestOptions.get('maxDataPoints', None),
     'targets': requestOptions['targets'],
+    'maxStep': requestOptions.get('maxStep', None),
   }
   data = requestContext['data']
 
@@ -394,6 +395,8 @@ def parseOptions(request):
     requestOptions['maxDataPoints'] = int(queryParams['maxDataPoints'])
   if 'noNullPoints' in queryParams:
     requestOptions['noNullPoints'] = True
+  if 'maxStep' in queryParams and queryParams['maxStep'].isdigit():
+    requestOptions['maxStep'] = int(queryParams['maxStep'])  
 
   requestOptions['localOnly'] = queryParams.get('local') == '1'
 
