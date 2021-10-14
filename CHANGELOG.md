@@ -14,6 +14,10 @@
 
 * whisper-update takes values from stdin (#318, @rowlap)
 
+## carbonate
+### Bug Fixes
+*  Changed mutable default argument in test_fill.py and test_sync.py (#126, @aastha12) 
+
 # 1.1.8
 
 ## graphite-web
