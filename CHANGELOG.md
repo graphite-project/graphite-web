@@ -2,10 +2,13 @@
 
 ## graphite-web
 ### Bug Fixes
+* backporting "html-encode text passed to Ext.Msg" (#2719, @DanCech)
 * Depend on third-party scandir only for Python < 3.5 (#2706, @neirbowj)
 * fix shifting of moving* datapoints by one step into the future (#2682, @zivillian)
 
-
+### Features / Enhancements
+*  compressPeriodicGaps function (#2720, @deniszh)
+ 
 ## whisper
 ### Features / Enhancements
 
