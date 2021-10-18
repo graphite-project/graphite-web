@@ -242,7 +242,7 @@ def _merge_results(pathExpr, startTime, endTime, prefetched, seriesList, request
         known_nones = len([val for val in known if val is None])
         series_best_nones[known.name] = known_nones
 
-      if known_nones > candidate_nones and len(series):
+      if known_nones > candidate_nones and series:
         if settings.REMOTE_STORE_MERGE_RESULTS and len(series) == len(known):
           # This series has potential data that might be missing from
           # earlier series.  Attempt to merge in useful data and update
