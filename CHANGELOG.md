@@ -2,6 +2,7 @@
 
 ## graphite-web
 ### Bug Fixes
+* Fix dependency issue for usage as Grafana data source (#2722, @henkf)
 * backporting "html-encode text passed to Ext.Msg" (#2719, @DanCech)
 * Depend on third-party scandir only for Python < 3.5 (#2706, @neirbowj)
 * fix shifting of moving* datapoints by one step into the future (#2682, @zivillian)
@@ -11,7 +12,6 @@
  
 ## whisper
 ### Features / Enhancements
-
 * whisper-update takes values from stdin (#318, @rowlap)
 
 ## carbonate
