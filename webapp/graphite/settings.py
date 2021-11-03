@@ -131,6 +131,10 @@ REMOTE_RENDERING = False #if True, rendering is delegated to RENDERING_HOSTS
 RENDERING_HOSTS = []
 REMOTE_RENDER_CONNECT_TIMEOUT = 1.0
 
+# Function settings
+# automatically removing gaps from arguments of derivative functions
+AUTOCOMPRESS_GAPS_IN_DERIVATIVE_FUNCTIONS = False #experimental, do not enable
+
 #Miscellaneous settings
 DOCUMENTATION_VERSION = 'latest' if 'dev' in WEBAPP_VERSION else WEBAPP_VERSION
 DOCUMENTATION_URL = 'https://graphite.readthedocs.io/en/{}/'.format(DOCUMENTATION_VERSION)
