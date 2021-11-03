@@ -372,7 +372,6 @@ def parseOptions(request):
   # Collect the targets
   for target in mytargets:
     requestOptions['targets'].append(target)
-  
   if settings.POPULATE_TARGETS_IN_CONTEXT:
     requestOptions['targets_serialized'] = pickle.dumps(requestOptions['targets'])
 
@@ -400,7 +399,7 @@ def parseOptions(request):
   if 'noNullPoints' in queryParams:
     requestOptions['noNullPoints'] = True
   if 'maxStep' in queryParams and queryParams['maxStep'].isdigit():
-    requestOptions['maxStep'] = int(queryParams['maxStep'])  
+    requestOptions['maxStep'] = int(queryParams['maxStep'])
 
   requestOptions['localOnly'] = queryParams.get('local') == '1'
 
