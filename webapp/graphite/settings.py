@@ -145,7 +145,6 @@ STORAGE_FINDERS = (
     'graphite.finders.remote.RemoteFinder',
     'graphite.finders.standard.StandardFinder',
 )
-POPULATE_TARGETS_IN_CONTEXT=False
 
 # TagDB settings
 TAGDB = 'graphite.tags.localdatabase.LocalDatabaseTagDB'
