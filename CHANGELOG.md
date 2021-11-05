@@ -8,7 +8,8 @@
 * fix shifting of moving* datapoints by one step into the future (#2682, @zivillian)
 
 ### Features / Enhancements
-*  compressPeriodicGaps function (#2720, @deniszh)
+* maxStep in requestContext for Finder (#2724, @deniszh) 
+* compressPeriodicGaps function (#2720, @deniszh)
  
 ## whisper
 ### Features / Enhancements
