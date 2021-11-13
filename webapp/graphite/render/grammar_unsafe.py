@@ -80,7 +80,11 @@ kwargs = delimitedList(kwarg)
 
 
 def setRaw(s, loc, toks):
-    toks[0].raw = s[toks[0].start:toks[0].end]
+    try:
+        toks[0]['raw'] = s[toks[0].start:toks[0].end]
+    except AttributeError:
+        # Accommodate version < 3 of the PyParsing API.
+        toks[0].raw = s[toks[0].start:toks[0].end]
 
 
 call = Group(
