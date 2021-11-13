@@ -58,7 +58,7 @@ def evaluateTokens(requestContext, tokens, replacements=None, pipedArg=None):
     return evaluateTokens(requestContext, tokens.template, arglist)
 
   if tokens.expression:
-    if tokens.expression.pipedCalls:
+    if tokens.expression.pipedCalls.asList():
       # when the expression has piped calls, we pop the right-most call and pass the remaining
       # expression into it via pipedArg, to get the same result as a nested call
       rightMost = tokens.expression.pipedCalls.pop()
