@@ -2,6 +2,7 @@
 
 ## graphite-web
 ### Bug Fixes
+* Fix pyparsing > 3.0 compatibility issue. (#2727, @parrotpock) 
 * Fix dependency issue for usage as Grafana data source (#2722, @henkf)
 * backporting "html-encode text passed to Ext.Msg" (#2719, @DanCech)
 * Depend on third-party scandir only for Python < 3.5 (#2706, @neirbowj)
