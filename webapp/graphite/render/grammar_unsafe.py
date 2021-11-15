@@ -80,7 +80,7 @@ kwargs = delimitedList(kwarg)
 
 
 def setRaw(s, loc, toks):
-    toks[0].raw = s[toks[0].start:toks[0].end]
+    toks[0]['raw'] = s[toks[0].start:toks[0].end]
 
 
 call = Group(
