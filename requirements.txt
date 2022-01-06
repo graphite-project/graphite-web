@@ -43,7 +43,7 @@ txAMQP==0.8
 django-tagging==0.4.6
 gunicorn
 pytz
-pyparsing>=2.3.0,<3.0.0
+pyparsing>=2.3.0
 cairocffi
 git+git://github.com/graphite-project/whisper.git#egg=whisper
 # Ceres is optional
