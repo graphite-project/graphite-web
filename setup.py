@@ -118,7 +118,8 @@ try:
       scripts=glob('bin/*'),
       data_files=list(webapp_content.items()) + storage_dirs + conf_files + examples,
       install_requires=['Django>=1.8,<3.1', 'django-tagging==0.4.3', 'pytz',
-                        'pyparsing', 'cairocffi', 'urllib3', 'scandir', 'six'],
+                        'pyparsing', 'cairocffi', 'urllib3',
+                        'scandir;python_version<"3.5"', 'six'],
       classifiers=[
           'Intended Audience :: Developers',
           'Natural Language :: English',

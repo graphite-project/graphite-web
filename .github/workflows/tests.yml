@@ -60,8 +60,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install tox tox-gh-actions flake8 pytest
+          python -m pip install --upgrade pip 'setuptools<58' --force-reinstall
+          pip install 'tox<4' tox-gh-actions flake8 pytest
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Test with tox
         env:
@@ -73,7 +73,8 @@ jobs:
           TEST_POSTGRES_HOST: 127.0.0.1
           TEST_POSTGRES_PORT: ${{ job.services.postgres.ports[5432] }}
           TEST_POSTGRESQL_PASSWORD: graphite
-        run: tox
+        run: |
+          tox
       - name: Linting
         if: ${{ matrix.python-version==3.9 }}
         env:

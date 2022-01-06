@@ -49,6 +49,6 @@ git+git://github.com/graphite-project/whisper.git#egg=whisper
 # Ceres is optional
 # git+git://github.com/graphite-project/ceres.git#egg=ceres
 whitenoise==4.1.4
-scandir
+scandir;python_version<"3.5"
 urllib3
 six

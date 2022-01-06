@@ -4471,7 +4471,7 @@ class FunctionsTest(TestCase):
             )
 
         expectedResults = [
-            TimeSeries('movingAverage(collectd.test-db0.load.value,10)', 20, 30, 1, [None, None, None, None, None, 2.0, 2.5, 3.0, 3.5, 4.0])
+            TimeSeries('movingAverage(collectd.test-db0.load.value,10)', 20, 30, 1, [None, None, None, None, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5])
         ]
 
         with patch('graphite.render.functions.evaluateTarget', mock_evaluateTarget):
@@ -4535,7 +4535,7 @@ class FunctionsTest(TestCase):
             )
 
         expectedResults = [
-            TimeSeries('movingMedian(collectd.test-db0.load.value,10)', 20, 30, 1, [None, 0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4])
+            TimeSeries('movingMedian(collectd.test-db0.load.value,10)', 20, 30, 1, [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5])
         ]
 
         with patch('graphite.render.functions.evaluateTarget', mock_evaluateTarget):
@@ -4589,7 +4589,7 @@ class FunctionsTest(TestCase):
             )
 
         expectedResults = [
-            TimeSeries('movingMedian(collectd.test-db0.load.value,60)', 660, 700, 1, [x - 0.5 for x in range(30, 70)]),
+            TimeSeries('movingMedian(collectd.test-db0.load.value,60)', 660, 700, 1, [x + 0.5 for x in range(30, 70)]),
         ]
 
         with patch('graphite.render.functions.evaluateTarget', mock_evaluateTarget):
@@ -4620,7 +4620,7 @@ class FunctionsTest(TestCase):
             )
 
         expectedResults = [
-            TimeSeries('movingMedian(collectd.test-db0.load.value,"-1min")', 660, 700, 1, [x - 0.5 for x in range(30, 70)]),
+            TimeSeries('movingMedian(collectd.test-db0.load.value,"-1min")', 660, 700, 1, [x + 0.5 for x in range(30, 70)]),
         ]
 
         with patch('graphite.render.functions.evaluateTarget', mock_evaluateTarget):
@@ -4684,7 +4684,7 @@ class FunctionsTest(TestCase):
             )
 
         expectedResults = [
-            TimeSeries('movingAverage(collectd.test-db0.load.value,10)', 20, 30, 1, [None, 0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0])
+            TimeSeries('movingAverage(collectd.test-db0.load.value,10)', 20, 30, 1, [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5])
         ]
 
         with patch('graphite.render.functions.evaluateTarget', mock_evaluateTarget):
@@ -4742,7 +4742,7 @@ class FunctionsTest(TestCase):
                 yield x
                 x+=jump
         expectedResults = [
-            TimeSeries('movingAverage(collectd.test-db0.load.value,60)', 660, 700, 1, frange(29.5, 69.5, 1)),
+            TimeSeries('movingAverage(collectd.test-db0.load.value,60)', 660, 700, 1, frange(30.5, 70.5, 1)),
         ]
 
         with patch('graphite.render.functions.evaluateTarget', mock_evaluateTarget):
@@ -4753,6 +4753,7 @@ class FunctionsTest(TestCase):
                 ),
                 seriesList, 60
             )
+        self.assertEqual(list(result[0]), list(expectedResults[0]))
         self.assertEqual(result, expectedResults)
 
     def test_movingAverage_stringWindowSize(self):
@@ -4777,7 +4778,7 @@ class FunctionsTest(TestCase):
                 x+=jump
 
         expectedResults = [
-            TimeSeries('movingAverage(collectd.test-db0.load.value,"-1min")', 660, 700, 1, frange(29.5, 69.5, 1)),
+            TimeSeries('movingAverage(collectd.test-db0.load.value,"-1min")', 660, 700, 1, frange(30.5, 70.5, 1)),
         ]
 
         with patch('graphite.render.functions.evaluateTarget', mock_evaluateTarget):
@@ -4788,6 +4789,7 @@ class FunctionsTest(TestCase):
                 ),
                 seriesList, "-1min"
             )
+        self.assertEqual(list(result[0]), list(expectedResults[0]))
         self.assertEqual(result, expectedResults)
 
     def test_movingMin_emptySeriesList(self):
@@ -4842,7 +4844,7 @@ class FunctionsTest(TestCase):
             return seriesList
 
         expectedResults = [
-            TimeSeries('movingMin(collectd.test-db0.load.value,10)', 20, 30, 1, [None, 2, 1, 1, 1, 1, 1, 1, 1, 1] )
+            TimeSeries('movingMin(collectd.test-db0.load.value,10)', 20, 30, 1, [2, 1, 1, 1, 1, 1, 1, 1, 1, 1] )
         ]
 
         with patch('graphite.render.functions.evaluateTarget', mock_evaluateTarget):
@@ -4853,6 +4855,7 @@ class FunctionsTest(TestCase):
                 ),
                 seriesList, 10
             )
+        self.assertEqual(list(result[0]), list(expectedResults[0]))
         self.assertEqual(result, expectedResults)
 
     def test_movingMin_evaluateTarget_returns_empty_list(self):
@@ -4895,7 +4898,7 @@ class FunctionsTest(TestCase):
             )
 
         expectedResults = [
-            TimeSeries('movingMin(collectd.test-db0.load.value,10)', 20, 30, 1, [None, 10] + [1] * 8)
+            TimeSeries('movingMin(collectd.test-db0.load.value,10)', 20, 30, 1, [10] + [1] * 9)
         ]
 
         with patch('graphite.render.functions.evaluateTarget', mock_evaluateTarget):
@@ -4906,6 +4909,7 @@ class FunctionsTest(TestCase):
                 ),
                 seriesList, 10
             )
+        self.assertEqual(list(result[0]), list(expectedResults[0]))
         self.assertEqual(result, expectedResults)
 
     def test_movingMin_stringWindowSize(self):
@@ -4990,7 +4994,7 @@ class FunctionsTest(TestCase):
             return seriesList
 
         expectedResults = [
-            TimeSeries('movingMax(collectd.test-db0.load.value,10)', 20, 30, 1, [None, 1, 2, 2, 2, 2, 2, 2, 2, 2])
+            TimeSeries('movingMax(collectd.test-db0.load.value,10)', 20, 30, 1, [1, 2, 2, 2, 2, 2, 2, 2, 2, 2])
         ]
 
         with patch('graphite.render.functions.evaluateTarget', mock_evaluateTarget):
@@ -5001,6 +5005,7 @@ class FunctionsTest(TestCase):
                 ),
                 seriesList, 10
             )
+        self.assertEqual(list(result[0]), list(expectedResults[0]))
         self.assertEqual(result, expectedResults)
 
     def test_movingMax_evaluateTarget_returns_empty_list(self):
@@ -5043,7 +5048,7 @@ class FunctionsTest(TestCase):
             )
 
         expectedResults = [
-            TimeSeries('movingMax(collectd.test-db0.load.value,10)', 20, 30, 1, [None, 1, 2, 2, 2, 2, 2, 2, 2, 2])
+            TimeSeries('movingMax(collectd.test-db0.load.value,10)', 20, 30, 1, [1, 2, 2, 2, 2, 2, 2, 2, 2, 2])
         ]
 
         with patch('graphite.render.functions.evaluateTarget', mock_evaluateTarget):
@@ -5054,6 +5059,7 @@ class FunctionsTest(TestCase):
                 ),
                 seriesList, 10
             )
+        self.assertEqual(list(result[0]), list(expectedResults[0]))
         self.assertEqual(result, expectedResults)
 
     def test_movingMax_stringWindowSize(self):
@@ -5151,7 +5157,7 @@ class FunctionsTest(TestCase):
             return seriesList
 
         expectedResults = [
-            TimeSeries('movingSum(collectd.test-db0.load.value,10)', 20, 30, 1, [None, 0.0, 1.0, 3.0, 6.0, 10.0, 15.0, 21.0, 28.0, 36.0])
+            TimeSeries('movingSum(collectd.test-db0.load.value,10)', 20, 30, 1, [0.0, 1.0, 3.0, 6.0, 10.0, 15.0, 21.0, 28.0, 36.0, 45.0])
         ]
 
         with patch('graphite.render.functions.evaluateTarget', mock_evaluateTarget):
@@ -5162,6 +5168,7 @@ class FunctionsTest(TestCase):
                 ),
                 seriesList, 10
             )
+        self.assertEqual(list(result[0]), list(expectedResults[0]))
         self.assertEqual(result, expectedResults)
 
     def test_movingSum_evaluateTarget_returns_empty_list(self):
@@ -5787,6 +5794,47 @@ class FunctionsTest(TestCase):
                 "1minute",
                 False
             )
+        self.assertEqual(result, expectedResults)
+
+    def test_compressPeriodicGaps(self):
+        self.maxDiff = None
+        seriesList = self._gen_series_list_with_data(
+            key=['collectd.test-db0.load.value', 'collectd.test-db1.load.value',
+                 'collectd.test-db2.load.value', 'collectd.test-db3.load.value',
+                 'collectd.test-db4.load.value', 'collectd.test-db5.load.value',],
+            start=100,
+            end=250,
+            step=10,
+            data=[
+                # step = 3x, leading None -> should be properly compressed
+                [None, 1, None, None, 2, None, None, 3, None, None, 4, None, None, 5, None, None],
+                # step = 3x, leading 2 Nones -> should be properly compressed
+                [None, None, 1, None, None, 2, None, None, 3, None, None, 4, None, None, 5, None],
+                # normal series, some leading/trailing Nones -> should be not touched
+                [None, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, None, None],
+                # step = 2x, leading None -> should be properly compressed
+                # it cuts last value - but that how summarize(last) works here, let's live with it
+                [None, 1, None, 3, None, 5, None, 7, None, 9, None, 11, None, 13, None, 15],
+                # non regular gaps series -> should be not touched
+                [None, 1, 2, 3, None, 5, None, 7, None, 9, None, None, None, 13, None, None],
+                # non regular gaps series -> should be not touched
+                [1, 2, 3, None, None, None, None, None, None, None, None, None, 13, 14, 15],
+            ]
+        )
+
+        expectedResults = [
+            TimeSeries('compressPeriodicGaps(collectd.test-db0.load.value)', 110, 230, 30, [1, 2, 3, 4, 5]),
+            TimeSeries('compressPeriodicGaps(collectd.test-db1.load.value)', 120, 240, 30, [1, 2, 3, 4, 5]),
+            TimeSeries('compressPeriodicGaps(collectd.test-db2.load.value)', 100, 250, 10, [None, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, None, None]),
+            TimeSeries('compressPeriodicGaps(collectd.test-db3.load.value)', 110, 230, 20, [1, 3, 5, 7, 9, 11, 13]),
+            TimeSeries('compressPeriodicGaps(collectd.test-db4.load.value)', 100, 250, 10, [None, 1, 2, 3, None, 5, None, 7, None, 9, None, None, None, 13, None, None]),
+            TimeSeries('compressPeriodicGaps(collectd.test-db5.load.value)', 100, 250, 10, [1, 2, 3, None, None, None, None, None, None, None, None, None, 13, 14, 15]),
+        ]
+
+        result = functions.compressPeriodicGaps(
+            self._build_requestContext(),
+            seriesList
+        )
         self.assertEqual(result, expectedResults)
 
     def test_summarize_1minute(self):
