@@ -1,7 +1,6 @@
 # -*- encoding: utf-8 -*-
 import os
 import socket
-import sys
 import pytz
 
 from datetime import datetime
