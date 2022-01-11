@@ -93,12 +93,12 @@ jobs:
         run: |
           tox
       - name: Run Codecov
-        if: ${{ matrix.python-version==3.10 }}
+        if: ${{ matrix.python-version==3.9 }}
         env:
           TOXENV: lint
         run: |
-          pip install codecov
+          pip install codecov==2.1.12
           codecov
       - name: Upload coverage to Codecov
-        if: ${{ matrix.python-version==3.10 }}
-        uses: codecov/codecov-action@v1
+        if: ${{ matrix.python-version==3.9 }}
+        uses: codecov/codecov-action@v2
