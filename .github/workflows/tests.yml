@@ -70,7 +70,6 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Test with tox
         env:
-          TEST_REDIS: true
           TEST_REDIS_HOST: redis
           TEST_REDIS_PORT: ${{ job.services.redis.ports[6379] }}
           TEST_MYSQL_HOST: mariadb
