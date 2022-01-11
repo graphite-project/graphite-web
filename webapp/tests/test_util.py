@@ -72,14 +72,6 @@ class UtilTest(TestCase):
         else:
             self.assertEqual( results, [False, False, False, False] )
 
-    def test_is_local_interface_dns(self):
-        addresses = ['localhost', socket.gethostname(), 'google.com']
-        results = [ util.is_local_interface(a) for a in addresses ]
-        if sys.version_info[0:2] <= (3, 9):
-            self.assertEqual( results, [True, True, False] )
-        else:
-            pass
-
     def test_is_escaped_pattern(self):
         self.assertFalse(util.is_escaped_pattern(r'asdf'))
         self.assertTrue(util.is_escaped_pattern(r'a\*b'))
