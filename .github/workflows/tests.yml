@@ -48,7 +48,7 @@ jobs:
         env:
           REDIS_PORT: ${{ job.services.redis.ports[6379] }}
         run: |
-          redis-cli -h"127.0.0.1" -p"${REDIS_PORT}" ping
+          redis-cli -h "127.0.0.1" -p "${REDIS_PORT}" ping
       - name: Verify MariaDB connection
         env:
           MYSQL_PORT: ${{ job.services.mariadb.ports[3306] }}
