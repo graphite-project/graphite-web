@@ -44,6 +44,11 @@ jobs:
       - name: Install global dependencies
         run: |
           sudo apt-get -y install libcairo2-dev librrd-dev libboost-python-dev
+      - name: Verify Redis connection
+        env:
+          REDIS_PORT: ${{ job.services.redis.ports[6379] }}
+        run: |
+          redis-cli -h"127.0.0.1" -p"${REDIS_PORT}" ping
       - name: Verify MariaDB connection
         env:
           MYSQL_PORT: ${{ job.services.mariadb.ports[3306] }}
@@ -65,12 +70,12 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Test with tox
         env:
-          TEST_REDIS_HOST: 127.0.0.1
+          TEST_REDIS_HOST: redis
           TEST_REDIS_PORT: ${{ job.services.redis.ports[6379] }}
-          TEST_MYSQL_HOST: 127.0.0.1
+          TEST_MYSQL_HOST: mariadb
           TEST_MYSQL_PORT: ${{ job.services.mariadb.ports[3306] }}
           TEST_MYSQL_PASSWORD: graphite
-          TEST_POSTGRES_HOST: 127.0.0.1
+          TEST_POSTGRES_HOST: postgres
           TEST_POSTGRES_PORT: ${{ job.services.postgres.ports[5432] }}
           TEST_POSTGRESQL_PASSWORD: graphite
         run: |
