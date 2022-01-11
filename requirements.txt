@@ -45,9 +45,9 @@ gunicorn
 pytz
 pyparsing>=2.3.0
 cairocffi
-https://github.com/graphite-project/whisper.git#egg=whisper
+https://github.com/graphite-project/whisper@master#egg=whisper
 # Ceres is optional
-# https://github.com/graphite-project/ceres.git#egg=ceres
+# https://github.com/graphite-project/ceres@master#egg=ceres
 whitenoise==4.1.4
 scandir;python_version<"3.5"
 urllib3
