@@ -37,7 +37,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: ['2.7', 'pypy-2.7', '3.6', '3.7', '3.8', '3.9']
+        python-version: ['2.7', 'pypy-2.7', '3.7', '3.8', '3.9', '3.10']
 
     steps:
       - uses: actions/checkout@v1
@@ -81,24 +81,24 @@ jobs:
         run: |
           tox
       - name: Linting
-        if: ${{ matrix.python-version==3.9 }}
+        if: ${{ matrix.python-version==3.10 }}
         env:
           TOXENV: lint
         run: |
           tox
       - name: Testing documentation
-        if: ${{ matrix.python-version==3.9 }}
+        if: ${{ matrix.python-version==3.10 }}
         env:
           TOXENV: docs
         run: |
           tox
       - name: Run Codecov
-        if: ${{ matrix.python-version==3.9 }}
+        if: ${{ matrix.python-version==3.10 }}
         env:
           TOXENV: lint
         run: |
           pip install codecov
           codecov
       - name: Upload coverage to Codecov
-        if: ${{ matrix.python-version==3.9 }}
+        if: ${{ matrix.python-version==3.10 }}
         uses: codecov/codecov-action@v1
