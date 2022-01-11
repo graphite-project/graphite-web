@@ -43,7 +43,7 @@ jobs:
       - uses: actions/checkout@v1
       - name: Install global dependencies
         run: |
-          sudo apt-get -y install libcairo2-dev librrd-dev libboost-python-dev
+          sudo apt-get -y install libcairo2-dev librrd-dev libboost-python-dev redis-tools
       - name: Verify Redis connection
         env:
           REDIS_PORT: ${{ job.services.redis.ports[6379] }}
