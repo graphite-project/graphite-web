@@ -338,7 +338,7 @@ Other
 .. _Cabot: https://github.com/arachnys/cabot
 .. _carbon-c-relay: https://github.com/grobian/carbon-c-relay
 .. _carbon-clickhouse: https://github.com/lomik/carbon-clickhouse
-.. _carbon-relay-ng: https://github.com/graphite-ng/carbon-relay-ng
+.. _carbon-relay-ng: https://github.com/grafana/carbon-relay-ng
 .. _carbon-proxy: https://github.com/savantly-net/carbon-proxy
 .. _carbonapi: https://github.com/go-graphite/carbonapi
 .. _carbonate: https://github.com/graphite-project/carbonate
