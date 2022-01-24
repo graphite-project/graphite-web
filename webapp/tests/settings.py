@@ -43,6 +43,9 @@ elif os.environ.get('TEST_POSTGRESQL'):
         },
     }
 
+TAGDB_REDIS_HOST = os.environ.get('TEST_REDIS_HOST') or 'localhost'
+TAGDB_REDIS_PORT = os.environ.get('TEST_REDIS_PORT') or 6379
+
 if VERSION < (1, 6):
     TEST_RUNNER = 'discover_runner.DiscoverRunner'
 
