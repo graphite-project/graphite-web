@@ -6,7 +6,7 @@ from graphite.functions import SeriesFunctions, SeriesFunction, PieFunctions, Pi
 
 class jsonInfinityEncoder(json.JSONEncoder):
     def encode(self, o):
-        return super(jsonInfinityEncoder, self).encode(o).replace('Infinity,', '1e9999,')
+        return super(jsonInfinityEncoder, self).encode(o).replace('Infinity,', '1e9999,').replace('Infinity}', '1e9999}')
 
     def default(self, o):
         if hasattr(o, 'toJSON'):
