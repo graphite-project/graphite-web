@@ -2,6 +2,7 @@
 
 ## graphite-web
 ### Bug Fixes
+* Replace another missed instance of Infinity in JSON (#2737, @bobemoe) 
 * Fix pyparsing > 3.0 compatibility issue. (#2727, @parrotpock) 
 * Fix dependency issue for usage as Grafana data source (#2722, @henkf)
 * backporting "html-encode text passed to Ext.Msg" (#2719, @DanCech)
