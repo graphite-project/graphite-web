@@ -12,6 +12,7 @@
 ### Features / Enhancements
 * maxStep in requestContext for Finder (#2724, @deniszh) 
 * compressPeriodicGaps function (#2720, @deniszh)
+* Implement upper lower case functions (#2586, @replay)
  
 ## whisper
 ### Features / Enhancements
