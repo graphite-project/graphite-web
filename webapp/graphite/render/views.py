@@ -22,7 +22,7 @@ from random import shuffle
 from six.moves.urllib.parse import urlencode, urlsplit, urlunsplit, parse_qs
 
 from graphite.compat import HttpResponse
-from graphite.errors import InputParameterError, handleInputParameterError
+from graphite.errors import InputParameterError, handleErrors
 from graphite.user_util import getProfileByUsername
 from graphite.util import json, unpickle, pickle, msgpack, BytesIO
 from graphite.storage import extractForwardHeaders
@@ -46,7 +46,7 @@ from six.moves import zip
 loadFunctions()
 
 
-@handleInputParameterError
+@handleErrors
 def renderView(request):
   start = time()
 

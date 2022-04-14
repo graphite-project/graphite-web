@@ -22,7 +22,7 @@ from django.conf import settings
 
 from graphite.carbonlink import CarbonLink
 from graphite.compat import HttpResponse, HttpResponseBadRequest
-from graphite.errors import InputParameterError, handleInputParameterError
+from graphite.errors import InputParameterError, handleErrors
 from graphite.logger import log
 from graphite.render.attime import parseATTime
 from graphite.storage import STORE, extractForwardHeaders
@@ -63,7 +63,7 @@ def queryParamAsInt(queryParams, name, default):
       err=str(e)))
 
 
-@handleInputParameterError
+@handleErrors
 def find_view(request):
   "View for finding metrics matching a given pattern"
 

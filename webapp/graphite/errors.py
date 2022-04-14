@@ -1,4 +1,4 @@
-from django.http import HttpResponseBadRequest
+from django.http import HttpResponseBadRequest, HttpResponseServerError
 from graphite.logger import log
 
 
@@ -95,7 +95,7 @@ class InputParameterError(ValueError):
 
 
 # decorator which turns InputParameterExceptions into Django's HttpResponseBadRequest
-def handleInputParameterError(f):
+def handleErrors(f):
     def new_f(*args, **kwargs):
         try:
             return f(*args, **kwargs)
@@ -103,5 +103,9 @@ def handleInputParameterError(f):
             msgStr = str(e)
             log.warning('%s', msgStr)
             return HttpResponseBadRequest(msgStr)
+        except Exception as e2:
+            msgStr = str(e2)
+            log.error('%s', msgStr)
+            return HttpResponseServerError(msgStr)
 
     return new_f
