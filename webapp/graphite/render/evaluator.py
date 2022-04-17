@@ -104,32 +104,27 @@ def evaluateTokens(requestContext, tokens, replacements=None, pipedArg=None):
     kwargs = dict([(kwarg.argname, evaluateTokens(requestContext, kwarg.args[0], replacements))
                    for kwarg in tokens.call.kwargs])
 
-    def handleInvalidParameters(e):
-      e.setSourceIdHeaders(requestContext.get('sourceIdHeaders', {}))
-      e.setTargets(requestContext.get('targets', []))
-      e.setFunction(tokens.call.funcname, args, kwargs)
-
-      if settings.ENFORCE_INPUT_VALIDATION:
-        raise e
-
-      if not getattr(handleInvalidParameters, 'alreadyLogged', False):
-        log.warning('%s', str(e))
-
-        # only log invalid parameters once
-        setattr(handleInvalidParameters, 'alreadyLogged', True)
-
     if hasattr(func, 'params'):
       try:
         (args, kwargs) = validateParams(tokens.call.funcname, func.params, args, kwargs)
       except InputParameterError as e:
-        handleInvalidParameters(e)
+        e.setSourceIdHeaders(requestContext.get('sourceIdHeaders', {}))
+        e.setTargets(requestContext.get('targets', []))
+        e.setFunction(tokens.call.funcname, args, kwargs)
+        if settings.ENFORCE_INPUT_VALIDATION:
+          raise
+        else:
+          log.warning('Validation Error: %s', str(e))
 
     try:
       return func(requestContext, *args, **kwargs)
     except NormalizeEmptyResultError:
       return []
     except InputParameterError as e:
-      handleInvalidParameters(e)
+        e.setSourceIdHeaders(requestContext.get('sourceIdHeaders', {}))
+        e.setTargets(requestContext.get('targets', []))
+        e.setFunction(tokens.call.funcname, args, kwargs)
+        raise
 
   return evaluateScalarTokens(tokens)
 
