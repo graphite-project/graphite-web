@@ -13,7 +13,12 @@
 * maxStep in requestContext for Finder (#2724, @deniszh) 
 * compressPeriodicGaps function (#2720, @deniszh)
 * Implement upper lower case functions (#2586, @replay)
- 
+
+## carbon
+### Bug Fixes
+* Fixing git url in tests (#933, @deniszh)
+* Don't use git protocol for dependency (#929, @tomdcc)
+
 ## whisper
 ### Features / Enhancements
 * whisper-update takes values from stdin (#318, @rowlap)
