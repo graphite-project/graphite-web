@@ -1,5 +1,7 @@
 # 1.2.0 (master/unreleased)
 
+* Nothing yet
+# 1.1.10
 ## graphite-web
 ### Bug Fixes
 * Replace another missed instance of Infinity in JSON (#2737, @bobemoe) 
