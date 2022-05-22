@@ -1,10 +1,10 @@
-.. _1-1-9:
+.. _1-1-10:
 
-1.1.9
+1.1.10
 ===========================
 *05/23/2022*
 
-Graphite 1.1.9 is now available for usage. Please note that this is a bugfix release for the stable Graphite 1.1.x branch and it's recommended for production usage. It also contains some improvements backported from the master branch.
+Graphite 1.1.10 is now available for usage. Please note that this is a bugfix release for the stable Graphite 1.1.x branch and it's recommended for production usage. It also contains some improvements backported from the master branch.
 
 Highlights
 -------------
@@ -15,10 +15,10 @@ Thanks a lot for all Graphite contributors and users!
 
 Source bundles are available from GitHub:
 
-* https://github.com/graphite-project/graphite-web/archive/1.1.9.tar.gz
-* https://github.com/graphite-project/carbon/archive/1.1.9.tar.gz
-* https://github.com/graphite-project/whisper/archive/1.1.9.tar.gz
-* https://github.com/graphite-project/carbonate/archive/1.1.9.tar.gz
+* https://github.com/graphite-project/graphite-web/archive/1.1.10.tar.gz
+* https://github.com/graphite-project/carbon/archive/1.1.10.tar.gz
+* https://github.com/graphite-project/whisper/archive/1.1.10.tar.gz
+* https://github.com/graphite-project/carbonate/archive/1.1.10.tar.gz
 
 Graphite can also be installed from `PyPI <http://pypi.python.org/>`_ via
 `pip <http://www.pip-installer.org/en/latest/index.html>`_. PyPI bundles are here:
