@@ -1,0 +1,84 @@
+.. _1-1-9:
+
+1.1.9
+===========================
+*05/23/2022*
+
+Graphite 1.1.9 is now available for usage. Please note that this is a bugfix release for the stable Graphite 1.1.x branch and it's recommended for production usage. It also contains some improvements backported from the master branch.
+
+Highlights
+-------------
+* Multiple bugfixes, especially for Graphite-web (see full list below)
+* Couple of new functions
+
+Thanks a lot for all Graphite contributors and users!
+
+Source bundles are available from GitHub:
+
+* https://github.com/graphite-project/graphite-web/archive/1.1.9.tar.gz
+* https://github.com/graphite-project/carbon/archive/1.1.9.tar.gz
+* https://github.com/graphite-project/whisper/archive/1.1.9.tar.gz
+* https://github.com/graphite-project/carbonate/archive/1.1.9.tar.gz
+
+Graphite can also be installed from `PyPI <http://pypi.python.org/>`_ via
+`pip <http://www.pip-installer.org/en/latest/index.html>`_. PyPI bundles are here:
+
+* http://pypi.python.org/pypi/graphite-web/
+* http://pypi.python.org/pypi/carbon/
+* http://pypi.python.org/pypi/whisper/
+* http://pypi.python.org/pypi/carbonate/
+
+You can also use docker image from https://hub.docker.com/r/graphiteapp/graphite-statsd/
+
+Upgrading
+---------
+Please upgrade graphite-web and carbonate - these components contain valuable bugfixes and improvements.
+
+New features
+------------
+
+Graphite-Web
+^^^^^^^^^^^^
+* maxStep in requestContext for Finder (#2724, @deniszh) 
+* compressPeriodicGaps function (#2720, @deniszh)
+* Implement upper lower case functions (#2586, @replay)
+
+Carbon
+^^^^^^
+ * None
+
+Whisper
+^^^^^^^
+* whisper-update takes values from stdin (#318, @rowlap)
+
+Carbonate
+^^^^^^^^^
+ * None
+
+
+Bug Fixes
+---------
+
+Graphite-Web
+^^^^^^^^^^^^
+* Replace another missed instance of Infinity in JSON (#2737, @bobemoe) 
+* Fix pyparsing > 3.0 compatibility issue. (#2727, @parrotpock) 
+* Fix dependency issue for usage as Grafana data source (#2722, @henkf)
+* backporting "html-encode text passed to Ext.Msg" (#2719, @DanCech)
+* Depend on third-party scandir only for Python < 3.5 (#2706, @neirbowj)
+* fix shifting of moving* datapoints by one step into the future (#2682, @zivillian)
+
+Carbon
+^^^^^^
+* Fixing git url in tests (#933, @deniszh)
+* Don't use git protocol for dependency (#929, @tomdcc)
+
+Whisper
+^^^^^^^
+ * None
+
+Carbonate
+^^^^^^^^^
+* Refactor log lines to use native interpolation (#129, @drawks)
+* Resolves issue #127 - python3 safe stdout handling (#128, @drawks)
+* Changed mutable default argument in test_fill.py and test_sync.py (#126, @aastha12) 
