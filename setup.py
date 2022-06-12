@@ -48,8 +48,7 @@ else:
 
 storage_dirs = []
 
-for subdir in ('whisper/dummy.txt', 'ceres/dummy.txt', 
-    'rrd/dummy.txt', 'log/dummy.txt', 'log/webapp/dummy.txt'):
+for subdir in ('whisper/dummy.txt', 'ceres/dummy.txt', 'rrd/dummy.txt', 'log/dummy.txt', 'log/webapp/dummy.txt'):
     storage_dirs.append( ('storage/%s' % subdir, []) )
 
 webapp_content = defaultdict(list)
