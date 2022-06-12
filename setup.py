@@ -3,20 +3,11 @@
 from __future__ import with_statement
 
 import os
-try:
-    from ConfigParser import ConfigParser, DuplicateSectionError  # Python 2
-except ImportError:
-    from configparser import ConfigParser, DuplicateSectionError  # Python 3
+from configparser import ConfigParser, DuplicateSectionError  # Python 3
 
 from glob import glob
 from collections import defaultdict
-
-# io.StringIO is strictly unicode only. Python 2 StringIO.StringIO accepts
-# bytes, so we'll conveniently ignore decoding and reencoding the file there.
-try:
-    from StringIO import StringIO  # Python 2
-except ImportError:
-    from io import StringIO  # Python 3
+from io import StringIO  # Python 3
 
 # Graphite historically has an install prefix set in setup.cfg. Being in a
 # configuration file, it's not easy to override it or unset it (for installing
@@ -30,7 +21,7 @@ except ImportError:
 with open('setup.cfg', 'r') as f:
     orig_setup_cfg = f.read()
 cf = ConfigParser()
-cf.readfp(StringIO(orig_setup_cfg), 'setup.cfg')
+cf.read_file(StringIO(orig_setup_cfg), 'setup.cfg')
 
 if os.environ.get('GRAPHITE_NO_PREFIX') or os.environ.get('READTHEDOCS'):
     cf.remove_section('install')
@@ -42,23 +33,23 @@ else:
     if not cf.has_option('install', 'prefix'):
         cf.set('install', 'prefix', '/opt/graphite')
     if not cf.has_option('install', 'install-lib'):
-        cf.set('install', 'install-lib', '%(prefix)s/webapp')
+        cf.set('install', 'install_lib', '%(prefix)s/webapp')
 
 with open('setup.cfg', 'w') as f:
     cf.write(f)
 
-if os.environ.get('USE_SETUPTOOLS'):
+if os.environ.get('USE_DISTUTILS'):
+    # skipcq: PYL-W0402
+    from distutils.core import setup
+    setup_kwargs = dict()
+else:
     from setuptools import setup
     setup_kwargs = dict(zip_safe=0)
 
-else:
-    from distutils.core import setup
-    setup_kwargs = dict()
-
-
 storage_dirs = []
 
-for subdir in ('whisper/dummy.txt', 'ceres/dummy.txt', 'rrd/dummy.txt', 'log/dummy.txt', 'log/webapp/dummy.txt'):
+for subdir in ('whisper/dummy.txt', 'ceres/dummy.txt', 
+    'rrd/dummy.txt', 'log/dummy.txt', 'log/webapp/dummy.txt'):
     storage_dirs.append( ('storage/%s' % subdir, []) )
 
 webapp_content = defaultdict(list)
@@ -68,11 +59,12 @@ for root, dirs, files in os.walk('webapp/content'):
         filepath = os.path.join(root, filename)
         webapp_content[root].append(filepath)
 
-conf_files = [ ('conf', glob('conf/*.example')) ]
-examples = [ ('examples', glob('examples/example-*')) ]
+conf_files = [('conf', glob('conf/*.example'))]
+examples = [('examples', glob('examples/example-*'))]
 
 
 def read(fname):
+    # skipcq: PTC-W6004
     with open(os.path.join(os.path.dirname(__file__), fname)) as f:
         return f.read()
 
@@ -113,8 +105,7 @@ try:
         'graphite.whitelist',
         'graphite.worker_pool',
       ],
-      package_data={'graphite' :
-        ['templates/*', 'local_settings.py.example']},
+      package_data={'graphite': ['templates/*', 'local_settings.py.example']},
       scripts=glob('bin/*'),
       data_files=list(webapp_content.items()) + storage_dirs + conf_files + examples,
       install_requires=['Django>=1.8,<4', 'django-tagging==0.4.3', 'pytz',
