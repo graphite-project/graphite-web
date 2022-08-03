@@ -168,7 +168,7 @@ Carbon
 * Only log Carbon queue fullness once (sidnei)
 * Only log Carbon queue space free if it was once full (sidnei)
 * Log a message with the affected filename when a Whisper update fails (bmhatfield)
-* Move carbon instance logs to their own own directory to prevent clobbering
+* Move carbon instance logs to their own directory to prevent clobbering
 * Prevent carbon-aggregator from clobbering aggregated values when aggregating to same-name
 * Add SSL option to amqp publisher (sidnei)
 * Remove duplicate dot metric path filtering for performance (drawks)
