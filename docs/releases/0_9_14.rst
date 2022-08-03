@@ -149,7 +149,7 @@ Graphite-web
 * XSS fixes for browser and composer (illicium, piotr1212, deniszh)
 * Docs: Python Dev Headers needed for custom install location (gwaldo)
 * Fix pytz install dependency (deniszh)
-* Javascript compatibility fixes for Internet Explorer (piotr1212)
+* JavaScript compatibility fixes for Internet Explorer (piotr1212)
 * Timezone fixes and tests (brutasse, MFAnderson, deniszh)
 * Fix for remote fetch threads (deniszh)
 * Fixes for ``normalize()`` (g76r, jstangroome)
