@@ -167,7 +167,7 @@ Bug Fixes
 
 Upgrading
 ---------
-Graphite-Web requires Python 2.7 or newer and Django version 1.8 - 1.11 (Python3 supported only in Django 1.11). Carbon requires Twisted version 13.2 or newer. For AMQP support txAMQP version 0.8 is required now. There are a number of new features in this release, but we've been careful to avoid any behaviorial regressions in the default settings files. You'll want to review the new Graphite-Web and Carbon service options in the ``local_settings.py.example`` and ``carbon.conf.example`` files, respectively, before merging those into your production configurations. Please also check :doc:`config file documentation </config-local-settings>`
+Graphite-Web requires Python 2.7 or newer and Django version 1.8 - 1.11 (Python3 supported only in Django 1.11). Carbon requires Twisted version 13.2 or newer. For AMQP support txAMQP version 0.8 is required now. There are a number of new features in this release, but we've been careful to avoid any behavioral regressions in the default settings files. You'll want to review the new Graphite-Web and Carbon service options in the ``local_settings.py.example`` and ``carbon.conf.example`` files, respectively, before merging those into your production configurations. Please also check :doc:`config file documentation </config-local-settings>`
 
 If you're not already running from the *master* branch, Graphite-Web's application database will need to be upgraded . It's a good idea to backup the database before proceeding with the migration. The following steps will upgrade a SQLite database:
 
