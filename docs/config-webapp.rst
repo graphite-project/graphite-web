@@ -340,8 +340,8 @@ Enable the vhost and restart nginx:
     $ service nginx restart
 
 
-Acknowlegments
-^^^^^^^^^^^^^^
+Acknowledgments
+^^^^^^^^^^^^^^^
 
 Portions of that manual are based on `Graphite-API deployment manual`_.
 
