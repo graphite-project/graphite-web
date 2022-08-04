@@ -101,7 +101,7 @@ FIND_TOLERANCE = 2 * FIND_CACHE_DURATION
 DEFAULT_CACHE_DURATION = 60 #metric data and graphs are cached for one minute by default
 DEFAULT_CACHE_POLICY = []
 
-# this setting controls the default xFilesFactor used for query-time aggregration
+# this setting controls the default xFilesFactor used for query-time aggregation
 DEFAULT_XFILES_FACTOR = 0
 
 # These can also be configured using:

@@ -78,7 +78,7 @@
 # Starting from 1.11, options are used for both python-memcached and pylibmc.
 #MEMCACHE_OPTIONS = { 'socket_timeout': 0.5 }
 
-# this setting controls the default xFilesFactor used for query-time aggregration
+# this setting controls the default xFilesFactor used for query-time aggregation
 DEFAULT_XFILES_FACTOR = 0
 
 # Set URL_PREFIX when deploying graphite-web to a non-root location
