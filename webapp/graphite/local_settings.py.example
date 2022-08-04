@@ -9,7 +9,7 @@
 #
 # Set this to a long, random unique string to use as a secret key for this
 # install. This key is used for salting of hashes used in auth tokens,
-# CRSF middleware, cookie storage, etc. This should be set identically among
+# CSRF middleware, cookie storage, etc. This should be set identically among
 # instances if used behind a load balancer.
 #SECRET_KEY = 'UNSAFE_DEFAULT'
 
