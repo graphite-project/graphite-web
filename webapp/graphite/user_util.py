@@ -21,7 +21,7 @@ from graphite.logger import log
 
 def isAuthenticated(user):
     # is_authenticated() is changed to a boolean since 1.10, 2.0 removes the
-    # backwards compatibilty
+    # backwards compatibility
     if DJANGO_VERSION >= (1, 10):
         return user.is_authenticated
     else:
