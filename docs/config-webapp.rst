@@ -191,7 +191,7 @@ See the `mod_wsgi InstallationInstructions`_ for installation instructions.
 
 .. _mod_wsgi InstallationInstructions: https://code.google.com/p/modwsgi/wiki/InstallationInstructions
 
-Then create the graphite.wsgi. (You can find example of graphite.wsgi file on the `conf`_ directory of source ditribution):
+Then create the graphite.wsgi. (You can find example of graphite.wsgi file on the `conf`_ directory of source distribution):
 
 .. _conf: https://github.com/graphite-project/graphite-web/blob/master/conf/graphite.wsgi.example
 
@@ -203,7 +203,7 @@ Then create the graphite.wsgi. (You can find example of graphite.wsgi file on th
     sys.path.append('/opt/graphite/webapp')
     from graphite.wsgi import application
 
-Finally, configure the apache vhost. (You can find example of Graphite vhost configuration in the `contrib`_ directory of source ditribution):
+Finally, configure the apache vhost. (You can find example of Graphite vhost configuration in the `contrib`_ directory of source distribution):
 
 .. _contrib: https://github.com/graphite-project/graphite-web/blob/master/examples/example-graphite-vhost.conf
 
