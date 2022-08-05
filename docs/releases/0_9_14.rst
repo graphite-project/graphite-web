@@ -53,7 +53,7 @@ Graphite-web
 * Improved documentation for ``areaBetween()`` (ojilles, gwaldo)
 * Improved documentation for ``cactiStyle()`` (ojilles)
 * Document installation via Synthesize (gwaldo)
-* Mention the Synthensize installation method for Windows users (gwaldo)
+* Mention the Synthesize installation method for Windows users (gwaldo)
 * Massive cleanup across all of our documentation pages (gwaldo)
 * Support for custom remote authentication backends (steve-dave)
 * Improvements to the cache hash function (rmca, esc)
