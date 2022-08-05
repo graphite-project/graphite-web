@@ -55,7 +55,7 @@ CACHES = {
     },
 }
 
-# Temporaray directories
+# Temporary directories
 
 
 def atexit_tmpremover(dirname):
