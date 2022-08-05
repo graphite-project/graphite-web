@@ -271,7 +271,7 @@ If you wish to use a backend to graphite other than Whisper, there are some opti
   An alternate storage backend provided by the Graphite Project.  It it intended to be a distributable time-series database.  It is currently in a pre-release status.
 
 `Cyanite`_
-  A highly available, elastic, and low-latency time-series storage wirtten on top of Cassandra
+  A highly available, elastic, and low-latency time-series storage written on top of Cassandra
 
 `hisser`_
   Time series database, backend for graphite, fast alternative to carbon + whisper.
