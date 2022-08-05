@@ -36,7 +36,7 @@ var DEFAULT_WINDOW_HEIGHT = 400;
 var Composer;
 
 function createComposerWindow(myComposer) {
-  //This global is an ugly hack, probly need to make these widgets into more formal objects
+  //This global is an ugly hack, probably need to make these widgets into more formal objects
   //and keep their associated Composer object as an attribute.
   Composer = myComposer;
 
