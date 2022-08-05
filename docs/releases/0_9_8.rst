@@ -36,7 +36,7 @@ Changes
 * The YAxis=left|right parameter has been renamed to yAxisSide=left|right
 * Rewrote webapp/render/grammar.py to be much more readable
 * Added new json api call /metrics/expand/?query=foo.* -> \["foo.bar", "foo.baz", ...\]
-* Added debugging manhole in carbon-cache.py (ssh-accessible python intepreter interface into carbon at runtime)
+* Added debugging manhole in carbon-cache.py (ssh-accessible python interpreter interface into carbon at runtime)
 * Added new hitcount function (thanks to Shane Hathaway)
 * The "User Graphs" tree now works properly for usernames that contain dots
 * Fixed data roll-up bug in whisper
