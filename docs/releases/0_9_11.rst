@@ -141,7 +141,7 @@ Graphite-web
 * Expect url-encoded octothorpes in colorList (magec)
 * Display relative times properly in dashboard (daveconcannon)
 * cactiStyle() blows up with empty series (eranrund)
-* Remove problemmatic and unnecessary url encoding 
+* Remove problematic and unnecessary url encoding 
 * Several pathExpressions missing which caused trouble in certain function combinations (dieterbe,colby,kovyrin)
 * Use non-linux-specific datetime formatter %I instead of %l (richg)
 * Use os.sep properly for path separation (justinc)
