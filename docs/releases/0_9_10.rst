@@ -80,7 +80,7 @@ Rendering Engine
 * New multiplySeries() function: combine series by multiplying them
 * New hideYAxis option (mdeeks)
 * New percentileOfSeries() function: Combines series into the value at n percentile for each point
-* New tranformNull() function: transforms None values to specified (cbrinley)
+* New transformNull() function: transforms None values to specified (cbrinley)
 * New scaleToSeconds() function: scales values based on series step (redbaron)
 * New aliasByMetric() function: trims all but the last element of metric name in legend (obfuscurity)
 * New uniqueLegend option to filter duplicate metric names in legend (mdeeks)
