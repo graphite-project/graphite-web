@@ -160,7 +160,7 @@ Bug Fixes
 
 * Use ``WEBAPP_VERSION`` in documentation link (@wridgers)
 
-* Fnv1a fixes (PR#2014, @olevchuk)
+* Fnv1a fixes (PR#2014, @olevchyk)
 
 * Fix divideByZero when FIND_CACHE_DURATION=0 (@woodsaj)
 
