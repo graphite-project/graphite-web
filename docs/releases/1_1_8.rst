@@ -91,7 +91,7 @@ Graphite-Web
  * Patch /static/ directory in Apache docs (#2635, @djmetzle)
  * Backport unicode fix from piotr1212/graphite-web@17e23ef (#2643, @piotr1212 / @deniszh)
  * Update whisper.rst with Python 3 fix (#2649, @cdeil)
- * utf-8 fix in unpickle (#2660, @piotr1212 / @ploxlin)
+ * utf-8 fix in unpickle (#2660, @piotr1212 / @ploxiln)
  * Fix expand braces (#2661, Aleksandr Cupacenko / @deniszh )
  * Fix paths not matching description (@thedoc31)
  * Amend web install docs (#2677, @deniszh)
