@@ -187,7 +187,7 @@ Other Changes
 Graphite-Web
 ^^^^^^^^^^^^
 
-* Clean up a few codacy issues (PR#2140, @cboman0)
+* Clean up a few codacy issues (PR#2140, @cbowman0)
 
 * Add more tests for render/datalib.py (PR#2086, @cbowman0)
 

@@ -115,7 +115,7 @@ Graphite-web
 * Missing ExtJS gif in Dashboard when viewed in tree configuration (obfuscurity)
 * Fix docs builds for the `render function list <http://graphite.readthedocs.org/en/0.9.x/functions.html>`_ (obfuscurity, gwaldo)
 * ``aliasByMetric()`` was including trailing arguments (obfuscurity)
-* Fix ``initialState`` for Dashboard (cbownman0, jamesjuran)
+* Fix ``initialState`` for Dashboard (cbowman0, jamesjuran)
 * Broken ``series.name`` in ``percentileOfSeries`` (simm42)
 * Refresh "My Graphs" *after* graph is saved or deleted (obfuscurity)
 * Remove superfluous grid line with log scale (ralphm)
