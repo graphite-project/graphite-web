@@ -83,7 +83,7 @@ Graphite-Web
  * asPercent may be used as an aggregator (#2594, @replay)
  * Make nodes in group by nodes optional (#2597, @replay)
  * privatize linearRegressionAnalysis so it will not show in documentation (#2602, @piotr1212)
- * Revert symlink fix (#2604, @piotrt1212)
+ * Revert symlink fix (#2604, @piotr1212)
  * Lock whitenoise dependency version (#2606, @Carles-Figuerola)
  * Prevent xss (#2620, @StephenDsouza90)
  * fix & improve docs for WithWildcards functions (#2625, @Dieterbe)
