@@ -262,7 +262,7 @@ Graphite-Web
 
 * Allow to override Memcache options easily
 
-* Make readers.py more easilly importable by moving away models
+* Make readers.py more easily importable by moving away models
 
 * Support 0.9.x backends in 1.0.0 cluster
 
