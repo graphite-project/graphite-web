@@ -10,7 +10,7 @@ Graphite 0.9.10 has been released and is now available. The packages for Whisper
  - http://pypi.python.org/pypi/carbon/
  - http://pypi.python.org/pypi/whisper/
 
-* Github
+* GitHub
 
  - https://github.com/graphite-project/graphite-web/downloads
  - https://github.com/graphite-project/carbon/downloads
@@ -31,11 +31,11 @@ This release contains a fabulous amount of incremental improvement over 0.9.9. S
 
 Upgrading from 0.9.9 should be as simple as updating the packages. It is recommended but not necessary that local_settings.py be recreated based on the newly shipped local_settings.py.example as it includes many newly exposed settings and an improved organization and comments. Carbon's config files also have a few new settings as well to check out.
 
-The Graphite project is also in the midst of some project changes. For those who have not yet noticed, the Graphite codebase has been moved to Github (http://github.com/graphite-project) and split into individual components (Graphite-web, Carbon, Whisper, and soon Ceres). The Launchpad project remains active in supporting the project with its Answers (http://answers.launchpad.net/graphite/) and Bugs (http://bugs.launchpad.net/graphite/) functionality.
+The Graphite project is also in the midst of some project changes. For those who have not yet noticed, the Graphite codebase has been moved to GitHub (http://github.com/graphite-project) and split into individual components (Graphite-web, Carbon, Whisper, and soon Ceres). The Launchpad project remains active in supporting the project with its Answers (http://answers.launchpad.net/graphite/) and Bugs (http://bugs.launchpad.net/graphite/) functionality.
 
 Development going forward will focus on preparing what will become Graphite 0.10.0 which will include support for the Ceres database format as well as a major refactor of the Carbon daemon (nicknamed "Megacarbon"). The master branches of the project should be considered to be in an 'alpha' state for the time being and subject to backwards-incompatible changes. Fixes to the current version will be maintained in the 0.9.x project branches but no 0.9.11 version is planned for the time being.
 
-A big thanks goes out to all those who have helped the project in contributions of time and energy in the form of code contributions, testing, discussion, and helping each other out with support questions. Additional thanks are due to Aman Gupta (tmm1) for all of his great work on the rendering engine and other fixes, Sidnei Da Silva for his work migrating the project to Github and his fixes, and everyone who's taken the time to answer questions on the Answers site and on IRC.
+A big thanks goes out to all those who have helped the project in contributions of time and energy in the form of code contributions, testing, discussion, and helping each other out with support questions. Additional thanks are due to Aman Gupta (tmm1) for all of his great work on the rendering engine and other fixes, Sidnei Da Silva for his work migrating the project to GitHub and his fixes, and everyone who's taken the time to answer questions on the Answers site and on IRC.
 
 As always, if you need any assistance please `ask a question <https://answers.launchpad.net/graphite>`_ or join us on IRC in #graphite on Freenode.
 
@@ -80,7 +80,7 @@ Rendering Engine
 * New multiplySeries() function: combine series by multiplying them
 * New hideYAxis option (mdeeks)
 * New percentileOfSeries() function: Combines series into the value at n percentile for each point
-* New tranformNull() function: transforms None values to specified (cbrinley)
+* New transformNull() function: transforms None values to specified (cbrinley)
 * New scaleToSeconds() function: scales values based on series step (redbaron)
 * New aliasByMetric() function: trims all but the last element of metric name in legend (obfuscurity)
 * New uniqueLegend option to filter duplicate metric names in legend (mdeeks)
@@ -168,7 +168,7 @@ Carbon
 * Only log Carbon queue fullness once (sidnei)
 * Only log Carbon queue space free if it was once full (sidnei)
 * Log a message with the affected filename when a Whisper update fails (bmhatfield)
-* Move carbon instance logs to their own own directory to prevent clobbering
+* Move carbon instance logs to their own directory to prevent clobbering
 * Prevent carbon-aggregator from clobbering aggregated values when aggregating to same-name
 * Add SSL option to amqp publisher (sidnei)
 * Remove duplicate dot metric path filtering for performance (drawks)

@@ -40,7 +40,7 @@ Collection
   A group of functions that can be used to collect Windows Performance Counters and send them over to the Graphite server. The main function can be run as a Windows service, and everything is configurable via an XML file.
 
 `HoardD`_
-  A Node.js app written in CoffeeScript to send data from servers to Graphite, much like collectd does, but aimed at being easier to expand and with less footprint. It comes by default with basic collectors plus Redis and MySQL metrics, and can be expanded with Javascript or CoffeeScript.
+  A Node.js app written in CoffeeScript to send data from servers to Graphite, much like collectd does, but aimed at being easier to expand and with less footprint. It comes by default with basic collectors plus Redis and MySQL metrics, and can be expanded with JavaScript or CoffeeScript.
 
 `Host sFlow`_
   An open source implementation of the sFlow protocol (http://www.sflow.org), exporting a standard set of host cpu, memory, disk and network I/O metrics. The sflow2graphite utility converts sFlow to Graphite's plaintext protocol, allowing Graphite to receive sFlow metrics.
@@ -271,7 +271,7 @@ If you wish to use a backend to graphite other than Whisper, there are some opti
   An alternate storage backend provided by the Graphite Project.  It it intended to be a distributable time-series database.  It is currently in a pre-release status.
 
 `Cyanite`_
-  A highly available, elastic, and low-latency time-series storage wirtten on top of Cassandra
+  A highly available, elastic, and low-latency time-series storage written on top of Cassandra
 
 `hisser`_
   Time series database, backend for graphite, fast alternative to carbon + whisper.

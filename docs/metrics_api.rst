@@ -84,8 +84,8 @@ Example::
     ]
 
 
-Acknowlegments
---------------
+Acknowledgments
+---------------
 
 Portions of that manual are based on `Graphite HTTP API manual`_.
 

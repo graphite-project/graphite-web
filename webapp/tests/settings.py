@@ -55,7 +55,7 @@ CACHES = {
     },
 }
 
-# Temporaray directories
+# Temporary directories
 
 
 def atexit_tmpremover(dirname):
@@ -79,7 +79,7 @@ WHISPER_DIR = os.path.join(TEMP_GRAPHITE_DIR, 'whisper/')
 os.mkdir(WHISPER_DIR)
 
 # Manually add WHISPER_DIR to STANDARD_DIRS
-# STANDARD_DIRS is generated programtically in settings.py, the modification of
+# STANDARD_DIRS is generated programmatically in settings.py, the modification of
 # WHISPER_DIR above does not change the value in STANDARD_DIRS.
 STANDARD_DIRS = [WHISPER_DIR]
 

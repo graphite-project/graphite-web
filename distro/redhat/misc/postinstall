@@ -5,7 +5,7 @@ GRAPHITE_PATH=/opt/graphite
 CONFFILES="graphite.wsgi"
 for i in $CONFFILES; do
     if [ ! -f ${GRAPHITE_PATH}/conf/$i ]; then
-        echo "No pre-existing $i - creating from example."
+        echo "No preexisting $i - creating from example."
         cp ${GRAPHITE_PATH}/conf/$i.example ${GRAPHITE_PATH}/conf/$i
     fi
 done

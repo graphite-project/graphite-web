@@ -9,7 +9,7 @@
 #
 # Set this to a long, random unique string to use as a secret key for this
 # install. This key is used for salting of hashes used in auth tokens,
-# CRSF middleware, cookie storage, etc. This should be set identically among
+# CSRF middleware, cookie storage, etc. This should be set identically among
 # instances if used behind a load balancer.
 #SECRET_KEY = 'UNSAFE_DEFAULT'
 
@@ -78,7 +78,7 @@
 # Starting from 1.11, options are used for both python-memcached and pylibmc.
 #MEMCACHE_OPTIONS = { 'socket_timeout': 0.5 }
 
-# this setting controls the default xFilesFactor used for query-time aggregration
+# this setting controls the default xFilesFactor used for query-time aggregation
 DEFAULT_XFILES_FACTOR = 0
 
 # Set URL_PREFIX when deploying graphite-web to a non-root location

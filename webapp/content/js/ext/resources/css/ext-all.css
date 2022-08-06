@@ -2988,7 +2988,7 @@ input.x-tree-node-cb {
 	-khtml-user-select:none;
 	-moz-user-select:none;
     -webkit-user-select:ignore;
-    -kthml-user-focus:normal;
+    -khtml-user-focus:normal;
     -moz-user-focus:normal;
     -moz-outline: 0 none;
     outline:0 none;

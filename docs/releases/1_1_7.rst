@@ -91,7 +91,7 @@ Graphite-Web
  * simplify travis-ci config (#2532, @ploxiln)
  * fix function parameter types (#2536, @replay)
  * fixes #2541 (#2542, @replay)
- * prune flake8 ignore list (#2552, @ploxlin)
+ * prune flake8 ignore list (#2552, @ploxiln)
  * flake8: re-enable F841 (local variable assigned but not used) (#2559, @ploxiln)
  * flake8: re-enable E122,E124 (indent of continuation and closing bracket) (#2558, @ploxiln)
  * Fix validator when default value is used (#2555, @replay)

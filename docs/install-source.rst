@@ -1,7 +1,7 @@
 Installing From Source
 ======================
 The latest source tarballs for Graphite-web, Carbon, and Whisper may be fetched from the Graphite
-project `download page`_ or the latest development branches may be cloned from the `Github project page`_:
+project `download page`_ or the latest development branches may be cloned from the `GitHub project page`_:
 
 * Graphite-web: ``git clone https://github.com/graphite-project/graphite-web.git``
 * Carbon: ``git clone https://github.com/graphite-project/carbon.git``
@@ -11,7 +11,7 @@ project `download page`_ or the latest development branches may be cloned from t
 .. note::
 
   There currently is no tarball available for Ceres, it must be cloned from the
-  `Github project page`_
+  `GitHub project page`_
 
 
 Installing in the Default Location
@@ -97,5 +97,5 @@ To install the Graphite-web code into the system-wide site-packages directory wi
 
    python setup.py install --install-scripts=/usr/bin --install-lib=/usr/lib/python2.6/site-packages --install-data=/var/lib/graphite
 
-.. _Github project page: http://github.com/graphite-project
+.. _GitHub project page: http://github.com/graphite-project
 .. _download page: https://launchpad.net/graphite/+download

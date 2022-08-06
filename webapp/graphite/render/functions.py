@@ -899,7 +899,7 @@ def asPercent(requestContext, seriesList, total=None, *nodes):
     # For each server, its connections failed as a percentage of its connections attempted
     &target=asPercent(Server*.connections.failed, Server*.connections.attempted)
 
-    # For each server, its connections failed and succeeded as a percentage of its connections attemped
+    # For each server, its connections failed and succeeded as a percentage of its connections attempted
     &target=asPercent(Server*.connections.{failed,succeeded}, Server*.connections.attempted, 0)
 
     # apache01.threads.busy as a percentage of 1500

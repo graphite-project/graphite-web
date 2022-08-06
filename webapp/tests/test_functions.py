@@ -2780,7 +2780,7 @@ class FunctionsTest(TestCase):
                 continue
             # If the None values weren't transformed, there is a problem
             self.assertNotIn(None, results[counter],
-                             "tranformNull should remove all None values")
+                             "transformNull should remove all None values")
             # Anywhere a None was in the original series, verify it
             # was transformed to the given value it should be.
             for i, value in enumerate(series):
@@ -2828,7 +2828,7 @@ class FunctionsTest(TestCase):
                 continue
             # If the None values weren't transformed, there is a problem
             self.assertNotIn(None, results[counter],
-                             "tranformNull should remove all None values")
+                             "transformNull should remove all None values")
             # Anywhere a None was in the original series, verify it
             # was transformed to the given value if a value existed
             for i, value in enumerate(series):
@@ -3025,7 +3025,7 @@ class FunctionsTest(TestCase):
         with self.assertRaises(IndexError):
             verify_node_name(seriesList, None, 10000)
 
-        # Additiona tests
+        # Additional tests
         seriesList = []
         names = [
             "collectd.test-db1.load.value",
@@ -3113,7 +3113,7 @@ class FunctionsTest(TestCase):
         ]
         verify_groupByNode(expectedResult, 1, seriesList)
 
-        # Additiona tests
+        # Additional tests
         seriesList = []
         names = [
             "collectd.test-db1.load.value",

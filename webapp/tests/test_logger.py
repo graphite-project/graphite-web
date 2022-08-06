@@ -14,7 +14,7 @@ from graphite.worker_pool.pool import get_pool
 class TestLogger(unittest.TestCase):
 
     def test_init(self):
-        """ Tesing initialization. """
+        """ Testing initialization. """
         for logger in ['infoLogger', 'exceptionLogger', 'cacheLogger',
                        'renderingLogger']:
             self.assertTrue(hasattr(log, logger))

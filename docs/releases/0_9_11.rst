@@ -104,7 +104,7 @@ Carbon
 * Performance fixes to rate limiting, removal of unnecessary locks (drawks)
 * Alternate write strategies for carbon-cache (max size, random) (drawks)
 * carbon-aggregator aware consistent-hashing for carbon-relay (slackhappy)
-* Allow custom umask to be passsed to twisted at startup (egnyte)
+* Allow custom umask to be passed to twisted at startup (egnyte)
 * New options WRITE_BACK_FREQUENCY to control frequency of partially-aggregated output (jdanbrown)
 * Improve consistent-hashing performance when replication factor is 1 (slackhappy)
 * Various code cleanups (sejeff)
@@ -141,7 +141,7 @@ Graphite-web
 * Expect url-encoded octothorpes in colorList (magec)
 * Display relative times properly in dashboard (daveconcannon)
 * cactiStyle() blows up with empty series (eranrund)
-* Remove problemmatic and unnecessary url encoding 
+* Remove problematic and unnecessary url encoding 
 * Several pathExpressions missing which caused trouble in certain function combinations (dieterbe,colby,kovyrin)
 * Use non-linux-specific datetime formatter %I instead of %l (richg)
 * Use os.sep properly for path separation (justinc)

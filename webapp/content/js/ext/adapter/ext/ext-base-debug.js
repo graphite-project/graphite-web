@@ -363,7 +363,7 @@ Company.data.CustomStore = function(config) { ... }
         },
 
         /**
-         * Takes an encoded URL and and converts it to an object. Example: <pre><code>
+         * Takes an encoded URL and converts it to an object. Example: <pre><code>
 Ext.urlDecode("foo=1&bar=2"); // returns {foo: "1", bar: "2"}
 Ext.urlDecode("foo=1&bar=2&bar=3&bar=4", false); // returns {foo: "1", bar: ["2", "3", "4"]}
 </code></pre>

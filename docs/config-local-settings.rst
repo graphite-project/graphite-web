@@ -20,7 +20,7 @@ URL_PREFIX
 SECRET_KEY
   `Default: UNSAFE_DEFAULT`
 
-  This key is used for salting of hashes used in auth tokens, CRSF middleware, cookie storage, etc. This should be set identically among all nodes if used behind a load balancer.
+  This key is used for salting of hashes used in auth tokens, CSRF middleware, cookie storage, etc. This should be set identically among all nodes if used behind a load balancer.
 
 ALLOWED_HOSTS
   `Default: *`

@@ -25,7 +25,7 @@ Graphite can also be installed from `PyPI <http://pypi.python.org/>`_ via
 
 Upgrading
 ---------
-Graphite-Web requires Python 2.7 or newer and Django version 1.9. Carbon requires Twisted version 13.2 or newer. There are a number of new features in this release, but we've been careful to avoid any behaviorial regressions in the default settings files. You'll want to review the new Graphite-Web and Carbon service options in the ``local_settings.py.example`` and ``carbon.conf.example`` files, respectively, before merging those into your production configurations.
+Graphite-Web requires Python 2.7 or newer and Django version 1.9. Carbon requires Twisted version 13.2 or newer. There are a number of new features in this release, but we've been careful to avoid any behavioral regressions in the default settings files. You'll want to review the new Graphite-Web and Carbon service options in the ``local_settings.py.example`` and ``carbon.conf.example`` files, respectively, before merging those into your production configurations.
 
 If you're not already running from the *master* branch, Graphite-Web's application database will need to be upgraded . It's a good idea to backup the database before proceeding with the migration. The following steps will upgrade a SQLite database:
 
@@ -262,7 +262,7 @@ Graphite-Web
 
 * Allow to override Memcache options easily
 
-* Make readers.py more easilly importable by moving away models
+* Make readers.py more easily importable by moving away models
 
 * Support 0.9.x backends in 1.0.0 cluster
 
