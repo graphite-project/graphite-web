@@ -117,7 +117,7 @@ try:
         ['templates/*', 'local_settings.py.example']},
       scripts=glob('bin/*'),
       data_files=list(webapp_content.items()) + storage_dirs + conf_files + examples,
-      install_requires=['Django>=1.8,<4', 'django-tagging==0.4.3', 'pytz',
+      install_requires=['Django>=1.8,<3.2.99', 'django-tagging==0.4.3', 'pytz',
                         'pyparsing', 'cairocffi', 'urllib3',
                         'scandir;python_version<"3.5"', 'six'],
       classifiers=[
