@@ -19,7 +19,7 @@ from datetime import datetime, timedelta
 
 from six.moves import range, zip
 from six.moves.urllib.parse import unquote_plus
-from six.moves.configparser import SafeConfigParser
+from six.moves.configparser import ConfigParser
 from django.conf import settings
 import pytz
 import six
@@ -811,7 +811,7 @@ class Graph:
     self.ctx.restore()
 
   def loadTemplate(self,template):
-    conf = SafeConfigParser()
+    conf = ConfigParser()
     if conf.read(settings.GRAPHTEMPLATES_CONF):
       defaults = defaultGraphOptions
       # If a graphTemplates.conf exists, read in

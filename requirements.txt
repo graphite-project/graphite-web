@@ -1,8 +1,6 @@
 # This is a PIP requirements file.
 # To setup a dev environment:
 #
-#   Use Python 2.7
-#
 #   If you use virtualenvwrapper, you can use the misc/virtualenvwrapper hook scripts to
 #   automate most of the following commands
 #
@@ -37,7 +35,7 @@
 #   deactivate
 #
 
-Django>=1.8,<3.1
+Django>=3.2,<4
 python-memcached==1.58
 txAMQP==0.8
 django-tagging==0.4.6
@@ -49,6 +47,5 @@ git+https://github.com/graphite-project/whisper.git#egg=whisper
 # Ceres is optional
 # git+https://github.com/graphite-project/ceres.git#egg=ceres
 whitenoise==4.1.4
-scandir;python_version<"3.5"
 urllib3
 six
