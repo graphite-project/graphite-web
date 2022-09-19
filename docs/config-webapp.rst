@@ -323,7 +323,7 @@ Finally, configure the nginx vhost:
         listen 80;
 
         location /static/ {
-            alias /opt/graphite/webapp/content/;
+            alias /opt/graphite/webapp/content/
         }
 
         location / {
