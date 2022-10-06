@@ -4002,7 +4002,6 @@ def holtWintersDeviation(gamma,actual,prediction,last_seasonal_dev):
 def holtWintersAnalysis(series, seasonality='1d'):
   alpha = gamma = 0.1
   beta = 0.0035
-  # season is currently one day
   seasonality_time = parseTimeOffset(seasonality)
   season_length = (seasonality_time.seconds + (seasonality_time.days * 86400)) // series.step
   intercept = 0
