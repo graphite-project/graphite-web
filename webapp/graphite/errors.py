@@ -94,6 +94,15 @@ class InputParameterError(ValueError):
         return msg
 
 
+# Replace special characters "&", "<" and ">" to HTML-safe sequences.
+def escape(s):
+    s = s.replace("&", "&amp;")  # Must be done first!
+    s = s.replace("<", "&lt;")
+    s = s.replace(">", "&gt;")
+
+    return s
+
+
 # decorator which turns InputParameterExceptions into Django's HttpResponseBadRequest
 def handleInputParameterError(f):
     def new_f(*args, **kwargs):
@@ -102,6 +111,6 @@ def handleInputParameterError(f):
         except InputParameterError as e:
             msgStr = str(e)
             log.warning('%s', msgStr)
-            return HttpResponseBadRequest(msgStr)
+            return HttpResponseBadRequest(escape(msgStr))
 
     return new_f
