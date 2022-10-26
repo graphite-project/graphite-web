@@ -5391,6 +5391,9 @@ summarize.params = [
 
 
 def _summarizeValues(series, func, interval, newStart=None, newEnd=None):
+  if interval == 0:
+    raise InputParameterError("_summarizeValues(): interval parsed to 0")
+
   if newStart is None:
     newStart = series.start
   if newEnd is None:
