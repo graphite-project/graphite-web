@@ -163,6 +163,10 @@ function htmlEncode(input) {
   });
 }
 
+function htmlStriped(input) {
+  return htmlEncode(input).replace(/\s/g, '_')
+}
+
 function initDashboard () {
 
   // Populate naming-scheme based datastructures
@@ -1229,7 +1233,7 @@ function selectRelativeTime() {
     fieldLabel: 'Show the past',
     width: 90,
     allowBlank: false,
-    regex: /\d+/,
+    regex: /^\d+$/,
     regexText: 'Please enter a number',
     value: TimeRange.relativeStartQuantity
   });
@@ -1251,7 +1255,7 @@ function selectRelativeTime() {
     fieldLabel: 'Until',
     width: 90,
     allowBlank: true,
-    regex: /\d+/,
+    regex: /^\d+$/,
     regexText: 'Please enter a number',
     value: TimeRange.relativeUntilQuantity
   });
@@ -1291,10 +1295,10 @@ function selectRelativeTime() {
 
   function updateTimeRange() {
     TimeRange.type = 'relative';
-    TimeRange.relativeStartQuantity = quantityField.getValue();
-    TimeRange.relativeStartUnits = unitField.getValue();
-    TimeRange.relativeUntilQuantity = untilQuantityField.getValue();
-    TimeRange.relativeUntilUnits = untilUnitField.getValue();
+    TimeRange.relativeStartQuantity = htmlStriped(quantityField.getValue());
+    TimeRange.relativeStartUnits = htmlStriped(unitField.getValue());
+    TimeRange.relativeUntilQuantity = htmlStriped(untilQuantityField.getValue());
+    TimeRange.relativeUntilUnits = htmlStriped(untilUnitField.getValue());
     win.close();
     timeRangeUpdated();
   }
