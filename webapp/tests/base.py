@@ -2,6 +2,13 @@ from django.test import TestCase as OriginalTestCase
 from graphite.worker_pool.pool import stop_pools
 
 
+def is_unsafe_str(s):
+    for symbol in '<>':
+        if s.find(symbol) > 0:
+            return True
+        return False
+
+
 class TestCase(OriginalTestCase):
     def tearDown(self):
         stop_pools()
@@ -15,5 +22,6 @@ class TestCase(OriginalTestCase):
                 " (expected %d)" % (response.status_code, status_code)
             )
 
-        xss = response.content.find(b"<") != -1 or response.content.find(b">") != -1
-        self.assertFalse(xss, msg=msg_prefix+str(response.content))
+        content = str(response.content)
+        xss = is_unsafe_str(content)
+        self.assertFalse(xss, msg=msg_prefix+content)
