@@ -1,5 +1,6 @@
 from django.http import HttpResponseBadRequest
 from graphite.logger import log
+from graphite.util import htmlEscape, is_unsafe_str
 
 
 class NormalizeEmptyResultError(Exception):
@@ -94,6 +95,25 @@ class InputParameterError(ValueError):
         return msg
 
 
+def safe_param(name, s):
+    if is_unsafe_str(s):
+        raise InputParameterError("{} contain unsafe symbols".format(name))
+    return s
+
+
+def is_unclean_str(s):
+    for symbol in '&<>~!@#$%^*()`':
+        if s.find(symbol) >= 0:
+            return True
+    return False
+
+
+def str_param(name, s):
+    if s is not None and is_unclean_str(s):
+        raise InputParameterError("{} contain restricted symbols".format(name))
+    return s
+
+
 # decorator which turns InputParameterExceptions into Django's HttpResponseBadRequest
 def handleInputParameterError(f):
     def new_f(*args, **kwargs):
@@ -102,6 +122,6 @@ def handleInputParameterError(f):
         except InputParameterError as e:
             msgStr = str(e)
             log.warning('%s', msgStr)
-            return HttpResponseBadRequest(msgStr)
+            return HttpResponseBadRequest(htmlEscape(msgStr))
 
     return new_f
