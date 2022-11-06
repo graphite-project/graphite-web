@@ -4005,6 +4005,9 @@ def holtWintersAnalysis(series, seasonality='1d'):
   # season is currently one day
   seasonality_time = parseTimeOffset(seasonality)
   season_length = (seasonality_time.seconds + (seasonality_time.days * 86400)) // series.step
+  # season_length should be 2 or more
+  if season_length < 2:
+    season_length = 2
   intercept = 0
   slope = 0
   intercepts = list()
