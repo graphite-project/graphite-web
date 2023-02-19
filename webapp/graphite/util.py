@@ -128,6 +128,21 @@ def find_escaped_pattern_fields(pattern_string):
       yield index
 
 
+# Replace special characters "&", "<" and ">" to HTML-safe sequences.
+def htmlEscape(s):
+    s = s.replace("&", "&amp;")  # Must be done first!
+    s = s.replace("<", "&lt;")
+    s = s.replace(">", "&gt;")
+    return s
+
+
+def is_unsafe_str(s):
+    for symbol in '<>':
+        if s.find(symbol) >= 0:
+            return True
+    return False
+
+
 def load_module(module_path, member=None):
   module_name = splitext(basename(module_path))[0]
   try:  # 'U' is default from Python 3.0 and deprecated since 3.9
