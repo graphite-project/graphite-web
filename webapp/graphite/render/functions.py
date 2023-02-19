@@ -4002,9 +4002,11 @@ def holtWintersDeviation(gamma,actual,prediction,last_seasonal_dev):
 def holtWintersAnalysis(series, seasonality='1d'):
   alpha = gamma = 0.1
   beta = 0.0035
-  # season is currently one day
   seasonality_time = parseTimeOffset(seasonality)
   season_length = (seasonality_time.seconds + (seasonality_time.days * 86400)) // series.step
+  # season_length should be 2 or more
+  if season_length < 2:
+    season_length = 2
   intercept = 0
   slope = 0
   intercepts = list()
@@ -5100,7 +5102,10 @@ def applyByNode(requestContext, seriesList, nodeNum, templateFunction, newName=N
   """
   prefixes = set()
   for series in seriesList:
-    prefix = '.'.join(series.name.split('.')[:nodeNum + 1])
+    nodes = series.name.split('.')
+    if nodeNum >= len(nodes):
+        raise InputParameterError("{} do not contans {} nodes".format(series.name, nodeNum))
+    prefix = '.'.join(nodes[:nodeNum + 1])
     prefixes.add(prefix)
   results = []
   newContext = requestContext.copy()
@@ -5391,6 +5396,9 @@ summarize.params = [
 
 
 def _summarizeValues(series, func, interval, newStart=None, newEnd=None):
+  if interval == 0:
+    raise InputParameterError("_summarizeValues(): interval parsed to 0")
+
   if newStart is None:
     newStart = series.start
   if newEnd is None:

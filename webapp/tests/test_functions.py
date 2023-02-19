@@ -18,7 +18,7 @@ try:
 except ImportError:  # Django < 1.10
     from django.core.urlresolvers import reverse
 
-from graphite.errors import NormalizeEmptyResultError
+from graphite.errors import NormalizeEmptyResultError, InputParameterError
 from graphite.functions import _SeriesFunctions, loadFunctions, safe
 from graphite.render.datalib import TimeSeries
 from graphite.render import functions
@@ -4521,6 +4521,38 @@ class FunctionsTest(TestCase):
                 'divideSeries(%.disk.bytes_used, sumSeries(%.disk.bytes_*))'
             )
         self.assertEqual(result, expectedResults)
+
+    @patch('graphite.render.evaluator.prefetchData', lambda *_: None)
+    def test_applyByNode_Overflow(self):
+        seriesList = self._gen_series_list_with_data(
+            key=['servers.s1.disk.bytes_used', 'servers.s1.disk.bytes_free','servers.s2.disk.bytes_used','servers.s2.disk.bytes_free'],
+            start=0,
+            end=3,
+            data=[[10, 20, 30], [90, 80, 70], [1, 2, 3], [99, 98, 97]]
+        )
+
+        def mock_data_fetcher(reqCtx, path_expression):
+            rv = []
+            for s in seriesList:
+                if s.name == path_expression or fnmatch(s.name, path_expression):
+                    rv.append(s)
+            if rv:
+                return rv
+            raise KeyError('{} not found!'.format(path_expression))
+
+        with patch('graphite.render.evaluator.fetchData', mock_data_fetcher):
+            try:
+                functions.applyByNode(
+                    self._build_requestContext(
+                        startTime=datetime(1970, 1, 1, 0, 0, 0, 0, pytz.timezone(settings.TIME_ZONE)),
+                        endTime=datetime(1970, 1, 1, 0, 9, 0, 0, pytz.timezone(settings.TIME_ZONE))
+                    ),
+                    seriesList, 4,
+                    'divideSeries(%.disk.bytes_used, sumSeries(%.disk.bytes_*))'
+                )
+                self.fail('must raise with InputParameterError')
+            except InputParameterError:
+                pass
 
     @patch('graphite.render.evaluator.prefetchData', lambda *_: None)
     def test_applyByNode_newName(self):
