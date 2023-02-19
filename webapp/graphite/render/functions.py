@@ -5102,7 +5102,10 @@ def applyByNode(requestContext, seriesList, nodeNum, templateFunction, newName=N
   """
   prefixes = set()
   for series in seriesList:
-    prefix = '.'.join(series.name.split('.')[:nodeNum + 1])
+    nodes = series.name.split('.')
+    if nodeNum >= len(nodes):
+        raise InputParameterError("{} do not contans {} nodes".format(series.name, nodeNum))
+    prefix = '.'.join(nodes[:nodeNum + 1])
     prefixes.add(prefix)
   results = []
   newContext = requestContext.copy()

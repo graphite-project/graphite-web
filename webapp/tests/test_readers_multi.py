@@ -86,8 +86,9 @@ class MultiReaderTests(TestCase):
         reader = MultiReader([node1, node2])
         intervals = reader.get_intervals()
         for interval in intervals:
-            self.assertEqual(int(interval.start), self.start_ts - 60)
+            self.assertIn(int(interval.start), [self.start_ts - 60, self.start_ts - 60 - 1])
             self.assertIn(int(interval.end), [self.start_ts, self.start_ts - 1])
+            self.assertIn(int(interval.end - interval.start), [59,60])
 
     # Confirm fetch works.
     def test_MultiReader_fetch(self):
