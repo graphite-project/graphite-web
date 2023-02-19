@@ -23,43 +23,43 @@ from graphite.util import unpickle
 
 def add(request):
     metrics = set( request.POST['metrics'].split() )
-    whitelist = load_whitelist()
-    new_whitelist = whitelist | metrics
-    save_whitelist(new_whitelist)
+    allowed_metrics = load_allowed_metrics()
+    new_allowed_metrics = allowed_metrics | metrics
+    save_allowed_metrics(new_allowed_metrics)
     return HttpResponse(content_type="text/plain", content="OK")
 
 
 def remove(request):
     metrics = set( request.POST['metrics'].split() )
-    whitelist = load_whitelist()
-    new_whitelist = whitelist - metrics
-    save_whitelist(new_whitelist)
+    allowed_metrics = load_allowed_metrics()
+    new_allowed_metrics = allowed_metrics - metrics
+    save_allowed_metrics(new_allowed_metrics)
     return HttpResponse(content_type="text/plain", content="OK")
 
 
 def show(request):
-    whitelist = load_whitelist()
-    members = '\n'.join( sorted(whitelist) )
+    allowed_metrics = load_allowed_metrics()
+    members = '\n'.join( sorted(allowed_metrics) )
     return HttpResponse(content_type="text/plain", content=members)
 
 
-def load_whitelist():
-    buffer = open(settings.WHITELIST_FILE, 'rb').read()
-    whitelist = unpickle.loads(buffer)
-    return whitelist
+def load_allowed_metrics():
+    buffer = open(settings.METRIC_FILTERS_FILE, 'rb').read()
+    allowed_metrics = unpickle.loads(buffer)
+    return allowed_metrics
 
 
-def save_whitelist(whitelist):
+def save_allowed_metrics(allowed_metrics):
     # do this instead of dump() to raise potential exceptions before open()
-    serialized = pickle.dumps(whitelist, protocol=-1)
-    tmpfile = '%s-%d' % (settings.WHITELIST_FILE, randint(0, 100000))
+    serialized = pickle.dumps(allowed_metrics, protocol=-1)
+    tmpfile = '%s-%d' % (settings.METRIC_FILTERS_FILE, randint(0, 100000))
     try:
         fh = open(tmpfile, 'wb')
         fh.write(serialized)
         fh.close()
-        if os.path.exists(settings.WHITELIST_FILE):
-            os.unlink(settings.WHITELIST_FILE)
-        os.rename(tmpfile, settings.WHITELIST_FILE)
+        if os.path.exists(settings.METRIC_FILTERS_FILE):
+            os.unlink(settings.METRIC_FILTERS_FILE)
+        os.rename(tmpfile, settings.METRIC_FILTERS_FILE)
     finally:
         if os.path.exists(tmpfile):
             os.unlink(tmpfile)

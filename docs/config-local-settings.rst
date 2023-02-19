@@ -434,7 +434,7 @@ POOL_MAX_WORKERS
 REMOTE_RETRY_DELAY
   `Default: 60`
 
-  Time in seconds to blacklist a webapp after a timed-out request.
+  Time in seconds to block/filter a webapp after a timed-out request.
 
 FIND_CACHE_DURATION
   `Default: 300`

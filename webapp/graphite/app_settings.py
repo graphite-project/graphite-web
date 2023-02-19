@@ -105,7 +105,7 @@ INSTALLED_APPS = (
   'graphite.render',
   'graphite.tags',
   'graphite.url_shortener',
-  'graphite.whitelist',
+  'graphite.metric_filters',
   'django.contrib.auth',
   'django.contrib.sessions',
   'django.contrib.admin',

@@ -269,13 +269,28 @@ aggregation.
 **Note:** if you plan to use the ``=`` sign in your rewrite rules. Use its octal value: ``\075``.
 For example ``foo=bar = foo.bar`` would be ``foo\075bar = foo.bar``
 
-whitelist and blacklist
------------------------
-The whitelist functionality allows any of the carbon daemons to only accept metrics that are explicitly
-whitelisted and/or to reject blacklisted metrics. The functionality can be enabled in carbon.conf with
-the ``USE_WHITELIST`` flag. This can be useful when too many metrics are being sent to a Graphite
+Metric Filters: allowed and blocked Metrics
+-------------------------------------------
+
+The metric filter functionality allows any of the carbon daemons to only accept
+metrics that are explicitly allowed and/or to reject rejected metrics. The
+functionality can be enabled in carbon.conf with the ``USE_METRIC_FILTERS``
+flag. This can be useful when too many metrics are being sent to a Graphite
 instance or when there are metric senders sending useless or invalid metrics.
 
-``GRAPHITE_CONF_DIR`` is searched for ``whitelist.conf`` and ``blacklist.conf``. Each file contains one regular
-expressions per line to match against metric values. If the whitelist configuration is missing or empty,
-all metrics will be passed through by default.
+``GRAPHITE_CONF_DIR`` is searched for ``allowed_metrics.conf`` and
+``blocked_metrics.conf``.  Each file contains one regular expression per line to
+match against metric values.  If the allowed_metrics configuration is missing or
+empty, all metrics will be passed through by default.
+
+whitelist and blacklist
+-----------------------
+The whitelist/blacklist functionality has been renamed to 'allowed' and
+'blocked' so as to use less ambiguous language, and remove possible connotations
+associated with those terms.
+
+The capabilities have been renamed as of this point, but he existing ``whitelist.conf``
+and ``blacklist.conf`` will still be functional for the time being.
+
+Additionally, the ``USE_WHITELIST`` flag in carbon.conf will still be respected,
+but treated as ``USE_METRIC_FILTERS`` until it is deprecated.

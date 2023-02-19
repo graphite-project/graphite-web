@@ -1041,20 +1041,20 @@ var GraphDataWindow = {
 
   addWlSelected: function (item, e) {
     Ext.Ajax.request({
-      url: document.body.dataset.baseUrl + 'whitelist/add',
+      url: document.body.dataset.baseUrl + 'metric_filters/add',
       method: 'POST',
-      success: function () { Ext.Msg.alert('Result', 'Successfully added metrics to whitelist.'); },
-      failure: function () { Ext.Msg.alert('Result', 'Failed to add metrics to whitelist.');   },
+      success: function () { Ext.Msg.alert('Result', 'Successfully added metrics to filter.'); },
+      failure: function () { Ext.Msg.alert('Result', 'Failed to add metrics to filter.');   },
       params: {metrics: this.getSelectedTargets().join('\n') }
     });
   },
 
   removeWlSelected: function (item, e) {
     Ext.Ajax.request({
-      url: document.body.dataset.baseUrl + 'whitelist/remove',
+      url: document.body.dataset.baseUrl + 'metric_filters/remove',
       method: 'POST',
-      success: function () { Ext.Msg.alert('Result', 'Successfully removed metrics from whitelist.'); },
-      failure: function () { Ext.Msg.alert('Result', 'Failed to remove metrics from whitelist.');   },
+      success: function () { Ext.Msg.alert('Result', 'Successfully removed metrics from filter.'); },
+      failure: function () { Ext.Msg.alert('Result', 'Failed to remove metrics from filter.');   },
       params: {metrics: this.getSelectedTargets().join('\n') }
     });
   },
