@@ -3803,8 +3803,11 @@ def useSeriesAbove(requestContext, seriesList, value, search, replace):
 
   for series in seriesList:
     newname = re.sub(search, replace, series.name)
-    if max(series) > value:
-      newNames.append(newname)
+    try:
+      if max(series) > value:
+        newNames.append(newname)
+    except TypeError:
+        continue
 
   if not newNames:
     return []
