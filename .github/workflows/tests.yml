@@ -22,11 +22,11 @@ jobs:
         ports:
           - 3306/tcp
         env:
-          MYSQL_USER: graphite
-          MYSQL_PASSWORD: graphite
-          MYSQL_DATABASE: test_graphite
-          MYSQL_ROOT_PASSWORD: root
-        options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
+          MARIADB_USER: graphite
+          MARIADB_PASSWORD: graphite
+          MARIADB_DATABASE: test_graphite
+          MARIADB_ROOT_PASSWORD: root
+        options: --health-cmd="/usr/local/bin/healthcheck.sh --su-mysql --connect --innodb_initialized" --health-interval=5s --health-timeout=2s --health-retries=3
       postgres:
         image: postgres
         ports:
@@ -93,12 +93,12 @@ jobs:
         run: |
           tox
       - name: Run Codecov
-        if: ${{ matrix.python-version==3.9 }}
+        if: ${{ matrix.python-version==3.10 }}
         env:
           TOXENV: lint
         run: |
-          pip install codecov==2.1.12
+          pip install codecov
           codecov
       - name: Upload coverage to Codecov
-        if: ${{ matrix.python-version==3.9 }}
-        uses: codecov/codecov-action@v2
+        if: ${{ matrix.python-version==3.10 }}
+        uses: codecov/codecov-action@v3

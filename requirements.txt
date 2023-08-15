@@ -35,7 +35,7 @@
 #   deactivate
 #
 
-Django>=3.2,<4
+Django>=3.2,<5
 python-memcached==1.58
 txAMQP==0.8
 django-tagging==0.4.6
