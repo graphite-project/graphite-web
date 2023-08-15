@@ -1,4 +1,4 @@
-name: Run tests
+  name: Run tests
 
 on:
   push:
@@ -22,10 +22,10 @@ jobs:
         ports:
           - 3306/tcp
         env:
-          MYSQL_USER: graphite
-          MYSQL_PASSWORD: graphite
-          MYSQL_DATABASE: test_graphite
-          MYSQL_ROOT_PASSWORD: root
+          MARIADB_USER: graphite
+          MARIADB_PASSWORD: graphite
+          MARIADB_DATABASE: test_graphite
+          MARIADB_ROOT_PASSWORD: root
         options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
       postgres:
         image: postgres
