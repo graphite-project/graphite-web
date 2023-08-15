@@ -26,7 +26,7 @@ jobs:
           MARIADB_PASSWORD: graphite
           MARIADB_DATABASE: test_graphite
           MARIADB_ROOT_PASSWORD: root
-        options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
+        options: --health-cmd="/usr/local/bin/healthcheck.sh --su-mysql --connect --innodb_initialized" --health-interval=5s --health-timeout=2s --health-retries=3
       postgres:
         image: postgres
         ports:
