@@ -1,4 +1,5 @@
 import re
+import os
 import errno
 
 from os.path import getmtime
@@ -126,6 +127,10 @@ def dashboard(request, name=None):
   debug = request.GET.get('debug', False)
   theme = request.GET.get('theme', config.ui_config['theme'])
   css_file = finders.find('css/dashboard-%s.css' % theme)
+  if css_file is None:
+    # Also search in STATIC_ROOT for dist packages
+    css_file = os.path.isfile(os.path.join(settings.STATIC_ROOT,
+                                           'css/dashboard-%s.css' % theme))
   if css_file is None:
     initialError = "Invalid theme '%s'" % theme
     theme = config.ui_config['theme']
