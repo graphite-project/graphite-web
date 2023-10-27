@@ -190,7 +190,7 @@ Unfortunately, native Graphite on Windows is completely unsupported, but you can
 
 
 .. _Apache: https://projects.apache.org/project.html?httpd-http_server
-.. _cairocffi: https://pythonhosted.org/cairocffi/
+.. _cairocffi: https://pypi.org/project/cairocffi/
 .. _Django: http://www.djangoproject.com/
 .. _django-tagging: http://django-tagging.readthedocs.io/
 .. _Django database install: https://docs.djangoproject.com/en/dev/topics/install/#get-your-database-running
