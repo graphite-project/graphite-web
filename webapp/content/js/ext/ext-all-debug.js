@@ -6533,7 +6533,7 @@ btn.on('click', Ext.createDelegate(sayHi, btn, ['Fred']));
     },
 
     /**
-     * Calls this function after the number of millseconds specified, optionally in a specific scope. Example usage:
+     * Calls this function after the number of milliseconds specified, optionally in a specific scope. Example usage:
      * <pre><code>
 var sayHi = function(name){
     alert('Hi, ' + name);
@@ -25424,7 +25424,7 @@ Ext.data.DataProxy.Error = Ext.extend(Ext.Error, {
 Ext.apply(Ext.data.DataProxy.Error.prototype, {
     lang: {
         'action-undefined': "DataProxy attempted to execute an API-action but found an undefined url / function.  Please review your Proxy url/api-configuration.",
-        'api-invalid': 'Recieved an invalid API-configuration.  Please ensure your proxy API-configuration contains only the actions from Ext.data.Api.actions.'
+        'api-invalid': 'Received an invalid API-configuration.  Please ensure your proxy API-configuration contains only the actions from Ext.data.Api.actions.'
     }
 });
 

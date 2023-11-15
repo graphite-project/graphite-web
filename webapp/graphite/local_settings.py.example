@@ -331,7 +331,7 @@ DEFAULT_XFILES_FACTOR = 0
 # query port is 7002 and a common scheme is to use 7102 for instance b, 7202
 # for instance c, etc.
 # If you're using consistent hashing, please keep an order of hosts the same as
-# order of DESTINATIONS in your relay - otherways you'll get cache misses.
+# order of DESTINATIONS in your relay - otherwise you'll get cache misses.
 #
 # You *should* use 127.0.0.1 here in most cases.
 #
