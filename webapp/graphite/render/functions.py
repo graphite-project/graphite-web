@@ -1297,7 +1297,7 @@ def movingWindow(requestContext, seriesList, windowSize, func='average', xFilesF
   until`` in the :doc:`Render API <render_api>` for examples of time formats), a function to apply to the points
   in the window to produce the output, and an xFilesFactor value to specify how many points in the
   window must be non-null for the output to be considered valid. Graphs the
-  output of the function for the preceeding datapoints for each point on the graph.
+  output of the function for the preceding datapoints for each point on the graph.
 
   Example:
 
@@ -1460,7 +1460,7 @@ def movingMedian(requestContext, seriesList, windowSize, xFilesFactor=None):
   or a quoted string with a length of time like '1hour' or '5min' (See ``from /
   until`` in the :doc:`Render API <render_api>` for examples of time formats), and an xFilesFactor value to specify
   how many points in the window must be non-null for the output to be considered valid. Graphs the
-  median of the preceeding datapoints for each point on the graph.
+  median of the preceding datapoints for each point on the graph.
 
   Example:
 
@@ -1937,7 +1937,7 @@ def movingAverage(requestContext, seriesList, windowSize, xFilesFactor=None):
   or a quoted string with a length of time like '1hour' or '5min' (See ``from /
   until`` in the :doc:`Render API <render_api>` for examples of time formats), and an xFilesFactor value to specify
   how many points in the window must be non-null for the output to be considered valid. Graphs the
-  average of the preceeding datapoints for each point on the graph.
+  average of the preceding datapoints for each point on the graph.
 
   Example:
 
@@ -1967,7 +1967,7 @@ def movingSum(requestContext, seriesList, windowSize, xFilesFactor=None):
   or a quoted string with a length of time like '1hour' or '5min' (See ``from /
   until`` in the :doc:`Render API <render_api>` for examples of time formats), and an xFilesFactor value to specify
   how many points in the window must be non-null for the output to be considered valid. Graphs the
-  sum of the preceeding datapoints for each point on the graph.
+  sum of the preceding datapoints for each point on the graph.
 
   Example:
 
@@ -1997,7 +1997,7 @@ def movingMin(requestContext, seriesList, windowSize, xFilesFactor=None):
   or a quoted string with a length of time like '1hour' or '5min' (See ``from /
   until`` in the :doc:`Render API <render_api>` for examples of time formats), and an xFilesFactor value to specify
   how many points in the window must be non-null for the output to be considered valid. Graphs the
-  minimum of the preceeding datapoints for each point on the graph.
+  minimum of the preceding datapoints for each point on the graph.
 
   Example:
 
@@ -2027,7 +2027,7 @@ def movingMax(requestContext, seriesList, windowSize, xFilesFactor=None):
   or a quoted string with a length of time like '1hour' or '5min' (See ``from /
   until`` in the :doc:`Render API <render_api>` for examples of time formats), and an xFilesFactor value to specify
   how many points in the window must be non-null for the output to be considered valid. Graphs the
-  maximum of the preceeding datapoints for each point on the graph.
+  maximum of the preceding datapoints for each point on the graph.
 
   Example:
 
@@ -2333,7 +2333,7 @@ integral.params = [
 
 def integralByInterval(requestContext, seriesList, intervalUnit):
   """
-  This will do the same as integral() funcion, except resetting the total to 0
+  This will do the same as integral() function, except resetting the total to 0
   at the given time in the parameter "from"
   Useful for finding totals per hour/day/week/..
 
@@ -5107,7 +5107,7 @@ def applyByNode(requestContext, seriesList, nodeNum, templateFunction, newName=N
   for series in seriesList:
     nodes = series.name.split('.')
     if nodeNum >= len(nodes):
-        raise InputParameterError("{} do not contans {} nodes".format(series.name, nodeNum))
+        raise InputParameterError("{} do not contains {} nodes".format(series.name, nodeNum))
     prefix = '.'.join(nodes[:nodeNum + 1])
     prefixes.add(prefix)
   results = []

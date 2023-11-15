@@ -69,7 +69,7 @@ New Features
 Graphite-web
 ^^^^^^^^^^^^
 * Properly return an HTTP 400 on missing query parameter in metrics/search endpoint (dieterbe)
-* cumulative() is now superceded by consolidateBy() which supports min/max/avg/sum (nleskiw)
+* cumulative() is now superseded by consolidateBy() which supports min/max/avg/sum (nleskiw)
 * Make graphlot target host configurable for easier embedding (dieterbe)
 * Allow graphlot graphs to be embedded for use in dashboard apps (dieterbe)
 * When wildcarding, prefer matching metric files to directories with the same name (tmm1)
