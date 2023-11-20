@@ -101,7 +101,7 @@ try:
         'graphite.url_shortener',
         'graphite.url_shortener.migrations',
         'graphite.version',
-        'graphite.whitelist',
+        'graphite.metric_filters',
         'graphite.worker_pool',
       ],
       package_data={'graphite': ['templates/*', 'local_settings.py.example']},

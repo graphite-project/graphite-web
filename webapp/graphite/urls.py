@@ -25,7 +25,7 @@ graphite_urls = [
     url('^browser', include('graphite.browser.urls')),
     url('^account', include('graphite.account.urls')),
     url('^dashboard', include('graphite.dashboard.urls')),
-    url('^whitelist', include('graphite.whitelist.urls')),
+    url('^metric_filters/?', include('graphite.metric_filters.urls')),
     url('^version', include('graphite.version.urls')),
     url('^events', include('graphite.events.urls')),
     url('^tags', include('graphite.tags.urls')),
