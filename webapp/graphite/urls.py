@@ -12,32 +12,33 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License"""
 from django.conf import settings
-from django.conf.urls import include, url
 from django.contrib import admin
+from django.urls import include, path, re_path
 from graphite.url_shortener.views import shorten, follow
 from graphite.browser.views import browser
 
 graphite_urls = [
-    url('^admin/', admin.site.urls),
-    url('^render', include('graphite.render.urls')),
-    url('^composer', include('graphite.composer.urls')),
-    url('^metrics', include('graphite.metrics.urls')),
-    url('^browser', include('graphite.browser.urls')),
-    url('^account', include('graphite.account.urls')),
-    url('^dashboard', include('graphite.dashboard.urls')),
-    url('^whitelist', include('graphite.whitelist.urls')),
-    url('^version', include('graphite.version.urls')),
-    url('^events', include('graphite.events.urls')),
-    url('^tags', include('graphite.tags.urls')),
-    url('^functions', include('graphite.functions.urls')),
-    url('^s/(?P<path>.*)', shorten, name='shorten'),
-    url('^S/(?P<link_id>[a-zA-Z0-9]+)/?$', follow, name='follow'),
-    url('^$', browser, name='browser'),
+    path('admin/', admin.site.urls),
+    path('render', include('graphite.render.urls')),
+    path('composer', include('graphite.composer.urls')),
+    path('metrics', include('graphite.metrics.urls')),
+    path('browser', include('graphite.browser.urls')),
+    path('account', include('graphite.account.urls')),
+    path('dashboard', include('graphite.dashboard.urls')),
+    path('whitelist', include('graphite.whitelist.urls')),
+    path('version', include('graphite.version.urls')),
+    path('events', include('graphite.events.urls')),
+    path('tags', include('graphite.tags.urls')),
+    path('functions', include('graphite.functions.urls')),
+    re_path('^s/(?P<path>.*)', shorten, name='shorten'),
+    re_path('^S/(?P<link_id>[a-zA-Z0-9]+)/?$', follow, name='follow'),
+    path('', browser, name='browser'),
 ]
 
-if settings.URL_PREFIX.strip('/'):
+url_prefix = settings.URL_PREFIX.strip('/')
+if url_prefix:
     urlpatterns = [
-        url(r'^{0}/'.format(settings.URL_PREFIX.strip('/')), include(graphite_urls)),
+        re_path(f'^{url_prefix}/', include(graphite_urls)),
     ]
 else:
     urlpatterns = graphite_urls

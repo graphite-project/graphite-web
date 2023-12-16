@@ -12,11 +12,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
-from django.conf.urls import url
+from django.urls import path, re_path
 from . import views
 
 urlpatterns = [
-    url(r'^/add$', views.add, name='whitelist_add'),
-    url(r'^/remove$', views.remove, name='whitelist_remove'),
-    url(r'^/?$', views.show, name='whitelist_show'),
+    path('/add', views.add, name='whitelist_add'),
+    path('/remove', views.remove, name='whitelist_remove'),
+    re_path(r'^/?$', views.show, name='whitelist_show'),
 ]
