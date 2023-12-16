@@ -96,11 +96,11 @@ def PieFunction(name):
 
 
 def functionInfo(name, func):
-    argspec = inspect.getargspec(func)
-    argformat = inspect.formatargspec(argspec[0][1:], argspec[1], argspec[2], argspec[3])
+    sig = inspect.signature(func)
+    argspec = ', '.join(list(map(str, sig.parameters.values()))[1:])
     return {
         'name': name,
-        'function': name + argformat,
+        'function': f'{name}({argspec})',
         'description': inspect.getdoc(func),
         'module': inspect.getmodule(func).__name__,
         'group': getattr(func, 'group', 'Ungrouped'),
