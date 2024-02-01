@@ -12,13 +12,13 @@ You may obtain a copy of the License at
    See the License for the specific language governing permissions and
    limitations under the License."""
 
-from django.conf.urls import url
+from django.urls import re_path
 from . import views
 
 urlpatterns = [
-    url(r'^/header/?$', views.header, name='browser_header'),
-    url(r'^/search/?$', views.search, name='browser_search'),
-    url(r'^/mygraph/?$', views.myGraphLookup, name='browser_my_graph'),
-    url(r'^/usergraph/?$', views.userGraphLookup, name='browser_usergraph'),
-    url(r'^/?$', views.browser, name='browser'),
+    re_path(r'^/header/?$', views.header, name='browser_header'),
+    re_path(r'^/search/?$', views.search, name='browser_search'),
+    re_path(r'^/mygraph/?$', views.myGraphLookup, name='browser_my_graph'),
+    re_path(r'^/usergraph/?$', views.userGraphLookup, name='browser_usergraph'),
+    re_path(r'^/?$', views.browser, name='browser'),
 ]
