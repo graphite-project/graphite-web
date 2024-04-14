@@ -1,3 +1,4 @@
+import pickle
 import time
 import socket
 import struct
@@ -9,12 +10,6 @@ from graphite.render.hashing import ConsistentHashRing
 from graphite.logger import log
 from graphite.util import load_module, unpickle, parseHosts
 from graphite.singleton import ThreadSafeSingleton
-
-
-try:
-    import six.moves.cPickle as pickle
-except ImportError:
-    import pickle
 
 
 def load_keyfunc():

@@ -1,7 +1,4 @@
-from __future__ import absolute_import
-
 from binascii import b2a_base64
-import sys
 
 from graphite.http_pool import http
 from graphite.util import json
@@ -24,10 +21,7 @@ class HttpTagDB(BaseTagDB):
         headers = requestContext.get('forwardHeaders') if requestContext else {}
         if 'Authorization' not in headers and self.username and self.password:
             user_pw = '%s:%s' % (self.username, self.password)
-            if sys.version_info[0] >= 3:
-                user_pw_b64 = b2a_base64(user_pw.encode('utf-8')).decode('ascii')
-            else:
-                user_pw_b64 = user_pw.encode('base64')
+            user_pw_b64 = b2a_base64(user_pw.encode('utf-8')).decode('ascii')
             headers['Authorization'] = 'Basic ' + user_pw_b64
 
         req_fields = []

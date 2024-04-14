@@ -4,7 +4,6 @@ from .base import TestCase
 
 from graphite.render import glyph
 from graphite.render.datalib import TimeSeries
-from six.moves import range
 
 
 class glyphStandaloneFunctionTest(TestCase):

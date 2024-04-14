@@ -3,10 +3,7 @@ import re
 
 from datetime import timedelta
 
-try:
-    from django.urls import reverse
-except ImportError:  # Django < 1.10
-    from django.core.urlresolvers import reverse
+from django.urls import reverse
 from .base import TestCase
 from django.utils import timezone
 

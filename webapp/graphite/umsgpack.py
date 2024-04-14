@@ -49,10 +49,7 @@ import datetime
 import sys
 import io
 
-if sys.version_info[0:2] >= (3, 3):
-    from collections.abc import Hashable
-else:
-    from collections import Hashable
+from collections.abc import Hashable
 
 __version__ = "2.7.1"
 "Module version string"
@@ -102,10 +99,8 @@ class Ext(object):
         elif not (-2**7 <= type <= 2**7 - 1):
             raise ValueError("ext type value {:d} is out of range (-128 to 127)".format(type))
         # Check data is type bytes or str
-        elif sys.version_info[0] == 3 and not isinstance(data, bytes):
+        elif not isinstance(data, bytes):
             raise TypeError("ext data is not type \'bytes\'")
-        elif sys.version_info[0] == 2 and not isinstance(data, str):
-            raise TypeError("ext data is not type \'str\'")
 
         self.type = type
         self.data = data
@@ -452,93 +447,6 @@ def _pack_map(obj, fp, options):
 ########################################
 
 
-# Pack for Python 2, with 'unicode' type, 'str' type, and 'long' type
-def _pack2(obj, fp, **options):
-    """
-    Serialize a Python object into MessagePack bytes.
-
-    Args:
-        obj: a Python object
-        fp: a .write()-supporting file-like object
-
-    Kwargs:
-        ext_handlers (dict): dictionary of Ext handlers, mapping a custom type
-                             to a callable that packs an instance of the type
-                             into an Ext object
-        force_float_precision (str): "single" to force packing floats as
-                                     IEEE-754 single-precision floats,
-                                     "double" to force packing floats as
-                                     IEEE-754 double-precision floats.
-
-    Returns:
-        None.
-
-    Raises:
-        UnsupportedType(PackException):
-            Object type not supported for packing.
-
-    Example:
-    >>> f = open('test.bin', 'wb')
-    >>> umsgpack.pack({u"compact": True, u"schema": 0}, f)
-    >>>
-    """
-    global compatibility
-
-    ext_handlers = options.get("ext_handlers")
-
-    if obj is None:
-        _pack_nil(obj, fp, options)
-    elif ext_handlers and obj.__class__ in ext_handlers:
-        _pack_ext(ext_handlers[obj.__class__](obj), fp, options)
-    elif obj.__class__ in _ext_class_to_type:
-        try:
-            _pack_ext(Ext(_ext_class_to_type[obj.__class__], obj.packb()), fp, options)
-        except AttributeError:
-            raise NotImplementedError("Ext serializable class {:s} is missing implementation of packb()".format(repr(obj.__class__)))
-    elif isinstance(obj, bool):
-        _pack_boolean(obj, fp, options)
-    elif isinstance(obj, (int, long)):  # noqa: F821
-        _pack_integer(obj, fp, options)
-    elif isinstance(obj, float):
-        _pack_float(obj, fp, options)
-    elif compatibility and isinstance(obj, unicode):  # noqa: F821
-        _pack_oldspec_raw(bytes(obj), fp, options)
-    elif compatibility and isinstance(obj, bytes):
-        _pack_oldspec_raw(obj, fp, options)
-    elif isinstance(obj, unicode):  # noqa: F821
-        _pack_string(obj, fp, options)
-    elif isinstance(obj, str):
-        _pack_binary(obj, fp, options)
-    elif isinstance(obj, (list, tuple)):
-        _pack_array(obj, fp, options)
-    elif isinstance(obj, dict):
-        _pack_map(obj, fp, options)
-    elif isinstance(obj, datetime.datetime):
-        _pack_ext_timestamp(obj, fp, options)
-    elif isinstance(obj, Ext):
-        _pack_ext(obj, fp, options)
-    elif ext_handlers:
-        # Linear search for superclass
-        t = next((t for t in ext_handlers.keys() if isinstance(obj, t)), None)
-        if t:
-            _pack_ext(ext_handlers[t](obj), fp, options)
-        else:
-            raise UnsupportedTypeException(
-                "unsupported type: {:s}".format(str(type(obj))))
-    elif _ext_class_to_type:
-        # Linear search for superclass
-        t = next((t for t in _ext_class_to_type if isinstance(obj, t)), None)
-        if t:
-            try:
-                _pack_ext(Ext(_ext_class_to_type[t], obj.packb()), fp, options)
-            except AttributeError:
-                raise NotImplementedError("Ext serializable class {:s} is missing implementation of packb()".format(repr(t)))
-        else:
-            raise UnsupportedTypeException("unsupported type: {:s}".format(str(type(obj))))
-    else:
-        raise UnsupportedTypeException("unsupported type: {:s}".format(str(type(obj))))
-
-
 # Pack for Python 3, with unicode 'str' type, 'bytes' type, and no 'long' type
 def _pack3(obj, fp, **options):
     """
@@ -625,39 +533,6 @@ def _pack3(obj, fp, **options):
     else:
         raise UnsupportedTypeException(
             "unsupported type: {:s}".format(str(type(obj))))
-
-
-def _packb2(obj, **options):
-    """
-    Serialize a Python object into MessagePack bytes.
-
-    Args:
-        obj: a Python object
-
-    Kwargs:
-        ext_handlers (dict): dictionary of Ext handlers, mapping a custom type
-                             to a callable that packs an instance of the type
-                             into an Ext object
-        force_float_precision (str): "single" to force packing floats as
-                                     IEEE-754 single-precision floats,
-                                     "double" to force packing floats as
-                                     IEEE-754 double-precision floats.
-
-    Returns:
-        A 'str' containing serialized MessagePack bytes.
-
-    Raises:
-        UnsupportedType(PackException):
-            Object type not supported for packing.
-
-    Example:
-    >>> umsgpack.packb({u"compact": True, u"schema": 0})
-    '\x82\xa7compact\xc3\xa6schema\x00'
-    >>>
-    """
-    fp = io.BytesIO()
-    _pack2(obj, fp, **options)
-    return fp.getvalue()
 
 
 def _packb3(obj, **options):
@@ -938,52 +813,6 @@ def _unpack(fp, options):
 ########################################
 
 
-def _unpack2(fp, **options):
-    """
-    Deserialize MessagePack bytes into a Python object.
-
-    Args:
-        fp: a .read()-supporting file-like object
-
-    Kwargs:
-        ext_handlers (dict): dictionary of Ext handlers, mapping integer Ext
-                             type to a callable that unpacks an instance of
-                             Ext into an object
-        use_ordered_dict (bool): unpack maps into OrderedDict, instead of
-                                 unordered dict (default False)
-        use_tuple (bool): unpacks arrays into tuples, instead of lists (default
-                          False)
-        allow_invalid_utf8 (bool): unpack invalid strings into instances of
-                                   InvalidString, for access to the bytes
-                                   (default False)
-
-    Returns:
-        A Python object.
-
-    Raises:
-        InsufficientDataException(UnpackException):
-            Insufficient data to unpack the serialized object.
-        InvalidStringException(UnpackException):
-            Invalid UTF-8 string encountered during unpacking.
-        UnsupportedTimestampException(UnpackException):
-            Unsupported timestamp format encountered during unpacking.
-        ReservedCodeException(UnpackException):
-            Reserved code encountered during unpacking.
-        UnhashableKeyException(UnpackException):
-            Unhashable key encountered during map unpacking.
-            The serialized map cannot be deserialized into a Python dictionary.
-        DuplicateKeyException(UnpackException):
-            Duplicate key encountered during map unpacking.
-
-    Example:
-    >>> f = open('test.bin', 'rb')
-    >>> umsgpack.unpackb(f)
-    {u'compact': True, u'schema': 0}
-    >>>
-    """
-    return _unpack(fp, options)
-
-
 def _unpack3(fp, **options):
     """
     Deserialize MessagePack bytes into a Python object.
@@ -1153,22 +982,7 @@ def __init():
     # Compatibility mode for handling strings/bytes with the old specification
     compatibility = False
 
-    if sys.version_info[0] == 3:
-        _utc_tzinfo = datetime.timezone.utc
-    else:
-        class UTC(datetime.tzinfo):
-            ZERO = datetime.timedelta(0)
-
-            def utcoffset(self, dt):
-                return UTC.ZERO
-
-            def tzname(self, dt):
-                return "UTC"
-
-            def dst(self, dt):
-                return UTC.ZERO
-
-        _utc_tzinfo = UTC()
+    _utc_tzinfo = datetime.timezone.utc
 
     # Calculate an aware epoch datetime
     _epoch = datetime.datetime(1970, 1, 1, tzinfo=_utc_tzinfo)
@@ -1180,25 +994,15 @@ def __init():
         _float_precision = "single"
 
     # Map packb and unpackb to the appropriate version
-    if sys.version_info[0] == 3:
-        pack = _pack3
-        packb = _packb3
-        dump = _pack3
-        dumps = _packb3
-        unpack = _unpack3
-        unpackb = _unpackb3
-        load = _unpack3
-        loads = _unpackb3
-        xrange = range
-    else:
-        pack = _pack2
-        packb = _packb2
-        dump = _pack2
-        dumps = _packb2
-        unpack = _unpack2
-        unpackb = _unpackb2
-        load = _unpack2
-        loads = _unpackb2
+    pack = _pack3
+    packb = _packb3
+    dump = _pack3
+    dumps = _packb3
+    unpack = _unpack3
+    unpackb = _unpackb3
+    load = _unpack3
+    loads = _unpackb3
+    xrange = range
 
     # Build a dispatch table for fast lookup of unpacking function
 

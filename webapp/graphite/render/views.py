@@ -40,7 +40,6 @@ from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.utils.cache import add_never_cache_headers, patch_response_headers
-from six.moves import zip
 
 
 loadFunctions()

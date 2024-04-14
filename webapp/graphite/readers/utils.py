@@ -1,13 +1,9 @@
-from __future__ import division
-
 import abc
 
 from graphite.logger import log
 
 
-class BaseReader(object):
-    __metaclass__ = abc.ABCMeta
-
+class BaseReader(metaclass=abc.ABCMeta):
     supported = True
 
     @abc.abstractmethod

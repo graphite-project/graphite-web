@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 
-from __future__ import with_statement
-
 import os
-from configparser import ConfigParser, DuplicateSectionError  # Python 3
+from configparser import ConfigParser, DuplicateSectionError
 
 from glob import glob
 from collections import defaultdict
-from io import StringIO  # Python 3
+from io import StringIO
 
 # Graphite historically has an install prefix set in setup.cfg. Being in a
 # configuration file, it's not easy to override it or unset it (for installing

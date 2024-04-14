@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 import time
 
 # Use the built-in version of scandir/stat if possible, otherwise

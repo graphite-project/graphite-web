@@ -1,10 +1,6 @@
 import logging
-import sys
 
-try:
-    from django.urls import reverse
-except ImportError:  # Django < 1.10
-    from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from .base import TestCase
 
@@ -15,12 +11,8 @@ LOGGER = logging.getLogger()
 if hasattr(logging, "NullHandler"):
     LOGGER.addHandler(logging.NullHandler())
 
-if sys.version_info[0] >= 3:
-    def resp_text(r):
-        return r.content.decode('utf-8')
-else:
-    def resp_text(r):
-        return r.content
+def resp_text(r):
+    return r.content.decode('utf-8')
 
 
 class RenderXSSTest(TestCase):

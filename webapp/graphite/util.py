@@ -22,9 +22,11 @@ import calendar
 import pytz
 import six
 import traceback
+import pickle
 
 from datetime import datetime
 from functools import wraps
+from io import BytesIO
 from os.path import splitext, basename
 
 from django.conf import settings
@@ -32,17 +34,6 @@ from django.utils.timezone import make_aware
 
 from graphite.compat import HttpResponse
 from graphite.logger import log
-
-# BytesIO is needed on py3 as StringIO does not operate on byte input anymore
-# We could use BytesIO on py2 as well but it is slower than StringIO
-if sys.version_info >= (3, 0):
-  PY3 = True
-  import pickle
-  from io import BytesIO
-else:
-  PY3 = False
-  import cPickle as pickle
-  from cStringIO import StringIO as BytesIO
 
 # use https://github.com/msgpack/msgpack-python if available
 try:
@@ -171,41 +162,7 @@ def deltaseconds(timedelta):
 # The SafeUnpickler classes were largely derived from
 # http://nadiana.com/python-pickle-insecure
 # This code also lives in carbon.util
-if not PY3:
-  class SafeUnpickler(object):
-    PICKLE_SAFE = {
-      'copy_reg': set(['_reconstructor']),
-      '__builtin__': set(['object', 'list', 'set']),
-      'collections': set(['deque']),
-      'graphite.render.datalib': set(['TimeSeries', 'Tags']),
-      'graphite.intervals': set(['Interval', 'IntervalSet']),
-    }
-
-    @classmethod
-    def find_class(cls, module, name):
-      if module not in cls.PICKLE_SAFE:
-        raise pickle.UnpicklingError('Attempting to unpickle unsafe module %s' % module)
-      __import__(module)
-      mod = sys.modules[module]
-      if name not in cls.PICKLE_SAFE[module]:
-        raise pickle.UnpicklingError('Attempting to unpickle unsafe class %s' % name)
-      return getattr(mod, name)
-
-    @classmethod
-    def loads(cls, pickle_string):
-      pickle_obj = pickle.Unpickler(BytesIO(pickle_string))
-      pickle_obj.find_global = cls.find_class
-      return pickle_obj.load()
-
-    @classmethod
-    def load(cls, file):
-      pickle_obj = pickle.Unpickler(file)
-      pickle_obj.find_global = cls.find_class
-      return pickle_obj.load()
-
-  unpickle = SafeUnpickler
-
-else:
+if True:
   class SafeUnpickler(pickle.Unpickler):
     PICKLE_SAFE = {
       'copy_reg': set(['_reconstructor']),

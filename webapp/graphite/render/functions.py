@@ -14,8 +14,6 @@
 
 # make / work consistently between python 2.x and 3.x
 # https://www.python.org/dev/peps/pep-0238/
-from __future__ import division
-
 import math
 import random
 import re
@@ -23,14 +21,8 @@ import time
 
 from datetime import datetime, timedelta
 from functools import reduce
-from six.moves import range, zip
 import six
-try:
-  from itertools import izip, izip_longest
-except ImportError:
-  # Python 3
-  from itertools import zip_longest as izip_longest
-  izip = zip
+from itertools import zip_longest as izip_longest
 from os import environ
 
 from django.conf import settings
@@ -131,7 +123,7 @@ def normalize(seriesLists):
 
 def matchSeries(seriesList1, seriesList2):
   assert len(seriesList2) == len(seriesList1), "The number of series in each argument must be the same"
-  return izip(sorted(seriesList1, key=lambda a: a.name), sorted(seriesList2, key=lambda a: a.name))
+  return zip(sorted(seriesList1, key=lambda a: a.name), sorted(seriesList2, key=lambda a: a.name))
 
 
 def trimRecent(seriesList):
