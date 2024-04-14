@@ -162,8 +162,7 @@ def deltaseconds(timedelta):
 # The SafeUnpickler classes were largely derived from
 # http://nadiana.com/python-pickle-insecure
 # This code also lives in carbon.util
-if True:
-  class SafeUnpickler(pickle.Unpickler):
+class SafeUnpickler(pickle.Unpickler):
     PICKLE_SAFE = {
       'copy_reg': set(['_reconstructor']),
       'builtins': set(['object', 'list', 'set']),
@@ -184,7 +183,7 @@ if True:
         raise pickle.UnpicklingError('Attempting to unpickle unsafe class %s' % name)
       return getattr(mod, name)
 
-  class unpickle(object):
+class unpickle:
     @staticmethod
     def loads(pickle_string):
       return SafeUnpickler(BytesIO(pickle_string)).load()
