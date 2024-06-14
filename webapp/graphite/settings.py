@@ -26,6 +26,15 @@ try:
 except ImportError:  # Django < 1.10
     from django.core.urlresolvers import reverse_lazy
 
+# tagging uses smart_text from django
+# but smart_text has been deprecated in favour of smart_str in 
+# django 3.x and has been removed in django 4.x
+# Now, that we want to use django 4.x and tagging
+# is not actively maintained, we need to patch smart_text
+import django
+from django.utils.encoding import smart_str
+django.utils.encoding.smart_text = smart_str
+
 
 GRAPHITE_WEB_APP_SETTINGS_LOADED = False
 WEBAPP_VERSION = '1.2.0-dev'
