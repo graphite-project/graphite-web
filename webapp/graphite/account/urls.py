@@ -12,12 +12,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
-from django.conf.urls import url
+from django.urls import re_path
 from . import views
 
 urlpatterns = [
-    url(r'^/login/?$', views.loginView, name='account_login'),
-    url(r'^/logout/?$', views.logoutView, name='account_logout'),
-    url(r'^/edit/?$', views.editProfile, name='account_edit'),
-    url(r'^/update/?$', views.updateProfile, name='account_update'),
+    re_path(r'^/login/?$', views.loginView, name='account_login'),
+    re_path(r'^/logout/?$', views.logoutView, name='account_logout'),
+    re_path(r'^/edit/?$', views.editProfile, name='account_edit'),
+    re_path(r'^/update/?$', views.updateProfile, name='account_update'),
 ]

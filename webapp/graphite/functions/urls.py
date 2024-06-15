@@ -1,7 +1,7 @@
-from django.conf.urls import url
+from django.urls import re_path
 from graphite.functions.views import functionList, functionDetails
 
 urlpatterns = [
-  url(r'^/(.+)$', functionDetails, name='functionDetails'),
-  url(r'^/?$', functionList, name='functionList'),
+  re_path(r'^/(.+)$', functionDetails, name='functionDetails'),
+  re_path(r'^/?$', functionList, name='functionList'),
 ]

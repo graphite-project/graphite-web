@@ -12,16 +12,16 @@ You may obtain a copy of the License at
    See the License for the specific language governing permissions and
    limitations under the License."""
 
-from django.conf.urls import url
+from django.urls import path, re_path
 from . import views
 
 urlpatterns = [
-  url(r'^/tagSeries$', views.tagSeries, name='tagSeries'),
-  url(r'^/tagMultiSeries$', views.tagMultiSeries, name='tagMultiSeries'),
-  url(r'^/delSeries$', views.delSeries, name='delSeries'),
-  url(r'^/findSeries$', views.findSeries, name='findSeries'),
-  url(r'^/autoComplete/tags$', views.autoCompleteTags, name='tagAutoCompleteTags'),
-  url(r'^/autoComplete/values$', views.autoCompleteValues, name='tagAutoCompleteValues'),
-  url(r'^/(.+)$', views.tagDetails, name='tagDetails'),
-  url(r'^/?$', views.tagList, name='tagList'),
+  path('/tagSeries', views.tagSeries, name='tagSeries'),
+  path('/tagMultiSeries', views.tagMultiSeries, name='tagMultiSeries'),
+  path('/delSeries', views.delSeries, name='delSeries'),
+  path('/findSeries', views.findSeries, name='findSeries'),
+  path('/autoComplete/tags', views.autoCompleteTags, name='tagAutoCompleteTags'),
+  path('/autoComplete/values', views.autoCompleteValues, name='tagAutoCompleteValues'),
+  re_path(r'^/(.+)$', views.tagDetails, name='tagDetails'),
+  re_path(r'^/?$', views.tagList, name='tagList'),
 ]
