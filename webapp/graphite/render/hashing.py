@@ -16,7 +16,6 @@ limitations under the License."""
 from hashlib import md5
 from itertools import chain
 import bisect
-import sys
 
 try:
     import mmh3
@@ -38,16 +37,10 @@ except ImportError:
         hval = seed
         fnv_32_prime = 0x01000193
         uint32_max = 2 ** 32
-        if sys.version_info >= (3, 0):
-            # data is a bytes object, s is an integer
-            for s in data:
-                hval = hval ^ s
-                hval = (hval * fnv_32_prime) % uint32_max
-        else:
-            # data is an str object, s is a single character
-            for s in data:
-                hval = hval ^ ord(s)
-                hval = (hval * fnv_32_prime) % uint32_max
+        # data is a bytes object, s is an integer
+        for s in data:
+            hval = hval ^ s
+            hval = (hval * fnv_32_prime) % uint32_max
         return hval
 
 

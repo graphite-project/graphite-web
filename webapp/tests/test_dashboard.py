@@ -6,10 +6,7 @@ import os
 from . import TEST_CONF_DIR
 
 from django.conf import settings
-try:
-    from django.urls import reverse
-except ImportError:  # Django < 1.10
-    from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.http import HttpResponse
 from .base import TestCase
 from django.test.utils import override_settings

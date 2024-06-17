@@ -2,23 +2,18 @@ import pytz
 
 from datetime import datetime
 from mock import mock, patch
-import sys
 
 from .base import TestCase
 from django.conf import settings
 
 from graphite.render.datalib import TimeSeries, fetchData, _merge_results, prefetchData
 from graphite.util import timebounds
-from six.moves import range
 
 
 class TimeSeriesTest(TestCase):
 
     def test_TimeSeries_init_no_args(self):
-      if sys.version_info[0] >= 3:
-          msg = r'__init__\(\) missing 5 required positional arguments'
-      else:
-          msg = r'__init__\(\) takes at least 6 arguments \(1 given\)'
+      msg = r'__init__\(\) missing 5 required positional arguments'
       with self.assertRaisesRegexp(TypeError, msg):
         TimeSeries()
 

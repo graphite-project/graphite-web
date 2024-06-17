@@ -2,7 +2,6 @@ from .base import TestCase
 
 from graphite.readers import merge_with_cache
 from graphite.wsgi import application  # NOQA makes sure we have a working WSGI app
-from six.moves import range
 
 
 class MergeWithCacheTests(TestCase):
