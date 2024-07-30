@@ -1,0 +1,25 @@
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+django = "<5,>=3.2"
+python-memcached = "==1.58"
+txamqp = "==0.8"
+django-tagging = "==0.5.0"
+gunicorn = "*"
+pytz = "*"
+pyparsing = ">=2.3.0"
+cairocffi = "*"
+whitenoise = "==4.1.4"
+urllib3 = "*"
+six = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.8"
+
+[packages.whisper]
+git = "https://github.com/graphite-project/whisper.git"
