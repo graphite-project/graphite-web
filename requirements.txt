@@ -38,7 +38,7 @@
 Django>=3.2,<5
 python-memcached==1.58
 txAMQP==0.8
-django-tagging==0.4.6
+django-tagging==0.5.0
 gunicorn
 pytz
 pyparsing>=2.3.0
