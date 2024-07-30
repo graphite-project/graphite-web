@@ -7,6 +7,10 @@ import django.utils.encoding
 import six
 django.utils.encoding.python_2_unicode_compatible = six.python_2_unicode_compatible
 django.utils.six = six
+try:
+    django.utils.encoding.smart_text = django.utils.encoding.smart_str
+except ImportError:
+    pass
 from tagging.models import Tag  # noqa: E402
 
 from graphite.events.compat import ModelTaggedItemManager  # noqa: E402
