@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-
 import os.path
 
 # Use the built-in version of walk if possible, otherwise

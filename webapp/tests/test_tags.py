@@ -1,10 +1,4 @@
-from __future__ import absolute_import, division
-import sys
-
-try:
-  from django.urls import reverse
-except ImportError:  # Django < 1.10
-  from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from django.conf import settings
 from mock import patch, Mock
@@ -19,10 +13,8 @@ from tests.base import TestCase
 
 
 def json_bytes(obj, *args, **kwargs):
-  s = json.dumps(obj, *args, **kwargs)
-  if sys.version_info[0] >= 3:
+    s = json.dumps(obj, *args, **kwargs)
     return s.encode('utf-8')
-  return s
 
 
 class TagsTest(TestCase):

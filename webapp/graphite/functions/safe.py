@@ -1,6 +1,5 @@
 # make / work consistently between python 2.x and 3.x
 # https://www.python.org/dev/peps/pep-0238/
-from __future__ import division
 from functools import reduce
 import math
 

@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-
 import gzip
 import os
 from os.path import join, dirname, isdir
@@ -7,7 +5,6 @@ import random
 import shutil
 import time
 import unittest
-from six.moves import range
 
 try:
     from unittest.mock import patch

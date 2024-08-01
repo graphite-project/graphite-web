@@ -5,7 +5,6 @@ import time
 import math
 import logging
 import shutil
-import sys
 import django
 
 from mock import patch
@@ -20,10 +19,7 @@ from graphite.util import pickle, msgpack, json
 import whisper
 
 from django.conf import settings
-try:
-    from django.urls import reverse
-except ImportError:  # Django < 1.10
-    from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.http import HttpRequest, QueryDict
 from .base import TestCase
 
@@ -34,12 +30,8 @@ LOGGER = logging.getLogger()
 if hasattr(logging, "NullHandler"):
     LOGGER.addHandler(logging.NullHandler())
 
-if sys.version_info[0] >= 3:
-    def resp_text(r):
-        return r.content.decode('utf-8')
-else:
-    def resp_text(r):
-        return r.content
+def resp_text(r):
+    return r.content.decode('utf-8')
 
 
 class RenderTest(TestCase):
