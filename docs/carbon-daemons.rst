@@ -105,7 +105,7 @@ and whisper file sizes due to lower retention policies.
 
 :doc:`rewrite-rules.conf </config-carbon>`
   Defines regular expression patterns that can be used to rewrite metric names
-  in a search & replace fashion, ``[pre]`` and ``[post]`` aggreagation.
+  in a search & replace fashion, ``[pre]`` and ``[post]`` aggregation.
 
 
 carbon-aggregator-cache.py
