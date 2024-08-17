@@ -103,6 +103,11 @@ and whisper file sizes due to lower retention policies.
   interval, the values received are aggregated and published to
   ``carbon-cache.py`` as a single metric.
 
+:doc:`rewrite-rules.conf </config-carbon>`
+  Defines regular expression patterns that can be used to rewrite metric names
+  in a search & replace fashion, ``[pre]`` and ``[post]`` aggregation.
+
+
 carbon-aggregator-cache.py
 --------------------------
 
@@ -120,4 +125,8 @@ overhead of running both daemons.
 
 :doc:`aggregation-rules.conf </config-carbon>`
   See `carbon-aggregator.py` section.
+
+:doc:`rewrite-rules.conf </config-carbon>`
+  See `carbon-aggregator.py` section.
+
 
