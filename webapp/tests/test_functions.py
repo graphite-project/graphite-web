@@ -8,15 +8,10 @@ from datetime import datetime
 from fnmatch import fnmatch
 from mock import patch, call, MagicMock
 from os.path import dirname, join
-from six.moves import range
 
 from .base import TestCase
 from django.conf import settings
-
-try:
-    from django.urls import reverse
-except ImportError:  # Django < 1.10
-    from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from graphite.errors import NormalizeEmptyResultError, InputParameterError
 from graphite.functions import _SeriesFunctions, loadFunctions, safe

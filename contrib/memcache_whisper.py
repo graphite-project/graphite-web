@@ -41,7 +41,6 @@ except ImportError:
   CAN_LOCK = False
 
 if sys.version_info[0] == 3:
-    xrange = range
     # This `file` hack avoids linter warnings under Python-3,
     # but this code likely only works with Python-2.
     file = None
@@ -144,7 +143,7 @@ def __readHeader(fh):
   packedMetadata = fh.read(metadataSize)
   (lastUpdate,maxRetention,xff,archiveCount) = struct.unpack(metadataFormat,packedMetadata)
   archives = []
-  for i in xrange(archiveCount):
+  for i in range(archiveCount):
     packedArchiveInfo = fh.read(archiveInfoSize)
     (offset,secondsPerPoint,points) = struct.unpack(archiveInfoFormat,packedArchiveInfo)
     archiveInfo = {
@@ -256,7 +255,7 @@ def __propagate(fh,timestamp,xff,higher,lower):
   neighborValues = [None] * points
   currentInterval = lowerIntervalStart
   step = higher['secondsPerPoint']
-  for i in xrange(0,len(unpackedSeries),2):
+  for i in range(0,len(unpackedSeries),2):
     pointTime = unpackedSeries[i]
     if pointTime == currentInterval:
       neighborValues[i/2] = unpackedSeries[i+1]
@@ -533,7 +532,7 @@ untilTime is also an epoch time, but defaults to now
   valueList = [None] * points #pre-allocate entire list for speed
   currentInterval = fromInterval
   step = archive['secondsPerPoint']
-  for i in xrange(0,len(unpackedSeries),2):
+  for i in range(0,len(unpackedSeries),2):
     pointTime = unpackedSeries[i]
     if pointTime == currentInterval:
       pointValue = unpackedSeries[i+1]
