@@ -327,7 +327,7 @@ class TagsTest(TestCase):
     self.assertEqual(result, [])
 
     self.assertEqual(mockLog.info.call_count, 1)
-    self.assertRegexpMatches(
+    self.assertRegex(
       mockLog.info.call_args[0][0],
       r'graphite\.tags\.localdatabase\.LocalDatabaseTagDB\.find_series :: completed \(cached\) in [-.e0-9]+s'
     )

@@ -76,7 +76,7 @@ class StorageTest(TestCase):
         with self.assertRaisesRegexp(Exception, message):
           list(store.fetch(['a'], 1, 2, 3, {}))
         self.assertEqual(log_info.call_count, 1)
-        self.assertRegexpMatches(log_info.call_args[0][0], message)
+        self.assertRegex(log_info.call_args[0][0], message)
 
   def test_fetch_all_failed(self):
     # all finds failed
@@ -89,7 +89,7 @@ class StorageTest(TestCase):
       with self.assertRaisesRegexp(Exception, message):
         list(store.fetch(['a'], 1, 2, 3, {}))
       self.assertEqual(log_info.call_count, 1)
-      self.assertRegexpMatches(
+      self.assertRegex(
               log_info.call_args[0][0],
               r'Exception during fetch for \[\'a\'\] after [-.e0-9]+s: TestFinder.find_nodes'
       )
@@ -103,7 +103,7 @@ class StorageTest(TestCase):
       with self.assertRaisesRegexp(Exception, message):
         list(store.fetch(['a'], 1, 2, 3, {}))
       self.assertEqual(log_info.call_count, 2)
-      self.assertRegexpMatches(
+      self.assertRegex(
               log_info.call_args[0][0],
               r'Exception during fetch for \[\'a\'\] after [-.e0-9]+s: TestFinder.find_nodes'
       )
@@ -127,7 +127,7 @@ class StorageTest(TestCase):
       with self.assertRaisesRegexp(Exception, message):
         list(store.fetch(['a'], 1, 2, 3, {}))
       self.assertEqual(log_info.call_count, 2)
-      self.assertRegexpMatches(
+      self.assertRegex(
               log_info.call_args[0][0],
               r'Exception during fetch for \[\'a\'\] after [-.e0-9]+s: TestFinder.find_nodes'
       )
@@ -144,7 +144,7 @@ class StorageTest(TestCase):
       with self.assertRaisesRegexp(Exception, message):
         list(store.fetch(['a'], 1, 2, 3, {}))
       self.assertEqual(log_info.call_count, 1)
-      self.assertRegexpMatches(
+      self.assertRegex(
               log_info.call_args[0][0],
               r'Exception during fetch for \[\'a\'\] after [-.e0-9]+s: TestFinder.find_nodes'
       )
@@ -158,7 +158,7 @@ class StorageTest(TestCase):
       with self.assertRaisesRegexp(Exception, message):
         list(store.fetch(['a'], 1, 2, 3, {}))
       self.assertEqual(log_info.call_count, 2)
-      self.assertRegexpMatches(
+      self.assertRegex(
               log_info.call_args[0][0],
               r'Exception during fetch for \[\'a\'\] after [-.e0-9]+s: TestFinder.find_nodes'
       )
@@ -224,7 +224,7 @@ class StorageTest(TestCase):
         with self.assertRaisesRegexp(Exception, message):
           list(store.find('a'))
         self.assertEqual(log_info.call_count, 1)
-        self.assertRegexpMatches(log_info.call_args[0][0], message)
+        self.assertRegex(log_info.call_args[0][0], message)
 
   def test_find_all_failed(self):
     # all finds failed
@@ -237,7 +237,7 @@ class StorageTest(TestCase):
       with self.assertRaisesRegexp(Exception, message):
         list(store.find('a'))
       self.assertEqual(log_info.call_count, 1)
-      self.assertRegexpMatches(
+      self.assertRegex(
         log_info.call_args[0][0],
         r'Exception during find <FindQuery: a from \* until \*> after [-.e0-9]+s: TestFinder.find_nodes'
       )
@@ -250,7 +250,7 @@ class StorageTest(TestCase):
       with self.assertRaisesRegexp(Exception, message):
         list(store.find('a'))
       self.assertEqual(log_info.call_count, 2)
-      self.assertRegexpMatches(
+      self.assertRegex(
         log_info.call_args[0][0],
         r'Exception during find <FindQuery: a from \* until \*> after [-.e0-9]+s: TestFinder.find_nodes'
       )
@@ -299,7 +299,7 @@ class StorageTest(TestCase):
         with self.assertRaisesRegexp(Exception, 'Timed out after .*'):
           store.get_index()
         self.assertEqual(log_info.call_count, 1)
-        self.assertRegexpMatches(log_info.call_args[0][0], 'Timed out after [-.e0-9]+s')
+        self.assertRegex(log_info.call_args[0][0], 'Timed out after [-.e0-9]+s')
 
   def test_get_index_all_failed(self):
     # all finders failed
@@ -311,7 +311,7 @@ class StorageTest(TestCase):
       with self.assertRaisesRegexp(Exception, 'All requests failed for get_index'):
         store.get_index()
       self.assertEqual(log_info.call_count, 1)
-      self.assertRegexpMatches(
+      self.assertRegex(
               log_info.call_args[0][0],
               'Exception during get_index after [-.e0-9]+s: TestFinder.find_nodes'
       )
@@ -324,7 +324,7 @@ class StorageTest(TestCase):
       with self.assertRaisesRegexp(Exception, r'All requests failed for get_index \(2\)'):
         store.get_index()
       self.assertEqual(log_info.call_count, 2)
-      self.assertRegexpMatches(
+      self.assertRegex(
               log_info.call_args[0][0],
               'Exception during get_index after [-.e0-9]+s: TestFinder.find_nodes'
       )

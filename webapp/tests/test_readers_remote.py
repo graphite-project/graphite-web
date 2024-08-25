@@ -28,7 +28,7 @@ class RemoteReaderTests(TestCase):
                               bulk_query=['a.b.c.d'])
 
         self.assertIsNotNone(reader)
-        self.assertRegexpMatches(str(reader), r"<RemoteReader\[.*\]: 127.0.0.1 a.b.c.d>")
+        self.assertRegex(str(reader), r"<RemoteReader\[.*\]: 127.0.0.1 a.b.c.d>")
         self.assertEqual(reader.get_intervals(), [])
 
     #
