@@ -1,13 +1,13 @@
 import os
 
 from django.db import models
+from django.utils.encoding import smart_str
 
 # Monkeypatching so that django-tagging can import python_2_unicode_compatible
 import django.utils.encoding
 import six
 django.utils.encoding.python_2_unicode_compatible = six.python_2_unicode_compatible
 django.utils.six = six
-from django.utils.encoding import smart_str
 django.utils.encoding.smart_text = smart_str
 from tagging.models import Tag  # noqa: E402
 
