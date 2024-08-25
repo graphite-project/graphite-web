@@ -10,8 +10,10 @@ if sys.version_info <= (2,7):
 required = 0
 optional = 0
 
+
 def versiontuple(v):
     return tuple(map(int, (v.split("."))))
+
 
 # Test for whisper
 try:
