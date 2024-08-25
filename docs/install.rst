@@ -33,12 +33,12 @@ been met or not.
 Basic Graphite requirements:
 
 * a UNIX-like Operating System
-* Python 2.7 or greater (including experimental Python3 support)
+* Python 3.8 or greater
 * `cairocffi`_
-* `Django`_ 1.8 - 2.2 (for Python3 - 1.11 and newer), 1.11.19 or newer is recommended 
-* `django-tagging`_ 0.4.6 (not `django-taggit` yet)
+* `Django`_ 4.2+
+* `django-tagging`_ 0.4.6 (not `django-taggit`, unfortunately)
 * `pytz`_
-* `scandir`_ (for Python older than 3.5)
+* `pyparsing` 2.3.0+
 * `fontconfig`_ and at least one font package (a system package usually)
 * A WSGI server and web server. Popular choices are:
 
