@@ -45,7 +45,7 @@ def jsonDetail(request, queryParams, event_id):
 
 
 def detail(request, event_id):
-    if request.META.get('HTTP_ACCEPT') == 'application/json':
+    if request.headers.get('accept') == 'application/json':
         return jsonDetail(request, event_id)
 
     e = get_object_or_404(Event, pk=event_id)

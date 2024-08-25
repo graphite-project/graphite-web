@@ -329,29 +329,29 @@ class glyphStandaloneFunctionTest(TestCase):
       (dt_out, delta_out) = glyph.find_x_times(self.dt, glyph.SEC, 1)
       expected_dt = self.datetime(self.dt.year, self.dt.month, self.dt.day, self.dt.hour, self.dt.minute, self.dt.second)
       expected_delta = self.timedelta(0, 1)
-      self.assertEquals(dt_out, expected_dt)
-      self.assertEquals(delta_out, expected_delta)
+      self.assertEqual(dt_out, expected_dt)
+      self.assertEqual(delta_out, expected_delta)
 
     def test_find_x_times_MIN(self):
       (dt_out, delta_out) = glyph.find_x_times(self.dt, glyph.MIN, 1)
       expected_dt = self.datetime(self.dt.year, self.dt.month, self.dt.day, self.dt.hour, self.dt.minute+1)
       expected_delta = self.timedelta(0, 60)
-      self.assertEquals(dt_out, expected_dt)
-      self.assertEquals(delta_out, expected_delta)
+      self.assertEqual(dt_out, expected_dt)
+      self.assertEqual(delta_out, expected_delta)
 
     def test_find_x_times_HOUR(self):
       (dt_out, delta_out) = glyph.find_x_times(self.dt, glyph.HOUR, 1)
       expected_dt = self.datetime(self.dt.year, self.dt.month, self.dt.day, self.dt.hour+1, 0)
       expected_delta = self.timedelta(0, 3600)
-      self.assertEquals(dt_out, expected_dt)
-      self.assertEquals(delta_out, expected_delta)
+      self.assertEqual(dt_out, expected_dt)
+      self.assertEqual(delta_out, expected_delta)
 
     def test_find_x_times_DAY(self):
       (dt_out, delta_out) =  glyph.find_x_times(self.dt, glyph.DAY, 1)
       expected_dt = self.datetime(self.dt.year, self.dt.month, self.dt.day+1, 0, 0)
       expected_delta = self.timedelta(1)
-      self.assertEquals(dt_out, expected_dt)
-      self.assertEquals(delta_out, expected_delta)
+      self.assertEqual(dt_out, expected_dt)
+      self.assertEqual(delta_out, expected_delta)
 
     def test_find_x_times_xconfigs(self):
       for xconf in glyph.xAxisConfigs:

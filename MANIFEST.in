@@ -8,5 +8,6 @@ include webapp/graphite/local_settings.py.example
 recursive-include distro/ *
 recursive-include webapp/graphite/ *.html
 recursive-include webapp/content/ *
+recursive-include webapp/tests/ *
 exclude webapp/graphite/local_settings.py
 exclude conf/*.conf

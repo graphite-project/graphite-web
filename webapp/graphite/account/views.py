@@ -16,7 +16,7 @@ from django.contrib.auth import authenticate, login, logout
 try:
     from django.urls import reverse
 except ImportError:  # Django < 1.10
-    from django.core.urlresolvers import reverse
+    from django.urls import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from graphite.user_util import getProfile, isAuthenticated

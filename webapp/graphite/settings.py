@@ -24,7 +24,7 @@ from django import VERSION as DJANGO_VERSION
 try:
     from django.urls import reverse_lazy
 except ImportError:  # Django < 1.10
-    from django.core.urlresolvers import reverse_lazy
+    from django.urls import reverse_lazy
 
 
 GRAPHITE_WEB_APP_SETTINGS_LOADED = False
