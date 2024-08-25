@@ -112,7 +112,7 @@ class UtilTest(TestCase):
         self.assertEqual(log.info.call_count, 2)
         self.assertRegex(log.info.call_args[0][0], r'test :: custom [-.e0-9]+s')
 
-        with self.assertRaisesRegexp(Exception, 'testException'):
+        with self.assertRaisesRegex(Exception, 'testException'):
             test_logtime(False)
         self.assertEqual(log.info.call_count, 3)
         self.assertRegex(log.info.call_args[0][0], r'test :: failed in [-.e0-9]+s')

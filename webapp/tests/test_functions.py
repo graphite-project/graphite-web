@@ -467,7 +467,7 @@ class FunctionsTest(TestCase):
     #
     def test_matchSeries_assert(self):
         seriesList = self._generate_series_list()
-        with self.assertRaisesRegexp(AssertionError, 'The number of series in each argument must be the same'):
+        with self.assertRaisesRegex(AssertionError, 'The number of series in each argument must be the same'):
             functions.matchSeries(seriesList[0], [])
 
     def test_matchSeries_empty(self):
@@ -682,7 +682,7 @@ class FunctionsTest(TestCase):
         self.assertEqual(result, expectedList)
 
     def test_aggregate_invalidFunc(self):
-        with self.assertRaisesRegexp(Exception, "Unsupported aggregation function: blahSeries"):
+        with self.assertRaisesRegex(Exception, "Unsupported aggregation function: blahSeries"):
             functions.aggregate({}, [], 'blahSeries')
 
     def test_aggregate_emptySeries(self):
@@ -730,7 +730,7 @@ class FunctionsTest(TestCase):
         self.assertEqual(result, expectedList)
 
     def test_percentileOfSeries_0th_percentile(self):
-        with self.assertRaisesRegexp(ValueError, 'The requested percent is required to be greater than 0'):
+        with self.assertRaisesRegex(ValueError, 'The requested percent is required to be greater than 0'):
             functions.percentileOfSeries({}, [], 0)
 
     def test_percentileOfSeries_empty_series(self):
@@ -960,7 +960,7 @@ class FunctionsTest(TestCase):
             ]
         )
 
-        with self.assertRaisesRegexp(ValueError, "asPercent second argument must be missing, a single digit, reference exactly 1 series or reference the same number of series as the first argument"):
+        with self.assertRaisesRegex(ValueError, "asPercent second argument must be missing, a single digit, reference exactly 1 series or reference the same number of series as the first argument"):
             functions.asPercent({}, seriesList, seriesList2)
 
     def test_asPercent_no_seriesList2(self):
@@ -1312,7 +1312,7 @@ class FunctionsTest(TestCase):
         )
 
         message = r"divideSeries second argument must reference exactly 1 series \(got 2\)"
-        with self.assertRaisesRegexp(ValueError, message):
+        with self.assertRaisesRegex(ValueError, message):
             functions.divideSeries({}, seriesList, seriesList2)
 
     def test_divideSeries_seriesList2_single(self):
@@ -2725,7 +2725,7 @@ class FunctionsTest(TestCase):
             tzinfo=pytz.utc
         )
         message = r"verticalLine\(\): timestamp 3600 exists before start of range"
-        with self.assertRaisesRegexp(ValueError, message):
+        with self.assertRaisesRegex(ValueError, message):
             _ = functions.verticalLine(requestContext, "01:0019700101", "foo")
 
     def test_vertical_line_after_end(self):
@@ -2735,7 +2735,7 @@ class FunctionsTest(TestCase):
             tzinfo=pytz.utc
         )
         message = r"verticalLine\(\): timestamp 31539600 exists after end of range"
-        with self.assertRaisesRegexp(ValueError, message):
+        with self.assertRaisesRegex(ValueError, message):
             _ = functions.verticalLine(requestContext, "01:0019710101", "foo")
 
     def test_line_width(self):
@@ -3823,7 +3823,7 @@ class FunctionsTest(TestCase):
             ]
         )
 
-        with self.assertRaisesRegexp(ValueError, '^Invalid parameters \\(Unsupported aggregation function: bad\\)$'):
+        with self.assertRaisesRegex(ValueError, '^Invalid parameters \\(Unsupported aggregation function: bad\\)$'):
             functions.aggregateLine(
                 self._build_requestContext(
                     startTime=datetime(1970,1,1,1,0,0,0,pytz.timezone(settings.TIME_ZONE)),
@@ -4611,7 +4611,7 @@ class FunctionsTest(TestCase):
             )
 
         with patch('graphite.render.functions.evaluateTarget', mock_evaluateTarget):
-            with self.assertRaisesRegexp(ValueError, '^Invalid parameters \\(Unsupported aggregation function: invalid\\)$'):
+            with self.assertRaisesRegex(ValueError, '^Invalid parameters \\(Unsupported aggregation function: invalid\\)$'):
                 functions.movingWindow(request_context, seriesList, 5, 'invalid')
 
     def test_movingWindow_xFilesFactor(self):
@@ -6455,7 +6455,7 @@ class FunctionsTest(TestCase):
             self.assertEqual(result, [])
 
         with patch('graphite.storage.STORE.tagdb', MockTagDB()):
-            with self.assertRaisesRegexp(ValueError, 'groupByTags\\(\\): no tags specified'):
+            with self.assertRaisesRegex(ValueError, 'groupByTags\\(\\): no tags specified'):
                 functions.groupByTags({}, [], 'sum')
 
             result = functions.groupByTags({}, seriesList, 'sum', 'server')

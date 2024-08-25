@@ -358,7 +358,7 @@ class MergeWithCacheTests(TestCase):
             cache_results.append((i, 1))
 
         # merge the db results with the cached results
-        with self.assertRaisesRegexp(Exception, "Invalid consolidation function: 'bad_function'"):
+        with self.assertRaisesRegex(Exception, "Invalid consolidation function: 'bad_function'"):
             values = merge_with_cache(
                 cached_datapoints=cache_results,
                 start=start,

@@ -131,7 +131,7 @@ class RenderTest(TestCase):
         ]
 
         message = r'invalid template\(\) syntax, only string/numeric arguments are allowed'
-        with self.assertRaisesRegexp(ValueError, message):
+        with self.assertRaisesRegex(ValueError, message):
             evaluateTarget({}, test_input)
 
     @patch('graphite.render.evaluator.prefetchData', lambda *_: None)
@@ -180,11 +180,11 @@ class RenderTest(TestCase):
             float = None
             scientific = None
 
-        with self.assertRaisesRegexp(ValueError, 'unknown token in target evaluator'):
+        with self.assertRaisesRegex(ValueError, 'unknown token in target evaluator'):
             tokens = ScalarToken()
             evaluateScalarTokens(tokens)
 
-        with self.assertRaisesRegexp(ValueError, 'unknown numeric type in target evaluator'):
+        with self.assertRaisesRegex(ValueError, 'unknown numeric type in target evaluator'):
             tokens = ScalarToken()
             tokens.number = ScalarTokenNumber()
             evaluateScalarTokens(tokens)

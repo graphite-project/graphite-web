@@ -166,7 +166,7 @@ class RemoteFinderTest(TestCase):
       responseObject = HTTPResponse(body=BytesIO(b'error'), status=200, preload_content=False)
       http_request.return_value = responseObject
 
-      with self.assertRaisesRegexp(Exception, 'Error decoding response from https://[^ ]+: .+'):
+      with self.assertRaisesRegex(Exception, 'Error decoding response from https://[^ ]+: .+'):
         finder.find_nodes(query)
 
     @patch('graphite.finders.remote.cache.get')
@@ -300,7 +300,7 @@ class RemoteFinderTest(TestCase):
       responseObject = HTTPResponse(body=BytesIO(b'error'), status=200, preload_content=False)
       http_request.return_value = responseObject
 
-      with self.assertRaisesRegexp(Exception, 'Error decoding index response from http://[^ ]+: .+'):
+      with self.assertRaisesRegex(Exception, 'Error decoding index response from http://[^ ]+: .+'):
         result = finder.get_index({})
 
     @patch('urllib3.PoolManager.request')
@@ -379,7 +379,7 @@ class RemoteFinderTest(TestCase):
       responseObject = HTTPResponse(body=BytesIO(b'error'), status=200, preload_content=False)
       http_request.return_value = responseObject
 
-      with self.assertRaisesRegexp(Exception, 'Error decoding autocomplete tags response from http://[^ ]+: .+'):
+      with self.assertRaisesRegex(Exception, 'Error decoding autocomplete tags response from http://[^ ]+: .+'):
         result = finder.auto_complete_tags(['name=test'], 'tag')
 
     @patch('urllib3.PoolManager.request')
@@ -460,5 +460,5 @@ class RemoteFinderTest(TestCase):
       responseObject = HTTPResponse(body=BytesIO(b'error'), status=200, preload_content=False)
       http_request.return_value = responseObject
 
-      with self.assertRaisesRegexp(Exception, 'Error decoding autocomplete values response from http://[^ ]+: .+'):
+      with self.assertRaisesRegex(Exception, 'Error decoding autocomplete values response from http://[^ ]+: .+'):
         result = finder.auto_complete_values(['name=test'], 'tag1', 'value')

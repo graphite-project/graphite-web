@@ -372,7 +372,7 @@ class TagsTest(TestCase):
     with patch('graphite.http_pool.http.request', mockRequest):
       self._test_tagdb(db)
 
-      with self.assertRaisesRegexp(Exception, 'HTTP Error from remote tagdb: 405'):
+      with self.assertRaisesRegex(Exception, 'HTTP Error from remote tagdb: 405'):
         db.get_tag('delSeries')
 
       db.username = 'test'
