@@ -31,7 +31,7 @@ class ATTimeTimezoneTests(TestCase):
 
     def test_should_return_absolute_time(self):
         time_string = '12:0020150308'
-        expected_time = self.default_tz.localize(datetime.strptime(time_string,'%H:%M%Y%m%d'))
+        expected_time = pytz.timezone(str(self.default_tz)).localize(datetime.strptime("11:00_20171013", '%H:%M_%Y%m%d'))
         actual_time = parseATTime(time_string)
         self.assertEqual(actual_time, expected_time)
 
@@ -43,7 +43,7 @@ class ATTimeTimezoneTests(TestCase):
 
     def test_should_return_absolute_time_short(self):
         time_string = '9:0020150308'
-        expected_time = self.default_tz.localize(datetime.strptime(time_string,'%H:%M%Y%m%d'))
+        expected_time = pytz.timezone(str(self.default_tz)).localize(datetime.strptime(time_string,'%H:%M%Y%m%d'))
         actual_time = parseATTime(time_string)
         self.assertEqual(actual_time, expected_time)
 
@@ -80,7 +80,7 @@ class ATTimeTimezoneTests(TestCase):
         self.assertEqual(actual_time, expected_time)
 
     def test_should_return_current_time(self):
-        expected_time = self.default_tz.localize(datetime.strptime("12:00_20150308", '%H:%M_%Y%m%d'))
+        expected_time = pytz.timezone(str(self.default_tz)).localize(datetime.strptime("12:00_20150308", '%H:%M_%Y%m%d'))
         actual_time = parseATTime("now")
         self.assertEqual(actual_time, expected_time)
 
@@ -465,7 +465,7 @@ class parseATTimeTestNow(TestCase):
 
     def test_should_return_absolute_time(self):
         time_string = '12:0020150308'
-        expected_time = self.default_tz.localize(datetime.strptime(time_string,'%H:%M%Y%m%d'))
+        expected_time = pytz.timezone(str(self.default_tz)).localize(datetime.strptime(time_string,'%H:%M%Y%m%d'))
         actual_time = parseATTime(time_string, now=self.now)
         self.assertEqual(actual_time, expected_time)
 
@@ -477,7 +477,7 @@ class parseATTimeTestNow(TestCase):
 
     def test_should_return_absolute_time_short(self):
         time_string = '9:0020150308'
-        expected_time = self.default_tz.localize(datetime.strptime(time_string,'%H:%M%Y%m%d'))
+        expected_time = pytz.timezone(str(self.default_tz)).localize(datetime.strptime(time_string,'%H:%M%Y%m%d'))
         actual_time = parseATTime(time_string, now=self.now)
         self.assertEqual(actual_time, expected_time)
 
@@ -514,7 +514,7 @@ class parseATTimeTestNow(TestCase):
         self.assertEqual(actual_time, expected_time)
 
     def test_should_return_current_time(self):
-        expected_time = self.default_tz.localize(datetime.strptime("11:00_20171013", '%H:%M_%Y%m%d'))
+        expected_time = pytz.timezone(str(self.default_tz)).localize(datetime.strptime("11:00_20171013", '%H:%M_%Y%m%d'))
         actual_time = parseATTime("now", now=self.now)
         self.assertEqual(actual_time, expected_time)
 
