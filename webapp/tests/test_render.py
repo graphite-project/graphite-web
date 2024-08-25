@@ -23,7 +23,7 @@ from django.conf import settings
 try:
     from django.urls import reverse
 except ImportError:  # Django < 1.10
-    from django.core.urlresolvers import reverse
+    from django.urls import reverse
 from django.http import HttpRequest, QueryDict
 from .base import TestCase
 

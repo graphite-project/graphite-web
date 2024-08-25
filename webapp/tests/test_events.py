@@ -6,7 +6,7 @@ from datetime import timedelta
 try:
     from django.urls import reverse
 except ImportError:  # Django < 1.10
-    from django.core.urlresolvers import reverse
+    from django.urls import reverse
 from .base import TestCase
 from django.utils import timezone
 
@@ -203,7 +203,7 @@ class EventTest(TestCase):
         self.assertEqual(len(events), 1)
 
         url = reverse('events_detail', args=[events[0]['id']])
-        response = self.client.get(url, {}, HTTP_ACCEPT='application/json')
+        response = self.client.get(url, {}, headers={"accept": 'application/json'})
         self.assertEqual(response.status_code, 200)
         event = json.loads(response.content)
         self.assertEqual(event['what'], 'Something happened')
@@ -216,7 +216,7 @@ class EventTest(TestCase):
 
     def test_get_detail_json_object_does_not_exist(self):
         url = reverse('events_detail', args=[1])
-        response = self.client.get(url, {}, HTTP_ACCEPT='application/json')
+        response = self.client.get(url, {}, headers={"accept": 'application/json'})
         self.assertEqual(response.status_code, 404)
         event = json.loads(response.content)
         self.assertEqual(event['error'], 'Event matching query does not exist')

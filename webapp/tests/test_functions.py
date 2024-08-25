@@ -16,7 +16,7 @@ from django.conf import settings
 try:
     from django.urls import reverse
 except ImportError:  # Django < 1.10
-    from django.core.urlresolvers import reverse
+    from django.urls import reverse
 
 from graphite.errors import NormalizeEmptyResultError, InputParameterError
 from graphite.functions import _SeriesFunctions, loadFunctions, safe
