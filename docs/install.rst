@@ -36,7 +36,7 @@ Basic Graphite requirements:
 * Python 3.8 or greater
 * `cairocffi`_
 * `Django`_ 4.2+
-* `django-tagging`_ 0.4.6 (not `django-taggit`, unfortunately)
+* `django-tagging`_ 0.5.0 (not `django-taggit`, unfortunately)
 * `pytz`_
 * `pyparsing` 2.3.0+
 * `fontconfig`_ and at least one font package (a system package usually)

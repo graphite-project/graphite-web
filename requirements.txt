@@ -35,10 +35,10 @@
 #   deactivate
 #
 
-Django>=4.2,<5
+Django>=4.2,<6
 python-memcached>=1.58
 txAMQP>=0.8.2,<0.9
-django-tagging
+django-tagging==0.5.0
 gunicorn
 pytz
 pyparsing>=2.3.0
