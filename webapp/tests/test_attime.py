@@ -102,12 +102,12 @@ class ATTimeTimezoneTests(TestCase):
     def test_parse_naive_datetime(self):
         time_ref = parseATTime(datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 8, 50), self.specified_tz)
         expected = self.specified_tz.localize(datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 8, 50))
-        self.assertEquals(time_ref, expected)
+        self.assertEqual(time_ref, expected)
 
     def test_parse_zone_aware_datetime(self):
         time_ref = parseATTime(self.specified_tz.localize(datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 8, 50)), self.specified_tz)
         expected = self.specified_tz.localize(datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 8, 50))
-        self.assertEquals(time_ref, expected)
+        self.assertEqual(time_ref, expected)
 
 
 @mock.patch('graphite.render.attime.datetime', mockDateTime(2015, 1, 1, 11, 0, 0))
@@ -118,11 +118,11 @@ class parseTimeReferenceTest(TestCase):
 
     def test_parse_empty_return_now(self):
         time_ref = parseTimeReference('')
-        self.assertEquals(time_ref, self.MOCK_DATE)
+        self.assertEqual(time_ref, self.MOCK_DATE)
 
     def test_parse_None_return_now(self):
         time_ref = parseTimeReference(None)
-        self.assertEquals(time_ref, self.MOCK_DATE)
+        self.assertEqual(time_ref, self.MOCK_DATE)
 
     def test_parse_random_string_raise_Exception(self):
         with self.assertRaises(Exception):
@@ -130,7 +130,7 @@ class parseTimeReferenceTest(TestCase):
 
     def test_parse_now_return_now(self):
         time_ref = parseTimeReference("now")
-        self.assertEquals(time_ref, self.MOCK_DATE)
+        self.assertEqual(time_ref, self.MOCK_DATE)
 
     def test_parse_colon_raises_ValueError(self):
         with self.assertRaises(ValueError):
@@ -139,32 +139,32 @@ class parseTimeReferenceTest(TestCase):
     def test_parse_naive_datetime(self):
         time_ref = parseTimeReference(datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 8, 50))
         expected = self.zone.localize(datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 8, 50))
-        self.assertEquals(time_ref, expected)
+        self.assertEqual(time_ref, expected)
 
     def test_parse_zone_aware_datetime(self):
         time_ref = parseTimeReference(self.zone.localize(datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 8, 50)))
         expected = self.zone.localize(datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 8, 50))
-        self.assertEquals(time_ref, expected)
+        self.assertEqual(time_ref, expected)
 
     def test_parse_hour_return_hour_of_today(self):
         time_ref = parseTimeReference("8:50")
         expected = self.zone.localize(datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 8, 50))
-        self.assertEquals(time_ref, expected)
+        self.assertEqual(time_ref, expected)
 
     def test_parse_hour_am(self):
         time_ref = parseTimeReference("8:50am")
         expected = self.zone.localize(datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 8, 50))
-        self.assertEquals(time_ref, expected)
+        self.assertEqual(time_ref, expected)
 
     def test_parse_hour_pm(self):
         time_ref = parseTimeReference("8:50pm")
         expected = self.zone.localize(datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 20, 50))
-        self.assertEquals(time_ref, expected)
+        self.assertEqual(time_ref, expected)
 
     def test_parse_hour_only_am(self):
         time_ref = parseTimeReference("8am")
         expected = self.zone.localize(datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 8, 0))
-        self.assertEquals(time_ref, expected)
+        self.assertEqual(time_ref, expected)
 
     def test_parse_hour_only_pm(self):
         time_ref = parseTimeReference("10pm")
