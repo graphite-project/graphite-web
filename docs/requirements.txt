@@ -1,6 +1,6 @@
 ## Requirements for documentation
 cairocffi
-django-tagging==0.4.6
+django-tagging
 pytz
 git+https://github.com/graphite-project/whisper.git#egg=whisper
 git+https://github.com/graphite-project/ceres.git#egg=ceres
