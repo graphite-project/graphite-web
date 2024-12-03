@@ -288,7 +288,7 @@ def set_metadata_view(request):
       results[metric] = dict(error="Unexpected error occurred in CarbonLink.set_metadata(%s, %s)" % (metric, key))
 
   elif request.method == 'POST':
-    if request.META.get('CONTENT_TYPE') == 'application/json':
+    if request.headers.get('content-type') == 'application/json':
       operations = json.loads( request.body )
     else:
       operations = json.loads( request.POST['operations'] )
@@ -414,7 +414,7 @@ def json_nodes(nodes):
 
 
 def json_response_for(request, data, content_type='application/json', jsonp=False, **kwargs):
-  accept = request.META.get('HTTP_ACCEPT', 'application/json')
+  accept = request.headers.get('accept', 'application/json')
   ensure_ascii = accept == 'application/json'
 
   pretty = bool(request.POST.get('pretty', request.GET.get('pretty')))

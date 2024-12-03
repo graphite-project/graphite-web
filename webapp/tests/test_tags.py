@@ -319,7 +319,7 @@ class TagsTest(TestCase):
     self.assertEqual(result, [])
 
     self.assertEqual(mockLog.info.call_count, 1)
-    self.assertRegexpMatches(
+    self.assertRegex(
       mockLog.info.call_args[0][0],
       r'graphite\.tags\.localdatabase\.LocalDatabaseTagDB\.find_series :: completed \(cached\) in [-.e0-9]+s'
     )
@@ -364,7 +364,7 @@ class TagsTest(TestCase):
     with patch('graphite.http_pool.http.request', mockRequest):
       self._test_tagdb(db)
 
-      with self.assertRaisesRegexp(Exception, 'HTTP Error from remote tagdb: 405'):
+      with self.assertRaisesRegex(Exception, 'HTTP Error from remote tagdb: 405'):
         db.get_tag('delSeries')
 
       db.username = 'test'

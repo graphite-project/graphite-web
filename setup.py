@@ -105,7 +105,7 @@ try:
       package_data={'graphite': ['templates/*', 'local_settings.py.example']},
       scripts=glob('bin/*'),
       data_files=list(webapp_content.items()) + storage_dirs + conf_files + examples,
-      install_requires=['Django>=3.2,<4', 'django-tagging==0.4.3', 'pytz',
+      install_requires=['Django>=3.2,<4', 'django-tagging==0.5.0', 'pytz',
                         'pyparsing', 'cairocffi', 'urllib3', 'six'],
       classifiers=[
           'Intended Audience :: Developers',

@@ -247,7 +247,7 @@ class TimeSeriesTest(TestCase):
 
       series.consolidate(2)
       self.assertEqual(series.valuesPerPoint, 2)
-      with self.assertRaisesRegexp(Exception, "Invalid consolidation function: 'bogus'"):
+      with self.assertRaisesRegex(Exception, "Invalid consolidation function: 'bogus'"):
         _ = list(series)
 
 

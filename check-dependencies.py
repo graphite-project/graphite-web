@@ -11,6 +11,10 @@ required = 0
 optional = 0
 
 
+def versiontuple(v):
+    return tuple(map(int, (v.split("."))))
+
+
 # Test for whisper
 try:
     import whisper
@@ -92,6 +96,10 @@ except ImportError:
     sys.stderr.write("[REQUIRED] Unable to import the 'pyparsing' module, "
                      "do you have pyparsing module installed for python %s?\n" % sys.version_info.major)
     required += 1
+if versiontuple(pyparsing.__version__) < versiontuple("2.3.0"):
+    sys.stderr.write("[REQUIRED] You have pyparsing version %s installed, "
+                     "but version 2.3.0 or greater is required\n" % pyparsing.__version__)
+    required += 1
 
 
 # Test for django-tagging
@@ -103,9 +111,9 @@ except ImportError:
     required += 1
 
 
-if django and django.VERSION[:2] < (1,8):
+if django and django.VERSION[:2] < (4,2):
     sys.stderr.write("[REQUIRED] You have django version %s installed, "
-                     "but version 1.8 or greater is required\n" % django.get_version())
+                     "but version 4.2 or greater is required\n" % django.get_version())
     required += 1
 
 
