@@ -10,7 +10,6 @@ from django.utils import timezone
 from .base import TestCase
 import pytz
 import mock
-from zoneinfo import ZoneInfo  # Import ZoneInfo from zoneinfo module
 
 
 def mockDateTime(year, month, day, hour, minute, second):
@@ -18,7 +17,7 @@ def mockDateTime(year, month, day, hour, minute, second):
         @classmethod
         def now(cls, tzinfo=None):
             if tzinfo:
-                return cls(year, month, day, hour, minute, second).replace(tzinfo=tzinfo)  # Use replace instead of localize
+                return tzinfo.localize(cls(year, month, day, hour, minute, second))
             return cls(year, month, day, hour, minute, second)
 
     return MockedDateTime
@@ -26,88 +25,125 @@ def mockDateTime(year, month, day, hour, minute, second):
 
 @mock.patch('graphite.render.attime.datetime', mockDateTime(2015, 3, 8, 12, 0, 0))
 class ATTimeTimezoneTests(TestCase):
-    default_tz = ZoneInfo(str(timezone.get_current_timezone()))  # Convert to ZoneInfo
-    specified_tz = ZoneInfo("America/Los_Angeles")  # Use ZoneInfo instead of pytz
-    MOCK_DATE = datetime(2015, 1, 1, 11, 00, tzinfo=specified_tz)  # Attach time zone using tzinfo
+    default_tz = timezone.get_current_timezone()
+    specified_tz = pytz.timezone("America/Los_Angeles")
+    MOCK_DATE = specified_tz.localize(datetime(2015, 1, 1, 11, 00))
 
     def test_should_return_absolute_time(self):
         time_string = '12:0020150308'
-        expected_time = datetime.strptime(time_string, '%H:%M%Y%m%d').replace(tzinfo=self.default_tz)  # Use replace
+        expected_time = self.default_tz.localize(datetime.strptime(time_string,'%H:%M%Y%m%d'))
         actual_time = parseATTime(time_string)
         self.assertEqual(actual_time, expected_time)
 
     def test_absolute_time_should_respect_tz(self):
         time_string = '12:0020150308'
-        expected_time = datetime.strptime(time_string, '%H:%M%Y%m%d').replace(tzinfo=self.specified_tz)  # Use replace
+        expected_time = self.specified_tz.localize(datetime.strptime(time_string, '%H:%M%Y%m%d'))
         actual_time = parseATTime(time_string, self.specified_tz)
         self.assertEqual(actual_time, expected_time)
 
     def test_should_return_absolute_time_short(self):
         time_string = '9:0020150308'
-        expected_time = datetime.strptime(time_string, '%H:%M%Y%m%d').replace(tzinfo=self.default_tz)  # Use replace
+        expected_time = self.default_tz.localize(datetime.strptime(time_string,'%H:%M%Y%m%d'))
         actual_time = parseATTime(time_string)
         self.assertEqual(actual_time, expected_time)
 
     def test_absolute_time_should_respect_tz_short(self):
         time_string = '9:0020150308'
-        expected_time = datetime.strptime(time_string, '%H:%M%Y%m%d').replace(tzinfo=self.specified_tz)  # Use replace
+        expected_time = self.specified_tz.localize(datetime.strptime(time_string, '%H:%M%Y%m%d'))
         actual_time = parseATTime(time_string, self.specified_tz)
         self.assertEqual(actual_time, expected_time)
 
     def test_absolute_time_YYYYMMDD(self):
         time_string = '20150110'
-        expected_time = datetime.strptime(time_string, '%Y%m%d').replace(tzinfo=self.specified_tz)  # Use replace
+        expected_time = self.specified_tz.localize(datetime.strptime(time_string, '%Y%m%d'))
         actual_time = parseATTime(time_string, self.specified_tz)
         self.assertEqual(actual_time, expected_time)
 
     def test_midnight(self):
-        expected_time = datetime.strptime("0:00_20150308", '%H:%M_%Y%m%d').replace(tzinfo=self.specified_tz)  # Use replace
+        expected_time = self.specified_tz.localize(datetime.strptime("0:00_20150308", '%H:%M_%Y%m%d'))
         actual_time = parseATTime("midnight", self.specified_tz)
         self.assertEqual(actual_time, expected_time)
 
     def test_offset_with_tz(self):
-        expected_time = datetime.strptime("1:00_20150308", '%H:%M_%Y%m%d').replace(tzinfo=self.specified_tz)  # Use replace
+        expected_time = self.specified_tz.localize(datetime.strptime("1:00_20150308", '%H:%M_%Y%m%d'))
         actual_time = parseATTime("midnight+1h", self.specified_tz)
         self.assertEqual(actual_time, expected_time)
 
     def test_relative_day_with_tz(self):
-        expected_time = datetime.strptime("0:00_20150309", '%H:%M_%Y%m%d').replace(tzinfo=self.specified_tz)  # Use replace
+        expected_time = self.specified_tz.localize(datetime.strptime("0:00_20150309", '%H:%M_%Y%m%d'))
         actual_time = parseATTime("midnight_tomorrow", self.specified_tz)
         self.assertEqual(actual_time, expected_time)
 
     def test_relative_day_and_offset_with_tz(self):
-        expected_time = datetime.strptime("3:00_20150309", '%H:%M_%Y%m%d').replace(tzinfo=self.specified_tz)  # Use replace
+        expected_time = self.specified_tz.localize(datetime.strptime("3:00_20150309", '%H:%M_%Y%m%d'))
         actual_time = parseATTime("midnight_tomorrow+3h", self.specified_tz)
         self.assertEqual(actual_time, expected_time)
 
     def test_should_return_current_time(self):
-        expected_time = datetime.strptime("12:00_20150308", '%H:%M_%Y%m%d').replace(tzinfo=self.default_tz)  # Use replace
+        expected_time = self.default_tz.localize(datetime.strptime("12:00_20150308", '%H:%M_%Y%m%d'))
         actual_time = parseATTime("now")
         self.assertEqual(actual_time, expected_time)
 
     def test_now_should_respect_tz(self):
-        expected_time = datetime.strptime("12:00_20150308", '%H:%M_%Y%m%d').replace(tzinfo=self.specified_tz)  # Use replace
+        expected_time = self.specified_tz.localize(datetime.strptime("12:00_20150308", '%H:%M_%Y%m%d'))
         actual_time = parseATTime("now", self.specified_tz)
         self.assertEqual(actual_time, expected_time)
 
     def test_relative_time_in_alternate_zone(self):
-        expected_time = datetime.strptime("11:00_20150308", '%H:%M_%Y%m%d').replace(tzinfo=self.specified_tz)  # Use replace
+        expected_time = self.specified_tz.localize(datetime.strptime("11:00_20150308", '%H:%M_%Y%m%d'))
         actual_time = parseATTime("-1h", self.specified_tz)
         self.assertEqual(actual_time.hour, expected_time.hour)
 
     def test_should_handle_dst_boundary(self):
-        expected_time = datetime.strptime("04:00_20150308", '%H:%M_%Y%m%d').replace(tzinfo=self.specified_tz)  # Use replace
+        expected_time = self.specified_tz.localize(datetime.strptime("04:00_20150308", '%H:%M_%Y%m%d'))
         actual_time = parseATTime("midnight+3h", self.specified_tz)
         self.assertEqual(actual_time, expected_time)
 
     def test_parse_naive_datetime(self):
         time_ref = parseATTime(datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 8, 50), self.specified_tz)
-        expected = datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 8, 50, tzinfo=self.specified_tz)  # Use tzinfo
+        expected = self.specified_tz.localize(datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 8, 50))
         self.assertEqual(time_ref, expected)
 
     def test_parse_zone_aware_datetime(self):
-        time_ref = parseATTime(self.MOCK_DATE.replace(hour=8, minute=50), self.specified_tz)
-        expected = datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 8, 50, tzinfo=self.specified_tz)  # Use tzinfo
+        time_ref = parseATTime(self.specified_tz.localize(datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 8, 50)), self.specified_tz)
+        expected = self.specified_tz.localize(datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 8, 50))
+        self.assertEqual(time_ref, expected)
+
+
+@mock.patch('graphite.render.attime.datetime', mockDateTime(2015, 1, 1, 11, 0, 0))
+class parseTimeReferenceTest(TestCase):
+
+    zone = pytz.utc
+    MOCK_DATE = zone.localize(datetime(2015, 1, 1, 11, 00))
+
+    def test_parse_empty_return_now(self):
+        time_ref = parseTimeReference('')
+        self.assertEqual(time_ref, self.MOCK_DATE)
+
+    def test_parse_None_return_now(self):
+        time_ref = parseTimeReference(None)
+        self.assertEqual(time_ref, self.MOCK_DATE)
+
+    def test_parse_random_string_raise_Exception(self):
+        with self.assertRaises(Exception):
+            parseTimeReference("random")
+
+    def test_parse_now_return_now(self):
+        time_ref = parseTimeReference("now")
+        self.assertEqual(time_ref, self.MOCK_DATE)
+
+    def test_parse_colon_raises_ValueError(self):
+        with self.assertRaises(ValueError):
+            parseTimeReference(":")
+
+    def test_parse_naive_datetime(self):
+        time_ref = parseTimeReference(datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 8, 50))
+        expected = self.zone.localize(datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 8, 50))
+        self.assertEqual(time_ref, expected)
+
+    def test_parse_zone_aware_datetime(self):
+        time_ref = parseTimeReference(self.zone.localize(datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 8, 50)))
+        expected = self.zone.localize(datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 8, 50))
         self.assertEqual(time_ref, expected)
 
     def test_parse_hour_return_hour_of_today(self):
