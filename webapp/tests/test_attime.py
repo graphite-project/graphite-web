@@ -466,81 +466,82 @@ class parseATTimeTestNow(TestCase):
     default_tz = timezone.get_current_timezone()
     specified_tz = pytz.timezone("America/Los_Angeles")
     now = '11:0020171013'
-    MOCK_DATE = specified_tz.localize(datetime(2015, 1, 1, 11, 00))
+    MOCK_DATE = make_aware(datetime(2015, 1, 1, 11, 00), specified_tz)
 
     def test_should_return_absolute_time(self):
         time_string = '12:0020150308'
-        expected_time = self.default_tz.localize(datetime.strptime(time_string,'%H:%M%Y%m%d'))
+        expected_time = make_aware(datetime.strptime(time_string,'%H:%M%Y%m%d'), self.default_tz)
         actual_time = parseATTime(time_string, now=self.now)
         self.assertEqual(actual_time, expected_time)
 
     def test_absolute_time_should_respect_tz(self):
         time_string = '12:0020150308'
-        expected_time = self.specified_tz.localize(datetime.strptime(time_string, '%H:%M%Y%m%d'))
+        expected_time = make_aware(datetime.strptime(time_string, '%H:%M%Y%m%d'), self.specified_tz)
         actual_time = parseATTime(time_string, self.specified_tz, now=self.now)
         self.assertEqual(actual_time, expected_time)
 
     def test_should_return_absolute_time_short(self):
         time_string = '9:0020150308'
-        expected_time = self.default_tz.localize(datetime.strptime(time_string,'%H:%M%Y%m%d'))
+        expected_time = make_aware(datetime.strptime(time_string,'%H:%M%Y%m%d'), self.default_tz)
         actual_time = parseATTime(time_string, now=self.now)
         self.assertEqual(actual_time, expected_time)
 
     def test_absolute_time_should_respect_tz_short(self):
         time_string = '9:0020150308'
-        expected_time = self.specified_tz.localize(datetime.strptime(time_string, '%H:%M%Y%m%d'))
+        expected_time = make_aware(datetime.strptime(time_string, '%H:%M%Y%m%d'), self.specified_tz)
         actual_time = parseATTime(time_string, self.specified_tz, now=self.now)
         self.assertEqual(actual_time, expected_time)
 
     def test_absolute_time_YYYYMMDD(self):
         time_string = '20150110'
-        expected_time = self.specified_tz.localize(datetime.strptime(time_string, '%Y%m%d'))
+        expected_time = make_aware(datetime.strptime(time_string, '%Y%m%d'), self.specified_tz)
         actual_time = parseATTime(time_string, self.specified_tz, now=self.now)
         self.assertEqual(actual_time, expected_time)
 
     def test_midnight(self):
-        expected_time = self.specified_tz.localize(datetime.strptime("0:00_20171013", '%H:%M_%Y%m%d'))
+        expected_time = make_aware(datetime.strptime("0:00_20171013", '%H:%M_%Y%m%d'), self.specified_tz)
         actual_time = parseATTime("midnight", self.specified_tz, now=self.now)
         self.assertEqual(actual_time, expected_time)
 
     def test_offset_with_tz(self):
-        expected_time = self.specified_tz.localize(datetime.strptime("1:00_20171013", '%H:%M_%Y%m%d'))
+        expected_time = make_aware(datetime.strptime("1:00_20171013", '%H:%M_%Y%m%d'), self.specified_tz)
         actual_time = parseATTime("midnight+1h", self.specified_tz, now=self.now)
         self.assertEqual(actual_time, expected_time)
 
     def test_relative_day_with_tz(self):
-        expected_time = self.specified_tz.localize(datetime.strptime("0:00_20171014", '%H:%M_%Y%m%d'))
+        expected_time = make_aware(datetime.strptime("0:00_20171014", '%H:%M_%Y%m%d'), self.specified_tz)
         actual_time = parseATTime("midnight_tomorrow", self.specified_tz, now=self.now)
         self.assertEqual(actual_time, expected_time)
 
     def test_relative_day_and_offset_with_tz(self):
-        expected_time = self.specified_tz.localize(datetime.strptime("3:00_20171014", '%H:%M_%Y%m%d'))
+        expected_time = make_aware(datetime.strptime("3:00_20171014", '%H:%M_%Y%m%d'), self.specified_tz)
         actual_time = parseATTime("midnight_tomorrow+3h", self.specified_tz, now=self.now)
         self.assertEqual(actual_time, expected_time)
 
     def test_should_return_current_time(self):
-        expected_time = self.default_tz.localize(datetime.strptime("11:00_20171013", '%H:%M_%Y%m%d'))
+        expected_time = make_aware(datetime.strptime("11:00_20171013", '%H:%M_%Y%m%d'), self.default_tz)
         actual_time = parseATTime("now", now=self.now)
         self.assertEqual(actual_time, expected_time)
 
     def test_now_should_respect_tz(self):
-        expected_time = self.specified_tz.localize(datetime.strptime("11:00_20171013", '%H:%M_%Y%m%d'))
+        expected_time = make_aware(datetime.strptime("11:00_20171013", '%H:%M_%Y%m%d'), self.specified_tz)
         actual_time = parseATTime("now", self.specified_tz, now=self.now)
         self.assertEqual(actual_time, expected_time)
 
     def test_relative_time_in_alternate_zone(self):
-        expected_time = self.specified_tz.localize(datetime.strptime("10:00_20171013", '%H:%M_%Y%m%d'))
+        expected_time = make_aware(datetime.strptime("10:00_20171013", '%H:%M_%Y%m%d'), self.specified_tz)
         actual_time = parseATTime("-1h", self.specified_tz, now=self.now)
         self.assertEqual(actual_time.hour, expected_time.hour)
 
     def test_parse_naive_datetime(self):
         time_ref = parseATTime(datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 8, 50), self.specified_tz, now=self.now)
-        expected = self.specified_tz.localize(datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 8, 50))
+        expected = make_aware(datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 8, 50), self.specified_tz)
         self.assertEqual(time_ref, expected)
 
     def test_parse_zone_aware_datetime(self):
-        time_ref = parseATTime(self.specified_tz.localize(datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 8, 50)), self.specified_tz, now=self.now)
-        expected = self.specified_tz.localize(datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 8, 50))
+        aware_dt = make_aware(datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 8, 50), self.specified_tz)
+        time_ref = parseATTime(aware_dt, self.specified_tz, now=self.now)
+        expected = make_aware(datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 8, 50), self.specified_tz)
         self.assertEqual(time_ref, expected)
 
 
