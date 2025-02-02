@@ -6,6 +6,7 @@ on:
   pull_request:
     # The branches below must be a subset of the branches above
     branches: [ master, 1.0.x, 1.1.x ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -37,7 +38,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
 
     steps:
       - uses: actions/checkout@v4
@@ -66,7 +67,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip 'setuptools<58' --force-reinstall
-          pip install 'tox<4' tox-gh-actions flake8 pytest
+          pip install 'tox<4' tox-gh-actions flake8 pytest pytz
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Test with tox
         env:
@@ -81,24 +82,24 @@ jobs:
         run: |
           tox
       - name: Linting
-        if: ${{ matrix.python-version==3.12 }}
+        if: ${{ matrix.python-version==3.13 }}
         env:
           TOXENV: lint
         run: |
           tox
       - name: Testing documentation
-        if: ${{ matrix.python-version==3.12 }}
+        if: ${{ matrix.python-version==3.13 }}
         env:
           TOXENV: docs
         run: |
           tox
       - name: Run Codecov
-        if: ${{ matrix.python-version==3.12 }}
+        if: ${{ matrix.python-version==3.13 }}
         env:
           TOXENV: lint
         run: |
           pip install codecov
           codecov
       - name: Upload coverage to Codecov
-        if: ${{ matrix.python-version==3.12 }}
+        if: ${{ matrix.python-version==3.13 }}
         uses: codecov/codecov-action@v4
