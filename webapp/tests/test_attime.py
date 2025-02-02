@@ -18,6 +18,7 @@ def make_aware(dt, timezone):
     else:
         return dt.replace(tzinfo=timezone)
 
+
 def mockDateTime(year, month, day, hour, minute, second):
     class MockedDateTime(datetime):
         @classmethod
