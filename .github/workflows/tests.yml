@@ -82,24 +82,24 @@ jobs:
         run: |
           tox
       - name: Linting
-        if: ${{ matrix.python-version==3.12 }}
+        if: ${{ matrix.python-version==3.13 }}
         env:
           TOXENV: lint
         run: |
           tox
       - name: Testing documentation
-        if: ${{ matrix.python-version==3.12 }}
+        if: ${{ matrix.python-version==3.13 }}
         env:
           TOXENV: docs
         run: |
           tox
       - name: Run Codecov
-        if: ${{ matrix.python-version==3.12 }}
+        if: ${{ matrix.python-version==3.13 }}
         env:
           TOXENV: lint
         run: |
           pip install codecov
           codecov
       - name: Upload coverage to Codecov
-        if: ${{ matrix.python-version==3.12 }}
+        if: ${{ matrix.python-version==3.13 }}
         uses: codecov/codecov-action@v4
