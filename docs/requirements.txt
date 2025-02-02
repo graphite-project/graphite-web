@@ -4,7 +4,7 @@ django-tagging
 pytz
 git+https://github.com/graphite-project/whisper.git#egg=whisper
 git+https://github.com/graphite-project/ceres.git#egg=ceres
-Django<5
+Django<6
 pyparsing>=3.0.6
 alabaster==0.7.12
 Sphinx==1.3.6
