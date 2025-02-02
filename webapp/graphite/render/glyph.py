@@ -15,11 +15,10 @@ limitations under the License."""
 import itertools
 import math
 import re
+from configparser import ConfigParser
 from datetime import datetime, timedelta
 
-from six.moves import range, zip
 from six.moves.urllib.parse import unquote_plus
-from six.moves.configparser import ConfigParser
 from django.conf import settings
 import pytz
 import six

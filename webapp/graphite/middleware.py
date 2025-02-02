@@ -1,8 +1,5 @@
 from graphite.logger import log
-try:
-    from django.utils.deprecation import MiddlewareMixin
-except ImportError:  # Django < 1.10
-    MiddlewareMixin = object
+from django.utils.deprecation import MiddlewareMixin
 
 
 class LogExceptionsMiddleware(MiddlewareMixin):
