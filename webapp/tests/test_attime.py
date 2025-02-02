@@ -11,6 +11,7 @@ from .base import TestCase
 import pytz
 import mock
 
+
 def make_aware(dt, timezone):
     if hasattr(timezone, 'localize'):
         return timezone.localize(dt)
@@ -26,6 +27,7 @@ def mockDateTime(year, month, day, hour, minute, second):
             return cls(year, month, day, hour, minute, second)
 
     return MockedDateTime
+
 
 @mock.patch('graphite.render.attime.datetime', mockDateTime(2015, 3, 8, 12, 0, 0))
 class ATTimeTimezoneTests(TestCase):
