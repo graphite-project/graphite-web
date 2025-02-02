@@ -7,7 +7,7 @@ git+https://github.com/graphite-project/ceres.git#egg=ceres
 Django<5
 pyparsing>=3.0.6
 alabaster==1.0.0
-Sphinx==1.3.6
+Sphinx==8.1.3
 jinja2<3.2.0
 sphinx_rtd_theme
 urllib3
