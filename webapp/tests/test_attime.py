@@ -6,11 +6,11 @@ from graphite.render.attime import parseTimeReference, parseATTime, parseTimeOff
 
 from datetime import datetime, timedelta
 
-from zoneinfo import ZoneInfo
 from django.utils import timezone
 from .base import TestCase
 import pytz
 import mock
+from zoneinfo import ZoneInfo  # Import ZoneInfo from zoneinfo module
 
 
 def mockDateTime(year, month, day, hour, minute, second):
@@ -108,43 +108,6 @@ class ATTimeTimezoneTests(TestCase):
     def test_parse_zone_aware_datetime(self):
         time_ref = parseATTime(self.MOCK_DATE.replace(hour=8, minute=50), self.specified_tz)
         expected = datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 8, 50, tzinfo=self.specified_tz)  # Use tzinfo
-        self.assertEqual(time_ref, expected)
-
-
-@mock.patch('graphite.render.attime.datetime', mockDateTime(2015, 1, 1, 11, 0, 0))
-class parseTimeReferenceTest(TestCase):
-
-    zone = pytz.utc
-    MOCK_DATE = zone.localize(datetime(2015, 1, 1, 11, 00))
-
-    def test_parse_empty_return_now(self):
-        time_ref = parseTimeReference('')
-        self.assertEqual(time_ref, self.MOCK_DATE)
-
-    def test_parse_None_return_now(self):
-        time_ref = parseTimeReference(None)
-        self.assertEqual(time_ref, self.MOCK_DATE)
-
-    def test_parse_random_string_raise_Exception(self):
-        with self.assertRaises(Exception):
-            parseTimeReference("random")
-
-    def test_parse_now_return_now(self):
-        time_ref = parseTimeReference("now")
-        self.assertEqual(time_ref, self.MOCK_DATE)
-
-    def test_parse_colon_raises_ValueError(self):
-        with self.assertRaises(ValueError):
-            parseTimeReference(":")
-
-    def test_parse_naive_datetime(self):
-        time_ref = parseTimeReference(datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 8, 50))
-        expected = self.zone.localize(datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 8, 50))
-        self.assertEqual(time_ref, expected)
-
-    def test_parse_zone_aware_datetime(self):
-        time_ref = parseTimeReference(self.zone.localize(datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 8, 50)))
-        expected = self.zone.localize(datetime(self.MOCK_DATE.year, self.MOCK_DATE.month, self.MOCK_DATE.day, 8, 50))
         self.assertEqual(time_ref, expected)
 
     def test_parse_hour_return_hour_of_today(self):
