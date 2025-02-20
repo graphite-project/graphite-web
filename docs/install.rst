@@ -145,7 +145,7 @@ Initial Configuration
 
 .. toctree::
    :maxdepth: 2
-   
+
    config-database-setup
    config-webapp
    config-local-settings
@@ -204,7 +204,7 @@ Unfortunately, native Graphite on Windows is completely unsupported, but you can
 .. _NOT Python 3: https://python3wos.appspot.com/
 .. _pip: https://pip.pypa.io/
 .. _python-ldap: https://www.python-ldap.org/
-.. _python-memcache: https://www.tummy.com/software/python-memcached/
+.. _pymemcache: https://github.com/pinterest/pymemcache
 .. _python-rrdtool: http://oss.oetiker.ch/rrdtool/prog/rrdpython.en.html
 .. _python-sqlite2: https://github.com/ghaering/pysqlite
 .. _pytz: https://pypi.python.org/pypi/pytz/

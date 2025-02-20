@@ -323,7 +323,7 @@ if 'sqlite3' in DATABASES.get('default',{}).get('ENGINE','') \
 # Caching shortcuts
 if MEMCACHE_HOSTS:
     CACHES['default'] = {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCache',
         'LOCATION': MEMCACHE_HOSTS,
         'TIMEOUT': DEFAULT_CACHE_DURATION,
         'KEY_PREFIX': MEMCACHE_KEY_PREFIX,
