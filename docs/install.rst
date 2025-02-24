@@ -53,7 +53,7 @@ is part of the Graphite project.
 
 There are also several other dependencies required for additional features:
 
-* Render caching: `memcached`_ and `python-memcache`_
+* Render caching: `memcached`_ and `pymemcache`_
 * LDAP authentication: `python-ldap`_ (for LDAP authentication support in the webapp)
 * AMQP support: `txamqp`_ (version 0.8 is required)
 * RRD support: `python-rrdtool`_
