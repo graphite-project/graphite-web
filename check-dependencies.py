@@ -117,12 +117,12 @@ if django and django.VERSION[:2] < (4,2):
     required += 1
 
 
-# Test for python-memcached
+# Test for pymemcache
 try:
-    import memcache
+    import pymemcache
 except ImportError:
-    sys.stderr.write("[OPTIONAL] Unable to import the 'memcache' module, "
-                     "do you have python-memcached installed for python %s? "
+    sys.stderr.write("[OPTIONAL] Unable to import the 'pymemcache' module, "
+                     "do you have pymemcache installed for python %s? "
                      "This feature is not required but greatly improves performance.\n" % sys.version_info.major)
     optional += 1
 
@@ -193,7 +193,7 @@ __all__ = [
     'pytz',
     'pyparsing',
     'tagging',
-    'memcache',
+    'pymemcache',
     'ldap',
     'txamqp',
     'rrdtool',
