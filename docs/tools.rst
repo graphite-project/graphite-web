@@ -43,7 +43,7 @@ Collection
   A Node.js app written in CoffeeScript to send data from servers to Graphite, much like collectd does, but aimed at being easier to expand and with less footprint. It comes by default with basic collectors plus Redis and MySQL metrics, and can be expanded with JavaScript or CoffeeScript.
 
 `Host sFlow`_
-  An open source implementation of the sFlow protocol (http://www.sflow.org), exporting a standard set of host cpu, memory, disk and network I/O metrics. The sflow2graphite utility converts sFlow to Graphite's plaintext protocol, allowing Graphite to receive sFlow metrics.
+  An open source implementation of the sFlow protocol (https://sflow.org), exporting a standard set of host cpu, memory, disk and network I/O metrics. The sflow2graphite utility converts sFlow to Graphite's plaintext protocol, allowing Graphite to receive sFlow metrics.
 
 `jmx2graphite`_
   The easiest way to poll JMX metrics and write them to Graphite. This tool runs as a Docker container, polling your JMX every X seconds and writing the metrics to Graphite. Requires a minimum of configuration to get started.
@@ -132,7 +132,7 @@ Forwarding
   A fast relay and HTTPS forwarder toolset written in Go.
 
 `statsd`_
-  A simple daemon for easy stats aggregation, developed by the folks at Etsy. A list of forks and alternative implementations can be found at <http://joemiller.me/2011/09/21/list-of-statsd-server-implementations/>
+  A simple daemon for easy stats aggregation, developed by the folks at Etsy. A list of forks and alternative implementations can be found at <https://joemiller.me/2011/09/list-of-statsd-server-implementations/>
 
 `Statusengine`_
   A daemon written in PHP to store Nagios and Naemon performance data to Graphite.
@@ -243,7 +243,7 @@ Monitoring
   A real-time monitoring framework that sits on top of Graphite's time series data. This allows users to create monitors that both visualize and alert on data as it streams from Graphite. The monitors themselves are simple Ruby scripts which run in a sandbox to provide additional security. Monitors are also configured with a crontab compatible time specification used by the scheduler. Alerts can be sent via email, pagerduty, or campfire.
 
 `Rocksteady`_
-  A system that ties together Graphite, `RabbitMQ`_, and `Esper`_. Developed by AdMob (who was then bought by Google), this was released by Google as open source (http://google-opensource.blogspot.com/2010/09/get-ready-to-rocksteady.html).
+  A system that ties together Graphite, `RabbitMQ`_, and `Esper`_. Developed by AdMob (who was then bought by Google), this was released by Google as open source (https://opensource.googleblog.com/2010/09/get-ready-to-rocksteady.html).
 
 `Seyren`_
   An alerting dashboard for Graphite.
@@ -327,7 +327,7 @@ Other
   A simple web service that caches Graphite metrics and exposes an endpoint for dumping or searching against them by substring.
 
 
-.. _Backbone.js: http://documentcloud.github.com/backbone
+.. _Backbone.js: https://github.com/jashkenas/backbone
 .. _Backstop: https://github.com/obfuscurity/backstop
 .. _BigGraphite: https://github.com/criteo/biggraphite
 .. _bosun: http://bosun.org
@@ -351,22 +351,22 @@ Other
 .. _collectd-graphite: https://github.com/joemiller/collectd-graphite
 .. _collectd-to-graphite: https://github.com/loggly/collectd-to-graphite
 .. _Collectl: http://collectl.sourceforge.net
-.. _Cyanite: http://cyanite.io/
-.. _D3.js: http://mbostock.github.com/d3
+.. _Cyanite: https://github.com/pyr/cyanite/
+.. _D3.js: https://github.com/d3/d3
 .. _Descartes: https://github.com/obfuscurity/descartes
 .. _Diamond: https://diamond.readthedocs.io/en/latest/
 .. _Dusk: https://github.com/obfuscurity/dusk
-.. _Esper: http://esper.codehaus.org
+.. _Esper: https://www.espertech.com/esper
 .. _Evenflow: https://github.com/github/evenflow
 .. _Firefly: https://github.com/Yelp/firefly
-.. _Ganglia: http://ganglia.info
+.. _Ganglia: https://github.com/ganglia/
 .. _Gdash: https://github.com/ripienaar/gdash.git
-.. _Giraffe: http://kenhub.github.com/giraffe
+.. _Giraffe: https://github.com/kenhub/giraffe
 .. _go-carbon: https://github.com/lomik/go-carbon
 .. _go-graphite buckytools: https://github.com/go-graphite/buckytools
 .. _Grafana: http://grafana.org
 .. _Grafsy: https://github.com/leoleovich/grafsy
-.. _Graphene: http://jondot.github.com/graphene
+.. _Graphene: https://github.com/jondot/graphene
 .. _Graphios: https://github.com/shawn-sterling/graphios
 .. _graphite-beacon: https://github.com/klen/graphite-beacon
 .. _graphite-clickhouse: https://github.com/lomik/graphite-clickhouse
@@ -377,8 +377,8 @@ Other
 .. _graphite-remote-adapter: https://github.com/criteo/graphite-remote-adapter
 .. _Graphite-Tattle: https://github.com/wayfair/Graphite-Tattle
 .. _graphite-to-zabbix: https://github.com/blacked/graphite-to-zabbix
-.. _Graphiti: https://github.com/paperlesspost/graphiti
-.. _Graphitoid: https://market.android.com/details?id=com.tnc.android.graphite
+.. _Graphiti: https://web.archive.org/web/20161004180203/https://github.com/paperlesspost/graphiti
+.. _Graphitoid: https://github.com/tjoelsson/graphitoid
 .. _graphitus: https://github.com/ezbz/graphitus
 .. _Graphouse: https://github.com/yandex/graphouse
 .. _Graphout: http://shamil.github.io/graphout
@@ -394,7 +394,7 @@ Other
 .. _hubot-scripts: https://github.com/github/hubot-scripts
 .. _InfluxDB: https://influxdb.com/
 .. _influxgraph: https://github.com/InfluxGraph/influxgraph
-.. _Icinga: http://docs.icinga.org/icinga2/latest/doc/module/icinga2/chapter/icinga2-features#graphite-carbon-cache-writer
+.. _Icinga: https://icinga.com/docs/icinga-2/latest/doc/14-features/#graphite-carbon-cache-writer
 .. _jmx2graphite: https://github.com/logzio/jmx2graphite
 .. _jmxtrans: https://github.com/jmxtrans/jmxtrans
 .. _Kenshin: https://github.com/douban/Kenshin
@@ -415,12 +415,12 @@ Other
 .. _Promitor: https://promitor.io/
 .. _RabbitMQ: http://www.rabbitmq.com
 .. _rearview: http://github.com/livingsocial/rearview
-.. _Rickshaw: http://code.shutterstock.com/rickshaw
+.. _Rickshaw: https://tech.shutterstock.com/rickshaw/
 .. _riemann: http://riemann.io
 .. _Rocksteady: http://code.google.com/p/rocksteady
-.. _Sensu: http://sensuapp.org
+.. _Sensu: https://sensu.io/
 .. _Seyren: https://github.com/scobal/seyren
-.. _Shinken: http://www.shinken-monitoring.org
+.. _Shinken: https://github.com/shinken-solutions/shinken
 .. _Skyline: https://github.com/earthgecko/skyline
 .. _snort2graphite: https://github.com/gregvolk/snort2graphite
 .. _SqlToGraphite: https://github.com/perryofpeek/SqlToGraphite
