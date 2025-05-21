@@ -406,7 +406,7 @@ Renders the data as a json object suitable for passing to a `Dygraph <http://dyg
 
 rickshaw
 ^^^^^^^^
-Renders the data as a json object suitable for passing to a `Rickshaw <http://code.shutterstock.com/rickshaw/tutorial/introduction.html>`_ object.
+Renders the data as a json object suitable for passing to a `Rickshaw <https://tech.shutterstock.com/rickshaw/tutorial/introduction.html>`_ object.
 
 .. code-block:: none
 
