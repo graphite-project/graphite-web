@@ -24,7 +24,7 @@ from six.moves.urllib.parse import urlencode, urlsplit, urlunsplit, parse_qs
 from graphite.compat import HttpResponse
 from graphite.errors import InputParameterError, handleInputParameterError
 from graphite.user_util import getProfileByUsername
-from graphite.util import json, unpickle, pickle, msgpack, BytesIO
+from graphite.util import json, msgpack, BytesIO  # Removed unpickle, pickle
 from graphite.storage import extractForwardHeaders
 from graphite.logger import log
 from graphite.render.evaluator import evaluateTarget
@@ -499,7 +499,7 @@ def delegateRendering(graphType, graphOptions, headers=None):
   if headers is None:
     headers = {}
   start = time()
-  postData = (graphType + '\n').encode() + pickle.dumps(graphOptions)
+  postData = (graphType + '\n').encode() + json.dumps(graphOptions).encode('utf-8')
   servers = settings.RENDERING_HOSTS[:] #make a copy so we can shuffle it safely
   shuffle(servers)
   connector_class = connector_class_selector(settings.INTRACLUSTER_HTTPS)
@@ -552,7 +552,7 @@ def renderLocalView(request):
     optionsPickle = reqParams.read()
     reqParams.close()
     graphClass = GraphTypes[graphType]
-    options = unpickle.loads(optionsPickle)
+    options = json.loads(optionsPickle.decode('utf-8'))
     image = doImageRender(graphClass, options)
     log.rendering("Delegated rendering request took %.6f seconds" % (time() -  start))
     response = buildResponse(image)
