@@ -6,4 +6,4 @@ repos:
     rev: "1.27.0"
     hooks:
       - id: django-upgrade
-        args: [--target-version, "5.2", "--list-fixers"]
+        args: [--target-version, "5.2"]
