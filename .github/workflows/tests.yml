@@ -41,7 +41,7 @@ jobs:
         python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Install global dependencies
         run: |
           sudo apt-get -y install libcairo2-dev librrd-dev libboost-python-dev redis-tools
