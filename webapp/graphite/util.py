@@ -12,7 +12,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
-import imp
+import importlib.util
 import io
 import json as _json
 import socket
@@ -145,12 +145,12 @@ def is_unsafe_str(s):
 
 def load_module(module_path, member=None):
   module_name = splitext(basename(module_path))[0]
-  try:  # 'U' is default from Python 3.0 and deprecated since 3.9
-    module_file = open(module_path, 'U')
-  except ValueError:
-    module_file = open(module_path, 'rt')
-  description = ('.py', 'U', imp.PY_SOURCE)
-  module = imp.load_module(module_name, module_file, module_path, description)
+  spec = importlib.util.spec_from_file_location(module_name, module_path)
+  if spec is None or spec.loader is None:
+    raise ImportError("Cannot load module %r from %r" % (module_name, module_path))
+  module = importlib.util.module_from_spec(spec)
+  sys.modules[module_name] = module
+  spec.loader.exec_module(module)
   if member:
     return getattr(module, member)
   else:
