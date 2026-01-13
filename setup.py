@@ -44,10 +44,8 @@ if os.environ.get("USE_DISTUTILS"):
 
     setup_kwargs = dict()
 else:
-    try:
-        from setuptools import setup
-    except ImportError:
-        from distutils.core import setup
+    from setuptools import setup
+
     setup_kwargs = dict(zip_safe=0)
 
 storage_dirs = []
