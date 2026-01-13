@@ -44,7 +44,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install global dependencies
         run: |
-          sudo apt-get -y install libcairo2-dev librrd-dev libboost-python-dev redis-tools
+          sudo apt-get -y install libcairo2-dev librrd-dev libboost-python-dev redis-tools python3-distutils-extra
       - name: Verify Redis connection
         env:
           REDIS_PORT: ${{ job.services.redis.ports[6379] }}
@@ -67,7 +67,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip 'setuptools<58' --force-reinstall
-          pip install 'tox<4' tox-gh-actions flake8 pytest pytz distutils
+          pip install 'tox<4' tox-gh-actions flake8 pytest pytz
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Test with tox
         env:
