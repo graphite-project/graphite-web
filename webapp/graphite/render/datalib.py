@@ -25,6 +25,8 @@ from graphite.logger import log
 from graphite.storage import STORE
 from graphite.util import timebounds, logtime
 
+if not hasattr(settings, 'DEFAULT_CONSOLIDATION'):
+  settings.DEFAULT_CONSOLIDATION = 'average'
 
 try:
   from collections import UserDict
@@ -38,7 +40,7 @@ class Tags(UserDict):
 
 
 class TimeSeries(list):
-  def __init__(self, name, start, end, step, values, consolidate='average', tags=None, xFilesFactor=None, pathExpression=None):
+  def __init__(self, name, start, end, step, values, consolidate=settings.DEFAULT_CONSOLIDATION, tags=None, xFilesFactor=None, pathExpression=None):
     list.__init__(self, values)
     self.name = name
     self.start = start

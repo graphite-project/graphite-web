@@ -98,6 +98,10 @@ DEFAULT_XFILES_FACTOR = 0
 # Allow UTF-8 metrics' names (can cause performance issues)
 #UTF8_METRICS = False
 
+# Default consolidation function ('sum', 'average', 'avg_zero', 'max', 'min', 'first', 'last')
+# If not set average is used
+#DEFAULT_CONSOLIDATION = 'sum'
+
 #####################################
 # Filesystem Paths #
 #####################################
