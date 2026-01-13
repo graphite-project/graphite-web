@@ -2,15 +2,15 @@ name: Run tests
 
 on:
   push:
-    branches: [ master, 1.0.x, 1.1.x ]
+    branches: [master, 1.0.x, 1.1.x]
   pull_request:
     # The branches below must be a subset of the branches above
-    branches: [ master, 1.0.x, 1.1.x ]
+    branches: [master, 1.0.x, 1.1.x]
   workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     services:
       redis:
@@ -38,7 +38,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
 
     steps:
       - uses: actions/checkout@v4
