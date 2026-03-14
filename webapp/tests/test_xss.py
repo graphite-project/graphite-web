@@ -40,3 +40,32 @@ class FindXSSTest(TestCase):
 
         response = self.client.get(url, {'query': 'test', 'local': xssStr, 'from': xssStr, 'tz': xssStr})
         self.assertXSS(response, status_code=400, msg_prefix='XSS detected: ')
+
+
+class LogoutOpenRedirectTest(TestCase):
+    def test_logout_external_redirect_blocked(self):
+        url = reverse('account_logout')
+        response = self.client.get(url, {'nextPage': 'http://evil.example.com'})
+        location = response.get('Location', '')
+        self.assertNotIn('evil.example.com', location)
+
+    def test_logout_local_redirect_allowed(self):
+        url = reverse('account_logout')
+        response = self.client.get(url, {'nextPage': '/browser/'})
+        location = response.get('Location', '')
+        self.assertEqual(location, '/browser/')
+
+
+class URLShortenerOpenRedirectTest(TestCase):
+    def test_shorten_strips_leading_slashes(self):
+        shorten_url = reverse('shorten', kwargs={'path': '//evil.example.com'})
+        shorten_response = self.client.get(shorten_url)
+        self.assertEqual(shorten_response.status_code, 200)
+        link_id = shorten_response.content.decode('utf-8').rsplit('/', 1)[-1]
+        follow_url = reverse('follow', kwargs={'link_id': link_id})
+        follow_response = self.client.get(follow_url)
+        location = follow_response.get('Location', '')
+        self.assertFalse(
+            location.startswith('//') or location.startswith('http://evil') or location.startswith('https://evil'),
+            msg='Open redirect detected: %s' % location,
+        )

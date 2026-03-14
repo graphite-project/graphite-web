@@ -22,6 +22,9 @@ def shorten(request, path):
         path += '?' + request.META['QUERY_STRING']
     # Remove _salt, _dc and _uniq to avoid creating many copies of the same URL
     path = re.sub('&_(uniq|salt|dc)=[0-9.]+', "", path)
+    # Strip leading slashes so the stored path, when concatenated with
+    # reverse('browser'), cannot produce a protocol-relative URL like //host.
+    path = path.lstrip('/')
 
     link, created = Link.objects.get_or_create(url=path)
     link_id = base62.from_decimal(link.id)
