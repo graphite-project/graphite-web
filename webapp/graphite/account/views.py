@@ -19,16 +19,28 @@ except ImportError:  # Django < 1.10
     from django.urls import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
+from django.utils.http import url_has_allowed_host_and_scheme
 from graphite.user_util import getProfile, isAuthenticated
+
+
+def _get_safe_next_page(request, param_value):
+    """Return param_value if it is a safe local redirect target, otherwise the browser URL."""
+    if url_has_allowed_host_and_scheme(
+        url=param_value,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return param_value
+    return reverse('browser')
 
 
 def loginView(request):
     username = request.POST.get('username')
     password = request.POST.get('password')
     if request.method == 'GET':
-        nextPage = request.GET.get('nextPage', reverse('browser'))
+        nextPage = _get_safe_next_page(request, request.GET.get('nextPage', reverse('browser')))
     else:
-        nextPage = request.POST.get('nextPage', reverse('browser'))
+        nextPage = _get_safe_next_page(request, request.POST.get('nextPage', reverse('browser')))
     if username and password:
         user = authenticate(username=username,password=password)
         if user is None:
@@ -43,7 +55,7 @@ def loginView(request):
 
 
 def logoutView(request):
-    nextPage = request.GET.get('nextPage', reverse('browser'))
+    nextPage = _get_safe_next_page(request, request.GET.get('nextPage', reverse('browser')))
     logout(request)
     return HttpResponseRedirect(nextPage)
 
@@ -60,5 +72,5 @@ def updateProfile(request):
     if profile:
         profile.advancedUI = request.POST.get('advancedUI','off') == 'on'
         profile.save()
-    nextPage = request.POST.get('nextPage', reverse('browser'))
+    nextPage = _get_safe_next_page(request, request.POST.get('nextPage', reverse('browser')))
     return HttpResponseRedirect(nextPage)
