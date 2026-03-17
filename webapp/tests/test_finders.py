@@ -148,83 +148,83 @@ class StandardFinderTest(TestCase):
 
             finder = get_finders('graphite.finders.standard.StandardFinder')[0]
 
-            scandir_mock.call_count = 0
+            scandir_mock.reset_mock()
             nodes = finder.find_nodes(FindQuery('foo', None, None))
             self.assertEqual(len(list(nodes)), 2)
             self.assertEqual(scandir_mock.call_count, 0)
 
-            scandir_mock.call_count = 0
+            scandir_mock.reset_mock()
             nodes = finder.find_nodes(FindQuery('foo.bar.baz', None, None))
             self.assertEqual(len(list(nodes)), 1)
             self.assertEqual(scandir_mock.call_count, 0)
 
             # test for https://github.com/grafana/grafana/issues/5936
-            scandir_mock.call_count = 0
+            scandir_mock.reset_mock()
             nodes = finder.find_nodes(FindQuery('foo.{bar}.baz', None, None))
             self.assertEqual(len(list(nodes)), 1)
             self.assertEqual(scandir_mock.call_count, 0)
 
-            scandir_mock.call_count = 0
+            scandir_mock.reset_mock()
             nodes = finder.find_nodes(FindQuery('foo.{bar,}.baz', None, None))
             self.assertEqual(len(list(nodes)), 1)
             self.assertEqual(scandir_mock.call_count, 0)
 
-            scandir_mock.call_count = 0
+            scandir_mock.reset_mock()
             nodes = finder.find_nodes(FindQuery('*.ba?.{baz,foo}', None, None))
             self.assertEqual(len(list(nodes)), 2)
             self.assertEqual(scandir_mock.call_count, 4)
 
-            scandir_mock.call_count = 0
+            scandir_mock.reset_mock()
             nodes = finder.find_nodes(FindQuery('{foo,bar}.{baz,bar}.{baz,foo}', None, None))
             self.assertEqual(len(list(nodes)), 2)
             self.assertEqual(scandir_mock.call_count, 0)
 
-            scandir_mock.call_count = 0
+            scandir_mock.reset_mock()
             nodes = finder.find_nodes(FindQuery('{foo}.bar.*', None, None))
             self.assertEqual(len(list(nodes)), 1)
             self.assertEqual(scandir_mock.call_count, 1)
 
-            scandir_mock.call_count = 0
+            scandir_mock.reset_mock()
             nodes = finder.find_nodes(FindQuery('foo.{ba{r,z},baz}.baz', None, None))
             self.assertEqual(len(list(nodes)), 1)
             self.assertEqual(scandir_mock.call_count, 0)
 
-            scandir_mock.call_count = 0
+            scandir_mock.reset_mock()
             nodes = finder.find_nodes(FindQuery('{foo,garbage}.bar.baz', None, None))
             self.assertEqual(len(list(nodes)), 1)
             self.assertEqual(scandir_mock.call_count, 0)
 
-            scandir_mock.call_count = 0
+            scandir_mock.reset_mock()
             nodes = finder.find_nodes(FindQuery('{fo{o}}.bar.baz', None, None))
             self.assertEqual(len(list(nodes)), 1)
             self.assertEqual(scandir_mock.call_count, 0)
 
-            scandir_mock.call_count = 0
+            scandir_mock.reset_mock()
             nodes = finder.find_nodes(FindQuery('foo{}.bar.baz', None, None))
             self.assertEqual(len(list(nodes)), 1)
             self.assertEqual(scandir_mock.call_count, 0)
 
-            scandir_mock.call_count = 0
+            scandir_mock.reset_mock()
             nodes = finder.find_nodes(FindQuery('{fo,ba}{o}.bar.baz', None, None))
             self.assertEqual(len(list(nodes)), 1)
             self.assertEqual(scandir_mock.call_count, 0)
 
-            scandir_mock.call_count = 0
+            scandir_mock.reset_mock()
             nodes = finder.find_nodes(FindQuery('{fo,ba}{o,o}.bar.baz', None, None))
             self.assertEqual(len(list(nodes)), 1)
             self.assertEqual(scandir_mock.call_count, 0)
 
-            scandir_mock.call_count = 0
+            scandir_mock.reset_mock()
             nodes = finder.find_nodes(FindQuery('{fo,ba}{o,z}.bar.baz', None, None))
             self.assertEqual(len(list(nodes)), 1)
             self.assertEqual(scandir_mock.call_count, 0)
 
-            scandir_mock.call_count = 0
+            scandir_mock.reset_mock()
             nodes = finder.find_nodes(FindQuery('foo;bar=baz', None, None))
             self.assertEqual(len(list(nodes)), 1)
             self.assertEqual(scandir_mock.call_count, 0)
 
-            scandir_mock.call_count = 0
+            scandir_mock.reset_mock()
             nodes = finder.find_nodes(FindQuery('foo;bar=baz2', None, None))
             self.assertEqual(len(list(nodes)), 1)
             self.assertEqual(scandir_mock.call_count, 0)
@@ -233,7 +233,7 @@ class StandardFinderTest(TestCase):
             self.assertEqual(results, [])
 
         finally:
-            scandir_mock.call_count = 0
+            scandir_mock.reset_mock()
             self.wipe_whisper()
 
     @patch('graphite.finders.standard.scandir', wraps=scandir_mock)
@@ -244,18 +244,18 @@ class StandardFinderTest(TestCase):
             self.create_whisper(join('bar', 'baz', 'foo.wsp'))
             finder = get_finders('graphite.finders.standard.StandardFinder')[0]
 
-            scandir_mock.call_count = 0
+            scandir_mock.reset_mock()
             nodes = finder.find_nodes(FindQuery('foo', None, None))
             self.assertEqual(len(list(nodes)), 2)
             self.assertEqual(scandir_mock.call_count, 0)
 
-            scandir_mock.call_count = 0
+            scandir_mock.reset_mock()
             nodes = finder.find_nodes(FindQuery('foo{}.bar.baz', None, None))
             self.assertEqual(len(list(nodes)), 1)
             self.assertEqual(scandir_mock.call_count, 0)
 
         finally:
-            scandir_mock.call_count = 0
+            scandir_mock.reset_mock()
             self.wipe_whisper()
 
     def test_standard_finder_tagged_whisper_carbonlink(self):
