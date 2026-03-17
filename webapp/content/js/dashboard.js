@@ -1326,7 +1326,8 @@ function selectAbsoluteTime() {
   var startDateField = new Ext.form.DateField({
     fieldLabel: 'Start Date',
     width: 125,
-    value: TimeRange.startDate || ''
+    value: TimeRange.startDate || '',
+    invalidText: 'Not a valid date'
   });
 
   var startTimeField = new Ext.form.TimeField({
@@ -1334,13 +1335,15 @@ function selectAbsoluteTime() {
     width: 125,
     allowBlank: false,
     increment: 30,
-    value: TimeRange.startTime || ''
+    value: TimeRange.startTime || '',
+    invalidText: 'Not a valid time'
   });
 
   var endDateField = new Ext.form.DateField({
     fieldLabel: 'End Date',
     width: 125,
-    value: TimeRange.endDate || ''
+    value: TimeRange.endDate || '',
+    invalidText: 'Not a valid date'
   });
 
   var endTimeField = new Ext.form.TimeField({
@@ -1348,7 +1351,8 @@ function selectAbsoluteTime() {
     width: 125,
     allowBlank: false,
     increment: 30,
-    value: TimeRange.endTime || ''
+    value: TimeRange.endTime || '',
+    invalidText: 'Not a valid time'
   });
 
   var win;
