@@ -21,6 +21,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils.html import escape
 
 
 def composer(request):
@@ -65,7 +66,7 @@ def mygraph(request):
                 newGraph.save()
             except Exception:
                 log.exception("Failed to create new MyGraph in /composer/mygraph/, graphName=%s" % graphName)
-                return HttpResponse("Failed to save graph %s" % graphName)
+                return HttpResponse("Failed to save graph %s" % escape(graphName))
 
         return HttpResponse("SAVED")
 
@@ -75,9 +76,9 @@ def mygraph(request):
             existingGraph.delete()
 
         except ObjectDoesNotExist:
-            return HttpResponse("No such graph '%s'" % graphName)
+            return HttpResponse("No such graph '%s'" % escape(graphName))
 
         return HttpResponse("DELETED")
 
     else:
-        return HttpResponse("Invalid operation '%s'" % action)
+        return HttpResponse("Invalid operation '%s'" % escape(action))

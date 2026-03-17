@@ -6,6 +6,8 @@ try:
 except ImportError:  # Django < 1.10
     from django.urls import reverse
 
+from django.contrib.auth.models import User
+
 from .base import TestCase
 
 # Silence logging during tests
@@ -49,3 +51,25 @@ class FindXSSTest(TestCase):
         for param in ('from', 'until'):
             response = self.client.get(url, {'query': 'test', param: xssStr})
             self.assertXSS(response, status_code=400, msg_prefix='XSS detected in %s: ' % param)
+
+
+class ComposerMyGraphXSSTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user('testxss', 'testxss@example.com', 'pass')
+        self.client.login(username='testxss', password='pass')
+
+    def test_mygraph_xss_action(self):
+        """Test that XSS in the action parameter is properly escaped (issue #2794)"""
+        url = reverse('composer_mygraph')
+        xssStr = '"><script>alert(1)</script>'
+
+        response = self.client.get(url, {'action': xssStr, 'graphName': 'test'})
+        self.assertXSS(response, msg_prefix='XSS detected in action: ')
+
+    def test_mygraph_xss_graphname(self):
+        """Test that XSS in the graphName parameter is properly escaped (issue #2794)"""
+        url = reverse('composer_mygraph')
+        xssStr = '"><script>alert(1)</script>'
+
+        response = self.client.get(url, {'action': 'delete', 'graphName': xssStr})
+        self.assertXSS(response, msg_prefix='XSS detected in graphName: ')
