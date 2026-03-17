@@ -29,7 +29,7 @@ class RenderXSSTest(TestCase):
         xssStr = '<noscript><p title="</noscript><img src=x onerror=alert() onmouseover=alert()>">'
 
         # Check for issue #2779 and others
-        response = self.client.get(url, {'target': 'test', 'format': 'raw', 'cacheTimeout': xssStr, 'from': xssStr})
+        response = self.client.get(url, {'target': 'test', 'format': 'raw', 'cacheTimeout': xssStr, 'from': xssStr, 'until': xssStr})
         self.assertXSS(response, status_code=400, msg_prefix='XSS detected: ')
 
 
@@ -38,5 +38,14 @@ class FindXSSTest(TestCase):
         url = reverse('metrics_find')
         xssStr = '<noscript><p title="</noscript><img src=x onerror=alert() onmouseover=alert()>">'
 
-        response = self.client.get(url, {'query': 'test', 'local': xssStr, 'from': xssStr, 'tz': xssStr})
+        response = self.client.get(url, {'query': 'test', 'local': xssStr, 'from': xssStr, 'until': xssStr, 'tz': xssStr})
         self.assertXSS(response, status_code=400, msg_prefix='XSS detected: ')
+
+    def test_find_xss_script_tag(self):
+        """Test that <script> tags in from/until parameters are properly escaped (issue #2870)"""
+        url = reverse('metrics_find')
+        xssStr = "<script>alert('XSS')</script>"
+
+        for param in ('from', 'until'):
+            response = self.client.get(url, {'query': 'test', param: xssStr})
+            self.assertXSS(response, status_code=400, msg_prefix='XSS detected in %s: ' % param)
