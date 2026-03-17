@@ -1875,7 +1875,7 @@ function graphClicked(graphView, graphIndex, element, evt) {
 
   function syncGraphs(thisStore, record, operation) {
     var targets = [];
-    thisStore.each(function (rec) { targets.push(rec.data.target.replace(/'/g, '"')); });
+    thisStore.each(function (rec) { targets.push(rec.data.target); });
     selectedRecord.data.params.target = targets;
     selectedRecord.data.target = Ext.urlEncode({target: targets});
     refreshGraphs();
