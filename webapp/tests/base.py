@@ -4,9 +4,9 @@ from graphite.worker_pool.pool import stop_pools
 
 def is_unsafe_str(s):
     for symbol in '<>':
-        if s.find(symbol) > 0:
+        if s.find(symbol) >= 0:
             return True
-        return False
+    return False
 
 
 class TestCase(OriginalTestCase):
