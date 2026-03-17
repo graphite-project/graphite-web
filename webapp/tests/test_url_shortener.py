@@ -5,6 +5,8 @@ except ImportError:  # Django < 1.10
 
 from urllib.parse import urlparse
 
+from django.utils.http import url_has_allowed_host_and_scheme
+
 from .base import TestCase
 
 
@@ -43,3 +45,23 @@ class UrlShortenerTest(TestCase):
         parsed = urlparse(redirect_url)
         self.assertFalse(bool(parsed.netloc),
                          'Open redirect to external domain detected: %s' % redirect_url)
+
+    def test_follow_open_redirect_backslash_prevention(self):
+        """Test that backslash-prefixed URLs cannot cause open redirects.
+
+        Some browsers interpret /\\evil.com as //evil.com (a protocol-relative
+        URL pointing to evil.com). The follow() view must reject such URLs.
+        """
+        shorten_url = reverse('shorten', kwargs={'path': '\\evil.com'})
+        response = self.client.get(shorten_url)
+        self.assertEqual(response.status_code, 200)
+        short_path = response.content.decode('utf-8')
+
+        follow_response = self.client.get(short_path)
+        self.assertEqual(follow_response.status_code, 301)
+        redirect_url = follow_response['Location']
+        # The redirect must be a safe internal URL
+        self.assertTrue(
+            url_has_allowed_host_and_scheme(url=redirect_url, allowed_hosts={'testserver'}),
+            'Unsafe redirect detected: %s' % redirect_url,
+        )
