@@ -2427,15 +2427,15 @@ nonNegativeDerivative.params = [
 
 
 def _nonNegativeDelta(val, prev, maxValue, minValue):
+  # first reading or None value
+  if None in (prev, val):
+    return None, val
+
   # ignore values larger than maxValue
   if maxValue is not None and val > maxValue:
     return None, None
   if minValue is not None and val < minValue:
     return None, None
-
-  # first reading
-  if None in (prev, val):
-    return None, val
 
   # counter increased, use the difference
   if val >= prev:
