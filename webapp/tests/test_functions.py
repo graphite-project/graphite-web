@@ -1798,6 +1798,10 @@ class FunctionsTest(TestCase):
         result = functions.scaleToSeconds({}, functions.nonNegativeDerivative({}, seriesList), 1)
         self.assertEqual(list(expected[0]), list(result[0]))
 
+        # None values should not raise TypeError when maxValue is set
+        result = functions.perSecond({}, seriesList, maxValue=1000)
+        self.assertEqual(list(expected[0]), list(result[0]))
+
     def test_perSecond_max(self):
         seriesList = self._gen_series_list_with_data(key='test',start=0,end=600,step=60,data=[0, 120, 240, 480, 960, 900, 120, 240, 119, 479])
         expected = [TimeSeries('perSecond(test)', 0, 600, 60, [None, 2, 2, 4, None, None, None, 2, 6, 6])]
