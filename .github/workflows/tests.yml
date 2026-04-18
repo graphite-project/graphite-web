@@ -61,7 +61,7 @@ jobs:
         run: |
           PGPASSWORD=postgres psql -h"127.0.0.1" -p"${POSTGRES_PORT}" -U postgres -c "CREATE USER graphite WITH CREATEDB PASSWORD 'graphite';"
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
