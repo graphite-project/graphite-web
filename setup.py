@@ -40,7 +40,7 @@ with open("setup.cfg", "w") as f:
 
 if os.environ.get("USE_DISTUTILS"):
     # skipcq: PYL-W0402
-    from distutils.core import setup
+    from setuptools import setup
 
     setup_kwargs = dict()
 else:
