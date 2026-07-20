@@ -5,7 +5,7 @@ pytz
 git+https://github.com/graphite-project/whisper.git#egg=whisper
 git+https://github.com/graphite-project/ceres.git#egg=ceres
 Django<6
-pyparsing>=3.0.6
+pyparsing>=3.3.2
 alabaster==1.0.0
 Sphinx==8.2.1
 jinja2<3.2.0
