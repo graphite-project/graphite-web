@@ -79,21 +79,22 @@ def parseTimeReference(ref, tzinfo=None, now=None):
         minute = int( ref[i+1:i+3] )
         ref = ref[i+3:]
         if ref[:2] == 'am':
+            hour = hour % 12
             ref = ref[2:]
         elif ref[:2] == 'pm':
-            hour = (hour + 12) % 24
+            hour = hour % 12 + 12
             ref = ref[2:]
 
     # Xam or XXam
     i = ref.find('am')
     if 0 < i < 3:
-        hour = int( ref[:i] )
+        hour = int( ref[:i] ) % 12
         ref = ref[i+2:]
 
     # Xpm or XXpm
     i = ref.find('pm')
     if 0 < i < 3:
-        hour = (int( ref[:i] ) + 12) % 24
+        hour = int( ref[:i] ) % 12 + 12
         ref = ref[i+2:]
 
     if ref.startswith('noon'):
