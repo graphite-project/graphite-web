@@ -36,7 +36,7 @@
 #
 
 Django>=4.2,<6
-python-memcached>=1.58
+python-memcached>=1.62
 txAMQP>=0.8.2,<0.9
 django-tagging
 gunicorn
