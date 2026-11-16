@@ -116,7 +116,7 @@ try:
         scripts=glob("bin/*"),
         data_files=list(webapp_content.items()) + storage_dirs + conf_files + examples,
         install_requires=[
-            "Django>=4.2,<6",
+            "Django>=4.2,<7",
             "django-tagging",
             "pytz",
             "pyparsing",
